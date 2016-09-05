@@ -1,55 +1,181 @@
-From: fgao@ikuai8.com
-Subject: [PATCH v3 nf] netfilter: seqadj: Fix one possible panic in seqadj when mem is exhausted
-Date: Sat,  3 Sep 2016 19:51:50 +0800
-Message-ID: <1472903510-16652-1-git-send-email-fgao@ikuai8.com>
-Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org, fw@strlen.de,
-        coreteam@netfilter.org, netdev@vger.kernel.org
+From: Kevin Cernekee <cernekee@chromium.org>
+Subject: [PATCH conntrack-tools] conntrackd: cthelper: Add new mdns helper
+Date: Sun,  4 Sep 2016 19:39:04 -0700
+Message-ID: <1473043144-37380-1-git-send-email-cernekee@chromium.org>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from SMTPBG132.QQ.COM ([113.108.23.42]:57427 "EHLO smtpbg132.qq.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751543AbcICLzE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 3 Sep 2016 07:55:04 -0400
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:34052 "EHLO
+        mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754066AbcIECjh (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 4 Sep 2016 22:39:37 -0400
+Received: by mail-pa0-f45.google.com with SMTP id to9so18989285pac.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 04 Sep 2016 19:39:37 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+This allows unicast replies to multicast DNS (mDNS / RFC6762) queries.
+These queries are often used when a full-featured mDNS service (such as
+avahi-daemon) is not running, or if an mDNS client does not have
+permission to bind to port 5353.
 
-When memory is exhausted, nfct_seqadj_ext_add may fail to add the seqadj
-extension. But the function nf_ct_seqadj_init doesn't check if get valid
-seqadj pointer by the nfct_seqadj, while other functions perform the
-sanity check.
-
-So the system would be panic when nfct_seqadj_ext_add failed.
-
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
+Signed-off-by: Kevin Cernekee <cernekee@chromium.org>
 ---
- v3: Remove the warning log when seqadj is null;
- v2: Remove the unnessary seqadj check in nf_ct_seq_adjust
- v1: Initial patch
+ doc/helper/conntrackd.conf | 12 ++++++-
+ src/helpers/Makefile.am    |  5 +++
+ src/helpers/mdns.c         | 89 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 105 insertions(+), 1 deletion(-)
+ create mode 100644 src/helpers/mdns.c
 
- net/netfilter/nf_conntrack_seqadj.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
-index dff0f0c..7f8d814 100644
---- a/net/netfilter/nf_conntrack_seqadj.c
-+++ b/net/netfilter/nf_conntrack_seqadj.c
-@@ -16,9 +16,12 @@ int nf_ct_seqadj_init(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
- 	if (off == 0)
- 		return 0;
+diff --git a/doc/helper/conntrackd.conf b/doc/helper/conntrackd.conf
+index ec24e2a..7eae8bc 100644
+--- a/doc/helper/conntrackd.conf
++++ b/doc/helper/conntrackd.conf
+@@ -25,7 +25,9 @@ Helper {
+ 		QueueLen 10240
  
-+	seqadj = nfct_seqadj(ct);
-+	if (unlikely(!seqadj))
-+		return 0;
+ 		#
+-		# Set the Expectation policy for this helper.
++		# Set the Expectation policy for this helper.  This section
++		# is optional; if left unspecified, the defaults from the
++		# ctd_helper struct will be used.
+ 		#
+ 		Policy ftp {
+ 			#
+@@ -70,6 +72,14 @@ Helper {
+ 			ExpectTimeout 300
+ 		}
+ 	}
++	Type mdns inet udp {
++		QueueNum 6
++		QueueLen 10240
++		Policy mdns {
++			ExpectMax 8
++			ExpectTimeout 30
++		}
++	}
+ 	Type ssdp inet udp {
+ 		QueueNum 5
+ 		QueueLen 10240
+diff --git a/src/helpers/Makefile.am b/src/helpers/Makefile.am
+index 78ef7aa..51f4887 100644
+--- a/src/helpers/Makefile.am
++++ b/src/helpers/Makefile.am
+@@ -3,6 +3,7 @@ include $(top_srcdir)/Make_global.am
+ pkglib_LTLIBRARIES = ct_helper_amanda.la \
+ 		     ct_helper_dhcpv6.la \
+ 		     ct_helper_ftp.la	\
++		     ct_helper_mdns.la	\
+ 		     ct_helper_rpc.la	\
+ 		     ct_helper_tftp.la	\
+ 		     ct_helper_tns.la	\
+@@ -21,6 +22,10 @@ ct_helper_ftp_la_SOURCES = ftp.c
+ ct_helper_ftp_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
+ ct_helper_ftp_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
+ 
++ct_helper_mdns_la_SOURCES = mdns.c
++ct_helper_mdns_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
++ct_helper_mdns_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
 +
- 	set_bit(IPS_SEQ_ADJUST_BIT, &ct->status);
- 
--	seqadj = nfct_seqadj(ct);
- 	this_way = &seqadj->seq[dir];
- 	this_way->offset_before	 = off;
- 	this_way->offset_after	 = off;
+ ct_helper_rpc_la_SOURCES = rpc.c
+ ct_helper_rpc_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
+ ct_helper_rpc_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
+diff --git a/src/helpers/mdns.c b/src/helpers/mdns.c
+new file mode 100644
+index 0000000..7605589
+--- /dev/null
++++ b/src/helpers/mdns.c
+@@ -0,0 +1,89 @@
++/*
++ * Copyright (C) 2016 Google Inc.
++ * Author: Kevin Cernekee <cernekee@chromium.org>
++ *
++ * This helper pokes a hole in the firewall for unicast mDNS replies
++ * (RFC6762 section 5.1).  It is needed because the destination address of
++ * the outgoing mDNS query (224.0.0.251) will not match the source address
++ * of the incoming response (192.168.x.x or similar).  The helper is not used
++ * for standard multicast queries/responses in which the sport and dport are
++ * both 5353, because those can be handled by a standard filter/INPUT rule.
++ *
++ * Usage:
++ *
++ *     nfct add helper mdns inet udp
++ *     iptables -t raw -A OUTPUT -p udp -d 224.0.0.251 '!' --sport 5353 \
++ *         --dport 5353 -j CT --helper mdns
++ *     iptables -t filter -A INPUT -p udp -d 224.0.0.251 --dport 5353 -j ACCEPT
++ *     iptables -t filter -A INPUT -m state --state ESTABLISHED,RELATED \
++ *         -j ACCEPT
++ *
++ * Requires Linux 3.12 or higher.  NAT is unsupported.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "conntrackd.h"
++#include "helper.h"
++#include "myct.h"
++#include "log.h"
++
++#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
++#include <linux/netfilter.h>
++
++static int mdns_helper_cb(struct pkt_buff *pkt, uint32_t protoff,
++			  struct myct *myct, uint32_t ctinfo)
++{
++	struct nf_expect *exp;
++	int dir = CTINFO2DIR(ctinfo);
++	union nfct_attr_grp_addr saddr;
++	uint16_t sport, dport;
++
++	exp = nfexp_new();
++	if (exp == NULL) {
++		pr_debug("conntrack_mdns: failed to allocate expectation\n");
++		return NF_ACCEPT;
++	}
++
++	cthelper_get_addr_src(myct->ct, dir, &saddr);
++	cthelper_get_port_src(myct->ct, dir, &sport);
++	cthelper_get_port_src(myct->ct, !dir, &dport);
++
++	if (cthelper_expect_init(exp,
++				 myct->ct,
++				 0 /* class */,
++				 NULL /* saddr */,
++				 &saddr /* daddr */,
++				 IPPROTO_UDP,
++				 &dport /* sport */,
++				 &sport /* dport */,
++				 NF_CT_EXPECT_PERMANENT)) {
++		pr_debug("conntrack_mdns: failed to init expectation\n");
++		nfexp_destroy(exp);
++		return NF_ACCEPT;
++	}
++
++	myct->exp = exp;
++	return NF_ACCEPT;
++}
++
++static struct ctd_helper mdns_helper = {
++	.name		= "mdns",
++	.l4proto	= IPPROTO_UDP,
++	.priv_data_len	= 0,
++	.cb		= mdns_helper_cb,
++	.policy		= {
++		[0] = {
++			.name		= "mdns",
++			.expect_max	= 8,
++			.expect_timeout	= 30,
++		},
++	},
++};
++
++static void __attribute__ ((constructor)) mdns_init(void)
++{
++	helper_register(&mdns_helper);
++}
 -- 
 1.9.1
-
 
