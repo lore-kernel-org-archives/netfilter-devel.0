@@ -1,38 +1,40 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: nf_tables_trace: fix endiness when dump
- chain policy
-Date: Mon, 5 Sep 2016 19:29:15 +0200
-Message-ID: <20160905172915.GA9225@salvia>
-References: <1472820552-7803-1-git-send-email-zlpnobody@163.com>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 02/29] netfilter: physdev: add missed blank
+Date: Mon, 05 Sep 2016 10:43:17 -0700
+Message-ID: <1473097397.1992.3.camel@perches.com>
+References: <1473073124-5015-1-git-send-email-pablo@netfilter.org>
+         <1473073124-5015-3-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: Liping Zhang <zlpnobody@163.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:32874 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S936570AbcIER3Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 5 Sep 2016 13:29:24 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3D6CA231664
-        for <netfilter-devel@vger.kernel.org>; Mon,  5 Sep 2016 19:29:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2BAD9CE14C
-        for <netfilter-devel@vger.kernel.org>; Mon,  5 Sep 2016 19:29:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5A77D114D6C
-        for <netfilter-devel@vger.kernel.org>; Mon,  5 Sep 2016 19:29:20 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1472820552-7803-1-git-send-email-zlpnobody@163.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 8bit
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1473073124-5015-3-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Sep 02, 2016 at 08:49:12PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
-> 
-> NFTA_TRACE_POLICY attribute is big endian, but we forget to call
-> htonl to convert it. Fortunately, this attribute is parsed as big
-> endian in libnftnl.
+On Mon, 2016-09-05 at 12:58 +0200, Pablo Neira Ayuso wrote:
+[]
+> diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
+[]
+> @@ -107,8 +107,8 @@ static int physdev_mt_check(const struct xt_mtchk_param *par)
+>  	     info->invert & XT_PHYSDEV_OP_BRIDGED) &&
+>  	    par->hook_mask & ((1 << NF_INET_LOCAL_OUT) |
+>  	    (1 << NF_INET_FORWARD) | (1 << NF_INET_POST_ROUTING))) {
+> -		pr_info("using --physdev-out and --physdev-is-out are only"
+> -			"supported in the FORWARD and POSTROUTING chains with"
+> +		pr_info("using --physdev-out and --physdev-is-out are only "
+> +			"supported in the FORWARD and POSTROUTING chains with "
+>  			"bridged traffic.\n");
+>  		if (par->hook_mask & (1 << NF_INET_LOCAL_OUT))
+>  			return -EINVAL;
 
-Applied, thanks!
+Perhaps it would be reasonable at some point to coalesce
+all the string fragments.
+
+Maybe using this could help:
+
+$ git ls-files -- "net/netfilter/*.[ch]" | \
+  xargs ./scripts/checkpatch.pl  -f --types=split_string --fix-inplace
