@@ -1,113 +1,125 @@
 From: Gao Feng <fgao@ikuai8.com>
-Subject: Re: [PATCH v4 nf] netfilter: seqadj: Drop the packet directly when
+Subject: Re: [PATCH v5 nf] netfilter: seqadj: Drop the packet directly when
  fail to add seqadj extension to avoid dereference NULL pointer later
-Date: Tue, 6 Sep 2016 23:01:45 +0800
-Message-ID: <CA+6hz4oCCsTWWerJvS=vieau6nh3FsdZkccPWCm3XP_EzjmDZg@mail.gmail.com>
-References: <1473127043-20078-1-git-send-email-fgao@ikuai8.com> <20160906101755.GA2122@salvia>
+Date: Tue, 6 Sep 2016 23:07:31 +0800
+Message-ID: <CA+6hz4qfjUbUHt0KLQDigAveFxPAOWNHUzwCz-ERJAoC1AG2vw@mail.gmail.com>
+References: <1473173035-2175-1-git-send-email-fgao@ikuai8.com>
+ <20160906145117.GB20188@breakpoint.cc> <CA+6hz4pRTvCvopOEoxC7oPwCPXKStZ9W31+Bn9fiChCgtsF=eQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbguseast2.qq.com ([54.204.34.130]:46493 "EHLO
-        smtpbguseast2.qq.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756521AbcIFPB6 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Sep 2016 11:01:58 -0400
-Received: from mail-ua0-f174.google.com (unknown [209.85.217.174])
+Received: from smtpbgbr2.qq.com ([54.207.22.56]:47663 "EHLO smtpbgbr2.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932874AbcIFPHn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 6 Sep 2016 11:07:43 -0400
+Received: from mail-vk0-f49.google.com (unknown [209.85.213.49])
         by esmtp4.qq.com (ESMTP) with SMTP id 0
-        for <netfilter-devel@vger.kernel.org>; Tue, 06 Sep 2016 23:01:47 +0800 (CST)
-Received: by mail-ua0-f174.google.com with SMTP id 31so51111188uao.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 06 Sep 2016 08:01:48 -0700 (PDT)
-In-Reply-To: <20160906101755.GA2122@salvia>
+        for <netfilter-devel@vger.kernel.org>; Tue, 06 Sep 2016 23:07:32 +0800 (CST)
+Received: by mail-vk0-f49.google.com with SMTP id w64so13857943vkh.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 06 Sep 2016 08:07:33 -0700 (PDT)
+In-Reply-To: <CA+6hz4pRTvCvopOEoxC7oPwCPXKStZ9W31+Bn9fiChCgtsF=eQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi Pablo,
 
-On Tue, Sep 6, 2016 at 6:17 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Tue, Sep 06, 2016 at 09:57:23AM +0800, fgao@ikuai8.com wrote:
->> From: Gao Feng <fgao@ikuai8.com>
->>
->> When memory is exhausted, nfct_seqadj_ext_add may fail to add the seqadj
->> extension. But the function nf_ct_seqadj_init doesn't check if get valid
->> seqadj pointer by the nfct_seqadj.
->>
->> Now drop the packet directly when fail to add seqadj extension to avoid
->> dereference NULL pointer in nf_ct_seqadj_init.
->>
->> Signed-off-by: Gao Feng <fgao@ikuai8.com>
->> ---
->>  v4: Drop the packet directly when fail to add seqadj extension;
->>  v3: Remove the warning log when seqadj is null;
->>  v2: Remove the unnessary seqadj check in nf_ct_seq_adjust
->>  v1: Initial patch
->>
->>  net/netfilter/nf_conntrack_core.c | 6 +++++-
->>  net/netfilter/nf_nat_core.c       | 3 ++-
->>  2 files changed, 7 insertions(+), 2 deletions(-)
->>
->> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
->> index dd2c43a..dfa76ce 100644
->> --- a/net/netfilter/nf_conntrack_core.c
->> +++ b/net/netfilter/nf_conntrack_core.c
->> @@ -1036,7 +1036,11 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
->>               return (struct nf_conntrack_tuple_hash *)ct;
->>
->>       if (tmpl && nfct_synproxy(tmpl)) {
->> -             nfct_seqadj_ext_add(ct);
->> +             if (!nfct_seqadj_ext_add(ct)) {
->> +                     nf_conntrack_free(ct);
->> +                     pr_debug("Can't add seqadj extension\n");
->> +                     return NULL;
->> +             }
->>               nfct_synproxy_ext_add(ct);
->
-> I think this is part of the same logical change, ie. nf_ct_ext_add()
-> returns NULL, then I would also fix nfct_synproxy_ext_add() in this
-> go.
->
->>       }
->>
->> diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
->> index de31818..b82282a 100644
->> --- a/net/netfilter/nf_nat_core.c
->> +++ b/net/netfilter/nf_nat_core.c
->> @@ -441,7 +441,8 @@ nf_nat_setup_info(struct nf_conn *ct,
->>                       ct->status |= IPS_DST_NAT;
->>
->>               if (nfct_help(ct))
->> -                     nfct_seqadj_ext_add(ct);
->> +                     if (!nfct_seqadj_ext_add(ct))
->> +                             return NF_DROP;
->
-> ctnetlink may have created a conntrack with seqadj in place by when we
-> call nf_nat_setup_info() so NF_ACCEPT would be more conservative, eg.
-> via conntrackd state synchronization.
->
-> Actually, after a quick look at ctnetlink, I don't see any any call to
-> nfct_seqadj_ext_add() from there, so I suspect this is broken since
-> SYNPROXY was introduced. It would be great if you can review this and
-> send us patches to fix this, if indeed needed.
->
-> Thanks!
 
-I find the commit which uses seqadj instead of nat extenstion.
-The commit is "41d73ec053d2424599c4ed8452b889374d523ade netfilter:
-nf_conntrack: make sequence number adjustments usuable without NAT".
+On Tue, Sep 6, 2016 at 10:54 PM, Gao Feng <fgao@ikuai8.com> wrote:
+> inline
+>
+> On Tue, Sep 6, 2016 at 10:51 PM, Florian Westphal <fw@strlen.de> wrote:
+>> fgao@ikuai8.com <fgao@ikuai8.com> wrote:
+>>> From: Gao Feng <fgao@ikuai8.com>
+>>>
+>>> When memory is exhausted, nfct_seqadj_ext_add may fail to add the seqadj
+>>> extension. But the function nf_ct_seqadj_init doesn't check if get valid
+>>> seqadj pointer by the nfct_seqadj.
+>>>
+>>> Now drop the packet directly when fail to add seqadj extension to avoid
+>>> dereference NULL pointer in nf_ct_seqadj_init.
+>>>
+>>> Signed-off-by: Gao Feng <fgao@ikuai8.com>
+>>> ---
+>>>  v5: Return NF_ACCEPT instead of NF_DROP when nfct_seqadj_ext_add failed in nf_nat_setup_info
+>>>  v4: Drop the packet directly when fail to add seqadj extension;
+>>>  v3: Remove the warning log when seqadj is null;
+>>>  v2: Remove the unnessary seqadj check in nf_ct_seq_adjust
+>>>  v1: Initial patch
+>>>
+>>>  net/netfilter/nf_conntrack_core.c | 6 +++++-
+>>>  net/netfilter/nf_nat_core.c       | 3 ++-
+>>>  2 files changed, 7 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+>>> index dd2c43a..dfa76ce 100644
+>>> --- a/net/netfilter/nf_conntrack_core.c
+>>> +++ b/net/netfilter/nf_conntrack_core.c
+>>> @@ -1036,7 +1036,11 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+>>>               return (struct nf_conntrack_tuple_hash *)ct;
+>>>
+>>>       if (tmpl && nfct_synproxy(tmpl)) {
+>>> -             nfct_seqadj_ext_add(ct);
+>>> +             if (!nfct_seqadj_ext_add(ct)) {
+>>> +                     nf_conntrack_free(ct);
+>>> +                     pr_debug("Can't add seqadj extension\n");
+>>> +                     return NULL;
+>>> +             }
+>>
+>> if (!nfct_add_synrpxy(ct, tmpl)) {
+>>         nf_conntrack_free(ct);
+>>         return NULL;
+>> }
+>>
+>> static bool nf_ct_add_synproxy(struct nf_conn *ct, const struct nf_conn *tmpl)
+>> {
+>>         if (tmpl && nfct_synproxy(tmpl)) {
+>>                 if (!nfct_seqadj_ext_add(ct))
+>>                         return false;
+>>
+>>                 if (!nfct_synproxy_ext_add(ct))
+>>                         return false;
+>>         }
+>>
+>>         return true;
+>> }
+>>
+>>> diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+>>> index de31818..f8b916a 100644
+>>> --- a/net/netfilter/nf_nat_core.c
+>>> +++ b/net/netfilter/nf_nat_core.c
+>>> @@ -441,7 +441,8 @@ nf_nat_setup_info(struct nf_conn *ct,
+>>>                       ct->status |= IPS_DST_NAT;
+>>>
+>>>               if (nfct_help(ct))
+>>> -                     nfct_seqadj_ext_add(ct);
+>>> +                     if (!nfct_seqadj_ext_add(ct))
+>>> +                             return NF_ACCEPT;
+>>>       }
+>>
+>> Hmm, why accept?
+>>
+>> We are asked to add extension to rewrite sequence numbers, but
+>> we cannot.  How can the connection work if we cannot munge/track
+>> seqno rewrites?
+>
+> I thought we should drop the packet in that case before.
+> But Pablo point out one case that the ctnetlink also could add the
+> seqadj extension too.
+> There is one synchronization case.
+>
+> I think he is right. Then modify the patch according to his advice.
+>
+> Best Regards
+> Feng
 
-But I think the current ctnetlink codes are ok if it could not use
-seqadj without nat.
-When ctnetlink creates the nat info, it also add the seqadj extension.
+I find the commit which uses seqadj extension firstly in ctnetlink.
+But I think it should be ok and reply the details in my "v4" patch of
+this subject.
+Could you check it please?
 
-The call path is:
-ctnetlink_create_conntrack->ctnetlink_setup_nat->ctnetlink_parse_nat_setup->nfnetlink_parse_nat_setup_hook
-(nfnetlink_parse_nat_setup)->nf_nat_setup_info->nfct_seqadj_ext_add.
-
-So if the ctnetlink always uses the seqadj with nat, the current codes
-should be ok.
-If not, then need to add another nfct_seqadj_ext_add invocation.
+If my understanding is wrong, I could send one patch to fix it.
 
 Regards
 Feng
