@@ -1,45 +1,71 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf-next] netfilter: nf_conntrack: remove unused ctl_table_path member in nf_conntrack_l3proto
-Date: Tue,  6 Sep 2016 22:35:47 +0800
-Message-ID: <1473172547-8585-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: pablo@netfilter.org
+From: fgao@ikuai8.com
+Subject: [PATCH v5 nf] netfilter: seqadj: Drop the packet directly when fail to add seqadj extension to avoid dereference NULL pointer later
+Date: Tue,  6 Sep 2016 22:43:55 +0800
+Message-ID: <1473173035-2175-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org, fw@strlen.de,
+        coreteam@netfilter.org, netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-14.163.com ([220.181.12.14]:51818 "EHLO m12-14.163.com"
+Received: from smtpbg321.qq.com ([14.17.32.30]:60176 "EHLO smtpbg321.qq.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933689AbcIFOg6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Sep 2016 10:36:58 -0400
+        id S934551AbcIFOov (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 6 Sep 2016 10:44:51 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+From: Gao Feng <fgao@ikuai8.com>
 
-After commit adf0516845bc ("netfilter: remove ip_conntrack* sysctl
-compat code"), ctl_table_path member in struct nf_conntrack_l3proto{}
-is not used anymore, remove it.
+When memory is exhausted, nfct_seqadj_ext_add may fail to add the seqadj
+extension. But the function nf_ct_seqadj_init doesn't check if get valid
+seqadj pointer by the nfct_seqadj.
 
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+Now drop the packet directly when fail to add seqadj extension to avoid
+dereference NULL pointer in nf_ct_seqadj_init.
+
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
 ---
- include/net/netfilter/nf_conntrack_l3proto.h | 4 ----
- 1 file changed, 4 deletions(-)
+ v5: Return NF_ACCEPT instead of NF_DROP when nfct_seqadj_ext_add failed in nf_nat_setup_info
+ v4: Drop the packet directly when fail to add seqadj extension;
+ v3: Remove the warning log when seqadj is null;
+ v2: Remove the unnessary seqadj check in nf_ct_seq_adjust
+ v1: Initial patch
 
-diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
-index cdc920b..8992e42 100644
---- a/include/net/netfilter/nf_conntrack_l3proto.h
-+++ b/include/net/netfilter/nf_conntrack_l3proto.h
-@@ -63,10 +63,6 @@ struct nf_conntrack_l3proto {
+ net/netfilter/nf_conntrack_core.c | 6 +++++-
+ net/netfilter/nf_nat_core.c       | 3 ++-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index dd2c43a..dfa76ce 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1036,7 +1036,11 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 		return (struct nf_conntrack_tuple_hash *)ct;
  
- 	size_t nla_size;
+ 	if (tmpl && nfct_synproxy(tmpl)) {
+-		nfct_seqadj_ext_add(ct);
++		if (!nfct_seqadj_ext_add(ct)) {
++			nf_conntrack_free(ct);
++			pr_debug("Can't add seqadj extension\n");
++			return NULL;
++		}
+ 		nfct_synproxy_ext_add(ct);
+ 	}
  
--#ifdef CONFIG_SYSCTL
--	const char		*ctl_table_path;
--#endif /* CONFIG_SYSCTL */
--
- 	/* Init l3proto pernet data */
- 	int (*init_net)(struct net *net);
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index de31818..f8b916a 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -441,7 +441,8 @@ nf_nat_setup_info(struct nf_conn *ct,
+ 			ct->status |= IPS_DST_NAT;
  
+ 		if (nfct_help(ct))
+-			nfct_seqadj_ext_add(ct);
++			if (!nfct_seqadj_ext_add(ct))
++				return NF_ACCEPT;
+ 	}
+ 
+ 	if (maniptype == NF_NAT_MANIP_SRC) {
 -- 
-2.5.5
+1.9.1
 
 
