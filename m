@@ -1,79 +1,58 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: nfqueue & bridge netfilter considered broken
-Date: Tue, 6 Sep 2016 13:24:32 +0200
-Message-ID: <20160906112432.GA20188@breakpoint.cc>
-References: <20160902090848.GA506@breakpoint.cc>
- <20160902095853.GA5577@salvia>
- <20160902100021.GA5627@salvia>
- <20160902102244.GB506@breakpoint.cc>
- <20160906101004.GA1874@salvia>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [nft PATCH v2 2/4] netlink_delinearize: Avoid potential null
+ pointer deref
+Date: Tue, 6 Sep 2016 16:17:30 +0200
+Message-ID: <20160906141730.GI29816@orbyte.nwl.cc>
+References: <1472578792-2991-1-git-send-email-phil@nwl.cc>
+ <1472578792-2991-3-git-send-email-phil@nwl.cc>
+ <20160905165243.GA17099@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:33026 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753996AbcIFLYf (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Sep 2016 07:24:35 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:56397 "EHLO mail.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755878AbcIFORc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 6 Sep 2016 10:17:32 -0400
 Content-Disposition: inline
-In-Reply-To: <20160906101004.GA1874@salvia>
+In-Reply-To: <20160905165243.GA17099@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Fri, Sep 02, 2016 at 12:22:44PM +0200, Florian Westphal wrote:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > On Fri, Sep 02, 2016 at 11:58:53AM +0200, Pablo Neira Ayuso wrote:
-> > > > On Fri, Sep 02, 2016 at 11:08:48AM +0200, Florian Westphal wrote:
-> > > > > I - discard extra nfct entry when cloning.  Works, but obviously not
-> > > > >  compatible in any way (the clones are INVALID).
-> > > > 
-> > > > This approach is simple and it would only break when packets are
-> > > > flooded to all ports, actually this is not working anyway because of
-> > > > clashes at confirm, right?
-> > > 
-> > > Hm, what about attaching the notrack conntrack for this case?
-> > 
-> > This is what Patrick said last time this came up (source:
-> > http://marc.info/?l=netfilter-devel&m=131471329004889&w=2 ):
-> > 
-> > "I don't think the clones should have invalid state, even untracked is
-> > very questionable since all packets should have NAT applied to them in
-> > the same way, connmarks might be used etc.
+Hi,
 
-> > way would be to serialize reinjection of packets belonging to
-> > unconfirmed conntracks in nf_reinject or the queueing modules. Conntrack
-> > related stuff doesn't really belong there, but it seems like the easiest
-> > and safest fix to me."
-> > 
-> > As for bridge conntrack, this is indeed a good question.
-> > 
-> > Seems we will need to register a dedicated conntrack bridge hook that
-> > takes care of uncloning in FORWARD hook, i.e. add a hook in FORWARD
-> > that makes a deep copy of all unconfirmed conntracks if skb is cloned,
-> > and (once skb reaches nf_confirm) do a non-destructive clash resolution
-> > (accept instead of drop of the clashing entries should be enough).
-> >
-> > We have to sacrifice another status bit for this, or perhaps add a
-> > bridge conntrack extension to store such a clash hint though.
+On Mon, Sep 05, 2016 at 06:52:43PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Aug 30, 2016 at 07:39:50PM +0200, Phil Sutter wrote:
+> > As netlink_get_register() may return NULL, we must not pass the returned
+> > data unchecked to expr_set_type() as that will dereference it. Since the
+> > parser has failed at that point anyway, by returning early we can skip
+> > the useless statement allocation that follows in
+> > netlink_parse_ct_stmt().
 > 
-> Assuming nf_nat_setup_info() was not yet called, ie. NAT from
-> postrouting case, then these packets with a deep copy and the flag set
-> may get different ports given the port clash resolution, then the
-> clash resolution would need to unmangle packets to get them back to a
-> consistent configuration.
+> I found a couple more spots, such as the payload stmt that was not
+> covered by this patch.
 
-Right -- one of the reasons why I did not plan on adding NAT hooks
-for NFPROTO_BRIDGE ...
+OK. The reason I left those out was that they don't call expr_set_type()
+and therefore the potential NULL pointer dereference doesn't happen
+there.
 
-> This is something that can only happen from nfqueue if any of the
-> multiqueues approach is used to distribute packets between several
-> CPUs, right?
+> Attaching a new one based on this, looks good to you?
 
-I think we also might have a race with local delivery/upcall vs.
-flood forwarding, local_rcv path in bridge uses netif_receive_skb so skb
-might be queued on percpu backlog. (the race is much more prominent
-with per-cpu nfqueueing though and I don't recall seeing such race
-related crashes without nfqueue presence).
+Acked-by: Phil Sutter <phil@nwl.cc>
+
+> Anyway, this is very unlikely to happen: Only if we ever get more
+> registers in the kernel, given that expl_clone() relies on the
+> xzalloc() function that just stops execution under OOM.
+
+Yes. The thing with Covscan is it will find very theoretical issues and
+practical relevance is usually questionable (as they would likely have
+been found already).
+
+> Actually this brings an interesting issue that is that we need to
+> provide a way to describe the vm capabilities so we can extend things
+> in the future without breaking userspace.
+
+Not my cup of tea luckily. :)
+
+Thanks, Phil
