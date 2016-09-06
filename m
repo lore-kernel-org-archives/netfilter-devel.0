@@ -1,48 +1,40 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH 8/7] net/netfilter/nf_conntrack_core: Remove another
- memory barrier
-Date: Tue, 6 Sep 2016 18:56:48 +0100
-Message-ID: <20160906175648.GC29382@arm.com>
-References: <1472743673-15585-1-git-send-email-manfred@colorfullife.com>
- <20160901153039.GN6721@arm.com>
- <20160901164126.GZ10153@twins.programming.kicks-ass.net>
- <1971bcf8-0f42-c0b7-5e59-2ceaa6e024a7@colorfullife.com>
- <20160902192213.GM10153@twins.programming.kicks-ass.net>
- <5d88110f-cf0e-c72e-7acc-518b736e715e@colorfullife.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/29] Netfilter updates for net-next
+Date: Tue, 06 Sep 2016 12:47:37 -0700 (PDT)
+Message-ID: <20160906.124737.1399793113981333128.davem@davemloft.net>
+References: <1473073124-5015-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Peter Zijlstra <peterz@infradead.org>, benh@kernel.crashing.org,
-        paulmck@linux.vnet.ibm.com, Ingo Molnar <mingo@elte.hu>,
-        Boqun Feng <boqun.feng@gmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        LKML <linux-kernel@vger.kernel.org>, 1vier1@web.de,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-To: Manfred Spraul <manfred@colorfullife.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:60896 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755322AbcIFR4p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Sep 2016 13:56:45 -0400
-Content-Disposition: inline
-In-Reply-To: <5d88110f-cf0e-c72e-7acc-518b736e715e@colorfullife.com>
+Received: from shards.monkeyblade.net ([184.105.139.130]:52724 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755032AbcIFTro (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 6 Sep 2016 15:47:44 -0400
+In-Reply-To: <1473073124-5015-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 05, 2016 at 08:57:19PM +0200, Manfred Spraul wrote:
-> On 09/02/2016 09:22 PM, Peter Zijlstra wrote:
-> Anyone around with a ppc or arm? How slow is the loop of the
-> spin_unlock_wait() calls?
-> Single CPU is sufficient.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon,  5 Sep 2016 12:58:15 +0200
+
+> Hi David,
 > 
-> Question 1: How large is the difference between:
-> #./sem-scalebench -t 10 -c 1 -p 1 -o 4 -f -d 1
-> #./sem-scalebench -t 10 -c 1 -p 1 -o 4 -f -d 256
-> https://github.com/manfred-colorfu/ipcscale
+> The following patchset contains Netfilter updates for your net-next
+> tree.  Most relevant updates are the removal of per-conntrack timers to
+> use a workqueue/garbage collection approach instead from Florian
+> Westphal, the hash and numgen expression for nf_tables from Laura
+> Garcia, updates on nf_tables hash set to honor the NLM_F_EXCL flag,
+> removal of ip_conntrack sysctl and many other incremental updates on our
+> Netfilter codebase.
+> 
+> More specifically, they are:
+ ...
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
 
-Not sure exactly what you want me to run here, but with an arm64
-defconfig -rc3 kernel, those two invocations give me "Max total" values
-where the first is 20x bigger than the second.
-
-Will
+Pulled, thanks Pablo.
