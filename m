@@ -1,40 +1,55 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/29] Netfilter updates for net-next
-Date: Tue, 06 Sep 2016 12:47:37 -0700 (PDT)
-Message-ID: <20160906.124737.1399793113981333128.davem@davemloft.net>
-References: <1473073124-5015-1-git-send-email-pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: PROBLEM: TPROXY and DNAT broken (bisected to 079096f103fa)
+Date: Wed, 7 Sep 2016 00:57:07 +0200
+Message-ID: <20160906225707.GD20188@breakpoint.cc>
+References: <BL2PR07MB2306908C76E928619A24B52E9E0F0@BL2PR07MB2306.namprd07.prod.outlook.com>
+ <20160729132154.GB13634@breakpoint.cc>
+ <BL2PR07MB2306B2B920C441DF5406B1439E050@BL2PR07MB2306.namprd07.prod.outlook.com>
+ <20160802221121.GB31209@breakpoint.cc>
+ <BL2PR07MB23061A24DD64E80532DBD9799E060@BL2PR07MB2306.namprd07.prod.outlook.com>
+ <BL2PR07MB2306C9A7EB393F441D56E7D69E1E0@BL2PR07MB2306.namprd07.prod.outlook.com>
+ <20160812190319.GB25519@breakpoint.cc>
+ <BL2PR07MB23066ABAF5223701D17CFFF29E120@BL2PR07MB2306.namprd07.prod.outlook.com>
+ <BL2PR07MB23065A58E771485F53D553E99EF90@BL2PR07MB2306.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([184.105.139.130]:52724 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755032AbcIFTro (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Sep 2016 15:47:44 -0400
-In-Reply-To: <1473073124-5015-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        Eric Dumazet <eric.dumazet@gmail.com>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org
+To: Brandon Cazander <brandon.cazander@multapplied.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <BL2PR07MB23065A58E771485F53D553E99EF90@BL2PR07MB2306.namprd07.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon,  5 Sep 2016 12:58:15 +0200
+Brandon Cazander <brandon.cazander@multapplied.net> wrote:
 
-> Hi David,
-> 
-> The following patchset contains Netfilter updates for your net-next
-> tree.  Most relevant updates are the removal of per-conntrack timers to
-> use a workqueue/garbage collection approach instead from Florian
-> Westphal, the hash and numgen expression for nf_tables from Laura
-> Garcia, updates on nf_tables hash set to honor the NLM_F_EXCL flag,
-> removal of ip_conntrack sysctl and many other incremental updates on our
-> Netfilter codebase.
-> 
-> More specifically, they are:
- ...
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+[ cc netfilter-devel ]
 
-Pulled, thanks Pablo.
+> Sorry to resurrect this so much later—I just got back from holidays and this was still on my desk.
+> 
+> Will anyone have another chance to look at this? It appears that the DIVERT rule is not working in our case, and I wonder if it is possible to fix the TPROXY target as well as the socket target fix that Florian provided.
+
+Are there reproducer instructions available for this?
+
+I don't see how TPROXY can be 'fixed' because when skb (tcp syn) is in
+mangle PREROUTING nat transformation(s) have not been set up (yet).
+
+So ip header addresses are all we have.
+
+Only the ack (that finishes 3whs) or retransmitted syns will
+have the post-nat address info available.
+
+Ack should work fine with (changed) -m socket since the
+socket should already be in the main ehash table.
+
+Syn should also work just fine because Erics changes
+should not affect initial listener lookup done by TPROXY.
+
+> It appears as though nobody else has encountered this regression, so I can appreciate that it comes up pretty low on the priority list. If it is not realistic that this will be looked at further, then we will have to look at replacing TPROXY.
+
+If you already need NAT anyway you can also use -j REDIRECT (or exclude
+tproxied packets from nat).
