@@ -1,77 +1,83 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: nfqueue & bridge netfilter considered broken
-Date: Tue, 6 Sep 2016 12:10:04 +0200
-Message-ID: <20160906101004.GA1874@salvia>
-References: <20160902090848.GA506@breakpoint.cc>
- <20160902095853.GA5577@salvia>
- <20160902100021.GA5627@salvia>
- <20160902102244.GB506@breakpoint.cc>
+Subject: Re: [PATCH v4 nf] netfilter: seqadj: Drop the packet directly when
+ fail to add seqadj extension to avoid dereference NULL pointer later
+Date: Tue, 6 Sep 2016 12:17:55 +0200
+Message-ID: <20160906101755.GA2122@salvia>
+References: <1473127043-20078-1-git-send-email-fgao@ikuai8.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59672 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932799AbcIFKKR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Sep 2016 06:10:17 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 942F42791A2
-        for <netfilter-devel@vger.kernel.org>; Tue,  6 Sep 2016 12:10:13 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7FA76114D63
-        for <netfilter-devel@vger.kernel.org>; Tue,  6 Sep 2016 12:10:13 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 16D36114D74
-        for <netfilter-devel@vger.kernel.org>; Tue,  6 Sep 2016 12:10:09 +0200 (CEST)
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        gfree.wind@gmail.com
+To: fgao@ikuai8.com
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160902102244.GB506@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1473127043-20078-1-git-send-email-fgao@ikuai8.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Sep 02, 2016 at 12:22:44PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Fri, Sep 02, 2016 at 11:58:53AM +0200, Pablo Neira Ayuso wrote:
-> > > On Fri, Sep 02, 2016 at 11:08:48AM +0200, Florian Westphal wrote:
-> > > > I - discard extra nfct entry when cloning.  Works, but obviously not
-> > > >  compatible in any way (the clones are INVALID).
-> > > 
-> > > This approach is simple and it would only break when packets are
-> > > flooded to all ports, actually this is not working anyway because of
-> > > clashes at confirm, right?
-> > 
-> > Hm, what about attaching the notrack conntrack for this case?
+On Tue, Sep 06, 2016 at 09:57:23AM +0800, fgao@ikuai8.com wrote:
+> From: Gao Feng <fgao@ikuai8.com>
 > 
-> This is what Patrick said last time this came up (source:
-> http://marc.info/?l=netfilter-devel&m=131471329004889&w=2 ):
+> When memory is exhausted, nfct_seqadj_ext_add may fail to add the seqadj
+> extension. But the function nf_ct_seqadj_init doesn't check if get valid
+> seqadj pointer by the nfct_seqadj.
 > 
-> "I don't think the clones should have invalid state, even untracked is
-> very questionable since all packets should have NAT applied to them in
-> the same way, connmarks might be used etc.
+> Now drop the packet directly when fail to add seqadj extension to avoid
+> dereference NULL pointer in nf_ct_seqadj_init.
 > 
-> We probably need to restore the above mentioned assumption somehow. One
-> way would be to serialize reinjection of packets belonging to
-> unconfirmed conntracks in nf_reinject or the queueing modules. Conntrack
-> related stuff doesn't really belong there, but it seems like the easiest
-> and safest fix to me."
+> Signed-off-by: Gao Feng <fgao@ikuai8.com>
+> ---
+>  v4: Drop the packet directly when fail to add seqadj extension;
+>  v3: Remove the warning log when seqadj is null;
+>  v2: Remove the unnessary seqadj check in nf_ct_seq_adjust
+>  v1: Initial patch
 > 
-> As for bridge conntrack, this is indeed a good question.
+>  net/netfilter/nf_conntrack_core.c | 6 +++++-
+>  net/netfilter/nf_nat_core.c       | 3 ++-
+>  2 files changed, 7 insertions(+), 2 deletions(-)
 > 
-> Seems we will need to register a dedicated conntrack bridge hook that
-> takes care of uncloning in FORWARD hook, i.e. add a hook in FORWARD
-> that makes a deep copy of all unconfirmed conntracks if skb is cloned,
-> and (once skb reaches nf_confirm) do a non-destructive clash resolution
-> (accept instead of drop of the clashing entries should be enough).
->
-> We have to sacrifice another status bit for this, or perhaps add a
-> bridge conntrack extension to store such a clash hint though.
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> index dd2c43a..dfa76ce 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -1036,7 +1036,11 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+>  		return (struct nf_conntrack_tuple_hash *)ct;
+>  
+>  	if (tmpl && nfct_synproxy(tmpl)) {
+> -		nfct_seqadj_ext_add(ct);
+> +		if (!nfct_seqadj_ext_add(ct)) {
+> +			nf_conntrack_free(ct);
+> +			pr_debug("Can't add seqadj extension\n");
+> +			return NULL;
+> +		}
+>  		nfct_synproxy_ext_add(ct);
 
-Assuming nf_nat_setup_info() was not yet called, ie. NAT from
-postrouting case, then these packets with a deep copy and the flag set
-may get different ports given the port clash resolution, then the
-clash resolution would need to unmangle packets to get them back to a
-consistent configuration.
+I think this is part of the same logical change, ie. nf_ct_ext_add()
+returns NULL, then I would also fix nfct_synproxy_ext_add() in this
+go.
 
-This is something that can only happen from nfqueue if any of the
-multiqueues approach is used to distribute packets between several
-CPUs, right?
+>  	}
+>  
+> diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+> index de31818..b82282a 100644
+> --- a/net/netfilter/nf_nat_core.c
+> +++ b/net/netfilter/nf_nat_core.c
+> @@ -441,7 +441,8 @@ nf_nat_setup_info(struct nf_conn *ct,
+>  			ct->status |= IPS_DST_NAT;
+>  
+>  		if (nfct_help(ct))
+> -			nfct_seqadj_ext_add(ct);
+> +			if (!nfct_seqadj_ext_add(ct))
+> +				return NF_DROP;
+
+ctnetlink may have created a conntrack with seqadj in place by when we
+call nf_nat_setup_info() so NF_ACCEPT would be more conservative, eg.
+via conntrackd state synchronization.
+
+Actually, after a quick look at ctnetlink, I don't see any any call to
+nfct_seqadj_ext_add() from there, so I suspect this is broken since
+SYNPROXY was introduced. It would be great if you can review this and
+send us patches to fix this, if indeed needed.
+
+Thanks!
