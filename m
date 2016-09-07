@@ -1,61 +1,37 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2] netfilter: correct allowed characters in Call-ID SIP
- header
-Date: Wed, 7 Sep 2016 10:31:34 +0200
-Message-ID: <20160907083134.GB2276@salvia>
-References: <20160830164824._3CVoDOGb%marcoangaroni@gmail.com>
+Subject: Re: [PATCH v3 net-next 1/2] netfilter: gre: Use consistent GRE_*
+ macros instead of ones defined by netfilter.
+Date: Wed, 7 Sep 2016 10:47:39 +0200
+Message-ID: <20160907084739.GA3842@salvia>
+References: <1472137691-24822-1-git-send-email-fgao@ikuai8.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Marco Angaroni <marcoangaroni@gmail.com>
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, gfree.wind@gmail.com
+To: fgao@ikuai8.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57062 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:38930 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750938AbcIGIbo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Sep 2016 04:31:44 -0400
+        id S1752793AbcIGIrv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 7 Sep 2016 04:47:51 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 171D11022AD
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Sep 2016 10:31:43 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 098E211E58F
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Sep 2016 10:47:49 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 053981150AF
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Sep 2016 10:31:43 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EE682100A79
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Sep 2016 10:47:48 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0654D1150AF
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Sep 2016 10:31:39 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 08585114D61
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Sep 2016 10:47:45 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160830164824._3CVoDOGb%marcoangaroni@gmail.com>
+In-Reply-To: <1472137691-24822-1-git-send-email-fgao@ikuai8.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Aug 30, 2016 at 06:48:24PM +0200, Marco Angaroni wrote:
-> Current parsing methods for SIP header Call-ID do not check correctly all
-> characters allowed by RFC 3261. In particular "," character is allowed 
-> instead of "'" character. As a result Call-ID headers like the following
-> are discarded by IPVS SIP persistence engine.
+On Thu, Aug 25, 2016 at 11:08:11PM +0800, fgao@ikuai8.com wrote:
+> From: Gao Feng <fgao@ikuai8.com>
 > 
-> Call-ID: -.!%*_+`'~()<>:\"/[]?{}
-> 
-> Above example is composed using all non-alphanumeric characters listed
-> in RFC 3261 for Call-ID header syntax.
-> 
-> Proposed fix is in nf_conntrack_sip module; function iswordc() checks this
-> range: (c >= '(' && c <= '/') which includes these characters: ()*+,-./
-> They are all allowed except ",". Instead "'" is not included in the list.
-> 
-> Below is an extract of relevant SIP ABNF syntax.
-> 
-> Call-ID  =  ( "Call-ID" / "i" ) HCOLON callid
-> callid   =  word [ "@" word ]
-> 
-> HCOLON  =  *( SP / HTAB ) ":" SWS
-> SWS     =  [LWS] ; sep whitespace
-> LWS     =  [*WSP CRLF] 1*WSP ; linear whitespace
-> WSP     =  SP / HTAB
-> word    =  1*(alphanum / "-" / "." / "!" / "%" / "*" /
->            "_" / "+" / "`" / "'" / "~" /
->            "(" / ")" / "<" / ">" /
->            ":" / "\" / DQUOTE /
->            "/" / "[" / "]" / "?" /
->            "{" / "}" )
+> There are already some GRE_* macros in kernel, so it is unnecessary
+> to define these macros. And remove some useless macros
 
-Also applied, thanks.
+Applied, thanks.
