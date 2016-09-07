@@ -1,102 +1,42 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v5 nf] netfilter: seqadj: Drop the packet directly when
- fail to add seqadj extension to avoid dereference NULL pointer later
-Date: Wed, 7 Sep 2016 11:18:59 +0200
-Message-ID: <20160907091859.GA10315@salvia>
-References: <1473173035-2175-1-git-send-email-fgao@ikuai8.com>
- <20160906145117.GB20188@breakpoint.cc>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft] Using variable sized data types in concat expressions
+Date: Wed, 7 Sep 2016 11:20:59 +0200
+Message-ID: <CAOkSjBgWckUug_7yGqMpVrq2u3bP+o5v_7zTYDD4jL=YerpA7Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: fgao@ikuai8.com, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        gfree.wind@gmail.com
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160906145117.GB20188@breakpoint.cc>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:36598 "EHLO
+        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751212AbcIGJVV (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 7 Sep 2016 05:21:21 -0400
+Received: by mail-wm0-f42.google.com with SMTP id b187so105159610wme.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 07 Sep 2016 02:21:20 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Sep 06, 2016 at 04:51:17PM +0200, Florian Westphal wrote:
-> fgao@ikuai8.com <fgao@ikuai8.com> wrote:
-> > From: Gao Feng <fgao@ikuai8.com>
-> > 
-> > When memory is exhausted, nfct_seqadj_ext_add may fail to add the seqadj
-> > extension. But the function nf_ct_seqadj_init doesn't check if get valid
-> > seqadj pointer by the nfct_seqadj.
-> > 
-> > Now drop the packet directly when fail to add seqadj extension to avoid
-> > dereference NULL pointer in nf_ct_seqadj_init.
-> > 
-> > Signed-off-by: Gao Feng <fgao@ikuai8.com>
-> > ---
-> >  v5: Return NF_ACCEPT instead of NF_DROP when nfct_seqadj_ext_add failed in nf_nat_setup_info
-> >  v4: Drop the packet directly when fail to add seqadj extension;
-> >  v3: Remove the warning log when seqadj is null;
-> >  v2: Remove the unnessary seqadj check in nf_ct_seq_adjust
-> >  v1: Initial patch
-> > 
-> >  net/netfilter/nf_conntrack_core.c | 6 +++++-
-> >  net/netfilter/nf_nat_core.c       | 3 ++-
-> >  2 files changed, 7 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> > index dd2c43a..dfa76ce 100644
-> > --- a/net/netfilter/nf_conntrack_core.c
-> > +++ b/net/netfilter/nf_conntrack_core.c
-> > @@ -1036,7 +1036,11 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
-> >  		return (struct nf_conntrack_tuple_hash *)ct;
-> >  
-> >  	if (tmpl && nfct_synproxy(tmpl)) {
-> > -		nfct_seqadj_ext_add(ct);
-> > +		if (!nfct_seqadj_ext_add(ct)) {
-> > +			nf_conntrack_free(ct);
-> > +			pr_debug("Can't add seqadj extension\n");
-> > +			return NULL;
-> > +		}
-> 
-> if (!nfct_add_synrpxy(ct, tmpl)) {
-> 	nf_conntrack_free(ct);
-> 	return NULL;
-> }
-> 
-> static bool nf_ct_add_synproxy(struct nf_conn *ct, const struct nf_conn *tmpl)
-> {
-> 	if (tmpl && nfct_synproxy(tmpl)) {
-> 		if (!nfct_seqadj_ext_add(ct))
-> 			return false;
-> 
-> 		if (!nfct_synproxy_ext_add(ct))
-> 			return false;
-> 	}
-> 
-> 	return true;
-> }
+Hi!
 
-I like this helper idea, please send a v6 using this using what
-Florian is proposing.
+It would be great it this were supported:
 
-> > diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-> > index de31818..f8b916a 100644
-> > --- a/net/netfilter/nf_nat_core.c
-> > +++ b/net/netfilter/nf_nat_core.c
-> > @@ -441,7 +441,8 @@ nf_nat_setup_info(struct nf_conn *ct,
-> >  			ct->status |= IPS_DST_NAT;
-> >  
-> >  		if (nfct_help(ct))
-> > -			nfct_seqadj_ext_add(ct);
-> > +			if (!nfct_seqadj_ext_add(ct))
-> > +				return NF_ACCEPT;
-> >  	}
-> 
-> Hmm, why accept?
-> 
-> We are asked to add extension to rewrite sequence numbers, but
-> we cannot.  How can the connection work if we cannot munge/track
-> seqno rewrites?
+ iifname . oifname vmap { eth1 . eth0 : jump chain1, eth2 . eth0 : jump cha=
+in2 }
 
-Actually we could just NF_DROP, but if we add support for ctnetlink to
-inject entries with sequence adjustment with no NAT. I think we need
-this to get synproxy working with conntrackd state synchronization.
+Error: can not use variable sized data types (string) in concat expressions
 
-Thanks!
+Why iifname rather than iifindex?
+
+I would like to test/deploy my ruleset in machines which doesn't have
+(yet) all the interfaces.
+
+Why concat?
+
+I would like to map every possible network direction to a custom
+chain. (dmz->inet, inet->dmz, et al) using a single rule.
+
+--=20
+Arturo Borrero Gonz=C3=A1lez
