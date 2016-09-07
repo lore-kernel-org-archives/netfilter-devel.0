@@ -1,36 +1,37 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2 2/2 nf-next] netfilter: ftp: Remove the useless codes
-Date: Wed, 7 Sep 2016 10:48:53 +0200
-Message-ID: <20160907084853.GB3906@salvia>
-References: <1472727542-1088-1-git-send-email-fgao@ikuai8.com>
+Subject: Re: [PATCH v2] netfilter: nft_numgen: rename until attribute by
+ modulus
+Date: Wed, 7 Sep 2016 10:56:25 +0200
+Message-ID: <20160907085625.GA9222@salvia>
+References: <20160902130554.GA5468@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, gfree.wind@gmail.com
-To: fgao@ikuai8.com
+Cc: netfilter-devel@vger.kernel.org
+To: Laura Garcia Liebana <nevola@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39610 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43802 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754707AbcIGItC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Sep 2016 04:49:02 -0400
+        id S1752583AbcIGI4f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 7 Sep 2016 04:56:35 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7D6DE11E596
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Sep 2016 10:49:00 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id B993111E599
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Sep 2016 10:56:32 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6CE5E1153EF
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Sep 2016 10:49:00 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AA518100A78
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Sep 2016 10:56:32 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EBB6D1150B3
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Sep 2016 10:48:55 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9E35A1150AE
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Sep 2016 10:56:30 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1472727542-1088-1-git-send-email-fgao@ikuai8.com>
+In-Reply-To: <20160902130554.GA5468@sonyv>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 01, 2016 at 06:59:02PM +0800, fgao@ikuai8.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
+On Fri, Sep 02, 2016 at 03:05:57PM +0200, Laura Garcia Liebana wrote:
+> The _until_ attribute is renamed to _modulus_ as the behaviour is similar to
+> other expresions with number limits (ex. nft_hash).
 > 
-> There are some debug codes which are commented out in find_pattern by #if 0.
-> Now clean them.
+> Renaming is possible because there isn't a kernel release yet with these
+> changes.
 
-Also applied, thanks.
+Applied, thanks Laura.
