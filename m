@@ -1,37 +1,98 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v3 libnftnl] expr: numgen: Rename until attribute by
- modulus
-Date: Wed, 7 Sep 2016 15:25:14 +0200
-Message-ID: <20160907132514.GA10526@salvia>
-References: <20160907122942.GA23647@sonyv>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Laura Garcia Liebana <nevola@gmail.com>
+From: fgao@ikuai8.com
+Subject: [PATCH v6 nf] netfilter: seqadj: Drop the packet directly when fail to add seqadj extension to avoid dereference NULL pointer later
+Date: Wed,  7 Sep 2016 21:26:29 +0800
+Message-ID: <1473254789-25065-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org, fw@strlen.de,
+        coreteam@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37916 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757764AbcIGNZ2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Sep 2016 09:25:28 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 986BF12A690
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Sep 2016 15:25:25 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8700B100A66
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Sep 2016 15:25:25 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7ED82100A7C
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Sep 2016 15:25:23 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20160907122942.GA23647@sonyv>
+Received: from SMTPBG179.QQ.COM ([119.147.194.222]:37401 "EHLO
+        smtpbg179.qq.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754337AbcIGN1i (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 7 Sep 2016 09:27:38 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 07, 2016 at 02:29:45PM +0200, Laura Garcia Liebana wrote:
-> The _modulus_ attribute will be reused as _until_, as it's similar to
-> other expressions with value limits (ex. hash).
-> 
-> Renaming is possible according to the kernel module ntf_numgen that has
-> not been released yet.
+From: Gao Feng <fgao@ikuai8.com>
 
-Applied, thanks Laura.
+When memory is exhausted, nfct_seqadj_ext_add may fail to add the seqadj
+extension. But the function nf_ct_seqadj_init doesn't check if get valid
+seqadj pointer by the nfct_seqadj.
+
+Now drop the packet directly when fail to add seqadj extension to avoid
+dereference NULL pointer in nf_ct_seqadj_init.
+
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ v6: Add one helper function to add synproxy
+ v5: Return NF_ACCEPT instead of NF_DROP when nfct_seqadj_ext_add failed in nf_nat_setup_info
+ v4: Drop the packet directly when fail to add seqadj extension;
+ v3: Remove the warning log when seqadj is null;
+ v2: Remove the unnessary seqadj check in nf_ct_seq_adjust
+ v1: Initial patch
+
+ include/net/netfilter/nf_conntrack_synproxy.h | 13 +++++++++++++
+ net/netfilter/nf_conntrack_core.c             |  7 ++++---
+ net/netfilter/nf_nat_core.c                   |  3 ++-
+ 3 files changed, 19 insertions(+), 4 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack_synproxy.h b/include/net/netfilter/nf_conntrack_synproxy.h
+index 6793614..e8cf825 100644
+--- a/include/net/netfilter/nf_conntrack_synproxy.h
++++ b/include/net/netfilter/nf_conntrack_synproxy.h
+@@ -27,6 +27,19 @@ static inline struct nf_conn_synproxy *nfct_synproxy_ext_add(struct nf_conn *ct)
+ #endif
+ }
+ 
++static inline bool nf_ct_add_synproxy(struct nf_conn *ct, const struct nf_conn *tmpl)
++{
++	if (tmpl && nfct_synproxy(tmpl)) {
++		if (!nfct_seqadj_ext_add(ct))
++			return false;
++
++		if (!nfct_synproxy_ext_add(ct))
++			return false;
++	}
++
++	return true;
++}
++
+ struct synproxy_stats {
+ 	unsigned int			syn_received;
+ 	unsigned int			cookie_invalid;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index dd2c43a..67353d0 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1035,9 +1035,10 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 	if (IS_ERR(ct))
+ 		return (struct nf_conntrack_tuple_hash *)ct;
+ 
+-	if (tmpl && nfct_synproxy(tmpl)) {
+-		nfct_seqadj_ext_add(ct);
+-		nfct_synproxy_ext_add(ct);
++	if (!nf_ct_add_synproxy(ct, tmpl)) {
++		nf_conntrack_free(ct);
++		pr_debug("Can't add synproxy\n");
++		return NULL;
+ 	}
+ 
+ 	timeout_ext = tmpl ? nf_ct_timeout_find(tmpl) : NULL;
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index de31818..f8b916a 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -441,7 +441,8 @@ nf_nat_setup_info(struct nf_conn *ct,
+ 			ct->status |= IPS_DST_NAT;
+ 
+ 		if (nfct_help(ct))
+-			nfct_seqadj_ext_add(ct);
++			if (!nfct_seqadj_ext_add(ct))
++				return NF_ACCEPT;
+ 	}
+ 
+ 	if (maniptype == NF_NAT_MANIP_SRC) {
+-- 
+1.9.1
+
