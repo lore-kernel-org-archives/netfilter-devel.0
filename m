@@ -1,98 +1,98 @@
-From: fgao@ikuai8.com
-Subject: [PATCH v6 nf] netfilter: seqadj: Drop the packet directly when fail to add seqadj extension to avoid dereference NULL pointer later
-Date: Wed,  7 Sep 2016 21:26:29 +0800
-Message-ID: <1473254789-25065-1-git-send-email-fgao@ikuai8.com>
-Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org, fw@strlen.de,
-        coreteam@netfilter.org
+From: Laura Garcia Liebana <nevola@gmail.com>
+Subject: [PATCH v2] netfilter: nft_numgen: add increment counter offset value
+Date: Wed, 7 Sep 2016 19:56:49 +0200
+Message-ID: <20160907175646.GA7317@sonyv>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from SMTPBG179.QQ.COM ([119.147.194.222]:37401 "EHLO
-        smtpbg179.qq.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754337AbcIGN1i (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36487 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932255AbcIGR4x (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Sep 2016 09:27:38 -0400
+        Wed, 7 Sep 2016 13:56:53 -0400
+Received: by mail-wm0-f67.google.com with SMTP id l65so4106961wmf.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 07 Sep 2016 10:56:53 -0700 (PDT)
+Received: from sonyv (cli-5b7e49a2.wholesale.adamo.es. [91.126.73.162])
+        by smtp.gmail.com with ESMTPSA id bw9sm40066027wjc.33.2016.09.07.10.56.51
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Wed, 07 Sep 2016 10:56:51 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+Add support for an initialization counter value. With this option the
+sysadmin is able to start the counter when used with the increment type.
 
-When memory is exhausted, nfct_seqadj_ext_add may fail to add the seqadj
-extension. But the function nf_ct_seqadj_init doesn't check if get valid
-seqadj pointer by the nfct_seqadj.
+Example:
 
-Now drop the packet directly when fail to add seqadj extension to avoid
-dereference NULL pointer in nf_ct_seqadj_init.
+	meta mark set numgen inc mod 2 sum 100
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
+This will generate marks with the serie 100, 101, 100, 101, ...
+
+Only supported for increment number generation.
+
+Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
 ---
- v6: Add one helper function to add synproxy
- v5: Return NF_ACCEPT instead of NF_DROP when nfct_seqadj_ext_add failed in nf_nat_setup_info
- v4: Drop the packet directly when fail to add seqadj extension;
- v3: Remove the warning log when seqadj is null;
- v2: Remove the unnessary seqadj check in nf_ct_seq_adjust
- v1: Initial patch
+Changes in v2:
+	- Separate _SUM_ changes with _until_ attribute renaming.
 
- include/net/netfilter/nf_conntrack_synproxy.h | 13 +++++++++++++
- net/netfilter/nf_conntrack_core.c             |  7 ++++---
- net/netfilter/nf_nat_core.c                   |  3 ++-
- 3 files changed, 19 insertions(+), 4 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h | 2 ++
+ net/netfilter/nft_numgen.c               | 9 +++++++--
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_synproxy.h b/include/net/netfilter/nf_conntrack_synproxy.h
-index 6793614..e8cf825 100644
---- a/include/net/netfilter/nf_conntrack_synproxy.h
-+++ b/include/net/netfilter/nf_conntrack_synproxy.h
-@@ -27,6 +27,19 @@ static inline struct nf_conn_synproxy *nfct_synproxy_ext_add(struct nf_conn *ct)
- #endif
- }
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 24161e2..00a689d 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1128,12 +1128,14 @@ enum nft_trace_types {
+  * @NFTA_NG_DREG: destination register (NLA_U32)
+  * @NFTA_NG_MODULUS: maximum counter value (NLA_U32)
+  * @NFTA_NG_TYPE: operation type (NLA_U32)
++ * @NFTA_NG_SUM: Offset to initiate the counter (NLA_U32)
+  */
+ enum nft_ng_attributes {
+ 	NFTA_NG_UNSPEC,
+ 	NFTA_NG_DREG,
+ 	NFTA_NG_MODULUS,
+ 	NFTA_NG_TYPE,
++	NFTA_NG_SUM,
+ 	__NFTA_NG_MAX
+ };
+ #define NFTA_NG_MAX	(__NFTA_NG_MAX - 1)
+diff --git a/net/netfilter/nft_numgen.c b/net/netfilter/nft_numgen.c
+index f51a3ed..a5ea3f7 100644
+--- a/net/netfilter/nft_numgen.c
++++ b/net/netfilter/nft_numgen.c
+@@ -44,6 +44,7 @@ static const struct nla_policy nft_ng_policy[NFTA_NG_MAX + 1] = {
+ 	[NFTA_NG_DREG]		= { .type = NLA_U32 },
+ 	[NFTA_NG_MODULUS]	= { .type = NLA_U32 },
+ 	[NFTA_NG_TYPE]		= { .type = NLA_U32 },
++	[NFTA_NG_SUM]		= { .type = NLA_U32 },
+ };
  
-+static inline bool nf_ct_add_synproxy(struct nf_conn *ct, const struct nf_conn *tmpl)
-+{
-+	if (tmpl && nfct_synproxy(tmpl)) {
-+		if (!nfct_seqadj_ext_add(ct))
-+			return false;
+ static int nft_ng_inc_init(const struct nft_ctx *ctx,
+@@ -51,13 +52,17 @@ static int nft_ng_inc_init(const struct nft_ctx *ctx,
+ 			   const struct nlattr * const tb[])
+ {
+ 	struct nft_ng_inc *priv = nft_expr_priv(expr);
++	u32 sum = 0;
 +
-+		if (!nfct_synproxy_ext_add(ct))
-+			return false;
-+	}
-+
-+	return true;
-+}
-+
- struct synproxy_stats {
- 	unsigned int			syn_received;
- 	unsigned int			cookie_invalid;
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index dd2c43a..67353d0 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1035,9 +1035,10 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 	if (IS_ERR(ct))
- 		return (struct nf_conntrack_tuple_hash *)ct;
++	if (tb[NFTA_NG_SUM])
++		sum = ntohl(nla_get_be32(tb[NFTA_NG_SUM]));
  
--	if (tmpl && nfct_synproxy(tmpl)) {
--		nfct_seqadj_ext_add(ct);
--		nfct_synproxy_ext_add(ct);
-+	if (!nf_ct_add_synproxy(ct, tmpl)) {
-+		nf_conntrack_free(ct);
-+		pr_debug("Can't add synproxy\n");
-+		return NULL;
- 	}
+ 	priv->modulus = ntohl(nla_get_be32(tb[NFTA_NG_MODULUS]));
+-	if (priv->modulus == 0)
++	if (priv->modulus == 0 || sum >= priv->modulus)
+ 		return -ERANGE;
  
- 	timeout_ext = tmpl ? nf_ct_timeout_find(tmpl) : NULL;
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index de31818..f8b916a 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -441,7 +441,8 @@ nf_nat_setup_info(struct nf_conn *ct,
- 			ct->status |= IPS_DST_NAT;
+ 	priv->dreg = nft_parse_register(tb[NFTA_NG_DREG]);
+-	atomic_set(&priv->counter, 0);
++	atomic_set(&priv->counter, sum);
  
- 		if (nfct_help(ct))
--			nfct_seqadj_ext_add(ct);
-+			if (!nfct_seqadj_ext_add(ct))
-+				return NF_ACCEPT;
- 	}
- 
- 	if (maniptype == NF_NAT_MANIP_SRC) {
+ 	return nft_validate_register_store(ctx, priv->dreg, NULL,
+ 					   NFT_DATA_VALUE, sizeof(u32));
 -- 
-1.9.1
+2.8.1
 
