@@ -1,55 +1,61 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: PROBLEM: TPROXY and DNAT broken (bisected to 079096f103fa)
-Date: Wed, 7 Sep 2016 00:57:07 +0200
-Message-ID: <20160906225707.GD20188@breakpoint.cc>
-References: <BL2PR07MB2306908C76E928619A24B52E9E0F0@BL2PR07MB2306.namprd07.prod.outlook.com>
- <20160729132154.GB13634@breakpoint.cc>
- <BL2PR07MB2306B2B920C441DF5406B1439E050@BL2PR07MB2306.namprd07.prod.outlook.com>
- <20160802221121.GB31209@breakpoint.cc>
- <BL2PR07MB23061A24DD64E80532DBD9799E060@BL2PR07MB2306.namprd07.prod.outlook.com>
- <BL2PR07MB2306C9A7EB393F441D56E7D69E1E0@BL2PR07MB2306.namprd07.prod.outlook.com>
- <20160812190319.GB25519@breakpoint.cc>
- <BL2PR07MB23066ABAF5223701D17CFFF29E120@BL2PR07MB2306.namprd07.prod.outlook.com>
- <BL2PR07MB23065A58E771485F53D553E99EF90@BL2PR07MB2306.namprd07.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        Eric Dumazet <eric.dumazet@gmail.com>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org
-To: Brandon Cazander <brandon.cazander@multapplied.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <BL2PR07MB23065A58E771485F53D553E99EF90@BL2PR07MB2306.namprd07.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: fgao@ikuai8.com
+Subject: [PATCH nf-next] netfilter: xt_TCPMSS: Refactor the codes to decrease one condition check and more readable
+Date: Wed,  7 Sep 2016 10:40:24 +0800
+Message-ID: <1473216024-7824-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtpbg328.qq.com ([14.17.43.160]:50720 "EHLO smtpbg328.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934206AbcIGClB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 6 Sep 2016 22:41:01 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Brandon Cazander <brandon.cazander@multapplied.net> wrote:
+From: Gao Feng <fgao@ikuai8.com>
 
-[ cc netfilter-devel ]
+The origin codes perform two condition checks with dst_mtu(skb_dst(skb))
+and in_mtu. And the last statement is "min(dst_mtu(skb_dst(skb)),
+in_mtu) - minlen". It may let reader think about how about the result.
+Would it be negative.
 
-> Sorry to resurrect this so much later—I just got back from holidays and this was still on my desk.
-> 
-> Will anyone have another chance to look at this? It appears that the DIVERT rule is not working in our case, and I wonder if it is possible to fix the TPROXY target as well as the socket target fix that Florian provided.
+Now assign the result of min(dst_mtu(skb_dst(skb)), in_mtu) to a new
+variable, then only perform one condition check, and it is more readable.
 
-Are there reproducer instructions available for this?
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ net/netfilter/xt_TCPMSS.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-I don't see how TPROXY can be 'fixed' because when skb (tcp syn) is in
-mangle PREROUTING nat transformation(s) have not been set up (yet).
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+index e118397..872db2d 100644
+--- a/net/netfilter/xt_TCPMSS.c
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -110,18 +110,14 @@ tcpmss_mangle_packet(struct sk_buff *skb,
+ 	if (info->mss == XT_TCPMSS_CLAMP_PMTU) {
+ 		struct net *net = par->net;
+ 		unsigned int in_mtu = tcpmss_reverse_mtu(net, skb, family);
++		unsigned int min_mtu = min(dst_mtu(skb_dst(skb)), in_mtu);
+ 
+-		if (dst_mtu(skb_dst(skb)) <= minlen) {
++		if (min_mtu <= minlen) {
+ 			net_err_ratelimited("unknown or invalid path-MTU (%u)\n",
+-					    dst_mtu(skb_dst(skb)));
++					    min_mtu);
+ 			return -1;
+ 		}
+-		if (in_mtu <= minlen) {
+-			net_err_ratelimited("unknown or invalid path-MTU (%u)\n",
+-					    in_mtu);
+-			return -1;
+-		}
+-		newmss = min(dst_mtu(skb_dst(skb)), in_mtu) - minlen;
++		newmss = min_mtu - minlen;
+ 	} else
+ 		newmss = info->mss;
+ 
+-- 
+1.9.1
 
-So ip header addresses are all we have.
 
-Only the ack (that finishes 3whs) or retransmitted syns will
-have the post-nat address info available.
-
-Ack should work fine with (changed) -m socket since the
-socket should already be in the main ehash table.
-
-Syn should also work just fine because Erics changes
-should not affect initial listener lookup done by TPROXY.
-
-> It appears as though nobody else has encountered this regression, so I can appreciate that it comes up pretty low on the priority list. If it is not realistic that this will be looked at further, then we will have to look at replacing TPROXY.
-
-If you already need NAT anyway you can also use -j REDIRECT (or exclude
-tproxied packets from nat).
