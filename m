@@ -1,118 +1,64 @@
-From: fgao@ikuai8.com
-Subject: [PATCH v2 nf-next] netfilter: Add the missed return value check of register_netdevice_notifier
-Date: Thu,  8 Sep 2016 17:53:58 +0800
-Message-ID: <1473328438-5371-1-git-send-email-fgao@ikuai8.com>
-Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
+From: Tugrul Erdogan <h.tugrul.erdogan@gmail.com>
+Subject: Network namespace and neighboring subsystem problem
+Date: Thu, 8 Sep 2016 14:34:14 +0300
+Message-ID: <CA+whn7QrRFJSCFBkqojRgiSb2iXQnh+GPp3gjcbjGXzuJuwd9Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from SMTPBG1.QQ.COM ([183.60.61.196]:42306 "EHLO smtpbg1.qq.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S941170AbcIHJyo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Sep 2016 05:54:44 -0400
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:36077 "EHLO
+        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757802AbcIHLeQ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 8 Sep 2016 07:34:16 -0400
+Received: by mail-wm0-f42.google.com with SMTP id b187so163337816wme.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 08 Sep 2016 04:34:15 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+Hi all,
 
-There are some codes of netfilter module which did not check the return
-value of register_netdevice_notifier. Add the checks now.
+I have a problem on neighboring subsystem on network namespace.  I am
+successfully  use bridged interface on the test device without ip
+address to connect client and server by positioning the test device
+between them.
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
----
- v2: Add all return value checks in netfilter module
- v1: Initial patch
+My test scenario as follows:
+After initialization of the test device, the arp cache of the test
+device is empty. There is route rules that route packages via device
+name. The traffic between client and server flows successfully by
+bridged interface of the test device. But I want to be able to ping
+client or server from the test device too.
 
- net/netfilter/nf_tables_netdev.c | 24 ++++++++++++++++++------
- net/netfilter/nfnetlink_queue.c  |  9 ++++++++-
- net/netfilter/xt_TEE.c           |  8 +++++++-
- 3 files changed, 33 insertions(+), 8 deletions(-)
+As a successful case of my test scenario: I use ping tool on root
+namespace of bridged device (or without namespace configurations). An
+arp entry is created on arp table (with <incomplete> state) and arp
+requests are transmitted by bridged device until an arp reply comes
+back. By the arp reply comes back, the mac address of the ping
+destination is written to the <incompleted> stated arp entry of arp
+table and  "icmp echo request" begins to transmit.
 
-diff --git a/net/netfilter/nf_tables_netdev.c b/net/netfilter/nf_tables_netdev.c
-index 5eefe4a..2c2a17e 100644
---- a/net/netfilter/nf_tables_netdev.c
-+++ b/net/netfilter/nf_tables_netdev.c
-@@ -222,14 +222,26 @@ static int __init nf_tables_netdev_init(void)
- {
- 	int ret;
- 
--	nft_register_chain_type(&nft_filter_chain_netdev);
-+	ret = nft_register_chain_type(&nft_filter_chain_netdev);
-+	if (ret)
-+		goto err1;
-+
- 	ret = register_pernet_subsys(&nf_tables_netdev_net_ops);
--	if (ret < 0) {
--		nft_unregister_chain_type(&nft_filter_chain_netdev);
--		return ret;
--	}
--	register_netdevice_notifier(&nf_tables_netdev_notifier);
-+	if (ret)
-+		goto err2;
-+
-+	ret = register_netdevice_notifier(&nf_tables_netdev_notifier);
-+	if (ret)
-+		goto err3;
-+
- 	return 0;
-+
-+err3:
-+	unregister_pernet_subsys(&nf_tables_netdev_net_ops);
-+err2:
-+	nft_unregister_chain_type(&nft_filter_chain_netdev);
-+err1:
-+	return ret;
- }
- 
- static void __exit nf_tables_netdev_exit(void)
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index f49f450..808da34 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1522,9 +1522,16 @@ static int __init nfnetlink_queue_init(void)
- 		goto cleanup_netlink_notifier;
- 	}
- 
--	register_netdevice_notifier(&nfqnl_dev_notifier);
-+	status = register_netdevice_notifier(&nfqnl_dev_notifier);
-+	if (status < 0) {
-+		pr_err("nf_queue: failed to register netdevice notifier\n");
-+		goto cleanup_netlink_subsys;
-+	}
-+
- 	return status;
- 
-+cleanup_netlink_subsys:
-+	nfnetlink_subsys_unregister(&nfqnl_subsys);
- cleanup_netlink_notifier:
- 	netlink_unregister_notifier(&nfqnl_rtnl_notifier);
- 	unregister_pernet_subsys(&nfnl_queue_net_ops);
-diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
-index 6e57a39..0471db4 100644
---- a/net/netfilter/xt_TEE.c
-+++ b/net/netfilter/xt_TEE.c
-@@ -89,6 +89,8 @@ static int tee_tg_check(const struct xt_tgchk_param *par)
- 		return -EINVAL;
- 
- 	if (info->oif[0]) {
-+		int ret;
-+
- 		if (info->oif[sizeof(info->oif)-1] != '\0')
- 			return -EINVAL;
- 
-@@ -101,7 +103,11 @@ static int tee_tg_check(const struct xt_tgchk_param *par)
- 		priv->notifier.notifier_call = tee_netdev_event;
- 		info->priv    = priv;
- 
--		register_netdevice_notifier(&priv->notifier);
-+		ret = register_netdevice_notifier(&priv->notifier);
-+		if (ret) {
-+			kfree(priv);
-+			return ret;
-+		}
- 	} else
- 		info->priv = NULL;
- 
--- 
-1.9.1
+As the unsuccessful case of my test scenario: I use ping tool on
+namespace (not root namespace). The arp cache is empty. But instead of
+creating an arp request to get mac address of ping destination, the
+"icmp echo request" is sent with broadcast (FF:FF:FF:FF:FF:FF)
+destination mac address. My problem is that why a broadcast icmp
+package is sent instead of as an unicast icmp package (by determining
+destination mac address with an arp request). As a work-around, if I
+assign an ip address to bridged interface and then release that ip
+address, ping requests become to trigger arp requests and unicast icmp
+packages.
 
+When I inspect the reason of this problem I saw that; in
+__inet_dev_addr_type function, the fib_get_table function returns NULL
+if I route packages at a namespace. Only after the workaround which is
+explained above is applied, the fib_get_table function returns
+non-NULL value.
+
+I know that it is a special use case which is pinging from bridged
+ipless interface, but I really need that case. So I want to take your
+opinions about my problem, could it be a bug for regular use cases too
+and how can I solve this problem. Thanks for your helps.
+
+Best regards,
+Tugrul
