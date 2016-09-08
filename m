@@ -1,54 +1,132 @@
-From: Kevin Cernekee <cernekee@chromium.org>
-Subject: Re: Snooping expected connections in a user CT helper
-Date: Thu, 8 Sep 2016 15:02:13 -0700
-Message-ID: <CAJzqFtZ0TGb3HtFLRzWxrjN7Un0zz_ioWPEQx1SzVZF2urgEig@mail.gmail.com>
-References: <CAJzqFtacjKi+zQT3nS_0UJAr=LD8RWumM5+jeo8bbi-OVZR0Jg@mail.gmail.com>
- <20160818011214.GA1463@salvia> <CAJzqFtaj3V2viTtNjhoG5zPsz0XkPXi9XULRwz1PGOe3imq_XA@mail.gmail.com>
- <20160823153610.GA10746@salvia> <CAJzqFtaRHOLUG=Fma+A_0gOe3E3AUzheK4x7_t-2e+eebrpZtg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft 2/2] doc: payload and conntrack statement
+Date: Fri,  9 Sep 2016 00:16:56 +0200
+Message-ID: <1473373016-24078-2-git-send-email-fw@strlen.de>
+References: <1473373016-24078-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-it0-f53.google.com ([209.85.214.53]:38714 "EHLO
-        mail-it0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932233AbcIHWCj (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:46584 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751907AbcIHWQq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Sep 2016 18:02:39 -0400
-Received: by mail-it0-f53.google.com with SMTP id c198so978014ith.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 08 Sep 2016 15:02:38 -0700 (PDT)
-Received: from mail-oi0-f51.google.com (mail-oi0-f51.google.com. [209.85.218.51])
-        by smtp.gmail.com with ESMTPSA id p130sm73549oia.16.2016.09.08.15.02.33
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 08 Sep 2016 15:02:35 -0700 (PDT)
-Received: by mail-oi0-f51.google.com with SMTP id x125so40919894oia.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 08 Sep 2016 15:02:33 -0700 (PDT)
-In-Reply-To: <CAJzqFtaRHOLUG=Fma+A_0gOe3E3AUzheK4x7_t-2e+eebrpZtg@mail.gmail.com>
+        Thu, 8 Sep 2016 18:16:46 -0400
+In-Reply-To: <1473373016-24078-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 1, 2016 at 4:47 PM, Kevin Cernekee <cernekee@chromium.org> wrote:
-> The patch that I sent out last night is able to handle scenarios in
-> which the event occurs shortly after the subscription is established.
-> But in my testing I am noticing two other problems:
->
-> 1) Approximately two minutes after the subscription is set up, the
-> expectation abruptly disappears.  This even happens if I set the
-> timeout to 3600; it shows up in `conntrack -L expect` until the time
-> column drops to ~3480, then it is gone.  This may be caused by the
-> master conntrack expiring.  Is there a way to set up the expectation
-> so that it persists for the entire timeout period?
->
-> 2) The timeout is not extended when there is activity on the
-> expectation.  It would be good if it was extended any time there is
-> new activity, in order to support long-lived subscriptions.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ doc/nft.xml | 82 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 81 insertions(+), 1 deletion(-)
 
-Friendly ping...
+diff --git a/doc/nft.xml b/doc/nft.xml
+index 6297674..3b215f8 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -2037,7 +2037,7 @@ filter output oif eth0
+ 							</row>
+ 							<row>
+ 								<entry>label</entry>
+-								<entry>Connection tracking label</entry>
++								<entry>Connection tracking label bit or symbolic name defined in connlabel.conf in the nftables include path</entry>
+ 								<entry>ct_label</entry>
+ 							</row>
+ 							<row>
+@@ -2207,6 +2207,29 @@ filter input iif eth0 drop
+ 			</para>
+ 		</refsect2>
+ 		<refsect2>
++			<title>Payload statement</title>
++			<para>
++				The payload statement alters packet content.
++				It can be used for example to set ip DSCP (differv) header field or ipv6 flow labels.
++			</para>
++			<para>
++				<example>
++					<title>route some packets instead of bridging</title>
++					<programlisting>
++# redirect tcp:http from 192.160.0.0/16 to local machine for routing instead of bridging
++# assumes 00:11:22:33:44:55 is local MAC address.
++bridge input meta iif eth0 ip saddr 192.168.0.0/16 tcp dport 80 meta pkttype set unicast ether daddr set 00:11:22:33:44:55
++					</programlisting>
++				</example>
++				<example>
++					<title>Set IPv4 DSCP header field</title>
++					<programlisting>
++ip forward ip dscp set 42
++					</programlisting>
++				</example>
++			</para>
++		</refsect2>
++		<refsect2>
+ 			<title>Log statement</title>
+ 			<para>
+ 				<cmdsynopsis>
+@@ -2390,6 +2413,63 @@ filter input iif eth0 drop
+ 
+ 		</refsect2>
+ 		<refsect2>
++			<title>Conntrack statement</title>
++			<para>
++				The conntrack statement can be used to set the conntrack mark and conntrack labels.
++			</para>
++			<para>
++				<cmdsynopsis>
++					<command>ct</command>
++					<group choice="req">
++						<arg>mark</arg>
++						<arg>label</arg>
++					</group>
++					<arg choice="none">set</arg>
++					<replaceable>value</replaceable>
++				</cmdsynopsis>
++			</para>
++			<para>
++				The ct statement sets meta data associated with a connection.
++			</para>
++			<para>
++				<table frame="all">
++					<title>Meta statement types</title>
++					<tgroup cols='3' align='left' colsep='1' rowsep='1'>
++						<colspec colname='c1'/>
++						<colspec colname='c2'/>
++						<colspec colname='c3'/>
++						<thead>
++							<row>
++								<entry>Keyword</entry>
++								<entry>Description</entry>
++								<entry>Value</entry>
++							</row>
++						</thead>
++						<tbody>
++							<row>
++								<entry>mark</entry>
++								<entry>Connection tracking mark</entry>
++								<entry>mark</entry>
++							</row>
++							<row>
++								<entry>label</entry>
++								<entry>Connection tracking label</entry>
++								<entry>label</entry>
++							</row>
++						</tbody>
++					</tgroup>
++				</table>
++			</para>
++			<para>
++				<example>
++					<title>save packet nfmark in conntrack</title>
++					<programlisting>
++ct set mark meta mark
++					</programlisting>
++				</example>
++			</para>
++		</refsect2>
++		<refsect2>
+ 			<title>Meta statement</title>
+ 			<para>
+ 				A meta statement sets the value of a meta expression.
+-- 
+2.7.3
 
-Do you think I'm on the right track with this approach, and if so,
-what is the best way to establish long-lived expectations for UPnP?
-
-http://marc.info/?l=netfilter-devel&m=147270416910580&w=2
-
-Thanks.
