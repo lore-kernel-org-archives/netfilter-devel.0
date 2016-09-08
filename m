@@ -1,77 +1,54 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/2 nft] doc: nft: add my copyright statement to the manpage
-Date: Thu,  8 Sep 2016 23:12:21 +0200
-Message-ID: <1473369142-21765-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Kevin Cernekee <cernekee@chromium.org>
+Subject: Re: Snooping expected connections in a user CT helper
+Date: Thu, 8 Sep 2016 15:02:13 -0700
+Message-ID: <CAJzqFtZ0TGb3HtFLRzWxrjN7Un0zz_ioWPEQx1SzVZF2urgEig@mail.gmail.com>
+References: <CAJzqFtacjKi+zQT3nS_0UJAr=LD8RWumM5+jeo8bbi-OVZR0Jg@mail.gmail.com>
+ <20160818011214.GA1463@salvia> <CAJzqFtaj3V2viTtNjhoG5zPsz0XkPXi9XULRwz1PGOe3imq_XA@mail.gmail.com>
+ <20160823153610.GA10746@salvia> <CAJzqFtaRHOLUG=Fma+A_0gOe3E3AUzheK4x7_t-2e+eebrpZtg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44040 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754369AbcIHVMd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Sep 2016 17:12:33 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 12F7F1E11B3
-        for <netfilter-devel@vger.kernel.org>; Thu,  8 Sep 2016 23:12:29 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 04DEB114D62
-        for <netfilter-devel@vger.kernel.org>; Thu,  8 Sep 2016 23:12:29 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9B5D4100A5D
-        for <netfilter-devel@vger.kernel.org>; Thu,  8 Sep 2016 23:12:25 +0200 (CEST)
+Received: from mail-it0-f53.google.com ([209.85.214.53]:38714 "EHLO
+        mail-it0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932233AbcIHWCj (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 8 Sep 2016 18:02:39 -0400
+Received: by mail-it0-f53.google.com with SMTP id c198so978014ith.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 08 Sep 2016 15:02:38 -0700 (PDT)
+Received: from mail-oi0-f51.google.com (mail-oi0-f51.google.com. [209.85.218.51])
+        by smtp.gmail.com with ESMTPSA id p130sm73549oia.16.2016.09.08.15.02.33
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 08 Sep 2016 15:02:35 -0700 (PDT)
+Received: by mail-oi0-f51.google.com with SMTP id x125so40919894oia.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 08 Sep 2016 15:02:33 -0700 (PDT)
+In-Reply-To: <CAJzqFtaRHOLUG=Fma+A_0gOe3E3AUzheK4x7_t-2e+eebrpZtg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Update the manpage to include my copyright statement and credit me as
-author of this software.
+On Thu, Sep 1, 2016 at 4:47 PM, Kevin Cernekee <cernekee@chromium.org> wrote:
+> The patch that I sent out last night is able to handle scenarios in
+> which the event occurs shortly after the subscription is established.
+> But in my testing I am noticing two other problems:
+>
+> 1) Approximately two minutes after the subscription is set up, the
+> expectation abruptly disappears.  This even happens if I set the
+> timeout to 3600; it shows up in `conntrack -L expect` until the time
+> column drops to ~3480, then it is gone.  This may be caused by the
+> master conntrack expiring.  Is there a way to set up the expectation
+> so that it persists for the entire timeout period?
+>
+> 2) The timeout is not extended when there is activity on the
+> expectation.  It would be good if it was extended any time there is
+> new activity, in order to support long-lived subscriptions.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- doc/nft.xml | 21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+Friendly ping...
 
-diff --git a/doc/nft.xml b/doc/nft.xml
-index ea47e2b..e6e8583 100644
---- a/doc/nft.xml
-+++ b/doc/nft.xml
-@@ -18,6 +18,18 @@ vi:ts=4 sw=4
- 		</copyright>
- 	</refentryinfo>
- 
-+	<refentryinfo>
-+		<author>
-+			<firstname>Pablo Neira</firstname>
-+			<surname>Neira Ayuso</surname>
-+			<email>pablo@netfilter.org</email>
-+		</author>
-+		<copyright>
-+			<year>2013-2016</year>
-+			<holder>Pablo Neira Ayuso</holder>
-+		</copyright>
-+	</refentryinfo>
-+
- 	<refmeta>
- 		<refentrytitle>nft</refentrytitle>
- 		<manvolnum>8</manvolnum>
-@@ -2358,15 +2370,16 @@ filter output oif wlan0
- 	<refsect1>
- 		<title>Authors</title>
- 		<para>
--			nftables was written by Patrick McHardy.
-+			nftables was written by Patrick McHardy and Pablo Neira Ayuso, among many other contributors from the Netfilter community.
- 		</para>
- 	</refsect1>
- 
- 	<refsect1>
- 		<title>Copyright</title>
--		<para>
--			Copyright &copy; 2008-2014 Patrick McHardy <email>kaber@trash.net</email>
--		</para>
-+		<literallayout>
-+Copyright &copy; 2008-2014 Patrick McHardy <email>kaber@trash.net</email>
-+Copyright &copy; 2013-2016 Pablo Neira Ayuso <email>pablo@netfilter.org</email>
-+		</literallayout>
- 		<para>
- 			nftables is free software; you can redistribute it and/or modify
- 			it under the terms of the GNU General Public License version 2 as
--- 
-2.1.4
+Do you think I'm on the right track with this approach, and if so,
+what is the best way to establish long-lived expectations for UPnP?
 
+http://marc.info/?l=netfilter-devel&m=147270416910580&w=2
+
+Thanks.
