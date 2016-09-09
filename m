@@ -1,255 +1,52 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 3/5] netfilter: introduce nft_set_pktinfo_{ipv4,ipv6}_validate()
-Date: Fri,  9 Sep 2016 12:42:51 +0200
-Message-ID: <1473417773-9840-3-git-send-email-pablo@netfilter.org>
-References: <1473417773-9840-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+Subject: Re: Snooping expected connections in a user CT helper
+Date: Fri, 9 Sep 2016 12:47:55 +0200
+Message-ID: <20160909104755.GA9943@salvia>
+References: <CAJzqFtacjKi+zQT3nS_0UJAr=LD8RWumM5+jeo8bbi-OVZR0Jg@mail.gmail.com>
+ <20160818011214.GA1463@salvia>
+ <CAJzqFtaj3V2viTtNjhoG5zPsz0XkPXi9XULRwz1PGOe3imq_XA@mail.gmail.com>
+ <20160823153610.GA10746@salvia>
+ <CAJzqFtaRHOLUG=Fma+A_0gOe3E3AUzheK4x7_t-2e+eebrpZtg@mail.gmail.com>
+ <CAJzqFtZ0TGb3HtFLRzWxrjN7Un0zz_ioWPEQx1SzVZF2urgEig@mail.gmail.com>
+ <20160908221824.GA28289@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Kevin Cernekee <cernekee@chromium.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54406 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56798 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753299AbcIIKnD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Sep 2016 06:43:03 -0400
+        id S1751685AbcIIKr6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 9 Sep 2016 06:47:58 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E3F6F2EFEBC
-        for <netfilter-devel@vger.kernel.org>; Fri,  9 Sep 2016 12:43:00 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 49ED62EFEB6
+        for <netfilter-devel@vger.kernel.org>; Fri,  9 Sep 2016 12:47:56 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D1F42DA7F7
-        for <netfilter-devel@vger.kernel.org>; Fri,  9 Sep 2016 12:43:00 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3BB891150AF
+        for <netfilter-devel@vger.kernel.org>; Fri,  9 Sep 2016 12:47:56 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5C673DA7F7
-        for <netfilter-devel@vger.kernel.org>; Fri,  9 Sep 2016 12:42:57 +0200 (CEST)
-In-Reply-To: <1473417773-9840-1-git-send-email-pablo@netfilter.org>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2B303114D73
+        for <netfilter-devel@vger.kernel.org>; Fri,  9 Sep 2016 12:47:54 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20160908221824.GA28289@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-These functions are extracted from the netdev family, they initialize
-the pktinfo structure and validate that the IPv4 and IPv6 headers are
-well-formed given that these functions are called from a path where
-layer 3 sanitization did not happen yet.
+On Fri, Sep 09, 2016 at 12:18:24AM +0200, Pablo Neira Ayuso wrote:
+[...]
+> > > 2) The timeout is not extended when there is activity on the
+> > > expectation.  It would be good if it was extended any time there is
+> > > new activity, in order to support long-lived subscriptions.
+> 
+> Actually, I thought permanent expectation has no timeout, but looking
+> at the code it seems they do. I think it makes sense to refresh it or
+> to keep it fixed, given that this depends on the master, it will just
+> go away once the master is not there anymore.
 
-These functions are placed in include/net/netfilter/nf_tables_ipv{4,6}.h
-so they can be reused by a follow up patch to use them from the bridge
-family too.
+Revisiting this: Actually, you are in control of the expectation time
+too, so you can set a larger one given this is bound by the master
+conntrack if you don't want to cook a patch to update this.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables_ipv4.h | 42 ++++++++++++++++++
- include/net/netfilter/nf_tables_ipv6.h | 49 +++++++++++++++++++++
- net/netfilter/nf_tables_netdev.c       | 79 +---------------------------------
- 3 files changed, 93 insertions(+), 77 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
-index af952f7..968f00b 100644
---- a/include/net/netfilter/nf_tables_ipv4.h
-+++ b/include/net/netfilter/nf_tables_ipv4.h
-@@ -20,6 +20,48 @@ nft_set_pktinfo_ipv4(struct nft_pktinfo *pkt,
- 	pkt->xt.fragoff = ntohs(ip->frag_off) & IP_OFFSET;
- }
- 
-+static inline int
-+__nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt,
-+				struct sk_buff *skb,
-+				const struct nf_hook_state *state)
-+{
-+	struct iphdr *iph, _iph;
-+	u32 len, thoff;
-+
-+	iph = skb_header_pointer(skb, skb_network_offset(skb), sizeof(*iph),
-+				 &_iph);
-+	if (!iph)
-+		return -1;
-+
-+	iph = ip_hdr(skb);
-+	if (iph->ihl < 5 || iph->version != 4)
-+		return -1;
-+
-+	len = ntohs(iph->tot_len);
-+	thoff = iph->ihl * 4;
-+	if (skb->len < len)
-+		return -1;
-+	else if (len < thoff)
-+		return -1;
-+
-+	pkt->tprot_set = true;
-+	pkt->tprot = iph->protocol;
-+	pkt->xt.thoff = thoff;
-+	pkt->xt.fragoff = ntohs(iph->frag_off) & IP_OFFSET;
-+
-+	return 0;
-+}
-+
-+static inline void
-+nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt,
-+			      struct sk_buff *skb,
-+			      const struct nf_hook_state *state)
-+{
-+	nft_set_pktinfo(pkt, skb, state);
-+	if (__nft_set_pktinfo_ipv4_validate(pkt, skb, state) < 0)
-+		nft_set_pktinfo_proto_unspec(pkt, skb);
-+}
-+
- extern struct nft_af_info nft_af_ipv4;
- 
- #endif
-diff --git a/include/net/netfilter/nf_tables_ipv6.h b/include/net/netfilter/nf_tables_ipv6.h
-index 1e0ffd5..39b7b71 100644
---- a/include/net/netfilter/nf_tables_ipv6.h
-+++ b/include/net/netfilter/nf_tables_ipv6.h
-@@ -28,6 +28,55 @@ nft_set_pktinfo_ipv6(struct nft_pktinfo *pkt,
- 	return 0;
- }
- 
-+static inline int
-+__nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt,
-+				struct sk_buff *skb,
-+				const struct nf_hook_state *state)
-+{
-+#if IS_ENABLED(CONFIG_IPV6)
-+	struct ipv6hdr *ip6h, _ip6h;
-+	unsigned int thoff = 0;
-+	unsigned short frag_off;
-+	int protohdr;
-+	u32 pkt_len;
-+
-+	ip6h = skb_header_pointer(skb, skb_network_offset(skb), sizeof(*ip6h),
-+				  &_ip6h);
-+	if (!ip6h)
-+		return -1;
-+
-+	if (ip6h->version != 6)
-+		return -1;
-+
-+	pkt_len = ntohs(ip6h->payload_len);
-+	if (pkt_len + sizeof(*ip6h) > skb->len)
-+		return -1;
-+
-+	protohdr = ipv6_find_hdr(pkt->skb, &thoff, -1, &frag_off, NULL);
-+	if (protohdr < 0)
-+		return -1;
-+
-+	pkt->tprot_set = true;
-+	pkt->tprot = protohdr;
-+	pkt->xt.thoff = thoff;
-+	pkt->xt.fragoff = frag_off;
-+
-+	return 0;
-+#else
-+	return -1;
-+#endif
-+}
-+
-+static inline void
-+nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt,
-+			      struct sk_buff *skb,
-+			      const struct nf_hook_state *state)
-+{
-+	nft_set_pktinfo(pkt, skb, state);
-+	if (__nft_set_pktinfo_ipv6_validate(pkt, skb, state) < 0)
-+		nft_set_pktinfo_proto_unspec(pkt, skb);
-+}
-+
- extern struct nft_af_info nft_af_ipv6;
- 
- #endif
-diff --git a/net/netfilter/nf_tables_netdev.c b/net/netfilter/nf_tables_netdev.c
-index 8de502b..3e5475a 100644
---- a/net/netfilter/nf_tables_netdev.c
-+++ b/net/netfilter/nf_tables_netdev.c
-@@ -15,81 +15,6 @@
- #include <net/netfilter/nf_tables_ipv4.h>
- #include <net/netfilter/nf_tables_ipv6.h>
- 
--static inline void
--nft_netdev_set_pktinfo_ipv4(struct nft_pktinfo *pkt,
--			    struct sk_buff *skb,
--			    const struct nf_hook_state *state)
--{
--	struct iphdr *iph, _iph;
--	u32 len, thoff;
--
--	nft_set_pktinfo(pkt, skb, state);
--
--	iph = skb_header_pointer(skb, skb_network_offset(skb), sizeof(*iph),
--				 &_iph);
--	if (!iph)
--		return;
--
--	iph = ip_hdr(skb);
--	if (iph->ihl < 5 || iph->version != 4)
--		return;
--
--	len = ntohs(iph->tot_len);
--	thoff = iph->ihl * 4;
--	if (skb->len < len)
--		return;
--	else if (len < thoff)
--		return;
--
--	pkt->tprot_set = true;
--	pkt->tprot = iph->protocol;
--	pkt->xt.thoff = thoff;
--	pkt->xt.fragoff = ntohs(iph->frag_off) & IP_OFFSET;
--}
--
--static inline void
--__nft_netdev_set_pktinfo_ipv6(struct nft_pktinfo *pkt,
--			      struct sk_buff *skb,
--			      const struct nf_hook_state *state)
--{
--#if IS_ENABLED(CONFIG_IPV6)
--	struct ipv6hdr *ip6h, _ip6h;
--	unsigned int thoff = 0;
--	unsigned short frag_off;
--	int protohdr;
--	u32 pkt_len;
--
--	ip6h = skb_header_pointer(skb, skb_network_offset(skb), sizeof(*ip6h),
--				  &_ip6h);
--	if (!ip6h)
--		return;
--
--	if (ip6h->version != 6)
--		return;
--
--	pkt_len = ntohs(ip6h->payload_len);
--	if (pkt_len + sizeof(*ip6h) > skb->len)
--		return;
--
--	protohdr = ipv6_find_hdr(pkt->skb, &thoff, -1, &frag_off, NULL);
--	if (protohdr < 0)
--                return;
--
--	pkt->tprot_set = true;
--	pkt->tprot = protohdr;
--	pkt->xt.thoff = thoff;
--	pkt->xt.fragoff = frag_off;
--#endif
--}
--
--static inline void nft_netdev_set_pktinfo_ipv6(struct nft_pktinfo *pkt,
--					       struct sk_buff *skb,
--					       const struct nf_hook_state *state)
--{
--	nft_set_pktinfo(pkt, skb, state);
--	__nft_netdev_set_pktinfo_ipv6(pkt, skb, state);
--}
--
- static unsigned int
- nft_do_chain_netdev(void *priv, struct sk_buff *skb,
- 		    const struct nf_hook_state *state)
-@@ -98,10 +23,10 @@ nft_do_chain_netdev(void *priv, struct sk_buff *skb,
- 
- 	switch (skb->protocol) {
- 	case htons(ETH_P_IP):
--		nft_netdev_set_pktinfo_ipv4(&pkt, skb, state);
-+		nft_set_pktinfo_ipv4_validate(&pkt, skb, state);
- 		break;
- 	case htons(ETH_P_IPV6):
--		nft_netdev_set_pktinfo_ipv6(&pkt, skb, state);
-+		nft_set_pktinfo_ipv6_validate(&pkt, skb, state);
- 		break;
- 	default:
- 		nft_set_pktinfo_unspec(&pkt, skb, state);
--- 
-2.1.4
-
+The question here is what are the reasonable timeouts to set, I guess
+you can extract this from this application protocol behaviour or any
+standard that document it.
