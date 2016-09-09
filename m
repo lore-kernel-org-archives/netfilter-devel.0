@@ -1,69 +1,97 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2 nf-next] netfilter: Add the missed return value check
- of register_netdevice_notifier
-Date: Fri, 9 Sep 2016 16:16:39 +0200
-Message-ID: <20160909141639.GA26129@salvia>
-References: <1473328438-5371-1-git-send-email-fgao@ikuai8.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        gfree.wind@gmail.com
-To: fgao@ikuai8.com
+From: fgao@ikuai8.com
+Subject: [PATCH v7 nf] netfilter: synproxy: Check oom when adding synproxy and seqadj ct extensions
+Date: Fri,  9 Sep 2016 22:50:21 +0800
+Message-ID: <1473432621-20908-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44952 "EHLO mail.us.es"
+Received: from smtpbg320.qq.com ([14.17.32.29]:59559 "EHLO smtpbg320.qq.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751038AbcIIOQp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Sep 2016 10:16:45 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 34AC02273E8
-        for <netfilter-devel@vger.kernel.org>; Fri,  9 Sep 2016 16:16:42 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2487C114D6C
-        for <netfilter-devel@vger.kernel.org>; Fri,  9 Sep 2016 16:16:42 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 39F941150D7
-        for <netfilter-devel@vger.kernel.org>; Fri,  9 Sep 2016 16:16:38 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1473328438-5371-1-git-send-email-fgao@ikuai8.com>
+        id S1751290AbcIIOvI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 9 Sep 2016 10:51:08 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 08, 2016 at 05:53:58PM +0800, fgao@ikuai8.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
-> 
-> There are some codes of netfilter module which did not check the return
-> value of register_netdevice_notifier. Add the checks now.
-> 
-> Signed-off-by: Gao Feng <fgao@ikuai8.com>
-> ---
->  v2: Add all return value checks in netfilter module
->  v1: Initial patch
-> 
->  net/netfilter/nf_tables_netdev.c | 24 ++++++++++++++++++------
->  net/netfilter/nfnetlink_queue.c  |  9 ++++++++-
->  net/netfilter/xt_TEE.c           |  8 +++++++-
->  3 files changed, 33 insertions(+), 8 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_tables_netdev.c b/net/netfilter/nf_tables_netdev.c
-> index 5eefe4a..2c2a17e 100644
-> --- a/net/netfilter/nf_tables_netdev.c
-> +++ b/net/netfilter/nf_tables_netdev.c
-> @@ -222,14 +222,26 @@ static int __init nf_tables_netdev_init(void)
->  {
->  	int ret;
->  
-> -	nft_register_chain_type(&nft_filter_chain_netdev);
-> +	ret = nft_register_chain_type(&nft_filter_chain_netdev);
-> +	if (ret)
-> +		goto err1;
-> +
+From: Gao Feng <fgao@ikuai8.com>
 
-Ah good, nft_register_chain_type() is already not checked.
+When memory is exhausted, nfct_seqadj_ext_add may fail to add the
+synproxy and seqadj extensions. The function nf_ct_seqadj_init doesn't
+check if get valid seqadj pointer by the nfct_seqadj.
 
-So I'd appreciate if you fix all callsites in the Netfilter tree.
+Now drop the packet directly when fail to add seqadj extension to
+avoid dereference NULL pointer in nf_ct_seqadj_init from
+init_conntrack().
 
-I propose you two patches, one to fix nft_register_chain_type() and
-another to fix register_netdevice_notifier() all over the netfilter
-tree.
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ v7: Remove one debug log and revert to NF_DROP again;
+ v6: Add one helper function to add synproxy
+ v5: Return NF_ACCEPT instead of NF_DROP when nfct_seqadj_ext_add failed in nf_nat_setup_info
+ v4: Drop the packet directly when fail to add seqadj extension;
+ v3: Remove the warning log when seqadj is null;
+ v2: Remove the unnessary seqadj check in nf_ct_seq_adjust
+ v1: Initial patch
 
-Thanks!
+ include/net/netfilter/nf_conntrack_synproxy.h | 13 +++++++++++++
+ net/netfilter/nf_conntrack_core.c             |  6 +++---
+ net/netfilter/nf_nat_core.c                   |  3 ++-
+ 3 files changed, 18 insertions(+), 4 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack_synproxy.h b/include/net/netfilter/nf_conntrack_synproxy.h
+index 6793614..e8cf825 100644
+--- a/include/net/netfilter/nf_conntrack_synproxy.h
++++ b/include/net/netfilter/nf_conntrack_synproxy.h
+@@ -27,6 +27,19 @@ static inline struct nf_conn_synproxy *nfct_synproxy_ext_add(struct nf_conn *ct)
+ #endif
+ }
+ 
++static inline bool nf_ct_add_synproxy(struct nf_conn *ct, const struct nf_conn *tmpl)
++{
++	if (tmpl && nfct_synproxy(tmpl)) {
++		if (!nfct_seqadj_ext_add(ct))
++			return false;
++
++		if (!nfct_synproxy_ext_add(ct))
++			return false;
++	}
++
++	return true;
++}
++
+ struct synproxy_stats {
+ 	unsigned int			syn_received;
+ 	unsigned int			cookie_invalid;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index dd2c43a..64aabeb 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1035,9 +1035,9 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 	if (IS_ERR(ct))
+ 		return (struct nf_conntrack_tuple_hash *)ct;
+ 
+-	if (tmpl && nfct_synproxy(tmpl)) {
+-		nfct_seqadj_ext_add(ct);
+-		nfct_synproxy_ext_add(ct);
++	if (!nf_ct_add_synproxy(ct, tmpl)) {
++		nf_conntrack_free(ct);
++		return NULL;
+ 	}
+ 
+ 	timeout_ext = tmpl ? nf_ct_timeout_find(tmpl) : NULL;
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index de31818..b82282a 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -441,7 +441,8 @@ nf_nat_setup_info(struct nf_conn *ct,
+ 			ct->status |= IPS_DST_NAT;
+ 
+ 		if (nfct_help(ct))
+-			nfct_seqadj_ext_add(ct);
++			if (!nfct_seqadj_ext_add(ct))
++				return NF_DROP;
+ 	}
+ 
+ 	if (maniptype == NF_NAT_MANIP_SRC) {
+-- 
+1.9.1
+
