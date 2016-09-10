@@ -1,118 +1,91 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nft] tests: py: replace "eth0" with "lo" in dup expr tests
-Date: Sat, 10 Sep 2016 16:14:03 +0800
-Message-ID: <1473495243-39716-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: pablo@netfilter.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [RFC] nftables: reverse path filtering for nft
+Date: Sat, 10 Sep 2016 22:01:02 +0200
+Message-ID: <20160910200102.GA11377@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-18.163.com ([220.181.12.18]:45778 "EHLO m12-18.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751543AbcIJIOq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 10 Sep 2016 04:14:46 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:52714 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751722AbcIJUBE (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 10 Sep 2016 16:01:04 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.84_2)
+        (envelope-from <fw@strlen.de>)
+        id 1bioSU-00031b-Jh
+        for netfilter-devel@vger.kernel.org; Sat, 10 Sep 2016 22:01:02 +0200
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+Hi.
 
-This patch follow up on Manuel's commit a8871ba6daa0 ("tests: py: any:
-Make tests more generic by using other interfaces"). The ifindex of
-"eth0" is not always 1, furthermore, "eth0" maybe not exist on some
-systems. So replace it with "lo" will make tests more rubost.
+Linux has a builtin rp filter for ipv4, but not for ipv6.
+xtables has rpfilter match for both ipv4 and ipv6.
+nftables currently does not have such a feature.
 
-In other test cases, "eth0" is used by iifname or oifname, so there's no
-need to convert it to "lo". Even if "eth0" is not exist, test will never
-fail.
+Any idea on how specific or generic this should be for nft?
 
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
----
- tests/py/ip/dup.t          | 4 ++--
- tests/py/ip/dup.t.payload  | 8 ++++----
- tests/py/ip6/dup.t         | 4 ++--
- tests/py/ip6/dup.t.payload | 8 ++++----
- 4 files changed, 12 insertions(+), 12 deletions(-)
+Current idea is to add 'fib' expression that initially supports
+lookup of outinterface index for reply direction, i.e.:
 
-diff --git a/tests/py/ip/dup.t b/tests/py/ip/dup.t
-index 5119636..700031c 100644
---- a/tests/py/ip/dup.t
-+++ b/tests/py/ip/dup.t
-@@ -3,5 +3,5 @@
- *ip;test-ip4;input
- 
- dup to 192.168.2.1;ok
--dup to 192.168.2.1 device "eth0";ok
--dup to ip saddr map { 192.168.2.120 : 192.168.2.1 } device "eth0";ok
-+dup to 192.168.2.1 device "lo";ok
-+dup to ip saddr map { 192.168.2.120 : 192.168.2.1 } device "lo";ok
-diff --git a/tests/py/ip/dup.t.payload b/tests/py/ip/dup.t.payload
-index 94d55c6..347dc07 100644
---- a/tests/py/ip/dup.t.payload
-+++ b/tests/py/ip/dup.t.payload
-@@ -3,19 +3,19 @@ ip test-ip4 test
-   [ immediate reg 1 0x0102a8c0 ]
-   [ dup sreg_addr 1 ]
- 
--# dup to 192.168.2.1 device "eth0"
-+# dup to 192.168.2.1 device "lo"
- ip test-ip4 test 
-   [ immediate reg 1 0x0102a8c0 ]
--  [ immediate reg 2 0x00000002 ]
-+  [ immediate reg 2 0x00000001 ]
-   [ dup sreg_addr 1 sreg_dev 2 ]
- 
--# dup to ip saddr map { 192.168.2.120 : 192.168.2.1 } device "eth0"
-+# dup to ip saddr map { 192.168.2.120 : 192.168.2.1 } device "lo"
- __map%d test-ip4 b
- __map%d test-ip4 0
-         element 7802a8c0  : 0102a8c0 0 [end]
- ip test-ip4 test 
-   [ payload load 4b @ network header + 12 => reg 1 ]
-   [ lookup reg 1 set __map%d dreg 1 ]
--  [ immediate reg 2 0x00000002 ]
-+  [ immediate reg 2 0x00000001 ]
-   [ dup sreg_addr 1 sreg_dev 2 ]
- 
-diff --git a/tests/py/ip6/dup.t b/tests/py/ip6/dup.t
-index f3c8c83..72cc5d5 100644
---- a/tests/py/ip6/dup.t
-+++ b/tests/py/ip6/dup.t
-@@ -3,5 +3,5 @@
- *ip6;test-ip6;input
- 
- dup to abcd::1;ok
--dup to abcd::1 device "eth0";ok
--dup to ip6 saddr map { abcd::1 : cafe::cafe } device "eth0";ok
-+dup to abcd::1 device "lo";ok
-+dup to ip6 saddr map { abcd::1 : cafe::cafe } device "lo";ok
-diff --git a/tests/py/ip6/dup.t.payload b/tests/py/ip6/dup.t.payload
-index 30015cc..c441d4b 100644
---- a/tests/py/ip6/dup.t.payload
-+++ b/tests/py/ip6/dup.t.payload
-@@ -3,19 +3,19 @@ ip6 test test
-   [ immediate reg 1 0x0000cdab 0x00000000 0x00000000 0x01000000 ]
-   [ dup sreg_addr 1 ]
- 
--# dup to abcd::1 device "eth0"
-+# dup to abcd::1 device "lo"
- ip6 test test 
-   [ immediate reg 1 0x0000cdab 0x00000000 0x00000000 0x01000000 ]
--  [ immediate reg 2 0x00000002 ]
-+  [ immediate reg 2 0x00000001 ]
-   [ dup sreg_addr 1 sreg_dev 2 ]
- 
--# dup to ip6 saddr map { abcd::1 : cafe::cafe } device "eth0"
-+# dup to ip6 saddr map { abcd::1 : cafe::cafe } device "lo"
- __map%d test-ip6 b
- __map%d test-ip6 0
-         element 0000cdab 00000000 00000000 01000000  : 0000feca 00000000 00000000 feca0000 0 [end]
- ip6 test-ip6 input 
-   [ payload load 16b @ network header + 8 => reg 1 ]
-   [ lookup reg 1 set __map%d dreg 1 ]
--  [ immediate reg 2 0x00000002 ]
-+  [ immediate reg 2 0x00000001 ]
-   [ dup sreg_addr 1 sreg_dev 2 ]
- 
--- 
-2.5.5
+nft ... fib reply oif ne 0 accept (found something)
+nft ... fib reply oif eq 0 drop   (no route)
+nft ... fib reply oif eq eth0 (reply would be routed via eth0)
+
+Problem is that we might need some options to influence/control
+input to the fib lookup routines, e.g. if we want to consider
+skb->mark or if we're only interested in routes via particular interface
+(ipv6 needs this, this is what the --loose option does for -m rpfilter
+in iptables).
+
+Unfortunately, use of 'mark' results in grammar ambiguity in the parser.
+
+What would work is this:
+
+fib_expr                :       FIB     STRING  fib_args fib_type
+                        {
+                                $$ = fib_expr_alloc(&@$, $4, get_dir($2));
+                        }
+                        ;
+
+fib_type                :       OIF     { $$ = NFT_FIB_OIF; }
+                        ;
+
+fib_args                :       fib_arg
+                        {
+                                $<expr>$        = $<expr>0;
+                        }
+                        |       fib_args        fib_arg
+                        ;
+
+fib_arg                 :       MARK
+                        {
+                                $<expr>0->fib.use_mark = 1;
+                        }
+                        |       LOOSE
+                        {
+                                $<expr>0->fib.loose = 1;
+                        }
+                        ;
 
 
+Which results in following syntax:
+
+nft .. fib reply mark loose oif eq 0 drop   # no route at all
+nft .. fib reply mark oif eq 0 drop   # no route via iif
+nft .. fib reply oif eq 0 drop   # no route via iif, do not use skb->mark
+
+
+Other features that might make sense to implement for fib:
+- query mtu on the route  (maybe useful with future tcp option mangling
+to create TCPMSS target equvalent...?)
+
+- query what fib says about type of saddr/daddr (iptables -m addrtype match)
+
+
+Main 'problem' is that I don't want to muck with the syntax later so
+it should be flexible enough to cover other uses beside rpf.
+
+What do others think?
