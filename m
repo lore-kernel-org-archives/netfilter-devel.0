@@ -1,67 +1,118 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH nf-next] netfilter: nft_queue: check the validation of
- queues_total and queuenum
-Date: Sat, 10 Sep 2016 12:56:06 +0800
-Message-ID: <CAML_gOcr9ZytWK19BFx0CcTBWoC_+RtBkRFnYtmPLVV3Oh3RBg@mail.gmail.com>
-References: <1473172417-8311-1-git-send-email-zlpnobody@163.com> <20160909140434.GA25982@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Liping Zhang <zlpnobody@163.com>, netfilter-devel@vger.kernel.org,
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nft] tests: py: replace "eth0" with "lo" in dup expr tests
+Date: Sat, 10 Sep 2016 16:14:03 +0800
+Message-ID: <1473495243-39716-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
         Liping Zhang <liping.zhang@spreadtrum.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f52.google.com ([209.85.213.52]:36144 "EHLO
-        mail-vk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751066AbcIJE4I (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 10 Sep 2016 00:56:08 -0400
-Received: by mail-vk0-f52.google.com with SMTP id m62so30762210vkd.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 09 Sep 2016 21:56:07 -0700 (PDT)
-In-Reply-To: <20160909140434.GA25982@salvia>
+Received: from m12-18.163.com ([220.181.12.18]:45778 "EHLO m12-18.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751543AbcIJIOq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 10 Sep 2016 04:14:46 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2016-09-09 22:04 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-> More comments on things I see on nft_queue at this stage:
->
-> 1) Another issue, I can see nfqueue_hash() depends on
-> CONFIG_IP6_NF_IPTABLES, this is not good since nft_queue
-> infrastructure should not depend on iptables. Probably making this
-> dependent of CONFIG_IPV6 is enough, unless you find anything better.
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Yes, I can send a patch to improve this.
+This patch follow up on Manuel's commit a8871ba6daa0 ("tests: py: any:
+Make tests more generic by using other interfaces"). The ifindex of
+"eth0" is not always 1, furthermore, "eth0" maybe not exist on some
+systems. So replace it with "lo" will make tests more rubost.
 
-> 2) It would be good if nft_queue takes a _SREG_FROM and _SREG_TO to
-> select the queue numbers, in a similar fashion to nft_nat. The idea is
-> that we allow plugging nft_queue into nftables mapping, currently this
-> is not working given that the queue number is passed as an attribute
-> that contains the value.
+In other test cases, "eth0" is used by iifname or oifname, so there's no
+need to convert it to "lo". Even if "eth0" is not exist, test will never
+fail.
 
-I will have a look into this. I think _SREG_FROM and _SREG_TO
-stands for [startqnum:endqnum], currently queuenum and queue_total
-has a restriction, see below.
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+---
+ tests/py/ip/dup.t          | 4 ++--
+ tests/py/ip/dup.t.payload  | 8 ++++----
+ tests/py/ip6/dup.t         | 4 ++--
+ tests/py/ip6/dup.t.payload | 8 ++++----
+ 4 files changed, 12 insertions(+), 12 deletions(-)
 
-> 3) It would be good to add py tests with larger range. I remember that
-> the range 1-65535 currently doesn't work in both nft_queue and
-> xt_NFQUEUE because the queue_total arithmetics are not right.
+diff --git a/tests/py/ip/dup.t b/tests/py/ip/dup.t
+index 5119636..700031c 100644
+--- a/tests/py/ip/dup.t
++++ b/tests/py/ip/dup.t
+@@ -3,5 +3,5 @@
+ *ip;test-ip4;input
+ 
+ dup to 192.168.2.1;ok
+-dup to 192.168.2.1 device "eth0";ok
+-dup to ip saddr map { 192.168.2.120 : 192.168.2.1 } device "eth0";ok
++dup to 192.168.2.1 device "lo";ok
++dup to ip saddr map { 192.168.2.120 : 192.168.2.1 } device "lo";ok
+diff --git a/tests/py/ip/dup.t.payload b/tests/py/ip/dup.t.payload
+index 94d55c6..347dc07 100644
+--- a/tests/py/ip/dup.t.payload
++++ b/tests/py/ip/dup.t.payload
+@@ -3,19 +3,19 @@ ip test-ip4 test
+   [ immediate reg 1 0x0102a8c0 ]
+   [ dup sreg_addr 1 ]
+ 
+-# dup to 192.168.2.1 device "eth0"
++# dup to 192.168.2.1 device "lo"
+ ip test-ip4 test 
+   [ immediate reg 1 0x0102a8c0 ]
+-  [ immediate reg 2 0x00000002 ]
++  [ immediate reg 2 0x00000001 ]
+   [ dup sreg_addr 1 sreg_dev 2 ]
+ 
+-# dup to ip saddr map { 192.168.2.120 : 192.168.2.1 } device "eth0"
++# dup to ip saddr map { 192.168.2.120 : 192.168.2.1 } device "lo"
+ __map%d test-ip4 b
+ __map%d test-ip4 0
+         element 7802a8c0  : 0102a8c0 0 [end]
+ ip test-ip4 test 
+   [ payload load 4b @ network header + 12 => reg 1 ]
+   [ lookup reg 1 set __map%d dreg 1 ]
+-  [ immediate reg 2 0x00000002 ]
++  [ immediate reg 2 0x00000001 ]
+   [ dup sreg_addr 1 sreg_dev 2 ]
+ 
+diff --git a/tests/py/ip6/dup.t b/tests/py/ip6/dup.t
+index f3c8c83..72cc5d5 100644
+--- a/tests/py/ip6/dup.t
++++ b/tests/py/ip6/dup.t
+@@ -3,5 +3,5 @@
+ *ip6;test-ip6;input
+ 
+ dup to abcd::1;ok
+-dup to abcd::1 device "eth0";ok
+-dup to ip6 saddr map { abcd::1 : cafe::cafe } device "eth0";ok
++dup to abcd::1 device "lo";ok
++dup to ip6 saddr map { abcd::1 : cafe::cafe } device "lo";ok
+diff --git a/tests/py/ip6/dup.t.payload b/tests/py/ip6/dup.t.payload
+index 30015cc..c441d4b 100644
+--- a/tests/py/ip6/dup.t.payload
++++ b/tests/py/ip6/dup.t.payload
+@@ -3,19 +3,19 @@ ip6 test test
+   [ immediate reg 1 0x0000cdab 0x00000000 0x00000000 0x01000000 ]
+   [ dup sreg_addr 1 ]
+ 
+-# dup to abcd::1 device "eth0"
++# dup to abcd::1 device "lo"
+ ip6 test test 
+   [ immediate reg 1 0x0000cdab 0x00000000 0x00000000 0x01000000 ]
+-  [ immediate reg 2 0x00000002 ]
++  [ immediate reg 2 0x00000001 ]
+   [ dup sreg_addr 1 sreg_dev 2 ]
+ 
+-# dup to ip6 saddr map { abcd::1 : cafe::cafe } device "eth0"
++# dup to ip6 saddr map { abcd::1 : cafe::cafe } device "lo"
+ __map%d test-ip6 b
+ __map%d test-ip6 0
+         element 0000cdab 00000000 00000000 01000000  : 0000feca 00000000 00000000 feca0000 0 [end]
+ ip6 test-ip6 input 
+   [ payload load 16b @ network header + 8 => reg 1 ]
+   [ lookup reg 1 set __map%d dreg 1 ]
+-  [ immediate reg 2 0x00000002 ]
++  [ immediate reg 2 0x00000001 ]
+   [ dup sreg_addr 1 sreg_dev 2 ]
+ 
+-- 
+2.5.5
 
-Cover with large range is necessary. Yes, I find that range 0-65535(not 1-65535)
-currently doesn't work in both. This is because queue_total is U16 type,
-but 0-65535 means queue_total is 65536, this is overflow, so queue_total is
-treated as zero.
 
-A workaround method is that when the queue_total is 0, we treat it as 65536,
-but it's a little ugly and tricky. But if we use [startqnum:endqnum],
-this problem
-will be not exist.
-
-I think for iptables, it's simple, we can introduce a new revision 4
-to fix this problem.
-
-But for nftables, if we just convert to use the new attribute _SREG_FROM and
-_SREG_TO, when the user use the new nftables and the old kernel, queue expr
-cannot work well. It seems that we must handle the compatibility in
-the user space
-too.
-
-Thanks Pablo!
