@@ -1,217 +1,204 @@
-From: Kevin Cernekee <cernekee@chromium.org>
-Subject: [PATCH conntrack-tools] Link nfct and helper modules with `-z lazy`
-Date: Sun, 11 Sep 2016 13:54:19 -0700
-Message-ID: <1473627259-33065-1-git-send-email-cernekee@chromium.org>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: conntrack: remove packet hotpath stats
+Date: Sun, 11 Sep 2016 22:55:53 +0200
+Message-ID: <1473627353-27981-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f177.google.com ([209.85.192.177]:32898 "EHLO
-        mail-pf0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753693AbcIKUy3 (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:53820 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753693AbcIKUzk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 11 Sep 2016 16:54:29 -0400
-Received: by mail-pf0-f177.google.com with SMTP id g202so45767311pfb.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 11 Sep 2016 13:54:29 -0700 (PDT)
+        Sun, 11 Sep 2016 16:55:40 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Some distributions, such as Gentoo and Chrome OS, try to link all
-programs with `-z now` as a security hardening measure.  This breaks
-nfct, because nfct cannot satisfy all of the helper modules' symbols.
-Therefore nfct implicitly depends on lazy binding.
+These counters sit in hot path and do show up in perf, this is especially
+true for 'found' and 'searched' which get incremented for every packet
+processed.
 
-Have autoconf probe the linker to see if `-z lazy` works, and if so,
-use it to link nfct and the helpers.
+Information like
 
-conntrackd itself is unaffected, and should still work with `-z now`.
+searched=212030105
+new=623431
+found=333613
+delete=623327
 
-Signed-off-by: Kevin Cernekee <cernekee@chromium.org>
+does not seem too helpful nowadays:
+
+- on busy systems found and searched will overflow every few hours
+(these are 32bit integers), other more busy ones every few days.
+
+- for debugging there are better methods, such as iptables' trace target,
+the conntrack log sysctls.  Nowadays we also have perf tool.
+
+This removes packet path stat counters except those that
+are expected to be 0 (or close to 0) on a normal system, e.g.
+'insert_failed' (race happened) or 'invalid' (proto tracker rejects).
+
+The insert stat is retained for the ctnetlink case.
+The found stat is retained for the tuple-is-taken check when NAT has to
+determine if it needs to pick a different source address.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
+ include/linux/netfilter/nf_conntrack_common.h      |  4 ----
+ include/uapi/linux/netfilter/nfnetlink_conntrack.h |  8 ++++----
+ net/netfilter/nf_conntrack_core.c                  | 14 ++------------
+ net/netfilter/nf_conntrack_netlink.c               |  6 +-----
+ net/netfilter/nf_conntrack_standalone.c            |  8 ++++----
+ 5 files changed, 11 insertions(+), 29 deletions(-)
 
-
-Note that the autoconf script is GPLv3.  But I've seen it used in other
-projects, and it seemed like a nicer solution than re-inventing the
-wheel.
-
-
- configure.ac             |  3 ++
- m4/ax_check_link_flag.m4 | 74 ++++++++++++++++++++++++++++++++++++++++++++++++
- src/Makefile.am          |  2 +-
- src/helpers/Makefile.am  | 39 +++++++++++++------------
- 4 files changed, 99 insertions(+), 19 deletions(-)
- create mode 100644 m4/ax_check_link_flag.m4
-
-diff --git a/configure.ac b/configure.ac
-index e2223d7555a5..6141220c0e6a 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -118,6 +118,9 @@ dnl AC_CHECK_HEADERS([netinet/in.h stdlib.h])
- dnl AC_C_CONST
- dnl AC_C_INLINE
+diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
+index 2755057..1d1ef4e 100644
+--- a/include/linux/netfilter/nf_conntrack_common.h
++++ b/include/linux/netfilter/nf_conntrack_common.h
+@@ -4,13 +4,9 @@
+ #include <uapi/linux/netfilter/nf_conntrack_common.h>
  
-+# Let nfct use dlopen() on helper libraries without resolving all symbols.
-+AX_CHECK_LINK_FLAG([-Wl,-z,lazy], [AC_SUBST([LAZY_LDFLAGS], [-Wl,-z,lazy])])
-+
- # Checks for library functions.
- dnl AC_FUNC_MALLOC
- dnl AC_FUNC_VPRINTF
-diff --git a/m4/ax_check_link_flag.m4 b/m4/ax_check_link_flag.m4
-new file mode 100644
-index 000000000000..eb01a6ce135e
---- /dev/null
-+++ b/m4/ax_check_link_flag.m4
-@@ -0,0 +1,74 @@
-+# ===========================================================================
-+#    http://www.gnu.org/software/autoconf-archive/ax_check_link_flag.html
-+# ===========================================================================
-+#
-+# SYNOPSIS
-+#
-+#   AX_CHECK_LINK_FLAG(FLAG, [ACTION-SUCCESS], [ACTION-FAILURE], [EXTRA-FLAGS], [INPUT])
-+#
-+# DESCRIPTION
-+#
-+#   Check whether the given FLAG works with the linker or gives an error.
-+#   (Warnings, however, are ignored)
-+#
-+#   ACTION-SUCCESS/ACTION-FAILURE are shell commands to execute on
-+#   success/failure.
-+#
-+#   If EXTRA-FLAGS is defined, it is added to the linker's default flags
-+#   when the check is done.  The check is thus made with the flags: "LDFLAGS
-+#   EXTRA-FLAGS FLAG".  This can for example be used to force the linker to
-+#   issue an error when a bad flag is given.
-+#
-+#   INPUT gives an alternative input source to AC_LINK_IFELSE.
-+#
-+#   NOTE: Implementation based on AX_CFLAGS_GCC_OPTION. Please keep this
-+#   macro in sync with AX_CHECK_{PREPROC,COMPILE}_FLAG.
-+#
-+# LICENSE
-+#
-+#   Copyright (c) 2008 Guido U. Draheim <guidod@gmx.de>
-+#   Copyright (c) 2011 Maarten Bosmans <mkbosmans@gmail.com>
-+#
-+#   This program is free software: you can redistribute it and/or modify it
-+#   under the terms of the GNU General Public License as published by the
-+#   Free Software Foundation, either version 3 of the License, or (at your
-+#   option) any later version.
-+#
-+#   This program is distributed in the hope that it will be useful, but
-+#   WITHOUT ANY WARRANTY; without even the implied warranty of
-+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
-+#   Public License for more details.
-+#
-+#   You should have received a copy of the GNU General Public License along
-+#   with this program. If not, see <http://www.gnu.org/licenses/>.
-+#
-+#   As a special exception, the respective Autoconf Macro's copyright owner
-+#   gives unlimited permission to copy, distribute and modify the configure
-+#   scripts that are the output of Autoconf when processing the Macro. You
-+#   need not follow the terms of the GNU General Public License when using
-+#   or distributing such scripts, even though portions of the text of the
-+#   Macro appear in them. The GNU General Public License (GPL) does govern
-+#   all other use of the material that constitutes the Autoconf Macro.
-+#
-+#   This special exception to the GPL applies to versions of the Autoconf
-+#   Macro released by the Autoconf Archive. When you make and distribute a
-+#   modified version of the Autoconf Macro, you may extend this special
-+#   exception to the GPL to apply to your modified version as well.
-+
-+#serial 4
-+
-+AC_DEFUN([AX_CHECK_LINK_FLAG],
-+[AC_PREREQ(2.64)dnl for _AC_LANG_PREFIX and AS_VAR_IF
-+AS_VAR_PUSHDEF([CACHEVAR],[ax_cv_check_ldflags_$4_$1])dnl
-+AC_CACHE_CHECK([whether the linker accepts $1], CACHEVAR, [
-+  ax_check_save_flags=$LDFLAGS
-+  LDFLAGS="$LDFLAGS $4 $1"
-+  AC_LINK_IFELSE([m4_default([$5],[AC_LANG_PROGRAM()])],
-+    [AS_VAR_SET(CACHEVAR,[yes])],
-+    [AS_VAR_SET(CACHEVAR,[no])])
-+  LDFLAGS=$ax_check_save_flags])
-+AS_VAR_IF(CACHEVAR,yes,
-+  [m4_default([$2], :)],
-+  [m4_default([$3], :)])
-+AS_VAR_POPDEF([CACHEVAR])dnl
-+])dnl AX_CHECK_LINK_FLAGS
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 607f19161857..144c52c48c64 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -35,7 +35,7 @@ if HAVE_CTHELPER
- nfct_LDADD += ${LIBNETFILTER_CTHELPER_LIBS}
- endif
+ struct ip_conntrack_stat {
+-	unsigned int searched;
+ 	unsigned int found;
+-	unsigned int new;
+ 	unsigned int invalid;
+ 	unsigned int ignore;
+-	unsigned int delete;
+-	unsigned int delete_list;
+ 	unsigned int insert;
+ 	unsigned int insert_failed;
+ 	unsigned int drop;
+diff --git a/include/uapi/linux/netfilter/nfnetlink_conntrack.h b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
+index 9df78970..6deb886 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_conntrack.h
++++ b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
+@@ -231,13 +231,13 @@ enum ctattr_secctx {
  
--nfct_LDFLAGS = -export-dynamic
-+nfct_LDFLAGS = -export-dynamic @LAZY_LDFLAGS@
+ enum ctattr_stats_cpu {
+ 	CTA_STATS_UNSPEC,
+-	CTA_STATS_SEARCHED,
++	CTA_STATS_SEARCHED,	/* no longer used */
+ 	CTA_STATS_FOUND,
+-	CTA_STATS_NEW,
++	CTA_STATS_NEW,		/* no longer used */
+ 	CTA_STATS_INVALID,
+ 	CTA_STATS_IGNORE,
+-	CTA_STATS_DELETE,
+-	CTA_STATS_DELETE_LIST,
++	CTA_STATS_DELETE,	/* no longer used */
++	CTA_STATS_DELETE_LIST,	/* no longer used */
+ 	CTA_STATS_INSERT,
+ 	CTA_STATS_INSERT_FAILED,
+ 	CTA_STATS_DROP,
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index ac1db40..8d1ddb9 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -379,7 +379,6 @@ static void
+ destroy_conntrack(struct nf_conntrack *nfct)
+ {
+ 	struct nf_conn *ct = (struct nf_conn *)nfct;
+-	struct net *net = nf_ct_net(ct);
+ 	struct nf_conntrack_l4proto *l4proto;
  
- conntrackd_SOURCES = alarm.c main.c run.c hash.c queue.c rbtree.c \
- 		    local.c log.c mcast.c udp.c netlink.c vector.c \
-diff --git a/src/helpers/Makefile.am b/src/helpers/Makefile.am
-index 51f4887ccced..05801bc7f703 100644
---- a/src/helpers/Makefile.am
-+++ b/src/helpers/Makefile.am
-@@ -10,38 +10,41 @@ pkglib_LTLIBRARIES = ct_helper_amanda.la \
- 		     ct_helper_sane.la	\
- 		     ct_helper_ssdp.la
+ 	pr_debug("destroy_conntrack(%p)\n", ct);
+@@ -406,7 +405,6 @@ destroy_conntrack(struct nf_conntrack *nfct)
  
-+HELPER_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS) @LAZY_LDFLAGS@
-+HELPER_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
-+
- ct_helper_amanda_la_SOURCES = amanda.c
--ct_helper_amanda_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
--ct_helper_amanda_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
-+ct_helper_amanda_la_LDFLAGS = $(HELPER_LDFLAGS)
-+ct_helper_amanda_la_CFLAGS = $(HELPER_CFLAGS)
+ 	nf_ct_del_from_dying_or_unconfirmed_list(ct);
  
- ct_helper_dhcpv6_la_SOURCES = dhcpv6.c
--ct_helper_dhcpv6_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
--ct_helper_dhcpv6_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
-+ct_helper_dhcpv6_la_LDFLAGS = $(HELPER_LDFLAGS)
-+ct_helper_dhcpv6_la_CFLAGS = $(HELPER_CFLAGS)
+-	NF_CT_STAT_INC(net, delete);
+ 	local_bh_enable();
  
- ct_helper_ftp_la_SOURCES = ftp.c
--ct_helper_ftp_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
--ct_helper_ftp_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
-+ct_helper_ftp_la_LDFLAGS = $(HELPER_LDFLAGS)
-+ct_helper_ftp_la_CFLAGS = $(HELPER_CFLAGS)
+ 	if (ct->master)
+@@ -438,7 +436,6 @@ static void nf_ct_delete_from_lists(struct nf_conn *ct)
  
- ct_helper_mdns_la_SOURCES = mdns.c
--ct_helper_mdns_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
--ct_helper_mdns_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
-+ct_helper_mdns_la_LDFLAGS = $(HELPER_LDFLAGS)
-+ct_helper_mdns_la_CFLAGS = $(HELPER_CFLAGS)
+ 	nf_ct_add_to_dying_list(ct);
  
- ct_helper_rpc_la_SOURCES = rpc.c
--ct_helper_rpc_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
--ct_helper_rpc_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
-+ct_helper_rpc_la_LDFLAGS = $(HELPER_LDFLAGS)
-+ct_helper_rpc_la_CFLAGS = $(HELPER_CFLAGS)
+-	NF_CT_STAT_INC(net, delete_list);
+ 	local_bh_enable();
+ }
  
- ct_helper_tftp_la_SOURCES = tftp.c
--ct_helper_tftp_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
--ct_helper_tftp_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
-+ct_helper_tftp_la_LDFLAGS = $(HELPER_LDFLAGS)
-+ct_helper_tftp_la_CFLAGS = $(HELPER_CFLAGS)
+@@ -529,11 +526,8 @@ begin:
+ 		if (nf_ct_is_dying(ct))
+ 			continue;
  
- ct_helper_tns_la_SOURCES = tns.c
--ct_helper_tns_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
--ct_helper_tns_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
-+ct_helper_tns_la_LDFLAGS = $(HELPER_LDFLAGS)
-+ct_helper_tns_la_CFLAGS = $(HELPER_CFLAGS)
+-		if (nf_ct_key_equal(h, tuple, zone, net)) {
+-			NF_CT_STAT_INC_ATOMIC(net, found);
++		if (nf_ct_key_equal(h, tuple, zone, net))
+ 			return h;
+-		}
+-		NF_CT_STAT_INC_ATOMIC(net, searched);
+ 	}
+ 	/*
+ 	 * if the nulls value we got at the end of this lookup is
+@@ -798,7 +792,6 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 	 */
+ 	__nf_conntrack_hash_insert(ct, hash, reply_hash);
+ 	nf_conntrack_double_unlock(hash, reply_hash);
+-	NF_CT_STAT_INC(net, insert);
+ 	local_bh_enable();
  
- ct_helper_sane_la_SOURCES = sane.c
--ct_helper_sane_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
--ct_helper_sane_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
-+ct_helper_sane_la_LDFLAGS = $(HELPER_LDFLAGS)
-+ct_helper_sane_la_CFLAGS = $(HELPER_CFLAGS)
+ 	help = nfct_help(ct);
+@@ -857,7 +850,6 @@ nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
+ 			rcu_read_unlock();
+ 			return 1;
+ 		}
+-		NF_CT_STAT_INC_ATOMIC(net, searched);
+ 	}
  
- ct_helper_ssdp_la_SOURCES = ssdp.c
--ct_helper_ssdp_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
--ct_helper_ssdp_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
-+ct_helper_ssdp_la_LDFLAGS = $(HELPER_LDFLAGS)
-+ct_helper_ssdp_la_CFLAGS = $(HELPER_CFLAGS)
+ 	if (get_nulls_value(n) != hash) {
+@@ -1177,10 +1169,8 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 		}
+ 		spin_unlock(&nf_conntrack_expect_lock);
+ 	}
+-	if (!exp) {
++	if (!exp)
+ 		__nf_ct_try_assign_helper(ct, tmpl, GFP_ATOMIC);
+-		NF_CT_STAT_INC(net, new);
+-	}
+ 
+ 	/* Now it is inserted into the unconfirmed list, bump refcount */
+ 	nf_conntrack_get(&ct->ct_general);
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index c052b71..2754045 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1984,13 +1984,9 @@ ctnetlink_ct_stat_cpu_fill_info(struct sk_buff *skb, u32 portid, u32 seq,
+ 	nfmsg->version      = NFNETLINK_V0;
+ 	nfmsg->res_id	    = htons(cpu);
+ 
+-	if (nla_put_be32(skb, CTA_STATS_SEARCHED, htonl(st->searched)) ||
+-	    nla_put_be32(skb, CTA_STATS_FOUND, htonl(st->found)) ||
+-	    nla_put_be32(skb, CTA_STATS_NEW, htonl(st->new)) ||
++	if (nla_put_be32(skb, CTA_STATS_FOUND, htonl(st->found)) ||
+ 	    nla_put_be32(skb, CTA_STATS_INVALID, htonl(st->invalid)) ||
+ 	    nla_put_be32(skb, CTA_STATS_IGNORE, htonl(st->ignore)) ||
+-	    nla_put_be32(skb, CTA_STATS_DELETE, htonl(st->delete)) ||
+-	    nla_put_be32(skb, CTA_STATS_DELETE_LIST, htonl(st->delete_list)) ||
+ 	    nla_put_be32(skb, CTA_STATS_INSERT, htonl(st->insert)) ||
+ 	    nla_put_be32(skb, CTA_STATS_INSERT_FAILED,
+ 				htonl(st->insert_failed)) ||
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 3d9a316..7d52f84 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -352,13 +352,13 @@ static int ct_cpu_seq_show(struct seq_file *seq, void *v)
+ 	seq_printf(seq, "%08x  %08x %08x %08x %08x %08x %08x %08x "
+ 			"%08x %08x %08x %08x %08x  %08x %08x %08x %08x\n",
+ 		   nr_conntracks,
+-		   st->searched,
++		   0,
+ 		   st->found,
+-		   st->new,
++		   0,
+ 		   st->invalid,
+ 		   st->ignore,
+-		   st->delete,
+-		   st->delete_list,
++		   0,
++		   0,
+ 		   st->insert,
+ 		   st->insert_failed,
+ 		   st->drop,
 -- 
-2.8.0.rc3.226.g39d4020
+2.7.3
 
