@@ -1,55 +1,45 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next] netfilter: nft_queue: add _SREG_FROM and
- _SRGE_TO to select the queue numbers
-Date: Mon, 12 Sep 2016 15:18:18 +0200
-Message-ID: <20160912131818.GE27566@breakpoint.cc>
-References: <1473602728-33502-1-git-send-email-zlpnobody@163.com>
- <1473602728-33502-2-git-send-email-zlpnobody@163.com>
- <20160911211226.GB6572@breakpoint.cc>
- <20160912120902.GA3654@salvia>
- <20160912122257.GC27566@breakpoint.cc>
- <20160912123253.GA9791@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, Liping Zhang <zlpnobody@163.com>,
-        netfilter-devel@vger.kernel.org,
-        Liping Zhang <liping.zhang@spreadtrum.com>, nevola@gmail.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf-next] netfilter: nft_numgen: fix race between num generate and store it
+Date: Mon, 12 Sep 2016 22:21:36 +0800
+Message-ID: <1473690096-18509-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, nevola@gmail.com,
+        Liping Zhang <liping.zhang@spreadtrum.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56348 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932172AbcILNSZ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Sep 2016 09:18:25 -0400
-Content-Disposition: inline
-In-Reply-To: <20160912123253.GA9791@salvia>
+Received: from m12-12.163.com ([220.181.12.12]:33243 "EHLO m12-12.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755984AbcILOWW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 12 Sep 2016 10:22:22 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Mon, Sep 12, 2016 at 02:22:57PM +0200, Florian Westphal wrote:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > On Sun, Sep 11, 2016 at 11:12:26PM +0200, Florian Westphal wrote:
-> > > > My first thought was that it would be better to just support one single
-> > > > sreg (the queue number) and eventually externalize the hashing/queue
-> > > > selection:
-> > > > 
-> > > > queue num jhash ip saddr . ip daddr mod ...
-> > > > 
-> > > > Problem is that with plain jhash we won't get a symmetric hash
-> > > > for origin and reply, so for this we would need a new expression/hash
-> > > > mode.
-> > > 
-> > > Are you think of xor hashing to provide the symmetry? Downside is that
-> > > bad tuple selection may result in poor distribution, but this is
-> > > something we can document.
-> > 
-> > No, I was thinking of a new hash mode to do this, e.g. just do same
-> > what current nfqueue selection does: hash lower address first.
-> 
-> Currently we have one single register pointing to the entire tuple
-> concatenation that we hash, we would need to support multiple
-> registers as input, check that they are consecutive. Then, the logic
-> to compare the data. And a way to express this in syntax.
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Ugh.  Ok, lets ignore this for now.
+After we generate a new number, we still use the priv->counter and
+store it to the dreg. This is not correct, another cpu may already
+change it to a new number. So we must use the generated number, not
+the priv->counter itself.
+
+Fixes: 91dbc6be0a62 ("netfilter: nf_tables: add number generator expression")
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+---
+ net/netfilter/nft_numgen.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nft_numgen.c b/net/netfilter/nft_numgen.c
+index f51a3ed..f173ebe 100644
+--- a/net/netfilter/nft_numgen.c
++++ b/net/netfilter/nft_numgen.c
+@@ -37,7 +37,7 @@ static void nft_ng_inc_eval(const struct nft_expr *expr,
+ 		nval = (oval + 1 < priv->modulus) ? oval + 1 : 0;
+ 	} while (atomic_cmpxchg(&priv->counter, oval, nval) != oval);
+ 
+-	memcpy(&regs->data[priv->dreg], &priv->counter, sizeof(u32));
++	regs->data[priv->dreg] = nval;
+ }
+ 
+ static const struct nla_policy nft_ng_policy[NFTA_NG_MAX + 1] = {
+-- 
+2.5.5
+
+
