@@ -1,169 +1,117 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] netfilter: nft_hash: Add hash offset value
-Date: Mon, 12 Sep 2016 18:34:59 +0200
-Message-ID: <20160912163459.GA11062@salvia>
-References: <20160906064416.GA32396@sonyv>
+Subject: Re: [PATCH v2] netfilter: nft_numgen: add increment counter offset
+ value
+Date: Mon, 12 Sep 2016 18:45:58 +0200
+Message-ID: <20160912164558.GA13182@salvia>
+References: <20160907175646.GA7317@sonyv>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="T4sUOijqQbZv57TR"
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Laura Garcia Liebana <nevola@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57680 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35532 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752778AbcILQfE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Sep 2016 12:35:04 -0400
+        id S1751227AbcILQqI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 12 Sep 2016 12:46:08 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 856AF2273FC
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 18:35:02 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 3F4CF231677
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 18:46:05 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 737C0FB45F
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 18:35:02 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2D1FD1153ED
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 18:46:05 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 289A81150C6
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 18:35:00 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0AD96114D68
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 18:46:03 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160906064416.GA32396@sonyv>
+In-Reply-To: <20160907175646.GA7317@sonyv>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
---T4sUOijqQbZv57TR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Laura,
-
-On Tue, Sep 06, 2016 at 08:44:19AM +0200, Laura Garcia Liebana wrote:
-> Add support to pass through an offset to the hash value. With this
-> feature, the sysadmin is able to generate a hash with a given
-> offset value.
-
-We've been using 'offset' to refer to this for a while, to I'm
-renaming this to NFTA_HASH_OFFSET.
-
-> diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-> index b7e3b40..2102c94 100644
-> --- a/net/netfilter/nft_hash.c
-> +++ b/net/netfilter/nft_hash.c
-> @@ -60,6 +62,11 @@ static int nft_hash_init(const struct nft_ctx *ctx,
->  	    !tb[NFTA_HASH_MODULUS])
->  		return -EINVAL;
+On Wed, Sep 07, 2016 at 07:56:49PM +0200, Laura Garcia Liebana wrote:
+> Add support for an initialization counter value. With this option the
+> sysadmin is able to start the counter when used with the increment type.
+> 
+> Example:
+> 
+> 	meta mark set numgen inc mod 2 sum 100
+> 
+> This will generate marks with the serie 100, 101, 100, 101, ...
+> 
+> Only supported for increment number generation.
+> 
+> Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+> ---
+> Changes in v2:
+> 	- Separate _SUM_ changes with _until_ attribute renaming.
+> 
+>  include/uapi/linux/netfilter/nf_tables.h | 2 ++
+>  net/netfilter/nft_numgen.c               | 9 +++++++--
+>  2 files changed, 9 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> index 24161e2..00a689d 100644
+> --- a/include/uapi/linux/netfilter/nf_tables.h
+> +++ b/include/uapi/linux/netfilter/nf_tables.h
+> @@ -1128,12 +1128,14 @@ enum nft_trace_types {
+>   * @NFTA_NG_DREG: destination register (NLA_U32)
+>   * @NFTA_NG_MODULUS: maximum counter value (NLA_U32)
+>   * @NFTA_NG_TYPE: operation type (NLA_U32)
+> + * @NFTA_NG_SUM: Offset to initiate the counter (NLA_U32)
+>   */
+>  enum nft_ng_attributes {
+>  	NFTA_NG_UNSPEC,
+>  	NFTA_NG_DREG,
+>  	NFTA_NG_MODULUS,
+>  	NFTA_NG_TYPE,
+> +	NFTA_NG_SUM,
+>  	__NFTA_NG_MAX
+>  };
+>  #define NFTA_NG_MAX	(__NFTA_NG_MAX - 1)
+> diff --git a/net/netfilter/nft_numgen.c b/net/netfilter/nft_numgen.c
+> index f51a3ed..a5ea3f7 100644
+> --- a/net/netfilter/nft_numgen.c
+> +++ b/net/netfilter/nft_numgen.c
+> @@ -44,6 +44,7 @@ static const struct nla_policy nft_ng_policy[NFTA_NG_MAX + 1] = {
+>  	[NFTA_NG_DREG]		= { .type = NLA_U32 },
+>  	[NFTA_NG_MODULUS]	= { .type = NLA_U32 },
+>  	[NFTA_NG_TYPE]		= { .type = NLA_U32 },
+> +	[NFTA_NG_SUM]		= { .type = NLA_U32 },
+>  };
 >  
-> +	if (tb[NFTA_HASH_SUM])
-> +		priv->sum = ntohl(nla_get_be32(tb[NFTA_HASH_SUM]));
-> +	else
-> +		priv->sum = 0;
+>  static int nft_ng_inc_init(const struct nft_ctx *ctx,
+> @@ -51,13 +52,17 @@ static int nft_ng_inc_init(const struct nft_ctx *ctx,
+>  			   const struct nlattr * const tb[])
+>  {
+>  	struct nft_ng_inc *priv = nft_expr_priv(expr);
+> +	u32 sum = 0;
+> +
+> +	if (tb[NFTA_NG_SUM])
+> +		sum = ntohl(nla_get_be32(tb[NFTA_NG_SUM]));
+>  
+>  	priv->modulus = ntohl(nla_get_be32(tb[NFTA_NG_MODULUS]));
+> -	if (priv->modulus == 0)
+> +	if (priv->modulus == 0 || sum >= priv->modulus)
+>  		return -ERANGE;
+>  
+>  	priv->dreg = nft_parse_register(tb[NFTA_NG_DREG]);
+> -	atomic_set(&priv->counter, 0);
+> +	atomic_set(&priv->counter, sum);
 
-priv is allocated via kzalloc, so this priv->sum = 0 is not required.
+Are you sure this will work?
 
-No need to resend, I have revamped your patch, keeping your authorship
-in place.
+        nval = (oval + 1 < priv->modulus) ? oval + 1 : 0;
 
---T4sUOijqQbZv57TR
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-netfilter-nft_hash-Add-hash-offset-value.patch"
+This is just setting priv->counter to an initial value, then it will
+become zero at some point.
 
->From cf4cdeb8d5a2ea4cd27c1d9cf95aba4ce1e194b5 Mon Sep 17 00:00:00 2001
-From: Laura Garcia Liebana <nevola@gmail.com>
-Date: Tue, 6 Sep 2016 08:44:19 +0200
-Subject: [PATCH] netfilter: nft_hash: Add hash offset value
+I'm going to take Liping's patch that converts:
 
-Add support to pass through an offset to the hash value. With this
-feature, the sysadmin is able to generate a hash with a given
-offset value.
+        memcpy(&regs->data[priv->dreg], &priv->counter, sizeof(u32));
 
-Example:
+to:
 
-	meta mark set jhash ip saddr mod 2 seed 0xabcd plus 100
+        reg->data[priv->dreg] = nval;
 
-This option generates marks according to the source address from 100 to
-101.
+so you can change this to:
 
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
----
- include/uapi/linux/netfilter/nf_tables.h |  2 ++
- net/netfilter/nft_hash.c                 | 17 +++++++++++++----
- 2 files changed, 15 insertions(+), 4 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 24161e2..8c653bb 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -731,6 +731,7 @@ enum nft_meta_keys {
-  * @NFTA_HASH_LEN: source data length (NLA_U32)
-  * @NFTA_HASH_MODULUS: modulus value (NLA_U32)
-  * @NFTA_HASH_SEED: seed value (NLA_U32)
-+ * @NFTA_HASH_OFFSET: add this offset value to hash result (NLA_U32)
-  */
- enum nft_hash_attributes {
- 	NFTA_HASH_UNSPEC,
-@@ -739,6 +740,7 @@ enum nft_hash_attributes {
- 	NFTA_HASH_LEN,
- 	NFTA_HASH_MODULUS,
- 	NFTA_HASH_SEED,
-+	NFTA_HASH_OFFSET,
- 	__NFTA_HASH_MAX,
- };
- #define NFTA_HASH_MAX	(__NFTA_HASH_MAX - 1)
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index 764251d..bd12f7a 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -23,6 +23,7 @@ struct nft_hash {
- 	u8			len;
- 	u32			modulus;
- 	u32			seed;
-+	u32			offset;
- };
- 
- static void nft_hash_eval(const struct nft_expr *expr,
-@@ -31,10 +32,10 @@ static void nft_hash_eval(const struct nft_expr *expr,
- {
- 	struct nft_hash *priv = nft_expr_priv(expr);
- 	const void *data = &regs->data[priv->sreg];
-+	u32 h;
- 
--	regs->data[priv->dreg] =
--		reciprocal_scale(jhash(data, priv->len, priv->seed),
--				 priv->modulus);
-+	h = reciprocal_scale(jhash(data, priv->len, priv->seed), priv->modulus);
-+	regs->data[priv->dreg] = h + priv->offset;
- }
- 
- static const struct nla_policy nft_hash_policy[NFTA_HASH_MAX + 1] = {
-@@ -59,6 +60,9 @@ static int nft_hash_init(const struct nft_ctx *ctx,
- 	    !tb[NFTA_HASH_MODULUS])
- 		return -EINVAL;
- 
-+	if (tb[NFTA_HASH_OFFSET])
-+		priv->offset = ntohl(nla_get_be32(tb[NFTA_HASH_OFFSET]));
-+
- 	priv->sreg = nft_parse_register(tb[NFTA_HASH_SREG]);
- 	priv->dreg = nft_parse_register(tb[NFTA_HASH_DREG]);
- 
-@@ -72,6 +76,9 @@ static int nft_hash_init(const struct nft_ctx *ctx,
- 	if (priv->modulus <= 1)
- 		return -ERANGE;
- 
-+	if (priv->offset + priv->modulus - 1 < U32_MAX)
-+		return -EOVERFLOW;
-+
- 	priv->seed = ntohl(nla_get_be32(tb[NFTA_HASH_SEED]));
- 
- 	return nft_validate_register_load(priv->sreg, len) &&
-@@ -94,7 +101,9 @@ static int nft_hash_dump(struct sk_buff *skb,
- 		goto nla_put_failure;
- 	if (nla_put_be32(skb, NFTA_HASH_SEED, htonl(priv->seed)))
- 		goto nla_put_failure;
--
-+	if (priv->offset != 0)
-+		if (nla_put_be32(skb, NFTA_HASH_OFFSET, htonl(priv->offset)))
-+			goto nla_put_failure;
- 	return 0;
- 
- nla_put_failure:
--- 
-2.1.4
-
-
---T4sUOijqQbZv57TR--
+        reg->data[priv->dreg] = nval + priv->offset;
