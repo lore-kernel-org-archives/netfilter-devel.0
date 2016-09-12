@@ -1,118 +1,36 @@
-From: Laura Garcia <nevola@gmail.com>
-Subject: Re: [PATCH v2] netfilter: nft_numgen: add increment counter offset
- value
-Date: Mon, 12 Sep 2016 19:25:29 +0200
-Message-ID: <20160912172529.GA18576@sonyv>
-References: <20160907175646.GA7317@sonyv>
- <20160912164558.GA13182@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v4 2/2 nf-next] netfilter: Add the missed return value
+ check of nft_register_chain_type
+Date: Mon, 12 Sep 2016 19:40:20 +0200
+Message-ID: <20160912174020.GA30541@salvia>
+References: <1473473070-7062-1-git-send-email-fgao@ikuai8.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, gfree.wind@gmail.com
+To: fgao@ikuai8.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34951 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752436AbcILRZe (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Sep 2016 13:25:34 -0400
-Received: by mail-wm0-f68.google.com with SMTP id a6so14610798wmc.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 10:25:33 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:40694 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753093AbcILRkb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 12 Sep 2016 13:40:31 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 5527311D8E2
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 19:40:24 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 461651150D2
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 19:40:24 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 10F71FF2C7
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 19:40:21 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160912164558.GA13182@salvia>
+In-Reply-To: <1473473070-7062-1-git-send-email-fgao@ikuai8.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 12, 2016 at 06:45:58PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Sep 07, 2016 at 07:56:49PM +0200, Laura Garcia Liebana wrote:
-> > Add support for an initialization counter value. With this option the
-> > sysadmin is able to start the counter when used with the increment type.
-> > 
-> > Example:
-> > 
-> > 	meta mark set numgen inc mod 2 sum 100
-> > 
-> > This will generate marks with the serie 100, 101, 100, 101, ...
-> > 
-> > Only supported for increment number generation.
-> > 
-> > Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
-> > ---
-> > Changes in v2:
-> > 	- Separate _SUM_ changes with _until_ attribute renaming.
-> > 
-> >  include/uapi/linux/netfilter/nf_tables.h | 2 ++
-> >  net/netfilter/nft_numgen.c               | 9 +++++++--
-> >  2 files changed, 9 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-> > index 24161e2..00a689d 100644
-> > --- a/include/uapi/linux/netfilter/nf_tables.h
-> > +++ b/include/uapi/linux/netfilter/nf_tables.h
-> > @@ -1128,12 +1128,14 @@ enum nft_trace_types {
-> >   * @NFTA_NG_DREG: destination register (NLA_U32)
-> >   * @NFTA_NG_MODULUS: maximum counter value (NLA_U32)
-> >   * @NFTA_NG_TYPE: operation type (NLA_U32)
-> > + * @NFTA_NG_SUM: Offset to initiate the counter (NLA_U32)
-> >   */
-> >  enum nft_ng_attributes {
-> >  	NFTA_NG_UNSPEC,
-> >  	NFTA_NG_DREG,
-> >  	NFTA_NG_MODULUS,
-> >  	NFTA_NG_TYPE,
-> > +	NFTA_NG_SUM,
-> >  	__NFTA_NG_MAX
-> >  };
-> >  #define NFTA_NG_MAX	(__NFTA_NG_MAX - 1)
-> > diff --git a/net/netfilter/nft_numgen.c b/net/netfilter/nft_numgen.c
-> > index f51a3ed..a5ea3f7 100644
-> > --- a/net/netfilter/nft_numgen.c
-> > +++ b/net/netfilter/nft_numgen.c
-> > @@ -44,6 +44,7 @@ static const struct nla_policy nft_ng_policy[NFTA_NG_MAX + 1] = {
-> >  	[NFTA_NG_DREG]		= { .type = NLA_U32 },
-> >  	[NFTA_NG_MODULUS]	= { .type = NLA_U32 },
-> >  	[NFTA_NG_TYPE]		= { .type = NLA_U32 },
-> > +	[NFTA_NG_SUM]		= { .type = NLA_U32 },
-> >  };
-> >  
-> >  static int nft_ng_inc_init(const struct nft_ctx *ctx,
-> > @@ -51,13 +52,17 @@ static int nft_ng_inc_init(const struct nft_ctx *ctx,
-> >  			   const struct nlattr * const tb[])
-> >  {
-> >  	struct nft_ng_inc *priv = nft_expr_priv(expr);
-> > +	u32 sum = 0;
-> > +
-> > +	if (tb[NFTA_NG_SUM])
-> > +		sum = ntohl(nla_get_be32(tb[NFTA_NG_SUM]));
-> >  
-> >  	priv->modulus = ntohl(nla_get_be32(tb[NFTA_NG_MODULUS]));
-> > -	if (priv->modulus == 0)
-> > +	if (priv->modulus == 0 || sum >= priv->modulus)
-> >  		return -ERANGE;
-> >  
-> >  	priv->dreg = nft_parse_register(tb[NFTA_NG_DREG]);
-> > -	atomic_set(&priv->counter, 0);
-> > +	atomic_set(&priv->counter, sum);
+On Sat, Sep 10, 2016 at 10:04:30AM +0800, fgao@ikuai8.com wrote:
+> From: Gao Feng <fgao@ikuai8.com>
 > 
-> Are you sure this will work?
-> 
->         nval = (oval + 1 < priv->modulus) ? oval + 1 : 0;
-> 
-> This is just setting priv->counter to an initial value, then it will
-> become zero at some point.
-> 
+> There are some codes of netfilter module which did not check the return
+> value of nft_register_chain_type. Add the checks now.
 
-Ok, I got it what you mean.
-
-Thanks.
-
-> I'm going to take Liping's patch that converts:
-> 
->         memcpy(&regs->data[priv->dreg], &priv->counter, sizeof(u32));
-> 
-> to:
-> 
->         reg->data[priv->dreg] = nval;
-> 
-> so you can change this to:
-> 
->         reg->data[priv->dreg] = nval + priv->offset;
+Applied.
