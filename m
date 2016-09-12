@@ -1,100 +1,128 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v7 nf] netfilter: synproxy: Check oom when adding
- synproxy and seqadj ct extensions
-Date: Mon, 12 Sep 2016 19:15:09 +0200
-Message-ID: <20160912171509.GA28913@salvia>
-References: <1473432621-20908-1-git-send-email-fgao@ikuai8.com>
+Subject: Re: [PATCH v2] netfilter: nft_numgen: add increment counter offset
+ value
+Date: Mon, 12 Sep 2016 19:21:32 +0200
+Message-ID: <20160912172132.GA29173@salvia>
+References: <20160907175646.GA7317@sonyv>
+ <20160912164558.GA13182@salvia>
+ <20160912170823.GB18041@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, gfree.wind@gmail.com
-To: fgao@ikuai8.com
+Cc: netfilter-devel@vger.kernel.org
+To: Laura Garcia <nevola@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55460 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59084 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934774AbcILRPR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Sep 2016 13:15:17 -0400
+        id S933247AbcILRVl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 12 Sep 2016 13:21:41 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E91093066CB
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 19:15:14 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 1B664A7E27
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 19:21:40 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D710B1153E2
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 19:15:14 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0A2C21153EF
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 19:21:40 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 000B9FF6F4
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 19:15:10 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E54F1DA7E1
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 19:21:37 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1473432621-20908-1-git-send-email-fgao@ikuai8.com>
+In-Reply-To: <20160912170823.GB18041@sonyv>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Sep 09, 2016 at 10:50:21PM +0800, fgao@ikuai8.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
+On Mon, Sep 12, 2016 at 07:08:24PM +0200, Laura Garcia wrote:
+> On Mon, Sep 12, 2016 at 06:45:58PM +0200, Pablo Neira Ayuso wrote:
+> > On Wed, Sep 07, 2016 at 07:56:49PM +0200, Laura Garcia Liebana wrote:
+> > > Add support for an initialization counter value. With this option the
+> > > sysadmin is able to start the counter when used with the increment type.
+> > > 
+> > > Example:
+> > > 
+> > > 	meta mark set numgen inc mod 2 sum 100
+> > > 
+> > > This will generate marks with the serie 100, 101, 100, 101, ...
+> > > 
+> > > Only supported for increment number generation.
+> > > 
+> > > Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+> > > ---
+> > > Changes in v2:
+> > > 	- Separate _SUM_ changes with _until_ attribute renaming.
+> > > 
+> > >  include/uapi/linux/netfilter/nf_tables.h | 2 ++
+> > >  net/netfilter/nft_numgen.c               | 9 +++++++--
+> > >  2 files changed, 9 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> > > index 24161e2..00a689d 100644
+> > > --- a/include/uapi/linux/netfilter/nf_tables.h
+> > > +++ b/include/uapi/linux/netfilter/nf_tables.h
+> > > @@ -1128,12 +1128,14 @@ enum nft_trace_types {
+> > >   * @NFTA_NG_DREG: destination register (NLA_U32)
+> > >   * @NFTA_NG_MODULUS: maximum counter value (NLA_U32)
+> > >   * @NFTA_NG_TYPE: operation type (NLA_U32)
+> > > + * @NFTA_NG_SUM: Offset to initiate the counter (NLA_U32)
+> > >   */
+> > >  enum nft_ng_attributes {
+> > >  	NFTA_NG_UNSPEC,
+> > >  	NFTA_NG_DREG,
+> > >  	NFTA_NG_MODULUS,
+> > >  	NFTA_NG_TYPE,
+> > > +	NFTA_NG_SUM,
+> > >  	__NFTA_NG_MAX
+> > >  };
+> > >  #define NFTA_NG_MAX	(__NFTA_NG_MAX - 1)
+> > > diff --git a/net/netfilter/nft_numgen.c b/net/netfilter/nft_numgen.c
+> > > index f51a3ed..a5ea3f7 100644
+> > > --- a/net/netfilter/nft_numgen.c
+> > > +++ b/net/netfilter/nft_numgen.c
+> > > @@ -44,6 +44,7 @@ static const struct nla_policy nft_ng_policy[NFTA_NG_MAX + 1] = {
+> > >  	[NFTA_NG_DREG]		= { .type = NLA_U32 },
+> > >  	[NFTA_NG_MODULUS]	= { .type = NLA_U32 },
+> > >  	[NFTA_NG_TYPE]		= { .type = NLA_U32 },
+> > > +	[NFTA_NG_SUM]		= { .type = NLA_U32 },
+> > >  };
+> > >  
+> > >  static int nft_ng_inc_init(const struct nft_ctx *ctx,
+> > > @@ -51,13 +52,17 @@ static int nft_ng_inc_init(const struct nft_ctx *ctx,
+> > >  			   const struct nlattr * const tb[])
+> > >  {
+> > >  	struct nft_ng_inc *priv = nft_expr_priv(expr);
+> > > +	u32 sum = 0;
+> > > +
+> > > +	if (tb[NFTA_NG_SUM])
+> > > +		sum = ntohl(nla_get_be32(tb[NFTA_NG_SUM]));
+> > >  
+> > >  	priv->modulus = ntohl(nla_get_be32(tb[NFTA_NG_MODULUS]));
+> > > -	if (priv->modulus == 0)
+> > > +	if (priv->modulus == 0 || sum >= priv->modulus)
+> > >  		return -ERANGE;
+> > >  
+> > >  	priv->dreg = nft_parse_register(tb[NFTA_NG_DREG]);
+> > > -	atomic_set(&priv->counter, 0);
+> > > +	atomic_set(&priv->counter, sum);
+> > 
+> > Are you sure this will work?
+> > 
+> >         nval = (oval + 1 < priv->modulus) ? oval + 1 : 0;
+> > 
+> > This is just setting priv->counter to an initial value, then it will
+> > become zero at some point.
+> > 
 > 
-> When memory is exhausted, nfct_seqadj_ext_add may fail to add the
-> synproxy and seqadj extensions. The function nf_ct_seqadj_init doesn't
-> check if get valid seqadj pointer by the nfct_seqadj.
+> I considered that the offset in the case of 'numgen inc' will be only
+> applied to initialize the counter to a certain value. Do you mean to
+> add the offset in every generated value?
 > 
-> Now drop the packet directly when fail to add seqadj extension to
-> avoid dereference NULL pointer in nf_ct_seqadj_init from
-> init_conntrack().
-> 
-> Signed-off-by: Gao Feng <fgao@ikuai8.com>
-> ---
->  v7: Remove one debug log and revert to NF_DROP again;
->  v6: Add one helper function to add synproxy
->  v5: Return NF_ACCEPT instead of NF_DROP when nfct_seqadj_ext_add failed in nf_nat_setup_info
->  v4: Drop the packet directly when fail to add seqadj extension;
->  v3: Remove the warning log when seqadj is null;
->  v2: Remove the unnessary seqadj check in nf_ct_seq_adjust
->  v1: Initial patch
-> 
->  include/net/netfilter/nf_conntrack_synproxy.h | 13 +++++++++++++
->  net/netfilter/nf_conntrack_core.c             |  6 +++---
->  net/netfilter/nf_nat_core.c                   |  3 ++-
->  3 files changed, 18 insertions(+), 4 deletions(-)
-> 
-> diff --git a/include/net/netfilter/nf_conntrack_synproxy.h b/include/net/netfilter/nf_conntrack_synproxy.h
-> index 6793614..e8cf825 100644
-> --- a/include/net/netfilter/nf_conntrack_synproxy.h
-> +++ b/include/net/netfilter/nf_conntrack_synproxy.h
-> @@ -27,6 +27,19 @@ static inline struct nf_conn_synproxy *nfct_synproxy_ext_add(struct nf_conn *ct)
->  #endif
->  }
->  
-> +static inline bool nf_ct_add_synproxy(struct nf_conn *ct, const struct nf_conn *tmpl)
-> +{
-> +	if (tmpl && nfct_synproxy(tmpl)) {
-> +		if (!nfct_seqadj_ext_add(ct))
-> +			return false;
-> +
-> +		if (!nfct_synproxy_ext_add(ct))
-> +			return false;
-> +	}
-> +
-> +	return true;
-> +}
-> +
->  struct synproxy_stats {
->  	unsigned int			syn_received;
->  	unsigned int			cookie_invalid;
-> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> index dd2c43a..64aabeb 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -1035,9 +1035,9 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
->  	if (IS_ERR(ct))
->  		return (struct nf_conntrack_tuple_hash *)ct;
->  
-> -	if (tmpl && nfct_synproxy(tmpl)) {
-> -		nfct_seqadj_ext_add(ct);
-> -		nfct_synproxy_ext_add(ct);
-> +	if (!nf_ct_add_synproxy(ct, tmpl)) {
-> +		nf_conntrack_free(ct);
-> +		return NULL;
+> Should the random counter behave in the same way?
 
-This has to be ERR_PTR(-ENOMEM);
+I'm expecting this works just like nft_hash, ie.
 
-So the packet is dropped.
+        numgen inc mod 2 offset 10
 
-NULL is used for invalid packets, invalid packets keep going and the
-user can drop them via -m state --state INVALID.
+generates: 10, 11, 10, 11, ...
+
+Then, for random:
+
+        numgen random mod 2 offset 10
+
+generates (well, this should actually be random): 10, 10, 11, 10, 11, 10, 10,...
