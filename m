@@ -1,64 +1,78 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH nf-next] netfilter: nft_queue: add _SREG_FROM and _SRGE_TO
- to select the queue numbers
-Date: Mon, 12 Sep 2016 10:19:15 +0800
-Message-ID: <CAML_gOfze-vy-q7EzH86ZEgriMCuB7HsTf3674Cb8x_3BE6XeQ@mail.gmail.com>
-References: <1473602728-33502-1-git-send-email-zlpnobody@163.com>
- <1473602728-33502-2-git-send-email-zlpnobody@163.com> <20160911211226.GB6572@breakpoint.cc>
+From: Laura Garcia <nevola@gmail.com>
+Subject: Re: [PATCH nft] src: fix compile error due to _UNTIL renamed to
+ _MODULUS in libnftnl
+Date: Mon, 12 Sep 2016 11:49:20 +0200
+Message-ID: <20160912094919.GA5013@sonyv>
+References: <1473582957-52218-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Liping Zhang <zlpnobody@163.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org,
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
         Liping Zhang <liping.zhang@spreadtrum.com>
-To: Florian Westphal <fw@strlen.de>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f66.google.com ([209.85.213.66]:33747 "EHLO
-        mail-vk0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932258AbcILCTQ (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36094 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756905AbcILJtY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 11 Sep 2016 22:19:16 -0400
-Received: by mail-vk0-f66.google.com with SMTP id v189so5101861vkv.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 11 Sep 2016 19:19:16 -0700 (PDT)
-In-Reply-To: <20160911211226.GB6572@breakpoint.cc>
+        Mon, 12 Sep 2016 05:49:24 -0400
+Received: by mail-wm0-f68.google.com with SMTP id z194so440493wmd.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 02:49:23 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1473582957-52218-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2016-09-12 5:12 GMT+08:00 Florian Westphal <fw@strlen.de>:
-> Liping Zhang <zlpnobody@163.com> wrote:
->> So similer to nft_nat, take two registers to select the queue numbers,
->> then we can add one simple rule to mapping queues, maybe like this:
->>   queue num tcp dport map { 80:0, 81:1, 82:2 ... }
->
-> I like this.
->
-> My first thought was that it would be better to just support one single
-> sreg (the queue number) and eventually externalize the hashing/queue
-> selection:
->
-> queue num jhash ip saddr . ip daddr mod ...
+On Sun, Sep 11, 2016 at 04:35:57PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <liping.zhang@spreadtrum.com>
+> 
+> In the latest libnftnl, NFTNL_EXPR_NG_UNTIL was renamed to
+> NFTNL_EXPR_NG_MODULUS, so compile error happened:
+>   netlink_linearize.c: In function ‘netlink_gen_numgen’:
+>   netlink_linearize.c:184:26: error: ‘NFTNL_EXPR_NG_UNTIL’ undeclared
+>   (first use in this function)
+> 
 
-Sounds good.
+In order to complete the renaming, NFTA_NG_UNTIL should be changed to
+NFTA_NG_MODULUS as well.
 
-At first, my another intention is use _SREG_FROM and _SREG_TO to replace
-_QUEUE_NUM and _QUEUE_TOTAL, there's no restriction to use range 0-65535:
-
-[ immediate reg 1 0x00000000 ]
-[ immediate reg 2 0x0000ffff ]
-[ queue num 0 reg_from 1 reg_to 2 ]
-
-But I think your "queue num jhash ip saddr . ip daddr mod ..." is more
-flexible and
-there's no restriction to use range 0-65535 too.
-
-I agree with you, one sreg seems enough. I will send V2 later.
-
-> Problem is that with plain jhash we won't get a symmetric hash
-> for origin and reply, so for this we would need a new expression/hash
-> mode.
->
-> We would also need another expression to allow distribution
-> starting with a queue other than 0.
-
-I think Laura is developing this option, see
-https://patchwork.ozlabs.org/patch/666334/.
+> Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+> ---
+>  src/netlink_delinearize.c | 2 +-
+>  src/netlink_linearize.c   | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+> index 05edb01..6bb27b6 100644
+> --- a/src/netlink_delinearize.c
+> +++ b/src/netlink_delinearize.c
+> @@ -554,7 +554,7 @@ static void netlink_parse_numgen(struct netlink_parse_ctx *ctx,
+>  	struct expr *expr;
+>  
+>  	type  = nftnl_expr_get_u32(nle, NFTNL_EXPR_NG_TYPE);
+> -	until = nftnl_expr_get_u32(nle, NFTNL_EXPR_NG_UNTIL);
+> +	until = nftnl_expr_get_u32(nle, NFTNL_EXPR_NG_MODULUS);
+>  
+>  	expr = numgen_expr_alloc(loc, type, until);
+>  	dreg = netlink_parse_register(nle, NFTNL_EXPR_NG_DREG);
+> diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+> index 5204154..558deb2 100644
+> --- a/src/netlink_linearize.c
+> +++ b/src/netlink_linearize.c
+> @@ -181,7 +181,7 @@ static void netlink_gen_numgen(struct netlink_linearize_ctx *ctx,
+>  	nle = alloc_nft_expr("numgen");
+>  	netlink_put_register(nle, NFTNL_EXPR_NG_DREG, dreg);
+>  	netlink_put_register(nle, NFTNL_EXPR_NG_TYPE, expr->numgen.type);
+> -	nftnl_expr_set_u32(nle, NFTNL_EXPR_NG_UNTIL, expr->numgen.mod);
+> +	nftnl_expr_set_u32(nle, NFTNL_EXPR_NG_MODULUS, expr->numgen.mod);
+>  	nftnl_rule_add_expr(ctx->nlr, nle);
+>  }
+>  
+> -- 
+> 2.5.5
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
