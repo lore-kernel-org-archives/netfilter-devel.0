@@ -1,77 +1,87 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: nft_queue: add _SREG_FROM and
- _SRGE_TO to select the queue numbers
-Date: Mon, 12 Sep 2016 14:09:02 +0200
-Message-ID: <20160912120902.GA3654@salvia>
-References: <1473602728-33502-1-git-send-email-zlpnobody@163.com>
- <1473602728-33502-2-git-send-email-zlpnobody@163.com>
- <20160911211226.GB6572@breakpoint.cc>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nft V2] src: fix compile error due to _UNTIL renamed to _MODULUS in libnftnl
+Date: Mon, 12 Sep 2016 20:19:04 +0800
+Message-ID: <1473682744-5504-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Liping Zhang <zlpnobody@163.com>, netfilter-devel@vger.kernel.org,
-        Liping Zhang <liping.zhang@spreadtrum.com>, nevola@gmail.com
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@vger.kernel.org, nevola@gmail.com,
+        Liping Zhang <liping.zhang@spreadtrum.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39112 "EHLO mail.us.es"
+Received: from m12-16.163.com ([220.181.12.16]:38962 "EHLO m12-16.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756086AbcILMJU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Sep 2016 08:09:20 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 59F381F18E3
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 14:09:18 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 43D5C15D633
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 14:09:18 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5A5A411C4EB
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Sep 2016 14:09:08 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20160911211226.GB6572@breakpoint.cc>
+        id S1757812AbcILMTj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 12 Sep 2016 08:19:39 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Sep 11, 2016 at 11:12:26PM +0200, Florian Westphal wrote:
-> Liping Zhang <zlpnobody@163.com> wrote:
-> > From: Liping Zhang <liping.zhang@spreadtrum.com>
-> > 
-> > Currently, the user can specify the queue numbers by _QUEUE_NUM and
-> > _QUEUE_TOTAL attributes, this is enough in most situations.
-> > 
-> > But acctually, it is not very flexible, for example:
-> >   tcp dport 80 mapped to queue0
-> >   tcp dport 81 mapped to queue1
-> >   tcp dport 82 mapped to queue2
-> > In order to do this thing, we must add 3 nft rules, and more
-> > mapping means more rules ...
-> > 
-> > So similer to nft_nat, take two registers to select the queue numbers,
-> > then we can add one simple rule to mapping queues, maybe like this:
-> >   queue num tcp dport map { 80:0, 81:1, 82:2 ... }
-> 
-> I like this.
-> 
-> My first thought was that it would be better to just support one single
-> sreg (the queue number) and eventually externalize the hashing/queue
-> selection:
-> 
-> queue num jhash ip saddr . ip daddr mod ...
-> 
-> Problem is that with plain jhash we won't get a symmetric hash
-> for origin and reply, so for this we would need a new expression/hash
-> mode.
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Are you think of xor hashing to provide the symmetry? Downside is that
-bad tuple selection may result in poor distribution, but this is
-something we can document.
+In the latest libnftnl, NFTNL_EXPR_NG_UNTIL was renamed to
+NFTNL_EXPR_NG_MODULUS, so compile error happened:
+  netlink_linearize.c: In function ‘netlink_gen_numgen’:
+  netlink_linearize.c:184:26: error: ‘NFTNL_EXPR_NG_UNTIL’ undeclared
+  (first use in this function)
 
-Still it would be possible to use jhash at the cost of having two
-rules.
+Also update NFTA_NG_UNTIL to NFTA_NG_MODULUS.
 
-It would be great to get a new NFTA_HASH_MODE attribute and something
-like:
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+---
+ V2: update NFTA_NG_UNTIL to NFTA_NG_MODULUS reported by Laura Garcia Liebana.
 
-enum nft_hash_types {
-        NFT_HASH_JENKINS        = 0,
-};
+ include/linux/netfilter/nf_tables.h | 4 ++--
+ src/netlink_delinearize.c           | 2 +-
+ src/netlink_linearize.c             | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-So we have room to make other hash algos fit into this expression.
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 8a63f22..1bec149 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -1126,13 +1126,13 @@ enum nft_trace_types {
+  * enum nft_ng_attributes - nf_tables number generator expression netlink attributes
+  *
+  * @NFTA_NG_DREG: destination register (NLA_U32)
+- * @NFTA_NG_UNTIL: source value to increment the counter until reset (NLA_U32)
++ * @NFTA_NG_MODULUS: maximum counter value (NLA_U32)
+  * @NFTA_NG_TYPE: operation type (NLA_U32)
+  */
+ enum nft_ng_attributes {
+ 	NFTA_NG_UNSPEC,
+ 	NFTA_NG_DREG,
+-	NFTA_NG_UNTIL,
++	NFTA_NG_MODULUS,
+ 	NFTA_NG_TYPE,
+ 	__NFTA_NG_MAX
+ };
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 05edb01..6bb27b6 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -554,7 +554,7 @@ static void netlink_parse_numgen(struct netlink_parse_ctx *ctx,
+ 	struct expr *expr;
+ 
+ 	type  = nftnl_expr_get_u32(nle, NFTNL_EXPR_NG_TYPE);
+-	until = nftnl_expr_get_u32(nle, NFTNL_EXPR_NG_UNTIL);
++	until = nftnl_expr_get_u32(nle, NFTNL_EXPR_NG_MODULUS);
+ 
+ 	expr = numgen_expr_alloc(loc, type, until);
+ 	dreg = netlink_parse_register(nle, NFTNL_EXPR_NG_DREG);
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 5204154..558deb2 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -181,7 +181,7 @@ static void netlink_gen_numgen(struct netlink_linearize_ctx *ctx,
+ 	nle = alloc_nft_expr("numgen");
+ 	netlink_put_register(nle, NFTNL_EXPR_NG_DREG, dreg);
+ 	netlink_put_register(nle, NFTNL_EXPR_NG_TYPE, expr->numgen.type);
+-	nftnl_expr_set_u32(nle, NFTNL_EXPR_NG_UNTIL, expr->numgen.mod);
++	nftnl_expr_set_u32(nle, NFTNL_EXPR_NG_MODULUS, expr->numgen.mod);
+ 	nftnl_rule_add_expr(ctx->nlr, nle);
+ }
+ 
+-- 
+2.5.5
+
+
