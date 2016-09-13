@@ -1,55 +1,41 @@
-From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCH] netfilter: nft_hash: fix hash overflow validation
-Date: Tue, 13 Sep 2016 10:21:46 +0200
-Message-ID: <20160913082144.GA5689@sonyv>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v8 nf] netfilter: synproxy: Check oom when adding
+ synproxy and seqadj ct extensions
+Date: Tue, 13 Sep 2016 10:48:33 +0200
+Message-ID: <20160913084833.GA2930@salvia>
+References: <1473727758-332-1-git-send-email-fgao@ikuai8.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, gfree.wind@gmail.com
+To: fgao@ikuai8.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33462 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750927AbcIMIVu (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Sep 2016 04:21:50 -0400
-Received: by mail-wm0-f65.google.com with SMTP id b187so17108545wme.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Sep 2016 01:21:50 -0700 (PDT)
-Received: from sonyv ([91.126.73.162])
-        by smtp.gmail.com with ESMTPSA id e5sm4055065wma.13.2016.09.13.01.21.48
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Tue, 13 Sep 2016 01:21:49 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:44704 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755915AbcIMIsr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 13 Sep 2016 04:48:47 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9EBA061506
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Sep 2016 10:48:38 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8F8761150D2
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Sep 2016 10:48:38 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9A61C114D63
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Sep 2016 10:48:34 +0200 (CEST)
 Content-Disposition: inline
+In-Reply-To: <1473727758-332-1-git-send-email-fgao@ikuai8.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The overflow validation in the init() function establishes that the
-maximum value that the hash could reach is less than U32_MAX, which is
-likely to be true.
+On Tue, Sep 13, 2016 at 08:49:18AM +0800, fgao@ikuai8.com wrote:
+> From: Gao Feng <fgao@ikuai8.com>
+> 
+> When memory is exhausted, nfct_seqadj_ext_add may fail to add the
+> synproxy and seqadj extensions. The function nf_ct_seqadj_init doesn't
+> check if get valid seqadj pointer by the nfct_seqadj.
+> 
+> Now drop the packet directly when fail to add seqadj extension to
+> avoid dereference NULL pointer in nf_ct_seqadj_init from
+> init_conntrack().
 
-The fix detects the overflow when the maximum hash value is less than
-the offset itself.
-
-Fixes: 70ca767ea1b2 ("netfilter: nft_hash: Add hash offset value")
-
-Reported-by: Liping Zhang <liping.zhang@spreadtrum.com>
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
----
- net/netfilter/nft_hash.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index bd12f7a..09473b4 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -76,7 +76,7 @@ static int nft_hash_init(const struct nft_ctx *ctx,
- 	if (priv->modulus <= 1)
- 		return -ERANGE;
- 
--	if (priv->offset + priv->modulus - 1 < U32_MAX)
-+	if (priv->offset + priv->modulus - 1 < priv->offset)
- 		return -EOVERFLOW;
- 
- 	priv->seed = ntohl(nla_get_be32(tb[NFTA_HASH_SEED]));
--- 
-2.8.1
-
+Applied to nf, thanks.
