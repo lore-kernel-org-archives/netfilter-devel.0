@@ -1,56 +1,69 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [RFC] nftables: reverse path filtering for nft
-Date: Tue, 13 Sep 2016 00:46:20 +0200
-Message-ID: <20160912224620.GD11685@breakpoint.cc>
-References: <20160910200102.GA11377@breakpoint.cc>
- <20160912120437.GA9323@salvia>
- <20160912122107.GB27566@breakpoint.cc>
- <20160912185228.GA10862@salvia>
- <20160912190025.GB11685@breakpoint.cc>
- <20160912191438.GA11229@salvia>
- <20160912191943.GC11685@breakpoint.cc>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the netfilter-next tree with the net
+ tree
+Date: Tue, 13 Sep 2016 10:12:50 +1000
+Message-ID: <20160913101250.0ffee30f@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:60034 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751673AbcILWqZ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Sep 2016 18:46:25 -0400
-Content-Disposition: inline
-In-Reply-To: <20160912191943.GC11685@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Liping Zhang <liping.zhang@spreadtrum.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        David Miller <davem@davemloft.net>,
+        Networking <netdev@vger.kernel.org>
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Florian Westphal <fw@strlen.de> wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Mon, Sep 12, 2016 at 09:00:25PM +0200, Florian Westphal wrote:
-> > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > >         fib lookup ip daddr . oif
-> > > > 
-> > > > As you are basically looking for the route based on IPv4 address and
-> > > > the output interface, so this boils down to:
-> > > > 
-> > > >         fib lookup $expr $flags
-> > > 
-> > > How would the kernel disentangle the register data?
-> > 
-> > What I'm proposing is to represent this as a concatenation, since this
-> > represents the tuple that you use to look up for route.
-> > 
-> > > (i.e., how do i know where in the sreg e.g. the daddr is
-> > >  that i need to stuff in the flowi struct?)
-> > 
-> > You can iterate over the concatenation compound from the
-> > netlink_linearize path, it is just a list of expressions. Then, you
-> > can set the NFTA_FIB_* netlink attribute using them.
-> 
-> Ah, ok.  Interesting idea, I'll give this a shot.
+Hi all,
 
-Seems it might be better to handle this from the evaluation step
-since it allows earlier error detection (e.g. use of
-fib .. ip6 flowlabel from an ipv4 base for instance).
+Today's linux-next merge of the netfilter-next tree got a conflict in:
 
+  net/netfilter/nf_tables_netdev.c
+
+between commit:
+
+  c73c24849011 ("netfilter: nf_tables_netdev: remove redundant ip_hdr assignment")
+
+from the net tree and commit:
+
+  ddc8b6027ad0 ("netfilter: introduce nft_set_pktinfo_{ipv4, ipv6}_validate()")
+
+from the netfilter-next tree.
+
+I fixed it up (I used the latter version of this file and applied the
+patch below) and can carry the fix as necessary. This is now fixed as
+far as linux-next is concerned, but any non trivial conflicts should be
+mentioned to your upstream maintainer when your tree is submitted for
+merging.  You may also want to consider cooperating with the maintainer
+of the conflicting tree to minimise any particularly complex conflicts.
+
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Tue, 13 Sep 2016 10:08:58 +1000
+Subject: [PATCH] netfilter: merge fixup for "nf_tables_netdev: remove
+ redundant ip_hdr assignment"
+
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+---
+ include/net/netfilter/nf_tables_ipv4.h | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
+index 968f00b82fb5..25e33aee91e7 100644
+--- a/include/net/netfilter/nf_tables_ipv4.h
++++ b/include/net/netfilter/nf_tables_ipv4.h
+@@ -33,7 +33,6 @@ __nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt,
+ 	if (!iph)
+ 		return -1;
+ 
+-	iph = ip_hdr(skb);
+ 	if (iph->ihl < 5 || iph->version != 4)
+ 		return -1;
+ 
+-- 
+2.8.1
+
+-- 
+Cheers,
+Stephen Rothwell
