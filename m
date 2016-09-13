@@ -1,102 +1,42 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4/4] netfilter: synproxy: Check oom when adding synproxy and seqadj ct extensions
-Date: Tue, 13 Sep 2016 11:05:17 +0200
-Message-ID: <1473757517-3764-5-git-send-email-pablo@netfilter.org>
-References: <1473757517-3764-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next] netfilter: nf_queue: get rid of dependency on
+ IP6_NF_IPTABLES
+Date: Tue, 13 Sep 2016 11:10:41 +0200
+Message-ID: <20160913091041.GA4034@salvia>
+References: <1473602728-33502-1-git-send-email-zlpnobody@163.com>
+ <20160912175030.GA31089@salvia>
+ <CAML_gOeP3zvNxptZP2vCvu2KsyOri7Okpapv7zKFg_gFPeWGWw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Liping Zhang <zlpnobody@163.com>, netfilter-devel@vger.kernel.org,
+        Liping Zhang <liping.zhang@spreadtrum.com>
+To: Liping Zhang <zlpnobody@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59312 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36416 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757195AbcIMJFc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Sep 2016 05:05:32 -0400
+        id S1756273AbcIMJKt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 13 Sep 2016 05:10:49 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5892C1878B6
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Sep 2016 11:05:31 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 4FDB71E0DC9
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Sep 2016 11:10:48 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 23DB2179E2B
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Sep 2016 11:05:31 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3DBCE1150D2
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Sep 2016 11:10:48 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7CEA716E40F
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Sep 2016 11:05:26 +0200 (CEST)
-In-Reply-To: <1473757517-3764-1-git-send-email-pablo@netfilter.org>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B77D5100A7C
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Sep 2016 11:10:42 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <CAML_gOeP3zvNxptZP2vCvu2KsyOri7Okpapv7zKFg_gFPeWGWw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+On Tue, Sep 13, 2016 at 01:45:38PM +0800, Liping Zhang wrote:
+> 2016-09-13 1:50 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+> > We have nft_queue support for bridge now, but nfqueue_hash() takes a
+> > pkt->pf parameter expecting NFPROTO_IPV4 or NFPROTO_IPV6.
+> >
+> > So nft_queue hashing with bridge is currently broken.
+> 
+> Yes, I will send another patch to do this :)
 
-When memory is exhausted, nfct_seqadj_ext_add may fail to add the
-synproxy and seqadj extensions. The function nf_ct_seqadj_init doesn't
-check if get valid seqadj pointer by the nfct_seqadj.
-
-Now drop the packet directly when fail to add seqadj extension to
-avoid dereference NULL pointer in nf_ct_seqadj_init from
-init_conntrack().
-
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_conntrack_synproxy.h | 14 ++++++++++++++
- net/netfilter/nf_conntrack_core.c             |  6 +++---
- net/netfilter/nf_nat_core.c                   |  3 ++-
- 3 files changed, 19 insertions(+), 4 deletions(-)
-
-diff --git a/include/net/netfilter/nf_conntrack_synproxy.h b/include/net/netfilter/nf_conntrack_synproxy.h
-index 6793614..e693731 100644
---- a/include/net/netfilter/nf_conntrack_synproxy.h
-+++ b/include/net/netfilter/nf_conntrack_synproxy.h
-@@ -27,6 +27,20 @@ static inline struct nf_conn_synproxy *nfct_synproxy_ext_add(struct nf_conn *ct)
- #endif
- }
- 
-+static inline bool nf_ct_add_synproxy(struct nf_conn *ct,
-+				      const struct nf_conn *tmpl)
-+{
-+	if (tmpl && nfct_synproxy(tmpl)) {
-+		if (!nfct_seqadj_ext_add(ct))
-+			return false;
-+
-+		if (!nfct_synproxy_ext_add(ct))
-+			return false;
-+	}
-+
-+	return true;
-+}
-+
- struct synproxy_stats {
- 	unsigned int			syn_received;
- 	unsigned int			cookie_invalid;
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index dd2c43a..9934b0c 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1035,9 +1035,9 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 	if (IS_ERR(ct))
- 		return (struct nf_conntrack_tuple_hash *)ct;
- 
--	if (tmpl && nfct_synproxy(tmpl)) {
--		nfct_seqadj_ext_add(ct);
--		nfct_synproxy_ext_add(ct);
-+	if (!nf_ct_add_synproxy(ct, tmpl)) {
-+		nf_conntrack_free(ct);
-+		return ERR_PTR(-ENOMEM);
- 	}
- 
- 	timeout_ext = tmpl ? nf_ct_timeout_find(tmpl) : NULL;
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 19c081e..ecee105 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -441,7 +441,8 @@ nf_nat_setup_info(struct nf_conn *ct,
- 			ct->status |= IPS_DST_NAT;
- 
- 		if (nfct_help(ct))
--			nfct_seqadj_ext_add(ct);
-+			if (!nfct_seqadj_ext_add(ct))
-+				return NF_DROP;
- 	}
- 
- 	if (maniptype == NF_NAT_MANIP_SRC) {
--- 
-2.1.4
-
+Sure, thanks.
