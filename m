@@ -1,69 +1,99 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the netfilter-next tree with the net
- tree
-Date: Tue, 13 Sep 2016 10:12:50 +1000
-Message-ID: <20160913101250.0ffee30f@canb.auug.org.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        David Miller <davem@davemloft.net>,
-        Networking <netdev@vger.kernel.org>
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: fgao@ikuai8.com
+Subject: [PATCH v8 nf] netfilter: synproxy: Check oom when adding synproxy and seqadj ct extensions
+Date: Tue, 13 Sep 2016 08:49:18 +0800
+Message-ID: <1473727758-332-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from SMTPBG132.QQ.COM ([113.108.23.42]:57407 "EHLO smtpbg132.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751321AbcIMAty (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 12 Sep 2016 20:49:54 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi all,
+From: Gao Feng <fgao@ikuai8.com>
 
-Today's linux-next merge of the netfilter-next tree got a conflict in:
+When memory is exhausted, nfct_seqadj_ext_add may fail to add the
+synproxy and seqadj extensions. The function nf_ct_seqadj_init doesn't
+check if get valid seqadj pointer by the nfct_seqadj.
 
-  net/netfilter/nf_tables_netdev.c
+Now drop the packet directly when fail to add seqadj extension to
+avoid dereference NULL pointer in nf_ct_seqadj_init from
+init_conntrack().
 
-between commit:
-
-  c73c24849011 ("netfilter: nf_tables_netdev: remove redundant ip_hdr assignment")
-
-from the net tree and commit:
-
-  ddc8b6027ad0 ("netfilter: introduce nft_set_pktinfo_{ipv4, ipv6}_validate()")
-
-from the netfilter-next tree.
-
-I fixed it up (I used the latter version of this file and applied the
-patch below) and can carry the fix as necessary. This is now fixed as
-far as linux-next is concerned, but any non trivial conflicts should be
-mentioned to your upstream maintainer when your tree is submitted for
-merging.  You may also want to consider cooperating with the maintainer
-of the conflicting tree to minimise any particularly complex conflicts.
-
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Tue, 13 Sep 2016 10:08:58 +1000
-Subject: [PATCH] netfilter: merge fixup for "nf_tables_netdev: remove
- redundant ip_hdr assignment"
-
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
 ---
- include/net/netfilter/nf_tables_ipv4.h | 1 -
- 1 file changed, 1 deletion(-)
+ v8: Return ERR_PTR(-ENOMEM) instead of NULL;
+ v7: Remove one debug log and revert to NF_DROP again;
+ v6: Add one helper function to add synproxy
+ v5: Return NF_ACCEPT instead of NF_DROP when nfct_seqadj_ext_add failed in nf_nat_setup_info
+ v4: Drop the packet directly when fail to add seqadj extension;
+ v3: Remove the warning log when seqadj is null;
+ v2: Remove the unnessary seqadj check in nf_ct_seq_adjust
+ v1: Initial patch
 
-diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
-index 968f00b82fb5..25e33aee91e7 100644
---- a/include/net/netfilter/nf_tables_ipv4.h
-+++ b/include/net/netfilter/nf_tables_ipv4.h
-@@ -33,7 +33,6 @@ __nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt,
- 	if (!iph)
- 		return -1;
- 
--	iph = ip_hdr(skb);
- 	if (iph->ihl < 5 || iph->version != 4)
- 		return -1;
- 
--- 
-2.8.1
+ include/net/netfilter/nf_conntrack_synproxy.h | 13 +++++++++++++
+ net/netfilter/nf_conntrack_core.c             |  6 +++---
+ net/netfilter/nf_nat_core.c                   |  3 ++-
+ 3 files changed, 18 insertions(+), 4 deletions(-)
 
+diff --git a/include/net/netfilter/nf_conntrack_synproxy.h b/include/net/netfilter/nf_conntrack_synproxy.h
+index 6793614..e8cf825 100644
+--- a/include/net/netfilter/nf_conntrack_synproxy.h
++++ b/include/net/netfilter/nf_conntrack_synproxy.h
+@@ -27,6 +27,19 @@ static inline struct nf_conn_synproxy *nfct_synproxy_ext_add(struct nf_conn *ct)
+ #endif
+ }
+ 
++static inline bool nf_ct_add_synproxy(struct nf_conn *ct, const struct nf_conn *tmpl)
++{
++	if (tmpl && nfct_synproxy(tmpl)) {
++		if (!nfct_seqadj_ext_add(ct))
++			return false;
++
++		if (!nfct_synproxy_ext_add(ct))
++			return false;
++	}
++
++	return true;
++}
++
+ struct synproxy_stats {
+ 	unsigned int			syn_received;
+ 	unsigned int			cookie_invalid;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index dd2c43a..9934b0c 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1035,9 +1035,9 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 	if (IS_ERR(ct))
+ 		return (struct nf_conntrack_tuple_hash *)ct;
+ 
+-	if (tmpl && nfct_synproxy(tmpl)) {
+-		nfct_seqadj_ext_add(ct);
+-		nfct_synproxy_ext_add(ct);
++	if (!nf_ct_add_synproxy(ct, tmpl)) {
++		nf_conntrack_free(ct);
++		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+ 	timeout_ext = tmpl ? nf_ct_timeout_find(tmpl) : NULL;
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index de31818..b82282a 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -441,7 +441,8 @@ nf_nat_setup_info(struct nf_conn *ct,
+ 			ct->status |= IPS_DST_NAT;
+ 
+ 		if (nfct_help(ct))
+-			nfct_seqadj_ext_add(ct);
++			if (!nfct_seqadj_ext_add(ct))
++				return NF_DROP;
+ 	}
+ 
+ 	if (maniptype == NF_NAT_MANIP_SRC) {
 -- 
-Cheers,
-Stephen Rothwell
+1.9.1
+
+
