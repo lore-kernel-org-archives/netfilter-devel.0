@@ -1,217 +1,190 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: nft_queue: add _SREG_FROM and
- _SRGE_TO to select the queue numbers
-Date: Tue, 13 Sep 2016 11:19:17 +0200
-Message-ID: <20160913091917.GA4051@salvia>
-References: <1473602728-33502-1-git-send-email-zlpnobody@163.com>
- <1473602728-33502-2-git-send-email-zlpnobody@163.com>
+From: Laura Garcia Liebana <nevola@gmail.com>
+Subject: [PATCH v3] netfilter: nft_numgen: add number generation offset
+Date: Tue, 13 Sep 2016 13:49:53 +0200
+Message-ID: <20160913114950.GA15747@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: Liping Zhang <zlpnobody@163.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42720 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756709AbcIMJT1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Sep 2016 05:19:27 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EAB661E0DC4
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Sep 2016 11:19:24 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DA7EE1150D5
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Sep 2016 11:19:24 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8F78F100A6C
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Sep 2016 11:19:22 +0200 (CEST)
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:32954 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750734AbcIMLt6 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 13 Sep 2016 07:49:58 -0400
+Received: by mail-wm0-f65.google.com with SMTP id b187so17901959wme.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Sep 2016 04:49:57 -0700 (PDT)
+Received: from sonyv ([91.126.73.162])
+        by smtp.gmail.com with ESMTPSA id i195sm4939799wmg.14.2016.09.13.04.49.55
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Tue, 13 Sep 2016 04:49:55 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1473602728-33502-2-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Liping,
+Add support of an offset value for incremental counter and random. With
+this option the sysadmin is able to start the counter to a certain value
+and then apply the generated number.
 
-A bit more comments on top of Florian's suggestion to use one single
-_SREG.
+Example:
 
-On Sun, Sep 11, 2016 at 10:05:28PM +0800, Liping Zhang wrote:
-> diff --git a/net/netfilter/nft_queue.c b/net/netfilter/nft_queue.c
-> index d16d599..6557118 100644
-> --- a/net/netfilter/nft_queue.c
-> +++ b/net/netfilter/nft_queue.c
-> @@ -22,9 +22,11 @@
->  static u32 jhash_initval __read_mostly;
->  
->  struct nft_queue {
-> -	u16	queuenum;
-> -	u16	queues_total;
-> -	u16	flags;
-> +	enum nft_registers	sreg_from:8;
-> +	enum nft_registers	sreg_to:8;
-> +	u16			queuenum;
-> +	u16			queues_total;
-> +	u16			flags;
->  };
->  
->  static void nft_queue_eval(const struct nft_expr *expr,
-> @@ -32,17 +34,30 @@ static void nft_queue_eval(const struct nft_expr *expr,
->  			   const struct nft_pktinfo *pkt)
->  {
->  	struct nft_queue *priv = nft_expr_priv(expr);
-> -	u32 queue = priv->queuenum;
-> +	u32 queue, queues_total, queue_end;
->  	u32 ret;
->  
-> -	if (priv->queues_total > 1) {
-> +	if (priv->sreg_from) {
-> +		queue = (u16)regs->data[priv->sreg_from];
-> +		queue_end = (u16)regs->data[priv->sreg_to];
-> +
-> +		if (queue_end > queue)
-> +			queues_total = queue_end - queue + 1;
-> +		else
-> +			queues_total = 1;
-> +	} else {
-> +		queue = priv->queuenum;
-> +		queues_total = priv->queues_total;
-> +	}
+	meta mark set numgen inc mod 2 offset 100
 
-I suggest you use .select_ops to use a specific _eval function if
-_SREG is set. This would disentangle this code a bit.
+This will generate marks with the serie 100, 101, 100, 101, ...
 
-> +
-> +	if (queues_total > 1) {
->  		if (priv->flags & NFT_QUEUE_FLAG_CPU_FANOUT) {
->  			int cpu = smp_processor_id();
->  
-> -			queue = priv->queuenum + cpu % priv->queues_total;
-> +			queue += cpu % queues_total;
->  		} else {
->  			queue = nfqueue_hash(pkt->skb, queue,
-> -					     priv->queues_total, pkt->pf,
-> +					     queues_total, pkt->pf,
->  					     jhash_initval);
->  		}
->  	}
-> @@ -58,6 +73,8 @@ static const struct nla_policy nft_queue_policy[NFTA_QUEUE_MAX + 1] = {
->  	[NFTA_QUEUE_NUM]	= { .type = NLA_U16 },
->  	[NFTA_QUEUE_TOTAL]	= { .type = NLA_U16 },
->  	[NFTA_QUEUE_FLAGS]	= { .type = NLA_U16 },
-> +	[NFTA_QUEUE_SREG_FROM]	= { .type = NLA_U32 },
-> +	[NFTA_QUEUE_SREG_TO]	= { .type = NLA_U32 },
->  };
->  
->  static int nft_queue_init(const struct nft_ctx *ctx,
-> @@ -66,30 +83,58 @@ static int nft_queue_init(const struct nft_ctx *ctx,
->  {
->  	struct nft_queue *priv = nft_expr_priv(expr);
->  	u32 maxid;
-> +	int err;
->  
-> -	if (tb[NFTA_QUEUE_NUM] == NULL)
-> +	if (!tb[NFTA_QUEUE_NUM] && !tb[NFTA_QUEUE_SREG_FROM])
->  		return -EINVAL;
->  
->  	init_hashrandom(&jhash_initval);
-> -	priv->queuenum = ntohs(nla_get_be16(tb[NFTA_QUEUE_NUM]));
->  
-> -	if (tb[NFTA_QUEUE_TOTAL] != NULL)
-> -		priv->queues_total = ntohs(nla_get_be16(tb[NFTA_QUEUE_TOTAL]));
-> -	else
-> -		priv->queues_total = 1;
-> +	/* nftables has no idea whether the kernel supports _SREG_FROM or not,
-> +	 * so for compatibility reason, it may specify the _SREG_FROM and
-> +	 * _QUEUE_NUM attributes at the same time. We prefer to use _SREG_FROM,
-> +	 * it is more flexible and has less restriction, for example, queue
-> +	 * range 0-65535 is ok when use _SREG_FROM and _SREG_TO.
-> +	 */
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+---
+Changes in v2:
+	- Separate offset changes with _until_ attribute renaming, as
+Pablo suggested.
 
-No need for this large comment, look.
+Changes in v3:
+	- Rename SUM by OFFSET, as Pablo suggested.
+	- Include correct behavior for the offset feature, as Pablo
+suggested.
+	- Include offset feature to the random operation.
+	- Include u32 overflow validation.
 
->From userspace, we have to modify the nft parser to take an expression
-as 'num'. Then, from the netlink_linearize path, we can check the
-expression type:
+ include/uapi/linux/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nft_numgen.c               | 30 +++++++++++++++++++++++++-----
+ 2 files changed, 27 insertions(+), 5 deletions(-)
 
-* If it's a value expression, we can simply use NFTA_QUEUE_NUM.
-* If it's a range expression, we have to set up NFTA_QUEUE_NUM and
-  NFTA_QUEUE_TOTAL.
-* If it's a mapping, then we only use _SREG.
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index bc0eb6a..bcfb892 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1136,12 +1136,14 @@ enum nft_trace_types {
+  * @NFTA_NG_DREG: destination register (NLA_U32)
+  * @NFTA_NG_MODULUS: maximum counter value (NLA_U32)
+  * @NFTA_NG_TYPE: operation type (NLA_U32)
++ * @NFTA_NG_OFFSET: offset to be added to the counter (NLA_U32)
+  */
+ enum nft_ng_attributes {
+ 	NFTA_NG_UNSPEC,
+ 	NFTA_NG_DREG,
+ 	NFTA_NG_MODULUS,
+ 	NFTA_NG_TYPE,
++	NFTA_NG_OFFSET,
+ 	__NFTA_NG_MAX
+ };
+ #define NFTA_NG_MAX	(__NFTA_NG_MAX - 1)
+diff --git a/net/netfilter/nft_numgen.c b/net/netfilter/nft_numgen.c
+index f173ebe..b39f909 100644
+--- a/net/netfilter/nft_numgen.c
++++ b/net/netfilter/nft_numgen.c
+@@ -23,6 +23,7 @@ struct nft_ng_inc {
+ 	enum nft_registers      dreg:8;
+ 	u32			modulus;
+ 	atomic_t		counter;
++	u32			offset;
+ };
+ 
+ static void nft_ng_inc_eval(const struct nft_expr *expr,
+@@ -37,13 +38,14 @@ static void nft_ng_inc_eval(const struct nft_expr *expr,
+ 		nval = (oval + 1 < priv->modulus) ? oval + 1 : 0;
+ 	} while (atomic_cmpxchg(&priv->counter, oval, nval) != oval);
+ 
+-	regs->data[priv->dreg] = nval;
++	regs->data[priv->dreg] = nval + priv->offset;
+ }
+ 
+ static const struct nla_policy nft_ng_policy[NFTA_NG_MAX + 1] = {
+ 	[NFTA_NG_DREG]		= { .type = NLA_U32 },
+ 	[NFTA_NG_MODULUS]	= { .type = NLA_U32 },
+ 	[NFTA_NG_TYPE]		= { .type = NLA_U32 },
++	[NFTA_NG_OFFSET]	= { .type = NLA_U32 },
+ };
+ 
+ static int nft_ng_inc_init(const struct nft_ctx *ctx,
+@@ -52,10 +54,16 @@ static int nft_ng_inc_init(const struct nft_ctx *ctx,
+ {
+ 	struct nft_ng_inc *priv = nft_expr_priv(expr);
+ 
++	if (tb[NFTA_NG_OFFSET])
++		priv->offset = ntohl(nla_get_be32(tb[NFTA_NG_OFFSET]));
++
+ 	priv->modulus = ntohl(nla_get_be32(tb[NFTA_NG_MODULUS]));
+ 	if (priv->modulus == 0)
+ 		return -ERANGE;
+ 
++	if (priv->offset + priv->modulus - 1 < priv->offset)
++		return -EOVERFLOW;
++
+ 	priv->dreg = nft_parse_register(tb[NFTA_NG_DREG]);
+ 	atomic_set(&priv->counter, 0);
+ 
+@@ -64,7 +72,7 @@ static int nft_ng_inc_init(const struct nft_ctx *ctx,
+ }
+ 
+ static int nft_ng_dump(struct sk_buff *skb, enum nft_registers dreg,
+-		       u32 modulus, enum nft_ng_types type)
++		       u32 modulus, enum nft_ng_types type, u32 offset)
+ {
+ 	if (nft_dump_register(skb, NFTA_NG_DREG, dreg))
+ 		goto nla_put_failure;
+@@ -72,6 +80,8 @@ static int nft_ng_dump(struct sk_buff *skb, enum nft_registers dreg,
+ 		goto nla_put_failure;
+ 	if (nla_put_be32(skb, NFTA_NG_TYPE, htonl(type)))
+ 		goto nla_put_failure;
++	if (nla_put_be32(skb, NFTA_NG_OFFSET, htonl(offset)))
++		goto nla_put_failure;
+ 
+ 	return 0;
+ 
+@@ -83,12 +93,14 @@ static int nft_ng_inc_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ {
+ 	const struct nft_ng_inc *priv = nft_expr_priv(expr);
+ 
+-	return nft_ng_dump(skb, priv->dreg, priv->modulus, NFT_NG_INCREMENTAL);
++	return nft_ng_dump(skb, priv->dreg, priv->modulus, NFT_NG_INCREMENTAL,
++			   priv->offset);
+ }
+ 
+ struct nft_ng_random {
+ 	enum nft_registers      dreg:8;
+ 	u32			modulus;
++	u32			offset;
+ };
+ 
+ static void nft_ng_random_eval(const struct nft_expr *expr,
+@@ -99,7 +111,8 @@ static void nft_ng_random_eval(const struct nft_expr *expr,
+ 	struct rnd_state *state = this_cpu_ptr(&nft_numgen_prandom_state);
+ 
+ 	regs->data[priv->dreg] = reciprocal_scale(prandom_u32_state(state),
+-						  priv->modulus);
++						  priv->modulus) +
++				 priv->offset;
+ }
+ 
+ static int nft_ng_random_init(const struct nft_ctx *ctx,
+@@ -108,10 +121,16 @@ static int nft_ng_random_init(const struct nft_ctx *ctx,
+ {
+ 	struct nft_ng_random *priv = nft_expr_priv(expr);
+ 
++	if (tb[NFTA_NG_OFFSET])
++		priv->offset = ntohl(nla_get_be32(tb[NFTA_NG_OFFSET]));
++
+ 	priv->modulus = ntohl(nla_get_be32(tb[NFTA_NG_MODULUS]));
+ 	if (priv->modulus == 0)
+ 		return -ERANGE;
+ 
++	if (priv->offset + priv->modulus - 1 < priv->offset)
++		return -EOVERFLOW;
++
+ 	prandom_init_once(&nft_numgen_prandom_state);
+ 
+ 	priv->dreg = nft_parse_register(tb[NFTA_NG_DREG]);
+@@ -124,7 +143,8 @@ static int nft_ng_random_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ {
+ 	const struct nft_ng_random *priv = nft_expr_priv(expr);
+ 
+-	return nft_ng_dump(skb, priv->dreg, priv->modulus, NFT_NG_RANDOM);
++	return nft_ng_dump(skb, priv->dreg, priv->modulus, NFT_NG_RANDOM,
++			   priv->offset);
+ }
+ 
+ static struct nft_expr_type nft_ng_type;
+-- 
+2.8.1
 
-Old kernels will bail out if the mapping is used, as this is not
-supported, which is what we expect. This should be fine by now, until
-I finish the patchset to provide a VM description that userspace can
-use to generate bytecode depending on the features available in the
-kernel.
-
-> +	if (tb[NFTA_QUEUE_SREG_FROM]) {
-> +		priv->sreg_from = nft_parse_register(tb[NFTA_QUEUE_SREG_FROM]);
-> +		err = nft_validate_register_load(priv->sreg_from, sizeof(u16));
-> +		if (err < 0)
-> +			return err;
-> +
-> +		if (tb[NFTA_QUEUE_SREG_TO]) {
-> +			priv->sreg_to =
-> +				nft_parse_register(tb[NFTA_QUEUE_SREG_TO]);
-> +			err = nft_validate_register_load(priv->sreg_to,
-> +							 sizeof(u16));
-> +			if (err < 0)
-> +				return err;
-> +		} else {
-> +			priv->sreg_to = priv->sreg_from;
-> +		}
-> +	} else if (tb[NFTA_QUEUE_NUM]) {
-> +		priv->queuenum = ntohs(nla_get_be16(tb[NFTA_QUEUE_NUM]));
->  
-> -	if (priv->queues_total == 0)
-> -		return -EINVAL;
-> +		if (tb[NFTA_QUEUE_TOTAL])
-> +			priv->queues_total =
-> +				ntohs(nla_get_be16(tb[NFTA_QUEUE_TOTAL]));
-> +		else
-> +			priv->queues_total = 1;
->  
-> -	maxid = priv->queues_total - 1 + priv->queuenum;
-> -	if (maxid > U16_MAX)
-> -		return -ERANGE;
-> +		if (priv->queues_total == 0)
-> +			return -EINVAL;
-> +
-> +		maxid = priv->queues_total - 1 + priv->queuenum;
-> +		if (maxid > U16_MAX)
-> +			return -ERANGE;
-> +	}
->  
->  	if (tb[NFTA_QUEUE_FLAGS] != NULL) {
->  		priv->flags = ntohs(nla_get_be16(tb[NFTA_QUEUE_FLAGS]));
->  		if (priv->flags & ~NFT_QUEUE_FLAG_MASK)
->  			return -EINVAL;
->  	}
-> +
->  	return 0;
->  }
->  
-> @@ -97,9 +142,21 @@ static int nft_queue_dump(struct sk_buff *skb, const struct nft_expr *expr)
->  {
->  	const struct nft_queue *priv = nft_expr_priv(expr);
->  
-> -	if (nla_put_be16(skb, NFTA_QUEUE_NUM, htons(priv->queuenum)) ||
-> -	    nla_put_be16(skb, NFTA_QUEUE_TOTAL, htons(priv->queues_total)) ||
-> -	    nla_put_be16(skb, NFTA_QUEUE_FLAGS, htons(priv->flags)))
-> +	if (priv->sreg_from) {
-> +		if (nft_dump_register(skb, NFTA_QUEUE_SREG_FROM,
-> +				      priv->sreg_from))
-> +			goto nla_put_failure;
-> +		if (nft_dump_register(skb, NFTA_QUEUE_SREG_TO,
-> +				      priv->sreg_to))
-> +			goto nla_put_failure;
-> +	} else {
-> +		if (nla_put_be16(skb, NFTA_QUEUE_NUM, htons(priv->queuenum)) ||
-> +		    nla_put_be16(skb, NFTA_QUEUE_TOTAL,
-> +				 htons(priv->queues_total)))
-> +			goto nla_put_failure;
-> +	}
-
-Looking at this, the code will look better if we should use
-.select_ops indeed.
-
-Thanks for resolving existing nft_queue limitations!
