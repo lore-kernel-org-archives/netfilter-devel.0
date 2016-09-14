@@ -1,243 +1,240 @@
-From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCH nf] netfilter: nf_tables: Ensure u8 attributes are loaded
- from u32 within the bounds
-Date: Wed, 14 Sep 2016 15:00:02 +0200
-Message-ID: <20160914125959.GA3020@sonyv>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf-next V2] netfilter: nft_queue: add _SREG_QNUM attr to select the queue number
+Date: Wed, 14 Sep 2016 23:41:46 +0800
+Message-ID: <1473867706-50854-1-git-send-email-zlpnobody@163.com>
+Cc: fw@strlen.de, netfilter-devel@vger.kernel.org,
+        Liping Zhang <liping.zhang@spreadtrum.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35982 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755632AbcINNAI (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Sep 2016 09:00:08 -0400
-Received: by mail-wm0-f66.google.com with SMTP id b184so2491271wma.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Sep 2016 06:00:07 -0700 (PDT)
-Content-Disposition: inline
+Received: from m12-11.163.com ([220.181.12.11]:42392 "EHLO m12-11.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1759879AbcINPmr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Sep 2016 11:42:47 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Check storage of u32 netlink attributes in smaller resources. This
-validation is usually required when the u32 netlink attributes are being
-stored in a private structure size of u8 in the kernel.
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-4da449a ("netfilter: nft_exthdr: Add size check on u8 nft_exthdr
-attributes")
+Currently, the user can specify the queue numbers by _QUEUE_NUM and
+_QUEUE_TOTAL attributes, this is enough in most situations.
+
+But acctually, it is not very flexible, for example:
+  tcp dport 80 mapped to queue0
+  tcp dport 81 mapped to queue1
+  tcp dport 82 mapped to queue2
+In order to do this thing, we must add 3 nft rules, and more
+mapping meant more rules ...
+
+So take one register to select the queue number, then we can add one
+simple rule to mapping queues, maybe like this:
+  queue num tcp dport map { 80:0, 81:1, 82:2 ... }
+
+Florian Westphal also proposed wider usage scenarios:
+  queue num jhash ip saddr . ip daddr mod ...
+  queue num meta cpu ...
+  queue num meta mark ...
+
+The last point is how to load a queue number from sreg, although we can
+use *(u16*)&regs->data[reg] to load the queue number, just like nat expr
+to load its l4port do.
+
+But we will cooperate with hash expr, meta cpu, meta mark expr and so on.
+They all store the result to u32 type, so cast it to u16 pointer and
+dereference it will generate wrong result in the big endian system.
+
+So just keep it simple, we treat queue number as u32 type, although u16
+type is already enough.
 
 Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
- include/net/netfilter/nf_tables.h |  2 ++
- net/netfilter/nf_tables_api.c     | 26 ++++++++++++++++++++++++++
- net/netfilter/nft_bitwise.c       | 10 +++++++++-
- net/netfilter/nft_byteorder.c     | 17 +++++++++++++++--
- net/netfilter/nft_cmp.c           |  6 +++++-
- net/netfilter/nft_exthdr.c        | 19 ++++++++++++-------
- net/netfilter/nft_immediate.c     |  4 ++++
- 7 files changed, 73 insertions(+), 11 deletions(-)
+ V2: use one sreg suggested by Florian and use select_ops to make
+     code more clean suggested by Pablo
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index f2f1339..608130f 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -127,6 +127,8 @@ static inline enum nft_registers nft_type_to_reg(enum nft_data_types type)
- 	return type == NFT_DATA_VERDICT ? NFT_REG_VERDICT : NFT_REG_1 * NFT_REG_SIZE / NFT_REG32_SIZE;
+ include/uapi/linux/netfilter/nf_tables.h |   2 +
+ net/netfilter/nft_queue.c                | 102 +++++++++++++++++++++++++++----
+ 2 files changed, 92 insertions(+), 12 deletions(-)
+
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index bc0eb6a..17f8171 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -894,12 +894,14 @@ enum nft_log_attributes {
+  * @NFTA_QUEUE_NUM: netlink queue to send messages to (NLA_U16)
+  * @NFTA_QUEUE_TOTAL: number of queues to load balance packets on (NLA_U16)
+  * @NFTA_QUEUE_FLAGS: various flags (NLA_U16)
++ * @NFTA_QUEUE_SREG_QNUM: source register of queue number (NLA_U32: nft_registers)
+  */
+ enum nft_queue_attributes {
+ 	NFTA_QUEUE_UNSPEC,
+ 	NFTA_QUEUE_NUM,
+ 	NFTA_QUEUE_TOTAL,
+ 	NFTA_QUEUE_FLAGS,
++	NFTA_QUEUE_SREG_QNUM,
+ 	__NFTA_QUEUE_MAX
+ };
+ #define NFTA_QUEUE_MAX		(__NFTA_QUEUE_MAX - 1)
+diff --git a/net/netfilter/nft_queue.c b/net/netfilter/nft_queue.c
+index d16d599..393d359 100644
+--- a/net/netfilter/nft_queue.c
++++ b/net/netfilter/nft_queue.c
+@@ -22,9 +22,10 @@
+ static u32 jhash_initval __read_mostly;
+ 
+ struct nft_queue {
+-	u16	queuenum;
+-	u16	queues_total;
+-	u16	flags;
++	enum nft_registers	sreg_qnum:8;
++	u16			queuenum;
++	u16			queues_total;
++	u16			flags;
+ };
+ 
+ static void nft_queue_eval(const struct nft_expr *expr,
+@@ -54,26 +55,39 @@ static void nft_queue_eval(const struct nft_expr *expr,
+ 	regs->verdict.code = ret;
  }
  
-+unsigned int nft_parse_u32_check(const struct nlattr *attr, int maxlen,
-+				 u32 *dest);
- unsigned int nft_parse_register(const struct nlattr *attr);
- int nft_dump_register(struct sk_buff *skb, unsigned int attr, unsigned int reg);
- 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 7e1c876..d7b000f 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4343,6 +4343,32 @@ static int nf_tables_check_loops(const struct nft_ctx *ctx,
- }
- 
- /**
-+ *	nft_parse_u32_check - parse a u32 value to store the value into a
-+ *			      smaller resource.
-+ *
-+ *	@attr: netlink attribute
-+ *	@maxlen: maximum value to be stored in dest
-+ *	@dest: pointer to the resource
-+ *
-+ *	Parse and store a given u32 value into a resource. Returns an error
-+ *	ERANGE if the value will overload the maxlen, otherwise a 0 will be
-+ *	returned and the value is stored into dest.
-+ */
-+unsigned int nft_parse_u32_check(const struct nlattr *attr, int maxlen,
-+				 u32 *dest)
++static void nft_queue_sreg_eval(const struct nft_expr *expr,
++				struct nft_regs *regs,
++				const struct nft_pktinfo *pkt)
 +{
-+	int reg;
++	struct nft_queue *priv = nft_expr_priv(expr);
++	u32 queue, ret;
 +
-+	reg = ntohl(nla_get_be32(attr));
-+	if (reg > maxlen)
-+		return -ERANGE;
++	queue = regs->data[priv->sreg_qnum];
 +
-+	*dest = reg;
++	ret = NF_QUEUE_NR(queue);
++	if (priv->flags & NFT_QUEUE_FLAG_BYPASS)
++		ret |= NF_VERDICT_FLAG_QUEUE_BYPASS;
++
++	regs->verdict.code = ret;
++}
++
+ static const struct nla_policy nft_queue_policy[NFTA_QUEUE_MAX + 1] = {
+ 	[NFTA_QUEUE_NUM]	= { .type = NLA_U16 },
+ 	[NFTA_QUEUE_TOTAL]	= { .type = NLA_U16 },
+ 	[NFTA_QUEUE_FLAGS]	= { .type = NLA_U16 },
++	[NFTA_QUEUE_SREG_QNUM]	= { .type = NLA_U32 },
+ };
+ 
+ static int nft_queue_init(const struct nft_ctx *ctx,
+-			   const struct nft_expr *expr,
+-			   const struct nlattr * const tb[])
++			  const struct nft_expr *expr,
++			  const struct nlattr * const tb[])
+ {
+ 	struct nft_queue *priv = nft_expr_priv(expr);
+ 	u32 maxid;
+ 
+-	if (tb[NFTA_QUEUE_NUM] == NULL)
+-		return -EINVAL;
+-
+-	init_hashrandom(&jhash_initval);
+ 	priv->queuenum = ntohs(nla_get_be16(tb[NFTA_QUEUE_NUM]));
+ 
+-	if (tb[NFTA_QUEUE_TOTAL] != NULL)
++	if (tb[NFTA_QUEUE_TOTAL])
+ 		priv->queues_total = ntohs(nla_get_be16(tb[NFTA_QUEUE_TOTAL]));
+ 	else
+ 		priv->queues_total = 1;
+@@ -85,11 +99,34 @@ static int nft_queue_init(const struct nft_ctx *ctx,
+ 	if (maxid > U16_MAX)
+ 		return -ERANGE;
+ 
+-	if (tb[NFTA_QUEUE_FLAGS] != NULL) {
++	if (tb[NFTA_QUEUE_FLAGS]) {
++		priv->flags = ntohs(nla_get_be16(tb[NFTA_QUEUE_FLAGS]));
++		if (priv->flags & ~NFT_QUEUE_FLAG_MASK)
++			return -EINVAL;
++	}
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(nft_parse_u32_check);
 +
-+/**
-  *	nft_parse_register - parse a register value from a netlink attribute
-  *
-  *	@attr: netlink attribute
-diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
-index d71cc18..e7f23a1 100644
---- a/net/netfilter/nft_bitwise.c
-+++ b/net/netfilter/nft_bitwise.c
-@@ -14,6 +14,7 @@
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
-+#include <linux/static_key.h>
- #include <net/netfilter/nf_tables_core.h>
- #include <net/netfilter/nf_tables.h>
- 
-@@ -52,6 +53,7 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
- {
- 	struct nft_bitwise *priv = nft_expr_priv(expr);
- 	struct nft_data_desc d1, d2;
-+	u32 len;
- 	int err;
- 
- 	if (tb[NFTA_BITWISE_SREG] == NULL ||
-@@ -61,7 +63,13 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
- 	    tb[NFTA_BITWISE_XOR] == NULL)
- 		return -EINVAL;
- 
--	priv->len  = ntohl(nla_get_be32(tb[NFTA_BITWISE_LEN]));
-+	err  = nft_parse_u32_check(tb[NFTA_BITWISE_LEN], U8_MAX,
-+				   &len);
++static int nft_queue_sreg_init(const struct nft_ctx *ctx,
++			       const struct nft_expr *expr,
++			       const struct nlattr * const tb[])
++{
++	struct nft_queue *priv = nft_expr_priv(expr);
++	int err;
++
++	priv->sreg_qnum = nft_parse_register(tb[NFTA_QUEUE_SREG_QNUM]);
++	err = nft_validate_register_load(priv->sreg_qnum, sizeof(u32));
 +	if (err < 0)
 +		return err;
 +
-+	priv->len = len;
-+
- 	priv->sreg = nft_parse_register(tb[NFTA_BITWISE_SREG]);
- 	err = nft_validate_register_load(priv->sreg, priv->len);
- 	if (err < 0)
-diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
-index b78c28b..8cac219 100644
---- a/net/netfilter/nft_byteorder.c
-+++ b/net/netfilter/nft_byteorder.c
-@@ -99,6 +99,7 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
- 			      const struct nlattr * const tb[])
- {
- 	struct nft_byteorder *priv = nft_expr_priv(expr);
-+	u32 size, len;
- 	int err;
- 
- 	if (tb[NFTA_BYTEORDER_SREG] == NULL ||
-@@ -117,7 +118,13 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
- 		return -EINVAL;
++	if (tb[NFTA_QUEUE_FLAGS]) {
+ 		priv->flags = ntohs(nla_get_be16(tb[NFTA_QUEUE_FLAGS]));
+ 		if (priv->flags & ~NFT_QUEUE_FLAG_MASK)
+ 			return -EINVAL;
++		if (priv->flags & NFT_QUEUE_FLAG_CPU_FANOUT)
++			return -EOPNOTSUPP;
  	}
- 
--	priv->size = ntohl(nla_get_be32(tb[NFTA_BYTEORDER_SIZE]));
-+	err = nft_parse_u32_check(tb[NFTA_BYTEORDER_SIZE], U8_MAX,
-+				  &size);
-+	if (err < 0)
-+		return err;
-+
-+	priv->size = size;
-+
- 	switch (priv->size) {
- 	case 2:
- 	case 4:
-@@ -128,7 +135,13 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
- 	}
- 
- 	priv->sreg = nft_parse_register(tb[NFTA_BYTEORDER_SREG]);
--	priv->len  = ntohl(nla_get_be32(tb[NFTA_BYTEORDER_LEN]));
-+	err = nft_parse_u32_check(tb[NFTA_BYTEORDER_LEN], U8_MAX,
-+				  &len);
-+	if (err < 0)
-+		return err;
-+
-+	priv->len = len;
-+
- 	err = nft_validate_register_load(priv->sreg, priv->len);
- 	if (err < 0)
- 		return err;
-diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-index e25b35d..3d31432 100644
---- a/net/netfilter/nft_cmp.c
-+++ b/net/netfilter/nft_cmp.c
-@@ -84,8 +84,12 @@ static int nft_cmp_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	if (err < 0)
- 		return err;
- 
--	priv->op  = ntohl(nla_get_be32(tb[NFTA_CMP_OP]));
-+	if (desc.len > U8_MAX)
-+		return -ERANGE;
- 	priv->len = desc.len;
-+
-+	priv->op  = ntohl(nla_get_be32(tb[NFTA_CMP_OP]));
 +
  	return 0;
  }
  
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index 82c264e..613732d8 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -59,7 +59,7 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
- 			   const struct nlattr * const tb[])
- {
- 	struct nft_exthdr *priv = nft_expr_priv(expr);
--	u32 offset, len;
-+	u32 offset, len, err;
+@@ -108,6 +145,21 @@ nla_put_failure:
+ 	return -1;
+ }
  
- 	if (tb[NFTA_EXTHDR_DREG] == NULL ||
- 	    tb[NFTA_EXTHDR_TYPE] == NULL ||
-@@ -67,15 +67,20 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
- 	    tb[NFTA_EXTHDR_LEN] == NULL)
- 		return -EINVAL;
- 
--	offset = ntohl(nla_get_be32(tb[NFTA_EXTHDR_OFFSET]));
--	len = ntohl(nla_get_be32(tb[NFTA_EXTHDR_LEN]));
-+	err = nft_parse_u32_check(tb[NFTA_EXTHDR_OFFSET], U8_MAX,
-+				  &offset);
-+	if (err < 0)
-+		return err;
- 
--	if (offset > U8_MAX || len > U8_MAX)
--		return -ERANGE;
-+	priv->offset = offset;
- 
-+	err = nft_parse_u32_check(tb[NFTA_EXTHDR_LEN], U8_MAX,
-+				  &len);
-+	if (err < 0)
-+		return err;
++static int
++nft_queue_sreg_dump(struct sk_buff *skb, const struct nft_expr *expr)
++{
++	const struct nft_queue *priv = nft_expr_priv(expr);
 +
-+	priv->len = len;
- 	priv->type   = nla_get_u8(tb[NFTA_EXTHDR_TYPE]);
--	priv->offset = offset;
--	priv->len    = len;
- 	priv->dreg   = nft_parse_register(tb[NFTA_EXTHDR_DREG]);
- 
- 	return nft_validate_register_store(ctx, priv->dreg, NULL,
-diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-index db3b746..d17018f 100644
---- a/net/netfilter/nft_immediate.c
-+++ b/net/netfilter/nft_immediate.c
-@@ -53,6 +53,10 @@ static int nft_immediate_init(const struct nft_ctx *ctx,
- 			    tb[NFTA_IMMEDIATE_DATA]);
- 	if (err < 0)
- 		return err;
++	if (nft_dump_register(skb, NFTA_QUEUE_SREG_QNUM, priv->sreg_qnum) ||
++	    nla_put_be16(skb, NFTA_QUEUE_FLAGS, htons(priv->flags)))
++		goto nla_put_failure;
 +
-+	if (desc.len > U8_MAX)
-+		return -ERANGE;
++	return 0;
 +
- 	priv->dlen = desc.len;
++nla_put_failure:
++	return -1;
++}
++
+ static struct nft_expr_type nft_queue_type;
+ static const struct nft_expr_ops nft_queue_ops = {
+ 	.type		= &nft_queue_type,
+@@ -117,9 +169,35 @@ static const struct nft_expr_ops nft_queue_ops = {
+ 	.dump		= nft_queue_dump,
+ };
  
- 	priv->dreg = nft_parse_register(tb[NFTA_IMMEDIATE_DREG]);
++static const struct nft_expr_ops nft_queue_sreg_ops = {
++	.type		= &nft_queue_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_queue)),
++	.eval		= nft_queue_sreg_eval,
++	.init		= nft_queue_sreg_init,
++	.dump		= nft_queue_sreg_dump,
++};
++
++static const struct nft_expr_ops *
++nft_queue_select_ops(const struct nft_ctx *ctx,
++		     const struct nlattr * const tb[])
++{
++	if (tb[NFTA_QUEUE_NUM] && tb[NFTA_QUEUE_SREG_QNUM])
++		return ERR_PTR(-EINVAL);
++
++	init_hashrandom(&jhash_initval);
++
++	if (tb[NFTA_QUEUE_NUM])
++		return &nft_queue_ops;
++
++	if (tb[NFTA_QUEUE_SREG_QNUM])
++		return &nft_queue_sreg_ops;
++
++	return ERR_PTR(-EINVAL);
++}
++
+ static struct nft_expr_type nft_queue_type __read_mostly = {
+ 	.name		= "queue",
+-	.ops		= &nft_queue_ops,
++	.select_ops	= &nft_queue_select_ops,
+ 	.policy		= nft_queue_policy,
+ 	.maxattr	= NFTA_QUEUE_MAX,
+ 	.owner		= THIS_MODULE,
 -- 
-2.8.1
+2.5.5
+
 
