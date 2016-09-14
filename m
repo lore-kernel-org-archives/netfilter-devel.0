@@ -1,108 +1,243 @@
-From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
-Subject: [PATCH nft] meta: support for nexthop and nexthop6
-Date: Wed, 14 Sep 2016 05:48:48 +0000
-Message-ID: <1473832128.1006.37.camel@cohaesio.com>
+From: Laura Garcia Liebana <nevola@gmail.com>
+Subject: [PATCH nf] netfilter: nf_tables: Ensure u8 attributes are loaded
+ from u32 within the bounds
+Date: Wed, 14 Sep 2016 15:00:02 +0200
+Message-ID: <20160914125959.GA3020@sonyv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bender.cohaesio.com ([212.97.128.130]:56456 "EHLO
-        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752289AbcINF5C (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35982 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755632AbcINNAI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Sep 2016 01:57:02 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-        by mail.cohaesio.com (Postfix) with ESMTP id 8A2427801130
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Sep 2016 07:48:49 +0200 (CEST)
-Received: from mail.cohaesio.com ([127.0.0.1])
-        by localhost (bender.cohaesio.com [127.0.0.1]) (amavisd-new, port 10028)
-        with LMTP id sHaht8VkFMEx for <netfilter-devel@vger.kernel.org>;
-        Wed, 14 Sep 2016 07:48:49 +0200 (CEST)
-Received: from cohexch02.cohaesio.com (cohexch02.cohaesio.com [212.97.128.232])
-        by mail.cohaesio.com (Postfix) with ESMTP id 72F037800E2A
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Sep 2016 07:48:49 +0200 (CEST)
-Content-Language: en-US
-Content-ID: <F722E9FBBD349E498C839D680D917C57@surftown.com>
+        Wed, 14 Sep 2016 09:00:08 -0400
+Received: by mail-wm0-f66.google.com with SMTP id b184so2491271wma.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Sep 2016 06:00:07 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-RnJvbTogQW5kZXJzIEsuIFBlZGVyc2VuIDxha3BAY29oYWVzaW8uY29tPg0KDQpBZGQgbWV0YSBz
-dXBwb3J0IGZvciBJUHY0IG5leHRob3AgYW5kIElQdjYgbmV4dGhvcDYgKGkuZS4gdGhlIGRpcmVj
-dGx5DQpjb25uZWN0ZWQgSVAgYWRkcmVzcyB0aGF0IGFuIG91dGdvaW5nIHBhY2tldCBpcyBzZW50
-IHRvKSwgd2hpY2ggY2FuIGJlIHVzZWQNCmVpdGhlciBmb3IgbWF0Y2hpbmcgb3IgYWNjb3VudGlu
-ZywgZWcuDQoNCiAjIG5mdCBhZGQgcnVsZSBmaWx0ZXIgcG9zdHJvdXRpbmcgXA0KCWlwIGRhZGRy
-IDE5Mi4xNjguMS4wLzI0IG1ldGEgbmV4dGhvcCAhPSAxOTIuMTY4LjAuMSBkcm9wDQoNClRoaXMg
-d2lsbCBkcm9wIGFueSB0cmFmZmljIHRvIDE5Mi4xNjguMS4wLzI0IHRoYXQgaXMgbm90IHJvdXRl
-ZCB2aWENCjE5Mi4xNjguMC4xLg0KDQogIyBuZnQgYWRkIHJ1bGUgZmlsdGVyIHBvc3Ryb3V0aW5n
-IFwNCglmbG93IHRhYmxlIGFjY3QgeyBtZXRhIG5leHRob3AgdGltZW91dCA2MDBzIGNvdW50ZXIg
-fQ0KICMgbmZ0IGFkZCBydWxlIGlwNiBmaWx0ZXIgcG9zdHJvdXRpbmcgXA0KCWZsb3cgdGFibGUg
-YWNjdCB7IG1ldGEgbmV4dGhvcDYgdGltZW91dCA2MDBzIGNvdW50ZXIgfQ0KDQpUaGVzZSBydWxl
-cyBjb3VudCBvdXRnb2luZyB0cmFmZmljIHBlciBuZXh0aG9wLiBOb3RlIHRoYXQgdGhlIHRpbWVv
-dXQNCnJlbGVhc2VzIGFuIGVudHJ5IGlmIG5vIHRyYWZmaWMgaXMgc2VlbiBmb3IgdGhpcyBuZXh0
-aG9wIHdpdGhpbiAxMCBtaW51dGVzLg0KDQpTaWduZWQtb2ZmLWJ5OiBBbmRlcnMgSy4gUGVkZXJz
-ZW4gPGFrcEBjb2hhZXNpby5jb20+DQotLS0NCiBkb2MvbmZ0LnhtbCAgICAgICAgICAgICAgICAg
-ICAgICAgICB8IDEyICsrKysrKysrKysrKw0KIGluY2x1ZGUvbGludXgvbmV0ZmlsdGVyL25mX3Rh
-Ymxlcy5oIHwgIDIgKysNCiBzcmMvbWV0YS5jICAgICAgICAgICAgICAgICAgICAgICAgICB8ICA4
-ICsrKysrKysrDQogc3JjL3BhcnNlcl9iaXNvbi55ICAgICAgICAgICAgICAgICAgfCAgNCArKysr
-DQogc3JjL3NjYW5uZXIubCAgICAgICAgICAgICAgICAgICAgICAgfCAgMiArKw0KIDUgZmlsZXMg
-Y2hhbmdlZCwgMjggaW5zZXJ0aW9ucygrKQ0KDQpkaWZmIC0tZ2l0IGEvZG9jL25mdC54bWwgYi9k
-b2MvbmZ0LnhtbA0KaW5kZXggM2IyMTVmOC4uYzM5MWE4OCAxMDA2NDQNCi0tLSBhL2RvYy9uZnQu
-eG1sDQorKysgYi9kb2MvbmZ0LnhtbA0KQEAgLTk3OCw2ICs5NzgsOCBAQCBmaWx0ZXIgb3V0cHV0
-IGlwNiBkYWRkciA6OjENCiAJCQkJCQk8YXJnPmw0cHJvdG88L2FyZz4NCiAJCQkJCQk8YXJnPnBy
-b3RvY29sPC9hcmc+DQogCQkJCQkJPGFyZz5wcmlvcml0eTwvYXJnPg0KKwkJCQkJCTxhcmc+bmV4
-dGhvcDwvYXJnPg0KKwkJCQkJCTxhcmc+bmV4dGhvcDY8L2FyZz4NCiAJCQkJCTwvZ3JvdXA+DQog
-CQkJCTwvY21kc3lub3BzaXM+DQogCQkJCTxjbWRzeW5vcHNpcz4NCkBAIC0xMTM0LDYgKzExMzYs
-MTYgQEAgZmlsdGVyIG91dHB1dCBpcDYgZGFkZHIgOjoxDQogCQkJCQkJCQk8ZW50cnk+cHNldWRv
-LXJhbmRvbSBudW1iZXI8L2VudHJ5Pg0KIAkJCQkJCQkJPGVudHJ5PmludGVnZXIgKDMyIGJpdHMp
-PC9lbnRyeT4NCiAJCQkJCQkJPC9yb3c+DQorCQkJCQkJCTxyb3c+DQorCQkJCQkJCQk8ZW50cnk+
-bmV4dGhvcDwvZW50cnk+DQorCQkJCQkJCQk8ZW50cnk+bmV4dCBob3AgYWRkcmVzcyBmb3IgdGhl
-IElQdjQgcGFja2V0PC9lbnRyeT4NCisJCQkJCQkJCTxlbnRyeT5pcHY0X2FkZHI8L2VudHJ5Pg0K
-KwkJCQkJCQk8L3Jvdz4NCisJCQkJCQkJPHJvdz4NCisJCQkJCQkJCTxlbnRyeT5uZXh0aG9wNjwv
-ZW50cnk+DQorCQkJCQkJCQk8ZW50cnk+bmV4dCBob3AgYWRkcmVzcyBmb3IgdGhlIElQdjYgcGFj
-a2V0PC9lbnRyeT4NCisJCQkJCQkJCTxlbnRyeT5pcHY2X2FkZHI8L2VudHJ5Pg0KKwkJCQkJCQk8
-L3Jvdz4NCiAJCQkJCQk8L3Rib2R5Pg0KIAkJCQkJPC90Z3JvdXA+DQogCQkJCTwvdGFibGU+DQpk
-aWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXIvbmZfdGFibGVzLmggYi9pbmNsdWRl
-L2xpbnV4L25ldGZpbHRlci9uZl90YWJsZXMuaA0KaW5kZXggOGE2M2YyMi4uZGEzOTIyOCAxMDA2
-NDQNCi0tLSBhL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyL25mX3RhYmxlcy5oDQorKysgYi9pbmNs
-dWRlL2xpbnV4L25ldGZpbHRlci9uZl90YWJsZXMuaA0KQEAgLTcyMSw2ICs3MjEsOCBAQCBlbnVt
-IG5mdF9tZXRhX2tleXMgew0KIAlORlRfTUVUQV9PSUZHUk9VUCwNCiAJTkZUX01FVEFfQ0dST1VQ
-LA0KIAlORlRfTUVUQV9QUkFORE9NLA0KKwlORlRfTUVUQV9ORVhUSE9QLA0KKwlORlRfTUVUQV9O
-RVhUSE9QNiwNCiB9Ow0KIA0KIC8qKg0KZGlmZiAtLWdpdCBhL3NyYy9tZXRhLmMgYi9zcmMvbWV0
-YS5jDQppbmRleCA4N2VhZmVlLi4zMWJmMGVhIDEwMDY0NA0KLS0tIGEvc3JjL21ldGEuYw0KKysr
-IGIvc3JjL21ldGEuYw0KQEAgLTQzMiw2ICs0MzIsMTIgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBt
-ZXRhX3RlbXBsYXRlIG1ldGFfdGVtcGxhdGVzW10gPSB7DQogCVtORlRfTUVUQV9QUkFORE9NXQk9
-IE1FVEFfVEVNUExBVEUoInJhbmRvbSIsICAgICZpbnRlZ2VyX3R5cGUsDQogCQkJCQkJNCAqIEJJ
-VFNfUEVSX0JZVEUsDQogCQkJCQkJQllURU9SREVSX0JJR19FTkRJQU4pLCAvKiBhdm9pZCBjb252
-ZXJzaW9uOyBkb2Vzbid0IGhhdmUgZW5kaWFuZXNzICovDQorCVtORlRfTUVUQV9ORVhUSE9QXQk9
-IE1FVEFfVEVNUExBVEUoIm5leHRob3AiLCAgICAmaXBhZGRyX3R5cGUsDQorCQkJCQkJNCAqIEJJ
-VFNfUEVSX0JZVEUsDQorCQkJCQkJQllURU9SREVSX0JJR19FTkRJQU4pLA0KKwlbTkZUX01FVEFf
-TkVYVEhPUDZdCT0gTUVUQV9URU1QTEFURSgibmV4dGhvcDYiLCAgICZpcDZhZGRyX3R5cGUsDQor
-CQkJCQkJMTYgKiBCSVRTX1BFUl9CWVRFLA0KKwkJCQkJCUJZVEVPUkRFUl9CSUdfRU5ESUFOKSwN
-CiB9Ow0KIA0KIHN0YXRpYyBib29sIG1ldGFfa2V5X2lzX3F1YWxpZmllZChlbnVtIG5mdF9tZXRh
-X2tleXMga2V5KQ0KQEAgLTQ0Myw2ICs0NDksOCBAQCBzdGF0aWMgYm9vbCBtZXRhX2tleV9pc19x
-dWFsaWZpZWQoZW51bSBuZnRfbWV0YV9rZXlzIGtleSkNCiAJY2FzZSBORlRfTUVUQV9QUk9UT0NP
-TDoNCiAJY2FzZSBORlRfTUVUQV9QUklPUklUWToNCiAJY2FzZSBORlRfTUVUQV9QUkFORE9NOg0K
-KwljYXNlIE5GVF9NRVRBX05FWFRIT1A6DQorCWNhc2UgTkZUX01FVEFfTkVYVEhPUDY6DQogCQly
-ZXR1cm4gdHJ1ZTsNCiAJZGVmYXVsdDoNCiAJCXJldHVybiBmYWxzZTsNCmRpZmYgLS1naXQgYS9z
-cmMvcGFyc2VyX2Jpc29uLnkgYi9zcmMvcGFyc2VyX2Jpc29uLnkNCmluZGV4IGFhYzEwZGMuLmNl
-ODRjYTIgMTAwNjQ0DQotLS0gYS9zcmMvcGFyc2VyX2Jpc29uLnkNCisrKyBiL3NyYy9wYXJzZXJf
-Ymlzb24ueQ0KQEAgLTMzOSw2ICszMzksOCBAQCBzdGF0aWMgdm9pZCBsb2NhdGlvbl91cGRhdGUo
-c3RydWN0IGxvY2F0aW9uICpsb2MsIHN0cnVjdCBsb2NhdGlvbiAqcmhzLCBpbnQgbikNCiAldG9r
-ZW4gSUlGR1JPVVAJCQkiaWlmZ3JvdXAiDQogJXRva2VuIE9JRkdST1VQCQkJIm9pZmdyb3VwIg0K
-ICV0b2tlbiBDR1JPVVAJCQkiY2dyb3VwIg0KKyV0b2tlbiBORVhUSE9QCQkJIm5leHRob3AiDQor
-JXRva2VuIE5FWFRIT1A2CQkJIm5leHRob3A2Ig0KIA0KICV0b2tlbiBDVAkJCSJjdCINCiAldG9r
-ZW4gRElSRUNUSU9OCQkiZGlyZWN0aW9uIg0KQEAgLTI0MzgsNiArMjQ0MCw4IEBAIG1ldGFfa2V5
-X3F1YWxpZmllZAk6CUxFTkdUSAkJeyAkJCA9IE5GVF9NRVRBX0xFTjsgfQ0KIAkJCXwJUFJPVE9D
-T0wJeyAkJCA9IE5GVF9NRVRBX1BST1RPQ09MOyB9DQogCQkJfAlQUklPUklUWQl7ICQkID0gTkZU
-X01FVEFfUFJJT1JJVFk7IH0NCiAJCQl8CVJBTkRPTQkJeyAkJCA9IE5GVF9NRVRBX1BSQU5ET007
-IH0NCisJCQl8CU5FWFRIT1AJCXsgJCQgPSBORlRfTUVUQV9ORVhUSE9QOyB9DQorCQkJfAlORVhU
-SE9QNgl7ICQkID0gTkZUX01FVEFfTkVYVEhPUDY7IH0NCiAJCQk7DQogDQogbWV0YV9rZXlfdW5x
-dWFsaWZpZWQJOglNQVJLCQl7ICQkID0gTkZUX01FVEFfTUFSSzsgfQ0KZGlmZiAtLWdpdCBhL3Ny
-Yy9zY2FubmVyLmwgYi9zcmMvc2Nhbm5lci5sDQppbmRleCA4YjVhMzgzLi5jYzYxOGRkIDEwMDY0
-NA0KLS0tIGEvc3JjL3NjYW5uZXIubA0KKysrIGIvc3JjL3NjYW5uZXIubA0KQEAgLTQ1NSw2ICs0
-NTUsOCBAQCBhZGRyc3RyaW5nCSh7bWFjYWRkcn18e2lwNGFkZHJ9fHtpcDZhZGRyfSkNCiAiaWlm
-Z3JvdXAiCQl7IHJldHVybiBJSUZHUk9VUDsgfQ0KICJvaWZncm91cCIJCXsgcmV0dXJuIE9JRkdS
-T1VQOyB9DQogImNncm91cCIJCXsgcmV0dXJuIENHUk9VUDsgfQ0KKyJuZXh0aG9wIgkJeyByZXR1
-cm4gTkVYVEhPUDsgfQ0KKyJuZXh0aG9wNiIJCXsgcmV0dXJuIE5FWFRIT1A2OyB9DQogDQogImN0
-IgkJCXsgcmV0dXJuIENUOyB9DQogImRpcmVjdGlvbiIJCXsgcmV0dXJuIERJUkVDVElPTjsgfQ==
+Check storage of u32 netlink attributes in smaller resources. This
+validation is usually required when the u32 netlink attributes are being
+stored in a private structure size of u8 in the kernel.
+
+4da449a ("netfilter: nft_exthdr: Add size check on u8 nft_exthdr
+attributes")
+
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+---
+ include/net/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nf_tables_api.c     | 26 ++++++++++++++++++++++++++
+ net/netfilter/nft_bitwise.c       | 10 +++++++++-
+ net/netfilter/nft_byteorder.c     | 17 +++++++++++++++--
+ net/netfilter/nft_cmp.c           |  6 +++++-
+ net/netfilter/nft_exthdr.c        | 19 ++++++++++++-------
+ net/netfilter/nft_immediate.c     |  4 ++++
+ 7 files changed, 73 insertions(+), 11 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index f2f1339..608130f 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -127,6 +127,8 @@ static inline enum nft_registers nft_type_to_reg(enum nft_data_types type)
+ 	return type == NFT_DATA_VERDICT ? NFT_REG_VERDICT : NFT_REG_1 * NFT_REG_SIZE / NFT_REG32_SIZE;
+ }
+ 
++unsigned int nft_parse_u32_check(const struct nlattr *attr, int maxlen,
++				 u32 *dest);
+ unsigned int nft_parse_register(const struct nlattr *attr);
+ int nft_dump_register(struct sk_buff *skb, unsigned int attr, unsigned int reg);
+ 
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 7e1c876..d7b000f 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4343,6 +4343,32 @@ static int nf_tables_check_loops(const struct nft_ctx *ctx,
+ }
+ 
+ /**
++ *	nft_parse_u32_check - parse a u32 value to store the value into a
++ *			      smaller resource.
++ *
++ *	@attr: netlink attribute
++ *	@maxlen: maximum value to be stored in dest
++ *	@dest: pointer to the resource
++ *
++ *	Parse and store a given u32 value into a resource. Returns an error
++ *	ERANGE if the value will overload the maxlen, otherwise a 0 will be
++ *	returned and the value is stored into dest.
++ */
++unsigned int nft_parse_u32_check(const struct nlattr *attr, int maxlen,
++				 u32 *dest)
++{
++	int reg;
++
++	reg = ntohl(nla_get_be32(attr));
++	if (reg > maxlen)
++		return -ERANGE;
++
++	*dest = reg;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(nft_parse_u32_check);
++
++/**
+  *	nft_parse_register - parse a register value from a netlink attribute
+  *
+  *	@attr: netlink attribute
+diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
+index d71cc18..e7f23a1 100644
+--- a/net/netfilter/nft_bitwise.c
++++ b/net/netfilter/nft_bitwise.c
+@@ -14,6 +14,7 @@
+ #include <linux/netlink.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
++#include <linux/static_key.h>
+ #include <net/netfilter/nf_tables_core.h>
+ #include <net/netfilter/nf_tables.h>
+ 
+@@ -52,6 +53,7 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
+ {
+ 	struct nft_bitwise *priv = nft_expr_priv(expr);
+ 	struct nft_data_desc d1, d2;
++	u32 len;
+ 	int err;
+ 
+ 	if (tb[NFTA_BITWISE_SREG] == NULL ||
+@@ -61,7 +63,13 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
+ 	    tb[NFTA_BITWISE_XOR] == NULL)
+ 		return -EINVAL;
+ 
+-	priv->len  = ntohl(nla_get_be32(tb[NFTA_BITWISE_LEN]));
++	err  = nft_parse_u32_check(tb[NFTA_BITWISE_LEN], U8_MAX,
++				   &len);
++	if (err < 0)
++		return err;
++
++	priv->len = len;
++
+ 	priv->sreg = nft_parse_register(tb[NFTA_BITWISE_SREG]);
+ 	err = nft_validate_register_load(priv->sreg, priv->len);
+ 	if (err < 0)
+diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
+index b78c28b..8cac219 100644
+--- a/net/netfilter/nft_byteorder.c
++++ b/net/netfilter/nft_byteorder.c
+@@ -99,6 +99,7 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
+ 			      const struct nlattr * const tb[])
+ {
+ 	struct nft_byteorder *priv = nft_expr_priv(expr);
++	u32 size, len;
+ 	int err;
+ 
+ 	if (tb[NFTA_BYTEORDER_SREG] == NULL ||
+@@ -117,7 +118,13 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
+ 		return -EINVAL;
+ 	}
+ 
+-	priv->size = ntohl(nla_get_be32(tb[NFTA_BYTEORDER_SIZE]));
++	err = nft_parse_u32_check(tb[NFTA_BYTEORDER_SIZE], U8_MAX,
++				  &size);
++	if (err < 0)
++		return err;
++
++	priv->size = size;
++
+ 	switch (priv->size) {
+ 	case 2:
+ 	case 4:
+@@ -128,7 +135,13 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
+ 	}
+ 
+ 	priv->sreg = nft_parse_register(tb[NFTA_BYTEORDER_SREG]);
+-	priv->len  = ntohl(nla_get_be32(tb[NFTA_BYTEORDER_LEN]));
++	err = nft_parse_u32_check(tb[NFTA_BYTEORDER_LEN], U8_MAX,
++				  &len);
++	if (err < 0)
++		return err;
++
++	priv->len = len;
++
+ 	err = nft_validate_register_load(priv->sreg, priv->len);
+ 	if (err < 0)
+ 		return err;
+diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
+index e25b35d..3d31432 100644
+--- a/net/netfilter/nft_cmp.c
++++ b/net/netfilter/nft_cmp.c
+@@ -84,8 +84,12 @@ static int nft_cmp_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	if (err < 0)
+ 		return err;
+ 
+-	priv->op  = ntohl(nla_get_be32(tb[NFTA_CMP_OP]));
++	if (desc.len > U8_MAX)
++		return -ERANGE;
+ 	priv->len = desc.len;
++
++	priv->op  = ntohl(nla_get_be32(tb[NFTA_CMP_OP]));
++
+ 	return 0;
+ }
+ 
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index 82c264e..613732d8 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -59,7 +59,7 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
+ 			   const struct nlattr * const tb[])
+ {
+ 	struct nft_exthdr *priv = nft_expr_priv(expr);
+-	u32 offset, len;
++	u32 offset, len, err;
+ 
+ 	if (tb[NFTA_EXTHDR_DREG] == NULL ||
+ 	    tb[NFTA_EXTHDR_TYPE] == NULL ||
+@@ -67,15 +67,20 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
+ 	    tb[NFTA_EXTHDR_LEN] == NULL)
+ 		return -EINVAL;
+ 
+-	offset = ntohl(nla_get_be32(tb[NFTA_EXTHDR_OFFSET]));
+-	len = ntohl(nla_get_be32(tb[NFTA_EXTHDR_LEN]));
++	err = nft_parse_u32_check(tb[NFTA_EXTHDR_OFFSET], U8_MAX,
++				  &offset);
++	if (err < 0)
++		return err;
+ 
+-	if (offset > U8_MAX || len > U8_MAX)
+-		return -ERANGE;
++	priv->offset = offset;
+ 
++	err = nft_parse_u32_check(tb[NFTA_EXTHDR_LEN], U8_MAX,
++				  &len);
++	if (err < 0)
++		return err;
++
++	priv->len = len;
+ 	priv->type   = nla_get_u8(tb[NFTA_EXTHDR_TYPE]);
+-	priv->offset = offset;
+-	priv->len    = len;
+ 	priv->dreg   = nft_parse_register(tb[NFTA_EXTHDR_DREG]);
+ 
+ 	return nft_validate_register_store(ctx, priv->dreg, NULL,
+diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
+index db3b746..d17018f 100644
+--- a/net/netfilter/nft_immediate.c
++++ b/net/netfilter/nft_immediate.c
+@@ -53,6 +53,10 @@ static int nft_immediate_init(const struct nft_ctx *ctx,
+ 			    tb[NFTA_IMMEDIATE_DATA]);
+ 	if (err < 0)
+ 		return err;
++
++	if (desc.len > U8_MAX)
++		return -ERANGE;
++
+ 	priv->dlen = desc.len;
+ 
+ 	priv->dreg = nft_parse_register(tb[NFTA_IMMEDIATE_DREG]);
+-- 
+2.8.1
+
