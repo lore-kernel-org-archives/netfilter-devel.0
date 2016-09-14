@@ -1,26 +1,78 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/4] Netfilter fixes for net
-Date: Tue, 13 Sep 2016 11:17:53 -0400 (EDT)
-Message-ID: <20160913.111753.859472194158979468.davem@davemloft.net>
-References: <1473757517-3764-1-git-send-email-pablo@netfilter.org>
+From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+Subject: [PATCH nf-next] netfilter: nf_meta: support for nexthop and nexthop6
+Date: Wed, 14 Sep 2016 05:47:08 +0000
+Message-ID: <1473832028.1006.35.camel@cohaesio.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1473757517-3764-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from bender.cohaesio.com ([212.97.128.130]:56457 "EHLO
+        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752028AbcINF5B (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Sep 2016 01:57:01 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+        by mail.cohaesio.com (Postfix) with ESMTP id 308E47801111
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Sep 2016 07:47:09 +0200 (CEST)
+Received: from mail.cohaesio.com ([127.0.0.1])
+        by localhost (bender.cohaesio.com [127.0.0.1]) (amavisd-new, port 10028)
+        with LMTP id Qkz8MIo7iXdg for <netfilter-devel@vger.kernel.org>;
+        Wed, 14 Sep 2016 07:47:09 +0200 (CEST)
+Received: from cohexch01.cohaesio.com (cohexch01.cohaesio.com [212.97.128.231])
+        by mail.cohaesio.com (Postfix) with ESMTP id 1BFA37800E2A
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Sep 2016 07:47:09 +0200 (CEST)
+Content-Language: en-US
+Content-ID: <645D939F99A51142B3A10D8003A6DCE8@surftown.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue, 13 Sep 2016 11:05:13 +0200
-
-> The following patchset contains Netfilter fixes for your net tree,
-> they are:
- ...
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Pulled, thanks Pablo.
+RnJvbTogQW5kZXJzIEsuIFBlZGVyc2VuIDxha3BAY29oYWVzaW8uY29tPg0KDQpBZGQgbWV0YSBz
+dXBwb3J0IGZvciBJUHY0IG5leHRob3AgYW5kIElQdjYgbmV4dGhvcDYgKGkuZS4gdGhlIGRpcmVj
+dGx5DQpjb25uZWN0ZWQgSVAgYWRkcmVzcyB0aGF0IGFuIG91dGdvaW5nIHBhY2tldCBpcyBzZW50
+IHRvKSwgd2hpY2ggY2FuIGJlIHVzZWQNCmVpdGhlciBmb3IgbWF0Y2hpbmcgb3IgYWNjb3VudGlu
+ZywgZWcuDQoNCiAjIG5mdCBhZGQgcnVsZSBmaWx0ZXIgcG9zdHJvdXRpbmcgXA0KCWlwIGRhZGRy
+IDE5Mi4xNjguMS4wLzI0IG1ldGEgbmV4dGhvcCAhPSAxOTIuMTY4LjAuMSBkcm9wDQoNClRoaXMg
+d2lsbCBkcm9wIGFueSB0cmFmZmljIHRvIDE5Mi4xNjguMS4wLzI0IHRoYXQgaXMgbm90IHJvdXRl
+ZCB2aWENCjE5Mi4xNjguMC4xLg0KDQogIyBuZnQgYWRkIHJ1bGUgZmlsdGVyIHBvc3Ryb3V0aW5n
+IFwNCglmbG93IHRhYmxlIGFjY3QgeyBtZXRhIG5leHRob3AgdGltZW91dCA2MDBzIGNvdW50ZXIg
+fQ0KICMgbmZ0IGFkZCBydWxlIGlwNiBmaWx0ZXIgcG9zdHJvdXRpbmcgXA0KCWZsb3cgdGFibGUg
+YWNjdCB7IG1ldGEgbmV4dGhvcDYgdGltZW91dCA2MDBzIGNvdW50ZXIgfQ0KDQpUaGVzZSBydWxl
+cyBjb3VudCBvdXRnb2luZyB0cmFmZmljIHBlciBuZXh0aG9wLiBOb3RlIHRoYXQgdGhlIHRpbWVv
+dXQNCnJlbGVhc2VzIGFuIGVudHJ5IGlmIG5vIHRyYWZmaWMgaXMgc2VlbiBmb3IgdGhpcyBuZXh0
+aG9wIHdpdGhpbiAxMCBtaW51dGVzLg0KDQpTaWduZWQtb2ZmLWJ5OiBBbmRlcnMgSy4gUGVkZXJz
+ZW4gPGFrcEBjb2hhZXNpby5jb20+DQotLS0NCiBpbmNsdWRlL3VhcGkvbGludXgvbmV0ZmlsdGVy
+L25mX3RhYmxlcy5oIHwgIDIgKysNCiBuZXQvbmV0ZmlsdGVyL25mdF9tZXRhLmMgICAgICAgICAg
+ICAgICAgIHwgMjMgKysrKysrKysrKysrKysrKysrKysrKysNCiAyIGZpbGVzIGNoYW5nZWQsIDI1
+IGluc2VydGlvbnMoKykNCg0KZGlmZiAtLWdpdCBhL2luY2x1ZGUvdWFwaS9saW51eC9uZXRmaWx0
+ZXIvbmZfdGFibGVzLmggYi9pbmNsdWRlL3VhcGkvbGludXgvbmV0ZmlsdGVyL25mX3RhYmxlcy5o
+DQppbmRleCAyNDE2MWUyLi42ZWY4YWM5IDEwMDY0NA0KLS0tIGEvaW5jbHVkZS91YXBpL2xpbnV4
+L25ldGZpbHRlci9uZl90YWJsZXMuaA0KKysrIGIvaW5jbHVkZS91YXBpL2xpbnV4L25ldGZpbHRl
+ci9uZl90YWJsZXMuaA0KQEAgLTcyMSw2ICs3MjEsOCBAQCBlbnVtIG5mdF9tZXRhX2tleXMgew0K
+IAlORlRfTUVUQV9PSUZHUk9VUCwNCiAJTkZUX01FVEFfQ0dST1VQLA0KIAlORlRfTUVUQV9QUkFO
+RE9NLA0KKwlORlRfTUVUQV9ORVhUSE9QLA0KKwlORlRfTUVUQV9ORVhUSE9QNiwNCiB9Ow0KIA0K
+IC8qKg0KZGlmZiAtLWdpdCBhL25ldC9uZXRmaWx0ZXIvbmZ0X21ldGEuYyBiL25ldC9uZXRmaWx0
+ZXIvbmZ0X21ldGEuYw0KaW5kZXggMjg2M2YzNC4uYTI4M2M4MCAxMDA2NDQNCi0tLSBhL25ldC9u
+ZXRmaWx0ZXIvbmZ0X21ldGEuYw0KKysrIGIvbmV0L25ldGZpbHRlci9uZnRfbWV0YS5jDQpAQCAt
+MjAsNiArMjAsOCBAQA0KICNpbmNsdWRlIDxsaW51eC9zbXAuaD4NCiAjaW5jbHVkZSA8bGludXgv
+c3RhdGljX2tleS5oPg0KICNpbmNsdWRlIDxuZXQvZHN0Lmg+DQorI2luY2x1ZGUgPG5ldC9pcDZf
+cm91dGUuaD4NCisjaW5jbHVkZSA8bmV0L3JvdXRlLmg+DQogI2luY2x1ZGUgPG5ldC9zb2NrLmg+
+DQogI2luY2x1ZGUgPG5ldC90Y3Bfc3RhdGVzLmg+IC8qIGZvciBUQ1BfVElNRV9XQUlUICovDQog
+I2luY2x1ZGUgPG5ldC9uZXRmaWx0ZXIvbmZfdGFibGVzLmg+DQpAQCAtMTg4LDYgKzE5MCwyMyBA
+QCB2b2lkIG5mdF9tZXRhX2dldF9ldmFsKGNvbnN0IHN0cnVjdCBuZnRfZXhwciAqZXhwciwNCiAJ
+CSpkZXN0ID0gcHJhbmRvbV91MzJfc3RhdGUoc3RhdGUpOw0KIAkJYnJlYWs7DQogCX0NCisJY2Fz
+ZSBORlRfTUVUQV9ORVhUSE9QOiB7DQorCQljb25zdCBzdHJ1Y3QgcnRhYmxlICpydCA9IHNrYl9y
+dGFibGUoc2tiKTsNCisNCisJCWlmIChwa3QtPnBmICE9IE5GUFJPVE9fSVBWNCB8fCAhcnQpDQor
+CQkJZ290byBlcnI7DQorCQkqZGVzdCA9IHJ0X25leHRob3AocnQsIGlwX2hkcihza2IpLT5kYWRk
+cik7DQorCQlicmVhazsNCisJfQ0KKwljYXNlIE5GVF9NRVRBX05FWFRIT1A2OiB7DQorCQlzdHJ1
+Y3QgcnQ2X2luZm8gKnJ0ID0gKHN0cnVjdCBydDZfaW5mbyAqKXNrYl9kc3Qoc2tiKTsNCisNCisJ
+CWlmIChwa3QtPnBmICE9IE5GUFJPVE9fSVBWNiB8fCAhcnQpDQorCQkJZ290byBlcnI7DQorCQlt
+ZW1jcHkoZGVzdCwgcnQ2X25leHRob3AocnQsICZpcHY2X2hkcihza2IpLT5kYWRkciksDQorCQkg
+ICAgICAgc2l6ZW9mKHN0cnVjdCBpbjZfYWRkcikpOw0KKwkJYnJlYWs7DQorCX0NCiAJZGVmYXVs
+dDoNCiAJCVdBUk5fT04oMSk7DQogCQlnb3RvIGVycjsNCkBAIC0yNzEsOCArMjkwLDEyIEBAIGlu
+dCBuZnRfbWV0YV9nZXRfaW5pdChjb25zdCBzdHJ1Y3QgbmZ0X2N0eCAqY3R4LA0KICNpZmRlZiBD
+T05GSUdfQ0dST1VQX05FVF9DTEFTU0lEDQogCWNhc2UgTkZUX01FVEFfQ0dST1VQOg0KICNlbmRp
+Zg0KKwljYXNlIE5GVF9NRVRBX05FWFRIT1A6DQogCQlsZW4gPSBzaXplb2YodTMyKTsNCiAJCWJy
+ZWFrOw0KKwljYXNlIE5GVF9NRVRBX05FWFRIT1A2Og0KKwkJbGVuID0gc2l6ZW9mKHN0cnVjdCBp
+bjZfYWRkcik7DQorCQlicmVhazsNCiAJY2FzZSBORlRfTUVUQV9JSUZOQU1FOg0KIAljYXNlIE5G
+VF9NRVRBX09JRk5BTUU6DQogCQlsZW4gPSBJRk5BTVNJWjs=
