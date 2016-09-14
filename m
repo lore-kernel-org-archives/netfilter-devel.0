@@ -1,7 +1,7 @@
 From: Florian Westphal <fw@strlen.de>
 Subject: Re: [RFC] nftables: reverse path filtering for nft
-Date: Wed, 14 Sep 2016 23:13:40 +0200
-Message-ID: <20160914211340.GB4925@breakpoint.cc>
+Date: Thu, 15 Sep 2016 00:00:49 +0200
+Message-ID: <20160914220049.GC4925@breakpoint.cc>
 References: <20160910200102.GA11377@breakpoint.cc>
  <20160912120437.GA9323@salvia>
  <20160912122107.GB27566@breakpoint.cc>
@@ -10,96 +10,42 @@ References: <20160910200102.GA11377@breakpoint.cc>
  <20160912191438.GA11229@salvia>
  <20160914174515.GA4925@breakpoint.cc>
  <CAOkSjBheup7MmfT74FF0ZE3irCf=7OFGL5acWfMen5dkxvOy8Q@mail.gmail.com>
+ <20160914211340.GB4925@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Netfilter Development Mailing list
         <netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:40602 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:40754 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1765286AbcINVNo (ORCPT
+        by vger.kernel.org with ESMTP id S1762024AbcINWAx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Sep 2016 17:13:44 -0400
+        Wed, 14 Sep 2016 18:00:53 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBheup7MmfT74FF0ZE3irCf=7OFGL5acWfMen5dkxvOy8Q@mail.gmail.com>
+In-Reply-To: <20160914211340.GB4925@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
-> Hi Florian,
+Florian Westphal <fw@strlen.de> wrote:
+> Yet another option:
 > 
-> thanks for working on this, here my comments.
+> FIB     fib_type     fib_family   fib_key_flags	fib_addr
 > 
-> On 14 September 2016 at 19:45, Florian Westphal <fw@strlen.de> wrote:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >> On Mon, Sep 12, 2016 at 09:00:25PM +0200, Florian Westphal wrote:
-> >> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >> > >         fib lookup ip daddr . oif
-> >> > >
-> >> > > As you are basically looking for the route based on IPv4 address and
-> >> > > the output interface, so this boils down to:
-> >> > >
-> >> > >         fib lookup $expr $flags
-> >> >
-> >> > How would the kernel disentangle the register data?
-> >>
-> >> What I'm proposing is to represent this as a concatenation, since this
-> >> represents the tuple that you use to look up for route.
-> >>
-> >> > (i.e., how do i know where in the sreg e.g. the daddr is
-> >> >  that i need to stuff in the flowi struct?)
-> >>
-> >> You can iterate over the concatenation compound from the
-> >> netlink_linearize path, it is just a list of expressions. Then, you
-> >> can set the NFTA_FIB_* netlink attribute using them.
-> >
-> > I found this to be ugly and cumbersome, I'd propose following
-> > syntax instead:
-> >
-> > FIB     fib_type     fib_family   '{' fib_addr fib_key_flags '}'
-> >
-> > The {} are needed because I'd like to use 'mark' and 'oif' in flags but
-> > these can also be expressions, i.e. I need something that tells
-> > the parser when end of FIB flags are reached (so instead of { }
-> > it could also use single ';' or something else ...)
-> >
-> > This gives following examples:
-> >
-> >  fib oif { saddr }  # ip route get $saddr, place ifindex into register)
-> >  fib oif { saddr mark,saddr,oif } # same, but populate flowi .saddr,mark,oif
-> >                                     members as well
-> >
-> >  fib oif { daddr mark,saddr,oif } # same, except that flowi.daddr is set
-> >                                   # to iph->daddr)
-> >
+> Which is not ambiguous anymore as either saddr or daddr will terminate
+> the statement.  We'd have to remove the saddr option but I don't think its a
+> problem (the iptables rpfilter modules set flowi.saddr if packet daddr
+> is unicast address).
 > 
+> Would give following syntax :
 > 
-> Using {} in the syntax for something which is not a set or a map seems
-> a bit confusing to me.
+> fib oif mark saddr
+> fib oif saddr
+> fib oif mark,oif daddr
 
-We also use it for the flow statement, but I agree its not nice.
+But also
+fib oif oif saddr
 
-Other solution I see is to not use mark and oif and come up
-with new/different keyword, but thats not good either.
-
-Yet another option:
-
-FIB     fib_type     fib_family   fib_key_flags	fib_addr
-
-Which is not ambiguous anymore as either saddr or daddr will terminate
-the statement.  We'd have to remove the saddr option but I don't think its a
-problem (the iptables rpfilter modules set flowi.saddr if packet daddr
-is unicast address).
-
-Would give following syntax :
-
-fib oif mark saddr
-fib oif saddr
-fib oif mark,oif daddr
-
-fib addrtype oif  daddr
-
-Or remove unqualified meta keywords, that should work as well.
+Yuck.
