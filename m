@@ -1,98 +1,74 @@
-From: fgao@ikuai8.com
-Subject: [PATCH nf-next] netfilter: Enhance the codes used to get random once
-Date: Sun, 18 Sep 2016 10:52:25 +0800
-Message-ID: <1474167145-10008-1-git-send-email-fgao@ikuai8.com>
-Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+Subject: [nft] Problems with flushing all elements from a set
+Date: Sun, 18 Sep 2016 13:19:24 +0000
+Message-ID: <1474204764.1527.46.camel@cohaesio.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg321.qq.com ([14.17.32.30]:47421 "EHLO smtpbg321.qq.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755618AbcIRCwr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 17 Sep 2016 22:52:47 -0400
+Received: from bender.cohaesio.com ([212.97.128.130]:53437 "EHLO
+        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755764AbcIRNT3 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 18 Sep 2016 09:19:29 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+        by mail.cohaesio.com (Postfix) with ESMTP id 5C4C178812E1
+        for <netfilter-devel@vger.kernel.org>; Sun, 18 Sep 2016 15:19:25 +0200 (CEST)
+Received: from mail.cohaesio.com ([127.0.0.1])
+        by localhost (bender.cohaesio.com [127.0.0.1]) (amavisd-new, port 10028)
+        with LMTP id hjKn-jvAmHWN for <netfilter-devel@vger.kernel.org>;
+        Sun, 18 Sep 2016 15:19:25 +0200 (CEST)
+Received: from cohexch01.cohaesio.com (cohexch01.cohaesio.com [212.97.128.231])
+        by mail.cohaesio.com (Postfix) with ESMTP id 3F0597801123
+        for <netfilter-devel@vger.kernel.org>; Sun, 18 Sep 2016 15:19:25 +0200 (CEST)
+Content-Language: en-US
+Content-ID: <177D0835E676A94281443CC13BCAA902@surftown.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
-
-There are some codes which are used to get one random once in netfilter.
-We could use net_get_random_once to simplify these codes.
-
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
----
- net/netfilter/xt_RATEEST.c   | 6 +-----
- net/netfilter/xt_connlimit.c | 8 +-------
- net/netfilter/xt_recent.c    | 7 ++-----
- 3 files changed, 4 insertions(+), 17 deletions(-)
-
-diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
-index 515131f..dbd6c4a 100644
---- a/net/netfilter/xt_RATEEST.c
-+++ b/net/netfilter/xt_RATEEST.c
-@@ -24,7 +24,6 @@ static DEFINE_MUTEX(xt_rateest_mutex);
- #define RATEEST_HSIZE	16
- static struct hlist_head rateest_hash[RATEEST_HSIZE] __read_mostly;
- static unsigned int jhash_rnd __read_mostly;
--static bool rnd_inited __read_mostly;
- 
- static unsigned int xt_rateest_hash(const char *name)
- {
-@@ -99,10 +98,7 @@ static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
- 	} cfg;
- 	int ret;
- 
--	if (unlikely(!rnd_inited)) {
--		get_random_bytes(&jhash_rnd, sizeof(jhash_rnd));
--		rnd_inited = true;
--	}
-+	net_get_random_once(&jhash_rnd, sizeof(jhash_rnd));
- 
- 	est = xt_rateest_lookup(info->name);
- 	if (est) {
-diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index 99bbc82..b6dc322 100644
---- a/net/netfilter/xt_connlimit.c
-+++ b/net/netfilter/xt_connlimit.c
-@@ -366,14 +366,8 @@ static int connlimit_mt_check(const struct xt_mtchk_param *par)
- 	unsigned int i;
- 	int ret;
- 
--	if (unlikely(!connlimit_rnd)) {
--		u_int32_t rand;
-+	net_get_random_once(&connlimit_rnd, sizeof(connlimit_rnd));
- 
--		do {
--			get_random_bytes(&rand, sizeof(rand));
--		} while (!rand);
--		cmpxchg(&connlimit_rnd, 0, rand);
--	}
- 	ret = nf_ct_l3proto_try_module_get(par->family);
- 	if (ret < 0) {
- 		pr_info("cannot load conntrack support for "
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index d725a27..e3b7a09 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -110,7 +110,6 @@ static const struct file_operations recent_old_fops, recent_mt_fops;
- #endif
- 
- static u_int32_t hash_rnd __read_mostly;
--static bool hash_rnd_inited __read_mostly;
- 
- static inline unsigned int recent_entry_hash4(const union nf_inet_addr *addr)
- {
-@@ -340,10 +339,8 @@ static int recent_mt_check(const struct xt_mtchk_param *par,
- 	int ret = -EINVAL;
- 	size_t sz;
- 
--	if (unlikely(!hash_rnd_inited)) {
--		get_random_bytes(&hash_rnd, sizeof(hash_rnd));
--		hash_rnd_inited = true;
--	}
-+	net_get_random_once(&hash_rnd, sizeof(hash_rnd));
-+
- 	if (info->check_set & ~XT_RECENT_VALID_FLAGS) {
- 		pr_info("Unsupported user space flags (%08x)\n",
- 			info->check_set);
--- 
-1.9.1
-
+SGVsbG8sDQoNCkknbSB0cnlpbmcgdG8gdXNlIG5mdGFibGVzIHRvIGZpbHRlciB0cmFmZmljIGZy
+b20ga25vd24gYm9nb24gYWRkcmVzc2VzDQpiYXNlZCBvbiB0aGUgbGlzdCBhdmFpbGFibGUgYXQN
+Cmh0dHA6Ly93d3cudGVhbS1jeW1ydS5vcmcvU2VydmljZXMvQm9nb25zL2Z1bGxib2dvbnMtaXB2
+NC50eHTCoC4NCg0KTG9hZGluZyB0aGlzIGxpc3QgaW5pdGlhbGx5IHdvcmtzIGZpbmUsIGJ1dCBJ
+IGFsc28gd2FudCB0byB1cGRhdGUgaXQNCnJlZ3VsYXJseSAocHJlZmVyYWJseSB3aXRob3V0IGZs
+dXNoaW5nIHRoZSBlbnRpcmUgbmZ0YWJsZXMgcnVsZSBzZXQsDQp3aGljaCB3b3VsZCBjbGVhciBh
+bGwgdHJhZmZpYyBjb3VudGVycyBldGMuKS4gU2luY2UgdGhlcmUgaXMgbm8gZmx1c2gNCm9wZXJh
+dGlvbiBmb3Igc2V0cywgSSBkZWNpZGVkIHRvIGRlbGV0ZSBhbGwgdGhlIG1lbWJlcnMgb2YgdGhl
+IHNldCwgYnV0DQp0aGlzIGRvZXNuJ3Qgd29yayBhcyBleHBlY3RlZC4NCg0KSSB1c2UgdGhlIGZv
+bGxvd2luZyBzaGVsbCBjb2RlIGNvbnZlcnQgdGhlIGlucHV0IGZpbGUgdG8gbmZ0YWJsZXMNCnN5
+bnRheDoNCg0KZWNobyAiYWRkIHNldCBpcCBmaWx0ZXIgYm9nb25zIHsgdHlwZSBpcHY0X2FkZHI7
+IGZsYWdzIGludGVydmFsOyB9IiA+bmZ0LnJ1bGVzDQplY2hvIC1uICJhZGQgZWxlbWVudCBpcCBm
+aWx0ZXIgYm9nb25zIHsgIiA+Pm5mdC5ydWxlcw0KST0wDQplZ3JlcCAtdiAnXigjfCQpJyBmdWxs
+Ym9nb25zLWlwdjQudHh0IHwNCgl3aGlsZSByZWFkIENJRFIgOyBkbw0KCQlpZiBbWyAke0l9ID0g
+MCBdXTsgdGhlbg0KCQkJZWNobyAtbiAiJHtDSURSfSINCgkJZWxzZQ0KCQkJZWNobyAtbiAiLCAk
+e0NJRFJ9Ig0KICAgICAgICAgICAgICAgIGZpDQoJCUk9MQ0KIAlkb25lID4+bmZ0LnJ1bGVzDQpl
+Y2hvICIgfSIgPj5uZnQucnVsZXMNCg0KTG9hZGluZyBpdCBpbml0aWFsbHkgd2l0aCAnbmZ0IC1m
+IG5mdC5ydWxlcycgd29ya3MgZmluZS4gSSB0aGVuIHVzZSB0aGUNCmZvbGxvd2luZyBzaGVsbCBj
+b2RlIHRvIHRyeSB0byBjbGVhciBpdCBhZ2FpbjoNCg0KbmZ0IGxpc3Qgc2V0IGlwIGZpbHRlciBi
+b2dvbnMgfA0KCWVncmVwICJeW1s6c3BhY2U6XV0rZWxlbWVudHMgPSIgfA0KCXNlZCAtZSAicy8u
+KnsvZGVsZXRlIGVsZW1lbnQgaXAgZmlsdGVyIGJvZ29ucyB7LyIgPm5mdC5yZW1vdmUNCm5mdCAt
+ZiBuZnQucmVtb3ZlDQoNCldoZW4gSSBydW4gdGhpcyBmb3IgdGhlIGZpcnN0IHRpbWUsIG5mdCBk
+b2Vzbid0IGdpdmUgYW55IG91dHB1dCwgd2hpY2gNCnN1Z2dlc3RzIHRoYXQgaXQgc3VjY2VlZGVk
+LCBidXQgb25seSB+NDAlIG9mIHRoZSBlbGVtZW50cyB3ZXJlIGFjdHVhbGx5DQpyZW1vdmVkLiBX
+aGVuIEkgcnVuIHRoZSByZW1vdmFsIGNvZGUgYWdhaW4sIEkgZ2V0IG5vIG91dHB1dCBhbmQgbm8N
+CmZ1cnRoZXIgZWxlbWVudHMgd2VyZSByZW1vdmVkLg0KDQpJIG5vdGljZWQgdGhhdCB0aGUgbmZ0
+IGV4aXQgY29kZSB3YXMgMSBhbmQgd2l0aCBzdHJhY2UgSSBmb3VuZCB0aGF0IHRoZQ0KbmV0bGlu
+ayBzb2NrZXQgZ290IGEgcmVwbHkgd2l0aMKgbXNnX2ZsYWdzPU1TR19UUlVOQyBqdXN0IGJlZm9y
+ZQ0KZXhpdGluZy4gQnkgYWRkaW5nIGRlYnVnIG91dHB1dCB0byBlcnJvciBwYXRocywgSSB0cmFj
+ZWQgdGhpcyBiYWNrIHRvDQp0aGXCoG1ubF9jYl9ydW4oKSBjYWxsIGluwqBtbmxfYmF0Y2hfdGFs
+aygpLiBCeSBpbmNyZWFzaW5nIHRoZSBzaXplDQpvZsKgcmN2X2J1ZiB0b8KgMzIqTU5MX1NPQ0tF
+VF9CVUZGRVJfU0laRSAobGVzcyBtYXkgaGF2ZSBiZWVuIGVub3VnaCwgYnV0DQoyKiB3YXNuJ3Qp
+IEkgZ290IHBhc3QgdGhhdCBlcnJvciwgYW5kIG5mdCBnYXZlIHRoZSBmb2xsb3dpbmcgZXJyb3IN
+Cm1lc3NhZ2U6DQoNCm5mdC5yZW1vdmU6MToxLTMzMzQ4OiBFcnJvcjogQ291bGQgbm90IHByb2Nl
+c3MgcnVsZTogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQ0KDQpJIGJlbGlldmUgaXQgaXMgdHJ5
+aW5nIHRvIHRlbGwgbWUgdGhhdCB0aGUgZWxlbWVudHMsIEknbSB0cnlpbmcgdG8NCnJlbW92ZSwg
+YXJlIG5vdCBwcmVzZW50IGluIHRoZSBzZXQsIGJ1dCAibmZ0IGxpc3Qgc2V0IGlwIGZpbHRlciBi
+b2dvbnMiDQp0ZWxscyBtZSB0aGF0IHRoZXkgYXJlLg0KDQpJJ3ZlIHRyaWVkIHRvIGZpZ3VyZSBv
+dXQgd2hhdCdzIGNhdXNpbmcgdGhpcyBwcm9ibGVtLCBidXQgbXkNCnVuZGVyc3RhbmRpbmcgb2Yg
+dGhlIG5ldGxpbmsgY29kZSBpc24ndCBzdWZmaWNpZW50IHRvIG1ha2UgcHJvZ3Jlc3MsIHNvDQph
+bnkgaGVscCB3b3VsZCBiZSBtdWNoIGFwcHJlY2lhdGVkLg0KDQpNeSBlbnZpcm9ubWVudCBoYXMg
+TGludXggNC43LjQgcGx1cyB0aGUgcGF0Y2ggZnJvbQ0KaHR0cDovL3d3dy5zcGluaWNzLm5ldC9s
+aXN0cy9uZXRkZXYvbXNnMzg5NDkwLmh0bWzCoCwgbGlibW5sLTEuMC40LCBhbmQNCmN1cnJlbnQg
+Z2l0IHZlcnNpb25zIG9mIGxpYm5mdG5sIGFuZMKgbmZ0YWJsZXMuDQoNClJlZ2FyZHMsDQpBbmRl
+cnMgSy4gUGVkZXJzZW4=
