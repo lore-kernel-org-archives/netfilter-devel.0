@@ -1,41 +1,48 @@
-From: fgao@ikuai8.com
-Subject: [PATCH nf-next] netfilter: xt_helper: Use sizeof(variable) instead of literal number
-Date: Tue, 20 Sep 2016 10:31:04 +0800
-Message-ID: <1474338664-7258-1-git-send-email-fgao@ikuai8.com>
-Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: rate limit not working ?
+Date: Tue, 20 Sep 2016 10:13:41 +0200
+Message-ID: <20160920081341.GA2328@salvia>
+References: <a6f9f673-8c5b-4a95-ea38-4fb8b39d4dc8@c-s.fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Christophe Leroy <christophe.leroy@c-s.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from SMTPBG132.QQ.COM ([113.108.23.42]:56765 "EHLO smtpbg132.qq.com"
+Received: from mail.us.es ([193.147.175.20]:35740 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753530AbcITCcD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 19 Sep 2016 22:32:03 -0400
+        id S1753190AbcITINv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 20 Sep 2016 04:13:51 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id DE14F1E11A5
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Sep 2016 10:13:49 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CA587DA841
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Sep 2016 10:13:49 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 450DBDA841
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Sep 2016 10:13:42 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <a6f9f673-8c5b-4a95-ea38-4fb8b39d4dc8@c-s.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+On Fri, Sep 16, 2016 at 06:50:22PM +0200, Christophe Leroy wrote:
+> Hi
+> 
+> I tried to limit ping flooding by setting the following rule:
+> 
+> nft add rule filter input icmp type echo-request limit rate 10/second accept
 
-It's better to use sizeof(info->name)-1 as index to force set the string
-tail instead of literal number '29'.
+This is matching packets under the rate, so packets under the rate are
+accepted.
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
----
- net/netfilter/xt_helper.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Your next rule, or default policy, should drop, so packets over the
+rate are dropped.
 
-diff --git a/net/netfilter/xt_helper.c b/net/netfilter/xt_helper.c
-index 9f4ab00..f71ee88 100644
---- a/net/netfilter/xt_helper.c
-+++ b/net/netfilter/xt_helper.c
-@@ -65,7 +65,7 @@ static int helper_mt_check(const struct xt_mtchk_param *par)
- 			par->family);
- 		return ret;
- 	}
--	info->name[29] = '\0';
-+	info->name[sizeof(info->name) - 1] = '\0';
- 	return 0;
- }
- 
--- 
-1.9.1
+You can invert this logic via:
 
+ # nft add rule filter input icmp type echo-request limit rate over 10/second drop
 
+Does this work for you?
+
+Thanks.
