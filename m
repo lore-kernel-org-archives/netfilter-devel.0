@@ -1,55 +1,51 @@
 From: Christophe Leroy <christophe.leroy@c-s.fr>
-Subject: Re: Seeking help for implementing CT HELPER in nftables
-Date: Tue, 20 Sep 2016 13:10:33 +0200
-Message-ID: <2cfbf6f4-0031-36da-6d56-10f919d9eaf8@c-s.fr>
-References: <56DAC502.2060809@c-s.fr>
- <20160307132011.GA7620@macbook.localdomain> <56DF5F61.2060000@c-s.fr>
- <570CFAB1.6090409@c-s.fr> <20160412135155.GA27975@breakpoint.cc>
+Subject: Re: rate limit not working ?
+Date: Tue, 20 Sep 2016 13:14:14 +0200
+Message-ID: <eb5fc335-baaa-852e-0d56-24909d87eec6@c-s.fr>
+References: <a6f9f673-8c5b-4a95-ea38-4fb8b39d4dc8@c-s.fr>
+ <20160920081341.GA2328@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 8bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>, Patrick McHardy <kaber@trash.net>
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from pegase1.c-s.fr ([93.17.236.30]:18566 "EHLO pegase1.c-s.fr"
+Received: from pegase1.c-s.fr ([93.17.236.30]:12521 "EHLO pegase1.c-s.fr"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752145AbcITLKi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Sep 2016 07:10:38 -0400
-In-Reply-To: <20160412135155.GA27975@breakpoint.cc>
+        id S1752924AbcITLOR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 20 Sep 2016 07:14:17 -0400
+In-Reply-To: <20160920081341.GA2328@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Florian and Patrick,
 
-Le 12/04/2016 à 15:51, Florian Westphal a écrit :
-> Christophe Leroy <christophe.leroy@c-s.fr> wrote:
+
+Le 20/09/2016 à 10:13, Pablo Neira Ayuso a écrit :
+> On Fri, Sep 16, 2016 at 06:50:22PM +0200, Christophe Leroy wrote:
+>> Hi
+>>
+>> I tried to limit ping flooding by setting the following rule:
+>>
+>> nft add rule filter input icmp type echo-request limit rate 10/second accept
 >
-> [ nft_ct helper set support ]
+> This is matching packets under the rate, so packets under the rate are
+> accepted.
 >
->> Patrick, can you help ?
+> Your next rule, or default policy, should drop, so packets over the
+> rate are dropped.
 >
-> I have a few pending patches, one of them adds an immediate
-> attr for ctlabel set support.
+> You can invert this logic via:
 >
-> Lets see if that approach is sane enough to be reused for helper
-> support.
->
-> I will post it soon.
+>  # nft add rule filter input icmp type echo-request limit rate over 10/second drop
 >
 
-I had a look but as far as I understood, the ctlabel works with bits.
+That didn't work either, but in fact I found the issue: I have a rule 
+'ct state established, related accept' earlier in the ruleset, so only 
+the first ping packet reached the rate limitation rule.
 
-For ct helper I need to retrieve the helper's name string in the 
-nft_ct_set_init() function in order to call nf_ct_helper_ext_add()
+Putting the rate limitation rules before that ct state rule, it works as 
+expected.
 
-Patrick suggested to add a new CT attribute, but I've not been able to 
-find what has to be done for that exactly.
+Thanks for your help
 
-Is there any exemple in other parts of the kernel for doing that ?
-Is it just to add a NFTA_CT_HELPER then add it in the nft_ct_policy 
-structure as an NLA_STRING type and then retrieve it with nla_strl_cpy() ?
-But how does it gets populated with the helper string passed in by nft ?
-
-Thanks for your help,
 Christophe
