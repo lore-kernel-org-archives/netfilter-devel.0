@@ -1,48 +1,55 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: rate limit not working ?
-Date: Tue, 20 Sep 2016 10:13:41 +0200
-Message-ID: <20160920081341.GA2328@salvia>
-References: <a6f9f673-8c5b-4a95-ea38-4fb8b39d4dc8@c-s.fr>
+From: Christophe Leroy <christophe.leroy@c-s.fr>
+Subject: Re: Seeking help for implementing CT HELPER in nftables
+Date: Tue, 20 Sep 2016 13:10:33 +0200
+Message-ID: <2cfbf6f4-0031-36da-6d56-10f919d9eaf8@c-s.fr>
+References: <56DAC502.2060809@c-s.fr>
+ <20160307132011.GA7620@macbook.localdomain> <56DF5F61.2060000@c-s.fr>
+ <570CFAB1.6090409@c-s.fr> <20160412135155.GA27975@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Christophe Leroy <christophe.leroy@c-s.fr>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35740 "EHLO mail.us.es"
+Received: from pegase1.c-s.fr ([93.17.236.30]:18566 "EHLO pegase1.c-s.fr"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753190AbcITINv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Sep 2016 04:13:51 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DE14F1E11A5
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Sep 2016 10:13:49 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CA587DA841
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Sep 2016 10:13:49 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 450DBDA841
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Sep 2016 10:13:42 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <a6f9f673-8c5b-4a95-ea38-4fb8b39d4dc8@c-s.fr>
+        id S1752145AbcITLKi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 20 Sep 2016 07:10:38 -0400
+In-Reply-To: <20160412135155.GA27975@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Sep 16, 2016 at 06:50:22PM +0200, Christophe Leroy wrote:
-> Hi
-> 
-> I tried to limit ping flooding by setting the following rule:
-> 
-> nft add rule filter input icmp type echo-request limit rate 10/second accept
+Hello Florian and Patrick,
 
-This is matching packets under the rate, so packets under the rate are
-accepted.
+Le 12/04/2016 à 15:51, Florian Westphal a écrit :
+> Christophe Leroy <christophe.leroy@c-s.fr> wrote:
+>
+> [ nft_ct helper set support ]
+>
+>> Patrick, can you help ?
+>
+> I have a few pending patches, one of them adds an immediate
+> attr for ctlabel set support.
+>
+> Lets see if that approach is sane enough to be reused for helper
+> support.
+>
+> I will post it soon.
+>
 
-Your next rule, or default policy, should drop, so packets over the
-rate are dropped.
+I had a look but as far as I understood, the ctlabel works with bits.
 
-You can invert this logic via:
+For ct helper I need to retrieve the helper's name string in the 
+nft_ct_set_init() function in order to call nf_ct_helper_ext_add()
 
- # nft add rule filter input icmp type echo-request limit rate over 10/second drop
+Patrick suggested to add a new CT attribute, but I've not been able to 
+find what has to be done for that exactly.
 
-Does this work for you?
+Is there any exemple in other parts of the kernel for doing that ?
+Is it just to add a NFTA_CT_HELPER then add it in the nft_ct_policy 
+structure as an NLA_STRING type and then retrieve it with nla_strl_cpy() ?
+But how does it gets populated with the helper string passed in by nft ?
 
-Thanks.
+Thanks for your help,
+Christophe
