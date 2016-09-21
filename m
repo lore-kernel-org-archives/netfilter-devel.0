@@ -1,33 +1,74 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: libnftnl XML parsing seems broken with libmxml 2.10
-Date: Wed, 21 Sep 2016 14:24:16 +0200
-Message-ID: <CAOkSjBij7=O59NN_szdgMWHBCZreajJ9h=wM_hcYV=QNGmZe6g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-To: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:38363 "EHLO
-        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753663AbcIUMbn (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Sep 2016 08:31:43 -0400
-Received: by mail-wm0-f51.google.com with SMTP id l132so89032864wmf.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Sep 2016 05:31:42 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Aaron Conole <aconole@bytheb.org>
+Subject: [PATCH nf-next v3 0/7] Compact netfilter hooks list
+Date: Wed, 21 Sep 2016 11:35:00 -0400
+Message-ID: <1474472107-12992-1-git-send-email-aconole@bytheb.org>
+Cc: Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+This series makes a simple change to shrink the netfilter hook list
+from a double linked list, to a singly linked list.  Since the hooks
+are always traversed in-order, there is no need to maintain a previous
+pointer.
 
-just to let you know that something happened in libmxml 2.10 which
-seems to break libnftnl XML parsing capabilities.
+This was jointly developed by Florian Westphal.
 
-Here is a debian bug for this issue: #838370 [0].
+It has been tested with RCU debugging and lockdep debugging enabled.  A
+more rigorous stress test is underway, but this is being submitted for
+early feedback.
 
-regards
+Apologies for the size of patch 7/7, particularly the refactor in
+nf_hook_thresh.  It didn't make sense to split the refactor out at the
+time, but if desired, it can be reworked.
 
-[0] https://bugs.debian.org/838370
+After this series, the hook entry head in nf_hook_state will not always
+be a valid pointer.  I don't know if the circular nature of the hook list
+could have ever been abused with a string of custom queue and non-queue
+hook handlers.  If so, this patch would likely break that behavior.
 
---=20
-Arturo Borrero Gonz=C3=A1lez
+Previous series can be found at:
+http://www.spinics.net/lists/netdev/msg386080.html
+
+Aaron Conole (5):
+  netfilter: call nf_hook_ingress with rcu_read_lock
+  nf_hook_slow: Remove explicit rcu_read_lock
+  nf_register_net_hook: Only allow sane values
+  nf_queue_handler: whitespace cleanup
+  netfilter: replace list_head with single linked list
+
+Florian Westphal (2):
+  netfilter: bridge: add and use br_nf_hook_thresh
+  netfilter: call nf_hook_state_init with rcu_read_lock held
+
+ include/linux/netdevice.h                      |   2 +-
+ include/linux/netfilter.h                      |  61 ++++++----
+ include/linux/netfilter_ingress.h              |  16 ++-
+ include/net/netfilter/br_netfilter.h           |   6 +
+ include/net/netfilter/nf_queue.h               |   9 +-
+ include/net/netns/netfilter.h                  |   2 +-
+ net/bridge/br_netfilter_hooks.c                |  53 +++++++--
+ net/bridge/br_netfilter_ipv6.c                 |  12 +-
+ net/bridge/netfilter/ebt_redirect.c            |   2 +-
+ net/bridge/netfilter/ebtables.c                |   2 +-
+ net/core/dev.c                                 |   7 +-
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |   2 +-
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |   2 +-
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |   2 +-
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   2 +-
+ net/netfilter/core.c                           | 152 ++++++++++++++++---------
+ net/netfilter/nf_conntrack_core.c              |   2 +-
+ net/netfilter/nf_conntrack_h323_main.c         |   2 +-
+ net/netfilter/nf_conntrack_helper.c            |   2 +-
+ net/netfilter/nf_internals.h                   |  10 +-
+ net/netfilter/nf_queue.c                       |  18 +--
+ net/netfilter/nfnetlink_cthelper.c             |   2 +-
+ net/netfilter/nfnetlink_log.c                  |   6 +-
+ net/netfilter/nfnetlink_queue.c                |  10 +-
+ net/netfilter/xt_helper.c                      |   2 +-
+ 25 files changed, 249 insertions(+), 137 deletions(-)
+
+-- 
+2.7.4
