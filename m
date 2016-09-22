@@ -1,45 +1,40 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf-next 2/2] netfilter: nft_ct: report error if mark and dir specified simultaneously
-Date: Thu, 22 Sep 2016 22:28:52 +0800
-Message-ID: <1474554532-50664-2-git-send-email-zlpnobody@163.com>
-References: <1474554532-50664-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v3] netfilter: nft_numgen: add number generation offset
+Date: Thu, 22 Sep 2016 16:33:44 +0200
+Message-ID: <20160922143344.GA6409@salvia>
+References: <20160913114950.GA15747@sonyv>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Laura Garcia Liebana <nevola@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-13.163.com ([220.181.12.13]:41221 "EHLO m12-13.163.com"
+Received: from mail.us.es ([193.147.175.20]:51934 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934041AbcIVO3k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Sep 2016 10:29:40 -0400
-In-Reply-To: <1474554532-50664-1-git-send-email-zlpnobody@163.com>
+        id S1754737AbcIVOeB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 22 Sep 2016 10:34:01 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9A9679D344
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Sep 2016 16:33:59 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 86107DA855
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Sep 2016 16:33:59 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6029FDA81C
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Sep 2016 16:33:57 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20160913114950.GA15747@sonyv>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+On Tue, Sep 13, 2016 at 01:49:53PM +0200, Laura Garcia Liebana wrote:
+> Add support of an offset value for incremental counter and random. With
+> this option the sysadmin is able to start the counter to a certain value
+> and then apply the generated number.
+> 
+> Example:
+> 
+> 	meta mark set numgen inc mod 2 offset 100
+> 
+> This will generate marks with the serie 100, 101, 100, 101, ...
 
-NFT_CT_MARK is unrelated to direction, so if NFTA_CT_DIRECTION attr is
-specified, report EINVAL to the userspace. This validation check was
-already done at nft_ct_get_init, but we missed it in nft_ct_set_init.
-
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
----
- net/netfilter/nft_ct.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 825fbbc..d7b0d171 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -364,6 +364,8 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
- 	switch (priv->key) {
- #ifdef CONFIG_NF_CONNTRACK_MARK
- 	case NFT_CT_MARK:
-+		if (tb[NFTA_CT_DIRECTION])
-+			return -EINVAL;
- 		len = FIELD_SIZEOF(struct nf_conn, mark);
- 		break;
- #endif
--- 
-2.5.5
-
-
+Applied, thanks Laura.
