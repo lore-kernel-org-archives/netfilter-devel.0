@@ -1,61 +1,144 @@
-From: Feng Gao <gfree.wind@gmail.com>
-Subject: Re: [PATCH nf] netfilter: seqadj: Fix the wrong ack adjust for the
- RST packet without ack
-Date: Thu, 22 Sep 2016 10:36:22 +0800
-Message-ID: <CA+6hz4p7dbNm5LU56ZP51+gktEr7nmUci-e4qSaxr2NoUxkFQg@mail.gmail.com>
-References: <1473127567-10419-1-git-send-email-fgao@ikuai8.com>
- <CA+6hz4r+g-s_h=FiV4axCuwT_JQLiztyN2oDQ_iyz_20Mp2j+A@mail.gmail.com>
- <CA+6hz4qzd+Hew69SdF4VMAObMdRtEuX=ycG22fomjEULjrWqTw@mail.gmail.com>
- <20160912171732.GB28913@salvia> <CA+6hz4oYAsUc5v3yrsj7tLV-VtpMfwUQ2AK3wDkaPJg4jqSjpg@mail.gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH nf v3] netfilter: seqadj: Fix the wrong ack adjust for
+ the RST packet without ack
+Date: Wed, 21 Sep 2016 22:20:51 -0700
+Message-ID: <1474521651.23058.91.camel@edumazet-glaptop3.roam.corp.google.com>
+References: <1474510965-2049-1-git-send-email-fgao@ikuai8.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f54.google.com ([209.85.213.54]:34466 "EHLO
-        mail-vk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753874AbcIVCgY (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Sep 2016 22:36:24 -0400
-Received: by mail-vk0-f54.google.com with SMTP id u196so7146469vkd.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Sep 2016 19:36:23 -0700 (PDT)
-In-Reply-To: <CA+6hz4oYAsUc5v3yrsj7tLV-VtpMfwUQ2AK3wDkaPJg4jqSjpg@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, kaber@trash.net,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        gfree.wind@gmail.com
+To: fgao@ikuai8.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1474510965-2049-1-git-send-email-fgao@ikuai8.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
+On Thu, 2016-09-22 at 10:22 +0800, fgao@ikuai8.com wrote:
+> From: Gao Feng <fgao@ikuai8.com>
+> 
+> It is valid that the TCP RST packet which does not set ack flag, and bytes
+> of ack number are zero. But current seqadj codes would adjust the "0" ack
+> to invalid ack number. Actually seqadj need to check the ack flag before
+> adjust it for these RST packets.
+> 
+> The following is my test case
+> 
+> client is 10.26.98.245, and add one iptable rule:
+> iptables  -I INPUT -p tcp --sport 12345 -m connbytes --connbytes 2:
+> --connbytes-dir reply --connbytes-mode packets -j REJECT --reject-with
+> tcp-reset
+> This iptables rule could generate on TCP RST without ack flag.
+> 
+> server:10.172.135.55
+> Enable the synproxy with seqadjust by the following iptables rules
+> iptables -t raw -A PREROUTING -i eth0 -p tcp -d 10.172.135.55 --dport 12345
+> -m tcp --syn -j CT --notrack
+> 
+> iptables -A INPUT -i eth0 -p tcp -d 10.172.135.55 --dport 12345 -m conntrack
+> --ctstate INVALID,UNTRACKED -j SYNPROXY --sack-perm --timestamp --wscale 7
+> --mss 1460
+> iptables -A OUTPUT -o eth0 -p tcp -s 10.172.135.55 --sport 12345 -m conntrack
+> --ctstate INVALID,UNTRACKED -m tcp --tcp-flags SYN,RST,ACK SYN,ACK -j ACCEPT
+> 
+> The following is my test result.
+> 
+> 1. packet trace on client
+> root@routers:/tmp# tcpdump -i eth0 tcp port 12345 -n
+> tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+> listening on eth0, link-type EN10MB (Ethernet), capture size 65535 bytes
+> IP 10.26.98.245.45154 > 10.172.135.55.12345: Flags [S], seq 3695959829,
+> win 29200, options [mss 1460,sackOK,TS val 452367884 ecr 0,nop,wscale 7],
+> length 0
+> IP 10.172.135.55.12345 > 10.26.98.245.45154: Flags [S.], seq 546723266,
+> ack 3695959830, win 0, options [mss 1460,sackOK,TS val 15643479 ecr 452367884,
+> nop,wscale 7], length 0
+> IP 10.26.98.245.45154 > 10.172.135.55.12345: Flags [.], ack 1, win 229,
+> options [nop,nop,TS val 452367885 ecr 15643479], length 0
+> IP 10.172.135.55.12345 > 10.26.98.245.45154: Flags [.], ack 1, win 226,
+> options [nop,nop,TS val 15643479 ecr 452367885], length 0
+> IP 10.26.98.245.45154 > 10.172.135.55.12345: Flags [R], seq 3695959830,
+> win 0, length 0
+> 
+> 2. seqadj log on server
+> [62873.867319] Adjusting sequence number from 602341895->546723267,
+> ack from 3695959830->3695959830
+> [62873.867644] Adjusting sequence number from 602341895->546723267,
+> ack from 3695959830->3695959830
+> [62873.869040] Adjusting sequence number from 3695959830->3695959830,
+> ack from 0->55618628
+> 
+> To summarize, it is clear that the seqadj codes adjust the 0 ack when receive
+> one TCP RST packet without ack.
+> 
+> Signed-off-by: Gao Feng <fgao@ikuai8.com>
+> ---
+>  v3: Add the reproduce steps and packet trace
+>  v2: Regenerate because the first patch is removed
+>  v1: Initial patch
+> 
+>  net/netfilter/nf_conntrack_seqadj.c | 34 +++++++++++++++++++---------------
+>  1 file changed, 19 insertions(+), 15 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
+> index dff0f0c..3bd9c7e 100644
+> --- a/net/netfilter/nf_conntrack_seqadj.c
+> +++ b/net/netfilter/nf_conntrack_seqadj.c
+> @@ -179,30 +179,34 @@ int nf_ct_seq_adjust(struct sk_buff *skb,
+>  
+>  	tcph = (void *)skb->data + protoff;
+>  	spin_lock_bh(&ct->lock);
+> +
 
-On Wed, Sep 14, 2016 at 5:51 PM, Feng Gao <gfree.wind@gmail.com> wrote:
->
->
-> On Tue, Sep 13, 2016 at 1:17 AM, Pablo Neira Ayuso <pablo@netfilter.org>
-> wrote:
->>
->> On Fri, Sep 09, 2016 at 11:06:51PM +0800, Feng Gao wrote:
->> > How about this patch ?
->>
->> Is this a theoretical problem? I would really prefer if you do your
->> work to collect traces that show that the actual sequence adjustment
->> is not correct.
->>
->> > I think it should be one bug of seqadjust.
->>
->> "I think this is a bug" is not sufficient, I expect you prove this is
->> not correct.
->
->
-> Yes. Now I only analyze it by codes, and it should check ack flag in theory.
-> Because TCP REST could not contain ack.
->
-> But I will set up one environment and generate the packet trace.
->
-> Regards
-> Feng
->
+Please do not add style change during a bug fix.
 
-I have gotten the packet trace which shows seqadj adjusts the 0 ack
-value, and sent the v3 patch which contains the reproduce steps,
-packet trace, and logs.
+>  	if (after(ntohl(tcph->seq), this_way->correction_pos))
+>  		seqoff = this_way->offset_after;
+>  	else
+>  		seqoff = this_way->offset_before;
+>  
+> -	if (after(ntohl(tcph->ack_seq) - other_way->offset_before,
+> -		  other_way->correction_pos))
+> -		ackoff = other_way->offset_after;
+> -	else
+> -		ackoff = other_way->offset_before;
+> -
+>  	newseq = htonl(ntohl(tcph->seq) + seqoff);
+> -	newack = htonl(ntohl(tcph->ack_seq) - ackoff);
+> -
+>  	inet_proto_csum_replace4(&tcph->check, skb, tcph->seq, newseq, false);
+> -	inet_proto_csum_replace4(&tcph->check, skb, tcph->ack_seq, newack,
+> -				 false);
+> -
+> -	pr_debug("Adjusting sequence number from %u->%u, ack from %u->%u\n",
+> -		 ntohl(tcph->seq), ntohl(newseq), ntohl(tcph->ack_seq),
+> -		 ntohl(newack));
+>  
+> +	pr_debug("Adjusting sequence number from %u->%u\n",
+> +		 ntohl(tcph->seq), ntohl(newseq));
+>  	tcph->seq = newseq;
+> -	tcph->ack_seq = newack;
+> +
+> +	if (likely(tcph->ack)) {
+> +		if (after(ntohl(tcph->ack_seq) - other_way->offset_before,
+> +			  other_way->correction_pos))
+> +			ackoff = other_way->offset_after;
+> +		else
+> +			ackoff = other_way->offset_before;
+> +
+> +		newack = htonl(ntohl(tcph->ack_seq) - ackoff);
+> +		inet_proto_csum_replace4(&tcph->check, skb, tcph->ack_seq,
+> +					 newack, false);
+> +
+> +		pr_debug("Adjusting ack number from %u->%u\n",
+> +			 ntohl(tcph->ack_seq), ntohl(newack));
+> +		tcph->ack_seq = newack;
+> +	}
+>  
 
-Best Regards
-Feng
+If tcph->ack is not set, why are we calling nf_ct_sack_adjust() ?
+
+>  	res = nf_ct_sack_adjust(skb, protoff, tcph, ct, ctinfo);
+>  	spin_unlock_bh(&ct->lock);
