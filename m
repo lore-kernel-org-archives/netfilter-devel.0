@@ -1,67 +1,46 @@
-From: Laura Garcia <nevola@gmail.com>
-Subject: Re: [PATCH nf] netfilter: nf_tables: Ensure u8 attributes are loaded
- from u32 within the bounds
-Date: Thu, 22 Sep 2016 20:33:21 +0200
-Message-ID: <20160922183320.GB8434@sonyv>
-References: <20160914125959.GA3020@sonyv>
- <20160922145836.GA15625@salvia>
- <1474560967.23058.125.camel@edumazet-glaptop3.roam.corp.google.com>
+From: Vishwanath Pai <vpai@akamai.com>
+Subject: Re: [PATCH v3 2/2] netfilter: Create revision 2 of xt_hashlimit to
+ support higher pps rates
+Date: Thu, 22 Sep 2016 14:39:45 -0400
+Message-ID: <57E42571.1060502@akamai.com>
+References: <20160922164344.GB20423@akamai.com>
+ <alpine.LSU.2.20.1609221850530.27197@nerf40.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu, johunt@akamai.com,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, pai.vishwain@gmail.com
+To: Jan Engelhardt <jengelh@inai.de>, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34848 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965982AbcIVSd0 (ORCPT
+Received: from prod-mail-xrelay05.akamai.com ([23.79.238.179]:57674 "EHLO
+        prod-mail-xrelay05.akamai.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S966320AbcIVSkV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Sep 2016 14:33:26 -0400
-Received: by mail-wm0-f66.google.com with SMTP id 133so15490541wmq.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Sep 2016 11:33:25 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1474560967.23058.125.camel@edumazet-glaptop3.roam.corp.google.com>
+        Thu, 22 Sep 2016 14:40:21 -0400
+In-Reply-To: <alpine.LSU.2.20.1609221850530.27197@nerf40.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 22, 2016 at 09:16:07AM -0700, Eric Dumazet wrote:
-> On Thu, 2016-09-22 at 16:58 +0200, Pablo Neira Ayuso wrote:
-> > attributes")
-> > 
-> > Always use 12 bytes commit-ids. 4da449a is too short, given the number
-> > of changes we're getting in the kernel tree, this may become ambiguous
-> > at some point so it won't be unique.
-> > 
-> > You can achieve this via: git log --oneline --abbrev=12
-> 
-> and Documentation/SubmittingPatches has these tips :
-> 
-> 
-> You should also be sure to use at least the first twelve characters of the
-> SHA-1 ID.  The kernel repository holds a *lot* of objects, making
-> collisions with shorter IDs a real possibility.  Bear in mind that, even if
-> there is no collision with your six-character ID now, that condition may
-> change five years from now.
-> 
-> If your patch fixes a bug in a specific commit, e.g. you found an issue using
-> git-bisect, please use the 'Fixes:' tag with the first 12 characters of the
-> SHA-1 ID, and the one line summary.  For example:
-> 
->         Fixes: e21d2170f366 ("video: remove unnecessary platform_set_drvdata()")
-> 
-> The following git-config settings can be used to add a pretty format for
-> outputting the above style in the git log or git show commands
-> 
->         [core]
->                 abbrev = 12
->         [pretty]
->                 fixes = Fixes: %h (\"%s\")
-> 
-> 
+Thanks for pointing this out, I will reorder the fields to:
 
-Duly noted, thanks.
+struct hashlimit_cfg2 {
+	__u64 avg;    /* Average secs between packets * scale */
+	__u64 burst;
+	__u32 mode; /* bitmask of XT_HASHLIMIT_HASH_* */
 
-In this case, it was not referred to a fix but an extension of the
-older patch to other files with the same problem.
+This should fix the hole and avoid padding.
 
+-Vishwanath
+
+On 09/22/2016 12:53 PM, Jan Engelhardt wrote:
+> On Thursday 2016-09-22 18:43, Vishwanath Pai wrote:
+>> >+struct hashlimit_cfg2 {
+>> >+	__u32 mode;	  /* bitmask of XT_HASHLIMIT_HASH_* */
+>> >+	__u64 avg;    /* Average secs between packets * scale */
+>> >+	__u64 burst;  /* Period multiplier for upper limit. */
+> This would have different sizes between i386 and x86_64,
+> necessiting additional compat functions. It should be padded
+> or reordered instead.
+> 
 
