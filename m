@@ -1,93 +1,132 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 1/1 linux-next] netfilter: conntrack: fix kmemleak false
- positive
-Date: Wed, 21 Sep 2016 23:02:53 +0200
-Message-ID: <20160921210253.GB24153@breakpoint.cc>
-References: <1474487397-11032-1-git-send-email-fabf@skynet.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-        Eric Dumazet <edumazet@google.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Fabian Frederick <fabf@skynet.be>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1474487397-11032-1-git-send-email-fabf@skynet.be>
-Sender: linux-kernel-owner@vger.kernel.org
+From: fgao@ikuai8.com
+Subject: [PATCH nf v3] netfilter: seqadj: Fix the wrong ack adjust for the RST packet without ack
+Date: Thu, 22 Sep 2016 10:22:45 +0800
+Message-ID: <1474510965-2049-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, kaber@trash.net,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Fabian Frederick <fabf@skynet.be> wrote:
-> Since commit f330a7fdbe16
-> ("netfilter: conntrack: get rid of conntrack timer")
-> 
-> closed connections remain longer in /proc/net/nf_conntrack
-> 
-> Running current kernel; just after boot:
-> cat /proc/net/nf_conntrack | wc -l = 5
-> 4 minutes required to clean up the table.
+From: Gao Feng <fgao@ikuai8.com>
 
-We should reap the stale entries while iterating, just like
-we do for ctnetlink interface.
+It is valid that the TCP RST packet which does not set ack flag, and bytes
+of ack number are zero. But current seqadj codes would adjust the "0" ack
+to invalid ack number. Actually seqadj need to check the ack flag before
+adjust it for these RST packets.
 
-Can you try this patch?
+The following is my test case
 
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -212,6 +212,11 @@ static int ct_seq_show(struct seq_file *s, void *v)
- 	if (unlikely(!atomic_inc_not_zero(&ct->ct_general.use)))
- 		return 0;
+client is 10.26.98.245, and add one iptable rule:
+iptables  -I INPUT -p tcp --sport 12345 -m connbytes --connbytes 2:
+--connbytes-dir reply --connbytes-mode packets -j REJECT --reject-with
+tcp-reset
+This iptables rule could generate on TCP RST without ack flag.
+
+server:10.172.135.55
+Enable the synproxy with seqadjust by the following iptables rules
+iptables -t raw -A PREROUTING -i eth0 -p tcp -d 10.172.135.55 --dport 12345
+-m tcp --syn -j CT --notrack
+
+iptables -A INPUT -i eth0 -p tcp -d 10.172.135.55 --dport 12345 -m conntrack
+--ctstate INVALID,UNTRACKED -j SYNPROXY --sack-perm --timestamp --wscale 7
+--mss 1460
+iptables -A OUTPUT -o eth0 -p tcp -s 10.172.135.55 --sport 12345 -m conntrack
+--ctstate INVALID,UNTRACKED -m tcp --tcp-flags SYN,RST,ACK SYN,ACK -j ACCEPT
+
+The following is my test result.
+
+1. packet trace on client
+root@routers:/tmp# tcpdump -i eth0 tcp port 12345 -n
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on eth0, link-type EN10MB (Ethernet), capture size 65535 bytes
+IP 10.26.98.245.45154 > 10.172.135.55.12345: Flags [S], seq 3695959829,
+win 29200, options [mss 1460,sackOK,TS val 452367884 ecr 0,nop,wscale 7],
+length 0
+IP 10.172.135.55.12345 > 10.26.98.245.45154: Flags [S.], seq 546723266,
+ack 3695959830, win 0, options [mss 1460,sackOK,TS val 15643479 ecr 452367884,
+nop,wscale 7], length 0
+IP 10.26.98.245.45154 > 10.172.135.55.12345: Flags [.], ack 1, win 229,
+options [nop,nop,TS val 452367885 ecr 15643479], length 0
+IP 10.172.135.55.12345 > 10.26.98.245.45154: Flags [.], ack 1, win 226,
+options [nop,nop,TS val 15643479 ecr 452367885], length 0
+IP 10.26.98.245.45154 > 10.172.135.55.12345: Flags [R], seq 3695959830,
+win 0, length 0
+
+2. seqadj log on server
+[62873.867319] Adjusting sequence number from 602341895->546723267,
+ack from 3695959830->3695959830
+[62873.867644] Adjusting sequence number from 602341895->546723267,
+ack from 3695959830->3695959830
+[62873.869040] Adjusting sequence number from 3695959830->3695959830,
+ack from 0->55618628
+
+To summarize, it is clear that the seqadj codes adjust the 0 ack when receive
+one TCP RST packet without ack.
+
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ v3: Add the reproduce steps and packet trace
+ v2: Regenerate because the first patch is removed
+ v1: Initial patch
+
+ net/netfilter/nf_conntrack_seqadj.c | 34 +++++++++++++++++++---------------
+ 1 file changed, 19 insertions(+), 15 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
+index dff0f0c..3bd9c7e 100644
+--- a/net/netfilter/nf_conntrack_seqadj.c
++++ b/net/netfilter/nf_conntrack_seqadj.c
+@@ -179,30 +179,34 @@ int nf_ct_seq_adjust(struct sk_buff *skb,
  
-+	if (nf_ct_should_gc(ct)) {
-+		nf_ct_kill(ct);
-+		goto release;
-+	}
+ 	tcph = (void *)skb->data + protoff;
+ 	spin_lock_bh(&ct->lock);
 +
- 	/* we only want to print DIR_ORIGINAL */
- 	if (NF_CT_DIRECTION(hash))
- 		goto release;
-
-> Going back to kernel version before commit above there are
-> no connections after some seconds.
-> 
-> Referring to the commit changelog this was an expected behaviour but
-> it results in temporary kmemleak reports:
-
-I don't see kmemleak complaints on my test vm, I'm reluctant to
-turn it off.
-
-Can you explain why we see such 'false positive'?
-
-The conntracks should still be referenced, as they
-are in main table.
-
-> unreferenced object 0xffff88003b0e6600 (size 248):
->   comm "rsyslogd", pid 1595, jiffies 4294741312 (age 7.343s)
->   ...
->   backtrace:
->     [<ffffffff818f0163>] kmemleak_alloc+0x23/0x40
->     [<ffffffff8117abf9>] kmem_cache_alloc+0xd9/0x180
->     [<ffffffff817533a8>] __nf_conntrack_alloc.isra.50+0x48/0x170
->     [<ffffffff81754262>] nf_conntrack_in+0x3a2/0x5f0
->     [<ffffffff817bc9e0>] ipv4_conntrack_local+0x40/0x50
->     [<ffffffff8174f17d>] nf_iterate+0x5d/0x70
->     [<ffffffff8174f1ef>] nf_hook_slow+0x5f/0xb0
->     [<ffffffff8176ffbd>] __ip_local_out+0xad/0xe0
->     [<ffffffff81770007>] ip_local_out+0x17/0x40
->     [<ffffffff817711f4>] ip_send_skb+0x14/0x40
->     [<ffffffff81797591>] udp_send_skb+0x91/0x260
->     [<ffffffff817985e5>] udp_sendmsg+0x2f5/0x950
->     [<ffffffff817a4f80>] inet_sendmsg+0x60/0x90
->     [<ffffffff816fe7d3>] sock_sendmsg+0x33/0x40
->     [<ffffffff816fed0e>] SYSC_sendto+0xee/0x160
->     [<ffffffff816ff719>] SyS_sendto+0x9/0x10
-> 
-> (248 bytes being an nf_conn structure)
-> 
-> Those structures being cleared in gc_worker() later on we can't talk
-> about unreferenced object so this patch uses kmemleak_not_leak() to
-> prevent those warnings.
-
-If thats the case, why is kmemleak complaining? Are you sure this
-is a false positive?
+ 	if (after(ntohl(tcph->seq), this_way->correction_pos))
+ 		seqoff = this_way->offset_after;
+ 	else
+ 		seqoff = this_way->offset_before;
+ 
+-	if (after(ntohl(tcph->ack_seq) - other_way->offset_before,
+-		  other_way->correction_pos))
+-		ackoff = other_way->offset_after;
+-	else
+-		ackoff = other_way->offset_before;
+-
+ 	newseq = htonl(ntohl(tcph->seq) + seqoff);
+-	newack = htonl(ntohl(tcph->ack_seq) - ackoff);
+-
+ 	inet_proto_csum_replace4(&tcph->check, skb, tcph->seq, newseq, false);
+-	inet_proto_csum_replace4(&tcph->check, skb, tcph->ack_seq, newack,
+-				 false);
+-
+-	pr_debug("Adjusting sequence number from %u->%u, ack from %u->%u\n",
+-		 ntohl(tcph->seq), ntohl(newseq), ntohl(tcph->ack_seq),
+-		 ntohl(newack));
+ 
++	pr_debug("Adjusting sequence number from %u->%u\n",
++		 ntohl(tcph->seq), ntohl(newseq));
+ 	tcph->seq = newseq;
+-	tcph->ack_seq = newack;
++
++	if (likely(tcph->ack)) {
++		if (after(ntohl(tcph->ack_seq) - other_way->offset_before,
++			  other_way->correction_pos))
++			ackoff = other_way->offset_after;
++		else
++			ackoff = other_way->offset_before;
++
++		newack = htonl(ntohl(tcph->ack_seq) - ackoff);
++		inet_proto_csum_replace4(&tcph->check, skb, tcph->ack_seq,
++					 newack, false);
++
++		pr_debug("Adjusting ack number from %u->%u\n",
++			 ntohl(tcph->ack_seq), ntohl(newack));
++		tcph->ack_seq = newack;
++	}
+ 
+ 	res = nf_ct_sack_adjust(skb, protoff, tcph, ct, ctinfo);
+ 	spin_unlock_bh(&ct->lock);
+-- 
+1.9.1
