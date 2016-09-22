@@ -1,46 +1,52 @@
-From: Vishwanath Pai <vpai@akamai.com>
-Subject: Re: [PATCH v3 2/2] netfilter: Create revision 2 of xt_hashlimit to
- support higher pps rates
-Date: Thu, 22 Sep 2016 14:39:45 -0400
-Message-ID: <57E42571.1060502@akamai.com>
-References: <20160922164344.GB20423@akamai.com>
- <alpine.LSU.2.20.1609221850530.27197@nerf40.vanv.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, kadlec@blackhole.kfki.hu, johunt@akamai.com,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, pai.vishwain@gmail.com
-To: Jan Engelhardt <jengelh@inai.de>, pablo@netfilter.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: evict stale entries when user reads /proc/net/nf_conntrack
+Date: Thu, 22 Sep 2016 23:49:17 +0200
+Message-ID: <1474580957-26032-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from prod-mail-xrelay05.akamai.com ([23.79.238.179]:57674 "EHLO
-        prod-mail-xrelay05.akamai.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S966320AbcIVSkV (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:46400 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1034404AbcIVVtG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Sep 2016 14:40:21 -0400
-In-Reply-To: <alpine.LSU.2.20.1609221850530.27197@nerf40.vanv.qr>
+        Thu, 22 Sep 2016 17:49:06 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thanks for pointing this out, I will reorder the fields to:
+Fabian reports a possible conntrack memory leak (could not reproduce so
+far), however, one minor issue can be easily resolved:
 
-struct hashlimit_cfg2 {
-	__u64 avg;    /* Average secs between packets * scale */
-	__u64 burst;
-	__u32 mode; /* bitmask of XT_HASHLIMIT_HASH_* */
+> cat /proc/net/nf_conntrack | wc -l = 5
+> 4 minutes required to clean up the table.
 
-This should fix the hole and avoid padding.
+We should not report those timed-out entries to the user in first place.
+And instead of just skipping those timed-out entries while iterating over
+the table we can also zap them (we already do this during ctnetlink
+walks, but I forgot about the /proc interface).
 
--Vishwanath
+Fixes: f330a7fdbe16 ("netfilter: conntrack: get rid of conntrack timer")
+Reported-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_conntrack_standalone.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-On 09/22/2016 12:53 PM, Jan Engelhardt wrote:
-> On Thursday 2016-09-22 18:43, Vishwanath Pai wrote:
->> >+struct hashlimit_cfg2 {
->> >+	__u32 mode;	  /* bitmask of XT_HASHLIMIT_HASH_* */
->> >+	__u64 avg;    /* Average secs between packets * scale */
->> >+	__u64 burst;  /* Period multiplier for upper limit. */
-> This would have different sizes between i386 and x86_64,
-> necessiting additional compat functions. It should be padded
-> or reordered instead.
-> 
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 7d52f8401afd..5f446cd9f3fd 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -212,6 +212,11 @@ static int ct_seq_show(struct seq_file *s, void *v)
+ 	if (unlikely(!atomic_inc_not_zero(&ct->ct_general.use)))
+ 		return 0;
+ 
++	if (nf_ct_should_gc(ct)) {
++		nf_ct_kill(ct);
++		goto release;
++	}
++
+ 	/* we only want to print DIR_ORIGINAL */
+ 	if (NF_CT_DIRECTION(hash))
+ 		goto release;
+-- 
+2.7.3
 
