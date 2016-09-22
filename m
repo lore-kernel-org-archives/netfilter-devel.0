@@ -1,36 +1,57 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: xt_helper: Use sizeof(variable)
- instead of literal number
-Date: Thu, 22 Sep 2016 17:47:15 +0200
-Message-ID: <20160922154715.GB18573@salvia>
-References: <1474338664-7258-1-git-send-email-fgao@ikuai8.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH nf] netfilter: nf_tables: Ensure u8 attributes are
+ loaded from u32 within the bounds
+Date: Thu, 22 Sep 2016 09:16:07 -0700
+Message-ID: <1474560967.23058.125.camel@edumazet-glaptop3.roam.corp.google.com>
+References: <20160914125959.GA3020@sonyv> <20160922145836.GA15625@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, gfree.wind@gmail.com
-To: fgao@ikuai8.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Laura Garcia Liebana <nevola@gmail.com>,
+        netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56668 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935004AbcIVPr2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 22 Sep 2016 11:47:28 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AF336C1080
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Sep 2016 17:47:26 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A0299DA7FA
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Sep 2016 17:47:26 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B49C1DA816
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Sep 2016 17:47:22 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1474338664-7258-1-git-send-email-fgao@ikuai8.com>
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:36027 "EHLO
+        mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751125AbcIVQQJ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 22 Sep 2016 12:16:09 -0400
+Received: by mail-pa0-f51.google.com with SMTP id qn7so13266207pac.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Sep 2016 09:16:08 -0700 (PDT)
+In-Reply-To: <20160922145836.GA15625@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Sep 20, 2016 at 10:31:04AM +0800, fgao@ikuai8.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
+On Thu, 2016-09-22 at 16:58 +0200, Pablo Neira Ayuso wrote:
+> attributes")
 > 
-> It's better to use sizeof(info->name)-1 as index to force set the string
-> tail instead of literal number '29'.
+> Always use 12 bytes commit-ids. 4da449a is too short, given the number
+> of changes we're getting in the kernel tree, this may become ambiguous
+> at some point so it won't be unique.
+> 
+> You can achieve this via: git log --oneline --abbrev=12
 
-Applied, thanks.
+and Documentation/SubmittingPatches has these tips :
+
+
+You should also be sure to use at least the first twelve characters of the
+SHA-1 ID.  The kernel repository holds a *lot* of objects, making
+collisions with shorter IDs a real possibility.  Bear in mind that, even if
+there is no collision with your six-character ID now, that condition may
+change five years from now.
+
+If your patch fixes a bug in a specific commit, e.g. you found an issue using
+git-bisect, please use the 'Fixes:' tag with the first 12 characters of the
+SHA-1 ID, and the one line summary.  For example:
+
+        Fixes: e21d2170f366 ("video: remove unnecessary platform_set_drvdata()")
+
+The following git-config settings can be used to add a pretty format for
+outputting the above style in the git log or git show commands
+
+        [core]
+                abbrev = 12
+        [pretty]
+                fixes = Fixes: %h (\"%s\")
+
+
