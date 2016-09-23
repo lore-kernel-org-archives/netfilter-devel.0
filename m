@@ -1,111 +1,280 @@
-From: Christophe Leroy <christophe.leroy@c-s.fr>
-Subject: Re: Seeking help for implementing CT HELPER in nftables
-Date: Fri, 23 Sep 2016 12:45:06 +0200
-Message-ID: <c93e2f7e-fe6b-b43d-c1d4-0c57287ff06c@c-s.fr>
-References: <56DAC502.2060809@c-s.fr>
- <20160307132011.GA7620@macbook.localdomain> <56DF5F61.2060000@c-s.fr>
- <570CFAB1.6090409@c-s.fr> <20160412135155.GA27975@breakpoint.cc>
- <2cfbf6f4-0031-36da-6d56-10f919d9eaf8@c-s.fr>
- <20160920153846.GB22503@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>, Patrick McHardy <kaber@trash.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next] netfilter: nf_tables: add range expression
+Date: Fri, 23 Sep 2016 15:23:33 +0200
+Message-ID: <1474637013-17028-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from pegase1.c-s.fr ([93.17.236.30]:54942 "EHLO pegase1.c-s.fr"
+Received: from mail.us.es ([193.147.175.20]:34950 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1759021AbcIWKpM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 23 Sep 2016 06:45:12 -0400
-In-Reply-To: <20160920153846.GB22503@breakpoint.cc>
+        id S1030284AbcIWNXw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 23 Sep 2016 09:23:52 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 0E014E6661
+        for <netfilter-devel@vger.kernel.org>; Fri, 23 Sep 2016 15:23:50 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EF050DA81B
+        for <netfilter-devel@vger.kernel.org>; Fri, 23 Sep 2016 15:23:49 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A0391DA846
+        for <netfilter-devel@vger.kernel.org>; Fri, 23 Sep 2016 15:23:43 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Inverse ranges != [a,b] are not currently possible because rules are
+composites of && operations, and we need to express this:
 
+	data < a || data > b
 
-Le 20/09/2016 à 17:38, Florian Westphal a écrit :
-> Christophe Leroy <christophe.leroy@c-s.fr> wrote:
->> Hello Florian and Patrick,
->>
->> Le 12/04/2016 à 15:51, Florian Westphal a écrit :
->>> Christophe Leroy <christophe.leroy@c-s.fr> wrote:
->>>
->>> [ nft_ct helper set support ]
->>>
->>>> Patrick, can you help ?
->>>
->>> I have a few pending patches, one of them adds an immediate
->>> attr for ctlabel set support.
->>>
->>> Lets see if that approach is sane enough to be reused for helper
->>> support.
->>>
->>> I will post it soon.
->>>
->>
->> I had a look but as far as I understood, the ctlabel works with bits.
->
-> The immediate idea was tossed and we ended up using SREG just like mark.
->
->> For ct helper I need to retrieve the helper's name string in the
->> nft_ct_set_init() function in order to call nf_ct_helper_ext_add()
->>
->> Patrick suggested to add a new CT attribute, but I've not been able to find
->> what has to be done for that exactly.
->
->> Is there any exemple in other parts of the kernel for doing that ?
->> Is it just to add a NFTA_CT_HELPER then add it in the nft_ct_policy
->
-> add NFTA_CT_HELPER to nft_ct_attributes, add to nft_ct_policy, yes.
->
->> structure as an NLA_STRING type and then retrieve it with nla_strl_cpy() ?
->> But how does it gets populated with the helper string passed in by nft ?
->
-> nft will need to populate this (or rather, libnftnl will do this on
-> behalf of nft).
->
-> Currently we do this:
-> nft --debug=netlink add rule filter i ct helper set foo
-> ip filter i
->   [ immediate reg 1 0x006f6f66 0x00000000 0x00000000 0x00000000 ]
->   [ ct set helper with reg 1 ]
->
-> So the string ('foo') turns into immediate and ct set uses the register.
->
-> I'd suggest to change netlink_gen_ct_stmt() (in nftables
-> src/netlink_linearize.c) to skip register allocation and pass the
-> expr string directly instead.
->
-> Perhaps one could add a function similar to
->
-> bool ct_stmt_uses_register(const struct stmt *stmt);
->
-> It would return false in case key is NFT_CT_HELPER so the linearization
-> step would not allocate a register and also skip the immediate
-> expression (and it keeps the ct details wrt. what needs the register
-> allocation out of the netlink code).
->
-> Instead, you would use nftnl_expr_set_str(nle, NFTNL_EXPR_CT_HELPER_NAME
-> to pass the string expression content to the kernel.
->
-> For reverse, you will need to make netlink_parse_ct_stmt not fail when
-> no register is present and create a immediate/string instead using
-> what is in the NFTNL_EXPR_CT_HELPER_NAME attribute.
->
+This patch adds a new range expression. Positive ranges can be already
+through two cmp expressions:
 
-Is that really needed to do so many modifications and especially modify 
-the NETLINK interface ?
+	cmp(sreg, data, >=)
+	cmp(sreg, data, <=)
 
-Don't we have a way to retrieve the helper name from the immediate 
-register in the nft_ct_set_init() function ?
+This new range expression provides an alternative way to express this.
 
-I've seen that the string is available in nft_ct_set_eval() through 
-&regs->data[priv->sreg], but that's too late. nft_ct_set_eval() is 
-called when we get the first IP packet, not when adding the rule.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables_core.h   |   3 +
+ include/uapi/linux/netfilter/nf_tables.h |  29 +++++++
+ net/netfilter/Makefile                   |   3 +-
+ net/netfilter/nf_tables_core.c           |   7 +-
+ net/netfilter/nft_range.c                | 138 +++++++++++++++++++++++++++++++
+ 5 files changed, 178 insertions(+), 2 deletions(-)
+ create mode 100644 net/netfilter/nft_range.c
 
-The immediate register is handled prior to calling nft_ct_set_init(), so 
-there must be a way to get access to it from nft_ct_set_init(), no ?
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index a9060dd99db7..00f4f6b1b1ba 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -28,6 +28,9 @@ extern const struct nft_expr_ops nft_cmp_fast_ops;
+ int nft_cmp_module_init(void);
+ void nft_cmp_module_exit(void);
+ 
++int nft_range_module_init(void);
++void nft_range_module_exit(void);
++
+ int nft_lookup_module_init(void);
+ void nft_lookup_module_exit(void);
+ 
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 1cf41dd838b2..c6c4477c136b 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -546,6 +546,35 @@ enum nft_cmp_attributes {
+ };
+ #define NFTA_CMP_MAX		(__NFTA_CMP_MAX - 1)
+ 
++/**
++ * enum nft_range_ops - nf_tables range operator
++ *
++ * @NFT_RANGE_EQ: equal
++ * @NFT_RANGE_NEQ: not equal
++ */
++enum nft_range_ops {
++	NFT_RANGE_EQ,
++	NFT_RANGE_NEQ,
++};
++
++/**
++ * enum nft_range_attributes - nf_tables range expression netlink attributes
++ *
++ * @NFTA_RANGE_SREG: source register of data to compare (NLA_U32: nft_registers)
++ * @NFTA_RANGE_OP: cmp operation (NLA_U32: nft_cmp_ops)
++ * @NFTA_RANGE_FROM_DATA: data range from (NLA_NESTED: nft_data_attributes)
++ * @NFTA_RANGE_TO_DATA: data range to (NLA_NESTED: nft_data_attributes)
++ */
++enum nft_range_attributes {
++	NFTA_RANGE_UNSPEC,
++	NFTA_RANGE_SREG,
++	NFTA_RANGE_OP,
++	NFTA_RANGE_FROM_DATA,
++	NFTA_RANGE_TO_DATA,
++	__NFTA_RANGE_MAX
++};
++#define NFTA_RANGE_MAX		(__NFTA_RANGE_MAX - 1)
++
+ enum nft_lookup_flags {
+ 	NFT_LOOKUP_F_INV = (1 << 0),
+ };
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 0c8581100ac6..c23c3c84416f 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -71,8 +71,9 @@ obj-$(CONFIG_NF_DUP_NETDEV)	+= nf_dup_netdev.o
+ 
+ # nf_tables
+ nf_tables-objs += nf_tables_core.o nf_tables_api.o nf_tables_trace.o
+-nf_tables-objs += nft_immediate.o nft_cmp.o nft_lookup.o nft_dynset.o
++nf_tables-objs += nft_immediate.o nft_cmp.o nft_range.o
+ nf_tables-objs += nft_bitwise.o nft_byteorder.o nft_payload.o
++nf_tables-objs += nft_lookup.o nft_dynset.o
+ 
+ obj-$(CONFIG_NF_TABLES)		+= nf_tables.o
+ obj-$(CONFIG_NF_TABLES_INET)	+= nf_tables_inet.o
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 67259cefef06..7c94ce0080d5 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -263,8 +263,13 @@ int __init nf_tables_core_module_init(void)
+ 	if (err < 0)
+ 		goto err7;
+ 
+-	return 0;
++	err = nft_range_module_init();
++	if (err < 0)
++		goto err8;
+ 
++	return 0;
++err8:
++	nft_dynset_module_exit();
+ err7:
+ 	nft_payload_module_exit();
+ err6:
+diff --git a/net/netfilter/nft_range.c b/net/netfilter/nft_range.c
+new file mode 100644
+index 000000000000..c6d5358482d1
+--- /dev/null
++++ b/net/netfilter/nft_range.c
+@@ -0,0 +1,138 @@
++/*
++ * Copyright (c) 2016 Pablo Neira Ayuso <pablo@netfilter.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/netlink.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables_core.h>
++#include <net/netfilter/nf_tables.h>
++
++struct nft_range_expr {
++	struct nft_data		data_from;
++	struct nft_data		data_to;
++	enum nft_registers	sreg:8;
++	u8			len;
++	enum nft_range_ops	op:8;
++};
++
++static void nft_range_eval(const struct nft_expr *expr,
++			 struct nft_regs *regs,
++			 const struct nft_pktinfo *pkt)
++{
++	const struct nft_range_expr *priv = nft_expr_priv(expr);
++	bool mismatch;
++	int d1, d2;
++
++	d1 = memcmp(&regs->data[priv->sreg], &priv->data_from, priv->len);
++	d2 = memcmp(&regs->data[priv->sreg], &priv->data_to, priv->len);
++	switch (priv->op) {
++	case NFT_RANGE_EQ:
++		mismatch = (d1 < 0 || d2 > 0);
++		break;
++	case NFT_RANGE_NEQ:
++		mismatch = (d1 >= 0 && d2 <= 0);
++		break;
++	}
++
++	if (mismatch)
++		regs->verdict.code = NFT_BREAK;
++}
++
++static const struct nla_policy nft_range_policy[NFTA_RANGE_MAX + 1] = {
++	[NFTA_RANGE_SREG]		= { .type = NLA_U32 },
++	[NFTA_RANGE_OP]			= { .type = NLA_U32 },
++	[NFTA_RANGE_FROM_DATA]		= { .type = NLA_NESTED },
++	[NFTA_RANGE_TO_DATA]		= { .type = NLA_NESTED },
++};
++
++static int nft_range_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
++			const struct nlattr * const tb[])
++{
++	struct nft_range_expr *priv = nft_expr_priv(expr);
++	struct nft_data_desc desc_from, desc_to;
++	int err;
++
++	err = nft_data_init(NULL, &priv->data_from, sizeof(priv->data_from),
++			    &desc_from, tb[NFTA_RANGE_FROM_DATA]);
++	if (err < 0)
++		return err;
++
++	err = nft_data_init(NULL, &priv->data_to, sizeof(priv->data_to),
++			    &desc_to, tb[NFTA_RANGE_TO_DATA]);
++	if (err < 0)
++		goto err1;
++
++	if (desc_from.len != desc_to.len) {
++		err = -EINVAL;
++		goto err2;
++	}
++
++	priv->sreg = nft_parse_register(tb[NFTA_RANGE_SREG]);
++	err = nft_validate_register_load(priv->sreg, desc_from.len);
++	if (err < 0)
++		goto err2;
++
++	priv->op  = ntohl(nla_get_be32(tb[NFTA_RANGE_OP]));
++	priv->len = desc_from.len;
++	return 0;
++err2:
++	nft_data_uninit(&priv->data_to, desc_to.type);
++err1:
++	nft_data_uninit(&priv->data_from, desc_from.type);
++	return err;
++}
++
++static int nft_range_dump(struct sk_buff *skb, const struct nft_expr *expr)
++{
++	const struct nft_range_expr *priv = nft_expr_priv(expr);
++
++	if (nft_dump_register(skb, NFTA_RANGE_SREG, priv->sreg))
++		goto nla_put_failure;
++	if (nla_put_be32(skb, NFTA_RANGE_OP, htonl(priv->op)))
++		goto nla_put_failure;
++
++	if (nft_data_dump(skb, NFTA_RANGE_FROM_DATA, &priv->data_from,
++			  NFT_DATA_VALUE, priv->len) < 0 ||
++	    nft_data_dump(skb, NFTA_RANGE_TO_DATA, &priv->data_to,
++			  NFT_DATA_VALUE, priv->len) < 0)
++		goto nla_put_failure;
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++static struct nft_expr_type nft_range_type;
++static const struct nft_expr_ops nft_range_ops = {
++	.type		= &nft_range_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_range_expr)),
++	.eval		= nft_range_eval,
++	.init		= nft_range_init,
++	.dump		= nft_range_dump,
++};
++
++static struct nft_expr_type nft_range_type __read_mostly = {
++	.name		= "range",
++	.ops		= &nft_range_ops,
++	.policy		= nft_range_policy,
++	.maxattr	= NFTA_RANGE_MAX,
++	.owner		= THIS_MODULE,
++};
++
++int __init nft_range_module_init(void)
++{
++	return nft_register_expr(&nft_range_type);
++}
++
++void nft_range_module_exit(void)
++{
++	nft_unregister_expr(&nft_range_type);
++}
+-- 
+2.1.4
 
-Thanks
-Christophe
