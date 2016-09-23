@@ -1,72 +1,60 @@
-From: Christophe Leroy <christophe.leroy@c-s.fr>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: Seeking help for implementing CT HELPER in nftables
-Date: Fri, 23 Sep 2016 17:29:47 +0200
-Message-ID: <8aefd7f9-c0ca-e795-14a8-f9f74433c94b@c-s.fr>
+Date: Fri, 23 Sep 2016 17:46:53 +0200
+Message-ID: <20160923154653.GB17240@breakpoint.cc>
 References: <56DAC502.2060809@c-s.fr>
- <20160307132011.GA7620@macbook.localdomain> <56DF5F61.2060000@c-s.fr>
- <570CFAB1.6090409@c-s.fr> <20160412135155.GA27975@breakpoint.cc>
+ <20160307132011.GA7620@macbook.localdomain>
+ <56DF5F61.2060000@c-s.fr>
+ <570CFAB1.6090409@c-s.fr>
+ <20160412135155.GA27975@breakpoint.cc>
  <2cfbf6f4-0031-36da-6d56-10f919d9eaf8@c-s.fr>
  <20160920153846.GB22503@breakpoint.cc>
- <c93e2f7e-fe6b-b43d-c1d4-0c57287ff06c@c-s.fr> <20160923142435.GA17227@salvia>
- <dabf3ae2-c497-a346-e806-c9e485de0daf@c-s.fr> <20160923151921.GA18242@salvia>
+ <c93e2f7e-fe6b-b43d-c1d4-0c57287ff06c@c-s.fr>
+ <20160923142435.GA17227@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=iso-8859-15
 Content-Transfer-Encoding: 8bit
-Cc: Florian Westphal <fw@strlen.de>, Patrick McHardy <kaber@trash.net>,
+Cc: Christophe Leroy <christophe.leroy@c-s.fr>,
+        Florian Westphal <fw@strlen.de>,
+        Patrick McHardy <kaber@trash.net>,
         netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from pegase1.c-s.fr ([93.17.236.30]:23043 "EHLO pegase1.c-s.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1759472AbcIWPaA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 23 Sep 2016 11:30:00 -0400
-In-Reply-To: <20160923151921.GA18242@salvia>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:50454 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S965090AbcIWPq5 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 23 Sep 2016 11:46:57 -0400
+Content-Disposition: inline
+In-Reply-To: <20160923142435.GA17227@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Fri, Sep 23, 2016 at 12:45:06PM +0200, Christophe Leroy wrote:
+> > Le 20/09/2016 à 17:38, Florian Westphal a écrit :
+> [...]
+> > >nft will need to populate this (or rather, libnftnl will do this on
+> > >behalf of nft).
+> > >
+> > >Currently we do this:
+> > >nft --debug=netlink add rule filter i ct helper set foo
+> > >ip filter i
+> > >  [ immediate reg 1 0x006f6f66 0x00000000 0x00000000 0x00000000 ]
+> 
+> Florian, Christophe, sorry for this late jump on this.
+> 
+> If we pass the helper name as string, then helper autoload will not
+> work as we don't have a way to solve this from the packet path.
+> 
+> To solve this, I'm considering a different approach. Basically,
+> explicit preload the helpers and pass a helper handle through
+> register instead.
+> 
+> In the ruleset file, this would look like this:
+> 
+>         table ip x {
+>                 helper ftp protocol tcp                 #1
 
-
-Le 23/09/2016 à 17:19, Pablo Neira Ayuso a écrit :
-> On Fri, Sep 23, 2016 at 04:48:32PM +0200, Christophe Leroy wrote:
->> Le 23/09/2016 à 16:24, Pablo Neira Ayuso a écrit :
->>> On Fri, Sep 23, 2016 at 12:45:06PM +0200, Christophe Leroy wrote:
->>>> Le 20/09/2016 à 17:38, Florian Westphal a écrit :
->>> [...]
->>>>> nft will need to populate this (or rather, libnftnl will do this on
->>>>> behalf of nft).
->>>>>
->>>>> Currently we do this:
->>>>> nft --debug=netlink add rule filter i ct helper set foo
->>>>> ip filter i
->>>>> [ immediate reg 1 0x006f6f66 0x00000000 0x00000000 0x00000000 ]
->>>
->>> Florian, Christophe, sorry for this late jump on this.
->>>
->>> If we pass the helper name as string, then helper autoload will not
->>> work as we don't have a way to solve this from the packet path.
->>
->> That's maybe a stupid idea, but my idea was to do the same as
->> xt_ct_set_helper() from nft_ct_set_init(), hence the need to be able to
->> catch the name in the _init() function.
->>
->> By doing this, the helper would be autoloaded if needed, wouldn't it ?
->
-> Yes. Something similar to xt_ct_set_helper() would autoload the
-> module.
->
-> Hm, but this needs more attributes, not only the helper name.
-> nf_conntrack_helper_try_module_get() needs l3 and l4 protocol numbers,
-> and this information won't be available from there unless we add
-> explicit netlink attributes to specify then too. This information is
-> important since we have helpers that run over udp and tcp.
->
-
-
-Right but the rule we add to the output filter is
-
-udp dport tftp ct helper set "tftp"
-
-So the l3/l4 information is there. Can it be retrieved in 
-nft_ct_set_init() ?
-
-Christophe
+This would also allow to support helper specific configuration from the
+nft frontend rather than via modprobe args (e.g. ftp loose mode).
