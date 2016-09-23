@@ -1,42 +1,69 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH] libnftnl: remove libmxml support
-Date: Fri, 23 Sep 2016 11:23:49 +0200
-Message-ID: <20160923092349.GA15412@salvia>
-References: <147455629375.27979.9866845521114348969.stgit@nfdev2.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+From: KOVACS Krisztian <hidden@balabit.com>
+Subject: [PATCH] netfilter: xt_socket: fix transparent match for IPv6 request sockets
+Date: Fri, 23 Sep 2016 11:27:42 +0200
+Message-ID: <20160923092742.88262-1-hidden@balabit.com>
+Cc: Alex Badics <alex.badics@balabit.com>,
+        Eric Dumazet <eric.dumazet@gmail.com>,
+        KOVACS Krisztian <hidden@balabit.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43732 "EHLO mail.us.es"
+Received: from hq.balabit.com ([91.120.23.97]:41844 "EHLO mail.balabit.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757892AbcIWJYC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 23 Sep 2016 05:24:02 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5280112A684
-        for <netfilter-devel@vger.kernel.org>; Fri, 23 Sep 2016 11:23:59 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 413F8DA847
-        for <netfilter-devel@vger.kernel.org>; Fri, 23 Sep 2016 11:23:59 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2D68FDA84D
-        for <netfilter-devel@vger.kernel.org>; Fri, 23 Sep 2016 11:23:57 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <147455629375.27979.9866845521114348969.stgit@nfdev2.cica.es>
+        id S1755313AbcIWJ1t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 23 Sep 2016 05:27:49 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 22, 2016 at 04:58:13PM +0200, Arturo Borrero Gonzalez wrote:
-> This patch removes the libmxml integration in libnftnl, since we have
-> JSON in place and there is no need to support two at the same time.
-> 
-> The JSON support is much better, for example libjansson has a better
-> parsing error reporting.
-> 
-> Moreover, libmxml 2.10 breaks the integration with libnftnl somehow,
-> as reported in Debian bug #83870 [0].
-> 
-> Also, the XML support inside libnftnl has never been in good shape, with
-> several tiny inconsitencies.
+The introduction of TCP_NEW_SYN_RECV state, and the addition of request
+sockets to the ehash table seems to have broken the --transparent option
+of the socket match for IPv6 (around commit a9407000).
 
-Applied, thanks Arturo.
+Now that the socket lookup finds the TCP_NEW_SYN_RECV socket instead of the
+listener, the --transparent option tries to match on the no_srccheck flag
+of the request socket.
+
+Unfortunately, that flag was only set for IPv4 sockets in tcp_v4_init_req()
+by copying the transparent flag of the listener socket. This effectively
+causes '-m socket --transparent' not match on the ACK packet sent by the
+client in a TCP handshake.
+
+Based on the suggestion from Eric Dumazet, this change moves the code
+initializing no_srccheck to tcp_conn_request(), rendering the above
+scenario working again.
+
+Fixes: a940700003 ("netfilter: xt_socket: prepare for TCP_NEW_SYN_RECV support")
+Signed-off-by: Alex Badics <alex.badics@balabit.com>
+Signed-off-by: KOVACS Krisztian <hidden@balabit.com>
+---
+ net/ipv4/tcp_input.c | 1 +
+ net/ipv4/tcp_ipv4.c  | 1 -
+ 2 files changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
+index 3ebf45b..1fb2e82 100644
+--- a/net/ipv4/tcp_input.c
++++ b/net/ipv4/tcp_input.c
+@@ -6260,6 +6260,7 @@ int tcp_conn_request(struct request_sock_ops *rsk_ops,
+ 
+ 	tmp_opt.tstamp_ok = tmp_opt.saw_tstamp;
+ 	tcp_openreq_init(req, &tmp_opt, skb, sk);
++	inet_rsk(req)->no_srccheck = inet_sk(sk)->transparent;
+ 
+ 	/* Note: tcp_v6_init_req() might override ir_iif for link locals */
+ 	inet_rsk(req)->ir_iif = inet_request_bound_dev_if(sk, skb);
+diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
+index 7158d4f..b448eb9 100644
+--- a/net/ipv4/tcp_ipv4.c
++++ b/net/ipv4/tcp_ipv4.c
+@@ -1195,7 +1195,6 @@ static void tcp_v4_init_req(struct request_sock *req,
+ 
+ 	sk_rcv_saddr_set(req_to_sk(req), ip_hdr(skb)->daddr);
+ 	sk_daddr_set(req_to_sk(req), ip_hdr(skb)->saddr);
+-	ireq->no_srccheck = inet_sk(sk_listener)->transparent;
+ 	ireq->opt = tcp_v4_save_options(skb);
+ }
+ 
+-- 
+2.10.0
+
