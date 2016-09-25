@@ -1,85 +1,38 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nft 2/3] doc: add description about log flags
-Date: Sun, 25 Sep 2016 17:07:00 +0800
-Message-ID: <1474794421-5365-3-git-send-email-zlpnobody@163.com>
-References: <1474794421-5365-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next v3 0/7] Compact netfilter hooks list
+Date: Sun, 25 Sep 2016 13:30:01 +0200
+Message-ID: <20160925113001.GA8291@salvia>
+References: <1474472107-12992-1-git-send-email-aconole@bytheb.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        Florian Westphal <fw@strlen.de>
+To: Aaron Conole <aconole@bytheb.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-11.163.com ([220.181.12.11]:43401 "EHLO m12-11.163.com"
+Received: from mail.us.es ([193.147.175.20]:37738 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965681AbcIYJIG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 25 Sep 2016 05:08:06 -0400
-In-Reply-To: <1474794421-5365-1-git-send-email-zlpnobody@163.com>
+        id S965960AbcIYLaM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 25 Sep 2016 07:30:12 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E8CC0ED087
+        for <netfilter-devel@vger.kernel.org>; Sun, 25 Sep 2016 13:30:08 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CC4B3DA853
+        for <netfilter-devel@vger.kernel.org>; Sun, 25 Sep 2016 13:30:08 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B6B94DA816
+        for <netfilter-devel@vger.kernel.org>; Sun, 25 Sep 2016 13:30:06 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <1474472107-12992-1-git-send-email-aconole@bytheb.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+On Wed, Sep 21, 2016 at 11:35:00AM -0400, Aaron Conole wrote:
+> This series makes a simple change to shrink the netfilter hook list
+> from a double linked list, to a singly linked list.  Since the hooks
+> are always traversed in-order, there is no need to maintain a previous
+> pointer.
+> 
+> This was jointly developed by Florian Westphal.
 
-Update usage description about tcpseq, tcpopt, ipopt, uid and macdecode
-flags in log statement.
-
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
----
- doc/nft.xml | 36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
-
-diff --git a/doc/nft.xml b/doc/nft.xml
-index 3b215f8..f4b21de 100644
---- a/doc/nft.xml
-+++ b/doc/nft.xml
-@@ -2238,6 +2238,7 @@ ip forward ip dscp set 42
- 					<replaceable>quoted_string</replaceable></arg>
- 					<arg choice="opt">level
- 					<replaceable>syslog-level</replaceable></arg>
-+					<arg choice="opt">tcpseq,tcpopt,ipopt,uid,macdecode</arg>
- 				</cmdsynopsis>
- 				<cmdsynopsis>
- 					<command>log</command>
-@@ -2297,6 +2298,41 @@ ip forward ip dscp set 42
- 						</tbody>
- 					</tgroup>
- 				</table>
-+				<table frame="all">
-+					<title>log statement flags</title>
-+					<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-+						<colspec colname='c1'/>
-+						<colspec colname='c2'/>
-+						<thead>
-+							<row>
-+								<entry>Flag</entry>
-+								<entry>Description</entry>
-+							</row>
-+						</thead>
-+						<tbody>
-+							<row>
-+								<entry>tcpseq</entry>
-+								<entry>Log TCP sequence numbers.</entry>
-+							</row>
-+							<row>
-+								<entry>tcpopt</entry>
-+								<entry>Log options from the TCP packet header.</entry>
-+							</row>
-+							<row>
-+								<entry>ipopt</entry>
-+								<entry>Log options from the IP/IPv6 packet header.</entry>
-+							</row>
-+							<row>
-+								<entry>uid</entry>
-+								<entry>Log the userid of the process which generated the packet.</entry>
-+							</row>
-+							<row>
-+								<entry>macdecode</entry>
-+								<entry>Decode MAC addresses and protocol.</entry>
-+							</row>
-+						</tbody>
-+					</tgroup>
-+				</table>
- 			</para>
-                 </refsect2>
- 		<refsect2>
--- 
-2.5.5
-
-
+Series applied, thanks.
