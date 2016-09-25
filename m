@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 39/53] netfilter: call nf_hook_ingress with rcu_read_lock
-Date: Mon, 26 Sep 2016 01:06:49 +0200
-Message-ID: <1474844823-2026-40-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 49/53] netfilter: evict stale entries when user reads /proc/net/nf_conntrack
+Date: Mon, 26 Sep 2016 01:06:59 +0200
+Message-ID: <1474844823-2026-50-git-send-email-pablo@netfilter.org>
 References: <1474844823-2026-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,40 +10,42 @@ In-Reply-To: <1474844823-2026-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Aaron Conole <aconole@bytheb.org>
+From: Florian Westphal <fw@strlen.de>
 
-This commit ensures that the rcu read-side lock is held while the
-ingress hook is called.  This ensures that a call to nf_hook_slow (and
-ultimately nf_ingress) will be read protected.
+Fabian reports a possible conntrack memory leak (could not reproduce so
+far), however, one minor issue can be easily resolved:
 
-Signed-off-by: Aaron Conole <aconole@bytheb.org>
+> cat /proc/net/nf_conntrack | wc -l = 5
+> 4 minutes required to clean up the table.
+
+We should not report those timed-out entries to the user in first place.
+And instead of just skipping those timed-out entries while iterating over
+the table we can also zap them (we already do this during ctnetlink
+walks, but I forgot about the /proc interface).
+
+Fixes: f330a7fdbe16 ("netfilter: conntrack: get rid of conntrack timer")
+Reported-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/core/dev.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_standalone.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 34b5322bc081..064919425b7d 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -4040,12 +4040,17 @@ static inline int nf_ingress(struct sk_buff *skb, struct packet_type **pt_prev,
- {
- #ifdef CONFIG_NETFILTER_INGRESS
- 	if (nf_hook_ingress_active(skb)) {
-+		int ingress_retval;
-+
- 		if (*pt_prev) {
- 			*ret = deliver_skb(skb, *pt_prev, orig_dev);
- 			*pt_prev = NULL;
- 		}
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 7d52f8401afd..5f446cd9f3fd 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -212,6 +212,11 @@ static int ct_seq_show(struct seq_file *s, void *v)
+ 	if (unlikely(!atomic_inc_not_zero(&ct->ct_general.use)))
+ 		return 0;
  
--		return nf_hook_ingress(skb);
-+		rcu_read_lock();
-+		ingress_retval = nf_hook_ingress(skb);
-+		rcu_read_unlock();
-+		return ingress_retval;
- 	}
- #endif /* CONFIG_NETFILTER_INGRESS */
- 	return 0;
++	if (nf_ct_should_gc(ct)) {
++		nf_ct_kill(ct);
++		goto release;
++	}
++
+ 	/* we only want to print DIR_ORIGINAL */
+ 	if (NF_CT_DIRECTION(hash))
+ 		goto release;
 -- 
 2.1.4
