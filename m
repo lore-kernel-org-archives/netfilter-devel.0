@@ -1,230 +1,154 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf-next 1/2] netfilter: nft_log: complete NFTA_LOG_FLAGS attr support
-Date: Sun, 25 Sep 2016 16:35:56 +0800
-Message-ID: <1474792557-3349-2-git-send-email-zlpnobody@163.com>
-References: <1474792557-3349-1-git-send-email-zlpnobody@163.com>
+Subject: [PATCH nf-next 2/2] netfilter: nf_log: get rid of XT_LOG_* macros
+Date: Sun, 25 Sep 2016 16:47:05 +0800
+Message-ID: <1474793225-4065-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org,
         Liping Zhang <liping.zhang@spreadtrum.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-14.163.com ([220.181.12.14]:55457 "EHLO m12-14.163.com"
+Received: from m12-13.163.com ([220.181.12.13]:52056 "EHLO m12-13.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S937116AbcIYIg6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 25 Sep 2016 04:36:58 -0400
-In-Reply-To: <1474792557-3349-1-git-send-email-zlpnobody@163.com>
+        id S938606AbcIYIrq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 25 Sep 2016 04:47:46 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-NFTA_LOG_FLAGS attribute is already supported, but the related
-NF_LOG_XXX flags are not exposed to the userspace. So we cannot
-explicitly enable log flags to log uid, tcp sequence, ip options
-and so on, i.e. such rule "nft add rule filter output log uid"
-is not supported yet.
-
-So move NF_LOG_XXX macro definitions to the uapi/../nf_log.h. In
-order to keep consistent with other modules, change NF_LOG_MASK to
-refer to all supported log flags. On the other hand, add a new
-NF_LOG_DEFAULT_MASK to refer to the original default log flags.
-
-Finally, if user specify the unsupported log flags or NFTA_LOG_GROUP
-and NFTA_LOG_FLAGS are set at the same time, report EINVAL to the
-userspace.
+nf_log is used by both nftables and iptables, so use XT_LOG_XXX macros
+here is not appropriate. Replace them with NF_LOG_XXX.
 
 Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
- include/net/netfilter/nf_log.h        | 11 +++--------
- include/uapi/linux/netfilter/nf_log.h | 12 ++++++++++++
- net/bridge/netfilter/ebt_log.c        |  2 +-
- net/ipv4/netfilter/ip_tables.c        |  2 +-
- net/ipv4/netfilter/nf_log_arp.c       |  2 +-
- net/ipv4/netfilter/nf_log_ipv4.c      |  4 ++--
- net/ipv6/netfilter/ip6_tables.c       |  2 +-
- net/ipv6/netfilter/nf_log_ipv6.c      |  4 ++--
- net/netfilter/nf_tables_core.c        |  2 +-
- net/netfilter/nft_log.c               |  9 ++++++++-
- 10 files changed, 32 insertions(+), 18 deletions(-)
- create mode 100644 include/uapi/linux/netfilter/nf_log.h
+ I received the reject msg: "The capital Triple-X in subject is way too
+ often associated  with junk email, please rephrase ..."
+ So I rename LOG_XXX to LOG_*, and resend this patch again!
 
-diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
-index ee07dc8..309cd26 100644
---- a/include/net/netfilter/nf_log.h
-+++ b/include/net/netfilter/nf_log.h
-@@ -2,15 +2,10 @@
- #define _NF_LOG_H
- 
- #include <linux/netfilter.h>
-+#include <linux/netfilter/nf_log.h>
- 
--/* those NF_LOG_* defines and struct nf_loginfo are legacy definitios that will
-- * disappear once iptables is replaced with pkttables.  Please DO NOT use them
-- * for any new code! */
--#define NF_LOG_TCPSEQ		0x01	/* Log TCP sequence numbers */
--#define NF_LOG_TCPOPT		0x02	/* Log TCP options */
--#define NF_LOG_IPOPT		0x04	/* Log IP options */
--#define NF_LOG_UID		0x08	/* Log UID owning local socket */
--#define NF_LOG_MASK		0x0f
-+/* Log tcp sequence, tcp options, ip options and uid owning local socket */
-+#define NF_LOG_DEFAULT_MASK	0x0f
- 
- /* This flag indicates that copy_len field in nf_loginfo is set */
- #define NF_LOG_F_COPY_LEN	0x1
-diff --git a/include/uapi/linux/netfilter/nf_log.h b/include/uapi/linux/netfilter/nf_log.h
-new file mode 100644
-index 0000000..8be21e0
---- /dev/null
-+++ b/include/uapi/linux/netfilter/nf_log.h
-@@ -0,0 +1,12 @@
-+#ifndef _NETFILTER_NF_LOG_H
-+#define _NETFILTER_NF_LOG_H
-+
-+#define NF_LOG_TCPSEQ		0x01	/* Log TCP sequence numbers */
-+#define NF_LOG_TCPOPT		0x02	/* Log TCP options */
-+#define NF_LOG_IPOPT		0x04	/* Log IP options */
-+#define NF_LOG_UID		0x08	/* Log UID owning local socket */
-+#define NF_LOG_NFLOG		0x10	/* Unsupported, don't reuse */
-+#define NF_LOG_MACDECODE	0x20	/* Decode MAC header */
-+#define NF_LOG_MASK		0x2f
-+
-+#endif /* _NETFILTER_NF_LOG_H */
-diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
-index 152300d..9a11086 100644
---- a/net/bridge/netfilter/ebt_log.c
-+++ b/net/bridge/netfilter/ebt_log.c
-@@ -91,7 +91,7 @@ ebt_log_packet(struct net *net, u_int8_t pf, unsigned int hooknum,
- 	if (loginfo->type == NF_LOG_TYPE_LOG)
- 		bitmask = loginfo->u.log.logflags;
- 	else
--		bitmask = NF_LOG_MASK;
-+		bitmask = NF_LOG_DEFAULT_MASK;
- 
- 	if ((bitmask & EBT_LOG_IP) && eth_hdr(skb)->h_proto ==
- 	   htons(ETH_P_IP)) {
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index f993545..7c00ce9 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -156,7 +156,7 @@ static struct nf_loginfo trace_loginfo = {
- 	.u = {
- 		.log = {
- 			.level = 4,
--			.logflags = NF_LOG_MASK,
-+			.logflags = NF_LOG_DEFAULT_MASK,
- 		},
- 	},
- };
-diff --git a/net/ipv4/netfilter/nf_log_arp.c b/net/ipv4/netfilter/nf_log_arp.c
-index 8945c26..b24795e 100644
---- a/net/ipv4/netfilter/nf_log_arp.c
-+++ b/net/ipv4/netfilter/nf_log_arp.c
-@@ -30,7 +30,7 @@ static struct nf_loginfo default_loginfo = {
- 	.u = {
- 		.log = {
- 			.level	  = LOGLEVEL_NOTICE,
--			.logflags = NF_LOG_MASK,
-+			.logflags = NF_LOG_DEFAULT_MASK,
- 		},
- 	},
- };
+ net/ipv4/netfilter/nf_log_ipv4.c |  6 +++---
+ net/ipv6/netfilter/nf_log_ipv6.c | 14 +++++++-------
+ net/netfilter/nf_log_common.c    |  4 ++--
+ 3 files changed, 12 insertions(+), 12 deletions(-)
+
 diff --git a/net/ipv4/netfilter/nf_log_ipv4.c b/net/ipv4/netfilter/nf_log_ipv4.c
-index 20f2255..5b571e1 100644
+index 5b571e1..8566489 100644
 --- a/net/ipv4/netfilter/nf_log_ipv4.c
 +++ b/net/ipv4/netfilter/nf_log_ipv4.c
-@@ -29,7 +29,7 @@ static struct nf_loginfo default_loginfo = {
- 	.u = {
- 		.log = {
- 			.level	  = LOGLEVEL_NOTICE,
--			.logflags = NF_LOG_MASK,
-+			.logflags = NF_LOG_DEFAULT_MASK,
- 		},
- 	},
- };
-@@ -46,7 +46,7 @@ static void dump_ipv4_packet(struct nf_log_buf *m,
+@@ -76,7 +76,7 @@ static void dump_ipv4_packet(struct nf_log_buf *m,
+ 	if (ntohs(ih->frag_off) & IP_OFFSET)
+ 		nf_log_buf_add(m, "FRAG:%u ", ntohs(ih->frag_off) & IP_OFFSET);
+ 
+-	if ((logflags & XT_LOG_IPOPT) &&
++	if ((logflags & NF_LOG_IPOPT) &&
+ 	    ih->ihl * 4 > sizeof(struct iphdr)) {
+ 		const unsigned char *op;
+ 		unsigned char _opt[4 * 15 - sizeof(struct iphdr)];
+@@ -250,7 +250,7 @@ static void dump_ipv4_packet(struct nf_log_buf *m,
+ 	}
+ 
+ 	/* Max length: 15 "UID=4294967295 " */
+-	if ((logflags & XT_LOG_UID) && !iphoff)
++	if ((logflags & NF_LOG_UID) && !iphoff)
+ 		nf_log_dump_sk_uid_gid(m, skb->sk);
+ 
+ 	/* Max length: 16 "MARK=0xFFFFFFFF " */
+@@ -282,7 +282,7 @@ static void dump_ipv4_mac_header(struct nf_log_buf *m,
  	if (info->type == NF_LOG_TYPE_LOG)
  		logflags = info->u.log.logflags;
- 	else
--		logflags = NF_LOG_MASK;
-+		logflags = NF_LOG_DEFAULT_MASK;
  
- 	ih = skb_header_pointer(skb, iphoff, sizeof(_iph), &_iph);
- 	if (ih == NULL) {
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 552fac2..55aacea 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -190,7 +190,7 @@ static struct nf_loginfo trace_loginfo = {
- 	.u = {
- 		.log = {
- 			.level = LOGLEVEL_WARNING,
--			.logflags = NF_LOG_MASK,
-+			.logflags = NF_LOG_DEFAULT_MASK,
- 		},
- 	},
- };
+-	if (!(logflags & XT_LOG_MACDECODE))
++	if (!(logflags & NF_LOG_MACDECODE))
+ 		goto fallback;
+ 
+ 	switch (dev->type) {
 diff --git a/net/ipv6/netfilter/nf_log_ipv6.c b/net/ipv6/netfilter/nf_log_ipv6.c
-index c1bcf69..f6aee28 100644
+index f6aee28..57d8606 100644
 --- a/net/ipv6/netfilter/nf_log_ipv6.c
 +++ b/net/ipv6/netfilter/nf_log_ipv6.c
-@@ -30,7 +30,7 @@ static struct nf_loginfo default_loginfo = {
- 	.u = {
- 		.log = {
- 			.level	  = LOGLEVEL_NOTICE,
--			.logflags = NF_LOG_MASK,
-+			.logflags = NF_LOG_DEFAULT_MASK,
- 		},
- 	},
- };
-@@ -52,7 +52,7 @@ static void dump_ipv6_packet(struct nf_log_buf *m,
+@@ -84,7 +84,7 @@ static void dump_ipv6_packet(struct nf_log_buf *m,
+ 		}
+ 
+ 		/* Max length: 48 "OPT (...) " */
+-		if (logflags & XT_LOG_IPOPT)
++		if (logflags & NF_LOG_IPOPT)
+ 			nf_log_buf_add(m, "OPT ( ");
+ 
+ 		switch (currenthdr) {
+@@ -121,7 +121,7 @@ static void dump_ipv6_packet(struct nf_log_buf *m,
+ 		case IPPROTO_ROUTING:
+ 		case IPPROTO_HOPOPTS:
+ 			if (fragment) {
+-				if (logflags & XT_LOG_IPOPT)
++				if (logflags & NF_LOG_IPOPT)
+ 					nf_log_buf_add(m, ")");
+ 				return;
+ 			}
+@@ -129,7 +129,7 @@ static void dump_ipv6_packet(struct nf_log_buf *m,
+ 			break;
+ 		/* Max Length */
+ 		case IPPROTO_AH:
+-			if (logflags & XT_LOG_IPOPT) {
++			if (logflags & NF_LOG_IPOPT) {
+ 				struct ip_auth_hdr _ahdr;
+ 				const struct ip_auth_hdr *ah;
+ 
+@@ -161,7 +161,7 @@ static void dump_ipv6_packet(struct nf_log_buf *m,
+ 			hdrlen = (hp->hdrlen+2)<<2;
+ 			break;
+ 		case IPPROTO_ESP:
+-			if (logflags & XT_LOG_IPOPT) {
++			if (logflags & NF_LOG_IPOPT) {
+ 				struct ip_esp_hdr _esph;
+ 				const struct ip_esp_hdr *eh;
+ 
+@@ -194,7 +194,7 @@ static void dump_ipv6_packet(struct nf_log_buf *m,
+ 			nf_log_buf_add(m, "Unknown Ext Hdr %u", currenthdr);
+ 			return;
+ 		}
+-		if (logflags & XT_LOG_IPOPT)
++		if (logflags & NF_LOG_IPOPT)
+ 			nf_log_buf_add(m, ") ");
+ 
+ 		currenthdr = hp->nexthdr;
+@@ -277,7 +277,7 @@ static void dump_ipv6_packet(struct nf_log_buf *m,
+ 	}
+ 
+ 	/* Max length: 15 "UID=4294967295 " */
+-	if ((logflags & XT_LOG_UID) && recurse)
++	if ((logflags & NF_LOG_UID) && recurse)
+ 		nf_log_dump_sk_uid_gid(m, skb->sk);
+ 
+ 	/* Max length: 16 "MARK=0xFFFFFFFF " */
+@@ -295,7 +295,7 @@ static void dump_ipv6_mac_header(struct nf_log_buf *m,
  	if (info->type == NF_LOG_TYPE_LOG)
  		logflags = info->u.log.logflags;
- 	else
--		logflags = NF_LOG_MASK;
-+		logflags = NF_LOG_DEFAULT_MASK;
  
- 	ih = skb_header_pointer(skb, ip6hoff, sizeof(_ip6h), &_ip6h);
- 	if (ih == NULL) {
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 67259ce..f0b7b5b 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -34,7 +34,7 @@ static struct nf_loginfo trace_loginfo = {
- 	.u = {
- 		.log = {
- 			.level = LOGLEVEL_WARNING,
--			.logflags = NF_LOG_MASK,
-+			.logflags = NF_LOG_DEFAULT_MASK,
- 	        },
- 	},
- };
-diff --git a/net/netfilter/nft_log.c b/net/netfilter/nft_log.c
-index 24a73bb..1b01404 100644
---- a/net/netfilter/nft_log.c
-+++ b/net/netfilter/nft_log.c
-@@ -58,8 +58,11 @@ static int nft_log_init(const struct nft_ctx *ctx,
- 	if (tb[NFTA_LOG_LEVEL] != NULL &&
- 	    tb[NFTA_LOG_GROUP] != NULL)
- 		return -EINVAL;
--	if (tb[NFTA_LOG_GROUP] != NULL)
-+	if (tb[NFTA_LOG_GROUP] != NULL) {
- 		li->type = NF_LOG_TYPE_ULOG;
-+		if (tb[NFTA_LOG_FLAGS] != NULL)
-+			return -EINVAL;
-+	}
+-	if (!(logflags & XT_LOG_MACDECODE))
++	if (!(logflags & NF_LOG_MACDECODE))
+ 		goto fallback;
  
- 	nla = tb[NFTA_LOG_PREFIX];
- 	if (nla != NULL) {
-@@ -87,6 +90,10 @@ static int nft_log_init(const struct nft_ctx *ctx,
- 		if (tb[NFTA_LOG_FLAGS] != NULL) {
- 			li->u.log.logflags =
- 				ntohl(nla_get_be32(tb[NFTA_LOG_FLAGS]));
-+			if (li->u.log.logflags & ~NF_LOG_MASK) {
-+				err = -EINVAL;
-+				goto err1;
-+			}
- 		}
- 		break;
- 	case NF_LOG_TYPE_ULOG:
+ 	switch (dev->type) {
+diff --git a/net/netfilter/nf_log_common.c b/net/netfilter/nf_log_common.c
+index a5aa596..119fe1c 100644
+--- a/net/netfilter/nf_log_common.c
++++ b/net/netfilter/nf_log_common.c
+@@ -77,7 +77,7 @@ int nf_log_dump_tcp_header(struct nf_log_buf *m, const struct sk_buff *skb,
+ 	nf_log_buf_add(m, "SPT=%u DPT=%u ",
+ 		       ntohs(th->source), ntohs(th->dest));
+ 	/* Max length: 30 "SEQ=4294967295 ACK=4294967295 " */
+-	if (logflags & XT_LOG_TCPSEQ) {
++	if (logflags & NF_LOG_TCPSEQ) {
+ 		nf_log_buf_add(m, "SEQ=%u ACK=%u ",
+ 			       ntohl(th->seq), ntohl(th->ack_seq));
+ 	}
+@@ -107,7 +107,7 @@ int nf_log_dump_tcp_header(struct nf_log_buf *m, const struct sk_buff *skb,
+ 	/* Max length: 11 "URGP=65535 " */
+ 	nf_log_buf_add(m, "URGP=%u ", ntohs(th->urg_ptr));
+ 
+-	if ((logflags & XT_LOG_TCPOPT) && th->doff*4 > sizeof(struct tcphdr)) {
++	if ((logflags & NF_LOG_TCPOPT) && th->doff*4 > sizeof(struct tcphdr)) {
+ 		u_int8_t _opt[60 - sizeof(struct tcphdr)];
+ 		const u_int8_t *op;
+ 		unsigned int i;
 -- 
 2.5.5
 
