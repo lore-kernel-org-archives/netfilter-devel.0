@@ -1,42 +1,52 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: xt_TCPMSS: Refactor the codes to
- decrease one condition check and more readable
-Date: Sat, 24 Sep 2016 21:14:27 +0200
-Message-ID: <20160924191427.GA2525@salvia>
-References: <1473216024-7824-1-git-send-email-fgao@ikuai8.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        gfree.wind@gmail.com
-To: fgao@ikuai8.com
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf-next 0/2] netfilter: complete nft log flags support
+Date: Sun, 25 Sep 2016 16:35:55 +0800
+Message-ID: <1474792557-3349-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
+        Liping Zhang <liping.zhang@spreadtrum.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48222 "EHLO mail.us.es"
+Received: from m12-14.163.com ([220.181.12.14]:55406 "EHLO m12-14.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934991AbcIXTOk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 24 Sep 2016 15:14:40 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 72C9EE6645
-        for <netfilter-devel@vger.kernel.org>; Sat, 24 Sep 2016 21:14:37 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 61991DA846
-        for <netfilter-devel@vger.kernel.org>; Sat, 24 Sep 2016 21:14:37 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 87781DA842
-        for <netfilter-devel@vger.kernel.org>; Sat, 24 Sep 2016 21:14:33 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1473216024-7824-1-git-send-email-fgao@ikuai8.com>
+        id S935933AbcIYIgr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 25 Sep 2016 04:36:47 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 07, 2016 at 10:40:24AM +0800, fgao@ikuai8.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
-> 
-> The origin codes perform two condition checks with dst_mtu(skb_dst(skb))
-> and in_mtu. And the last statement is "min(dst_mtu(skb_dst(skb)),
-> in_mtu) - minlen". It may let reader think about how about the result.
-> Would it be negative.
-> 
-> Now assign the result of min(dst_mtu(skb_dst(skb)), in_mtu) to a new
-> variable, then only perform one condition check, and it is more readable.
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Applied, thanks.
+In iptables, user can specify log flags in LOG target, for exmaple:
+  # iptables -A OUTPUT -j LOG --log-uid
+  # iptables -A INPUT -j LOG --log-uid --log-tcp-sequence
+  ...
+
+But this is not supported in nft, because related NF_LOG_XXX is not
+exposed to the userspace. So user cannot set the specific log flags
+explicitly. Now, this problem is solved by patch #1.
+
+The another issue is that nf_log is used by both nftables and iptables,
+so use XT_LOG_XXX macros is not very appropriate, replaces them with
+NF_LOG_XXX in patch #2.
+
+Liping Zhang (2):
+  netfilter: nft_log: complete NFTA_LOG_FLAGS attr support
+  netfilter: nf_log: get rid of XT_LOG_XXX macros
+
+ include/net/netfilter/nf_log.h        | 11 +++--------
+ include/uapi/linux/netfilter/nf_log.h | 12 ++++++++++++
+ net/bridge/netfilter/ebt_log.c        |  2 +-
+ net/ipv4/netfilter/ip_tables.c        |  2 +-
+ net/ipv4/netfilter/nf_log_arp.c       |  2 +-
+ net/ipv4/netfilter/nf_log_ipv4.c      | 10 +++++-----
+ net/ipv6/netfilter/ip6_tables.c       |  2 +-
+ net/ipv6/netfilter/nf_log_ipv6.c      | 18 +++++++++---------
+ net/netfilter/nf_log_common.c         |  4 ++--
+ net/netfilter/nf_tables_core.c        |  2 +-
+ net/netfilter/nft_log.c               |  9 ++++++++-
+ 11 files changed, 44 insertions(+), 30 deletions(-)
+ create mode 100644 include/uapi/linux/netfilter/nf_log.h
+
+-- 
+2.5.5
+
+
