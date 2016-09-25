@@ -1,51 +1,230 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf-next 0/2] netfilter: complete nft log flags support
-Date: Sun, 25 Sep 2016 16:35:55 +0800
-Message-ID: <1474792557-3349-1-git-send-email-zlpnobody@163.com>
+Subject: [PATCH nf-next 1/2] netfilter: nft_log: complete NFTA_LOG_FLAGS attr support
+Date: Sun, 25 Sep 2016 16:35:56 +0800
+Message-ID: <1474792557-3349-2-git-send-email-zlpnobody@163.com>
+References: <1474792557-3349-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org,
         Liping Zhang <liping.zhang@spreadtrum.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-14.163.com ([220.181.12.14]:55406 "EHLO m12-14.163.com"
+Received: from m12-14.163.com ([220.181.12.14]:55457 "EHLO m12-14.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935933AbcIYIgr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 25 Sep 2016 04:36:47 -0400
+        id S937116AbcIYIg6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 25 Sep 2016 04:36:58 -0400
+In-Reply-To: <1474792557-3349-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-In iptables, user can specify log flags in LOG target, for exmaple:
-  # iptables -A OUTPUT -j LOG --log-uid
-  # iptables -A INPUT -j LOG --log-uid --log-tcp-sequence
-  ...
+NFTA_LOG_FLAGS attribute is already supported, but the related
+NF_LOG_XXX flags are not exposed to the userspace. So we cannot
+explicitly enable log flags to log uid, tcp sequence, ip options
+and so on, i.e. such rule "nft add rule filter output log uid"
+is not supported yet.
 
-But this is not supported in nft, because related NF_LOG_XXX is not
-exposed to the userspace. So user cannot set the specific log flags
-explicitly. Now, this problem is solved by patch #1.
+So move NF_LOG_XXX macro definitions to the uapi/../nf_log.h. In
+order to keep consistent with other modules, change NF_LOG_MASK to
+refer to all supported log flags. On the other hand, add a new
+NF_LOG_DEFAULT_MASK to refer to the original default log flags.
 
-The another issue is that nf_log is used by both nftables and iptables,
-so use XT_LOG_XXX macros is not very appropriate, replaces them with
-NF_LOG_XXX in patch #2.
+Finally, if user specify the unsupported log flags or NFTA_LOG_GROUP
+and NFTA_LOG_FLAGS are set at the same time, report EINVAL to the
+userspace.
 
-Liping Zhang (2):
-  netfilter: nft_log: complete NFTA_LOG_FLAGS attr support
-  netfilter: nf_log: get rid of XT_LOG_XXX macros
-
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+---
  include/net/netfilter/nf_log.h        | 11 +++--------
  include/uapi/linux/netfilter/nf_log.h | 12 ++++++++++++
  net/bridge/netfilter/ebt_log.c        |  2 +-
  net/ipv4/netfilter/ip_tables.c        |  2 +-
  net/ipv4/netfilter/nf_log_arp.c       |  2 +-
- net/ipv4/netfilter/nf_log_ipv4.c      | 10 +++++-----
+ net/ipv4/netfilter/nf_log_ipv4.c      |  4 ++--
  net/ipv6/netfilter/ip6_tables.c       |  2 +-
- net/ipv6/netfilter/nf_log_ipv6.c      | 18 +++++++++---------
- net/netfilter/nf_log_common.c         |  4 ++--
+ net/ipv6/netfilter/nf_log_ipv6.c      |  4 ++--
  net/netfilter/nf_tables_core.c        |  2 +-
  net/netfilter/nft_log.c               |  9 ++++++++-
- 11 files changed, 44 insertions(+), 30 deletions(-)
+ 10 files changed, 32 insertions(+), 18 deletions(-)
  create mode 100644 include/uapi/linux/netfilter/nf_log.h
 
+diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
+index ee07dc8..309cd26 100644
+--- a/include/net/netfilter/nf_log.h
++++ b/include/net/netfilter/nf_log.h
+@@ -2,15 +2,10 @@
+ #define _NF_LOG_H
+ 
+ #include <linux/netfilter.h>
++#include <linux/netfilter/nf_log.h>
+ 
+-/* those NF_LOG_* defines and struct nf_loginfo are legacy definitios that will
+- * disappear once iptables is replaced with pkttables.  Please DO NOT use them
+- * for any new code! */
+-#define NF_LOG_TCPSEQ		0x01	/* Log TCP sequence numbers */
+-#define NF_LOG_TCPOPT		0x02	/* Log TCP options */
+-#define NF_LOG_IPOPT		0x04	/* Log IP options */
+-#define NF_LOG_UID		0x08	/* Log UID owning local socket */
+-#define NF_LOG_MASK		0x0f
++/* Log tcp sequence, tcp options, ip options and uid owning local socket */
++#define NF_LOG_DEFAULT_MASK	0x0f
+ 
+ /* This flag indicates that copy_len field in nf_loginfo is set */
+ #define NF_LOG_F_COPY_LEN	0x1
+diff --git a/include/uapi/linux/netfilter/nf_log.h b/include/uapi/linux/netfilter/nf_log.h
+new file mode 100644
+index 0000000..8be21e0
+--- /dev/null
++++ b/include/uapi/linux/netfilter/nf_log.h
+@@ -0,0 +1,12 @@
++#ifndef _NETFILTER_NF_LOG_H
++#define _NETFILTER_NF_LOG_H
++
++#define NF_LOG_TCPSEQ		0x01	/* Log TCP sequence numbers */
++#define NF_LOG_TCPOPT		0x02	/* Log TCP options */
++#define NF_LOG_IPOPT		0x04	/* Log IP options */
++#define NF_LOG_UID		0x08	/* Log UID owning local socket */
++#define NF_LOG_NFLOG		0x10	/* Unsupported, don't reuse */
++#define NF_LOG_MACDECODE	0x20	/* Decode MAC header */
++#define NF_LOG_MASK		0x2f
++
++#endif /* _NETFILTER_NF_LOG_H */
+diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
+index 152300d..9a11086 100644
+--- a/net/bridge/netfilter/ebt_log.c
++++ b/net/bridge/netfilter/ebt_log.c
+@@ -91,7 +91,7 @@ ebt_log_packet(struct net *net, u_int8_t pf, unsigned int hooknum,
+ 	if (loginfo->type == NF_LOG_TYPE_LOG)
+ 		bitmask = loginfo->u.log.logflags;
+ 	else
+-		bitmask = NF_LOG_MASK;
++		bitmask = NF_LOG_DEFAULT_MASK;
+ 
+ 	if ((bitmask & EBT_LOG_IP) && eth_hdr(skb)->h_proto ==
+ 	   htons(ETH_P_IP)) {
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index f993545..7c00ce9 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -156,7 +156,7 @@ static struct nf_loginfo trace_loginfo = {
+ 	.u = {
+ 		.log = {
+ 			.level = 4,
+-			.logflags = NF_LOG_MASK,
++			.logflags = NF_LOG_DEFAULT_MASK,
+ 		},
+ 	},
+ };
+diff --git a/net/ipv4/netfilter/nf_log_arp.c b/net/ipv4/netfilter/nf_log_arp.c
+index 8945c26..b24795e 100644
+--- a/net/ipv4/netfilter/nf_log_arp.c
++++ b/net/ipv4/netfilter/nf_log_arp.c
+@@ -30,7 +30,7 @@ static struct nf_loginfo default_loginfo = {
+ 	.u = {
+ 		.log = {
+ 			.level	  = LOGLEVEL_NOTICE,
+-			.logflags = NF_LOG_MASK,
++			.logflags = NF_LOG_DEFAULT_MASK,
+ 		},
+ 	},
+ };
+diff --git a/net/ipv4/netfilter/nf_log_ipv4.c b/net/ipv4/netfilter/nf_log_ipv4.c
+index 20f2255..5b571e1 100644
+--- a/net/ipv4/netfilter/nf_log_ipv4.c
++++ b/net/ipv4/netfilter/nf_log_ipv4.c
+@@ -29,7 +29,7 @@ static struct nf_loginfo default_loginfo = {
+ 	.u = {
+ 		.log = {
+ 			.level	  = LOGLEVEL_NOTICE,
+-			.logflags = NF_LOG_MASK,
++			.logflags = NF_LOG_DEFAULT_MASK,
+ 		},
+ 	},
+ };
+@@ -46,7 +46,7 @@ static void dump_ipv4_packet(struct nf_log_buf *m,
+ 	if (info->type == NF_LOG_TYPE_LOG)
+ 		logflags = info->u.log.logflags;
+ 	else
+-		logflags = NF_LOG_MASK;
++		logflags = NF_LOG_DEFAULT_MASK;
+ 
+ 	ih = skb_header_pointer(skb, iphoff, sizeof(_iph), &_iph);
+ 	if (ih == NULL) {
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 552fac2..55aacea 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -190,7 +190,7 @@ static struct nf_loginfo trace_loginfo = {
+ 	.u = {
+ 		.log = {
+ 			.level = LOGLEVEL_WARNING,
+-			.logflags = NF_LOG_MASK,
++			.logflags = NF_LOG_DEFAULT_MASK,
+ 		},
+ 	},
+ };
+diff --git a/net/ipv6/netfilter/nf_log_ipv6.c b/net/ipv6/netfilter/nf_log_ipv6.c
+index c1bcf69..f6aee28 100644
+--- a/net/ipv6/netfilter/nf_log_ipv6.c
++++ b/net/ipv6/netfilter/nf_log_ipv6.c
+@@ -30,7 +30,7 @@ static struct nf_loginfo default_loginfo = {
+ 	.u = {
+ 		.log = {
+ 			.level	  = LOGLEVEL_NOTICE,
+-			.logflags = NF_LOG_MASK,
++			.logflags = NF_LOG_DEFAULT_MASK,
+ 		},
+ 	},
+ };
+@@ -52,7 +52,7 @@ static void dump_ipv6_packet(struct nf_log_buf *m,
+ 	if (info->type == NF_LOG_TYPE_LOG)
+ 		logflags = info->u.log.logflags;
+ 	else
+-		logflags = NF_LOG_MASK;
++		logflags = NF_LOG_DEFAULT_MASK;
+ 
+ 	ih = skb_header_pointer(skb, ip6hoff, sizeof(_ip6h), &_ip6h);
+ 	if (ih == NULL) {
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 67259ce..f0b7b5b 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -34,7 +34,7 @@ static struct nf_loginfo trace_loginfo = {
+ 	.u = {
+ 		.log = {
+ 			.level = LOGLEVEL_WARNING,
+-			.logflags = NF_LOG_MASK,
++			.logflags = NF_LOG_DEFAULT_MASK,
+ 	        },
+ 	},
+ };
+diff --git a/net/netfilter/nft_log.c b/net/netfilter/nft_log.c
+index 24a73bb..1b01404 100644
+--- a/net/netfilter/nft_log.c
++++ b/net/netfilter/nft_log.c
+@@ -58,8 +58,11 @@ static int nft_log_init(const struct nft_ctx *ctx,
+ 	if (tb[NFTA_LOG_LEVEL] != NULL &&
+ 	    tb[NFTA_LOG_GROUP] != NULL)
+ 		return -EINVAL;
+-	if (tb[NFTA_LOG_GROUP] != NULL)
++	if (tb[NFTA_LOG_GROUP] != NULL) {
+ 		li->type = NF_LOG_TYPE_ULOG;
++		if (tb[NFTA_LOG_FLAGS] != NULL)
++			return -EINVAL;
++	}
+ 
+ 	nla = tb[NFTA_LOG_PREFIX];
+ 	if (nla != NULL) {
+@@ -87,6 +90,10 @@ static int nft_log_init(const struct nft_ctx *ctx,
+ 		if (tb[NFTA_LOG_FLAGS] != NULL) {
+ 			li->u.log.logflags =
+ 				ntohl(nla_get_be32(tb[NFTA_LOG_FLAGS]));
++			if (li->u.log.logflags & ~NF_LOG_MASK) {
++				err = -EINVAL;
++				goto err1;
++			}
+ 		}
+ 		break;
+ 	case NF_LOG_TYPE_ULOG:
 -- 
 2.5.5
 
