@@ -1,104 +1,83 @@
-From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
-Subject: Re: [nft] Problems with flushing all elements from a set
-Date: Mon, 26 Sep 2016 03:54:30 +0000
-Message-ID: <1474862069.1116.52.camel@cohaesio.com>
-References: <1474204764.1527.46.camel@cohaesio.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+From: fgao@ikuai8.com
+Subject: [PATCH nf-next] netfilter: xt_multiport: Use switch case instead of multiple condition checks
+Date: Mon, 26 Sep 2016 21:23:37 +0800
+Message-ID: <1474896217-31351-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bender.cohaesio.com ([212.97.128.130]:39777 "EHLO
-        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1034806AbcIZDye (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 25 Sep 2016 23:54:34 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-        by mail.cohaesio.com (Postfix) with ESMTP id 497D878817BA
-        for <netfilter-devel@vger.kernel.org>; Mon, 26 Sep 2016 05:54:31 +0200 (CEST)
-Received: from mail.cohaesio.com ([127.0.0.1])
-        by localhost (bender.cohaesio.com [127.0.0.1]) (amavisd-new, port 10028)
-        with LMTP id UfwH2nXSL6at for <netfilter-devel@vger.kernel.org>;
-        Mon, 26 Sep 2016 05:54:31 +0200 (CEST)
-Received: from cohexch02.cohaesio.com (cohexch02.cohaesio.com [212.97.128.232])
-        by mail.cohaesio.com (Postfix) with ESMTP id 2EDF678002F5
-        for <netfilter-devel@vger.kernel.org>; Mon, 26 Sep 2016 05:54:31 +0200 (CEST)
-In-Reply-To: <1474204764.1527.46.camel@cohaesio.com>
-Content-Language: en-US
-Content-ID: <A1CB04A7B3123F468627206E1D254C80@surftown.com>
+Received: from SMTPBG351.QQ.COM ([183.57.50.165]:39550 "EHLO smtpbg351.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932141AbcIZNYL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 26 Sep 2016 09:24:11 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-SGkgYWdhaW4sDQoNCkkgZGlkIHNvbWUgZnVydGhlciBleHBlcmltZW50cyBvbiB0aGlzIGFuZCBm
-b3VuZCBhIHdvcmthYmxlIHNvbHV0aW9uDQpmb3Igbm93LiBEZXRhaWxzIGJlbG93IC4uLg0KDQpP
-biBzw7huLCAyMDE2LTA5LTE4IGF0IDE1OjE5ICswMjAwLCBBbmRlcnMgSy4gUGVkZXJzZW4gfCBD
-b2hhZXNpbyB3cm90ZToNCj4gSSdtIHRyeWluZyB0byB1c2UgbmZ0YWJsZXMgdG8gZmlsdGVyIHRy
-YWZmaWMgZnJvbSBrbm93biBib2dvbg0KPiBhZGRyZXNzZXMNCj4gYmFzZWQgb24gdGhlIGxpc3Qg
-YXZhaWxhYmxlIGF0DQo+IGh0dHA6Ly93d3cudGVhbS1jeW1ydS5vcmcvU2VydmljZXMvQm9nb25z
-L2Z1bGxib2dvbnMtaXB2NC50eHTCoC4NCj4gDQo+IExvYWRpbmcgdGhpcyBsaXN0IGluaXRpYWxs
-eSB3b3JrcyBmaW5lLCBidXQgSSBhbHNvIHdhbnQgdG8gdXBkYXRlIGl0DQo+IHJlZ3VsYXJseSAo
-cHJlZmVyYWJseSB3aXRob3V0IGZsdXNoaW5nIHRoZSBlbnRpcmUgbmZ0YWJsZXMgcnVsZSBzZXQs
-DQo+IHdoaWNoIHdvdWxkIGNsZWFyIGFsbCB0cmFmZmljIGNvdW50ZXJzIGV0Yy4pLiBTaW5jZSB0
-aGVyZSBpcyBubyBmbHVzaA0KPiBvcGVyYXRpb24gZm9yIHNldHMsIEkgZGVjaWRlZCB0byBkZWxl
-dGUgYWxsIHRoZSBtZW1iZXJzIG9mIHRoZSBzZXQsDQo+IGJ1dA0KPiB0aGlzIGRvZXNuJ3Qgd29y
-ayBhcyBleHBlY3RlZC4NCj4gDQo+IEkgdXNlIHRoZSBmb2xsb3dpbmcgc2hlbGwgY29kZSBjb252
-ZXJ0IHRoZSBpbnB1dCBmaWxlIHRvIG5mdGFibGVzDQo+IHN5bnRheDoNCj4gDQo+IGVjaG8gImFk
-ZCBzZXQgaXAgZmlsdGVyIGJvZ29ucyB7IHR5cGUgaXB2NF9hZGRyOyBmbGFncyBpbnRlcnZhbDsg
-fSINCj4gPm5mdC5ydWxlcw0KPiBlY2hvIC1uICJhZGQgZWxlbWVudCBpcCBmaWx0ZXIgYm9nb25z
-IHsgIiA+Pm5mdC5ydWxlcw0KPiBJPTANCj4gZWdyZXAgLXYgJ14oI3wkKScgZnVsbGJvZ29ucy1p
-cHY0LnR4dCB8DQo+IAl3aGlsZSByZWFkIENJRFIgOyBkbw0KPiAJCWlmIFtbICR7SX0gPSAwIF1d
-OyB0aGVuDQo+IAkJCWVjaG8gLW4gIiR7Q0lEUn0iDQo+IAkJZWxzZQ0KPiAJCQllY2hvIC1uICIs
-ICR7Q0lEUn0iDQo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZmkNCj4gCQlJPTEN
-Cj4gwqAJZG9uZSA+Pm5mdC5ydWxlcw0KPiBlY2hvICIgfSIgPj5uZnQucnVsZXMNCj4gDQo+IExv
-YWRpbmcgaXQgaW5pdGlhbGx5IHdpdGggJ25mdCAtZiBuZnQucnVsZXMnIHdvcmtzIGZpbmUuIEkg
-dGhlbiB1c2UNCj4gdGhlDQo+IGZvbGxvd2luZyBzaGVsbCBjb2RlIHRvIHRyeSB0byBjbGVhciBp
-dCBhZ2FpbjoNCj4gDQo+IG5mdCBsaXN0IHNldCBpcCBmaWx0ZXIgYm9nb25zIHwNCj4gCWVncmVw
-ICJeW1s6c3BhY2U6XV0rZWxlbWVudHMgPSIgfA0KPiAJc2VkIC1lICJzLy4qey9kZWxldGUgZWxl
-bWVudCBpcCBmaWx0ZXIgYm9nb25zIHsvIiA+bmZ0LnJlbW92ZQ0KPiBuZnQgLWYgbmZ0LnJlbW92
-ZQ0KPiANCj4gV2hlbiBJIHJ1biB0aGlzIGZvciB0aGUgZmlyc3QgdGltZSwgbmZ0IGRvZXNuJ3Qg
-Z2l2ZSBhbnkgb3V0cHV0LA0KPiB3aGljaA0KPiBzdWdnZXN0cyB0aGF0IGl0IHN1Y2NlZWRlZCwg
-YnV0IG9ubHkgfjQwJSBvZiB0aGUgZWxlbWVudHMgd2VyZQ0KPiBhY3R1YWxseQ0KPiByZW1vdmVk
-LiBXaGVuIEkgcnVuIHRoZSByZW1vdmFsIGNvZGUgYWdhaW4sIEkgZ2V0IG5vIG91dHB1dCBhbmQg
-bm8NCj4gZnVydGhlciBlbGVtZW50cyB3ZXJlIHJlbW92ZWQuDQo+IA0KPiBJIG5vdGljZWQgdGhh
-dCB0aGUgbmZ0IGV4aXQgY29kZSB3YXMgMSBhbmQgd2l0aCBzdHJhY2UgSSBmb3VuZCB0aGF0DQo+
-IHRoZQ0KPiBuZXRsaW5rIHNvY2tldCBnb3QgYSByZXBseSB3aXRowqBtc2dfZmxhZ3M9TVNHX1RS
-VU5DIGp1c3QgYmVmb3JlDQo+IGV4aXRpbmcuIEJ5IGFkZGluZyBkZWJ1ZyBvdXRwdXQgdG8gZXJy
-b3IgcGF0aHMsIEkgdHJhY2VkIHRoaXMgYmFjayB0bw0KPiB0aGXCoG1ubF9jYl9ydW4oKSBjYWxs
-IGluwqBtbmxfYmF0Y2hfdGFsaygpLiBCeSBpbmNyZWFzaW5nIHRoZSBzaXplDQo+IG9mwqByY3Zf
-YnVmIHRvwqAzMipNTkxfU09DS0VUX0JVRkZFUl9TSVpFIChsZXNzIG1heSBoYXZlIGJlZW4gZW5v
-dWdoLA0KPiBidXQNCj4gMiogd2Fzbid0KSBJIGdvdCBwYXN0IHRoYXQgZXJyb3IsIGFuZCBuZnQg
-Z2F2ZSB0aGUgZm9sbG93aW5nIGVycm9yDQo+IG1lc3NhZ2U6DQo+IA0KPiBuZnQucmVtb3ZlOjE6
-MS0zMzM0ODogRXJyb3I6IENvdWxkIG5vdCBwcm9jZXNzIHJ1bGU6IE5vIHN1Y2ggZmlsZSBvcg0K
-PiBkaXJlY3RvcnkNCj4gDQo+IEkgYmVsaWV2ZSBpdCBpcyB0cnlpbmcgdG8gdGVsbCBtZSB0aGF0
-IHRoZSBlbGVtZW50cywgSSdtIHRyeWluZyB0bw0KPiByZW1vdmUsIGFyZSBub3QgcHJlc2VudCBp
-biB0aGUgc2V0LCBidXQgIm5mdCBsaXN0IHNldCBpcCBmaWx0ZXINCj4gYm9nb25zIg0KPiB0ZWxs
-cyBtZSB0aGF0IHRoZXkgYXJlLg0KDQpBZnRlciB2YXJpb3VzIHRlc3RzLCBJIGZvdW5kIHRoYXQg
-aWYgSSBsaW1pdCB0aGUgbnVtYmVyIG9mIGVsZW1lbnRzIHRvDQpyZW1vdmUgdG8gMTAwMCBwZXIg
-J2RlbGV0ZSBlbGVtZW50JyBzdGF0ZW1lbnQgaXQgd29ya3MuIFRoZSBleGFjdA0KYnJlYWtpbmcg
-cG9pbnQgd2l0aCBteSB0ZXN0IGRhdGEgd2FzIDE2MzggZWxlbWVudHMsIGJ1dCBJIHN1c3BlY3Qg
-dGhhdA0KbWF5IGRlcGVuZCBvbiB0aGUgZGF0YSB1c2VkLCBzbyBJIHNldHRsZWQgb24gYSBsb3dl
-ciBudW1iZXIuDQoNCkluIGNhc2Ugb3RoZXJzIHJ1biBpbnRvIGEgc2ltaWxhciBwcm9ibGVtIHRo
-ZSBzaGVsbCBjb2RlIEkgdXNlIGZvciB0aGlzDQppczoNCg0KbmZ0IGxpc3Qgc2V0IGlwIGZpbHRl
-ciBib2dvbnMgfA0KCXBlcmwgLW5lICdpZiAoL15ccytlbGVtZW50cyA9Lykgew0KCQlzLy4qXHsv
-XHsvOw0KCQlzLygoPzosW14sXSspezEwMDB9KSwvJDFcfVxuXHsvZzsNCgkJcy9cey9kZWxldGUg
-ZWxlbWVudCBpcCBmaWx0ZXIgYm9nb25zIFx7L2c7DQoJCXByaW50OyB9JyA+bmZ0LnJlbW92ZQ0K
-DQpBZnRlciBJIGdvdCB0aGlzIHdvcmtpbmcgSSB0cmllZCB0byBjb21iaW5lIHRoZSAnZGVsZXRl
-IGVsZW1lbnQnDQpzdGF0ZW1lbnRzIHdpdGggYSBmcmVzaCAnYWRkIGVsZW1lbnQnIHN0YXRlbWVu
-dCBpbiB0aGUgc2FtZSBmaWxlLCBzbw0KdGhhdCBJIGNvdWxkIGRvIHRoZSBzZXQgdXBkYXRlIGlu
-IG9uZSB0cmFuc2FjdGlvbiwgYnV0IHRoYXQgZGlkbid0DQp3b3JrLCBzbyBmb3Igbm93IEkgaGF2
-ZSB0byBkZWxldGUgYWxsIHRoZSBlbGVtZW50cyBpbiBvbmUgdHJhbnNhY3Rpb24NCmFuZCB0aGVu
-IGFkZCBuZXcgZWxlbWVudHMgaW4gYSBzZWNvbmQgdHJhbnNhY3Rpb24sIHdoaWNoIGxlYXZlcyB0
-aGUNCmJvZ29uIGZpbHRlcmluZyBpbmVmZmVjdGl2ZSBmb3IgYSBzaG9ydCB3aGlsZSBldmVyeSB0
-aW1lIEkgdXBkYXRlIHRoZQ0Kc2V0Lg0KDQpJdCB3b3VsZCBiZSBuaWNlIGlmIG5mdCBzdXBwb3J0
-ZWQgYSAnZmx1c2ggc2V0JyBvcGVyYXRpb24gY29tYmluZWQgd2l0aA0KJ2FkZCBlbGVtZW50JyBp
-biBhIHNpbmdsZSB0cmFuc2FjdGlvbiwgb3IgcGVyaGFwcyBzb21ldGhpbmcgc2ltaWxhciB0bw0K
-J2lwc2V0IHN3YXAnLg0KDQo+IEkndmUgdHJpZWQgdG8gZmlndXJlIG91dCB3aGF0J3MgY2F1c2lu
-ZyB0aGlzIHByb2JsZW0sIGJ1dCBteQ0KPiB1bmRlcnN0YW5kaW5nIG9mIHRoZSBuZXRsaW5rIGNv
-ZGUgaXNuJ3Qgc3VmZmljaWVudCB0byBtYWtlIHByb2dyZXNzLA0KPiBzbyBhbnkgaGVscCB3b3Vs
-ZCBiZSBtdWNoIGFwcHJlY2lhdGVkLg0KDQpUaGUgbmV0bGluayBjb2RlIGlzIHN0aWxsIGEgYml0
-IG9mIGEgbXlzdGVyeSB0byBtZSwgc28gSSBkaWRuJ3QgZ2V0DQpmYXIsIHdoaWxlIHRyeWluZyB0
-byBkZWJ1ZyB0aGlzLCBidXQgSSBtYXkgdHJ5IGFnYWluIGluIHRoZSBmdXR1cmUuwqANCg0KPiBN
-eSBlbnZpcm9ubWVudCBoYXMgTGludXggNC43LjQgcGx1cyB0aGUgcGF0Y2ggZnJvbQ0KPiBodHRw
-Oi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL25ldGRldi9tc2czODk0OTAuaHRtbMKgLCBsaWJtbmwt
-MS4wLjQsDQo+IGFuZCBjdXJyZW50IGdpdCB2ZXJzaW9ucyBvZiBsaWJuZnRubCBhbmTCoG5mdGFi
-bGVzLg0KDQpSZWdhcmRzLA0KQW5kZXJzIEsuIFBlZGVyc2Vu
+From: Gao Feng <fgao@ikuai8.com>
+
+There are multiple equality condition checks in the original codes, so it
+is better to use switch case instead of them.
+
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ net/netfilter/xt_multiport.c | 40 +++++++++++++++++++++-------------------
+ 1 file changed, 21 insertions(+), 19 deletions(-)
+
+diff --git a/net/netfilter/xt_multiport.c b/net/netfilter/xt_multiport.c
+index ac1d3c3..ec06fb1 100644
+--- a/net/netfilter/xt_multiport.c
++++ b/net/netfilter/xt_multiport.c
+@@ -42,29 +42,31 @@ ports_match_v1(const struct xt_multiport_v1 *minfo,
+ 			e = minfo->ports[++i];
+ 			pr_debug("src or dst matches with %d-%d?\n", s, e);
+ 
+-			if (minfo->flags == XT_MULTIPORT_SOURCE
+-			    && src >= s && src <= e)
+-				return true ^ minfo->invert;
+-			if (minfo->flags == XT_MULTIPORT_DESTINATION
+-			    && dst >= s && dst <= e)
+-				return true ^ minfo->invert;
+-			if (minfo->flags == XT_MULTIPORT_EITHER
+-			    && ((dst >= s && dst <= e)
+-				|| (src >= s && src <= e)))
+-				return true ^ minfo->invert;
++			switch (minfo->flags) {
++			case XT_MULTIPORT_SOURCE:
++				return (src >= s && src <= e) ^ minfo->invert;
++			case XT_MULTIPORT_DESTINATION:
++				return (dst >= s && dst <= e) ^ minfo->invert;
++			case XT_MULTIPORT_EITHER:
++				return ((dst >= s && dst <= e) ||
++					(src >= s && src <= e)) ^ minfo->invert;
++			default:
++				break;
++			}
+ 		} else {
+ 			/* exact port matching */
+ 			pr_debug("src or dst matches with %d?\n", s);
+ 
+-			if (minfo->flags == XT_MULTIPORT_SOURCE
+-			    && src == s)
+-				return true ^ minfo->invert;
+-			if (minfo->flags == XT_MULTIPORT_DESTINATION
+-			    && dst == s)
+-				return true ^ minfo->invert;
+-			if (minfo->flags == XT_MULTIPORT_EITHER
+-			    && (src == s || dst == s))
+-				return true ^ minfo->invert;
++			switch (minfo->flags) {
++			case XT_MULTIPORT_SOURCE:
++				return (src == s) ^ minfo->invert;
++			case XT_MULTIPORT_DESTINATION:
++				return (dst == s) ^ minfo->invert;
++			case XT_MULTIPORT_EITHER:
++				return (src == s || dst == s) ^ minfo->invert;
++			default:
++				break;
++			}
+ 		}
+ 	}
+ 
+-- 
+1.9.1
+
+
