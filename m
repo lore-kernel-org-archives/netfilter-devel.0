@@ -1,7 +1,7 @@
 From: Aaron Conole <aconole@bytheb.org>
-Subject: [PATCH nf-next 1/2] netfilter: Fix potential null pointer dereference
-Date: Mon, 26 Sep 2016 12:24:30 -0400
-Message-ID: <1474907071-13591-2-git-send-email-aconole@bytheb.org>
+Subject: [PATCH nf-next 2/2] nf_set_hooks_head: acommodate different kconfig
+Date: Mon, 26 Sep 2016 12:24:31 -0400
+Message-ID: <1474907071-13591-3-git-send-email-aconole@bytheb.org>
 References: <1474907071-13591-1-git-send-email-aconole@bytheb.org>
 Cc: Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>
@@ -11,28 +11,33 @@ In-Reply-To: <1474907071-13591-1-git-send-email-aconole@bytheb.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-It's possible for nf_hook_entry_head to return NULL if two
-nf_unregister_net_hook calls happen simultaneously with a single hook
-entry in the list.  This fix ensures that no null pointer dereference
-could occur when such a race happens.
+When CONFIG_NETFILTER_INGRESS is unset (or no), we need to handle
+the request for registration properly by dropping the hook.  This
+releases the entry during the set.
 
 Signed-off-by: Aaron Conole <aconole@bytheb.org>
 ---
- net/netfilter/core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/core.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 360c63d..e58e420 100644
+index e58e420..1d0a4c9 100644
 --- a/net/netfilter/core.c
 +++ b/net/netfilter/core.c
-@@ -160,7 +160,7 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
- 
- 	mutex_lock(&nf_hook_mutex);
- 	hooks_entry = nf_hook_entry_head(net, reg);
--	if (hooks_entry->orig_ops == reg) {
-+	if (hooks_entry && hooks_entry->orig_ops == reg) {
- 		nf_set_hooks_head(net, reg,
- 				  nf_entry_dereference(hooks_entry->next));
- 		goto unlock;
+@@ -90,10 +90,14 @@ static void nf_set_hooks_head(struct net *net, const struct nf_hook_ops *reg,
+ {
+ 	switch (reg->pf) {
+ 	case NFPROTO_NETDEV:
++#ifdef CONFIG_NETFILTER_INGRESS
+ 		/* We already checked in nf_register_net_hook() that this is
+ 		 * used from ingress.
+ 		 */
+ 		rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
++#else
++		kfree(entry);
++#endif
+ 		break;
+ 	default:
+ 		rcu_assign_pointer(net->nf.hooks[reg->pf][reg->hooknum],
 -- 
 2.5.5
