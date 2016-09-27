@@ -1,67 +1,68 @@
-From: Gao Feng <fgao@ikuai8.com>
-Subject: Re: [PATCH nf-next] netfilter: xt_osf: Use explicit member assignment
- to avoid implicit no padding rule
-Date: Tue, 27 Sep 2016 14:10:44 +0800
-Message-ID: <CA+6hz4rCM=PSdzS9LTsVahg=hBHtQEExn86Tn+1HV4XX_LGurA@mail.gmail.com>
-References: <1474951193-3486-1-git-send-email-fgao@ikuai8.com>
- <CAML_gOcQt3MuDw3JAXYab1bKFaRuKgVO4jBaM22NOCShVoKmeA@mail.gmail.com>
- <CA+6hz4rZ5GF3MuVrywA87xQ-idq9iCL-cmmgA0sLwuHUp2PEbA@mail.gmail.com> <CAML_gOcVWerP2keCiqeTUt5QN-gbqATpTUsK-xPX=RnJoc8OBQ@mail.gmail.com>
+From: Vishwanath Pai <pai.vishwain@gmail.com>
+Subject: Re: [PATCH v3 2/2] netfilter: Create revision 2 of xt_hashlimit to
+ support higher pps rates
+Date: Tue, 27 Sep 2016 03:35:15 -0400
+Message-ID: <CAGt3NP83Xw0rC8dfcU8GJ0UdJGxkkbS-oD96nHDkdtQuHHrQfA@mail.gmail.com>
+References: <20160922164344.GB20423@akamai.com> <CAML_gOdcrnmuHkxA1xAb2HDXHpo+=+sw+oJBfKXF3ijApsjTqg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc: Vishwanath Pai <vpai@akamai.com>,
         Patrick McHardy <kaber@trash.net>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>
-To: Liping Zhang <zlpnobody@gmail.com>
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Josh Hunt <johunt@akamai.com>, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org
+To: Liping Zhang <zlpnobody@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg202.qq.com ([184.105.206.29]:38789 "EHLO smtpbg202.qq.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751962AbcI0GLH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Sep 2016 02:11:07 -0400
-In-Reply-To: <CAML_gOcVWerP2keCiqeTUt5QN-gbqATpTUsK-xPX=RnJoc8OBQ@mail.gmail.com>
+Received: from mail-io0-f195.google.com ([209.85.223.195]:36787 "EHLO
+        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751572AbcI0HfR (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 27 Sep 2016 03:35:17 -0400
+In-Reply-To: <CAML_gOdcrnmuHkxA1xAb2HDXHpo+=+sw+oJBfKXF3ijApsjTqg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Liping,
-
-On Tue, Sep 27, 2016 at 2:05 PM, Liping Zhang <zlpnobody@gmail.com> wrote:
-> Hi Feng,
+On Tue, Sep 27, 2016 at 12:15 AM, Liping Zhang <zlpnobody@gmail.com> wrote:
+> Hi Vishwanath,
 >
-> 2016-09-27 14:00 GMT+08:00 Gao Feng <fgao@ikuai8.com>:
->> Hi Liping,
+> 2016-09-23 0:43 GMT+08:00 Vishwanath Pai <vpai@akamai.com>:
 >>
->>>
->>> This xt_osf_user_finger{} is carefully designed, no padding now, and
->>> will not be changed in the future, otherwise backward compatibility will
->>> be broken.
+>>  /* Precision saver. */
+>> -static u32 user2credits(u32 user)
+>> +static u64 user2credits(u64 user, int revision)
+>>  {
+>> -       /* If multiplying would overflow... */
+>> -       if (user > 0xFFFFFFFF / (HZ*CREDITS_PER_JIFFY_v1))
+>> -               /* Divide first. */
+>> -               return (user / XT_HASHLIMIT_SCALE_v1) *\
+>> -                                       HZ * CREDITS_PER_JIFFY_v1;
+>> +       if (revision == 1) {
+>> +               /* If multiplying would overflow... */
+>> +               if (user > 0xFFFFFFFF / (HZ*CREDITS_PER_JIFFY_v1))
+>> +                       /* Divide first. */
+>> +                       return (user / XT_HASHLIMIT_SCALE_v1) *\
+>> +                                               HZ * CREDITS_PER_JIFFY_v1;
+>> +
+>> +               return (user * HZ * CREDITS_PER_JIFFY_v1) \
+>> +                                               / XT_HASHLIMIT_SCALE_v1;
+>> +       } else {
+>> +               if (user > 0xFFFFFFFFFFFFFFFF / (HZ*CREDITS_PER_JIFFY))
+>> +                       return (user / XT_HASHLIMIT_SCALE) *\
+>> +                                               HZ * CREDITS_PER_JIFFY;
 >>
->> Yes, there is no padding now. So it is ok to use memcmp now.
->> I am afraid the struct would be modified for other requirements.
+>> -       return (user * HZ * CREDITS_PER_JIFFY_v1) / XT_HASHLIMIT_SCALE_v1;
+>> +               return (user * HZ * CREDITS_PER_JIFFY) / XT_HASHLIMIT_SCALE;
+>> +       }
+>>  }
+>>
 >
-> This is structure was passed by netlink attribute, so modify it will
-> break backward compatibility.
+> In my memory, 64-bit division operation should be replaced by
+> div_u64 or div64_u64, otherwise on some 32-bit architecture
+> systems, link error will happen. Something like this:
+> ... undefined reference to `__udivdi3'.
 
-Reasonable.
-Thanks Liping.
+I did not know that, thanks for pointing it out. I will send a patch
+to fix this.
 
-Regards
-Feng
-
->
->>
->> If it is never changed forever, it is ok certainly.
->>
->>>
->>> I don't think this convert is necessary, actually it is a little ugly, and will
->>> increase the maintenance burden.
->>
->> I just want the codes don't depend any implicit rule.
->>
->> It is a tradeoff. If never change, needn't do any convert.
->> If may change, the memcmp is a little dangerous.
->>
->> Regards
->> Feng
-
-
+-Vishwanath
