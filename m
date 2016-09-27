@@ -1,61 +1,70 @@
-From: Aaron Conole <aconole@bytheb.org>
-Subject: [PATCH nf-next v2 2/2] nf_set_hooks_head: acommodate different kconfig
-Date: Tue, 27 Sep 2016 09:38:35 -0400
-Message-ID: <1474983515-4115-3-git-send-email-aconole@bytheb.org>
-References: <1474983515-4115-1-git-send-email-aconole@bytheb.org>
-Cc: Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1474983515-4115-1-git-send-email-aconole@bytheb.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Vishwanath Pai <vpai@akamai.com>
+Subject: [PATCH v2] netfilter: xt_hashlimit: Fix link error in 32bit arch
+ because of 64bit division
+Date: Tue, 27 Sep 2016 09:57:18 -0400
+Message-ID: <20160927135718.GA31297@akamai.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: johunt@akamai.com, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        pai.vishwain@gmail.com, kaber@trash.net, kadlec@blackhole.kfki.hu,
+        zlpnobody@gmail.com, hannes@stressinduktion.org, maze@google.com,
+        eric.dumazet@gmail.com
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from prod-mail-xrelay07.akamai.com ([23.79.238.175]:26498 "EHLO
+        prod-mail-xrelay07.akamai.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933019AbcI0OFD (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 27 Sep 2016 10:05:03 -0400
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-When CONFIG_NETFILTER_INGRESS is unset (or no), we need to handle
-the request for registration properly by dropping the hook.  This
-releases the entry during the set.
+v2:
+Remove unnecessary div64_u64 around constants
 
-Signed-off-by: Aaron Conole <aconole@bytheb.org>
+--
+
+Fix link error in 32bit arch because of 64bit division
+
+Division of 64bit integers will cause linker error undefined reference
+to `__udivdi3'. Fix this by replacing divisions with div64_64
+
+Signed-off-by: Vishwanath Pai <vpai@akamai.com>
+
 ---
- net/netfilter/core.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ net/netfilter/xt_hashlimit.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index e58e420..61e8a9d 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -90,10 +90,12 @@ static void nf_set_hooks_head(struct net *net, const struct nf_hook_ops *reg,
- {
- 	switch (reg->pf) {
- 	case NFPROTO_NETDEV:
-+#ifdef CONFIG_NETFILTER_INGRESS
- 		/* We already checked in nf_register_net_hook() that this is
- 		 * used from ingress.
- 		 */
- 		rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-+#endif
- 		break;
- 	default:
- 		rcu_assign_pointer(net->nf.hooks[reg->pf][reg->hooknum],
-@@ -107,10 +109,15 @@ int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
- 	struct nf_hook_entry *hooks_entry;
- 	struct nf_hook_entry *entry;
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 44a095e..200a9d8 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -467,17 +467,18 @@ static u64 user2credits(u64 user, int revision)
+ 		/* If multiplying would overflow... */
+ 		if (user > 0xFFFFFFFF / (HZ*CREDITS_PER_JIFFY_v1))
+ 			/* Divide first. */
+-			return (user / XT_HASHLIMIT_SCALE) *\
++			return div64_u64(user, XT_HASHLIMIT_SCALE) *\
+ 						HZ * CREDITS_PER_JIFFY_v1;
  
--	if (reg->pf == NFPROTO_NETDEV &&
--	    (reg->hooknum != NF_NETDEV_INGRESS ||
--	     !reg->dev || dev_net(reg->dev) != net))
--		return -EINVAL;
-+	if (reg->pf == NFPROTO_NETDEV) {
-+#ifndef CONFIG_NETFILTER_INGRESS
-+		if (reg->hooknum == NF_NETDEV_INGRESS)
-+			return -EOPNOTSUPP;
-+#endif
-+		if (reg->hooknum != NF_NETDEV_INGRESS ||
-+		    !reg->dev || dev_net(reg->dev) != net)
-+			return -EINVAL;
-+	}
+-		return (user * HZ * CREDITS_PER_JIFFY_v1) \
+-						/ XT_HASHLIMIT_SCALE;
++		return div64_u64((user * HZ * CREDITS_PER_JIFFY_v1),
++				  XT_HASHLIMIT_SCALE);
+ 	} else {
+ 		if (user > 0xFFFFFFFFFFFFFFFF / (HZ*CREDITS_PER_JIFFY))
+-			return (user / XT_HASHLIMIT_SCALE_v2) *\
++			return div64_u64(user, XT_HASHLIMIT_SCALE_v2) *\
+ 						HZ * CREDITS_PER_JIFFY;
  
- 	entry = kmalloc(sizeof(*entry), GFP_KERNEL);
- 	if (!entry)
+-		return (user * HZ * CREDITS_PER_JIFFY) / XT_HASHLIMIT_SCALE_v2;
++		return div64_u64((user * HZ * CREDITS_PER_JIFFY),
++				 XT_HASHLIMIT_SCALE_v2);
+ 	}
+ }
+ 
 -- 
-2.7.4
+1.9.1
+
