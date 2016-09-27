@@ -1,72 +1,70 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH] Fix link error in 32bit arch because of 64bit division
-Date: Tue, 27 Sep 2016 18:23:50 +0800
-Message-ID: <CAML_gOcy1DcNom+19xr26_4326511B64+S_od11gBGbLfNk1qg@mail.gmail.com>
-References: <20160927074203.GA3968@akamai.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, johunt@akamai.com,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        Vishwanath Pai <pai.vishwain@gmail.com>
-To: Vishwanath Pai <vpai@akamai.com>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf] netfilter: nft_limit: fix divded by zero panic
+Date: Tue, 27 Sep 2016 20:49:19 +0800
+Message-ID: <1474980559-4104-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
+        Liping Zhang <liping.zhang@spreadtrum.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f48.google.com ([209.85.213.48]:35308 "EHLO
-        mail-vk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753657AbcI0KXv (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Sep 2016 06:23:51 -0400
-In-Reply-To: <20160927074203.GA3968@akamai.com>
+Received: from m12-12.163.com ([220.181.12.12]:60126 "EHLO m12-12.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752635AbcI0MuM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 27 Sep 2016 08:50:12 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi  Vishwanath Pai,
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-2016-09-27 15:42 GMT+08:00 Vishwanath Pai <vpai@akamai.com>:
-> Fix link error in 32bit arch because of 64bit division
+After I input the following nftables rule, a panic happened on my system:
+  # nft add rule filter OUTPUT limit rate 0xf00000000 bytes/second
 
-This should be "netfilter: xt_hashlimit: fix ... "
+  divide error: 0000 [#1] SMP
+  [ ... ]
+  RIP: 0010:[<ffffffffa059035e>]  [<ffffffffa059035e>]
+  nft_limit_pkt_bytes_eval+0x2e/0xa0 [nft_limit]
+  Call Trace:
+  [<ffffffffa05721bb>] nft_do_chain+0xfb/0x4e0 [nf_tables]
+  [<ffffffffa044f236>] ? nf_nat_setup_info+0x96/0x480 [nf_nat]
+  [<ffffffff81753767>] ? ipt_do_table+0x327/0x610
+  [<ffffffffa044f677>] ? __nf_nat_alloc_null_binding+0x57/0x80 [nf_nat]
+  [<ffffffffa058b21f>] nft_ipv4_output+0xaf/0xd0 [nf_tables_ipv4]
+  [<ffffffff816f4aa2>] nf_iterate+0x62/0x80
+  [<ffffffff816f4b33>] nf_hook_slow+0x73/0xd0
+  [<ffffffff81703d0d>] __ip_local_out+0xcd/0xe0
+  [<ffffffff81701d90>] ? ip_forward_options+0x1b0/0x1b0
+  [<ffffffff81703d3c>] ip_local_out+0x1c/0x40
 
->
-> --- a/net/netfilter/xt_hashlimit.c
-> +++ b/net/netfilter/xt_hashlimit.c
-> @@ -465,19 +465,20 @@ static u64 user2credits(u64 user, int revision)
->  {
->         if (revision == 1) {
->                 /* If multiplying would overflow... */
-> -               if (user > 0xFFFFFFFF / (HZ*CREDITS_PER_JIFFY_v1))
-> +               if (user > div64_u64(0xFFFFFFFF, (HZ*CREDITS_PER_JIFFY_v1)))
+This is because divisor is 64-bit, but we treat it as a 32-bit integer,
+then 0xf00000000 becomes zero, i.e. divisor becomes 0.
 
-Here divisor and dividend are all 32-bit integer, so covert "/" to div64_u64
-seems unnecessary.
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+---
+ net/netfilter/nft_limit.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
->                         /* Divide first. */
-> -                       return (user / XT_HASHLIMIT_SCALE) *\
-> +                       return div64_u64(user, XT_HASHLIMIT_SCALE) *\
->                                                 HZ * CREDITS_PER_JIFFY_v1;
->
-> -               return (user * HZ * CREDITS_PER_JIFFY_v1) \
-> -                                               / XT_HASHLIMIT_SCALE;
-> +               return div64_u64((user * HZ * CREDITS_PER_JIFFY_v1),
-> +                                 XT_HASHLIMIT_SCALE);
->         } else {
-> -               if (user > 0xFFFFFFFFFFFFFFFF / (HZ*CREDITS_PER_JIFFY))
-> -                       return (user / XT_HASHLIMIT_SCALE_v2) *\
-> +               if (user > div64_u64(0xFFFFFFFFFFFFFFFF, (HZ*CREDITS_PER_JIFFY)))
+diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
+index 070b989..c6baf41 100644
+--- a/net/netfilter/nft_limit.c
++++ b/net/netfilter/nft_limit.c
+@@ -145,7 +145,7 @@ static int nft_limit_pkts_init(const struct nft_ctx *ctx,
+ 	if (err < 0)
+ 		return err;
+ 
+-	priv->cost = div_u64(priv->limit.nsecs, priv->limit.rate);
++	priv->cost = div64_u64(priv->limit.nsecs, priv->limit.rate);
+ 	return 0;
+ }
+ 
+@@ -170,7 +170,7 @@ static void nft_limit_pkt_bytes_eval(const struct nft_expr *expr,
+ 				     const struct nft_pktinfo *pkt)
+ {
+ 	struct nft_limit *priv = nft_expr_priv(expr);
+-	u64 cost = div_u64(priv->nsecs * pkt->skb->len, priv->rate);
++	u64 cost = div64_u64(priv->nsecs * pkt->skb->len, priv->rate);
+ 
+ 	if (nft_limit_eval(priv, cost))
+ 		regs->verdict.code = NFT_BREAK;
+-- 
+2.5.5
 
-0xFFFFFFFFFFFFFFFF and "HZ*CREDITS_PER_JIFFY" are both
-constant, and GCC will do constant folding optimization, so I think
-convert "/" to div64_u64 here is also unnecessary.
 
-> +                       return div64_u64(user, XT_HASHLIMIT_SCALE_v2) *\
->                                                 HZ * CREDITS_PER_JIFFY;
->
-> -               return (user * HZ * CREDITS_PER_JIFFY) / XT_HASHLIMIT_SCALE_v2;
-> +               return div64_u64((user * HZ * CREDITS_PER_JIFFY),
-> +                                XT_HASHLIMIT_SCALE_v2);
->         }
->  }
->
