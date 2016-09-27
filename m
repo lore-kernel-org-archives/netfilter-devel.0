@@ -1,68 +1,66 @@
-From: Vishwanath Pai <pai.vishwain@gmail.com>
-Subject: Re: [PATCH v3 2/2] netfilter: Create revision 2 of xt_hashlimit to
- support higher pps rates
-Date: Tue, 27 Sep 2016 03:35:15 -0400
-Message-ID: <CAGt3NP83Xw0rC8dfcU8GJ0UdJGxkkbS-oD96nHDkdtQuHHrQfA@mail.gmail.com>
-References: <20160922164344.GB20423@akamai.com> <CAML_gOdcrnmuHkxA1xAb2HDXHpo+=+sw+oJBfKXF3ijApsjTqg@mail.gmail.com>
+From: Vishwanath Pai <vpai@akamai.com>
+Subject: [PATCH] Fix link error in 32bit arch because of 64bit division
+Date: Tue, 27 Sep 2016 03:42:03 -0400
+Message-ID: <20160927074203.GA3968@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Vishwanath Pai <vpai@akamai.com>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Josh Hunt <johunt@akamai.com>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org
-To: Liping Zhang <zlpnobody@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu, johunt@akamai.com,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, pai.vishwain@gmail.com, zlpnobody@gmail.com
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:36787 "EHLO
-        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751572AbcI0HfR (ORCPT
+Received: from prod-mail-xrelay05.akamai.com ([23.79.238.179]:23500 "EHLO
+        prod-mail-xrelay05.akamai.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751468AbcI0HmF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Sep 2016 03:35:17 -0400
-In-Reply-To: <CAML_gOdcrnmuHkxA1xAb2HDXHpo+=+sw+oJBfKXF3ijApsjTqg@mail.gmail.com>
+        Tue, 27 Sep 2016 03:42:05 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Sep 27, 2016 at 12:15 AM, Liping Zhang <zlpnobody@gmail.com> wrote:
-> Hi Vishwanath,
->
-> 2016-09-23 0:43 GMT+08:00 Vishwanath Pai <vpai@akamai.com>:
->>
->>  /* Precision saver. */
->> -static u32 user2credits(u32 user)
->> +static u64 user2credits(u64 user, int revision)
->>  {
->> -       /* If multiplying would overflow... */
->> -       if (user > 0xFFFFFFFF / (HZ*CREDITS_PER_JIFFY_v1))
->> -               /* Divide first. */
->> -               return (user / XT_HASHLIMIT_SCALE_v1) *\
->> -                                       HZ * CREDITS_PER_JIFFY_v1;
->> +       if (revision == 1) {
->> +               /* If multiplying would overflow... */
->> +               if (user > 0xFFFFFFFF / (HZ*CREDITS_PER_JIFFY_v1))
->> +                       /* Divide first. */
->> +                       return (user / XT_HASHLIMIT_SCALE_v1) *\
->> +                                               HZ * CREDITS_PER_JIFFY_v1;
->> +
->> +               return (user * HZ * CREDITS_PER_JIFFY_v1) \
->> +                                               / XT_HASHLIMIT_SCALE_v1;
->> +       } else {
->> +               if (user > 0xFFFFFFFFFFFFFFFF / (HZ*CREDITS_PER_JIFFY))
->> +                       return (user / XT_HASHLIMIT_SCALE) *\
->> +                                               HZ * CREDITS_PER_JIFFY;
->>
->> -       return (user * HZ * CREDITS_PER_JIFFY_v1) / XT_HASHLIMIT_SCALE_v1;
->> +               return (user * HZ * CREDITS_PER_JIFFY) / XT_HASHLIMIT_SCALE;
->> +       }
->>  }
->>
->
-> In my memory, 64-bit division operation should be replaced by
-> div_u64 or div64_u64, otherwise on some 32-bit architecture
-> systems, link error will happen. Something like this:
-> ... undefined reference to `__udivdi3'.
+Fix link error in 32bit arch because of 64bit division
 
-I did not know that, thanks for pointing it out. I will send a patch
-to fix this.
+Division of 64bit integers will cause linker error undefined reference
+to `__udivdi3'. Fix this by replacing divisions with div64_64
 
--Vishwanath
+Signed-off-by: Vishwanath Pai <vpai@akamai.com>
+
+---
+ net/netfilter/xt_hashlimit.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 44a095e..7fc694e 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -465,19 +465,20 @@ static u64 user2credits(u64 user, int revision)
+ {
+ 	if (revision == 1) {
+ 		/* If multiplying would overflow... */
+-		if (user > 0xFFFFFFFF / (HZ*CREDITS_PER_JIFFY_v1))
++		if (user > div64_u64(0xFFFFFFFF, (HZ*CREDITS_PER_JIFFY_v1)))
+ 			/* Divide first. */
+-			return (user / XT_HASHLIMIT_SCALE) *\
++			return div64_u64(user, XT_HASHLIMIT_SCALE) *\
+ 						HZ * CREDITS_PER_JIFFY_v1;
+ 
+-		return (user * HZ * CREDITS_PER_JIFFY_v1) \
+-						/ XT_HASHLIMIT_SCALE;
++		return div64_u64((user * HZ * CREDITS_PER_JIFFY_v1),
++				  XT_HASHLIMIT_SCALE);
+ 	} else {
+-		if (user > 0xFFFFFFFFFFFFFFFF / (HZ*CREDITS_PER_JIFFY))
+-			return (user / XT_HASHLIMIT_SCALE_v2) *\
++		if (user > div64_u64(0xFFFFFFFFFFFFFFFF, (HZ*CREDITS_PER_JIFFY)))
++			return div64_u64(user, XT_HASHLIMIT_SCALE_v2) *\
+ 						HZ * CREDITS_PER_JIFFY;
+ 
+-		return (user * HZ * CREDITS_PER_JIFFY) / XT_HASHLIMIT_SCALE_v2;
++		return div64_u64((user * HZ * CREDITS_PER_JIFFY),
++				 XT_HASHLIMIT_SCALE_v2);
+ 	}
+ }
+ 
+-- 
+1.9.1
+
