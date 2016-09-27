@@ -1,313 +1,72 @@
-From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Subject: Re: linux-next: Tree for Sep 27
-Date: Tue, 27 Sep 2016 19:03:24 +0900
-Message-ID: <20160927100324.GA466@swordfish>
-References: <20160927164026.741b290b@canb.auug.org.au>
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH] Fix link error in 32bit arch because of 64bit division
+Date: Tue, 27 Sep 2016 18:23:50 +0800
+Message-ID: <CAML_gOcy1DcNom+19xr26_4326511B64+S_od11gBGbLfNk1qg@mail.gmail.com>
+References: <20160927074203.GA3968@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>,
-        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-To: Aaron Conole <aconole@bytheb.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160927164026.741b290b@canb.auug.org.au>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, johunt@akamai.com,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        Vishwanath Pai <pai.vishwain@gmail.com>
+To: Vishwanath Pai <vpai@akamai.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-vk0-f48.google.com ([209.85.213.48]:35308 "EHLO
+        mail-vk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753657AbcI0KXv (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 27 Sep 2016 06:23:51 -0400
+In-Reply-To: <20160927074203.GA3968@akamai.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+Hi  Vishwanath Pai,
 
-On (09/27/16 16:40), Stephen Rothwell wrote:
-> 
-> Changes since 20160923:
-> 
+2016-09-27 15:42 GMT+08:00 Vishwanath Pai <vpai@akamai.com>:
+> Fix link error in 32bit arch because of 64bit division
 
-seems that commit e3b37f11e6e4e6b6 ("netfilter: replace list_head with
-single linked list") breaks the build on !CONFIG_NETFILTER_INGRESS systems
-accessing ->nf_hooks_ingress
+This should be "netfilter: xt_hashlimit: fix ... "
 
-static void nf_set_hooks_head(struct net *net, const struct nf_hook_ops *reg,
-                             struct nf_hook_entry *entry)
-{
-       switch (reg->pf) {
-       case NFPROTO_NETDEV:
-               /* We already checked in nf_register_net_hook() that this is
-                * used from ingress.
-                */
-               rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-					^^^^^^^^^^^^^^^^^^^^
+>
+> --- a/net/netfilter/xt_hashlimit.c
+> +++ b/net/netfilter/xt_hashlimit.c
+> @@ -465,19 +465,20 @@ static u64 user2credits(u64 user, int revision)
+>  {
+>         if (revision == 1) {
+>                 /* If multiplying would overflow... */
+> -               if (user > 0xFFFFFFFF / (HZ*CREDITS_PER_JIFFY_v1))
+> +               if (user > div64_u64(0xFFFFFFFF, (HZ*CREDITS_PER_JIFFY_v1)))
 
+Here divisor and dividend are all 32-bit integer, so covert "/" to div64_u64
+seems unnecessary.
 
-log:
+>                         /* Divide first. */
+> -                       return (user / XT_HASHLIMIT_SCALE) *\
+> +                       return div64_u64(user, XT_HASHLIMIT_SCALE) *\
+>                                                 HZ * CREDITS_PER_JIFFY_v1;
+>
+> -               return (user * HZ * CREDITS_PER_JIFFY_v1) \
+> -                                               / XT_HASHLIMIT_SCALE;
+> +               return div64_u64((user * HZ * CREDITS_PER_JIFFY_v1),
+> +                                 XT_HASHLIMIT_SCALE);
+>         } else {
+> -               if (user > 0xFFFFFFFFFFFFFFFF / (HZ*CREDITS_PER_JIFFY))
+> -                       return (user / XT_HASHLIMIT_SCALE_v2) *\
+> +               if (user > div64_u64(0xFFFFFFFFFFFFFFFF, (HZ*CREDITS_PER_JIFFY)))
 
+0xFFFFFFFFFFFFFFFF and "HZ*CREDITS_PER_JIFFY" are both
+constant, and GCC will do constant folding optimization, so I think
+convert "/" to div64_u64 here is also unnecessary.
 
-In file included from ./include/linux/linkage.h:4:0,
-                 from ./include/linux/kernel.h:6,
-                 from net/netfilter/core.c:10:
-net/netfilter/core.c: In function ‘nf_set_hooks_head’:
-net/netfilter/core.c:96:30: error: ‘struct net_device’ has no member named ‘nf_hooks_ingress’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-                              ^
-./include/linux/compiler.h:322:17: note: in definition of macro ‘WRITE_ONCE’
-  union { typeof(x) __val; char __c[1]; } __u = \
-                 ^
-net/netfilter/core.c:96:3: note: in expansion of macro ‘rcu_assign_pointer’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-   ^~~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:30: error: ‘struct net_device’ has no member named ‘nf_hooks_ingress’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-                              ^
-./include/linux/compiler.h:323:30: note: in definition of macro ‘WRITE_ONCE’
-   { .__val = (__force typeof(x)) (val) }; \
-                              ^
-net/netfilter/core.c:96:3: note: in expansion of macro ‘rcu_assign_pointer’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-   ^~~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:30: error: ‘struct net_device’ has no member named ‘nf_hooks_ingress’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-                              ^
-./include/linux/compiler.h:323:35: note: in definition of macro ‘WRITE_ONCE’
-   { .__val = (__force typeof(x)) (val) }; \
-                                   ^~~
-net/netfilter/core.c:96:3: note: in expansion of macro ‘rcu_assign_pointer’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-   ^~~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:30: error: ‘struct net_device’ has no member named ‘nf_hooks_ingress’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-                              ^
-./include/linux/compiler.h:324:22: note: in definition of macro ‘WRITE_ONCE’
-  __write_once_size(&(x), __u.__c, sizeof(x)); \
-                      ^
-net/netfilter/core.c:96:3: note: in expansion of macro ‘rcu_assign_pointer’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-   ^~~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:30: error: ‘struct net_device’ has no member named ‘nf_hooks_ingress’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-                              ^
-./include/linux/compiler.h:324:42: note: in definition of macro ‘WRITE_ONCE’
-  __write_once_size(&(x), __u.__c, sizeof(x)); \
-                                          ^
-net/netfilter/core.c:96:3: note: in expansion of macro ‘rcu_assign_pointer’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-   ^~~~~~~~~~~~~~~~~~
-In file included from ./include/linux/linkage.h:4:0,
-                 from ./include/linux/kernel.h:6,
-                 from net/netfilter/core.c:10:
-net/netfilter/core.c:96:30: error: ‘struct net_device’ has no member named ‘nf_hooks_ingress’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-                              ^
-./include/linux/compiler.h:498:19: note: in definition of macro ‘__compiletime_assert’
-   bool __cond = !(condition);    \
-                   ^~~~~~~~~
-./include/linux/compiler.h:518:2: note: in expansion of macro ‘_compiletime_assert’
-  _compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
-  ^~~~~~~~~~~~~~~~~~~
-./include/linux/compiler.h:521:2: note: in expansion of macro ‘compiletime_assert’
-  compiletime_assert(__native_word(t),    \
-  ^~~~~~~~~~~~~~~~~~
-./include/linux/compiler.h:521:21: note: in expansion of macro ‘__native_word’
-  compiletime_assert(__native_word(t),    \
-                     ^~~~~~~~~~~~~
-./arch/x86/include/asm/barrier.h:64:2: note: in expansion of macro ‘compiletime_assert_atomic_type’
-  compiletime_assert_atomic_type(*p);    \
-  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-./include/asm-generic/barrier.h:157:33: note: in expansion of macro ‘__smp_store_release’
- #define smp_store_release(p, v) __smp_store_release(p, v)
-                                 ^~~~~~~~~~~~~~~~~~~
-./include/linux/rcupdate.h:668:3: note: in expansion of macro ‘smp_store_release’
-   smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
-   ^~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:3: note: in expansion of macro ‘rcu_assign_pointer’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-   ^~~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:30: error: ‘struct net_device’ has no member named ‘nf_hooks_ingress’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-                              ^
-./include/linux/compiler.h:498:19: note: in definition of macro ‘__compiletime_assert’
-   bool __cond = !(condition);    \
-                   ^~~~~~~~~
-./include/linux/compiler.h:518:2: note: in expansion of macro ‘_compiletime_assert’
-  _compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
-  ^~~~~~~~~~~~~~~~~~~
-./include/linux/compiler.h:521:2: note: in expansion of macro ‘compiletime_assert’
-  compiletime_assert(__native_word(t),    \
-  ^~~~~~~~~~~~~~~~~~
-./include/linux/compiler.h:521:21: note: in expansion of macro ‘__native_word’
-  compiletime_assert(__native_word(t),    \
-                     ^~~~~~~~~~~~~
-./arch/x86/include/asm/barrier.h:64:2: note: in expansion of macro ‘compiletime_assert_atomic_type’
-  compiletime_assert_atomic_type(*p);    \
-  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-./include/asm-generic/barrier.h:157:33: note: in expansion of macro ‘__smp_store_release’
- #define smp_store_release(p, v) __smp_store_release(p, v)
-                                 ^~~~~~~~~~~~~~~~~~~
-./include/linux/rcupdate.h:668:3: note: in expansion of macro ‘smp_store_release’
-   smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
-   ^~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:3: note: in expansion of macro ‘rcu_assign_pointer’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-   ^~~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:30: error: ‘struct net_device’ has no member named ‘nf_hooks_ingress’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-                              ^
-./include/linux/compiler.h:498:19: note: in definition of macro ‘__compiletime_assert’
-   bool __cond = !(condition);    \
-                   ^~~~~~~~~
-./include/linux/compiler.h:518:2: note: in expansion of macro ‘_compiletime_assert’
-  _compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
-  ^~~~~~~~~~~~~~~~~~~
-./include/linux/compiler.h:521:2: note: in expansion of macro ‘compiletime_assert’
-  compiletime_assert(__native_word(t),    \
-  ^~~~~~~~~~~~~~~~~~
-./include/linux/compiler.h:521:21: note: in expansion of macro ‘__native_word’
-  compiletime_assert(__native_word(t),    \
-                     ^~~~~~~~~~~~~
-./arch/x86/include/asm/barrier.h:64:2: note: in expansion of macro ‘compiletime_assert_atomic_type’
-  compiletime_assert_atomic_type(*p);    \
-  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-./include/asm-generic/barrier.h:157:33: note: in expansion of macro ‘__smp_store_release’
- #define smp_store_release(p, v) __smp_store_release(p, v)
-                                 ^~~~~~~~~~~~~~~~~~~
-./include/linux/rcupdate.h:668:3: note: in expansion of macro ‘smp_store_release’
-   smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
-   ^~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:3: note: in expansion of macro ‘rcu_assign_pointer’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-   ^~~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:30: error: ‘struct net_device’ has no member named ‘nf_hooks_ingress’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-                              ^
-./include/linux/compiler.h:498:19: note: in definition of macro ‘__compiletime_assert’
-   bool __cond = !(condition);    \
-                   ^~~~~~~~~
-./include/linux/compiler.h:518:2: note: in expansion of macro ‘_compiletime_assert’
-  _compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
-  ^~~~~~~~~~~~~~~~~~~
-./include/linux/compiler.h:521:2: note: in expansion of macro ‘compiletime_assert’
-  compiletime_assert(__native_word(t),    \
-  ^~~~~~~~~~~~~~~~~~
-./include/linux/compiler.h:521:21: note: in expansion of macro ‘__native_word’
-  compiletime_assert(__native_word(t),    \
-                     ^~~~~~~~~~~~~
-./arch/x86/include/asm/barrier.h:64:2: note: in expansion of macro ‘compiletime_assert_atomic_type’
-  compiletime_assert_atomic_type(*p);    \
-  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-./include/asm-generic/barrier.h:157:33: note: in expansion of macro ‘__smp_store_release’
- #define smp_store_release(p, v) __smp_store_release(p, v)
-                                 ^~~~~~~~~~~~~~~~~~~
-./include/linux/rcupdate.h:668:3: note: in expansion of macro ‘smp_store_release’
-   smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
-   ^~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:3: note: in expansion of macro ‘rcu_assign_pointer’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-   ^~~~~~~~~~~~~~~~~~
-In file included from ./include/linux/linkage.h:4:0,
-                 from ./include/linux/kernel.h:6,
-                 from net/netfilter/core.c:10:
-net/netfilter/core.c:96:30: error: ‘struct net_device’ has no member named ‘nf_hooks_ingress’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-                              ^
-./include/linux/compiler.h:322:17: note: in definition of macro ‘WRITE_ONCE’
-  union { typeof(x) __val; char __c[1]; } __u = \
-                 ^
-./include/asm-generic/barrier.h:157:33: note: in expansion of macro ‘__smp_store_release’
- #define smp_store_release(p, v) __smp_store_release(p, v)
-                                 ^~~~~~~~~~~~~~~~~~~
-./include/linux/rcupdate.h:668:3: note: in expansion of macro ‘smp_store_release’
-   smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
-   ^~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:3: note: in expansion of macro ‘rcu_assign_pointer’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-   ^~~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:30: error: ‘struct net_device’ has no member named ‘nf_hooks_ingress’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-                              ^
-./include/linux/compiler.h:323:30: note: in definition of macro ‘WRITE_ONCE’
-   { .__val = (__force typeof(x)) (val) }; \
-                              ^
-./include/asm-generic/barrier.h:157:33: note: in expansion of macro ‘__smp_store_release’
- #define smp_store_release(p, v) __smp_store_release(p, v)
-                                 ^~~~~~~~~~~~~~~~~~~
-./include/linux/rcupdate.h:668:3: note: in expansion of macro ‘smp_store_release’
-   smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
-   ^~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:3: note: in expansion of macro ‘rcu_assign_pointer’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-   ^~~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:30: error: ‘struct net_device’ has no member named ‘nf_hooks_ingress’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-                              ^
-./include/linux/compiler.h:323:35: note: in definition of macro ‘WRITE_ONCE’
-   { .__val = (__force typeof(x)) (val) }; \
-                                   ^~~
-./include/asm-generic/barrier.h:157:33: note: in expansion of macro ‘__smp_store_release’
- #define smp_store_release(p, v) __smp_store_release(p, v)
-                                 ^~~~~~~~~~~~~~~~~~~
-./include/linux/rcupdate.h:668:3: note: in expansion of macro ‘smp_store_release’
-   smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
-   ^~~~~~~~~~~~~~~~~
-./include/linux/rcupdate.h:668:25: note: in expansion of macro ‘RCU_INITIALIZER’
-   smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
-                         ^~~~~~~~~~~~~~~
-net/netfilter/core.c:96:3: note: in expansion of macro ‘rcu_assign_pointer’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-   ^~~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:30: error: ‘struct net_device’ has no member named ‘nf_hooks_ingress’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-                              ^
-./include/linux/compiler.h:323:35: note: in definition of macro ‘WRITE_ONCE’
-   { .__val = (__force typeof(x)) (val) }; \
-                                   ^~~
-./include/asm-generic/barrier.h:157:33: note: in expansion of macro ‘__smp_store_release’
- #define smp_store_release(p, v) __smp_store_release(p, v)
-                                 ^~~~~~~~~~~~~~~~~~~
-./include/linux/rcupdate.h:668:3: note: in expansion of macro ‘smp_store_release’
-   smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
-   ^~~~~~~~~~~~~~~~~
-./include/linux/rcupdate.h:668:25: note: in expansion of macro ‘RCU_INITIALIZER’
-   smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
-                         ^~~~~~~~~~~~~~~
-net/netfilter/core.c:96:3: note: in expansion of macro ‘rcu_assign_pointer’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-   ^~~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:30: error: ‘struct net_device’ has no member named ‘nf_hooks_ingress’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-                              ^
-./include/linux/compiler.h:324:22: note: in definition of macro ‘WRITE_ONCE’
-  __write_once_size(&(x), __u.__c, sizeof(x)); \
-                      ^
-./include/asm-generic/barrier.h:157:33: note: in expansion of macro ‘__smp_store_release’
- #define smp_store_release(p, v) __smp_store_release(p, v)
-                                 ^~~~~~~~~~~~~~~~~~~
-./include/linux/rcupdate.h:668:3: note: in expansion of macro ‘smp_store_release’
-   smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
-   ^~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:3: note: in expansion of macro ‘rcu_assign_pointer’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-   ^~~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:30: error: ‘struct net_device’ has no member named ‘nf_hooks_ingress’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-                              ^
-./include/linux/compiler.h:324:42: note: in definition of macro ‘WRITE_ONCE’
-  __write_once_size(&(x), __u.__c, sizeof(x)); \
-                                          ^
-./include/asm-generic/barrier.h:157:33: note: in expansion of macro ‘__smp_store_release’
- #define smp_store_release(p, v) __smp_store_release(p, v)
-                                 ^~~~~~~~~~~~~~~~~~~
-./include/linux/rcupdate.h:668:3: note: in expansion of macro ‘smp_store_release’
-   smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
-   ^~~~~~~~~~~~~~~~~
-net/netfilter/core.c:96:3: note: in expansion of macro ‘rcu_assign_pointer’
-   rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
-   ^~~~~~~~~~~~~~~~~~
-  CC      net/ipv4/ip_fragment.o
-make[2]: *** [scripts/Makefile.build:290: net/netfilter/core.o] Error 1
-make[1]: *** [scripts/Makefile.build:475: net/netfilter] Error 2
-make[1]: *** Waiting for unfinished jobs....
-
-	-ss
+> +                       return div64_u64(user, XT_HASHLIMIT_SCALE_v2) *\
+>                                                 HZ * CREDITS_PER_JIFFY;
+>
+> -               return (user * HZ * CREDITS_PER_JIFFY) / XT_HASHLIMIT_SCALE_v2;
+> +               return div64_u64((user * HZ * CREDITS_PER_JIFFY),
+> +                                XT_HASHLIMIT_SCALE_v2);
+>         }
+>  }
+>
