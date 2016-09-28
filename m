@@ -1,29 +1,54 @@
-From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <maze@google.com>
-Subject: Re: [PATCH v2] netfilter: xt_hashlimit: Fix link error in 32bit arch
- because of 64bit division
-Date: Wed, 28 Sep 2016 11:32:02 +0900
-Message-ID: <CANP3RGeJbCf=1Y+R-3NiZx+QWbXX14fxp+41AAG0NWd73S8bfg@mail.gmail.com>
-References: <20160927135718.GA31297@akamai.com>
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH nf-next v2 1/2] netfilter: Fix potential null pointer dereference
+Date: Wed, 28 Sep 2016 11:08:05 +0800
+Message-ID: <CAML_gOeTZhaWXffe0UqXRP_e=-+1vCs_z9ynrG7XJeUnmOs-6A@mail.gmail.com>
+References: <1474983515-4115-1-git-send-email-aconole@bytheb.org>
+ <1474983515-4115-2-git-send-email-aconole@bytheb.org> <CA+6hz4q_Fjc7mVZq7RG+RnioXFnD0w8Ows0AqwEy-5CJ7zg0yQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, johunt@akamai.com,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Linux NetDev <netdev@vger.kernel.org>, pai.vishwain@gmail.com,
-        kaber@trash.net, kadlec@blackhole.kfki.hu, zlpnobody@gmail.com,
-        Hannes Frederic Sowa <hannes@stressinduktion.org>,
-        Eric Dumazet <eric.dumazet@gmail.com>
-To: Vishwanath Pai <vpai@akamai.com>
+Cc: Aaron Conole <aconole@bytheb.org>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+To: Feng Gao <gfree.wind@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yb0-f173.google.com ([209.85.213.173]:33113 "EHLO
-        mail-yb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756481AbcI1CcM (ORCPT
+Received: from mail-ua0-f193.google.com ([209.85.217.193]:36353 "EHLO
+        mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752183AbcI1DIT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Sep 2016 22:32:12 -0400
-Received: by mail-yb0-f173.google.com with SMTP id 2so11796398ybv.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 27 Sep 2016 19:32:11 -0700 (PDT)
-In-Reply-To: <20160927135718.GA31297@akamai.com>
+        Tue, 27 Sep 2016 23:08:19 -0400
+In-Reply-To: <CA+6hz4q_Fjc7mVZq7RG+RnioXFnD0w8Ows0AqwEy-5CJ7zg0yQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I don't think you actually need the backslashes since this ain't in a
-MACRO definition context.
+Hi Feng,
+
+2016-09-28 9:23 GMT+08:00 Feng Gao <gfree.wind@gmail.com>:
+> Hi Aaraon,
+>
+> On Tue, Sep 27, 2016 at 9:38 PM, Aaron Conole <aconole@bytheb.org> wrote:
+>> It's possible for nf_hook_entry_head to return NULL if two
+>> nf_unregister_net_hook calls happen simultaneously with a single hook
+>
+> The critical region of nf_unregister_net_hook is protected by &nf_hook_mutex.
+> When it would be called simultaneously?
+
+This is unrelated to race condition.
+
+Suppose that only the last nf_hook_entry exist, and two callers want to do
+un-register work.
+
+The first one will remove it successfully, after the end of the work, the
+second one will enter the critical section, but it will see the NULL pointer.
+Because the last nf_hook_entry was already removed by the first one.
+
+>
+> Regards
+> Feng
+>
+>> entry in the list.  This fix ensures that no null pointer dereference
+>> could occur when such a race happens.
+>>
+>> Signed-off-by: Aaron Conole <aconole@bytheb.org>
