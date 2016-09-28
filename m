@@ -1,63 +1,29 @@
-From: Feng Gao <gfree.wind@gmail.com>
-Subject: Re: [PATCH nf-next v2 1/2] netfilter: Fix potential null pointer dereference
-Date: Wed, 28 Sep 2016 09:23:34 +0800
-Message-ID: <CA+6hz4q_Fjc7mVZq7RG+RnioXFnD0w8Ows0AqwEy-5CJ7zg0yQ@mail.gmail.com>
-References: <1474983515-4115-1-git-send-email-aconole@bytheb.org> <1474983515-4115-2-git-send-email-aconole@bytheb.org>
+From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <maze@google.com>
+Subject: Re: [PATCH v2] netfilter: xt_hashlimit: Fix link error in 32bit arch
+ because of 64bit division
+Date: Wed, 28 Sep 2016 11:32:02 +0900
+Message-ID: <CANP3RGeJbCf=1Y+R-3NiZx+QWbXX14fxp+41AAG0NWd73S8bfg@mail.gmail.com>
+References: <20160927135718.GA31297@akamai.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-To: Aaron Conole <aconole@bytheb.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, johunt@akamai.com,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Linux NetDev <netdev@vger.kernel.org>, pai.vishwain@gmail.com,
+        kaber@trash.net, kadlec@blackhole.kfki.hu, zlpnobody@gmail.com,
+        Hannes Frederic Sowa <hannes@stressinduktion.org>,
+        Eric Dumazet <eric.dumazet@gmail.com>
+To: Vishwanath Pai <vpai@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f65.google.com ([209.85.213.65]:36288 "EHLO
-        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933931AbcI1BXg (ORCPT
+Received: from mail-yb0-f173.google.com ([209.85.213.173]:33113 "EHLO
+        mail-yb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756481AbcI1CcM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Sep 2016 21:23:36 -0400
-In-Reply-To: <1474983515-4115-2-git-send-email-aconole@bytheb.org>
+        Tue, 27 Sep 2016 22:32:12 -0400
+Received: by mail-yb0-f173.google.com with SMTP id 2so11796398ybv.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 27 Sep 2016 19:32:11 -0700 (PDT)
+In-Reply-To: <20160927135718.GA31297@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Aaraon,
-
-On Tue, Sep 27, 2016 at 9:38 PM, Aaron Conole <aconole@bytheb.org> wrote:
-> It's possible for nf_hook_entry_head to return NULL if two
-> nf_unregister_net_hook calls happen simultaneously with a single hook
-
-The critical region of nf_unregister_net_hook is protected by &nf_hook_mutex.
-When it would be called simultaneously?
-
-Regards
-Feng
-
-> entry in the list.  This fix ensures that no null pointer dereference
-> could occur when such a race happens.
->
-> Signed-off-by: Aaron Conole <aconole@bytheb.org>
-> ---
->  net/netfilter/core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-> index 360c63d..e58e420 100644
-> --- a/net/netfilter/core.c
-> +++ b/net/netfilter/core.c
-> @@ -160,7 +160,7 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
->
->         mutex_lock(&nf_hook_mutex);
->         hooks_entry = nf_hook_entry_head(net, reg);
-> -       if (hooks_entry->orig_ops == reg) {
-> +       if (hooks_entry && hooks_entry->orig_ops == reg) {
->                 nf_set_hooks_head(net, reg,
->                                   nf_entry_dereference(hooks_entry->next));
->                 goto unlock;
-> --
-> 2.7.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I don't think you actually need the backslashes since this ain't in a
+MACRO definition context.
