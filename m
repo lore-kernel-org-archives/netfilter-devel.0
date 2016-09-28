@@ -1,64 +1,50 @@
-From: Feng Gao <gfree.wind@gmail.com>
-Subject: Re: [PATCH nf-next v2 1/2] netfilter: Fix potential null pointer dereference
-Date: Wed, 28 Sep 2016 15:56:40 +0800
-Message-ID: <CA+6hz4o4jA4quVRWdG8Tcb7miEQxBpK8bvOcsLW2LX74jYvSQg@mail.gmail.com>
-References: <1474983515-4115-1-git-send-email-aconole@bytheb.org>
- <1474983515-4115-2-git-send-email-aconole@bytheb.org> <CA+6hz4q_Fjc7mVZq7RG+RnioXFnD0w8Ows0AqwEy-5CJ7zg0yQ@mail.gmail.com>
- <CAML_gOeTZhaWXffe0UqXRP_e=-+1vCs_z9ynrG7XJeUnmOs-6A@mail.gmail.com> <CAML_gOeqjO--cPu=vt+ed14NqXP1uU41J0RDg5Up7xM79SCWjQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Aaron Conole <aconole@bytheb.org>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        Florian Westphal <fw@strlen.de>,
+From: Aaron Conole <aconole@bytheb.org>
+Subject: [PATCH nf-next v3 1/2] netfilter: Fix potential null pointer dereference
+Date: Wed, 28 Sep 2016 09:12:47 -0400
+Message-ID: <1475068368-3109-2-git-send-email-aconole@bytheb.org>
+References: <1475068368-3109-1-git-send-email-aconole@bytheb.org>
+Cc: Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>
-To: Liping Zhang <zlpnobody@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAML_gOeqjO--cPu=vt+ed14NqXP1uU41J0RDg5Up7xM79SCWjQ@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-yw0-f193.google.com ([209.85.161.193]:33354 "EHLO
+        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932427AbcI1NM7 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 28 Sep 2016 09:12:59 -0400
+Received: by mail-yw0-f193.google.com with SMTP id g192so1737143ywh.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 28 Sep 2016 06:12:58 -0700 (PDT)
+In-Reply-To: <1475068368-3109-1-git-send-email-aconole@bytheb.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Liping,
+It's possible for nf_hook_entry_head to return NULL.  If two
+nf_unregister_net_hook calls happen simultaneously with a single hook
+entry in the list, both will enter the nf_hook_mutex critical section.
+The first will successfully delete the head, but the second will see
+this NULL pointer and attempt to dereference.
 
-On Wed, Sep 28, 2016 at 11:13 AM, Liping Zhang <zlpnobody@gmail.com> wrote:
-> 2016-09-28 11:08 GMT+08:00 Liping Zhang <zlpnobody@gmail.com>:
->> Hi Feng,
->>
->> 2016-09-28 9:23 GMT+08:00 Feng Gao <gfree.wind@gmail.com>:
->>> Hi Aaraon,
->>>
->>> On Tue, Sep 27, 2016 at 9:38 PM, Aaron Conole <aconole@bytheb.org> wrote:
->>>> It's possible for nf_hook_entry_head to return NULL if two
->>>> nf_unregister_net_hook calls happen simultaneously with a single hook
->>>
->>> The critical region of nf_unregister_net_hook is protected by &nf_hook_mutex.
->>> When it would be called simultaneously?
->>
->> This is unrelated to race condition.
->>
->> Suppose that only the last nf_hook_entry exist, and two callers want to do
->> un-register work.
->>
->> The first one will remove it successfully, after the end of the work, the
->> second one will enter the critical section, but it will see the NULL pointer.
->> Because the last nf_hook_entry was already removed by the first one.
->>
->>>
->>> Regards
->>> Feng
->>>
->>>> entry in the list.  This fix ensures that no null pointer dereference
->>>> could occur when such a race happens.
->>>>
->>>> Signed-off-by: Aaron Conole <aconole@bytheb.org>
->
-> I read the commit log again, I think the description here is a
-> little confusing indeed.
+This fix ensures that no null pointer dereference could occur when such
+a condition happens.
 
-Yes. I doesn't check if the list head always exists, just learn the
-patch from commit log.
-It confuses me indeed.
+Signed-off-by: Aaron Conole <aconole@bytheb.org>
+---
+ net/netfilter/core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Regards
-Feng
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 360c63d..e58e420 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -160,7 +160,7 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ 
+ 	mutex_lock(&nf_hook_mutex);
+ 	hooks_entry = nf_hook_entry_head(net, reg);
+-	if (hooks_entry->orig_ops == reg) {
++	if (hooks_entry && hooks_entry->orig_ops == reg) {
+ 		nf_set_hooks_head(net, reg,
+ 				  nf_entry_dereference(hooks_entry->next));
+ 		goto unlock;
+-- 
+2.7.4
+
