@@ -1,76 +1,42 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: linux-next: manual merge of the netfilter-next tree with the
- net tree
-Date: Thu, 29 Sep 2016 11:20:14 +1000
-Message-ID: <20160929112014.4293728d@canb.auug.org.au>
-References: <20160913101250.0ffee30f@canb.auug.org.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        David Miller <davem@davemloft.net>,
-        Networking <netdev@vger.kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160913101250.0ffee30f@canb.auug.org.au>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: fgao@ikuai8.com
+Subject: [PATCH nft] doc: Fix wrong word in description of option "-n --numberic"
+Date: Thu, 29 Sep 2016 20:39:43 +0800
+Message-ID: <1475152783-379-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtpbg320.qq.com ([14.17.32.29]:50801 "EHLO smtpbg320.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750877AbcI2Mks (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 29 Sep 2016 08:40:48 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi all,
+From: Gao Feng <fgao@ikuai8.com>
 
-On Tue, 13 Sep 2016 10:12:50 +1000 Stephen Rothwell <sfr@canb.auug.org.au> wrote:
->
-> Today's linux-next merge of the netfilter-next tree got a conflict in:
-> 
->   net/netfilter/nf_tables_netdev.c
-> 
-> between commit:
-> 
->   c73c24849011 ("netfilter: nf_tables_netdev: remove redundant ip_hdr assignment")
-> 
-> from the net tree and commit:
-> 
->   ddc8b6027ad0 ("netfilter: introduce nft_set_pktinfo_{ipv4, ipv6}_validate()")
-> 
-> from the netfilter-next tree.
-> 
-> I fixed it up (I used the latter version of this file and applied the
-> patch below) and can carry the fix as necessary. This is now fixed as
-> far as linux-next is concerned, but any non trivial conflicts should be
-> mentioned to your upstream maintainer when your tree is submitted for
-> merging.  You may also want to consider cooperating with the maintainer
-> of the conflicting tree to minimise any particularly complex conflicts.
-> 
-> From: Stephen Rothwell <sfr@canb.auug.org.au>
-> Date: Tue, 13 Sep 2016 10:08:58 +1000
-> Subject: [PATCH] netfilter: merge fixup for "nf_tables_netdev: remove
->  redundant ip_hdr assignment"
-> 
-> Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-> ---
->  include/net/netfilter/nf_tables_ipv4.h | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
-> index 968f00b82fb5..25e33aee91e7 100644
-> --- a/include/net/netfilter/nf_tables_ipv4.h
-> +++ b/include/net/netfilter/nf_tables_ipv4.h
-> @@ -33,7 +33,6 @@ __nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt,
->  	if (!iph)
->  		return -1;
->  
-> -	iph = ip_hdr(skb);
->  	if (iph->ihl < 5 || iph->version != 4)
->  		return -1;
->  
-> -- 
-> 2.8.1
+There is one wrong word in description of option "-n --numberic" in
+nft.xml. There are duplicated "used twice", and the former one should
+be "used once".
 
-The above merge fix patch is now needed when the net-next tree is
-merged with Linus' tree.
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ doc/nft.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/doc/nft.xml b/doc/nft.xml
+index 3b215f8..bc09623 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -113,7 +113,7 @@ vi:ts=4 sw=4
+ 					<para>
+ 						Numeric output: Addresses and other information
+ 						that might need network traffic to resolve to symbolic names
+-						are shown numerically (default behaviour). When used twice,
++						are shown numerically (default behaviour). When used once,
+ 						internet services are translated. When used twice, internet
+ 						services and UIDs/GIDs are also shown numerically. When used
+ 						three times, protocol numbers are also shown numerically.
 -- 
-Cheers,
-Stephen Rothwell
+1.9.1
+
+
