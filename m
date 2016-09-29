@@ -1,91 +1,76 @@
-From: Aaron Conole <aconole@bytheb.org>
-Subject: Re: [PATCH nf-next v3 1/2] netfilter: Fix potential null pointer dereference
-Date: Wed, 28 Sep 2016 11:38:27 -0400
-Message-ID: <f7tbmz8hw5o.fsf@redhat.com>
-References: <1475068368-3109-1-git-send-email-aconole@bytheb.org>
-        <1475068368-3109-2-git-send-email-aconole@bytheb.org>
-        <1475069735.28155.102.camel@edumazet-glaptop3.roam.corp.google.com>
-        <f7ty42chy3k.fsf@redhat.com>
-        <1475076603.28155.105.camel@edumazet-glaptop3.roam.corp.google.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: linux-next: manual merge of the netfilter-next tree with the
+ net tree
+Date: Thu, 29 Sep 2016 11:20:14 +1000
+Message-ID: <20160929112014.4293728d@canb.auug.org.au>
+References: <20160913101250.0ffee30f@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:33095 "EHLO
-        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932960AbcI1Pia (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Sep 2016 11:38:30 -0400
-Received: by mail-qk0-f193.google.com with SMTP id n66so2957446qkf.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 28 Sep 2016 08:38:30 -0700 (PDT)
-In-Reply-To: <1475076603.28155.105.camel@edumazet-glaptop3.roam.corp.google.com>
-        (Eric Dumazet's message of "Wed, 28 Sep 2016 08:30:03 -0700")
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Liping Zhang <liping.zhang@spreadtrum.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        David Miller <davem@davemloft.net>,
+        Networking <netdev@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160913101250.0ffee30f@canb.auug.org.au>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Eric Dumazet <eric.dumazet@gmail.com> writes:
+Hi all,
 
-> On Wed, 2016-09-28 at 10:56 -0400, Aaron Conole wrote:
->> Eric Dumazet <eric.dumazet@gmail.com> writes:
->> 
->> > On Wed, 2016-09-28 at 09:12 -0400, Aaron Conole wrote:
->> >> It's possible for nf_hook_entry_head to return NULL.  If two
->> >> nf_unregister_net_hook calls happen simultaneously with a single hook
->> >> entry in the list, both will enter the nf_hook_mutex critical section.
->> >> The first will successfully delete the head, but the second will see
->> >> this NULL pointer and attempt to dereference.
->> >> 
->> >> This fix ensures that no null pointer dereference could occur when such
->> >> a condition happens.
->> >> 
->> >> Signed-off-by: Aaron Conole <aconole@bytheb.org>
->> >> ---
->> >>  net/netfilter/core.c | 2 +-
->> >>  1 file changed, 1 insertion(+), 1 deletion(-)
->> >> 
->> >> diff --git a/net/netfilter/core.c b/net/netfilter/core.c
->> >> index 360c63d..e58e420 100644
->> >> --- a/net/netfilter/core.c
->> >> +++ b/net/netfilter/core.c
->> >> @@ -160,7 +160,7 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
->> >>  
->> >>  	mutex_lock(&nf_hook_mutex);
->> >>  	hooks_entry = nf_hook_entry_head(net, reg);
->> >> -	if (hooks_entry->orig_ops == reg) {
->> >> +	if (hooks_entry && hooks_entry->orig_ops == reg) {
->> >>  		nf_set_hooks_head(net, reg,
->> >>  				  nf_entry_dereference(hooks_entry->next));
->> >>  		goto unlock;
->> >
->> > When was the bug added exactly ?
->> 
->> Sunday, on the nf-next tree.
->> 
->> > For all bug fixes, you need to add a Fixes: tag.
->> >
->> > Like :
->> >
->> > Fixes: e3b37f11e6e4 ("netfilter: replace list_head with single linked list")
->> 
->> I would but it's in nf-next tree, and I'm not sure how pulls go.  If
->> they are done via patch imports, then the sha sums will be wrong and the
->> commit message will be misleading.  If the sums are preserved, then I
->> can resubmit with this information.
->> 
+On Tue, 13 Sep 2016 10:12:50 +1000 Stephen Rothwell <sfr@canb.auug.org.au> wrote:
 >
-> I gave the (12 digits) sha-1 as present in David Miller net-next tree.
->
-> https://git.kernel.org/cgit/linux/kernel/git/davem/net-next.git/commit/?id=e3b37f11e6e4e6b6f02cc762f182ce233d2c1c9d
->
->
-> This wont change, because David never rebases his tree under normal
-> operations.
->
-> Thanks.
+> Today's linux-next merge of the netfilter-next tree got a conflict in:
+> 
+>   net/netfilter/nf_tables_netdev.c
+> 
+> between commit:
+> 
+>   c73c24849011 ("netfilter: nf_tables_netdev: remove redundant ip_hdr assignment")
+> 
+> from the net tree and commit:
+> 
+>   ddc8b6027ad0 ("netfilter: introduce nft_set_pktinfo_{ipv4, ipv6}_validate()")
+> 
+> from the netfilter-next tree.
+> 
+> I fixed it up (I used the latter version of this file and applied the
+> patch below) and can carry the fix as necessary. This is now fixed as
+> far as linux-next is concerned, but any non trivial conflicts should be
+> mentioned to your upstream maintainer when your tree is submitted for
+> merging.  You may also want to consider cooperating with the maintainer
+> of the conflicting tree to minimise any particularly complex conflicts.
+> 
+> From: Stephen Rothwell <sfr@canb.auug.org.au>
+> Date: Tue, 13 Sep 2016 10:08:58 +1000
+> Subject: [PATCH] netfilter: merge fixup for "nf_tables_netdev: remove
+>  redundant ip_hdr assignment"
+> 
+> Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+> ---
+>  include/net/netfilter/nf_tables_ipv4.h | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
+> index 968f00b82fb5..25e33aee91e7 100644
+> --- a/include/net/netfilter/nf_tables_ipv4.h
+> +++ b/include/net/netfilter/nf_tables_ipv4.h
+> @@ -33,7 +33,6 @@ __nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt,
+>  	if (!iph)
+>  		return -1;
+>  
+> -	iph = ip_hdr(skb);
+>  	if (iph->ihl < 5 || iph->version != 4)
+>  		return -1;
+>  
+> -- 
+> 2.8.1
 
-Thank you very much, Eric.  I've reposted.
+The above merge fix patch is now needed when the net-next tree is
+merged with Linus' tree.
 
--Aaron
+-- 
+Cheers,
+Stephen Rothwell
