@@ -1,29 +1,42 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next v4 1/2] netfilter: Fix potential null pointer
- dereference
-Date: Fri, 30 Sep 2016 19:41:52 +0200
-Message-ID: <20160930174152.GC1176@salvia>
-References: <1475076915-5920-1-git-send-email-aconole@bytheb.org>
- <1475076915-5920-2-git-send-email-aconole@bytheb.org>
+Subject: Re: [PATCH 1/3] netfilter: nf_tables: avoid uninitialized variable
+ warning
+Date: Fri, 30 Sep 2016 20:21:29 +0200
+Message-ID: <20160930182006.GA1767@salvia>
+References: <20160930160559.4102745-1-arnd@arndb.de>
+ <20160930174749.GF1176@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        Florian Westphal <fw@strlen.de>
-To: Aaron Conole <aconole@bytheb.org>
+Cc: Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1475076915-5920-2-git-send-email-aconole@bytheb.org>
+In-Reply-To: <20160930174749.GF1176@salvia>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Sep 28, 2016 at 11:35:14AM -0400, Aaron Conole wrote:
-> It's possible for nf_hook_entry_head to return NULL.  If two
-> nf_unregister_net_hook calls happen simultaneously with a single hook
-> entry in the list, both will enter the nf_hook_mutex critical section.
-> The first will successfully delete the head, but the second will see
-> this NULL pointer and attempt to dereference.
+On Fri, Sep 30, 2016 at 07:47:49PM +0200, Pablo Neira Ayuso wrote:
+> On Fri, Sep 30, 2016 at 06:05:34PM +0200, Arnd Bergmann wrote:
+> > The newly added nft_range_eval() function handles the two possible
+> > nft range operations, but as the compiler warning points out,
+> > any unexpected value would lead to the 'mismatch' variable being
+> > used without being initialized:
+> > 
+> > net/netfilter/nft_range.c: In function 'nft_range_eval':
+> > net/netfilter/nft_range.c:45:5: error: 'mismatch' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+> > 
+> > This can be trivially avoided by added a 'default:' clause.
 > 
-> This fix ensures that no null pointer dereference could occur when such
-> a condition happens.
+> Applied this patch, I took Aaron's and Pai's patches instead.
 
-Applied, thanks Aaron.
+Looking at this again, I know uninitialized_var() has been discussed
+as not nice since it can hide bugs behind. But if I fix the existing
+code to validate priv->op from _init() (this is currently broken), we
+can probably use this so save extra code in the packet path for a case
+that is not going to happen.
+
+Let me know, thanks!
