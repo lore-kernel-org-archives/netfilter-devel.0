@@ -1,32 +1,43 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next v4 2/2] nf_set_hooks_head: accommodate different
- kconfig
-Date: Fri, 30 Sep 2016 19:43:16 +0200
-Message-ID: <20160930174316.GD1176@salvia>
-References: <1475076915-5920-1-git-send-email-aconole@bytheb.org>
- <1475076915-5920-3-git-send-email-aconole@bytheb.org>
+Subject: Re: [PATCH net-next v3] netfilter: xt_hashlimit: Fix link error in
+ 32bit arch because of 64bit division
+Date: Fri, 30 Sep 2016 19:46:50 +0200
+Message-ID: <20160930174650.GE1176@salvia>
+References: <20160929173950.GA27689@akamai.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        Florian Westphal <fw@strlen.de>
-To: Aaron Conole <aconole@bytheb.org>
+Cc: johunt@akamai.com, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        pai.vishwain@gmail.com, kaber@trash.net, kadlec@blackhole.kfki.hu,
+        zlpnobody@gmail.com, hannes@stressinduktion.org, maze@google.com,
+        eric.dumazet@gmail.com, akpm@linux-foundation.org
+To: Vishwanath Pai <vpai@akamai.com>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1475076915-5920-3-git-send-email-aconole@bytheb.org>
+In-Reply-To: <20160929173950.GA27689@akamai.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Sep 28, 2016 at 11:35:15AM -0400, Aaron Conole wrote:
-> When CONFIG_NETFILTER_INGRESS is unset (or no), we need to handle
-> the request for registration properly by dropping the hook.  This
-> releases the entry during the set.
+On Thu, Sep 29, 2016 at 01:39:50PM -0400, Vishwanath Pai wrote:
+> v2:
+> Remove unnecessary div64_u64 around constants
+> 
+> v3:
+> remove backslashes
+> 
+> --
+> 
+> Fix link error in 32bit arch because of 64bit division
+> 
+> Division of 64bit integers will cause linker error undefined reference
+> to `__udivdi3'. Fix this by replacing divisions with div64_64
 
-Also applied.
+Applied, thanks Pai.
 
-I have renamed the subject to:
+> Signed-off-by: Vishwanath Pai <vpai@akamai.com>
+> Fixes: 11d5f15723c9 ("netfilter: xt_hashlimit: Create revision 2 to ...")
+> 
+> ---
 
-        netfilter: accommodate different kconfig in nf_set_hooks_head()
-
-to make it look similar to what we have in the history.
-
-Thanks.
+Please, next time place the versioning information here, otherwise git
+am takes the wrong description here.
