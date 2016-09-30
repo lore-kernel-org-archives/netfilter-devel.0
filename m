@@ -1,70 +1,44 @@
-From: Vishwanath Pai <vpai@akamai.com>
-Subject: [PATCH net-next v3] netfilter: xt_hashlimit: Fix link error in 32bit
- arch because of 64bit division
-Date: Thu, 29 Sep 2016 13:39:50 -0400
-Message-ID: <20160929173950.GA27689@akamai.com>
+From: =?UTF-8?Q?Maciej_=C5=BBenczykowski?= <maze@google.com>
+Subject: Re: [PATCH net-next v3] netfilter: xt_hashlimit: Fix link error in
+ 32bit arch because of 64bit division
+Date: Fri, 30 Sep 2016 10:53:20 +0900
+Message-ID: <CANP3RGcdmHe3-w=20z1y3dbS0P3YdX7N2m+wF6g1xiAwrCjHng@mail.gmail.com>
+References: <20160929173950.GA27689@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: johunt@akamai.com, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        pai.vishwain@gmail.com, kaber@trash.net, kadlec@blackhole.kfki.hu,
-        zlpnobody@gmail.com, hannes@stressinduktion.org, maze@google.com,
-        eric.dumazet@gmail.com, akpm@linux-foundation.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, johunt@akamai.com,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Linux NetDev <netdev@vger.kernel.org>,
+        Vishwanath Pai <pai.vishwain@gmail.com>,
+        Patrick McHardy <kaber@trash.net>, kadlec@blackhole.kfki.hu,
+        zlpnobody@gmail.com,
+        Hannes Frederic Sowa <hannes@stressinduktion.org>,
+        Eric Dumazet <eric.dumazet@gmail.com>,
+        akpm@linux-foundation.org
+To: Vishwanath Pai <vpai@akamai.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-yb0-f176.google.com ([209.85.213.176]:36672 "EHLO
+        mail-yb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935177AbcI3BxV (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 29 Sep 2016 21:53:21 -0400
+Received: by mail-yb0-f176.google.com with SMTP id z8so23660778ybh.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Sep 2016 18:53:21 -0700 (PDT)
+In-Reply-To: <20160929173950.GA27689@akamai.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-v2:
-Remove unnecessary div64_u64 around constants
+> +               return div64_u64((user * HZ * CREDITS_PER_JIFFY_v1),
+> +                                XT_HASHLIMIT_SCALE);
 
-v3:
-remove backslashes
+spurious ()
 
---
+> +               return div64_u64((user * HZ * CREDITS_PER_JIFFY),
+> +                                XT_HASHLIMIT_SCALE_v2);
 
-Fix link error in 32bit arch because of 64bit division
+spurious ()
 
-Division of 64bit integers will cause linker error undefined reference
-to `__udivdi3'. Fix this by replacing divisions with div64_64
+but:
 
-Signed-off-by: Vishwanath Pai <vpai@akamai.com>
-Fixes: 11d5f15723c9 ("netfilter: xt_hashlimit: Create revision 2 to ...")
-
----
- net/netfilter/xt_hashlimit.c | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
-
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 44a095e..faf65f1 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -467,17 +467,18 @@ static u64 user2credits(u64 user, int revision)
- 		/* If multiplying would overflow... */
- 		if (user > 0xFFFFFFFF / (HZ*CREDITS_PER_JIFFY_v1))
- 			/* Divide first. */
--			return (user / XT_HASHLIMIT_SCALE) *\
--						HZ * CREDITS_PER_JIFFY_v1;
-+			return div64_u64(user, XT_HASHLIMIT_SCALE)
-+				* HZ * CREDITS_PER_JIFFY_v1;
- 
--		return (user * HZ * CREDITS_PER_JIFFY_v1) \
--						/ XT_HASHLIMIT_SCALE;
-+		return div64_u64((user * HZ * CREDITS_PER_JIFFY_v1),
-+				 XT_HASHLIMIT_SCALE);
- 	} else {
- 		if (user > 0xFFFFFFFFFFFFFFFF / (HZ*CREDITS_PER_JIFFY))
--			return (user / XT_HASHLIMIT_SCALE_v2) *\
--						HZ * CREDITS_PER_JIFFY;
-+			return div64_u64(user, XT_HASHLIMIT_SCALE_v2)
-+				* HZ * CREDITS_PER_JIFFY;
- 
--		return (user * HZ * CREDITS_PER_JIFFY) / XT_HASHLIMIT_SCALE_v2;
-+		return div64_u64((user * HZ * CREDITS_PER_JIFFY),
-+				 XT_HASHLIMIT_SCALE_v2);
- 	}
- }
- 
--- 
-1.9.1
+Acked-by: Maciej =C5=BBenczykowski
