@@ -1,55 +1,63 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: nft_limit: fix divded by zero panic
-Date: Tue, 4 Oct 2016 08:59:37 +0200
-Message-ID: <20161004065937.GA13178@salvia>
-References: <1474980559-4104-1-git-send-email-zlpnobody@163.com>
+Subject: Re: [PATCH nft] doc: Fix wrong word in description of option "-n
+ --numberic"
+Date: Tue, 4 Oct 2016 09:29:18 +0200
+Message-ID: <20161004072917.GA19465@salvia>
+References: <1475152783-379-1-git-send-email-fgao@ikuai8.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: Liping Zhang <zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, gfree.wind@gmail.com
+To: fgao@ikuai8.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35376 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53050 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752029AbcJDG7q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 Oct 2016 02:59:46 -0400
+        id S1752253AbcJDH3e (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 4 Oct 2016 03:29:34 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6CC4526E2F
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 Oct 2016 08:59:44 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id ABB1D15AEAC
+        for <netfilter-devel@vger.kernel.org>; Tue,  4 Oct 2016 09:29:30 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 62E61BAC3F
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 Oct 2016 08:59:44 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9F78DBAC22
+        for <netfilter-devel@vger.kernel.org>; Tue,  4 Oct 2016 09:29:30 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 22A11BAC3F
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 Oct 2016 08:59:42 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D6903DA91E
+        for <netfilter-devel@vger.kernel.org>; Tue,  4 Oct 2016 09:29:26 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1474980559-4104-1-git-send-email-zlpnobody@163.com>
+In-Reply-To: <1475152783-379-1-git-send-email-fgao@ikuai8.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Sep 27, 2016 at 08:49:19PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
+On Thu, Sep 29, 2016 at 08:39:43PM +0800, fgao@ikuai8.com wrote:
+> From: Gao Feng <fgao@ikuai8.com>
 > 
-> After I input the following nftables rule, a panic happened on my system:
->   # nft add rule filter OUTPUT limit rate 0xf00000000 bytes/second
+> There is one wrong word in description of option "-n --numberic" in
+> nft.xml. There are duplicated "used twice", and the former one should
+> be "used once".
 > 
->   divide error: 0000 [#1] SMP
->   [ ... ]
->   RIP: 0010:[<ffffffffa059035e>]  [<ffffffffa059035e>]
->   nft_limit_pkt_bytes_eval+0x2e/0xa0 [nft_limit]
->   Call Trace:
->   [<ffffffffa05721bb>] nft_do_chain+0xfb/0x4e0 [nf_tables]
->   [<ffffffffa044f236>] ? nf_nat_setup_info+0x96/0x480 [nf_nat]
->   [<ffffffff81753767>] ? ipt_do_table+0x327/0x610
->   [<ffffffffa044f677>] ? __nf_nat_alloc_null_binding+0x57/0x80 [nf_nat]
->   [<ffffffffa058b21f>] nft_ipv4_output+0xaf/0xd0 [nf_tables_ipv4]
->   [<ffffffff816f4aa2>] nf_iterate+0x62/0x80
->   [<ffffffff816f4b33>] nf_hook_slow+0x73/0xd0
->   [<ffffffff81703d0d>] __ip_local_out+0xcd/0xe0
->   [<ffffffff81701d90>] ? ip_forward_options+0x1b0/0x1b0
->   [<ffffffff81703d3c>] ip_local_out+0x1c/0x40
+> Signed-off-by: Gao Feng <fgao@ikuai8.com>
+> ---
+>  doc/nft.xml | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> This is because divisor is 64-bit, but we treat it as a 32-bit integer,
-> then 0xf00000000 becomes zero, i.e. divisor becomes 0.
+> diff --git a/doc/nft.xml b/doc/nft.xml
+> index 3b215f8..bc09623 100644
+> --- a/doc/nft.xml
+> +++ b/doc/nft.xml
+> @@ -113,7 +113,7 @@ vi:ts=4 sw=4
+>  					<para>
+>  						Numeric output: Addresses and other information
+>  						that might need network traffic to resolve to symbolic names
+> -						are shown numerically (default behaviour). When used twice,
+> +						are shown numerically (default behaviour). When used once,
 
-Applied, thanks!
+No, this is done on purpose. The first -n is these days noop.
+
+Originally, this first -n displayed IP addresses as we were displaying
+names by default.
+
+See commit 31f031b0d348afd1c343692eca4b496c4bf5d05d
+Author: Arturo Borrero <arturo.borrero.glez@gmail.com>
+Date:   Thu Nov 6 09:05:28 2014 +0100
+
+    nft: don't resolve hostnames by default
+
