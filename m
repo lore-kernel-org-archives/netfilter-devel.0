@@ -1,42 +1,58 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: error: 'struct net_device' has no member named
- 'nf_hooks_ingress'
-Date: Thu, 06 Oct 2016 06:11:26 +0900
-Message-ID: <1475701886.28155.223.camel@edumazet-glaptop3.roam.corp.google.com>
-References: <20160927164026.741b290b@canb.auug.org.au>
-         <20160927100324.GA466@swordfish> <20161004004801.GA4661@swordfish>
-         <87wphm1pn8.fsf@steelpick.2x.cz>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [GIT] Networking
+Date: Thu, 6 Oct 2016 09:29:47 +1100
+Message-ID: <20161006092947.25ae781c@canb.auug.org.au>
+References: <20161005.014437.1946431553783736769.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>,
-        Aaron Conole <aconole@bytheb.org>, linux-next@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Florian Westphal <fw@strlen.de>,
+Cc: NetFilter <netfilter-devel@vger.kernel.org>,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-To: Michal Sojka <sojkam1@fel.cvut.cz>
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <87wphm1pn8.fsf@steelpick.2x.cz>
-Sender: linux-next-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+        Liping Zhang <liping.zhang@spreadtrum.com>
+To: David Miller <davem@davemloft.net>, torvalds@linux-foundation.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ozlabs.org ([103.22.144.67]:49929 "EHLO ozlabs.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934086AbcJEW3w (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 5 Oct 2016 18:29:52 -0400
+In-Reply-To: <20161005.014437.1946431553783736769.davem@davemloft.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 2016-10-05 at 22:56 +0200, Michal Sojka wrote:
+Hi Linus, Dave,
 
-> this commit is now in mainline as
-> e3b37f11e6e4e6b6f02cc762f182ce233d2c1c9d and it breaks my build:
-> 
->     net/netfilter/core.c: In function 'nf_set_hooks_head':
->     net/netfilter/core.c:96:3: error: 'struct net_device' has no member named 'nf_hooks_ingress'
-> 
-> Are the fixes (see below) on the way to mainline too?
+On Wed, 05 Oct 2016 01:44:37 -0400 (EDT) David Miller <davem@davemloft.net> wrote:
+>
 
-Yes the fixes are already in nf tree and _will_ get pushed.
+I have been carrying the following merge fix patch (for the merge of
+the net-next tree with Linus' tree) for a while now which seems to have
+got missed:
 
-Pablo and David are attending netdev 1.2 in Tokyo and have obligations.
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Tue, 13 Sep 2016 10:08:58 +1000
+Subject: [PATCH] netfilter: merge fixup for "nf_tables_netdev: remove redundant ip_hdr assignment"
 
-https://git.kernel.org/cgit/linux/kernel/git/pablo/nf-next.git/
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+---
+ include/net/netfilter/nf_tables_ipv4.h | 1 -
+ 1 file changed, 1 deletion(-)
 
-Thanks.
+diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
+index 968f00b82fb5..25e33aee91e7 100644
+--- a/include/net/netfilter/nf_tables_ipv4.h
++++ b/include/net/netfilter/nf_tables_ipv4.h
+@@ -33,7 +33,6 @@ __nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt,
+ 	if (!iph)
+ 		return -1;
+ 
+-	iph = ip_hdr(skb);
+ 	if (iph->ihl < 5 || iph->version != 4)
+ 		return -1;
+ 
+-- 
+2.8.1
+
+-- 
+Cheers,
+Stephen Rothwell
