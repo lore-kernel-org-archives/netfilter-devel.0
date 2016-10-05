@@ -1,63 +1,95 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] doc: Fix wrong word in description of option "-n
- --numberic"
-Date: Tue, 4 Oct 2016 09:29:18 +0200
-Message-ID: <20161004072917.GA19465@salvia>
-References: <1475152783-379-1-git-send-email-fgao@ikuai8.com>
+From: Michal Sojka <sojkam1@fel.cvut.cz>
+Subject: error: 'struct net_device' has no member named 'nf_hooks_ingress'
+Date: Wed, 05 Oct 2016 22:56:11 +0200
+Message-ID: <87wphm1pn8.fsf@steelpick.2x.cz>
+References: <20160927164026.741b290b@canb.auug.org.au> <20160927100324.GA466@swordfish> <20161004004801.GA4661@swordfish>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, gfree.wind@gmail.com
-To: fgao@ikuai8.com
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53050 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752253AbcJDH3e (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 Oct 2016 03:29:34 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id ABB1D15AEAC
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 Oct 2016 09:29:30 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9F78DBAC22
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 Oct 2016 09:29:30 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D6903DA91E
-        for <netfilter-devel@vger.kernel.org>; Tue,  4 Oct 2016 09:29:26 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1475152783-379-1-git-send-email-fgao@ikuai8.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
+        Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+To: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>,
+        Aaron Conole <aconole@bytheb.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161004004801.GA4661@swordfish>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Sep 29, 2016 at 08:39:43PM +0800, fgao@ikuai8.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
-> 
-> There is one wrong word in description of option "-n --numberic" in
-> nft.xml. There are duplicated "used twice", and the former one should
-> be "used once".
-> 
-> Signed-off-by: Gao Feng <fgao@ikuai8.com>
-> ---
->  doc/nft.xml | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/doc/nft.xml b/doc/nft.xml
-> index 3b215f8..bc09623 100644
-> --- a/doc/nft.xml
-> +++ b/doc/nft.xml
-> @@ -113,7 +113,7 @@ vi:ts=4 sw=4
->  					<para>
->  						Numeric output: Addresses and other information
->  						that might need network traffic to resolve to symbolic names
-> -						are shown numerically (default behaviour). When used twice,
-> +						are shown numerically (default behaviour). When used once,
+Hi,
 
-No, this is done on purpose. The first -n is these days noop.
+On Tue, Oct 04 2016, Sergey Senozhatsky wrote:
+> On (09/27/16 19:03), Sergey Senozhatsky wrote:
+>> Hello,
+>> 
+>> On (09/27/16 16:40), Stephen Rothwell wrote:
+>> > 
+>> > Changes since 20160923:
+>> > 
+>> 
+>> seems that commit e3b37f11e6e4e6b6 ("netfilter: replace list_head with
+>> single linked list") breaks the build on !CONFIG_NETFILTER_INGRESS systems
+>> accessing ->nf_hooks_ingress
 
-Originally, this first -n displayed IP addresses as we were displaying
-names by default.
+this commit is now in mainline as
+e3b37f11e6e4e6b6f02cc762f182ce233d2c1c9d and it breaks my build:
 
-See commit 31f031b0d348afd1c343692eca4b496c4bf5d05d
-Author: Arturo Borrero <arturo.borrero.glez@gmail.com>
-Date:   Thu Nov 6 09:05:28 2014 +0100
+    net/netfilter/core.c: In function 'nf_set_hooks_head':
+    net/netfilter/core.c:96:3: error: 'struct net_device' has no member named 'nf_hooks_ingress'
 
-    nft: don't resolve hostnames by default
+Are the fixes (see below) on the way to mainline too?
 
+Thanks.
+-Michal
+
+
+
+>> 
+>> static void nf_set_hooks_head(struct net *net, const struct nf_hook_ops *reg,
+>>                              struct nf_hook_entry *entry)
+>> {
+>>        switch (reg->pf) {
+>>        case NFPROTO_NETDEV:
+>>                /* We already checked in nf_register_net_hook() that this is
+>>                 * used from ingress.
+>>                 */
+>>                rcu_assign_pointer(reg->dev->nf_hooks_ingress, entry);
+>> 					^^^^^^^^^^^^^^^^^^^^
+>
+>
+> so I see two commits in linux-next now that fix the commit in question in
+> two patches
+>
+>  : commit 7816ec564ec40ae20bb7925f733a181cad0cc491 ("netfilter: accommodate
+>  : different kconfig in nf_set_hooks_head")
+>  :
+>  :    When CONFIG_NETFILTER_INGRESS is unset (or no), we need to handle
+>  :    the request for registration properly by dropping the hook.  This
+>  :    releases the entry during the set.
+>  :
+>  :    Fixes: e3b37f11e6e4 ("netfilter: replace list_head with single linked list")
+>
+> and
+>
+>  : commit 5119e4381a90fabd3442bde02707cbd9e5d7367a ("netfilter: Fix potential
+>  : null pointer dereference")
+>  :
+>  :    It's possible for nf_hook_entry_head to return NULL.  If two
+>  :    nf_unregister_net_hook calls happen simultaneously with a single hook
+>  :    entry in the list, both will enter the nf_hook_mutex critical section.
+>  :    The first will successfully delete the head, but the second will see
+>  :    this NULL pointer and attempt to dereference.
+>  :
+>  :    This fix ensures that no null pointer dereference could occur when such
+>  :    a condition happens.
+>  :
+>  :    Fixes: e3b37f11e6e4 ("netfilter: replace list_head with single linked list")
+>
+>
+> do you guys plan to fold those into "e3b37f11e6e4" (a preferred way)
+> or will send it out as 3 separate patches (um, why) ?
+>
+> 	-ss
