@@ -1,43 +1,83 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [GIT] Networking
-Date: Wed, 5 Oct 2016 15:37:17 -0700
-Message-ID: <CA+55aFzbHD95PMUk4JQfAVkDDRcwzZ6vfvMR60tZnQNSwkDE6A@mail.gmail.com>
-References: <20161005.014437.1946431553783736769.davem@davemloft.net> <20161006092947.25ae781c@canb.auug.org.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: David Miller <davem@davemloft.net>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: Stephen Rothwell <sfr@canb.auug.org.au>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/5] Netfilter fixes for net-next
+Date: Thu,  6 Oct 2016 02:07:44 +0200
+Message-ID: <1475712469-17000-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:33920 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754908AbcJEWh0 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 Oct 2016 18:37:26 -0400
-In-Reply-To: <20161006092947.25ae781c@canb.auug.org.au>
+Received: from mail.us.es ([193.147.175.20]:34418 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755289AbcJFAIG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 5 Oct 2016 20:08:06 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 695BFC880E
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Oct 2016 02:08:04 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 59D80DA849
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Oct 2016 02:08:04 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2ABB6DA848
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Oct 2016 02:08:00 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Oct 5, 2016 at 3:29 PM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
->
-> I have been carrying the following merge fix patch (for the merge of
-> the net-next tree with Linus' tree) for a while now which seems to have
-> got missed:
+Hi David,
 
-Ugh. It doesn't seem to be a merge error, because that double iph
-assignment came from the original patch that introduced this function:
-commit ddc8b6027ad0 ("netfilter: introduce nft_set_pktinfo_{ipv4,
-ipv6}_validate()").
+This is a pull request to address fallout from previous nf-next pull
+request, only fixes going on here:
 
-So I wouldn't call it a merge error - it just looks like a bug in the
-network layer. So I'm not going to apply your patch even though it
-looks plausible to me, simply because it's outside my area of
-expertise.
+1) Address a potential null dereference in nf_unregister_net_hook()
+   when becomes nf_hook_entry_head is NULL, from Aaron Conole.
 
-David? Pablo?
+2) Missing ifdef for CONFIG_NETFILTER_INGRESS, also from Aaron.
 
-           Linus
+3) Fix linking problems in xt_hashlimit in x86_32, from Pai.
+
+4) Fix permissions of nf_log sysctl from unpriviledge netns, from
+   Jann Horn.
+
+5) Fix possible divide by zero in nft_limit, from Liping Zhang.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+P.S: Sorry for not addressing this any sooner, a mixture of traveling
+overhead, conference and problems with wifi connection has prevented me
+to do this any sooner.
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 803783849fed11e38a30f31932c02c815520da70:
+
+  mlx5: Add ndo_poll_controller() implementation (2016-09-30 02:11:16 -0400)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
+
+for you to fetch changes up to 2fa46c130193300f06e68727ae98ec9f6184cad4:
+
+  netfilter: nft_limit: fix divided by zero panic (2016-10-04 08:59:03 +0200)
+
+----------------------------------------------------------------
+Aaron Conole (2):
+      netfilter: Fix potential null pointer dereference
+      netfilter: accommodate different kconfig in nf_set_hooks_head
+
+Jann Horn (1):
+      netfilter: fix namespace handling in nf_log_proc_dostring
+
+Liping Zhang (1):
+      netfilter: nft_limit: fix divided by zero panic
+
+Vishwanath Pai (1):
+      netfilter: xt_hashlimit: Fix link error in 32bit arch because of 64bit division
+
+ net/netfilter/core.c         | 17 ++++++++++++-----
+ net/netfilter/nf_log.c       |  6 ++++--
+ net/netfilter/nft_limit.c    |  4 ++--
+ net/netfilter/xt_hashlimit.c | 15 ++++++++-------
+ 4 files changed, 26 insertions(+), 16 deletions(-)
