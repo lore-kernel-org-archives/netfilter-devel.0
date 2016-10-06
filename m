@@ -1,53 +1,37 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: [GIT] Networking
-Date: Thu, 6 Oct 2016 11:52:35 +1100
-Message-ID: <20161006115235.1a89c0da@canb.auug.org.au>
+Date: Wed, 5 Oct 2016 19:14:21 -0700
+Message-ID: <CA+55aFz0jv3xAQTwrspM3HkXQLVv_H4QuHf9a0Fq2Zm+=_sDtQ@mail.gmail.com>
 References: <20161005.014437.1946431553783736769.davem@davemloft.net>
-        <20161006092947.25ae781c@canb.auug.org.au>
-        <CA+55aFzbHD95PMUk4JQfAVkDDRcwzZ6vfvMR60tZnQNSwkDE6A@mail.gmail.com>
+ <20161006092947.25ae781c@canb.auug.org.au> <CA+55aFzbHD95PMUk4JQfAVkDDRcwzZ6vfvMR60tZnQNSwkDE6A@mail.gmail.com>
+ <20161006115235.1a89c0da@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Cc: David Miller <davem@davemloft.net>,
         NetFilter <netfilter-devel@vger.kernel.org>,
         Network Development <netdev@vger.kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Liping Zhang <liping.zhang@spreadtrum.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CA+55aFzbHD95PMUk4JQfAVkDDRcwzZ6vfvMR60tZnQNSwkDE6A@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161006115235.1a89c0da@canb.auug.org.au>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Linus,
-
-On Wed, 5 Oct 2016 15:37:17 -0700 Linus Torvalds <torvalds@linux-foundation.org> wrote:
+On Wed, Oct 5, 2016 at 5:52 PM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
 >
-> On Wed, Oct 5, 2016 at 3:29 PM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> >
-> > I have been carrying the following merge fix patch (for the merge of
-> > the net-next tree with Linus' tree) for a while now which seems to have
-> > got missed:  
-> 
-> Ugh. It doesn't seem to be a merge error, because that double iph
-> assignment came from the original patch that introduced this function:
-> commit ddc8b6027ad0 ("netfilter: introduce nft_set_pktinfo_{ipv4,
-> ipv6}_validate()").
+> Except that commit effectively moved that function from
+> net/netfilter/nf_tables_netdev.c to
+> include/net/netfilter/nf_tables_ipv4.h while commit c73c24849011
+> ("netfilter: nf_tables_netdev: remove redundant ip_hdr assignment")
+> removed the assignment in the original file (and has been in your tree
+> since v4.8-rc7) and that is where I originally actually got a conflict.
 
-Except that commit effectively moved that function from
-net/netfilter/nf_tables_netdev.c to
-include/net/netfilter/nf_tables_ipv4.h while commit c73c24849011
-("netfilter: nf_tables_netdev: remove redundant ip_hdr assignment")
-removed the assignment in the original file (and has been in your tree
-since v4.8-rc7) and that is where I originally actually got a conflict.
+Oh, interesting. Why didn't I get the conflict there then?
 
-> So I wouldn't call it a merge error - it just looks like a bug in the
-> network layer. So I'm not going to apply your patch even though it
-> looks plausible to me, simply because it's outside my area of
-> expertise.
+I'm guessing (but too lazy to actually look up the history), that
+David ended up doing that merge and that ends up being why I never saw
+a conflict.
 
-no worries.
--- 
-Cheers,
-Stephen Rothwell
+               Linus
