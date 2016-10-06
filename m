@@ -1,53 +1,36 @@
-From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Subject: Re: error: 'struct net_device' has no member named 'nf_hooks_ingress'
-Date: Thu, 6 Oct 2016 13:31:39 +0900
-Message-ID: <20161006043139.GB5458@swordfish>
-References: <20160927164026.741b290b@canb.auug.org.au>
- <20160927100324.GA466@swordfish>
- <20161004004801.GA4661@swordfish>
- <87wphm1pn8.fsf@steelpick.2x.cz>
- <1475701886.28155.223.camel@edumazet-glaptop3.roam.corp.google.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [GIT] Networking
+Date: Thu, 6 Oct 2016 16:07:40 +1100
+Message-ID: <20161006160740.5ad372c5@canb.auug.org.au>
+References: <20161006115235.1a89c0da@canb.auug.org.au>
+        <CA+55aFz0jv3xAQTwrspM3HkXQLVv_H4QuHf9a0Fq2Zm+=_sDtQ@mail.gmail.com>
+        <20161006135152.3fd229cb@canb.auug.org.au>
+        <20161005.225612.251098478131222998.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Michal Sojka <sojkam1@fel.cvut.cz>,
-        Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>,
-        Aaron Conole <aconole@bytheb.org>, linux-next@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: torvalds@linux-foundation.org, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        pablo@netfilter.org, liping.zhang@spreadtrum.com
+To: David Miller <davem@davemloft.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1475701886.28155.223.camel@edumazet-glaptop3.roam.corp.google.com>
+In-Reply-To: <20161005.225612.251098478131222998.davem@davemloft.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On (10/06/16 06:11), Eric Dumazet wrote:
-> On Wed, 2016-10-05 at 22:56 +0200, Michal Sojka wrote:
-> 
-> > this commit is now in mainline as
-> > e3b37f11e6e4e6b6f02cc762f182ce233d2c1c9d and it breaks my build:
-> > 
-> >     net/netfilter/core.c: In function 'nf_set_hooks_head':
-> >     net/netfilter/core.c:96:3: error: 'struct net_device' has no member named 'nf_hooks_ingress'
-> > 
-> > Are the fixes (see below) on the way to mainline too?
-> 
-> Yes the fixes are already in nf tree and _will_ get pushed.
-> 
-> Pablo and David are attending netdev 1.2 in Tokyo and have obligations.
-> 
-> https://git.kernel.org/cgit/linux/kernel/git/pablo/nf-next.git/
+Hi Dave,
 
-well, I did my best to avoid it, but the guys didn't even bother to
-reply. pushing a knowingly broken patch that
-	a) kills the build
-	b) introduces a race
-	c) requires two "Fixes:" followup patches
-to the main line despite the fact that those problems were discovered
-at linux-next stage is totally un-cool.
+On Wed, 05 Oct 2016 22:56:12 -0400 (EDT) David Miller <davem@davemloft.net> wrote:
+>
+> Yes, this is where the change got lost.
 
-	-ss
+No worries.
+
+> I have all of the fixups queued up in my net tree and will send in a pull
+> request later.
+
+Thanks.
+
+-- 
+Cheers,
+Stephen Rothwell
