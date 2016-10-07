@@ -1,73 +1,67 @@
-From: Davide Caratti <dcaratti@redhat.com>
-Subject: [PATCH nf-next 1/2] netfilter: persistent aliases for l4 nat protocols
-Date: Thu,  6 Oct 2016 19:09:28 +0200
-Message-ID: <588ab5926ff8d1da17536f4511bbcaba5f84a3ff.1475773632.git.dcaratti@redhat.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [PATCH nf-next 0/2] netfilter: autoload NAT support for
+ non-builtin L4 protocols
+Date: Fri, 7 Oct 2016 09:35:47 +0200
+Message-ID: <CAOkSjBiQ0p+jP8tEq78Fighdhj34uoaLvTvn205ZsN8btmNJqg@mail.gmail.com>
 References: <cover.1475773632.git.dcaratti@redhat.com>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
         Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, fw@strlen.de
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org
+To: Davide Caratti <dcaratti@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58012 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S942409AbcJFRJs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Oct 2016 13:09:48 -0400
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34548 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751174AbcJGHgJ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 7 Oct 2016 03:36:09 -0400
+Received: by mail-wm0-f65.google.com with SMTP id b201so1568754wmb.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 07 Oct 2016 00:36:08 -0700 (PDT)
 In-Reply-To: <cover.1475773632.git.dcaratti@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-add macro MODULE_ALIAS_NF_NAT_L4PROTO to provide generic and persistent
-aliases for those layer-4 transport protocols whose NAT support is not
-built-in into nf_nat.ko.
+On 6 October 2016 at 19:09, Davide Caratti <dcaratti@redhat.com> wrote:
+> this series fixes SNAT/DNAT rules where port number translation is
+> explicitly configured, but only the L3 address is translated:
+>
+> # iptables -t nat -A POSTROUTING -o eth1 -p stcp -j SNAT --to-source 10.0=
+.0.1:61000
+> # tcpdump -s46 -tni eth1 sctp
+> tcpdump: verbose output suppressed, use -v or -vv for full protocol decod=
+e
+> listening on eth1, link-type EN10MB (Ethernet), capture size 46 bytes
+> IP 10.0.0.1.37788 > 10.0.0.2.2000: sctp
+>             ^^^^^
+> IP 10.0.0.2.2000 > 10.0.0.1.37788: sctp
+> IP 10.0.0.1.37788 > 10.0.0.2.2000: sctp
+> IP 10.0.0.2.2000 > 10.0.0.1.37788: sctp
+> IP 10.0.0.2.2000 > 10.0.0.1.37788: sctp
+> IP 10.0.0.1.37788 > 10.0.0.2.2000: sctp
+> IP 10.0.0.2.2000 > 10.0.0.1.37788: sctp
+>
+> This happens for all protocols that don't have L4 NAT support built into
+> nf_nat.ko, such as DCCP, SCTP and UDPLite: unless the user modprobes
+> nf_nat_proto_{dccp,sctp,udplite}.ko, port translation as specified in the
+> above rule will not be done.
+> The first patch provides persistent and generic aliases for the above
+> modules; the second patch autoloads nf_nat_proto_{dccp,sctp,udplite} when=
+ a
+> SNAT/DNAT rule matching one of the above protocols is created.
+>
 
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Davide Caratti <dcaratti@redhat.com>
----
- include/net/netfilter/nf_nat_l4proto.h | 3 +++
- net/netfilter/nf_nat_proto_dccp.c      | 1 +
- net/netfilter/nf_nat_proto_sctp.c      | 1 +
- net/netfilter/nf_nat_proto_udplite.c   | 1 +
- 4 files changed, 6 insertions(+)
+Since I can add the same rule in nftables, I wonder if the same problem hap=
+pens:
 
-diff --git a/include/net/netfilter/nf_nat_l4proto.h b/include/net/netfilter/nf_nat_l4proto.h
-index 12f4cc8..f4f592e 100644
---- a/include/net/netfilter/nf_nat_l4proto.h
-+++ b/include/net/netfilter/nf_nat_l4proto.h
-@@ -69,4 +69,7 @@ void nf_nat_l4proto_unique_tuple(const struct nf_nat_l3proto *l3proto,
- int nf_nat_l4proto_nlattr_to_range(struct nlattr *tb[],
- 				   struct nf_nat_range *range);
- 
-+#define MODULE_ALIAS_NF_NAT_L4PROTO(l4protocol) \
-+	MODULE_ALIAS("nf-nat-l4-" __stringify(l4protocol))
-+
- #endif /*_NF_NAT_L4PROTO_H*/
-diff --git a/net/netfilter/nf_nat_proto_dccp.c b/net/netfilter/nf_nat_proto_dccp.c
-index 15c47b2..da67e56 100644
---- a/net/netfilter/nf_nat_proto_dccp.c
-+++ b/net/netfilter/nf_nat_proto_dccp.c
-@@ -114,3 +114,4 @@ module_exit(nf_nat_proto_dccp_fini);
- MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
- MODULE_DESCRIPTION("DCCP NAT protocol helper");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS_NF_NAT_L4PROTO(33); /* IPPROTO_DCCP */
-diff --git a/net/netfilter/nf_nat_proto_sctp.c b/net/netfilter/nf_nat_proto_sctp.c
-index cbc7ade..8e001cc 100644
---- a/net/netfilter/nf_nat_proto_sctp.c
-+++ b/net/netfilter/nf_nat_proto_sctp.c
-@@ -94,3 +94,4 @@ module_exit(nf_nat_proto_sctp_exit);
- MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("SCTP NAT protocol helper");
- MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
-+MODULE_ALIAS_NF_NAT_L4PROTO(132); /* IPPROTO_SCTP */
-diff --git a/net/netfilter/nf_nat_proto_udplite.c b/net/netfilter/nf_nat_proto_udplite.c
-index 58340c9..be0fb65 100644
---- a/net/netfilter/nf_nat_proto_udplite.c
-+++ b/net/netfilter/nf_nat_proto_udplite.c
-@@ -104,3 +104,4 @@ module_exit(nf_nat_proto_udplite_fini);
- MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("UDP-Lite NAT protocol helper");
- MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
-+MODULE_ALIAS_NF_NAT_L4PROTO(136); /* IPPROTO_UDPLITE */
--- 
-2.5.5
+chain postrouting {
+  type nat hook postrouting priority 0; policy accept;
+  ip protocol sctp snat 10.0.0.1:61000
+}
 
+--=20
+Arturo Borrero Gonz=C3=A1lez
