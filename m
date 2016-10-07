@@ -1,62 +1,52 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH iptables 5/8] extensions: libxt_ipcomp: add range support in translation
-Date: Fri,  7 Oct 2016 19:08:53 +0800
-Message-ID: <1475838536-28816-6-git-send-email-zlpnobody@163.com>
-References: <1475838536-28816-1-git-send-email-zlpnobody@163.com>
+Subject: [PATCH iptables 0/8] iptables-translate: fix some bugs and add more translations to nft
+Date: Fri,  7 Oct 2016 19:08:48 +0800
+Message-ID: <1475838536-28816-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org,
         Liping Zhang <liping.zhang@spreadtrum.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-14.163.com ([220.181.12.14]:59349 "EHLO m12-14.163.com"
+Received: from m12-14.163.com ([220.181.12.14]:59145 "EHLO m12-14.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752225AbcJGLKC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Oct 2016 07:10:02 -0400
-In-Reply-To: <1475838536-28816-1-git-send-email-zlpnobody@163.com>
+        id S1751549AbcJGLKB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 7 Oct 2016 07:10:01 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-When translate to nft rules, ipcompspi range is not supported, so:
-  # iptables-translate -A OUTPUT -m ipcomp --ipcompspi 1:2
-  nft add rule ip filter OUTPUT comp cpi 1 counter
+This patch set fixes some bugs related to translation:
+  * libipt_realm: add a missing space
+  * libxt_iprange: ip6tables translation's format is not correct
+  * libxt_iprange & libxt_devgroup: handle the invert flag properly
+  * libxt_ipcomp: add range support
 
-  # iptables-translate -A OUTPUT -m ipcomp ! --ipcompspi 3:30
-  nft add rule ip filter OUTPUT comp cpi != 3 counter
+Also add libxt_quota, libxt_DSCP, libxt_statistic translation to nft.
+Note: we only support statistic's nth mode translation, because random
+mode is not completely supported in nft.
 
-Apply this patch:
-  # iptables-translate -A OUTPUT -m ipcomp --ipcompspi 1:2
-  nft add rule ip filter OUTPUT comp cpi 1-2 counter
+Liping Zhang (8):
+  extensions: libipt_realm: add a missing space in translation
+  extensions: libxt_iprange: rename "ip saddr" to "ip6 saddr" in
+    ip6tables-xlate
+  extensions: libxt_iprange: handle the invert flag properly in
+    translation
+  extensions: libxt_devgroup: handle the invert flag properly in
+    translation
+  extensions: libxt_ipcomp: add range support in translation
+  extensions: libxt_quota: add translation to nft
+  extensions: libxt_DSCP: add translation to nft
+  extensions: libxt_statistic: add translation to nft
 
-  # iptables-translate -A OUTPUT -m ipcomp ! --ipcompspi 3:30
-  nft add rule ip filter OUTPUT comp cpi != 3-30 counter
+ extensions/libipt_realm.c    |  2 +-
+ extensions/libxt_DSCP.c      | 64 +++++++++++++++++++++++++++++++++++---------
+ extensions/libxt_devgroup.c  |  5 ++--
+ extensions/libxt_ipcomp.c    | 10 ++++---
+ extensions/libxt_iprange.c   | 52 ++++++++++++++---------------------
+ extensions/libxt_quota.c     | 12 +++++++++
+ extensions/libxt_statistic.c | 21 +++++++++++++++
+ 7 files changed, 115 insertions(+), 51 deletions(-)
 
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
----
- extensions/libxt_ipcomp.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
-
-diff --git a/extensions/libxt_ipcomp.c b/extensions/libxt_ipcomp.c
-index 9f7c0ef..b5c4312 100644
---- a/extensions/libxt_ipcomp.c
-+++ b/extensions/libxt_ipcomp.c
-@@ -101,9 +101,13 @@ static int comp_xlate(struct xt_xlate *xl,
- 	const struct xt_ipcomp *compinfo =
- 		(struct xt_ipcomp *)params->match->data;
- 
--	xt_xlate_add(xl, "comp cpi %s%u",
--		     (compinfo->invflags & XT_IPCOMP_INV_SPI) ? "!= " : "",
--		     compinfo->spis[0]);
-+	xt_xlate_add(xl, "comp cpi %s",
-+		     compinfo->invflags & XT_IPCOMP_INV_SPI ? "!= " : "");
-+	if (compinfo->spis[0] != compinfo->spis[1])
-+		xt_xlate_add(xl, "%u-%u", compinfo->spis[0],
-+			     compinfo->spis[1]);
-+	else
-+		xt_xlate_add(xl, "%u", compinfo->spis[0]);
- 
- 	return 1;
- }
 -- 
 2.5.5
 
