@@ -1,57 +1,47 @@
-From: Calvin Owens <calvinowens@fb.com>
-Subject: [PATCH net-next] nfnetlink_log: Use GFP_NOWARN for skb allocation
-Date: Fri, 7 Oct 2016 14:02:16 -0700
-Message-ID: <1b50152e3ea7c3e18995349126d4352e4fc73933.1475873569.git.calvinowens@fb.com>
+From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+Subject: [PATCH nf] netfilter: nft_dynset: fix element timeout for HZ != 1000
+Date: Sun, 9 Oct 2016 13:49:02 +0000
+Message-ID: <1476020942.992.20.camel@cohaesio.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-        <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <kernel-team@fb.com>, Calvin Owens <calvinowens@fb.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: "kaber@trash.net" <kaber@trash.net>
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "pablo@netfilter.org" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx0a-00082601.pphosted.com ([67.231.145.42]:43920 "EHLO
-        mx0a-00082601.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753989AbcJGVCV (ORCPT
+Received: from bender.cohaesio.com ([212.97.128.130]:33383 "EHLO
+        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751130AbcJINtl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Oct 2016 17:02:21 -0400
-Received: from pps.filterd (m0044008.ppops.net [127.0.0.1])
-        by mx0a-00082601.pphosted.com (8.16.0.17/8.16.0.17) with SMTP id u97Kwd5Q024665
-        for <netfilter-devel@vger.kernel.org>; Fri, 7 Oct 2016 14:02:20 -0700
-Received: from mail.thefacebook.com ([199.201.64.23])
-        by mx0a-00082601.pphosted.com with ESMTP id 25xh87gmck-1
-        (version=TLSv1 cipher=ECDHE-RSA-AES256-SHA bits=256 verify=NOT)
-        for <netfilter-devel@vger.kernel.org>; Fri, 07 Oct 2016 14:02:20 -0700
-Received: from facebook.com (2401:db00:11:d0be:face:0:1b:0)     by
- mx-out.facebook.com (10.102.107.97) with ESMTP id
- 55b203ae8cd111e6a4490002c99331b0-c51e3a50 for
- <netfilter-devel@vger.kernel.org>;     Fri, 07 Oct 2016 14:02:19 -0700
+        Sun, 9 Oct 2016 09:49:41 -0400
+Content-Language: en-US
+Content-ID: <D7759A2FA80EF24AA23853C5A2AC7B7B@surftown.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Since the code explicilty falls back to a smaller allocation when the
-large one fails, we shouldn't complain when that happens.
-
-Signed-off-by: Calvin Owens <calvinowens@fb.com>
----
- net/netfilter/nfnetlink_log.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index eb086a1..7435505 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -330,7 +330,7 @@ nfulnl_alloc_skb(struct net *net, u32 peer_portid, unsigned int inst_size,
- 	 * message.  WARNING: has to be <= 128k due to slab restrictions */
- 
- 	n = max(inst_size, pkt_size);
--	skb = alloc_skb(n, GFP_ATOMIC);
-+	skb = alloc_skb(n, GFP_ATOMIC | __GFP_NOWARN);
- 	if (!skb) {
- 		if (n > pkt_size) {
- 			/* try to allocate only as much as we need for current
--- 
-2.9.3
-
+RnJvbTogQW5kZXJzIEsuIFBlZGVyc2VuIDxha3BAY29oYWVzaW8uY29tPg0KDQpXaXRoIEhaPTEw
+MCBlbGVtZW50IHRpbWVvdXQgaW4gZHluYW1pYyBzZXRzIChpLmUuIGZsb3cgdGFibGVzKSBpcyAx
+MCB0aW1lcw0KaGlnaGVyIHRoYW4gY29uZmlndXJlZC4NCg0KQWRkIHByb3BlciBjb252ZXJzaW9u
+IHRvL2Zyb20gamlmZmllcywgd2hlbiBpbnRlcmFjdGluZyB3aXRoIHVzZXJzcGFjZS4NCg0KSSB0
+ZXN0ZWQgdGhpcyBvbiBMaW51eCA0LjguMSwgYW5kIGl0IGFwcGxpZXMgY2xlYW5seSB0byBjdXJy
+ZW50IG5mIGFuZA0KbmYtbmV4dCB0cmVlcy4NCg0KRml4ZXM6IDIyZmU1NGQ1ZmVmYyAoIm5ldGZp
+bHRlcjogbmZfdGFibGVzOiBhZGQgc3VwcG9ydCBmb3IgZHluYW1pYyBzZXQgdXBkYXRlcyIpDQpT
+aWduZWQtb2ZmLWJ5OiBBbmRlcnMgSy4gUGVkZXJzZW4gPGFrcEBjb2hhZXNpby5jb20+DQotLS0N
+Cg0KLS0tIGEvbmV0L25ldGZpbHRlci9uZnRfZHluc2V0LmMJMjAxNi0xMC0wMyAwMToyNDozMy4w
+MDAwMDAwMDAgKzAyMDANCisrKyBiL25ldC9uZXRmaWx0ZXIvbmZ0X2R5bnNldC5jCTIwMTYtMTAt
+MDkgMTQ6Mzk6NDguNTE5NDg4MTY3ICswMjAwDQpAQCAtMTQzLDcgKzE0Myw4IEBAIHN0YXRpYyBp
+bnQgbmZ0X2R5bnNldF9pbml0KGNvbnN0IHN0cnVjdA0KIAlpZiAodGJbTkZUQV9EWU5TRVRfVElN
+RU9VVF0gIT0gTlVMTCkgew0KIAkJaWYgKCEoc2V0LT5mbGFncyAmIE5GVF9TRVRfVElNRU9VVCkp
+DQogCQkJcmV0dXJuIC1FSU5WQUw7DQotCQl0aW1lb3V0ID0gYmU2NF90b19jcHUobmxhX2dldF9i
+ZTY0KHRiW05GVEFfRFlOU0VUX1RJTUVPVVRdKSk7DQorCQl0aW1lb3V0ID0gbXNlY3NfdG9famlm
+ZmllcyhiZTY0X3RvX2NwdShubGFfZ2V0X2JlNjQoDQorCQkJCQkJdGJbTkZUQV9EWU5TRVRfVElN
+RU9VVF0pKSk7DQogCX0NCiANCiAJcHJpdi0+c3JlZ19rZXkgPSBuZnRfcGFyc2VfcmVnaXN0ZXIo
+dGJbTkZUQV9EWU5TRVRfU1JFR19LRVldKTsNCkBAIC0yMzAsNyArMjMxLDggQEAgc3RhdGljIGlu
+dCBuZnRfZHluc2V0X2R1bXAoc3RydWN0IHNrX2J1Zg0KIAkJZ290byBubGFfcHV0X2ZhaWx1cmU7
+DQogCWlmIChubGFfcHV0X3N0cmluZyhza2IsIE5GVEFfRFlOU0VUX1NFVF9OQU1FLCBwcml2LT5z
+ZXQtPm5hbWUpKQ0KIAkJZ290byBubGFfcHV0X2ZhaWx1cmU7DQotCWlmIChubGFfcHV0X2JlNjQo
+c2tiLCBORlRBX0RZTlNFVF9USU1FT1VULCBjcHVfdG9fYmU2NChwcml2LT50aW1lb3V0KSwNCisJ
+aWYgKG5sYV9wdXRfYmU2NChza2IsIE5GVEFfRFlOU0VUX1RJTUVPVVQsDQorCQkJIGNwdV90b19i
+ZTY0KGppZmZpZXNfdG9fbXNlY3MocHJpdi0+dGltZW91dCkpLA0KIAkJCSBORlRBX0RZTlNFVF9Q
+QUQpKQ0KIAkJZ290byBubGFfcHV0X2ZhaWx1cmU7DQogCWlmIChwcml2LT5leHByICYmIG5mdF9l
+eHByX2R1bXAoc2tiLCBORlRBX0RZTlNFVF9FWFBSLCBwcml2LT5leHByKSk=
