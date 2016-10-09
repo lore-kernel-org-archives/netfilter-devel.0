@@ -1,47 +1,128 @@
-From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
-Subject: [PATCH nf] netfilter: nft_dynset: fix element timeout for HZ != 1000
-Date: Sun, 9 Oct 2016 13:49:02 +0000
-Message-ID: <1476020942.992.20.camel@cohaesio.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: slab corruption with current -git (was Re: [git pull] vfs pile 1 (splice))
+Date: Sun, 9 Oct 2016 14:31:46 -0700
+Message-ID: <CA+55aFz2U83pG0v12E--nd5c6GZAUpVnT3jHuAwHCFk5XbVX0w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: "kaber@trash.net" <kaber@trash.net>
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "pablo@netfilter.org" <pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Network Development <netdev@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>
+To: Al Viro <viro@zeniv.linux.org.uk>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Jens Axboe <axboe@fb.com>, "Ted Ts'o" <tytso@mit.edu>,
+        Christoph Lameter <cl@linux.com>,
+        David Miller <davem@davemloft.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Aaron Conole <aconole@bytheb.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bender.cohaesio.com ([212.97.128.130]:33383 "EHLO
-        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751130AbcJINtl (ORCPT
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:35252 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752446AbcJIVbr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 9 Oct 2016 09:49:41 -0400
-Content-Language: en-US
-Content-ID: <D7759A2FA80EF24AA23853C5A2AC7B7B@surftown.com>
+        Sun, 9 Oct 2016 17:31:47 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-RnJvbTogQW5kZXJzIEsuIFBlZGVyc2VuIDxha3BAY29oYWVzaW8uY29tPg0KDQpXaXRoIEhaPTEw
-MCBlbGVtZW50IHRpbWVvdXQgaW4gZHluYW1pYyBzZXRzIChpLmUuIGZsb3cgdGFibGVzKSBpcyAx
-MCB0aW1lcw0KaGlnaGVyIHRoYW4gY29uZmlndXJlZC4NCg0KQWRkIHByb3BlciBjb252ZXJzaW9u
-IHRvL2Zyb20gamlmZmllcywgd2hlbiBpbnRlcmFjdGluZyB3aXRoIHVzZXJzcGFjZS4NCg0KSSB0
-ZXN0ZWQgdGhpcyBvbiBMaW51eCA0LjguMSwgYW5kIGl0IGFwcGxpZXMgY2xlYW5seSB0byBjdXJy
-ZW50IG5mIGFuZA0KbmYtbmV4dCB0cmVlcy4NCg0KRml4ZXM6IDIyZmU1NGQ1ZmVmYyAoIm5ldGZp
-bHRlcjogbmZfdGFibGVzOiBhZGQgc3VwcG9ydCBmb3IgZHluYW1pYyBzZXQgdXBkYXRlcyIpDQpT
-aWduZWQtb2ZmLWJ5OiBBbmRlcnMgSy4gUGVkZXJzZW4gPGFrcEBjb2hhZXNpby5jb20+DQotLS0N
-Cg0KLS0tIGEvbmV0L25ldGZpbHRlci9uZnRfZHluc2V0LmMJMjAxNi0xMC0wMyAwMToyNDozMy4w
-MDAwMDAwMDAgKzAyMDANCisrKyBiL25ldC9uZXRmaWx0ZXIvbmZ0X2R5bnNldC5jCTIwMTYtMTAt
-MDkgMTQ6Mzk6NDguNTE5NDg4MTY3ICswMjAwDQpAQCAtMTQzLDcgKzE0Myw4IEBAIHN0YXRpYyBp
-bnQgbmZ0X2R5bnNldF9pbml0KGNvbnN0IHN0cnVjdA0KIAlpZiAodGJbTkZUQV9EWU5TRVRfVElN
-RU9VVF0gIT0gTlVMTCkgew0KIAkJaWYgKCEoc2V0LT5mbGFncyAmIE5GVF9TRVRfVElNRU9VVCkp
-DQogCQkJcmV0dXJuIC1FSU5WQUw7DQotCQl0aW1lb3V0ID0gYmU2NF90b19jcHUobmxhX2dldF9i
-ZTY0KHRiW05GVEFfRFlOU0VUX1RJTUVPVVRdKSk7DQorCQl0aW1lb3V0ID0gbXNlY3NfdG9famlm
-ZmllcyhiZTY0X3RvX2NwdShubGFfZ2V0X2JlNjQoDQorCQkJCQkJdGJbTkZUQV9EWU5TRVRfVElN
-RU9VVF0pKSk7DQogCX0NCiANCiAJcHJpdi0+c3JlZ19rZXkgPSBuZnRfcGFyc2VfcmVnaXN0ZXIo
-dGJbTkZUQV9EWU5TRVRfU1JFR19LRVldKTsNCkBAIC0yMzAsNyArMjMxLDggQEAgc3RhdGljIGlu
-dCBuZnRfZHluc2V0X2R1bXAoc3RydWN0IHNrX2J1Zg0KIAkJZ290byBubGFfcHV0X2ZhaWx1cmU7
-DQogCWlmIChubGFfcHV0X3N0cmluZyhza2IsIE5GVEFfRFlOU0VUX1NFVF9OQU1FLCBwcml2LT5z
-ZXQtPm5hbWUpKQ0KIAkJZ290byBubGFfcHV0X2ZhaWx1cmU7DQotCWlmIChubGFfcHV0X2JlNjQo
-c2tiLCBORlRBX0RZTlNFVF9USU1FT1VULCBjcHVfdG9fYmU2NChwcml2LT50aW1lb3V0KSwNCisJ
-aWYgKG5sYV9wdXRfYmU2NChza2IsIE5GVEFfRFlOU0VUX1RJTUVPVVQsDQorCQkJIGNwdV90b19i
-ZTY0KGppZmZpZXNfdG9fbXNlY3MocHJpdi0+dGltZW91dCkpLA0KIAkJCSBORlRBX0RZTlNFVF9Q
-QUQpKQ0KIAkJZ290byBubGFfcHV0X2ZhaWx1cmU7DQogCWlmIChwcml2LT5leHByICYmIG5mdF9l
-eHByX2R1bXAoc2tiLCBORlRBX0RZTlNFVF9FWFBSLCBwcml2LT5leHByKSk=
+On Sun, Oct 9, 2016 at 12:11 PM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+>
+> Anyway, I don't think I can bisect it, but I'll try to narrow it down
+> a *bit* at least.
+>
+> Not doing any more pulls on this unstable base, I've been puttering
+> around in trying to clean up some stupid printk logging issues
+> instead.
+
+So I finally got a oops with slub debugging enabled. It doesn't really
+narrow things down, though, it kind of extends on the possible
+suspects. Now adding David Miller and Pablo, because it looks like it
+may be netfilter that does something bad and corrupts memory.
+
+Of course, maybe this is another symptom, and not the root cause for
+my troubles, but it does look like it might be getting closer to the
+cause... In particular, now it very much looks like a use-after-free
+in the netfilter code, which *could* explain my original symptom with
+later allocation users oopsing randomly.
+
+Without further ado, here's the new oops:
+
+   general protection fault: 0000 [#1] SMP
+   CPU: 7 PID: 169 Comm: kworker/u16:7 Not tainted 4.8.0-11288-gb66484cd7470 #1
+   Hardware name: System manufacturer System Product Name/Z170-K, BIOS
+1803 05/06/2016
+   Workqueue: netns cleanup_net
+   task: ffff91935e001fc0 task.stack: ffffb4e2c213c000
+   RIP: nf_unregister_net_hook+0x5f/0x190
+   RSP: 0000:ffffb4e2c213fd40  EFLAGS: 00010202
+   RAX: 6b6b6b6b6b6b6b6b RBX: ffff91933c4ab968 RCX: 0000000000000002
+   RDX: 0000000000000002 RSI: ffffffffc0642280 RDI: ffffffff91cf9820
+   RBP: ffffb4e2c213fd58 R08: ffff91933c4a86c8 R09: 0000000000000025
+   R10: 00000000000000cc R11: ffff91935dd22000 R12: ffffffffc0642280
+   R13: ffff91934cc0ea80 R14: ffffffff91cf97e0 R15: 00000000ffffffff
+   FS:  0000000000000000(0000) GS:ffff919376dc0000(0000) knlGS:0000000000000000
+   CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+   CR2: 0000000003e7c000 CR3: 00000003fdb62000 CR4: 00000000003406e0
+   DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+   DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+   Call Trace:
+     netfilter_net_exit+0x2f/0x60
+     ops_exit_list.isra.4+0x38/0x60
+     cleanup_net+0x1ba/0x2a0
+     process_one_work+0x1f1/0x480
+     worker_thread+0x48/0x4d0
+     ? process_one_work+0x480/0x480
+     ? process_one_work+0x480/0x480
+     kthread+0xd9/0xf0
+     ? kthread_park+0x60/0x60
+     ret_from_fork+0x22/0x30
+   Code: 0f b6 ca 48 8d 84 c8 00 01 00 00 49 8b 5c c5 00 48 85 db 0f
+84 cb 00 00 00 4c 3b 63 40 48 8b 03 0f 84 e9 00 00 00 48 85 c0 74 26
+<4c> 3b 60 40 75 08 e9 ef 00 00 00 48 89 d8 48 8b 18 48 85 db 0f
+   RIP  [<ffffffff916bae8f>] nf_unregister_net_hook+0x5f/0x190
+
+and note the value in %rax: 6b is POISON_FREE, so it very much looks
+like it's a pointer loaded from a free'd allocation.
+
+The code disassembles to
+
+   0: 0f b6 ca             movzbl %dl,%ecx
+   3: 48 8d 84 c8 00 01 00 lea    0x100(%rax,%rcx,8),%rax
+   a: 00
+   b: 49 8b 5c c5 00       mov    0x0(%r13,%rax,8),%rbx
+  10: 48 85 db             test   %rbx,%rbx
+  13: 0f 84 cb 00 00 00     je     0xe4
+  19: 4c 3b 63 40           cmp    0x40(%rbx),%r12
+  1d: 48 8b 03             mov    (%rbx),%rax
+  20: 0f 84 e9 00 00 00     je     0x10f
+  26: 48 85 c0             test   %rax,%rax
+  29: 74 26                 je     0x51
+  2b:* 4c 3b 60 40           cmp    0x40(%rax),%r12 <-- trapping instruction
+  2f: 75 08                 jne    0x39
+  31: e9 ef 00 00 00       jmpq   0x125
+  36: 48 89 d8             mov    %rbx,%rax
+  39: 48 8b 18             mov    (%rax),%rbx
+  3c: 48 85 db             test   %rbx,%rbx
+
+and that oopsing instruction seems to be the compare of
+"hooks_entry->orig_ops" from hooks_entry in this expression:
+
+        if (hooks_entry && hooks_entry->orig_ops == reg) {
+
+so hooks_entry() is bogus. It was gotten from
+
+        hooks_entry = nf_hook_entry_head(net, reg);
+
+but that's as far as I dug. And yes, I do have
+CONFIG_NETFILTER_INGRESS=y in case that matters.
+
+And all this code has changed pretty radically in commit e3b37f11e6e4
+("netfilter: replace list_head with single linked list"), and there
+was clearly already something wrong with that code, with commit
+5119e4381a90 ("netfilter: Fix potential null pointer dereference")
+adding the test against NULL. But I suspect that only hid the "oops,
+it's actually not NULL, it loaded some uninitialized value" problem.
+
+Over to the networking guys.. Ideas?
+
+               Linus
