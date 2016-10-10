@@ -1,56 +1,52 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: slab corruption with current -git
-Date: Mon, 10 Oct 2016 04:24:01 -0400 (EDT)
-Message-ID: <20161010.042401.637964142015887598.davem@davemloft.net>
-References: <CA+55aFzntXuUyL85A68ghS-D-t3VdgKo9-FiqQBG3efW2xns3A@mail.gmail.com>
-        <CA+55aFwS1jfnNzU=8CzRyxC79qKrStwmTXYrBHQYcftAg4LT3Q@mail.gmail.com>
-        <20161009.235745.860945462339053703.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: aconole@redhat.com, fw@strlen.de, viro@zeniv.linux.org.uk,
-        akpm@linux-foundation.org, axboe@fb.com, tytso@mit.edu,
-        cl@linux.com, pablo@netfilter.org, linux-kernel@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-To: torvalds@linux-foundation.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161009.235745.860945462339053703.davem@davemloft.net>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: [PATCH net 1/2] conntrack: remove obsolete sysctl (nf_conntrack_events_retry_timeout)
+Date: Mon, 10 Oct 2016 12:18:23 +0200
+Message-ID: <1476094704-17452-2-git-send-email-nicolas.dichtel@6wind.com>
+References: <1476094704-17452-1-git-send-email-nicolas.dichtel@6wind.com>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        fw@strlen.de, Nicolas Dichtel <nicolas.dichtel@6wind.com>
+To: davem@davemloft.net, pablo@netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1476094704-17452-1-git-send-email-nicolas.dichtel@6wind.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Sun, 09 Oct 2016 23:57:45 -0400 (EDT)
+This entry has been removed in commit 9500507c6138.
 
-> From: Linus Torvalds <torvalds@linux-foundation.org>
-> Date: Sun, 9 Oct 2016 20:41:17 -0700
-> 
->> Note that the "correct way" of doing list operations also almost
->> inevitably is the shortest way by far, since it gets rid of all the
->> special cases. So the patch looks nice. It gets rid of the magic
->> "nf_set_hooks_head()" thing too, because once you do list following
->> right, the head is no different from any other pointer in the list.
-> 
-> Perhaps we should have some "slist" primitives added to
-> include/linux/list.h but since the comparison differs for each user I
-> guess it's hard to abstract in a way that's generic and inlines
-> properly.
-> 
-> I'll start taking a look at your patch and this stuff as well, thanks
-> Linus.
+Fixes: 9500507c6138 ("netfilter: conntrack: remove timer from ecache extension")
+Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+---
+ Documentation/networking/nf_conntrack-sysctl.txt | 18 ------------------
+ 1 file changed, 18 deletions(-)
 
-So I've been reviewing this patch and it looks fine, but I also want
-to figure out what is actually causing the OOPS and I can't spot it
-yet.
-
-One possible way to see that oops is to free the head entry of the
-chain without unlinking it.  The next unregister will dereference a
-POISON pointer.
-
-Actually...
-
-The POISON value comes not from a hook entry, but from the array of
-pointers in the per-netns datastructure.
-
-This means that the netns is possibly getting freed up before we
-unregister the netfilter hooks.
+diff --git a/Documentation/networking/nf_conntrack-sysctl.txt b/Documentation/networking/nf_conntrack-sysctl.txt
+index 4fb51d32fccc..399e4e866a9c 100644
+--- a/Documentation/networking/nf_conntrack-sysctl.txt
++++ b/Documentation/networking/nf_conntrack-sysctl.txt
+@@ -33,24 +33,6 @@ nf_conntrack_events - BOOLEAN
+ 	If this option is enabled, the connection tracking code will
+ 	provide userspace with connection tracking events via ctnetlink.
+ 
+-nf_conntrack_events_retry_timeout - INTEGER (seconds)
+-	default 15
+-
+-	This option is only relevant when "reliable connection tracking
+-	events" are used.  Normally, ctnetlink is "lossy", that is,
+-	events are normally dropped when userspace listeners can't keep up.
+-
+-	Userspace can request "reliable event mode".  When this mode is
+-	active, the conntrack will only be destroyed after the event was
+-	delivered.  If event delivery fails, the kernel periodically
+-	re-tries to send the event to userspace.
+-
+-	This is the maximum interval the kernel should use when re-trying
+-	to deliver the destroy event.
+-
+-	A higher number means there will be fewer delivery retries and it
+-	will take longer for a backlog to be processed.
+-
+ nf_conntrack_expect_max - INTEGER
+ 	Maximum size of expectation table.  Default value is
+ 	nf_conntrack_buckets / 256. Minimum is 1.
+-- 
+2.8.1
