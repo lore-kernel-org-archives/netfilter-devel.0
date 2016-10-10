@@ -1,149 +1,94 @@
-From: Arturo Borrero Gonzalez <arturo@debian.org>
-Subject: [libnftnl PATCH] libnftnl: update Arturo Borrero Gonzalez email
-Date: Mon, 10 Oct 2016 12:26:34 +0200
-Message-ID: <147609519447.740.14521876477211442433.stgit@nfdev2.cica.es>
+From: Aaron Conole <aconole@redhat.com>
+Subject: Re: slab corruption with current -git (was Re: [git pull] vfs pile 1 (splice))
+Date: Mon, 10 Oct 2016 09:49:33 -0400
+Message-ID: <f7ta8ec71qq.fsf@redhat.com>
+References: <CA+55aFz2U83pG0v12E--nd5c6GZAUpVnT3jHuAwHCFk5XbVX0w@mail.gmail.com>
+        <20161010005105.GA18349@breakpoint.cc> <f7tbmytkmtr.fsf@redhat.com>
+        <CA+55aFzntXuUyL85A68ghS-D-t3VdgKo9-FiqQBG3efW2xns3A@mail.gmail.com>
+        <CA+55aFwS1jfnNzU=8CzRyxC79qKrStwmTXYrBHQYcftAg4LT3Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:58104 "EHLO smtp.cica.es"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751401AbcJJKsG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Oct 2016 06:48:06 -0400
-Received: from localhost (unknown [127.0.0.1])
-        by smtp.cica.es (Postfix) with ESMTP id 0D16851F2C3
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Oct 2016 10:26:30 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id SbhJN0yecFfH for <netfilter-devel@vger.kernel.org>;
-        Mon, 10 Oct 2016 12:26:23 +0200 (CEST)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-        (Authenticated sender: servers@cica.es)
-        by smtp.cica.es (Postfix) with ESMTP id F1A0C51F243
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Oct 2016 12:26:22 +0200 (CEST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain
+Cc: Florian Westphal <fw@strlen.de>, Al Viro <viro@zeniv.linux.org.uk>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Jens Axboe <axboe@fb.com>, "Ted Ts'o" <tytso@mit.edu>,
+        Christoph Lameter <cl@linux.com>,
+        David Miller <davem@davemloft.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Network Development <netdev@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CA+55aFwS1jfnNzU=8CzRyxC79qKrStwmTXYrBHQYcftAg4LT3Q@mail.gmail.com>
+        (Linus Torvalds's message of "Sun, 9 Oct 2016 20:41:17 -0700")
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Update Arturo Borrero Gonzalez email address.
+Linus Torvalds <torvalds@linux-foundation.org> writes:
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
----
- examples/nft-chain-parse-add.c |    2 +-
- examples/nft-rule-parse-add.c  |    2 +-
- examples/nft-ruleset-get.c     |    2 +-
- examples/nft-set-parse-add.c   |    2 +-
- examples/nft-table-parse-add.c |    2 +-
- src/expr/masq.c                |    2 +-
- src/expr/redir.c               |    2 +-
- src/ruleset.c                  |    2 +-
- src/utils.c                    |    2 +-
- 9 files changed, 9 insertions(+), 9 deletions(-)
+> On Sun, Oct 9, 2016 at 7:49 PM, Linus Torvalds
+> <torvalds@linux-foundation.org> wrote:
+>>
+>> There is one *correct* way to remove an entry from a singly linked
+>> list, and it looks like this:
+>>
+>>     struct entry **pp, *p;
+>>
+>>     pp = &head;
+>>     while ((p = *pp) != NULL) {
+>>         if (right_entry(p)) {
+>>             *pp = p->next;
+>>             break;
+>>         }
+>>         pp = &p->next;
+>>     }
+>>
+>> and that's it. Nothing else.
 
-diff --git a/examples/nft-chain-parse-add.c b/examples/nft-chain-parse-add.c
-index dd27343..6d6d989 100644
---- a/examples/nft-chain-parse-add.c
-+++ b/examples/nft-chain-parse-add.c
-@@ -1,6 +1,6 @@
- /*
-  * (C) 2013 by Pablo Neira Ayuso <pablo@netfilter.org>
-- * (C) 2014 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ * (C) 2014 by Arturo Borrero Gonzalez <arturo@debian.org>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by
-diff --git a/examples/nft-rule-parse-add.c b/examples/nft-rule-parse-add.c
-index 90f1da7..e6946c8 100644
---- a/examples/nft-rule-parse-add.c
-+++ b/examples/nft-rule-parse-add.c
-@@ -1,6 +1,6 @@
- /*
-  * (C) 2013 by Pablo Neira Ayuso <pablo@netfilter.org>
-- * (C) 2013 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ * (C) 2013 by Arturo Borrero Gonzalez <arturo@debian.org>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by
-diff --git a/examples/nft-ruleset-get.c b/examples/nft-ruleset-get.c
-index 9e997c2..9e80bb6 100644
---- a/examples/nft-ruleset-get.c
-+++ b/examples/nft-ruleset-get.c
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (c) 2013 Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ * Copyright (c) 2013 Arturo Borrero Gonzalez <arturo@debian.org>
-  *
-  * based on previous code from:
-  *
-diff --git a/examples/nft-set-parse-add.c b/examples/nft-set-parse-add.c
-index 550e8f4..2882f14 100644
---- a/examples/nft-set-parse-add.c
-+++ b/examples/nft-set-parse-add.c
-@@ -4,7 +4,7 @@
-  * Based on nft-set-xml-add from:
-  *
-  * (C) 2013 by Pablo Neira Ayuso <pablo@netfilter.org>
-- * (C) 2013 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ * (C) 2013 by Arturo Borrero Gonzalez <arturo@debian.org>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by
-diff --git a/examples/nft-table-parse-add.c b/examples/nft-table-parse-add.c
-index 28cb276..cb4bcc6 100644
---- a/examples/nft-table-parse-add.c
-+++ b/examples/nft-table-parse-add.c
-@@ -1,6 +1,6 @@
- /*
-  * (C) 2013 by Pablo Neira Ayuso <pablo@netfilter.org>
-- * (C) 2013 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ * (C) 2013 by Arturo Borrero Gonzalez <arturo@debian.org>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by
-diff --git a/src/expr/masq.c b/src/expr/masq.c
-index 32b5ad9..7c235d3 100644
---- a/src/expr/masq.c
-+++ b/src/expr/masq.c
-@@ -1,5 +1,5 @@
- /*
-- * (C) 2014 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ * (C) 2014 by Arturo Borrero Gonzalez <arturo@debian.org>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published
-diff --git a/src/expr/redir.c b/src/expr/redir.c
-index d5bc179..43538d5 100644
---- a/src/expr/redir.c
-+++ b/src/expr/redir.c
-@@ -1,5 +1,5 @@
- /*
-- * (C) 2014 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ * (C) 2014 by Arturo Borrero Gonzalez <arturo@debian.org>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published
-diff --git a/src/ruleset.c b/src/ruleset.c
-index 233ff0e..b6ca565 100644
---- a/src/ruleset.c
-+++ b/src/ruleset.c
-@@ -1,6 +1,6 @@
- /*
-  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
-- * (C) 2013 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ * (C) 2013 by Arturo Borrero Gonzalez <arturo@debian.org>
-  * (C) 2013 by Alvaro Neira Ayuso <alvaroneay@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-diff --git a/src/utils.c b/src/utils.c
-index f0f5467..3e44960 100644
---- a/src/utils.c
-+++ b/src/utils.c
-@@ -1,6 +1,6 @@
- /*
-  * (C) 2012-2013 by Pablo Neira Ayuso <pablo@netfilter.org>
-- * (C) 2013 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ * (C) 2013 by Arturo Borrero Gonzalez <arturo@debian.org>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published
+Sorry, I should have done that.
 
+> This COMPLETELY UNTESTED patch tries to fix the nf_hook_entry code to do this.
+>
+> I repeat: it's ENTIRELY UNTESTED. I just converted the insertion and
+> deletion to the proper pattern, but I could easily have gotten the
+> insertion priority test the wrong way around entirely, for example. Or
+> it could simply have some other completely broken bug in it. It
+> compiles for me, but that's all I actually checked.
+
+Okay, I'm looking it over.  Sorry for the mess.
+
+> Note that the "correct way" of doing list operations also almost
+> inevitably is the shortest way by far, since it gets rid of all the
+> special cases. So the patch looks nice. It gets rid of the magic
+> "nf_set_hooks_head()" thing too, because once you do list following
+> right, the head is no different from any other pointer in the list.
+>
+> So the patch stats look good:
+>
+>  net/netfilter/core.c | 108 ++++++++++++++++-----------------------------------
+>  1 file changed, 33 insertions(+), 75 deletions(-)
+>
+> but again, it's entirely *entirely* untested. Please consider this
+> just a "this is generally how list insert/delete operations should be
+> done, avoiding special cases for the first entry".
+
+I'll review it, and test it.  Can you tell me what steps you took to
+reproduce the oops?  I'll enable slab debugging and try to reproduce
+without and with this patch (and I'll also look into David's recent
+email as well).  Are you simply creating and removing network
+namespaces (I did test that, but I should have done a better job)?
+
+> ALSO NOTE! The code assumes that the "nf_hook_mutex" locking only
+> protects the actual *lists*, and that the address to the list can be
+> looked up without holding the lock. That's generally how things are
+> done, and it simplifies error handling (because you can do the "there
+> is no such list at all" test before you do anything else. But again, I
+> don't actually know the code, and if there is something that actually
+> expands the number of lists etc that depends on that mutex, then the
+> list head lookup may need to be inside the lock too.
+
+That should be correct, the nf_hook_mutex is only for protecting the
+lists.
+
+>            Linus
