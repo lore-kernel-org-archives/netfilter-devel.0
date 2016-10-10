@@ -1,25 +1,57 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH net 1/2] conntrack: remove obsolete sysctl
- (nf_conntrack_events_retry_timeout)
-Date: Mon, 10 Oct 2016 15:57:37 +0200
-Message-ID: <20161010135737.GA21057@breakpoint.cc>
+Subject: Re: [PATCH net 2/2] conntrack: enable to tune gc parameters
+Date: Mon, 10 Oct 2016 16:04:24 +0200
+Message-ID: <20161010140424.GB21057@breakpoint.cc>
 References: <1476094704-17452-1-git-send-email-nicolas.dichtel@6wind.com>
- <1476094704-17452-2-git-send-email-nicolas.dichtel@6wind.com>
+ <1476094704-17452-3-git-send-email-nicolas.dichtel@6wind.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: davem@davemloft.net, pablo@netfilter.org, netdev@vger.kernel.org,
         netfilter-devel@vger.kernel.org, fw@strlen.de
 To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:58362 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752706AbcJJOFJ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Oct 2016 10:05:09 -0400
 Content-Disposition: inline
-In-Reply-To: <1476094704-17452-2-git-send-email-nicolas.dichtel@6wind.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1476094704-17452-3-git-send-email-nicolas.dichtel@6wind.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
-> This entry has been removed in commit 9500507c6138.
-> 
-> Fixes: 9500507c6138 ("netfilter: conntrack: remove timer from ecache extension")
-> Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+> After commit b87a2f9199ea ("netfilter: conntrack: add gc worker to remove
+> timed-out entries"), netlink conntrack deletion events may be sent with a
+> huge delay. It could be interesting to let the user tweak gc parameters
+> depending on its use case.
 
-Acked-by: Florian Westphal <fw@strlen.de>
+Hmm, care to elaborate?
+
+I am not against doing this but I'd like to hear/read your use case.
+
+The expectation is that in almot all cases eviction will happen from
+packet path.  The gc worker is jusdt there for case where a busy system
+goes idle.
+
+> +nf_conntrack_gc_max_evicts - INTEGER
+> +	The maximum number of entries to be evicted during a run of gc.
+> +	This sysctl is only writeable in the initial net namespace.
+
+Hmmm, do you have any advice on sizing this one?
+
+I think a better change might be (instead of adding htis knob) to
+resched the gc worker for immediate re-executaion in case the entire
+"budget" was used.  What do you think?
+
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -983,7 +983,7 @@ static void gc_worker(struct work_struct *work)
+                return;
+ 
+        ratio = scanned ? expired_count * 100 / scanned : 0;
+-       if (ratio >= 90)
++       if (ratio >= 90 || expired_count == GC_MAX_EVICTS)
+                next_run = 0;
