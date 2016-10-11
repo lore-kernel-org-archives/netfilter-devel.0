@@ -1,51 +1,52 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: xt_NFLOG: fix unexpected truncated packet
-Date: Tue, 11 Oct 2016 21:03:45 +0800
-Message-ID: <1476191025-16296-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, jpiszcz@lucidpixels.com,
-        ccaputo@alt.net, vpai@akamai.com,
+Subject: [PATCH ulogd2] ulogd: fix crash when ipv4 packet is truncated
+Date: Tue, 11 Oct 2016 21:21:20 +0800
+Message-ID: <1476192080-17683-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
         Liping Zhang <liping.zhang@spreadtrum.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mproxygzc3.163.com ([218.107.63.211]:47790 "EHLO
-        mproxygzc3.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753070AbcJKPUu (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Oct 2016 11:20:50 -0400
+Received: from m12-16.163.com ([220.181.12.16]:46018 "EHLO m12-16.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752880AbcJKPUt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 11 Oct 2016 11:20:49 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Justin and Chris spotted that iptables NFLOG target was broken when they
-upgraded the kernel to 4.8: "ulogd-2.0.5- IPs are no longer logged" or
-"results in segfaults in ulogd-2.0.5".
+If ipv4 packet is truncated, we should not try to dereference the
+iph pointer. Otherwise, if the user add such iptables rules
+"-j NFLOG --nflog-size 0", we will dereference the NULL pointer
+and crash may happen.
 
-Because "struct nf_loginfo li;" is a local variable, and flags will be
-filled with garbage value, not inited to zero. So if it contains 0x1,
-packets will not be logged to the userspace anymore.
-
-Fixes: 7643507fe8b5 ("netfilter: xt_NFLOG: nflog-range does not truncate packets")
-Reported-by: Justin Piszcz <jpiszcz@lucidpixels.com>
 Reported-by: Chris Caputo <ccaputo@alt.net>
-Tested-by: Chris Caputo <ccaputo@alt.net>
 Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
- net/netfilter/xt_NFLOG.c | 1 +
- 1 file changed, 1 insertion(+)
+ filter/raw2packet/ulogd_raw2packet_BASE.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/xt_NFLOG.c b/net/netfilter/xt_NFLOG.c
-index 018eed7..8668a5c 100644
---- a/net/netfilter/xt_NFLOG.c
-+++ b/net/netfilter/xt_NFLOG.c
-@@ -32,6 +32,7 @@ nflog_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 	li.u.ulog.copy_len   = info->len;
- 	li.u.ulog.group	     = info->group;
- 	li.u.ulog.qthreshold = info->threshold;
-+	li.u.ulog.flags	     = 0;
+diff --git a/filter/raw2packet/ulogd_raw2packet_BASE.c b/filter/raw2packet/ulogd_raw2packet_BASE.c
+index 8a6180c..fd2665a 100644
+--- a/filter/raw2packet/ulogd_raw2packet_BASE.c
++++ b/filter/raw2packet/ulogd_raw2packet_BASE.c
+@@ -717,7 +717,7 @@ static int _interp_iphdr(struct ulogd_pluginstance *pi, uint32_t len)
+ 	struct ulogd_key *ret = pi->output.keys;
+ 	struct iphdr *iph =
+ 		ikey_get_ptr(&pi->input.keys[INKEY_RAW_PCKT]);
+-	void *nexthdr = (uint32_t *)iph + iph->ihl;
++	void *nexthdr;
  
- 	if (info->flags & XT_NFLOG_F_COPY_LEN)
- 		li.u.ulog.flags |= NF_LOG_F_COPY_LEN;
+ 	if (len < sizeof(struct iphdr) || len <= (uint32_t)(iph->ihl * 4))
+ 		return ULOGD_IRET_OK;
+@@ -734,6 +734,7 @@ static int _interp_iphdr(struct ulogd_pluginstance *pi, uint32_t len)
+ 	okey_set_u16(&ret[KEY_IP_ID], ntohs(iph->id));
+ 	okey_set_u16(&ret[KEY_IP_FRAGOFF], ntohs(iph->frag_off));
+ 
++	nexthdr = (uint32_t *)iph + iph->ihl;
+ 	switch (iph->protocol) {
+ 	case IPPROTO_TCP:
+ 		_interp_tcp(pi, nexthdr, len);
 -- 
 2.5.5
 
