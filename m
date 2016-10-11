@@ -1,82 +1,50 @@
-From: "Justin Piszcz" <jpiszcz@lucidpixels.com>
-Subject: RE: [PATCH nf] netfilter: xt_NFLOG: fix unexpected truncated packet
-Date: Tue, 11 Oct 2016 17:06:25 -0400
-Message-ID: <000001d22403$544a6830$fcdf3890$@lucidpixels.com>
-References: <1476191025-16296-1-git-send-email-zlpnobody@163.com>
+From: =?UTF-8?Q?Bj=C3=B8rnar_Ness?= <bjornar.ness@gmail.com>
+Subject: Re: routing table lookup
+Date: Wed, 12 Oct 2016 00:17:24 +0200
+Message-ID: <CAJO99TnPeGz81C8iP_gg3uD4Y3epDBg5BwWex6RWT0YR93eceg@mail.gmail.com>
+References: <CAJO99TmN17PiMGs87HY=Awy=-QAMVLsCzBbvXZFzL8HDTakH=A@mail.gmail.com>
+ <alpine.LSU.2.20.1610112023530.2014@nerf40.vanv.qr> <CAJO99Tn0yTE1=dFMO--vj9KpMt2kgRfURu8-GoXy=KZDRymOQw@mail.gmail.com>
+ <alpine.LSU.2.20.1610112203020.5047@nerf40.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>, <ccaputo@alt.net>,
-        <vpai@akamai.com>, "'Liping Zhang'" <liping.zhang@spreadtrum.com>
-To: "'Liping Zhang'" <zlpnobody@163.com>, <pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:36486 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752266AbcJKVG2 (ORCPT
+Received: from mail-yb0-f177.google.com ([209.85.213.177]:35848 "EHLO
+        mail-yb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753156AbcJKWR0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Oct 2016 17:06:28 -0400
-Received: by mail-qk0-f194.google.com with SMTP id z190so2325273qkc.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Oct 2016 14:06:27 -0700 (PDT)
-In-Reply-To: <1476191025-16296-1-git-send-email-zlpnobody@163.com>
-Content-Language: en-us
+        Tue, 11 Oct 2016 18:17:26 -0400
+Received: by mail-yb0-f177.google.com with SMTP id 191so13386029ybv.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Oct 2016 15:17:25 -0700 (PDT)
+In-Reply-To: <alpine.LSU.2.20.1610112203020.5047@nerf40.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+2016-10-11 22:18 GMT+02:00 Jan Engelhardt <jengelh@inai.de>:
+>
+> On Tuesday 2016-10-11 21:10, Bj=C3=B8rnar Ness wrote:
+>>2016-10-11 20:28 GMT+02:00 Jan Engelhardt <jengelh@inai.de>:
+>>> Well you can mark routes with realm numbers, and match on that. (In
+>>> iptables, this was done with -m realm.) At least that is the idea. Not
+>>> sure if the skb field that holds the information is already
+>>> filled in before FORWARD (at which point I guess it will contain the
+>>> dst realm anyway).
+>>
+>>I think you misunderstood what I am looking for here, for example:
+>>prerouting:
+>>ip saddr route table 10 drop
+>
+> Assuming you mean "saddr is in {the set of dst addrs in table 10}"
+> then it's as I said - basically rpfilter with sort of an extra check
+> for the realm number (which you can make the same as the table number).
 
+Yeah, sortoff. But afaik rpfilter is a iptables module, and not
+available in nftables yet.
 
-> -----Original Message-----
-> From: Liping Zhang [mailto:zlpnobody@163.com]
-> Sent: Tuesday, October 11, 2016 9:04 AM
-> To: pablo@netfilter.org
-> Cc: netfilter-devel@vger.kernel.org; jpiszcz@lucidpixels.com;
-> ccaputo@alt.net; vpai@akamai.com; Liping Zhang
-> Subject: [PATCH nf] netfilter: xt_NFLOG: fix unexpected truncated packet
-> 
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
-> 
-> Justin and Chris spotted that iptables NFLOG target was broken when they
-> upgraded the kernel to 4.8: "ulogd-2.0.5- IPs are no longer logged" or
-> "results in segfaults in ulogd-2.0.5".
-> 
-> Because "struct nf_loginfo li;" is a local variable, and flags will be
-> filled with garbage value, not inited to zero. So if it contains 0x1,
-> packets will not be logged to the userspace anymore.
-> 
-> Fixes: 7643507fe8b5 ("netfilter: xt_NFLOG: nflog-range does not truncate
-> packets")
-> Reported-by: Justin Piszcz <jpiszcz@lucidpixels.com>
-> Reported-by: Chris Caputo <ccaputo@alt.net>
-> Tested-by: Chris Caputo <ccaputo@alt.net>
-> Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
-> ---
->  net/netfilter/xt_NFLOG.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/net/netfilter/xt_NFLOG.c b/net/netfilter/xt_NFLOG.c
-> index 018eed7..8668a5c 100644
-> --- a/net/netfilter/xt_NFLOG.c
-> +++ b/net/netfilter/xt_NFLOG.c
-> @@ -32,6 +32,7 @@ nflog_tg(struct sk_buff *skb, const struct
-> xt_action_param *par)
->  	li.u.ulog.copy_len   = info->len;
->  	li.u.ulog.group	     = info->group;
->  	li.u.ulog.qthreshold = info->threshold;
-> +	li.u.ulog.flags	     = 0;
-> 
->  	if (info->flags & XT_NFLOG_F_COPY_LEN)
->  		li.u.ulog.flags |= NF_LOG_F_COPY_LEN;
-> --
-> 2.5.5
-> 
+Pablo: is the "lookup in routing table from nftables" a total waste of time=
+?
 
-Hello,
-
-Applied patch against 4.8.1-- good here as well!
-
-Thanks,
-
-Justin.
-
-
-
+--=20
+Bj(/)rnar
