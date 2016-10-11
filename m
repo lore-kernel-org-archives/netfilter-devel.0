@@ -1,40 +1,36 @@
-From: David Miller <davem@davemloft.net>
+From: Michal Kubecek <mkubecek@suse.cz>
 Subject: Re: slab corruption with current -git
-Date: Tue, 11 Oct 2016 04:57:37 -0400 (EDT)
-Message-ID: <20161011.045737.227906000874505402.davem@davemloft.net>
-References: <CA+55aFwS1jfnNzU=8CzRyxC79qKrStwmTXYrBHQYcftAg4LT3Q@mail.gmail.com>
-        <CA+55aFzcweyWCqq-fRAnJkFB7neKwKsXH=TMcLtRQRs2Wn6XEQ@mail.gmail.com>
-        <CA+55aFwhscZcWJVLbq+qUgNaN34VwBxFwUR97ktM-7003PcexQ@mail.gmail.com>
+Date: Tue, 11 Oct 2016 15:17:09 +0200
+Message-ID: <20161011131709.GB24682@unicorn.suse.cz>
+References: <CA+55aFzntXuUyL85A68ghS-D-t3VdgKo9-FiqQBG3efW2xns3A@mail.gmail.com>
+ <CA+55aFwS1jfnNzU=8CzRyxC79qKrStwmTXYrBHQYcftAg4LT3Q@mail.gmail.com>
+ <20161009.235745.860945462339053703.davem@davemloft.net>
+ <20161010.042401.637964142015887598.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: aconole@redhat.com, fw@strlen.de, viro@zeniv.linux.org.uk,
-        akpm@linux-foundation.org, axboe@fb.com, tytso@mit.edu,
-        cl@linux.com, pablo@netfilter.org, linux-kernel@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-To: torvalds@linux-foundation.org
+Content-Type: text/plain; charset=us-ascii
+Cc: torvalds@linux-foundation.org, aconole@redhat.com, fw@strlen.de,
+        viro@zeniv.linux.org.uk, akpm@linux-foundation.org, axboe@fb.com,
+        tytso@mit.edu, cl@linux.com, pablo@netfilter.org,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+55aFwhscZcWJVLbq+qUgNaN34VwBxFwUR97ktM-7003PcexQ@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20161010.042401.637964142015887598.davem@davemloft.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Mon, 10 Oct 2016 22:47:50 -0700
-
-> On Mon, Oct 10, 2016 at 10:39 PM, Linus Torvalds
-> <torvalds@linux-foundation.org> wrote:
->>
->> I guess I will have to double-check that the slub corruption is gone
->> still with that fixed.
+On Mon, Oct 10, 2016 at 04:24:01AM -0400, David Miller wrote:
+> From: David Miller <davem@davemloft.net>
+> Date: Sun, 09 Oct 2016 23:57:45 -0400 (EDT)
 > 
-> So I'm not getting any warnings now from SLUB debugging. So the
-> original bug seems to not have re-surfaced, and the registration bug
-> is gone, so now the unregistration doesn't warn about anything either.
-> 
-> But I only rebooted three times.
+> This means that the netns is possibly getting freed up before we
+> unregister the netfilter hooks.
 
-Looks good to me, I applied it to my tree with your signoff and will
-send you a pull request right now.
+Sounds a bit like the issue discussed here:
 
-Thanks!
+  https://marc.info/?l=netfilter-devel&m=146980917627262&w=2
+
+Could it be (partly) the same race condition?
+
+Michal Kubecek
