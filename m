@@ -1,15 +1,17 @@
 From: Liping Zhang <zlpnobody@163.com>
 Subject: [PATCH nf] netfilter: xt_NFLOG: fix unexpected truncated packet
-Date: Tue, 11 Oct 2016 22:26:27 +0800
-Message-ID: <1476195987-3129-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
+Date: Tue, 11 Oct 2016 21:03:45 +0800
+Message-ID: <1476191025-16296-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, jpiszcz@lucidpixels.com,
+        ccaputo@alt.net, vpai@akamai.com,
         Liping Zhang <liping.zhang@spreadtrum.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-13.163.com ([220.181.12.13]:43491 "EHLO m12-13.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753220AbcJKO13 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Oct 2016 10:27:29 -0400
+Received: from mproxygzc3.163.com ([218.107.63.211]:47790 "EHLO
+        mproxygzc3.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753070AbcJKPUu (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 11 Oct 2016 11:20:50 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -29,8 +31,6 @@ Reported-by: Chris Caputo <ccaputo@alt.net>
 Tested-by: Chris Caputo <ccaputo@alt.net>
 Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
- Sorry to redeliver this patch, my mail server told me that it failed.
-
  net/netfilter/xt_NFLOG.c | 1 +
  1 file changed, 1 insertion(+)
 
