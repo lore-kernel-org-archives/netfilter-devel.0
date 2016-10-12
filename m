@@ -1,42 +1,54 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: nft_hash: add missing NFTA_HASH_OFFSET's nla_policy
-Date: Wed, 12 Oct 2016 21:10:45 +0800
-Message-ID: <1476277845-58642-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, nevola@gmail.com,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: pablo@netfilter.org
+From: =?UTF-8?Q?Bj=C3=B8rnar_Ness?= <bjornar.ness@gmail.com>
+Subject: Re: routing table lookup
+Date: Wed, 12 Oct 2016 17:19:20 +0200
+Message-ID: <CAJO99TnLzTbtTZP_DKE37eG_+X3T5b1g5rbhVTGz07RDgShDPw@mail.gmail.com>
+References: <CAJO99TmN17PiMGs87HY=Awy=-QAMVLsCzBbvXZFzL8HDTakH=A@mail.gmail.com>
+ <alpine.LSU.2.20.1610112023530.2014@nerf40.vanv.qr> <CAJO99Tn0yTE1=dFMO--vj9KpMt2kgRfURu8-GoXy=KZDRymOQw@mail.gmail.com>
+ <alpine.LSU.2.20.1610112203020.5047@nerf40.vanv.qr> <CAJO99TnPeGz81C8iP_gg3uD4Y3epDBg5BwWex6RWT0YR93eceg@mail.gmail.com>
+ <20161012061930.GA28142@unicorn.suse.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Cc: Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org
+To: Michal Kubecek <mkubecek@suse.cz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-13.163.com ([220.181.12.13]:41349 "EHLO m12-13.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755542AbcJLNM3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Oct 2016 09:12:29 -0400
+Received: from mail-yw0-f170.google.com ([209.85.161.170]:34331 "EHLO
+        mail-yw0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754043AbcJLPTV (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Oct 2016 11:19:21 -0400
+Received: by mail-yw0-f170.google.com with SMTP id w3so34934787ywg.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Oct 2016 08:19:21 -0700 (PDT)
+In-Reply-To: <20161012061930.GA28142@unicorn.suse.cz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+2016-10-12 8:19 GMT+02:00 Michal Kubecek <mkubecek@suse.cz>:
+> On Wed, Oct 12, 2016 at 12:17:24AM +0200, Bj=C3=B8rnar Ness wrote:
+>>
+>> Yeah, sortoff. But afaik rpfilter is a iptables module, and not
+>> available in nftables yet.
+>>
+>> Pablo: is the "lookup in routing table from nftables" a total waste of t=
+ime?
+>
+> You may be interested in
+>
+>   https://www.youtube.com/watch?v=3DwfWMPlZHQBk&t=3D19m40s
 
-Missing the nla_policy description will also miss the validation check
-in kernel.
+Thanks, Michal, this is interesting, but not exactly what I am looking
+for. This fib module
+would as far as I can tell follow the routing from rules -> table ->
+decision, which will need
+both a src and dst address. What I want is to skip the rule matching,
+and check directly in
+a table, that way we only need a single address, and the following
+should potentially work
+from prerouting:
 
-Fixes: 70ca767ea1b2 ("netfilter: nft_hash: Add hash offset value")
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
----
- net/netfilter/nft_hash.c | 1 +
- 1 file changed, 1 insertion(+)
+ip saddr rt_table 10 drop
 
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index 09473b4..baf694d 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -44,6 +44,7 @@ static const struct nla_policy nft_hash_policy[NFTA_HASH_MAX + 1] = {
- 	[NFTA_HASH_LEN]		= { .type = NLA_U32 },
- 	[NFTA_HASH_MODULUS]	= { .type = NLA_U32 },
- 	[NFTA_HASH_SEED]	= { .type = NLA_U32 },
-+	[NFTA_HASH_OFFSET]	= { .type = NLA_U32 },
- };
- 
- static int nft_hash_init(const struct nft_ctx *ctx,
--- 
-2.5.5
+comments?
 
-
+--=20
+Bj(/)rnar
