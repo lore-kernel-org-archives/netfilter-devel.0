@@ -1,50 +1,36 @@
-From: =?UTF-8?Q?Bj=C3=B8rnar_Ness?= <bjornar.ness@gmail.com>
-Subject: Re: routing table lookup
-Date: Wed, 12 Oct 2016 00:17:24 +0200
-Message-ID: <CAJO99TnPeGz81C8iP_gg3uD4Y3epDBg5BwWex6RWT0YR93eceg@mail.gmail.com>
-References: <CAJO99TmN17PiMGs87HY=Awy=-QAMVLsCzBbvXZFzL8HDTakH=A@mail.gmail.com>
- <alpine.LSU.2.20.1610112023530.2014@nerf40.vanv.qr> <CAJO99Tn0yTE1=dFMO--vj9KpMt2kgRfURu8-GoXy=KZDRymOQw@mail.gmail.com>
- <alpine.LSU.2.20.1610112203020.5047@nerf40.vanv.qr>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch] netfilter: nf_tables: underflow in nft_parse_u32_check()
+Date: Wed, 12 Oct 2016 09:08:11 +0300
+Message-ID: <20161012060811.GE12841@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yb0-f177.google.com ([209.85.213.177]:35848 "EHLO
-        mail-yb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753156AbcJKWR0 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Oct 2016 18:17:26 -0400
-Received: by mail-yb0-f177.google.com with SMTP id 191so13386029ybv.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Oct 2016 15:17:25 -0700 (PDT)
-In-Reply-To: <alpine.LSU.2.20.1610112203020.5047@nerf40.vanv.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Laura Garcia Liebana <nevola@gmail.com>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: kernel-janitors-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-2016-10-11 22:18 GMT+02:00 Jan Engelhardt <jengelh@inai.de>:
->
-> On Tuesday 2016-10-11 21:10, Bj=C3=B8rnar Ness wrote:
->>2016-10-11 20:28 GMT+02:00 Jan Engelhardt <jengelh@inai.de>:
->>> Well you can mark routes with realm numbers, and match on that. (In
->>> iptables, this was done with -m realm.) At least that is the idea. Not
->>> sure if the skb field that holds the information is already
->>> filled in before FORWARD (at which point I guess it will contain the
->>> dst realm anyway).
->>
->>I think you misunderstood what I am looking for here, for example:
->>prerouting:
->>ip saddr route table 10 drop
->
-> Assuming you mean "saddr is in {the set of dst addrs in table 10}"
-> then it's as I said - basically rpfilter with sort of an extra check
-> for the realm number (which you can make the same as the table number).
+We don't want to allow negatives here.
 
-Yeah, sortoff. But afaik rpfilter is a iptables module, and not
-available in nftables yet.
+Fixes: 36b701fae12a ('netfilter: nf_tables: validate maximum value of u32 netlink attributes')
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Pablo: is the "lookup in routing table from nftables" a total waste of time=
-?
-
---=20
-Bj(/)rnar
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index b70d3ea..dd55187 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4423,7 +4423,7 @@ static int nf_tables_check_loops(const struct nft_ctx *ctx,
+  */
+ unsigned int nft_parse_u32_check(const struct nlattr *attr, int max, u32 *dest)
+ {
+-	int val;
++	uint val;
+ 
+ 	val = ntohl(nla_get_be32(attr));
+ 	if (val > max)
