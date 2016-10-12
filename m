@@ -1,40 +1,44 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch v2] netfilter: nf_tables: underflow in nft_parse_u32_check()
-Date: Wed, 12 Oct 2016 12:14:29 +0300
-Message-ID: <20161012091429.GA27317@mwanda>
-References: <CAML_gOedjw6uJqp13YkGfXoLQTd_ikOC8OoUA4oXv15RYsgoUg@mail.gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [RFC] SIP conntrack handler and TCP fragmentation
+Date: Wed, 12 Oct 2016 13:41:40 +0200
+Message-ID: <20161012114140.GB26177@breakpoint.cc>
+References: <c92b64f3-9f69-eb7c-402c-3e489f73a527@gmail.com>
+ <20161012075212.GA26177@breakpoint.cc>
+ <1e3ffb89-2c24-526a-01aa-53794d554202@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, kernel-janitors@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Laura Garcia Liebana <nevola@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+        Patrick McHardy <kaber@trash.net>
+To: Ulrich Weber <uweber.linux@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:35352 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752706AbcJLLm2 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Oct 2016 07:42:28 -0400
 Content-Disposition: inline
-In-Reply-To: <CAML_gOedjw6uJqp13YkGfXoLQTd_ikOC8OoUA4oXv15RYsgoUg@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1e3ffb89-2c24-526a-01aa-53794d554202@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-We don't want to allow negatives here.
+Ulrich Weber <uweber.linux@gmail.com> wrote:
+> From reading the code this fixed the problem when Content-Length
+> points to one of the next TCP fragments.
 
-Fixes: 36b701fae12a ('netfilter: nf_tables: validate maximum value of u32 netlink attributes')
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
-v2: cosmetic change
+Right.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index b70d3ea..dd55187 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4423,7 +4423,7 @@ static int nf_tables_check_loops(const struct nft_ctx *ctx,
-  */
- unsigned int nft_parse_u32_check(const struct nlattr *attr, int max, u32 *dest)
- {
--	int val;
-+	u32 val;
- 
- 	val = ntohl(nla_get_be32(attr));
- 	if (val > max)
+> In our case Content-Length is always 0 with a couple of SUBSCRIBE calls.
+> E.g. a TCP packet starting with this will break the SIP connection tracking:
+> 
+> INVITE,NOTIFY,OPTIONS,REFER,REGISTER,UPDATE,SUBSCRIBE
+> Content-Length: 0
+
+Ugh.
+
+I guess it makes sense to detect this and then accept for this case too.
+
+> The previous TCP packet was accepted by SIP connection tracking
+> because it had no Content-Length field.
+
+Perhaps we should treat Content-length of 0 like "no Conent-Length
+field".
