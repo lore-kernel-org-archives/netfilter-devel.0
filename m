@@ -1,42 +1,41 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: xt_ipcomp: add "ip[6]t_ipcomp" module alias name
-Date: Wed, 12 Oct 2016 21:09:22 +0800
-Message-ID: <1476277762-58471-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
+Subject: [PATCH nf] netfilter: nft_hash: add missing NFTA_HASH_OFFSET's nla_policy
+Date: Wed, 12 Oct 2016 21:10:45 +0800
+Message-ID: <1476277845-58642-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, nevola@gmail.com,
         Liping Zhang <liping.zhang@spreadtrum.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-14.163.com ([220.181.12.14]:50330 "EHLO m12-14.163.com"
+Received: from m12-13.163.com ([220.181.12.13]:41349 "EHLO m12-13.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755700AbcJLNKT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Oct 2016 09:10:19 -0400
+        id S1755542AbcJLNM3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Oct 2016 09:12:29 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Otherwise, user cannot add related rules if xt_ipcomp.ko is not loaded:
-  # iptables -A OUTPUT -p 108 -m ipcomp --ipcompspi 1
-  iptables: No chain/target/match by that name.
+Missing the nla_policy description will also miss the validation check
+in kernel.
 
+Fixes: 70ca767ea1b2 ("netfilter: nft_hash: Add hash offset value")
 Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
- net/netfilter/xt_ipcomp.c | 2 ++
- 1 file changed, 2 insertions(+)
+ net/netfilter/nft_hash.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/xt_ipcomp.c b/net/netfilter/xt_ipcomp.c
-index 89d5310..000e703 100644
---- a/net/netfilter/xt_ipcomp.c
-+++ b/net/netfilter/xt_ipcomp.c
-@@ -26,6 +26,8 @@
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Fan Du <fan.du@windriver.com>");
- MODULE_DESCRIPTION("Xtables: IPv4/6 IPsec-IPComp SPI match");
-+MODULE_ALIAS("ipt_ipcomp");
-+MODULE_ALIAS("ip6t_ipcomp");
+diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
+index 09473b4..baf694d 100644
+--- a/net/netfilter/nft_hash.c
++++ b/net/netfilter/nft_hash.c
+@@ -44,6 +44,7 @@ static const struct nla_policy nft_hash_policy[NFTA_HASH_MAX + 1] = {
+ 	[NFTA_HASH_LEN]		= { .type = NLA_U32 },
+ 	[NFTA_HASH_MODULUS]	= { .type = NLA_U32 },
+ 	[NFTA_HASH_SEED]	= { .type = NLA_U32 },
++	[NFTA_HASH_OFFSET]	= { .type = NLA_U32 },
+ };
  
- /* Returns 1 if the spi is matched by the range, 0 otherwise */
- static inline bool
+ static int nft_hash_init(const struct nft_ctx *ctx,
 -- 
 2.5.5
 
