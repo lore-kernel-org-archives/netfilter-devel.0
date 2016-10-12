@@ -1,55 +1,92 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [patch] netfilter: nf_tables: underflow in nft_parse_u32_check()
-Date: Wed, 12 Oct 2016 15:27:19 +0800
-Message-ID: <CAML_gOedjw6uJqp13YkGfXoLQTd_ikOC8OoUA4oXv15RYsgoUg@mail.gmail.com>
-References: <20161012060811.GE12841@mwanda>
+From: Ulrich Weber <ulrich.weber@gmail.com>
+Subject: [RFC] SIP conntrack handler and TCP fragmentation
+Date: Wed, 12 Oct 2016 09:38:00 +0200
+Message-ID: <c92b64f3-9f69-eb7c-402c-3e489f73a527@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Laura Garcia Liebana <nevola@gmail.com>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
+Content-Type: multipart/mixed;
+ boundary="------------833A8543A2CD2A5331BB9591"
+Cc: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f66.google.com ([209.85.213.66]:35028 "EHLO
-        mail-vk0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753209AbcJLH1V (ORCPT
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:37124 "EHLO
+        mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753371AbcJLHii (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Oct 2016 03:27:21 -0400
-In-Reply-To: <20161012060811.GE12841@mwanda>
+        Wed, 12 Oct 2016 03:38:38 -0400
+Received: by mail-wm0-f47.google.com with SMTP id b201so14661403wmb.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Oct 2016 00:38:02 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2016-10-12 14:08 GMT+08:00 Dan Carpenter <dan.carpenter@oracle.com>:
-> We don't want to allow negatives here.
->
-> Fixes: 36b701fae12a ('netfilter: nf_tables: validate maximum value of u32 netlink attributes')
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index b70d3ea..dd55187 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -4423,7 +4423,7 @@ static int nf_tables_check_loops(const struct nft_ctx *ctx,
->   */
+This is a multi-part message in MIME format.
+--------------833A8543A2CD2A5331BB9591
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 
-I think it's better if you can convert it to follows:
+Hi all,
 
->  unsigned int nft_parse_u32_check(const struct nlattr *attr, int max, u32 *dest)
+we had a customer with a Cisco Phone using SIP over TCP
+which subscribed to 15 Phone numbers.
 
-int nft_parse_u32_check(const struct nlattr *attr, u32 max, u32 *dest)
+Since 15 subscribe calls dont fit in one packet, these
+requests were fragmented in multiple TCP packets.
 
->  {
-> -       int val;
-> +       uint val;
+One of these fragments gets rejected then by nf_conntrack_sip with:
+nf_ct_sip: dropping packet: cannot parse cseq
 
-            u32 val;
+The Cisco phone will send retransmits, which got dropped too,
+times out after some time, reconnects and same games
+starts again...
 
->
->         val = ntohl(nla_get_be32(attr));
->         if (val > max)
+I know the proper solution would be TCP defragmentation
+in the nf_conntrack_sip kernel module. However I'm not
+sure if this is worth the effort.
+What about just accepting unparsable TCP SIP packets?
+
+Cheers
+ Ulrich
+
+--------------833A8543A2CD2A5331BB9591
+Content-Type: text/x-patch;
+ name="0001-nf_conntrack_sip-relax-SIP-validation-for-TCP.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+ filename="0001-nf_conntrack_sip-relax-SIP-validation-for-TCP.patch"
+
+=46rom 084a77a72bfc1c5c655f51618bfe885a216ce88b Mon Sep 17 00:00:00 2001
+From: Ulrich Weber <ulrich.weber@riverbed.com>
+Date: Wed, 12 Oct 2016 09:27:23 +0200
+Subject: [PATCH] nf_conntrack_sip: relax SIP validation for TCP
+
+Due TCP fragmentation we cant assume full SIP messages all the time.
+Therefore Accept all packets, even unparsable.
+
+Signed-off-by: Ulrich Weber <ulrich.weber@gmail.com>
+---
+ net/netfilter/nf_conntrack_sip.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrac=
+k_sip.c
+index 621b81c..7700556 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -1562,7 +1562,10 @@ static int sip_help_tcp(struct sk_buff *skb, unsig=
+ned int protoff,
+ 			hooks->seq_adjust(skb, protoff, tdiff);
+ 	}
+=20
+-	return ret;
++	/* Due TCP fragmentation we cant assume full SIP messages all the time.=
+
++	 * Therefore Accept all packets, even unparsable.
++	 */
++	return NF_ACCEPT;
+ }
+=20
+ static int sip_help_udp(struct sk_buff *skb, unsigned int protoff,
+--=20
+2.7.4
+
+
+--------------833A8543A2CD2A5331BB9591--
