@@ -1,37 +1,55 @@
-From: Michal Kubecek <mkubecek@suse.cz>
-Subject: Re: routing table lookup
-Date: Wed, 12 Oct 2016 08:19:30 +0200
-Message-ID: <20161012061930.GA28142@unicorn.suse.cz>
-References: <CAJO99TmN17PiMGs87HY=Awy=-QAMVLsCzBbvXZFzL8HDTakH=A@mail.gmail.com>
- <alpine.LSU.2.20.1610112023530.2014@nerf40.vanv.qr>
- <CAJO99Tn0yTE1=dFMO--vj9KpMt2kgRfURu8-GoXy=KZDRymOQw@mail.gmail.com>
- <alpine.LSU.2.20.1610112203020.5047@nerf40.vanv.qr>
- <CAJO99TnPeGz81C8iP_gg3uD4Y3epDBg5BwWex6RWT0YR93eceg@mail.gmail.com>
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [patch] netfilter: nf_tables: underflow in nft_parse_u32_check()
+Date: Wed, 12 Oct 2016 15:27:19 +0800
+Message-ID: <CAML_gOedjw6uJqp13YkGfXoLQTd_ikOC8OoUA4oXv15RYsgoUg@mail.gmail.com>
+References: <20161012060811.GE12841@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org
-To: =?iso-8859-1?Q?Bj=F8rnar?= Ness <bjornar.ness@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Laura Garcia Liebana <nevola@gmail.com>,
+        Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:36601 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752427AbcJLGTc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Oct 2016 02:19:32 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJO99TnPeGz81C8iP_gg3uD4Y3epDBg5BwWex6RWT0YR93eceg@mail.gmail.com>
+Received: from mail-vk0-f66.google.com ([209.85.213.66]:35028 "EHLO
+        mail-vk0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753209AbcJLH1V (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Oct 2016 03:27:21 -0400
+In-Reply-To: <20161012060811.GE12841@mwanda>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Oct 12, 2016 at 12:17:24AM +0200, Bjørnar Ness wrote:
-> 
-> Yeah, sortoff. But afaik rpfilter is a iptables module, and not
-> available in nftables yet.
-> 
-> Pablo: is the "lookup in routing table from nftables" a total waste of time?
+2016-10-12 14:08 GMT+08:00 Dan Carpenter <dan.carpenter@oracle.com>:
+> We don't want to allow negatives here.
+>
+> Fixes: 36b701fae12a ('netfilter: nf_tables: validate maximum value of u32 netlink attributes')
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+>
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index b70d3ea..dd55187 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -4423,7 +4423,7 @@ static int nf_tables_check_loops(const struct nft_ctx *ctx,
+>   */
 
-You may be interested in
+I think it's better if you can convert it to follows:
 
-  https://www.youtube.com/watch?v=wfWMPlZHQBk&t=19m40s
+>  unsigned int nft_parse_u32_check(const struct nlattr *attr, int max, u32 *dest)
 
-Michal Kubecek
+int nft_parse_u32_check(const struct nlattr *attr, u32 max, u32 *dest)
 
+>  {
+> -       int val;
+> +       uint val;
+
+            u32 val;
+
+>
+>         val = ntohl(nla_get_be32(attr));
+>         if (val > max)
