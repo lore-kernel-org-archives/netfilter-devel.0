@@ -1,7 +1,8 @@
 From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch] netfilter: nf_tables: underflow in nft_parse_u32_check()
-Date: Wed, 12 Oct 2016 09:08:11 +0300
-Message-ID: <20161012060811.GE12841@mwanda>
+Subject: [patch] netfilter: nft_exthdr: fix error handling in
+ nft_exthdr_init()
+Date: Wed, 12 Oct 2016 09:09:12 +0300
+Message-ID: <20161012060912.GF12841@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Patrick McHardy <kaber@trash.net>,
@@ -11,26 +12,27 @@ Cc: Patrick McHardy <kaber@trash.net>,
         netdev@vger.kernel.org, kernel-janitors@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
         Laura Garcia Liebana <nevola@gmail.com>
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: kernel-janitors-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-We don't want to allow negatives here.
+"err" needs to be signed for the error handling to work.
 
 Fixes: 36b701fae12a ('netfilter: nf_tables: validate maximum value of u32 netlink attributes')
 Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index b70d3ea..dd55187 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4423,7 +4423,7 @@ static int nf_tables_check_loops(const struct nft_ctx *ctx,
-  */
- unsigned int nft_parse_u32_check(const struct nlattr *attr, int max, u32 *dest)
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index a84cf3d..47beb3a 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -59,7 +59,8 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
+ 			   const struct nlattr * const tb[])
  {
--	int val;
-+	uint val;
+ 	struct nft_exthdr *priv = nft_expr_priv(expr);
+-	u32 offset, len, err;
++	u32 offset, len;
++	int err;
  
- 	val = ntohl(nla_get_be32(attr));
- 	if (val > max)
+ 	if (tb[NFTA_EXTHDR_DREG] == NULL ||
+ 	    tb[NFTA_EXTHDR_TYPE] == NULL ||
