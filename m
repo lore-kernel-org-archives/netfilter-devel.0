@@ -1,398 +1,510 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next,RFC 08/10] netfilter: move NF_QUEUE handling away from core
-Date: Thu, 13 Oct 2016 14:02:49 +0200
-Message-ID: <1476360171-2991-9-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next,RFC 06/10] netfilter: nf_tables: use hook state from xt_action_param structure
+Date: Thu, 13 Oct 2016 14:02:47 +0200
+Message-ID: <1476360171-2991-7-git-send-email-pablo@netfilter.org>
 References: <1476360171-2991-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46288 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:46284 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753343AbcJMMPc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Oct 2016 08:15:32 -0400
+        id S1754339AbcJMMPd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Oct 2016 08:15:33 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3133B9B80A
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:03:11 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id D284E9B816
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:03:09 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1338B207C1
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:03:11 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AF8BB207C3
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:03:09 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 52442207B7
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:03:08 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D54CA2090D
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:03:06 +0200 (CEST)
 In-Reply-To: <1476360171-2991-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Export a new nf_queue() function that translates the NF_QUEUE verdict
-depending on the scenario:
+Don't copy relevant fields from hook state structure, instead use the
+one that is already available in struct xt_action_param.
 
-1) Drop packet if queue is full.
-2) Accept packet if bypass is enabled.
-3) Return stolen if packet is enqueued.
-
-We can call this function from xt_NFQUEUE and nft_queue. Thus, we
-move packet queuing to userspace away from the core path.
-
-We still have to handle the old QUEUE standard target for
-{ip,ip6}_tables, which points to queue number zero. Just in case we
-still have any user relying on this behaviour. No need to handle this
-from arp and ebtables, they never got a native queue target.
-
-After this patch, we have to inconditionally set state->hook_entries
-before calling the hook since nf_iterate() since we need this to know
-from what hook the packet is escaping to userspace in nf_queue.
-
->From nft_verdict_init(), disallow NF_QUEUE as verdict since we always
-use the nft_queue expression for this and we don't have any userspace
-code using this since the beginning.
+This patch also adds a set of new wrapper functions to fetch relevant
+hook state structure fields.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_queue.h |  3 +++
- net/ipv4/netfilter/arp_tables.c  |  1 +
- net/ipv4/netfilter/ip_tables.c   |  4 ++++
- net/ipv6/netfilter/ip6_tables.c  |  4 ++++
- net/netfilter/core.c             | 14 ++---------
- net/netfilter/nf_internals.h     |  2 --
- net/netfilter/nf_queue.c         | 51 ++++++++++++++++++++++++++--------------
- net/netfilter/nf_tables_api.c    |  3 +--
- net/netfilter/nf_tables_core.c   |  3 +--
- net/netfilter/nft_queue.c        |  6 ++---
- net/netfilter/xt_NFQUEUE.c       | 29 ++++++++++++-----------
- 11 files changed, 67 insertions(+), 53 deletions(-)
+ include/net/netfilter/nf_tables.h        | 35 +++++++++++++++++++++++---------
+ net/bridge/netfilter/nft_meta_bridge.c   |  2 +-
+ net/bridge/netfilter/nft_reject_bridge.c | 30 ++++++++++++++++-----------
+ net/ipv4/netfilter/nft_dup_ipv4.c        |  2 +-
+ net/ipv4/netfilter/nft_masq_ipv4.c       |  4 ++--
+ net/ipv4/netfilter/nft_redir_ipv4.c      |  3 +--
+ net/ipv4/netfilter/nft_reject_ipv4.c     |  4 ++--
+ net/ipv6/netfilter/nft_dup_ipv6.c        |  2 +-
+ net/ipv6/netfilter/nft_masq_ipv6.c       |  3 ++-
+ net/ipv6/netfilter/nft_redir_ipv6.c      |  3 ++-
+ net/ipv6/netfilter/nft_reject_ipv6.c     |  6 +++---
+ net/netfilter/nf_dup_netdev.c            |  2 +-
+ net/netfilter/nf_tables_core.c           | 10 ++++-----
+ net/netfilter/nf_tables_trace.c          |  8 ++++----
+ net/netfilter/nft_log.c                  |  5 +++--
+ net/netfilter/nft_lookup.c               |  5 ++---
+ net/netfilter/nft_meta.c                 |  6 +++---
+ net/netfilter/nft_queue.c                |  2 +-
+ net/netfilter/nft_reject_inet.c          | 18 ++++++++--------
+ 19 files changed, 86 insertions(+), 64 deletions(-)
 
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index 2280cfe86c56..807b9de72b43 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -29,6 +29,9 @@ struct nf_queue_handler {
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 44060344f958..ba49f21d62ab 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -14,27 +14,42 @@
  
- void nf_register_queue_handler(struct net *net, const struct nf_queue_handler *qh);
- void nf_unregister_queue_handler(struct net *net);
+ struct nft_pktinfo {
+ 	struct sk_buff			*skb;
+-	struct net			*net;
+-	const struct net_device		*in;
+-	const struct net_device		*out;
+-	u8				pf;
+-	u8				hook;
+ 	bool				tprot_set;
+ 	u8				tprot;
+ 	/* for x_tables compatibility */
+ 	struct xt_action_param		xt;
+ };
+ 
++static inline struct net *pkt_net(const struct nft_pktinfo *pkt)
++{
++	return pkt->xt.state->net;
++}
 +
-+int nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
-+	     unsigned int queuenum, bool bypass);
- void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict);
- 
- void nf_queue_entry_get_refs(struct nf_queue_entry *entry);
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index e76ab23a2deb..83d82f6be8dd 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -28,6 +28,7 @@
- 
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_arp/arp_tables.h>
-+#include <net/netfilter/nf_queue.h>
- #include "../../netfilter/xt_repldata.h"
- 
- MODULE_LICENSE("GPL");
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index de4fa03f46f3..7040842c34f4 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -29,6 +29,7 @@
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <net/netfilter/nf_log.h>
-+#include <net/netfilter/nf_queue.h>
- #include "../../netfilter/xt_repldata.h"
- 
- MODULE_LICENSE("GPL");
-@@ -329,6 +330,9 @@ ipt_do_table(struct sk_buff *skb,
- 				/* Pop from stack? */
- 				if (v != XT_RETURN) {
- 					verdict = (unsigned int)(-v) - 1;
-+					if (verdict == NF_QUEUE)
-+						verdict = nf_queue(skb, state,
-+								   0, false);
- 					break;
- 				}
- 				if (stackidx == 0) {
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 7eac01d5d621..7119daa19ba6 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -33,6 +33,7 @@
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter/x_tables.h>
- #include <net/netfilter/nf_log.h>
-+#include <net/netfilter/nf_queue.h>
- #include "../../netfilter/xt_repldata.h"
- 
- MODULE_LICENSE("GPL");
-@@ -361,6 +362,9 @@ ip6t_do_table(struct sk_buff *skb,
- 				/* Pop from stack? */
- 				if (v != XT_RETURN) {
- 					verdict = (unsigned int)(-v) - 1;
-+					if (verdict == NF_QUEUE)
-+						verdict = nf_queue(skb, state,
-+								   0, false);
- 					break;
- 				}
- 				if (stackidx == 0)
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 2b3b2f8e39c4..9ae2febd86e3 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -309,6 +309,7 @@ unsigned int nf_iterate(struct sk_buff *skb,
- 	unsigned int verdict;
- 
- 	while (*entryp) {
-+		RCU_INIT_POINTER(state->hook_entries, *entryp);
- repeat:
- 		verdict = (*entryp)->ops.hook((*entryp)->ops.priv, skb, state);
- 		if (verdict != NF_ACCEPT) {
-@@ -331,9 +332,8 @@ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state)
- 	int ret;
- 
- 	entry = rcu_dereference(state->hook_entries);
--next_hook:
- 	verdict = nf_iterate(skb, state, &entry);
--	switch (verdict & NF_VERDICT_MASK) {
-+	switch (verdict) {
- 	case NF_ACCEPT:
- 		ret = 1;
- 		break;
-@@ -343,16 +343,6 @@ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state)
- 		if (ret == 0)
- 			ret = -EPERM;
- 		break;
--	case NF_QUEUE:
--		RCU_INIT_POINTER(state->hook_entries, entry);
--		ret = nf_queue(skb, state, verdict >> NF_VERDICT_QBITS);
--		if (ret < 0) {
--			if (ret == -ESRCH &&
--			    (verdict & NF_VERDICT_FLAG_QUEUE_BYPASS))
--				goto next_hook;
--			kfree_skb(skb);
--		}
--		/* Fall through. */
- 	default:
- 		/* Implicit handling for NF_STOLEN, as well as any other non
- 		 * conventional verdicts.
-diff --git a/net/netfilter/nf_internals.h b/net/netfilter/nf_internals.h
-index e0adb5959342..de25d7cdfd42 100644
---- a/net/netfilter/nf_internals.h
-+++ b/net/netfilter/nf_internals.h
-@@ -17,8 +17,6 @@ unsigned int nf_iterate(struct sk_buff *skb, struct nf_hook_state *state,
- 			struct nf_hook_entry **entryp);
- 
- /* nf_queue.c */
--int nf_queue(struct sk_buff *skb, struct nf_hook_state *state,
--	     unsigned int queuenum);
- void nf_queue_nf_hook_drop(struct net *net, const struct nf_hook_entry *entry);
- int __init netfilter_queue_init(void);
- 
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index ebb54facd6b5..c97f4e4e25d9 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -111,9 +111,8 @@ void nf_queue_nf_hook_drop(struct net *net, const struct nf_hook_entry *entry)
-  * Any packet that leaves via this function must come back
-  * through nf_reinject().
-  */
--int nf_queue(struct sk_buff *skb,
--	     struct nf_hook_state *state,
--	     unsigned int queuenum)
-+static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
-+		      unsigned int queuenum)
++static inline unsigned int pkt_hook(const struct nft_pktinfo *pkt)
++{
++	return pkt->xt.state->hook;
++}
++
++static inline u8 pkt_pf(const struct nft_pktinfo *pkt)
++{
++	return pkt->xt.state->pf;
++}
++
++static inline const struct net_device *pkt_in(const struct nft_pktinfo *pkt)
++{
++	return pkt->xt.state->in;
++}
++
++static inline const struct net_device *pkt_out(const struct nft_pktinfo *pkt)
++{
++	return pkt->xt.state->out;
++}
++
+ static inline void nft_set_pktinfo(struct nft_pktinfo *pkt,
+ 				   struct sk_buff *skb,
+ 				   const struct nf_hook_state *state)
  {
- 	int status = -ENOENT;
- 	struct nf_queue_entry *entry = NULL;
-@@ -161,6 +160,23 @@ int nf_queue(struct sk_buff *skb,
- 	return status;
+ 	pkt->skb = skb;
+-	pkt->net = state->net;
+-	pkt->in = state->in;
+-	pkt->out = state->out;
+-	pkt->hook = state->hook;
+-	pkt->pf = state->pf;
+ 	pkt->xt.state = state;
  }
  
-+int nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
-+	     unsigned int queuenum, bool bypass)
-+{
-+	int ret;
-+
-+	ret = __nf_queue(skb, state, queuenum);
-+	if (ret < 0) {
-+		if (ret == -ESRCH && bypass)
-+			return NF_ACCEPT;
-+		kfree_skb(skb);
-+		return NF_DROP;
-+	}
-+
-+	return NF_STOLEN;
-+}
-+EXPORT_SYMBOL_GPL(nf_queue);
-+
- void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+index ad47a921b701..ea72d56d44b9 100644
+--- a/net/bridge/netfilter/nft_meta_bridge.c
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -23,7 +23,7 @@ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
+ 				     const struct nft_pktinfo *pkt)
  {
- 	struct nf_hook_entry *hook_entry;
-@@ -169,6 +185,20 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	struct nf_hook_ops *elem;
- 	int err;
+ 	const struct nft_meta *priv = nft_expr_priv(expr);
+-	const struct net_device *in = pkt->in, *out = pkt->out;
++	const struct net_device *in = pkt_in(pkt), *out = pkt_out(pkt);
+ 	u32 *dest = &regs->data[priv->dreg];
+ 	const struct net_bridge_port *p;
  
-+	/* Userspace may request to enqueue this packet again. */
-+	if ((verdict & NF_VERDICT_MASK) == NF_QUEUE) {
-+		err = __nf_queue(skb, &entry->state,
-+				 verdict >> NF_VERDICT_QBITS);
-+		if (err < 0) {
-+			if (err != -ESRCH ||
-+			   (!(verdict & NF_VERDICT_FLAG_QUEUE_BYPASS))) {
-+				kfree_skb(skb);
-+				kfree(entry);
-+				return;
-+			}
-+		}
-+	}
-+
- 	hook_entry = rcu_dereference(entry->state.hook_entries);
- 	elem = &hook_entry->ops;
- 
-@@ -186,10 +216,8 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 
- 	hook_entry = rcu_dereference(hook_entry->next);
- 
--	if (verdict == NF_ACCEPT) {
--	next_hook:
-+	if (verdict == NF_ACCEPT)
- 		verdict = nf_iterate(skb, &entry->state, &hook_entry);
--	}
- 
- 	switch (verdict & NF_VERDICT_MASK) {
- 	case NF_ACCEPT:
-@@ -198,17 +226,6 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 		entry->state.okfn(entry->state.net, entry->state.sk, skb);
- 		local_bh_enable();
- 		break;
--	case NF_QUEUE:
--		RCU_INIT_POINTER(entry->state.hook_entries, hook_entry);
--		err = nf_queue(skb, &entry->state,
--			       verdict >> NF_VERDICT_QBITS);
--		if (err < 0) {
--			if (err == -ESRCH &&
--			   (verdict & NF_VERDICT_FLAG_QUEUE_BYPASS))
--				goto next_hook;
--			kfree_skb(skb);
--		}
--		break;
- 	case NF_STOLEN:
- 		break;
- 	default:
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index b70d3ea1430e..5402289b9ea8 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4583,10 +4583,9 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
- 
- 	switch (data->verdict.code) {
- 	default:
--		switch (data->verdict.code & NF_VERDICT_MASK) {
-+		switch (data->verdict.code) {
- 		case NF_ACCEPT:
- 		case NF_DROP:
--		case NF_QUEUE:
+diff --git a/net/bridge/netfilter/nft_reject_bridge.c b/net/bridge/netfilter/nft_reject_bridge.c
+index 4b3df6b0e3b9..e8918a8a1511 100644
+--- a/net/bridge/netfilter/nft_reject_bridge.c
++++ b/net/bridge/netfilter/nft_reject_bridge.c
+@@ -315,17 +315,20 @@ static void nft_reject_bridge_eval(const struct nft_expr *expr,
+ 	case htons(ETH_P_IP):
+ 		switch (priv->type) {
+ 		case NFT_REJECT_ICMP_UNREACH:
+-			nft_reject_br_send_v4_unreach(pkt->net, pkt->skb,
+-						      pkt->in, pkt->hook,
++			nft_reject_br_send_v4_unreach(pkt_net(pkt), pkt->skb,
++						      pkt_in(pkt),
++						      pkt_hook(pkt),
+ 						      priv->icmp_code);
  			break;
- 		default:
- 			return -EINVAL;
+ 		case NFT_REJECT_TCP_RST:
+-			nft_reject_br_send_v4_tcp_reset(pkt->net, pkt->skb,
+-							pkt->in, pkt->hook);
++			nft_reject_br_send_v4_tcp_reset(pkt_net(pkt), pkt->skb,
++							pkt_in(pkt),
++							pkt_hook(pkt));
+ 			break;
+ 		case NFT_REJECT_ICMPX_UNREACH:
+-			nft_reject_br_send_v4_unreach(pkt->net, pkt->skb,
+-						      pkt->in, pkt->hook,
++			nft_reject_br_send_v4_unreach(pkt_net(pkt), pkt->skb,
++						      pkt_in(pkt),
++						      pkt_hook(pkt),
+ 						      nft_reject_icmp_code(priv->icmp_code));
+ 			break;
+ 		}
+@@ -333,17 +336,20 @@ static void nft_reject_bridge_eval(const struct nft_expr *expr,
+ 	case htons(ETH_P_IPV6):
+ 		switch (priv->type) {
+ 		case NFT_REJECT_ICMP_UNREACH:
+-			nft_reject_br_send_v6_unreach(pkt->net, pkt->skb,
+-						      pkt->in, pkt->hook,
++			nft_reject_br_send_v6_unreach(pkt_net(pkt), pkt->skb,
++						      pkt_in(pkt),
++						      pkt_hook(pkt),
+ 						      priv->icmp_code);
+ 			break;
+ 		case NFT_REJECT_TCP_RST:
+-			nft_reject_br_send_v6_tcp_reset(pkt->net, pkt->skb,
+-							pkt->in, pkt->hook);
++			nft_reject_br_send_v6_tcp_reset(pkt_net(pkt), pkt->skb,
++							pkt_in(pkt),
++							pkt_hook(pkt));
+ 			break;
+ 		case NFT_REJECT_ICMPX_UNREACH:
+-			nft_reject_br_send_v6_unreach(pkt->net, pkt->skb,
+-						      pkt->in, pkt->hook,
++			nft_reject_br_send_v6_unreach(pkt_net(pkt), pkt->skb,
++						      pkt_in(pkt),
++						      pkt_hook(pkt),
+ 						      nft_reject_icmpv6_code(priv->icmp_code));
+ 			break;
+ 		}
+diff --git a/net/ipv4/netfilter/nft_dup_ipv4.c b/net/ipv4/netfilter/nft_dup_ipv4.c
+index bf855e64fc45..b277070031cc 100644
+--- a/net/ipv4/netfilter/nft_dup_ipv4.c
++++ b/net/ipv4/netfilter/nft_dup_ipv4.c
+@@ -30,7 +30,7 @@ static void nft_dup_ipv4_eval(const struct nft_expr *expr,
+ 	};
+ 	int oif = regs->data[priv->sreg_dev];
+ 
+-	nf_dup_ipv4(pkt->net, pkt->skb, pkt->hook, &gw, oif);
++	nf_dup_ipv4(pkt_net(pkt), pkt->skb, pkt_hook(pkt), &gw, oif);
+ }
+ 
+ static int nft_dup_ipv4_init(const struct nft_ctx *ctx,
+diff --git a/net/ipv4/netfilter/nft_masq_ipv4.c b/net/ipv4/netfilter/nft_masq_ipv4.c
+index 51ced81b616c..75cc43f9ef66 100644
+--- a/net/ipv4/netfilter/nft_masq_ipv4.c
++++ b/net/ipv4/netfilter/nft_masq_ipv4.c
+@@ -31,8 +31,8 @@ static void nft_masq_ipv4_eval(const struct nft_expr *expr,
+ 		range.max_proto.all =
+ 			*(__be16 *)&regs->data[priv->sreg_proto_max];
+ 	}
+-	regs->verdict.code = nf_nat_masquerade_ipv4(pkt->skb, pkt->hook,
+-						    &range, pkt->out);
++	regs->verdict.code = nf_nat_masquerade_ipv4(pkt->skb, pkt_hook(pkt),
++						    &range, pkt_out(pkt));
+ }
+ 
+ static struct nft_expr_type nft_masq_ipv4_type;
+diff --git a/net/ipv4/netfilter/nft_redir_ipv4.c b/net/ipv4/netfilter/nft_redir_ipv4.c
+index c09d4381427e..de6b46013da4 100644
+--- a/net/ipv4/netfilter/nft_redir_ipv4.c
++++ b/net/ipv4/netfilter/nft_redir_ipv4.c
+@@ -35,8 +35,7 @@ static void nft_redir_ipv4_eval(const struct nft_expr *expr,
+ 
+ 	mr.range[0].flags |= priv->flags;
+ 
+-	regs->verdict.code = nf_nat_redirect_ipv4(pkt->skb, &mr,
+-						  pkt->hook);
++	regs->verdict.code = nf_nat_redirect_ipv4(pkt->skb, &mr, pkt_hook(pkt));
+ }
+ 
+ static struct nft_expr_type nft_redir_ipv4_type;
+diff --git a/net/ipv4/netfilter/nft_reject_ipv4.c b/net/ipv4/netfilter/nft_reject_ipv4.c
+index 2c2553b9026c..4b0d930c9fdb 100644
+--- a/net/ipv4/netfilter/nft_reject_ipv4.c
++++ b/net/ipv4/netfilter/nft_reject_ipv4.c
+@@ -27,10 +27,10 @@ static void nft_reject_ipv4_eval(const struct nft_expr *expr,
+ 
+ 	switch (priv->type) {
+ 	case NFT_REJECT_ICMP_UNREACH:
+-		nf_send_unreach(pkt->skb, priv->icmp_code, pkt->hook);
++		nf_send_unreach(pkt->skb, priv->icmp_code, pkt_hook(pkt));
+ 		break;
+ 	case NFT_REJECT_TCP_RST:
+-		nf_send_reset(pkt->net, pkt->skb, pkt->hook);
++		nf_send_reset(pkt_net(pkt), pkt->skb, pkt_hook(pkt));
+ 		break;
+ 	default:
+ 		break;
+diff --git a/net/ipv6/netfilter/nft_dup_ipv6.c b/net/ipv6/netfilter/nft_dup_ipv6.c
+index 8bfd470cbe72..af50ce95cb39 100644
+--- a/net/ipv6/netfilter/nft_dup_ipv6.c
++++ b/net/ipv6/netfilter/nft_dup_ipv6.c
+@@ -28,7 +28,7 @@ static void nft_dup_ipv6_eval(const struct nft_expr *expr,
+ 	struct in6_addr *gw = (struct in6_addr *)&regs->data[priv->sreg_addr];
+ 	int oif = regs->data[priv->sreg_dev];
+ 
+-	nf_dup_ipv6(pkt->net, pkt->skb, pkt->hook, gw, oif);
++	nf_dup_ipv6(pkt_net(pkt), pkt->skb, pkt_hook(pkt), gw, oif);
+ }
+ 
+ static int nft_dup_ipv6_init(const struct nft_ctx *ctx,
+diff --git a/net/ipv6/netfilter/nft_masq_ipv6.c b/net/ipv6/netfilter/nft_masq_ipv6.c
+index 9597ffb74077..f71b03a3172c 100644
+--- a/net/ipv6/netfilter/nft_masq_ipv6.c
++++ b/net/ipv6/netfilter/nft_masq_ipv6.c
+@@ -32,7 +32,8 @@ static void nft_masq_ipv6_eval(const struct nft_expr *expr,
+ 		range.max_proto.all =
+ 			*(__be16 *)&regs->data[priv->sreg_proto_max];
+ 	}
+-	regs->verdict.code = nf_nat_masquerade_ipv6(pkt->skb, &range, pkt->out);
++	regs->verdict.code = nf_nat_masquerade_ipv6(pkt->skb, &range,
++						    pkt_out(pkt));
+ }
+ 
+ static struct nft_expr_type nft_masq_ipv6_type;
+diff --git a/net/ipv6/netfilter/nft_redir_ipv6.c b/net/ipv6/netfilter/nft_redir_ipv6.c
+index aca44e89a881..281f727a3d02 100644
+--- a/net/ipv6/netfilter/nft_redir_ipv6.c
++++ b/net/ipv6/netfilter/nft_redir_ipv6.c
+@@ -35,7 +35,8 @@ static void nft_redir_ipv6_eval(const struct nft_expr *expr,
+ 
+ 	range.flags |= priv->flags;
+ 
+-	regs->verdict.code = nf_nat_redirect_ipv6(pkt->skb, &range, pkt->hook);
++	regs->verdict.code = nf_nat_redirect_ipv6(pkt->skb, &range,
++						  pkt_hook(pkt));
+ }
+ 
+ static struct nft_expr_type nft_redir_ipv6_type;
+diff --git a/net/ipv6/netfilter/nft_reject_ipv6.c b/net/ipv6/netfilter/nft_reject_ipv6.c
+index 92bda9908bb9..fa80c277e7ba 100644
+--- a/net/ipv6/netfilter/nft_reject_ipv6.c
++++ b/net/ipv6/netfilter/nft_reject_ipv6.c
+@@ -27,11 +27,11 @@ static void nft_reject_ipv6_eval(const struct nft_expr *expr,
+ 
+ 	switch (priv->type) {
+ 	case NFT_REJECT_ICMP_UNREACH:
+-		nf_send_unreach6(pkt->net, pkt->skb, priv->icmp_code,
+-				 pkt->hook);
++		nf_send_unreach6(pkt_net(pkt), pkt->skb, priv->icmp_code,
++				 pkt_hook(pkt));
+ 		break;
+ 	case NFT_REJECT_TCP_RST:
+-		nf_send_reset6(pkt->net, pkt->skb, pkt->hook);
++		nf_send_reset6(pkt_net(pkt), pkt->skb, pkt_hook(pkt));
+ 		break;
+ 	default:
+ 		break;
+diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
+index 7ec69723940f..e999fafaca8d 100644
+--- a/net/netfilter/nf_dup_netdev.c
++++ b/net/netfilter/nf_dup_netdev.c
+@@ -19,7 +19,7 @@ void nf_dup_netdev_egress(const struct nft_pktinfo *pkt, int oif)
+ 	struct net_device *dev;
+ 	struct sk_buff *skb;
+ 
+-	dev = dev_get_by_index_rcu(pkt->net, oif);
++	dev = dev_get_by_index_rcu(pkt_net(pkt), oif);
+ 	if (dev == NULL)
+ 		return;
+ 
 diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 27fa3c2dea8a..d91fc90bcd4d 100644
+index 0dd5c695482f..27fa3c2dea8a 100644
 --- a/net/netfilter/nf_tables_core.c
 +++ b/net/netfilter/nf_tables_core.c
-@@ -174,10 +174,9 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
- 		break;
+@@ -53,10 +53,10 @@ static noinline void __nft_trace_packet(struct nft_traceinfo *info,
+ 
+ 	nft_trace_notify(info);
+ 
+-	nf_log_trace(pkt->net, pkt->pf, pkt->hook, pkt->skb, pkt->in,
+-		     pkt->out, &trace_loginfo, "TRACE: %s:%s:%s:%u ",
+-		     chain->table->name, chain->name, comments[type],
+-		     rulenum);
++	nf_log_trace(pkt_net(pkt), pkt_pf(pkt), pkt_hook(pkt), pkt->skb,
++		     pkt_in(pkt), pkt_out(pkt), &trace_loginfo,
++		     "TRACE: %s:%s:%s:%u ",
++		     chain->table->name, chain->name, comments[type], rulenum);
+ }
+ 
+ static inline void nft_trace_packet(struct nft_traceinfo *info,
+@@ -124,7 +124,7 @@ unsigned int
+ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+ {
+ 	const struct nft_chain *chain = priv, *basechain = chain;
+-	const struct net *net = pkt->net;
++	const struct net *net = pkt->xt.state->net;
+ 	const struct nft_rule *rule;
+ 	const struct nft_expr *expr, *last;
+ 	struct nft_regs regs;
+diff --git a/net/netfilter/nf_tables_trace.c b/net/netfilter/nf_tables_trace.c
+index ab695f8e2d29..5a09f78a6a4f 100644
+--- a/net/netfilter/nf_tables_trace.c
++++ b/net/netfilter/nf_tables_trace.c
+@@ -171,7 +171,7 @@ void nft_trace_notify(struct nft_traceinfo *info)
+ 	unsigned int size;
+ 	int event = (NFNL_SUBSYS_NFTABLES << 8) | NFT_MSG_TRACE;
+ 
+-	if (!nfnetlink_has_listeners(pkt->net, NFNLGRP_NFTRACE))
++	if (!nfnetlink_has_listeners(pkt_net(pkt), NFNLGRP_NFTRACE))
+ 		return;
+ 
+ 	size = nlmsg_total_size(sizeof(struct nfgenmsg)) +
+@@ -207,7 +207,7 @@ void nft_trace_notify(struct nft_traceinfo *info)
+ 	nfmsg->version		= NFNETLINK_V0;
+ 	nfmsg->res_id		= 0;
+ 
+-	if (nla_put_be32(skb, NFTA_TRACE_NFPROTO, htonl(pkt->pf)))
++	if (nla_put_be32(skb, NFTA_TRACE_NFPROTO, htonl(pkt_pf(pkt))))
+ 		goto nla_put_failure;
+ 
+ 	if (nla_put_be32(skb, NFTA_TRACE_TYPE, htonl(info->type)))
+@@ -249,7 +249,7 @@ void nft_trace_notify(struct nft_traceinfo *info)
+ 		goto nla_put_failure;
+ 
+ 	if (!info->packet_dumped) {
+-		if (nf_trace_fill_dev_info(skb, pkt->in, pkt->out))
++		if (nf_trace_fill_dev_info(skb, pkt_in(pkt), pkt_out(pkt)))
+ 			goto nla_put_failure;
+ 
+ 		if (nf_trace_fill_pkt_info(skb, pkt))
+@@ -258,7 +258,7 @@ void nft_trace_notify(struct nft_traceinfo *info)
  	}
  
--	switch (regs.verdict.code & NF_VERDICT_MASK) {
-+	switch (regs.verdict.code) {
- 	case NF_ACCEPT:
- 	case NF_DROP:
--	case NF_QUEUE:
- 		nft_trace_packet(&info, chain, rule,
- 				 rulenum, NFT_TRACETYPE_RULE);
- 		return regs.verdict.code;
+ 	nlmsg_end(skb, nlh);
+-	nfnetlink_send(skb, pkt->net, 0, NFNLGRP_NFTRACE, 0, GFP_ATOMIC);
++	nfnetlink_send(skb, pkt_net(pkt), 0, NFNLGRP_NFTRACE, 0, GFP_ATOMIC);
+ 	return;
+ 
+  nla_put_failure:
+diff --git a/net/netfilter/nft_log.c b/net/netfilter/nft_log.c
+index 1b01404bb33f..3ffff350e6d6 100644
+--- a/net/netfilter/nft_log.c
++++ b/net/netfilter/nft_log.c
+@@ -32,8 +32,9 @@ static void nft_log_eval(const struct nft_expr *expr,
+ {
+ 	const struct nft_log *priv = nft_expr_priv(expr);
+ 
+-	nf_log_packet(pkt->net, pkt->pf, pkt->hook, pkt->skb, pkt->in,
+-		      pkt->out, &priv->loginfo, "%s", priv->prefix);
++	nf_log_packet(pkt_net(pkt), pkt_pf(pkt), pkt_hook(pkt), pkt->skb,
++		      pkt_in(pkt), pkt_out(pkt), &priv->loginfo, "%s",
++		      priv->prefix);
+ }
+ 
+ static const struct nla_policy nft_log_policy[NFTA_LOG_MAX + 1] = {
+diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
+index 8166b6994cc7..fb36f967609c 100644
+--- a/net/netfilter/nft_lookup.c
++++ b/net/netfilter/nft_lookup.c
+@@ -35,9 +35,8 @@ static void nft_lookup_eval(const struct nft_expr *expr,
+ 	const struct nft_set_ext *ext;
+ 	bool found;
+ 
+-	found = set->ops->lookup(pkt->net, set, &regs->data[priv->sreg], &ext) ^
+-		priv->invert;
+-
++	found = set->ops->lookup(pkt_net(pkt), set, &regs->data[priv->sreg],
++				 &ext) ^ priv->invert;
+ 	if (!found) {
+ 		regs->verdict.code = NFT_BREAK;
+ 		return;
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 6c1e0246706e..8270e2cc1513 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -36,7 +36,7 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ {
+ 	const struct nft_meta *priv = nft_expr_priv(expr);
+ 	const struct sk_buff *skb = pkt->skb;
+-	const struct net_device *in = pkt->in, *out = pkt->out;
++	const struct net_device *in = pkt_in(pkt), *out = pkt_out(pkt);
+ 	struct sock *sk;
+ 	u32 *dest = &regs->data[priv->dreg];
+ 
+@@ -49,7 +49,7 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 		*(__be16 *)dest = skb->protocol;
+ 		break;
+ 	case NFT_META_NFPROTO:
+-		*dest = pkt->pf;
++		*dest = pkt_pf(pkt);
+ 		break;
+ 	case NFT_META_L4PROTO:
+ 		if (!pkt->tprot_set)
+@@ -146,7 +146,7 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 			break;
+ 		}
+ 
+-		switch (pkt->pf) {
++		switch (pkt_pf(pkt)) {
+ 		case NFPROTO_IPV4:
+ 			if (ipv4_is_multicast(ip_hdr(skb)->daddr))
+ 				*dest = PACKET_MULTICAST;
 diff --git a/net/netfilter/nft_queue.c b/net/netfilter/nft_queue.c
-index f596a1614daa..015053a2643d 100644
+index 393d359a1889..f596a1614daa 100644
 --- a/net/netfilter/nft_queue.c
 +++ b/net/netfilter/nft_queue.c
-@@ -48,10 +48,8 @@ static void nft_queue_eval(const struct nft_expr *expr,
+@@ -43,7 +43,7 @@ static void nft_queue_eval(const struct nft_expr *expr,
+ 			queue = priv->queuenum + cpu % priv->queues_total;
+ 		} else {
+ 			queue = nfqueue_hash(pkt->skb, queue,
+-					     priv->queues_total, pkt->pf,
++					     priv->queues_total, pkt_pf(pkt),
+ 					     jhash_initval);
  		}
  	}
- 
--	ret = NF_QUEUE_NR(queue);
--	if (priv->flags & NFT_QUEUE_FLAG_BYPASS)
--		ret |= NF_VERDICT_FLAG_QUEUE_BYPASS;
--
-+	ret = nf_queue(pkt->skb, pkt->xt.state, NF_QUEUE_NR(queue),
-+		       priv->flags & NFT_QUEUE_FLAG_BYPASS);
- 	regs->verdict.code = ret;
- }
- 
-diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
-index a360b99a958a..f256a4a173fa 100644
---- a/net/netfilter/xt_NFQUEUE.c
-+++ b/net/netfilter/xt_NFQUEUE.c
-@@ -32,11 +32,12 @@ nfqueue_tg(struct sk_buff *skb, const struct xt_action_param *par)
+diff --git a/net/netfilter/nft_reject_inet.c b/net/netfilter/nft_reject_inet.c
+index e79d9ca2ffee..7c1418755a21 100644
+--- a/net/netfilter/nft_reject_inet.c
++++ b/net/netfilter/nft_reject_inet.c
+@@ -23,36 +23,36 @@ static void nft_reject_inet_eval(const struct nft_expr *expr,
  {
- 	const struct xt_NFQ_info *tinfo = par->targinfo;
+ 	struct nft_reject *priv = nft_expr_priv(expr);
  
--	return NF_QUEUE_NR(tinfo->queuenum);
-+	return nf_queue(skb, par->state, tinfo->queuenum, false);
- }
- 
--static unsigned int
--nfqueue_tg_v1(struct sk_buff *skb, const struct xt_action_param *par)
-+static unsigned int __nf_queue_tg(struct sk_buff *skb,
-+				  const struct xt_action_param *par,
-+				  bool bypass)
- {
- 	const struct xt_NFQ_info_v1 *info = par->targinfo;
- 	u32 queue = info->queuenum;
-@@ -45,18 +46,22 @@ nfqueue_tg_v1(struct sk_buff *skb, const struct xt_action_param *par)
- 		queue = nfqueue_hash(skb, queue, info->queues_total,
- 				     xt_family(par), jhash_initval);
- 	}
--	return NF_QUEUE_NR(queue);
-+
-+	return nf_queue(skb, par->state, info->queuenum, bypass);
-+}
-+
-+static unsigned int
-+nfqueue_tg_v1(struct sk_buff *skb, const struct xt_action_param *par)
-+{
-+	return __nf_queue_tg(skb, par, false);
- }
- 
- static unsigned int
- nfqueue_tg_v2(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct xt_NFQ_info_v2 *info = par->targinfo;
--	unsigned int ret = nfqueue_tg_v1(skb, par);
- 
--	if (info->bypass)
--		ret |= NF_VERDICT_FLAG_QUEUE_BYPASS;
--	return ret;
-+	return __nf_queue_tg(skb, par, info->bypass);
- }
- 
- static int nfqueue_tg_check(const struct xt_tgchk_param *par)
-@@ -89,7 +94,6 @@ nfqueue_tg_v3(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct xt_NFQ_info_v3 *info = par->targinfo;
- 	u32 queue = info->queuenum;
--	int ret;
- 
- 	if (info->queues_total > 1) {
- 		if (info->flags & NFQ_FLAG_CPU_FANOUT) {
-@@ -102,11 +106,8 @@ nfqueue_tg_v3(struct sk_buff *skb, const struct xt_action_param *par)
+-	switch (pkt->pf) {
++	switch (pkt_pf(pkt)) {
+ 	case NFPROTO_IPV4:
+ 		switch (priv->type) {
+ 		case NFT_REJECT_ICMP_UNREACH:
+ 			nf_send_unreach(pkt->skb, priv->icmp_code,
+-					pkt->hook);
++					pkt_hook(pkt));
+ 			break;
+ 		case NFT_REJECT_TCP_RST:
+-			nf_send_reset(pkt->net, pkt->skb, pkt->hook);
++			nf_send_reset(pkt_net(pkt), pkt->skb, pkt_hook(pkt));
+ 			break;
+ 		case NFT_REJECT_ICMPX_UNREACH:
+ 			nf_send_unreach(pkt->skb,
+ 					nft_reject_icmp_code(priv->icmp_code),
+-					pkt->hook);
++					pkt_hook(pkt));
+ 			break;
  		}
- 	}
- 
--	ret = NF_QUEUE_NR(queue);
--	if (info->flags & NFQ_FLAG_BYPASS)
--		ret |= NF_VERDICT_FLAG_QUEUE_BYPASS;
--
--	return ret;
-+	return nf_queue(skb, par->state, NF_QUEUE_NR(queue),
-+			info->flags & NFQ_FLAG_BYPASS);
- }
- 
- static struct xt_target nfqueue_tg_reg[] __read_mostly = {
+ 		break;
+ 	case NFPROTO_IPV6:
+ 		switch (priv->type) {
+ 		case NFT_REJECT_ICMP_UNREACH:
+-			nf_send_unreach6(pkt->net, pkt->skb, priv->icmp_code,
+-					 pkt->hook);
++			nf_send_unreach6(pkt_net(pkt), pkt->skb,
++					 priv->icmp_code, pkt_hook(pkt));
+ 			break;
+ 		case NFT_REJECT_TCP_RST:
+-			nf_send_reset6(pkt->net, pkt->skb, pkt->hook);
++			nf_send_reset6(pkt_net(pkt), pkt->skb, pkt_hook(pkt));
+ 			break;
+ 		case NFT_REJECT_ICMPX_UNREACH:
+-			nf_send_unreach6(pkt->net, pkt->skb,
++			nf_send_unreach6(pkt_net(pkt), pkt->skb,
+ 					 nft_reject_icmpv6_code(priv->icmp_code),
+-					 pkt->hook);
++					 pkt_hook(pkt));
+ 			break;
+ 		}
+ 		break;
 -- 
 2.1.4
 
