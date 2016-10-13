@@ -1,251 +1,172 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next,RFC 03/10] netfilter: bridge: kill NF_HOOK_THRESH() and state->tresh
-Date: Thu, 13 Oct 2016 14:02:44 +0200
-Message-ID: <1476360171-2991-4-git-send-email-pablo@netfilter.org>
-References: <1476360171-2991-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next,RFC 09/10] netfilter: merge nf_iterate() into nf_hook_slow()
+Date: Thu, 13 Oct 2016 14:12:02 +0200
+Message-ID: <1476360723-3291-10-git-send-email-pablo@netfilter.org>
+References: <1476360723-3291-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43192 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44802 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754504AbcJMMLK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Oct 2016 08:11:10 -0400
+        id S1756074AbcJMMMx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Oct 2016 08:12:53 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 706129B7FC
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:03:06 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 55B833EBA82
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:12:52 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5A27920903
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:03:06 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 34310BAC25
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:12:52 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 73228208E8
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:03:03 +0200 (CEST)
-In-Reply-To: <1476360171-2991-1-git-send-email-pablo@netfilter.org>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1E7CDBAC50
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:12:29 +0200 (CEST)
+In-Reply-To: <1476360723-3291-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patch c5136b15ea36 ("netfilter: bridge: add and use br_nf_hook_thresh")
-introduced br_nf_hook_thresh().
+nf_iterate() has become rather simple, we can integrate this code into
+nf_hook_slow() to reduce the amount of LOC in the core path.
 
-Replace NF_HOOK_THRESH() by br_nf_hook_thresh from
-br_nf_forward_finish(), so we have no more callers for this macro.
+However, we still need nf_iterate() around for nf_queue packet handling,
+so move this function there where we only need it. I think it should be
+possible to refactor nf_queue code to get rid of it definitely, but
+given this is slow path anyway, let's have a look this later.
 
-As a result, state->thresh and explicit thresh parameter in the hook
-state structure is not required anymore.
-
-And we can get rid of fast forward code in nf_iterate() in the core path
-that is only used by br_netfilter to search for the filter hook.
-
-Suggested-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h             | 50 +++++++++--------------------------
- include/linux/netfilter_ingress.h     |  2 +-
- net/bridge/br_netfilter_hooks.c       |  8 +++---
- net/bridge/netfilter/ebtable_broute.c |  2 +-
- net/netfilter/core.c                  |  4 ---
- net/netfilter/nf_queue.c              |  1 -
- 6 files changed, 19 insertions(+), 48 deletions(-)
+ net/netfilter/core.c         | 64 +++++++++++++++++---------------------------
+ net/netfilter/nf_internals.h |  5 ----
+ net/netfilter/nf_queue.c     | 20 ++++++++++++++
+ 3 files changed, 45 insertions(+), 44 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index abc7fdcb9eb1..e0d000f6c9bf 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -49,7 +49,6 @@ struct sock;
- 
- struct nf_hook_state {
- 	unsigned int hook;
--	int thresh;
- 	u_int8_t pf;
- 	struct net_device *in;
- 	struct net_device *out;
-@@ -84,7 +83,7 @@ struct nf_hook_entry {
- static inline void nf_hook_state_init(struct nf_hook_state *p,
- 				      struct nf_hook_entry *hook_entry,
- 				      unsigned int hook,
--				      int thresh, u_int8_t pf,
-+				      u_int8_t pf,
- 				      struct net_device *indev,
- 				      struct net_device *outdev,
- 				      struct sock *sk,
-@@ -92,7 +91,6 @@ static inline void nf_hook_state_init(struct nf_hook_state *p,
- 				      int (*okfn)(struct net *, struct sock *, struct sk_buff *))
- {
- 	p->hook = hook;
--	p->thresh = thresh;
- 	p->pf = pf;
- 	p->in = indev;
- 	p->out = outdev;
-@@ -155,20 +153,16 @@ extern struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
- int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state);
- 
- /**
-- *	nf_hook_thresh - call a netfilter hook
-+ *	nf_hook - call a netfilter hook
-  *
-  *	Returns 1 if the hook has allowed the packet to pass.  The function
-  *	okfn must be invoked by the caller in this case.  Any other return
-  *	value indicates the packet has been consumed by the hook.
-  */
--static inline int nf_hook_thresh(u_int8_t pf, unsigned int hook,
--				 struct net *net,
--				 struct sock *sk,
--				 struct sk_buff *skb,
--				 struct net_device *indev,
--				 struct net_device *outdev,
--				 int (*okfn)(struct net *, struct sock *, struct sk_buff *),
--				 int thresh)
-+static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
-+			  struct sock *sk, struct sk_buff *skb,
-+			  struct net_device *indev, struct net_device *outdev,
-+			  int (*okfn)(struct net *, struct sock *, struct sk_buff *))
- {
- 	struct nf_hook_entry *hook_head;
- 	int ret = 1;
-@@ -185,8 +179,8 @@ static inline int nf_hook_thresh(u_int8_t pf, unsigned int hook,
- 	if (hook_head) {
- 		struct nf_hook_state state;
- 
--		nf_hook_state_init(&state, hook_head, hook, thresh,
--				   pf, indev, outdev, sk, net, okfn);
-+		nf_hook_state_init(&state, hook_head, hook, pf, indev, outdev,
-+				   sk, net, okfn);
- 
- 		ret = nf_hook_slow(skb, &state);
- 	}
-@@ -195,14 +189,6 @@ static inline int nf_hook_thresh(u_int8_t pf, unsigned int hook,
- 	return ret;
- }
- 
--static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
--			  struct sock *sk, struct sk_buff *skb,
--			  struct net_device *indev, struct net_device *outdev,
--			  int (*okfn)(struct net *, struct sock *, struct sk_buff *))
--{
--	return nf_hook_thresh(pf, hook, net, sk, skb, indev, outdev, okfn, INT_MIN);
--}
--                   
- /* Activate hook; either okfn or kfree_skb called, unless a hook
-    returns NF_STOLEN (in which case, it's up to the hook to deal with
-    the consequences).
-@@ -221,19 +207,6 @@ static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
- */
- 
- static inline int
--NF_HOOK_THRESH(uint8_t pf, unsigned int hook, struct net *net, struct sock *sk,
--	       struct sk_buff *skb, struct net_device *in,
--	       struct net_device *out,
--	       int (*okfn)(struct net *, struct sock *, struct sk_buff *),
--	       int thresh)
--{
--	int ret = nf_hook_thresh(pf, hook, net, sk, skb, in, out, okfn, thresh);
--	if (ret == 1)
--		ret = okfn(net, sk, skb);
--	return ret;
--}
--
--static inline int
- NF_HOOK_COND(uint8_t pf, unsigned int hook, struct net *net, struct sock *sk,
- 	     struct sk_buff *skb, struct net_device *in, struct net_device *out,
- 	     int (*okfn)(struct net *, struct sock *, struct sk_buff *),
-@@ -242,7 +215,7 @@ NF_HOOK_COND(uint8_t pf, unsigned int hook, struct net *net, struct sock *sk,
- 	int ret;
- 
- 	if (!cond ||
--	    ((ret = nf_hook_thresh(pf, hook, net, sk, skb, in, out, okfn, INT_MIN)) == 1))
-+	    ((ret = nf_hook(pf, hook, net, sk, skb, in, out, okfn)) == 1))
- 		ret = okfn(net, sk, skb);
- 	return ret;
- }
-@@ -252,7 +225,10 @@ NF_HOOK(uint8_t pf, unsigned int hook, struct net *net, struct sock *sk, struct
- 	struct net_device *in, struct net_device *out,
- 	int (*okfn)(struct net *, struct sock *, struct sk_buff *))
- {
--	return NF_HOOK_THRESH(pf, hook, net, sk, skb, in, out, okfn, INT_MIN);
-+	int ret = nf_hook(pf, hook, net, sk, skb, in, out, okfn);
-+	if (ret == 1)
-+		ret = okfn(net, sk, skb);
-+	return ret;
- }
- 
- /* Call setsockopt() */
-diff --git a/include/linux/netfilter_ingress.h b/include/linux/netfilter_ingress.h
-index 33e37fb41d5d..fd44e4131710 100644
---- a/include/linux/netfilter_ingress.h
-+++ b/include/linux/netfilter_ingress.h
-@@ -26,7 +26,7 @@ static inline int nf_hook_ingress(struct sk_buff *skb)
- 	if (unlikely(!e))
- 		return 0;
- 
--	nf_hook_state_init(&state, e, NF_NETDEV_INGRESS, INT_MIN,
-+	nf_hook_state_init(&state, e, NF_NETDEV_INGRESS,
- 			   NFPROTO_NETDEV, skb->dev, NULL, NULL,
- 			   dev_net(skb->dev), NULL);
- 	return nf_hook_slow(skb, &state);
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 2fe9345c1407..d0d66faebe90 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -561,8 +561,8 @@ static int br_nf_forward_finish(struct net *net, struct sock *sk, struct sk_buff
- 	}
- 	nf_bridge_push_encap_header(skb);
- 
--	NF_HOOK_THRESH(NFPROTO_BRIDGE, NF_BR_FORWARD, net, sk, skb,
--		       in, skb->dev, br_forward_finish, 1);
-+	br_nf_hook_thresh(NF_BR_FORWARD, net, sk, skb, in, skb->dev,
-+			  br_forward_finish);
- 	return 0;
- }
- 
-@@ -1016,8 +1016,8 @@ int br_nf_hook_thresh(unsigned int hook, struct net *net,
- 
- 	/* We may already have this, but read-locks nest anyway */
- 	rcu_read_lock();
--	nf_hook_state_init(&state, elem, hook, NF_BR_PRI_BRNF + 1,
--			   NFPROTO_BRIDGE, indev, outdev, sk, net, okfn);
-+	nf_hook_state_init(&state, elem, hook, NFPROTO_BRIDGE, indev, outdev,
-+			   sk, net, okfn);
- 
- 	ret = nf_hook_slow(skb, &state);
- 	rcu_read_unlock();
-diff --git a/net/bridge/netfilter/ebtable_broute.c b/net/bridge/netfilter/ebtable_broute.c
-index ec94c6f1ae88..599679e3498d 100644
---- a/net/bridge/netfilter/ebtable_broute.c
-+++ b/net/bridge/netfilter/ebtable_broute.c
-@@ -53,7 +53,7 @@ static int ebt_broute(struct sk_buff *skb)
- 	struct nf_hook_state state;
- 	int ret;
- 
--	nf_hook_state_init(&state, NULL, NF_BR_BROUTING, INT_MIN,
-+	nf_hook_state_init(&state, NULL, NF_BR_BROUTING,
- 			   NFPROTO_BRIDGE, skb->dev, NULL, NULL,
- 			   dev_net(skb->dev), NULL);
- 
 diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index b193bd46ac30..6b09d9ed2646 100644
+index 9ae2febd86e3..dceb5f92c6a2 100644
 --- a/net/netfilter/core.c
 +++ b/net/netfilter/core.c
-@@ -309,10 +309,6 @@ unsigned int nf_iterate(struct sk_buff *skb,
- 	unsigned int verdict;
+@@ -302,27 +302,6 @@ void _nf_unregister_hooks(struct nf_hook_ops *reg, unsigned int n)
+ }
+ EXPORT_SYMBOL(_nf_unregister_hooks);
  
- 	while (*entryp) {
--		if (state->thresh > (*entryp)->ops.priority) {
--			*entryp = rcu_dereference((*entryp)->next);
--			continue;
+-unsigned int nf_iterate(struct sk_buff *skb,
+-			struct nf_hook_state *state,
+-			struct nf_hook_entry **entryp)
+-{
+-	unsigned int verdict;
+-
+-	while (*entryp) {
+-		RCU_INIT_POINTER(state->hook_entries, *entryp);
+-repeat:
+-		verdict = (*entryp)->ops.hook((*entryp)->ops.priv, skb, state);
+-		if (verdict != NF_ACCEPT) {
+-			if (verdict != NF_REPEAT)
+-				return verdict;
+-			goto repeat;
 -		}
- repeat:
- 		verdict = (*entryp)->ops.hook((*entryp)->ops.priv, skb, state);
- 		if (verdict != NF_ACCEPT) {
+-		*entryp = rcu_dereference((*entryp)->next);
+-	}
+-	return NF_ACCEPT;
+-}
+-
+-
+ /* Returns 1 if okfn() needs to be executed by the caller,
+  * -EPERM for NF_DROP, 0 otherwise.  Caller must hold rcu_read_lock. */
+ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state)
+@@ -332,25 +311,32 @@ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state)
+ 	int ret;
+ 
+ 	entry = rcu_dereference(state->hook_entries);
+-	verdict = nf_iterate(skb, state, &entry);
+-	switch (verdict) {
+-	case NF_ACCEPT:
+-		ret = 1;
+-		break;
+-	case NF_DROP:
+-		kfree_skb(skb);
+-		ret = NF_DROP_GETERR(verdict);
+-		if (ret == 0)
+-			ret = -EPERM;
+-		break;
+-	default:
+-		/* Implicit handling for NF_STOLEN, as well as any other non
+-		 * conventional verdicts.
+-		 */
+-		ret = 0;
+-		break;
++	while (entry) {
++		RCU_INIT_POINTER(state->hook_entries, entry);
++repeat:
++		verdict = entry->ops.hook(entry->ops.priv, skb, state);
++		switch (verdict) {
++		case NF_ACCEPT:
++			entry = rcu_dereference(entry->next);
++			break;
++		case NF_DROP:
++			kfree_skb(skb);
++			ret = NF_DROP_GETERR(verdict);
++			if (ret == 0)
++				ret = -EPERM;
++
++			return ret;
++		case NF_REPEAT:
++			goto repeat;
++		default:
++			/* Implicit handling for NF_STOLEN, as well as any
++			 * other non conventional verdicts.
++			 */
++			return 0;
++		}
+ 	}
+-	return ret;
++
++	return 1;
+ }
+ EXPORT_SYMBOL(nf_hook_slow);
+ 
+diff --git a/net/netfilter/nf_internals.h b/net/netfilter/nf_internals.h
+index de25d7cdfd42..22b4915c48f4 100644
+--- a/net/netfilter/nf_internals.h
++++ b/net/netfilter/nf_internals.h
+@@ -11,11 +11,6 @@
+ #define NFDEBUG(format, args...)
+ #endif
+ 
+-
+-/* core.c */
+-unsigned int nf_iterate(struct sk_buff *skb, struct nf_hook_state *state,
+-			struct nf_hook_entry **entryp);
+-
+ /* nf_queue.c */
+ void nf_queue_nf_hook_drop(struct net *net, const struct nf_hook_entry *entry);
+ int __init netfilter_queue_init(void);
 diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 221d7a5c2fec..ebb54facd6b5 100644
+index c97f4e4e25d9..2b5429c969d5 100644
 --- a/net/netfilter/nf_queue.c
 +++ b/net/netfilter/nf_queue.c
-@@ -185,7 +185,6 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	}
+@@ -177,6 +177,26 @@ int nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+ }
+ EXPORT_SYMBOL_GPL(nf_queue);
  
- 	hook_entry = rcu_dereference(hook_entry->next);
--	entry->state.thresh = INT_MIN;
- 
- 	if (verdict == NF_ACCEPT) {
- 	next_hook:
++static unsigned int nf_iterate(struct sk_buff *skb,
++			       struct nf_hook_state *state,
++			       struct nf_hook_entry **entryp)
++{
++	unsigned int verdict;
++
++	while (*entryp) {
++		RCU_INIT_POINTER(state->hook_entries, *entryp);
++repeat:
++		verdict = (*entryp)->ops.hook((*entryp)->ops.priv, skb, state);
++		if (verdict != NF_ACCEPT) {
++			if (verdict != NF_REPEAT)
++				return verdict;
++			goto repeat;
++		}
++		*entryp = rcu_dereference((*entryp)->next);
++	}
++	return NF_ACCEPT;
++}
++
+ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ {
+ 	struct nf_hook_entry *hook_entry;
 -- 
 2.1.4
 
