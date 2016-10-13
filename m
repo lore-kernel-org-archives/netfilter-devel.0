@@ -1,140 +1,182 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next,RFC 00/10] Netfilter core updates
-Date: Thu, 13 Oct 2016 14:11:53 +0200
-Message-ID: <1476360723-3291-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next,RFC 10/10] netfilter: inline nf_hook_slow() and rename it to nf_hook_iterate()
+Date: Thu, 13 Oct 2016 14:12:03 +0200
+Message-ID: <1476360723-3291-11-git-send-email-pablo@netfilter.org>
+References: <1476360723-3291-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44634 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44796 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755956AbcJMMMT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Oct 2016 08:12:19 -0400
+        id S1756071AbcJMMMx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Oct 2016 08:12:53 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 23AD33EBA88
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:12:17 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 321413EBA87
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:12:52 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 10348DA847
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:12:17 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9763C201D6
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:12:51 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 98C7ABAC2B
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:12:13 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1F03DBAC59
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:12:30 +0200 (CEST)
+In-Reply-To: <1476360723-3291-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Now that this function has become smaller, inline it and use a better
+name to describe what this is doing.
 
-This is a quick RFC that has passed just very basic testing here. This
-patchset achieves what it has been discussed during NetDev 1.2:
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/linux/netfilter.h         | 41 +++++++++++++++++++++++++++++++++++++--
+ include/linux/netfilter_ingress.h |  2 +-
+ net/bridge/br_netfilter_hooks.c   |  4 ++--
+ net/netfilter/core.c              | 39 -------------------------------------
+ 4 files changed, 42 insertions(+), 44 deletions(-)
 
-1) Deprecate NF_STOP, as this is only used by br_netfilter.
-
-2) Remove threshold handling, this is also only used by br_netfilter
-   too.
-
-3) Move NF_QUEUE handling away from the core. Adds a new nf_queue()
-   function that must be explicitly called to queue packets to userspace.
-   This function returns the verdict that is passed down to the core,
-   basically NF_DROP if queue is full, NF_ACCEPT if bypass is enabled
-   and NF_STOLEN if packet is succesfully enqueued to userspace.
-
-4) Merge nf_iterate() into nf_hook_slow(), then inline the resulting
-   function and rename it to nf_hook_iterate().
-
-This patchset also modifies the pktinfo and xt_action_param structures
-(that keep context around while performing packet processing) to store
-the netfilter hook state. This change was required by the new NF_QUEUE
-handling. As side effect, according to pahole, these two now fit into
-one single cacheline after this update.
-
-Feedback welcome, thanks!
-
-Pablo Neira Ayuso (10):
-  netfilter: get rid of useless debugging from core
-  netfilter: remove comments that predate rcu days
-  netfilter: bridge: kill NF_HOOK_THRESH() and state->tresh
-  netfilter: deprecate NF_STOP
-  netfilter: x_tables: move hook state into xt_action_param structure
-  netfilter: nf_tables: use hook state from xt_action_param structure
-  netfilter: use switch() to handle verdict cases from nf_hook_slow()
-  netfilter: move NF_QUEUE handling away from core
-  netfilter: merge nf_iterate() into nf_hook_slow()
-  netfilter: inline nf_hook_slow() and rename it to nf_hook_iterate()
-
- include/linux/netfilter.h                  | 91 +++++++++++++++++-------------
- include/linux/netfilter/x_tables.h         | 48 ++++++++++++----
- include/linux/netfilter_ingress.h          |  4 +-
- include/net/netfilter/nf_queue.h           |  3 +
- include/net/netfilter/nf_tables.h          | 36 ++++++++----
- include/uapi/linux/netfilter.h             |  2 +-
- net/bridge/br_netfilter_hooks.c            | 18 +++---
- net/bridge/netfilter/ebt_arpreply.c        |  3 +-
- net/bridge/netfilter/ebt_log.c             | 11 ++--
- net/bridge/netfilter/ebt_nflog.c           |  6 +-
- net/bridge/netfilter/ebt_redirect.c        |  6 +-
- net/bridge/netfilter/ebtable_broute.c      |  2 +-
- net/bridge/netfilter/ebtables.c            |  6 +-
- net/bridge/netfilter/nft_meta_bridge.c     |  2 +-
- net/bridge/netfilter/nft_reject_bridge.c   | 30 ++++++----
- net/ipv4/netfilter/arp_tables.c            |  7 +--
- net/ipv4/netfilter/ip_tables.c             | 10 ++--
- net/ipv4/netfilter/ipt_MASQUERADE.c        |  3 +-
- net/ipv4/netfilter/ipt_REJECT.c            |  4 +-
- net/ipv4/netfilter/ipt_SYNPROXY.c          |  4 +-
- net/ipv4/netfilter/ipt_rpfilter.c          |  2 +-
- net/ipv4/netfilter/nft_dup_ipv4.c          |  2 +-
- net/ipv4/netfilter/nft_masq_ipv4.c         |  4 +-
- net/ipv4/netfilter/nft_redir_ipv4.c        |  3 +-
- net/ipv4/netfilter/nft_reject_ipv4.c       |  4 +-
- net/ipv6/netfilter/ip6_tables.c            | 10 ++--
- net/ipv6/netfilter/ip6t_MASQUERADE.c       |  2 +-
- net/ipv6/netfilter/ip6t_REJECT.c           | 23 +++++---
- net/ipv6/netfilter/ip6t_SYNPROXY.c         |  4 +-
- net/ipv6/netfilter/ip6t_rpfilter.c         |  3 +-
- net/ipv6/netfilter/nft_dup_ipv6.c          |  2 +-
- net/ipv6/netfilter/nft_masq_ipv6.c         |  3 +-
- net/ipv6/netfilter/nft_redir_ipv6.c        |  3 +-
- net/ipv6/netfilter/nft_reject_ipv6.c       |  6 +-
- net/netfilter/core.c                       | 75 ------------------------
- net/netfilter/ipset/ip_set_core.c          |  6 +-
- net/netfilter/ipset/ip_set_hash_netiface.c |  2 +-
- net/netfilter/nf_dup_netdev.c              |  2 +-
- net/netfilter/nf_internals.h               |  7 ---
- net/netfilter/nf_queue.c                   | 72 +++++++++++++++++------
- net/netfilter/nf_tables_api.c              |  3 +-
- net/netfilter/nf_tables_core.c             | 13 ++---
- net/netfilter/nf_tables_trace.c            |  8 +--
- net/netfilter/nft_log.c                    |  5 +-
- net/netfilter/nft_lookup.c                 |  5 +-
- net/netfilter/nft_meta.c                   |  6 +-
- net/netfilter/nft_queue.c                  |  8 +--
- net/netfilter/nft_reject_inet.c            | 18 +++---
- net/netfilter/xt_AUDIT.c                   | 10 ++--
- net/netfilter/xt_LOG.c                     |  6 +-
- net/netfilter/xt_NETMAP.c                  | 20 +++----
- net/netfilter/xt_NFLOG.c                   |  6 +-
- net/netfilter/xt_NFQUEUE.c                 | 33 +++++------
- net/netfilter/xt_REDIRECT.c                |  4 +-
- net/netfilter/xt_TCPMSS.c                  |  4 +-
- net/netfilter/xt_TEE.c                     |  4 +-
- net/netfilter/xt_TPROXY.c                  | 16 +++---
- net/netfilter/xt_addrtype.c                | 10 ++--
- net/netfilter/xt_cluster.c                 |  2 +-
- net/netfilter/xt_connlimit.c               |  8 +--
- net/netfilter/xt_conntrack.c               |  8 +--
- net/netfilter/xt_devgroup.c                |  4 +-
- net/netfilter/xt_dscp.c                    |  2 +-
- net/netfilter/xt_ipvs.c                    |  4 +-
- net/netfilter/xt_nfacct.c                  |  2 +-
- net/netfilter/xt_osf.c                     | 10 ++--
- net/netfilter/xt_owner.c                   |  2 +-
- net/netfilter/xt_pkttype.c                 |  4 +-
- net/netfilter/xt_policy.c                  |  4 +-
- net/netfilter/xt_recent.c                  | 10 ++--
- net/netfilter/xt_set.c                     | 26 ++++-----
- net/netfilter/xt_socket.c                  |  4 +-
- net/sched/act_ipt.c                        | 13 +++--
- net/sched/em_ipset.c                       | 18 +++---
- 74 files changed, 430 insertions(+), 401 deletions(-)
-
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index e0d000f6c9bf..d0beb6072e14 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -150,7 +150,44 @@ void nf_unregister_sockopt(struct nf_sockopt_ops *reg);
+ extern struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
+ #endif
+ 
+-int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state);
++/* Returns 1 if okfn() needs to be executed by the caller,
++ * -EPERM for NF_DROP, 0 otherwise.  Caller must hold rcu_read_lock.
++ */
++static inline int nf_hook_iterate(struct sk_buff *skb,
++				  struct nf_hook_state *state)
++{
++	struct nf_hook_entry *entry;
++	unsigned int verdict;
++	int ret;
++
++	entry = rcu_dereference(state->hook_entries);
++	while (entry) {
++		RCU_INIT_POINTER(state->hook_entries, entry);
++repeat:
++		verdict = entry->ops.hook(entry->ops.priv, skb, state);
++		switch (verdict) {
++		case NF_ACCEPT:
++			entry = rcu_dereference(entry->next);
++			break;
++		case NF_DROP:
++			kfree_skb(skb);
++			ret = NF_DROP_GETERR(verdict);
++			if (ret == 0)
++				ret = -EPERM;
++
++			return ret;
++		case NF_REPEAT:
++			goto repeat;
++		default:
++			/* Implicit handling for NF_STOLEN, as well as any
++			 * other non conventional verdicts.
++			 */
++			return 0;
++		}
++	}
++
++	return 1;
++}
+ 
+ /**
+  *	nf_hook - call a netfilter hook
+@@ -182,7 +219,7 @@ static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
+ 		nf_hook_state_init(&state, hook_head, hook, pf, indev, outdev,
+ 				   sk, net, okfn);
+ 
+-		ret = nf_hook_slow(skb, &state);
++		ret = nf_hook_iterate(skb, &state);
+ 	}
+ 	rcu_read_unlock();
+ 
+diff --git a/include/linux/netfilter_ingress.h b/include/linux/netfilter_ingress.h
+index fd44e4131710..c7056a1f9d36 100644
+--- a/include/linux/netfilter_ingress.h
++++ b/include/linux/netfilter_ingress.h
+@@ -29,7 +29,7 @@ static inline int nf_hook_ingress(struct sk_buff *skb)
+ 	nf_hook_state_init(&state, e, NF_NETDEV_INGRESS,
+ 			   NFPROTO_NETDEV, skb->dev, NULL, NULL,
+ 			   dev_net(skb->dev), NULL);
+-	return nf_hook_slow(skb, &state);
++	return nf_hook_iterate(skb, &state);
+ }
+ 
+ static inline void nf_hook_ingress_init(struct net_device *dev)
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 7e3645fa6339..d153925ec9ec 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -992,7 +992,7 @@ static struct notifier_block brnf_notifier __read_mostly = {
+ 	.notifier_call = brnf_device_event,
+ };
+ 
+-/* recursively invokes nf_hook_slow (again), skipping already-called
++/* recursively invokes nf_hook_iterate (again), skipping already-called
+  * hooks (< NF_BR_PRI_BRNF).
+  *
+  * Called with rcu read lock held.
+@@ -1021,7 +1021,7 @@ int br_nf_hook_thresh(unsigned int hook, struct net *net,
+ 	nf_hook_state_init(&state, elem, hook, NFPROTO_BRIDGE, indev, outdev,
+ 			   sk, net, okfn);
+ 
+-	ret = nf_hook_slow(skb, &state);
++	ret = nf_hook_iterate(skb, &state);
+ 	rcu_read_unlock();
+ 	if (ret == 1)
+ 		ret = okfn(net, sk, skb);
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index dceb5f92c6a2..5cf941571ecd 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -302,45 +302,6 @@ void _nf_unregister_hooks(struct nf_hook_ops *reg, unsigned int n)
+ }
+ EXPORT_SYMBOL(_nf_unregister_hooks);
+ 
+-/* Returns 1 if okfn() needs to be executed by the caller,
+- * -EPERM for NF_DROP, 0 otherwise.  Caller must hold rcu_read_lock. */
+-int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state)
+-{
+-	struct nf_hook_entry *entry;
+-	unsigned int verdict;
+-	int ret;
+-
+-	entry = rcu_dereference(state->hook_entries);
+-	while (entry) {
+-		RCU_INIT_POINTER(state->hook_entries, entry);
+-repeat:
+-		verdict = entry->ops.hook(entry->ops.priv, skb, state);
+-		switch (verdict) {
+-		case NF_ACCEPT:
+-			entry = rcu_dereference(entry->next);
+-			break;
+-		case NF_DROP:
+-			kfree_skb(skb);
+-			ret = NF_DROP_GETERR(verdict);
+-			if (ret == 0)
+-				ret = -EPERM;
+-
+-			return ret;
+-		case NF_REPEAT:
+-			goto repeat;
+-		default:
+-			/* Implicit handling for NF_STOLEN, as well as any
+-			 * other non conventional verdicts.
+-			 */
+-			return 0;
+-		}
+-	}
+-
+-	return 1;
+-}
+-EXPORT_SYMBOL(nf_hook_slow);
+-
+-
+ int skb_make_writable(struct sk_buff *skb, unsigned int writable_len)
+ {
+ 	if (writable_len > skb->len)
 -- 
 2.1.4
 
