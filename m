@@ -1,57 +1,88 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/2 nf] netfilter: nf_queue: don't re-enter same hook on packet reinjection
-Date: Thu, 13 Oct 2016 11:23:06 +0200
-Message-ID: <1476350587-2837-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next,RFC 04/10] netfilter: deprecate NF_STOP
+Date: Thu, 13 Oct 2016 14:02:45 +0200
+Message-ID: <1476360171-2991-5-git-send-email-pablo@netfilter.org>
+References: <1476360171-2991-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51766 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43178 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753142AbcJMJX2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Oct 2016 05:23:28 -0400
+        id S1754552AbcJMMLJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Oct 2016 08:11:09 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CE1F24B8
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 11:23:21 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 6C8F99B7E9
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:03:06 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BDFC6DA913
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 11:23:21 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 58752208E8
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:03:06 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 49AE7DA7FA
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 11:23:19 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 19916208E5
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Oct 2016 14:03:04 +0200 (CEST)
+In-Reply-To: <1476360171-2991-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Make sure we skip the current hook from where the packet was enqueued,
-otherwise the packets gets enqueued over and over again.
+NF_STOP is only used by br_netfilter these days, and it can be emulated
+with a combination of NF_STOLEN plus explicit call to the ->okfn()
+function as Florian suggests.
 
-Fixes: e3b37f11e6e4 ("netfilter: replace list_head with single linked list")
+To retain binary compatibility with userspace nf_queue application, we
+have to keep NF_STOP around, so libnetfilter_queue userspace userspace
+applications still work if they use NF_STOP for some exotic reason.
+
+Out of tree modules using NF_STOP would break, we don't care about
+those.
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-I managed to reproduce this with a simple test.
+ include/uapi/linux/netfilter.h  | 2 +-
+ net/bridge/br_netfilter_hooks.c | 6 ++++--
+ net/netfilter/core.c            | 2 +-
+ 3 files changed, 6 insertions(+), 4 deletions(-)
 
- # iptables -I OUTPUT -j QUEUE
- # cd libnetfilter_queue/utils/
- # ./nfqnl_test
-
-Without my patch, netfilter munches packets that are reinjected.
-
-@Aaron: Please, I'd appreciate if you can have a look to confirm this bug
-        and the fix. Thanks.
-
- net/netfilter/nf_queue.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 96964a0070e1..221d7a5c2fec 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -184,6 +184,7 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 			verdict = NF_DROP;
- 	}
+diff --git a/include/uapi/linux/netfilter.h b/include/uapi/linux/netfilter.h
+index d93f949d1d9a..7550e9176a54 100644
+--- a/include/uapi/linux/netfilter.h
++++ b/include/uapi/linux/netfilter.h
+@@ -13,7 +13,7 @@
+ #define NF_STOLEN 2
+ #define NF_QUEUE 3
+ #define NF_REPEAT 4
+-#define NF_STOP 5
++#define NF_STOP 5	/* Deprecated, for userspace nf_queue compatibility. */
+ #define NF_MAX_VERDICT NF_STOP
  
-+	hook_entry = rcu_dereference(hook_entry->next);
- 	entry->state.thresh = INT_MIN;
+ /* we overload the higher bits for encoding auxiliary data such as the queue
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index d0d66faebe90..7e3645fa6339 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -845,8 +845,10 @@ static unsigned int ip_sabotage_in(void *priv,
+ 				   struct sk_buff *skb,
+ 				   const struct nf_hook_state *state)
+ {
+-	if (skb->nf_bridge && !skb->nf_bridge->in_prerouting)
+-		return NF_STOP;
++	if (skb->nf_bridge && !skb->nf_bridge->in_prerouting) {
++		state->okfn(state->net, state->sk, skb);
++		return NF_STOLEN;
++	}
  
- 	if (verdict == NF_ACCEPT) {
+ 	return NF_ACCEPT;
+ }
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 6b09d9ed2646..2a6ed7d29c6c 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -333,7 +333,7 @@ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state)
+ 	entry = rcu_dereference(state->hook_entries);
+ next_hook:
+ 	verdict = nf_iterate(skb, state, &entry);
+-	if (verdict == NF_ACCEPT || verdict == NF_STOP) {
++	if (verdict == NF_ACCEPT) {
+ 		ret = 1;
+ 	} else if ((verdict & NF_VERDICT_MASK) == NF_DROP) {
+ 		kfree_skb(skb);
 -- 
 2.1.4
 
