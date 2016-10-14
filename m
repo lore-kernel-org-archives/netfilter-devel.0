@@ -1,56 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next,RFC 08/10] netfilter: move NF_QUEUE handling away
- from core
-Date: Fri, 14 Oct 2016 12:28:08 +0200
-Message-ID: <20161014102808.GA10058@salvia>
-References: <1476360171-2991-1-git-send-email-pablo@netfilter.org>
- <1476360171-2991-9-git-send-email-pablo@netfilter.org>
- <CAML_gOd99wfVxM6ZNi95U+Ddee3AzAH=N6s2N0eMpzU0wRg=2g@mail.gmail.com>
- <20161014095330.GA4444@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Liping Zhang <zlpnobody@gmail.com>
+Subject: [PATCH nf,v2] netfilter: nf_queue: don't re-enter same hook on packet reinjection
+Date: Fri, 14 Oct 2016 12:37:26 +0200
+Message-ID: <1476441446-19611-1-git-send-email-pablo@netfilter.org>
+Cc: aconole@bytheb.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59802 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:33250 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752029AbcJNKfd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 14 Oct 2016 06:35:33 -0400
+        id S1753190AbcJNKhj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 14 Oct 2016 06:37:39 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 852649D330
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Oct 2016 12:28:15 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id E39F0131CD7
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Oct 2016 12:37:36 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 75401DA816
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Oct 2016 12:28:15 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D615DBAC29
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Oct 2016 12:37:36 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2927FDA8EE
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Oct 2016 12:28:13 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20161014095330.GA4444@salvia>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2FA36DA81C
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Oct 2016 12:37:34 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Oct 14, 2016 at 11:53:30AM +0200, Pablo Neira Ayuso wrote:
-[...] 
-> BTW, looking at ipt_mangle_out():
-> 
->         ret = ipt_do_table(skb, state, state->net->ipv4.iptable_mangle);
->         /* Reroute for ANY change. */
->         if (ret != NF_DROP && ret != NF_STOLEN) {
->                 iph = ip_hdr(skb);
-> 
->                 if (iph->saddr != saddr ||
->                     iph->daddr != daddr ||
->                     skb->mark != mark ||
->                     iph->tos != tos) {
->                         err = ip_route_me_harder(state->net, skb, RTN_UNSPEC);
->                         if (err < 0)
->                                 ret = NF_DROP_ERR(err);
->                 }
->         }
-> 
-> It seems that we're triggering an expensive re-reroute for dropped
-> packets from the mangle table, since ret != NF_DROP evaluates false
-> given the errno number is encoded in the most significant 16 bits.
+Make sure we skip the current hook from where the packet was enqueued,
+otherwise the packets gets enqueued over and over again.
 
-Forget this, we never see errno at this stage, so this is fine.
+Fixes: e3b37f11e6e4 ("netfilter: replace list_head with single linked list")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: Make sure next hook is non-null, otherwise we are at the end of the
+    hook list and we can skip nf_iterate().
+
+ net/netfilter/nf_queue.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 96964a0070e1..691e713d70f5 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -185,8 +185,9 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	}
+ 
+ 	entry->state.thresh = INT_MIN;
++	hook_entry = rcu_dereference(hook_entry->next);
+ 
+-	if (verdict == NF_ACCEPT) {
++	if (hook_entry && verdict == NF_ACCEPT) {
+ 	next_hook:
+ 		verdict = nf_iterate(skb, &entry->state, &hook_entry);
+ 	}
+-- 
+2.1.4
+
