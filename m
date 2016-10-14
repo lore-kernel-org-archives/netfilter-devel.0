@@ -1,53 +1,66 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH net 2/2] conntrack: enable to tune gc parameters
-Date: Fri, 14 Oct 2016 13:16:38 +0200
-Message-ID: <20161014111638.GA13022@breakpoint.cc>
-References: <1476094704-17452-1-git-send-email-nicolas.dichtel@6wind.com>
- <1476094704-17452-3-git-send-email-nicolas.dichtel@6wind.com>
- <20161010140424.GB21057@breakpoint.cc>
- <cdda5290-c49c-e841-6ba5-10b30fd04fc0@6wind.com>
- <20161013204338.GA32449@breakpoint.cc>
- <f1df137d-7278-f6fb-3237-1bd20afadb48@6wind.com>
- <20161014103726.GA10404@breakpoint.cc>
- <20161014105327.GA8655@salvia>
+Subject: Re: routing table lookup
+Date: Fri, 14 Oct 2016 13:44:21 +0200
+Message-ID: <20161014114421.GB10404@breakpoint.cc>
+References: <CAJO99TmN17PiMGs87HY=Awy=-QAMVLsCzBbvXZFzL8HDTakH=A@mail.gmail.com>
+ <alpine.LSU.2.20.1610112023530.2014@nerf40.vanv.qr>
+ <CAJO99Tn0yTE1=dFMO--vj9KpMt2kgRfURu8-GoXy=KZDRymOQw@mail.gmail.com>
+ <alpine.LSU.2.20.1610112203020.5047@nerf40.vanv.qr>
+ <CAJO99TnPeGz81C8iP_gg3uD4Y3epDBg5BwWex6RWT0YR93eceg@mail.gmail.com>
+ <20161012061930.GA28142@unicorn.suse.cz>
+ <CAJO99TnLzTbtTZP_DKE37eG_+X3T5b1g5rbhVTGz07RDgShDPw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-        Nicolas Dichtel <nicolas.dichtel@6wind.com>,
-        davem@davemloft.net, netdev@vger.kernel.org,
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 8bit
+Cc: Michal Kubecek <mkubecek@suse.cz>,
+        Jan Engelhardt <jengelh@inai.de>,
         netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: =?iso-8859-15?Q?Bj=F8rnar?= Ness <bjornar.ness@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:41950 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:42070 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751226AbcJNLTJ (ORCPT
+        by vger.kernel.org with ESMTP id S932238AbcJNLpf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 14 Oct 2016 07:19:09 -0400
+        Fri, 14 Oct 2016 07:45:35 -0400
 Content-Disposition: inline
-In-Reply-To: <20161014105327.GA8655@salvia>
+In-Reply-To: <CAJO99TnLzTbtTZP_DKE37eG_+X3T5b1g5rbhVTGz07RDgShDPw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> I would prefer not to expose sysctl knobs, if we don't really know
-> what good default values are good, then we cannot expect our users to
-> know this for us.
+Bjørnar Ness <bjornar.ness@gmail.com> wrote:
+> 2016-10-12 8:19 GMT+02:00 Michal Kubecek <mkubecek@suse.cz>:
+> > On Wed, Oct 12, 2016 at 12:17:24AM +0200, Bjørnar Ness wrote:
+> >>
+> >> Yeah, sortoff. But afaik rpfilter is a iptables module, and not
+> >> available in nftables yet.
+> >>
+> >> Pablo: is the "lookup in routing table from nftables" a total waste of time?
+> >
+> > You may be interested in
+> >
+> >   https://www.youtube.com/watch?v=wfWMPlZHQBk&t=19m40s
 > 
-> I would go tune this in a way that this resembles to the previous
-> behaviour.
+> Thanks, Michal, this is interesting, but not exactly what I am looking
+> for. This fib module
+> would as far as I can tell follow the routing from rules -> table ->
+> decision, which will need
+> both a src and dst address. What I want is to skip the rule matching,
+> and check directly in
+> a table, that way we only need a single address, and the following
+> should potentially work
+> from prerouting:
+> 
+> ip saddr rt_table 10 drop
+> 
+> comments?
 
-I do not see how this is possible without reverting to old per-conntrack
-timer scheme.
+I don't really understand why you would want this.
 
-With per-ct timer userspace gets notified the moment the timer
-fires, without it notification comes 'when kernel detects the timeout'
-which in worst case, as Nicholas describes, is when gc worker comes
-along.
+If you only want to match saddr, why not use ipset (or nftables set) for
+this?
 
-You can run the gc worker every jiffie of course, but thats just
-wasting cpu cycles (and you still get a small delay).
+If you want to use the fib, why not use blackhole routes?
 
-I don't see a way to do run-time tuning except faster restarts when
-old entries start accumulating.  This is what the code tries to do,
-perhaps you have a better idea for the 'next gc run' computation.
-
+I'd like to understand why you need this 'rule skip' thing, seems we
+would have to export some fib internals for this which I'd like to
+avoid.
