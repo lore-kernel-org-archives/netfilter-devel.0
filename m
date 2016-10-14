@@ -1,7 +1,7 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: [PATCH net 2/2] conntrack: enable to tune gc parameters
-Date: Fri, 14 Oct 2016 12:53:27 +0200
-Message-ID: <20161014105327.GA8655@salvia>
+Date: Fri, 14 Oct 2016 13:16:38 +0200
+Message-ID: <20161014111638.GA13022@breakpoint.cc>
 References: <1476094704-17452-1-git-send-email-nicolas.dichtel@6wind.com>
  <1476094704-17452-3-git-send-email-nicolas.dichtel@6wind.com>
  <20161010140424.GB21057@breakpoint.cc>
@@ -9,49 +9,45 @@ References: <1476094704-17452-1-git-send-email-nicolas.dichtel@6wind.com>
  <20161013204338.GA32449@breakpoint.cc>
  <f1df137d-7278-f6fb-3237-1bd20afadb48@6wind.com>
  <20161014103726.GA10404@breakpoint.cc>
+ <20161014105327.GA8655@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: Nicolas Dichtel <nicolas.dichtel@6wind.com>, davem@davemloft.net,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>,
+        Nicolas Dichtel <nicolas.dichtel@6wind.com>,
+        davem@davemloft.net, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:41950 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751226AbcJNLTJ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 14 Oct 2016 07:19:09 -0400
 Content-Disposition: inline
-In-Reply-To: <20161014103726.GA10404@breakpoint.cc>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20161014105327.GA8655@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Oct 14, 2016 at 12:37:26PM +0200, Florian Westphal wrote:
-> Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
-> > Le 13/10/2016 à 22:43, Florian Westphal a écrit :
-[...]
-> > > (Or cause too many useless scans)
-> > > 
-> > > Another idea worth trying might be to get rid of the max cap and
-> > > instead break early in case too many jiffies expired.
-> > > 
-> > > I don't want to add sysctl knobs for this unless absolutely needed; its already
-> > > possible to 'force' eviction cycle by running 'conntrack -L'.
-> > > 
-> > Sure, but this is not a "real" solution, just a workaround.
-> > We need to find a way to deliver conntrack deletion events in a reasonable
-> > delay, whatever the traffic on the machine is.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> I would prefer not to expose sysctl knobs, if we don't really know
+> what good default values are good, then we cannot expect our users to
+> know this for us.
 > 
-> Agree, but that depends on what 'reasonable' means and what kind of
-> uneeded cpu churn we're willing to add.
-> 
-> We can add a sysctl for this but we should use a low default to not do
-> too much unneeded work.
-> 
-> So what about your original patch, but only add
-> 
-> nf_conntrack_gc_interval
-> 
-> (and also add instant-resched in case entire budget was consumed)?
+> I would go tune this in a way that this resembles to the previous
+> behaviour.
 
-I would prefer not to expose sysctl knobs, if we don't really know
-what good default values are good, then we cannot expect our users to
-know this for us.
+I do not see how this is possible without reverting to old per-conntrack
+timer scheme.
 
-I would go tune this in a way that this resembles to the previous
-behaviour.
+With per-ct timer userspace gets notified the moment the timer
+fires, without it notification comes 'when kernel detects the timeout'
+which in worst case, as Nicholas describes, is when gc worker comes
+along.
+
+You can run the gc worker every jiffie of course, but thats just
+wasting cpu cycles (and you still get a small delay).
+
+I don't see a way to do run-time tuning except faster restarts when
+old entries start accumulating.  This is what the code tries to do,
+perhaps you have a better idea for the 'next gc run' computation.
+
