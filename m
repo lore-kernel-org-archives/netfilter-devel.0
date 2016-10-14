@@ -1,53 +1,87 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf,v2] netfilter: nf_queue: don't re-enter same hook on packet reinjection
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH net 2/2] conntrack: enable to tune gc parameters
 Date: Fri, 14 Oct 2016 12:37:26 +0200
-Message-ID: <1476441446-19611-1-git-send-email-pablo@netfilter.org>
-Cc: aconole@bytheb.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33250 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753190AbcJNKhj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 14 Oct 2016 06:37:39 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E39F0131CD7
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Oct 2016 12:37:36 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D615DBAC29
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Oct 2016 12:37:36 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2FA36DA81C
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Oct 2016 12:37:34 +0200 (CEST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Message-ID: <20161014103726.GA10404@breakpoint.cc>
+References: <1476094704-17452-1-git-send-email-nicolas.dichtel@6wind.com>
+ <1476094704-17452-3-git-send-email-nicolas.dichtel@6wind.com>
+ <20161010140424.GB21057@breakpoint.cc>
+ <cdda5290-c49c-e841-6ba5-10b30fd04fc0@6wind.com>
+ <20161013204338.GA32449@breakpoint.cc>
+ <f1df137d-7278-f6fb-3237-1bd20afadb48@6wind.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 8bit
+Cc: Florian Westphal <fw@strlen.de>, davem@davemloft.net,
+        pablo@netfilter.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <f1df137d-7278-f6fb-3237-1bd20afadb48@6wind.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Make sure we skip the current hook from where the packet was enqueued,
-otherwise the packets gets enqueued over and over again.
+Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
+> Le 13/10/2016 à 22:43, Florian Westphal a écrit :
+> > Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
+> >> Le 10/10/2016 à 16:04, Florian Westphal a écrit :
+> >>> Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
+> >>>> After commit b87a2f9199ea ("netfilter: conntrack: add gc worker to remove
+> >>>> timed-out entries"), netlink conntrack deletion events may be sent with a
+> >>>> huge delay. It could be interesting to let the user tweak gc parameters
+> >>>> depending on its use case.
+> >>>
+> >>> Hmm, care to elaborate?
+> >>>
+> >>> I am not against doing this but I'd like to hear/read your use case.
+> >>>
+> >>> The expectation is that in almot all cases eviction will happen from
+> >>> packet path.  The gc worker is jusdt there for case where a busy system
+> >>> goes idle.
+> >> It was precisely that case. After a period of activity, the event is sent a long
+> >> time after the timeout. If the router does not manage a lot of flows, why not
+> >> trying to parse more entries instead of the default 1/64 of the table?
+> >> In fact, I don't understand why using GC_MAX_BUCKETS_DIV instead of using always
+> >> GC_MAX_BUCKETS whatever the size of the table is.
+> > 
+> > I wanted to make sure that we have a known upper bound on the number of
+> > buckets we process so that we do not block other pending kworker items
+> > for too long.
+> I don't understand. GC_MAX_BUCKETS is the upper bound and I agree that it is
+> needed. But why GC_MAX_BUCKETS_DIV (ie 1/64)?
+> In other words, why this line:
+> goal = min(nf_conntrack_htable_size / GC_MAX_BUCKETS_DIV, GC_MAX_BUCKETS);
+> instead of:
+> goal = GC_MAX_BUCKETS;
 
-Fixes: e3b37f11e6e4 ("netfilter: replace list_head with single linked list")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: Make sure next hook is non-null, otherwise we are at the end of the
-    hook list and we can skip nf_iterate().
+Sure, we can do that.  But why is a fixed size better than a fraction?
 
- net/netfilter/nf_queue.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+E.g. with 8k buckets and simple goal = GC_MAX_BUCKETS we scan entire
+table on every run, currently we only scan 128.
 
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 96964a0070e1..691e713d70f5 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -185,8 +185,9 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	}
- 
- 	entry->state.thresh = INT_MIN;
-+	hook_entry = rcu_dereference(hook_entry->next);
- 
--	if (verdict == NF_ACCEPT) {
-+	if (hook_entry && verdict == NF_ACCEPT) {
- 	next_hook:
- 		verdict = nf_iterate(skb, &entry->state, &hook_entry);
- 	}
--- 
-2.1.4
+I wanted to keep too many destroy notifications from firing at once
+but maybe i was too paranoid...
 
+> > (Or cause too many useless scans)
+> > 
+> > Another idea worth trying might be to get rid of the max cap and
+> > instead break early in case too many jiffies expired.
+> > 
+> > I don't want to add sysctl knobs for this unless absolutely needed; its already
+> > possible to 'force' eviction cycle by running 'conntrack -L'.
+> > 
+> Sure, but this is not a "real" solution, just a workaround.
+> We need to find a way to deliver conntrack deletion events in a reasonable
+> delay, whatever the traffic on the machine is.
+
+Agree, but that depends on what 'reasonable' means and what kind of
+uneeded cpu churn we're willing to add.
+
+We can add a sysctl for this but we should use a low default to not do
+too much unneeded work.
+
+So what about your original patch, but only add
+
+nf_conntrack_gc_interval
+
+(and also add instant-resched in case entire budget was consumed)?
