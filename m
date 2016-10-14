@@ -1,107 +1,65 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next,RFC 08/10] netfilter: move NF_QUEUE handling away
- from core
-Date: Fri, 14 Oct 2016 18:47:20 +0200
-Message-ID: <20161014164720.GA6903@salvia>
-References: <1476360171-2991-1-git-send-email-pablo@netfilter.org>
- <1476360171-2991-9-git-send-email-pablo@netfilter.org>
- <CAML_gOd99wfVxM6ZNi95U+Ddee3AzAH=N6s2N0eMpzU0wRg=2g@mail.gmail.com>
- <20161014095330.GA4444@salvia>
- <20161014153812.GA16039@breakpoint.cc>
+From: =?UTF-8?Q?Bj=C3=B8rnar_Ness?= <bjornar.ness@gmail.com>
+Subject: Re: routing table lookup
+Date: Fri, 14 Oct 2016 18:48:28 +0200
+Message-ID: <CAJO99T=NxgSu8_J-nK4FQW6yw2b_+KsSwS04chxv93YoTxkoOw@mail.gmail.com>
+References: <CAJO99TmN17PiMGs87HY=Awy=-QAMVLsCzBbvXZFzL8HDTakH=A@mail.gmail.com>
+ <alpine.LSU.2.20.1610112023530.2014@nerf40.vanv.qr> <CAJO99Tn0yTE1=dFMO--vj9KpMt2kgRfURu8-GoXy=KZDRymOQw@mail.gmail.com>
+ <alpine.LSU.2.20.1610112203020.5047@nerf40.vanv.qr> <CAJO99TnPeGz81C8iP_gg3uD4Y3epDBg5BwWex6RWT0YR93eceg@mail.gmail.com>
+ <20161012061930.GA28142@unicorn.suse.cz> <CAJO99TnLzTbtTZP_DKE37eG_+X3T5b1g5rbhVTGz07RDgShDPw@mail.gmail.com>
+ <20161014114421.GB10404@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Liping Zhang <zlpnobody@gmail.com>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Cc: Michal Kubecek <mkubecek@suse.cz>,
+        Jan Engelhardt <jengelh@inai.de>,
+        netfilter-devel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42282 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750922AbcJNQrc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 14 Oct 2016 12:47:32 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 643BA62D07
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Oct 2016 18:47:28 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 53C6FDA818
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Oct 2016 18:47:28 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 50E02DA819
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Oct 2016 18:47:25 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20161014153812.GA16039@breakpoint.cc>
+Received: from mail-yw0-f169.google.com ([209.85.161.169]:34759 "EHLO
+        mail-yw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751453AbcJNQs3 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 14 Oct 2016 12:48:29 -0400
+Received: by mail-yw0-f169.google.com with SMTP id w3so78063208ywg.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Oct 2016 09:48:29 -0700 (PDT)
+In-Reply-To: <20161014114421.GB10404@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Oct 14, 2016 at 05:38:12PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Fri, Oct 14, 2016 at 04:06:15PM +0800, Liping Zhang wrote:
-> > > Hi Pablo,
-> > >
-> > > 2016-10-13 20:02 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-> > > > +int nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
-> > > > +            unsigned int queuenum, bool bypass)
-> > > > +{
-> > > > +       int ret;
-> > > > +
-> > > > +       ret = __nf_queue(skb, state, queuenum);
-> > > > +       if (ret < 0) {
-> > > > +               if (ret == -ESRCH && bypass)
-> > > > +                       return NF_ACCEPT;
-> > > > +               kfree_skb(skb);
-> > > > +               return NF_DROP;
-> > > > +       }
-> > > > +
-> > > > +       return NF_STOLEN;
-> > >
-> > > I think this will break something ... Imagine such situation:
-> > > # ip route add default dev eth0
-> > > # ip rule add fwmark 0x1/0xf lookup eth1
-> > > # ip rule add fwmark 0x2/0xf lookup eth2
-> > > # iptables -t mangle -A OUTPUT -d 1.1.1.1 -j MARK --set-mark 0x1
-> > > # iptables -t mangle -A OUTPUT -d 2.2.2.2 -j MARK --set-mark 0x2
-> > > # iptables -t mangle -A OUTPUT -j NFQUEUE
-> > >
-> > > So ip packets with dst 1.1.1.1 will be sent via eth1, ip packets with
-> > > dst 2.2.2.2 will be sent via eth2 ...
-> > >
-> > > But apply this patch, after queue the packet with dst 1.1.1.1 to the
-> > > userspace and reinject it to the kernel, the packet will be sent via
-> > > the wrong interface, i.e. eth0 not eth1.
-> > >
-> > > Because ret is *NF_STOLEN* so we will not call ip_route_me_harder
-> > > to do re-route in ipt_mangle_out().
-> > 
-> > Good point. Then, we can just return NF_QUEUE here instead, which
-> > would become sort of an alias of NF_STOLEN, but this now just signals
-> > the core that the packet was enqueued to userspace. I mean:
-> > 
-> > int nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
-> >             unsigned int queuenum, bool bypass)
-> > {
-> >        int ret;
-> > 
-> >        ret = __nf_queue(skb, state, queuenum);
-> >        if (ret < 0) {
-> >                if (ret == -ESRCH && bypass)
-> >                        return NF_ACCEPT;
-> >                kfree_skb(skb);
-> >                return NF_DROP;
-> >        }
-> > 
-> >        return NF_QUEUE; <--- this.
-> > }
-> 
-> I'm afraid that won't fly.  When This NF_QUEUE is returned here, we're
-> in a race as skb is already on its way to userspace (or perhaps already
-> being reinjected/dropped on other cpu).
-> 
-> I think the simplest way out is to always re-route from nf_reinject
-> in case we were queued from mangle output.
-> 
-> For nft, we might be able to make a note of 'route' chain type in the
-> nf_hook_state and then have nf_reinject check for that.
+2016-10-14 13:44 GMT+02:00 Florian Westphal <fw@strlen.de>:
+> Bj=C3=B8rnar Ness <bjornar.ness@gmail.com> wrote:
+>>
+>> ip saddr rt_table 10 drop
+>>
+>> comments?
+>
+> I don't really understand why you would want this.
+>
+> If you only want to match saddr, why not use ipset (or nftables set) for
+> this?
 
-Hm, we already have afinfo->saveroute() and afinfo->reroute() handling
-from nf_queue() and nf_reinject() respectively, so returning NF_STOLEN
-(as originally proposed) should be fine.
+Its hard to populate via routing protocols. RTBH/ Source RTBH is very
+convenient, and handles all the details (filtering, timeout etc etc) in rou=
+ting
+daemon (bird in my case). It is ofcorse possible to make a middleware that
+listens for updates on a routing table, and propagates them to a set, but
+thats what I would want to and could avoid if I was given access to a
+"set type" lookup in a spesific table.
+
+> If you want to use the fib, why not use blackhole routes?
+
+Because there is not possible to do saddr based lookups in prerouting,
+the only way this is possible is if one enables rp_filter and packet will
+the have traveled far inside the kernel already. Also, it is not possible
+to send ICMP unreachable for example using rp_filter method
+
+> I'd like to understand why you need this 'rule skip' thing, seems we
+> would have to export some fib internals for this which I'd like to
+> avoid.
+
+I hope You can see the use of this. And it also probably has other usecases=
+.
+
+Regards,
+--
+Bj(/)rnar
