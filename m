@@ -1,55 +1,44 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 21/22] netfilter: ipset: use setup_timer() and mod_timer().
-Date: Mon, 17 Oct 2016 14:51:38 +0200
-Message-ID: <1476708699-32761-22-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 16/22] netfilter: ipset: Collapse same condition body to a single one
+Date: Mon, 17 Oct 2016 14:51:33 +0200
+Message-ID: <1476708699-32761-17-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1476708699-32761-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:34601 "EHLO smtp2.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:38573 "EHLO smtp0.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752058AbcJQNAU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Oct 2016 09:00:20 -0400
+        id S1755050AbcJQNAV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Oct 2016 09:00:21 -0400
 In-Reply-To: <1476708699-32761-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Muhammad Falak R Wani <falakreyaz@gmail.com>
-
-Use setup_timer() and instead of init_timer(), being the preferred way
-of setting up a timer.
-
-Also, quoting the mod_timer() function comment:
--> mod_timer() is a more efficient way to update the expire field of an
-   active timer (if the timer is inactive it will be activated).
-
-Use setup_timer() and mod_timer() to setup and arm a timer, making the
-code compact and easier to read.
-
-Signed-off-by: Muhammad Falak R Wani <falakreyaz@gmail.com>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/ip_set_list_set.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index dede343..51077c5 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -586,11 +586,8 @@ struct list_set {
- {
- 	struct list_set *map = set->data;
- 
--	init_timer(&map->gc);
--	map->gc.data = (unsigned long)set;
--	map->gc.function = gc;
--	map->gc.expires = jiffies + IPSET_GC_PERIOD(set->timeout) * HZ;
--	add_timer(&map->gc);
-+	setup_timer(&map->gc, gc, (unsigned long)set);
-+	mod_timer(&map->gc, jiffies + IPSET_GC_PERIOD(set->timeout) * HZ);
- }
- 
- /* Create list:set type of sets */
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 0082ccf..f4b30b6 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -721,14 +721,8 @@ struct htype {
+ 	key = HKEY(value, h->initval, t->htable_bits);
+ 	n = __ipset_dereference_protected(hbucket(t, key), 1);
+ 	if (!n) {
+-		if (forceadd) {
+-			if (net_ratelimit())
+-				pr_warn("Set %s is full, maxelem %u reached\n",
+-					set->name, h->maxelem);
+-			return -IPSET_ERR_HASH_FULL;
+-		} else if (set->elements >= h->maxelem) {
++		if (forceadd || set->elements >= h->maxelem)
+ 			goto set_full;
+-		}
+ 		old = NULL;
+ 		n = kzalloc(sizeof(*n) + AHASH_INIT_SIZE * set->dsize,
+ 			    GFP_ATOMIC);
 -- 
 1.8.5.1
 
