@@ -1,29 +1,39 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net 1/2] conntrack: remove obsolete sysctl
- (nf_conntrack_events_retry_timeout)
-Date: Mon, 17 Oct 2016 17:39:00 +0200
-Message-ID: <20161017153900.GA15632@salvia>
-References: <1476094704-17452-1-git-send-email-nicolas.dichtel@6wind.com>
- <1476094704-17452-2-git-send-email-nicolas.dichtel@6wind.com>
- <20161010135737.GA21057@breakpoint.cc>
+Subject: Re: [patch v2] netfilter: nf_tables: underflow in
+ nft_parse_u32_check()
+Date: Mon, 17 Oct 2016 17:40:09 +0200
+Message-ID: <20161017154009.GA15655@salvia>
+References: <CAML_gOedjw6uJqp13YkGfXoLQTd_ikOC8OoUA4oXv15RYsgoUg@mail.gmail.com>
+ <20161012091429.GA27317@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Nicolas Dichtel <nicolas.dichtel@6wind.com>, davem@davemloft.net,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: Laura Garcia Liebana <nevola@gmail.com>,
+        Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:46510 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758074AbcJQPkO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Oct 2016 11:40:14 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 391191022A6
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Oct 2016 17:40:13 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2A3BEDA84A
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Oct 2016 17:40:13 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E7918DA84A
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Oct 2016 17:40:10 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20161010135737.GA21057@breakpoint.cc>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20161012091429.GA27317@mwanda>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Oct 10, 2016 at 03:57:37PM +0200, Florian Westphal wrote:
-> Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
-> > This entry has been removed in commit 9500507c6138.
-> > 
-> > Fixes: 9500507c6138 ("netfilter: conntrack: remove timer from ecache extension")
-> > Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-> 
-> Acked-by: Florian Westphal <fw@strlen.de>
+On Wed, Oct 12, 2016 at 12:14:29PM +0300, Dan Carpenter wrote:
+> We don't want to allow negatives here.
 
-Applied, thanks Nicolas.
+Applied, thanks.
