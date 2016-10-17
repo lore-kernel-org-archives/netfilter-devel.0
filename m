@@ -1,33 +1,59 @@
-From: Aaron Conole <aconole@bytheb.org>
-Subject: Re: [PATCH 00/10, nf-next] Netfilter core updates
-Date: Mon, 17 Oct 2016 09:52:14 -0400
-Message-ID: <f7ty41nrskx.fsf@redhat.com>
-References: <1476702636-3303-1-git-send-email-pablo@netfilter.org>
-        <20161017113804.GA13024@breakpoint.cc>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ANNOUNCE] ipset 6.30 released
+Date: Mon, 17 Oct 2016 16:31:14 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1610171627220.29689@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qk0-f173.google.com ([209.85.220.173]:35456 "EHLO
-        mail-qk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754734AbcJQNwS (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Oct 2016 09:52:18 -0400
-Received: by mail-qk0-f173.google.com with SMTP id z190so235536919qkc.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Oct 2016 06:52:18 -0700 (PDT)
-In-Reply-To: <20161017113804.GA13024@breakpoint.cc> (Florian Westphal's
-        message of "Mon, 17 Oct 2016 13:38:04 +0200")
+Received: from smtp1.kfki.hu ([148.6.0.26]:41770 "EHLO smtp1.kfki.hu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932779AbcJQObU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Oct 2016 10:31:20 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Florian Westphal <fw@strlen.de> writes:
+Hi,
 
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> Let me know if you have any comment, otherwise I'll place this in the
->> nf-next tree so we can follow up working on top of these.
->
-> Please do, thanks!
+I'm happy to announce ipset 6.30 which introduces a new set type, 
+hash:ip,mac, and brings a couple of small corrections and backports from 
+the most recent kernel tree.
 
-+1.  Some of this work was in my back burner, so thanks Pablo :)
+Userspace changes:
+  - Drop extra comma from error message (Neutron Soutmun)
+  - Fix the incorrect dynamic/static modules list (Neutron Soutmun)
+  - Correct tests to check the number of entries too
+  - hash:ipmac type support added to ipset, userspace part (Tomasz 
+    Chilinski)
+Kernel part changes:
+  - netfilter: ipset: hash: fix boolreturn.cocci warnings
+    (Fengguang Wu)
+  - Fix the nla_put_net64() API changes backport
+  - netfilter: ipset: Fixing unnamed union init (Elad Raz)
+  - netfilter: x_tables: Use par->net instead of computing from the passed
+    net devices (Eric W. Biederman)
+  - Correct the reported memory size for bitmap:* types
+  - Fix coding styles reported by checkpatch.pl, already in kernel
+  - netfilter: x_tables: Pass struct net in xt_action_param
+    (Eric W. Biederman)
+  - net: sched: fix skb->protocol use in case of accelerated vlan path
+    (Jiri Pirko)
+  - Check IPSET_ATTR_ETHER netlink attribute length in hash:ipmac too
+  - netfilter: fix include files for compilation (Mikko Rapeli)
+  - ipset: Backports for the nla_put_net64() API changes (Neutron Soutmun)
+  - netfilter: ipset: use setup_timer() and mod_timer().
+    (Muhammad Falak R Wani)
+  - hash:ipmac type support added to ipset (Tomasz Chilinski)
+
+You can download the source code of ipset from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
