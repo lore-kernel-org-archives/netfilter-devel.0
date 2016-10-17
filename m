@@ -1,121 +1,277 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 00/22] ipset patches for nf-next
-Date: Mon, 17 Oct 2016 14:51:17 +0200
-Message-ID: <1476708699-32761-1-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 05/22] netfilter: ipset: Split extensions into separate files
+Date: Mon, 17 Oct 2016 14:51:22 +0200
+Message-ID: <1476708699-32761-6-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1476708699-32761-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:34605 "EHLO smtp2.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:38585 "EHLO smtp0.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754912AbcJQNAU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Oct 2016 09:00:20 -0400
+        id S1755149AbcJQNAX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Oct 2016 09:00:23 -0400
+In-Reply-To: <1476708699-32761-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Ported from a patch proposed by Sergey Popovich <popovich_sergei@mail.ua>.
 
-Please consider to apply the next bunch of patches for ipset.
-There is new set type in it (hash:ip,mac), elemet counts are reported
-to userspace in the set headers data and a couple of small cleanups,
-improvements
-
-* rcu_dereference_bh_nfnl() redefined to accept netfilter subsys id.
-* Header files cleanup: counter helper functions are grouped together,
-  some args are changed to const.
-* struct ip_set_skbinfo is introduced instead of open coded fields
-  in skbinfo get/init helper funcions.
-* In comment extension allocate area with kmalloc() rather than kzalloc().
-* Split all extensions into separate files.
-* Separate memsize calculation into dedicated functions.
-* ip_set_put_extensions() is regrouped and extern is added.
-* Add element count to hash headers by Eric B Munson.
-* Add element count to all set types header for uniform output.
-* Count non-static extension memory into memsize calculation for
-  userspace.
-* Simplify mtype_expire() for hash types by removing redundant
-  parameters which can be get from other ones.
-* Make NLEN compile time constant for hash types.
-* Make sure element data size is a multiple of u32.
-* Optimize hash creation routine, exit as early as possible.
-* Make struct htype per ipset family.
-* Collapse same condition body into a single one.
-* Fix reported memory size for hash:* types.
-* hash:ipmac type support added to ipset by Tomasz Chilinski.
-* Use setup_timer() and mod_timer() instead of init_timer()
-  by Muhammad Falak R Wani, individually for the set type families.
-* hash: fix boolreturn.cocci warnings avout bool should use true/false
-  by Fengguang Wu.
-
-The following changes since commit 1b830996c1603225a96e233c3b09bf2b12607d78:
-
-  Merge branch 's390-net' (2016-10-12 01:56:10 -0400)
-
-are available in the git repository at:
-
-  git://blackhole.kfki.hu/nf-next master
-
-for you to fetch changes up to 214ee1d9a5e73f13a126849c69fdb29dfe2bdb3f:
-
-  netfilter: ipset: hash: fix boolreturn.cocci warnings (2016-10-15 14:51:59 +0200)
-
-----------------------------------------------------------------
-Eric B Munson (1):
-      netfilter: ipset: Add element count to hash headers
-
-Jozsef Kadlecsik (16):
-      netfilter: ipset: Correct rcu_dereference_bh_nfnl() usage
-      netfilter: ipset: Headers file cleanup
-      netfilter: ipset: Improve skbinfo get/init helpers
-      netfilter: ipset: Improve comment extension helpers
-      netfilter: ipset: Split extensions into separate files
-      netfilter: ipset: Separate memsize calculation code into dedicated function
-      netfilter: ipset: Regroup ip_set_put_extensions and add extern
-      netfilter: ipset: Add element count to all set types header
-      netfilter: ipset: Count non-static extension memory for userspace
-      netfilter: ipset: Simplify mtype_expire() for hash types
-      netfilter: ipset: Make NLEN compile time constant for hash types
-      netfilter: ipset: Make sure element data size is a multiple of u32
-      netfilter: ipset: Optimize hash creation routine
-      netfilter: ipset: Make struct htype per ipset family
-      netfilter: ipset: Collapse same condition body to a single one
-      netfilter: ipset: Fix reported memory size for hash:* types
-
-Muhammad Falak R Wani (3):
-      netfilter: ipset: use setup_timer() and mod_timer().
-      netfilter: ipset: use setup_timer() and mod_timer().
-      netfilter: ipset: use setup_timer() and mod_timer().
-
-Tomasz Chilinski (1):
-      netfilter: ipset: hash:ipmac type support added to ipset
-
-kbuild test robot (1):
-      netfilter: ipset: hash: fix boolreturn.cocci warnings
-
- include/linux/netfilter/ipset/ip_set.h         | 136 ++---------
- include/linux/netfilter/ipset/ip_set_bitmap.h  |   2 +-
- include/linux/netfilter/ipset/ip_set_comment.h |  11 +-
- include/linux/netfilter/ipset/ip_set_counter.h |  75 ++++++
- include/linux/netfilter/ipset/ip_set_skbinfo.h |  46 ++++
- include/linux/netfilter/ipset/ip_set_timeout.h |   4 +-
- net/netfilter/ipset/Kconfig                    |   9 +
- net/netfilter/ipset/Makefile                   |   1 +
- net/netfilter/ipset/ip_set_bitmap_gen.h        |  33 ++-
- net/netfilter/ipset/ip_set_core.c              |  14 +-
- net/netfilter/ipset/ip_set_hash_gen.h          | 264 ++++++++++-----------
- net/netfilter/ipset/ip_set_hash_ip.c           |  10 +-
- net/netfilter/ipset/ip_set_hash_ipmac.c        | 315 +++++++++++++++++++++++++
- net/netfilter/ipset/ip_set_hash_ipmark.c       |  10 +-
- net/netfilter/ipset/ip_set_hash_ipport.c       |   6 +-
- net/netfilter/ipset/ip_set_hash_ipportip.c     |   6 +-
- net/netfilter/ipset/ip_set_hash_ipportnet.c    |  10 +-
- net/netfilter/ipset/ip_set_hash_net.c          |   8 +-
- net/netfilter/ipset/ip_set_hash_netiface.c     |   8 +-
- net/netfilter/ipset/ip_set_hash_netnet.c       |   8 +-
- net/netfilter/ipset/ip_set_hash_netport.c      |  10 +-
- net/netfilter/ipset/ip_set_hash_netportnet.c   |  10 +-
- net/netfilter/ipset/ip_set_list_set.c          |  37 ++-
- net/netfilter/xt_set.c                         |  12 +-
- 24 files changed, 707 insertions(+), 338 deletions(-)
+Suggested-by: Sergey Popovich <popovich_sergei@mail.ua>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ include/linux/netfilter/ipset/ip_set.h         | 95 +-------------------------
+ include/linux/netfilter/ipset/ip_set_counter.h | 75 ++++++++++++++++++++
+ include/linux/netfilter/ipset/ip_set_skbinfo.h | 46 +++++++++++++
+ 3 files changed, 123 insertions(+), 93 deletions(-)
  create mode 100644 include/linux/netfilter/ipset/ip_set_counter.h
  create mode 100644 include/linux/netfilter/ipset/ip_set_skbinfo.h
- create mode 100644 net/netfilter/ipset/ip_set_hash_ipmac.c
+
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index 7802621..b5bd0fb3 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -292,99 +292,6 @@ struct ip_set {
+ 	return nla_put_net32(skb, IPSET_ATTR_CADT_FLAGS, htonl(cadt_flags));
+ }
+ 
+-static inline void
+-ip_set_add_bytes(u64 bytes, struct ip_set_counter *counter)
+-{
+-	atomic64_add((long long)bytes, &(counter)->bytes);
+-}
+-
+-static inline void
+-ip_set_add_packets(u64 packets, struct ip_set_counter *counter)
+-{
+-	atomic64_add((long long)packets, &(counter)->packets);
+-}
+-
+-static inline u64
+-ip_set_get_bytes(const struct ip_set_counter *counter)
+-{
+-	return (u64)atomic64_read(&(counter)->bytes);
+-}
+-
+-static inline u64
+-ip_set_get_packets(const struct ip_set_counter *counter)
+-{
+-	return (u64)atomic64_read(&(counter)->packets);
+-}
+-
+-static inline void
+-ip_set_update_counter(struct ip_set_counter *counter,
+-		      const struct ip_set_ext *ext,
+-		      struct ip_set_ext *mext, u32 flags)
+-{
+-	if (ext->packets != ULLONG_MAX &&
+-	    !(flags & IPSET_FLAG_SKIP_COUNTER_UPDATE)) {
+-		ip_set_add_bytes(ext->bytes, counter);
+-		ip_set_add_packets(ext->packets, counter);
+-	}
+-	if (flags & IPSET_FLAG_MATCH_COUNTERS) {
+-		mext->packets = ip_set_get_packets(counter);
+-		mext->bytes = ip_set_get_bytes(counter);
+-	}
+-}
+-
+-static inline bool
+-ip_set_put_counter(struct sk_buff *skb, const struct ip_set_counter *counter)
+-{
+-	return nla_put_net64(skb, IPSET_ATTR_BYTES,
+-			     cpu_to_be64(ip_set_get_bytes(counter)),
+-			     IPSET_ATTR_PAD) ||
+-	       nla_put_net64(skb, IPSET_ATTR_PACKETS,
+-			     cpu_to_be64(ip_set_get_packets(counter)),
+-			     IPSET_ATTR_PAD);
+-}
+-
+-static inline void
+-ip_set_init_counter(struct ip_set_counter *counter,
+-		    const struct ip_set_ext *ext)
+-{
+-	if (ext->bytes != ULLONG_MAX)
+-		atomic64_set(&(counter)->bytes, (long long)(ext->bytes));
+-	if (ext->packets != ULLONG_MAX)
+-		atomic64_set(&(counter)->packets, (long long)(ext->packets));
+-}
+-
+-static inline void
+-ip_set_get_skbinfo(struct ip_set_skbinfo *skbinfo,
+-		   const struct ip_set_ext *ext,
+-		   struct ip_set_ext *mext, u32 flags)
+-{
+-	mext->skbinfo = *skbinfo;
+-}
+-
+-static inline bool
+-ip_set_put_skbinfo(struct sk_buff *skb, const struct ip_set_skbinfo *skbinfo)
+-{
+-	/* Send nonzero parameters only */
+-	return ((skbinfo->skbmark || skbinfo->skbmarkmask) &&
+-		nla_put_net64(skb, IPSET_ATTR_SKBMARK,
+-			      cpu_to_be64((u64)skbinfo->skbmark << 32 |
+-					  skbinfo->skbmarkmask),
+-			      IPSET_ATTR_PAD)) ||
+-	       (skbinfo->skbprio &&
+-		nla_put_net32(skb, IPSET_ATTR_SKBPRIO,
+-			      cpu_to_be32(skbinfo->skbprio))) ||
+-	       (skbinfo->skbqueue &&
+-		nla_put_net16(skb, IPSET_ATTR_SKBQUEUE,
+-			     cpu_to_be16(skbinfo->skbqueue)));
+-}
+-
+-static inline void
+-ip_set_init_skbinfo(struct ip_set_skbinfo *skbinfo,
+-		    const struct ip_set_ext *ext)
+-{
+-	*skbinfo = ext->skbinfo;
+-}
+-
+ /* Netlink CB args */
+ enum {
+ 	IPSET_CB_NET = 0,	/* net namespace */
+@@ -539,6 +446,8 @@ static inline int nla_put_ipaddr6(struct sk_buff *skb, int type,
+ 
+ #include <linux/netfilter/ipset/ip_set_timeout.h>
+ #include <linux/netfilter/ipset/ip_set_comment.h>
++#include <linux/netfilter/ipset/ip_set_counter.h>
++#include <linux/netfilter/ipset/ip_set_skbinfo.h>
+ 
+ int
+ ip_set_put_extensions(struct sk_buff *skb, const struct ip_set *set,
+diff --git a/include/linux/netfilter/ipset/ip_set_counter.h b/include/linux/netfilter/ipset/ip_set_counter.h
+new file mode 100644
+index 0000000..2b5e784
+--- /dev/null
++++ b/include/linux/netfilter/ipset/ip_set_counter.h
+@@ -0,0 +1,75 @@
++#ifndef _IP_SET_COUNTER_H
++#define _IP_SET_COUNTER_H
++
++/* Copyright (C) 2015 Sergey Popovich <popovich_sergei@mail.ua>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifdef __KERNEL__
++
++static inline void
++ip_set_add_bytes(u64 bytes, struct ip_set_counter *counter)
++{
++	atomic64_add((long long)bytes, &(counter)->bytes);
++}
++
++static inline void
++ip_set_add_packets(u64 packets, struct ip_set_counter *counter)
++{
++	atomic64_add((long long)packets, &(counter)->packets);
++}
++
++static inline u64
++ip_set_get_bytes(const struct ip_set_counter *counter)
++{
++	return (u64)atomic64_read(&(counter)->bytes);
++}
++
++static inline u64
++ip_set_get_packets(const struct ip_set_counter *counter)
++{
++	return (u64)atomic64_read(&(counter)->packets);
++}
++
++static inline void
++ip_set_update_counter(struct ip_set_counter *counter,
++		      const struct ip_set_ext *ext,
++		      struct ip_set_ext *mext, u32 flags)
++{
++	if (ext->packets != ULLONG_MAX &&
++	    !(flags & IPSET_FLAG_SKIP_COUNTER_UPDATE)) {
++		ip_set_add_bytes(ext->bytes, counter);
++		ip_set_add_packets(ext->packets, counter);
++	}
++	if (flags & IPSET_FLAG_MATCH_COUNTERS) {
++		mext->packets = ip_set_get_packets(counter);
++		mext->bytes = ip_set_get_bytes(counter);
++	}
++}
++
++static inline bool
++ip_set_put_counter(struct sk_buff *skb, const struct ip_set_counter *counter)
++{
++	return nla_put_net64(skb, IPSET_ATTR_BYTES,
++			     cpu_to_be64(ip_set_get_bytes(counter)),
++			     IPSET_ATTR_PAD) ||
++	       nla_put_net64(skb, IPSET_ATTR_PACKETS,
++			     cpu_to_be64(ip_set_get_packets(counter)),
++			     IPSET_ATTR_PAD);
++}
++
++static inline void
++ip_set_init_counter(struct ip_set_counter *counter,
++		    const struct ip_set_ext *ext)
++{
++	if (ext->bytes != ULLONG_MAX)
++		atomic64_set(&(counter)->bytes, (long long)(ext->bytes));
++	if (ext->packets != ULLONG_MAX)
++		atomic64_set(&(counter)->packets, (long long)(ext->packets));
++}
++
++#endif /* __KERNEL__ */
++#endif /* _IP_SET_COUNTER_H */
+diff --git a/include/linux/netfilter/ipset/ip_set_skbinfo.h b/include/linux/netfilter/ipset/ip_set_skbinfo.h
+new file mode 100644
+index 0000000..2e25380
+--- /dev/null
++++ b/include/linux/netfilter/ipset/ip_set_skbinfo.h
+@@ -0,0 +1,46 @@
++#ifndef _IP_SET_SKBINFO_H
++#define _IP_SET_SKBINFO_H
++
++/* Copyright (C) 2015 Sergey Popovich <popovich_sergei@mail.ua>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifdef __KERNEL__
++
++static inline void
++ip_set_get_skbinfo(struct ip_set_skbinfo *skbinfo,
++		   const struct ip_set_ext *ext,
++		   struct ip_set_ext *mext, u32 flags)
++{
++	mext->skbinfo = *skbinfo;
++}
++
++static inline bool
++ip_set_put_skbinfo(struct sk_buff *skb, const struct ip_set_skbinfo *skbinfo)
++{
++	/* Send nonzero parameters only */
++	return ((skbinfo->skbmark || skbinfo->skbmarkmask) &&
++		nla_put_net64(skb, IPSET_ATTR_SKBMARK,
++			      cpu_to_be64((u64)skbinfo->skbmark << 32 |
++					  skbinfo->skbmarkmask),
++			      IPSET_ATTR_PAD) ||
++	       (skbinfo->skbprio &&
++		nla_put_net32(skb, IPSET_ATTR_SKBPRIO,
++			      cpu_to_be32(skbinfo->skbprio))) ||
++	       (skbinfo->skbqueue &&
++		nla_put_net16(skb, IPSET_ATTR_SKBQUEUE,
++			      cpu_to_be16(skbinfo->skbqueue)));
++}
++
++static inline void
++ip_set_init_skbinfo(struct ip_set_skbinfo *skbinfo,
++		    const struct ip_set_ext *ext)
++{
++	*skbinfo = ext->skbinfo;
++}
++
++#endif /* __KERNEL__ */
++#endif /* _IP_SET_SKBINFO_H */
+-- 
+1.8.5.1
+
