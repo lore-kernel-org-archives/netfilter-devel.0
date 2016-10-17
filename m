@@ -1,55 +1,33 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 19/22] netfilter: ipset: use setup_timer() and mod_timer().
-Date: Mon, 17 Oct 2016 14:51:36 +0200
-Message-ID: <1476708699-32761-20-git-send-email-kadlec@blackhole.kfki.hu>
-References: <1476708699-32761-1-git-send-email-kadlec@blackhole.kfki.hu>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Aaron Conole <aconole@bytheb.org>
+Subject: Re: [PATCH 00/10, nf-next] Netfilter core updates
+Date: Mon, 17 Oct 2016 09:52:14 -0400
+Message-ID: <f7ty41nrskx.fsf@redhat.com>
+References: <1476702636-3303-1-git-send-email-pablo@netfilter.org>
+        <20161017113804.GA13024@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:34603 "EHLO smtp2.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754981AbcJQNAU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Oct 2016 09:00:20 -0400
-In-Reply-To: <1476708699-32761-1-git-send-email-kadlec@blackhole.kfki.hu>
+Received: from mail-qk0-f173.google.com ([209.85.220.173]:35456 "EHLO
+        mail-qk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754734AbcJQNwS (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Oct 2016 09:52:18 -0400
+Received: by mail-qk0-f173.google.com with SMTP id z190so235536919qkc.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Oct 2016 06:52:18 -0700 (PDT)
+In-Reply-To: <20161017113804.GA13024@breakpoint.cc> (Florian Westphal's
+        message of "Mon, 17 Oct 2016 13:38:04 +0200")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Muhammad Falak R Wani <falakreyaz@gmail.com>
+Florian Westphal <fw@strlen.de> writes:
 
-Use setup_timer() and instead of init_timer(), being the preferred way
-of setting up a timer.
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>> Let me know if you have any comment, otherwise I'll place this in the
+>> nf-next tree so we can follow up working on top of these.
+>
+> Please do, thanks!
 
-Also, quoting the mod_timer() function comment:
--> mod_timer() is a more efficient way to update the expire field of an
-   active timer (if the timer is inactive it will be activated).
-
-Use setup_timer() and mod_timer() to setup and arm a timer, making the
-code compact and easier to read.
-
-Signed-off-by: Muhammad Falak R Wani <falakreyaz@gmail.com>
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
----
- net/netfilter/ipset/ip_set_bitmap_gen.h | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
-
-diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
-index 5a9fa61..77dd415 100644
---- a/net/netfilter/ipset/ip_set_bitmap_gen.h
-+++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
-@@ -41,11 +41,8 @@
- {
- 	struct mtype *map = set->data;
- 
--	init_timer(&map->gc);
--	map->gc.data = (unsigned long)set;
--	map->gc.function = gc;
--	map->gc.expires = jiffies + IPSET_GC_PERIOD(set->timeout) * HZ;
--	add_timer(&map->gc);
-+	setup_timer(&map->gc, gc, (unsigned long)set);
-+	mod_timer(&map->gc, jiffies + IPSET_GC_PERIOD(set->timeout) * HZ);
- }
- 
- static void
--- 
-1.8.5.1
-
++1.  Some of this work was in my back burner, so thanks Pablo :)
