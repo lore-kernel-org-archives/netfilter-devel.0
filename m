@@ -1,383 +1,254 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 18/22] netfilter: ipset: hash:ipmac type support added to ipset
-Date: Mon, 17 Oct 2016 14:51:35 +0200
-Message-ID: <1476708699-32761-19-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 09/22] netfilter: ipset: Add element count to all set types header
+Date: Mon, 17 Oct 2016 14:51:26 +0200
+Message-ID: <1476708699-32761-10-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1476708699-32761-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:38584 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:55694 "EHLO smtp1.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755131AbcJQNAX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Oct 2016 09:00:23 -0400
+        id S1755125AbcJQNAW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Oct 2016 09:00:22 -0400
 In-Reply-To: <1476708699-32761-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Tomasz Chilinski <tomasz.chilinski@chilan.com>
+It is better to list the set elements for all set types, thus the
+header information is uniform. Element counts are therefore added
+to the bitmap and list types.
 
-Signed-off-by: Tomasz Chili??ski <tomasz.chilinski@chilan.com>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/Kconfig             |   9 +
- net/netfilter/ipset/Makefile            |   1 +
- net/netfilter/ipset/ip_set_hash_ipmac.c | 315 ++++++++++++++++++++++++++++++++
- 3 files changed, 325 insertions(+)
- create mode 100644 net/netfilter/ipset/ip_set_hash_ipmac.c
+ include/linux/netfilter/ipset/ip_set.h        |  2 ++
+ include/linux/netfilter/ipset/ip_set_bitmap.h |  2 +-
+ net/netfilter/ipset/ip_set_bitmap_gen.h       | 10 +++++++++-
+ net/netfilter/ipset/ip_set_hash_gen.h         | 21 ++++++++++-----------
+ net/netfilter/ipset/ip_set_list_set.c         |  6 +++++-
+ 5 files changed, 27 insertions(+), 14 deletions(-)
 
-diff --git a/net/netfilter/ipset/Kconfig b/net/netfilter/ipset/Kconfig
-index 234a8ec..4083a80 100644
---- a/net/netfilter/ipset/Kconfig
-+++ b/net/netfilter/ipset/Kconfig
-@@ -99,6 +99,15 @@ config IP_SET_HASH_IPPORTNET
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index 7a218eb..4671d74 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -250,6 +250,8 @@ struct ip_set {
+ 	u8 flags;
+ 	/* Default timeout value, if enabled */
+ 	u32 timeout;
++	/* Number of elements (vs timeout) */
++	u32 elements;
+ 	/* Element data size */
+ 	size_t dsize;
+ 	/* Offsets to extensions in elements */
+diff --git a/include/linux/netfilter/ipset/ip_set_bitmap.h b/include/linux/netfilter/ipset/ip_set_bitmap.h
+index 5e4662a..366d6c0 100644
+--- a/include/linux/netfilter/ipset/ip_set_bitmap.h
++++ b/include/linux/netfilter/ipset/ip_set_bitmap.h
+@@ -6,8 +6,8 @@
+ #define IPSET_BITMAP_MAX_RANGE	0x0000FFFF
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
+ enum {
++	IPSET_ADD_STORE_PLAIN_TIMEOUT = -1,
+ 	IPSET_ADD_FAILED = 1,
+-	IPSET_ADD_STORE_PLAIN_TIMEOUT,
+ 	IPSET_ADD_START_STORED_TIMEOUT,
+ };
  
-+config IP_SET_HASH_IPMAC
-+	tristate "hash:ip,mac set support"
-+	depends on IP_SET
-+	help
-+	  This option adds the hash:ip,mac set type support, by which
-+	  one can store IPv4/IPv6 address and MAC (ethernet address) pairs in a set.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- config IP_SET_HASH_MAC
- 	tristate "hash:mac set support"
- 	depends on IP_SET
-diff --git a/net/netfilter/ipset/Makefile b/net/netfilter/ipset/Makefile
-index 3dbd5e9..28ec148 100644
---- a/net/netfilter/ipset/Makefile
-+++ b/net/netfilter/ipset/Makefile
-@@ -14,6 +14,7 @@ obj-$(CONFIG_IP_SET_BITMAP_PORT) += ip_set_bitmap_port.o
+diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
+index c22cdde..13a7021 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_gen.h
++++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
+@@ -83,6 +83,7 @@
+ 	if (set->extensions & IPSET_EXT_DESTROY)
+ 		mtype_ext_cleanup(set);
+ 	memset(map->members, 0, map->memsize);
++	set->elements = 0;
+ }
  
- # hash types
- obj-$(CONFIG_IP_SET_HASH_IP) += ip_set_hash_ip.o
-+obj-$(CONFIG_IP_SET_HASH_IPMAC) += ip_set_hash_ipmac.o
- obj-$(CONFIG_IP_SET_HASH_IPMARK) += ip_set_hash_ipmark.o
- obj-$(CONFIG_IP_SET_HASH_IPPORT) += ip_set_hash_ipport.o
- obj-$(CONFIG_IP_SET_HASH_IPPORTIP) += ip_set_hash_ipportip.o
-diff --git a/net/netfilter/ipset/ip_set_hash_ipmac.c b/net/netfilter/ipset/ip_set_hash_ipmac.c
-new file mode 100644
-index 0000000..d9eb144
---- /dev/null
-+++ b/net/netfilter/ipset/ip_set_hash_ipmac.c
-@@ -0,0 +1,315 @@
-+/* Copyright (C) 2016 Tomasz Chilinski <tomasz.chilinski@chilan.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/* Kernel module implementing an IP set type: the hash:ip,mac type */
-+
-+#include <linux/jhash.h>
-+#include <linux/module.h>
-+#include <linux/ip.h>
-+#include <linux/etherdevice.h>
-+#include <linux/skbuff.h>
-+#include <linux/errno.h>
-+#include <linux/random.h>
-+#include <linux/if_ether.h>
-+#include <net/ip.h>
-+#include <net/ipv6.h>
-+#include <net/netlink.h>
-+#include <net/tcp.h>
-+
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/ipset/pfxlen.h>
-+#include <linux/netfilter/ipset/ip_set.h>
-+#include <linux/netfilter/ipset/ip_set_hash.h>
-+
-+#define IPSET_TYPE_REV_MIN	0
-+#define IPSET_TYPE_REV_MAX	0
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Tomasz Chilinski <tomasz.chilinski@chilan.com>");
-+IP_SET_MODULE_DESC("hash:ip,mac", IPSET_TYPE_REV_MIN, IPSET_TYPE_REV_MAX);
-+MODULE_ALIAS("ip_set_hash:ip,mac");
-+
-+/* Type specific function prefix */
-+#define HTYPE		hash_ipmac
-+
-+/* Zero valued element is not supported */
-+static const unsigned char invalid_ether[ETH_ALEN] = { 0 };
-+
-+/* IPv4 variant */
-+
-+/* Member elements */
-+struct hash_ipmac4_elem {
-+	/* Zero valued IP addresses cannot be stored */
-+	__be32 ip;
-+	union {
-+		unsigned char ether[ETH_ALEN];
-+		__be32 foo[2];
-+	};
-+};
-+
-+/* Common functions */
-+
-+static inline bool
-+hash_ipmac4_data_equal(const struct hash_ipmac4_elem *e1,
-+		       const struct hash_ipmac4_elem *e2,
-+		       u32 *multi)
-+{
-+	return e1->ip == e2->ip && ether_addr_equal(e1->ether, e2->ether);
-+}
-+
-+static bool
-+hash_ipmac4_data_list(struct sk_buff *skb, const struct hash_ipmac4_elem *e)
-+{
-+	if (nla_put_ipaddr4(skb, IPSET_ATTR_IP, e->ip) ||
-+	    nla_put(skb, IPSET_ATTR_ETHER, ETH_ALEN, e->ether))
-+		goto nla_put_failure;
-+	return 0;
-+
-+nla_put_failure:
-+	return 1;
-+}
-+
-+static inline void
-+hash_ipmac4_data_next(struct hash_ipmac4_elem *next,
-+		      const struct hash_ipmac4_elem *e)
-+{
-+	next->ip = e->ip;
-+}
-+
-+#define MTYPE		hash_ipmac4
-+#define PF		4
-+#define HOST_MASK	32
-+#define HKEY_DATALEN	sizeof(struct hash_ipmac4_elem)
-+#include "ip_set_hash_gen.h"
-+
-+static int
-+hash_ipmac4_kadt(struct ip_set *set, const struct sk_buff *skb,
-+		 const struct xt_action_param *par,
-+		 enum ipset_adt adt, struct ip_set_adt_opt *opt)
-+{
-+	ipset_adtfn adtfn = set->variant->adt[adt];
-+	struct hash_ipmac4_elem e = { .ip = 0, { .foo[0] = 0, .foo[1] = 0 } };
-+	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
-+
-+	 /* MAC can be src only */
-+	if (!(opt->flags & IPSET_DIM_TWO_SRC))
-+		return 0;
-+
-+	if (skb_mac_header(skb) < skb->head ||
-+	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
-+		return -EINVAL;
-+
-+	memcpy(e.ether, eth_hdr(skb)->h_source, ETH_ALEN);
-+	if (ether_addr_equal(e.ether, invalid_ether))
-+		return -EINVAL;
-+
-+	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
-+
-+	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-+}
-+
-+static int
-+hash_ipmac4_uadt(struct ip_set *set, struct nlattr *tb[],
-+		 enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
-+{
-+	ipset_adtfn adtfn = set->variant->adt[adt];
-+	struct hash_ipmac4_elem e = { .ip = 0, { .foo[0] = 0, .foo[1] = 0 } };
-+	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
-+	int ret;
-+
-+	if (unlikely(!tb[IPSET_ATTR_IP] ||
-+		     !tb[IPSET_ATTR_ETHER] ||
-+		     nla_len(tb[IPSET_ATTR_ETHER]) != ETH_ALEN ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)   ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		return -IPSET_ERR_PROTOCOL;
-+
-+	if (tb[IPSET_ATTR_LINENO])
-+		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
-+
-+	ret = ip_set_get_ipaddr4(tb[IPSET_ATTR_IP], &e.ip) ||
-+		ip_set_get_extensions(set, tb, &ext);
-+	if (ret)
-+		return ret;
-+	memcpy(e.ether, nla_data(tb[IPSET_ATTR_ETHER]), ETH_ALEN);
-+	if (ether_addr_equal(e.ether, invalid_ether))
-+		return -IPSET_ERR_HASH_ELEM;
-+
-+	return adtfn(set, &e, &ext, &ext, flags);
-+}
-+
-+/* IPv6 variant */
-+
-+/* Member elements */
-+struct hash_ipmac6_elem {
-+	/* Zero valued IP addresses cannot be stored */
-+	union nf_inet_addr ip;
-+	union {
-+		unsigned char ether[ETH_ALEN];
-+		__be32 foo[2];
-+	};
-+};
-+
-+/* Common functions */
-+
-+static inline bool
-+hash_ipmac6_data_equal(const struct hash_ipmac6_elem *e1,
-+		       const struct hash_ipmac6_elem *e2,
-+		       u32 *multi)
-+{
-+	return ipv6_addr_equal(&e1->ip.in6, &e2->ip.in6) &&
-+		ether_addr_equal(e1->ether, e2->ether);
-+}
-+
-+static bool
-+hash_ipmac6_data_list(struct sk_buff *skb, const struct hash_ipmac6_elem *e)
-+{
-+	if (nla_put_ipaddr6(skb, IPSET_ATTR_IP, &e->ip.in6) ||
-+	    nla_put(skb, IPSET_ATTR_ETHER, ETH_ALEN, e->ether))
-+		goto nla_put_failure;
-+	return 0;
-+
-+nla_put_failure:
-+	return 1;
-+}
-+
-+static inline void
-+hash_ipmac6_data_next(struct hash_ipmac6_elem *next,
-+		      const struct hash_ipmac6_elem *e)
-+{
-+}
-+
-+#undef MTYPE
-+#undef PF
-+#undef HOST_MASK
-+#undef HKEY_DATALEN
-+
-+#define MTYPE		hash_ipmac6
-+#define PF		6
-+#define HOST_MASK	128
-+#define HKEY_DATALEN	sizeof(struct hash_ipmac6_elem)
-+#define IP_SET_EMIT_CREATE
-+#include "ip_set_hash_gen.h"
-+
-+static int
-+hash_ipmac6_kadt(struct ip_set *set, const struct sk_buff *skb,
-+		 const struct xt_action_param *par,
-+		 enum ipset_adt adt, struct ip_set_adt_opt *opt)
-+{
-+	ipset_adtfn adtfn = set->variant->adt[adt];
-+	struct hash_ipmac6_elem e = {
-+		{ .all = { 0 } },
-+		{ .foo[0] = 0, .foo[1] = 0 }
-+	};
-+	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
-+
-+	 /* MAC can be src only */
-+	if (!(opt->flags & IPSET_DIM_TWO_SRC))
-+		return 0;
-+
-+	if (skb_mac_header(skb) < skb->head ||
-+	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
-+		return -EINVAL;
-+
-+	memcpy(e.ether, eth_hdr(skb)->h_source, ETH_ALEN);
-+	if (ether_addr_equal(e.ether, invalid_ether))
-+		return -EINVAL;
-+
-+	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
-+
-+	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
-+}
-+
-+static int
-+hash_ipmac6_uadt(struct ip_set *set, struct nlattr *tb[],
-+		 enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
-+{
-+	ipset_adtfn adtfn = set->variant->adt[adt];
-+	struct hash_ipmac6_elem e = {
-+		{ .all = { 0 } },
-+		{ .foo[0] = 0, .foo[1] = 0 }
-+	};
-+	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
-+	int ret;
-+
-+	if (unlikely(!tb[IPSET_ATTR_IP] ||
-+		     !tb[IPSET_ATTR_ETHER] ||
-+		     nla_len(tb[IPSET_ATTR_ETHER]) != ETH_ALEN ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)   ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		return -IPSET_ERR_PROTOCOL;
-+
-+	if (tb[IPSET_ATTR_LINENO])
-+		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
-+
-+	ret = ip_set_get_ipaddr6(tb[IPSET_ATTR_IP], &e.ip) ||
-+		ip_set_get_extensions(set, tb, &ext);
-+	if (ret)
-+		return ret;
-+
-+	memcpy(e.ether, nla_data(tb[IPSET_ATTR_ETHER]), ETH_ALEN);
-+	if (ether_addr_equal(e.ether, invalid_ether))
-+		return -IPSET_ERR_HASH_ELEM;
-+
-+	return adtfn(set, &e, &ext, &ext, flags);
-+}
-+
-+static struct ip_set_type hash_ipmac_type __read_mostly = {
-+	.name		= "hash:ip,mac",
-+	.protocol	= IPSET_PROTOCOL,
-+	.features	= IPSET_TYPE_IP | IPSET_TYPE_MAC,
-+	.dimension	= IPSET_DIM_TWO,
-+	.family		= NFPROTO_UNSPEC,
-+	.revision_min	= IPSET_TYPE_REV_MIN,
-+	.revision_max	= IPSET_TYPE_REV_MAX,
-+	.create		= hash_ipmac_create,
-+	.create_policy	= {
-+		[IPSET_ATTR_HASHSIZE]	= { .type = NLA_U32 },
-+		[IPSET_ATTR_MAXELEM]	= { .type = NLA_U32 },
-+		[IPSET_ATTR_PROBES]	= { .type = NLA_U8 },
-+		[IPSET_ATTR_RESIZE]	= { .type = NLA_U8  },
-+		[IPSET_ATTR_TIMEOUT]	= { .type = NLA_U32 },
-+		[IPSET_ATTR_CADT_FLAGS]	= { .type = NLA_U32 },
-+	},
-+	.adt_policy	= {
-+		[IPSET_ATTR_IP]		= { .type = NLA_NESTED },
-+		[IPSET_ATTR_ETHER]	= { .type = NLA_BINARY,
-+				.len  = ETH_ALEN },
-+		[IPSET_ATTR_TIMEOUT]	= { .type = NLA_U32 },
-+		[IPSET_ATTR_LINENO]	= { .type = NLA_U32 },
-+		[IPSET_ATTR_BYTES]	= { .type = NLA_U64 },
-+		[IPSET_ATTR_PACKETS]	= { .type = NLA_U64 },
-+		[IPSET_ATTR_COMMENT]	= { .type = NLA_NUL_STRING },
-+		[IPSET_ATTR_SKBMARK]	= { .type = NLA_U64 },
-+		[IPSET_ATTR_SKBPRIO]	= { .type = NLA_U32 },
-+		[IPSET_ATTR_SKBQUEUE]	= { .type = NLA_U16 },
-+	},
-+	.me		= THIS_MODULE,
-+};
-+
-+static int __init
-+hash_ipmac_init(void)
-+{
-+	return ip_set_type_register(&hash_ipmac_type);
-+}
-+
-+static void __exit
-+hash_ipmac_fini(void)
-+{
-+	ip_set_type_unregister(&hash_ipmac_type);
-+}
-+
-+module_init(hash_ipmac_init);
-+module_exit(hash_ipmac_fini);
+ /* Calculate the actual memory size of the set data */
+@@ -107,7 +108,8 @@
+ 		goto nla_put_failure;
+ 	if (mtype_do_head(skb, map) ||
+ 	    nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref)) ||
+-	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE, htonl(memsize)))
++	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE, htonl(memsize)) ||
++	    nla_put_net32(skb, IPSET_ATTR_ELEMENTS, htonl(set->elements)))
+ 		goto nla_put_failure;
+ 	if (unlikely(ip_set_put_flags(skb, set)))
+ 		goto nla_put_failure;
+@@ -151,6 +153,7 @@
+ 	if (ret == IPSET_ADD_FAILED) {
+ 		if (SET_WITH_TIMEOUT(set) &&
+ 		    ip_set_timeout_expired(ext_timeout(x, set))) {
++			set->elements--;
+ 			ret = 0;
+ 		} else if (!(flags & IPSET_FLAG_EXIST)) {
+ 			set_bit(e->id, map->members);
+@@ -159,6 +162,8 @@
+ 		/* Element is re-added, cleanup extensions */
+ 		ip_set_ext_destroy(set, x);
+ 	}
++	if (ret > 0)
++		set->elements--;
+ 
+ 	if (SET_WITH_TIMEOUT(set))
+ #ifdef IP_SET_BITMAP_STORED_TIMEOUT
+@@ -176,6 +181,7 @@
+ 
+ 	/* Activate element */
+ 	set_bit(e->id, map->members);
++	set->elements++;
+ 
+ 	return 0;
+ }
+@@ -192,6 +198,7 @@
+ 		return -IPSET_ERR_EXIST;
+ 
+ 	ip_set_ext_destroy(set, x);
++	set->elements--;
+ 	if (SET_WITH_TIMEOUT(set) &&
+ 	    ip_set_timeout_expired(ext_timeout(x, set)))
+ 		return -IPSET_ERR_EXIST;
+@@ -287,6 +294,7 @@
+ 			if (ip_set_timeout_expired(ext_timeout(x, set))) {
+ 				clear_bit(id, map->members);
+ 				ip_set_ext_destroy(set, x);
++				set->elements--;
+ 			}
+ 		}
+ 	spin_unlock_bh(&set->lock);
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 66a55a5..09465d1 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -277,7 +277,6 @@ struct net_prefixes {
+ struct htype {
+ 	struct htable __rcu *table; /* the hash table */
+ 	u32 maxelem;		/* max elements in the hash */
+-	u32 elements;		/* current element (vs timeout) */
+ 	u32 initval;		/* random jhash init value */
+ #ifdef IP_SET_HASH_WITH_MARKMASK
+ 	u32 markmask;		/* markmask value for mark mask to store */
+@@ -402,7 +401,7 @@ struct htype {
+ #ifdef IP_SET_HASH_WITH_NETS
+ 	memset(h->nets, 0, sizeof(struct net_prefixes) * NLEN(set->family));
+ #endif
+-	h->elements = 0;
++	set->elements = 0;
+ }
+ 
+ /* Destroy the hashtable part of the set */
+@@ -508,7 +507,7 @@ struct htype {
+ 						nets_length, k);
+ #endif
+ 				ip_set_ext_destroy(set, data);
+-				h->elements--;
++				set->elements--;
+ 				d++;
+ 			}
+ 		}
+@@ -717,11 +716,11 @@ struct htype {
+ 	bool deleted = false, forceadd = false, reuse = false;
+ 	u32 key, multi = 0;
+ 
+-	if (h->elements >= h->maxelem) {
++	if (set->elements >= h->maxelem) {
+ 		if (SET_WITH_TIMEOUT(set))
+ 			/* FIXME: when set is full, we slow down here */
+ 			mtype_expire(set, h, NLEN(set->family), set->dsize);
+-		if (h->elements >= h->maxelem && SET_WITH_FORCEADD(set))
++		if (set->elements >= h->maxelem && SET_WITH_FORCEADD(set))
+ 			forceadd = true;
+ 	}
+ 
+@@ -734,7 +733,7 @@ struct htype {
+ 				pr_warn("Set %s is full, maxelem %u reached\n",
+ 					set->name, h->maxelem);
+ 			return -IPSET_ERR_HASH_FULL;
+-		} else if (h->elements >= h->maxelem) {
++		} else if (set->elements >= h->maxelem) {
+ 			goto set_full;
+ 		}
+ 		old = NULL;
+@@ -783,11 +782,11 @@ struct htype {
+ 					NLEN(set->family), i);
+ #endif
+ 			ip_set_ext_destroy(set, data);
+-			h->elements--;
++			set->elements--;
+ 		}
+ 		goto copy_data;
+ 	}
+-	if (h->elements >= h->maxelem)
++	if (set->elements >= h->maxelem)
+ 		goto set_full;
+ 	/* Create a new slot */
+ 	if (n->pos >= n->size) {
+@@ -812,7 +811,7 @@ struct htype {
+ 	j = n->pos++;
+ 	data = ahash_data(n, j, set->dsize);
+ copy_data:
+-	h->elements++;
++	set->elements++;
+ #ifdef IP_SET_HASH_WITH_NETS
+ 	for (i = 0; i < IPSET_NET_COUNT; i++)
+ 		mtype_add_cidr(h, NCIDR_PUT(DCIDR_GET(d->cidr, i)),
+@@ -885,7 +884,7 @@ struct htype {
+ 		smp_mb__after_atomic();
+ 		if (i + 1 == n->pos)
+ 			n->pos--;
+-		h->elements--;
++		set->elements--;
+ #ifdef IP_SET_HASH_WITH_NETS
+ 		for (j = 0; j < IPSET_NET_COUNT; j++)
+ 			mtype_del_cidr(h, NCIDR_PUT(DCIDR_GET(d->cidr, j)),
+@@ -1086,7 +1085,7 @@ struct htype {
+ #endif
+ 	if (nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref)) ||
+ 	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE, htonl(memsize)) ||
+-	    nla_put_net32(skb, IPSET_ATTR_ELEMENTS, htonl(h->elements)))
++	    nla_put_net32(skb, IPSET_ATTR_ELEMENTS, htonl(set->elements)))
+ 		goto nla_put_failure;
+ 	if (unlikely(ip_set_put_flags(skb, set)))
+ 		goto nla_put_failure;
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index 462b0b1..c455166 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -166,6 +166,7 @@ struct list_set {
+ static inline void
+ list_set_del(struct ip_set *set, struct set_elem *e)
+ {
++	set->elements--;
+ 	list_del_rcu(&e->list);
+ 	call_rcu(&e->rcu, __list_set_del_rcu);
+ }
+@@ -309,6 +310,7 @@ struct list_set {
+ 		list_add_rcu(&e->list, &prev->list);
+ 	else
+ 		list_add_tail_rcu(&e->list, &map->members);
++	set->elements++;
+ 
+ 	return 0;
+ }
+@@ -419,6 +421,7 @@ struct list_set {
+ 
+ 	list_for_each_entry_safe(e, n, &map->members, list)
+ 		list_set_del(set, e);
++	set->elements = 0;
+ }
+ 
+ static void
+@@ -471,7 +474,8 @@ struct list_set {
+ 		goto nla_put_failure;
+ 	if (nla_put_net32(skb, IPSET_ATTR_SIZE, htonl(map->size)) ||
+ 	    nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref)) ||
+-	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE, htonl(memsize)))
++	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE, htonl(memsize)) ||
++	    nla_put_net32(skb, IPSET_ATTR_ELEMENTS, htonl(set->elements)))
+ 		goto nla_put_failure;
+ 	if (unlikely(ip_set_put_flags(skb, set)))
+ 		goto nla_put_failure;
 -- 
 1.8.5.1
 
