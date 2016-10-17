@@ -1,41 +1,250 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] meta: permit numeric interface type
-Date: Mon, 17 Oct 2016 11:42:55 +0200
-Message-ID: <20161017094255.GA29277@salvia>
-References: <1476694417-14583-1-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 03/10] netfilter: kill NF_HOOK_THRESH() and state->tresh
+Date: Mon, 17 Oct 2016 13:10:29 +0200
+Message-ID: <1476702636-3303-4-git-send-email-pablo@netfilter.org>
+References: <1476702636-3303-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33814 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43194 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754765AbcJQJnF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Oct 2016 05:43:05 -0400
+        id S934955AbcJQLKx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Oct 2016 07:10:53 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 83DED9B7F9
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Oct 2016 11:43:03 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id E50F11324CA
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Oct 2016 13:10:51 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 728DE96904
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Oct 2016 11:43:03 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CCF817842C
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Oct 2016 13:10:51 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0F560A8252
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Oct 2016 11:43:01 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1476694417-14583-1-git-send-email-fw@strlen.de>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D961F7842C
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Oct 2016 13:10:47 +0200 (CEST)
+In-Reply-To: <1476702636-3303-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Oct 17, 2016 at 10:53:37AM +0200, Florian Westphal wrote:
-> If we can't translate an interface index back to a name
-> we just print the number.
-> 
-> This change allows using a number instead of an interface index to
-> make this symmetric.
-> 
-> If we can't find an interface with the given name check
-> if its a numeric string and then use it instead.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+Patch c5136b15ea36 ("netfilter: bridge: add and use br_nf_hook_thresh")
+introduced br_nf_hook_thresh().
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Replace NF_HOOK_THRESH() by br_nf_hook_thresh from
+br_nf_forward_finish(), so we have no more callers for this macro.
+
+As a result, state->thresh and explicit thresh parameter in the hook
+state structure is not required anymore. And we can get rid of
+skip-hook-under-thresh loop in nf_iterate() in the core path that is
+only used by br_netfilter to search for the filter hook.
+
+Suggested-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/linux/netfilter.h             | 50 +++++++++--------------------------
+ include/linux/netfilter_ingress.h     |  2 +-
+ net/bridge/br_netfilter_hooks.c       |  8 +++---
+ net/bridge/netfilter/ebtable_broute.c |  2 +-
+ net/netfilter/core.c                  |  4 ---
+ net/netfilter/nf_queue.c              |  1 -
+ 6 files changed, 19 insertions(+), 48 deletions(-)
+
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index abc7fdcb9eb1..e0d000f6c9bf 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -49,7 +49,6 @@ struct sock;
+ 
+ struct nf_hook_state {
+ 	unsigned int hook;
+-	int thresh;
+ 	u_int8_t pf;
+ 	struct net_device *in;
+ 	struct net_device *out;
+@@ -84,7 +83,7 @@ struct nf_hook_entry {
+ static inline void nf_hook_state_init(struct nf_hook_state *p,
+ 				      struct nf_hook_entry *hook_entry,
+ 				      unsigned int hook,
+-				      int thresh, u_int8_t pf,
++				      u_int8_t pf,
+ 				      struct net_device *indev,
+ 				      struct net_device *outdev,
+ 				      struct sock *sk,
+@@ -92,7 +91,6 @@ static inline void nf_hook_state_init(struct nf_hook_state *p,
+ 				      int (*okfn)(struct net *, struct sock *, struct sk_buff *))
+ {
+ 	p->hook = hook;
+-	p->thresh = thresh;
+ 	p->pf = pf;
+ 	p->in = indev;
+ 	p->out = outdev;
+@@ -155,20 +153,16 @@ extern struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
+ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state);
+ 
+ /**
+- *	nf_hook_thresh - call a netfilter hook
++ *	nf_hook - call a netfilter hook
+  *
+  *	Returns 1 if the hook has allowed the packet to pass.  The function
+  *	okfn must be invoked by the caller in this case.  Any other return
+  *	value indicates the packet has been consumed by the hook.
+  */
+-static inline int nf_hook_thresh(u_int8_t pf, unsigned int hook,
+-				 struct net *net,
+-				 struct sock *sk,
+-				 struct sk_buff *skb,
+-				 struct net_device *indev,
+-				 struct net_device *outdev,
+-				 int (*okfn)(struct net *, struct sock *, struct sk_buff *),
+-				 int thresh)
++static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
++			  struct sock *sk, struct sk_buff *skb,
++			  struct net_device *indev, struct net_device *outdev,
++			  int (*okfn)(struct net *, struct sock *, struct sk_buff *))
+ {
+ 	struct nf_hook_entry *hook_head;
+ 	int ret = 1;
+@@ -185,8 +179,8 @@ static inline int nf_hook_thresh(u_int8_t pf, unsigned int hook,
+ 	if (hook_head) {
+ 		struct nf_hook_state state;
+ 
+-		nf_hook_state_init(&state, hook_head, hook, thresh,
+-				   pf, indev, outdev, sk, net, okfn);
++		nf_hook_state_init(&state, hook_head, hook, pf, indev, outdev,
++				   sk, net, okfn);
+ 
+ 		ret = nf_hook_slow(skb, &state);
+ 	}
+@@ -195,14 +189,6 @@ static inline int nf_hook_thresh(u_int8_t pf, unsigned int hook,
+ 	return ret;
+ }
+ 
+-static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
+-			  struct sock *sk, struct sk_buff *skb,
+-			  struct net_device *indev, struct net_device *outdev,
+-			  int (*okfn)(struct net *, struct sock *, struct sk_buff *))
+-{
+-	return nf_hook_thresh(pf, hook, net, sk, skb, indev, outdev, okfn, INT_MIN);
+-}
+-                   
+ /* Activate hook; either okfn or kfree_skb called, unless a hook
+    returns NF_STOLEN (in which case, it's up to the hook to deal with
+    the consequences).
+@@ -221,19 +207,6 @@ static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
+ */
+ 
+ static inline int
+-NF_HOOK_THRESH(uint8_t pf, unsigned int hook, struct net *net, struct sock *sk,
+-	       struct sk_buff *skb, struct net_device *in,
+-	       struct net_device *out,
+-	       int (*okfn)(struct net *, struct sock *, struct sk_buff *),
+-	       int thresh)
+-{
+-	int ret = nf_hook_thresh(pf, hook, net, sk, skb, in, out, okfn, thresh);
+-	if (ret == 1)
+-		ret = okfn(net, sk, skb);
+-	return ret;
+-}
+-
+-static inline int
+ NF_HOOK_COND(uint8_t pf, unsigned int hook, struct net *net, struct sock *sk,
+ 	     struct sk_buff *skb, struct net_device *in, struct net_device *out,
+ 	     int (*okfn)(struct net *, struct sock *, struct sk_buff *),
+@@ -242,7 +215,7 @@ NF_HOOK_COND(uint8_t pf, unsigned int hook, struct net *net, struct sock *sk,
+ 	int ret;
+ 
+ 	if (!cond ||
+-	    ((ret = nf_hook_thresh(pf, hook, net, sk, skb, in, out, okfn, INT_MIN)) == 1))
++	    ((ret = nf_hook(pf, hook, net, sk, skb, in, out, okfn)) == 1))
+ 		ret = okfn(net, sk, skb);
+ 	return ret;
+ }
+@@ -252,7 +225,10 @@ NF_HOOK(uint8_t pf, unsigned int hook, struct net *net, struct sock *sk, struct
+ 	struct net_device *in, struct net_device *out,
+ 	int (*okfn)(struct net *, struct sock *, struct sk_buff *))
+ {
+-	return NF_HOOK_THRESH(pf, hook, net, sk, skb, in, out, okfn, INT_MIN);
++	int ret = nf_hook(pf, hook, net, sk, skb, in, out, okfn);
++	if (ret == 1)
++		ret = okfn(net, sk, skb);
++	return ret;
+ }
+ 
+ /* Call setsockopt() */
+diff --git a/include/linux/netfilter_ingress.h b/include/linux/netfilter_ingress.h
+index 33e37fb41d5d..fd44e4131710 100644
+--- a/include/linux/netfilter_ingress.h
++++ b/include/linux/netfilter_ingress.h
+@@ -26,7 +26,7 @@ static inline int nf_hook_ingress(struct sk_buff *skb)
+ 	if (unlikely(!e))
+ 		return 0;
+ 
+-	nf_hook_state_init(&state, e, NF_NETDEV_INGRESS, INT_MIN,
++	nf_hook_state_init(&state, e, NF_NETDEV_INGRESS,
+ 			   NFPROTO_NETDEV, skb->dev, NULL, NULL,
+ 			   dev_net(skb->dev), NULL);
+ 	return nf_hook_slow(skb, &state);
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 2fe9345c1407..d0d66faebe90 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -561,8 +561,8 @@ static int br_nf_forward_finish(struct net *net, struct sock *sk, struct sk_buff
+ 	}
+ 	nf_bridge_push_encap_header(skb);
+ 
+-	NF_HOOK_THRESH(NFPROTO_BRIDGE, NF_BR_FORWARD, net, sk, skb,
+-		       in, skb->dev, br_forward_finish, 1);
++	br_nf_hook_thresh(NF_BR_FORWARD, net, sk, skb, in, skb->dev,
++			  br_forward_finish);
+ 	return 0;
+ }
+ 
+@@ -1016,8 +1016,8 @@ int br_nf_hook_thresh(unsigned int hook, struct net *net,
+ 
+ 	/* We may already have this, but read-locks nest anyway */
+ 	rcu_read_lock();
+-	nf_hook_state_init(&state, elem, hook, NF_BR_PRI_BRNF + 1,
+-			   NFPROTO_BRIDGE, indev, outdev, sk, net, okfn);
++	nf_hook_state_init(&state, elem, hook, NFPROTO_BRIDGE, indev, outdev,
++			   sk, net, okfn);
+ 
+ 	ret = nf_hook_slow(skb, &state);
+ 	rcu_read_unlock();
+diff --git a/net/bridge/netfilter/ebtable_broute.c b/net/bridge/netfilter/ebtable_broute.c
+index ec94c6f1ae88..599679e3498d 100644
+--- a/net/bridge/netfilter/ebtable_broute.c
++++ b/net/bridge/netfilter/ebtable_broute.c
+@@ -53,7 +53,7 @@ static int ebt_broute(struct sk_buff *skb)
+ 	struct nf_hook_state state;
+ 	int ret;
+ 
+-	nf_hook_state_init(&state, NULL, NF_BR_BROUTING, INT_MIN,
++	nf_hook_state_init(&state, NULL, NF_BR_BROUTING,
+ 			   NFPROTO_BRIDGE, skb->dev, NULL, NULL,
+ 			   dev_net(skb->dev), NULL);
+ 
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index b193bd46ac30..6b09d9ed2646 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -309,10 +309,6 @@ unsigned int nf_iterate(struct sk_buff *skb,
+ 	unsigned int verdict;
+ 
+ 	while (*entryp) {
+-		if (state->thresh > (*entryp)->ops.priority) {
+-			*entryp = rcu_dereference((*entryp)->next);
+-			continue;
+-		}
+ repeat:
+ 		verdict = (*entryp)->ops.hook((*entryp)->ops.priv, skb, state);
+ 		if (verdict != NF_ACCEPT) {
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 691e713d70f5..c82268de5b4b 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -184,7 +184,6 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 			verdict = NF_DROP;
+ 	}
+ 
+-	entry->state.thresh = INT_MIN;
+ 	hook_entry = rcu_dereference(hook_entry->next);
+ 
+ 	if (hook_entry && verdict == NF_ACCEPT) {
+-- 
+2.1.4
+
