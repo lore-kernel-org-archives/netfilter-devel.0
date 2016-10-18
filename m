@@ -1,38 +1,80 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH 00/28] Reenable maybe-uninitialized warnings
-Date: Mon, 17 Oct 2016 22:08:04 -0700
-Message-ID: <20161018050804.GA9902@infradead.org>
-References: <20161017220342.1627073-1-arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-        linux-kernel@vger.kernel.org, x86@kernel.org,
-        linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Martin Schwidefsky <schwidefsky@de.ibm.com>,
-        linux-s390@vger.kernel.org, Ilya Dryomov <idryomov@gmail.com>,
-        dri-devel@lists.freedesktop.org, linux-mtd@lists.infradead.org,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        linux-crypto@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        ceph-devel@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net,
-        linux-ext4@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Return-path: <linux-ext4-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161017220342.1627073-1-arnd@arndb.de>
-Sender: linux-ext4-owner@vger.kernel.org
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: [PATCH net] conntrack: perform a full scan in gc
+Date: Tue, 18 Oct 2016 10:30:35 +0200
+Message-ID: <1476779435-30503-1-git-send-email-nicolas.dichtel@6wind.com>
+References: <20161014105327.GA8655@salvia>
+Cc: davem@davemloft.net, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Nicolas Dichtel <nicolas.dichtel@6wind.com>
+To: pablo@netfilter.org, fw@strlen.de
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20161014105327.GA8655@salvia>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Oct 18, 2016 at 12:03:28AM +0200, Arnd Bergmann wrote:
-> This is a set of patches that I hope to get into v4.9 in some form
-> in order to turn on the -Wmaybe-uninitialized warnings again.
+After commit b87a2f9199ea ("netfilter: conntrack: add gc worker to remove
+timed-out entries"), netlink conntrack deletion events may be sent with a
+huge delay (5 minutes).
 
-Hi Arnd,
+There is two ways to evict conntrack:
+ - during a conntrack lookup;
+ - during a conntrack dump.
+Let's do a full scan of conntrack entries after a period of inactivity
+(no conntrack lookup).
 
-I jsut complained to Geert that I was introducing way to many
-bugs or pointless warnings for some compilers lately, but gcc didn't
-warn me about them.  From a little research the lack of
--Wmaybe-uninitialized seems to be the reason for it, so I'm all
-for re-enabling it.
+CC: Florian Westphal <fw@strlen.de>
+Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+---
+
+Here is another proposal to try to fix the problem.
+Comments are welcomed,
+Nicolas
+
+ net/netfilter/nf_conntrack_core.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index ba6a1d421222..3dbb27bd9582 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -87,6 +87,7 @@ static __read_mostly bool nf_conntrack_locks_all;
+ #define GC_MAX_BUCKETS		8192u
+ #define GC_INTERVAL		(5 * HZ)
+ #define GC_MAX_EVICTS		256u
++static bool gc_full_scan = true;
+ 
+ static struct conntrack_gc_work conntrack_gc_work;
+ 
+@@ -511,6 +512,7 @@ ____nf_conntrack_find(struct net *net, const struct nf_conntrack_zone *zone,
+ 	unsigned int bucket, hsize;
+ 
+ begin:
++	gc_full_scan = false;
+ 	nf_conntrack_get_ht(&ct_hash, &hsize);
+ 	bucket = reciprocal_scale(hash, hsize);
+ 
+@@ -942,7 +944,11 @@ static void gc_worker(struct work_struct *work)
+ 
+ 	gc_work = container_of(work, struct conntrack_gc_work, dwork.work);
+ 
+-	goal = min(nf_conntrack_htable_size / GC_MAX_BUCKETS_DIV, GC_MAX_BUCKETS);
++	if (gc_full_scan)
++		goal = nf_conntrack_htable_size;
++	else
++		goal = min(nf_conntrack_htable_size / GC_MAX_BUCKETS_DIV,
++			   GC_MAX_BUCKETS);
+ 	i = gc_work->last_bucket;
+ 
+ 	do {
+@@ -977,7 +983,8 @@ static void gc_worker(struct work_struct *work)
+ 		rcu_read_unlock();
+ 		cond_resched_rcu_qs();
+ 	} while (++buckets < goal &&
+-		 expired_count < GC_MAX_EVICTS);
++		 (gc_full_scan || expired_count < GC_MAX_EVICTS));
++	gc_full_scan = true;
+ 
+ 	if (gc_work->exiting)
+ 		return;
+-- 
+2.8.1
