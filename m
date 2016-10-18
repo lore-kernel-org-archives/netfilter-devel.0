@@ -1,132 +1,157 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [iptables PATCH] extensions: update Arturo Borrero email address
-Date: Tue, 18 Oct 2016 14:12:57 +0200
-Message-ID: <147679277738.21015.8819051856802077633.stgit@nfdev2.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+From: Daniel Borkmann <daniel@iogearbox.net>
+Subject: [PATCH iproute2] tc, ipt: don't enforce iproute2 dependency on iptables-devel
+Date: Tue, 18 Oct 2016 14:13:09 +0200
+Message-ID: <0d5bc0c0562bf9736b95d07118965a924f553479.1476792249.git.daniel@iogearbox.net>
+Cc: jhs@mojatatu.com, mikko.rapeli@iki.fi, tgraf@suug.ch,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Daniel Borkmann <daniel@iogearbox.net>
+To: stephen@networkplumber.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:38856 "EHLO smtp.cica.es"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752020AbcJRMMy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Oct 2016 08:12:54 -0400
-Received: from localhost (unknown [127.0.0.1])
-        by smtp.cica.es (Postfix) with ESMTP id DDA8651F21E
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Oct 2016 12:12:51 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id S6bVTJKVL20M for <netfilter-devel@vger.kernel.org>;
-        Tue, 18 Oct 2016 14:12:46 +0200 (CEST)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-        (Authenticated sender: servers@cica.es)
-        by smtp.cica.es (Postfix) with ESMTP id 8573051F277
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Oct 2016 14:12:45 +0200 (CEST)
+Received: from www62.your-server.de ([213.133.104.62]:38579 "EHLO
+        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757825AbcJRMNQ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Oct 2016 08:13:16 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Arturo Borrero Gonzalez <arturo@debian.org>
+Since 5cd1adba79d3 ("Update to current iptables headers") compilation
+of iproute2 broke for systems without iptables-devel package [1].
+Reason is that even though we fall back to build m_ipt.c, the include
+depends on a xtables-version.h header, which only ships with
+iptables-devel. Machines not having this package fail compilation with:
 
-The email address has changed, let's update it.
+    [...]
+    CC       m_ipt.o
+In file included from ../include/iptables.h:5:0,
+                 from m_ipt.c:17:
+../include/xtables.h:34:29: fatal error: xtables-version.h: No such file or directory
+compilation terminated.
+../Config:31: recipe for target 'm_ipt.o' failed
+make[1]: *** [m_ipt.o] Error 1
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
+The configure script only barks that package xtables was not found in
+the pkg-config search path. The generated Config then only contains f.e.
+TC_CONFIG_IPSET. In tc's Makefile we thus fall back to adding m_ipt.o
+to TCMODULES. m_ipt.c then includes the local include/iptables.h header
+copy, which includes the include/xtables.h copy. Latter then includes
+xtables-version.h, which only ships with iptables-devel.
+
+One way to resolve this is to skip this whole mess when pkg-config has
+no xtables config available. I've carried something along these lines
+locally for a while now, but it's just too annyoing. :/ Build works fine
+now also when xtables.pc is not available.
+
+  [1] http://www.spinics.net/lists/netdev/msg366162.html
+
+Fixes: 5cd1adba79d3 ("Update to current iptables headers")
+Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
 ---
- extensions/libarpt_mangle.c |    2 +-
- extensions/libebt_802_3.c   |    2 +-
- extensions/libebt_ip.c      |    2 +-
- extensions/libebt_limit.c   |    2 +-
- extensions/libebt_mark.c    |    2 +-
- extensions/libebt_mark_m.c  |    2 +-
- extensions/libebt_nflog.c   |    2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+ configure   | 33 ++++++++++++++++++++++++---------
+ tc/Makefile | 29 ++++++++++++++---------------
+ 2 files changed, 38 insertions(+), 24 deletions(-)
 
-diff --git a/extensions/libarpt_mangle.c b/extensions/libarpt_mangle.c
-index 03c31a9..ec9b543 100644
---- a/extensions/libarpt_mangle.c
-+++ b/extensions/libarpt_mangle.c
-@@ -1,5 +1,5 @@
- /*
-- * Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> adapted
-+ * Arturo Borrero Gonzalez <arturo@debian.org> adapted
-  * this code to libxtables for arptables-compat in 2015
-  */
+diff --git a/configure b/configure
+index 60eb6b5..c978da3 100755
+--- a/configure
++++ b/configure
+@@ -57,6 +57,14 @@ EOF
+     rm -f $TMPDIR/atmtest.c $TMPDIR/atmtest
+ }
  
-diff --git a/extensions/libebt_802_3.c b/extensions/libebt_802_3.c
-index 3c4a1c3..f05d02e 100644
---- a/extensions/libebt_802_3.c
-+++ b/extensions/libebt_802_3.c
-@@ -5,7 +5,7 @@
-  *
-  * May 2003
-  *
-- * Adapted by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ * Adapted by Arturo Borrero Gonzalez <arturo@debian.org>
-  * to use libxtables for ebtables-compat
-  */
++check_xtables()
++{
++	if ! ${PKG_CONFIG} xtables --exists
++	then
++		echo "TC_CONFIG_NO_XT:=y" >>Config
++	fi
++}
++
+ check_xt()
+ {
+     #check if we have xtables from iptables >= 1.4.5.
+@@ -353,18 +361,25 @@ echo "TC schedulers"
+ echo -n " ATM	"
+ check_atm
  
-diff --git a/extensions/libebt_ip.c b/extensions/libebt_ip.c
-index 8b62876..4ca63e9 100644
---- a/extensions/libebt_ip.c
-+++ b/extensions/libebt_ip.c
-@@ -9,7 +9,7 @@
-  *    Innominate Security Technologies AG <mhopf@innominate.com>
-  *    September, 2002
-  *
-- * Adapted by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ * Adapted by Arturo Borrero Gonzalez <arturo@debian.org>
-  * to use libxtables for ebtables-compat in 2015.
-  */
+-echo -n " IPT	"
+-check_xt
+-check_xt_old
+-check_xt_old_internal_h
+-check_ipt
++check_xtables
++if ! grep -q TC_CONFIG_NO_XT Config
++then
++	echo -n " IPT	"
++	check_xt
++	check_xt_old
++	check_xt_old_internal_h
++	check_ipt
  
-diff --git a/extensions/libebt_limit.c b/extensions/libebt_limit.c
-index c71561c..6b9bb16 100644
---- a/extensions/libebt_limit.c
-+++ b/extensions/libebt_limit.c
-@@ -8,7 +8,7 @@
-  * September, 2003
-  *
-  * Translated to use libxtables for ebtables-compat in 2015 by
-- * Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ * Arturo Borrero Gonzalez <arturo@debian.org>
-  */
+-echo -n " IPSET  "
+-check_ipset
++	echo -n " IPSET  "
++	check_ipset
++fi
  
- #include <stdio.h>
-diff --git a/extensions/libebt_mark.c b/extensions/libebt_mark.c
-index 587b4a6..a1a208c 100644
---- a/extensions/libebt_mark.c
-+++ b/extensions/libebt_mark.c
-@@ -5,7 +5,7 @@
-  *
-  * July, 2002, September 2006
-  *
-- * Adapted by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ * Adapted by Arturo Borrero Gonzalez <arturo@debian.org>
-  * to use libxtables for ebtables-compat in 2015.
-  */
+ echo
+-echo -n "iptables modules directory: "
+-check_ipt_lib_dir
++if ! grep -q TC_CONFIG_NO_XT Config
++then
++	echo -n "iptables modules directory: "
++	check_ipt_lib_dir
++fi
  
-diff --git a/extensions/libebt_mark_m.c b/extensions/libebt_mark_m.c
-index ef9eb6a..ab9d234 100644
---- a/extensions/libebt_mark_m.c
-+++ b/extensions/libebt_mark_m.c
-@@ -5,7 +5,7 @@
-  *
-  * July, 2002
-  *
-- * Adapted by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ * Adapted by Arturo Borrero Gonzalez <arturo@debian.org>
-  * to use libxtables for ebtables-compat in 2015.
-  */
+ echo -n "libc has setns: "
+ check_setns
+diff --git a/tc/Makefile b/tc/Makefile
+index 8917eaf..dfa875b 100644
+--- a/tc/Makefile
++++ b/tc/Makefile
+@@ -69,28 +69,27 @@ TCMODULES += q_clsact.o
+ TCMODULES += e_bpf.o
+ TCMODULES += f_matchall.o
  
-diff --git a/extensions/libebt_nflog.c b/extensions/libebt_nflog.c
-index 72bf372..fef7196 100644
---- a/extensions/libebt_nflog.c
-+++ b/extensions/libebt_nflog.c
-@@ -10,7 +10,7 @@
-  *  libxt_NFLOG.c
-  *
-  * Adapted to libxtables for ebtables-compat in 2015 by
-- * Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ * Arturo Borrero Gonzalez <arturo@debian.org>
-  */
+-ifeq ($(TC_CONFIG_IPSET), y)
+-  ifeq ($(TC_CONFIG_XT), y)
+-    TCMODULES += em_ipset.o
+-  endif
+-endif
+-
+ TCSO :=
+ ifeq ($(TC_CONFIG_ATM),y)
+   TCSO += q_atm.so
+ endif
  
- #include <stdio.h>
+-ifeq ($(TC_CONFIG_XT),y)
+-  TCSO += m_xt.so
+-else
+-  ifeq ($(TC_CONFIG_XT_OLD),y)
+-    TCSO += m_xt_old.so
++ifneq ($(TC_CONFIG_NO_XT),y)
++  ifeq ($(TC_CONFIG_XT),y)
++    TCSO += m_xt.so
++    ifeq ($(TC_CONFIG_IPSET),y)
++      TCMODULES += em_ipset.o
++    endif
+   else
+-    ifeq ($(TC_CONFIG_XT_OLD_H),y)
+-	CFLAGS += -DTC_CONFIG_XT_H
+-	TCSO += m_xt_old.so
++    ifeq ($(TC_CONFIG_XT_OLD),y)
++      TCSO += m_xt_old.so
+     else
+-      TCMODULES += m_ipt.o
++      ifeq ($(TC_CONFIG_XT_OLD_H),y)
++        CFLAGS += -DTC_CONFIG_XT_H
++        TCSO += m_xt_old.so
++      else
++        TCMODULES += m_ipt.o
++      endif
+     endif
+   endif
+ endif
+-- 
+1.9.3
 
