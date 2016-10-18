@@ -1,157 +1,51 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: [PATCH iproute2] tc, ipt: don't enforce iproute2 dependency on iptables-devel
-Date: Tue, 18 Oct 2016 14:13:09 +0200
-Message-ID: <0d5bc0c0562bf9736b95d07118965a924f553479.1476792249.git.daniel@iogearbox.net>
-Cc: jhs@mojatatu.com, mikko.rapeli@iki.fi, tgraf@suug.ch,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Daniel Borkmann <daniel@iogearbox.net>
-To: stephen@networkplumber.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 01/28] [v2] netfilter: nf_tables: avoid uninitialized
+ variable warning
+Date: Tue, 18 Oct 2016 17:23:54 +0200
+Message-ID: <20161018152354.GA2759@salvia>
+References: <20161017220342.1627073-1-arnd@arndb.de>
+ <20161017220557.1688282-1-arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:38579 "EHLO
-        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757825AbcJRMNQ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Oct 2016 08:13:16 -0400
+Received: from mail.us.es ([193.147.175.20]:57726 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753067AbcJRPYC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Oct 2016 11:24:02 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E92096EADC
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Oct 2016 17:23:57 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C7918DA85A
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Oct 2016 17:23:57 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 504FEDA84B
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Oct 2016 17:23:55 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20161017220557.1688282-1-arnd@arndb.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Since 5cd1adba79d3 ("Update to current iptables headers") compilation
-of iproute2 broke for systems without iptables-devel package [1].
-Reason is that even though we fall back to build m_ipt.c, the include
-depends on a xtables-version.h header, which only ships with
-iptables-devel. Machines not having this package fail compilation with:
+On Tue, Oct 18, 2016 at 12:05:30AM +0200, Arnd Bergmann wrote:
+> The newly added nft_range_eval() function handles the two possible
+> nft range operations, but as the compiler warning points out,
+> any unexpected value would lead to the 'mismatch' variable being
+> used without being initialized:
+> 
+> net/netfilter/nft_range.c: In function 'nft_range_eval':
+> net/netfilter/nft_range.c:45:5: error: 'mismatch' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+> 
+> This removes the variable in question and instead moves the
+> condition into the switch itself, which is potentially more
+> efficient than adding a bogus 'default' clause as in my
+> first approach, and is nicer than using the 'uninitialized_var'
+> macro.
 
-    [...]
-    CC       m_ipt.o
-In file included from ../include/iptables.h:5:0,
-                 from m_ipt.c:17:
-../include/xtables.h:34:29: fatal error: xtables-version.h: No such file or directory
-compilation terminated.
-../Config:31: recipe for target 'm_ipt.o' failed
-make[1]: *** [m_ipt.o] Error 1
-
-The configure script only barks that package xtables was not found in
-the pkg-config search path. The generated Config then only contains f.e.
-TC_CONFIG_IPSET. In tc's Makefile we thus fall back to adding m_ipt.o
-to TCMODULES. m_ipt.c then includes the local include/iptables.h header
-copy, which includes the include/xtables.h copy. Latter then includes
-xtables-version.h, which only ships with iptables-devel.
-
-One way to resolve this is to skip this whole mess when pkg-config has
-no xtables config available. I've carried something along these lines
-locally for a while now, but it's just too annyoing. :/ Build works fine
-now also when xtables.pc is not available.
-
-  [1] http://www.spinics.net/lists/netdev/msg366162.html
-
-Fixes: 5cd1adba79d3 ("Update to current iptables headers")
-Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
----
- configure   | 33 ++++++++++++++++++++++++---------
- tc/Makefile | 29 ++++++++++++++---------------
- 2 files changed, 38 insertions(+), 24 deletions(-)
-
-diff --git a/configure b/configure
-index 60eb6b5..c978da3 100755
---- a/configure
-+++ b/configure
-@@ -57,6 +57,14 @@ EOF
-     rm -f $TMPDIR/atmtest.c $TMPDIR/atmtest
- }
- 
-+check_xtables()
-+{
-+	if ! ${PKG_CONFIG} xtables --exists
-+	then
-+		echo "TC_CONFIG_NO_XT:=y" >>Config
-+	fi
-+}
-+
- check_xt()
- {
-     #check if we have xtables from iptables >= 1.4.5.
-@@ -353,18 +361,25 @@ echo "TC schedulers"
- echo -n " ATM	"
- check_atm
- 
--echo -n " IPT	"
--check_xt
--check_xt_old
--check_xt_old_internal_h
--check_ipt
-+check_xtables
-+if ! grep -q TC_CONFIG_NO_XT Config
-+then
-+	echo -n " IPT	"
-+	check_xt
-+	check_xt_old
-+	check_xt_old_internal_h
-+	check_ipt
- 
--echo -n " IPSET  "
--check_ipset
-+	echo -n " IPSET  "
-+	check_ipset
-+fi
- 
- echo
--echo -n "iptables modules directory: "
--check_ipt_lib_dir
-+if ! grep -q TC_CONFIG_NO_XT Config
-+then
-+	echo -n "iptables modules directory: "
-+	check_ipt_lib_dir
-+fi
- 
- echo -n "libc has setns: "
- check_setns
-diff --git a/tc/Makefile b/tc/Makefile
-index 8917eaf..dfa875b 100644
---- a/tc/Makefile
-+++ b/tc/Makefile
-@@ -69,28 +69,27 @@ TCMODULES += q_clsact.o
- TCMODULES += e_bpf.o
- TCMODULES += f_matchall.o
- 
--ifeq ($(TC_CONFIG_IPSET), y)
--  ifeq ($(TC_CONFIG_XT), y)
--    TCMODULES += em_ipset.o
--  endif
--endif
--
- TCSO :=
- ifeq ($(TC_CONFIG_ATM),y)
-   TCSO += q_atm.so
- endif
- 
--ifeq ($(TC_CONFIG_XT),y)
--  TCSO += m_xt.so
--else
--  ifeq ($(TC_CONFIG_XT_OLD),y)
--    TCSO += m_xt_old.so
-+ifneq ($(TC_CONFIG_NO_XT),y)
-+  ifeq ($(TC_CONFIG_XT),y)
-+    TCSO += m_xt.so
-+    ifeq ($(TC_CONFIG_IPSET),y)
-+      TCMODULES += em_ipset.o
-+    endif
-   else
--    ifeq ($(TC_CONFIG_XT_OLD_H),y)
--	CFLAGS += -DTC_CONFIG_XT_H
--	TCSO += m_xt_old.so
-+    ifeq ($(TC_CONFIG_XT_OLD),y)
-+      TCSO += m_xt_old.so
-     else
--      TCMODULES += m_ipt.o
-+      ifeq ($(TC_CONFIG_XT_OLD_H),y)
-+        CFLAGS += -DTC_CONFIG_XT_H
-+        TCSO += m_xt_old.so
-+      else
-+        TCMODULES += m_ipt.o
-+      endif
-     endif
-   endif
- endif
--- 
-1.9.3
-
+Applied to the nf tree, thanks Arnd.
