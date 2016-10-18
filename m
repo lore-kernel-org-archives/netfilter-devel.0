@@ -1,63 +1,64 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH] tests: shell: update kernel modules to clean
-Date: Tue, 18 Oct 2016 10:49:34 +0200
-Message-ID: <147678057414.13185.13617317125083465042.stgit@nfdev2.cica.es>
+From: Davide Caratti <dcaratti@redhat.com>
+Subject: Re: [PATCH nf-next 0/2] netfilter: autoload NAT support for
+ non-builtin L4 protocols
+Date: Tue, 18 Oct 2016 11:12:42 +0200
+Message-ID: <1476781962.2878.31.camel@redhat.com>
+References: <cover.1475773632.git.dcaratti@redhat.com>
+         <20161017175827.GA21172@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Cc: Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, fw@strlen.de,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:34140 "EHLO smtp.cica.es"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751635AbcJRIta (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Oct 2016 04:49:30 -0400
-Received: from localhost (unknown [127.0.0.1])
-        by smtp.cica.es (Postfix) with ESMTP id 7080A51F2E3
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Oct 2016 08:49:27 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id BTwDJgOIjph8 for <netfilter-devel@vger.kernel.org>;
-        Tue, 18 Oct 2016 10:49:22 +0200 (CEST)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-        (Authenticated sender: servers@cica.es)
-        by smtp.cica.es (Postfix) with ESMTP id 6CE4E51F2CA
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Oct 2016 10:49:22 +0200 (CEST)
+Received: from mx1.redhat.com ([209.132.183.28]:52318 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752344AbcJRJMp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Oct 2016 05:12:45 -0400
+In-Reply-To: <20161017175827.GA21172@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Arturo Borrero Gonzalez <arturo@debian.org>
+hello Pablo,
 
-Let's keep the kernel_cleanup() function updated with latest
-kernel changes:
+On Mon, 2016-10-17 at 19:58 +0200, Pablo Neira Ayuso wrote:
+> I would really like to see DCCP, SCTP and UDPlite built-in, just like
+> other protocol trackers (TCP, UDP...). This may require a bit of
+> review work on your/our side, but it would greatly appreciated.
 
- * added nft_quota, nft_queue, nft_numgen, nft_range
- * rename nft_hash to nft_set_hash
- * keep nft_hash as well
- * rename nft_rbtree to nft_set_rbtree
+thank you for looking at this. At the moment, I'm testing a v2 of this
+patch extending to REDIRECT targets _ which are exposing the same issue as
+SNAT and DNAT, and using existing NFTA_RULE_COMPAT_PROTO attribute to
+carry the transport protocol number in case a SNAT/DNAT/REDIRECT target is
+specified in a nftables statement.
 
-The idea is to run each test in a clean evironment.
+> Many vendors rely on default configurations, not even looking into
+> modprobing things, so these protocols are hopeless in the current
+> situation since routers running Netfilter will likely not supported
+> them. This is worse since nf_conntrack drops packets for protocols
+> like SCTP and DCCP since the generic protocol can no longer be used.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
----
- tests/shell/run-tests.sh |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+true, unless user modprobes nf_conntrack_proto_{dccp,udplite,sctp}, any
+SNAT/DNAT/REDIRECT rule will not be hit by traffic.
 
-diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
-index 3277655..ff24344 100755
---- a/tests/shell/run-tests.sh
-+++ b/tests/shell/run-tests.sh
-@@ -54,9 +54,11 @@ kernel_cleanup() {
- 	nft_redir_ipv4 nft_redir_ipv6 nft_redir \
- 	nft_dup_ipv4 nft_dup_ipv6 nft_dup nft_nat \
- 	nft_masq_ipv4 nft_masq_ipv6 nft_masq \
--	nft_exthdr nft_payload nft_cmp \
-+	nft_exthdr nft_payload nft_cmp nft_range \
-+	nft_quota nft_queue nft_numgen \
- 	nft_meta nft_meta_bridge nft_counter nft_log nft_limit \
--	nft_hash nft_rbtree nft_ct nft_compat \
-+	nft_hash nft_ct nft_compat \
-+	nft_set_hash nft_set_rbtree \
- 	nft_chain_nat_ipv4 nft_chain_nat_ipv6 \
- 	nf_tables_inet nf_tables_bridge nf_tables_arp \
- 	nf_tables_ipv4 nf_tables_ipv6 nf_tables
+> Once these protocols are supported built-in, users can configure from
+> our control plane, ie. iptables/nft, if they explicitly don't want to
+> allow them by dropping protocols of this kind. But in that case we
+> would not be responsible anymore for the current situation at least.
+> 
+> Moreover, following this approach, we would also avoid the new
+> attribute in nft_nat to indicate the layer 4 protocol that you have
+> mentioned already.
+
+Ok - so do you think it's better to have
+nf_nat_proto_{dccp,sctp,udplite}.o built into nf_nat.ko and
+nf_conntrack_proto_{dccp,sctp,udplite}.o, and maybe also
+nf_conntrack_proto_gre.o, built into nf_conntrack.ko? 
+
+thank you in advance,
+regards
+--
+davide
 
