@@ -1,51 +1,38 @@
-From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
-Subject: [PATCH nftables] Fix register allocation for EXPR_SET_ELEM
-Date: Tue, 18 Oct 2016 03:40:01 +0000
-Message-ID: <1476762001.1038.70.camel@cohaesio.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH 00/28] Reenable maybe-uninitialized warnings
+Date: Mon, 17 Oct 2016 22:08:04 -0700
+Message-ID: <20161018050804.GA9902@infradead.org>
+References: <20161017220342.1627073-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "pablo@netfilter.org" <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bender.cohaesio.com ([212.97.128.130]:53494 "EHLO
-        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752417AbcJRDkF (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Oct 2016 23:40:05 -0400
-Content-Language: en-US
-Content-ID: <6E3B8730C202824189BDB27C3409082E@surftown.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-kernel@vger.kernel.org, x86@kernel.org,
+        linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Martin Schwidefsky <schwidefsky@de.ibm.com>,
+        linux-s390@vger.kernel.org, Ilya Dryomov <idryomov@gmail.com>,
+        dri-devel@lists.freedesktop.org, linux-mtd@lists.infradead.org,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        linux-crypto@vger.kernel.org,
+        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        ceph-devel@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net,
+        linux-ext4@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Return-path: <linux-ext4-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161017220342.1627073-1-arnd@arndb.de>
+Sender: linux-ext4-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-RnJvbTogQW5kZXJzIEsuIFBlZGVyc2VuIDxha3BAY29oYWVzaW8uY29tPg0KDQpJIG5vdGljZWQg
-dGhhdCB3aGlsZQ0KDQogIyBuZnQgYWRkIHJ1bGUgaXA2IGZpbHRlciBwb3N0cm91dGluZyBcDQoJ
-ZmxvdyB0YWJsZSBhY2N0X291dCBceyBtZXRhIGlpZiAuIGlwNiBzYWRkciB0aW1lb3V0IDYwMHMg
-Y291bnRlciBcfQ0KDQp3b3JrcywgdGhlIG9wcG9zaXRlIG9yZGVyIGZvciB0aGUgY29uY2F0ZW5h
-dGVkIGV4cHJlc3Npb25zIGZhaWxzOg0KDQogIyBuZnQgYWRkIHJ1bGUgaXA2IGZpbHRlciBwb3N0
-cm91dGluZyBcDQoJZmxvdyB0YWJsZSBhY2N0X291dCBceyBpcDYgc2FkZHIgLiBtZXRhIGlpZiB0
-aW1lb3V0IDYwMHMgY291bnRlciBcfQ0KIG5mdDogbmV0bGlua19saW5lYXJpemUuYzo2MzQ6IG5l
-dGxpbmtfZ2VuX2V4cHI6IEFzc2VydGlvbiBgZHJlZyA8IGN0eC0+cmVnX2xvdycgZmFpbGVkLg0K
-DQpJIHRyYWNlZCB0aGlzIGRvd24gdG8gZ2V0X3JlZ2lzdGVyKCkgYW5kIHJlbGVhc2VfcmVnaXN0
-ZXIoKSwgd2hlcmUgdGhlDQpFWFBSX0NPTkNBVCBoYW5kbGluZyBpc24ndCBoaXQsIHdoZW4gaXQn
-cyBlbWJlZGRlZCBpbiBFWFBSX1NFVF9FTEVNLCBhbmQNCmZpeGVkIGl0IHNpbWlsYXJseSB0byBo
-b3cgRVhQUl9TRVRfRUxFTSBpcyBoYW5kbGVkIGluIG5ldGxpbmtfZ2VuX2V4cHIoKS4NCg0KU2ln
-bmVkLW9mZi1ieTogQW5kZXJzIEsuIFBlZGVyc2VuIDxha3BAY29oYWVzaW8uY29tPg0KLS0tDQog
-c3JjL25ldGxpbmtfbGluZWFyaXplLmMgfCA2ICsrKysrKw0KIDEgZmlsZSBjaGFuZ2VkLCA2IGlu
-c2VydGlvbnMoKykNCg0KZGlmZiAtLWdpdCBhL3NyYy9uZXRsaW5rX2xpbmVhcml6ZS5jIGIvc3Jj
-L25ldGxpbmtfbGluZWFyaXplLmMNCi0tLSBhL3NyYy9uZXRsaW5rX2xpbmVhcml6ZS5jDQorKysg
-Yi9zcmMvbmV0bGlua19saW5lYXJpemUuYw0KQEAgLTczLDYgKzczLDkgQEAgc3RhdGljIHZvaWQg
-X19yZWxlYXNlX3JlZ2lzdGVyKHN0cnVjdCBuZXRsaW5rX2xpbmVhcml6ZV9jdHggKmN0eCwNCiBz
-dGF0aWMgZW51bSBuZnRfcmVnaXN0ZXJzIGdldF9yZWdpc3RlcihzdHJ1Y3QgbmV0bGlua19saW5l
-YXJpemVfY3R4ICpjdHgsDQogCQkJCSAgICAgICBjb25zdCBzdHJ1Y3QgZXhwciAqZXhwcikNCiB7
-DQorCWlmIChleHByICYmIGV4cHItPm9wcy0+dHlwZSA9PSBFWFBSX1NFVF9FTEVNKQ0KKwkJcmV0
-dXJuIGdldF9yZWdpc3RlcihjdHgsIGV4cHItPmtleSk7DQorDQogCWlmIChleHByICYmIGV4cHIt
-Pm9wcy0+dHlwZSA9PSBFWFBSX0NPTkNBVCkNCiAJCXJldHVybiBfX2dldF9yZWdpc3RlcihjdHgs
-IGV4cHItPmxlbik7DQogCWVsc2UNCkBAIC04Miw2ICs4NSw5IEBAIHN0YXRpYyBlbnVtIG5mdF9y
-ZWdpc3RlcnMgZ2V0X3JlZ2lzdGVyKHN0cnVjdCBuZXRsaW5rX2xpbmVhcml6ZV9jdHggKmN0eCwN
-CiBzdGF0aWMgdm9pZCByZWxlYXNlX3JlZ2lzdGVyKHN0cnVjdCBuZXRsaW5rX2xpbmVhcml6ZV9j
-dHggKmN0eCwNCiAJCQkgICAgIGNvbnN0IHN0cnVjdCBleHByICpleHByKQ0KIHsNCisJaWYgKGV4
-cHIgJiYgZXhwci0+b3BzLT50eXBlID09IEVYUFJfU0VUX0VMRU0pDQorCQlyZXR1cm4gcmVsZWFz
-ZV9yZWdpc3RlcihjdHgsIGV4cHItPmtleSk7DQorDQogCWlmIChleHByICYmIGV4cHItPm9wcy0+
-dHlwZSA9PSBFWFBSX0NPTkNBVCkNCiAJCV9fcmVsZWFzZV9yZWdpc3RlcihjdHgsIGV4cHItPmxl
-bik7DQogCWVsc2UNCg==
+On Tue, Oct 18, 2016 at 12:03:28AM +0200, Arnd Bergmann wrote:
+> This is a set of patches that I hope to get into v4.9 in some form
+> in order to turn on the -Wmaybe-uninitialized warnings again.
+
+Hi Arnd,
+
+I jsut complained to Geert that I was introducing way to many
+bugs or pointless warnings for some compilers lately, but gcc didn't
+warn me about them.  From a little research the lack of
+-Wmaybe-uninitialized seems to be the reason for it, so I'm all
+for re-enabling it.
