@@ -1,77 +1,63 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH net] conntrack: perform a full scan in gc
-Date: Tue, 18 Oct 2016 10:47:18 +0200
-Message-ID: <20161018084718.GB29405@breakpoint.cc>
-References: <20161014105327.GA8655@salvia>
- <1476779435-30503-1-git-send-email-nicolas.dichtel@6wind.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft PATCH] tests: shell: update kernel modules to clean
+Date: Tue, 18 Oct 2016 10:49:34 +0200
+Message-ID: <147678057414.13185.13617317125083465042.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, fw@strlen.de, davem@davemloft.net,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:51648 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751635AbcJRIsY (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Oct 2016 04:48:24 -0400
-Content-Disposition: inline
-In-Reply-To: <1476779435-30503-1-git-send-email-nicolas.dichtel@6wind.com>
+Received: from smtp3.cica.es ([150.214.5.190]:34140 "EHLO smtp.cica.es"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751635AbcJRIta (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Oct 2016 04:49:30 -0400
+Received: from localhost (unknown [127.0.0.1])
+        by smtp.cica.es (Postfix) with ESMTP id 7080A51F2E3
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Oct 2016 08:49:27 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id BTwDJgOIjph8 for <netfilter-devel@vger.kernel.org>;
+        Tue, 18 Oct 2016 10:49:22 +0200 (CEST)
+Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
+        (Authenticated sender: servers@cica.es)
+        by smtp.cica.es (Postfix) with ESMTP id 6CE4E51F2CA
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Oct 2016 10:49:22 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
-> After commit b87a2f9199ea ("netfilter: conntrack: add gc worker to remove
-> timed-out entries"), netlink conntrack deletion events may be sent with a
-> huge delay (5 minutes).
-> 
-> There is two ways to evict conntrack:
->  - during a conntrack lookup;
->  - during a conntrack dump.
-> Let's do a full scan of conntrack entries after a period of inactivity
-> (no conntrack lookup).
-> 
-> CC: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-> ---
-> 
-> Here is another proposal to try to fix the problem.
-> Comments are welcomed,
-> Nicolas
+From: Arturo Borrero Gonzalez <arturo@debian.org>
 
-Hmm, I don't think its good idea in practice.
-If goal is to avoid starving arbitrary 'dead' ct for too long,
-then simple ping will defeat the logic here, because...
+Let's keep the kernel_cleanup() function updated with latest
+kernel changes:
 
->  net/netfilter/nf_conntrack_core.c | 11 +++++++++--
->  1 file changed, 9 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> index ba6a1d421222..3dbb27bd9582 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -87,6 +87,7 @@ static __read_mostly bool nf_conntrack_locks_all;
->  #define GC_MAX_BUCKETS		8192u
->  #define GC_INTERVAL		(5 * HZ)
->  #define GC_MAX_EVICTS		256u
-> +static bool gc_full_scan = true;
->  
->  static struct conntrack_gc_work conntrack_gc_work;
->  
-> @@ -511,6 +512,7 @@ ____nf_conntrack_find(struct net *net, const struct nf_conntrack_zone *zone,
->  	unsigned int bucket, hsize;
->  
->  begin:
-> +	gc_full_scan = false;
+ * added nft_quota, nft_queue, nft_numgen, nft_range
+ * rename nft_hash to nft_set_hash
+ * keep nft_hash as well
+ * rename nft_rbtree to nft_set_rbtree
 
-... we do periodic lookup (but always in same slot), so no full scan is
-triggered.
+The idea is to run each test in a clean evironment.
 
-If you think its useful, consider sending patch that rescheds worker
-instantly in case budget expired, otherwise I will do this later this
-week.
+Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
+---
+ tests/shell/run-tests.sh |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-[ I am aware doing instant restart might be too late, but at least we
-  would then reap more entries once we stumble upon large number of
-  expired ones ].
+diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
+index 3277655..ff24344 100755
+--- a/tests/shell/run-tests.sh
++++ b/tests/shell/run-tests.sh
+@@ -54,9 +54,11 @@ kernel_cleanup() {
+ 	nft_redir_ipv4 nft_redir_ipv6 nft_redir \
+ 	nft_dup_ipv4 nft_dup_ipv6 nft_dup nft_nat \
+ 	nft_masq_ipv4 nft_masq_ipv6 nft_masq \
+-	nft_exthdr nft_payload nft_cmp \
++	nft_exthdr nft_payload nft_cmp nft_range \
++	nft_quota nft_queue nft_numgen \
+ 	nft_meta nft_meta_bridge nft_counter nft_log nft_limit \
+-	nft_hash nft_rbtree nft_ct nft_compat \
++	nft_hash nft_ct nft_compat \
++	nft_set_hash nft_set_rbtree \
+ 	nft_chain_nat_ipv4 nft_chain_nat_ipv6 \
+ 	nf_tables_inet nf_tables_bridge nf_tables_arp \
+ 	nf_tables_ipv4 nf_tables_ipv6 nf_tables
 
