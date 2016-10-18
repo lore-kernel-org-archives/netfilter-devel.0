@@ -1,64 +1,87 @@
-From: Davide Caratti <dcaratti@redhat.com>
-Subject: Re: [PATCH nf-next 0/2] netfilter: autoload NAT support for
- non-builtin L4 protocols
-Date: Tue, 18 Oct 2016 11:12:42 +0200
-Message-ID: <1476781962.2878.31.camel@redhat.com>
-References: <cover.1475773632.git.dcaratti@redhat.com>
-         <20161017175827.GA21172@salvia>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: Re: [PATCH net] conntrack: perform a full scan in gc
+Date: Tue, 18 Oct 2016 12:06:23 +0200
+Message-ID: <34d607cc-5556-89c7-673d-be8cb0a4758a@6wind.com>
+References: <20161014105327.GA8655@salvia>
+ <1476779435-30503-1-git-send-email-nicolas.dichtel@6wind.com>
+ <20161018084718.GB29405@breakpoint.cc>
+Reply-To: nicolas.dichtel@6wind.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
-Cc: Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: pablo@netfilter.org, davem@davemloft.net, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52318 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752344AbcJRJMp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Oct 2016 05:12:45 -0400
-In-Reply-To: <20161017175827.GA21172@salvia>
+Received: from mail-qk0-f182.google.com ([209.85.220.182]:36305 "EHLO
+        mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752193AbcJRKG1 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Oct 2016 06:06:27 -0400
+Received: by mail-qk0-f182.google.com with SMTP id o68so328051632qkf.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Oct 2016 03:06:26 -0700 (PDT)
+In-Reply-To: <20161018084718.GB29405@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-hello Pablo,
-
-On Mon, 2016-10-17 at 19:58 +0200, Pablo Neira Ayuso wrote:
-> I would really like to see DCCP, SCTP and UDPlite built-in, just like
-> other protocol trackers (TCP, UDP...). This may require a bit of
-> review work on your/our side, but it would greatly appreciated.
-
-thank you for looking at this. At the moment, I'm testing a v2 of this
-patch extending to REDIRECT targets _ which are exposing the same issue as
-SNAT and DNAT, and using existing NFTA_RULE_COMPAT_PROTO attribute to
-carry the transport protocol number in case a SNAT/DNAT/REDIRECT target is
-specified in a nftables statement.
-
-> Many vendors rely on default configurations, not even looking into
-> modprobing things, so these protocols are hopeless in the current
-> situation since routers running Netfilter will likely not supported
-> them. This is worse since nf_conntrack drops packets for protocols
-> like SCTP and DCCP since the generic protocol can no longer be used.
-
-true, unless user modprobes nf_conntrack_proto_{dccp,udplite,sctp}, any
-SNAT/DNAT/REDIRECT rule will not be hit by traffic.
-
-> Once these protocols are supported built-in, users can configure from
-> our control plane, ie. iptables/nft, if they explicitly don't want to
-> allow them by dropping protocols of this kind. But in that case we
-> would not be responsible anymore for the current situation at least.
+Le 18/10/2016 à 10:47, Florian Westphal a écrit :
+> Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
+>> After commit b87a2f9199ea ("netfilter: conntrack: add gc worker to remove
+>> timed-out entries"), netlink conntrack deletion events may be sent with a
+>> huge delay (5 minutes).
+>>
+>> There is two ways to evict conntrack:
+>>  - during a conntrack lookup;
+>>  - during a conntrack dump.
+>> Let's do a full scan of conntrack entries after a period of inactivity
+>> (no conntrack lookup).
+>>
+>> CC: Florian Westphal <fw@strlen.de>
+>> Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+>> ---
+>>
+>> Here is another proposal to try to fix the problem.
+>> Comments are welcomed,
+>> Nicolas
 > 
-> Moreover, following this approach, we would also avoid the new
-> attribute in nft_nat to indicate the layer 4 protocol that you have
-> mentioned already.
+> Hmm, I don't think its good idea in practice.
+> If goal is to avoid starving arbitrary 'dead' ct for too long,
+> then simple ping will defeat the logic here, because...
+> 
+>>  net/netfilter/nf_conntrack_core.c | 11 +++++++++--
+>>  1 file changed, 9 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+>> index ba6a1d421222..3dbb27bd9582 100644
+>> --- a/net/netfilter/nf_conntrack_core.c
+>> +++ b/net/netfilter/nf_conntrack_core.c
+>> @@ -87,6 +87,7 @@ static __read_mostly bool nf_conntrack_locks_all;
+>>  #define GC_MAX_BUCKETS		8192u
+>>  #define GC_INTERVAL		(5 * HZ)
+>>  #define GC_MAX_EVICTS		256u
+>> +static bool gc_full_scan = true;
+>>  
+>>  static struct conntrack_gc_work conntrack_gc_work;
+>>  
+>> @@ -511,6 +512,7 @@ ____nf_conntrack_find(struct net *net, const struct nf_conntrack_zone *zone,
+>>  	unsigned int bucket, hsize;
+>>  
+>>  begin:
+>> +	gc_full_scan = false;
+> 
+> ... we do periodic lookup (but always in same slot), so no full scan is
+> triggered.
+Yes, I was wondering about that. My first idea was to have that bool per bucket
+and force a scan of the bucket instead of the whole table.
 
-Ok - so do you think it's better to have
-nf_nat_proto_{dccp,sctp,udplite}.o built into nf_nat.ko and
-nf_conntrack_proto_{dccp,sctp,udplite}.o, and maybe also
-nf_conntrack_proto_gre.o, built into nf_conntrack.ko?Â 
+> 
+> If you think its useful, consider sending patch that rescheds worker
+> instantly in case budget expired, otherwise I will do this later this
+> week.
+Ok, I will send it, but it does not address the "inactivity" problem.
 
-thank you in advance,
-regards
---
-davide
-
+> 
+> [ I am aware doing instant restart might be too late, but at least we
+>   would then reap more entries once we stumble upon large number of
+>   expired ones ].
+> 
