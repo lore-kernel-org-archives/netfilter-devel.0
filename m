@@ -1,44 +1,46 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH net] conntrack: restart gc immediately if GC_MAX_EVICTS is reached
-Date: Tue, 18 Oct 2016 14:37:32 +0200
-Message-ID: <1476794252-12398-1-git-send-email-nicolas.dichtel@6wind.com>
-References: <34d607cc-5556-89c7-673d-be8cb0a4758a@6wind.com>
-Cc: davem@davemloft.net, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: pablo@netfilter.org, fw@strlen.de
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf-next] netfilter: nft_meta: permit pkttype mangling in ip/ip6 prerouting
+Date: Wed, 19 Oct 2016 23:31:29 +0800
+Message-ID: <1476891089-3744-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
+        Liping Zhang <liping.zhang@spreadtrum.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from host.76.145.23.62.rev.coltfrance.com ([62.23.145.76]:44585 "EHLO
-        proxy.6wind.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S944050AbcJSPFQ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Oct 2016 11:05:16 -0400
-In-Reply-To: <34d607cc-5556-89c7-673d-be8cb0a4758a@6wind.com>
+Received: from m12-13.163.com ([220.181.12.13]:54104 "EHLO m12-13.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S938798AbcJSPcB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 19 Oct 2016 11:32:01 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When the maximum evictions number is reached, do not wait 5 seconds before
-the next run.
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-CC: Florian Westphal <fw@strlen.de>
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+After supporting this, we can combine it with hash expression to emulate
+the 'cluster match'.
+
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
- net/netfilter/nf_conntrack_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nft_meta.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index ba6a1d421222..df2f5a3901df 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -983,7 +983,7 @@ static void gc_worker(struct work_struct *work)
- 		return;
- 
- 	ratio = scanned ? expired_count * 100 / scanned : 0;
--	if (ratio >= 90)
-+	if (ratio >= 90 || expired_count == GC_MAX_EVICTS)
- 		next_run = 0;
- 
- 	gc_work->last_bucket = i;
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 6c1e024..6499402 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -310,6 +310,11 @@ int nft_meta_set_validate(const struct nft_ctx *ctx,
+ 	case NFPROTO_NETDEV:
+ 		hooks = 1 << NF_NETDEV_INGRESS;
+ 		break;
++	case NFPROTO_IPV4:
++	case NFPROTO_IPV6:
++	case NFPROTO_INET:
++		hooks = 1 << NF_INET_PRE_ROUTING;
++		break;
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
 -- 
-2.8.1
+2.5.5
+
 
