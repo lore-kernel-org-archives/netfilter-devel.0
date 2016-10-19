@@ -1,172 +1,60 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf] netfilter: fix nf_queue handling
-Date: Wed, 19 Oct 2016 13:13:28 +0200
-Message-ID: <1476875608-1130-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 0/2] netfilter: autoload NAT support for
+ non-builtin L4 protocols
+Date: Wed, 19 Oct 2016 14:23:34 +0200
+Message-ID: <20161019122334.GA1656@salvia>
+References: <cover.1475773632.git.dcaratti@redhat.com>
+ <20161017175827.GA21172@salvia>
+ <1476781962.2878.31.camel@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, fw@strlen.de,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: Davide Caratti <dcaratti@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46128 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:46130 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S943293AbcJSOud (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S943299AbcJSOud (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 19 Oct 2016 10:50:33 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 683BD26E20
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Oct 2016 13:13:52 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id CCC0526E1D
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Oct 2016 14:24:00 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 566F2DA852
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Oct 2016 13:13:52 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B7653BAABF
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Oct 2016 14:24:00 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A2A8DDA81F
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Oct 2016 13:13:48 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7656DDA7F7
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Oct 2016 14:23:35 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <1476781962.2878.31.camel@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nf_queue handling is broken since e3b37f11e6e4 ("netfilter: replace
-list_head with single linked list") for two reasons:
+On Tue, Oct 18, 2016 at 11:12:42AM +0200, Davide Caratti wrote:
+[...]
+> > Once these protocols are supported built-in, users can configure from
+> > our control plane, ie. iptables/nft, if they explicitly don't want to
+> > allow them by dropping protocols of this kind. But in that case we
+> > would not be responsible anymore for the current situation at least.
+> > 
+> > Moreover, following this approach, we would also avoid the new
+> > attribute in nft_nat to indicate the layer 4 protocol that you have
+> > mentioned already.
+> 
+> Ok - so do you think it's better to have
+> nf_nat_proto_{dccp,sctp,udplite}.o built into nf_nat.ko and
+> nf_conntrack_proto_{dccp,sctp,udplite}.o,
 
-1) If the bypass flag is set on, there are no userspace listeners and
-   we still have more hook entries to iterate over, then jump to the
-   next hook. Otherwise accept the packet. On nf_reinject() path, the
-   okfn() needs to be invoked.
+Yes. We agreed on doing so during the Netfilter Workshop Amsterdam.
 
-2) We should not re-enter the same hook on packet reinjection. If the
-   packet is accepted, we have to skip the current hook from where the
-   packet was enqueued, otherwise the packets gets enqueued over and
-   over again.
+> and maybe also nf_conntrack_proto_gre.o, built into
+> nf_conntrack.ko? 
 
-This restores the previous list_for_each_entry_continue() behaviour
-happening from nf_iterate() that was dealing with these two cases.
-This patch introduces a new nf_queue() wrapper function so this fix
-becomes simpler.
+Please, keep gre back by now, I think this is quite specific of the
+pptp conntrack helper that we have in the tree and it only works for
+IPv4 and it cannot work with NAT either, it's very limited. So please
+start by building in dccp, sctp and udplite protocols.
 
-Fixes: e3b37f11e6e4 ("netfilter: replace list_head with single linked list")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/core.c         | 13 +++---------
- net/netfilter/nf_internals.h |  2 +-
- net/netfilter/nf_queue.c     | 48 +++++++++++++++++++++++++++++---------------
- 3 files changed, 36 insertions(+), 27 deletions(-)
-
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index fcb5d1df11e9..004af030ef1a 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -361,16 +361,9 @@ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state)
- 		if (ret == 0)
- 			ret = -EPERM;
- 	} else if ((verdict & NF_VERDICT_MASK) == NF_QUEUE) {
--		int err;
--
--		RCU_INIT_POINTER(state->hook_entries, entry);
--		err = nf_queue(skb, state, verdict >> NF_VERDICT_QBITS);
--		if (err < 0) {
--			if (err == -ESRCH &&
--			   (verdict & NF_VERDICT_FLAG_QUEUE_BYPASS))
--				goto next_hook;
--			kfree_skb(skb);
--		}
-+		ret = nf_queue(skb, state, &entry, verdict);
-+		if (ret == 1 && entry)
-+			goto next_hook;
- 	}
- 	return ret;
- }
-diff --git a/net/netfilter/nf_internals.h b/net/netfilter/nf_internals.h
-index e0adb5959342..9fdb655f85bc 100644
---- a/net/netfilter/nf_internals.h
-+++ b/net/netfilter/nf_internals.h
-@@ -18,7 +18,7 @@ unsigned int nf_iterate(struct sk_buff *skb, struct nf_hook_state *state,
- 
- /* nf_queue.c */
- int nf_queue(struct sk_buff *skb, struct nf_hook_state *state,
--	     unsigned int queuenum);
-+	     struct nf_hook_entry **entryp, unsigned int verdict);
- void nf_queue_nf_hook_drop(struct net *net, const struct nf_hook_entry *entry);
- int __init netfilter_queue_init(void);
- 
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 96964a0070e1..8f08d759844a 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -107,13 +107,8 @@ void nf_queue_nf_hook_drop(struct net *net, const struct nf_hook_entry *entry)
- 	rcu_read_unlock();
- }
- 
--/*
-- * Any packet that leaves via this function must come back
-- * through nf_reinject().
-- */
--int nf_queue(struct sk_buff *skb,
--	     struct nf_hook_state *state,
--	     unsigned int queuenum)
-+static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
-+		      unsigned int queuenum)
- {
- 	int status = -ENOENT;
- 	struct nf_queue_entry *entry = NULL;
-@@ -161,6 +156,27 @@ int nf_queue(struct sk_buff *skb,
- 	return status;
- }
- 
-+/* Packets leaving via this function must come back through nf_reinject(). */
-+int nf_queue(struct sk_buff *skb, struct nf_hook_state *state,
-+	     struct nf_hook_entry **entryp, unsigned int verdict)
-+{
-+	struct nf_hook_entry *entry = *entryp;
-+	int ret;
-+
-+	RCU_INIT_POINTER(state->hook_entries, entry);
-+	ret = __nf_queue(skb, state, verdict >> NF_VERDICT_QBITS);
-+	if (ret < 0) {
-+		if (ret == -ESRCH &&
-+		    (verdict & NF_VERDICT_FLAG_QUEUE_BYPASS)) {
-+			*entryp = rcu_dereference(entry->next);
-+			return 1;
-+		}
-+		kfree_skb(skb);
-+	}
-+
-+	return 0;
-+}
-+
- void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- {
- 	struct nf_hook_entry *hook_entry;
-@@ -187,26 +203,26 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	entry->state.thresh = INT_MIN;
- 
- 	if (verdict == NF_ACCEPT) {
--	next_hook:
--		verdict = nf_iterate(skb, &entry->state, &hook_entry);
-+		hook_entry = rcu_dereference(hook_entry->next);
-+		if (hook_entry)
-+next_hook:
-+			verdict = nf_iterate(skb, &entry->state, &hook_entry);
- 	}
- 
- 	switch (verdict & NF_VERDICT_MASK) {
- 	case NF_ACCEPT:
- 	case NF_STOP:
-+okfn:
- 		local_bh_disable();
- 		entry->state.okfn(entry->state.net, entry->state.sk, skb);
- 		local_bh_enable();
- 		break;
- 	case NF_QUEUE:
--		RCU_INIT_POINTER(entry->state.hook_entries, hook_entry);
--		err = nf_queue(skb, &entry->state,
--			       verdict >> NF_VERDICT_QBITS);
--		if (err < 0) {
--			if (err == -ESRCH &&
--			   (verdict & NF_VERDICT_FLAG_QUEUE_BYPASS))
-+		err = nf_queue(skb, &entry->state, &hook_entry, verdict);
-+		if (err == 1) {
-+			if (hook_entry)
- 				goto next_hook;
--			kfree_skb(skb);
-+			goto okfn;
- 		}
- 		break;
- 	case NF_STOLEN:
--- 
-2.1.4
-
+Thanks.
