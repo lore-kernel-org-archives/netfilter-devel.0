@@ -1,49 +1,60 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: x_tables: suppress kmemcheck warning
-Date: Wed, 19 Oct 2016 18:33:32 +0200
-Message-ID: <20161019163332.GA7994@salvia>
-References: <1476733823-10714-1-git-send-email-fw@strlen.de>
+From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+Subject: [PATCH v2 nf-next 0/5] netfilter: nft: introduce routing expression
+Date: Wed, 19 Oct 2016 18:34:03 +0000
+Message-ID: <1476902043.1161.14.camel@cohaesio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "pablo@netfilter.org" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37074 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932707AbcJSQdl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Oct 2016 12:33:41 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 939E89B7E9
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Oct 2016 18:33:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 85D26DA916
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Oct 2016 18:33:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 50C6CDA854
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Oct 2016 18:33:37 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1476733823-10714-1-git-send-email-fw@strlen.de>
+Received: from bender.cohaesio.com ([212.97.128.130]:57247 "EHLO
+        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933571AbcJSSeM (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 19 Oct 2016 14:34:12 -0400
+Content-Language: en-US
+Content-ID: <61F1F021F7C3634D8C683F2BA699C85A@surftown.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Oct 17, 2016 at 09:50:23PM +0200, Florian Westphal wrote:
-> Markus Trippelsdorf reports:
-> 
-> WARNING: kmemcheck: Caught 64-bit read from uninitialized memory (ffff88001e605480)
-> 4055601e0088ffff000000000000000090686d81ffffffff0000000000000000
->  u u u u u u u u u u u u u u u u i i i i i i i i u u u u u u u u
->  ^
-> |RIP: 0010:[<ffffffff8166e561>]  [<ffffffff8166e561>] nf_register_net_hook+0x51/0x160
-> [..]
->  [<ffffffff8166e561>] nf_register_net_hook+0x51/0x160
->  [<ffffffff8166eaaf>] nf_register_net_hooks+0x3f/0xa0
->  [<ffffffff816d6715>] ipt_register_table+0xe5/0x110
-> [..]
-> 
-> This warning is harmless; we copy 'uninitialized' data from the hook ops
-> but it will not be used.
-> Long term the structures keeping run-time data should be disentangled
-> from those only containing config-time data (such as where in the list
-> to insert a hook), but thats -next material.
-
-Applied, thanks.
+VmVyc2lvbiAyIGNoYW5nZXM6DQotIEZpeCBjb21tZW50cyBmb3IgZW51bSBuZnRfcnRfa2V5cw0K
+LSBSZW1vdmUgbmZ0X3J0Kl9zZWxlY3Rfb3BzDQotIEFkZCBuZXcgbmZ0X3J0KiBtb2R1bGVzIHRv
+IGtlcm5lbF9jbGVhbnVwKCkgaW4gdGVzdHMvc2hlbGwvcnVuLXRlc3RzLnNoDQoNClRoaXMgcGF0
+Y2ggc2VyaWVzIGludHJvZHVjZXMgYW4gbmZ0YWJsZXMgcnQgZXhwcmVzc2lvbiBmb3Igcm91dGlu
+ZyByZWxhdGVkDQpkYXRhIHdpdGggc3VwcG9ydCBmb3IgbmV4dGhvcCAoaS5lLiB0aGUgZGlyZWN0
+bHkgY29ubmVjdGVkIElQIGFkZHJlc3MgdGhhdA0KYW4gb3V0Z29pbmcgcGFja2V0IGlzIHNlbnQg
+dG8pLCB3aGljaCBjYW4gYmUgdXNlZCBlaXRoZXIgZm9yIG1hdGNoaW5nIG9yDQphY2NvdW50aW5n
+LCBlZy4NCg0KICMgbmZ0IGFkZCBydWxlIGZpbHRlciBwb3N0cm91dGluZyBcDQogICAgICAgIGlw
+IGRhZGRyIDE5Mi4xNjguMS4wLzI0IHJ0IGlwIG5leHRob3AgIT0gMTkyLjE2OC4wLjEgZHJvcA0K
+DQpUaGlzIHdpbGwgZHJvcCBhbnkgdHJhZmZpYyB0byAxOTIuMTY4LjEuMC8yNCB0aGF0IGlzIG5v
+dCByb3V0ZWQgdmlhDQoxOTIuMTY4LjAuMS4NCg0KICMgbmZ0IGFkZCBydWxlIGZpbHRlciBwb3N0
+cm91dGluZyBcDQogICAgICAgIGZsb3cgdGFibGUgYWNjdCB7IHJ0IGlwIG5leHRob3AgdGltZW91
+dCA2MDBzIGNvdW50ZXIgfQ0KICMgbmZ0IGFkZCBydWxlIGlwNiBmaWx0ZXIgcG9zdHJvdXRpbmcg
+XA0KICAgICAgICBmbG93IHRhYmxlIGFjY3QgeyBydCBpcDYgbmV4dGhvcDYgdGltZW91dCA2MDBz
+IGNvdW50ZXIgfQ0KDQpUaGVzZSBydWxlcyBjb3VudCBvdXRnb2luZyB0cmFmZmljIHBlciBuZXh0
+aG9wLiBOb3RlIHRoYXQgdGhlIHRpbWVvdXQNCnJlbGVhc2VzIGFuIGVudHJ5IGlmIG5vIHRyYWZm
+aWMgaXMgc2VlbiBmb3IgdGhpcyBuZXh0aG9wIHdpdGhpbiAxMCBtaW51dGVzLg0KDQogIyBuZnQg
+YWRkIHJ1bGUgaW5ldCBmaWx0ZXIgcG9zdHJvdXRpbmcgXA0KICAgICAgICBldGhlciB0eXBlIGlw
+IFwNCiAgICAgICAgZmxvdyB0YWJsZSBhY2N0IHsgcnQgaXAgbmV4dGhvcCB0aW1lb3V0IDYwMHMg
+Y291bnRlciB9DQogIyBuZnQgYWRkIHJ1bGUgaW5ldCBmaWx0ZXIgcG9zdHJvdXRpbmcgXA0KICAg
+ICAgICBldGhlciB0eXBlIGlwNiBcDQogICAgICAgIGZsb3cgdGFibGUgYWNjdCB7IHJ0IGlwNiBu
+ZXh0aG9wNiB0aW1lb3V0IDYwMHMgY291bnRlciB9DQoNClNhbWUgYXMgYWJvdmUsIGJ1dCB2aWEg
+dGhlIGluZXQgZmFtaWx5LCB3aGVyZSB0aGUgZXRoZXIgdHlwZSBtdXN0IGJlDQpzcGVjaWZpZWQg
+ZXhwbGljaXRseS4NCg0KInJ0IGNsYXNzaWQiIGlzIGFsc28gaW1wbGVtZW50ZWQgaWRlbnRpY2Fs
+IHRvICJtZXRhIHJ0Y2xhc3NpZCIsIHNpbmNlIGl0DQppcyBtb3JlIGxvZ2ljYWwgdG8gaGF2ZSB0
+aGlzIG1hdGNoIGluIHRoZSByb3V0aW5nIGV4cHJlc3Npb24gZ29pbmcgZm9yd2FyZC4NCg0KUmVn
+YXJkcywNCkFuZGVycyBLLiBQZWRlcnNlbg0KLS0tDQogaW5jbHVkZS9uZXQvbmV0ZmlsdGVyL25m
+dF9ydC5oICAgICAgICAgICB8ICAyMyArKysrKw0KIGluY2x1ZGUvdWFwaS9saW51eC9uZXRmaWx0
+ZXIvbmZfdGFibGVzLmggfCAgMjcgKysrKysrDQogbmV0L2lwdjQvbmV0ZmlsdGVyL0tjb25maWcg
+ICAgICAgICAgICAgICB8ICAgNCArDQogbmV0L2lwdjQvbmV0ZmlsdGVyL01ha2VmaWxlICAgICAg
+ICAgICAgICB8ICAgMSArDQogbmV0L2lwdjQvbmV0ZmlsdGVyL25mdF9ydF9pcHY0LmMgICAgICAg
+ICB8IDEwOSArKysrKysrKysrKysrKysrKysrKysrKysNCiBuZXQvaXB2Ni9uZXRmaWx0ZXIvS2Nv
+bmZpZyAgICAgICAgICAgICAgIHwgICA0ICsNCiBuZXQvaXB2Ni9uZXRmaWx0ZXIvTWFrZWZpbGUg
+ICAgICAgICAgICAgIHwgICAxICsNCiBuZXQvaXB2Ni9uZXRmaWx0ZXIvbmZ0X3J0X2lwdjYuYyAg
+ICAgICAgIHwgMTEwICsrKysrKysrKysrKysrKysrKysrKysrKw0KIG5ldC9uZXRmaWx0ZXIvS2Nv
+bmZpZyAgICAgICAgICAgICAgICAgICAgfCAgMTEgKysrDQogbmV0L25ldGZpbHRlci9NYWtlZmls
+ZSAgICAgICAgICAgICAgICAgICB8ICAgMiArDQogbmV0L25ldGZpbHRlci9uZnRfcnQuYyAgICAg
+ICAgICAgICAgICAgICB8IDEzNyArKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0KIG5ldC9u
+ZXRmaWx0ZXIvbmZ0X3J0X2luZXQuYyAgICAgICAgICAgICAgfCAxNDIgKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKw0KIDEyIGZpbGVzIGNoYW5nZWQsIDU3MSBpbnNlcnRpb25zKCsp
