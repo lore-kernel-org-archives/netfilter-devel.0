@@ -1,68 +1,57 @@
-From: Davide Caratti <dcaratti@redhat.com>
-Subject: [PATCH nf-next v2 0/3] netfilter: built-in NAT support for DCCP, SCTP, UDPlite
-Date: Thu, 20 Oct 2016 18:33:00 +0200
-Message-ID: <cover.1476980105.git.dcaratti@redhat.com>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Arturo Borrero Gonzalez <arturo@debian.org>,
-        Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC nf-next PATCH] netfilter: nf_conntrack_proto_tcp: propagate
+ IP_CT_TCP_FLAG_BE_LIBERAL
+Date: Thu, 20 Oct 2016 20:14:24 +0200
+Message-ID: <20161020181424.GA10898@salvia>
+References: <147695370184.31999.2434286995020619745.stgit@nfdev2.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, mat999@gmail.com
+To: Arturo Borrero Gonzalez <arturo@debian.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40174 "EHLO mx1.redhat.com"
+Received: from mail.us.es ([193.147.175.20]:38748 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755757AbcJTQdJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Oct 2016 12:33:09 -0400
+        id S1752894AbcJTSO3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 20 Oct 2016 14:14:29 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B5A5F9D33B
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 20:14:27 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A39CDDA816
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 20:14:27 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3594EDA846
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 20:14:25 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <147695370184.31999.2434286995020619745.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Version 2 changes:
-- use #ifdef ... in place of #if IS_ENABLED()
-- add footprint test results
+On Thu, Oct 20, 2016 at 11:00:49AM +0200, Arturo Borrero Gonzalez wrote:
+> According to Mathew Heard, the IP_CT_TCP_FLAG_BE_LIBERAL
+> is not being propagated properly while using userspace conntrackd to
+> replicate connections states in a firewall cluster.
+> 
+> This change modifies the behaviour of the engine to always be liberal in
+> the reply direction if we were liberal in the original direction as well.
+> 
+> More info in the Netfilter bugzilla:
+>  https://bugzilla.netfilter.org/show_bug.cgi?id=1087
+> 
+> Suggested-by: Mathew Heard <mat999@gmail.com>
+> Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
+> ---
+> RFC: I don't fully understand this patch. Specifically, I don't understand
+> why this can't be done from userspace, in conntrackd, when creating/updating
+> synced conntracks. We could just set the new/updated conntrack with the flags
+> we want, don't we?
+> 
+> Also, I don't fully understand the consecuences of doing this flags change
+> in the middle of tcp_packet().
+> 
+> So, please, review the patch and give us comments.
 
-The above L4 protocols usually need an explicit modprobe command (e.g
-"modprobe nf_nat_proto_sctp") to provide full functionality of REDIRECT
-targets and SNAT/DNAT targets where port number translation is explicitly
-configured.
-In order to remove such limitation, this series converts 
-CONFIG_NF_NAT_PROTO_{DCCP,SCTP,UDPLITE} from tristate to boolean: in case 
-NAT support for these protocols is enabled in the kernel configuration, it
-will be built into nf_nat.ko.
+There is a 'TCPWindowTracking' option that you can set on from the
+configuration file.
 
-footprint test:
-
-each patch of the series has been individually tested on a nf-next.git
-kernel with standard RHEL7 configuration on x86_64 architecture, recording
-the unstripped binary size after module clean/rebuild:
-
-# ls -l net/netfilter/nf_nat{,_proto_{dccp,sctp,udplite}}.ko
-
-(nf_nat_proto_)         udplite | sctp   | dccp   || nf_nat
---------------------------------+--------+--------++------------
-no builtin              408048  | 428344 | 409800 || 2241312
-DCCP builtin            408048  | 428344 |   -    || 2578968
-SCTP builtin            408048  |   -    | 409800 || 2597032
-UDPLITE builtin           -     | 428344 | 409800 || 2577256
-all builtin               -     |   -    |   -    || 3270616
-
-Signed-off-by: Davide Caratti <dcaratti@redhat.com>
-
-
-Davide Caratti (3):
-  netfilter: built-in NAT support for DCCP
-  netfilter: built-in NAT support for SCTP
-  netfilter: built-in NAT support for UDPlite
-
- include/net/netfilter/nf_nat_l4proto.h |  9 +++++++++
- net/netfilter/Kconfig                  |  6 +++---
- net/netfilter/Makefile                 | 10 +++++-----
- net/netfilter/nf_nat_core.c            | 12 ++++++++++++
- net/netfilter/nf_nat_proto_dccp.c      | 36 +---------------------------------
- net/netfilter/nf_nat_proto_sctp.c      | 35 +--------------------------------
- net/netfilter/nf_nat_proto_udplite.c   | 35 +--------------------------------
- 7 files changed, 32 insertions(+), 111 deletions(-)
-
--- 
-2.5.5
-
+Is that probably what Mathew needs?
