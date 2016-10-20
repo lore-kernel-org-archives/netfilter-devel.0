@@ -1,41 +1,53 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] netfilter: don't permit unprivileged writes to global
- state via sysctls
-Date: Thu, 20 Oct 2016 14:37:47 -0400 (EDT)
-Message-ID: <20161020.143747.1033652491220298518.davem@davemloft.net>
-References: <1474669264-3283-1-git-send-email-jann@thejh.net>
-        <20161020182224.GA10999@salvia>
+From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+Subject: [PATCH v3 nf-next 1/5] netfilter: nft: UAPI headers for routing
+ expression
+Date: Thu, 20 Oct 2016 19:08:23 +0000
+Message-ID: <1476990503.1161.61.camel@cohaesio.com>
+References: <1476990430.1161.60.camel@cohaesio.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: jann@thejh.net, kuznet@ms2.inr.ac.ru, jmorris@namei.org,
-        yoshfuji@linux-ipv6.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20161020182224.GA10999@salvia>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "pablo@netfilter.org" <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from bender.cohaesio.com ([212.97.128.130]:51743 "EHLO
+        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752793AbcJTTI0 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 20 Oct 2016 15:08:26 -0400
+In-Reply-To: <1476990430.1161.60.camel@cohaesio.com>
+Content-Language: en-US
+Content-ID: <D75F46DA034F5D45A223B9CD0BC93600@surftown.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Thu, 20 Oct 2016 20:22:24 +0200
-
-> On Sat, Sep 24, 2016 at 12:21:04AM +0200, Jann Horn wrote:
->> This prevents the modification of nf_conntrack_max in unprivileged network
->> namespaces. For unprivileged network namespaces, ip_conntrack_max is kept
->> as a readonly sysctl in order to minimize potential compatibility issues.
->> 
->> This patch should apply cleanly to the net tree.
-> 
-> For the record: This patch looks good to me, but this legacy
-> ip_conntrack sysctl code is now gone.
-> 
-> I don't know what is the procedure to get this to -stable branches now
-> that this cannot be pushed upstream.
-
-In the commit message for the -stable submission simply say "Not
-applicable" in the upstream commit reference.  Like:
-
-	[ Upstream commit: Not applicable ]
-
-or something like that.
+RnJvbTogQW5kZXJzIEsuIFBlZGVyc2VuIDxha3BAY29oYWVzaW8uY29tPg0KDQpBZGQgbmV3IFVB
+UEkgaGVhZGVyIGRlZmluaXRpb25zIGZvciBuZnRhYmxlcyAicnQiIGV4cHJlc3Npb24sIHdoaWNo
+IHdpbGwNCmVuYWJsZSB1c2FnZSBvZiByb3V0aW5nIHJlbGF0ZWQgZGF0YS4NCg0KU2lnbmVkLW9m
+Zi1ieTogQW5kZXJzIEsuIFBlZGVyc2VuIDxha3BAY29oYWVzaW8uY29tPg0KLS0tDQp2Mw0KLSBu
+byBjaGFuZ2VzDQp2Mg0KLSBmaXggY29tbWVudHMgZm9yIGVudW0gbmZ0X3J0X2tleXMNCg0KIGlu
+Y2x1ZGUvdWFwaS9saW51eC9uZXRmaWx0ZXIvbmZfdGFibGVzLmggfCAgMjcgKysrKysrDQogMSBm
+aWxlcyBjaGFuZ2VkLCAyNyBpbnNlcnRpb25zKCspDQoNCmRpZmYgLS1naXQgYS9pbmNsdWRlL3Vh
+cGkvbGludXgvbmV0ZmlsdGVyL25mX3RhYmxlcy5oIGIvaW5jbHVkZS91YXBpL2xpbnV4L25ldGZp
+bHRlci9uZl90YWJsZXMuaA0KaW5kZXggYzZjNDQ3Ny4uMTk5Mjc2NiAxMDA2NDQNCi0tLSBhL2lu
+Y2x1ZGUvdWFwaS9saW51eC9uZXRmaWx0ZXIvbmZfdGFibGVzLmgNCisrKyBiL2luY2x1ZGUvdWFw
+aS9saW51eC9uZXRmaWx0ZXIvbmZfdGFibGVzLmgNCkBAIC03NTksNiArNzU5LDE3IEBAIGVudW0g
+bmZ0X21ldGFfa2V5cyB7DQogfTsNCiANCiAvKioNCisgKiBlbnVtIG5mdF9ydF9rZXlzIC0gbmZf
+dGFibGVzIHJvdXRpbmcgZXhwcmVzc2lvbiBrZXlzDQorICoNCisgKiBATkZUX1JUX0NMQVNTSUQ6
+IHJlYWxtIHZhbHVlIG9mIHBhY2tldCdzIHJvdXRlIChza2ItPmRzdC0+dGNsYXNzaWQpDQorICog
+QE5GVF9SVF9ORVhUSE9QOiByb3V0aW5nIG5leHRob3ANCisgKi8NCitlbnVtIG5mdF9ydF9rZXlz
+IHsNCisJTkZUX1JUX0NMQVNTSUQsDQorCU5GVF9SVF9ORVhUSE9QLA0KK307DQorDQorLyoqDQog
+ICogZW51bSBuZnRfaGFzaF9hdHRyaWJ1dGVzIC0gbmZfdGFibGVzIGhhc2ggZXhwcmVzc2lvbiBu
+ZXRsaW5rIGF0dHJpYnV0ZXMNCiAgKg0KICAqIEBORlRBX0hBU0hfU1JFRzogc291cmNlIHJlZ2lz
+dGVyIChOTEFfVTMyKQ0KQEAgLTc5Nyw2ICs4MDgsMjIgQEAgZW51bSBuZnRfbWV0YV9hdHRyaWJ1
+dGVzIHsNCiAjZGVmaW5lIE5GVEFfTUVUQV9NQVgJCShfX05GVEFfTUVUQV9NQVggLSAxKQ0KIA0K
+IC8qKg0KKyAqIGVudW0gbmZ0X3J0X2F0dHJpYnV0ZXMgLSBuZl90YWJsZXMgcm91dGluZyBleHBy
+ZXNzaW9uIG5ldGxpbmsgYXR0cmlidXRlcw0KKyAqDQorICogQE5GVEFfUlRfRFJFRzogZGVzdGlu
+YXRpb24gcmVnaXN0ZXIgKE5MQV9VMzIpDQorICogQE5GVEFfUlRfS0VZOiBtZXRhIGRhdGEgaXRl
+bSB0byBsb2FkIChOTEFfVTMyOiBuZnRfcnRfa2V5cykNCisgKiBATkZUQV9SVF9GQU1JTFk6IEFk
+ZHJlc3MgZmFtaWx5IChOTEFfVTMyKQ0KKyAqLw0KK2VudW0gbmZ0X3J0X2F0dHJpYnV0ZXMgew0K
+KwlORlRBX1JUX1VOU1BFQywNCisJTkZUQV9SVF9EUkVHLA0KKwlORlRBX1JUX0tFWSwNCisJTkZU
+QV9SVF9GQU1JTFksDQorCV9fTkZUQV9SVF9NQVgNCit9Ow0KKyNkZWZpbmUgTkZUQV9SVF9NQVgJ
+CShfX05GVEFfUlRfTUFYIC0gMSkNCisNCisvKioNCiAgKiBlbnVtIG5mdF9jdF9rZXlzIC0gbmZf
+dGFibGVzIGN0IGV4cHJlc3Npb24ga2V5cw0KICAqDQogICogQE5GVF9DVF9TVEFURTogY29ubnRy
+YWNrIHN0YXRlIChiaXRtYXNrIG9mIGVudW0gaXBfY29ubnRyYWNrX2luZm8pDQo=
