@@ -1,70 +1,68 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] nf_conntrack_sip: check for trailing spaces
-Date: Thu, 20 Oct 2016 20:17:32 +0200
-Message-ID: <20161020181732.GA10930@salvia>
-References: <20161019082402.GA4575@gir>
+Subject: Re: [PATCH] netfilter: don't permit unprivileged writes to global
+ state via sysctls
+Date: Thu, 20 Oct 2016 20:22:24 +0200
+Message-ID: <20161020182224.GA10999@salvia>
+References: <1474669264-3283-1-git-send-email-jann@thejh.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
-        Marco Angaroni <marcoangaroni@gmail.com>
-To: Ulrich Weber <ulrich.weber@riverbed.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        James Morris <jmorris@namei.org>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Jann Horn <jann@thejh.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40012 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41504 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753366AbcJTSRo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Oct 2016 14:17:44 -0400
+        id S1752101AbcJTSWd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 20 Oct 2016 14:22:33 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 1339A9D324
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 20:17:43 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 129BB9D33C
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 20:22:32 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F3E6DDA816
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 20:17:42 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 01F5CDA850
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 20:22:32 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C74F0DA847
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 20:17:37 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C401FDA7F6
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 20:22:29 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20161019082402.GA4575@gir>
+In-Reply-To: <1474669264-3283-1-git-send-email-jann@thejh.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Ulrich,
-
-Cc'ing Marco Angaroni.
-
-On Wed, Oct 19, 2016 at 10:24:02AM +0200, Ulrich Weber wrote:
-> on SIP requests, so a fragmented TCP SIP packet starting with
->  INVITE,NOTIFY,OPTIONS,REFER,REGISTER,UPDATE,SUBSCRIBE
->  Content-Length: 0
+On Sat, Sep 24, 2016 at 12:21:04AM +0200, Jann Horn wrote:
+> This prevents the modification of nf_conntrack_max in unprivileged network
+> namespaces. For unprivileged network namespaces, ip_conntrack_max is kept
+> as a readonly sysctl in order to minimize potential compatibility issues.
 > 
-> will not bet interpreted as an INVITE request.
+> This patch should apply cleanly to the net tree.
+
+For the record: This patch looks good to me, but this legacy
+ip_conntrack sysctl code is now gone.
+
+I don't know what is the procedure to get this to -stable branches now
+that this cannot be pushed upstream.
+
+> Signed-off-by: Jann Horn <jann@thejh.net>
+> ---
+>  net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c | 3 +++
+>  1 file changed, 3 insertions(+)
 > 
-> Confirm with RFC 3261
->  Request-Line   =  Method SP Request-URI SP SIP-Version CRLF
-
-Marco has missed your email, so I'm copying and pasting what he told
-me wrt. to your patch:
-
-My understanding is that Ulrich is referring to something like an
-"Allow" header of a SIP message where the header name is part of a TCP
-segment and the header value is part of the following TCP segment:
-
-Allow: INVITE,ACK,CANCEL,OPTIONS,BYE
-
-So I think the fix (check for a space after the method name) is
-correct.
-However maybe the check could be made more robust, because if you have
-the fragmented "Allow" header containing the method names with a space
-before comma (it's permitted by SIP grammar) like you see below, you
-would again think that it's the first line of the SIP message:
-
-Allow: INVITE , ACK , CANCEL , OPTIONS , BYE
-
-Maybe it's worth checking two bytes after method name; the first byte
-must be a space and the second must a alphanumeric character: the URI
-following the method name has to start with "sip:" or "sips:" or some
-other scheme, which starts for sure with an ALPHA character.
-
-Request-Line   =  Method SP Request-URI SP SIP-Version CRLF
-Request-URI    =  SIP-URI / SIPS-URI / absoluteURI
-absoluteURI = scheme ":" ( hier-part / opaque-part )
-scheme         =  ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+> diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+> index ae1a71a..a639e94 100644
+> --- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+> +++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+> @@ -358,6 +358,9 @@ static int ipv4_init_net(struct net *net)
+>  	if (!in->ctl_table)
+>  		return -ENOMEM;
+>  
+> +	if (net->user_ns != &init_user_ns)
+> +		in->ctl_table[0].mode = 0444;
+> +
+>  	in->ctl_table[0].data = &nf_conntrack_max;
+>  	in->ctl_table[1].data = &net->ct.count;
+>  	in->ctl_table[2].data = &nf_conntrack_htable_size;
+> -- 
+> 2.1.4
+> 
