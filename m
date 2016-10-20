@@ -1,117 +1,65 @@
-From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
-Subject: [PATCH v3 nf-next 5/5] netfilter: nft: rt nexthop for inet family
-Date: Thu, 20 Oct 2016 19:12:47 +0000
-Message-ID: <1476990767.1161.68.camel@cohaesio.com>
-References: <1476990430.1161.60.camel@cohaesio.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "pablo@netfilter.org" <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 1/1] netlink: fix monitor trace crash with netdev family
+Date: Fri, 21 Oct 2016 01:13:38 +0200
+Message-ID: <1477005218-25510-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bender.cohaesio.com ([212.97.128.130]:53203 "EHLO
-        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752905AbcJTTMv (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:35396 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1757846AbcJTXNV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Oct 2016 15:12:51 -0400
-In-Reply-To: <1476990430.1161.60.camel@cohaesio.com>
-Content-Language: en-US
-Content-ID: <6E028C7F8B414C418794800039F08969@surftown.com>
+        Thu, 20 Oct 2016 19:13:21 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-RnJvbTogQW5kZXJzIEsuIFBlZGVyc2VuIDxha3BAY29oYWVzaW8uY29tPg0KDQpBZGQgbmZ0YWJs
-ZXMgaW5ldCBmYW1pbHkgc3VwcG9ydCBmb3IgYW4gcnQgbmV4dGhvcCBleHByZXNzaW9uIGFsbG93
-aW5nDQp1c2FnZSBvZiB0aGUgcm91dGluZyBuZXh0aG9wIChpLmUuIHRoZSBkaXJlY3RseSBjb25u
-ZWN0ZWQgSVAgYWRkcmVzcyB0aGF0DQphbiBvdXRnb2luZyBwYWNrZXQgaXMgc2VudCB0bykgZm9y
-IG1hdGNoaW5nIG9yIGFjY291bnRpbmcsIGVnLg0KDQogIyBuZnQgYWRkIHJ1bGUgaW5ldCBmaWx0
-ZXIgcG9zdHJvdXRpbmcgXA0KCWV0aGVyIHR5cGUgaXA2IFwNCglpcDYgZGFkZHIgZmQwMTo6LzE2
-IHJ0IGlwNiBuZXh0aG9wICE9IGZkMDA6OjEgZHJvcA0KDQpUaGlzIHdpbGwgZHJvcCBhbnkgdHJh
-ZmZpYyB0byBmZDAxOjovMTYgdGhhdCBpcyBub3Qgcm91dGVkIHZpYSBmZDAwOjoxLg0KTm90ZSB0
-aGF0ICJldGhlciB0eXBlIiBtdXN0IGJlIHNwZWNpZmllZCBleHBsaWNpdGx5LCB3aGVuIHJ0IG5l
-eHRob3AgaXMNCnVzZWQgZnJvbSBpbmV0IGZhbWlseSB0YWJsZXMuDQoNCiAjIG5mdCBhZGQgcnVs
-ZSBpbmV0IGZpbHRlciBwb3N0cm91dGluZyBcDQoJZXRoZXIgdHlwZSBpcCBcDQoJZmxvdyB0YWJs
-ZSBhY2N0IHsgcnQgaXAgbmV4dGhvcCB0aW1lb3V0IDYwMHMgY291bnRlciB9DQogIyBuZnQgYWRk
-IHJ1bGUgaW5ldCBmaWx0ZXIgcG9zdHJvdXRpbmcgXA0KCWV0aGVyIHR5cGUgaXA2IFwNCglmbG93
-IHRhYmxlIGFjY3QgeyBydCBpcDYgbmV4dGhvcDYgdGltZW91dCA2MDBzIGNvdW50ZXIgfQ0KDQpU
-aGVzZSBydWxlcyBjb3VudCBvdXRnb2luZyB0cmFmZmljIHBlciBuZXh0aG9wLiBOb3RlIHRoYXQg
-dGhlIHRpbWVvdXQNCnJlbGVhc2VzIGFuIGVudHJ5IGlmIG5vIHRyYWZmaWMgaXMgc2VlbiBmb3Ig
-dGhpcyBuZXh0aG9wIHdpdGhpbiAxMCBtaW51dGVzLg0KDQpTaWduZWQtb2ZmLWJ5OiBBbmRlcnMg
-Sy4gUGVkZXJzZW4gPGFrcEBjb2hhZXNpby5jb20+DQotLS0NCnYzDQotIHVzZSBpbml0IGFuZCBl
-dmFsIGZ1bmN0aW9ucyBmcm9tIG5mdF9ydF9pcHY0IGFuZCBuZnRfcnRfaXB2Ng0KdjINCi0gcmVt
-b3ZlIG5mdF9ydF9pbmV0X3NlbGVjdF9vcHMNCg0KIG5ldC9uZXRmaWx0ZXIvS2NvbmZpZyAgICAg
-ICAgICAgICAgICAgICAgfCAgIDcgKysNCiBuZXQvbmV0ZmlsdGVyL01ha2VmaWxlICAgICAgICAg
-ICAgICAgICAgIHwgICAxICsNCiBuZXQvbmV0ZmlsdGVyL25mdF9ydF9pbmV0LmMgICAgICAgICAg
-ICAgIHwgIDk5ICsrKysrKysrKysrKysrKysrKysrKysNCiAzIGZpbGVzIGNoYW5nZWQsIDEwNyBp
-bnNlcnRpb25zKCspDQoNCmRpZmYgLS1naXQgYS9uZXQvbmV0ZmlsdGVyL0tjb25maWcgYi9uZXQv
-bmV0ZmlsdGVyL0tjb25maWcNCmluZGV4IGU4ZDU2ZDkuLjllZjY0MmUgMTAwNjQ0DQotLS0gYS9u
-ZXQvbmV0ZmlsdGVyL0tjb25maWcNCisrKyBiL25ldC9uZXRmaWx0ZXIvS2NvbmZpZw0KQEAgLTQ4
-MCw2ICs0ODAsMTMgQEAgY29uZmlnIE5GVF9NRVRBDQogCSAgVGhpcyBvcHRpb24gYWRkcyB0aGUg
-InJ0IiBleHByZXNzaW9uIHRoYXQgeW91IGNhbiB1c2UgdG8gbWF0Y2gNCiAJICBwYWNrZXQgcm91
-dGluZyBpbmZvcm1hdGlvbiBzdWNoIGFzIHRoZSBwYWNrZXQgbmV4dGhvcC4NCiANCitjb25maWcg
-TkZUX1JUX0lORVQNCisJZGVwZW5kcyBvbiBORl9UQUJMRVNfSU5FVA0KKwlkZWZhdWx0IE5GVF9S
-VA0KKwlzZWxlY3QgTkZUX1JUX0lQVjQNCisJc2VsZWN0IE5GVF9SVF9JUFY2DQorCXRyaXN0YXRl
-DQorDQogY29uZmlnIE5GVF9OVU1HRU4NCiAJdHJpc3RhdGUgIk5ldGZpbHRlciBuZl90YWJsZXMg
-bnVtYmVyIGdlbmVyYXRvciBtb2R1bGUiDQogCWhlbHANCmRpZmYgLS1naXQgYS9uZXQvbmV0Zmls
-dGVyL01ha2VmaWxlIGIvbmV0L25ldGZpbHRlci9NYWtlZmlsZQ0KaW5kZXggYzIzYzNjOC4uZjNh
-MGM1OSAxMDA2NDQNCi0tLSBhL25ldC9uZXRmaWx0ZXIvTWFrZWZpbGUNCisrKyBiL25ldC9uZXRm
-aWx0ZXIvTWFrZWZpbGUNCkBAIC04Miw2ICs4Miw3IEBAIG9iai0kKENPTkZJR19ORl9UQUJMRVNf
-TkVUREVWKQkrPSBuZl90YWJsZXNfbmV0ZGV2Lm8NCiBvYmotJChDT05GSUdfTkZUX0VYVEhEUikJ
-Kz0gbmZ0X2V4dGhkci5vDQogb2JqLSQoQ09ORklHX05GVF9NRVRBKQkJKz0gbmZ0X21ldGEubw0K
-IG9iai0kKENPTkZJR19ORlRfUlQpCQkrPSBuZnRfcnQubw0KK29iai0kKENPTkZJR19ORlRfUlRf
-SU5FVCkJKz0gbmZ0X3J0X2luZXQubw0KIG9iai0kKENPTkZJR19ORlRfTlVNR0VOKQkrPSBuZnRf
-bnVtZ2VuLm8NCiBvYmotJChDT05GSUdfTkZUX0NUKQkJKz0gbmZ0X2N0Lm8NCiBvYmotJChDT05G
-SUdfTkZUX0xJTUlUKQkJKz0gbmZ0X2xpbWl0Lm8NCmRpZmYgLS1naXQgYS9uZXQvbmV0ZmlsdGVy
-L25mdF9ydF9pbmV0LmMgYi9uZXQvbmV0ZmlsdGVyL25mdF9ydF9pbmV0LmMNCm5ldyBmaWxlIG1v
-ZGUgMTAwNjQ0DQppbmRleCAwMDAwMDAwLi5iYTlmNTFmDQotLS0gL2Rldi9udWxsDQorKysgYi9u
-ZXQvbmV0ZmlsdGVyL25mdF9ydF9pbmV0LmMNCkBAIC0wLDAgKzEsOTkgQEANCisvKg0KKyAqIENv
-cHlyaWdodCAoYykgMjAxNiBBbmRlcnMgSy4gUGVkZXJzZW4gPGFrcEBjb2hhZXNpby5jb20+DQor
-ICoNCisgKiBUaGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGNhbiByZWRpc3RyaWJ1
-dGUgaXQgYW5kL29yIG1vZGlmeQ0KKyAqIGl0IHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdl
-bmVyYWwgUHVibGljIExpY2Vuc2UgdmVyc2lvbiAyIGFzDQorICogcHVibGlzaGVkIGJ5IHRoZSBG
-cmVlIFNvZnR3YXJlIEZvdW5kYXRpb24uDQorICoNCisgKi8NCisNCisjaW5jbHVkZSA8bGludXgv
-a2VybmVsLmg+DQorI2luY2x1ZGUgPGxpbnV4L2luaXQuaD4NCisjaW5jbHVkZSA8bGludXgvbW9k
-dWxlLmg+DQorI2luY2x1ZGUgPGxpbnV4L25ldGxpbmsuaD4NCisjaW5jbHVkZSA8bGludXgvbmV0
-ZmlsdGVyLmg+DQorI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlci9uZl90YWJsZXMuaD4NCisjaW5j
-bHVkZSA8bmV0L25ldGZpbHRlci9uZl90YWJsZXMuaD4NCisjaW5jbHVkZSA8bmV0L25ldGZpbHRl
-ci9uZnRfcnQuaD4NCisjaW5jbHVkZSA8bmV0L25ldGZpbHRlci9pcHY0L25mdF9ydC5oPg0KKyNp
-bmNsdWRlIDxuZXQvbmV0ZmlsdGVyL2lwdjYvbmZ0X3J0Lmg+DQorDQorc3RhdGljIHZvaWQgbmZ0
-X3J0X2luZXRfZ2V0X2V2YWwoY29uc3Qgc3RydWN0IG5mdF9leHByICpleHByLA0KKwkJCQkgc3Ry
-dWN0IG5mdF9yZWdzICpyZWdzLA0KKwkJCQkgY29uc3Qgc3RydWN0IG5mdF9wa3RpbmZvICpwa3Qp
-DQorew0KKwljb25zdCBzdHJ1Y3QgbmZ0X3J0ICpwcml2ID0gbmZ0X2V4cHJfcHJpdihleHByKTsN
-CisNCisJaWYgKHVubGlrZWx5KHByaXYtPmZhbWlseSAhPSBORlBST1RPX1VOU1BFQyAmJg0KKwkJ
-ICAgICBwa3QtPnBmICE9IHByaXYtPmZhbWlseSkpIHsNCisJCXByaW50a19vbmNlKEtFUk5fV0FS
-TklORyBLQlVJTERfTU9ETkFNRQ0KKwkJCSAgICAiIGFkZHJlc3MgZmFtaWxpZXMgZG8gbm90IG1h
-dGNoXG4iKTsNCisJCWdvdG8gZXJyOw0KKwl9DQorDQorCXN3aXRjaCAocHJpdi0+ZmFtaWx5KSB7
-DQorCWNhc2UgTkZQUk9UT19JUFY0Og0KKwkJcmV0dXJuIG5mdF9ydF9pcHY0X2dldF9ldmFsKGV4
-cHIsIHJlZ3MsIHBrdCk7DQorCWNhc2UgTkZQUk9UT19JUFY2Og0KKwkJcmV0dXJuIG5mdF9ydF9p
-cHY2X2dldF9ldmFsKGV4cHIsIHJlZ3MsIHBrdCk7DQorCWRlZmF1bHQ6DQorCQlyZXR1cm4gbmZ0
-X3J0X2dldF9ldmFsKGV4cHIsIHJlZ3MsIHBrdCk7DQorCX0NCitlcnI6DQorCXJlZ3MtPnZlcmRp
-Y3QuY29kZSA9IE5GVF9CUkVBSzsNCit9DQorDQorc3RhdGljIGludCBuZnRfcnRfaW5ldF9nZXRf
-aW5pdChjb25zdCBzdHJ1Y3QgbmZ0X2N0eCAqY3R4LA0KKwkJCQljb25zdCBzdHJ1Y3QgbmZ0X2V4
-cHIgKmV4cHIsDQorCQkJCWNvbnN0IHN0cnVjdCBubGF0dHIgKiBjb25zdCB0YltdKQ0KK3sNCisJ
-c3RydWN0IG5mdF9ydCAqcHJpdiA9IG5mdF9leHByX3ByaXYoZXhwcik7DQorDQorCWlmICh0YltO
-RlRBX1JUX0ZBTUlMWV0gPT0gTlVMTCkNCisJCXJldHVybiAtRUlOVkFMOw0KKw0KKwlwcml2LT5m
-YW1pbHkgPSBudG9obChubGFfZ2V0X2JlMzIodGJbTkZUQV9SVF9GQU1JTFldKSk7DQorCXN3aXRj
-aCAocHJpdi0+ZmFtaWx5KSB7DQorCWNhc2UgTkZQUk9UT19JUFY0Og0KKwkJcmV0dXJuIG5mdF9y
-dF9pcHY0X2dldF9pbml0KGN0eCwgZXhwciwgdGIpOw0KKwljYXNlIE5GUFJPVE9fSVBWNjoNCisJ
-CXJldHVybiBuZnRfcnRfaXB2Nl9nZXRfaW5pdChjdHgsIGV4cHIsIHRiKTsNCisJZGVmYXVsdDoN
-CisJCXJldHVybiBuZnRfcnRfZ2V0X2luaXQoY3R4LCBleHByLCB0Yik7DQorCX0NCit9DQorDQor
-c3RhdGljIHN0cnVjdCBuZnRfZXhwcl90eXBlIG5mdF9ydF9pbmV0X3R5cGU7DQorc3RhdGljIGNv
-bnN0IHN0cnVjdCBuZnRfZXhwcl9vcHMgbmZ0X3J0X2luZXRfZ2V0X29wcyA9IHsNCisJLnR5cGUJ
-CT0gJm5mdF9ydF9pbmV0X3R5cGUsDQorCS5zaXplCQk9IE5GVF9FWFBSX1NJWkUoc2l6ZW9mKHN0
-cnVjdCBuZnRfcnQpKSwNCisJLmV2YWwJCT0gbmZ0X3J0X2luZXRfZ2V0X2V2YWwsDQorCS5pbml0
-CQk9IG5mdF9ydF9pbmV0X2dldF9pbml0LA0KKwkuZHVtcAkJPSBuZnRfcnRfZ2V0X2R1bXAsDQor
-fTsNCisNCitzdGF0aWMgc3RydWN0IG5mdF9leHByX3R5cGUgbmZ0X3J0X2luZXRfdHlwZSBfX3Jl
-YWRfbW9zdGx5ID0gew0KKwkuZmFtaWx5ICAgICAgICAgPSBORlBST1RPX0lORVQsDQorCS5uYW1l
-ICAgICAgICAgICA9ICJydCIsDQorCS5vcHMJCT0gJm5mdF9ydF9pbmV0X2dldF9vcHMsDQorCS5w
-b2xpY3kgICAgICAgICA9IG5mdF9ydF9wb2xpY3ksDQorCS5tYXhhdHRyICAgICAgICA9IE5GVEFf
-UlRfTUFYLA0KKwkub3duZXIgICAgICAgICAgPSBUSElTX01PRFVMRSwNCit9Ow0KKw0KK3N0YXRp
-YyBpbnQgX19pbml0IG5mdF9ydF9pbmV0X21vZHVsZV9pbml0KHZvaWQpDQorew0KKwlyZXR1cm4g
-bmZ0X3JlZ2lzdGVyX2V4cHIoJm5mdF9ydF9pbmV0X3R5cGUpOw0KK30NCisNCitzdGF0aWMgdm9p
-ZCBfX2V4aXQgbmZ0X3J0X2luZXRfbW9kdWxlX2V4aXQodm9pZCkNCit7DQorCW5mdF91bnJlZ2lz
-dGVyX2V4cHIoJm5mdF9ydF9pbmV0X3R5cGUpOw0KK30NCisNCittb2R1bGVfaW5pdChuZnRfcnRf
-aW5ldF9tb2R1bGVfaW5pdCk7DQorbW9kdWxlX2V4aXQobmZ0X3J0X2luZXRfbW9kdWxlX2V4aXQp
-Ow0KKw0KK01PRFVMRV9MSUNFTlNFKCJHUEwiKTsNCitNT0RVTEVfQVVUSE9SKCJBbmRlcnMgSy4g
-UGVkZXJzZW4gPGFrcEBjb2hhZXNpby5jb20+Iik7DQorTU9EVUxFX0FMSUFTX05GVF9BRl9FWFBS
-KDEsICJydCIpOw0K
+nft monitor trace crashes on first packet with:
+
+table netdev filter {
+  chain foobar {
+    type filter hook ingress device eth0 priority 0;
+    udp sport 53 meta nftrace set 1
+  }
+}
+
+We did not handle netdev family and thus generated bogus payload
+statements without data types.
+
+Netfilter Bugzilla: http://bugzilla.netfilter.org/show_bug.cgi?id=1092
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/netlink.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/src/netlink.c b/src/netlink.c
+index f8da2a6b4fbb..f8e600ff6f81 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -2340,6 +2340,7 @@ next:
+ static void trace_print_packet(const struct nftnl_trace *nlt)
+ {
+ 	struct list_head stmts = LIST_HEAD_INIT(stmts);
++	const struct proto_desc *ll_desc;
+ 	struct payload_dep_ctx pctx = {};
+ 	struct proto_ctx ctx;
+ 	uint16_t dev_type;
+@@ -2359,12 +2360,14 @@ static void trace_print_packet(const struct nftnl_trace *nlt)
+ 						 NFT_META_OIF));
+ 
+ 	proto_ctx_init(&ctx, nftnl_trace_get_u32(nlt, NFTNL_TRACE_FAMILY));
+-	if (ctx.protocol[PROTO_BASE_LL_HDR].desc == &proto_inet &&
++	ll_desc = ctx.protocol[PROTO_BASE_LL_HDR].desc;
++	if ((ll_desc == &proto_inet || ll_desc  == &proto_netdev) &&
+ 	    nftnl_trace_is_set(nlt, NFTNL_TRACE_NFPROTO)) {
+ 		nfproto = nftnl_trace_get_u32(nlt, NFTNL_TRACE_NFPROTO);
++
+ 		proto_ctx_update(&ctx, PROTO_BASE_LL_HDR, &netlink_location, NULL);
+ 		proto_ctx_update(&ctx, PROTO_BASE_NETWORK_HDR, &netlink_location,
+-				 proto_find_upper(&proto_inet, nfproto));
++				 proto_find_upper(ll_desc, nfproto));
+ 	}
+ 	if (ctx.protocol[PROTO_BASE_LL_HDR].desc == NULL &&
+ 	    nftnl_trace_is_set(nlt, NFTNL_TRACE_IIFTYPE)) {
+-- 
+2.7.3
+
