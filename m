@@ -1,79 +1,73 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH net] conntrack: perform a full scan in gc
-Date: Thu, 20 Oct 2016 10:50:28 +0200
-Message-ID: <28501df9-1ca3-a0a4-f897-ef906f8a5f09@6wind.com>
-References: <20161014105327.GA8655@salvia>
- <1476779435-30503-1-git-send-email-nicolas.dichtel@6wind.com>
- <20161018084718.GB29405@breakpoint.cc>
- <34d607cc-5556-89c7-673d-be8cb0a4758a@6wind.com>
-Reply-To: nicolas.dichtel@6wind.com
+From: Arturo Borrero Gonzalez <arturo@debian.org>
+Subject: [RFC nf-next PATCH] netfilter: nf_conntrack_proto_tcp: propagate
+ IP_CT_TCP_FLAG_BE_LIBERAL
+Date: Thu, 20 Oct 2016 11:00:49 +0200
+Message-ID: <147695370184.31999.2434286995020619745.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Cc: pablo@netfilter.org, davem@davemloft.net, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lf0-f46.google.com ([209.85.215.46]:35217 "EHLO
-        mail-lf0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934848AbcJTIud (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Oct 2016 04:50:33 -0400
-Received: by mail-lf0-f46.google.com with SMTP id l131so68927362lfl.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 01:50:33 -0700 (PDT)
-In-Reply-To: <34d607cc-5556-89c7-673d-be8cb0a4758a@6wind.com>
+Received: from smtp3.cica.es ([150.214.5.190]:54814 "EHLO smtp.cica.es"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754894AbcJTJAq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 20 Oct 2016 05:00:46 -0400
+Received: from localhost (unknown [127.0.0.1])
+        by smtp.cica.es (Postfix) with ESMTP id 5672951F2DA
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 09:00:43 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id DOVGAT2VDRJ4 for <netfilter-devel@vger.kernel.org>;
+        Thu, 20 Oct 2016 11:00:37 +0200 (CEST)
+Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
+        (Authenticated sender: servers@cica.es)
+        by smtp.cica.es (Postfix) with ESMTP id 8CE8D51F2D7
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 11:00:37 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le 18/10/2016 à 12:06, Nicolas Dichtel a écrit :
-> Le 18/10/2016 à 10:47, Florian Westphal a écrit :
->> Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
->>> After commit b87a2f9199ea ("netfilter: conntrack: add gc worker to remove
->>> timed-out entries"), netlink conntrack deletion events may be sent with a
->>> huge delay (5 minutes).
->>>
->>> There is two ways to evict conntrack:
->>>  - during a conntrack lookup;
->>>  - during a conntrack dump.
->>> Let's do a full scan of conntrack entries after a period of inactivity
->>> (no conntrack lookup).
->>>
->>> CC: Florian Westphal <fw@strlen.de>
->>> Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
->>> ---
->>>
->>> Here is another proposal to try to fix the problem.
->>> Comments are welcomed,
->>> Nicolas
->>
->> Hmm, I don't think its good idea in practice.
->> If goal is to avoid starving arbitrary 'dead' ct for too long,
->> then simple ping will defeat the logic here, because...
->>
->>>  net/netfilter/nf_conntrack_core.c | 11 +++++++++--
->>>  1 file changed, 9 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
->>> index ba6a1d421222..3dbb27bd9582 100644
->>> --- a/net/netfilter/nf_conntrack_core.c
->>> +++ b/net/netfilter/nf_conntrack_core.c
->>> @@ -87,6 +87,7 @@ static __read_mostly bool nf_conntrack_locks_all;
->>>  #define GC_MAX_BUCKETS		8192u
->>>  #define GC_INTERVAL		(5 * HZ)
->>>  #define GC_MAX_EVICTS		256u
->>> +static bool gc_full_scan = true;
->>>  
->>>  static struct conntrack_gc_work conntrack_gc_work;
->>>  
->>> @@ -511,6 +512,7 @@ ____nf_conntrack_find(struct net *net, const struct nf_conntrack_zone *zone,
->>>  	unsigned int bucket, hsize;
->>>  
->>>  begin:
->>> +	gc_full_scan = false;
->>
->> ... we do periodic lookup (but always in same slot), so no full scan is
->> triggered.
-> Yes, I was wondering about that. My first idea was to have that bool per bucket
-> and force a scan of the bucket instead of the whole table.
-FYI, I'am off for about two weeks, but we really need to find a way to fix that
-before the release goes out.
+According to Mathew Heard, the IP_CT_TCP_FLAG_BE_LIBERAL
+is not being propagated properly while using userspace conntrackd to
+replicate connections states in a firewall cluster.
+
+This change modifies the behaviour of the engine to always be liberal in
+the reply direction if we were liberal in the original direction as well.
+
+More info in the Netfilter bugzilla:
+ https://bugzilla.netfilter.org/show_bug.cgi?id=1087
+
+Suggested-by: Mathew Heard <mat999@gmail.com>
+Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
+---
+RFC: I don't fully understand this patch. Specifically, I don't understand
+why this can't be done from userspace, in conntrackd, when creating/updating
+synced conntracks. We could just set the new/updated conntrack with the flags
+we want, don't we?
+
+Also, I don't fully understand the consecuences of doing this flags change
+in the middle of tcp_packet().
+
+So, please, review the patch and give us comments.
+
+ net/netfilter/nf_conntrack_proto_tcp.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 69f6877..ed16acf 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -835,6 +835,13 @@ static int tcp_packet(struct nf_conn *ct,
+ 	new_state = tcp_conntracks[dir][index][old_state];
+ 	tuple = &ct->tuplehash[dir].tuple;
+ 
++	/* if we are liberal in one direction, so be it in the other */
++	if (ct->proto.tcp.seen[IP_CT_DIR_ORIGINAL].flags &
++	    IP_CT_TCP_FLAG_BE_LIBERAL) {
++		ct->proto.tcp.seen[IP_CT_DIR_REPLY].flags |=
++			IP_CT_TCP_FLAG_BE_LIBERAL;
++	}
++
+ 	switch (new_state) {
+ 	case TCP_CONNTRACK_SYN_SENT:
+ 		if (old_state < TCP_CONNTRACK_TIME_WAIT)
+
