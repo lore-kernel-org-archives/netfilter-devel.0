@@ -1,57 +1,70 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC nf-next PATCH] netfilter: nf_conntrack_proto_tcp: propagate
- IP_CT_TCP_FLAG_BE_LIBERAL
-Date: Thu, 20 Oct 2016 20:14:24 +0200
-Message-ID: <20161020181424.GA10898@salvia>
-References: <147695370184.31999.2434286995020619745.stgit@nfdev2.cica.es>
+Subject: Re: [PATCH] nf_conntrack_sip: check for trailing spaces
+Date: Thu, 20 Oct 2016 20:17:32 +0200
+Message-ID: <20161020181732.GA10930@salvia>
+References: <20161019082402.GA4575@gir>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, mat999@gmail.com
-To: Arturo Borrero Gonzalez <arturo@debian.org>
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
+        Marco Angaroni <marcoangaroni@gmail.com>
+To: Ulrich Weber <ulrich.weber@riverbed.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38748 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40012 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752894AbcJTSO3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Oct 2016 14:14:29 -0400
+        id S1753366AbcJTSRo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 20 Oct 2016 14:17:44 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B5A5F9D33B
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 20:14:27 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 1339A9D324
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 20:17:43 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A39CDDA816
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 20:14:27 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F3E6DDA816
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 20:17:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3594EDA846
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 20:14:25 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C74F0DA847
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 20:17:37 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <147695370184.31999.2434286995020619745.stgit@nfdev2.cica.es>
+In-Reply-To: <20161019082402.GA4575@gir>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 20, 2016 at 11:00:49AM +0200, Arturo Borrero Gonzalez wrote:
-> According to Mathew Heard, the IP_CT_TCP_FLAG_BE_LIBERAL
-> is not being propagated properly while using userspace conntrackd to
-> replicate connections states in a firewall cluster.
-> 
-> This change modifies the behaviour of the engine to always be liberal in
-> the reply direction if we were liberal in the original direction as well.
-> 
-> More info in the Netfilter bugzilla:
->  https://bugzilla.netfilter.org/show_bug.cgi?id=1087
-> 
-> Suggested-by: Mathew Heard <mat999@gmail.com>
-> Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
-> ---
-> RFC: I don't fully understand this patch. Specifically, I don't understand
-> why this can't be done from userspace, in conntrackd, when creating/updating
-> synced conntracks. We could just set the new/updated conntrack with the flags
-> we want, don't we?
-> 
-> Also, I don't fully understand the consecuences of doing this flags change
-> in the middle of tcp_packet().
-> 
-> So, please, review the patch and give us comments.
+Hi Ulrich,
 
-There is a 'TCPWindowTracking' option that you can set on from the
-configuration file.
+Cc'ing Marco Angaroni.
 
-Is that probably what Mathew needs?
+On Wed, Oct 19, 2016 at 10:24:02AM +0200, Ulrich Weber wrote:
+> on SIP requests, so a fragmented TCP SIP packet starting with
+>  INVITE,NOTIFY,OPTIONS,REFER,REGISTER,UPDATE,SUBSCRIBE
+>  Content-Length: 0
+> 
+> will not bet interpreted as an INVITE request.
+> 
+> Confirm with RFC 3261
+>  Request-Line   =  Method SP Request-URI SP SIP-Version CRLF
+
+Marco has missed your email, so I'm copying and pasting what he told
+me wrt. to your patch:
+
+My understanding is that Ulrich is referring to something like an
+"Allow" header of a SIP message where the header name is part of a TCP
+segment and the header value is part of the following TCP segment:
+
+Allow: INVITE,ACK,CANCEL,OPTIONS,BYE
+
+So I think the fix (check for a space after the method name) is
+correct.
+However maybe the check could be made more robust, because if you have
+the fragmented "Allow" header containing the method names with a space
+before comma (it's permitted by SIP grammar) like you see below, you
+would again think that it's the first line of the SIP message:
+
+Allow: INVITE , ACK , CANCEL , OPTIONS , BYE
+
+Maybe it's worth checking two bytes after method name; the first byte
+must be a space and the second must a alphanumeric character: the URI
+following the method name has to start with "sip:" or "sips:" or some
+other scheme, which starts for sure with an ALPHA character.
+
+Request-Line   =  Method SP Request-URI SP SIP-Version CRLF
+Request-URI    =  SIP-URI / SIPS-URI / absoluteURI
+absoluteURI = scheme ":" ( hier-part / opaque-part )
+scheme         =  ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
