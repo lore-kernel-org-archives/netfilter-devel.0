@@ -1,122 +1,163 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH v2 nf-next 5/5] netfilter: nft: rt nexthop for inet family
-Date: Thu, 20 Oct 2016 17:13:34 +0800
-Message-ID: <CAML_gOdd7=XOk+5csafW2zUjzTqzqufSp7L=3CpS8FBf6r+9nA@mail.gmail.com>
-References: <1476902043.1161.14.camel@cohaesio.com> <1476902504.1161.24.camel@cohaesio.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "pablo@netfilter.org" <pablo@netfilter.org>
-To: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+From: Davide Caratti <dcaratti@redhat.com>
+Subject: [PATCH nf-next 3/3] netfilter: built-in NAT support for UDPlite
+Date: Thu, 20 Oct 2016 12:26:25 +0200
+Message-ID: <ebfa311356c3c34d096da0c31cbdc06de261a4c0.1476956422.git.dcaratti@redhat.com>
+References: <cover.1476956422.git.dcaratti@redhat.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        Arturo Borrero Gonzalez <arturo@debian.org>,
+        Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f65.google.com ([209.85.213.65]:34003 "EHLO
-        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758376AbcJTJNh (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Oct 2016 05:13:37 -0400
-Received: by mail-vk0-f65.google.com with SMTP id 2so2545435vkb.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 02:13:36 -0700 (PDT)
-In-Reply-To: <1476902504.1161.24.camel@cohaesio.com>
+Received: from mx1.redhat.com ([209.132.183.28]:38070 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756833AbcJTK0q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 20 Oct 2016 06:26:46 -0400
+In-Reply-To: <cover.1476956422.git.dcaratti@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Anders,
-2016-10-20 2:41 GMT+08:00 Anders K. Pedersen | Cohaesio <akp@cohaesio.com>:
+CONFIG_NF_NAT_PROTO_UDPLITE is no more a tristate. When set to y, NAT
+support for UDPlite protocol is built-in into nf_nat.ko.
 
-> +static void nft_rt_inet_get_eval(const struct nft_expr *expr,
-> +                                struct nft_regs *regs,
-> +                                const struct nft_pktinfo *pkt)
-> +{
-> +       const struct nft_rt *priv = nft_expr_priv(expr);
-> +       const struct sk_buff *skb = pkt->skb;
-> +       u32 *dest = &regs->data[priv->dreg];
-> +
-> +       if (unlikely(pkt->pf != priv->family)) {
-> +               WARN_ONCE(1, "Address families do not match\n");
+Signed-off-by: Davide Caratti <dcaratti@redhat.com>
+---
+ include/net/netfilter/nf_nat_l4proto.h |  3 +++
+ net/netfilter/Kconfig                  |  2 +-
+ net/netfilter/Makefile                 |  5 ++---
+ net/netfilter/nf_nat_core.c            |  4 ++++
+ net/netfilter/nf_nat_proto_udplite.c   | 35 +---------------------------------
+ 5 files changed, 11 insertions(+), 38 deletions(-)
 
-I think this WARN_ONCE seems unnecessary, in inet family, it's possible that
-the family is mismatched.
+diff --git a/include/net/netfilter/nf_nat_l4proto.h b/include/net/netfilter/nf_nat_l4proto.h
+index d3d1670..83e234d 100644
+--- a/include/net/netfilter/nf_nat_l4proto.h
++++ b/include/net/netfilter/nf_nat_l4proto.h
+@@ -60,6 +60,9 @@ extern const struct nf_nat_l4proto nf_nat_l4proto_dccp;
+ #if IS_ENABLED(CONFIG_NF_NAT_PROTO_SCTP)
+ extern const struct nf_nat_l4proto nf_nat_l4proto_sctp;
+ #endif
++#if IS_ENABLED(CONFIG_NF_NAT_PROTO_UDPLITE)
++extern const struct nf_nat_l4proto nf_nat_l4proto_udplite;
++#endif
+ 
+ bool nf_nat_l4proto_in_range(const struct nf_conntrack_tuple *tuple,
+ 			     enum nf_nat_manip_type maniptype,
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 7fa6245..07de014 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -385,7 +385,7 @@ config NF_NAT_PROTO_DCCP
+ 	default NF_NAT && NF_CT_PROTO_DCCP
+ 
+ config NF_NAT_PROTO_UDPLITE
+-	tristate
++	bool
+ 	depends on NF_NAT && NF_CT_PROTO_UDPLITE
+ 	default NF_NAT && NF_CT_PROTO_UDPLITE
+ 
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 8605054..e1bcb9a 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -45,8 +45,10 @@ obj-$(CONFIG_NF_CONNTRACK_TFTP) += nf_conntrack_tftp.o
+ nf_nat-y	:= nf_nat_core.o nf_nat_proto_unknown.o nf_nat_proto_common.o \
+ 		   nf_nat_proto_udp.o nf_nat_proto_tcp.o nf_nat_helper.o
+ 
++# NAT protocols (nf_nat)
+ nf_nat-$(CONFIG_NF_NAT_PROTO_DCCP) += nf_nat_proto_dccp.o
+ nf_nat-$(CONFIG_NF_NAT_PROTO_SCTP) += nf_nat_proto_sctp.o
++nf_nat-$(CONFIG_NF_NAT_PROTO_UDPLITE) += nf_nat_proto_udplite.o
+ 
+ # generic transport layer logging
+ obj-$(CONFIG_NF_LOG_COMMON) += nf_log_common.o
+@@ -54,9 +56,6 @@ obj-$(CONFIG_NF_LOG_COMMON) += nf_log_common.o
+ obj-$(CONFIG_NF_NAT) += nf_nat.o
+ obj-$(CONFIG_NF_NAT_REDIRECT) += nf_nat_redirect.o
+ 
+-# NAT protocols (nf_nat)
+-obj-$(CONFIG_NF_NAT_PROTO_UDPLITE) += nf_nat_proto_udplite.o
+-
+ # NAT helpers
+ obj-$(CONFIG_NF_NAT_AMANDA) += nf_nat_amanda.o
+ obj-$(CONFIG_NF_NAT_FTP) += nf_nat_ftp.o
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index f5ee6b5..d677bb5 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -679,6 +679,10 @@ int nf_nat_l3proto_register(const struct nf_nat_l3proto *l3proto)
+ 	RCU_INIT_POINTER(nf_nat_l4protos[l3proto->l3proto][IPPROTO_SCTP],
+ 			 &nf_nat_l4proto_sctp);
+ #endif
++#if IS_ENABLED(CONFIG_NF_NAT_PROTO_UDPLITE)
++	RCU_INIT_POINTER(nf_nat_l4protos[l3proto->l3proto][IPPROTO_UDPLITE],
++			 &nf_nat_l4proto_udplite);
++#endif
+ 	mutex_unlock(&nf_nat_proto_mutex);
+ 
+ 	RCU_INIT_POINTER(nf_nat_l3protos[l3proto->l3proto], l3proto);
+diff --git a/net/netfilter/nf_nat_proto_udplite.c b/net/netfilter/nf_nat_proto_udplite.c
+index 58340c9..366bfbf 100644
+--- a/net/netfilter/nf_nat_proto_udplite.c
++++ b/net/netfilter/nf_nat_proto_udplite.c
+@@ -8,11 +8,9 @@
+  */
+ 
+ #include <linux/types.h>
+-#include <linux/init.h>
+ #include <linux/udp.h>
+ 
+ #include <linux/netfilter.h>
+-#include <linux/module.h>
+ #include <net/netfilter/nf_nat.h>
+ #include <net/netfilter/nf_nat_l3proto.h>
+ #include <net/netfilter/nf_nat_l4proto.h>
+@@ -64,7 +62,7 @@ udplite_manip_pkt(struct sk_buff *skb,
+ 	return true;
+ }
+ 
+-static const struct nf_nat_l4proto nf_nat_l4proto_udplite = {
++const struct nf_nat_l4proto nf_nat_l4proto_udplite = {
+ 	.l4proto		= IPPROTO_UDPLITE,
+ 	.manip_pkt		= udplite_manip_pkt,
+ 	.in_range		= nf_nat_l4proto_in_range,
+@@ -73,34 +71,3 @@ static const struct nf_nat_l4proto nf_nat_l4proto_udplite = {
+ 	.nlattr_to_range	= nf_nat_l4proto_nlattr_to_range,
+ #endif
+ };
+-
+-static int __init nf_nat_proto_udplite_init(void)
+-{
+-	int err;
+-
+-	err = nf_nat_l4proto_register(NFPROTO_IPV4, &nf_nat_l4proto_udplite);
+-	if (err < 0)
+-		goto err1;
+-	err = nf_nat_l4proto_register(NFPROTO_IPV6, &nf_nat_l4proto_udplite);
+-	if (err < 0)
+-		goto err2;
+-	return 0;
+-
+-err2:
+-	nf_nat_l4proto_unregister(NFPROTO_IPV4, &nf_nat_l4proto_udplite);
+-err1:
+-	return err;
+-}
+-
+-static void __exit nf_nat_proto_udplite_fini(void)
+-{
+-	nf_nat_l4proto_unregister(NFPROTO_IPV6, &nf_nat_l4proto_udplite);
+-	nf_nat_l4proto_unregister(NFPROTO_IPV4, &nf_nat_l4proto_udplite);
+-}
+-
+-module_init(nf_nat_proto_udplite_init);
+-module_exit(nf_nat_proto_udplite_fini);
+-
+-MODULE_LICENSE("GPL");
+-MODULE_DESCRIPTION("UDP-Lite NAT protocol helper");
+-MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+-- 
+2.5.5
 
-> +               goto err;
-> +       }
-> +
-> +       switch (pkt->pf) {
-> +       case NFPROTO_IPV4:
-> +               switch (priv->key) {
-> +               case NFT_RT_NEXTHOP: {
-> +                       const struct rtable *rt = skb_rtable(skb);
-> +
-> +                       if (!rt)
-> +                               goto err;
-> +                       *dest = rt_nexthop(rt, ip_hdr(skb)->daddr);
-> +                       break;
-> +               }
-> +               default:
-> +                       goto out;
-> +               }
-> +               break;
-> +       case NFPROTO_IPV6:
-> +               switch (priv->key) {
-> +               case NFT_RT_NEXTHOP: {
-> +                       struct rt6_info *rt =
-> +                                       (struct rt6_info *)skb_dst(skb);
-> +
-> +                       if (!rt)
-> +                               goto err;
-> +                       memcpy(dest, rt6_nexthop(rt, &ipv6_hdr(skb)->daddr),
-> +                              sizeof(struct in6_addr));
-> +                       break;
-> +               }
-> +               default:
-> +                       goto out;
-> +               }
-> +               break;
-> +       }
-> +
-
-This code looks not clean, I think it can be converted to such:
-
-switch (priv->key) {
-        case NFT_RT_NEXTHOP:
-                switch (pkt->pf)
-                ...
-        default:
-                return nft_rt_get_eval(expr, regs, pkt);
-}
-
-> +       return;
-> +out:
-> +       return nft_rt_get_eval(expr, regs, pkt);
-> +err:
-> +       regs->verdict.code = NFT_BREAK;
-> +}
-> +
-> +static int nft_rt_inet_get_init(const struct nft_ctx *ctx,
-> +                               const struct nft_expr *expr,
-> +                               const struct nlattr * const tb[])
-> +{
-> +       struct nft_rt *priv = nft_expr_priv(expr);
-> +       unsigned int len;
-> +
-> +       if (tb[NFTA_RT_KEY] == NULL ||
-> +           tb[NFTA_RT_DREG] == NULL ||
-> +           tb[NFTA_RT_FAMILY] == NULL)
-> +               return -EINVAL;
-> +
-> +       priv->key = ntohl(nla_get_be32(tb[NFTA_RT_KEY]));
-> +       priv->family = ntohl(nla_get_be32(tb[NFTA_RT_FAMILY]));
-> +       switch (priv->key) {
-> +       case NFT_RT_NEXTHOP:
-> +               switch (priv->family) {
-> +               case NFPROTO_IPV4:
-> +                       len = sizeof(u32);
-> +                       break;
-> +               case NFPROTO_IPV6:
-> +                       len = sizeof(struct in6_addr);
-> +                       break;
-> +               }
-> +               len = sizeof(u32);
-> +               break;
-
-If the family is invalid, you should report -EINVAL to the userspace.
-And the code "len = sizeof(u32);" here makes no sense.
