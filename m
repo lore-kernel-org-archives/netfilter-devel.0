@@ -1,73 +1,122 @@
-From: Arturo Borrero Gonzalez <arturo@debian.org>
-Subject: [RFC nf-next PATCH] netfilter: nf_conntrack_proto_tcp: propagate
- IP_CT_TCP_FLAG_BE_LIBERAL
-Date: Thu, 20 Oct 2016 11:00:49 +0200
-Message-ID: <147695370184.31999.2434286995020619745.stgit@nfdev2.cica.es>
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH v2 nf-next 5/5] netfilter: nft: rt nexthop for inet family
+Date: Thu, 20 Oct 2016 17:13:34 +0800
+Message-ID: <CAML_gOdd7=XOk+5csafW2zUjzTqzqufSp7L=3CpS8FBf6r+9nA@mail.gmail.com>
+References: <1476902043.1161.14.camel@cohaesio.com> <1476902504.1161.24.camel@cohaesio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "pablo@netfilter.org" <pablo@netfilter.org>
+To: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:54814 "EHLO smtp.cica.es"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754894AbcJTJAq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Oct 2016 05:00:46 -0400
-Received: from localhost (unknown [127.0.0.1])
-        by smtp.cica.es (Postfix) with ESMTP id 5672951F2DA
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 09:00:43 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id DOVGAT2VDRJ4 for <netfilter-devel@vger.kernel.org>;
-        Thu, 20 Oct 2016 11:00:37 +0200 (CEST)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-        (Authenticated sender: servers@cica.es)
-        by smtp.cica.es (Postfix) with ESMTP id 8CE8D51F2D7
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 11:00:37 +0200 (CEST)
+Received: from mail-vk0-f65.google.com ([209.85.213.65]:34003 "EHLO
+        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758376AbcJTJNh (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 20 Oct 2016 05:13:37 -0400
+Received: by mail-vk0-f65.google.com with SMTP id 2so2545435vkb.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 02:13:36 -0700 (PDT)
+In-Reply-To: <1476902504.1161.24.camel@cohaesio.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-According to Mathew Heard, the IP_CT_TCP_FLAG_BE_LIBERAL
-is not being propagated properly while using userspace conntrackd to
-replicate connections states in a firewall cluster.
+Hi Anders,
+2016-10-20 2:41 GMT+08:00 Anders K. Pedersen | Cohaesio <akp@cohaesio.com>:
 
-This change modifies the behaviour of the engine to always be liberal in
-the reply direction if we were liberal in the original direction as well.
+> +static void nft_rt_inet_get_eval(const struct nft_expr *expr,
+> +                                struct nft_regs *regs,
+> +                                const struct nft_pktinfo *pkt)
+> +{
+> +       const struct nft_rt *priv = nft_expr_priv(expr);
+> +       const struct sk_buff *skb = pkt->skb;
+> +       u32 *dest = &regs->data[priv->dreg];
+> +
+> +       if (unlikely(pkt->pf != priv->family)) {
+> +               WARN_ONCE(1, "Address families do not match\n");
 
-More info in the Netfilter bugzilla:
- https://bugzilla.netfilter.org/show_bug.cgi?id=1087
+I think this WARN_ONCE seems unnecessary, in inet family, it's possible that
+the family is mismatched.
 
-Suggested-by: Mathew Heard <mat999@gmail.com>
-Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
----
-RFC: I don't fully understand this patch. Specifically, I don't understand
-why this can't be done from userspace, in conntrackd, when creating/updating
-synced conntracks. We could just set the new/updated conntrack with the flags
-we want, don't we?
+> +               goto err;
+> +       }
+> +
+> +       switch (pkt->pf) {
+> +       case NFPROTO_IPV4:
+> +               switch (priv->key) {
+> +               case NFT_RT_NEXTHOP: {
+> +                       const struct rtable *rt = skb_rtable(skb);
+> +
+> +                       if (!rt)
+> +                               goto err;
+> +                       *dest = rt_nexthop(rt, ip_hdr(skb)->daddr);
+> +                       break;
+> +               }
+> +               default:
+> +                       goto out;
+> +               }
+> +               break;
+> +       case NFPROTO_IPV6:
+> +               switch (priv->key) {
+> +               case NFT_RT_NEXTHOP: {
+> +                       struct rt6_info *rt =
+> +                                       (struct rt6_info *)skb_dst(skb);
+> +
+> +                       if (!rt)
+> +                               goto err;
+> +                       memcpy(dest, rt6_nexthop(rt, &ipv6_hdr(skb)->daddr),
+> +                              sizeof(struct in6_addr));
+> +                       break;
+> +               }
+> +               default:
+> +                       goto out;
+> +               }
+> +               break;
+> +       }
+> +
 
-Also, I don't fully understand the consecuences of doing this flags change
-in the middle of tcp_packet().
+This code looks not clean, I think it can be converted to such:
 
-So, please, review the patch and give us comments.
+switch (priv->key) {
+        case NFT_RT_NEXTHOP:
+                switch (pkt->pf)
+                ...
+        default:
+                return nft_rt_get_eval(expr, regs, pkt);
+}
 
- net/netfilter/nf_conntrack_proto_tcp.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+> +       return;
+> +out:
+> +       return nft_rt_get_eval(expr, regs, pkt);
+> +err:
+> +       regs->verdict.code = NFT_BREAK;
+> +}
+> +
+> +static int nft_rt_inet_get_init(const struct nft_ctx *ctx,
+> +                               const struct nft_expr *expr,
+> +                               const struct nlattr * const tb[])
+> +{
+> +       struct nft_rt *priv = nft_expr_priv(expr);
+> +       unsigned int len;
+> +
+> +       if (tb[NFTA_RT_KEY] == NULL ||
+> +           tb[NFTA_RT_DREG] == NULL ||
+> +           tb[NFTA_RT_FAMILY] == NULL)
+> +               return -EINVAL;
+> +
+> +       priv->key = ntohl(nla_get_be32(tb[NFTA_RT_KEY]));
+> +       priv->family = ntohl(nla_get_be32(tb[NFTA_RT_FAMILY]));
+> +       switch (priv->key) {
+> +       case NFT_RT_NEXTHOP:
+> +               switch (priv->family) {
+> +               case NFPROTO_IPV4:
+> +                       len = sizeof(u32);
+> +                       break;
+> +               case NFPROTO_IPV6:
+> +                       len = sizeof(struct in6_addr);
+> +                       break;
+> +               }
+> +               len = sizeof(u32);
+> +               break;
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 69f6877..ed16acf 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -835,6 +835,13 @@ static int tcp_packet(struct nf_conn *ct,
- 	new_state = tcp_conntracks[dir][index][old_state];
- 	tuple = &ct->tuplehash[dir].tuple;
- 
-+	/* if we are liberal in one direction, so be it in the other */
-+	if (ct->proto.tcp.seen[IP_CT_DIR_ORIGINAL].flags &
-+	    IP_CT_TCP_FLAG_BE_LIBERAL) {
-+		ct->proto.tcp.seen[IP_CT_DIR_REPLY].flags |=
-+			IP_CT_TCP_FLAG_BE_LIBERAL;
-+	}
-+
- 	switch (new_state) {
- 	case TCP_CONNTRACK_SYN_SENT:
- 		if (old_state < TCP_CONNTRACK_TIME_WAIT)
-
+If the family is invalid, you should report -EINVAL to the userspace.
+And the code "len = sizeof(u32);" here makes no sense.
