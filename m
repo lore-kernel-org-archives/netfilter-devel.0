@@ -1,69 +1,107 @@
-From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
-Subject: Re: [PATCH v2 nf-next 5/5] netfilter: nft: rt nexthop for inet family
-Date: Thu, 20 Oct 2016 13:52:40 +0000
-Message-ID: <1476971559.1161.58.camel@cohaesio.com>
-References: <1476902043.1161.14.camel@cohaesio.com>
-         <1476902504.1161.24.camel@cohaesio.com>
-         <CAML_gOdd7=XOk+5csafW2zUjzTqzqufSp7L=3CpS8FBf6r+9nA@mail.gmail.com>
-         <1476966980.1161.52.camel@cohaesio.com>
-         <CAML_gOd9JSCHWQqnGN8FqdhghFHqCgDX_TiXgdpYnegROArmpQ@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: nftables: Add anonymous set to named set
+Date: Thu, 20 Oct 2016 17:11:44 +0200
+Message-ID: <20161020151144.GA1556@salvia>
+References: <20161018225231.5db3dac1@doomgiver>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "pablo@netfilter.org" <pablo@netfilter.org>
-To: "zlpnobody@gmail.com" <zlpnobody@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bender.cohaesio.com ([212.97.128.130]:54916 "EHLO
-        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933043AbcJTNwn (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Oct 2016 09:52:43 -0400
-In-Reply-To: <CAML_gOd9JSCHWQqnGN8FqdhghFHqCgDX_TiXgdpYnegROArmpQ@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <EE3B5FA907E8EA40A0AE601B313799EE@surftown.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: multipart/mixed; boundary="8t9RHnE3ZwKMSgU+"
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Leon Merten Lohse <leon@green-side.de>
+Return-path: <netfilter-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161018225231.5db3dac1@doomgiver>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-SGkgTGlwaW5nLA0KDQpPbiB0b3IsIDIwMTYtMTAtMjAgYXQgMjE6MjcgKzA4MDAsIExpcGluZyBa
-aGFuZyB3cm90ZToNCj4gSGkgQW5kZXJzLA0KPiANCj4gMjAxNi0xMC0yMCAyMDozNiBHTVQrMDg6
-MDAgQW5kZXJzIEsuIFBlZGVyc2VuIHwgQ29oYWVzaW8gPGFrcEBjb2hhZXNpDQo+IG8uY29tPjoN
-Cj4gWy4uLl0NCj4gPiANCj4gPiBXZWxsLCB0aGUgc3VnZ2VzdGVkIHVzZXJzcGFjZSBpbXBsZW1l
-bnRhdGlvbiBkb2Vzbid0IGFsbG93IGEgcnVsZQ0KPiA+IHRoYXQNCj4gPiB3b3VsZCBoaXQgdGhp
-cyB3YXJuaW5nLiBJdCBpcyByZXF1aXJlZCB0byB1c2UgJ2V0aGVyIHR5cGUgaXAgLi4uIHJ0DQo+
-ID4gaXANCj4gPiBuZXh0aG9wJyBvciAnZXRoZXIgdHlwZSBpcDYgLi4uIHJ0IGlwNiBuZXh0aG9w
-Jywgd2hlbiBuZXh0aG9wIGlzDQo+ID4gdXNlZA0KPiA+IGZyb20gdGhlIGluZXQgdGFibGUuDQo+
-ID4gDQo+ID4gU28gSSBmb3VuZCBpdCByZWFzb25hYmxlIHRvIGdlbmVyYXRlIGEgd2FybmluZyBp
-ZiBzdWNoIGEgcnVsZQ0KPiA+IHNvbWVob3cNCj4gPiBnb3QgY29uZmlndXJlZCBhbnl3YXksIGJ1
-dCBpZiB5b3Ugc3RpbGwgZmVlbCB0aGF0IGl0IHNob3VsZCBiZQ0KPiA+IHJlbW92ZWQsDQo+ID4g
-SSBjYW4gZG8gdGhhdC4NCj4gDQo+IEkgdGhpbmsgV0FSTl9PTiB3YXMgdXNlZCB0byBoaW50IHRo
-YXQgbWF5YmUgdGhlcmUncyBhIGJ1ZyBpbiBrZXJuZWwuDQo+IEl0IGlzIG5vdCBhcHByb3ByaWF0
-ZSB0byB3YXJuIHRoZSB1c2VyJ3Mgd3JvbmcgY29uZmlndXJhdGlvbi4NCg0KT0ssIHNvIHdvdWxk
-IGl0IGJlIG9rYXkgdG8gcmVwbGFjZSBpdCB3aXRoDQoNCnByaW50a19vbmNlKEtFUk5fV0FSTklO
-RyBLQlVJTERfTU9ETkFNRSAiIEFkZHJlc3MgZmFtaWxpZXMgZG8gbm90IG1hdGNoXG4iKTsNCg0K
-Pw0KDQo+ID4gDQo+ID4gPiANCj4gPiA+IHN3aXRjaCAocHJpdi0+a2V5KSB7DQo+ID4gPiDCoMKg
-wqDCoMKgwqDCoMKgY2FzZSBORlRfUlRfTkVYVEhPUDoNCj4gPiA+IMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgc3dpdGNoIChwa3QtPnBmKQ0KPiA+ID4gwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqAuLi4NCj4gPiA+IMKgwqDCoMKgwqDCoMKgwqBkZWZhdWx0Og0KPiA+ID4g
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByZXR1cm4gbmZ0X3J0X2dldF9ldmFsKGV4
-cHIsIHJlZ3MsIHBrdCk7DQo+ID4gPiB9DQo+ID4gDQo+ID4gTXkgdGhpbmtpbmcgd2FzIHRoYXQg
-Zm9yIGZ1dHVyZSBydCBzdWItZXhwcmVzc2lvbnMsIGl0IHdpbGwNCj4gPiBwcm9iYWJseQ0KPiA+
-IG1ha2Ugc2Vuc2UgdG8gbW92ZQ0KPiA+IA0KPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgY29uc3Qgc3RydWN0IHJ0YWJsZSAqcnQgPSBza2JfcnRhYmxlKHNrYik7DQo+ID4gDQo+
-ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBpZiAoIXJ0KQ0KPiA+IMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGdvdG8gZXJyOw0KPiA+IA0K
-PiA+IG91dHNpZGUgdGhlIGlubmVyIHN3aXRjaCBzdGF0ZW1lbnQsIHNvIGl0IGRvZXNuJ3QgbmVl
-ZCB0byBiZQ0KPiA+IGR1cGxpY2F0ZWQNCj4gPiBmb3IgZWFjaCBzdWItZXhwcmVzc2lvbi4gQW5k
-IGRpdHRvIGZvciB0aGUgSVBWNiBwYXJ0Lg0KPiA+IA0KPiANCj4gSWYgc28sIGZvciBmdXR1cmUg
-cnQgc3ViLWV4cHJlc3Npb25zIGV4dGVuc2lvbiwgSSB0aGluayB0aGUgZm9sbG93aW5nDQo+IGNv
-ZGVzDQo+IG1heWJlIGJldHRlcj8NCj4gDQo+IHN3aXRjaCAocGt0LT5wZikNCj4gwqDCoMKgwqDC
-oGNhc2UgSVBWNDoNCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoG5mdF9ydF9pcHY0X2dldF9ldmFs
-KCk7DQo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBicmVhazsNCj4gwqDCoMKgwqDCoGNhc2UgSVBW
-NjoNCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoG5mdF9ydF9pcHY2X2dldF9ldmFsKCk7DQo+IMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqBicmVhazsNCj4gDQo+IFRoaXMgY2FuIHJlZHVjZSB0aGUgZHVw
-bGljYXRlIGNvZGVzLiBKdXN0IGEgc3VnZ2VzdGlvbjopDQoNClRoZW7CoE5GVF9SVF9JTkVUIHdv
-dWxkIGhhdmUgdG8gc2VsZWN0wqBORlRfUlRfSVBWNCBhbmTCoE5GVF9SVF9JUFY2LCBidXQNCkkg
-Z3Vlc3MgdGhhdCBpcyBva2F5LCBzaW5jZcKgTkZUX1JUX0lORVQgZGVwZW5kcyBvbsKgTkZfVEFC
-TEVTX0lORVQsDQp3aGljaCBzZWxlY3RzwqBORl9UQUJMRVNfSVBWNCBhbmTCoE5GX1RBQkxFU19J
-UFY2LCBzbyBJJ2xsIHVzZSB0aGlzDQpzb2x1dGlvbi4NCg0KUmVnYXJkcywNCkFuZGVycyBLLiBQ
-ZWRlcnNlbg0K
+
+--8t9RHnE3ZwKMSgU+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Oct 18, 2016 at 10:52:31PM +0200, Leon Merten Lohse wrote:
+> Hi,
+> 
+> I am trying to add an anonymous set that is defined as a variable to a
+> named set as follows:
+> 
+> define whitelist_v4 = { 1.1.1.1}
+> 
+> table inet filter {
+>   set whitelist_v4 { type ipv4_addr; }
+>  
+>   [ ... ]
+> }
+> 
+> add element inet filter whitelist_v4 $whitelist_v4
+
+Attaching a patch to resolve this. Thanks for reporting.
+
+--8t9RHnE3ZwKMSgU+
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-parser_bison-allow-to-use-variable-to-add-create-del.patch"
+
+>From 86ea36cfcb18bf4f1d3128e6b848c4d4ffc5f964 Mon Sep 17 00:00:00 2001
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu, 20 Oct 2016 17:06:05 +0200
+Subject: [PATCH nft] parser_bison: allow to use variable to add/create/delete
+ elements
+
+Using variable definitions from element command doesn't work, eg.
+
+-test.nft-
+ define whitelist_v4 = { 1.1.1.1 }
+ table inet filter {
+	set whitelist_v4 { type ipv4_addr; }
+ }
+ add element inet filter whitelist_v4 $whitelist_v4
+-EOF-
+
+ # nft -f test.nft
+ test.nft:7:38-38: Error: syntax error, unexpected '$', expecting '{'
+ add element inet filter whitelist_v4 $whitelist_v4
+                                      ^
+
+Fix this by using set_block_expr rule for every element command.
+
+Reported-by: Leon Merten Lohse <leon@green-side.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/parser_bison.y | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 14ad67f61b6b..4108dff7e228 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -750,7 +750,7 @@ add_cmd			:	TABLE		table_spec
+ 				handle_merge(&$3->handle, &$2);
+ 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_SET, &$2, &@$, $5);
+ 			}
+-			|	ELEMENT		set_spec	set_expr
++			|	ELEMENT		set_spec	set_block_expr
+ 			{
+ 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_SETELEM, &$2, &@$, $3);
+ 			}
+@@ -799,7 +799,7 @@ create_cmd		:	TABLE		table_spec
+ 				handle_merge(&$3->handle, &$2);
+ 				$$ = cmd_alloc(CMD_CREATE, CMD_OBJ_SET, &$2, &@$, $5);
+ 			}
+-			|	ELEMENT		set_spec	set_expr
++			|	ELEMENT		set_spec	set_block_expr
+ 			{
+ 				$$ = cmd_alloc(CMD_CREATE, CMD_OBJ_SETELEM, &$2, &@$, $3);
+ 			}
+@@ -831,7 +831,7 @@ delete_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_SET, &$2, &@$, NULL);
+ 			}
+-			|	ELEMENT		set_spec	set_expr
++			|	ELEMENT		set_spec	set_block_expr
+ 			{
+ 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_SETELEM, &$2, &@$, $3);
+ 			}
+-- 
+2.1.4
+
+
+--8t9RHnE3ZwKMSgU+--
