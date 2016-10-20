@@ -1,71 +1,69 @@
-From: Liping Zhang <zlpnobody@gmail.com>
+From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
 Subject: Re: [PATCH v2 nf-next 5/5] netfilter: nft: rt nexthop for inet family
-Date: Thu, 20 Oct 2016 21:27:12 +0800
-Message-ID: <CAML_gOd9JSCHWQqnGN8FqdhghFHqCgDX_TiXgdpYnegROArmpQ@mail.gmail.com>
-References: <1476902043.1161.14.camel@cohaesio.com> <1476902504.1161.24.camel@cohaesio.com>
- <CAML_gOdd7=XOk+5csafW2zUjzTqzqufSp7L=3CpS8FBf6r+9nA@mail.gmail.com> <1476966980.1161.52.camel@cohaesio.com>
+Date: Thu, 20 Oct 2016 13:52:40 +0000
+Message-ID: <1476971559.1161.58.camel@cohaesio.com>
+References: <1476902043.1161.14.camel@cohaesio.com>
+         <1476902504.1161.24.camel@cohaesio.com>
+         <CAML_gOdd7=XOk+5csafW2zUjzTqzqufSp7L=3CpS8FBf6r+9nA@mail.gmail.com>
+         <1476966980.1161.52.camel@cohaesio.com>
+         <CAML_gOd9JSCHWQqnGN8FqdhghFHqCgDX_TiXgdpYnegROArmpQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
         "pablo@netfilter.org" <pablo@netfilter.org>
-To: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+To: "zlpnobody@gmail.com" <zlpnobody@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f43.google.com ([209.85.213.43]:34157 "EHLO
-        mail-vk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935962AbcJTN1N (ORCPT
+Received: from bender.cohaesio.com ([212.97.128.130]:54916 "EHLO
+        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933043AbcJTNwn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Oct 2016 09:27:13 -0400
-Received: by mail-vk0-f43.google.com with SMTP id b186so71875230vkb.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 06:27:13 -0700 (PDT)
-In-Reply-To: <1476966980.1161.52.camel@cohaesio.com>
+        Thu, 20 Oct 2016 09:52:43 -0400
+In-Reply-To: <CAML_gOd9JSCHWQqnGN8FqdhghFHqCgDX_TiXgdpYnegROArmpQ@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <EE3B5FA907E8EA40A0AE601B313799EE@surftown.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Anders,
-
-2016-10-20 20:36 GMT+08:00 Anders K. Pedersen | Cohaesio <akp@cohaesio.com>:
-[...]
-> Well, the suggested userspace implementation doesn't allow a rule that
-> would hit this warning. It is required to use 'ether type ip ... rt ip
-> nexthop' or 'ether type ip6 ... rt ip6 nexthop', when nexthop is used
-> from the inet table.
->
-> So I found it reasonable to generate a warning if such a rule somehow
-> got configured anyway, but if you still feel that it should be removed,
-> I can do that.
-
-I think WARN_ON was used to hint that maybe there's a bug in kernel.
-It is not appropriate to warn the user's wrong configuration.
-
->> switch (priv->key) {
->>         case NFT_RT_NEXTHOP:
->>                 switch (pkt->pf)
->>                 ...
->>         default:
->>                 return nft_rt_get_eval(expr, regs, pkt);
->> }
->
-> My thinking was that for future rt sub-expressions, it will probably
-> make sense to move
->
->                 const struct rtable *rt = skb_rtable(skb);
->
->                 if (!rt)
->                         goto err;
->
-> outside the inner switch statement, so it doesn't need to be duplicated
-> for each sub-expression. And ditto for the IPV6 part.
->
-
-If so, for future rt sub-expressions extension, I think the following codes
-maybe better?
-
-switch (pkt->pf)
-     case IPV4:
-           nft_rt_ipv4_get_eval();
-           break;
-     case IPV6:
-           nft_rt_ipv6_get_eval();
-           break;
-
-This can reduce the duplicate codes. Just a suggestion:)
+SGkgTGlwaW5nLA0KDQpPbiB0b3IsIDIwMTYtMTAtMjAgYXQgMjE6MjcgKzA4MDAsIExpcGluZyBa
+aGFuZyB3cm90ZToNCj4gSGkgQW5kZXJzLA0KPiANCj4gMjAxNi0xMC0yMCAyMDozNiBHTVQrMDg6
+MDAgQW5kZXJzIEsuIFBlZGVyc2VuIHwgQ29oYWVzaW8gPGFrcEBjb2hhZXNpDQo+IG8uY29tPjoN
+Cj4gWy4uLl0NCj4gPiANCj4gPiBXZWxsLCB0aGUgc3VnZ2VzdGVkIHVzZXJzcGFjZSBpbXBsZW1l
+bnRhdGlvbiBkb2Vzbid0IGFsbG93IGEgcnVsZQ0KPiA+IHRoYXQNCj4gPiB3b3VsZCBoaXQgdGhp
+cyB3YXJuaW5nLiBJdCBpcyByZXF1aXJlZCB0byB1c2UgJ2V0aGVyIHR5cGUgaXAgLi4uIHJ0DQo+
+ID4gaXANCj4gPiBuZXh0aG9wJyBvciAnZXRoZXIgdHlwZSBpcDYgLi4uIHJ0IGlwNiBuZXh0aG9w
+Jywgd2hlbiBuZXh0aG9wIGlzDQo+ID4gdXNlZA0KPiA+IGZyb20gdGhlIGluZXQgdGFibGUuDQo+
+ID4gDQo+ID4gU28gSSBmb3VuZCBpdCByZWFzb25hYmxlIHRvIGdlbmVyYXRlIGEgd2FybmluZyBp
+ZiBzdWNoIGEgcnVsZQ0KPiA+IHNvbWVob3cNCj4gPiBnb3QgY29uZmlndXJlZCBhbnl3YXksIGJ1
+dCBpZiB5b3Ugc3RpbGwgZmVlbCB0aGF0IGl0IHNob3VsZCBiZQ0KPiA+IHJlbW92ZWQsDQo+ID4g
+SSBjYW4gZG8gdGhhdC4NCj4gDQo+IEkgdGhpbmsgV0FSTl9PTiB3YXMgdXNlZCB0byBoaW50IHRo
+YXQgbWF5YmUgdGhlcmUncyBhIGJ1ZyBpbiBrZXJuZWwuDQo+IEl0IGlzIG5vdCBhcHByb3ByaWF0
+ZSB0byB3YXJuIHRoZSB1c2VyJ3Mgd3JvbmcgY29uZmlndXJhdGlvbi4NCg0KT0ssIHNvIHdvdWxk
+IGl0IGJlIG9rYXkgdG8gcmVwbGFjZSBpdCB3aXRoDQoNCnByaW50a19vbmNlKEtFUk5fV0FSTklO
+RyBLQlVJTERfTU9ETkFNRSAiIEFkZHJlc3MgZmFtaWxpZXMgZG8gbm90IG1hdGNoXG4iKTsNCg0K
+Pw0KDQo+ID4gDQo+ID4gPiANCj4gPiA+IHN3aXRjaCAocHJpdi0+a2V5KSB7DQo+ID4gPiDCoMKg
+wqDCoMKgwqDCoMKgY2FzZSBORlRfUlRfTkVYVEhPUDoNCj4gPiA+IMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgc3dpdGNoIChwa3QtPnBmKQ0KPiA+ID4gwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqAuLi4NCj4gPiA+IMKgwqDCoMKgwqDCoMKgwqBkZWZhdWx0Og0KPiA+ID4g
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByZXR1cm4gbmZ0X3J0X2dldF9ldmFsKGV4
+cHIsIHJlZ3MsIHBrdCk7DQo+ID4gPiB9DQo+ID4gDQo+ID4gTXkgdGhpbmtpbmcgd2FzIHRoYXQg
+Zm9yIGZ1dHVyZSBydCBzdWItZXhwcmVzc2lvbnMsIGl0IHdpbGwNCj4gPiBwcm9iYWJseQ0KPiA+
+IG1ha2Ugc2Vuc2UgdG8gbW92ZQ0KPiA+IA0KPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgY29uc3Qgc3RydWN0IHJ0YWJsZSAqcnQgPSBza2JfcnRhYmxlKHNrYik7DQo+ID4gDQo+
+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBpZiAoIXJ0KQ0KPiA+IMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGdvdG8gZXJyOw0KPiA+IA0K
+PiA+IG91dHNpZGUgdGhlIGlubmVyIHN3aXRjaCBzdGF0ZW1lbnQsIHNvIGl0IGRvZXNuJ3QgbmVl
+ZCB0byBiZQ0KPiA+IGR1cGxpY2F0ZWQNCj4gPiBmb3IgZWFjaCBzdWItZXhwcmVzc2lvbi4gQW5k
+IGRpdHRvIGZvciB0aGUgSVBWNiBwYXJ0Lg0KPiA+IA0KPiANCj4gSWYgc28sIGZvciBmdXR1cmUg
+cnQgc3ViLWV4cHJlc3Npb25zIGV4dGVuc2lvbiwgSSB0aGluayB0aGUgZm9sbG93aW5nDQo+IGNv
+ZGVzDQo+IG1heWJlIGJldHRlcj8NCj4gDQo+IHN3aXRjaCAocGt0LT5wZikNCj4gwqDCoMKgwqDC
+oGNhc2UgSVBWNDoNCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoG5mdF9ydF9pcHY0X2dldF9ldmFs
+KCk7DQo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBicmVhazsNCj4gwqDCoMKgwqDCoGNhc2UgSVBW
+NjoNCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoG5mdF9ydF9pcHY2X2dldF9ldmFsKCk7DQo+IMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqBicmVhazsNCj4gDQo+IFRoaXMgY2FuIHJlZHVjZSB0aGUgZHVw
+bGljYXRlIGNvZGVzLiBKdXN0IGEgc3VnZ2VzdGlvbjopDQoNClRoZW7CoE5GVF9SVF9JTkVUIHdv
+dWxkIGhhdmUgdG8gc2VsZWN0wqBORlRfUlRfSVBWNCBhbmTCoE5GVF9SVF9JUFY2LCBidXQNCkkg
+Z3Vlc3MgdGhhdCBpcyBva2F5LCBzaW5jZcKgTkZUX1JUX0lORVQgZGVwZW5kcyBvbsKgTkZfVEFC
+TEVTX0lORVQsDQp3aGljaCBzZWxlY3RzwqBORl9UQUJMRVNfSVBWNCBhbmTCoE5GX1RBQkxFU19J
+UFY2LCBzbyBJJ2xsIHVzZSB0aGlzDQpzb2x1dGlvbi4NCg0KUmVnYXJkcywNCkFuZGVycyBLLiBQ
+ZWRlcnNlbg0K
