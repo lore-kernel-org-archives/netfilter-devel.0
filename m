@@ -1,107 +1,119 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: nftables: Add anonymous set to named set
-Date: Thu, 20 Oct 2016 17:11:44 +0200
-Message-ID: <20161020151144.GA1556@salvia>
-References: <20161018225231.5db3dac1@doomgiver>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="8t9RHnE3ZwKMSgU+"
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Leon Merten Lohse <leon@green-side.de>
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20161018225231.5db3dac1@doomgiver>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: [PATCH] netfilter: nft_ct: add notrack support
+Date: Thu, 20 Oct 2016 18:07:14 +0200
+Message-ID: <1476979636-1314-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:49692 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933738AbcJTQH3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 20 Oct 2016 12:07:29 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 2E05E80F5
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 18:07:27 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1A27FBAC22
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 18:07:27 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7E67FBAC22
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Oct 2016 18:07:23 +0200 (CEST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+This patch adds notrack support.
 
---8t9RHnE3ZwKMSgU+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I decided to add a new expression, given that this doesn't fit into the
+existing set operation. Notrack doesn't need a source register, and an
+hypothetical NFT_CT_NOTRACK key makes no sense since matching the
+untracked state is done through NFT_CT_STATE.
 
-On Tue, Oct 18, 2016 at 10:52:31PM +0200, Leon Merten Lohse wrote:
-> Hi,
-> 
-> I am trying to add an anonymous set that is defined as a variable to a
-> named set as follows:
-> 
-> define whitelist_v4 = { 1.1.1.1}
-> 
-> table inet filter {
->   set whitelist_v4 { type ipv4_addr; }
->  
->   [ ... ]
-> }
-> 
-> add element inet filter whitelist_v4 $whitelist_v4
+I'm placing this new notrack expression into nft_ct.c, I think a single
+module is too much.
 
-Attaching a patch to resolve this. Thanks for reporting.
-
---8t9RHnE3ZwKMSgU+
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-parser_bison-allow-to-use-variable-to-add-create-del.patch"
-
->From 86ea36cfcb18bf4f1d3128e6b848c4d4ffc5f964 Mon Sep 17 00:00:00 2001
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Thu, 20 Oct 2016 17:06:05 +0200
-Subject: [PATCH nft] parser_bison: allow to use variable to add/create/delete
- elements
-
-Using variable definitions from element command doesn't work, eg.
-
--test.nft-
- define whitelist_v4 = { 1.1.1.1 }
- table inet filter {
-	set whitelist_v4 { type ipv4_addr; }
- }
- add element inet filter whitelist_v4 $whitelist_v4
--EOF-
-
- # nft -f test.nft
- test.nft:7:38-38: Error: syntax error, unexpected '$', expecting '{'
- add element inet filter whitelist_v4 $whitelist_v4
-                                      ^
-
-Fix this by using set_block_expr rule for every element command.
-
-Reported-by: Leon Merten Lohse <leon@green-side.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/parser_bison.y | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/nft_ct.c | 50 +++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 49 insertions(+), 1 deletion(-)
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 14ad67f61b6b..4108dff7e228 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -750,7 +750,7 @@ add_cmd			:	TABLE		table_spec
- 				handle_merge(&$3->handle, &$2);
- 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_SET, &$2, &@$, $5);
- 			}
--			|	ELEMENT		set_spec	set_expr
-+			|	ELEMENT		set_spec	set_block_expr
- 			{
- 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_SETELEM, &$2, &@$, $3);
- 			}
-@@ -799,7 +799,7 @@ create_cmd		:	TABLE		table_spec
- 				handle_merge(&$3->handle, &$2);
- 				$$ = cmd_alloc(CMD_CREATE, CMD_OBJ_SET, &$2, &@$, $5);
- 			}
--			|	ELEMENT		set_spec	set_expr
-+			|	ELEMENT		set_spec	set_block_expr
- 			{
- 				$$ = cmd_alloc(CMD_CREATE, CMD_OBJ_SETELEM, &$2, &@$, $3);
- 			}
-@@ -831,7 +831,7 @@ delete_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_SET, &$2, &@$, NULL);
- 			}
--			|	ELEMENT		set_spec	set_expr
-+			|	ELEMENT		set_spec	set_block_expr
- 			{
- 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_SETELEM, &$2, &@$, $3);
- 			}
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index d7b0d171172a..6837348c8993 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (c) 2008-2009 Patrick McHardy <kaber@trash.net>
++ * Copyright (c) 2016 Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -518,15 +519,61 @@ static struct nft_expr_type nft_ct_type __read_mostly = {
+ 	.owner		= THIS_MODULE,
+ };
+ 
++static void nft_notrack_eval(const struct nft_expr *expr,
++			     struct nft_regs *regs,
++			     const struct nft_pktinfo *pkt)
++{
++	struct sk_buff *skb = pkt->skb;
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct;
++
++	ct = nf_ct_get(pkt->skb, &ctinfo);
++	/* Previously seen (loopback or untracked)?  Ignore. */
++	if (ct)
++		return;
++
++	ct = nf_ct_untracked_get();
++	atomic_inc(&ct->ct_general.use);
++	skb->nfct = &ct->ct_general;
++	skb->nfctinfo = IP_CT_NEW;
++}
++
++static struct nft_expr_type nft_notrack_type;
++static const struct nft_expr_ops nft_notrack_ops = {
++	.type		= &nft_notrack_type,
++	.size		= NFT_EXPR_SIZE(0),
++	.eval		= nft_notrack_eval,
++};
++
++static struct nft_expr_type nft_notrack_type __read_mostly = {
++	.name		= "notrack",
++	.ops		= &nft_notrack_ops,
++	.owner		= THIS_MODULE,
++};
++
+ static int __init nft_ct_module_init(void)
+ {
++	int err;
++
+ 	BUILD_BUG_ON(NF_CT_LABELS_MAX_SIZE > NFT_REG_SIZE);
+ 
+-	return nft_register_expr(&nft_ct_type);
++	err = nft_register_expr(&nft_ct_type);
++	if (err < 0)
++		return err;
++
++	err = nft_register_expr(&nft_notrack_type);
++	if (err < 0)
++		goto err1;
++
++	return 0;
++err1:
++	nft_unregister_expr(&nft_ct_type);
++	return err;
+ }
+ 
+ static void __exit nft_ct_module_exit(void)
+ {
++	nft_unregister_expr(&nft_notrack_type);
+ 	nft_unregister_expr(&nft_ct_type);
+ }
+ 
+@@ -536,3 +583,4 @@ module_exit(nft_ct_module_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_ALIAS_NFT_EXPR("ct");
++MODULE_ALIAS_NFT_EXPR("notrack");
 -- 
 2.1.4
 
-
---8t9RHnE3ZwKMSgU+--
