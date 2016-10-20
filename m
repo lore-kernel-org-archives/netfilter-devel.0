@@ -1,8 +1,7 @@
 From: Davide Caratti <dcaratti@redhat.com>
-Subject: [PATCH nf-next 2/3] netfilter: built-in NAT support for SCTP
-Date: Thu, 20 Oct 2016 12:26:24 +0200
-Message-ID: <db505a20163885646b01bb957442b6c3ffad0997.1476956422.git.dcaratti@redhat.com>
-References: <cover.1476956422.git.dcaratti@redhat.com>
+Subject: [PATCH nf-next 0/3] netfilter: built-in NAT support for DCCP, SCTP, UDPlite
+Date: Thu, 20 Oct 2016 12:26:22 +0200
+Message-ID: <cover.1476956422.git.dcaratti@redhat.com>
 Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
         Patrick McHardy <kaber@trash.net>,
@@ -11,146 +10,38 @@ To: Pablo Neira Ayuso <pablo@netfilter.org>,
         Arturo Borrero Gonzalez <arturo@debian.org>,
         Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60400 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:35880 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755247AbcJTK0o (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Oct 2016 06:26:44 -0400
-In-Reply-To: <cover.1476956422.git.dcaratti@redhat.com>
+        id S1755247AbcJTK0l (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 20 Oct 2016 06:26:41 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-CONFIG_NF_NAT_PROTO_SCTP is no more a tristate. When set to y, NAT
-support for SCTP protocol is built-in into nf_nat.ko.
+The above L4 protocols usually need an explicit modprobe command (e.g
+"modprobe nf_nat_proto_sctp") to provide full functionality of REDIRECT
+targets and SNAT/DNAT targets where port number translation is explicitly
+configured.
+In order to remove such limitation, this series converts 
+CONFIG_NF_NAT_PROTO_{DCCP,SCTP,UDPLITE} from tristate to boolean: in case 
+NAT support for these protocols is enabled in the kernel configuration, it
+will be built into nf_nat.ko.
 
 Signed-off-by: Davide Caratti <dcaratti@redhat.com>
----
- include/net/netfilter/nf_nat_l4proto.h |  3 +++
- net/netfilter/Kconfig                  |  2 +-
- net/netfilter/Makefile                 |  2 +-
- net/netfilter/nf_nat_core.c            |  4 ++++
- net/netfilter/nf_nat_proto_sctp.c      | 35 +---------------------------------
- 5 files changed, 10 insertions(+), 36 deletions(-)
 
-diff --git a/include/net/netfilter/nf_nat_l4proto.h b/include/net/netfilter/nf_nat_l4proto.h
-index 6328c18..d3d1670 100644
---- a/include/net/netfilter/nf_nat_l4proto.h
-+++ b/include/net/netfilter/nf_nat_l4proto.h
-@@ -57,6 +57,9 @@ extern const struct nf_nat_l4proto nf_nat_l4proto_unknown;
- #if IS_ENABLED(CONFIG_NF_NAT_PROTO_DCCP)
- extern const struct nf_nat_l4proto nf_nat_l4proto_dccp;
- #endif
-+#if IS_ENABLED(CONFIG_NF_NAT_PROTO_SCTP)
-+extern const struct nf_nat_l4proto nf_nat_l4proto_sctp;
-+#endif
- 
- bool nf_nat_l4proto_in_range(const struct nf_conntrack_tuple *tuple,
- 			     enum nf_nat_manip_type maniptype,
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 6813126..7fa6245 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -390,7 +390,7 @@ config NF_NAT_PROTO_UDPLITE
- 	default NF_NAT && NF_CT_PROTO_UDPLITE
- 
- config NF_NAT_PROTO_SCTP
--	tristate
-+	bool
- 	default NF_NAT && NF_CT_PROTO_SCTP
- 	depends on NF_NAT && NF_CT_PROTO_SCTP
- 	select LIBCRC32C
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index ed4cdd6..8605054 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -46,6 +46,7 @@ nf_nat-y	:= nf_nat_core.o nf_nat_proto_unknown.o nf_nat_proto_common.o \
- 		   nf_nat_proto_udp.o nf_nat_proto_tcp.o nf_nat_helper.o
- 
- nf_nat-$(CONFIG_NF_NAT_PROTO_DCCP) += nf_nat_proto_dccp.o
-+nf_nat-$(CONFIG_NF_NAT_PROTO_SCTP) += nf_nat_proto_sctp.o
- 
- # generic transport layer logging
- obj-$(CONFIG_NF_LOG_COMMON) += nf_log_common.o
-@@ -55,7 +56,6 @@ obj-$(CONFIG_NF_NAT_REDIRECT) += nf_nat_redirect.o
- 
- # NAT protocols (nf_nat)
- obj-$(CONFIG_NF_NAT_PROTO_UDPLITE) += nf_nat_proto_udplite.o
--obj-$(CONFIG_NF_NAT_PROTO_SCTP) += nf_nat_proto_sctp.o
- 
- # NAT helpers
- obj-$(CONFIG_NF_NAT_AMANDA) += nf_nat_amanda.o
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 7cca9f1..f5ee6b5 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -675,6 +675,10 @@ int nf_nat_l3proto_register(const struct nf_nat_l3proto *l3proto)
- 	RCU_INIT_POINTER(nf_nat_l4protos[l3proto->l3proto][IPPROTO_DCCP],
- 			 &nf_nat_l4proto_dccp);
- #endif
-+#if IS_ENABLED(CONFIG_NF_NAT_PROTO_SCTP)
-+	RCU_INIT_POINTER(nf_nat_l4protos[l3proto->l3proto][IPPROTO_SCTP],
-+			 &nf_nat_l4proto_sctp);
-+#endif
- 	mutex_unlock(&nf_nat_proto_mutex);
- 
- 	RCU_INIT_POINTER(nf_nat_l3protos[l3proto->l3proto], l3proto);
-diff --git a/net/netfilter/nf_nat_proto_sctp.c b/net/netfilter/nf_nat_proto_sctp.c
-index cbc7ade..2e14108 100644
---- a/net/netfilter/nf_nat_proto_sctp.c
-+++ b/net/netfilter/nf_nat_proto_sctp.c
-@@ -7,9 +7,7 @@
-  */
- 
- #include <linux/types.h>
--#include <linux/init.h>
- #include <linux/sctp.h>
--#include <linux/module.h>
- #include <net/sctp/checksum.h>
- 
- #include <net/netfilter/nf_nat_l4proto.h>
-@@ -54,7 +52,7 @@ sctp_manip_pkt(struct sk_buff *skb,
- 	return true;
- }
- 
--static const struct nf_nat_l4proto nf_nat_l4proto_sctp = {
-+const struct nf_nat_l4proto nf_nat_l4proto_sctp = {
- 	.l4proto		= IPPROTO_SCTP,
- 	.manip_pkt		= sctp_manip_pkt,
- 	.in_range		= nf_nat_l4proto_in_range,
-@@ -63,34 +61,3 @@ static const struct nf_nat_l4proto nf_nat_l4proto_sctp = {
- 	.nlattr_to_range	= nf_nat_l4proto_nlattr_to_range,
- #endif
- };
--
--static int __init nf_nat_proto_sctp_init(void)
--{
--	int err;
--
--	err = nf_nat_l4proto_register(NFPROTO_IPV4, &nf_nat_l4proto_sctp);
--	if (err < 0)
--		goto err1;
--	err = nf_nat_l4proto_register(NFPROTO_IPV6, &nf_nat_l4proto_sctp);
--	if (err < 0)
--		goto err2;
--	return 0;
--
--err2:
--	nf_nat_l4proto_unregister(NFPROTO_IPV4, &nf_nat_l4proto_sctp);
--err1:
--	return err;
--}
--
--static void __exit nf_nat_proto_sctp_exit(void)
--{
--	nf_nat_l4proto_unregister(NFPROTO_IPV6, &nf_nat_l4proto_sctp);
--	nf_nat_l4proto_unregister(NFPROTO_IPV4, &nf_nat_l4proto_sctp);
--}
--
--module_init(nf_nat_proto_sctp_init);
--module_exit(nf_nat_proto_sctp_exit);
--
--MODULE_LICENSE("GPL");
--MODULE_DESCRIPTION("SCTP NAT protocol helper");
--MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+Davide Caratti (3):
+  netfilter: built-in NAT support for DCCP
+  netfilter: built-in NAT support for SCTP
+  netfilter: built-in NAT support for UDPlite
+
+ include/net/netfilter/nf_nat_l4proto.h |  9 +++++++++
+ net/netfilter/Kconfig                  |  6 +++---
+ net/netfilter/Makefile                 | 10 +++++-----
+ net/netfilter/nf_nat_core.c            | 12 ++++++++++++
+ net/netfilter/nf_nat_proto_dccp.c      | 36 +---------------------------------
+ net/netfilter/nf_nat_proto_sctp.c      | 35 +--------------------------------
+ net/netfilter/nf_nat_proto_udplite.c   | 35 +--------------------------------
+ 7 files changed, 32 insertions(+), 111 deletions(-)
+
 -- 
 2.5.5
 
