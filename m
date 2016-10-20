@@ -1,38 +1,125 @@
-From: Davide Caratti <dcaratti@redhat.com>
-Subject: Re: [PATCH nf-next 0/3] netfilter: built-in NAT support for DCCP,
- SCTP, UDPlite
-Date: Thu, 20 Oct 2016 12:36:48 +0200
-Message-ID: <1476959808.2842.7.camel@redhat.com>
-References: <cover.1476956422.git.dcaratti@redhat.com>
-         <20161020102808.GB26517@breakpoint.cc>
+From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+Subject: Re: [PATCH v2 nf-next 5/5] netfilter: nft: rt nexthop for inet family
+Date: Thu, 20 Oct 2016 12:36:20 +0000
+Message-ID: <1476966980.1161.52.camel@cohaesio.com>
+References: <1476902043.1161.14.camel@cohaesio.com>
+         <1476902504.1161.24.camel@cohaesio.com>
+         <CAML_gOdd7=XOk+5csafW2zUjzTqzqufSp7L=3CpS8FBf6r+9nA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Arturo Borrero Gonzalez <arturo@debian.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "pablo@netfilter.org" <pablo@netfilter.org>
+To: "zlpnobody@gmail.com" <zlpnobody@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44318 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758088AbcJTKgw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Oct 2016 06:36:52 -0400
-In-Reply-To: <20161020102808.GB26517@breakpoint.cc>
+Received: from bender.cohaesio.com ([212.97.128.130]:43672 "EHLO
+        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751873AbcJTMgY (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 20 Oct 2016 08:36:24 -0400
+In-Reply-To: <CAML_gOdd7=XOk+5csafW2zUjzTqzqufSp7L=3CpS8FBf6r+9nA@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <086347076C6EB54791658F43B1061C9F@surftown.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2016-10-20 at 12:28 +0200, Florian Westphal wrote:
-
-> Sorry for not thinking of this sooner, but it would be nice to record
-> size increase of nat module in the commit message (and perhaps size of
-> 'old' proto_foo nat module that is removed).
-
-hi,
-
-yes - it makes sense. I will reword and post a v2 with test results.
-regards,
---
-davide
+SGkgTGlwaW5nLA0KDQpPbiB0aHUsIDIwMTYtMTAtMjAgYXQgMTc6MTMgKzA4MDAsIExpcGluZyBa
+aGFuZyB3cm90ZToNCj4gSGkgQW5kZXJzLA0KPiAyMDE2LTEwLTIwIDI6NDEgR01UKzA4OjAwIEFu
+ZGVycyBLLiBQZWRlcnNlbiB8IENvaGFlc2lvIDxha3BAY29oYWVzaW8NCj4gLmNvbT46DQo+IA0K
+PiA+IA0KPiA+ICtzdGF0aWMgdm9pZCBuZnRfcnRfaW5ldF9nZXRfZXZhbChjb25zdCBzdHJ1Y3Qg
+bmZ0X2V4cHIgKmV4cHIsDQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBzdHJ1Y3QgbmZ0X3JlZ3MgKnJlZ3MsDQo+ID4g
+K8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqBjb25zdCBzdHJ1Y3QgbmZ0X3BrdGluZm8gKnBrdCkNCj4gPiArew0KPiA+ICvCoMKg
+wqDCoMKgwqDCoGNvbnN0IHN0cnVjdCBuZnRfcnQgKnByaXYgPSBuZnRfZXhwcl9wcml2KGV4cHIp
+Ow0KPiA+ICvCoMKgwqDCoMKgwqDCoGNvbnN0IHN0cnVjdCBza19idWZmICpza2IgPSBwa3QtPnNr
+YjsNCj4gPiArwqDCoMKgwqDCoMKgwqB1MzIgKmRlc3QgPSAmcmVncy0+ZGF0YVtwcml2LT5kcmVn
+XTsNCj4gPiArDQo+ID4gK8KgwqDCoMKgwqDCoMKgaWYgKHVubGlrZWx5KHBrdC0+cGYgIT0gcHJp
+di0+ZmFtaWx5KSkgew0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBXQVJOX09O
+Q0UoMSwgIkFkZHJlc3MgZmFtaWxpZXMgZG8gbm90IG1hdGNoXG4iKTsNCj4gDQo+IEkgdGhpbmsg
+dGhpcyBXQVJOX09OQ0Ugc2VlbXMgdW5uZWNlc3NhcnksIGluIGluZXQgZmFtaWx5LCBpdCdzDQo+
+IHBvc3NpYmxlIHRoYXQNCj4gdGhlIGZhbWlseSBpcyBtaXNtYXRjaGVkLg0KDQpXZWxsLCB0aGUg
+c3VnZ2VzdGVkIHVzZXJzcGFjZSBpbXBsZW1lbnRhdGlvbiBkb2Vzbid0IGFsbG93IGEgcnVsZSB0
+aGF0DQp3b3VsZCBoaXQgdGhpcyB3YXJuaW5nLiBJdCBpcyByZXF1aXJlZCB0byB1c2UgJ2V0aGVy
+IHR5cGUgaXAgLi4uIHJ0IGlwDQpuZXh0aG9wJyBvciAnZXRoZXIgdHlwZSBpcDYgLi4uIHJ0IGlw
+NiBuZXh0aG9wJywgd2hlbiBuZXh0aG9wIGlzIHVzZWQNCmZyb20gdGhlIGluZXQgdGFibGUuDQoN
+ClNvIEkgZm91bmQgaXQgcmVhc29uYWJsZSB0byBnZW5lcmF0ZSBhIHdhcm5pbmcgaWYgc3VjaCBh
+IHJ1bGUgc29tZWhvdw0KZ290IGNvbmZpZ3VyZWQgYW55d2F5LCBidXQgaWYgeW91IHN0aWxsIGZl
+ZWwgdGhhdCBpdCBzaG91bGQgYmUgcmVtb3ZlZCwNCkkgY2FuIGRvIHRoYXQuDQoNCj4gK8KgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGdvdG8gZXJyOw0KPiA+ICvCoMKgwqDCoMKgwqDCoH0N
+Cj4gPiArDQo+ID4gK8KgwqDCoMKgwqDCoMKgc3dpdGNoIChwa3QtPnBmKSB7DQo+ID4gK8KgwqDC
+oMKgwqDCoMKgY2FzZSBORlBST1RPX0lQVjQ6DQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoHN3aXRjaCAocHJpdi0+a2V5KSB7DQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoGNhc2UgTkZUX1JUX05FWFRIT1A6IHsNCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGNvbnN0IHN0cnVjdCBydGFibGUgKnJ0ID0gc2tiX3J0
+YWJsZShza2IpOw0KPiA+ICsNCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoGlmICghcnQpDQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZ290byBlcnI7DQo+ID4gK8KgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAqZGVzdCA9IHJ0X25leHRob3Ao
+cnQsIGlwX2hkcihza2IpLT5kYWRkcik7DQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqBicmVhazsNCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgfQ0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBkZWZhdWx0Og0KPiA+
+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZ290byBvdXQ7
+DQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoH0NCj4gPiArwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgYnJlYWs7DQo+ID4gK8KgwqDCoMKgwqDCoMKgY2FzZSBORlBST1RP
+X0lQVjY6DQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHN3aXRjaCAocHJpdi0+
+a2V5KSB7DQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGNhc2UgTkZUX1JUX05F
+WFRIT1A6IHsNCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoHN0cnVjdCBydDZfaW5mbyAqcnQgPQ0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAoc3Ry
+dWN0IHJ0Nl9pbmZvDQo+ID4gKilza2JfZHN0KHNrYik7DQo+ID4gKw0KPiA+ICvCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgaWYgKCFydCkNCj4gPiArwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBn
+b3RvIGVycjsNCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoG1lbWNweShkZXN0LCBydDZfbmV4dGhvcChydCwNCj4gPiAmaXB2Nl9oZHIoc2tiKS0+ZGFk
+ZHIpLA0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqBzaXplb2Yoc3RydWN0IGluNl9hZGRyKSk7DQo+ID4gK8KgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBicmVhazsNCj4gPiArwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgfQ0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqBkZWZhdWx0Og0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgZ290byBvdXQ7DQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoH0NCj4g
+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgYnJlYWs7DQo+ID4gK8KgwqDCoMKgwqDC
+oMKgfQ0KPiA+ICsNCj4gDQo+IFRoaXMgY29kZSBsb29rcyBub3QgY2xlYW4sIEkgdGhpbmsgaXQg
+Y2FuIGJlIGNvbnZlcnRlZCB0byBzdWNoOg0KPiANCj4gc3dpdGNoIChwcml2LT5rZXkpIHsNCj4g
+wqDCoMKgwqDCoMKgwqDCoGNhc2UgTkZUX1JUX05FWFRIT1A6DQo+IMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgc3dpdGNoIChwa3QtPnBmKQ0KPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoC4uLg0KPiDCoMKgwqDCoMKgwqDCoMKgZGVmYXVsdDoNCj4gwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqByZXR1cm4gbmZ0X3J0X2dldF9ldmFsKGV4cHIsIHJlZ3MsIHBr
+dCk7DQo+IH0NCg0KTXkgdGhpbmtpbmcgd2FzIHRoYXQgZm9yIGZ1dHVyZSBydCBzdWItZXhwcmVz
+c2lvbnMsIGl0IHdpbGwgcHJvYmFibHkNCm1ha2Ugc2Vuc2UgdG8gbW92ZcKgDQoNCgkJY29uc3Qg
+c3RydWN0IHJ0YWJsZSAqcnQgPSBza2JfcnRhYmxlKHNrYik7DQoNCgkJaWYgKCFydCkNCgkJCWdv
+dG8gZXJyOw0KDQpvdXRzaWRlIHRoZSBpbm5lciBzd2l0Y2ggc3RhdGVtZW50LCBzbyBpdCBkb2Vz
+bid0IG5lZWQgdG8gYmUgZHVwbGljYXRlZA0KZm9yIGVhY2ggc3ViLWV4cHJlc3Npb24uIEFuZCBk
+aXR0byBmb3IgdGhlIElQVjYgcGFydC4NCg0KPiA+IA0KPiA+ICvCoMKgwqDCoMKgwqDCoHJldHVy
+bjsNCj4gPiArb3V0Og0KPiA+ICvCoMKgwqDCoMKgwqDCoHJldHVybiBuZnRfcnRfZ2V0X2V2YWwo
+ZXhwciwgcmVncywgcGt0KTsNCj4gPiArZXJyOg0KPiA+ICvCoMKgwqDCoMKgwqDCoHJlZ3MtPnZl
+cmRpY3QuY29kZSA9IE5GVF9CUkVBSzsNCj4gPiArfQ0KPiA+ICsNCj4gPiArc3RhdGljIGludCBu
+ZnRfcnRfaW5ldF9nZXRfaW5pdChjb25zdCBzdHJ1Y3QgbmZ0X2N0eCAqY3R4LA0KPiA+ICvCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oGNvbnN0IHN0cnVjdCBuZnRfZXhwciAqZXhwciwNCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBjb25zdCBzdHJ1Y3Qgbmxh
+dHRyICogY29uc3QgdGJbXSkNCj4gPiArew0KPiA+ICvCoMKgwqDCoMKgwqDCoHN0cnVjdCBuZnRf
+cnQgKnByaXYgPSBuZnRfZXhwcl9wcml2KGV4cHIpOw0KPiA+ICvCoMKgwqDCoMKgwqDCoHVuc2ln
+bmVkIGludCBsZW47DQo+ID4gKw0KPiA+ICvCoMKgwqDCoMKgwqDCoGlmICh0YltORlRBX1JUX0tF
+WV0gPT0gTlVMTCB8fA0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgdGJbTkZUQV9SVF9EUkVH
+XSA9PSBOVUxMIHx8DQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqB0YltORlRBX1JUX0ZBTUlM
+WV0gPT0gTlVMTCkNCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmV0dXJuIC1F
+SU5WQUw7DQo+ID4gKw0KPiA+ICvCoMKgwqDCoMKgwqDCoHByaXYtPmtleSA9IG50b2hsKG5sYV9n
+ZXRfYmUzMih0YltORlRBX1JUX0tFWV0pKTsNCj4gPiArwqDCoMKgwqDCoMKgwqBwcml2LT5mYW1p
+bHkgPSBudG9obChubGFfZ2V0X2JlMzIodGJbTkZUQV9SVF9GQU1JTFldKSk7DQo+ID4gK8KgwqDC
+oMKgwqDCoMKgc3dpdGNoIChwcml2LT5rZXkpIHsNCj4gPiArwqDCoMKgwqDCoMKgwqBjYXNlIE5G
+VF9SVF9ORVhUSE9QOg0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBzd2l0Y2gg
+KHByaXYtPmZhbWlseSkgew0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBjYXNl
+IE5GUFJPVE9fSVBWNDoNCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoGxlbiA9IHNpemVvZih1MzIpOw0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgYnJlYWs7DQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoGNhc2UgTkZQUk9UT19JUFY2Og0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgbGVuID0gc2l6ZW9mKHN0cnVjdCBpbjZfYWRkcik7DQo+
+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBicmVhazsN
+Cj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfQ0KPiA+ICvCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqBsZW4gPSBzaXplb2YodTMyKTsNCj4gPiArwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgYnJlYWs7DQo+IA0KPiBJZiB0aGUgZmFtaWx5IGlzIGludmFsaWQsIHlv
+dSBzaG91bGQgcmVwb3J0IC1FSU5WQUwgdG8gdGhlIHVzZXJzcGFjZS4NCj4gQW5kIHRoZSBjb2Rl
+ICJsZW4gPSBzaXplb2YodTMyKTsiIGhlcmUgbWFrZXMgbm8gc2Vuc2UuDQoNClllcywgSSdsbCBm
+aXggdGhhdC4gVGhhbmtzIGZvciByZXZpZXdpbmcuDQoNClJlZ2FyZHMsDQpBbmRlcnMgSy4gUGVk
+ZXJzZW4=
