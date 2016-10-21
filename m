@@ -1,58 +1,133 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC nf-next PATCH] netfilter: nf_conntrack_proto_tcp: propagate
- IP_CT_TCP_FLAG_BE_LIBERAL
-Date: Fri, 21 Oct 2016 11:56:45 +0200
-Message-ID: <20161021095645.GA17871@salvia>
-References: <147695370184.31999.2434286995020619745.stgit@nfdev2.cica.es>
- <20161020181424.GA10898@salvia>
- <CAOkSjBj-Tyc90ph8-tEt9Ux07ZeCRBETnBNVCyL9RLXiByUHhA@mail.gmail.com>
- <CALFfGYaW3vaMmJ==gXqUATsmu5BWwZx8Aee8G8KknmVTySWrng@mail.gmail.com>
- <CAOkSjBg0TE_LjA4xYnbRvf=BzRP8xGvJK+xOWDURHnqAmjCJSQ@mail.gmail.com>
- <CALFfGYZa4H6aNK9_BgAj8M2cNTsWuXPhnpNah7Q7p2dDnp78AA@mail.gmail.com>
+Subject: [PATCH 00/13] Netfilter fixes for net
+Date: Fri, 21 Oct 2016 12:12:10 +0200
+Message-ID: <1477044743-18948-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Arturo Borrero Gonzalez <arturo@debian.org>,
-        netfilter-devel@vger.kernel.org
-To: Mathew Heard <mat999@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52350 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36202 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753849AbcJUJ4v (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Oct 2016 05:56:51 -0400
+        id S1753787AbcJUKMk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 21 Oct 2016 06:12:40 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A1F2C25D28
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Oct 2016 11:56:48 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 0AB5C26E0A
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Oct 2016 12:12:38 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8F21BDA81B
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Oct 2016 11:56:48 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E3ED8BAC2E
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Oct 2016 12:12:37 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 76C91DA84C
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Oct 2016 11:56:46 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <CALFfGYZa4H6aNK9_BgAj8M2cNTsWuXPhnpNah7Q7p2dDnp78AA@mail.gmail.com>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 95D3BDA916
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Oct 2016 12:12:34 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Oct 21, 2016 at 06:26:28PM +1100, Mathew Heard wrote:
-> However under testing, in practice is not. As covered in the bug.
-> 
-> Fields: CTA_IP_V4_DST, CTA_PROTOINFO_TCP_FLAGS_ORIGINAL &
-> CTA_PROTOINFO_TCP_FLAGS_REPLY
-> Result: "**.**.56.135: 10 3"
+Hi David,
 
->From where are you printing this? userspace or kernel?
+The following patchset contains Netfilter fixes for your net tree,
+they are:
 
-> It's only being set on one side. I believe this is because the reply
-> side flags are being set/initialised after the fact (i.e where they
-> are initialised in that function for incoming connections would do it
-> too).
+1) Fix compilation warning in xt_hashlimit on m68k 32-bits, from
+   Geert Uytterhoeven.
 
-Please develop this a bit more.
+2) Fix wrong timeout in set elements added from packet path via
+   nft_dynset, from Anders K. Pedersen.
 
-Is there anything we should know on your infrastructure? eg. kernel
-and library version, what architecture you using?
+3) Remove obsolete nf_conntrack_events_retry_timeout sysctl
+   documentation, from Nicolas Dichtel.
 
-Asking this because I found an old report on problems on ARM that the
-submitter never confirmed to be fixed.
+4) Ensure proper initialization of log flags via xt_LOG, from
+   Liping Zhang.
 
-Thanks.
+5) Missing alias to autoload ipcomp, also from Liping Zhang.
+
+6) Missing NFTA_HASH_OFFSET attribute validation, again from Liping.
+
+7) Wrong integer type in the new nft_parse_u32_check() function,
+   from Dan Carpenter.
+
+8) Another wrong integer type declaration in nft_exthdr_init, also
+   from Dan Carpenter.
+
+9) Fix insufficient mode validation in nft_range.
+
+10) Fix compilation warning in nft_range due to possible uninitialized
+    value, from Arnd Bergmann.
+
+11) Zero nf_hook_ops allocated via xt_hook_alloc() in x_tables to
+    calm down kmemcheck, from Florian Westphal.
+
+12) Schedule gc_worker() to run again if GC_MAX_EVICTS quota is reached,
+    from Nicolas Dichtel.
+
+13) Fix nf_queue() after conversion to single-linked hook list, related
+    to incorrect bypass flag handling and incorrect hook point of
+    reinjection.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 6d3a4c404648e415e7d96e285d723936d4df7ed0:
+
+  strparser: Propagate correct error code in strp_recv() (2016-10-12 01:51:49 -0400)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to 7034b566a4e7d550621c2dfafd380b77b3787cd9:
+
+  netfilter: fix nf_queue handling (2016-10-20 19:59:59 +0200)
+
+----------------------------------------------------------------
+Anders K. Pedersen (1):
+      netfilter: nft_dynset: fix element timeout for HZ != 1000
+
+Arnd Bergmann (1):
+      netfilter: nf_tables: avoid uninitialized variable warning
+
+Dan Carpenter (2):
+      netfilter: nf_tables: underflow in nft_parse_u32_check()
+      netfilter: nft_exthdr: fix error handling in nft_exthdr_init()
+
+Florian Westphal (1):
+      netfilter: x_tables: suppress kmemcheck warning
+
+Geert Uytterhoeven (1):
+      netfilter: xt_hashlimit: Add missing ULL suffixes for 64-bit constants
+
+Liping Zhang (3):
+      netfilter: xt_NFLOG: fix unexpected truncated packet
+      netfilter: xt_ipcomp: add "ip[6]t_ipcomp" module alias name
+      netfilter: nft_hash: add missing NFTA_HASH_OFFSET's nla_policy
+
+Nicolas Dichtel (2):
+      netfilter: conntrack: remove obsolete sysctl (nf_conntrack_events_retry_timeout)
+      netfilter: conntrack: restart gc immediately if GC_MAX_EVICTS is reached
+
+Pablo Neira Ayuso (2):
+      netfilter: nft_range: validate operation netlink attribute
+      netfilter: fix nf_queue handling
+
+ Documentation/networking/nf_conntrack-sysctl.txt | 18 ---------
+ net/netfilter/core.c                             | 13 ++-----
+ net/netfilter/nf_conntrack_core.c                |  2 +-
+ net/netfilter/nf_internals.h                     |  2 +-
+ net/netfilter/nf_queue.c                         | 48 ++++++++++++++++--------
+ net/netfilter/nf_tables_api.c                    |  2 +-
+ net/netfilter/nft_dynset.c                       |  6 ++-
+ net/netfilter/nft_exthdr.c                       |  3 +-
+ net/netfilter/nft_hash.c                         |  1 +
+ net/netfilter/nft_range.c                        | 26 +++++++++----
+ net/netfilter/x_tables.c                         |  2 +-
+ net/netfilter/xt_NFLOG.c                         |  1 +
+ net/netfilter/xt_hashlimit.c                     |  4 +-
+ net/netfilter/xt_ipcomp.c                        |  2 +
+ 14 files changed, 70 insertions(+), 60 deletions(-)
