@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 12/13] netfilter: conntrack: restart gc immediately if GC_MAX_EVICTS is reached
-Date: Fri, 21 Oct 2016 12:12:22 +0200
-Message-ID: <1477044743-18948-13-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 11/13] netfilter: x_tables: suppress kmemcheck warning
+Date: Fri, 21 Oct 2016 12:12:21 +0200
+Message-ID: <1477044743-18948-12-git-send-email-pablo@netfilter.org>
 References: <1477044743-18948-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,31 +10,48 @@ In-Reply-To: <1477044743-18948-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+From: Florian Westphal <fw@strlen.de>
 
-When the maximum evictions number is reached, do not wait 5 seconds before
-the next run.
+Markus Trippelsdorf reports:
 
-CC: Florian Westphal <fw@strlen.de>
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Acked-by: Florian Westphal <fw@strlen.de>
+WARNING: kmemcheck: Caught 64-bit read from uninitialized memory (ffff88001e605480)
+4055601e0088ffff000000000000000090686d81ffffffff0000000000000000
+ u u u u u u u u u u u u u u u u i i i i i i i i u u u u u u u u
+ ^
+|RIP: 0010:[<ffffffff8166e561>]  [<ffffffff8166e561>] nf_register_net_hook+0x51/0x160
+[..]
+ [<ffffffff8166e561>] nf_register_net_hook+0x51/0x160
+ [<ffffffff8166eaaf>] nf_register_net_hooks+0x3f/0xa0
+ [<ffffffff816d6715>] ipt_register_table+0xe5/0x110
+[..]
+
+This warning is harmless; we copy 'uninitialized' data from the hook ops
+but it will not be used.
+Long term the structures keeping run-time data should be disentangled
+from those only containing config-time data (such as where in the list
+to insert a hook), but thats -next material.
+
+Reported-by: Markus Trippelsdorf <markus@trippelsdorf.de>
+Suggested-by: Al Viro <viro@ZenIV.linux.org.uk>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Acked-by: Aaron Conole <aconole@bytheb.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_core.c | 2 +-
+ net/netfilter/x_tables.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index ba6a1d421222..df2f5a3901df 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -983,7 +983,7 @@ static void gc_worker(struct work_struct *work)
- 		return;
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index e0aa7c1d0224..fc4977456c30 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1513,7 +1513,7 @@ xt_hook_ops_alloc(const struct xt_table *table, nf_hookfn *fn)
+ 	if (!num_hooks)
+ 		return ERR_PTR(-EINVAL);
  
- 	ratio = scanned ? expired_count * 100 / scanned : 0;
--	if (ratio >= 90)
-+	if (ratio >= 90 || expired_count == GC_MAX_EVICTS)
- 		next_run = 0;
+-	ops = kmalloc(sizeof(*ops) * num_hooks, GFP_KERNEL);
++	ops = kcalloc(num_hooks, sizeof(*ops), GFP_KERNEL);
+ 	if (ops == NULL)
+ 		return ERR_PTR(-ENOMEM);
  
- 	gc_work->last_bucket = i;
 -- 
 2.1.4
