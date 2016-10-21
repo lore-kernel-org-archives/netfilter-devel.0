@@ -1,98 +1,96 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 00/22] ipset patches for nf-next
-Date: Fri, 21 Oct 2016 12:56:39 +0200
-Message-ID: <20161021105639.GA18780@salvia>
-References: <1476708699-32761-1-git-send-email-kadlec@blackhole.kfki.hu>
- <20161021104526.GA3387@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH nft] src: don't need keyword for log level
+Date: Fri, 21 Oct 2016 13:06:28 +0200
+Message-ID: <1477047988-14363-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36818 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44996 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755237AbcJUK4s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Oct 2016 06:56:48 -0400
+        id S1754307AbcJULGk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 21 Oct 2016 07:06:40 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E7E046DFC8
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Oct 2016 12:56:46 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id B903C9D33C
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Oct 2016 13:06:38 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CA75FDA84F
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Oct 2016 12:56:46 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 99F0CDA846
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Oct 2016 13:06:38 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 89524DA845
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Oct 2016 12:56:44 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20161021104526.GA3387@salvia>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 41D40DA846
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Oct 2016 13:06:36 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Oct 21, 2016 at 12:45:26PM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Oct 17, 2016 at 02:51:17PM +0200, Jozsef Kadlecsik wrote:
-> > Hi Pablo,
-> > 
-> > Please consider to apply the next bunch of patches for ipset.
-> > There is new set type in it (hash:ip,mac), elemet counts are reported
-> > to userspace in the set headers data and a couple of small cleanups,
-> > improvements
-> > 
-> > * rcu_dereference_bh_nfnl() redefined to accept netfilter subsys id.
-> > * Header files cleanup: counter helper functions are grouped together,
-> >   some args are changed to const.
-> > * struct ip_set_skbinfo is introduced instead of open coded fields
-> >   in skbinfo get/init helper funcions.
-> > * In comment extension allocate area with kmalloc() rather than kzalloc().
-> > * Split all extensions into separate files.
-> > * Separate memsize calculation into dedicated functions.
-> > * ip_set_put_extensions() is regrouped and extern is added.
-> > * Add element count to hash headers by Eric B Munson.
-> > * Add element count to all set types header for uniform output.
-> > * Count non-static extension memory into memsize calculation for
-> >   userspace.
-> > * Simplify mtype_expire() for hash types by removing redundant
-> >   parameters which can be get from other ones.
-> > * Make NLEN compile time constant for hash types.
-> > * Make sure element data size is a multiple of u32.
-> > * Optimize hash creation routine, exit as early as possible.
-> > * Make struct htype per ipset family.
-> > * Collapse same condition body into a single one.
-> > * Fix reported memory size for hash:* types.
-> > * hash:ipmac type support added to ipset by Tomasz Chilinski.
-> > * Use setup_timer() and mod_timer() instead of init_timer()
-> >   by Muhammad Falak R Wani, individually for the set type families.
-> > * hash: fix boolreturn.cocci warnings avout bool should use true/false
-> >   by Fengguang Wu.
-> > 
-> > The following changes since commit 1b830996c1603225a96e233c3b09bf2b12607d78:
-> > 
-> >   Merge branch 's390-net' (2016-10-12 01:56:10 -0400)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://blackhole.kfki.hu/nf-next master
-> 
-> Pulled, thanks Jozsef.
+We can handle log levels without keywords in our grammar, use string
+instead.
 
-Sorry Jozsef, I have to toss this.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/parser_bison.y | 32 ++++++++++++++++++++++++--------
+ src/scanner.l      |  8 --------
+ 2 files changed, 24 insertions(+), 16 deletions(-)
 
-In file included from ./include/linux/netfilter/ipset/ip_set.h:458:0,
-                 from net/netfilter/xt_set.c:19:
-./include/linux/netfilter/ipset/ip_set_skbinfo.h: In function
-‘ip_set_put_skbinfo’:
-./include/linux/netfilter/ipset/ip_set_skbinfo.h:25:53: warning:
-suggest parentheses around ‘&&’ within ‘||’ [-Wparentheses]
-  return ((skbinfo->skbmark || skbinfo->skbmarkmask) &&
-                                                     ^
-./include/linux/netfilter/ipset/ip_set_skbinfo.h:35:42: error:
-expected ‘)’ before ‘;’ token
-          cpu_to_be16(skbinfo->skbqueue)));
-                                          ^
-./include/linux/netfilter/ipset/ip_set_skbinfo.h:36:1: error: expected
-‘;’ before ‘}’ token
- }
- ^
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index baf0a539efa0..f582221a089e 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1517,14 +1517,30 @@ log_arg			:	PREFIX			string
+ 			}
+ 			;
+ 
+-level_type		:	LEVEL_EMERG	{ $$ = LOG_EMERG; }
+-			|	LEVEL_ALERT	{ $$ = LOG_ALERT; }
+-			|	LEVEL_CRIT	{ $$ = LOG_CRIT; }
+-			|	LEVEL_ERR	{ $$ = LOG_ERR; }
+-			|	LEVEL_WARN	{ $$ = LOG_WARNING; }
+-			|	LEVEL_NOTICE	{ $$ = LOG_NOTICE; }
+-			|	LEVEL_INFO	{ $$ = LOG_INFO; }
+-			|	LEVEL_DEBUG	{ $$ = LOG_DEBUG; }
++level_type		:	string
++			{
++				if (!strcmp("emerg", $1))
++					$$ = LOG_EMERG;
++				else if (!strcmp("alert", $1))
++					$$ = LOG_ALERT;
++				else if (!strcmp("crit", $1))
++					$$ = LOG_CRIT;
++				else if (!strcmp("err", $1))
++					$$ = LOG_ERR;
++				else if (!strcmp("warning", $1))
++					$$ = LOG_WARNING;
++				else if (!strcmp("notice", $1))
++					$$ = LOG_NOTICE;
++				else if (!strcmp("info", $1))
++					$$ = LOG_INFO;
++				else if (!strcmp("debug", $1))
++					$$ = LOG_DEBUG;
++				else {
++					erec_queue(error(&@1, "invalid log level", $1),
++						   state->msgs);
++					YYERROR;
++				}
++			}
+ 			;
+ 
+ limit_stmt		:	LIMIT	RATE	limit_mode	NUM	SLASH	time_unit	limit_burst
+diff --git a/src/scanner.l b/src/scanner.l
+index 8b5a383bd095..467954374f11 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -299,14 +299,6 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "snaplen"		{ return SNAPLEN; }
+ "queue-threshold"	{ return QUEUE_THRESHOLD; }
+ "level"			{ return LEVEL; }
+-"emerg"			{ return LEVEL_EMERG; }
+-"alert"			{ return LEVEL_ALERT; }
+-"crit"			{ return LEVEL_CRIT; }
+-"err"			{ return LEVEL_ERR; }
+-"warn"			{ return LEVEL_WARN; }
+-"notice"		{ return LEVEL_NOTICE; }
+-"info"			{ return LEVEL_INFO; }
+-"debug"			{ return LEVEL_DEBUG; }
+ 
+ "queue"			{ return QUEUE;}
+ "num"			{ return QUEUENUM;}
+-- 
+2.1.4
 
-It seems compilation breaks.
-
-Please fix and resubmit, thanks a lot!
