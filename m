@@ -1,96 +1,57 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] src: don't need keyword for log level
-Date: Fri, 21 Oct 2016 13:06:28 +0200
-Message-ID: <1477047988-14363-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH v2 nf-next 5/5] netfilter: nft: rt nexthop for inet family
+Date: Fri, 21 Oct 2016 20:42:42 +0800
+Message-ID: <CAML_gOfoAg4-uzQAqRx926p7YWj_kk1ZFqe-NQtXA73Par01PQ@mail.gmail.com>
+References: <1476902043.1161.14.camel@cohaesio.com> <1476902504.1161.24.camel@cohaesio.com>
+ <CAML_gOdd7=XOk+5csafW2zUjzTqzqufSp7L=3CpS8FBf6r+9nA@mail.gmail.com>
+ <1476966980.1161.52.camel@cohaesio.com> <CAML_gOd9JSCHWQqnGN8FqdhghFHqCgDX_TiXgdpYnegROArmpQ@mail.gmail.com>
+ <1476971559.1161.58.camel@cohaesio.com> <CAML_gOcPkygs4P95MAEDJJFRMvchKgONN-VFg45pso+Oc0B_GQ@mail.gmail.com>
+ <1477023411.1161.83.camel@cohaesio.com> <CAML_gOfD0z7DTScvCOgMSqDZNdMB3TZ35pgRpikSFqdq_GRX5A@mail.gmail.com>
+ <1477038412.1053.13.camel@cohaesio.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "pablo@netfilter.org" <pablo@netfilter.org>
+To: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44996 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754307AbcJULGk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Oct 2016 07:06:40 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B903C9D33C
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Oct 2016 13:06:38 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 99F0CDA846
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Oct 2016 13:06:38 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 41D40DA846
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Oct 2016 13:06:36 +0200 (CEST)
+Received: from mail-vk0-f54.google.com ([209.85.213.54]:35836 "EHLO
+        mail-vk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755094AbcJUMmo (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 21 Oct 2016 08:42:44 -0400
+Received: by mail-vk0-f54.google.com with SMTP id q126so115383656vkd.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Oct 2016 05:42:44 -0700 (PDT)
+In-Reply-To: <1477038412.1053.13.camel@cohaesio.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We can handle log levels without keywords in our grammar, use string
-instead.
+Hi Anders,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/parser_bison.y | 32 ++++++++++++++++++++++++--------
- src/scanner.l      |  8 --------
- 2 files changed, 24 insertions(+), 16 deletions(-)
+2016-10-21 16:26 GMT+08:00 Anders K. Pedersen | Cohaesio <akp@cohaesio.com>:
+[...]
+> I had a look at it. This construct is used for NFT_CT_SRC and
+> NFT_CT_DST, where the init function just returns the IPv6 length for
+> the inet family. But I'm not sure how this can work for userspace, and
+> at least for current nftables there are problems:
+>
+> # nft flush ruleset
+> # nft add table inet filter
+> # nft add chain inet filter input
+> # nft add rule inet filter input ether type ip flow table acct \{ ct original saddr timeout 600s counter \}
+> # nft list ruleset
+> Killed
+> # nft list flow tables
+> Killed
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index baf0a539efa0..f582221a089e 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -1517,14 +1517,30 @@ log_arg			:	PREFIX			string
- 			}
- 			;
- 
--level_type		:	LEVEL_EMERG	{ $$ = LOG_EMERG; }
--			|	LEVEL_ALERT	{ $$ = LOG_ALERT; }
--			|	LEVEL_CRIT	{ $$ = LOG_CRIT; }
--			|	LEVEL_ERR	{ $$ = LOG_ERR; }
--			|	LEVEL_WARN	{ $$ = LOG_WARNING; }
--			|	LEVEL_NOTICE	{ $$ = LOG_NOTICE; }
--			|	LEVEL_INFO	{ $$ = LOG_INFO; }
--			|	LEVEL_DEBUG	{ $$ = LOG_DEBUG; }
-+level_type		:	string
-+			{
-+				if (!strcmp("emerg", $1))
-+					$$ = LOG_EMERG;
-+				else if (!strcmp("alert", $1))
-+					$$ = LOG_ALERT;
-+				else if (!strcmp("crit", $1))
-+					$$ = LOG_CRIT;
-+				else if (!strcmp("err", $1))
-+					$$ = LOG_ERR;
-+				else if (!strcmp("warning", $1))
-+					$$ = LOG_WARNING;
-+				else if (!strcmp("notice", $1))
-+					$$ = LOG_NOTICE;
-+				else if (!strcmp("info", $1))
-+					$$ = LOG_INFO;
-+				else if (!strcmp("debug", $1))
-+					$$ = LOG_DEBUG;
-+				else {
-+					erec_queue(error(&@1, "invalid log level", $1),
-+						   state->msgs);
-+					YYERROR;
-+				}
-+			}
- 			;
- 
- limit_stmt		:	LIMIT	RATE	limit_mode	NUM	SLASH	time_unit	limit_burst
-diff --git a/src/scanner.l b/src/scanner.l
-index 8b5a383bd095..467954374f11 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -299,14 +299,6 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "snaplen"		{ return SNAPLEN; }
- "queue-threshold"	{ return QUEUE_THRESHOLD; }
- "level"			{ return LEVEL; }
--"emerg"			{ return LEVEL_EMERG; }
--"alert"			{ return LEVEL_ALERT; }
--"crit"			{ return LEVEL_CRIT; }
--"err"			{ return LEVEL_ERR; }
--"warn"			{ return LEVEL_WARN; }
--"notice"		{ return LEVEL_NOTICE; }
--"info"			{ return LEVEL_INFO; }
--"debug"			{ return LEVEL_DEBUG; }
- 
- "queue"			{ return QUEUE;}
- "num"			{ return QUEUENUM;}
--- 
-2.1.4
+I guess there's a bug in nft utility, same problem exists in ip/ip6 family.
 
+In init routine, nft_validate_register_store was used to ensure
+that we will not do overflow operation.
+
+>
+> The latter two commands are killed by the OOM killer after a few
+> seconds. Same thing happens for 'ether type ip6', while it works fine
+> with 'ip saddr' or 'rt ip nexthop' in stead of 'ct original saddr'.
+>
+> Regards,
+> Anders
