@@ -1,75 +1,79 @@
-From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
-Subject: Re: [PATCH v2 nf-next 5/5] netfilter: nft: rt nexthop for inet family
-Date: Sat, 22 Oct 2016 16:08:52 +0000
-Message-ID: <1477152531.5024.53.camel@cohaesio.com>
-References: <1476902504.1161.24.camel@cohaesio.com>
-         <CAML_gOdd7=XOk+5csafW2zUjzTqzqufSp7L=3CpS8FBf6r+9nA@mail.gmail.com>
-         <1476966980.1161.52.camel@cohaesio.com>
-         <CAML_gOd9JSCHWQqnGN8FqdhghFHqCgDX_TiXgdpYnegROArmpQ@mail.gmail.com>
-         <1476971559.1161.58.camel@cohaesio.com>
-         <CAML_gOcPkygs4P95MAEDJJFRMvchKgONN-VFg45pso+Oc0B_GQ@mail.gmail.com>
-         <1477023411.1161.83.camel@cohaesio.com>
-         <CAML_gOfD0z7DTScvCOgMSqDZNdMB3TZ35pgRpikSFqdq_GRX5A@mail.gmail.com>
-         <20161021092130.GA1987@salvia>
-         <CAML_gOfecSTOHk-qSGhSwO4pFY9MW5FcBiFyZkqKZM4RAgL2NQ@mail.gmail.com>
-         <20161021165830.GA1556@salvia>
-         <CAML_gOdU_pChiyd08O-BPPk=r42PJ-38kTyZdngwQxboS9ToKw@mail.gmail.com>
+From: Jann Horn <jann@thejh.net>
+Subject: Re: [PATCH] netfilter: don't permit unprivileged writes to global
+ state via sysctls
+Date: Sat, 22 Oct 2016 23:23:42 +0200
+Message-ID: <20161022212342.GD3334@pc.thejh.net>
+References: <1474669264-3283-1-git-send-email-jann@thejh.net>
+ <20161020182224.GA10999@salvia>
+ <20161020.143747.1033652491220298518.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "zlpnobody@gmail.com" <zlpnobody@gmail.com>,
-        "pablo@netfilter.org" <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bender.cohaesio.com ([212.97.128.130]:44083 "EHLO
-        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934425AbcJVQJR (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 22 Oct 2016 12:09:17 -0400
-In-Reply-To: <CAML_gOdU_pChiyd08O-BPPk=r42PJ-38kTyZdngwQxboS9ToKw@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <C70298DB5D404246A9A14C6D9DE702EB@surftown.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="u65IjBhB3TIa72Vp"
+Cc: pablo@netfilter.org, kuznet@ms2.inr.ac.ru, jmorris@namei.org,
+        yoshfuji@linux-ipv6.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20161020.143747.1033652491220298518.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-SGkgTGlwaW5nIGFuZCBQYWJsbywNCg0KT24gbMO4ciwgMjAxNi0xMC0yMiBhdCAwOTo0NCArMDgw
-MCwgTGlwaW5nIFpoYW5nIHdyb3RlOg0KPiBIaSBQYWJsbywNCj4gMjAxNi0xMC0yMiAwOjU4IEdN
-VCswODowMCBQYWJsbyBOZWlyYSBBeXVzbyA8cGFibG9AbmV0ZmlsdGVyLm9yZz46DQo+ID4gDQo+
-ID4gV2Ugc3RpbGwgbmVlZCBkYXRhdHlwZSBpbmZvcm1hdGlvbiBmb3IgdGhlIGluZXQgZmFtaWx5
-LCBmcm9tIHRoZQ0KPiA+IG5ldGxpbmtfZGVsaW5lYXJpemUgc3RlcCwgd2hlbiBkdW1waW5nIGJh
-Y2sgdGhlIHBvbGljeSB0bw0KPiA+IHVzZXJzcGFjZS4NCj4gPiBHaXZlbiB0aGF0IHdlIGNhbm5v
-dCBpbmZlciB0aGUgZGF0YXR5cGUgZnJvbSB0aGUgZGF0YSBzaXplLCBhcyB0aGlzDQo+ID4gd291
-bGQgYmUgMTYgYnl0ZXMgZm9yIGJvdGggY2FzZXMsIHdlIHdvdWxkIHN0aWxsIG5lZWQgdG8gYW5u
-b3RhdGUNCj4gPiB0aGlzDQo+ID4gY29udGV4dCBpbmZvcm1hdGlvbiBzb21ld2hlcmUuIFRoZSBl
-eGlzdGluZyBhcHByb2FjaCBpcyBwcm92aWRpbmcNCj4gPiB0aGlzDQo+ID4gZGF0YXR5cGUgaW5m
-b3JtYXRpb24uDQo+IA0KPiBZZXMsIHRoZSBORlRBX1JUX0ZBTUlMWSBhdHRyIHdpbGwgc2ltcGxp
-Znkgb3VyIHdvcmssIHdpdGhvdXQgdGhpcyB3ZQ0KPiB3aWxsIGhhdmUgbXVjaCBtb3JlIHdvcmsg
-aW4gbmZ0IHV0aWxpdHkuDQo+IA0KPiBTaW5jZSBBbmRlcnMgc3VnZ2VzdHMgdGhlIGZvbGxvd2lu
-ZyB1c2FnZSBpbiBJTkVUIGZhbWlseToNCj4gwqAjIG5mdCBhZGQgcnVsZSBpbmV0IGZpbHRlciBw
-b3N0cm91dGluZyBldGhlciB0eXBlIGlwNiBydCBpcDYgbmV4dGhvcC4uLg0KPiDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBeXl5eXl5eXl5e
-Xl5eDQoNCkknbSBjb25zaWRlcmluZyB0byBjaGFuZ2UgdGhlIHN5bnRheCB0byBqdXN0ICJydCBu
-ZXh0aG9wIiBhbmQgdGhlbg0KZGV0ZXJtaW5lIHRoZSBmYW1pbHkgaW1wbGljaXRseSBmcm9tDQpj
-dHgtPnBjdHgucHJvdG9jb2xbUFJPVE9fQkFTRV9ORVRXT1JLX0hEUl0uZGVzYyAod2hpY2ggbXVz
-dCBiZSBzZXQgdmlhDQoiZXRoZXIgdHlwZSIsICJtZXRhIG5mcHJvdG8iIG9yIHNpbWlsYXIsIHdo
-ZW4gdXNlZCBmcm9tIHRoZSBpbmV0DQpmYW1pbHkpIGluwqBleHByX2V2YWx1YXRlX3J0KCkgaW4g
-c3RlYWQgb2YgdmVyaWZ5aW5nIGl0LiBUaGlzIGFsc28gc2VlbXMNCnRvIGJlIHdoYXQgTkZfQ1Rf
-U1JDIGV0Yy4gY3VycmVudGx5IGRvZXMuDQoNCkhvdyBkb2VzIHRoaXMgc291bmQ/DQoNCj4gU28g
-SSB0aGluayBpdCdzIGJldHRlciB0byBhZGQgaW1wbGljdCBkZXBlbmRlbmN5IHJ1bGVzIGluIGlu
-ZXQNCj4gZmFtaWx5Og0KPiBmb3IgcnQgaXAgbmV4dGhvcDogd2UgYWRkICJtZXRhIG5mcHJvdG8g
-aXB2NCINCj4gZm9yIHJ0IGlwNiBuZXh0aG9wOiB3ZSBhZGQgIm1ldGEgbmZwcm90byBpcHY2Ig0K
-PiANCj4gVGhlbiBsaWtlIE5GVF9DVF9TUkMgZG8sIHdlIGNhbiBpbXBsZW1lbnQgYSBzaW1pbGFy
-DQo+ICpjdF9leHByX3VwZGF0ZV90eXBlKiwgYW5kIGNhbGwgaXQgaW4gbmV0bGlua19kZWxpbmVh
-cml6ZSBzdGVwLg0KDQpCdXTCoGN0X2V4cHJfdXBkYXRlX3R5cGUgaXMgb25seSB1c2VkIGR1cmlu
-ZyB0aGUgbmV0bGlua19kZWxpbmVhcml6ZQ0KcG9zdHByb2Nlc3Mgc3RlcCwgYW5kIHRoYXQgY2F1
-c2VzIHByb2JsZW1zLCB3aGVuIGl0IGlzIHVzZWQgaW4NCmNvbWJpbmF0aW9uIHdpdGggZmxvdyBz
-dGF0ZW1lbnRzIGFzIGRlc2NyaWJlZCBpbiBvdGhlciBtYWlsLg0KDQo+IEkgYWdyZWUgdGhpcyB3
-aWxsIGFkZCBtdWNoIG1vcmUgd29yayBpbiBuZnQgdXRpbGl0eSwgYW5kIGFjdHVhbGx5LA0KPiB1
-c2UgdGhlIE5GVEFfUlRfRkFNSUxZIGF0dHIsIGlmIHdlIGRpZCBub3QgYWRkICJldGhlciB0eXBl
-IGlwNiINCj4gb3IgIm1ldGEgbmZwcm90byBpcHY2IiwgInJ0IGlwNiBuZXh0aG9wIiBjYW4gc3Rp
-bGwgd29yayB3ZWxsIGluDQo+IElORVQgZmFtaWx5Lg0KDQpXb3VsZCB5b3Ugb2JqZWN0IHRvIGRy
-b3BwaW5nIChpLmUuIGtlcm5lbCB3aWxsIG5vdCByZXF1aXJlIGl0IGFuZA0KdXNlcnNwYWNlIHdp
-bGwgbm90IGluY2x1ZGUgaXQpIHRoZSBORlRBX1JUX0ZBTUlMWSBhdHRyaWJ1dGUgZm9yIGlwIGFu
-ZA0KaXA2IGZhbWlsaWVzLCBidXQgdW5jb25kaXRpb25hbGx5IGluY2x1ZGluZyBpdCBmb3IgdGhl
-IGluZXQgZmFtaWx5Pw0KDQpSZWdhcmRzLA0KQW5kZXJz
+
+--u65IjBhB3TIa72Vp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Oct 20, 2016 at 02:37:47PM -0400, David Miller wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> Date: Thu, 20 Oct 2016 20:22:24 +0200
+>=20
+> > On Sat, Sep 24, 2016 at 12:21:04AM +0200, Jann Horn wrote:
+> >> This prevents the modification of nf_conntrack_max in unprivileged net=
+work
+> >> namespaces. For unprivileged network namespaces, ip_conntrack_max is k=
+ept
+> >> as a readonly sysctl in order to minimize potential compatibility issu=
+es.
+> >>=20
+> >> This patch should apply cleanly to the net tree.
+> >=20
+> > For the record: This patch looks good to me, but this legacy
+> > ip_conntrack sysctl code is now gone.
+> >=20
+> > I don't know what is the procedure to get this to -stable branches now
+> > that this cannot be pushed upstream.
+>=20
+> In the commit message for the -stable submission simply say "Not
+> applicable" in the upstream commit reference.  Like:
+>=20
+> 	[ Upstream commit: Not applicable ]
+>=20
+> or something like that.
+
+Who should do that? Me, after getting a maintainer ack? Or the maintainer?
+
+--u65IjBhB3TIa72Vp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJYC9jeAAoJED4KNFJOeCOoO5oP/0tMy+rqViZRPYgKDNhVStXg
+slHeHpxhGcVhUUmpHPOyjdoAeKxsWLIeJ7mYS35quWuQeRwdnv6060Z3cUUEeDvT
+0m27p7Y1+qYV9HmSvaEeWGpVu3WgT4D/+HqOvHeCUCcA+yNRNXLS7kzIvrJweCxy
+Bvrv9sI6LCRVqCYM0tjhr3flEIwZuGhWLWrc4qE+MefUvgkSjLJqVlAaiTIrVcV4
+UMjCHmy4GdcWiPsv2ZO3PwuRBnsjTdjYuSdOukPqivZCHa1v0gNmBYOiY3rZKrSG
+r0Fbuk9Z8X+Bq51nl1CNy1LnLshOOYM3GJDbRTr2X2zu7WAhUCpHMPhwxGxQ9LdE
+2b0V+I9qKH8A+wvdSu0oDswxb9AdEKw4zeeIgNu1JaTK4NuXIyPWM/TYrZ10p3LM
+QfDaG67VslsPs/AdmfXnayxf5+XR9V2M6PJ3uQl6QlwjbzJ4KI/+FQZZOQ1iWw32
+31C9ssSPvlELmQ/YEFGMOCjybFTwYolkStQVCQ0ADQeOnBGU4Os6E3XVBcz6GqJr
+mrhdMgcurUGmceMye085KO5Oj/MvQVm/j9FFUmox22QNA0J5lGQgFQ28s45lxVGK
+sco9n8YX1aQslKP8G6phoNU3BGve9lF7u5sApvY/T+YoH8YmFAKRQK/26ohy+25p
+hGImiqWL4p9DTh2A1rpa
+=qA2f
+-----END PGP SIGNATURE-----
+
+--u65IjBhB3TIa72Vp--
