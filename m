@@ -1,51 +1,49 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] netfilter: don't permit unprivileged writes to global
- state via sysctls
-Date: Sat, 22 Oct 2016 18:43:16 -0400 (EDT)
-Message-ID: <20161022.184316.791487930434404648.davem@davemloft.net>
-References: <20161020182224.GA10999@salvia>
-        <20161020.143747.1033652491220298518.davem@davemloft.net>
-        <20161022212342.GD3334@pc.thejh.net>
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH v2 nf-next 5/5] netfilter: nft: rt nexthop for inet family
+Date: Sun, 23 Oct 2016 13:01:51 +0800
+Message-ID: <CAML_gOeoT43PGgk02peStbpecitefrRO_tXA1TXJXc3k09yaYA@mail.gmail.com>
+References: <1476902504.1161.24.camel@cohaesio.com> <CAML_gOdd7=XOk+5csafW2zUjzTqzqufSp7L=3CpS8FBf6r+9nA@mail.gmail.com>
+ <1476966980.1161.52.camel@cohaesio.com> <CAML_gOd9JSCHWQqnGN8FqdhghFHqCgDX_TiXgdpYnegROArmpQ@mail.gmail.com>
+ <1476971559.1161.58.camel@cohaesio.com> <CAML_gOcPkygs4P95MAEDJJFRMvchKgONN-VFg45pso+Oc0B_GQ@mail.gmail.com>
+ <1477023411.1161.83.camel@cohaesio.com> <CAML_gOfD0z7DTScvCOgMSqDZNdMB3TZ35pgRpikSFqdq_GRX5A@mail.gmail.com>
+ <20161021092130.GA1987@salvia> <CAML_gOfecSTOHk-qSGhSwO4pFY9MW5FcBiFyZkqKZM4RAgL2NQ@mail.gmail.com>
+ <20161021165830.GA1556@salvia> <CAML_gOdU_pChiyd08O-BPPk=r42PJ-38kTyZdngwQxboS9ToKw@mail.gmail.com>
+ <1477152531.5024.53.camel@cohaesio.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, kuznet@ms2.inr.ac.ru, jmorris@namei.org,
-        yoshfuji@linux-ipv6.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-To: jann@thejh.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20161022212342.GD3334@pc.thejh.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: "pablo@netfilter.org" <pablo@netfilter.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ua0-f194.google.com ([209.85.217.194]:32916 "EHLO
+        mail-ua0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750807AbcJWFBx (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 23 Oct 2016 01:01:53 -0400
+Received: by mail-ua0-f194.google.com with SMTP id m26so682662uaa.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 22 Oct 2016 22:01:52 -0700 (PDT)
+In-Reply-To: <1477152531.5024.53.camel@cohaesio.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jann Horn <jann@thejh.net>
-Date: Sat, 22 Oct 2016 23:23:42 +0200
+Hi Anders,
 
-> On Thu, Oct 20, 2016 at 02:37:47PM -0400, David Miller wrote:
->> From: Pablo Neira Ayuso <pablo@netfilter.org>
->> Date: Thu, 20 Oct 2016 20:22:24 +0200
->> 
->> > On Sat, Sep 24, 2016 at 12:21:04AM +0200, Jann Horn wrote:
->> >> This prevents the modification of nf_conntrack_max in unprivileged network
->> >> namespaces. For unprivileged network namespaces, ip_conntrack_max is kept
->> >> as a readonly sysctl in order to minimize potential compatibility issues.
->> >> 
->> >> This patch should apply cleanly to the net tree.
->> > 
->> > For the record: This patch looks good to me, but this legacy
->> > ip_conntrack sysctl code is now gone.
->> > 
->> > I don't know what is the procedure to get this to -stable branches now
->> > that this cannot be pushed upstream.
->> 
->> In the commit message for the -stable submission simply say "Not
->> applicable" in the upstream commit reference.  Like:
->> 
->> 	[ Upstream commit: Not applicable ]
->> 
->> or something like that.
-> 
-> Who should do that? Me, after getting a maintainer ack? Or the maintainer?
+2016-10-23 0:08 GMT+08:00 Anders K. Pedersen | Cohaesio <akp@cohaesio.com>:
+[...]
+> But ct_expr_update_type is only used during the netlink_delinearize
+> postprocess step, and that causes problems, when it is used in
+> combination with flow statements as described in other mail.
 
-When the maintainer submits a patch to -stable, that's what they
-add to the commit message.
+I think this is a bug and should be fixed.
+
+> Would you object to dropping (i.e. kernel will not require it and
+> userspace will not include it) the NFTA_RT_FAMILY attribute for ip and
+> ip6 families, but unconditionally including it for the inet family?
+
+After I read your and Pablo's explanation, now I'm not sure which one
+is better. :)
+
+Maybe from this rt nexthop expression, we can get a relatively
+consistent way to handle the INET family properly, either
+explicitly add a _FAMILY_ attribute, or just like ct original saddr,
+completely handle it properly in the nft utility.
