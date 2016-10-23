@@ -1,104 +1,150 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 17/22] netfilter: ipset: Fix reported memory size for hash:* types
-Date: Sun, 23 Oct 2016 22:37:50 +0200
-Message-ID: <1477255075-15255-18-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 14/22] netfilter: ipset: Optimize hash creation routine
+Date: Sun, 23 Oct 2016 22:37:47 +0200
+Message-ID: <1477255075-15255-15-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1477255075-15255-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:52302 "EHLO smtp1.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:50899 "EHLO smtp2.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756715AbcJWUiF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 23 Oct 2016 16:38:05 -0400
+        id S1756775AbcJWUiG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 23 Oct 2016 16:38:06 -0400
 In-Reply-To: <1477255075-15255-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The calculation of the full allocated memory did not take
-into account the size of the base hash bucket structure at some
-places.
+Exit as easly as possible on error and use RCU_INIT_POINTER()
+as set is not seen at creation time.
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h | 16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 63 ++++++++++++++++-------------------
+ 1 file changed, 29 insertions(+), 34 deletions(-)
 
 diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index f4b30b6..295ad84 100644
+index e2f4925..cc9208b 100644
 --- a/net/netfilter/ipset/ip_set_hash_gen.h
 +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -87,6 +87,8 @@ struct htable {
- };
+@@ -1243,41 +1243,35 @@ struct htype {
+ 	struct htype *h;
+ 	struct htable *t;
  
- #define hbucket(h, i)		((h)->bucket[i])
-+#define ext_size(n, dsize)	\
-+	(sizeof(struct hbucket) + (n) * (dsize))
++	pr_debug("Create set %s with family %s\n",
++		 set->name, set->family == NFPROTO_IPV4 ? "inet" : "inet6");
++
+ #ifndef IP_SET_PROTO_UNDEF
+ 	if (!(set->family == NFPROTO_IPV4 || set->family == NFPROTO_IPV6))
+ 		return -IPSET_ERR_INVALID_FAMILY;
+ #endif
  
- #ifndef IPSET_NET_COUNT
- #define IPSET_NET_COUNT		1
-@@ -521,7 +523,7 @@ struct htype {
- 				d++;
- 			}
- 			tmp->pos = d;
--			set->ext_size -= AHASH_INIT_SIZE * dsize;
-+			set->ext_size -= ext_size(AHASH_INIT_SIZE, dsize);
- 			rcu_assign_pointer(hbucket(t, i), tmp);
- 			kfree_rcu(n, rcu);
- 		}
-@@ -627,7 +629,7 @@ struct htype {
- 					goto cleanup;
- 				}
- 				m->size = AHASH_INIT_SIZE;
--				extsize = sizeof(*m) + AHASH_INIT_SIZE * dsize;
-+				extsize = ext_size(AHASH_INIT_SIZE, dsize);
- 				RCU_INIT_POINTER(hbucket(t, key), m);
- 			} else if (m->pos >= m->size) {
- 				struct hbucket *ht;
-@@ -647,7 +649,7 @@ struct htype {
- 				memcpy(ht, m, sizeof(struct hbucket) +
- 					      m->size * dsize);
- 				ht->size = m->size + AHASH_INIT_SIZE;
--				extsize += AHASH_INIT_SIZE * dsize;
-+				extsize += ext_size(AHASH_INIT_SIZE, dsize);
- 				kfree(m);
- 				m = ht;
- 				RCU_INIT_POINTER(hbucket(t, key), ht);
-@@ -729,7 +731,7 @@ struct htype {
- 		if (!n)
- 			return -ENOMEM;
- 		n->size = AHASH_INIT_SIZE;
--		set->ext_size += sizeof(*n) + AHASH_INIT_SIZE * set->dsize;
-+		set->ext_size += ext_size(AHASH_INIT_SIZE, set->dsize);
- 		goto copy_elem;
+-#ifdef IP_SET_HASH_WITH_MARKMASK
+-	markmask = 0xffffffff;
+-#endif
+-#ifdef IP_SET_HASH_WITH_NETMASK
+-	netmask = set->family == NFPROTO_IPV4 ? 32 : 128;
+-	pr_debug("Create set %s with family %s\n",
+-		 set->name, set->family == NFPROTO_IPV4 ? "inet" : "inet6");
+-#endif
+-
+ 	if (unlikely(!ip_set_optattr_netorder(tb, IPSET_ATTR_HASHSIZE) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_MAXELEM) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
++
+ #ifdef IP_SET_HASH_WITH_MARKMASK
+ 	/* Separated condition in order to avoid directive in argument list */
+ 	if (unlikely(!ip_set_optattr_netorder(tb, IPSET_ATTR_MARKMASK)))
+ 		return -IPSET_ERR_PROTOCOL;
+-#endif
+ 
+-	if (tb[IPSET_ATTR_HASHSIZE]) {
+-		hashsize = ip_set_get_h32(tb[IPSET_ATTR_HASHSIZE]);
+-		if (hashsize < IPSET_MIMINAL_HASHSIZE)
+-			hashsize = IPSET_MIMINAL_HASHSIZE;
++	markmask = 0xffffffff;
++	if (tb[IPSET_ATTR_MARKMASK]) {
++		markmask = ntohl(nla_get_be32(tb[IPSET_ATTR_MARKMASK]));
++		if (markmask == 0)
++			return -IPSET_ERR_INVALID_MARKMASK;
  	}
- 	for (i = 0; i < n->pos; i++) {
-@@ -793,7 +795,7 @@ struct htype {
- 		memcpy(n, old, sizeof(struct hbucket) +
- 		       old->size * set->dsize);
- 		n->size = old->size + AHASH_INIT_SIZE;
--		set->ext_size += AHASH_INIT_SIZE * set->dsize;
-+		set->ext_size += ext_size(AHASH_INIT_SIZE, set->dsize);
- 	}
+-
+-	if (tb[IPSET_ATTR_MAXELEM])
+-		maxelem = ip_set_get_h32(tb[IPSET_ATTR_MAXELEM]);
++#endif
  
- copy_elem:
-@@ -885,7 +887,7 @@ struct htype {
- 				k++;
- 		}
- 		if (n->pos == 0 && k == 0) {
--			set->ext_size -= sizeof(*n) + n->size * dsize;
-+			set->ext_size -= ext_size(n->size, dsize);
- 			rcu_assign_pointer(hbucket(t, key), NULL);
- 			kfree_rcu(n, rcu);
- 		} else if (k >= AHASH_INIT_SIZE) {
-@@ -904,7 +906,7 @@ struct htype {
- 				k++;
- 			}
- 			tmp->pos = k;
--			set->ext_size -= AHASH_INIT_SIZE * dsize;
-+			set->ext_size -= ext_size(AHASH_INIT_SIZE, dsize);
- 			rcu_assign_pointer(hbucket(t, key), tmp);
- 			kfree_rcu(n, rcu);
- 		}
+ #ifdef IP_SET_HASH_WITH_NETMASK
++	netmask = set->family == NFPROTO_IPV4 ? 32 : 128;
+ 	if (tb[IPSET_ATTR_NETMASK]) {
+ 		netmask = nla_get_u8(tb[IPSET_ATTR_NETMASK]);
+ 
+@@ -1287,14 +1281,15 @@ struct htype {
+ 			return -IPSET_ERR_INVALID_NETMASK;
+ 	}
+ #endif
+-#ifdef IP_SET_HASH_WITH_MARKMASK
+-	if (tb[IPSET_ATTR_MARKMASK]) {
+-		markmask = ntohl(nla_get_be32(tb[IPSET_ATTR_MARKMASK]));
+ 
+-		if (markmask == 0)
+-			return -IPSET_ERR_INVALID_MARKMASK;
++	if (tb[IPSET_ATTR_HASHSIZE]) {
++		hashsize = ip_set_get_h32(tb[IPSET_ATTR_HASHSIZE]);
++		if (hashsize < IPSET_MIMINAL_HASHSIZE)
++			hashsize = IPSET_MIMINAL_HASHSIZE;
+ 	}
+-#endif
++
++	if (tb[IPSET_ATTR_MAXELEM])
++		maxelem = ip_set_get_h32(tb[IPSET_ATTR_MAXELEM]);
+ 
+ 	hsize = sizeof(*h);
+ #ifdef IP_SET_HASH_WITH_NETS
+@@ -1304,16 +1299,6 @@ struct htype {
+ 	if (!h)
+ 		return -ENOMEM;
+ 
+-	h->maxelem = maxelem;
+-#ifdef IP_SET_HASH_WITH_NETMASK
+-	h->netmask = netmask;
+-#endif
+-#ifdef IP_SET_HASH_WITH_MARKMASK
+-	h->markmask = markmask;
+-#endif
+-	get_random_bytes(&h->initval, sizeof(h->initval));
+-	set->timeout = IPSET_NO_TIMEOUT;
+-
+ 	hbits = htable_bits(hashsize);
+ 	hsize = htable_size(hbits);
+ 	if (hsize == 0) {
+@@ -1325,8 +1310,17 @@ struct htype {
+ 		kfree(h);
+ 		return -ENOMEM;
+ 	}
++	h->maxelem = maxelem;
++#ifdef IP_SET_HASH_WITH_NETMASK
++	h->netmask = netmask;
++#endif
++#ifdef IP_SET_HASH_WITH_MARKMASK
++	h->markmask = markmask;
++#endif
++	get_random_bytes(&h->initval, sizeof(h->initval));
++
+ 	t->htable_bits = hbits;
+-	rcu_assign_pointer(h->table, t);
++	RCU_INIT_POINTER(h->table, t);
+ 
+ 	set->data = h;
+ #ifndef IP_SET_PROTO_UNDEF
+@@ -1344,6 +1338,7 @@ struct htype {
+ 			__alignof__(struct IPSET_TOKEN(HTYPE, 6_elem)));
+ 	}
+ #endif
++	set->timeout = IPSET_NO_TIMEOUT;
+ 	if (tb[IPSET_ATTR_TIMEOUT]) {
+ 		set->timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
+ #ifndef IP_SET_PROTO_UNDEF
 -- 
 1.8.5.1
 
