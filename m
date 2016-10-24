@@ -1,86 +1,79 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] netfilter: ip_vs_sync: fix bogus maybe-uninitialized warning
-Date: Mon, 24 Oct 2016 17:34:32 +0200
-Message-ID: <20161024153454.2766113-1-arnd@arndb.de>
+From: Ulrich Weber <uweber.linux@gmail.com>
+Subject: Re: [PATCH] nf_conntrack_sip: check for trailing spaces
+Date: Mon, 24 Oct 2016 18:05:04 +0200
+Message-ID: <da198c8e-1728-1105-d0d2-74b453995d0e@gmail.com>
+References: <20161019082402.GA4575@gir> <20161020181732.GA10930@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Quentin Armitage <quentin@armitage.org.uk>,
-        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org
-To: Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
+        Marco Angaroni <marcoangaroni@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Ulrich Weber <ulrich.weber@riverbed.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34390 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933767AbcJXQFH (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 24 Oct 2016 12:05:07 -0400
+Received: by mail-wm0-f66.google.com with SMTP id d199so10522673wmd.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Oct 2016 09:05:07 -0700 (PDT)
+In-Reply-To: <20161020181732.GA10930@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Building the ip_vs_sync code with CONFIG_OPTIMIZE_INLINING on x86
-confuses the compiler to the point where it produces a rather
-dubious warning message:
+Hi Pablo,
 
-net/netfilter/ipvs/ip_vs_sync.c:1073:33: error: ‘opt.init_seq’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-  struct ip_vs_sync_conn_options opt;
-                                 ^~~
-net/netfilter/ipvs/ip_vs_sync.c:1073:33: error: ‘opt.delta’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-net/netfilter/ipvs/ip_vs_sync.c:1073:33: error: ‘opt.previous_delta’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-net/netfilter/ipvs/ip_vs_sync.c:1073:33: error: ‘*((void *)&opt+12).init_seq’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-net/netfilter/ipvs/ip_vs_sync.c:1073:33: error: ‘*((void *)&opt+12).delta’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-net/netfilter/ipvs/ip_vs_sync.c:1073:33: error: ‘*((void *)&opt+12).previous_delta’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
+good point, will send a new version!
 
-The problem appears to be a combination of a number of factors, including
-the __builtin_bswap32 compiler builtin being slightly odd, having a large
-amount of code inlined into a single function, and the way that some
-functions only get partially inlined here.
+Thanks
+ Ulrich
 
-I've spent way too much time trying to work out a way to improve the
-code, but the best I've come up with is to add an explicit memset
-right before the ip_vs_seq structure is first initialized here. When
-the compiler works correctly, this has absolutely no effect, but in the
-case that produces the warning, the warning disappears.
+On 20.10.2016 20:17, Pablo Neira Ayuso wrote:
+> Hi Ulrich,
+> 
+> Cc'ing Marco Angaroni.
+> 
+> On Wed, Oct 19, 2016 at 10:24:02AM +0200, Ulrich Weber wrote:
+>> on SIP requests, so a fragmented TCP SIP packet starting with
+>>  INVITE,NOTIFY,OPTIONS,REFER,REGISTER,UPDATE,SUBSCRIBE
+>>  Content-Length: 0
+>>
+>> will not bet interpreted as an INVITE request.
+>>
+>> Confirm with RFC 3261
+>>  Request-Line   =  Method SP Request-URI SP SIP-Version CRLF
+> 
+> Marco has missed your email, so I'm copying and pasting what he told
+> me wrt. to your patch:
+> 
+> My understanding is that Ulrich is referring to something like an
+> "Allow" header of a SIP message where the header name is part of a TCP
+> segment and the header value is part of the following TCP segment:
+> 
+> Allow: INVITE,ACK,CANCEL,OPTIONS,BYE
+> 
+> So I think the fix (check for a space after the method name) is
+> correct.
+> However maybe the check could be made more robust, because if you have
+> the fragmented "Allow" header containing the method names with a space
+> before comma (it's permitted by SIP grammar) like you see below, you
+> would again think that it's the first line of the SIP message:
+> 
+> Allow: INVITE , ACK , CANCEL , OPTIONS , BYE
+> 
+> Maybe it's worth checking two bytes after method name; the first byte
+> must be a space and the second must a alphanumeric character: the URI
+> following the method name has to start with "sip:" or "sips:" or some
+> other scheme, which starts for sure with an ALPHA character.
+> 
+> Request-Line   =  Method SP Request-URI SP SIP-Version CRLF
+> Request-URI    =  SIP-URI / SIPS-URI / absoluteURI
+> absoluteURI = scheme ":" ( hier-part / opaque-part )
+> scheme         =  ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-In the process of analysing this warning, I also noticed that
-we use memcpy to copy the larger ip_vs_sync_conn_options structure
-over two members of the ip_vs_conn structure. This works because
-the layout is identical, but seems error-prone, so I'm changing
-this in the process to directly copy the two members. This change
-seemed to have no effect on the object code or the warning, but
-it deals with the same data, so I kept the two changes together.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- net/netfilter/ipvs/ip_vs_sync.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index 1b07578bedf3..9350530c16c1 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -283,6 +283,7 @@ struct ip_vs_sync_buff {
-  */
- static void ntoh_seq(struct ip_vs_seq *no, struct ip_vs_seq *ho)
- {
-+	memset(ho, 0, sizeof(*ho));
- 	ho->init_seq       = get_unaligned_be32(&no->init_seq);
- 	ho->delta          = get_unaligned_be32(&no->delta);
- 	ho->previous_delta = get_unaligned_be32(&no->previous_delta);
-@@ -917,8 +918,10 @@ static void ip_vs_proc_conn(struct netns_ipvs *ipvs, struct ip_vs_conn_param *pa
- 			kfree(param->pe_data);
- 	}
- 
--	if (opt)
--		memcpy(&cp->in_seq, opt, sizeof(*opt));
-+	if (opt) {
-+		cp->in_seq = opt->in_seq;
-+		cp->out_seq = opt->out_seq;
-+	}
- 	atomic_set(&cp->in_pkts, sysctl_sync_threshold(ipvs));
- 	cp->state = state;
- 	cp->old_state = cp->state;
--- 
-2.9.0
