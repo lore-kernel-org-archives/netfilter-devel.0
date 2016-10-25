@@ -1,59 +1,67 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH] netfilter: ip_vs_sync: fix bogus maybe-uninitialized
- warning
-Date: Tue, 25 Oct 2016 16:15:16 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6DB020A210@AcuExch.aculab.com>
-References: <20161024153454.2766113-1-arnd@arndb.de>
- <alpine.LFD.2.11.1610242226310.2276@ja.home.ssi.bg>
- <12460209.DFK3VxnryE@wuerfel>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Cc: Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
+From: "John W. Linville" <linville@tuxdriver.com>
+Subject: [PATCH] netfilter: fix type mismatch with error return from nft_parse_u32_check
+Date: Tue, 25 Oct 2016 15:08:04 -0400
+Message-ID: <1477422484-27030-1-git-send-email-linville@tuxdriver.com>
+Cc: Patrick McHardy <kaber@trash.net>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Quentin Armitage <quentin@armitage.org.uk>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "coreteam@netfilter.org" <coreteam@netfilter.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-To: 'Arnd Bergmann' <arnd@arndb.de>, Julian Anastasov <ja@ssi.bg>
+        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+        "John W. Linville" <linville@tuxdriver.com>,
+        Laura Garcia Liebana <nevola@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Dan Carpenter <dan.carpenter@oracle.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <12460209.DFK3VxnryE@wuerfel>
-Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Arnd Bergmann
-> Sent: 24 October 2016 21:22
-> On Monday, October 24, 2016 10:47:54 PM CEST Julian Anastasov wrote:
-> > > diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-> > > index 1b07578bedf3..9350530c16c1 100644
-> > > --- a/net/netfilter/ipvs/ip_vs_sync.c
-> > > +++ b/net/netfilter/ipvs/ip_vs_sync.c
-> > > @@ -283,6 +283,7 @@ struct ip_vs_sync_buff {
-> > >   */
-> > >  static void ntoh_seq(struct ip_vs_seq *no, struct ip_vs_seq *ho)
-> > >  {
-> > > +     memset(ho, 0, sizeof(*ho));
-> > >       ho->init_seq       = get_unaligned_be32(&no->init_seq);
-> > >       ho->delta          = get_unaligned_be32(&no->delta);
-> > >       ho->previous_delta = get_unaligned_be32(&no->previous_delta);
-> >
-> >         So, now there is a double write here?
-> 
-> Correct. I would hope that a sane version of gcc would just not
-> perform the first write. What happens instead is that the version
-> that produces the warning here moves the initialization to the
-> top of the calling function.
+Commit 36b701fae12ac ("netfilter: nf_tables: validate maximum value of
+u32 netlink attributes") introduced nft_parse_u32_check with a return
+value of "unsigned int", yet on error it returns "-ERANGE".
 
-Maybe doing the 3 get_unaligned_be32() before the memset will stop
-the double-writes.
-The problem is that the compiler doesn't know that the two structures
-don't alias each other.
+This patch corrects the mismatch by changing the return value to "int",
+which happens to match the actual users of nft_parse_u32_check already.
 
-	David
+Found by Coverity, CID 1373930.
+
+Note that commit 21a9e0f1568ea ("netfilter: nft_exthdr: fix error
+handling in nft_exthdr_init()) attempted to address the issue, but
+did not address the return type of nft_parse_u32_check.
+
+Signed-off-by: John W. Linville <linville@tuxdriver.com>
+Cc: Laura Garcia Liebana <nevola@gmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Fixes: 0eadf37afc250 ("netfilter: nf_tables: validate maximum value...")
+---
+ include/net/netfilter/nf_tables.h | 2 +-
+ net/netfilter/nf_tables_api.c     | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 5031e072567b..da43f50b39c6 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -145,7 +145,7 @@ static inline enum nft_registers nft_type_to_reg(enum nft_data_types type)
+ 	return type == NFT_DATA_VERDICT ? NFT_REG_VERDICT : NFT_REG_1 * NFT_REG_SIZE / NFT_REG32_SIZE;
+ }
+ 
+-unsigned int nft_parse_u32_check(const struct nlattr *attr, int max, u32 *dest);
++int nft_parse_u32_check(const struct nlattr *attr, int max, u32 *dest);
+ unsigned int nft_parse_register(const struct nlattr *attr);
+ int nft_dump_register(struct sk_buff *skb, unsigned int attr, unsigned int reg);
+ 
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 24db22257586..32fa4f08444a 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4421,7 +4421,7 @@ static int nf_tables_check_loops(const struct nft_ctx *ctx,
+  *	Otherwise a 0 is returned and the attribute value is stored in the
+  *	destination variable.
+  */
+-unsigned int nft_parse_u32_check(const struct nlattr *attr, int max, u32 *dest)
++int nft_parse_u32_check(const struct nlattr *attr, int max, u32 *dest)
+ {
+ 	u32 val;
+ 
+-- 
+2.7.4
