@@ -1,87 +1,65 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] netfilter: ip_vs_sync: fix bogus maybe-uninitialized warning
-Date: Mon, 24 Oct 2016 22:21:59 +0200
-Message-ID: <12460209.DFK3VxnryE@wuerfel>
-References: <20161024153454.2766113-1-arnd@arndb.de> <alpine.LFD.2.11.1610242226310.2276@ja.home.ssi.bg>
+From: Marco Angaroni <marcoangaroni@gmail.com>
+Subject: Re: [PATCH v2] nf_conntrack_sip: extend request line validation
+Date: Tue, 25 Oct 2016 09:07:23 +0200
+Message-ID: <CANHHuCU6VoZFbP3TmKa1ajrJyFLydaSeqrwcSgycAB6chJmTHw@mail.gmail.com>
+References: <20161024160723.GA30272@gir>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Quentin Armitage <quentin@armitage.org.uk>,
-        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+To: Ulrich Weber <ulrich.weber@riverbed.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.73]:53268 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965285AbcJXUWi (ORCPT
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:33366 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750804AbcJYHHZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Oct 2016 16:22:38 -0400
-In-Reply-To: <alpine.LFD.2.11.1610242226310.2276@ja.home.ssi.bg>
+        Tue, 25 Oct 2016 03:07:25 -0400
+Received: by mail-oi0-f67.google.com with SMTP id i127so5605827oia.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Oct 2016 00:07:24 -0700 (PDT)
+In-Reply-To: <20161024160723.GA30272@gir>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday, October 24, 2016 10:47:54 PM CEST Julian Anastasov wrote:
-> > diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-> > index 1b07578bedf3..9350530c16c1 100644
-> > --- a/net/netfilter/ipvs/ip_vs_sync.c
-> > +++ b/net/netfilter/ipvs/ip_vs_sync.c
-> > @@ -283,6 +283,7 @@ struct ip_vs_sync_buff {
-> >   */
-> >  static void ntoh_seq(struct ip_vs_seq *no, struct ip_vs_seq *ho)
-> >  {
-> > +     memset(ho, 0, sizeof(*ho));
-> >       ho->init_seq       = get_unaligned_be32(&no->init_seq);
-> >       ho->delta          = get_unaligned_be32(&no->delta);
-> >       ho->previous_delta = get_unaligned_be32(&no->previous_delta);
-> 
->         So, now there is a double write here?
+Hello,
 
-Correct. I would hope that a sane version of gcc would just not
-perform the first write. What happens instead is that the version
-that produces the warning here moves the initialization to the
-top of the calling function.
+2016-10-24 18:07 GMT+02:00 Ulrich Weber <ulrich.weber@riverbed.com>:
+> on SIP requests, so a fragmented TCP SIP packet from an allow header starting with
+>  INVITE,NOTIFY,OPTIONS,REFER,REGISTER,UPDATE,SUBSCRIBE
+>  Content-Length: 0
+>
+> will not bet interpreted as an INVITE request. Also Request-URI must start with an alphabetic character.
+>
+> Confirm with RFC 3261
+>  Request-Line   =  Method SP Request-URI SP SIP-Version CRLF
+>
+> Signed-off-by: Ulrich Weber <ulrich.weber@riverbed.com>
 
->         What about such constructs?:
-> 
->         *ho = (struct ip_vs_seq) {
->                 .init_seq       = get_unaligned_be32(&no->init_seq),
->                 ...
->         };
-> 
->         Any difference in the compiled code or warnings?
+Looks ok to me.
 
-Yes, it's one of many things I tried. What happens here is that
-the warning remains as long as all fields are initialized together,
-e.g. these two produces the same warning:
+Acked-by: Marco Angaroni <marcoangaroni@gmail.com>
 
-a)
-    ho->init_seq       = get_unaligned_be32(&no->init_seq);
-    ho->delta          = get_unaligned_be32(&no->delta);
-    ho->previous_delta = get_unaligned_be32(&no->previous_delta);
-
-b)
-   *ho = (struct ip_vs_seq) {
-       .init_seq       = get_unaligned_be32(&no->init_seq);
-       .delta          = get_unaligned_be32(&no->delta);
-       .previous_delta = get_unaligned_be32(&no->previous_delta);
-   };
-
-but this one does not:
-
-c)
-   *ho = (struct ip_vs_seq) {
-       .delta          = get_unaligned_be32(&no->delta);
-       .previous_delta = get_unaligned_be32(&no->previous_delta);
-   };
-   ho->init_seq       = get_unaligned_be32(&no->init_seq);
-
-I have absolutely no idea what is going on inside of gcc here.
-
-	Arnd
+> ---
+>  net/netfilter/nf_conntrack_sip.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+>
+> diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+> index 7700556..df773d6 100644
+> --- a/net/netfilter/nf_conntrack_sip.c
+> +++ b/net/netfilter/nf_conntrack_sip.c
+> @@ -1436,9 +1436,12 @@ static int process_sip_request(struct sk_buff *skb, unsigned int protoff,
+>                 handler = &sip_handlers[i];
+>                 if (handler->request == NULL)
+>                         continue;
+> -               if (*datalen < handler->len ||
+> +               if (*datalen < handler->len + 2 ||
+>                     strncasecmp(*dptr, handler->method, handler->len))
+>                         continue;
+> +               if ((*dptr)[handler->len] != ' ' ||
+> +                   !isalpha((*dptr)[handler->len+1]))
+> +                       continue;
+>
+>                 if (ct_sip_get_header(ct, *dptr, 0, *datalen, SIP_HDR_CSEQ,
+>                                       &matchoff, &matchlen) <= 0) {
+> --
+> 2.7.4
+>
