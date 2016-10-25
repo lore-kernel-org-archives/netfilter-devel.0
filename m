@@ -1,7 +1,8 @@
 From: "John W. Linville" <linville@tuxdriver.com>
-Subject: [PATCH] netfilter: fix type mismatch with error return from nft_parse_u32_check
-Date: Tue, 25 Oct 2016 15:08:04 -0400
-Message-ID: <1477422484-27030-1-git-send-email-linville@tuxdriver.com>
+Subject: [PATCH v2] netfilter: fix type mismatch with error return from nft_parse_u32_check
+Date: Tue, 25 Oct 2016 15:56:39 -0400
+Message-ID: <1477425399-28480-1-git-send-email-linville@tuxdriver.com>
+References: <1477422484-27030-1-git-send-email-linville@tuxdriver.com>
 Cc: Patrick McHardy <kaber@trash.net>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
@@ -11,6 +12,7 @@ Cc: Patrick McHardy <kaber@trash.net>,
         Dan Carpenter <dan.carpenter@oracle.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1477422484-27030-1-git-send-email-linville@tuxdriver.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
@@ -31,7 +33,7 @@ Signed-off-by: John W. Linville <linville@tuxdriver.com>
 Cc: Laura Garcia Liebana <nevola@gmail.com>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Fixes: 0eadf37afc250 ("netfilter: nf_tables: validate maximum value...")
+Fixes: 36b701fae12ac ("netfilter: nf_tables: validate maximum value...")
 ---
  include/net/netfilter/nf_tables.h | 2 +-
  net/netfilter/nf_tables_api.c     | 2 +-
