@@ -1,75 +1,59 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH nf 1/3] netfilter: nft_dynset: fix panic if NFT_SET_HASH
- is not enabled
-Date: Tue, 25 Oct 2016 22:25:41 +0800
-Message-ID: <CAML_gOeZgqToS0_V==or4drPPDg1FPYz3dT_+FXEmfdZp5W0Vw@mail.gmail.com>
-References: <1477133486-60686-1-git-send-email-zlpnobody@163.com> <1477133486-60686-2-git-send-email-zlpnobody@163.com>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH] netfilter: ip_vs_sync: fix bogus maybe-uninitialized
+ warning
+Date: Tue, 25 Oct 2016 16:15:16 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6DB020A210@AcuExch.aculab.com>
+References: <20161024153454.2766113-1-arnd@arndb.de>
+ <alpine.LFD.2.11.1610242226310.2276@ja.home.ssi.bg>
+ <12460209.DFK3VxnryE@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Liping Zhang <zlpnobody@163.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ua0-f194.google.com ([209.85.217.194]:34164 "EHLO
-        mail-ua0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753338AbcJYOZm (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Oct 2016 10:25:42 -0400
-Received: by mail-ua0-f194.google.com with SMTP id 6so2327162uat.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Oct 2016 07:25:42 -0700 (PDT)
-In-Reply-To: <1477133486-60686-2-git-send-email-zlpnobody@163.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Cc: Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        Quentin Armitage <quentin@armitage.org.uk>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "coreteam@netfilter.org" <coreteam@netfilter.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: 'Arnd Bergmann' <arnd@arndb.de>, Julian Anastasov <ja@ssi.bg>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <12460209.DFK3VxnryE@wuerfel>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-2016-10-22 18:51 GMT+08:00 Liping Zhang <zlpnobody@163.com>:
-> From: Liping Zhang <zlpnobody@gmail.com>
->
-> When CONFIG_NFT_SET_HASH is not enabled and I input the following rule:
-> "nft add rule filter output flow table test {ip daddr counter }", kernel
-> panic happened on my system:
->  BUG: unable to handle kernel NULL pointer dereference at (null)
-> ---
->  net/netfilter/nft_dynset.c | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-> index e3b83c3..6a631cb 100644
-> --- a/net/netfilter/nft_dynset.c
-> +++ b/net/netfilter/nft_dynset.c
-> @@ -139,6 +139,9 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
->                         return PTR_ERR(set);
->         }
->
-> +       if (set->ops->update == NULL)
-> +               return -EOPNOTSUPP;
-> +
+From: Arnd Bergmann
+> Sent: 24 October 2016 21:22
+> On Monday, October 24, 2016 10:47:54 PM CEST Julian Anastasov wrote:
+> > > diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+> > > index 1b07578bedf3..9350530c16c1 100644
+> > > --- a/net/netfilter/ipvs/ip_vs_sync.c
+> > > +++ b/net/netfilter/ipvs/ip_vs_sync.c
+> > > @@ -283,6 +283,7 @@ struct ip_vs_sync_buff {
+> > >   */
+> > >  static void ntoh_seq(struct ip_vs_seq *no, struct ip_vs_seq *ho)
+> > >  {
+> > > +     memset(ho, 0, sizeof(*ho));
+> > >       ho->init_seq       = get_unaligned_be32(&no->init_seq);
+> > >       ho->delta          = get_unaligned_be32(&no->delta);
+> > >       ho->previous_delta = get_unaligned_be32(&no->previous_delta);
+> >
+> >         So, now there is a double write here?
+> 
+> Correct. I would hope that a sane version of gcc would just not
+> perform the first write. What happens instead is that the version
+> that produces the warning here moves the initialization to the
+> top of the calling function.
 
-Maybe it's better to treat the NFT_SET_EVAL as features, I will send V2 latter:
+Maybe doing the 3 get_unaligned_be32() before the memset will stop
+the double-writes.
+The problem is that the compiler doesn't know that the two structures
+don't alias each other.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index b70d3ea..8a39b2a 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2350,7 +2350,8 @@ nft_select_set_ops(const struct nlattr * const nla[],
-        features = 0;
-        if (nla[NFTA_SET_FLAGS] != NULL) {
-                features = ntohl(nla_get_be32(nla[NFTA_SET_FLAGS]));
--               features &= NFT_SET_INTERVAL | NFT_SET_MAP | NFT_SET_TIMEOUT;
-+               features &= NFT_SET_INTERVAL | NFT_SET_MAP | NFT_SET_TIMEOUT |
-+                           NFT_SET_EVAL;
-        }
-
-        bops       = NULL;
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 3794cb2..328d23c 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -382,7 +382,7 @@ static struct nft_set_ops nft_hash_ops __read_mostly = {
-        .lookup         = nft_hash_lookup,
-        .update         = nft_hash_update,
-        .walk           = nft_hash_walk,
--       .features       = NFT_SET_MAP | NFT_SET_TIMEOUT,
-+       .features       = NFT_SET_MAP | NFT_SET_TIMEOUT | NFT_SET_EVAL,
-        .owner          = THIS_MODULE,
- };
+	David
