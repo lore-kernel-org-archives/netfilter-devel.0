@@ -1,74 +1,62 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH nf 1/3] netfilter: nft_dynset: fix panic if NFT_SET_HASH
- is not enabled
-Date: Wed, 26 Oct 2016 21:14:36 +0800
-Message-ID: <CAML_gOdOR2RPhd27RcV+6bAQ4s4L37ER-ZN8CLaYdm2P1B3djw@mail.gmail.com>
-References: <1477133486-60686-1-git-send-email-zlpnobody@163.com>
- <1477133486-60686-2-git-send-email-zlpnobody@163.com> <CAML_gOeZgqToS0_V==or4drPPDg1FPYz3dT_+FXEmfdZp5W0Vw@mail.gmail.com>
+From: James Feeney <james@nurealm.net>
+Subject: Re: reject statement - "crazy" parse error?
+Date: Wed, 26 Oct 2016 12:50:23 -0600
+Message-ID: <5a8da546-8694-40b8-b514-1f80bff71a44@nurealm.net>
+References: <aea0c58c-dd68-bffb-859c-81f77ebe8dfd@nurealm.net>
+ <CAOkSjBjd6CwTcMv_G1p1KmWnQukHUn6f4oCoaeZHmXEyJDiW4g@mail.gmail.com>
+Reply-To: james@nurealm.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Developer Mailing List
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailing list
         <netfilter-devel@vger.kernel.org>
-To: Liping Zhang <zlpnobody@163.com>
+To: Arturo Borrero Gonzalez <arturo@debian.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f67.google.com ([209.85.213.67]:33518 "EHLO
-        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932471AbcJZNOi (ORCPT
+Received: from resqmta-po-09v.sys.comcast.net ([96.114.154.168]:56251 "EHLO
+        resqmta-po-09v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751129AbcJZSuZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Oct 2016 09:14:38 -0400
-Received: by mail-vk0-f67.google.com with SMTP id h7so192098vkf.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 26 Oct 2016 06:14:38 -0700 (PDT)
-In-Reply-To: <CAML_gOeZgqToS0_V==or4drPPDg1FPYz3dT_+FXEmfdZp5W0Vw@mail.gmail.com>
+        Wed, 26 Oct 2016 14:50:25 -0400
+In-Reply-To: <CAOkSjBjd6CwTcMv_G1p1KmWnQukHUn6f4oCoaeZHmXEyJDiW4g@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2016-10-25 22:25 GMT+08:00 Liping Zhang <zlpnobody@gmail.com>:
-> Maybe it's better to treat the NFT_SET_EVAL as features, I will send V2 latter:
->
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index b70d3ea..8a39b2a 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -2350,7 +2350,8 @@ nft_select_set_ops(const struct nlattr * const nla[],
->         features = 0;
->         if (nla[NFTA_SET_FLAGS] != NULL) {
->                 features = ntohl(nla_get_be32(nla[NFTA_SET_FLAGS]));
-> -               features &= NFT_SET_INTERVAL | NFT_SET_MAP | NFT_SET_TIMEOUT;
-> +               features &= NFT_SET_INTERVAL | NFT_SET_MAP | NFT_SET_TIMEOUT |
-> +                           NFT_SET_EVAL;
->         }
->
->         bops       = NULL;
-> diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-> index 3794cb2..328d23c 100644
-> --- a/net/netfilter/nft_set_hash.c
-> +++ b/net/netfilter/nft_set_hash.c
-> @@ -382,7 +382,7 @@ static struct nft_set_ops nft_hash_ops __read_mostly = {
->         .lookup         = nft_hash_lookup,
->         .update         = nft_hash_update,
->         .walk           = nft_hash_walk,
-> -       .features       = NFT_SET_MAP | NFT_SET_TIMEOUT,
-> +       .features       = NFT_SET_MAP | NFT_SET_TIMEOUT | NFT_SET_EVAL,
->         .owner          = THIS_MODULE,
->  };
+> I can't reproduce the issue here.
 
-Sorry for this noise, the original patch should be fine. :(
+Thanks Arturo.  What distribution are you using?  Hmm - any suggestions about
+how to "poke" at this issue on my end?
 
-After I have a careful look at the implementation of the dynset expr,
-it's not appropriate to treat the NFT_SET_EVAL as the features.
-The NFTA_DYNSET_EXPR attr is optional, and when it is not
-specified, we will report -EINVAL if (set->flags & NFT_SET_EVAL)
-is true:
+BTW, I can load this file without problem when replacing "reject" with "drop".
+Whatever the problem, it is "triggered" by the "reject" statement.
 
-static int nft_dynset_init()
-{
-    ...
-    if (tb[NFTA_DYNSET_EXPR] != NULL) {
-        if (!(set->flags & NFT_SET_EVAL))
-            return -EINVAL;
-        ...
-    } else if (set->flags & NFT_SET_EVAL)
-        return -EINVAL;
+I was concerned that perhaps my system was in some inconsistent upgrade state,
+because I noticed I was actually still running kernel 4.8.1-1, not 4.8.4-1.
 
-So for dynset, NFT_SET_EVAL is not a must option, but set->ops->update is.
+I tried a reboot and recompiled
+nftables-git 0.6.r96.gbb636b8-1
+libnftnl-git 1.0.6.r68.gc26951e-1
+
+And now, I get this:
+
+/etc/test.nft:4:1-2: Error: Could not process rule: Operation not supported
+table ip private {
+^^
+
+Well, that's not good, because something changed, from "No such file or
+directory" to "Operation not supported", but it is still not right.  Of course,
+in both cases, the error messages are "useless", not saying *what* file, and not
+saying *what* operation.
+
+I also tried re-installing the stock
+libnftnl   1.0.6-1
+nftables  1:0.6-2
+
+Those give the same error message.
+
+Should the linux kernel have any effect on this error?
+
+I noticed there is some debugging support in nft.  The error message is
+displayed last with debug scanner or parser, and displayed first with debug
+eval.  With debug mnl, the error is displayed in the midst of the output.
+
+Hmm - any thoughts?
