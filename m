@@ -1,62 +1,39 @@
-From: James Feeney <james@nurealm.net>
-Subject: Re: reject statement - "crazy" parse error?
-Date: Wed, 26 Oct 2016 12:50:23 -0600
-Message-ID: <5a8da546-8694-40b8-b514-1f80bff71a44@nurealm.net>
-References: <aea0c58c-dd68-bffb-859c-81f77ebe8dfd@nurealm.net>
- <CAOkSjBjd6CwTcMv_G1p1KmWnQukHUn6f4oCoaeZHmXEyJDiW4g@mail.gmail.com>
-Reply-To: james@nurealm.net
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo@debian.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: conntrack: avoid excess memory allocation
+Date: Wed, 26 Oct 2016 23:46:17 +0200
+Message-ID: <1477518377-26894-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from resqmta-po-09v.sys.comcast.net ([96.114.154.168]:56251 "EHLO
-        resqmta-po-09v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751129AbcJZSuZ (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57986 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932673AbcJZVqr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Oct 2016 14:50:25 -0400
-In-Reply-To: <CAOkSjBjd6CwTcMv_G1p1KmWnQukHUn6f4oCoaeZHmXEyJDiW4g@mail.gmail.com>
+        Wed, 26 Oct 2016 17:46:47 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> I can't reproduce the issue here.
+This is now a fixed-size extension, so we don't need to pass a variable
+alloc size.  This (harmless) error results in allocating 32 instead of
+the needed 16 bytes for this extension as the size gets passed twice.
 
-Thanks Arturo.  What distribution are you using?  Hmm - any suggestions about
-how to "poke" at this issue on my end?
+Fixes: 23014011ba420 ("netfilter: conntrack: support a fixed size of 128 distinct labels")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+diff --git a/include/net/netfilter/nf_conntrack_labels.h b/include/net/netfilter/nf_conntrack_labels.h
+index 498814626e28..1723a67c0b0a 100644
+--- a/include/net/netfilter/nf_conntrack_labels.h
++++ b/include/net/netfilter/nf_conntrack_labels.h
+@@ -30,8 +30,7 @@ static inline struct nf_conn_labels *nf_ct_labels_ext_add(struct nf_conn *ct)
+ 	if (net->ct.labels_used == 0)
+ 		return NULL;
+ 
+-	return nf_ct_ext_add_length(ct, NF_CT_EXT_LABELS,
+-				    sizeof(struct nf_conn_labels), GFP_ATOMIC);
++	return nf_ct_ext_add(ct, NF_CT_EXT_LABELS, GFP_ATOMIC);
+ #else
+ 	return NULL;
+ #endif
+-- 
+2.7.3
 
-BTW, I can load this file without problem when replacing "reject" with "drop".
-Whatever the problem, it is "triggered" by the "reject" statement.
-
-I was concerned that perhaps my system was in some inconsistent upgrade state,
-because I noticed I was actually still running kernel 4.8.1-1, not 4.8.4-1.
-
-I tried a reboot and recompiled
-nftables-git 0.6.r96.gbb636b8-1
-libnftnl-git 1.0.6.r68.gc26951e-1
-
-And now, I get this:
-
-/etc/test.nft:4:1-2: Error: Could not process rule: Operation not supported
-table ip private {
-^^
-
-Well, that's not good, because something changed, from "No such file or
-directory" to "Operation not supported", but it is still not right.  Of course,
-in both cases, the error messages are "useless", not saying *what* file, and not
-saying *what* operation.
-
-I also tried re-installing the stock
-libnftnl   1.0.6-1
-nftables  1:0.6-2
-
-Those give the same error message.
-
-Should the linux kernel have any effect on this error?
-
-I noticed there is some debugging support in nft.  The error message is
-displayed last with debug scanner or parser, and displayed first with debug
-eval.  With debug mnl, the error is displayed in the midst of the output.
-
-Hmm - any thoughts?
