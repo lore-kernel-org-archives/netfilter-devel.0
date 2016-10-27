@@ -1,49 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] netfilter: fix type mismatch with error return from
- nft_parse_u32_check
-Date: Thu, 27 Oct 2016 18:26:02 +0200
-Message-ID: <20161027162602.GA10225@salvia>
-References: <1477422484-27030-1-git-send-email-linville@tuxdriver.com>
- <1477425399-28480-1-git-send-email-linville@tuxdriver.com>
+Subject: Re: [PATCH v2] nf_conntrack_sip: extend request line validation
+Date: Thu, 27 Oct 2016 18:29:36 +0200
+Message-ID: <20161027162936.GA7955@salvia>
+References: <20161024160723.GA30272@gir>
+ <CANHHuCU6VoZFbP3TmKa1ajrJyFLydaSeqrwcSgycAB6chJmTHw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        Laura Garcia Liebana <nevola@gmail.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>
-To: "John W. Linville" <linville@tuxdriver.com>
+Cc: Ulrich Weber <ulrich.weber@riverbed.com>,
+        netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Marco Angaroni <marcoangaroni@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34696 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36222 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935556AbcJ0Q0H (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Oct 2016 12:26:07 -0400
+        id S933709AbcJ0Q3r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 27 Oct 2016 12:29:47 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D28899B7FB
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:26:05 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 4A40D9B802
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:29:44 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C2F3BDA852
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:26:05 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 37BD4DA819
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:29:44 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A9A3FDA818
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:26:03 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0A091DA84D
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:29:37 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1477425399-28480-1-git-send-email-linville@tuxdriver.com>
+In-Reply-To: <CANHHuCU6VoZFbP3TmKa1ajrJyFLydaSeqrwcSgycAB6chJmTHw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 25, 2016 at 03:56:39PM -0400, John W. Linville wrote:
-> Commit 36b701fae12ac ("netfilter: nf_tables: validate maximum value of
-> u32 netlink attributes") introduced nft_parse_u32_check with a return
-> value of "unsigned int", yet on error it returns "-ERANGE".
+On Tue, Oct 25, 2016 at 09:07:23AM +0200, Marco Angaroni wrote:
+> Hello,
 > 
-> This patch corrects the mismatch by changing the return value to "int",
-> which happens to match the actual users of nft_parse_u32_check already.
+> 2016-10-24 18:07 GMT+02:00 Ulrich Weber <ulrich.weber@riverbed.com>:
+> > on SIP requests, so a fragmented TCP SIP packet from an allow header starting with
+> >  INVITE,NOTIFY,OPTIONS,REFER,REGISTER,UPDATE,SUBSCRIBE
+> >  Content-Length: 0
+> >
+> > will not bet interpreted as an INVITE request. Also Request-URI must start with an alphabetic character.
+> >
+> > Confirm with RFC 3261
+> >  Request-Line   =  Method SP Request-URI SP SIP-Version CRLF
+> >
+> > Signed-off-by: Ulrich Weber <ulrich.weber@riverbed.com>
 > 
-> Found by Coverity, CID 1373930.
+> Looks ok to me.
 > 
-> Note that commit 21a9e0f1568ea ("netfilter: nft_exthdr: fix error
-> handling in nft_exthdr_init()) attempted to address the issue, but
-> did not address the return type of nft_parse_u32_check.
+> Acked-by: Marco Angaroni <marcoangaroni@gmail.com>
 
-Applied, thanks John.
+Applied, thanks!
