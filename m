@@ -1,47 +1,49 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf 0/3] netfilter: nf_tables: fix some bugs related to
- dynset
-Date: Thu, 27 Oct 2016 18:23:08 +0200
-Message-ID: <20161027162308.GA9934@salvia>
-References: <1477133486-60686-1-git-send-email-zlpnobody@163.com>
+Subject: Re: [PATCH v2] netfilter: fix type mismatch with error return from
+ nft_parse_u32_check
+Date: Thu, 27 Oct 2016 18:26:02 +0200
+Message-ID: <20161027162602.GA10225@salvia>
+References: <1477422484-27030-1-git-send-email-linville@tuxdriver.com>
+ <1477425399-28480-1-git-send-email-linville@tuxdriver.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
-To: Liping Zhang <zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+        Laura Garcia Liebana <nevola@gmail.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>
+To: "John W. Linville" <linville@tuxdriver.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33104 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34696 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755710AbcJ0QX0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Oct 2016 12:23:26 -0400
+        id S935556AbcJ0Q0H (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 27 Oct 2016 12:26:07 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 271CC9B7EC
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:23:23 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id D28899B7FB
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:26:05 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 16DE6DA854
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:23:23 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C2F3BDA852
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:26:05 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 73C96DA84A
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:23:17 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A9A3FDA818
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:26:03 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1477133486-60686-1-git-send-email-zlpnobody@163.com>
+In-Reply-To: <1477425399-28480-1-git-send-email-linville@tuxdriver.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Oct 22, 2016 at 06:51:23PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <zlpnobody@gmail.com>
+On Tue, Oct 25, 2016 at 03:56:39PM -0400, John W. Linville wrote:
+> Commit 36b701fae12ac ("netfilter: nf_tables: validate maximum value of
+> u32 netlink attributes") introduced nft_parse_u32_check with a return
+> value of "unsigned int", yet on error it returns "-ERANGE".
 > 
-> Suppose that the user input the following nft rules, then a dynset expr is
-> created:
->   # nft add rule filter output flow table test { ip daddr counter }
+> This patch corrects the mismatch by changing the return value to "int",
+> which happens to match the actual users of nft_parse_u32_check already.
 > 
-> But actually, there are some bugs exist in kernel:
-> 1. If CONFIG_NFT_SET_HASH is not enabled, kernel panic will happen
-> 2. In extreme case, i.e. memory is exhausted, then expr clone will
->    fail, this will cause module refcnt leak, memory leak and incorrect
->    set's nelems
-> 3. Packets may race when create the new element, and these *racing*
->    packets will not be handled properly.
+> Found by Coverity, CID 1373930.
 > 
-> This patch set is aimed to fix these problems.
+> Note that commit 21a9e0f1568ea ("netfilter: nft_exthdr: fix error
+> handling in nft_exthdr_init()) attempted to address the issue, but
+> did not address the return type of nft_parse_u32_check.
 
-Series applied, thanks!
+Applied, thanks John.
