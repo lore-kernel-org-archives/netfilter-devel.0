@@ -1,74 +1,80 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [conntrack-tools PATCH] log: print messages to stdout/sderr if
- running in console mode
-Date: Thu, 27 Oct 2016 21:53:21 +0200
-Message-ID: <20161027195321.GA4996@salvia>
-References: <147756970023.18643.10864550353652488496.stgit@nfdev2.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo@debian.org>
+Subject: [PATCH nft] parser: add offset keyword and parser rule
+Date: Thu, 27 Oct 2016 22:14:06 +0200
+Message-ID: <1477599246-9319-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47976 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53232 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932887AbcJ0TyW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Oct 2016 15:54:22 -0400
+        id S1750823AbcJ0UOT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 27 Oct 2016 16:14:19 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 869DBB6C6E
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 21:53:24 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 93FD0A8205
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 22:14:17 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 74DF9DA818
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 21:53:24 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 868A1DA7E9
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 22:14:17 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 40EDADA818
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 21:53:22 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <147756970023.18643.10864550353652488496.stgit@nfdev2.cica.es>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2DD29DA7E9
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 22:14:14 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 27, 2016 at 02:01:40PM +0200, Arturo Borrero Gonzalez wrote:
-> If conntrackd is running in console mode (i.e. in foreground)
-> then we can print the log messages to stdout/stderr.
-> 
-> This eases the workflow for admins, since we condensate more info into
-> the same terminal output.
-> 
-> Example:
-> 
-> % sudo conntrackd -C /etc/conntrackd.conf
-> WARNING: XXXX is an invalid interface
-> [Thu Oct 27 13:57:09 2016] (pid=7581) [notice] disabling internal cache
-> [Thu Oct 27 13:57:09 2016] (pid=7581) [notice] disabling external cache
-> [Thu Oct 27 13:57:09 2016] (pid=7581) [ERROR] can't open channel socket: No such device
-> [Thu Oct 27 13:57:09 2016] (pid=7581) [ERROR] initialization failed
-> ERROR: conntrackd cannot start, please check the logfile for more info
+This is required by the numgen and jhash expressions.
 
-I'm fine with this. But I'm hitting compilation warnings here:
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Sorry, I applied Laura's 3/4 and 4/4 but there were several dependencies
+that I'm fixing up in this patch.
 
-log.c: In function `logline_put':
-log.c:93:23: warning: passing argument 3 of `vfprintf' from incompatible pointer type
-  vfprintf(fd, format, args);
-                       ^
-In file included from ../include/log.h:4:0,
-                 from log.c:21:
-/usr/include/stdio.h:371:12: note: expected `struct __va_list_tag *'
-but argument is of type `struct __va_list_tag (*)[1]'
- extern int vfprintf (FILE *__restrict __s, const char *__restrict __format,
-            ^
-log.c: In function `dlog':
-log.c:117:46: warning: passing argument 4 of `logline_put' from incompatible pointer type
-   logline_put(console_out, priority, format, args);
-                                              ^
-log.c:63:13: note: expected `struct __va_list_tag (*)[1]' but argument is of type `struct __va_list_tag *'
- static void logline_put(FILE *fd, int priority, const char *format,
-             ^
-log.c:123:37: warning: passing argument 4 of `logline_put' from incompatible pointer type
-   logline_put(fd, priority, format, args);
-                                     ^
-log.c:63:13: note: expected `struct __va_list_tag (*)[1]' but argument is of type `struct __va_list_tag *'
- static void logline_put(FILE *fd, int priority, const char *format,
+ src/parser_bison.y | 7 ++++++-
+ src/scanner.l      | 1 +
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-$ gcc -v
-[...]
-gcc version 4.9.2 (Debian 4.9.2-10) 
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 7377492baf86..35504de1a689 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -410,6 +410,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token NUMGEN			"numgen"
+ %token INC			"inc"
+ %token MOD			"mod"
++%token OFFSET			"offset"
+ 
+ %token JHASH			"jhash"
+ %token SEED			"seed"
+@@ -482,7 +483,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %destructor { stmt_free($$); }	reject_stmt reject_stmt_alloc
+ %type <stmt>			nat_stmt nat_stmt_alloc masq_stmt masq_stmt_alloc redir_stmt redir_stmt_alloc
+ %destructor { stmt_free($$); }	nat_stmt nat_stmt_alloc masq_stmt masq_stmt_alloc redir_stmt redir_stmt_alloc
+-%type <val>			nf_nat_flags nf_nat_flag
++%type <val>			nf_nat_flags nf_nat_flag offset_opt
+ %type <stmt>			queue_stmt queue_stmt_alloc
+ %destructor { stmt_free($$); }	queue_stmt queue_stmt_alloc
+ %type <val>			queue_stmt_flags queue_stmt_flag
+@@ -2486,6 +2487,10 @@ meta_stmt		:	META	meta_key	SET	expr
+ 			}
+ 			;
+ 
++offset_opt		:	/* empty */	{ $$ = 0; }
++			|	OFFSET	NUM	{ $$ = $2; }
++			;
++
+ numgen_type		:	INC		{ $$ = NFT_NG_INCREMENTAL; }
+ 			|	RANDOM		{ $$ = NFT_NG_RANDOM; }
+ 			;
+diff --git a/src/scanner.l b/src/scanner.l
+index 467954374f11..157b561bb874 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -462,6 +462,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "numgen"		{ return NUMGEN; }
+ "inc"			{ return INC; }
+ "mod"			{ return MOD; }
++"offset"		{ return OFFSET; }
+ 
+ "jhash"			{ return JHASH; }
+ "seed"			{ return SEED; }
+-- 
+2.1.4
+
