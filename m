@@ -1,59 +1,68 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 0/3] support ct/meta key lookups at runtime
-Date: Thu, 27 Oct 2016 18:51:16 +0200
-Message-ID: <20161027165116.GA17182@salvia>
-References: <1477521368-12696-1-git-send-email-fw@strlen.de>
- <20161027164810.GA15837@salvia>
+Subject: Re: [PATCH 00/22] ipset patches for nf-next, v2
+Date: Thu, 27 Oct 2016 18:53:51 +0200
+Message-ID: <20161027165351.GA17233@salvia>
+References: <1477255075-15255-1-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44484 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45584 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S964863AbcJ0QvV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Oct 2016 12:51:21 -0400
+        id S1755930AbcJ0QyK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 27 Oct 2016 12:54:10 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 40ECB6EACE
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:51:19 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 4DD3962D24
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:53:58 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 31F25DA845
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:51:19 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3B3F1DA81F
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:53:58 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 00616DA842
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:51:17 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 21F64DA846
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:53:56 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20161027164810.GA15837@salvia>
+In-Reply-To: <1477255075-15255-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 27, 2016 at 06:48:10PM +0200, Pablo Neira Ayuso wrote:
-> On Thu, Oct 27, 2016 at 12:36:05AM +0200, Florian Westphal wrote:
-> > I have a patch series to add support of hash (skb hash) and sym hash
-> > (symmetric skb hash) to nft_meta.
-> > 
-> > This series would allow extending meta without adding new hash/symhash
-> > keywords in the scanner.
-> > 
-> > What do you think?
+On Sun, Oct 23, 2016 at 10:37:33PM +0200, Jozsef Kadlecsik wrote:
+> Hi Pablo,
 > 
-> Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Sorry for the first version, it was a mistake at copying the patch content
+> from the ipset package (where the original version was checked and
+> verified).
 > 
-> Only one suggestion, instead of:
+> Please consider to apply the next bunch of patches for ipset.
+> There is new set type in it (hash:ip,mac), elemet counts are reported
+> to userspace in the set headers data and a couple of small cleanups,
+> improvements
 > 
->  return error(loc, "Could not parse %s, known ct keys are: %s", str, buf);
-> 
-> Looking at current error reporting:
-> 
->  # nft add rule x y ct
->  <cmdline>:1:18-18: Error: syntax error, unexpected newline
->  add rule x y ct
->                 ^
-> Probably something like looks better:
-> 
->  "syntax error, unexpected %s, known keys are %s"
+> * rcu_dereference_bh_nfnl() redefined to accept netfilter subsys id.
+> * Header files cleanup: counter helper functions are grouped together,
+>   some args are changed to const.
+> * struct ip_set_skbinfo is introduced instead of open coded fields
+>   in skbinfo get/init helper funcions.
+> * In comment extension allocate area with kmalloc() rather than kzalloc().
+> * Split all extensions into separate files.
+> * Separate memsize calculation into dedicated functions.
+> * ip_set_put_extensions() is regrouped and extern is added.
+> * Add element count to hash headers by Eric B Munson.
+> * Add element count to all set types header for uniform output.
+> * Count non-static extension memory into memsize calculation for
+>   userspace.
+> * Simplify mtype_expire() for hash types by removing redundant
+>   parameters which can be get from other ones.
+> * Make NLEN compile time constant for hash types.
+> * Make sure element data size is a multiple of u32.
+> * Optimize hash creation routine, exit as early as possible.
+> * Make struct htype per ipset family.
+> * Collapse same condition body into a single one.
+> * Fix reported memory size for hash:* types.
+> * hash:ipmac type support added to ipset by Tomasz Chilinski.
+> * Use setup_timer() and mod_timer() instead of init_timer()
+>   by Muhammad Falak R Wani, individually for the set type families.
+> * hash: fix boolreturn.cocci warnings avout bool should use true/false
+>   by Fengguang Wu.
 
-Actually, if we follow this approach, we probably have to revisit all
-other existing error messages...
-
-Keep this as it is, we can revisit this later.
+Pulled, thanks Jozsef.
