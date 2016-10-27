@@ -1,33 +1,47 @@
-From: mark diener <rpzrpzrpz@gmail.com>
-Subject: NFTables Internals
-Date: Thu, 27 Oct 2016 09:56:18 -0600
-Message-ID: <CAChgv6pe8mrMRgYhzmiTSQ9dC5d1shp8j_RpU2Kf+n31iA_omQ@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf 0/3] netfilter: nf_tables: fix some bugs related to
+ dynset
+Date: Thu, 27 Oct 2016 18:23:08 +0200
+Message-ID: <20161027162308.GA9934@salvia>
+References: <1477133486-60686-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f41.google.com ([209.85.218.41]:33845 "EHLO
-        mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933914AbcJ0P4U (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Oct 2016 11:56:20 -0400
-Received: by mail-oi0-f41.google.com with SMTP id p136so9302966oic.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 08:56:19 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:33104 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755710AbcJ0QX0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 27 Oct 2016 12:23:26 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 271CC9B7EC
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:23:23 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 16DE6DA854
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:23:23 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 73C96DA84A
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 18:23:17 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <1477133486-60686-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thanks for all the responses about the internals of NFTables
+On Sat, Oct 22, 2016 at 06:51:23PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <zlpnobody@gmail.com>
+> 
+> Suppose that the user input the following nft rules, then a dynset expr is
+> created:
+>   # nft add rule filter output flow table test { ip daddr counter }
+> 
+> But actually, there are some bugs exist in kernel:
+> 1. If CONFIG_NFT_SET_HASH is not enabled, kernel panic will happen
+> 2. In extreme case, i.e. memory is exhausted, then expr clone will
+>    fail, this will cause module refcnt leak, memory leak and incorrect
+>    set's nelems
+> 3. Packets may race when create the new element, and these *racing*
+>    packets will not be handled properly.
+> 
+> This patch set is aimed to fix these problems.
 
-The best starter document was this:
-
-https://workshop.netfilter.org/2016/wiki/images/7/78/Nft-tutorial.pdf
-
-Now I just need to figure out how to interpet the "payload load 4b @
-network_header + 12" nomenclature to really get a handle on things.
-
-Any more documents or videos to understand the internals?
-(Instead of hours spent looking at source code!)
-
-Thanks,
-
-md
+Series applied, thanks!
