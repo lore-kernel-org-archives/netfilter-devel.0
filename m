@@ -1,90 +1,39 @@
 From: Aaron Conole <aconole@bytheb.org>
-Subject: [PATCH RFC netfilter-next 2/3] netfilter: decouple nf_hook_entry and nf_hook_ops
-Date: Thu, 27 Oct 2016 14:27:52 -0400
-Message-ID: <1477592873-4468-3-git-send-email-aconole@bytheb.org>
-References: <1477592873-4468-1-git-send-email-aconole@bytheb.org>
+Subject: [PATCH RFC netfilter-next 0/3] Additional refactoring enhancements for nf_hook_entry
+Date: Thu, 27 Oct 2016 14:27:50 -0400
+Message-ID: <1477592873-4468-1-git-send-email-aconole@bytheb.org>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:33947 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S942199AbcJ0S2F (ORCPT
+Received: from mail-qk0-f171.google.com ([209.85.220.171]:34296 "EHLO
+        mail-qk0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936503AbcJ0S2C (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Oct 2016 14:28:05 -0400
-Received: by mail-qt0-f196.google.com with SMTP id p53so37269qtp.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 11:28:05 -0700 (PDT)
-In-Reply-To: <1477592873-4468-1-git-send-email-aconole@bytheb.org>
+        Thu, 27 Oct 2016 14:28:02 -0400
+Received: by mail-qk0-f171.google.com with SMTP id x11so9652051qka.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 11:28:02 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-During nfhook traversal we only need a very small subset of
-nf_hook_ops members.
+This series reduces the size of the nf_hook_entry objects, and converts the
+loops which traverse into for-loops.  This will facilitate future work to
+switch from a singly-linked list into an array.
 
-We need:
-- next element
-- hook function to call
-- hook function priv argument
+This series was built and tested on top of Pablo's series posted at
+https://www.spinics.net/lists/netfilter-devel/msg44408.html
 
-Bridge netfilter also needs 'thresh'; can be obtained via ->orig_ops.
+Aaron Conole (3):
+  netfilter: introduce accessor functions for hook entries
+  netfilter: decouple nf_hook_entry and nf_hook_ops
+  netfilter: Convert while loops to for-loops
 
-nf_hook_entry struct is now 32 bytes on x86_64.
+ include/linux/netfilter.h       | 42 +++++++++++++++++++++++++++++++++++++----
+ net/bridge/br_netfilter_hooks.c |  8 ++++----
+ net/netfilter/core.c            | 14 +++++---------
+ net/netfilter/nf_queue.c        | 11 +++++------
+ 4 files changed, 52 insertions(+), 23 deletions(-)
 
-Followup patch will turn the run-time list into an array that only
-stores hook functions plus their priv arguments.
-
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Aaron Conole <aconole@bytheb.org>
----
- include/linux/netfilter.h | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
-
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index b25386b..cc2d977 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -76,7 +76,8 @@ struct nf_hook_ops {
- 
- struct nf_hook_entry {
- 	struct nf_hook_entry __rcu	*next;
--	struct nf_hook_ops		ops;
-+	nf_hookfn			*hook;
-+	void				*priv;
- 	const struct nf_hook_ops	*orig_ops;
- };
- 
-@@ -84,26 +85,27 @@ static inline void
- nf_hook_entry_init(struct nf_hook_entry *entry,	const struct nf_hook_ops *ops)
- {
- 	entry->next = NULL;
--	entry->ops = *ops;
-+	entry->hook = ops->hook;
-+	entry->priv = ops->priv;
- 	entry->orig_ops = ops;
- }
- 
- static inline int
- nf_hook_entry_priority(const struct nf_hook_entry *entry)
- {
--	return entry->ops.priority;
-+	return entry->orig_ops->priority;
- }
- 
- static inline nf_hookfn *
- nf_hook_entry_hookfn(const struct nf_hook_entry *entry)
- {
--	return entry->ops.hook;
-+	return entry->hook;
- }
- 
- static inline void *
- nf_hook_entry_priv(const struct nf_hook_entry *entry)
- {
--	return entry->ops.priv;
-+	return entry->priv;
- }
- 
- static inline const struct nf_hook_ops *
 -- 
 2.7.4
 
