@@ -1,48 +1,60 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 1/3] utils: provide snprintf helper macro
-Date: Thu, 27 Oct 2016 00:36:06 +0200
-Message-ID: <1477521368-12696-2-git-send-email-fw@strlen.de>
-References: <1477521368-12696-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Arturo Borrero Gonzalez <arturo@debian.org>
+Subject: [conntrack-tools PATCH] sync-mode: print errno message on failure
+Date: Thu, 27 Oct 2016 12:20:17 +0200
+Message-ID: <147756361728.15386.11786527603548778870.stgit@nfdev2.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:58156 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754096AbcJZWfz (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Oct 2016 18:35:55 -0400
-In-Reply-To: <1477521368-12696-1-git-send-email-fw@strlen.de>
+Received: from smtp3.cica.es ([150.214.5.190]:46097 "EHLO smtp.cica.es"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751022AbcJ0NsH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 27 Oct 2016 09:48:07 -0400
+Received: from localhost (unknown [127.0.0.1])
+        by smtp.cica.es (Postfix) with ESMTP id 3514351F356
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 10:20:11 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id cUzq4Lq1v6bF for <netfilter-devel@vger.kernel.org>;
+        Thu, 27 Oct 2016 12:20:05 +0200 (CEST)
+Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
+        (Authenticated sender: servers@cica.es)
+        by smtp.cica.es (Postfix) with ESMTP id 9B8CC51F353
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Oct 2016 12:20:05 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-lifted from libnftnl, except that we will abort on snprintf errors.
+I have observed this message several times:
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+ [ERROR] can't open channel socket
+ [ERROR] initialization failed
+
+which is very difficult to understand.
+
+The errno message should help this to be a bit more explicit.
+With this patch, in the case of wrong interface:
+
+ [ERROR] can't open channel socket: No such device
+ [ERROR] initialization failed
+
+Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
 ---
- include/utils.h | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ src/sync-mode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/include/utils.h b/include/utils.h
-index d88676476efb..bb58ba424165 100644
---- a/include/utils.h
-+++ b/include/utils.h
-@@ -83,6 +83,16 @@
- 	(void) (&_max1 == &_max2);		\
- 	_max1 > _max2 ? _max1 : _max2; })
- 
-+#define SNPRINTF_BUFFER_SIZE(ret, size, len, offset)	\
-+	if (ret < 0)					\
-+		abort();				\
-+	offset += ret;					\
-+	assert(ret < len);				\
-+	if (ret > len)					\
-+		ret = len;				\
-+	size += ret;					\
-+	len -= ret;
-+
- #define MSEC_PER_SEC	1000L
- 
- /**
--- 
-2.7.3
+diff --git a/src/sync-mode.c b/src/sync-mode.c
+index e69ecfe..8fe65f1 100644
+--- a/src/sync-mode.c
++++ b/src/sync-mode.c
+@@ -412,7 +412,8 @@ static int init_sync(void)
+ 	STATE_SYNC(channel) =
+ 		multichannel_open(CONFIG(channel), CONFIG(channel_num));
+ 	if (STATE_SYNC(channel) == NULL) {
+-		dlog(LOG_ERR, "can't open channel socket");
++		dlog(LOG_ERR, "can't open channel socket: %s",
++		     strerror(errno));
+ 		return -1;
+ 	}
+ 	for (i=0; i<STATE_SYNC(channel)->channel_num; i++) {
 
