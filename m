@@ -1,76 +1,53 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: ip_vs_sync: fix bogus maybe-uninitialized
- warning
-Date: Fri, 28 Oct 2016 11:34:22 +0200
-Message-ID: <20161028093422.GA29559@salvia>
-References: <20161024153454.2766113-1-arnd@arndb.de>
- <alpine.LFD.2.11.1610242226310.2276@ja.home.ssi.bg>
+From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+Subject: Re: [PATCH v4 nftables] rt: introduce routing expression
+Date: Fri, 28 Oct 2016 11:31:36 +0000
+Message-ID: <1477654296.1059.35.camel@cohaesio.com>
+References: <1477634191.1059.30.camel@cohaesio.com>
+         <20161028084305.GA29228@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Quentin Armitage <quentin@armitage.org.uk>,
-        netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org
-To: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.11.1610242226310.2276@ja.home.ssi.bg>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "pablo@netfilter.org" <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from bender.cohaesio.com ([212.97.128.130]:55051 "EHLO
+        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755821AbcJ1Lbj (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 28 Oct 2016 07:31:39 -0400
+In-Reply-To: <20161028084305.GA29228@salvia>
+Content-Language: en-US
+Content-ID: <F0A5C5FF9302534A96641BB6505A9032@surftown.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Oct 24, 2016 at 10:47:54PM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Mon, 24 Oct 2016, Arnd Bergmann wrote:
-> 
-> > Building the ip_vs_sync code with CONFIG_OPTIMIZE_INLINING on x86
-> > confuses the compiler to the point where it produces a rather
-> > dubious warning message:
-> > 
-> > net/netfilter/ipvs/ip_vs_sync.c:1073:33: error: ‘opt.init_seq’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-> >   struct ip_vs_sync_conn_options opt;
-> >                                  ^~~
-> > net/netfilter/ipvs/ip_vs_sync.c:1073:33: error: ‘opt.delta’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-> > net/netfilter/ipvs/ip_vs_sync.c:1073:33: error: ‘opt.previous_delta’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-> > net/netfilter/ipvs/ip_vs_sync.c:1073:33: error: ‘*((void *)&opt+12).init_seq’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-> > net/netfilter/ipvs/ip_vs_sync.c:1073:33: error: ‘*((void *)&opt+12).delta’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-> > net/netfilter/ipvs/ip_vs_sync.c:1073:33: error: ‘*((void *)&opt+12).previous_delta’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-> > 
-> > The problem appears to be a combination of a number of factors, including
-> > the __builtin_bswap32 compiler builtin being slightly odd, having a large
-> > amount of code inlined into a single function, and the way that some
-> > functions only get partially inlined here.
-> > 
-> > I've spent way too much time trying to work out a way to improve the
-> > code, but the best I've come up with is to add an explicit memset
-> > right before the ip_vs_seq structure is first initialized here. When
-> > the compiler works correctly, this has absolutely no effect, but in the
-> > case that produces the warning, the warning disappears.
-> > 
-> > In the process of analysing this warning, I also noticed that
-> > we use memcpy to copy the larger ip_vs_sync_conn_options structure
-> > over two members of the ip_vs_conn structure. This works because
-> > the layout is identical, but seems error-prone, so I'm changing
-> > this in the process to directly copy the two members. This change
-> > seemed to have no effect on the object code or the warning, but
-> > it deals with the same data, so I kept the two changes together.
-> > 
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> 
-> 	OK,
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
-> 
-> 	I guess, Simon will take the patch for ipvs-next.
-
-@Simon: If you have no more pending updates, I can save you one pull
-request for this small fix by placing this.
-
-Thanks!
+SGkgUGFibG8sDQoNCk9uIGZyZSwgMjAxNi0xMC0yOCBhdCAxMDo0MyArMDIwMCwgUGFibG8gTmVp
+cmEgQXl1c28gd3JvdGU6DQo+IE9uZSBjb21tZW50IHRob3VnaCwgaXQgd291bGQgYmUgZ3JlYXQg
+aWYgeW91IGNhbiBzZW5kIG1lIGEgZm9sbG93IHVwDQo+IHBhdGNoIHRvIHVwZGF0ZcKgDQo+IA0K
+PiBPbiBGcmksIE9jdCAyOCwgMjAxNiBhdCAwNTo1NjozMkFNICswMDAwLCBBbmRlcnMgSy4gUGVk
+ZXJzZW4gfA0KPiBDb2hhZXNpbyB3cm90ZToNCj4gPiANCj4gPiBkaWZmIC0tZ2l0IGEvdGVzdHMv
+ZmlsZXMvZXhwci1ydCBiL3Rlc3RzL2ZpbGVzL2V4cHItcnQNCj4gPiBuZXcgZmlsZSBtb2RlIDEw
+MDY0NA0KPiA+IGluZGV4IDAwMDAwMDAuLjRjMTU0MDkNCj4gPiAtLS0gL2Rldi9udWxsDQo+ID4g
+KysrIGIvdGVzdHMvZmlsZXMvZXhwci1ydA0KPiA+IEBAIC0wLDAgKzEsMjEgQEANCj4gPiArIyEg
+bmZ0IC1mDQo+ID4gKw0KPiA+ICthZGQgdGFibGUgaXAgZmlsdGVyDQo+ID4gK2FkZCBjaGFpbiBp
+cCBmaWx0ZXIgb3V0cHV0IHsgdHlwZSBmaWx0ZXIgaG9vayBvdXRwdXQgcHJpb3JpdHkgMCA7DQo+
+ID4gfQ0KPiA+ICsNCj4gPiArYWRkIHRhYmxlIGlwNiBmaWx0ZXINCj4gPiArYWRkIGNoYWluIGlw
+NiBmaWx0ZXIgb3V0cHV0IHsgdHlwZSBmaWx0ZXIgaG9vayBvdXRwdXQgcHJpb3JpdHkgMCA7DQo+
+ID4gfQ0KPiA+ICsNCj4gPiArYWRkIHRhYmxlIGluZXQgZmlsdGVyDQo+ID4gK2FkZCBjaGFpbiBp
+bmV0IGZpbHRlciBvdXRwdXQgeyB0eXBlIGZpbHRlciBob29rIG91dHB1dCBwcmlvcml0eSAwDQo+
+ID4gOyB9DQo+ID4gKw0KPiA+ICsjIHJ0OiBjbGFzc2lkIChzZWUgL2V0Yy9pcHJvdXRlMi9ydF9y
+ZWFsbXMpDQo+ID4gK2FkZCBydWxlIGlwIGZpbHRlciBvdXRwdXQgcnQgY2xhc3NpZCBjb3Ntb3Mg
+Y291bnRlcg0KPiA+ICthZGQgcnVsZSBpcDYgZmlsdGVyIG91dHB1dCBydCBjbGFzc2lkIGNvc21v
+cyBjb3VudGVyDQo+ID4gK2FkZCBydWxlIGluZXQgZmlsdGVyIG91dHB1dCBydCBjbGFzc2lkIGNv
+c21vcyBjb3VudGVyDQo+ID4gKw0KPiA+ICsjIHJ0OiBuZXh0aG9wDQo+ID4gK2FkZCBydWxlIGlw
+IGZpbHRlciBvdXRwdXQgcnQgbmV4dGhvcCAxOTIuMTY4LjAuMSBjb3VudGVyDQo+ID4gK2FkZCBy
+dWxlIGlwNiBmaWx0ZXIgb3V0cHV0IHJ0IG5leHRob3AgZmQwMDo6MSBjb3VudGVyDQo+ID4gK2Fk
+ZCBydWxlIGluZXQgZmlsdGVyIG91dHB1dCBldGhlciB0eXBlIGlwIHJ0IG5leHRob3AgMTkyLjE2
+OC4wLjENCj4gPiBjb3VudGVyDQo+ID4gK2FkZCBydWxlIGluZXQgZmlsdGVyIG91dHB1dCBldGhl
+ciB0eXBlIGlwNiBydCBuZXh0aG9wIGZkMDA6OjENCj4gPiBjb3VudGVyDQo+IA0KPiBQbGVhc2Us
+IG1vdmUgdGhpcyB0ZXN0IHRvIHRlc3RzL3B5L2luZXQvcnQudA0KPiANCj4gWW91IHdpbGwgYWxz
+byBuZWVkIHRvIGdlbmVyYXRlIHRoZSBydC50LnBheWxvYWQqIGZpbGVzLCBpdCBzaG91bGQgYmUN
+Cj4gZWFzeSB0byBnZW5lcmF0ZSB0aGVtLCBqdXN0IGEgYml0IHRpbWVjb25zdW1pbmcgamFuaXRv
+cmluZyB0YXNrLCBidXQNCj4gZGVmaW5pdGVseSBub3QgaGFyZC4NCg0KT0ssIEknbGwgdHJ5IHRv
+IGZpZ3VyZSBpdCBvdXQgYW5kIHNlbmQgeW91IGEgZm9sbG93IHVwIHBhdGNoLg0KDQpSZWdhcmRz
+LA0KQW5kZXJzIEsuIFBlZGVyc2VuDQo=
