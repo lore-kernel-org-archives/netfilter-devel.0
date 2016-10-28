@@ -1,11 +1,11 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] [rfc, netfilter-next] netfilter: nf_tables: fib warnings
-Date: Fri, 28 Oct 2016 22:23:25 +0200
-Message-ID: <2411822.e3j1Y723En@wuerfel>
-References: <20161028153124.3773180-1-arnd@arndb.de> <18995804.9DSMHNUO14@wuerfel> <20161028162149.GA23891@breakpoint.cc>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] [v2 netfilter-next] netfilter: nf_tables: fib warnings
+Date: Sat, 29 Oct 2016 01:26:12 +0200
+Message-ID: <20161028232612.GA30488@breakpoint.cc>
+References: <20161028201810.1076559-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
         Patrick McHardy <kaber@trash.net>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
@@ -13,23 +13,63 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
         Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
         James Morris <jmorris@namei.org>,
         Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Florian Westphal <fw@strlen.de>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+To: Arnd Bergmann <arnd@arndb.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20161028162149.GA23891@breakpoint.cc>
+Content-Disposition: inline
+In-Reply-To: <20161028201810.1076559-1-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Friday, October 28, 2016 6:21:49 PM CEST Florian Westphal wrote:
-> Good point.  In case oif is NULL we don't have to search the result
-> list for a match anyway, so we could do this (not even build tested):
+Arnd Bergmann <arnd@arndb.de> wrote:
+> The newly added nft fib code produces two warnings:
 > 
+> net/ipv4/netfilter/nft_fib_ipv4.c: In function 'nft_fib4_eval':
+> net/ipv4/netfilter/nft_fib_ipv4.c:80:6: error: unused variable 'i' [-Werror=unused-variable]
+> net/ipv4/netfilter/nft_fib_ipv4.c: In function ‘nft_fib4_eval’:
+> net/ipv4/netfilter/nft_fib_ipv4.c:137:6: error: ‘oif’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
+> 
+> The first one is obvious as the only user of that variable is
+> inside of an #ifdef
+> 
+> The second one is a bit trickier. It's clear that oif is in fact
+> uninitialized when it gets used when neither NFTA_FIB_F_IIF nor
+> NFTA_FIB_F_OIF are set, and just setting it to NULL won't work
+> as it may later get dereferenced.
+> 
+> However, there is no need to search the result list if it is
+> NULL, as Florian pointed out. This integrates his (untested)
+> change to do so. I have confirmed that the combined patch
+> solves both warnings, but as I don't fully understand Florian's
+> change, I can't tell if it's correct.
+> 
+> Suggested-by: Florian Westphal <fw@strlen.de>
+> Fixes: 84f5eedb983e ("netfilter: nf_tables: add fib expression")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-It didn't apply cleanly, but I've integrated it with the change to
-initialize oif to NULL and the added #ifdef I had in my first version
-and got a clean build.
+chain pre {
+        type filter hook prerouting priority 0; policy accept;
+        fib saddr oif "eth0"
+}
 
-I sent out a v2 now, but didn't try hard to understand your changes.
+eth0: default route, 192.168.7.10/16
+eth1: 10.0.0.2/8
 
-	Arnd
+ping from 192.168.7.1 from peer on eth0: result eth0, ok
+ping from 10.0.0.2 from peer on eth0: no result, ok
+ping from 10.0.0.3 from peer on eth0: result eth1, ok
+
+chain pre {
+	        type filter hook prerouting priority 0; policy accept;
+	        fib saddr . iif oif "eth0"
+}
+
+ping from 192.168.7.1 from peer on eth0: result eth0, ok
+ping from 10.0.0.2 from peer on eth0: no result, ok
+ping from 10.0.0.3 from peer on eth0: no result, ok
+
+so:
+
+Tested-by: Florian Westphal <fw@strlen.de>
