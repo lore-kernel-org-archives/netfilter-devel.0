@@ -1,54 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] [v2 netfilter-next] netfilter: nf_tables: fib warnings
-Date: Mon, 31 Oct 2016 15:17:12 +0100
-Message-ID: <20161031141712.GA21444@salvia>
-References: <20161028201810.1076559-1-arnd@arndb.de>
- <20161028232612.GA30488@breakpoint.cc>
+Subject: Re: [PATCH nf-next] netfilter: nf_tables: remove useless U8_MAX
+ validation
+Date: Mon, 31 Oct 2016 15:19:04 +0100
+Message-ID: <20161031141904.GA21641@salvia>
+References: <1477749387-13304-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: Arnd Bergmann <arnd@arndb.de>, Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        James Morris <jmorris@namei.org>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: Liping Zhang <zlpnobody@163.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:52164 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934154AbcJaOTK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 31 Oct 2016 10:19:10 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id A91D8E8381
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Oct 2016 15:19:08 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 999B8DA848
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Oct 2016 15:19:08 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2B1FDDA7FA
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Oct 2016 15:19:05 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20161028232612.GA30488@breakpoint.cc>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1477749387-13304-1-git-send-email-zlpnobody@163.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Oct 29, 2016 at 01:26:12AM +0200, Florian Westphal wrote:
-> Arnd Bergmann <arnd@arndb.de> wrote:
-> > The newly added nft fib code produces two warnings:
-> > 
-> > net/ipv4/netfilter/nft_fib_ipv4.c: In function 'nft_fib4_eval':
-> > net/ipv4/netfilter/nft_fib_ipv4.c:80:6: error: unused variable 'i' [-Werror=unused-variable]
-> > net/ipv4/netfilter/nft_fib_ipv4.c: In function ‘nft_fib4_eval’:
-> > net/ipv4/netfilter/nft_fib_ipv4.c:137:6: error: ‘oif’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-> > 
-> > The first one is obvious as the only user of that variable is
-> > inside of an #ifdef
-> > 
-> > The second one is a bit trickier. It's clear that oif is in fact
-> > uninitialized when it gets used when neither NFTA_FIB_F_IIF nor
-> > NFTA_FIB_F_OIF are set, and just setting it to NULL won't work
-> > as it may later get dereferenced.
-> > 
-> > However, there is no need to search the result list if it is
-> > NULL, as Florian pointed out. This integrates his (untested)
-> > change to do so. I have confirmed that the combined patch
-> > solves both warnings, but as I don't fully understand Florian's
-> > change, I can't tell if it's correct.
-> > 
-> > Suggested-by: Florian Westphal <fw@strlen.de>
-> > Fixes: 84f5eedb983e ("netfilter: nf_tables: add fib expression")
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-[...] 
-> Tested-by: Florian Westphal <fw@strlen.de>
+On Sat, Oct 29, 2016 at 09:56:27PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <zlpnobody@gmail.com>
+> 
+> After call nft_data_init, size is already validated and desc.len will
+> not exceed the sizeof(struct nft_data), i.e. 16 bytes. So it will never
+> exceed U8_MAX.
+> 
+> Furthermore, in nft_immediate_init, we forget to call nft_data_uninit
+> when desc.len exceeds U8_MAX, although this will not happen, but it's
+> a logical mistake.
+> 
+> Now remove these redundant validation introduced by commit 36b701fae12a
+> ("netfilter: nf_tables: validate maximum value of u32 netlink attributes")
 
-Applied, thanks!
+Applied, thanks.
