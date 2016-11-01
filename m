@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 11/12] netfilter: nf_tables: remove useless U8_MAX validation
-Date: Tue,  1 Nov 2016 22:26:32 +0100
-Message-ID: <1478035593-1362-12-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 12/12] netfilter: nf_queue: place volatile data in own cacheline
+Date: Tue,  1 Nov 2016 22:26:33 +0100
+Message-ID: <1478035593-1362-13-git-send-email-pablo@netfilter.org>
 References: <1478035593-1362-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,53 +10,31 @@ In-Reply-To: <1478035593-1362-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Liping Zhang <zlpnobody@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-After call nft_data_init, size is already validated and desc.len will
-not exceed the sizeof(struct nft_data), i.e. 16 bytes. So it will never
-exceed U8_MAX.
+As the comment indicates, the data at the end of nfqnl_instance struct is
+written on every queue/dequeue, so it should reside in its own cacheline.
 
-Furthermore, in nft_immediate_init, we forget to call nft_data_uninit
-when desc.len exceeds U8_MAX, although this will not happen, but it's
-a logical mistake.
+Before this change, 'lock' was in first cacheline so we dirtied both.
 
-Now remove these redundant validation introduced by commit 36b701fae12a
-("netfilter: nf_tables: validate maximum value of u32 netlink attributes")
-
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_cmp.c       | 3 ---
- net/netfilter/nft_immediate.c | 3 ---
- 2 files changed, 6 deletions(-)
+ net/netfilter/nfnetlink_queue.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-index 2e53739812b1..e25b35d70e4d 100644
---- a/net/netfilter/nft_cmp.c
-+++ b/net/netfilter/nft_cmp.c
-@@ -84,9 +84,6 @@ static int nft_cmp_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	if (err < 0)
- 		return err;
- 
--	if (desc.len > U8_MAX)
--		return -ERANGE;
--
- 	priv->op  = ntohl(nla_get_be32(tb[NFTA_CMP_OP]));
- 	priv->len = desc.len;
- 	return 0;
-diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-index d17018ff54e6..4528adea7ede 100644
---- a/net/netfilter/nft_immediate.c
-+++ b/net/netfilter/nft_immediate.c
-@@ -54,9 +54,6 @@ static int nft_immediate_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		return err;
- 
--	if (desc.len > U8_MAX)
--		return -ERANGE;
--
- 	priv->dlen = desc.len;
- 
- 	priv->dreg = nft_parse_register(tb[NFTA_IMMEDIATE_DREG]);
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index af832c526048..5379f788a372 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -69,7 +69,7 @@ struct nfqnl_instance {
+  * Following fields are dirtied for each queued packet,
+  * keep them in same cache line if possible.
+  */
+-	spinlock_t	lock;
++	spinlock_t	lock	____cacheline_aligned_in_smp;
+ 	unsigned int	queue_total;
+ 	unsigned int	id_sequence;		/* 'sequence' of pkt ids */
+ 	struct list_head queue_list;		/* packets in queue */
 -- 
 2.1.4
