@@ -1,51 +1,50 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH nf] netfilter: conntrack: refine gc worker heuristics
-Date: Tue, 01 Nov 2016 13:56:51 -0700
-Message-ID: <1478033811.7065.357.camel@edumazet-glaptop3.roam.corp.google.com>
-References: <1478030500-28981-1-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, nicolas.dichtel@6wind.com
-To: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 03/12] netfilter: nf_tables: allow expressions to return STOLEN
+Date: Tue,  1 Nov 2016 22:26:24 +0100
+Message-ID: <1478035593-1362-4-git-send-email-pablo@netfilter.org>
+References: <1478035593-1362-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:33576 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750979AbcKAU4y (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 1 Nov 2016 16:56:54 -0400
-Received: by mail-pf0-f196.google.com with SMTP id a136so9165644pfa.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 01 Nov 2016 13:56:54 -0700 (PDT)
-In-Reply-To: <1478030500-28981-1-git-send-email-fw@strlen.de>
+Received: from mail.us.es ([193.147.175.20]:52508 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752446AbcKAV0t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 1 Nov 2016 17:26:49 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 59A621683A8
+        for <netfilter-devel@vger.kernel.org>; Tue,  1 Nov 2016 22:26:46 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4771BBAC29
+        for <netfilter-devel@vger.kernel.org>; Tue,  1 Nov 2016 22:26:46 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 06A31DA845
+        for <netfilter-devel@vger.kernel.org>; Tue,  1 Nov 2016 22:26:41 +0100 (CET)
+In-Reply-To: <1478035593-1362-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2016-11-01 at 21:01 +0100, Florian Westphal wrote:
->  	schedule_delayed_work(&gc_work->dwork, next_run);
+From: Florian Westphal <fw@strlen.de>
 
+Currently not supported, we'd oops as skb was (or is) free'd elsewhere.
 
-> @@ -993,6 +1029,7 @@ static void gc_worker(struct work_struct *work)
->  static void conntrack_gc_work_init(struct conntrack_gc_work *gc_work)
->  {
->  	INIT_DELAYED_WORK(&gc_work->dwork, gc_worker);
-> +	gc_work->next_gc_run = GC_INTERVAL_MAX;
->  	gc_work->exiting = false;
->  }
->  
-> @@ -1885,7 +1922,7 @@ int nf_conntrack_init_start(void)
->  	nf_ct_untracked_status_or(IPS_CONFIRMED | IPS_UNTRACKED);
->  
->  	conntrack_gc_work_init(&conntrack_gc_work);
-> -	schedule_delayed_work(&conntrack_gc_work.dwork, GC_INTERVAL);
-> +	schedule_delayed_work(&conntrack_gc_work.dwork, GC_INTERVAL_MAX);
->  
->  	return 0;
->  
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_core.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-
-We might use system_long_wq instead of system_wq ?
-
-queue_delayed_work(system_long_wq, ...)
-
-
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 0dd5c695482f..70de32a6d5c0 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -178,6 +178,7 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+ 	case NF_ACCEPT:
+ 	case NF_DROP:
+ 	case NF_QUEUE:
++	case NF_STOLEN:
+ 		nft_trace_packet(&info, chain, rule,
+ 				 rulenum, NFT_TRACETYPE_RULE);
+ 		return regs.verdict.code;
+-- 
+2.1.4
 
