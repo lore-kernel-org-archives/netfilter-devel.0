@@ -1,63 +1,66 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH nf v2] netfilter: conntrack: refine gc worker heuristics
-Date: Thu, 3 Nov 2016 17:57:44 +0100
-Message-ID: <8aad7dbf-da86-9afc-805c-879833aa2883@6wind.com>
-References: <1478127895-32540-1-git-send-email-fw@strlen.de>
- <9b8a1258-1ecd-daf8-ffd2-1acc70e2ebbb@6wind.com>
- <20161103163133.GA26355@breakpoint.cc>
-Reply-To: nicolas.dichtel@6wind.com
+From: kbuild test robot <fengguang.wu@intel.com>
+Subject: [nf-next:master 8/10] net/netfilter/nfnetlink_queue.c:922:16:
+ sparse: incompatible types in comparison expression (different address
+ spaces)
+Date: Fri, 4 Nov 2016 01:57:12 +0800
+Message-ID: <201611040103.pLMJjpk7%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: kbuild-all@01.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:37888 "EHLO
-        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757738AbcKCQ5r (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 3 Nov 2016 12:57:47 -0400
-Received: by mail-wm0-f41.google.com with SMTP id n67so113728617wme.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 03 Nov 2016 09:57:47 -0700 (PDT)
-In-Reply-To: <20161103163133.GA26355@breakpoint.cc>
+Received: from mga04.intel.com ([192.55.52.120]:37147 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758404AbcKCR56 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 3 Nov 2016 13:57:58 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le 03/11/2016 à 17:31, Florian Westphal a écrit :
-> Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
->>>  Change since v1: use system_long_wq instead of normal system wq (suggested by
->>>  Eric Dumazet).
->>>
->>>  Nicholas is currently away; I would like to get his feedback on this one
->>>  before it gets applied.
->> Thank you for the update.
->> With that patch, some events still have a delay > 2 minutes, which I think is
->> too much.
-> 
-> Too bad, in my tests it was < 1 minute.
-> 
->> If I'm not wrong, the worst delay with this patch is:
->> 10 (GC_INTERVAL_MAX) + 0,001 + 5,001 + 5,002 + 5,003 + ... +  6,024 (= 5 secs +
->> 1024 mecs)
-> 
-> Worst case is over 3 hours (assuming no eviction happened at all and we
-> have one stale entry that needs the full scan).
-3 hours to get a netlink event is really no acceptable ;-)
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+head:   08733a0cb7decce40bbbd0331a0449465f13c444
+commit: 01886bd91f1ba418ce669dfe97a06ca9504e482a [8/10] netfilter: remove hook_entries field from nf_hook_state
+reproduce:
+        # apt-get install sparse
+        git checkout 01886bd91f1ba418ce669dfe97a06ca9504e482a
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF=-D__CHECK_ENDIAN__
 
-> 
->> Previously (in private discussions), you propose a algorithm which guarantee a
->> full table scan in a predefined delay. A "good" solution may have such guarantee.
-> 
-> Now that this uses system_long_wq prolonged a long scan time might not
-> be that bad anymore, so we might consider lowering the divisor and/or the
-> max interval.
-> 
-> However, I will not send a new iteration of this change since I don't
-> know how to test this.  Its easy to make the delay low, but it will come
-> at additonal cpu cost.  I have no idea where to make the tradeoff.
-For me, the priority is to deliver events with a reasonnable delay (and I think
-Pablo also asks for this in a previous email). I understand that the cpu cost
-need to be taken into account, but it's a tradeoff of the new design I think.
 
-Regards,
-Nicolas
+sparse warnings: (new ones prefixed by >>)
+
+   include/linux/compiler.h:253:8: sparse: attribute 'no_sanitize_address': unknown attribute
+>> net/netfilter/nfnetlink_queue.c:922:16: sparse: incompatible types in comparison expression (different address spaces)
+
+vim +922 net/netfilter/nfnetlink_queue.c
+
+   906			    unsigned long event, void *ptr)
+   907	{
+   908		struct net_device *dev = netdev_notifier_info_to_dev(ptr);
+   909	
+   910		/* Drop any packets associated with the downed device */
+   911		if (event == NETDEV_DOWN)
+   912			nfqnl_dev_drop(dev_net(dev), dev->ifindex);
+   913		return NOTIFY_DONE;
+   914	}
+   915	
+   916	static struct notifier_block nfqnl_dev_notifier = {
+   917		.notifier_call	= nfqnl_rcv_dev_event,
+   918	};
+   919	
+   920	static int nf_hook_cmp(struct nf_queue_entry *entry, unsigned long entry_ptr)
+   921	{
+ > 922		return rcu_access_pointer(entry->hook) ==
+   923			(struct nf_hook_entry *)entry_ptr;
+   924	}
+   925	
+   926	static void nfqnl_nf_hook_drop(struct net *net,
+   927				       const struct nf_hook_entry *hook)
+   928	{
+   929		struct nfnl_queue_net *q = nfnl_queue_pernet(net);
+   930		int i;
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
