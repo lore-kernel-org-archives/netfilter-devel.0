@@ -1,52 +1,46 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf v2] netfilter: conntrack: refine gc worker heuristics
-Date: Thu, 3 Nov 2016 17:31:33 +0100
-Message-ID: <20161103163133.GA26355@breakpoint.cc>
-References: <1478127895-32540-1-git-send-email-fw@strlen.de>
- <9b8a1258-1ecd-daf8-ffd2-1acc70e2ebbb@6wind.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH next] nft_meta: add skb hash get support
+Date: Thu, 3 Nov 2016 17:47:50 +0100
+Message-ID: <20161103164750.GA8096@salvia>
+References: <1477917869-26872-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56922 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1758477AbcKCQdV (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 3 Nov 2016 12:33:21 -0400
+Received: from mail.us.es ([193.147.175.20]:58346 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754848AbcKCQr4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 3 Nov 2016 12:47:56 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 00B16A7CB5
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Nov 2016 17:47:54 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E77ED7E4E2
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Nov 2016 17:47:53 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C2D457E4E2
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Nov 2016 17:47:51 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <9b8a1258-1ecd-daf8-ffd2-1acc70e2ebbb@6wind.com>
+In-Reply-To: <1477917869-26872-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
-> >  Change since v1: use system_long_wq instead of normal system wq (suggested by
-> >  Eric Dumazet).
-> > 
-> >  Nicholas is currently away; I would like to get his feedback on this one
-> >  before it gets applied.
-> Thank you for the update.
-> With that patch, some events still have a delay > 2 minutes, which I think is
-> too much.
+On Mon, Oct 31, 2016 at 01:44:29PM +0100, Florian Westphal wrote:
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+> NB1: Alternative is to place this in nft_hash, but that uses
+> an sreg so i think meta is fine.
 
-Too bad, in my tests it was < 1 minute.
+Right. We may still reuse all these attributes though if we use the
+hash expression:
 
-> If I'm not wrong, the worst delay with this patch is:
-> 10 (GC_INTERVAL_MAX) + 0,001 + 5,001 + 5,002 + 5,003 + ... +  6,024 (= 5 secs +
-> 1024 mecs)
+ * @NFTA_HASH_DREG: destination register (NLA_U32)
+ * @NFTA_HASH_MODULUS: modulus value (NLA_U32)
+ * @NFTA_HASH_OFFSET: add this offset value to hash result (NLA_U32)
 
-Worst case is over 3 hours (assuming no eviction happened at all and we
-have one stale entry that needs the full scan).
+This would need a new NFTA_HASH_TYPE, defaulting on jhash.
 
-> Previously (in private discussions), you propose a algorithm which guarantee a
-> full table scan in a predefined delay. A "good" solution may have such guarantee.
-
-Now that this uses system_long_wq prolonged a long scan time might not
-be that bad anymore, so we might consider lowering the divisor and/or the
-max interval.
-
-However, I will not send a new iteration of this change since I don't
-know how to test this.  Its easy to make the delay low, but it will come
-at additonal cpu cost.  I have no idea where to make the tradeoff.
-
-Do you have a better idea?
+Otherwise we would need a scaling expression in case we want to use
+this new meta field for load balancing just like af_packet fanout. Do
+you prefer to follow up this path?
