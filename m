@@ -1,49 +1,91 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH 1/3] tests: shell: delete useless stderr output in
- testcase
-Date: Thu, 03 Nov 2016 13:04:36 +0100
-Message-ID: <147817467643.6881.13545899574878544844.stgit@nfdev2.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next,v2 04/10] netfilter: deprecate NF_STOP
+Date: Thu,  3 Nov 2016 13:37:46 +0100
+Message-ID: <1478176672-1334-4-git-send-email-pablo@netfilter.org>
+References: <1478176672-1334-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:35052 "EHLO smtp.cica.es"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752047AbcKCMEe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 3 Nov 2016 08:04:34 -0400
-Received: from localhost (unknown [127.0.0.1])
-        by smtp.cica.es (Postfix) with ESMTP id 7D6D351F325
-        for <netfilter-devel@vger.kernel.org>; Thu,  3 Nov 2016 12:04:30 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id b4SfPDRnKBhj for <netfilter-devel@vger.kernel.org>;
-        Thu,  3 Nov 2016 13:04:25 +0100 (CET)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-        (Authenticated sender: servers@cica.es)
-        by smtp.cica.es (Postfix) with ESMTP id 8E88C51F2A7
-        for <netfilter-devel@vger.kernel.org>; Thu,  3 Nov 2016 13:04:24 +0100 (CET)
+Received: from mail.us.es ([193.147.175.20]:42820 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754285AbcKCMiC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 3 Nov 2016 08:38:02 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 0CD068D0512
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Nov 2016 13:38:01 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F0C71DA803
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Nov 2016 13:38:00 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CBB43B5043
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Nov 2016 13:37:58 +0100 (CET)
+In-Reply-To: <1478176672-1334-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Arturo Borrero Gonzalez <arturo@debian.org>
+NF_STOP is only used by br_netfilter these days, and it can be emulated
+with a combination of NF_STOLEN plus explicit call to the ->okfn()
+function as Florian suggests.
 
-This stderr output is expected.
+To retain binary compatibility with userspace nf_queue application, we
+have to keep NF_STOP around, so libnetfilter_queue userspace userspace
+applications still work if they use NF_STOP for some exotic reason.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
+Out of tree modules using NF_STOP would break, but we don't care about
+those.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tests/shell/testcases/transactions/0014chain_1 |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+v2: rebased on top on nf-next that now includes the nf_queue fix dependency.
+    No changes.
 
-diff --git a/tests/shell/testcases/transactions/0014chain_1 b/tests/shell/testcases/transactions/0014chain_1
-index a03ef12..955860d 100755
---- a/tests/shell/testcases/transactions/0014chain_1
-+++ b/tests/shell/testcases/transactions/0014chain_1
-@@ -16,5 +16,5 @@ delete chain x y
- delete chain x y"
+ include/uapi/linux/netfilter.h  | 2 +-
+ net/bridge/br_netfilter_hooks.c | 6 ++++--
+ net/netfilter/core.c            | 2 +-
+ 3 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/include/uapi/linux/netfilter.h b/include/uapi/linux/netfilter.h
+index d93f949d1d9a..7550e9176a54 100644
+--- a/include/uapi/linux/netfilter.h
++++ b/include/uapi/linux/netfilter.h
+@@ -13,7 +13,7 @@
+ #define NF_STOLEN 2
+ #define NF_QUEUE 3
+ #define NF_REPEAT 4
+-#define NF_STOP 5
++#define NF_STOP 5	/* Deprecated, for userspace nf_queue compatibility. */
+ #define NF_MAX_VERDICT NF_STOP
  
- echo "$RULESET" > $tmpfile
--$NFT -f $tmpfile
-+$NFT -f $tmpfile 2>/dev/null
- echo "E: allowing double-removal of chain" >&2
+ /* we overload the higher bits for encoding auxiliary data such as the queue
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index d0d66faebe90..7e3645fa6339 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -845,8 +845,10 @@ static unsigned int ip_sabotage_in(void *priv,
+ 				   struct sk_buff *skb,
+ 				   const struct nf_hook_state *state)
+ {
+-	if (skb->nf_bridge && !skb->nf_bridge->in_prerouting)
+-		return NF_STOP;
++	if (skb->nf_bridge && !skb->nf_bridge->in_prerouting) {
++		state->okfn(state->net, state->sk, skb);
++		return NF_STOLEN;
++	}
+ 
+ 	return NF_ACCEPT;
+ }
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index cb0232c11bc8..14f97b624f98 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -333,7 +333,7 @@ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state)
+ 	entry = rcu_dereference(state->hook_entries);
+ next_hook:
+ 	verdict = nf_iterate(skb, state, &entry);
+-	if (verdict == NF_ACCEPT || verdict == NF_STOP) {
++	if (verdict == NF_ACCEPT) {
+ 		ret = 1;
+ 	} else if ((verdict & NF_VERDICT_MASK) == NF_DROP) {
+ 		kfree_skb(skb);
+-- 
+2.1.4
 
