@@ -1,54 +1,52 @@
-From: Aaron Conole <aconole@bytheb.org>
-Subject: Re: [PATCH RFC netfilter-next 1/3] netfilter: introduce accessor functions for hook entries
-Date: Thu, 03 Nov 2016 12:32:10 -0400
-Message-ID: <f7tshr8y16d.fsf@redhat.com>
-References: <1477592873-4468-1-git-send-email-aconole@bytheb.org>
-        <1477592873-4468-2-git-send-email-aconole@bytheb.org>
-        <20161103161559.GA3362@salvia>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf v2] netfilter: conntrack: refine gc worker heuristics
+Date: Thu, 3 Nov 2016 17:31:33 +0100
+Message-ID: <20161103163133.GA26355@breakpoint.cc>
+References: <1478127895-32540-1-git-send-email-fw@strlen.de>
+ <9b8a1258-1ecd-daf8-ffd2-1acc70e2ebbb@6wind.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:35384 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756598AbcKCQcO (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56922 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1758477AbcKCQdV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 3 Nov 2016 12:32:14 -0400
-Received: by mail-qt0-f196.google.com with SMTP id m48so1889936qta.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 03 Nov 2016 09:32:13 -0700 (PDT)
-In-Reply-To: <20161103161559.GA3362@salvia> (Pablo Neira Ayuso's message of
-        "Thu, 3 Nov 2016 17:15:59 +0100")
+        Thu, 3 Nov 2016 12:33:21 -0400
+Content-Disposition: inline
+In-Reply-To: <9b8a1258-1ecd-daf8-ffd2-1acc70e2ebbb@6wind.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> writes:
+Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
+> >  Change since v1: use system_long_wq instead of normal system wq (suggested by
+> >  Eric Dumazet).
+> > 
+> >  Nicholas is currently away; I would like to get his feedback on this one
+> >  before it gets applied.
+> Thank you for the update.
+> With that patch, some events still have a delay > 2 minutes, which I think is
+> too much.
 
-> On Thu, Oct 27, 2016 at 02:27:51PM -0400, Aaron Conole wrote:
->> This allows easier future refactoring.
->> 
->> Signed-off-by: Aaron Conole <aconole@bytheb.org>
->> ---
->>  include/linux/netfilter.h       | 35 ++++++++++++++++++++++++++++++++++-
->>  net/bridge/br_netfilter_hooks.c |  2 +-
->>  net/netfilter/core.c            |  8 +++-----
->>  net/netfilter/nf_queue.c        |  8 ++++----
->>  4 files changed, 42 insertions(+), 11 deletions(-)
+Too bad, in my tests it was < 1 minute.
 
-...
+> If I'm not wrong, the worst delay with this patch is:
+> 10 (GC_INTERVAL_MAX) + 0,001 + 5,001 + 5,002 + 5,003 + ... +  6,024 (= 5 secs +
+> 1024 mecs)
 
-> I'd suggest something like:
->
-> static inline int
-> nf_entry_hookfn(const struct nf_hook_entry *entry,
->                 struct sk_buff *skb, struct nf_hook_state *state)
-> {
->         return entry->ops.hook(entry, nf_hook_entry_priv(entry), skb, state);
-> }
->
-> So you can avoid this:
->
-> 		verdict = nf_hook_entry_hookfn(*entryp)
-> 			(nf_hook_entry_priv(*entryp), skb, state);
+Worst case is over 3 hours (assuming no eviction happened at all and we
+have one stale entry that needs the full scan).
 
-Makes sense, I'll do that.  Thanks for the review!
+> Previously (in private discussions), you propose a algorithm which guarantee a
+> full table scan in a predefined delay. A "good" solution may have such guarantee.
+
+Now that this uses system_long_wq prolonged a long scan time might not
+be that bad anymore, so we might consider lowering the divisor and/or the
+max interval.
+
+However, I will not send a new iteration of this change since I don't
+know how to test this.  Its easy to make the delay low, but it will come
+at additonal cpu cost.  I have no idea where to make the tradeoff.
+
+Do you have a better idea?
