@@ -1,81 +1,50 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH] extensions: libxt_mangle: Use getaddrinfo()
-Date: Mon, 7 Nov 2016 18:15:17 +0530
-Message-ID: <20161107124517.GA15462@Novo>
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH nf] netfilter: nf_tables: fix oops when inserting an
+ element into a verdict map
+Date: Mon, 7 Nov 2016 20:52:43 +0800
+Message-ID: <CAML_gOfCp4nkGOo-qcYm+AQrkLADLP4YNqSXadSRO3KgoUjjcg@mail.gmail.com>
+References: <1478414401-21488-1-git-send-email-zlpnobody@163.com> <CAOkSjBgfQTVMPJxiiNEL+J15EWT_3u+0HP_7KHTYHu8KhS8Sug@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: Liping Zhang <zlpnobody@163.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>, dalegaard@gmail.com
+To: Arturo Borrero Gonzalez <arturo@debian.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:36210 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751325AbcKGMp3 (ORCPT
+Received: from mail-ua0-f195.google.com ([209.85.217.195]:35631 "EHLO
+        mail-ua0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752431AbcKGMwo (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 7 Nov 2016 07:45:29 -0500
-Received: by mail-pf0-f194.google.com with SMTP id n85so16084807pfi.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 07 Nov 2016 04:45:29 -0800 (PST)
-Received: from Novo ([47.30.198.10])
-        by smtp.gmail.com with ESMTPSA id p20sm40301750pfi.78.2016.11.07.04.45.26
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 07 Nov 2016 04:45:28 -0800 (PST)
-Content-Disposition: inline
+        Mon, 7 Nov 2016 07:52:44 -0500
+Received: by mail-ua0-f195.google.com with SMTP id 50so5966665uae.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 07 Nov 2016 04:52:43 -0800 (PST)
+In-Reply-To: <CAOkSjBgfQTVMPJxiiNEL+J15EWT_3u+0HP_7KHTYHu8KhS8Sug@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Replace gethostbyname() with getaddrinfo() as getaddrinfo()
-deprecates the former and allows programs to eliminate
-IPv4-versus-IPv6 dependencies.
+2016-11-07 18:58 GMT+08:00 Arturo Borrero Gonzalez <arturo@debian.org>:
+> On 6 November 2016 at 07:40, Liping Zhang <zlpnobody@163.com> wrote:
+>> From: Liping Zhang <zlpnobody@gmail.com>
+>>
+>> Dalegaard says:
+>>  The following ruleset, when loaded with 'nft -f bad.txt'
+>>  ----snip----
+>>  flush ruleset
+>>  table ip inlinenat {
+>>    map sourcemap {
+>>      type ipv4_addr : verdict;
+>>    }
+>>
+>>    chain postrouting {
+>>      ip saddr vmap @sourcemap accept
+>>    }
+>>  }
+>>  add chain inlinenat test
+>>  add element inlinenat sourcemap { 100.123.10.2 : jump test }
+>>  ----snip----
+>
+> Perhaps it would be good to have this simple testcase in the nft shell
+> testsuite so we avoid future regressions.
 
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
----
- extensions/libxt_mangle.c | 28 ++++++++++++++++++----------
- 1 file changed, 18 insertions(+), 10 deletions(-)
-
-diff --git a/extensions/libxt_mangle.c b/extensions/libxt_mangle.c
-index 4b20feb..360742b 100644
---- a/extensions/libxt_mangle.c
-+++ b/extensions/libxt_mangle.c
-@@ -74,22 +74,30 @@ static void inaddrcpy(struct in_addr *dst, struct in_addr *src)
- 
- static struct in_addr *host_to_addr(const char *name, unsigned int *naddr)
- {
--	struct hostent *host;
- 	struct in_addr *addr;
-+	struct addrinfo hints;
-+	struct addrinfo *res, *p;
-+	int err;
- 	unsigned int i;
- 
--	*naddr = 0;
--	if ((host = gethostbyname(name)) != NULL) {
--		if (host->h_addrtype != AF_INET ||
--			host->h_length != sizeof(struct in_addr))
--			return (struct in_addr *) NULL;
-+	memset(&hints, 0, sizeof(hints));
-+	hints.ai_flags	  = AI_CANONNAME;
-+	hints.ai_family	  = AF_INET;
-+	hints.ai_socktype = SOCK_RAW;
- 
--		while (host->h_addr_list[*naddr] != (char *) NULL)
-+	*naddr = 0;
-+	err = getaddrinfo(name, NULL, &hints, &res);
-+	if (err != 0)
-+		return NULL;
-+	else {
-+		for (p = res; p != NULL; p = p->ai_next)
- 			(*naddr)++;
- 		addr = xtables_calloc(*naddr, sizeof(struct in_addr));
--		for (i = 0; i < *naddr; i++)
--			inaddrcpy(&(addr[i]),
--				  (struct in_addr *) host->h_addr_list[i]);
-+		for (i = 0, p = res; p != NULL; p = p->ai_next)
-+			memcpy(&addr[i++],
-+			       &((const struct sockaddr_in *)p->ai_addr)->sin_addr,
-+			       sizeof(struct in_addr));
-+		freeaddrinfo(res);
- 		return addr;
- 	}
- 
--- 
-2.7.4
-
+Good, I will send the related patch later.
