@@ -1,53 +1,76 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: connmark: ignore skbs with magic untracked
- conntrack objects
-Date: Tue, 8 Nov 2016 23:56:59 +0100
-Message-ID: <20161108225659.GA31249@salvia>
-References: <1477702910-12957-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH nf v4] netfilter: conntrack: refine gc worker heuristics
+Date: Wed, 9 Nov 2016 00:04:20 +0100
+Message-ID: <20161108230420.GA31369@salvia>
+References: <1478274898-24605-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57210 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58552 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752971AbcKHW5c (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Nov 2016 17:57:32 -0500
+        id S1750724AbcKHXEa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 8 Nov 2016 18:04:30 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 33C1E392E1A
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Nov 2016 23:57:03 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 0190B392E17
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2016 00:04:28 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 23EE7DA807
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Nov 2016 23:57:03 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E2E1CDA804
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2016 00:04:27 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AB0FCDA803
-        for <netfilter-devel@vger.kernel.org>; Tue,  8 Nov 2016 23:57:00 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D8CC4DA804
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2016 00:04:25 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1477702910-12957-1-git-send-email-fw@strlen.de>
+In-Reply-To: <1478274898-24605-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Oct 29, 2016 at 03:01:50AM +0200, Florian Westphal wrote:
-> The (percpu) untracked conntrack entries can end up with nonzero connmarks.
+On Fri, Nov 04, 2016 at 04:54:58PM +0100, Florian Westphal wrote:
+> Nicolas Dichtel says:
+>   After commit b87a2f9199ea ("netfilter: conntrack: add gc worker to
+>   remove timed-out entries"), netlink conntrack deletion events may be
+>   sent with a huge delay.
 > 
-> The 'untracked' conntrack objects are merely a way to distinguish INVALID
-> (i.e. protocol connection tracker says payload doesn't meet some
-> requirements or packet was never seen by the connection tracking code)
-> from packets that are intentionally not tracked (some icmpv6 types such as
-> neigh solicitation, or by using 'iptables -j CT --notrack' option).
+> Nicolas further points at this line:
 > 
-> Untracked conntrack objects are implementation detail, we might as well use
-> invalid magic address instead to tell INVALID and UNTRACKED apart.
-
-We may consider recovering this old idea: https://lwn.net/Articles/141489/
-
-> Check skb->nfct for untracked dummy and behave as if skb->nfct is NULL.
+>   goal = min(nf_conntrack_htable_size / GC_MAX_BUCKETS_DIV, GC_MAX_BUCKETS);
 > 
-> Reported-by: XU Tianwen <evan.xu.tianwen@gmail.com>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
-> Here is the formal submit of earlier RFC patch, I also fixed
-> connmark match; conceptually UNTRACKED is not a conntrack object
-> so such skb should always fail the match.
+> and indeed, this isn't optimal at all.  Rationale here was to ensure that
+> we don't block other work items for too long, even if
+> nf_conntrack_htable_size is huge.  But in order to have some guarantee
+> about maximum time period where a scan of the full conntrack table
+> completes we should always use a fixed slice size, so that once every
+> N scans the full table has been examined at least once.
+> 
+> We also need to balance this vs. the case where the system is either idle
+> (i.e., conntrack table (almost) empty) or very busy (i.e. eviction happens
+> from packet path).
+> 
+> So, after some discussion with Nicolas:
+> 
+> 1. want hard guarantee that we scan entire table at least once every X s
+> -> need to scan fraction of table (get rid of upper bound)
+> 
+> 2. don't want to eat cycles on idle or very busy system
+> -> increase interval if we did not evict any entries
+> 
+> 3. don't want to block other worker items for too long
+> -> make fraction really small, and prefer small scan interval instead
+> 
+> 4. Want reasonable short time where we detect timed-out entry when
+> system went idle after a burst of traffic, while not doing scans
+> all the time.
+> -> Store next gc scan in worker, increasing delays when no eviction
+> happened and shrinking delay when we see timed out entries.
+> 
+> The old gc interval is turned into a max number, scans can now happen
+> every jiffy if stale entries are present.
+> 
+> Longest possible time period until an entry is evicted is now 2 minutes
+> in worst case (entry expires right after it was deemed 'not expired').
 
-Applied, thanks.
+Applied, thanks a lot Florian.
+
+Tunning this is the hard part of this new workqueue approach IMO, it
+should be fine if we need more iterations to revisit this logic.
