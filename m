@@ -1,68 +1,41 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: nf_tables: fix oops when inserting an
- element into a verdict map
-Date: Wed, 9 Nov 2016 00:05:42 +0100
-Message-ID: <20161108230542.GA31399@salvia>
-References: <1478414401-21488-1-git-send-email-zlpnobody@163.com>
+Subject: Re: [PATCH nf] netfilter: conntrack: fix CT target for UNSPEC helpers
+Date: Wed, 9 Nov 2016 00:07:22 +0100
+Message-ID: <20161108230722.GA31437@salvia>
+References: <1478180682-3776-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, dalegaard@gmail.com,
-        Liping Zhang <zlpnobody@gmail.com>
-To: Liping Zhang <zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, twoerner@redhat.com
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58810 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59182 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750926AbcKHXGC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Nov 2016 18:06:02 -0500
+        id S1751977AbcKHXIE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 8 Nov 2016 18:08:04 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 1279A392E1B
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2016 00:06:01 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id F3A55392E19
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2016 00:07:29 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 00CB4DA80B
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2016 00:06:01 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DFE29DA807
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2016 00:07:29 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E71CFDA7E0
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2016 00:05:57 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DB20BDA807
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2016 00:07:27 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1478414401-21488-1-git-send-email-zlpnobody@163.com>
+In-Reply-To: <1478180682-3776-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Nov 06, 2016 at 02:40:01PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <zlpnobody@gmail.com>
+On Thu, Nov 03, 2016 at 02:44:42PM +0100, Florian Westphal wrote:
+> Thomas reports its not possible to attach the H.245 helper:
 > 
-> Dalegaard says:
->  The following ruleset, when loaded with 'nft -f bad.txt'
->  ----snip----
->  flush ruleset
->  table ip inlinenat {
->    map sourcemap {
->      type ipv4_addr : verdict;
->    }
+> iptables -t raw -A PREROUTING -p udp -j CT --helper H.245
+> iptables: No chain/target/match by that name.
+> xt_CT: No such helper "H.245"
 > 
->    chain postrouting {
->      ip saddr vmap @sourcemap accept
->    }
->  }
->  add chain inlinenat test
->  add element inlinenat sourcemap { 100.123.10.2 : jump test }
->  ----snip----
+> This is because H.245 registers as NFPROTO_UNSPEC, but the CT target
+> passes NFPROTO_IPV4/IPV6 to nf_conntrack_helper_try_module_get.
 > 
->  results in a kernel oops:
->  BUG: unable to handle kernel paging request at 0000000000001344
->  IP: [<ffffffffa07bf704>] nf_tables_check_loops+0x114/0x1f0 [nf_tables]
->  [...]
->  Call Trace:
->   [<ffffffffa07c2aae>] ? nft_data_init+0x13e/0x1a0 [nf_tables]
->   [<ffffffffa07c1950>] nft_validate_register_store+0x60/0xb0 [nf_tables]
->   [<ffffffffa07c74b5>] nft_add_set_elem+0x545/0x5e0 [nf_tables]
->   [<ffffffffa07bfdd0>] ? nft_table_lookup+0x30/0x60 [nf_tables]
->   [<ffffffff8132c630>] ? nla_strcmp+0x40/0x50
->   [<ffffffffa07c766e>] nf_tables_newsetelem+0x11e/0x210 [nf_tables]
->   [<ffffffff8132c400>] ? nla_validate+0x60/0x80
->   [<ffffffffa030d9b4>] nfnetlink_rcv+0x354/0x5a7 [nfnetlink]
-> 
-> Because we forget to fill the net pointer in bind_ctx, so dereferencing
-> it may cause kernel crash.
+> We should treat UNSPEC as wildcard and ignore the l3num instead.
 
-Applied, thanks for fixing up this, that was fast.
+Also applied, thanks.
