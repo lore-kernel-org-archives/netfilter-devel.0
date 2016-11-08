@@ -1,49 +1,74 @@
-From: =?UTF-8?Q?Bj=C3=B8rnar_Ness?= <bjornar.ness@gmail.com>
-Subject: "random" syn packets dropped
-Date: Tue, 8 Nov 2016 11:35:30 +0100
-Message-ID: <CAJO99TnMCZdROCNV9-3xcURbGZVw7X-wKwf-vkUc5Lc3R_QT9A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yb0-f176.google.com ([209.85.213.176]:36423 "EHLO
-        mail-yb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752372AbcKHKnV (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Nov 2016 05:43:21 -0500
-Received: by mail-yb0-f176.google.com with SMTP id v78so65220522ybe.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 08 Nov 2016 02:43:21 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 1/2] [net-next] udp: provide udp{4,6}_lib_lookup for nf_socket_ipv{4,6}
+Date: Tue,  8 Nov 2016 14:28:18 +0100
+Message-ID: <20161108132914.1495283-1-arnd@arndb.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netdev@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        James Morris <jmorris@namei.org>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Patrick McHardy <kaber@trash.net>,
+        Eric Dumazet <edumazet@google.com>,
+        linux-kernel@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Reposted from netfilter:
+Since commit ca065d0cf80f ("udp: no longer use SLAB_DESTROY_BY_RCU")
+the udp6_lib_lookup and udp4_lib_lookup functions are only
+provided when it is actually possible to call them.
 
-I am not sure if this is nftables related, but I post this issue here,
-and see if any of you can come up with a clue to what might be
-going on here.
+However, moving the callers now caused a link error:
 
-Problem description:
+net/built-in.o: In function `nf_sk_lookup_slow_v6':
+(.text+0x131a39): undefined reference to `udp6_lib_lookup'
+net/ipv4/netfilter/nf_socket_ipv4.o: In function `nf_sk_lookup_slow_v4':
+nf_socket_ipv4.c:(.text.nf_sk_lookup_slow_v4+0x114): undefined reference to `udp4_lib_lookup'
 
-When I create multiple tcp connections from the same client to
-multiple dst hosts at the same time, the n'th syn packet is just
-discarded by "something" in the kernel.
+This extends the #ifdef so we also provide the functions when
+CONFIG_NF_SOCKET_IPV4 or CONFIG_NF_SOCKET_IPV6, respectively
+are set.
 
-If I reorder the list of dst hosts, a different dst host will hang in SYN_SENT
-on the client. This setup has been running for about a month, and we have
-no changed that can explain this behavior.
+Fixes: 8db4c5be88f6 ("netfilter: move socket lookup infrastructure to nf_socket_ipv{4,6}.c")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+The build failure came from the netfilter tree but is now
+present in net-next, so if the solution is correct, this
+patch can be applied there.
+---
+ net/ipv4/udp.c | 3 ++-
+ net/ipv6/udp.c | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-What I am seeing on the firewall running kernel 4.8.1 is the following:
-
-* the syn packet enters through the eth1.700 interface (tcdump)
-* nft trace monitoring shows the packet beeing accepted on eth1.300 in
-postrouting.
-* tcpdump on the eth1.300 interface does not show the packet.
-* rp_filter etc should not be kicking in here, (and also, "random"
-hosts are dropped)
-* conntrack table is not full
-* this issue seem to suddenly appeared, is this a known bug?
-* hint? All connections from the client is established from the same
-source port.
-
+diff --git a/net/ipv4/udp.c b/net/ipv4/udp.c
+index 097b70628631..c827e4ea509e 100644
+--- a/net/ipv4/udp.c
++++ b/net/ipv4/udp.c
+@@ -580,7 +580,8 @@ EXPORT_SYMBOL_GPL(udp4_lib_lookup_skb);
+  * Does increment socket refcount.
+  */
+ #if IS_ENABLED(CONFIG_NETFILTER_XT_MATCH_SOCKET) || \
+-    IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TPROXY)
++    IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TPROXY) || \
++    IS_ENABLED(CONFIG_NF_SOCKET_IPV4)
+ struct sock *udp4_lib_lookup(struct net *net, __be32 saddr, __be16 sport,
+ 			     __be32 daddr, __be16 dport, int dif)
+ {
+diff --git a/net/ipv6/udp.c b/net/ipv6/udp.c
+index 5313818b7485..86a8cacd333b 100644
+--- a/net/ipv6/udp.c
++++ b/net/ipv6/udp.c
+@@ -302,7 +302,8 @@ EXPORT_SYMBOL_GPL(udp6_lib_lookup_skb);
+  * Does increment socket refcount.
+  */
+ #if IS_ENABLED(CONFIG_NETFILTER_XT_MATCH_SOCKET) || \
+-    IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TPROXY)
++    IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TPROXY) || \
++    IS_ENABLED(CONFIG_NF_SOCKET_IPV6)
+ struct sock *udp6_lib_lookup(struct net *net, const struct in6_addr *saddr, __be16 sport,
+ 			     const struct in6_addr *daddr, __be16 dport, int dif)
+ {
 -- 
-Bj(/)rnar
+2.9.0
