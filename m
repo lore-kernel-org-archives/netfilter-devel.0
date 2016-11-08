@@ -1,41 +1,56 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: conntrack: fix CT target for UNSPEC helpers
-Date: Wed, 9 Nov 2016 00:07:22 +0100
-Message-ID: <20161108230722.GA31437@salvia>
-References: <1478180682-3776-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH] net/netfilter: Fix use uninitialized warn in
+ nft_range_eval()
+Date: Wed, 9 Nov 2016 00:13:13 +0100
+Message-ID: <20161108231313.GA6329@salvia>
+References: <20161107154114.26803-1-shuahkh@osg.samsung.com>
+ <20161107154114.26803-4-shuahkh@osg.samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, twoerner@redhat.com
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Shuah Khan <shuahkh@osg.samsung.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59182 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60002 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751977AbcKHXIE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 8 Nov 2016 18:08:04 -0500
+        id S1751012AbcKHXNz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 8 Nov 2016 18:13:55 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id F3A55392E19
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2016 00:07:29 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 586A0392E1D
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2016 00:13:20 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DFE29DA807
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2016 00:07:29 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 47D70DA849
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2016 00:13:20 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DB20BDA807
-        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2016 00:07:27 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 12438DA809
+        for <netfilter-devel@vger.kernel.org>; Wed,  9 Nov 2016 00:13:18 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1478180682-3776-1-git-send-email-fw@strlen.de>
+In-Reply-To: <20161107154114.26803-4-shuahkh@osg.samsung.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 03, 2016 at 02:44:42PM +0100, Florian Westphal wrote:
-> Thomas reports its not possible to attach the H.245 helper:
+On Mon, Nov 07, 2016 at 08:41:14AM -0700, Shuah Khan wrote:
+> Fix the following warn:
 > 
-> iptables -t raw -A PREROUTING -p udp -j CT --helper H.245
-> iptables: No chain/target/match by that name.
-> xt_CT: No such helper "H.245"
-> 
-> This is because H.245 registers as NFPROTO_UNSPEC, but the CT target
-> passes NFPROTO_IPV4/IPV6 to nf_conntrack_helper_try_module_get.
-> 
-> We should treat UNSPEC as wildcard and ignore the l3num instead.
+>    CC [M]  net/netfilter/nft_range.o
+> 8601,8605c9105
+>  net/netfilter/nft_range.c: In function ‘nft_range_eval’:
+>  net/netfilter/nft_range.c:45:5: warning: ‘mismatch’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+>    if (mismatch)
+>       ^
 
-Also applied, thanks.
+You probably using an old tree snapshot? This was already fixed by:
+
+commit d2e4d593516e877f1f6fb40031eb495f36606e16
+Author: Arnd Bergmann <arnd@arndb.de>
+Date:   Tue Oct 18 00:05:30 2016 +0200
+
+    netfilter: nf_tables: avoid uninitialized variable warning
+
+    The newly added nft_range_eval() function handles the two possible
+    nft range operations, but as the compiler warning points out,
+    any unexpected value would lead to the 'mismatch' variable being
+    used without being initialized:
+
