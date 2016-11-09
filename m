@@ -1,53 +1,125 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/2] [net-next] udp: provide udp{4,6}_lib_lookup for
- nf_socket_ipv{4,6}
-Date: Thu, 10 Nov 2016 00:08:23 +0100
-Message-ID: <20161109230823.GA12171@salvia>
+Subject: Re: [PATCH 2/2] [nf-next] netfilter: fix NF_REPEAT handling
+Date: Thu, 10 Nov 2016 00:15:55 +0100
+Message-ID: <20161109231555.GA12259@salvia>
 References: <20161108132914.1495283-1-arnd@arndb.de>
+ <20161108132914.1495283-2-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        James Morris <jmorris@namei.org>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Patrick McHardy <kaber@trash.net>,
+Content-Type: multipart/mixed; boundary="cWoXeonUoKmBZSoM"
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        Florian Westphal <fw@strlen.de>,
         Eric Dumazet <edumazet@google.com>,
         linux-kernel@vger.kernel.org
 To: Arnd Bergmann <arnd@arndb.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54630 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753562AbcKIXIc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Nov 2016 18:08:32 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E9B66A7CBB
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Nov 2016 00:08:30 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D8D73A7D41
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Nov 2016 00:08:30 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C58C1A7D46
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Nov 2016 00:08:28 +0100 (CET)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20161108132914.1495283-1-arnd@arndb.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20161108132914.1495283-2-arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Nov 08, 2016 at 02:28:18PM +0100, Arnd Bergmann wrote:
-> Since commit ca065d0cf80f ("udp: no longer use SLAB_DESTROY_BY_RCU")
-> the udp6_lib_lookup and udp4_lib_lookup functions are only
-> provided when it is actually possible to call them.
-> 
-> However, moving the callers now caused a link error:
-> 
-> net/built-in.o: In function `nf_sk_lookup_slow_v6':
-> (.text+0x131a39): undefined reference to `udp6_lib_lookup'
-> net/ipv4/netfilter/nf_socket_ipv4.o: In function `nf_sk_lookup_slow_v4':
-> nf_socket_ipv4.c:(.text.nf_sk_lookup_slow_v4+0x114): undefined reference to `udp4_lib_lookup'
-> 
-> This extends the #ifdef so we also provide the functions when
-> CONFIG_NF_SOCKET_IPV4 or CONFIG_NF_SOCKET_IPV6, respectively
-> are set.
 
-Applied, thanks Arnd!
+--cWoXeonUoKmBZSoM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Nov 08, 2016 at 02:28:19PM +0100, Arnd Bergmann wrote:
+> gcc correctly identified a theoretical uninitialized variable use:
+> 
+> net/netfilter/nf_conntrack_core.c: In function 'nf_conntrack_in':
+> net/netfilter/nf_conntrack_core.c:1125:14: error: 'l4proto' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+> 
+> This could only happen when we 'goto out' before looking up l4proto,
+> and then enter the retry, implying that l3proto->get_l4proto()
+> returned NF_REPEAT. This does not currently get returned in any
+> code path and probably won't ever happen, but is not good to
+> rely on.
+> 
+> Moving the repeat handling up a little should have the same
+> behavior as today but avoids the warning by making that case
+> impossible to enter.
+> 
+> Fixes: 08733a0cb7de ("netfilter: handle NF_REPEAT from nf_conntrack_in()")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+> The patch causing this is currently only in nf-next, and not yet
+> in net-next.
+> ---
+>  net/netfilter/nf_conntrack_core.c | 7 +++----
+>  1 file changed, 3 insertions(+), 4 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> index de4b8a75f30b..610c9de0ce18 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -1337,6 +1337,8 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
+>  		NF_CT_STAT_INC_ATOMIC(net, invalid);
+>  		if (ret == -NF_DROP)
+>  			NF_CT_STAT_INC_ATOMIC(net, drop);
+> +		if (ret == -NF_REPEAT && tmpl)
+> +			goto repeat;
+
+This is my fault, I'm going to mangle this patch since 08733a0cb7de
+really broke the NF_REPEAT handling. We should inconditionally jump
+back to repeat if we get NF_REPEAT, no matter if the template is set
+or not. I'll include a side node on this mangling.
+
+>  		ret = -ret;
+>  		goto out;
+>  	}
+> @@ -1349,10 +1351,7 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
+>  		 * closed/aborted connection. We have to go back and create a
+>  		 * fresh conntrack.
+>  		 */
+
+I'm going to move the comment above on top of the NF_REPEAT check, so
+it still keeps around as context.
+
+BTW, the revamped patch looks like the one attached.
+
+Thanks a lot for addressing this fallout.
+
+--cWoXeonUoKmBZSoM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=x
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index de4b8a75f30b..e9ffe33dc0ca 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1337,6 +1337,12 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
+ 		NF_CT_STAT_INC_ATOMIC(net, invalid);
+ 		if (ret == -NF_DROP)
+ 			NF_CT_STAT_INC_ATOMIC(net, drop);
++		/* Special case: TCP tracker reports an attempt to reopen a
++		 * closed/aborted connection. We have to go back and create a
++		 * fresh conntrack.
++		 */
++		if (ret == -NF_REPEAT)
++			goto repeat;
+ 		ret = -ret;
+ 		goto out;
+ 	}
+@@ -1344,16 +1350,8 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
+ 	if (set_reply && !test_and_set_bit(IPS_SEEN_REPLY_BIT, &ct->status))
+ 		nf_conntrack_event_cache(IPCT_REPLY, ct);
+ out:
+-	if (tmpl) {
+-		/* Special case: TCP tracker reports an attempt to reopen a
+-		 * closed/aborted connection. We have to go back and create a
+-		 * fresh conntrack.
+-		 */
+-		if (ret == NF_REPEAT)
+-			goto repeat;
+-		else
+-			nf_ct_put(tmpl);
+-	}
++	if (tmpl)
++		nf_ct_put(tmpl);
+ 
+ 	return ret;
+ }
+
+--cWoXeonUoKmBZSoM--
