@@ -1,47 +1,60 @@
-From: Arturo Borrero Gonzalez <arturo@debian.org>
-Subject: Re: [PATCH nft] tests: shell: add test case for inserting element
- into verdict map
-Date: Wed, 9 Nov 2016 11:50:36 +0100
-Message-ID: <CAOkSjBjWMRpN9R2QAJ=REAbfMBnAtd0VX9mwXZpxcxGTHrBpsg@mail.gmail.com>
-References: <1478617597-13459-1-git-send-email-zlpnobody@163.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>,
-        Liping Zhang <zlpnobody@gmail.com>
-To: Liping Zhang <zlpnobody@163.com>
+From: David Ahern <dsa@cumulusnetworks.com>
+Subject: [PATCH] netfilter: Update nf_send_reset6 to consider L3 domain
+Date: Wed,  9 Nov 2016 10:25:05 -0800
+Message-ID: <1478715905-19005-1-git-send-email-dsa@cumulusnetworks.com>
+Cc: netfilter-devel@vger.kernel.org,
+        David Ahern <dsa@cumulusnetworks.com>
+To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:34768 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752029AbcKIKu7 (ORCPT
+Received: from mail-pf0-f173.google.com ([209.85.192.173]:36789 "EHLO
+        mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754559AbcKISZM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Nov 2016 05:50:59 -0500
-Received: by mail-lf0-f66.google.com with SMTP id o141so11735144lff.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Nov 2016 02:50:58 -0800 (PST)
-Received: from mail-lf0-f46.google.com (mail-lf0-f46.google.com. [209.85.215.46])
-        by smtp.gmail.com with ESMTPSA id h143sm7048562lfh.38.2016.11.09.02.50.57
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 09 Nov 2016 02:50:57 -0800 (PST)
-Received: by mail-lf0-f46.google.com with SMTP id b14so160916452lfg.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Nov 2016 02:50:57 -0800 (PST)
-In-Reply-To: <1478617597-13459-1-git-send-email-zlpnobody@163.com>
+        Wed, 9 Nov 2016 13:25:12 -0500
+Received: by mail-pf0-f173.google.com with SMTP id 189so130871468pfz.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 09 Nov 2016 10:25:11 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 8 November 2016 at 16:06, Liping Zhang <zlpnobody@163.com> wrote:
-> From: Liping Zhang <zlpnobody@gmail.com>
->
-> "dalegaard@gmail.com" reports that when inserting an element into a
-> verdict map, kernel crash will happen. Now add this test case so we
-> can avoid future regressions fail.
->
-> Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
-> ---
->  .../shell/testcases/sets/0008create_verdict_map_0  | 25 ++++++++++++++++++++++
->  1 file changed, 25 insertions(+)
->  create mode 100755 tests/shell/testcases/sets/0008create_verdict_map_0
->
+nf_send_reset6 is not considering the L3 domain and lookups are sent
+to the wrong table. For example consider the following output rule:
 
-Acked-by: Arturo Borrero Gonzalez <arturo@debian.org>
+ip6tables -A OUTPUT -p tcp --dport 12345 -j REJECT --reject-with tcp-reset
+
+using perf to analyze lookups via the fib6_table_lookup tracepoint shows:
+
+swapper     0 [001]   248.787816: fib6:fib6_table_lookup: table 255 oif 0 iif 1 src 2100:1::3 dst 2100:1:
+        ffffffff81439cdc perf_trace_fib6_table_lookup ([kernel.kallsyms])
+        ffffffff814c1ce3 trace_fib6_table_lookup ([kernel.kallsyms])
+        ffffffff814c3e89 ip6_pol_route ([kernel.kallsyms])
+        ffffffff814c40d5 ip6_pol_route_output ([kernel.kallsyms])
+        ffffffff814e7b6f fib6_rule_action ([kernel.kallsyms])
+        ffffffff81437f60 fib_rules_lookup ([kernel.kallsyms])
+        ffffffff814e7c79 fib6_rule_lookup ([kernel.kallsyms])
+        ffffffff814c2541 ip6_route_output_flags ([kernel.kallsyms])
+                     528 nf_send_reset6 ([nf_reject_ipv6])
+
+The lookup is directed to table 255 rather than the table associated with
+the device via the L3 domain. Update nf_send_reset6 to pull the L3 domain
+from the dst currently attached to the skb.
+
+Signed-off-by: David Ahern <dsa@cumulusnetworks.com>
+---
+ net/ipv6/netfilter/nf_reject_ipv6.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+index a5400223fd74..10090400c72f 100644
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -156,6 +156,7 @@ void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
+ 	fl6.daddr = oip6h->saddr;
+ 	fl6.fl6_sport = otcph->dest;
+ 	fl6.fl6_dport = otcph->source;
++	fl6.flowi6_oif = l3mdev_master_ifindex(skb_dst(oldskb)->dev);
+ 	security_skb_classify_flow(oldskb, flowi6_to_flowi(&fl6));
+ 	dst = ip6_route_output(net, NULL, &fl6);
+ 	if (dst->error) {
+-- 
+2.1.4
+
