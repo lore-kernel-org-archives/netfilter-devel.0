@@ -1,29 +1,46 @@
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: Re: nf_nat_tftp broken in 4.8?
-Date: Wed, 9 Nov 2016 14:18:50 -0800
-Message-ID: <84639b86-1e69-86c0-5395-c77b3630ec73@gmail.com>
-References: <b3fb3d07-fb0b-e4a5-20fe-bdc2abc8f6fc@gmail.com>
- <20161109215614.GA21923@breakpoint.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next] netfilter: nf_tables: simplify the basic
+ expressions' init routine
+Date: Thu, 10 Nov 2016 00:07:23 +0100
+Message-ID: <20161109230723.GA11511@salvia>
+References: <1478438151-30598-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        fgao@ikuai8.com, pablo@netfilter.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20161109215614.GA21923@breakpoint.cc>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: Liping Zhang <zlpnobody@163.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:54432 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752621AbcKIXH2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 9 Nov 2016 18:07:28 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 37EB4A7CB4
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Nov 2016 00:07:26 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 29926A7E96
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Nov 2016 00:07:26 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3E82AA7E92
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Nov 2016 00:07:24 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <1478438151-30598-1-git-send-email-zlpnobody@163.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11/09/2016 01:56 PM, Florian Westphal wrote:
-> Florian Fainelli <f.fainelli@gmail.com> wrote:
->> After updating my workstation from 4.4 to 4.8, which also serves as a
->> NAT gateway for local machines, I noticed that TFTP across this NAT box
->> broke:
+On Sun, Nov 06, 2016 at 09:15:51PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <zlpnobody@gmail.com>
 > 
-> does 'sysctl net.netfilter.nf_conntrack_helper=1' help?
+> Some basic expressions are built into nf_tables.ko, such as nft_cmp,
+> nft_lookup, nft_range and so on. But these basic expressions' init
+> routine is a little ugly, too many goto errX labels, and we forget
+> to call nft_range_module_exit in the exit routine, although it is
+> harmless.
 > 
+> Acctually, the init and exit routines of these basic expressions
+> are same, i.e. do nft_register_expr in the init routine and do
+> nft_unregister_expr in the exit routine.
+> 
+> So it's better to arrange them into an array and deal with them
+> together.
 
-It does yes, thanks, and apologies for not seeing that earlier.
--- 
-Florian
+Applied, thanks.
