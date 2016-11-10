@@ -1,88 +1,205 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 02/22] netfilter: ipset: Mark some helper args as const.
-Date: Thu, 10 Nov 2016 13:57:36 +0100
-Message-ID: <1478782676-9770-3-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 14/22] netfilter: ipset: Make NLEN compile time constant for hash types
+Date: Thu, 10 Nov 2016 13:57:48 +0100
+Message-ID: <1478782676-9770-15-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1478782676-9770-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:48960 "EHLO smtp2.kfki.hu"
+Received: from smtp2.kfki.hu ([148.6.0.28]:49030 "EHLO smtp2.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932976AbcKJM6C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Nov 2016 07:58:02 -0500
+        id S933186AbcKJM6L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 10 Nov 2016 07:58:11 -0500
 In-Reply-To: <1478782676-9770-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Mark some of the helpers arguments as const.
+Hash types define HOST_MASK before inclusion of ip_set_hash_gen.h
+and the only place where NLEN needed to be calculated at runtime
+is *_create() method.
 
 Ported from a patch proposed by Sergey Popovich <popovich_sergei@mail.ua>.
 
-Suggested-by: Sergey Popovich <popovich_sergei@mail.ua>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/linux/netfilter/ipset/ip_set.h         | 4 ++--
- include/linux/netfilter/ipset/ip_set_comment.h | 2 +-
- include/linux/netfilter/ipset/ip_set_timeout.h | 4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 51 ++++++++++++++++-------------------
+ 1 file changed, 23 insertions(+), 28 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 5b1fd09..524467f 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -346,7 +346,7 @@ struct ip_set {
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 7999e4c..6c88c20 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -150,20 +150,18 @@ struct net_prefixes {
+ #define INIT_CIDR(cidr, host_mask)	\
+ 	DCIDR_PUT(((cidr) ? NCIDR_GET(cidr) : host_mask))
+ 
+-#define SET_HOST_MASK(family)	(family == AF_INET ? 32 : 128)
+-
+ #ifdef IP_SET_HASH_WITH_NET0
+-/* cidr from 0 to SET_HOST_MASK() value and c = cidr + 1 */
+-#define NLEN(family)		(SET_HOST_MASK(family) + 1)
++/* cidr from 0 to HOST_MASK value and c = cidr + 1 */
++#define NLEN			(HOST_MASK + 1)
+ #define CIDR_POS(c)		((c) - 1)
+ #else
+-/* cidr from 1 to SET_HOST_MASK() value and c = cidr + 1 */
+-#define NLEN(family)		SET_HOST_MASK(family)
++/* cidr from 1 to HOST_MASK value and c = cidr + 1 */
++#define NLEN			HOST_MASK
+ #define CIDR_POS(c)		((c) - 2)
+ #endif
+ 
+ #else
+-#define NLEN(family)		0
++#define NLEN			0
+ #endif /* IP_SET_HASH_WITH_NETS */
+ 
+ #endif /* _IP_SET_HASH_GEN_H */
+@@ -298,12 +296,12 @@ struct htype {
+  * sized networks. cidr == real cidr + 1 to support /0.
+  */
+ static void
+-mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
++mtype_add_cidr(struct htype *h, u8 cidr, u8 n)
+ {
+ 	int i, j;
+ 
+ 	/* Add in increasing prefix order, so larger cidr first */
+-	for (i = 0, j = -1; i < nets_length && h->nets[i].cidr[n]; i++) {
++	for (i = 0, j = -1; i < NLEN && h->nets[i].cidr[n]; i++) {
+ 		if (j != -1) {
+ 			continue;
+ 		} else if (h->nets[i].cidr[n] < cidr) {
+@@ -322,11 +320,11 @@ struct htype {
  }
  
- static inline bool
--ip_set_put_skbinfo(struct sk_buff *skb, struct ip_set_skbinfo *skbinfo)
-+ip_set_put_skbinfo(struct sk_buff *skb, const struct ip_set_skbinfo *skbinfo)
+ static void
+-mtype_del_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
++mtype_del_cidr(struct htype *h, u8 cidr, u8 n)
  {
- 	/* Send nonzero parameters only */
- 	return ((skbinfo->skbmark || skbinfo->skbmarkmask) &&
-@@ -373,7 +373,7 @@ struct ip_set {
- }
+-	u8 i, j, net_end = nets_length - 1;
++	u8 i, j, net_end = NLEN - 1;
  
- static inline bool
--ip_set_put_counter(struct sk_buff *skb, struct ip_set_counter *counter)
-+ip_set_put_counter(struct sk_buff *skb, const struct ip_set_counter *counter)
+-	for (i = 0; i < nets_length; i++) {
++	for (i = 0; i < NLEN; i++) {
+ 		if (h->nets[i].cidr[n] != cidr)
+ 			continue;
+ 		h->nets[CIDR_POS(cidr)].nets[n]--;
+@@ -342,13 +340,12 @@ struct htype {
+ 
+ /* Calculate the actual memory size of the set data */
+ static size_t
+-mtype_ahash_memsize(const struct htype *h, const struct htable *t,
+-		    u8 nets_length)
++mtype_ahash_memsize(const struct htype *h, const struct htable *t)
  {
- 	return nla_put_net64(skb, IPSET_ATTR_BYTES,
- 			     cpu_to_be64(ip_set_get_bytes(counter)),
-diff --git a/include/linux/netfilter/ipset/ip_set_comment.h b/include/linux/netfilter/ipset/ip_set_comment.h
-index 8d02485..bae5c76 100644
---- a/include/linux/netfilter/ipset/ip_set_comment.h
-+++ b/include/linux/netfilter/ipset/ip_set_comment.h
-@@ -43,7 +43,7 @@
+ 	size_t memsize = sizeof(*h) + sizeof(*t);
  
- /* Used only when dumping a set, protected by rcu_read_lock_bh() */
- static inline int
--ip_set_put_comment(struct sk_buff *skb, struct ip_set_comment *comment)
-+ip_set_put_comment(struct sk_buff *skb, const struct ip_set_comment *comment)
- {
- 	struct ip_set_comment_rcu *c = rcu_dereference_bh(comment->c);
+ #ifdef IP_SET_HASH_WITH_NETS
+-	memsize += sizeof(struct net_prefixes) * nets_length;
++	memsize += sizeof(struct net_prefixes) * NLEN;
+ #endif
  
-diff --git a/include/linux/netfilter/ipset/ip_set_timeout.h b/include/linux/netfilter/ipset/ip_set_timeout.h
-index 1d6a935..bfb3531 100644
---- a/include/linux/netfilter/ipset/ip_set_timeout.h
-+++ b/include/linux/netfilter/ipset/ip_set_timeout.h
-@@ -40,7 +40,7 @@
- }
+ 	return memsize;
+@@ -389,7 +386,7 @@ struct htype {
+ 		kfree_rcu(n, rcu);
+ 	}
+ #ifdef IP_SET_HASH_WITH_NETS
+-	memset(h->nets, 0, sizeof(struct net_prefixes) * NLEN(set->family));
++	memset(h->nets, 0, sizeof(struct net_prefixes) * NLEN);
+ #endif
+ 	set->elements = 0;
+ 	set->ext_size = 0;
+@@ -473,7 +470,7 @@ struct htype {
+ 	u32 i, j, d;
+ 	size_t dsize = set->dsize;
+ #ifdef IP_SET_HASH_WITH_NETS
+-	u8 k, nets_length = NLEN(set->family);
++	u8 k;
+ #endif
  
- static inline bool
--ip_set_timeout_expired(unsigned long *t)
-+ip_set_timeout_expired(const unsigned long *t)
- {
- 	return *t != IPSET_ELEM_PERMANENT && time_is_before_jiffies(*t);
- }
-@@ -63,7 +63,7 @@
- }
+ 	t = ipset_dereference_protected(h->table, set);
+@@ -496,7 +493,7 @@ struct htype {
+ 			for (k = 0; k < IPSET_NET_COUNT; k++)
+ 				mtype_del_cidr(h,
+ 					NCIDR_PUT(DCIDR_GET(data->cidr, k)),
+-					nets_length, k);
++					k);
+ #endif
+ 			ip_set_ext_destroy(set, data);
+ 			set->elements--;
+@@ -776,7 +773,7 @@ struct htype {
+ 			for (i = 0; i < IPSET_NET_COUNT; i++)
+ 				mtype_del_cidr(h,
+ 					NCIDR_PUT(DCIDR_GET(data->cidr, i)),
+-					NLEN(set->family), i);
++					i);
+ #endif
+ 			ip_set_ext_destroy(set, data);
+ 			set->elements--;
+@@ -812,8 +809,7 @@ struct htype {
+ 	set->elements++;
+ #ifdef IP_SET_HASH_WITH_NETS
+ 	for (i = 0; i < IPSET_NET_COUNT; i++)
+-		mtype_add_cidr(h, NCIDR_PUT(DCIDR_GET(d->cidr, i)),
+-			       NLEN(set->family), i);
++		mtype_add_cidr(h, NCIDR_PUT(DCIDR_GET(d->cidr, i)), i);
+ #endif
+ 	memcpy(data, d, sizeof(struct mtype_elem));
+ overwrite_extensions:
+@@ -886,7 +882,7 @@ struct htype {
+ #ifdef IP_SET_HASH_WITH_NETS
+ 		for (j = 0; j < IPSET_NET_COUNT; j++)
+ 			mtype_del_cidr(h, NCIDR_PUT(DCIDR_GET(d->cidr, j)),
+-				       NLEN(set->family), j);
++				       j);
+ #endif
+ 		ip_set_ext_destroy(set, data);
  
- static inline u32
--ip_set_timeout_get(unsigned long *timeout)
-+ip_set_timeout_get(const unsigned long *timeout)
- {
- 	return *timeout == IPSET_ELEM_PERMANENT ? 0 :
- 		jiffies_to_msecs(*timeout - jiffies)/MSEC_PER_SEC;
+@@ -958,14 +954,13 @@ struct htype {
+ 	int i, j = 0;
+ #endif
+ 	u32 key, multi = 0;
+-	u8 nets_length = NLEN(set->family);
+ 
+ 	pr_debug("test by nets\n");
+-	for (; j < nets_length && h->nets[j].cidr[0] && !multi; j++) {
++	for (; j < NLEN && h->nets[j].cidr[0] && !multi; j++) {
+ #if IPSET_NET_COUNT == 2
+ 		mtype_data_reset_elem(d, &orig);
+ 		mtype_data_netmask(d, NCIDR_GET(h->nets[j].cidr[0]), false);
+-		for (k = 0; k < nets_length && h->nets[k].cidr[1] && !multi;
++		for (k = 0; k < NLEN && h->nets[k].cidr[1] && !multi;
+ 		     k++) {
+ 			mtype_data_netmask(d, NCIDR_GET(h->nets[k].cidr[1]),
+ 					   true);
+@@ -1022,7 +1017,7 @@ struct htype {
+ 	 * try all possible network sizes
+ 	 */
+ 	for (i = 0; i < IPSET_NET_COUNT; i++)
+-		if (DCIDR_GET(d->cidr, i) != SET_HOST_MASK(set->family))
++		if (DCIDR_GET(d->cidr, i) != HOST_MASK)
+ 			break;
+ 	if (i == IPSET_NET_COUNT) {
+ 		ret = mtype_test_cidrs(set, d, ext, mext, flags);
+@@ -1063,7 +1058,7 @@ struct htype {
+ 
+ 	rcu_read_lock_bh();
+ 	t = rcu_dereference_bh_nfnl(h->table);
+-	memsize = mtype_ahash_memsize(h, t, NLEN(set->family)) + set->ext_size;
++	memsize = mtype_ahash_memsize(h, t) + set->ext_size;
+ 	htable_bits = t->htable_bits;
+ 	rcu_read_unlock_bh();
+ 
+@@ -1295,7 +1290,7 @@ struct htype {
+ 
+ 	hsize = sizeof(*h);
+ #ifdef IP_SET_HASH_WITH_NETS
+-	hsize += sizeof(struct net_prefixes) * NLEN(set->family);
++	hsize += sizeof(struct net_prefixes) * NLEN;
+ #endif
+ 	h = kzalloc(hsize, GFP_KERNEL);
+ 	if (!h)
 -- 
 1.8.5.1
 
