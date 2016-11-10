@@ -1,89 +1,161 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 03/22] netfilter: ipset: Headers file cleanup
-Date: Thu, 10 Nov 2016 13:57:37 +0100
-Message-ID: <1478782676-9770-4-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 04/22] netfilter: ipset: Improve skbinfo get/init helpers
+Date: Thu, 10 Nov 2016 13:57:38 +0100
+Message-ID: <1478782676-9770-5-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1478782676-9770-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:36181 "EHLO smtp1.kfki.hu"
+Received: from smtp2.kfki.hu ([148.6.0.28]:48962 "EHLO smtp2.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932997AbcKJM6C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S933022AbcKJM6C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 10 Nov 2016 07:58:02 -0500
 In-Reply-To: <1478782676-9770-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Group counter helper functions together.
+Use struct ip_set_skbinfo in struct ip_set_ext instead of open
+coded fields and assign structure members in get/init helpers
+instead of copying members one by one. Explicitly note that
+struct ip_set_skbinfo must be padded to prevent non-aligned
+access in the extension blob.
 
 Ported from a patch proposed by Sergey Popovich <popovich_sergei@mail.ua>.
 
 Suggested-by: Sergey Popovich <popovich_sergei@mail.ua>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/linux/netfilter/ipset/ip_set.h | 42 +++++++++++++++++-----------------
- 1 file changed, 21 insertions(+), 21 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h | 30 +++++++++++-------------------
+ net/netfilter/ipset/ip_set_core.c      | 12 ++++++------
+ net/netfilter/xt_set.c                 | 12 +++++++-----
+ 3 files changed, 24 insertions(+), 30 deletions(-)
 
 diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 524467f..1ea28e3 100644
+index 1ea28e3..7802621 100644
 --- a/include/linux/netfilter/ipset/ip_set.h
 +++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -334,6 +334,27 @@ struct ip_set {
- 	}
- }
+@@ -92,17 +92,6 @@ struct ip_set_ext_type {
  
-+static inline bool
-+ip_set_put_counter(struct sk_buff *skb, const struct ip_set_counter *counter)
-+{
-+	return nla_put_net64(skb, IPSET_ATTR_BYTES,
-+			     cpu_to_be64(ip_set_get_bytes(counter)),
-+			     IPSET_ATTR_PAD) ||
-+	       nla_put_net64(skb, IPSET_ATTR_PACKETS,
-+			     cpu_to_be64(ip_set_get_packets(counter)),
-+			     IPSET_ATTR_PAD);
-+}
+ extern const struct ip_set_ext_type ip_set_extensions[];
+ 
+-struct ip_set_ext {
+-	u64 packets;
+-	u64 bytes;
+-	u32 timeout;
+-	u32 skbmark;
+-	u32 skbmarkmask;
+-	u32 skbprio;
+-	u16 skbqueue;
+-	char *comment;
+-};
+-
+ struct ip_set_counter {
+ 	atomic64_t bytes;
+ 	atomic64_t packets;
+@@ -122,6 +111,15 @@ struct ip_set_skbinfo {
+ 	u32 skbmarkmask;
+ 	u32 skbprio;
+ 	u16 skbqueue;
++	u16 __pad;
++};
 +
-+static inline void
-+ip_set_init_counter(struct ip_set_counter *counter,
-+		    const struct ip_set_ext *ext)
-+{
-+	if (ext->bytes != ULLONG_MAX)
-+		atomic64_set(&(counter)->bytes, (long long)(ext->bytes));
-+	if (ext->packets != ULLONG_MAX)
-+		atomic64_set(&(counter)->packets, (long long)(ext->packets));
-+}
-+
- static inline void
- ip_set_get_skbinfo(struct ip_set_skbinfo *skbinfo,
++struct ip_set_ext {
++	struct ip_set_skbinfo skbinfo;
++	u64 packets;
++	u64 bytes;
++	char *comment;
++	u32 timeout;
+ };
+ 
+ struct ip_set;
+@@ -360,10 +358,7 @@ struct ip_set {
  		   const struct ip_set_ext *ext,
-@@ -372,27 +393,6 @@ struct ip_set {
- 	skbinfo->skbqueue = ext->skbqueue;
+ 		   struct ip_set_ext *mext, u32 flags)
+ {
+-	mext->skbmark = skbinfo->skbmark;
+-	mext->skbmarkmask = skbinfo->skbmarkmask;
+-	mext->skbprio = skbinfo->skbprio;
+-	mext->skbqueue = skbinfo->skbqueue;
++	mext->skbinfo = *skbinfo;
  }
  
--static inline bool
--ip_set_put_counter(struct sk_buff *skb, const struct ip_set_counter *counter)
--{
--	return nla_put_net64(skb, IPSET_ATTR_BYTES,
--			     cpu_to_be64(ip_set_get_bytes(counter)),
--			     IPSET_ATTR_PAD) ||
--	       nla_put_net64(skb, IPSET_ATTR_PACKETS,
--			     cpu_to_be64(ip_set_get_packets(counter)),
--			     IPSET_ATTR_PAD);
--}
--
--static inline void
--ip_set_init_counter(struct ip_set_counter *counter,
--		    const struct ip_set_ext *ext)
--{
--	if (ext->bytes != ULLONG_MAX)
--		atomic64_set(&(counter)->bytes, (long long)(ext->bytes));
--	if (ext->packets != ULLONG_MAX)
--		atomic64_set(&(counter)->packets, (long long)(ext->packets));
--}
--
+ static inline bool
+@@ -387,10 +382,7 @@ struct ip_set {
+ ip_set_init_skbinfo(struct ip_set_skbinfo *skbinfo,
+ 		    const struct ip_set_ext *ext)
+ {
+-	skbinfo->skbmark = ext->skbmark;
+-	skbinfo->skbmarkmask = ext->skbmarkmask;
+-	skbinfo->skbprio = ext->skbprio;
+-	skbinfo->skbqueue = ext->skbqueue;
++	*skbinfo = ext->skbinfo;
+ }
+ 
  /* Netlink CB args */
- enum {
- 	IPSET_CB_NET = 0,	/* net namespace */
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index 3f1b945..bfacccf 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -426,20 +426,20 @@ static inline struct ip_set_net *ip_set_pernet(struct net *net)
+ 		if (!SET_WITH_SKBINFO(set))
+ 			return -IPSET_ERR_SKBINFO;
+ 		fullmark = be64_to_cpu(nla_get_be64(tb[IPSET_ATTR_SKBMARK]));
+-		ext->skbmark = fullmark >> 32;
+-		ext->skbmarkmask = fullmark & 0xffffffff;
++		ext->skbinfo.skbmark = fullmark >> 32;
++		ext->skbinfo.skbmarkmask = fullmark & 0xffffffff;
+ 	}
+ 	if (tb[IPSET_ATTR_SKBPRIO]) {
+ 		if (!SET_WITH_SKBINFO(set))
+ 			return -IPSET_ERR_SKBINFO;
+-		ext->skbprio = be32_to_cpu(nla_get_be32(
+-					    tb[IPSET_ATTR_SKBPRIO]));
++		ext->skbinfo.skbprio =
++			be32_to_cpu(nla_get_be32(tb[IPSET_ATTR_SKBPRIO]));
+ 	}
+ 	if (tb[IPSET_ATTR_SKBQUEUE]) {
+ 		if (!SET_WITH_SKBINFO(set))
+ 			return -IPSET_ERR_SKBINFO;
+-		ext->skbqueue = be16_to_cpu(nla_get_be16(
+-					    tb[IPSET_ATTR_SKBQUEUE]));
++		ext->skbinfo.skbqueue =
++			be16_to_cpu(nla_get_be16(tb[IPSET_ATTR_SKBQUEUE]));
+ 	}
+ 	return 0;
+ }
+diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
+index 1bfede7..6428570 100644
+--- a/net/netfilter/xt_set.c
++++ b/net/netfilter/xt_set.c
+@@ -423,6 +423,8 @@ struct ip_set_adt_opt n = {		\
+ 
+ /* Revision 3 target */
+ 
++#define MOPT(opt, member)	((opt).ext.skbinfo.member)
++
+ static unsigned int
+ set_target_v3(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+@@ -453,14 +455,14 @@ struct ip_set_adt_opt n = {		\
+ 		if (!ret)
+ 			return XT_CONTINUE;
+ 		if (map_opt.cmdflags & IPSET_FLAG_MAP_SKBMARK)
+-			skb->mark = (skb->mark & ~(map_opt.ext.skbmarkmask))
+-				    ^ (map_opt.ext.skbmark);
++			skb->mark = (skb->mark & ~MOPT(map_opt,skbmarkmask))
++				    ^ MOPT(map_opt, skbmark);
+ 		if (map_opt.cmdflags & IPSET_FLAG_MAP_SKBPRIO)
+-			skb->priority = map_opt.ext.skbprio;
++			skb->priority = MOPT(map_opt, skbprio);
+ 		if ((map_opt.cmdflags & IPSET_FLAG_MAP_SKBQUEUE) &&
+ 		    skb->dev &&
+-		    skb->dev->real_num_tx_queues > map_opt.ext.skbqueue)
+-			skb_set_queue_mapping(skb, map_opt.ext.skbqueue);
++		    skb->dev->real_num_tx_queues > MOPT(map_opt, skbqueue))
++			skb_set_queue_mapping(skb, MOPT(map_opt, skbqueue));
+ 	}
+ 	return XT_CONTINUE;
+ }
 -- 
 1.8.5.1
 
