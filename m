@@ -1,104 +1,88 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 19/22] netfilter: ipset: Fix reported memory size for hash:* types
-Date: Thu, 10 Nov 2016 13:57:53 +0100
-Message-ID: <1478782676-9770-20-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 02/22] netfilter: ipset: Mark some helper args as const.
+Date: Thu, 10 Nov 2016 13:57:36 +0100
+Message-ID: <1478782676-9770-3-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1478782676-9770-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:36193 "EHLO smtp1.kfki.hu"
+Received: from smtp2.kfki.hu ([148.6.0.28]:48960 "EHLO smtp2.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933023AbcKJM6C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S932976AbcKJM6C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 10 Nov 2016 07:58:02 -0500
 In-Reply-To: <1478782676-9770-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The calculation of the full allocated memory did not take
-into account the size of the base hash bucket structure at some
-places.
+Mark some of the helpers arguments as const.
 
+Ported from a patch proposed by Sergey Popovich <popovich_sergei@mail.ua>.
+
+Suggested-by: Sergey Popovich <popovich_sergei@mail.ua>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h | 16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h         | 4 ++--
+ include/linux/netfilter/ipset/ip_set_comment.h | 2 +-
+ include/linux/netfilter/ipset/ip_set_timeout.h | 4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 1c9b84e..88b70fc 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -85,6 +85,8 @@ struct htable {
- };
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index 5b1fd09..524467f 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -346,7 +346,7 @@ struct ip_set {
+ }
  
- #define hbucket(h, i)		((h)->bucket[i])
-+#define ext_size(n, dsize)	\
-+	(sizeof(struct hbucket) + (n) * (dsize))
+ static inline bool
+-ip_set_put_skbinfo(struct sk_buff *skb, struct ip_set_skbinfo *skbinfo)
++ip_set_put_skbinfo(struct sk_buff *skb, const struct ip_set_skbinfo *skbinfo)
+ {
+ 	/* Send nonzero parameters only */
+ 	return ((skbinfo->skbmark || skbinfo->skbmarkmask) &&
+@@ -373,7 +373,7 @@ struct ip_set {
+ }
  
- #ifndef IPSET_NET_COUNT
- #define IPSET_NET_COUNT		1
-@@ -519,7 +521,7 @@ struct htype {
- 				d++;
- 			}
- 			tmp->pos = d;
--			set->ext_size -= AHASH_INIT_SIZE * dsize;
-+			set->ext_size -= ext_size(AHASH_INIT_SIZE, dsize);
- 			rcu_assign_pointer(hbucket(t, i), tmp);
- 			kfree_rcu(n, rcu);
- 		}
-@@ -625,7 +627,7 @@ struct htype {
- 					goto cleanup;
- 				}
- 				m->size = AHASH_INIT_SIZE;
--				extsize = sizeof(*m) + AHASH_INIT_SIZE * dsize;
-+				extsize = ext_size(AHASH_INIT_SIZE, dsize);
- 				RCU_INIT_POINTER(hbucket(t, key), m);
- 			} else if (m->pos >= m->size) {
- 				struct hbucket *ht;
-@@ -645,7 +647,7 @@ struct htype {
- 				memcpy(ht, m, sizeof(struct hbucket) +
- 					      m->size * dsize);
- 				ht->size = m->size + AHASH_INIT_SIZE;
--				extsize += AHASH_INIT_SIZE * dsize;
-+				extsize += ext_size(AHASH_INIT_SIZE, dsize);
- 				kfree(m);
- 				m = ht;
- 				RCU_INIT_POINTER(hbucket(t, key), ht);
-@@ -727,7 +729,7 @@ struct htype {
- 		if (!n)
- 			return -ENOMEM;
- 		n->size = AHASH_INIT_SIZE;
--		set->ext_size += sizeof(*n) + AHASH_INIT_SIZE * set->dsize;
-+		set->ext_size += ext_size(AHASH_INIT_SIZE, set->dsize);
- 		goto copy_elem;
- 	}
- 	for (i = 0; i < n->pos; i++) {
-@@ -791,7 +793,7 @@ struct htype {
- 		memcpy(n, old, sizeof(struct hbucket) +
- 		       old->size * set->dsize);
- 		n->size = old->size + AHASH_INIT_SIZE;
--		set->ext_size += AHASH_INIT_SIZE * set->dsize;
-+		set->ext_size += ext_size(AHASH_INIT_SIZE, set->dsize);
- 	}
+ static inline bool
+-ip_set_put_counter(struct sk_buff *skb, struct ip_set_counter *counter)
++ip_set_put_counter(struct sk_buff *skb, const struct ip_set_counter *counter)
+ {
+ 	return nla_put_net64(skb, IPSET_ATTR_BYTES,
+ 			     cpu_to_be64(ip_set_get_bytes(counter)),
+diff --git a/include/linux/netfilter/ipset/ip_set_comment.h b/include/linux/netfilter/ipset/ip_set_comment.h
+index 8d02485..bae5c76 100644
+--- a/include/linux/netfilter/ipset/ip_set_comment.h
++++ b/include/linux/netfilter/ipset/ip_set_comment.h
+@@ -43,7 +43,7 @@
  
- copy_elem:
-@@ -883,7 +885,7 @@ struct htype {
- 				k++;
- 		}
- 		if (n->pos == 0 && k == 0) {
--			set->ext_size -= sizeof(*n) + n->size * dsize;
-+			set->ext_size -= ext_size(n->size, dsize);
- 			rcu_assign_pointer(hbucket(t, key), NULL);
- 			kfree_rcu(n, rcu);
- 		} else if (k >= AHASH_INIT_SIZE) {
-@@ -902,7 +904,7 @@ struct htype {
- 				k++;
- 			}
- 			tmp->pos = k;
--			set->ext_size -= AHASH_INIT_SIZE * dsize;
-+			set->ext_size -= ext_size(AHASH_INIT_SIZE, dsize);
- 			rcu_assign_pointer(hbucket(t, key), tmp);
- 			kfree_rcu(n, rcu);
- 		}
+ /* Used only when dumping a set, protected by rcu_read_lock_bh() */
+ static inline int
+-ip_set_put_comment(struct sk_buff *skb, struct ip_set_comment *comment)
++ip_set_put_comment(struct sk_buff *skb, const struct ip_set_comment *comment)
+ {
+ 	struct ip_set_comment_rcu *c = rcu_dereference_bh(comment->c);
+ 
+diff --git a/include/linux/netfilter/ipset/ip_set_timeout.h b/include/linux/netfilter/ipset/ip_set_timeout.h
+index 1d6a935..bfb3531 100644
+--- a/include/linux/netfilter/ipset/ip_set_timeout.h
++++ b/include/linux/netfilter/ipset/ip_set_timeout.h
+@@ -40,7 +40,7 @@
+ }
+ 
+ static inline bool
+-ip_set_timeout_expired(unsigned long *t)
++ip_set_timeout_expired(const unsigned long *t)
+ {
+ 	return *t != IPSET_ELEM_PERMANENT && time_is_before_jiffies(*t);
+ }
+@@ -63,7 +63,7 @@
+ }
+ 
+ static inline u32
+-ip_set_timeout_get(unsigned long *timeout)
++ip_set_timeout_get(const unsigned long *timeout)
+ {
+ 	return *timeout == IPSET_ELEM_PERMANENT ? 0 :
+ 		jiffies_to_msecs(*timeout - jiffies)/MSEC_PER_SEC;
 -- 
 1.8.5.1
 
