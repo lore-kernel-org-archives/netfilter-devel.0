@@ -1,45 +1,69 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: fix nf_conntrack_helper documentation
-Date: Thu, 10 Nov 2016 14:24:40 +0100
-Message-ID: <1478784280-17103-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Davide Caratti <dcaratti@redhat.com>
+Subject: [PATCH nf-next 1/4] netfilter: nf_conntrack_tuple_common.h: fix #include
+Date: Thu, 10 Nov 2016 15:46:25 +0100
+Message-ID: <76156fa3b39eba2d1d6739a47d40a99920acd802.1478784737.git.dcaratti@redhat.com>
+References: <cover.1478784737.git.dcaratti@redhat.com>
+Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org
+To: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        "David S . Miller" <davem@davemloft.net>,
+        Florian Westphal <fw@strlen.de>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        James Morris <jmorris@namei.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Patrick McHardy <kaber@trash.net>, mikko.rapeli@iki.fi
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:51494 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932336AbcKJNYV (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Nov 2016 08:24:21 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:43846 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933572AbcKJOq7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 10 Nov 2016 09:46:59 -0500
+In-Reply-To: <cover.1478784737.git.dcaratti@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Since kernel 4.7 this defaults to off.
+In commit 1ffad83dffd6 ("netfilter: fix include files for compilation"),
+compile-time errors were fixed for userspace programs including UAPI
+nf_conntrack_tuple_common.h: this was done by adding a "#include
+ <linux/netfilter.h>" line to that header file. This patch replaces
+"<linux/netfilter.h>" with "<linux/netfilter/nf_conntrack_common.h>"
+in nf_conntrack_tuple_common.h to avoid compile-time errors when trying
+to use enum ip_conntrack_dir in include/net/netns/conntrack.h, and still
+correctly resolve IP_CT_IS_REPLY.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+This accidentally fixes two failures in the output of the script used to
+test the above commit [1]:
+
+$ pushd usr/include
+$ ../../scripts/headers_compile_test.sh -k | grep FAILED >before.txt
+$ sed -i s/netfilter.h/netfilter\/nf_conntrack_common.h/1 \
+  linux/netfilter/nf_conntrack_tuple_common.h
+$ ../../scripts/headers_compile_test.sh -k | grep FAILED >after.txt
+$ diff before.txt after.txt
+ 24,25d23
+ < FAILED: ./linux/netfilter/nf_conntrack_sctp.h
+ < FAILED: ./linux/netfilter/nf_conntrack_tuple_common.h
+$ popd
+
+[1] https://github.com/mcfrisk/linux/blob/headers_test_v05/scripts/headers_compile_test.sh
+
+Signed-off-by: Davide Caratti <dcaratti@redhat.com>
 ---
- Documentation/networking/nf_conntrack-sysctl.txt | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/uapi/linux/netfilter/nf_conntrack_tuple_common.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/networking/nf_conntrack-sysctl.txt b/Documentation/networking/nf_conntrack-sysctl.txt
-index cdeb9d6a44c7..497d668288f9 100644
---- a/Documentation/networking/nf_conntrack-sysctl.txt
-+++ b/Documentation/networking/nf_conntrack-sysctl.txt
-@@ -62,10 +62,13 @@ nf_conntrack_generic_timeout - INTEGER (seconds)
- 	protocols.
+diff --git a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h b/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
+index a9c3834..941e8ea 100644
+--- a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
++++ b/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
+@@ -2,7 +2,7 @@
+ #define _NF_CONNTRACK_TUPLE_COMMON_H
  
- nf_conntrack_helper - BOOLEAN
--	0 - disabled
--	not 0 - enabled (default)
-+	0 - disabled (default)
-+	not 0 - enabled
+ #include <linux/types.h>
+-#include <linux/netfilter.h>
++#include <linux/netfilter/nf_conntrack_common.h>
  
- 	Enable automatic conntrack helper assignment.
-+	If disabled it is required to set up iptables rules to assign
-+	helpers to connections.  See the CT target description in the
-+	iptables-extensions(8) man page for further information.
- 
- nf_conntrack_icmp_timeout - INTEGER (seconds)
- 	default 30
+ enum ip_conntrack_dir {
+ 	IP_CT_DIR_ORIGINAL,
 -- 
-2.7.3
+2.7.4
 
