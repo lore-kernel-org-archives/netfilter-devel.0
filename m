@@ -1,7 +1,7 @@
 From: Davide Caratti <dcaratti@redhat.com>
-Subject: [PATCH nf-next 1/4] netfilter: nf_conntrack_tuple_common.h: fix #include
-Date: Thu, 10 Nov 2016 15:46:25 +0100
-Message-ID: <76156fa3b39eba2d1d6739a47d40a99920acd802.1478784737.git.dcaratti@redhat.com>
+Subject: [PATCH nf-next 4/4] netfilter: conntrack: built-in support for UDPlite
+Date: Thu, 10 Nov 2016 15:46:28 +0100
+Message-ID: <ac29afb4fabb0d626ad708911a013c5bf80a2731.1478784737.git.dcaratti@redhat.com>
 References: <cover.1478784737.git.dcaratti@redhat.com>
 Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org
 To: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
@@ -13,57 +13,319 @@ To: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Patrick McHardy <kaber@trash.net>, mikko.rapeli@iki.fi
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43846 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:52964 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933572AbcKJOq7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Nov 2016 09:46:59 -0500
+        id S933572AbcKJOrJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 10 Nov 2016 09:47:09 -0500
 In-Reply-To: <cover.1478784737.git.dcaratti@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In commit 1ffad83dffd6 ("netfilter: fix include files for compilation"),
-compile-time errors were fixed for userspace programs including UAPI
-nf_conntrack_tuple_common.h: this was done by adding a "#include
- <linux/netfilter.h>" line to that header file. This patch replaces
-"<linux/netfilter.h>" with "<linux/netfilter/nf_conntrack_common.h>"
-in nf_conntrack_tuple_common.h to avoid compile-time errors when trying
-to use enum ip_conntrack_dir in include/net/netns/conntrack.h, and still
-correctly resolve IP_CT_IS_REPLY.
+CONFIG_NF_CT_PROTO_UDPLITE is no more a tristate. When set to y,
+connection tracking support for UDPlite protocol is built-in into
+nf_conntrack.ko.
 
-This accidentally fixes two failures in the output of the script used to
-test the above commit [1]:
+footprint test:
+$ ls -l net/netfilter/nf_conntrack{_proto_udplite,}.ko \
+        net/ipv4/netfilter/nf_conntrack_ipv4.ko \
+        net/ipv6/netfilter/nf_conntrack_ipv6.ko
 
-$ pushd usr/include
-$ ../../scripts/headers_compile_test.sh -k | grep FAILED >before.txt
-$ sed -i s/netfilter.h/netfilter\/nf_conntrack_common.h/1 \
-  linux/netfilter/nf_conntrack_tuple_common.h
-$ ../../scripts/headers_compile_test.sh -k | grep FAILED >after.txt
-$ diff before.txt after.txt
- 24,25d23
- < FAILED: ./linux/netfilter/nf_conntrack_sctp.h
- < FAILED: ./linux/netfilter/nf_conntrack_tuple_common.h
-$ popd
-
-[1] https://github.com/mcfrisk/linux/blob/headers_test_v05/scripts/headers_compile_test.sh
+(builtin)|| udplite|  ipv4  |  ipv6  |nf_conntrack
+---------++--------+--------+--------+--------------
+none     || 432538 | 828755 | 828676 | 6141434
+UDPlite  ||   -    | 829649 | 829362 | 6498204
 
 Signed-off-by: Davide Caratti <dcaratti@redhat.com>
 ---
- include/uapi/linux/netfilter/nf_conntrack_tuple_common.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/net/netfilter/ipv4/nf_conntrack_ipv4.h |  3 +
+ include/net/netfilter/ipv6/nf_conntrack_ipv6.h |  3 +
+ include/net/netns/conntrack.h                  | 16 ++++++
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |  3 +
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |  3 +
+ net/netfilter/Kconfig                          |  5 +-
+ net/netfilter/Makefile                         |  2 +-
+ net/netfilter/nf_conntrack_proto_udplite.c     | 79 +++-----------------------
+ 8 files changed, 41 insertions(+), 73 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h b/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
-index a9c3834..941e8ea 100644
---- a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
-+++ b/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
-@@ -2,7 +2,7 @@
- #define _NF_CONNTRACK_TUPLE_COMMON_H
+diff --git a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
+index 5f1fc15..919e4e8 100644
+--- a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
++++ b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
+@@ -21,6 +21,9 @@ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp4;
+ #ifdef CONFIG_NF_CT_PROTO_SCTP
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4;
+ #endif
++#ifdef CONFIG_NF_CT_PROTO_UDPLITE
++extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4;
++#endif
+ 
+ int nf_conntrack_ipv4_compat_init(void);
+ void nf_conntrack_ipv4_compat_fini(void);
+diff --git a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+index f70d191..eaea968 100644
+--- a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
++++ b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+@@ -12,6 +12,9 @@ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp6;
+ #ifdef CONFIG_NF_CT_PROTO_SCTP
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6;
+ #endif
++#ifdef CONFIG_NF_CT_PROTO_UDPLITE
++extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6;
++#endif
+ 
+ #include <linux/sysctl.h>
+ extern struct ctl_table nf_ct_ipv6_sysctl_table[];
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+index 7f73aa8..d5e1452 100644
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
+@@ -69,6 +69,19 @@ struct nf_sctp_net {
+ };
+ #endif
+ 
++#ifdef CONFIG_NF_CT_PROTO_UDPLITE
++enum udplite_conntrack {
++	UDPLITE_CT_UNREPLIED,
++	UDPLITE_CT_REPLIED,
++	UDPLITE_CT_MAX
++};
++
++struct nf_udplite_net {
++	struct nf_proto_net pn;
++	unsigned int timeouts[UDPLITE_CT_MAX];
++};
++#endif
++
+ struct nf_ip_net {
+ 	struct nf_generic_net   generic;
+ 	struct nf_tcp_net	tcp;
+@@ -81,6 +94,9 @@ struct nf_ip_net {
+ #ifdef CONFIG_NF_CT_PROTO_SCTP
+ 	struct nf_sctp_net	sctp;
+ #endif
++#ifdef CONFIG_NF_CT_PROTO_UDPLITE
++	struct nf_udplite_net	udplite;
++#endif
+ };
+ 
+ struct ct_pcpu {
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index 0a9d354..22fce4f 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -346,6 +346,9 @@ static struct nf_conntrack_l4proto *builtin_l4proto4[] = {
+ #ifdef CONFIG_NF_CT_PROTO_SCTP
+ 	&nf_conntrack_l4proto_sctp4,
+ #endif
++#ifdef CONFIG_NF_CT_PROTO_UDPLITE
++	&nf_conntrack_l4proto_udplite4,
++#endif
+ };
+ 
+ static int ipv4_net_init(struct net *net)
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index 1d8daaf..389f712 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -346,6 +346,9 @@ static struct nf_conntrack_l4proto *builtin_l4proto6[] = {
+ #ifdef CONFIG_NF_CT_PROTO_SCTP
+ 	&nf_conntrack_l4proto_sctp6,
+ #endif
++#ifdef CONFIG_NF_CT_PROTO_UDPLITE
++	&nf_conntrack_l4proto_udplite6,
++#endif
+ };
+ 
+ static int ipv6_net_init(struct net *net)
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 29c0bf0..def4be0 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -169,14 +169,15 @@ config NF_CT_PROTO_SCTP
+ 	  If unsure, say Y.
+ 
+ config NF_CT_PROTO_UDPLITE
+-	tristate 'UDP-Lite protocol connection tracking support'
++	bool 'UDP-Lite protocol connection tracking support'
+ 	depends on NETFILTER_ADVANCED
++	default y
+ 	help
+ 	  With this option enabled, the layer 3 independent connection
+ 	  tracking code will be able to do state tracking on UDP-Lite
+ 	  connections.
+ 
+-	  To compile it as a module, choose M here.  If unsure, say N.
++	  If unsure, say Y.
+ 
+ config NF_CONNTRACK_AMANDA
+ 	tristate "Amanda backup protocol support"
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 6545c28..e4c8c1d 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -7,6 +7,7 @@ nf_conntrack-$(CONFIG_NF_CONNTRACK_EVENTS) += nf_conntrack_ecache.o
+ nf_conntrack-$(CONFIG_NF_CONNTRACK_LABELS) += nf_conntrack_labels.o
+ nf_conntrack-$(CONFIG_NF_CT_PROTO_DCCP) += nf_conntrack_proto_dccp.o
+ nf_conntrack-$(CONFIG_NF_CT_PROTO_SCTP) += nf_conntrack_proto_sctp.o
++nf_conntrack-$(CONFIG_NF_CT_PROTO_UDPLITE) += nf_conntrack_proto_udplite.o
+ 
+ obj-$(CONFIG_NETFILTER) = netfilter.o
+ 
+@@ -19,7 +20,6 @@ obj-$(CONFIG_NETFILTER_NETLINK_LOG) += nfnetlink_log.o
+ obj-$(CONFIG_NF_CONNTRACK) += nf_conntrack.o
+ 
+ obj-$(CONFIG_NF_CT_PROTO_GRE) += nf_conntrack_proto_gre.o
+-obj-$(CONFIG_NF_CT_PROTO_UDPLITE) += nf_conntrack_proto_udplite.o
+ 
+ # netlink interface for nf_conntrack
+ obj-$(CONFIG_NF_CT_NETLINK) += nf_conntrack_netlink.o
+diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
+index 8cdb4b1..c35f7bf 100644
+--- a/net/netfilter/nf_conntrack_proto_udplite.c
++++ b/net/netfilter/nf_conntrack_proto_udplite.c
+@@ -9,7 +9,6 @@
  
  #include <linux/types.h>
--#include <linux/netfilter.h>
-+#include <linux/netfilter/nf_conntrack_common.h>
+ #include <linux/timer.h>
+-#include <linux/module.h>
+ #include <linux/udp.h>
+ #include <linux/seq_file.h>
+ #include <linux/skbuff.h>
+@@ -24,26 +23,14 @@
+ #include <net/netfilter/nf_conntrack_ecache.h>
+ #include <net/netfilter/nf_log.h>
  
- enum ip_conntrack_dir {
- 	IP_CT_DIR_ORIGINAL,
+-enum udplite_conntrack {
+-	UDPLITE_CT_UNREPLIED,
+-	UDPLITE_CT_REPLIED,
+-	UDPLITE_CT_MAX
+-};
+-
+ static unsigned int udplite_timeouts[UDPLITE_CT_MAX] = {
+ 	[UDPLITE_CT_UNREPLIED]	= 30*HZ,
+ 	[UDPLITE_CT_REPLIED]	= 180*HZ,
+ };
+ 
+-static int udplite_net_id __read_mostly;
+-struct udplite_net {
+-	struct nf_proto_net pn;
+-	unsigned int timeouts[UDPLITE_CT_MAX];
+-};
+-
+-static inline struct udplite_net *udplite_pernet(struct net *net)
++static inline struct nf_udplite_net *udplite_pernet(struct net *net)
+ {
+-	return net_generic(net, udplite_net_id);
++	return &net->ct.nf_ct_proto.udplite;
+ }
+ 
+ static bool udplite_pkt_to_tuple(const struct sk_buff *skb,
+@@ -178,7 +165,7 @@ static int udplite_timeout_nlattr_to_obj(struct nlattr *tb[],
+ 					 struct net *net, void *data)
+ {
+ 	unsigned int *timeouts = data;
+-	struct udplite_net *un = udplite_pernet(net);
++	struct nf_udplite_net *un = udplite_pernet(net);
+ 
+ 	/* set default timeouts for UDPlite. */
+ 	timeouts[UDPLITE_CT_UNREPLIED] = un->timeouts[UDPLITE_CT_UNREPLIED];
+@@ -237,7 +224,7 @@ static struct ctl_table udplite_sysctl_table[] = {
+ #endif /* CONFIG_SYSCTL */
+ 
+ static int udplite_kmemdup_sysctl_table(struct nf_proto_net *pn,
+-					struct udplite_net *un)
++					struct nf_udplite_net *un)
+ {
+ #ifdef CONFIG_SYSCTL
+ 	if (pn->ctl_table)
+@@ -257,7 +244,7 @@ static int udplite_kmemdup_sysctl_table(struct nf_proto_net *pn,
+ 
+ static int udplite_init_net(struct net *net, u_int16_t proto)
+ {
+-	struct udplite_net *un = udplite_pernet(net);
++	struct nf_udplite_net *un = udplite_pernet(net);
+ 	struct nf_proto_net *pn = &un->pn;
+ 
+ 	if (!pn->users) {
+@@ -270,7 +257,7 @@ static int udplite_init_net(struct net *net, u_int16_t proto)
+ 	return udplite_kmemdup_sysctl_table(pn, un);
+ }
+ 
+-static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 __read_mostly =
++struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 __read_mostly =
+ {
+ 	.l3proto		= PF_INET,
+ 	.l4proto		= IPPROTO_UDPLITE,
+@@ -299,11 +286,11 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 __read_mostly =
+ 		.nla_policy	= udplite_timeout_nla_policy,
+ 	},
+ #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
+-	.net_id			= &udplite_net_id,
+ 	.init_net		= udplite_init_net,
+ };
++EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_udplite4);
+ 
+-static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 __read_mostly =
++struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 __read_mostly =
+ {
+ 	.l3proto		= PF_INET6,
+ 	.l4proto		= IPPROTO_UDPLITE,
+@@ -332,54 +319,6 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 __read_mostly =
+ 		.nla_policy	= udplite_timeout_nla_policy,
+ 	},
+ #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
+-	.net_id			= &udplite_net_id,
+ 	.init_net		= udplite_init_net,
+ };
+-
+-static struct nf_conntrack_l4proto *udplite_proto[] = {
+-	&nf_conntrack_l4proto_udplite4,
+-	&nf_conntrack_l4proto_udplite6,
+-};
+-
+-static int udplite_net_init(struct net *net)
+-{
+-	return nf_ct_l4proto_pernet_register(net, udplite_proto,
+-					     ARRAY_SIZE(udplite_proto));
+-}
+-
+-static void udplite_net_exit(struct net *net)
+-{
+-	nf_ct_l4proto_pernet_unregister(net, udplite_proto,
+-					ARRAY_SIZE(udplite_proto));
+-}
+-
+-static struct pernet_operations udplite_net_ops = {
+-	.init = udplite_net_init,
+-	.exit = udplite_net_exit,
+-	.id   = &udplite_net_id,
+-	.size = sizeof(struct udplite_net),
+-};
+-
+-static int __init nf_conntrack_proto_udplite_init(void)
+-{
+-	int ret;
+-
+-	ret = register_pernet_subsys(&udplite_net_ops);
+-	if (ret < 0)
+-		return ret;
+-	ret = nf_ct_l4proto_register(udplite_proto, ARRAY_SIZE(udplite_proto));
+-	if (ret < 0)
+-		unregister_pernet_subsys(&udplite_net_ops);
+-	return ret;
+-}
+-
+-static void __exit nf_conntrack_proto_udplite_exit(void)
+-{
+-	nf_ct_l4proto_unregister(udplite_proto, ARRAY_SIZE(udplite_proto));
+-	unregister_pernet_subsys(&udplite_net_ops);
+-}
+-
+-module_init(nf_conntrack_proto_udplite_init);
+-module_exit(nf_conntrack_proto_udplite_exit);
+-
+-MODULE_LICENSE("GPL");
++EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_udplite6);
 -- 
 2.7.4
 
