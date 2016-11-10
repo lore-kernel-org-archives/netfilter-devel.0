@@ -1,34 +1,30 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables: xtables-arp: Use getaddrinfo()
-Date: Thu, 10 Nov 2016 01:35:10 +0100
-Message-ID: <20161110003510.GA4924@salvia>
-References: <20161107122846.GA11799@Novo>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/14] Netfilter fixes for net
+Date: Wed, 09 Nov 2016 20:38:39 -0500 (EST)
+Message-ID: <20161109.203839.2046450350383782574.davem@davemloft.net>
+References: <1478737427-1574-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39352 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751546AbcKJAfP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 9 Nov 2016 19:35:15 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 888D19B7F4
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Nov 2016 01:35:13 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 79668DA80B
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Nov 2016 01:35:13 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9A895DA803
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Nov 2016 01:35:11 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20161107122846.GA11799@Novo>
+Received: from shards.monkeyblade.net ([184.105.139.130]:46872 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753032AbcKJBim (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 9 Nov 2016 20:38:42 -0500
+In-Reply-To: <1478737427-1574-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 07, 2016 at 05:58:46PM +0530, Shivani Bhardwaj wrote:
-> Replace gethostbyname() with getaddrinfo() as getaddrinfo()
-> deprecates the former and allows programs to eliminate
-> IPv4-versus-IPv6 dependencies.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu, 10 Nov 2016 01:23:33 +0100
 
-Applied, thanks Shivani.
+> The following patchset contains a larger than usual batch of Netfilter
+> fixes for your net tree. This series contains a mixture of old bugs and
+> recently introduced bugs, they are:
+ ...
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+Pulled, thanks Pablo.
