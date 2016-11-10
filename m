@@ -1,67 +1,38 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 13/22] netfilter: ipset: Simplify mtype_expire() for hash types
-Date: Thu, 10 Nov 2016 13:57:47 +0100
-Message-ID: <1478782676-9770-14-git-send-email-kadlec@blackhole.kfki.hu>
-References: <1478782676-9770-1-git-send-email-kadlec@blackhole.kfki.hu>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: conntrack: remove unused netns_ct member
+Date: Thu, 10 Nov 2016 14:17:01 +0100
+Message-ID: <1478783821-15979-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:48999 "EHLO smtp2.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933224AbcKJM6J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Nov 2016 07:58:09 -0500
-In-Reply-To: <1478782676-9770-1-git-send-email-kadlec@blackhole.kfki.hu>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:51464 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932336AbcKJNQo (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 10 Nov 2016 08:16:44 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Remove one leve of intendation by using continue while
-iterating over elements in bucket.
+since 23014011ba420 ('netfilter: conntrack: support a fixed size of 128 distinct labels')
+this isn't needed anymore.
 
-Ported from a patch proposed by Sergey Popovich <popovich_sergei@mail.ua>.
-
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h | 25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
+ include/net/netns/conntrack.h | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index c4877b6..7999e4c 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -487,21 +487,20 @@ struct htype {
- 				continue;
- 			}
- 			data = ahash_data(n, j, dsize);
--			if (ip_set_timeout_expired(ext_timeout(data, set))) {
--				pr_debug("expired %u/%u\n", i, j);
--				clear_bit(j, n->used);
--				smp_mb__after_atomic();
-+			if (!ip_set_timeout_expired(ext_timeout(data, set)))
-+				continue;
-+			pr_debug("expired %u/%u\n", i, j);
-+			clear_bit(j, n->used);
-+			smp_mb__after_atomic();
- #ifdef IP_SET_HASH_WITH_NETS
--				for (k = 0; k < IPSET_NET_COUNT; k++)
--					mtype_del_cidr(h,
--						NCIDR_PUT(DCIDR_GET(data->cidr,
--								    k)),
--						nets_length, k);
-+			for (k = 0; k < IPSET_NET_COUNT; k++)
-+				mtype_del_cidr(h,
-+					NCIDR_PUT(DCIDR_GET(data->cidr, k)),
-+					nets_length, k);
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+index e469e85de3f9..3d06d94d2e52 100644
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
+@@ -91,7 +91,6 @@ struct netns_ct {
+ 	struct nf_ip_net	nf_ct_proto;
+ #if defined(CONFIG_NF_CONNTRACK_LABELS)
+ 	unsigned int		labels_used;
+-	u8			label_words;
  #endif
--				ip_set_ext_destroy(set, data);
--				set->elements--;
--				d++;
--			}
-+			ip_set_ext_destroy(set, data);
-+			set->elements--;
-+			d++;
- 		}
- 		if (d >= AHASH_INIT_SIZE) {
- 			if (d >= n->size) {
+ };
+ #endif
 -- 
-1.8.5.1
+2.7.3
 
