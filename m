@@ -1,322 +1,69 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 11/22] netfilter: ipset: Count non-static extension memory for userspace
-Date: Thu, 10 Nov 2016 13:57:45 +0100
-Message-ID: <1478782676-9770-12-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 12/22] netfilter: ipset: Remove redundant mtype_expire() arguments
+Date: Thu, 10 Nov 2016 13:57:46 +0100
+Message-ID: <1478782676-9770-13-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1478782676-9770-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:49041 "EHLO smtp2.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:36182 "EHLO smtp1.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932964AbcKJM6N (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Nov 2016 07:58:13 -0500
+        id S932985AbcKJM6C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 10 Nov 2016 07:58:02 -0500
 In-Reply-To: <1478782676-9770-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Non-static (i.e. comment) extension was not counted into the memory
-size. A new internal counter is introduced for this. In the case of
-the hash types the sizes of the arrays are counted there as well so
-that we can avoid to scan the whole set when just the header data
-is requested.
+Remove redundant parameters nets_length and dsize, because
+they can be get from other parameters.
+
+Ported from a patch proposed by Sergey Popovich <popovich_sergei@mail.ua>.
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/linux/netfilter/ipset/ip_set.h         |  8 ++++++--
- include/linux/netfilter/ipset/ip_set_comment.h |  7 +++++--
- net/netfilter/ipset/ip_set_bitmap_gen.h        |  5 +++--
- net/netfilter/ipset/ip_set_core.c              |  2 +-
- net/netfilter/ipset/ip_set_hash_gen.h          | 26 ++++++++++++++------------
- net/netfilter/ipset/ip_set_list_set.c          |  5 +++--
- 6 files changed, 32 insertions(+), 21 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 4671d74..8e42253 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -79,10 +79,12 @@ enum ip_set_ext_id {
- 	IPSET_EXT_ID_MAX,
- };
- 
-+struct ip_set;
-+
- /* Extension type */
- struct ip_set_ext_type {
- 	/* Destroy extension private data (can be NULL) */
--	void (*destroy)(void *ext);
-+	void (*destroy)(struct ip_set *set, void *ext);
- 	enum ip_set_extension type;
- 	enum ipset_cadt_flags flag;
- 	/* Size and minimal alignment */
-@@ -252,6 +254,8 @@ struct ip_set {
- 	u32 timeout;
- 	/* Number of elements (vs timeout) */
- 	u32 elements;
-+	/* Size of the dynamic extensions (vs timeout) */
-+	size_t ext_size;
- 	/* Element data size */
- 	size_t dsize;
- 	/* Offsets to extensions in elements */
-@@ -268,7 +272,7 @@ struct ip_set {
- 	 */
- 	if (SET_WITH_COMMENT(set))
- 		ip_set_extensions[IPSET_EXT_ID_COMMENT].destroy(
--			ext_comment(data, set));
-+			set, ext_comment(data, set));
- }
- 
- static inline int
-diff --git a/include/linux/netfilter/ipset/ip_set_comment.h b/include/linux/netfilter/ipset/ip_set_comment.h
-index 5444b1b..8e2bab1 100644
---- a/include/linux/netfilter/ipset/ip_set_comment.h
-+++ b/include/linux/netfilter/ipset/ip_set_comment.h
-@@ -20,13 +20,14 @@
-  * The kadt functions don't use the comment extensions in any way.
-  */
- static inline void
--ip_set_init_comment(struct ip_set_comment *comment,
-+ip_set_init_comment(struct ip_set *set, struct ip_set_comment *comment,
- 		    const struct ip_set_ext *ext)
- {
- 	struct ip_set_comment_rcu *c = rcu_dereference_protected(comment->c, 1);
- 	size_t len = ext->comment ? strlen(ext->comment) : 0;
- 
- 	if (unlikely(c)) {
-+		set->ext_size -= sizeof(*c) + strlen(c->str) + 1;
- 		kfree_rcu(c, rcu);
- 		rcu_assign_pointer(comment->c, NULL);
- 	}
-@@ -38,6 +39,7 @@
- 	if (unlikely(!c))
- 		return;
- 	strlcpy(c->str, ext->comment, len + 1);
-+	set->ext_size += sizeof(*c) + strlen(c->str) + 1;
- 	rcu_assign_pointer(comment->c, c);
- }
- 
-@@ -58,13 +60,14 @@
-  * of the set data anymore.
-  */
- static inline void
--ip_set_comment_free(struct ip_set_comment *comment)
-+ip_set_comment_free(struct ip_set *set, struct ip_set_comment *comment)
- {
- 	struct ip_set_comment_rcu *c;
- 
- 	c = rcu_dereference_protected(comment->c, 1);
- 	if (unlikely(!c))
- 		return;
-+	set->ext_size -= sizeof(*c) + strlen(c->str) + 1;
- 	kfree_rcu(c, rcu);
- 	rcu_assign_pointer(comment->c, NULL);
- }
-diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
-index 1810d1c..f8ea26c 100644
---- a/net/netfilter/ipset/ip_set_bitmap_gen.h
-+++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
-@@ -84,6 +84,7 @@
- 		mtype_ext_cleanup(set);
- 	memset(map->members, 0, map->memsize);
- 	set->elements = 0;
-+	set->ext_size = 0;
- }
- 
- /* Calculate the actual memory size of the set data */
-@@ -99,7 +100,7 @@
- {
- 	const struct mtype *map = set->data;
- 	struct nlattr *nested;
--	size_t memsize = mtype_memsize(map, set->dsize);
-+	size_t memsize = mtype_memsize(map, set->dsize) + set->ext_size;
- 
- 	nested = ipset_nest_start(skb, IPSET_ATTR_DATA);
- 	if (!nested)
-@@ -173,7 +174,7 @@
- 	if (SET_WITH_COUNTER(set))
- 		ip_set_init_counter(ext_counter(x, set), ext);
- 	if (SET_WITH_COMMENT(set))
--		ip_set_init_comment(ext_comment(x, set), ext);
-+		ip_set_init_comment(set, ext_comment(x, set), ext);
- 	if (SET_WITH_SKBINFO(set))
- 		ip_set_init_skbinfo(ext_skbinfo(x, set), ext);
- 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index bfacccf..23345d2 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -324,7 +324,7 @@ static inline struct ip_set_net *ip_set_pernet(struct net *net)
- }
- EXPORT_SYMBOL_GPL(ip_set_get_ipaddr6);
- 
--typedef void (*destroyer)(void *);
-+typedef void (*destroyer)(struct ip_set *, void *);
- /* ipset data extension types, in size order */
- 
- const struct ip_set_ext_type ip_set_extensions[] = {
 diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 6e967f1..0746405 100644
+index 0746405..c4877b6 100644
 --- a/net/netfilter/ipset/ip_set_hash_gen.h
 +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -343,21 +343,13 @@ struct htype {
- /* Calculate the actual memory size of the set data */
- static size_t
- mtype_ahash_memsize(const struct htype *h, const struct htable *t,
--		    u8 nets_length, size_t dsize)
-+		    u8 nets_length)
+@@ -465,14 +465,15 @@ struct htype {
+ 
+ /* Delete expired elements from the hashtable */
+ static void
+-mtype_expire(struct ip_set *set, struct htype *h, u8 nets_length, size_t dsize)
++mtype_expire(struct ip_set *set, struct htype *h)
  {
--	u32 i;
--	struct hbucket *n;
- 	size_t memsize = sizeof(*h) + sizeof(*t);
- 
+ 	struct htable *t;
+ 	struct hbucket *n, *tmp;
+ 	struct mtype_elem *data;
+ 	u32 i, j, d;
++	size_t dsize = set->dsize;
  #ifdef IP_SET_HASH_WITH_NETS
- 	memsize += sizeof(struct net_prefixes) * nets_length;
+-	u8 k;
++	u8 k, nets_length = NLEN(set->family);
  #endif
--	for (i = 0; i < jhash_size(t->htable_bits); i++) {
--		n = rcu_dereference_bh(hbucket(t, i));
--		if (!n)
--			continue;
--		memsize += sizeof(struct hbucket) + n->size * dsize;
--	}
  
- 	return memsize;
- }
-@@ -400,6 +392,7 @@ struct htype {
- 	memset(h->nets, 0, sizeof(struct net_prefixes) * NLEN(set->family));
- #endif
- 	set->elements = 0;
-+	set->ext_size = 0;
- }
+ 	t = ipset_dereference_protected(h->table, set);
+@@ -539,7 +540,7 @@ struct htype {
  
- /* Destroy the hashtable part of the set */
-@@ -531,6 +524,7 @@ struct htype {
- 				d++;
- 			}
- 			tmp->pos = d;
-+			set->ext_size -= AHASH_INIT_SIZE * dsize;
- 			rcu_assign_pointer(hbucket(t, i), tmp);
- 			kfree_rcu(n, rcu);
- 		}
-@@ -562,7 +556,7 @@ struct htype {
- 	struct htype *h = set->data;
- 	struct htable *t, *orig;
- 	u8 htable_bits;
--	size_t dsize = set->dsize;
-+	size_t extsize, dsize = set->dsize;
- #ifdef IP_SET_HASH_WITH_NETS
- 	u8 flags;
- 	struct mtype_elem *tmp;
-@@ -605,6 +599,7 @@ struct htype {
- 	/* There can't be another parallel resizing, but dumping is possible */
- 	atomic_set(&orig->ref, 1);
- 	atomic_inc(&orig->uref);
-+	extsize = 0;
- 	pr_debug("attempt to resize set %s from %u to %u, t %p\n",
- 		 set->name, orig->htable_bits, htable_bits, orig);
- 	for (i = 0; i < jhash_size(orig->htable_bits); i++) {
-@@ -635,6 +630,7 @@ struct htype {
- 					goto cleanup;
- 				}
- 				m->size = AHASH_INIT_SIZE;
-+				extsize = sizeof(*m) + AHASH_INIT_SIZE * dsize;
- 				RCU_INIT_POINTER(hbucket(t, key), m);
- 			} else if (m->pos >= m->size) {
- 				struct hbucket *ht;
-@@ -654,6 +650,7 @@ struct htype {
- 				memcpy(ht, m, sizeof(struct hbucket) +
- 					      m->size * dsize);
- 				ht->size = m->size + AHASH_INIT_SIZE;
-+				extsize += AHASH_INIT_SIZE * dsize;
- 				kfree(m);
- 				m = ht;
- 				RCU_INIT_POINTER(hbucket(t, key), ht);
-@@ -667,6 +664,7 @@ struct htype {
- 		}
- 	}
- 	rcu_assign_pointer(h->table, t);
-+	set->ext_size = extsize;
- 
+ 	pr_debug("called\n");
+ 	spin_lock_bh(&set->lock);
+-	mtype_expire(set, h, NLEN(set->family), set->dsize);
++	mtype_expire(set, h);
  	spin_unlock_bh(&set->lock);
  
-@@ -740,6 +738,7 @@ struct htype {
- 		if (!n)
- 			return -ENOMEM;
- 		n->size = AHASH_INIT_SIZE;
-+		set->ext_size += sizeof(*n) + AHASH_INIT_SIZE * set->dsize;
- 		goto copy_elem;
+ 	h->gc.expires = jiffies + IPSET_GC_PERIOD(set->timeout) * HZ;
+@@ -715,7 +716,7 @@ struct htype {
+ 	if (set->elements >= h->maxelem) {
+ 		if (SET_WITH_TIMEOUT(set))
+ 			/* FIXME: when set is full, we slow down here */
+-			mtype_expire(set, h, NLEN(set->family), set->dsize);
++			mtype_expire(set, h);
+ 		if (set->elements >= h->maxelem && SET_WITH_FORCEADD(set))
+ 			forceadd = true;
  	}
- 	for (i = 0; i < n->pos; i++) {
-@@ -803,6 +802,7 @@ struct htype {
- 		memcpy(n, old, sizeof(struct hbucket) +
- 		       old->size * set->dsize);
- 		n->size = old->size + AHASH_INIT_SIZE;
-+		set->ext_size += AHASH_INIT_SIZE * set->dsize;
- 	}
- 
- copy_elem:
-@@ -823,7 +823,7 @@ struct htype {
- 	if (SET_WITH_COUNTER(set))
- 		ip_set_init_counter(ext_counter(data, set), ext);
- 	if (SET_WITH_COMMENT(set))
--		ip_set_init_comment(ext_comment(data, set), ext);
-+		ip_set_init_comment(set, ext_comment(data, set), ext);
- 	if (SET_WITH_SKBINFO(set))
- 		ip_set_init_skbinfo(ext_skbinfo(data, set), ext);
- 	/* Must come last for the case when timed out entry is reused */
-@@ -895,6 +895,7 @@ struct htype {
- 				k++;
- 		}
- 		if (n->pos == 0 && k == 0) {
-+			set->ext_size -= sizeof(*n) + n->size * dsize;
- 			rcu_assign_pointer(hbucket(t, key), NULL);
- 			kfree_rcu(n, rcu);
- 		} else if (k >= AHASH_INIT_SIZE) {
-@@ -913,6 +914,7 @@ struct htype {
- 				k++;
- 			}
- 			tmp->pos = k;
-+			set->ext_size -= AHASH_INIT_SIZE * dsize;
- 			rcu_assign_pointer(hbucket(t, key), tmp);
- 			kfree_rcu(n, rcu);
- 		}
-@@ -1061,7 +1063,7 @@ struct htype {
- 
- 	rcu_read_lock_bh();
- 	t = rcu_dereference_bh_nfnl(h->table);
--	memsize = mtype_ahash_memsize(h, t, NLEN(set->family), set->dsize);
-+	memsize = mtype_ahash_memsize(h, t, NLEN(set->family)) + set->ext_size;
- 	htable_bits = t->htable_bits;
- 	rcu_read_unlock_bh();
- 
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index c455166..dede343 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -228,7 +228,7 @@ struct list_set {
- 	if (SET_WITH_COUNTER(set))
- 		ip_set_init_counter(ext_counter(e, set), ext);
- 	if (SET_WITH_COMMENT(set))
--		ip_set_init_comment(ext_comment(e, set), ext);
-+		ip_set_init_comment(set, ext_comment(e, set), ext);
- 	if (SET_WITH_SKBINFO(set))
- 		ip_set_init_skbinfo(ext_skbinfo(e, set), ext);
- 	/* Update timeout last */
-@@ -422,6 +422,7 @@ struct list_set {
- 	list_for_each_entry_safe(e, n, &map->members, list)
- 		list_set_del(set, e);
- 	set->elements = 0;
-+	set->ext_size = 0;
- }
- 
- static void
-@@ -467,7 +468,7 @@ struct list_set {
- {
- 	const struct list_set *map = set->data;
- 	struct nlattr *nested;
--	size_t memsize = list_set_memsize(map, set->dsize);
-+	size_t memsize = list_set_memsize(map, set->dsize) + set->ext_size;
- 
- 	nested = ipset_nest_start(skb, IPSET_ATTR_DATA);
- 	if (!nested)
 -- 
 1.8.5.1
 
