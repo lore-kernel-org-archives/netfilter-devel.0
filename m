@@ -1,74 +1,69 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the net-next tree with the netfilter
- tree
-Date: Thu, 10 Nov 2016 10:56:33 +1100
-Message-ID: <20161110105633.31ebdc76@canb.auug.org.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-        WANG Cong <xiyou.wangcong@gmail.com>,
-        Johannes Berg <johannes.berg@intel.com>
-To: David Miller <davem@davemloft.net>,
-        Networking <netdev@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 14/14] netfilter: nf_tables: fix oops when inserting an element into a verdict map
+Date: Thu, 10 Nov 2016 01:23:47 +0100
+Message-ID: <1478737427-1574-15-git-send-email-pablo@netfilter.org>
+References: <1478737427-1574-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1478737427-1574-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+From: Liping Zhang <zlpnobody@gmail.com>
 
-Today's linux-next merge of the net-next tree got a conflict in:
+Dalegaard says:
+ The following ruleset, when loaded with 'nft -f bad.txt'
+ ----snip----
+ flush ruleset
+ table ip inlinenat {
+   map sourcemap {
+     type ipv4_addr : verdict;
+   }
 
-  net/netfilter/ipvs/ip_vs_ctl.c
+   chain postrouting {
+     ip saddr vmap @sourcemap accept
+   }
+ }
+ add chain inlinenat test
+ add element inlinenat sourcemap { 100.123.10.2 : jump test }
+ ----snip----
 
-between commit:
+ results in a kernel oops:
+ BUG: unable to handle kernel paging request at 0000000000001344
+ IP: [<ffffffffa07bf704>] nf_tables_check_loops+0x114/0x1f0 [nf_tables]
+ [...]
+ Call Trace:
+  [<ffffffffa07c2aae>] ? nft_data_init+0x13e/0x1a0 [nf_tables]
+  [<ffffffffa07c1950>] nft_validate_register_store+0x60/0xb0 [nf_tables]
+  [<ffffffffa07c74b5>] nft_add_set_elem+0x545/0x5e0 [nf_tables]
+  [<ffffffffa07bfdd0>] ? nft_table_lookup+0x30/0x60 [nf_tables]
+  [<ffffffff8132c630>] ? nla_strcmp+0x40/0x50
+  [<ffffffffa07c766e>] nf_tables_newsetelem+0x11e/0x210 [nf_tables]
+  [<ffffffff8132c400>] ? nla_validate+0x60/0x80
+  [<ffffffffa030d9b4>] nfnetlink_rcv+0x354/0x5a7 [nfnetlink]
 
-  8fbfef7f505b ("ipvs: use IPVS_CMD_ATTR_MAX for family.maxattr")
+Because we forget to fill the net pointer in bind_ctx, so dereferencing
+it may cause kernel crash.
 
-from the netfilter tree and commit:
+Reported-by: Dalegaard <dalegaard@gmail.com>
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-  489111e5c25b ("genetlink: statically initialize families")
-
-from the net-next tree.
-
-I fixed it up (see below) and can carry the fix as necessary. This
-is now fixed as far as linux-next is concerned, but any non trivial
-conflicts should be mentioned to your upstream maintainer when your tree
-is submitted for merging.  You may also want to consider cooperating
-with the maintainer of the conflicting tree to minimise any particularly
-complex conflicts.
-
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 7d6a626b08f1..026581b04ea8 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3568,6 +3568,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 		dreg = nft_type_to_reg(set->dtype);
+ 		list_for_each_entry(binding, &set->bindings, list) {
+ 			struct nft_ctx bind_ctx = {
++				.net	= ctx->net,
+ 				.afi	= ctx->afi,
+ 				.table	= ctx->table,
+ 				.chain	= (struct nft_chain *)binding->chain,
 -- 
-Cheers,
-Stephen Rothwell
-
-diff --cc net/netfilter/ipvs/ip_vs_ctl.c
-index a6e44ef2ec9a,6b85ded4f91d..000000000000
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@@ -3872,10 -3865,20 +3865,20 @@@ static const struct genl_ops ip_vs_genl
-  	},
-  };
-  
-+ static struct genl_family ip_vs_genl_family __ro_after_init = {
-+ 	.hdrsize	= 0,
-+ 	.name		= IPVS_GENL_NAME,
-+ 	.version	= IPVS_GENL_VERSION,
- -	.maxattr	= IPVS_CMD_MAX,
-++	.maxattr	= IPVS_CMD_ATTR_MAX,
-+ 	.netnsok        = true,         /* Make ipvsadm to work on netns */
-+ 	.module		= THIS_MODULE,
-+ 	.ops		= ip_vs_genl_ops,
-+ 	.n_ops		= ARRAY_SIZE(ip_vs_genl_ops),
-+ };
-+ 
-  static int __init ip_vs_genl_register(void)
-  {
-- 	return genl_register_family_with_ops(&ip_vs_genl_family,
-- 					     ip_vs_genl_ops);
-+ 	return genl_register_family(&ip_vs_genl_family);
-  }
-  
-  static void ip_vs_genl_unregister(void)
+2.1.4
