@@ -1,91 +1,104 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 21/22] netfilter: ipset: use setup_timer() and mod_timer().
-Date: Thu, 10 Nov 2016 13:57:55 +0100
-Message-ID: <1478782676-9770-22-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 19/22] netfilter: ipset: Fix reported memory size for hash:* types
+Date: Thu, 10 Nov 2016 13:57:53 +0100
+Message-ID: <1478782676-9770-20-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1478782676-9770-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:36201 "EHLO smtp1.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:36193 "EHLO smtp1.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933187AbcKJM6D (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Nov 2016 07:58:03 -0500
+        id S933023AbcKJM6C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 10 Nov 2016 07:58:02 -0500
 In-Reply-To: <1478782676-9770-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Use setup_timer() and instead of init_timer(), being the preferred way
-of setting up a timer.
+The calculation of the full allocated memory did not take
+into account the size of the base hash bucket structure at some
+places.
 
-Also, quoting the mod_timer() function comment:
--> mod_timer() is a more efficient way to update the expire field of an
-   active timer (if the timer is inactive it will be activated).
-
-Use setup_timer() and mod_timer() to setup and arm a timer, making the
-code compact and easier to read.
-
-Signed-off-by: Muhammad Falak R Wani <falakreyaz@gmail.com>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/ip_set_bitmap_gen.h | 7 ++-----
- net/netfilter/ipset/ip_set_hash_gen.h   | 7 ++-----
- net/netfilter/ipset/ip_set_list_set.c   | 7 ++-----
- 3 files changed, 6 insertions(+), 15 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
-index f8ea26c..6f09a99 100644
---- a/net/netfilter/ipset/ip_set_bitmap_gen.h
-+++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
-@@ -41,11 +41,8 @@
- {
- 	struct mtype *map = set->data;
- 
--	init_timer(&map->gc);
--	map->gc.data = (unsigned long)set;
--	map->gc.function = gc;
--	map->gc.expires = jiffies + IPSET_GC_PERIOD(set->timeout) * HZ;
--	add_timer(&map->gc);
-+	setup_timer(&map->gc, gc, (unsigned long)set);
-+	mod_timer(&map->gc, jiffies + IPSET_GC_PERIOD(set->timeout) * HZ);
- }
- 
- static void
 diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 88b70fc..1b05d4a 100644
+index 1c9b84e..88b70fc 100644
 --- a/net/netfilter/ipset/ip_set_hash_gen.h
 +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -433,11 +433,8 @@ struct htype {
- {
- 	struct htype *h = set->data;
+@@ -85,6 +85,8 @@ struct htable {
+ };
  
--	init_timer(&h->gc);
--	h->gc.data = (unsigned long)set;
--	h->gc.function = gc;
--	h->gc.expires = jiffies + IPSET_GC_PERIOD(set->timeout) * HZ;
--	add_timer(&h->gc);
-+	setup_timer(&h->gc, gc, (unsigned long)set);
-+	mod_timer(&h->gc, jiffies + IPSET_GC_PERIOD(set->timeout) * HZ);
- 	pr_debug("gc initialized, run in every %u\n",
- 		 IPSET_GC_PERIOD(set->timeout));
- }
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index dede343..51077c5 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -586,11 +586,8 @@ struct list_set {
- {
- 	struct list_set *map = set->data;
+ #define hbucket(h, i)		((h)->bucket[i])
++#define ext_size(n, dsize)	\
++	(sizeof(struct hbucket) + (n) * (dsize))
  
--	init_timer(&map->gc);
--	map->gc.data = (unsigned long)set;
--	map->gc.function = gc;
--	map->gc.expires = jiffies + IPSET_GC_PERIOD(set->timeout) * HZ;
--	add_timer(&map->gc);
-+	setup_timer(&map->gc, gc, (unsigned long)set);
-+	mod_timer(&map->gc, jiffies + IPSET_GC_PERIOD(set->timeout) * HZ);
- }
+ #ifndef IPSET_NET_COUNT
+ #define IPSET_NET_COUNT		1
+@@ -519,7 +521,7 @@ struct htype {
+ 				d++;
+ 			}
+ 			tmp->pos = d;
+-			set->ext_size -= AHASH_INIT_SIZE * dsize;
++			set->ext_size -= ext_size(AHASH_INIT_SIZE, dsize);
+ 			rcu_assign_pointer(hbucket(t, i), tmp);
+ 			kfree_rcu(n, rcu);
+ 		}
+@@ -625,7 +627,7 @@ struct htype {
+ 					goto cleanup;
+ 				}
+ 				m->size = AHASH_INIT_SIZE;
+-				extsize = sizeof(*m) + AHASH_INIT_SIZE * dsize;
++				extsize = ext_size(AHASH_INIT_SIZE, dsize);
+ 				RCU_INIT_POINTER(hbucket(t, key), m);
+ 			} else if (m->pos >= m->size) {
+ 				struct hbucket *ht;
+@@ -645,7 +647,7 @@ struct htype {
+ 				memcpy(ht, m, sizeof(struct hbucket) +
+ 					      m->size * dsize);
+ 				ht->size = m->size + AHASH_INIT_SIZE;
+-				extsize += AHASH_INIT_SIZE * dsize;
++				extsize += ext_size(AHASH_INIT_SIZE, dsize);
+ 				kfree(m);
+ 				m = ht;
+ 				RCU_INIT_POINTER(hbucket(t, key), ht);
+@@ -727,7 +729,7 @@ struct htype {
+ 		if (!n)
+ 			return -ENOMEM;
+ 		n->size = AHASH_INIT_SIZE;
+-		set->ext_size += sizeof(*n) + AHASH_INIT_SIZE * set->dsize;
++		set->ext_size += ext_size(AHASH_INIT_SIZE, set->dsize);
+ 		goto copy_elem;
+ 	}
+ 	for (i = 0; i < n->pos; i++) {
+@@ -791,7 +793,7 @@ struct htype {
+ 		memcpy(n, old, sizeof(struct hbucket) +
+ 		       old->size * set->dsize);
+ 		n->size = old->size + AHASH_INIT_SIZE;
+-		set->ext_size += AHASH_INIT_SIZE * set->dsize;
++		set->ext_size += ext_size(AHASH_INIT_SIZE, set->dsize);
+ 	}
  
- /* Create list:set type of sets */
+ copy_elem:
+@@ -883,7 +885,7 @@ struct htype {
+ 				k++;
+ 		}
+ 		if (n->pos == 0 && k == 0) {
+-			set->ext_size -= sizeof(*n) + n->size * dsize;
++			set->ext_size -= ext_size(n->size, dsize);
+ 			rcu_assign_pointer(hbucket(t, key), NULL);
+ 			kfree_rcu(n, rcu);
+ 		} else if (k >= AHASH_INIT_SIZE) {
+@@ -902,7 +904,7 @@ struct htype {
+ 				k++;
+ 			}
+ 			tmp->pos = k;
+-			set->ext_size -= AHASH_INIT_SIZE * dsize;
++			set->ext_size -= ext_size(AHASH_INIT_SIZE, dsize);
+ 			rcu_assign_pointer(hbucket(t, key), tmp);
+ 			kfree_rcu(n, rcu);
+ 		}
 -- 
 1.8.5.1
 
