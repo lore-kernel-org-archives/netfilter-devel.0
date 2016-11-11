@@ -1,46 +1,70 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: question about xt_find_table_lock
-Date: Fri, 11 Nov 2016 12:58:27 +0100 (CET)
-Message-ID: <alpine.DEB.2.20.1611111257540.2074@hadrien>
-References: <alpine.DEB.2.20.1611111141380.2074@hadrien> <20161111112307.GA7274@breakpoint.cc>
+From: Davide Caratti <dcaratti@redhat.com>
+Subject: Re: [PATCH nf-next 1/4] netfilter: nf_conntrack_tuple_common.h:
+ fix #include
+Date: Fri, 11 Nov 2016 13:02:19 +0100
+Message-ID: <1478865739.2571.62.camel@redhat.com>
+References: <cover.1478784737.git.dcaratti@redhat.com>
+         <76156fa3b39eba2d1d6739a47d40a99920acd802.1478784737.git.dcaratti@redhat.com>
+         <20161111100738.GF8342@lakka.kapsi.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: Julia Lawall <julia.lawall@lip6.fr>, pablo@netfilter.org,
-        kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        christophe.jaillet@wanadoo.fr
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        "David S . Miller" <davem@davemloft.net>,
+        Florian Westphal <fw@strlen.de>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        James Morris <jmorris@namei.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Patrick McHardy <kaber@trash.net>, coreteam@netfilter.org,
+        netfilter-devel@vger.kernel.org
+To: Mikko Rapeli <mikko.rapeli@iki.fi>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:40968
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756286AbcKKL6c (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 11 Nov 2016 06:58:32 -0500
-In-Reply-To: <20161111112307.GA7274@breakpoint.cc>
+Received: from mx1.redhat.com ([209.132.183.28]:48360 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754492AbcKKMC1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 11 Nov 2016 07:02:27 -0500
+In-Reply-To: <20161111100738.GF8342@lakka.kapsi.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Fri, 2016-11-11 at 12:07 +0200, Mikko Rapeli wrote:
+> I assume also with this change it is ok to include both
+> <linux/netfilter.h>
+> and <linux/netfilter/nf_conntrack_tuple_common.h> userspace but what was
+> the
+> kernel compile error with include/net/netns/conntrack.h and
+> ip_conntrack_dir?
 
+hi Mikko, thank you for looking at this!
 
-On Fri, 11 Nov 2016, Florian Westphal wrote:
+The problem is in patch 3/4 as I added #include
+<linux/netfilter/nf_conntrack_sctp.h>  in include/net/netns/conntrack.h,
+but I saw similar things also with DCCP.
 
-> Julia Lawall <julia.lawall@lip6.fr> wrote:
-> > The function xt_find_table_lock defined in net/netfilter/x_tables.c is
-> > preceeded by a comment that says that it returns ERR_PTR() on error.  But
-> > looking at the definition, I only see occurrences of return NULL and
-> > returns of pointers that have previously been dereferenced.  Is it the
-> > code or the documentation that is incorrect?  The call sites seem to be
-> > using IS_ERR_OR_NULL.  Is there a plan to return ERR_PTR values in the
-> > future?
->
-> It used to return ERR_PTR, see:
->
-> commit 7926dbfa4bc14e27f4e18a6184a031a1c1e077dc
-> netfilter: don't use mutex_lock_interruptible()
->
-> So the comment isn't correct anymore and callers could test vs NULL.
+<...>
+  CC      kernel/sysctl_binary.o
+In file included from ./include/linux/netfilter.h:14:0,
+                 from ./include/uapi/linux/netfilter/nf_conntrack_tuple_common.h:5,
+                 from ./include/uapi/linux/netfilter/nf_conntrack_sctp.h:5,
+                 from ./include/linux/netfilter/nf_conntrack_sctp.h:5,
+                 from ./include/net/netns/conntrack.h:13,
+                 from ./include/net/net_namespace.h:25,
+                 from ./include/linux/init_task.h:15,
+                 from init/init_task.c:1:
+./include/linux/netdevice.h:1859:2: error: unknown type name ‘possible_net_t’
+  possible_net_t   nd_net;
+  ^	
+(possile_net_t is in net_namespace.h).
 
-Thanks for the quick feedback.
+> Is there a kernel side conflict between uapi and net/netns headers?
 
-julia
+Looks like a circular dependency is here, or nf_conntrack_tuple_common.h
+is including the wrong netfilter.h. From within net/netns/conntrack.h I
+can include only those UAPI files that don't include <linux/netfilter.h>
+(for example, nf_conntrack_tcp.h that uses '2' instead of IP_CT_DIR_MAX).
+
+Do you have any suggestion?
+thank you in advance,
+--
+davide
