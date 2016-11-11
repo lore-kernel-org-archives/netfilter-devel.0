@@ -1,76 +1,93 @@
-From: Davide Caratti <dcaratti@redhat.com>
-Subject: [PATCH nf-next 0/4] netfilter: built-in conntrack support for DCCP, SCTP, UDPlite
-Date: Thu, 10 Nov 2016 15:46:24 +0100
-Message-ID: <cover.1478784737.git.dcaratti@redhat.com>
-Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org
-To: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+From: Mikko Rapeli <mikko.rapeli@iki.fi>
+Subject: Re: [PATCH nf-next 1/4] netfilter: nf_conntrack_tuple_common.h: fix
+ #include
+Date: Fri, 11 Nov 2016 12:07:38 +0200
+Message-ID: <20161111100738.GF8342@lakka.kapsi.fi>
+References: <cover.1478784737.git.dcaratti@redhat.com>
+ <76156fa3b39eba2d1d6739a47d40a99920acd802.1478784737.git.dcaratti@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
         "David S . Miller" <davem@davemloft.net>,
         Florian Westphal <fw@strlen.de>,
         Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
         James Morris <jmorris@namei.org>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>, mikko.rapeli@iki.fi
+        Patrick McHardy <kaber@trash.net>, coreteam@netfilter.org,
+        netfilter-devel@vger.kernel.org
+To: Davide Caratti <dcaratti@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41460 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:49110 "EHLO mail.kapsi.fi"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933572AbcKJOqy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Nov 2016 09:46:54 -0500
+        id S1750776AbcKKKIO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 11 Nov 2016 05:08:14 -0500
+Content-Disposition: inline
+In-Reply-To: <76156fa3b39eba2d1d6739a47d40a99920acd802.1478784737.git.dcaratti@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When netfilter needs to match traffic made by one of the above protocols,
-layer-4 connection tracking functionality will not be available, unless the
-user explicly loads it in the kernel (e.g. "modprobe nf_conntrack_proto_sctp")
-or modifies the default kernel configuration and rebuilds.
-In order to remove such limitation, this series converts
-CONFIG_NF_CT_PROTO_{DCCP,SCTP,UDPLITE} from tristate to boolean: in case
-conntrack support for these protocols is enabled in the kernel configuration,
-it will be built into nf_conntrack.ko.
+Hi,
 
-Patch 1/4 fixes nf_conntrack_tuple_common.h to avoid compile-time errors
-when moving module per-net private data.
-Patches 2/4  3,4 and 4/4 remove loadable kernel module support from DCCP,
-SCTP and UDPlite respectively.
+On Thu, Nov 10, 2016 at 03:46:25PM +0100, Davide Caratti wrote:
+> In commit 1ffad83dffd6 ("netfilter: fix include files for compilation"),
+> compile-time errors were fixed for userspace programs including UAPI
+> nf_conntrack_tuple_common.h: this was done by adding a "#include
+>  <linux/netfilter.h>" line to that header file. This patch replaces
+> "<linux/netfilter.h>" with "<linux/netfilter/nf_conntrack_common.h>"
+> in nf_conntrack_tuple_common.h to avoid compile-time errors when trying
+> to use enum ip_conntrack_dir in include/net/netns/conntrack.h, and still
+> correctly resolve IP_CT_IS_REPLY.
 
-footprint test (nf-next.git, x86_64, RHEL7)
+I assume also with this change it is ok to include both <linux/netfilter.h>
+and <linux/netfilter/nf_conntrack_tuple_common.h> userspace but what was the
+kernel compile error with include/net/netns/conntrack.h and ip_conntrack_dir?
 
-Patches 2/4 to 4/4 in this series have been individually tested on a
-nf-next.git kernel with standard RHEL7 configuration on x86_64 architecture,
-recording the unstripped binary size after module clean/rebuild:
+Is there a kernel side conflict between uapi and net/netns headers?
 
-$ ls -l net/netfilter/nf_conntrack{,_proto_{dccp,sctp,udplite}}.ko \
-        net/ipv4/netfilter/nf_conntrack_ipv4.ko \
-        net/ipv6/netfilter/nf_conntrack_ipv6.ko
+Could the fix be confined into the kernel side private headers somehow to avoid
+changes visible to userspace?
 
-(builtin)||  dccp  |  sctp  |  udplite  |  ipv4  |  ipv6  | nf_conntrack                                              
----------++--------+--------+-----------+--------+--------+--------------                                             
-none     || 469140 | 498243 |  432538   | 828755 | 828676 | 6141434                                                   
-DCCP     ||   -    | 498987 |  432746   | 830566 | 829935 | 6533526                                                   
-SCTP     || 469276 |   -    |  432690   | 829254 | 829175 | 6547872                                                   
-UDPlite  || 469484 | 498587 |    -      | 829649 | 829362 | 6498204                                                   
-all      ||   -    |   -    |    -      | 831999 | 831104 | 7298358
+I kind of like the pattern that netfilter uapi headers include
+<linux/netfilter.h> and get what they need from there. Maybe maintainers
+disagree though.
 
-Davide Caratti (4):
-  netfilter: nf_conntrack_tuple_common.h: fix #include
-  netfilter: conntrack: built-in support for DCCP
-  netfilter: conntrack: built-in support for SCTP
-  netfilter: conntrack: built-in support for UDPlite
+-Mikko
 
- include/linux/netfilter/nf_conntrack_dccp.h        |  2 +-
- include/net/netfilter/ipv4/nf_conntrack_ipv4.h     |  9 +++
- include/net/netfilter/ipv6/nf_conntrack_ipv6.h     |  9 +++
- include/net/netns/conntrack.h                      | 43 ++++++++++++
- .../linux/netfilter/nf_conntrack_tuple_common.h    |  2 +-
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c     |  9 +++
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c     |  9 +++
- net/netfilter/Kconfig                              | 18 ++---
- net/netfilter/Makefile                             |  7 +-
- net/netfilter/nf_conntrack_proto_dccp.c            | 79 +++-------------------
- net/netfilter/nf_conntrack_proto_sctp.c            | 76 +++------------------
- net/netfilter/nf_conntrack_proto_udplite.c         | 79 +++-------------------
- 12 files changed, 121 insertions(+), 221 deletions(-)
-
--- 
-2.7.4
-
+> This accidentally fixes two failures in the output of the script used to
+> test the above commit [1]:
+> 
+> $ pushd usr/include
+> $ ../../scripts/headers_compile_test.sh -k | grep FAILED >before.txt
+> $ sed -i s/netfilter.h/netfilter\/nf_conntrack_common.h/1 \
+>   linux/netfilter/nf_conntrack_tuple_common.h
+> $ ../../scripts/headers_compile_test.sh -k | grep FAILED >after.txt
+> $ diff before.txt after.txt
+>  24,25d23
+>  < FAILED: ./linux/netfilter/nf_conntrack_sctp.h
+>  < FAILED: ./linux/netfilter/nf_conntrack_tuple_common.h
+> $ popd
+> 
+> [1] https://github.com/mcfrisk/linux/blob/headers_test_v05/scripts/headers_compile_test.sh
+> 
+> Signed-off-by: Davide Caratti <dcaratti@redhat.com>
+> ---
+>  include/uapi/linux/netfilter/nf_conntrack_tuple_common.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h b/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
+> index a9c3834..941e8ea 100644
+> --- a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
+> +++ b/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
+> @@ -2,7 +2,7 @@
+>  #define _NF_CONNTRACK_TUPLE_COMMON_H
+>  
+>  #include <linux/types.h>
+> -#include <linux/netfilter.h>
+> +#include <linux/netfilter/nf_conntrack_common.h>
+>  
+>  enum ip_conntrack_dir {
+>  	IP_CT_DIR_ORIGINAL,
+> -- 
+> 2.7.4
+> 
