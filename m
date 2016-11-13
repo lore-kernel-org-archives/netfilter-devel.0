@@ -1,32 +1,89 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: x_tables: simplify IS_ERR_OR_NULL to NULL test
-Date: Sun, 13 Nov 2016 22:27:07 +0100
-Message-ID: <20161113212707.GA30418@salvia>
-References: <1478867558-21650-1-git-send-email-Julia.Lawall@lip6.fr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, coreteam@netfilter.org,
-        netfilter-devel@vger.kernel.org,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        James Morris <jmorris@namei.org>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Patrick McHardy <kaber@trash.net>,
-        christophe.jaillet@wanadoo.fr
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1478867558-21650-1-git-send-email-Julia.Lawall@lip6.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: [PATCH 04/39] netfilter: deprecate NF_STOP
+Date: Sun, 13 Nov 2016 23:24:58 +0100
+Message-ID: <1479075933-4491-5-git-send-email-pablo@netfilter.org>
+References: <1479075933-4491-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:47620 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S964840AbcKMW0E (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 13 Nov 2016 17:26:04 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 929D5A7E97
+        for <netfilter-devel@vger.kernel.org>; Sun, 13 Nov 2016 23:26:02 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 84498DA814
+        for <netfilter-devel@vger.kernel.org>; Sun, 13 Nov 2016 23:26:02 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A1DCADA7F6
+        for <netfilter-devel@vger.kernel.org>; Sun, 13 Nov 2016 23:26:00 +0100 (CET)
+In-Reply-To: <1479075933-4491-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Nov 11, 2016 at 01:32:38PM +0100, Julia Lawall wrote:
-> Since commit 7926dbfa4bc1 ("netfilter: don't use
-> mutex_lock_interruptible()"), the function xt_find_table_lock can only
-> return NULL on an error.  Simplify the call sites and update the
-> comment before the function.
+NF_STOP is only used by br_netfilter these days, and it can be emulated
+with a combination of NF_STOLEN plus explicit call to the ->okfn()
+function as Florian suggests.
 
-Applied, thanks Julia!
+To retain binary compatibility with userspace nf_queue application, we
+have to keep NF_STOP around, so libnetfilter_queue userspace userspace
+applications still work if they use NF_STOP for some exotic reason.
+
+Out of tree modules using NF_STOP would break, but we don't care about
+those.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/uapi/linux/netfilter.h  | 2 +-
+ net/bridge/br_netfilter_hooks.c | 6 ++++--
+ net/netfilter/core.c            | 2 +-
+ 3 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/include/uapi/linux/netfilter.h b/include/uapi/linux/netfilter.h
+index d93f949d1d9a..7550e9176a54 100644
+--- a/include/uapi/linux/netfilter.h
++++ b/include/uapi/linux/netfilter.h
+@@ -13,7 +13,7 @@
+ #define NF_STOLEN 2
+ #define NF_QUEUE 3
+ #define NF_REPEAT 4
+-#define NF_STOP 5
++#define NF_STOP 5	/* Deprecated, for userspace nf_queue compatibility. */
+ #define NF_MAX_VERDICT NF_STOP
+ 
+ /* we overload the higher bits for encoding auxiliary data such as the queue
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index d0d66faebe90..7e3645fa6339 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -845,8 +845,10 @@ static unsigned int ip_sabotage_in(void *priv,
+ 				   struct sk_buff *skb,
+ 				   const struct nf_hook_state *state)
+ {
+-	if (skb->nf_bridge && !skb->nf_bridge->in_prerouting)
+-		return NF_STOP;
++	if (skb->nf_bridge && !skb->nf_bridge->in_prerouting) {
++		state->okfn(state->net, state->sk, skb);
++		return NF_STOLEN;
++	}
+ 
+ 	return NF_ACCEPT;
+ }
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index cb0232c11bc8..14f97b624f98 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -333,7 +333,7 @@ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state)
+ 	entry = rcu_dereference(state->hook_entries);
+ next_hook:
+ 	verdict = nf_iterate(skb, state, &entry);
+-	if (verdict == NF_ACCEPT || verdict == NF_STOP) {
++	if (verdict == NF_ACCEPT) {
+ 		ret = 1;
+ 	} else if ((verdict & NF_VERDICT_MASK) == NF_DROP) {
+ 		kfree_skb(skb);
+-- 
+2.1.4
+
