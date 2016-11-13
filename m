@@ -1,34 +1,32 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: conntrack: remove unused netns_ct
- member
-Date: Sun, 13 Nov 2016 22:22:22 +0100
-Message-ID: <20161113212222.GA17212@salvia>
-References: <1478783821-15979-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH] netfilter: x_tables: simplify IS_ERR_OR_NULL to NULL test
+Date: Sun, 13 Nov 2016 22:27:07 +0100
+Message-ID: <20161113212707.GA30418@salvia>
+References: <1478867558-21650-1-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38064 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965086AbcKMVW0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 13 Nov 2016 16:22:26 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E387C9B7F4
-        for <netfilter-devel@vger.kernel.org>; Sun, 13 Nov 2016 22:22:24 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D7A94DA807
-        for <netfilter-devel@vger.kernel.org>; Sun, 13 Nov 2016 22:22:24 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0A32ADA803
-        for <netfilter-devel@vger.kernel.org>; Sun, 13 Nov 2016 22:22:23 +0100 (CET)
+Cc: Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, coreteam@netfilter.org,
+        netfilter-devel@vger.kernel.org,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        James Morris <jmorris@namei.org>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Patrick McHardy <kaber@trash.net>,
+        christophe.jaillet@wanadoo.fr
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1478783821-15979-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1478867558-21650-1-git-send-email-Julia.Lawall@lip6.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Nov 10, 2016 at 02:17:01PM +0100, Florian Westphal wrote:
-> since 23014011ba420 ('netfilter: conntrack: support a fixed size of 128 distinct labels')
-> this isn't needed anymore.
+On Fri, Nov 11, 2016 at 01:32:38PM +0100, Julia Lawall wrote:
+> Since commit 7926dbfa4bc1 ("netfilter: don't use
+> mutex_lock_interruptible()"), the function xt_find_table_lock can only
+> return NULL on an error.  Simplify the call sites and update the
+> comment before the function.
 
-Applied, thanks.
+Applied, thanks Julia!
