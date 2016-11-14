@@ -1,88 +1,133 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] mnl: use nftnl_set_elems_nlmsg_build_payload_iter() when deleting elements
-Date: Mon, 14 Nov 2016 22:41:59 +0100
-Message-ID: <1479159719-1893-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 0/3] src: add nft log flags support
+Date: Mon, 14 Nov 2016 23:21:56 +0100
+Message-ID: <20161114222156.GA28139@salvia>
+References: <1474794421-5365-1-git-send-email-zlpnobody@163.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="ikeVEW9yuYc//A+q"
+Cc: netfilter-devel@vger.kernel.org,
+        Liping Zhang <liping.zhang@spreadtrum.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41784 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52696 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932462AbcKNVmL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Nov 2016 16:42:11 -0500
+        id S932946AbcKNWWG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 14 Nov 2016 17:22:06 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7D380209420
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2016 22:42:09 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 4BF93209429
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2016 23:22:04 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6EE78DA849
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2016 22:42:09 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 325B2DA851
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2016 23:22:04 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6C294DA849
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2016 22:42:07 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 945D2DA849
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2016 23:22:01 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <1474794421-5365-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Otherwise, nft crashes when deleting a very large number of elements.
 
-*** stack smashing detected ***: nft terminated
-Segmentation fault
+--ikeVEW9yuYc//A+q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/mnl.c | 25 +++++++++++--------------
- 1 file changed, 11 insertions(+), 14 deletions(-)
+On Sun, Sep 25, 2016 at 05:06:58PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <liping.zhang@spreadtrum.com>
+> 
+> After NF_LOG_XXX is exposed to the userspace, we can set log flags to
+> log more things. The following iptables rule:
+>   # iptables -A OUTPUT -j LOG --log-tcp-sequence --log-tcp-options \
+>   --log-ip-options --log-uid --log-macdecode
+> is equal to the following nft rule:
+>   # nft add rule filter OUTPUT log tcpseq,tcpopt,ipopt,uid,macdecode
 
-diff --git a/src/mnl.c b/src/mnl.c
-index 52875f4a16da..137ecf0d1e01 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -867,8 +867,9 @@ static int set_elem_cb(const struct nlmsghdr *nlh, void *data)
- 	return MNL_CB_OK;
- }
- 
--int mnl_nft_setelem_batch_add(struct nftnl_set *nls, unsigned int flags,
--			      uint32_t seqnum)
-+static int mnl_nft_setelem_batch(struct nftnl_set *nls,
-+				 enum nf_tables_msg_types cmd,
-+				 unsigned int flags, uint32_t seqnum)
- {
- 	struct nlmsghdr *nlh;
- 	struct nftnl_set_elems_iter *iter;
-@@ -880,8 +881,7 @@ int mnl_nft_setelem_batch_add(struct nftnl_set *nls, unsigned int flags,
- 
- 	do {
- 		nlh = nftnl_set_elem_nlmsg_build_hdr(nftnl_batch_buffer(batch),
--				NFT_MSG_NEWSETELEM,
--				nftnl_set_get_u32(nls, NFTNL_SET_FAMILY),
-+				cmd, nftnl_set_get_u32(nls, NFTNL_SET_FAMILY),
- 				NLM_F_CREATE | flags, seqnum);
- 		ret = nftnl_set_elems_nlmsg_build_payload_iter(nlh, iter);
- 		mnl_nft_batch_continue();
-@@ -892,19 +892,16 @@ int mnl_nft_setelem_batch_add(struct nftnl_set *nls, unsigned int flags,
- 	return 0;
- }
- 
--int mnl_nft_setelem_batch_del(struct nftnl_set *nls, unsigned int flags,
-+int mnl_nft_setelem_batch_add(struct nftnl_set *nls, unsigned int flags,
- 			      uint32_t seqnum)
- {
--	struct nlmsghdr *nlh;
--
--	nlh = nftnl_set_elem_nlmsg_build_hdr(nftnl_batch_buffer(batch),
--			NFT_MSG_DELSETELEM,
--			nftnl_set_get_u32(nls, NFTNL_SET_FAMILY),
--			0, seqnum);
--	nftnl_set_elems_nlmsg_build_payload(nlh, nls);
--	mnl_nft_batch_continue();
-+	return mnl_nft_setelem_batch(nls, NFT_MSG_NEWSETELEM, flags, seqnum);
-+}
- 
--	return 0;
-+int mnl_nft_setelem_batch_del(struct nftnl_set *nls, unsigned int flags,
-+			      uint32_t seqnum)
-+{
-+	return mnl_nft_setelem_batch(nls, NFT_MSG_DELSETELEM, flags, seqnum);
- }
- 
- int mnl_nft_setelem_get(struct mnl_socket *nf_sock, struct nftnl_set *nls)
--- 
-2.1.4
+Sorry, I wanted to have a closer look at this but time has been
+running up and I didn't manage to get back to this.
 
+So basically, I would like to explore different syntax for this, eg.
+
+        log flags tcp sequence,options
+        log flags ip options
+        log flags skuid
+        log flags ether
+
+I think syntax would be larger, but it would look more consistent to
+what we have. Worst case is to get them all set. We can provide a
+compact version for this:
+
+        log flags all
+
+Please, see sketch patch attached for brainstorming.
+
+Would you have a look into this? Thanks and again sorry for not
+getting any sooner on this.
+
+--ikeVEW9yuYc//A+q
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="x.patch"
+
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 91955c187f3f..286290341ffb 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -201,6 +201,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token EXPORT			"export"
+ %token MONITOR			"monitor"
+ 
++%token ALL			"all"
++
+ %token ACCEPT			"accept"
+ %token DROP			"drop"
+ %token CONTINUE			"continue"
+@@ -268,6 +270,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token GATEWAY			"gateway"
+ %token MTU			"mtu"
+ 
++%token OPTIONS			"options"
++
+ %token IP6			"ip6"
+ %token PRIORITY			"priority"
+ %token FLOWLABEL		"flowlabel"
+@@ -1530,6 +1534,25 @@ log_arg			:	PREFIX			string
+ 				$<stmt>0->log.level	= $2;
+ 				$<stmt>0->log.flags 	|= STMT_LOG_LEVEL;
+ 			}
++			|	FLAGS			log_flags
++			{
++				;
++			}
++			;
++
++log_flags		:	TCP	log_flags_tcp
++			|	IP	OPTIONS
++			|	SKUID
++			|	ETHER
++			|	ALL
++			;
++
++log_flags_tcp		:	log_flags_tcp	COMMA	log_flag_tcp
++			|	log_flag_tcp
++			;
++
++log_flag_tcp		:	SEQUENCE
++			|	OPTIONS
+ 			;
+ 
+ level_type		:	string
+diff --git a/src/scanner.l b/src/scanner.l
+index cd7398b4e534..625023f5257c 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -469,6 +469,9 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ 
+ "notrack"		{ return NOTRACK; }
+ 
++"options"		{ return OPTIONS; }
++"all"			{ return ALL; }
++
+ "xml"			{ return XML; }
+ "json"			{ return JSON; }
+ 
+
+--ikeVEW9yuYc//A+q--
