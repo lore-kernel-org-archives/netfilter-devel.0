@@ -1,148 +1,87 @@
-From: Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH nf-next,RFC] netfilter: nft_meta: add cgroup version 2
- support
-Date: Mon, 14 Nov 2016 11:10:04 +0100
-Message-ID: <e4e0bc59-5a97-118b-2d4e-af12c2055e7e@zonque.org>
-References: <1479114761-19534-1-git-send-email-pablo@netfilter.org>
+From: Davide Caratti <dcaratti@redhat.com>
+Subject: Re: [PATCH nf-next 1/4] netfilter: nf_conntrack_tuple_common.h:
+ fix #include
+Date: Mon, 14 Nov 2016 15:01:57 +0100
+Message-ID: <1479132117.2430.66.camel@redhat.com>
+References: <cover.1478784737.git.dcaratti@redhat.com>
+         <76156fa3b39eba2d1d6739a47d40a99920acd802.1478784737.git.dcaratti@redhat.com>
+         <20161111100738.GF8342@lakka.kapsi.fi>
+         <1478865739.2571.62.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-Cc: htejun-b10kYP2dOMg@public.gmane.org, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>,
-        netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1479114761-19534-1-git-send-email-pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        "David S . Miller" <davem@davemloft.net>,
+        Florian Westphal <fw@strlen.de>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        James Morris <jmorris@namei.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Patrick McHardy <kaber@trash.net>, coreteam@netfilter.org,
+        netfilter-devel@vger.kernel.org
+To: Mikko Rapeli <mikko.rapeli@iki.fi>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:53358 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751636AbcKNOCP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 14 Nov 2016 09:02:15 -0500
+In-Reply-To: <1478865739.2571.62.camel@redhat.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+On Fri, 2016-11-11 at 13:02 +0100, Davide Caratti wrote:
+> 
+> > Is there a kernel side conflict between uapi and net/netns headers?
+> 
+> Looks like a circular dependency is here, or nf_conntrack_tuple_common.h
+> is including the wrong netfilter.h. From within net/netns/conntrack.h I
+> can include only those UAPI files that don't include <linux/netfilter.h>
+> (for example, nf_conntrack_tcp.h that uses '2' instead of
+> IP_CT_DIR_MAX).
 
-On 11/14/2016 10:12 AM, Pablo Neira Ayuso wrote:
-> Add cgroup version 2 support to nf_tables.
-> 
-> This extension allows us to fetch the cgroup i-node number from the
-> cgroup socket data, place it in a register, then match it against any
-> value specified by user. This approach scales up nicely since it
-> integrates well in the existing nf_tables map infrastructure.
-> 
-> Contrary to what iptables cgroup v2 match does, this patch doesn't use
-> cgroup_is_descendant() because this call cannot guarantee that the cgroup
-> hierarchy is honored in anyway given that the cgroup v2 field becomes yet
-> another packet selector that you can use to build your filtering policy.
-> 
-> Actually, using the i-node approach, it should be easy to build a policy
-> that honors the hierarchy if you need this, eg.
-> 
-> 	meta cgroup2 vmap { "/A/B" : jump b-cgroup-chain,
-> 			    "/A/C" : jump c-cgroup-chain,
-> 			    "/A" : jump a-cgroup-chain }
-> 
-> then, the b-cgroup-chain looks like:
-> 
-> 	jump a-cgroup-chain
-> 	... # specific policy b-cgroup-chain goes here
-> 
-> similarly, the c-cgroup-chain looks like:
-> 
-> 	jump a-cgroup-chain
-> 	... # specific policy c-cgroup-chain goes here
-> 
-> So both B and C would evaluate A's ruleset. Note that cgroup A would
-> also jump to the root cgroup chain policy.
-> 
-> Anyway, this cgroup i-node approach provides way more flexibility since
-> it is up to the sysadmin to decide if he wants to honor the hierarchy or
-> simply define a fast path to skip any further classification.
+hello Mikko,
 
-I don't think this can work. The problem is that inodes in cgroupfs are
-dynamically allocated when a cgroup is created, so the sysadmin cannot
-install the jump rules before that. Worse yet, inode numbers in pseudo
-filesystems are recycled, so if a cgroup goes away and a new one is
-created, the latter may well end up having the same inode than the old
-one. As cgroupfs decoupled from netfilter tables, this will lead to
-major chaos in the field.
+I looked at the dependency issue:
 
-Note that this was different with the netclass controller in v1 that
-would assign a user-controlled numeric value to each cgroup, so both
-sides were in the control of the sysadmin. It is also different with the
-path matching logic for v2 which does a full path string comparison.
-That's potentially expensive, it does lead to predictable runtime behavior.
+current include/linux/netfilter.h needs include/net/net_namespace.h (i.e.
+nf_hook() needs struct net), and include/net/net_namespace.h needs
+include/net/netns/conntrack.h (i.e. struct net needs struct netns_ct).
 
-One way forward here would be to assign a atomically increasing 64-bit
-sequence number to each cgroup and expose that. I've recently talked to
-Tejun about that. While that won't solve the predictability issue, it
-would at least make it practically impossible to have re-used IDs.
+That's why it's not possible to do #include <linux/netfilter.h> in
+include/net/netns/conntrack.h, and it's not possible in
+include/net/netns/conntrack.h to include any linux/netfilter/*.h UAPI
+header where #include <linux/netfilter.h> line is present: the
+preprocessor will prefer including include/linux/netfilter.h before
+include/uapi/linux/netfilter.h, thus generating the dependency error.
 
-Anyway - I think it would be great to have an alternative to the v2 path
-matching here, but of course this patch does not solve the ingress issue
-we've been discussing. It is still impossible to reliably determine the
-cgroup of a local receiver at the time when the netfilter rules are
-processed, even for unicast packets.
+One possible fix for the above issue is to modify
+include/uapi/nf_conntrack_tuple_common.h in a way that it avoids including
+<linux/netfilter.h> when kernel sources are being built, and still exposes
+to userspace applications the same contents as commit 1ffad83dffd6
+("netfilter: fix include files for compilation"):
 
+<...>
+#include <linux/types.h>
+#ifndef __KERNEL__
+#include <linux/netfilter.h>
+#endif
+#include <linux/netfilter/nf_conntrack_common.h> /* for IP_CT_IS_REPLY */
+<...>
 
+BTW, include/uapi/linux/capi.h apparently does something similar with
+linux/kernelcapi.h. With the above change, also the output of 
 
-Thanks,
-Daniel
+$ pushd usr/include
+$ ../../scripts/headers_compile_test.sh -k | grep FAILED
+$ popd
 
+is preserved.
 
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
-> ---
->  include/uapi/linux/netfilter/nf_tables.h |  2 ++
->  net/netfilter/nft_meta.c                 | 15 +++++++++++++++
->  2 files changed, 17 insertions(+)
-> 
-> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-> index 0da7ccf65511..5d4d08367a87 100644
-> --- a/include/uapi/linux/netfilter/nf_tables.h
-> +++ b/include/uapi/linux/netfilter/nf_tables.h
-> @@ -729,6 +729,7 @@ enum nft_exthdr_attributes {
->   * @NFT_META_OIFGROUP: packet output interface group
->   * @NFT_META_CGROUP: socket control group (skb->sk->sk_classid)
->   * @NFT_META_PRANDOM: a 32bit pseudo-random number
-> + * @NFT_META_CGROUP2: socket control group v2 (skb->sk->sk_cgrp_data)
->   */
->  enum nft_meta_keys {
->  	NFT_META_LEN,
-> @@ -756,6 +757,7 @@ enum nft_meta_keys {
->  	NFT_META_OIFGROUP,
->  	NFT_META_CGROUP,
->  	NFT_META_PRANDOM,
-> +	NFT_META_CGROUP2,
->  };
->  
->  /**
-> diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-> index 6c1e0246706e..1e793e133903 100644
-> --- a/net/netfilter/nft_meta.c
-> +++ b/net/netfilter/nft_meta.c
-> @@ -190,6 +190,18 @@ void nft_meta_get_eval(const struct nft_expr *expr,
->  		*dest = prandom_u32_state(state);
->  		break;
->  	}
-> +#ifdef CONFIG_SOCK_CGROUP_DATA
-> +	case NFT_META_CGROUP2: {
-> +		struct cgroup *cgrp;
-> +
-> +		if (!skb->sk || !sk_fullsock(skb->sk))
-> +			goto err;
-> +
-> +		cgrp = sock_cgroup_ptr(&skb->sk->sk_cgrp_data);
-> +		*dest = cgrp->kn->ino;
-> +		break;
-> +	}
-> +#endif
->  	default:
->  		WARN_ON(1);
->  		goto err;
-> @@ -273,6 +285,9 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
->  #ifdef CONFIG_CGROUP_NET_CLASSID
->  	case NFT_META_CGROUP:
->  #endif
-> +#ifdef CONFIG_SOCK_CGROUP_DATA
-> +	case NFT_META_CGROUP2:
-> +#endif
->  		len = sizeof(u32);
->  		break;
->  	case NFT_META_IIFNAME:
-> 
+Are you ok if I post a v2 where the above change (and a minor fix: use
+_UAPI_NF_CONNTRACK_TUPLE_COMMON_H in place of NF_CONNTRACK_TUPLE_COMMON_H
+on the first lines) is done to nf_conntrack_tuple_common.h?
+
+regards,
+--
+davide
+
