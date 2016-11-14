@@ -1,70 +1,149 @@
-From: mikko.rapeli@iki.fi
-Subject: Re: [PATCH nf-next 1/4] netfilter: nf_conntrack_tuple_common.h: fix
- #include
-Date: Mon, 14 Nov 2016 17:59:51 +0000
-Message-ID: <1vozg9.ogn8nx.1hgf02r-qmf@mail.kapsi.fi>
-References: <cover.1478784737.git.dcaratti@redhat.com>  
- <76156fa3b39eba2d1d6739a47d40a99920acd802.1478784737.git.dcaratti@redhat.com>   <20161111100738.GF8342@lakka.kapsi.fi>  <1478865739.2571.62.camel@redhat.com> <1479132117.2430.66.camel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
-Cc: davem@davemloft.net, fw@strlen.de, yoshfuji@linux-ipv6.org,
-        jmorris@namei.org, kadlec@blackhole.kfki.hu, pablo@netfilter.org,
-        kaber@trash.net, coreteam@netfilter.org,
-        netfilter-devel@vger.kernel.org, kuznet@ms2.inr.ac.ru
-To: dcaratti@redhat.com
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 1/2 nft] tests: py: add some testcases for log flags
+Date: Mon, 14 Nov 2016 22:01:28 +0100
+Message-ID: <1479157289-26503-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51986 "EHLO mail.kapsi.fi"
+Received: from mail.us.es ([193.147.175.20]:33158 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932899AbcKNSAc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Nov 2016 13:00:32 -0500
-In-Reply-To: <1479132117.2430.66.camel@redhat.com>
+        id S1753364AbcKNVBs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 14 Nov 2016 16:01:48 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CCAD51F4B6F
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2016 22:01:46 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BCD80A7D41
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2016 22:01:46 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A0A12A7D41
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2016 22:01:40 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-SGksDQoNCkFtIE1vLiBOb3YuIDE0IDE1OjAxOjU3IDIwMTYgR01UKzAxMDAgc2NocmllYiBEYXZp
-ZGUgQ2FyYXR0aToNCj4gT24gRnJpLCAyMDE2LTExLTExIGF0IDEzOjAyICswMTAwLCBEYXZpZGUg
-Q2FyYXR0aSB3cm90ZToNCj4gPiANCj4gPiA+IElzIHRoZXJlIGEga2VybmVsIHNpZGUgY29uZmxp
-Y3QgYmV0d2VlbiB1YXBpIGFuZCBuZXQvbmV0bnMgaGVhZGVycz8NCj4gPiANCj4gPiBMb29rcyBs
-aWtlIGEgY2lyY3VsYXIgZGVwZW5kZW5jeSBpcyBoZXJlLCBvciBuZl9jb25udHJhY2tfdHVwbGVf
-Y29tbW9uLmgNCj4gPiBpcyBpbmNsdWRpbmcgdGhlIHdyb25nIG5ldGZpbHRlci5oLiBGcm9tIHdp
-dGhpbiBuZXQvbmV0bnMvY29ubnRyYWNrLmggSQ0KPiA+IGNhbiBpbmNsdWRlIG9ubHkgdGhvc2Ug
-VUFQSSBmaWxlcyB0aGF0IGRvbid0IGluY2x1ZGUgPGxpbnV4L25ldGZpbHRlci5oPg0KPiA+IChm
-b3IgZXhhbXBsZSwgbmZfY29ubnRyYWNrX3RjcC5oIHRoYXQgdXNlcyAnMicgaW5zdGVhZCBvZg0K
-PiA+IElQX0NUX0RJUl9NQVgpLg0KPiANCj4gaGVsbG8gTWlra28sDQo+IA0KPiBJIGxvb2tlZCBh
-dCB0aGUgZGVwZW5kZW5jeSBpc3N1ZToNCj4gDQo+IGN1cnJlbnQgaW5jbHVkZS9saW51eC9uZXRm
-aWx0ZXIuaCBuZWVkcyBpbmNsdWRlL25ldC9uZXRfbmFtZXNwYWNlLmggKGkuZS4NCj4gbmZfaG9v
-aygpIG5lZWRzIHN0cnVjdCBuZXQpLCBhbmQgaW5jbHVkZS9uZXQvbmV0X25hbWVzcGFjZS5oIG5l
-ZWRzDQo+IGluY2x1ZGUvbmV0L25ldG5zL2Nvbm50cmFjay5oIChpLmUuIHN0cnVjdCBuZXQgbmVl
-ZHMgc3RydWN0IG5ldG5zX2N0KS4NCj4gDQo+IFRoYXQncyB3aHkgaXQncyBub3QgcG9zc2libGUg
-dG8gZG8gI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlci5oPiBpbg0KPiBpbmNsdWRlL25ldC9uZXRu
-cy9jb25udHJhY2suaCwgYW5kIGl0J3Mgbm90IHBvc3NpYmxlIGluDQo+IGluY2x1ZGUvbmV0L25l
-dG5zL2Nvbm50cmFjay5oIHRvIGluY2x1ZGUgYW55IGxpbnV4L25ldGZpbHRlci8qLmggVUFQSQ0K
-PiBoZWFkZXIgd2hlcmUgI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlci5oPiBsaW5lIGlzIHByZXNl
-bnQ6IHRoZQ0KPiBwcmVwcm9jZXNzb3Igd2lsbCBwcmVmZXIgaW5jbHVkaW5nIGluY2x1ZGUvbGlu
-dXgvbmV0ZmlsdGVyLmggYmVmb3JlDQo+IGluY2x1ZGUvdWFwaS9saW51eC9uZXRmaWx0ZXIuaCwg
-dGh1cyBnZW5lcmF0aW5nIHRoZSBkZXBlbmRlbmN5IGVycm9yLg0KDQpUaGFua3MgZm9yIGRpZ2dp
-bmcgaW50byB0aGlzLiBJbiBtYW55IG90aGVyIHN1YnN5c3RlbXMgdGhlIGtlcm5lbCBzaWRlIGhl
-YWRlcnMgc3RhcnQgYnkgaW5jbHVkaW5nIHRoZSBtYXRjaGluZyB1YXBpIGhlYWRlciBhbmQgdGhl
-biBhZGQgdGhlIGtlcm5lbCBzaWRlIHN0dWZmLiBJdCBzZWVtcyBuZXRmaWx0ZXIgaGFzIG5vdCBk
-b25lIHRoaXMgYW5kIHRoZSBzcGxpdCB0byB1YXBpIGlzIG5vdCBhbHdheXMgY2xlYXIuIA0KDQog
-DQo+IE9uZSBwb3NzaWJsZSBmaXggZm9yIHRoZSBhYm92ZSBpc3N1ZSBpcyB0byBtb2RpZnkNCj4g
-aW5jbHVkZS91YXBpL25mX2Nvbm50cmFja190dXBsZV9jb21tb24uaCBpbiBhIHdheSB0aGF0IGl0
-IGF2b2lkcyBpbmNsdWRpbmcNCj4gPGxpbnV4L25ldGZpbHRlci5oPiB3aGVuIGtlcm5lbCBzb3Vy
-Y2VzIGFyZSBiZWluZyBidWlsdCwgYW5kIHN0aWxsIGV4cG9zZXMNCj4gdG8gdXNlcnNwYWNlIGFw
-cGxpY2F0aW9ucyB0aGUgc2FtZSBjb250ZW50cyBhcyBjb21taXQgMWZmYWQ4M2RmZmQ2DQo+ICgi
-bmV0ZmlsdGVyOiBmaXggaW5jbHVkZSBmaWxlcyBmb3IgY29tcGlsYXRpb24iKToNCj4gDQo+IDwu
-Li4+DQo+ICNpbmNsdWRlIDxsaW51eC90eXBlcy5oPg0KPiAjaWZuZGVmIF9fS0VSTkVMX18NCj4g
-I2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlci5oPg0KPiAjZW5kaWYNCj4gI2luY2x1ZGUgPGxpbnV4
-L25ldGZpbHRlci9uZl9jb25udHJhY2tfY29tbW9uLmg+IC8qIGZvciBJUF9DVF9JU19SRVBMWSAq
-Lw0KPiA8Li4uPg0KPiANCj4gQlRXLCBpbmNsdWRlL3VhcGkvbGludXgvY2FwaS5oIGFwcGFyZW50
-bHkgZG9lcyBzb21ldGhpbmcgc2ltaWxhciB3aXRoDQo+IGxpbnV4L2tlcm5lbGNhcGkuaC4gV2l0
-aCB0aGUgYWJvdmUgY2hhbmdlLCBhbHNvIHRoZSBvdXRwdXQgb2YgDQo+IA0KPiAkIHB1c2hkIHVz
-ci9pbmNsdWRlDQo+ICQgLi4vLi4vc2NyaXB0cy9oZWFkZXJzX2NvbXBpbGVfdGVzdC5zaCAtayB8
-IGdyZXAgRkFJTEVEDQo+ICQgcG9wZA0KPiANCj4gaXMgcHJlc2VydmVkLg0KPiANCj4gQXJlIHlv
-dSBvayBpZiBJIHBvc3QgYSB2MiB3aGVyZSB0aGUgYWJvdmUgY2hhbmdlIChhbmQgYSBtaW5vciBm
-aXg6IHVzZQ0KPiBfVUFQSV9ORl9DT05OVFJBQ0tfVFVQTEVfQ09NTU9OX0ggaW4gcGxhY2Ugb2Yg
-TkZfQ09OTlRSQUNLX1RVUExFX0NPTU1PTl9IDQo+IG9uIHRoZSBmaXJzdCBsaW5lcykgaXMgZG9u
-ZSB0byBuZl9jb25udHJhY2tfdHVwbGVfY29tbW9uLmg/DQoNClllcywgdGhpcyBsb29rcyBvayBm
-b3IgbWUuDQoNCi1NaWtrbyANCg0KIA0KPiByZWdhcmRzLA0KPiAtLQ0KPiBkYXZpZGUNCj4gDQo+
-DQoNCi0tIA0KU2VudCBmcm9tIG15IEpvbGxh
+Remove null and zero flags from tests, to reduce the noise when running
+tests.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ tests/py/any/log.t.payload        | 26 +++++++++++++-------------
+ tests/py/ip/icmp.t.payload.ip     |  2 +-
+ tests/py/ip6/icmpv6.t.payload.ip6 |  6 +++---
+ 3 files changed, 17 insertions(+), 17 deletions(-)
+
+diff --git a/tests/py/any/log.t.payload b/tests/py/any/log.t.payload
+index 689668b6ed68..dc885b4b3e47 100644
+--- a/tests/py/any/log.t.payload
++++ b/tests/py/any/log.t.payload
+@@ -1,52 +1,52 @@
+ # log
+ ip test-ip4 output
+-  [ log prefix (null) ]
++  [ log ]
+ 
+ # log level emerg
+ ip test-ip4 output
+-  [ log prefix (null) level 0 flags 0]
++  [ log level 0 ]
+ 
+ # log level alert
+ ip test-ip4 output
+-  [ log prefix (null) level 1 flags 0]
++  [ log level 1 ]
+ 
+ # log level crit
+ ip test-ip4 output
+-  [ log prefix (null) level 2 flags 0]
++  [ log level 2 ]
+ 
+ # log level err
+ ip test-ip4 output
+-  [ log prefix (null) level 3 flags 0]
++  [ log level 3 ]
+ 
+ # log level warn
+ ip test-ip4 output
+-  [ log prefix (null) level 4 flags 0]
++  [ log level 4 ]
+ 
+ # log level notice
+ ip test-ip4 output
+-  [ log prefix (null) level 5 flags 0]
++  [ log level 5 ]
+ 
+ # log level info
+ ip test-ip4 output
+-  [ log prefix (null) level 6 flags 0]
++  [ log level 6 ]
+ 
+ # log level debug
+ ip test-ip4 output
+-  [ log prefix (null) level 7 flags 0]
++  [ log level 7 ]
+ 
+ # log prefix aaaaa-aaaaaa group 2 snaplen 33
+ ip test-ip4 output
+-  [ log prefix aaaaa-aaaaaa group 2 snaplen 33 qthreshold 0]
++  [ log prefix aaaaa-aaaaaa group 2 snaplen 33 qthreshold 0 ]
+ 
+ # log group 2 queue-threshold 2
+ ip test-ip4 output
+-  [ log prefix (null) group 2 snaplen 0 qthreshold 2]
++  [ log group 2 snaplen 0 qthreshold 2 ]
+ 
+ # log group 2 snaplen 33
+ ip test-ip4 output
+-  [ log prefix (null) group 2 snaplen 33 qthreshold 0]
++  [ log group 2 snaplen 33 qthreshold 0 ]
+ 
+ # log group 2 prefix \"nft-test: \"
+ ip test-ip4 output
+-  [ log prefix nft-test:  group 2 snaplen 0 qthreshold 0]
++  [ log prefix nft-test:  group 2 snaplen 0 qthreshold 0 ]
+ 
+diff --git a/tests/py/ip/icmp.t.payload.ip b/tests/py/ip/icmp.t.payload.ip
+index c7df75db1f70..b740ff80eff6 100644
+--- a/tests/py/ip/icmp.t.payload.ip
++++ b/tests/py/ip/icmp.t.payload.ip
+@@ -225,7 +225,7 @@ ip test-ip4 input
+   [ cmp eq reg 1 0x00000001 ]
+   [ payload load 2b @ transport header + 4 => reg 1 ]
+   [ cmp eq reg 1 0x0000dd04 ]
+-  [ log prefix (null) ]
++  [ log ]
+ 
+ # icmp id 22
+ ip test-ip4 input
+diff --git a/tests/py/ip6/icmpv6.t.payload.ip6 b/tests/py/ip6/icmpv6.t.payload.ip6
+index 822db2d5a2c5..a00f392e9bb7 100644
+--- a/tests/py/ip6/icmpv6.t.payload.ip6
++++ b/tests/py/ip6/icmpv6.t.payload.ip6
+@@ -193,7 +193,7 @@ ip6 test-ip6 input
+   [ cmp eq reg 1 0x0000003a ]
+   [ payload load 2b @ transport header + 2 => reg 1 ]
+   [ cmp eq reg 1 0x0000ae08 ]
+-  [ log prefix (null) ]
++  [ log ]
+ 
+ # icmpv6 checksum != 2222 log
+ ip6 test-ip6 input
+@@ -201,7 +201,7 @@ ip6 test-ip6 input
+   [ cmp eq reg 1 0x0000003a ]
+   [ payload load 2b @ transport header + 2 => reg 1 ]
+   [ cmp neq reg 1 0x0000ae08 ]
+-  [ log prefix (null) ]
++  [ log ]
+ 
+ # icmpv6 checksum 222-226
+ ip6 test-ip6 input
+@@ -217,7 +217,7 @@ ip6 test-ip6 input
+   [ cmp eq reg 1 0x0000003a ]
+   [ payload load 2b @ transport header + 2 => reg 1 ]
+   [ cmp neq reg 1 0x0000ae08 ]
+-  [ log prefix (null) ]
++  [ log ]
+ 
+ # icmpv6 checksum { 222, 226}
+ __set%d test-ip6 3
+-- 
+2.1.4
+
