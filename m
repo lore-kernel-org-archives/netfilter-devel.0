@@ -1,87 +1,101 @@
-From: Davide Caratti <dcaratti@redhat.com>
-Subject: Re: [PATCH nf-next 1/4] netfilter: nf_conntrack_tuple_common.h:
- fix #include
-Date: Mon, 14 Nov 2016 15:01:57 +0100
-Message-ID: <1479132117.2430.66.camel@redhat.com>
-References: <cover.1478784737.git.dcaratti@redhat.com>
-         <76156fa3b39eba2d1d6739a47d40a99920acd802.1478784737.git.dcaratti@redhat.com>
-         <20161111100738.GF8342@lakka.kapsi.fi>
-         <1478865739.2571.62.camel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        "David S . Miller" <davem@davemloft.net>,
-        Florian Westphal <fw@strlen.de>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        James Morris <jmorris@namei.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>, coreteam@netfilter.org,
-        netfilter-devel@vger.kernel.org
-To: Mikko Rapeli <mikko.rapeli@iki.fi>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf-next] netfilter: nf_log: do not assume ethernet header in netdev family
+Date: Mon, 14 Nov 2016 22:39:25 +0800
+Message-ID: <1479134365-18623-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53358 "EHLO mx1.redhat.com"
+Received: from m12-13.163.com ([220.181.12.13]:33285 "EHLO m12-13.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751636AbcKNOCP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Nov 2016 09:02:15 -0500
-In-Reply-To: <1478865739.2571.62.camel@redhat.com>
+        id S1753374AbcKNOj6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 14 Nov 2016 09:39:58 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 2016-11-11 at 13:02 +0100, Davide Caratti wrote:
-> 
-> > Is there a kernel side conflict between uapi and net/netns headers?
-> 
-> Looks like a circular dependency is here, or nf_conntrack_tuple_common.h
-> is including the wrong netfilter.h. From within net/netns/conntrack.h I
-> can include only those UAPI files that don't include <linux/netfilter.h>
-> (for example, nf_conntrack_tcp.h that uses '2' instead of
-> IP_CT_DIR_MAX).
+From: Liping Zhang <zlpnobody@gmail.com>
 
-hello Mikko,
+In netdev family, we will handle non ethernet packets, so using
+eth_hdr(skb)->h_proto is incorrect.
 
-I looked at the dependency issue:
+Meanwhile, we can use socket(AF_PACKET...) to sending packets, so
+skb->protocol is not always set in bridge family.
 
-current include/linux/netfilter.h needs include/net/net_namespace.h (i.e.
-nf_hook() needs struct net), and include/net/net_namespace.h needs
-include/net/netns/conntrack.h (i.e. struct net needs struct netns_ct).
+Add an extra parameter into nf_log_l2packet to solve this issue.
 
-That's why it's not possible to do #include <linux/netfilter.h> in
-include/net/netns/conntrack.h, and it's not possible in
-include/net/netns/conntrack.h to include any linux/netfilter/*.h UAPI
-header where #include <linux/netfilter.h> line is present: the
-preprocessor will prefer including include/linux/netfilter.h before
-include/uapi/linux/netfilter.h, thus generating the dependency error.
+Fixes: 1fddf4bad0ac ("netfilter: nf_log: add packet logging for netdev family")
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+---
+ include/net/netfilter/nf_log.h       | 4 +++-
+ net/bridge/netfilter/nf_log_bridge.c | 3 ++-
+ net/netfilter/nf_log_common.c        | 3 ++-
+ net/netfilter/nf_log_netdev.c        | 3 ++-
+ 4 files changed, 9 insertions(+), 4 deletions(-)
 
-One possible fix for the above issue is to modify
-include/uapi/nf_conntrack_tuple_common.h in a way that it avoids including
-<linux/netfilter.h> when kernel sources are being built, and still exposes
-to userspace applications the same contents as commit 1ffad83dffd6
-("netfilter: fix include files for compilation"):
+diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
+index a559aa4..450f87f 100644
+--- a/include/net/netfilter/nf_log.h
++++ b/include/net/netfilter/nf_log.h
+@@ -109,7 +109,9 @@ void nf_log_dump_packet_common(struct nf_log_buf *m, u_int8_t pf,
+ 			       const struct net_device *out,
+ 			       const struct nf_loginfo *loginfo,
+ 			       const char *prefix);
+-void nf_log_l2packet(struct net *net, u_int8_t pf, unsigned int hooknum,
++void nf_log_l2packet(struct net *net, u_int8_t pf,
++		     __be16 protocol,
++		     unsigned int hooknum,
+ 		     const struct sk_buff *skb,
+ 		     const struct net_device *in,
+ 		     const struct net_device *out,
+diff --git a/net/bridge/netfilter/nf_log_bridge.c b/net/bridge/netfilter/nf_log_bridge.c
+index c197b1f..bd2b3c7 100644
+--- a/net/bridge/netfilter/nf_log_bridge.c
++++ b/net/bridge/netfilter/nf_log_bridge.c
+@@ -24,7 +24,8 @@ static void nf_log_bridge_packet(struct net *net, u_int8_t pf,
+ 				 const struct nf_loginfo *loginfo,
+ 				 const char *prefix)
+ {
+-	nf_log_l2packet(net, pf, hooknum, skb, in, out, loginfo, prefix);
++	nf_log_l2packet(net, pf, eth_hdr(skb)->h_proto, hooknum, skb,
++			in, out, loginfo, prefix);
+ }
+ 
+ static struct nf_logger nf_bridge_logger __read_mostly = {
+diff --git a/net/netfilter/nf_log_common.c b/net/netfilter/nf_log_common.c
+index ed9b808..dc61399 100644
+--- a/net/netfilter/nf_log_common.c
++++ b/net/netfilter/nf_log_common.c
+@@ -177,6 +177,7 @@ EXPORT_SYMBOL_GPL(nf_log_dump_packet_common);
+ 
+ /* bridge and netdev logging families share this code. */
+ void nf_log_l2packet(struct net *net, u_int8_t pf,
++		     __be16 protocol,
+ 		     unsigned int hooknum,
+ 		     const struct sk_buff *skb,
+ 		     const struct net_device *in,
+@@ -184,7 +185,7 @@ void nf_log_l2packet(struct net *net, u_int8_t pf,
+ 		     const struct nf_loginfo *loginfo,
+ 		     const char *prefix)
+ {
+-	switch (eth_hdr(skb)->h_proto) {
++	switch (protocol) {
+ 	case htons(ETH_P_IP):
+ 		nf_log_packet(net, NFPROTO_IPV4, hooknum, skb, in, out,
+ 			      loginfo, "%s", prefix);
+diff --git a/net/netfilter/nf_log_netdev.c b/net/netfilter/nf_log_netdev.c
+index 1f64594..350eb14 100644
+--- a/net/netfilter/nf_log_netdev.c
++++ b/net/netfilter/nf_log_netdev.c
+@@ -23,7 +23,8 @@ static void nf_log_netdev_packet(struct net *net, u_int8_t pf,
+ 				 const struct nf_loginfo *loginfo,
+ 				 const char *prefix)
+ {
+-	nf_log_l2packet(net, pf, hooknum, skb, in, out, loginfo, prefix);
++	nf_log_l2packet(net, pf, skb->protocol, hooknum, skb, in, out,
++			loginfo, prefix);
+ }
+ 
+ static struct nf_logger nf_netdev_logger __read_mostly = {
+-- 
+2.5.5
 
-<...>
-#include <linux/types.h>
-#ifndef __KERNEL__
-#include <linux/netfilter.h>
-#endif
-#include <linux/netfilter/nf_conntrack_common.h> /* for IP_CT_IS_REPLY */
-<...>
-
-BTW, include/uapi/linux/capi.h apparently does something similar with
-linux/kernelcapi.h. With the above change, also the output of 
-
-$ pushd usr/include
-$ ../../scripts/headers_compile_test.sh -k | grep FAILED
-$ popd
-
-is preserved.
-
-Are you ok if I post a v2 where the above change (and a minor fix: use
-_UAPI_NF_CONNTRACK_TUPLE_COMMON_H in place of NF_CONNTRACK_TUPLE_COMMON_H
-on the first lines) is done to nf_conntrack_tuple_common.h?
-
-regards,
---
-davide
 
