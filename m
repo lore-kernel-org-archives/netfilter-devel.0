@@ -1,64 +1,88 @@
-From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCH nf-next] netfilter: nf_tables: validate maximum value of u32
- netlink hash attribute
-Date: Mon, 14 Nov 2016 22:33:34 +0100
-Message-ID: <20161114213331.GA13743@sonyv>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] mnl: use nftnl_set_elems_nlmsg_build_payload_iter() when deleting elements
+Date: Mon, 14 Nov 2016 22:41:59 +0100
+Message-ID: <1479159719-1893-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33182 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933258AbcKNVdj (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Nov 2016 16:33:39 -0500
-Received: by mail-wm0-f68.google.com with SMTP id u144so19256724wmu.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2016 13:33:38 -0800 (PST)
-Received: from sonyv (72.red-88-15-56.dynamicip.rima-tde.net. [88.15.56.72])
-        by smtp.gmail.com with ESMTPSA id b15sm495214wma.5.2016.11.14.13.33.36
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Mon, 14 Nov 2016 13:33:36 -0800 (PST)
-Content-Disposition: inline
+Received: from mail.us.es ([193.147.175.20]:41784 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932462AbcKNVmL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 14 Nov 2016 16:42:11 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 7D380209420
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2016 22:42:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6EE78DA849
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2016 22:42:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6C294DA849
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2016 22:42:07 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Use the function nft_parse_u32_check() to fetch the value and validate
-the u32 attribute into the hash len u8 field.
+Otherwise, nft crashes when deleting a very large number of elements.
 
-This patch revisits 4da449ae1df9 ("netfilter: nft_exthdr: Add size check
-on u8 nft_exthdr attributes").
+*** stack smashing detected ***: nft terminated
+Segmentation fault
 
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_hash.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ src/mnl.c | 25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index 97ad8e30e4b4..eb2721af898d 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -53,6 +53,7 @@ static int nft_hash_init(const struct nft_ctx *ctx,
+diff --git a/src/mnl.c b/src/mnl.c
+index 52875f4a16da..137ecf0d1e01 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -867,8 +867,9 @@ static int set_elem_cb(const struct nlmsghdr *nlh, void *data)
+ 	return MNL_CB_OK;
+ }
+ 
+-int mnl_nft_setelem_batch_add(struct nftnl_set *nls, unsigned int flags,
+-			      uint32_t seqnum)
++static int mnl_nft_setelem_batch(struct nftnl_set *nls,
++				 enum nf_tables_msg_types cmd,
++				 unsigned int flags, uint32_t seqnum)
  {
- 	struct nft_hash *priv = nft_expr_priv(expr);
- 	u32 len;
-+	int err;
+ 	struct nlmsghdr *nlh;
+ 	struct nftnl_set_elems_iter *iter;
+@@ -880,8 +881,7 @@ int mnl_nft_setelem_batch_add(struct nftnl_set *nls, unsigned int flags,
  
- 	if (!tb[NFTA_HASH_SREG] ||
- 	    !tb[NFTA_HASH_DREG] ||
-@@ -66,8 +67,10 @@ static int nft_hash_init(const struct nft_ctx *ctx,
- 	priv->sreg = nft_parse_register(tb[NFTA_HASH_SREG]);
- 	priv->dreg = nft_parse_register(tb[NFTA_HASH_DREG]);
+ 	do {
+ 		nlh = nftnl_set_elem_nlmsg_build_hdr(nftnl_batch_buffer(batch),
+-				NFT_MSG_NEWSETELEM,
+-				nftnl_set_get_u32(nls, NFTNL_SET_FAMILY),
++				cmd, nftnl_set_get_u32(nls, NFTNL_SET_FAMILY),
+ 				NLM_F_CREATE | flags, seqnum);
+ 		ret = nftnl_set_elems_nlmsg_build_payload_iter(nlh, iter);
+ 		mnl_nft_batch_continue();
+@@ -892,19 +892,16 @@ int mnl_nft_setelem_batch_add(struct nftnl_set *nls, unsigned int flags,
+ 	return 0;
+ }
  
--	len = ntohl(nla_get_be32(tb[NFTA_HASH_LEN]));
--	if (len == 0 || len > U8_MAX)
-+	err = nft_parse_u32_check(tb[NFTA_HASH_LEN], U8_MAX, &len);
-+	if (err < 0)
-+		return err;
-+	if (len == 0)
- 		return -ERANGE;
+-int mnl_nft_setelem_batch_del(struct nftnl_set *nls, unsigned int flags,
++int mnl_nft_setelem_batch_add(struct nftnl_set *nls, unsigned int flags,
+ 			      uint32_t seqnum)
+ {
+-	struct nlmsghdr *nlh;
+-
+-	nlh = nftnl_set_elem_nlmsg_build_hdr(nftnl_batch_buffer(batch),
+-			NFT_MSG_DELSETELEM,
+-			nftnl_set_get_u32(nls, NFTNL_SET_FAMILY),
+-			0, seqnum);
+-	nftnl_set_elems_nlmsg_build_payload(nlh, nls);
+-	mnl_nft_batch_continue();
++	return mnl_nft_setelem_batch(nls, NFT_MSG_NEWSETELEM, flags, seqnum);
++}
  
- 	priv->len = len;
+-	return 0;
++int mnl_nft_setelem_batch_del(struct nftnl_set *nls, unsigned int flags,
++			      uint32_t seqnum)
++{
++	return mnl_nft_setelem_batch(nls, NFT_MSG_DELSETELEM, flags, seqnum);
+ }
+ 
+ int mnl_nft_setelem_get(struct mnl_socket *nf_sock, struct nftnl_set *nls)
 -- 
-2.10.2
+2.1.4
 
