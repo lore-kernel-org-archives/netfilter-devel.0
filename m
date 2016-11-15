@@ -1,65 +1,42 @@
-From: Mikko Rapeli <mikko.rapeli@iki.fi>
-Subject: Re: [PATCH nf-next v2 1/4] netfilter: nf_conntrack_tuple_common.h:
- fix #include
-Date: Tue, 15 Nov 2016 21:46:49 +0200
-Message-ID: <20161115194649.GJ8342@lakka.kapsi.fi>
-References: <cover.1479217169.git.dcaratti@redhat.com>
- <c2ac27f064bb641d331abdacdff4ac5e6df83915.1479217169.git.dcaratti@redhat.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] erec: Make error messages in nft consistent
+Date: Tue, 15 Nov 2016 20:50:10 +0100
+Message-ID: <20161115195010.GA3948@salvia>
+References: <20161115192237.GA29317@lennorien.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S . Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        James Morris <jmorris@namei.org>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Davide Caratti <dcaratti@redhat.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Elise Lennion <elise.lennion@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44565 "EHLO mail.kapsi.fi"
+Received: from mail.us.es ([193.147.175.20]:37524 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751496AbcKOTrT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Nov 2016 14:47:19 -0500
+        id S1752852AbcKOTuQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 15 Nov 2016 14:50:16 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id ABDC11C4389
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Nov 2016 20:50:13 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9C4F8DA7F6
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Nov 2016 20:50:13 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B50C3DA7F6
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Nov 2016 20:50:11 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <c2ac27f064bb641d331abdacdff4ac5e6df83915.1479217169.git.dcaratti@redhat.com>
+In-Reply-To: <20161115192237.GA29317@lennorien.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 15, 2016 at 03:08:24PM +0100, Davide Caratti wrote:
-> To allow usage of enum ip_conntrack_dir in include/net/netns/conntrack.h,
-> this patch encloses #include <linux/netfilter.h> in a #ifndef __KERNEL__
-> directive, so that compiler errors caused by unwanted inclusion of
-> include/linux/netfilter.h are avoided.
-> In addition, #include <linux/netfilter/nf_conntrack_common.h> line has
-> been added to resolve correctly CTINFO2DIR macro.
-> 
-> Signed-off-by: Davide Caratti <dcaratti@redhat.com>
+On Tue, Nov 15, 2016 at 05:22:38PM -0200, Elise Lennion wrote:
+> Error messages in nft should start with "syntax error" to keep
+> consistency. A new function add_syntax_error() was created to add this
+> prefix when necessary.
 
-Acked-by: Mikko Rapeli <mikko.rapeli@iki.fi>
+Probably you can just add EREC_SYNTAX_ERROR to enum
+error_record_types, then add:
 
--Mikko
+#define syntax_error(loc, fmt, args...) \
+       erec_create(EREC_SYNTA_ERROR, (loc), (fmt), ## args)
 
-> ---
->  include/uapi/linux/netfilter/nf_conntrack_tuple_common.h | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h b/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
-> index a9c3834..526b424 100644
-> --- a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
-> +++ b/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
-> @@ -2,7 +2,10 @@
->  #define _NF_CONNTRACK_TUPLE_COMMON_H
->  
->  #include <linux/types.h>
-> +#ifndef __KERNEL__
->  #include <linux/netfilter.h>
-> +#endif
-> +#include <linux/netfilter/nf_conntrack_common.h> /* IP_CT_IS_REPLY */
->  
->  enum ip_conntrack_dir {
->  	IP_CT_DIR_ORIGINAL,
-> -- 
-> 2.7.4
-> 
+and use it from src/parser_bison.y
+
+Thanks!
