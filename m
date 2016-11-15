@@ -1,81 +1,65 @@
-From: Elise Lennion <elise.lennion@gmail.com>
-Subject: [PATCH] erec: Make error messages in nft consistent
-Date: Tue, 15 Nov 2016 17:22:38 -0200
-Message-ID: <20161115192237.GA29317@lennorien.com>
+From: Mikko Rapeli <mikko.rapeli@iki.fi>
+Subject: Re: [PATCH nf-next v2 1/4] netfilter: nf_conntrack_tuple_common.h:
+ fix #include
+Date: Tue, 15 Nov 2016 21:46:49 +0200
+Message-ID: <20161115194649.GJ8342@lakka.kapsi.fi>
+References: <cover.1479217169.git.dcaratti@redhat.com>
+ <c2ac27f064bb641d331abdacdff4ac5e6df83915.1479217169.git.dcaratti@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S . Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        James Morris <jmorris@namei.org>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: Davide Caratti <dcaratti@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f67.google.com ([209.85.213.67]:35481 "EHLO
-        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751496AbcKOTWp (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Nov 2016 14:22:45 -0500
-Received: by mail-vk0-f67.google.com with SMTP id x186so9926086vkd.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Nov 2016 11:22:44 -0800 (PST)
+Received: from mail.kapsi.fi ([217.30.184.167]:44565 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751496AbcKOTrT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 15 Nov 2016 14:47:19 -0500
 Content-Disposition: inline
+In-Reply-To: <c2ac27f064bb641d331abdacdff4ac5e6df83915.1479217169.git.dcaratti@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Error messages in nft should start with "syntax error" to keep
-consistency. A new function add_syntax_error() was created to add this
-prefix when necessary.
+On Tue, Nov 15, 2016 at 03:08:24PM +0100, Davide Caratti wrote:
+> To allow usage of enum ip_conntrack_dir in include/net/netns/conntrack.h,
+> this patch encloses #include <linux/netfilter.h> in a #ifndef __KERNEL__
+> directive, so that compiler errors caused by unwanted inclusion of
+> include/linux/netfilter.h are avoided.
+> In addition, #include <linux/netfilter/nf_conntrack_common.h> line has
+> been added to resolve correctly CTINFO2DIR macro.
+> 
+> Signed-off-by: Davide Caratti <dcaratti@redhat.com>
 
-Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
----
- include/erec.h |  3 +++
- src/erec.c     | 23 +++++++++++++++++++++++
- 2 files changed, 26 insertions(+)
+Acked-by: Mikko Rapeli <mikko.rapeli@iki.fi>
 
-diff --git a/include/erec.h b/include/erec.h
-index 36e0efa..82754e0 100644
---- a/include/erec.h
-+++ b/include/erec.h
-@@ -52,9 +52,12 @@ extern void erec_add_location(struct error_record *erec,
- #define warning(loc, fmt, args...) \
- 	erec_create(EREC_WARNING, (loc), (fmt), ## args)
- 
-+extern void add_syntax_error(struct error_record *erec);
-+
- static inline void erec_queue(struct error_record *erec,
- 			      struct list_head *queue)
- {
-+	add_syntax_error(erec);
- 	list_add_tail(&erec->list, queue);
- }
- 
-diff --git a/src/erec.c b/src/erec.c
-index 3603216..e4d7aef 100644
---- a/src/erec.c
-+++ b/src/erec.c
-@@ -194,3 +194,26 @@ int __fmtstring(4, 5) __stmt_binary_error(struct eval_ctx *ctx,
- 	erec_queue(erec, ctx->msgs);
- 	return -1;
- }
-+
-+void add_syntax_error(struct error_record *erec){
-+	if (erec) {
-+		const char *stxmsg = "syntax error, ";
-+		int mlen = strlen(erec->msg);
-+		int slen = strlen(stxmsg);
-+		char *tmp;
-+
-+		if (!strncmp(erec->msg, stxmsg, slen - 2))
-+			return;
-+
-+		if (!mlen)
-+			slen -= 2;
-+
-+		tmp = realloc(erec->msg, slen + mlen + 1);
-+		if (tmp) {
-+			erec->msg = tmp;
-+			memmove(&(erec->msg[slen]), erec->msg, mlen);
-+			memcpy(erec->msg, stxmsg, slen);
-+			erec->msg[slen + mlen] = '\0';
-+		}
-+	}
-+}
--- 
-2.7.4
+-Mikko
 
+> ---
+>  include/uapi/linux/netfilter/nf_conntrack_tuple_common.h | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h b/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
+> index a9c3834..526b424 100644
+> --- a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
+> +++ b/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
+> @@ -2,7 +2,10 @@
+>  #define _NF_CONNTRACK_TUPLE_COMMON_H
+>  
+>  #include <linux/types.h>
+> +#ifndef __KERNEL__
+>  #include <linux/netfilter.h>
+> +#endif
+> +#include <linux/netfilter/nf_conntrack_common.h> /* IP_CT_IS_REPLY */
+>  
+>  enum ip_conntrack_dir {
+>  	IP_CT_DIR_ORIGINAL,
+> -- 
+> 2.7.4
+> 
