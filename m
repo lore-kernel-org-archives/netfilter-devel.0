@@ -1,60 +1,83 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] erec: Make error messages in nft consistent
-Date: Tue, 15 Nov 2016 20:56:31 +0100
-Message-ID: <20161115195631.GA4297@salvia>
-References: <20161115192237.GA29317@lennorien.com>
- <20161115195010.GA3948@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Elise Lennion <elise.lennion@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v4 nf-next] netfilter: allow disabling conntrack-on-by-default
+Date: Tue, 15 Nov 2016 21:36:38 +0100
+Message-ID: <1479242205-21675-1-git-send-email-fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39114 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751496AbcKOT4g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Nov 2016 14:56:36 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6F7291C438F
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Nov 2016 20:56:34 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 60F65DA804
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Nov 2016 20:56:34 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 62E16DA809
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Nov 2016 20:56:32 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20161115195010.GA3948@salvia>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:45074 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752742AbcKOUg2 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 15 Nov 2016 15:36:28 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 15, 2016 at 08:50:10PM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Nov 15, 2016 at 05:22:38PM -0200, Elise Lennion wrote:
-> > Error messages in nft should start with "syntax error" to keep
-> > consistency. A new function add_syntax_error() was created to add this
-> > prefix when necessary.
-> 
-> Probably you can just add EREC_SYNTAX_ERROR to enum
-> error_record_types, then add:
-> 
-> #define syntax_error(loc, fmt, args...) \
->        erec_create(EREC_SYNTA_ERROR, (loc), (fmt), ## args)
+Historically all the netfilter hooks got registered on module load time.
 
-Actually, git grep "erec_queue(error(" tells me all:
+When net namespace support was added, hooks were registered in each
+namespace (and new net namespaces inherit already-registered hooks from
+global list).
 
-        erec_queue(error(...
+This means that once nf_conntrack_ipv4/6.ko is loaded, all
+existing and future net namespaces do connection tracking.
 
-occur in parser_bison.y, so we can just update #define error in erec.h
+This series adds a new sysctl, nf_conntrack_default_on, that can be set
+to 0 to disable this behaviour.
 
-You will have to define something like __error, which doesn't include
-the "syntax error" string, as bison is already including it in this
-spot below:
+Once its set to 0, conntrack hooks are not registered in newly created
+net namespaces, and new l3 protocol trackers are not registered with any
+existing namespaces either.
 
-static void yyerror(struct location *loc, void *scanner,
-                    struct parser_state *state, const char *s)
-{
-        erec_queue(__error(loc, "%s", s), state->msgs);
-}
+The setting does NOT disable already-active connection tracking
+in existing namespaces.
 
-So it will be a simple patch in the end.
+connection tracking is enabled via packet filter ruleset, regardless of
+the sysctl setting, once a rule that needs conntrack functionality is
+added (e.g. iptables -m conntrack, targets like SNAT/DNAT or nftables
+equivalents make sure the hooks get registered, and deleted, as needed).
 
-Thanks.
+It is currently NOT possible to disable connection tracking inside a
+net namespace that had its hooks registered implicitly due to
+nf_conntrack_default_on=1 (except unloading the l3 tracker module).
+
+Comments welcome.
+
+ Documentation/networking/nf_conntrack-sysctl.txt |   11 +++
+ include/net/netfilter/ipv4/nf_defrag_ipv4.h      |    3 
+ include/net/netfilter/ipv6/nf_defrag_ipv6.h      |    3 
+ include/net/netfilter/nf_conntrack.h             |    4 +
+ include/net/netfilter/nf_conntrack_l3proto.h     |   16 ++++-
+ include/net/netns/conntrack.h                    |    2 
+ net/ipv4/netfilter/ipt_CLUSTERIP.c               |    4 -
+ net/ipv4/netfilter/ipt_MASQUERADE.c              |    8 ++
+ net/ipv4/netfilter/ipt_SYNPROXY.c                |    4 -
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c   |   62 ++++++++++++++-----
+ net/ipv4/netfilter/nf_defrag_ipv4.c              |   41 +++++++++++-
+ net/ipv4/netfilter/nft_masq_ipv4.c               |    7 ++
+ net/ipv4/netfilter/nft_redir_ipv4.c              |    7 ++
+ net/ipv6/netfilter/ip6t_SYNPROXY.c               |    4 -
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c   |   61 +++++++++++++++----
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c        |   42 +++++++++++--
+ net/ipv6/netfilter/nft_masq_ipv6.c               |    7 ++
+ net/ipv6/netfilter/nft_redir_ipv6.c              |    7 ++
+ net/netfilter/nf_conntrack_proto.c               |   73 ++++++++++++++++++++---
+ net/netfilter/nf_conntrack_standalone.c          |   10 +++
+ net/netfilter/nft_ct.c                           |   26 ++++----
+ net/netfilter/nft_masq.c                         |    2 
+ net/netfilter/nft_nat.c                          |   11 +++
+ net/netfilter/nft_redir.c                        |    2 
+ net/netfilter/xt_CONNSECMARK.c                   |    4 -
+ net/netfilter/xt_CT.c                            |    6 -
+ net/netfilter/xt_NETMAP.c                        |   11 ++-
+ net/netfilter/xt_REDIRECT.c                      |   12 +++
+ net/netfilter/xt_TPROXY.c                        |   15 +++-
+ net/netfilter/xt_connbytes.c                     |    4 -
+ net/netfilter/xt_connlabel.c                     |    6 -
+ net/netfilter/xt_connlimit.c                     |    6 -
+ net/netfilter/xt_connmark.c                      |    8 +-
+ net/netfilter/xt_conntrack.c                     |    4 -
+ net/netfilter/xt_helper.c                        |    4 -
+ net/netfilter/xt_nat.c                           |   18 +++++
+ net/netfilter/xt_socket.c                        |   33 ++++++++--
+ net/netfilter/xt_state.c                         |    4 -
+ 38 files changed, 443 insertions(+), 109 deletions(-)
