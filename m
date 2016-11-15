@@ -1,68 +1,117 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: Re: [PATCHv2 lnf-log] utils: nf-log: attaching a conntrack
- information
-Date: Tue, 15 Nov 2016 16:36:02 +0900
-Message-ID: <20161115073602.GA10113@gmail.com>
-References: <1441731291-21342-1-git-send-email-pablo@netfilter.org>
- <20150909095042.GA11843@gmail.com>
- <20150910000615.GB5734@salvia>
- <20150911030530.GA7380@gmail.com>
- <20150911031535.GG7380@gmail.com>
- <20151012152630.GC21781@salvia>
- <20151015043544.GA18814@gmail.com>
- <20151015043925.GB18814@gmail.com>
- <20151016165908.GA5588@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org
+From: Simon Horman <horms@verge.net.au>
+Subject: [PATCH nf-next 2/2] ipvs: Decrement ttl
+Date: Tue, 15 Nov 2016 10:01:43 +0100
+Message-ID: <1479200503-25842-3-git-send-email-horms@verge.net.au>
+References: <1479200503-25842-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Julian Anastasov <ja@ssi.bg>,
+        Dwip Banerjee <dwip@linux.vnet.ibm.com>,
+        Simon Horman <horms@verge.net.au>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:36098 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755596AbcKOHsh (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Nov 2016 02:48:37 -0500
-Received: by mail-pg0-f67.google.com with SMTP id x23so11158135pgx.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Nov 2016 23:48:37 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20151016165908.GA5588@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1479200503-25842-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
- Hi, sorry for so much late.
+From: Dwip Banerjee <dwip@linux.vnet.ibm.com>
+
+We decrement the IP ttl in all the modes in order to prevent infinite
+route loops. The changes were done based on Julian Anastasov's
+suggestions in a prior thread.
+
+The ttl based check/discard and the actual decrement are done in
+__ip_vs_get_out_rt() and in __ip_vs_get_out_rt_v6(), for the IPv6
+case. decrement_ttl() implements the actual functionality for the
+two cases.
+
+Signed-off-by: Dwip Banerjee <dwip@linux.vnet.ibm.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+---
+ net/netfilter/ipvs/ip_vs_xmit.c | 54 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
+
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index 01d3d894de46..4e1a98fcc8c3 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -254,6 +254,54 @@ static inline bool ensure_mtu_is_adequate(struct netns_ipvs *ipvs, int skb_af,
+ 	return true;
+ }
  
-On Fri, Oct 16, 2015 at 06:59:08PM +0200, Pablo Neira Ayuso wrote:
-> I think you can update configure.ac to update CFLAGS, like this:
-> 
->         CFLAGS="$CFLAGS -DBUILD_NFCT"
-> 
-> so we can skip this include.
++static inline bool decrement_ttl(struct netns_ipvs *ipvs,
++				 int skb_af,
++				 struct sk_buff *skb)
++{
++	struct net *net = ipvs->net;
++
++#ifdef CONFIG_IP_VS_IPV6
++	if (skb_af == AF_INET6) {
++		struct dst_entry *dst = skb_dst(skb);
++
++		/* check and decrement ttl */
++		if (ipv6_hdr(skb)->hop_limit <= 1) {
++			/* Force OUTPUT device used as source address */
++			skb->dev = dst->dev;
++			icmpv6_send(skb, ICMPV6_TIME_EXCEED,
++				    ICMPV6_EXC_HOPLIMIT, 0);
++			__IP6_INC_STATS(net, ip6_dst_idev(dst),
++					IPSTATS_MIB_INHDRERRORS);
++
++			return false;
++		}
++
++		/* don't propagate ttl change to cloned packets */
++		if (!skb_make_writable(skb, sizeof(struct ipv6hdr)))
++			return false;
++
++		ipv6_hdr(skb)->hop_limit--;
++	} else
++#endif
++	{
++		if (ip_hdr(skb)->ttl <= 1) {
++			/* Tell the sender its packet died... */
++			__IP_INC_STATS(net, IPSTATS_MIB_INHDRERRORS);
++			icmp_send(skb, ICMP_TIME_EXCEEDED, ICMP_EXC_TTL, 0);
++			return false;
++		}
++
++		/* don't propagate ttl change to cloned packets */
++		if (!skb_make_writable(skb, sizeof(struct iphdr)))
++			return false;
++
++		/* Decrease ttl */
++		ip_decrease_ttl(ip_hdr(skb));
++	}
++
++	return true;
++}
++
+ /* Get route to destination or remote server */
+ static int
+ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+@@ -326,6 +374,9 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+ 		return local;
+ 	}
+ 
++	if (!decrement_ttl(ipvs, skb_af, skb))
++		goto err_put;
++
+ 	if (likely(!(rt_mode & IP_VS_RT_MODE_TUNNEL))) {
+ 		mtu = dst_mtu(&rt->dst);
+ 	} else {
+@@ -473,6 +524,9 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+ 		return local;
+ 	}
+ 
++	if (!decrement_ttl(ipvs, skb_af, skb))
++		goto err_put;
++
+ 	/* MTU checking */
+ 	if (likely(!(rt_mode & IP_VS_RT_MODE_TUNNEL)))
+ 		mtu = dst_mtu(&rt->dst);
+-- 
+2.7.0.rc3.207.g0ac5344
 
-We can avoid to (re)run autogen.sh without lnf-conntrack at first
-then install it after, but
-
->         gcc -lnetfilter_log -lnetfilter_conntrack -lmnl -DBUILD_NFCT nf-log.c -o nf-log
-
-this make a sense, I follow your advice.
-
-I have met another issue related to lnf-conntrack, could you give me
-some advice? The following patch is compile error:
-
-    In file included from nf-log.c:14:0:
-    /usr/include/libnetfilter_conntrack/libnetfilter_conntrack.h:729:6: error: nested redefinition of ‘enum ip_conntrack_status’
-     enum ip_conntrack_status {
-          ^
-    /usr/include/libnetfilter_conntrack/libnetfilter_conntrack.h:729:6: error: redeclaration of ‘enum ip_conntrack_status’
-    In file included from nf-log.c:12:0:
-    /usr/include/linux/netfilter/nf_conntrack_common.h:37:6: note: originally defined here
-     enum ip_conntrack_status {
-
-since both libnetfilter_conntrack.h and nf_conntrack_common.h
-defines ip_conntrack_status. Could you tell me how do I avoid such a
-error when using ip_conntrack_status and ip_conntrack_info?
-
-# It seems that the prev 2 patches I posted with this
-# has not applied yet?
-
-Thanks,
