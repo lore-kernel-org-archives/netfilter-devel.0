@@ -1,331 +1,60 @@
-From: Davide Caratti <dcaratti@redhat.com>
-Subject: [PATCH nf-next v2 4/4] netfilter: conntrack: built-in support for UDPlite
-Date: Tue, 15 Nov 2016 15:08:27 +0100
-Message-ID: <3917c400ff87b0e4a3eeb745ed9014fe04c0e7b7.1479217169.git.dcaratti@redhat.com>
-References: <cover.1479217169.git.dcaratti@redhat.com>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S . Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        James Morris <jmorris@namei.org>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Florian Westphal <fw@strlen.de>, mikko.rapeli@iki.fi
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH nft 0/3] src: add nft log flags support
+Date: Tue, 15 Nov 2016 22:25:28 +0800
+Message-ID: <CAML_gOe4x2jNPAyWBLkrw+Law9YaRmSjtG+rZNzB81Az1PCgAA@mail.gmail.com>
+References: <1474794421-5365-1-git-send-email-zlpnobody@163.com> <20161114222156.GA28139@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: Liping Zhang <zlpnobody@163.com>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>,
+        Liping Zhang <liping.zhang@spreadtrum.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39892 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S936214AbcKOOJh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Nov 2016 09:09:37 -0500
-In-Reply-To: <cover.1479217169.git.dcaratti@redhat.com>
+Received: from mail-ua0-f193.google.com ([209.85.217.193]:34630 "EHLO
+        mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932406AbcKOOZa (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 15 Nov 2016 09:25:30 -0500
+Received: by mail-ua0-f193.google.com with SMTP id b35so9051490uaa.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Nov 2016 06:25:29 -0800 (PST)
+In-Reply-To: <20161114222156.GA28139@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-CONFIG_NF_CT_PROTO_UDPLITE is no more a tristate. When set to y,
-connection tracking support for UDPlite protocol is built-in into
-nf_conntrack.ko.
+2016-11-15 6:21 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+> On Sun, Sep 25, 2016 at 05:06:58PM +0800, Liping Zhang wrote:
+>> From: Liping Zhang <liping.zhang@spreadtrum.com>
+>>
+>> After NF_LOG_XXX is exposed to the userspace, we can set log flags to
+>> log more things. The following iptables rule:
+>>   # iptables -A OUTPUT -j LOG --log-tcp-sequence --log-tcp-options \
+>>   --log-ip-options --log-uid --log-macdecode
+>> is equal to the following nft rule:
+>>   # nft add rule filter OUTPUT log tcpseq,tcpopt,ipopt,uid,macdecode
+>
+> Sorry, I wanted to have a closer look at this but time has been
+> running up and I didn't manage to get back to this.
+>
+> So basically, I would like to explore different syntax for this, eg.
+>
+>         log flags tcp sequence,options
+>         log flags ip options
+>         log flags skuid
+>         log flags ether
 
-footprint test:
-$ ls -l net/netfilter/nf_conntrack{_proto_udplite,}.ko \
-        net/ipv4/netfilter/nf_conntrack_ipv4.ko \
-        net/ipv6/netfilter/nf_conntrack_ipv6.ko
+Yes, this syntax looks better, I will send V2 later based on your suggestions.
 
-(builtin)|| udplite|  ipv4  |  ipv6  |nf_conntrack
----------++--------+--------+--------+--------------
-none     || 432538 | 828755 | 828676 | 6141434
-UDPlite  ||   -    | 829649 | 829362 | 6498204
+Thanks Pablo.
 
-Signed-off-by: Davide Caratti <dcaratti@redhat.com>
----
- include/net/netfilter/ipv4/nf_conntrack_ipv4.h |  3 +
- include/net/netfilter/ipv6/nf_conntrack_ipv6.h |  3 +
- include/net/netns/conntrack.h                  | 16 ++++++
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |  3 +
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |  3 +
- net/netfilter/Kconfig                          |  5 +-
- net/netfilter/Makefile                         |  2 +-
- net/netfilter/nf_conntrack_proto_udplite.c     | 79 +++-----------------------
- 8 files changed, 41 insertions(+), 73 deletions(-)
-
-diff --git a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
-index 5f1fc15..919e4e8 100644
---- a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
-+++ b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
-@@ -21,6 +21,9 @@ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp4;
- #ifdef CONFIG_NF_CT_PROTO_SCTP
- extern struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4;
- #endif
-+#ifdef CONFIG_NF_CT_PROTO_UDPLITE
-+extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4;
-+#endif
- 
- int nf_conntrack_ipv4_compat_init(void);
- void nf_conntrack_ipv4_compat_fini(void);
-diff --git a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
-index f70d191..eaea968 100644
---- a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
-+++ b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
-@@ -12,6 +12,9 @@ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp6;
- #ifdef CONFIG_NF_CT_PROTO_SCTP
- extern struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6;
- #endif
-+#ifdef CONFIG_NF_CT_PROTO_UDPLITE
-+extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6;
-+#endif
- 
- #include <linux/sysctl.h>
- extern struct ctl_table nf_ct_ipv6_sysctl_table[];
-diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index 17724c6..cf799fc 100644
---- a/include/net/netns/conntrack.h
-+++ b/include/net/netns/conntrack.h
-@@ -69,6 +69,19 @@ struct nf_sctp_net {
- };
- #endif
- 
-+#ifdef CONFIG_NF_CT_PROTO_UDPLITE
-+enum udplite_conntrack {
-+	UDPLITE_CT_UNREPLIED,
-+	UDPLITE_CT_REPLIED,
-+	UDPLITE_CT_MAX
-+};
-+
-+struct nf_udplite_net {
-+	struct nf_proto_net pn;
-+	unsigned int timeouts[UDPLITE_CT_MAX];
-+};
-+#endif
-+
- struct nf_ip_net {
- 	struct nf_generic_net   generic;
- 	struct nf_tcp_net	tcp;
-@@ -81,6 +94,9 @@ struct nf_ip_net {
- #ifdef CONFIG_NF_CT_PROTO_SCTP
- 	struct nf_sctp_net	sctp;
- #endif
-+#ifdef CONFIG_NF_CT_PROTO_UDPLITE
-+	struct nf_udplite_net	udplite;
-+#endif
- };
- 
- struct ct_pcpu {
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 0a9d354..22fce4f 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -346,6 +346,9 @@ static struct nf_conntrack_l4proto *builtin_l4proto4[] = {
- #ifdef CONFIG_NF_CT_PROTO_SCTP
- 	&nf_conntrack_l4proto_sctp4,
- #endif
-+#ifdef CONFIG_NF_CT_PROTO_UDPLITE
-+	&nf_conntrack_l4proto_udplite4,
-+#endif
- };
- 
- static int ipv4_net_init(struct net *net)
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index 1d8daaf..389f712 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -346,6 +346,9 @@ static struct nf_conntrack_l4proto *builtin_l4proto6[] = {
- #ifdef CONFIG_NF_CT_PROTO_SCTP
- 	&nf_conntrack_l4proto_sctp6,
- #endif
-+#ifdef CONFIG_NF_CT_PROTO_UDPLITE
-+	&nf_conntrack_l4proto_udplite6,
-+#endif
- };
- 
- static int ipv6_net_init(struct net *net)
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 29c0bf0..def4be0 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -169,14 +169,15 @@ config NF_CT_PROTO_SCTP
- 	  If unsure, say Y.
- 
- config NF_CT_PROTO_UDPLITE
--	tristate 'UDP-Lite protocol connection tracking support'
-+	bool 'UDP-Lite protocol connection tracking support'
- 	depends on NETFILTER_ADVANCED
-+	default y
- 	help
- 	  With this option enabled, the layer 3 independent connection
- 	  tracking code will be able to do state tracking on UDP-Lite
- 	  connections.
- 
--	  To compile it as a module, choose M here.  If unsure, say N.
-+	  If unsure, say Y.
- 
- config NF_CONNTRACK_AMANDA
- 	tristate "Amanda backup protocol support"
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 6545c28..e4c8c1d 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -7,6 +7,7 @@ nf_conntrack-$(CONFIG_NF_CONNTRACK_EVENTS) += nf_conntrack_ecache.o
- nf_conntrack-$(CONFIG_NF_CONNTRACK_LABELS) += nf_conntrack_labels.o
- nf_conntrack-$(CONFIG_NF_CT_PROTO_DCCP) += nf_conntrack_proto_dccp.o
- nf_conntrack-$(CONFIG_NF_CT_PROTO_SCTP) += nf_conntrack_proto_sctp.o
-+nf_conntrack-$(CONFIG_NF_CT_PROTO_UDPLITE) += nf_conntrack_proto_udplite.o
- 
- obj-$(CONFIG_NETFILTER) = netfilter.o
- 
-@@ -19,7 +20,6 @@ obj-$(CONFIG_NETFILTER_NETLINK_LOG) += nfnetlink_log.o
- obj-$(CONFIG_NF_CONNTRACK) += nf_conntrack.o
- 
- obj-$(CONFIG_NF_CT_PROTO_GRE) += nf_conntrack_proto_gre.o
--obj-$(CONFIG_NF_CT_PROTO_UDPLITE) += nf_conntrack_proto_udplite.o
- 
- # netlink interface for nf_conntrack
- obj-$(CONFIG_NF_CT_NETLINK) += nf_conntrack_netlink.o
-diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
-index 8cdb4b1..c35f7bf 100644
---- a/net/netfilter/nf_conntrack_proto_udplite.c
-+++ b/net/netfilter/nf_conntrack_proto_udplite.c
-@@ -9,7 +9,6 @@
- 
- #include <linux/types.h>
- #include <linux/timer.h>
--#include <linux/module.h>
- #include <linux/udp.h>
- #include <linux/seq_file.h>
- #include <linux/skbuff.h>
-@@ -24,26 +23,14 @@
- #include <net/netfilter/nf_conntrack_ecache.h>
- #include <net/netfilter/nf_log.h>
- 
--enum udplite_conntrack {
--	UDPLITE_CT_UNREPLIED,
--	UDPLITE_CT_REPLIED,
--	UDPLITE_CT_MAX
--};
--
- static unsigned int udplite_timeouts[UDPLITE_CT_MAX] = {
- 	[UDPLITE_CT_UNREPLIED]	= 30*HZ,
- 	[UDPLITE_CT_REPLIED]	= 180*HZ,
- };
- 
--static int udplite_net_id __read_mostly;
--struct udplite_net {
--	struct nf_proto_net pn;
--	unsigned int timeouts[UDPLITE_CT_MAX];
--};
--
--static inline struct udplite_net *udplite_pernet(struct net *net)
-+static inline struct nf_udplite_net *udplite_pernet(struct net *net)
- {
--	return net_generic(net, udplite_net_id);
-+	return &net->ct.nf_ct_proto.udplite;
- }
- 
- static bool udplite_pkt_to_tuple(const struct sk_buff *skb,
-@@ -178,7 +165,7 @@ static int udplite_timeout_nlattr_to_obj(struct nlattr *tb[],
- 					 struct net *net, void *data)
- {
- 	unsigned int *timeouts = data;
--	struct udplite_net *un = udplite_pernet(net);
-+	struct nf_udplite_net *un = udplite_pernet(net);
- 
- 	/* set default timeouts for UDPlite. */
- 	timeouts[UDPLITE_CT_UNREPLIED] = un->timeouts[UDPLITE_CT_UNREPLIED];
-@@ -237,7 +224,7 @@ static struct ctl_table udplite_sysctl_table[] = {
- #endif /* CONFIG_SYSCTL */
- 
- static int udplite_kmemdup_sysctl_table(struct nf_proto_net *pn,
--					struct udplite_net *un)
-+					struct nf_udplite_net *un)
- {
- #ifdef CONFIG_SYSCTL
- 	if (pn->ctl_table)
-@@ -257,7 +244,7 @@ static int udplite_kmemdup_sysctl_table(struct nf_proto_net *pn,
- 
- static int udplite_init_net(struct net *net, u_int16_t proto)
- {
--	struct udplite_net *un = udplite_pernet(net);
-+	struct nf_udplite_net *un = udplite_pernet(net);
- 	struct nf_proto_net *pn = &un->pn;
- 
- 	if (!pn->users) {
-@@ -270,7 +257,7 @@ static int udplite_init_net(struct net *net, u_int16_t proto)
- 	return udplite_kmemdup_sysctl_table(pn, un);
- }
- 
--static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 __read_mostly =
-+struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 __read_mostly =
- {
- 	.l3proto		= PF_INET,
- 	.l4proto		= IPPROTO_UDPLITE,
-@@ -299,11 +286,11 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 __read_mostly =
- 		.nla_policy	= udplite_timeout_nla_policy,
- 	},
- #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
--	.net_id			= &udplite_net_id,
- 	.init_net		= udplite_init_net,
- };
-+EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_udplite4);
- 
--static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 __read_mostly =
-+struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 __read_mostly =
- {
- 	.l3proto		= PF_INET6,
- 	.l4proto		= IPPROTO_UDPLITE,
-@@ -332,54 +319,6 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 __read_mostly =
- 		.nla_policy	= udplite_timeout_nla_policy,
- 	},
- #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
--	.net_id			= &udplite_net_id,
- 	.init_net		= udplite_init_net,
- };
--
--static struct nf_conntrack_l4proto *udplite_proto[] = {
--	&nf_conntrack_l4proto_udplite4,
--	&nf_conntrack_l4proto_udplite6,
--};
--
--static int udplite_net_init(struct net *net)
--{
--	return nf_ct_l4proto_pernet_register(net, udplite_proto,
--					     ARRAY_SIZE(udplite_proto));
--}
--
--static void udplite_net_exit(struct net *net)
--{
--	nf_ct_l4proto_pernet_unregister(net, udplite_proto,
--					ARRAY_SIZE(udplite_proto));
--}
--
--static struct pernet_operations udplite_net_ops = {
--	.init = udplite_net_init,
--	.exit = udplite_net_exit,
--	.id   = &udplite_net_id,
--	.size = sizeof(struct udplite_net),
--};
--
--static int __init nf_conntrack_proto_udplite_init(void)
--{
--	int ret;
--
--	ret = register_pernet_subsys(&udplite_net_ops);
--	if (ret < 0)
--		return ret;
--	ret = nf_ct_l4proto_register(udplite_proto, ARRAY_SIZE(udplite_proto));
--	if (ret < 0)
--		unregister_pernet_subsys(&udplite_net_ops);
--	return ret;
--}
--
--static void __exit nf_conntrack_proto_udplite_exit(void)
--{
--	nf_ct_l4proto_unregister(udplite_proto, ARRAY_SIZE(udplite_proto));
--	unregister_pernet_subsys(&udplite_net_ops);
--}
--
--module_init(nf_conntrack_proto_udplite_init);
--module_exit(nf_conntrack_proto_udplite_exit);
--
--MODULE_LICENSE("GPL");
-+EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_udplite6);
--- 
-2.7.4
-
+>
+> I think syntax would be larger, but it would look more consistent to
+> what we have. Worst case is to get them all set. We can provide a
+> compact version for this:
+>
+>         log flags all
+>
+> Please, see sketch patch attached for brainstorming.
+>
+> Would you have a look into this? Thanks and again sorry for not
+> getting any sooner on this.
