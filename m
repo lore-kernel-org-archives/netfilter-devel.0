@@ -1,43 +1,54 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH nf-next 1/2] ipvs: Use IS_ERR_OR_NULL(svc) instead of IS_ERR(svc) || svc == NULL
-Date: Tue, 15 Nov 2016 10:01:42 +0100
-Message-ID: <1479200503-25842-2-git-send-email-horms@verge.net.au>
-References: <1479200503-25842-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Julian Anastasov <ja@ssi.bg>, Gao Feng <fgao@ikuai8.com>,
-        Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH 20/39] netfilter: ipset: Use kmalloc() in comment
+ extension helper
+Date: Tue, 15 Nov 2016 10:48:33 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6DB021CCF9@AcuExch.aculab.com>
+References: <1479075933-4491-1-git-send-email-pablo@netfilter.org>
+ <1479075933-4491-21-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Cc: "davem@davemloft.net" <davem@davemloft.net>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: 'Pablo Neira Ayuso' <pablo@netfilter.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1479200503-25842-1-git-send-email-horms@verge.net.au>
+In-Reply-To: <1479075933-4491-21-git-send-email-pablo@netfilter.org>
+Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Gao Feng <fgao@ikuai8.com>
+From: Pablo Neira Ayuso
+> Sent: 13 November 2016 22:25
+> Allocate memory with kmalloc() rather than kzalloc(): the string
+> is immediately initialized so it is unnecessary to zero out
+> the allocated memory area.
+> 
+> Ported from a patch proposed by Sergey Popovich <popovich_sergei@mail.ua>.
+> 
+> Suggested-by: Sergey Popovich <popovich_sergei@mail.ua>
+> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> ---
+>  include/linux/netfilter/ipset/ip_set_comment.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/include/linux/netfilter/ipset/ip_set_comment.h
+> b/include/linux/netfilter/ipset/ip_set_comment.h
+> index bae5c7609be2..5444b1bbe656 100644
+> --- a/include/linux/netfilter/ipset/ip_set_comment.h
+> +++ b/include/linux/netfilter/ipset/ip_set_comment.h
+> @@ -34,7 +34,7 @@ ip_set_init_comment(struct ip_set_comment *comment,
+>  		return;
+>  	if (unlikely(len > IPSET_MAX_COMMENT_SIZE))
+>  		len = IPSET_MAX_COMMENT_SIZE;
+> -	c = kzalloc(sizeof(*c) + len + 1, GFP_ATOMIC);
+> +	c = kmalloc(sizeof(*c) + len + 1, GFP_ATOMIC);
+>  	if (unlikely(!c))
+>  		return;
+>  	strlcpy(c->str, ext->comment, len + 1);
 
-This minor refactoring does not change the logic of function
-ip_vs_genl_dump_dests.
+I think I'd do a memcpy() and zero the last byte.
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
----
- net/netfilter/ipvs/ip_vs_ctl.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Note that any other parts of 'c->' are no longer zeroed by this code fragment.
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 6b85ded4f91d..217e0105b5e0 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -3260,7 +3260,7 @@ static int ip_vs_genl_dump_dests(struct sk_buff *skb,
- 
- 
- 	svc = ip_vs_genl_find_service(ipvs, attrs[IPVS_CMD_ATTR_SERVICE]);
--	if (IS_ERR(svc) || svc == NULL)
-+	if (IS_ERR_OR_NULL(svc))
- 		goto out_err;
- 
- 	/* Dump the destinations */
--- 
-2.7.0.rc3.207.g0ac5344
+	David
