@@ -1,60 +1,81 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH nft 0/3] src: add nft log flags support
-Date: Tue, 15 Nov 2016 22:25:28 +0800
-Message-ID: <CAML_gOe4x2jNPAyWBLkrw+Law9YaRmSjtG+rZNzB81Az1PCgAA@mail.gmail.com>
-References: <1474794421-5365-1-git-send-email-zlpnobody@163.com> <20161114222156.GA28139@salvia>
+From: Elise Lennion <elise.lennion@gmail.com>
+Subject: [PATCH] erec: Make error messages in nft consistent
+Date: Tue, 15 Nov 2016 17:22:38 -0200
+Message-ID: <20161115192237.GA29317@lennorien.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Liping Zhang <zlpnobody@163.com>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ua0-f193.google.com ([209.85.217.193]:34630 "EHLO
-        mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932406AbcKOOZa (ORCPT
+Received: from mail-vk0-f67.google.com ([209.85.213.67]:35481 "EHLO
+        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751496AbcKOTWp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Nov 2016 09:25:30 -0500
-Received: by mail-ua0-f193.google.com with SMTP id b35so9051490uaa.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Nov 2016 06:25:29 -0800 (PST)
-In-Reply-To: <20161114222156.GA28139@salvia>
+        Tue, 15 Nov 2016 14:22:45 -0500
+Received: by mail-vk0-f67.google.com with SMTP id x186so9926086vkd.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Nov 2016 11:22:44 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2016-11-15 6:21 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-> On Sun, Sep 25, 2016 at 05:06:58PM +0800, Liping Zhang wrote:
->> From: Liping Zhang <liping.zhang@spreadtrum.com>
->>
->> After NF_LOG_XXX is exposed to the userspace, we can set log flags to
->> log more things. The following iptables rule:
->>   # iptables -A OUTPUT -j LOG --log-tcp-sequence --log-tcp-options \
->>   --log-ip-options --log-uid --log-macdecode
->> is equal to the following nft rule:
->>   # nft add rule filter OUTPUT log tcpseq,tcpopt,ipopt,uid,macdecode
->
-> Sorry, I wanted to have a closer look at this but time has been
-> running up and I didn't manage to get back to this.
->
-> So basically, I would like to explore different syntax for this, eg.
->
->         log flags tcp sequence,options
->         log flags ip options
->         log flags skuid
->         log flags ether
+Error messages in nft should start with "syntax error" to keep
+consistency. A new function add_syntax_error() was created to add this
+prefix when necessary.
 
-Yes, this syntax looks better, I will send V2 later based on your suggestions.
+Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
+---
+ include/erec.h |  3 +++
+ src/erec.c     | 23 +++++++++++++++++++++++
+ 2 files changed, 26 insertions(+)
 
-Thanks Pablo.
+diff --git a/include/erec.h b/include/erec.h
+index 36e0efa..82754e0 100644
+--- a/include/erec.h
++++ b/include/erec.h
+@@ -52,9 +52,12 @@ extern void erec_add_location(struct error_record *erec,
+ #define warning(loc, fmt, args...) \
+ 	erec_create(EREC_WARNING, (loc), (fmt), ## args)
+ 
++extern void add_syntax_error(struct error_record *erec);
++
+ static inline void erec_queue(struct error_record *erec,
+ 			      struct list_head *queue)
+ {
++	add_syntax_error(erec);
+ 	list_add_tail(&erec->list, queue);
+ }
+ 
+diff --git a/src/erec.c b/src/erec.c
+index 3603216..e4d7aef 100644
+--- a/src/erec.c
++++ b/src/erec.c
+@@ -194,3 +194,26 @@ int __fmtstring(4, 5) __stmt_binary_error(struct eval_ctx *ctx,
+ 	erec_queue(erec, ctx->msgs);
+ 	return -1;
+ }
++
++void add_syntax_error(struct error_record *erec){
++	if (erec) {
++		const char *stxmsg = "syntax error, ";
++		int mlen = strlen(erec->msg);
++		int slen = strlen(stxmsg);
++		char *tmp;
++
++		if (!strncmp(erec->msg, stxmsg, slen - 2))
++			return;
++
++		if (!mlen)
++			slen -= 2;
++
++		tmp = realloc(erec->msg, slen + mlen + 1);
++		if (tmp) {
++			erec->msg = tmp;
++			memmove(&(erec->msg[slen]), erec->msg, mlen);
++			memcpy(erec->msg, stxmsg, slen);
++			erec->msg[slen + mlen] = '\0';
++		}
++	}
++}
+-- 
+2.7.4
 
->
-> I think syntax would be larger, but it would look more consistent to
-> what we have. Worst case is to get them all set. We can provide a
-> compact version for this:
->
->         log flags all
->
-> Please, see sketch patch attached for brainstorming.
->
-> Would you have a look into this? Thanks and again sorry for not
-> getting any sooner on this.
