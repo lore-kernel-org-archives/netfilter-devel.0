@@ -1,7 +1,7 @@
 From: Aaron Conole <aconole@bytheb.org>
-Subject: [PATCH nf-next 3/3] netfilter: convert while loops to for loops
-Date: Tue, 15 Nov 2016 17:48:46 -0500
-Message-ID: <1479250126-15111-4-git-send-email-aconole@bytheb.org>
+Subject: [PATCH nf-next 2/3] netfilter: decouple nf_hook_entry and nf_hook_ops
+Date: Tue, 15 Nov 2016 17:48:45 -0500
+Message-ID: <1479250126-15111-3-git-send-email-aconole@bytheb.org>
 References: <1479250126-15111-1-git-send-email-aconole@bytheb.org>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
@@ -9,75 +9,81 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
         coreteam@netfilter.org, "David S . Miller" <davem@davemloft.net>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:35322 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932797AbcKOWs6 (ORCPT
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:35927 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753793AbcKOWs5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Nov 2016 17:48:58 -0500
-Received: by mail-qk0-f194.google.com with SMTP id n204so18684081qke.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Nov 2016 14:48:57 -0800 (PST)
+        Tue, 15 Nov 2016 17:48:57 -0500
+Received: by mail-qt0-f195.google.com with SMTP id n34so9616964qtb.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Nov 2016 14:48:56 -0800 (PST)
 In-Reply-To: <1479250126-15111-1-git-send-email-aconole@bytheb.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is to facilitate converting from a singly-linked list to an array
-of elements.
+From: Aaron Conole <aconole@redhat.com>
 
+During nfhook traversal we only need a very small subset of
+nf_hook_ops members.
+
+We need:
+- next element
+- hook function to call
+- hook function priv argument
+
+Bridge netfilter also needs 'thresh'; can be obtained via ->orig_ops.
+
+nf_hook_entry struct is now 32 bytes on x86_64.
+
+A followup patch will turn the run-time list into an array that only
+stores hook functions plus their priv arguments, eliminating the ->next
+element.
+
+Suggested-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Aaron Conole <aconole@bytheb.org>
 ---
- net/bridge/br_netfilter_hooks.c | 8 ++++----
- net/netfilter/core.c            | 6 ++----
- 2 files changed, 6 insertions(+), 8 deletions(-)
+ include/linux/netfilter.h | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index ef8cfa7..1434de1 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -1008,10 +1008,10 @@ int br_nf_hook_thresh(unsigned int hook, struct net *net,
- 	struct nf_hook_state state;
- 	int ret;
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 575aa19..a4b97be 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -75,7 +75,8 @@ struct nf_hook_ops {
  
--	elem = rcu_dereference(net->nf.hooks[NFPROTO_BRIDGE][hook]);
--
--	while (elem && (nf_hook_entry_priority(elem) <= NF_BR_PRI_BRNF))
--		elem = rcu_dereference(elem->next);
-+	for (elem = rcu_dereference(net->nf.hooks[NFPROTO_BRIDGE][hook]);
-+	     nf_hook_entry_priority(elem) <= NF_BR_PRI_BRNF;
-+	     elem = rcu_dereference(elem->next))
-+		;
+ struct nf_hook_entry {
+ 	struct nf_hook_entry __rcu	*next;
+-	struct nf_hook_ops		ops;
++	nf_hookfn			*hook;
++	void				*priv;
+ 	const struct nf_hook_ops	*orig_ops;
+ };
  
- 	if (!elem)
- 		return okfn(net, sk, skb);
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 2bb46e2..ce6adfa 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -107,10 +107,9 @@ int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
- 	mutex_lock(&nf_hook_mutex);
+@@ -83,21 +84,22 @@ static inline void
+ nf_hook_entry_init(struct nf_hook_entry *entry,	const struct nf_hook_ops *ops)
+ {
+ 	entry->next = NULL;
+-	entry->ops = *ops;
++	entry->hook = ops->hook;
++	entry->priv = ops->priv;
+ 	entry->orig_ops = ops;
+ }
  
- 	/* Find the spot in the list */
--	while ((p = nf_entry_dereference(*pp)) != NULL) {
-+	for (; (p = nf_entry_dereference(*pp)) != NULL; pp = &p->next) {
- 		if (reg->priority < nf_hook_entry_priority(p))
- 			break;
--		pp = &p->next;
- 	}
- 	rcu_assign_pointer(entry->next, p);
- 	rcu_assign_pointer(*pp, entry);
-@@ -137,12 +136,11 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
- 		return;
+ static inline int
+ nf_hook_entry_priority(const struct nf_hook_entry *entry)
+ {
+-	return entry->ops.priority;
++	return entry->orig_ops->priority;
+ }
  
- 	mutex_lock(&nf_hook_mutex);
--	while ((p = nf_entry_dereference(*pp)) != NULL) {
-+	for (; (p = nf_entry_dereference(*pp)) != NULL; pp = &p->next) {
- 		if (nf_hook_entry_ops(p) == reg) {
- 			rcu_assign_pointer(*pp, p->next);
- 			break;
- 		}
--		pp = &p->next;
- 	}
- 	mutex_unlock(&nf_hook_mutex);
- 	if (!p) {
+ static inline int
+ nf_hook_entry_hookfn(const struct nf_hook_entry *entry, struct sk_buff *skb,
+ 		     struct nf_hook_state *state)
+ {
+-	return entry->ops.hook(entry->ops.priv, skb, state);
++	return entry->hook(entry->priv, skb, state);
+ }
+ 
+ static inline const struct nf_hook_ops *
 -- 
 2.7.4
 
