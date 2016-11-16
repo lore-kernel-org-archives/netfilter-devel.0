@@ -1,201 +1,90 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 2/2] netfilter: nat: switch to new rhlist interface
-Date: Wed, 16 Nov 2016 15:13:36 +0100
-Message-ID: <1479305616-4171-3-git-send-email-fw@strlen.de>
-References: <1479305616-4171-1-git-send-email-fw@strlen.de>
-Cc: herbert@gondor.apana.org.au, Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+Subject: Re: netfilter question
+Date: Wed, 16 Nov 2016 16:02:00 +0100
+Message-ID: <20161116150200.GH30581@breakpoint.cc>
+References: <cad49557-7c7a-83c9-d2b6-71d9624f0d52@miromedia.ca>
+ <CANn89iLr-Zf2W5MW47QtKo17915UoryZentihKt1SMv7NP_dOw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Eric Desrochers <ericd@miromedia.ca>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org
+To: Eric Dumazet <edumazet@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:49186 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:49534 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932119AbcKPONf (ORCPT
+        by vger.kernel.org with ESMTP id S1752879AbcKPPEY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Nov 2016 09:13:35 -0500
-In-Reply-To: <1479305616-4171-1-git-send-email-fw@strlen.de>
+        Wed, 16 Nov 2016 10:04:24 -0500
+Content-Disposition: inline
+In-Reply-To: <CANn89iLr-Zf2W5MW47QtKo17915UoryZentihKt1SMv7NP_dOw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I got offlist bug report about failing connections and high cpu usage.
-This happens because we hit 'elasticity' checks in rhashtable that
-refuses bucket list exceeding 16 entries.
+Eric Dumazet <edumazet@google.com> wrote:
+> On Wed, Nov 16, 2016 at 2:22 AM, Eric Desrochers <ericd@miromedia.ca> wrote:
+> > Hi Eric,
+> >
+> > My name is Eric and I'm reaching you today as I found your name in multiple netfilter kernel commits, and was hoping we can discuss about a potential regression.
+> >
+> > I identified (git bisect) this commit [https://github.com/torvalds/linux/commit/71ae0dff02d756e4d2ca710b79f2ff5390029a5f] as the one introducing a serious performance slowdown when using the binary ip/ip6tables with a large number of policies.
+> >
+> > I also tried with the latest and greatest v4.9-rc4 mainline kernel, and the slowdown is still present.
+> >
+> > So even commit [https://github.com/torvalds/linux/commit/a1a56aaa0735c7821e85c37268a7c12e132415cb] which introduce a 16 bytes alignment on xt_counter percpu allocations so that bytes and packets sit in same cache line, doesn't have impact too.
+> >
+> >
+> > Everything I found is detailed in the following bug : https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1640786
+> >
+> > Of course, I'm totally aware that "iptables-restore" should be the favorite choice as it is way more efficient (note that using iptables-restore doesn't exhibit the problem) but some folks still rely on ip/ip6tables and might face this performance slowdown.
+> >
+> > I found the problem today, I will continue to investigate on my side, but I was wondering if we could have a discussion about this subject.
+> >
+> > Thanks in advance.
 
-The nat bysrc hash unfortunately needs to insert distinct objects that
-share same key and are identical (have same source tuple), this cannot
-be avoided.
-
-Switch to the rhlist interface which is designed for this.
-
-The nulls_base is removed here, I don't think its needed:
-
-A (unlikely) false positive results in unneeded port clash resolution,
-a false negative results in packet drop during conntrack confirmation,
-when we try to insert the duplicate into main conntrack hash table.
-
-Tested by adding multiple ip addresses to host, then adding
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-
-... and then creating multiple connections, from same source port but
-different addresses:
-
-for i in $(seq 2000 2032);do nc -p 1234 192.168.7.1 $i > /dev/null  & done
-
-(all of these then get hashed to same bysource slot)
-
-Then, to test that nat conflict resultion is working:
-
-nc -s 10.0.0.1 -p 1234 192.168.7.1 2000
-nc -s 10.0.0.2 -p 1234 192.168.7.1 2000
-
-tcp  .. src=10.0.0.1 dst=192.168.7.1 sport=1234 dport=2000 src=192.168.7.1 dst=192.168.7.10 sport=2000 dport=1024 [ASSURED]
-tcp  .. src=10.0.0.2 dst=192.168.7.1 sport=1234 dport=2000 src=192.168.7.1 dst=192.168.7.10 sport=2000 dport=1025 [ASSURED]
-tcp  .. src=192.168.7.10 dst=192.168.7.1 sport=1234 dport=2000 src=192.168.7.1 dst=192.168.7.10 sport=2000 dport=1234 [ASSURED]
-tcp  .. src=192.168.7.10 dst=192.168.7.1 sport=1234 dport=2001 src=192.168.7.1 dst=192.168.7.10 sport=2001 dport=1234 [ASSURED]
 [..]
 
--> nat altered source ports to 1024 and 1025, respectively.
-This can also be confirmed on destination host which shows
-ESTAB      0      0   192.168.7.1:2000      192.168.7.10:1024
-ESTAB      0      0   192.168.7.1:2000      192.168.7.10:1025
-ESTAB      0      0   192.168.7.1:2000      192.168.7.10:1234
+> Key point is that we really care about fast path : packet processing.
+> And cited commit helps this a lot by lowering the memory foot print on
+> hosts with many cores.
+> This is a step into right direction.
+> 
+> Now we probably should batch the percpu allocations one page at a
+> time, or ask Tejun if percpu allocations could be really really fast
+> (probably much harder)
+> 
+> But really you should not use iptables one rule at a time...
+> This will never compete with iptables-restore. ;)
+> 
+> Florian, would you have time to work on a patch trying to group the
+> percpu allocations one page at a time ?
 
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Fixes: 870190a9ec907 ("netfilter: nat: convert nat bysrc hash to rhashtable")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_conntrack.h |  2 +-
- net/netfilter/nf_nat_core.c          | 40 +++++++++++++++++++++---------------
- 2 files changed, 25 insertions(+), 17 deletions(-)
-
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 50418052a520..dc143ada9762 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -118,7 +118,7 @@ struct nf_conn {
- 	struct nf_ct_ext *ext;
- 
- #if IS_ENABLED(CONFIG_NF_NAT)
--	struct rhash_head	nat_bysource;
-+	struct rhlist_head nat_bysource;
- #endif
- 	/* Storage reserved for other modules, must be the last member */
- 	union nf_conntrack_proto proto;
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index c632429706eb..5b9c884a452e 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -42,7 +42,7 @@ struct nf_nat_conn_key {
- 	const struct nf_conntrack_zone *zone;
- };
- 
--static struct rhashtable nf_nat_bysource_table;
-+static struct rhltable nf_nat_bysource_table;
- 
- inline const struct nf_nat_l3proto *
- __nf_nat_l3proto_find(u8 family)
-@@ -207,7 +207,6 @@ static struct rhashtable_params nf_nat_bysource_params = {
- 	.obj_cmpfn = nf_nat_bysource_cmp,
- 	.nelem_hint = 256,
- 	.min_size = 1024,
--	.nulls_base = (1U << RHT_BASE_SHIFT),
- };
- 
- /* Only called for SRC manip */
-@@ -226,12 +225,15 @@ find_appropriate_src(struct net *net,
- 		.tuple = tuple,
- 		.zone = zone
- 	};
-+	struct rhlist_head *hl;
- 
--	ct = rhashtable_lookup_fast(&nf_nat_bysource_table, &key,
--				    nf_nat_bysource_params);
--	if (!ct)
-+	hl = rhltable_lookup(&nf_nat_bysource_table, &key,
-+			     nf_nat_bysource_params);
-+	if (!hl)
- 		return 0;
- 
-+	ct = container_of(hl, typeof(*ct), nat_bysource);
+You mean something like this ? :
+        xt_entry_foreach(iter, entry0, newinfo->size) {
+-               ret = find_check_entry(iter, net, repl->name, repl->size);
+-               if (ret != 0)
++               if (pcpu_alloc == 0) {
++                       pcnt = __alloc_percpu(PAGE_SIZE, sizeof(struct xt_counters));
++                       if (IS_ERR_VALUE(pcnt))
++                               BUG();
++               }
 +
- 	nf_ct_invert_tuplepr(result,
- 			     &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
- 	result->dst = tuple->dst;
-@@ -449,11 +451,17 @@ nf_nat_setup_info(struct nf_conn *ct,
- 	}
- 
- 	if (maniptype == NF_NAT_MANIP_SRC) {
-+		struct nf_nat_conn_key key = {
-+			.net = nf_ct_net(ct),
-+			.tuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
-+			.zone = nf_ct_zone(ct),
-+		};
- 		int err;
- 
--		err = rhashtable_insert_fast(&nf_nat_bysource_table,
--					     &ct->nat_bysource,
--					     nf_nat_bysource_params);
-+		err = rhltable_insert_key(&nf_nat_bysource_table,
-+					  &key,
-+					  &ct->nat_bysource,
-+					  nf_nat_bysource_params);
- 		if (err)
- 			return NF_DROP;
- 	}
-@@ -570,8 +578,8 @@ static int nf_nat_proto_clean(struct nf_conn *ct, void *data)
- 	 * will delete entry from already-freed table.
- 	 */
- 	ct->status &= ~IPS_NAT_DONE_MASK;
--	rhashtable_remove_fast(&nf_nat_bysource_table, &ct->nat_bysource,
--			       nf_nat_bysource_params);
-+	rhltable_remove(&nf_nat_bysource_table, &ct->nat_bysource,
-+			nf_nat_bysource_params);
- 
- 	/* don't delete conntrack.  Although that would make things a lot
- 	 * simpler, we'd end up flushing all conntracks on nat rmmod.
-@@ -701,8 +709,8 @@ static void nf_nat_cleanup_conntrack(struct nf_conn *ct)
- 	if (!nat)
- 		return;
- 
--	rhashtable_remove_fast(&nf_nat_bysource_table, &ct->nat_bysource,
--			       nf_nat_bysource_params);
-+	rhltable_remove(&nf_nat_bysource_table, &ct->nat_bysource,
-+			nf_nat_bysource_params);
- }
- 
- static struct nf_ct_ext_type nat_extend __read_mostly = {
-@@ -837,13 +845,13 @@ static int __init nf_nat_init(void)
- {
- 	int ret;
- 
--	ret = rhashtable_init(&nf_nat_bysource_table, &nf_nat_bysource_params);
-+	ret = rhltable_init(&nf_nat_bysource_table, &nf_nat_bysource_params);
- 	if (ret)
- 		return ret;
- 
- 	ret = nf_ct_extend_register(&nat_extend);
- 	if (ret < 0) {
--		rhashtable_destroy(&nf_nat_bysource_table);
-+		rhltable_destroy(&nf_nat_bysource_table);
- 		printk(KERN_ERR "nf_nat_core: Unable to register extension\n");
- 		return ret;
- 	}
-@@ -867,7 +875,7 @@ static int __init nf_nat_init(void)
- 	return 0;
- 
-  cleanup_extend:
--	rhashtable_destroy(&nf_nat_bysource_table);
-+	rhltable_destroy(&nf_nat_bysource_table);
- 	nf_ct_extend_unregister(&nat_extend);
- 	return ret;
- }
-@@ -886,7 +894,7 @@ static void __exit nf_nat_cleanup(void)
- 	for (i = 0; i < NFPROTO_NUMPROTO; i++)
- 		kfree(nf_nat_l4protos[i]);
- 
--	rhashtable_destroy(&nf_nat_bysource_table);
-+	rhltable_destroy(&nf_nat_bysource_table);
- }
- 
- MODULE_LICENSE("GPL");
--- 
-2.7.3
++               iter->counters.pcnt = pcnt + pcpu_alloc;
++               iter->counters.bcnt = !!pcpu_alloc;
++               pcpu_alloc += sizeof(struct xt_counters);
++
++               if (pcpu_alloc > PAGE_SIZE - sizeof(struct xt_counters))
++                       pcpu_alloc = 0;
++
++               ret = find_check_entry(iter, net, repl->name, repl->size)
+ ...
 
+This is going to be ugly since we'll have to deal with SMP vs. NONSMP (i.e. no perpcu allocations)
+in ip/ip6/arptables.
+
+Error unwind will also be a mess (we can abuse .bcnt to tell if pcpu offset should be free'd or not).
+
+But maybe I don't understand what you are suggesting :)
+Can you elaborate?
+
+Thanks!
