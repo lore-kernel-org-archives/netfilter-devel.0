@@ -1,72 +1,97 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH] tests: shell: allow to execute a single testcase
-Date: Wed, 16 Nov 2016 13:51:52 +0100
-Message-ID: <147930071248.11586.102674356702325099.stgit@nfdev2.cica.es>
+Subject: [nft PATCH 3/3] tests: shell: another testcase for deleting many
+ set elements
+Date: Wed, 16 Nov 2016 13:53:26 +0100
+Message-ID: <147930080617.12388.14833031137505454750.stgit@nfdev2.cica.es>
+References: <147930079529.12388.6423464302439175817.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:39451 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:60527 "EHLO smtp.cica.es"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752704AbcKPMwB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Nov 2016 07:52:01 -0500
+        id S1751263AbcKPMxe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 16 Nov 2016 07:53:34 -0500
 Received: from localhost (unknown [127.0.0.1])
-        by smtp.cica.es (Postfix) with ESMTP id 1908E51F2F7
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Nov 2016 12:51:58 +0000 (UTC)
+        by smtp.cica.es (Postfix) with ESMTP id 36D9B51F2E5
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Nov 2016 12:53:32 +0000 (UTC)
 Received: from smtp.cica.es ([127.0.0.1])
         by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id pIgQt5u22285 for <netfilter-devel@vger.kernel.org>;
-        Wed, 16 Nov 2016 13:51:53 +0100 (CET)
+        with ESMTP id ndO3R_ccLlbh for <netfilter-devel@vger.kernel.org>;
+        Wed, 16 Nov 2016 13:53:27 +0100 (CET)
 Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
         (Authenticated sender: servers@cica.es)
-        by smtp.cica.es (Postfix) with ESMTP id 16FEA51F2AA
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Nov 2016 13:51:52 +0100 (CET)
+        by smtp.cica.es (Postfix) with ESMTP id 8D5F351F2AA
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Nov 2016 13:53:26 +0100 (CET)
+In-Reply-To: <147930079529.12388.6423464302439175817.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Arturo Borrero Gonzalez <arturo@debian.org>
 
-Using, for example:
- % sudo ./run-tests.sh testcase/mytest_0
+This testcase adds and deletes many elements in a set.
 
-Will result in an execution of this single testcase rather than
-the complete suite.
-
-This is useful while working with a concrete testcase.
+We add and delete 65.536 elements in two different nft -f runs.
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
 ---
- tests/shell/run-tests.sh |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ .../testcases/sets/0013add_delete_many_elements_0  |   48 ++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
+ create mode 100755 tests/shell/testcases/sets/0013add_delete_many_elements_0
 
-diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
-index d9c44c8..4e41893 100755
---- a/tests/shell/run-tests.sh
-+++ b/tests/shell/run-tests.sh
-@@ -43,6 +43,13 @@ if [ ! -x "$MODPROBE" ] ; then
- 	msg_error "no modprobe binary found"
- fi
- 
-+if [ -x "$1" ] ; then
-+	if grep ^.*${RETURNCODE_SEPARATOR}[0-9]\\+$ <<< $1 >/dev/null ; then
-+		SINGLE=$1
-+		VERBOSE=y
-+	fi
+diff --git a/tests/shell/testcases/sets/0013add_delete_many_elements_0 b/tests/shell/testcases/sets/0013add_delete_many_elements_0
+new file mode 100755
+index 0000000..265a554
+--- /dev/null
++++ b/tests/shell/testcases/sets/0013add_delete_many_elements_0
+@@ -0,0 +1,48 @@
++#!/bin/bash
++
++# test adding and deleting many sets elements in two nft -f runs.
++
++HOWMANY=255
++
++tmpfile=$(mktemp)
++if [ ! -w $tmpfile ] ; then
++	echo "Failed to create tmp file" >&2
++	exit 0
 +fi
 +
- if [ "$1" == "-v" ] ; then
- 	VERBOSE=y
- fi
-@@ -65,6 +72,10 @@ kernel_cleanup() {
- }
- 
- find_tests() {
-+	if [ ! -z "$SINGLE" ] ; then
-+		echo $SINGLE
-+		return
-+	fi
- 	${FIND} ${TESTDIR} -executable -regex \
- 		.*${RETURNCODE_SEPARATOR}[0-9]+ | sort
- }
++trap "rm -rf $tmpfile" EXIT # cleanup if aborted
++
++generate() {
++	echo -n "{"
++	for ((i=1; i<=HOWMANY; i++)) ; do
++		for ((j=1; j<=HOWMANY; j++)) ; do
++			echo -n "10.0.${i}.${j}"
++			[ "$i" == "$HOWMANY" ] && [ "$j" == "$HOWMANY" ] && break
++			echo -n ", "
++		done
++	done
++	echo -n "}"
++}
++
++set -e
++
++echo "add table x
++add set x y { type ipv4_addr; }
++add element x y $(generate)" > $tmpfile
++$NFT -f $tmpfile
++echo "delete element x y $(generate)" > $tmpfile
++$NFT -f $tmpfile
++
++
++EXPECTED="table ip x {
++	set y {
++		type ipv4_addr
++	}
++}"
++GET=$($NFT list ruleset)
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
++
 
