@@ -1,77 +1,80 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH 1/3] tests: shell: testcase for adding many set elements
-Date: Wed, 16 Nov 2016 13:53:15 +0100
-Message-ID: <147930079529.12388.6423464302439175817.stgit@nfdev2.cica.es>
+From: Eric Dumazet <edumazet@google.com>
+Subject: Re: netfilter question
+Date: Wed, 16 Nov 2016 05:33:48 -0800
+Message-ID: <CANn89iLr-Zf2W5MW47QtKo17915UoryZentihKt1SMv7NP_dOw@mail.gmail.com>
+References: <cad49557-7c7a-83c9-d2b6-71d9624f0d52@miromedia.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Eric Desrochers <ericd@miromedia.ca>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:60517 "EHLO smtp.cica.es"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750998AbcKPMxY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Nov 2016 07:53:24 -0500
-Received: from localhost (unknown [127.0.0.1])
-        by smtp.cica.es (Postfix) with ESMTP id 6C7E351F328
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Nov 2016 12:53:22 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id pagnNMS_ifKj for <netfilter-devel@vger.kernel.org>;
-        Wed, 16 Nov 2016 13:53:16 +0100 (CET)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-        (Authenticated sender: servers@cica.es)
-        by smtp.cica.es (Postfix) with ESMTP id 2445E51F2AA
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Nov 2016 13:53:16 +0100 (CET)
+Received: from mail-it0-f49.google.com ([209.85.214.49]:35289 "EHLO
+        mail-it0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752808AbcKPNdu (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 16 Nov 2016 08:33:50 -0500
+Received: by mail-it0-f49.google.com with SMTP id c20so209469803itb.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Nov 2016 05:33:49 -0800 (PST)
+In-Reply-To: <cad49557-7c7a-83c9-d2b6-71d9624f0d52@miromedia.ca>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Arturo Borrero Gonzalez <arturo@debian.org>
+On Wed, Nov 16, 2016 at 2:22 AM, Eric Desrochers <ericd@miromedia.ca> wrote=
+:
+> Hi Eric,
+>
+> My name is Eric and I'm reaching you today as I found your name in multip=
+le netfilter kernel commits, and was hoping we can discuss about a potentia=
+l regression.
+>
+> I identified (git bisect) this commit [https://github.com/torvalds/linux/=
+commit/71ae0dff02d756e4d2ca710b79f2ff5390029a5f] as the one introducing a s=
+erious performance slowdown when using the binary ip/ip6tables with a large=
+ number of policies.
+>
+> I also tried with the latest and greatest v4.9-rc4 mainline kernel, and t=
+he slowdown is still present.
+>
+> So even commit [https://github.com/torvalds/linux/commit/a1a56aaa0735c782=
+1e85c37268a7c12e132415cb] which introduce a 16 bytes alignment on xt_counte=
+r percpu allocations so that bytes and packets sit in same cache line, does=
+n't have impact too.
+>
+>
+> Everything I found is detailed in the following bug : https://bugs.launch=
+pad.net/ubuntu/+source/linux/+bug/1640786
+>
+> Of course, I'm totally aware that "iptables-restore" should be the favori=
+te choice as it is way more efficient (note that using iptables-restore doe=
+sn't exhibit the problem) but some folks still rely on ip/ip6tables and mig=
+ht face this performance slowdown.
+>
+> I found the problem today, I will continue to investigate on my side, but=
+ I was wondering if we could have a discussion about this subject.
+>
+> Thanks in advance.
+>
+> Regards,
+>
+> Eric
+>
 
-This testcase adds many elements in a set.
-We add 65.356 elements.
+Hi Eric
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
----
- tests/shell/testcases/sets/0011add_many_elements_0 |   32 ++++++++++++++++++++
- 1 file changed, 32 insertions(+)
- create mode 100755 tests/shell/testcases/sets/0011add_many_elements_0
+Thanks for your mail. But you should CC it on netfilter-devel mailing list.
 
-diff --git a/tests/shell/testcases/sets/0011add_many_elements_0 b/tests/shell/testcases/sets/0011add_many_elements_0
-new file mode 100755
-index 0000000..ba23f90
---- /dev/null
-+++ b/tests/shell/testcases/sets/0011add_many_elements_0
-@@ -0,0 +1,32 @@
-+#!/bin/bash
-+
-+# test adding many sets elements
-+
-+HOWMANY=255
-+
-+tmpfile=$(mktemp)
-+if [ ! -w $tmpfile ] ; then
-+	echo "Failed to create tmp file" >&2
-+	exit 0
-+fi
-+
-+trap "rm -rf $tmpfile" EXIT # cleanup if aborted
-+
-+generate() {
-+	echo -n "{"
-+	for ((i=1; i<=HOWMANY; i++)) ; do
-+		for ((j=1; j<=HOWMANY; j++)) ; do
-+			echo -n "10.0.${i}.${j}"
-+			[ "$i" == "$HOWMANY" ] && [ "$j" == "$HOWMANY" ] && break
-+			echo -n ", "
-+		done
-+	done
-+	echo -n "}"
-+}
-+
-+echo "add table x
-+add set x y { type ipv4_addr; }
-+add element x y $(generate)" > $tmpfile
-+
-+set -e
-+$NFT -f $tmpfile
+Key point is that we really care about fast path : packet processing.
+And cited commit helps this a lot by lowering the memory foot print on
+hosts with many cores.
+This is a step into right direction.
 
+Now we probably should batch the percpu allocations one page at a
+time, or ask Tejun if percpu allocations could be really really fast
+(probably much harder)
+
+But really you should not use iptables one rule at a time...
+This will never compete with iptables-restore. ;)
+
+Florian, would you have time to work on a patch trying to group the
+percpu allocations one page at a time ?
