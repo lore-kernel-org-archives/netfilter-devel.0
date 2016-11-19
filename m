@@ -1,224 +1,400 @@
-From: Arturo Borrero Gonzalez <arturo@debian.org>
-Subject: Re: netfilter/nftables oops in 4.8
-Date: Fri, 18 Nov 2016 09:22:02 +0100
-Message-ID: <CAOkSjBhc5RorUDSoqdgSJspPi8_3r3UnOxBD8H2HSzUOpV-2xg@mail.gmail.com>
-References: <CAOkSjBiN5X67f4=uSCnvNTnQfpMdLJbThCkiPyzPeuHfuQoaLA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=001a1142c02861be2a05418f0102
-To: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nft V2] src: add log flags syntax support
+Date: Sat, 19 Nov 2016 19:31:15 +0800
+Message-ID: <1479555075-41756-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:36929 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751971AbcKRIWY (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 18 Nov 2016 03:22:24 -0500
-Received: by mail-wm0-f46.google.com with SMTP id t79so21658822wmt.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Nov 2016 00:22:24 -0800 (PST)
-Received: from mail-wm0-f42.google.com (mail-wm0-f42.google.com. [74.125.82.42])
-        by smtp.gmail.com with ESMTPSA id d64sm2063172wmh.3.2016.11.18.00.22.23
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 18 Nov 2016 00:22:23 -0800 (PST)
-Received: by mail-wm0-f42.google.com with SMTP id g23so21957915wme.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Nov 2016 00:22:23 -0800 (PST)
-In-Reply-To: <CAOkSjBiN5X67f4=uSCnvNTnQfpMdLJbThCkiPyzPeuHfuQoaLA@mail.gmail.com>
+Received: from m12-16.163.com ([220.181.12.16]:50943 "EHLO m12-16.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752499AbcKSLcM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 19 Nov 2016 06:32:12 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---001a1142c02861be2a05418f0102
-Content-Type: text/plain; charset=UTF-8
+From: Liping Zhang <zlpnobody@gmail.com>
 
-On 18 November 2016 at 09:05, Arturo Borrero Gonzalez <arturo@debian.org> wrote:
-> Hi,
->
-> this happened today in my machine at boot time. I can't reproduce it again.
+Now NF_LOG_XXX is exposed to the userspace, we can set it explicitly.
+Like iptables LOG target, we can log TCP sequence numbers, TCP options,
+IP options, UID owning local socket and decode MAC header. Note the
+log flags are mutually exclusive with group.
 
-Find it attached for better format
+Some examples are listed below:
+ # nft add rule t c log flags tcp sequence,options
+ # nft add rule t c log flags ip options
+ # nft add rule t c log flags skuid
+ # nft add rule t c log flags ether
+ # nft add rule t c log flags all
+ # nft add rule t c log flags all group 1
+ <cmdline>:1:14-16: Error: flags and group are mutually exclusive
+ add rule t c log flags all group 1
+              ^^^
 
---001a1142c02861be2a05418f0102
-Content-Type: text/plain; charset=US-ASCII; name="trace.txt"
-Content-Disposition: attachment; filename="trace.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ivnioq4e0
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+---
+ V2: Switch to the new syntax suggested by Pablo. Also combine the original
+     three patches into a single one.
 
-bGludXggNC44LjUtMSAoZGViaWFuKQoKW3ZpZSBub3YgMTggMDg6NDI6MTggMjAxNl0gSU5GTzog
-dGFzayBtb2Rwcm9iZTo2NDEgYmxvY2tlZCBmb3IgbW9yZSB0aGFuIDEyMCBzZWNvbmRzLgpbdmll
-IG5vdiAxOCAwODo0MjoxOCAyMDE2XSAgICAgICBOb3QgdGFpbnRlZCA0LjguMC0xLWFtZDY0ICMx
-Clt2aWUgbm92IDE4IDA4OjQyOjE4IDIwMTZdICJlY2hvIDAgPiAvcHJvYy9zeXMva2VybmVsL2h1
-bmdfdGFza190aW1lb3V0X3NlY3MiIGRpc2FibGVzIHRoaXMgbWVzc2FnZS4KW3ZpZSBub3YgMTgg
-MDg6NDI6MTggMjAxNl0gbW9kcHJvYmUgICAgICAgIEQgZmZmZjk5ZGRiYjNlZTQwMCAgICAgMCAg
-IDY0MSAgICAxMDYgMHgwMDAwMDAwMApbdmllIG5vdiAxOCAwODo0MjoxOCAyMDE2XSAgZmZmZjk5
-ZGRiOTBkMmQ0MCBmZmZmOTlkZDc2NDE4MTAwIDAwMDAwMDAwMDAwMDAwMDEgMDAwMDAwMDAwMDAw
-MDAwMQpbdmllIG5vdiAxOCAwODo0MjoxOCAyMDE2XSAgZmZmZjk5ZGRiYmUwNDAwMCBmZmZmOTlk
-ZGJiZTAzYzY4IGZmZmZmZmZmYWFlZGMzYTQgZmZmZjk5ZGRiOTBkMmQ0MApbdmllIG5vdiAxOCAw
-ODo0MjoxOCAyMDE2XSAgMDAwMDAwMDBmZmZmZmZmZiBmZmZmZmZmZmFhZWRjM2E4IGZmZmZmZmZm
-YWE5ZWI0ZTEgZmZmZmZmZmZhYWVkYzNhMApbdmllIG5vdiAxOCAwODo0MjoxOCAyMDE2XSBDYWxs
-IFRyYWNlOgpbdmllIG5vdiAxOCAwODo0MjoxOCAyMDE2XSAgWzxmZmZmZmZmZmFhOWViNGUxPl0g
-PyBzY2hlZHVsZSsweDMxLzB4ODAKW3ZpZSBub3YgMTggMDg6NDI6MTggMjAxNl0gIFs8ZmZmZmZm
-ZmZhYTllYjc3YT5dID8gc2NoZWR1bGVfcHJlZW1wdF9kaXNhYmxlZCsweGEvMHgxMApbdmllIG5v
-diAxOCAwODo0MjoxOCAyMDE2XSAgWzxmZmZmZmZmZmFhOWVkMWY0Pl0gPyBfX211dGV4X2xvY2tf
-c2xvd3BhdGgrMHhiNC8weDEzMApbdmllIG5vdiAxOCAwODo0MjoxOCAyMDE2XSAgWzxmZmZmZmZm
-ZmMwYWFmMDAwPl0gPyAweGZmZmZmZmZmYzBhYWYwMDAKW3ZpZSBub3YgMTggMDg6NDI6MTggMjAx
-Nl0gIFs8ZmZmZmZmZmZhYTllZDI4Yj5dID8gbXV0ZXhfbG9jaysweDFiLzB4MzAKW3ZpZSBub3Yg
-MTggMDg6NDI6MTggMjAxNl0gIFs8ZmZmZmZmZmZhYThlMjUzNT5dID8gcmVnaXN0ZXJfcGVybmV0
-X3N1YnN5cysweDE1LzB4NDAKW3ZpZSBub3YgMTggMDg6NDI6MTggMjAxNl0gIFs8ZmZmZmZmZmZj
-MGFhNjBjNj5dID8gbmZfY3RfZnJhZzZfaW5pdCsweDc2LzB4YTAgW25mX2RlZnJhZ19pcHY2XQpb
-dmllIG5vdiAxOCAwODo0MjoxOCAyMDE2XSAgWzxmZmZmZmZmZmMwYWFmMDA2Pl0gPyBuZl9kZWZy
-YWdfaW5pdCsweDYvMHgxMDAwIFtuZl9kZWZyYWdfaXB2Nl0KW3ZpZSBub3YgMTggMDg6NDI6MTgg
-MjAxNl0gIFs8ZmZmZmZmZmZhYTQwMjE4Yz5dID8gZG9fb25lX2luaXRjYWxsKzB4NGMvMHgxODAK
-W3ZpZSBub3YgMTggMDg6NDI6MTggMjAxNl0gIFs8ZmZmZmZmZmZhYTVjNGYyZD5dID8gX192dW5t
-YXArMHg2ZC8weGMwClt2aWUgbm92IDE4IDA4OjQyOjE4IDIwMTZdICBbPGZmZmZmZmZmYWE1N2Fl
-Yjg+XSA/IGRvX2luaXRfbW9kdWxlKzB4NWIvMHgxZWQKW3ZpZSBub3YgMTggMDg6NDI6MTggMjAx
-Nl0gIFs8ZmZmZmZmZmZhYTUwMmU3MD5dID8gbG9hZF9tb2R1bGUrMHgyMzMwLzB4MjlmMApbdmll
-IG5vdiAxOCAwODo0MjoxOCAyMDE2XSAgWzxmZmZmZmZmZmFhNGZmOGEwPl0gPyBfX3N5bWJvbF9w
-dXQrMHg2MC8weDYwClt2aWUgbm92IDE4IDA4OjQyOjE4IDIwMTZdICBbPGZmZmZmZmZmYWE2MDIx
-Yzg+XSA/IHZmc19yZWFkKzB4MTE4LzB4MTMwClt2aWUgbm92IDE4IDA4OjQyOjE4IDIwMTZdICBb
-PGZmZmZmZmZmYWE1MDM3NzY+XSA/IFNZU0NfZmluaXRfbW9kdWxlKzB4YzYvMHhmMApbdmllIG5v
-diAxOCAwODo0MjoxOCAyMDE2XSAgWzxmZmZmZmZmZmFhOWVmOGY2Pl0gPyBzeXN0ZW1fY2FsbF9m
-YXN0X2NvbXBhcmVfZW5kKzB4Yy8weDk2Clt2aWUgbm92IDE4IDA4OjQyOjE4IDIwMTZdIElORk86
-IHRhc2sgKG9zdG5hbWVkKTo2NDQgYmxvY2tlZCBmb3IgbW9yZSB0aGFuIDEyMCBzZWNvbmRzLgpb
-dmllIG5vdiAxOCAwODo0MjoxOCAyMDE2XSAgICAgICBOb3QgdGFpbnRlZCA0LjguMC0xLWFtZDY0
-ICMxClt2aWUgbm92IDE4IDA4OjQyOjE4IDIwMTZdICJlY2hvIDAgPiAvcHJvYy9zeXMva2VybmVs
-L2h1bmdfdGFza190aW1lb3V0X3NlY3MiIGRpc2FibGVzIHRoaXMgbWVzc2FnZS4KW3ZpZSBub3Yg
-MTggMDg6NDI6MTggMjAxNl0gKG9zdG5hbWVkKSAgICAgIEQgZmZmZjk5ZGRiZmE5ODE4MCAgICAg
-MCAgIDY0NCAgICAgIDEgMHgwMDAwMDAwNApbdmllIG5vdiAxOCAwODo0MjoxOCAyMDE2XSAgZmZm
-Zjk5ZGRiOTA3NzEwMCBmZmZmOTlkZGJjOTAyZWMwIDAwMDAwMDAwMDAwMDAwMDMgMDAwMDAwMDAw
-MDAwMDAwMQpbdmllIG5vdiAxOCAwODo0MjoxOCAyMDE2XSAgZmZmZjk5ZGRiYzIzODAwMCBmZmZm
-OTlkZGJjMjM3ZGQ4IGZmZmZmZmZmYzA4MGI1YTQgZmZmZjk5ZGRiOTA3NzEwMApbdmllIG5vdiAx
-OCAwODo0MjoxOCAyMDE2XSAgMDAwMDAwMDBmZmZmZmZmZiBmZmZmZmZmZmMwODBiNWE4IGZmZmZm
-ZmZmYWE5ZWI0ZTEgZmZmZmZmZmZjMDgwYjVhMApbdmllIG5vdiAxOCAwODo0MjoxOCAyMDE2XSBD
-YWxsIFRyYWNlOgpbdmllIG5vdiAxOCAwODo0MjoxOCAyMDE2XSAgWzxmZmZmZmZmZmFhOWViNGUx
-Pl0gPyBzY2hlZHVsZSsweDMxLzB4ODAKW3ZpZSBub3YgMTggMDg6NDI6MTggMjAxNl0gIFs8ZmZm
-ZmZmZmZhYTllYjc3YT5dID8gc2NoZWR1bGVfcHJlZW1wdF9kaXNhYmxlZCsweGEvMHgxMApbdmll
-IG5vdiAxOCAwODo0MjoxOCAyMDE2XSAgWzxmZmZmZmZmZmFhOWVkMWY0Pl0gPyBfX211dGV4X2xv
-Y2tfc2xvd3BhdGgrMHhiNC8weDEzMApbdmllIG5vdiAxOCAwODo0MjoxOCAyMDE2XSAgWzxmZmZm
-ZmZmZmFhOWVkMjhiPl0gPyBtdXRleF9sb2NrKzB4MWIvMHgzMApbdmllIG5vdiAxOCAwODo0Mjox
-OCAyMDE2XSAgWzxmZmZmZmZmZmMwYTVmODYzPl0gPyBuZnRfcmVnaXN0ZXJfYWZpbmZvKzB4MjMv
-MHg1MCBbbmZfdGFibGVzXQpbdmllIG5vdiAxOCAwODo0MjoxOCAyMDE2XSAgWzxmZmZmZmZmZmMw
-ODBlMTE5Pl0gPyBuZl90YWJsZXNfaXB2NF9pbml0X25ldCsweGU5LzB4MTEwIFtuZl90YWJsZXNf
-aXB2NF0KW3ZpZSBub3YgMTggMDg6NDI6MTggMjAxNl0gIFs8ZmZmZmZmZmZhYThlMjE4OT5dID8g
-b3BzX2luaXQrMHgzOS8weDEwMApbdmllIG5vdiAxOCAwODo0MjoxOCAyMDE2XSAgWzxmZmZmZmZm
-ZmFhOGUyMmQ1Pl0gPyBzZXR1cF9uZXQrMHg4NS8weDEzMApbdmllIG5vdiAxOCAwODo0MjoxOCAy
-MDE2XSAgWzxmZmZmZmZmZmFhOGUyYjc0Pl0gPyBjb3B5X25ldF9ucysweDc0LzB4MTAwClt2aWUg
-bm92IDE4IDA4OjQyOjE4IDIwMTZdICBbPGZmZmZmZmZmYWE0OWI5YzY+XSA/IGNyZWF0ZV9uZXdf
-bmFtZXNwYWNlcysweDExNi8weDFjMApbdmllIG5vdiAxOCAwODo0MjoxOCAyMDE2XSAgWzxmZmZm
-ZmZmZmFhNDliYmQ1Pl0gPyB1bnNoYXJlX25zcHJveHlfbmFtZXNwYWNlcysweDU1LzB4YTAKW3Zp
-ZSBub3YgMTggMDg6NDI6MTggMjAxNl0gIFs8ZmZmZmZmZmZhYTQ3YmEwNz5dID8gU3lTX3Vuc2hh
-cmUrMHgxZTcvMHgzOTAKW3ZpZSBub3YgMTggMDg6NDI6MTggMjAxNl0gIFs8ZmZmZmZmZmZhYTll
-ZjhmNj5dID8gc3lzdGVtX2NhbGxfZmFzdF9jb21wYXJlX2VuZCsweGMvMHg5NgpbdmllIG5vdiAx
-OCAwODo0MjoxOCAyMDE2XSBJTkZPOiB0YXNrICh0LWRhZW1vbik6MTAwNCBibG9ja2VkIGZvciBt
-b3JlIHRoYW4gMTIwIHNlY29uZHMuClt2aWUgbm92IDE4IDA4OjQyOjE4IDIwMTZdICAgICAgIE5v
-dCB0YWludGVkIDQuOC4wLTEtYW1kNjQgIzEKW3ZpZSBub3YgMTggMDg6NDI6MTggMjAxNl0gImVj
-aG8gMCA+IC9wcm9jL3N5cy9rZXJuZWwvaHVuZ190YXNrX3RpbWVvdXRfc2VjcyIgZGlzYWJsZXMg
-dGhpcyBtZXNzYWdlLgpbdmllIG5vdiAxOCAwODo0MjoxOCAyMDE2XSAodC1kYWVtb24pICAgICAg
-RCBmZmZmOTlkZGJmYTk4MTgwICAgICAwICAxMDA0ICAgICAgMSAweDAwMDAwMDA0Clt2aWUgbm92
-IDE4IDA4OjQyOjE4IDIwMTZdICBmZmZmOTlkZGJhMWJjZjAwIGZmZmY5OWRkYmM5MDJlYzAgMDAw
-MDAwMDAwMDAwMDAwMCAwMDAwMDAwMDAxZTUyYTAwClt2aWUgbm92IDE4IDA4OjQyOjE4IDIwMTZd
-ICBmZmZmOTlkZGI5NDY4MDAwIGZmZmY5OWRkYjk0NjdlNzAgZmZmZmZmZmZhYWVkYzNhNCBmZmZm
-OTlkZGJhMWJjZjAwClt2aWUgbm92IDE4IDA4OjQyOjE4IDIwMTZdICAwMDAwMDAwMGZmZmZmZmZm
-IGZmZmZmZmZmYWFlZGMzYTggZmZmZmZmZmZhYTllYjRlMSBmZmZmZmZmZmFhZWRjM2EwClt2aWUg
-bm92IDE4IDA4OjQyOjE4IDIwMTZdIENhbGwgVHJhY2U6Clt2aWUgbm92IDE4IDA4OjQyOjE4IDIw
-MTZdICBbPGZmZmZmZmZmYWE5ZWI0ZTE+XSA/IHNjaGVkdWxlKzB4MzEvMHg4MApbdmllIG5vdiAx
-OCAwODo0MjoxOCAyMDE2XSAgWzxmZmZmZmZmZmFhOWViNzdhPl0gPyBzY2hlZHVsZV9wcmVlbXB0
-X2Rpc2FibGVkKzB4YS8weDEwClt2aWUgbm92IDE4IDA4OjQyOjE4IDIwMTZdICBbPGZmZmZmZmZm
-YWE5ZWQxZjQ+XSA/IF9fbXV0ZXhfbG9ja19zbG93cGF0aCsweGI0LzB4MTMwClt2aWUgbm92IDE4
-IDA4OjQyOjE4IDIwMTZdICBbPGZmZmZmZmZmYWE5ZWQyOGI+XSA/IG11dGV4X2xvY2srMHgxYi8w
-eDMwClt2aWUgbm92IDE4IDA4OjQyOjE4IDIwMTZdICBbPGZmZmZmZmZmYWE4ZTJiNjk+XSA/IGNv
-cHlfbmV0X25zKzB4NjkvMHgxMDAKW3ZpZSBub3YgMTggMDg6NDI6MTggMjAxNl0gIFs8ZmZmZmZm
-ZmZhYTQ5YjljNj5dID8gY3JlYXRlX25ld19uYW1lc3BhY2VzKzB4MTE2LzB4MWMwClt2aWUgbm92
-IDE4IDA4OjQyOjE4IDIwMTZdICBbPGZmZmZmZmZmYWE0OWJiZDU+XSA/IHVuc2hhcmVfbnNwcm94
-eV9uYW1lc3BhY2VzKzB4NTUvMHhhMApbdmllIG5vdiAxOCAwODo0MjoxOCAyMDE2XSAgWzxmZmZm
-ZmZmZmFhNDdiYTA3Pl0gPyBTeVNfdW5zaGFyZSsweDFlNy8weDM5MApbdmllIG5vdiAxOCAwODo0
-MjoxOCAyMDE2XSAgWzxmZmZmZmZmZmFhOWVmOGY2Pl0gPyBzeXN0ZW1fY2FsbF9mYXN0X2NvbXBh
-cmVfZW5kKzB4Yy8weDk2Clt2aWUgbm92IDE4IDA4OjQ0OjE5IDIwMTZdIElORk86IHRhc2sgbW9k
-cHJvYmU6NjQxIGJsb2NrZWQgZm9yIG1vcmUgdGhhbiAxMjAgc2Vjb25kcy4KW3ZpZSBub3YgMTgg
-MDg6NDQ6MTkgMjAxNl0gICAgICAgTm90IHRhaW50ZWQgNC44LjAtMS1hbWQ2NCAjMQpbdmllIG5v
-diAxOCAwODo0NDoxOSAyMDE2XSAiZWNobyAwID4gL3Byb2Mvc3lzL2tlcm5lbC9odW5nX3Rhc2tf
-dGltZW91dF9zZWNzIiBkaXNhYmxlcyB0aGlzIG1lc3NhZ2UuClt2aWUgbm92IDE4IDA4OjQ0OjE5
-IDIwMTZdIG1vZHByb2JlICAgICAgICBEIGZmZmY5OWRkYmIzZWU0MDAgICAgIDAgICA2NDEgICAg
-MTA2IDB4MDAwMDAwMDAKW3ZpZSBub3YgMTggMDg6NDQ6MTkgMjAxNl0gIGZmZmY5OWRkYjkwZDJk
-NDAgZmZmZjk5ZGQ3NjQxODEwMCAwMDAwMDAwMDAwMDAwMDAxIDAwMDAwMDAwMDAwMDAwMDEKW3Zp
-ZSBub3YgMTggMDg6NDQ6MTkgMjAxNl0gIGZmZmY5OWRkYmJlMDQwMDAgZmZmZjk5ZGRiYmUwM2M2
-OCBmZmZmZmZmZmFhZWRjM2E0IGZmZmY5OWRkYjkwZDJkNDAKW3ZpZSBub3YgMTggMDg6NDQ6MTkg
-MjAxNl0gIDAwMDAwMDAwZmZmZmZmZmYgZmZmZmZmZmZhYWVkYzNhOCBmZmZmZmZmZmFhOWViNGUx
-IGZmZmZmZmZmYWFlZGMzYTAKW3ZpZSBub3YgMTggMDg6NDQ6MTkgMjAxNl0gQ2FsbCBUcmFjZToK
-W3ZpZSBub3YgMTggMDg6NDQ6MTkgMjAxNl0gIFs8ZmZmZmZmZmZhYTllYjRlMT5dID8gc2NoZWR1
-bGUrMHgzMS8weDgwClt2aWUgbm92IDE4IDA4OjQ0OjE5IDIwMTZdICBbPGZmZmZmZmZmYWE5ZWI3
-N2E+XSA/IHNjaGVkdWxlX3ByZWVtcHRfZGlzYWJsZWQrMHhhLzB4MTAKW3ZpZSBub3YgMTggMDg6
-NDQ6MTkgMjAxNl0gIFs8ZmZmZmZmZmZhYTllZDFmND5dID8gX19tdXRleF9sb2NrX3Nsb3dwYXRo
-KzB4YjQvMHgxMzAKW3ZpZSBub3YgMTggMDg6NDQ6MTkgMjAxNl0gIFs8ZmZmZmZmZmZjMGFhZjAw
-MD5dID8gMHhmZmZmZmZmZmMwYWFmMDAwClt2aWUgbm92IDE4IDA4OjQ0OjE5IDIwMTZdICBbPGZm
-ZmZmZmZmYWE5ZWQyOGI+XSA/IG11dGV4X2xvY2srMHgxYi8weDMwClt2aWUgbm92IDE4IDA4OjQ0
-OjE5IDIwMTZdICBbPGZmZmZmZmZmYWE4ZTI1MzU+XSA/IHJlZ2lzdGVyX3Blcm5ldF9zdWJzeXMr
-MHgxNS8weDQwClt2aWUgbm92IDE4IDA4OjQ0OjE5IDIwMTZdICBbPGZmZmZmZmZmYzBhYTYwYzY+
-XSA/IG5mX2N0X2ZyYWc2X2luaXQrMHg3Ni8weGEwIFtuZl9kZWZyYWdfaXB2Nl0KW3ZpZSBub3Yg
-MTggMDg6NDQ6MTkgMjAxNl0gIFs8ZmZmZmZmZmZjMGFhZjAwNj5dID8gbmZfZGVmcmFnX2luaXQr
-MHg2LzB4MTAwMCBbbmZfZGVmcmFnX2lwdjZdClt2aWUgbm92IDE4IDA4OjQ0OjE5IDIwMTZdICBb
-PGZmZmZmZmZmYWE0MDIxOGM+XSA/IGRvX29uZV9pbml0Y2FsbCsweDRjLzB4MTgwClt2aWUgbm92
-IDE4IDA4OjQ0OjE5IDIwMTZdICBbPGZmZmZmZmZmYWE1YzRmMmQ+XSA/IF9fdnVubWFwKzB4NmQv
-MHhjMApbdmllIG5vdiAxOCAwODo0NDoxOSAyMDE2XSAgWzxmZmZmZmZmZmFhNTdhZWI4Pl0gPyBk
-b19pbml0X21vZHVsZSsweDViLzB4MWVkClt2aWUgbm92IDE4IDA4OjQ0OjE5IDIwMTZdICBbPGZm
-ZmZmZmZmYWE1MDJlNzA+XSA/IGxvYWRfbW9kdWxlKzB4MjMzMC8weDI5ZjAKW3ZpZSBub3YgMTgg
-MDg6NDQ6MTkgMjAxNl0gIFs8ZmZmZmZmZmZhYTRmZjhhMD5dID8gX19zeW1ib2xfcHV0KzB4NjAv
-MHg2MApbdmllIG5vdiAxOCAwODo0NDoxOSAyMDE2XSAgWzxmZmZmZmZmZmFhNjAyMWM4Pl0gPyB2
-ZnNfcmVhZCsweDExOC8weDEzMApbdmllIG5vdiAxOCAwODo0NDoxOSAyMDE2XSAgWzxmZmZmZmZm
-ZmFhNTAzNzc2Pl0gPyBTWVNDX2Zpbml0X21vZHVsZSsweGM2LzB4ZjAKW3ZpZSBub3YgMTggMDg6
-NDQ6MTkgMjAxNl0gIFs8ZmZmZmZmZmZhYTllZjhmNj5dID8gc3lzdGVtX2NhbGxfZmFzdF9jb21w
-YXJlX2VuZCsweGMvMHg5NgpbdmllIG5vdiAxOCAwODo0NDoxOSAyMDE2XSBJTkZPOiB0YXNrIChv
-c3RuYW1lZCk6NjQ0IGJsb2NrZWQgZm9yIG1vcmUgdGhhbiAxMjAgc2Vjb25kcy4KW3ZpZSBub3Yg
-MTggMDg6NDQ6MTkgMjAxNl0gICAgICAgTm90IHRhaW50ZWQgNC44LjAtMS1hbWQ2NCAjMQpbdmll
-IG5vdiAxOCAwODo0NDoxOSAyMDE2XSAiZWNobyAwID4gL3Byb2Mvc3lzL2tlcm5lbC9odW5nX3Rh
-c2tfdGltZW91dF9zZWNzIiBkaXNhYmxlcyB0aGlzIG1lc3NhZ2UuClt2aWUgbm92IDE4IDA4OjQ0
-OjE5IDIwMTZdIChvc3RuYW1lZCkgICAgICBEIGZmZmY5OWRkYmZhOTgxODAgICAgIDAgICA2NDQg
-ICAgICAxIDB4MDAwMDAwMDQKW3ZpZSBub3YgMTggMDg6NDQ6MTkgMjAxNl0gIGZmZmY5OWRkYjkw
-NzcxMDAgZmZmZjk5ZGRiYzkwMmVjMCAwMDAwMDAwMDAwMDAwMDAzIDAwMDAwMDAwMDAwMDAwMDEK
-W3ZpZSBub3YgMTggMDg6NDQ6MTkgMjAxNl0gIGZmZmY5OWRkYmMyMzgwMDAgZmZmZjk5ZGRiYzIz
-N2RkOCBmZmZmZmZmZmMwODBiNWE0IGZmZmY5OWRkYjkwNzcxMDAKW3ZpZSBub3YgMTggMDg6NDQ6
-MTkgMjAxNl0gIDAwMDAwMDAwZmZmZmZmZmYgZmZmZmZmZmZjMDgwYjVhOCBmZmZmZmZmZmFhOWVi
-NGUxIGZmZmZmZmZmYzA4MGI1YTAKW3ZpZSBub3YgMTggMDg6NDQ6MTkgMjAxNl0gQ2FsbCBUcmFj
-ZToKW3ZpZSBub3YgMTggMDg6NDQ6MTkgMjAxNl0gIFs8ZmZmZmZmZmZhYTllYjRlMT5dID8gc2No
-ZWR1bGUrMHgzMS8weDgwClt2aWUgbm92IDE4IDA4OjQ0OjE5IDIwMTZdICBbPGZmZmZmZmZmYWE5
-ZWI3N2E+XSA/IHNjaGVkdWxlX3ByZWVtcHRfZGlzYWJsZWQrMHhhLzB4MTAKW3ZpZSBub3YgMTgg
-MDg6NDQ6MTkgMjAxNl0gIFs8ZmZmZmZmZmZhYTllZDFmND5dID8gX19tdXRleF9sb2NrX3Nsb3dw
-YXRoKzB4YjQvMHgxMzAKW3ZpZSBub3YgMTggMDg6NDQ6MTkgMjAxNl0gIFs8ZmZmZmZmZmZhYTll
-ZDI4Yj5dID8gbXV0ZXhfbG9jaysweDFiLzB4MzAKW3ZpZSBub3YgMTggMDg6NDQ6MTkgMjAxNl0g
-IFs8ZmZmZmZmZmZjMGE1Zjg2Mz5dID8gbmZ0X3JlZ2lzdGVyX2FmaW5mbysweDIzLzB4NTAgW25m
-X3RhYmxlc10KW3ZpZSBub3YgMTggMDg6NDQ6MTkgMjAxNl0gIFs8ZmZmZmZmZmZjMDgwZTExOT5d
-ID8gbmZfdGFibGVzX2lwdjRfaW5pdF9uZXQrMHhlOS8weDExMCBbbmZfdGFibGVzX2lwdjRdClt2
-aWUgbm92IDE4IDA4OjQ0OjE5IDIwMTZdICBbPGZmZmZmZmZmYWE4ZTIxODk+XSA/IG9wc19pbml0
-KzB4MzkvMHgxMDAKW3ZpZSBub3YgMTggMDg6NDQ6MTkgMjAxNl0gIFs8ZmZmZmZmZmZhYThlMjJk
-NT5dID8gc2V0dXBfbmV0KzB4ODUvMHgxMzAKW3ZpZSBub3YgMTggMDg6NDQ6MTkgMjAxNl0gIFs8
-ZmZmZmZmZmZhYThlMmI3ND5dID8gY29weV9uZXRfbnMrMHg3NC8weDEwMApbdmllIG5vdiAxOCAw
-ODo0NDoxOSAyMDE2XSAgWzxmZmZmZmZmZmFhNDliOWM2Pl0gPyBjcmVhdGVfbmV3X25hbWVzcGFj
-ZXMrMHgxMTYvMHgxYzAKW3ZpZSBub3YgMTggMDg6NDQ6MTkgMjAxNl0gIFs8ZmZmZmZmZmZhYTQ5
-YmJkNT5dID8gdW5zaGFyZV9uc3Byb3h5X25hbWVzcGFjZXMrMHg1NS8weGEwClt2aWUgbm92IDE4
-IDA4OjQ0OjE5IDIwMTZdICBbPGZmZmZmZmZmYWE0N2JhMDc+XSA/IFN5U191bnNoYXJlKzB4MWU3
-LzB4MzkwClt2aWUgbm92IDE4IDA4OjQ0OjE5IDIwMTZdICBbPGZmZmZmZmZmYWE5ZWY4ZjY+XSA/
-IHN5c3RlbV9jYWxsX2Zhc3RfY29tcGFyZV9lbmQrMHhjLzB4OTYKW3ZpZSBub3YgMTggMDg6NDQ6
-MTkgMjAxNl0gSU5GTzogdGFzayAodC1kYWVtb24pOjEwMDQgYmxvY2tlZCBmb3IgbW9yZSB0aGFu
-IDEyMCBzZWNvbmRzLgpbdmllIG5vdiAxOCAwODo0NDoxOSAyMDE2XSAgICAgICBOb3QgdGFpbnRl
-ZCA0LjguMC0xLWFtZDY0ICMxClt2aWUgbm92IDE4IDA4OjQ0OjE5IDIwMTZdICJlY2hvIDAgPiAv
-cHJvYy9zeXMva2VybmVsL2h1bmdfdGFza190aW1lb3V0X3NlY3MiIGRpc2FibGVzIHRoaXMgbWVz
-c2FnZS4KW3ZpZSBub3YgMTggMDg6NDQ6MTkgMjAxNl0gKHQtZGFlbW9uKSAgICAgIEQgZmZmZjk5
-ZGRiZmE5ODE4MCAgICAgMCAgMTAwNCAgICAgIDEgMHgwMDAwMDAwNApbdmllIG5vdiAxOCAwODo0
-NDoxOSAyMDE2XSAgZmZmZjk5ZGRiYTFiY2YwMCBmZmZmOTlkZGJjOTAyZWMwIDAwMDAwMDAwMDAw
-MDAwMDAgMDAwMDAwMDAwMWU1MmEwMApbdmllIG5vdiAxOCAwODo0NDoxOSAyMDE2XSAgZmZmZjk5
-ZGRiOTQ2ODAwMCBmZmZmOTlkZGI5NDY3ZTcwIGZmZmZmZmZmYWFlZGMzYTQgZmZmZjk5ZGRiYTFi
-Y2YwMApbdmllIG5vdiAxOCAwODo0NDoxOSAyMDE2XSAgMDAwMDAwMDBmZmZmZmZmZiBmZmZmZmZm
-ZmFhZWRjM2E4IGZmZmZmZmZmYWE5ZWI0ZTEgZmZmZmZmZmZhYWVkYzNhMApbdmllIG5vdiAxOCAw
-ODo0NDoxOSAyMDE2XSBDYWxsIFRyYWNlOgpbdmllIG5vdiAxOCAwODo0NDoxOSAyMDE2XSAgWzxm
-ZmZmZmZmZmFhOWViNGUxPl0gPyBzY2hlZHVsZSsweDMxLzB4ODAKW3ZpZSBub3YgMTggMDg6NDQ6
-MTkgMjAxNl0gIFs8ZmZmZmZmZmZhYTllYjc3YT5dID8gc2NoZWR1bGVfcHJlZW1wdF9kaXNhYmxl
-ZCsweGEvMHgxMApbdmllIG5vdiAxOCAwODo0NDoxOSAyMDE2XSAgWzxmZmZmZmZmZmFhOWVkMWY0
-Pl0gPyBfX211dGV4X2xvY2tfc2xvd3BhdGgrMHhiNC8weDEzMApbdmllIG5vdiAxOCAwODo0NDox
-OSAyMDE2XSAgWzxmZmZmZmZmZmFhOWVkMjhiPl0gPyBtdXRleF9sb2NrKzB4MWIvMHgzMApbdmll
-IG5vdiAxOCAwODo0NDoxOSAyMDE2XSAgWzxmZmZmZmZmZmFhOGUyYjY5Pl0gPyBjb3B5X25ldF9u
-cysweDY5LzB4MTAwClt2aWUgbm92IDE4IDA4OjQ0OjE5IDIwMTZdICBbPGZmZmZmZmZmYWE0OWI5
-YzY+XSA/IGNyZWF0ZV9uZXdfbmFtZXNwYWNlcysweDExNi8weDFjMApbdmllIG5vdiAxOCAwODo0
-NDoxOSAyMDE2XSAgWzxmZmZmZmZmZmFhNDliYmQ1Pl0gPyB1bnNoYXJlX25zcHJveHlfbmFtZXNw
-YWNlcysweDU1LzB4YTAKW3ZpZSBub3YgMTggMDg6NDQ6MTkgMjAxNl0gIFs8ZmZmZmZmZmZhYTQ3
-YmEwNz5dID8gU3lTX3Vuc2hhcmUrMHgxZTcvMHgzOTAKW3ZpZSBub3YgMTggMDg6NDQ6MTkgMjAx
-Nl0gIFs8ZmZmZmZmZmZhYTllZjhmNj5dID8gc3lzdGVtX2NhbGxfZmFzdF9jb21wYXJlX2VuZCsw
-eGMvMHg5NgoK
---001a1142c02861be2a05418f0102--
+ doc/nft.xml                      | 56 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/netfilter/nf_log.h | 12 +++++++++
+ include/statement.h              |  1 +
+ src/evaluate.c                   | 12 +++++----
+ src/netlink_delinearize.c        |  4 +++
+ src/netlink_linearize.c          |  3 +++
+ src/parser_bison.y               | 50 ++++++++++++++++++++++++++++++++++-
+ src/scanner.l                    |  3 +++
+ src/statement.c                  | 23 +++++++++++++++++
+ tests/py/any/log.t               |  6 +++++
+ tests/py/any/log.t.payload       | 15 +++++++++++
+ 11 files changed, 179 insertions(+), 6 deletions(-)
+ create mode 100644 include/linux/netfilter/nf_log.h
+
+diff --git a/doc/nft.xml b/doc/nft.xml
+index d11abca..8026d85 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -2400,6 +2400,8 @@ ip forward ip dscp set 42
+ 					<replaceable>quoted_string</replaceable></arg>
+ 					<arg choice="opt">level
+ 					<replaceable>syslog-level</replaceable></arg>
++					<arg choice="opt">flags
++					<replaceable>log-flags</replaceable></arg>
+ 				</cmdsynopsis>
+ 				<cmdsynopsis>
+ 					<command>log</command>
+@@ -2459,6 +2461,60 @@ ip forward ip dscp set 42
+ 						</tbody>
+ 					</tgroup>
+ 				</table>
++				<table frame="all">
++					<title>log-flags</title>
++					<tgroup cols='2' align='left' colsep='1' rowsep='1'>
++						<colspec colname='c1'/>
++						<colspec colname='c2'/>
++						<thead>
++							<row>
++								<entry>Flag</entry>
++								<entry>Description</entry>
++							</row>
++						</thead>
++						<tbody>
++							<row>
++								<entry>tcp sequence</entry>
++								<entry>Log TCP sequence numbers.</entry>
++							</row>
++							<row>
++								<entry>tcp options</entry>
++								<entry>Log options from the TCP packet header.</entry>
++							</row>
++							<row>
++								<entry>ip options</entry>
++								<entry>Log options from the IP/IPv6 packet header.</entry>
++							</row>
++							<row>
++								<entry>skuid</entry>
++								<entry>Log the userid of the process which generated the packet.</entry>
++							</row>
++							<row>
++								<entry>ether</entry>
++								<entry>Decode MAC addresses and protocol.</entry>
++							</row>
++							<row>
++								<entry>all</entry>
++								<entry>Enable all log flags listed above.</entry>
++							</row>
++						</tbody>
++					</tgroup>
++				</table>
++			</para>
++			<para>
++				<example>
++					<title>Using log statement</title>
++					<programlisting>
++# log the UID which generated the packet and ip options
++ip filter output log flags skuid flags ip options
++
++# log the tcp sequence numbers and tcp options from the TCP packet
++ip filter output log flags tcp sequence,options
++
++# enable all supported log flags
++ip6 filter output log flags all
++					</programlisting>
++				</example>
+ 			</para>
+                 </refsect2>
+ 		<refsect2>
+diff --git a/include/linux/netfilter/nf_log.h b/include/linux/netfilter/nf_log.h
+new file mode 100644
+index 0000000..8be21e0
+--- /dev/null
++++ b/include/linux/netfilter/nf_log.h
+@@ -0,0 +1,12 @@
++#ifndef _NETFILTER_NF_LOG_H
++#define _NETFILTER_NF_LOG_H
++
++#define NF_LOG_TCPSEQ		0x01	/* Log TCP sequence numbers */
++#define NF_LOG_TCPOPT		0x02	/* Log TCP options */
++#define NF_LOG_IPOPT		0x04	/* Log IP options */
++#define NF_LOG_UID		0x08	/* Log UID owning local socket */
++#define NF_LOG_NFLOG		0x10	/* Unsupported, don't reuse */
++#define NF_LOG_MACDECODE	0x20	/* Decode MAC header */
++#define NF_LOG_MASK		0x2f
++
++#endif /* _NETFILTER_NF_LOG_H */
+diff --git a/include/statement.h b/include/statement.h
+index fe83717..277ff2f 100644
+--- a/include/statement.h
++++ b/include/statement.h
+@@ -50,6 +50,7 @@ struct log_stmt {
+ 	uint16_t		group;
+ 	uint16_t		qthreshold;
+ 	uint32_t		level;
++	uint32_t		logflags;
+ 	uint32_t		flags;
+ };
+ 
+diff --git a/src/evaluate.c b/src/evaluate.c
+index c60e0f1..8b113c8 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2429,12 +2429,14 @@ static int stmt_evaluate_queue(struct eval_ctx *ctx, struct stmt *stmt)
+ 
+ static int stmt_evaluate_log(struct eval_ctx *ctx, struct stmt *stmt)
+ {
+-	if (stmt->log.flags & STMT_LOG_LEVEL &&
+-	    (stmt->log.flags & STMT_LOG_GROUP	||
+-	     stmt->log.flags & STMT_LOG_SNAPLEN	||
+-	     stmt->log.flags & STMT_LOG_QTHRESHOLD)) {
+-		return stmt_error(ctx, stmt,
++	if (stmt->log.flags & (STMT_LOG_GROUP | STMT_LOG_SNAPLEN |
++			       STMT_LOG_QTHRESHOLD)) {
++		if (stmt->log.flags & STMT_LOG_LEVEL)
++			return stmt_error(ctx, stmt,
+ 				  "level and group are mutually exclusive");
++		if (stmt->log.logflags)
++			return stmt_error(ctx, stmt,
++				  "flags and group are mutually exclusive");
+ 	}
+ 	return 0;
+ }
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 66d38ca..0ebe368 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -738,6 +738,10 @@ static void netlink_parse_log(struct netlink_parse_ctx *ctx,
+ 			nftnl_expr_get_u32(nle, NFTNL_EXPR_LOG_LEVEL);
+ 		stmt->log.flags |= STMT_LOG_LEVEL;
+ 	}
++	if (nftnl_expr_is_set(nle, NFTNL_EXPR_LOG_FLAGS)) {
++		stmt->log.logflags =
++			nftnl_expr_get_u32(nle, NFTNL_EXPR_LOG_FLAGS);
++	}
+ 
+ 	ctx->stmt = stmt;
+ }
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 2bee684..2945392 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -833,6 +833,9 @@ static void netlink_gen_log_stmt(struct netlink_linearize_ctx *ctx,
+ 		if (stmt->log.flags & STMT_LOG_LEVEL)
+ 			nftnl_expr_set_u32(nle, NFTNL_EXPR_LOG_LEVEL,
+ 					   stmt->log.level);
++		if (stmt->log.logflags)
++			nftnl_expr_set_u32(nle, NFTNL_EXPR_LOG_FLAGS,
++					   stmt->log.logflags);
+ 	}
+ 	nftnl_rule_add_expr(ctx->nlr, nle);
+ }
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 91955c1..981ffc8 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -20,6 +20,7 @@
+ #include <linux/netfilter/nf_tables.h>
+ #include <linux/netfilter/nf_conntrack_tuple_common.h>
+ #include <linux/netfilter/nf_nat.h>
++#include <linux/netfilter/nf_log.h>
+ #include <netinet/ip_icmp.h>
+ #include <netinet/icmp6.h>
+ #include <libnftnl/common.h>
+@@ -201,6 +202,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token EXPORT			"export"
+ %token MONITOR			"monitor"
+ 
++%token ALL			"all"
++
+ %token ACCEPT			"accept"
+ %token DROP			"drop"
+ %token CONTINUE			"continue"
+@@ -268,6 +271,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token GATEWAY			"gateway"
+ %token MTU			"mtu"
+ 
++%token OPTIONS			"options"
++
+ %token IP6			"ip6"
+ %token PRIORITY			"priority"
+ %token FLOWLABEL		"flowlabel"
+@@ -481,7 +486,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %destructor { stmt_free($$); }	meta_stmt
+ %type <stmt>			log_stmt log_stmt_alloc
+ %destructor { stmt_free($$); }	log_stmt log_stmt_alloc
+-%type <val>			level_type
++%type <val>			level_type log_flags log_flags_tcp log_flag_tcp
+ %type <stmt>			limit_stmt quota_stmt
+ %destructor { stmt_free($$); }	limit_stmt quota_stmt
+ %type <val>			limit_burst limit_mode time_unit quota_mode
+@@ -1530,6 +1535,10 @@ log_arg			:	PREFIX			string
+ 				$<stmt>0->log.level	= $2;
+ 				$<stmt>0->log.flags 	|= STMT_LOG_LEVEL;
+ 			}
++			|	FLAGS			log_flags
++			{
++				$<stmt>0->log.logflags	|= $2;
++			}
+ 			;
+ 
+ level_type		:	string
+@@ -1558,6 +1567,45 @@ level_type		:	string
+ 			}
+ 			;
+ 
++log_flags		:	TCP	log_flags_tcp
++			{
++				$$ = $2;
++			}
++			|	IP	OPTIONS
++			{
++				$$ = NF_LOG_IPOPT;
++			}
++			|	SKUID
++			{
++				$$ = NF_LOG_UID;
++			}
++			|	ETHER
++			{
++				$$ = NF_LOG_MACDECODE;
++			}
++			|	ALL
++			{
++				$$ = NF_LOG_MASK;
++			}
++			;
++
++log_flags_tcp		:	log_flags_tcp	COMMA	log_flag_tcp
++			{
++				$$ = $1 | $3;
++			}
++			|	log_flag_tcp
++			;
++
++log_flag_tcp		:	SEQUENCE
++			{
++				$$ = NF_LOG_TCPSEQ;
++			}
++			|	OPTIONS
++			{
++				$$ = NF_LOG_TCPOPT;
++			}
++			;
++
+ limit_stmt		:	LIMIT	RATE	limit_mode	NUM	SLASH	time_unit	limit_burst
+ 	    		{
+ 				$$ = limit_stmt_alloc(&@$);
+diff --git a/src/scanner.l b/src/scanner.l
+index cd7398b..625023f 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -469,6 +469,9 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ 
+ "notrack"		{ return NOTRACK; }
+ 
++"options"		{ return OPTIONS; }
++"all"			{ return ALL; }
++
+ "xml"			{ return XML; }
+ "json"			{ return JSON; }
+ 
+diff --git a/src/statement.c b/src/statement.c
+index 8ccd489..e70eb51 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -27,6 +27,7 @@
+ 
+ #include <netinet/in.h>
+ #include <linux/netfilter/nf_nat.h>
++#include <linux/netfilter/nf_log.h>
+ 
+ struct stmt *stmt_alloc(const struct location *loc,
+ 			const struct stmt_ops *ops)
+@@ -193,6 +194,28 @@ static void log_stmt_print(const struct stmt *stmt)
+ 	if ((stmt->log.flags & STMT_LOG_LEVEL) &&
+ 	    stmt->log.level != LOG_WARNING)
+ 		printf(" level %s", log_level(stmt->log.level));
++
++	if ((stmt->log.logflags & NF_LOG_MASK) == NF_LOG_MASK) {
++		printf(" flags all");
++	} else {
++		if (stmt->log.logflags & (NF_LOG_TCPSEQ | NF_LOG_TCPOPT)) {
++			const char *delim = " ";
++
++			printf(" flags tcp");
++			if (stmt->log.logflags & NF_LOG_TCPSEQ) {
++				printf(" sequence");
++				delim = ",";
++			}
++			if (stmt->log.logflags & NF_LOG_TCPOPT)
++				printf("%soptions", delim);
++		}
++		if (stmt->log.logflags & NF_LOG_IPOPT)
++			printf(" flags ip options");
++		if (stmt->log.logflags & NF_LOG_UID)
++			printf(" flags skuid");
++		if (stmt->log.logflags & NF_LOG_MACDECODE)
++			printf(" flags ether");
++	}
+ }
+ 
+ static void log_stmt_destroy(struct stmt *stmt)
+diff --git a/tests/py/any/log.t b/tests/py/any/log.t
+index 99a7f1f..3798202 100644
+--- a/tests/py/any/log.t
++++ b/tests/py/any/log.t
+@@ -25,3 +25,9 @@ log prefix aaaaa-aaaaaa group 2 snaplen 33;ok;log prefix "aaaaa-aaaaaa" group 2
+ log group 2 queue-threshold 2;ok
+ log group 2 snaplen 33;ok
+ log group 2 prefix \"nft-test: \";ok;log prefix "nft-test: " group 2
++
++log flags all;ok
++log level debug flags ip options flags skuid;ok
++log flags tcp sequence,options;ok
++log flags ip options flags ether flags skuid flags tcp sequence,options;ok;log flags all
++log flags all group 2;fail
+diff --git a/tests/py/any/log.t.payload b/tests/py/any/log.t.payload
+index dc885b4..385b8bb 100644
+--- a/tests/py/any/log.t.payload
++++ b/tests/py/any/log.t.payload
+@@ -50,3 +50,18 @@ ip test-ip4 output
+ ip test-ip4 output
+   [ log prefix nft-test:  group 2 snaplen 0 qthreshold 0 ]
+ 
++# log flags all
++ip test-ip4 output
++  [ log tcpseq tcpopt ipopt uid macdecode ]
++
++# log level debug flags ip options flags skuid
++ip test-ip4 output
++  [ log level 7 ipopt uid ]
++
++# log flags tcp sequence,options
++ip test-ip4 output
++  [ log tcpseq tcpopt ]
++
++# log flags ip options flags ether flags skuid flags tcp sequence,options
++ip test-ip4 output
++  [ log tcpseq tcpopt ipopt uid macdecode ]
+-- 
+2.5.5
+
+
