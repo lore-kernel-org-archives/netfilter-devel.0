@@ -1,85 +1,96 @@
-From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+From: Liping Zhang <zlpnobody@gmail.com>
 Subject: Re: [PATCH nf] netfilter: nft_dynset: fix incorrect element
  expiration calculation
-Date: Sun, 20 Nov 2016 09:38:39 +0000
-Message-ID: <1479634719.25188.1.camel@cohaesio.com>
-References: <1479622687-17266-1-git-send-email-zlpnobody@163.com>
+Date: Sun, 20 Nov 2016 18:31:58 +0800
+Message-ID: <CAML_gOfY9zPM+hr1eN05CoEerOcvjmcnSVOr8apxwHr_ZDzB6g@mail.gmail.com>
+References: <1479622687-17266-1-git-send-email-zlpnobody@163.com> <1479634719.25188.1.camel@cohaesio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: "zlpnobody@gmail.com" <zlpnobody@gmail.com>,
+Content-Type: text/plain; charset=UTF-8
+Cc: "pablo@netfilter.org" <pablo@netfilter.org>,
+        "zlpnobody@163.com" <zlpnobody@163.com>,
         "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "pablo@netfilter.org" <pablo@netfilter.org>,
-        "zlpnobody@163.com" <zlpnobody@163.com>
+To: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bender.cohaesio.com ([212.97.128.130]:48569 "EHLO
-        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753121AbcKTJim (ORCPT
+Received: from mail-vk0-f65.google.com ([209.85.213.65]:34223 "EHLO
+        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753282AbcKTKcA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 20 Nov 2016 04:38:42 -0500
-In-Reply-To: <1479622687-17266-1-git-send-email-zlpnobody@163.com>
-Content-Language: en-US
-Content-ID: <C1CF454AEFE01C418B2828B8F90C76E8@surftown.com>
+        Sun, 20 Nov 2016 05:32:00 -0500
+Received: by mail-vk0-f65.google.com with SMTP id p9so21648213vkd.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 20 Nov 2016 02:31:59 -0800 (PST)
+In-Reply-To: <1479634719.25188.1.camel@cohaesio.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-SGkgTGlwaW5nLA0KDQpPbiBzw7huLCAyMDE2LTExLTIwIGF0IDE0OjE4ICswODAwLCBMaXBpbmcg
-Wmhhbmcgd3JvdGU6DQo+IEFmdGVyIGNvbW1pdCBhOGIxZTM2ZDBkMWQgKCJuZXRmaWx0ZXI6IG5m
-dF9keW5zZXQ6IGZpeCBlbGVtZW50DQo+IHRpbWVvdXQNCj4gZm9yIEhaICE9IDEwMDAiKSwgcHJp
-di0+dGltZW91dCB3YXMgc3RvcmVkIGluIGppZmZpZXMsIHdoaWxlDQo+IHNldC0+dGltZW91dCB3
-YXMgc3RvcmVkIGluIG1pbGxpc2Vjb25kcy4gVGhpcyBpcyBpbmNvbnNpc3RlbnQgYW5kDQo+IGlu
-Y29ycmVjdC4NCj4gDQo+IEZpcnN0bHksIHdlIGFscmVhZHkgY2FsbCBtc2Vjc190b19qaWZmaWVz
-IGluIG5mdF9zZXRfZWxlbV9pbml0LCBzbw0KPiBwcml2LT50aW1lb3V0IHdpbGwgYmUgY29udmVy
-dGVkIHRvIGppZmZpZXMgdHdpY2UuDQo+IA0KPiBTZWNvbmRseSwgaWYgdGhlIHVzZXIgZGlkIG5v
-dCBzcGVjaWZ5IHRoZSBORlRBX0RZTlNFVF9USU1FT1VUIGF0dHIsDQo+IHNldC0+dGltZW91dCB3
-aWxsIGJlIHVzZWQsIGJ1dCB3ZSBmb3JnZXQgdG8gY2FsbCBtc2Vjc190b19qaWZmaWVzDQo+IHdo
-ZW4gZG8gdXBkYXRlIGVsZW1lbnRzLg0KPiANCj4gU28gaXQncyBiZXR0ZXIgdG8gY2FsbCBtc2Vj
-c190b19qaWZmaWVzIHdoZW4gdXBkYXRpbmcgZWxlbWVudHMuDQoNClNvcnJ5IGFib3V0IG5vdCBj
-YXRjaGluZyB0aGUgaW50ZXJhY3Rpb24gYmV0d2VlbiBkeW5zZXQgYW5kIHRyYWRpdGlvbmFsDQpz
-ZXRzLg0KDQpJIGJlbGlldmUgdGhhdCB1cGRhdGluZyBlbGVtZW50cyBpbiBkeW5zZXRzIGNhbiBo
-YXBwZW4gbXVjaCBtb3JlDQpmcmVxdWVudGx5IHRoYW4gaW50ZXJhY3Rpb25zIHdpdGggdXNlcnNw
-YWNlLiBPbmUgb2YgbXkgb3duIHVzZSBjYXNlcyBpcw0KdHJhZmZpYyBhY2NvdW50aW5nIHZpYSBm
-bG93IHRhYmxlcywgd2hlcmUgdGhlcmUgd2lsbCBiZSBtYW55IHVwZGF0ZXMNCnBlciBzZWNvbmQu
-IFNvIEkgd291bGQgbXVjaCBwcmVmZXIgdG8gZG8gdGhlIGNvbnZlcnNpb24gYmV0d2VlbiBtc2Vj
-DQphbmQgamlmZmllcywgd2hlbiBkYXRhIGFyZSBzZW50IHRvIG9yIHJlY2VpdmVkIGZyb20gdXNl
-cnNwYWNlLg0KDQpXb3VsZCB0aGUgcGF0Y2ggYmVsb3cgYmUgb2theT8NCg0KUmVnYXJkcywNCkFu
-ZGVycyBLLiBQZWRlcnNlbg0KLS0tDQogbmV0L25ldGZpbHRlci9uZl90YWJsZXNfYXBpLmMgfCAx
-NCArKysrKysrKystLS0tLQ0KIDEgZmlsZSBjaGFuZ2VkLCA5IGluc2VydGlvbnMoKyksIDUgZGVs
-ZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9uZXQvbmV0ZmlsdGVyL25mX3RhYmxlc19hcGkuYyBi
-L25ldC9uZXRmaWx0ZXIvbmZfdGFibGVzX2FwaS5jDQppbmRleCAwMjY1ODFiLi5lNTE5NGY2ZiAx
-MDA2NDQNCi0tLSBhL25ldC9uZXRmaWx0ZXIvbmZfdGFibGVzX2FwaS5jDQorKysgYi9uZXQvbmV0
-ZmlsdGVyL25mX3RhYmxlc19hcGkuYw0KQEAgLTI1NzAsNyArMjU3MCw4IEBAIHN0YXRpYyBpbnQg
-bmZfdGFibGVzX2ZpbGxfc2V0KHN0cnVjdCBza19idWZmICpza2IsIGNvbnN0IHN0cnVjdCBuZnRf
-Y3R4ICpjdHgsDQogCX0NCiANCiAJaWYgKHNldC0+dGltZW91dCAmJg0KLQkgICAgbmxhX3B1dF9i
-ZTY0KHNrYiwgTkZUQV9TRVRfVElNRU9VVCwgY3B1X3RvX2JlNjQoc2V0LT50aW1lb3V0KSwNCisJ
-ICAgIG5sYV9wdXRfYmU2NChza2IsIE5GVEFfU0VUX1RJTUVPVVQsDQorCQkJIGNwdV90b19iZTY0
-KGppZmZpZXNfdG9fbXNlY3Moc2V0LT50aW1lb3V0KSksDQogCQkJIE5GVEFfU0VUX1BBRCkpDQog
-CQlnb3RvIG5sYV9wdXRfZmFpbHVyZTsNCiAJaWYgKHNldC0+Z2NfaW50ICYmDQpAQCAtMjg1OSw3
-ICsyODYwLDggQEAgc3RhdGljIGludCBuZl90YWJsZXNfbmV3c2V0KHN0cnVjdCBuZXQgKm5ldCwg
-c3RydWN0IHNvY2sgKm5sc2ssDQogCWlmIChubGFbTkZUQV9TRVRfVElNRU9VVF0gIT0gTlVMTCkg
-ew0KIAkJaWYgKCEoZmxhZ3MgJiBORlRfU0VUX1RJTUVPVVQpKQ0KIAkJCXJldHVybiAtRUlOVkFM
-Ow0KLQkJdGltZW91dCA9IGJlNjRfdG9fY3B1KG5sYV9nZXRfYmU2NChubGFbTkZUQV9TRVRfVElN
-RU9VVF0pKTsNCisJCXRpbWVvdXQgPSBtc2Vjc190b19qaWZmaWVzKGJlNjRfdG9fY3B1KG5sYV9n
-ZXRfYmU2NCgNCisJCQkJCQlubGFbTkZUQV9TRVRfVElNRU9VVF0pKSk7DQogCX0NCiAJZ2NfaW50
-ID0gMDsNCiAJaWYgKG5sYVtORlRBX1NFVF9HQ19JTlRFUlZBTF0gIT0gTlVMTCkgew0KQEAgLTMx
-NzgsNyArMzE4MCw4IEBAIHN0YXRpYyBpbnQgbmZfdGFibGVzX2ZpbGxfc2V0ZWxlbShzdHJ1Y3Qg
-c2tfYnVmZiAqc2tiLA0KIA0KIAlpZiAobmZ0X3NldF9leHRfZXhpc3RzKGV4dCwgTkZUX1NFVF9F
-WFRfVElNRU9VVCkgJiYNCiAJICAgIG5sYV9wdXRfYmU2NChza2IsIE5GVEFfU0VUX0VMRU1fVElN
-RU9VVCwNCi0JCQkgY3B1X3RvX2JlNjQoKm5mdF9zZXRfZXh0X3RpbWVvdXQoZXh0KSksDQorCQkJ
-IGNwdV90b19iZTY0KGppZmZpZXNfdG9fbXNlY3MoDQorCQkJCQkJKm5mdF9zZXRfZXh0X3RpbWVv
-dXQoZXh0KSkpLA0KIAkJCSBORlRBX1NFVF9FTEVNX1BBRCkpDQogCQlnb3RvIG5sYV9wdXRfZmFp
-bHVyZTsNCiANCkBAIC0zNDQ3LDcgKzM0NTAsNyBAQCB2b2lkICpuZnRfc2V0X2VsZW1faW5pdChj
-b25zdCBzdHJ1Y3QgbmZ0X3NldCAqc2V0LA0KIAkJbWVtY3B5KG5mdF9zZXRfZXh0X2RhdGEoZXh0
-KSwgZGF0YSwgc2V0LT5kbGVuKTsNCiAJaWYgKG5mdF9zZXRfZXh0X2V4aXN0cyhleHQsIE5GVF9T
-RVRfRVhUX0VYUElSQVRJT04pKQ0KIAkJKm5mdF9zZXRfZXh0X2V4cGlyYXRpb24oZXh0KSA9DQot
-CQkJamlmZmllcyArIG1zZWNzX3RvX2ppZmZpZXModGltZW91dCk7DQorCQkJamlmZmllcyArIHRp
-bWVvdXQ7DQogCWlmIChuZnRfc2V0X2V4dF9leGlzdHMoZXh0LCBORlRfU0VUX0VYVF9USU1FT1VU
-KSkNCiAJCSpuZnRfc2V0X2V4dF90aW1lb3V0KGV4dCkgPSB0aW1lb3V0Ow0KIA0KQEAgLTM1MzUs
-NyArMzUzOCw4IEBAIHN0YXRpYyBpbnQgbmZ0X2FkZF9zZXRfZWxlbShzdHJ1Y3QgbmZ0X2N0eCAq
-Y3R4LCBzdHJ1Y3QgbmZ0X3NldCAqc2V0LA0KIAlpZiAobmxhW05GVEFfU0VUX0VMRU1fVElNRU9V
-VF0gIT0gTlVMTCkgew0KIAkJaWYgKCEoc2V0LT5mbGFncyAmIE5GVF9TRVRfVElNRU9VVCkpDQog
-CQkJcmV0dXJuIC1FSU5WQUw7DQotCQl0aW1lb3V0ID0gYmU2NF90b19jcHUobmxhX2dldF9iZTY0
-KG5sYVtORlRBX1NFVF9FTEVNX1RJTUVPVVRdKSk7DQorCQl0aW1lb3V0ID0gbXNlY3NfdG9famlm
-ZmllcyhiZTY0X3RvX2NwdShubGFfZ2V0X2JlNjQoDQorCQkJCQlubGFbTkZUQV9TRVRfRUxFTV9U
-SU1FT1VUXSkpKTsNCiAJfSBlbHNlIGlmIChzZXQtPmZsYWdzICYgTkZUX1NFVF9USU1FT1VUKSB7
-DQogCQl0aW1lb3V0ID0gc2V0LT50aW1lb3V0Ow0KIAl9DQo=
+2016-11-20 17:38 GMT+08:00 Anders K. Pedersen | Cohaesio <akp@cohaesio.com>:
+[...]
+> I believe that updating elements in dynsets can happen much more
+> frequently than interactions with userspace. One of my own use cases is
+
+Make sense. Considering the performance cost, your patch looks better:)
+
+> traffic accounting via flow tables, where there will be many updates
+> per second. So I would much prefer to do the conversion between msec
+> and jiffies, when data are sent to or received from userspace.
+>
+> Would the patch below be okay?
+>
+> Regards,
+> Anders K. Pedersen
+> ---
+>  net/netfilter/nf_tables_api.c | 14 +++++++++-----
+>  1 file changed, 9 insertions(+), 5 deletions(-)
+>
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 026581b..e5194f6f 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -2570,7 +2570,8 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
+>         }
+>
+>         if (set->timeout &&
+> -           nla_put_be64(skb, NFTA_SET_TIMEOUT, cpu_to_be64(set->timeout),
+> +           nla_put_be64(skb, NFTA_SET_TIMEOUT,
+> +                        cpu_to_be64(jiffies_to_msecs(set->timeout)),
+>                          NFTA_SET_PAD))
+>                 goto nla_put_failure;
+>         if (set->gc_int &&
+> @@ -2859,7 +2860,8 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+>         if (nla[NFTA_SET_TIMEOUT] != NULL) {
+>                 if (!(flags & NFT_SET_TIMEOUT))
+>                         return -EINVAL;
+> -               timeout = be64_to_cpu(nla_get_be64(nla[NFTA_SET_TIMEOUT]));
+> +               timeout = msecs_to_jiffies(be64_to_cpu(nla_get_be64(
+> +                                               nla[NFTA_SET_TIMEOUT])));
+>         }
+>         gc_int = 0;
+>         if (nla[NFTA_SET_GC_INTERVAL] != NULL) {
+> @@ -3178,7 +3180,8 @@ static int nf_tables_fill_setelem(struct sk_buff *skb,
+>
+>         if (nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT) &&
+>             nla_put_be64(skb, NFTA_SET_ELEM_TIMEOUT,
+> -                        cpu_to_be64(*nft_set_ext_timeout(ext)),
+> +                        cpu_to_be64(jiffies_to_msecs(
+> +                                               *nft_set_ext_timeout(ext))),
+>                          NFTA_SET_ELEM_PAD))
+>                 goto nla_put_failure;
+>
+> @@ -3447,7 +3450,7 @@ void *nft_set_elem_init(const struct nft_set *set,
+>                 memcpy(nft_set_ext_data(ext), data, set->dlen);
+>         if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION))
+>                 *nft_set_ext_expiration(ext) =
+> -                       jiffies + msecs_to_jiffies(timeout);
+> +                       jiffies + timeout;
+>         if (nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT))
+>                 *nft_set_ext_timeout(ext) = timeout;
+>
+> @@ -3535,7 +3538,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+>         if (nla[NFTA_SET_ELEM_TIMEOUT] != NULL) {
+>                 if (!(set->flags & NFT_SET_TIMEOUT))
+>                         return -EINVAL;
+> -               timeout = be64_to_cpu(nla_get_be64(nla[NFTA_SET_ELEM_TIMEOUT]));
+> +               timeout = msecs_to_jiffies(be64_to_cpu(nla_get_be64(
+> +                                       nla[NFTA_SET_ELEM_TIMEOUT])));
+>         } else if (set->flags & NFT_SET_TIMEOUT) {
+>                 timeout = set->timeout;
+>         }
