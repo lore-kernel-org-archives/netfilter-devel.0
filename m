@@ -1,92 +1,63 @@
-From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
-Subject: [PATCH nf] netfilter: nf_tables: fix inconsistent element expiration
- calculation
-Date: Sun, 20 Nov 2016 16:38:47 +0000
-Message-ID: <1479659927.10079.3.camel@cohaesio.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: netfilter question
+Date: Sun, 20 Nov 2016 09:31:37 -0800
+Message-ID: <1479663097.8455.367.camel@edumazet-glaptop3.roam.corp.google.com>
+References: <cad49557-7c7a-83c9-d2b6-71d9624f0d52@miromedia.ca>
+         <CANn89iLr-Zf2W5MW47QtKo17915UoryZentihKt1SMv7NP_dOw@mail.gmail.com>
+         <20161116150200.GH30581@breakpoint.cc>
+         <1479309789.8455.194.camel@edumazet-glaptop3.roam.corp.google.com>
+         <20161117000725.GK30581@breakpoint.cc>
+         <1479623583.8455.358.camel@edumazet-glaptop3.roam.corp.google.com>
+         <CAGUFhKwQTRRJpfGi2fRkFfGdpLYMN-2F9G+dEsavM7UGbkjjdA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: "zlpnobody@gmail.com" <zlpnobody@gmail.com>
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "pablo@netfilter.org" <pablo@netfilter.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Eric Dumazet <edumazet@google.com>,
+        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+To: Eric D <ericd@miromedia.ca>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bender.cohaesio.com ([212.97.128.130]:45962 "EHLO
-        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752643AbcKTQiv (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:33176 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751613AbcKTRbj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 20 Nov 2016 11:38:51 -0500
-Content-Language: en-US
-Content-ID: <024F651931C2144796221AFBC129861F@surftown.com>
+        Sun, 20 Nov 2016 12:31:39 -0500
+Received: by mail-pg0-f67.google.com with SMTP id 3so26128098pgd.0
+        for <netfilter-devel@vger.kernel.org>; Sun, 20 Nov 2016 09:31:39 -0800 (PST)
+In-Reply-To: <CAGUFhKwQTRRJpfGi2fRkFfGdpLYMN-2F9G+dEsavM7UGbkjjdA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-RnJvbTogQW5kZXJzIEsuIFBlZGVyc2VuIDxha3BAY29oYWVzaW8uY29tPg0KDQpBcyBMaXBpbmcg
-WmhhbmcgcmVwb3J0cywgYWZ0ZXIgY29tbWl0IGE4YjFlMzZkMGQxZCAoIm5ldGZpbHRlcjogbmZ0
-X2R5bnNldDoNCmZpeCBlbGVtZW50IHRpbWVvdXQgZm9yIEhaICE9IDEwMDAiKSwgcHJpdi0+dGlt
-ZW91dCB3YXMgc3RvcmVkIGluIGppZmZpZXMsDQp3aGlsZSBzZXQtPnRpbWVvdXQgd2FzIHN0b3Jl
-ZCBpbiBtaWxsaXNlY29uZHMuIFRoaXMgaXMgaW5jb25zaXN0ZW50IGFuZA0KaW5jb3JyZWN0Lg0K
-DQpGaXJzdGx5LCB3ZSBhbHJlYWR5IGNhbGwgbXNlY3NfdG9famlmZmllcyBpbiBuZnRfc2V0X2Vs
-ZW1faW5pdCwgc28NCnByaXYtPnRpbWVvdXQgd2lsbCBiZSBjb252ZXJ0ZWQgdG8gamlmZmllcyB0
-d2ljZS4NCg0KU2Vjb25kbHksIGlmIHRoZSB1c2VyIGRpZCBub3Qgc3BlY2lmeSB0aGUgTkZUQV9E
-WU5TRVRfVElNRU9VVCBhdHRyLA0Kc2V0LT50aW1lb3V0IHdpbGwgYmUgdXNlZCwgYnV0IHdlIGZv
-cmdldCB0byBjYWxsIG1zZWNzX3RvX2ppZmZpZXMNCndoZW4gZG8gdXBkYXRlIGVsZW1lbnRzLg0K
-DQpGaXggdGhpcyBieSB1c2luZyBqaWZmaWVzIGludGVybmFsbHkgZm9yIHRyYWRpdGlvbmFsIHNl
-dHMgYW5kIGRvaW5nIHRoZQ0KY29udmVyc2lvbnMgdG8vZnJvbSBtc2VjIHdoZW4gaW50ZXJhY3Rp
-bmcgd2l0aCB1c2Vyc3BhY2UgLSBhcyBkeW5zZXQNCmFscmVhZHkgZG9lcy4NCg0KVGhpcyBpcyBw
-cmVmZXJhYmxlIHRvIGRvaW5nIHRoZSBjb252ZXJzaW9ucywgd2hlbiBlbGVtZW50cyBhcmUgaW5z
-ZXJ0ZWQgb3INCnVwZGF0ZWQsIGJlY2F1c2UgdGhpcyBjYW4gaGFwcGVuIHZlcnkgZnJlcXVlbnRs
-eSBvbiBidXN5IGR5bnNldHMuDQoNCkZpeGVzOiBhOGIxZTM2ZDBkMWQgKCJuZXRmaWx0ZXI6IG5m
-dF9keW5zZXQ6IGZpeCBlbGVtZW50IHRpbWVvdXQgZm9yIEhaICE9IDEwMDAiKQ0KUmVwb3J0ZWQt
-Ynk6IExpcGluZyBaaGFuZyA8emxwbm9ib2R5QGdtYWlsLmNvbT4NClNpZ25lZC1vZmYtYnk6IEFu
-ZGVycyBLLiBQZWRlcnNlbiA8YWtwQGNvaGFlc2lvLmNvbT4NCi0tLQ0KIGluY2x1ZGUvbmV0L25l
-dGZpbHRlci9uZl90YWJsZXMuaCB8ICAyICstDQogbmV0L25ldGZpbHRlci9uZl90YWJsZXNfYXBp
-LmMgICAgIHwgMTQgKysrKysrKysrLS0tLS0NCiAyIGZpbGVzIGNoYW5nZWQsIDEwIGluc2VydGlv
-bnMoKyksIDYgZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9pbmNsdWRlL25ldC9uZXRmaWx0
-ZXIvbmZfdGFibGVzLmggYi9pbmNsdWRlL25ldC9uZXRmaWx0ZXIvbmZfdGFibGVzLmgNCmluZGV4
-IGQ3OWQxZTkuLjRiZTdkZDcgMTAwNjQ0DQotLS0gYS9pbmNsdWRlL25ldC9uZXRmaWx0ZXIvbmZf
-dGFibGVzLmgNCisrKyBiL2luY2x1ZGUvbmV0L25ldGZpbHRlci9uZl90YWJsZXMuaA0KQEAgLTMx
-Myw3ICszMTMsNyBAQCB2b2lkIG5mdF91bnJlZ2lzdGVyX3NldChzdHJ1Y3QgbmZ0X3NldF9vcHMg
-Km9wcyk7DQogICogCUBzaXplOiBtYXhpbXVtIHNldCBzaXplDQogICogCUBuZWxlbXM6IG51bWJl
-ciBvZiBlbGVtZW50cw0KICAqIAlAbmRlYWN0OiBudW1iZXIgb2YgZGVhY3RpdmF0ZWQgZWxlbWVu
-dHMgcXVldWVkIGZvciByZW1vdmFsDQotICogCUB0aW1lb3V0OiBkZWZhdWx0IHRpbWVvdXQgdmFs
-dWUgaW4gbXNlY3MNCisgKglAdGltZW91dDogZGVmYXVsdCB0aW1lb3V0IHZhbHVlIGluIGppZmZp
-ZXMNCiAgKiAJQGdjX2ludDogZ2FyYmFnZSBjb2xsZWN0aW9uIGludGVydmFsIGluIG1zZWNzDQog
-ICoJQHBvbGljeTogc2V0IHBhcmFtZXRlcml6YXRpb24gKHNlZSBlbnVtIG5mdF9zZXRfcG9saWNp
-ZXMpDQogICoJQHVkbGVuOiB1c2VyIGRhdGEgbGVuZ3RoDQpkaWZmIC0tZ2l0IGEvbmV0L25ldGZp
-bHRlci9uZl90YWJsZXNfYXBpLmMgYi9uZXQvbmV0ZmlsdGVyL25mX3RhYmxlc19hcGkuYw0KaW5k
-ZXggMDI2NTgxYi4uZTUxOTRmNmYgMTAwNjQ0DQotLS0gYS9uZXQvbmV0ZmlsdGVyL25mX3RhYmxl
-c19hcGkuYw0KKysrIGIvbmV0L25ldGZpbHRlci9uZl90YWJsZXNfYXBpLmMNCkBAIC0yNTcwLDcg
-KzI1NzAsOCBAQCBzdGF0aWMgaW50IG5mX3RhYmxlc19maWxsX3NldChzdHJ1Y3Qgc2tfYnVmZiAq
-c2tiLCBjb25zdCBzdHJ1Y3QgbmZ0X2N0eCAqY3R4LA0KIAl9DQogDQogCWlmIChzZXQtPnRpbWVv
-dXQgJiYNCi0JICAgIG5sYV9wdXRfYmU2NChza2IsIE5GVEFfU0VUX1RJTUVPVVQsIGNwdV90b19i
-ZTY0KHNldC0+dGltZW91dCksDQorCSAgICBubGFfcHV0X2JlNjQoc2tiLCBORlRBX1NFVF9USU1F
-T1VULA0KKwkJCSBjcHVfdG9fYmU2NChqaWZmaWVzX3RvX21zZWNzKHNldC0+dGltZW91dCkpLA0K
-IAkJCSBORlRBX1NFVF9QQUQpKQ0KIAkJZ290byBubGFfcHV0X2ZhaWx1cmU7DQogCWlmIChzZXQt
-PmdjX2ludCAmJg0KQEAgLTI4NTksNyArMjg2MCw4IEBAIHN0YXRpYyBpbnQgbmZfdGFibGVzX25l
-d3NldChzdHJ1Y3QgbmV0ICpuZXQsIHN0cnVjdCBzb2NrICpubHNrLA0KIAlpZiAobmxhW05GVEFf
-U0VUX1RJTUVPVVRdICE9IE5VTEwpIHsNCiAJCWlmICghKGZsYWdzICYgTkZUX1NFVF9USU1FT1VU
-KSkNCiAJCQlyZXR1cm4gLUVJTlZBTDsNCi0JCXRpbWVvdXQgPSBiZTY0X3RvX2NwdShubGFfZ2V0
-X2JlNjQobmxhW05GVEFfU0VUX1RJTUVPVVRdKSk7DQorCQl0aW1lb3V0ID0gbXNlY3NfdG9famlm
-ZmllcyhiZTY0X3RvX2NwdShubGFfZ2V0X2JlNjQoDQorCQkJCQkJbmxhW05GVEFfU0VUX1RJTUVP
-VVRdKSkpOw0KIAl9DQogCWdjX2ludCA9IDA7DQogCWlmIChubGFbTkZUQV9TRVRfR0NfSU5URVJW
-QUxdICE9IE5VTEwpIHsNCkBAIC0zMTc4LDcgKzMxODAsOCBAQCBzdGF0aWMgaW50IG5mX3RhYmxl
-c19maWxsX3NldGVsZW0oc3RydWN0IHNrX2J1ZmYgKnNrYiwNCiANCiAJaWYgKG5mdF9zZXRfZXh0
-X2V4aXN0cyhleHQsIE5GVF9TRVRfRVhUX1RJTUVPVVQpICYmDQogCSAgICBubGFfcHV0X2JlNjQo
-c2tiLCBORlRBX1NFVF9FTEVNX1RJTUVPVVQsDQotCQkJIGNwdV90b19iZTY0KCpuZnRfc2V0X2V4
-dF90aW1lb3V0KGV4dCkpLA0KKwkJCSBjcHVfdG9fYmU2NChqaWZmaWVzX3RvX21zZWNzKA0KKwkJ
-CQkJCSpuZnRfc2V0X2V4dF90aW1lb3V0KGV4dCkpKSwNCiAJCQkgTkZUQV9TRVRfRUxFTV9QQUQp
-KQ0KIAkJZ290byBubGFfcHV0X2ZhaWx1cmU7DQogDQpAQCAtMzQ0Nyw3ICszNDUwLDcgQEAgdm9p
-ZCAqbmZ0X3NldF9lbGVtX2luaXQoY29uc3Qgc3RydWN0IG5mdF9zZXQgKnNldCwNCiAJCW1lbWNw
-eShuZnRfc2V0X2V4dF9kYXRhKGV4dCksIGRhdGEsIHNldC0+ZGxlbik7DQogCWlmIChuZnRfc2V0
-X2V4dF9leGlzdHMoZXh0LCBORlRfU0VUX0VYVF9FWFBJUkFUSU9OKSkNCiAJCSpuZnRfc2V0X2V4
-dF9leHBpcmF0aW9uKGV4dCkgPQ0KLQkJCWppZmZpZXMgKyBtc2Vjc190b19qaWZmaWVzKHRpbWVv
-dXQpOw0KKwkJCWppZmZpZXMgKyB0aW1lb3V0Ow0KIAlpZiAobmZ0X3NldF9leHRfZXhpc3RzKGV4
-dCwgTkZUX1NFVF9FWFRfVElNRU9VVCkpDQogCQkqbmZ0X3NldF9leHRfdGltZW91dChleHQpID0g
-dGltZW91dDsNCiANCkBAIC0zNTM1LDcgKzM1MzgsOCBAQCBzdGF0aWMgaW50IG5mdF9hZGRfc2V0
-X2VsZW0oc3RydWN0IG5mdF9jdHggKmN0eCwgc3RydWN0IG5mdF9zZXQgKnNldCwNCiAJaWYgKG5s
-YVtORlRBX1NFVF9FTEVNX1RJTUVPVVRdICE9IE5VTEwpIHsNCiAJCWlmICghKHNldC0+ZmxhZ3Mg
-JiBORlRfU0VUX1RJTUVPVVQpKQ0KIAkJCXJldHVybiAtRUlOVkFMOw0KLQkJdGltZW91dCA9IGJl
-NjRfdG9fY3B1KG5sYV9nZXRfYmU2NChubGFbTkZUQV9TRVRfRUxFTV9USU1FT1VUXSkpOw0KKwkJ
-dGltZW91dCA9IG1zZWNzX3RvX2ppZmZpZXMoYmU2NF90b19jcHUobmxhX2dldF9iZTY0KA0KKwkJ
-CQkJbmxhW05GVEFfU0VUX0VMRU1fVElNRU9VVF0pKSk7DQogCX0gZWxzZSBpZiAoc2V0LT5mbGFn
-cyAmIE5GVF9TRVRfVElNRU9VVCkgew0KIAkJdGltZW91dCA9IHNldC0+dGltZW91dDsNCiAJfQ0K
+On Sun, 2016-11-20 at 12:22 -0500, Eric D wrote:
+> I'm currently abroad for work and will come back home soon. I will
+> test the solution and provide feedback to Florian by end of week.
+> 
+> Thanks for jumping on this quickly.
+> 
+> Eric
+> 
+> 
+> On Nov 20, 2016 7:33 AM, "Eric Dumazet" <eric.dumazet@gmail.com>
+> wrote:
+>         On Thu, 2016-11-17 at 01:07 +0100, Florian Westphal wrote:
+>         
+>         > +     if (state->mem == NULL) {
+>         > +             state->mem = __alloc_percpu(PAGE_SIZE,
+>         PAGE_SIZE);
+>         > +             if (!state->mem)
+>         > +                     return false;
+>         > +     }
+>         
+>         This will fail on arches where PAGE_SIZE=65536
+>         
+>         percpu allocator limit is PCPU_MIN_UNIT_SIZE  ( 32 KB )
+>         
+>         So maybe use a smaller value like 4096 ?
+>         
+>         #define XT_PCPU_BLOC_SIZE 4096
+>         
+Thanks Eric, I will test the patch myself, because I believe we need it
+asap ;)
+
+
+
+
