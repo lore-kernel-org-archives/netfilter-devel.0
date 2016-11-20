@@ -1,45 +1,85 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: netfilter question
-Date: Sat, 19 Nov 2016 22:33:03 -0800
-Message-ID: <1479623583.8455.358.camel@edumazet-glaptop3.roam.corp.google.com>
-References: <cad49557-7c7a-83c9-d2b6-71d9624f0d52@miromedia.ca>
-         <CANn89iLr-Zf2W5MW47QtKo17915UoryZentihKt1SMv7NP_dOw@mail.gmail.com>
-         <20161116150200.GH30581@breakpoint.cc>
-         <1479309789.8455.194.camel@edumazet-glaptop3.roam.corp.google.com>
-         <20161117000725.GK30581@breakpoint.cc>
+From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+Subject: Re: [PATCH nf] netfilter: nft_dynset: fix incorrect element
+ expiration calculation
+Date: Sun, 20 Nov 2016 09:38:39 +0000
+Message-ID: <1479634719.25188.1.camel@cohaesio.com>
+References: <1479622687-17266-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <edumazet@google.com>,
-        Eric Desrochers <ericd@miromedia.ca>,
-        netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: "zlpnobody@gmail.com" <zlpnobody@gmail.com>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "pablo@netfilter.org" <pablo@netfilter.org>,
+        "zlpnobody@163.com" <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:33568 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750838AbcKTGdF (ORCPT
+Received: from bender.cohaesio.com ([212.97.128.130]:48569 "EHLO
+        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753121AbcKTJim (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 20 Nov 2016 01:33:05 -0500
-Received: by mail-pf0-f193.google.com with SMTP id 144so16156050pfv.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 19 Nov 2016 22:33:05 -0800 (PST)
-In-Reply-To: <20161117000725.GK30581@breakpoint.cc>
+        Sun, 20 Nov 2016 04:38:42 -0500
+In-Reply-To: <1479622687-17266-1-git-send-email-zlpnobody@163.com>
+Content-Language: en-US
+Content-ID: <C1CF454AEFE01C418B2828B8F90C76E8@surftown.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2016-11-17 at 01:07 +0100, Florian Westphal wrote:
-
-> +	if (state->mem == NULL) {
-> +		state->mem = __alloc_percpu(PAGE_SIZE, PAGE_SIZE);
-> +		if (!state->mem)
-> +			return false;
-> +	}
-
-This will fail on arches where PAGE_SIZE=65536
-
-percpu allocator limit is PCPU_MIN_UNIT_SIZE  ( 32 KB )
-
-So maybe use a smaller value like 4096 ?
-
-#define XT_PCPU_BLOC_SIZE 4096
-
-
+SGkgTGlwaW5nLA0KDQpPbiBzw7huLCAyMDE2LTExLTIwIGF0IDE0OjE4ICswODAwLCBMaXBpbmcg
+Wmhhbmcgd3JvdGU6DQo+IEFmdGVyIGNvbW1pdCBhOGIxZTM2ZDBkMWQgKCJuZXRmaWx0ZXI6IG5m
+dF9keW5zZXQ6IGZpeCBlbGVtZW50DQo+IHRpbWVvdXQNCj4gZm9yIEhaICE9IDEwMDAiKSwgcHJp
+di0+dGltZW91dCB3YXMgc3RvcmVkIGluIGppZmZpZXMsIHdoaWxlDQo+IHNldC0+dGltZW91dCB3
+YXMgc3RvcmVkIGluIG1pbGxpc2Vjb25kcy4gVGhpcyBpcyBpbmNvbnNpc3RlbnQgYW5kDQo+IGlu
+Y29ycmVjdC4NCj4gDQo+IEZpcnN0bHksIHdlIGFscmVhZHkgY2FsbCBtc2Vjc190b19qaWZmaWVz
+IGluIG5mdF9zZXRfZWxlbV9pbml0LCBzbw0KPiBwcml2LT50aW1lb3V0IHdpbGwgYmUgY29udmVy
+dGVkIHRvIGppZmZpZXMgdHdpY2UuDQo+IA0KPiBTZWNvbmRseSwgaWYgdGhlIHVzZXIgZGlkIG5v
+dCBzcGVjaWZ5IHRoZSBORlRBX0RZTlNFVF9USU1FT1VUIGF0dHIsDQo+IHNldC0+dGltZW91dCB3
+aWxsIGJlIHVzZWQsIGJ1dCB3ZSBmb3JnZXQgdG8gY2FsbCBtc2Vjc190b19qaWZmaWVzDQo+IHdo
+ZW4gZG8gdXBkYXRlIGVsZW1lbnRzLg0KPiANCj4gU28gaXQncyBiZXR0ZXIgdG8gY2FsbCBtc2Vj
+c190b19qaWZmaWVzIHdoZW4gdXBkYXRpbmcgZWxlbWVudHMuDQoNClNvcnJ5IGFib3V0IG5vdCBj
+YXRjaGluZyB0aGUgaW50ZXJhY3Rpb24gYmV0d2VlbiBkeW5zZXQgYW5kIHRyYWRpdGlvbmFsDQpz
+ZXRzLg0KDQpJIGJlbGlldmUgdGhhdCB1cGRhdGluZyBlbGVtZW50cyBpbiBkeW5zZXRzIGNhbiBo
+YXBwZW4gbXVjaCBtb3JlDQpmcmVxdWVudGx5IHRoYW4gaW50ZXJhY3Rpb25zIHdpdGggdXNlcnNw
+YWNlLiBPbmUgb2YgbXkgb3duIHVzZSBjYXNlcyBpcw0KdHJhZmZpYyBhY2NvdW50aW5nIHZpYSBm
+bG93IHRhYmxlcywgd2hlcmUgdGhlcmUgd2lsbCBiZSBtYW55IHVwZGF0ZXMNCnBlciBzZWNvbmQu
+IFNvIEkgd291bGQgbXVjaCBwcmVmZXIgdG8gZG8gdGhlIGNvbnZlcnNpb24gYmV0d2VlbiBtc2Vj
+DQphbmQgamlmZmllcywgd2hlbiBkYXRhIGFyZSBzZW50IHRvIG9yIHJlY2VpdmVkIGZyb20gdXNl
+cnNwYWNlLg0KDQpXb3VsZCB0aGUgcGF0Y2ggYmVsb3cgYmUgb2theT8NCg0KUmVnYXJkcywNCkFu
+ZGVycyBLLiBQZWRlcnNlbg0KLS0tDQogbmV0L25ldGZpbHRlci9uZl90YWJsZXNfYXBpLmMgfCAx
+NCArKysrKysrKystLS0tLQ0KIDEgZmlsZSBjaGFuZ2VkLCA5IGluc2VydGlvbnMoKyksIDUgZGVs
+ZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9uZXQvbmV0ZmlsdGVyL25mX3RhYmxlc19hcGkuYyBi
+L25ldC9uZXRmaWx0ZXIvbmZfdGFibGVzX2FwaS5jDQppbmRleCAwMjY1ODFiLi5lNTE5NGY2ZiAx
+MDA2NDQNCi0tLSBhL25ldC9uZXRmaWx0ZXIvbmZfdGFibGVzX2FwaS5jDQorKysgYi9uZXQvbmV0
+ZmlsdGVyL25mX3RhYmxlc19hcGkuYw0KQEAgLTI1NzAsNyArMjU3MCw4IEBAIHN0YXRpYyBpbnQg
+bmZfdGFibGVzX2ZpbGxfc2V0KHN0cnVjdCBza19idWZmICpza2IsIGNvbnN0IHN0cnVjdCBuZnRf
+Y3R4ICpjdHgsDQogCX0NCiANCiAJaWYgKHNldC0+dGltZW91dCAmJg0KLQkgICAgbmxhX3B1dF9i
+ZTY0KHNrYiwgTkZUQV9TRVRfVElNRU9VVCwgY3B1X3RvX2JlNjQoc2V0LT50aW1lb3V0KSwNCisJ
+ICAgIG5sYV9wdXRfYmU2NChza2IsIE5GVEFfU0VUX1RJTUVPVVQsDQorCQkJIGNwdV90b19iZTY0
+KGppZmZpZXNfdG9fbXNlY3Moc2V0LT50aW1lb3V0KSksDQogCQkJIE5GVEFfU0VUX1BBRCkpDQog
+CQlnb3RvIG5sYV9wdXRfZmFpbHVyZTsNCiAJaWYgKHNldC0+Z2NfaW50ICYmDQpAQCAtMjg1OSw3
+ICsyODYwLDggQEAgc3RhdGljIGludCBuZl90YWJsZXNfbmV3c2V0KHN0cnVjdCBuZXQgKm5ldCwg
+c3RydWN0IHNvY2sgKm5sc2ssDQogCWlmIChubGFbTkZUQV9TRVRfVElNRU9VVF0gIT0gTlVMTCkg
+ew0KIAkJaWYgKCEoZmxhZ3MgJiBORlRfU0VUX1RJTUVPVVQpKQ0KIAkJCXJldHVybiAtRUlOVkFM
+Ow0KLQkJdGltZW91dCA9IGJlNjRfdG9fY3B1KG5sYV9nZXRfYmU2NChubGFbTkZUQV9TRVRfVElN
+RU9VVF0pKTsNCisJCXRpbWVvdXQgPSBtc2Vjc190b19qaWZmaWVzKGJlNjRfdG9fY3B1KG5sYV9n
+ZXRfYmU2NCgNCisJCQkJCQlubGFbTkZUQV9TRVRfVElNRU9VVF0pKSk7DQogCX0NCiAJZ2NfaW50
+ID0gMDsNCiAJaWYgKG5sYVtORlRBX1NFVF9HQ19JTlRFUlZBTF0gIT0gTlVMTCkgew0KQEAgLTMx
+NzgsNyArMzE4MCw4IEBAIHN0YXRpYyBpbnQgbmZfdGFibGVzX2ZpbGxfc2V0ZWxlbShzdHJ1Y3Qg
+c2tfYnVmZiAqc2tiLA0KIA0KIAlpZiAobmZ0X3NldF9leHRfZXhpc3RzKGV4dCwgTkZUX1NFVF9F
+WFRfVElNRU9VVCkgJiYNCiAJICAgIG5sYV9wdXRfYmU2NChza2IsIE5GVEFfU0VUX0VMRU1fVElN
+RU9VVCwNCi0JCQkgY3B1X3RvX2JlNjQoKm5mdF9zZXRfZXh0X3RpbWVvdXQoZXh0KSksDQorCQkJ
+IGNwdV90b19iZTY0KGppZmZpZXNfdG9fbXNlY3MoDQorCQkJCQkJKm5mdF9zZXRfZXh0X3RpbWVv
+dXQoZXh0KSkpLA0KIAkJCSBORlRBX1NFVF9FTEVNX1BBRCkpDQogCQlnb3RvIG5sYV9wdXRfZmFp
+bHVyZTsNCiANCkBAIC0zNDQ3LDcgKzM0NTAsNyBAQCB2b2lkICpuZnRfc2V0X2VsZW1faW5pdChj
+b25zdCBzdHJ1Y3QgbmZ0X3NldCAqc2V0LA0KIAkJbWVtY3B5KG5mdF9zZXRfZXh0X2RhdGEoZXh0
+KSwgZGF0YSwgc2V0LT5kbGVuKTsNCiAJaWYgKG5mdF9zZXRfZXh0X2V4aXN0cyhleHQsIE5GVF9T
+RVRfRVhUX0VYUElSQVRJT04pKQ0KIAkJKm5mdF9zZXRfZXh0X2V4cGlyYXRpb24oZXh0KSA9DQot
+CQkJamlmZmllcyArIG1zZWNzX3RvX2ppZmZpZXModGltZW91dCk7DQorCQkJamlmZmllcyArIHRp
+bWVvdXQ7DQogCWlmIChuZnRfc2V0X2V4dF9leGlzdHMoZXh0LCBORlRfU0VUX0VYVF9USU1FT1VU
+KSkNCiAJCSpuZnRfc2V0X2V4dF90aW1lb3V0KGV4dCkgPSB0aW1lb3V0Ow0KIA0KQEAgLTM1MzUs
+NyArMzUzOCw4IEBAIHN0YXRpYyBpbnQgbmZ0X2FkZF9zZXRfZWxlbShzdHJ1Y3QgbmZ0X2N0eCAq
+Y3R4LCBzdHJ1Y3QgbmZ0X3NldCAqc2V0LA0KIAlpZiAobmxhW05GVEFfU0VUX0VMRU1fVElNRU9V
+VF0gIT0gTlVMTCkgew0KIAkJaWYgKCEoc2V0LT5mbGFncyAmIE5GVF9TRVRfVElNRU9VVCkpDQog
+CQkJcmV0dXJuIC1FSU5WQUw7DQotCQl0aW1lb3V0ID0gYmU2NF90b19jcHUobmxhX2dldF9iZTY0
+KG5sYVtORlRBX1NFVF9FTEVNX1RJTUVPVVRdKSk7DQorCQl0aW1lb3V0ID0gbXNlY3NfdG9famlm
+ZmllcyhiZTY0X3RvX2NwdShubGFfZ2V0X2JlNjQoDQorCQkJCQlubGFbTkZUQV9TRVRfRUxFTV9U
+SU1FT1VUXSkpKTsNCiAJfSBlbHNlIGlmIChzZXQtPmZsYWdzICYgTkZUX1NFVF9USU1FT1VUKSB7
+DQogCQl0aW1lb3V0ID0gc2V0LT50aW1lb3V0Ow0KIAl9DQo=
