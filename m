@@ -1,96 +1,92 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH nf] netfilter: nft_dynset: fix incorrect element
- expiration calculation
-Date: Sun, 20 Nov 2016 18:31:58 +0800
-Message-ID: <CAML_gOfY9zPM+hr1eN05CoEerOcvjmcnSVOr8apxwHr_ZDzB6g@mail.gmail.com>
-References: <1479622687-17266-1-git-send-email-zlpnobody@163.com> <1479634719.25188.1.camel@cohaesio.com>
+From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+Subject: [PATCH nf] netfilter: nf_tables: fix inconsistent element expiration
+ calculation
+Date: Sun, 20 Nov 2016 16:38:47 +0000
+Message-ID: <1479659927.10079.3.camel@cohaesio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: "pablo@netfilter.org" <pablo@netfilter.org>,
-        "zlpnobody@163.com" <zlpnobody@163.com>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: "zlpnobody@gmail.com" <zlpnobody@gmail.com>
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "pablo@netfilter.org" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f65.google.com ([209.85.213.65]:34223 "EHLO
-        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753282AbcKTKcA (ORCPT
+Received: from bender.cohaesio.com ([212.97.128.130]:45962 "EHLO
+        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752643AbcKTQiv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 20 Nov 2016 05:32:00 -0500
-Received: by mail-vk0-f65.google.com with SMTP id p9so21648213vkd.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 20 Nov 2016 02:31:59 -0800 (PST)
-In-Reply-To: <1479634719.25188.1.camel@cohaesio.com>
+        Sun, 20 Nov 2016 11:38:51 -0500
+Content-Language: en-US
+Content-ID: <024F651931C2144796221AFBC129861F@surftown.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2016-11-20 17:38 GMT+08:00 Anders K. Pedersen | Cohaesio <akp@cohaesio.com>:
-[...]
-> I believe that updating elements in dynsets can happen much more
-> frequently than interactions with userspace. One of my own use cases is
-
-Make sense. Considering the performance cost, your patch looks better:)
-
-> traffic accounting via flow tables, where there will be many updates
-> per second. So I would much prefer to do the conversion between msec
-> and jiffies, when data are sent to or received from userspace.
->
-> Would the patch below be okay?
->
-> Regards,
-> Anders K. Pedersen
-> ---
->  net/netfilter/nf_tables_api.c | 14 +++++++++-----
->  1 file changed, 9 insertions(+), 5 deletions(-)
->
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index 026581b..e5194f6f 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -2570,7 +2570,8 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
->         }
->
->         if (set->timeout &&
-> -           nla_put_be64(skb, NFTA_SET_TIMEOUT, cpu_to_be64(set->timeout),
-> +           nla_put_be64(skb, NFTA_SET_TIMEOUT,
-> +                        cpu_to_be64(jiffies_to_msecs(set->timeout)),
->                          NFTA_SET_PAD))
->                 goto nla_put_failure;
->         if (set->gc_int &&
-> @@ -2859,7 +2860,8 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
->         if (nla[NFTA_SET_TIMEOUT] != NULL) {
->                 if (!(flags & NFT_SET_TIMEOUT))
->                         return -EINVAL;
-> -               timeout = be64_to_cpu(nla_get_be64(nla[NFTA_SET_TIMEOUT]));
-> +               timeout = msecs_to_jiffies(be64_to_cpu(nla_get_be64(
-> +                                               nla[NFTA_SET_TIMEOUT])));
->         }
->         gc_int = 0;
->         if (nla[NFTA_SET_GC_INTERVAL] != NULL) {
-> @@ -3178,7 +3180,8 @@ static int nf_tables_fill_setelem(struct sk_buff *skb,
->
->         if (nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT) &&
->             nla_put_be64(skb, NFTA_SET_ELEM_TIMEOUT,
-> -                        cpu_to_be64(*nft_set_ext_timeout(ext)),
-> +                        cpu_to_be64(jiffies_to_msecs(
-> +                                               *nft_set_ext_timeout(ext))),
->                          NFTA_SET_ELEM_PAD))
->                 goto nla_put_failure;
->
-> @@ -3447,7 +3450,7 @@ void *nft_set_elem_init(const struct nft_set *set,
->                 memcpy(nft_set_ext_data(ext), data, set->dlen);
->         if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION))
->                 *nft_set_ext_expiration(ext) =
-> -                       jiffies + msecs_to_jiffies(timeout);
-> +                       jiffies + timeout;
->         if (nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT))
->                 *nft_set_ext_timeout(ext) = timeout;
->
-> @@ -3535,7 +3538,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
->         if (nla[NFTA_SET_ELEM_TIMEOUT] != NULL) {
->                 if (!(set->flags & NFT_SET_TIMEOUT))
->                         return -EINVAL;
-> -               timeout = be64_to_cpu(nla_get_be64(nla[NFTA_SET_ELEM_TIMEOUT]));
-> +               timeout = msecs_to_jiffies(be64_to_cpu(nla_get_be64(
-> +                                       nla[NFTA_SET_ELEM_TIMEOUT])));
->         } else if (set->flags & NFT_SET_TIMEOUT) {
->                 timeout = set->timeout;
->         }
+RnJvbTogQW5kZXJzIEsuIFBlZGVyc2VuIDxha3BAY29oYWVzaW8uY29tPg0KDQpBcyBMaXBpbmcg
+WmhhbmcgcmVwb3J0cywgYWZ0ZXIgY29tbWl0IGE4YjFlMzZkMGQxZCAoIm5ldGZpbHRlcjogbmZ0
+X2R5bnNldDoNCmZpeCBlbGVtZW50IHRpbWVvdXQgZm9yIEhaICE9IDEwMDAiKSwgcHJpdi0+dGlt
+ZW91dCB3YXMgc3RvcmVkIGluIGppZmZpZXMsDQp3aGlsZSBzZXQtPnRpbWVvdXQgd2FzIHN0b3Jl
+ZCBpbiBtaWxsaXNlY29uZHMuIFRoaXMgaXMgaW5jb25zaXN0ZW50IGFuZA0KaW5jb3JyZWN0Lg0K
+DQpGaXJzdGx5LCB3ZSBhbHJlYWR5IGNhbGwgbXNlY3NfdG9famlmZmllcyBpbiBuZnRfc2V0X2Vs
+ZW1faW5pdCwgc28NCnByaXYtPnRpbWVvdXQgd2lsbCBiZSBjb252ZXJ0ZWQgdG8gamlmZmllcyB0
+d2ljZS4NCg0KU2Vjb25kbHksIGlmIHRoZSB1c2VyIGRpZCBub3Qgc3BlY2lmeSB0aGUgTkZUQV9E
+WU5TRVRfVElNRU9VVCBhdHRyLA0Kc2V0LT50aW1lb3V0IHdpbGwgYmUgdXNlZCwgYnV0IHdlIGZv
+cmdldCB0byBjYWxsIG1zZWNzX3RvX2ppZmZpZXMNCndoZW4gZG8gdXBkYXRlIGVsZW1lbnRzLg0K
+DQpGaXggdGhpcyBieSB1c2luZyBqaWZmaWVzIGludGVybmFsbHkgZm9yIHRyYWRpdGlvbmFsIHNl
+dHMgYW5kIGRvaW5nIHRoZQ0KY29udmVyc2lvbnMgdG8vZnJvbSBtc2VjIHdoZW4gaW50ZXJhY3Rp
+bmcgd2l0aCB1c2Vyc3BhY2UgLSBhcyBkeW5zZXQNCmFscmVhZHkgZG9lcy4NCg0KVGhpcyBpcyBw
+cmVmZXJhYmxlIHRvIGRvaW5nIHRoZSBjb252ZXJzaW9ucywgd2hlbiBlbGVtZW50cyBhcmUgaW5z
+ZXJ0ZWQgb3INCnVwZGF0ZWQsIGJlY2F1c2UgdGhpcyBjYW4gaGFwcGVuIHZlcnkgZnJlcXVlbnRs
+eSBvbiBidXN5IGR5bnNldHMuDQoNCkZpeGVzOiBhOGIxZTM2ZDBkMWQgKCJuZXRmaWx0ZXI6IG5m
+dF9keW5zZXQ6IGZpeCBlbGVtZW50IHRpbWVvdXQgZm9yIEhaICE9IDEwMDAiKQ0KUmVwb3J0ZWQt
+Ynk6IExpcGluZyBaaGFuZyA8emxwbm9ib2R5QGdtYWlsLmNvbT4NClNpZ25lZC1vZmYtYnk6IEFu
+ZGVycyBLLiBQZWRlcnNlbiA8YWtwQGNvaGFlc2lvLmNvbT4NCi0tLQ0KIGluY2x1ZGUvbmV0L25l
+dGZpbHRlci9uZl90YWJsZXMuaCB8ICAyICstDQogbmV0L25ldGZpbHRlci9uZl90YWJsZXNfYXBp
+LmMgICAgIHwgMTQgKysrKysrKysrLS0tLS0NCiAyIGZpbGVzIGNoYW5nZWQsIDEwIGluc2VydGlv
+bnMoKyksIDYgZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9pbmNsdWRlL25ldC9uZXRmaWx0
+ZXIvbmZfdGFibGVzLmggYi9pbmNsdWRlL25ldC9uZXRmaWx0ZXIvbmZfdGFibGVzLmgNCmluZGV4
+IGQ3OWQxZTkuLjRiZTdkZDcgMTAwNjQ0DQotLS0gYS9pbmNsdWRlL25ldC9uZXRmaWx0ZXIvbmZf
+dGFibGVzLmgNCisrKyBiL2luY2x1ZGUvbmV0L25ldGZpbHRlci9uZl90YWJsZXMuaA0KQEAgLTMx
+Myw3ICszMTMsNyBAQCB2b2lkIG5mdF91bnJlZ2lzdGVyX3NldChzdHJ1Y3QgbmZ0X3NldF9vcHMg
+Km9wcyk7DQogICogCUBzaXplOiBtYXhpbXVtIHNldCBzaXplDQogICogCUBuZWxlbXM6IG51bWJl
+ciBvZiBlbGVtZW50cw0KICAqIAlAbmRlYWN0OiBudW1iZXIgb2YgZGVhY3RpdmF0ZWQgZWxlbWVu
+dHMgcXVldWVkIGZvciByZW1vdmFsDQotICogCUB0aW1lb3V0OiBkZWZhdWx0IHRpbWVvdXQgdmFs
+dWUgaW4gbXNlY3MNCisgKglAdGltZW91dDogZGVmYXVsdCB0aW1lb3V0IHZhbHVlIGluIGppZmZp
+ZXMNCiAgKiAJQGdjX2ludDogZ2FyYmFnZSBjb2xsZWN0aW9uIGludGVydmFsIGluIG1zZWNzDQog
+ICoJQHBvbGljeTogc2V0IHBhcmFtZXRlcml6YXRpb24gKHNlZSBlbnVtIG5mdF9zZXRfcG9saWNp
+ZXMpDQogICoJQHVkbGVuOiB1c2VyIGRhdGEgbGVuZ3RoDQpkaWZmIC0tZ2l0IGEvbmV0L25ldGZp
+bHRlci9uZl90YWJsZXNfYXBpLmMgYi9uZXQvbmV0ZmlsdGVyL25mX3RhYmxlc19hcGkuYw0KaW5k
+ZXggMDI2NTgxYi4uZTUxOTRmNmYgMTAwNjQ0DQotLS0gYS9uZXQvbmV0ZmlsdGVyL25mX3RhYmxl
+c19hcGkuYw0KKysrIGIvbmV0L25ldGZpbHRlci9uZl90YWJsZXNfYXBpLmMNCkBAIC0yNTcwLDcg
+KzI1NzAsOCBAQCBzdGF0aWMgaW50IG5mX3RhYmxlc19maWxsX3NldChzdHJ1Y3Qgc2tfYnVmZiAq
+c2tiLCBjb25zdCBzdHJ1Y3QgbmZ0X2N0eCAqY3R4LA0KIAl9DQogDQogCWlmIChzZXQtPnRpbWVv
+dXQgJiYNCi0JICAgIG5sYV9wdXRfYmU2NChza2IsIE5GVEFfU0VUX1RJTUVPVVQsIGNwdV90b19i
+ZTY0KHNldC0+dGltZW91dCksDQorCSAgICBubGFfcHV0X2JlNjQoc2tiLCBORlRBX1NFVF9USU1F
+T1VULA0KKwkJCSBjcHVfdG9fYmU2NChqaWZmaWVzX3RvX21zZWNzKHNldC0+dGltZW91dCkpLA0K
+IAkJCSBORlRBX1NFVF9QQUQpKQ0KIAkJZ290byBubGFfcHV0X2ZhaWx1cmU7DQogCWlmIChzZXQt
+PmdjX2ludCAmJg0KQEAgLTI4NTksNyArMjg2MCw4IEBAIHN0YXRpYyBpbnQgbmZfdGFibGVzX25l
+d3NldChzdHJ1Y3QgbmV0ICpuZXQsIHN0cnVjdCBzb2NrICpubHNrLA0KIAlpZiAobmxhW05GVEFf
+U0VUX1RJTUVPVVRdICE9IE5VTEwpIHsNCiAJCWlmICghKGZsYWdzICYgTkZUX1NFVF9USU1FT1VU
+KSkNCiAJCQlyZXR1cm4gLUVJTlZBTDsNCi0JCXRpbWVvdXQgPSBiZTY0X3RvX2NwdShubGFfZ2V0
+X2JlNjQobmxhW05GVEFfU0VUX1RJTUVPVVRdKSk7DQorCQl0aW1lb3V0ID0gbXNlY3NfdG9famlm
+ZmllcyhiZTY0X3RvX2NwdShubGFfZ2V0X2JlNjQoDQorCQkJCQkJbmxhW05GVEFfU0VUX1RJTUVP
+VVRdKSkpOw0KIAl9DQogCWdjX2ludCA9IDA7DQogCWlmIChubGFbTkZUQV9TRVRfR0NfSU5URVJW
+QUxdICE9IE5VTEwpIHsNCkBAIC0zMTc4LDcgKzMxODAsOCBAQCBzdGF0aWMgaW50IG5mX3RhYmxl
+c19maWxsX3NldGVsZW0oc3RydWN0IHNrX2J1ZmYgKnNrYiwNCiANCiAJaWYgKG5mdF9zZXRfZXh0
+X2V4aXN0cyhleHQsIE5GVF9TRVRfRVhUX1RJTUVPVVQpICYmDQogCSAgICBubGFfcHV0X2JlNjQo
+c2tiLCBORlRBX1NFVF9FTEVNX1RJTUVPVVQsDQotCQkJIGNwdV90b19iZTY0KCpuZnRfc2V0X2V4
+dF90aW1lb3V0KGV4dCkpLA0KKwkJCSBjcHVfdG9fYmU2NChqaWZmaWVzX3RvX21zZWNzKA0KKwkJ
+CQkJCSpuZnRfc2V0X2V4dF90aW1lb3V0KGV4dCkpKSwNCiAJCQkgTkZUQV9TRVRfRUxFTV9QQUQp
+KQ0KIAkJZ290byBubGFfcHV0X2ZhaWx1cmU7DQogDQpAQCAtMzQ0Nyw3ICszNDUwLDcgQEAgdm9p
+ZCAqbmZ0X3NldF9lbGVtX2luaXQoY29uc3Qgc3RydWN0IG5mdF9zZXQgKnNldCwNCiAJCW1lbWNw
+eShuZnRfc2V0X2V4dF9kYXRhKGV4dCksIGRhdGEsIHNldC0+ZGxlbik7DQogCWlmIChuZnRfc2V0
+X2V4dF9leGlzdHMoZXh0LCBORlRfU0VUX0VYVF9FWFBJUkFUSU9OKSkNCiAJCSpuZnRfc2V0X2V4
+dF9leHBpcmF0aW9uKGV4dCkgPQ0KLQkJCWppZmZpZXMgKyBtc2Vjc190b19qaWZmaWVzKHRpbWVv
+dXQpOw0KKwkJCWppZmZpZXMgKyB0aW1lb3V0Ow0KIAlpZiAobmZ0X3NldF9leHRfZXhpc3RzKGV4
+dCwgTkZUX1NFVF9FWFRfVElNRU9VVCkpDQogCQkqbmZ0X3NldF9leHRfdGltZW91dChleHQpID0g
+dGltZW91dDsNCiANCkBAIC0zNTM1LDcgKzM1MzgsOCBAQCBzdGF0aWMgaW50IG5mdF9hZGRfc2V0
+X2VsZW0oc3RydWN0IG5mdF9jdHggKmN0eCwgc3RydWN0IG5mdF9zZXQgKnNldCwNCiAJaWYgKG5s
+YVtORlRBX1NFVF9FTEVNX1RJTUVPVVRdICE9IE5VTEwpIHsNCiAJCWlmICghKHNldC0+ZmxhZ3Mg
+JiBORlRfU0VUX1RJTUVPVVQpKQ0KIAkJCXJldHVybiAtRUlOVkFMOw0KLQkJdGltZW91dCA9IGJl
+NjRfdG9fY3B1KG5sYV9nZXRfYmU2NChubGFbTkZUQV9TRVRfRUxFTV9USU1FT1VUXSkpOw0KKwkJ
+dGltZW91dCA9IG1zZWNzX3RvX2ppZmZpZXMoYmU2NF90b19jcHUobmxhX2dldF9iZTY0KA0KKwkJ
+CQkJbmxhW05GVEFfU0VUX0VMRU1fVElNRU9VVF0pKSk7DQogCX0gZWxzZSBpZiAoc2V0LT5mbGFn
+cyAmIE5GVF9TRVRfVElNRU9VVCkgew0KIAkJdGltZW91dCA9IHNldC0+dGltZW91dDsNCiAJfQ0K
