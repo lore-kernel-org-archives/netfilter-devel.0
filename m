@@ -1,69 +1,54 @@
-From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+From: Liping Zhang <zlpnobody@gmail.com>
 Subject: Re: [PATCH nf] netfilter: nf_tables: fix inconsistent element
  expiration calculation
-Date: Mon, 21 Nov 2016 08:57:51 +0000
-Message-ID: <1479718671.17099.3.camel@cohaesio.com>
-References: <1479659927.10079.3.camel@cohaesio.com>
-         <CAML_gOfNuXeeUeqNMET39pawDLGf5_vs3gy84J=2SxuS4gbp9Q@mail.gmail.com>
+Date: Mon, 21 Nov 2016 18:06:16 +0800
+Message-ID: <CAML_gOekCNzYvrgtZrxw_jSoFMu7voY9V5s68LOFwX1x3aBERw@mail.gmail.com>
+References: <1479659927.10079.3.camel@cohaesio.com> <CAML_gOfNuXeeUeqNMET39pawDLGf5_vs3gy84J=2SxuS4gbp9Q@mail.gmail.com>
+ <1479718671.17099.3.camel@cohaesio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
         "pablo@netfilter.org" <pablo@netfilter.org>
-To: "zlpnobody@gmail.com" <zlpnobody@gmail.com>
+To: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bender.cohaesio.com ([212.97.128.130]:43960 "EHLO
-        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751264AbcKUI5y (ORCPT
+Received: from mail-ua0-f171.google.com ([209.85.217.171]:35647 "EHLO
+        mail-ua0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751264AbcKUKGS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Nov 2016 03:57:54 -0500
-In-Reply-To: <CAML_gOfNuXeeUeqNMET39pawDLGf5_vs3gy84J=2SxuS4gbp9Q@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <0D83C143AD424549B8F9627E61BE9902@surftown.com>
+        Mon, 21 Nov 2016 05:06:18 -0500
+Received: by mail-ua0-f171.google.com with SMTP id 12so222097692uas.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Nov 2016 02:06:18 -0800 (PST)
+In-Reply-To: <1479718671.17099.3.camel@cohaesio.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-SGkgTGlwaW5nLA0KDQpPbiBtYW4sIDIwMTYtMTEtMjEgYXQgMDk6NDggKzA4MDAsIExpcGluZyBa
-aGFuZyB3cm90ZToNCj4gMjAxNi0xMS0yMSAwOjM4IEdNVCswODowMCBBbmRlcnMgSy4gUGVkZXJz
-ZW4gfCBDb2hhZXNpbyA8YWtwQGNvaGFlc2lvDQo+IC5jb20+Og0KDQo+IEFja2VkLWJ5OiBMaXBp
-bmcgWmhhbmcgPHpscG5vYm9keUBnbWFpbC5jb20+DQo+IA0KPiBCdXQgdGhlcmUncyBzb21lIHNt
-YWxsIGluZGVudCBpc3N1ZXMsIHNlZSBiZWxvdy4NCg0KPiBkaWZmIC0tZ2l0IGEvbmV0L25ldGZp
-bHRlci9uZl90YWJsZXNfYXBpLmMNCj4gPiBiL25ldC9uZXRmaWx0ZXIvbmZfdGFibGVzX2FwaS5j
-DQo+ID4gaW5kZXggMDI2NTgxYi4uZTUxOTRmNmYgMTAwNjQ0DQo+ID4gLS0tIGEvbmV0L25ldGZp
-bHRlci9uZl90YWJsZXNfYXBpLmMNCj4gPiArKysgYi9uZXQvbmV0ZmlsdGVyL25mX3RhYmxlc19h
-cGkuYw0KPiA+IEBAIC0yNTcwLDcgKzI1NzAsOCBAQCBzdGF0aWMgaW50IG5mX3RhYmxlc19maWxs
-X3NldChzdHJ1Y3Qgc2tfYnVmZiAqc2tiLCBjb25zdCBzdHJ1Y3QgbmZ0X2N0eCAqY3R4LA0KPiA+
-IMKgwqDCoMKgwqDCoMKgwqB9DQo+ID4gDQo+ID4gwqDCoMKgwqDCoMKgwqDCoGlmIChzZXQtPnRp
-bWVvdXQgJiYNCj4gPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoG5sYV9wdXRfYmU2NChza2IsIE5G
-VEFfU0VUX1RJTUVPVVQsIGNwdV90b19iZTY0KHNldC0+dGltZW91dCksDQo+ID4gK8KgwqDCoMKg
-wqDCoMKgwqDCoMKgwqBubGFfcHV0X2JlNjQoc2tiLCBORlRBX1NFVF9USU1FT1VULA0KPiA+ICvC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBjcHVfdG9fYmU2
-NChqaWZmaWVzX3RvX21zZWNzKHNldC0+dGltZW91dCkpLA0KPiA+IMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgTkZUQV9TRVRfUEFEKSkNCj4gPiDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGdvdG8gbmxhX3B1dF9mYWlsdXJlOw0KPiA+IMKg
-wqDCoMKgwqDCoMKgwqBpZiAoc2V0LT5nY19pbnQgJiYNCj4gPiBAQCAtMjg1OSw3ICsyODYwLDgg
-QEAgc3RhdGljIGludCBuZl90YWJsZXNfbmV3c2V0KHN0cnVjdCBuZXQgKm5ldCwgc3RydWN0IHNv
-Y2sgKm5sc2ssDQo+ID4gwqDCoMKgwqDCoMKgwqDCoGlmIChubGFbTkZUQV9TRVRfVElNRU9VVF0g
-IT0gTlVMTCkgew0KPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgaWYgKCEoZmxh
-Z3MgJiBORlRfU0VUX1RJTUVPVVQpKQ0KPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoHJldHVybiAtRUlOVkFMOw0KPiA+IC3CoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqB0aW1lb3V0ID0gYmU2NF90b19jcHUobmxhX2dldF9iZTY0KG5sYVtORlRB
-X1NFVF9USU1FT1VUXSkpOw0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB0aW1l
-b3V0ID0gbXNlY3NfdG9famlmZmllcyhiZTY0X3RvX2NwdShubGFfZ2V0X2JlNjQoDQo+ID4gK8Kg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBubGFbTkZUQV9TRVRfVElNRU9VVF0p
-KSk7DQo+IA0KPiBubGFbTkZUQV9TRVRfVElNRU9VVF0gc2hvdWxkIGJlIGtlcHQgaW5kZW50IGNv
-bnNpc3RlbnQgd2l0aA0KPiBiZTY0X3RvX2NwdS4NCj4gWW91IGNhbiBhZGQgc29tZSBzcGFjZXMg
-YWZ0ZXIgdGFiLg0KDQpUaGUgaW5kZW50YXRpb24gaXMgZGVsaWJlcmF0ZSwgYmVjYXVzZSBJIGRv
-bid0IHdhbnQgdG8gZ2l2ZSB0aGUNCmltcHJlc3Npb24gdGhhdCBubGFbXSBpcyBhbiBhcmd1bWVu
-dCB0byB0aGUgYmU2NF90b19jcHUoKSBmdW5jdGlvbi4NCg0KSSBsb29rZWQgdGhyb3VnaCB0aGUg
-ZmlsZSB0byBzZWUgaG93IHNpbWlsYXIgaW5kZW50YXRpb24gaXNzdWVzIHdhcw0KaGFuZGxlZCBl
-bHNld2hlcmUuIFRoZXJlIHNlZW1zIHRvIGJlIGEgcHJlZmVyZW5jZSBmb3IganVzdCBleGNlZWRp
-bmcNCnRoZSA4MCBjaGFyYWN0ZXIgcGVyIGxpbmUgbGltaXQgKEkgZm91bmQgbGluZXMgdXAgdG8g
-MTA3IGNoYXJhY3RlcnMpLA0KYnV0IEkgZGlkIGZpbmQgb25lIHBsYWNlIChjYXNlIE5GVF9HT1RP
-IGluIG5mX3RhYmxlc19jaGVja19sb29wcygpKQ0KdGhhdCB1c2UgdGhlIHNhbWUgc3R5bGUgYXMg
-SSBkbyBoZXJlLg0KDQpTbyBJIGNvdWxkIHN3aXRjaCB0byBqdXN0IHVzaW5nIGxvbmcgbGluZXMs
-IGlmIHRoYXQgaXMgcHJlZmVycmVkLCBhbmQNCmp1c3QgaWdub3JlIHRoZSBjaGVja3BhdGNoLnBs
-IHdhcm5pbmcgYWJvdXQgaXQuIFRoZSBsb25nZXN0IG5ldyBsaW5lDQp3b3VsZCBiZSA5OSBjaGFy
-YWN0ZXJzLCB3aGljaCBpcyBsZXNzIHRoYW4gd2hhdCBhbHJlYWR5IGV4aXN0cyBpbiB0aGUNCmZp
-bGUuDQoNClJlZ2FyZHMsDQpBbmRlcnM=
+Hi Anders,
+
+2016-11-21 16:57 GMT+08:00 Anders K. Pedersen | Cohaesio <akp@cohaesio.com>:
+[...]
+>> nla[NFTA_SET_TIMEOUT] should be kept indent consistent with
+>> be64_to_cpu.
+>> You can add some spaces after tab.
+>
+> The indentation is deliberate, because I don't want to give the
+> impression that nla[] is an argument to the be64_to_cpu() function.
+>
+> I looked through the file to see how similar indentation issues was
+> handled elsewhere. There seems to be a preference for just exceeding
+> the 80 character per line limit (I found lines up to 107 characters),
+> but I did find one place (case NFT_GOTO in nf_tables_check_loops())
+> that use the same style as I do here.
+
+Yes, after a closer look, I also find that it's not easy to deal with the
+indentation in this case. And sorry for not realizing this issue at the
+first glance.
+
+So everything is fine.
+
+Thanks
+
+>
+> So I could switch to just using long lines, if that is preferred, and
+> just ignore the checkpatch.pl warning about it. The longest new line
+> would be 99 characters, which is less than what already exists in the
+> file.
