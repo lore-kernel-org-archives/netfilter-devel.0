@@ -1,88 +1,131 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: netfilter question
-Date: Sun, 20 Nov 2016 09:55:15 -0800
-Message-ID: <1479664515.8455.374.camel@edumazet-glaptop3.roam.corp.google.com>
-References: <cad49557-7c7a-83c9-d2b6-71d9624f0d52@miromedia.ca>
-         <CANn89iLr-Zf2W5MW47QtKo17915UoryZentihKt1SMv7NP_dOw@mail.gmail.com>
-         <20161116150200.GH30581@breakpoint.cc>
-         <1479309789.8455.194.camel@edumazet-glaptop3.roam.corp.google.com>
-         <20161117000725.GK30581@breakpoint.cc>
-         <1479623583.8455.358.camel@edumazet-glaptop3.roam.corp.google.com>
-         <CAGUFhKwQTRRJpfGi2fRkFfGdpLYMN-2F9G+dEsavM7UGbkjjdA@mail.gmail.com>
-         <1479663097.8455.367.camel@edumazet-glaptop3.roam.corp.google.com>
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH nf] netfilter: nf_tables: fix inconsistent element
+ expiration calculation
+Date: Mon, 21 Nov 2016 09:48:40 +0800
+Message-ID: <CAML_gOfNuXeeUeqNMET39pawDLGf5_vs3gy84J=2SxuS4gbp9Q@mail.gmail.com>
+References: <1479659927.10079.3.camel@cohaesio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <edumazet@google.com>,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-To: Eric D <ericd@miromedia.ca>
+Content-Type: text/plain; charset=UTF-8
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "pablo@netfilter.org" <pablo@netfilter.org>
+To: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:34948 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752710AbcKTRzS (ORCPT
+Received: from mail-ua0-f196.google.com ([209.85.217.196]:33061 "EHLO
+        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751713AbcKUBsl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 20 Nov 2016 12:55:18 -0500
-Received: by mail-pg0-f68.google.com with SMTP id p66so26171604pga.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 20 Nov 2016 09:55:17 -0800 (PST)
-In-Reply-To: <1479663097.8455.367.camel@edumazet-glaptop3.roam.corp.google.com>
+        Sun, 20 Nov 2016 20:48:41 -0500
+Received: by mail-ua0-f196.google.com with SMTP id 20so23925334uak.0
+        for <netfilter-devel@vger.kernel.org>; Sun, 20 Nov 2016 17:48:41 -0800 (PST)
+In-Reply-To: <1479659927.10079.3.camel@cohaesio.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 2016-11-20 at 09:31 -0800, Eric Dumazet wrote:
+2016-11-21 0:38 GMT+08:00 Anders K. Pedersen | Cohaesio <akp@cohaesio.com>:
+> From: Anders K. Pedersen <akp@cohaesio.com>
+>
+> As Liping Zhang reports, after commit a8b1e36d0d1d ("netfilter: nft_dynset:
+> fix element timeout for HZ != 1000"), priv->timeout was stored in jiffies,
+> while set->timeout was stored in milliseconds. This is inconsistent and
+> incorrect.
+>
+> Firstly, we already call msecs_to_jiffies in nft_set_elem_init, so
+> priv->timeout will be converted to jiffies twice.
+>
+> Secondly, if the user did not specify the NFTA_DYNSET_TIMEOUT attr,
+> set->timeout will be used, but we forget to call msecs_to_jiffies
+> when do update elements.
+>
+> Fix this by using jiffies internally for traditional sets and doing the
+> conversions to/from msec when interacting with userspace - as dynset
+> already does.
+>
+> This is preferable to doing the conversions, when elements are inserted or
+> updated, because this can happen very frequently on busy dynsets.
+>
+> Fixes: a8b1e36d0d1d ("netfilter: nft_dynset: fix element timeout for HZ != 1000")
+> Reported-by: Liping Zhang <zlpnobody@gmail.com>
+> Signed-off-by: Anders K. Pedersen <akp@cohaesio.com>
 
-> Thanks Eric, I will test the patch myself, because I believe we need it
-> asap ;)
+Acked-by: Liping Zhang <zlpnobody@gmail.com>
 
+But there's some small indent issues, see below.
 
-Current net-next without Florian patch :
+> ---
+>  include/net/netfilter/nf_tables.h |  2 +-
+>  net/netfilter/nf_tables_api.c     | 14 +++++++++-----
+>  2 files changed, 10 insertions(+), 6 deletions(-)
+>
+> diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+> index d79d1e9..4be7dd7 100644
+> --- a/include/net/netfilter/nf_tables.h
+> +++ b/include/net/netfilter/nf_tables.h
+> @@ -313,7 +313,7 @@ void nft_unregister_set(struct nft_set_ops *ops);
+>   *     @size: maximum set size
+>   *     @nelems: number of elements
+>   *     @ndeact: number of deactivated elements queued for removal
+> - *     @timeout: default timeout value in msecs
+> + *     @timeout: default timeout value in jiffies
+>   *     @gc_int: garbage collection interval in msecs
+>   *     @policy: set parameterization (see enum nft_set_policies)
+>   *     @udlen: user data length
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 026581b..e5194f6f 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -2570,7 +2570,8 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
+>         }
+>
+>         if (set->timeout &&
+> -           nla_put_be64(skb, NFTA_SET_TIMEOUT, cpu_to_be64(set->timeout),
+> +           nla_put_be64(skb, NFTA_SET_TIMEOUT,
+> +                        cpu_to_be64(jiffies_to_msecs(set->timeout)),
+>                          NFTA_SET_PAD))
+>                 goto nla_put_failure;
+>         if (set->gc_int &&
+> @@ -2859,7 +2860,8 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+>         if (nla[NFTA_SET_TIMEOUT] != NULL) {
+>                 if (!(flags & NFT_SET_TIMEOUT))
+>                         return -EINVAL;
+> -               timeout = be64_to_cpu(nla_get_be64(nla[NFTA_SET_TIMEOUT]));
+> +               timeout = msecs_to_jiffies(be64_to_cpu(nla_get_be64(
+> +                                               nla[NFTA_SET_TIMEOUT])));
 
-lpaa24:~# time for f in `seq 1 2000` ; do iptables -A FORWARD ; done
+nla[NFTA_SET_TIMEOUT] should be kept indent consistent with be64_to_cpu.
+You can add some spaces after tab.
 
-real	0m12.856s
-user	0m0.590s
-sys	0m11.131s
+>         }
+>         gc_int = 0;
+>         if (nla[NFTA_SET_GC_INTERVAL] != NULL) {
+> @@ -3178,7 +3180,8 @@ static int nf_tables_fill_setelem(struct sk_buff *skb,
+>
+>         if (nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT) &&
+>             nla_put_be64(skb, NFTA_SET_ELEM_TIMEOUT,
+> -                        cpu_to_be64(*nft_set_ext_timeout(ext)),
+> +                        cpu_to_be64(jiffies_to_msecs(
+> +                                               *nft_set_ext_timeout(ext))),
+>                          NFTA_SET_ELEM_PAD))
+>                 goto nla_put_failure;
+>
+> @@ -3447,7 +3450,7 @@ void *nft_set_elem_init(const struct nft_set *set,
+>                 memcpy(nft_set_ext_data(ext), data, set->dlen);
+>         if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION))
+>                 *nft_set_ext_expiration(ext) =
+> -                       jiffies + msecs_to_jiffies(timeout);
+> +                       jiffies + timeout;
+>         if (nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT))
+>                 *nft_set_ext_timeout(ext) = timeout;
+>
+> @@ -3535,7 +3538,8 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+>         if (nla[NFTA_SET_ELEM_TIMEOUT] != NULL) {
+>                 if (!(set->flags & NFT_SET_TIMEOUT))
+>                         return -EINVAL;
+> -               timeout = be64_to_cpu(nla_get_be64(nla[NFTA_SET_ELEM_TIMEOUT]));
+> +               timeout = msecs_to_jiffies(be64_to_cpu(nla_get_be64(
+> +                                       nla[NFTA_SET_ELEM_TIMEOUT])));
 
+Same remark here.
 
-perf report ...; perf report ->
-
-    47.45%  iptables  [kernel.kallsyms]  [k] pcpu_alloc_area                      
-     8.49%  iptables  [kernel.kallsyms]  [k] memset_erms                          
-     7.35%  iptables  [kernel.kallsyms]  [k] get_counters                         
-     2.87%  iptables  [kernel.kallsyms]  [k] __memmove                            
-     2.33%  iptables  [kernel.kallsyms]  [k] pcpu_alloc                           
-     2.07%  iptables  [kernel.kallsyms]  [k] _find_next_bit.part.0                
-     1.62%  iptables  xtables-multi      [.] 0x000000000001bb9d                   
-     1.25%  iptables  [kernel.kallsyms]  [k] page_fault                           
-     1.01%  iptables  [kernel.kallsyms]  [k] memcmp                               
-     0.94%  iptables  [kernel.kallsyms]  [k] translate_table                      
-     0.76%  iptables  [kernel.kallsyms]  [k] find_next_bit                        
-     0.73%  iptables  [kernel.kallsyms]  [k] filemap_map_pages                    
-     0.68%  iptables  [kernel.kallsyms]  [k] copy_user_enhanced_fast_string       
-     0.54%  iptables  [kernel.kallsyms]  [k] __get_user_8                         
-     0.54%  iptables  [kernel.kallsyms]  [k] clear_page_c_e                
-
-After patch :
-
-lpaa24:~# time for f in `seq 1 2000` ; do iptables -A FORWARD ; done
-
-real	0m3.867s
-user	0m0.559s
-sys	0m2.216s
-
-    22.15%  iptables  [kernel.kallsyms]  [k] get_counters                           
-     5.85%  iptables  xtables-multi      [.] 0x000000000001bbac                     
-     3.99%  iptables  [kernel.kallsyms]  [k] page_fault                             
-     2.37%  iptables  [kernel.kallsyms]  [k] memcmp                                 
-     2.19%  iptables  [kernel.kallsyms]  [k] copy_user_enhanced_fast_string         
-     1.89%  iptables  [kernel.kallsyms]  [k] translate_table                        
-     1.78%  iptables  [kernel.kallsyms]  [k] memset_erms                            
-     1.74%  iptables  [kernel.kallsyms]  [k] clear_page_c_e                         
-     1.73%  iptables  [kernel.kallsyms]  [k] __get_user_8                           
-     1.72%  iptables  [kernel.kallsyms]  [k] perf_iterate_ctx                       
-     1.21%  iptables  [kernel.kallsyms]  [k] handle_mm_fault                        
-     0.98%  iptables  [kernel.kallsyms]  [k] unmap_page_range          
-
-So this is a huge win. And I suspect data path will also gain from all
-pcpu counters being in the same area of memory (this is where I am very interested)
-
-
+>         } else if (set->flags & NFT_SET_TIMEOUT) {
+>                 timeout = set->timeout;
+>         }
