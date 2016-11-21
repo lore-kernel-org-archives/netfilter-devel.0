@@ -1,42 +1,46 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: "random" syn packets dropped
-Date: Mon, 21 Nov 2016 11:39:19 +0100
-Message-ID: <20161121103919.GA22120@breakpoint.cc>
-References: <CAJO99TnMCZdROCNV9-3xcURbGZVw7X-wKwf-vkUc5Lc3R_QT9A@mail.gmail.com>
- <20161108140857.GE24908@breakpoint.cc>
- <CAJO99Tmx03GrL4MUY-PW=V5ZhpfWwndFJSkeomO34Ldfq_1DCg@mail.gmail.com>
- <CAJO99T=MK=kPe9NVXPtaHBcurtc6KYnat=YCOtBRsTH-uh-ZLQ@mail.gmail.com>
- <CAJO99TmfVSALaXqfCvZaoB7i_=KxCh1KaBgRcXSYWEL6Gj+qiQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 8bit
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: =?iso-8859-15?Q?Bj=F8rnar?= Ness <bjornar.ness@gmail.com>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf] netfilter: nft_range: add the missing NULL pointer check
+Date: Mon, 21 Nov 2016 21:18:23 +0800
+Message-ID: <1479734303-20832-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37480 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752075AbcKUKlz (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 21 Nov 2016 05:41:55 -0500
-Content-Disposition: inline
-In-Reply-To: <CAJO99TmfVSALaXqfCvZaoB7i_=KxCh1KaBgRcXSYWEL6Gj+qiQ@mail.gmail.com>
+Received: from m12-16.163.com ([220.181.12.16]:48100 "EHLO m12-16.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753975AbcKUNT3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 21 Nov 2016 08:19:29 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Bjørnar Ness <bjornar.ness@gmail.com> wrote:
-> After a restart of the machine, this problem disappeared for 10 days,
-> but unfortunately
-> showed up again yesterday. Seems like net_dropmonitor does not catch
-> this one, the
-> only output I get is:
-> 
-> nf_hook_slow                       171                         1
->
-> This is definately something you should look into. I would be glad to
-> assist if there
-> is anything I can do.
+From: Liping Zhang <zlpnobody@gmail.com>
 
-Maybe already fixed via
+Otherwise, kernel panic will happen if the user does not specify
+the related attributes.
 
-https://patchwork.ozlabs.org/patch/695586/
-https://patchwork.ozlabs.org/patch/695587/
+Fixes: 0f3cd9b36977 ("netfilter: nf_tables: add range expression")
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+---
+ net/netfilter/nft_range.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/net/netfilter/nft_range.c b/net/netfilter/nft_range.c
+index fbc8800..8f0aaae 100644
+--- a/net/netfilter/nft_range.c
++++ b/net/netfilter/nft_range.c
+@@ -59,6 +59,12 @@ static int nft_range_init(const struct nft_ctx *ctx, const struct nft_expr *expr
+ 	int err;
+ 	u32 op;
+ 
++	if (!tb[NFTA_RANGE_SREG]      ||
++	    !tb[NFTA_RANGE_OP]	      ||
++	    !tb[NFTA_RANGE_FROM_DATA] ||
++	    !tb[NFTA_RANGE_TO_DATA])
++		return -EINVAL;
++
+ 	err = nft_data_init(NULL, &priv->data_from, sizeof(priv->data_from),
+ 			    &desc_from, tb[NFTA_RANGE_FROM_DATA]);
+ 	if (err < 0)
+-- 
+2.5.5
+
+
