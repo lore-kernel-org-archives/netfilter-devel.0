@@ -1,54 +1,46 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: nf_tables: validate maximum value of
- u32 netlink hash attribute
-Date: Thu, 24 Nov 2016 14:43:17 +0100
-Message-ID: <20161124134317.GA32280@salvia>
-References: <20161114213331.GA13743@sonyv>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next] netfilter: nft_fib: store loopback interface to
+ dreg when rt is local
+Date: Thu, 24 Nov 2016 14:50:14 +0100
+Message-ID: <20161124135014.GD24598@breakpoint.cc>
+References: <1479994128-16654-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Laura Garcia Liebana <nevola@gmail.com>
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org, fw@strlen.de,
+        Liping Zhang <zlpnobody@gmail.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59626 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965587AbcKXNnY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Nov 2016 08:43:24 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B9A112519B1
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 14:43:21 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8DC6FDA848
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 14:43:21 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E7680DA3AC
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 14:43:18 +0100 (CET)
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:52076 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S965316AbcKXNxE (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 24 Nov 2016 08:53:04 -0500
 Content-Disposition: inline
-In-Reply-To: <20161114213331.GA13743@sonyv>
+In-Reply-To: <1479994128-16654-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 14, 2016 at 10:33:34PM +0100, Laura Garcia Liebana wrote:
-> Use the function nft_parse_u32_check() to fetch the value and validate
-> the u32 attribute into the hash len u8 field.
+Liping Zhang <zlpnobody@163.com> wrote:
+> In general, we haven't do routing lookup in PREROUTING hook, so it's
+> very likely that fib4/6_is_local will not be met.
+
+loopback packets retain skb->dst (and thats what this test is about).
+
+> Then the *dest will
+> be set to 0 because we do nothing when the fib result is RTN_LOCAL.
+
+Yes.
+
+> So if the user want to drop all packets which cannot be routed,
+> and input the following nft rule:
+>   # nft add rule filter prerouting fib daddr oif eq 0 drop
 > 
-> This patch revisits 4da449ae1df9 ("netfilter: nft_exthdr: Add size check
-> on u8 nft_exthdr attributes").
+> Then all the packets which destinate to local will be dropped
+> incorrectly.
 
-Applied, thanks.
+but in "saddr oif eq 0 drop" case they really should have no oif, the
+address should not be considered routeable.
 
-Please, always target your fixes to nf.
+Pablo, please don't apply this; I would like to look at this next week.
 
-New features go to nf-next.
-
-Regarding patch title, in second place we usually specify to what
-component this is targeted to, so I would suggest:
-
-  netfilter: nft_hash: validate maximum value of u32 netlink hash attribute
-
-so git log --oneline quickly tells us this is targetd to nft_hash.
-
-I have also added this tag which is useful for -stable maintainers:
-
-Fixes: cb1b69b0b15b ("netfilter: nf_tables: add hash expression")
-
-Thanks Laura!
+Msybe this needs a check if we're testing daddr or saddr.
