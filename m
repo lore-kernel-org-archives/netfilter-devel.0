@@ -1,183 +1,164 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/2 libnftnl] include: refresh nf_tables.h cache copy
-Date: Thu, 24 Nov 2016 12:08:51 +0100
-Message-ID: <1479985732-6104-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 2/2 libnftnl] expr: payload: add NFTNL_EXPR_PAYLOAD_FLAGS
+Date: Thu, 24 Nov 2016 12:08:52 +0100
+Message-ID: <1479985732-6104-2-git-send-email-pablo@netfilter.org>
+References: <1479985732-6104-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45374 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45308 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S938696AbcKXLJI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S937926AbcKXLJI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 24 Nov 2016 06:09:08 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 04F6316B280
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 12:09:02 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 7D7EB16B283
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 12:08:59 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E8D24DA7F6
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 12:09:01 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6C3D5DA3AC
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 12:08:59 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 21C1FDA851
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 12:08:56 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 490A6DA38C
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 12:08:57 +0100 (CET)
+In-Reply-To: <1479985732-6104-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fetch what we have at 4.9-rc6.
+So we can include the new NFT_PAYLOAD_L4CSUM_PSEUDOHDR flag.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/nf_tables.h | 77 +++++++++++++++++++++++++++++++++++--
- 1 file changed, 73 insertions(+), 4 deletions(-)
+ include/libnftnl/expr.h             |  1 +
+ include/linux/netfilter/nf_tables.h |  6 ++++++
+ src/expr/payload.c                  | 22 ++++++++++++++++++++--
+ 3 files changed, 27 insertions(+), 2 deletions(-)
 
+diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
+index edf86a966fc0..c4a6d53a3559 100644
+--- a/include/libnftnl/expr.h
++++ b/include/libnftnl/expr.h
+@@ -48,6 +48,7 @@ enum {
+ 	NFTNL_EXPR_PAYLOAD_SREG,
+ 	NFTNL_EXPR_PAYLOAD_CSUM_TYPE,
+ 	NFTNL_EXPR_PAYLOAD_CSUM_OFFSET,
++	NFTNL_EXPR_PAYLOAD_FLAGS,
+ };
+ 
+ enum {
 diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 30e3b21418c5..14e5f619167e 100644
+index 14e5f619167e..f030e59aa2ec 100644
 --- a/include/linux/netfilter/nf_tables.h
 +++ b/include/linux/netfilter/nf_tables.h
-@@ -24,7 +24,7 @@ enum nft_registers {
- 	__NFT_REG_MAX,
- 
- 	NFT_REG32_00	= 8,
--	MFT_REG32_01,
-+	NFT_REG32_01,
- 	NFT_REG32_02,
- 	NFT_REG32_03,
- 	NFT_REG32_04,
-@@ -573,7 +573,7 @@ enum nft_range_attributes {
- 	NFTA_RANGE_TO_DATA,
- 	__NFTA_RANGE_MAX
- };
--#define NFTA_RANGE_MAX         (__NFTA_RANGE_MAX - 1)
-+#define NFTA_RANGE_MAX		(__NFTA_RANGE_MAX - 1)
- 
- enum nft_lookup_flags {
- 	NFT_LOOKUP_F_INV = (1 << 0),
-@@ -604,6 +604,10 @@ enum nft_dynset_ops {
- 	NFT_DYNSET_OP_UPDATE,
+@@ -659,6 +659,10 @@ enum nft_payload_csum_types {
+ 	NFT_PAYLOAD_CSUM_INET,
  };
  
-+enum nft_dynset_flags {
-+	NFT_DYNSET_F_INV	= (1 << 0),
++enum nft_payload_csum_flags {
++	NFT_PAYLOAD_L4CSUM_PSEUDOHDR = (1 << 0),
 +};
 +
  /**
-  * enum nft_dynset_attributes - dynset expression attributes
+  * enum nft_payload_attributes - nf_tables payload expression netlink attributes
   *
-@@ -614,6 +618,7 @@ enum nft_dynset_ops {
-  * @NFTA_DYNSET_SREG_DATA: source register of the data (NLA_U32)
-  * @NFTA_DYNSET_TIMEOUT: timeout value for the new element (NLA_U64)
-  * @NFTA_DYNSET_EXPR: expression (NLA_NESTED: nft_expr_attributes)
-+ * @NFTA_DYNSET_FLAGS: flags (NLA_U32)
+@@ -669,6 +673,7 @@ enum nft_payload_csum_types {
+  * @NFTA_PAYLOAD_SREG: source register to load data from (NLA_U32: nft_registers)
+  * @NFTA_PAYLOAD_CSUM_TYPE: checksum type (NLA_U32)
+  * @NFTA_PAYLOAD_CSUM_OFFSET: checksum offset relative to base (NLA_U32)
++ * @NFTA_PAYLOAD_CSUM_FLAGS: checksum flags (NLA_U32)
   */
- enum nft_dynset_attributes {
- 	NFTA_DYNSET_UNSPEC,
-@@ -625,6 +630,7 @@ enum nft_dynset_attributes {
- 	NFTA_DYNSET_TIMEOUT,
- 	NFTA_DYNSET_EXPR,
- 	NFTA_DYNSET_PAD,
-+	NFTA_DYNSET_FLAGS,
- 	__NFTA_DYNSET_MAX,
+ enum nft_payload_attributes {
+ 	NFTA_PAYLOAD_UNSPEC,
+@@ -679,6 +684,7 @@ enum nft_payload_attributes {
+ 	NFTA_PAYLOAD_SREG,
+ 	NFTA_PAYLOAD_CSUM_TYPE,
+ 	NFTA_PAYLOAD_CSUM_OFFSET,
++	NFTA_PAYLOAD_CSUM_FLAGS,
+ 	__NFTA_PAYLOAD_MAX
  };
- #define NFTA_DYNSET_MAX		(__NFTA_DYNSET_MAX - 1)
-@@ -753,6 +759,19 @@ enum nft_meta_keys {
+ #define NFTA_PAYLOAD_MAX	(__NFTA_PAYLOAD_MAX - 1)
+diff --git a/src/expr/payload.c b/src/expr/payload.c
+index 17dd4cd6409b..d65585711bd1 100644
+--- a/src/expr/payload.c
++++ b/src/expr/payload.c
+@@ -32,6 +32,7 @@ struct nftnl_expr_payload {
+ 	uint32_t		len;
+ 	uint32_t		csum_type;
+ 	uint32_t		csum_offset;
++	uint32_t		csum_flags;
  };
  
- /**
-+ * enum nft_rt_keys - nf_tables routing expression keys
-+ *
-+ * @NFT_RT_CLASSID: realm value of packet's route (skb->dst->tclassid)
-+ * @NFT_RT_NEXTHOP4: routing nexthop for IPv4
-+ * @NFT_RT_NEXTHOP6: routing nexthop for IPv6
-+ */
-+enum nft_rt_keys {
-+	NFT_RT_CLASSID,
-+	NFT_RT_NEXTHOP4,
-+	NFT_RT_NEXTHOP6,
-+};
-+
-+/**
-  * enum nft_hash_attributes - nf_tables hash expression netlink attributes
-  *
-  * @NFTA_HASH_SREG: source register (NLA_U32)
-@@ -760,7 +779,7 @@ enum nft_meta_keys {
-  * @NFTA_HASH_LEN: source data length (NLA_U32)
-  * @NFTA_HASH_MODULUS: modulus value (NLA_U32)
-  * @NFTA_HASH_SEED: seed value (NLA_U32)
-- * @NFTA_HASH_OFFSET: offset value to be added (NLA_U32)
-+ * @NFTA_HASH_OFFSET: add this offset value to hash result (NLA_U32)
-  */
- enum nft_hash_attributes {
- 	NFTA_HASH_UNSPEC,
-@@ -791,6 +810,20 @@ enum nft_meta_attributes {
- #define NFTA_META_MAX		(__NFTA_META_MAX - 1)
+ static int
+@@ -62,6 +63,9 @@ nftnl_expr_payload_set(struct nftnl_expr *e, uint16_t type,
+ 	case NFTNL_EXPR_PAYLOAD_CSUM_OFFSET:
+ 		payload->csum_offset = *((uint32_t *)data);
+ 		break;
++	case NFTNL_EXPR_PAYLOAD_FLAGS:
++		payload->csum_flags = *((uint32_t *)data);
++		break;
+ 	default:
+ 		return -1;
+ 	}
+@@ -96,6 +100,9 @@ nftnl_expr_payload_get(const struct nftnl_expr *e, uint16_t type,
+ 	case NFTNL_EXPR_PAYLOAD_CSUM_OFFSET:
+ 		*data_len = sizeof(payload->csum_offset);
+ 		return &payload->csum_offset;
++	case NFTNL_EXPR_PAYLOAD_FLAGS:
++		*data_len = sizeof(payload->csum_flags);
++		return &payload->csum_flags;
+ 	}
+ 	return NULL;
+ }
+@@ -116,6 +123,7 @@ static int nftnl_expr_payload_cb(const struct nlattr *attr, void *data)
+ 	case NFTA_PAYLOAD_LEN:
+ 	case NFTA_PAYLOAD_CSUM_TYPE:
+ 	case NFTA_PAYLOAD_CSUM_OFFSET:
++	case NFTA_PAYLOAD_CSUM_FLAGS:
+ 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
+ 			abi_breakage();
+ 		break;
+@@ -146,6 +154,9 @@ nftnl_expr_payload_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
+ 	if (e->flags & (1 << NFTNL_EXPR_PAYLOAD_CSUM_OFFSET))
+ 		mnl_attr_put_u32(nlh, NFTA_PAYLOAD_CSUM_OFFSET,
+ 				 htonl(payload->csum_offset));
++	if (e->flags & (1 << NFTNL_EXPR_PAYLOAD_FLAGS))
++		mnl_attr_put_u32(nlh, NFTA_PAYLOAD_CSUM_FLAGS,
++				 htonl(payload->csum_flags));
+ }
  
- /**
-+ * enum nft_rt_attributes - nf_tables routing expression netlink attributes
-+ *
-+ * @NFTA_RT_DREG: destination register (NLA_U32)
-+ * @NFTA_RT_KEY: routing data item to load (NLA_U32: nft_rt_keys)
-+ */
-+enum nft_rt_attributes {
-+	NFTA_RT_UNSPEC,
-+	NFTA_RT_DREG,
-+	NFTA_RT_KEY,
-+	__NFTA_RT_MAX
-+};
-+#define NFTA_RT_MAX		(__NFTA_RT_MAX - 1)
-+
-+/**
-  * enum nft_ct_keys - nf_tables ct expression keys
-  *
-  * @NFT_CT_STATE: conntrack state (bitmask of enum ip_conntrack_info)
-@@ -1103,6 +1136,42 @@ enum nft_gen_attributes {
- };
- #define NFTA_GEN_MAX		(__NFTA_GEN_MAX - 1)
+ static int
+@@ -185,6 +196,10 @@ nftnl_expr_payload_parse(struct nftnl_expr *e, struct nlattr *attr)
+ 		payload->csum_offset = ntohl(mnl_attr_get_u32(tb[NFTA_PAYLOAD_CSUM_OFFSET]));
+ 		e->flags |= (1 << NFTNL_EXPR_PAYLOAD_CSUM_OFFSET);
+ 	}
++	if (tb[NFTA_PAYLOAD_CSUM_FLAGS]) {
++		payload->csum_flags = ntohl(mnl_attr_get_u32(tb[NFTA_PAYLOAD_CSUM_FLAGS]));
++		e->flags |= (1 << NFTNL_EXPR_PAYLOAD_FLAGS);
++	}
+ 	return 0;
+ }
  
-+/*
-+ * enum nft_fib_attributes - nf_tables fib expression netlink attributes
-+ *
-+ * @NFTA_FIB_DREG: destination register (NLA_U32)
-+ * @NFTA_FIB_RESULT: desired result (NLA_U32)
-+ * @NFTA_FIB_FLAGS: flowi fields to initialize when querying the FIB (NLA_U32)
-+ *
-+ * The FIB expression performs a route lookup according
-+ * to the packet data.
-+ */
-+enum nft_fib_attributes {
-+	NFTA_FIB_UNSPEC,
-+	NFTA_FIB_DREG,
-+	NFTA_FIB_RESULT,
-+	NFTA_FIB_FLAGS,
-+	__NFTA_FIB_MAX
-+};
-+#define NFTA_FIB_MAX (__NFTA_FIB_MAX - 1)
-+
-+enum nft_fib_result {
-+	NFT_FIB_RESULT_UNSPEC,
-+	NFT_FIB_RESULT_OIF,
-+	NFT_FIB_RESULT_OIFNAME,
-+	NFT_FIB_RESULT_ADDRTYPE,
-+	__NFT_FIB_RESULT_MAX
-+};
-+#define NFT_FIB_RESULT_MAX	(__NFT_FIB_RESULT_MAX - 1)
-+
-+enum nft_fib_flags {
-+	NFTA_FIB_F_SADDR	= 1 << 0,	/* look up src */
-+	NFTA_FIB_F_DADDR	= 1 << 1,	/* look up dst */
-+	NFTA_FIB_F_MARK		= 1 << 2,	/* use skb->mark */
-+	NFTA_FIB_F_IIF		= 1 << 3,	/* restrict to iif */
-+	NFTA_FIB_F_OIF		= 1 << 4,	/* restrict to oif */
-+};
-+
- /**
-  * enum nft_trace_attributes - nf_tables trace netlink attributes
-  *
-@@ -1159,7 +1228,7 @@ enum nft_trace_types {
-  * enum nft_ng_attributes - nf_tables number generator expression netlink attributes
-  *
-  * @NFTA_NG_DREG: destination register (NLA_U32)
-- * @NFTA_NG_MODULUS: maximum value to be returned (NLA_U32)
-+ * @NFTA_NG_MODULUS: maximum counter value (NLA_U32)
-  * @NFTA_NG_TYPE: operation type (NLA_U32)
-  * @NFTA_NG_OFFSET: offset to be added to the counter (NLA_U32)
-  */
+@@ -278,11 +293,12 @@ nftnl_expr_payload_snprintf(char *buf, size_t len, uint32_t type,
+ 	switch (type) {
+ 	case NFTNL_OUTPUT_DEFAULT:
+ 		if (payload->sreg)
+-			return snprintf(buf, len, "write reg %u => %ub @ %s header + %u csum_type %u csum_off %u ",
++			return snprintf(buf, len, "write reg %u => %ub @ %s header + %u csum_type %u csum_off %u csum_flags 0x%x ",
+ 					payload->sreg,
+ 					payload->len, base2str(payload->base),
+ 					payload->offset, payload->csum_type,
+-					payload->csum_offset);
++					payload->csum_offset,
++					payload->csum_flags);
+ 		else
+ 			return snprintf(buf, len, "load %ub @ %s header + %u => reg %u ",
+ 					payload->len, base2str(payload->base),
+@@ -317,6 +333,8 @@ static bool nftnl_expr_payload_cmp(const struct nftnl_expr *e1,
+ 		eq &= (p1->csum_type == p2->csum_type);
+ 	if (e1->flags & (1 << NFTNL_EXPR_PAYLOAD_CSUM_OFFSET))
+ 		eq &= (p1->csum_offset == p2->csum_offset);
++	if (e1->flags & (1 << NFTNL_EXPR_PAYLOAD_FLAGS))
++		eq &= (p1->csum_flags == p2->csum_flags);
+ 
+ 	return eq;
+ }
 -- 
 2.1.4
 
