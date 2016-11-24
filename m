@@ -1,60 +1,36 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next] netfilter: nft_fib: store loopback interface to
- dreg when rt is local
-Date: Thu, 24 Nov 2016 15:48:59 +0100
-Message-ID: <20161124144859.GE24598@breakpoint.cc>
-References: <1479994128-16654-1-git-send-email-zlpnobody@163.com>
- <20161124135014.GD24598@breakpoint.cc>
- <50e29b0e.fa76.15896bf2fb2.Coremail.zlpnobody@163.com>
+From: =?UTF-8?Q?Bj=C3=B8rnar_Ness?= <bjornar.ness@gmail.com>
+Subject: Re: "random" syn packets dropped
+Date: Thu, 24 Nov 2016 19:36:52 +0100
+Message-ID: <CAJO99T=UR0f7huHMChKvDUzc03hhVF0cazKCz810P+vK0JjHbw@mail.gmail.com>
+References: <CAJO99TnMCZdROCNV9-3xcURbGZVw7X-wKwf-vkUc5Lc3R_QT9A@mail.gmail.com>
+ <20161108140857.GE24908@breakpoint.cc> <CAJO99Tmx03GrL4MUY-PW=V5ZhpfWwndFJSkeomO34Ldfq_1DCg@mail.gmail.com>
+ <CAJO99T=MK=kPe9NVXPtaHBcurtc6KYnat=YCOtBRsTH-uh-ZLQ@mail.gmail.com>
+ <CAJO99TmfVSALaXqfCvZaoB7i_=KxCh1KaBgRcXSYWEL6Gj+qiQ@mail.gmail.com>
+ <20161121103919.GA22120@breakpoint.cc> <CAJO99TkDRo-M_PpGEwbK1r7cxr_ZLdF7yBXZ95+SJXoj0732HA@mail.gmail.com>
+ <20161124135606.GA990@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, pablo@netfilter.org,
+Content-Type: text/plain; charset=UTF-8
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org
-To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:52416 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S964989AbcKXOvz (ORCPT
+Received: from mail-yw0-f175.google.com ([209.85.161.175]:35812 "EHLO
+        mail-yw0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933887AbcKXSgx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Nov 2016 09:51:55 -0500
-Content-Disposition: inline
-In-Reply-To: <50e29b0e.fa76.15896bf2fb2.Coremail.zlpnobody@163.com>
+        Thu, 24 Nov 2016 13:36:53 -0500
+Received: by mail-yw0-f175.google.com with SMTP id i145so45515232ywg.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 10:36:53 -0800 (PST)
+In-Reply-To: <20161124135606.GA990@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Liping Zhang <zlpnobody@163.com> wrote:
-> At 2016-11-24 21:50:14, "Florian Westphal" <fw@strlen.de> wrote:
-> >Liping Zhang <zlpnobody@163.com> wrote:
-> >> In general, we haven't do routing lookup in PREROUTING hook, so it's
-> >> very likely that fib4/6_is_local will not be met.
+Hello, Pablo.
 
-[..]
+Seems I was too quick to post this message, we were hit by an attack
+just after the
+upgrade, and the problems was this time caused by conntrack_max.
+Currently it seems to
+work with the patches, but the next week or two will probably show.
 
-> Yes, so I use the words "very likely" :)
-> [...]
-> >but in "saddr oif eq 0 drop" case they really should have no oif, the
-> >address should not be considered routeable.
->
-> Yes, I read the ipt_rpfilter.c's source codes, and I find that there's a test flag
-> XT_RPFILTER_ACCEPT_LOCAL, so I guess your initial intention is (just my
-> guess, maybe I'm wrong):
->    0 - no route
->    1 - local route
->    others - routing oif
-
-Yes, thats right.
-
-"1" should only appear if lookup-up address is configured on this machine.
-For saddr, I don't think its good idea, because it will pass
-
-oif ne 0 accept
-
-For ACCEPT_LOCAL i think its easier to combine this with the addrtype
-check of just add explicit accept rules that make it bypass nft_fib
-rule.
-
-What do you think?
-
-I agree that for your prerouting daddr example 0 makes no sense and 1
-would indeed be a better option.
-
+-- 
+Bj(/)rnar
