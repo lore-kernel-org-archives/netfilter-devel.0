@@ -1,14 +1,14 @@
 From: Anatole Denis <anatole@rezel.net>
-Subject: [PATCH nft 7/7] tests/py/{udp,udplite}: Unmark inverted set lookup
-Date: Thu, 24 Nov 2016 15:16:26 +0100
-Message-ID: <1f0babc283a65c362d68640542aa1c86748ecf3e.1479994191.git.anatole@rezel.net>
+Subject: [PATCH nft 5/7] tests/py{ah,esp,comp}: Unmark inverted set lookup
+Date: Thu, 24 Nov 2016 15:16:24 +0100
+Message-ID: <6b031bc74227dc83f2541972f10dd280265bffbe.1479994191.git.anatole@rezel.net>
 References: <92cdd42afb329e58b41c0c33f2a68786afd8d7e5.1479994191.git.anatole@rezel.net>
 Cc: Anatole Denis <anatole@rezel.net>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from inara.rezel.net ([212.129.30.46]:59142 "EHLO inara.rezel.net"
+Received: from inara.rezel.net ([212.129.30.46]:59146 "EHLO inara.rezel.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965011AbcKXOW7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S965732AbcKXOW7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 24 Nov 2016 09:22:59 -0500
 In-Reply-To: <92cdd42afb329e58b41c0c33f2a68786afd8d7e5.1479994191.git.anatole@rezel.net>
 In-Reply-To: <92cdd42afb329e58b41c0c33f2a68786afd8d7e5.1479994191.git.anatole@rezel.net>
@@ -18,1262 +18,1233 @@ List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Anatole Denis <anatole@rezel.net>
 ---
- tests/py/inet/udp.t                    | 24 ++++-----
- tests/py/inet/udp.t.payload.inet       | 95 ++++++++++++++++++++++++++++++++++
- tests/py/inet/udp.t.payload.ip         | 95 ++++++++++++++++++++++++++++++++++
- tests/py/inet/udp.t.payload.ip6        | 95 ++++++++++++++++++++++++++++++++++
- tests/py/inet/udp.t.payload.netdev     | 95 ++++++++++++++++++++++++++++++++++
- tests/py/inet/udplite.t                | 14 ++---
- tests/py/inet/udplite.t.payload.inet   | 74 ++++++++++++++++++++++++++
- tests/py/inet/udplite.t.payload.ip     | 74 ++++++++++++++++++++++++++
- tests/py/inet/udplite.t.payload.ip6    | 74 ++++++++++++++++++++++++++
- tests/py/inet/udplite.t.payload.netdev | 74 ++++++++++++++++++++++++++
- 10 files changed, 692 insertions(+), 22 deletions(-)
+ tests/py/inet/ah.t                  | 21 ++++------
+ tests/py/inet/ah.t.payload.inet     | 80 +++++++++++++++++++++++++++++++++++++
+ tests/py/inet/ah.t.payload.ip       | 80 +++++++++++++++++++++++++++++++++++++
+ tests/py/inet/ah.t.payload.ip6      | 80 +++++++++++++++++++++++++++++++++++++
+ tests/py/inet/ah.t.payload.netdev   | 80 +++++++++++++++++++++++++++++++++++++
+ tests/py/inet/comp.t                |  8 ++--
+ tests/py/inet/comp.t.payload.inet   | 40 +++++++++++++++++++
+ tests/py/inet/comp.t.payload.ip     | 40 +++++++++++++++++++
+ tests/py/inet/comp.t.payload.ip6    | 40 +++++++++++++++++++
+ tests/py/inet/comp.t.payload.netdev | 40 +++++++++++++++++++
+ tests/py/inet/esp.t                 |  8 ++--
+ tests/py/inet/esp.t.payload.inet    | 40 +++++++++++++++++++
+ tests/py/inet/esp.t.payload.ip      | 40 +++++++++++++++++++
+ tests/py/inet/esp.t.payload.ip6     | 40 +++++++++++++++++++
+ tests/py/inet/esp.t.payload.netdev  | 40 +++++++++++++++++++
+ 15 files changed, 655 insertions(+), 22 deletions(-)
 
-diff --git a/tests/py/inet/udp.t b/tests/py/inet/udp.t
-index 060985c..2f16e6a 100644
---- a/tests/py/inet/udp.t
-+++ b/tests/py/inet/udp.t
-@@ -11,45 +11,39 @@ udp sport != 60 accept;ok
- udp sport 50-70 accept;ok
- udp sport != 50-60 accept;ok
- udp sport { 49, 50} drop;ok
--- udp sport != { 50, 60} accept;ok
+diff --git a/tests/py/inet/ah.t b/tests/py/inet/ah.t
+index ef52c2c..8544d9d 100644
+--- a/tests/py/inet/ah.t
++++ b/tests/py/inet/ah.t
+@@ -23,39 +23,34 @@
+ ah hdrlength 11-23;ok
+ ah hdrlength != 11-23;ok
+ ah hdrlength { 11-23};ok
+-- ah hdrlength != { 11-23};ok
++ah hdrlength != { 11-23};ok
+ ah hdrlength {11, 23, 44 };ok
+-- ah hdrlength != {11-23 };ok
++ah hdrlength != {11, 23, 44 };ok
+ 
+ ah reserved 22;ok
+ ah reserved != 233;ok
+ ah reserved 33-45;ok
+ ah reserved != 33-45;ok
+ ah reserved {23, 100};ok
+-- ah reserved != {33, 55, 67, 88};ok
++ah reserved != {23, 100};ok
+ ah reserved { 33-55};ok
+-- ah reserved != { 33-55};ok
++ah reserved != { 33-55};ok
+ 
+ ah spi 111;ok
+ ah spi != 111;ok
+ ah spi 111-222;ok
+ ah spi != 111-222;ok
+ ah spi {111, 122};ok
+-- ah spi != {111, 122};ok
 -# BUG: invalid expression type set
 -# nft: src/evaluate.c:975: expr_evaluate_relational: Assertion '0' failed.
-+udp sport != { 50, 60} accept;ok
- udp sport { 12-40};ok
--- udp sport != { 13-24};ok
-+udp sport != { 13-24};ok
- 
- udp dport 80 accept;ok
- udp dport != 60 accept;ok
- udp dport 70-75 accept;ok
- udp dport != 50-60 accept;ok
- udp dport { 49, 50} drop;ok
--- udp dport != { 50, 60} accept;ok
+-
++ah spi != {111, 122};ok
+ ah spi { 111-122};ok
+-- ah spi != { 111-122};ok
 -# BUG: invalid expression type set
 -# nft: src/evaluate.c:975: expr_evaluate_relational: Assertion '0' failed.
-+udp dport != { 50, 60} accept;ok
- udp dport { 70-75} accept;ok
--- udp dport != { 50-60} accept;ok
-+udp dport != { 50-60} accept;ok
++ah spi != { 111-122};ok
  
- udp length 6666;ok
- udp length != 6666;ok
- udp length 50-65 accept;ok
- udp length != 50-65 accept;ok
- udp length { 50, 65} accept;ok
--- udp length != { 50, 65} accept;ok
-+udp length != { 50, 65} accept;ok
- udp length { 35-50};ok
--- udp length != { 35-50};ok
-+udp length != { 35-50};ok
- 
- udp checksum 6666 drop;ok
--- udp checksum != { 444, 555} accept;ok
--# BUG: invalid expression type set
--# nft: src/evaluate.c:975: expr_evaluate_relational: Assertion '0' failed.
-+udp checksum != { 444, 555} accept;ok
- 
- udp checksum 22;ok
- udp checksum != 233;ok
- udp checksum 33-45;ok
- udp checksum != 33-45;ok
- udp checksum { 33, 55, 67, 88};ok
--- udp checksum != { 33, 55, 67, 88};ok
-+udp checksum != { 33, 55, 67, 88};ok
- udp checksum { 33-55};ok
--- udp checksum != { 33-55};ok
-+udp checksum != { 33-55};ok
- 
- # limit impact to lo
- iif "lo" udp checksum set 0;ok
-diff --git a/tests/py/inet/udp.t.payload.inet b/tests/py/inet/udp.t.payload.inet
-index 8fdffbf..ca27953 100644
---- a/tests/py/inet/udp.t.payload.inet
-+++ b/tests/py/inet/udp.t.payload.inet
-@@ -42,6 +42,17 @@ inet test-inet input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 drop ]
- 
-+# udp sport != { 50, 60} accept
-+__set%d test-inet 3
-+__set%d test-inet 0
-+	element 00003200  : 0 [end]	element 00003c00  : 0 [end]
-+inet test-inet input 
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udp sport { 12-40}
- __set%d test-inet 7
- __set%d test-inet 0
-@@ -52,6 +63,16 @@ inet test-inet input
-   [ payload load 2b @ transport header + 0 => reg 1 ]
+ # sequence
+ ah sequence 123;ok
+ ah sequence != 123;ok
+ ah sequence {23, 25, 33};ok
+-- ah sequence != {23, 25, 33};ok
++ah sequence != {23, 25, 33};ok
+ ah sequence { 23-33};ok
+-- ah sequence != { 33-44};ok
++ah sequence != { 23-33};ok
+ ah sequence 23-33;ok
+ ah sequence != 23-33;ok
+diff --git a/tests/py/inet/ah.t.payload.inet b/tests/py/inet/ah.t.payload.inet
+index 1e56797..5ec5fba 100644
+--- a/tests/py/inet/ah.t.payload.inet
++++ b/tests/py/inet/ah.t.payload.inet
+@@ -23,6 +23,16 @@ inet test-inet input
+   [ payload load 1b @ transport header + 1 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udp sport != { 13-24}
++# ah hdrlength != { 11-23}
 +__set%d test-inet 7
 +__set%d test-inet 0
-+	element 00000000  : 1 [end]	element 00000d00  : 0 [end]	element 00001900  : 1 [end]
-+inet test-inet input 
++	element 00000000  : 1 [end]	element 0000000b  : 0 [end]	element 00000018  : 1 [end]
++inet test-inet input
 +  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 1b @ transport header + 1 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
 +
- # udp dport 80 accept
- inet test-inet input 
-   [ meta load l4proto => reg 1 ]
-@@ -96,6 +117,17 @@ inet test-inet input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 drop ]
- 
-+# udp dport != { 50, 60} accept
-+__set%d test-inet 3
-+__set%d test-inet 0
-+	element 00003200  : 0 [end]	element 00003c00  : 0 [end]
-+inet test-inet input 
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udp dport { 70-75} accept
- __set%d test-inet 7
+ # ah hdrlength {11, 23, 44 }
+ __set%d test-inet 3
  __set%d test-inet 0
-@@ -107,6 +139,17 @@ inet test-inet input
+@@ -33,6 +43,16 @@ inet test-inet input
+   [ payload load 1b @ transport header + 1 => reg 1 ]
    [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 accept ]
  
-+# udp dport != { 50-60} accept
-+__set%d test-inet 7
-+__set%d test-inet 0
-+	element 00000000  : 1 [end]	element 00003200  : 0 [end]	element 00003d00  : 1 [end]
-+inet test-inet input 
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udp length 6666
- inet test-inet input 
-   [ meta load l4proto => reg 1 ]
-@@ -149,6 +192,17 @@ inet test-inet input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 accept ]
- 
-+# udp length != { 50, 65} accept
++# ah hdrlength != {11, 23, 44 }
 +__set%d test-inet 3
 +__set%d test-inet 0
-+	element 00003200  : 0 [end]	element 00004100  : 0 [end]
-+inet test-inet input 
++	element 0000000b  : 0 [end]	element 00000017  : 0 [end]	element 0000002c  : 0 [end]
++inet test-inet input
 +  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 4 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udp length { 35-50}
- __set%d test-inet 7
- __set%d test-inet 0
-@@ -159,6 +213,16 @@ inet test-inet input
-   [ payload load 2b @ transport header + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
-+# udp length != { 35-50}
-+__set%d test-inet 7
-+__set%d test-inet 0
-+	element 00000000  : 1 [end]	element 00002300  : 0 [end]	element 00003300  : 1 [end]
-+inet test-inet input 
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 4 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 1b @ transport header + 1 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
 +
- # udp checksum 6666 drop
- inet test-inet input 
-   [ meta load l4proto => reg 1 ]
-@@ -167,6 +231,17 @@ inet test-inet input
-   [ cmp eq reg 1 0x00000a1a ]
-   [ immediate reg 0 drop ]
- 
-+# udp checksum != { 444, 555} accept
-+__set%d test-inet 3
-+__set%d test-inet 0
-+	element 0000bc01  : 0 [end]	element 00002b02  : 0 [end]
-+inet test-inet input 
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udp checksum 22
- inet test-inet input 
-   [ meta load l4proto => reg 1 ]
-@@ -206,6 +281,16 @@ inet test-inet input
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
-+# udp checksum != { 33, 55, 67, 88}
-+__set%d test-inet 3
-+__set%d test-inet 0
-+	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
-+inet test-inet input 
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+
- # udp checksum { 33-55}
- __set%d test-inet 7
- __set%d test-inet 0
-@@ -216,6 +301,16 @@ inet test-inet input
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
-+# udp checksum != { 33-55}
-+__set%d test-inet 7
-+__set%d test-inet 0
-+	element 00000000  : 1 [end]	element 00002100  : 0 [end]	element 00003800  : 1 [end]
-+inet test-inet input 
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+
- # iif "lo" udp checksum set 0
+ # ah reserved 22
  inet test-inet input
-   [ meta load iif => reg 1 ]
-diff --git a/tests/py/inet/udp.t.payload.ip b/tests/py/inet/udp.t.payload.ip
-index 1d41017..9f1d0c7 100644
---- a/tests/py/inet/udp.t.payload.ip
-+++ b/tests/py/inet/udp.t.payload.ip
-@@ -42,6 +42,17 @@ ip test-ip4 input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 drop ]
- 
-+# udp sport != { 50, 60} accept
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00003200  : 0 [end]	element 00003c00  : 0 [end]
-+ip test-ip4 input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udp sport { 12-40}
- __set%d test-ip4 7
- __set%d test-ip4 0
-@@ -52,6 +63,16 @@ ip test-ip4 input
-   [ payload load 2b @ transport header + 0 => reg 1 ]
+   [ meta load l4proto => reg 1 ]
+@@ -72,6 +92,16 @@ inet test-inet input
+   [ payload load 2b @ transport header + 2 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udp sport != { 13-24}
-+__set%d test-ip4 7
-+__set%d test-ip4 0
-+	element 00000000  : 1 [end]	element 00000d00  : 0 [end]	element 00001900  : 1 [end]
-+ip test-ip4 input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+
- # udp dport 80 accept
- ip test-ip4 input
-   [ payload load 1b @ network header + 9 => reg 1 ]
-@@ -96,6 +117,17 @@ ip test-ip4 input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 drop ]
- 
-+# udp dport != { 50, 60} accept
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00003200  : 0 [end]	element 00003c00  : 0 [end]
-+ip test-ip4 input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
++# ah reserved != {23, 100}
++__set%d test-inet 3
++__set%d test-inet 0
++	element 00001700  : 0 [end]	element 00006400  : 0 [end]
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
 +  [ payload load 2b @ transport header + 2 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
 +
- # udp dport { 70-75} accept
- __set%d test-ip4 7
- __set%d test-ip4 0
-@@ -107,6 +139,17 @@ ip test-ip4 input
+ # ah reserved { 33-55}
+ __set%d test-inet 7
+ __set%d test-inet 0
+@@ -82,6 +112,16 @@ inet test-inet input
+   [ payload load 2b @ transport header + 2 => reg 1 ]
    [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 accept ]
  
-+# udp dport != { 50-60} accept
-+__set%d test-ip4 7
-+__set%d test-ip4 0
-+	element 00000000  : 1 [end]	element 00003200  : 0 [end]	element 00003d00  : 1 [end]
-+ip test-ip4 input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
++# ah reserved != { 33-55}
++__set%d test-inet 7
++__set%d test-inet 0
++	element 00000000  : 1 [end]	element 00002100  : 0 [end]	element 00003800  : 1 [end]
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
 +  [ payload load 2b @ transport header + 2 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
 +
- # udp length 6666
- ip test-ip4 input
-   [ payload load 1b @ network header + 9 => reg 1 ]
-@@ -149,6 +192,17 @@ ip test-ip4 input
+ # ah spi 111
+ inet test-inet input
+   [ meta load l4proto => reg 1 ]
+@@ -121,6 +161,16 @@ inet test-inet input
+   [ payload load 4b @ transport header + 4 => reg 1 ]
    [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 accept ]
  
-+# udp length != { 50, 65} accept
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00003200  : 0 [end]	element 00004100  : 0 [end]
-+ip test-ip4 input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 4 => reg 1 ]
++# ah spi != {111, 122}
++__set%d test-inet 3
++__set%d test-inet 0
++	element 6f000000  : 0 [end]	element 7a000000  : 0 [end]
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 4b @ transport header + 4 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
 +
- # udp length { 35-50}
- __set%d test-ip4 7
- __set%d test-ip4 0
-@@ -159,6 +213,16 @@ ip test-ip4 input
-   [ payload load 2b @ transport header + 4 => reg 1 ]
+ # ah spi { 111-122}
+ __set%d test-inet 7
+ __set%d test-inet 0
+@@ -131,6 +181,16 @@ inet test-inet input
+   [ payload load 4b @ transport header + 4 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udp length != { 35-50}
++# ah spi != { 111-122}
++__set%d test-inet 7
++__set%d test-inet 0
++	element 00000000  : 1 [end]	element 6f000000  : 0 [end]	element 7b000000  : 1 [end]
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 4b @ transport header + 4 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # ah sequence 123
+ inet test-inet input
+   [ meta load l4proto => reg 1 ]
+@@ -155,6 +215,16 @@ inet test-inet input
+   [ payload load 4b @ transport header + 8 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# ah sequence != {23, 25, 33}
++__set%d test-inet 3
++__set%d test-inet 0
++	element 17000000  : 0 [end]	element 19000000  : 0 [end]	element 21000000  : 0 [end]
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 4b @ transport header + 8 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # ah sequence { 23-33}
+ __set%d test-inet 7
+ __set%d test-inet 0
+@@ -165,6 +235,16 @@ inet test-inet input
+   [ payload load 4b @ transport header + 8 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# ah sequence != { 23-33}
++__set%d test-inet 7
++__set%d test-inet 0
++	element 00000000  : 1 [end]	element 17000000  : 0 [end]	element 22000000  : 1 [end]
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 4b @ transport header + 8 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # ah sequence 23-33
+ inet test-inet input
+   [ meta load l4proto => reg 1 ]
+diff --git a/tests/py/inet/ah.t.payload.ip b/tests/py/inet/ah.t.payload.ip
+index 5ad0041..594c949 100644
+--- a/tests/py/inet/ah.t.payload.ip
++++ b/tests/py/inet/ah.t.payload.ip
+@@ -23,6 +23,16 @@ ip test-ip4 input
+   [ payload load 1b @ transport header + 1 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# ah hdrlength != { 11-23}
 +__set%d test-ip4 7
 +__set%d test-ip4 0
-+	element 00000000  : 1 [end]	element 00002300  : 0 [end]	element 00003300  : 1 [end]
++	element 00000000  : 1 [end]	element 0000000b  : 0 [end]	element 00000018  : 1 [end]
 +ip test-ip4 input
 +  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 4 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 1b @ transport header + 1 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
 +
- # udp checksum 6666 drop
- ip test-ip4 input
-   [ payload load 1b @ network header + 9 => reg 1 ]
-@@ -167,6 +231,17 @@ ip test-ip4 input
-   [ cmp eq reg 1 0x00000a1a ]
-   [ immediate reg 0 drop ]
- 
-+# udp checksum != { 444, 555} accept
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 0000bc01  : 0 [end]	element 00002b02  : 0 [end]
-+ip test-ip4 input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udp checksum 22
- ip test-ip4 input
-   [ payload load 1b @ network header + 9 => reg 1 ]
-@@ -206,6 +281,16 @@ ip test-ip4 input
-   [ payload load 2b @ transport header + 6 => reg 1 ]
+ # ah hdrlength {11, 23, 44 }
+ __set%d test-ip4 3
+ __set%d test-ip4 0
+@@ -33,6 +43,16 @@ ip test-ip4 input
+   [ payload load 1b @ transport header + 1 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udp checksum != { 33, 55, 67, 88}
++# ah hdrlength != {11, 23, 44 }
 +__set%d test-ip4 3
 +__set%d test-ip4 0
-+	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
++	element 0000000b  : 0 [end]	element 00000017  : 0 [end]	element 0000002c  : 0 [end]
 +ip test-ip4 input
 +  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 1b @ transport header + 1 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
 +
- # udp checksum { 33-55}
+ # ah reserved 22
+ ip test-ip4 input
+   [ payload load 1b @ network header + 9 => reg 1 ]
+@@ -72,6 +92,16 @@ ip test-ip4 input
+   [ payload load 2b @ transport header + 2 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# ah reserved != {23, 100}
++__set%d test-ip4 3
++__set%d test-ip4 0
++	element 00001700  : 0 [end]	element 00006400  : 0 [end]
++ip test-ip4 input
++  [ payload load 1b @ network header + 9 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 2b @ transport header + 2 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # ah reserved { 33-55}
  __set%d test-ip4 7
  __set%d test-ip4 0
-@@ -216,6 +301,16 @@ ip test-ip4 input
-   [ payload load 2b @ transport header + 6 => reg 1 ]
+@@ -82,6 +112,16 @@ ip test-ip4 input
+   [ payload load 2b @ transport header + 2 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udp checksum != { 33-55}
++# ah reserved != { 33-55}
 +__set%d test-ip4 7
 +__set%d test-ip4 0
 +	element 00000000  : 1 [end]	element 00002100  : 0 [end]	element 00003800  : 1 [end]
 +ip test-ip4 input
 +  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 2b @ transport header + 2 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
 +
- # iif "lo" udp checksum set 0
+ # ah spi 111
  ip test-ip4 input
-   [ meta load iif => reg 1 ]
-diff --git a/tests/py/inet/udp.t.payload.ip6 b/tests/py/inet/udp.t.payload.ip6
-index 17b6679..af17e1c 100644
---- a/tests/py/inet/udp.t.payload.ip6
-+++ b/tests/py/inet/udp.t.payload.ip6
-@@ -42,6 +42,17 @@ ip6 test-ip6 input
+   [ payload load 1b @ network header + 9 => reg 1 ]
+@@ -121,6 +161,16 @@ ip test-ip4 input
+   [ payload load 4b @ transport header + 4 => reg 1 ]
    [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 drop ]
  
-+# udp sport != { 50, 60} accept
-+__set%d test-ip6 3
-+__set%d test-ip6 0
-+	element 00003200  : 0 [end]	element 00003c00  : 0 [end]
-+ip6 test-ip6 input 
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 0 => reg 1 ]
++# ah spi != {111, 122}
++__set%d test-ip4 3
++__set%d test-ip4 0
++	element 6f000000  : 0 [end]	element 7a000000  : 0 [end]
++ip test-ip4 input
++  [ payload load 1b @ network header + 9 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 4b @ transport header + 4 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
 +
- # udp sport { 12-40}
- __set%d test-ip6 7
- __set%d test-ip6 0
-@@ -52,6 +63,16 @@ ip6 test-ip6 input
-   [ payload load 2b @ transport header + 0 => reg 1 ]
+ # ah spi { 111-122}
+ __set%d test-ip4 7
+ __set%d test-ip4 0
+@@ -131,6 +181,16 @@ ip test-ip4 input
+   [ payload load 4b @ transport header + 4 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udp sport != { 13-24}
++# ah spi != { 111-122}
++__set%d test-ip4 7
++__set%d test-ip4 0
++	element 00000000  : 1 [end]	element 6f000000  : 0 [end]	element 7b000000  : 1 [end]
++ip test-ip4 input
++  [ payload load 1b @ network header + 9 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 4b @ transport header + 4 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # ah sequence 123
+ ip test-ip4 input
+   [ payload load 1b @ network header + 9 => reg 1 ]
+@@ -155,6 +215,16 @@ ip test-ip4 input
+   [ payload load 4b @ transport header + 8 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# ah sequence != {23, 25, 33}
++__set%d test-ip4 3
++__set%d test-ip4 0
++	element 17000000  : 0 [end]	element 19000000  : 0 [end]	element 21000000  : 0 [end]
++ip test-ip4 input
++  [ payload load 1b @ network header + 9 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 4b @ transport header + 8 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # ah sequence { 23-33}
+ __set%d test-ip4 7
+ __set%d test-ip4 0
+@@ -165,6 +235,16 @@ ip test-ip4 input
+   [ payload load 4b @ transport header + 8 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# ah sequence != { 23-33}
++__set%d test-ip4 7
++__set%d test-ip4 0
++	element 00000000  : 1 [end]	element 17000000  : 0 [end]	element 22000000  : 1 [end]
++ip test-ip4 input
++  [ payload load 1b @ network header + 9 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 4b @ transport header + 8 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # ah sequence 23-33
+ ip test-ip4 input
+   [ payload load 1b @ network header + 9 => reg 1 ]
+diff --git a/tests/py/inet/ah.t.payload.ip6 b/tests/py/inet/ah.t.payload.ip6
+index c57a28a..f12f0a0 100644
+--- a/tests/py/inet/ah.t.payload.ip6
++++ b/tests/py/inet/ah.t.payload.ip6
+@@ -23,6 +23,16 @@ ip6 test-ip6 input
+   [ payload load 1b @ transport header + 1 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# ah hdrlength != { 11-23}
 +__set%d test-ip6 7
 +__set%d test-ip6 0
-+	element 00000000  : 1 [end]	element 00000d00  : 0 [end]	element 00001900  : 1 [end]
-+ip6 test-ip6 input 
++	element 00000000  : 1 [end]	element 0000000b  : 0 [end]	element 00000018  : 1 [end]
++ip6 test-ip6 input
 +  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 1b @ transport header + 1 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
 +
- # udp dport 80 accept
- ip6 test-ip6 input 
-   [ payload load 1b @ network header + 6 => reg 1 ]
-@@ -96,6 +117,17 @@ ip6 test-ip6 input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 drop ]
- 
-+# udp dport != { 50, 60} accept
-+__set%d test-ip6 3
-+__set%d test-ip6 0
-+	element 00003200  : 0 [end]	element 00003c00  : 0 [end]
-+ip6 test-ip6 input 
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udp dport { 70-75} accept
- __set%d test-ip6 7
+ # ah hdrlength {11, 23, 44 }
+ __set%d test-ip6 3
  __set%d test-ip6 0
-@@ -107,6 +139,17 @@ ip6 test-ip6 input
+@@ -33,6 +43,16 @@ ip6 test-ip6 input
+   [ payload load 1b @ transport header + 1 => reg 1 ]
    [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 accept ]
  
-+# udp dport != { 50-60} accept
-+__set%d test-ip6 7
-+__set%d test-ip6 0
-+	element 00000000  : 1 [end]	element 00003200  : 0 [end]	element 00003d00  : 1 [end]
-+ip6 test-ip6 input 
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udp length 6666
- ip6 test-ip6 input 
-   [ payload load 1b @ network header + 6 => reg 1 ]
-@@ -149,6 +192,17 @@ ip6 test-ip6 input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 accept ]
- 
-+# udp length != { 50, 65} accept
++# ah hdrlength != {11, 23, 44 }
 +__set%d test-ip6 3
 +__set%d test-ip6 0
-+	element 00003200  : 0 [end]	element 00004100  : 0 [end]
-+ip6 test-ip6 input 
++	element 0000000b  : 0 [end]	element 00000017  : 0 [end]	element 0000002c  : 0 [end]
++ip6 test-ip6 input
 +  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 4 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udp length { 35-50}
- __set%d test-ip6 7
- __set%d test-ip6 0
-@@ -159,6 +213,16 @@ ip6 test-ip6 input
-   [ payload load 2b @ transport header + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
-+# udp length != { 35-50}
-+__set%d test-ip6 7
-+__set%d test-ip6 0
-+	element 00000000  : 1 [end]	element 00002300  : 0 [end]	element 00003300  : 1 [end]
-+ip6 test-ip6 input 
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 4 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 1b @ transport header + 1 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
 +
- # udp checksum 6666 drop
- ip6 test-ip6 input 
-   [ payload load 1b @ network header + 6 => reg 1 ]
-@@ -167,6 +231,17 @@ ip6 test-ip6 input
-   [ cmp eq reg 1 0x00000a1a ]
-   [ immediate reg 0 drop ]
- 
-+# udp checksum != { 444, 555} accept
-+__set%d test-ip6 3
-+__set%d test-ip6 0
-+	element 0000bc01  : 0 [end]	element 00002b02  : 0 [end]
-+ip6 test-ip6 input 
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udp checksum 22
- ip6 test-ip6 input 
-   [ payload load 1b @ network header + 6 => reg 1 ]
-@@ -206,6 +281,16 @@ ip6 test-ip6 input
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
-+# udp checksum != { 33, 55, 67, 88}
-+__set%d test-ip6 3
-+__set%d test-ip6 0
-+	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
-+ip6 test-ip6 input 
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+
- # udp checksum { 33-55}
- __set%d test-ip6 7
- __set%d test-ip6 0
-@@ -216,6 +301,16 @@ ip6 test-ip6 input
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
-+# udp checksum != { 33-55}
-+__set%d test-ip6 7
-+__set%d test-ip6 0
-+	element 00000000  : 1 [end]	element 00002100  : 0 [end]	element 00003800  : 1 [end]
-+ip6 test-ip6 input 
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+
- # iif "lo" udp checksum set 0
+ # ah reserved 22
  ip6 test-ip6 input
-   [ meta load iif => reg 1 ]
-diff --git a/tests/py/inet/udp.t.payload.netdev b/tests/py/inet/udp.t.payload.netdev
-index 9e93ae4..832c913 100644
---- a/tests/py/inet/udp.t.payload.netdev
-+++ b/tests/py/inet/udp.t.payload.netdev
-@@ -42,6 +42,17 @@ inet test-inet input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 drop ]
- 
-+# udp sport != { 50, 60} accept
-+__set%d test-inet 3
-+__set%d test-inet 0
-+	element 00003200  : 0 [end]	element 00003c00  : 0 [end]
-+inet test-inet input 
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udp sport { 12-40}
- __set%d test-inet 7
- __set%d test-inet 0
-@@ -52,6 +63,16 @@ inet test-inet input
-   [ payload load 2b @ transport header + 0 => reg 1 ]
+   [ payload load 1b @ network header + 6 => reg 1 ]
+@@ -72,6 +92,16 @@ ip6 test-ip6 input
+   [ payload load 2b @ transport header + 2 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udp sport != { 13-24}
-+__set%d test-inet 7
-+__set%d test-inet 0
-+	element 00000000  : 1 [end]	element 00000d00  : 0 [end]	element 00001900  : 1 [end]
-+inet test-inet input 
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+
- # udp dport 80 accept
- inet test-inet input 
-   [ meta load l4proto => reg 1 ]
-@@ -96,6 +117,17 @@ inet test-inet input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 drop ]
- 
-+# udp dport != { 50, 60} accept
-+__set%d test-inet 3
-+__set%d test-inet 0
-+	element 00003200  : 0 [end]	element 00003c00  : 0 [end]
-+inet test-inet input 
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
++# ah reserved != {23, 100}
++__set%d test-ip6 3
++__set%d test-ip6 0
++	element 00001700  : 0 [end]	element 00006400  : 0 [end]
++ip6 test-ip6 input
++  [ payload load 1b @ network header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
 +  [ payload load 2b @ transport header + 2 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
 +
- # udp dport { 70-75} accept
- __set%d test-inet 7
- __set%d test-inet 0
-@@ -107,6 +139,17 @@ inet test-inet input
+ # ah reserved { 33-55}
+ __set%d test-ip6 7
+ __set%d test-ip6 0
+@@ -82,6 +112,16 @@ ip6 test-ip6 input
+   [ payload load 2b @ transport header + 2 => reg 1 ]
    [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 accept ]
  
-+# udp dport != { 50-60} accept
-+__set%d test-inet 7
-+__set%d test-inet 0
-+	element 00000000  : 1 [end]	element 00003200  : 0 [end]	element 00003d00  : 1 [end]
-+inet test-inet input 
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
++# ah reserved != { 33-55}
++__set%d test-ip6 7
++__set%d test-ip6 0
++	element 00000000  : 1 [end]	element 00002100  : 0 [end]	element 00003800  : 1 [end]
++ip6 test-ip6 input
++  [ payload load 1b @ network header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
 +  [ payload load 2b @ transport header + 2 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
 +
- # udp length 6666
- inet test-inet input 
-   [ meta load l4proto => reg 1 ]
-@@ -149,6 +192,17 @@ inet test-inet input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 accept ]
- 
-+# udp length != { 50, 65} accept
-+__set%d test-inet 3
-+__set%d test-inet 0
-+	element 00003200  : 0 [end]	element 00004100  : 0 [end]
-+inet test-inet input 
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 4 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udp length { 35-50}
- __set%d test-inet 7
- __set%d test-inet 0
-@@ -159,6 +213,16 @@ inet test-inet input
-   [ payload load 2b @ transport header + 4 => reg 1 ]
+ # ah spi 111
+ ip6 test-ip6 input
+   [ payload load 1b @ network header + 6 => reg 1 ]
+@@ -121,6 +161,16 @@ ip6 test-ip6 input
+   [ payload load 4b @ transport header + 4 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udp length != { 35-50}
-+__set%d test-inet 7
-+__set%d test-inet 0
-+	element 00000000  : 1 [end]	element 00002300  : 0 [end]	element 00003300  : 1 [end]
-+inet test-inet input 
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 4 => reg 1 ]
++# ah spi != {111, 122}
++__set%d test-ip6 3
++__set%d test-ip6 0
++	element 6f000000  : 0 [end]	element 7a000000  : 0 [end]
++ip6 test-ip6 input
++  [ payload load 1b @ network header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 4b @ transport header + 4 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
 +
- # udp checksum 6666 drop
- inet test-inet input 
-   [ meta load l4proto => reg 1 ]
-@@ -167,6 +231,17 @@ inet test-inet input
-   [ cmp eq reg 1 0x00000a1a ]
-   [ immediate reg 0 drop ]
+ # ah spi { 111-122}
+ __set%d test-ip6 7
+ __set%d test-ip6 0
+@@ -131,6 +181,16 @@ ip6 test-ip6 input
+   [ payload load 4b @ transport header + 4 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
  
-+# udp checksum != { 444, 555} accept
-+__set%d test-netdev 3
++# ah spi != { 111-122}
++__set%d test-ip6 7
++__set%d test-ip6 0
++	element 00000000  : 1 [end]	element 6f000000  : 0 [end]	element 7b000000  : 1 [end]
++ip6 test-ip6 input
++  [ payload load 1b @ network header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 4b @ transport header + 4 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # ah sequence 123
+ ip6 test-ip6 input
+   [ payload load 1b @ network header + 6 => reg 1 ]
+@@ -155,6 +215,16 @@ ip6 test-ip6 input
+   [ payload load 4b @ transport header + 8 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# ah sequence != {23, 25, 33}
++__set%d test-ip6 3
++__set%d test-ip6 0
++	element 17000000  : 0 [end]	element 19000000  : 0 [end]	element 21000000  : 0 [end]
++ip6 test-ip6 input
++  [ payload load 1b @ network header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 4b @ transport header + 8 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # ah sequence { 23-33}
+ __set%d test-ip6 7
+ __set%d test-ip6 0
+@@ -165,6 +235,16 @@ ip6 test-ip6 input
+   [ payload load 4b @ transport header + 8 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# ah sequence != { 23-33}
++__set%d test-ip6 7
++__set%d test-ip6 0
++	element 00000000  : 1 [end]	element 17000000  : 0 [end]	element 22000000  : 1 [end]
++ip6 test-ip6 input
++  [ payload load 1b @ network header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 4b @ transport header + 8 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # ah sequence 23-33
+ ip6 test-ip6 input
+   [ payload load 1b @ network header + 6 => reg 1 ]
+diff --git a/tests/py/inet/ah.t.payload.netdev b/tests/py/inet/ah.t.payload.netdev
+index e06811d..af15096 100644
+--- a/tests/py/inet/ah.t.payload.netdev
++++ b/tests/py/inet/ah.t.payload.netdev
+@@ -23,6 +23,16 @@ netdev test-netdev ingress
+   [ payload load 1b @ transport header + 1 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# ah hdrlength != { 11-23}
++__set%d test-netdev 7
 +__set%d test-netdev 0
-+	element 0000bc01  : 0 [end]	element 00002b02  : 0 [end]
++	element 00000000  : 1 [end]	element 0000000b  : 0 [end]	element 00000018  : 1 [end]
 +netdev test-netdev ingress 
 +  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 1b @ transport header + 1 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
 +
- # udp checksum 22
- inet test-inet input 
-   [ meta load l4proto => reg 1 ]
-@@ -206,6 +281,16 @@ inet test-inet input
-   [ payload load 2b @ transport header + 6 => reg 1 ]
+ # ah hdrlength {11, 23, 44 }
+ __set%d test-netdev 3
+ __set%d test-netdev 0
+@@ -33,6 +43,16 @@ netdev test-netdev ingress
+   [ payload load 1b @ transport header + 1 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udp checksum != { 33, 55, 67, 88}
++# ah hdrlength != {11, 23, 44 }
++__set%d test-netdev 3
++__set%d test-netdev 0
++	element 0000000b  : 0 [end]	element 00000017  : 0 [end]	element 0000002c  : 0 [end]
++netdev test-netdev ingress 
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 1b @ transport header + 1 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # ah reserved 22
+ netdev test-netdev ingress 
+   [ meta load l4proto => reg 1 ]
+@@ -72,6 +92,16 @@ netdev test-netdev ingress
+   [ payload load 2b @ transport header + 2 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# ah reserved != {23, 100}
++__set%d test-netdev 3
++__set%d test-netdev 0
++	element 00001700  : 0 [end]	element 00006400  : 0 [end]
++netdev test-netdev ingress 
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 2b @ transport header + 2 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # ah reserved { 33-55}
+ __set%d test-netdev 7
+ __set%d test-netdev 0
+@@ -82,6 +112,16 @@ netdev test-netdev ingress
+   [ payload load 2b @ transport header + 2 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# ah reserved != { 33-55}
++__set%d test-netdev 7
++__set%d test-netdev 0
++	element 00000000  : 1 [end]	element 00002100  : 0 [end]	element 00003800  : 1 [end]
++netdev test-netdev ingress 
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 2b @ transport header + 2 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # ah spi 111
+ netdev test-netdev ingress 
+   [ meta load l4proto => reg 1 ]
+@@ -121,6 +161,16 @@ netdev test-netdev ingress
+   [ payload load 4b @ transport header + 4 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# ah spi != {111, 122}
++__set%d test-netdev 3
++__set%d test-netdev 0
++	element 6f000000  : 0 [end]	element 7a000000  : 0 [end]
++netdev test-netdev ingress 
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 4b @ transport header + 4 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # ah spi { 111-122}
+ __set%d test-netdev 7
+ __set%d test-netdev 0
+@@ -131,6 +181,16 @@ netdev test-netdev ingress
+   [ payload load 4b @ transport header + 4 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# ah spi != { 111-122}
++__set%d test-netdev 7
++__set%d test-netdev 0
++	element 00000000  : 1 [end]	element 6f000000  : 0 [end]	element 7b000000  : 1 [end]
++netdev test-netdev ingress 
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 4b @ transport header + 4 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # ah sequence 123
+ netdev test-netdev ingress 
+   [ meta load l4proto => reg 1 ]
+@@ -155,6 +215,16 @@ netdev test-netdev ingress
+   [ payload load 4b @ transport header + 8 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# ah sequence != {23, 25, 33}
++__set%d test-netdev 3
++__set%d test-netdev 0
++	element 17000000  : 0 [end]	element 19000000  : 0 [end]	element 21000000  : 0 [end]
++netdev test-netdev ingress 
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 4b @ transport header + 8 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # ah sequence { 23-33}
+ __set%d test-netdev 7
+ __set%d test-netdev 0
+@@ -165,6 +235,16 @@ netdev test-netdev ingress
+   [ payload load 4b @ transport header + 8 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# ah sequence != { 23-33}
++__set%d test-netdev 7
++__set%d test-netdev 0
++	element 00000000  : 1 [end]	element 17000000  : 0 [end]	element 22000000  : 1 [end]
++netdev test-netdev ingress 
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000033 ]
++  [ payload load 4b @ transport header + 8 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # ah sequence 23-33
+ netdev test-netdev ingress 
+   [ meta load l4proto => reg 1 ]
+diff --git a/tests/py/inet/comp.t b/tests/py/inet/comp.t
+index 654e712..0df1813 100644
+--- a/tests/py/inet/comp.t
++++ b/tests/py/inet/comp.t
+@@ -19,15 +19,15 @@ comp flags != 0x23;ok
+ comp flags 0x33-0x45;ok
+ comp flags != 0x33-0x45;ok
+ comp flags {0x33, 0x55, 0x67, 0x88};ok
+-- comp flags != {0x33, 0x55, 0x67, 0x88};ok
++comp flags != {0x33, 0x55, 0x67, 0x88};ok
+ comp flags { 0x33-0x55};ok
+-- comp flags != { 0x33-0x55};ok
++comp flags != { 0x33-0x55};ok
+ 
+ comp cpi 22;ok
+ comp cpi != 233;ok
+ comp cpi 33-45;ok
+ comp cpi != 33-45;ok
+ comp cpi {33, 55, 67, 88};ok
+-- comp cpi != {33, 55, 67, 88};ok
++comp cpi != {33, 55, 67, 88};ok
+ comp cpi { 33-55};ok
+-- comp cpi != { 33-55};ok
++comp cpi != { 33-55};ok
+diff --git a/tests/py/inet/comp.t.payload.inet b/tests/py/inet/comp.t.payload.inet
+index cdeba2b..dec38ae 100644
+--- a/tests/py/inet/comp.t.payload.inet
++++ b/tests/py/inet/comp.t.payload.inet
+@@ -44,6 +44,16 @@ inet test-inet input
+   [ payload load 1b @ transport header + 1 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# comp flags != {0x33, 0x55, 0x67, 0x88}
++__set%d test-inet 3
++__set%d test-inet 0
++	element 00000033  : 0 [end]	element 00000055  : 0 [end]	element 00000067  : 0 [end]	element 00000088  : 0 [end]
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x0000006c ]
++  [ payload load 1b @ transport header + 1 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # comp flags { 0x33-0x55}
+ __set%d test-inet 7
+ __set%d test-inet 0
+@@ -54,6 +64,16 @@ inet test-inet input
+   [ payload load 1b @ transport header + 1 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# comp flags != { 0x33-0x55}
++__set%d test-inet 7
++__set%d test-inet 0
++	element 00000000  : 1 [end]	element 00000033  : 0 [end]	element 00000056  : 1 [end]
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x0000006c ]
++  [ payload load 1b @ transport header + 1 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # comp cpi 22
+ inet test-inet input
+   [ meta load l4proto => reg 1 ]
+@@ -93,6 +113,16 @@ inet test-inet input
+   [ payload load 2b @ transport header + 2 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# comp cpi != {33, 55, 67, 88}
 +__set%d test-inet 3
 +__set%d test-inet 0
 +	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
-+inet test-inet input 
++inet test-inet input
 +  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x0000006c ]
++  [ payload load 2b @ transport header + 2 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
 +
- # udp checksum { 33-55}
+ # comp cpi { 33-55}
  __set%d test-inet 7
  __set%d test-inet 0
-@@ -216,6 +301,16 @@ inet test-inet input
-   [ payload load 2b @ transport header + 6 => reg 1 ]
+@@ -103,3 +133,13 @@ inet test-inet input
+   [ payload load 2b @ transport header + 2 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udp checksum != { 33-55}
++# comp cpi != { 33-55}
 +__set%d test-inet 7
 +__set%d test-inet 0
 +	element 00000000  : 1 [end]	element 00002100  : 0 [end]	element 00003800  : 1 [end]
-+inet test-inet input 
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+
- # iif "lo" udp checksum set 0
- netdev test-netdev ingress
-   [ meta load iif => reg 1 ]
-diff --git a/tests/py/inet/udplite.t b/tests/py/inet/udplite.t
-index 2800036..7c22acb 100644
---- a/tests/py/inet/udplite.t
-+++ b/tests/py/inet/udplite.t
-@@ -11,18 +11,18 @@ udplite sport != 60 accept;ok
- udplite sport 50-70 accept;ok
- udplite sport != 50-60 accept;ok
- udplite sport { 49, 50} drop;ok
--- udplite sport != { 50, 60} accept;ok
-+udplite sport != { 49, 50} accept;ok
- udplite sport { 12-40};ok
--- udplite sport != { 13-24};ok
-+udplite sport != { 12-40};ok
- 
- udplite dport 80 accept;ok
- udplite dport != 60 accept;ok
- udplite dport 70-75 accept;ok
- udplite dport != 50-60 accept;ok
- udplite dport { 49, 50} drop;ok
--- udplite dport != { 50, 60} accept;ok
-+udplite dport != { 49, 50} accept;ok
- udplite dport { 70-75} accept;ok
--- udplite dport != { 50-60} accept;ok
-+udplite dport != { 70-75} accept;ok
- 
- - udplite csumcov 6666;ok
- - udplite csumcov != 6666;ok
-@@ -34,12 +34,12 @@ udplite dport { 70-75} accept;ok
- - udplite csumcov != { 35-50};ok
- 
- udplite checksum 6666 drop;ok
--- udplite checksum != { 444, 555} accept;ok
-+udplite checksum != { 444, 555} accept;ok
- udplite checksum 22;ok
- udplite checksum != 233;ok
- udplite checksum 33-45;ok
- udplite checksum != 33-45;ok
- udplite checksum { 33, 55, 67, 88};ok
--- udplite checksum != { 33, 55, 67, 88};ok
-+udplite checksum != { 33, 55, 67, 88};ok
- udplite checksum { 33-55};ok
--- udplite checksum != { 33-55};ok
-+udplite checksum != { 33-55};ok
-diff --git a/tests/py/inet/udplite.t.payload.inet b/tests/py/inet/udplite.t.payload.inet
-index ad2c970..eb3dc07 100644
---- a/tests/py/inet/udplite.t.payload.inet
-+++ b/tests/py/inet/udplite.t.payload.inet
-@@ -42,6 +42,17 @@ inet test-inet input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 drop ]
- 
-+# udplite sport != { 49, 50} accept
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00003100  : 0 [end]	element 00003200  : 0 [end]
 +inet test-inet input
 +  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udplite sport { 12-40}
- __set%d test-ip4 7
- __set%d test-ip4 0
-@@ -52,6 +63,16 @@ inet test-inet input
-   [ payload load 2b @ transport header + 0 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
-+# udplite sport != { 12-40}
-+__set%d test-ip4 7
-+__set%d test-ip4 0
-+	element 00000000  : 1 [end]	element 00000c00  : 0 [end]	element 00002900  : 1 [end]
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+
- # udplite dport 80 accept
- inet test-inet input
-   [ meta load l4proto => reg 1 ]
-@@ -96,6 +117,17 @@ inet test-inet input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 drop ]
- 
-+# udplite dport != { 49, 50} accept
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00003100  : 0 [end]	element 00003200  : 0 [end]
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
++  [ cmp eq reg 1 0x0000006c ]
 +  [ payload load 2b @ transport header + 2 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
 +
- # udplite dport { 70-75} accept
- __set%d test-ip4 7
- __set%d test-ip4 0
-@@ -107,6 +139,17 @@ inet test-inet input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 accept ]
- 
-+# udplite dport != { 70-75} accept
-+__set%d test-ip4 7
-+__set%d test-ip4 0
-+	element 00000000  : 1 [end]	element 00004600  : 0 [end]	element 00004c00  : 1 [end]
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udplite checksum 6666 drop
- inet test-inet input
-   [ meta load l4proto => reg 1 ]
-@@ -115,6 +158,17 @@ inet test-inet input
-   [ cmp eq reg 1 0x00000a1a ]
-   [ immediate reg 0 drop ]
- 
-+# udplite checksum != { 444, 555} accept
-+__set%d test-inet 3
-+__set%d test-inet 0
-+	element 0000bc01  : 0 [end]	element 00002b02  : 0 [end]
-+inet test-inet input 
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udplite checksum 22
- inet test-inet input
-   [ meta load l4proto => reg 1 ]
-@@ -154,6 +208,16 @@ inet test-inet input
-   [ payload load 2b @ transport header + 6 => reg 1 ]
+diff --git a/tests/py/inet/comp.t.payload.ip b/tests/py/inet/comp.t.payload.ip
+index 9da8f94..9a6194e 100644
+--- a/tests/py/inet/comp.t.payload.ip
++++ b/tests/py/inet/comp.t.payload.ip
+@@ -44,6 +44,16 @@ ip test-ip4 input
+   [ payload load 1b @ transport header + 1 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udplite checksum != { 33, 55, 67, 88}
++# comp flags != {0x33, 0x55, 0x67, 0x88}
 +__set%d test-ip4 3
 +__set%d test-ip4 0
-+	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+
- # udplite checksum { 33-55}
- __set%d test-ip4 7
- __set%d test-ip4 0
-@@ -164,3 +228,13 @@ inet test-inet input
-   [ payload load 2b @ transport header + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
-+# udplite checksum != { 33-55}
-+__set%d test-ip4 7
-+__set%d test-ip4 0
-+	element 00000000  : 1 [end]	element 00002100  : 0 [end]	element 00003800  : 1 [end]
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+
-diff --git a/tests/py/inet/udplite.t.payload.ip b/tests/py/inet/udplite.t.payload.ip
-index 8321c23..c1ecc9d 100644
---- a/tests/py/inet/udplite.t.payload.ip
-+++ b/tests/py/inet/udplite.t.payload.ip
-@@ -42,6 +42,17 @@ ip test-ip4 input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 drop ]
- 
-+# udplite sport != { 49, 50} accept
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00003100  : 0 [end]	element 00003200  : 0 [end]
++	element 00000033  : 0 [end]	element 00000055  : 0 [end]	element 00000067  : 0 [end]	element 00000088  : 0 [end]
 +ip test-ip4 input
 +  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x0000006c ]
++  [ payload load 1b @ transport header + 1 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
 +
- # udplite sport { 12-40}
+ # comp flags { 0x33-0x55}
  __set%d test-ip4 7
  __set%d test-ip4 0
-@@ -52,6 +63,16 @@ ip test-ip4 input
-   [ payload load 2b @ transport header + 0 => reg 1 ]
+@@ -54,6 +64,16 @@ ip test-ip4 input
+   [ payload load 1b @ transport header + 1 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udplite sport != { 12-40}
++# comp flags != { 0x33-0x55}
 +__set%d test-ip4 7
 +__set%d test-ip4 0
-+	element 00000000  : 1 [end]	element 00000c00  : 0 [end]	element 00002900  : 1 [end]
++	element 00000000  : 1 [end]	element 00000033  : 0 [end]	element 00000056  : 1 [end]
 +ip test-ip4 input
 +  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x0000006c ]
++  [ payload load 1b @ transport header + 1 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
 +
- # udplite dport 80 accept
+ # comp cpi 22
  ip test-ip4 input
    [ payload load 1b @ network header + 9 => reg 1 ]
-@@ -96,6 +117,17 @@ ip test-ip4 input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 drop ]
- 
-+# udplite dport != { 49, 50} accept
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00003100  : 0 [end]	element 00003200  : 0 [end]
-+ip test-ip4 input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udplite dport { 70-75} accept
- __set%d test-ip4 7
- __set%d test-ip4 0
-@@ -107,6 +139,17 @@ ip test-ip4 input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 accept ]
- 
-+# udplite dport != { 70-75} accept
-+__set%d test-ip4 7
-+__set%d test-ip4 0
-+	element 00000000  : 1 [end]	element 00004600  : 0 [end]	element 00004c00  : 1 [end]
-+ip test-ip4 input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udplite checksum 6666 drop
- ip test-ip4 input
-   [ payload load 1b @ network header + 9 => reg 1 ]
-@@ -115,6 +158,17 @@ ip test-ip4 input
-   [ cmp eq reg 1 0x00000a1a ]
-   [ immediate reg 0 drop ]
- 
-+# udplite checksum != { 444, 555} accept
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 0000bc01  : 0 [end]	element 00002b02  : 0 [end]
-+ip test-ip4 input 
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udplite checksum 22
- ip test-ip4 input
-   [ payload load 1b @ network header + 9 => reg 1 ]
-@@ -154,6 +208,16 @@ ip test-ip4 input
-   [ payload load 2b @ transport header + 6 => reg 1 ]
+@@ -93,6 +113,16 @@ ip test-ip4 input
+   [ payload load 2b @ transport header + 2 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udplite checksum != { 33, 55, 67, 88}
++# comp cpi != {33, 55, 67, 88}
 +__set%d test-ip4 3
 +__set%d test-ip4 0
 +	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
 +ip test-ip4 input
 +  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x0000006c ]
++  [ payload load 2b @ transport header + 2 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
 +
- # udplite checksum { 33-55}
+ # comp cpi { 33-55}
  __set%d test-ip4 7
  __set%d test-ip4 0
-@@ -164,3 +228,13 @@ ip test-ip4 input
-   [ payload load 2b @ transport header + 6 => reg 1 ]
+@@ -103,3 +133,13 @@ ip test-ip4 input
+   [ payload load 2b @ transport header + 2 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udplite checksum != { 33-55}
++# comp cpi != { 33-55}
 +__set%d test-ip4 7
 +__set%d test-ip4 0
 +	element 00000000  : 1 [end]	element 00002100  : 0 [end]	element 00003800  : 1 [end]
 +ip test-ip4 input
 +  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+
-diff --git a/tests/py/inet/udplite.t.payload.ip6 b/tests/py/inet/udplite.t.payload.ip6
-index dce215d..47f25cd 100644
---- a/tests/py/inet/udplite.t.payload.ip6
-+++ b/tests/py/inet/udplite.t.payload.ip6
-@@ -42,6 +42,17 @@ ip6 test-ip6 input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 drop ]
- 
-+# udplite sport != { 49, 50} accept
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00003100  : 0 [end]	element 00003200  : 0 [end]
-+ip6 test-ip6 input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udplite sport { 12-40}
- __set%d test-ip4 7
- __set%d test-ip4 0
-@@ -52,6 +63,16 @@ ip6 test-ip6 input
-   [ payload load 2b @ transport header + 0 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
-+# udplite sport != { 12-40}
-+__set%d test-ip4 7
-+__set%d test-ip4 0
-+	element 00000000  : 1 [end]	element 00000c00  : 0 [end]	element 00002900  : 1 [end]
-+ip6 test-ip6 input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+
- # udplite dport 80 accept
- ip6 test-ip6 input
-   [ payload load 1b @ network header + 6 => reg 1 ]
-@@ -96,6 +117,17 @@ ip6 test-ip6 input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 drop ]
- 
-+# udplite dport != { 49, 50} accept
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00003100  : 0 [end]	element 00003200  : 0 [end]
-+ip6 test-ip6 input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
++  [ cmp eq reg 1 0x0000006c ]
 +  [ payload load 2b @ transport header + 2 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
 +
- # udplite dport { 70-75} accept
- __set%d test-ip4 7
- __set%d test-ip4 0
-@@ -107,6 +139,17 @@ ip6 test-ip6 input
+diff --git a/tests/py/inet/comp.t.payload.ip6 b/tests/py/inet/comp.t.payload.ip6
+index 69a13ed..a325d8c 100644
+--- a/tests/py/inet/comp.t.payload.ip6
++++ b/tests/py/inet/comp.t.payload.ip6
+@@ -44,6 +44,16 @@ ip6 test-ip6 input
+   [ payload load 1b @ transport header + 1 => reg 1 ]
    [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 accept ]
  
-+# udplite dport != { 70-75} accept
-+__set%d test-ip4 7
-+__set%d test-ip4 0
-+	element 00000000  : 1 [end]	element 00004600  : 0 [end]	element 00004c00  : 1 [end]
-+ip6 test-ip6 input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udplite checksum 6666 drop
- ip6 test-ip6 input
-   [ payload load 1b @ network header + 6 => reg 1 ]
-@@ -115,6 +158,17 @@ ip6 test-ip6 input
-   [ cmp eq reg 1 0x00000a1a ]
-   [ immediate reg 0 drop ]
- 
-+# udplite checksum != { 444, 555} accept
++# comp flags != {0x33, 0x55, 0x67, 0x88}
 +__set%d test-ip6 3
 +__set%d test-ip6 0
-+	element 0000bc01  : 0 [end]	element 00002b02  : 0 [end]
-+ip6 test-ip6 input 
++	element 00000033  : 0 [end]	element 00000055  : 0 [end]	element 00000067  : 0 [end]	element 00000088  : 0 [end]
++ip6 test-ip6 input
 +  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x0000006c ]
++  [ payload load 1b @ transport header + 1 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
 +
- # udplite checksum 22
+ # comp flags { 0x33-0x55}
+ __set%d test-ip6 7
+ __set%d test-ip6 0
+@@ -54,6 +64,16 @@ ip6 test-ip6 input
+   [ payload load 1b @ transport header + 1 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# comp flags != { 0x33-0x55}
++__set%d test-ip6 7
++__set%d test-ip6 0
++	element 00000000  : 1 [end]	element 00000033  : 0 [end]	element 00000056  : 1 [end]
++ip6 test-ip6 input
++  [ payload load 1b @ network header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x0000006c ]
++  [ payload load 1b @ transport header + 1 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # comp cpi 22
  ip6 test-ip6 input
    [ payload load 1b @ network header + 6 => reg 1 ]
-@@ -154,6 +208,16 @@ ip6 test-ip6 input
-   [ payload load 2b @ transport header + 6 => reg 1 ]
+@@ -93,6 +113,16 @@ ip6 test-ip6 input
+   [ payload load 2b @ transport header + 2 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udplite checksum != { 33, 55, 67, 88}
-+__set%d test-ip4 3
-+__set%d test-ip4 0
++# comp cpi != {33, 55, 67, 88}
++__set%d test-ip6 3
++__set%d test-ip6 0
 +	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
 +ip6 test-ip6 input
 +  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x0000006c ]
++  [ payload load 2b @ transport header + 2 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
 +
- # udplite checksum { 33-55}
- __set%d test-ip4 7
- __set%d test-ip4 0
-@@ -164,3 +228,13 @@ ip6 test-ip6 input
-   [ payload load 2b @ transport header + 6 => reg 1 ]
+ # comp cpi { 33-55}
+ __set%d test-ip6 7
+ __set%d test-ip6 0
+@@ -103,3 +133,13 @@ ip6 test-ip6 input
+   [ payload load 2b @ transport header + 2 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udplite checksum != { 33-55}
-+__set%d test-ip4 7
-+__set%d test-ip4 0
++# comp cpi != { 33-55}
++__set%d test-ip6 7
++__set%d test-ip6 0
 +	element 00000000  : 1 [end]	element 00002100  : 0 [end]	element 00003800  : 1 [end]
 +ip6 test-ip6 input
 +  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+
-diff --git a/tests/py/inet/udplite.t.payload.netdev b/tests/py/inet/udplite.t.payload.netdev
-index ad2c970..565935a 100644
---- a/tests/py/inet/udplite.t.payload.netdev
-+++ b/tests/py/inet/udplite.t.payload.netdev
-@@ -42,6 +42,17 @@ inet test-inet input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 drop ]
- 
-+# udplite sport != { 49, 50} accept
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00003100  : 0 [end]	element 00003200  : 0 [end]
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udplite sport { 12-40}
- __set%d test-ip4 7
- __set%d test-ip4 0
-@@ -52,6 +63,16 @@ inet test-inet input
-   [ payload load 2b @ transport header + 0 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
- 
-+# udplite sport != { 12-40}
-+__set%d test-ip4 7
-+__set%d test-ip4 0
-+	element 00000000  : 1 [end]	element 00000c00  : 0 [end]	element 00002900  : 1 [end]
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 0 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+
- # udplite dport 80 accept
- inet test-inet input
-   [ meta load l4proto => reg 1 ]
-@@ -96,6 +117,17 @@ inet test-inet input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 drop ]
- 
-+# udplite dport != { 49, 50} accept
-+__set%d test-ip4 3
-+__set%d test-ip4 0
-+	element 00003100  : 0 [end]	element 00003200  : 0 [end]
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
++  [ cmp eq reg 1 0x0000006c ]
 +  [ payload load 2b @ transport header + 2 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
 +
- # udplite dport { 70-75} accept
- __set%d test-ip4 7
- __set%d test-ip4 0
-@@ -107,6 +139,17 @@ inet test-inet input
+diff --git a/tests/py/inet/comp.t.payload.netdev b/tests/py/inet/comp.t.payload.netdev
+index cdeba2b..dec38ae 100644
+--- a/tests/py/inet/comp.t.payload.netdev
++++ b/tests/py/inet/comp.t.payload.netdev
+@@ -44,6 +44,16 @@ inet test-inet input
+   [ payload load 1b @ transport header + 1 => reg 1 ]
    [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 accept ]
  
-+# udplite dport != { 70-75} accept
-+__set%d test-ip4 7
-+__set%d test-ip4 0
-+	element 00000000  : 1 [end]	element 00004600  : 0 [end]	element 00004c00  : 1 [end]
++# comp flags != {0x33, 0x55, 0x67, 0x88}
++__set%d test-inet 3
++__set%d test-inet 0
++	element 00000033  : 0 [end]	element 00000055  : 0 [end]	element 00000067  : 0 [end]	element 00000088  : 0 [end]
 +inet test-inet input
 +  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
++  [ cmp eq reg 1 0x0000006c ]
++  [ payload load 1b @ transport header + 1 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
 +
- # udplite checksum 6666 drop
- inet test-inet input
-   [ meta load l4proto => reg 1 ]
-@@ -115,6 +158,17 @@ inet test-inet input
-   [ cmp eq reg 1 0x00000a1a ]
-   [ immediate reg 0 drop ]
- 
-+# udplite checksum != { 444, 555} accept
-+__set%d test-netdev 3
-+__set%d test-netdev 0
-+	element 0000bc01  : 0 [end]	element 00002b02  : 0 [end]
-+netdev test-netdev ingress 
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
-+  [ lookup reg 1 set __set%d 0x1 ]
-+  [ immediate reg 0 accept ]
-+
- # udplite checksum 22
- inet test-inet input
-   [ meta load l4proto => reg 1 ]
-@@ -154,6 +208,16 @@ inet test-inet input
-   [ payload load 2b @ transport header + 6 => reg 1 ]
+ # comp flags { 0x33-0x55}
+ __set%d test-inet 7
+ __set%d test-inet 0
+@@ -54,6 +64,16 @@ inet test-inet input
+   [ payload load 1b @ transport header + 1 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udplite checksum != { 33, 55, 67, 88}
-+__set%d test-ip4 3
-+__set%d test-ip4 0
++# comp flags != { 0x33-0x55}
++__set%d test-inet 7
++__set%d test-inet 0
++	element 00000000  : 1 [end]	element 00000033  : 0 [end]	element 00000056  : 1 [end]
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x0000006c ]
++  [ payload load 1b @ transport header + 1 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # comp cpi 22
+ inet test-inet input
+   [ meta load l4proto => reg 1 ]
+@@ -93,6 +113,16 @@ inet test-inet input
+   [ payload load 2b @ transport header + 2 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# comp cpi != {33, 55, 67, 88}
++__set%d test-inet 3
++__set%d test-inet 0
 +	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
 +inet test-inet input
 +  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x0000006c ]
++  [ payload load 2b @ transport header + 2 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
 +
- # udplite checksum { 33-55}
- __set%d test-ip4 7
- __set%d test-ip4 0
-@@ -164,3 +228,13 @@ inet test-inet input
-   [ payload load 2b @ transport header + 6 => reg 1 ]
+ # comp cpi { 33-55}
+ __set%d test-inet 7
+ __set%d test-inet 0
+@@ -103,3 +133,13 @@ inet test-inet input
+   [ payload load 2b @ transport header + 2 => reg 1 ]
    [ lookup reg 1 set __set%d ]
  
-+# udplite checksum != { 33-55}
-+__set%d test-ip4 7
-+__set%d test-ip4 0
++# comp cpi != { 33-55}
++__set%d test-inet 7
++__set%d test-inet 0
 +	element 00000000  : 1 [end]	element 00002100  : 0 [end]	element 00003800  : 1 [end]
 +inet test-inet input
 +  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000088 ]
-+  [ payload load 2b @ transport header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x0000006c ]
++  [ payload load 2b @ transport header + 2 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+diff --git a/tests/py/inet/esp.t b/tests/py/inet/esp.t
+index f822da7..e79eead 100644
+--- a/tests/py/inet/esp.t
++++ b/tests/py/inet/esp.t
+@@ -11,7 +11,7 @@ esp spi != 100;ok
+ esp spi 111-222;ok
+ esp spi != 111-222;ok
+ esp spi { 100, 102};ok
+-- esp spi != { 100, 102};ok
++esp spi != { 100, 102};ok
+ esp spi { 100-102};ok
+ - esp spi {100-102};ok
+ 
+@@ -19,8 +19,6 @@ esp sequence 22;ok
+ esp sequence 22-24;ok
+ esp sequence != 22-24;ok
+ esp sequence { 22, 24};ok
+-- esp sequence != { 22, 24};ok
+-# BUG: invalid expression type set
+-# nft: src/evaluate.c:975: expr_evaluate_relational: Assertion '0' failed.
++esp sequence != { 22, 24};ok
+ esp sequence { 22-25};ok
+-- esp sequence != { 22-25};ok
++esp sequence != { 22-25};ok
+diff --git a/tests/py/inet/esp.t.payload.inet b/tests/py/inet/esp.t.payload.inet
+index d41f766..ad68530 100644
+--- a/tests/py/inet/esp.t.payload.inet
++++ b/tests/py/inet/esp.t.payload.inet
+@@ -37,6 +37,16 @@ inet test-inet input
+   [ payload load 4b @ transport header + 0 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# esp spi != { 100, 102}
++__set%d test-inet 3
++__set%d test-inet 0
++	element 64000000  : 0 [end]	element 66000000  : 0 [end]
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000032 ]
++  [ payload load 4b @ transport header + 0 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # esp spi { 100-102}
+ __set%d test-inet 7
+ __set%d test-inet 0
+@@ -47,6 +57,16 @@ inet test-inet input
+   [ payload load 4b @ transport header + 0 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# esp spi != { 100-102}
++__set%d test-inet 7
++__set%d test-inet 0
++	element 00000000  : 1 [end]	element 64000000  : 0 [end]	element 67000000  : 1 [end]
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000032 ]
++  [ payload load 4b @ transport header + 0 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # esp sequence 22
+ inet test-inet input
+   [ meta load l4proto => reg 1 ]
+@@ -79,6 +99,16 @@ inet test-inet input
+   [ payload load 4b @ transport header + 4 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# esp sequence != { 22, 24}
++__set%d test-inet 3
++__set%d test-inet 0
++	element 16000000  : 0 [end]	element 18000000  : 0 [end]
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000032 ]
++  [ payload load 4b @ transport header + 4 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # esp sequence { 22-25}
+ __set%d test-inet 7
+ __set%d test-inet 0
+@@ -89,3 +119,13 @@ inet test-inet input
+   [ payload load 4b @ transport header + 4 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# esp sequence != { 22-25}
++__set%d test-inet 7
++__set%d test-inet 0
++	element 00000000  : 1 [end]	element 16000000  : 0 [end]	element 1a000000  : 1 [end]
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000032 ]
++  [ payload load 4b @ transport header + 4 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+diff --git a/tests/py/inet/esp.t.payload.ip b/tests/py/inet/esp.t.payload.ip
+index 5de41ae..f8ef9ec 100644
+--- a/tests/py/inet/esp.t.payload.ip
++++ b/tests/py/inet/esp.t.payload.ip
+@@ -37,6 +37,16 @@ ip test-ip4 input
+   [ payload load 4b @ transport header + 0 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# esp spi != { 100, 102}
++__set%d test-ip4 3
++__set%d test-ip4 0
++	element 64000000  : 0 [end]	element 66000000  : 0 [end]
++ip test-ip4 input
++  [ payload load 1b @ network header + 9 => reg 1 ]
++  [ cmp eq reg 1 0x00000032 ]
++  [ payload load 4b @ transport header + 0 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # esp spi { 100-102}
+ __set%d test-ip4 7
+ __set%d test-ip4 0
+@@ -47,6 +57,16 @@ ip test-ip4 input
+   [ payload load 4b @ transport header + 0 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# esp spi != { 100-102}
++__set%d test-ip4 7
++__set%d test-ip4 0
++	element 00000000  : 1 [end]	element 64000000  : 0 [end]	element 67000000  : 1 [end]
++ip test-ip4 input
++  [ payload load 1b @ network header + 9 => reg 1 ]
++  [ cmp eq reg 1 0x00000032 ]
++  [ payload load 4b @ transport header + 0 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # esp sequence 22
+ ip test-ip4 input
+   [ payload load 1b @ network header + 9 => reg 1 ]
+@@ -79,6 +99,16 @@ ip test-ip4 input
+   [ payload load 4b @ transport header + 4 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# esp sequence != { 22, 24}
++__set%d test-ip4 3
++__set%d test-ip4 0
++	element 16000000  : 0 [end]	element 18000000  : 0 [end]
++ip test-ip4 input
++  [ payload load 1b @ network header + 9 => reg 1 ]
++  [ cmp eq reg 1 0x00000032 ]
++  [ payload load 4b @ transport header + 4 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # esp sequence { 22-25}
+ __set%d test-ip4 7
+ __set%d test-ip4 0
+@@ -89,3 +119,13 @@ ip test-ip4 input
+   [ payload load 4b @ transport header + 4 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# esp sequence != { 22-25}
++__set%d test-ip4 7
++__set%d test-ip4 0
++	element 00000000  : 1 [end]	element 16000000  : 0 [end]	element 1a000000  : 1 [end]
++ip test-ip4 input
++  [ payload load 1b @ network header + 9 => reg 1 ]
++  [ cmp eq reg 1 0x00000032 ]
++  [ payload load 4b @ transport header + 4 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+diff --git a/tests/py/inet/esp.t.payload.ip6 b/tests/py/inet/esp.t.payload.ip6
+index 0bc2e70..4758492 100644
+--- a/tests/py/inet/esp.t.payload.ip6
++++ b/tests/py/inet/esp.t.payload.ip6
+@@ -37,6 +37,16 @@ ip6 test-ip6 input
+   [ payload load 4b @ transport header + 0 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# esp spi != { 100, 102}
++__set%d test-ip6 3
++__set%d test-ip6 0
++	element 64000000  : 0 [end]	element 66000000  : 0 [end]
++ip6 test-ip6 input
++  [ payload load 1b @ network header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x00000032 ]
++  [ payload load 4b @ transport header + 0 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # esp spi { 100-102}
+ __set%d test-ip6 7
+ __set%d test-ip6 0
+@@ -47,6 +57,16 @@ ip6 test-ip6 input
+   [ payload load 4b @ transport header + 0 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# esp spi != { 100-102}
++__set%d test-ip6 7
++__set%d test-ip6 0
++	element 00000000  : 1 [end]	element 64000000  : 0 [end]	element 67000000  : 1 [end]
++ip6 test-ip6 input
++  [ payload load 1b @ network header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x00000032 ]
++  [ payload load 4b @ transport header + 0 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # esp sequence 22
+ ip6 test-ip6 input
+   [ payload load 1b @ network header + 6 => reg 1 ]
+@@ -79,6 +99,16 @@ ip6 test-ip6 input
+   [ payload load 4b @ transport header + 4 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# esp sequence != { 22, 24}
++__set%d test-ip6 3
++__set%d test-ip6 0
++	element 16000000  : 0 [end]	element 18000000  : 0 [end]
++ip6 test-ip6 input
++  [ payload load 1b @ network header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x00000032 ]
++  [ payload load 4b @ transport header + 4 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # esp sequence { 22-25}
+ __set%d test-ip6 7
+ __set%d test-ip6 0
+@@ -89,3 +119,13 @@ ip6 test-ip6 input
+   [ payload load 4b @ transport header + 4 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# esp sequence != { 22-25}
++__set%d test-ip6 7
++__set%d test-ip6 0
++	element 00000000  : 1 [end]	element 16000000  : 0 [end]	element 1a000000  : 1 [end]
++ip6 test-ip6 input
++  [ payload load 1b @ network header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x00000032 ]
++  [ payload load 4b @ transport header + 4 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+diff --git a/tests/py/inet/esp.t.payload.netdev b/tests/py/inet/esp.t.payload.netdev
+index d41f766..ad68530 100644
+--- a/tests/py/inet/esp.t.payload.netdev
++++ b/tests/py/inet/esp.t.payload.netdev
+@@ -37,6 +37,16 @@ inet test-inet input
+   [ payload load 4b @ transport header + 0 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# esp spi != { 100, 102}
++__set%d test-inet 3
++__set%d test-inet 0
++	element 64000000  : 0 [end]	element 66000000  : 0 [end]
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000032 ]
++  [ payload load 4b @ transport header + 0 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # esp spi { 100-102}
+ __set%d test-inet 7
+ __set%d test-inet 0
+@@ -47,6 +57,16 @@ inet test-inet input
+   [ payload load 4b @ transport header + 0 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# esp spi != { 100-102}
++__set%d test-inet 7
++__set%d test-inet 0
++	element 00000000  : 1 [end]	element 64000000  : 0 [end]	element 67000000  : 1 [end]
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000032 ]
++  [ payload load 4b @ transport header + 0 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # esp sequence 22
+ inet test-inet input
+   [ meta load l4proto => reg 1 ]
+@@ -79,6 +99,16 @@ inet test-inet input
+   [ payload load 4b @ transport header + 4 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# esp sequence != { 22, 24}
++__set%d test-inet 3
++__set%d test-inet 0
++	element 16000000  : 0 [end]	element 18000000  : 0 [end]
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000032 ]
++  [ payload load 4b @ transport header + 4 => reg 1 ]
++  [ lookup reg 1 set __set%d 0x1 ]
++
+ # esp sequence { 22-25}
+ __set%d test-inet 7
+ __set%d test-inet 0
+@@ -89,3 +119,13 @@ inet test-inet input
+   [ payload load 4b @ transport header + 4 => reg 1 ]
+   [ lookup reg 1 set __set%d ]
+ 
++# esp sequence != { 22-25}
++__set%d test-inet 7
++__set%d test-inet 0
++	element 00000000  : 1 [end]	element 16000000  : 0 [end]	element 1a000000  : 1 [end]
++inet test-inet input
++  [ meta load l4proto => reg 1 ]
++  [ cmp eq reg 1 0x00000032 ]
++  [ payload load 4b @ transport header + 4 => reg 1 ]
 +  [ lookup reg 1 set __set%d 0x1 ]
 +
 -- 
