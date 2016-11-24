@@ -1,46 +1,57 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next] netfilter: nft_fib: store loopback interface to
- dreg when rt is local
-Date: Thu, 24 Nov 2016 14:50:14 +0100
-Message-ID: <20161124135014.GD24598@breakpoint.cc>
-References: <1479994128-16654-1-git-send-email-zlpnobody@163.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: "random" syn packets dropped
+Date: Thu, 24 Nov 2016 14:56:06 +0100
+Message-ID: <20161124135606.GA990@salvia>
+References: <CAJO99TnMCZdROCNV9-3xcURbGZVw7X-wKwf-vkUc5Lc3R_QT9A@mail.gmail.com>
+ <20161108140857.GE24908@breakpoint.cc>
+ <CAJO99Tmx03GrL4MUY-PW=V5ZhpfWwndFJSkeomO34Ldfq_1DCg@mail.gmail.com>
+ <CAJO99T=MK=kPe9NVXPtaHBcurtc6KYnat=YCOtBRsTH-uh-ZLQ@mail.gmail.com>
+ <CAJO99TmfVSALaXqfCvZaoB7i_=KxCh1KaBgRcXSYWEL6Gj+qiQ@mail.gmail.com>
+ <20161121103919.GA22120@breakpoint.cc>
+ <CAJO99TkDRo-M_PpGEwbK1r7cxr_ZLdF7yBXZ95+SJXoj0732HA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org, fw@strlen.de,
-        Liping Zhang <zlpnobody@gmail.com>
-To: Liping Zhang <zlpnobody@163.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: =?iso-8859-1?Q?Bj=F8rnar?= Ness <bjornar.ness@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:52076 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S965316AbcKXNxE (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Nov 2016 08:53:04 -0500
+Received: from mail.us.es ([193.147.175.20]:36634 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S964862AbcKXN4L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 24 Nov 2016 08:56:11 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id A3746DA722
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 14:56:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 93932DA853
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 14:56:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8DA96DA853
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 14:56:07 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1479994128-16654-1-git-send-email-zlpnobody@163.com>
+In-Reply-To: <CAJO99TkDRo-M_PpGEwbK1r7cxr_ZLdF7yBXZ95+SJXoj0732HA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Liping Zhang <zlpnobody@163.com> wrote:
-> In general, we haven't do routing lookup in PREROUTING hook, so it's
-> very likely that fib4/6_is_local will not be met.
-
-loopback packets retain skb->dst (and thats what this test is about).
-
-> Then the *dest will
-> be set to 0 because we do nothing when the fib result is RTN_LOCAL.
-
-Yes.
-
-> So if the user want to drop all packets which cannot be routed,
-> and input the following nft rule:
->   # nft add rule filter prerouting fib daddr oif eq 0 drop
+On Thu, Nov 24, 2016 at 02:37:30PM +0100, Bjørnar Ness wrote:
+> Hello, Florian
 > 
-> Then all the packets which destinate to local will be dropped
-> incorrectly.
+> I applied the patches to net-next, but unfortunately this did fix the
+> bug I am seeing,
+> in addition, now the bug seems to appear immediately (also with
+> previous kernel),
+> not after ~10 days as I have seen before.
 
-but in "saddr oif eq 0 drop" case they really should have no oif, the
-address should not be considered routeable.
+If you revert this, do you still hit problems?
 
-Pablo, please don't apply this; I would like to look at this next week.
+commit 870190a9ec9075205c0fa795a09fa931694a3ff1
+Author: Florian Westphal <fw@strlen.de>
+Date:   Tue Jul 5 12:07:24 2016 +0200
 
-Msybe this needs a check if we're testing daddr or saddr.
+    netfilter: nat: convert nat bysrc hash to rhashtable
+
+It would be good to bisect to make sure this is related to the
+rhashtable conversion.
+
+Let us know,
+Thanks Bjørnar.
