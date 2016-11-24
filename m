@@ -1,48 +1,38 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/2 libnftnl] expr: payload: add NFTNL_EXPR_PAYLOAD_FLAGS
-Date: Thu, 24 Nov 2016 12:08:52 +0100
-Message-ID: <1479985732-6104-2-git-send-email-pablo@netfilter.org>
-References: <1479985732-6104-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft] src: trigger layer 4 checksum when pseudoheader fields are modified
+Date: Thu, 24 Nov 2016 12:12:33 +0100
+Message-ID: <1479985953-6607-1-git-send-email-pablo@netfilter.org>
+Cc: nevola@gmail.com, dalegaard@gmail.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45308 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48174 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S937926AbcKXLJI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Nov 2016 06:09:08 -0500
+        id S964851AbcKXLMn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 24 Nov 2016 06:12:43 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7D7EB16B283
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 12:08:59 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 8037E16B283
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 12:12:41 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6C3D5DA3AC
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 12:08:59 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6FF1EA7D50
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 12:12:41 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 490A6DA38C
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 12:08:57 +0100 (CET)
-In-Reply-To: <1479985732-6104-1-git-send-email-pablo@netfilter.org>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E731CA7D5A
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 12:12:37 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-So we can include the new NFT_PAYLOAD_L4CSUM_PSEUDOHDR flag.
+This patch sets the NFT_PAYLOAD_L4CSUM_PSEUDOHDR when any of the
+pseudoheader fields are modified. This implicitly enables stateless NAT,
+that can be useful under some circuntances.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/libnftnl/expr.h             |  1 +
  include/linux/netfilter/nf_tables.h |  6 ++++++
- src/expr/payload.c                  | 22 ++++++++++++++++++++--
- 3 files changed, 27 insertions(+), 2 deletions(-)
+ include/proto.h                     |  2 ++
+ src/netlink_linearize.c             | 17 +++++++++++++++++
+ src/proto.c                         |  6 ++++++
+ 4 files changed, 31 insertions(+)
 
-diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
-index edf86a966fc0..c4a6d53a3559 100644
---- a/include/libnftnl/expr.h
-+++ b/include/libnftnl/expr.h
-@@ -48,6 +48,7 @@ enum {
- 	NFTNL_EXPR_PAYLOAD_SREG,
- 	NFTNL_EXPR_PAYLOAD_CSUM_TYPE,
- 	NFTNL_EXPR_PAYLOAD_CSUM_OFFSET,
-+	NFTNL_EXPR_PAYLOAD_FLAGS,
- };
- 
- enum {
 diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
 index 14e5f619167e..f030e59aa2ec 100644
 --- a/include/linux/netfilter/nf_tables.h
@@ -74,91 +64,85 @@ index 14e5f619167e..f030e59aa2ec 100644
  	__NFTA_PAYLOAD_MAX
  };
  #define NFTA_PAYLOAD_MAX	(__NFTA_PAYLOAD_MAX - 1)
-diff --git a/src/expr/payload.c b/src/expr/payload.c
-index 17dd4cd6409b..d65585711bd1 100644
---- a/src/expr/payload.c
-+++ b/src/expr/payload.c
-@@ -32,6 +32,7 @@ struct nftnl_expr_payload {
- 	uint32_t		len;
- 	uint32_t		csum_type;
- 	uint32_t		csum_offset;
-+	uint32_t		csum_flags;
+diff --git a/include/proto.h b/include/proto.h
+index 4fa54a74b00c..01188ab6eee4 100644
+--- a/include/proto.h
++++ b/include/proto.h
+@@ -73,6 +73,7 @@ struct proto_hdr_template {
+  * @length:	total size of the header, in bits
+  * @protocols:	link to upper layer protocol descriptions indexed by protocol value
+  * @templates:	header templates
++ * @pseudohdr:  header fields that are part of upper layer checksum pseudoheader
+  */
+ struct proto_desc {
+ 	const char			*name;
+@@ -89,6 +90,7 @@ struct proto_desc {
+ 		uint8_t				order[PROTO_HDRS_MAX];
+ 		uint32_t			filter;
+ 	}				format;
++	unsigned int			pseudohdr[PROTO_HDRS_MAX];
+ 
  };
  
- static int
-@@ -62,6 +63,9 @@ nftnl_expr_payload_set(struct nftnl_expr *e, uint16_t type,
- 	case NFTNL_EXPR_PAYLOAD_CSUM_OFFSET:
- 		payload->csum_offset = *((uint32_t *)data);
- 		break;
-+	case NFTNL_EXPR_PAYLOAD_FLAGS:
-+		payload->csum_flags = *((uint32_t *)data);
-+		break;
- 	default:
- 		return -1;
- 	}
-@@ -96,6 +100,9 @@ nftnl_expr_payload_get(const struct nftnl_expr *e, uint16_t type,
- 	case NFTNL_EXPR_PAYLOAD_CSUM_OFFSET:
- 		*data_len = sizeof(payload->csum_offset);
- 		return &payload->csum_offset;
-+	case NFTNL_EXPR_PAYLOAD_FLAGS:
-+		*data_len = sizeof(payload->csum_flags);
-+		return &payload->csum_flags;
- 	}
- 	return NULL;
- }
-@@ -116,6 +123,7 @@ static int nftnl_expr_payload_cb(const struct nlattr *attr, void *data)
- 	case NFTA_PAYLOAD_LEN:
- 	case NFTA_PAYLOAD_CSUM_TYPE:
- 	case NFTA_PAYLOAD_CSUM_OFFSET:
-+	case NFTA_PAYLOAD_CSUM_FLAGS:
- 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
- 			abi_breakage();
- 		break;
-@@ -146,6 +154,9 @@ nftnl_expr_payload_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
- 	if (e->flags & (1 << NFTNL_EXPR_PAYLOAD_CSUM_OFFSET))
- 		mnl_attr_put_u32(nlh, NFTA_PAYLOAD_CSUM_OFFSET,
- 				 htonl(payload->csum_offset));
-+	if (e->flags & (1 << NFTNL_EXPR_PAYLOAD_FLAGS))
-+		mnl_attr_put_u32(nlh, NFTA_PAYLOAD_CSUM_FLAGS,
-+				 htonl(payload->csum_flags));
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 0072dca091ea..281f600e05ae 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -725,6 +725,18 @@ static void netlink_gen_verdict_stmt(struct netlink_linearize_ctx *ctx,
+ 	return netlink_gen_expr(ctx, stmt->expr, NFT_REG_VERDICT);
  }
  
- static int
-@@ -185,6 +196,10 @@ nftnl_expr_payload_parse(struct nftnl_expr *e, struct nlattr *attr)
- 		payload->csum_offset = ntohl(mnl_attr_get_u32(tb[NFTA_PAYLOAD_CSUM_OFFSET]));
- 		e->flags |= (1 << NFTNL_EXPR_PAYLOAD_CSUM_OFFSET);
- 	}
-+	if (tb[NFTA_PAYLOAD_CSUM_FLAGS]) {
-+		payload->csum_flags = ntohl(mnl_attr_get_u32(tb[NFTA_PAYLOAD_CSUM_FLAGS]));
-+		e->flags |= (1 << NFTNL_EXPR_PAYLOAD_FLAGS);
++static bool payload_needs_l4csum_update_pseudohdr(const struct expr *expr,
++						  const struct proto_desc *desc)
++{
++	int i;
++
++	for (i = 0; i < PROTO_HDRS_MAX; i++) {
++		if (payload_hdr_field(expr) == desc->pseudohdr[i])
++			return true;
 +	}
- 	return 0;
- }
++	return false;
++}
++
+ static void netlink_gen_payload_stmt(struct netlink_linearize_ctx *ctx,
+ 				     const struct stmt *stmt)
+ {
+@@ -758,6 +770,11 @@ static void netlink_gen_payload_stmt(struct netlink_linearize_ctx *ctx,
+ 				   NFT_PAYLOAD_CSUM_INET);
+ 		nftnl_expr_set_u32(nle, NFTNL_EXPR_PAYLOAD_CSUM_OFFSET,
+ 				   csum_off / BITS_PER_BYTE);
++
++		if (expr->payload.base == PROTO_BASE_NETWORK_HDR &&
++		    payload_needs_l4csum_update_pseudohdr(expr, desc))
++			nftnl_expr_set_u32(nle, NFTNL_EXPR_PAYLOAD_FLAGS,
++					   NFT_PAYLOAD_L4CSUM_PSEUDOHDR);
+ 	}
  
-@@ -278,11 +293,12 @@ nftnl_expr_payload_snprintf(char *buf, size_t len, uint32_t type,
- 	switch (type) {
- 	case NFTNL_OUTPUT_DEFAULT:
- 		if (payload->sreg)
--			return snprintf(buf, len, "write reg %u => %ub @ %s header + %u csum_type %u csum_off %u ",
-+			return snprintf(buf, len, "write reg %u => %ub @ %s header + %u csum_type %u csum_off %u csum_flags 0x%x ",
- 					payload->sreg,
- 					payload->len, base2str(payload->base),
- 					payload->offset, payload->csum_type,
--					payload->csum_offset);
-+					payload->csum_offset,
-+					payload->csum_flags);
- 		else
- 			return snprintf(buf, len, "load %ub @ %s header + %u => reg %u ",
- 					payload->len, base2str(payload->base),
-@@ -317,6 +333,8 @@ static bool nftnl_expr_payload_cmp(const struct nftnl_expr *e1,
- 		eq &= (p1->csum_type == p2->csum_type);
- 	if (e1->flags & (1 << NFTNL_EXPR_PAYLOAD_CSUM_OFFSET))
- 		eq &= (p1->csum_offset == p2->csum_offset);
-+	if (e1->flags & (1 << NFTNL_EXPR_PAYLOAD_FLAGS))
-+		eq &= (p1->csum_flags == p2->csum_flags);
+ 	nftnl_rule_add_expr(ctx->nlr, nle);
+diff --git a/src/proto.c b/src/proto.c
+index df5439ccda3c..8930bed65891 100644
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -616,6 +616,9 @@ const struct proto_desc proto_ip = {
+ 		.filter	= (1 << IPHDR_VERSION)  | (1 << IPHDR_HDRLENGTH) |
+ 			  (1 << IPHDR_FRAG_OFF),
+ 	},
++	.pseudohdr	= {
++		IPHDR_SADDR, IPHDR_DADDR, IPHDR_PROTOCOL, IPHDR_LENGTH,
++	},
+ };
  
- 	return eq;
- }
+ /*
+@@ -721,6 +724,9 @@ const struct proto_desc proto_ip6 = {
+ 		},
+ 		.filter	= (1 << IP6HDR_VERSION),
+ 	},
++	.pseudohdr	= {
++		IP6HDR_SADDR, IP6HDR_DADDR, IP6HDR_NEXTHDR, IP6HDR_LENGTH,
++	},
+ };
+ 
+ /*
 -- 
 2.1.4
 
