@@ -1,36 +1,87 @@
-From: =?UTF-8?Q?Bj=C3=B8rnar_Ness?= <bjornar.ness@gmail.com>
-Subject: Re: "random" syn packets dropped
-Date: Thu, 24 Nov 2016 19:36:52 +0100
-Message-ID: <CAJO99T=UR0f7huHMChKvDUzc03hhVF0cazKCz810P+vK0JjHbw@mail.gmail.com>
-References: <CAJO99TnMCZdROCNV9-3xcURbGZVw7X-wKwf-vkUc5Lc3R_QT9A@mail.gmail.com>
- <20161108140857.GE24908@breakpoint.cc> <CAJO99Tmx03GrL4MUY-PW=V5ZhpfWwndFJSkeomO34Ldfq_1DCg@mail.gmail.com>
- <CAJO99T=MK=kPe9NVXPtaHBcurtc6KYnat=YCOtBRsTH-uh-ZLQ@mail.gmail.com>
- <CAJO99TmfVSALaXqfCvZaoB7i_=KxCh1KaBgRcXSYWEL6Gj+qiQ@mail.gmail.com>
- <20161121103919.GA22120@breakpoint.cc> <CAJO99TkDRo-M_PpGEwbK1r7cxr_ZLdF7yBXZ95+SJXoj0732HA@mail.gmail.com>
- <20161124135606.GA990@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
+From: fgao@ikuai8.com
+Subject: [PATCH net-next 1/1] netfilter: xt_multiport: Fix wrong unmatch result with multiple ports
+Date: Fri, 25 Nov 2016 11:58:57 +0800
+Message-ID: <1480046337-9521-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yw0-f175.google.com ([209.85.161.175]:35812 "EHLO
-        mail-yw0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933887AbcKXSgx (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Nov 2016 13:36:53 -0500
-Received: by mail-yw0-f175.google.com with SMTP id i145so45515232ywg.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Nov 2016 10:36:53 -0800 (PST)
-In-Reply-To: <20161124135606.GA990@salvia>
+Received: from smtpbg291.qq.com ([113.108.11.223]:57379 "EHLO smtpbg291.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751499AbcKYEHK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 24 Nov 2016 23:07:10 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello, Pablo.
+From: Gao Feng <fgao@ikuai8.com>
 
-Seems I was too quick to post this message, we were hit by an attack
-just after the
-upgrade, and the problems was this time caused by conntrack_max.
-Currently it seems to
-work with the patches, but the next week or two will probably show.
+I lost one test case in the commit for xt_multiport.
+For example, the rule is "-m multiport --dports 22,80,443".
+When first port is unmatched and the second is matched, the curent codes
+could not return the right result.
+It would return false directly when the first port is unmatched.
 
+Fixes: dd2602d00f80 ("netfilter: xt_multiport: Use switch case instead
+of multiple condition checks")
+
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ net/netfilter/xt_multiport.c | 28 +++++++++++++++++++---------
+ 1 file changed, 19 insertions(+), 9 deletions(-)
+
+diff --git a/net/netfilter/xt_multiport.c b/net/netfilter/xt_multiport.c
+index ec06fb1..a99da44 100644
+--- a/net/netfilter/xt_multiport.c
++++ b/net/netfilter/xt_multiport.c
+@@ -41,29 +41,39 @@
+ 			/* range port matching */
+ 			e = minfo->ports[++i];
+ 			pr_debug("src or dst matches with %d-%d?\n", s, e);
+-
+ 			switch (minfo->flags) {
+ 			case XT_MULTIPORT_SOURCE:
+-				return (src >= s && src <= e) ^ minfo->invert;
++				if (src >= s && src <= e)
++					return true ^ minfo->invert;
++				break;
+ 			case XT_MULTIPORT_DESTINATION:
+-				return (dst >= s && dst <= e) ^ minfo->invert;
++				if (dst >= s && dst <= e)
++					return true ^ minfo->invert;
++				break;
+ 			case XT_MULTIPORT_EITHER:
+-				return ((dst >= s && dst <= e) ||
+-					(src >= s && src <= e)) ^ minfo->invert;
++				if ((dst >= s && dst <= e) ||
++				    (src >= s && src <= e))
++					return true ^ minfo->invert;
++				break;
+ 			default:
+ 				break;
+ 			}
+ 		} else {
+ 			/* exact port matching */
+ 			pr_debug("src or dst matches with %d?\n", s);
+-
+ 			switch (minfo->flags) {
+ 			case XT_MULTIPORT_SOURCE:
+-				return (src == s) ^ minfo->invert;
++				if (src == s)
++					return true ^ minfo->invert;
++				break;
+ 			case XT_MULTIPORT_DESTINATION:
+-				return (dst == s) ^ minfo->invert;
++				if (dst == s)
++					return true ^ minfo->invert;
++				break;
+ 			case XT_MULTIPORT_EITHER:
+-				return (src == s || dst == s) ^ minfo->invert;
++				if (src == s || dst == s)
++					return true ^ minfo->invert;
++				break;
+ 			default:
+ 				break;
+ 			}
 -- 
-Bj(/)rnar
+1.9.1
+
+
