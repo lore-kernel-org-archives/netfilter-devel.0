@@ -1,62 +1,58 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [PATCH] extensions: libip6t_ah: Fix translation of plain '-m ah'
-Date: Fri, 25 Nov 2016 17:32:39 +0100
-Message-ID: <20161125163239.6448-1-phil@nwl.cc>
+Subject: [PATCH] xtables-translate: Support setting standard chain policy
+Date: Fri, 25 Nov 2016 18:06:46 +0100
+Message-ID: <20161125170646.8620-1-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:51806 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:59552 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932254AbcKYQcw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 25 Nov 2016 11:32:52 -0500
+        id S1753052AbcKYRG6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 25 Nov 2016 12:06:58 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is actually a limitation of ip6tables:
-
-| # ip6tables -A INPUT -p ah -j ACCEPT
-| Warning: never matched protocol: ah. use extension match instead.
-
-The working alternative is like so:
-
-| # ip6tables -A INPUT -m ah -j ACCEPT
-
-But upon translating, this statement gets ignored:
-
-| $ ip6tables-translate -A INPUT -m ah -j ACCEPT
-| nft add rule ip6 filter INPUT  counter accept
-
-This patch (ab)uses the 'space' variable to check if a parameter to the
-'ah' match was present and if not translates the match into an extension
-header check:
-
-| $ ip6tables-translate -A INPUT -m ah -j ACCEPT
-| add rule ip6 filter INPUT meta l4proto ah counter accept
+Looks like this bit was simply forgotten when implementing
+xlate_chain_set() as everything needed was there to just print the
+desired policy along with the chain definition.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- extensions/libip6t_ah.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ iptables/xtables-translate.c | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/extensions/libip6t_ah.c b/extensions/libip6t_ah.c
-index 5c2fe558ec464..f35982f379d76 100644
---- a/extensions/libip6t_ah.c
-+++ b/extensions/libip6t_ah.c
-@@ -152,8 +152,13 @@ static int ah_xlate(struct xt_xlate *xl,
- 		space = " ";
- 	}
+diff --git a/iptables/xtables-translate.c b/iptables/xtables-translate.c
+index 689533f3d4d85..0c706dcc2b9db 100644
+--- a/iptables/xtables-translate.c
++++ b/iptables/xtables-translate.c
+@@ -354,16 +354,22 @@ static int xlate_chain_set(struct nft_handle *h, const char *table,
+ {
+ 	printf("add chain %s %s %s ", family2str[h->family], table, chain);
+ 	if (strcmp(chain, "PREROUTING") == 0)
+-		printf("{ type filter hook prerouting priority 0; }\n");
++		printf("{ type filter hook prerouting priority 0; ");
+ 	else if (strcmp(chain, "INPUT") == 0)
+-		printf("{ type filter hook input priority 0; }\n");
++		printf("{ type filter hook input priority 0; ");
+ 	else if (strcmp(chain, "FORWARD") == 0)
+-		printf("{ type filter hook forward priority 0; }\n");
++		printf("{ type filter hook forward priority 0; ");
+ 	else if (strcmp(chain, "OUTPUT") == 0)
+-		printf("{ type filter hook output priority 0; }\n");
++		printf("{ type filter hook output priority 0; ");
+ 	else if (strcmp(chain, "POSTROUTING") == 0)
+-		printf("{ type filter hook postrouting priority 0; }\n");
++		printf("{ type filter hook postrouting priority 0; ");
  
--	if (ahinfo->hdrres != 0)
-+	if (ahinfo->hdrres != 0) {
- 		xt_xlate_add(xl, "%sah reserved %u", space, ahinfo->hdrres);
-+		space = " ";
-+	}
++	if (strcmp(policy, "ACCEPT") == 0)
++		printf("policy accept; ");
++	else if (strcmp(policy, "DROP") == 0)
++		printf("policy drop; ");
 +
-+	if (!space[0]) /* plain '-m ah' */
-+		xt_xlate_add(xl, "meta l4proto ah");
- 
++	printf("}\n");
  	return 1;
  }
+ 
 -- 
 2.10.0
 
