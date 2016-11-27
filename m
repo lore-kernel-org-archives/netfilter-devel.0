@@ -1,69 +1,150 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Problem with iptables-translate and tcp flags match
-Date: Fri, 25 Nov 2016 22:50:17 +0100
-Message-ID: <20161125215017.GK6158@orbyte.nwl.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH iptables] extensions: LOG: add log flags translation to nft
+Date: Sun, 27 Nov 2016 20:08:29 +0800
+Message-ID: <1480248509-21828-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:43388 "EHLO mail.nwl.cc"
+Received: from m12-11.163.com ([220.181.12.11]:41715 "EHLO m12-11.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752541AbcKYVuT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 25 Nov 2016 16:50:19 -0500
-Received: from mail.nwl.cc (orbyte.nwl.cc [127.0.0.1])
-        by mail.nwl.cc (Postfix) with ESMTP id 6D76A64BD1
-        for <netfilter-devel@vger.kernel.org>; Fri, 25 Nov 2016 22:50:17 +0100 (CET)
-Content-Disposition: inline
+        id S1753576AbcK0MJF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 27 Nov 2016 07:09:05 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+From: Liping Zhang <zlpnobody@gmail.com>
 
-I have a problem which exposes bugs in both iptables-translate and nft
-and am a bit at a loss with it. But first things first:
+For example:
+ # iptables-translate -A OUTPUT -j LOG --log-uid
+ nft add rule ip filter OUTPUT counter log flags skuid
 
-| $ iptables-translate -A INPUT -p tcp -m tcp --tcp-flags FIN,SYN FIN,SYN -j DROP
-| nft add rule ip filter INPUT tcp flags & fin|syn == fin|syn counter drop
+ # iptables-translate -A OUTPUT -j LOG --log-tcp-sequence \
+ --log-tcp-options
+ nft add rule ip filter OUTPUT counter log flags tcp sequence,options
 
-This only appears to be fine at first glance. When adding the nftables
-rule, the outcome is this:
+ # iptables-translate -A OUTPUT -j LOG --log-level debug --log-uid
+ nft add rule ip filter OUTPUT counter log level debug flags skuid
 
-| tcp flags & (fin | syn) | fin == fin | syn counter packets 0 bytes 0
+ # ip6tables-translate -A OUTPUT -j LOG --log-ip-options --log-macdecode
+ nft add rule ip6 filter OUTPUT counter log flags ip options flags ether
 
-Of course, this is obviously wrong. Looking at the output of
-iptables-translate again, it becomes clear that nftables can only
-interpret this the wrong way, categorically because binary AND takes
-precedence over binary OR - so iptables-translate is broken in that it
-should add parentheses like so:
+ # ip6tables-translate -A OUTPUT -j LOG --log-ip-options --log-uid \
+ --log-tcp-sequence --log-tcp-options --log-macdecode
+ nft add rule ip6 filter OUTPUT counter log flags all
 
-| nft add rule ip filter INPUT tcp flags & (fin|syn) == fin|syn counter drop
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+---
+ extensions/libip6t_LOG.c | 30 ++++++++++++++++++++++++++----
+ extensions/libipt_LOG.c  | 30 ++++++++++++++++++++++++++----
+ 2 files changed, 52 insertions(+), 8 deletions(-)
 
-And indeed this leads to expected results in nftables ruleset. On the
-other hand what nftables interprets the wrong statement into looks a bit
-fishy as well, but that's another topic - my issue with nftables is
-exposed when I apply my quick hack to resolve this, which is to just
-output the missing parentheses print_tcp_xlate(): iptables-translate
-then outputs the following:
+diff --git a/extensions/libip6t_LOG.c b/extensions/libip6t_LOG.c
+index af77b9a..40adc69 100644
+--- a/extensions/libip6t_LOG.c
++++ b/extensions/libip6t_LOG.c
+@@ -189,22 +189,44 @@ static int LOG_xlate(struct xt_xlate *xl,
+ 		(const struct ip6t_log_info *)params->target->data;
+ 	unsigned int i = 0;
+ 
+-	xt_xlate_add(xl, "log ");
++	xt_xlate_add(xl, "log");
+ 	if (strcmp(loginfo->prefix, "") != 0) {
+ 		if (params->escape_quotes)
+-			xt_xlate_add(xl, "prefix \\\"%s\\\" ", loginfo->prefix);
++			xt_xlate_add(xl, " prefix \\\"%s\\\"", loginfo->prefix);
+ 		else
+-			xt_xlate_add(xl, "prefix \"%s\" ", loginfo->prefix);
++			xt_xlate_add(xl, " prefix \"%s\"", loginfo->prefix);
+ 	}
+ 
+ 	for (i = 0; i < ARRAY_SIZE(ip6t_log_xlate_names); ++i)
+ 		if (loginfo->level == ip6t_log_xlate_names[i].level &&
+ 		    loginfo->level != LOG_DEFAULT_LEVEL) {
+-			xt_xlate_add(xl, "level %s",
++			xt_xlate_add(xl, " level %s",
+ 				   ip6t_log_xlate_names[i].name);
+ 			break;
+ 		}
+ 
++	if ((loginfo->logflags & IP6T_LOG_MASK) == IP6T_LOG_MASK) {
++		xt_xlate_add(xl, " flags all");
++	} else {
++		if (loginfo->logflags & (IP6T_LOG_TCPSEQ | IP6T_LOG_TCPOPT)) {
++			const char *delim = " ";
++
++			xt_xlate_add(xl, " flags tcp");
++			if (loginfo->logflags & IP6T_LOG_TCPSEQ) {
++				xt_xlate_add(xl, " sequence");
++				delim = ",";
++			}
++			if (loginfo->logflags & IP6T_LOG_TCPOPT)
++				xt_xlate_add(xl, "%soptions", delim);
++		}
++		if (loginfo->logflags & IP6T_LOG_IPOPT)
++			xt_xlate_add(xl, " flags ip options");
++		if (loginfo->logflags & IP6T_LOG_UID)
++			xt_xlate_add(xl, " flags skuid");
++		if (loginfo->logflags & IP6T_LOG_MACDECODE)
++			xt_xlate_add(xl, " flags ether");
++	}
++
+ 	return 1;
+ }
+ static struct xtables_target log_tg6_reg = {
+diff --git a/extensions/libipt_LOG.c b/extensions/libipt_LOG.c
+index 2784d9b..36e2e73 100644
+--- a/extensions/libipt_LOG.c
++++ b/extensions/libipt_LOG.c
+@@ -189,22 +189,44 @@ static int LOG_xlate(struct xt_xlate *xl,
+ 		(const struct ipt_log_info *)params->target->data;
+ 	unsigned int i = 0;
+ 
+-	xt_xlate_add(xl, "log ");
++	xt_xlate_add(xl, "log");
+ 	if (strcmp(loginfo->prefix, "") != 0) {
+ 		if (params->escape_quotes)
+-			xt_xlate_add(xl, "prefix \\\"%s\\\" ", loginfo->prefix);
++			xt_xlate_add(xl, " prefix \\\"%s\\\"", loginfo->prefix);
+ 		else
+-			xt_xlate_add(xl, "prefix \"%s\" ", loginfo->prefix);
++			xt_xlate_add(xl, " prefix \"%s\"", loginfo->prefix);
+ 	}
+ 
+ 	for (i = 0; i < ARRAY_SIZE(ipt_log_xlate_names); ++i)
+ 		if (loginfo->level != LOG_DEFAULT_LEVEL &&
+ 		    loginfo->level == ipt_log_xlate_names[i].level) {
+-			xt_xlate_add(xl, "level %s ",
++			xt_xlate_add(xl, " level %s",
+ 				   ipt_log_xlate_names[i].name);
+ 			break;
+ 		}
+ 
++	if ((loginfo->logflags & IPT_LOG_MASK) == IPT_LOG_MASK) {
++		xt_xlate_add(xl, " flags all");
++	} else {
++		if (loginfo->logflags & (IPT_LOG_TCPSEQ | IPT_LOG_TCPOPT)) {
++			const char *delim = " ";
++
++			xt_xlate_add(xl, " flags tcp");
++			if (loginfo->logflags & IPT_LOG_TCPSEQ) {
++				xt_xlate_add(xl, " sequence");
++				delim = ",";
++			}
++			if (loginfo->logflags & IPT_LOG_TCPOPT)
++				xt_xlate_add(xl, "%soptions", delim);
++		}
++		if (loginfo->logflags & IPT_LOG_IPOPT)
++			xt_xlate_add(xl, " flags ip options");
++		if (loginfo->logflags & IPT_LOG_UID)
++			xt_xlate_add(xl, " flags skuid");
++		if (loginfo->logflags & IPT_LOG_MACDECODE)
++			xt_xlate_add(xl, " flags ether");
++	}
++
+ 	return 1;
+ }
+ static struct xtables_target log_tg_reg = {
+-- 
+2.5.5
 
-| nft add rule ip filter INPUT tcp flags & (fin|syn) == (fin|syn) counter drop
 
-But nftables in return rejects it:
-
-| <cmdline>:1:45-45: Error: syntax error, unexpected '('
-| add rule ip filter INPUT tcp flags & (syn|fin) == (syn|fin) counter
-|                                                   ^
-
-The error message is emitted by the parser (which I am still at war
-with) and in my opinion it should allow the parentheses on the right
-side of that relational expression.
-
-So here's a number of question marks for you:
-* Am I on the right track with adding parentheses to iptables-translate
-  output at all?
-* If so, where would I adjust parser_bison.y to allow for them? Maybe
-  rhs_expr should be extended to allow for it, but it's so generic I'm
-  afraid of side-effects. Or is the better way to add another case to
-  relational_expr which explicitly mentions the parentheses around
-  rhs_expr?
-
-Thanks, Phil
