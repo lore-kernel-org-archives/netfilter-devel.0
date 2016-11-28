@@ -1,94 +1,100 @@
-From: Anatole Denis <anatole@rezel.net>
-Subject: Re : [PATCH nft 1/7] Interpret OP_NEQ against a set as OP_LOOKUP
-Date: Mon, 28 Nov 2016 17:49:58 +0100
-Message-ID: <O4VLTpqw8hbx9gT5jGdR46@ZLJRbUrx7b2BDfxD/Ctug>
-References: <20161128113905.GC1691@salvia>
+From: Neil Horman <nhorman@tuxdriver.com>
+Subject: Re: net/sctp: vmalloc allocation failure in
+ sctp_setsockopt/xt_alloc_table_info
+Date: Mon, 28 Nov 2016 12:46:47 -0500
+Message-ID: <20161128174647.GC29839@hmsreliant.think-freely.org>
+References: <CAAeHK+wecw6ST_DWJQBLFNwVsOVgderGE-EEJiN0-kf796XHtw@mail.gmail.com>
+ <20161128141340.GA29839@hmsreliant.think-freely.org>
+ <CAAeHK+xJmwF6hddS-sO-y3HQkRicwQN=ZceFWTZT2M_0h4E2hQ@mail.gmail.com>
+ <20161128143931.GB29839@hmsreliant.think-freely.org>
+ <20161128151312.GA13172@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Andrey Konovalov <andreyknvl@google.com>,
+        Vlad Yasevich <vyasevich@gmail.com>,
+        linux-sctp@vger.kernel.org, netdev <netdev@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>,
+        Eric Dumazet <edumazet@google.com>,
+        syzkaller <syzkaller@googlegroups.com>
+To: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from inara.rezel.net ([212.129.30.46]:39650 "EHLO inara.rezel.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932406AbcK1QuC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Nov 2016 11:50:02 -0500
-In-Reply-To: <20161128113905.GC1691@salvia> (from pablo@netfilter.org on Mon
- Nov 28 12:39:05 2016)
+Received: from charlotte.tuxdriver.com ([70.61.120.58]:57049 "EHLO
+        smtp.tuxdriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753021AbcK1RrM (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 28 Nov 2016 12:47:12 -0500
 Content-Disposition: inline
+In-Reply-To: <20161128151312.GA13172@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le 28/11/2016 12:39:05, Pablo Neira Ayuso a =E9crit=A0:
-> On Thu, Nov 24, 2016 at 03:16:20PM +0100, Anatole Denis wrote:
-> > Now that the support for inverted matching is in the kernel and in
-> libnftnl, add
-> > it to nftables too.
-> >=20
-> > This fixes bug #888
-> >=20
-> > Signed-off-by: Anatole Denis <anatole@rezel.net>
-> > ---
-> > This patch is heavily based off those of Yuxuan Shui from 2014
-> > (https://marc.info/?l=3Dnetfilter-devel&m=3D140682484411296)
-> >=20
-> >  src/evaluate.c            | 14 ++++++++++++++
-> >  src/netlink_delinearize.c | 10 ++++++++++
-> >  src/netlink_linearize.c   | 14 +++++++++-----
-> >  3 files changed, 33 insertions(+), 5 deletions(-)
-> >=20
-> > diff --git a/src/evaluate.c b/src/evaluate.c
-> > index 8b113c8..bb46615 100644
-> > --- a/src/evaluate.c
-> > +++ b/src/evaluate.c
-> > @@ -1541,6 +1541,20 @@ static int expr_evaluate_relational(struct
-> eval_ctx *ctx, struct expr **expr)
-> >  			if (byteorder_conversion(ctx, &rel->right,
-> left->byteorder) < 0)
-> >  				return -1;
-> >  			break;
-> > +		case EXPR_SET:
-> > +			assert(rel->op =3D=3D OP_NEQ);
-> > +			right =3D rel->right =3D
-> > +				implicit_set_declaration(ctx,
-> "__set%d",
-> > +							 left->dtype, left->len,
-> > +							 right);
-> > +			/* fall through */
-> > +		case EXPR_SET_REF:
-> > +			assert(rel->op =3D=3D OP_NEQ);
->=20
-> Thanks for working on this.
->=20
-> I think we're almost there, we need a bit more code here to catch
-> these two error cases:
->=20
-> "the referenced set does not exist"
+On Mon, Nov 28, 2016 at 01:13:12PM -0200, Marcelo Ricardo Leitner wrote:
+> On Mon, Nov 28, 2016 at 09:39:31AM -0500, Neil Horman wrote:
+> > On Mon, Nov 28, 2016 at 03:33:40PM +0100, Andrey Konovalov wrote:
+> > > On Mon, Nov 28, 2016 at 3:13 PM, Neil Horman <nhorman@tuxdriver.com> wrote:
+> > > > On Mon, Nov 28, 2016 at 02:00:19PM +0100, Andrey Konovalov wrote:
+> > > >> Hi!
+> > > >>
+> > > >> I've got the following error report while running the syzkaller fuzzer.
+> > > >>
+> > > >> On commit d8e435f3ab6fea2ea324dce72b51dd7761747523 (Nov 26).
+> > > >>
+> > > >> A reproducer is attached.
+> > > >>
+> > > >> a.out: vmalloc: allocation failure, allocated 823562240 of 1427091456
+> > > >> bytes, mode:0x24000c2(GFP_KERNEL|__GFP_HIGHMEM)
+> > > >>
+> > > > How much total ram do you have in this system?  The call appears to be
+> > > > attempting to allocate 1.3 Gb of data.  Even using vmalloc to allow
+> > > > discontiguous allocation, thats alot of memory, and if enough is in use already,
+> > > > I could make the argument that this might be expected behavior.
+> > > 
+> > > Hi Neail,
+> > > 
+> > > I have 2 Gb.
+> > > 
+> > That would be why.  Allocating 65% of the available system memory will almost
+> > certainly lead to OOM failures quickly.
+> > 
+> > > Just tested with 4 Gb, everything seems to be working fine.
+> > > So I guess this is not actually a bug and allocating 1.3 Gb is OK.
+> 
+> Still we probably should avoid the warn triggered by an userspace
+> application: (untested)
+> 
+I'm not sure I agree with that.  Generally speaking it seems like the right
+thing to do, if you want to avoid filling logs with warnings, but this is the
+sort of error that is going to be accompanied by severe service interruption.
+I'd rather see a reason behind that in the logs, than just have it occur
+silently.
 
-I believe this error is not the best way to handle this issue. I sent a pat=
-ch to the list with a proposed change to catch it earlier, removing the nee=
-d to check for it here. In case that other patch is refused, I will send v2=
- with this check added.
+Neil
 
->=20
-> and
->=20
-> "datatype mismatch, expected %s, set has type %s"
-
-This one is handled for OP_NEQ/OP_FLAGCMP in general at line 1526. The erro=
-r messages are almost identical, the lookup one being "Error: datatype mism=
-atch, expected %s, set has type %s" while the NEQ error is "Error: datatype=
- mismatch, expected %s, expression has type %s" ("set" vs "expression").
-
->=20
-> See line 1481 in src/evaluate.c for the OP_LOOKUP case.
->=20
-> If I'm on the right track, please also test that these errors cases
-> work as intended.
->=20
-
-The case for a lookup/inverse lookup into a nonexistent set is tested in ip=
-/sets.t and ip6/sets. (somewhere in patches 3 and 4). I'll send a v2 of the=
-se tests with a test for datatype mismatch added.
-Considering the previous remarks (and the other patches), do you think I st=
-ill should change the error handling code ?=
+> --8<--
+> 
+> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+> index fc4977456c30..b56a0e128fc3 100644
+> --- a/net/netfilter/x_tables.c
+> +++ b/net/netfilter/x_tables.c
+> @@ -958,7 +958,8 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
+>  	if (sz <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER))
+>  		info = kmalloc(sz, GFP_KERNEL | __GFP_NOWARN | __GFP_NORETRY);
+>  	if (!info) {
+> -		info = vmalloc(sz);
+> +		info = __vmalloc(sz, GFP_KERNEL | __GFP_NOWARN | __GFP_HIGHMEM,
+> +				 PAGE_KERNEL);
+>  		if (!info)
+>  			return NULL;
+>  	}
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-sctp" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
