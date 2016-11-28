@@ -1,76 +1,64 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: ingress: translate 0 nf_hook_slow retval to -EINPROGRESS
-Date: Mon, 28 Nov 2016 11:40:05 +0100
-Message-ID: <1480329606-6592-2-git-send-email-fw@strlen.de>
-References: <1480329606-6592-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: SNAT --random & fully is not actually random for ips
+Date: Mon, 28 Nov 2016 12:06:51 +0100
+Message-ID: <20161128110651.GA1024@salvia>
+References: <97a6a1c557f0f1e6d55d8d09b326f8b1@nuclearcat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org
+To: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:35036 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754289AbcK1Kjw (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Nov 2016 05:39:52 -0500
-In-Reply-To: <1480329606-6592-1-git-send-email-fw@strlen.de>
+Received: from mail.us.es ([193.147.175.20]:36706 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932300AbcK1LHV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 28 Nov 2016 06:07:21 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 0FAA7EBAC9
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:07:20 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F3A751F41D0
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:07:19 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D17131F41DA
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:07:16 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <97a6a1c557f0f1e6d55d8d09b326f8b1@nuclearcat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The caller assumes that < 0 means that skb was stolen (or free'd).
+On Mon, Nov 28, 2016 at 12:45:59PM +0200, Denys Fedoryshchenko wrote:
+> Hello,
+> 
+> I noticed that if i specify -j SNAT with options --random --random-fully
+> still it keeps persistence for source IP.
 
-All other return values continue skb processing.
+So you specify both?
 
-nf_hook_slow returns 3 different return value types:
+> Actually truly random src ip required in some scenarios like links balanced
+> by IPs, but seems since 2012 at least it is not possible.
+>
+> But actually if i do something like:
+> --- nf_nat_core.c.new	2016-11-28 09:55:54.000000000 +0000
+> +++ nf_nat_core.c	2016-11-21 09:11:59.000000000 +0000
+> @@ -282,13 +282,9 @@
+>  	 * client coming from the same IP (some Internet Banking sites
+>  	 * like this), even across reboots.
+>  	 */
+> -	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM_FULLY) {
+> -	    j = prandom_u32();
+> -	} else {
+> -	    j = jhash2((u32 *)&tuple->src.u3, sizeof(tuple->src.u3) / sizeof(u32),
+> +	j = jhash2((u32 *)&tuple->src.u3, sizeof(tuple->src.u3) / sizeof(u32),
+>  		   range->flags & NF_NAT_RANGE_PERSISTENT ?
+>  			0 : (__force u32)tuple->dst.u3.all[max] ^ zone->id);
+> -	}
+> 
+>  	full_range = false;
+>  	for (i = 0; i <= max; i++) {
+> 
+> It works as intended. But i guess to not break compatibility it is better
+> should be introduced as new option?
+> Or maybe there is no really need for such option?
 
-A) a (negative) errno value: the skb was dropped (NF_DROP, e.g.
-by iptables '-j DROP' rule).
-
-B) 0. The skb was stolen by the hook or queued to userspace.
-
-C) 1. all hooks returned NF_ACCEPT so the caller should invoke
-   the okfn so packet processing can continue.
-
-nft ingress facility currently doesn't have the 'okfn' that
-the NF_HOOK() macros use; there is no nfqueue support either.
-
-So 1 means that nf_hook_ingress() caller should go on processing the skb.
-
-In order to allow use of NF_STOLEN from ingress we need to translate
-this to an errno number, else we'd crash because we continue with
-already-free'd (or about to be free-d) skb.
-
-Random dice roll has chosen EINPROGRESS.  The errno value isn't checked,
-its just important that its less than 0.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/linux/netfilter_ingress.h | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/include/linux/netfilter_ingress.h b/include/linux/netfilter_ingress.h
-index 2dc3b49b804a..d5027e470a24 100644
---- a/include/linux/netfilter_ingress.h
-+++ b/include/linux/netfilter_ingress.h
-@@ -19,6 +19,7 @@ static inline int nf_hook_ingress(struct sk_buff *skb)
- {
- 	struct nf_hook_entry *e = rcu_dereference(skb->dev->nf_hooks_ingress);
- 	struct nf_hook_state state;
-+	int ret;
- 
- 	/* Must recheck the ingress hook head, in the event it became NULL
- 	 * after the check in nf_hook_ingress_active evaluated to true.
-@@ -29,7 +30,11 @@ static inline int nf_hook_ingress(struct sk_buff *skb)
- 	nf_hook_state_init(&state, NF_NETDEV_INGRESS,
- 			   NFPROTO_NETDEV, skb->dev, NULL, NULL,
- 			   dev_net(skb->dev), NULL);
--	return nf_hook_slow(skb, &state, e);
-+	ret = nf_hook_slow(skb, &state, e);
-+	if (unlikely(ret == 0))
-+		return -EINPROGRESS;
-+
-+	return ret;
- }
- 
- static inline void nf_hook_ingress_init(struct net_device *dev)
--- 
-2.7.3
-
+Why does your patch reverts NF_NAT_RANGE_PROTO_RANDOM_FULLY?
