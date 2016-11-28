@@ -1,77 +1,66 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [iptables PATCH] xtables-translate: Fix chain type when translating nat table
-Date: Mon, 28 Nov 2016 13:14:16 +0100
-Message-ID: <20161128121416.27659-1-phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next] netfilter: nft_fib: store loopback interface to
+ dreg when rt is local
+Date: Mon, 28 Nov 2016 13:25:07 +0100
+Message-ID: <20161128122507.GB28510@breakpoint.cc>
+References: <1479994128-16654-1-git-send-email-zlpnobody@163.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org, fw@strlen.de,
+        Liping Zhang <zlpnobody@gmail.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:48335 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754353AbcK1MO1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Nov 2016 07:14:27 -0500
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:35572 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754190AbcK1M2K (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 28 Nov 2016 07:28:10 -0500
+Content-Disposition: inline
+In-Reply-To: <1479994128-16654-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This makes the type of translated chains in nat table to be of type
-'nat' instead of 'filter' which is incorrect.
+Liping Zhang <zlpnobody@163.com> wrote:
+> From: Liping Zhang <zlpnobody@gmail.com>
+> 
+> In general, we haven't do routing lookup in PREROUTING hook, so it's
+> very likely that fib4/6_is_local will not be met. Then the *dest will
+> be set to 0 because we do nothing when the fib result is RTN_LOCAL.
+> 
+> So if the user want to drop all packets which cannot be routed,
+> and input the following nft rule:
+>   # nft add rule filter prerouting fib daddr oif eq 0 drop
+> 
+> Then all the packets which destinate to local will be dropped
+> incorrectly.
+> 
+> Fixes: f6d0cbcf09c5 ("netfilter: nf_tables: add fib expression")
+> Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+> ---
+>  net/ipv4/netfilter/nft_fib_ipv4.c | 3 ++-
+>  net/ipv6/netfilter/nft_fib_ipv6.c | 8 ++++++--
+>  2 files changed, 8 insertions(+), 3 deletions(-)
+> 
+> diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
+> index 2581363..2107775 100644
+> --- a/net/ipv4/netfilter/nft_fib_ipv4.c
+> +++ b/net/ipv4/netfilter/nft_fib_ipv4.c
+> @@ -130,7 +130,8 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
+>  	switch (res.type) {
+>  	case RTN_UNICAST:
+>  		break;
+> -	case RTN_LOCAL:	/* should not appear here, see fib4_is_local() above */
+> +	case RTN_LOCAL:
+> +		nft_fib_store_result(dest, priv->result, pkt, LOOPBACK_IFINDEX);
 
-Verified like so:
+Liping, what about doing:
 
-| $ iptables-restore-translate -f /dev/stdin <<EOF
-| *nat
-| :POSTROUTING ACCEPT [0:0]
-| [0:0] -A POSTROUTING -j MASQUERADE
-| COMMIT
-| EOF
-| # Translated by ./install/sbin/iptables-restore-translate v1.6.0 on Mon Nov 28 12:11:30 2016
-| add table ip nat
-| add chain ip nat POSTROUTING { type nat hook postrouting priority 0; policy accept; }
-| add rule ip nat POSTROUTING counter masquerade
+	case RTN_LOCAL:
+		if (priv->flags & NFTA_FIB_F_DADDR)
+			nft_fib_store_result(dest, priv->result, pkt, LOOPBACK_IFINDEX);
 
-Ditto for ip6tables-restore-translate.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
-This patch depends upon my previously submitted patch
-"xtables-translate: Support setting standard chain policy".
----
- iptables/xtables-translate.c | 18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+AFAICS this will make above rule work while the saddr test will
+still appear to not have a route at all.
 
-diff --git a/iptables/xtables-translate.c b/iptables/xtables-translate.c
-index 0c706dcc2b9db..153bd6503c59b 100644
---- a/iptables/xtables-translate.c
-+++ b/iptables/xtables-translate.c
-@@ -352,17 +352,23 @@ static int xlate_chain_set(struct nft_handle *h, const char *table,
- 			   const char *chain, const char *policy,
- 			   const struct xt_counters *counters)
- {
--	printf("add chain %s %s %s ", family2str[h->family], table, chain);
-+	const char *type = "filter";
-+
-+	if (strcmp(table, "nat") == 0)
-+		type = "nat";
-+
-+	printf("add chain %s %s %s { type %s ",
-+	       family2str[h->family], table, chain, type);
- 	if (strcmp(chain, "PREROUTING") == 0)
--		printf("{ type filter hook prerouting priority 0; ");
-+		printf("hook prerouting priority 0; ");
- 	else if (strcmp(chain, "INPUT") == 0)
--		printf("{ type filter hook input priority 0; ");
-+		printf("hook input priority 0; ");
- 	else if (strcmp(chain, "FORWARD") == 0)
--		printf("{ type filter hook forward priority 0; ");
-+		printf("hook forward priority 0; ");
- 	else if (strcmp(chain, "OUTPUT") == 0)
--		printf("{ type filter hook output priority 0; ");
-+		printf("hook output priority 0; ");
- 	else if (strcmp(chain, "POSTROUTING") == 0)
--		printf("{ type filter hook postrouting priority 0; ");
-+		printf("hook postrouting priority 0; ");
- 
- 	if (strcmp(policy, "ACCEPT") == 0)
- 		printf("policy accept; ");
--- 
-2.10.0
-
+What do you think?
