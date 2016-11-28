@@ -1,75 +1,84 @@
-From: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
-Subject: Re: SNAT --random & fully is not actually random for ips
-Date: Mon, 28 Nov 2016 13:35:33 +0200
-Message-ID: <b4333f580bdb9ca2ede6269a9de3135c@nuclearcat.com>
-References: <97a6a1c557f0f1e6d55d8d09b326f8b1@nuclearcat.com>
- <20161128110651.GA1024@salvia>
- <fb3151804cc3b2c57e69d1059b3417ee@nuclearcat.com>
- <20161128112955.GA1691@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Problem with iptables-translate and tcp flags match
+Date: Mon, 28 Nov 2016 12:35:37 +0100
+Message-ID: <20161128113537.GB1691@salvia>
+References: <20161125215017.GK6158@orbyte.nwl.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nuclearcat.com ([144.76.183.226]:59212 "EHLO nuclearcat.com"
+Received: from mail.us.es ([193.147.175.20]:58098 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753751AbcK1Lfi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Nov 2016 06:35:38 -0500
-In-Reply-To: <20161128112955.GA1691@salvia>
+        id S1753751AbcK1Lfn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 28 Nov 2016 06:35:43 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 7339113A365
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:35:40 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6217915D632
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:35:40 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 598E315D648
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:35:38 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20161125215017.GK6158@orbyte.nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2016-11-28 13:29, Pablo Neira Ayuso wrote:
-> On Mon, Nov 28, 2016 at 01:12:07PM +0200, Denys Fedoryshchenko wrote:
->> On 2016-11-28 13:06, Pablo Neira Ayuso wrote:
->> >Why does your patch reverts NF_NAT_RANGE_PROTO_RANDOM_FULLY?
->> 
->> Ops, sorry i just did mistake with files, actually it is in reverse ( 
->> did
->> this patch, and it worked properly with it, with random source ip).
+Hi,
+
+On Fri, Nov 25, 2016 at 10:50:17PM +0100, Phil Sutter wrote:
+> Hi,
 > 
-> Oh, I see 8)
+> I have a problem which exposes bugs in both iptables-translate and nft
+> and am a bit at a loss with it. But first things first:
 > 
->> --- nf_nat_core.c	2016-11-21 09:11:59.000000000 +0000
->> +++ nf_nat_core.c.new	2016-11-28 09:55:54.000000000 +0000
->> @@ -282,9 +282,13 @@
->>  	 * client coming from the same IP (some Internet Banking sites
->>  	 * like this), even across reboots.
->>  	 */
->> -	j = jhash2((u32 *)&tuple->src.u3, sizeof(tuple->src.u3) / 
->> sizeof(u32),
->> +	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM_FULLY) {
->> +	    j = prandom_u32();
->> +	} else {
->> +	    j = jhash2((u32 *)&tuple->src.u3, sizeof(tuple->src.u3) / 
->> sizeof(u32),
->>  		   range->flags & NF_NAT_RANGE_PERSISTENT ?
->>  			0 : (__force u32)tuple->dst.u3.all[max] ^ zone->id);
->> +	}
->> 
->>  	full_range = false;
->>  	for (i = 0; i <= max; i++) {
->> 
->> This is current situation, RANDOM_FULLY actually does prandom_u32 for 
->> source
->> port only, but not for IP.
->> IP kept as persistent and kind of predictable, because hash function 
->> based
->> on source ip.
->> 
->> Sure i did tried to specify any combination of flags, but looking to
->> "find_best_ips_proto" function, it wont have any effect.
+> | $ iptables-translate -A INPUT -p tcp -m tcp --tcp-flags FIN,SYN FIN,SYN -j DROP
+> | nft add rule ip filter INPUT tcp flags & fin|syn == fin|syn counter drop
 > 
-> IIRC the original intention on random-fully was to cover only ports.
-> Did you interpret from git history otherwise? Otherwise, safe
-> procedure is to add a new flag.
-No, seems i didnt read man page well, sorry.
-I will check it, maybe will try to add new option and submit a patch, 
-still studying impact on "balancing" with this change, seems it works 
-great.
-But not really sure such thing needed for someone else, actually some 
-might have privacy concerns as well, and can use such option for 
-privacy.
+> This only appears to be fine at first glance. When adding the nftables
+> rule, the outcome is this:
+> 
+> | tcp flags & (fin | syn) | fin == fin | syn counter packets 0 bytes 0
+> 
+> Of course, this is obviously wrong. Looking at the output of
+> iptables-translate again, it becomes clear that nftables can only
+> interpret this the wrong way, categorically because binary AND takes
+> precedence over binary OR - so iptables-translate is broken in that it
+> should add parentheses like so:
+> 
+> | nft add rule ip filter INPUT tcp flags & (fin|syn) == fin|syn counter drop
+> 
+> And indeed this leads to expected results in nftables ruleset. On the
+> other hand what nftables interprets the wrong statement into looks a bit
+> fishy as well, but that's another topic - my issue with nftables is
+> exposed when I apply my quick hack to resolve this, which is to just
+> output the missing parentheses print_tcp_xlate(): iptables-translate
+> then outputs the following:
+> 
+> | nft add rule ip filter INPUT tcp flags & (fin|syn) == (fin|syn) counter drop
+> 
+> But nftables in return rejects it:
+> 
+> | <cmdline>:1:45-45: Error: syntax error, unexpected '('
+> | add rule ip filter INPUT tcp flags & (syn|fin) == (syn|fin) counter
+> |                                                   ^
+> 
+> The error message is emitted by the parser (which I am still at war
+> with) and in my opinion it should allow the parentheses on the right
+> side of that relational expression.
+> 
+> So here's a number of question marks for you:
+> * Am I on the right track with adding parentheses to iptables-translate
+>   output at all?
+> * If so, where would I adjust parser_bison.y to allow for them? Maybe
+>   rhs_expr should be extended to allow for it, but it's so generic I'm
+>   afraid of side-effects. Or is the better way to add another case to
+>   relational_expr which explicitly mentions the parentheses around
+>   rhs_expr?
+
+There used to be parens there indeed, but this got removed when
+rhs_expr was introduced. If you look at old nftables releases you
+should find it there (well, not exactly in rhs_expr since that was
+added recently). So my first suggestion is to restore this in the way
+this was before.
