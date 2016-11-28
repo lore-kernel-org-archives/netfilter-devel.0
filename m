@@ -1,66 +1,81 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next] netfilter: nft_fib: store loopback interface to
- dreg when rt is local
-Date: Mon, 28 Nov 2016 13:25:07 +0100
-Message-ID: <20161128122507.GB28510@breakpoint.cc>
-References: <1479994128-16654-1-git-send-email-zlpnobody@163.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft PATCH 1/2] tests: shell: add a testcase for many defines
+Date: Mon, 28 Nov 2016 13:59:22 +0100
+Message-ID: <148033796252.16068.18014556006915154561.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org, fw@strlen.de,
-        Liping Zhang <zlpnobody@gmail.com>
-To: Liping Zhang <zlpnobody@163.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:35572 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754190AbcK1M2K (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Nov 2016 07:28:10 -0500
-Content-Disposition: inline
-In-Reply-To: <1479994128-16654-1-git-send-email-zlpnobody@163.com>
+Received: from smtp3.cica.es ([150.214.5.190]:36495 "EHLO smtp.cica.es"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1753790AbcK1M7c (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 28 Nov 2016 07:59:32 -0500
+Received: from localhost (unknown [127.0.0.1])
+        by smtp.cica.es (Postfix) with ESMTP id BA7D951F357
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:59:28 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id b1kRewiAQPSw for <netfilter-devel@vger.kernel.org>;
+        Mon, 28 Nov 2016 13:59:23 +0100 (CET)
+Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
+        (Authenticated sender: servers@cica.es)
+        by smtp.cica.es (Postfix) with ESMTP id E21A351F345
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 13:59:22 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Liping Zhang <zlpnobody@163.com> wrote:
-> From: Liping Zhang <zlpnobody@gmail.com>
-> 
-> In general, we haven't do routing lookup in PREROUTING hook, so it's
-> very likely that fib4/6_is_local will not be met. Then the *dest will
-> be set to 0 because we do nothing when the fib result is RTN_LOCAL.
-> 
-> So if the user want to drop all packets which cannot be routed,
-> and input the following nft rule:
->   # nft add rule filter prerouting fib daddr oif eq 0 drop
-> 
-> Then all the packets which destinate to local will be dropped
-> incorrectly.
-> 
-> Fixes: f6d0cbcf09c5 ("netfilter: nf_tables: add fib expression")
-> Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
-> ---
->  net/ipv4/netfilter/nft_fib_ipv4.c | 3 ++-
->  net/ipv6/netfilter/nft_fib_ipv6.c | 8 ++++++--
->  2 files changed, 8 insertions(+), 3 deletions(-)
-> 
-> diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
-> index 2581363..2107775 100644
-> --- a/net/ipv4/netfilter/nft_fib_ipv4.c
-> +++ b/net/ipv4/netfilter/nft_fib_ipv4.c
-> @@ -130,7 +130,8 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
->  	switch (res.type) {
->  	case RTN_UNICAST:
->  		break;
-> -	case RTN_LOCAL:	/* should not appear here, see fib4_is_local() above */
-> +	case RTN_LOCAL:
-> +		nft_fib_store_result(dest, priv->result, pkt, LOOPBACK_IFINDEX);
+From: Arturo Borrero Gonzalez <arturo@debian.org>
 
-Liping, what about doing:
+Use many defines in a single nft -f run.
 
-	case RTN_LOCAL:
-		if (priv->flags & NFTA_FIB_F_DADDR)
-			nft_fib_store_result(dest, priv->result, pkt, LOOPBACK_IFINDEX);
+Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
+---
+ tests/shell/testcases/nft-f/0011manydefines_0 |   37 +++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+ create mode 100755 tests/shell/testcases/nft-f/0011manydefines_0
 
+diff --git a/tests/shell/testcases/nft-f/0011manydefines_0 b/tests/shell/testcases/nft-f/0011manydefines_0
+new file mode 100755
+index 0000000..84664f4
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/0011manydefines_0
+@@ -0,0 +1,37 @@
++#!/bin/bash
++
++# tests many defines in a single nft -f run
++
++HOWMANY=20000
++
++tmpfile=$(mktemp)
++if [ ! -w $tmpfile ] ; then
++	echo "Failed to create tmp file" >&2
++	exit 0
++fi
++
++trap "rm -rf $tmpfile" EXIT # cleanup if aborted
++
++generate1()
++{
++	for ((i=0; i<=HOWMANY; i++)) ; do
++		echo "define data_${i} = ${i}"
++	done
++}
++
++generate2()
++{
++	for ((i=0; i<=HOWMANY; i++)) ; do
++		echo "iifname \$data_${i}"
++	done
++}
++
++echo " $(generate1)
++table t {
++	chain c {
++		$(generate2)
++	}
++}" > $tmpfile
++
++set -e
++$NFT -f $tmpfile
 
-AFAICS this will make above rule work while the saddr test will
-still appear to not have a route at all.
-
-What do you think?
