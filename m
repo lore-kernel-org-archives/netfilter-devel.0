@@ -1,164 +1,70 @@
-From: Elise Lennion <elise.lennion@gmail.com>
-Subject: [PATCH nft v2 2/2] datatype: Implement binary search in
- symbolic_constant_print()
-Date: Sun, 27 Nov 2016 23:28:14 -0200
-Message-ID: <20161128012814.GA22480@lennorien.com>
+From: jordi guri <jordi@northome.ca>
+Subject: Filtering invalid MAC addresses
+Date: Sun, 27 Nov 2016 18:09:11 -0800
+Message-ID: <7e23d525adcd53f91eb6bf6db65a7e91@northome.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ua0-f196.google.com ([209.85.217.196]:33103 "EHLO
-        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753405AbcK1B2V (ORCPT
+Received: from mailout.easymail.ca ([64.68.201.169]:35593 "EHLO
+        mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753290AbcK1CQM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 27 Nov 2016 20:28:21 -0500
-Received: by mail-ua0-f196.google.com with SMTP id 20so8643503uak.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 27 Nov 2016 17:28:20 -0800 (PST)
-Content-Disposition: inline
+        Sun, 27 Nov 2016 21:16:12 -0500
+Received: from localhost (localhost [127.0.0.1])
+        by mailout.easymail.ca (Postfix) with ESMTP id 6FCF1E143
+        for <netfilter-devel@vger.kernel.org>; Sun, 27 Nov 2016 21:09:12 -0500 (EST)
+Received: from mailout.easymail.ca ([127.0.0.1])
+        by localhost (easymail-mailout.easydns.vpn [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id y0pHUC5d-TAf for <netfilter-devel@vger.kernel.org>;
+        Sun, 27 Nov 2016 21:09:11 -0500 (EST)
+Received: from webmail.easymail.ca (messages.easymail.ca [64.68.200.64])
+        (using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mailout.easymail.ca (Postfix) with ESMTPSA id 775DEE136
+        for <netfilter-devel@vger.kernel.org>; Sun, 27 Nov 2016 21:09:11 -0500 (EST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Because a linear search is used, which is slower.
+Hi,
 
-This approach demands that the symbol_table have a variable with its
-size, also, it must be sorted by value.
+I was wondering if the newer nftables is able to deal with invalid MAC 
+addresses.  iptables I don't think can deal with these.  For example I 
+have the following showing up in my log (from some anonymous proxy port 
+scanner):
++++++
+Nov 27 17:27:40 northome kernel: ** iptables-DROP ** IN=eth0 OUT= 
+MAC=f2:3c:91:9b:81:db:84:78:ac:0d:79:c1:08:00 SRC=183.
+60.48.25 DST=23.92.27.236 LEN=40 TOS=0x00 PREC=0x20 TTL=51 ID=0 DF 
+PROTO=TCP SPT=12208 DPT=5902 WINDOW=8192 RES=0x00 SYN
+  URGP=0
 
-Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
----
+Nov 27 17:31:50 northome kernel: ** iptables-DROP ** IN=eth0 OUT= 
+MAC=f2:3c:91:9b:81:db:84:78:ac:0d:a6:41:08:00 SRC=175.
+194.186.44 DST=23.92.27.236 LEN=40 TOS=0x00 PREC=0x00 TTL=52 ID=39168 
+PROTO=TCP SPT=24565 DPT=23 WINDOW=19941 RES=0x00 S
++++++
 
- v2: This patch has no v1.
+There are many such entries as the above (all day, every minute) for 
+various destination ports on my server, and (in this case) with the same 
+2 invalid MAC addresses.
 
- include/datatype.h |  2 ++
- src/datatype.c     | 37 +++++++++++++++++++++++++++++--------
- src/proto.c        |  3 ++-
- src/services.c     |  3 ++-
- 4 files changed, 35 insertions(+), 10 deletions(-)
+What is interesting about this is that the first part of both of the 
+above MAC addresses in my iptables log are; "f2:3c:91:9b:81:db".  This 
+happens to be the same MAC address as that of my server's eth0 
+interface.  Therefore I cannot block these scan attempts via the MAC 
+address alone (even if I could in part).
 
-diff --git a/include/datatype.h b/include/datatype.h
-index e53797d..0e7db40 100644
---- a/include/datatype.h
-+++ b/include/datatype.h
-@@ -178,10 +178,12 @@ struct symbolic_constant {
- /**
-  * struct symbol_table - type construction from symbolic values
-  *
-+ * @size: 	number of symbols, without SYMBOL_LIST_END
-  * @symbols:	the symbols
-  */
- struct symbol_table {
- 	int				gcc_workaround;
-+	unsigned int 			size;
- 	struct symbolic_constant	symbols[];
- };
- 
-diff --git a/src/datatype.c b/src/datatype.c
-index 1ae7db4..25d9000 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -116,6 +116,18 @@ struct error_record *symbol_parse(const struct expr *sym,
- 		     sym->dtype->desc);
- }
- 
-+static int symbolic_constant_cmp(const void *p1, const void *p2)
-+{
-+        const struct symbolic_constant f = *(struct symbolic_constant *)p1;
-+        const struct symbolic_constant s = *(struct symbolic_constant *)p2;
-+
-+        if (f.value > s.value)
-+                return  1;
-+        if (f.value < s.value)
-+                return -1;
-+        return 0;
-+}
-+
- struct error_record *symbolic_constant_parse(const struct expr *sym,
- 					     const struct symbol_table *tbl,
- 					     struct expr **res)
-@@ -157,8 +169,10 @@ out:
- void symbolic_constant_print(const struct symbol_table *tbl,
- 			     const struct expr *expr, bool quotes)
- {
-+        unsigned int l = 0;
-+        unsigned int m;
-+        unsigned int r = tbl->size - 1;
- 	unsigned int len = div_round_up(expr->len, BITS_PER_BYTE);
--	const struct symbolic_constant *s;
- 	uint64_t val = 0;
- 
- 	/* Export the data in the correct byteorder for comparison */
-@@ -166,18 +180,22 @@ void symbolic_constant_print(const struct symbol_table *tbl,
- 	mpz_export_data(constant_data_ptr(val, expr->len), expr->value,
- 			expr->byteorder, len);
- 
--	for (s = tbl->symbols; s->identifier != NULL; s++) {
--		if (val == s->value)
--			break;
--	}
-+        while (l < r) {
-+                m = l + (r - l)/2;
-+
-+                if (tbl->symbols[m].value < val)
-+                        l = m + 1;
-+                else
-+                        r = m;
-+        }
- 
--	if (s->identifier == NULL)
-+	if (tbl->symbols[l].value != val)
- 		return expr_basetype(expr)->print(expr);
- 
- 	if (quotes)
--		printf("\"%s\"", s->identifier);
-+		printf("\"%s\"", tbl->symbols[l].identifier);
- 	else
--		printf("%s", s->identifier);
-+		printf("%s", tbl->symbols[l].identifier);
- }
- 
- void symbol_table_print(const struct symbol_table *tbl,
-@@ -652,6 +670,9 @@ struct symbol_table *rt_symbol_table_init(const char *filename)
- 
- 	fclose(f);
- out:
-+        tbl->size = nelems;
-+        qsort(tbl->symbols, nelems, sizeof(tbl->symbols[0]),
-+              symbolic_constant_cmp);
- 	tbl->symbols[nelems] = SYMBOL_LIST_END;
- 	return tbl;
- }
-diff --git a/src/proto.c b/src/proto.c
-index df5439c..27f9f8a 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -860,11 +860,12 @@ const struct datatype etheraddr_type = {
- };
- 
- static const struct symbol_table ethertype_tbl = {
-+        .size 		= 4,
- 	.symbols	= {
- 		SYMBOL("ip",		__constant_htons(ETH_P_IP)),
-+                SYMBOL("vlan",		__constant_htons(ETH_P_8021Q)),
- 		SYMBOL("arp",		__constant_htons(ETH_P_ARP)),
- 		SYMBOL("ip6",		__constant_htons(ETH_P_IPV6)),
--		SYMBOL("vlan",		__constant_htons(ETH_P_8021Q)),
- 		SYMBOL_LIST_END
- 	},
- };
-diff --git a/src/services.c b/src/services.c
-index 8cb1cdf..6c964ba 100644
---- a/src/services.c
-+++ b/src/services.c
-@@ -2,7 +2,8 @@
- #include <datatype.h>
- 
- const struct symbol_table serv_tbl = {
--	.symbols =	{
-+        .size 		= 335,
-+        .symbols 	= {
- 		SYMBOL("exec",	2),
- 		SYMBOL("tcpmux",	256),
- 		SYMBOL("login",	258),
--- 
-2.7.4
+So my question;  Does/is nftables/iptables going to offer some sort of 
+solution to the above invalid MAC address problem, as iptables does 
+currently for invalid packets and IP addresses?
 
+Thank-you for your time and your very fine work on this fantastic 
+firewall product.
+
+
+Thanks and regards,
+
+Jordi
