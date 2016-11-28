@@ -1,64 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: SNAT --random & fully is not actually random for ips
-Date: Mon, 28 Nov 2016 12:06:51 +0100
-Message-ID: <20161128110651.GA1024@salvia>
-References: <97a6a1c557f0f1e6d55d8d09b326f8b1@nuclearcat.com>
+Subject: Re: [PATCH nf-next 08/11] netfilter: nft_quota: add depleted flag
+ for objects
+Date: Mon, 28 Nov 2016 12:08:35 +0100
+Message-ID: <20161128110748.GB1024@salvia>
+References: <1480291270-3715-1-git-send-email-pablo@netfilter.org>
+ <1480291270-3715-9-git-send-email-pablo@netfilter.org>
+ <20161128102749.GA28585@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org
-To: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36706 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37986 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932300AbcK1LHV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Nov 2016 06:07:21 -0500
+        id S932857AbcK1LJL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 28 Nov 2016 06:09:11 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0FAA7EBAC9
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:07:20 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 390A9EBAC1
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:09:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F3A751F41D0
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:07:19 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 294DE1F698D
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:09:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D17131F41DA
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:07:16 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1BCBB1F699A
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:09:08 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <97a6a1c557f0f1e6d55d8d09b326f8b1@nuclearcat.com>
+In-Reply-To: <20161128102749.GA28585@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 28, 2016 at 12:45:59PM +0200, Denys Fedoryshchenko wrote:
-> Hello,
+On Mon, Nov 28, 2016 at 11:27:49AM +0100, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > Notify on depleted quota objects. The NFT_QUOTA_F_DEPLETED flag
+> > indicates we have reached overquota.
+> > 
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > -	nft_quota_do_eval(priv, regs, pkt);
+> > +	if (nft_overquota(priv, pkt) ^ nft_quota_invert(priv)) {
+> > +		if (test_and_set_bit(NFT_QUOTA_F_DEPLETED, &priv->flags)) {
+> > +			nft_obj_notify(nft_net(pkt), nft_chain(pkt)->table,
+> > +				       obj, 0, 0, NFT_MSG_NEWOBJ,
+> > +				       nft_pf(pkt), 0, GFP_ATOMIC);
 > 
-> I noticed that if i specify -j SNAT with options --random --random-fully
-> still it keeps persistence for source IP.
-
-So you specify both?
-
-> Actually truly random src ip required in some scenarios like links balanced
-> by IPs, but seems since 2012 at least it is not possible.
->
-> But actually if i do something like:
-> --- nf_nat_core.c.new	2016-11-28 09:55:54.000000000 +0000
-> +++ nf_nat_core.c	2016-11-21 09:11:59.000000000 +0000
-> @@ -282,13 +282,9 @@
->  	 * client coming from the same IP (some Internet Banking sites
->  	 * like this), even across reboots.
->  	 */
-> -	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM_FULLY) {
-> -	    j = prandom_u32();
-> -	} else {
-> -	    j = jhash2((u32 *)&tuple->src.u3, sizeof(tuple->src.u3) / sizeof(u32),
-> +	j = jhash2((u32 *)&tuple->src.u3, sizeof(tuple->src.u3) / sizeof(u32),
->  		   range->flags & NF_NAT_RANGE_PERSISTENT ?
->  			0 : (__force u32)tuple->dst.u3.all[max] ^ zone->id);
-> -	}
+> I suspect this should be !test_and_set_bit()?
 > 
->  	full_range = false;
->  	for (i = 0; i <= max; i++) {
-> 
-> It works as intended. But i guess to not break compatibility it is better
-> should be introduced as new option?
-> Or maybe there is no really need for such option?
+> Or does this really want to call notify for every overquota hit?
 
-Why does your patch reverts NF_NAT_RANGE_PROTO_RANDOM_FULLY?
+That's right, my test here was just checking for the first event then
+stop. Will fix up this, thanks for reviewing.
