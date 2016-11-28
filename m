@@ -1,84 +1,77 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Problem with iptables-translate and tcp flags match
-Date: Mon, 28 Nov 2016 12:35:37 +0100
-Message-ID: <20161128113537.GB1691@salvia>
-References: <20161125215017.GK6158@orbyte.nwl.cc>
+Subject: Re: [PATCH nft 1/7] Interpret OP_NEQ against a set as OP_LOOKUP
+Date: Mon, 28 Nov 2016 12:39:05 +0100
+Message-ID: <20161128113905.GC1691@salvia>
+References: <92cdd42afb329e58b41c0c33f2a68786afd8d7e5.1479994191.git.anatole@rezel.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Anatole Denis <anatole@rezel.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58098 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60710 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753751AbcK1Lfn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Nov 2016 06:35:43 -0500
+        id S1754036AbcK1LjL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 28 Nov 2016 06:39:11 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7339113A365
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:35:40 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 709B313C0D4
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:39:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6217915D632
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:35:40 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5DD4016E3F6
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:39:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 598E315D648
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:35:38 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3D900165CD8
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 12:39:06 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20161125215017.GK6158@orbyte.nwl.cc>
+In-Reply-To: <92cdd42afb329e58b41c0c33f2a68786afd8d7e5.1479994191.git.anatole@rezel.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Thu, Nov 24, 2016 at 03:16:20PM +0100, Anatole Denis wrote:
+> Now that the support for inverted matching is in the kernel and in libnftnl, add
+> it to nftables too.
+> 
+> This fixes bug #888
+> 
+> Signed-off-by: Anatole Denis <anatole@rezel.net>
+> ---
+> This patch is heavily based off those of Yuxuan Shui from 2014
+> (https://marc.info/?l=netfilter-devel&m=140682484411296)
+> 
+>  src/evaluate.c            | 14 ++++++++++++++
+>  src/netlink_delinearize.c | 10 ++++++++++
+>  src/netlink_linearize.c   | 14 +++++++++-----
+>  3 files changed, 33 insertions(+), 5 deletions(-)
+> 
+> diff --git a/src/evaluate.c b/src/evaluate.c
+> index 8b113c8..bb46615 100644
+> --- a/src/evaluate.c
+> +++ b/src/evaluate.c
+> @@ -1541,6 +1541,20 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
+>  			if (byteorder_conversion(ctx, &rel->right, left->byteorder) < 0)
+>  				return -1;
+>  			break;
+> +		case EXPR_SET:
+> +			assert(rel->op == OP_NEQ);
+> +			right = rel->right =
+> +				implicit_set_declaration(ctx, "__set%d",
+> +							 left->dtype, left->len,
+> +							 right);
+> +			/* fall through */
+> +		case EXPR_SET_REF:
+> +			assert(rel->op == OP_NEQ);
 
-On Fri, Nov 25, 2016 at 10:50:17PM +0100, Phil Sutter wrote:
-> Hi,
-> 
-> I have a problem which exposes bugs in both iptables-translate and nft
-> and am a bit at a loss with it. But first things first:
-> 
-> | $ iptables-translate -A INPUT -p tcp -m tcp --tcp-flags FIN,SYN FIN,SYN -j DROP
-> | nft add rule ip filter INPUT tcp flags & fin|syn == fin|syn counter drop
-> 
-> This only appears to be fine at first glance. When adding the nftables
-> rule, the outcome is this:
-> 
-> | tcp flags & (fin | syn) | fin == fin | syn counter packets 0 bytes 0
-> 
-> Of course, this is obviously wrong. Looking at the output of
-> iptables-translate again, it becomes clear that nftables can only
-> interpret this the wrong way, categorically because binary AND takes
-> precedence over binary OR - so iptables-translate is broken in that it
-> should add parentheses like so:
-> 
-> | nft add rule ip filter INPUT tcp flags & (fin|syn) == fin|syn counter drop
-> 
-> And indeed this leads to expected results in nftables ruleset. On the
-> other hand what nftables interprets the wrong statement into looks a bit
-> fishy as well, but that's another topic - my issue with nftables is
-> exposed when I apply my quick hack to resolve this, which is to just
-> output the missing parentheses print_tcp_xlate(): iptables-translate
-> then outputs the following:
-> 
-> | nft add rule ip filter INPUT tcp flags & (fin|syn) == (fin|syn) counter drop
-> 
-> But nftables in return rejects it:
-> 
-> | <cmdline>:1:45-45: Error: syntax error, unexpected '('
-> | add rule ip filter INPUT tcp flags & (syn|fin) == (syn|fin) counter
-> |                                                   ^
-> 
-> The error message is emitted by the parser (which I am still at war
-> with) and in my opinion it should allow the parentheses on the right
-> side of that relational expression.
-> 
-> So here's a number of question marks for you:
-> * Am I on the right track with adding parentheses to iptables-translate
->   output at all?
-> * If so, where would I adjust parser_bison.y to allow for them? Maybe
->   rhs_expr should be extended to allow for it, but it's so generic I'm
->   afraid of side-effects. Or is the better way to add another case to
->   relational_expr which explicitly mentions the parentheses around
->   rhs_expr?
+Thanks for working on this.
 
-There used to be parens there indeed, but this got removed when
-rhs_expr was introduced. If you look at old nftables releases you
-should find it there (well, not exactly in rhs_expr since that was
-added recently). So my first suggestion is to restore this in the way
-this was before.
+I think we're almost there, we need a bit more code here to catch
+these two error cases:
+
+"the referenced set does not exist"
+
+and
+
+"datatype mismatch, expected %s, set has type %s"
+
+See line 1481 in src/evaluate.c for the OP_LOOKUP case.
+
+If I'm on the right track, please also test that these errors cases
+work as intended.
