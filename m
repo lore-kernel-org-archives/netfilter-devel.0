@@ -1,80 +1,38 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft v2 2/2] datatype: Implement binary search in
- symbolic_constant_print()
-Date: Mon, 28 Nov 2016 09:50:49 +0100
-Message-ID: <20161128085049.GB949@salvia>
-References: <20161128012814.GA22480@lennorien.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next 08/11] netfilter: nft_quota: add depleted flag
+ for objects
+Date: Mon, 28 Nov 2016 11:27:49 +0100
+Message-ID: <20161128102749.GA28585@breakpoint.cc>
+References: <1480291270-3715-1-git-send-email-pablo@netfilter.org>
+ <1480291270-3715-9-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Elise Lennion <elise.lennion@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46508 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752805AbcK1Iu7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Nov 2016 03:50:59 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C554EA4168
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 09:50:52 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B2DCDEBAF8
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 09:50:52 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 91884EBACD
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 09:50:50 +0100 (CET)
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:34966 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754598AbcK1Kas (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 28 Nov 2016 05:30:48 -0500
 Content-Disposition: inline
-In-Reply-To: <20161128012814.GA22480@lennorien.com>
+In-Reply-To: <1480291270-3715-9-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Nov 27, 2016 at 11:28:14PM -0200, Elise Lennion wrote:
-> Because a linear search is used, which is slower.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Notify on depleted quota objects. The NFT_QUOTA_F_DEPLETED flag
+> indicates we have reached overquota.
 > 
-> This approach demands that the symbol_table have a variable with its
-> size, also, it must be sorted by value.
-> 
-> Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
-> ---
-> 
->  v2: This patch has no v1.
-> 
->  include/datatype.h |  2 ++
->  src/datatype.c     | 37 +++++++++++++++++++++++++++++--------
->  src/proto.c        |  3 ++-
->  src/services.c     |  3 ++-
->  4 files changed, 35 insertions(+), 10 deletions(-)
-> 
-> diff --git a/include/datatype.h b/include/datatype.h
-> index e53797d..0e7db40 100644
-> --- a/include/datatype.h
-> +++ b/include/datatype.h
-> @@ -178,10 +178,12 @@ struct symbolic_constant {
->  /**
->   * struct symbol_table - type construction from symbolic values
->   *
-> + * @size: 	number of symbols, without SYMBOL_LIST_END
->   * @symbols:	the symbols
->   */
->  struct symbol_table {
->  	int				gcc_workaround;
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> -	nft_quota_do_eval(priv, regs, pkt);
+> +	if (nft_overquota(priv, pkt) ^ nft_quota_invert(priv)) {
+> +		if (test_and_set_bit(NFT_QUOTA_F_DEPLETED, &priv->flags)) {
+> +			nft_obj_notify(nft_net(pkt), nft_chain(pkt)->table,
+> +				       obj, 0, 0, NFT_MSG_NEWOBJ,
+> +				       nft_pf(pkt), 0, GFP_ATOMIC);
 
-You can know remove this gcc_workaround field.
+I suspect this should be !test_and_set_bit()?
 
-> +	unsigned int 			size;
->  	struct symbolic_constant	symbols[];
->  };
->  
-> diff --git a/src/datatype.c b/src/datatype.c
-> index 1ae7db4..25d9000 100644
-> --- a/src/datatype.c
-> +++ b/src/datatype.c
-> @@ -116,6 +116,18 @@ struct error_record *symbol_parse(const struct expr *sym,
->  		     sym->dtype->desc);
->  }
->  
-> +static int symbolic_constant_cmp(const void *p1, const void *p2)
-> +{
-> +        const struct symbolic_constant f = *(struct symbolic_constant *)p1;
-   ^^^^^^^^
-I see spaces instead of tabs here. Same thing everywhere in this
-patch.
+Or does this really want to call notify for every overquota hit?
+
