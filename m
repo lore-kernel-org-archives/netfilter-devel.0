@@ -1,51 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft v3 1/2] datatype: Replace getnameinfo() by internal
- lookup table
-Date: Tue, 29 Nov 2016 20:19:11 +0100
-Message-ID: <20161129191911.GA2305@salvia>
-References: <20161128202009.GA8734@lennorien.com>
+Subject: Re: [PATCH nf] netfilter: ipv6: nf_defrag: drop mangled skb on ream
+ error
+Date: Tue, 29 Nov 2016 20:25:04 +0100
+Message-ID: <20161129192504.GA2597@salvia>
+References: <1480382254-13277-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Elise Lennion <elise.lennion@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, andreyknvl@google.com,
+        dvyukov@google.com, eric.dumazet@gmail.com
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37882 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39624 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752106AbcK2TT1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Nov 2016 14:19:27 -0500
+        id S1751726AbcK2TZQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 29 Nov 2016 14:25:16 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 940F7174D1A
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2016 20:19:18 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id CE2BA174D19
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2016 20:25:14 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8619BDA38F
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2016 20:19:18 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BBC98A7D50
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2016 20:25:14 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8C9ECDA38E
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2016 20:19:16 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5FB0EA7E2E
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2016 20:25:09 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20161128202009.GA8734@lennorien.com>
+In-Reply-To: <1480382254-13277-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 28, 2016 at 06:20:10PM -0200, Elise Lennion wrote:
-[...]
-> diff --git a/src/services.c b/src/services.c
-> new file mode 100644
-> index 0000000..8cb1cdf
-> --- /dev/null
-> +++ b/src/services.c
-> @@ -0,0 +1,343 @@
-> +#include <nftables.h>
-> +#include <datatype.h>
-> +
-> +const struct symbol_table serv_tbl = {
-> +	.symbols =	{
-> +		SYMBOL("exec",	2),
+On Tue, Nov 29, 2016 at 02:17:34AM +0100, Florian Westphal wrote:
+> Dmitry Vyukov reported GPF in network stack that Andrey traced down to
+> negative nh offset in nf_ct_frag6_queue().
+> 
+> Problem is that all network headers before fragment header are pulled.
+> Normal ipv6 reassembly will drop the skb when errors occur further down
+> the line.
+> 
+> netfilter doesn't do this, and instead passed the original fragment
+> along.  That was also fine back when netfilter ipv6 defrag worked with
+> cloned fragments, as the original, pristine fragment was passed on.
+> 
+> So we either have to undo the pull op, or discard such fragments.
+> Since they're malformed after all (e.g. overlapping fragment) it seems
+> preferrable to just drop them.
+> 
+> Same for temporary errors -- it doesn't make sense to accept (and
+> perhaps forward!) only some fragments of same datagram.
 
-Please, use __constant_htons() so these ports become understandable.
-
-Let's keep it simple, so we forget on binary search by now.
-
-Very much looking forward to having this in the nft tree.
-
-Thanks!
+Applied, thanks!
