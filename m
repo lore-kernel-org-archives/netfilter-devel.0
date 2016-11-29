@@ -1,39 +1,54 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 2/7] tests/py/{arp,any}: Unmask negative set lookup
-Date: Tue, 29 Nov 2016 22:18:53 +0100
-Message-ID: <20161129211853.GB6362@salvia>
-References: <92cdd42afb329e58b41c0c33f2a68786afd8d7e5.1479994191.git.anatole@rezel.net>
- <ee64d5dc81660dfdffaec2f6d54d648e670f2996.1479994191.git.anatole@rezel.net>
+Subject: Re: [nft PATCH] parser_bison: Allow parens on RHS of relational_expr
+Date: Tue, 29 Nov 2016 22:19:31 +0100
+Message-ID: <20161129211931.GA6409@salvia>
+References: <20161128175143.25201-1-phil@nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Anatole Denis <anatole@rezel.net>
+To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39436 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39550 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755270AbcK2VS6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Nov 2016 16:18:58 -0500
+        id S1756717AbcK2VTn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 29 Nov 2016 16:19:43 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D8812174D1E
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2016 22:18:56 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 06BDE174D1F
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2016 22:19:42 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CBB21DA38E
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2016 22:18:56 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EA4B5DA391
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2016 22:19:41 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CB2E2DA385
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2016 22:18:54 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6A36EDA391
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Nov 2016 22:19:32 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <ee64d5dc81660dfdffaec2f6d54d648e670f2996.1479994191.git.anatole@rezel.net>
+In-Reply-To: <20161128175143.25201-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 24, 2016 at 03:16:21PM +0100, Anatole Denis wrote:
-> Many testcases were masked because of bug #888. This series of patches unmasks
-> them
->
-> Signed-off-by: Anatole Denis <anatole@rezel.net>
-> ---
-> Patches 2 through 7 update the tests, and are split because of the character
-> limit on netfilter-devel. They could be squashed together.
+On Mon, Nov 28, 2016 at 06:51:43PM +0100, Phil Sutter wrote:
+> This is useful to allow a construct such as:
+> 
+> | tcp flags & (syn|fin) == (syn|fin)
+> 
+> Before, only the parentheses on the left side were allowed, but via a
+> quite funny path through the parser:
+> 
+> * expr might be a concat_expr
+> * concat_expr might be a basic_expr
+> * basic_expr is an inclusive_or_expr
+> * inclusive_or_expr might be an exclusive_or_expr
+> * exclusive_or_expr might be an and_expr
+> * and_expr might be 'and_expr AMPERSAND shift_expr'
+>   -> here we eliminate 'flags &' in above statement
+> * shift_expr might be a primary_expr
+> * primary_expr might be '( basic_expr )'
+> 
+> Commit a3e60492a684b ("parser: restrict relational rhs expression
+> recursion") introduced rhs_expr to disallow recursion on RHS, so just
+> reverting that change for relational_expr is a no go. Allowing rhs_expr
+> to be '( rhs_expr )' though seems way too intrusive to me since it's
+> being used in all kinds of places, so this patch is the safest way to
+> allow the above I could come up with.
 
-Applied and squashed. Thanks!
+Applied, thanks Phil!
