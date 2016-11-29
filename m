@@ -1,58 +1,67 @@
-From: <sophie.norman@macquarie.com>
-Subject: (unknown)
-Date: Tue, 29 Nov 2016 02:37:49 -0000
-Message-ID: <148038706924.594.2747291371877315661@caiway.nl>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH nf] netfilter: ipv6: nf_defrag: drop mangled skb on ream
+ error
+Date: Mon, 28 Nov 2016 18:55:09 -0800
+Message-ID: <1480388109.18162.110.camel@edumazet-glaptop3.roam.corp.google.com>
+References: <1480382254-13277-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: application/zip; name="MESSAGE_779427631_netfilter-devel.zip"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, andreyknvl@google.com,
+        dvyukov@google.com
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 195-204-128-083.dynamic.caiway.nl ([83.128.204.195]:46394 "HELO
-        caiway.nl" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-        id S1753566AbcK2Chx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Nov 2016 21:37:53 -0500
-Content-Disposition: attachment
-Subject: 
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:35307 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752046AbcK2CzM (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 28 Nov 2016 21:55:12 -0500
+Received: by mail-pf0-f194.google.com with SMTP id i88so7342063pfk.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Nov 2016 18:55:12 -0800 (PST)
+In-Reply-To: <1480382254-13277-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-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
-AEsAAABZCAAAAAA=
+On Tue, 2016-11-29 at 02:17 +0100, Florian Westphal wrote:
+> Dmitry Vyukov reported GPF in network stack that Andrey traced down to
+> negative nh offset in nf_ct_frag6_queue().
+> 
+> Problem is that all network headers before fragment header are pulled.
+> Normal ipv6 reassembly will drop the skb when errors occur further down
+> the line.
+> 
+> netfilter doesn't do this, and instead passed the original fragment
+> along.  That was also fine back when netfilter ipv6 defrag worked with
+> cloned fragments, as the original, pristine fragment was passed on.
+> 
+> So we either have to undo the pull op, or discard such fragments.
+> Since they're malformed after all (e.g. overlapping fragment) it seems
+> preferrable to just drop them.
+> 
+> Same for temporary errors -- it doesn't make sense to accept (and
+> perhaps forward!) only some fragments of same datagram.
+> 
+> Fixes: 029f7f3b8701cc7ac ("netfilter: ipv6: nf_defrag: avoid/free clone operations")
+> Reported-by: Dmitry Vyukov <dvyukov@google.com>
+> Debugged-by: Andrey Konovalov <andreyknvl@google.com>
+> Diagnosed-by: Eric Dumazet <Eric Dumazet <edumazet@google.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  KASAN no longer complains, ping6 -s $bignum still works and gets picked up
+>  by ipv6 conntrack.
+> 
+>  Eric, I did think about changing nf_ct_frag6_gather but since its not a
+>  netfilter hook a hook retval doesn't seem to be appropriate (and also
+>  increases patch size).
+
+Right, I guess nf_ prefix in its name is a bit misleading ;)
+
+> 
+>  This doesn't conflict with recent
+>  'openvswitch: Fix skb leak in IPv6 reassembly' patch.
+
+Seems fine to me, thanks !
+
+Acked-by: Eric Dumazet <edumazet@google.com>
+
+
