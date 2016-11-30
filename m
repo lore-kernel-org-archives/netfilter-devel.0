@@ -1,61 +1,64 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft v4] datatype: Replace getnameinfo() by internal
- lookup table
-Date: Wed, 30 Nov 2016 20:11:54 +0100
-Message-ID: <20161130191154.GA9121@salvia>
-References: <20161130011236.GA11108@lennorien.com>
+From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Subject: Re: net/sctp: vmalloc allocation failure in
+ sctp_setsockopt/xt_alloc_table_info
+Date: Wed, 30 Nov 2016 17:21:45 -0200
+Message-ID: <20161130192145.GB13169@localhost.localdomain>
+References: <CAAeHK+wecw6ST_DWJQBLFNwVsOVgderGE-EEJiN0-kf796XHtw@mail.gmail.com>
+ <20161128141340.GA29839@hmsreliant.think-freely.org>
+ <CAAeHK+xJmwF6hddS-sO-y3HQkRicwQN=ZceFWTZT2M_0h4E2hQ@mail.gmail.com>
+ <20161128143931.GB29839@hmsreliant.think-freely.org>
+ <20161128151312.GA13172@localhost.localdomain>
+ <20161128174647.GC29839@hmsreliant.think-freely.org>
+ <20161128174710.GE28510@breakpoint.cc>
+ <20161128175626.GD29839@hmsreliant.think-freely.org>
+ <20161128180925.GF28510@breakpoint.cc>
+ <20161128181803.GA13159@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Elise Lennion <elise.lennion@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58930 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758111AbcK3TL7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 30 Nov 2016 14:11:59 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B31EE12A68E
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Nov 2016 20:11:57 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A04D9DA801
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Nov 2016 20:11:57 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9852EDA841
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Nov 2016 20:11:55 +0100 (CET)
+Cc: Neil Horman <nhorman@tuxdriver.com>,
+        netdev <netdev@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20161130011236.GA11108@lennorien.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20161128181803.GA13159@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Nov 29, 2016 at 11:12:37PM -0200, Elise Lennion wrote:
-> To avoid exceeding the inputs number limit of the flex scanner used,
-> when calling getnameinfo() in inet_service_type_print().
+On Mon, Nov 28, 2016 at 04:18:03PM -0200, Marcelo Ricardo Leitner wrote:
+> On Mon, Nov 28, 2016 at 07:09:25PM +0100, Florian Westphal wrote:
+> > Neil Horman <nhorman@tuxdriver.com> wrote:
+> > 
+> > [ trimming CCs ]
+> > 
+> > > On Mon, Nov 28, 2016 at 06:47:10PM +0100, Florian Westphal wrote:
+> > > > Neil Horman <nhorman@tuxdriver.com> wrote:
+> > > > > I'm not sure I agree with that.  Generally speaking it seems like the right
+> > > > > thing to do, if you want to avoid filling logs with warnings, but this is the
+> > > > > sort of error that is going to be accompanied by severe service interruption.
+> > > > > I'd rather see a reason behind that in the logs, than just have it occur
+> > > > > silently.
+> > > > 
+> > > > Its not silent -- the setsockopt call will fail and userspace should
+> > > > display an error.
+> > > > 
+> > > Thats not true.  If the OOM succedes in freeing enough memory to fulfill the
+> > > request the setsockopt may complete without error, you're just left with a
+> > > killed process...somewhere.  Thats seems a bit dodgy to me
+> > 
 > 
-> The new symbol_table was associated with inet_service_type, to enable
-> listing all pre-defined services using nft command line tool.
+> __GFP_NOWARN is about allocation failures only and it won't disable OOM
+> kill messages.  oom_kill_process() has no idea on GFP_NOWARN when doing
+> the logging.
 > 
-> The listed services are all well-known and registered ports of my
-> local /etc/services file, from Ubuntu 16.04. Service numbers are
-> converted to respect network byte order.
+> > We should prevent OOM killer from running in first place (GFP_NORETRY should work).
+> 
+> Oh. Really?
+> 
 
-Applied, thanks Elise.
+Now I see why. Then we're basically saying that's better to fail this
+operation than to kill some random process around.
+And kmalloc() is already using GFP_NORETRY in this same place.
 
-BTW, we have to fix "nft describe", look:
-
- # nft describe tcp dport
- payload expression, datatype inet_service (internet network service) (basetype integer), 16 bits
-
- pre-defined symbolic constants:
-        tcpmux                          0x0100
-        echo                            0x0700
-        ...
-
-The user relies on nft describe to know what datatype and possible
-values are possible for a given selector. In this case, they are
-expressed in network byte order.
-
-The problems seems to be in expr_describe(), the expression already
-provides the byteorder, so I guess symbol_table_print() needs to get
-this byteorder as parameter to swap bytes when required.
-
-This is a fix, so I would appreciate if you focus on this, thanks!
+  Marcelo
