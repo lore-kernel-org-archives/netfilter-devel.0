@@ -1,34 +1,60 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] bison: remove old log level tokens
-Date: Wed, 30 Nov 2016 20:36:38 +0100
-Message-ID: <20161130193638.GA21575@salvia>
-References: <1480534468-7388-1-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38112 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753657AbcK3Tgr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 30 Nov 2016 14:36:47 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 759A512A695
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Nov 2016 20:36:45 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 67989DA7F6
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Nov 2016 20:36:45 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7EFC8DA7E0
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Nov 2016 20:36:43 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1480534468-7388-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Subject: [PATCH] netfilter: avoid warn and OOM on vmalloc call
+Date: Wed, 30 Nov 2016 17:42:22 -0200
+Message-ID: <6fd343e83c26c5108d4b6c189e434a5a6e7ebd01.1480534469.git.marcelo.leitner@gmail.com>
+References: <20161130192145.GB13169@localhost.localdomain>
+Cc: fw@strlen.de, nhorman@tuxdriver.com, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: andreyknvl@google.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20161130192145.GB13169@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Nov 30, 2016 at 08:34:28PM +0100, Florian Westphal wrote:
-> not used anymore since 0423caa91ad26e7 ("src: don't need keyword for log level")
+Hi Andrey,
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Please let me know how this works for you. It seems good here, though
+your poc may still trigger OOM through other means.
 
-Thanks Florian.
+Thanks,
+Marcelo
+
+---8<---
+
+Andrey Konovalov reported that this vmalloc call is based on an
+userspace request and that it's spewing traces, which may flood the logs
+and cause DoS if abused.
+
+Florian Westphal also mentioned that this call should not trigger OOM,
+as kmalloc one is already not triggering it.
+
+This patch brings the vmalloc call in sync to kmalloc and disables the
+warn trace on allocation failure and also disable OOM invocation.
+
+Note, however, that under such stress situation, other places may
+trigger OOM invocation.
+
+Reported-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Florian Westphal <fw@strlen.de>
+Signed-off-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+---
+ net/netfilter/x_tables.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index fc4977456c30e098197b4f987b758072c9cf60d9..dece525bf83a0098dad607fce665cd0bde228362 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -958,7 +958,9 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
+ 	if (sz <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER))
+ 		info = kmalloc(sz, GFP_KERNEL | __GFP_NOWARN | __GFP_NORETRY);
+ 	if (!info) {
+-		info = vmalloc(sz);
++		info = __vmalloc(sz, GFP_KERNEL | __GFP_NOWARN |
++				     __GFP_NORETRY | __GFP_HIGHMEM,
++				 PAGE_KERNEL);
+ 		if (!info)
+ 			return NULL;
+ 	}
+-- 
+2.9.3
