@@ -1,92 +1,84 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC nft PATCH] tests: shell: add a basic scapy test
-Date: Thu, 1 Dec 2016 17:52:59 +0100
-Message-ID: <20161201165259.GA30607@salvia>
-References: <148049874652.26121.17744801893432354214.stgit@nfdev2.cica.es>
- <20161130182704.GA7892@salvia>
- <20161130182801.GB7892@salvia>
- <CAOkSjBibmjB6Uo2z9Wx1+tfkpO=eY1vY2_79qXN+TEB_tvPcEA@mail.gmail.com>
- <20161201104535.GA13152@salvia>
- <CAOkSjBjnKTk14-32+5faKsJG3CMARrywZ2814o1L2cC5Mj2TOQ@mail.gmail.com>
+From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Subject: Re: [PATCH] netfilter: avoid warn and OOM on vmalloc call
+Date: Thu, 1 Dec 2016 17:08:18 -0200
+Message-ID: <20161201190818.GA6650@localhost.localdomain>
+References: <20161130192145.GB13169@localhost.localdomain>
+ <6fd343e83c26c5108d4b6c189e434a5a6e7ebd01.1480534469.git.marcelo.leitner@gmail.com>
+ <CAAeHK+wjP=h_4YxB6VUc+FjKcZi9igmyTs3nPAuUJeNomYSA0w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>,
-        Shivani Bhardwaj <shivanib134@gmail.com>
-To: Arturo Borrero Gonzalez <arturo@debian.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42642 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751364AbcLAQxE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Dec 2016 11:53:04 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id F1D478CD8F
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 17:53:02 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E41D0A0FD8
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 17:53:02 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C73ADA0FC4
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 17:53:00 +0100 (CET)
+Cc: Florian Westphal <fw@strlen.de>,
+        Neil Horman <nhorman@tuxdriver.com>,
+        netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+        LKML <linux-kernel@vger.kernel.org>
+To: Andrey Konovalov <andreyknvl@google.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBjnKTk14-32+5faKsJG3CMARrywZ2814o1L2cC5Mj2TOQ@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <CAAeHK+wjP=h_4YxB6VUc+FjKcZi9igmyTs3nPAuUJeNomYSA0w@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Dec 01, 2016 at 04:05:07PM +0100, Arturo Borrero Gonzalez wrote:
-> On 1 December 2016 at 11:45, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > I mean, it would be good if you place as much common code as possible
-> > in the runner script, so individual unit tests don't result in too
-> > much copy and paste.
+On Thu, Dec 01, 2016 at 10:42:22AM +0100, Andrey Konovalov wrote:
+> On Wed, Nov 30, 2016 at 8:42 PM, Marcelo Ricardo Leitner
+> <marcelo.leitner@gmail.com> wrote:
+> > Hi Andrey,
+> >
+> > Please let me know how this works for you. It seems good here, though
+> > your poc may still trigger OOM through other means.
+> 
+> Hi Marcelo,
+> 
+> Don't see any reports with this patch.
+> 
+> Thanks!
+
+Thanks Andrey.
+I'll post a v2 after a few more tests here and to s/OOM/OOM killer/ in
+most of the changelog.
+
+> 
+> >
+> > Thanks,
+> > Marcelo
+> >
+> > ---8<---
+> >
+> > Andrey Konovalov reported that this vmalloc call is based on an
+> > userspace request and that it's spewing traces, which may flood the logs
+> > and cause DoS if abused.
+> >
+> > Florian Westphal also mentioned that this call should not trigger OOM,
+> > as kmalloc one is already not triggering it.
+> >
+> > This patch brings the vmalloc call in sync to kmalloc and disables the
+> > warn trace on allocation failure and also disable OOM invocation.
+> >
+> > Note, however, that under such stress situation, other places may
+> > trigger OOM invocation.
+> >
+> > Reported-by: Andrey Konovalov <andreyknvl@google.com>
+> > Cc: Florian Westphal <fw@strlen.de>
+> > Signed-off-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+> > ---
+> >  net/netfilter/x_tables.c | 4 +++-
+> >  1 file changed, 3 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+> > index fc4977456c30e098197b4f987b758072c9cf60d9..dece525bf83a0098dad607fce665cd0bde228362 100644
+> > --- a/net/netfilter/x_tables.c
+> > +++ b/net/netfilter/x_tables.c
+> > @@ -958,7 +958,9 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
+> >         if (sz <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER))
+> >                 info = kmalloc(sz, GFP_KERNEL | __GFP_NOWARN | __GFP_NORETRY);
+> >         if (!info) {
+> > -               info = vmalloc(sz);
+> > +               info = __vmalloc(sz, GFP_KERNEL | __GFP_NOWARN |
+> > +                                    __GFP_NORETRY | __GFP_HIGHMEM,
+> > +                                PAGE_KERNEL);
+> >                 if (!info)
+> >                         return NULL;
+> >         }
+> > --
+> > 2.9.3
 > >
 > 
-> Ok, I understand.
-> 
-> Actually, as you know I'm just experimenting with this.
->
-> Anyway the problem I see is that we could end losing a lot of flexibility.
-> The current py testsuite is only able to perform one kind of tests
-> because of this approach.
-> In the other hand, the shell testsuite is able to perform almost any
-> kind of tests because it only executes arbitrary binaries.
-
-Flexibility is good indeed. Regarding the comments on the existing
-testsuites, I think both complement each other, so they are both
-useful.
-
-> So perhaps we could take an intermediate approach:
->  * scapy tests are executed by the shell testsuite runner (they are
-> standalone scripts)
->  * we develop a common lib of functions inside
-> tests/shell/testcases/scapy/ (for example common.py)
->  * then, each scapy test load that common lib which includes most of
-> the factorised code
-
-That's good, I like this balance. Look, my only concern is
-maintainability: If we end up using the copy & paste pattern too much
-on these scripts, we will have to patch them all if we find a bug on
-them.
-
-But don't worry too much on trying to generalize things upfront given
-there's experimentation on this going on. We can introduce
-abstractions incrementally, as we start seeing that code duplicates.
-
-> Common functions would be something like this:
-> 
-> * configure(): we do the scapy configuration, network config, or whatever
-> * load_ruleset): we pass a nft ruleset (a string) and load it using nft -f
-> * check_result(): we grep the ruleset counters, or whatever
-> 
-> I'm thinking of some tests we could have using this approach:
-> 
-> * atomic replacement of ruleset during a network transfer
-> * conntrack modifications (using the conntrack-tools binaries)
-> * packet mangling, NAT, etc
-> 
-> In any case, I think we should retain the ability to load nft rules,
-> send/recv scapy packets and check for nft counters at any time during
-> the execution.
-
-Sure, go ahead.
-
-Thanks Arturo.
