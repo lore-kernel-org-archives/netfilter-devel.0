@@ -1,67 +1,50 @@
-From: Vadim Kochan <vadim4j@gmail.com>
-Subject: Re: [RFC nft PATCH] tests: shell: add a basic scapy test
-Date: Thu, 1 Dec 2016 13:04:07 +0200
-Message-ID: <CAMw6YJ+ZpePTFvkkAgwtGBH1FS0i8AWJxitiWUTwf=xCAvOQrQ@mail.gmail.com>
-References: <148049874652.26121.17744801893432354214.stgit@nfdev2.cica.es>
- <20161130182704.GA7892@salvia> <20161130182801.GB7892@salvia>
- <CAOkSjBibmjB6Uo2z9Wx1+tfkpO=eY1vY2_79qXN+TEB_tvPcEA@mail.gmail.com> <20161201104535.GA13152@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Arturo Borrero Gonzalez <arturo@debian.org>,
-        Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>,
-        Shivani Bhardwaj <shivanib134@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] evaluate: return ctx->table from table_lookup_global()
+Date: Thu,  1 Dec 2016 12:23:19 +0100
+Message-ID: <1480591399-7704-1-git-send-email-pablo@netfilter.org>
+Cc: martin@serafean.cz
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yw0-f193.google.com ([209.85.161.193]:35070 "EHLO
-        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753150AbcLALEI (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Dec 2016 06:04:08 -0500
-Received: by mail-yw0-f193.google.com with SMTP id b66so17624271ywh.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 01 Dec 2016 03:04:08 -0800 (PST)
-In-Reply-To: <20161201104535.GA13152@salvia>
+Received: from mail.us.es ([193.147.175.20]:38416 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756063AbcLALXf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 1 Dec 2016 06:23:35 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id F2DC38CD67
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 12:23:38 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C6E4B53863
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 12:23:33 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1019B5386A
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 12:23:27 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Dec 1, 2016 at 12:45 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Thu, Dec 01, 2016 at 09:10:53AM +0100, Arturo Borrero Gonzalez wrote:
->> On 30 November 2016 at 19:28, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> >> * You can probably augment this at some pointer to rely on the new
->> >>   nf_tables tracing infrastructure.
->> >>
->>
->> That would be rather complex.
->
-> OK, let's start with this something simple.
->
->> > Only one more question left: Do you think you can slightly generalize
->> > this so we decouple test files from the script? Similar to what we
->> > have for nft-tests.py.
->>
->> What do you mean?
->>
->> This testcase script is decoupled enough that you can even call it
->> this way (and it works):
->>
->>  % NFT=%(which nft) testcases/scapy/0001_ip_ttl_0
->>
->> Do you mean you would like to have a different testsuite (with a
->> different runner script) for these datapath tests?
->
-> I mean, it would be good if you place as much common code as possible
-> in the runner script, so individual unit tests don't result in too
-> much copy and paste.
->
-> Thanks Arturo.
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Instead of returning ctx->cmd->table. Note that ctx->cmd->table and
+ctx->table points to the same object when all commands are embedded into
+the table definition. But this is not true if we mix table definitions
+with linear list commands in one file that we load via nft -f.
 
-Sorry for the noise, may PTF framework help for you ? Usually it is
-used for datapath testing
-on switches, but may be it can cover your cases.
+Reported-by: Martin Bednar <martin@serafean.cz>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/evaluate.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Regards,
-Vadim Kochan
+diff --git a/src/evaluate.c b/src/evaluate.c
+index c841aafd98a0..cf7ecb96e3b2 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -140,7 +140,7 @@ static struct table *table_lookup_global(struct eval_ctx *ctx)
+ 	struct table *table;
+ 
+ 	if (ctx->table != NULL)
+-		return ctx->cmd->table;
++		return ctx->table;
+ 
+ 	table = table_lookup(&ctx->cmd->handle);
+ 	if (table == NULL)
+-- 
+2.1.4
+
