@@ -1,50 +1,34 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] evaluate: return ctx->table from table_lookup_global()
-Date: Thu,  1 Dec 2016 12:23:19 +0100
-Message-ID: <1480591399-7704-1-git-send-email-pablo@netfilter.org>
-Cc: martin@serafean.cz
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 1/2] rule: Introduce helper function cache_flush
+Date: Thu, 1 Dec 2016 12:41:36 +0100
+Message-ID: <20161201114136.GA3016@salvia>
+References: <311a646975862ca11499066a4392683ad2265c43.1480587885.git.anatole@rezel.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Anatole Denis <anatole@rezel.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38416 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55662 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756063AbcLALXf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Dec 2016 06:23:35 -0500
+        id S1751301AbcLALmg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 1 Dec 2016 06:42:36 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id F2DC38CD67
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 12:23:38 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id C27DB1DF5BB
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 12:41:39 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C6E4B53863
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 12:23:33 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EE5A24E0E0
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 12:41:39 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1019B5386A
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 12:23:27 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9D1014E0E0
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 12:41:37 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <311a646975862ca11499066a4392683ad2265c43.1480587885.git.anatole@rezel.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Instead of returning ctx->cmd->table. Note that ctx->cmd->table and
-ctx->table points to the same object when all commands are embedded into
-the table definition. But this is not true if we mix table definitions
-with linear list commands in one file that we load via nft -f.
+On Thu, Dec 01, 2016 at 11:50:16AM +0100, Anatole Denis wrote:
+> cache_release empties the cache, and marks it as uninitialized. Add cache_flush,
+> which does the same, except it keeps the cache initialized, eg. after a "nft
+> flush ruleset" when empty is the correct state of the cache.
 
-Reported-by: Martin Bednar <martin@serafean.cz>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/evaluate.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/src/evaluate.c b/src/evaluate.c
-index c841aafd98a0..cf7ecb96e3b2 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -140,7 +140,7 @@ static struct table *table_lookup_global(struct eval_ctx *ctx)
- 	struct table *table;
- 
- 	if (ctx->table != NULL)
--		return ctx->cmd->table;
-+		return ctx->table;
- 
- 	table = table_lookup(&ctx->cmd->handle);
- 	if (table == NULL)
--- 
-2.1.4
-
+Applied, thanks Anatole.
