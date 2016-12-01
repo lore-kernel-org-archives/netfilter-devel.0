@@ -1,74 +1,65 @@
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: Re: [PATCH] netfilter: avoid warn and OOM on vmalloc call
-Date: Thu, 1 Dec 2016 10:42:22 +0100
-Message-ID: <CAAeHK+wjP=h_4YxB6VUc+FjKcZi9igmyTs3nPAuUJeNomYSA0w@mail.gmail.com>
-References: <20161130192145.GB13169@localhost.localdomain> <6fd343e83c26c5108d4b6c189e434a5a6e7ebd01.1480534469.git.marcelo.leitner@gmail.com>
+From: Arturo Borrero Gonzalez <arturo@debian.org>
+Subject: [conntrack-tools PATCH] src: add log message when resync is
+ requested by other node
+Date: Thu, 01 Dec 2016 10:59:02 +0100
+Message-ID: <148058634219.22458.12922067063307832516.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Florian Westphal <fw@strlen.de>,
-        Neil Horman <nhorman@tuxdriver.com>,
-        netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-        LKML <linux-kernel@vger.kernel.org>
-To: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <6fd343e83c26c5108d4b6c189e434a5a6e7ebd01.1480534469.git.marcelo.leitner@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp3.cica.es ([150.214.5.190]:60347 "EHLO smtp.cica.es"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1753103AbcLAJ7M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 1 Dec 2016 04:59:12 -0500
+Received: from localhost (unknown [127.0.0.1])
+        by smtp.cica.es (Postfix) with ESMTP id 8A89451F387
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 09:59:09 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id b6Y4gY28Q5N3 for <netfilter-devel@vger.kernel.org>;
+        Thu,  1 Dec 2016 10:59:04 +0100 (CET)
+Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
+        (Authenticated sender: servers@cica.es)
+        by smtp.cica.es (Postfix) with ESMTP id 515F851F2A8
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 10:59:03 +0100 (CET)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 30, 2016 at 8:42 PM, Marcelo Ricardo Leitner
-<marcelo.leitner@gmail.com> wrote:
-> Hi Andrey,
->
-> Please let me know how this works for you. It seems good here, though
-> your poc may still trigger OOM through other means.
+If a resync is requested with 'conntrackd -n', a log message is printed
+in the caller node, but no message is printed in the other.
 
-Hi Marcelo,
+Print a message so tracking the behaviour of a cluster is a bit easier.
 
-Don't see any reports with this patch.
+Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
+---
+ src/sync-ftfw.c    |    2 +-
+ src/sync-notrack.c |    1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-Thanks!
+diff --git a/src/sync-ftfw.c b/src/sync-ftfw.c
+index 1bc2d9f..aa6838a 100644
+--- a/src/sync-ftfw.c
++++ b/src/sync-ftfw.c
+@@ -351,7 +351,7 @@ static int digest_msg(const struct nethdr *net)
+ 		return MSG_CTL;
+ 
+ 	} else if (IS_RESYNC(net)) {
+-		dp("RESYNC ALL\n");
++		dlog(LOG_NOTICE, "resync requested by other node");
+ 		cache_iterate(STATE(mode)->internal->ct.data, NULL,
+ 			      do_cache_to_tx);
+ 		cache_iterate(STATE(mode)->internal->exp.data, NULL,
+diff --git a/src/sync-notrack.c b/src/sync-notrack.c
+index c810bbb..7ade3a7 100644
+--- a/src/sync-notrack.c
++++ b/src/sync-notrack.c
+@@ -149,6 +149,7 @@ static int digest_msg(const struct nethdr *net)
+ 		return MSG_DATA;
+ 
+ 	if (IS_RESYNC(net)) {
++		dlog(LOG_NOTICE, "resync requested by other node");
+ 		if (CONFIG(sync).internal_cache_disable) {
+ 			kernel_resync();
+ 		} else {
 
->
-> Thanks,
-> Marcelo
->
-> ---8<---
->
-> Andrey Konovalov reported that this vmalloc call is based on an
-> userspace request and that it's spewing traces, which may flood the logs
-> and cause DoS if abused.
->
-> Florian Westphal also mentioned that this call should not trigger OOM,
-> as kmalloc one is already not triggering it.
->
-> This patch brings the vmalloc call in sync to kmalloc and disables the
-> warn trace on allocation failure and also disable OOM invocation.
->
-> Note, however, that under such stress situation, other places may
-> trigger OOM invocation.
->
-> Reported-by: Andrey Konovalov <andreyknvl@google.com>
-> Cc: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-> ---
->  net/netfilter/x_tables.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-> index fc4977456c30e098197b4f987b758072c9cf60d9..dece525bf83a0098dad607fce665cd0bde228362 100644
-> --- a/net/netfilter/x_tables.c
-> +++ b/net/netfilter/x_tables.c
-> @@ -958,7 +958,9 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
->         if (sz <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER))
->                 info = kmalloc(sz, GFP_KERNEL | __GFP_NOWARN | __GFP_NORETRY);
->         if (!info) {
-> -               info = vmalloc(sz);
-> +               info = __vmalloc(sz, GFP_KERNEL | __GFP_NOWARN |
-> +                                    __GFP_NORETRY | __GFP_HIGHMEM,
-> +                                PAGE_KERNEL);
->                 if (!info)
->                         return NULL;
->         }
-> --
-> 2.9.3
->
