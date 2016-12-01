@@ -1,39 +1,36 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 2/2] evaluate: Update cache on flush ruleset
-Date: Thu, 1 Dec 2016 12:42:02 +0100
-Message-ID: <20161201114202.GA3052@salvia>
-References: <311a646975862ca11499066a4392683ad2265c43.1480587885.git.anatole@rezel.net>
- <8cb247352dd4b9eaf587c1ff89f618061042edff.1480587885.git.anatole@rezel.net>
+Subject: Re: [conntrack-tools PATCH] src: add log message when resync is
+ requested by other node
+Date: Thu, 1 Dec 2016 13:13:53 +0100
+Message-ID: <20161201121353.GA10156@salvia>
+References: <148058634219.22458.12922067063307832516.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Anatole Denis <anatole@rezel.net>
+To: Arturo Borrero Gonzalez <arturo@debian.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56148 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60190 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751631AbcLALmg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Dec 2016 06:42:36 -0500
+        id S1755154AbcLAMN6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 1 Dec 2016 07:13:58 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CDFD01DF5BF
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 12:42:05 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 64E03B19E
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 13:13:56 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 07157DA243
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 12:42:06 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5B9C911A048
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 13:13:56 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D6F9CDA87E
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 12:42:03 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5A51D11A053
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Dec 2016 13:13:54 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <8cb247352dd4b9eaf587c1ff89f618061042edff.1480587885.git.anatole@rezel.net>
+In-Reply-To: <148058634219.22458.12922067063307832516.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Dec 01, 2016 at 11:50:17AM +0100, Anatole Denis wrote:
-> After a flush, the cache should be empty, otherwise the cache and the expected
-> state are desynced, causing unwarranted errors. See
-> tests/shell/testcases/cache/0002_interval_0.
+On Thu, Dec 01, 2016 at 10:59:02AM +0100, Arturo Borrero Gonzalez wrote:
+> If a resync is requested with 'conntrackd -n', a log message is printed
+> in the caller node, but no message is printed in the other.
 > 
-> `flush table` and `flush chain` don't empty sets or destroy chains, so the cache
-> does not need an update in those cases, since only chain names and set contents
-> are held in cache for commands other than "list"
+> Print a message so tracking the behaviour of a cluster is a bit easier.
 
-Also applied, thanks.
+Applied, thanks Arturo.
