@@ -1,52 +1,74 @@
-From: Arturo Borrero Gonzalez <arturo@debian.org>
-Subject: Re: [RFC nft PATCH] tests: shell: add a basic scapy test
-Date: Thu, 1 Dec 2016 09:10:53 +0100
-Message-ID: <CAOkSjBibmjB6Uo2z9Wx1+tfkpO=eY1vY2_79qXN+TEB_tvPcEA@mail.gmail.com>
-References: <148049874652.26121.17744801893432354214.stgit@nfdev2.cica.es>
- <20161130182704.GA7892@salvia> <20161130182801.GB7892@salvia>
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: Re: [PATCH] netfilter: avoid warn and OOM on vmalloc call
+Date: Thu, 1 Dec 2016 10:42:22 +0100
+Message-ID: <CAAeHK+wjP=h_4YxB6VUc+FjKcZi9igmyTs3nPAuUJeNomYSA0w@mail.gmail.com>
+References: <20161130192145.GB13169@localhost.localdomain> <6fd343e83c26c5108d4b6c189e434a5a6e7ebd01.1480534469.git.marcelo.leitner@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>,
-        Shivani Bhardwaj <shivanib134@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lf0-f53.google.com ([209.85.215.53]:35805 "EHLO
-        mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753276AbcLAILP (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Dec 2016 03:11:15 -0500
-Received: by mail-lf0-f53.google.com with SMTP id b14so165317661lfg.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 01 Dec 2016 00:11:14 -0800 (PST)
-Received: from mail-lf0-f43.google.com (mail-lf0-f43.google.com. [209.85.215.43])
-        by smtp.gmail.com with ESMTPSA id e37sm14989877lji.42.2016.12.01.00.11.13
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 01 Dec 2016 00:11:13 -0800 (PST)
-Received: by mail-lf0-f43.google.com with SMTP id o141so165322703lff.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 01 Dec 2016 00:11:13 -0800 (PST)
-In-Reply-To: <20161130182801.GB7892@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
+        Neil Horman <nhorman@tuxdriver.com>,
+        netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+        LKML <linux-kernel@vger.kernel.org>
+To: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6fd343e83c26c5108d4b6c189e434a5a6e7ebd01.1480534469.git.marcelo.leitner@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 30 November 2016 at 19:28, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> * You can probably augment this at some pointer to rely on the new
->>   nf_tables tracing infrastructure.
->>
+On Wed, Nov 30, 2016 at 8:42 PM, Marcelo Ricardo Leitner
+<marcelo.leitner@gmail.com> wrote:
+> Hi Andrey,
+>
+> Please let me know how this works for you. It seems good here, though
+> your poc may still trigger OOM through other means.
 
-That would be rather complex.
+Hi Marcelo,
+
+Don't see any reports with this patch.
+
+Thanks!
 
 >
-> Only one more question left: Do you think you can slightly generalize
-> this so we decouple test files from the script? Similar to what we
-> have for nft-tests.py.
-
-What do you mean?
-
-This testcase script is decoupled enough that you can even call it
-this way (and it works):
-
- % NFT=%(which nft) testcases/scapy/0001_ip_ttl_0
-
-Do you mean you would like to have a different testsuite (with a
-different runner script) for these datapath tests?
+> Thanks,
+> Marcelo
+>
+> ---8<---
+>
+> Andrey Konovalov reported that this vmalloc call is based on an
+> userspace request and that it's spewing traces, which may flood the logs
+> and cause DoS if abused.
+>
+> Florian Westphal also mentioned that this call should not trigger OOM,
+> as kmalloc one is already not triggering it.
+>
+> This patch brings the vmalloc call in sync to kmalloc and disables the
+> warn trace on allocation failure and also disable OOM invocation.
+>
+> Note, however, that under such stress situation, other places may
+> trigger OOM invocation.
+>
+> Reported-by: Andrey Konovalov <andreyknvl@google.com>
+> Cc: Florian Westphal <fw@strlen.de>
+> Signed-off-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+> ---
+>  net/netfilter/x_tables.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+>
+> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+> index fc4977456c30e098197b4f987b758072c9cf60d9..dece525bf83a0098dad607fce665cd0bde228362 100644
+> --- a/net/netfilter/x_tables.c
+> +++ b/net/netfilter/x_tables.c
+> @@ -958,7 +958,9 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
+>         if (sz <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER))
+>                 info = kmalloc(sz, GFP_KERNEL | __GFP_NOWARN | __GFP_NORETRY);
+>         if (!info) {
+> -               info = vmalloc(sz);
+> +               info = __vmalloc(sz, GFP_KERNEL | __GFP_NOWARN |
+> +                                    __GFP_NORETRY | __GFP_HIGHMEM,
+> +                                PAGE_KERNEL);
+>                 if (!info)
+>                         return NULL;
+>         }
+> --
+> 2.9.3
+>
