@@ -1,177 +1,220 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH v2,nf-next 08/11] netfilter: nft_quota: add depleted flag for objects
-Date: Fri,  2 Dec 2016 19:08:38 +0100
-Message-ID: <1480702121-1782-9-git-send-email-pablo@netfilter.org>
+Subject: [PATCH v2,nf-next 04/11] netfilter: nf_tables: add stateful object reference expression
+Date: Fri,  2 Dec 2016 19:08:34 +0100
+Message-ID: <1480702121-1782-5-git-send-email-pablo@netfilter.org>
 References: <1480702121-1782-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47718 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47720 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750942AbcLBSJ0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1752854AbcLBSJ0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 2 Dec 2016 13:09:26 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3E2D7D1637
+        by mail.us.es (Postfix) with ESMTP id 0ABEAD163F
         for <netfilter-devel@vger.kernel.org>; Fri,  2 Dec 2016 19:08:59 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2EB0ADA729
-        for <netfilter-devel@vger.kernel.org>; Fri,  2 Dec 2016 19:08:59 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EE0CEDA38C
+        for <netfilter-devel@vger.kernel.org>; Fri,  2 Dec 2016 19:08:58 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1B180DA729
-        for <netfilter-devel@vger.kernel.org>; Fri,  2 Dec 2016 19:08:57 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D397ADA38C
+        for <netfilter-devel@vger.kernel.org>; Fri,  2 Dec 2016 19:08:53 +0100 (CET)
 In-Reply-To: <1480702121-1782-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Notify on depleted quota objects. The NFT_QUOTA_F_DEPLETED flag
-indicates we have reached overquota.
+This new expression allows us to refer to existing stateful objects from
+rules.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 v2:
+* Rename:
 
-* Add table pointer to nft_object, so we can reach it when sending
-  notifications as discussed with Florian.
-* Fix broken depletion notification from nft_quota_obj_eval().
+	NFTA_OBJREF_TYPE -> NFTA_OBJREF_IMM_TYPE
+	NFTA_OBJREF_NAME -> NFTA_OBJREF_IMM_NAME
 
- include/net/netfilter/nf_tables.h        |  2 ++
- include/uapi/linux/netfilter/nf_tables.h |  1 +
- net/netfilter/nf_tables_api.c            |  1 +
- net/netfilter/nft_quota.c                | 35 ++++++++++++++++++++++++++------
- 4 files changed, 33 insertions(+), 6 deletions(-)
+  so both refer to data that is pass as attribute, ie. not coming from any
+  register.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index ab2328b94731..b1ada180c059 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -938,6 +938,7 @@ int nft_verdict_dump(struct sk_buff *skb, int type,
-  *	struct nft_object - nf_tables stateful object
-  *
-  *	@list: table stateful object list node
-+ *	@table: table this object belongs to
-  *	@type: pointer to object type
-  *	@data: pointer to object data
-  *	@name: name of this stateful object
-@@ -948,6 +949,7 @@ int nft_verdict_dump(struct sk_buff *skb, int type,
- struct nft_object {
- 	struct list_head		list;
- 	char				name[NFT_OBJ_MAXNAMELEN];
-+	struct nft_table		*table;
- 	u32				genmask:2,
- 					use:30;
- 	/* runtime data below here */
+ include/uapi/linux/netfilter/nf_tables.h |  14 ++++
+ net/netfilter/Kconfig                    |   6 ++
+ net/netfilter/Makefile                   |   1 +
+ net/netfilter/nft_objref.c               | 112 +++++++++++++++++++++++++++++++
+ 4 files changed, 133 insertions(+)
+ create mode 100644 net/netfilter/nft_objref.c
+
 diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index d4b0b652e76f..2adb67532f3d 100644
+index b73afab4ad8f..e95d5f4f136b 100644
 --- a/include/uapi/linux/netfilter/nf_tables.h
 +++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -977,6 +977,7 @@ enum nft_queue_attributes {
- 
- enum nft_quota_flags {
- 	NFT_QUOTA_F_INV		= (1 << 0),
-+	NFT_QUOTA_F_DEPLETED	= (1 << 1),
- };
+@@ -1132,6 +1132,20 @@ enum nft_fwd_attributes {
+ #define NFTA_FWD_MAX	(__NFTA_FWD_MAX - 1)
  
  /**
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index cf6ece95599b..fe508b3c0c2a 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4067,6 +4067,7 @@ static int nf_tables_newobj(struct net *net, struct sock *nlsk,
- 		err = PTR_ERR(obj);
- 		goto err1;
- 	}
-+	obj->table = table;
- 	nla_strlcpy(obj->name, nla[NFTA_OBJ_NAME], NFT_OBJ_MAXNAMELEN);
++ * enum nft_objref_attributes - nf_tables stateful object expression netlink attributes
++ *
++ * @NFTA_OBJREF_IMM_TYPE: object type for immediate reference (NLA_U32: nft_register)
++ * @NFTA_OBJREF_IMM_NAME: object name for immediate reference (NLA_STRING)
++ */
++enum nft_objref_attributes {
++	NFTA_OBJREF_UNSPEC,
++	NFTA_OBJREF_IMM_TYPE,
++	NFTA_OBJREF_IMM_NAME,
++	__NFTA_OBJREF_MAX
++};
++#define NFTA_OBJREF_MAX	(__NFTA_OBJREF_MAX - 1)
++
++/**
+  * enum nft_gen_attributes - nf_tables ruleset generation attributes
+  *
+  * @NFTA_GEN_ID: Ruleset generation ID (NLA_U32)
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 44410d30d461..44ead64b35da 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -551,6 +551,12 @@ config NFT_NAT
+ 	  This option adds the "nat" expression that you can use to perform
+ 	  typical Network Address Translation (NAT) packet transformations.
  
- 	err = nft_trans_obj_add(&ctx, NFT_MSG_NEWOBJ, obj);
-diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
-index e98c0c70f40a..829c50cb8e06 100644
---- a/net/netfilter/nft_quota.c
-+++ b/net/netfilter/nft_quota.c
-@@ -17,7 +17,7 @@
- 
- struct nft_quota {
- 	u64		quota;
--	bool		invert;
-+	unsigned long	flags;
- 	atomic64_t	consumed;
- };
- 
-@@ -27,11 +27,16 @@ static inline bool nft_overquota(struct nft_quota *priv,
- 	return atomic64_add_return(skb->len, &priv->consumed) >= priv->quota;
- }
- 
-+static inline bool nft_quota_invert(struct nft_quota *priv)
++config NFT_OBJREF
++	tristate "Netfilter nf_tables stateful object reference module"
++	help
++	  This option adds the "objref" expression that allows you to refer to
++	  stateful objects, such as counters and quotas.
++
+ config NFT_QUEUE
+ 	depends on NETFILTER_NETLINK_QUEUE
+ 	tristate "Netfilter nf_tables queue module"
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 5bbf767672ec..8dbc518324fd 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -89,6 +89,7 @@ obj-$(CONFIG_NFT_NUMGEN)	+= nft_numgen.o
+ obj-$(CONFIG_NFT_CT)		+= nft_ct.o
+ obj-$(CONFIG_NFT_LIMIT)		+= nft_limit.o
+ obj-$(CONFIG_NFT_NAT)		+= nft_nat.o
++obj-$(CONFIG_NFT_OBJREF)	+= nft_objref.o
+ obj-$(CONFIG_NFT_QUEUE)		+= nft_queue.o
+ obj-$(CONFIG_NFT_QUOTA)		+= nft_quota.o
+ obj-$(CONFIG_NFT_REJECT) 	+= nft_reject.o
+diff --git a/net/netfilter/nft_objref.c b/net/netfilter/nft_objref.c
+new file mode 100644
+index 000000000000..23820f796aad
+--- /dev/null
++++ b/net/netfilter/nft_objref.c
+@@ -0,0 +1,112 @@
++/*
++ * Copyright (c) 2012-2016 Pablo Neira Ayuso <pablo@netfilter.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ */
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/netlink.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables.h>
++
++#define nft_objref_priv(expr)	*((struct nft_object **)nft_expr_priv(expr))
++
++static void nft_objref_eval(const struct nft_expr *expr,
++			    struct nft_regs *regs,
++			    const struct nft_pktinfo *pkt)
 +{
-+	return priv->flags & NFT_QUOTA_F_INV;
++	struct nft_object *obj = nft_objref_priv(expr);
++
++	obj->type->eval(obj, regs, pkt);
 +}
 +
- static inline void nft_quota_do_eval(struct nft_quota *priv,
- 				     struct nft_regs *regs,
- 				     const struct nft_pktinfo *pkt)
- {
--	if (nft_overquota(priv, pkt->skb) ^ priv->invert)
-+	if (nft_overquota(priv, pkt->skb) ^ nft_quota_invert(priv))
- 		regs->verdict.code = NFT_BREAK;
- }
- 
-@@ -45,14 +50,22 @@ static void nft_quota_obj_eval(struct nft_object *obj,
- 			       const struct nft_pktinfo *pkt)
- {
- 	struct nft_quota *priv = nft_obj_data(obj);
-+	bool overquota;
- 
--	nft_quota_do_eval(priv, regs, pkt);
-+	overquota = nft_overquota(priv, pkt->skb);
-+	if (overquota ^ nft_quota_invert(priv))
-+		regs->verdict.code = NFT_BREAK;
++static int nft_objref_init(const struct nft_ctx *ctx,
++			   const struct nft_expr *expr,
++			   const struct nlattr * const tb[])
++{
++	struct nft_object *obj = nft_objref_priv(expr);
++	u8 genmask = nft_genmask_next(ctx->net);
++	u32 objtype;
 +
-+	if (overquota &&
-+	    !test_and_set_bit(NFT_QUOTA_F_DEPLETED, &priv->flags))
-+		nft_obj_notify(nft_net(pkt), obj->table, obj, 0, 0,
-+			       NFT_MSG_NEWOBJ, nft_pf(pkt), 0, GFP_ATOMIC);
- }
- 
- static int nft_quota_do_init(const struct nlattr * const tb[],
- 			     struct nft_quota *priv)
- {
--	u32 flags = 0;
-+	unsigned long flags = 0;
- 	u64 quota;
- 
- 	if (!tb[NFTA_QUOTA_BYTES])
-@@ -66,10 +79,12 @@ static int nft_quota_do_init(const struct nlattr * const tb[],
- 		flags = ntohl(nla_get_be32(tb[NFTA_QUOTA_FLAGS]));
- 		if (flags & ~NFT_QUOTA_F_INV)
- 			return -EINVAL;
-+		if (flags & NFT_QUOTA_F_DEPLETED)
-+			return -EOPNOTSUPP;
- 	}
- 
- 	priv->quota = quota;
--	priv->invert = (flags & NFT_QUOTA_F_INV) ? true : false;
-+	priv->flags = flags;
- 	atomic64_set(&priv->consumed, 0);
- 
- 	return 0;
-@@ -86,9 +101,17 @@ static int nft_quota_obj_init(const struct nlattr * const tb[],
- static int nft_quota_do_dump(struct sk_buff *skb, struct nft_quota *priv,
- 			     bool reset)
- {
--	u32 flags = priv->invert ? NFT_QUOTA_F_INV : 0;
-+	unsigned long flags = priv->flags;
- 	u64 consumed;
- 
-+	if (reset) {
-+		consumed = atomic64_xchg(&priv->consumed, 0);
-+		if (test_and_clear_bit(NFT_QUOTA_F_DEPLETED, &priv->flags))
-+			flags |= NFT_QUOTA_F_DEPLETED;
-+	} else {
-+		consumed = atomic64_read(&priv->consumed);
-+	}
++	if (!tb[NFTA_OBJREF_IMM_NAME] ||
++	    !tb[NFTA_OBJREF_IMM_TYPE])
++		return -EINVAL;
 +
- 	consumed = atomic64_read(&priv->consumed);
- 	/* Since we inconditionally increment the quota for each packet that we
- 	 * see, don't puzzle userspace with a number going over the quota.
++	objtype = ntohl(nla_get_be32(tb[NFTA_OBJREF_IMM_TYPE]));
++	obj = nf_tables_obj_lookup(ctx->table, tb[NFTA_OBJREF_IMM_NAME], objtype,
++				   genmask);
++	if (IS_ERR(obj))
++		return -ENOENT;
++
++	nft_objref_priv(expr) = obj;
++	obj->use++;
++
++	return 0;
++}
++
++static int nft_objref_dump(struct sk_buff *skb, const struct nft_expr *expr)
++{
++	const struct nft_object *obj = nft_objref_priv(expr);
++
++	if (nla_put_string(skb, NFTA_OBJREF_IMM_NAME, obj->name) ||
++	    nla_put_be32(skb, NFTA_OBJREF_IMM_TYPE, htonl(obj->type->type)))
++		goto nla_put_failure;
++
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++static void nft_objref_destroy(const struct nft_ctx *ctx,
++			       const struct nft_expr *expr)
++{
++	struct nft_object *obj = nft_objref_priv(expr);
++
++	obj->use--;
++}
++
++static struct nft_expr_type nft_objref_type;
++static const struct nft_expr_ops nft_objref_ops = {
++	.type		= &nft_objref_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_object *)),
++	.eval		= nft_objref_eval,
++	.init		= nft_objref_init,
++	.destroy	= nft_objref_destroy,
++	.dump		= nft_objref_dump,
++};
++
++static const struct nla_policy nft_objref_policy[NFTA_OBJREF_MAX + 1] = {
++	[NFTA_OBJREF_IMM_NAME]	= { .type = NLA_STRING },
++	[NFTA_OBJREF_IMM_TYPE]	= { .type = NLA_U32 },
++};
++
++static struct nft_expr_type nft_objref_type __read_mostly = {
++	.name		= "objref",
++	.ops		= &nft_objref_ops,
++	.policy		= nft_objref_policy,
++	.maxattr	= NFTA_OBJREF_MAX,
++	.owner		= THIS_MODULE,
++};
++
++static int __init nft_objref_module_init(void)
++{
++	return nft_register_expr(&nft_objref_type);
++}
++
++static void __exit nft_objref_module_exit(void)
++{
++	nft_unregister_expr(&nft_objref_type);
++}
++
++module_init(nft_objref_module_init);
++module_exit(nft_objref_module_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
++MODULE_ALIAS_NFT_EXPR("objref");
 -- 
 2.1.4
 
