@@ -1,49 +1,48 @@
-From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Subject: [PATCH v2] netfilter: avoid warn and OOM killer on vmalloc call
-Date: Fri,  2 Dec 2016 07:46:38 -0200
-Message-ID: <e10fd8b5206bfde5526e3bbf2b5ff9af584b0a6f.1480671893.git.marcelo.leitner@gmail.com>
-Cc: fw@strlen.de, nhorman@tuxdriver.com,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-To: andreyknvl@google.com
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Arturo Borrero Gonzalez <arturo@debian.org>
+Subject: [conntrack-tools PATCH] systemd: fix missing log.h include
+Date: Fri, 02 Dec 2016 11:29:38 +0100
+Message-ID: <148067457876.19755.4897734997943160784.stgit@nfdev2.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp3.cica.es ([150.214.5.190]:60451 "EHLO smtp.cica.es"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1757553AbcLBK3t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 2 Dec 2016 05:29:49 -0500
+Received: from localhost (unknown [127.0.0.1])
+        by smtp.cica.es (Postfix) with ESMTP id 4CF8A51F349
+        for <netfilter-devel@vger.kernel.org>; Fri,  2 Dec 2016 10:29:46 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id 78SySjYgdqCM for <netfilter-devel@vger.kernel.org>;
+        Fri,  2 Dec 2016 11:29:41 +0100 (CET)
+Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
+        (Authenticated sender: servers@cica.es)
+        by smtp.cica.es (Postfix) with ESMTP id EBDDE51F299
+        for <netfilter-devel@vger.kernel.org>; Fri,  2 Dec 2016 11:29:39 +0100 (CET)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Andrey Konovalov reported that this vmalloc call is based on an
-userspace request and that it's spewing traces, which may flood the logs
-and cause DoS if abused.
+Produces this:
+ warning: implicit declaration of function 'dlog'
 
-Florian Westphal also mentioned that this call should not trigger OOM
-killer.
-
-This patch brings the vmalloc call in sync to kmalloc and disables the
-warn trace on allocation failure and also disable OOM killer invocation.
-
-Note, however, that under such stress situation, other places may
-trigger OOM killer invocation.
-
-Reported-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Florian Westphal <fw@strlen.de>
-Signed-off-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
 ---
- net/netfilter/x_tables.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ src/systemd.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index fc4977456c30e098197b4f987b758072c9cf60d9..dece525bf83a0098dad607fce665cd0bde228362 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -958,7 +958,9 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
- 	if (sz <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER))
- 		info = kmalloc(sz, GFP_KERNEL | __GFP_NOWARN | __GFP_NORETRY);
- 	if (!info) {
--		info = vmalloc(sz);
-+		info = __vmalloc(sz, GFP_KERNEL | __GFP_NOWARN |
-+				     __GFP_NORETRY | __GFP_HIGHMEM,
-+				 PAGE_KERNEL);
- 		if (!info)
- 			return NULL;
- 	}
--- 
-2.9.3
+diff --git a/src/systemd.c b/src/systemd.c
+index c6253cc..64bfc66 100644
+--- a/src/systemd.c
++++ b/src/systemd.c
+@@ -19,6 +19,7 @@
+ #include "systemd.h"
+ #include "conntrackd.h"
+ #include "alarm.h"
++#include "log.h"
+ #include <systemd/sd-daemon.h>
+ #include <sys/types.h>
+ #include <unistd.h>
+
