@@ -1,40 +1,74 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next 1/2] netfilter: conntrack: merge udp and udplite
- helpers
-Date: Sat, 3 Dec 2016 14:02:10 +0100
-Message-ID: <20161203130210.GA26974@breakpoint.cc>
-References: <1480704637-14994-2-git-send-email-fw@strlen.de>
- <201612032029.B6DRRW4L%fengguang.wu@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, kbuild-all@01.org,
-        netfilter-devel@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf-next] netfilter: rpfilter: bypass ipv4 lbcast packets with zeronet source
+Date: Sat,  3 Dec 2016 21:25:08 +0800
+Message-ID: <1480771508-4429-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
+        Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:60544 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752609AbcLCNFX (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 3 Dec 2016 08:05:23 -0500
-Content-Disposition: inline
-In-Reply-To: <201612032029.B6DRRW4L%fengguang.wu@intel.com>
+Received: from m12-16.163.com ([220.181.12.16]:34919 "EHLO m12-16.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751481AbcLCN0m (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 3 Dec 2016 08:26:42 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-kbuild test robot <lkp@intel.com> wrote:
-> All error/warnings (new ones prefixed by >>):
-> 
->    In file included from include/uapi/linux/stddef.h:1:0,
->                     from include/linux/stddef.h:4,
->                     from include/uapi/linux/posix_types.h:4,
->                     from include/uapi/linux/types.h:13,
->                     from include/linux/types.h:5,
->                     from net/netfilter/nf_conntrack_proto_udp.c:10:
->    net/netfilter/nf_conntrack_proto_udp.c: In function 'udp_get_net_proto':
-> >> net/netfilter/nf_conntrack_proto_udp.c:308:15: error: 'CTA_TIMEOUT_UDP_MAX' undeclared (first use in this function)
->      BUILD_BUG_ON(CTA_TIMEOUT_UDP_MAX != CTA_TIMEOUT_UDPLITE_MAX);
+From: Liping Zhang <zlpnobody@gmail.com>
 
-Yay for conditional includes :-/
+Otherwise, DHCP Discover packets(0.0.0.0->255.255.255.255) may be
+dropped incorrectly.
 
-Pablo, I just saw there are still patches from Davide in your queue so I
-will not resend this (it will surely conflict).
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+---
+ net/ipv4/netfilter/ipt_rpfilter.c |  8 +++++---
+ net/ipv4/netfilter/nft_fib_ipv4.c | 13 +++++++------
+ 2 files changed, 12 insertions(+), 9 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
+index 59b4994..f273098 100644
+--- a/net/ipv4/netfilter/ipt_rpfilter.c
++++ b/net/ipv4/netfilter/ipt_rpfilter.c
+@@ -83,10 +83,12 @@ static bool rpfilter_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 		return true ^ invert;
+ 
+ 	iph = ip_hdr(skb);
+-	if (ipv4_is_multicast(iph->daddr)) {
+-		if (ipv4_is_zeronet(iph->saddr))
+-			return ipv4_is_local_multicast(iph->daddr) ^ invert;
++	if (ipv4_is_zeronet(iph->saddr)) {
++		if (ipv4_is_lbcast(iph->daddr) ||
++		    ipv4_is_local_multicast(iph->daddr))
++			return true ^ invert;
+ 	}
++
+ 	flow.flowi4_iif = LOOPBACK_IFINDEX;
+ 	flow.daddr = iph->saddr;
+ 	flow.saddr = rpfilter_get_saddr(iph->daddr);
+diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
+index 2581363..965b1a1 100644
+--- a/net/ipv4/netfilter/nft_fib_ipv4.c
++++ b/net/ipv4/netfilter/nft_fib_ipv4.c
+@@ -101,12 +101,13 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 	}
+ 
+ 	iph = ip_hdr(pkt->skb);
+-	if (ipv4_is_multicast(iph->daddr) &&
+-	    ipv4_is_zeronet(iph->saddr) &&
+-	    ipv4_is_local_multicast(iph->daddr)) {
+-		nft_fib_store_result(dest, priv->result, pkt,
+-				     get_ifindex(pkt->skb->dev));
+-		return;
++	if (ipv4_is_zeronet(iph->saddr)) {
++		if (ipv4_is_lbcast(iph->daddr) ||
++		    ipv4_is_local_multicast(iph->daddr)) {
++			nft_fib_store_result(dest, priv->result, pkt,
++					     get_ifindex(pkt->skb->dev));
++			return;
++		}
+ 	}
+ 
+ 	if (priv->flags & NFTA_FIB_F_MARK)
+-- 
+2.5.5
+
+
