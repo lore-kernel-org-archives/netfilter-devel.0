@@ -1,38 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: nft_fib_ipv4: initialize *dest to zero
-Date: Sun, 4 Dec 2016 21:14:14 +0100
-Message-ID: <20161204201413.GB32587@salvia>
-References: <1479910341-40744-1-git-send-email-zlpnobody@163.com>
- <1479910341-40744-2-git-send-email-zlpnobody@163.com>
+Subject: Re: [GIT PULL nf-next 0/2] IPVS Updates for v4.10
+Date: Sun, 4 Dec 2016 20:46:16 +0100
+Message-ID: <20161204194616.GA4505@salvia>
+References: <1479200503-25842-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
-        Liping Zhang <zlpnobody@gmail.com>
-To: Liping Zhang <zlpnobody@163.com>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33002 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34508 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751120AbcLDUOW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 4 Dec 2016 15:14:22 -0500
+        id S1751241AbcLDUWn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 4 Dec 2016 15:22:43 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 11670B6C6F
-        for <netfilter-devel@vger.kernel.org>; Sun,  4 Dec 2016 21:14:21 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id C437512A696
+        for <netfilter-devel@vger.kernel.org>; Sun,  4 Dec 2016 20:46:23 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 01866DA849
-        for <netfilter-devel@vger.kernel.org>; Sun,  4 Dec 2016 21:14:21 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 97816DA87D
+        for <netfilter-devel@vger.kernel.org>; Sun,  4 Dec 2016 20:46:23 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 140F4DA848
-        for <netfilter-devel@vger.kernel.org>; Sun,  4 Dec 2016 21:14:19 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 44411DA853
+        for <netfilter-devel@vger.kernel.org>; Sun,  4 Dec 2016 20:46:21 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1479910341-40744-2-git-send-email-zlpnobody@163.com>
+In-Reply-To: <1479200503-25842-1-git-send-email-horms@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 23, 2016 at 10:12:21PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <zlpnobody@gmail.com>
+On Tue, Nov 15, 2016 at 10:01:41AM +0100, Simon Horman wrote:
+> Hi Pablo,
 > 
-> Otherwise, if fib lookup fail, *dest will be filled with garbage value,
-> so reverse path filtering will not work properly:
->  # nft add rule x prerouting fib saddr oif eq 0 drop
+> please consider these enhancements to the IPVS for v4.10.
+> 
+> * Decrement the IP ttl in all the modes in order to prevent infinite
+>   route loops. Thanks to Dwip Banerjee.
+> * Use IS_ERR_OR_NULL macro. Clean-up from Gao Feng.
+> 
+> 
+> The following changes since commit 7d384846b9987f7b611357adf3cdfecfdcf0c402:
+> 
+>   Merge git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next (2016-11-13 22:41:25 -0500)
+> 
+> are available in the git repository at:
+> 
+>   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs-for-v4.10
 
-Also applied, thanks.
+Pulled, thanks Simon.
