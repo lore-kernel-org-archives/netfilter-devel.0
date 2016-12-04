@@ -1,50 +1,38 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL nf-next 0/2] IPVS Updates for v4.10
-Date: Sun, 4 Dec 2016 20:46:16 +0100
-Message-ID: <20161204194616.GA4505@salvia>
-References: <1479200503-25842-1-git-send-email-horms@verge.net.au>
+Subject: Re: [PATCH nft] tests: shell: add test case for inserting element
+ into verdict map
+Date: Sun, 4 Dec 2016 21:28:05 +0100
+Message-ID: <20161204202805.GA30778@salvia>
+References: <1478617597-13459-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
+Cc: netfilter-devel@vger.kernel.org, arturo@debian.org,
+        Liping Zhang <zlpnobody@gmail.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34508 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35430 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751241AbcLDUWn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 4 Dec 2016 15:22:43 -0500
+        id S1750979AbcLDU2O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 4 Dec 2016 15:28:14 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C437512A696
-        for <netfilter-devel@vger.kernel.org>; Sun,  4 Dec 2016 20:46:23 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id E40C6B6C84
+        for <netfilter-devel@vger.kernel.org>; Sun,  4 Dec 2016 21:28:12 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 97816DA87D
-        for <netfilter-devel@vger.kernel.org>; Sun,  4 Dec 2016 20:46:23 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D5F67DA843
+        for <netfilter-devel@vger.kernel.org>; Sun,  4 Dec 2016 21:28:12 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 44411DA853
-        for <netfilter-devel@vger.kernel.org>; Sun,  4 Dec 2016 20:46:21 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C0811DA849
+        for <netfilter-devel@vger.kernel.org>; Sun,  4 Dec 2016 21:28:10 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1479200503-25842-1-git-send-email-horms@verge.net.au>
+In-Reply-To: <1478617597-13459-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 15, 2016 at 10:01:41AM +0100, Simon Horman wrote:
-> Hi Pablo,
+On Tue, Nov 08, 2016 at 11:06:37PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <zlpnobody@gmail.com>
 > 
-> please consider these enhancements to the IPVS for v4.10.
-> 
-> * Decrement the IP ttl in all the modes in order to prevent infinite
->   route loops. Thanks to Dwip Banerjee.
-> * Use IS_ERR_OR_NULL macro. Clean-up from Gao Feng.
-> 
-> 
-> The following changes since commit 7d384846b9987f7b611357adf3cdfecfdcf0c402:
-> 
->   Merge git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next (2016-11-13 22:41:25 -0500)
-> 
-> are available in the git repository at:
-> 
->   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs-for-v4.10
+> "dalegaard@gmail.com" reports that when inserting an element into a
+> verdict map, kernel crash will happen. Now add this test case so we
+> can avoid future regressions fail.
 
-Pulled, thanks Simon.
+Applied, thanks Liping.
