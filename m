@@ -1,56 +1,166 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: build warnings after merge of the netfilter-next tree
-Date: Mon, 5 Dec 2016 12:19:38 +1100
-Message-ID: <20161205121938.014bc604@canb.auug.org.au>
+From: Kohei Suzuki <eagletmt@gmail.com>
+Subject: [PATCH nft] parser: Add glob support to include directive
+Date: Mon, 5 Dec 2016 20:58:38 +0900
+Message-ID: <CAAVa8iscQtgaXbauR6MJ_iwU+YZuXpzaFCBM+4QR3676XHx5KQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-qk0-f181.google.com ([209.85.220.181]:35604 "EHLO
+        mail-qk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751722AbcLEL71 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 5 Dec 2016 06:59:27 -0500
+Received: by mail-qk0-f181.google.com with SMTP id n204so343115857qke.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 05 Dec 2016 03:59:00 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi all,
+---
+ src/scanner.l                                 | 36 +++++++++++++++++----------
+ tests/shell/testcases/include/0005glob_0      | 32 ++++++++++++++++++++++++
+ tests/shell/testcases/include/0006globempty_1 | 14 +++++++++++
+ 3 files changed, 69 insertions(+), 13 deletions(-)
+ create mode 100755 tests/shell/testcases/include/0005glob_0
+ create mode 100755 tests/shell/testcases/include/0006globempty_1
 
-After merging the netfilter-next tree, today's linux-next build (x86_64
-allmodconfig) produced this warning:
+diff --git a/src/scanner.l b/src/scanner.l
+index 625023f..64fe6fc 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -11,6 +11,7 @@
+ %{
 
-In file included from arch/x86/include/asm/checksum.h:4:0,
-                 from include/net/checksum.h:26,
-                 from include/linux/skbuff.h:31,
-                 from include/linux/if_ether.h:23,
-                 from include/uapi/linux/ethtool.h:18,
-                 from include/linux/ethtool.h:17,
-                 from include/linux/netdevice.h:42,
-                 from include/linux/if_vlan.h:15,
-                 from net/netfilter/nft_payload.c:13:
-net/netfilter/nft_payload.c: In function 'nft_payload_set_eval':
-arch/x86/include/asm/checksum_64.h:184:2: warning: 'tsum' may be used uninitialized in this function [-Wmaybe-uninitialized]
-  asm("addl %2,%0\n\t"
-  ^
-net/netfilter/nft_payload.c:261:15: note: 'tsum' was declared here
-  __wsum fsum, tsum;
-               ^
-In file included from include/linux/skbuff.h:31:0,
-                 from include/linux/if_ether.h:23,
-                 from include/uapi/linux/ethtool.h:18,
-                 from include/linux/ethtool.h:17,
-                 from include/linux/netdevice.h:42,
-                 from include/linux/if_vlan.h:15,
-                 from net/netfilter/nft_payload.c:13:
-include/net/checksum.h:71:9: warning: 'fsum' may be used uninitialized in this function [-Wmaybe-uninitialized]
-  return csum_add(csum, ~addend);
-         ^
-net/netfilter/nft_payload.c:261:9: note: 'fsum' was declared here
-  __wsum fsum, tsum;
-         ^
+ #include <limits.h>
++#include <glob.h>
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+ #include <linux/types.h>
+@@ -640,37 +641,46 @@ int scanner_include_file(void *scanner, const
+char *filename,
+     struct parser_state *state = yyget_extra(scanner);
+     struct error_record *erec;
+     char buf[PATH_MAX];
+-    const char *name = buf;
+     unsigned int i;
+-    FILE *f;
++    glob_t globbuf;
 
-Introduced by commit
+-    f = NULL;
++    globbuf.gl_pathc = 0;
+     if (search_in_include_path(filename)) {
+         for (i = 0; i < INCLUDE_PATHS_MAX; i++) {
+             if (include_paths[i] == NULL)
+                 break;
+             snprintf(buf, sizeof(buf), "%s/%s",
+                  include_paths[i], filename);
+-            f = fopen(buf, "r");
+-            if (f != NULL)
++            if (glob(buf, 0, NULL, &globbuf) != 0) {
+                 break;
++            }
+         }
+     } else {
+-        f = fopen(filename, "r");
+-        name = filename;
++        glob(filename, 0, NULL, &globbuf);
+     }
+-    if (f == NULL) {
+-        erec = error(loc, "Could not open file \"%s\": %s",
+-                 filename, strerror(errno));
++    if (globbuf.gl_pathc == 0) {
++        erec = error(loc, "Could not find file matching \"%s\"\n", filename);
+         goto err;
+     }
 
-  556c291b3a1b ("netfilter: nft_payload: layer 4 checksum adjustment for pseudoheader fields")
+-    erec = scanner_push_file(scanner, name, f, loc);
+-    if (erec != NULL)
+-        goto err;
++    for (i = 0; i < globbuf.gl_pathc; i++) {
++        const char *name = globbuf.gl_pathv[i];
++        FILE *f = fopen(name, "r");
++        if (f == NULL) {
++            erec = error(loc, "Could not open file \"%s\": %s\n",
+name, strerror(errno));
++            goto err;
++        }
++        erec = scanner_push_file(scanner, name, f, loc);
++        if (erec != NULL) {
++            goto err;
++        }
++    }
++
++    globfree(&globbuf);
+     return 0;
 
+ err:
++    globfree(&globbuf);
+     erec_queue(erec, state->msgs);
+     return -1;
+ }
+diff --git a/tests/shell/testcases/include/0005glob_0
+b/tests/shell/testcases/include/0005glob_0
+new file mode 100755
+index 0000000..99dbf53
+--- /dev/null
++++ b/tests/shell/testcases/include/0005glob_0
+@@ -0,0 +1,32 @@
++#!/bin/bash
++
++set -e
++
++tmpdir=$(mktemp -d)
++tmpfile=$(mktemp)
++
++trap "rm -rf $tmpdir $tmpfile" EXIT # cleanup if aborted
++
++RULESET1="add table x"
++RULESET2="add table y"
++RULESET3="include \"$tmpdir/*.conf\""
++
++echo "$RULESET1" > $tmpdir/ruleset1.conf
++echo "$RULESET2" > $tmpdir/ruleset2.conf
++echo "$RULESET3" > $tmpfile
++
++$NFT -f $tmpfile
++if [ $? -ne 0 ] ; then
++        echo "E: unable to load good ruleset" >&2
++        exit 1
++fi
++$NFT list table x
++if [ $? -ne 0 ] ; then
++        echo "E: unable to include ruleset1.conf" >&2
++        exit 1
++fi
++$NFT list table y
++if [ $? -ne 0 ] ; then
++        echo "E: unable to include ruleset2.conf" >&2
++        exit 1
++fi
+diff --git a/tests/shell/testcases/include/0006globempty_1
+b/tests/shell/testcases/include/0006globempty_1
+new file mode 100755
+index 0000000..3ac8c72
+--- /dev/null
++++ b/tests/shell/testcases/include/0006globempty_1
+@@ -0,0 +1,14 @@
++#!/bin/bash
++
++set -e
++
++tmpdir=$(mktemp -d)
++tmpfile=$(mktemp)
++
++trap "rm -rf $tmpdir $tmpfile" EXIT # cleanup if aborted
++
++RULESET="include \"$tmpdir/*.conf\""
++
++echo "$RULESET" > $tmpfile
++
++$NFT -f $tmpfile 2>/dev/null
 -- 
-Cheers,
-Stephen Rothwell
+2.10.2
+
+
+Kohei Suzuki
+eagletmt@gmail.com
