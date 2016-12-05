@@ -1,192 +1,107 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 3/3] netfilter: nf_tables: support for set flushing
-Date: Mon,  5 Dec 2016 23:35:50 +0100
-Message-ID: <1480977350-14873-3-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next 2/3] netfilter: nft_set: introduce nft_{hash,rbtree}_deactivate_one()
+Date: Mon,  5 Dec 2016 23:35:49 +0100
+Message-ID: <1480977350-14873-2-git-send-email-pablo@netfilter.org>
 References: <1480977350-14873-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53818 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53814 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752245AbcLEWgJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1752156AbcLEWgJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 5 Dec 2016 17:36:09 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B1C0C1DF5BE
-        for <netfilter-devel@vger.kernel.org>; Mon,  5 Dec 2016 23:35:59 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 160971DF5BD
+        for <netfilter-devel@vger.kernel.org>; Mon,  5 Dec 2016 23:35:58 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A0F99DA841
-        for <netfilter-devel@vger.kernel.org>; Mon,  5 Dec 2016 23:35:59 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 05B5BDA729
+        for <netfilter-devel@vger.kernel.org>; Mon,  5 Dec 2016 23:35:58 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A0589DA841
-        for <netfilter-devel@vger.kernel.org>; Mon,  5 Dec 2016 23:35:57 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 200A1DA729
+        for <netfilter-devel@vger.kernel.org>; Mon,  5 Dec 2016 23:35:56 +0100 (CET)
 In-Reply-To: <1480977350-14873-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds support for set flushing, that consists of walking over
-the set elements if the NFTA_SET_ELEM_LIST_ELEMENTS attribute is set.
-This patch requires the following changes:
-
-1) Add set->ops->deactivate_one() operation: This allows us to
-   deactivate an element from the set element walk path, given we can
-   skip the lookup that happens in ->deactivate().
-
-2) Add a new nft_trans_alloc_gfp() function since we need to allocate
-   transactions using GFP_ATOMIC given the set walk path happens with
-   held rcu_read_lock.
+This new function allows us to deactivate one single element, this is
+required by the set flush command that comes in a follow up patch.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |  6 ++++-
- net/netfilter/nf_tables_api.c     | 55 ++++++++++++++++++++++++++++++++++-----
- net/netfilter/nft_set_hash.c      |  1 +
- net/netfilter/nft_set_rbtree.c    |  1 +
- 4 files changed, 56 insertions(+), 7 deletions(-)
+ net/netfilter/nft_set_hash.c   | 24 +++++++++++++++++-------
+ net/netfilter/nft_set_rbtree.c | 11 ++++++++++-
+ 2 files changed, 27 insertions(+), 8 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 32970cba184a..e3ca6fca6496 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -259,7 +259,8 @@ struct nft_expr;
-  *	@lookup: look up an element within the set
-  *	@insert: insert new element into set
-  *	@activate: activate new element in the next generation
-- *	@deactivate: deactivate element in the next generation
-+ *	@deactivate: lookup for element and deactivate it in the next generation
-+ *	@deactivate_one: deactivate element in the next generation
-  *	@remove: remove element from set
-  *	@walk: iterate over all set elemeennts
-  *	@privsize: function to return size of set private data
-@@ -294,6 +295,9 @@ struct nft_set_ops {
- 	void *				(*deactivate)(const struct net *net,
- 						      const struct nft_set *set,
- 						      const struct nft_set_elem *elem);
-+	bool				(*deactivate_one)(const struct net *net,
-+							  const struct nft_set *set,
-+							  void *priv);
- 	void				(*remove)(const struct nft_set *set,
- 						  const struct nft_set_elem *elem);
- 	void				(*walk)(const struct nft_ctx *ctx,
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index b8fa54ec6bbb..2cfa63f6b481 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -110,12 +110,12 @@ static void nft_ctx_init(struct nft_ctx *ctx,
- 	ctx->seq	= nlh->nlmsg_seq;
- }
- 
--static struct nft_trans *nft_trans_alloc(const struct nft_ctx *ctx,
--					 int msg_type, u32 size)
-+static struct nft_trans *nft_trans_alloc_gfp(const struct nft_ctx *ctx,
-+					     int msg_type, u32 size, gfp_t gfp)
- {
- 	struct nft_trans *trans;
- 
--	trans = kzalloc(sizeof(struct nft_trans) + size, GFP_KERNEL);
-+	trans = kzalloc(sizeof(struct nft_trans) + size, gfp);
- 	if (trans == NULL)
- 		return NULL;
- 
-@@ -125,6 +125,12 @@ static struct nft_trans *nft_trans_alloc(const struct nft_ctx *ctx,
- 	return trans;
- }
- 
-+static struct nft_trans *nft_trans_alloc(const struct nft_ctx *ctx,
-+					 int msg_type, u32 size)
-+{
-+	return nft_trans_alloc_gfp(ctx, msg_type, size, GFP_KERNEL);
-+}
-+
- static void nft_trans_destroy(struct nft_trans *trans)
- {
- 	list_del(&trans->list);
-@@ -3779,6 +3785,34 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
- 	return err;
- }
- 
-+static int nft_flush_set(const struct nft_ctx *ctx,
-+			 const struct nft_set *set,
-+			 const struct nft_set_iter *iter,
-+			 const struct nft_set_elem *elem)
-+{
-+	struct nft_trans *trans;
-+	int err;
-+
-+	trans = nft_trans_alloc_gfp(ctx, NFT_MSG_DELSETELEM,
-+				    sizeof(struct nft_trans_elem), GFP_ATOMIC);
-+	if (!trans)
-+		return -ENOMEM;
-+
-+	if (!set->ops->deactivate_one(ctx->net, set, elem->priv)) {
-+		err = -ENOENT;
-+		goto err1;
-+	}
-+
-+	nft_trans_elem_set(trans) = (struct nft_set *)set;
-+	nft_trans_elem(trans) = *((struct nft_set_elem *)elem);
-+	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
-+
-+	return 0;
-+err1:
-+	kfree(trans);
-+	return err;
-+}
-+
- static int nf_tables_delsetelem(struct net *net, struct sock *nlsk,
- 				struct sk_buff *skb, const struct nlmsghdr *nlh,
- 				const struct nlattr * const nla[])
-@@ -3789,9 +3823,6 @@ static int nf_tables_delsetelem(struct net *net, struct sock *nlsk,
- 	struct nft_ctx ctx;
- 	int rem, err = 0;
- 
--	if (nla[NFTA_SET_ELEM_LIST_ELEMENTS] == NULL)
--		return -EINVAL;
--
- 	err = nft_ctx_init_from_elemattr(&ctx, net, skb, nlh, nla, genmask);
- 	if (err < 0)
- 		return err;
-@@ -3803,6 +3834,18 @@ static int nf_tables_delsetelem(struct net *net, struct sock *nlsk,
- 	if (!list_empty(&set->bindings) && set->flags & NFT_SET_CONSTANT)
- 		return -EBUSY;
- 
-+	if (nla[NFTA_SET_ELEM_LIST_ELEMENTS] == NULL) {
-+		struct nft_set_dump_args args = {
-+			.iter	= {
-+				.genmask	= genmask,
-+				.fn		= nft_flush_set,
-+			},
-+		};
-+		set->ops->walk(&ctx, set, &args.iter);
-+
-+		return args.iter.err;
-+	}
-+
- 	nla_for_each_nested(attr, nla[NFTA_SET_ELEM_LIST_ELEMENTS], rem) {
- 		err = nft_del_setelem(&ctx, set, attr);
- 		if (err < 0)
 diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 73f7687c5656..1e20e2bbb6d9 100644
+index a3dface3e6e6..73f7687c5656 100644
 --- a/net/netfilter/nft_set_hash.c
 +++ b/net/netfilter/nft_set_hash.c
-@@ -397,6 +397,7 @@ static struct nft_set_ops nft_hash_ops __read_mostly = {
- 	.insert		= nft_hash_insert,
- 	.activate	= nft_hash_activate,
- 	.deactivate	= nft_hash_deactivate,
-+	.deactivate_one	= nft_hash_deactivate_one,
- 	.remove		= nft_hash_remove,
- 	.lookup		= nft_hash_lookup,
- 	.update		= nft_hash_update,
+@@ -167,6 +167,19 @@ static void nft_hash_activate(const struct net *net, const struct nft_set *set,
+ 	nft_set_elem_clear_busy(&he->ext);
+ }
+ 
++static bool nft_hash_deactivate_one(const struct net *net,
++				    const struct nft_set *set, void *priv)
++{
++	struct nft_hash_elem *he = priv;
++
++	if (!nft_set_elem_mark_busy(&he->ext) ||
++	    !nft_is_active(net, &he->ext)) {
++		nft_set_elem_change_active(net, set, &he->ext);
++		return true;
++	}
++	return false;
++}
++
+ static void *nft_hash_deactivate(const struct net *net,
+ 				 const struct nft_set *set,
+ 				 const struct nft_set_elem *elem)
+@@ -181,13 +194,10 @@ static void *nft_hash_deactivate(const struct net *net,
+ 
+ 	rcu_read_lock();
+ 	he = rhashtable_lookup_fast(&priv->ht, &arg, nft_hash_params);
+-	if (he != NULL) {
+-		if (!nft_set_elem_mark_busy(&he->ext) ||
+-		    !nft_is_active(net, &he->ext))
+-			nft_set_elem_change_active(net, set, &he->ext);
+-		else
+-			he = NULL;
+-	}
++	if (he != NULL &&
++	    !nft_hash_deactivate_one(net, set, he))
++		he = NULL;
++
+ 	rcu_read_unlock();
+ 
+ 	return he;
 diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 845bbdb26853..58d033d4de60 100644
+index 36493a7cae88..845bbdb26853 100644
 --- a/net/netfilter/nft_set_rbtree.c
 +++ b/net/netfilter/nft_set_rbtree.c
-@@ -304,6 +304,7 @@ static struct nft_set_ops nft_rbtree_ops __read_mostly = {
- 	.insert		= nft_rbtree_insert,
- 	.remove		= nft_rbtree_remove,
- 	.deactivate	= nft_rbtree_deactivate,
-+	.deactivate_one	= nft_rbtree_deactivate_one,
- 	.activate	= nft_rbtree_activate,
- 	.lookup		= nft_rbtree_lookup,
- 	.walk		= nft_rbtree_walk,
+@@ -171,6 +171,15 @@ static void nft_rbtree_activate(const struct net *net,
+ 	nft_set_elem_change_active(net, set, &rbe->ext);
+ }
+ 
++static bool nft_rbtree_deactivate_one(const struct net *net,
++				      const struct nft_set *set, void *priv)
++{
++	struct nft_rbtree_elem *rbe = priv;
++
++	nft_set_elem_change_active(net, set, &rbe->ext);
++	return true;
++}
++
+ static void *nft_rbtree_deactivate(const struct net *net,
+ 				   const struct nft_set *set,
+ 				   const struct nft_set_elem *elem)
+@@ -204,7 +213,7 @@ static void *nft_rbtree_deactivate(const struct net *net,
+ 				parent = parent->rb_right;
+ 				continue;
+ 			}
+-			nft_set_elem_change_active(net, set, &rbe->ext);
++			nft_rbtree_deactivate_one(net, set, &rbe->ext);
+ 			return rbe;
+ 		}
+ 	}
 -- 
 2.1.4
 
