@@ -1,65 +1,63 @@
-From: Davide Caratti <dcaratti@redhat.com>
-Subject: [PATCH nf-next] NAT: skip checksum on offload SCTP packets
-Date: Mon,  5 Dec 2016 15:33:57 +0100
-Message-ID: <d2c914edb023e502a839f8ff7037028311007cfe.1480948288.git.dcaratti@redhat.com>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S . Miller" <davem@davemloft.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v3 net-next] net_sched: gen_estimator: complete rewrite
+ of rate estimators
+Date: Mon, 05 Dec 2016 15:22:23 -0500 (EST)
+Message-ID: <20161205.152223.2283744541131458900.davem@davemloft.net>
+References: <1480835273.18162.457.camel@edumazet-glaptop3.roam.corp.google.com>
+        <1480835882.18162.462.camel@edumazet-glaptop3.roam.corp.google.com>
+        <1480873696.18162.470.camel@edumazet-glaptop3.roam.corp.google.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: eric.dumazet@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49062 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751086AbcLEPAD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 5 Dec 2016 10:00:03 -0500
+Received: from shards.monkeyblade.net ([184.105.139.130]:50070 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751627AbcLEUWZ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 5 Dec 2016 15:22:25 -0500
+In-Reply-To: <1480873696.18162.470.camel@edumazet-glaptop3.roam.corp.google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-SCTP GSO and hardware can do CRC32c computation after netfilter processing,
-so we can avoid calling sctp_compute_checksum() on skb if skb->ip_summed
-is equal to CHECKSUM_PARTIAL. Moreover, set skb->ip_summed to CHECKSUM_NONE
-when the NAT code computes the CRC, to prevent offloaders from computing
-it again (on ixgbe this resulted in a transmission with wrong L4 checksum).
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Date: Sun, 04 Dec 2016 09:48:16 -0800
 
-Signed-off-by: Davide Caratti <dcaratti@redhat.com>
----
+> From: Eric Dumazet <edumazet@google.com>
+> 
+> 1) Old code was hard to maintain, due to complex lock chains.
+>    (We probably will be able to remove some kfree_rcu() in callers)
+> 
+> 2) Using a single timer to update all estimators does not scale.
+> 
+> 3) Code was buggy on 32bit kernel (WRITE_ONCE() on 64bit quantity
+>    is not supposed to work well)
+> 
+> In this rewrite :
+> 
+> - I removed the RB tree that had to be scanned in
+>   gen_estimator_active(). qdisc dumps should be much faster.
+> 
+> - Each estimator has its own timer.
+> 
+> - Estimations are maintained in net_rate_estimator structure,
+>   instead of dirtying the qdisc. Minor, but part of the simplification.
+> 
+> - Reading the estimator uses RCU and a seqcount to provide proper
+>   support for 32bit kernels.
+> 
+> - We reduce memory need when estimators are not used, since
+>   we store a pointer, instead of the bytes/packets counters.
+> 
+> - xt_rateest_mt() no longer has to grab a spinlock.
+>   (In the future, xt_rateest_tg() could be switched to per cpu counters)
+> 
+> Signed-off-by: Eric Dumazet <edumazet@google.com>
+> ---
+> v3: Renamed some parameters to please make htmldocs
+> v2: Removed unwanted changes to tcp_output.c
 
-Notes:
-    on a veth pair, where GSO is available and some performance evaluation
-    can be done, a netperf SCTP_STREAM has been run recording the number
-    of invocations of crc32c() versus the number of invocations of
-    sctp_manip_pkt(), before and after the patch was applied:
-    
-      $perf record -e "probe:crc32c,probe:sctp_manip_pkt" -aR -- \
-         $netperf -H $host -t SCTP_STREAM -p 2000 -l 30
-    
-      $perf script | grep crc32c | wc -l
-      $perf script | grep sctp_manip_pkt | wc -l
-    
-      nf_nat_proto_sctp.c | crc32c hits | sctp_manip_pkt hits | throughput
-     ---------------------+-------------+---------------------+------------
-      unpatched           |       10493 |                3314 | 1.17 Gbit/s
-      patched             |        6100 |                3326 | 1.19 Gbit/s
+This was probably long overdue, thanks for working on this.
 
- net/netfilter/nf_nat_proto_sctp.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_nat_proto_sctp.c b/net/netfilter/nf_nat_proto_sctp.c
-index 2e14108..31d3586 100644
---- a/net/netfilter/nf_nat_proto_sctp.c
-+++ b/net/netfilter/nf_nat_proto_sctp.c
-@@ -47,7 +47,10 @@ sctp_manip_pkt(struct sk_buff *skb,
- 		hdr->dest = tuple->dst.u.sctp.port;
- 	}
- 
--	hdr->checksum = sctp_compute_cksum(skb, hdroff);
-+	if (skb->ip_summed != CHECKSUM_PARTIAL) {
-+		hdr->checksum = sctp_compute_cksum(skb, hdroff);
-+		skb->ip_summed = CHECKSUM_NONE;
-+	}
- 
- 	return true;
- }
--- 
-2.7.4
-
+Applied, thanks Eric.
