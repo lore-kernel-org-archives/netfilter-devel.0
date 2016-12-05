@@ -1,223 +1,185 @@
-From: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
-Subject: Kernel panic in netfilter 4.8.10 probably on conntrack -L
-Date: Tue, 06 Dec 2016 00:05:58 +0200
-Message-ID: <a847cee4824743e7e8b55a017117eb95@nuclearcat.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft] parser: Add glob support to include directive
+Date: Mon, 5 Dec 2016 23:26:51 +0100
+Message-ID: <20161205222651.GA14648@salvia>
+References: <CAAVa8iscQtgaXbauR6MJ_iwU+YZuXpzaFCBM+4QR3676XHx5KQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-To: Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Kohei Suzuki <eagletmt@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nuclearcat.com ([144.76.183.226]:50024 "EHLO nuclearcat.com"
+Received: from mail.us.es ([193.147.175.20]:52560 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751998AbcLEWGC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 5 Dec 2016 17:06:02 -0500
+        id S1752626AbcLEW1C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 5 Dec 2016 17:27:02 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CF95E174D14
+        for <netfilter-devel@vger.kernel.org>; Mon,  5 Dec 2016 23:26:59 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C036CDA843
+        for <netfilter-devel@vger.kernel.org>; Mon,  5 Dec 2016 23:26:59 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 91308DA862
+        for <netfilter-devel@vger.kernel.org>; Mon,  5 Dec 2016 23:26:56 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <CAAVa8iscQtgaXbauR6MJ_iwU+YZuXpzaFCBM+4QR3676XHx5KQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi!
+Please, add a description to this patch.
 
-I have quite loaded NAT server (approx 17Gbps of traffic) where periodic 
-"conntrack -L" might trigger once per day kernel panic.
-I am not definitely sure it is triggered exactly at running tool, or 
-just by enabling events.
-Here is panic message:
+Thanks.
 
-<udp> [221287.380762] general protection fault: 0000 [#1] SMP
-<udp> [221287.381029] Modules linked in:
-<udp> xt_rateest
-<udp> xt_RATEEST
-<udp> nf_conntrack_netlink
-<udp> netconsole
-<udp> configfs
-<udp> tun
-<udp> nf_nat_pptp
-<udp> nf_nat_proto_gre
-<udp> xt_TCPMSS
-<udp> xt_connmark
-<udp> ipt_MASQUERADE
-<udp> nf_nat_masquerade_ipv4
-<udp> xt_nat
-<udp> nf_conntrack_pptp
-<udp> nf_conntrack_proto_gre
-<udp> xt_CT
-<udp> xt_set
-<udp> xt_hl
-<udp> xt_tcpudp
-<udp> ip_set_hash_net
-<udp> ip_set
-<udp> nfnetlink
-<udp> iptable_raw
-<udp> iptable_mangle
-<udp> iptable_nat
-<udp> nf_conntrack_ipv4
-<udp> nf_defrag_ipv4
-<udp> nf_nat_ipv4
-<udp> nf_nat
-<udp> nf_conntrack
-<udp> iptable_filter
-<udp> ip_tables
-<udp> x_tables
-<udp> 8021q
-<udp> garp
-<udp> mrp
-<udp> stp
-<udp> llc
-<udp> bonding
-<udp> ixgbe
-<udp> dca
-<udp>
-<udp> [221287.384913] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 
-4.8.10-build-0121 #10
-<udp> [221287.385184] Hardware name: Intel Corporation 
-S2600WTT/S2600WTT, BIOS SE5C610.86B.01.01.1008.031920151331 03/19/2015
-<udp> [221287.385634] task: ffffffff8200b4c0 task.stack: 
-ffffffff82000000
-<udp> [221287.385900] RIP: 0010:[<ffffffffa009fb95>]
-<udp> [<ffffffffa009fb95>] nf_conntrack_eventmask_report+0xba/0x123 
-[nf_conntrack]
-<udp> [221287.386428] RSP: 0018:ffff882fbf603df8  EFLAGS: 00010202
-<udp> [221287.386693] RAX: 0000000000000000 RBX: ffff882f96a51da8 RCX: 
-0000000000000000
-<udp> [221287.387134] RDX: 0000000000000000 RSI: ffff882fbf603e00 RDI: 
-0000000000000004
-<udp> [221287.387575] RBP: ffff882fbf603e38 R08: ff81822024ffffff R09: 
-0000000000000004
-<udp> [221287.388011] R10: ffff882fbf603de0 R11: ffffffff820050c0 R12: 
-ffff882f810bf0c0
-<udp> [221287.388445] R13: 0000000000000000 R14: 0000000000000000 R15: 
-0000000000000004
-<udp> [221287.388877] FS:  0000000000000000(0000) 
-GS:ffff882fbf600000(0000) knlGS:0000000000000000
-<udp> [221287.389311] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-<udp> [221287.389567] CR2: 00007faff0bd8978 CR3: 0000000002006000 CR4: 
-00000000001406f0
-<udp> [221287.389998] Stack:
-<udp> [221287.390238]  000000049f292300
-<udp> ffff882f810bf0c0
-<udp> 0000000000000000
-<udp> ffff882f810bf0c0
-<udp>
-<udp> [221287.390913]  ffff882f96a51d80
-<udp> 0000000000000000
-<udp> 0000000000000000
-<udp> ffffffff820050c8
-<udp>
-<udp> [221287.391587]  ffff882fbf603e68
-<udp> ffffffffa0098bd3
-<udp> 0000000080000100
-<udp> ffffffffa0098c85
-<udp>
-<udp> [221287.392262] Call Trace:
-<udp> [221287.392508]  <IRQ>
-<udp>
-<udp> [221287.392579]  [<ffffffffa0098bd3>] nf_ct_delete+0x7a/0x12c 
-[nf_conntrack]
-<udp> [221287.393082]  [<ffffffffa0098c85>] ? nf_ct_delete+0x12c/0x12c 
-[nf_conntrack]
-<udp> [221287.393351]  [<ffffffffa0098c92>] death_by_timeout+0xd/0xf 
-[nf_conntrack]
-<udp> [221287.393617]  [<ffffffff811078ad>] 
-call_timer_fn.isra.5+0x17/0x6b
-<udp> [221287.393881]  [<ffffffff81107970>] expire_timers+0x6f/0x7e
-<udp> [221287.394134]  [<ffffffff81107a68>] run_timer_softirq+0x69/0x8b
-<udp> [221287.394390]  [<ffffffff810cefbc>] __do_softirq+0xbd/0x1aa
-<udp> [221287.394643]  [<ffffffff810cf1f0>] irq_exit+0x37/0x7c
-<udp> [221287.394898]  [<ffffffff8102a703>] 
-smp_trace_call_function_single_interrupt+0x2e/0x30
-<udp> [221287.395341]  [<ffffffff8102a70e>] 
-smp_call_function_single_interrupt+0x9/0xb
-<udp> [221287.395600]  [<ffffffff818dbcbc>] 
-call_function_single_interrupt+0x7c/0x90
-<udp> [221287.395857]  <EOI>
-<udp>
-<udp> [221287.395926]  [<ffffffff8101b8d7>] ? mwait_idle+0x64/0x7a
-<udp> [221287.396413]  [<ffffffff8101bcb2>] arch_cpu_idle+0xa/0xc
-<udp> [221287.396665]  [<ffffffff810f670a>] default_idle_call+0x27/0x29
-<udp> [221287.396919]  [<ffffffff810f6829>] 
-cpu_startup_entry+0x11d/0x1c7
-<udp> [221287.397175]  [<ffffffff818d6c3b>] rest_init+0x72/0x74
-<udp> [221287.397428]  [<ffffffff820d0e5c>] start_kernel+0x3ba/0x3c7
-<udp> [221287.397681]  [<ffffffff820d028f>] 
-x86_64_start_reservations+0x2a/0x2c
-<udp> [221287.397937]  [<ffffffff820d03bb>] 
-x86_64_start_kernel+0x12a/0x135
-<udp> [221287.402124] Code:
-<udp> f2
-<udp> 89
-<udp> 75
-<udp> d0
-<udp> 75
-<udp> 04
-<udp> 4c
-<udp> 8b
-<udp> 73
-<udp> 08
-<udp> 0f
-<udp> b7
-<udp> 73
-<udp> 10
-<udp> 41
-<udp> 89
-<udp> ff
-<udp> 4d
-<udp> 89
-<udp> f1
-<udp> 4d
-<udp> 09
-<udp> f9
-<udp> 31
-<udp> c0
-<udp> 49
-<udp> 85
-<udp> f1
-<udp> 74
-<udp> 67
-<udp> 41
-<udp> 89
-<udp> d5
-<udp> 89
-<udp> 7d
-<udp> c4
-<udp> 48
-<udp> 8d
-<udp> 75
-<udp> c8
-<udp> 44
-<udp> 09
-<udp> f7
-<udp>
-<udp> ff
-<udp> 10
-<udp> 89
-<udp> c2
-<udp> c1
-<udp> ea
-<udp> 1f
-<udp> 75
-<udp> 05
-<udp> 4d
-<udp> 85
-<udp> f6
-<udp> 74
-<udp> 4b
-<udp> 49
-<udp> 83
-<udp> c4
-<udp> 04
-<udp> 89
-<udp> 45
-<udp>
-<udp> [221287.406724] RIP
-<udp> [<ffffffffa009fb95>] nf_conntrack_eventmask_report+0xba/0x123 
-[nf_conntrack]
-<udp> [221287.407234]  RSP <ffff882fbf603df8>
-<udp> [221287.407489] ---[ end trace 4b077b9412fc7065 ]---
-<udp> [221287.407746] Kernel panic - not syncing: Fatal exception in 
-interrupt
-<udp> [221287.408013] Kernel Offset: disabled
-<udp> [221287.408270] Rebooting in 5 seconds..
-Dec  5 23:17:58 10.0.253.34
-Dec  5 23:17:58 10.0.253.34 [221292.408645] ACPI MEMORY or I/O 
-RESET_REG.
+On Mon, Dec 05, 2016 at 08:58:38PM +0900, Kohei Suzuki wrote:
+> ---
+>  src/scanner.l                                 | 36 +++++++++++++++++----------
+>  tests/shell/testcases/include/0005glob_0      | 32 ++++++++++++++++++++++++
+>  tests/shell/testcases/include/0006globempty_1 | 14 +++++++++++
+>  3 files changed, 69 insertions(+), 13 deletions(-)
+>  create mode 100755 tests/shell/testcases/include/0005glob_0
+>  create mode 100755 tests/shell/testcases/include/0006globempty_1
+> 
+> diff --git a/src/scanner.l b/src/scanner.l
+> index 625023f..64fe6fc 100644
+> --- a/src/scanner.l
+> +++ b/src/scanner.l
+> @@ -11,6 +11,7 @@
+>  %{
+> 
+>  #include <limits.h>
+> +#include <glob.h>
+>  #include <netinet/in.h>
+>  #include <arpa/inet.h>
+>  #include <linux/types.h>
+> @@ -640,37 +641,46 @@ int scanner_include_file(void *scanner, const
+> char *filename,
+>      struct parser_state *state = yyget_extra(scanner);
+>      struct error_record *erec;
+>      char buf[PATH_MAX];
+> -    const char *name = buf;
+>      unsigned int i;
+> -    FILE *f;
+> +    glob_t globbuf;
+> 
+> -    f = NULL;
+> +    globbuf.gl_pathc = 0;
+>      if (search_in_include_path(filename)) {
+>          for (i = 0; i < INCLUDE_PATHS_MAX; i++) {
+>              if (include_paths[i] == NULL)
+>                  break;
+>              snprintf(buf, sizeof(buf), "%s/%s",
+>                   include_paths[i], filename);
+> -            f = fopen(buf, "r");
+> -            if (f != NULL)
+> +            if (glob(buf, 0, NULL, &globbuf) != 0) {
+>                  break;
+> +            }
+>          }
+>      } else {
+> -        f = fopen(filename, "r");
+> -        name = filename;
+> +        glob(filename, 0, NULL, &globbuf);
+>      }
+> -    if (f == NULL) {
+> -        erec = error(loc, "Could not open file \"%s\": %s",
+> -                 filename, strerror(errno));
+> +    if (globbuf.gl_pathc == 0) {
+> +        erec = error(loc, "Could not find file matching \"%s\"\n", filename);
+>          goto err;
+>      }
+> 
+> -    erec = scanner_push_file(scanner, name, f, loc);
+> -    if (erec != NULL)
+> -        goto err;
+> +    for (i = 0; i < globbuf.gl_pathc; i++) {
+> +        const char *name = globbuf.gl_pathv[i];
+> +        FILE *f = fopen(name, "r");
+> +        if (f == NULL) {
+> +            erec = error(loc, "Could not open file \"%s\": %s\n",
+> name, strerror(errno));
+> +            goto err;
+> +        }
+> +        erec = scanner_push_file(scanner, name, f, loc);
+> +        if (erec != NULL) {
+> +            goto err;
+> +        }
+> +    }
+> +
+> +    globfree(&globbuf);
+>      return 0;
+> 
+>  err:
+> +    globfree(&globbuf);
+>      erec_queue(erec, state->msgs);
+>      return -1;
+>  }
+> diff --git a/tests/shell/testcases/include/0005glob_0
+> b/tests/shell/testcases/include/0005glob_0
+> new file mode 100755
+> index 0000000..99dbf53
+> --- /dev/null
+> +++ b/tests/shell/testcases/include/0005glob_0
+> @@ -0,0 +1,32 @@
+> +#!/bin/bash
+> +
+> +set -e
+> +
+> +tmpdir=$(mktemp -d)
+> +tmpfile=$(mktemp)
+> +
+> +trap "rm -rf $tmpdir $tmpfile" EXIT # cleanup if aborted
+> +
+> +RULESET1="add table x"
+> +RULESET2="add table y"
+> +RULESET3="include \"$tmpdir/*.conf\""
+> +
+> +echo "$RULESET1" > $tmpdir/ruleset1.conf
+> +echo "$RULESET2" > $tmpdir/ruleset2.conf
+> +echo "$RULESET3" > $tmpfile
+> +
+> +$NFT -f $tmpfile
+> +if [ $? -ne 0 ] ; then
+> +        echo "E: unable to load good ruleset" >&2
+> +        exit 1
+> +fi
+> +$NFT list table x
+> +if [ $? -ne 0 ] ; then
+> +        echo "E: unable to include ruleset1.conf" >&2
+> +        exit 1
+> +fi
+> +$NFT list table y
+> +if [ $? -ne 0 ] ; then
+> +        echo "E: unable to include ruleset2.conf" >&2
+> +        exit 1
+> +fi
+> diff --git a/tests/shell/testcases/include/0006globempty_1
+> b/tests/shell/testcases/include/0006globempty_1
+> new file mode 100755
+> index 0000000..3ac8c72
+> --- /dev/null
+> +++ b/tests/shell/testcases/include/0006globempty_1
+> @@ -0,0 +1,14 @@
+> +#!/bin/bash
+> +
+> +set -e
+> +
+> +tmpdir=$(mktemp -d)
+> +tmpfile=$(mktemp)
+> +
+> +trap "rm -rf $tmpdir $tmpfile" EXIT # cleanup if aborted
+> +
+> +RULESET="include \"$tmpdir/*.conf\""
+> +
+> +echo "$RULESET" > $tmpfile
+> +
+> +$NFT -f $tmpfile 2>/dev/null
+> -- 
+> 2.10.2
+> 
+> 
+> Kohei Suzuki
+> eagletmt@gmail.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
