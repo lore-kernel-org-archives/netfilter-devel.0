@@ -1,82 +1,39 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] datatype: Display pre-defined inet_service values in
- host byte order
-Date: Tue, 6 Dec 2016 11:00:50 +0100
-Message-ID: <20161206100050.GA1489@salvia>
-References: <20161206003037.GA7097@lennorien.com>
+Subject: Re: [PATCH nf-next] netfilter: fix build failure with CONNTRACK=n
+ NF_DEFRAG=y
+Date: Tue, 6 Dec 2016 11:16:09 +0100
+Message-ID: <20161206101609.GA2311@salvia>
+References: <201612050556.WPB56g03%fengguang.wu@intel.com>
+ <1480891042-6731-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Elise Lennion <elise.lennion@gmail.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59174 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41854 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751455AbcLFKBo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Dec 2016 05:01:44 -0500
+        id S1751058AbcLFKWm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 6 Dec 2016 05:22:42 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B29B58CD92
-        for <netfilter-devel@vger.kernel.org>; Tue,  6 Dec 2016 11:01:05 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id CFB6B8CD66
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Dec 2016 11:16:30 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9CE715387D
-        for <netfilter-devel@vger.kernel.org>; Tue,  6 Dec 2016 11:01:05 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BCAA1A7D44
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Dec 2016 11:16:30 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C80D87E081
-        for <netfilter-devel@vger.kernel.org>; Tue,  6 Dec 2016 11:00:59 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6DFD8A7D45
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Dec 2016 11:16:25 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20161206003037.GA7097@lennorien.com>
+In-Reply-To: <1480891042-6731-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Dec 05, 2016 at 10:30:38PM -0200, Elise Lennion wrote:
-> nft describe displays, to the user, which values are available for a selector,
-> then the values should be in host byte order.
+On Sun, Dec 04, 2016 at 11:37:22PM +0100, Florian Westphal wrote:
+> conntrack depends on defrag support, but not vice versa, so we cannot
+> place defrag_ipv4/6 into netns->ct:
 > 
-> Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> Fixes: ccc5da470e76 ("datatype: Replace getnameinfo() by internal lookup table")
-> Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
-> ---
->  include/datatype.h |  3 ++-
->  src/datatype.c     | 14 +++++++++++---
->  src/expression.c   |  3 ++-
->  3 files changed, 15 insertions(+), 5 deletions(-)
+> net/ipv4/netfilter/nf_defrag_ipv4.c:110:9: error: 'struct net' has no member named 'ct'
 > 
-> diff --git a/include/datatype.h b/include/datatype.h
-> index d4fe817..a7db1df 100644
-> --- a/include/datatype.h
-> +++ b/include/datatype.h
-> @@ -191,7 +191,8 @@ extern struct error_record *symbolic_constant_parse(const struct expr *sym,
->  extern void symbolic_constant_print(const struct symbol_table *tbl,
->  				    const struct expr *expr, bool quotes);
->  extern void symbol_table_print(const struct symbol_table *tbl,
-> -			       const struct datatype *dtype);
-> +			       const struct datatype *dtype,
-> +			       enum byteorder byteorder);
->  
->  extern struct symbol_table *rt_symbol_table_init(const char *filename);
->  extern void rt_symbol_table_free(struct symbol_table *tbl);
-> diff --git a/src/datatype.c b/src/datatype.c
-> index b5d73bc..4f98a83 100644
-> --- a/src/datatype.c
-> +++ b/src/datatype.c
-> @@ -181,14 +181,22 @@ void symbolic_constant_print(const struct symbol_table *tbl,
->  }
->  
->  void symbol_table_print(const struct symbol_table *tbl,
-> -			const struct datatype *dtype)
-> +			const struct datatype *dtype,
-> +			enum byteorder byteorder)
->  {
->  	const struct symbolic_constant *s;
->  	unsigned int size = 2 * dtype->size / BITS_PER_BYTE;
-> +	long unsigned int value;
-> +
-> +	for (s = tbl->symbols; s->identifier != NULL; s++) {
-> +		if (byteorder == BYTEORDER_BIG_ENDIAN)
-> +			value = __constant_ntohs(s->value);
+> Move it into net->nf.
 
-Is this going to work for other cases other than 16-bit?
-
-You can probably add a function that, based on the datatype, performs
-the byteswapping based on the integer length.
-
-Thanks.
+Applied, thanks Florian.
