@@ -1,94 +1,72 @@
-From: Elise Lennion <elise.lennion@gmail.com>
-Subject: [PATCH nft] datatype: Display pre-defined inet_service values in
- host byte order
-Date: Mon, 5 Dec 2016 22:30:38 -0200
-Message-ID: <20161206003037.GA7097@lennorien.com>
+From: mudrunka@spoje.net
+Subject: Re: Easy way to set NOTRACK for INPUT, FORWARD and OUTPUT
+ independently
+Date: Tue, 06 Dec 2016 06:56:56 +0100
+Message-ID: <c84a9319f8b1f2bb0554d5a4a942e3b1@spoje.net>
+References: <83039186e8c81a62f20e605de41ccba3@spoje.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ua0-f193.google.com ([209.85.217.193]:33123 "EHLO
-        mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751364AbcLFAao (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 5 Dec 2016 19:30:44 -0500
-Received: by mail-ua0-f193.google.com with SMTP id 20so33891977uak.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 05 Dec 2016 16:30:44 -0800 (PST)
-Content-Disposition: inline
+Received: from mail.spoje.net ([82.100.58.2]:55688 "EHLO mail.spoje.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751646AbcLFGE6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 6 Dec 2016 01:04:58 -0500
+Received: from localhost (mail.spoje.net [127.0.0.1])
+        by mail.spoje.net (Postfix) with ESMTP id BDB6A44096
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Dec 2016 06:56:58 +0100 (CET)
+Received: from mail.spoje.net ([127.0.0.1])
+        by localhost (mail.spoje.net [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id BhE-DcKgLWWp for <netfilter-devel@vger.kernel.org>;
+        Tue,  6 Dec 2016 06:56:56 +0100 (CET)
+Received: from mail.spoje.net (mail.spoje.net [127.0.0.1])
+        by mail.spoje.net (Postfix) with ESMTP id 9238544095
+        for <netfilter-devel@vger.kernel.org>; Tue,  6 Dec 2016 06:56:56 +0100 (CET)
+In-Reply-To: <83039186e8c81a62f20e605de41ccba3@spoje.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nft describe displays, to the user, which values are available for a selector,
-then the values should be in host byte order.
+And by "disguise" i've meant "distinguish" :-)
+T.
 
-Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Fixes: ccc5da470e76 ("datatype: Replace getnameinfo() by internal lookup table")
-Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
----
- include/datatype.h |  3 ++-
- src/datatype.c     | 14 +++++++++++---
- src/expression.c   |  3 ++-
- 3 files changed, 15 insertions(+), 5 deletions(-)
-
-diff --git a/include/datatype.h b/include/datatype.h
-index d4fe817..a7db1df 100644
---- a/include/datatype.h
-+++ b/include/datatype.h
-@@ -191,7 +191,8 @@ extern struct error_record *symbolic_constant_parse(const struct expr *sym,
- extern void symbolic_constant_print(const struct symbol_table *tbl,
- 				    const struct expr *expr, bool quotes);
- extern void symbol_table_print(const struct symbol_table *tbl,
--			       const struct datatype *dtype);
-+			       const struct datatype *dtype,
-+			       enum byteorder byteorder);
- 
- extern struct symbol_table *rt_symbol_table_init(const char *filename);
- extern void rt_symbol_table_free(struct symbol_table *tbl);
-diff --git a/src/datatype.c b/src/datatype.c
-index b5d73bc..4f98a83 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -181,14 +181,22 @@ void symbolic_constant_print(const struct symbol_table *tbl,
- }
- 
- void symbol_table_print(const struct symbol_table *tbl,
--			const struct datatype *dtype)
-+			const struct datatype *dtype,
-+			enum byteorder byteorder)
- {
- 	const struct symbolic_constant *s;
- 	unsigned int size = 2 * dtype->size / BITS_PER_BYTE;
-+	long unsigned int value;
-+
-+	for (s = tbl->symbols; s->identifier != NULL; s++) {
-+		if (byteorder == BYTEORDER_BIG_ENDIAN)
-+			value = __constant_ntohs(s->value);
-+		else
-+			value = s->value;
- 
--	for (s = tbl->symbols; s->identifier != NULL; s++)
- 		printf("\t%-30s\t0x%.*" PRIx64 "\n",
--		       s->identifier, size, s->value);
-+		       s->identifier, size, value);
-+	}
- }
- 
- static void invalid_type_print(const struct expr *expr)
-diff --git a/src/expression.c b/src/expression.c
-index a10af5d..2aada77 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -115,7 +115,8 @@ void expr_describe(const struct expr *expr)
- 
- 	if (expr->dtype->sym_tbl != NULL) {
- 		printf("\npre-defined symbolic constants:\n");
--		symbol_table_print(expr->dtype->sym_tbl, expr->dtype);
-+		symbol_table_print(expr->dtype->sym_tbl, expr->dtype,
-+				   expr->byteorder);
- 	}
- }
- 
--- 
-2.7.4
+Dne 2016-12-06 06:54, mudrunka@spoje.net napsal:
+> Hello,
+> currently in iptables i can set NOTRACK (-j CT --notrack) only for
+> OUTPUT and PREROUTING. Because the routing decision is made after the
+> conntracking.
+> 
+> I need stateful firewall on INPUT, but conntrack on FORWARD is
+> performance drawback for me. And i can imagine that someone might have
+> exact oposite of this problem.
+> 
+> When i want to enable conntrack for input, but not for forwarding, i
+> have to list all the ip adresses on local interfaces. This is big
+> administrative PITA for several reasons. i have routers with hundreds
+> of vlans and each of these vlans have multiple ip adresses - both ipv4
+> and ipv6. Disabling conntrack for FORWARD only means listing all of
+> them in PREROUTING to disguise INPUT traffic from the FORWARDed one.
+> This is annoying and prone to error.
+> 
+> It would be super useful if one can simply use "-j CT --notrack" in
+> INPUT and FORWARD. (it already works in OUTPUT)
+> 
+> If it's impossible to postpone conntrack after routing decision, it
+> might be possible to add some macro that would match any of local
+> adresses that are currently on any of interfaces. like "--src local"
+> or "--dst local". Currently i am using ipset filled by cron script
+> with all these adresses parsed from "ip a s". But that's far from
+> being elegant or reliable.
+> 
+> I am planning to switch over to nftables, so it might be another 
+> solution...
+> Is this planned to be fixed in nftables? If not can you please
+> consider fixing it?
+> 
+> 
+> Thanks
+> 
+> Best regards
+>       Tomas Mudrunka
 
