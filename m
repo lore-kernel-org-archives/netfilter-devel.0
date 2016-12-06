@@ -1,111 +1,97 @@
-From: Anatole Denis <anatole@rezel.net>
-Subject: Re: [PATCH nft] src: add support to flush sets
-Date: Tue, 06 Dec 2016 12:13:37 +0100
-Message-ID: <1481022817.2725.1@smtp.rezel.net>
-References: <1480977425-15015-1-git-send-email-pablo@netfilter.org>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [bug report] netfilter: nft_payload: layer 4 checksum adjustment for
+ pseudoheader fields
+Date: Tue, 6 Dec 2016 14:57:34 +0300
+Message-ID: <20161206115734.GA30548@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from inara.rezel.net ([212.129.30.46]:49854 "EHLO inara.rezel.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752214AbcLFLbZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Dec 2016 06:31:25 -0500
-In-Reply-To: <1480977425-15015-1-git-send-email-pablo@netfilter.org>
+Received: from userp1040.oracle.com ([156.151.31.81]:31014 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751225AbcLFMGC (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 6 Dec 2016 07:06:02 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On lun., d=C3=A9c. 5, 2016 at 11:37 , Pablo Neira Ayuso=20
-<pablo@netfilter.org> wrote:
-> You can use this new command to remove all existing elements in a set:
->=20
->  # nft flush set filter xyz
->=20
-> After this command, the set 'xyz' in table 'filter' becomes empty.
->=20
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  include/netlink.h | 2 ++
->  src/evaluate.c    | 3 +++
->  src/netlink.c     | 9 ++++++++-
->  src/rule.c        | 3 +++
->  4 files changed, 16 insertions(+), 1 deletion(-)
->=20
-> diff --git a/include/netlink.h b/include/netlink.h
-> index 28c11f603ed2..363b5251968f 100644
-> --- a/include/netlink.h
-> +++ b/include/netlink.h
-> @@ -165,6 +165,8 @@ extern int netlink_delete_setelems(struct=20
-> netlink_ctx *ctx, const struct handle
->  				   const struct expr *expr);
->  extern int netlink_get_setelems(struct netlink_ctx *ctx, const=20
-> struct handle *h,
->  				const struct location *loc, struct set *set);
-> +extern int netlink_flush_setelems(struct netlink_ctx *ctx, const=20
-> struct handle *h,
-> +				  const struct location *loc);
->=20
->  extern void netlink_dump_table(const struct nftnl_table *nlt);
->  extern void netlink_dump_chain(const struct nftnl_chain *nlc);
-> diff --git a/src/evaluate.c b/src/evaluate.c
-> index e11a455a5f53..8a3da54e5b2d 100644
-> --- a/src/evaluate.c
-> +++ b/src/evaluate.c
-> @@ -2857,9 +2857,11 @@ static int cmd_evaluate_list(struct eval_ctx=20
-> *ctx, struct cmd *cmd)
->  static int cmd_evaluate_flush(struct eval_ctx *ctx, struct cmd *cmd)
->  {
->  	int ret;
-> +
->  	ret =3D cache_update(cmd->op, ctx->msgs);
->  	if (ret < 0)
->  		return ret;
-> +
->  	switch (cmd->obj) {
->  	case CMD_OBJ_RULESET:
->  		cache_flush();
-> @@ -2870,6 +2872,7 @@ static int cmd_evaluate_flush(struct eval_ctx=20
-> *ctx, struct cmd *cmd)
->  		 */
->  	case CMD_OBJ_CHAIN:
->  		/* Chains don't hold sets */
-> +	case CMD_OBJ_SET:
->  		break;
+Hello Pablo Neira Ayuso,
 
-I think you need to empty the cache for said set here, otherwise this=20
-will lead to the same errors we had earlier with flush ruleset not=20
-emptying the set cache.
+The patch 556c291b3a1b: "netfilter: nft_payload: layer 4 checksum
+adjustment for pseudoheader fields" from Nov 24, 2016, leads to the
+following static checker warning:
 
-Example test which fails:
-Running
-```
-table t{
-  set s { type ipv4_addr; flags interval
-    elements=3D{127.0.0.1/8}
-  }
-}
-```
-then:
-```
-flush set t s
-add element t s {
-  127.0.0.1/8,
-}
-```
-errors out with:
-Error: interval overlaps with an existing one
-  127.0.0.1/8,
-  ^^^^^^^^^^^
+	net/netfilter/nft_payload.c:301 nft_payload_set_eval()
+	error: uninitialized symbol 'fsum'.
 
-[...]
+net/netfilter/nft_payload.c
+   253  static void nft_payload_set_eval(const struct nft_expr *expr,
+   254                                   struct nft_regs *regs,
+   255                                   const struct nft_pktinfo *pkt)
+   256  {
+   257          const struct nft_payload_set *priv = nft_expr_priv(expr);
+   258          struct sk_buff *skb = pkt->skb;
+   259          const u32 *src = &regs->data[priv->sreg];
+   260          int offset, csum_offset;
+   261          __wsum fsum, tsum;
+   262          __sum16 sum;
+   263  
+   264          switch (priv->base) {
+   265          case NFT_PAYLOAD_LL_HEADER:
+   266                  if (!skb_mac_header_was_set(skb))
+   267                          goto err;
+   268                  offset = skb_mac_header(skb) - skb->data;
+   269                  break;
+   270          case NFT_PAYLOAD_NETWORK_HEADER:
+   271                  offset = skb_network_offset(skb);
+   272                  break;
+   273          case NFT_PAYLOAD_TRANSPORT_HEADER:
+   274                  if (!pkt->tprot_set)
+   275                          goto err;
+   276                  offset = pkt->xt.thoff;
+   277                  break;
+   278          default:
+   279                  BUG();
+   280          }
+   281  
+   282          csum_offset = offset + priv->csum_offset;
+   283          offset += priv->offset;
+   284  
+   285          if (priv->csum_type == NFT_PAYLOAD_CSUM_INET &&
+   286              (priv->base != NFT_PAYLOAD_TRANSPORT_HEADER ||
+   287               skb->ip_summed != CHECKSUM_PARTIAL)) {
+   288                  if (skb_copy_bits(skb, csum_offset, &sum, sizeof(sum)) < 0)
+   289                          goto err;
+   290  
+   291                  fsum = skb_checksum(skb, offset, priv->len, 0);
 
-Maybe a question for another patch but: if there is support for=20
-emptying specific sets, maybe flushing a table should empty sets in the=20
-table as well as the chains ? (currently it only empties the chains and=20
-leaves the sets intact, which is kind of unintuitive)
+fsum is only set inside this if statement.
 
+   292                  tsum = csum_partial(src, priv->len, 0);
+   293                  nft_csum_replace(&sum, fsum, tsum);
+   294  
+   295                  if (!skb_make_writable(skb, csum_offset + sizeof(sum)) ||
+   296                      skb_store_bits(skb, csum_offset, &sum, sizeof(sum)) < 0)
+   297                          goto err;
+   298          }
+   299  
+   300          if (priv->csum_flags &&
+   301              nft_payload_l4csum_update(pkt, skb, fsum, tsum) < 0)
 
-=
+but we use it here.  I don't know for sure this is a bug...
 
+   302                  goto err;
+   303  
+   304          if (!skb_make_writable(skb, max(offset + priv->len, 0)) ||
+   305              skb_store_bits(skb, offset, src, priv->len) < 0)
+   306                  goto err;
+   307  
+   308          return;
+   309  err:
+   310          regs->verdict.code = NFT_BREAK;
+   311  }
+
+regards,
+dan carpenter
