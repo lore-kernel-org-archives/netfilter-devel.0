@@ -1,220 +1,80 @@
 From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: [PATCH nf-next v2] netfilter: xt_bpf: support ebpf
-Date: Tue,  6 Dec 2016 16:25:02 -0500
-Message-ID: <1481059502-47824-1-git-send-email-willemdebruijn.kernel@gmail.com>
-Cc: fw@strlen.de, eric.dumazet@gmail.com, pablo@netfilter.org,
-        netdev@vger.kernel.org, daniel@iogearbox.net,
-        Willem de Bruijn <willemb@google.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: Re: [PATCH nf-next] netfilter: xt_bpf: support ebpf
+Date: Tue, 6 Dec 2016 17:44:05 -0500
+Message-ID: <CAF=yD-L_yCTpaqM2dGYzMr38oHQBYJ+A62SW0LEfwG2JC3eOtA@mail.gmail.com>
+References: <1480969684-74414-1-git-send-email-willemdebruijn.kernel@gmail.com>
+ <1480972006.18162.559.camel@edumazet-glaptop3.roam.corp.google.com>
+ <20161205213001.GA16819@breakpoint.cc> <20161205223415.GA14689@salvia>
+ <20161205230055.GA15379@salvia> <CAF=yD-Jk4W+zU=tdixWe3LPGcFp-sANxXLLoQTRvrkN_3=a9uw@mail.gmail.com>
+ <20161205232214.GA15825@salvia> <CA+FuTSfHryyqBhRyfQCChG2VPwpj1KYBk2Z7DZ-dcYL-FbbSeA@mail.gmail.com>
+ <CAF=yD-J-vcQQ_-48xG8qhMuYvLvucCr7SG99rsfJA5-okvhHzA@mail.gmail.com> <20161206002027.GD16819@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: Willem de Bruijn <willemb@google.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        Network Development <netdev@vger.kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Eric Dumazet <eric.dumazet@gmail.com>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ua0-f194.google.com ([209.85.217.194]:33779 "EHLO
+        mail-ua0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752186AbcLFWor (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 6 Dec 2016 17:44:47 -0500
+In-Reply-To: <20161206002027.GD16819@breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Willem de Bruijn <willemb@google.com>
+On Mon, Dec 5, 2016 at 7:20 PM, Florian Westphal <fw@strlen.de> wrote:
+> Willem de Bruijn <willemdebruijn.kernel@gmail.com> wrote:
+>> While we're discussing the patch, another question, about revisions: I
+>> tested both modified and original iptables binaries on both standard
+>> and modified kernels. It all works as expected, except for the case
+>> where both binaries are used on a single kernel. For instance:
+>>
+>>   iptables -A OUTPUT -m bpf --bytecode "`./nfbpf_compile RAW 'udp port
+>> 8000'`" -j LOG
+>>   ./iptables.new -L
+>>
+>> Here the new binary will interpret the object as xt_bpf_match_v1, but
+>> iptables has inserted xt_bpf_match. The same problem happens the other
+>> way around. A new binary can be made robust to detect old structs, but
+>> not the other way around. Specific to bpf, the existing xt_bpf code
+>> has an unfortunate bug that it always prints at least one line of
+>> code, even if ->bpf_program_num_elems == 0.
+>>
+>> I notice that other extensions also do not necessarily only extend
+>> struct vN in vN+1. Is the above a known issue?
+>
+> Yes, I guess noone ever bothered to fix this.
+>
+> The kernel blob should contain the match/target revision number,
+> so userspace can in fact see that 'this is bpf v42', but iirc
+> the netfilter userspace just loads the highest userspace revision
+> supported by the kernel (which is then different for the 2 iptables
+> binaries).
 
-Add support for attaching an eBPF object by file descriptor.
+We can fall back on not parsing contents on mismatch:
 
-The iptables binary can be called with a path to an elf object or a
-pinned bpf object. Also pass the mode and path to the kernel to be
-able to return it later for iptables dump and save.
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index 540d111..ada7c94 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -504,7 +504,8 @@ print_match(const struct xt_entry_match *m,
+                xtables_find_match(m->u.user.name, XTF_TRY_LOAD, NULL);
 
-Signed-off-by: Willem de Bruijn <willemb@google.com>
+        if (match) {
+-               if (match->print)
++               if (match->print &&
++                   m->u.user.revision == match->revision)
+                        match->print(ip, m, numeric);
+                else
+                        printf("%s ", match->name);
 
----
+> But we *could* display message like 'kernel uses revision 2 but I can
+> only find 0 and 1' or fall back to the lower supported revision without
+> guess-the-struct-by-size games.
 
-Changes
-  v1 -> v2
-    - define XT_BPF_PATH_MAX (== 512: does not grow structure size)
----
- include/uapi/linux/netfilter/xt_bpf.h | 21 ++++++++
- net/netfilter/xt_bpf.c                | 96 +++++++++++++++++++++++++++++------
- 2 files changed, 101 insertions(+), 16 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter/xt_bpf.h b/include/uapi/linux/netfilter/xt_bpf.h
-index 1fad2c2..b97725a 100644
---- a/include/uapi/linux/netfilter/xt_bpf.h
-+++ b/include/uapi/linux/netfilter/xt_bpf.h
-@@ -2,9 +2,11 @@
- #define _XT_BPF_H
- 
- #include <linux/filter.h>
-+#include <linux/limits.h>
- #include <linux/types.h>
- 
- #define XT_BPF_MAX_NUM_INSTR	64
-+#define XT_BPF_PATH_MAX		(XT_BPF_MAX_NUM_INSTR * sizeof(struct sock_filter))
- 
- struct bpf_prog;
- 
-@@ -16,4 +18,23 @@ struct xt_bpf_info {
- 	struct bpf_prog *filter __attribute__((aligned(8)));
- };
- 
-+enum xt_bpf_modes {
-+	XT_BPF_MODE_BYTECODE,
-+	XT_BPF_MODE_FD_PINNED,
-+	XT_BPF_MODE_FD_ELF,
-+};
-+
-+struct xt_bpf_info_v1 {
-+	__u16 mode;
-+	__u16 bpf_program_num_elem;
-+	__s32 fd;
-+	union {
-+		struct sock_filter bpf_program[XT_BPF_MAX_NUM_INSTR];
-+		char path[XT_BPF_PATH_MAX];
-+	};
-+
-+	/* only used in the kernel */
-+	struct bpf_prog *filter __attribute__((aligned(8)));
-+};
-+
- #endif /*_XT_BPF_H */
-diff --git a/net/netfilter/xt_bpf.c b/net/netfilter/xt_bpf.c
-index dffee9d47..2dedaa2 100644
---- a/net/netfilter/xt_bpf.c
-+++ b/net/netfilter/xt_bpf.c
-@@ -10,6 +10,7 @@
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/filter.h>
-+#include <linux/bpf.h>
- 
- #include <linux/netfilter/xt_bpf.h>
- #include <linux/netfilter/x_tables.h>
-@@ -20,15 +21,15 @@ MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_bpf");
- MODULE_ALIAS("ip6t_bpf");
- 
--static int bpf_mt_check(const struct xt_mtchk_param *par)
-+static int __bpf_mt_check_bytecode(struct sock_filter *insns, __u16 len,
-+				   struct bpf_prog **ret)
- {
--	struct xt_bpf_info *info = par->matchinfo;
- 	struct sock_fprog_kern program;
- 
--	program.len = info->bpf_program_num_elem;
--	program.filter = info->bpf_program;
-+	program.len = len;
-+	program.filter = insns;
- 
--	if (bpf_prog_create(&info->filter, &program)) {
-+	if (bpf_prog_create(ret, &program)) {
- 		pr_info("bpf: check failed: parse error\n");
- 		return -EINVAL;
- 	}
-@@ -36,6 +37,42 @@ static int bpf_mt_check(const struct xt_mtchk_param *par)
- 	return 0;
- }
- 
-+static int __bpf_mt_check_fd(int fd, struct bpf_prog **ret)
-+{
-+	struct bpf_prog *prog;
-+
-+	prog = bpf_prog_get_type(fd, BPF_PROG_TYPE_SOCKET_FILTER);
-+	if (IS_ERR(prog))
-+		return PTR_ERR(prog);
-+
-+	*ret = prog;
-+	return 0;
-+}
-+
-+static int bpf_mt_check(const struct xt_mtchk_param *par)
-+{
-+	struct xt_bpf_info *info = par->matchinfo;
-+
-+	return __bpf_mt_check_bytecode(info->bpf_program,
-+				       info->bpf_program_num_elem,
-+				       &info->filter);
-+}
-+
-+static int bpf_mt_check_v1(const struct xt_mtchk_param *par)
-+{
-+	struct xt_bpf_info_v1 *info = par->matchinfo;
-+
-+	if (info->mode == XT_BPF_MODE_BYTECODE)
-+		return __bpf_mt_check_bytecode(info->bpf_program,
-+					       info->bpf_program_num_elem,
-+					       &info->filter);
-+	else if (info->mode == XT_BPF_MODE_FD_PINNED ||
-+		 info->mode == XT_BPF_MODE_FD_ELF)
-+		return __bpf_mt_check_fd(info->fd, &info->filter);
-+	else
-+		return -EINVAL;
-+}
-+
- static bool bpf_mt(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct xt_bpf_info *info = par->matchinfo;
-@@ -43,31 +80,58 @@ static bool bpf_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	return BPF_PROG_RUN(info->filter, skb);
- }
- 
-+static bool bpf_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	const struct xt_bpf_info_v1 *info = par->matchinfo;
-+
-+	return !!bpf_prog_run_save_cb(info->filter, (struct sk_buff *) skb);
-+}
-+
- static void bpf_mt_destroy(const struct xt_mtdtor_param *par)
- {
- 	const struct xt_bpf_info *info = par->matchinfo;
-+
-+	bpf_prog_destroy(info->filter);
-+}
-+
-+static void bpf_mt_destroy_v1(const struct xt_mtdtor_param *par)
-+{
-+	const struct xt_bpf_info_v1 *info = par->matchinfo;
-+
- 	bpf_prog_destroy(info->filter);
- }
- 
--static struct xt_match bpf_mt_reg __read_mostly = {
--	.name		= "bpf",
--	.revision	= 0,
--	.family		= NFPROTO_UNSPEC,
--	.checkentry	= bpf_mt_check,
--	.match		= bpf_mt,
--	.destroy	= bpf_mt_destroy,
--	.matchsize	= sizeof(struct xt_bpf_info),
--	.me		= THIS_MODULE,
-+static struct xt_match bpf_mt_reg[] __read_mostly = {
-+	{
-+		.name		= "bpf",
-+		.revision	= 0,
-+		.family		= NFPROTO_UNSPEC,
-+		.checkentry	= bpf_mt_check,
-+		.match		= bpf_mt,
-+		.destroy	= bpf_mt_destroy,
-+		.matchsize	= sizeof(struct xt_bpf_info),
-+		.me		= THIS_MODULE,
-+	},
-+	{
-+		.name		= "bpf",
-+		.revision	= 1,
-+		.family		= NFPROTO_UNSPEC,
-+		.checkentry	= bpf_mt_check_v1,
-+		.match		= bpf_mt_v1,
-+		.destroy	= bpf_mt_destroy_v1,
-+		.matchsize	= sizeof(struct xt_bpf_info_v1),
-+		.me		= THIS_MODULE,
-+	},
- };
- 
- static int __init bpf_mt_init(void)
- {
--	return xt_register_match(&bpf_mt_reg);
-+	return xt_register_matches(bpf_mt_reg, ARRAY_SIZE(bpf_mt_reg));
- }
- 
- static void __exit bpf_mt_exit(void)
- {
--	xt_unregister_match(&bpf_mt_reg);
-+	xt_unregister_matches(bpf_mt_reg, ARRAY_SIZE(bpf_mt_reg));
- }
- 
- module_init(bpf_mt_init);
--- 
-2.8.0.rc3.226.g39d4020
+That's a good idea. A special case printf() with a notice, then.
