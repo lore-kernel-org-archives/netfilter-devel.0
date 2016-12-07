@@ -1,80 +1,71 @@
-From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: Re: [PATCH nf-next] netfilter: xt_bpf: support ebpf
-Date: Tue, 6 Dec 2016 17:44:05 -0500
-Message-ID: <CAF=yD-L_yCTpaqM2dGYzMr38oHQBYJ+A62SW0LEfwG2JC3eOtA@mail.gmail.com>
-References: <1480969684-74414-1-git-send-email-willemdebruijn.kernel@gmail.com>
- <1480972006.18162.559.camel@edumazet-glaptop3.roam.corp.google.com>
- <20161205213001.GA16819@breakpoint.cc> <20161205223415.GA14689@salvia>
- <20161205230055.GA15379@salvia> <CAF=yD-Jk4W+zU=tdixWe3LPGcFp-sANxXLLoQTRvrkN_3=a9uw@mail.gmail.com>
- <20161205232214.GA15825@salvia> <CA+FuTSfHryyqBhRyfQCChG2VPwpj1KYBk2Z7DZ-dcYL-FbbSeA@mail.gmail.com>
- <CAF=yD-J-vcQQ_-48xG8qhMuYvLvucCr7SG99rsfJA5-okvhHzA@mail.gmail.com> <20161206002027.GD16819@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Willem de Bruijn <willemb@google.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Eric Dumazet <eric.dumazet@gmail.com>
-To: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] netfilter: nft_counter: use cmpxchg64 instead of xchg
+Date: Wed,  7 Dec 2016 01:04:01 +0100
+Message-ID: <1481069041-11633-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ua0-f194.google.com ([209.85.217.194]:33779 "EHLO
-        mail-ua0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752186AbcLFWor (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Dec 2016 17:44:47 -0500
-In-Reply-To: <20161206002027.GD16819@breakpoint.cc>
+Received: from mail.us.es ([193.147.175.20]:39106 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751075AbcLGAMo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 6 Dec 2016 19:12:44 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 596D8E5A42
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Dec 2016 01:04:08 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4B879DA729
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Dec 2016 01:04:08 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 244F5DA729
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Dec 2016 01:04:06 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Dec 5, 2016 at 7:20 PM, Florian Westphal <fw@strlen.de> wrote:
-> Willem de Bruijn <willemdebruijn.kernel@gmail.com> wrote:
->> While we're discussing the patch, another question, about revisions: I
->> tested both modified and original iptables binaries on both standard
->> and modified kernels. It all works as expected, except for the case
->> where both binaries are used on a single kernel. For instance:
->>
->>   iptables -A OUTPUT -m bpf --bytecode "`./nfbpf_compile RAW 'udp port
->> 8000'`" -j LOG
->>   ./iptables.new -L
->>
->> Here the new binary will interpret the object as xt_bpf_match_v1, but
->> iptables has inserted xt_bpf_match. The same problem happens the other
->> way around. A new binary can be made robust to detect old structs, but
->> not the other way around. Specific to bpf, the existing xt_bpf code
->> has an unfortunate bug that it always prints at least one line of
->> code, even if ->bpf_program_num_elems == 0.
->>
->> I notice that other extensions also do not necessarily only extend
->> struct vN in vN+1. Is the above a known issue?
->
-> Yes, I guess noone ever bothered to fix this.
->
-> The kernel blob should contain the match/target revision number,
-> so userspace can in fact see that 'this is bpf v42', but iirc
-> the netfilter userspace just loads the highest userspace revision
-> supported by the kernel (which is then different for the 2 iptables
-> binaries).
+xchg cannot be used on 32bit, use cmpxchg64 to reset counters.
 
-We can fall back on not parsing contents on mismatch:
+  call to '__xchg_wrong_size' declared with attribute error: Bad argument size for xchg
 
-diff --git a/iptables/iptables.c b/iptables/iptables.c
-index 540d111..ada7c94 100644
---- a/iptables/iptables.c
-+++ b/iptables/iptables.c
-@@ -504,7 +504,8 @@ print_match(const struct xt_entry_match *m,
-                xtables_find_match(m->u.user.name, XTF_TRY_LOAD, NULL);
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+I'm going to fold this in the local rebase that I have prepared.
 
-        if (match) {
--               if (match->print)
-+               if (match->print &&
-+                   m->u.user.revision == match->revision)
-                        match->print(ip, m, numeric);
-                else
-                        printf("%s ", match->name);
+ net/netfilter/nft_counter.c | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-> But we *could* display message like 'kernel uses revision 2 but I can
-> only find 0 and 1' or fall back to the lower supported revision without
-> guess-the-struct-by-size games.
+diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
+index 3d2ff23be8d6..f6a02c5071c2 100644
+--- a/net/netfilter/nft_counter.c
++++ b/net/netfilter/nft_counter.c
+@@ -122,6 +122,18 @@ static void nft_counter_fetch(struct nft_counter_percpu __percpu *counter,
+ 	}
+ }
+ 
++static u64 __nft_counter_reset(u64 *counter)
++{
++	u64 ret, old;
++
++	do {
++		old = *counter;
++		ret = cmpxchg64(counter, old, 0);
++	} while (ret != old);
++
++	return ret;
++}
++
+ static void nft_counter_reset(struct nft_counter_percpu __percpu *counter,
+ 			      struct nft_counter *total)
+ {
+@@ -137,8 +149,8 @@ static void nft_counter_reset(struct nft_counter_percpu __percpu *counter,
+ 		cpu_stats = per_cpu_ptr(counter, cpu);
+ 		do {
+ 			seq	= u64_stats_fetch_begin_irq(&cpu_stats->syncp);
+-			packets += xchg(&cpu_stats->counter.packets, 0);
+-			bytes	+= xchg(&cpu_stats->counter.bytes, 0);
++			packets	+= __nft_counter_reset(&cpu_stats->counter.packets);
++			bytes	+= __nft_counter_reset(&cpu_stats->counter.bytes);
+ 		} while (u64_stats_fetch_retry_irq(&cpu_stats->syncp, seq));
+ 
+ 		total->packets += packets;
+-- 
+2.1.4
 
-That's a good idea. A special case printf() with a notice, then.
