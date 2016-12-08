@@ -1,442 +1,155 @@
 From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: [PATCH] extensions: libxt_bpf: support ebpf pinned objects
-Date: Thu,  8 Dec 2016 17:09:38 -0500
-Message-ID: <1481234978-40351-1-git-send-email-willemdebruijn.kernel@gmail.com>
+Subject: [PATCH next] iptables: on revision mismatch, do not call print/save
+Date: Thu,  8 Dec 2016 17:16:41 -0500
+Message-ID: <1481235401-46043-1-git-send-email-willemdebruijn.kernel@gmail.com>
 Cc: pablo@netfilter.org, Willem de Bruijn <willemb@google.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:36191 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932094AbcLHWJt (ORCPT
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:35868 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750906AbcLHWQp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Dec 2016 17:09:49 -0500
-Received: by mail-qt0-f195.google.com with SMTP id n34so50475278qtb.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 08 Dec 2016 14:09:48 -0800 (PST)
+        Thu, 8 Dec 2016 17:16:45 -0500
+Received: by mail-qt0-f196.google.com with SMTP id n34so50492808qtb.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 08 Dec 2016 14:16:44 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Willem de Bruijn <willemb@google.com>
 
-Exercise the new kernel feature introduced in commit 2c16d6033264
-("netfilter: xt_bpf: support ebpf") to load pinned eBPF programs.
-
-The new interface allows instantiating a bpf match using
-
-  -m bpf --object-pinned ${PATH}
-
-where ${PATH} points to a node in a bpf virtual filesystem. See
-also the revised man page.
+Between revisions, the layout of xtables data may change completely.
+Do not interpret the data in a revision M with a module of revision N.
 
 Signed-off-by: Willem de Bruijn <willemb@google.com>
 ---
- configure.ac                     |   2 +-
- extensions/libxt_bpf.c           | 220 +++++++++++++++++++++++++++++++--------
- extensions/libxt_bpf.man         |  19 +++-
- include/linux/netfilter/xt_bpf.h |  25 ++++-
- 4 files changed, 216 insertions(+), 50 deletions(-)
+ iptables/ip6tables.c | 18 ++++++++++++++----
+ iptables/iptables.c  | 18 ++++++++++++++----
+ 2 files changed, 28 insertions(+), 8 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index d165d52..33b1b88 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -73,7 +73,7 @@ LDFLAGS="$saved_LDFLAGS";
+diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
+index c8d34e2..0d09181 100644
+--- a/iptables/ip6tables.c
++++ b/iptables/ip6tables.c
+@@ -76,6 +76,8 @@ static const char cmdflags[] = { 'I', 'D', 'D', 'R', 'A', 'L', 'F', 'Z',
+ static const char optflags[]
+ = { 'n', 's', 'd', 'p', 'j', 'v', 'x', 'i', 'o', '0', 'c'};
  
- blacklist_modules="";
- 
--AC_CHECK_HEADERS([linux/dccp.h linux/ip_vs.h linux/magic.h linux/proc_fs.h])
-+AC_CHECK_HEADERS([linux/dccp.h linux/ip_vs.h linux/magic.h linux/proc_fs.h linux/bpf.h])
- if test "$ac_cv_header_linux_dccp_h" != "yes"; then
- 	blacklist_modules="$blacklist_modules dccp";
- fi;
-diff --git a/extensions/libxt_bpf.c b/extensions/libxt_bpf.c
-index dca97d7..92c445e 100644
---- a/extensions/libxt_bpf.c
-+++ b/extensions/libxt_bpf.c
-@@ -16,11 +16,17 @@
- #include <sys/types.h>
- #include <unistd.h>
- #include <xtables.h>
-+#include "config.h"
++static const char unsupported_rev[] = " [unsupported revision]";
 +
-+#ifdef HAVE_LINUX_BPF_H
-+#include <linux/bpf.h>
-+#endif
+ static struct option original_opts[] = {
+ 	{.name = "append",        .has_arg = 1, .val = 'A'},
+ 	{.name = "delete",        .has_arg = 1, .val = 'D'},
+@@ -487,8 +489,10 @@ print_match(const struct xt_entry_match *m,
+ 		xtables_find_match(m->u.user.name, XTF_TRY_LOAD, NULL);
  
- #define BCODE_FILE_MAX_LEN_B	1024
+ 	if (match) {
+-		if (match->print)
++		if (match->print && m->u.user.revision == match->revision)
+ 			match->print(ip, m, numeric);
++		else if (match->print)
++			printf("%s%s ", match->name, unsupported_rev);
+ 		else
+ 			printf("%s ", match->name);
+ 	} else {
+@@ -614,9 +618,11 @@ print_firewall(const struct ip6t_entry *fw,
+ 	IP6T_MATCH_ITERATE(fw, print_match, &fw->ipv6, format & FMT_NUMERIC);
  
- enum {
- 	O_BCODE_STDIN = 0,
-+	O_OBJ_PINNED = 1,
- };
+ 	if (target) {
+-		if (target->print)
++		if (target->print && t->u.user.revision == target->revision)
+ 			/* Print the target information. */
+ 			target->print(&fw->ipv6, t, format & FMT_NUMERIC);
++		else if (target->print)
++			printf(" %s%s", target->name, unsupported_rev);
+ 	} else if (t->u.target_size != sizeof(*t))
+ 		printf("[%u bytes of unknown target data] ",
+ 		       (unsigned int)(t->u.target_size - sizeof(*t)));
+@@ -1004,8 +1010,10 @@ static int print_match_save(const struct xt_entry_match *e,
+ 			match->alias ? match->alias(e) : e->u.user.name);
  
- static void bpf_help(void)
-@@ -28,7 +34,16 @@ static void bpf_help(void)
- 	printf(
- "bpf match options:\n"
- "--bytecode <program>	: a bpf program as generated by\n"
--"  `nfbpf_compiler RAW <filter>`\n");
-+"                         $(nfbpf_compile RAW '<filter>')\n");
-+}
-+
-+static void bpf_help_v1(void)
-+{
-+	printf(
-+"bpf match options:\n"
-+"--bytecode <program>	        : a bpf program as generated by\n"
-+"                                 $(nfbpf_compile RAW '<filter>')\n"
-+"--object-pinned <bpf object>	: a path to a pinned BPF object in bpf fs\n");
- }
+ 		/* some matches don't provide a save function */
+-		if (match->save)
++		if (match->save && e->u.user.revision == match->revision)
+ 			match->save(ip, e);
++		else if (match->save)
++			printf(unsupported_rev);
+ 	} else {
+ 		if (e->u.match_size) {
+ 			fprintf(stderr,
+@@ -1104,8 +1112,10 @@ void print_rule6(const struct ip6t_entry *e,
+ 		}
  
- static const struct xt_option_entry bpf_opts[] = {
-@@ -36,23 +51,47 @@ static const struct xt_option_entry bpf_opts[] = {
- 	XTOPT_TABLEEND,
- };
+ 		printf(" -j %s", target->alias ? target->alias(t) : target_name);
+-		if (target->save)
++		if (target->save && t->u.user.revision == target->revision)
+ 			target->save(&e->ipv6, t);
++		else if (target->save)
++			printf(unsupported_rev);
+ 		else {
+ 			/* If the target size is greater than xt_entry_target
+ 			 * there is something to be saved, we just don't know
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index 79fa37b..1bdde27 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -73,6 +73,8 @@ static const char cmdflags[] = { 'I', 'D', 'D', 'R', 'A', 'L', 'F', 'Z',
+ static const char optflags[]
+ = { 'n', 's', 'd', 'p', 'j', 'v', 'x', 'i', 'o', '0', 'c', 'f'};
  
--static void bpf_parse_string(struct xt_option_call *cb, const char *bpf_program,
--			     const char separator)
-+static const struct xt_option_entry bpf_opts_v1[] = {
-+	{.name = "bytecode", .id = O_BCODE_STDIN, .type = XTTYPE_STRING},
-+	{.name = "object-pinned" , .id = O_OBJ_PINNED, .type = XTTYPE_STRING,
-+	 .flags = XTOPT_PUT, XTOPT_POINTER(struct xt_bpf_info_v1, path)},
-+	XTOPT_TABLEEND,
-+};
++static const char unsupported_rev[] = " [unsupported revision]";
 +
-+static int bpf_obj_get(const char *filepath)
- {
--	struct xt_bpf_info *bi = (void *) cb->data;
-+#if defined HAVE_LINUX_BPF_H && defined __NR_bpf
-+	union bpf_attr attr;
-+
-+	memset(&attr, 0, sizeof(attr));
-+	attr.pathname = (__u64) filepath;
-+
-+	return syscall(__NR_bpf, BPF_OBJ_GET, &attr, sizeof(attr));
-+#else
-+	xtables_error(OTHER_PROBLEM,
-+		      "No bpf header, kernel headers too old?\n");
-+	return -EINVAL;
-+#endif
-+}
-+
-+static void bpf_parse_string(struct sock_filter *pc, __u16 *lenp, __u16 len_max,
-+			     const char *bpf_program)
-+{
-+	const char separator = ',';
- 	const char *token;
- 	char sp;
- 	int i;
-+	__u16 len;
+ static struct option original_opts[] = {
+ 	{.name = "append",        .has_arg = 1, .val = 'A'},
+ 	{.name = "delete",        .has_arg = 1, .val = 'D'},
+@@ -472,8 +474,10 @@ print_match(const struct xt_entry_match *m,
+ 		xtables_find_match(m->u.user.name, XTF_TRY_LOAD, NULL);
  
- 	/* parse head: length. */
--	if (sscanf(bpf_program, "%hu%c", &bi->bpf_program_num_elem, &sp) != 2 ||
-+	if (sscanf(bpf_program, "%hu%c", &len, &sp) != 2 ||
- 		   sp != separator)
- 		xtables_error(PARAMETER_PROBLEM,
- 			      "bpf: error parsing program length");
--	if (!bi->bpf_program_num_elem)
-+	if (!len)
- 		xtables_error(PARAMETER_PROBLEM,
- 			      "bpf: illegal zero length program");
--	if (bi->bpf_program_num_elem > XT_BPF_MAX_NUM_INSTR)
-+	if (len > len_max)
- 		xtables_error(PARAMETER_PROBLEM,
- 			      "bpf: number of instructions exceeds maximum");
+ 	if (match) {
+-		if (match->print)
++		if (match->print && m->u.user.revision == match->revision)
+ 			match->print(ip, m, numeric);
++		else if (match->print)
++			printf("%s%s ", match->name, unsupported_rev);
+ 		else
+ 			printf("%s ", match->name);
+ 	} else {
+@@ -599,9 +603,11 @@ print_firewall(const struct ipt_entry *fw,
+ 	IPT_MATCH_ITERATE(fw, print_match, &fw->ip, format & FMT_NUMERIC);
  
-@@ -60,62 +99,108 @@ static void bpf_parse_string(struct xt_option_call *cb, const char *bpf_program,
- 	i = 0;
- 	token = bpf_program;
- 	while ((token = strchr(token, separator)) && (++token)[0]) {
--		if (i >= bi->bpf_program_num_elem)
-+		if (i >= len)
- 			xtables_error(PARAMETER_PROBLEM,
- 				      "bpf: real program length exceeds"
- 				      " the encoded length parameter");
- 		if (sscanf(token, "%hu %hhu %hhu %u,",
--			   &bi->bpf_program[i].code,
--			   &bi->bpf_program[i].jt,
--			   &bi->bpf_program[i].jf,
--			   &bi->bpf_program[i].k) != 4)
-+			   &pc->code, &pc->jt, &pc->jf, &pc->k) != 4)
- 			xtables_error(PARAMETER_PROBLEM,
- 				      "bpf: error at instr %d", i);
- 		i++;
-+		pc++;
- 	}
+ 	if (target) {
+-		if (target->print)
++		if (target->print && t->u.user.revision == target->revision)
+ 			/* Print the target information. */
+ 			target->print(&fw->ip, t, format & FMT_NUMERIC);
++		else if (target->print)
++			printf(" %s%s", target->name, unsupported_rev);
+ 	} else if (t->u.target_size != sizeof(*t))
+ 		printf("[%u bytes of unknown target data] ",
+ 		       (unsigned int)(t->u.target_size - sizeof(*t)));
+@@ -995,8 +1001,10 @@ static int print_match_save(const struct xt_entry_match *e,
+ 			match->alias ? match->alias(e) : e->u.user.name);
  
--	if (i != bi->bpf_program_num_elem)
-+	if (i != len)
- 		xtables_error(PARAMETER_PROBLEM,
- 			      "bpf: parsed program length is less than the"
- 			      " encoded length parameter");
-+
-+	*lenp = len;
-+}
-+
-+static void bpf_parse_obj_pinned(struct xt_bpf_info_v1 *bi,
-+				 const char *filepath)
-+{
-+	bi->fd = bpf_obj_get(filepath);
-+	if (bi->fd < 0)
-+		xtables_error(PARAMETER_PROBLEM,
-+			      "bpf: failed to get bpf object");
-+
-+	/* Cannot close bi->fd explicitly. Rely on exit */
-+	if (fcntl(bi->fd, F_SETFD, FD_CLOEXEC) == -1) {
-+		xtables_error(OTHER_PROBLEM,
-+			      "Could not set close on exec: %s\n",
-+			      strerror(errno));
-+	}
- }
+ 		/* some matches don't provide a save function */
+-		if (match->save)
++		if (match->save && e->u.user.revision == match->revision)
+ 			match->save(ip, e);
++		else if (match->save)
++			printf(unsupported_rev);
+ 	} else {
+ 		if (e->u.match_size) {
+ 			fprintf(stderr,
+@@ -1095,8 +1103,10 @@ void print_rule4(const struct ipt_entry *e,
+ 		}
  
- static void bpf_parse(struct xt_option_call *cb)
- {
-+	struct xt_bpf_info *bi = (void *) cb->data;
-+
- 	xtables_option_parse(cb);
- 	switch (cb->entry->id) {
- 	case O_BCODE_STDIN:
--		bpf_parse_string(cb, cb->arg, ',');
-+		bpf_parse_string(bi->bpf_program, &bi->bpf_program_num_elem,
-+				 ARRAY_SIZE(bi->bpf_program), cb->arg);
- 		break;
- 	default:
- 		xtables_error(PARAMETER_PROBLEM, "bpf: unknown option");
- 	}
- }
- 
--static void bpf_print_code(const void *ip, const struct xt_entry_match *match)
-+static void bpf_parse_v1(struct xt_option_call *cb)
- {
--	const struct xt_bpf_info *info = (void *) match->data;
--	int i;
-+	struct xt_bpf_info_v1 *bi = (void *) cb->data;
-+
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_BCODE_STDIN:
-+		bpf_parse_string(bi->bpf_program, &bi->bpf_program_num_elem,
-+				 ARRAY_SIZE(bi->bpf_program), cb->arg);
-+		bi->mode = XT_BPF_MODE_BYTECODE;
-+		break;
-+	case O_OBJ_PINNED:
-+		bpf_parse_obj_pinned(bi, cb->arg);
-+		bi->mode = XT_BPF_MODE_FD_PINNED;
-+		break;
-+	default:
-+		xtables_error(PARAMETER_PROBLEM, "bpf: unknown option");
-+	}
-+}
- 
--	for (i = 0; i < info->bpf_program_num_elem-1; i++)
--		printf("%hu %hhu %hhu %u,", info->bpf_program[i].code,
--					    info->bpf_program[i].jt,
--					    info->bpf_program[i].jf,
--					    info->bpf_program[i].k);
-+static void bpf_print_code(const struct sock_filter *pc, __u16 len, char tail)
-+{
-+	for (; len; len--, pc++)
-+		printf("%hu %hhu %hhu %u%c",
-+		       pc->code, pc->jt, pc->jf, pc->k,
-+		       len > 1 ? ',' : tail);
-+}
- 
--	printf("%hu %hhu %hhu %u", info->bpf_program[i].code,
--				    info->bpf_program[i].jt,
--				    info->bpf_program[i].jf,
--				    info->bpf_program[i].k);
-+static void bpf_save_code(const struct sock_filter *pc, __u16 len)
-+{
-+	printf(" --bytecode \"%hu,", len);
-+	bpf_print_code(pc, len, '\"');
- }
- 
- static void bpf_save(const void *ip, const struct xt_entry_match *match)
- {
- 	const struct xt_bpf_info *info = (void *) match->data;
- 
--	printf(" --bytecode \"%hu,", info->bpf_program_num_elem);
--	bpf_print_code(ip, match);
--	printf("\"");
-+	bpf_save_code(info->bpf_program, info->bpf_program_num_elem);
-+}
-+
-+static void bpf_save_v1(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct xt_bpf_info_v1 *info = (void *) match->data;
-+
-+	if (info->mode == XT_BPF_MODE_BYTECODE)
-+		bpf_save_code(info->bpf_program, info->bpf_program_num_elem);
-+	else if (info->mode == XT_BPF_MODE_FD_PINNED)
-+		printf(" --object-pinned %s", info->path);
-+	else
-+		xtables_error(OTHER_PROBLEM, "unknown bpf mode");
- }
- 
- static void bpf_fcheck(struct xt_fcheck_call *cb)
-@@ -125,28 +210,73 @@ static void bpf_fcheck(struct xt_fcheck_call *cb)
- 			      "bpf: missing --bytecode parameter");
- }
- 
-+static void bpf_fcheck_v1(struct xt_fcheck_call *cb)
-+{
-+	const unsigned int bit_bcode = 1 << O_BCODE_STDIN;
-+	const unsigned int bit_pinned = 1 << O_OBJ_PINNED;
-+	unsigned int flags;
-+
-+	flags = cb->xflags & (bit_bcode | bit_pinned);
-+	if (flags != bit_bcode && flags != bit_pinned)
-+		xtables_error(PARAMETER_PROBLEM,
-+			      "bpf: one of --bytecode or --pinned is required");
-+}
-+
- static void bpf_print(const void *ip, const struct xt_entry_match *match,
- 		      int numeric)
- {
-+	const struct xt_bpf_info *info = (void *) match->data;
-+
-+	printf("match bpf ");
-+	bpf_print_code(info->bpf_program, info->bpf_program_num_elem, '\0');
-+}
-+
-+static void bpf_print_v1(const void *ip, const struct xt_entry_match *match,
-+			 int numeric)
-+{
-+	const struct xt_bpf_info_v1 *info = (void *) match->data;
-+
- 	printf("match bpf ");
--	return bpf_print_code(ip, match);
--}
--
--static struct xtables_match bpf_match = {
--	.family		= NFPROTO_UNSPEC,
--	.name		= "bpf",
--	.version	= XTABLES_VERSION,
--	.size		= XT_ALIGN(sizeof(struct xt_bpf_info)),
--	.userspacesize	= XT_ALIGN(offsetof(struct xt_bpf_info, filter)),
--	.help		= bpf_help,
--	.print		= bpf_print,
--	.save		= bpf_save,
--	.x6_parse	= bpf_parse,
--	.x6_fcheck	= bpf_fcheck,
--	.x6_options	= bpf_opts,
-+	if (info->mode == XT_BPF_MODE_BYTECODE)
-+		bpf_print_code(info->bpf_program, info->bpf_program_num_elem, '\0');
-+	else if (info->mode == XT_BPF_MODE_FD_PINNED)
-+		printf("pinned %s", info->path);
-+	else
-+		printf("unknown");
-+}
-+
-+static struct xtables_match bpf_matches[] = {
-+	{
-+		.family		= NFPROTO_UNSPEC,
-+		.name		= "bpf",
-+		.version	= XTABLES_VERSION,
-+		.revision	= 0,
-+		.size		= XT_ALIGN(sizeof(struct xt_bpf_info)),
-+		.userspacesize	= XT_ALIGN(offsetof(struct xt_bpf_info, filter)),
-+		.help		= bpf_help,
-+		.print		= bpf_print,
-+		.save		= bpf_save,
-+		.x6_parse	= bpf_parse,
-+		.x6_fcheck	= bpf_fcheck,
-+		.x6_options	= bpf_opts,
-+	},
-+	{
-+		.family		= NFPROTO_UNSPEC,
-+		.name		= "bpf",
-+		.version	= XTABLES_VERSION,
-+		.revision	= 1,
-+		.size		= XT_ALIGN(sizeof(struct xt_bpf_info_v1)),
-+		.userspacesize	= XT_ALIGN(offsetof(struct xt_bpf_info_v1, filter)),
-+		.help		= bpf_help_v1,
-+		.print		= bpf_print_v1,
-+		.save		= bpf_save_v1,
-+		.x6_parse	= bpf_parse_v1,
-+		.x6_fcheck	= bpf_fcheck_v1,
-+		.x6_options	= bpf_opts_v1,
-+	},
- };
- 
- void _init(void)
- {
--	xtables_register_match(&bpf_match);
-+	xtables_register_matches(bpf_matches, ARRAY_SIZE(bpf_matches));
- }
-diff --git a/extensions/libxt_bpf.man b/extensions/libxt_bpf.man
-index 5b1d042..8a0eb0c 100644
---- a/extensions/libxt_bpf.man
-+++ b/extensions/libxt_bpf.man
-@@ -1,8 +1,21 @@
--Match using Linux Socket Filter. Expects a BPF program in decimal format. This
--is the format generated by the \fBnfbpf_compile\fP utility.
-+Match using Linux Socket Filter. Expects a path to an eBPF object or a cBPF
-+program in decimal format.
-+.TP
-+\fB\-\-object\-pinned\fP \fIpath\fP
-+Pass a path to a pinned eBPF object.
-+.PP
-+Applications load eBPF programs into the kernel with the bpf() system call and
-+BPF_PROG_LOAD command and can pin them in a virtual filesystem with BPF_OBJ_PIN.
-+To use a pinned object in iptables, mount the bpf filesystem using
-+.IP
-+mount \-t bpf bpf ${BPF_MOUNT}
-+.PP
-+then insert the filter in iptables by path:
-+.IP
-+iptables \-A OUTPUT \-m bpf \-\-object\-pinned ${BPF_MOUNT}/{PINNED_PATH} \-j ACCEPT
- .TP
- \fB\-\-bytecode\fP \fIcode\fP
--Pass the BPF byte code format (described in the example below).
-+Pass the BPF byte code format as generated by the \fBnfbpf_compile\fP utility.
- .PP
- The code format is similar to the output of the tcpdump -ddd command: one line
- that stores the number of instructions, followed by one line for each
-diff --git a/include/linux/netfilter/xt_bpf.h b/include/linux/netfilter/xt_bpf.h
-index 5dda450..b97725a 100644
---- a/include/linux/netfilter/xt_bpf.h
-+++ b/include/linux/netfilter/xt_bpf.h
-@@ -2,16 +2,39 @@
- #define _XT_BPF_H
- 
- #include <linux/filter.h>
-+#include <linux/limits.h>
- #include <linux/types.h>
- 
- #define XT_BPF_MAX_NUM_INSTR	64
-+#define XT_BPF_PATH_MAX		(XT_BPF_MAX_NUM_INSTR * sizeof(struct sock_filter))
-+
-+struct bpf_prog;
- 
- struct xt_bpf_info {
- 	__u16 bpf_program_num_elem;
- 	struct sock_filter bpf_program[XT_BPF_MAX_NUM_INSTR];
- 
- 	/* only used in the kernel */
--	struct sk_filter *filter __attribute__((aligned(8)));
-+	struct bpf_prog *filter __attribute__((aligned(8)));
-+};
-+
-+enum xt_bpf_modes {
-+	XT_BPF_MODE_BYTECODE,
-+	XT_BPF_MODE_FD_PINNED,
-+	XT_BPF_MODE_FD_ELF,
-+};
-+
-+struct xt_bpf_info_v1 {
-+	__u16 mode;
-+	__u16 bpf_program_num_elem;
-+	__s32 fd;
-+	union {
-+		struct sock_filter bpf_program[XT_BPF_MAX_NUM_INSTR];
-+		char path[XT_BPF_PATH_MAX];
-+	};
-+
-+	/* only used in the kernel */
-+	struct bpf_prog *filter __attribute__((aligned(8)));
- };
- 
- #endif /*_XT_BPF_H */
+ 		printf(" -j %s", target->alias ? target->alias(t) : target_name);
+-		if (target->save)
++		if (target->save && t->u.user.revision == target->revision)
+ 			target->save(&e->ip, t);
++		else if (target->save)
++			printf(unsupported_rev);
+ 		else {
+ 			/* If the target size is greater than xt_entry_target
+ 			 * there is something to be saved, we just don't know
 -- 
 2.8.0.rc3.226.g39d4020
 
