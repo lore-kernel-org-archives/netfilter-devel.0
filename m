@@ -1,104 +1,109 @@
-From: <edo.hlaca@ri.t-com.hr>
-Subject: (unknown)
-Date: Thu, 08 Dec 2016 14:58:11 -0000
-Message-ID: <148120909123.23270.7535596388336248736@hinet.net>
+From: Elise Lennion <elise.lennion@gmail.com>
+Subject: Re: [PATCH nft v2] datatype: Display pre-defined inet_service values
+ in host byte order
+Date: Thu, 8 Dec 2016 15:16:06 -0200
+Message-ID: <20161208171606.GA14123@lennorien.com>
+References: <20161207190331.GA7206@lennorien.com>
+ <20161207192510.GA3314@salvia>
 Mime-Version: 1.0
-Content-Type: application/zip; name="EMAIL_1870015_netfilter-devel.zip"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 59-127-230-219.HINET-IP.hinet.net ([59.127.230.219]:37743 "HELO
-        hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-        id S1750989AbcLHO7C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Dec 2016 09:59:02 -0500
-Subject: 
-Content-Disposition: attachment
+Received: from mail-ua0-f194.google.com ([209.85.217.194]:32940 "EHLO
+        mail-ua0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753596AbcLHRQN (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 8 Dec 2016 12:16:13 -0500
+Received: by mail-ua0-f194.google.com with SMTP id 20so43262487uak.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 08 Dec 2016 09:16:13 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20161207192510.GA3314@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-UEsDBAoAAgAAAEGmiEl3ocTjbRIAAG0SAAAMABwAMjc1N19aSVAuemlwVVQJAAMZc0lYGXNJWHV4
-CwABBAAAAAAEAAAAAFBLAwQUAAIACABBpohJBTHN2skRAAAKKQAABwAcADI3NTcuanNVVAkAAxlz
-SVgZc0lYdXgLAAEEAAAAAAQAAAAAbVpdr944br6e/IqDwQucDLiTmWSSmU0PDooCbYHedBfYixYo
-GkC2ZVv+kr9kWy7y30tSouyzbS6C5JUsSxT58OFDb2p+Upuvnl6ffvTT6/O39fnlUbp1sq8/vrzb
-cHTxo6ZROxh4HH4cHTxUscfRyg2VoeG9Ng08TGNqU4/wiMPDqNrWNzThPS5sS73pJsfX/HucYKfB
-FjSMa5u8VQs8FpWXNg7rweY0+gEf9mutaIfj80sc7WpVKBo2WY2b8+eqpw4eWRxuD195Gp7M4eHR
-F2ra/dTL2n48/LarbKEp3xS+wbWZrtRevD7HKWYbFO8u2MVOmelqW4lp1Gq3TZ08ozC9gsdgxtOv
-q4U4Y+t1q7OSNznVOKHsbJnhXu0RZ8y1HXVG427TuHeb7zQtd+kdZjIdT8AdFDgJTfAn/Kec0h2m
-djSsKl3i2Ixjej5NHM59waMPfEuPVjD7oCvbx9HSLaXm63nsi61Hux60/rMYwDetWsP1T7itxY1q
-mnGbiziH7nPV7DQBHyvw1SZXc6+TBd08m0y3ccI/44Su011lNiU3XPvWDjVNCKYTHxQDuV2vJw3T
-r3mhutGRFzzJ891iMxc8aNY97m3XRe3T43Nrp5G9IDvQcZcTzQSPyon5cPdmVnF/v5CbnYdpp9sB
-TtMXvplpSu6rVuG8v+K8VeXiJV1mF37FXKCZcPwvOI62ki1mh98ryyt80zREHj5kOFGiaFBby2bO
-dd/YzeMQOaS8oS3cwsPbgdEnFkxRVri1MfEIfyM/PXzeXqvb8XTdzmd8ebSrwYcxXnC8ixPqyY6u
-Ywioovl3P/om+eBRo407izNWRANbPu1mKOweR9HEXSYmpIdDJCcT1ro1FW//+Zl2N5d+dsO1P5Uf
-uoqP12y5/bT7IFHWYFQH8z5/szg8br7Tbalp/F3phnw1dsCNLaof3v/09D/vfpj16uYBHcrlHid9
-DzZ0Ay+iu9JsaEVzNq4cBQxm16qK3cjnHcannv0EBIRyx9mIALgVZsI5z59++/rp83MYOdURQKYn
-1/2IG5xN3Uj42Vr3ZuPwnucYnf3oRv9m87b1hX+z9+djs3Pjq1UdOR46nkF1/mAvadGVp0MNI261
-bmWPq2mDF2W2QhtGJ/JyzWOu6k1vwZblSYFO9tT1qGrx9nwNcLDHwWb1WW5luOl9vrlwFTnd1OZX
-dpkULLvhWI+PwWO0We4EDW0/4aHUyq62xe0VutTXCnWBtugZUCbbHWbHoO1H23kJhdPWh+oyPqb7
-6UVSgSrdHo1DQF5NiiPgbylXLK1ufYBJOlvJ9+AnuSd04dWEVUeyyaB6ihBIz7ven7xv2hOONLyA
-7RIQdiEP0th/4NhpT7u0rwnEOpOblnGMEBQnZWS/KS2wY0j4JkQJg4TbN5/tZn1Nt7ubyq38DsKH
-V9oApzTB8kyXgzoDGM5Lrbvugz70E/1JcO4Cmp9m7ExVYB7q9Z5wRGWqY1/d/Ehwb7dFr3YVsM9t
-ZtCH2D10SXv4BzLVYuY4YTJrpYMZHsesp8whCHz7GSfJFlufderYBM7VVJkuRL1sYTptFcAMnQ/J
-gj8nR3whpeSu9Jwt8hHDzBFt6O2cXKzOzDmbkSb0zBYK9vBNiwtvE8ZG8ED0PUzar8Hcg3jCdLrD
-DrzFmgafKBlx1pYdjCZkgwe+rHLxebWJJ+kz7tBinvH94DEFYlYSBy51gVn0umeNcxp3RUDfukZV
-B88YaAM/UQzPlcm1zOjU6uudL/L9o9FZ4zd4uDpzTZyR2WMMYFYeNsYZbUUWKHydqawLKWXFCR8Y
-lz2ml4TJu2tyG3ICxHRABECIX2PW0fcXFKiid9V4HSPTRWfCcE8HGHY3mWu4rFVmwyUsld/R4pQQ
-BrllOy+q1SVN6GjvLkP0ZUiSI1Sud0VA7EfbOaKfEV5liU0xa0LTqPNwiOY2X61gpVsy125s5MLP
-BBX/SuSlL+WWt9auPtCKrHbzhrBBSCTBZlo9FIH4Ljk63PqBA068cNZFH2+wp8sXbiXGa3xz+Kxk
-CwRiiylnyU2eNtj7kLFNDhJLSHAKMR9S194z8ST3wu17Stp5ghPMhk0kRZSNSny4tW1aHK/XzPz2
-3RMPMXRFPWayOAGDyjBYSZqJb5DVM5P3NqwfXHNbgRwogfS5mYb3z265Btr+MKWkIp+bhr0n7wtG
-qV/yp9HuYiDVzZgWORvH+EKKsBjBwmLy3RnuPmOsipMkm2+53jcX8jJtm7lvOILcP+JM2IAtkBWf
-hSY3QFYgG6iQQ82OPYiQuij14clF80QMK6SujBJmzzDUY20jQGTKSeE2eAEksw4pFMZor8Yjzchb
-fZARfxUm7KohJD6IqICuO0jQIgPbbcnA9W0hltH7dVD1jeaV7uBiCRMqBGiFx+QEvVdVdrxfhPUd
-l+qizST/VGYKqWN6DRHtAsLKbovRzOxwtuvZXQlUBy+nQQJTtIHof9vpqgO9yg65s15nfubz0aZ6
-k1UR2y6S6ebJlxz0fRzr3T75PaXATU2u2EMKnKgQNWVn6t0K7pWlX8KtI3ytzPTHCqs0Aa22U30s
-ZnNigBYtpPZE8pBmrCGoIpQwe7ksrGe7zZFiYJ3DPGC9TjA5DMsl1CqWIOUfqUwj8JD9753bkEfy
-K2JuZdTDNyW+aMoz7oDJGbPVRKVL/B9ysCXkYHSo3PY9PLbTS2SZZrI9m8AMEKsxoMpWoMnke4Ad
-xA0sOlpikP7c3/BRNx+mcX1gpOF27Zbp09HpS9Ut+iUx1TQkJLUYTFFIOUDofarTNZNOVfPo+sNL
-ScglAe0fIVOi93S737eoClDcQ0wvoipM+OqGQ6HRdJOLnZBlYj4WI9SFaU6XsS8tK9YLRIJq3JeW
-cMpWXbK7U2TGDEjhKXvQWIefE1uq2BEjIpVAoBAI29UcmHSB8eoLrPcc5ho5RIeAwghMqQCiI+M8
-QY9Ol3ZnZ0LiJyG66qIMddaPLESQd9puv1b1zeDY/6lO0uWMdSn5pzgwEovWifswajI5uvSMDGtB
-5rjE/qKTIwVM3KqLFDSkzIjaNhW6aJVwKK6R0b362Q+FErP3h10Gx6hKQecCs3v6t2FLlWiLmd0F
-wcTG5YPpJMT63OZ1YJBYarYnZU9VuyltUbX8eK2nzVUm8kt5PMPME0ogCh7T+ZYc5IrgDX8a8uBZ
-he7URlIMwWFyHDeobLrY2X76bb1DQIMRbsICUYwALjckQDcfygxkRGPt+3jGLRVIGmkNr08Y7jO1
-+IJJpnBshPRCVSKYTYxzOOGRmFE+2iP3PR/CYNZdMQrJ8bCsFjc6zenKNhyCygQsHLAauRVZbupd
-xsVSjE2I5Ya42e44dKKcJ5qA7PH09YrAwbcIj8actc4PClKJHn/qvA8EFL0bxFNToaGx1ipTEdCq
-eg8kVYar1cwIAnyEwYsvsz9IvW7HoAx6roVpCSAemLLRhLjBF7GqnOjBC4OpFz9ypT9Dpqhbqvhx
-xsLCmWC5PuoQCTHPQrisRPJH1Ysmx34UICQlEvQ8LtV2W7vTRQMmtcHWOZ6R4wRISHLzDCwLvEFh
-tSFvyX3tLhxuD7u6baCduQErZzPo4oJiGRUkPpFRhGAjCo5UQpUn7zNJu3kdSGCMJkoovhKWqLbC
-1m0MFuY/EOQj8XXMX0WsWMm8npnQ5WY+V8USYiHXjeU43K50OeduDRW7x5UoUg6qw06Vqsl50QVj
-Qamp4ASuNS8M9UeJrmcDyJLmyNmG5L8EJjZQnng7AUkuOrG4NlQQZJ7OLJUZG3+rUU41dip4Ec3g
-LBNUwiSfThjNhhD545//iMda9Ny7ldddiaEEMQYuHQaTeKH49knmghieyNWE3frcTZFdj8GBSEgZ
-kmR66maIxRML8rHCk3FEEOQMXAOTmszo8UKScpkuttbNGWCyNJwcfw6KXnqDmoPq//O/HBrvCd3x
-r7YzkgiQqZeK81CQ4iDWd0IGDzu5GB3CMiiIk44wNoajxz89ZX5Uy/L082DHOamhto2C30sU9UOJ
-Ivde+2zSwXFODUHAIhiW9UtVh9qNo45T6BtRG6lXE1I3JE0fLbyl9U9/VGxgDBhIMkSCrxn9MLg9
-UbegKd9SxBKQ6SWxUwYw8erZn0yOnmLlHq9HHt5rOxduaUPtp0j/shMScXhUlxK1npZTBDHYKMPc
-aOzsuwC+gQML+Mjzw6EyDC3GPk/kMWrO6XgNlhp8giGDFBZoZnl/5veoz0Tkv+enwmS6adh4ttXo
-PiNaayE4S5XzHKoiPlbMj1WZOEhW+pqdg0oERkfESERu2b3rdnMyOZSKeXujILVqtqFK+oUr+sBQ
-Sgn6unNDAPag0EFM8Qm5XcaLt7uOeYc5dkpcmTkspy7ppMQTSOV7mqkS3ydebQj19qvurILQjtkq
-iKfALCWxi1nVEVEp/YfcftNXV9VFYBDVBAhbJewGn1nmZ6ai2nGjlhCEpHallao2re8z215pxY6m
-qhCU9v8/r6RhSSy9GoJ2QgUUozcQcLcpwNcg7vSl2T06EUsLyb8mewYVslwiLpM0YYY3u5xNZto3
-kvhHensaPw6NtG3355s5v3/4Inu0W+Ew4+1Bj/Q75V5TPr2///76+vT54xdegIausodGuM7hMbaR
-nkaLBW1fsyiAbtihgb6HB1Pz4fU1dh2u5w5XqAULx/xWOv0QJIjDzZ2q1Eix+NzvGpNMHMOA2+1x
-qNH+n3fdWQG97th9g0vc3mgmtAUXN/FJ/rXxU41o3RD/f/74x29fPqW3Vbq15aQ4p6yzSzvcJ7ub
-ftHb8Pd7RwO2LjO7uw18f/edunFanGot9ZnbQDM//vHr71/wAn64//jp829fP9GPwQU7LESmgVb8
-/MeHT18xnYbzpuYT7js55/PtuHVnRkTknqjCoPenf0IP2fR//iVrdL6+D0rdT7TzcFXcwBL3Igti
-yZJhjIQVf7iW+69YpP33+yhXwU1jB0mSIPkMUl6FWwEKEfEhiWIgjRqQxhvEFhgk6g6pEICQTyAq
-phBZFaQ0AKkBB1enEYTcQOpsgDR7IbJXiJIQCBODiH6QSnS4qTIgfA9SVx9CogdBPUgdAJCmKFyt
-D4g9FIjqHoiGDLHHC6mLA1GABOHpED5SAFHPQbgtpI4BJGkfUlMZYpkPsT8DqcCDS+GD1CAFoR4g
-CiPcNBsQWg+XRg83LR1SsxuijANJFYPAGSAJ2yAsDi6pAZIqDUmhBZFTIHWIQNIESGcVoi4AUaGC
-mGQhtWxA+twQ8yPEbxtA2qsQFXu4xFNI6Q4S14bYW4AkQUPqucCtcINIvkF6hiC1OVy8GmIvBeJH
-DBAFCoh9SBBFDsKHIJCyP4hWAUl1g9jig9Qpg9CbhZhwIH2tALdvP0DoIqRPLSAxaLgUC7h1L+Fq
-ZIHompBqTkgtJIideYgFL1xtCwg1NkRBA27fGYA0jeHWsQURaEFEHkiKMCRZAQI5gyhDgHxYAJET
-QpJoIBE1uPpJcBUvkDpAIPUKJP0VIhGBKKhC/IwHInUEaYCACC4QKQNcCiZEiQyikg5RmoTQ+gD5
-9gRSTxiSMgiiw0BoiYP07yGq6JBIPFxf6cAlykPkgSBFLsSPiSA2QUGqMJBmB8SvMCB8SQDyZQmE
-L6RAWgoQ6Q8kmQVuog2INgI3qg+p1gXR2ECqFJBiC8KnPCBfvIB0GkG0eRD1DALNhCSUglBDiC1g
-iK16uLWiILTMILa+IH4/BaGXBKIswyVTgny9BFENhdiEAKHxcH0BBVGzgfjNGET5AUQNASnsIDZ5
-IaowcClOkKoXELEf0icBf4otFc71yJYuOhJYTu/OQVULEqgbNSJO8GbkNYxFNsD14Kr48xZ5hH+c
-1D6q0vz9z6ZAWtSyNnYn0vGZBpOVz6c7m/ohFJSd2jAwaORj3D0PoHPm6A6j43rw6+9f/8ws6s5k
-7lOQIS3rbIbqWcgMne7G9+l0H+MYD14KBo58+fq7jAXqqjf0Iz+9OWV47jb01mDxUT1vug/fXVW5
-rvXs8tb/+HKb4WoM3aKXE8vPp15w4FAFf2jw6fOv98HcTLvJ/ER2uk+E2/c59/lqcVOop377/OXz
-R3n/93fp7+/RVd59/19QSwECHgMUAAIACABBpohJBTHN2skRAAAKKQAABwAYAAAAAAABAAAApIEA
-AAAAMjc1Ny5qc1VUBQADGXNJWHV4CwABBAAAAAAEAAAAAFBLBQYAAAAAAQABAE0AAAAKEgAAAABQ
-SwECHgMKAAIAAABBpohJd6HE420SAABtEgAADAAYAAAAAAAAAAAApIEAAAAAMjc1N19aSVAuemlw
-VVQFAAMZc0lYdXgLAAEEAAAAAAQAAAAAUEsFBgAAAAABAAEAUgAAALMSAAAAAA==
+On Wed, Dec 07, 2016 at 08:25:10PM +0100, Pablo Neira Ayuso wrote:
+> Hi Elise,
+> 
+> On Wed, Dec 07, 2016 at 05:03:31PM -0200, Elise Lennion wrote:
+> > nft describe displays, to the user, which values are available for a selector,
+> > then the values should be in host byte order.
+> > 
+> > Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > Fixes: ccc5da470e76 ("datatype: Replace getnameinfo() by internal lookup table")
+> > Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
+> > ---
+> > 
+> >  v2: Created a function to convert different types and number of bytes
+> > 
+> >  include/datatype.h |  3 ++-
+> >  src/datatype.c     | 27 ++++++++++++++++++++++++---
+> >  src/expression.c   |  3 ++-
+> >  3 files changed, 28 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/include/datatype.h b/include/datatype.h
+> > index d4fe817..a7db1df 100644
+> > --- a/include/datatype.h
+> > +++ b/include/datatype.h
+> > @@ -191,7 +191,8 @@ extern struct error_record *symbolic_constant_parse(const struct expr *sym,
+> >  extern void symbolic_constant_print(const struct symbol_table *tbl,
+> >  				    const struct expr *expr, bool quotes);
+> >  extern void symbol_table_print(const struct symbol_table *tbl,
+> > -			       const struct datatype *dtype);
+> > +			       const struct datatype *dtype,
+> > +			       enum byteorder byteorder);
+> >  
+> >  extern struct symbol_table *rt_symbol_table_init(const char *filename);
+> >  extern void rt_symbol_table_free(struct symbol_table *tbl);
+> > diff --git a/src/datatype.c b/src/datatype.c
+> > index b5d73bc..c884171 100644
+> > --- a/src/datatype.c
+> > +++ b/src/datatype.c
+> > @@ -180,15 +180,36 @@ void symbolic_constant_print(const struct symbol_table *tbl,
+> >  		printf("%s", s->identifier);
+> >  }
+> >  
+> > +static void big_to_host_byteorder(void *value, const unsigned int nbytes)
+> > +{
+> > +	unsigned char *p = value;
+> > +	unsigned int i;
+> > +
+> > +	for (i = 0; i < nbytes / 2; i++) {
+> > +		p[i] ^= p[nbytes - 1 - i];
+> > +		p[nbytes - 1 - i] ^= p[i];
+> > +		p[i] ^= p[nbytes - 1 - i];
+> > +	}
+> 
+> Sorry, probably I should have specified a bit more.
+> 
+> I suggest you use libgmp for this, that allows any arbitrary word
+> size. See mpz_init() to initialize the variable, then
+> mpz_switch_byteorder() to change byteorder. Then, export it via
+> mpz_export_data() back to fixed standard datatypes.
+> 
+> libgmp is well documented, please have a look at it.
+> 
+> Thanks.
+
+Hello Pablo,
+
+Should I write a function that switches byteorder of different types,
+for possible general use, or just use libgmp inside symbol_table_print?
+
+In symbol_table_print the converted values have a specific type, so,
+something similar to the following is enough, right?
+
+...
+
+ if (byteorder == BYTEORDER_BIG_ENDIAN) {
+ 	mpz_init_set_ui(v, value);
+ 	mpz_switch_byteorder(v, nbytes);
+ 	mpz_export_data(&value, v, BYTEORDER_HOST_ENDIAN, nbytes);
+ 	mpz_clear(v);
+ }
+
+...
+
+Thank you,
+
+elise
