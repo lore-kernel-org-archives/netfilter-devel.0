@@ -1,193 +1,134 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH libnftnl 6/7] expr: objref: add support for stateful object maps
-Date: Fri,  9 Dec 2016 14:31:58 +0100
-Message-ID: <1481290319-10156-6-git-send-email-pablo@netfilter.org>
+Subject: [PATCH libnftnl 5/7] set_elem: add NFTNL_SET_ELEM_OBJREF attribute
+Date: Fri,  9 Dec 2016 14:31:57 +0100
+Message-ID: <1481290319-10156-5-git-send-email-pablo@netfilter.org>
 References: <1481290319-10156-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35568 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35558 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753934AbcLINcO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Dec 2016 08:32:14 -0500
+        id S1753299AbcLINcM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 9 Dec 2016 08:32:12 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7A48396ECE
-        for <netfilter-devel@vger.kernel.org>; Fri,  9 Dec 2016 14:32:12 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 9B2D096EC9
+        for <netfilter-devel@vger.kernel.org>; Fri,  9 Dec 2016 14:32:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6A49C524C0
-        for <netfilter-devel@vger.kernel.org>; Fri,  9 Dec 2016 14:32:12 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8AFA9DA729
+        for <netfilter-devel@vger.kernel.org>; Fri,  9 Dec 2016 14:32:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0F959524C0
-        for <netfilter-devel@vger.kernel.org>; Fri,  9 Dec 2016 14:32:06 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7B461524C5
+        for <netfilter-devel@vger.kernel.org>; Fri,  9 Dec 2016 14:32:05 +0100 (CET)
 In-Reply-To: <1481290319-10156-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If the NFT_SET_OBJECT flag is set, then this set stores a mapping
-between any random user-defined arbitrary key and one stateful object.
-Very useful for performance lookups.
+This new attribute allows us to attach stateful objects to elements for
+map lookups. This new attribute identifies the object through its name.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/libnftnl/expr.h |  3 +++
- src/expr/objref.c       | 72 +++++++++++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 73 insertions(+), 2 deletions(-)
+ include/libnftnl/set.h |  1 +
+ include/set_elem.h     |  1 +
+ src/set_elem.c         | 27 +++++++++++++++++++++++++++
+ 3 files changed, 29 insertions(+)
 
-diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
-index f6ea69dfacae..ee0784928550 100644
---- a/include/libnftnl/expr.h
-+++ b/include/libnftnl/expr.h
-@@ -237,6 +237,9 @@ enum {
- enum {
- 	NFTNL_EXPR_OBJREF_IMM_TYPE	= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_OBJREF_IMM_NAME,
-+	NFTNL_EXPR_OBJREF_SET_SREG,
-+	NFTNL_EXPR_OBJREF_SET_NAME,
-+	NFTNL_EXPR_OBJREF_SET_ID,
+diff --git a/include/libnftnl/set.h b/include/libnftnl/set.h
+index 0c978d916e4e..4c59ab27946f 100644
+--- a/include/libnftnl/set.h
++++ b/include/libnftnl/set.h
+@@ -96,6 +96,7 @@ enum {
+ 	NFTNL_SET_ELEM_EXPIRATION,
+ 	NFTNL_SET_ELEM_USERDATA,
+ 	NFTNL_SET_ELEM_EXPR,
++	NFTNL_SET_ELEM_OBJREF,
  };
  
- /*
-diff --git a/src/expr/objref.c b/src/expr/objref.c
-index 01bea7b8b4b1..4cfa3cbfbd2b 100644
---- a/src/expr/objref.c
-+++ b/src/expr/objref.c
-@@ -25,6 +25,11 @@ struct nftnl_expr_objref {
- 		uint32_t	type;
- 		const char	*name;
- 	} imm;
-+	struct {
-+		uint32_t	sreg;
-+		const char	*name;
-+		uint32_t	id;
-+	} set;
- };
+ struct nftnl_set_elem;
+diff --git a/include/set_elem.h b/include/set_elem.h
+index 60cecc939016..d6244e60873a 100644
+--- a/include/set_elem.h
++++ b/include/set_elem.h
+@@ -12,6 +12,7 @@ struct nftnl_set_elem {
+ 	uint32_t		flags;
+ 	uint64_t		timeout;
+ 	uint64_t		expiration;
++	const char		*objref;
+ 	struct {
+ 		void		*data;
+ 		uint32_t	len;
+diff --git a/src/set_elem.c b/src/set_elem.c
+index 083c597e2f8e..fa8747641ee0 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -50,6 +50,9 @@ void nftnl_set_elem_free(struct nftnl_set_elem *s)
+ 	if (s->flags & (1 << NFTNL_SET_ELEM_USERDATA))
+ 		xfree(s->user.data);
  
- static int nftnl_expr_objref_set(struct nftnl_expr *e, uint16_t type,
-@@ -41,6 +46,17 @@ static int nftnl_expr_objref_set(struct nftnl_expr *e, uint16_t type,
- 		if (!objref->imm.name)
- 			return -1;
++	if (s->flags & (1 << NFTNL_SET_ELEM_OBJREF))
++		xfree(s->objref);
++
+ 	xfree(s);
+ }
+ EXPORT_SYMBOL_ALIAS(nftnl_set_elem_free, nft_set_elem_free);
+@@ -82,6 +85,9 @@ void nftnl_set_elem_unset(struct nftnl_set_elem *s, uint16_t attr)
+ 	case NFTNL_SET_ELEM_EXPR:
+ 		nftnl_expr_free(s->expr);
  		break;
-+	case NFTNL_EXPR_OBJREF_SET_SREG:
-+		objref->set.sreg = *((uint32_t *)data);
-+		break;
-+	case NFTNL_EXPR_OBJREF_SET_NAME:
-+		objref->set.name = strdup(data);
-+		if (!objref->set.name)
-+			return -1;
-+		break;
-+	case NFTNL_EXPR_OBJREF_SET_ID:
-+		objref->set.id = *((uint32_t *)data);
++	case NFTNL_SET_ELEM_OBJREF:
++		xfree(s->objref);
 +		break;
  	default:
- 		return -1;
+ 		return;
  	}
-@@ -59,6 +75,15 @@ static const void *nftnl_expr_objref_get(const struct nftnl_expr *e,
- 	case NFTNL_EXPR_OBJREF_IMM_NAME:
- 		*data_len = strlen(objref->imm.name) + 1;
- 		return objref->imm.name;
-+	case NFTNL_EXPR_OBJREF_SET_SREG:
-+		*data_len = sizeof(objref->set.sreg);
-+		return &objref->set.sreg;
-+	case NFTNL_EXPR_OBJREF_SET_NAME:
-+		*data_len = strlen(objref->set.name) + 1;
-+		return objref->set.name;
-+	case NFTNL_EXPR_OBJREF_SET_ID:
-+		*data_len = sizeof(objref->set.id);
-+		return &objref->set.id;
+@@ -129,6 +135,14 @@ int nftnl_set_elem_set(struct nftnl_set_elem *s, uint16_t attr,
+ 		memcpy(s->user.data, data, data_len);
+ 		s->user.len = data_len;
+ 		break;
++	case NFTNL_SET_ELEM_OBJREF:
++		if (s->flags & (1 << NFTNL_SET_ELEM_OBJREF))
++			xfree(s->objref);
++
++		s->objref = strdup(data);
++		if (!s->objref)
++			return -1;
++		break;
+ 	}
+ 	s->flags |= (1 << attr);
+ 	return -1;
+@@ -185,6 +199,9 @@ const void *nftnl_set_elem_get(struct nftnl_set_elem *s, uint16_t attr, uint32_t
+ 		return s->user.data;
+ 	case NFTNL_SET_ELEM_EXPR:
+ 		return s->expr;
++	case NFTNL_SET_ELEM_OBJREF:
++		*data_len = strlen(s->objref) + 1;
++		return s->objref;
  	}
  	return NULL;
  }
-@@ -77,9 +102,15 @@ static int nftnl_expr_objref_cb(const struct nlattr *attr, void *data)
- 			abi_breakage();
- 		break;
- 	case NFTA_OBJREF_IMM_NAME:
-+	case NFTA_OBJREF_SET_NAME:
- 		if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0)
- 			abi_breakage();
- 		break;
-+	case NFTA_OBJREF_SET_SREG:
-+	case NFTA_OBJREF_SET_ID:
-+		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
-+			abi_breakage();
-+		break;
+@@ -271,6 +288,8 @@ void nftnl_set_elem_nlmsg_build_payload(struct nlmsghdr *nlh,
  	}
- 
- 	tb[type] = attr;
-@@ -96,6 +127,14 @@ static void nftnl_expr_objref_build(struct nlmsghdr *nlh,
- 				 htonl(objref->imm.type));
- 	if (e->flags & (1 << NFTNL_EXPR_OBJREF_IMM_NAME))
- 		mnl_attr_put_str(nlh, NFTA_OBJREF_IMM_NAME, objref->imm.name);
-+	if (e->flags & (1 << NFTNL_EXPR_OBJREF_SET_SREG))
-+		mnl_attr_put_u32(nlh, NFTA_OBJREF_SET_SREG,
-+				 htonl(objref->set.sreg));
-+	if (e->flags & (1 << NFTNL_EXPR_OBJREF_SET_NAME))
-+		mnl_attr_put_str(nlh, NFTA_OBJREF_SET_NAME, objref->set.name);
-+	if (e->flags & (1 << NFTNL_EXPR_OBJREF_SET_ID))
-+		mnl_attr_put_u32(nlh, NFTA_OBJREF_SET_ID,
-+				 htonl(objref->set.id));
+ 	if (e->flags & (1 << NFTNL_SET_ELEM_USERDATA))
+ 		mnl_attr_put(nlh, NFTA_SET_ELEM_USERDATA, e->user.len, e->user.data);
++	if (e->flags & (1 << NFTNL_SET_ELEM_OBJREF))
++		mnl_attr_put_strz(nlh, NFTA_SET_ELEM_OBJREF, e->objref);
  }
  
- static int nftnl_expr_objref_parse(struct nftnl_expr *e, struct nlattr *attr)
-@@ -116,6 +155,21 @@ static int nftnl_expr_objref_parse(struct nftnl_expr *e, struct nlattr *attr)
- 			strdup(mnl_attr_get_str(tb[NFTA_OBJREF_IMM_NAME]));
- 		e->flags |= (1 << NFTNL_EXPR_OBJREF_IMM_NAME);
+ static void nftnl_set_elem_nlmsg_build_def(struct nlmsghdr *nlh,
+@@ -423,6 +442,14 @@ static int nftnl_set_elems_parse2(struct nftnl_set *s, const struct nlattr *nest
+ 		memcpy(e->user.data, udata, e->user.len);
+ 		e->flags |= (1 << NFTNL_RULE_USERDATA);
  	}
-+	if (tb[NFTA_OBJREF_SET_SREG]) {
-+		objref->set.sreg =
-+			ntohl(mnl_attr_get_u32(tb[NFTA_OBJREF_SET_SREG]));
-+		e->flags |= (1 << NFTNL_EXPR_OBJREF_SET_SREG);
-+	}
-+	if (tb[NFTA_OBJREF_SET_NAME]) {
-+		objref->set.name =
-+			strdup(mnl_attr_get_str(tb[NFTA_OBJREF_SET_NAME]));
-+		e->flags |= (1 << NFTNL_EXPR_OBJREF_SET_NAME);
-+	}
-+	if (tb[NFTA_OBJREF_SET_ID]) {
-+		objref->set.id =
-+			ntohl(mnl_attr_get_u32(tb[NFTA_OBJREF_SET_ID]));
-+		e->flags |= (1 << NFTNL_EXPR_OBJREF_SET_ID);
++	if (tb[NFTA_SET_ELEM_OBJREF]) {
++		e->objref = strdup(mnl_attr_get_str(tb[NFTA_SET_ELEM_OBJREF]));
++		if (e->objref == NULL) {
++			ret = -1;
++			goto out_set_elem;
++		}
++		e->flags |= (1 << NFTNL_SET_ELEM_OBJREF);
 +	}
  
- 	return 0;
- }
-@@ -157,6 +211,10 @@ static int nftnl_expr_objref_export(char *buf, size_t size,
- 		nftnl_buf_u32(&b, type, objref->imm.type, BYTES);
- 	if (e->flags & (1 << NFTNL_EXPR_OBJREF_IMM_NAME))
- 		nftnl_buf_str(&b, type, objref->imm.name, NAME);
-+	if (e->flags & (1 << NFTNL_EXPR_OBJREF_SET_SREG))
-+		nftnl_buf_u32(&b, type, objref->set.sreg, SREG);
-+	if (e->flags & (1 << NFTNL_EXPR_OBJREF_SET_NAME))
-+		nftnl_buf_str(&b, type, objref->set.name, SET);
- 
- 	return nftnl_buf_done(&b);
- }
-@@ -166,8 +224,12 @@ static int nftnl_expr_objref_snprintf_default(char *buf, size_t len,
- {
- 	struct nftnl_expr_objref *objref = nftnl_expr_data(e);
- 
--	return snprintf(buf, len, "type %u name %s ",
--			objref->imm.type, objref->imm.name);
-+	if (e->flags & (1 << NFTNL_EXPR_OBJREF_SET_SREG))
-+		return snprintf(buf, len, "sreg %u set %s id %u ",
-+				objref->set.sreg, objref->set.name, objref->set.id);
-+	else
-+		return snprintf(buf, len, "type %u name %s ",
-+				objref->imm.type, objref->imm.name);
- }
- 
- static int nftnl_expr_objref_snprintf(char *buf, size_t len, uint32_t type,
-@@ -197,6 +259,12 @@ static bool nftnl_expr_objref_cmp(const struct nftnl_expr *e1,
- 		eq &= (c1->imm.type == c2->imm.type);
- 	if (e1->flags & (1 << NFTNL_EXPR_OBJREF_IMM_NAME))
- 		eq &= !strcmp(c1->imm.name, c2->imm.name);
-+	if (e1->flags & (1 << NFTNL_EXPR_OBJREF_SET_SREG))
-+		eq &= (c1->set.sreg == c2->set.sreg);
-+	if (e1->flags & (1 << NFTNL_EXPR_OBJREF_SET_NAME))
-+		eq &= !strcmp(c1->set.name, c2->set.name);
-+	if (e1->flags & (1 << NFTNL_EXPR_OBJREF_SET_ID))
-+		eq &= (c1->set.id == c2->set.id);
- 
- 	return eq;
- }
+ 	/* Add this new element to this set */
+ 	list_add_tail(&e->head, &s->element_list);
 -- 
 2.1.4
 
