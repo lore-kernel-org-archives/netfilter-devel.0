@@ -1,66 +1,102 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: RFC: nft.8 review
-Date: Sat, 10 Dec 2016 11:27:16 +0100
-Message-ID: <20161210102715.GA2955@orbyte.nwl.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] ARM: add cmpxchg64 helper for ARMv7-M
+Date: Sat, 10 Dec 2016 11:36:34 +0100
+Message-ID: <20161210103646.1407256-1-arnd@arndb.de>
+Cc: netdev@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Arnd Bergmann <arnd@arndb.de>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Russell King <linux@armlinux.org.uk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:54645 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751981AbcLJK1S (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 10 Dec 2016 05:27:18 -0500
-Received: from mail.nwl.cc (orbyte.nwl.cc [127.0.0.1])
-        by mail.nwl.cc (Postfix) with ESMTP id 2146361BFB
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 Dec 2016 11:27:16 +0100 (CET)
-Content-Disposition: inline
+Received: from mout.kundenserver.de ([212.227.126.187]:60364 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753083AbcLJKhb (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 10 Dec 2016 05:37:31 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+A change to the netfilter code in net-next introduced the first caller of
+cmpxchg64 that can get built on ARMv7-M, leading to an error from the
+assembler that points out the lack of 64-bit atomics on this architecture:
 
-I skimmed through nft man page and noted down problems I discovered.
-While doing so, I got the idea to restructure the whole document for
-better organization and comprehensibility but wanted to hear your
-thoughts first before creating a ticket in netfilter BZ:
+/tmp/ccMe7djj.s: Assembler messages:
+/tmp/ccMe7djj.s:367: Error: selected processor does not support `ldrexd r0,r1,[lr]' in Thumb mode
+/tmp/ccMe7djj.s:371: Error: selected processor does not support `strexd ip,r2,r3,[lr]' in Thumb mode
+/tmp/ccMe7djj.s:389: Error: selected processor does not support `ldrexd r8,r9,[r7]' in Thumb mode
+/tmp/ccMe7djj.s:393: Error: selected processor does not support `strexd lr,r0,r1,[r7]' in Thumb mode
+scripts/Makefile.build:299: recipe for target 'net/netfilter/nft_counter.o' failed
 
+This makes ARMv7-M use the same emulation from asm-generic/cmpxchg-local.h
+that we use on architectures earlier than ARMv6K, to fix the build. The
+32-bit atomics are available on ARMv7-M and we keep using them there.
+This ARM specific change is probably something we should do regardless
+of the netfilter code.
 
-* Use BNF in synopses
+However, looking at the new nft_counter_reset() function in nft_counter.c,
+this looks incorrect to me not just on ARMv7-M but also on other
+architectures, with at least the following possible race:
 
-This is rudimentally used in the SYNOPSIS section already, but just
-lists _cmd_ without explanation - although the fun is only about to
-start at this point. :)
+	CPU A				CPU B
+					u64_stats_fetch_begin_irq
+	u64_stats_update_begin
+	fetch(upper 32 bits)
+					fetch(old)
+					cmpxchg64(counter, old, 0);
+	fetch(lower 32 bits)
+					u64_stats_fetch_retry_irq == true
+	store(upper 32 bits)
+					fetch(old)
+					cmpxchg64(counter, old, 0);
+	store(lower 32 bits)
+	u64_stats_update_end
+					u64_stats_fetch_retry_irq == true
+					fetch(old)
+					cmpxchg64(counter, old, 0);
+					u64_stats_fetch_retry_irq == false
 
-What I really don't like is the syntax used in e.g. CHAINS section: it
-is not only imprecise (nothing says you have to use 'priority <prio>'
-but may not use 'table <table>', but also plain wrong when it comes to
-the mandatory braces around the chain_block.
+In this example, the data returned by __nft_counter_reset() is zero
+as we overwrite the per-cpu counter value during the retries.
 
+Fixes: 43da04a593d8 ("netfilter: nf_tables: atomic dump and reset for stateful objects")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/arm/include/asm/cmpxchg.h | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-* Organize entity descriptions BNF-style
+diff --git a/arch/arm/include/asm/cmpxchg.h b/arch/arm/include/asm/cmpxchg.h
+index 97882f9bad12..12215515ba02 100644
+--- a/arch/arm/include/asm/cmpxchg.h
++++ b/arch/arm/include/asm/cmpxchg.h
+@@ -240,6 +240,7 @@ static inline unsigned long __cmpxchg_local(volatile void *ptr,
+ 				        sizeof(*(ptr)));		\
+ })
+ 
++#ifndef CONFIG_CPU_V7M
+ static inline unsigned long long __cmpxchg64(unsigned long long *ptr,
+ 					     unsigned long long old,
+ 					     unsigned long long new)
+@@ -273,6 +274,18 @@ static inline unsigned long long __cmpxchg64(unsigned long long *ptr,
+ 
+ #define cmpxchg64_local(ptr, o, n) cmpxchg64_relaxed((ptr), (o), (n))
+ 
++#else
++
++/* ARMv7-M has 32-bit ldrex/strex but no ldrexd/strexd */
++
++#define cmpxchg64(ptr, o, n)		__cmpxchg64_local_generic((ptr), (o), (n))
++#define cmpxchg64_relaxed(ptr, o, n)	__cmpxchg64_local_generic((ptr), (o), (n))
++#define cmpxchg64_local(ptr, o, n)	__cmpxchg64_local_generic((ptr), (o), (n))
++
++#include <asm-generic/cmpxchg-local.h>
++
++#endif
++
+ #endif	/* __LINUX_ARM_ARCH__ >= 6 */
+ 
+ #endif /* __ASM_ARM_CMPXCHG_H */
+-- 
+2.9.0
 
-In my opinion the order of (sub-)sections is a bit chaotic at times.
-E.g. RULES section synopsis tries to explain how a rule is made up from
-statements, but these are not explained before five sections later (not
-counting the bogus BLA section ;).
-
-The idea here is to go from most generic to most specific, like things
-are defined in yacc - just not as explicit, since if I want to know the
-relation between concat_rhs_expr and shift_rhs_expr, I can just as well
-read the code itself.
-
-
-* What about sub-pages?
-
-Looking at some expressions' descriptions, it seems like these might
-grow exponentially with the documentation improving. So maybe it makes
-sense to follow iptables' advice and have 'nft-extensions.8'? I would
-have called it 'nft-statements.8' or 'nft-expressions.8' but the two are
-too much intertwined to keep them separate.
-
-OK, maybe this can wait until nft.8 really has become awfully long.
-
-
-Comments, flame, donations highly appreciated, of course!
-
-Cheers, Phil
