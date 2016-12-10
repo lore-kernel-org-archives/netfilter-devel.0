@@ -1,50 +1,45 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 37/50] netfilter: nf_tables: atomic dump and reset for
- stateful objects
-Date: Sat, 10 Dec 2016 13:21:52 +0100
-Message-ID: <20161210122152.GA4653@salvia>
-References: <1481147576-5690-1-git-send-email-pablo@netfilter.org>
- <1481147576-5690-38-git-send-email-pablo@netfilter.org>
- <CAP=VYLp-ZBFjR1W9=V_vyPYAi1=Yub3ugq6D8hkoLigcPaaxFg@mail.gmail.com>
- <20161209102432.GA986@salvia>
- <1481293492.4930.168.camel@edumazet-glaptop3.roam.corp.google.com>
- <1481296926.4930.171.camel@edumazet-glaptop3.roam.corp.google.com>
+Subject: Re: [PATCH] ARM: add cmpxchg64 helper for ARMv7-M
+Date: Sat, 10 Dec 2016 13:32:34 +0100
+Message-ID: <20161210123234.GA5468@salvia>
+References: <20161210103646.1407256-1-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>,
-        netfilter-devel@vger.kernel.org,
-        David Miller <davem@davemloft.net>,
-        netdev <netdev@vger.kernel.org>,
-        "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36878 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753122AbcLJMWE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 10 Dec 2016 07:22:04 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4EAD196EC5
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 Dec 2016 13:22:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4074AA7E2A
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 Dec 2016 13:22:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5D62EA7E1D
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 Dec 2016 13:21:57 +0100 (CET)
+Cc: Russell King <linux@armlinux.org.uk>, netdev@vger.kernel.org,
+        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1481296926.4930.171.camel@edumazet-glaptop3.roam.corp.google.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20161210103646.1407256-1-arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Dec 09, 2016 at 07:22:06AM -0800, Eric Dumazet wrote:
-> On Fri, 2016-12-09 at 06:24 -0800, Eric Dumazet wrote:
+Hi Arnd,
+
+On Sat, Dec 10, 2016 at 11:36:34AM +0100, Arnd Bergmann wrote:
+> A change to the netfilter code in net-next introduced the first caller of
+> cmpxchg64 that can get built on ARMv7-M, leading to an error from the
+> assembler that points out the lack of 64-bit atomics on this architecture:
 > 
-> > It looks that you want a seqcount, even on 64bit arches,
-> > so that CPU 2 can restart its loop, and more importantly you need
-> > to not accumulate the values you read, because they might be old/invalid.
+> /tmp/ccMe7djj.s: Assembler messages:
+> /tmp/ccMe7djj.s:367: Error: selected processor does not support `ldrexd r0,r1,[lr]' in Thumb mode
+> /tmp/ccMe7djj.s:371: Error: selected processor does not support `strexd ip,r2,r3,[lr]' in Thumb mode
+> /tmp/ccMe7djj.s:389: Error: selected processor does not support `ldrexd r8,r9,[r7]' in Thumb mode
+> /tmp/ccMe7djj.s:393: Error: selected processor does not support `strexd lr,r0,r1,[r7]' in Thumb mode
+> scripts/Makefile.build:299: recipe for target 'net/netfilter/nft_counter.o' failed
 > 
-> Untested patch to give general idea. I can polish it a bit later today.
+> This makes ARMv7-M use the same emulation from asm-generic/cmpxchg-local.h
+> that we use on architectures earlier than ARMv6K, to fix the build. The
+> 32-bit atomics are available on ARMv7-M and we keep using them there.
+> This ARM specific change is probably something we should do regardless
+> of the netfilter code.
+> 
+> However, looking at the new nft_counter_reset() function in nft_counter.c,
+> this looks incorrect to me not just on ARMv7-M but also on other
+> architectures, with at least the following possible race:
 
-I'm preparing a patch now, so you can review it.
-
-Eric, thanks a lot for reviewing and proposing a working approach!
+Right, Eric Dumazet already spotted this problem. I'm preparing a
+patch that doesn't require cmpxchg64(). Will keep you on Cc. Thanks.
