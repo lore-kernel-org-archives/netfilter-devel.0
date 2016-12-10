@@ -1,45 +1,43 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] ARM: add cmpxchg64 helper for ARMv7-M
-Date: Sat, 10 Dec 2016 13:32:34 +0100
-Message-ID: <20161210123234.GA5468@salvia>
-References: <20161210103646.1407256-1-arnd@arndb.de>
+Subject: Re: [PATCH] extensions: libxt_bpf: support ebpf pinned objects
+Date: Sat, 10 Dec 2016 14:06:58 +0100
+Message-ID: <20161210130658.GA29356@salvia>
+References: <1481234978-40351-1-git-send-email-willemdebruijn.kernel@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Russell King <linux@armlinux.org.uk>, netdev@vger.kernel.org,
-        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org,
+        Willem de Bruijn <willemb@google.com>
+To: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:44756 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753177AbcLJNHO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 10 Dec 2016 08:07:14 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id AA03D7FC46
+        for <netfilter-devel@vger.kernel.org>; Sat, 10 Dec 2016 14:07:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9C508DA7F6
+        for <netfilter-devel@vger.kernel.org>; Sat, 10 Dec 2016 14:07:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 91A83DA729
+        for <netfilter-devel@vger.kernel.org>; Sat, 10 Dec 2016 14:07:07 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20161210103646.1407256-1-arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1481234978-40351-1-git-send-email-willemdebruijn.kernel@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Arnd,
+On Thu, Dec 08, 2016 at 05:09:38PM -0500, Willem de Bruijn wrote:
+> From: Willem de Bruijn <willemb@google.com>
+> 
+> Exercise the new kernel feature introduced in commit 2c16d6033264
+> ("netfilter: xt_bpf: support ebpf") to load pinned eBPF programs.
+> 
+> The new interface allows instantiating a bpf match using
+> 
+>   -m bpf --object-pinned ${PATH}
+> 
+> where ${PATH} points to a node in a bpf virtual filesystem. See
+> also the revised man page.
 
-On Sat, Dec 10, 2016 at 11:36:34AM +0100, Arnd Bergmann wrote:
-> A change to the netfilter code in net-next introduced the first caller of
-> cmpxchg64 that can get built on ARMv7-M, leading to an error from the
-> assembler that points out the lack of 64-bit atomics on this architecture:
-> 
-> /tmp/ccMe7djj.s: Assembler messages:
-> /tmp/ccMe7djj.s:367: Error: selected processor does not support `ldrexd r0,r1,[lr]' in Thumb mode
-> /tmp/ccMe7djj.s:371: Error: selected processor does not support `strexd ip,r2,r3,[lr]' in Thumb mode
-> /tmp/ccMe7djj.s:389: Error: selected processor does not support `ldrexd r8,r9,[r7]' in Thumb mode
-> /tmp/ccMe7djj.s:393: Error: selected processor does not support `strexd lr,r0,r1,[r7]' in Thumb mode
-> scripts/Makefile.build:299: recipe for target 'net/netfilter/nft_counter.o' failed
-> 
-> This makes ARMv7-M use the same emulation from asm-generic/cmpxchg-local.h
-> that we use on architectures earlier than ARMv6K, to fix the build. The
-> 32-bit atomics are available on ARMv7-M and we keep using them there.
-> This ARM specific change is probably something we should do regardless
-> of the netfilter code.
-> 
-> However, looking at the new nft_counter_reset() function in nft_counter.c,
-> this looks incorrect to me not just on ARMv7-M but also on other
-> architectures, with at least the following possible race:
-
-Right, Eric Dumazet already spotted this problem. I'm preparing a
-patch that doesn't require cmpxchg64(). Will keep you on Cc. Thanks.
+Applied, thanks Willem.
