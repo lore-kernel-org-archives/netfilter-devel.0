@@ -1,101 +1,43 @@
-From: Elise Lennion <elise.lennion@gmail.com>
-Subject: [PATCH nft] datatype: Display pre-defined inet_service values in
- decimal base
-Date: Sat, 10 Dec 2016 21:59:36 -0200
-Message-ID: <20161210235936.GA4967@lennorien.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH net-next] netfilter: nft_counter: rework atomic dump and
+ reset
+Date: Sun, 11 Dec 2016 11:41:17 +0100
+Message-ID: <20161211104117.GA2521@salvia>
+References: <1481378741-19871-1-git-send-email-pablo@netfilter.org>
+ <20161210141655.GA19963@salvia>
+ <20161210142501.GA25221@salvia>
+ <1481384408.4930.210.camel@edumazet-glaptop3.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f67.google.com ([209.85.213.67]:33238 "EHLO
-        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752184AbcLJX7o (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 10 Dec 2016 18:59:44 -0500
-Received: by mail-vk0-f67.google.com with SMTP id l126so2663702vkh.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 Dec 2016 15:59:43 -0800 (PST)
+Cc: netfilter-devel@vger.kernel.org, arnd@arndb.de,
+        netdev@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1481384408.4930.210.camel@edumazet-glaptop3.roam.corp.google.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-because the convention is to represent ports in base 10.
+On Sat, Dec 10, 2016 at 07:40:08AM -0800, Eric Dumazet wrote:
+> On Sat, 2016-12-10 at 15:25 +0100, Pablo Neira Ayuso wrote:
+> > On Sat, Dec 10, 2016 at 03:16:55PM +0100, Pablo Neira Ayuso wrote:
+> =
+> >  
+> > -       nft_counter_fetch(priv, &total, reset);
+> > +       nft_counter_fetch(priv, &total);
+> > +       if (reset)
+> > +               nft_counter_reset(priv, &total);
+> >  
+> >         if (nla_put_be64(skb, NFTA_COUNTER_BYTES,
+> > cpu_to_be64(total.bytes),
+> >                          NFTA_COUNTER_PAD) ||
+> 
+> Night be nitpicking, but you might reset the stats only if the
+> nla_put_be64() succeeded.
 
-gcc-workaround is no longer needed and was removed.
+Right, I've fixed this in the v2.
 
-Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
----
- include/datatype.h | 18 +++++++++++++++++-
- src/datatype.c     |  7 +++++--
- src/services.c     |  3 ++-
- 3 files changed, 24 insertions(+), 4 deletions(-)
+> But regardless of this detail, patch looks good and is very close to the
+> one I cooked and was about to send this morning.
 
-diff --git a/include/datatype.h b/include/datatype.h
-index a7db1df..cf76fcf 100644
---- a/include/datatype.h
-+++ b/include/datatype.h
-@@ -176,12 +176,28 @@ struct symbolic_constant {
- #define SYMBOL_LIST_END	(struct symbolic_constant) { }
- 
- /**
-+ * enum base
-+ *
-+ * @BASE_HEXADECIMAL:	hexadecimal
-+ * @BASE_DECIMAL:	decimal
-+ * @BASE_OCTAL:		octal
-+ * @BASE_BINARY:	binary
-+ */
-+enum base {
-+	BASE_HEXADECIMAL,
-+	BASE_DECIMAL,
-+	BASE_OCTAL,
-+	BASE_BINARY,
-+};
-+
-+/**
-  * struct symbol_table - type construction from symbolic values
-  *
-+ * @base:	base of symbols representation
-  * @symbols:	the symbols
-  */
- struct symbol_table {
--	int				gcc_workaround;
-+	enum base 			base;
- 	struct symbolic_constant	symbols[];
- };
- 
-diff --git a/src/datatype.c b/src/datatype.c
-index 5600efc..ec0b120 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -204,8 +204,11 @@ void symbol_table_print(const struct symbol_table *tbl,
- 		if (byteorder == BYTEORDER_BIG_ENDIAN)
- 			switch_byteorder(&value, len);
- 
--		printf("\t%-30s\t0x%.*" PRIx64 "\n",
--		       s->identifier, 2 * len, value);
-+		if (tbl->base == BASE_DECIMAL)
-+			printf("\t%-30s\t%20lu\n", s->identifier, value);
-+		else
-+			printf("\t%-30s\t0x%.*" PRIx64 "\n",
-+			       s->identifier, 2 * len, value);
- 	}
- }
- 
-diff --git a/src/services.c b/src/services.c
-index 0ba195e..83c2672 100644
---- a/src/services.c
-+++ b/src/services.c
-@@ -2,7 +2,8 @@
- #include <datatype.h>
- 
- const struct symbol_table inet_service_tbl = {
--	.symbols =	{
-+	.base		= BASE_DECIMAL,
-+	.symbols	= {
- 		SYMBOL("tcpmux",		__constant_htons(1)),
- 		SYMBOL("echo",			__constant_htons(7)),
- 		SYMBOL("discard",		__constant_htons(9)),
--- 
-2.7.4
-
+Thanks a lot!
