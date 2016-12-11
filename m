@@ -1,57 +1,37 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next] netfilter: nft_queue: use raw_smp_processor_id()
-Date: Sun, 11 Dec 2016 20:46:51 +0100
-Message-ID: <1481485611-2125-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH next] iptables: on revision mismatch, do not call
+ print/save
+Date: Sun, 11 Dec 2016 20:55:07 +0100
+Message-ID: <20161211195507.GA4829@salvia>
+References: <1481235401-46043-1-git-send-email-willemdebruijn.kernel@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+        Willem de Bruijn <willemb@google.com>
+To: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38398 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40150 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753620AbcLKTrF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 11 Dec 2016 14:47:05 -0500
+        id S1753592AbcLKTzQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 11 Dec 2016 14:55:16 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5BB187FC50
-        for <netfilter-devel@vger.kernel.org>; Sun, 11 Dec 2016 20:47:03 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id F2AFF7FC51
+        for <netfilter-devel@vger.kernel.org>; Sun, 11 Dec 2016 20:55:14 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4BFD8DA729
-        for <netfilter-devel@vger.kernel.org>; Sun, 11 Dec 2016 20:47:03 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E41E6DA843
+        for <netfilter-devel@vger.kernel.org>; Sun, 11 Dec 2016 20:55:14 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 240CADA729
-        for <netfilter-devel@vger.kernel.org>; Sun, 11 Dec 2016 20:46:57 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C6D15DA729
+        for <netfilter-devel@vger.kernel.org>; Sun, 11 Dec 2016 20:55:12 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <1481235401-46043-1-git-send-email-willemdebruijn.kernel@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Using smp_processor_id() causes splats with PREEMPT_RCU:
+On Thu, Dec 08, 2016 at 05:16:41PM -0500, Willem de Bruijn wrote:
+> From: Willem de Bruijn <willemb@google.com>
+> 
+> Between revisions, the layout of xtables data may change completely.
+> Do not interpret the data in a revision M with a module of revision N.
 
-[19379.552780] BUG: using smp_processor_id() in preemptible [00000000] code: ping/32389
-[19379.552793] caller is debug_smp_processor_id+0x17/0x19
-[...]
-[19379.552823] Call Trace:
-[19379.552832]  [<ffffffff81274e9e>] dump_stack+0x67/0x90
-[19379.552837]  [<ffffffff8129a4d4>] check_preemption_disabled+0xe5/0xf5
-[19379.552842]  [<ffffffff8129a4fb>] debug_smp_processor_id+0x17/0x19
-[19379.552849]  [<ffffffffa07c42dd>] nft_queue_eval+0x35/0x20c [nft_queue]
-
-No need to disable preemption since we only fetch the numeric value, so
-let's use raw_smp_processor_id() instead.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_queue.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nft_queue.c b/net/netfilter/nft_queue.c
-index 3e19fa1230dc..dbb6aaff67ec 100644
---- a/net/netfilter/nft_queue.c
-+++ b/net/netfilter/nft_queue.c
-@@ -38,7 +38,7 @@ static void nft_queue_eval(const struct nft_expr *expr,
- 
- 	if (priv->queues_total > 1) {
- 		if (priv->flags & NFT_QUEUE_FLAG_CPU_FANOUT) {
--			int cpu = smp_processor_id();
-+			int cpu = raw_smp_processor_id();
- 
- 			queue = priv->queuenum + cpu % priv->queues_total;
- 		} else {
--- 
-2.1.4
-
+Applied, thanks Willem.
