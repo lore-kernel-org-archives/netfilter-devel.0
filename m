@@ -1,59 +1,40 @@
-From: =?UTF-8?Q?Richard_M=c3=b6rbitz?= <richard.moerbitz@tu-dresden.de>
-Subject: Adding element to interval map consumes entire memory
-Date: Sun, 11 Dec 2016 15:20:16 +0100
-Message-ID: <044c1296-0e35-4224-459f-3482691a3462@tu-dresden.de>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next] netfilter: nft_counter: rework atomic dump
+ and reset
+Date: Sun, 11 Dec 2016 10:02:32 -0500 (EST)
+Message-ID: <20161211.100232.574425287368543127.davem@davemloft.net>
+References: <1481453040-2675-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout6.zih.tu-dresden.de ([141.30.67.75]:35757 "EHLO
-        mailout6.zih.tu-dresden.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753521AbcLKOmh (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 11 Dec 2016 09:42:37 -0500
-Received: from mail.zih.tu-dresden.de ([141.76.14.4])
-        by mailout6.zih.tu-dresden.de with esmtps (TLSv1.2:DHE-RSA-AES256-GCM-SHA384:256)
-        (Exim 4.84_2)
-        (envelope-from <richard.moerbitz@tu-dresden.de>)
-        id 1cG4zB-00022T-MS
-        for netfilter-devel@vger.kernel.org; Sun, 11 Dec 2016 15:20:17 +0100
-Received: from p5dc302bc.dip0.t-ipconnect.de ([93.195.2.188] helo=[192.168.2.103])
-        by server-50.mailclusterdns.zih.tu-dresden.de with esmtpsa (TLSv1.2:DHE-RSA-AES128-SHA:128)
-        (envelope-from <richard.moerbitz@tu-dresden.de>)
-        id 1cG4zB-0002sX-1P
-        for netfilter-devel@vger.kernel.org; Sun, 11 Dec 2016 15:20:17 +0100
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, eric.dumazet@gmail.com,
+        netdev@vger.kernel.org, arnd@arndb.de
+To: pablo@netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1481453040-2675-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Sun, 11 Dec 2016 11:43:59 +0100
 
-first of all: the build in use is the current master
-(c89a0801d07740eff531412fe35ea2c9faad82b0).
+> Dump and reset doesn't work unless cmpxchg64() is used both from packet
+> and control plane paths. This approach is going to be slow though.
+> Instead, use a percpu seqcount to fetch counters consistently, then
+> subtract bytes and packets in case a reset was requested.
+> 
+> The cpu that running over the reset code is guaranteed to own this stats
+> exclusively, we have to turn counters into signed 64bit though so stats
+> update on reset don't get wrong on underflow.
+> 
+> This patch is based on original sketch from Eric Dumazet.
+> 
+> Fixes: 43da04a593d8 ("netfilter: nf_tables: atomic dump and reset for stateful objects")
+> Suggested-by: Eric Dumazet <eric.dumazet@gmail.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> v2: adjust stats on reset on the current cpu, turn 64bit counters into signed.
+> 
+> @David: Please, take this into net-next to help speed up thing, thanks!
 
-We have a test setup running which consists of one table ("nat2") and an
-interval mapping ("subnettoip") of the type ipv4_addr -> ipv4_addr. The
-mapping is quite large (~16000 elements). One requirement of the system
-is that elements can be added and deleted during runtime.
-
-With that map constructed, adding a new element is not possible. NFT
-will terminate during reallocation, because no memory is left.
-
-GDB trace:
-http://pastebin.com/s7eyNEsH
-
-Valgrind leak check:
-http://pastebin.com/fkG5UQig
-
-Note that the test machine only has 2 GB of RAM, 1.6 of which are
-consumed by nft. So one question is: is it even possible to have enough
-memory in the final system, such that the required operation can be
-performed?
-
-The second question would be: why is it necessary to allocate that much
-memory? As I have found out by reading the code, all map elemtents are
-cached before performing the operation; they are even sorted. Is that
-really necessary for operations like adding map entries?
-
-Kind regards
-Richard
+Applied.
