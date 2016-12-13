@@ -1,45 +1,91 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nf_tables: fix oob access
-Date: Tue, 13 Dec 2016 13:59:33 +0100
-Message-ID: <1481633973-11621-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH net-next 13/27] bridge: use __vlan_hwaccel helpers
+Date: Tue, 13 Dec 2016 15:59:46 +0300
+Message-ID: <f5078470-0fc0-cfcd-36df-3ebb380b547a@cogentembedded.com>
+References: <cover.1481586602.git.mirq-linux@rere.qmqm.pl>
+ <e6e09a2f745a652382ac7859770ec16c75d8e149.1481586602.git.mirq-linux@rere.qmqm.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: "Pablo Neira Ayuso (supporter:NETFILTER ({IP ,IP6,ARP,EB,NF}TABLES))"
+        <pablo@netfilter.org>,
+        "Patrick McHardy (supporter:NETFILTER ({IP,IP6,ARP ,EB,NF}TABLES))"
+        <kaber@trash.net>,
+        "Jozsef Kadlecsik (supporter:NETFILTER ({IP,IP6,ARP,EB,NF}TABLES))"
+        <kadlec@blackhole.kfki.hu>,
+        "Stephen Hemminger (maintainer:ETHERNET BRIDGE)"
+        <stephen@networkplumber.org>,
+        "open list:NETFILTER ({IP,IP6,ARP,EB ,NF}TABLES)"
+        <netfilter-devel@vger.kernel.org>,
+        "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>
+To: =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>,
+        netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:41922 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750703AbcLMM7R (ORCPT
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:35378 "EHLO
+        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932312AbcLMM7t (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Dec 2016 07:59:17 -0500
+        Tue, 13 Dec 2016 07:59:49 -0500
+Received: by mail-wm0-f44.google.com with SMTP id a197so108524547wmd.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Dec 2016 04:59:48 -0800 (PST)
+In-Reply-To: <e6e09a2f745a652382ac7859770ec16c75d8e149.1481586602.git.mirq-linux@rere.qmqm.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-BUG: KASAN: slab-out-of-bounds in nf_tables_rule_destroy+0xf1/0x130 at addr ffff88006a4c35c8
-Read of size 8 by task nft/1607
+Hello!
 
-When we've destroyed last valid expr, nft_expr_next() returns an invalid expr.
-We must not dereference it unless it passes != nft_expr_last() check.
+On 12/13/2016 3:12 AM, Michał Mirosław wrote:
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- I dislike nft_expr_last() naming, it doesn't return last
- valid expression but an invalid address...
+> This removes assumption than vlan_tci != 0 when tag is present.
+>
+> Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
+> ---
+>  net/bridge/br_netfilter_hooks.c | 14 ++++++++------
+>  net/bridge/br_private.h         |  2 +-
+>  net/bridge/br_vlan.c            |  6 +++---
+>  3 files changed, 12 insertions(+), 10 deletions(-)
+>
+> diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+> index b12501a..2cc0747 100644
+> --- a/net/bridge/br_netfilter_hooks.c
+> +++ b/net/bridge/br_netfilter_hooks.c
+[...]
+> @@ -749,8 +747,12 @@ static int br_nf_dev_queue_xmit(struct net *net, struct sock *sk, struct sk_buff
+>
+>  		data = this_cpu_ptr(&brnf_frag_data_storage);
+>
+> -		data->vlan_tci = skb->vlan_tci;
+> -		data->vlan_proto = skb->vlan_proto;
+> +		if (skb_vlan_tag_present(skb)) {
+> +			data->vlan_tci = skb->vlan_tci;
+> +			data->vlan_proto = skb->vlan_proto;
+> +		} else
+> +			data->vlan_proto = 0;
 
- net/netfilter/nf_tables_api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+    CodingStyle: should use {} in all branches of *if* if at least one branch 
+has {}.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index a019a87e58ee..0db5f9782265 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2115,7 +2115,7 @@ static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
- 	 * is called on error from nf_tables_newrule().
- 	 */
- 	expr = nft_expr_first(rule);
--	while (expr->ops && expr != nft_expr_last(rule)) {
-+	while (expr != nft_expr_last(rule) && expr->ops) {
- 		nf_tables_expr_destroy(ctx, expr);
- 		expr = nft_expr_next(expr);
- 	}
--- 
-2.7.3
+[...]
+> diff --git a/net/bridge/br_vlan.c b/net/bridge/br_vlan.c
+> index b6de4f4..ef94664 100644
+> --- a/net/bridge/br_vlan.c
+> +++ b/net/bridge/br_vlan.c
+
+> @@ -444,8 +444,8 @@ static bool __allowed_ingress(const struct net_bridge *br,
+>  			__vlan_hwaccel_put_tag(skb, br->vlan_proto, pvid);
+>  		else
+>  			/* Priority-tagged Frame.
+> -			 * At this point, We know that skb->vlan_tci had
+> -			 * VLAN_TAG_PRESENT bit and its VID field was 0x000.
+> +			 * At this point, We know that skb->vlan_tci VID
+
+    s/We/we/.
+
+> +			 * field was 0x000.
+
+    Simply 0, maybe?
+
+[...]
+
+MBR, Sergei
 
