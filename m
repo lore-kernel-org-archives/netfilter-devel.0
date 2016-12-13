@@ -1,66 +1,63 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: nf_tables: fix oob access
-Date: Tue, 13 Dec 2016 16:29:04 +0100
-Message-ID: <20161213152904.GA2813@salvia>
-References: <1481633973-11621-1-git-send-email-fw@strlen.de>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Subject: Re: [PATCH] ARM: add cmpxchg64 helper for ARMv7-M
+Date: Tue, 13 Dec 2016 16:58:12 +0000
+Message-ID: <20161213165811.GZ14217@n2100.armlinux.org.uk>
+References: <20161210103646.1407256-1-arnd@arndb.de>
+ <20161210123234.GA5468@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44362 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933579AbcLMPhp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Dec 2016 10:37:45 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6F1287FC2D
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Dec 2016 16:29:24 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5C557DA814
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Dec 2016 16:29:24 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D5C66DA808
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Dec 2016 16:29:20 +0100 (CET)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: Arnd Bergmann <arnd@arndb.de>, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, coreteam@netfilter.org,
+ netfilter-devel@vger.kernel.org,
+ "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+ "David S. Miller" <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1481633973-11621-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20161210123234.GA5468@salvia>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Dec 13, 2016 at 01:59:33PM +0100, Florian Westphal wrote:
-> BUG: KASAN: slab-out-of-bounds in nf_tables_rule_destroy+0xf1/0x130 at addr ffff88006a4c35c8
-> Read of size 8 by task nft/1607
+On Sat, Dec 10, 2016 at 01:32:34PM +0100, Pablo Neira Ayuso wrote:
+> Hi Arnd,
 > 
-> When we've destroyed last valid expr, nft_expr_next() returns an invalid expr.
-> We must not dereference it unless it passes != nft_expr_last() check.
+> On Sat, Dec 10, 2016 at 11:36:34AM +0100, Arnd Bergmann wrote:
+> > A change to the netfilter code in net-next introduced the first caller of
+> > cmpxchg64 that can get built on ARMv7-M, leading to an error from the
+> > assembler that points out the lack of 64-bit atomics on this architecture:
+> > 
+> > /tmp/ccMe7djj.s: Assembler messages:
+> > /tmp/ccMe7djj.s:367: Error: selected processor does not support `ldrexd r0,r1,[lr]' in Thumb mode
+> > /tmp/ccMe7djj.s:371: Error: selected processor does not support `strexd ip,r2,r3,[lr]' in Thumb mode
+> > /tmp/ccMe7djj.s:389: Error: selected processor does not support `ldrexd r8,r9,[r7]' in Thumb mode
+> > /tmp/ccMe7djj.s:393: Error: selected processor does not support `strexd lr,r0,r1,[r7]' in Thumb mode
+> > scripts/Makefile.build:299: recipe for target 'net/netfilter/nft_counter.o' failed
+> > 
+> > This makes ARMv7-M use the same emulation from asm-generic/cmpxchg-local.h
+> > that we use on architectures earlier than ARMv6K, to fix the build. The
+> > 32-bit atomics are available on ARMv7-M and we keep using them there.
+> > This ARM specific change is probably something we should do regardless
+> > of the netfilter code.
+> > 
+> > However, looking at the new nft_counter_reset() function in nft_counter.c,
+> > this looks incorrect to me not just on ARMv7-M but also on other
+> > architectures, with at least the following possible race:
 > 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  I dislike nft_expr_last() naming, it doesn't return last
->  valid expression but an invalid address...
+> Right, Eric Dumazet already spotted this problem. I'm preparing a
+> patch that doesn't require cmpxchg64(). Will keep you on Cc. Thanks.
 
-Sure, send a patch for this, or simply update this oneliner in v2,
-your call.  Thanks.
+Please keep me on the Cc as well so I know what's happening, thanks.
 
->  net/netfilter/nf_tables_api.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index a019a87e58ee..0db5f9782265 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -2115,7 +2115,7 @@ static void nf_tables_rule_destroy(const struct nft_ctx *ctx,
->  	 * is called on error from nf_tables_newrule().
->  	 */
->  	expr = nft_expr_first(rule);
-> -	while (expr->ops && expr != nft_expr_last(rule)) {
-> +	while (expr != nft_expr_last(rule) && expr->ops) {
->  		nf_tables_expr_destroy(ctx, expr);
->  		expr = nft_expr_next(expr);
->  	}
-> -- 
-> 2.7.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
