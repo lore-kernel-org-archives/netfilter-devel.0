@@ -1,60 +1,61 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 2/2] segtree: don't trigger error on exact overlaps
-Date: Tue, 13 Dec 2016 01:42:55 +0100
-Message-ID: <1481589775-15168-2-git-send-email-pablo@netfilter.org>
-References: <1481589775-15168-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 1/2] segtree: wrong prefix expression length on interval_map_decompose()
+Date: Tue, 13 Dec 2016 01:42:54 +0100
+Message-ID: <1481589775-15168-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Cc: richard.moerbitz@tu-dresden.de
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36928 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36926 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752963AbcLMAnU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1753006AbcLMAnU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 12 Dec 2016 19:43:20 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D432AD162F
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Dec 2016 01:43:18 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BC863DA804
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Dec 2016 01:43:18 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7B6C0DA7F6
+        by mail.us.es (Postfix) with ESMTP id 6E638D1628
         for <netfilter-devel@vger.kernel.org>; Tue, 13 Dec 2016 01:43:16 +0100 (CET)
-In-Reply-To: <1481589775-15168-1-git-send-email-pablo@netfilter.org>
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5F481DA801
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Dec 2016 01:43:16 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0B0E0DA795
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Dec 2016 01:43:14 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-So adding the same element doesn't trigger any error:
+interval_map_decompose() sets expr->len to zero. This causes problems
+from expr_to_intervals() that calls range_expr_value_high() and
+calculates:
 
- # nft add element filter bogons { 3.3.3.123/24 }
- # nft add element filter bogons { 3.3.3.123/24 }
+	 expr->len - expr->prefix_len
 
-Still kernel reports an error if we use create instead:
+this operation underflows, then mpz_init_bitmask() allocates a huge
+bitmask.
 
- # nft create element filter bogons { 3.3.3.123/24 }
- <cmdline>:1:1-46: Error: Could not process rule: File exists
- create element filter bogons { 3.3.3.123/24 }
- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Use expr_value(i)->len given that we already use this to calculate the
+prefix length.
 
+Reported-by: Richard Mörbitz <richard.moerbitz@tu-dresden.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/segtree.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ src/segtree.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/src/segtree.c b/src/segtree.c
-index 45e5f5b22e2e..5b6cdd1d770d 100644
+index 32e071f6b5e8..45e5f5b22e2e 100644
 --- a/src/segtree.c
 +++ b/src/segtree.c
-@@ -336,6 +336,10 @@ static unsigned int expr_to_intervals(const struct expr *set,
- static bool interval_overlap(const struct elementary_interval *e1,
- 			     const struct elementary_interval *e2)
- {
-+	if (mpz_cmp(e1->left, e2->left) == 0 &&
-+	    mpz_cmp(e1->right, e2->right) == 0)
-+		return false;
+@@ -693,7 +693,8 @@ void interval_map_decompose(struct expr *set)
+ 			prefix_len = expr_value(i)->len - mpz_scan0(range, 0);
+ 			prefix = prefix_expr_alloc(&low->location, expr_value(low),
+ 						   prefix_len);
+-			prefix->len = low->len;
++			prefix->len = expr_value(i)->len;
 +
- 	return (mpz_cmp(e1->left, e2->left) >= 0 &&
- 	        mpz_cmp(e1->left, e2->right) <= 0) ||
- 	       (mpz_cmp(e1->right, e2->left) >= 0 &&
+ 			prefix = set_elem_expr_alloc(&low->location, prefix);
+ 			if (low->ops->type == EXPR_MAPPING)
+ 				prefix = mapping_expr_alloc(&low->location, prefix,
 -- 
 2.1.4
 
