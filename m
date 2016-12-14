@@ -1,73 +1,93 @@
-From: joseph.j.conley@gmail.com
-Subject: [PATCH] netfilter: conntrack: Fix ifdef checks for CONFIG_NF_CONNTRACK_MARK
-Date: Wed, 14 Dec 2016 16:35:57 -0500
-Message-ID: <1481751357-22893-1-git-send-email-joseph.j.conley@gmail.com>
-Cc: Joe Conley <joe.conley@lairdtech.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: nft_payload: mangle ckecksum if NFT_PAYLOAD_L4CSUM_PSEUDOHDR is set
+Date: Wed, 14 Dec 2016 23:16:35 +0100
+Message-ID: <1481753795-3422-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:33699 "EHLO
-        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752925AbcLNViS (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Dec 2016 16:38:18 -0500
-Received: by mail-io0-f195.google.com with SMTP id p13so6410598ioi.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Dec 2016 13:38:18 -0800 (PST)
+Received: from mail.us.es ([193.147.175.20]:34242 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752189AbcLNWQo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Dec 2016 17:16:44 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 4A3711122F
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Dec 2016 23:16:43 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3B232A7E1B
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Dec 2016 23:16:43 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 753B3A7E26
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Dec 2016 23:16:40 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Joe Conley <joe.conley@lairdtech.com>
+If the NFT_PAYLOAD_L4CSUM_PSEUDOHDR flag is set, then mangle layer 4
+checksum. This should not depend on csum_type NFT_PAYLOAD_CSUM_INET
+since IPv6 header has no checksum field, but still an update of any of
+the pseudoheader fields may trigger a layer 4 checksum update.
 
-Two missing ifdef checks for CONFIG_NF_CONNTRACK_MARK were causing
-EOPNOTSUPP to be returned. Every single place that cda[CTA_MARK] or cda[CTA_MARK_MASK]
-was checked was inside a #ifdef for CONFIG_NF_CONNTRACK_MARK except for these
-two places. The reason for this change stems from this commit:
-866476f323465a8afef10b14b48d5136bf5c51fe (netfilter: conntrack: Flush connections with a given mark)
-
-This allows conntrack -L to be ran succesfully when CONFIG_NF_CONNTRACK_MARK
-is not enabled.
-
-Signed-off-by: Joe Conley <joe.conley@lairdtech.com>
+Fixes: 1814096980bb ("netfilter: nft_payload: layer 4 checksum adjustment for pseudoheader fields")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_netlink.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ net/netfilter/nft_payload.c | 27 +++++++++++++++++++--------
+ 1 file changed, 19 insertions(+), 8 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 2754045..94146bd 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1107,13 +1107,13 @@ static int ctnetlink_flush_conntrack(struct net *net,
- 				     u32 portid, int report)
- {
- 	struct ctnetlink_filter *filter = NULL;
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 36d2b1096546..7d699bbd45b0 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -250,6 +250,22 @@ static int nft_payload_l4csum_update(const struct nft_pktinfo *pkt,
+ 	return 0;
+ }
+ 
++static int nft_payload_csum_inet(struct sk_buff *skb, const u32 *src,
++				 __wsum fsum, __wsum tsum, int csum_offset)
++{
++	__sum16 sum;
++
++	if (skb_copy_bits(skb, csum_offset, &sum, sizeof(sum)) < 0)
++		return -1;
++
++	nft_csum_replace(&sum, fsum, tsum);
++	if (!skb_make_writable(skb, csum_offset + sizeof(sum)) ||
++	    skb_store_bits(skb, csum_offset, &sum, sizeof(sum)) < 0)
++		return -1;
++
++	return 0;
++}
++
+ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 				 struct nft_regs *regs,
+ 				 const struct nft_pktinfo *pkt)
+@@ -259,7 +275,6 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 	const u32 *src = &regs->data[priv->sreg];
+ 	int offset, csum_offset;
+ 	__wsum fsum, tsum;
+-	__sum16 sum;
+ 
+ 	switch (priv->base) {
+ 	case NFT_PAYLOAD_LL_HEADER:
+@@ -282,18 +297,14 @@ static void nft_payload_set_eval(const struct nft_expr *expr,
+ 	csum_offset = offset + priv->csum_offset;
+ 	offset += priv->offset;
+ 
+-	if (priv->csum_type == NFT_PAYLOAD_CSUM_INET &&
++	if ((priv->csum_type == NFT_PAYLOAD_CSUM_INET || priv->csum_flags) &&
+ 	    (priv->base != NFT_PAYLOAD_TRANSPORT_HEADER ||
+ 	     skb->ip_summed != CHECKSUM_PARTIAL)) {
+-		if (skb_copy_bits(skb, csum_offset, &sum, sizeof(sum)) < 0)
+-			goto err;
 -
-+#ifdef CONFIG_NF_CONNTRACK_MARK
- 	if (cda[CTA_MARK] && cda[CTA_MARK_MASK]) {
- 		filter = ctnetlink_alloc_filter(cda);
- 		if (IS_ERR(filter))
- 			return PTR_ERR(filter);
- 	}
--
-+#endif
- 	nf_ct_iterate_cleanup(net, ctnetlink_filter_match, filter,
- 			      portid, report);
- 	kfree(filter);
-@@ -1192,7 +1192,7 @@ static int ctnetlink_get_conntrack(struct net *net, struct sock *ctnl,
- 			.dump = ctnetlink_dump_table,
- 			.done = ctnetlink_done,
- 		};
--
-+#ifdef CONFIG_NF_CONNTRACK_MARK
- 		if (cda[CTA_MARK] && cda[CTA_MARK_MASK]) {
- 			struct ctnetlink_filter *filter;
-
-@@ -1202,6 +1202,7 @@ static int ctnetlink_get_conntrack(struct net *net, struct sock *ctnl,
-
- 			c.data = filter;
- 		}
-+#endif
- 		return netlink_dump_start(ctnl, skb, nlh, &c);
- 	}
-
---
-2.7.4
+ 		fsum = skb_checksum(skb, offset, priv->len, 0);
+ 		tsum = csum_partial(src, priv->len, 0);
+-		nft_csum_replace(&sum, fsum, tsum);
+ 
+-		if (!skb_make_writable(skb, csum_offset + sizeof(sum)) ||
+-		    skb_store_bits(skb, csum_offset, &sum, sizeof(sum)) < 0)
++		if (priv->csum_type == NFT_PAYLOAD_CSUM_INET &&
++		    nft_payload_csum_inet(skb, src, fsum, tsum, csum_offset))
+ 			goto err;
+ 
+ 		if (priv->csum_flags &&
+-- 
+2.1.4
 
