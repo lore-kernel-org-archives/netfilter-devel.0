@@ -1,57 +1,98 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] netlink_linearize: fix IPv6 layer 4 checksum mangling
-Date: Wed, 14 Dec 2016 01:19:26 +0100
-Message-ID: <1481674767-24986-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34112 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752156AbcLNATz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Dec 2016 19:19:55 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AAA86C2B00
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Dec 2016 01:19:51 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9B86EDA851
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Dec 2016 01:19:51 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 584C6DA853
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Dec 2016 01:19:47 +0100 (CET)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Toshiaki Makita <makita.toshiaki@lab.ntt.co.jp>
+Subject: Re: [PATCH net-next 13/27] bridge: use __vlan_hwaccel
+	helpers
+Date: Wed, 14 Dec 2016 09:40:57 +0900
+Message-ID: <ca5bb9f1-16ef-c442-b6d7-eb6ae39dae48@lab.ntt.co.jp>
+References: <cover.1481586602.git.mirq-linux@rere.qmqm.pl>
+	<e6e09a2f745a652382ac7859770ec16c75d8e149.1481586602.git.mirq-linux@rere.qmqm.pl>
+	<f5078470-0fc0-cfcd-36df-3ebb380b547a@cogentembedded.com>
+	<20161213151110.yapgecrospdd23oj@rere.qmqm.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: 8bit
+Cc: netdev@vger.kernel.org,
+	"moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>,
+	"open list:NETFILTER \({IP, IP6, ARP, EB ,
+	NF}TABLES\)" <netfilter-devel@vger.kernel.org>,
+	"Jozsef Kadlecsik \(supporter:NETFILTER \({IP, IP6, ARP, EB,
+	NF}TABLES\)\)" <kadlec@blackhole.kfki.hu>,
+	"Patrick McHardy \(supporter:NETFILTER \({IP, IP6, ARP , EB,
+	NF}TABLES\)\)" <kaber@trash.net>,
+	"Pablo Neira Ayuso \(supporter:NETFILTER \({IP , IP6, ARP, EB,
+	NF}TABLES\)\)" <pablo@netfilter.org>
+To: =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+In-Reply-To: <20161213151110.yapgecrospdd23oj@rere.qmqm.pl>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
-In IPv6 there is no checksum field, so we have to trigger layer 4
-checksum mangling when layer 3 pseudoheader fields are updated
-inconditionally.
+On 2016/12/14 0:11, Micha³ Miros³aw wrote:
+> On Tue, Dec 13, 2016 at 03:59:46PM +0300, Sergei Shtylyov wrote:
+>> Hello!
+>>
+>> On 12/13/2016 3:12 AM, Micha³ Miros³aw wrote:
+>>
+>>> This removes assumption than vlan_tci != 0 when tag is present.
+>>>
+>>> Signed-off-by: Micha³ Miros³aw <mirq-linux@rere.qmqm.pl>
+>>> ---
+>>>  net/bridge/br_netfilter_hooks.c | 14 ++++++++------
+>>>  net/bridge/br_private.h         |  2 +-
+>>>  net/bridge/br_vlan.c            |  6 +++---
+>>>  3 files changed, 12 insertions(+), 10 deletions(-)
+>>>
+>>> diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+>>> index b12501a..2cc0747 100644
+>>> --- a/net/bridge/br_netfilter_hooks.c
+>>> +++ b/net/bridge/br_netfilter_hooks.c
+>> [...]
+>>> @@ -749,8 +747,12 @@ static int br_nf_dev_queue_xmit(struct net *net, struct sock *sk, struct sk_buff
+>>>
+>>>  		data = this_cpu_ptr(&brnf_frag_data_storage);
+>>>
+>>> -		data->vlan_tci = skb->vlan_tci;
+>>> -		data->vlan_proto = skb->vlan_proto;
+>>> +		if (skb_vlan_tag_present(skb)) {
+>>> +			data->vlan_tci = skb->vlan_tci;
+>>> +			data->vlan_proto = skb->vlan_proto;
+>>> +		} else
+>>> +			data->vlan_proto = 0;
+>>
+>>    CodingStyle: should use {} in all branches of *if* if at least one branch
+>> has {}.
+>>
+>> [...]
+>>> diff --git a/net/bridge/br_vlan.c b/net/bridge/br_vlan.c
+>>> index b6de4f4..ef94664 100644
+>>> --- a/net/bridge/br_vlan.c
+>>> +++ b/net/bridge/br_vlan.c
+>>
+>>> @@ -444,8 +444,8 @@ static bool __allowed_ingress(const struct net_bridge *br,
+>>>  			__vlan_hwaccel_put_tag(skb, br->vlan_proto, pvid);
+>>>  		else
+>>>  			/* Priority-tagged Frame.
+>>> -			 * At this point, We know that skb->vlan_tci had
+>>> -			 * VLAN_TAG_PRESENT bit and its VID field was 0x000.
+>>> +			 * At this point, We know that skb->vlan_tci VID
+>>
+>>    s/We/we/.
+>>
+>>> +			 * field was 0x000.
+>>
+>>    Simply 0, maybe?
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-Kernel patch is following up soon for nf.
+I originally wrote it like this because we are playing with bit field here.
+I meant that all of 12 bits are 0 thus we can safely perform bitwise-OR
+to update the VID field.
 
- src/netlink_linearize.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
-
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 4a0001a4ce17..0915038fecae 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -806,12 +806,11 @@ static void netlink_gen_payload_stmt(struct netlink_linearize_ctx *ctx,
- 				   NFT_PAYLOAD_CSUM_INET);
- 		nftnl_expr_set_u32(nle, NFTNL_EXPR_PAYLOAD_CSUM_OFFSET,
- 				   csum_off / BITS_PER_BYTE);
--
--		if (expr->payload.base == PROTO_BASE_NETWORK_HDR &&
--		    payload_needs_l4csum_update_pseudohdr(expr, desc))
--			nftnl_expr_set_u32(nle, NFTNL_EXPR_PAYLOAD_FLAGS,
--					   NFT_PAYLOAD_L4CSUM_PSEUDOHDR);
- 	}
-+	if (expr->payload.base == PROTO_BASE_NETWORK_HDR &&
-+	    payload_needs_l4csum_update_pseudohdr(expr, desc))
-+		nftnl_expr_set_u32(nle, NFTNL_EXPR_PAYLOAD_FLAGS,
-+				   NFT_PAYLOAD_L4CSUM_PSEUDOHDR);
- 
- 	nftnl_rule_add_expr(ctx->nlr, nle);
- }
--- 
-2.1.4
-
+Thanks,
+Toshiaki Makita
