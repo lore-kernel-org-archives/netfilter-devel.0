@@ -1,78 +1,103 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: RFC: nft.8 review
-Date: Tue, 20 Dec 2016 00:53:30 +0100
-Message-ID: <20161219235330.GA7565@salvia>
-References: <20161210102715.GA2955@orbyte.nwl.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] mnl: add mnl_nft_setelem_batch_flush() and use it from netlink_flush_setelems()
+Date: Tue, 20 Dec 2016 01:23:46 +0100
+Message-ID: <1482193426-11645-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39440 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44154 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753093AbcLSXxw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 19 Dec 2016 18:53:52 -0500
+        id S1752848AbcLTAX6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 19 Dec 2016 19:23:58 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 53310764A
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Dec 2016 00:53:48 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 4E5947642
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Dec 2016 01:23:54 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 452CEDA843
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Dec 2016 00:53:48 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3E557DA7F6
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Dec 2016 01:23:54 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 020F5DA843
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Dec 2016 00:53:46 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20161210102715.GA2955@orbyte.nwl.cc>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C097FDA804
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Dec 2016 01:23:50 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Phil,
+Commit 8bd99f2fca7e ("mnl: don't send empty set elements netlink message
+to kernel") broke set flush because we still need to send the set
+element netlink message header with no payload to flush sets.
 
-On Sat, Dec 10, 2016 at 11:27:16AM +0100, Phil Sutter wrote:
-> Hi,
-> 
-> I skimmed through nft man page and noted down problems I discovered.
-> While doing so, I got the idea to restructure the whole document for
-> better organization and comprehensibility but wanted to hear your
-> thoughts first before creating a ticket in netfilter BZ:
-> 
-> 
-> * Use BNF in synopses
-> 
-> This is rudimentally used in the SYNOPSIS section already, but just
-> lists _cmd_ without explanation - although the fun is only about to
-> start at this point. :)
-> 
-> What I really don't like is the syntax used in e.g. CHAINS section: it
-> is not only imprecise (nothing says you have to use 'priority <prio>'
-> but may not use 'table <table>', but also plain wrong when it comes to
-> the mandatory braces around the chain_block.
+To avoid more whack-a-mole games, add a new explicit function
+mnl_nft_setelem_batch_flush() that is used to request a set flush.
 
-Right, that needs a fix.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/mnl.h |  2 ++
+ src/mnl.c     | 15 +++++++++++++++
+ src/netlink.c | 14 +++++++++++++-
+ 3 files changed, 30 insertions(+), 1 deletion(-)
 
-> * Organize entity descriptions BNF-style
-> 
-> In my opinion the order of (sub-)sections is a bit chaotic at times.
-> E.g. RULES section synopsis tries to explain how a rule is made up from
-> statements, but these are not explained before five sections later (not
-> counting the bogus BLA section ;).
-> 
-> The idea here is to go from most generic to most specific, like things
-> are defined in yacc - just not as explicit, since if I want to know the
-> relation between concat_rhs_expr and shift_rhs_expr, I can just as well
-> read the code itself.
->
-> * What about sub-pages?
-> 
-> Looking at some expressions' descriptions, it seems like these might
-> grow exponentially with the documentation improving. So maybe it makes
-> sense to follow iptables' advice and have 'nft-extensions.8'? I would
-> have called it 'nft-statements.8' or 'nft-expressions.8' but the two are
-> too much intertwined to keep them separate.
-> 
-> OK, maybe this can wait until nft.8 really has become awfully long.
+diff --git a/include/mnl.h b/include/mnl.h
+index f74dfee5c8c6..87db96afd369 100644
+--- a/include/mnl.h
++++ b/include/mnl.h
+@@ -82,6 +82,8 @@ int mnl_nft_setelem_delete(struct mnl_socket *nf_sock, struct nftnl_set *nls,
+ 			   unsigned int flags);
+ int mnl_nft_setelem_batch_del(struct nftnl_set *nls,
+ 			      unsigned int flags, uint32_t seq);
++int mnl_nft_setelem_batch_flush(struct nftnl_set *nls, unsigned int flags,
++				uint32_t seqnum);
+ int mnl_nft_setelem_get(struct mnl_socket *nf_sock, struct nftnl_set *nls);
+ 
+ struct nftnl_ruleset *mnl_nft_ruleset_dump(struct mnl_socket *nf_sock,
+diff --git a/src/mnl.c b/src/mnl.c
+index d107015c2743..257b630e2a26 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -902,6 +902,21 @@ int mnl_nft_setelem_batch_add(struct nftnl_set *nls, unsigned int flags,
+ 	return mnl_nft_setelem_batch(nls, NFT_MSG_NEWSETELEM, flags, seqnum);
+ }
+ 
++int mnl_nft_setelem_batch_flush(struct nftnl_set *nls, unsigned int flags,
++				uint32_t seqnum)
++{
++	struct nlmsghdr *nlh;
++
++	nlh = nftnl_set_elem_nlmsg_build_hdr(nftnl_batch_buffer(batch),
++			NFT_MSG_DELSETELEM,
++			nftnl_set_get_u32(nls, NFTNL_SET_FAMILY),
++			NLM_F_CREATE | flags, seqnum);
++	nftnl_set_elems_nlmsg_build_payload(nlh, nls);
++	mnl_nft_batch_continue();
++
++	return 0;
++}
++
+ int mnl_nft_setelem_batch_del(struct nftnl_set *nls, unsigned int flags,
+ 			      uint32_t seqnum)
+ {
+diff --git a/src/netlink.c b/src/netlink.c
+index 714df4e892b2..d6d00199d746 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -1410,7 +1410,19 @@ static int netlink_del_setelems_compat(struct netlink_ctx *ctx,
+ int netlink_flush_setelems(struct netlink_ctx *ctx, const struct handle *h,
+ 			   const struct location *loc)
+ {
+-	return netlink_del_setelems_batch(ctx, h, NULL);
++	struct nftnl_set *nls;
++	int err;
++
++	nls = alloc_nftnl_set(h);
++	netlink_dump_set(nls);
++
++	err = mnl_nft_setelem_batch_flush(nls, 0, ctx->seqnum);
++	nftnl_set_free(nls);
++	if (err < 0)
++		netlink_io_error(ctx, loc,
++				 "Could not flush set elements: %s",
++				 strerror(errno));
++	return err;
+ }
+ 
+ static struct expr *netlink_parse_concat_elem(const struct datatype *dtype,
+-- 
+2.1.4
 
-Yes, let's wait a bit for the split.
-
-> Comments, flame, donations highly appreciated, of course!
-
-Patches are very welcome!
