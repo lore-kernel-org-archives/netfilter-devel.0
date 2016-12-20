@@ -1,37 +1,36 @@
-From: Llorente Santos Jesus <jesus.llorente.santos@aalto.fi>
-Subject: How to leverage  IP & UDP checksum offloading from iptables kernel
- module?
-Date: Tue, 20 Dec 2016 11:25:06 +0000
-Message-ID: <f9f1b6c9622444c7bc492425f408ea3f@aalto.fi>
+From: Arturo Borrero Gonzalez <arturo@debian.org>
+Subject: Re: Feature request: Load u32 value into packet mark
+Date: Tue, 20 Dec 2016 13:17:56 +0100
+Message-ID: <CAOkSjBhT-dyAcgajjiwo3cWLFDkKfaEO7hrbTt174PGVgrN5BA@mail.gmail.com>
+References: <4ea9be0e2a17475485a0b3e6bccc19d3@aalto.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Llorente Santos Jesus <jesus.llorente.santos@aalto.fi>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-out-01.aalto.fi ([130.233.228.120]:54242 "EHLO
-        smtp-out-01.aalto.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756355AbcLTLZJ (ORCPT
+Received: from mail-it0-f52.google.com ([209.85.214.52]:38742 "EHLO
+        mail-it0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1763173AbcLTMSS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Dec 2016 06:25:09 -0500
-Received: from smtp-out-01.aalto.fi (localhost.localdomain [127.0.0.1])
-        by localhost (Email Security Appliance) with SMTP id 214B711543B_8591513B
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Dec 2016 11:25:07 +0000 (GMT)
-Received: from exng1.org.aalto.fi (exng1.org.aalto.fi [130.233.223.20])
-        by smtp-out-01.aalto.fi (Sophos Email Appliance) with ESMTP id E50DF115429_8591512F
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Dec 2016 11:25:06 +0000 (GMT)
-Content-Language: en-US
+        Tue, 20 Dec 2016 07:18:18 -0500
+Received: by mail-it0-f52.google.com with SMTP id x2so21504193itf.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Dec 2016 04:18:17 -0800 (PST)
+Received: from mail-io0-f175.google.com (mail-io0-f175.google.com. [209.85.223.175])
+        by smtp.gmail.com with ESMTPSA id e68sm10172593ioj.39.2016.12.20.04.18.16
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 20 Dec 2016 04:18:16 -0800 (PST)
+Received: by mail-io0-f175.google.com with SMTP id h30so177556017iod.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Dec 2016 04:18:16 -0800 (PST)
+In-Reply-To: <4ea9be0e2a17475485a0b3e6bccc19d3@aalto.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On 20 December 2016 at 12:24, Llorente Santos Jesus
+<jesus.llorente.santos@aalto.fi> wrote:
+> Hi,
+>
+> I have been playing quite a bit with iptables lately. Ever since the ipset was updated to support hash:ip,mark sets, there has been the potential to apply efficient matching on packet marks.
+> Does it make any sense to you to develop a new extension that following U32 and MARK syntax would allow us to read a 32bit value  and load it onto the packet mark ?
 
-I was trying to build an iptables extension that mangles IPv4 / UDP packets. I want to create a stateless NAT mechanism to mangle either source or destination similar to RAWDNAT/RAWSNAT targets of xtables-addons (http://manpages.ubuntu.com/manpages/precise/man8/xtables-addons.8.html)
-
-However, I wanted to offload the checksum calculation to the NIC, if the feature is supported. I have been looking into the kernel files, skb, ip_forward modules and so on, but I couldn't get a clear picture on how to leverage the offloading to save some CPU cycles and compare both approaches, with and without the offloading.
-
-Any help would be highly appreciated! Thanks!
-
-Best,
-Jesus
-
-
+It guess what makes sense is to switch to nftables :-)
