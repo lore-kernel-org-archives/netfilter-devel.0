@@ -1,152 +1,105 @@
-From: Tom Hacohen <tom@stosb.com>
-Subject: Re: nftables: masquerade sets wrong source address
-Date: Tue, 20 Dec 2016 15:16:14 +0000
-Message-ID: <CAEvi_o-7soTh5vPqniCo76Szbf7J1y6nwwD-YqJ5uJvOYSeVHw@mail.gmail.com>
-References: <CAEvi_o9_SJNGH-RWq6Kt+UiXVY4ozaMy3yJ2rPdV0Rbk1QrRZw@mail.gmail.com>
- <CAML_gOdZn8UmZzeDWd6q--U9+f+SzBLMppCEtdCFsZ4rrTZ24A@mail.gmail.com>
+From: mark diener <rpzrpzrpz@gmail.com>
+Subject: Re: RFC: nft.8 review
+Date: Tue, 20 Dec 2016 10:27:45 -0600
+Message-ID: <CAChgv6pVKFz3fH5yGCA+8av84=c_2Ob25hy5AcTL=YLzw+n7Aw@mail.gmail.com>
+References: <20161210102715.GA2955@orbyte.nwl.cc> <20161219235330.GA7565@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter@vger.kernel.org,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Liping Zhang <zlpnobody@gmail.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <CAML_gOdZn8UmZzeDWd6q--U9+f+SzBLMppCEtdCFsZ4rrTZ24A@mail.gmail.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-oi0-f46.google.com ([209.85.218.46]:32973 "EHLO
+        mail-oi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933840AbcLTQ1r (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 20 Dec 2016 11:27:47 -0500
+Received: by mail-oi0-f46.google.com with SMTP id w63so183024507oiw.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Dec 2016 08:27:47 -0800 (PST)
+In-Reply-To: <20161219235330.GA7565@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Dec 17, 2016 at 2:18 PM, Liping Zhang <zlpnobody@gmail.com> wrote:
-> According to the explanations in nftables wifi:
-> https://wiki.nftables.org/wiki-nftables/index.php/Performing_Network_Address_Translation_(NAT)
+Will the V8 NFT have byte level protocol compatibility with current
+linux kernel versions?
+
+I am deployed on kernel  4.4.0-53-generic and would like to know when
+structural defines like RTM_NEWADDR,NLM_F_REQUEST, etc become updated
+or obsoleted.
+
+As you can likely tell, I am not using libmnl or libnft but using
+direct NETFILTER kernel calls.
+
+What a challenge to scan the code and reverse-engineer the byte
+sequences and understand the way the NFT virtual machine works in the
+kernel.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+On Mon, Dec 19, 2016 at 5:53 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Hi Phil,
 >
-> You should add the following nft rules(I agree this is tricky and
-> unfriendly for the end user):
-> # nft add chain nat prerouting { type nat hook prerouting priority 0 \; }
->
-> But unfortunately,  even if you add the above rule, you will still fail to
-> connect to a local server.
->
-
-Correct, doesn't change anything.
-
-> Now add another nft rules listed below, you can probably make everything
-> work fine:
-> # nft add chain nat output { type nat hook output priority 0 \; }
->
-
-Haven't tried it. Why would it change things? Have you tried it?
-
-> [ cc netfilter-dev group ]
->
-> For loopback connection, the request packets will traverse:
-> OUTPUT->POSTROUTING->PREROUTING->INPUT
-> and the source ip will be modified in nat POSTROUTING hook.
-
-The problem is that the IP incorrectly changes to the wrong one.
-
->
-> Meanwhile the reply packets will also traverse:
-> OUTPUT->POSTROUTING->PREROUTING->INPUT
-> and if nat OUTPUT hook exist, the destination ip will be modified
-> in it, and re-route will happen. Otherwise, the destination ip will
-> be modified at nat PREROUTING hook, and the dst entry will
-> be dropped. In such situation(i.e. nat OUTPUT doesn't exist),
-> we will try to do routing lookup and packets will be dropped
-> at ip_route_input_slow->martian_destination.
-
-I think that all throughout this thread we've been analysing the
-behaviour in the broken scenario
-instead of just fixing it (which I see your latest patch may actually
-do, and that's good).
-It doesn't matter where the packet goes through after it's been
-wrongly rewritten, the
-problem is that it has.
-
->
-> Furthermore, if ipt_rpfilter is configured, the reply packet maybe
-> dropped at there.
->
-
-It's off.
-
-
-> In iptables, nat output chain always exists, so there's no
-> such problem.
->
-> But I think that enforcing the user to add a nat output chain
-> in nftables is not a good idea, so probably we need a following
-> patch(I only list the ipv4 part):
-
-Interesting. Maybe that's why it continued to work after iptables has
-already been loaded on the box.
-As said above though, I believe the problem is the masquerade setting
-the wrong ip, and not (only?)
-the fact that my setup happens to work with iptables but doesn't with nftables.
-
-Don't you agree?
-
-Thanks,
-Tom.
-
->
-> diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-> b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-> index f8aad03..5bc9b22 100644
-> --- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-> +++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-> @@ -344,8 +344,21 @@ nf_nat_ipv4_in(void *priv, struct sk_buff *skb,
->
->         ret = nf_nat_ipv4_fn(priv, skb, state, do_chain);
->         if (ret != NF_DROP && ret != NF_STOLEN &&
-> -           daddr != ip_hdr(skb)->daddr)
-> -               skb_dst_drop(skb);
-> +           daddr != ip_hdr(skb)->daddr) {
-> +               const struct rtable *rt = skb_rtable(skb);
-> +               int err;
-> +
-> +               if (rt) {
-> +                       if (rt->rt_flags & RTCF_LOCAL) {
-> +                               err = ip_route_me_harder(state->net, skb,
-> +                                                        RTN_UNSPEC);
-> +                               if (err < 0)
-> +                                       ret = NF_DROP_ERR(err);
-> +                       } else {
-> +                               skb_dst_drop(skb);
-> +                       }
-> +               }
-> +       }
->
->         return ret;
->  }
->
+> On Sat, Dec 10, 2016 at 11:27:16AM +0100, Phil Sutter wrote:
+>> Hi,
 >>
->> With this, connections to localhost fail because the masquerade line
->> sets the source IP to that of the wlp1s0 interface, and not of the lo
->> interface.
+>> I skimmed through nft man page and noted down problems I discovered.
+>> While doing so, I got the idea to restructure the whole document for
+>> better organization and comprehensibility but wanted to hear your
+>> thoughts first before creating a ticket in netfilter BZ:
 >>
->> Here is output from the log:
->> IN=lo OUT= MAC=00:00:00:00:00:00:00:00:00:00:00:00:08:00
->> SRC=192.168.86.18 DST=127.0.0.1 LEN=60 TOS=0x00 PREC=0x00 TTL=64
->> ID=64500 DF PROTO=TCP SPT=36844 DPT=8000 WINDOW=43690 RES=0x00 SYN
->> URGP=0
 >>
->> You can see how the source ip is wrong. This is from running "curl"
->> trying to connect to a local http server on port 8000.
+>> * Use BNF in synopses
 >>
->> Removing the masquerade line, or changing it to: "oifname wlp1s0
->> masquerade" fixes it, but this is just a workaround that will fail in
->> more complex situations.
+>> This is rudimentally used in the SYNOPSIS section already, but just
+>> lists _cmd_ without explanation - although the fun is only about to
+>> start at this point. :)
 >>
->> I would have loved to provide you with tracing information, but
->> unfortunately I never got that to work for me.
+>> What I really don't like is the syntax used in e.g. CHAINS section: it
+>> is not only imprecise (nothing says you have to use 'priority <prio>'
+>> but may not use 'table <table>', but also plain wrong when it comes to
+>> the mandatory braces around the chain_block.
+>
+> Right, that needs a fix.
+>
+>> * Organize entity descriptions BNF-style
 >>
->> Tried with kernels: 4.8.12 and 4.4.35 on arch linux. Nft version is 0.6.
+>> In my opinion the order of (sub-)sections is a bit chaotic at times.
+>> E.g. RULES section synopsis tries to explain how a rule is made up from
+>> statements, but these are not explained before five sections later (not
+>> counting the bogus BLA section ;).
 >>
->> Please let me know if there's any other info you'd like me to provide you with.
+>> The idea here is to go from most generic to most specific, like things
+>> are defined in yacc - just not as explicit, since if I want to know the
+>> relation between concat_rhs_expr and shift_rhs_expr, I can just as well
+>> read the code itself.
 >>
->> Thanks,
->> Tom.
->> --
->> To unsubscribe from this list: send the line "unsubscribe netfilter" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> * What about sub-pages?
+>>
+>> Looking at some expressions' descriptions, it seems like these might
+>> grow exponentially with the documentation improving. So maybe it makes
+>> sense to follow iptables' advice and have 'nft-extensions.8'? I would
+>> have called it 'nft-statements.8' or 'nft-expressions.8' but the two are
+>> too much intertwined to keep them separate.
+>>
+>> OK, maybe this can wait until nft.8 really has become awfully long.
+>
+> Yes, let's wait a bit for the split.
+>
+>> Comments, flame, donations highly appreciated, of course!
+>
+> Patches are very welcome!
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
