@@ -1,55 +1,61 @@
-From: maowenan <maowenan@huawei.com>
-Subject: RE: libmnl compile failure.
-Date: Wed, 21 Dec 2016 04:26:45 +0000
-Message-ID: <F95AC9340317A84688A5F0DF0246F3F20151E85F@szxeml504-mbs.china.huawei.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: libmnl compile failure.
+Date: Wed, 21 Dec 2016 12:28:48 +0100
+Message-ID: <20161221112848.GA5346@breakpoint.cc>
 References: <1758bff0-40b1-a404-e225-eff504c6a1d7@huawei.com>
  <20161219084921.GV13857@orbyte.nwl.cc>
+ <F95AC9340317A84688A5F0DF0246F3F20151E85F@szxeml504-mbs.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Phil Sutter <phil@nwl.cc>
+Content-Type: text/plain; charset=us-ascii
+Cc: Phil Sutter <phil@nwl.cc>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: maowenan <maowenan@huawei.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:65475 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754476AbcLUE1D (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:40304 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751252AbcLUL3T (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Dec 2016 23:27:03 -0500
-In-Reply-To: <20161219084921.GV13857@orbyte.nwl.cc>
-Content-Language: zh-CN
+        Wed, 21 Dec 2016 06:29:19 -0500
+Content-Disposition: inline
+In-Reply-To: <F95AC9340317A84688A5F0DF0246F3F20151E85F@szxeml504-mbs.china.huawei.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-
-> -----Original Message-----
-> From: Phil Sutter [mailto:phil@nwl.cc]
-> Sent: Monday, December 19, 2016 4:49 PM
-> To: maowenan
-> Cc: netfilter-devel@vger.kernel.org
-> Subject: Re: libmnl compile failure.
+maowenan <maowenan@huawei.com> wrote:
 > 
-> Hi,
 > 
-> On Fri, Dec 16, 2016 at 08:54:59AM +0800, maowenan wrote:
-> > There is something wrong when I make libmnl, could you please help check?
+> > -----Original Message-----
+> > From: Phil Sutter [mailto:phil@nwl.cc]
+> > Sent: Monday, December 19, 2016 4:49 PM
+> > To: maowenan
+> > Cc: netfilter-devel@vger.kernel.org
+> > Subject: Re: libmnl compile failure.
+> > 
+> > Hi,
+> > 
+> > On Fri, Dec 16, 2016 at 08:54:59AM +0800, maowenan wrote:
+> > > There is something wrong when I make libmnl, could you please help check?
+> > 
+> > There is no error message in the output you pasted. Looks like you're calling
+> > 'make' in an already built source tree, so nothing needs to be done. Do you see
+> > the binaries in src/.libs?
+> > 
+> > Cheers, Phil
 > 
-> There is no error message in the output you pasted. Looks like you're calling
-> 'make' in an already built source tree, so nothing needs to be done. Do you see
-> the binaries in src/.libs?
+>                                         Local
+>                                             process
+>                                               ^  |                 .-----------.
+>                    .-----------.              |  |                 |  Routing  |
+>                    |           |-----> input /    \---> output --->|  Decision |----
+> --> prerouting --->|  Routing  |                                   .-----------.    \
+>                    | Decision  |                                                     --> postrouting
+>                    |           |                                                    /
+>                    |           |---------------> forward --------------------------- 
+>                    .-----------.
 > 
-> Cheers, Phil
+> Is nftables output chain before routing decision? I think output is after routing decision, Is it wrong with above graphic?
 
-                                        Local
-                                            process
-                                              ^  |                 .-----------.
-                   .-----------.              |  |                 |  Routing  |
-                   |           |-----> input /    \---> output --->|  Decision |----
---> prerouting --->|  Routing  |                                   .-----------.    \
-                   | Decision  |                                                     --> postrouting
-                   |           |                                                    /
-                   |           |---------------> forward --------------------------- 
-                   .-----------.
+Yes, the graph is wrong.
 
-Is nftables output chain before routing decision? I think output is after routing decision, Is it wrong with above graphic?
-https://wiki.nftables.org/wiki-nftables/index.php/Netfilter_hooks
+Output is after routing (which is why we need 'mangle' table in iptables
+for rerouting and nftables' "route" chain property).
