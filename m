@@ -1,77 +1,55 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: nftables: masquerade sets wrong source address
-Date: Wed, 21 Dec 2016 10:39:24 +0800
-Message-ID: <CAML_gOfxzY9iWefK8Vw8kxYXNmOrZBmouO=PfMxtyz4jfp=13g@mail.gmail.com>
-References: <CAEvi_o9_SJNGH-RWq6Kt+UiXVY4ozaMy3yJ2rPdV0Rbk1QrRZw@mail.gmail.com>
- <CAML_gOdZn8UmZzeDWd6q--U9+f+SzBLMppCEtdCFsZ4rrTZ24A@mail.gmail.com> <CAEvi_o-7soTh5vPqniCo76Szbf7J1y6nwwD-YqJ5uJvOYSeVHw@mail.gmail.com>
+From: maowenan <maowenan@huawei.com>
+Subject: RE: libmnl compile failure.
+Date: Wed, 21 Dec 2016 04:26:45 +0000
+Message-ID: <F95AC9340317A84688A5F0DF0246F3F20151E85F@szxeml504-mbs.china.huawei.com>
+References: <1758bff0-40b1-a404-e225-eff504c6a1d7@huawei.com>
+ <20161219084921.GV13857@orbyte.nwl.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter@vger.kernel.org,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Tom Hacohen <tom@stosb.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <CAEvi_o-7soTh5vPqniCo76Szbf7J1y6nwwD-YqJ5uJvOYSeVHw@mail.gmail.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Phil Sutter <phil@nwl.cc>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:65475 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754476AbcLUE1D (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 20 Dec 2016 23:27:03 -0500
+In-Reply-To: <20161219084921.GV13857@orbyte.nwl.cc>
+Content-Language: zh-CN
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-2016-12-20 23:16 GMT+08:00 Tom Hacohen <tom@stosb.com>:
-> On Sat, Dec 17, 2016 at 2:18 PM, Liping Zhang <zlpnobody@gmail.com> wrote:
->> According to the explanations in nftables wifi:
->> https://wiki.nftables.org/wiki-nftables/index.php/Performing_Network_Address_Translation_(NAT)
->>
->> You should add the following nft rules(I agree this is tricky and
->> unfriendly for the end user):
->> # nft add chain nat prerouting { type nat hook prerouting priority 0 \; }
->>
->> But unfortunately,  even if you add the above rule, you will still fail to
->> connect to a local server.
->>
->
-> Correct, doesn't change anything.
->
->> Now add another nft rules listed below, you can probably make everything
->> work fine:
->> # nft add chain nat output { type nat hook output priority 0 \; }
->>
->
-> Haven't tried it. Why would it change things? Have you tried it?
 
-I tried it and it did take effect. But my test scenario may be
-different with yours.
-So can you try it?
 
-[...]
->> In iptables, nat output chain always exists, so there's no
->> such problem.
->>
->> But I think that enforcing the user to add a nat output chain
->> in nftables is not a good idea, so probably we need a following
->> patch(I only list the ipv4 part):
->
-> Interesting. Maybe that's why it continued to work after iptables has
-> already been loaded on the box.
-> As said above though, I believe the problem is the masquerade setting
-> the wrong ip, and not (only?)
-> the fact that my setup happens to work with iptables but doesn't with nftables.
+> -----Original Message-----
+> From: Phil Sutter [mailto:phil@nwl.cc]
+> Sent: Monday, December 19, 2016 4:49 PM
+> To: maowenan
+> Cc: netfilter-devel@vger.kernel.org
+> Subject: Re: libmnl compile failure.
+> 
+> Hi,
+> 
+> On Fri, Dec 16, 2016 at 08:54:59AM +0800, maowenan wrote:
+> > There is something wrong when I make libmnl, could you please help check?
+> 
+> There is no error message in the output you pasted. Looks like you're calling
+> 'make' in an already built source tree, so nothing needs to be done. Do you see
+> the binaries in src/.libs?
+> 
+> Cheers, Phil
 
-As I analyzed, the main difference is that nat OUTPUT hook always
-exist in iptables, so the reply packet's destination ip address will be modified
-in OUTPUT hook. While in nftables, without nft output chain, the reply packet's
-destination ip address will be modified in PREROUTING hook. Then we try to
-do routing lookup, and the packets will be dropped because the incoming packets'
-destination ip address is 127.0.0.1
+                                        Local
+                                            process
+                                              ^  |                 .-----------.
+                   .-----------.              |  |                 |  Routing  |
+                   |           |-----> input /    \---> output --->|  Decision |----
+--> prerouting --->|  Routing  |                                   .-----------.    \
+                   | Decision  |                                                     --> postrouting
+                   |           |                                                    /
+                   |           |---------------> forward --------------------------- 
+                   .-----------.
 
-But I think that enforcing the user  to add the following nft rule is
-not friendly:
-# nft add chain nat output { type nat hook output priority 0 \; }
-
-This will become more tricky. Do you agree with this?
-
-So I send the related patch to try to improve it.
-
->
-> Don't you agree?
->
-> Thanks,
-> Tom.
+Is nftables output chain before routing decision? I think output is after routing decision, Is it wrong with above graphic?
+https://wiki.nftables.org/wiki-nftables/index.php/Netfilter_hooks
