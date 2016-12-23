@@ -1,409 +1,675 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 02/10] src: remove SET_F_* flag definitions
-Date: Fri, 23 Dec 2016 15:26:47 +0100
-Message-ID: <1482503215-25422-2-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 04/10] src: listing of stateful objects
+Date: Fri, 23 Dec 2016 15:26:49 +0100
+Message-ID: <1482503215-25422-4-git-send-email-pablo@netfilter.org>
 References: <1482503215-25422-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40166 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40168 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S941155AbcLWO1O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S941139AbcLWO1O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 23 Dec 2016 09:27:14 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A47ED2519A9
+        by mail.us.es (Postfix) with ESMTP id C0B442519A7
         for <netfilter-devel@vger.kernel.org>; Fri, 23 Dec 2016 15:27:12 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 922EE8E66A
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AACED8E66A
         for <netfilter-devel@vger.kernel.org>; Fri, 23 Dec 2016 15:27:12 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 620398E677
-        for <netfilter-devel@vger.kernel.org>; Fri, 23 Dec 2016 15:27:08 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EF1E48E66D
+        for <netfilter-devel@vger.kernel.org>; Fri, 23 Dec 2016 15:27:09 +0100 (CET)
 In-Reply-To: <1482503215-25422-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-They map exactly one to one to we have in the kernel headers, so use
-kernel definitions instead.
+This patch allows you to dump existing stateful objects, eg.
+
+ # nft list ruleset
+ table ip filter {
+        counter test {
+                packets 64 bytes 1268
+        }
+
+        quota test {
+                over 1 mbytes used 1268 bytes
+        }
+
+        chain input {
+                type filter hook input priority 0; policy accept;
+                quota name test drop
+                counter name test
+        }
+ }
+
+ # nft list quotas
+ table ip filter {
+        quota test {
+                over 1 mbytes used 1268 bytes
+        }
+ }
+ # nft list counters
+ table ip filter {
+        counter test {
+                packets 64 bytes 1268
+        }
+ }
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/rule.h     | 15 ---------------
- src/evaluate.c     | 34 +++++++++++++++++-----------------
- src/expression.c   |  4 ++--
- src/netlink.c      |  8 ++++----
- src/parser_bison.y |  6 +++---
- src/rule.c         | 32 ++++++++++++++++----------------
- src/segtree.c      |  4 ++--
- 7 files changed, 44 insertions(+), 59 deletions(-)
+ include/mnl.h       |   2 +
+ include/netlink.h   |   4 ++
+ include/rule.h      |  51 +++++++++++++++++++
+ include/statement.h |   3 ++
+ src/evaluate.c      |   2 +
+ src/mnl.c           |  59 ++++++++++++++++++++++
+ src/netlink.c       |  67 +++++++++++++++++++++++++
+ src/parser_bison.y  |  30 ++++++++++-
+ src/rule.c          | 140 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/scanner.l       |   3 ++
+ src/statement.c     |   2 +-
+ 11 files changed, 360 insertions(+), 3 deletions(-)
 
+diff --git a/include/mnl.h b/include/mnl.h
+index 87db96afd369..ad036aefabbd 100644
+--- a/include/mnl.h
++++ b/include/mnl.h
+@@ -86,6 +86,8 @@ int mnl_nft_setelem_batch_flush(struct nftnl_set *nls, unsigned int flags,
+ 				uint32_t seqnum);
+ int mnl_nft_setelem_get(struct mnl_socket *nf_sock, struct nftnl_set *nls);
+ 
++struct nftnl_obj_list *mnl_nft_obj_dump(struct mnl_socket *nf_sock, int family,
++					const char *table);
+ struct nftnl_ruleset *mnl_nft_ruleset_dump(struct mnl_socket *nf_sock,
+ 					 uint32_t family);
+ int mnl_nft_event_listener(struct mnl_socket *nf_sock,
+diff --git a/include/netlink.h b/include/netlink.h
+index 363b5251968f..ce577871761f 100644
+--- a/include/netlink.h
++++ b/include/netlink.h
+@@ -6,6 +6,7 @@
+ #include <libnftnl/rule.h>
+ #include <libnftnl/expr.h>
+ #include <libnftnl/set.h>
++#include <libnftnl/object.h>
+ 
+ #include <linux/netlink.h>
+ #include <linux/netfilter/nf_tables.h>
+@@ -168,6 +169,9 @@ extern int netlink_get_setelems(struct netlink_ctx *ctx, const struct handle *h,
+ extern int netlink_flush_setelems(struct netlink_ctx *ctx, const struct handle *h,
+ 				  const struct location *loc);
+ 
++extern int netlink_list_objs(struct netlink_ctx *ctx, const struct handle *h,
++			       const struct location *loc);
++
+ extern void netlink_dump_table(const struct nftnl_table *nlt);
+ extern void netlink_dump_chain(const struct nftnl_chain *nlc);
+ extern void netlink_dump_rule(const struct nftnl_rule *nlr);
 diff --git a/include/rule.h b/include/rule.h
-index b9b4a19c9731..f74630c53d2b 100644
+index f74630c53d2b..e0f891393276 100644
 --- a/include/rule.h
 +++ b/include/rule.h
-@@ -195,21 +195,6 @@ extern void rule_print(const struct rule *rule);
- extern struct rule *rule_lookup(const struct chain *chain, uint64_t handle);
+@@ -34,6 +34,7 @@ struct position_spec {
+  * @table:	table name
+  * @chain:	chain name (chains and rules only)
+  * @set:	set name (sets only)
++ * @obj:	stateful object name (stateful object only)
+  * @handle:	rule handle (rules only)
+  * @position:	rule position (rules only)
+  * @set_id:	set ID (sets only)
+@@ -43,6 +44,7 @@ struct handle {
+ 	const char		*table;
+ 	const char		*chain;
+ 	const char		*set;
++	const char		*obj;
+ 	struct handle_spec	handle;
+ 	struct position_spec	position;
+ 	uint32_t		set_id;
+@@ -95,6 +97,7 @@ enum table_flags {
+  * @location:	location the table was defined at
+  * @chains:	chains contained in the table
+  * @sets:	sets contained in the table
++ * @objs:	stateful objects contained in the table
+  * @flags:	table flags
+  * @refcnt:	table reference counter
+  */
+@@ -105,6 +108,7 @@ struct table {
+ 	struct scope		scope;
+ 	struct list_head	chains;
+ 	struct list_head	sets;
++	struct list_head	objs;
+ 	enum table_flags 	flags;
+ 	unsigned int		refcnt;
+ };
+@@ -241,6 +245,45 @@ extern struct set *set_lookup_global(uint32_t family, const char *table,
+ extern void set_print(const struct set *set);
+ extern void set_print_plain(const struct set *s);
  
++#include <statement.h>
++
++struct counter {
++	uint64_t	packets;
++	uint64_t	bytes;
++};
++
++struct quota {
++	uint64_t	bytes;
++	uint64_t	used;
++	uint32_t	flags;
++};
++
++/**
++ * struct obj - nftables stateful object statement
++ *
++ * @list:	table set list node
++ * @location:	location the stateful object was defined/declared at
++ * @handle:	counter handle
++ * @type:	type of stateful object
++ */
++struct obj {
++	struct list_head		list;
++	struct location			location;
++	struct handle			handle;
++	uint32_t			type;
++
++	union {
++		struct counter		counter;
++		struct quota		quota;
++	};
++};
++
++struct obj *obj_alloc(const struct location *loc);
++void obj_free(struct obj *obj);
++void obj_add_hash(struct obj *obj, struct table *table);
++void obj_print(const struct obj *n);
++const char *obj_type_name(enum stmt_types type);
++
  /**
-- * enum set_flags
-- *
-- * @SET_F_CONSTANT:		Set content is constant
-- * @SET_F_INTERVAL:		set includes ranges and/or prefix expressions
-- */
--enum set_flags {
--	SET_F_ANONYMOUS		= 0x1,
--	SET_F_CONSTANT		= 0x2,
--	SET_F_INTERVAL		= 0x4,
--	SET_F_MAP		= 0x8,
--	SET_F_TIMEOUT		= 0x10,
--	SET_F_EVAL		= 0x20,
--};
--
--/**
-  * struct set - nftables set
+  * enum cmd_ops - command operations
   *
-  * @list:	table set list node
+@@ -287,6 +330,10 @@ enum cmd_ops {
+  * @CMD_OBJ_EXPR:	expression
+  * @CMD_OBJ_MONITOR:	monitor
+  * @CMD_OBJ_EXPORT:	export
++ * @CMD_OBJ_COUNTER:	counter
++ * @CMD_OBJ_COUNTERS:	multiple counters
++ * @CMD_OBJ_QUOTA:	quota
++ * @CMD_OBJ_QUOTAS:	multiple quotas
+  */
+ enum cmd_obj {
+ 	CMD_OBJ_INVALID,
+@@ -305,6 +352,10 @@ enum cmd_obj {
+ 	CMD_OBJ_FLOWTABLES,
+ 	CMD_OBJ_MAP,
+ 	CMD_OBJ_MAPS,
++	CMD_OBJ_COUNTER,
++	CMD_OBJ_COUNTERS,
++	CMD_OBJ_QUOTA,
++	CMD_OBJ_QUOTAS,
+ };
+ 
+ struct export {
+diff --git a/include/statement.h b/include/statement.h
+index d317ae368164..9d0f601f98a2 100644
+--- a/include/statement.h
++++ b/include/statement.h
+@@ -66,6 +66,7 @@ struct limit_stmt {
+ };
+ 
+ extern struct stmt *limit_stmt_alloc(const struct location *loc);
++extern void __limit_stmt_print(const struct limit_stmt *limit);
+ 
+ struct reject_stmt {
+ 	struct expr		*expr;
+@@ -301,4 +302,6 @@ extern void stmt_free(struct stmt *stmt);
+ extern void stmt_list_free(struct list_head *list);
+ extern void stmt_print(const struct stmt *stmt);
+ 
++const char *get_rate(uint64_t byte_rate, uint64_t *rate);
++
+ #endif /* NFTABLES_STATEMENT_H */
 diff --git a/src/evaluate.c b/src/evaluate.c
-index 8a3da54e5b2d..557c61c814df 100644
+index 557c61c814df..b3630c303920 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -70,7 +70,7 @@ static struct expr *implicit_set_declaration(struct eval_ctx *ctx,
- 	struct handle h;
+@@ -2845,6 +2845,8 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
+ 		return 0;
+ 	case CMD_OBJ_CHAINS:
+ 	case CMD_OBJ_SETS:
++	case CMD_OBJ_COUNTERS:
++	case CMD_OBJ_QUOTAS:
+ 	case CMD_OBJ_RULESET:
+ 	case CMD_OBJ_FLOWTABLES:
+ 	case CMD_OBJ_MAPS:
+diff --git a/src/mnl.c b/src/mnl.c
+index 257b630e2a26..534d02f4ff32 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -16,6 +16,7 @@
+ #include <libnftnl/rule.h>
+ #include <libnftnl/expr.h>
+ #include <libnftnl/set.h>
++#include <libnftnl/object.h>
+ #include <libnftnl/batch.h>
  
- 	set = set_alloc(&expr->location);
--	set->flags	= SET_F_ANONYMOUS | expr->set_flags;
-+	set->flags	= NFT_SET_ANONYMOUS | expr->set_flags;
- 	set->handle.set = xstrdup(name),
- 	set->keytype 	= keytype;
- 	set->keylen	= keylen;
-@@ -1060,7 +1060,7 @@ static int expr_evaluate_set_elem(struct eval_ctx *ctx, struct expr **expr)
- 		return -1;
- 
- 	if (ctx->set &&
--	    !(ctx->set->flags & (SET_F_ANONYMOUS | SET_F_INTERVAL))) {
-+	    !(ctx->set->flags & (NFT_SET_ANONYMOUS | NFT_SET_INTERVAL))) {
- 		switch (elem->key->ops->type) {
- 		case EXPR_PREFIX:
- 			return expr_error(ctx->msgs, elem,
-@@ -1106,10 +1106,10 @@ static int expr_evaluate_set(struct eval_ctx *ctx, struct expr **expr)
- 			set->set_flags |= i->set_flags;
- 			expr_free(i);
- 		} else if (!expr_is_singleton(i))
--			set->set_flags |= SET_F_INTERVAL;
-+			set->set_flags |= NFT_SET_INTERVAL;
- 	}
- 
--	set->set_flags |= SET_F_CONSTANT;
-+	set->set_flags |= NFT_SET_CONSTANT;
- 
- 	set->dtype = ctx->ectx.dtype;
- 	set->len   = ctx->ectx.len;
-@@ -1130,7 +1130,7 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
- 				  "Map expression can not be constant");
- 
- 	mappings = map->mappings;
--	mappings->set_flags |= SET_F_MAP;
-+	mappings->set_flags |= NFT_SET_MAP;
- 
- 	switch (map->mappings->ops->type) {
- 	case EXPR_SET:
-@@ -1173,7 +1173,7 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
- 	map->flags |= EXPR_F_CONSTANT;
- 
- 	/* Data for range lookups needs to be in big endian order */
--	if (map->mappings->set->flags & SET_F_INTERVAL &&
-+	if (map->mappings->set->flags & NFT_SET_INTERVAL &&
- 	    byteorder_conversion(ctx, &map->map, BYTEORDER_BIG_ENDIAN) < 0)
- 		return -1;
- 
-@@ -1188,7 +1188,7 @@ static int expr_evaluate_mapping(struct eval_ctx *ctx, struct expr **expr)
- 	if (set == NULL)
- 		return expr_error(ctx->msgs, mapping,
- 				  "mapping outside of map context");
--	if (!(set->flags & SET_F_MAP))
-+	if (!(set->flags & NFT_SET_MAP))
- 		return set_error(ctx, set, "set is not a map");
- 
- 	expr_set_context(&ctx->ectx, set->keytype, set->keylen);
-@@ -1481,7 +1481,7 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
- 						 right->dtype->desc);
- 
- 		/* Data for range lookups needs to be in big endian order */
--		if (right->set->flags & SET_F_INTERVAL &&
-+		if (right->set->flags & NFT_SET_INTERVAL &&
- 		    byteorder_conversion(ctx, &rel->left,
- 					 BYTEORDER_BIG_ENDIAN) < 0)
- 			return -1;
-@@ -1536,7 +1536,7 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
- 		case EXPR_SET_REF:
- 			assert(rel->op == OP_NEQ);
- 			/* Data for range lookups needs to be in big endian order */
--			if (right->set->flags & SET_F_INTERVAL &&
-+			if (right->set->flags & NFT_SET_INTERVAL &&
- 			    byteorder_conversion(ctx, &rel->left, BYTEORDER_BIG_ENDIAN) < 0)
- 				return -1;
- 			break;
-@@ -1847,9 +1847,9 @@ static int stmt_evaluate_flow(struct eval_ctx *ctx, struct stmt *stmt)
- 	/* Declare an empty set */
- 	key = stmt->flow.key;
- 	set = set_expr_alloc(&key->location);
--	set->set_flags |= SET_F_EVAL;
-+	set->set_flags |= NFT_SET_EVAL;
- 	if (key->timeout)
--		set->set_flags |= SET_F_TIMEOUT;
-+		set->set_flags |= NFT_SET_TIMEOUT;
- 
- 	setref = implicit_set_declaration(ctx, stmt->flow.table ?: "__ft%d",
- 					  key->dtype, key->len, set);
-@@ -2549,7 +2549,7 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- 		return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
- 				 ctx->cmd->handle.table);
- 
--	type = set->flags & SET_F_MAP ? "map" : "set";
-+	type = set->flags & NFT_SET_MAP ? "map" : "set";
- 
- 	if (set->keytype == NULL)
- 		return set_error(ctx, set, "%s definition does not specify "
-@@ -2560,7 +2560,7 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- 		return set_error(ctx, set, "unqualified key data type "
- 				 "specified in %s definition", type);
- 
--	if (set->flags & SET_F_MAP) {
-+	if (set->flags & NFT_SET_MAP) {
- 		if (set->datatype == NULL)
- 			return set_error(ctx, set, "map definition does not "
- 					 "specify mapping data type");
-@@ -2584,7 +2584,7 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- 
- 	/* Default timeout value implies timeout support */
- 	if (set->timeout)
--		set->flags |= SET_F_TIMEOUT;
-+		set->flags |= NFT_SET_TIMEOUT;
- 
- 	return 0;
+ #include <linux/netfilter/nfnetlink.h>
+@@ -795,6 +796,64 @@ err:
+ 	return NULL;
  }
-@@ -2810,7 +2810,7 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- 			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
- 					 cmd->handle.table);
- 		set = set_lookup(table, cmd->handle.set);
--		if (set == NULL || set->flags & (SET_F_MAP | SET_F_EVAL))
-+		if (set == NULL || set->flags & (NFT_SET_MAP | NFT_SET_EVAL))
- 			return cmd_error(ctx, "Could not process rule: Set '%s' does not exist",
- 					 cmd->handle.set);
- 		return 0;
-@@ -2820,7 +2820,7 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- 			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
- 					 cmd->handle.table);
- 		set = set_lookup(table, cmd->handle.set);
--		if (set == NULL || !(set->flags & SET_F_EVAL))
-+		if (set == NULL || !(set->flags & NFT_SET_EVAL))
- 			return cmd_error(ctx, "Could not process rule: Flow table '%s' does not exist",
- 					 cmd->handle.set);
- 		return 0;
-@@ -2830,7 +2830,7 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- 			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
- 					 cmd->handle.table);
- 		set = set_lookup(table, cmd->handle.set);
--		if (set == NULL || !(set->flags & SET_F_MAP))
-+		if (set == NULL || !(set->flags & NFT_SET_MAP))
- 			return cmd_error(ctx, "Could not process rule: Map '%s' does not exist",
- 					 cmd->handle.set);
- 		return 0;
-diff --git a/src/expression.c b/src/expression.c
-index b7403c7009cd..1567870c631b 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -858,8 +858,8 @@ struct expr *map_expr_alloc(const struct location *loc, struct expr *arg,
  
- static void set_ref_expr_print(const struct expr *expr)
++static int obj_cb(const struct nlmsghdr *nlh, void *data)
++{
++	struct nftnl_obj_list *nln_list = data;
++	struct nftnl_obj *n;
++
++	if (check_genid(nlh) < 0)
++		return MNL_CB_ERROR;
++
++	n = nftnl_obj_alloc();
++	if (n == NULL)
++		memory_allocation_error();
++
++	if (nftnl_obj_nlmsg_parse(nlh, n) < 0)
++		goto err_free;
++
++	nftnl_obj_list_add_tail(n, nln_list);
++	return MNL_CB_OK;
++
++err_free:
++	nftnl_obj_free(n);
++	return MNL_CB_OK;
++}
++
++
++struct nftnl_obj_list *
++mnl_nft_obj_dump(struct mnl_socket *nf_sock, int family, const char *table)
++{
++	struct nftnl_obj_list *nln_list;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nftnl_obj *n;
++	struct nlmsghdr *nlh;
++	int ret;
++
++	n = nftnl_obj_alloc();
++	if (n == NULL)
++		memory_allocation_error();
++
++	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_GETOBJ, family,
++				    NLM_F_DUMP | NLM_F_ACK, seq);
++	if (table != NULL)
++		nftnl_obj_set(n, NFTNL_OBJ_TABLE, table);
++	nftnl_obj_nlmsg_build_payload(nlh, n);
++	nftnl_obj_free(n);
++
++	nln_list = nftnl_obj_list_alloc();
++	if (nln_list == NULL)
++		memory_allocation_error();
++
++	ret = nft_mnl_talk(nf_sock, nlh, nlh->nlmsg_len, obj_cb, nln_list);
++	if (ret < 0)
++		goto err;
++
++	return nln_list;
++err:
++	nftnl_obj_list_free(nln_list);
++	return NULL;
++}
++
+ static int set_get_cb(const struct nlmsghdr *nlh, void *data)
  {
--	if (expr->set->flags & SET_F_ANONYMOUS) {
--		if (expr->set->flags & SET_F_EVAL)
-+	if (expr->set->flags & NFT_SET_ANONYMOUS) {
-+		if (expr->set->flags & NFT_SET_EVAL)
- 			printf("table %s", expr->set->handle.set);
- 		else
- 			expr_print(expr->set->init);
+ 	struct nftnl_set *s = data;
 diff --git a/src/netlink.c b/src/netlink.c
-index d6d00199d746..e37d3bf124a6 100644
+index e37d3bf124a6..bbf675f90def 100644
 --- a/src/netlink.c
 +++ b/src/netlink.c
-@@ -1175,7 +1175,7 @@ static int netlink_add_set_batch(struct netlink_ctx *ctx,
+@@ -1608,6 +1608,73 @@ out:
+ 	return err;
+ }
  
- 	nftnl_set_set_u32(nls, NFTNL_SET_ID, set->handle.set_id);
- 
--	if (!(set->flags & (SET_F_CONSTANT))) {
-+	if (!(set->flags & NFT_SET_CONSTANT)) {
- 		if (set->policy != NFT_SET_POL_PERFORMANCE)
- 			nftnl_set_set_u32(nls, NFTNL_SET_POLICY, set->policy);
- 
-@@ -1505,7 +1505,7 @@ static int netlink_delinearize_setelem(struct nftnl_set_elem *nlse,
- 	if (set->keytype->subtypes)
- 		key = netlink_parse_concat_elem(set->keytype, key);
- 
--	if (!(set->flags & SET_F_INTERVAL) &&
-+	if (!(set->flags & NFT_SET_INTERVAL) &&
- 	    key->byteorder == BYTEORDER_HOST_ENDIAN)
- 		mpz_switch_byteorder(key->value, key->len / BITS_PER_BYTE);
- 
-@@ -1858,7 +1858,7 @@ static int netlink_events_set_cb(const struct nlmsghdr *nlh, int type,
- 
- 	nls = netlink_set_alloc(nlh);
- 	flags = nftnl_set_get_u32(nls, NFTNL_SET_FLAGS);
--	if (flags & SET_F_ANONYMOUS)
-+	if (flags & NFT_SET_ANONYMOUS)
- 		goto out;
- 
- 	switch (monh->format) {
-@@ -1920,7 +1920,7 @@ static int netlink_events_setelem_cb(const struct nlmsghdr *nlh, int type,
- 
- 	switch (monh->format) {
- 	case NFTNL_OUTPUT_DEFAULT:
--		if (set->flags & SET_F_ANONYMOUS)
-+		if (set->flags & NFT_SET_ANONYMOUS)
- 			goto out;
- 
- 		/* we want to 'delinearize' the set_elem, but don't
++static struct obj *netlink_delinearize_obj(struct netlink_ctx *ctx,
++					   struct nftnl_obj *nlo)
++{
++	struct obj *obj;
++	uint32_t type;
++
++	obj = obj_alloc(&netlink_location);
++	obj->handle.family = nftnl_obj_get_u32(nlo, NFTNL_OBJ_FAMILY);
++	obj->handle.table =
++		xstrdup(nftnl_obj_get_str(nlo, NFTNL_OBJ_TABLE));
++	obj->handle.obj =
++		xstrdup(nftnl_obj_get_str(nlo, NFTNL_OBJ_NAME));
++
++	type = nftnl_obj_get_u32(nlo, NFTNL_OBJ_TYPE);
++	switch (type) {
++	case NFT_OBJECT_COUNTER:
++		obj->counter.packets =
++			nftnl_obj_get_u64(nlo, NFTNL_OBJ_CTR_PKTS);
++		obj->counter.bytes =
++			nftnl_obj_get_u64(nlo, NFTNL_OBJ_CTR_BYTES);
++		break;
++	case NFT_OBJECT_QUOTA:
++		obj->quota.bytes =
++			nftnl_obj_get_u64(nlo, NFTNL_OBJ_QUOTA_BYTES);
++		obj->quota.used =
++			nftnl_obj_get_u64(nlo, NFTNL_OBJ_QUOTA_CONSUMED);
++		obj->quota.flags =
++			nftnl_obj_get_u32(nlo, NFTNL_OBJ_QUOTA_FLAGS);
++	}
++	obj->type = type;
++
++	return obj;
++}
++
++static int list_obj_cb(struct nftnl_obj *nls, void *arg)
++{
++	struct netlink_ctx *ctx = arg;
++	struct obj *obj;
++
++	obj = netlink_delinearize_obj(ctx, nls);
++	if (obj == NULL)
++		return -1;
++	list_add_tail(&obj->list, &ctx->list);
++	return 0;
++}
++
++int netlink_list_objs(struct netlink_ctx *ctx, const struct handle *h,
++		      const struct location *loc)
++{
++	struct nftnl_obj_list *obj_cache;
++	int err;
++
++	obj_cache = mnl_nft_obj_dump(nf_sock, h->family, h->table);
++	if (obj_cache == NULL) {
++		if (errno == EINTR)
++			return -1;
++
++		return netlink_io_error(ctx, loc,
++					"Could not receive stateful object from kernel: %s",
++					strerror(errno));
++	}
++
++	err = nftnl_obj_list_foreach(obj_cache, list_obj_cb, ctx);
++	nftnl_obj_list_free(obj_cache);
++	return err;
++}
++
+ int netlink_batch_send(struct list_head *err_list)
+ {
+ 	return mnl_batch_talk(nf_sock, err_list);
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index deaaf06fa1c6..0f3ad915b701 100644
+index aea6e47d8b12..2213f3808db4 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -1092,9 +1092,9 @@ set_flag_list		:	set_flag_list	COMMA		set_flag
- 			|	set_flag
+@@ -364,6 +364,9 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token PACKETS			"packets"
+ %token BYTES			"bytes"
+ 
++%token COUNTERS			"counters"
++%token QUOTAS			"quotas"
++
+ %token LOG			"log"
+ %token PREFIX			"prefix"
+ %token GROUP			"group"
+@@ -441,8 +444,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ 
+ %type <handle>			table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
+ %destructor { handle_free(&$$); } table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
+-%type <handle>			set_spec set_identifier
+-%destructor { handle_free(&$$); } set_spec set_identifier
++%type <handle>			set_spec set_identifier obj_spec
++%destructor { handle_free(&$$); } set_spec set_identifier obj_spec
+ %type <val>			family_spec family_spec_explicit chain_policy prio_spec
+ 
+ %type <string>			dev_spec quota_unit
+@@ -872,6 +875,22 @@ list_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_SET, &$2, &@$, NULL);
+ 			}
++			|	COUNTERS	ruleset_spec
++			{
++				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_COUNTERS, &$2, &@$, NULL);
++			}
++			|	COUNTER		obj_spec
++			{
++				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_COUNTER, &$2, &@$, NULL);
++			}
++			|	QUOTAS		ruleset_spec
++			{
++				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_QUOTAS, &$2, &@$, NULL);
++			}
++			|	QUOTA		obj_spec
++			{
++				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_QUOTA, &$2, &@$, NULL);
++			}
+ 			|	RULESET		ruleset_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_RULESET, &$2, &@$, NULL);
+@@ -1299,6 +1318,13 @@ set_identifier		:	identifier
+ 			}
  			;
  
--set_flag		:	CONSTANT	{ $$ = SET_F_CONSTANT; }
--			|	INTERVAL	{ $$ = SET_F_INTERVAL; }
--			|	TIMEOUT		{ $$ = SET_F_TIMEOUT; }
-+set_flag		:	CONSTANT	{ $$ = NFT_SET_CONSTANT; }
-+			|	INTERVAL	{ $$ = NFT_SET_INTERVAL; }
-+			|	TIMEOUT		{ $$ = NFT_SET_TIMEOUT; }
- 			;
- 
- map_block_alloc		:	/* empty */
++obj_spec		:	table_spec	identifier
++			{
++				$$		= $1;
++				$$.obj		= $2;
++			}
++			;
++
+ handle_spec		:	HANDLE		NUM
+ 			{
+ 				memset(&$$, 0, sizeof($$));
 diff --git a/src/rule.c b/src/rule.c
-index f1bb6cfe04ea..988305b57615 100644
+index 988305b57615..05f0eb87b162 100644
 --- a/src/rule.c
 +++ b/src/rule.c
-@@ -263,9 +263,9 @@ static void set_print_declaration(const struct set *set,
- 	const char *type;
- 	uint32_t flags;
+@@ -93,6 +93,12 @@ static int cache_init_objects(struct netlink_ctx *ctx, enum cmd_ops cmd)
+ 			return -1;
+ 		list_splice_tail_init(&ctx->list, &table->chains);
  
--	if (set->flags & SET_F_MAP)
-+	if (set->flags & NFT_SET_MAP)
- 		type = "map";
--	else if (set->flags & SET_F_EVAL)
-+	else if (set->flags & NFT_SET_EVAL)
- 		type = "flow table";
- 	else
- 		type = "set";
-@@ -281,12 +281,12 @@ static void set_print_declaration(const struct set *set,
- 	printf(" %s {%s", set->handle.set, opts->nl);
++		/* Don't check for errors on listings, this would break nft with
++		 * old kernels with no stateful object support.
++		 */
++		netlink_list_objs(ctx, &table->handle, &internal_location);
++		list_splice_tail_init(&ctx->list, &table->objs);
++
+ 		/* Skip caching other objects to speed up things: We only need
+ 		 * a full cache when listing the existing ruleset.
+ 		 */
+@@ -688,6 +694,7 @@ struct table *table_alloc(void)
+ 	table = xzalloc(sizeof(*table));
+ 	init_list_head(&table->chains);
+ 	init_list_head(&table->sets);
++	init_list_head(&table->objs);
+ 	init_list_head(&table->scope.symbols);
+ 	table->refcnt = 1;
  
- 	printf("%s%stype %s", opts->tab, opts->tab, set->keytype->name);
--	if (set->flags & SET_F_MAP)
-+	if (set->flags & NFT_SET_MAP)
- 		printf(" : %s", set->datatype->name);
- 
- 	printf("%s", opts->stmt_separator);
- 
--	if (!(set->flags & (SET_F_CONSTANT))) {
-+	if (!(set->flags & (NFT_SET_CONSTANT))) {
- 		if (set->policy != NFT_SET_POL_PERFORMANCE) {
- 			printf("%s%spolicy %s%s", opts->tab, opts->tab,
- 			       set_policy2str(set->policy),
-@@ -302,19 +302,19 @@ static void set_print_declaration(const struct set *set,
- 	flags = set->flags;
- 	/* "timeout" flag is redundant if a default timeout exists */
- 	if (set->timeout)
--		flags &= ~SET_F_TIMEOUT;
-+		flags &= ~NFT_SET_TIMEOUT;
- 
--	if (flags & (SET_F_CONSTANT | SET_F_INTERVAL | SET_F_TIMEOUT)) {
-+	if (flags & (NFT_SET_CONSTANT | NFT_SET_INTERVAL | NFT_SET_TIMEOUT)) {
- 		printf("%s%sflags ", opts->tab, opts->tab);
--		if (set->flags & SET_F_CONSTANT) {
-+		if (set->flags & NFT_SET_CONSTANT) {
- 			printf("%sconstant", delim);
- 			delim = ",";
- 		}
--		if (set->flags & SET_F_INTERVAL) {
-+		if (set->flags & NFT_SET_INTERVAL) {
- 			printf("%sinterval", delim);
- 			delim = ",";
- 		}
--		if (set->flags & SET_F_TIMEOUT) {
-+		if (set->flags & NFT_SET_TIMEOUT) {
- 			printf("%stimeout", delim);
- 			delim = ",";
- 		}
-@@ -770,7 +770,7 @@ static void table_print(const struct table *table)
+@@ -762,6 +769,7 @@ static void table_print_options(const struct table *table, const char **delim)
+ static void table_print(const struct table *table)
+ {
+ 	struct chain *chain;
++	struct obj *obj;
+ 	struct set *set;
+ 	const char *delim = "";
+ 	const char *family = family2str(table->handle.family);
+@@ -769,6 +777,11 @@ static void table_print(const struct table *table)
+ 	printf("table %s %s {\n", family, table->handle.table);
  	table_print_options(table, &delim);
  
++	list_for_each_entry(obj, &table->objs, list) {
++		printf("%s", delim);
++		obj_print(obj);
++		delim = "\n";
++	}
  	list_for_each_entry(set, &table->sets, list) {
--		if (set->flags & SET_F_ANONYMOUS)
-+		if (set->flags & NFT_SET_ANONYMOUS)
+ 		if (set->flags & NFT_SET_ANONYMOUS)
  			continue;
- 		printf("%s", delim);
- 		set_print(set);
-@@ -888,7 +888,7 @@ static int do_add_chain(struct netlink_ctx *ctx, const struct handle *h,
- static int __do_add_setelems(struct netlink_ctx *ctx, const struct handle *h,
- 			     struct set *set, struct expr *expr, bool excl)
+@@ -1098,6 +1111,129 @@ static int do_list_sets(struct netlink_ctx *ctx, struct cmd *cmd)
+ 	return 0;
+ }
+ 
++struct obj *obj_alloc(const struct location *loc)
++{
++	struct obj *obj;
++
++	obj = xzalloc(sizeof(*obj));
++	if (loc != NULL)
++		obj->location = *loc;
++	return obj;
++}
++
++void obj_free(struct obj *obj)
++{
++	handle_free(&obj->handle);
++	xfree(obj);
++}
++
++void obj_add_hash(struct obj *obj, struct table *table)
++{
++	list_add_tail(&obj->list, &table->objs);
++}
++
++static void obj_print_data(const struct obj *obj,
++			   struct print_fmt_options *opts)
++{
++	switch (obj->type) {
++	case NFT_OBJECT_COUNTER:
++		printf(" %s {%s%s%s", obj->handle.obj,
++				      opts->nl, opts->tab, opts->tab);
++		printf("packets %"PRIu64" bytes %"PRIu64"",
++		       obj->counter.packets, obj->counter.bytes);
++		break;
++	case NFT_OBJECT_QUOTA: {
++		const char *data_unit;
++		uint64_t bytes;
++
++		printf(" %s {%s%s%s", obj->handle.obj,
++				      opts->nl, opts->tab, opts->tab);
++		data_unit = get_rate(obj->quota.bytes, &bytes);
++		printf("%s%"PRIu64" %s",
++		       obj->quota.flags & NFT_QUOTA_F_INV ? "over " : "",
++		       bytes, data_unit);
++		if (obj->quota.used) {
++			data_unit = get_rate(obj->quota.used, &bytes);
++			printf(" used %"PRIu64" %s", bytes, data_unit);
++		}
++		}
++		break;
++	default:
++		printf("unknown {%s", opts->nl);
++		break;
++	}
++}
++
++static const char *obj_type_name_array[] = {
++	[NFT_OBJECT_COUNTER]	= "counter",
++	[NFT_OBJECT_QUOTA]	= "quota",
++};
++
++const char *obj_type_name(enum stmt_types type)
++{
++	assert(type <= NFT_OBJECT_QUOTA && obj_type_name_array[type]);
++
++	return obj_type_name_array[type];
++}
++
++static void obj_print_declaration(const struct obj *obj,
++				  struct print_fmt_options *opts)
++{
++	printf("%s%s", opts->tab, obj_type_name(obj->type));
++
++	if (opts->family != NULL)
++		printf(" %s", opts->family);
++
++	if (opts->table != NULL)
++		printf(" %s", opts->table);
++
++	obj_print_data(obj, opts);
++
++	printf("%s%s}%s", opts->nl, opts->tab, opts->nl);
++}
++
++void obj_print(const struct obj *obj)
++{
++	struct print_fmt_options opts = {
++		.tab		= "\t",
++		.nl		= "\n",
++		.stmt_separator	= "\n",
++	};
++
++	obj_print_declaration(obj, &opts);
++}
++
++static int do_list_obj(struct netlink_ctx *ctx, struct cmd *cmd, uint32_t type)
++{
++	struct print_fmt_options opts = {
++		.tab		= "\t",
++		.nl		= "\n",
++		.stmt_separator	= "\n",
++	};
++	struct table *table;
++	struct obj *obj;
++
++	list_for_each_entry(table, &table_list, list) {
++		if (cmd->handle.family != NFPROTO_UNSPEC &&
++		    cmd->handle.family != table->handle.family)
++			continue;
++
++		printf("table %s %s {\n",
++		       family2str(table->handle.family),
++		       table->handle.table);
++
++		list_for_each_entry(obj, &table->objs, list) {
++			if (obj->type != type)
++				continue;
++
++			obj_print_declaration(obj, &opts);
++		}
++
++		printf("}\n");
++	}
++	return 0;
++}
++
+ static int do_list_ruleset(struct netlink_ctx *ctx, struct cmd *cmd)
  {
--	if (set->flags & SET_F_INTERVAL &&
-+	if (set->flags & NFT_SET_INTERVAL &&
- 	    set_to_intervals(ctx->msgs, set, expr, true) < 0)
- 		return -1;
+ 	unsigned int family = cmd->handle.family;
+@@ -1230,6 +1366,10 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ 		return do_list_sets(ctx, cmd);
+ 	case CMD_OBJ_MAP:
+ 		return do_list_set(ctx, cmd, table);
++	case CMD_OBJ_COUNTERS:
++		return do_list_obj(ctx, cmd, NFT_OBJECT_COUNTER);
++	case CMD_OBJ_QUOTAS:
++		return do_list_obj(ctx, cmd, NFT_OBJECT_QUOTA);
+ 	default:
+ 		BUG("invalid command object type %u\n", cmd->obj);
+ 	}
+diff --git a/src/scanner.l b/src/scanner.l
+index 8aa4b08ba8fc..cb9893203244 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -293,6 +293,9 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "packets"		{ return PACKETS; }
+ "bytes"			{ return BYTES; }
  
-@@ -1006,7 +1006,7 @@ static int do_delete_setelems(struct netlink_ctx *ctx, const struct handle *h,
- 	table = table_lookup(h);
- 	set = set_lookup(table, h->set);
++"counters"		{ return COUNTERS; }
++"quotas"		{ return QUOTAS; }
++
+ "log"			{ return LOG; }
+ "prefix"		{ return PREFIX; }
+ "group"			{ return GROUP; }
+diff --git a/src/statement.c b/src/statement.c
+index 4d3ca55a4081..fbd78aafe69a 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -255,7 +255,7 @@ static const char *data_unit[] = {
+ 	NULL
+ };
  
--	if (set->flags & SET_F_INTERVAL &&
-+	if (set->flags & NFT_SET_INTERVAL &&
- 	    set_to_intervals(ctx->msgs, set, expr, false) < 0)
- 		return -1;
- 
-@@ -1080,14 +1080,14 @@ static int do_list_sets(struct netlink_ctx *ctx, struct cmd *cmd)
- 
- 		list_for_each_entry(set, &table->sets, list) {
- 			if (cmd->obj == CMD_OBJ_SETS &&
--			    (set->flags & SET_F_ANONYMOUS ||
--			    set->flags & SET_F_MAP))
-+			    (set->flags & NFT_SET_ANONYMOUS ||
-+			    set->flags & NFT_SET_MAP))
- 				continue;
- 			if (cmd->obj == CMD_OBJ_FLOWTABLES &&
--			    !(set->flags & SET_F_EVAL))
-+			    !(set->flags & NFT_SET_EVAL))
- 				continue;
- 			if (cmd->obj == CMD_OBJ_MAPS &&
--			    !(set->flags & SET_F_MAP))
-+			    !(set->flags & NFT_SET_MAP))
- 				continue;
- 			set_print_declaration(set, &opts);
- 			printf("%s}%s", opts.tab, opts.nl);
-diff --git a/src/segtree.c b/src/segtree.c
-index 5b6cdd1d770d..db782f2293c0 100644
---- a/src/segtree.c
-+++ b/src/segtree.c
-@@ -403,7 +403,7 @@ static int set_to_segtree(struct list_head *msgs, struct set *set,
- 	 * Insert elements into tree
- 	 */
- 	for (n = 0; n < init->size; n++) {
--		if (init->set_flags & SET_F_MAP &&
-+		if (init->set_flags & NFT_SET_MAP &&
- 		    n < init->size - 1 &&
- 		    interval_conflict(intervals[n], intervals[n+1]))
- 			return expr_binary_error(msgs,
-@@ -426,7 +426,7 @@ static bool segtree_needs_first_segment(const struct set *set,
- 		 * 2) This set exists and it is empty.
- 		 * 3) This set is created with a number of initial elements.
- 		 */
--		if ((set->flags & SET_F_ANONYMOUS) ||
-+		if ((set->flags & NFT_SET_ANONYMOUS) ||
- 		    (set->init && set->init->size == 0) ||
- 		    (set->init == init))
- 			return true;
+-static const char *get_rate(uint64_t byte_rate, uint64_t *rate)
++const char *get_rate(uint64_t byte_rate, uint64_t *rate)
+ {
+ 	uint64_t res, prev, rest;
+ 	int i;
 -- 
 2.1.4
 
