@@ -1,43 +1,43 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf-next 2/2] netfilter: nft_ct: add average bytes per packet support
-Date: Sun, 25 Dec 2016 19:58:59 +0800
-Message-ID: <1482667139-63731-2-git-send-email-zlpnobody@163.com>
-References: <1482667139-63731-1-git-send-email-zlpnobody@163.com>
+Subject: [PATCH libnftnl] src: ct: add average bytes per packet counter support
+Date: Sun, 25 Dec 2016 20:02:20 +0800
+Message-ID: <1482667340-64061-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-14.163.com ([220.181.12.14]:55828 "EHLO m12-14.163.com"
+Received: from m12-15.163.com ([220.181.12.15]:52654 "EHLO m12-15.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753235AbcLYMAA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 25 Dec 2016 07:00:00 -0500
-In-Reply-To: <1482667139-63731-1-git-send-email-zlpnobody@163.com>
+        id S1753235AbcLYMCw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 25 Dec 2016 07:02:52 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <zlpnobody@gmail.com>
 
-Similar to xt_connbytes, user can match how many average bytes per packet
-a connection has transferred so far.
+Similar to ct packets/bytes ...
 
 Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  2 ++
- net/netfilter/nft_ct.c                   | 22 +++++++++++++++++++++-
- 2 files changed, 23 insertions(+), 1 deletion(-)
+ include/linux/netfilter/nf_tables.h | 5 +++++
+ src/expr/ct.c                       | 3 ++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 5726f90..b00a05d 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -863,6 +863,7 @@ enum nft_rt_attributes {
-  * @NFT_CT_LABELS: conntrack labels
-  * @NFT_CT_PKTS: conntrack packets
-  * @NFT_CT_BYTES: conntrack bytes
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 881d49e..b00a05d 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -860,6 +860,10 @@ enum nft_rt_attributes {
+  * @NFT_CT_PROTOCOL: conntrack layer 4 protocol
+  * @NFT_CT_PROTO_SRC: conntrack layer 4 protocol source
+  * @NFT_CT_PROTO_DST: conntrack layer 4 protocol destination
++ * @NFT_CT_LABELS: conntrack labels
++ * @NFT_CT_PKTS: conntrack packets
++ * @NFT_CT_BYTES: conntrack bytes
 + * @NFT_CT_AVGPKT: conntrack average bytes per packet
   */
  enum nft_ct_keys {
  	NFT_CT_STATE,
-@@ -881,6 +882,7 @@ enum nft_ct_keys {
+@@ -878,6 +882,7 @@ enum nft_ct_keys {
  	NFT_CT_LABELS,
  	NFT_CT_PKTS,
  	NFT_CT_BYTES,
@@ -45,60 +45,27 @@ index 5726f90..b00a05d 100644
  };
  
  /**
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index e6baeae..d774d78 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -129,6 +129,22 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
- 		memcpy(dest, &count, sizeof(count));
- 		return;
- 	}
-+	case NFT_CT_AVGPKT: {
-+		const struct nf_conn_acct *acct = nf_conn_acct_find(ct);
-+		u64 avgcnt = 0, bcnt = 0, pcnt = 0;
-+
-+		if (acct) {
-+			pcnt = nft_ct_get_eval_counter(acct->counter,
-+						       NFT_CT_PKTS, priv->dir);
-+			bcnt = nft_ct_get_eval_counter(acct->counter,
-+						       NFT_CT_BYTES, priv->dir);
-+			if (pcnt != 0)
-+				avgcnt = div64_u64(bcnt, pcnt);
-+		}
-+
-+		memcpy(dest, &avgcnt, sizeof(avgcnt));
-+		return;
-+	}
- 	case NFT_CT_L3PROTOCOL:
- 		*dest = nf_ct_l3num(ct);
- 		return;
-@@ -316,6 +332,7 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
- 		break;
- 	case NFT_CT_BYTES:
- 	case NFT_CT_PKTS:
-+	case NFT_CT_AVGPKT:
- 		/* no direction? return sum of original + reply */
- 		if (tb[NFTA_CT_DIRECTION] == NULL)
- 			priv->dir = IP_CT_DIR_MAX;
-@@ -346,7 +363,9 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		return err;
+diff --git a/src/expr/ct.c b/src/expr/ct.c
+index e680738..d3d352e 100644
+--- a/src/expr/ct.c
++++ b/src/expr/ct.c
+@@ -32,7 +32,7 @@ struct nftnl_expr_ct {
+ #define IP_CT_DIR_REPLY		1
  
--	if (priv->key == NFT_CT_BYTES || priv->key == NFT_CT_PKTS)
-+	if (priv->key == NFT_CT_BYTES ||
-+	    priv->key == NFT_CT_PKTS  ||
-+	    priv->key == NFT_CT_AVGPKT)
- 		nf_ct_set_acct(ctx->net, true);
+ #ifndef NFT_CT_MAX
+-#define NFT_CT_MAX (NFT_CT_BYTES + 1)
++#define NFT_CT_MAX (NFT_CT_AVGPKT + 1)
+ #endif
  
- 	return 0;
-@@ -445,6 +464,7 @@ static int nft_ct_get_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 		break;
- 	case NFT_CT_BYTES:
- 	case NFT_CT_PKTS:
-+	case NFT_CT_AVGPKT:
- 		if (priv->dir < IP_CT_DIR_MAX &&
- 		    nla_put_u8(skb, NFTA_CT_DIRECTION, priv->dir))
- 			goto nla_put_failure;
+ static int
+@@ -169,6 +169,7 @@ static const char *ctkey2str_array[NFT_CT_MAX] = {
+ 	[NFT_CT_LABELS]		= "label",
+ 	[NFT_CT_PKTS]		= "packets",
+ 	[NFT_CT_BYTES]		= "bytes",
++	[NFT_CT_AVGPKT]		= "avgpkt",
+ };
+ 
+ static const char *ctkey2str(uint32_t ctkey)
 -- 
 2.5.5
 
