@@ -1,74 +1,106 @@
 From: Keno Fischer <keno@juliacomputing.com>
-Subject: [PATCH] Fix two compile errors during out-of-tree build
-Date: Fri, 30 Dec 2016 00:43:37 -0500
-Message-ID: <20161230054337.GA9676@juliacomputing.com>
+Subject: [PATCH] Add a configure flag to link libc statically
+Date: Fri, 30 Dec 2016 00:44:26 -0500
+Message-ID: <20161230054426.GA9694@juliacomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qk0-f169.google.com ([209.85.220.169]:34149 "EHLO
-        mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750720AbcL3Fnl (ORCPT
+Received: from mail-qk0-f174.google.com ([209.85.220.174]:32862 "EHLO
+        mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751119AbcL3Fo3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 30 Dec 2016 00:43:41 -0500
-Received: by mail-qk0-f169.google.com with SMTP id h201so150028212qke.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Dec 2016 21:43:40 -0800 (PST)
+        Fri, 30 Dec 2016 00:44:29 -0500
+Received: by mail-qk0-f174.google.com with SMTP id t184so289936298qkd.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Dec 2016 21:44:28 -0800 (PST)
 Received: from juliacomputing.com ([2601:184:4380:e6e:801d:58a2:bb9:dc])
-        by smtp.gmail.com with ESMTPSA id q88sm24161525qkq.21.2016.12.29.21.43.38
+        by smtp.gmail.com with ESMTPSA id q3sm34613260qtc.34.2016.12.29.21.44.27
         for <netfilter-devel@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 29 Dec 2016 21:43:39 -0800 (PST)
+        Thu, 29 Dec 2016 21:44:27 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The first:
-```
-iptables/extensions/libebt_limit.c:21:26: fatal error: iptables/nft.h: No such file or directory
- #include "iptables/nft.h"
-```
-
-The second:
-```
-/data/keno/sandbox/iptables/iptables/xtables-config-parser.y:19:32: fatal error: libiptc/linux_list.h: No such file or directory
- #include <libiptc/linux_list.h>
-                                ^
-```
-
-Simply fixed by adding the relevant `-I` directives.
+The primary concern here is probably that iptables uses functions
+that in glibc still require the dynamic library at runtime. However,
+for my usage of iptables, I have never actually run into this situation,
+and even if I did, I'd rather switch libcs (though I may be in the
+minority there). Nevertheless, I think it would be useful to have
+this option available for those wanting a statically linked iptables.
 
 Signed-off-by: Keno Fischer <keno@juliacomputing.com>
 ---
- extensions/GNUmakefile.in | 2 +-
- iptables/Makefile.am      | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ configure.ac         | 10 ++++++++++
+ iptables/Makefile.am |  6 ++++++
+ 2 files changed, 16 insertions(+)
 
-diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-index 33b06ef..b7a8a83 100644
---- a/extensions/GNUmakefile.in
-+++ b/extensions/GNUmakefile.in
-@@ -22,7 +22,7 @@ regular_CPPFLAGS   = @regular_CPPFLAGS@
- kinclude_CPPFLAGS  = @kinclude_CPPFLAGS@
+diff --git a/configure.ac b/configure.ac
+index 6ae63f8..a787de9 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -67,6 +67,9 @@ AC_ARG_ENABLE([connlabel],
+ 	AS_HELP_STRING([--disable-connlabel],
+ 	[Do not build libnetfilter_conntrack]),
+ 	[enable_connlabel="$enableval"], [enable_connlabel="yes"])
++AC_ARG_ENABLE([static_executables],
++	AS_HELP_STRING([--enable-static-executables], [Statically link executables against libc]),
++	[enable_static_executables="$enableval"], [enable_static_executables="no"])
  
- AM_CFLAGS       = ${regular_CFLAGS}
--AM_CPPFLAGS     = ${regular_CPPFLAGS} -I${top_builddir}/include -I${top_builddir} -I${top_srcdir}/include ${kinclude_CPPFLAGS} ${CPPFLAGS} @libnetfilter_conntrack_CFLAGS@ @libnftnl_CFLAGS@
-+AM_CPPFLAGS     = ${regular_CPPFLAGS} -I${top_builddir}/include -I${top_builddir} -I${top_srcdir}/include -I${top_srcdir} ${kinclude_CPPFLAGS} ${CPPFLAGS} @libnetfilter_conntrack_CFLAGS@ @libnftnl_CFLAGS@
- AM_DEPFLAGS     = -Wp,-MMD,$(@D)/.$(@F).d,-MT,$@
- AM_LDFLAGS      = @noundef_LDFLAGS@
+ libiptc_LDFLAGS2="";
+ AX_CHECK_LINKER_FLAGS([-Wl,--no-as-needed],
+@@ -100,6 +103,7 @@ fi;
+ AC_CHECK_SIZEOF([struct ip6_hdr], [], [#include <netinet/ip6.h>])
  
+ AM_CONDITIONAL([ENABLE_STATIC], [test "$enable_static" = "yes"])
++AM_CONDITIONAL([ENABLE_STATIC_EXECUTABLES], [test "$enable_static_executables" = "yes"])
+ AM_CONDITIONAL([ENABLE_SHARED], [test "$enable_shared" = "yes"])
+ AM_CONDITIONAL([ENABLE_IPV4], [test "$enable_ipv4" = "yes"])
+ AM_CONDITIONAL([ENABLE_IPV6], [test "$enable_ipv6" = "yes"])
+@@ -111,6 +115,11 @@ AM_CONDITIONAL([ENABLE_SYNCONF], [test "$enable_nfsynproxy" = "yes"])
+ AM_CONDITIONAL([ENABLE_NFTABLES], [test "$enable_nftables" = "yes"])
+ AM_CONDITIONAL([ENABLE_CONNLABEL], [test "$enable_connlabel" = "yes"])
+ 
++if test "x$enable_static_executables" = "xyes" && test "x$enable_static" != "xyes"; then
++    echo "*** Error: --enable-static-executables without --enable-static. ***"
++    exit 1
++fi
++
+ if test "x$enable_bpfc" = "xyes" || test "x$enable_nfsynproxy" = "xyes"; then
+ 	AC_CHECK_LIB(pcap, pcap_compile,, AC_MSG_ERROR(missing libpcap library required by bpf compiler or nfsynproxy tool))
+ fi
+@@ -262,6 +271,7 @@ Iptables Configuration:
+ 
+ Build parameters:
+   Put plugins into executable (static):	${enable_static}
++  Build static executables (static-executables): ${enable_static_executables}
+   Support plugins via dlopen (shared):	${enable_shared}
+   Installation prefix (--prefix):	${prefix}
+   Xtables extension directory:		${e_xtlibdir}
 diff --git a/iptables/Makefile.am b/iptables/Makefile.am
-index 569a739..f92cc4f 100644
+index f92cc4f..5c3edec 100644
 --- a/iptables/Makefile.am
 +++ b/iptables/Makefile.am
-@@ -1,7 +1,7 @@
- # -*- Makefile -*-
- 
- AM_CFLAGS        = ${regular_CFLAGS}
--AM_CPPFLAGS      = ${regular_CPPFLAGS} -I${top_builddir}/include -I${top_srcdir}/include ${kinclude_CPPFLAGS} ${libmnl_CFLAGS} ${libnftnl_CFLAGS} ${libnetfilter_conntrack_CFLAGS}
-+AM_CPPFLAGS      = ${regular_CPPFLAGS} -I${top_builddir}/include -I${top_srcdir}/include -I${top_srcdir} ${kinclude_CPPFLAGS} ${libmnl_CFLAGS} ${libnftnl_CFLAGS} ${libnetfilter_conntrack_CFLAGS}
- AM_YFLAGS = -d
- 
- BUILT_SOURCES =
+@@ -12,6 +12,9 @@ xtables_multi_LDADD    = ../extensions/libext.a
+ if ENABLE_STATIC
+ xtables_multi_CFLAGS  += -DALL_INCLUSIVE
+ endif
++if ENABLE_STATIC_EXECUTABLES
++xtables_multi_LDFLAGS  = ${AM_LDFLAGS} -all-static
++endif
+ if ENABLE_IPV4
+ xtables_multi_SOURCES += iptables-save.c iptables-restore.c \
+                          iptables-standalone.c iptables.c
+@@ -36,6 +39,9 @@ xtables_compat_multi_LDADD    = ../extensions/libext.a ../extensions/libext_ebt.
+ if ENABLE_STATIC
+ xtables_compat_multi_CFLAGS  += -DALL_INCLUSIVE
+ endif
++if ENABLE_STATIC_EXECUTABLES
++xtables_compat_multi_LDFLAGS  = ${AM_LDFLAGS} -all-static
++endif
+ xtables_compat_multi_CFLAGS  += -DENABLE_NFTABLES -DENABLE_IPV4 -DENABLE_IPV6
+ xtables_compat_multi_SOURCES += xtables-config-parser.y xtables-config-syntax.l
+ xtables_compat_multi_SOURCES += xtables-save.c xtables-restore.c \
 -- 
 2.9.3
 
