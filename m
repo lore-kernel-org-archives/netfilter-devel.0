@@ -1,67 +1,23 @@
-From: Oleksandr Natalenko <oleksandr@natalenko.name>
-Subject: [PATCH 1/2] utils: provide array allocation wrapper
-Date: Mon,  2 Jan 2017 18:38:50 +0100
-Message-ID: <20170102173851.2542-2-oleksandr@natalenko.name>
-References: <20170102173851.2542-1-oleksandr@natalenko.name>
-To: netfilter-devel@vger.kernel.org
+From: "Dr. David White" <"wd."@eagle.ocn.ne.jp>
+Subject: Urgent Please;;
+Date: Tue, 3 Jan 2017 02:42:59 +0900 (JST)
+Message-ID: <288948803.116392719.1483378979506.JavaMail.root@eagle.ocn.ne.jp>
+Reply-To: "Dr. David White" <david_white34@mynet.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vulcan.natalenko.name ([104.207.131.136]:41740 "EHLO
-        vulcan.natalenko.name" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756238AbdABRjA (ORCPT
+Received: from mbkd0127.ocn.ad.jp ([153.149.230.28]:40226 "EHLO
+        mbkd0127.ocn.ad.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933378AbdABR4o (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Jan 2017 12:39:00 -0500
-Received: from localhost.localdomain (unknown [IPv6:2001:470:5b39:29:c99:116f:61fe:9756])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by vulcan.natalenko.name (Postfix) with ESMTPSA id 4541B16AA54
-        for <netfilter-devel@vger.kernel.org>; Mon,  2 Jan 2017 18:38:58 +0100 (CET)
-In-Reply-To: <20170102173851.2542-1-oleksandr@natalenko.name>
+        Mon, 2 Jan 2017 12:56:44 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This will be used for allocating memory for arrays
-in heap instead of keeping them on stack.
+Dear,
+With due respect to your person and much sincerity of purpose. I have a business proposal which I will like to handle with you and $14.5 Million USD is involve. But be rest assured that everything is legal and risk free as I have concluded all the arrangements and the legal papers that will back the transaction up. Kindly indicate your interest as to enable me tell you more detail of the proposal. Waiting for your urgent response.
 
-Signed-off-by: Oleksandr Natalenko <oleksandr@natalenko.name>
----
- include/utils.h |  1 +
- src/utils.c     | 11 +++++++++++
- 2 files changed, 12 insertions(+)
-
-diff --git a/include/utils.h b/include/utils.h
-index bb58ba4..3199388 100644
---- a/include/utils.h
-+++ b/include/utils.h
-@@ -138,6 +138,7 @@ extern void __memory_allocation_error(const char *filename, uint32_t line) __nor
- 
- extern void xfree(const void *ptr);
- extern void *xmalloc(size_t size);
-+extern void *xmalloc_array(size_t nmemb, size_t size);
- extern void *xrealloc(void *ptr, size_t size);
- extern void *xzalloc(size_t size);
- extern char *xstrdup(const char *s);
-diff --git a/src/utils.c b/src/utils.c
-index 65dabf4..9e8866d 100644
---- a/src/utils.c
-+++ b/src/utils.c
-@@ -39,6 +39,17 @@ void *xmalloc(size_t size)
- 	return ptr;
- }
- 
-+void *xmalloc_array(size_t nmemb, size_t size)
-+{
-+	assert(nmemb != 0);
-+	assert(size != 0);
-+
-+	if (nmemb > SIZE_MAX / size)
-+		memory_allocation_error();
-+
-+	return xmalloc(nmemb * size);
-+}
-+
- void *xrealloc(void *ptr, size_t size)
- {
- 	ptr = realloc(ptr, size);
--- 
-2.11.0
-
+Yours Faithfully,
+Dr. David White
