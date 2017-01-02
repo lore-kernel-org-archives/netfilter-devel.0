@@ -1,43 +1,43 @@
-From: Anatole Denis <anatole@rezel.net>
-Subject: [PATCH nft] scanner: fix search_in_include_path test
-Date: Mon,  2 Jan 2017 16:30:01 +0100
-Message-ID: <20170102153002.6711-1-anatole@rezel.net>
-Cc: Anatole Denis <anatole@rezel.net>
+From: Oleksandr Natalenko <oleksandr@natalenko.name>
+Subject: [PATCH 0/2] segtree: move huge arrays to heap
+Date: Mon,  2 Jan 2017 18:38:49 +0100
+Message-ID: <20170102173851.2542-1-oleksandr@natalenko.name>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from inara.rezel.net ([212.129.30.46]:47956 "EHLO inara.rezel.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756408AbdABPaW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Jan 2017 10:30:22 -0500
+Received: from vulcan.natalenko.name ([104.207.131.136]:41738 "EHLO
+        vulcan.natalenko.name" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755998AbdABRjA (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 2 Jan 2017 12:39:00 -0500
+Received: from localhost.localdomain (unknown [IPv6:2001:470:5b39:29:c99:116f:61fe:9756])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by vulcan.natalenko.name (Postfix) with ESMTPSA id DAB7B16AA53
+        for <netfilter-devel@vger.kernel.org>; Mon,  2 Jan 2017 18:38:57 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-clang emits a warning in this function as we're using a boolean as the third
-argument to strncmp. Indeed, this function only checks the first byte of the
-path as is, so files beginning with . will be incorrectly included from the
-current working directory instead of the include directory.
+While dealing with huge sets, nft may exhaust stack
+and trigger segfault. To avoid this, lets move those
+huge arrays away from stack to heap.
 
-Fixes: f92a1a5c4a8761c39a76b264859f0ff2c8f71179
-Signed-off-by: Anatole Denis <anatole@rezel.net>
----
- src/scanner.l | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+First patch introduces array allocation helper.
 
-diff --git a/src/scanner.l b/src/scanner.l
-index 625023f..bf88955 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -629,8 +629,8 @@ err:
- 
- static bool search_in_include_path(const char *filename)
- {
--	return (strncmp(filename, "./", strlen("./") != 0) &&
--		strncmp(filename, "../", strlen("../") != 0) &&
-+	return (strncmp(filename, "./", strlen("./")) != 0 &&
-+		strncmp(filename, "../", strlen("../")) != 0 &&
- 		filename[0] != '/');
- }
- 
+Second patch modifies interval_map_decompose()
+function, allocating memory for arrays on head.
+
+Meny thanks to Florian Westphal who helped
+to sort this out.
+
+Oleksandr Natalenko (2):
+  utils: provide array allocation wrapper
+  segtree: allocate memory for arrays on heap
+
+ include/utils.h |  1 +
+ src/segtree.c   |  8 +++++++-
+ src/utils.c     | 11 +++++++++++
+ 3 files changed, 19 insertions(+), 1 deletion(-)
+
 -- 
 2.11.0
 
