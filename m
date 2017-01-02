@@ -1,50 +1,134 @@
-From: Oleksandr Natalenko <oleksandr@natalenko.name>
-Subject: [PATCH v2 0/2] segtree: move huge arrays to heap
-Date: Mon,  2 Jan 2017 20:54:07 +0100
-Message-ID: <20170102195409.14669-1-oleksandr@natalenko.name>
+From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+Subject: [PATCH nf-next 0/7] xtables: use dedicated copy_to_user helpers
+Date: Mon,  2 Jan 2017 17:19:39 -0500
+Message-ID: <1483395586-105774-1-git-send-email-willemdebruijn.kernel@gmail.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, fw@strlen.de,
+        dborkman@iogearbox.net, pablo@netfilter.org,
+        Willem de Bruijn <willemb@google.com>
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vulcan.natalenko.name ([104.207.131.136]:44560 "EHLO
-        vulcan.natalenko.name" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933348AbdABTyS (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Jan 2017 14:54:18 -0500
-Received: from localhost.localdomain (unknown [IPv6:2001:470:5b39:29:c99:116f:61fe:9756])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by vulcan.natalenko.name (Postfix) with ESMTPSA id 168F616AAEA
-        for <netfilter-devel@vger.kernel.org>; Mon,  2 Jan 2017 20:54:15 +0100 (CET)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-While dealing with huge sets, nft may exhaust stack
-and trigger segfault. To avoid this, lets move those
-huge arrays away from stack to heap.
+From: Willem de Bruijn <willemb@google.com>
 
-First patch introduces array allocation helper.
+xtables list and save interfaces share xt_match and xt_target state
+with userspace. The kernel and userspace definitions of these structs
+differ. Currently, the structs are copied wholesale, then patched up.
+The match and target structs contain a kernel pointer. Type-specific
+data may contain additional kernel-only state.
 
-Second patch modifies interval_map_decompose()
-function, allocating memory for arrays on head.
+Introduce xt_match_to_user and xt_target_to_user helper functions to
+copy only fields intended to be shared with userspace.
 
-Meny thanks to Florian Westphal who helped
-to sort this out.
+Introduce xt_data_to_user to do the same for type-specific state. Add
+a field .usersize to xt_match and xt_target to define the range of
+bytes in .matchsize that should be shared with userspace. All matches
+and targets that define kernel-only data store this at the tail of
+their struct.
 
-Changelog:
+Tested:
 
-v2: nmemb actually can be 0, so remove that
-    assertion
+  Ran iptables-test.py from iptables.git, with both a 64-bit and
+  32-bit compat binary. 603/603 tests passed both before and after
+  the patches (out of 705, but some CONFIGs were not enabled).
 
-v1: initial submission
+  Also ran the following example queries manually, again using 64-bit
+  and 32-bit compat paths:
 
-Oleksandr Natalenko (2):
-  utils: provide array allocation wrapper
-  segtree: allocate memory for arrays on heap
+  iptables -A INPUT  -m string --algo bm --string 'xxx' -j LOG
+  iptables -L
+  iptables-save
 
- include/utils.h |  1 +
- src/segtree.c   |  8 +++++++-
- src/utils.c     | 10 ++++++++++
- 3 files changed, 18 insertions(+), 1 deletion(-)
+  ip6tables -A INPUT  -m string --algo bm --string 'xxx' -j LOG
+  ip6tables -L
+  ip6tables-save
+
+  ebtables -A INPUT --limit 3 -j ACCEPT
+  ebtables -L
+
+  arptables -A INPUT --source-mac 00:11:22:33:44:55 -j ACCEPT
+  arptables -L
+
+  An instrumented binary that initializes its buffer with 0x66 bytes
+  shows the result of the patchset.
+
+  iptables LOG target in hex before and after. The xt_target struct
+  only has its size, name and revision specified. Trailing bytes in
+  the name field are not zeroed:
+
+    40 00 4c 4f 47 00 00 00
+    40 e1 0a a0 ff ff ff ff
+    00 00 00 00 00 00 00 00
+    00 00 00 00 00 00 00 00
+    04 00 00 00 00 00 00 00
+    00 00 00 00 00 00 00 00
+    00 00 00 00 00 00 00 00
+    00 00 00 00 00 00 00 00
+
+    40 00 4c 4f 47 00 66 66
+    66 66 66 66 66 66 66 66
+    66 66 66 66 66 66 66 66
+    66 66 66 66 66 66 66 00
+    04 00 00 00 00 00 00 00
+    00 00 00 00 00 00 00 00
+    00 00 00 00 00 00 00 00
+    00 00 00 00 00 00 00 00
+
+  ebtables limit match in hex before and after. Only the avg and burst
+  fields of ebt_limit_info are shared.
+
+    6c 69 6d 69 74 00 00 00
+    00 00 00 00 00 00 00 00
+    00 00 00 00 00 00 00 00
+    00 00 00 00 00 00 00 00
+    20 00 00 00 00 00 00 00
+    05 0d 00 00 05 00 00 00
+    66 de fc ff 00 00 00 00
+    50 d0 00 00 50 d0 00 00
+    a9 29 00 00 00 00 00 00
+
+    6c 69 6d 69 74 00 00 00
+    00 00 00 00 00 00 00 00
+    00 00 00 00 00 00 00 00
+    00 00 00 00 00 00 00 00
+    20 00 00 00 00 00 00 00
+    05 0d 00 00 05 00 00 00
+    00 00 00 00 00 00 00 00
+    00 00 00 00 00 00 00 00
+    00 00 00 00 00 00 00 00
+
+
+Willem de Bruijn (7):
+  xtables: add xt_match, xt_target and data copy_to_user functions
+  iptables: use match, target and data copy_to_user helpers
+  ip6tables: use match, target and data copy_to_user helpers
+  arptables: use match, target and data copy_to_user helpers
+  ebtables: use match, target and data copy_to_user helpers
+  xtables: use match, target and data copy_to_user helpers in compat
+  xtables: extend matches and targets with .usersize
+
+ include/linux/netfilter/x_tables.h |  9 +++++
+ net/bridge/netfilter/ebt_limit.c   |  1 +
+ net/bridge/netfilter/ebtables.c    | 78 +++++++++++++++++++++++---------------
+ net/ipv4/netfilter/arp_tables.c    | 15 +++-----
+ net/ipv4/netfilter/ip_tables.c     | 21 +++-------
+ net/ipv4/netfilter/ipt_CLUSTERIP.c |  1 +
+ net/ipv6/netfilter/ip6_tables.c    | 21 +++-------
+ net/ipv6/netfilter/ip6t_NPT.c      |  2 +
+ net/netfilter/x_tables.c           | 68 ++++++++++++++++++++++++++++-----
+ net/netfilter/xt_CT.c              |  3 ++
+ net/netfilter/xt_RATEEST.c         |  1 +
+ net/netfilter/xt_TEE.c             |  2 +
+ net/netfilter/xt_bpf.c             |  2 +
+ net/netfilter/xt_cgroup.c          |  1 +
+ net/netfilter/xt_connlimit.c       |  1 +
+ net/netfilter/xt_hashlimit.c       |  4 ++
+ net/netfilter/xt_limit.c           |  2 +
+ net/netfilter/xt_quota.c           |  1 +
+ net/netfilter/xt_rateest.c         |  1 +
+ net/netfilter/xt_string.c          |  1 +
+ 20 files changed, 154 insertions(+), 81 deletions(-)
 
 -- 
-2.11.0
-
+2.8.0.rc3.226.g39d4020
