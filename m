@@ -1,62 +1,67 @@
 From: Oleksandr Natalenko <oleksandr@natalenko.name>
-Subject: [PATCH 2/2] segtree: allocate memory for arrays on heap
-Date: Mon,  2 Jan 2017 18:38:51 +0100
-Message-ID: <20170102173851.2542-3-oleksandr@natalenko.name>
+Subject: [PATCH 1/2] utils: provide array allocation wrapper
+Date: Mon,  2 Jan 2017 18:38:50 +0100
+Message-ID: <20170102173851.2542-2-oleksandr@natalenko.name>
 References: <20170102173851.2542-1-oleksandr@natalenko.name>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vulcan.natalenko.name ([104.207.131.136]:41742 "EHLO
+Received: from vulcan.natalenko.name ([104.207.131.136]:41740 "EHLO
         vulcan.natalenko.name" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756226AbdABRjA (ORCPT
+        with ESMTP id S1756238AbdABRjA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 2 Jan 2017 12:39:00 -0500
 Received: from localhost.localdomain (unknown [IPv6:2001:470:5b39:29:c99:116f:61fe:9756])
         (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
         (No client certificate requested)
-        by vulcan.natalenko.name (Postfix) with ESMTPSA id A6EF616AA55
+        by vulcan.natalenko.name (Postfix) with ESMTPSA id 4541B16AA54
         for <netfilter-devel@vger.kernel.org>; Mon,  2 Jan 2017 18:38:58 +0100 (CET)
 In-Reply-To: <20170102173851.2542-1-oleksandr@natalenko.name>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Huge sets may cause stack to be exhausted.
-So, put allocate memory for arrays in
-interval_map_decompose() function on heap.
+This will be used for allocating memory for arrays
+in heap instead of keeping them on stack.
 
 Signed-off-by: Oleksandr Natalenko <oleksandr@natalenko.name>
 ---
- src/segtree.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ include/utils.h |  1 +
+ src/utils.c     | 11 +++++++++++
+ 2 files changed, 12 insertions(+)
 
-diff --git a/src/segtree.c b/src/segtree.c
-index 5b6cdd1..d3873d9 100644
---- a/src/segtree.c
-+++ b/src/segtree.c
-@@ -608,12 +608,15 @@ static int expr_value_cmp(const void *p1, const void *p2)
+diff --git a/include/utils.h b/include/utils.h
+index bb58ba4..3199388 100644
+--- a/include/utils.h
++++ b/include/utils.h
+@@ -138,6 +138,7 @@ extern void __memory_allocation_error(const char *filename, uint32_t line) __nor
  
- void interval_map_decompose(struct expr *set)
- {
--	struct expr *elements[set->size], *ranges[set->size * 2];
-+	struct expr **elements, **ranges;
- 	struct expr *i, *next, *low = NULL, *end;
- 	unsigned int n, m, size;
- 	mpz_t range, p;
- 	bool interval;
- 
-+	elements = xmalloc_array(set->size, sizeof(struct expr *));
-+	ranges = xmalloc_array(set->size * 2, sizeof(struct expr *));
-+
- 	mpz_init(range);
- 	mpz_init(p);
- 
-@@ -728,4 +731,7 @@ void interval_map_decompose(struct expr *set)
- 
- 		compound_expr_add(set, i);
- 	}
-+
-+	xfree(ranges);
-+	xfree(elements);
+ extern void xfree(const void *ptr);
+ extern void *xmalloc(size_t size);
++extern void *xmalloc_array(size_t nmemb, size_t size);
+ extern void *xrealloc(void *ptr, size_t size);
+ extern void *xzalloc(size_t size);
+ extern char *xstrdup(const char *s);
+diff --git a/src/utils.c b/src/utils.c
+index 65dabf4..9e8866d 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -39,6 +39,17 @@ void *xmalloc(size_t size)
+ 	return ptr;
  }
+ 
++void *xmalloc_array(size_t nmemb, size_t size)
++{
++	assert(nmemb != 0);
++	assert(size != 0);
++
++	if (nmemb > SIZE_MAX / size)
++		memory_allocation_error();
++
++	return xmalloc(nmemb * size);
++}
++
+ void *xrealloc(void *ptr, size_t size)
+ {
+ 	ptr = realloc(ptr, size);
 -- 
 2.11.0
 
