@@ -1,7 +1,7 @@
 From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: [PATCH nf-next 2/7] iptables: use match, target and data copy_to_user helpers
-Date: Mon,  2 Jan 2017 17:19:41 -0500
-Message-ID: <1483395586-105774-3-git-send-email-willemdebruijn.kernel@gmail.com>
+Subject: [PATCH nf-next 3/7] ip6tables: use match, target and data copy_to_user helpers
+Date: Mon,  2 Jan 2017 17:19:42 -0500
+Message-ID: <1483395586-105774-4-git-send-email-willemdebruijn.kernel@gmail.com>
 References: <1483395586-105774-1-git-send-email-willemdebruijn.kernel@gmail.com>
 Cc: netdev@vger.kernel.org, davem@davemloft.net, fw@strlen.de,
         dborkman@iogearbox.net, pablo@netfilter.org,
@@ -14,19 +14,19 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Willem de Bruijn <willemb@google.com>
 
-Convert iptables to copying entries, matches and targets one by one,
+Convert ip6tables to copying entries, matches and targets one by one,
 using the xt_match_to_user and xt_target_to_user helper functions.
 
 Signed-off-by: Willem de Bruijn <willemb@google.com>
 ---
- net/ipv4/netfilter/ip_tables.c | 21 ++++++---------------
+ net/ipv6/netfilter/ip6_tables.c | 21 ++++++---------------
  1 file changed, 6 insertions(+), 15 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 91656a1..384b857 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -826,10 +826,6 @@ copy_entries_to_user(unsigned int total_size,
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 25a022d..1e15c54 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -855,10 +855,6 @@ copy_entries_to_user(unsigned int total_size,
  		return PTR_ERR(counters);
  
  	loc_cpu_entry = private->entries;
@@ -37,18 +37,18 @@ index 91656a1..384b857 100644
  
  	/* FIXME: use iterator macros --RR */
  	/* ... then go back and fix counters and names */
-@@ -839,6 +835,10 @@ copy_entries_to_user(unsigned int total_size,
+@@ -868,6 +864,10 @@ copy_entries_to_user(unsigned int total_size,
  		const struct xt_entry_target *t;
  
- 		e = (struct ipt_entry *)(loc_cpu_entry + off);
+ 		e = (struct ip6t_entry *)(loc_cpu_entry + off);
 +		if (copy_to_user(userptr + off, e, sizeof(*e))) {
 +			ret = -EFAULT;
 +			goto free_counters;
 +		}
  		if (copy_to_user(userptr + off
- 				 + offsetof(struct ipt_entry, counters),
+ 				 + offsetof(struct ip6t_entry, counters),
  				 &counters[num],
-@@ -852,23 +852,14 @@ copy_entries_to_user(unsigned int total_size,
+@@ -881,23 +881,14 @@ copy_entries_to_user(unsigned int total_size,
  		     i += m->u.match_size) {
  			m = (void *)e + i;
  
@@ -64,7 +64,7 @@ index 91656a1..384b857 100644
  			}
  		}
  
- 		t = ipt_get_target_c(e);
+ 		t = ip6t_get_target_c(e);
 -		if (copy_to_user(userptr + off + e->target_offset
 -				 + offsetof(struct xt_entry_target,
 -					    u.user.name),
