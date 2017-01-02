@@ -1,67 +1,62 @@
-From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Subject: Re: [PATCH nf-next 1/2] netfilter: select LIBCRC32C together with
- SCTP conntrack
-Date: Mon, 2 Jan 2017 17:10:51 -0200
-Message-ID: <20170102191051.GA23871@localhost.localdomain>
-References: <cover.1483355460.git.dcaratti@redhat.com>
- <c4b47e21dcfae883d63dd1c43537346ee3bfa89d.1483355460.git.dcaratti@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S . Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Davide Caratti <dcaratti@redhat.com>
+From: Oleksandr Natalenko <oleksandr@natalenko.name>
+Subject: [PATCH v2 2/2] segtree: allocate memory for arrays on heap
+Date: Mon,  2 Jan 2017 20:54:09 +0100
+Message-ID: <20170102195409.14669-3-oleksandr@natalenko.name>
+References: <20170102195409.14669-1-oleksandr@natalenko.name>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38382 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755969AbdABTKz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Jan 2017 14:10:55 -0500
-Content-Disposition: inline
-In-Reply-To: <c4b47e21dcfae883d63dd1c43537346ee3bfa89d.1483355460.git.dcaratti@redhat.com>
+Received: from vulcan.natalenko.name ([104.207.131.136]:44562 "EHLO
+        vulcan.natalenko.name" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932983AbdABTyR (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 2 Jan 2017 14:54:17 -0500
+Received: from localhost.localdomain (unknown [IPv6:2001:470:5b39:29:c99:116f:61fe:9756])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by vulcan.natalenko.name (Postfix) with ESMTPSA id D63F616AAEC
+        for <netfilter-devel@vger.kernel.org>; Mon,  2 Jan 2017 20:54:15 +0100 (CET)
+In-Reply-To: <20170102195409.14669-1-oleksandr@natalenko.name>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 02, 2017 at 01:29:40PM +0100, Davide Caratti wrote:
-> nf_conntrack needs to compute crc32c when dealing with SCTP packets.
-> Moreover, NF_NAT_PROTO_SCTP (currently selecting LIBCRC32C) can be enabled
-> only if conntrack support for SCTP is enabled. Therefore, move enabling of
-> kernel support for crc32c so that it is selected when NF_CT_PROTO_SCTP=y.
-> 
-> Signed-off-by: Davide Caratti <dcaratti@redhat.com>
+Huge sets may cause stack to be exhausted.
+So, put allocate memory for arrays in
+interval_map_decompose() function on heap.
 
-Reviewed-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Signed-off-by: Oleksandr Natalenko <oleksandr@natalenko.name>
+---
+ src/segtree.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-> ---
->  net/netfilter/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-> index 63729b4..6d425e3 100644
-> --- a/net/netfilter/Kconfig
-> +++ b/net/netfilter/Kconfig
-> @@ -162,6 +162,7 @@ config NF_CT_PROTO_SCTP
->  	bool 'SCTP protocol connection tracking support'
->  	depends on NETFILTER_ADVANCED
->  	default y
-> +	select LIBCRC32C
->  	help
->  	  With this option enabled, the layer 3 independent connection
->  	  tracking code will be able to do state tracking on SCTP connections.
-> @@ -397,7 +398,6 @@ config NF_NAT_PROTO_SCTP
->  	bool
->  	default NF_NAT && NF_CT_PROTO_SCTP
->  	depends on NF_NAT && NF_CT_PROTO_SCTP
-> -	select LIBCRC32C
->  
->  config NF_NAT_AMANDA
->  	tristate
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/src/segtree.c b/src/segtree.c
+index 5b6cdd1..d3873d9 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -608,12 +608,15 @@ static int expr_value_cmp(const void *p1, const void *p2)
+ 
+ void interval_map_decompose(struct expr *set)
+ {
+-	struct expr *elements[set->size], *ranges[set->size * 2];
++	struct expr **elements, **ranges;
+ 	struct expr *i, *next, *low = NULL, *end;
+ 	unsigned int n, m, size;
+ 	mpz_t range, p;
+ 	bool interval;
+ 
++	elements = xmalloc_array(set->size, sizeof(struct expr *));
++	ranges = xmalloc_array(set->size * 2, sizeof(struct expr *));
++
+ 	mpz_init(range);
+ 	mpz_init(p);
+ 
+@@ -728,4 +731,7 @@ void interval_map_decompose(struct expr *set)
+ 
+ 		compound_expr_add(set, i);
+ 	}
++
++	xfree(ranges);
++	xfree(elements);
+ }
+-- 
+2.11.0
+
