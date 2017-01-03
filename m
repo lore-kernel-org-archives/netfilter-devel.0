@@ -1,35 +1,33 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] scanner: fix search_in_include_path test
-Date: Tue, 3 Jan 2017 12:59:00 +0100
-Message-ID: <20170103115900.GA24372@salvia>
-References: <20170102153002.6711-1-anatole@rezel.net>
+Subject: Re: [PATCH v2 nf-next 0/2] netfilter: merge udp and udplite trackers
+Date: Tue, 3 Jan 2017 14:35:09 +0100
+Message-ID: <20170103133509.GA30574@salvia>
+References: <1482267423-1411-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Anatole Denis <anatole@rezel.net>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55600 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:33950 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756583AbdACL7U (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 3 Jan 2017 06:59:20 -0500
+        id S1757544AbdACNfO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 3 Jan 2017 08:35:14 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 8D26B8AD5
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Jan 2017 12:59:18 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 81D9B523C9
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 Jan 2017 14:35:12 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 802469D68F
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Jan 2017 12:59:18 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 66FDB8E62B
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 Jan 2017 14:35:12 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5F51D9D68F
-        for <netfilter-devel@vger.kernel.org>; Tue,  3 Jan 2017 12:59:16 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 58E118E629
+        for <netfilter-devel@vger.kernel.org>; Tue,  3 Jan 2017 14:35:10 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20170102153002.6711-1-anatole@rezel.net>
+In-Reply-To: <1482267423-1411-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 02, 2017 at 04:30:01PM +0100, Anatole Denis wrote:
-> clang emits a warning in this function as we're using a boolean as the third
-> argument to strncmp. Indeed, this function only checks the first byte of the
-> path as is, so files beginning with . will be incorrectly included from the
-> current working directory instead of the include directory.
+On Tue, Dec 20, 2016 at 09:57:01PM +0100, Florian Westphal wrote:
+> Most of the code is copy&paste from the udp one; most of the udp
+> functions can also be used for udplite.
 
-Applied, thanks Anatole.
+Series applied, thanks Florian.
