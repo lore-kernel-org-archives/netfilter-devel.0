@@ -1,54 +1,56 @@
-From: Arturo Borrero Gonzalez <arturo@debian.org>
-Subject: Re: build failure if --with-xtables [WAS: nftables 0.7 release]
-Date: Wed, 4 Jan 2017 08:35:33 +0100
-Message-ID: <CAOkSjBi922Q4rGLt5Tg34TvBi7swfCuAPNKQwxTiRkJyTCGd0Q@mail.gmail.com>
-References: <20161220204636.GA11674@salvia> <20170103155614.40273a5e.robby@rlworkman.net>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: Re: [PATCH] uapi: use wildcards to list files
+Date: Wed, 4 Jan 2017 10:03:50 +0100
+Message-ID: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
+References: <20161203.192346.1198940437155108508.davem@davemloft.net>
+ <1483454144-10519-1-git-send-email-nicolas.dichtel@6wind.com>
+ <2108827.WpE3IvfEdH@wuerfel>
+Reply-To: nicolas.dichtel@6wind.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Robby Workman <robby@rlworkman.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-io0-f173.google.com ([209.85.223.173]:35917 "EHLO
-        mail-io0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753604AbdADHfz (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Jan 2017 02:35:55 -0500
-Received: by mail-io0-f173.google.com with SMTP id p127so2818359iop.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 03 Jan 2017 23:35:55 -0800 (PST)
-Received: from mail-io0-f182.google.com (mail-io0-f182.google.com. [209.85.223.182])
-        by smtp.gmail.com with ESMTPSA id i62sm33745861itb.12.2017.01.03.23.35.54
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 03 Jan 2017 23:35:54 -0800 (PST)
-Received: by mail-io0-f182.google.com with SMTP id d9so448308755ioe.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 03 Jan 2017 23:35:54 -0800 (PST)
-In-Reply-To: <20170103155614.40273a5e.robby@rlworkman.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, netdev@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, linux-nfs@vger.kernel.org,
+        linux-raid@vger.kernel.org, linux-spi@vger.kernel.org,
+        linux-mtd@lists.infradead.org, linux-rdma@vger.kernel.org,
+        fcoe-devel@open-fcoe.org, alsa-devel@alsa-project.org,
+        linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org,
+        davem@davemloft.net, airlied@linux.ie,
+        David Howells <dhowells@redhat.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <2108827.WpE3IvfEdH@wuerfel>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 3 January 2017 at 22:56, Robby Workman <robby@rlworkman.net> wrote:
-> On Tue, 20 Dec 2016 21:46:36 +0100
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
->> Hi!
+Le 03/01/2017 à 22:37, Arnd Bergmann a écrit :
+> On Tuesday, January 3, 2017 3:35:44 PM CET Nicolas Dichtel wrote:
+>> Regularly, when a new header is created in include/uapi/, the developer
+>> forgets to add it in the corresponding Kbuild file. This error is usually
+>> detected after the release is out.
 >>
->> The Netfilter project proudly presents:
->>
->>         nftables 0.7
->>
->> This release contains many accumulated bug fixes and new features
->> available up to the (upcoming) Linux 4.10-rc1 kernel release.
->>
->> * Facilitate migration from iptables to nftables:
->>
->>   At compilation time, you have to pass this option.
->>
->>   # ./configure --with-xtables
->
->
-> I get a build failure with this option - bug filed with some details:
-> https://bugzilla.netfilter.org/show_bug.cgi?id=1110
+>> In fact, all headers under include/uapi/ should be exported, so let's
+>> use wildcards.
+> 
+> I think the idea makes a lot of sense: if a header is in uapi, we should
+> really export it. However, using a wildcard expression seems a bit
+> backwards here, I think we should make this implicit and not have the
+> Kbuild file at all.
+> 
+> The "header-y" syntax was originally added back when the uapi headers
+> were mixed with the internal headers in the same directory. After
+> David Howells introduced the separate directory for uapi, it has
+> become a bit redundant.
+Ok, thank you for the explanation, I was wondering why those Kbuild files were
+needed.
 
-the required xlate methods of iptables have not been released so far.
-They are not present in iptables 1.6.0.
+> 
+> Can you try to modify scripts/Makefile.headersinst instead so we
+> can simply remove the Kbuild files entirely?
+I will try something.
+
+
+Regards,
+Nicolas
