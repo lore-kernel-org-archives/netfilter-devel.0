@@ -1,50 +1,398 @@
-From: Alexander Alemayhu <alexander@alemayhu.com>
-Subject: [PATCH] netfilter: nf_tables: fix spelling mistakes
-Date: Wed,  4 Jan 2017 23:16:41 +0100
-Message-ID: <20170104221641.10477-1-alexander@alemayhu.com>
-Cc: pablo@netfilter.org, Alexander Alemayhu <alexander@alemayhu.com>
-To: netfilter-devel@vger.kernel.org
+From: Kevin Cernekee <cernekee@chromium.org>
+Subject: [PATCH libnetfilter_cthelper] Use __EXPORTED rather than EXPORT_SYMBOL
+Date: Wed,  4 Jan 2017 14:30:26 -0800
+Message-ID: <20170104223026.33362-2-cernekee@chromium.org>
+References: <20170104223026.33362-1-cernekee@chromium.org>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lf0-f43.google.com ([209.85.215.43]:36201 "EHLO
-        mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935690AbdADWQ4 (ORCPT
+Received: from mail-pg0-f53.google.com ([74.125.83.53]:35183 "EHLO
+        mail-pg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S967478AbdADWbk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Jan 2017 17:16:56 -0500
-Received: by mail-lf0-f43.google.com with SMTP id x140so16266774lfa.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 04 Jan 2017 14:16:52 -0800 (PST)
+        Wed, 4 Jan 2017 17:31:40 -0500
+Received: by mail-pg0-f53.google.com with SMTP id i5so167154546pgh.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 04 Jan 2017 14:31:40 -0800 (PST)
+In-Reply-To: <20170104223026.33362-1-cernekee@chromium.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-o s/numerice/numeric
-o s/opertaor/operator
+clang is sensitive to the ordering of
+__attribute__((visibility("default"))) relative to the function
+body.  gcc is not.  So if we try to re-declare an existing function
+with default visibility, clang prints a warning and generates
+a broken .so file in which nfct_helper_* are not exported to library
+callers.
 
-Signed-off-by: Alexander Alemayhu <alexander@alemayhu.com>
+Move the attribute up into the function definition to make clang happy.
+
+Signed-off-by: Kevin Cernekee <cernekee@chromium.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ doxygen.cfg.in              |  2 +-
+ src/internal.h              |  5 ++-
+ src/libnetfilter_cthelper.c | 83 ++++++++++++++++++---------------------------
+ 3 files changed, 36 insertions(+), 54 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index b00a05d1ee56..7b730cab99bd 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -235,7 +235,7 @@ enum nft_rule_compat_flags {
+diff --git a/doxygen.cfg.in b/doxygen.cfg.in
+index cac9b0510b4d..190b7cd6e716 100644
+--- a/doxygen.cfg.in
++++ b/doxygen.cfg.in
+@@ -72,7 +72,7 @@ RECURSIVE              = YES
+ EXCLUDE                = 
+ EXCLUDE_SYMLINKS       = NO
+ EXCLUDE_PATTERNS       = */.git/* .*.d
+-EXCLUDE_SYMBOLS        = EXPORT_SYMBOL
++EXCLUDE_SYMBOLS        = 
+ EXAMPLE_PATH           = 
+ EXAMPLE_PATTERNS       = 
+ EXAMPLE_RECURSIVE      = NO
+diff --git a/src/internal.h b/src/internal.h
+index 3a88d1a1f7d8..5d781718ddad 100644
+--- a/src/internal.h
++++ b/src/internal.h
+@@ -3,10 +3,9 @@
+ 
+ #include "config.h"
+ #ifdef HAVE_VISIBILITY_HIDDEN
+-#	define __visible	__attribute__((visibility("default")))
+-#	define EXPORT_SYMBOL(x)	typeof(x) (x) __visible
++#	define __EXPORTED	__attribute__((visibility("default")))
+ #else
+-#	define EXPORT_SYMBOL
++#	define __EXPORTED
+ #endif
+ 
+ #endif
+diff --git a/src/libnetfilter_cthelper.c b/src/libnetfilter_cthelper.c
+index f8f58e6c9c5e..af543a17fafa 100644
+--- a/src/libnetfilter_cthelper.c
++++ b/src/libnetfilter_cthelper.c
+@@ -99,17 +99,16 @@ struct nfct_helper {
+  * In case of success, this function returns a valid pointer, otherwise NULL
+  * s returned and errno is appropriately set.
+  */
+-struct nfct_helper *nfct_helper_alloc(void)
++struct nfct_helper __EXPORTED *nfct_helper_alloc(void)
+ {
+ 	return calloc(1, sizeof(struct nfct_helper));
+ }
+-EXPORT_SYMBOL(nfct_helper_alloc);
+ 
  /**
-  * enum nft_rule_compat_attributes - nf_tables rule compat attributes
-  *
-- * @NFTA_RULE_COMPAT_PROTO: numerice value of handled protocol (NLA_U32)
-+ * @NFTA_RULE_COMPAT_PROTO: numeric value of handled protocol (NLA_U32)
-  * @NFTA_RULE_COMPAT_FLAGS: bitmask of enum nft_rule_compat_flags (NLA_U32)
+  * nfct_helper_free - release one helper object
+  * \param nfct_helper pointer to the helper object
   */
- enum nft_rule_compat_attributes {
-@@ -499,7 +499,7 @@ enum nft_bitwise_attributes {
-  * enum nft_byteorder_ops - nf_tables byteorder operators
-  *
-  * @NFT_BYTEORDER_NTOH: network to host operator
-- * @NFT_BYTEORDER_HTON: host to network opertaor
-+ * @NFT_BYTEORDER_HTON: host to network operator
+-void nfct_helper_free(struct nfct_helper *h)
++void __EXPORTED nfct_helper_free(struct nfct_helper *h)
+ {
+ 	int i;
+ 
+@@ -119,7 +118,6 @@ void nfct_helper_free(struct nfct_helper *h)
+ 	}
+ 	free(h);
+ }
+-EXPORT_SYMBOL(nfct_helper_free);
+ 
+ /**
+  * nfct_helper_policy_alloc - allocate a new helper policy object
+@@ -127,21 +125,19 @@ EXPORT_SYMBOL(nfct_helper_free);
+  * In case of success, this function returns a valid pointer, otherwise NULL
+  * s returned and errno is appropriately set.
   */
- enum nft_byteorder_ops {
- 	NFT_BYTEORDER_NTOH,
+-struct nfct_helper_policy *nfct_helper_policy_alloc(void)
++struct nfct_helper_policy __EXPORTED *nfct_helper_policy_alloc(void)
+ {
+ 	return calloc(1, sizeof(struct nfct_helper_policy));
+ }
+-EXPORT_SYMBOL(nfct_helper_policy_alloc);
+ 
+ /**
+  * nfct_helper_free - release one helper policy object
+  * \param nfct_helper pointer to the helper object
+  */
+-void nfct_helper_policy_free(struct nfct_helper_policy *p)
++void __EXPORTED nfct_helper_policy_free(struct nfct_helper_policy *p)
+ {
+ 	free(p);
+ }
+-EXPORT_SYMBOL(nfct_helper_policy_free);
+ 
+ /**
+  * nfct_helper_policy_attr_set - set one attribute of the helper object
+@@ -149,7 +145,7 @@ EXPORT_SYMBOL(nfct_helper_policy_free);
+  * \param type attribute type you want to set
+  * \param data pointer to data that will be used to set this attribute
+  */
+-void
++void __EXPORTED
+ nfct_helper_policy_attr_set(struct nfct_helper_policy *p,
+ 			    enum nfct_helper_policy_attr_type type,
+ 			    const void *data)
+@@ -170,7 +166,6 @@ nfct_helper_policy_attr_set(struct nfct_helper_policy *p,
+ 		break;
+ 	}
+ }
+-EXPORT_SYMBOL(nfct_helper_policy_attr_set);
+ 
+ /**
+  * nfct_helper_attr_set_str - set one attribute the helper object
+@@ -178,23 +173,21 @@ EXPORT_SYMBOL(nfct_helper_policy_attr_set);
+  * \param type attribute type you want to set
+  * \param name string that will be used to set this attribute
+  */
+-void
++void __EXPORTED
+ nfct_helper_policy_attr_set_str(struct nfct_helper_policy *p,
+ 				enum nfct_helper_policy_attr_type type,
+ 				const char *name)
+ {
+ 	nfct_helper_policy_attr_set(p, type, name);
+ }
+-EXPORT_SYMBOL(nfct_helper_policy_attr_set_str);
+ 
+-void
++void __EXPORTED
+ nfct_helper_policy_attr_set_u32(struct nfct_helper_policy *p,
+ 				enum nfct_helper_policy_attr_type type,
+ 				uint32_t value)
+ {
+ 	nfct_helper_policy_attr_set(p, type, &value);
+ }
+-EXPORT_SYMBOL(nfct_helper_policy_attr_set_u32);
+ 
+ /**
+  * nfct_helper_attr_set - set one attribute of the helper object
+@@ -202,7 +195,7 @@ EXPORT_SYMBOL(nfct_helper_policy_attr_set_u32);
+  * \param type attribute type you want to set
+  * \param data pointer to data that will be used to set this attribute
+  */
+-void
++void __EXPORTED
+ nfct_helper_attr_set(struct nfct_helper *h,
+ 		     enum nfct_helper_attr_type type, const void *data)
+ {
+@@ -250,7 +243,6 @@ nfct_helper_attr_set(struct nfct_helper *h,
+ 		break;
+ 	}
+ }
+-EXPORT_SYMBOL(nfct_helper_attr_set);
+ 
+ /**
+  * nfct_helper_attr_set_str - set one attribute the helper object
+@@ -258,44 +250,40 @@ EXPORT_SYMBOL(nfct_helper_attr_set);
+  * \param type attribute type you want to set
+  * \param name string that will be used to set this attribute
+  */
+-void
++void __EXPORTED
+ nfct_helper_attr_set_str(struct nfct_helper *nfct_helper, enum nfct_helper_attr_type type,
+ 		    const char *name)
+ {
+ 	nfct_helper_attr_set(nfct_helper, type, name);
+ }
+-EXPORT_SYMBOL(nfct_helper_attr_set_str);
+ 
+-void
++void __EXPORTED
+ nfct_helper_attr_set_u8(struct nfct_helper *nfct_helper,
+ 			 enum nfct_helper_attr_type type, uint8_t value)
+ {
+ 	nfct_helper_attr_set(nfct_helper, type, &value);
+ }
+-EXPORT_SYMBOL(nfct_helper_attr_set_u8);
+ 
+-void
++void __EXPORTED
+ nfct_helper_attr_set_u16(struct nfct_helper *nfct_helper,
+ 			 enum nfct_helper_attr_type type, uint16_t value)
+ {
+ 	nfct_helper_attr_set(nfct_helper, type, &value);
+ }
+-EXPORT_SYMBOL(nfct_helper_attr_set_u16);
+ 
+-void
++void __EXPORTED
+ nfct_helper_attr_set_u32(struct nfct_helper *nfct_helper,
+ 			 enum nfct_helper_attr_type type, uint32_t value)
+ {
+ 	nfct_helper_attr_set(nfct_helper, type, &value);
+ }
+-EXPORT_SYMBOL(nfct_helper_attr_set_u32);
+ 
+ /**
+  * nfct_helper_attr_unset - unset one attribute the helper object
+  * \param nfct_helper pointer to the helper object
+  * \param type attribute type you want to set
+  */
+-void
++void __EXPORTED
+ nfct_helper_attr_unset(struct nfct_helper *nfct_helper, enum nfct_helper_attr_type type)
+ {
+ 	switch(type) {
+@@ -307,7 +295,6 @@ nfct_helper_attr_unset(struct nfct_helper *nfct_helper, enum nfct_helper_attr_ty
+ 		break;
+ 	}
+ }
+-EXPORT_SYMBOL(nfct_helper_attr_unset);
+ 
+ /**
+  * nfct_helper_attr_get - get one attribute the helper object
+@@ -317,8 +304,9 @@ EXPORT_SYMBOL(nfct_helper_attr_unset);
+  * This function returns a valid pointer to the attribute data. If a
+  * unsupported attribute is used, this returns NULL.
+  */
+-const void *nfct_helper_attr_get(struct nfct_helper *helper,
+-				 enum nfct_helper_attr_type type)
++const void __EXPORTED *
++nfct_helper_attr_get(struct nfct_helper *helper,
++		     enum nfct_helper_attr_type type)
+ {
+ 	const void *ret = NULL;
+ 
+@@ -358,7 +346,6 @@ const void *nfct_helper_attr_get(struct nfct_helper *helper,
+ 	}
+ 	return ret;
+ }
+-EXPORT_SYMBOL(nfct_helper_attr_get);
+ 
+ /**
+  * nfct_helper_attr_get_str - get one attribute the helper object
+@@ -368,13 +355,12 @@ EXPORT_SYMBOL(nfct_helper_attr_get);
+  * This function returns a valid pointer to the beginning of the string.
+  * If the attribute is unsupported, this returns NULL.
+  */
+-const char *
++const char __EXPORTED *
+ nfct_helper_attr_get_str(struct nfct_helper *nfct_helper,
+ 			 enum nfct_helper_attr_type type)
+ {
+ 	return (const char *)nfct_helper_attr_get(nfct_helper, type);
+ }
+-EXPORT_SYMBOL(nfct_helper_attr_get_str);
+ 
+ /**
+  * nfct_helper_attr_get_u8 - get one attribute the helper object
+@@ -384,12 +370,12 @@ EXPORT_SYMBOL(nfct_helper_attr_get_str);
+  * This function returns a unsigned 8-bits integer. If the attribute is
+  * unsupported, this returns NULL.
+  */
+-uint8_t nfct_helper_attr_get_u8(struct nfct_helper *nfct_helper,
+-				  enum nfct_helper_attr_type type)
++uint8_t __EXPORTED
++nfct_helper_attr_get_u8(struct nfct_helper *nfct_helper,
++			enum nfct_helper_attr_type type)
+ {
+ 	return *((uint8_t *)nfct_helper_attr_get(nfct_helper, type));
+ }
+-EXPORT_SYMBOL(nfct_helper_attr_get_u8);
+ 
+ /**
+  * nfct_helper_attr_get_u16 - get one attribute the helper object
+@@ -399,12 +385,12 @@ EXPORT_SYMBOL(nfct_helper_attr_get_u8);
+  * This function returns a unsigned 16-bits integer. If the attribute is
+  * unsupported, this returns NULL.
+  */
+-uint16_t nfct_helper_attr_get_u16(struct nfct_helper *nfct_helper,
+-				  enum nfct_helper_attr_type type)
++uint16_t __EXPORTED
++nfct_helper_attr_get_u16(struct nfct_helper *nfct_helper,
++			 enum nfct_helper_attr_type type)
+ {
+ 	return *((uint16_t *)nfct_helper_attr_get(nfct_helper, type));
+ }
+-EXPORT_SYMBOL(nfct_helper_attr_get_u16);
+ 
+ /**
+  * nfct_helper_attr_get_u32 - get one attribute the helper object
+@@ -414,12 +400,12 @@ EXPORT_SYMBOL(nfct_helper_attr_get_u16);
+  * This function returns a unsigned 32-bits integer. If the attribute is
+  * unsupported, this returns NULL.
+  */
+-uint32_t nfct_helper_attr_get_u32(struct nfct_helper *nfct_helper,
+-				  enum nfct_helper_attr_type type)
++uint32_t __EXPORTED
++nfct_helper_attr_get_u32(struct nfct_helper *nfct_helper,
++			 enum nfct_helper_attr_type type)
+ {
+ 	return *((uint32_t *)nfct_helper_attr_get(nfct_helper, type));
+ }
+-EXPORT_SYMBOL(nfct_helper_attr_get_u32);
+ 
+ /**
+  * nfct_helper_snprintf - print helper object into one buffer
+@@ -431,9 +417,10 @@ EXPORT_SYMBOL(nfct_helper_attr_get_u32);
+  * This function returns -1 in case that some mandatory attributes are
+  * missing. On sucess, it returns 0.
+  */
+-int nfct_helper_snprintf(char *buf, size_t size,
+-			 struct nfct_helper *helper,
+-			 unsigned int type, unsigned int flags)
++int __EXPORTED
++nfct_helper_snprintf(char *buf, size_t size,
++		     struct nfct_helper *helper,
++		     unsigned int type, unsigned int flags)
+ {
+ 	int ret;
+ 
+@@ -454,7 +441,6 @@ int nfct_helper_snprintf(char *buf, size_t size,
+ 
+ 	return ret;
+ }
+-EXPORT_SYMBOL(nfct_helper_snprintf);
+ 
+ /**
+  * @}
+@@ -490,7 +476,7 @@ EXPORT_SYMBOL(nfct_helper_snprintf);
+  * - Command NFNL_MSG_ACCT_DEL, to delete one specific nfct_helper object (if
+  *   unused, otherwise you hit EBUSY).
+  */
+-struct nlmsghdr *
++struct nlmsghdr __EXPORTED *
+ nfct_helper_nlmsg_build_hdr(char *buf, uint8_t cmd,
+ 			    uint16_t flags, uint32_t seq)
+ {
+@@ -509,7 +495,6 @@ nfct_helper_nlmsg_build_hdr(char *buf, uint8_t cmd,
+ 
+ 	return nlh;
+ }
+-EXPORT_SYMBOL(nfct_helper_nlmsg_build_hdr);
+ 
+ static void
+ nfct_helper_nlmsg_build_policy(struct nlmsghdr *nlh,
+@@ -530,7 +515,7 @@ nfct_helper_nlmsg_build_policy(struct nlmsghdr *nlh,
+  * \param nlh: netlink message that you want to use to add the payload.
+  * \param nfct_helper: pointer to a helper object
+  */
+-void
++void __EXPORTED
+ nfct_helper_nlmsg_build_payload(struct nlmsghdr *nlh, struct nfct_helper *h)
+ {
+ 	struct nlattr *nest;
+@@ -593,7 +578,6 @@ nfct_helper_nlmsg_build_payload(struct nlmsghdr *nlh, struct nfct_helper *h)
+ 	if (h->bitset & (1 << NFCTH_ATTR_STATUS))
+ 		mnl_attr_put_u32(nlh, NFCTH_STATUS, ntohl(h->status));
+ }
+-EXPORT_SYMBOL(nfct_helper_nlmsg_build_payload);
+ 
+ static int
+ nfct_helper_nlmsg_parse_tuple_cb(const struct nlattr *attr, void *data)
+@@ -795,7 +779,7 @@ nfct_helper_nlmsg_parse_attr_cb(const struct nlattr *attr, void *data)
+  * This function returns -1 in case that some mandatory attributes are
+  * missing. On sucess, it returns 0.
+  */
+-int
++int __EXPORTED
+ nfct_helper_nlmsg_parse_payload(const struct nlmsghdr *nlh,
+ 				struct nfct_helper *h)
+ {
+@@ -832,7 +816,6 @@ nfct_helper_nlmsg_parse_payload(const struct nlmsghdr *nlh,
+ 	}
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nfct_helper_nlmsg_parse_payload);
+ 
+ /**
+  * @}
 -- 
-2.11.0
+2.11.0.390.gc69c2f50cf-goog
 
