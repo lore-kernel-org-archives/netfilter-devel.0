@@ -1,46 +1,51 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/6] Netfilter fixes for net
-Date: Thu, 05 Jan 2017 11:52:49 -0500 (EST)
-Message-ID: <20170105.115249.2008034862210327809.davem@davemloft.net>
-References: <1483615193-2931-1-git-send-email-pablo@netfilter.org>
+From: Elise Lennion <elise.lennion@gmail.com>
+Subject: [PATCH nft] evaluate: Remove cache_update() in cmd_evaluate_flush()
+Date: Thu, 5 Jan 2017 16:38:42 -0200
+Message-ID: <20170105183842.GA19565@lennorien.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, anatole@rezel.net
 To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1483615193-2931-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-yw0-f195.google.com ([209.85.161.195]:36705 "EHLO
+        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932152AbdAESit (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 5 Jan 2017 13:38:49 -0500
+Received: by mail-yw0-f195.google.com with SMTP id r204so45842456ywb.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 05 Jan 2017 10:38:49 -0800 (PST)
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Thu,  5 Jan 2017 12:19:47 +0100
+cache_update() fetches set elements, when the set is big and sorted
+this leads to an unnecessary delay on 'nft flush ruleset'.
 
-> The following patchset contains accumulated Netfilter fixes for your
-> net tree:
-> 
-> 1) Ensure quota dump and reset happens iff we can deliver numbers to
->    userspace.
-> 
-> 2) Silence splat on incorrect use of smp_processor_id() from nft_queue.
-> 
-> 3) Fix an out-of-bound access reported by KASAN in
->    nf_tables_rule_destroy(), patch from Florian Westphal.
-> 
-> 4) Fix layer 4 checksum mangling in the nf_tables payload expression
->    with IPv6.
-> 
-> 5) Fix a race in the CLUSTERIP target from control plane path when two
->    threads run to add a new configuration object. Serialize invocations
->    of clusterip_config_init() using spin_lock. From Xin Long.
-> 
-> 6) Call br_nf_pre_routing_finish_bridge_finish() once we are done with
->    the br_nf_pre_routing_finish() hook. From Artur Molchanov.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+There is only a possible call to cache_flush() after the update, so
+this update isn't needed.
 
-Pulled, thanks Pablo.
+Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
+---
+ src/evaluate.c | 6 ------
+ 1 file changed, 6 deletions(-)
 
-And a happy new year to you too!
+diff --git a/src/evaluate.c b/src/evaluate.c
+index cebc5a9..a506f9a 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2951,12 +2951,6 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
+ 
+ static int cmd_evaluate_flush(struct eval_ctx *ctx, struct cmd *cmd)
+ {
+-	int ret;
+-
+-	ret = cache_update(cmd->op, ctx->msgs);
+-	if (ret < 0)
+-		return ret;
+-
+ 	switch (cmd->obj) {
+ 	case CMD_OBJ_RULESET:
+ 		cache_flush();
+-- 
+2.7.4
+
