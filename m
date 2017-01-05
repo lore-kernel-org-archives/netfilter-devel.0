@@ -1,59 +1,74 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 2/2] netfilter: nf_tables: Make sure the uniform
- style of condition blocks in nf_tables_newrule
-Date: Thu, 5 Jan 2017 13:34:26 +0100
-Message-ID: <20170105123426.GB6570@salvia>
-References: <1482982798-24914-1-git-send-email-fgao@ikuai8.com>
+Subject: Re: [PATCH nf-next 1/1] netfilter: Use strlcpy to copy dev name
+ instead of strncpy
+Date: Thu, 5 Jan 2017 13:37:05 +0100
+Message-ID: <20170105123705.GA6658@salvia>
+References: <1482837413-32048-1-git-send-email-fgao@ikuai8.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, gfree.wind@gmail.com
 To: fgao@ikuai8.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53580 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:54396 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1031968AbdAEMep (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Jan 2017 07:34:45 -0500
+        id S1031885AbdAEMhM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 5 Jan 2017 07:37:12 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 34C7F6EAE0
-        for <netfilter-devel@vger.kernel.org>; Thu,  5 Jan 2017 13:34:44 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 354AB6EAD3
+        for <netfilter-devel@vger.kernel.org>; Thu,  5 Jan 2017 13:37:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 260ABA7DB4
-        for <netfilter-devel@vger.kernel.org>; Thu,  5 Jan 2017 13:34:44 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 24977DA2D3
+        for <netfilter-devel@vger.kernel.org>; Thu,  5 Jan 2017 13:37:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EA82147A
-        for <netfilter-devel@vger.kernel.org>; Thu,  5 Jan 2017 13:34:41 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 38E89A7DC7
+        for <netfilter-devel@vger.kernel.org>; Thu,  5 Jan 2017 13:37:06 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1482982798-24914-1-git-send-email-fgao@ikuai8.com>
+In-Reply-To: <1482837413-32048-1-git-send-email-fgao@ikuai8.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Dec 29, 2016 at 11:39:58AM +0800, fgao@ikuai8.com wrote:
+On Tue, Dec 27, 2016 at 07:16:53PM +0800, fgao@ikuai8.com wrote:
 > From: Gao Feng <fgao@ikuai8.com>
 > 
-> There is one different brace style of condtion blocks in
-> nf_tables_newrule. Now just make it uniform.
+> The current codes use strncpy to copy the dev name in
+> nf_tables_newchain, there is no real issue now. Because the sizes of
+> src and dst are IFNAMSIZ. But normally it should use count-1 with
+> strncpy, because strncpy doesn't make sure the dst must be
+> NULL-terminated when src exceeds the count bytes.
+> So use strlcpy to replace the strncpy to make it clearer.
 > 
 > Signed-off-by: Gao Feng <fgao@ikuai8.com>
 > ---
->  net/netfilter/nf_tables_api.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  net/netfilter/nf_tables_api.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
 > diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index ecc516c..7ac2b2e 100644
+> index a019a87..dc50801 100644
 > --- a/net/netfilter/nf_tables_api.c
 > +++ b/net/netfilter/nf_tables_api.c
-> @@ -2261,12 +2261,12 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
->  			err = -ENOENT;
->  			goto err2;
+> @@ -1488,7 +1488,7 @@ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
 >  		}
-> -	} else if (nlh->nlmsg_flags & NLM_F_APPEND)
-> +	} else if (nlh->nlmsg_flags & NLM_F_APPEND) {
->  		if (old_rule)
->  			list_add_rcu(&rule->list, &old_rule->list);
->  		else
->  			list_add_tail_rcu(&rule->list, &chain->rules);
-> -	else {
-> +	} else {
+>  
+>  		if (hook.dev != NULL)
+> -			strncpy(basechain->dev_name, hook.dev->name, IFNAMSIZ);
+> +			strlcpy(basechain->dev_name, hook.dev->name, IFNAMSIZ);
 
-Thanks for the cleanup. But I have patch revisiting this logic still
-cooking, so I'll add these braces there so we can skip this cleanup patch.
+I think this is not a problem, look:
+
+        [NFTA_HOOK_DEV]         = { .type = NLA_STRING,
+                                    .len = IFNAMSIZ - 1 },
+
+The netlink attribute policy enforces that NFTA_HOOK_DEV is always one
+bytes smaller than the maximum length. So we guarantee that there's
+room to nul-terminated this string.
+
+>  		if (nla[NFTA_CHAIN_COUNTERS]) {
+>  			stats = nft_stats_alloc(nla[NFTA_CHAIN_COUNTERS]);
+> -- 
+> 1.9.1
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
