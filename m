@@ -1,46 +1,50 @@
-From: Kevin Cernekee <cernekee@chromium.org>
-Subject: Re: [PATCH V2 conntrack-tools] conntrackd: cthelper: ssdp: Track UPnP eventing
-Date: Thu, 5 Jan 2017 14:14:59 -0800
-Message-ID: <CAJzqFtbRNj4N7qFEGDG6mMN6qAKakHsSDjy+AsqYnoKqWOcqHg@mail.gmail.com>
-References: <20170105214220.35549-1-cernekee@chromium.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: ashley.hughes@blueyonder.co.uk,
-        Mattias Nissler <mnissler@google.com>,
-        netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: fgao@ikuai8.com
+Subject: [PATCH nf-next 1/1] netfilter: nf_tables: Remove one useless condition check in nf_tables_newobj
+Date: Fri,  6 Jan 2017 09:49:48 +0800
+Message-ID: <1483667388-30814-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qk0-f172.google.com ([209.85.220.172]:36837 "EHLO
-        mail-qk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932085AbdAEWPV (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Jan 2017 17:15:21 -0500
-Received: by mail-qk0-f172.google.com with SMTP id n21so447674828qka.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 05 Jan 2017 14:15:21 -0800 (PST)
-Received: from mail-qt0-f170.google.com (mail-qt0-f170.google.com. [209.85.216.170])
-        by smtp.gmail.com with ESMTPSA id b16sm2918370qka.9.2017.01.05.14.15.20
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 05 Jan 2017 14:15:20 -0800 (PST)
-Received: by mail-qt0-f170.google.com with SMTP id v23so63931876qtb.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 05 Jan 2017 14:15:20 -0800 (PST)
-In-Reply-To: <20170105214220.35549-1-cernekee@chromium.org>
+Received: from SMTPBG19.QQ.COM ([183.60.61.236]:41095 "EHLO smtpbg320.qq.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1753586AbdAFB6G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 5 Jan 2017 20:58:06 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 5, 2017 at 1:42 PM, Kevin Cernekee <cernekee@chromium.org> wrote:
-> + *     nfct timeout add long-timewait inet tcp \
-> + *         established 1000 close 10 time_wait 10 last_ack 10
-> + *     nfct timeout add long-timewait inet tcp time_wait 3600
-> + *     iptables -t raw -A OUTPUT -p udp --dport 1900 -j CT --helper ssdp \
-> + *         --timeout long-timewait
+From: Gao Feng <fgao@ikuai8.com>
 
-Oops, looks like this will not work (and it has a C&P error).
-Instead, I'll tweak the systemwide timeouts for now.
+The return value of nf_tables_obj_lookup is valid pointer or one error.
+There are two cases in nf_tables_newobj totally.
+case1: return value is -ENOENT, the obj is NULL, it is unnecessary to
+perform the latter check "obj != NULL".
+case2: IS_ERR(obj) is false, the obj is one valid pointer. It is also
+unnecessary to perform that check.
 
-Is there a way that a conntrack user helper can change the timeout
-policy on a per-flow basis using NF_CT_NETLINK_TIMEOUT?
+In summary, we could move the block of condition check "obj != NULL" in
+the else block to erase the original condition check.
 
-(It would be even better if the NOTIFY expectation can stay active
-after its parent conntrack disappears, but I wasn't able to find a way
-to do that.)
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ net/netfilter/nf_tables_api.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a019a87..bc55086 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4154,9 +4154,7 @@ static int nf_tables_newobj(struct net *net, struct sock *nlsk,
+ 			return err;
+ 
+ 		obj = NULL;
+-	}
+-
+-	if (obj != NULL) {
++	} else {
+ 		if (nlh->nlmsg_flags & NLM_F_EXCL)
+ 			return -EEXIST;
+ 
+-- 
+1.9.1
+
+
