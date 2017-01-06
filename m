@@ -1,184 +1,289 @@
 From: Elise Lennion <elise.lennion@gmail.com>
-Subject: [PATCH nft 1/2] src: sort set elements in netlink_get_setelems()
-Date: Fri, 6 Jan 2017 19:43:32 -0200
-Message-ID: <20170106214331.GA3265@lennorien.com>
+Subject: [PATCH nft 2/2] tests: shell: add maps tests
+Date: Fri, 6 Jan 2017 19:44:57 -0200
+Message-ID: <20170106214457.GA4739@lennorien.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.161.194]:34896 "EHLO
+Received: from mail-yw0-f194.google.com ([209.85.161.194]:34682 "EHLO
         mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753506AbdAFVnj (ORCPT
+        with ESMTP id S1753506AbdAFVpC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Jan 2017 16:43:39 -0500
-Received: by mail-yw0-f194.google.com with SMTP id 17so5254041ywk.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 06 Jan 2017 13:43:39 -0800 (PST)
+        Fri, 6 Jan 2017 16:45:02 -0500
+Received: by mail-yw0-f194.google.com with SMTP id a10so3805499ywa.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 06 Jan 2017 13:45:02 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-So users can better track their ruleset via git.
-
-Without sorting, the elements can be listed in a different order
-every time the set is created, generating unnecessary git changes.
-
-Mergesort is used. Doesn't sort sets with 'flags interval' set on.
+Test adding elements to simple and interval maps.
 
 Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
 ---
- include/expression.h |   1 +
- src/Makefile.am      |   1 +
- src/mergesort.c      | 100 +++++++++++++++++++++++++++++++++++++++++++++++++++
- src/netlink.c        |   4 +++
- 4 files changed, 106 insertions(+)
- create mode 100644 src/mergesort.c
+ .../testcases/maps/0003map_add_many_elements_0     | 61 ++++++++++++++++++++
+ .../testcases/maps/0004interval_map_create_once_0  | 60 ++++++++++++++++++++
+ .../maps/0005interval_map_add_many_elements_0      | 66 ++++++++++++++++++++++
+ .../testcases/maps/0006interval_map_overlap_0      | 41 ++++++++++++++
+ 4 files changed, 228 insertions(+)
+ create mode 100755 tests/shell/testcases/maps/0003map_add_many_elements_0
+ create mode 100755 tests/shell/testcases/maps/0004interval_map_create_once_0
+ create mode 100755 tests/shell/testcases/maps/0005interval_map_add_many_elements_0
+ create mode 100755 tests/shell/testcases/maps/0006interval_map_overlap_0
 
-diff --git a/include/expression.h b/include/expression.h
-index 71e9c43..ec90265 100644
---- a/include/expression.h
-+++ b/include/expression.h
-@@ -396,6 +396,7 @@ extern struct expr *range_expr_alloc(const struct location *loc,
- 
- extern void compound_expr_add(struct expr *compound, struct expr *expr);
- extern void compound_expr_remove(struct expr *compound, struct expr *expr);
-+extern void list_expr_sort(struct list_head *head);
- 
- extern struct expr *concat_expr_alloc(const struct location *loc);
- 
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 2a69e19..65cb4b4 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -53,6 +53,7 @@ nft_SOURCES =	main.c				\
- 		mnl.c				\
- 		iface.c				\
- 		services.c			\
-+		mergesort.c			\
- 		scanner.l			\
- 		parser_bison.y
- 
-diff --git a/src/mergesort.c b/src/mergesort.c
-new file mode 100644
-index 0000000..a835320
+diff --git a/tests/shell/testcases/maps/0003map_add_many_elements_0 b/tests/shell/testcases/maps/0003map_add_many_elements_0
+new file mode 100755
+index 0000000..a2233e3
 --- /dev/null
-+++ b/src/mergesort.c
-@@ -0,0 +1,100 @@
-+/*
-+ * Copyright (c) 2017 Elise Lennion <elise.lennion@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
++++ b/tests/shell/testcases/maps/0003map_add_many_elements_0
+@@ -0,0 +1,61 @@
++#!/bin/bash
 +
-+#include <stdint.h>
-+#include <expression.h>
-+#include <gmputil.h>
-+#include <list.h>
++# test adding many map elements
 +
-+static int expr_msort_cmp(const struct expr *e1, const struct expr *e2);
++HOWMANY=31
 +
-+static int concat_expr_msort_cmp(const struct expr *e1, const struct expr *e2)
-+{
-+	struct list_head *l = (&e2->expressions)->next;
-+	const struct expr *i1, *i2;
-+	int ret;
++tmpfile=$(mktemp)
++if [ ! -w $tmpfile ] ; then
++	echo "Failed to create tmp file" >&2
++	exit 0
++fi
 +
-+	list_for_each_entry(i1, &e1->expressions, list) {
-+		i2 = list_entry(l, typeof(struct expr), list);
++trap "rm -rf $tmpfile" EXIT # cleanup if aborted
 +
-+		ret = expr_msort_cmp(i1, i2);
-+		if (ret)
-+			return ret;
++generate_add() {
++	echo -n "{"
++	for ((i=HOWMANY; i>=1; i--)) ; do
++		for ((j=HOWMANY; j>=1; j--)) ; do
++			[ "$i" == 1 ] && [ "$j" == 1 ] && break
++			echo -n "10.0.${i}.${j} : 10.0.${i}.${j}, "
++		done
++	done
++	echo -n "}"
++}
 +
-+		l = l->next;
++generate_test() {
++	elements=""
++	for ((i=1; i<=HOWMANY; i++)) ; do
++		for ((j=1; j<=HOWMANY; j++)) ; do
++			elements="$elements 10.0.${i}.${j} : 10.0.${i}.${j}"
++			[ "$i" == "$HOWMANY" ] && [ "$j" == "$HOWMANY" ] && break
++			elements="${elements}, "
++		done
++	done
++	echo $elements
++}
++
++echo "add table x
++add map x y { type ipv4_addr : ipv4_addr; }
++add element x y $(generate_add)" > $tmpfile
++
++set -e
++$NFT -f $tmpfile
++
++n=$HOWMANY
++echo "add element x y { 10.0.1.1 : 10.0.1.1 }" > $tmpfile
++$NFT -f $tmpfile
++
++EXPECTED="table ip x {
++	map y {
++		type ipv4_addr : ipv4_addr
++		elements = { $(generate_test)}
 +	}
++}"
++GET=$($NFT list ruleset)
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
 +
-+	return false;
+diff --git a/tests/shell/testcases/maps/0004interval_map_create_once_0 b/tests/shell/testcases/maps/0004interval_map_create_once_0
+new file mode 100755
+index 0000000..7d4877e
+--- /dev/null
++++ b/tests/shell/testcases/maps/0004interval_map_create_once_0
+@@ -0,0 +1,60 @@
++#!/bin/bash
++
++# test adding many elements to an interval map
++# this always works because nft is only called once
++
++HOWMANY=63
++
++tmpfile=$(mktemp)
++if [ ! -w $tmpfile ] ; then
++	echo "Failed to create tmp file" >&2
++	exit 0
++fi
++
++trap "rm -rf $tmpfile" EXIT # cleanup if aborted
++
++generate_add() {
++	echo -n "{"
++	for ((i=1; i<=HOWMANY; i++)) ; do
++		for ((j=1; j<=HOWMANY; j++)) ; do
++			echo -n "10.${i}.${j}.0/24 : 10.0.${i}.${j}"
++			[ "$i" == "$HOWMANY" ] && [ "$j" == "$HOWMANY" ] && break
++			echo -n ", "
++		done
++	done
++	echo -n "}"
 +}
 +
-+static int expr_msort_cmp(const struct expr *e1, const struct expr *e2)
-+{
-+	switch (e1->ops->type) {
-+	case EXPR_SET_ELEM:
-+		return expr_msort_cmp(e1->key, e2->key);
-+	case EXPR_VALUE:
-+		return mpz_cmp(e1->value, e2->value);
-+	case EXPR_CONCAT:
-+		return concat_expr_msort_cmp(e1, e2);
-+	case EXPR_MAPPING:
-+		return expr_msort_cmp(e1->left, e2->left);
-+	default:
-+		BUG("Unknown expression %s\n", e1->ops->name);
++generate_test() {
++	elements=""
++	for ((i=1; i<=HOWMANY; i++)) ; do
++		for ((j=1; j<=HOWMANY; j++)) ; do
++			elements="$elements 10.${i}.${j}.0/24 : 10.0.${i}.${j}"
++			[ "$i" == "$HOWMANY" ] && [ "$j" == "$HOWMANY" ] && break
++			elements="${elements}, "
++		done
++	done
++	echo $elements
++}
++
++echo "add table x
++add map x y { type ipv4_addr : ipv4_addr; flags interval; }
++add element x y $(generate_add)" > $tmpfile
++
++set -e
++$NFT -f $tmpfile
++
++EXPECTED="table ip x {
++	map y {
++		type ipv4_addr : ipv4_addr
++		flags interval
++		elements = { $(generate_test)}
 +	}
++}"
++GET=$($NFT list ruleset)
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
++
+diff --git a/tests/shell/testcases/maps/0005interval_map_add_many_elements_0 b/tests/shell/testcases/maps/0005interval_map_add_many_elements_0
+new file mode 100755
+index 0000000..824f2c8
+--- /dev/null
++++ b/tests/shell/testcases/maps/0005interval_map_add_many_elements_0
+@@ -0,0 +1,66 @@
++#!/bin/bash
++
++# test adding many elements to an interval map
++# even with HOWMANY=2 there are memory allocation failures in the current
++# master - the patch fixes that
++# NOTE this is only an issue with two separate nft calls
++
++HOWMANY=2
++
++tmpfile=$(mktemp)
++if [ ! -w $tmpfile ] ; then
++	echo "Failed to create tmp file" >&2
++	exit 0
++fi
++
++trap "rm -rf $tmpfile" EXIT # cleanup if aborted
++
++generate_add() {
++	echo -n "{"
++	for ((i=1; i<=HOWMANY; i++)) ; do
++		for ((j=1; j<=HOWMANY; j++)) ; do
++			[ "$i" == "$HOWMANY" ] && [ "$j" == "$HOWMANY" ] && break
++			echo -n "10.${i}.${j}.0/24 : 10.0.${i}.${j}, "
++		done
++	done
++	echo -n "}"
 +}
 +
-+static void list_splice_sorted(struct list_head *list, struct list_head *head)
-+{
-+	struct list_head *h = head->next;
-+	struct list_head *l = list->next;
++generate_test() {
++	elements=""
++	for ((i=1; i<=HOWMANY; i++)) ; do
++		for ((j=1; j<=HOWMANY; j++)) ; do
++			elements="$elements 10.${i}.${j}.0/24 : 10.0.${i}.${j}"
++			[ "$i" == "$HOWMANY" ] && [ "$j" == "$HOWMANY" ] && break
++			elements="${elements}, "
++		done
++	done
++	echo $elements
++}
 +
-+	while (l != list) {
-+		if (h == head ||
-+		    expr_msort_cmp(list_entry(l, typeof(struct expr), list),
-+				   list_entry(h, typeof(struct expr), list)) < 0) {
-+			l = l->next;
-+			list_add_tail(l->prev, h);
-+			continue;
-+		}
++echo "add table x
++add map x y { type ipv4_addr : ipv4_addr; flags interval; }
++add element x y $(generate_add)" > $tmpfile
 +
-+		h = h->next;
++set -e
++$NFT -f $tmpfile
++
++n=$HOWMANY
++echo "add element x y { 10.${n}.${n}.0/24 : 10.0.${n}.${n} }" > $tmpfile
++
++$NFT -f $tmpfile
++
++EXPECTED="table ip x {
++	map y {
++		type ipv4_addr : ipv4_addr
++		flags interval
++		elements = { $(generate_test)}
 +	}
-+}
++}"
++GET=$($NFT list ruleset)
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
 +
-+static void list_cut_middle(struct list_head *list, struct list_head *head)
-+{
-+	struct list_head *s = head->next;
-+	struct list_head *e = head->prev;
+diff --git a/tests/shell/testcases/maps/0006interval_map_overlap_0 b/tests/shell/testcases/maps/0006interval_map_overlap_0
+new file mode 100755
+index 0000000..c1bf3de
+--- /dev/null
++++ b/tests/shell/testcases/maps/0006interval_map_overlap_0
+@@ -0,0 +1,41 @@
++#!/bin/bash
 +
-+	while (e != s) {
-+		e = e->prev;
++# test adding elements to an interval map
++# shows how disjoint intervals are seen as overlaps
++# NOTE this is only an issue with two separate nft calls
 +
-+		if (e != s)
-+			s = s->next;
++tmpfile=$(mktemp)
++if [ ! -w $tmpfile ] ; then
++	echo "Failed to create tmp file" >&2
++	exit 0
++fi
++
++trap "rm -rf $tmpfile" EXIT # cleanup if aborted
++
++n=1
++echo "add table x
++add map x y { type ipv4_addr : ipv4_addr; flags interval; }
++add element x y { 10.0.${n}.0/24 : 10.0.0.${n} }" > $tmpfile
++
++set -e
++$NFT -f $tmpfile
++
++n=2
++echo "add element x y { 10.0.${n}.0/24 : 10.0.0.${n} }" > $tmpfile
++
++$NFT -f $tmpfile
++
++EXPECTED="table ip x {
++	map y {
++		type ipv4_addr : ipv4_addr
++		flags interval
++		elements = { 10.0.1.0/24 : 10.0.0.1, 10.0.2.0/24 : 10.0.0.2}
 +	}
++}"
++GET=$($NFT list ruleset)
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
 +
-+	__list_cut_position(list, head, s);
-+}
-+
-+void list_expr_sort(struct list_head *head)
-+{
-+	struct list_head *list;
-+	LIST_HEAD(temp);
-+
-+	list = &temp;
-+
-+	if (list_empty(head) || list_is_singular(head))
-+		return;
-+
-+	list_cut_middle(list, head);
-+
-+	list_expr_sort(head);
-+	list_expr_sort(list);
-+
-+	list_splice_sorted(list, head);
-+}
-diff --git a/src/netlink.c b/src/netlink.c
-index 5f478ff..4135f25 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -1666,6 +1666,10 @@ int netlink_get_setelems(struct netlink_ctx *ctx, const struct handle *h,
- 	ctx->set = set;
- 	set->init = set_expr_alloc(loc);
- 	nftnl_set_elem_foreach(nls, list_setelem_cb, ctx);
-+
-+	if (!(set->flags & NFT_SET_INTERVAL))
-+		list_expr_sort(&ctx->set->init->expressions);
-+
- 	nftnl_set_free(nls);
- 	ctx->set = NULL;
- 
 -- 
 2.7.4
 
