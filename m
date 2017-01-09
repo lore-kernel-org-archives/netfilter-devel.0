@@ -1,40 +1,75 @@
-From: Peter Skvarka <pet3243@gmail.com>
-Subject: net_device features
-Date: Sat, 7 Jan 2017 19:48:30 +0100
-Message-ID: <CAOwjcYfEeBHrL0TsD6yY9piMcmZkEsYfysYV+hsGF=YrTm6cqg@mail.gmail.com>
+From: "Vink, Ronald" <ronald.vink@boskalis.com>
+Subject: UNSUBSCIBE
+Date: Mon, 9 Jan 2017 06:51:54 +0000
+Message-ID: <AM3PR04MB1218B8C62DE756BA240CB13799640@AM3PR04MB1218.eurprd04.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Cc: "netfilter@vger.kernel.org" <netfilter@vger.kernel.org>,
+        "netfilter-announce@lists.netfilter.org"
+        <netfilter-announce@lists.netfilter.org>
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f48.google.com ([209.85.218.48]:36488 "EHLO
-        mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933394AbdAGSsb (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 7 Jan 2017 13:48:31 -0500
-Received: by mail-oi0-f48.google.com with SMTP id u143so59151619oif.3
-        for <netfilter-devel@vger.kernel.org>; Sat, 07 Jan 2017 10:48:31 -0800 (PST)
+Received: from mail-eopbgr40076.outbound.protection.outlook.com ([40.107.4.76]:63883
+        "EHLO EUR03-DB5-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1758057AbdAIGv7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 9 Jan 2017 01:51:59 -0500
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
 
-I need to change net_device->features i.e. segmentation offload when
-my netfilter module is loaded.
-I tried it in my module by directly zeroing flag when module is loaded
-in register device notification handler.
-It seems that it is really functional and I verified it by ethtool -k
-modulename and no skb with fragments appears in netfilter hook.
-When I change it back to original state with ethtool -K ... then
-console outputs original state but it seems that still no skb with
-fragments comes and this state is somewhere remembered.
 
-How to proper set such flags to have required behavior when module
-runs ? Is directly changing in net_device structure right ?
+-----Original Message-----
+From: netfilter-announce [mailto:netfilter-announce-bounces@lists.netfilter=
+.org] On Behalf Of Pablo Neira Ayuso
+Sent: maandag 19 december 2016 23:58
+To: netfilter-devel@vger.kernel.org
+Cc: lwn@lwn.net; netfilter@vger.kernel.org; netfilter-announce@lists.netfil=
+ter.org
+Subject: [ANNOUNCE] libnftnl 1.0.7 release
 
-I appear function pointer ndo_fix_features() that can be used to
-adjust required features. But it's parent structure is constant. Does
-exist some way how to set my own handlers in net_device_ops structure
-in my module code ?
+Hi!
 
-Thank you !
-Peter
+The Netfilter project proudly presents:
+
+        libnftnl 1.0.7
+
+libnftnl is a userspace library providing a low-level netlink programming i=
+nterface (API) to the in-kernel nf_tables subsystem. The library libnftnl h=
+as been previously known as libnftables. This library is currently used by =
+the nft command line tool.
+
+This release includes the following list of updates:
+
+* New nftnl_rule_cmp() interface to compare rules.
+
+* Support for new kernel expressions:
+ - Number Generator (a.k.a. numgen).
+ - Routing (a.k.a. rt).
+ - Range.
+ - Inverted set lookups.
+ - Inverted dynamic set updates (ie. rule mismatch on full sets).
+ - Packet quota.
+ - Hash.
+ - Forward Information Base lookups (a.k.a. fib).
+ - Reference to stateful objects (requires kernel 4.10-rc).
+ - Notrack.
+
+* Allow to add userdata to sets.
+
+* Support for stateful objects, including quota and counter (requires
+  kernel 4.10-rc).
+
+* Support for layer 4 pseudoheader fields checksum updates (requires
+  kernel 4.10-rc).
+
+  ... and fixes.
+
+You can download this library from:
+
+http://www.netfilter.org/projects/libnftnl/downloads.html
+ftp://ftp.netfilter.org/pub/libnftnl/
+
+Thanks!
