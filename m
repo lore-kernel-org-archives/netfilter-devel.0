@@ -1,31 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2 2/2] tcp: fix mark propagation with fwmark_reflect
- enabled
-Date: Mon, 09 Jan 2017 12:23:25 -0500 (EST)
-Message-ID: <20170109.122325.1271058988063839396.davem@davemloft.net>
-References: <20170106193328.24272-1-pau.espin@tessares.net>
-        <20170106193328.24272-2-pau.espin@tessares.net>
-        <20170109170007.GB25948@salvia>
+From: William Breathitt Gray <vilhelm.gray@gmail.com>
+Subject: [PATCH] netfilter: Fix typo in NF_CONNTRACK Kconfig option
+ description
+Date: Mon, 9 Jan 2017 17:24:18 -0500
+Message-ID: <20170109222417.GA18253@sophia>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: pau.espin@tessares.net, netfilter-devel@vger.kernel.org,
-        pespin.shar@gmail.com, lorenzo@google.com
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([184.105.139.130]:43354 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1035128AbdAIRX1 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Jan 2017 12:23:27 -0500
-In-Reply-To: <20170109170007.GB25948@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Cc: "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 9 Jan 2017 18:00:07 +0100
+The NF_CONNTRACK Kconfig option description makes an incorrect reference
+to the "meta" expression where the "ct" expression would be correct.This
+patch fixes the respective typographical error.
 
-> @David, unless you want me to follow a different path, I'll take this
-> small chunk into my nf tree.
+Fixes: d497c6352736 ("netfilter: add help information to new nf_tables Kconfig options")
+Signed-off-by: William Breathitt Gray <vilhelm.gray@gmail.com>
+---
+ net/netfilter/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-No objection.
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 63729b489c2c..bbc45f8a7b2d 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -494,7 +494,7 @@ config NFT_CT
+ 	depends on NF_CONNTRACK
+ 	tristate "Netfilter nf_tables conntrack module"
+ 	help
+-	  This option adds the "meta" expression that you can use to match
++	  This option adds the "ct" expression that you can use to match
+ 	  connection tracking information such as the flow state.
+ 
+ config NFT_SET_RBTREE
+-- 
+2.11.0
