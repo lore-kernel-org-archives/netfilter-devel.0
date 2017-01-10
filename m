@@ -1,102 +1,33 @@
-From: fgao@ikuai8.com
-Subject: [PATCH nf-next 1/1] netfilter: nf_tables: Eliminate duplicated codes in nf_tables_table_enable
-Date: Tue, 10 Jan 2017 12:42:39 +0800
-Message-ID: <1484023359-30227-1-git-send-email-fgao@ikuai8.com>
-Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+From: Angel <info@bbc.cc>
+Subject: plastic extrusion mould factory
+Date: Tue, 10 Jan 2017 18:40:59 +0800
+Message-ID: <20170110104059.GA30076@bbc.cc>
+Reply-To: Angel Andriod <iSayor@163.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg327.qq.com ([14.17.43.158]:38009 "EHLO smtpbg327.qq.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751759AbdAJEum (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Jan 2017 23:50:42 -0500
+Received: from ns1.eflydns.net ([112.73.78.106]:51997 "EHLO bbc.cc"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1763414AbdAJNal (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 10 Jan 2017 08:30:41 -0500
+Received: from localhost (10.104.0.235) by bbc.cc id hejgvu0e97ch for <netfilter-devel@vger.kernel.org>; Tue, 10 Jan 2017 18:41:00 +0800 (envelope-from <info@bbc.cc>)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+Hi,
 
-When something failed in nf_tables_table_enable, it would unregister
-the chains. But the rollback codes are same as nf_tables_table_disable
-almostly, except there is one counter check.
-Now create one wrapper function to eliminate the duplicated codes.
+Dong Guan RiTeng Industrial Co.,Ltd. is a manufacturer of high-quality plastic extrusion, co-extrusion profiles.Products includes PC/PMMA/PP/PS/PE/PVC/ABS plastic extrusion/co-extrusion profiles/pipes, extrusion production line.
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
----
- net/netfilter/nf_tables_api.c | 47 ++++++++++++++++++++++---------------------
- 1 file changed, 24 insertions(+), 23 deletions(-)
+Our well-equipped factory has a wide range of extrusion equipment which allows the manufacture of a great variety of plastic extrusion profiles.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index a019a87..28a0bd7 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -576,6 +576,27 @@ static int nf_tables_gettable(struct net *net, struct sock *nlsk,
- 	return err;
- }
- 
-+static void _nf_tables_table_disable(struct net *net,
-+				     const struct nft_af_info *afi,
-+				     struct nft_table *table,
-+				     u32 cnt)
-+{
-+	struct nft_chain *chain;
-+
-+	list_for_each_entry(chain, &table->chains, list) {
-+		if (!nft_is_active_next(net, chain))
-+			continue;
-+		if (!(chain->flags & NFT_BASE_CHAIN))
-+			continue;
-+
-+		if (cnt-- == 0)
-+			break;
-+
-+		nf_unregister_net_hooks(net, nft_base_chain(chain)->ops,
-+					afi->nops);
-+	}
-+}
-+
- static int nf_tables_table_enable(struct net *net,
- 				  const struct nft_af_info *afi,
- 				  struct nft_table *table)
-@@ -598,18 +619,8 @@ static int nf_tables_table_enable(struct net *net,
- 	}
- 	return 0;
- err:
--	list_for_each_entry(chain, &table->chains, list) {
--		if (!nft_is_active_next(net, chain))
--			continue;
--		if (!(chain->flags & NFT_BASE_CHAIN))
--			continue;
--
--		if (i-- <= 0)
--			break;
--
--		nf_unregister_net_hooks(net, nft_base_chain(chain)->ops,
--					afi->nops);
--	}
-+	if (i)
-+		_nf_tables_table_disable(net, afi, table, i);
- 	return err;
- }
- 
-@@ -617,17 +628,7 @@ static void nf_tables_table_disable(struct net *net,
- 				    const struct nft_af_info *afi,
- 				    struct nft_table *table)
- {
--	struct nft_chain *chain;
--
--	list_for_each_entry(chain, &table->chains, list) {
--		if (!nft_is_active_next(net, chain))
--			continue;
--		if (!(chain->flags & NFT_BASE_CHAIN))
--			continue;
--
--		nf_unregister_net_hooks(net, nft_base_chain(chain)->ops,
--					afi->nops);
--	}
-+	_nf_tables_table_disable(net, afi, table, U32_MAX);
- }
- 
- static int nf_tables_updtable(struct nft_ctx *ctx)
--- 
-1.9.1
+Pls feel free to contact with me if you would like to know more ! 
+B.wishes
 
-
+Company Name£ºDong Guan RiTeng Industrial Co.,Ltd.
+Website: http://shop1404897195891.1688.com 
+Phone£º+86 13711864062  +86-769-82939126
+Fax£º+86-769-82939128
+Address£ºNO.12, Yin Ling STREET, Tian tou jiao Village, Qiao tou Town, Dong guan, Guangdong Province ,China.
