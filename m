@@ -1,43 +1,102 @@
-From: William Breathitt Gray <vilhelm.gray@gmail.com>
-Subject: [PATCH] netfilter: Fix typo in NF_CONNTRACK Kconfig option
- description
-Date: Mon, 9 Jan 2017 17:24:18 -0500
-Message-ID: <20170109222417.GA18253@sophia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Cc: "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: fgao@ikuai8.com
+Subject: [PATCH nf-next 1/1] netfilter: nf_tables: Eliminate duplicated codes in nf_tables_table_enable
+Date: Tue, 10 Jan 2017 12:42:39 +0800
+Message-ID: <1484023359-30227-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtpbg327.qq.com ([14.17.43.158]:38009 "EHLO smtpbg327.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751759AbdAJEum (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 9 Jan 2017 23:50:42 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-The NF_CONNTRACK Kconfig option description makes an incorrect reference
-to the "meta" expression where the "ct" expression would be correct.This
-patch fixes the respective typographical error.
+From: Gao Feng <fgao@ikuai8.com>
 
-Fixes: d497c6352736 ("netfilter: add help information to new nf_tables Kconfig options")
-Signed-off-by: William Breathitt Gray <vilhelm.gray@gmail.com>
+When something failed in nf_tables_table_enable, it would unregister
+the chains. But the rollback codes are same as nf_tables_table_disable
+almostly, except there is one counter check.
+Now create one wrapper function to eliminate the duplicated codes.
+
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
 ---
- net/netfilter/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c | 47 ++++++++++++++++++++++---------------------
+ 1 file changed, 24 insertions(+), 23 deletions(-)
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 63729b489c2c..bbc45f8a7b2d 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -494,7 +494,7 @@ config NFT_CT
- 	depends on NF_CONNTRACK
- 	tristate "Netfilter nf_tables conntrack module"
- 	help
--	  This option adds the "meta" expression that you can use to match
-+	  This option adds the "ct" expression that you can use to match
- 	  connection tracking information such as the flow state.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a019a87..28a0bd7 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -576,6 +576,27 @@ static int nf_tables_gettable(struct net *net, struct sock *nlsk,
+ 	return err;
+ }
  
- config NFT_SET_RBTREE
++static void _nf_tables_table_disable(struct net *net,
++				     const struct nft_af_info *afi,
++				     struct nft_table *table,
++				     u32 cnt)
++{
++	struct nft_chain *chain;
++
++	list_for_each_entry(chain, &table->chains, list) {
++		if (!nft_is_active_next(net, chain))
++			continue;
++		if (!(chain->flags & NFT_BASE_CHAIN))
++			continue;
++
++		if (cnt-- == 0)
++			break;
++
++		nf_unregister_net_hooks(net, nft_base_chain(chain)->ops,
++					afi->nops);
++	}
++}
++
+ static int nf_tables_table_enable(struct net *net,
+ 				  const struct nft_af_info *afi,
+ 				  struct nft_table *table)
+@@ -598,18 +619,8 @@ static int nf_tables_table_enable(struct net *net,
+ 	}
+ 	return 0;
+ err:
+-	list_for_each_entry(chain, &table->chains, list) {
+-		if (!nft_is_active_next(net, chain))
+-			continue;
+-		if (!(chain->flags & NFT_BASE_CHAIN))
+-			continue;
+-
+-		if (i-- <= 0)
+-			break;
+-
+-		nf_unregister_net_hooks(net, nft_base_chain(chain)->ops,
+-					afi->nops);
+-	}
++	if (i)
++		_nf_tables_table_disable(net, afi, table, i);
+ 	return err;
+ }
+ 
+@@ -617,17 +628,7 @@ static void nf_tables_table_disable(struct net *net,
+ 				    const struct nft_af_info *afi,
+ 				    struct nft_table *table)
+ {
+-	struct nft_chain *chain;
+-
+-	list_for_each_entry(chain, &table->chains, list) {
+-		if (!nft_is_active_next(net, chain))
+-			continue;
+-		if (!(chain->flags & NFT_BASE_CHAIN))
+-			continue;
+-
+-		nf_unregister_net_hooks(net, nft_base_chain(chain)->ops,
+-					afi->nops);
+-	}
++	_nf_tables_table_disable(net, afi, table, U32_MAX);
+ }
+ 
+ static int nf_tables_updtable(struct nft_ctx *ctx)
 -- 
-2.11.0
+1.9.1
+
+
