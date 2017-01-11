@@ -1,36 +1,74 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 2/2] tests: shell: add maps tests
-Date: Tue, 10 Jan 2017 22:11:48 +0100
-Message-ID: <20170110211148.GB16808@salvia>
-References: <20170106214457.GA4739@lennorien.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org
-To: Elise Lennion <elise.lennion@gmail.com>
+From: fgao@ikuai8.com
+Subject: [PATCH nf-next 1/1] netfilter: nf_tables: Refine the codes to eliminate useless condition checks in nf_tables_api.c
+Date: Wed, 11 Jan 2017 09:32:15 +0800
+Message-ID: <1484098335-13300-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58974 "EHLO mail.us.es"
+Received: from SMTPBG352.QQ.COM ([183.57.50.167]:53879 "EHLO smtpbg352.qq.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751388AbdAJVLx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 Jan 2017 16:11:53 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BAA9C16B286
-        for <netfilter-devel@vger.kernel.org>; Tue, 10 Jan 2017 22:11:51 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AA4E7A7DAE
-        for <netfilter-devel@vger.kernel.org>; Tue, 10 Jan 2017 22:11:51 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9ADE17C70
-        for <netfilter-devel@vger.kernel.org>; Tue, 10 Jan 2017 22:11:49 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20170106214457.GA4739@lennorien.com>
+        id S1750730AbdAKBch (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 10 Jan 2017 20:32:37 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jan 06, 2017 at 07:44:57PM -0200, Elise Lennion wrote:
-> Test adding elements to simple and interval maps.
+From: Gao Feng <fgao@ikuai8.com>
 
-Minor nitpick: I have included here that is based on previous work
-from Richard Mörbitz and myself.
+The return value of nf_tables_table_lookup is valid pointer or one
+pointer error. There are two cases totally.
+case1: IS_ERR(table) is true, it would return the error or reset the
+table as NULL, it is unnecessary to perform the latter check
+"table != NULL".
+case2: IS_ERR(obj) is false, the table is one valid pointer. It is also
+unnecessary to perform that check.
+The nf_tables_newset and nf_tables_newobj have same logic codes.
 
-Also applied, thanks!
+In summary, we could move the block of condition check "table != NULL"
+in the else block to eliminate the original condition checks.
+
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ net/netfilter/nf_tables_api.c | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a019a87..3d7267f 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -697,9 +697,7 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
+ 		if (PTR_ERR(table) != -ENOENT)
+ 			return PTR_ERR(table);
+ 		table = NULL;
+-	}
+-
+-	if (table != NULL) {
++	} else {
+ 		if (nlh->nlmsg_flags & NLM_F_EXCL)
+ 			return -EEXIST;
+ 		if (nlh->nlmsg_flags & NLM_F_REPLACE)
+@@ -2964,9 +2962,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 		if (PTR_ERR(set) != -ENOENT)
+ 			return PTR_ERR(set);
+ 		set = NULL;
+-	}
+-
+-	if (set != NULL) {
++	} else {
+ 		if (nlh->nlmsg_flags & NLM_F_EXCL)
+ 			return -EEXIST;
+ 		if (nlh->nlmsg_flags & NLM_F_REPLACE)
+@@ -4154,9 +4150,7 @@ static int nf_tables_newobj(struct net *net, struct sock *nlsk,
+ 			return err;
+ 
+ 		obj = NULL;
+-	}
+-
+-	if (obj != NULL) {
++	} else {
+ 		if (nlh->nlmsg_flags & NLM_F_EXCL)
+ 			return -EEXIST;
+ 
+-- 
+1.9.1
+
+
