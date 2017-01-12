@@ -1,127 +1,96 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: nftables conntrack set ops for zone, helper assignment, etc.
-Date: Thu, 12 Jan 2017 15:53:10 +0100
-Message-ID: <20170112145310.GB24985@breakpoint.cc>
-References: <20170111091721.GA26703@breakpoint.cc>
- <20170111200749.GA16953@salvia>
- <20170111230141.GA10141@breakpoint.cc>
- <20170112130035.GA1816@salvia>
- <20170112132930.GA24985@breakpoint.cc>
- <20170112142818.GA3211@salvia>
+From: Gao Feng <fgao@ikuai8.com>
+Subject: Re: [PATCH nf-next 1/1] netfilter: nf_tables: Refine the codes to
+ eliminate useless condition checks in nf_tables_api.c
+Date: Thu, 12 Jan 2017 23:10:11 +0800
+Message-ID: <CA+6hz4rCrD_d6+TdhNOTF4B0AGk8jJjF_NPbC=PgJN9ZQq77Hg@mail.gmail.com>
+References: <1484098335-13300-1-git-send-email-fgao@ikuai8.com> <20170112112142.GA1666@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        christophe.leroy@c-s.fr
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=UTF-8
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37016 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750733AbdALOxU (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Jan 2017 09:53:20 -0500
-Content-Disposition: inline
-In-Reply-To: <20170112142818.GA3211@salvia>
+Received: from smtpbgbr2.qq.com ([54.207.22.56]:52897 "EHLO smtpbgbr2.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751200AbdALPKf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 12 Jan 2017 10:10:35 -0500
+Received: from mail-vk0-f42.google.com (unknown [209.85.213.42])
+        by esmtp4.qq.com (ESMTP) with SMTP id 0
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2017 23:10:12 +0800 (CST)
+Received: by mail-vk0-f42.google.com with SMTP id r136so14218166vke.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2017 07:10:13 -0800 (PST)
+In-Reply-To: <20170112112142.GA1666@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > No, I meant more intrusive version:
-> > 
-> > ct = nf_ct_get(...);
-> > if (!ct || nf_ct_is_template(ct))))
-> > 	nf_conntrack_in(net, info->pf, hook, skb);
-> 
-> OK, then we have to defrag first. Let me give another twist to this
-> discussion, still brainstorming.
+Hi Pablo,
 
-No, nf_conntrack forces a dependency on the defrag module, so unless
-someone inserts such rule before the defrag hook we're fine (raw
-table prio is fine for instance).
+On Thu, Jan 12, 2017 at 7:21 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Jan 11, 2017 at 09:32:15AM +0800, fgao@ikuai8.com wrote:
+>> From: Gao Feng <fgao@ikuai8.com>
+>>
+>> The return value of nf_tables_table_lookup is valid pointer or one
+>> pointer error. There are two cases totally.
+>> case1: IS_ERR(table) is true, it would return the error or reset the
+>> table as NULL, it is unnecessary to perform the latter check
+>> "table != NULL".
+>> case2: IS_ERR(obj) is false, the table is one valid pointer. It is also
+>> unnecessary to perform that check.
+>> The nf_tables_newset and nf_tables_newobj have same logic codes.
+>>
+>> In summary, we could move the block of condition check "table != NULL"
+>> in the else block to eliminate the original condition checks.
+>>
+>> Signed-off-by: Gao Feng <fgao@ikuai8.com>
+>> ---
+>>  net/netfilter/nf_tables_api.c | 12 +++---------
+>>  1 file changed, 3 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+>> index a019a87..3d7267f 100644
+>> --- a/net/netfilter/nf_tables_api.c
+>> +++ b/net/netfilter/nf_tables_api.c
+>> @@ -697,9 +697,7 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
+>>               if (PTR_ERR(table) != -ENOENT)
+>>                       return PTR_ERR(table);
+>>               table = NULL;
+>
+> We follow up with table = NULL down the code, I think this breaks.
 
-> Did you consider to move this logic into a explicit 'track' statement.
+Look at the following nf_tables_table_lookup codes, it won't return NULL.
+It returns one valid table pointer or one error.
 
-Yes, but that doesn't help a lot imo since that forces a user
-to structure ruleset so that they do
+static struct nft_table *nf_tables_table_lookup(const struct nft_af_info *afi,
+                                                const struct nlattr *nla,
+                                                u8 genmask)
+{
+        struct nft_table *table;
 
-ct zone set meta mark track with helper "ftp-standalone"
+        if (nla == NULL)
+                return ERR_PTR(-EINVAL);
 
-which looks fine but what does the 'track' keyword provide?
-Would a user care?  Or is that just more about exposing whats going on
-behind the scenes?
+        table = nft_table_lookup(afi, nla, genmask);
+        if (table != NULL)
+                return table;
 
-> Instead of this implicit lookup hidden in the helper/timeout
-> assignment, syntax would be something like:
-> 
->         tcp dport 21 track with helper "ftp-standalone" timeout "tcp-short-timeout"
-> 
-> Note, that:
-> 
->         track with helper "ftp-standalone" timeout "tcp-short-timeout"
-> 
-> performs this lookup&change as you need, but in one go, only for
-> unconfirmed conntrack. And this would be achieved with one single
-> kernel expression, in nft --debug=netlink representation:
-> 
->  [ track helper "ftp-standalone" timeout "tcp-short-timeout" ]
+        return ERR_PTR(-ENOENT);
+}
 
-I see, so we add a new expression instead of using ct set syntax.
+When returns one error, IS_ERR(table) is true, it then returns error
+or reset table as NULL.
+Wehn returns a valid table pointer, IS_ERR(table) is false, we could
+perform the latter codes like "if (nlh->nlmsg_flags & NLM_F_EXCL)"
+directly.
 
-> For zone ID, we can use the same thing:
-> 
->         track with zone 1       [ This can be combined with helper/timeouts too. ]
+Regards
+Feng
 
-Hmm....  So we really have comeptely new user syntax for all of
-this.
+>
+>> -     }
+>> -
+>> -     if (table != NULL) {
+>> +     } else {
+>>               if (nlh->nlmsg_flags & NLM_F_EXCL)
+>>                       return -EEXIST;
+>>               if (nlh->nlmsg_flags & NLM_F_REPLACE)
 
-The reason I scrapped this idea early on is that this breaks horribly
-with icmp error messages and reply traffic (at very least, its
-highly counter-intuitive/inconvenient).  Consider this fine looking
-but non-working line:
 
-tcp dport 21 track with helper "ftp-standalone" zone 1
-
-instead, users would have to do this:
-
-track with zone 1 # so icmp, reply traffic, ftp data traffic is in zone 1 too
-tcp dport 21 track with helper "ftp-standalone"
-
-and that won't work either since we would have to support 're-tracking'
-already tracked conntrack...
-
-I planned to force explicit 'track' for the bridge conntrack support,
-but that works only because the nf_conntrack_in PREROUTING equivalent
-added in bridge_conntrack would not ever create new conntracks (only
-RELATED).
-
-We can do this because there is no bridge conntrack so far so we don't
-have backwards compat problems.
-
-But then I thought 'why add special "track" if I can just let
-ct foo set bla do it for me'?
-
-> In this case, we pass the zone ID via nf_conntrack_in() [ or a new
-> function that is called from nf_conntrack_in() that takes the zone ID
-> and that doesn't depend on templates anymore, we can strip off
-> nf_conntrack_in() from the template logic ].
-
-I found no way to avoid templates for the zone because of the RELATED
-packets.
-
-> > > Back to helpers, users are familiar with the current way to attach
-> > > helpers, ie. from the raw chain.
-> > > 
-> > > Am I missing anything? I'm starting to think we can't escape the
-> > > conntrack template.
-> > 
-> > For Helpers?  Why not?  As long as ct isn't in the main table it should
-> > be fine afaics?  (Unless you mean "can't escape conntrack template to
-> > read to helper info that we need to assign to ct from".
-> >
-> > For zones, yes, I don't see a way to avoid a template for them.
-> > But thats the only ct key where I think that a template has to be used.
-> 
-> Yes, following the approach you propose zone would be the only one
-> that requires the template. So this needs to happen before the
-> conntrack hook.
-
-Yes, thats right.
