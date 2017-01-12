@@ -1,40 +1,67 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 1/1] netfilter: nf_tables: Remove the rcu lock
- for dump functions
-Date: Thu, 12 Jan 2017 12:11:00 +0100
-Message-ID: <20170112111100.GB1048@salvia>
-References: <1484217474-122356-1-git-send-email-fgao@ikuai8.com>
+Subject: Re: [PATCH nf-next 1/1] netfilter: nf_tables: Refine the codes to
+ eliminate useless condition checks in nf_tables_api.c
+Date: Thu, 12 Jan 2017 12:21:42 +0100
+Message-ID: <20170112112142.GA1666@salvia>
+References: <1484098335-13300-1-git-send-email-fgao@ikuai8.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, gfree.wind@gmail.com
 To: fgao@ikuai8.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52486 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35094 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750843AbdALLLk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Jan 2017 06:11:40 -0500
+        id S1751299AbdALLVu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 12 Jan 2017 06:21:50 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B7867523C6
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2017 12:11:05 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 2FBBF52422
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2017 12:21:48 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A7AB7A7F24
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2017 12:11:05 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1A1361B32E8
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2017 12:21:48 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 64E8D9D695
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2017 12:11:01 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B98521B307B
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2017 12:21:43 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1484217474-122356-1-git-send-email-fgao@ikuai8.com>
+In-Reply-To: <1484098335-13300-1-git-send-email-fgao@ikuai8.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 12, 2017 at 06:37:54PM +0800, fgao@ikuai8.com wrote:
-> From: Feng <fgao@ikuai8.com>
+On Wed, Jan 11, 2017 at 09:32:15AM +0800, fgao@ikuai8.com wrote:
+> From: Gao Feng <fgao@ikuai8.com>
 > 
-> The rcu lock protect is added 3 years ago with the commit
-> e688a7f8c6cb7a18aae7e55ccdd175f0ad9e69c0. But I find the dump
-> operation is protected by the nfnl_lock in the current codes. The
-> dump is a synchronization opertion in the netlink callback function
-> which is protected by the nfnl_lock.
+> The return value of nf_tables_table_lookup is valid pointer or one
+> pointer error. There are two cases totally.
+> case1: IS_ERR(table) is true, it would return the error or reset the
+> table as NULL, it is unnecessary to perform the latter check
+> "table != NULL".
+> case2: IS_ERR(obj) is false, the table is one valid pointer. It is also
+> unnecessary to perform that check.
+> The nf_tables_newset and nf_tables_newobj have same logic codes.
+> 
+> In summary, we could move the block of condition check "table != NULL"
+> in the else block to eliminate the original condition checks.
+> 
+> Signed-off-by: Gao Feng <fgao@ikuai8.com>
+> ---
+>  net/netfilter/nf_tables_api.c | 12 +++---------
+>  1 file changed, 3 insertions(+), 9 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index a019a87..3d7267f 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -697,9 +697,7 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
+>  		if (PTR_ERR(table) != -ENOENT)
+>  			return PTR_ERR(table);
+>  		table = NULL;
 
-nfnl_lock() only protects the first call, follow up recvmsg() calls in
-rely on rcu. Please, see netlink_dump().
+We follow up with table = NULL down the code, I think this breaks.
+
+> -	}
+> -
+> -	if (table != NULL) {
+> +	} else {
+>  		if (nlh->nlmsg_flags & NLM_F_EXCL)
+>  			return -EEXIST;
+>  		if (nlh->nlmsg_flags & NLM_F_REPLACE)
