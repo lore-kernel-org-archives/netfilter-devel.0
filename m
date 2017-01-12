@@ -1,52 +1,33 @@
-From: Gao Feng <fgao@ikuai8.com>
-Subject: Re: [PATCH nf-next 1/1] netfilter: nf_tables: Remove the rcu lock for
- dump functions
-Date: Thu, 12 Jan 2017 23:24:56 +0800
-Message-ID: <CA+6hz4oFuh1ecVfSOS7tp2KNesMwq4F_5dnKssAAzJa+g_SN=g@mail.gmail.com>
-References: <1484217474-122356-1-git-send-email-fgao@ikuai8.com> <20170112111100.GB1048@salvia>
+From: Angel <info@bbc.com>
+Subject: Plastic Extrusion Design Services
+Date: Thu, 12 Jan 2017 19:28:55 +0800
+Message-ID: <20170112112855.GA19455@bbc.com>
+Reply-To: Angel Andriod <iSayor@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Transfer-Encoding: 8bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbguseast2.qq.com ([54.204.34.130]:50328 "EHLO
-        smtpbguseast2.qq.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750810AbdALPZL (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Jan 2017 10:25:11 -0500
-Received: from mail-vk0-f43.google.com (unknown [209.85.213.43])
-        by esmtp4.qq.com (ESMTP) with SMTP id 0
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2017 23:24:58 +0800 (CST)
-Received: by mail-vk0-f43.google.com with SMTP id x75so14505497vke.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2017 07:24:59 -0800 (PST)
-In-Reply-To: <20170112111100.GB1048@salvia>
+Received: from 121.201.45.227 ([121.201.45.227]:40174 "EHLO bbc.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750816AbdALPbI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 12 Jan 2017 10:31:08 -0500
+Received: from localhost (10.11.11.227) by bbc.com id heugjm0e97co for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2017 19:28:55 +0800 (envelope-from <info@bbc.com>)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Hi,
 
-On Thu, Jan 12, 2017 at 7:11 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Thu, Jan 12, 2017 at 06:37:54PM +0800, fgao@ikuai8.com wrote:
->> From: Feng <fgao@ikuai8.com>
->>
->> The rcu lock protect is added 3 years ago with the commit
->> e688a7f8c6cb7a18aae7e55ccdd175f0ad9e69c0. But I find the dump
->> operation is protected by the nfnl_lock in the current codes. The
->> dump is a synchronization opertion in the netlink callback function
->> which is protected by the nfnl_lock.
->
-> nfnl_lock() only protects the first call, follow up recvmsg() calls in
-> rely on rcu. Please, see netlink_dump().
+Dong Guan RiTeng Industrial Co.,Ltd. a large plastic extrusion / co-extrusion profiles/ pipes manufacturer in China. Our product range includes PC/PMMA/PP/PS/PE/PVC/ABS plastic extrusion/co-extrusion profiles/pipes, extrusion production line.
 
-Thanks your detail explanation.
-Actually I read the netlink_dump before, but fail to find any valuable info.
+And we have a corresponding plastic extrusion mould factory, so, that will in the greatest degree help you to shorten the time to wait for the first sample, also save the cost of the mould.
 
-Now I get the reason with your info "recvmsg" and "first call".
-The netlink_recvmsg would try to invoke the dump callback again sometimes.
+Pls feel free to contact with me if you would like to know more ! 
+B.wishes
 
-Thank you very much.
-
-Regards
-Feng
-
-
+Company Name£ºDong Guan RiTeng Industrial Co.,Ltd.
+Website: http://shop1404897195891.1688.com 
+Phone£º+86 13711864062  +86-769-82939126
+Fax£º+86-769-82939128
+Address£ºNO.12, Yin Ling STREET, Tian tou jiao Village, Qiao tou Town, Dong guan, Guangdong Province ,China.
