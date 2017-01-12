@@ -1,33 +1,66 @@
-From: Angel <info@bbc.com>
-Subject: Plastic Extrusion Design Services
-Date: Thu, 12 Jan 2017 19:28:55 +0800
-Message-ID: <20170112112855.GA19455@bbc.com>
-Reply-To: Angel Andriod <iSayor@163.com>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: Re: [PATCH v2 7/7] uapi: export all headers under uapi directories
+Date: Thu, 12 Jan 2017 16:52:57 +0100
+Message-ID: <464a1323-4450-e563-ff59-9e6d57b75959@6wind.com>
+References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
+ <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
+ <1483695839-18660-8-git-send-email-nicolas.dichtel@6wind.com>
+ <20170109125638.GA15506@infradead.org>
+Reply-To: nicolas.dichtel@6wind.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 121.201.45.227 ([121.201.45.227]:40174 "EHLO bbc.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750816AbdALPbI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Jan 2017 10:31:08 -0500
-Received: from localhost (10.11.11.227) by bbc.com id heugjm0e97co for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2017 19:28:55 +0800 (envelope-from <info@bbc.com>)
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: arnd@arndb.de, mmarek@suse.com, linux-kbuild@vger.kernel.org,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org,
+        adi-buildroot-devel@lists.sourceforge.net,
+        linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com,
+        uclinux-h8-devel@lists.sourceforge.jp,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org,
+        linux-mips@linux-mips.org, linux-am33-list@redhat.com,
+        nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+        linux-ar
+To: Christoph Hellwig <hch@infradead.org>
+Return-path: <linux-alpha-owner@vger.kernel.org>
+In-Reply-To: <20170109125638.GA15506@infradead.org>
+Sender: linux-alpha-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Le 09/01/2017 à 13:56, Christoph Hellwig a écrit :
+> On Fri, Jan 06, 2017 at 10:43:59AM +0100, Nicolas Dichtel wrote:
+>> Regularly, when a new header is created in include/uapi/, the developer
+>> forgets to add it in the corresponding Kbuild file. This error is usually
+>> detected after the release is out.
+>>
+>> In fact, all headers under uapi directories should be exported, thus it's
+>> useless to have an exhaustive list.
+>>
+>> After this patch, the following files, which were not exported, are now
+>> exported (with make headers_install_all):
+> 
+> ... snip ...
+> 
+>> linux/genwqe/.install
+>> linux/genwqe/..install.cmd
+>> linux/cifs/.install
+>> linux/cifs/..install.cmd
+> 
+> I'm pretty sure these should not be exported!
+> 
+Those files are created in every directory:
+$ find usr/include/ -name '\.\.install.cmd' | wc -l
+71
+$ find usr/include/ -name '\.install' | wc -l
+71
 
-Dong Guan RiTeng Industrial Co.,Ltd. a large plastic extrusion / co-extrusion profiles/ pipes manufacturer in China. Our product range includes PC/PMMA/PP/PS/PE/PVC/ABS plastic extrusion/co-extrusion profiles/pipes, extrusion production line.
+See also
+http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/scripts/Makefile.headersinst#n32
 
-And we have a corresponding plastic extrusion mould factory, so, that will in the greatest degree help you to shorten the time to wait for the first sample, also save the cost of the mould.
 
-Pls feel free to contact with me if you would like to know more ! 
-B.wishes
-
-Company Name£ºDong Guan RiTeng Industrial Co.,Ltd.
-Website: http://shop1404897195891.1688.com 
-Phone£º+86 13711864062  +86-769-82939126
-Fax£º+86-769-82939128
-Address£ºNO.12, Yin Ling STREET, Tian tou jiao Village, Qiao tou Town, Dong guan, Guangdong Province ,China.
+Thank you,
+Nicolas
