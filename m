@@ -1,58 +1,47 @@
 From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH v3 1/8] arm: put types.h in uapi
-Date: Fri, 13 Jan 2017 17:01:01 +0100
-Message-ID: <4633e475-47f2-5627-81a9-a1747dfddbc0@6wind.com>
-References: <1484304406-10820-2-git-send-email-nicolas.dichtel@6wind.com>
+Subject: Re: [PATCH v3 4/8] x86: stop exporting msr-index.h to userland
+Date: Fri, 13 Jan 2017 17:08:34 +0100
+Message-ID: <dd826bc7-e1ef-be29-e0c3-692afb346036@6wind.com>
+References: <1484304406-10820-5-git-send-email-nicolas.dichtel@6wind.com>
  <3131144.4Ej3KFWRbz@wuerfel>
  <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
- <25063.1484321803@warthog.procyon.org.uk>
+ <25483.1484322229@warthog.procyon.org.uk>
 Reply-To: nicolas.dichtel@6wind.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
-Cc: arnd@arndb.de, linux-mips@linux-mips.org,
-        linux-m68k@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-doc@vger.kernel.org, alsa-devel@alsa-project.org,
-        dri-devel@lists.freedesktop.org, linux-mtd@lists.infradead.org,
-        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-am33-list@redhat.com,
-        linux-c6x-dev@linux-c6x.org, linux-rdma@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-sh@vger.kernel.org,
-        linux@armlinux.org.uk, coreteam@netfilter.org,
-        fcoe-devel@open-fcoe.org, xen-devel@lists.xenproject.org,
-        linux-snps-arc@lists.infradead.org, linux-media@vger.kernel.org,
-        uclinux-h8-devel@lists.sourceforge.jp,
-        linux-xtensa@linux-xtensa.org, linux-kbuild@vger.kernel.org,
+Cc: arnd@arndb.de, linux-kbuild@vger.kernel.org,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org,
         adi-buildroot-devel@lists.sourceforge.net,
-        linux-raid@vger.kernel.org,
+        linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com,
+        uclinux-h8-devel@lists.sourceforge.jp,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-m68k@vger.kernel.org, linux-metag@vger.kernel.org,
+        linux-mips@linux-mips.org, linux-am33-list@redhat.com,
+        nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+        linux-arch@vger.kernel.org, dr
 To: David Howells <dhowells@redhat.com>
-Return-path: <linux-mips-bounce@linux-mips.org>
-In-Reply-To: <25063.1484321803@warthog.procyon.org.uk>
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-List-help: <mailto:ecartis@linux-mips.org?Subject=help>
-List-unsubscribe: <mailto:ecartis@linux-mips.org?subject=unsubscribe%20linux-mips>
-List-software: Ecartis version 1.0.0
-List-subscribe: <mailto:ecartis@linux-mips.org?subject=subscribe%20linux-mips>
-List-owner: <mailto:ralf@linux-mips.org>
-List-post: <mailto:linux-mips@linux-mips.org>
-List-archive: <http://www.linux-mips.org/archives/linux-mips/>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <25483.1484322229@warthog.procyon.org.uk>
+Sender: linux-media-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Please, do not remove the email subject when you reply. I restore it to ease the
-thread follow-up.
-
-Le 13/01/2017 à 16:36, David Howells a écrit :
-> Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
+Le 13/01/2017 à 16:43, David Howells a écrit :
+>> -header-y += msr-index.h
 > 
->> This header file is exported, thus move it to uapi.
-> 
-> Exported how?
-It is listed in include/uapi/asm-generic/Kbuild.asm, which is included by
-arch/arm/include/uapi/asm/Kbuild.
+> I see it on my desktop as /usr/include/asm/msr-index.h and it's been there at
+> least four years - and as such it's part of the UAPI.  I don't think you can
+> remove it unless you can guarantee there are no userspace users.
+I keep it in the v2 of the series, but the maintainer, Borislav Petkov, asks me
+to un-export it.
 
-You can also have a look at patch #5 to see why it was exported even if it was
-not in an uapi directory.
+I will follow the maintainer decision.
+
 
 Regards,
 Nicolas
