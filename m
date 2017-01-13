@@ -1,57 +1,58 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] netfilter: ipt_CLUSTERIP: fix build error without procfs
-Date: Fri, 13 Jan 2017 16:41:03 +0100
-Message-ID: <20170113154204.2737978-1-arnd@arndb.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        James Morris <jmorris@namei.org>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Xin Long <lucien.xin@gmail.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:61271 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751771AbdAMPpg (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Jan 2017 10:45:36 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: Re: [PATCH v3 1/8] arm: put types.h in uapi
+Date: Fri, 13 Jan 2017 17:01:01 +0100
+Message-ID: <4633e475-47f2-5627-81a9-a1747dfddbc0@6wind.com>
+References: <1484304406-10820-2-git-send-email-nicolas.dichtel@6wind.com>
+ <3131144.4Ej3KFWRbz@wuerfel>
+ <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
+ <25063.1484321803@warthog.procyon.org.uk>
+Reply-To: nicolas.dichtel@6wind.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Cc: arnd@arndb.de, linux-mips@linux-mips.org,
+        linux-m68k@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-doc@vger.kernel.org, alsa-devel@alsa-project.org,
+        dri-devel@lists.freedesktop.org, linux-mtd@lists.infradead.org,
+        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-am33-list@redhat.com,
+        linux-c6x-dev@linux-c6x.org, linux-rdma@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-sh@vger.kernel.org,
+        linux@armlinux.org.uk, coreteam@netfilter.org,
+        fcoe-devel@open-fcoe.org, xen-devel@lists.xenproject.org,
+        linux-snps-arc@lists.infradead.org, linux-media@vger.kernel.org,
+        uclinux-h8-devel@lists.sourceforge.jp,
+        linux-xtensa@linux-xtensa.org, linux-kbuild@vger.kernel.org,
+        adi-buildroot-devel@lists.sourceforge.net,
+        linux-raid@vger.kernel.org,
+To: David Howells <dhowells@redhat.com>
+Return-path: <linux-mips-bounce@linux-mips.org>
+In-Reply-To: <25063.1484321803@warthog.procyon.org.uk>
+Sender: linux-mips-bounce@linux-mips.org
+Errors-to: linux-mips-bounce@linux-mips.org
+List-help: <mailto:ecartis@linux-mips.org?Subject=help>
+List-unsubscribe: <mailto:ecartis@linux-mips.org?subject=unsubscribe%20linux-mips>
+List-software: Ecartis version 1.0.0
+List-subscribe: <mailto:ecartis@linux-mips.org?subject=subscribe%20linux-mips>
+List-owner: <mailto:ralf@linux-mips.org>
+List-post: <mailto:linux-mips@linux-mips.org>
+List-archive: <http://www.linux-mips.org/archives/linux-mips/>
+List-Id: netfilter-devel.vger.kernel.org
 
-We can't access c->pde if CONFIG_PROC_FS is disabled:
+Please, do not remove the email subject when you reply. I restore it to ease the
+thread follow-up.
 
-net/ipv4/netfilter/ipt_CLUSTERIP.c: In function 'clusterip_config_find_get':
-net/ipv4/netfilter/ipt_CLUSTERIP.c:147:9: error: 'struct clusterip_config' has no member named 'pde'
+Le 13/01/2017 à 16:36, David Howells a écrit :
+> Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
+> 
+>> This header file is exported, thus move it to uapi.
+> 
+> Exported how?
+It is listed in include/uapi/asm-generic/Kbuild.asm, which is included by
+arch/arm/include/uapi/asm/Kbuild.
 
-This moves the check inside of another #ifdef.
+You can also have a look at patch #5 to see why it was exported even if it was
+not in an uapi directory.
 
-Fixes: 6c5d5cfbe3c5 ("netfilter: ipt_CLUSTERIP: check duplicate config when initializing")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- net/ipv4/netfilter/ipt_CLUSTERIP.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 1e38d8bf5631..52f26459efc3 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -144,7 +144,12 @@ clusterip_config_find_get(struct net *net, __be32 clusterip, int entry)
- 	rcu_read_lock_bh();
- 	c = __clusterip_config_find(net, clusterip);
- 	if (c) {
--		if (!c->pde || unlikely(!atomic_inc_not_zero(&c->refcount)))
-+#ifdef CONFIG_PROC_FS
-+		if (!c->pde)
-+			c = NULL;
-+		else
-+#endif
-+		if (unlikely(!atomic_inc_not_zero(&c->refcount)))
- 			c = NULL;
- 		else if (entry)
- 			atomic_inc(&c->entries);
--- 
-2.9.0
-
+Regards,
+Nicolas
