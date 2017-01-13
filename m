@@ -1,322 +1,52 @@
-From: Elise Lennion <elise.lennion@gmail.com>
-Subject: [PATCH] examples: Remove the use of nftnl_mnl_batch_put()
-Date: Thu, 12 Jan 2017 17:22:55 -0200
-Message-ID: <20170112192255.GA20246@lennorien.com>
+From: Jeff Epler <jepler@unpythonic.net>
+Subject: Re: [PATCH v2 7/7] uapi: export all headers under uapi directories
+Date: Thu, 12 Jan 2017 19:04:27 -0600
+Message-ID: <20170113010427.GA22650@unpythonic.net>
+References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
+ <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
+ <1483695839-18660-8-git-send-email-nicolas.dichtel@6wind.com>
+ <20170109125638.GA15506@infradead.org>
+ <464a1323-4450-e563-ff59-9e6d57b75959@6wind.com>
+ <alpine.LSU.2.20.1701121727180.19188@erq.vanv.qr>
+ <9d68af8a-a609-d7b1-58a9-f1155313b077@6wind.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f67.google.com ([209.85.213.67]:34207 "EHLO
-        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750755AbdALTXC (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Jan 2017 14:23:02 -0500
-Received: by mail-vk0-f67.google.com with SMTP id r136so2153133vke.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Jan 2017 11:23:02 -0800 (PST)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: linux-mips@linux-mips.org, alsa-devel@alsa-project.org,
+ linux-ia64@vger.kernel.org, linux-doc@vger.kernel.org, airlied@linux.ie,
+ linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+ linux-mtd@lists.infradead.org, sparclinux@vger.kernel.org,
+ linux-arch@vger.kernel.org, linux-s390@vger.kernel.org,
+ linux-am33-list@redhat.com, linux-c6x-dev@linux-c6x.org,
+ linux-rdma@vger.kernel.org, linux-hexagon@vger.kernel.org,
+ linux-sh@vger.kernel.org, Christoph Hellwig <hch@infradead.org>,
+ coreteam@netfilter.org, fcoe-devel@open-fcoe.org,
+ xen-devel@lists.xenproject.org, linux-snps-arc@lists.infradead.org,
+ linux-media@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp,
+ linux-xtensa@linux-xtensa.org, arnd@arndb.de, linux-kbuild@vger.kernel.org,
+ adi-buildroot-devel@lists.sourceforge.net, linux-raid@vger.kernel.org,
+ linux-m68k@lists.linux-m68k.org, mmarek@suse.com, linux-metag@v
+To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Return-path: <linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <9d68af8a-a609-d7b1-58a9-f1155313b077@6wind.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-snps-arc>,
+ <mailto:linux-snps-arc-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-snps-arc/>
+List-Post: <mailto:linux-snps-arc@lists.infradead.org>
+List-Help: <mailto:linux-snps-arc-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-snps-arc>,
+ <mailto:linux-snps-arc-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-snps-arc" <linux-snps-arc-bounces@lists.infradead.org>
+Errors-To: linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org
+List-Id: netfilter-devel.vger.kernel.org
 
-use nftnl_batch_begin() and nftnl_batch_end() instead, to keep examples
-consistent and avoid code duplication.
+On Thu, Jan 12, 2017 at 05:32:09PM +0100, Nicolas Dichtel wrote:
+> What I was trying to say is that I export those directories like other are.
+> Removing those files is not related to that series.
 
-Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
----
- examples/nft-map-add.c  | 38 +++++++++++++++-----------------------
- examples/nft-rule-add.c | 38 +++++++++++++++-----------------------
- examples/nft-rule-del.c | 38 +++++++++++++++-----------------------
- examples/nft-set-add.c  | 38 +++++++++++++++-----------------------
- 4 files changed, 60 insertions(+), 92 deletions(-)
+Perhaps the correct solution is to only copy files matching "*.h" to
+reduce the risk of copying files incidentally created by kbuild but
+which shouldn't be installed as uapi headers.
 
-diff --git a/examples/nft-map-add.c b/examples/nft-map-add.c
-index 53244f5..a906d2d 100644
---- a/examples/nft-map-add.c
-+++ b/examples/nft-map-add.c
-@@ -54,22 +54,6 @@ static struct nftnl_set *setup_set(uint8_t family, const char *table,
- 	return s;
- }
- 
--static void nftnl_mnl_batch_put(char *buf, uint16_t type, uint32_t seq)
--{
--	struct nlmsghdr *nlh;
--	struct nfgenmsg *nfg;
--
--	nlh = mnl_nlmsg_put_header(buf);
--	nlh->nlmsg_type = type;
--	nlh->nlmsg_flags = NLM_F_REQUEST;
--	nlh->nlmsg_seq = seq;
--
--	nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
--	nfg->nfgen_family = AF_INET;
--	nfg->version = NFNETLINK_V0;
--	nfg->res_id = NFNL_SUBSYS_NFTABLES;
--}
--
- int main(int argc, char *argv[])
- {
- 	struct mnl_socket *nl;
-@@ -79,7 +63,7 @@ int main(int argc, char *argv[])
- 	uint8_t family;
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	uint32_t seq = time(NULL);
--	int ret;
-+	int ret, batching;
- 
- 	if (argc != 4) {
- 		fprintf(stderr, "Usage: %s <family> <table> <setname>\n", argv[0]);
-@@ -112,11 +96,18 @@ int main(int argc, char *argv[])
- 		exit(EXIT_FAILURE);
- 	}
- 
-+	batching = nftnl_batch_is_supported();
-+	if (batching < 0) {
-+		perror("cannot talk to nfnetlink");
-+		exit(EXIT_FAILURE);
-+	}
-+
- 	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
- 
--	nftnl_mnl_batch_put(mnl_nlmsg_batch_current(batch),
--			  NFNL_MSG_BATCH_BEGIN, seq++);
--	mnl_nlmsg_batch_next(batch);
-+	if (batching) {
-+		nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
-+		mnl_nlmsg_batch_next(batch);
-+	}
- 
- 	nlh = nftnl_set_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
- 				      NFT_MSG_NEWSET, family,
-@@ -126,9 +117,10 @@ int main(int argc, char *argv[])
- 	nftnl_set_free(s);
- 	mnl_nlmsg_batch_next(batch);
- 
--	nftnl_mnl_batch_put(mnl_nlmsg_batch_current(batch), NFNL_MSG_BATCH_END,
--			 seq++);
--	mnl_nlmsg_batch_next(batch);
-+	if (batching) {
-+		nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
-+		mnl_nlmsg_batch_next(batch);
-+	}
- 
- 	ret = mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
- 				mnl_nlmsg_batch_size(batch));
-diff --git a/examples/nft-rule-add.c b/examples/nft-rule-add.c
-index d27c6d7..3aeb2e0 100644
---- a/examples/nft-rule-add.c
-+++ b/examples/nft-rule-add.c
-@@ -117,22 +117,6 @@ static struct nftnl_rule *setup_rule(uint8_t family, const char *table,
- 	return r;
- }
- 
--static void nftnl_mnl_batch_put(char *buf, uint16_t type, uint32_t seq)
--{
--	struct nlmsghdr *nlh;
--	struct nfgenmsg *nfg;
--
--	nlh = mnl_nlmsg_put_header(buf);
--	nlh->nlmsg_type = type;
--	nlh->nlmsg_flags = NLM_F_REQUEST;
--	nlh->nlmsg_seq = seq;
--
--	nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
--	nfg->nfgen_family = AF_INET;
--	nfg->version = NFNETLINK_V0;
--	nfg->res_id = NFNL_SUBSYS_NFTABLES;
--}
--
- int main(int argc, char *argv[])
- {
- 	struct mnl_socket *nl;
-@@ -142,7 +126,7 @@ int main(int argc, char *argv[])
- 	uint8_t family;
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	uint32_t seq = time(NULL);
--	int ret;
-+	int ret, batching;
- 
- 	if (argc < 4 || argc > 5) {
- 		fprintf(stderr, "Usage: %s <family> <table> <chain>\n", argv[0]);
-@@ -174,11 +158,18 @@ int main(int argc, char *argv[])
- 		exit(EXIT_FAILURE);
- 	}
- 
-+	batching = nftnl_batch_is_supported();
-+	if (batching < 0) {
-+		perror("cannot talk to nfnetlink");
-+		exit(EXIT_FAILURE);
-+	}
-+
- 	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
- 
--	nftnl_mnl_batch_put(mnl_nlmsg_batch_current(batch),
--			  NFNL_MSG_BATCH_BEGIN, seq++);
--	mnl_nlmsg_batch_next(batch);
-+	if (batching) {
-+		nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
-+		mnl_nlmsg_batch_next(batch);
-+	}
- 
- 	nlh = nftnl_rule_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
- 			NFT_MSG_NEWRULE,
-@@ -189,9 +180,10 @@ int main(int argc, char *argv[])
- 	nftnl_rule_free(r);
- 	mnl_nlmsg_batch_next(batch);
- 
--	nftnl_mnl_batch_put(mnl_nlmsg_batch_current(batch), NFNL_MSG_BATCH_END,
--			 seq++);
--	mnl_nlmsg_batch_next(batch);
-+	if (batching) {
-+		nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
-+		mnl_nlmsg_batch_next(batch);
-+	}
- 
- 	ret = mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
- 				mnl_nlmsg_batch_size(batch));
-diff --git a/examples/nft-rule-del.c b/examples/nft-rule-del.c
-index 4bc9727..5c68363 100644
---- a/examples/nft-rule-del.c
-+++ b/examples/nft-rule-del.c
-@@ -22,22 +22,6 @@
- #include <libmnl/libmnl.h>
- #include <libnftnl/rule.h>
- 
--static void nftnl_mnl_batch_put(char *buf, uint16_t type, uint32_t seq)
--{
--	struct nlmsghdr *nlh;
--	struct nfgenmsg *nfg;
--
--	nlh = mnl_nlmsg_put_header(buf);
--	nlh->nlmsg_type = type;
--	nlh->nlmsg_flags = NLM_F_REQUEST;
--	nlh->nlmsg_seq = seq;
--
--	nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
--	nfg->nfgen_family = AF_INET;
--	nfg->version = NFNETLINK_V0;
--	nfg->res_id = NFNL_SUBSYS_NFTABLES;
--}
--
- int main(int argc, char *argv[])
- {
- 	struct mnl_socket *nl;
-@@ -46,7 +30,7 @@ int main(int argc, char *argv[])
- 	struct mnl_nlmsg_batch *batch;
- 	uint32_t portid, seq;
- 	struct nftnl_rule *r = NULL;
--	int ret, family;
-+	int ret, batching, family;
- 
- 	if (argc < 4 || argc > 5) {
- 		fprintf(stderr, "Usage: %s <family> <table> <chain> [<handle>]\n",
-@@ -81,11 +65,18 @@ int main(int argc, char *argv[])
- 	if (argc == 5)
- 		nftnl_rule_set_u64(r, NFTNL_RULE_HANDLE, atoi(argv[4]));
- 
-+	batching = nftnl_batch_is_supported();
-+	if (batching < 0) {
-+		perror("cannot talk to nfnetlink");
-+		exit(EXIT_FAILURE);
-+	}
-+
- 	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
- 
--	nftnl_mnl_batch_put(mnl_nlmsg_batch_current(batch),
--			  NFNL_MSG_BATCH_BEGIN, seq++);
--	mnl_nlmsg_batch_next(batch);
-+	if (batching) {
-+		nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
-+		mnl_nlmsg_batch_next(batch);
-+	}
- 
- 	nlh = nftnl_rule_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
- 				NFT_MSG_DELRULE,
-@@ -96,9 +87,10 @@ int main(int argc, char *argv[])
- 	nftnl_rule_free(r);
- 	mnl_nlmsg_batch_next(batch);
- 
--	nftnl_mnl_batch_put(mnl_nlmsg_batch_current(batch), NFNL_MSG_BATCH_END,
--			  seq++);
--	mnl_nlmsg_batch_next(batch);
-+	if (batching) {
-+		nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
-+		mnl_nlmsg_batch_next(batch);
-+	}
- 
- 	nl = mnl_socket_open(NETLINK_NETFILTER);
- 	if (nl == NULL) {
-diff --git a/examples/nft-set-add.c b/examples/nft-set-add.c
-index bae6e8e..bdb9373 100644
---- a/examples/nft-set-add.c
-+++ b/examples/nft-set-add.c
-@@ -50,22 +50,6 @@ static struct nftnl_set *setup_set(uint8_t family, const char *table,
- 	return s;
- }
- 
--static void nftnl_mnl_batch_put(char *buf, uint16_t type, uint32_t seq)
--{
--	struct nlmsghdr *nlh;
--	struct nfgenmsg *nfg;
--
--	nlh = mnl_nlmsg_put_header(buf);
--	nlh->nlmsg_type = type;
--	nlh->nlmsg_flags = NLM_F_REQUEST;
--	nlh->nlmsg_seq = seq;
--
--	nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
--	nfg->nfgen_family = AF_INET;
--	nfg->version = NFNETLINK_V0;
--	nfg->res_id = NFNL_SUBSYS_NFTABLES;
--}
--
- int main(int argc, char *argv[])
- {
- 	struct mnl_socket *nl;
-@@ -75,7 +59,7 @@ int main(int argc, char *argv[])
- 	uint8_t family;
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	uint32_t seq = time(NULL);
--	int ret;
-+	int ret, batching;
- 
- 	if (argc != 4) {
- 		fprintf(stderr, "Usage: %s <family> <table> <setname>\n", argv[0]);
-@@ -108,11 +92,18 @@ int main(int argc, char *argv[])
- 		exit(EXIT_FAILURE);
- 	}
- 
-+	batching = nftnl_batch_is_supported();
-+	if (batching < 0) {
-+		perror("cannot talk to nfnetlink");
-+		exit(EXIT_FAILURE);
-+	}
-+
- 	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
- 
--	nftnl_mnl_batch_put(mnl_nlmsg_batch_current(batch),
--			  NFNL_MSG_BATCH_BEGIN, seq++);
--	mnl_nlmsg_batch_next(batch);
-+	if (batching) {
-+		nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
-+		mnl_nlmsg_batch_next(batch);
-+	}
- 
- 	nlh = nftnl_set_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
- 				      NFT_MSG_NEWSET, family,
-@@ -122,9 +113,10 @@ int main(int argc, char *argv[])
- 	nftnl_set_free(s);
- 	mnl_nlmsg_batch_next(batch);
- 
--	nftnl_mnl_batch_put(mnl_nlmsg_batch_current(batch), NFNL_MSG_BATCH_END,
--			 seq++);
--	mnl_nlmsg_batch_next(batch);
-+	if (batching) {
-+		nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
-+		mnl_nlmsg_batch_next(batch);
-+	}
- 
- 	ret = mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
- 				mnl_nlmsg_batch_size(batch));
--- 
-2.7.4
-
+jeff
