@@ -1,165 +1,77 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [PATCH v3 1/8] arm: put types.h in uapi
-Date: Fri, 13 Jan 2017 17:06:10 +0000
-Message-ID: <20170113170610.GV14217@n2100.armlinux.org.uk>
-References: <3131144.4Ej3KFWRbz@wuerfel>
- <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
- <1484304406-10820-2-git-send-email-nicolas.dichtel@6wind.com>
+From: Jamal Hadi Salim <jhs-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>
+Subject: ANNOUNCE: Netdev 2.1 in Montreal
+Date: Fri, 13 Jan 2017 14:58:19 -0500
+Message-ID: <1a7b6b2c-38bc-7c6f-e3bf-ab913b163dba@mojatatu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: linux-mips@linux-mips.org, alsa-devel@alsa-project.org,
- linux-ia64@vger.kernel.org, linux-doc@vger.kernel.org, airlied@linux.ie,
- daniel.vetter@ffwll.ch, linux-fbdev@vger.kernel.org,
- dri-devel@lists.freedesktop.org, linux-mtd@lists.infradead.org,
- sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
- linux-s390@vger.kernel.org, linux-am33-list@redhat.com,
- linux-c6x-dev@linux-c6x.org, linux-rdma@vger.kernel.org,
- linux-hexagon@vger.kernel.org, linux-sh@vger.kernel.org, hch@infradead.org,
- coreteam@netfilter.org, msalter@redhat.com, fcoe-devel@open-fcoe.org,
- xen-devel@lists.xenproject.org, linux-snps-arc@lists.infradead.org,
- linux-media@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp,
- linux-xtensa@linux-xtensa.org, arnd@arndb.de, linux-kbuild@vger.kernel.org,
- adi-buildroot-devel@lists.sourceforge.net, linux-raid@vger.kernel.org,
- linux-m68k@lists.linux-m68k.org, openri
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Return-path: <linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1484304406-10820-2-git-send-email-nicolas.dichtel@6wind.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-snps-arc>,
- <mailto:linux-snps-arc-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-snps-arc/>
-List-Post: <mailto:linux-snps-arc@lists.infradead.org>
-List-Help: <mailto:linux-snps-arc-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-snps-arc>,
- <mailto:linux-snps-arc-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-snps-arc" <linux-snps-arc-bounces@lists.infradead.org>
-Errors-To: linux-snps-arc-bounces+gla-linux-snps-arc=m.gmane.org@lists.infradead.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+        info-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+        tech-committee-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>,
+        Stephen Jaworski <jaws-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>,
+        Rob Echlin <rob-XjY9sGI/8jX3fQ9qLvQP4Q@public.gmane.org>, lwn-T1hC0tSOHrs@public.gmane.org
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jan 13, 2017 at 11:46:39AM +0100, Nicolas Dichtel wrote:
-> This header file is exported, thus move it to uapi.
 
-I'm taking this patch, but with the following commit log:
+Folks,
 
-  Due to the way kbuild works, this header was unintentionally exported
-  back in 2013 when it was created, despite it not being in a uapi/
-  directory.  This is very non-intuitive behaviour by Kbuild.
+We are pleased to announce Netdev 2.1 (year 2, conference 1)
+in the beautiful city of Montreal, Canada on the 6th to 8th of April.
+The website is now online: http://www.netdevconf.org/2.1/
+Netdev 2.1 will be held back to back with netconf2017.1
+(http://vger.kernel.org/netconf2017.html)
 
-  However, we've had this include exported to userland for almost four
-  years, and searching google for "ARM types.h __UINTPTR_TYPE__" gives
-  no hint that anyone has complained about it.  So, let's make it
-  officially exported in this state.
+Netdev 2.1 is a  community-driven conference geared towards Linux
+netheads. Linux kernel networking and user space utilization of the
+interfaces to the Linux kernel networking subsystem are the central
+theme.
+If you are using Linux as a boot system for proprietary networking,
+then this conference _may not be for you_.
 
-If anyone has any objections, they better shout sooner rather than
-later.
+Registration costs
+------------------
+Very Cheap.
+$CAN 300 if you register before Feb 27. $360 after.
+$CAN 150 if you are a student. $180 after Feb 27
 
-> 
-> Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-> ---
->  arch/arm/include/asm/types.h      | 40 ---------------------------------------
->  arch/arm/include/uapi/asm/types.h | 40 +++++++++++++++++++++++++++++++++++++++
->  2 files changed, 40 insertions(+), 40 deletions(-)
->  delete mode 100644 arch/arm/include/asm/types.h
->  create mode 100644 arch/arm/include/uapi/asm/types.h
-> 
-> diff --git a/arch/arm/include/asm/types.h b/arch/arm/include/asm/types.h
-> deleted file mode 100644
-> index a53cdb8f068c..000000000000
-> --- a/arch/arm/include/asm/types.h
-> +++ /dev/null
-> @@ -1,40 +0,0 @@
-> -#ifndef _ASM_TYPES_H
-> -#define _ASM_TYPES_H
-> -
-> -#include <asm-generic/int-ll64.h>
-> -
-> -/*
-> - * The C99 types uintXX_t that are usually defined in 'stdint.h' are not as
-> - * unambiguous on ARM as you would expect. For the types below, there is a
-> - * difference on ARM between GCC built for bare metal ARM, GCC built for glibc
-> - * and the kernel itself, which results in build errors if you try to build with
-> - * -ffreestanding and include 'stdint.h' (such as when you include 'arm_neon.h'
-> - * in order to use NEON intrinsics)
-> - *
-> - * As the typedefs for these types in 'stdint.h' are based on builtin defines
-> - * supplied by GCC, we can tweak these to align with the kernel's idea of those
-> - * types, so 'linux/types.h' and 'stdint.h' can be safely included from the same
-> - * source file (provided that -ffreestanding is used).
-> - *
-> - *                    int32_t         uint32_t               uintptr_t
-> - * bare metal GCC     long            unsigned long          unsigned int
-> - * glibc GCC          int             unsigned int           unsigned int
-> - * kernel             int             unsigned int           unsigned long
-> - */
-> -
-> -#ifdef __INT32_TYPE__
-> -#undef __INT32_TYPE__
-> -#define __INT32_TYPE__		int
-> -#endif
-> -
-> -#ifdef __UINT32_TYPE__
-> -#undef __UINT32_TYPE__
-> -#define __UINT32_TYPE__	unsigned int
-> -#endif
-> -
-> -#ifdef __UINTPTR_TYPE__
-> -#undef __UINTPTR_TYPE__
-> -#define __UINTPTR_TYPE__	unsigned long
-> -#endif
-> -
-> -#endif /* _ASM_TYPES_H */
-> diff --git a/arch/arm/include/uapi/asm/types.h b/arch/arm/include/uapi/asm/types.h
-> new file mode 100644
-> index 000000000000..9435a42f575e
-> --- /dev/null
-> +++ b/arch/arm/include/uapi/asm/types.h
-> @@ -0,0 +1,40 @@
-> +#ifndef _UAPI_ASM_TYPES_H
-> +#define _UAPI_ASM_TYPES_H
-> +
-> +#include <asm-generic/int-ll64.h>
-> +
-> +/*
-> + * The C99 types uintXX_t that are usually defined in 'stdint.h' are not as
-> + * unambiguous on ARM as you would expect. For the types below, there is a
-> + * difference on ARM between GCC built for bare metal ARM, GCC built for glibc
-> + * and the kernel itself, which results in build errors if you try to build with
-> + * -ffreestanding and include 'stdint.h' (such as when you include 'arm_neon.h'
-> + * in order to use NEON intrinsics)
-> + *
-> + * As the typedefs for these types in 'stdint.h' are based on builtin defines
-> + * supplied by GCC, we can tweak these to align with the kernel's idea of those
-> + * types, so 'linux/types.h' and 'stdint.h' can be safely included from the same
-> + * source file (provided that -ffreestanding is used).
-> + *
-> + *                    int32_t         uint32_t               uintptr_t
-> + * bare metal GCC     long            unsigned long          unsigned int
-> + * glibc GCC          int             unsigned int           unsigned int
-> + * kernel             int             unsigned int           unsigned long
-> + */
-> +
-> +#ifdef __INT32_TYPE__
-> +#undef __INT32_TYPE__
-> +#define __INT32_TYPE__		int
-> +#endif
-> +
-> +#ifdef __UINT32_TYPE__
-> +#undef __UINT32_TYPE__
-> +#define __UINT32_TYPE__	unsigned int
-> +#endif
-> +
-> +#ifdef __UINTPTR_TYPE__
-> +#undef __UINTPTR_TYPE__
-> +#define __UINTPTR_TYPE__	unsigned long
-> +#endif
-> +
-> +#endif /* _UAPI_ASM_TYPES_H */
-> -- 
-> 2.8.1
-> 
+Why you should register
+-----------------------
+If you yearn for the old community tech driven conferences where
+you mingle with fellow geeks (only these would be Linux networking
+geeks) then this would be it. There will be no marketing flashing
+light openings or loud bad music. Just a pure feed of Linux
+networking. Gurus and magicians of all sorts will be there mingling,
+juggling and giving talks.
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+While there will be heavy Linux kernel influence we expect a lot
+of user space presence as well.
+
+Exact Location:
+-----------------
+Tentative: LE WESTIN MONTRÉAL
+
+Sponsorship
+------------
+
+If you can help us organize this event by sponsoring, please drop us a 
+line to: sponsor-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org and we'll send you our sponsorship policy.
+
+Important dates
+----------------
+January 18, 2017 Call for proposals open
+January 23, 2017 Registration opens
+February 20, 2017 Call for proposals close
+February 27, 2017 Early Registration close
+March 13, 2017 Conference schedule announced
+March 27, 2017 Paper submission
+March 31, 2017 Online Registration close
+April 3, 2017 Slides submission
+April 6-8, 2017 Conference days
+May 1, 2017 Slides release
+June 1, 2017 Paper release
+
+cheers,
+jamal
