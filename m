@@ -1,77 +1,184 @@
-From: Jamal Hadi Salim <jhs-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>
-Subject: ANNOUNCE: Netdev 2.1 in Montreal
-Date: Fri, 13 Jan 2017 14:58:19 -0500
-Message-ID: <1a7b6b2c-38bc-7c6f-e3bf-ab913b163dba@mojatatu.com>
+From: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
+Subject: 4.9 conntrack performance issues
+Date: Sun, 15 Jan 2017 01:05:58 +0200
+Message-ID: <1a71d807acf63135bb037c7144fcd8d9@nuclearcat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        info-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        tech-committee-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>,
-        Stephen Jaworski <jaws-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>,
-        Rob Echlin <rob-XjY9sGI/8jX3fQ9qLvQP4Q@public.gmane.org>, lwn-T1hC0tSOHrs@public.gmane.org
-To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+To: Guillaume Nault <g.nault@alphalink.fr>,
+        Netfilter Devel <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi!
 
-Folks,
+Sorry if i added someone wrongly to CC, please let me know, if i should 
+remove.
+I just run successfully 4.9 on my nat several days ago, and seems panic 
+issue disappeared. But i started to face another issue, it seems garbage 
+collector is hogging one of CPU's.
 
-We are pleased to announce Netdev 2.1 (year 2, conference 1)
-in the beautiful city of Montreal, Canada on the 6th to 8th of April.
-The website is now online: http://www.netdevconf.org/2.1/
-Netdev 2.1 will be held back to back with netconf2017.1
-(http://vger.kernel.org/netconf2017.html)
+Here is my data:
+2xE5-2640 v3
+396G ram
+2x10G (bonding) with approx 14-15G load at peak time
+It was handling load very well at 4.8 and below, it might be still fine, 
+but i suspect queues that belong to hogged cpu might experience issues.
+Is there anything can be done to improve cpu load distribution or reduce 
+single core load?
 
-Netdev 2.1 is a  community-driven conference geared towards Linux
-netheads. Linux kernel networking and user space utilization of the
-interfaces to the Linux kernel networking subsystem are the central
-theme.
-If you are using Linux as a boot system for proprietary networking,
-then this conference _may not be for you_.
+net.netfilter.nf_conntrack_buckets = 65536
+net.netfilter.nf_conntrack_checksum = 1
+net.netfilter.nf_conntrack_count = 1236021
+net.netfilter.nf_conntrack_events = 1
+net.netfilter.nf_conntrack_expect_max = 1024
+net.netfilter.nf_conntrack_generic_timeout = 600
+net.netfilter.nf_conntrack_helper = 0
+net.netfilter.nf_conntrack_icmp_timeout = 30
+net.netfilter.nf_conntrack_log_invalid = 0
+net.netfilter.nf_conntrack_max = 6553600
+net.netfilter.nf_conntrack_tcp_be_liberal = 0
+net.netfilter.nf_conntrack_tcp_loose = 0
+net.netfilter.nf_conntrack_tcp_max_retrans = 3
+net.netfilter.nf_conntrack_tcp_timeout_close = 10
+net.netfilter.nf_conntrack_tcp_timeout_close_wait = 10
+net.netfilter.nf_conntrack_tcp_timeout_established = 600
+net.netfilter.nf_conntrack_tcp_timeout_fin_wait = 20
+net.netfilter.nf_conntrack_tcp_timeout_last_ack = 20
+net.netfilter.nf_conntrack_tcp_timeout_max_retrans = 60
+net.netfilter.nf_conntrack_tcp_timeout_syn_recv = 10
+net.netfilter.nf_conntrack_tcp_timeout_syn_sent = 20
+net.netfilter.nf_conntrack_tcp_timeout_time_wait = 20
+net.netfilter.nf_conntrack_tcp_timeout_unacknowledged = 30
+net.netfilter.nf_conntrack_timestamp = 0
+net.netfilter.nf_conntrack_udp_timeout = 30
+net.netfilter.nf_conntrack_udp_timeout_stream = 180
+net.nf_conntrack_max = 6553600
 
-Registration costs
-------------------
-Very Cheap.
-$CAN 300 if you register before Feb 27. $360 after.
-$CAN 150 if you are a student. $180 after Feb 27
 
-Why you should register
------------------------
-If you yearn for the old community tech driven conferences where
-you mingle with fellow geeks (only these would be Linux networking
-geeks) then this would be it. There will be no marketing flashing
-light openings or loud bad music. Just a pure feed of Linux
-networking. Gurus and magicians of all sorts will be there mingling,
-juggling and giving talks.
+it is non-peak values, as adjustments i have shorter than default 
+timeouts. Changing net.netfilter.nf_conntrack_buckets to higher value 
+doesn't fix issue.
+I noticed that one of CPU's hogged (N24 in this case):
 
-While there will be heavy Linux kernel influence we expect a lot
-of user space presence as well.
+Linux 4.9.2-build-0127 (NAT)	01/14/17	_x86_64_	(32 CPU)
 
-Exact Location:
------------------
-Tentative: LE WESTIN MONTRÉAL
+23:01:54     CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal 
+  %guest   %idle
+23:02:04     all    0.09    0.00    1.60    0.01    0.00   28.28    0.00 
+    0.00   70.01
+23:02:04       0    0.11    0.00    0.00    0.00    0.00   32.38    0.00 
+    0.00   67.51
+23:02:04       1    0.12    0.00    0.12    0.00    0.00   29.91    0.00 
+    0.00   69.86
+23:02:04       2    0.23    0.00    0.11    0.00    0.00   29.57    0.00 
+    0.00   70.09
+23:02:04       3    0.11    0.00    0.11    0.11    0.00   28.80    0.00 
+    0.00   70.86
+23:02:04       4    0.23    0.00    0.11    0.11    0.00   31.41    0.00 
+    0.00   68.14
+23:02:04       5    0.11    0.00    0.00    0.00    0.00   29.28    0.00 
+    0.00   70.61
+23:02:04       6    0.11    0.00    0.11    0.00    0.00   31.81    0.00 
+    0.00   67.96
+23:02:04       7    0.11    0.00    0.11    0.00    0.00   32.69    0.00 
+    0.00   67.08
+23:02:04       8    0.00    0.00    0.23    0.00    0.00   42.12    0.00 
+    0.00   57.64
+23:02:04       9    0.11    0.00    0.00    0.00    0.00   30.86    0.00 
+    0.00   69.02
+23:02:04      10    0.11    0.00    0.11    0.00    0.00   30.93    0.00 
+    0.00   68.84
+23:02:04      11    0.00    0.00    0.11    0.00    0.00   32.73    0.00 
+    0.00   67.16
+23:02:04      12    0.11    0.00    0.11    0.00    0.00   29.85    0.00 
+    0.00   69.92
+23:02:04      13    0.00    0.00    0.00    0.00    0.00   30.96    0.00 
+    0.00   69.04
+23:02:04      14    0.00    0.00    0.00    0.00    0.00   30.09    0.00 
+    0.00   69.91
+23:02:04      15    0.00    0.00    0.11    0.00    0.00   30.63    0.00 
+    0.00   69.26
+23:02:04      16    0.11    0.00    0.00    0.00    0.00   25.88    0.00 
+    0.00   74.01
+23:02:04      17    0.11    0.00    0.00    0.00    0.00   22.82    0.00 
+    0.00   77.07
+23:02:04      18    0.11    0.00    0.00    0.00    0.00   23.75    0.00 
+    0.00   76.14
+23:02:04      19    0.11    0.00    0.11    0.00    0.00   24.86    0.00 
+    0.00   74.92
+23:02:04      20    0.11    0.00    0.11    0.11    0.00   24.48    0.00 
+    0.00   75.19
+23:02:04      21    0.22    0.00    0.11    0.00    0.00   23.43    0.00 
+    0.00   76.24
+23:02:04      22    0.11    0.00    0.11    0.00    0.00   25.46    0.00 
+    0.00   74.32
+23:02:04      23    0.00    0.00    0.11    0.00    0.00   25.47    0.00 
+    0.00   74.41
+23:02:04      24    0.00    0.00   45.06    0.00    0.00   42.18    0.00 
+    0.00   12.76
+23:02:04      25    0.11    0.00    0.11    0.11    0.00   25.22    0.00 
+    0.00   74.46
+23:02:04      26    0.11    0.00    0.00    0.11    0.00   23.39    0.00 
+    0.00   76.39
+23:02:04      27    0.22    0.00    0.11    0.00    0.00   23.83    0.00 
+    0.00   75.85
+23:02:04      28    0.11    0.00    0.11    0.00    0.00   24.10    0.00 
+    0.00   75.68
+23:02:04      29    0.11    0.00    0.11    0.00    0.00   23.80    0.00 
+    0.00   75.98
+23:02:04      30    0.11    0.00    0.11    0.00    0.00   23.45    0.00 
+    0.00   76.33
+23:02:04      31    0.11    0.00    0.11    0.00    0.00   20.37    0.00 
+    0.00   79.42
 
-Sponsorship
-------------
+And this is output of ./perf top -C 24 -e cycles
 
-If you can help us organize this event by sponsoring, please drop us a 
-line to: sponsor-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org and we'll send you our sponsorship policy.
+    PerfTop:     933 irqs/sec  kernel:100.0%  exact:  0.0% [1000Hz 
+cycles],  (all, CPU: 24)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Important dates
-----------------
-January 18, 2017 Call for proposals open
-January 23, 2017 Registration opens
-February 20, 2017 Call for proposals close
-February 27, 2017 Early Registration close
-March 13, 2017 Conference schedule announced
-March 27, 2017 Paper submission
-March 31, 2017 Online Registration close
-April 3, 2017 Slides submission
-April 6-8, 2017 Conference days
-May 1, 2017 Slides release
-June 1, 2017 Paper release
+     52.68%  [nf_conntrack]  [k] gc_worker
+      3.88%  [ip_tables]     [k] ipt_do_table
+      2.39%  [ixgbe]         [k] ixgbe_xmit_frame_ring
+      2.29%  [kernel]        [k] _raw_spin_lock
+      1.84%  [ixgbe]         [k] ixgbe_poll
+      1.76%  [nf_conntrack]  [k] __nf_conntrack_find_get
 
-cheers,
-jamal
+perf report for this cpu (same, cycles)
+# Children      Self  Command       Shared Object           Symbol
+# ........  ........  ............  ......................  
+....................................................
+#
+     88.98%     0.00%  kworker/24:1  [kernel.kallsyms]       [k] 
+process_one_work
+             |
+             ---process_one_work
+                |
+                |--54.65%--gc_worker
+                |          |
+                |           --3.58%--nf_ct_gc_expired
+                |                     |
+                |                     |--1.90%--nf_ct_delete
+                |                     |          |
+                |                     |           
+--1.31%--nf_ct_delete_from_lists
+                |                     |
+                |                      --1.61%--nf_conntrack_destroy
+                |                                destroy_conntrack
+                |                                |
+                |                                 
+--1.53%--nf_conntrack_free
+                |                                           |
+                |                                           
+|--0.80%--kmem_cache_free
+                |                                           |          |
+                |                                           |           
+--0.51%--__slab_free.isra.12
+                |                                           |
+                |                                            
+--0.52%--__nf_ct_ext_destroy
