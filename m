@@ -1,106 +1,51 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 1/1] netfilter: nf_tables: Refine the codes to
- eliminate useless condition checks in nf_tables_api.c
-Date: Mon, 16 Jan 2017 14:38:18 +0100
-Message-ID: <20170116133818.GA5335@salvia>
-References: <1484098335-13300-1-git-send-email-fgao@ikuai8.com>
- <20170112112142.GA1666@salvia>
- <CA+6hz4rCrD_d6+TdhNOTF4B0AGk8jJjF_NPbC=PgJN9ZQq77Hg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Gao Feng <fgao@ikuai8.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] evaluate: fix export length and data corruption
+Date: Mon, 16 Jan 2017 14:38:32 +0100
+Message-ID: <1484573912-23612-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33012 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751261AbdAPNi1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Jan 2017 08:38:27 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BBB2E392E0F
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 Jan 2017 14:38:23 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9C2FE8E62C
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 Jan 2017 14:38:23 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D34C49617D
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 Jan 2017 14:38:19 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <CA+6hz4rCrD_d6+TdhNOTF4B0AGk8jJjF_NPbC=PgJN9ZQq77Hg@mail.gmail.com>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:50156 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751279AbdAPNiP (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 16 Jan 2017 08:38:15 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 12, 2017 at 11:10:11PM +0800, Gao Feng wrote:
-> Hi Pablo,
-> 
-> On Thu, Jan 12, 2017 at 7:21 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Wed, Jan 11, 2017 at 09:32:15AM +0800, fgao@ikuai8.com wrote:
-> >> From: Gao Feng <fgao@ikuai8.com>
-> >>
-> >> The return value of nf_tables_table_lookup is valid pointer or one
-> >> pointer error. There are two cases totally.
-> >> case1: IS_ERR(table) is true, it would return the error or reset the
-> >> table as NULL, it is unnecessary to perform the latter check
-> >> "table != NULL".
-> >> case2: IS_ERR(obj) is false, the table is one valid pointer. It is also
-> >> unnecessary to perform that check.
-> >> The nf_tables_newset and nf_tables_newobj have same logic codes.
-> >>
-> >> In summary, we could move the block of condition check "table != NULL"
-> >> in the else block to eliminate the original condition checks.
-> >>
-> >> Signed-off-by: Gao Feng <fgao@ikuai8.com>
-> >> ---
-> >>  net/netfilter/nf_tables_api.c | 12 +++---------
-> >>  1 file changed, 3 insertions(+), 9 deletions(-)
-> >>
-> >> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> >> index a019a87..3d7267f 100644
-> >> --- a/net/netfilter/nf_tables_api.c
-> >> +++ b/net/netfilter/nf_tables_api.c
-> >> @@ -697,9 +697,7 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
-> >>               if (PTR_ERR(table) != -ENOENT)
-> >>                       return PTR_ERR(table);
-> >>               table = NULL;
-> >
-> > We follow up with table = NULL down the code, I think this breaks.
-> 
-> Look at the following nf_tables_table_lookup codes, it won't return NULL.
-> It returns one valid table pointer or one error.
-> 
-> static struct nft_table *nf_tables_table_lookup(const struct nft_af_info *afi,
->                                                 const struct nlattr *nla,
->                                                 u8 genmask)
-> {
->         struct nft_table *table;
-> 
->         if (nla == NULL)
->                 return ERR_PTR(-EINVAL);
-> 
->         table = nft_table_lookup(afi, nla, genmask);
->         if (table != NULL)
->                 return table;
-> 
->         return ERR_PTR(-ENOENT);
-> }
-> 
-> When returns one error, IS_ERR(table) is true, it then returns error
-> or reset table as NULL.
-> Wehn returns a valid table pointer, IS_ERR(table) is false, we could
-> perform the latter codes like "if (nlh->nlmsg_flags & NLM_F_EXCL)"
-> directly.
+Pablo reported that ipv6 tests would fail on some systems:
+WARNING: line: 5: 'src/nft add rule --debug=netlink ip6 test-ip6 input iif "lo" ip6 flowlabel set 0':
+'[ bitwise reg 1 = (reg=1 & 0x000000f0 ) ^ 0x00000000 ]' mismatches
+'[ bitwise reg 1 = (reg=1 & 0x00000000 ) ^ 0x00000000 ]'
+                                    ^ should be 'f'
 
-Right.
+Problem is that mpz_export_data expects the size of the output
+buffer in bytes, but this gave bit-based size.
 
-Then, I think we can remove the unneccessary table = NULL assigment:
+Then, when mpz_export_data clears the output buffer it will
+also clear 8 extra bytes on stack; depending on compiler version (stack
+layout) this will then clear the bitmask value that we want to export.
 
-@@ -697,9 +697,7 @@  static int nf_tables_newtable(struct net *net, struct sock *nlsk,
-                if (PTR_ERR(table) != -ENOENT)
-                        return PTR_ERR(table);
-                table = NULL;                   <----- this
--       }
--
--       if (table != NULL) {
-+       } else {
-                if (nlh->nlmsg_flags & NLM_F_EXCL)
-                        return -EEXIST;
-                if (nlh->nlmsg_flags & NLM_F_REPLACE)
+Fixes: 78936d50f306c ("evaluate: add support to set IPv6 non-byte header fields")
+Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/evaluate.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index cebc5a9ead7a..bcbced1e3dfa 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1798,7 +1798,7 @@ static int stmt_evaluate_payload(struct eval_ctx *ctx, struct stmt *stmt)
+ 	mpz_clear(ff);
+ 
+ 	assert(sizeof(data) * BITS_PER_BYTE >= masklen);
+-	mpz_export_data(data, bitmask, BYTEORDER_HOST_ENDIAN, masklen);
++	mpz_export_data(data, bitmask, BYTEORDER_HOST_ENDIAN, sizeof(data));
+ 	mask = constant_expr_alloc(&payload->location, expr_basetype(payload),
+ 				   BYTEORDER_HOST_ENDIAN, masklen, data);
+ 
+-- 
+2.7.3
+
