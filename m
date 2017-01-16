@@ -1,51 +1,80 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] evaluate: fix export length and data corruption
-Date: Mon, 16 Jan 2017 14:38:32 +0100
-Message-ID: <1484573912-23612-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: fgao@ikuai8.com
+Subject: [PATCH nf-next v2 1/1] netfilter: nf_tables: Refine the codes to eliminate useless condition checks in nf_tables_api.c
+Date: Mon, 16 Jan 2017 22:02:57 +0800
+Message-ID: <1484575377-32755-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:50156 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751279AbdAPNiP (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Jan 2017 08:38:15 -0500
+Received: from smtpbg321.qq.com ([14.17.32.30]:55314 "EHLO smtpbg321.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750840AbdAPOL3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 16 Jan 2017 09:11:29 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo reported that ipv6 tests would fail on some systems:
-WARNING: line: 5: 'src/nft add rule --debug=netlink ip6 test-ip6 input iif "lo" ip6 flowlabel set 0':
-'[ bitwise reg 1 = (reg=1 & 0x000000f0 ) ^ 0x00000000 ]' mismatches
-'[ bitwise reg 1 = (reg=1 & 0x00000000 ) ^ 0x00000000 ]'
-                                    ^ should be 'f'
+From: Gao Feng <fgao@ikuai8.com>
 
-Problem is that mpz_export_data expects the size of the output
-buffer in bytes, but this gave bit-based size.
+The return value of nf_tables_table_lookup is valid pointer or one
+pointer error. There are two cases totally.
+case1: IS_ERR(table) is true, it would return the error or reset the
+table as NULL, it is unnecessary to perform the latter check
+"table != NULL".
+case2: IS_ERR(obj) is false, the table is one valid pointer. It is also
+unnecessary to perform that check.
+The nf_tables_newset and nf_tables_newobj have same logic codes.
 
-Then, when mpz_export_data clears the output buffer it will
-also clear 8 extra bytes on stack; depending on compiler version (stack
-layout) this will then clear the bitmask value that we want to export.
+In summary, we could move the block of condition check "table != NULL"
+in the else block to eliminate the original condition checks.
 
-Fixes: 78936d50f306c ("evaluate: add support to set IPv6 non-byte header fields")
-Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
 ---
- src/evaluate.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ v2: Remove the "table = NULL" assignment, per Pablo
+ v1: Initial version
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index cebc5a9ead7a..bcbced1e3dfa 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1798,7 +1798,7 @@ static int stmt_evaluate_payload(struct eval_ctx *ctx, struct stmt *stmt)
- 	mpz_clear(ff);
+ net/netfilter/nf_tables_api.c | 15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a019a87..6e07c21 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -696,10 +696,7 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
+ 	if (IS_ERR(table)) {
+ 		if (PTR_ERR(table) != -ENOENT)
+ 			return PTR_ERR(table);
+-		table = NULL;
+-	}
+-
+-	if (table != NULL) {
++	} else {
+ 		if (nlh->nlmsg_flags & NLM_F_EXCL)
+ 			return -EEXIST;
+ 		if (nlh->nlmsg_flags & NLM_F_REPLACE)
+@@ -2963,10 +2960,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 	if (IS_ERR(set)) {
+ 		if (PTR_ERR(set) != -ENOENT)
+ 			return PTR_ERR(set);
+-		set = NULL;
+-	}
+-
+-	if (set != NULL) {
++	} else {
+ 		if (nlh->nlmsg_flags & NLM_F_EXCL)
+ 			return -EEXIST;
+ 		if (nlh->nlmsg_flags & NLM_F_REPLACE)
+@@ -4153,10 +4147,7 @@ static int nf_tables_newobj(struct net *net, struct sock *nlsk,
+ 		if (err != -ENOENT)
+ 			return err;
  
- 	assert(sizeof(data) * BITS_PER_BYTE >= masklen);
--	mpz_export_data(data, bitmask, BYTEORDER_HOST_ENDIAN, masklen);
-+	mpz_export_data(data, bitmask, BYTEORDER_HOST_ENDIAN, sizeof(data));
- 	mask = constant_expr_alloc(&payload->location, expr_basetype(payload),
- 				   BYTEORDER_HOST_ENDIAN, masklen, data);
+-		obj = NULL;
+-	}
+-
+-	if (obj != NULL) {
++	} else {
+ 		if (nlh->nlmsg_flags & NLM_F_EXCL)
+ 			return -EEXIST;
  
 -- 
-2.7.3
+1.9.1
+
 
