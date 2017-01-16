@@ -1,81 +1,70 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH nf] netfilter: conntrack: refine gc worker heuristics,
- redux
-Date: Mon, 16 Jan 2017 17:42:58 +0100
-Message-ID: <1fa618d3-4c2a-72f1-d5f8-ddfadc6ad029@6wind.com>
-References: <1484564166-5886-1-git-send-email-fw@strlen.de>
-Reply-To: nicolas.dichtel@6wind.com
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] Add a configure flag to link libc statically
+Date: Mon, 16 Jan 2017 18:09:57 +0100
+Message-ID: <20170116170957.GA12470@salvia>
+References: <20161230054426.GA9694@juliacomputing.com>
+ <20170116125759.GA25857@salvia>
+ <CABV8kRwNRwGcREYxiD4Z1n2ki6p-2Ke1x0Xm9i4DQtSyE+1pxw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: nuclearcat@nuclearcat.com
-To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Keno Fischer <keno@juliacomputing.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:37283 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751391AbdAPQnB (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Jan 2017 11:43:01 -0500
-Received: by mail-wm0-f46.google.com with SMTP id c206so183518108wme.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 Jan 2017 08:43:01 -0800 (PST)
-In-Reply-To: <1484564166-5886-1-git-send-email-fw@strlen.de>
+Received: from mail.us.es ([193.147.175.20]:54304 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750866AbdAPRKI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 16 Jan 2017 12:10:08 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9AABA9B7E0
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Jan 2017 18:10:06 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8480AA7BF1
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Jan 2017 18:10:06 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A3017A7E99
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Jan 2017 18:10:02 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <CABV8kRwNRwGcREYxiD4Z1n2ki6p-2Ke1x0Xm9i4DQtSyE+1pxw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le 16/01/2017 à 11:56, Florian Westphal a écrit :
-> This further refines the changes made to conntrack gc_worker in
-> commit e0df8cae6c16 ("netfilter: conntrack: refine gc worker heuristics").
+On Mon, Jan 16, 2017 at 11:39:45AM -0500, Keno Fischer wrote:
+[...]
+> >> However, for my usage of iptables, I have never actually run into
+> >> this situation, and even if I did, I'd rather switch libcs (though I
+> >> may be in the minority there). Nevertheless, I think it would be
+> >> useful to have this option available for those wanting a statically
+> >> linked iptables.
+> >
+> > I'm trying to understand why you need this. Thanks.
 > 
-> The main of this change is to reduce the scan interval when evictions
-> take place.
+> I'm running docker in a stripped down security-enhanced context where
+> everything is statically linked. Docker calls out to iptables to set
+> up some firewall rules. So far I have not encountered it needing any
+> of the code paths in iptables that would require the shared libraries
+> from glibc at runtime. I'm also not the only person in this exact
+> situation, e.g.:
 > 
-> However, on the reporters' setup, there are 1-2 Million conntrack entries
-> in total, and roughly 8k new connections per second.
-> 
-> In this case we'll always evict at least one entry per gc cycle and scan
-> interval is always at 1 jiffy.
-> 
-> Given we scan ~10k entries per run its clearly wrong to reduce interval
-> based on number of evictions, it will only waste cpu cycles.
-> 
-> Thus only look at the ratio (scanned entries vs. evicted entries) to make
-> a decision on whether to reduce or not.
-> 
-> Given the fact that evictor is supposed to only kick in when system turns
-> idle after a busy period, we should pick a high ratio -- this makes it 50%.
-> 
-> Also, get rid of GC_MAX_EVICTS.  Instead of breaking loop and instant
-> resched, just don't bother checking this at all (the loop calls
-> cond_resched for every bucket anyway).
-> 
-> Removal of GC_MAX_EVICTS was suggested by Nicolas in the past; I
-> should have listened.
-I (still) agree with that part, maybe it could be done in another patch.
+> https://github.com/vallinux/base/issues/14
 
-> 
-> I tested this with a vm under synflood (with
-> sysctl net.netfilter.nf_conntrack_tcp_timeout_syn_recv=3).
-> 
-> While flood is ongoing, interval now stays at 2 seconds even though
-> evictions are ongoing.
-> 
-> After stopping flood, table got cleaned up in less than 10 seconds.
-> 
-> Reported-by: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
-> Cc: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Thank you for CCing me ;-)
+Thanks for explaining.
 
-> Fixes: b87a2f9199ea82eaadc ("netfilter: conntrack: add gc worker to remove timed-out entries")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-With that patch, it's worse than before. I regularly have a delay > 30 seconds
-in my tests (this was infrequent before the patch).
+It would be good if you can extend iptables building system to catch
+up with glibc case by rejecting it. Another thing would be to add some
+small documentation file on the tree that explains how to use this
+with musl/ulibc.
 
-A solution, to fix the balance between cpu cycles consumption and short ct
-events delays may be to introduce a new sysctl which allows the user to choose
-between two predefined configs: short delay or long delay for ct events.
-Even if I don't like this, maybe it could be acceptable with a default value set
-to 'short delay'.
+My only concern about this new option is that people may believe this
+works out of the box, and so far my impression is that this needs some
+trickery.
 
+I also wonder if everything is going to work fine with alternative
+libc libraries, it would be good to run iptables tests (see
+iptables-test.py) on this binary, you can edit the variable on that
+script that points to the iptables binary to be tested.
 
-Regards,
-Nicolas
+Another alternative if the resulting patch is simple, probably we can
+allow the override directive so you can easily append -all-static to
+LDFLAGS at your own risk?
+
+https://www.gnu.org/software/make/manual/make.html#Override-Directive
