@@ -1,49 +1,54 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: AUDIT_NETFILTER_PKT message format
-Date: Tue, 17 Jan 2017 15:17:47 -0500
-Message-ID: <CAHC9VhT7aR1hHfDyU-r6QXTV92rEx1x8s7cH66bzh8FiDv24eQ@mail.gmail.com>
-References: <20170117052551.GQ3087@madcap2.tricolour.ca>
-	<3051394.ngqbNXneNL@x2>
-	<20170117161228.GS3087@madcap2.tricolour.ca>
+From: Victor Julien <lists@inliniac.net>
+Subject: tcp state in conntrack destroy events
+Date: Tue, 17 Jan 2017 20:46:42 +0100
+Message-ID: <fdd3eb50-75d3-32e1-d7a0-f333050aece5@inliniac.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
-        Thomas Graf <tgraf@infradead.org>,
-        Linux-Audit Mailing List <linux-audit@redhat.com>
-To: Richard Guy Briggs <rgb@redhat.com>
-Return-path: <linux-audit-bounces@redhat.com>
-In-Reply-To: <20170117161228.GS3087@madcap2.tricolour.ca>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/linux-audit>
-List-Post: <mailto:linux-audit@redhat.com>
-List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=subscribe>
-Sender: linux-audit-bounces@redhat.com
-Errors-To: linux-audit-bounces@redhat.com
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+To: Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from static-27.netfusion.at ([83.215.238.27]:54235 "EHLO
+        mail.inliniac.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751015AbdAQU3R (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Jan 2017 15:29:17 -0500
+Received: from [192.168.1.6] (a212-238-163-105.adsl.xs4all.nl [212.238.163.105])
+        (Authenticated sender: victorlists)
+        by mail.inliniac.net (Postfix) with ESMTPSA id DAECB7338
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Jan 2017 20:49:08 +0100 (CET)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 17, 2017 at 11:12 AM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2017-01-17 08:55, Steve Grubb wrote:
->> On Tuesday, January 17, 2017 12:25:51 AM EST Richard Guy Briggs wrote:
+Hi all,
 
-...
+I was hoping to get the last TCP state in a conntrack destroy event,
+however it seems to be unavailable.
 
->> > Ones that are not so straightforward:
->> > - "secmark" depends on a kernel config setting, so should it always be
->> >   present but "(none)" if that kernel feature is compiled out?
->>
->> If this is selinux related, I'd treat it the same way that we do subj
->> everywhere else.
->
-> Ok.
+Through libnetfilter_conntrack the value retrieved at ATTR_TCP_STATE is
+always 0.
 
-To be clear, a packet's secmark should be recorded via a dedicated
-field, e.g. "secmark", and not use the "subj" field (it isn't a
-subject label in the traditional sense).
+Using the conntrack command I see the same behavior:
+
+destroy doesn't have it (conntrack -E -e destroy -p tcp):
+
+[DESTROY] tcp      6 src=218.65.30.38 dst=192.168.178.254 sport=61063
+dport=22 packets=11 bytes=820 src=192.168.0.123 dst=218.65.30.38
+sport=22 dport=61063 packets=8 bytes=424 [ASSURED] mark=3 delta-time=77
+
+update does (conntrack -E -e updates -p tcp):
+
+ [UPDATE] tcp      6 120 FIN_WAIT src=192.168.0.53 dst=x.x.x.x
+sport=52958 dport=443 src=x.x.x.x dst=192.168.178.254 sport=443
+dport=52958 [ASSURED] mark=3
+
+Is this intentional? My goal is to create connection log that includes a
+hint about why the connection is gone.
 
 -- 
-paul moore
-www.paul-moore.com
+---------------------------------------------
+Victor Julien
+http://www.inliniac.net/
+PGP: http://www.inliniac.net/victorjulien.asc
+---------------------------------------------
+
