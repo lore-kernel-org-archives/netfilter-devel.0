@@ -1,29 +1,39 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH nf] netfilter: conntrack: remove GC_MAX_EVICTS break
-Date: Tue, 17 Jan 2017 10:10:23 +0100
-Message-ID: <a1041af4-85ca-33da-cc4b-5eea3de3d882@6wind.com>
-References: <1484587496-24177-1-git-send-email-fw@strlen.de>
-Reply-To: nicolas.dichtel@6wind.com
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [stable] bridge: netfilter: Fix dropping packets that moving
+ through bridge interface
+Date: Tue, 17 Jan 2017 13:53:03 +0100
+Message-ID: <20170117125303.GA31649@kroah.com>
+References: <e7fd1864-91dc-ca2d-8ce5-4cb7b589f1f5@gmail.com>
+ <20170116200854.GA25408@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Artur Molchanov <arturmolchanov@gmail.com>, stable@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:36226 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750996AbdAQJK1 (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58578 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750770AbdAQNS3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Jan 2017 04:10:27 -0500
-Received: by mail-wm0-f46.google.com with SMTP id c85so191359917wmi.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Jan 2017 01:10:26 -0800 (PST)
-In-Reply-To: <1484587496-24177-1-git-send-email-fw@strlen.de>
+        Tue, 17 Jan 2017 08:18:29 -0500
+Content-Disposition: inline
+In-Reply-To: <20170116200854.GA25408@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le 16/01/2017 à 18:24, Florian Westphal a écrit :
-> Instead of breaking loop and instant resched, don't bother checking
-> this in first place (the loop calls cond_resched for every bucket anyway).
+On Mon, Jan 16, 2017 at 09:08:54PM +0100, Pablo Neira Ayuso wrote:
+> Cc'ing Greg.
 > 
-> Suggested-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+> On Mon, Jan 16, 2017 at 09:44:10PM +0300, Artur Molchanov wrote:
+> > commit 14221cc45caad2fcab3a8543234bb7eda9b540d5 upstream.
+> > 
+> > Please apply this commit to fix bug that makes impossible to use local
+> > Docker containers with bridge network.
+> > 
+> > Cc: <stable@vger.kernel.org> # 4.9.x
+> 
+> Greg, please, cherry-pick this commit to -stable 4.9.x.
+
+Now done, thanks.
+
+greg k-h
