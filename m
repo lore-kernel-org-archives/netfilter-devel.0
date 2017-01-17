@@ -1,43 +1,31 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [libnftnl PATCH] exthdr: Add support for exthdr flags
-Date: Tue, 17 Jan 2017 22:55:00 +0100
-Message-ID: <20170117215500.13706-1-phil@nwl.cc>
+Subject: [nf-next PATCH] netfilter: nf_tables: exthdr: Add support for existence check
+Date: Tue, 17 Jan 2017 22:51:26 +0100
+Message-ID: <20170117215126.13356-1-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:59929 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:60803 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751025AbdAQVwR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Jan 2017 16:52:17 -0500
+        id S1751030AbdAQV4S (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Jan 2017 16:56:18 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Along with the actual support for exthdr expression specific flags, this
-also declares NFT_EXTHDR_F_PRESENT used for exthdr existence match.
+If NFT_EXTHDR_F_PRESENT is set, exthdr will not copy any header field
+data into *dest, but instead set it to 1 if the header is found and 0
+otherwise.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/libnftnl/expr.h             |  1 +
- include/linux/netfilter/nf_tables.h |  6 ++++++
- src/expr/exthdr.c                   | 21 +++++++++++++++++++++
- 3 files changed, 28 insertions(+)
+ include/uapi/linux/netfilter/nf_tables.h |  6 ++++++
+ net/netfilter/nft_exthdr.c               | 14 ++++++++++++--
+ 2 files changed, 18 insertions(+), 2 deletions(-)
 
-diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
-index 74e986de6b4b2..654d2bb95142c 100644
---- a/include/libnftnl/expr.h
-+++ b/include/libnftnl/expr.h
-@@ -156,6 +156,7 @@ enum {
- 	NFTNL_EXPR_EXTHDR_TYPE,
- 	NFTNL_EXPR_EXTHDR_OFFSET,
- 	NFTNL_EXPR_EXTHDR_LEN,
-+	NFTNL_EXPR_EXTHDR_FLAGS,
- };
- 
- enum {
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 881d49e945696..787955c7d5ed5 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index b00a05d1ee566..f15696af168ac 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
 @@ -704,6 +704,10 @@ enum nft_payload_attributes {
  };
  #define NFTA_PAYLOAD_MAX	(__NFTA_PAYLOAD_MAX - 1)
@@ -65,94 +53,67 @@ index 881d49e945696..787955c7d5ed5 100644
  	__NFTA_EXTHDR_MAX
  };
  #define NFTA_EXTHDR_MAX		(__NFTA_EXTHDR_MAX - 1)
-diff --git a/src/expr/exthdr.c b/src/expr/exthdr.c
-index b164e3fba3de4..90362a54554d0 100644
---- a/src/expr/exthdr.c
-+++ b/src/expr/exthdr.c
-@@ -33,6 +33,7 @@ struct nftnl_expr_exthdr {
- 	uint32_t		offset;
- 	uint32_t		len;
- 	uint8_t			type;
-+	uint32_t		flags;
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index 47beb3abcc9da..b5b37f211c417 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -23,6 +23,7 @@ struct nft_exthdr {
+ 	u8			offset;
+ 	u8			len;
+ 	enum nft_registers	dreg:8;
++	u32			flags;
  };
  
- static int
-@@ -54,6 +55,9 @@ nftnl_expr_exthdr_set(struct nftnl_expr *e, uint16_t type,
- 	case NFTNL_EXPR_EXTHDR_LEN:
- 		exthdr->len = *((uint32_t *)data);
- 		break;
-+	case NFTNL_EXPR_EXTHDR_FLAGS:
-+		exthdr->flags = *((uint32_t *)data);
-+		break;
- 	default:
- 		return -1;
- 	}
-@@ -79,6 +83,9 @@ nftnl_expr_exthdr_get(const struct nftnl_expr *e, uint16_t type,
- 	case NFTNL_EXPR_EXTHDR_LEN:
- 		*data_len = sizeof(exthdr->len);
- 		return &exthdr->len;
-+	case NFTNL_EXPR_EXTHDR_FLAGS:
-+		*data_len = sizeof(exthdr->flags);
-+		return &exthdr->flags;
- 	}
- 	return NULL;
- }
-@@ -99,6 +106,7 @@ static int nftnl_expr_exthdr_cb(const struct nlattr *attr, void *data)
- 	case NFTA_EXTHDR_DREG:
- 	case NFTA_EXTHDR_OFFSET:
- 	case NFTA_EXTHDR_LEN:
-+	case NFTA_EXTHDR_FLAGS:
- 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
- 			abi_breakage();
- 		break;
-@@ -121,6 +129,8 @@ nftnl_expr_exthdr_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
- 		mnl_attr_put_u32(nlh, NFTA_EXTHDR_OFFSET, htonl(exthdr->offset));
- 	if (e->flags & (1 << NFTNL_EXPR_EXTHDR_LEN))
- 		mnl_attr_put_u32(nlh, NFTA_EXTHDR_LEN, htonl(exthdr->len));
-+	if (e->flags & (1 << NFTNL_EXPR_EXTHDR_FLAGS))
-+		mnl_attr_put_u32(nlh, NFTA_EXTHDR_FLAGS, htonl(exthdr->flags));
- }
+ static void nft_exthdr_eval(const struct nft_expr *expr,
+@@ -35,8 +36,12 @@ static void nft_exthdr_eval(const struct nft_expr *expr,
+ 	int err;
  
- static int
-@@ -148,6 +158,10 @@ nftnl_expr_exthdr_parse(struct nftnl_expr *e, struct nlattr *attr)
- 		exthdr->len = ntohl(mnl_attr_get_u32(tb[NFTA_EXTHDR_LEN]));
- 		e->flags |= (1 << NFTNL_EXPR_EXTHDR_LEN);
- 	}
-+	if (tb[NFTA_EXTHDR_FLAGS]) {
-+		exthdr->flags = ntohl(mnl_attr_get_u32(tb[NFTA_EXTHDR_FLAGS]));
-+		e->flags |= (1 << NFTNL_EXPR_EXTHDR_FLAGS);
+ 	err = ipv6_find_hdr(pkt->skb, &offset, priv->type, NULL, NULL);
+-	if (err < 0)
++	if (priv->flags & NFT_EXTHDR_F_PRESENT) {
++		*dest = (err >= 0);
++		return;
++	} else if (err < 0) {
+ 		goto err;
 +	}
+ 	offset += priv->offset;
  
+ 	dest[priv->len / NFT_REG32_SIZE] = 0;
+@@ -52,6 +57,7 @@ static const struct nla_policy nft_exthdr_policy[NFTA_EXTHDR_MAX + 1] = {
+ 	[NFTA_EXTHDR_TYPE]		= { .type = NLA_U8 },
+ 	[NFTA_EXTHDR_OFFSET]		= { .type = NLA_U32 },
+ 	[NFTA_EXTHDR_LEN]		= { .type = NLA_U32 },
++	[NFTA_EXTHDR_FLAGS]		= { .type = NLA_U32 },
+ };
+ 
+ static int nft_exthdr_init(const struct nft_ctx *ctx,
+@@ -65,7 +71,8 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
+ 	if (tb[NFTA_EXTHDR_DREG] == NULL ||
+ 	    tb[NFTA_EXTHDR_TYPE] == NULL ||
+ 	    tb[NFTA_EXTHDR_OFFSET] == NULL ||
+-	    tb[NFTA_EXTHDR_LEN] == NULL)
++	    tb[NFTA_EXTHDR_LEN] == NULL ||
++	    tb[NFTA_EXTHDR_FLAGS] == NULL)
+ 		return -EINVAL;
+ 
+ 	err = nft_parse_u32_check(tb[NFTA_EXTHDR_OFFSET], U8_MAX, &offset);
+@@ -80,6 +87,7 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
+ 	priv->offset = offset;
+ 	priv->len    = len;
+ 	priv->dreg   = nft_parse_register(tb[NFTA_EXTHDR_DREG]);
++	priv->flags  = ntohl(nla_get_u32(tb[NFTA_EXTHDR_FLAGS]));
+ 
+ 	return nft_validate_register_store(ctx, priv->dreg, NULL,
+ 					   NFT_DATA_VALUE, priv->len);
+@@ -97,6 +105,8 @@ static int nft_exthdr_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 		goto nla_put_failure;
+ 	if (nla_put_be32(skb, NFTA_EXTHDR_LEN, htonl(priv->len)))
+ 		goto nla_put_failure;
++	if (nla_put_be32(skb, NFTA_EXTHDR_FLAGS, htonl(priv->flags)))
++		goto nla_put_failure;
  	return 0;
- }
-@@ -214,6 +228,9 @@ nftnl_expr_exthdr_json_parse(struct nftnl_expr *e, json_t *root,
- 	if (nftnl_jansson_parse_val(root, "len", NFTNL_TYPE_U32, &uval32, err) == 0)
- 		nftnl_expr_set_u32(e, NFTNL_EXPR_EXTHDR_LEN, uval32);
  
-+	if (nftnl_jansson_parse_val(root, "flags", NFTNL_TYPE_U32, &uval32, err) == 0)
-+		nftnl_expr_set_u32(e, NFTNL_EXPR_EXTHDR_FLAGS, uval32);
-+
- 	return 0;
- #else
- 	errno = EOPNOTSUPP;
-@@ -235,6 +252,8 @@ static int nftnl_expr_exthdr_export(char *buf, size_t len,
- 		nftnl_buf_u32(&b, type, exthdr->offset, OFFSET);
- 	if (e->flags & (1 << NFTNL_EXPR_EXTHDR_LEN))
- 		nftnl_buf_u32(&b, type, exthdr->len, LEN);
-+	if (e->flags & (1 << NFTNL_EXPR_EXTHDR_FLAGS))
-+		nftnl_buf_u32(&b, type, exthdr->flags, FLAGS);
- 
- 	return nftnl_buf_done(&b);
- }
-@@ -280,6 +299,8 @@ static bool nftnl_expr_exthdr_cmp(const struct nftnl_expr *e1,
- 		eq &= (h1->len == h2->len);
- 	if (e1->flags & (1 << NFTNL_EXPR_EXTHDR_TYPE))
- 		eq &= (h1->type == h2->type);
-+	if (e1->flags & (1 << NFTNL_EXPR_EXTHDR_FLAGS))
-+		eq &= (h1->flags == h2->flags);
- 
- 	return eq;
- }
+ nla_put_failure:
 -- 
 2.11.0
 
