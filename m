@@ -1,85 +1,82 @@
-From: Victor Julien <lists@inliniac.net>
-Subject: Re: tcp state in conntrack destroy events
-Date: Tue, 17 Jan 2017 22:39:49 +0100
-Message-ID: <4d0f9bdc-d6a1-76cb-7a2e-4fcc3a78672c@inliniac.net>
-References: <fdd3eb50-75d3-32e1-d7a0-f333050aece5@inliniac.net>
- <20170117212807.GC12001@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-To: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
+From: Phil Sutter <phil@nwl.cc>
+Subject: [nf-next PATCH] netfilter: nf_tables: cmp: support boolean operation
+Date: Tue, 17 Jan 2017 22:50:57 +0100
+Message-ID: <20170117215057.13212-1-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from static-27.netfusion.at ([83.215.238.27]:54251 "EHLO
-        mail.inliniac.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751151AbdAQVjw (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Jan 2017 16:39:52 -0500
-Received: from [192.168.1.6] (a212-238-163-105.adsl.xs4all.nl [212.238.163.105])
-        (Authenticated sender: victorlists)
-        by mail.inliniac.net (Postfix) with ESMTPSA id F286D7338
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Jan 2017 22:42:15 +0100 (CET)
-In-Reply-To: <20170117212807.GC12001@breakpoint.cc>
+Received: from orbyte.nwl.cc ([151.80.46.58]:59307 "EHLO mail.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751015AbdAQVsQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Jan 2017 16:48:16 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 17-01-17 22:28, Florian Westphal wrote:
-> Victor Julien <lists@inliniac.net> wrote:
->> I was hoping to get the last TCP state in a conntrack destroy event,
->> however it seems to be unavailable.
->>
->> Through libnetfilter_conntrack the value retrieved at ATTR_TCP_STATE is
->> always 0.
->>
->> Using the conntrack command I see the same behavior:
->>
->> destroy doesn't have it (conntrack -E -e destroy -p tcp):
->>
->> [DESTROY] tcp      6 src=218.65.30.38 dst=192.168.178.254 sport=61063
->> dport=22 packets=11 bytes=820 src=192.168.0.123 dst=218.65.30.38
->> sport=22 dport=61063 packets=8 bytes=424 [ASSURED] mark=3 delta-time=77
->>
->> update does (conntrack -E -e updates -p tcp):
->>
->>  [UPDATE] tcp      6 120 FIN_WAIT src=192.168.0.53 dst=x.x.x.x
->> sport=52958 dport=443 src=x.x.x.x dst=192.168.178.254 sport=443
->> dport=52958 [ASSURED] mark=3
->>
->> Is this intentional? My goal is to create connection log that includes a
->> hint about why the connection is gone.
-> 
-> Yes, its intentional, see
-> net/netfilter/nf_conntrack_netlink.c, there is a check for DESTROY
-> that supresses most of the extra info:
-> 
-> 682 if (events & (1 << IPCT_DESTROY)) {
-> 683    if (ctnetlink_dump_acct(skb, ct, type) < 0 ||
-> 684        ctnetlink_dump_timestamp(skb, ct) < 0)
-> 685           goto nla_put_failure;
-> 686    } else {
-> ..
-> 	/* IPCT_PROTOINFO */
-> 
-> Pablo made this change in 7b621c1ea64a54f77b8a841b16dc4c9fee3ecf48,
-> i guess the rationale was that clients aren't interested in this
-> on DESTROY.
-> 
-> Would be easy to change this.
-> 
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ include/uapi/linux/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nft_cmp.c                  | 12 +++++++++++-
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
-Would there be another way of achieving this goal? I mean other than
-tracking all updates and keeping a parallel conntrack in user space :)
-
-Maybe I wouldn't need all the TCP states and just a flag or something
-indicating a 'unclean' connection end would also work.
-
-Haven't been able to figure out all fields yet, but so far I haven't
-found what I was hoping for.
-
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index b00a05d1ee566..77e318e6ff9d2 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -535,6 +535,7 @@ enum nft_byteorder_attributes {
+  * @NFT_CMP_LTE: less than or equal to
+  * @NFT_CMP_GT: greater than
+  * @NFT_CMP_GTE: greater than or equal to
++ * @NFT_CMP_BOOL: boolean comparison
+  */
+ enum nft_cmp_ops {
+ 	NFT_CMP_EQ,
+@@ -543,6 +544,7 @@ enum nft_cmp_ops {
+ 	NFT_CMP_LTE,
+ 	NFT_CMP_GT,
+ 	NFT_CMP_GTE,
++	NFT_CMP_BOOL,
+ };
+ 
+ /**
+diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
+index 2b96effeadc1b..addf75739367e 100644
+--- a/net/netfilter/nft_cmp.c
++++ b/net/netfilter/nft_cmp.c
+@@ -29,9 +29,14 @@ static void nft_cmp_eval(const struct nft_expr *expr,
+ 			 const struct nft_pktinfo *pkt)
+ {
+ 	const struct nft_cmp_expr *priv = nft_expr_priv(expr);
++	static const u32 nulldata[4] = { 0 };
++	const void *data = &priv->data;
+ 	int d;
+ 
+-	d = memcmp(&regs->data[priv->sreg], &priv->data, priv->len);
++	if (priv->op == NFT_CMP_BOOL)
++		data = nulldata;
++
++	d = memcmp(&regs->data[priv->sreg], data, priv->len);
+ 	switch (priv->op) {
+ 	case NFT_CMP_EQ:
+ 		if (d != 0)
+@@ -55,6 +60,10 @@ static void nft_cmp_eval(const struct nft_expr *expr,
+ 		if (d < 0)
+ 			goto mismatch;
+ 		break;
++	case NFT_CMP_BOOL:
++		if (!!priv->data.data[0] ^ !!d)
++			goto mismatch;
++		break;
+ 	}
+ 	return;
+ 
+@@ -191,6 +200,7 @@ nft_cmp_select_ops(const struct nft_ctx *ctx, const struct nlattr * const tb[])
+ 	case NFT_CMP_LTE:
+ 	case NFT_CMP_GT:
+ 	case NFT_CMP_GTE:
++	case NFT_CMP_BOOL:
+ 		break;
+ 	default:
+ 		return ERR_PTR(-EINVAL);
 -- 
----------------------------------------------
-Victor Julien
-http://www.inliniac.net/
-PGP: http://www.inliniac.net/victorjulien.asc
----------------------------------------------
+2.11.0
 
