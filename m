@@ -1,119 +1,62 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nf-next PATCH] netfilter: nf_tables: exthdr: Add support for existence check
-Date: Tue, 17 Jan 2017 22:51:26 +0100
-Message-ID: <20170117215126.13356-1-phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: tcp state in conntrack destroy events
+Date: Tue, 17 Jan 2017 22:28:07 +0100
+Message-ID: <20170117212807.GC12001@breakpoint.cc>
+References: <fdd3eb50-75d3-32e1-d7a0-f333050aece5@inliniac.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Victor Julien <lists@inliniac.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:60803 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751030AbdAQV4S (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Jan 2017 16:56:18 -0500
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56990 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751152AbdAQWEA (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Jan 2017 17:04:00 -0500
+Content-Disposition: inline
+In-Reply-To: <fdd3eb50-75d3-32e1-d7a0-f333050aece5@inliniac.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If NFT_EXTHDR_F_PRESENT is set, exthdr will not copy any header field
-data into *dest, but instead set it to 1 if the header is found and 0
-otherwise.
+Victor Julien <lists@inliniac.net> wrote:
+> I was hoping to get the last TCP state in a conntrack destroy event,
+> however it seems to be unavailable.
+> 
+> Through libnetfilter_conntrack the value retrieved at ATTR_TCP_STATE is
+> always 0.
+> 
+> Using the conntrack command I see the same behavior:
+> 
+> destroy doesn't have it (conntrack -E -e destroy -p tcp):
+> 
+> [DESTROY] tcp      6 src=218.65.30.38 dst=192.168.178.254 sport=61063
+> dport=22 packets=11 bytes=820 src=192.168.0.123 dst=218.65.30.38
+> sport=22 dport=61063 packets=8 bytes=424 [ASSURED] mark=3 delta-time=77
+> 
+> update does (conntrack -E -e updates -p tcp):
+> 
+>  [UPDATE] tcp      6 120 FIN_WAIT src=192.168.0.53 dst=x.x.x.x
+> sport=52958 dport=443 src=x.x.x.x dst=192.168.178.254 sport=443
+> dport=52958 [ASSURED] mark=3
+> 
+> Is this intentional? My goal is to create connection log that includes a
+> hint about why the connection is gone.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- include/uapi/linux/netfilter/nf_tables.h |  6 ++++++
- net/netfilter/nft_exthdr.c               | 14 ++++++++++++--
- 2 files changed, 18 insertions(+), 2 deletions(-)
+Yes, its intentional, see
+net/netfilter/nf_conntrack_netlink.c, there is a check for DESTROY
+that supresses most of the extra info:
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index b00a05d1ee566..f15696af168ac 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -704,6 +704,10 @@ enum nft_payload_attributes {
- };
- #define NFTA_PAYLOAD_MAX	(__NFTA_PAYLOAD_MAX - 1)
- 
-+enum nft_exthdr_flags {
-+	NFT_EXTHDR_F_PRESENT = (1 << 0),
-+};
-+
- /**
-  * enum nft_exthdr_attributes - nf_tables IPv6 extension header expression netlink attributes
-  *
-@@ -711,6 +715,7 @@ enum nft_payload_attributes {
-  * @NFTA_EXTHDR_TYPE: extension header type (NLA_U8)
-  * @NFTA_EXTHDR_OFFSET: extension header offset (NLA_U32)
-  * @NFTA_EXTHDR_LEN: extension header length (NLA_U32)
-+ * @NFTA_EXTHDR_FLAGS: extension header flags (NLA_U32)
-  */
- enum nft_exthdr_attributes {
- 	NFTA_EXTHDR_UNSPEC,
-@@ -718,6 +723,7 @@ enum nft_exthdr_attributes {
- 	NFTA_EXTHDR_TYPE,
- 	NFTA_EXTHDR_OFFSET,
- 	NFTA_EXTHDR_LEN,
-+	NFTA_EXTHDR_FLAGS,
- 	__NFTA_EXTHDR_MAX
- };
- #define NFTA_EXTHDR_MAX		(__NFTA_EXTHDR_MAX - 1)
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index 47beb3abcc9da..b5b37f211c417 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -23,6 +23,7 @@ struct nft_exthdr {
- 	u8			offset;
- 	u8			len;
- 	enum nft_registers	dreg:8;
-+	u32			flags;
- };
- 
- static void nft_exthdr_eval(const struct nft_expr *expr,
-@@ -35,8 +36,12 @@ static void nft_exthdr_eval(const struct nft_expr *expr,
- 	int err;
- 
- 	err = ipv6_find_hdr(pkt->skb, &offset, priv->type, NULL, NULL);
--	if (err < 0)
-+	if (priv->flags & NFT_EXTHDR_F_PRESENT) {
-+		*dest = (err >= 0);
-+		return;
-+	} else if (err < 0) {
- 		goto err;
-+	}
- 	offset += priv->offset;
- 
- 	dest[priv->len / NFT_REG32_SIZE] = 0;
-@@ -52,6 +57,7 @@ static const struct nla_policy nft_exthdr_policy[NFTA_EXTHDR_MAX + 1] = {
- 	[NFTA_EXTHDR_TYPE]		= { .type = NLA_U8 },
- 	[NFTA_EXTHDR_OFFSET]		= { .type = NLA_U32 },
- 	[NFTA_EXTHDR_LEN]		= { .type = NLA_U32 },
-+	[NFTA_EXTHDR_FLAGS]		= { .type = NLA_U32 },
- };
- 
- static int nft_exthdr_init(const struct nft_ctx *ctx,
-@@ -65,7 +71,8 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
- 	if (tb[NFTA_EXTHDR_DREG] == NULL ||
- 	    tb[NFTA_EXTHDR_TYPE] == NULL ||
- 	    tb[NFTA_EXTHDR_OFFSET] == NULL ||
--	    tb[NFTA_EXTHDR_LEN] == NULL)
-+	    tb[NFTA_EXTHDR_LEN] == NULL ||
-+	    tb[NFTA_EXTHDR_FLAGS] == NULL)
- 		return -EINVAL;
- 
- 	err = nft_parse_u32_check(tb[NFTA_EXTHDR_OFFSET], U8_MAX, &offset);
-@@ -80,6 +87,7 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
- 	priv->offset = offset;
- 	priv->len    = len;
- 	priv->dreg   = nft_parse_register(tb[NFTA_EXTHDR_DREG]);
-+	priv->flags  = ntohl(nla_get_u32(tb[NFTA_EXTHDR_FLAGS]));
- 
- 	return nft_validate_register_store(ctx, priv->dreg, NULL,
- 					   NFT_DATA_VALUE, priv->len);
-@@ -97,6 +105,8 @@ static int nft_exthdr_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 		goto nla_put_failure;
- 	if (nla_put_be32(skb, NFTA_EXTHDR_LEN, htonl(priv->len)))
- 		goto nla_put_failure;
-+	if (nla_put_be32(skb, NFTA_EXTHDR_FLAGS, htonl(priv->flags)))
-+		goto nla_put_failure;
- 	return 0;
- 
- nla_put_failure:
--- 
-2.11.0
+682 if (events & (1 << IPCT_DESTROY)) {
+683    if (ctnetlink_dump_acct(skb, ct, type) < 0 ||
+684        ctnetlink_dump_timestamp(skb, ct) < 0)
+685           goto nla_put_failure;
+686    } else {
+..
+	/* IPCT_PROTOINFO */
 
+Pablo made this change in 7b621c1ea64a54f77b8a841b16dc4c9fee3ecf48,
+i guess the rationale was that clients aren't interested in this
+on DESTROY.
+
+Would be easy to change this.
