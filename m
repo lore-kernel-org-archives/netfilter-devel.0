@@ -1,39 +1,100 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [stable] bridge: netfilter: Fix dropping packets that moving
- through bridge interface
-Date: Tue, 17 Jan 2017 13:53:03 +0100
-Message-ID: <20170117125303.GA31649@kroah.com>
-References: <e7fd1864-91dc-ca2d-8ce5-4cb7b589f1f5@gmail.com>
- <20170116200854.GA25408@salvia>
+From: Steve Grubb <sgrubb@redhat.com>
+Subject: Re: AUDIT_NETFILTER_PKT message format
+Date: Tue, 17 Jan 2017 08:55:23 -0500
+Message-ID: <3051394.ngqbNXneNL@x2>
+References: <20170117052551.GQ3087@madcap2.tricolour.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Artur Molchanov <arturmolchanov@gmail.com>, stable@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58578 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750770AbdAQNS3 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Jan 2017 08:18:29 -0500
-Content-Disposition: inline
-In-Reply-To: <20170116200854.GA25408@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
+        Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
+        Thomas Graf <tgraf@infradead.org>
+To: Richard Guy Briggs <rgb@redhat.com>
+Return-path: <linux-audit-bounces@redhat.com>
+In-Reply-To: <20170117052551.GQ3087@madcap2.tricolour.ca>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/linux-audit>
+List-Post: <mailto:linux-audit@redhat.com>
+List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=subscribe>
+Sender: linux-audit-bounces@redhat.com
+Errors-To: linux-audit-bounces@redhat.com
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jan 16, 2017 at 09:08:54PM +0100, Pablo Neira Ayuso wrote:
-> Cc'ing Greg.
+On Tuesday, January 17, 2017 12:25:51 AM EST Richard Guy Briggs wrote:
+> I'm just starting to look at the normalization of AUDIT_NETFILTER_PKT
+> event messages and it is not quite as straightforward as I had expected.
 > 
-> On Mon, Jan 16, 2017 at 09:44:10PM +0300, Artur Molchanov wrote:
-> > commit 14221cc45caad2fcab3a8543234bb7eda9b540d5 upstream.
-> > 
-> > Please apply this commit to fix bug that makes impossible to use local
-> > Docker containers with bridge network.
-> > 
-> > Cc: <stable@vger.kernel.org> # 4.9.x
+> It is being tracked here:
+> 	https://github.com/linux-audit/audit-kernel/issues/11
+> and refers to a previous posting from Mr. Dash Four from four years ago
+> to which there was no reply.
 > 
-> Greg, please, cherry-pick this commit to -stable 4.9.x.
+> The example given in the tracker above for "frag=" is fairly
+> straightforward, but digging more, there are a number of others that are
+> not quite so obvious.
+> 
+> How many different combinations of fields is acceptable?  Can we create
+> new message types for each one, or is there a preferred way to indicate
+> which sub-type it is other than implicit from the arguments given?
 
-Now done, thanks.
+That would be preferential to swinging fields in and out. But we also don't 
+want to add too many new types. If two protocols look almost identical, I'd 
+try to coerce them to be the same. If adding 2 new types solves the problem 
+just do it. If it takes 10, then maybe we should understand why.
 
-greg k-h
+> Others that are straightforward:
+> - The first "truncated=" gets pulled in with "0".
+> 
+> - "mark=" gets pulled in with "0".
+> 
+> Ones that are not so straightforward:
+> - "secmark" depends on a kernel config setting, so should it always be
+>   present but "(none)" if that kernel feature is compiled out?
+
+If this is selinux related, I'd treat it the same way that we do subj 
+everywhere else.
+
+> - ARPHRD_ETHER pulls in 3 fields, I would pull them all in and set them
+>   to "(none)" to indicate that type isn't present.
+
+"(none)" is for character fields that have nothing. Typically we set -1 for 
+numeric fields that are unset. If numbers are expected, its going to get the 
+strtol() treatment and "(none)" will cause a conversion error.
+
+> - audit_ip4() and audit_ip6 share "saddr=", "daddr=", proto=", but ip4
+>   adds "ipid=", which would be set to "(none)" for ip6.
+
+That is numeric. -1?
+
+-Steve
+
+> - audit_proto() pulls in "truncated=" again, then either "sport=" and
+>   "dport=" OR "icmptype=" and "icmpcode=".
+> 
+> If all fields are pulled in, we end up adding 10 fields beyond a
+> standard well-formed packet, and 15 beyond a truncated packet.
+> 
+> Note: In the cases of "mark" and "secmark" both are unions.  In the case of
+> "mark", I don't see a problem since it isn't conditionally compiled out
+> and won't be mis-interpreted.  In the case of "secmark=", it could be
+> mis-interpreted as offload_fwd_mark if that field is even compiled in,
+> but that would be addressed in the compiler directive...
+> 
+> 
+> One last question: Does anyone have a test suite that can generate any
+> or all of these types of packets?
+> 
+> 
+> Thanks!
+> 
+> 
+> - RGB
+> 
+> --
+> Richard Guy Briggs <rgb@redhat.com>
+> Kernel Security Engineering, Base Operating Systems, Red Hat
+> Remote, Ottawa, Canada
+> Voice: +1.647.777.2635, Internal: (81) 32635
