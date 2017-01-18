@@ -1,68 +1,96 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] iptables-save: Exit with error if unable to open proc
- file
-Date: Wed, 18 Jan 2017 14:32:30 +0100
-Message-ID: <20170118133230.GE12001@breakpoint.cc>
-References: <CA+kHd+fMWmomd0ZTWO3nj0iCSOTmXoW-J4S7XNrYq86JznBM0Q@mail.gmail.com>
+From: thomas@habets.se
+Subject: Re: [PATCH] iptables-save: Exit with error if unable to open proc file
+Date: Wed, 18 Jan 2017 08:58:13 -0500
+Message-ID: <CA+kHd+db15eUCFb+_-T1zJVPSkogyLUTp2Fe-2u9z8B0E3a-_A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Thomas Habets <thomas@habets.se>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:60644 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751779AbdARNdP (ORCPT
+Received: from mail-qk0-f193.google.com ([209.85.220.193]:34868 "EHLO
+        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752636AbdARN6P (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Jan 2017 08:33:15 -0500
-Content-Disposition: inline
-In-Reply-To: <CA+kHd+fMWmomd0ZTWO3nj0iCSOTmXoW-J4S7XNrYq86JznBM0Q@mail.gmail.com>
+        Wed, 18 Jan 2017 08:58:15 -0500
+Received: by mail-qk0-f193.google.com with SMTP id u25so1898921qki.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Jan 2017 05:58:14 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thomas Habets <thomas@habets.se> wrote:
-> I sent this before without being subscribed, but it doesn't seem to
-> have reached the archives so now retrying while subscribed.
+On Wed, 18 Jan 2017 14:32:30 +0100, Florian Westphal <fw@strlen.de> said:
+> static const char filename[] =
 
-Weird, its an open list (no subscribe required).
+Done.
 
-> If you're not root, then iptables-save silently fails (both to stderr
-> and exit code). This patch fixes that.
+> iptables uses kernel coding style, so
+>
+> 	if (errno == ENOENT)
+> 		return ret;
 
-Thanks, patch looks good but
+Gotcha. Making the code unambiguously worse, then. (cough, goto fail, cough)
+Done.
 
-> --- a/iptables/ip6tables-save.c
-> +++ b/iptables/ip6tables-save.c
-> @@ -35,10 +35,16 @@ static int for_each_table(int (*func)(const char
-> *tablename))
->         int ret = 1;
->         FILE *procfile = NULL;
->         char tablename[XT_TABLE_MAXNAMELEN+1];
-> +       const char *filename = "/proc/net/ip6_tables_names";
+> Looks like your mua mangled the patch and broke long lines.
+> Can you send with git-send-email?
 
-static const char filename[] = "
+Using a better client this time.
 
-> -       procfile = fopen("/proc/net/ip6_tables_names", "re");
-> -       if (!procfile)
-> -               return ret;
-> +       procfile = fopen(filename, "re");
-> +       if (!procfile) {
-> +               if (errno == ENOENT) {
-> +                       return ret;
-> +               }
 
-iptables uses kernel coding style, so
+commit 0d18c3e9488ac2e36a5c5ecccce93de795f6fe25
+Author: Thomas Habets <habets@google.com>
+Date:   Wed Jan 18 13:46:54 2017 +0000
 
-	if (errno == ENOENT)
-		return ret;
+    iptables-save: Exit with error if unable to open proc file
 
-(no { } )
+diff --git a/iptables/ip6tables-save.c b/iptables/ip6tables-save.c
+index f35e921..053413a 100644
+--- a/iptables/ip6tables-save.c
++++ b/iptables/ip6tables-save.c
+@@ -35,10 +35,16 @@ static int for_each_table(int (*func)(const char
+*tablename))
+ 	int ret = 1;
+ 	FILE *procfile = NULL;
+ 	char tablename[XT_TABLE_MAXNAMELEN+1];
+-
+-	procfile = fopen("/proc/net/ip6_tables_names", "re");
+-	if (!procfile)
+-		return ret;
++	static const char filename[] = "/proc/net/ip6_tables_names";
++
++	procfile = fopen(filename, "re");
++	if (!procfile) {
++		if (errno == ENOENT)
++			return ret;
++		fprintf(stderr, "Failed to list table names in %s: %s\n",
++		        filename, strerror(errno));
++		exit(1);
++	}
 
-> +               fprintf(stderr, "Failed to list table names in %s:
-> %s\n", filename, strerror(errno));
-> +               exit(1);
+ 	while (fgets(tablename, sizeof(tablename), procfile)) {
+ 		if (tablename[strlen(tablename) - 1] != '\n')
+diff --git a/iptables/iptables-save.c b/iptables/iptables-save.c
+index 238f368..e8ae9c6 100644
+--- a/iptables/iptables-save.c
++++ b/iptables/iptables-save.c
+@@ -33,10 +33,16 @@ static int for_each_table(int (*func)(const char
+*tablename))
+ 	int ret = 1;
+ 	FILE *procfile = NULL;
+ 	char tablename[XT_TABLE_MAXNAMELEN+1];
+-
+-	procfile = fopen("/proc/net/ip_tables_names", "re");
+-	if (!procfile)
+-		return ret;
++	static const char filename[] = "/proc/net/ip_tables_names";
++
++	procfile = fopen(filename, "re");
++	if (!procfile) {
++		if (errno == ENOENT)
++			return ret;
++		fprintf(stderr, "Failed to list table names in %s: %s\n",
++		        filename, strerror(errno));
++		exit(1);
++	}
 
-Looks like your mua mangled the patch and broke long lines.
-Can you send with git-send-email?
-
-Otherwise see Documentation/email-clients.txt
-in the linux kernel sources.
+ 	while (fgets(tablename, sizeof(tablename), procfile)) {
+ 		if (tablename[strlen(tablename) - 1] != '\n')
