@@ -1,62 +1,100 @@
 From: Doug Anderson <dianders@chromium.org>
-Subject: Re: [RFC/PATCH 1/3] netfilter: ctnetlink: Fix regression in
- CTA_TIMEOUT processing
-Date: Wed, 18 Jan 2017 10:54:24 -0800
-Message-ID: <CAD=FV=Xb4SoPON-AK4J741r1oumRc7x_OOjFQQjE-_bRvxQFdw@mail.gmail.com>
-References: <1484630048-25416-1-git-send-email-cernekee@chromium.org> <1484630048-25416-2-git-send-email-cernekee@chromium.org>
+Subject: Re: [RFC/PATCH 3/3] netfilter: ctnetlink: Fix regression in CTA_HELP processing
+Date: Wed, 18 Jan 2017 11:08:55 -0800
+Message-ID: <CAD=FV=VW7zwsuL5GVg1svdi_XhKYAhsYLM3qLBCpUBWa+rt+vA@mail.gmail.com>
+References: <1484630048-25416-1-git-send-email-cernekee@chromium.org> <1484630048-25416-4-git-send-email-cernekee@chromium.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
         "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
         David Miller <davem@davemloft.net>
 To: Kevin Cernekee <cernekee@chromium.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1484630048-25416-2-git-send-email-cernekee@chromium.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:36385 "EHLO
+        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753669AbdARTI6 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 18 Jan 2017 14:08:58 -0500
+Received: by mail-wm0-f51.google.com with SMTP id c85so257730811wmi.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Jan 2017 11:08:57 -0800 (PST)
+In-Reply-To: <1484630048-25416-4-git-send-email-cernekee@chromium.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi,
 
 On Mon, Jan 16, 2017 at 9:14 PM, Kevin Cernekee <cernekee@chromium.org> wrote:
-> Commit b7bd1809e078 ("netfilter: nfnetlink_queue: get rid of
-> nfnetlink_queue_ct.c") introduced a new check on the return value
-> from the NFQA_CT parser (currently ctnetlink_glue_parse_ct()).
-> Prior to Linux 4.4, nfqnl_ct_parse() would process the NFQA_EXP
-> attribute even if there were errors in the NFQA_CT attribute.
-> After Linux 4.4, this is no longer true, so any error in the NFQA_CT
-> attribute will cause the kernel to silently fail to create an
-> expectation.
->
-> The new check is causing user conntrack helpers to fail.  If a user
-> program sends an NFQA_CT attribute containing a CTA_TIMEOUT attribute
-> before the connection is confirmed (i.e. before the initial
-> ACCEPT/DROP decision has been made), del_timer() in
-> ctnetlink_change_timeout() will fail, and all further processing will be
-> aborted.  The (simplified) calling sequence looks like:
->
->     nfnetlink_rcv_msg
->       nfqnl_recv_verdict
->         nfqnl_ct_parse
->           ctnetlink_glue_parse_ct
->             ctnetlink_change_timeout
->               del_timer [ERROR]
->         nf_reinject
->           __nf_conntrack_confirm
->
-> Fix this by adding a case to ctnetlink_change_timeout() to handle
-> unconfirmed connections.
->
-> Also, if a timeout of 0 is set for an unconfirmed connection, restore the
-> old behavior of ignoring it (rather than setting up a connection that
-> expires immediately).
->
+> If a user program specifies CTA_HELP but the argument matches the
+> current conntrack helper name, ignore it instead of generating an error.
+
+The "subject" of this patch says that it fixes a regression, but that
+regression isn't explained anywhere.  The description of this patch
+should make it obvious that the regression is the same as described in
+your previous patch in this series: "netfilter: ctnetlink: Fix
+regression in CTA_TIMEOUT processing".
+
+Specifically: calling this twice with the same value has always
+returned an error for the 2nd call, but that error didn't affect
+things in quite the same way before commit b7bd1809e078 ("netfilter:
+nfnetlink_queue: get rid of nfnetlink_queue_ct.c").
+
+
 > Signed-off-by: Kevin Cernekee <cernekee@chromium.org>
 > ---
->  net/netfilter/nf_conntrack_netlink.c | 12 ++++++++----
->  1 file changed, 8 insertions(+), 4 deletions(-)
+>  net/netfilter/nf_conntrack_netlink.c | 13 +++++++++----
+>  1 file changed, 9 insertions(+), 4 deletions(-)
+>
+> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+> index cc59f388928e..2912f582da65 100644
+> --- a/net/netfilter/nf_conntrack_netlink.c
+> +++ b/net/netfilter/nf_conntrack_netlink.c
+> @@ -1472,14 +1472,19 @@ ctnetlink_change_helper(struct nf_conn *ct, const struct nlattr * const cda[])
+>         struct nlattr *helpinfo = NULL;
+>         int err;
+>
+> -       /* don't change helper of sibling connections */
+> -       if (ct->master)
+> -               return -EBUSY;
+> -
+>         err = ctnetlink_parse_help(cda[CTA_HELP], &helpname, &helpinfo);
+>         if (err < 0)
+>                 return err;
+>
+> +       /* don't change helper of sibling connections */
+> +       if (ct->master) {
 
-I'm not an expert (I'd never looked at netlink code before yesterday),
-but Kevin's explanation and proposal seem sane to me.  In case it's
-helpful:
+As discussed in the Chromium OS review system:
 
-Reviewed-by: Douglas Anderson <dianders@chromium.org>
+https://chromium-review.googlesource.com/c/428494/1..2/net/netfilter/nf_conntrack_netlink.c
+
+It feels like we need a comment here.  There you added:
+
+* If we try to change the helper to the same thing twice,
+* treat the second attempt as a no-op instead of returning
+* an error.
+
+That seems like a good comment.
+
+> +               if (help && help->helper &&
+> +                   !strcmp(help->helper->name, helpname))
+
+I was also curious: do you need to also compare helpinfo to
+helper->to_nlattr() ?
+
+...effectively right now if you call this function twice with the same
+value you want to avoid returning an error for the 2nd call, right?
+...you just want to treat it as a no-op.  It seems like checking
+"helpinfo" would be safer to really detect two calls with the same
+value, but maybe I'm being paranoid...
+
+> +                       return 0;
+> +               else
+> +                       return -EBUSY;
+> +       }
+> +
+>         if (!strcmp(helpname, "")) {
+>                 if (help && help->helper) {
+>                         /* we had a helper before ... */
+> --
+> 2.7.4
+>
