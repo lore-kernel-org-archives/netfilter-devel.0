@@ -1,45 +1,117 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next v2 1/1] netfilter: nf_tables: Refine the codes to
- eliminate useless condition checks in nf_tables_api.c
-Date: Wed, 18 Jan 2017 21:11:59 +0100
-Message-ID: <20170118201159.GA20220@salvia>
-References: <1484575377-32755-1-git-send-email-fgao@ikuai8.com>
+From: Paul Moore <paul@paul-moore.com>
+Subject: Re: AUDIT_NETFILTER_PKT message format
+Date: Wed, 18 Jan 2017 18:35:29 -0500
+Message-ID: <CAHC9VhS_6Q=bxnzU8ni1a2fRWnXoMcELzAmy0HmwMH_xhgfRBw@mail.gmail.com>
+References: <20170117052551.GQ3087@madcap2.tricolour.ca>
+	<3051394.ngqbNXneNL@x2>
+	<20170117161228.GS3087@madcap2.tricolour.ca>
+	<CAHC9VhT7aR1hHfDyU-r6QXTV92rEx1x8s7cH66bzh8FiDv24eQ@mail.gmail.com>
+	<20170118023429.GW3087@madcap2.tricolour.ca>
+	<20170118053904.GE18214@madcap2.tricolour.ca>
+	<CAGH-KguX7fsNnZKmNxLiM5s8bnavq=6UknEaQ5Pa5xXucGHdtQ@mail.gmail.com>
+	<20170118151520.GY3087@madcap2.tricolour.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, gfree.wind@gmail.com
-To: fgao@ikuai8.com
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47276 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753448AbdARUh1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Jan 2017 15:37:27 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 94B5213C0CA
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Jan 2017 21:12:14 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8160EFEFB3
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Jan 2017 21:12:14 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 542F5A7EE5
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Jan 2017 21:12:08 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1484575377-32755-1-git-send-email-fgao@ikuai8.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
+        Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
+        Thomas Graf <tgraf@infradead.org>
+To: Richard Guy Briggs <rgb@redhat.com>, sgrubb@redhat.com
+Return-path: <linux-audit-bounces@redhat.com>
+In-Reply-To: <20170118151520.GY3087@madcap2.tricolour.ca>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/linux-audit>
+List-Post: <mailto:linux-audit@redhat.com>
+List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=subscribe>
+Sender: linux-audit-bounces@redhat.com
+Errors-To: linux-audit-bounces@redhat.com
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jan 16, 2017 at 10:02:57PM +0800, fgao@ikuai8.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
-> 
-> The return value of nf_tables_table_lookup is valid pointer or one
-> pointer error. There are two cases totally.
-> case1: IS_ERR(table) is true, it would return the error or reset the
-> table as NULL, it is unnecessary to perform the latter check
-> "table != NULL".
-> case2: IS_ERR(obj) is false, the table is one valid pointer. It is also
-> unnecessary to perform that check.
-> The nf_tables_newset and nf_tables_newobj have same logic codes.
-> 
-> In summary, we could move the block of condition check "table != NULL"
-> in the else block to eliminate the original condition checks.
+On Wed, Jan 18, 2017 at 10:15 AM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2017-01-18 07:32, Paul Moore wrote:
+>> On Wed, Jan 18, 2017 at 12:39 AM, Richard Guy Briggs <rgb@redhat.com> wrote:
+>> > On 2017-01-17 21:34, Richard Guy Briggs wrote:
+>> >> On 2017-01-17 15:17, Paul Moore wrote:
+>> >> > On Tue, Jan 17, 2017 at 11:12 AM, Richard Guy Briggs <rgb@redhat.com> wrote:
+>> >> > > On 2017-01-17 08:55, Steve Grubb wrote:
+>> >> > >> On Tuesday, January 17, 2017 12:25:51 AM EST Richard Guy Briggs wrote:
+>> >> >
+>> >> > ...
+>> >> >
+>> >> > >> > Ones that are not so straightforward:
+>> >> > >> > - "secmark" depends on a kernel config setting, so should it always be
+>> >> > >> >   present but "(none)" if that kernel feature is compiled out?
+>> >> > >>
+>> >> > >> If this is selinux related, I'd treat it the same way that we do subj
+>> >> > >> everywhere else.
+>> >> > >
+>> >> > > Ok.
+>> >> >
+>> >> > To be clear, a packet's secmark should be recorded via a dedicated
+>> >> > field, e.g. "secmark", and not use the "subj" field (it isn't a
+>> >> > subject label in the traditional sense).
+>> >>
+>> >> I think Steve was talking about if, when or where to include that field,
+>> >> not what its label is.
+>> >
+>> > In this case it is an "obj=" field, but since it is part of the LSM,
+>> > each one has its own fields.
+>>
+>> As I said above, use a "secmark" field and not the subject or object
+>> fields; packet labeling is rather complex and there is value in
+>> differentiating between secmark labels and network peer labels.
+>
+> Ok, I'll change it from the existing "obj=" to "secmark=".  Since it is
+> an LSM-dependent field, it will go away when that LSM module does.  It
+> is the very last item in the list of fields, so I don't see this as a
+> problem.
+>
+>
+> I have more questions and observations:
+>
+> Do we care if the rest of the record's fields are there if the packet is
+> truncated?  In other words, can I omit all the following fields (that
+> will end up being set to (none) or -1 since there is no data for them)?
+> I'd prefer to complete the record, but Steve may not care and might
+> prefer to save the bandwidth.
+>
+> Can I truncate the field name "truncated" to "trunc" (since I don't see
+> it yet in the audit field dictionary) if we do include all the fields?
+>
+> I observe that support for IPPROTO_DCCP and IPPROTO_SCTP can be added
+> virtually for free since the source and desination ports in their packet
+> formats is identical to TCP and UDP (and UDPLITE).
+>
+>
+> At this point, it looks like having one record for IP/IPv6 with
+> TCP/UDP/DCCP/SCTP makes sense.  Whether or not to add ethernet bridge
+> headers and ICMP* is a more difficult question.  Ethernet bridge adds 40 chars
+> if it isn't used, up to 62 if it is.  ICMP* adds 26 max.
+>
+> It is an independent record, but it would be nice to be able to reuse
+> the message ID with a new record type to list sub-parts of the packet,
+> for example, reuse the existing record type (AUDIT_NETFILTER_PKT) for
+> the first 5 fields, mark and secmark, then another record type
+> (AUDIT_NETFILTER_PKT_ETH) for ethernet header, a record
+> (AUDIT_NETFILTER_PKT_IP) for IP/IPv6 header, then another
+> (AUDIT_NETFILTER_PKT_PROTO) for transport layer protocol.  This way, the
+> absence of an ethernet bridge header won't swing out three fields, or waste 40
+> chars.  IPv4 adds about 20 chars not used by IPv6.  TCP/UDP/DCCP/SCTP vs ICMP*
+> is about 25 chars each.  The max message is 322 chars (eth bridge, IPv6).  A
+> non-ethernet-bridge non-IP* message would be as little as 76 without the extra
+> fields, but as much as 219 with the extra fields filled with unset values.
+>
+> A full message could look like (I've left off secmark, which would go at the end):
+> action=9 hook=9999999999 len=9999999999 inif=ZZZZ outif=ZZZZ mark=0xffffffff smac=FF:FF:FF:FF:FF:FF dmac=FF:FF:FF:FF:FF:FF macproto=0xffff trunc=9 saddr=FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF daddr=FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF ipid=-1 proto=255 frag=-1 trunc=9 sport=99999 dport=99999 icmptype=999 icmpcode=999
+>
 
-Applied, thanks feng.
+At this point I think it would be good to hear what requirements exist
+for per-packet auditing.  Steve, are there any current Common Criteria
+(or other) requirements that impact per-packet auditing?
+
+-- 
+paul moore
+www.paul-moore.com
