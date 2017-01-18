@@ -1,167 +1,58 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf v2] netfilter: conntrack: refine gc worker heuristics, redux
-Date: Wed, 18 Jan 2017 02:01:22 +0100
-Message-ID: <1484701282-14758-1-git-send-email-fw@strlen.de>
-Cc: nuclearcat@nuclearcat.com, Florian Westphal <fw@strlen.de>,
-        Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: <netfilter-devel@vger.kernel.org>
+From: Richard Guy Briggs <rgb@redhat.com>
+Subject: Re: AUDIT_NETFILTER_PKT message format
+Date: Tue, 17 Jan 2017 21:34:29 -0500
+Message-ID: <20170118023429.GW3087@madcap2.tricolour.ca>
+References: <20170117052551.GQ3087@madcap2.tricolour.ca>
+ <3051394.ngqbNXneNL@x2>
+ <20170117161228.GS3087@madcap2.tricolour.ca>
+ <CAHC9VhT7aR1hHfDyU-r6QXTV92rEx1x8s7cH66bzh8FiDv24eQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Steve Grubb <sgrubb@redhat.com>,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>,
+        Thomas Graf <tgraf@infradead.org>
+To: Paul Moore <paul@paul-moore.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57778 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751386AbdARBCV (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Jan 2017 20:02:21 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:48488 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750997AbdARCed (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Jan 2017 21:34:33 -0500
+Content-Disposition: inline
+In-Reply-To: <CAHC9VhT7aR1hHfDyU-r6QXTV92rEx1x8s7cH66bzh8FiDv24eQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This further refines the changes made to conntrack gc_worker in
-commit e0df8cae6c16 ("netfilter: conntrack: refine gc worker heuristics").
+On 2017-01-17 15:17, Paul Moore wrote:
+> On Tue, Jan 17, 2017 at 11:12 AM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> > On 2017-01-17 08:55, Steve Grubb wrote:
+> >> On Tuesday, January 17, 2017 12:25:51 AM EST Richard Guy Briggs wrote:
+> 
+> ...
+> 
+> >> > Ones that are not so straightforward:
+> >> > - "secmark" depends on a kernel config setting, so should it always be
+> >> >   present but "(none)" if that kernel feature is compiled out?
+> >>
+> >> If this is selinux related, I'd treat it the same way that we do subj
+> >> everywhere else.
+> >
+> > Ok.
+> 
+> To be clear, a packet's secmark should be recorded via a dedicated
+> field, e.g. "secmark", and not use the "subj" field (it isn't a
+> subject label in the traditional sense).
 
-The main idea of that change was to reduce the scan interval when evictions
-take place.
+I think Steve was talking about if, when or where to include that field,
+not what its label is.
 
-However, on the reporters' setup, there are 1-2 million conntrack entries
-in total and roughly 8k new (and closing) connections per second.
+> paul moore
 
-In this case we'll always evict at least one entry per gc cycle and scan
-interval is always at 1 jiffy because of this test:
+- RGB
 
- } else if (expired_count) {
-     gc_work->next_gc_run /= 2U;
-     next_run = msecs_to_jiffies(1);
-
-being true almost all the time.
-
-Given we scan ~10k entries per run its clearly wrong to reduce interval
-based on nonzero eviction count, it will only waste cpu cycles since a vast
-majorities of conntracks are not timed out.
-
-Thus only look at the ratio (scanned entries vs. evicted entries) to make
-a decision on whether to reduce or not.
-
-Because evictor is supposed to only kick in when system turns idle after
-a busy period, pick a high ratio -- this makes it 50%.  We thus keep
-the idea of increasing scan rate when its likely that table contains many
-expired entries.
-
-In order to not let timed-out entries hang around for too long
-(important when using event logging, in which case we want to timely
-destroy events), we now scan the full table within at most
-GC_MAX_SCAN_JIFFIES (16 seconds) even in worst-case scenario where all
-timed-out entries sit in same slot.
-
-I tested this with a vm under synflood (with
-sysctl net.netfilter.nf_conntrack_tcp_timeout_syn_recv=3).
-
-While flood is ongoing, interval now stays at its max rate
-(GC_MAX_SCAN_JIFFIES / GC_MAX_BUCKETS_DIV -> 125ms).
-
-With feedback from Nicolas Dichtel.
-
-Reported-by: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
-Cc: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Fixes: b87a2f9199ea82eaadc ("netfilter: conntrack: add gc worker to remove timed-out entries")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
-this is on top of
-https://patchwork.ozlabs.org/patch/715850/
-('netfilter: conntrack: remove GC_MAX_EVICTS break').
-
-Nicolas, this is almost the same patch that you already tested, i
-did some renames and changed the minimum interval to HZ/GC_MAX_BUCKETS_DIV
-everywhere for consistency.
-
-Denys, I am sure this fixes the gc_work cpu hogging you reported,
-ntl, it would be great if you could test this.
-
- net/netfilter/nf_conntrack_core.c | 39 ++++++++++++++++++++-------------------
- 1 file changed, 20 insertions(+), 19 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 6feb5d370319..4e8083c5e01d 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -85,9 +85,11 @@ static __read_mostly DEFINE_SPINLOCK(nf_conntrack_locks_all_lock);
- static __read_mostly bool nf_conntrack_locks_all;
- 
- /* every gc cycle scans at most 1/GC_MAX_BUCKETS_DIV part of table */
--#define GC_MAX_BUCKETS_DIV	64u
--/* upper bound of scan intervals */
--#define GC_INTERVAL_MAX		(2 * HZ)
-+#define GC_MAX_BUCKETS_DIV	128u
-+/* upper bound of full table scan */
-+#define GC_MAX_SCAN_JIFFIES	(16u * HZ)
-+/* desired ratio of entries found to be expired */
-+#define GC_EVICT_RATIO	50u
- 
- static struct conntrack_gc_work conntrack_gc_work;
- 
-@@ -936,6 +938,7 @@ static noinline int early_drop(struct net *net, unsigned int _hash)
- 
- static void gc_worker(struct work_struct *work)
- {
-+	unsigned int min_interval = max(HZ / GC_MAX_BUCKETS_DIV, 1u);
- 	unsigned int i, goal, buckets = 0, expired_count = 0;
- 	struct conntrack_gc_work *gc_work;
- 	unsigned int ratio, scanned = 0;
-@@ -994,27 +997,25 @@ static void gc_worker(struct work_struct *work)
- 	 * 1. Minimize time until we notice a stale entry
- 	 * 2. Maximize scan intervals to not waste cycles
- 	 *
--	 * Normally, expired_count will be 0, this increases the next_run time
--	 * to priorize 2) above.
-+	 * Normally, expire ratio will be close to 0.
- 	 *
--	 * As soon as a timed-out entry is found, move towards 1) and increase
--	 * the scan frequency.
--	 * In case we have lots of evictions next scan is done immediately.
-+	 * As soon as a sizeable fraction of the entries have expired
-+	 * increase scan frequency.
- 	 */
- 	ratio = scanned ? expired_count * 100 / scanned : 0;
--	if (ratio >= 90) {
--		gc_work->next_gc_run = 0;
--		next_run = 0;
--	} else if (expired_count) {
--		gc_work->next_gc_run /= 2U;
--		next_run = msecs_to_jiffies(1);
-+	if (ratio > GC_EVICT_RATIO) {
-+		gc_work->next_gc_run = min_interval;
- 	} else {
--		if (gc_work->next_gc_run < GC_INTERVAL_MAX)
--			gc_work->next_gc_run += msecs_to_jiffies(1);
-+		unsigned int max = GC_MAX_SCAN_JIFFIES / GC_MAX_BUCKETS_DIV;
- 
--		next_run = gc_work->next_gc_run;
-+		BUILD_BUG_ON((GC_MAX_SCAN_JIFFIES / GC_MAX_BUCKETS_DIV) == 0);
-+
-+		gc_work->next_gc_run += min_interval;
-+		if (gc_work->next_gc_run > max)
-+			gc_work->next_gc_run = max;
- 	}
- 
-+	next_run = gc_work->next_gc_run;
- 	gc_work->last_bucket = i;
- 	queue_delayed_work(system_long_wq, &gc_work->dwork, next_run);
- }
-@@ -1022,7 +1023,7 @@ static void gc_worker(struct work_struct *work)
- static void conntrack_gc_work_init(struct conntrack_gc_work *gc_work)
- {
- 	INIT_DELAYED_WORK(&gc_work->dwork, gc_worker);
--	gc_work->next_gc_run = GC_INTERVAL_MAX;
-+	gc_work->next_gc_run = HZ;
- 	gc_work->exiting = false;
- }
- 
-@@ -1914,7 +1915,7 @@ int nf_conntrack_init_start(void)
- 	nf_ct_untracked_status_or(IPS_CONFIRMED | IPS_UNTRACKED);
- 
- 	conntrack_gc_work_init(&conntrack_gc_work);
--	queue_delayed_work(system_long_wq, &conntrack_gc_work.dwork, GC_INTERVAL_MAX);
-+	queue_delayed_work(system_long_wq, &conntrack_gc_work.dwork, HZ);
- 
- 	return 0;
- 
--- 
-2.7.3
-
+--
+Richard Guy Briggs <rgb@redhat.com>
+Kernel Security Engineering, Base Operating Systems, Red Hat
+Remote, Ottawa, Canada
+Voice: +1.647.777.2635, Internal: (81) 32635
