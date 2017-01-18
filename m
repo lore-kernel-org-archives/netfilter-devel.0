@@ -1,65 +1,93 @@
-From: Paul Moore <pmoore@redhat.com>
-Subject: Re: AUDIT_NETFILTER_PKT message format
-Date: Wed, 18 Jan 2017 07:32:40 -0500
-Message-ID: <CAGH-KguX7fsNnZKmNxLiM5s8bnavq=6UknEaQ5Pa5xXucGHdtQ@mail.gmail.com>
-References: <20170117052551.GQ3087@madcap2.tricolour.ca>
-	<3051394.ngqbNXneNL@x2>
-	<20170117161228.GS3087@madcap2.tricolour.ca>
-	<CAHC9VhT7aR1hHfDyU-r6QXTV92rEx1x8s7cH66bzh8FiDv24eQ@mail.gmail.com>
-	<20170118023429.GW3087@madcap2.tricolour.ca>
-	<20170118053904.GE18214@madcap2.tricolour.ca>
+From: Thomas Habets <thomas@habets.se>
+Subject: [PATCH] iptables-save: Exit with error if unable to open proc file
+Date: Wed, 18 Jan 2017 13:23:59 +0000
+Message-ID: <CA+kHd+fMWmomd0ZTWO3nj0iCSOTmXoW-J4S7XNrYq86JznBM0Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
-        Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
-        Thomas Graf <tgraf@infradead.org>
-To: Richard Guy Briggs <rgb@redhat.com>
-Return-path: <linux-audit-bounces@redhat.com>
-In-Reply-To: <20170118053904.GE18214@madcap2.tricolour.ca>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/linux-audit>
-List-Post: <mailto:linux-audit@redhat.com>
-List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=subscribe>
-Sender: linux-audit-bounces@redhat.com
-Errors-To: linux-audit-bounces@redhat.com
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-qt0-f174.google.com ([209.85.216.174]:34183 "EHLO
+        mail-qt0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752189AbdARNYk (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 18 Jan 2017 08:24:40 -0500
+Received: by mail-qt0-f174.google.com with SMTP id l7so11328611qtd.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Jan 2017 05:24:25 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 18, 2017 at 12:39 AM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2017-01-17 21:34, Richard Guy Briggs wrote:
->> On 2017-01-17 15:17, Paul Moore wrote:
->> > On Tue, Jan 17, 2017 at 11:12 AM, Richard Guy Briggs <rgb@redhat.com> wrote:
->> > > On 2017-01-17 08:55, Steve Grubb wrote:
->> > >> On Tuesday, January 17, 2017 12:25:51 AM EST Richard Guy Briggs wrote:
->> >
->> > ...
->> >
->> > >> > Ones that are not so straightforward:
->> > >> > - "secmark" depends on a kernel config setting, so should it always be
->> > >> >   present but "(none)" if that kernel feature is compiled out?
->> > >>
->> > >> If this is selinux related, I'd treat it the same way that we do subj
->> > >> everywhere else.
->> > >
->> > > Ok.
->> >
->> > To be clear, a packet's secmark should be recorded via a dedicated
->> > field, e.g. "secmark", and not use the "subj" field (it isn't a
->> > subject label in the traditional sense).
->>
->> I think Steve was talking about if, when or where to include that field,
->> not what its label is.
->
-> In this case it is an "obj=" field, but since it is part of the LSM,
-> each one has its own fields.
+I sent this before without being subscribed, but it doesn't seem to
+have reached the archives so now retrying while subscribed.
 
-As I said above, use a "secmark" field and not the subject or object
-fields; packet labeling is rather complex and there is value in
-differentiating between secmark labels and network peer labels.
+If you're not root, then iptables-save silently fails (both to stderr
+and exit code). This patch fixes that.
+--
+
+
+Author: Thomas Habets <habets@google.com>
+Date:   Tue Jan 17 14:22:25 2017 +0000
+
+    iptables-save: Exit with error if unable to open proc file
+
+diff --git a/iptables/ip6tables-save.c b/iptables/ip6tables-save.c
+index f35e921..5097406 100644
+--- a/iptables/ip6tables-save.c
++++ b/iptables/ip6tables-save.c
+@@ -35,10 +35,16 @@ static int for_each_table(int (*func)(const char
+*tablename))
+        int ret = 1;
+        FILE *procfile = NULL;
+        char tablename[XT_TABLE_MAXNAMELEN+1];
++       const char *filename = "/proc/net/ip6_tables_names";
+
+-       procfile = fopen("/proc/net/ip6_tables_names", "re");
+-       if (!procfile)
+-               return ret;
++       procfile = fopen(filename, "re");
++       if (!procfile) {
++               if (errno == ENOENT) {
++                       return ret;
++               }
++               fprintf(stderr, "Failed to list table names in %s:
+%s\n", filename, strerror(errno));
++               exit(1);
++       }
+
+        while (fgets(tablename, sizeof(tablename), procfile)) {
+                if (tablename[strlen(tablename) - 1] != '\n')
+diff --git a/iptables/iptables-save.c b/iptables/iptables-save.c
+index 238f368..47d5378 100644
+--- a/iptables/iptables-save.c
++++ b/iptables/iptables-save.c
+@@ -33,10 +33,16 @@ static int for_each_table(int (*func)(const char
+*tablename))
+        int ret = 1;
+        FILE *procfile = NULL;
+        char tablename[XT_TABLE_MAXNAMELEN+1];
++       const char *filename = "/proc/net/ip_tables_names";
+
+-       procfile = fopen("/proc/net/ip_tables_names", "re");
+-       if (!procfile)
+-               return ret;
++       procfile = fopen(filename, "re");
++       if (!procfile) {
++               if (errno == ENOENT) {
++                       return ret;
++               }
++               fprintf(stderr, "Failed to list table names in %s:
+%s\n", filename, strerror(errno));
++               exit(1);
++       }
+
+        while (fgets(tablename, sizeof(tablename), procfile)) {
+                if (tablename[strlen(tablename) - 1] != '\n')
 
 -- 
-paul moore
-security @ redhat
+typedef struct me_s {
+ char name[]      = { "Thomas Habets" };
+ char email[]     = { "thomas@habets.se" };
+ char kernel[]    = { "Linux" };
+ char *pgpKey[]   = { "http://www.habets.pp.se/pubkey.txt" };
+ char pgp[] = { "9907 8698 8A24 F52F 1C2E  87F6 39A4 9EEA 460A 0169" };
+ char coolcmd[]   = { "echo '. ./_&. ./_'>_;. ./_" };
+} me_t;
