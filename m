@@ -1,93 +1,65 @@
-From: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
-Subject: Re: [PATCH nf v2] netfilter: conntrack: refine gc worker heuristics,
- redux
-Date: Wed, 18 Jan 2017 09:46:27 +0200
-Message-ID: <97b92224fc7b9aafb478a2d04fb7d070@nuclearcat.com>
-References: <1484701282-14758-1-git-send-email-fw@strlen.de>
+From: Paul Moore <pmoore@redhat.com>
+Subject: Re: AUDIT_NETFILTER_PKT message format
+Date: Wed, 18 Jan 2017 07:32:40 -0500
+Message-ID: <CAGH-KguX7fsNnZKmNxLiM5s8bnavq=6UknEaQ5Pa5xXucGHdtQ@mail.gmail.com>
+References: <20170117052551.GQ3087@madcap2.tricolour.ca>
+	<3051394.ngqbNXneNL@x2>
+	<20170117161228.GS3087@madcap2.tricolour.ca>
+	<CAHC9VhT7aR1hHfDyU-r6QXTV92rEx1x8s7cH66bzh8FiDv24eQ@mail.gmail.com>
+	<20170118023429.GW3087@madcap2.tricolour.ca>
+	<20170118053904.GE18214@madcap2.tricolour.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-        Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nuclearcat.com ([144.76.183.226]:37006 "EHLO nuclearcat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751416AbdARHqd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Jan 2017 02:46:33 -0500
-In-Reply-To: <1484701282-14758-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
+        Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
+        Thomas Graf <tgraf@infradead.org>
+To: Richard Guy Briggs <rgb@redhat.com>
+Return-path: <linux-audit-bounces@redhat.com>
+In-Reply-To: <20170118053904.GE18214@madcap2.tricolour.ca>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/linux-audit>
+List-Post: <mailto:linux-audit@redhat.com>
+List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=subscribe>
+Sender: linux-audit-bounces@redhat.com
+Errors-To: linux-audit-bounces@redhat.com
+List-Id: netfilter-devel.vger.kernel.org
 
-On 2017-01-18 03:01, Florian Westphal wrote:
-> This further refines the changes made to conntrack gc_worker in
-> commit e0df8cae6c16 ("netfilter: conntrack: refine gc worker 
-> heuristics").
-> 
-> The main idea of that change was to reduce the scan interval when 
-> evictions
-> take place.
-> 
-> However, on the reporters' setup, there are 1-2 million conntrack 
-> entries
-> in total and roughly 8k new (and closing) connections per second.
-> 
-> In this case we'll always evict at least one entry per gc cycle and 
-> scan
-> interval is always at 1 jiffy because of this test:
-> 
->  } else if (expired_count) {
->      gc_work->next_gc_run /= 2U;
->      next_run = msecs_to_jiffies(1);
-> 
-> being true almost all the time.
-> 
-> Given we scan ~10k entries per run its clearly wrong to reduce interval
-> based on nonzero eviction count, it will only waste cpu cycles since a 
-> vast
-> majorities of conntracks are not timed out.
-> 
-> Thus only look at the ratio (scanned entries vs. evicted entries) to 
-> make
-> a decision on whether to reduce or not.
-> 
-> Because evictor is supposed to only kick in when system turns idle 
-> after
-> a busy period, pick a high ratio -- this makes it 50%.  We thus keep
-> the idea of increasing scan rate when its likely that table contains 
-> many
-> expired entries.
-> 
-> In order to not let timed-out entries hang around for too long
-> (important when using event logging, in which case we want to timely
-> destroy events), we now scan the full table within at most
-> GC_MAX_SCAN_JIFFIES (16 seconds) even in worst-case scenario where all
-> timed-out entries sit in same slot.
-> 
-> I tested this with a vm under synflood (with
-> sysctl net.netfilter.nf_conntrack_tcp_timeout_syn_recv=3).
-> 
-> While flood is ongoing, interval now stays at its max rate
-> (GC_MAX_SCAN_JIFFIES / GC_MAX_BUCKETS_DIV -> 125ms).
-> 
-> With feedback from Nicolas Dichtel.
-> 
-> Reported-by: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
-> Cc: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-> Fixes: b87a2f9199ea82eaadc ("netfilter: conntrack: add gc worker to
-> remove timed-out entries")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
-> this is on top of
-> https://patchwork.ozlabs.org/patch/715850/
-> ('netfilter: conntrack: remove GC_MAX_EVICTS break').
-> 
-> Nicolas, this is almost the same patch that you already tested, i
-> did some renames and changed the minimum interval to 
-> HZ/GC_MAX_BUCKETS_DIV
-> everywhere for consistency.
-> 
-> Denys, I am sure this fixes the gc_work cpu hogging you reported,
-> ntl, it would be great if you could test this.
-I will try to test tonight this patch
+On Wed, Jan 18, 2017 at 12:39 AM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2017-01-17 21:34, Richard Guy Briggs wrote:
+>> On 2017-01-17 15:17, Paul Moore wrote:
+>> > On Tue, Jan 17, 2017 at 11:12 AM, Richard Guy Briggs <rgb@redhat.com> wrote:
+>> > > On 2017-01-17 08:55, Steve Grubb wrote:
+>> > >> On Tuesday, January 17, 2017 12:25:51 AM EST Richard Guy Briggs wrote:
+>> >
+>> > ...
+>> >
+>> > >> > Ones that are not so straightforward:
+>> > >> > - "secmark" depends on a kernel config setting, so should it always be
+>> > >> >   present but "(none)" if that kernel feature is compiled out?
+>> > >>
+>> > >> If this is selinux related, I'd treat it the same way that we do subj
+>> > >> everywhere else.
+>> > >
+>> > > Ok.
+>> >
+>> > To be clear, a packet's secmark should be recorded via a dedicated
+>> > field, e.g. "secmark", and not use the "subj" field (it isn't a
+>> > subject label in the traditional sense).
+>>
+>> I think Steve was talking about if, when or where to include that field,
+>> not what its label is.
+>
+> In this case it is an "obj=" field, but since it is part of the LSM,
+> each one has its own fields.
+
+As I said above, use a "secmark" field and not the subject or object
+fields; packet labeling is rather complex and there is value in
+differentiating between secmark labels and network peer labels.
+
+-- 
+paul moore
+security @ redhat
