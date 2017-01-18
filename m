@@ -1,80 +1,167 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: tcp state in conntrack destroy events
-Date: Wed, 18 Jan 2017 00:47:33 +0100
-Message-ID: <20170117234733.GD12001@breakpoint.cc>
-References: <fdd3eb50-75d3-32e1-d7a0-f333050aece5@inliniac.net>
- <20170117212807.GC12001@breakpoint.cc>
- <EAB296C2-DCE6-4CCD-9AB9-5505C9C1B2BD@ovn.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-        Victor Julien <lists@inliniac.net>,
-        Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Jarno Rajahalme <jarno@ovn.org>
+Subject: [PATCH nf v2] netfilter: conntrack: refine gc worker heuristics, redux
+Date: Wed, 18 Jan 2017 02:01:22 +0100
+Message-ID: <1484701282-14758-1-git-send-email-fw@strlen.de>
+Cc: nuclearcat@nuclearcat.com, Florian Westphal <fw@strlen.de>,
+        Nicolas Dichtel <nicolas.dichtel@6wind.com>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57456 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57778 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751993AbdAQXrx (ORCPT
+        by vger.kernel.org with ESMTP id S1751386AbdARBCV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Jan 2017 18:47:53 -0500
-Content-Disposition: inline
-In-Reply-To: <EAB296C2-DCE6-4CCD-9AB9-5505C9C1B2BD@ovn.org>
+        Tue, 17 Jan 2017 20:02:21 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jarno Rajahalme <jarno@ovn.org> wrote:
-> 
-> > On Jan 17, 2017, at 1:28 PM, Florian Westphal <fw@strlen.de> wrote:
-> > 
-> > Victor Julien <lists@inliniac.net> wrote:
-> >> I was hoping to get the last TCP state in a conntrack destroy event,
-> >> however it seems to be unavailable.
-> >> 
-> >> Through libnetfilter_conntrack the value retrieved at ATTR_TCP_STATE is
-> >> always 0.
-> >> 
-> >> Using the conntrack command I see the same behavior:
-> >> 
-> >> destroy doesn't have it (conntrack -E -e destroy -p tcp):
-> >> 
-> >> [DESTROY] tcp      6 src=218.65.30.38 dst=192.168.178.254 sport=61063
-> >> dport=22 packets=11 bytes=820 src=192.168.0.123 dst=218.65.30.38
-> >> sport=22 dport=61063 packets=8 bytes=424 [ASSURED] mark=3 delta-time=77
-> >> 
-> >> update does (conntrack -E -e updates -p tcp):
-> >> 
-> >> [UPDATE] tcp      6 120 FIN_WAIT src=192.168.0.53 dst=x.x.x.x
-> >> sport=52958 dport=443 src=x.x.x.x dst=192.168.178.254 sport=443
-> >> dport=52958 [ASSURED] mark=3
-> >> 
-> >> Is this intentional? My goal is to create connection log that includes a
-> >> hint about why the connection is gone.
-> > 
-> > Yes, its intentional, see
-> > net/netfilter/nf_conntrack_netlink.c, there is a check for DESTROY
-> > that supresses most of the extra info:
-> > 
-> > 682 if (events & (1 << IPCT_DESTROY)) {
-> > 683    if (ctnetlink_dump_acct(skb, ct, type) < 0 ||
-> > 684        ctnetlink_dump_timestamp(skb, ct) < 0)
-> > 685           goto nla_put_failure;
-> > 686    } else {
-> > ..
-> > 	/* IPCT_PROTOINFO */
-> > 
-> > Pablo made this change in 7b621c1ea64a54f77b8a841b16dc4c9fee3ecf48,
-> > i guess the rationale was that clients aren't interested in this
-> > on DESTROY.
-> > 
-> > Would be easy to change this.
-> 
-> I have a use case where we want to log terminating connections, but only if a specific label bit is set. To do this, we currently have to listen to both create and destroy events and keep track of all the connections in the userspace to be able to correlate destroy event to the connection and from there to the labels. Would be nice if the destroy event included labels, so that we would not have to listen to create events nor keep a duplicate connection tracking table in userspace.
+This further refines the changes made to conntrack gc_worker in
+commit e0df8cae6c16 ("netfilter: conntrack: refine gc worker heuristics").
 
-Pablo isn't to blame, that was me :)
+The main idea of that change was to reduce the scan interval when evictions
+take place.
 
-When I added label support I simply did not consider this and only placed
-this in the non-destroy path.
+However, on the reporters' setup, there are 1-2 million conntrack entries
+in total and roughly 8k new (and closing) connections per second.
 
-I have no objections to includte labels unconditionally, might as well
-also move secmark too.
+In this case we'll always evict at least one entry per gc cycle and scan
+interval is always at 1 jiffy because of this test:
+
+ } else if (expired_count) {
+     gc_work->next_gc_run /= 2U;
+     next_run = msecs_to_jiffies(1);
+
+being true almost all the time.
+
+Given we scan ~10k entries per run its clearly wrong to reduce interval
+based on nonzero eviction count, it will only waste cpu cycles since a vast
+majorities of conntracks are not timed out.
+
+Thus only look at the ratio (scanned entries vs. evicted entries) to make
+a decision on whether to reduce or not.
+
+Because evictor is supposed to only kick in when system turns idle after
+a busy period, pick a high ratio -- this makes it 50%.  We thus keep
+the idea of increasing scan rate when its likely that table contains many
+expired entries.
+
+In order to not let timed-out entries hang around for too long
+(important when using event logging, in which case we want to timely
+destroy events), we now scan the full table within at most
+GC_MAX_SCAN_JIFFIES (16 seconds) even in worst-case scenario where all
+timed-out entries sit in same slot.
+
+I tested this with a vm under synflood (with
+sysctl net.netfilter.nf_conntrack_tcp_timeout_syn_recv=3).
+
+While flood is ongoing, interval now stays at its max rate
+(GC_MAX_SCAN_JIFFIES / GC_MAX_BUCKETS_DIV -> 125ms).
+
+With feedback from Nicolas Dichtel.
+
+Reported-by: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
+Cc: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Fixes: b87a2f9199ea82eaadc ("netfilter: conntrack: add gc worker to remove timed-out entries")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+this is on top of
+https://patchwork.ozlabs.org/patch/715850/
+('netfilter: conntrack: remove GC_MAX_EVICTS break').
+
+Nicolas, this is almost the same patch that you already tested, i
+did some renames and changed the minimum interval to HZ/GC_MAX_BUCKETS_DIV
+everywhere for consistency.
+
+Denys, I am sure this fixes the gc_work cpu hogging you reported,
+ntl, it would be great if you could test this.
+
+ net/netfilter/nf_conntrack_core.c | 39 ++++++++++++++++++++-------------------
+ 1 file changed, 20 insertions(+), 19 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 6feb5d370319..4e8083c5e01d 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -85,9 +85,11 @@ static __read_mostly DEFINE_SPINLOCK(nf_conntrack_locks_all_lock);
+ static __read_mostly bool nf_conntrack_locks_all;
+ 
+ /* every gc cycle scans at most 1/GC_MAX_BUCKETS_DIV part of table */
+-#define GC_MAX_BUCKETS_DIV	64u
+-/* upper bound of scan intervals */
+-#define GC_INTERVAL_MAX		(2 * HZ)
++#define GC_MAX_BUCKETS_DIV	128u
++/* upper bound of full table scan */
++#define GC_MAX_SCAN_JIFFIES	(16u * HZ)
++/* desired ratio of entries found to be expired */
++#define GC_EVICT_RATIO	50u
+ 
+ static struct conntrack_gc_work conntrack_gc_work;
+ 
+@@ -936,6 +938,7 @@ static noinline int early_drop(struct net *net, unsigned int _hash)
+ 
+ static void gc_worker(struct work_struct *work)
+ {
++	unsigned int min_interval = max(HZ / GC_MAX_BUCKETS_DIV, 1u);
+ 	unsigned int i, goal, buckets = 0, expired_count = 0;
+ 	struct conntrack_gc_work *gc_work;
+ 	unsigned int ratio, scanned = 0;
+@@ -994,27 +997,25 @@ static void gc_worker(struct work_struct *work)
+ 	 * 1. Minimize time until we notice a stale entry
+ 	 * 2. Maximize scan intervals to not waste cycles
+ 	 *
+-	 * Normally, expired_count will be 0, this increases the next_run time
+-	 * to priorize 2) above.
++	 * Normally, expire ratio will be close to 0.
+ 	 *
+-	 * As soon as a timed-out entry is found, move towards 1) and increase
+-	 * the scan frequency.
+-	 * In case we have lots of evictions next scan is done immediately.
++	 * As soon as a sizeable fraction of the entries have expired
++	 * increase scan frequency.
+ 	 */
+ 	ratio = scanned ? expired_count * 100 / scanned : 0;
+-	if (ratio >= 90) {
+-		gc_work->next_gc_run = 0;
+-		next_run = 0;
+-	} else if (expired_count) {
+-		gc_work->next_gc_run /= 2U;
+-		next_run = msecs_to_jiffies(1);
++	if (ratio > GC_EVICT_RATIO) {
++		gc_work->next_gc_run = min_interval;
+ 	} else {
+-		if (gc_work->next_gc_run < GC_INTERVAL_MAX)
+-			gc_work->next_gc_run += msecs_to_jiffies(1);
++		unsigned int max = GC_MAX_SCAN_JIFFIES / GC_MAX_BUCKETS_DIV;
+ 
+-		next_run = gc_work->next_gc_run;
++		BUILD_BUG_ON((GC_MAX_SCAN_JIFFIES / GC_MAX_BUCKETS_DIV) == 0);
++
++		gc_work->next_gc_run += min_interval;
++		if (gc_work->next_gc_run > max)
++			gc_work->next_gc_run = max;
+ 	}
+ 
++	next_run = gc_work->next_gc_run;
+ 	gc_work->last_bucket = i;
+ 	queue_delayed_work(system_long_wq, &gc_work->dwork, next_run);
+ }
+@@ -1022,7 +1023,7 @@ static void gc_worker(struct work_struct *work)
+ static void conntrack_gc_work_init(struct conntrack_gc_work *gc_work)
+ {
+ 	INIT_DELAYED_WORK(&gc_work->dwork, gc_worker);
+-	gc_work->next_gc_run = GC_INTERVAL_MAX;
++	gc_work->next_gc_run = HZ;
+ 	gc_work->exiting = false;
+ }
+ 
+@@ -1914,7 +1915,7 @@ int nf_conntrack_init_start(void)
+ 	nf_ct_untracked_status_or(IPS_CONFIRMED | IPS_UNTRACKED);
+ 
+ 	conntrack_gc_work_init(&conntrack_gc_work);
+-	queue_delayed_work(system_long_wq, &conntrack_gc_work.dwork, GC_INTERVAL_MAX);
++	queue_delayed_work(system_long_wq, &conntrack_gc_work.dwork, HZ);
+ 
+ 	return 0;
+ 
+-- 
+2.7.3
+
