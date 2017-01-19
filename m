@@ -1,95 +1,105 @@
-From: Elise Lennion <elise.lennion@gmail.com>
-Subject: [PATCH nft] src: Honor obligatory stateless printing of flow tables
-Date: Wed, 18 Jan 2017 21:06:47 -0200
-Message-ID: <20170118230647.GA12926@lennorien.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: fgao@ikuai8.com
+Subject: [PATCH nf-next v2 1/1] netfilter: nf_tables: Eliminate duplicated codes in nf_tables_table_enable
+Date: Thu, 19 Jan 2017 19:18:10 +0800
+Message-ID: <1484824690-46965-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:33516 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751291AbdARXG7 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Jan 2017 18:06:59 -0500
-Received: by mail-qt0-f194.google.com with SMTP id n13so4805735qtc.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Jan 2017 15:06:54 -0800 (PST)
-Content-Disposition: inline
+Received: from smtpbg320.qq.com ([14.17.32.29]:52954 "EHLO smtpbg320.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752188AbdASLTY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 19 Jan 2017 06:19:24 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
----
- include/nftables.h | 2 +-
- src/main.c         | 4 ++--
- src/statement.c    | 4 ++++
- 3 files changed, 7 insertions(+), 3 deletions(-)
+From: Feng <fgao@ikuai8.com>
 
-diff --git a/include/nftables.h b/include/nftables.h
-index 760bbff..6f54155 100644
---- a/include/nftables.h
-+++ b/include/nftables.h
-@@ -26,10 +26,10 @@ enum debug_level {
- 
- extern unsigned int max_errors;
- extern unsigned int numeric_output;
-+extern unsigned int stateless_output;
- extern unsigned int ip2name_output;
- extern unsigned int handle_output;
- extern unsigned int debug_level;
--extern bool stateless_output;
- extern const char *include_paths[INCLUDE_PATHS_MAX];
- 
- enum nftables_exit_codes {
-diff --git a/src/main.c b/src/main.c
-index 6d073d5..6ba752b 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -30,12 +30,12 @@
- 
- unsigned int max_errors = 10;
- unsigned int numeric_output;
-+unsigned int stateless_output;
- unsigned int ip2name_output;
- unsigned int handle_output;
- #ifdef DEBUG
- unsigned int debug_level;
- #endif
--bool stateless_output;
- 
- const char *include_paths[INCLUDE_PATHS_MAX] = { DEFAULT_INCLUDE_PATH };
- static unsigned int num_include_paths = 1;
-@@ -291,7 +291,7 @@ int main(int argc, char * const *argv)
- 			numeric_output++;
- 			break;
- 		case OPT_STATELESS:
--			stateless_output = true;
-+			stateless_output++;
- 			break;
- 		case OPT_IP2NAME:
- 			ip2name_output++;
-diff --git a/src/statement.c b/src/statement.c
-index 7e2e448..20f37a6 100644
---- a/src/statement.c
-+++ b/src/statement.c
-@@ -109,6 +109,8 @@ struct stmt *verdict_stmt_alloc(const struct location *loc, struct expr *expr)
- 
- static void flow_stmt_print(const struct stmt *stmt)
- {
-+	stateless_output++;
-+
- 	printf("flow ");
- 	if (stmt->flow.set) {
- 		expr_print(stmt->flow.set, NULL);
-@@ -119,6 +121,8 @@ static void flow_stmt_print(const struct stmt *stmt)
- 	printf(" ");
- 	stmt_print(stmt->flow.stmt);
- 	printf("} ");
-+
-+	stateless_output--;
+When something failed in nf_tables_table_enable, it would unregister
+the chains. But the rollback codes are same as nf_tables_table_disable
+almostly, except there is one counter check.
+Now create one wrapper function to eliminate the duplicated codes.
+
+Signed-off-by: Feng <fgao@ikuai8.com>
+---
+ v2: Use cnt "0" as unlimited rules counter, per Pablo;
+ v1: Initial version;
+
+ net/netfilter/nf_tables_api.c | 47 ++++++++++++++++++++++---------------------
+ 1 file changed, 24 insertions(+), 23 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a019a87..c87f8d0 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -576,6 +576,27 @@ static int nf_tables_gettable(struct net *net, struct sock *nlsk,
+ 	return err;
  }
  
- static void flow_stmt_destroy(struct stmt *stmt)
++static void _nf_tables_table_disable(struct net *net,
++				     const struct nft_af_info *afi,
++				     struct nft_table *table,
++				     u32 cnt)
++{
++	struct nft_chain *chain;
++
++	list_for_each_entry(chain, &table->chains, list) {
++		if (!nft_is_active_next(net, chain))
++			continue;
++		if (!(chain->flags & NFT_BASE_CHAIN))
++			continue;
++
++		if (cnt && --cnt == 0)
++			break;
++
++		nf_unregister_net_hooks(net, nft_base_chain(chain)->ops,
++					afi->nops);
++	}
++}
++
+ static int nf_tables_table_enable(struct net *net,
+ 				  const struct nft_af_info *afi,
+ 				  struct nft_table *table)
+@@ -598,18 +619,8 @@ static int nf_tables_table_enable(struct net *net,
+ 	}
+ 	return 0;
+ err:
+-	list_for_each_entry(chain, &table->chains, list) {
+-		if (!nft_is_active_next(net, chain))
+-			continue;
+-		if (!(chain->flags & NFT_BASE_CHAIN))
+-			continue;
+-
+-		if (i-- <= 0)
+-			break;
+-
+-		nf_unregister_net_hooks(net, nft_base_chain(chain)->ops,
+-					afi->nops);
+-	}
++	if (i)
++		_nf_tables_table_disable(net, afi, table, i);
+ 	return err;
+ }
+ 
+@@ -617,17 +628,7 @@ static void nf_tables_table_disable(struct net *net,
+ 				    const struct nft_af_info *afi,
+ 				    struct nft_table *table)
+ {
+-	struct nft_chain *chain;
+-
+-	list_for_each_entry(chain, &table->chains, list) {
+-		if (!nft_is_active_next(net, chain))
+-			continue;
+-		if (!(chain->flags & NFT_BASE_CHAIN))
+-			continue;
+-
+-		nf_unregister_net_hooks(net, nft_base_chain(chain)->ops,
+-					afi->nops);
+-	}
++	_nf_tables_table_disable(net, afi, table, 0);
+ }
+ 
+ static int nf_tables_updtable(struct nft_ctx *ctx)
 -- 
-2.7.4
+1.9.1
+
 
