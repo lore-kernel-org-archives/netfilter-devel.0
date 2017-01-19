@@ -1,49 +1,102 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf] netfilter: nf_tables: report error if stateful obj's
- name is truncated
-Date: Thu, 19 Jan 2017 16:22:40 +0100
-Message-ID: <20170119152240.GC16765@breakpoint.cc>
-References: <1484834420-55121-1-git-send-email-zlpnobody@163.com>
- <20170119140914.GA11241@salvia>
- <CAML_gOc=0wpF9ERvvC5Vp3ncMdijrt9hOkSci1tc4tMUoR2uQg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Liping Zhang <zlpnobody@163.com>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Liping Zhang <zlpnobody@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] netlink: don't bail out on dump errors
+Date: Thu, 19 Jan 2017 17:52:55 +0100
+Message-ID: <1484844775-6691-1-git-send-email-pablo@netfilter.org>
+Cc: pablombg@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:38302 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753866AbdASQeU (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Jan 2017 11:34:20 -0500
-Content-Disposition: inline
-In-Reply-To: <CAML_gOc=0wpF9ERvvC5Vp3ncMdijrt9hOkSci1tc4tMUoR2uQg@mail.gmail.com>
+Received: from mail.us.es ([193.147.175.20]:49082 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753224AbdASQxy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 19 Jan 2017 11:53:54 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id C7CE31BFA8B
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Jan 2017 17:53:02 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9BED2DA725
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Jan 2017 17:53:02 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5CACB179E27
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Jan 2017 17:53:00 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Liping Zhang <zlpnobody@gmail.com> wrote:
-> > At quick glance, I can see other spots lacking this validation:
-> >
-> > static const struct nla_policy nft_chain_policy[NFTA_CHAIN_MAX + 1] =
-> > {
-> >         [NFTA_CHAIN_TABLE]      = { .type = NLA_STRING },
-> >
-> > Probably review and fix them in one go?
-> 
-> The nft table name's size is limited at this place:
-> static const struct nla_policy nft_table_policy[NFTA_TABLE_MAX + 1] = {
->         [NFTA_TABLE_NAME] = { .type = NLA_STRING,
->                                                    .len =
-> NFT_TABLE_MAXNAMELEN - 1 },
-> 
-> If NFTA_CHAIN_TABLE's size exceeded 31, nf_tables_table_lookup will
-> fail eventually.
-> 
-> So I think adding the validation of NFTA_CHAIN_TABLE's size is not
-> important.
+This patch removes the existing error messages on netlink dump errors.
+These functions used to be called from list commands. These days they
+are called from the cache cache population path.
 
-Perhaps but its better to have it anyway so that you don't need this
-extra context to understand that its limited in practice.
+Note that nft breaks with older kernels at netlink_list_objs() since we
+have no stateful objects support there.
+
+Silence errors at this stage and return an empty list, thus, nft bails
+out on explicit user commands if no nf_tables support is available.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Please, give it a test and let me know if this fixes the problem for you, thanks!
+
+ src/netlink.c | 20 +++++---------------
+ 1 file changed, 5 insertions(+), 15 deletions(-)
+
+diff --git a/src/netlink.c b/src/netlink.c
+index 4135f2517a09..73ee5c973d16 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -551,9 +551,7 @@ static int netlink_list_rules(struct netlink_ctx *ctx, const struct handle *h,
+ 		if (errno == EINTR)
+ 			return -1;
+ 
+-		return netlink_io_error(ctx, loc,
+-					"Could not receive rules from kernel: %s",
+-					strerror(errno));
++		return 0;
+ 	}
+ 
+ 	ctx->data = h;
+@@ -827,9 +825,7 @@ int netlink_list_chains(struct netlink_ctx *ctx, const struct handle *h,
+ 		if (errno == EINTR)
+ 			return -1;
+ 
+-		return netlink_io_error(ctx, loc,
+-					"Could not receive chains from kernel: %s",
+-					strerror(errno));
++		return 0;
+ 	}
+ 
+ 	ctx->data = h;
+@@ -1029,9 +1025,7 @@ int netlink_list_tables(struct netlink_ctx *ctx, const struct handle *h,
+ 		if (errno == EINTR)
+ 			return -1;
+ 
+-		return netlink_io_error(ctx, loc,
+-					"Could not receive tables from kernel: %s",
+-					strerror(errno));
++		return 0;
+ 	}
+ 
+ 	nftnl_table_list_foreach(table_cache, list_table_cb, ctx);
+@@ -1331,9 +1325,7 @@ int netlink_list_sets(struct netlink_ctx *ctx, const struct handle *h,
+ 		if (errno == EINTR)
+ 			return -1;
+ 
+-		return netlink_io_error(ctx, loc,
+-					"Could not receive sets from kernel: %s",
+-					strerror(errno));
++		return 0;
+ 	}
+ 
+ 	err = nftnl_set_list_foreach(set_cache, list_set_cb, ctx);
+@@ -1789,9 +1781,7 @@ int netlink_list_objs(struct netlink_ctx *ctx, const struct handle *h,
+ 		if (errno == EINTR)
+ 			return -1;
+ 
+-		return netlink_io_error(ctx, loc,
+-					"Could not receive stateful objects from kernel: %s",
+-					strerror(errno));
++		return 0;
+ 	}
+ 
+ 	err = nftnl_obj_list_foreach(obj_cache, list_obj_cb, ctx);
+-- 
+2.1.4
+
