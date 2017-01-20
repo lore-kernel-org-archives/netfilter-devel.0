@@ -1,87 +1,157 @@
-From: Arturo Borrero Gonzalez <arturo@debian.org>
-Subject: [nft PATCH] payload: use explicit network ctx assignation for
- icmp/icmp6 in inet family
-Date: Fri, 20 Jan 2017 13:20:11 +0100
-Message-ID: <148491481186.20302.13599222282579510532.stgit@nfdev2.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf V2] netfilter: nf_tables: validate the name size when possible
+Date: Fri, 20 Jan 2017 21:03:03 +0800
+Message-ID: <1484917383-52757-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
+        Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:43818 "EHLO smtp.cica.es"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751875AbdATMsF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Jan 2017 07:48:05 -0500
-Received: from localhost (unknown [127.0.0.1])
-        by smtp.cica.es (Postfix) with ESMTP id AD23F51F3AA
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jan 2017 12:20:18 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id KHAq3v8XvdC2 for <netfilter-devel@vger.kernel.org>;
-        Fri, 20 Jan 2017 13:20:12 +0100 (CET)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-        (Authenticated sender: servers@cica.es)
-        by smtp.cica.es (Postfix) with ESMTP id D128051F398
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jan 2017 13:20:12 +0100 (CET)
+Received: from m12-15.163.com ([220.181.12.15]:59783 "EHLO m12-15.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751323AbdATNEE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 20 Jan 2017 08:04:04 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In the inet family, we can add rules like these:
+From: Liping Zhang <zlpnobody@gmail.com>
 
-% nft add rule inet t c ip protocol icmp icmp type echo-request
-% nft add rule inet t c ip6 nexthdr icmpv6 icmpv6 type echo-request
+Currently, if the user add a stateful object with the name size exceed
+NFT_OBJ_MAXNAMELEN - 1 (i.e. 31), we truncate it down to 31 silently.
+This is not friendly, furthermore, this will cause duplicated stateful
+objects when the first 31 characters of the name is same. So limit the
+stateful object's name size to NFT_OBJ_MAXNAMELEN - 1.
 
-However, when we print the ruleset:
+After apply this patch, error message will be printed out like this:
+  # name_32=$(printf "%0.sQ" {1..32})
+  # nft add counter filter $name_32
+  <cmdline>:1:1-52: Error: Could not process rule: Numerical result out
+  of range
+  add counter filter QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-% nft list ruleset
-table inet t {
-	chain c {
-		icmpv6 type echo-request
-		icmp type echo-request
-	}
-}
+Also this patch cleans up the codes which missing the name size limit
+validation in nftables.
 
-These rules we obtain can't be added again:
-
-% nft add rule inet t c icmp type echo-request
-<cmdline>:1:19-27: Error: conflicting protocols specified: inet-service vs. icmp
-add rule inet t c icmp type echo-request
-                  ^^^^^^^^^
-
-% nft add rule inet t c icmpv6 type echo-request
-<cmdline>:1:19-29: Error: conflicting protocols specified: inet-service vs. icmpv6
-add rule inet t c icmpv6 type echo-request
-                  ^^^^^^^^^^^
-
-Since I wouldn't expect an IP packet carrying ICMPv6, or IPv6 packet
-carrying ICMP, if the link layer is inet, the network layer protocol context
-can be safely update to 'ip' or 'ip6'.
-
-Moreover, nft currently generates a 'meta nfproto ipvX' depedency when
-using icmp or icmp6 in the inet family.
-
-Fixes: https://bugzilla.netfilter.org/show_bug.cgi?id=1073
-Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
+Fixes: e50092404c1b ("netfilter: nf_tables: add stateful objects")
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 ---
- src/payload.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ V2: add the name size limit validation in more places suggested by
+     Pablo and Florian.
 
-diff --git a/src/payload.c b/src/payload.c
-index af533b2..9cca838 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -284,7 +284,12 @@ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
- 				desc = &proto_inet;
- 				break;
- 			case PROTO_BASE_TRANSPORT_HDR:
--				desc = &proto_inet_service;
-+				if (expr->payload.desc == &proto_icmp)
-+					desc = &proto_ip;
-+				else if (expr->payload.desc == &proto_icmp6)
-+					desc = &proto_ip6;
-+				else
-+					desc = &proto_inet_service;
- 				break;
- 			default:
- 				break;
+ net/netfilter/nf_tables_api.c | 21 ++++++++++++++-------
+ net/netfilter/nft_dynset.c    |  3 ++-
+ net/netfilter/nft_lookup.c    |  3 ++-
+ net/netfilter/nft_objref.c    |  6 ++++--
+ 4 files changed, 22 insertions(+), 11 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 091d2dc..b84c7b2 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -928,7 +928,8 @@ static struct nft_chain *nf_tables_chain_lookup(const struct nft_table *table,
+ }
+ 
+ static const struct nla_policy nft_chain_policy[NFTA_CHAIN_MAX + 1] = {
+-	[NFTA_CHAIN_TABLE]	= { .type = NLA_STRING },
++	[NFTA_CHAIN_TABLE]	= { .type = NLA_STRING,
++				    .len = NFT_TABLE_MAXNAMELEN - 1 },
+ 	[NFTA_CHAIN_HANDLE]	= { .type = NLA_U64 },
+ 	[NFTA_CHAIN_NAME]	= { .type = NLA_STRING,
+ 				    .len = NFT_CHAIN_MAXNAMELEN - 1 },
+@@ -1854,7 +1855,8 @@ static struct nft_rule *nf_tables_rule_lookup(const struct nft_chain *chain,
+ }
+ 
+ static const struct nla_policy nft_rule_policy[NFTA_RULE_MAX + 1] = {
+-	[NFTA_RULE_TABLE]	= { .type = NLA_STRING },
++	[NFTA_RULE_TABLE]	= { .type = NLA_STRING,
++				    .len = NFT_TABLE_MAXNAMELEN - 1 },
+ 	[NFTA_RULE_CHAIN]	= { .type = NLA_STRING,
+ 				    .len = NFT_CHAIN_MAXNAMELEN - 1 },
+ 	[NFTA_RULE_HANDLE]	= { .type = NLA_U64 },
+@@ -2443,7 +2445,8 @@ nft_select_set_ops(const struct nlattr * const nla[],
+ }
+ 
+ static const struct nla_policy nft_set_policy[NFTA_SET_MAX + 1] = {
+-	[NFTA_SET_TABLE]		= { .type = NLA_STRING },
++	[NFTA_SET_TABLE]		= { .type = NLA_STRING,
++					    .len = NFT_TABLE_MAXNAMELEN - 1 },
+ 	[NFTA_SET_NAME]			= { .type = NLA_STRING,
+ 					    .len = NFT_SET_MAXNAMELEN - 1 },
+ 	[NFTA_SET_FLAGS]		= { .type = NLA_U32 },
+@@ -3192,8 +3195,10 @@ static const struct nla_policy nft_set_elem_policy[NFTA_SET_ELEM_MAX + 1] = {
+ };
+ 
+ static const struct nla_policy nft_set_elem_list_policy[NFTA_SET_ELEM_LIST_MAX + 1] = {
+-	[NFTA_SET_ELEM_LIST_TABLE]	= { .type = NLA_STRING },
+-	[NFTA_SET_ELEM_LIST_SET]	= { .type = NLA_STRING },
++	[NFTA_SET_ELEM_LIST_TABLE]	= { .type = NLA_STRING,
++					    .len = NFT_TABLE_MAXNAMELEN - 1 },
++	[NFTA_SET_ELEM_LIST_SET]	= { .type = NLA_STRING,
++					    .len = NFT_SET_MAXNAMELEN - 1 },
+ 	[NFTA_SET_ELEM_LIST_ELEMENTS]	= { .type = NLA_NESTED },
+ 	[NFTA_SET_ELEM_LIST_SET_ID]	= { .type = NLA_U32 },
+ };
+@@ -4032,8 +4037,10 @@ struct nft_object *nf_tables_obj_lookup(const struct nft_table *table,
+ EXPORT_SYMBOL_GPL(nf_tables_obj_lookup);
+ 
+ static const struct nla_policy nft_obj_policy[NFTA_OBJ_MAX + 1] = {
+-	[NFTA_OBJ_TABLE]	= { .type = NLA_STRING },
+-	[NFTA_OBJ_NAME]		= { .type = NLA_STRING },
++	[NFTA_OBJ_TABLE]	= { .type = NLA_STRING,
++				    .len = NFT_TABLE_MAXNAMELEN - 1 },
++	[NFTA_OBJ_NAME]		= { .type = NLA_STRING,
++				    .len = NFT_OBJ_MAXNAMELEN - 1 },
+ 	[NFTA_OBJ_TYPE]		= { .type = NLA_U32 },
+ 	[NFTA_OBJ_DATA]		= { .type = NLA_NESTED },
+ };
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index 7de2f46..049ad2d 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -98,7 +98,8 @@ static void nft_dynset_eval(const struct nft_expr *expr,
+ }
+ 
+ static const struct nla_policy nft_dynset_policy[NFTA_DYNSET_MAX + 1] = {
+-	[NFTA_DYNSET_SET_NAME]	= { .type = NLA_STRING },
++	[NFTA_DYNSET_SET_NAME]	= { .type = NLA_STRING,
++				    .len = NFT_SET_MAXNAMELEN - 1 },
+ 	[NFTA_DYNSET_SET_ID]	= { .type = NLA_U32 },
+ 	[NFTA_DYNSET_OP]	= { .type = NLA_U32 },
+ 	[NFTA_DYNSET_SREG_KEY]	= { .type = NLA_U32 },
+diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
+index d4f97fa..e21aea7 100644
+--- a/net/netfilter/nft_lookup.c
++++ b/net/netfilter/nft_lookup.c
+@@ -49,7 +49,8 @@ static void nft_lookup_eval(const struct nft_expr *expr,
+ }
+ 
+ static const struct nla_policy nft_lookup_policy[NFTA_LOOKUP_MAX + 1] = {
+-	[NFTA_LOOKUP_SET]	= { .type = NLA_STRING },
++	[NFTA_LOOKUP_SET]	= { .type = NLA_STRING,
++				    .len = NFT_SET_MAXNAMELEN - 1 },
+ 	[NFTA_LOOKUP_SET_ID]	= { .type = NLA_U32 },
+ 	[NFTA_LOOKUP_SREG]	= { .type = NLA_U32 },
+ 	[NFTA_LOOKUP_DREG]	= { .type = NLA_U32 },
+diff --git a/net/netfilter/nft_objref.c b/net/netfilter/nft_objref.c
+index 415a65b..1ae8c49 100644
+--- a/net/netfilter/nft_objref.c
++++ b/net/netfilter/nft_objref.c
+@@ -193,10 +193,12 @@ nft_objref_select_ops(const struct nft_ctx *ctx,
+ }
+ 
+ static const struct nla_policy nft_objref_policy[NFTA_OBJREF_MAX + 1] = {
+-	[NFTA_OBJREF_IMM_NAME]	= { .type = NLA_STRING },
++	[NFTA_OBJREF_IMM_NAME]	= { .type = NLA_STRING,
++				    .len = NFT_OBJ_MAXNAMELEN - 1 },
+ 	[NFTA_OBJREF_IMM_TYPE]	= { .type = NLA_U32 },
+ 	[NFTA_OBJREF_SET_SREG]	= { .type = NLA_U32 },
+-	[NFTA_OBJREF_SET_NAME]	= { .type = NLA_STRING },
++	[NFTA_OBJREF_SET_NAME]	= { .type = NLA_STRING,
++				    .len = NFT_SET_MAXNAMELEN - 1 },
+ 	[NFTA_OBJREF_SET_ID]	= { .type = NLA_U32 },
+ };
+ 
+-- 
+2.5.5
+
 
