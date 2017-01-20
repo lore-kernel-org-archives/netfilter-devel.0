@@ -1,48 +1,87 @@
-From: Feng Gao <gfree.wind@gmail.com>
-Subject: Re: [PATCH nf-next v2 1/1] netfilter: nf_tables: Eliminate duplicated
- codes in nf_tables_table_enable
-Date: Fri, 20 Jan 2017 20:30:39 +0800
-Message-ID: <CA+6hz4pd8N3e9vgvLZSqgG4d1c+Y0fgK_O+PeAUZZeY1vV+Btg@mail.gmail.com>
-References: <1484824690-46965-1-git-send-email-fgao@ikuai8.com>
- <CA+6hz4pH1uoyZjJ2-cTv78u1_fLuwALA1SdoDZH90Ch6KtigQw@mail.gmail.com> <CAML_gOeZUdDALymX9wnv8P6peNzZ=RRGH1wNutOSzk8VQU1Zdg@mail.gmail.com>
+From: Arturo Borrero Gonzalez <arturo@debian.org>
+Subject: [nft PATCH] payload: use explicit network ctx assignation for
+ icmp/icmp6 in inet family
+Date: Fri, 20 Jan 2017 13:20:11 +0100
+Message-ID: <148491481186.20302.13599222282579510532.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Liping Zhang <zlpnobody@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f53.google.com ([209.85.213.53]:35571 "EHLO
-        mail-vk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751905AbdATMak (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Jan 2017 07:30:40 -0500
-Received: by mail-vk0-f53.google.com with SMTP id x75so50384707vke.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jan 2017 04:30:40 -0800 (PST)
-In-Reply-To: <CAML_gOeZUdDALymX9wnv8P6peNzZ=RRGH1wNutOSzk8VQU1Zdg@mail.gmail.com>
+Received: from smtp3.cica.es ([150.214.5.190]:43818 "EHLO smtp.cica.es"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751875AbdATMsF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 20 Jan 2017 07:48:05 -0500
+Received: from localhost (unknown [127.0.0.1])
+        by smtp.cica.es (Postfix) with ESMTP id AD23F51F3AA
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jan 2017 12:20:18 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id KHAq3v8XvdC2 for <netfilter-devel@vger.kernel.org>;
+        Fri, 20 Jan 2017 13:20:12 +0100 (CET)
+Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
+        (Authenticated sender: servers@cica.es)
+        by smtp.cica.es (Postfix) with ESMTP id D128051F398
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jan 2017 13:20:12 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Liping,
+In the inet family, we can add rules like these:
 
-On Fri, Jan 20, 2017 at 6:57 PM, Liping Zhang <zlpnobody@gmail.com> wrote:
-> 2017-01-20 15:42 GMT+08:00 Feng Gao <gfree.wind@gmail.com>:
-> [...]
->> In v2 patch, I copied your recommend codes "if (cnt && --cnt == 0)".
->> Today I think it is not right to use "--cnt", it should use "cnt--".
->> Because when the cnt is 1, the "--cnt" would break directly.
->> So I send the v3 patch.
->
-> But this "if (cnt && cnt-- == 0) break;" check condition seems still incorrect,
-> when the cnt is 1, next round cnt will become 0, so we will fail to break the
-> loop ...
+% nft add rule inet t c ip protocol icmp icmp type echo-request
+% nft add rule inet t c ip6 nexthdr icmpv6 icmpv6 type echo-request
 
-Thanks your catch.
-So we should keep the "(cnt && --cnt == 0)", with
-_nf_tables_table_disable(net, afi, table, i+1) in the error handler of
-nf_tables_table_enable.
+However, when we print the ruleset:
 
-Do you think if "i+1" is a little werid?
+% nft list ruleset
+table inet t {
+	chain c {
+		icmpv6 type echo-request
+		icmp type echo-request
+	}
+}
 
-Regards
-Feng
+These rules we obtain can't be added again:
+
+% nft add rule inet t c icmp type echo-request
+<cmdline>:1:19-27: Error: conflicting protocols specified: inet-service vs. icmp
+add rule inet t c icmp type echo-request
+                  ^^^^^^^^^
+
+% nft add rule inet t c icmpv6 type echo-request
+<cmdline>:1:19-29: Error: conflicting protocols specified: inet-service vs. icmpv6
+add rule inet t c icmpv6 type echo-request
+                  ^^^^^^^^^^^
+
+Since I wouldn't expect an IP packet carrying ICMPv6, or IPv6 packet
+carrying ICMP, if the link layer is inet, the network layer protocol context
+can be safely update to 'ip' or 'ip6'.
+
+Moreover, nft currently generates a 'meta nfproto ipvX' depedency when
+using icmp or icmp6 in the inet family.
+
+Fixes: https://bugzilla.netfilter.org/show_bug.cgi?id=1073
+Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
+---
+ src/payload.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/payload.c b/src/payload.c
+index af533b2..9cca838 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -284,7 +284,12 @@ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
+ 				desc = &proto_inet;
+ 				break;
+ 			case PROTO_BASE_TRANSPORT_HDR:
+-				desc = &proto_inet_service;
++				if (expr->payload.desc == &proto_icmp)
++					desc = &proto_ip;
++				else if (expr->payload.desc == &proto_icmp6)
++					desc = &proto_ip6;
++				else
++					desc = &proto_inet_service;
+ 				break;
+ 			default:
+ 				break;
+
