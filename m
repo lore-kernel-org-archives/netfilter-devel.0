@@ -1,63 +1,108 @@
-From: Feng Gao <gfree.wind@gmail.com>
-Subject: Re: [PATCH nf-next v2 1/1] netfilter: nf_tables: Eliminate duplicated
- codes in nf_tables_table_enable
-Date: Fri, 20 Jan 2017 21:43:51 +0800
-Message-ID: <CA+6hz4pBMwP7Bn-U6BktiVhnaGKD_Px-2=0TOQpf+YWykTprKw@mail.gmail.com>
-References: <1484824690-46965-1-git-send-email-fgao@ikuai8.com>
- <CA+6hz4pH1uoyZjJ2-cTv78u1_fLuwALA1SdoDZH90Ch6KtigQw@mail.gmail.com>
- <CAML_gOeZUdDALymX9wnv8P6peNzZ=RRGH1wNutOSzk8VQU1Zdg@mail.gmail.com> <CA+6hz4pd8N3e9vgvLZSqgG4d1c+Y0fgK_O+PeAUZZeY1vV+Btg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Liping Zhang <zlpnobody@gmail.com>
+From: fgao@ikuai8.com
+Subject: [PATCH nf-next v4 1/1] netfilter: nf_tables: Eliminate duplicated codes in nf_tables_table_enable
+Date: Fri, 20 Jan 2017 21:40:43 +0800
+Message-ID: <1484919643-106032-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ua0-f173.google.com ([209.85.217.173]:36287 "EHLO
-        mail-ua0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752094AbdATNnw (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Jan 2017 08:43:52 -0500
-Received: by mail-ua0-f173.google.com with SMTP id 96so60220644uaq.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jan 2017 05:43:52 -0800 (PST)
-In-Reply-To: <CA+6hz4pd8N3e9vgvLZSqgG4d1c+Y0fgK_O+PeAUZZeY1vV+Btg@mail.gmail.com>
+Received: from smtpbg339.qq.com ([14.17.44.34]:48013 "EHLO smtpbg339.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751977AbdATNpn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 20 Jan 2017 08:45:43 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jan 20, 2017 at 8:30 PM, Feng Gao <gfree.wind@gmail.com> wrote:
-> Hi Liping,
->
-> On Fri, Jan 20, 2017 at 6:57 PM, Liping Zhang <zlpnobody@gmail.com> wrote:
->> 2017-01-20 15:42 GMT+08:00 Feng Gao <gfree.wind@gmail.com>:
->> [...]
->>> In v2 patch, I copied your recommend codes "if (cnt && --cnt == 0)".
->>> Today I think it is not right to use "--cnt", it should use "cnt--".
->>> Because when the cnt is 1, the "--cnt" would break directly.
->>> So I send the v3 patch.
->>
->> But this "if (cnt && cnt-- == 0) break;" check condition seems still incorrect,
->> when the cnt is 1, next round cnt will become 0, so we will fail to break the
->> loop ...
->
-> Thanks your catch.
-> So we should keep the "(cnt && --cnt == 0)", with
-> _nf_tables_table_disable(net, afi, table, i+1) in the error handler of
-> nf_tables_table_enable.
->
-> Do you think if "i+1" is a little werid?
->
-> Regards
-> Feng
+From: Feng <fgao@ikuai8.com>
 
-Because the cnt has two usages, it is used as one flag and one counter.
-So it is hard to meet these two requirements.
+When something failed in nf_tables_table_enable, it would unregister
+the chains. But the rollback codes are same as nf_tables_table_disable
+almostly, except there is one counter check.
+Now create one wrapper function to eliminate the duplicated codes.
 
-Then I bring one new counter "i", when cnt is positive and i equals
-cnt, it could break.
-The codes like following:
-if (cnt && i++ == cnt) and the i is initialized as 0.
+Signed-off-by: Feng <fgao@ikuai8.com>
+---
+ v4: Introduce one new counter "i" to resolve the "cnt" issue above;
+ v3: Use "cnt--" instead of "--cnt";
+ v2: Use cnt "0" as unlimited rules counter, per Pablo;
+ v1: Initial version;
 
-The v4 patch is sent already.
+ net/netfilter/nf_tables_api.c | 48 ++++++++++++++++++++++---------------------
+ 1 file changed, 25 insertions(+), 23 deletions(-)
 
-Regards
-Feng
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a019a87..d84570a 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -576,6 +576,28 @@ static int nf_tables_gettable(struct net *net, struct sock *nlsk,
+ 	return err;
+ }
+ 
++static void _nf_tables_table_disable(struct net *net,
++				     const struct nft_af_info *afi,
++				     struct nft_table *table,
++				     u32 cnt)
++{
++	struct nft_chain *chain;
++	u32 i = 0;
++
++	list_for_each_entry(chain, &table->chains, list) {
++		if (!nft_is_active_next(net, chain))
++			continue;
++		if (!(chain->flags & NFT_BASE_CHAIN))
++			continue;
++
++		if (cnt && i++ == cnt)
++			break;
++
++		nf_unregister_net_hooks(net, nft_base_chain(chain)->ops,
++					afi->nops);
++	}
++}
++
+ static int nf_tables_table_enable(struct net *net,
+ 				  const struct nft_af_info *afi,
+ 				  struct nft_table *table)
+@@ -598,18 +620,8 @@ static int nf_tables_table_enable(struct net *net,
+ 	}
+ 	return 0;
+ err:
+-	list_for_each_entry(chain, &table->chains, list) {
+-		if (!nft_is_active_next(net, chain))
+-			continue;
+-		if (!(chain->flags & NFT_BASE_CHAIN))
+-			continue;
+-
+-		if (i-- <= 0)
+-			break;
+-
+-		nf_unregister_net_hooks(net, nft_base_chain(chain)->ops,
+-					afi->nops);
+-	}
++	if (i)
++		_nf_tables_table_disable(net, afi, table, i);
+ 	return err;
+ }
+ 
+@@ -617,17 +629,7 @@ static void nf_tables_table_disable(struct net *net,
+ 				    const struct nft_af_info *afi,
+ 				    struct nft_table *table)
+ {
+-	struct nft_chain *chain;
+-
+-	list_for_each_entry(chain, &table->chains, list) {
+-		if (!nft_is_active_next(net, chain))
+-			continue;
+-		if (!(chain->flags & NFT_BASE_CHAIN))
+-			continue;
+-
+-		nf_unregister_net_hooks(net, nft_base_chain(chain)->ops,
+-					afi->nops);
+-	}
++	_nf_tables_table_disable(net, afi, table, 0);
+ }
+ 
+ static int nf_tables_updtable(struct nft_ctx *ctx)
+-- 
+1.9.1
+
+
