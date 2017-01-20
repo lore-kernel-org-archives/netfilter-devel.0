@@ -1,59 +1,63 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/2 nf] netfilter: nf_tables: bump set->ndeact on set flush
-Date: Fri, 20 Jan 2017 14:22:03 +0100
-Message-ID: <1484918523-9198-2-git-send-email-pablo@netfilter.org>
-References: <1484918523-9198-1-git-send-email-pablo@netfilter.org>
-Cc: elise.lennion@gmail.com
-To: netfilter-devel@vger.kernel.org
+From: Feng Gao <gfree.wind@gmail.com>
+Subject: Re: [PATCH nf-next v2 1/1] netfilter: nf_tables: Eliminate duplicated
+ codes in nf_tables_table_enable
+Date: Fri, 20 Jan 2017 21:43:51 +0800
+Message-ID: <CA+6hz4pBMwP7Bn-U6BktiVhnaGKD_Px-2=0TOQpf+YWykTprKw@mail.gmail.com>
+References: <1484824690-46965-1-git-send-email-fgao@ikuai8.com>
+ <CA+6hz4pH1uoyZjJ2-cTv78u1_fLuwALA1SdoDZH90Ch6KtigQw@mail.gmail.com>
+ <CAML_gOeZUdDALymX9wnv8P6peNzZ=RRGH1wNutOSzk8VQU1Zdg@mail.gmail.com> <CA+6hz4pd8N3e9vgvLZSqgG4d1c+Y0fgK_O+PeAUZZeY1vV+Btg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>
+To: Liping Zhang <zlpnobody@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44020 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752224AbdATNWW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Jan 2017 08:22:22 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A5AEE3EBA87
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jan 2017 14:22:09 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 96974DA2D3
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jan 2017 14:22:09 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7AF049D6A7
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jan 2017 14:22:07 +0100 (CET)
-In-Reply-To: <1484918523-9198-1-git-send-email-pablo@netfilter.org>
+Received: from mail-ua0-f173.google.com ([209.85.217.173]:36287 "EHLO
+        mail-ua0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752094AbdATNnw (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 20 Jan 2017 08:43:52 -0500
+Received: by mail-ua0-f173.google.com with SMTP id 96so60220644uaq.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jan 2017 05:43:52 -0800 (PST)
+In-Reply-To: <CA+6hz4pd8N3e9vgvLZSqgG4d1c+Y0fgK_O+PeAUZZeY1vV+Btg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add missing set->ndeact update on each deactivated element from the set
-flush path. Otherwise, sets with fixed size break after flush since
-accounting breaks.
+On Fri, Jan 20, 2017 at 8:30 PM, Feng Gao <gfree.wind@gmail.com> wrote:
+> Hi Liping,
+>
+> On Fri, Jan 20, 2017 at 6:57 PM, Liping Zhang <zlpnobody@gmail.com> wrote:
+>> 2017-01-20 15:42 GMT+08:00 Feng Gao <gfree.wind@gmail.com>:
+>> [...]
+>>> In v2 patch, I copied your recommend codes "if (cnt && --cnt == 0)".
+>>> Today I think it is not right to use "--cnt", it should use "cnt--".
+>>> Because when the cnt is 1, the "--cnt" would break directly.
+>>> So I send the v3 patch.
+>>
+>> But this "if (cnt && cnt-- == 0) break;" check condition seems still incorrect,
+>> when the cnt is 1, next round cnt will become 0, so we will fail to break the
+>> loop ...
+>
+> Thanks your catch.
+> So we should keep the "(cnt && --cnt == 0)", with
+> _nf_tables_table_disable(net, afi, table, i+1) in the error handler of
+> nf_tables_table_enable.
+>
+> Do you think if "i+1" is a little werid?
+>
+> Regards
+> Feng
 
- # nft add set x y { type ipv4_addr\; size 2\; }
- # nft add element x y { 1.1.1.1 }
- # nft add element x y { 1.1.1.2 }
- # nft flush set x y
- # nft add element x y { 1.1.1.1 }
- <cmdline>:1:1-28: Error: Could not process rule: Too many open files in system
+Because the cnt has two usages, it is used as one flag and one counter.
+So it is hard to meet these two requirements.
 
-Reported-by: Elise Lennion <elise.lennion@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-This patch depends on 1/2.
+Then I bring one new counter "i", when cnt is positive and i equals
+cnt, it could break.
+The codes like following:
+if (cnt && i++ == cnt) and the i is initialized as 0.
 
- net/netfilter/nf_tables_api.c | 1 +
- 1 file changed, 1 insertion(+)
+The v4 patch is sent already.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 9bac76e48eb6..eaadc62feb3b 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3901,6 +3901,7 @@ static int nft_flush_set(const struct nft_ctx *ctx,
- 		err = -ENOENT;
- 		goto err1;
- 	}
-+	set->ndeact++;
- 
- 	nft_trans_elem_set(trans) = set;
- 	nft_trans_elem(trans) = *elem;
--- 
-2.1.4
-
+Regards
+Feng
