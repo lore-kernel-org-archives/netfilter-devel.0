@@ -1,90 +1,87 @@
-From: Patrick PIGNOL <patrick.pignol@gmail.com>
-Subject: Re: AUDIT_NETFILTER_PKT message format
-Date: Sat, 21 Jan 2017 20:12:21 +0100
-Message-ID: <0eb840df-20d7-73ab-e7cb-aa0aa111d7b9@gmail.com>
-References: <20170117052551.GQ3087@madcap2.tricolour.ca>
- <20170118151520.GY3087@madcap2.tricolour.ca>
- <CAHC9VhS_6Q=bxnzU8ni1a2fRWnXoMcELzAmy0HmwMH_xhgfRBw@mail.gmail.com>
- <21839828.eXAB1nqvpV@x2>
- <CAHC9VhT8QQ2inKgJ_ZAeiEOvmnjv-0AbHjrRf-LGfUT+WMFUeQ@mail.gmail.com>
- <e14df9b0-e6ea-c60f-f580-40b10af2392f@gmail.com>
- <CAHC9VhQK67Mi-afj90irrv6h2d1XaiLKEYD0wr+j7JD4MmRTPg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: Steve Grubb <sgrubb@redhat.com>,
-        Richard Guy Briggs <rgb@redhat.com>,
-        Paul Moore <pmoore@redhat.com>,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>,
-        Thomas Graf <tgraf@infradead.org>
-To: Paul Moore <paul@paul-moore.com>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf] netfilter: nft_log: restrict the log prefix length to 127
+Date: Sun, 22 Jan 2017 22:10:32 +0800
+Message-ID: <1485094232-19683-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36269 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751285AbdAUTMZ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 21 Jan 2017 14:12:25 -0500
-Received: by mail-wm0-f67.google.com with SMTP id r126so15299912wmr.3
-        for <netfilter-devel@vger.kernel.org>; Sat, 21 Jan 2017 11:12:24 -0800 (PST)
-In-Reply-To: <CAHC9VhQK67Mi-afj90irrv6h2d1XaiLKEYD0wr+j7JD4MmRTPg@mail.gmail.com>
+Received: from m12-12.163.com ([220.181.12.12]:55563 "EHLO m12-12.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751123AbdAVOLN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 22 Jan 2017 09:11:13 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi all,
+From: Liping Zhang <zlpnobody@gmail.com>
 
-I just writen that because I read
+First, log prefix will be truncated to NF_LOG_PREFIXLEN-1, i.e. 127,
+at nf_log_packet(), so the extra part is useless.
 
-"
+Second, after adding a log rule with a very very long prefix, we will
+fail to dump the nft rules after this _special_ one, but acctually,
+they do exist. For example:
+  # name_65000=$(printf "%0.sQ" {1..65000})
+  # nft add rule filter output log prefix "$name_65000"
+  # nft add rule filter output counter
+  # nft add rule filter output counter
+  # nft list chain filter output
+  table ip filter {
+      chain output {
+          type filter hook output priority 0; policy accept;
+      }
+  }
 
-Determining the pid/subj of a packet is notoriously
-difficult/impossible in netfilter so let's drop that; with proper
-policy/rules you should be able to match proto/port with a given
-process so this shouldn't be that critical.  The source/destination
-addresses and proto/port (assuming IP) should be easy enough.
+So now, restrict the log prefix length to NF_LOG_PREFIXLEN-1.
 
-"
+Fixes: 96518518cc41 ("netfilter: add nftables")
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+---
+I think this is different with http://patchwork.ozlabs.org/patch/717635/.
+So another separate patch will be better.
 
-OK you explain me you talk about "Linux audit" sub-system. Cool I didn't 
-read it like that ! (I'm waiting for netfilter-dev ml).
+ include/uapi/linux/netfilter/nf_log.h | 2 ++
+ net/netfilter/nf_log.c                | 1 -
+ net/netfilter/nft_log.c               | 3 ++-
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-Don't tell me that windows is better than linux on that point (see 
-ZoneAlarm). I know ZoneAlarm is a Firewall. But if Linux could trace it 
-from netfilter you should integrate it in your audit sub system.
+diff --git a/include/uapi/linux/netfilter/nf_log.h b/include/uapi/linux/netfilter/nf_log.h
+index 8be21e0..d0b5fa9 100644
+--- a/include/uapi/linux/netfilter/nf_log.h
++++ b/include/uapi/linux/netfilter/nf_log.h
+@@ -9,4 +9,6 @@
+ #define NF_LOG_MACDECODE	0x20	/* Decode MAC header */
+ #define NF_LOG_MASK		0x2f
+ 
++#define NF_LOG_PREFIXLEN	128
++
+ #endif /* _NETFILTER_NF_LOG_H */
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index 3dca90d..ffb9e8a 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -13,7 +13,6 @@
+ /* Internal logging interface, which relies on the real
+    LOG target modules */
+ 
+-#define NF_LOG_PREFIXLEN		128
+ #define NFLOGGER_NAME_LEN		64
+ 
+ static struct nf_logger __rcu *loggers[NFPROTO_NUMPROTO][NF_LOG_TYPE_MAX] __read_mostly;
+diff --git a/net/netfilter/nft_log.c b/net/netfilter/nft_log.c
+index 6271e40..6f6e644 100644
+--- a/net/netfilter/nft_log.c
++++ b/net/netfilter/nft_log.c
+@@ -39,7 +39,8 @@ static void nft_log_eval(const struct nft_expr *expr,
+ 
+ static const struct nla_policy nft_log_policy[NFTA_LOG_MAX + 1] = {
+ 	[NFTA_LOG_GROUP]	= { .type = NLA_U16 },
+-	[NFTA_LOG_PREFIX]	= { .type = NLA_STRING },
++	[NFTA_LOG_PREFIX]	= { .type = NLA_STRING,
++				    .len = NF_LOG_PREFIXLEN - 1 },
+ 	[NFTA_LOG_SNAPLEN]	= { .type = NLA_U32 },
+ 	[NFTA_LOG_QTHRESHOLD]	= { .type = NLA_U16 },
+ 	[NFTA_LOG_LEVEL]	= { .type = NLA_U32 },
+-- 
+2.5.5
 
-I think it should be good to have to know witch application ask for 
-send/receive packet on witch protocol and on witch port and for witch IP 
-target(from/to) at a given level of verbosity(debug) and how many time 
-for a given time-unit (minute-hour).
-
-At this level content of packet is not really useful, I think wire-shark 
-is better for that.
-
-Sorry for the noise but it still important for me as a user to can trace 
-who have access to an from my computer.
-
-Best regards,
-
-Patrick PIGNOL
-
-
-Le 21/01/2017 à 18:37, Paul Moore a écrit :
-> On Sat, Jan 21, 2017 at 6:27 AM, Patrick PIGNOL
-> <patrick.pignol@gmail.com> wrote:
->> Hi all,
->>
->> I disagree !
->>
->> Many people in the world would like to allow an software A to go to internet
->> through OUTPUT TCP port 80 but disallow software B to go to the internet
->> through this same OUTPUT TCP port 80. Don't you know about viruses on linux
->> ? Viruses ALWAYS use HTTP/HTTPS ports to get payloads on internet and OUTPUT
->> TCP port 443 COULD NOT be CLOSED for ALL SOFTWARE if you want to access
->> internet services (via internet browsers for example).
-> The Linux audit subsystem simply logs system events, it does not
-> enforce security policy.  I suggest you investigate the different
-> Linux firewall tools and LSMs, e.g. SELinux, as they should help you
-> accomplish what you describe.
->
 
