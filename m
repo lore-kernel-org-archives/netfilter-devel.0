@@ -1,42 +1,46 @@
-From: Joyes Dadi <"YD."@biscuit.ocn.ne.jp>
-Subject: Urgent Please,,
-Date: Mon, 23 Jan 2017 23:11:45 +0900 (JST)
-Message-ID: <202486791.25784616.1485180705307.JavaMail.root@biscuit.ocn.ne.jp>
-Reply-To: Joyes Dadi <joyesdadi767@citromail.hu>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v3 nf-next 5/7] netfilter: add and use nf_ct_set helper
+Date: Mon, 23 Jan 2017 17:10:26 +0100
+Message-ID: <20170123161026.GA13546@breakpoint.cc>
+References: <1485174530-7678-1-git-send-email-fw@strlen.de>
+ <1485174530-7678-6-git-send-email-fw@strlen.de>
+ <20170123125403.GA1962@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mbkd0325.ocn.ad.jp ([153.149.236.26]:42392 "EHLO
-        mbkd0325.ocn.ad.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751161AbdAWOfX (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:50636 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750742AbdAWQLI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Jan 2017 09:35:23 -0500
+        Mon, 23 Jan 2017 11:11:08 -0500
+Content-Disposition: inline
+In-Reply-To: <20170123125403.GA1962@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Good Day Dear,
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Mon, Jan 23, 2017 at 01:28:48PM +0100, Florian Westphal wrote:
+> > diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+> > index 0c629fdf90e1..ce6adfae521a 100644
+> > --- a/net/netfilter/core.c
+> > +++ b/net/netfilter/core.c
+> > @@ -375,7 +375,7 @@ void nf_ct_attach(struct sk_buff *new, const struct sk_buff *skb)
+> >  {
+> >  	void (*attach)(struct sk_buff *, const struct sk_buff *);
+> >  
+> > -	if (skb_nfct(skb)) {
+> > +	if (skb->nfct) {
+> 
+> I guess this slipped through accidentally. No need to resent, I can
+> amend it here.
 
-My name is Ms. Joyes Dadi, I am glad you are reading this letter and I hope
-we will start our communication and I know that this message will look strange,
-surprising and probably unbelievable to you, but it is the reality. I want to
-make a donation of money to you.
+Hmm, let me review this.  I thin the skb_nfct() conversion is erroneous.
+(Q: If original is UNTRRACKED, should the reply packet that is being
+ attached be UNTRACKED or INVALID?)
 
-I contact you by the will of God. I am a firm German woman specialized in
-mining gold and diamonds in Africa. But now, I'm very sick of a cancer. My
-husband died in an accident two years ago with our two children and now I have
-cancer of the esophagus that damaged almost all the cells in my system/agencies
-and I'll die soon according to my doctor.
+I think its "UNTRACKED", and then this needs testing of skb->_nfct .
 
-My most concern now is, we grew up in the orphanage and were married in
-orphanage. If I die this deposited fund will soon be left alone in the hand of
-the bank, and I do want to it that  way. Please, if you can be reliable and
-sincere to accept my humble proposal; I have (10.5Millions Euro) in a fixed
-deposit account; I will order the Bank to transfer the money into your account
-in your country immediately, and then you will take the fund to  your country
-and invest it to the orphanage homes Please, answer as quickly as possible.
-
-God bless you.
-Ms. Joyes Dadi
-Email: joyesdadi767@citromail.hu
+(at least once the untracked object gets removed).
