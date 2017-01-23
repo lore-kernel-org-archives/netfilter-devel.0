@@ -1,37 +1,42 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] tests: shell: Add test for set element leak bug
-Date: Mon, 23 Jan 2017 14:39:12 +0100
-Message-ID: <20170123133912.GA2082@salvia>
-References: <20170119162947.GA6924@lennorien.com>
+From: Joyes Dadi <"YD."@biscuit.ocn.ne.jp>
+Subject: Urgent Please,,
+Date: Mon, 23 Jan 2017 23:11:45 +0900 (JST)
+Message-ID: <202486791.25784616.1485180705307.JavaMail.root@biscuit.ocn.ne.jp>
+Reply-To: Joyes Dadi <joyesdadi767@citromail.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Elise Lennion <elise.lennion@gmail.com>
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45116 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751004AbdAWNjb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Jan 2017 08:39:31 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B58A316838B
-        for <netfilter-devel@vger.kernel.org>; Mon, 23 Jan 2017 14:39:23 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A73141B309D
-        for <netfilter-devel@vger.kernel.org>; Mon, 23 Jan 2017 14:39:23 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 85CBC1B30B6
-        for <netfilter-devel@vger.kernel.org>; Mon, 23 Jan 2017 14:39:21 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20170119162947.GA6924@lennorien.com>
+Received: from mbkd0325.ocn.ad.jp ([153.149.236.26]:42392 "EHLO
+        mbkd0325.ocn.ad.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751161AbdAWOfX (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 23 Jan 2017 09:35:23 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 19, 2017 at 02:29:47PM -0200, Elise Lennion wrote:
-> This tests for a bug where a repeated element is added and the set
-> elements counter is incorrectly increased.
+Good Day Dear,
 
-Applied, thanks.
+My name is Ms. Joyes Dadi, I am glad you are reading this letter and I hope
+we will start our communication and I know that this message will look strange,
+surprising and probably unbelievable to you, but it is the reality. I want to
+make a donation of money to you.
 
-It would be good to have another test to catch the 'nft flush set x y'
-bug that you uncover, this requires the kernel patches I sent to cure
-this problem.
+I contact you by the will of God. I am a firm German woman specialized in
+mining gold and diamonds in Africa. But now, I'm very sick of a cancer. My
+husband died in an accident two years ago with our two children and now I have
+cancer of the esophagus that damaged almost all the cells in my system/agencies
+and I'll die soon according to my doctor.
+
+My most concern now is, we grew up in the orphanage and were married in
+orphanage. If I die this deposited fund will soon be left alone in the hand of
+the bank, and I do want to it that  way. Please, if you can be reliable and
+sincere to accept my humble proposal; I have (10.5Millions Euro) in a fixed
+deposit account; I will order the Bank to transfer the money into your account
+in your country immediately, and then you will take the fund to  your country
+and invest it to the orphanage homes Please, answer as quickly as possible.
+
+God bless you.
+Ms. Joyes Dadi
+Email: joyesdadi767@citromail.hu
