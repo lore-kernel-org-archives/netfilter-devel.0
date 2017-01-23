@@ -1,63 +1,99 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v4 0/7] netfilter: skbuff: merge nfctinfo bits and nfct pointer
-Date: Mon, 23 Jan 2017 18:21:52 +0100
-Message-ID: <1485192119-6144-1-git-send-email-fw@strlen.de>
+Subject: [PATCH v4 nf-next 3/7] netfilter: reduce direct skb->nfct usage
+Date: Mon, 23 Jan 2017 18:21:55 +0100
+Message-ID: <1485192119-6144-4-git-send-email-fw@strlen.de>
+References: <1485192119-6144-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:51176 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:51186 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750732AbdAWRVo (ORCPT
+        by vger.kernel.org with ESMTP id S1750997AbdAWRVy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Jan 2017 12:21:44 -0500
+        Mon, 23 Jan 2017 12:21:54 -0500
+In-Reply-To: <1485192119-6144-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Whenever we fetch skb conntrack info, we need to access two
-distinct cache lines in sk_buff, #2 (nfct pointer) and #3
-(nfctinfo bits).  This series removes nfctinfo and joins it
-with the data pointer in a single ulong.
+Next patch makes direct skb->nfct access illegal, reduce noise
+in next patch by using accessors we already have.
 
-We have 3 nfctinfo bits, the slab cache used for nf_conn objects
-guarantees at least 8 byte alignment so there is no overlap.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ no changes since v1.
+ include/net/ip_vs.h               |  9 ++++++---
+ net/netfilter/nf_conntrack_core.c | 15 +++++++++------
+ 2 files changed, 15 insertions(+), 9 deletions(-)
 
-For the conntrack templates most arches also guarantee an
-8 byte minalign, but not all.
-
-Patch #6 adds manual alignment of the templates if
-ARCH_KMALLOC_MINALIGN isn't sufficient.
-
-A followup series to this one will resurrect an old patch from
-Pablo that adds an 'untracked' ctinfo status, this then allows
-to get rid of the conntrack template object (which in turn avoids
-get/put atomic ops for untracked skbs).
-
-See individual patches for changes since v3.
-
- include/linux/skbuff.h                         |   34 ++++++-----
- include/net/ip_vs.h                            |   12 ++--
- include/net/netfilter/nf_conntrack.h           |   21 +++++--
- include/net/netfilter/nf_conntrack_core.h      |    2 
- include/net/netfilter/nf_conntrack_l4proto.h   |    2 
- net/core/skbuff.c                              |    2 
- net/ipv4/netfilter/ipt_SYNPROXY.c              |   11 +--
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |   17 ++---
- net/ipv4/netfilter/nf_defrag_ipv4.c            |    4 -
- net/ipv4/netfilter/nf_dup_ipv4.c               |    7 +-
- net/ipv6/netfilter/ip6t_SYNPROXY.c             |   11 +--
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   22 +++----
- net/ipv6/netfilter/nf_defrag_ipv6_hooks.c      |    4 -
- net/ipv6/netfilter/nf_dup_ipv6.c               |    7 +-
- net/netfilter/core.c                           |    2 
- net/netfilter/nf_conntrack_core.c              |   73 +++++++++++++++----------
- net/netfilter/nf_conntrack_proto_dccp.c        |    1 
- net/netfilter/nf_conntrack_proto_sctp.c        |    2 
- net/netfilter/nf_conntrack_proto_tcp.c         |    1 
- net/netfilter/nf_conntrack_proto_udp.c         |    3 -
- net/netfilter/nf_conntrack_standalone.c        |    3 +
- net/netfilter/nf_nat_helper.c                  |    2 
- net/netfilter/nft_ct.c                         |    3 -
- net/netfilter/xt_CT.c                          |   12 +---
- net/openvswitch/conntrack.c                    |   12 +---
- net/sched/cls_flow.c                           |    2 
- 26 files changed, 147 insertions(+), 125 deletions(-)
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index cd6018a9ee24..2a344ebd7ebe 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -1554,10 +1554,13 @@ static inline void ip_vs_notrack(struct sk_buff *skb)
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 
+ 	if (!ct || !nf_ct_is_untracked(ct)) {
+-		nf_conntrack_put(skb->nfct);
+-		skb->nfct = &nf_ct_untracked_get()->ct_general;
++		struct nf_conn *untracked;
++
++		nf_conntrack_put(&ct->ct_general);
++		untracked = nf_ct_untracked_get();
++		nf_conntrack_get(&untracked->ct_general);
++		skb->nfct = &untracked->ct_general;
+ 		skb->nfctinfo = IP_CT_NEW;
+-		nf_conntrack_get(skb->nfct);
+ 	}
+ #endif
+ }
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 86186a2e2715..adb7af3a4c4c 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -686,8 +686,11 @@ static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
+ 	    !nfct_nat(ct) &&
+ 	    !nf_ct_is_dying(ct) &&
+ 	    atomic_inc_not_zero(&ct->ct_general.use)) {
+-		nf_ct_acct_merge(ct, ctinfo, (struct nf_conn *)skb->nfct);
+-		nf_conntrack_put(skb->nfct);
++		enum ip_conntrack_info oldinfo;
++		struct nf_conn *loser_ct = nf_ct_get(skb, &oldinfo);
++
++		nf_ct_acct_merge(ct, ctinfo, loser_ct);
++		nf_conntrack_put(&loser_ct->ct_general);
+ 		/* Assign conntrack already in hashes to this skbuff. Don't
+ 		 * modify skb->nfctinfo to ensure consistent stateful filtering.
+ 		 */
+@@ -1288,7 +1291,7 @@ unsigned int
+ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
+ 		struct sk_buff *skb)
+ {
+-	struct nf_conn *ct, *tmpl = NULL;
++	struct nf_conn *ct, *tmpl;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conntrack_l3proto *l3proto;
+ 	struct nf_conntrack_l4proto *l4proto;
+@@ -1298,9 +1301,9 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
+ 	int set_reply = 0;
+ 	int ret;
+ 
+-	if (skb->nfct) {
++	tmpl = nf_ct_get(skb, &ctinfo);
++	if (tmpl) {
+ 		/* Previously seen (loopback or untracked)?  Ignore. */
+-		tmpl = (struct nf_conn *)skb->nfct;
+ 		if (!nf_ct_is_template(tmpl)) {
+ 			NF_CT_STAT_INC_ATOMIC(net, ignore);
+ 			return NF_ACCEPT;
+@@ -1364,7 +1367,7 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
+ 		/* Invalid: inverse of the return code tells
+ 		 * the netfilter core what to do */
+ 		pr_debug("nf_conntrack_in: Can't track with proto module\n");
+-		nf_conntrack_put(skb->nfct);
++		nf_conntrack_put(&ct->ct_general);
+ 		skb->nfct = NULL;
+ 		NF_CT_STAT_INC_ATOMIC(net, invalid);
+ 		if (ret == -NF_DROP)
+-- 
+2.7.3
 
