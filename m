@@ -1,101 +1,58 @@
-From: Elise Lennion <elise.lennion@gmail.com>
-Subject: [PATCH nft 2/2] src: Allow list single stateful object
-Date: Mon, 23 Jan 2017 17:17:37 -0200
-Message-ID: <20170123191737.GA14838@lennorien.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH v3 nf-next 5/7] netfilter: add and use nf_ct_set helper
+Date: Mon, 23 Jan 2017 20:37:12 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1701232033320.21987@blackhole.kfki.hu>
+References: <1485174530-7678-1-git-send-email-fw@strlen.de> <1485174530-7678-6-git-send-email-fw@strlen.de> <20170123125403.GA1962@salvia> <20170123161026.GA13546@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:35373 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750945AbdAWTRp (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Jan 2017 14:17:45 -0500
-Received: by mail-qt0-f194.google.com with SMTP id f4so19450372qte.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 23 Jan 2017 11:17:44 -0800 (PST)
-Content-Disposition: inline
+Received: from smtp-in.kfki.hu ([148.6.0.28]:58074 "EHLO smtp2.kfki.hu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750705AbdAWTmh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 23 Jan 2017 14:42:37 -0500
+In-Reply-To: <20170123161026.GA13546@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently the stateful objects can only be listed in groups. With this
-patch listing a single object is allowed:
+Hi Florian,
 
-$ nft list counter x https-traffic
-table ip x {
-	counter https-traffic {
-		packets 4014 bytes 228948
-	}
-}
+On Mon, 23 Jan 2017, Florian Westphal wrote:
 
-$ nft list quota x https-quota
-table ip x {
-	quota https-quota {
-		25 mbytes used 278 kbytes
-	}
-}
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Mon, Jan 23, 2017 at 01:28:48PM +0100, Florian Westphal wrote:
+> > > diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+> > > index 0c629fdf90e1..ce6adfae521a 100644
+> > > --- a/net/netfilter/core.c
+> > > +++ b/net/netfilter/core.c
+> > > @@ -375,7 +375,7 @@ void nf_ct_attach(struct sk_buff *new, const struct sk_buff *skb)
+> > >  {
+> > >  	void (*attach)(struct sk_buff *, const struct sk_buff *);
+> > >  
+> > > -	if (skb_nfct(skb)) {
+> > > +	if (skb->nfct) {
+> > 
+> > I guess this slipped through accidentally. No need to resent, I can
+> > amend it here.
+> 
+> Hmm, let me review this.  I thin the skb_nfct() conversion is erroneous.
+> (Q: If original is UNTRRACKED, should the reply packet that is being
+>  attached be UNTRACKED or INVALID?)
 
-Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
----
- src/evaluate.c | 18 ++++++++++++++++++
- src/rule.c     |  6 +++++-
- 2 files changed, 23 insertions(+), 1 deletion(-)
+If the packet is UNTRACKED, then how can there be a reply packet from 
+conntrack point of view? In my opinion it's the user responsibility to 
+handle both directions.
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 9a9927b..3cf5075 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2936,6 +2936,24 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- 			return cmd_error(ctx, "Could not process rule: Chain '%s' does not exist",
- 					 cmd->handle.chain);
- 		return 0;
-+	case CMD_OBJ_COUNTER:
-+		table = table_lookup(&cmd->handle);
-+		if (table == NULL)
-+			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
-+					 cmd->handle.table);
-+		if (obj_lookup(table, cmd->handle.obj, NFT_OBJECT_COUNTER) == NULL)
-+			return cmd_error(ctx, "Could not process rule: Counter '%s' does not exist",
-+					 cmd->handle.obj);
-+		return 0;
-+	case CMD_OBJ_QUOTA:
-+		table = table_lookup(&cmd->handle);
-+		if (table == NULL)
-+			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
-+					 cmd->handle.table);
-+		if (obj_lookup(table, cmd->handle.obj, NFT_OBJECT_QUOTA) == NULL)
-+			return cmd_error(ctx, "Could not process rule: Quota '%s' does not exist",
-+					 cmd->handle.obj);
-+		return 0;
- 	case CMD_OBJ_CHAINS:
- 	case CMD_OBJ_SETS:
- 	case CMD_OBJ_COUNTERS:
-diff --git a/src/rule.c b/src/rule.c
-index a9f3a49..6fc6570 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -1277,7 +1277,9 @@ static int do_list_obj(struct netlink_ctx *ctx, struct cmd *cmd, uint32_t type)
- 		       table->handle.table);
- 
- 		list_for_each_entry(obj, &table->objs, list) {
--			if (obj->type != type)
-+			if (obj->type != type ||
-+			    (cmd->handle.obj != NULL &&
-+			     strcmp(cmd->handle.obj, obj->handle.obj)))
- 				continue;
- 
- 			obj_print_declaration(obj, &opts);
-@@ -1420,8 +1422,10 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 		return do_list_sets(ctx, cmd);
- 	case CMD_OBJ_MAP:
- 		return do_list_set(ctx, cmd, table);
-+	case CMD_OBJ_COUNTER:
- 	case CMD_OBJ_COUNTERS:
- 		return do_list_obj(ctx, cmd, NFT_OBJECT_COUNTER);
-+	case CMD_OBJ_QUOTA:
- 	case CMD_OBJ_QUOTAS:
- 		return do_list_obj(ctx, cmd, NFT_OBJECT_QUOTA);
- 	default:
--- 
-2.7.4
+> I think its "UNTRACKED", and then this needs testing of skb->_nfct .
+> 
+> (at least once the untracked object gets removed).
 
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
