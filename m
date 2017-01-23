@@ -1,289 +1,110 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v3 nf-next 5/7] netfilter: add and use nf_ct_set helper
-Date: Mon, 23 Jan 2017 13:28:48 +0100
-Message-ID: <1485174530-7678-6-git-send-email-fw@strlen.de>
+Subject: [PATCH v3 nf-next 6/7] netfilter: guarantee 8 byte minalign for template addresses
+Date: Mon, 23 Jan 2017 13:28:49 +0100
+Message-ID: <1485174530-7678-7-git-send-email-fw@strlen.de>
 References: <1485174530-7678-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:49962 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:49966 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751034AbdAWM2u (ORCPT
+        by vger.kernel.org with ESMTP id S1751034AbdAWM2x (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Jan 2017 07:28:50 -0500
+        Mon, 23 Jan 2017 07:28:53 -0500
 In-Reply-To: <1485174530-7678-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add a helper to assign a nf_conn entry and the ctinfo bits to an sk_buff.
-This avoids changing code in followup patch that merges skb->nfct and
-skb->nfctinfo into skb->_nfct.
+The next change will merge skb->nfct pointer and skb->nfctinfo
+status bits into single skb->_nfct (unsigned long) area.
 
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+For this to work nf_conn addresses must always be aligned at least on
+an 8 byte boundary since we will need the lower 3bits to store nfctinfo.
+
+Conntrack templates are allocated via kmalloc.
+kbuild test robot reported
+BUILD_BUG_ON failed: NFCT_INFOMASK >= ARCH_KMALLOC_MINALIGN
+on v1 of this patchset, so not all platforms meet this requirement.
+
+Do manual alignment if needed,  the alignment offset is stored in the
+nf_conn entry protocol area. This works because templates are not
+handed off to L4 protocol trackers.
+
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- Not part of v2.
+ Not part of earlier series.
 
- include/net/ip_vs.h                            |  3 +--
- include/net/netfilter/nf_conntrack.h           |  8 ++++++++
- net/ipv4/netfilter/ipt_SYNPROXY.c              |  3 +--
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |  3 +--
- net/ipv4/netfilter/nf_dup_ipv4.c               |  3 +--
- net/ipv6/netfilter/ip6t_SYNPROXY.c             |  3 +--
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |  6 ++----
- net/ipv6/netfilter/nf_dup_ipv6.c               |  3 +--
- net/netfilter/core.c                           |  2 +-
- net/netfilter/nf_conntrack_core.c              | 11 +++--------
- net/netfilter/nft_ct.c                         |  3 +--
- net/netfilter/xt_CT.c                          |  6 ++----
- net/openvswitch/conntrack.c                    |  6 ++----
- 13 files changed, 25 insertions(+), 35 deletions(-)
+ include/net/netfilter/nf_conntrack.h |  2 ++
+ net/netfilter/nf_conntrack_core.c    | 29 ++++++++++++++++++++++++-----
+ 2 files changed, 26 insertions(+), 5 deletions(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 2a344ebd7ebe..4b46c591b542 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -1559,8 +1559,7 @@ static inline void ip_vs_notrack(struct sk_buff *skb)
- 		nf_conntrack_put(&ct->ct_general);
- 		untracked = nf_ct_untracked_get();
- 		nf_conntrack_get(&untracked->ct_general);
--		skb->nfct = &untracked->ct_general;
--		skb->nfctinfo = IP_CT_NEW;
-+		nf_ct_set(skb, untracked, IP_CT_NEW);
- 	}
- #endif
- }
 diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 5916aa9ab3f0..d704aed11684 100644
+index d704aed11684..06d3d2d24fe0 100644
 --- a/include/net/netfilter/nf_conntrack.h
 +++ b/include/net/netfilter/nf_conntrack.h
-@@ -34,6 +34,7 @@ union nf_conntrack_proto {
- 	struct ip_ct_sctp sctp;
- 	struct ip_ct_tcp tcp;
- 	struct nf_ct_gre gre;
-+	unsigned int tmpl_padto;
- };
+@@ -163,6 +163,8 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
+ int nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
+ 			     const struct nf_conn *ignored_conntrack);
  
- union nf_conntrack_expect_proto {
-@@ -341,6 +342,13 @@ struct nf_conn *nf_ct_tmpl_alloc(struct net *net,
- 				 gfp_t flags);
- void nf_ct_tmpl_free(struct nf_conn *tmpl);
- 
-+static inline void
-+nf_ct_set(struct sk_buff *skb, struct nf_conn *ct, enum ip_conntrack_info info)
-+{
-+	skb->nfct = &ct->ct_general;
-+	skb->nfctinfo = info;
-+}
++#define NFCT_INFOMASK	7UL
 +
- #define NF_CT_STAT_INC(net, count)	  __this_cpu_inc((net)->ct.stat->count)
- #define NF_CT_STAT_INC_ATOMIC(net, count) this_cpu_inc((net)->ct.stat->count)
- #define NF_CT_STAT_ADD_ATOMIC(net, count, v) this_cpu_add((net)->ct.stat->count, (v))
-diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
-index a12d4f0aa674..3240a2614e82 100644
---- a/net/ipv4/netfilter/ipt_SYNPROXY.c
-+++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
-@@ -57,8 +57,7 @@ synproxy_send_tcp(struct net *net,
- 		goto free_nskb;
- 
- 	if (nfct) {
--		nskb->nfct = nfct;
--		nskb->nfctinfo = ctinfo;
-+		nf_ct_set(nskb, (struct nf_conn *)nfct, ctinfo);
- 		nf_conntrack_get(nfct);
- 	}
- 
-diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-index 478a025909fc..73c591d8a9a8 100644
---- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -172,8 +172,7 @@ icmp_error_message(struct net *net, struct nf_conn *tmpl, struct sk_buff *skb,
- 		ctinfo += IP_CT_IS_REPLY;
- 
- 	/* Update skb to refer to this connection */
--	skb->nfct = &nf_ct_tuplehash_to_ctrack(h)->ct_general;
--	skb->nfctinfo = ctinfo;
-+	nf_ct_set(skb, nf_ct_tuplehash_to_ctrack(h), ctinfo);
- 	return NF_ACCEPT;
- }
- 
-diff --git a/net/ipv4/netfilter/nf_dup_ipv4.c b/net/ipv4/netfilter/nf_dup_ipv4.c
-index 1a5e1f53ceaa..f0dbff05fc28 100644
---- a/net/ipv4/netfilter/nf_dup_ipv4.c
-+++ b/net/ipv4/netfilter/nf_dup_ipv4.c
-@@ -69,8 +69,7 @@ void nf_dup_ipv4(struct net *net, struct sk_buff *skb, unsigned int hooknum,
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
- 	/* Avoid counting cloned packets towards the original connection. */
- 	nf_reset(skb);
--	skb->nfct     = &nf_ct_untracked_get()->ct_general;
--	skb->nfctinfo = IP_CT_NEW;
-+	nf_ct_set(skb, nf_ct_untracked_get(), IP_CT_NEW);
- 	nf_conntrack_get(skb_nfct(skb));
- #endif
- 	/*
-diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-index 2dc01d2c6ec0..4ef1ddd4bbbd 100644
---- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
-+++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-@@ -71,8 +71,7 @@ synproxy_send_tcp(struct net *net,
- 	skb_dst_set(nskb, dst);
- 
- 	if (nfct) {
--		nskb->nfct = nfct;
--		nskb->nfctinfo = ctinfo;
-+		nf_ct_set(nskb, (struct nf_conn *)nfct, ctinfo);
- 		nf_conntrack_get(nfct);
- 	}
- 
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index 09f1661a4e88..d2c2ccbfbe72 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -189,8 +189,7 @@ icmpv6_error_message(struct net *net, struct nf_conn *tmpl,
- 	}
- 
- 	/* Update skb to refer to this connection */
--	skb->nfct = &nf_ct_tuplehash_to_ctrack(h)->ct_general;
--	skb->nfctinfo = ctinfo;
-+	nf_ct_set(skb, nf_ct_tuplehash_to_ctrack(h), ctinfo);
- 	return NF_ACCEPT;
- }
- 
-@@ -222,8 +221,7 @@ icmpv6_error(struct net *net, struct nf_conn *tmpl,
- 	type = icmp6h->icmp6_type - 130;
- 	if (type >= 0 && type < sizeof(noct_valid_new) &&
- 	    noct_valid_new[type]) {
--		skb->nfct = &nf_ct_untracked_get()->ct_general;
--		skb->nfctinfo = IP_CT_NEW;
-+		nf_ct_set(skb, nf_ct_untracked_get(), IP_CT_NEW);
- 		nf_conntrack_get(skb_nfct(skb));
- 		return NF_ACCEPT;
- 	}
-diff --git a/net/ipv6/netfilter/nf_dup_ipv6.c b/net/ipv6/netfilter/nf_dup_ipv6.c
-index 5f52e5f90e7e..ff04f6a7f45b 100644
---- a/net/ipv6/netfilter/nf_dup_ipv6.c
-+++ b/net/ipv6/netfilter/nf_dup_ipv6.c
-@@ -58,8 +58,7 @@ void nf_dup_ipv6(struct net *net, struct sk_buff *skb, unsigned int hooknum,
- 
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
- 	nf_reset(skb);
--	skb->nfct     = &nf_ct_untracked_get()->ct_general;
--	skb->nfctinfo = IP_CT_NEW;
-+	nf_ct_set(skb, nf_ct_untracked_get(), IP_CT_NEW);
- 	nf_conntrack_get(skb->nfct);
- #endif
- 	if (hooknum == NF_INET_PRE_ROUTING ||
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 0c629fdf90e1..ce6adfae521a 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -375,7 +375,7 @@ void nf_ct_attach(struct sk_buff *new, const struct sk_buff *skb)
- {
- 	void (*attach)(struct sk_buff *, const struct sk_buff *);
- 
--	if (skb_nfct(skb)) {
-+	if (skb->nfct) {
- 		rcu_read_lock();
- 		attach = rcu_dereference(ip_ct_attach);
- 		if (attach)
+ /* Return conntrack_info and tuple hash for given skb. */
+ static inline struct nf_conn *
+ nf_ct_get(const struct sk_buff *skb, enum ip_conntrack_info *ctinfo)
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 78aebf0ee6e3..c9bd10747864 100644
+index c9bd10747864..768968fba7f6 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -691,10 +691,7 @@ static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
- 
- 		nf_ct_acct_merge(ct, ctinfo, loser_ct);
- 		nf_conntrack_put(&loser_ct->ct_general);
--		/* Assign conntrack already in hashes to this skbuff. Don't
--		 * modify skb->nfctinfo to ensure consistent stateful filtering.
--		 */
--		skb->nfct = &ct->ct_general;
-+		nf_ct_set(skb, ct, oldinfo);
- 		return NF_ACCEPT;
- 	}
- 	NF_CT_STAT_INC(net, drop);
-@@ -1282,8 +1279,7 @@ resolve_normal_ct(struct net *net, struct nf_conn *tmpl,
- 		}
- 		*set_reply = 0;
- 	}
--	skb->nfct = &ct->ct_general;
--	skb->nfctinfo = *ctinfo;
-+	nf_ct_set(skb, ct, *ctinfo);
- 	return ct;
+@@ -350,16 +350,31 @@ static void nf_ct_del_from_dying_or_unconfirmed_list(struct nf_conn *ct)
+ 	spin_unlock(&pcpu->lock);
  }
  
-@@ -1526,8 +1522,7 @@ static void nf_conntrack_attach(struct sk_buff *nskb, const struct sk_buff *skb)
- 		ctinfo = IP_CT_RELATED;
++#define NFCT_ALIGN(len)	(((len) + NFCT_INFOMASK) & ~NFCT_INFOMASK)
++
+ /* Released via destroy_conntrack() */
+ struct nf_conn *nf_ct_tmpl_alloc(struct net *net,
+ 				 const struct nf_conntrack_zone *zone,
+ 				 gfp_t flags)
+ {
+-	struct nf_conn *tmpl;
++	struct nf_conn *tmpl, *p;
  
- 	/* Attach to new skbuff, and increment count */
--	nskb->nfct = &ct->ct_general;
--	nskb->nfctinfo = ctinfo;
-+	nf_ct_set(nskb, ct, ctinfo);
- 	nf_conntrack_get(skb_nfct(nskb));
+-	tmpl = kzalloc(sizeof(*tmpl), flags);
+-	if (tmpl == NULL)
+-		return NULL;
++	if (ARCH_KMALLOC_MINALIGN <= NFCT_INFOMASK) {
++		tmpl = kzalloc(sizeof(*tmpl) + NFCT_INFOMASK, flags);
++		if (!tmpl)
++			return NULL;
++
++		p = tmpl;
++		tmpl = (struct nf_conn *)NFCT_ALIGN((unsigned long)p);
++		if (tmpl != p) {
++			tmpl = (struct nf_conn *)NFCT_ALIGN((unsigned long)p);
++			tmpl->proto.tmpl_padto = (char *)tmpl - (char *)p;
++		}
++	} else {
++		tmpl = kzalloc(sizeof(*tmpl), flags);
++		if (!tmpl)
++			return NULL;
++	}
+ 
+ 	tmpl->status = IPS_TEMPLATE;
+ 	write_pnet(&tmpl->ct_net, net);
+@@ -374,7 +389,11 @@ void nf_ct_tmpl_free(struct nf_conn *tmpl)
+ {
+ 	nf_ct_ext_destroy(tmpl);
+ 	nf_ct_ext_free(tmpl);
+-	kfree(tmpl);
++
++	if (ARCH_KMALLOC_MINALIGN <= NFCT_INFOMASK)
++		kfree((char *)tmpl - tmpl->proto.tmpl_padto);
++	else
++		kfree(tmpl);
  }
+ EXPORT_SYMBOL_GPL(nf_ct_tmpl_free);
  
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index d774d7823688..66a2377510e1 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -554,8 +554,7 @@ static void nft_notrack_eval(const struct nft_expr *expr,
- 
- 	ct = nf_ct_untracked_get();
- 	atomic_inc(&ct->ct_general.use);
--	skb->nfct = &ct->ct_general;
--	skb->nfctinfo = IP_CT_NEW;
-+	nf_ct_set(skb, ct, IP_CT_NEW);
- }
- 
- static struct nft_expr_type nft_notrack_type;
-diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-index cd7e29910ae1..51f00e1e1208 100644
---- a/net/netfilter/xt_CT.c
-+++ b/net/netfilter/xt_CT.c
-@@ -30,8 +30,7 @@ static inline int xt_ct_target(struct sk_buff *skb, struct nf_conn *ct)
- 	if (!ct)
- 		ct = nf_ct_untracked_get();
- 	atomic_inc(&ct->ct_general.use);
--	skb->nfct = &ct->ct_general;
--	skb->nfctinfo = IP_CT_NEW;
-+	nf_ct_set(skb, ct, IP_CT_NEW);
- 
- 	return XT_CONTINUE;
- }
-@@ -413,8 +412,7 @@ notrack_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 	if (skb->nfct != NULL)
- 		return XT_CONTINUE;
- 
--	skb->nfct = &nf_ct_untracked_get()->ct_general;
--	skb->nfctinfo = IP_CT_NEW;
-+	nf_ct_set(skb, nf_ct_untracked_get(), IP_CT_NEW);
- 	nf_conntrack_get(skb_nfct(skb));
- 
- 	return XT_CONTINUE;
-diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
-index 452557946147..d1fbfcaa009a 100644
---- a/net/openvswitch/conntrack.c
-+++ b/net/openvswitch/conntrack.c
-@@ -460,8 +460,7 @@ ovs_ct_find_existing(struct net *net, const struct nf_conntrack_zone *zone,
- 
- 	ct = nf_ct_tuplehash_to_ctrack(h);
- 
--	skb->nfct = &ct->ct_general;
--	skb->nfctinfo = ovs_ct_get_info(h);
-+	nf_ct_set(skb, ct, ovs_ct_get_info(h));
- 	return ct;
- }
- 
-@@ -724,8 +723,7 @@ static int __ovs_ct_lookup(struct net *net, struct sw_flow_key *key,
- 			if (skb_nfct(skb))
- 				nf_conntrack_put(skb_nfct(skb));
- 			nf_conntrack_get(&tmpl->ct_general);
--			skb->nfct = &tmpl->ct_general;
--			skb->nfctinfo = IP_CT_NEW;
-+			nf_ct_set(skb, tmpl, IP_CT_NEW);
- 		}
- 
- 		err = nf_conntrack_in(net, info->family,
 -- 
 2.7.3
 
