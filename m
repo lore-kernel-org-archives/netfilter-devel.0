@@ -1,47 +1,36 @@
-From: Jiri Kosina <jikos@kernel.org>
-Subject: [PATCH 1/2] Revert "netfilter: nf_ct_helper: disable automatic helper
- assignment"
-Date: Tue, 24 Jan 2017 01:06:24 +0100 (CET)
-Message-ID: <alpine.LSU.2.20.1701240058110.25515@cbobk.fhfr.pm>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [RFC PATCH 0/2] restore original default of nf_conntrack_helper sysctl
+Date: Mon, 23 Jan 2017 17:09:55 -0800
+Message-ID: <CA+55aFyDbDxcT+OjcxLxJ87MsFgNi0WWNoBSzZvWgA+yuQSXkg@mail.gmail.com>
+References: <alpine.LSU.2.20.1701240038080.25515@cbobk.fhfr.pm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, info@jablonka.cz,
-        Linus Torvalds <torvalds@linux-foundation.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+Content-Type: text/plain; charset=UTF-8
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        coreteam@netfilter.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        info@jablonka.cz
+To: Jiri Kosina <jikos@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LSU.2.20.1701240038080.25515@cbobk.fhfr.pm>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Jiri Kosina <jkosina@suse.cz>
+On Mon, Jan 23, 2017 at 4:06 PM, Jiri Kosina <jikos@kernel.org> wrote:
+>
+> Considering this being really close to the "userspace breakage"
+> borderline, I'm CCing Linus as well.
 
-This reverts commit 3bb398d925ec73e42b778cf823c8f4aecae359ea. It breaks
-existing firewall configurations.
+For all I know, there may be some security reason why we really don't
+want the automatic helpers, even if they can be convenient.
 
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Also, you can just enable them with a kernel command line or a sysctl,
+so it's not like you can't get the old behavior back.
 
----
- net/netfilter/nf_conntrack_helper.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Do networking people have any comments? Was there a reason to actually
+switch the default? Because the commit messages aren't all that
+helpful.
 
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 7341adf7059d..6255f566cd06 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -38,10 +38,10 @@ unsigned int nf_ct_helper_hsize __read_mostly;
- EXPORT_SYMBOL_GPL(nf_ct_helper_hsize);
- static unsigned int nf_ct_helper_count __read_mostly;
- 
--static bool nf_ct_auto_assign_helper __read_mostly = false;
-+static bool nf_ct_auto_assign_helper __read_mostly = true;
- module_param_named(nf_conntrack_helper, nf_ct_auto_assign_helper, bool, 0644);
- MODULE_PARM_DESC(nf_conntrack_helper,
--		 "Enable automatic conntrack helper assignment (default 0)");
-+		 "Enable automatic conntrack helper assignment (default 1)");
- 
- #ifdef CONFIG_SYSCTL
- static struct ctl_table helper_sysctl_table[] = {
--- 
-2.11.0
+               Linus
