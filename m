@@ -1,74 +1,134 @@
-From: Patrick PIGNOL <patrick.pignol@gmail.com>
-Subject: Re: EPOLLERR on memory mapped netlink socket
-Date: Tue, 24 Jan 2017 07:52:22 +0100
-Message-ID: <d725086d-af25-ce41-8151-1e26fe3b5d45@gmail.com>
-References: <CA+VDgmP9MigJxiN5snFmLdHw7cydr4JbnBDDPwzex0Tszqgaag@mail.gmail.com>
- <CA+VDgmNutTGo6AmoszdNkP5yRVO2vyDnVC5Hzj5XXmLueSwEcw@mail.gmail.com>
+From: Jiri Kosina <jikos@kernel.org>
+Subject: [PATCH] netfilter: nf_ct_helper: warn when not applying default
+ helper assignment (was Re: [RFC PATCH 0/2] restore original default of
+ nf_conntrack_helper sysctl)
+Date: Tue, 24 Jan 2017 08:40:34 +0100 (CET)
+Message-ID: <alpine.LSU.2.20.1701240827240.25515@cbobk.fhfr.pm>
+References: <alpine.LSU.2.20.1701240038080.25515@cbobk.fhfr.pm> <CA+55aFyDbDxcT+OjcxLxJ87MsFgNi0WWNoBSzZvWgA+yuQSXkg@mail.gmail.com> <20170124012859.GA6375@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-To: prashantkumar dhotre <prashantkumardhotre@gmail.com>,
-        netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        coreteam@netfilter.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        info@jablonka.cz, eric@regit.org
+To: Linus Torvalds <torvalds@linux-foundation.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33745 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750735AbdAXGwZ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Jan 2017 01:52:25 -0500
-Received: by mail-wm0-f68.google.com with SMTP id r144so32277641wme.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 23 Jan 2017 22:52:24 -0800 (PST)
-In-Reply-To: <CA+VDgmNutTGo6AmoszdNkP5yRVO2vyDnVC5Hzj5XXmLueSwEcw@mail.gmail.com>
+Received: from mx2.suse.de ([195.135.220.15]:60779 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750704AbdAXHxy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 24 Jan 2017 02:53:54 -0500
+In-Reply-To: <20170124012859.GA6375@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi !
+On Mon, 23 Jan 2017, Linus Torvalds wrote:
 
-I think nobody here will answer you.
+> For all I know, there may be some security reason why we really don't
+> want the automatic helpers, even if they can be convenient.
+> 
+> Also, you can just enable them with a kernel command line or a sysctl,
+> so it's not like you can't get the old behavior back.
 
-Those who know the answer will not answer you because they think it's 
-trivial or don't want to spend time to. And those who don't know it will 
-not answer you because they do not want show they don't know the 
-answer(like me).
+Yeah, the only concern really is causing instant breakage of existing 
+firewall configurations just by upgrading the kernel.
 
-I asked some help for 2 things a couple of days ago but I get no answer.
+On Tue, 24 Jan 2017, Pablo Neira Ayuso wrote:
 
-Best regards,
+> Yes, with helper modules in place, this is known to allow attackers to
+> push holes in your firewall.  Eric Leblond actually show that it's
+> perfectly feasible to exploit this via handcrafted packets [1]. The
+> problem is documented here [2].
+> 
+> > Also, you can just enable them with a kernel command line or a sysctl,
+> > so it's not like you can't get the old behavior back.
+> 
+> Right.
+> 
+> [1] https://cansecwest.com/csw12/conntrack-attack.pdf
+> [2] https://home.regit.org/netfilter-en/secure-use-of-helpers/
 
-Patrick.
+Alright, that's a valid reason.
 
-Le 23/01/2017 à 18:40, prashantkumar dhotre a écrit :
-> Appreciate any help on this
-> Thanks
->
->
-> On Mon, Jan 23, 2017 at 9:20 AM, prashantkumar dhotre
-> <prashantkumardhotre@gmail.com> wrote:
->> Hi experts,
->> I am new to netlink sockets.
->> In my app , I am  getting EPOLLERR in epoll_wait() on netlink socket
->> continuously.
->> epoll just notifies that there is a read event on socket (it does not
->> tell if it is read or epollerr).
->> What could be cause of this and what EPOLLERR on memory mapped netlink
->> socket mean.is this Other side of netlink (kernel side) closed
->> connection ?even if kernel side closed connection why non-stop
->> repeated EPOLLERR s on netlink sockets ?
->> What action should we take in such cases ? just close the socket  or
->> call getsockopt(SO_ERROR) to retrieve the pending error state from the
->> socket and just continue without closing socket?
->>
->> how do we detect if kernel side closed the connection ?
->> My understanding is :
->> if we get read event notification from epoll on memory mapped netlink
->> socket and in RX ring if the frame is neither NL_MMAP_STATUS_VALID and
->> nor NL_MMAP_STATUS_COPY then we can conclude that this is a 'close()'
->> from remote kernel socket and I can close connection by calling
->> close() on my netlink socket.
->> Is above understanding correct ?
->>
->> Please
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Still, I'd like us to be as helpful as possible when we really have no 
+other choice than breaking existing userspace setup.
+
+So how about issuing a warning in case we'd normally perform the automatic 
+helper assignment, but we actually don't due to the new default setting? 
+The fact that we've had the 'deprecated' warning there since 3.5 is nice, 
+but let's face it -- that's not where the poor guy would be debugging why 
+his firewall doesn't work. It'd be the kernel with the new default, and 
+that doesn't give any hints whatsoever.
+
+
+
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: [PATCH] netfilter: nf_ct_helper: warn when not applying default helper assignment
+
+Commit 3bb398d925 ("netfilter: nf_ct_helper: disable automatic helper 
+assignment") is causing behavior regressions in firewalls, as traffic 
+handled by conntrack helpers is now by default not passed through even 
+though it was before due to missing CT targets (which were not necessary 
+before this commit).
+
+The default had to be switched off due to security reasons [1] [2] and
+therefore should stay the way it is, but let's be friendly to firewall
+admins and issue a warning the first time we're in situation where packet
+would be likely passed through with the old default but we're likely going
+to drop it on the floor now.
+
+Re-use the 'net->ct.auto_assign_helper_warned' flag, as it'd be sufficient 
+to warn one way or the other.
+
+[1] https://cansecwest.com/csw12/conntrack-attack.pdf
+[2] https://home.regit.org/netfilter-en/secure-use-of-helpers/
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+---
+ net/netfilter/nf_conntrack_helper.c | 19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 7341adf..02a26b0 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -213,17 +213,28 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
+ 	}
+ 
+ 	help = nfct_help(ct);
+-	if (net->ct.sysctl_auto_assign_helper && helper == NULL) {
+-		helper = __nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+-		if (unlikely(!net->ct.auto_assign_helper_warned && helper)) {
++	if (!helper)
++	{
++		if (__nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple) &&
++				!net->ct.sysctl_auto_assign_helper &&
++				!net->ct.auto_assign_helper_warned) {
++			pr_info("nf_conntrack: default automatic helper assignment "
++				"has been turned off for security reasons "
++				"and CT-based firewall rule not found. Use the "
++				"iptables CT target to attach helpers instead.\n");
++			net->ct.auto_assign_helper_warned = true;
++		} else {
++			helper = __nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
++			if (unlikely(!net->ct.auto_assign_helper_warned && helper &&
++					!net->ct.auto_assign_helper_warned)) {
+ 			pr_info("nf_conntrack: automatic helper "
+ 				"assignment is deprecated and it will "
+ 				"be removed soon. Use the iptables CT target "
+ 				"to attach helpers instead.\n");
+ 			net->ct.auto_assign_helper_warned = true;
++			}
+ 		}
+ 	}
+-
+ 	if (helper == NULL) {
+ 		if (help)
+ 			RCU_INIT_POINTER(help->helper, NULL);
+
+-- 
+Jiri Kosina
+SUSE Labs
 
