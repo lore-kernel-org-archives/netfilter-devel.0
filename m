@@ -1,73 +1,86 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH] payload: use explicit network ctx assignation for
- icmp/icmp6 in inet family
-Date: Tue, 24 Jan 2017 21:12:58 +0100
-Message-ID: <20170124201258.GA10947@salvia>
-References: <148491481186.20302.13599222282579510532.stgit@nfdev2.cica.es>
- <20170124194854.GA10867@salvia>
+Subject: Re: [PATCH nf] netfilter: nft_log: restrict the log prefix length to
+ 127
+Date: Tue, 24 Jan 2017 21:45:47 +0100
+Message-ID: <20170124204547.GA12529@salvia>
+References: <1485094232-19683-1-git-send-email-zlpnobody@163.com>
+ <20170124192629.GA10120@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo@debian.org>
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52826 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:32830 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750766AbdAXUND (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Jan 2017 15:13:03 -0500
+        id S1750715AbdAXUqI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 24 Jan 2017 15:46:08 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A5EF11EC2C3
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jan 2017 21:13:01 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 5F96E209907
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jan 2017 21:46:06 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 94E88A825E
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jan 2017 21:13:01 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4E4986752
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jan 2017 21:46:06 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 608ABA825E
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jan 2017 21:12:59 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CEE72A6C1
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jan 2017 21:46:03 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20170124194854.GA10867@salvia>
+In-Reply-To: <20170124192629.GA10120@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 24, 2017 at 08:48:54PM +0100, Pablo Neira Ayuso wrote:
-> On Fri, Jan 20, 2017 at 01:20:11PM +0100, Arturo Borrero Gonzalez wrote:
-> > In the inet family, we can add rules like these:
+On Tue, Jan 24, 2017 at 08:26:29PM +0100, Pablo Neira Ayuso wrote:
+> On Sun, Jan 22, 2017 at 10:10:32PM +0800, Liping Zhang wrote:
+> > From: Liping Zhang <zlpnobody@gmail.com>
 > > 
-> > % nft add rule inet t c ip protocol icmp icmp type echo-request
-> > % nft add rule inet t c ip6 nexthdr icmpv6 icmpv6 type echo-request
+> > First, log prefix will be truncated to NF_LOG_PREFIXLEN-1, i.e. 127,
+> > at nf_log_packet(), so the extra part is useless.
 > > 
-> > However, when we print the ruleset:
+> > Second, after adding a log rule with a very very long prefix, we will
+> > fail to dump the nft rules after this _special_ one, but acctually,
+> > they do exist. For example:
+> >   # name_65000=$(printf "%0.sQ" {1..65000})
+> >   # nft add rule filter output log prefix "$name_65000"
+> >   # nft add rule filter output counter
+> >   # nft add rule filter output counter
+> >   # nft list chain filter output
+> >   table ip filter {
+> >       chain output {
+> >           type filter hook output priority 0; policy accept;
+> >       }
+> >   }
 > > 
-> > % nft list ruleset
-> > table inet t {
-> > 	chain c {
-> > 		icmpv6 type echo-request
-> > 		icmp type echo-request
-> > 	}
-> > }
+> > So now, restrict the log prefix length to NF_LOG_PREFIXLEN-1.
 > > 
-> > These rules we obtain can't be added again:
+> > Fixes: 96518518cc41 ("netfilter: add nftables")
+> > Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+> > ---
+> > I think this is different with http://patchwork.ozlabs.org/patch/717635/.
+> > So another separate patch will be better.
 > > 
-> > % nft add rule inet t c icmp type echo-request
-> > <cmdline>:1:19-27: Error: conflicting protocols specified: inet-service vs. icmp
-> > add rule inet t c icmp type echo-request
-> >                   ^^^^^^^^^
+> >  include/uapi/linux/netfilter/nf_log.h | 2 ++
+> >  net/netfilter/nf_log.c                | 1 -
+> >  net/netfilter/nft_log.c               | 3 ++-
+> >  3 files changed, 4 insertions(+), 2 deletions(-)
 > > 
-> > % nft add rule inet t c icmpv6 type echo-request
-> > <cmdline>:1:19-29: Error: conflicting protocols specified: inet-service vs. icmpv6
-> > add rule inet t c icmpv6 type echo-request
-> >                   ^^^^^^^^^^^
-> > 
-> > Since I wouldn't expect an IP packet carrying ICMPv6, or IPv6 packet
-> > carrying ICMP, if the link layer is inet, the network layer protocol context
-> > can be safely update to 'ip' or 'ip6'.
-> > 
-> > Moreover, nft currently generates a 'meta nfproto ipvX' depedency when
-> > using icmp or icmp6 in the inet family.
+> > diff --git a/include/uapi/linux/netfilter/nf_log.h b/include/uapi/linux/netfilter/nf_log.h
+> > index 8be21e0..d0b5fa9 100644
+> > --- a/include/uapi/linux/netfilter/nf_log.h
+> > +++ b/include/uapi/linux/netfilter/nf_log.h
+> > @@ -9,4 +9,6 @@
+> >  #define NF_LOG_MACDECODE	0x20	/* Decode MAC header */
+> >  #define NF_LOG_MASK		0x2f
+> >  
+> > +#define NF_LOG_PREFIXLEN	128
 > 
-> Applied, thanks Arturo.
+> Nitpick: xt_LOG allows 30 bytes, so we can probably stick to 32 bytes
+> here. Then, wait for usecases for larger strings, enlarging things is
+> easier than shrinking stuff later on (we can't actually, given that we
+> would break backward).
 > 
-> BTW, it would be great if you can cook a patch with new tests/py lines
-> covering this case.
+> Probably we can keep __NF_LOG_PREFIXLEN 128 for what it already exists
+> in nf_log.c internally, and expose NF_LOG_PREFIXLEN of 32 bytes?
 
-Wait. This only solves the inet case. Bridge and netdev still remain
-broken.
+Hm. We've been exposing 128 bytes already since the beginning given we
+lacked any validation.
+
+Then, this patch is fine. Applied, thanks.
