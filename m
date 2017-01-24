@@ -1,81 +1,59 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] tests: shell: validate set size
-Date: Tue, 24 Jan 2017 19:36:27 +0100
-Message-ID: <1485282987-9118-2-git-send-email-pablo@netfilter.org>
-References: <1485282987-9118-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf,v2 3/3] netfilter: nf_tables: bump set->ndeact on set flush
+Date: Tue, 24 Jan 2017 19:42:59 +0100
+Message-ID: <1485283379-9281-3-git-send-email-pablo@netfilter.org>
+References: <1485283379-9281-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46676 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49612 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750735AbdAXShC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Jan 2017 13:37:02 -0500
+        id S1750981AbdAXSnO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 24 Jan 2017 13:43:14 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 84B6A1D94A8
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jan 2017 19:36:43 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 00BEC1EC2C7
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jan 2017 19:43:08 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 75231A825E
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jan 2017 19:36:43 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E4D8AFF12C
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jan 2017 19:43:07 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5F938A7E99
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jan 2017 19:36:41 +0100 (CET)
-In-Reply-To: <1485282987-9118-1-git-send-email-pablo@netfilter.org>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7972DA7E99
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jan 2017 19:43:05 +0100 (CET)
+In-Reply-To: <1485283379-9281-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add two tests to make sure that set size checks work fine:
+Add missing set->ndeact update on each deactivated element from the set
+flush path. Otherwise, sets with fixed size break after flush since
+accounting breaks.
 
-1) Check if set size is indeed working, this is a simple one.
-2) Check if set size is correct after ENFILE error, there is bug that
-   adds a new spare slot everytime we hit this.
+ # nft add set x y { type ipv4_addr\; size 2\; }
+ # nft add element x y { 1.1.1.1 }
+ # nft add element x y { 1.1.1.2 }
+ # nft flush set x y
+ # nft add element x y { 1.1.1.1 }
+ <cmdline>:1:1-28: Error: Could not process rule: Too many open files in system
 
+Fixes: 8411b6442e59 ("netfilter: nf_tables: support for set flushing")
+Reported-by: Elise Lennion <elise.lennion@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tests/shell/testcases/sets/0018set_check_size_1 |  8 ++++++++
- tests/shell/testcases/sets/0019set_check_size_0 | 20 ++++++++++++++++++++
- 2 files changed, 28 insertions(+)
- create mode 100755 tests/shell/testcases/sets/0018set_check_size_1
- create mode 100755 tests/shell/testcases/sets/0019set_check_size_0
+v2: no changes, rebase.
 
-diff --git a/tests/shell/testcases/sets/0018set_check_size_1 b/tests/shell/testcases/sets/0018set_check_size_1
-new file mode 100755
-index 000000000000..833b8e2bd877
---- /dev/null
-+++ b/tests/shell/testcases/sets/0018set_check_size_1
-@@ -0,0 +1,8 @@
-+#!/bin/bash
-+
-+set -e
-+$NFT add table x
-+$NFT add set x s {type ipv4_addr\; size 2\;}
-+$NFT add element x s {1.1.1.1}
-+$NFT add element x s {1.1.1.2}
-+$NFT add element x s {1.1.1.3}
-diff --git a/tests/shell/testcases/sets/0019set_check_size_0 b/tests/shell/testcases/sets/0019set_check_size_0
-new file mode 100755
-index 000000000000..c20970838bf9
---- /dev/null
-+++ b/tests/shell/testcases/sets/0019set_check_size_0
-@@ -0,0 +1,20 @@
-+#!/bin/bash
-+
-+$NFT add table x
-+$NFT add set x s {type ipv4_addr\; size 2\;}
-+$NFT add element x s {1.1.1.1}
-+$NFT add element x s {1.1.1.2}
-+
-+$NFT add element x s { 1.1.1.3 } 2>/dev/null
-+if [ $? -eq 0 ]; then
-+        echo "E: set is full, but element was added" >&2
-+	exit 1
-+fi
-+#
-+# Try again, this helps us catch incorrect set->nelems decrement from abort path
-+#
-+$NFT add element x s { 1.1.1.3 } 2>/dev/null
-+if [ $? -eq 0 ]; then
-+        echo "E: set is full, but element was added" >&2
-+	exit 1
-+fi
+ net/netfilter/nf_tables_api.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 5bd0068320fb..1b913760f205 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3906,6 +3906,7 @@ static int nft_flush_set(const struct nft_ctx *ctx,
+ 		err = -ENOENT;
+ 		goto err1;
+ 	}
++	set->ndeact++;
+ 
+ 	nft_trans_elem_set(trans) = set;
+ 	nft_trans_elem(trans) = *elem;
 -- 
 2.1.4
 
