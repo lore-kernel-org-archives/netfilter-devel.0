@@ -1,104 +1,34 @@
-From: Elise Lennion <elise.lennion@gmail.com>
-Subject: [PATCH nft v2 2/2] src: Allow list single stateful object
-Date: Tue, 24 Jan 2017 11:42:26 -0200
-Message-ID: <20170124134226.GA1740@lennorien.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft] tests: shell: Add test for flush bug on sets with
+ size
+Date: Tue, 24 Jan 2017 19:34:43 +0100
+Message-ID: <20170124183443.GA7829@salvia>
+References: <20170123224159.GA19546@lennorien.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+To: Elise Lennion <elise.lennion@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:34106 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750950AbdAXNme (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Jan 2017 08:42:34 -0500
-Received: by mail-qt0-f194.google.com with SMTP id a29so25242574qtb.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jan 2017 05:42:33 -0800 (PST)
+Received: from mail.us.es ([193.147.175.20]:46028 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750716AbdAXSfA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 24 Jan 2017 13:35:00 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 1BF031D94A8
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jan 2017 19:34:47 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0B73BA7E7D
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jan 2017 19:34:47 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EA6B2DA8F5
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Jan 2017 19:34:44 +0100 (CET)
 Content-Disposition: inline
+In-Reply-To: <20170123224159.GA19546@lennorien.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently the stateful objects can only be listed in groups. With this
-patch listing a single object is allowed:
+On Mon, Jan 23, 2017 at 08:42:00PM -0200, Elise Lennion wrote:
+> This tests for a bug where elements can't be added after flushing a
+> full set with the flag NFTNL_SET_DESC_SIZE set.
 
-$ nft list counter filter https-traffic
-table ip filter {
-	counter https-traffic {
-		packets 4014 bytes 228948
-	}
-}
-
-$ nft list quota filter https-quota
-table ip filter {
-	quota https-quota {
-		25 mbytes used 278 kbytes
-	}
-}
-
-Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
----
-
- v2: No change on this one.
-
- src/evaluate.c | 18 ++++++++++++++++++
- src/rule.c     |  6 +++++-
- 2 files changed, 23 insertions(+), 1 deletion(-)
-
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 9a9927b..3cf5075 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2936,6 +2936,24 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- 			return cmd_error(ctx, "Could not process rule: Chain '%s' does not exist",
- 					 cmd->handle.chain);
- 		return 0;
-+	case CMD_OBJ_COUNTER:
-+		table = table_lookup(&cmd->handle);
-+		if (table == NULL)
-+			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
-+					 cmd->handle.table);
-+		if (obj_lookup(table, cmd->handle.obj, NFT_OBJECT_COUNTER) == NULL)
-+			return cmd_error(ctx, "Could not process rule: Counter '%s' does not exist",
-+					 cmd->handle.obj);
-+		return 0;
-+	case CMD_OBJ_QUOTA:
-+		table = table_lookup(&cmd->handle);
-+		if (table == NULL)
-+			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
-+					 cmd->handle.table);
-+		if (obj_lookup(table, cmd->handle.obj, NFT_OBJECT_QUOTA) == NULL)
-+			return cmd_error(ctx, "Could not process rule: Quota '%s' does not exist",
-+					 cmd->handle.obj);
-+		return 0;
- 	case CMD_OBJ_CHAINS:
- 	case CMD_OBJ_SETS:
- 	case CMD_OBJ_COUNTERS:
-diff --git a/src/rule.c b/src/rule.c
-index cd76983..665b1d9 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -1276,7 +1276,9 @@ static int do_list_obj(struct netlink_ctx *ctx, struct cmd *cmd, uint32_t type)
- 		print_table = false;
- 
- 		list_for_each_entry(obj, &table->objs, list) {
--			if (obj->type != type)
-+			if (obj->type != type ||
-+			    (cmd->handle.obj != NULL &&
-+			     strcmp(cmd->handle.obj, obj->handle.obj)))
- 				continue;
- 
- 			if (!print_table) {
-@@ -1426,8 +1428,10 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 		return do_list_sets(ctx, cmd);
- 	case CMD_OBJ_MAP:
- 		return do_list_set(ctx, cmd, table);
-+	case CMD_OBJ_COUNTER:
- 	case CMD_OBJ_COUNTERS:
- 		return do_list_obj(ctx, cmd, NFT_OBJECT_COUNTER);
-+	case CMD_OBJ_QUOTA:
- 	case CMD_OBJ_QUOTAS:
- 		return do_list_obj(ctx, cmd, NFT_OBJECT_QUOTA);
- 	default:
--- 
-2.7.4
-
+Applied, thanks Elise.
