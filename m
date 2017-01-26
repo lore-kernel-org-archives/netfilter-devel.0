@@ -1,49 +1,111 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 02/14] tcp: fix mark propagation with fwmark_reflect
- enabled
-Date: Thu, 26 Jan 2017 11:28:46 -0800
-Message-ID: <1485458926.5145.156.camel@edumazet-glaptop3.roam.corp.google.com>
-References: <1485448687-6072-1-git-send-email-pablo@netfilter.org>
-         <1485448687-6072-3-git-send-email-pablo@netfilter.org>
-         <1485453760.5145.144.camel@edumazet-glaptop3.roam.corp.google.com>
-         <20170126191935.GA26591@salvia>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH v2 net] net: free ip_vs_dest structs when refcnt=0
+Date: Thu, 26 Jan 2017 22:49:10 +0200 (EET)
+Message-ID: <alpine.LFD.2.11.1701262241280.3892@ja.home.ssi.bg>
+References: <1485228269-21758-1-git-send-email-dwindsor@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:33317 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753105AbdAZT2y (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Jan 2017 14:28:54 -0500
-In-Reply-To: <20170126191935.GA26591@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netdev@vger.kernel.org, kernel-hardening@lists.openwall.com,
+        netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
+        wensong@linux-vs.org, horms@verge.net.au, pablo@netfilter.org,
+        keescook@chromium.org, elena.reshetova@intel.com,
+        ishkamiel@gmail.com
+To: David Windsor <dwindsor@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1485228269-21758-1-git-send-email-dwindsor@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2017-01-26 at 20:19 +0100, Pablo Neira Ayuso wrote:
 
-> Right. This is not percpu as in IPv4.
+	Hello,
+
+On Mon, 23 Jan 2017, David Windsor wrote:
+
+> Currently, the ip_vs_dest cache frees ip_vs_dest objects when their
+> reference count becomes < 0.  Aside from not being semantically sound,
+> this is problematic for the new type refcount_t, which will be introduced
+> shortly in a separate patch. refcount_t is the new kernel type for
+> holding reference counts, and provides overflow protection and a
+> constrained interface relative to atomic_t (the type currently being
+> used for kernel reference counts).
 > 
-> I can send a follow up patch to get this in sync with the way we do it
-> in IPv4, ie. add percpu socket.
+> Per Julian Anastasov: "The problem is that dest_trash currently holds
+> deleted dests (unlinked from RCU lists) with refcnt=0."  Changing
+> dest_trash to hold dest with refcnt=1 will allow us to free ip_vs_dest
+> structs when their refcnt=0, in ip_vs_dest_put_and_free().
 > 
-> Fine with this approach? Thanks!
+> Signed-off-by: David Windsor <dwindsor@gmail.com>
 
-Not really.
+	Thanks! I tested the first version and this one
+just adds the needed changes in comments, so
 
-percpu sockets are going to slow down network namespace creation /
-deletion and increase memory foot print.
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
 
-IPv6 is cleaner because it does not really have to use different
-sockets.
+	Simon and Pablo, this is more appropriate for
+ipvs-next/nf-next. Please apply!
 
-Ultimately would would like to have the same for IPv4.
+> ---
+>  include/net/ip_vs.h            | 2 +-
+>  net/netfilter/ipvs/ip_vs_ctl.c | 8 +++-----
+>  2 files changed, 4 insertions(+), 6 deletions(-)
+> 
+> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+> index cd6018a..a3e78ad 100644
+> --- a/include/net/ip_vs.h
+> +++ b/include/net/ip_vs.h
+> @@ -1421,7 +1421,7 @@ static inline void ip_vs_dest_put(struct ip_vs_dest *dest)
+>  
+>  static inline void ip_vs_dest_put_and_free(struct ip_vs_dest *dest)
+>  {
+> -	if (atomic_dec_return(&dest->refcnt) < 0)
+> +	if (atomic_dec_and_test(&dest->refcnt))
+>  		kfree(dest);
+>  }
+>  
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index 55e0169..5fc4836 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -711,7 +711,6 @@ ip_vs_trash_get_dest(struct ip_vs_service *svc, int dest_af,
+>  		      dest->vport == svc->port))) {
+>  			/* HIT */
+>  			list_del(&dest->t_list);
+> -			ip_vs_dest_hold(dest);
+>  			goto out;
+>  		}
+>  	}
+> @@ -741,7 +740,7 @@ static void ip_vs_dest_free(struct ip_vs_dest *dest)
+>   *  When the ip_vs_control_clearup is activated by ipvs module exit,
+>   *  the service tables must have been flushed and all the connections
+>   *  are expired, and the refcnt of each destination in the trash must
+> - *  be 0, so we simply release them here.
+> + *  be 1, so we simply release them here.
+>   */
+>  static void ip_vs_trash_cleanup(struct netns_ipvs *ipvs)
+>  {
+> @@ -1080,11 +1079,10 @@ static void __ip_vs_del_dest(struct netns_ipvs *ipvs, struct ip_vs_dest *dest,
+>  	if (list_empty(&ipvs->dest_trash) && !cleanup)
+>  		mod_timer(&ipvs->dest_trash_timer,
+>  			  jiffies + (IP_VS_DEST_TRASH_PERIOD >> 1));
+> -	/* dest lives in trash without reference */
+> +	/* dest lives in trash with reference */
+>  	list_add(&dest->t_list, &ipvs->dest_trash);
+>  	dest->idle_start = 0;
+>  	spin_unlock_bh(&ipvs->dest_trash_lock);
+> -	ip_vs_dest_put(dest);
+>  }
+>  
+>  
+> @@ -1160,7 +1158,7 @@ static void ip_vs_dest_trash_expire(unsigned long data)
+>  
+>  	spin_lock(&ipvs->dest_trash_lock);
+>  	list_for_each_entry_safe(dest, next, &ipvs->dest_trash, t_list) {
+> -		if (atomic_read(&dest->refcnt) > 0)
+> +		if (atomic_read(&dest->refcnt) > 1)
+>  			continue;
+>  		if (dest->idle_start) {
+>  			if (time_before(now, dest->idle_start +
+> -- 
+> 2.7.4
 
-I would rather carry the mark either in an additional parameter,
-or in the flow that is already passed as a parameter.
-
-
-
+Regards
