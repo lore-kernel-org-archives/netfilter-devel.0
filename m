@@ -1,8 +1,8 @@
 From: Shivani Bhardwaj <shivanib134@gmail.com>
 Subject: Re: [PATCH] iptables: fix the wrong appending of jump verdict after
  the comment.
-Date: Thu, 26 Jan 2017 16:26:02 +0530
-Message-ID: <CAKHNQQFGtctgFr7pDE4_+yqfFgeeBeW9RAiUH1B0AGi76-jXVg@mail.gmail.com>
+Date: Thu, 26 Jan 2017 17:06:56 +0530
+Message-ID: <CAKHNQQFhjicOr4dkPkAkx7N6_v802t=aici9BEU5cMmeip=i+g@mail.gmail.com>
 References: <1485422390-3938-1-git-send-email-mayhs11saini@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -10,18 +10,16 @@ Cc: Netfilter Development Mailing list
         <netfilter-devel@vger.kernel.org>
 To: Shyam Saini <mayhs11saini@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f67.google.com ([209.85.213.67]:35650 "EHLO
-        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753025AbdAZK4n (ORCPT
+Received: from mail-ua0-f193.google.com ([209.85.217.193]:34087 "EHLO
+        mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750998AbdAZLiT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Jan 2017 05:56:43 -0500
-Received: by mail-vk0-f67.google.com with SMTP id 23so18500415vkc.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Jan 2017 02:56:43 -0800 (PST)
+        Thu, 26 Jan 2017 06:38:19 -0500
+Received: by mail-ua0-f193.google.com with SMTP id i68so21742901uad.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Jan 2017 03:37:37 -0800 (PST)
 In-Reply-To: <1485422390-3938-1-git-send-email-mayhs11saini@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
-
-Hi!
 
 On Thu, Jan 26, 2017 at 2:49 PM, Shyam Saini <mayhs11saini@gmail.com> wrote:
 > Fix wrong appending of jump verdict after the comment
@@ -47,20 +45,15 @@ On Thu, Jan 26, 2017 at 2:49 PM, Shyam Saini <mayhs11saini@gmail.com> wrote:
 > nft add rule ip filter INPUT ip saddr 192.168.0.0/16 ip daddr 192.168.0.0/16 tcp sport 80 counter jump LONGNACCEPT comment \"foobar\"
 > which is correct translation
 >
+> Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
 
-I get the following:
+Reviewed-by: Shivani Bhardwaj <shivanib134@gmail.com>
 
-sudo nft add rule ip filter INPUT ip saddr 192.168.0.0/16 ip daddr
-192.168.0.0/16 tcp sport 80 counter jump LONGNACCEPT comment
-\"foobar\"
-<cmdline>:1:1-127: Error: Could not process rule: Operation not supported
-add rule ip filter INPUT ip saddr 192.168.0.0/16 ip daddr
-192.168.0.0/16 tcp sport 80 counter jump LONGNACCEPT comment "foobar"
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+It does get accepted by nft. Sorry about the last mail.
+You could probably send out similar patch for ip6 too.
 
 Shivani
 
-> Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
 > ---
 >  iptables/nft-ipv4.c | 5 ++---
 >  1 file changed, 2 insertions(+), 3 deletions(-)
