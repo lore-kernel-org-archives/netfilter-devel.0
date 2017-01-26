@@ -1,60 +1,67 @@
-From: Roy Keene <lkml@rkeene.org>
-Subject: Re: ip_rcv_finish() NULL pointer kernel panic
-Date: Thu, 26 Jan 2017 10:02:58 -0600 (CST)
-Message-ID: <alpine.LNX.2.02.1701260959410.24491@maul.oc9.org>
-References: <alpine.LNX.2.02.1701260627510.24491@maul.oc9.org>  <alpine.LNX.2.02.1701260927040.24491@maul.oc9.org> <1485446279.5145.141.camel@edumazet-glaptop3.roam.corp.google.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] iptables: fix the wrong appending of jump verdict after
+ the comment.
+Date: Thu, 26 Jan 2017 17:13:18 +0100
+Message-ID: <20170126161318.GA5403@salvia>
+References: <1485422390-3938-1-git-send-email-mayhs11saini@gmail.com>
+ <CAKHNQQFhjicOr4dkPkAkx7N6_v802t=aici9BEU5cMmeip=i+g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1485446279.5145.141.camel@edumazet-glaptop3.roam.corp.google.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Shyam Saini <mayhs11saini@gmail.com>,
+        Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Shivani Bhardwaj <shivanib134@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:42064 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752734AbdAZQW3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 26 Jan 2017 11:22:29 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 389FF7646
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Jan 2017 17:13:21 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2985AA7DB4
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Jan 2017 17:13:21 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EE7EF1B300B
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Jan 2017 17:13:18 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <CAKHNQQFhjicOr4dkPkAkx7N6_v802t=aici9BEU5cMmeip=i+g@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-> On Thu, 2017-01-26 at 09:32 -0600, Roy Keene wrote:
->> This bug appears to have existed for a long time:
->>
->>  	https://www.spinics.net/lists/netdev/msg222459.html
->>
->>  	http://www.kernelhub.org/?p=2&msg=823752
->>
->> Though possibly with different things not setting the "input" function
->> pointer in the "struct dst_entry".
->>
->> include/net/dst.h:
->>   496 static inline int dst_input(struct sk_buff *skb) {
->>   498         return skb_dst(skb)->input(skb);
->>   499 }
->>
->> Is there any reason not to check to see if this pointer is NULL before
->> blindly calling it ?
->
-> Sure. It can not be NULL at this point.
->
+On Thu, Jan 26, 2017 at 05:06:56PM +0530, Shivani Bhardwaj wrote:
+> On Thu, Jan 26, 2017 at 2:49 PM, Shyam Saini <mayhs11saini@gmail.com> wrote:
+> > Fix wrong appending of jump verdict after the comment
+> >
+> > For example:
+> > $ iptables-translate -A INPUT -p tcp -m tcp --sport http -s  192.168.0.0/16 -d 192.168.0.0/16 -j LONGNACCEPT -m comment --comment "foobar"
+> > nft add rule ip filter INPUT ip saddr 192.168.0.0/16 ip daddr 192.168.0.0/16 tcp sport 80 counter comment \"foobar\"jump LONGNACCEPT
+> >
+> > Note that even without comment with double-quotes (i.e. --comment
+> > "foobar"), it will add quotes:
+> >
+> > $ iptables-translate -A FORWARD -p tcp -m tcp --sport http -s 192.168.0.0/16 -d 192.168.0.0/16 -j DROP -m comment --comment singlecomment
+> > nft add rule ip filter FORWARD ip saddr 192.168.0.0/16 ip daddr 192.168.0.0/16 tcp sport 80 counter comment \"singlecomment\"drop
+> >
+> > Attempting to apply the translated/generated rule will result to:
+> >
+> > $ nft add rule ip filter INPUT ip saddr 192.168.0.0/16 ip daddr  192.168.0.0/16 tcp sport 80 counter comment \"foobar\"jump LONGNACCEPT
+> > <cmdline>:1:111-114: Error: syntax error, unexpected jump, expecting endof file or newline or semicolon
+> > add rule ip filter INPUT ip saddr 192.168.0.0/16 ip daddr 192.168.0.0/16 tcp sport 80 counter comment "foobar"jump LONGNACCEPT
+> >
+> > After this patch
+> > $ iptables-translate -A INPUT -p tcp -m tcp --sport http -s 192.168.0.0/16 -d 192.168.0.0/16 -j LONGNACCEPT -m comment --comment "foobar"
+> > nft add rule ip filter INPUT ip saddr 192.168.0.0/16 ip daddr 192.168.0.0/16 tcp sport 80 counter jump LONGNACCEPT comment \"foobar\"
+> > which is correct translation
+> >
+> > Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
+> 
+> Reviewed-by: Shivani Bhardwaj <shivanib134@gmail.com>
+> 
+> It does get accepted by nft. Sorry about the last mail.
+> You could probably send out similar patch for ip6 too.
 
-It clearly can be NULL at this point, since there are kernel panics for 
-15 years of this -- going all the way back to 2.2.20 !
+I have mangled your patch to include the missing IPv6 chunk.
 
-https://lists.gt.net/linux/kernel/250077
-
-It seems like it might actually be a good idea to do as Alex Bligh 
-suggested all those years ago and I re-suggested now.
-
-> Just look at the code in ip_rcv_finish() :
->
-> It first make sure to get a valid dst.
->
-> Something is broken, probably in bridge netfilter code.
->
-
-I'll try poking around there.
-
-> I suspect the dst here points to &br->fake_rtable, and this is not
-> expected.
->
-> br_drop_fake_rtable() should have been called somewhere ...
->
-
-Thanks,
- 	Roy Keene
+So this patch has been applied, thanks!
