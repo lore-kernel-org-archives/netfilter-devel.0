@@ -1,53 +1,48 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: ip_rcv_finish() NULL pointer kernel panic
-Date: Thu, 26 Jan 2017 17:24:33 +0100
-Message-ID: <20170126162433.GB1778@breakpoint.cc>
-References: <alpine.LNX.2.02.1701260627510.24491@maul.oc9.org>
- <alpine.LNX.2.02.1701260927040.24491@maul.oc9.org>
- <1485446279.5145.141.camel@edumazet-glaptop3.roam.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Cc: Roy Keene <lkml@rkeene.org>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:36930 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752605AbdAZQ1i (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Jan 2017 11:27:38 -0500
-Content-Disposition: inline
-In-Reply-To: <1485446279.5145.141.camel@edumazet-glaptop3.roam.corp.google.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 07/14] netfilter: ipt_CLUSTERIP: fix build error without procfs
+Date: Thu, 26 Jan 2017 17:38:00 +0100
+Message-ID: <1485448687-6072-8-git-send-email-pablo@netfilter.org>
+References: <1485448687-6072-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1485448687-6072-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> > Though possibly with different things not setting the "input" function 
-> > pointer in the "struct dst_entry".
-> > 
-> > include/net/dst.h:
-> >   496 static inline int dst_input(struct sk_buff *skb) {
-> >   498         return skb_dst(skb)->input(skb);
-> >   499 }
-> > 
-> > Is there any reason not to check to see if this pointer is NULL before 
-> > blindly calling it ?
-> 
-> Sure. It can not be NULL at this point.
-> 
-> Just look at the code in ip_rcv_finish() :
-> 
-> It first make sure to get a valid dst.
-> 
-> Something is broken, probably in bridge netfilter code.
-> 
-> I suspect the dst here points to &br->fake_rtable, and this is not
-> expected.
-> 
-> br_drop_fake_rtable() should have been called somewhere ...
+From: Arnd Bergmann <arnd@arndb.de>
 
-I think it makes sense to set dst->incoming
-to a stub in br_netfilter_rtable_init() to just kfree_skb()+
-WARN_ON_ONCE(), no need to add code to ip stack or crash kernel
-due to brnf bug.
+We can't access c->pde if CONFIG_PROC_FS is disabled:
+
+net/ipv4/netfilter/ipt_CLUSTERIP.c: In function 'clusterip_config_find_get':
+net/ipv4/netfilter/ipt_CLUSTERIP.c:147:9: error: 'struct clusterip_config' has no member named 'pde'
+
+This moves the check inside of another #ifdef.
+
+Fixes: 6c5d5cfbe3c5 ("netfilter: ipt_CLUSTERIP: check duplicate config when initializing")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/ipv4/netfilter/ipt_CLUSTERIP.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index a6b8c1a4102b..0a783cd73faf 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -144,7 +144,12 @@ clusterip_config_find_get(struct net *net, __be32 clusterip, int entry)
+ 	rcu_read_lock_bh();
+ 	c = __clusterip_config_find(net, clusterip);
+ 	if (c) {
+-		if (!c->pde || unlikely(!atomic_inc_not_zero(&c->refcount)))
++#ifdef CONFIG_PROC_FS
++		if (!c->pde)
++			c = NULL;
++		else
++#endif
++		if (unlikely(!atomic_inc_not_zero(&c->refcount)))
+ 			c = NULL;
+ 		else if (entry)
+ 			atomic_inc(&c->entries);
+-- 
+2.1.4
