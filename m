@@ -1,342 +1,43 @@
-From: Arturo Borrero Gonzalez <arturo@debian.org>
-Subject: [nft PATCH v2] payload: explicit network ctx assignation for
- icmp/icmp6 in special families
-Date: Wed, 25 Jan 2017 12:51:08 +0100
-Message-ID: <148534500812.3696.9146810123952951607.stgit@nfdev2.cica.es>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: ip_rcv_finish() NULL pointer kernel panic
+Date: Thu, 26 Jan 2017 10:14:44 -0800
+Message-ID: <1485454484.5145.148.camel@edumazet-glaptop3.roam.corp.google.com>
+References: <alpine.LNX.2.02.1701260627510.24491@maul.oc9.org>
+         <alpine.LNX.2.02.1701260927040.24491@maul.oc9.org>
+         <1485446279.5145.141.camel@edumazet-glaptop3.roam.corp.google.com>
+         <20170126162433.GB1778@breakpoint.cc>
+         <1485453601.5145.142.camel@edumazet-glaptop3.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Cc: Roy Keene <lkml@rkeene.org>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:53207 "EHLO smtp.cica.es"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751407AbdAYLv0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Jan 2017 06:51:26 -0500
-Received: from localhost (unknown [127.0.0.1])
-        by smtp.cica.es (Postfix) with ESMTP id 0C52851F34B
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Jan 2017 11:51:17 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id 8UaHXqnPxSxN for <netfilter-devel@vger.kernel.org>;
-        Wed, 25 Jan 2017 12:51:10 +0100 (CET)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-        (Authenticated sender: servers@cica.es)
-        by smtp.cica.es (Postfix) with ESMTP id 17E3C51F345
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Jan 2017 12:51:09 +0100 (CET)
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:36242 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753894AbdAZSWK (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 26 Jan 2017 13:22:10 -0500
+In-Reply-To: <1485453601.5145.142.camel@edumazet-glaptop3.roam.corp.google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In the inet, bridge and netdev families, we can add rules like these:
+On Thu, 2017-01-26 at 10:00 -0800, Eric Dumazet wrote:
+> On Thu, 2017-01-26 at 17:24 +0100, Florian Westphal wrote:
+> 
+> > I think it makes sense to set dst->incoming
+> > to a stub in br_netfilter_rtable_init() to just kfree_skb()+
+> > WARN_ON_ONCE(), no need to add code to ip stack or crash kernel
+> > due to brnf bug.
+> 
+> Just kfree_skb() would hide bugs.
+> 
+> Dropping packets is not uncommon in networking...
+> 
+> I would rather use at least a WARN_ON_ONCE() before the kfree_skb() ;)
 
-% nft add rule inet t c ip protocol icmp icmp type echo-request
-% nft add rule inet t c ip6 nexthdr icmpv6 icmpv6 type echo-request
 
-However, when we print the ruleset:
+Oh well, I obviously did not parse properly your suggestion.
 
-% nft list ruleset
-table inet t {
-	chain c {
-		icmpv6 type echo-request
-		icmp type echo-request
-	}
-}
-
-These rules we obtain can't be added again:
-
-% nft add rule inet t c icmp type echo-request
-<cmdline>:1:19-27: Error: conflicting protocols specified: inet-service vs. icmp
-add rule inet t c icmp type echo-request
-                  ^^^^^^^^^
-
-% nft add rule inet t c icmpv6 type echo-request
-<cmdline>:1:19-29: Error: conflicting protocols specified: inet-service vs. icmpv6
-add rule inet t c icmpv6 type echo-request
-                  ^^^^^^^^^^^
-
-Since I wouldn't expect an IP packet carrying ICMPv6, or IPv6 packet
-carrying ICMP, if the link layer is inet, the network layer protocol context
-can be safely update to 'ip' or 'ip6'.
-
-Moreover, nft currently generates a 'meta nfproto ipvX' depedency when
-using icmp or icmp6 in the inet family, and similar in netdev and bridge
-families.
-
-While at it, a bit of code factorization is introduced.
-
-Fixes: https://bugzilla.netfilter.org/show_bug.cgi?id=1073
-Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
----
-v2: cover netdev/bridge families as well, factorize code, add tests.
-
- src/payload.c                       |   70 +++++++++++++++--------------------
- tests/py/any/icmpX.t.netdev         |    8 ++++
- tests/py/any/icmpX.t.netdev.payload |   36 ++++++++++++++++++
- tests/py/bridge/icmpX.t             |    8 ++++
- tests/py/bridge/icmpX.t.payload     |   36 ++++++++++++++++++
- tests/py/inet/icmpX.t               |    8 ++++
- tests/py/inet/icmpX.t.payload       |   36 ++++++++++++++++++
- 7 files changed, 162 insertions(+), 40 deletions(-)
- create mode 100644 tests/py/any/icmpX.t.netdev
- create mode 100644 tests/py/any/icmpX.t.netdev.payload
- create mode 100644 tests/py/bridge/icmpX.t
- create mode 100644 tests/py/bridge/icmpX.t.payload
- create mode 100644 tests/py/inet/icmpX.t
- create mode 100644 tests/py/inet/icmpX.t.payload
-
-diff --git a/src/payload.c b/src/payload.c
-index af533b2..74f8254 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -223,6 +223,34 @@ static int payload_add_dependency(struct eval_ctx *ctx,
- 	return 0;
- }
- 
-+static const struct proto_desc *
-+payload_gen_special_dependency(struct eval_ctx *ctx, const struct expr *expr)
-+{
-+	switch (expr->payload.base) {
-+	case PROTO_BASE_LL_HDR:
-+		switch (ctx->pctx.family) {
-+		case NFPROTO_INET:
-+			return &proto_inet;
-+		case NFPROTO_BRIDGE:
-+			return &proto_eth;
-+		case NFPROTO_NETDEV:
-+			return &proto_netdev;
-+		default:
-+			break;
-+		}
-+		break;
-+	case PROTO_BASE_TRANSPORT_HDR:
-+		if (expr->payload.desc == &proto_icmp)
-+			return &proto_ip;
-+		if (expr->payload.desc == &proto_icmp6)
-+			return &proto_ip6;
-+		return &proto_inet_service;
-+	default:
-+		break;
-+	}
-+	return NULL;
-+}
-+
- /**
-  * payload_gen_dependency - generate match expression on payload dependency
-  *
-@@ -276,46 +304,8 @@ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
- 
- 	desc = ctx->pctx.protocol[expr->payload.base - 1].desc;
- 	/* Special case for mixed IPv4/IPv6 and bridge tables */
--	if (desc == NULL) {
--		switch (ctx->pctx.family) {
--		case NFPROTO_INET:
--			switch (expr->payload.base) {
--			case PROTO_BASE_LL_HDR:
--				desc = &proto_inet;
--				break;
--			case PROTO_BASE_TRANSPORT_HDR:
--				desc = &proto_inet_service;
--				break;
--			default:
--				break;
--			}
--			break;
--		case NFPROTO_BRIDGE:
--			switch (expr->payload.base) {
--			case PROTO_BASE_LL_HDR:
--				desc = &proto_eth;
--				break;
--			case PROTO_BASE_TRANSPORT_HDR:
--				desc = &proto_inet_service;
--				break;
--			default:
--				break;
--			}
--			break;
--		case NFPROTO_NETDEV:
--			switch (expr->payload.base) {
--			case PROTO_BASE_LL_HDR:
--				desc = &proto_netdev;
--				break;
--			case PROTO_BASE_TRANSPORT_HDR:
--				desc = &proto_inet_service;
--				break;
--			default:
--				break;
--			}
--			break;
--		}
--	}
-+	if (desc == NULL)
-+		desc = payload_gen_special_dependency(ctx, expr);
- 
- 	if (desc == NULL)
- 		return expr_error(ctx->msgs, expr,
-diff --git a/tests/py/any/icmpX.t.netdev b/tests/py/any/icmpX.t.netdev
-new file mode 100644
-index 0000000..a327ce6
---- /dev/null
-+++ b/tests/py/any/icmpX.t.netdev
-@@ -0,0 +1,8 @@
-+:ingress;type filter hook ingress device lo priority 0
-+
-+*netdev;test-netdev;ingress
-+
-+ip protocol icmp icmp type echo-request;ok;icmp type echo-request
-+icmp type echo-request;ok
-+ip6 nexthdr icmpv6 icmpv6 type echo-request;ok;icmpv6 type echo-request
-+icmpv6 type echo-request;ok
-diff --git a/tests/py/any/icmpX.t.netdev.payload b/tests/py/any/icmpX.t.netdev.payload
-new file mode 100644
-index 0000000..8b8107c
---- /dev/null
-+++ b/tests/py/any/icmpX.t.netdev.payload
-@@ -0,0 +1,36 @@
-+# ip protocol icmp icmp type echo-request
-+netdev test-netdev ingress
-+  [ meta load protocol => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+
-+# icmp type echo-request
-+netdev test-netdev ingress
-+  [ meta load protocol => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+
-+# ip6 nexthdr icmpv6 icmpv6 type echo-request
-+netdev test-netdev ingress
-+  [ meta load protocol => reg 1 ]
-+  [ cmp eq reg 1 0x0000dd86 ]
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x0000003a ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000080 ]
-+
-+# icmpv6 type echo-request
-+netdev test-netdev ingress
-+  [ meta load protocol => reg 1 ]
-+  [ cmp eq reg 1 0x0000dd86 ]
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x0000003a ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000080 ]
-+
-diff --git a/tests/py/bridge/icmpX.t b/tests/py/bridge/icmpX.t
-new file mode 100644
-index 0000000..8c0a597
---- /dev/null
-+++ b/tests/py/bridge/icmpX.t
-@@ -0,0 +1,8 @@
-+:input;type filter hook input priority 0
-+
-+*bridge;test-bridge;input
-+
-+ip protocol icmp icmp type echo-request;ok;icmp type echo-request
-+icmp type echo-request;ok
-+ip6 nexthdr icmpv6 icmpv6 type echo-request;ok;icmpv6 type echo-request
-+icmpv6 type echo-request;ok
-diff --git a/tests/py/bridge/icmpX.t.payload b/tests/py/bridge/icmpX.t.payload
-new file mode 100644
-index 0000000..19efdd8
---- /dev/null
-+++ b/tests/py/bridge/icmpX.t.payload
-@@ -0,0 +1,36 @@
-+# ip protocol icmp icmp type echo-request
-+bridge test-bridge input
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+
-+# icmp type echo-request
-+bridge test-bridge input
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+
-+# ip6 nexthdr icmpv6 icmpv6 type echo-request
-+bridge test-bridge input
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x0000dd86 ]
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x0000003a ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000080 ]
-+
-+# icmpv6 type echo-request
-+bridge test-bridge input
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x0000dd86 ]
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x0000003a ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000080 ]
-+
-diff --git a/tests/py/inet/icmpX.t b/tests/py/inet/icmpX.t
-new file mode 100644
-index 0000000..1b467a1
---- /dev/null
-+++ b/tests/py/inet/icmpX.t
-@@ -0,0 +1,8 @@
-+:input;type filter hook input priority 0
-+
-+*inet;test-inet;input
-+
-+ip protocol icmp icmp type echo-request;ok;icmp type echo-request
-+icmp type echo-request;ok
-+ip6 nexthdr icmpv6 icmpv6 type echo-request;ok;icmpv6 type echo-request
-+icmpv6 type echo-request;ok
-diff --git a/tests/py/inet/icmpX.t.payload b/tests/py/inet/icmpX.t.payload
-new file mode 100644
-index 0000000..81ca774
---- /dev/null
-+++ b/tests/py/inet/icmpX.t.payload
-@@ -0,0 +1,36 @@
-+# ip protocol icmp icmp type echo-request
-+inet test-inet input
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x00000002 ]
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+
-+# icmp type echo-request
-+inet test-inet input
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x00000002 ]
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+
-+# ip6 nexthdr icmpv6 icmpv6 type echo-request
-+inet test-inet input
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x0000000a ]
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x0000003a ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000080 ]
-+
-+# icmpv6 type echo-request
-+inet test-inet input
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x0000000a ]
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x0000003a ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000080 ]
-+
 
