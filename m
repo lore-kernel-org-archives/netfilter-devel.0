@@ -1,279 +1,166 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] iptables 1.6.1 release
-Date: Fri, 27 Jan 2017 22:00:36 +0100
-Message-ID: <20170127210036.GA15758@salvia>
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: net: suspicious RCU usage in nf_hook
+Date: Fri, 27 Jan 2017 22:15:57 +0100
+Message-ID: <CACT4Y+bpmwj1WH7g6inQBm+7PvHepv9tTmYBUqkJYFvquGDYCQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="dDRMvlgZJXvWKvBx"
-Content-Transfer-Encoding: 8bit
-Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
-        netfilter-announce@lists.netfilter.org, lwn@lwn.net
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: syzkaller <syzkaller@googlegroups.com>
+To: David Miller <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Eric Dumazet <edumazet@google.com>,
+        James Morris <jmorris@namei.org>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Patrick McHardy <kaber@trash.net>,
+        netdev <netdev@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ua0-f170.google.com ([209.85.217.170]:34364 "EHLO
+        mail-ua0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751411AbdA0VrU (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 27 Jan 2017 16:47:20 -0500
+Received: by mail-ua0-f170.google.com with SMTP id 35so214773123uak.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Jan 2017 13:47:19 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello,
 
---dDRMvlgZJXvWKvBx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I've got the following report while running syzkaller fuzzer on
+fd694aaa46c7ed811b72eb47d5eb11ce7ab3f7f1:
 
-Hi!
+[ INFO: suspicious RCU usage. ]
+4.10.0-rc5+ #192 Not tainted
+-------------------------------
+./include/linux/rcupdate.h:561 Illegal context switch in RCU read-side
+critical section!
 
-The Netfilter project proudly presents:
+other info that might help us debug this:
 
-	iptables 1.6.1
+rcu_scheduler_active = 2, debug_locks = 0
+2 locks held by syz-executor14/23111:
+ #0:  (sk_lock-AF_INET6){+.+.+.}, at: [<ffffffff83a35c35>] lock_sock
+include/net/sock.h:1454 [inline]
+ #0:  (sk_lock-AF_INET6){+.+.+.}, at: [<ffffffff83a35c35>]
+rawv6_sendmsg+0x1e65/0x3ec0 net/ipv6/raw.c:919
+ #1:  (rcu_read_lock){......}, at: [<ffffffff83ae2678>] nf_hook
+include/linux/netfilter.h:201 [inline]
+ #1:  (rcu_read_lock){......}, at: [<ffffffff83ae2678>]
+__ip6_local_out+0x258/0x840 net/ipv6/output_core.c:160
 
-iptables is the userspace command line program used to configure the
-Linux 2.4.x and later packet filtering ruleset. It is targeted towards
-system administrators.
-
-This update contains accumulated bugfixes, several new extensions and
-lots of translations via iptables-translate to ease migration to
-nftables.
-
-See ChangeLog that comes attached to this email for more details.
-
-You can download it from:
-
-http://www.netfilter.org/projects/iptables/downloads.html
-ftp://ftp.netfilter.org/pub/iptables/
-
-Have fun!
-
---dDRMvlgZJXvWKvBx
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: attachment; filename="changes-iptables-1.6.1.txt"
-Content-Transfer-Encoding: 8bit
-
-Ana Rey (1):
-      extensions: libxt_udp: add translation to nft
-
-Arpan Kapoor (1):
-      libxtables: Replace gethostbyname() with getaddrinfo()
-
-Arturo Borrero (3):
-      extensions/libxt_rpfilter.man: fix typo, specifiy vs specify
-      iptables/xtables-arp.c: fix typo, wierd vs weird
-      extensions/libxt_tcp: fix nftables translate flags value, 'none' vs '0x0'
-
-Arturo Borrero Gonzalez (1):
-      extensions: update Arturo Borrero email address
-
-Brian Haley (1):
-      iptables-restore: add missing arguments to usage message
-
-Florian Westphal (5):
-      iptables.8: mention iptables-save in -L documentation
-      iptables.8: nat table has four builtin chains
-      extensions: NETMAP: add ' to:' prefix when printing NETMAP target
-      extensions: NETMAP: fix iptables-save output
-      connlabel: clarify default config path
-
-George Burgess IV (1):
-      libxt_multiport: remove an unused variable
-
-Giuseppe Longo (1):
-      configure: make libmnl and libnftnl hard requirements
-
-Guruswamy Basavaiah (4):
-      iptables: extensions: iptables-translate prints extra "nft" after printing any error
-      iptables-translate: translate iptables --flush
-      iptables-translate: Printing the table name before chain name.
-      iptables-translate: Don't print "nft" in iptables-restore-translate command
-
-Gustavo Zacarias (1):
-      iptables: add xtables-config-parser.h to BUILT_SOURCES
-
-Janani Ravichandran (1):
-      extensions: libip6t_rt.c: Add translation to nft
-
-Jordan Yelloz (1):
-      extensions: added AR substitution
-
-Keno Fischer (1):
-      build: Fix two compile errors during out-of-tree build
-
-Laura Garcia Liebana (12):
-      extensions: libip6t_icmp6: Add translation to nft
-      extensions: libipt_LOG: Avoid to print the default log level in the translation
-      extensions: libipt_icmp: Add translation to nft
-      extensions: libipt_REJECT: Avoid to print the default reject with value in the translation
-      extensions: libip6t_REJECT: Avoid to print the default reject with value in the translation
-      extensions: libxt_ipcomp: Add translation to nft
-      extensions: libip6t_hbh: Add translation to nft
-      extensions: libxt_multiport: Add translation to nft
-      extensions: libxt_dscp: Add translation to nft
-      extensions: libip6t_frag: Add translation to nft
-      extensions: libxt_cgroup: Add translation to nft
-      extensions: libxt_conntrack: Add translation to nft
-
-Liping Zhang (27):
-      extensions: libxt_limit: fix a wrong translation to nft rule
-      extensions: libxt_mark: fix a wrong translation to nft when mask is specified
-      extensions: libxt_TRACE: Add translation to nft
-      extensions: libipt_realm: fix order of mask and id when do nft translation
-      extensions: libxt_connlabel: fix crash when connlabel.conf is empty
-      extensions: libxt_connlabel: Add translation to nft
-      extensions: libxt_NFLOG: display nflog-size even if it is zero
-      extensions: libxt_NFLOG: translate to nft log snaplen if nflog-size is specified
-      extensions: libxt_NFLOG: add unit test to cover nflog-size with zero
-      extensions: libxt_connlabel: add unit test
-      iptables-translate: add in/out ifname wildcard match translation to nft
-      extensions: libxt_CLASSIFY: Add translation to nft
-      extensions: libipt_DNAT/SNAT: fix "OOM" when do translation to nft
-      extensions: libip[6]t_SNAT/DNAT: use the new nft syntax when do xlate
-      extensions: libip[6]t_REDIRECT: use new nft syntax when do xlate
-      extensions: libip6t_SNAT/DNAT: add square bracket in xlat output when port is specified
-      extensions: libipt_realm: add a missing space in translation
-      extensions: libxt_iprange: rename "ip saddr" to "ip6 saddr" in ip6tables-xlate
-      extensions: libxt_iprange: handle the invert flag properly in translation
-      extensions: libxt_devgroup: handle the invert flag properly in translation
-      extensions: libxt_ipcomp: add range support in translation
-      extensions: libxt_quota: add translation to nft
-      extensions: libxt_DSCP: add translation to nft
-      extensions: libxt_statistic: add translation to nft
-      extensions: LOG: add log flags translation to nft
-      extensions: libxt_connbytes: Add translation to nft
-      extensions: libxt_rpfilter: add translation to nft
-
-Loganaden Velvindron (1):
-      libxt_TCPOPTSTRIP: Fix musl compatibility
-
-Pablo M. Bermudo Garay (11):
-      extensions: iprange: remove extra space in translation
-      iptables-compat: use nft built-in comments support
-      xtables-translate: fix multiple spaces issue
-      include: xtables: fix struct definitions grepability
-      xtables-translate: fix issue with quotes
-      xtables-compat: fix comments listing
-      xtables-compat: remove useless functions
-      xtables-translate: add escape_quotes option to comment_xlate
-      xtables-compat: check if nft ruleset is compatible
-      xtables-compat: add rule cache
-      xtables-translate-restore: do not escape quotes
-
-Pablo Neira Ayuso (13):
-      nft: xtables: add generic parsing infrastructure to interpret commands
-      nft: xtables-restore: add generic parsing infrastructure
-      nft: xtables: add the infrastructure to translate from iptables to nft
-      extensions: libxt_tcp: add translation to nft
-      extensions: libxt_state: add translation to nft
-      libxtables: fix leak in xt_buf object
-      extensions: rename xt_buf to xt_xlate
-      xtables: add xt_xlate_add_comment()
-      iptables-translate: pass ipt_entry and ip6t_entry to ->xlate()
-      libxtables: missing comment initialization in xt_xlate_alloc()
-      src: introduce struct xt_xlate_{mt,tg}_params
-      configure: update libnetfilter_conntrack version dependency
-      iptables 1.6.1 release
-
-Phil Sutter (5):
-      extensions: libip6t_ah: Fix translation of plain '-m ah'
-      xtables-translate: Support setting standard chain policy
-      nft_ipv{4,6}_xlate: Respect prefix lengths
-      xtables-translate: Fix chain type when translating nat table
-      tcp_xlate: Enclose LH flag values in parentheses
-
-Rami Rosen (1):
-      extensions: fix cgroup2 help message in libxt_cgroup.c.
-
-Roberto García (7):
-      extensions: libip6t_LOG: Avoid to print the default log level in the translation
-      iptables: extensions: libxt_TEE: Add translation to nft
-      extensions: libxt_MARK: Add translation to nft
-      extensions: libxt_MARK: Add translation for revision 1 to nft
-      extensions: libxt_CONNMARK: Add translation to nft
-      iptables: extensions: libxt_MARK: Fix translation of --set-xmark option
-      iptables: extensions: libxt_ecn: Add translation to nft
-
-Sami Kerola (1):
-      extensions: REJECT: do not adjust reject-with type footnote indentation
-
-Shivani Bhardwaj (51):
-      extensions: libxt_mark: Add translation to nft
-      extensions: libxt_esp: Add translation to nft
-      extensions: libxt_NFLOG: Add translation to nft
-      extensions: libxt_iprange: Add translation to nft
-      extensions: libxt_mac: Add translation to nft
-      extensions: libxt_helper: Add translation to nft
-      extensions: libxt_NFLOG: Add group_info and remove multiple keywords
-      extensions: libxt_limit: Add translation to nft
-      include: xtables: Add enum for better nft translation code
-      extensions: libxt_mark: Fix inversion code
-      extensions: libxt_devgroup: Add translation to nft
-      extensions: libxt_cpu: Add translation to nft
-      extensions: libipt_ah: Add translation to nft
-      extensions: libxt_connmark: Add translation to nft
-      extensions: libxt_pkttype: Add translation to nft
-      extensions: libipt_REJECT: Add translation to nft
-      extensions: libipt_realm: Add translation to nft
-      extensions: libipt_SNAT: Add translation to nft
-      extensions: libipt_DNAT: Add translation to nft
-      iptables: nft-ipv6: Replace ip with ip6
-      extensions: libip6t_DNAT: Add translation to nft
-      extensions: libip6t_SNAT: Add translation to nft
-      extensions: libxt_length: Add translation to nft
-      extensions: libip6t_ah: Add translation to nft
-      extensions: libipt_ttl: Add translation to nft
-      extensions: libip6t_REJECT: Add translation to nft
-      extensions: libipt_LOG: Add translation to nft
-      extensions: libip6t_LOG: Add translation to nft
-      extensions: libip6t_hl: Add translation to nft
-      extensions: libipt_REDIRECT: Add translation to nft
-      extensions: libip6t_REDIRECT: Add translation to nft
-      iptables: nft-ipv6: Fix ipv6 flags
-      extensions: libxt_NFQUEUE: Add translation to nft
-      comment: Add translation to nft
-      extensions: libipt_MASQUERADE: Add translation to nft
-      extensions: libip6t_MASQUERADE: Add translation to nft
-      iptables: nft-ipv6: Use meta l4proto instead of nexthdr
-      extensions: libip6t_mh: Add translation to nft
-      extensions: libxt_owner: Add translation to nft
-      extensions: libxt_sctp: Add translation to nft
-      extensions: libxt_dccp: Add translation to nft
-      configure: Show support for connlabel
-      extensions: libxt_NFQUEUE: Fix bug with order of fanout and bypass
-      extensions: libxt_NFQUEUE: Unstack different versions
-      extensions: libxt_NFQUEUE: Add missing tests
-      extensions: libxt_connmark: Fix order of mask and mark
-      extensions: libxt_devgroup: Fix order of mask and id
-      configure: Remove flex check warning
-      configure: Fix assignment statement
-      iptables: xtables-arp: Use getaddrinfo()
-      extensions: libxt_mangle: Use getaddrinfo()
-
-Shyam Saini (3):
-      libxtables: xtables: remove unnecessary debug code
-      libxtables: xtables: Use getnameinfo()
-      iptables: fix the wrong appending of jump verdict after the comment.
-
-Subash Abhinov Kasiviswanathan (1):
-      xtables: Add an interval option for xtables lock wait
-
-Tejun Heo (3):
-      libxt_cgroup: prepare for multi revisions
-      libxt_cgroup2: add support for cgroup2 path matching
-      extensions: libxt_cgroup: add unit test
-
-Thomas Habets (1):
-      iptables-save: exit with error if unable to open proc file
-
-Thomas Woerner (1):
-      ip6tables: Warn about use of DROP in nat table
-
-Vishwanath Pai (3):
-      extensions: libxt_NFLOG: nflog-range does not truncate packets
-      extensions: libxt_hashlimit: Prepare libxt_hashlimit.c for revision 2
-      extensions: libxt_hashlimit: Create revision 2 of xt_hashlimit to support higher pps rates
-
-Willem de Bruijn (3):
-      extensions/libxt_bpf.man: clarify BPF code generation with tcpdump
-      extensions: libxt_bpf: support ebpf pinned objects
-      iptables: on revision mismatch, do not call print/save
-
-Xose Vazquez Perez (1):
-      iptables: update pf.os
-
-
---dDRMvlgZJXvWKvBx--
+stack backtrace:
+CPU: 2 PID: 23111 Comm: syz-executor14 Not tainted 4.10.0-rc5+ #192
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:15 [inline]
+ dump_stack+0x2ee/0x3ef lib/dump_stack.c:51
+ lockdep_rcu_suspicious+0x139/0x180 kernel/locking/lockdep.c:4452
+ rcu_preempt_sleep_check include/linux/rcupdate.h:560 [inline]
+ ___might_sleep+0x560/0x650 kernel/sched/core.c:7748
+ __might_sleep+0x95/0x1a0 kernel/sched/core.c:7739
+ mutex_lock_nested+0x24f/0x1730 kernel/locking/mutex.c:752
+ atomic_dec_and_mutex_lock+0x119/0x160 kernel/locking/mutex.c:1060
+ __static_key_slow_dec+0x7a/0x1e0 kernel/jump_label.c:149
+ static_key_slow_dec+0x51/0x90 kernel/jump_label.c:174
+ net_disable_timestamp+0x3b/0x50 net/core/dev.c:1728
+ sock_disable_timestamp+0x98/0xc0 net/core/sock.c:403
+ __sk_destruct+0x27d/0x6b0 net/core/sock.c:1441
+ sk_destruct+0x47/0x80 net/core/sock.c:1460
+ __sk_free+0x57/0x230 net/core/sock.c:1468
+ sock_wfree+0xae/0x120 net/core/sock.c:1645
+ skb_release_head_state+0xfc/0x200 net/core/skbuff.c:655
+ skb_release_all+0x15/0x60 net/core/skbuff.c:668
+ __kfree_skb+0x15/0x20 net/core/skbuff.c:684
+ kfree_skb+0x16e/0x4c0 net/core/skbuff.c:705
+ inet_frag_destroy+0x121/0x290 net/ipv4/inet_fragment.c:304
+ inet_frag_put include/net/inet_frag.h:133 [inline]
+ nf_ct_frag6_gather+0x1106/0x3840 net/ipv6/netfilter/nf_conntrack_reasm.c:617
+ ipv6_defrag+0x1be/0x2b0 net/ipv6/netfilter/nf_defrag_ipv6_hooks.c:68
+ nf_hook_entry_hookfn include/linux/netfilter.h:102 [inline]
+ nf_hook_slow+0xc3/0x290 net/netfilter/core.c:310
+ nf_hook include/linux/netfilter.h:212 [inline]
+ __ip6_local_out+0x489/0x840 net/ipv6/output_core.c:160
+ ip6_local_out+0x2d/0x170 net/ipv6/output_core.c:170
+ ip6_send_skb+0xa1/0x340 net/ipv6/ip6_output.c:1722
+ ip6_push_pending_frames+0xb3/0xe0 net/ipv6/ip6_output.c:1742
+ rawv6_push_pending_frames net/ipv6/raw.c:613 [inline]
+ rawv6_sendmsg+0x2d1a/0x3ec0 net/ipv6/raw.c:927
+ inet_sendmsg+0x164/0x5b0 net/ipv4/af_inet.c:744
+ sock_sendmsg_nosec net/socket.c:635 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:645
+ sock_write_iter+0x326/0x600 net/socket.c:848
+ do_iter_readv_writev+0x2e3/0x5b0 fs/read_write.c:695
+ do_readv_writev+0x42c/0x9b0 fs/read_write.c:872
+ vfs_writev+0x87/0xc0 fs/read_write.c:911
+ do_writev+0x110/0x2c0 fs/read_write.c:944
+ SYSC_writev fs/read_write.c:1017 [inline]
+ SyS_writev+0x27/0x30 fs/read_write.c:1014
+ entry_SYSCALL_64_fastpath+0x1f/0xc2
+RIP: 0033:0x445559
+RSP: 002b:00007f6f46fceb58 EFLAGS: 00000292 ORIG_RAX: 0000000000000014
+RAX: ffffffffffffffda RBX: 0000000000000005 RCX: 0000000000445559
+RDX: 0000000000000001 RSI: 0000000020f1eff0 RDI: 0000000000000005
+RBP: 00000000006e19c0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000292 R12: 0000000000700000
+R13: 0000000020f59000 R14: 0000000000000015 R15: 0000000000020400
+BUG: sleeping function called from invalid context at kernel/locking/mutex.c:752
+in_atomic(): 1, irqs_disabled(): 0, pid: 23111, name: syz-executor14
+INFO: lockdep is turned off.
+CPU: 2 PID: 23111 Comm: syz-executor14 Not tainted 4.10.0-rc5+ #192
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:15 [inline]
+ dump_stack+0x2ee/0x3ef lib/dump_stack.c:51
+ ___might_sleep+0x47e/0x650 kernel/sched/core.c:7780
+ __might_sleep+0x95/0x1a0 kernel/sched/core.c:7739
+ mutex_lock_nested+0x24f/0x1730 kernel/locking/mutex.c:752
+ atomic_dec_and_mutex_lock+0x119/0x160 kernel/locking/mutex.c:1060
+ __static_key_slow_dec+0x7a/0x1e0 kernel/jump_label.c:149
+ static_key_slow_dec+0x51/0x90 kernel/jump_label.c:174
+ net_disable_timestamp+0x3b/0x50 net/core/dev.c:1728
+ sock_disable_timestamp+0x98/0xc0 net/core/sock.c:403
+ __sk_destruct+0x27d/0x6b0 net/core/sock.c:1441
+ sk_destruct+0x47/0x80 net/core/sock.c:1460
+ __sk_free+0x57/0x230 net/core/sock.c:1468
+ sock_wfree+0xae/0x120 net/core/sock.c:1645
+ skb_release_head_state+0xfc/0x200 net/core/skbuff.c:655
+ skb_release_all+0x15/0x60 net/core/skbuff.c:668
+ __kfree_skb+0x15/0x20 net/core/skbuff.c:684
+ kfree_skb+0x16e/0x4c0 net/core/skbuff.c:705
+ inet_frag_destroy+0x121/0x290 net/ipv4/inet_fragment.c:304
+ inet_frag_put include/net/inet_frag.h:133 [inline]
+ nf_ct_frag6_gather+0x1106/0x3840 net/ipv6/netfilter/nf_conntrack_reasm.c:617
+ ipv6_defrag+0x1be/0x2b0 net/ipv6/netfilter/nf_defrag_ipv6_hooks.c:68
+ nf_hook_entry_hookfn include/linux/netfilter.h:102 [inline]
+ nf_hook_slow+0xc3/0x290 net/netfilter/core.c:310
+ nf_hook include/linux/netfilter.h:212 [inline]
+ __ip6_local_out+0x489/0x840 net/ipv6/output_core.c:160
+ ip6_local_out+0x2d/0x170 net/ipv6/output_core.c:170
+ ip6_send_skb+0xa1/0x340 net/ipv6/ip6_output.c:1722
+ ip6_push_pending_frames+0xb3/0xe0 net/ipv6/ip6_output.c:1742
+ rawv6_push_pending_frames net/ipv6/raw.c:613 [inline]
+ rawv6_sendmsg+0x2d1a/0x3ec0 net/ipv6/raw.c:927
+ inet_sendmsg+0x164/0x5b0 net/ipv4/af_inet.c:744
+ sock_sendmsg_nosec net/socket.c:635 [inline]
+ sock_sendmsg+0xca/0x110 net/socket.c:645
+ sock_write_iter+0x326/0x600 net/socket.c:848
+ do_iter_readv_writev+0x2e3/0x5b0 fs/read_write.c:695
+ do_readv_writev+0x42c/0x9b0 fs/read_write.c:872
+ vfs_writev+0x87/0xc0 fs/read_write.c:911
+ do_writev+0x110/0x2c0 fs/read_write.c:944
+ SYSC_writev fs/read_write.c:1017 [inline]
+ SyS_writev+0x27/0x30 fs/read_write.c:1014
+ entry_SYSCALL_64_fastpath+0x1f/0xc2
+RIP: 0033:0x445559
+RSP: 002b:00007f6f46fceb58 EFLAGS: 00000292 ORIG_RAX: 0000000000000014
+RAX: ffffffffffffffda RBX: 0000000000000005 RCX: 0000000000445559
+RDX: 0000000000000001 RSI: 0000000020f1eff0 RDI: 0000000000000005
+RBP: 00000000006e19c0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000292 R12: 0000000000700000
+R13: 0000000020f59000 R14: 0000000000000015 R15: 0000000000020400
+BUG: scheduling while atomic: syz-executor14/23111/0x00000002
+INFO: lockdep is turned off.
+Modules linked in:
+Kernel panic - not syncing: scheduling while atomic
