@@ -1,80 +1,76 @@
 From: Kevin Cernekee <cernekee@chromium.org>
-Subject: [PATCH V2 2/2] netfilter: ctnetlink: Fix regression in CTA_HELP processing
-Date: Thu, 26 Jan 2017 14:49:44 -0800
-Message-ID: <20170126224944.29047-2-cernekee@chromium.org>
-References: <20170126224944.29047-1-cernekee@chromium.org>
-Cc: dianders@chromium.org, davem@davemloft.net,
-        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH conntrack-tools] conntrackd: cthelper: Don't leak nat_tuple
+Date: Thu, 26 Jan 2017 16:44:24 -0800
+Message-ID: <20170127004424.16494-1-cernekee@chromium.org>
+Cc: ejcaruso@chromium.org, netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f42.google.com ([74.125.83.42]:33945 "EHLO
-        mail-pg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752370AbdAZW56 (ORCPT
+Received: from mail-pg0-f46.google.com ([74.125.83.46]:35646 "EHLO
+        mail-pg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752247AbdA0AyR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Jan 2017 17:57:58 -0500
-Received: by mail-pg0-f42.google.com with SMTP id 14so75857338pgg.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Jan 2017 14:57:02 -0800 (PST)
-In-Reply-To: <20170126224944.29047-1-cernekee@chromium.org>
+        Thu, 26 Jan 2017 19:54:17 -0500
+Received: by mail-pg0-f46.google.com with SMTP id 194so76557677pgd.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Jan 2017 16:53:23 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Prior to Linux 4.4, it was usually harmless to send a CTA_HELP attribute
-containing the name of the current helper.  That is no longer the case:
-as of Linux 4.4, if ctnetlink_change_helper() returns an error from
-the ct->master check, processing of the request will fail, skipping the
-NFQA_EXP attribute (if present).
+nfexp_set_attr() copies |nat_tuple| rather than taking ownership, so
+it should be freed at the end of the loop.  Some of the other helpers
+(like rpc.c) do this, but it is missing here.
 
-This patch changes the behavior to improve compatibility with user
-programs that expect the kernel interface to work the way it did prior
-to Linux 4.4.  If a user program specifies CTA_HELP but the argument
-matches the current conntrack helper name, ignore it instead of generating
-an error.
-
+Reported-by: Eric Caruso <ejcaruso@chromium.org>
 Signed-off-by: Kevin Cernekee <cernekee@chromium.org>
 ---
 
 
-V1->V2:
+Compile-tested only.
 
- - Add comment and update changelog, per code review feedback
- - Rebase + retest on net-next
+I did apply the same change to my local UPnP/SSDP helper, and ran it
+under valgrind to check for use-after-free errors.
 
 
- net/netfilter/nf_conntrack_netlink.c | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ src/helpers/amanda.c | 1 +
+ src/helpers/ftp.c    | 1 +
+ src/helpers/tftp.c   | 1 +
+ 3 files changed, 3 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index e8f704a6..891f02a 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1503,14 +1503,23 @@ static int ctnetlink_change_helper(struct nf_conn *ct,
- 	struct nlattr *helpinfo = NULL;
- 	int err;
+diff --git a/src/helpers/amanda.c b/src/helpers/amanda.c
+index 9e6c4e706d6d..faee1cd586fa 100644
+--- a/src/helpers/amanda.c
++++ b/src/helpers/amanda.c
+@@ -75,6 +75,7 @@ static int nat_amanda(struct pkt_buff *pkt, uint32_t ctinfo,
+ 			break;
+ 		}
+ 	}
++	nfct_destroy(nat_tuple);
  
--	/* don't change helper of sibling connections */
--	if (ct->master)
--		return -EBUSY;
--
- 	err = ctnetlink_parse_help(cda[CTA_HELP], &helpname, &helpinfo);
- 	if (err < 0)
- 		return err;
+ 	if (port == 0) {
+ 		pr_debug("all ports in use\n");
+diff --git a/src/helpers/ftp.c b/src/helpers/ftp.c
+index 27ab5ebbb662..c3aa28485b0f 100644
+--- a/src/helpers/ftp.c
++++ b/src/helpers/ftp.c
+@@ -423,6 +423,7 @@ static unsigned int nf_nat_ftp(struct pkt_buff *pkt,
+ 			break;
+ 		}
+ 	}
++	nfct_destroy(nat_tuple);
  
-+	/* don't change helper of sibling connections */
-+	if (ct->master) {
-+		/* If we try to change the helper to the same thing twice,
-+		 * treat the second attempt as a no-op instead of returning
-+		 * an error.
-+		 */
-+		if (help && help->helper &&
-+		    !strcmp(help->helper->name, helpname))
-+			return 0;
-+		else
-+			return -EBUSY;
-+	}
-+
- 	if (!strcmp(helpname, "")) {
- 		if (help && help->helper) {
- 			/* we had a helper before ... */
+ 	if (port == 0)
+ 		return NF_DROP;
+diff --git a/src/helpers/tftp.c b/src/helpers/tftp.c
+index 45591c617e76..70dd28a5aa12 100644
+--- a/src/helpers/tftp.c
++++ b/src/helpers/tftp.c
+@@ -65,6 +65,7 @@ static unsigned int nat_tftp(struct pkt_buff *pkt, uint32_t ctinfo,
+ 	nfexp_set_attr_u32(exp, ATTR_EXP_NAT_DIR, MYCT_DIR_REPL);
+ 	nfexp_set_attr(exp, ATTR_EXP_FN, "nat-follow-master");
+ 	nfexp_set_attr(exp, ATTR_EXP_NAT_TUPLE, nat_tuple);
++	nfct_destroy(nat_tuple);
+ 
+ 	return NF_ACCEPT;
+ }
 -- 
-2.7.4
+2.11.0.483.g087da7b7c-goog
 
