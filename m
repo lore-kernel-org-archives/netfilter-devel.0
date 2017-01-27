@@ -1,80 +1,63 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH 09/14] netfilter: conntrack: refine gc worker heuristics,
- redux
-Date: Fri, 27 Jan 2017 17:51:11 +0100
-Message-ID: <09f1081e-ade3-6099-a3c6-b1b912592f54@6wind.com>
-References: <1485448687-6072-1-git-send-email-pablo@netfilter.org>
- <1485448687-6072-10-git-send-email-pablo@netfilter.org>
-Reply-To: nicolas.dichtel@6wind.com
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH v2 net] net: free ip_vs_dest structs when refcnt=0
+Date: Fri, 27 Jan 2017 19:37:47 +0100
+Message-ID: <20170127183746.GC13402@verge.net.au>
+References: <1485228269-21758-1-git-send-email-dwindsor@gmail.com>
+ <alpine.LFD.2.11.1701262241280.3892@ja.home.ssi.bg>
+ <20170127080738.GD21195@verge.net.au>
+ <20170127122111.GA2495@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1485448687-6072-10-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Julian Anastasov <ja@ssi.bg>, David Windsor <dwindsor@gmail.com>,
+	netdev@vger.kernel.org, kernel-hardening@lists.openwall.com,
+	netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
+	wensong@linux-vs.org, keescook@chromium.org,
+	elena.reshetova@intel.com, ishkamiel@gmail.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <kernel-hardening-return-6186-glkh-kernel-hardening=m.gmane.org@lists.openwall.com>
+List-Post: <mailto:kernel-hardening@lists.openwall.com>
+List-Help: <mailto:kernel-hardening-help@lists.openwall.com>
+List-Unsubscribe: <mailto:kernel-hardening-unsubscribe@lists.openwall.com>
+List-Subscribe: <mailto:kernel-hardening-subscribe@lists.openwall.com>
+Content-Disposition: inline
+In-Reply-To: <20170127122111.GA2495@salvia>
 List-Id: netfilter-devel.vger.kernel.org
 
-Le 26/01/2017 à 17:38, Pablo Neira Ayuso a écrit :
-> From: Florian Westphal <fw@strlen.de>
+On Fri, Jan 27, 2017 at 01:21:11PM +0100, Pablo Neira Ayuso wrote:
+> On Fri, Jan 27, 2017 at 09:07:38AM +0100, Simon Horman wrote:
+> > On Thu, Jan 26, 2017 at 10:49:10PM +0200, Julian Anastasov wrote:
+> > > 
+> > > 	Hello,
+> > > 
+> > > On Mon, 23 Jan 2017, David Windsor wrote:
+> > > 
+> > > > Currently, the ip_vs_dest cache frees ip_vs_dest objects when their
+> > > > reference count becomes < 0.  Aside from not being semantically sound,
+> > > > this is problematic for the new type refcount_t, which will be introduced
+> > > > shortly in a separate patch. refcount_t is the new kernel type for
+> > > > holding reference counts, and provides overflow protection and a
+> > > > constrained interface relative to atomic_t (the type currently being
+> > > > used for kernel reference counts).
+> > > > 
+> > > > Per Julian Anastasov: "The problem is that dest_trash currently holds
+> > > > deleted dests (unlinked from RCU lists) with refcnt=0."  Changing
+> > > > dest_trash to hold dest with refcnt=1 will allow us to free ip_vs_dest
+> > > > structs when their refcnt=0, in ip_vs_dest_put_and_free().
+> > > > 
+> > > > Signed-off-by: David Windsor <dwindsor@gmail.com>
+> > > 
+> > > 	Thanks! I tested the first version and this one
+> > > just adds the needed changes in comments, so
+> > > 
+> > > Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> > > 
+> > > 	Simon and Pablo, this is more appropriate for
+> > > ipvs-next/nf-next. Please apply!
+> > 
+> > Pablo, would you mind taking this one directly into nf-next?
+> > 
+> > Signed-off-by: Simon Horman <horms@verge.net.au>
 > 
-> This further refines the changes made to conntrack gc_worker in
-> commit e0df8cae6c16 ("netfilter: conntrack: refine gc worker heuristics").
-> 
-> The main idea of that change was to reduce the scan interval when evictions
-> take place.
-> 
-> However, on the reporters' setup, there are 1-2 million conntrack entries
-> in total and roughly 8k new (and closing) connections per second.
-> 
-> In this case we'll always evict at least one entry per gc cycle and scan
-> interval is always at 1 jiffy because of this test:
-> 
->  } else if (expired_count) {
->      gc_work->next_gc_run /= 2U;
->      next_run = msecs_to_jiffies(1);
-> 
-> being true almost all the time.
-> 
-> Given we scan ~10k entries per run its clearly wrong to reduce interval
-> based on nonzero eviction count, it will only waste cpu cycles since a vast
-> majorities of conntracks are not timed out.
-> 
-> Thus only look at the ratio (scanned entries vs. evicted entries) to make
-> a decision on whether to reduce or not.
-> 
-> Because evictor is supposed to only kick in when system turns idle after
-> a busy period, pick a high ratio -- this makes it 50%.  We thus keep
-> the idea of increasing scan rate when its likely that table contains many
-> expired entries.
-> 
-> In order to not let timed-out entries hang around for too long
-> (important when using event logging, in which case we want to timely
-> destroy events), we now scan the full table within at most
-> GC_MAX_SCAN_JIFFIES (16 seconds) even in worst-case scenario where all
-> timed-out entries sit in same slot.
-> 
-> I tested this with a vm under synflood (with
-> sysctl net.netfilter.nf_conntrack_tcp_timeout_syn_recv=3).
-> 
-> While flood is ongoing, interval now stays at its max rate
-> (GC_MAX_SCAN_JIFFIES / GC_MAX_BUCKETS_DIV -> 125ms).
-> 
-> With feedback from Nicolas Dichtel.
-> 
-> Reported-by: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
-> Cc: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-> Fixes: b87a2f9199ea82eaadc ("netfilter: conntrack: add gc worker to remove timed-out entries")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> Tested-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-> Acked-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-> Tested-by: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Pablo, is it possible to queue this patch (and the previous: 08/14) for the 4.9
-stable?
+> Sure, no problem. I'll take it. Thanks!
 
-
-Thank you,
-Nicolas
+Thanks!
