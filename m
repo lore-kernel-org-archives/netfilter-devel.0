@@ -1,76 +1,124 @@
-From: Kevin Cernekee <cernekee@chromium.org>
-Subject: [PATCH conntrack-tools] conntrackd: cthelper: Don't leak nat_tuple
-Date: Thu, 26 Jan 2017 16:44:24 -0800
-Message-ID: <20170127004424.16494-1-cernekee@chromium.org>
-Cc: ejcaruso@chromium.org, netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f46.google.com ([74.125.83.46]:35646 "EHLO
-        mail-pg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752247AbdA0AyR (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Jan 2017 19:54:17 -0500
-Received: by mail-pg0-f46.google.com with SMTP id 194so76557677pgd.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Jan 2017 16:53:23 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH v2 net] net: free ip_vs_dest structs when refcnt=0
+Date: Fri, 27 Jan 2017 09:07:38 +0100
+Message-ID: <20170127080738.GD21195@verge.net.au>
+References: <1485228269-21758-1-git-send-email-dwindsor@gmail.com>
+ <alpine.LFD.2.11.1701262241280.3892@ja.home.ssi.bg>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: David Windsor <dwindsor@gmail.com>, netdev@vger.kernel.org,
+        kernel-hardening@lists.openwall.com,
+        netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
+        wensong@linux-vs.org, pablo@netfilter.org, keescook@chromium.org,
+        elena.reshetova@intel.com, ishkamiel@gmail.com
+To: Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.11.1701262241280.3892@ja.home.ssi.bg>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-nfexp_set_attr() copies |nat_tuple| rather than taking ownership, so
-it should be freed at the end of the loop.  Some of the other helpers
-(like rpc.c) do this, but it is missing here.
+On Thu, Jan 26, 2017 at 10:49:10PM +0200, Julian Anastasov wrote:
+> 
+> 	Hello,
+> 
+> On Mon, 23 Jan 2017, David Windsor wrote:
+> 
+> > Currently, the ip_vs_dest cache frees ip_vs_dest objects when their
+> > reference count becomes < 0.  Aside from not being semantically sound,
+> > this is problematic for the new type refcount_t, which will be introduced
+> > shortly in a separate patch. refcount_t is the new kernel type for
+> > holding reference counts, and provides overflow protection and a
+> > constrained interface relative to atomic_t (the type currently being
+> > used for kernel reference counts).
+> > 
+> > Per Julian Anastasov: "The problem is that dest_trash currently holds
+> > deleted dests (unlinked from RCU lists) with refcnt=0."  Changing
+> > dest_trash to hold dest with refcnt=1 will allow us to free ip_vs_dest
+> > structs when their refcnt=0, in ip_vs_dest_put_and_free().
+> > 
+> > Signed-off-by: David Windsor <dwindsor@gmail.com>
+> 
+> 	Thanks! I tested the first version and this one
+> just adds the needed changes in comments, so
+> 
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> 
+> 	Simon and Pablo, this is more appropriate for
+> ipvs-next/nf-next. Please apply!
 
-Reported-by: Eric Caruso <ejcaruso@chromium.org>
-Signed-off-by: Kevin Cernekee <cernekee@chromium.org>
----
+Pablo, would you mind taking this one directly into nf-next?
 
+Signed-off-by: Simon Horman <horms@verge.net.au>
 
-Compile-tested only.
-
-I did apply the same change to my local UPnP/SSDP helper, and ran it
-under valgrind to check for use-after-free errors.
-
-
- src/helpers/amanda.c | 1 +
- src/helpers/ftp.c    | 1 +
- src/helpers/tftp.c   | 1 +
- 3 files changed, 3 insertions(+)
-
-diff --git a/src/helpers/amanda.c b/src/helpers/amanda.c
-index 9e6c4e706d6d..faee1cd586fa 100644
---- a/src/helpers/amanda.c
-+++ b/src/helpers/amanda.c
-@@ -75,6 +75,7 @@ static int nat_amanda(struct pkt_buff *pkt, uint32_t ctinfo,
- 			break;
- 		}
- 	}
-+	nfct_destroy(nat_tuple);
- 
- 	if (port == 0) {
- 		pr_debug("all ports in use\n");
-diff --git a/src/helpers/ftp.c b/src/helpers/ftp.c
-index 27ab5ebbb662..c3aa28485b0f 100644
---- a/src/helpers/ftp.c
-+++ b/src/helpers/ftp.c
-@@ -423,6 +423,7 @@ static unsigned int nf_nat_ftp(struct pkt_buff *pkt,
- 			break;
- 		}
- 	}
-+	nfct_destroy(nat_tuple);
- 
- 	if (port == 0)
- 		return NF_DROP;
-diff --git a/src/helpers/tftp.c b/src/helpers/tftp.c
-index 45591c617e76..70dd28a5aa12 100644
---- a/src/helpers/tftp.c
-+++ b/src/helpers/tftp.c
-@@ -65,6 +65,7 @@ static unsigned int nat_tftp(struct pkt_buff *pkt, uint32_t ctinfo,
- 	nfexp_set_attr_u32(exp, ATTR_EXP_NAT_DIR, MYCT_DIR_REPL);
- 	nfexp_set_attr(exp, ATTR_EXP_FN, "nat-follow-master");
- 	nfexp_set_attr(exp, ATTR_EXP_NAT_TUPLE, nat_tuple);
-+	nfct_destroy(nat_tuple);
- 
- 	return NF_ACCEPT;
- }
--- 
-2.11.0.483.g087da7b7c-goog
-
+> 
+> > ---
+> >  include/net/ip_vs.h            | 2 +-
+> >  net/netfilter/ipvs/ip_vs_ctl.c | 8 +++-----
+> >  2 files changed, 4 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+> > index cd6018a..a3e78ad 100644
+> > --- a/include/net/ip_vs.h
+> > +++ b/include/net/ip_vs.h
+> > @@ -1421,7 +1421,7 @@ static inline void ip_vs_dest_put(struct ip_vs_dest *dest)
+> >  
+> >  static inline void ip_vs_dest_put_and_free(struct ip_vs_dest *dest)
+> >  {
+> > -	if (atomic_dec_return(&dest->refcnt) < 0)
+> > +	if (atomic_dec_and_test(&dest->refcnt))
+> >  		kfree(dest);
+> >  }
+> >  
+> > diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> > index 55e0169..5fc4836 100644
+> > --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> > @@ -711,7 +711,6 @@ ip_vs_trash_get_dest(struct ip_vs_service *svc, int dest_af,
+> >  		      dest->vport == svc->port))) {
+> >  			/* HIT */
+> >  			list_del(&dest->t_list);
+> > -			ip_vs_dest_hold(dest);
+> >  			goto out;
+> >  		}
+> >  	}
+> > @@ -741,7 +740,7 @@ static void ip_vs_dest_free(struct ip_vs_dest *dest)
+> >   *  When the ip_vs_control_clearup is activated by ipvs module exit,
+> >   *  the service tables must have been flushed and all the connections
+> >   *  are expired, and the refcnt of each destination in the trash must
+> > - *  be 0, so we simply release them here.
+> > + *  be 1, so we simply release them here.
+> >   */
+> >  static void ip_vs_trash_cleanup(struct netns_ipvs *ipvs)
+> >  {
+> > @@ -1080,11 +1079,10 @@ static void __ip_vs_del_dest(struct netns_ipvs *ipvs, struct ip_vs_dest *dest,
+> >  	if (list_empty(&ipvs->dest_trash) && !cleanup)
+> >  		mod_timer(&ipvs->dest_trash_timer,
+> >  			  jiffies + (IP_VS_DEST_TRASH_PERIOD >> 1));
+> > -	/* dest lives in trash without reference */
+> > +	/* dest lives in trash with reference */
+> >  	list_add(&dest->t_list, &ipvs->dest_trash);
+> >  	dest->idle_start = 0;
+> >  	spin_unlock_bh(&ipvs->dest_trash_lock);
+> > -	ip_vs_dest_put(dest);
+> >  }
+> >  
+> >  
+> > @@ -1160,7 +1158,7 @@ static void ip_vs_dest_trash_expire(unsigned long data)
+> >  
+> >  	spin_lock(&ipvs->dest_trash_lock);
+> >  	list_for_each_entry_safe(dest, next, &ipvs->dest_trash, t_list) {
+> > -		if (atomic_read(&dest->refcnt) > 0)
+> > +		if (atomic_read(&dest->refcnt) > 1)
+> >  			continue;
+> >  		if (dest->idle_start) {
+> >  			if (time_before(now, dest->idle_start +
+> > -- 
+> > 2.7.4
+> 
+> Regards
+> 
+> --
+> Julian Anastasov <ja@ssi.bg>
+> 
