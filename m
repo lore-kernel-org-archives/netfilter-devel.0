@@ -1,89 +1,53 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: net: suspicious RCU usage in nf_hook
-Date: Fri, 27 Jan 2017 17:31:30 -0800
-Message-ID: <1485567090.6360.92.camel@edumazet-glaptop3.roam.corp.google.com>
-References: <CACT4Y+bpmwj1WH7g6inQBm+7PvHepv9tTmYBUqkJYFvquGDYCQ@mail.gmail.com>
-         <1485560124.6360.74.camel@edumazet-glaptop3.roam.corp.google.com>
-         <CAM_iQpVvBPhP4q=Egsaoqf8ym-73jLZow8xDMbOq9RhYmL5XAQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Dmitry Vyukov <dvyukov@google.com>,
-        David Miller <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Eric Dumazet <edumazet@google.com>,
-        James Morris <jmorris@namei.org>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Patrick McHardy <kaber@trash.net>,
-        netdev <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
+From: Xose Vazquez Perez <xose.vazquez@gmail.com>
+Subject: [PATCH] iptables: update pf.os
+Date: Mon, 30 Jan 2017 11:30:16 +0100
+Message-ID: <20170130103016.3264-1-xose.vazquez@gmail.com>
+Cc: Xose Vazquez Perez <xose.vazquez@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org,
-        syzkaller <syzkaller@googlegroups.com>
-To: Cong Wang <xiyou.wangcong@gmail.com>
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:34761 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750816AbdA1Bbz (ORCPT
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:37530 "EHLO
+        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752750AbdA3KaZ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 27 Jan 2017 20:31:55 -0500
-In-Reply-To: <CAM_iQpVvBPhP4q=Egsaoqf8ym-73jLZow8xDMbOq9RhYmL5XAQ@mail.gmail.com>
+        Mon, 30 Jan 2017 05:30:25 -0500
+Received: by mail-wm0-f46.google.com with SMTP id v77so41015502wmv.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Jan 2017 02:30:24 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 2017-01-27 at 17:00 -0800, Cong Wang wrote:
-> On Fri, Jan 27, 2017 at 3:35 PM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> > Oh well, I forgot to submit the official patch I think, Jan 9th.
-> >
-> > https://groups.google.com/forum/#!topic/syzkaller/BhyN5OFd7sQ
-> >
-> 
-> Hmm, but why only fragments need skb_orphan()? It seems like
-> any kfree_skb() inside a nf hook needs to have a preceding
-> skb_orphan().
+Sync with latest OpenBSD release.
+Changelog: http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/etc/pf.os
 
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+Signed-off-by: Xose Vazquez Perez <xose.vazquez@gmail.com>
+---
+ utils/pf.os | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-> 
-> Also, I am not convinced it is similar to commit 8282f27449bf15548
-> which is on RX path.
-
-Well, we clearly see IPv6 reassembly being part of the equation in both
-cases.
-
-I was replying to first part of the splat [1], which was already
-diagnosed and had a non official patch.
-
-use after free is also a bug, regardless of jump label being used or
-not.
-
-I still do not really understand this nf_hook issue, I thought we were
-disabling BH in netfilter.
-
-So the in_interrupt() check in net_disable_timestamp() should trigger,
-this was the intent of netstamp_needed_deferred existence.
-
-Not sure if we can test for rcu_read_lock() as well.
-
-[1]
- sk_destruct+0x47/0x80 net/core/sock.c:1460
- __sk_free+0x57/0x230 net/core/sock.c:1468
- sock_wfree+0xae/0x120 net/core/sock.c:1645
- skb_release_head_state+0xfc/0x200 net/core/skbuff.c:655
- skb_release_all+0x15/0x60 net/core/skbuff.c:668
- __kfree_skb+0x15/0x20 net/core/skbuff.c:684
- kfree_skb+0x16e/0x4c0 net/core/skbuff.c:705
- inet_frag_destroy+0x121/0x290 net/ipv4/inet_fragment.c:304
- inet_frag_put include/net/inet_frag.h:133 [inline]
- nf_ct_frag6_gather+0x1106/0x3840
-net/ipv6/netfilter/nf_conntrack_reasm.c:617
- ipv6_defrag+0x1be/0x2b0 net/ipv6/netfilter/nf_defrag_ipv6_hooks.c:68
- nf_hook_entry_hookfn include/linux/netfilter.h:102 [inline]
- nf_hook_slow+0xc3/0x290 net/netfilter/core.c:310
- nf_hook include/linux/netfilter.h:212 [inline]
- __ip6_local_out+0x489/0x840 net/ipv6/output_core.c:160
- ip6_local_out+0x2d/0x170 net/ipv6/output_core.c:170
-
-
-
-
+diff --git a/utils/pf.os b/utils/pf.os
+index 01fb85be..e285851e 100644
+--- a/utils/pf.os
++++ b/utils/pf.os
+@@ -1,5 +1,5 @@
+ # $FreeBSD: head/etc/pf.os 258865 2013-12-03 04:32:02Z eadler $
+-# $OpenBSD: pf.os,v 1.26 2012/08/03 12:25:16 jsg Exp $
++# $OpenBSD: pf.os,v 1.27 2016/09/03 17:08:57 sthen Exp $
+ # passive OS fingerprinting
+ # -------------------------
+ #
+@@ -315,6 +315,9 @@ S22:64:1:52:M*,N,N,S,N,W0:	Linux:2.2:ts:Linux 2.2 w/o timestamps
+ 16384:64:1:64:M*,N,N,S,N,W3,N,N,T:	OpenBSD:4.9::OpenBSD 4.9
+ 16384:64:0:64:M*,N,N,S,N,W3,N,N,T:	OpenBSD:4.9:no-df:OpenBSD 4.9 (scrub no-df)
+ 
++16384:64:1:64:M*,N,N,S,N,W6,N,N,T:      OpenBSD:6.1::OpenBSD 6.1
++16384:64:0:64:M*,N,N,S,N,W6,N,N,T:      OpenBSD:6.1:no-df:OpenBSD 6.1 (scrub no-df)
++
+ # ----------------- DragonFly BSD -----------------
+ 
+ 57344:64:1:60:M*,N,W0,N,N,T:		DragonFly:1.0:A:DragonFly 1.0A
+-- 
+2.11.0
 
