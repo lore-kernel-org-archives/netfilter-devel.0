@@ -1,134 +1,249 @@
-From: Elise Lennion <elise.lennion@gmail.com>
-Subject: [PATCH nft] src: Always print range expressions numerically
-Date: Mon, 30 Jan 2017 12:05:20 -0200
-Message-ID: <20170130140520.GA5818@lennorien.com>
+From: Steve Grubb <sgrubb@redhat.com>
+Subject: Re: [RFC PATCH] audit: normalize NETFILTER_PKT
+Date: Mon, 30 Jan 2017 15:53:30 +0100
+Message-ID: <20170130155330.55a91c7d@ivy-bridge>
+References: <e3af1eaaf566af375dbc79abd4535e86f2fc8a6d.1485522479.git.rgb@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>, linux-audit@redhat.com,
+        Thomas Graf <tgraf@infradead.org>,
+        Eric Paris <eparis@redhat.com>, Paul Moore <pmoore@redhat.com>
+To: Richard Guy Briggs <rgb@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:35209 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753557AbdA3OMj (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 30 Jan 2017 09:12:39 -0500
-Received: by mail-qt0-f193.google.com with SMTP id s58so14904653qtc.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Jan 2017 06:12:39 -0800 (PST)
-Content-Disposition: inline
+Received: from mx1.redhat.com ([209.132.183.28]:39612 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753595AbdA3Ox3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 30 Jan 2017 09:53:29 -0500
+In-Reply-To: <e3af1eaaf566af375dbc79abd4535e86f2fc8a6d.1485522479.git.rgb@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Because the rules are more legible this way. Also, the parser doesn't
-accept strings on ranges, so, printing ranges numerically better match
-the rules definition.
+On Fri, 27 Jan 2017 08:11:06 -0500
+Richard Guy Briggs <rgb@redhat.com> wrote:
+> Eliminate flipping in and out of message fields.
+> 
+> https://github.com/linux-audit/audit-kernel/issues/11
 
-Fixes(Bug 1046 - mobility header with range gives illegible rule).
+Do you have sample events that shows how this changes the record
+format? I like to review how the event looks when a patch changes or
+adds a record.
 
-A new NUMERIC constant was defined to fill the previous role of
-NUMERIC_ALL, so the option -nnn doesn't affect symbolic constants.
+Thanks,
+-Steve
 
-Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
----
- include/nftables.h |  1 +
- src/datatype.c     | 11 +++++++----
- src/expression.c   |  2 ++
- src/main.c         |  3 ++-
- src/meta.c         |  4 ++--
- 5 files changed, 14 insertions(+), 7 deletions(-)
 
-diff --git a/include/nftables.h b/include/nftables.h
-index 6f54155..2730f65 100644
---- a/include/nftables.h
-+++ b/include/nftables.h
-@@ -9,6 +9,7 @@ enum numeric_level {
- 	NUMERIC_NONE,
- 	NUMERIC_ADDR,
- 	NUMERIC_PORT,
-+	NUMERIC_PROTO_UGID,
- 	NUMERIC_ALL,
- };
- 
-diff --git a/src/datatype.c b/src/datatype.c
-index 1518606..f9981a6 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -175,9 +175,12 @@ void symbolic_constant_print(const struct symbol_table *tbl,
- 		return expr_basetype(expr)->print(expr);
- 
- 	if (quotes)
--		printf("\"%s\"", s->identifier);
--	else
--		printf("%s", s->identifier);
-+		printf("\"");
-+
-+	numeric_output >= NUMERIC_ALL ? printf("%lu", val) : printf("%s", s->identifier);
-+
-+	if (quotes)
-+		printf("\"");
- }
- 
- static void switch_byteorder(void *data, unsigned int len)
-@@ -530,7 +533,7 @@ static void inet_protocol_type_print(const struct expr *expr)
- {
- 	struct protoent *p;
- 
--	if (numeric_output < NUMERIC_ALL) {
-+	if (numeric_output < NUMERIC_PROTO_UGID) {
- 		p = getprotobynumber(mpz_get_uint8(expr->value));
- 		if (p != NULL) {
- 			printf("%s", p->p_name);
-diff --git a/src/expression.c b/src/expression.c
-index 1567870..bdbbd45 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -597,9 +597,11 @@ struct expr *relational_expr_alloc(const struct location *loc, enum ops op,
- 
- static void range_expr_print(const struct expr *expr)
- {
-+	numeric_output += NUMERIC_ALL;
- 	expr_print(expr->left);
- 	printf("-");
- 	expr_print(expr->right);
-+	numeric_output -= NUMERIC_ALL;
- }
- 
- static void range_expr_clone(struct expr *new, const struct expr *expr)
-diff --git a/src/main.c b/src/main.c
-index 6ba752b..1b28836 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -288,7 +288,8 @@ int main(int argc, char * const *argv)
- 			include_paths[num_include_paths++] = optarg;
- 			break;
- 		case OPT_NUMERIC:
--			numeric_output++;
-+			if (numeric_output + 1 < NUMERIC_ALL)
-+				numeric_output++;
- 			break;
- 		case OPT_STATELESS:
- 			stateless_output++;
-diff --git a/src/meta.c b/src/meta.c
-index cb7c136..9e8a987 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -226,7 +226,7 @@ static void uid_type_print(const struct expr *expr)
- {
- 	struct passwd *pw;
- 
--	if (numeric_output < NUMERIC_ALL) {
-+	if (numeric_output < NUMERIC_PROTO_UGID) {
- 		uint32_t uid = mpz_get_uint32(expr->value);
- 
- 		pw = getpwuid(uid);
-@@ -278,7 +278,7 @@ static void gid_type_print(const struct expr *expr)
- {
- 	struct group *gr;
- 
--	if (numeric_output < NUMERIC_ALL) {
-+	if (numeric_output < NUMERIC_PROTO_UGID) {
- 		uint32_t gid = mpz_get_uint32(expr->value);
- 
- 		gr = getgrgid(gid);
--- 
-2.7.4
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> ---
+>  net/netfilter/xt_AUDIT.c |   92
+> +++++++++++++++++++++++++++++++++------------- 1 files changed, 66
+> insertions(+), 26 deletions(-)
+> 
+> diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
+> index 4973cbd..8089ec2 100644
+> --- a/net/netfilter/xt_AUDIT.c
+> +++ b/net/netfilter/xt_AUDIT.c
+> @@ -31,24 +31,41 @@ MODULE_ALIAS("ip6t_AUDIT");
+>  MODULE_ALIAS("ebt_AUDIT");
+>  MODULE_ALIAS("arpt_AUDIT");
+>  
+> +struct nfpkt_par {
+> +	int ipv;
+> +	int iptrunc;
+> +	const void *saddr;
+> +	const void *daddr;
+> +	u16 ipid;
+> +	u8 proto;
+> +	u8 frag;
+> +	int ptrunc;
+> +	u16 sport;
+> +	u16 dport;
+> +	u8 icmpt;
+> +	u8 icmpc;
+> +};
+> +
+>  static void audit_proto(struct audit_buffer *ab, struct sk_buff *skb,
+> -			unsigned int proto, unsigned int offset)
+> +			unsigned int proto, unsigned int offset,
+> struct nfpkt_par *apar) {
+>  	switch (proto) {
+>  	case IPPROTO_TCP:
+>  	case IPPROTO_UDP:
+> -	case IPPROTO_UDPLITE: {
+> +	case IPPROTO_UDPLITE:
+> +	case IPPROTO_DCCP:
+> +	case IPPROTO_SCTP: {
+>  		const __be16 *pptr;
+>  		__be16 _ports[2];
+>  
+>  		pptr = skb_header_pointer(skb, offset,
+> sizeof(_ports), _ports); if (pptr == NULL) {
+> -			audit_log_format(ab, " truncated=1");
+> +			apar->ptrunc = 1;
+>  			return;
+>  		}
+> +		apar->sport = ntohs(pptr[0]);
+> +		apar->dport = ntohs(pptr[1]);
+>  
+> -		audit_log_format(ab, " sport=%hu dport=%hu",
+> -				 ntohs(pptr[0]), ntohs(pptr[1]));
+>  		}
+>  		break;
+>  
+> @@ -59,41 +76,43 @@ static void audit_proto(struct audit_buffer *ab,
+> struct sk_buff *skb, 
+>  		iptr = skb_header_pointer(skb, offset, sizeof(_ih),
+> &_ih); if (iptr == NULL) {
+> -			audit_log_format(ab, " truncated=1");
+> +			apar->ptrunc = 1;
+>  			return;
+>  		}
+> -
+> -		audit_log_format(ab, " icmptype=%hhu icmpcode=%hhu",
+> -				 iptr[0], iptr[1]);
+> +		apar->icmpt = iptr[0];
+> +		apar->icmpc = iptr[1];
+>  
+>  		}
+>  		break;
+>  	}
+>  }
+>  
+> -static void audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
+> +static void audit_ip4(struct audit_buffer *ab, struct sk_buff *skb,
+> struct nfpkt_par *apar) {
+>  	struct iphdr _iph;
+>  	const struct iphdr *ih;
+>  
+> +	apar->ipv = 4;
+>  	ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
+>  	if (!ih) {
+> -		audit_log_format(ab, " truncated=1");
+> +		apar->iptrunc = 1;
+>  		return;
+>  	}
+>  
+> -	audit_log_format(ab, " saddr=%pI4 daddr=%pI4 ipid=%hu
+> proto=%hhu",
+> -		&ih->saddr, &ih->daddr, ntohs(ih->id), ih->protocol);
+> +	apar->saddr = &ih->saddr;
+> +	apar->daddr = &ih->daddr;
+> +	apar->ipid = ntohs(ih->id);
+> +	apar->proto = ih->protocol;
+>  
+>  	if (ntohs(ih->frag_off) & IP_OFFSET) {
+> -		audit_log_format(ab, " frag=1");
+> +		apar->frag = 1;
+>  		return;
+>  	}
+>  
+> -	audit_proto(ab, skb, ih->protocol, ih->ihl * 4);
+> +	audit_proto(ab, skb, ih->protocol, ih->ihl * 4, apar);
+>  }
+>  
+> -static void audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
+> +static void audit_ip6(struct audit_buffer *ab, struct sk_buff *skb,
+> struct nfpkt_par *apar) {
+>  	struct ipv6hdr _ip6h;
+>  	const struct ipv6hdr *ih;
+> @@ -101,9 +120,10 @@ static void audit_ip6(struct audit_buffer *ab,
+> struct sk_buff *skb) __be16 frag_off;
+>  	int offset;
+>  
+> +	apar->ipv = 6;
+>  	ih = skb_header_pointer(skb, skb_network_offset(skb),
+> sizeof(_ip6h), &_ip6h); if (!ih) {
+> -		audit_log_format(ab, " truncated=1");
+> +		apar->iptrunc = 1;
+>  		return;
+>  	}
+>  
+> @@ -111,11 +131,12 @@ static void audit_ip6(struct audit_buffer *ab,
+> struct sk_buff *skb) offset = ipv6_skip_exthdr(skb,
+> skb_network_offset(skb) + sizeof(_ip6h), &nexthdr, &frag_off);
+>  
+> -	audit_log_format(ab, " saddr=%pI6c daddr=%pI6c proto=%hhu",
+> -			 &ih->saddr, &ih->daddr, nexthdr);
+> +	apar->saddr = &ih->saddr;
+> +	apar->daddr = &ih->daddr;
+> +	apar->proto = nexthdr;
+>  
+>  	if (offset)
+> -		audit_proto(ab, skb, nexthdr, offset);
+> +		audit_proto(ab, skb, nexthdr, offset, apar);
+>  }
+>  
+>  static unsigned int
+> @@ -123,6 +144,9 @@ audit_tg(struct sk_buff *skb, const struct
+> xt_action_param *par) {
+>  	const struct xt_audit_info *info = par->targinfo;
+>  	struct audit_buffer *ab;
+> +	struct nfpkt_par apar = {
+> +		-1, -1, NULL, NULL, -1, -1, -1, -1, -1, -1, -1, -1
+> +	};
+>  
+>  	if (audit_enabled == 0)
+>  		goto errout;
+> @@ -136,8 +160,7 @@ audit_tg(struct sk_buff *skb, const struct
+> xt_action_param *par) par->in ? par->in->name : "?",
+>  			 par->out ? par->out->name : "?");
+>  
+> -	if (skb->mark)
+> -		audit_log_format(ab, " mark=%#x", skb->mark);
+> +	audit_log_format(ab, " mark=%#x", skb->mark ?: -1);
+>  
+>  	if (skb->dev && skb->dev->type == ARPHRD_ETHER) {
+>  		audit_log_format(ab, " smac=%pM dmac=%pM
+> macproto=0x%04x", @@ -147,25 +170,42 @@ audit_tg(struct sk_buff *skb,
+> const struct xt_action_param *par) if (par->family == NFPROTO_BRIDGE)
+> { switch (eth_hdr(skb)->h_proto) {
+>  			case htons(ETH_P_IP):
+> -				audit_ip4(ab, skb);
+> +				audit_ip4(ab, skb, &apar);
+>  				break;
+>  
+>  			case htons(ETH_P_IPV6):
+> -				audit_ip6(ab, skb);
+> +				audit_ip6(ab, skb, &apar);
+>  				break;
+>  			}
+>  		}
+> +	} else {
+> +		audit_log_format(ab, " smac=? dmac=?
+> macproto=0xffff"); }
+>  
+>  	switch (par->family) {
+>  	case NFPROTO_IPV4:
+> -		audit_ip4(ab, skb);
+> +		audit_ip4(ab, skb, &apar);
+>  		break;
+>  
+>  	case NFPROTO_IPV6:
+> -		audit_ip6(ab, skb);
+> +		audit_ip6(ab, skb, &apar);
+> +		break;
+> +	}
+> +
+> +	switch (apar.ipv) {
+> +	case 4:
+> +		audit_log_format(ab, " trunc=%d saddr=%pI4
+> daddr=%pI4 ipid=%hu proto=%hhu frag=%d",
+> +			 apar.iptrunc, apar.saddr, apar.daddr,
+> apar.ipid, apar.proto, apar.frag);
+> +		break;
+> +	case 6:
+> +		audit_log_format(ab, " trunc=%d saddr=%pI6c
+> daddr=%pI6c ipid=-1 proto=%hhu frag=-1",
+> +			 apar.iptrunc, apar.saddr, apar.daddr,
+> apar.proto); break;
+> +	default:
+> +		audit_log_format(ab, " trunc=-1 saddr=? daddr=?
+> ipid=-1 proto=-1 frag=-1"); }
+> +	audit_log_format(ab, " trunc=%d sport=%hu dport=%hu
+> icmptype=%hhu icmpcode=%hhu",
+> +		apar.ptrunc, apar.sport, apar.dport, apar.icmpt,
+> apar.icmpc); 
+>  #ifdef CONFIG_NETWORK_SECMARK
+>  	if (skb->secmark)
 
