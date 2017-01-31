@@ -1,191 +1,313 @@
-From: Michal Kubecek <mkubecek@suse.cz>
-Subject: [PATCH nf-next v2] netfilter: allow logging from non-init namespaces
-Date: Tue, 31 Jan 2017 10:30:06 +0100 (CET)
-Message-ID: <20170131093006.5C750A0EED@unicorn.suse.cz>
-Cc: Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        linux-doc@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-doc-owner@vger.kernel.org>
-Sender: linux-doc-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Richard Guy Briggs <rgb@redhat.com>
+Subject: Re: [RFC PATCH] audit: normalize NETFILTER_PKT
+Date: Tue, 31 Jan 2017 07:57:23 -0500
+Message-ID: <20170131125723.GA27141@madcap2.tricolour.ca>
+References: <e3af1eaaf566af375dbc79abd4535e86f2fc8a6d.1485522479.git.rgb@redhat.com>
+ <20170130155330.55a91c7d@ivy-bridge>
+ <20170130151355.GS3087@madcap2.tricolour.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>, linux-audit@redhat.com,
+        Thomas Graf <tgraf@infradead.org>,
+        Eric Paris <eparis@redhat.com>, Paul Moore <pmoore@redhat.com>
+To: Steve Grubb <sgrubb@redhat.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:53012 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752176AbdAaM5c (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 31 Jan 2017 07:57:32 -0500
+Content-Disposition: inline
+In-Reply-To: <20170130151355.GS3087@madcap2.tricolour.ca>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Commit 69b34fb996b2 ("netfilter: xt_LOG: add net namespace support for
-xt_LOG") disabled logging packets using the LOG target from non-init
-namespaces. The motivation was to prevent containers from flooding
-kernel log of the host. The plan was to keep it that way until syslog
-namespace implementation allows containers to log in a safe way.
+On 2017-01-30 10:13, Richard Guy Briggs wrote:
+> On 2017-01-30 15:53, Steve Grubb wrote:
+> > On Fri, 27 Jan 2017 08:11:06 -0500
+> > Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > Eliminate flipping in and out of message fields.
+> > > 
+> > > https://github.com/linux-audit/audit-kernel/issues/11
+> > 
+> > Do you have sample events that shows how this changes the record
+> > format? I like to review how the event looks when a patch changes or
+> > adds a record.
+> 
+> I used the format that was proposed.  Here are several samples from
+> running this RFC patch through the RFC test script:
+> 
+> 	ausearch --start 01/27/2017 -i -m netfilter_pkt
+> ----
+> type=NETFILTER_PKT msg=audit(01/27/2017 08:03:35.649:183) : action=ACCEPT hook=OUTPUT len=84 inif=? outif=lo mark=0xa044a1d4 smac=? dmac=? macproto=UNKNOWN trunc=-1 saddr=127.0.0.1 daddr=127.0.0.1 ipid=26581 proto=icmp frag=255 trunc=-1 sport=65535 dport=65535 icmptype=echo icmpcode=0 
+> ----
+> type=NETFILTER_PKT msg=audit(01/27/2017 08:03:35.649:184) : action=ACCEPT hook=INPUT len=84 inif=lo outif=? mark=0xbadeac28 smac=? dmac=? macproto=UNKNOWN trunc=-1 saddr=127.0.0.1 daddr=127.0.0.1 ipid=26581 proto=icmp frag=255 trunc=-1 sport=65535 dport=65535 icmptype=echo icmpcode=0 
+> ----
+> type=NETFILTER_PKT msg=audit(01/27/2017 08:03:35.652:185) : action=ACCEPT hook=INPUT len=104 inif=lo outif=? mark=0xb404724 smac=? dmac=? macproto=UNKNOWN trunc=-1 saddr=::1 daddr=::1 ipid=-1 proto=ipv6-icmp frag=-1 trunc=-1 sport=65535 dport=65535 icmptype=unknown icmp type (128) icmpcode=0 
+> ----
+> type=NETFILTER_PKT msg=audit(01/27/2017 08:03:35.655:186) : action=ACCEPT hook=INPUT len=60 inif=lo outif=? mark=0xe2bd8098 smac=? dmac=? macproto=UNKNOWN trunc=-1 saddr=127.0.0.1 daddr=127.0.0.1 ipid=29381 proto=tcp frag=255 trunc=-1 sport=51064 dport=42424 icmptype=unknown icmp type (255) icmpcode=255 
+> ----
+> type=NETFILTER_PKT msg=audit(01/27/2017 08:03:35.657:187) : action=ACCEPT hook=INPUT len=80 inif=lo outif=? mark=0xf80a9dd7 smac=? dmac=? macproto=UNKNOWN trunc=-1 saddr=::1 daddr=::1 ipid=-1 proto=tcp frag=-1 trunc=-1 sport=38188 dport=42424 icmptype=unknown icmp type (255) icmpcode=255 
+> ----
+> type=NETFILTER_PKT msg=audit(01/27/2017 08:03:35.659:188) : action=ACCEPT hook=INPUT len=31 inif=lo outif=? mark=0xa6d8d4ac smac=? dmac=? macproto=UNKNOWN trunc=-1 saddr=127.0.0.1 daddr=127.0.0.1 ipid=46304 proto=udp frag=255 trunc=-1 sport=60095 dport=42424 icmptype=unknown icmp type (255) icmpcode=255 
+> ----
+> type=NETFILTER_PKT msg=audit(01/27/2017 08:03:35.661:189) : action=ACCEPT hook=INPUT len=51 inif=lo outif=? mark=0x3f0d6054 smac=? dmac=? macproto=UNKNOWN trunc=-1 saddr=::1 daddr=::1 ipid=-1 proto=udp frag=-1 trunc=-1 sport=43818 dport=42424 icmptype=unknown icmp type (255) icmpcode=255 
+> ----
 
-However, the work on syslog namespace seems to have hit a dead end
-somewhere in 2013 and there are users who want to use xt_LOG in all
-network namespaces. This patch allows to do so by setting
+Here are the raw messages:
 
-  /proc/sys/net/netfilter/nf_log_all_netns
+----
+time->Fri Jan 27 08:03:35 2017
+type=NETFILTER_PKT msg=audit(1485522215.649:183): action=0 hook=3 len=84 inif=? outif=lo mark=0xa044a1d4 smac=? dmac=? macproto=0xffff trunc=-1 saddr=127.0.0.1 daddr=127.0.0.1 ipid=26581 proto=1 frag=255 trunc=-1 sport=65535 dport=65535 icmptype=8 icmpcode=0
+----
+time->Fri Jan 27 08:03:35 2017
+type=NETFILTER_PKT msg=audit(1485522215.649:184): action=0 hook=1 len=84 inif=lo outif=? mark=0xbadeac28 smac=? dmac=? macproto=0xffff trunc=-1 saddr=127.0.0.1 daddr=127.0.0.1 ipid=26581 proto=1 frag=255 trunc=-1 sport=65535 dport=65535 icmptype=8 icmpcode=0
+----
+time->Fri Jan 27 08:03:35 2017
+type=NETFILTER_PKT msg=audit(1485522215.652:185): action=0 hook=1 len=104 inif=lo outif=? mark=0xb404724 smac=? dmac=? macproto=0xffff trunc=-1 saddr=::1 daddr=::1 ipid=-1 proto=58 frag=-1 trunc=-1 sport=65535 dport=65535 icmptype=128 icmpcode=0
+----
+time->Fri Jan 27 08:03:35 2017
+type=NETFILTER_PKT msg=audit(1485522215.655:186): action=0 hook=1 len=60 inif=lo outif=? mark=0xe2bd8098 smac=? dmac=? macproto=0xffff trunc=-1 saddr=127.0.0.1 daddr=127.0.0.1 ipid=29381 proto=6 frag=255 trunc=-1 sport=51064 dport=42424 icmptype=255 icmpcode=255
+----
+time->Fri Jan 27 08:03:35 2017
+type=NETFILTER_PKT msg=audit(1485522215.657:187): action=0 hook=1 len=80 inif=lo outif=? mark=0xf80a9dd7 smac=? dmac=? macproto=0xffff trunc=-1 saddr=::1 daddr=::1 ipid=-1 proto=6 frag=-1 trunc=-1 sport=38188 dport=42424 icmptype=255 icmpcode=255
+----
+time->Fri Jan 27 08:03:35 2017
+type=NETFILTER_PKT msg=audit(1485522215.659:188): action=0 hook=1 len=31 inif=lo outif=? mark=0xa6d8d4ac smac=? dmac=? macproto=0xffff trunc=-1 saddr=127.0.0.1 daddr=127.0.0.1 ipid=46304 proto=17 frag=255 trunc=-1 sport=60095 dport=42424 icmptype=255 icmpcode=255
+----
+time->Fri Jan 27 08:03:35 2017
+type=NETFILTER_PKT msg=audit(1485522215.661:189): action=0 hook=1 len=51 inif=lo outif=? mark=0x3f0d6054 smac=? dmac=? macproto=0xffff trunc=-1 saddr=::1 daddr=::1 ipid=-1 proto=17 frag=-1 trunc=-1 sport=43818 dport=42424 icmptype=255 icmpcode=255
+----
 
-to a nonzero value. This sysctl is only accessible from init_net so that
-one cannot switch the behaviour from inside a container.
+> > -Steve
+> > 
+> > 
+> > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> > > ---
+> > >  net/netfilter/xt_AUDIT.c |   92
+> > > +++++++++++++++++++++++++++++++++------------- 1 files changed, 66
+> > > insertions(+), 26 deletions(-)
+> > > 
+> > > diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
+> > > index 4973cbd..8089ec2 100644
+> > > --- a/net/netfilter/xt_AUDIT.c
+> > > +++ b/net/netfilter/xt_AUDIT.c
+> > > @@ -31,24 +31,41 @@ MODULE_ALIAS("ip6t_AUDIT");
+> > >  MODULE_ALIAS("ebt_AUDIT");
+> > >  MODULE_ALIAS("arpt_AUDIT");
+> > >  
+> > > +struct nfpkt_par {
+> > > +	int ipv;
+> > > +	int iptrunc;
+> > > +	const void *saddr;
+> > > +	const void *daddr;
+> > > +	u16 ipid;
+> > > +	u8 proto;
+> > > +	u8 frag;
+> > > +	int ptrunc;
+> > > +	u16 sport;
+> > > +	u16 dport;
+> > > +	u8 icmpt;
+> > > +	u8 icmpc;
+> > > +};
+> > > +
+> > >  static void audit_proto(struct audit_buffer *ab, struct sk_buff *skb,
+> > > -			unsigned int proto, unsigned int offset)
+> > > +			unsigned int proto, unsigned int offset,
+> > > struct nfpkt_par *apar) {
+> > >  	switch (proto) {
+> > >  	case IPPROTO_TCP:
+> > >  	case IPPROTO_UDP:
+> > > -	case IPPROTO_UDPLITE: {
+> > > +	case IPPROTO_UDPLITE:
+> > > +	case IPPROTO_DCCP:
+> > > +	case IPPROTO_SCTP: {
+> > >  		const __be16 *pptr;
+> > >  		__be16 _ports[2];
+> > >  
+> > >  		pptr = skb_header_pointer(skb, offset,
+> > > sizeof(_ports), _ports); if (pptr == NULL) {
+> > > -			audit_log_format(ab, " truncated=1");
+> > > +			apar->ptrunc = 1;
+> > >  			return;
+> > >  		}
+> > > +		apar->sport = ntohs(pptr[0]);
+> > > +		apar->dport = ntohs(pptr[1]);
+> > >  
+> > > -		audit_log_format(ab, " sport=%hu dport=%hu",
+> > > -				 ntohs(pptr[0]), ntohs(pptr[1]));
+> > >  		}
+> > >  		break;
+> > >  
+> > > @@ -59,41 +76,43 @@ static void audit_proto(struct audit_buffer *ab,
+> > > struct sk_buff *skb, 
+> > >  		iptr = skb_header_pointer(skb, offset, sizeof(_ih),
+> > > &_ih); if (iptr == NULL) {
+> > > -			audit_log_format(ab, " truncated=1");
+> > > +			apar->ptrunc = 1;
+> > >  			return;
+> > >  		}
+> > > -
+> > > -		audit_log_format(ab, " icmptype=%hhu icmpcode=%hhu",
+> > > -				 iptr[0], iptr[1]);
+> > > +		apar->icmpt = iptr[0];
+> > > +		apar->icmpc = iptr[1];
+> > >  
+> > >  		}
+> > >  		break;
+> > >  	}
+> > >  }
+> > >  
+> > > -static void audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
+> > > +static void audit_ip4(struct audit_buffer *ab, struct sk_buff *skb,
+> > > struct nfpkt_par *apar) {
+> > >  	struct iphdr _iph;
+> > >  	const struct iphdr *ih;
+> > >  
+> > > +	apar->ipv = 4;
+> > >  	ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
+> > >  	if (!ih) {
+> > > -		audit_log_format(ab, " truncated=1");
+> > > +		apar->iptrunc = 1;
+> > >  		return;
+> > >  	}
+> > >  
+> > > -	audit_log_format(ab, " saddr=%pI4 daddr=%pI4 ipid=%hu
+> > > proto=%hhu",
+> > > -		&ih->saddr, &ih->daddr, ntohs(ih->id), ih->protocol);
+> > > +	apar->saddr = &ih->saddr;
+> > > +	apar->daddr = &ih->daddr;
+> > > +	apar->ipid = ntohs(ih->id);
+> > > +	apar->proto = ih->protocol;
+> > >  
+> > >  	if (ntohs(ih->frag_off) & IP_OFFSET) {
+> > > -		audit_log_format(ab, " frag=1");
+> > > +		apar->frag = 1;
+> > >  		return;
+> > >  	}
+> > >  
+> > > -	audit_proto(ab, skb, ih->protocol, ih->ihl * 4);
+> > > +	audit_proto(ab, skb, ih->protocol, ih->ihl * 4, apar);
+> > >  }
+> > >  
+> > > -static void audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
+> > > +static void audit_ip6(struct audit_buffer *ab, struct sk_buff *skb,
+> > > struct nfpkt_par *apar) {
+> > >  	struct ipv6hdr _ip6h;
+> > >  	const struct ipv6hdr *ih;
+> > > @@ -101,9 +120,10 @@ static void audit_ip6(struct audit_buffer *ab,
+> > > struct sk_buff *skb) __be16 frag_off;
+> > >  	int offset;
+> > >  
+> > > +	apar->ipv = 6;
+> > >  	ih = skb_header_pointer(skb, skb_network_offset(skb),
+> > > sizeof(_ip6h), &_ip6h); if (!ih) {
+> > > -		audit_log_format(ab, " truncated=1");
+> > > +		apar->iptrunc = 1;
+> > >  		return;
+> > >  	}
+> > >  
+> > > @@ -111,11 +131,12 @@ static void audit_ip6(struct audit_buffer *ab,
+> > > struct sk_buff *skb) offset = ipv6_skip_exthdr(skb,
+> > > skb_network_offset(skb) + sizeof(_ip6h), &nexthdr, &frag_off);
+> > >  
+> > > -	audit_log_format(ab, " saddr=%pI6c daddr=%pI6c proto=%hhu",
+> > > -			 &ih->saddr, &ih->daddr, nexthdr);
+> > > +	apar->saddr = &ih->saddr;
+> > > +	apar->daddr = &ih->daddr;
+> > > +	apar->proto = nexthdr;
+> > >  
+> > >  	if (offset)
+> > > -		audit_proto(ab, skb, nexthdr, offset);
+> > > +		audit_proto(ab, skb, nexthdr, offset, apar);
+> > >  }
+> > >  
+> > >  static unsigned int
+> > > @@ -123,6 +144,9 @@ audit_tg(struct sk_buff *skb, const struct
+> > > xt_action_param *par) {
+> > >  	const struct xt_audit_info *info = par->targinfo;
+> > >  	struct audit_buffer *ab;
+> > > +	struct nfpkt_par apar = {
+> > > +		-1, -1, NULL, NULL, -1, -1, -1, -1, -1, -1, -1, -1
+> > > +	};
+> > >  
+> > >  	if (audit_enabled == 0)
+> > >  		goto errout;
+> > > @@ -136,8 +160,7 @@ audit_tg(struct sk_buff *skb, const struct
+> > > xt_action_param *par) par->in ? par->in->name : "?",
+> > >  			 par->out ? par->out->name : "?");
+> > >  
+> > > -	if (skb->mark)
+> > > -		audit_log_format(ab, " mark=%#x", skb->mark);
+> > > +	audit_log_format(ab, " mark=%#x", skb->mark ?: -1);
+> > >  
+> > >  	if (skb->dev && skb->dev->type == ARPHRD_ETHER) {
+> > >  		audit_log_format(ab, " smac=%pM dmac=%pM
+> > > macproto=0x%04x", @@ -147,25 +170,42 @@ audit_tg(struct sk_buff *skb,
+> > > const struct xt_action_param *par) if (par->family == NFPROTO_BRIDGE)
+> > > { switch (eth_hdr(skb)->h_proto) {
+> > >  			case htons(ETH_P_IP):
+> > > -				audit_ip4(ab, skb);
+> > > +				audit_ip4(ab, skb, &apar);
+> > >  				break;
+> > >  
+> > >  			case htons(ETH_P_IPV6):
+> > > -				audit_ip6(ab, skb);
+> > > +				audit_ip6(ab, skb, &apar);
+> > >  				break;
+> > >  			}
+> > >  		}
+> > > +	} else {
+> > > +		audit_log_format(ab, " smac=? dmac=?
+> > > macproto=0xffff"); }
+> > >  
+> > >  	switch (par->family) {
+> > >  	case NFPROTO_IPV4:
+> > > -		audit_ip4(ab, skb);
+> > > +		audit_ip4(ab, skb, &apar);
+> > >  		break;
+> > >  
+> > >  	case NFPROTO_IPV6:
+> > > -		audit_ip6(ab, skb);
+> > > +		audit_ip6(ab, skb, &apar);
+> > > +		break;
+> > > +	}
+> > > +
+> > > +	switch (apar.ipv) {
+> > > +	case 4:
+> > > +		audit_log_format(ab, " trunc=%d saddr=%pI4
+> > > daddr=%pI4 ipid=%hu proto=%hhu frag=%d",
+> > > +			 apar.iptrunc, apar.saddr, apar.daddr,
+> > > apar.ipid, apar.proto, apar.frag);
+> > > +		break;
+> > > +	case 6:
+> > > +		audit_log_format(ab, " trunc=%d saddr=%pI6c
+> > > daddr=%pI6c ipid=-1 proto=%hhu frag=-1",
+> > > +			 apar.iptrunc, apar.saddr, apar.daddr,
+> > > apar.proto); break;
+> > > +	default:
+> > > +		audit_log_format(ab, " trunc=-1 saddr=? daddr=?
+> > > ipid=-1 proto=-1 frag=-1"); }
+> > > +	audit_log_format(ab, " trunc=%d sport=%hu dport=%hu
+> > > icmptype=%hhu icmpcode=%hhu",
+> > > +		apar.ptrunc, apar.sport, apar.dport, apar.icmpt,
+> > > apar.icmpc); 
+> > >  #ifdef CONFIG_NETWORK_SECMARK
+> > >  	if (skb->secmark)
+> > 
+> 
+> - RGB
+> 
+> --
+> Richard Guy Briggs <rgb@redhat.com>
+> Kernel Security Engineering, Base Operating Systems, Red Hat
+> Remote, Ottawa, Canada
+> Voice: +1.647.777.2635, Internal: (81) 32635
 
-Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
----
-v2: fix leak on net/netfilter/nf_log registration failure
----
- Documentation/networking/netfilter-sysctl.txt | 10 ++++++++++
- include/net/netfilter/nf_log.h                |  3 +++
- net/bridge/netfilter/ebt_log.c                |  2 +-
- net/ipv4/netfilter/nf_log_arp.c               |  2 +-
- net/ipv4/netfilter/nf_log_ipv4.c              |  2 +-
- net/ipv6/netfilter/nf_log_ipv6.c              |  2 +-
- net/netfilter/nf_log.c                        | 24 ++++++++++++++++++++++++
- 7 files changed, 41 insertions(+), 4 deletions(-)
- create mode 100644 Documentation/networking/netfilter-sysctl.txt
+- RGB
 
-diff --git a/Documentation/networking/netfilter-sysctl.txt b/Documentation/networking/netfilter-sysctl.txt
-new file mode 100644
-index 000000000000..55791e50e169
---- /dev/null
-+++ b/Documentation/networking/netfilter-sysctl.txt
-@@ -0,0 +1,10 @@
-+/proc/sys/net/netfilter/* Variables:
-+
-+nf_log_all_netns - BOOLEAN
-+	0 - disabled (default)
-+	not 0 - enabled
-+
-+	By default, only init_net namespace can log packets into kernel log
-+	with LOG target; this aims to prevent containers from flooding host
-+	kernel log. If enabled, this target also works in other network
-+	namespaces. This variable is only accessible from init_net.
-diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
-index 450f87f95415..42e0696f38d8 100644
---- a/include/net/netfilter/nf_log.h
-+++ b/include/net/netfilter/nf_log.h
-@@ -51,6 +51,9 @@ struct nf_logger {
- 	struct module		*me;
- };
- 
-+/* sysctl_nf_log_all_netns - allow LOG target in all network namespaces */
-+extern int sysctl_nf_log_all_netns;
-+
- /* Function to register/unregister log function. */
- int nf_log_register(u_int8_t pf, struct nf_logger *logger);
- void nf_log_unregister(struct nf_logger *logger);
-diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
-index e88bd4827ac1..98b9c8e8615e 100644
---- a/net/bridge/netfilter/ebt_log.c
-+++ b/net/bridge/netfilter/ebt_log.c
-@@ -78,7 +78,7 @@ ebt_log_packet(struct net *net, u_int8_t pf, unsigned int hooknum,
- 	unsigned int bitmask;
- 
- 	/* FIXME: Disabled from containers until syslog ns is supported */
--	if (!net_eq(net, &init_net))
-+	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
- 		return;
- 
- 	spin_lock_bh(&ebt_log_lock);
-diff --git a/net/ipv4/netfilter/nf_log_arp.c b/net/ipv4/netfilter/nf_log_arp.c
-index b24795e2ee6d..f6f713376e6e 100644
---- a/net/ipv4/netfilter/nf_log_arp.c
-+++ b/net/ipv4/netfilter/nf_log_arp.c
-@@ -87,7 +87,7 @@ static void nf_log_arp_packet(struct net *net, u_int8_t pf,
- 	struct nf_log_buf *m;
- 
- 	/* FIXME: Disabled from containers until syslog ns is supported */
--	if (!net_eq(net, &init_net))
-+	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
- 		return;
- 
- 	m = nf_log_buf_open();
-diff --git a/net/ipv4/netfilter/nf_log_ipv4.c b/net/ipv4/netfilter/nf_log_ipv4.c
-index 856648966f4c..c83a9963269b 100644
---- a/net/ipv4/netfilter/nf_log_ipv4.c
-+++ b/net/ipv4/netfilter/nf_log_ipv4.c
-@@ -319,7 +319,7 @@ static void nf_log_ip_packet(struct net *net, u_int8_t pf,
- 	struct nf_log_buf *m;
- 
- 	/* FIXME: Disabled from containers until syslog ns is supported */
--	if (!net_eq(net, &init_net))
-+	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
- 		return;
- 
- 	m = nf_log_buf_open();
-diff --git a/net/ipv6/netfilter/nf_log_ipv6.c b/net/ipv6/netfilter/nf_log_ipv6.c
-index 57d86066a13b..055c51b80f5d 100644
---- a/net/ipv6/netfilter/nf_log_ipv6.c
-+++ b/net/ipv6/netfilter/nf_log_ipv6.c
-@@ -351,7 +351,7 @@ static void nf_log_ip6_packet(struct net *net, u_int8_t pf,
- 	struct nf_log_buf *m;
- 
- 	/* FIXME: Disabled from containers until syslog ns is supported */
--	if (!net_eq(net, &init_net))
-+	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
- 		return;
- 
- 	m = nf_log_buf_open();
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index 3dca90dc24ad..0a034f52b912 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -16,6 +16,9 @@
- #define NF_LOG_PREFIXLEN		128
- #define NFLOGGER_NAME_LEN		64
- 
-+int sysctl_nf_log_all_netns __read_mostly;
-+EXPORT_SYMBOL(sysctl_nf_log_all_netns);
-+
- static struct nf_logger __rcu *loggers[NFPROTO_NUMPROTO][NF_LOG_TYPE_MAX] __read_mostly;
- static DEFINE_MUTEX(nf_log_mutex);
- 
-@@ -414,6 +417,18 @@ static const struct file_operations nflog_file_ops = {
- #ifdef CONFIG_SYSCTL
- static char nf_log_sysctl_fnames[NFPROTO_NUMPROTO-NFPROTO_UNSPEC][3];
- static struct ctl_table nf_log_sysctl_table[NFPROTO_NUMPROTO+1];
-+static struct ctl_table_header *nf_log_sysctl_fhdr;
-+
-+static struct ctl_table nf_log_sysctl_ftable[] = {
-+	{
-+		.procname	= "nf_log_all_netns",
-+		.data		= &sysctl_nf_log_all_netns,
-+		.maxlen		= sizeof(sysctl_nf_log_all_netns),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec,
-+	},
-+	{ }
-+};
- 
- static int nf_log_proc_dostring(struct ctl_table *table, int write,
- 			 void __user *buffer, size_t *lenp, loff_t *ppos)
-@@ -483,6 +498,10 @@ static int netfilter_log_sysctl_init(struct net *net)
- 			nf_log_sysctl_table[i].extra1 =
- 				(void *)(unsigned long) i;
- 		}
-+		nf_log_sysctl_fhdr = register_net_sysctl(net, "net/netfilter",
-+							 nf_log_sysctl_ftable);
-+		if (!nf_log_sysctl_fhdr)
-+			goto err_freg;
- 	}
- 
- 	for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++)
-@@ -499,6 +518,9 @@ static int netfilter_log_sysctl_init(struct net *net)
- err_reg:
- 	if (!net_eq(net, &init_net))
- 		kfree(table);
-+	else
-+		unregister_net_sysctl_table(nf_log_sysctl_fhdr);
-+err_freg:
- err_alloc:
- 	return -ENOMEM;
- }
-@@ -511,6 +533,8 @@ static void netfilter_log_sysctl_exit(struct net *net)
- 	unregister_net_sysctl_table(net->nf.nf_log_dir_header);
- 	if (!net_eq(net, &init_net))
- 		kfree(table);
-+	else
-+		unregister_net_sysctl_table(nf_log_sysctl_fhdr);
- }
- #else
- static int netfilter_log_sysctl_init(struct net *net)
--- 
-2.11.0
-
+--
+Richard Guy Briggs <rgb@redhat.com>
+Kernel Security Engineering, Base Operating Systems, Red Hat
+Remote, Ottawa, Canada
+Voice: +1.647.777.2635, Internal: (81) 32635
