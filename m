@@ -1,76 +1,191 @@
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: Re: net: suspicious RCU usage in nf_hook
-Date: Mon, 30 Jan 2017 22:19:52 -0800
-Message-ID: <CAM_iQpXiQMH1zMJM6sYFNUySUYjaHnLZ3T2d34GwCMQ9u6RkwQ@mail.gmail.com>
-References: <CACT4Y+bpmwj1WH7g6inQBm+7PvHepv9tTmYBUqkJYFvquGDYCQ@mail.gmail.com>
- <1485560124.6360.74.camel@edumazet-glaptop3.roam.corp.google.com>
- <CAM_iQpVvBPhP4q=Egsaoqf8ym-73jLZow8xDMbOq9RhYmL5XAQ@mail.gmail.com> <1485567090.6360.92.camel@edumazet-glaptop3.roam.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Dmitry Vyukov <dvyukov@google.com>,
-        David Miller <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Eric Dumazet <edumazet@google.com>,
-        James Morris <jmorris@namei.org>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Patrick McHardy <kaber@trash.net>,
-        netdev <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org,
-        syzkaller <syzkaller@googlegroups.com>
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1485567090.6360.92.camel@edumazet-glaptop3.roam.corp.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Michal Kubecek <mkubecek@suse.cz>
+Subject: [PATCH nf-next v2] netfilter: allow logging from non-init namespaces
+Date: Tue, 31 Jan 2017 10:30:06 +0100 (CET)
+Message-ID: <20170131093006.5C750A0EED@unicorn.suse.cz>
+Cc: Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        linux-doc@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jan 27, 2017 at 5:31 PM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> On Fri, 2017-01-27 at 17:00 -0800, Cong Wang wrote:
->> On Fri, Jan 27, 2017 at 3:35 PM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
->> > Oh well, I forgot to submit the official patch I think, Jan 9th.
->> >
->> > https://groups.google.com/forum/#!topic/syzkaller/BhyN5OFd7sQ
->> >
->>
->> Hmm, but why only fragments need skb_orphan()? It seems like
->> any kfree_skb() inside a nf hook needs to have a preceding
->> skb_orphan().
->
->
->>
->> Also, I am not convinced it is similar to commit 8282f27449bf15548
->> which is on RX path.
->
-> Well, we clearly see IPv6 reassembly being part of the equation in both
-> cases.
+Commit 69b34fb996b2 ("netfilter: xt_LOG: add net namespace support for
+xt_LOG") disabled logging packets using the LOG target from non-init
+namespaces. The motivation was to prevent containers from flooding
+kernel log of the host. The plan was to keep it that way until syslog
+namespace implementation allows containers to log in a safe way.
 
-Yeah, of course. My worry is that this problem is more than just
-IPv6 reassembly.
+However, the work on syslog namespace seems to have hit a dead end
+somewhere in 2013 and there are users who want to use xt_LOG in all
+network namespaces. This patch allows to do so by setting
 
->
-> I was replying to first part of the splat [1], which was already
-> diagnosed and had a non official patch.
->
-> use after free is also a bug, regardless of jump label being used or
-> not.
->
-> I still do not really understand this nf_hook issue, I thought we were
-> disabling BH in netfilter.
+  /proc/sys/net/netfilter/nf_log_all_netns
 
-It is a different warning from use-after-free, this one is about sleep
-in atomic context, mutex lock is acquired with RCU read lock held.
+to a nonzero value. This sysctl is only accessible from init_net so that
+one cannot switch the behaviour from inside a container.
 
+Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
+---
+v2: fix leak on net/netfilter/nf_log registration failure
+---
+ Documentation/networking/netfilter-sysctl.txt | 10 ++++++++++
+ include/net/netfilter/nf_log.h                |  3 +++
+ net/bridge/netfilter/ebt_log.c                |  2 +-
+ net/ipv4/netfilter/nf_log_arp.c               |  2 +-
+ net/ipv4/netfilter/nf_log_ipv4.c              |  2 +-
+ net/ipv6/netfilter/nf_log_ipv6.c              |  2 +-
+ net/netfilter/nf_log.c                        | 24 ++++++++++++++++++++++++
+ 7 files changed, 41 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/networking/netfilter-sysctl.txt
 
->
-> So the in_interrupt() check in net_disable_timestamp() should trigger,
-> this was the intent of netstamp_needed_deferred existence.
->
-> Not sure if we can test for rcu_read_lock() as well.
->
+diff --git a/Documentation/networking/netfilter-sysctl.txt b/Documentation/networking/netfilter-sysctl.txt
+new file mode 100644
+index 000000000000..55791e50e169
+--- /dev/null
++++ b/Documentation/networking/netfilter-sysctl.txt
+@@ -0,0 +1,10 @@
++/proc/sys/net/netfilter/* Variables:
++
++nf_log_all_netns - BOOLEAN
++	0 - disabled (default)
++	not 0 - enabled
++
++	By default, only init_net namespace can log packets into kernel log
++	with LOG target; this aims to prevent containers from flooding host
++	kernel log. If enabled, this target also works in other network
++	namespaces. This variable is only accessible from init_net.
+diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
+index 450f87f95415..42e0696f38d8 100644
+--- a/include/net/netfilter/nf_log.h
++++ b/include/net/netfilter/nf_log.h
+@@ -51,6 +51,9 @@ struct nf_logger {
+ 	struct module		*me;
+ };
+ 
++/* sysctl_nf_log_all_netns - allow LOG target in all network namespaces */
++extern int sysctl_nf_log_all_netns;
++
+ /* Function to register/unregister log function. */
+ int nf_log_register(u_int8_t pf, struct nf_logger *logger);
+ void nf_log_unregister(struct nf_logger *logger);
+diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
+index e88bd4827ac1..98b9c8e8615e 100644
+--- a/net/bridge/netfilter/ebt_log.c
++++ b/net/bridge/netfilter/ebt_log.c
+@@ -78,7 +78,7 @@ ebt_log_packet(struct net *net, u_int8_t pf, unsigned int hooknum,
+ 	unsigned int bitmask;
+ 
+ 	/* FIXME: Disabled from containers until syslog ns is supported */
+-	if (!net_eq(net, &init_net))
++	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
+ 		return;
+ 
+ 	spin_lock_bh(&ebt_log_lock);
+diff --git a/net/ipv4/netfilter/nf_log_arp.c b/net/ipv4/netfilter/nf_log_arp.c
+index b24795e2ee6d..f6f713376e6e 100644
+--- a/net/ipv4/netfilter/nf_log_arp.c
++++ b/net/ipv4/netfilter/nf_log_arp.c
+@@ -87,7 +87,7 @@ static void nf_log_arp_packet(struct net *net, u_int8_t pf,
+ 	struct nf_log_buf *m;
+ 
+ 	/* FIXME: Disabled from containers until syslog ns is supported */
+-	if (!net_eq(net, &init_net))
++	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
+ 		return;
+ 
+ 	m = nf_log_buf_open();
+diff --git a/net/ipv4/netfilter/nf_log_ipv4.c b/net/ipv4/netfilter/nf_log_ipv4.c
+index 856648966f4c..c83a9963269b 100644
+--- a/net/ipv4/netfilter/nf_log_ipv4.c
++++ b/net/ipv4/netfilter/nf_log_ipv4.c
+@@ -319,7 +319,7 @@ static void nf_log_ip_packet(struct net *net, u_int8_t pf,
+ 	struct nf_log_buf *m;
+ 
+ 	/* FIXME: Disabled from containers until syslog ns is supported */
+-	if (!net_eq(net, &init_net))
++	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
+ 		return;
+ 
+ 	m = nf_log_buf_open();
+diff --git a/net/ipv6/netfilter/nf_log_ipv6.c b/net/ipv6/netfilter/nf_log_ipv6.c
+index 57d86066a13b..055c51b80f5d 100644
+--- a/net/ipv6/netfilter/nf_log_ipv6.c
++++ b/net/ipv6/netfilter/nf_log_ipv6.c
+@@ -351,7 +351,7 @@ static void nf_log_ip6_packet(struct net *net, u_int8_t pf,
+ 	struct nf_log_buf *m;
+ 
+ 	/* FIXME: Disabled from containers until syslog ns is supported */
+-	if (!net_eq(net, &init_net))
++	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
+ 		return;
+ 
+ 	m = nf_log_buf_open();
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index 3dca90dc24ad..0a034f52b912 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -16,6 +16,9 @@
+ #define NF_LOG_PREFIXLEN		128
+ #define NFLOGGER_NAME_LEN		64
+ 
++int sysctl_nf_log_all_netns __read_mostly;
++EXPORT_SYMBOL(sysctl_nf_log_all_netns);
++
+ static struct nf_logger __rcu *loggers[NFPROTO_NUMPROTO][NF_LOG_TYPE_MAX] __read_mostly;
+ static DEFINE_MUTEX(nf_log_mutex);
+ 
+@@ -414,6 +417,18 @@ static const struct file_operations nflog_file_ops = {
+ #ifdef CONFIG_SYSCTL
+ static char nf_log_sysctl_fnames[NFPROTO_NUMPROTO-NFPROTO_UNSPEC][3];
+ static struct ctl_table nf_log_sysctl_table[NFPROTO_NUMPROTO+1];
++static struct ctl_table_header *nf_log_sysctl_fhdr;
++
++static struct ctl_table nf_log_sysctl_ftable[] = {
++	{
++		.procname	= "nf_log_all_netns",
++		.data		= &sysctl_nf_log_all_netns,
++		.maxlen		= sizeof(sysctl_nf_log_all_netns),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
++	},
++	{ }
++};
+ 
+ static int nf_log_proc_dostring(struct ctl_table *table, int write,
+ 			 void __user *buffer, size_t *lenp, loff_t *ppos)
+@@ -483,6 +498,10 @@ static int netfilter_log_sysctl_init(struct net *net)
+ 			nf_log_sysctl_table[i].extra1 =
+ 				(void *)(unsigned long) i;
+ 		}
++		nf_log_sysctl_fhdr = register_net_sysctl(net, "net/netfilter",
++							 nf_log_sysctl_ftable);
++		if (!nf_log_sysctl_fhdr)
++			goto err_freg;
+ 	}
+ 
+ 	for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++)
+@@ -499,6 +518,9 @@ static int netfilter_log_sysctl_init(struct net *net)
+ err_reg:
+ 	if (!net_eq(net, &init_net))
+ 		kfree(table);
++	else
++		unregister_net_sysctl_table(nf_log_sysctl_fhdr);
++err_freg:
+ err_alloc:
+ 	return -ENOMEM;
+ }
+@@ -511,6 +533,8 @@ static void netfilter_log_sysctl_exit(struct net *net)
+ 	unregister_net_sysctl_table(net->nf.nf_log_dir_header);
+ 	if (!net_eq(net, &init_net))
+ 		kfree(table);
++	else
++		unregister_net_sysctl_table(nf_log_sysctl_fhdr);
+ }
+ #else
+ static int netfilter_log_sysctl_init(struct net *net)
+-- 
+2.11.0
 
-The context is process context (TX path before hitting qdisc), and
-BH is not disabled, so in_interrupt() doesn't catch it. Hmm, this
-makes me thinking maybe we really need to disable BH in this
-case for nf_hook()? But it is called in RX path too, and BH is
-already disabled there.
