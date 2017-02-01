@@ -1,43 +1,29 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: ip_rcv_finish() NULL pointer kernel panic
-Date: Thu, 26 Jan 2017 10:14:44 -0800
-Message-ID: <1485454484.5145.148.camel@edumazet-glaptop3.roam.corp.google.com>
-References: <alpine.LNX.2.02.1701260627510.24491@maul.oc9.org>
-         <alpine.LNX.2.02.1701260927040.24491@maul.oc9.org>
-         <1485446279.5145.141.camel@edumazet-glaptop3.roam.corp.google.com>
-         <20170126162433.GB1778@breakpoint.cc>
-         <1485453601.5145.142.camel@edumazet-glaptop3.roam.corp.google.com>
+From: Miss Marbell <spdr3re9@friend.ocn.ne.jp>
+Subject: =?utf-8?Q?Bitte_kontaktieren_Sie_mich_f=C3=BCr_weitere_Details!?=
+Date: Wed, 1 Feb 2017 17:14:30 +0900 (JST)
+Message-ID: <48792382.132172498.1485936870992.JavaMail.root__29526.2641775937$1485938165$gmane$org@friend.ocn.ne.jp>
+Reply-To: Miss Marbell <brownson.m221@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Roy Keene <lkml@rkeene.org>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:36242 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753894AbdAZSWK (ORCPT
+Received: from mbkd0302.ocn.ad.jp ([153.149.236.3]:34730 "EHLO
+        mbkd0302.ocn.ad.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751639AbdBAIgC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Jan 2017 13:22:10 -0500
-In-Reply-To: <1485453601.5145.142.camel@edumazet-glaptop3.roam.corp.google.com>
+        Wed, 1 Feb 2017 03:36:02 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2017-01-26 at 10:00 -0800, Eric Dumazet wrote:
-> On Thu, 2017-01-26 at 17:24 +0100, Florian Westphal wrote:
-> 
-> > I think it makes sense to set dst->incoming
-> > to a stub in br_netfilter_rtable_init() to just kfree_skb()+
-> > WARN_ON_ONCE(), no need to add code to ip stack or crash kernel
-> > due to brnf bug.
-> 
-> Just kfree_skb() would hide bugs.
-> 
-> Dropping packets is not uncommon in networking...
-> 
-> I would rather use at least a WARN_ON_ONCE() before the kfree_skb() ;)
+Sehr geehrte Damen und Herren,
 
+Ich brauche Ihre Unterstützung in Ihrem Land zu verlagern und zu investieren.Ich bitte Sie um Hilfe, weil ich nicht das Wissen über
+Geschäft und die Regeln, die Ihr Land für eine sichere Investition führen.
 
-Oh well, I obviously did not parse properly your suggestion.
+Werden Sie versprechen, mit mir aufrichtig zu sein?
 
+Bitte kontaktieren Sie mich für weitere Details!
 
+Mit freundlichen Grüßen,
+Fräulein Marbell.
