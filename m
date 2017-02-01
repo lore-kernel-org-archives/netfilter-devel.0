@@ -1,152 +1,78 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] netfilter: nf_ct_helper: warn when not applying
- default helper assignment
-Date: Wed, 1 Feb 2017 17:27:04 +0100
-Message-ID: <20170201162704.GA3880@salvia>
-References: <alpine.LSU.2.20.1701240038080.25515@cbobk.fhfr.pm>
- <CA+55aFyDbDxcT+OjcxLxJ87MsFgNi0WWNoBSzZvWgA+yuQSXkg@mail.gmail.com>
- <20170124012859.GA6375@salvia>
- <alpine.LSU.2.20.1701240827240.25515@cbobk.fhfr.pm>
- <alpine.LSU.2.20.1701241115050.25515@cbobk.fhfr.pm>
- <CA+55aFxiM=GscZtvGkWnSfo3L4MTK0J6OFR5VbisZ1feTCBW9g@mail.gmail.com>
- <alpine.LSU.2.20.1701252136460.25515@cbobk.fhfr.pm>
+Subject: Re: [PATCH 2/2 conntrack-tools] conntrackd: config: Free strdup()ed
+ tokens
+Date: Wed, 1 Feb 2017 18:03:57 +0100
+Message-ID: <20170201170357.GA5052@salvia>
+References: <20170127203847.10785-1-cernekee@chromium.org>
+ <20170127203847.10785-2-cernekee@chromium.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        coreteam@netfilter.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        info@jablonka.cz, eric@regit.org
-To: Jiri Kosina <jikos@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="Qxx1br4bt0+wmkIi"
+Cc: netfilter-devel@vger.kernel.org
+To: Kevin Cernekee <cernekee@chromium.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:36222 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752902AbdBAREF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 1 Feb 2017 12:04:05 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id C90F518018F
+        for <netfilter-devel@vger.kernel.org>; Wed,  1 Feb 2017 18:04:01 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B6D4DDA804
+        for <netfilter-devel@vger.kernel.org>; Wed,  1 Feb 2017 18:04:01 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C7D9FDA7FA
+        for <netfilter-devel@vger.kernel.org>; Wed,  1 Feb 2017 18:03:58 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.20.1701252136460.25515@cbobk.fhfr.pm>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20170127203847.10785-2-cernekee@chromium.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 25, 2017 at 09:43:14PM +0100, Jiri Kosina wrote:
-> From: Jiri Kosina <jkosina@suse.cz>
-> Subject: [PATCH] netfilter: nf_ct_helper: warn when not applying default helper assignment
-> 
-> Commit 3bb398d925 ("netfilter: nf_ct_helper: disable automatic helper
-> assignment") is causing behavior regressions in firewalls, as traffic
-> handled by conntrack helpers is now by default not passed through even
-> though it was before due to missing CT targets (which were not necessary
-> before this commit).
->
-> The default had to be switched off due to security reasons [1] [2] and
-> therefore should stay the way it is, but let's be friendly to firewall
-> admins and issue a warning the first time we're in situation where packet
-> would be likely passed through with the old default but we're likely going
-> to drop it on the floor now.
 
-Links to [1] [2] are now gone in the patch description.
+--Qxx1br4bt0+wmkIi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> Rewrite the code a little bit as suggested by Linus, so that we avoid
-> spaghettiing the code even more -- namely the whole decision making
-> process regarding helper selection (either automatic or not) is being
-> separated, so that the whole logic can be simplified and code (condition)
-> duplication reduced.
->
-> Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-> ---
->  net/netfilter/nf_conntrack_helper.c | 58 +++++++++++++++++++++++++++----------
->  1 file changed, 42 insertions(+), 16 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-> index 7341adf..c93a331 100644
-> --- a/net/netfilter/nf_conntrack_helper.c
-> +++ b/net/netfilter/nf_conntrack_helper.c
-> @@ -188,6 +188,39 @@ struct nf_conn_help *
->  }
->  EXPORT_SYMBOL_GPL(nf_ct_helper_ext_add);
->  
-> +static struct nf_conntrack_helper *find_auto_helper(struct nf_conn *ct)
-> +{
-> +	return __nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-> +}
-> +
-> +static struct nf_conntrack_helper *ct_lookup_helper(struct nf_conn *ct, struct net *net)
+On Fri, Jan 27, 2017 at 12:38:47PM -0800, Kevin Cernekee wrote:
+> This frees T_IP, T_PATH_VAL, and T_STRING tokens.  They were being flagged
+> by valgrind as memory leaks.
 
-Please use the prefixes that we already have in place:
-nf_ct_lookup_helper() probably?
+Thanks Kevin.
 
-> +{
-> +	struct nf_conntrack_helper *ret;
-> +
-> +	if (!net->ct.sysctl_auto_assign_helper) {
-> +		if (net->ct.auto_assign_helper_warned)
-> +			return NULL;
-> +		if (!find_auto_helper(ct))
+I think we can just remove the strdup() from the lexer, given that we
+always copy these strings in the parser.
 
-This fits in one line, so I think no need for find_auto_helper(), look:
+See patch attached.
 
-                if (!__nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple))
+--Qxx1br4bt0+wmkIi
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="x.patch"
 
-> +			return NULL;
-> +		pr_info("nf_conntrack: default automatic helper assignment "
-> +			"has been turned off for security reasons and CT-based "
-> +			" firewall rule not found. Use the iptables CT target "
-> +			"to attach helpers instead.\n");
-> +		net->ct.auto_assign_helper_warned = 1;
-> +		return NULL;
-> +	}
-> +
-> +	ret = find_auto_helper(ct);
-> +	if (!ret || net->ct.auto_assign_helper_warned)
-> +		return ret;
-> +	pr_info("nf_conntrack: automatic helper assignment is deprecated and it will "
-> +		"be removed soon. Use the iptables CT target to attach helpers "
-> +		" instead.\n");
+diff --git a/src/read_config_lex.l b/src/read_config_lex.l
+index 0282534e7291..a378269491f1 100644
+--- a/src/read_config_lex.l
++++ b/src/read_config_lex.l
+@@ -141,9 +141,9 @@ notrack		[N|n][O|o][T|t][R|r][A|a][C|c][K|k]
+ {is_off}		{ return T_OFF; }
+ {integer}		{ yylval.val = atoi(yytext); return T_NUMBER; }
+ {signed_integer}	{ yylval.val = atoi(yytext); return T_SIGNED_NUMBER; }
+-{ip4}			{ yylval.string = strdup(yytext); return T_IP; }
+-{ip6}			{ yylval.string = strdup(yytext); return T_IP; }
+-{path}			{ yylval.string = strdup(yytext); return T_PATH_VAL; }
++{ip4}			{ yylval.string = yytext; return T_IP; }
++{ip6}			{ yylval.string = yytext; return T_IP; }
++{path}			{ yylval.string = yytext; return T_PATH_VAL; }
+ {alarm}			{ return T_ALARM; }
+ {persistent}		{ dlog(LOG_WARNING, "Now `persistent' mode "
+ 			       "is called `alarm'. Please, update "
+@@ -155,7 +155,7 @@ notrack		[N|n][O|o][T|t][R|r][A|a][C|c][K|k]
+ 			       "your conntrackd.conf file.\n");
+ 			  return T_FTFW; }
+ {notrack}		{ return T_NOTRACK; }
+-{string}		{ yylval.string = strdup(yytext); return T_STRING; }
++{string}		{ yylval.string = yytext; return T_STRING; }
+ 
+ {comment}	;
+ {ws}		;
 
-You can probably remove this older message now if you prefer the new
-one you wrote, actually it's a bit redundant IMO.
-
-> +	net->ct.auto_assign_helper_warned = 1;
-> +	return ret;
-> +}
-> +
-> +
->  int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
->  			      gfp_t flags)
->  {
-> @@ -213,26 +246,19 @@ int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
->  	}
->  
->  	help = nfct_help(ct);
-> -	if (net->ct.sysctl_auto_assign_helper && helper == NULL) {
-> -		helper = __nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-> -		if (unlikely(!net->ct.auto_assign_helper_warned && helper)) {
-> -			pr_info("nf_conntrack: automatic helper "
-> -				"assignment is deprecated and it will "
-> -				"be removed soon. Use the iptables CT target "
-> -				"to attach helpers instead.\n");
-> -			net->ct.auto_assign_helper_warned = true;
-> -		}
-> -	}
->  
-> -	if (helper == NULL) {
-> -		if (help)
-> -			RCU_INIT_POINTER(help->helper, NULL);
-> -		return 0;
-> +	if (!helper) {
-> +		helper = ct_lookup_helper(ct, net);
-> +		if (!helper) {
-> +			if (help)
-> +				RCU_INIT_POINTER(help->helper, NULL);
-> +			return 0;
-> +		}
->  	}
->  
-> -	if (help == NULL) {
-> +	if (!help) {
-
-I don't think these cleanups belong this patch. If you aim to net
-tree, then please let's keep this smaller.
-
-I know general coding style prefer different notation, but we have
-quite many spots in netfilter that are using this style already.
-
-Thank you.
+--Qxx1br4bt0+wmkIi--
