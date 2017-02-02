@@ -1,78 +1,50 @@
-From: Elise Lennion <elise.lennion@gmail.com>
-Subject: [PATCH nft v2 2/2] src: Always print range expressions numerically
-Date: Thu, 2 Feb 2017 10:31:56 -0200
-Message-ID: <20170202123156.GA17914@lennorien.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next v4 0/7] netfilter: skbuff: merge nfctinfo bits
+ and nfct pointer
+Date: Thu, 2 Feb 2017 14:24:45 +0100
+Message-ID: <20170202132445.GA4142@salvia>
+References: <1485192119-6144-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:35405 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751540AbdBBMcD (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Feb 2017 07:32:03 -0500
-Received: by mail-qt0-f194.google.com with SMTP id s58so3597861qtc.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 02 Feb 2017 04:32:03 -0800 (PST)
+Received: from mail.us.es ([193.147.175.20]:34056 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750877AbdBBNY6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 2 Feb 2017 08:24:58 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 27BCF131CC1
+        for <netfilter-devel@vger.kernel.org>; Thu,  2 Feb 2017 14:24:53 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D7DB0DA845
+        for <netfilter-devel@vger.kernel.org>; Thu,  2 Feb 2017 14:24:52 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 78539DA845
+        for <netfilter-devel@vger.kernel.org>; Thu,  2 Feb 2017 14:24:50 +0100 (CET)
 Content-Disposition: inline
+In-Reply-To: <1485192119-6144-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Because the rules are more legible this way. Also, the parser doesn't
-accept strings on ranges, so, printing ranges numerically better match
-the rules definition.
+On Mon, Jan 23, 2017 at 06:21:52PM +0100, Florian Westphal wrote:
+> Whenever we fetch skb conntrack info, we need to access two
+> distinct cache lines in sk_buff, #2 (nfct pointer) and #3
+> (nfctinfo bits).  This series removes nfctinfo and joins it
+> with the data pointer in a single ulong.
+> 
+> We have 3 nfctinfo bits, the slab cache used for nf_conn objects
+> guarantees at least 8 byte alignment so there is no overlap.
+> 
+> For the conntrack templates most arches also guarantee an
+> 8 byte minalign, but not all.
+> 
+> Patch #6 adds manual alignment of the templates if
+> ARCH_KMALLOC_MINALIGN isn't sufficient.
+> 
+> A followup series to this one will resurrect an old patch from
+> Pablo that adds an 'untracked' ctinfo status, this then allows
+> to get rid of the conntrack template object (which in turn avoids
+> get/put atomic ops for untracked skbs).
 
-Fixes(Bug 1046 - mobility header with range gives illegible rule).
-
-Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
----
-
- v2: Replace ternary operator with if statements.
-     Remove the new NUMERIC_CONSTANT, now uses a value bigger than
-     NUMERIC_ALL to print symbolic constants as numbers, this case
-     is only met during expr_range_print.
-
- src/datatype.c   | 8 +++++++-
- src/expression.c | 2 ++
- 2 files changed, 9 insertions(+), 1 deletion(-)
-
-diff --git a/src/datatype.c b/src/datatype.c
-index 1518606..d697a07 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -175,9 +175,15 @@ void symbolic_constant_print(const struct symbol_table *tbl,
- 		return expr_basetype(expr)->print(expr);
- 
- 	if (quotes)
--		printf("\"%s\"", s->identifier);
-+		printf("\"");
-+
-+	if (numeric_output > NUMERIC_ALL)
-+		printf("%lu", val);
- 	else
- 		printf("%s", s->identifier);
-+
-+	if (quotes)
-+		printf("\"");
- }
- 
- static void switch_byteorder(void *data, unsigned int len)
-diff --git a/src/expression.c b/src/expression.c
-index 1567870..da94b79 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -597,9 +597,11 @@ struct expr *relational_expr_alloc(const struct location *loc, enum ops op,
- 
- static void range_expr_print(const struct expr *expr)
- {
-+	numeric_output += NUMERIC_ALL + 1;
- 	expr_print(expr->left);
- 	printf("-");
- 	expr_print(expr->right);
-+	numeric_output -= NUMERIC_ALL + 1;
- }
- 
- static void range_expr_clone(struct expr *new, const struct expr *expr)
--- 
-2.7.4
-
+Series applied, thanks Florian.
