@@ -1,50 +1,37 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next v4 0/7] netfilter: skbuff: merge nfctinfo bits
- and nfct pointer
-Date: Thu, 2 Feb 2017 14:24:45 +0100
-Message-ID: <20170202132445.GA4142@salvia>
-References: <1485192119-6144-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH nf-next v2] netfilter: allow logging from non-init
+ namespaces
+Date: Thu, 2 Feb 2017 14:25:22 +0100
+Message-ID: <20170202132522.GA8215@salvia>
+References: <20170131093006.5C750A0EED@unicorn.suse.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34056 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750877AbdBBNY6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Feb 2017 08:24:58 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 27BCF131CC1
-        for <netfilter-devel@vger.kernel.org>; Thu,  2 Feb 2017 14:24:53 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D7DB0DA845
-        for <netfilter-devel@vger.kernel.org>; Thu,  2 Feb 2017 14:24:52 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 78539DA845
-        for <netfilter-devel@vger.kernel.org>; Thu,  2 Feb 2017 14:24:50 +0100 (CET)
+Cc: Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        linux-doc@vger.kernel.org
+To: Michal Kubecek <mkubecek@suse.cz>
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1485192119-6144-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20170131093006.5C750A0EED@unicorn.suse.cz>
+Sender: linux-doc-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jan 23, 2017 at 06:21:52PM +0100, Florian Westphal wrote:
-> Whenever we fetch skb conntrack info, we need to access two
-> distinct cache lines in sk_buff, #2 (nfct pointer) and #3
-> (nfctinfo bits).  This series removes nfctinfo and joins it
-> with the data pointer in a single ulong.
+On Tue, Jan 31, 2017 at 10:30:06AM +0100, Michal Kubecek wrote:
+> Commit 69b34fb996b2 ("netfilter: xt_LOG: add net namespace support for
+> xt_LOG") disabled logging packets using the LOG target from non-init
+> namespaces. The motivation was to prevent containers from flooding
+> kernel log of the host. The plan was to keep it that way until syslog
+> namespace implementation allows containers to log in a safe way.
 > 
-> We have 3 nfctinfo bits, the slab cache used for nf_conn objects
-> guarantees at least 8 byte alignment so there is no overlap.
+> However, the work on syslog namespace seems to have hit a dead end
+> somewhere in 2013 and there are users who want to use xt_LOG in all
+> network namespaces. This patch allows to do so by setting
 > 
-> For the conntrack templates most arches also guarantee an
-> 8 byte minalign, but not all.
+>   /proc/sys/net/netfilter/nf_log_all_netns
 > 
-> Patch #6 adds manual alignment of the templates if
-> ARCH_KMALLOC_MINALIGN isn't sufficient.
-> 
-> A followup series to this one will resurrect an old patch from
-> Pablo that adds an 'untracked' ctinfo status, this then allows
-> to get rid of the conntrack template object (which in turn avoids
-> get/put atomic ops for untracked skbs).
+> to a nonzero value. This sysctl is only accessible from init_net so that
+> one cannot switch the behaviour from inside a container.
 
-Series applied, thanks Florian.
+Applied, thanks Michal!
