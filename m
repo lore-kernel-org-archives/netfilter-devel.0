@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 16/27] netfilter: nft_meta: deal with PACKET_LOOPBACK in netdev family
-Date: Fri,  3 Feb 2017 13:25:27 +0100
-Message-ID: <1486124738-3013-17-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 03/27] netfilter: nf_tables: add missing descriptions in nft_ct_keys
+Date: Fri,  3 Feb 2017 13:25:14 +0100
+Message-ID: <1486124738-3013-4-git-send-email-pablo@netfilter.org>
 References: <1486124738-3013-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,70 +12,28 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Liping Zhang <zlpnobody@gmail.com>
 
-After adding the following nft rule, then ping 224.0.0.1:
-  # nft add rule netdev t c pkttype host counter
-
-The warning complain message will be printed out again and again:
-  WARNING: CPU: 0 PID: 10182 at net/netfilter/nft_meta.c:163 \
-           nft_meta_get_eval+0x3fe/0x460 [nft_meta]
-  [...]
-  Call Trace:
-  <IRQ>
-  dump_stack+0x85/0xc2
-  __warn+0xcb/0xf0
-  warn_slowpath_null+0x1d/0x20
-  nft_meta_get_eval+0x3fe/0x460 [nft_meta]
-  nft_do_chain+0xff/0x5e0 [nf_tables]
-
-So we should deal with PACKET_LOOPBACK in netdev family too. For ipv4,
-convert it to PACKET_BROADCAST/MULTICAST according to the destination
-address's type; For ipv6, convert it to PACKET_MULTICAST directly.
+We missed to add descriptions about NFT_CT_LABELS, NFT_CT_PKTS and
+NFT_CT_BYTES, now add it.
 
 Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_meta.c | 28 +++++++++++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
+ include/uapi/linux/netfilter/nf_tables.h | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 9a22b24346b8..e1f5ca9b423b 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -156,8 +156,34 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 		case NFPROTO_IPV6:
- 			*dest = PACKET_MULTICAST;
- 			break;
-+		case NFPROTO_NETDEV:
-+			switch (skb->protocol) {
-+			case htons(ETH_P_IP): {
-+				int noff = skb_network_offset(skb);
-+				struct iphdr *iph, _iph;
-+
-+				iph = skb_header_pointer(skb, noff,
-+							 sizeof(_iph), &_iph);
-+				if (!iph)
-+					goto err;
-+
-+				if (ipv4_is_multicast(iph->daddr))
-+					*dest = PACKET_MULTICAST;
-+				else
-+					*dest = PACKET_BROADCAST;
-+
-+				break;
-+			}
-+			case htons(ETH_P_IPV6):
-+				*dest = PACKET_MULTICAST;
-+				break;
-+			default:
-+				WARN_ON_ONCE(1);
-+				goto err;
-+			}
-+			break;
- 		default:
--			WARN_ON(1);
-+			WARN_ON_ONCE(1);
- 			goto err;
- 		}
- 		break;
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 881d49e94569..5726f90bfc2f 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -860,6 +860,9 @@ enum nft_rt_attributes {
+  * @NFT_CT_PROTOCOL: conntrack layer 4 protocol
+  * @NFT_CT_PROTO_SRC: conntrack layer 4 protocol source
+  * @NFT_CT_PROTO_DST: conntrack layer 4 protocol destination
++ * @NFT_CT_LABELS: conntrack labels
++ * @NFT_CT_PKTS: conntrack packets
++ * @NFT_CT_BYTES: conntrack bytes
+  */
+ enum nft_ct_keys {
+ 	NFT_CT_STATE,
 -- 
 2.1.4
