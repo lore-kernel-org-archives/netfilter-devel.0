@@ -1,33 +1,38 @@
-From: Jan Engelhardt <jengelh@inai.de>
+From: Shaun Crampton <shaun@cantab.net>
 Subject: Re: Concurrent iptables-restore calls clobberring each other
-Date: Sat, 4 Feb 2017 00:47:10 +0100 (CET)
-Message-ID: <alpine.LSU.2.20.1702040040050.2578@erq.vanv.qr>
+Date: Sat, 4 Feb 2017 08:53:22 +0000
+Message-ID: <CAB3ewxN62EQgdg1LTCyodOA+xA=SibM=khWpjp3ptzTKpBTw0A@mail.gmail.com>
 References: <CAB3ewxODtiHoKQChouTcYX7uZxHvHobxxCMLtOH_Uvkco9XaGA@mail.gmail.com>
+ <alpine.LSU.2.20.1702040040050.2578@erq.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
 Cc: netfilter-devel@vger.kernel.org
-To: Shaun Crampton <shaun@cantab.net>
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:36922 "EHLO ares41.inai.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752872AbdBCXrM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Feb 2017 18:47:12 -0500
-In-Reply-To: <CAB3ewxODtiHoKQChouTcYX7uZxHvHobxxCMLtOH_Uvkco9XaGA@mail.gmail.com>
+Received: from mail-it0-f65.google.com ([209.85.214.65]:34791 "EHLO
+        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753785AbdBDIxY (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 4 Feb 2017 03:53:24 -0500
+Received: by mail-it0-f65.google.com with SMTP id o185so3728272itb.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 04 Feb 2017 00:53:23 -0800 (PST)
+In-Reply-To: <alpine.LSU.2.20.1702040040050.2578@erq.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+> This is by design; the RMW cycle in principle also affects the "slower"
+> iptables - which is why it is slower, because it does only one rule per cycle.
 
-On Friday 2017-02-03 21:37, Shaun Crampton wrote:
->
->I'm trying to diagnose an incompatibility between my application
->(Project Calico's Felix daemon) and another (Kuberenetes' kube-proxy).
->Both are (ab)using iptables-restore to do high-speed bulk updates to
->iptables and they're both using --noflush so they can use
->iptables-restore to edit only some chains.  Mostly, this works great
->and it's many times faster than using individual iptables commands.
-[...]
->My understanding is that each iptables-restore call actually does a
->read-modify-write of the whole table
+Thanks for the response. I understand that the RMW is by design. Is there
+any protection built into the protocol to prevent concurrent writes from
+clobbering each other?  I thought I'd read that there was a "version"
+on the read
+that let the kernel spot if a write was stale.
 
-This is by design; the RMW cycle in principle also affects the "slower"
-iptables - which is why it is slower, because it does only one rule per cycle.
+My second script acts as if there is; the commits of the "kube" loop
+fail reliably
+rather than clobbering the writes of the "felix" loop.  However,
+that's not the case
+for the first script.  I'm wondering if there is supposed to be
+protection but it's
+bugged.
