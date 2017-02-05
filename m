@@ -1,146 +1,89 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next,v2 3/7] netfilter: nf_tables: rename deactivate_one() to flush()
-Date: Sun,  5 Feb 2017 21:34:41 +0100
-Message-ID: <1486326885-13766-3-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next,v2 4/7] netfilter: nf_tables: add flush field to struct nft_set_iter
+Date: Sun,  5 Feb 2017 21:34:42 +0100
+Message-ID: <1486326885-13766-4-git-send-email-pablo@netfilter.org>
 References: <1486326885-13766-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41726 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41724 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752153AbdBEUfC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1751923AbdBEUfC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 5 Feb 2017 15:35:02 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 44FB4131CAD
+        by mail.us.es (Postfix) with ESMTP id 6851E131CAF
         for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:34:58 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3476BDA846
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5A4A7DA846
         for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:34:58 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 733BADA725
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:34:55 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2B5ABDA842
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:34:56 +0100 (CET)
 In-Reply-To: <1486326885-13766-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Although semantics are similar to deactivate() with no implicit element
-lookup, this is only called from the set flush path, so better rename
-this to flush().
+This provides context to walk callback iterator, thus, we know if the
+walk happens from the set flush path. This is required by the new bitmap
+set type coming in a follow up patch which has no real struct
+nft_set_ext, so it has to allocate it based on the two bit compact
+element representation.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: no changes.
+v2: missing initialization of flush field in all set->ops->walk() spots.
 
- include/net/netfilter/nf_tables.h | 8 ++++----
- net/netfilter/nf_tables_api.c     | 2 +-
- net/netfilter/nft_set_hash.c      | 8 ++++----
- net/netfilter/nft_set_rbtree.c    | 8 ++++----
- 4 files changed, 13 insertions(+), 13 deletions(-)
+ include/net/netfilter/nf_tables.h | 1 +
+ net/netfilter/nf_tables_api.c     | 4 ++++
+ 2 files changed, 5 insertions(+)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index a721bcb1210c..ab155644d489 100644
+index ab155644d489..5830f594842e 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -260,7 +260,7 @@ struct nft_expr;
-  *	@insert: insert new element into set
-  *	@activate: activate new element in the next generation
-  *	@deactivate: lookup for element and deactivate it in the next generation
-- *	@deactivate_one: deactivate element in the next generation
-+ *	@flush: deactivate element in the next generation
-  *	@remove: remove element from set
-  *	@walk: iterate over all set elemeennts
-  *	@privsize: function to return size of set private data
-@@ -295,9 +295,9 @@ struct nft_set_ops {
- 	void *				(*deactivate)(const struct net *net,
- 						      const struct nft_set *set,
- 						      const struct nft_set_elem *elem);
--	bool				(*deactivate_one)(const struct net *net,
--							  const struct nft_set *set,
--							  void *priv);
-+	bool				(*flush)(const struct net *net,
-+						 const struct nft_set *set,
-+						 void *priv);
- 	void				(*remove)(const struct net *net,
- 						  const struct nft_set *set,
- 						  const struct nft_set_elem *elem);
+@@ -203,6 +203,7 @@ struct nft_set_elem {
+ struct nft_set;
+ struct nft_set_iter {
+ 	u8		genmask;
++	bool		flush;
+ 	unsigned int	count;
+ 	unsigned int	skip;
+ 	int		err;
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 790ffed82930..c09b11eb36fc 100644
+index c09b11eb36fc..7ae810b03462 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -3898,7 +3898,7 @@ static int nft_flush_set(const struct nft_ctx *ctx,
- 	if (!trans)
- 		return -ENOMEM;
+@@ -3121,6 +3121,7 @@ int nf_tables_bind_set(const struct nft_ctx *ctx, struct nft_set *set,
+ 		iter.count	= 0;
+ 		iter.err	= 0;
+ 		iter.fn		= nf_tables_bind_check_setelem;
++		iter.flush	= false;
  
--	if (!set->ops->deactivate_one(ctx->net, set, elem->priv)) {
-+	if (!set->ops->flush(ctx->net, set, elem->priv)) {
- 		err = -ENOENT;
- 		goto err1;
- 	}
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index bb157bd47fe8..2f10ac3b1b10 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -167,8 +167,8 @@ static void nft_hash_activate(const struct net *net, const struct nft_set *set,
- 	nft_set_elem_clear_busy(&he->ext);
- }
+ 		set->ops->walk(ctx, set, &iter);
+ 		if (iter.err < 0)
+@@ -3374,6 +3375,7 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
+ 	args.iter.count		= 0;
+ 	args.iter.err		= 0;
+ 	args.iter.fn		= nf_tables_dump_setelem;
++	args.iter.flush		= false;
+ 	set->ops->walk(&ctx, set, &args.iter);
  
--static bool nft_hash_deactivate_one(const struct net *net,
--				    const struct nft_set *set, void *priv)
-+static bool nft_hash_flush(const struct net *net,
-+			   const struct nft_set *set, void *priv)
- {
- 	struct nft_hash_elem *he = priv;
+ 	nla_nest_end(skb, nest);
+@@ -3939,6 +3941,7 @@ static int nf_tables_delsetelem(struct net *net, struct sock *nlsk,
+ 		struct nft_set_iter iter = {
+ 			.genmask	= genmask,
+ 			.fn		= nft_flush_set,
++			.flush		= true,
+ 		};
+ 		set->ops->walk(&ctx, set, &iter);
  
-@@ -195,7 +195,7 @@ static void *nft_hash_deactivate(const struct net *net,
- 	rcu_read_lock();
- 	he = rhashtable_lookup_fast(&priv->ht, &arg, nft_hash_params);
- 	if (he != NULL &&
--	    !nft_hash_deactivate_one(net, set, he))
-+	    !nft_hash_flush(net, set, he))
- 		he = NULL;
+@@ -5089,6 +5092,7 @@ static int nf_tables_check_loops(const struct nft_ctx *ctx,
+ 			iter.count	= 0;
+ 			iter.err	= 0;
+ 			iter.fn		= nf_tables_loop_check_setelem;
++			iter.flush	= false;
  
- 	rcu_read_unlock();
-@@ -398,7 +398,7 @@ static struct nft_set_ops nft_hash_ops __read_mostly = {
- 	.insert		= nft_hash_insert,
- 	.activate	= nft_hash_activate,
- 	.deactivate	= nft_hash_deactivate,
--	.deactivate_one	= nft_hash_deactivate_one,
-+	.flush		= nft_hash_flush,
- 	.remove		= nft_hash_remove,
- 	.lookup		= nft_hash_lookup,
- 	.update		= nft_hash_update,
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 9fbd70da1633..81b8a4c2c061 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -172,8 +172,8 @@ static void nft_rbtree_activate(const struct net *net,
- 	nft_set_elem_change_active(net, set, &rbe->ext);
- }
- 
--static bool nft_rbtree_deactivate_one(const struct net *net,
--				      const struct nft_set *set, void *priv)
-+static bool nft_rbtree_flush(const struct net *net,
-+			     const struct nft_set *set, void *priv)
- {
- 	struct nft_rbtree_elem *rbe = priv;
- 
-@@ -214,7 +214,7 @@ static void *nft_rbtree_deactivate(const struct net *net,
- 				parent = parent->rb_right;
- 				continue;
- 			}
--			nft_rbtree_deactivate_one(net, set, rbe);
-+			nft_rbtree_flush(net, set, rbe);
- 			return rbe;
- 		}
- 	}
-@@ -305,7 +305,7 @@ static struct nft_set_ops nft_rbtree_ops __read_mostly = {
- 	.insert		= nft_rbtree_insert,
- 	.remove		= nft_rbtree_remove,
- 	.deactivate	= nft_rbtree_deactivate,
--	.deactivate_one	= nft_rbtree_deactivate_one,
-+	.flush		= nft_rbtree_flush,
- 	.activate	= nft_rbtree_activate,
- 	.lookup		= nft_rbtree_lookup,
- 	.walk		= nft_rbtree_walk,
+ 			set->ops->walk(ctx, set, &iter);
+ 			if (iter.err < 0)
 -- 
 2.1.4
 
