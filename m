@@ -1,155 +1,95 @@
-From: Igor Pylypiv <igor.pylypiv@gmail.com>
-Subject: [PATCH] Revert "net: Remove state argument from skb_find_text()"
-Date: Sat,  4 Feb 2017 21:48:30 -0800
-Message-ID: <1486273710-18457-1-git-send-email-igor.pylypiv@gmail.com>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-To: "David S . Miller" <davem@davemloft.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH iptables 1/2] xshared: do not lock again and again if "-w" option is not specified
+Date: Sun,  5 Feb 2017 21:57:34 +0800
+Message-ID: <1486303055-11891-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, subashab@codeaurora.org,
+        Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from m12-18.163.com ([220.181.12.18]:38810 "EHLO m12-18.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751101AbdBEN6b (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 5 Feb 2017 08:58:31 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This reverts commit 059a2440fd3cf4ec57735db2c0a90401cde84fca.
+From: Liping Zhang <zlpnobody@gmail.com>
 
-Textsearch state parameter should be passed by pointer because
-its resulting value is needed for call to textsearch_next().
+After running the following commands, some confusing messages was printed
+out:
+  # while : ; do
+  iptables -A INPUT &
+  iptables -D INPUT &
+  done
+  [...]
+  Another app is currently holding the xtables lock; still -9s 0us time
+  ahead to have a chance to grab the lock...
+  Another app is currently holding the xtables lock; still -29s 0us time
+  ahead to have a chance to grab the lock...
 
-Signed-off-by: Igor Pylypiv <igor.pylypiv@gmail.com>
+If "-w" option is not specified, the "wait" will be zero, so we should
+check whether the timer_left is less than wait_interval before we call
+select to sleep.
+
+Also remove unused "BASE_MICROSECONDS" and "struct timeval waited_time"
+introduced by commit e8f857a5a151 ("xtables: Add an interval option for
+xtables lock wait").
+
+Fixes: e8f857a5a151 ("xtables: Add an interval option for xtables lock wait")
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 ---
- include/linux/skbuff.h              |  3 ++-
- net/core/skbuff.c                   |  9 +++++----
- net/netfilter/nf_conntrack_amanda.c | 10 +++++++---
- net/netfilter/xt_string.c           |  3 ++-
- net/sched/em_text.c                 |  3 ++-
- 5 files changed, 18 insertions(+), 10 deletions(-)
+ iptables/xshared.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 11b60b6..70110ca 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -1028,7 +1028,8 @@ unsigned int skb_seq_read(unsigned int consumed, const u8 **data,
- void skb_abort_seq_read(struct skb_seq_state *st);
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index cccb8ae..055acf2 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -17,7 +17,6 @@
+ #include "xshared.h"
  
- unsigned int skb_find_text(struct sk_buff *skb, unsigned int from,
--			   unsigned int to, struct ts_config *config);
-+			   unsigned int to, struct ts_config *config,
-+			   struct ts_state *state);
+ #define XT_LOCK_NAME	"/run/xtables.lock"
+-#define BASE_MICROSECONDS	100000
  
  /*
-  * Packet hash types specify the type of hash in skb_set_hash.
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index daa6058..3041763 100644
---- a/net/core/skbuff.c
-+++ b/net/core/skbuff.c
-@@ -2918,6 +2918,7 @@ static void skb_ts_finish(struct ts_config *conf, struct ts_state *state)
-  * @from: search offset
-  * @to: search limit
-  * @config: textsearch configuration
-+ * @state: uninitialized textsearch state variable
-  *
-  * Finds a pattern in the skb data according to the specified
-  * textsearch configuration. Use textsearch_next() to retrieve
-@@ -2925,17 +2926,17 @@ static void skb_ts_finish(struct ts_config *conf, struct ts_state *state)
-  * to the first occurrence or UINT_MAX if no match was found.
-  */
- unsigned int skb_find_text(struct sk_buff *skb, unsigned int from,
--			   unsigned int to, struct ts_config *config)
-+			   unsigned int to, struct ts_config *config,
-+			   struct ts_state *state)
+  * Print out any special helps. A user might like to be able to add a --help
+@@ -249,13 +248,11 @@ void xs_init_match(struct xtables_match *match)
+ 
+ bool xtables_lock(int wait, struct timeval *wait_interval)
  {
--	struct ts_state state;
- 	unsigned int ret;
+-	struct timeval time_left, wait_time, waited_time;
++	struct timeval time_left, wait_time;
+ 	int fd, i = 0;
  
- 	config->get_next_block = skb_ts_get_next_block;
- 	config->finish = skb_ts_finish;
+ 	time_left.tv_sec = wait;
+ 	time_left.tv_usec = 0;
+-	waited_time.tv_sec = 0;
+-	waited_time.tv_usec = 0;
  
--	skb_prepare_seq_read(skb, from, to, TS_SKB_CB(&state));
-+	skb_prepare_seq_read(skb, from, to, TS_SKB_CB(state));
- 
--	ret = textsearch_find(config, &state);
-+	ret = textsearch_find(config, state);
- 	return (ret <= to - from ? ret : UINT_MAX);
- }
- EXPORT_SYMBOL(skb_find_text);
-diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
-index 57a26cc..b8b95f4 100644
---- a/net/netfilter/nf_conntrack_amanda.c
-+++ b/net/netfilter/nf_conntrack_amanda.c
-@@ -88,6 +88,7 @@ static int amanda_help(struct sk_buff *skb,
- 		       struct nf_conn *ct,
- 		       enum ip_conntrack_info ctinfo)
- {
-+	struct ts_state ts;
- 	struct nf_conntrack_expect *exp;
- 	struct nf_conntrack_tuple *tuple;
- 	unsigned int dataoff, start, stop, off, i;
-@@ -112,20 +113,23 @@ static int amanda_help(struct sk_buff *skb,
- 		return NF_ACCEPT;
- 	}
- 
-+	memset(&ts, 0, sizeof(ts));
- 	start = skb_find_text(skb, dataoff, skb->len,
--			      search[SEARCH_CONNECT].ts);
-+			      search[SEARCH_CONNECT].ts, &ts);
- 	if (start == UINT_MAX)
- 		goto out;
- 	start += dataoff + search[SEARCH_CONNECT].len;
- 
-+	memset(&ts, 0, sizeof(ts));
- 	stop = skb_find_text(skb, start, skb->len,
--			     search[SEARCH_NEWLINE].ts);
-+			     search[SEARCH_NEWLINE].ts, &ts);
- 	if (stop == UINT_MAX)
- 		goto out;
- 	stop += start;
- 
- 	for (i = SEARCH_DATA; i <= SEARCH_INDEX; i++) {
--		off = skb_find_text(skb, start, stop, search[i].ts);
-+		memset(&ts, 0, sizeof(ts));
-+		off = skb_find_text(skb, start, stop, search[i].ts, &ts);
- 		if (off == UINT_MAX)
+ 	fd = open(XT_LOCK_NAME, O_CREAT, 0600);
+ 	if (fd < 0)
+@@ -264,6 +261,9 @@ bool xtables_lock(int wait, struct timeval *wait_interval)
+ 	while (1) {
+ 		if (flock(fd, LOCK_EX | LOCK_NB) == 0)
+ 			return true;
++		else if (wait >= 0 && timercmp(&time_left, wait_interval, <))
++			return false;
++
+ 		if (++i % 10 == 0) {
+ 			if (wait != -1)
+ 				fprintf(stderr, "Another app is currently holding the xtables lock; "
+@@ -279,10 +279,7 @@ bool xtables_lock(int wait, struct timeval *wait_interval)
+ 		if (wait == -1)
  			continue;
- 		off += start + search[i].len;
-diff --git a/net/netfilter/xt_string.c b/net/netfilter/xt_string.c
-index 423293e..055a6aa 100644
---- a/net/netfilter/xt_string.c
-+++ b/net/netfilter/xt_string.c
-@@ -26,12 +26,13 @@ static bool
- string_mt(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct xt_string_info *conf = par->matchinfo;
-+	struct ts_state state;
- 	bool invert;
  
- 	invert = conf->u.v1.flags & XT_STRING_FLAG_INVERT;
- 
- 	return (skb_find_text((struct sk_buff *)skb, conf->from_offset,
--			     conf->to_offset, conf->config)
-+			     conf->to_offset, conf->config, &state)
- 			     != UINT_MAX) ^ invert;
+-		timeradd(&waited_time, wait_interval, &waited_time);
+ 		timersub(&time_left, wait_interval, &time_left);
+-		if (!timerisset(&time_left))
+-			return false;
+ 	}
  }
  
-diff --git a/net/sched/em_text.c b/net/sched/em_text.c
-index 73e2ed5..f03c3de 100644
---- a/net/sched/em_text.c
-+++ b/net/sched/em_text.c
-@@ -34,6 +34,7 @@ static int em_text_match(struct sk_buff *skb, struct tcf_ematch *m,
- {
- 	struct text_match *tm = EM_TEXT_PRIV(m);
- 	int from, to;
-+	struct ts_state state;
- 
- 	from = tcf_get_base_ptr(skb, tm->from_layer) - skb->data;
- 	from += tm->from_offset;
-@@ -41,7 +42,7 @@ static int em_text_match(struct sk_buff *skb, struct tcf_ematch *m,
- 	to = tcf_get_base_ptr(skb, tm->to_layer) - skb->data;
- 	to += tm->to_offset;
- 
--	return skb_find_text(skb, from, to, tm->config) != UINT_MAX;
-+	return skb_find_text(skb, from, to, tm->config, &state) != UINT_MAX;
- }
- 
- static int em_text_change(struct net *net, void *data, int len,
 -- 
-2.7.4
+2.5.5
+
+
