@@ -1,94 +1,128 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH iptables 1/2] xshared: do not lock again and again if "-w" option is not specified
-Date: Sun,  5 Feb 2017 21:57:34 +0800
-Message-ID: <1486303055-11891-1-git-send-email-zlpnobody@163.com>
+Subject: [PATCH iptables 2/2] xshared: using the blocking file lock request when we wait indefinitely
+Date: Sun,  5 Feb 2017 21:57:35 +0800
+Message-ID: <1486303055-11891-2-git-send-email-zlpnobody@163.com>
+References: <1486303055-11891-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org, subashab@codeaurora.org,
         Liping Zhang <zlpnobody@gmail.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-18.163.com ([220.181.12.18]:38810 "EHLO m12-18.163.com"
+Received: from m12-18.163.com ([220.181.12.18]:38784 "EHLO m12-18.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751101AbdBEN6b (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 5 Feb 2017 08:58:31 -0500
+        id S1751101AbdBEN62 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 5 Feb 2017 08:58:28 -0500
+In-Reply-To: <1486303055-11891-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <zlpnobody@gmail.com>
 
-After running the following commands, some confusing messages was printed
-out:
+When using "-w" to avoid concurrent instances, we try to do flock() every
+one second until it success. But one second maybe too long in some
+situations, and it's hard to select a suitable interval time.
+
+So when using "iptables -w", use the F_SETLKW to obtain the file lock, it
+will block until it success. And when using "iptables -w second", use the
+F_SETLK, so we will not wait too long if the concurrency is very serious.
+
+Now do some performance tests. First, flush all the iptables rules in
+filter table, and run "iptables -w -S" endlessly:
+  # iptables -F
+  # iptables -X
   # while : ; do
-  iptables -A INPUT &
-  iptables -D INPUT &
+  iptables -w -S >&- &
   done
-  [...]
-  Another app is currently holding the xtables lock; still -9s 0us time
-  ahead to have a chance to grab the lock...
-  Another app is currently holding the xtables lock; still -29s 0us time
-  ahead to have a chance to grab the lock...
 
-If "-w" option is not specified, the "wait" will be zero, so we should
-check whether the timer_left is less than wait_interval before we call
-select to sleep.
+Second, after adding and deleting the iptables rules 100 times, measure
+the time cost:
+  # time for i in $(seq 100); do
+  iptables -w -A INPUT
+  iptables -w -D INPUT
+  done
 
-Also remove unused "BASE_MICROSECONDS" and "struct timeval waited_time"
-introduced by commit e8f857a5a151 ("xtables: Add an interval option for
-xtables lock wait").
+Before this patch:
+  real  1m15.962s
+  user  0m0.224s
+  sys   0m1.475s
 
-Fixes: e8f857a5a151 ("xtables: Add an interval option for xtables lock wait")
+Apply this patch:
+  real  0m2.081s
+  user  0m0.163s
+  sys   0m1.169s
+
 Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 ---
- iptables/xshared.c | 11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ iptables/xshared.c | 35 ++++++++++++++++++++++-------------
+ 1 file changed, 22 insertions(+), 13 deletions(-)
 
 diff --git a/iptables/xshared.c b/iptables/xshared.c
-index cccb8ae..055acf2 100644
+index 055acf2..e36c475 100644
 --- a/iptables/xshared.c
 +++ b/iptables/xshared.c
-@@ -17,7 +17,6 @@
- #include "xshared.h"
- 
- #define XT_LOCK_NAME	"/run/xtables.lock"
--#define BASE_MICROSECONDS	100000
- 
- /*
-  * Print out any special helps. A user might like to be able to add a --help
-@@ -249,13 +248,11 @@ void xs_init_match(struct xtables_match *match)
- 
+@@ -1,4 +1,5 @@
+ #include <getopt.h>
++#include <errno.h>
+ #include <libgen.h>
+ #include <netdb.h>
+ #include <stdbool.h>
+@@ -249,36 +250,44 @@ void xs_init_match(struct xtables_match *match)
  bool xtables_lock(int wait, struct timeval *wait_interval)
  {
--	struct timeval time_left, wait_time, waited_time;
-+	struct timeval time_left, wait_time;
+ 	struct timeval time_left, wait_time;
++	struct flock lock = {
++		.l_type		= F_WRLCK,
++		.l_start	= 0,
++		.l_whence	= SEEK_SET,
++		.l_len		= 0,
++	};
  	int fd, i = 0;
  
  	time_left.tv_sec = wait;
  	time_left.tv_usec = 0;
--	waited_time.tv_sec = 0;
--	waited_time.tv_usec = 0;
  
- 	fd = open(XT_LOCK_NAME, O_CREAT, 0600);
+-	fd = open(XT_LOCK_NAME, O_CREAT, 0600);
++	fd = open(XT_LOCK_NAME, O_RDWR | O_CREAT, 0600);
  	if (fd < 0)
-@@ -264,6 +261,9 @@ bool xtables_lock(int wait, struct timeval *wait_interval)
- 	while (1) {
- 		if (flock(fd, LOCK_EX | LOCK_NB) == 0)
- 			return true;
-+		else if (wait >= 0 && timercmp(&time_left, wait_interval, <))
-+			return false;
-+
- 		if (++i % 10 == 0) {
- 			if (wait != -1)
- 				fprintf(stderr, "Another app is currently holding the xtables lock; "
-@@ -279,10 +279,7 @@ bool xtables_lock(int wait, struct timeval *wait_interval)
- 		if (wait == -1)
- 			continue;
+ 		return true;
  
--		timeradd(&waited_time, wait_interval, &waited_time);
++	if (wait == -1) {
++		if (fcntl(fd, F_SETLKW, &lock) == 0)
++			return true;
++
++		fprintf(stderr, "Can't lock %s: %s\n", XT_LOCK_NAME,
++			strerror(errno));
++		return false;
++	}
++
+ 	while (1) {
+-		if (flock(fd, LOCK_EX | LOCK_NB) == 0)
++		if (fcntl(fd, F_SETLK, &lock) == 0)
+ 			return true;
+-		else if (wait >= 0 && timercmp(&time_left, wait_interval, <))
++		else if (timercmp(&time_left, wait_interval, <))
+ 			return false;
+ 
+ 		if (++i % 10 == 0) {
+-			if (wait != -1)
+-				fprintf(stderr, "Another app is currently holding the xtables lock; "
+-					"still %lds %ldus time ahead to have a chance to grab the lock...\n",
+-					time_left.tv_sec, time_left.tv_usec);
+-			else
+-				fprintf(stderr, "Another app is currently holding the xtables lock; "
+-						"waiting for it to exit...\n");
++			fprintf(stderr, "Another app is currently holding the xtables lock; "
++				"still %lds %ldus time ahead to have a chance to grab the lock...\n",
++				time_left.tv_sec, time_left.tv_usec);
+ 		}
+ 
+ 		wait_time = *wait_interval;
+ 		select(0, NULL, NULL, NULL, &wait_time);
+-		if (wait == -1)
+-			continue;
+-
  		timersub(&time_left, wait_interval, &time_left);
--		if (!timerisset(&time_left))
--			return false;
  	}
  }
- 
 -- 
 2.5.5
 
