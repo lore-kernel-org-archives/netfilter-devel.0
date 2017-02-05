@@ -1,89 +1,120 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next,v2 4/7] netfilter: nf_tables: add flush field to struct nft_set_iter
-Date: Sun,  5 Feb 2017 21:34:42 +0100
-Message-ID: <1486326885-13766-4-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next,v2 5/7] netfilter: nf_tables: rename struct nft_set_estimate class field
+Date: Sun,  5 Feb 2017 21:34:43 +0100
+Message-ID: <1486326885-13766-5-git-send-email-pablo@netfilter.org>
 References: <1486326885-13766-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41724 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41728 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751923AbdBEUfC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1752104AbdBEUfC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 5 Feb 2017 15:35:02 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6851E131CAF
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:34:58 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 28DC0131CB0
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:34:59 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5A4A7DA846
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:34:58 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 19647DA845
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:34:59 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2B5ABDA842
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E3F2DDA845
         for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:34:56 +0100 (CET)
 In-Reply-To: <1486326885-13766-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This provides context to walk callback iterator, thus, we know if the
-walk happens from the set flush path. This is required by the new bitmap
-set type coming in a follow up patch which has no real struct
-nft_set_ext, so it has to allocate it based on the two bit compact
-element representation.
+Use lookup as field name instead, to prepare the introduction of the
+memory class in a follow up patch.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: missing initialization of flush field in all set->ops->walk() spots.
+v2: no changes.
 
- include/net/netfilter/nf_tables.h | 1 +
- net/netfilter/nf_tables_api.c     | 4 ++++
- 2 files changed, 5 insertions(+)
+ include/net/netfilter/nf_tables.h |  4 ++--
+ net/netfilter/nf_tables_api.c     | 12 ++++++------
+ net/netfilter/nft_set_hash.c      |  2 +-
+ net/netfilter/nft_set_rbtree.c    |  2 +-
+ 4 files changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index ab155644d489..5830f594842e 100644
+index 5830f594842e..d76ac2f80a40 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -203,6 +203,7 @@ struct nft_set_elem {
- struct nft_set;
- struct nft_set_iter {
- 	u8		genmask;
-+	bool		flush;
- 	unsigned int	count;
- 	unsigned int	skip;
- 	int		err;
+@@ -244,11 +244,11 @@ enum nft_set_class {
+  *				  characteristics
+  *
+  *	@size: required memory
+- *	@class: lookup performance class
++ *	@lookup: lookup performance class
+  */
+ struct nft_set_estimate {
+ 	unsigned int		size;
+-	enum nft_set_class	class;
++	enum nft_set_class	lookup;
+ };
+ 
+ struct nft_set_ext;
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index c09b11eb36fc..7ae810b03462 100644
+index 7ae810b03462..fa7cd1679079 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -3121,6 +3121,7 @@ int nf_tables_bind_set(const struct nft_ctx *ctx, struct nft_set *set,
- 		iter.count	= 0;
- 		iter.err	= 0;
- 		iter.fn		= nf_tables_bind_check_setelem;
-+		iter.flush	= false;
+@@ -2401,9 +2401,9 @@ nft_select_set_ops(const struct nlattr * const nla[],
+ 		features &= NFT_SET_INTERVAL | NFT_SET_MAP | NFT_SET_TIMEOUT;
+ 	}
  
- 		set->ops->walk(ctx, set, &iter);
- 		if (iter.err < 0)
-@@ -3374,6 +3375,7 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
- 	args.iter.count		= 0;
- 	args.iter.err		= 0;
- 	args.iter.fn		= nf_tables_dump_setelem;
-+	args.iter.flush		= false;
- 	set->ops->walk(&ctx, set, &args.iter);
+-	bops	   = NULL;
+-	best.size  = ~0;
+-	best.class = ~0;
++	bops	    = NULL;
++	best.size   = ~0;
++	best.lookup = ~0;
  
- 	nla_nest_end(skb, nest);
-@@ -3939,6 +3941,7 @@ static int nf_tables_delsetelem(struct net *net, struct sock *nlsk,
- 		struct nft_set_iter iter = {
- 			.genmask	= genmask,
- 			.fn		= nft_flush_set,
-+			.flush		= true,
- 		};
- 		set->ops->walk(&ctx, set, &iter);
+ 	list_for_each_entry(ops, &nf_tables_set_ops, list) {
+ 		if ((ops->features & features) != features)
+@@ -2413,15 +2413,15 @@ nft_select_set_ops(const struct nlattr * const nla[],
  
-@@ -5089,6 +5092,7 @@ static int nf_tables_check_loops(const struct nft_ctx *ctx,
- 			iter.count	= 0;
- 			iter.err	= 0;
- 			iter.fn		= nf_tables_loop_check_setelem;
-+			iter.flush	= false;
+ 		switch (policy) {
+ 		case NFT_SET_POL_PERFORMANCE:
+-			if (est.class < best.class)
++			if (est.lookup < best.lookup)
+ 				break;
+-			if (est.class == best.class && est.size < best.size)
++			if (est.lookup == best.lookup && est.size < best.size)
+ 				break;
+ 			continue;
+ 		case NFT_SET_POL_MEMORY:
+ 			if (est.size < best.size)
+ 				break;
+-			if (est.size == best.size && est.class < best.class)
++			if (est.size == best.size && est.lookup < best.lookup)
+ 				break;
+ 			continue;
+ 		default:
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index 2f10ac3b1b10..e58e7f02138b 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -384,7 +384,7 @@ static bool nft_hash_estimate(const struct nft_set_desc *desc, u32 features,
+ 		est->size = esize + 2 * sizeof(struct nft_hash_elem *);
+ 	}
  
- 			set->ops->walk(ctx, set, &iter);
- 			if (iter.err < 0)
+-	est->class = NFT_SET_CLASS_O_1;
++	est->lookup = NFT_SET_CLASS_O_1;
+ 
+ 	return true;
+ }
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 81b8a4c2c061..2b6ea10c4bbd 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -291,7 +291,7 @@ static bool nft_rbtree_estimate(const struct nft_set_desc *desc, u32 features,
+ 	else
+ 		est->size = nsize;
+ 
+-	est->class = NFT_SET_CLASS_O_LOG_N;
++	est->lookup = NFT_SET_CLASS_O_LOG_N;
+ 
+ 	return true;
+ }
 -- 
 2.1.4
 
