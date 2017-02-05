@@ -1,111 +1,129 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next,v2 1/7] netfilter: nf_tables: pass netns to set->ops->remove()
-Date: Sun,  5 Feb 2017 21:34:39 +0100
-Message-ID: <1486326885-13766-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next,v2 6/7] netfilter: nf_tables: add space notation to sets
+Date: Sun,  5 Feb 2017 21:34:44 +0100
+Message-ID: <1486326885-13766-6-git-send-email-pablo@netfilter.org>
+References: <1486326885-13766-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41722 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41736 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751532AbdBEUfC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 5 Feb 2017 15:35:02 -0500
+        id S1752360AbdBEUfD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 5 Feb 2017 15:35:03 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 44B66131CAB
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:34:58 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 8F135131CB1
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:35:00 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 372B1DA847
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:34:58 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7FB15DA841
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:35:00 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7A37EDA846
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:34:53 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A7A47DA849
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:34:57 +0100 (CET)
+In-Reply-To: <1486326885-13766-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This new parameter is required by the new bitmap set type that comes in a
-follow up patch.
+The space notation allows us to classify the set backend implementation
+based on the amount of required memory. This provides an order of the
+set representation scalability in terms of memory. The size field is
+still left in place so use this if the userspace provides no explicit
+number of elements, so we cannot calculate the real memory that this set
+needs. This also helps us break ties in the set backend selection
+routine, eg. two backend implementations provide the same performance.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: Rebase on top of fixes for net, err6 in nft_add_set_elem() needs ctx->net.
+v2: no changes.
 
- include/net/netfilter/nf_tables.h | 3 ++-
- net/netfilter/nf_tables_api.c     | 6 +++---
- net/netfilter/nft_set_hash.c      | 3 ++-
- net/netfilter/nft_set_rbtree.c    | 3 ++-
- 4 files changed, 9 insertions(+), 6 deletions(-)
+ include/net/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nf_tables_api.c     | 22 +++++++++++++++++-----
+ net/netfilter/nft_set_hash.c      |  1 +
+ net/netfilter/nft_set_rbtree.c    |  1 +
+ 4 files changed, 21 insertions(+), 5 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 7dfdb517f0be..a721bcb1210c 100644
+index d76ac2f80a40..21ce50e6d0c5 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -298,7 +298,8 @@ struct nft_set_ops {
- 	bool				(*deactivate_one)(const struct net *net,
- 							  const struct nft_set *set,
- 							  void *priv);
--	void				(*remove)(const struct nft_set *set,
-+	void				(*remove)(const struct net *net,
-+						  const struct nft_set *set,
- 						  const struct nft_set_elem *elem);
- 	void				(*walk)(const struct nft_ctx *ctx,
- 						struct nft_set *set,
+@@ -245,10 +245,12 @@ enum nft_set_class {
+  *
+  *	@size: required memory
+  *	@lookup: lookup performance class
++ *	@space: memory class
+  */
+ struct nft_set_estimate {
+ 	unsigned int		size;
+ 	enum nft_set_class	lookup;
++	enum nft_set_class	space;
+ };
+ 
+ struct nft_set_ext;
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 57eeae63f597..3643ce345b59 100644
+index fa7cd1679079..cb6ae46f6c48 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -3752,7 +3752,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	return 0;
+@@ -2404,6 +2404,7 @@ nft_select_set_ops(const struct nlattr * const nla[],
+ 	bops	    = NULL;
+ 	best.size   = ~0;
+ 	best.lookup = ~0;
++	best.space  = ~0;
  
- err6:
--	set->ops->remove(set, &elem);
-+	set->ops->remove(ctx->net, set, &elem);
- err5:
- 	kfree(trans);
- err4:
-@@ -4804,7 +4804,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 			nf_tables_setelem_notify(&trans->ctx, te->set,
- 						 &te->elem,
- 						 NFT_MSG_DELSETELEM, 0);
--			te->set->ops->remove(te->set, &te->elem);
-+			te->set->ops->remove(net, te->set, &te->elem);
- 			atomic_dec(&te->set->nelems);
- 			te->set->ndeact--;
+ 	list_for_each_entry(ops, &nf_tables_set_ops, list) {
+ 		if ((ops->features & features) != features)
+@@ -2415,14 +2416,25 @@ nft_select_set_ops(const struct nlattr * const nla[],
+ 		case NFT_SET_POL_PERFORMANCE:
+ 			if (est.lookup < best.lookup)
+ 				break;
+-			if (est.lookup == best.lookup && est.size < best.size)
+-				break;
++			if (est.lookup == best.lookup) {
++				if (!desc->size) {
++					if (est.space < best.space)
++						break;
++				} else if (est.size < best.size) {
++					break;
++				}
++			}
+ 			continue;
+ 		case NFT_SET_POL_MEMORY:
+-			if (est.size < best.size)
+-				break;
+-			if (est.size == best.size && est.lookup < best.lookup)
++			if (!desc->size) {
++				if (est.space < best.space)
++					break;
++				if (est.space == best.space &&
++				    est.lookup < best.lookup)
++					break;
++			} else if (est.size < best.size) {
+ 				break;
++			}
+ 			continue;
+ 		default:
  			break;
-@@ -4925,7 +4925,7 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb)
- 		case NFT_MSG_NEWSETELEM:
- 			te = (struct nft_trans_elem *)trans->data;
- 
--			te->set->ops->remove(te->set, &te->elem);
-+			te->set->ops->remove(net, te->set, &te->elem);
- 			atomic_dec(&te->set->nelems);
- 			break;
- 		case NFT_MSG_DELSETELEM:
 diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index e36069fb76ae..bb157bd47fe8 100644
+index e58e7f02138b..6938bc890f31 100644
 --- a/net/netfilter/nft_set_hash.c
 +++ b/net/netfilter/nft_set_hash.c
-@@ -203,7 +203,8 @@ static void *nft_hash_deactivate(const struct net *net,
- 	return he;
- }
+@@ -385,6 +385,7 @@ static bool nft_hash_estimate(const struct nft_set_desc *desc, u32 features,
+ 	}
  
--static void nft_hash_remove(const struct nft_set *set,
-+static void nft_hash_remove(const struct net *net,
-+			    const struct nft_set *set,
- 			    const struct nft_set_elem *elem)
- {
- 	struct nft_hash *priv = nft_set_priv(set);
+ 	est->lookup = NFT_SET_CLASS_O_1;
++	est->space  = NFT_SET_CLASS_O_N;
+ 
+ 	return true;
+ }
 diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index f06f55ee516d..9fbd70da1633 100644
+index 2b6ea10c4bbd..3387ed7dd231 100644
 --- a/net/netfilter/nft_set_rbtree.c
 +++ b/net/netfilter/nft_set_rbtree.c
-@@ -151,7 +151,8 @@ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 	return err;
- }
+@@ -292,6 +292,7 @@ static bool nft_rbtree_estimate(const struct nft_set_desc *desc, u32 features,
+ 		est->size = nsize;
  
--static void nft_rbtree_remove(const struct nft_set *set,
-+static void nft_rbtree_remove(const struct net *net,
-+			      const struct nft_set *set,
- 			      const struct nft_set_elem *elem)
- {
- 	struct nft_rbtree *priv = nft_set_priv(set);
+ 	est->lookup = NFT_SET_CLASS_O_LOG_N;
++	est->space  = NFT_SET_CLASS_O_N;
+ 
+ 	return true;
+ }
 -- 
 2.1.4
 
