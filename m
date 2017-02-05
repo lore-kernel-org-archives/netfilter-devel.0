@@ -1,129 +1,111 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH iptables 2/2] xshared: using the blocking file lock request when we wait indefinitely
-Date: Sun,  5 Feb 2017 21:57:35 +0800
-Message-ID: <1486303055-11891-2-git-send-email-zlpnobody@163.com>
-References: <1486303055-11891-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, subashab@codeaurora.org,
-        Liping Zhang <zlpnobody@gmail.com>
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next,v2 1/7] netfilter: nf_tables: pass netns to set->ops->remove()
+Date: Sun,  5 Feb 2017 21:34:39 +0100
+Message-ID: <1486326885-13766-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-18.163.com ([220.181.12.18]:38784 "EHLO m12-18.163.com"
+Received: from mail.us.es ([193.147.175.20]:41722 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751101AbdBEN62 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 5 Feb 2017 08:58:28 -0500
-In-Reply-To: <1486303055-11891-1-git-send-email-zlpnobody@163.com>
+        id S1751532AbdBEUfC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 5 Feb 2017 15:35:02 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 44B66131CAB
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:34:58 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 372B1DA847
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:34:58 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7A37EDA846
+        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:34:53 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <zlpnobody@gmail.com>
+This new parameter is required by the new bitmap set type that comes in a
+follow up patch.
 
-When using "-w" to avoid concurrent instances, we try to do flock() every
-one second until it success. But one second maybe too long in some
-situations, and it's hard to select a suitable interval time.
-
-So when using "iptables -w", use the F_SETLKW to obtain the file lock, it
-will block until it success. And when using "iptables -w second", use the
-F_SETLK, so we will not wait too long if the concurrency is very serious.
-
-Now do some performance tests. First, flush all the iptables rules in
-filter table, and run "iptables -w -S" endlessly:
-  # iptables -F
-  # iptables -X
-  # while : ; do
-  iptables -w -S >&- &
-  done
-
-Second, after adding and deleting the iptables rules 100 times, measure
-the time cost:
-  # time for i in $(seq 100); do
-  iptables -w -A INPUT
-  iptables -w -D INPUT
-  done
-
-Before this patch:
-  real  1m15.962s
-  user  0m0.224s
-  sys   0m1.475s
-
-Apply this patch:
-  real  0m2.081s
-  user  0m0.163s
-  sys   0m1.169s
-
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- iptables/xshared.c | 35 ++++++++++++++++++++++-------------
- 1 file changed, 22 insertions(+), 13 deletions(-)
+v2: Rebase on top of fixes for net, err6 in nft_add_set_elem() needs ctx->net.
 
-diff --git a/iptables/xshared.c b/iptables/xshared.c
-index 055acf2..e36c475 100644
---- a/iptables/xshared.c
-+++ b/iptables/xshared.c
-@@ -1,4 +1,5 @@
- #include <getopt.h>
-+#include <errno.h>
- #include <libgen.h>
- #include <netdb.h>
- #include <stdbool.h>
-@@ -249,36 +250,44 @@ void xs_init_match(struct xtables_match *match)
- bool xtables_lock(int wait, struct timeval *wait_interval)
- {
- 	struct timeval time_left, wait_time;
-+	struct flock lock = {
-+		.l_type		= F_WRLCK,
-+		.l_start	= 0,
-+		.l_whence	= SEEK_SET,
-+		.l_len		= 0,
-+	};
- 	int fd, i = 0;
+ include/net/netfilter/nf_tables.h | 3 ++-
+ net/netfilter/nf_tables_api.c     | 6 +++---
+ net/netfilter/nft_set_hash.c      | 3 ++-
+ net/netfilter/nft_set_rbtree.c    | 3 ++-
+ 4 files changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 7dfdb517f0be..a721bcb1210c 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -298,7 +298,8 @@ struct nft_set_ops {
+ 	bool				(*deactivate_one)(const struct net *net,
+ 							  const struct nft_set *set,
+ 							  void *priv);
+-	void				(*remove)(const struct nft_set *set,
++	void				(*remove)(const struct net *net,
++						  const struct nft_set *set,
+ 						  const struct nft_set_elem *elem);
+ 	void				(*walk)(const struct nft_ctx *ctx,
+ 						struct nft_set *set,
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 57eeae63f597..3643ce345b59 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3752,7 +3752,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 	return 0;
  
- 	time_left.tv_sec = wait;
- 	time_left.tv_usec = 0;
+ err6:
+-	set->ops->remove(set, &elem);
++	set->ops->remove(ctx->net, set, &elem);
+ err5:
+ 	kfree(trans);
+ err4:
+@@ -4804,7 +4804,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 			nf_tables_setelem_notify(&trans->ctx, te->set,
+ 						 &te->elem,
+ 						 NFT_MSG_DELSETELEM, 0);
+-			te->set->ops->remove(te->set, &te->elem);
++			te->set->ops->remove(net, te->set, &te->elem);
+ 			atomic_dec(&te->set->nelems);
+ 			te->set->ndeact--;
+ 			break;
+@@ -4925,7 +4925,7 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb)
+ 		case NFT_MSG_NEWSETELEM:
+ 			te = (struct nft_trans_elem *)trans->data;
  
--	fd = open(XT_LOCK_NAME, O_CREAT, 0600);
-+	fd = open(XT_LOCK_NAME, O_RDWR | O_CREAT, 0600);
- 	if (fd < 0)
- 		return true;
- 
-+	if (wait == -1) {
-+		if (fcntl(fd, F_SETLKW, &lock) == 0)
-+			return true;
-+
-+		fprintf(stderr, "Can't lock %s: %s\n", XT_LOCK_NAME,
-+			strerror(errno));
-+		return false;
-+	}
-+
- 	while (1) {
--		if (flock(fd, LOCK_EX | LOCK_NB) == 0)
-+		if (fcntl(fd, F_SETLK, &lock) == 0)
- 			return true;
--		else if (wait >= 0 && timercmp(&time_left, wait_interval, <))
-+		else if (timercmp(&time_left, wait_interval, <))
- 			return false;
- 
- 		if (++i % 10 == 0) {
--			if (wait != -1)
--				fprintf(stderr, "Another app is currently holding the xtables lock; "
--					"still %lds %ldus time ahead to have a chance to grab the lock...\n",
--					time_left.tv_sec, time_left.tv_usec);
--			else
--				fprintf(stderr, "Another app is currently holding the xtables lock; "
--						"waiting for it to exit...\n");
-+			fprintf(stderr, "Another app is currently holding the xtables lock; "
-+				"still %lds %ldus time ahead to have a chance to grab the lock...\n",
-+				time_left.tv_sec, time_left.tv_usec);
- 		}
- 
- 		wait_time = *wait_interval;
- 		select(0, NULL, NULL, NULL, &wait_time);
--		if (wait == -1)
--			continue;
--
- 		timersub(&time_left, wait_interval, &time_left);
- 	}
+-			te->set->ops->remove(te->set, &te->elem);
++			te->set->ops->remove(net, te->set, &te->elem);
+ 			atomic_dec(&te->set->nelems);
+ 			break;
+ 		case NFT_MSG_DELSETELEM:
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index e36069fb76ae..bb157bd47fe8 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -203,7 +203,8 @@ static void *nft_hash_deactivate(const struct net *net,
+ 	return he;
  }
+ 
+-static void nft_hash_remove(const struct nft_set *set,
++static void nft_hash_remove(const struct net *net,
++			    const struct nft_set *set,
+ 			    const struct nft_set_elem *elem)
+ {
+ 	struct nft_hash *priv = nft_set_priv(set);
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index f06f55ee516d..9fbd70da1633 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -151,7 +151,8 @@ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	return err;
+ }
+ 
+-static void nft_rbtree_remove(const struct nft_set *set,
++static void nft_rbtree_remove(const struct net *net,
++			      const struct nft_set *set,
+ 			      const struct nft_set_elem *elem)
+ {
+ 	struct nft_rbtree *priv = nft_set_priv(set);
 -- 
-2.5.5
-
+2.1.4
 
