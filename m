@@ -1,75 +1,47 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: xt_hashlimit: Fix integer divide round to
- zero.
-Date: Mon, 6 Feb 2017 14:04:43 +0100
-Message-ID: <20170206130443.GA10990@salvia>
-References: <20170204224731.3222-1-alban.browaeys@gmail.com>
+Subject: Re: [nf-next PATCH] netfilter: nf_tables: exthdr: Add support for
+ existence check
+Date: Mon, 6 Feb 2017 14:08:53 +0100
+Message-ID: <20170206130853.GA14826@salvia>
+References: <20170117215126.13356-1-phil@nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Alban Browaeys <alban.browaeys@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Phil Sutter <phil@nwl.cc>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:56972 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751163AbdBFNJI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Feb 2017 08:09:08 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 4BFEE180180
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Feb 2017 14:09:05 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3C4DFDA725
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Feb 2017 14:09:05 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0D1D0DA729
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Feb 2017 14:09:03 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20170204224731.3222-1-alban.browaeys@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20170117215126.13356-1-phil@nwl.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Feb 04, 2017 at 11:47:31PM +0100, Alban Browaeys wrote:
-> Diving the divider by the multiplier before applying to the input.
-> When this would "divide by zero", divide the multiplier by the divider
-> first then multiply the input by this value.
-> 
-> Currently user2creds outputs zero when input value is bigger than the
-> number of slices and  lower than scale.
-> This as then user input is applied an integer divide operation to
-> a number greater than itself (scale).
-> That rounds up to zero, then we mulitply zero by the credits slice size.
->   iptables -t filter -I INPUT --protocol tcp --match hashlimit
->   --hashlimit 40/second --hashlimit-burst 20 --hashlimit-mode srcip
->   --hashlimit-name syn-flood --jump RETURN
-> thus trigger the overflow detection code:
-> xt_hashlimit: overflow, try lower: 25000/20
-> (25000 as hashlimit avd and 20 the burst)
-> Here:
-> 134217 slices of (HZ * CREDITS_PER_JIFFY) size.
-> 500000 is user input value
-> 1000000 is XT_HASHLIMIT_SCALE_v2
-> gives: 0 as user2creds output
-> Setting burst to "1" typically solve the issue ...
-> but setting it to "40" does too !
-> 
-> This is on 32bit arch calling into revision 2 of hashlimit.
-> 
-> Signed-off-by: Alban Browaeys <alban.browaeys@gmail.com>
-> ---
->  net/netfilter/xt_hashlimit.c | 18 ++++++++----------
->  1 file changed, 8 insertions(+), 10 deletions(-)
-> 
-> diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-> index 10063408141d..df75ad643eef 100644
-> --- a/net/netfilter/xt_hashlimit.c
-> +++ b/net/netfilter/xt_hashlimit.c
-> @@ -463,21 +463,19 @@ static u32 xt_hashlimit_len_to_chunks(u32 len)
->  /* Precision saver. */
->  static u64 user2credits(u64 user, int revision)
->  {
-> +	/* Avoid overflow: divide the constant operands first */
->  	if (revision == 1) {
-> -		/* If multiplying would overflow... */
-> -		if (user > 0xFFFFFFFF / (HZ*CREDITS_PER_JIFFY_v1))
-> -			/* Divide first. */
-> -			return div64_u64(user, XT_HASHLIMIT_SCALE)
-> -				* HZ * CREDITS_PER_JIFFY_v1;
-> +		return div64_u64(user, div64_u64(XT_HASHLIMIT_SCALE,
-> +			HZ * CREDITS_PER_JIFFY_v1));
->  
-> -		return div64_u64(user * HZ * CREDITS_PER_JIFFY_v1,
-> +		return user * div64_u64(HZ * CREDITS_PER_JIFFY_v1,
->  				 XT_HASHLIMIT_SCALE);
+On Tue, Jan 17, 2017 at 10:51:26PM +0100, Phil Sutter wrote:
+> If NFT_EXTHDR_F_PRESENT is set, exthdr will not copy any header field
+> data into *dest, but instead set it to 1 if the header is found and 0
+> otherwise.
 
-I see two return statements here, the one coming later is
-shadowed, this can't be right.
+Applied this one, thanks Phil.
+
+I have fixed this here, via sparse (make C=2):
+
+net/netfilter/nft_exthdr.c:90:24: warning: cast to restricted __be32
+
+> @@ -80,6 +87,7 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
+>  	priv->offset = offset;
+>  	priv->len    = len;
+>  	priv->dreg   = nft_parse_register(tb[NFTA_EXTHDR_DREG]);
+> +	priv->flags  = ntohl(nla_get_u32(tb[NFTA_EXTHDR_FLAGS]));
+
+This needed to be nla_get_be32(). No problem, I fixed this here.
