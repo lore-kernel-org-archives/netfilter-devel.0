@@ -1,68 +1,42 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [RFC PATCH] audit: normalize NETFILTER_PKT
-Date: Mon, 6 Feb 2017 14:41:07 -0500
-Message-ID: <CAHC9VhRKJjn7VWFusUo7FZy=SBrD_-P51XYye6baZpRC1bkvOQ@mail.gmail.com>
-References: <e3af1eaaf566af375dbc79abd4535e86f2fc8a6d.1485522479.git.rgb@redhat.com>
- <20170131194419.GE27141@madcap2.tricolour.ca> <CAHC9VhQu7sG_mMWjhYC=k-Kr_YQmrOyMboR3mckuBdSqsFuboQ@mail.gmail.com>
- <6667634.hKks8rloKk@x2>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft] datatype: Replace getaddrinfo() by internal lookup
+ table
+Date: Mon, 6 Feb 2017 22:13:13 +0100
+Message-ID: <20170206211313.GA17256@salvia>
+References: <20170206155339.GA9984@lennorien.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Richard Guy Briggs <rgb@redhat.com>, linux-audit@redhat.com,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>,
-        Thomas Graf <tgraf@infradead.org>
-To: Steve Grubb <sgrubb@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Elise Lennion <elise.lennion@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ua0-f194.google.com ([209.85.217.194]:33618 "EHLO
-        mail-ua0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751164AbdBFTlI (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Feb 2017 14:41:08 -0500
-Received: by mail-ua0-f194.google.com with SMTP id d5so8321134uag.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 Feb 2017 11:41:08 -0800 (PST)
-In-Reply-To: <6667634.hKks8rloKk@x2>
+Received: from mail.us.es ([193.147.175.20]:60204 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752325AbdBFVNT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Feb 2017 16:13:19 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 66B34180190
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Feb 2017 22:13:16 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4E199DA7FA
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Feb 2017 22:13:16 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 114A4DA725
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Feb 2017 22:13:14 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20170206155339.GA9984@lennorien.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Feb 4, 2017 at 8:25 AM, Steve Grubb <sgrubb@redhat.com> wrote:
-> On Friday, February 3, 2017 6:44:16 PM EST Paul Moore wrote:
->> I'm still trying to understand what purpose this record actually
->> serves, and what requirements may exist.  In an earlier thread
->> somewhere Steve mentioned some broad requirements around data
->> import/export, and I really wonder if the NETFILTER_PKT record
->> provides anything useful here when it really isn't connecting the
->> traffic to the sender/receiver without a lot of additional logging and
->> post-processing smarts.  If you were interested in data import/export
->> I think auditing the socket syscalls would provide a much more useful
->> set of records in the audit log.
->
-> The problem here is we cannot be selective enough through the syscall
-> interface to get exactly what we want. For example, any auditing of connect
-> and accept will also get af_unix traffic which is likely to be uid/gid lookups
-> through sssd or glibc. Typically we want the IPv4/6 traffic. The netfilter rules
-> are better suited to describing which packets are of interest.
+On Mon, Feb 06, 2017 at 01:53:40PM -0200, Elise Lennion wrote:
+> Nftables uses a internal service table to print service names. This
+> very table should be used when parsing new rules, to avoid conflicts
+> between nft service table and the local /etc/services, when loading
+> an exported ruleset.
+> 
+> Complements the commit:
+> (ccc5da4: datatype: Replace getnameinfo() by internal lookup table)
+> 
+> Fixes(Bug 1118 - nft: nft -f and nft list ruleset use different sets of
+> service -> port mappings)
 
-Okay, but how useful are these NETFILTER_PKT records, really?  The
-only linkage you have back to the process on the local machine is via
-the addr/proto/port tuple and that seems far from ideal.
-
->> Considering that one of the primary motivations for the audit
->> subsystem is to enable compliance with various security
->> specifications, let's get the ones we know about listed in this thread
->> and then figure out how best to meet those requirements.
->
-> Common Criteria calls out for the ability to detect any attempt at information
-> flow. Everything else leverages the CC requirements.
-
-Yes, you've mentioned this previously.  This is good, but we need to
-make these requirements a bit more concrete; we need something we can
-use to arrive at a working implementation that satisfies these
-requirements.
-
-If this is purely about information flowing from A to B, would the
-source and destination addr/proto/port for TCP and UDP suffice?  Do we
-need anything else?
-
--- 
-paul moore
-www.paul-moore.com
+Applied, thanks Elise.
