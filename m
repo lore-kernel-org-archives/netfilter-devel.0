@@ -1,37 +1,36 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] configure: Require newer version of libxtables
-Date: Sun, 5 Feb 2017 21:48:39 +0100
-Message-ID: <20170205204839.GA21340@salvia>
-References: <20170202112255.GA18694@lennorien.com>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH 24/27] netfilter: guarantee 8 byte minalign for template
+ addresses
+Date: Mon, 6 Feb 2017 10:08:17 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6DB027C5AF@AcuExch.aculab.com>
+References: <1486124738-3013-1-git-send-email-pablo@netfilter.org>
+ <1486124738-3013-25-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Elise Lennion <elise.lennion@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44826 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751532AbdBEUss (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 5 Feb 2017 15:48:48 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 08AD8131CAB
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:48:47 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EEC0BDA80C
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:48:46 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3B357DA7F7
-        for <netfilter-devel@vger.kernel.org>; Sun,  5 Feb 2017 21:48:44 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20170202112255.GA18694@lennorien.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Cc: "davem@davemloft.net" <davem@davemloft.net>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: 'Pablo Neira Ayuso' <pablo@netfilter.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1486124738-3013-25-git-send-email-pablo@netfilter.org>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Feb 02, 2017 at 09:22:55AM -0200, Elise Lennion wrote:
-> Currently, the configure script requires xtables v1.6.0 when the option
-> --with-xtables is given. However, nftables-0.7 build fails with this
-> version, xtables v1.6.1 is the minimum required to have libxtables
-> support.
+From: Pablo Neira Ayuso
+> Sent: 03 February 2017 12:26
+> The next change will merge skb->nfct pointer and skb->nfctinfo
+> status bits into single skb->_nfct (unsigned long) area.
 > 
-> Fixes(Bug 1110 - Build failure if --with-xtables).
+> For this to work nf_conn addresses must always be aligned at least on
+> an 8 byte boundary since we will need the lower 3bits to store nfctinfo.
 
-Also applied, thanks Elise.
+Don't do it then.
+You are using a bit somewhere else to allow you to use a 'hack'
+that stores 3 status bits into the bottom of an address where there
+are only 2 'available' bits.
+That sounds like it just adds code everywhere.
+I suspect you'll regret doing it later on as well.
+
+	David
