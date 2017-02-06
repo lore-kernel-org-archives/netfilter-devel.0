@@ -1,110 +1,40 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH iptables V2 2/2] xshared: using the blocking file lock request when we wait indefinitely
-Date: Mon,  6 Feb 2017 19:47:47 +0800
-Message-ID: <1486381667-32577-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
-To: pablo@netfilter.org
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: ANNOUNCE: Netdev 2.1 update Feb 06
+Date: Mon, 6 Feb 2017 08:02:51 -0500
+Message-ID: <bb5b53b7-ae46-e08c-f996-2dbc96fa1c29@mojatatu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+        info@netdevconf.org, linux-wireless@vger.kernel.org,
+        tech-committee@netdevconf.org, David Miller <davem@davemloft.net>,
+        Stephen Jaworski <jaws@mojatatu.com>,
+        Rob Echlin <rob@echlin.ca>, lwn@lwn.net
+To: "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-15.163.com ([220.181.12.15]:44606 "EHLO m12-15.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751775AbdBFLsc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Feb 2017 06:48:32 -0500
+Received: from mail-io0-f195.google.com ([209.85.223.195]:34745 "EHLO
+        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751882AbdBFNC7 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Feb 2017 08:02:59 -0500
+Received: by mail-io0-f195.google.com with SMTP id c80so9159141iod.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 06 Feb 2017 05:02:59 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <zlpnobody@gmail.com>
 
-When using "-w" to avoid concurrent instances, we try to do flock() every
-one second until it success. But one second maybe too long in some
-situations, and it's hard to select a suitable interval time. So when
-using "iptables -w" to wait indefinitely, it's better to block until
-it become success.
+A few announcements:
+- We expect to open up registration and announce hotel and location
+this week.
 
-Now do some performance tests. First, flush all the iptables rules in
-filter table, and run "iptables -w -S" endlessly:
-  # iptables -F
-  # iptables -X
-  # while : ; do
-  iptables -w -S >&- &
-  done
+- We are pleased to announce the first netdev 2.1 sponsor!
+Many thanks to Mellanox who has been a strong supporter of the netdev
+community. Mellanox is first to cross the netdev2.1 sponsor line with a
+silver.
 
-Second, after adding and deleting the iptables rules 100 times, measure
-the time cost:
-  # time for i in $(seq 100); do
-  iptables -w -A INPUT
-  iptables -w -D INPUT
-  done
+The Call for Proposals is still open, submit early
+to avoid the hazards of last minute traffic. Refer to:
+http://netdevconf.org/2.1/submit-proposal.html
 
-Before this patch:
-  real  1m15.962s
-  user  0m0.224s
-  sys   0m1.475s
-
-Apply this patch:
-  real  0m1.830s
-  user  0m0.168s
-  sys   0m1.130s
-
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
----
- V2: use flock() instead of fcntl(). It is more clean.
- (This patch is based on http://patchwork.ozlabs.org/patch/724242/)
-
- iptables/xshared.c | 25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
-
-diff --git a/iptables/xshared.c b/iptables/xshared.c
-index 055acf2..f0a5ddd 100644
---- a/iptables/xshared.c
-+++ b/iptables/xshared.c
-@@ -1,4 +1,5 @@
- #include <getopt.h>
-+#include <errno.h>
- #include <libgen.h>
- #include <netdb.h>
- #include <stdbool.h>
-@@ -258,27 +259,29 @@ bool xtables_lock(int wait, struct timeval *wait_interval)
- 	if (fd < 0)
- 		return true;
- 
-+	if (wait == -1) {
-+		if (flock(fd, LOCK_EX) == 0)
-+			return true;
-+
-+		fprintf(stderr, "Can't lock %s: %s\n", XT_LOCK_NAME,
-+			strerror(errno));
-+		return false;
-+	}
-+
- 	while (1) {
- 		if (flock(fd, LOCK_EX | LOCK_NB) == 0)
- 			return true;
--		else if (wait >= 0 && timercmp(&time_left, wait_interval, <))
-+		else if (timercmp(&time_left, wait_interval, <))
- 			return false;
- 
- 		if (++i % 10 == 0) {
--			if (wait != -1)
--				fprintf(stderr, "Another app is currently holding the xtables lock; "
--					"still %lds %ldus time ahead to have a chance to grab the lock...\n",
--					time_left.tv_sec, time_left.tv_usec);
--			else
--				fprintf(stderr, "Another app is currently holding the xtables lock; "
--						"waiting for it to exit...\n");
-+			fprintf(stderr, "Another app is currently holding the xtables lock; "
-+				"still %lds %ldus time ahead to have a chance to grab the lock...\n",
-+				time_left.tv_sec, time_left.tv_usec);
- 		}
- 
- 		wait_time = *wait_interval;
- 		select(0, NULL, NULL, NULL, &wait_time);
--		if (wait == -1)
--			continue;
--
- 		timersub(&time_left, wait_interval, &time_left);
- 	}
- }
--- 
-2.5.5
-
-
+cheers,
+jamal
