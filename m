@@ -1,62 +1,54 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nft PATCH 0/3] Boolean comparison and exthdr existence match
- support
-Date: Mon, 6 Feb 2017 15:26:20 +0100
-Message-ID: <20170206142619.GD8343@orbyte.nwl.cc>
-References: <20170117221007.14951-1-phil@nwl.cc>
- <20170123125747.GA2017@salvia>
+From: Alban Browaeys <alban.browaeys@gmail.com>
+Subject: Re: [PATCH] netfilter: xt_hashlimit: Fix integer divide round to
+ zero.
+Date: Mon, 06 Feb 2017 15:28:07 +0100
+Message-ID: <1486391287.2374.1.camel@gmail.com>
+References: <20170204224731.3222-1-alban.browaeys@gmail.com>
+         <20170206130443.GA10990@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Cc: Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:37881 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751948AbdBFO00 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Feb 2017 09:26:26 -0500
-Content-Disposition: inline
-In-Reply-To: <20170123125747.GA2017@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170206130443.GA10990@salvia>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
-
-On Mon, Jan 23, 2017 at 01:57:47PM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Jan 17, 2017 at 11:10:04PM +0100, Phil Sutter wrote:
-> > The following series adds two distinct features to nftables, though
-> > since the second one depends on presence of the first one this is
-> > submitted as a series.
-> > 
-> > Patch 1 adds support for a boolean variant of relational expression.
-> > It's OP is strictly implicit and determined by RHS being a boolean
-> > expression. It depends on a related kernel patch adding support for
-> > NFT_CMP_BOOL to nft_cmp.c.
+Le lundi 06 février 2017 à 14:04 +0100, Pablo Neira Ayuso a écrit :
+> On Sat, Feb 04, 2017 at 11:47:31PM +0100, Alban Browaeys wrote:
+> > diff --git a/net/netfilter/xt_hashlimit.c
+> > b/net/netfilter/xt_hashlimit.c
+> > index 10063408141d..df75ad643eef 100644
+> > --- a/net/netfilter/xt_hashlimit.c
+> > +++ b/net/netfilter/xt_hashlimit.c
+> > @@ -463,21 +463,19 @@ static u32 xt_hashlimit_len_to_chunks(u32 len)
+> >  /* Precision saver. */
+> >  static u64 user2credits(u64 user, int revision)
+> >  {
+> > > > +	/* Avoid overflow: divide the constant operands first */
+> > > >  	if (revision == 1) {
+> > > > -		/* If multiplying would overflow... */
+> > > > -		if (user > 0xFFFFFFFF / (HZ*CREDITS_PER_JIFFY_v1))
+> > > > -			/* Divide first. */
+> > > > -			return div64_u64(user, XT_HASHLIMIT_SCALE)
+> > > > -				* HZ * CREDITS_PER_JIFFY_v1;
+> > > > +		return div64_u64(user, div64_u64(XT_HASHLIMIT_SCALE,
+> > > > +			HZ * CREDITS_PER_JIFFY_v1));
+> >  
+> > > > -		return div64_u64(user * HZ * CREDITS_PER_JIFFY_v1,
+> > > > +		return user * div64_u64(HZ * CREDITS_PER_JIFFY_v1,
+> >  				 XT_HASHLIMIT_SCALE);
 > 
-> If the problem is that we lack of context from the delinearize path,
-> then I would prefer if you scratch one bit from the fib flags to
-> indicate that we want a true (1)/false (0) return value. Just like we
-> plan to do with exthdr. This should require a small kernel patch for
-> nft_fib I think.
-> 
-> Thus, we can skip this ad hoc update for nft_cmp which seems to me
-> that it's only there to help us get the context that we lack from the
-> delinearize step.
+> I see two return statements here, the one coming later is
+> shadowed, this can't be right.
 
-This is not ad hoc updating nft_cmp but instead support for a new
-operation. Did you maybe reply having the first approach from my RFC in
-mind? Because I scratched that and went with the second one since it's
-more complete.
+I fixed revision 2 case then copy the code to revision 1
+ and lost the condition in the process.
+The code duplication is useless. I will rework it in v2.
 
-> Then, from the delinearize path, if this fib/exthdr flag is set, we
-> attach the corresponding datatype to the expression based on this new
-> flag.
-
-The point in NFT_CMP_BOOL is that it's LHS expression agnostic. Whatever
-provides a value there can be checked for being eq/neq zero using the
-boolean operation.
-
-The context use in delinearize path is implicit (LHS defines RHS dtype)
-and for convenience only: It merely allows printing different "flavors"
-of boolean keywords depending on LHS and could easily be dropped.
-
-Cheers, Phil
+Thank you for the review.
