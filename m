@@ -1,36 +1,38 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH 24/27] netfilter: guarantee 8 byte minalign for template
- addresses
-Date: Mon, 6 Feb 2017 10:08:17 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6DB027C5AF@AcuExch.aculab.com>
-References: <1486124738-3013-1-git-send-email-pablo@netfilter.org>
- <1486124738-3013-25-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH V2 1/2] netfilter: ctnetlink: Fix regression in
+ CTA_STATUS processing
+Date: Mon, 6 Feb 2017 12:44:32 +0100
+Message-ID: <20170206114432.GA15498@salvia>
+References: <20170126224944.29047-1-cernekee@chromium.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Cc: "davem@davemloft.net" <davem@davemloft.net>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: 'Pablo Neira Ayuso' <pablo@netfilter.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1486124738-3013-25-git-send-email-pablo@netfilter.org>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Cc: dianders@chromium.org, davem@davemloft.net,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Kevin Cernekee <cernekee@chromium.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170126224944.29047-1-cernekee@chromium.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso
-> Sent: 03 February 2017 12:26
-> The next change will merge skb->nfct pointer and skb->nfctinfo
-> status bits into single skb->_nfct (unsigned long) area.
+On Thu, Jan 26, 2017 at 02:49:43PM -0800, Kevin Cernekee wrote:
+> The libnetfilter_conntrack userland library always sets IPS_CONFIRMED
+> when building a CTA_STATUS attribute.  If this toggles the bit from
+> 0->1, the parser will return an error.  On Linux 4.4+ this will cause any
+> NFQA_EXP attribute in the packet to be ignored.  This breaks conntrackd's
+> userland helpers because they operate on unconfirmed connections.
 > 
-> For this to work nf_conn addresses must always be aligned at least on
-> an 8 byte boundary since we will need the lower 3bits to store nfctinfo.
+> Instead of returning -EBUSY if the user program asks to modify an
+> unchangeable bit, simply ignore the change.
+> 
+> Also, fix the logic so that user programs are allowed to clear
+> the bits that they are allowed to change.
 
-Don't do it then.
-You are using a bit somewhere else to allow you to use a 'hack'
-that stores 3 status bits into the bottom of an address where there
-are only 2 'available' bits.
-That sounds like it just adds code everywhere.
-I suspect you'll regret doing it later on as well.
+Applied, thanks Kevin.
 
-	David
+I have manually fixed here this compilation warning, btw:
+
+net/netfilter/nf_conntrack_netlink.c:1449:1: warning:
+‘ctnetlink_update_status’ defined but not used [-Wunused-function] ctnetlink_update_status(struct nf_conn *ct, const struct nlattr * const cda[])
+ ^
