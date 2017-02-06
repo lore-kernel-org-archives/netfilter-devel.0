@@ -1,47 +1,62 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nf-next PATCH] netfilter: nf_tables: exthdr: Add support for
- existence check
-Date: Mon, 6 Feb 2017 14:08:53 +0100
-Message-ID: <20170206130853.GA14826@salvia>
-References: <20170117215126.13356-1-phil@nwl.cc>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [nft PATCH 0/3] Boolean comparison and exthdr existence match
+ support
+Date: Mon, 6 Feb 2017 15:26:20 +0100
+Message-ID: <20170206142619.GD8343@orbyte.nwl.cc>
+References: <20170117221007.14951-1-phil@nwl.cc>
+ <20170123125747.GA2017@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56972 "EHLO mail.us.es"
+Received: from orbyte.nwl.cc ([151.80.46.58]:37881 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751163AbdBFNJI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Feb 2017 08:09:08 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4BFEE180180
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Feb 2017 14:09:05 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3C4DFDA725
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Feb 2017 14:09:05 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0D1D0DA729
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Feb 2017 14:09:03 +0100 (CET)
+        id S1751948AbdBFO00 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Feb 2017 09:26:26 -0500
 Content-Disposition: inline
-In-Reply-To: <20170117215126.13356-1-phil@nwl.cc>
+In-Reply-To: <20170123125747.GA2017@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 17, 2017 at 10:51:26PM +0100, Phil Sutter wrote:
-> If NFT_EXTHDR_F_PRESENT is set, exthdr will not copy any header field
-> data into *dest, but instead set it to 1 if the header is found and 0
-> otherwise.
+Hi Pablo,
 
-Applied this one, thanks Phil.
+On Mon, Jan 23, 2017 at 01:57:47PM +0100, Pablo Neira Ayuso wrote:
+> On Tue, Jan 17, 2017 at 11:10:04PM +0100, Phil Sutter wrote:
+> > The following series adds two distinct features to nftables, though
+> > since the second one depends on presence of the first one this is
+> > submitted as a series.
+> > 
+> > Patch 1 adds support for a boolean variant of relational expression.
+> > It's OP is strictly implicit and determined by RHS being a boolean
+> > expression. It depends on a related kernel patch adding support for
+> > NFT_CMP_BOOL to nft_cmp.c.
+> 
+> If the problem is that we lack of context from the delinearize path,
+> then I would prefer if you scratch one bit from the fib flags to
+> indicate that we want a true (1)/false (0) return value. Just like we
+> plan to do with exthdr. This should require a small kernel patch for
+> nft_fib I think.
+> 
+> Thus, we can skip this ad hoc update for nft_cmp which seems to me
+> that it's only there to help us get the context that we lack from the
+> delinearize step.
 
-I have fixed this here, via sparse (make C=2):
+This is not ad hoc updating nft_cmp but instead support for a new
+operation. Did you maybe reply having the first approach from my RFC in
+mind? Because I scratched that and went with the second one since it's
+more complete.
 
-net/netfilter/nft_exthdr.c:90:24: warning: cast to restricted __be32
+> Then, from the delinearize path, if this fib/exthdr flag is set, we
+> attach the corresponding datatype to the expression based on this new
+> flag.
 
-> @@ -80,6 +87,7 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
->  	priv->offset = offset;
->  	priv->len    = len;
->  	priv->dreg   = nft_parse_register(tb[NFTA_EXTHDR_DREG]);
-> +	priv->flags  = ntohl(nla_get_u32(tb[NFTA_EXTHDR_FLAGS]));
+The point in NFT_CMP_BOOL is that it's LHS expression agnostic. Whatever
+provides a value there can be checked for being eq/neq zero using the
+boolean operation.
 
-This needed to be nla_get_be32(). No problem, I fixed this here.
+The context use in delinearize path is implicit (LHS defines RHS dtype)
+and for convenience only: It merely allows printing different "flavors"
+of boolean keywords depending on LHS and could easily be dropped.
+
+Cheers, Phil
