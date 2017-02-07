@@ -1,103 +1,94 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nft PATCH 0/3] Boolean comparison and exthdr existence match
- support
-Date: Tue, 7 Feb 2017 03:28:19 +0100
-Message-ID: <20170207022415.4B21165A93@mail.nwl.cc>
-References: <20170117221007.14951-1-phil@nwl.cc>
- <20170123125747.GA2017@salvia>
- <20170206142619.GD8343@orbyte.nwl.cc>
- <20170206171601.GA18164@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nftables 5/9] src: add host byte order integer type
+Date: Tue, 7 Feb 2017 12:58:56 +0100
+Message-ID: <20170207115856.GB1231@salvia>
+References: <20170203123556.17357-1-fw@strlen.de>
+ <20170203123556.17357-6-fw@strlen.de>
+ <20170206173110.GA18703@salvia>
+ <20170206223301.GA28402@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:43511 "EHLO mail.nwl.cc"
+Received: from mail.us.es ([193.147.175.20]:53274 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751164AbdBGCYR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Feb 2017 21:24:17 -0500
+        id S1753345AbdBGL7G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 7 Feb 2017 06:59:06 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id C1B8BBA6F1
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Feb 2017 12:59:02 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B133CDA80B
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Feb 2017 12:59:02 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 690C8DA851
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Feb 2017 12:59:00 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20170206171601.GA18164@salvia>
+In-Reply-To: <20170206223301.GA28402@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Feb 06, 2017 at 06:16:01PM +0100, Pablo Neira Ayuso wrote:
-> On Mon, Feb 06, 2017 at 03:26:20PM +0100, Phil Sutter wrote:
-> [...]
-> > On Mon, Jan 23, 2017 at 01:57:47PM +0100, Pablo Neira Ayuso wrote:
-> > > On Tue, Jan 17, 2017 at 11:10:04PM +0100, Phil Sutter wrote:
-> > > > The following series adds two distinct features to nftables, though
-> > > > since the second one depends on presence of the first one this is
-> > > > submitted as a series.
-> > > > 
-> > > > Patch 1 adds support for a boolean variant of relational expression.
-> > > > It's OP is strictly implicit and determined by RHS being a boolean
-> > > > expression. It depends on a related kernel patch adding support for
-> > > > NFT_CMP_BOOL to nft_cmp.c.
-> > > 
-> > > If the problem is that we lack of context from the delinearize path,
-> > > then I would prefer if you scratch one bit from the fib flags to
-> > > indicate that we want a true (1)/false (0) return value. Just like we
-> > > plan to do with exthdr. This should require a small kernel patch for
-> > > nft_fib I think.
-> > > 
-> > > Thus, we can skip this ad hoc update for nft_cmp which seems to me
-> > > that it's only there to help us get the context that we lack from the
-> > > delinearize step.
+On Mon, Feb 06, 2017 at 11:33:01PM +0100, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Fri, Feb 03, 2017 at 01:35:52PM +0100, Florian Westphal wrote:
+> > > diff --git a/include/datatype.h b/include/datatype.h
+> > > index 9f127f2954e3..8c1c827253be 100644
+> > > --- a/include/datatype.h
+> > > +++ b/include/datatype.h
+> > > @@ -82,6 +82,7 @@ enum datatypes {
+> > >  	TYPE_DSCP,
+> > >  	TYPE_ECN,
+> > >  	TYPE_FIB_ADDR,
+> > > +	TYPE_U32,
+> > >  	__TYPE_MAX
+> > >  };
+> > >  #define TYPE_MAX		(__TYPE_MAX - 1)
 > > 
-> > This is not ad hoc updating nft_cmp but instead support for a new
-> > operation. Did you maybe reply having the first approach from my RFC in
-> > mind? Because I scratched that and went with the second one since it's
-> > more complete.
+> > Right, this is a real problem with host byteorder integer, the
+> > bytecode that we generate is not correct.
+> > 
+> > I have a patch to avoid this, it's still incomplete. I'm attaching it.
+> > 
+> > Note this is still incomplete, since this doesn't solve the netlink
+> > delinearize path. We can use the NFT_SET_USERDATA area and the tlv
+> > infrastructure that Carlos made in summer to store this
+> > metainformation that is only useful to
+> > 
+> > This shouldn't be a showstopper to get kernel patches in, we have a
+> > bit of time ahead to solve this userspace issue.
 > 
-> I think nft_cmp kernel doesn't need the specific boolean operation,
-> this is something that belongs to userspace. The existing kernel code
-> already allows us to match 0 and 1 which is sufficient for what we
-> need.
-
-Did you intentionally write "match [...] 1" or did you really mean
-"match != 1"? I'm asking because the former would require for LHS to
-normalize the result while the latter is more generic. But OTOH, if
-suitable LHS expressions have to be touched anyway (as per your
-suggestions below), this won't become an expression type independent
-operation anymore anyway.
-
-> > > Then, from the delinearize path, if this fib/exthdr flag is set, we
-> > > attach the corresponding datatype to the expression based on this new
-> > > flag.
-> > 
-> > The point in NFT_CMP_BOOL is that it's LHS expression agnostic. Whatever
-> > provides a value there can be checked for being eq/neq zero using the
-> > boolean operation.
-> > 
-> > The context use in delinearize path is implicit (LHS defines RHS dtype)
-> > and for convenience only: It merely allows printing different "flavors"
-> > of boolean keywords depending on LHS and could easily be dropped.
+> I don't understand why all this fuss is required.
 > 
-> I think we already have the context depending on the delinearize path
-> we follow, ie. netlink_delinearize_fib() may attach flavour A of
-> boolean, while netlink_delinearize_exthdr() attaches flavour B. BTW, I
-> would actually prefer to avoid flavouring at this stage, isn't it
-> found / not found enough for the usecase we have so far?
+> The type always enocodes/decides the endianess, so I fail to see why we
+> need to store endianess also in the templates (f.e. meta_templates[],
+> it just seems 100% redundant ...)
+> 
+> Thats why it I added this host endian thing here, we could then replace
+> 
+> [NFT_META_CPU]  = META_TEMPLATE("cpu", &integer_type, 4 * BITS_PER_BYTE, BYTEORDER_HOST_ENDIAN),
+> with
+> [NFT_META_CPU]  = META_TEMPLATE("cpu", &integer_u32, 4 * BITS_PER_BYTE),
+>
+> and don't need this 'endianess override' in the templates anymore.
+> We might even be able to get rid of the endianess storage in the eval
+> context this way.
+> 
+> What am I missing?
 
-Sure, for now just implementing exists/missing keywords is enough.
+This approach will not work for more stuff coming ahead, eg.
+concatenation support for integer datatypes. This currently doesn't
+work since nft complains on concatenation with datatypes with not
+fixed datatypes.
 
-I don't really like what this is heading towards to be honest:
+In that case, we will end up having integers of different sizes and
+byteorder. We would need one hardcoded type for each variant.
 
-Assuming that I will use relational_expr to implement boolean operation,
-expr_evaluate_relational() will have to do the necessary stitching to
-set the "want boolean output" flag to LHS expression and it should
-decide whether it is fit for that at all.
+Note that these TYPE_XYZ are ABI too, so we should avoid changes once
+we push them into nftables.git. We also have a limited number of them,
+6 bits since concatenations places up to 5 datatypes there using bit
+shifts.
 
-Another alternative would be to implement an independent statement, but
-that feels like unnecessary code duplication.
-
-In retrospective, I would have preferred if this discussion took place
-after I sent those two alternative implementations as RFC. This way it
-just feels like I wasted quite some effort for something that's not
-appreciated anyway. You seem to have a much clearer idea of how this
-boolean comparison should look like, and by giving more precise
-instructions you could prevent quite some frustration trying to fulfill
-them.
-
-Cheers, Phil
+I understand the override is not nice, that's one of the reasons why I
+did not push this yet. Probably we can allocate datatype instances
+dynamically, so we don't need this new field.
