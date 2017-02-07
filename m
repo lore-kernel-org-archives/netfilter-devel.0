@@ -1,145 +1,144 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next v2,1/2] netfilter: nft_exthdr: Add support for existence check
-Date: Tue,  7 Feb 2017 21:20:27 +0100
-Message-ID: <1486498828-17936-1-git-send-email-pablo@netfilter.org>
-Cc: phil@nwl.cc, fw@strlen.de, mm@skelett.io
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56624 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932076AbdBGUUv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Feb 2017 15:20:51 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B6009BA6F1
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Feb 2017 21:20:43 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A4BF9DA84E
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Feb 2017 21:20:43 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2BF89DA845
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Feb 2017 21:20:35 +0100 (CET)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Richard Guy Briggs <rgb@redhat.com>
+Subject: Re: AUDIT_NETFILTER_PKT message format
+Date: Tue, 7 Feb 2017 15:52:19 -0500
+Message-ID: <20170207205219.GA5864@madcap2.tricolour.ca>
+References: <20170117052551.GQ3087@madcap2.tricolour.ca>
+	<20170118151520.GY3087@madcap2.tricolour.ca>
+	<CAHC9VhS_6Q=bxnzU8ni1a2fRWnXoMcELzAmy0HmwMH_xhgfRBw@mail.gmail.com>
+	<21839828.eXAB1nqvpV@x2>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
+        Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
+        Thomas Graf <tgraf@infradead.org>
+To: Steve Grubb <sgrubb@redhat.com>
+Return-path: <linux-audit-bounces@redhat.com>
+Content-Disposition: inline
+In-Reply-To: <21839828.eXAB1nqvpV@x2>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/linux-audit>
+List-Post: <mailto:linux-audit@redhat.com>
+List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=subscribe>
+Sender: linux-audit-bounces@redhat.com
+Errors-To: linux-audit-bounces@redhat.com
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Phil Sutter <phil@nwl.cc>
+On 2017-01-20 09:49, Steve Grubb wrote:
+> On Wednesday, January 18, 2017 6:35:29 PM EST Paul Moore wrote:
+> > On Wed, Jan 18, 2017 at 10:15 AM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> > > On 2017-01-18 07:32, Paul Moore wrote:
+> > >> On Wed, Jan 18, 2017 at 12:39 AM, Richard Guy Briggs <rgb@redhat.com> 
+> wrote:
+> > >> > On 2017-01-17 21:34, Richard Guy Briggs wrote:
+> > >> >> On 2017-01-17 15:17, Paul Moore wrote:
+> > >> >> > On Tue, Jan 17, 2017 at 11:12 AM, Richard Guy Briggs 
+> <rgb@redhat.com> wrote:
+> > >> >> > > On 2017-01-17 08:55, Steve Grubb wrote:
+> > >> >> > >> On Tuesday, January 17, 2017 12:25:51 AM EST Richard Guy Briggs 
+> wrote:
+> > >> >> > ...
+> > >> >> > 
+> > >> >> > >> > Ones that are not so straightforward:
+> > >> >> > >> > - "secmark" depends on a kernel config setting, so should it
+> > >> >> > >> > always be
+> > >> >> > >> > 
+> > >> >> > >> >   present but "(none)" if that kernel feature is compiled out?
+> > >> >> > >> 
+> > >> >> > >> If this is selinux related, I'd treat it the same way that we do
+> > >> >> > >> subj
+> > >> >> > >> everywhere else.
+> > >> >> > > 
+> > >> >> > > Ok.
+> > >> >> > 
+> > >> >> > To be clear, a packet's secmark should be recorded via a dedicated
+> > >> >> > field, e.g. "secmark", and not use the "subj" field (it isn't a
+> > >> >> > subject label in the traditional sense).
+> > >> >> 
+> > >> >> I think Steve was talking about if, when or where to include that
+> > >> >> field,
+> > >> >> not what its label is.
+> > >> > 
+> > >> > In this case it is an "obj=" field, but since it is part of the LSM,
+> > >> > each one has its own fields.
+> > >> 
+> > >> As I said above, use a "secmark" field and not the subject or object
+> > >> fields; packet labeling is rather complex and there is value in
+> > >> differentiating between secmark labels and network peer labels.
+> > > 
+> > > Ok, I'll change it from the existing "obj=" to "secmark=".  Since it is
+> > > an LSM-dependent field, it will go away when that LSM module does.  It
+> > > is the very last item in the list of fields, so I don't see this as a
+> > > problem.
+> > > 
+> > > 
+> > > I have more questions and observations:
+> > > 
+> > > Do we care if the rest of the record's fields are there if the packet is
+> > > truncated?  In other words, can I omit all the following fields (that
+> > > will end up being set to (none) or -1 since there is no data for them)?
+> > > I'd prefer to complete the record, but Steve may not care and might
+> > > prefer to save the bandwidth.
+> > > 
+> > > Can I truncate the field name "truncated" to "trunc" (since I don't see
+> > > it yet in the audit field dictionary) if we do include all the fields?
+> > > 
+> > > I observe that support for IPPROTO_DCCP and IPPROTO_SCTP can be added
+> > > virtually for free since the source and desination ports in their packet
+> > > formats is identical to TCP and UDP (and UDPLITE).
+> > > 
+> > > 
+> > > At this point, it looks like having one record for IP/IPv6 with
+> > > TCP/UDP/DCCP/SCTP makes sense.  Whether or not to add ethernet bridge
+> > > headers and ICMP* is a more difficult question.  Ethernet bridge adds 40
+> > > chars if it isn't used, up to 62 if it is.  ICMP* adds 26 max.
+> > > 
+> > > It is an independent record, but it would be nice to be able to reuse
+> > > the message ID with a new record type to list sub-parts of the packet,
+> > > for example, reuse the existing record type (AUDIT_NETFILTER_PKT) for
+> > > the first 5 fields, mark and secmark, then another record type
+> > > (AUDIT_NETFILTER_PKT_ETH) for ethernet header, a record
+> > > (AUDIT_NETFILTER_PKT_IP) for IP/IPv6 header, then another
+> > > (AUDIT_NETFILTER_PKT_PROTO) for transport layer protocol.  This way, the
+> > > absence of an ethernet bridge header won't swing out three fields, or
+> > > waste 40 chars.  IPv4 adds about 20 chars not used by IPv6. 
+> > > TCP/UDP/DCCP/SCTP vs ICMP* is about 25 chars each.  The max message is
+> > > 322 chars (eth bridge, IPv6).  A non-ethernet-bridge non-IP* message
+> > > would be as little as 76 without the extra fields, but as much as 219
+> > > with the extra fields filled with unset values.
+> > > 
+> > > A full message could look like (I've left off secmark, which would go at
+> > > the end): action=9 hook=9999999999 len=9999999999 inif=ZZZZ outif=ZZZZ
+> > > mark=0xffffffff smac=FF:FF:FF:FF:FF:FF dmac=FF:FF:FF:FF:FF:FF
+> > > macproto=0xffff trunc=9 saddr=FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF
+> > > daddr=FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF ipid=-1 proto=255 frag=-1
+> > > trunc=9 sport=99999 dport=99999 icmptype=999 icmpcode=999
+> >
+> > At this point I think it would be good to hear what requirements exist
+> > for per-packet auditing.  Steve, are there any current Common Criteria
+> > (or other) requirements that impact per-packet auditing?
+> 
+> I don't think you want to flood your logs. That is not helpful. It asks for the 
+> ability to detect information flow. Typically you want to know source and 
+> destination, protocol, where on the system its coming from or going to, pid if 
+> possible and the subject information if available. I know that you can be 
+> acting as a proxy and forwarding outside packets into a network. That is not 
+> the typical case CC is concerned about. Its more about what the user is doing.
 
-If NFT_EXTHDR_F_PRESENT is set, exthdr will not copy any header field
-data into *dest, but instead set it to 1 if the header is found and 0
-otherwise.
+So while I'm not advocating this is what should be done and I'm trying
+to establish bounds to the scope of this feature, but would it be
+reasonable to simply not log packets that were transiting this machine
+without a local endpoint?
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-@Phil: I have enhanced your patch shrink flags to u8, also check for
-       unexisting flags. As well as the sparse warning. Please review
-       if this looks good to you. Thanks.
+> -Steve
 
- include/uapi/linux/netfilter/nf_tables.h |  6 ++++++
- net/netfilter/nft_exthdr.c               | 20 ++++++++++++++++++--
- 2 files changed, 24 insertions(+), 2 deletions(-)
+- RGB
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 7b730cab99bd..53aac8b8ed6b 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -704,6 +704,10 @@ enum nft_payload_attributes {
- };
- #define NFTA_PAYLOAD_MAX	(__NFTA_PAYLOAD_MAX - 1)
- 
-+enum nft_exthdr_flags {
-+	NFT_EXTHDR_F_PRESENT = (1 << 0),
-+};
-+
- /**
-  * enum nft_exthdr_attributes - nf_tables IPv6 extension header expression netlink attributes
-  *
-@@ -711,6 +715,7 @@ enum nft_payload_attributes {
-  * @NFTA_EXTHDR_TYPE: extension header type (NLA_U8)
-  * @NFTA_EXTHDR_OFFSET: extension header offset (NLA_U32)
-  * @NFTA_EXTHDR_LEN: extension header length (NLA_U32)
-+ * @NFTA_EXTHDR_FLAGS: extension header flags (NLA_U32)
-  */
- enum nft_exthdr_attributes {
- 	NFTA_EXTHDR_UNSPEC,
-@@ -718,6 +723,7 @@ enum nft_exthdr_attributes {
- 	NFTA_EXTHDR_TYPE,
- 	NFTA_EXTHDR_OFFSET,
- 	NFTA_EXTHDR_LEN,
-+	NFTA_EXTHDR_FLAGS,
- 	__NFTA_EXTHDR_MAX
- };
- #define NFTA_EXTHDR_MAX		(__NFTA_EXTHDR_MAX - 1)
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index 47beb3abcc9d..d43f750ab61c 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -23,6 +23,7 @@ struct nft_exthdr {
- 	u8			offset;
- 	u8			len;
- 	enum nft_registers	dreg:8;
-+	u8			flags;
- };
- 
- static void nft_exthdr_eval(const struct nft_expr *expr,
-@@ -35,8 +36,12 @@ static void nft_exthdr_eval(const struct nft_expr *expr,
- 	int err;
- 
- 	err = ipv6_find_hdr(pkt->skb, &offset, priv->type, NULL, NULL);
--	if (err < 0)
-+	if (priv->flags & NFT_EXTHDR_F_PRESENT) {
-+		*dest = (err >= 0);
-+		return;
-+	} else if (err < 0) {
- 		goto err;
-+	}
- 	offset += priv->offset;
- 
- 	dest[priv->len / NFT_REG32_SIZE] = 0;
-@@ -52,6 +57,7 @@ static const struct nla_policy nft_exthdr_policy[NFTA_EXTHDR_MAX + 1] = {
- 	[NFTA_EXTHDR_TYPE]		= { .type = NLA_U8 },
- 	[NFTA_EXTHDR_OFFSET]		= { .type = NLA_U32 },
- 	[NFTA_EXTHDR_LEN]		= { .type = NLA_U32 },
-+	[NFTA_EXTHDR_FLAGS]		= { .type = NLA_U32 },
- };
- 
- static int nft_exthdr_init(const struct nft_ctx *ctx,
-@@ -59,7 +65,7 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
- 			   const struct nlattr * const tb[])
- {
- 	struct nft_exthdr *priv = nft_expr_priv(expr);
--	u32 offset, len;
-+	u32 offset, len, flags;
- 	int err;
- 
- 	if (tb[NFTA_EXTHDR_DREG] == NULL ||
-@@ -76,10 +82,18 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		return err;
- 
-+	err = nft_parse_u32_check(tb[NFTA_EXTHDR_FLAGS], U8_MAX, &flags);
-+	if (err < 0)
-+		return err;
-+
-+	if (flags & ~NFT_EXTHDR_F_PRESENT)
-+		return -EINVAL;
-+
- 	priv->type   = nla_get_u8(tb[NFTA_EXTHDR_TYPE]);
- 	priv->offset = offset;
- 	priv->len    = len;
- 	priv->dreg   = nft_parse_register(tb[NFTA_EXTHDR_DREG]);
-+	priv->flags  = flags;
- 
- 	return nft_validate_register_store(ctx, priv->dreg, NULL,
- 					   NFT_DATA_VALUE, priv->len);
-@@ -97,6 +111,8 @@ static int nft_exthdr_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 		goto nla_put_failure;
- 	if (nla_put_be32(skb, NFTA_EXTHDR_LEN, htonl(priv->len)))
- 		goto nla_put_failure;
-+	if (nla_put_be32(skb, NFTA_EXTHDR_FLAGS, htonl(priv->flags)))
-+		goto nla_put_failure;
- 	return 0;
- 
- nla_put_failure:
--- 
-2.1.4
-
+--
+Richard Guy Briggs <rgb@redhat.com>
+Kernel Security Engineering, Base Operating Systems, Red Hat
+Remote, Ottawa, Canada
+Voice: +1.647.777.2635, Internal: (81) 32635
