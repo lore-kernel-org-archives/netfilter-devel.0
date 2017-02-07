@@ -1,734 +1,233 @@
 From: Manuel Messner <mm@skelett.io>
-Subject: [PATCH nftables 7/7] tests: py: Add basic tests for ip, ip6 and inet
-Date: Tue,  7 Feb 2017 03:14:15 +0100
-Message-ID: <20170207021415.22460-8-mm@skelett.io>
-References: <20170207021415.22460-1-mm@skelett.io>
+Subject: [PATCH nf-next 1/1] src: add TCP option matching requirements
+Date: Tue,  7 Feb 2017 03:15:18 +0100
+Message-ID: <20170207021518.22622-2-mm@skelett.io>
+References: <20170207021518.22622-1-mm@skelett.io>
 Cc: fw@strlen.de, mm@skelett.io
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from relay.ox.registrar-servers.com ([199.188.203.174]:32787 "EHLO
+Received: from relay.ox.registrar-servers.com ([199.188.203.174]:51641 "EHLO
         relay.ox.registrar-servers.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751748AbdBGCTx (ORCPT
+        by vger.kernel.org with ESMTP id S1751728AbdBGCTx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 6 Feb 2017 21:19:53 -0500
 Received: from MTA-06-3.privateemail.com (mta-06-3.privateemail.com [198.54.127.59])
         (using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by relay.ox.registrar-servers.com (Postfix) with ESMTPS id 36818B02B1
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Feb 2017 21:14:37 -0500 (EST)
-In-Reply-To: <20170207021415.22460-1-mm@skelett.io>
+        by relay.ox.registrar-servers.com (Postfix) with ESMTPS id 69A24B02BB
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Feb 2017 21:15:29 -0500 (EST)
+In-Reply-To: <20170207021518.22622-1-mm@skelett.io>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
+
+This patch is a requirement of the TCP option patch.
 
 Signed-off-by: Manuel Messner <mm@skelett.io>
 Reviewed-by: Florian Westphal <fw@strlen.de>
 ---
- tests/py/inet/tcpopt.t              |  38 ++++++++
- tests/py/inet/tcpopt.t.payload.inet | 181 ++++++++++++++++++++++++++++++++++++
- tests/py/ip/tcpopt.t                |  38 ++++++++
- tests/py/ip/tcpopt.t.payload        | 181 ++++++++++++++++++++++++++++++++++++
- tests/py/ip6/tcpopt.t               |  37 ++++++++
- tests/py/ip6/tcpopt.t.payload       | 181 ++++++++++++++++++++++++++++++++++++
- 6 files changed, 656 insertions(+)
- create mode 100644 tests/py/inet/tcpopt.t
- create mode 100644 tests/py/inet/tcpopt.t.payload.inet
- create mode 100644 tests/py/ip/tcpopt.t
- create mode 100644 tests/py/ip/tcpopt.t.payload
- create mode 100644 tests/py/ip6/tcpopt.t
- create mode 100644 tests/py/ip6/tcpopt.t.payload
+ include/libnftnl/expr.h             |  1 +
+ include/linux/netfilter/nf_tables.h | 17 ++++++++++++-
+ src/expr/exthdr.c                   | 49 ++++++++++++++++++++++++++++++++++---
+ 3 files changed, 62 insertions(+), 5 deletions(-)
 
-diff --git a/tests/py/inet/tcpopt.t b/tests/py/inet/tcpopt.t
-new file mode 100644
-index 0000000..39204fd
---- /dev/null
-+++ b/tests/py/inet/tcpopt.t
-@@ -0,0 +1,38 @@
-+:input;type filter hook input priority 0
-+
-+*inet;test-inet;input
-+
-+tcp option eol kind 1;ok
-+tcp option noop kind 1;ok
-+tcp option maxseg kind 1;ok
-+tcp option maxseg length 1;ok
-+tcp option maxseg size 1;ok
-+tcp option window kind 1;ok
-+tcp option window length 1;ok
-+tcp option window count 1;ok
-+tcp option sack_permitted kind 1;ok
-+tcp option sack_permitted length 1;ok
-+tcp option sack kind 1;ok
-+tcp option sack length 1;ok
-+tcp option sack left 1;ok
-+tcp option sack 0 left 1;ok;tcp option sack left 1
-+tcp option sack 1 left 1;ok
-+tcp option sack 2 left 1;ok
-+tcp option sack 3 left 1;ok
-+tcp option sack right 1;ok
-+tcp option sack 0 right 1;ok;tcp option sack right 1
-+tcp option sack 1 right 1;ok
-+tcp option sack 2 right 1;ok
-+tcp option sack 3 right 1;ok
-+tcp option timestamp kind 1;ok
-+tcp option timestamp length 1;ok
-+tcp option timestamp tsval 1;ok
-+tcp option timestamp tsecr 1;ok
-+
-+tcp option foobar;fail
-+tcp option foo bar;fail
-+tcp option eol left;fail
-+tcp option eol left 1;fail
-+tcp option eol left 1;fail
-+tcp option sack window;fail
-+tcp option sack window 1;fail
-diff --git a/tests/py/inet/tcpopt.t.payload.inet b/tests/py/inet/tcpopt.t.payload.inet
-new file mode 100644
-index 0000000..1343ae5
---- /dev/null
-+++ b/tests/py/inet/tcpopt.t.payload.inet
-@@ -0,0 +1,181 @@
-+# tcp option eol kind 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 0 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option noop kind 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 1 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option maxseg kind 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 2 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option maxseg length 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 2 + 1 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option maxseg size 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 2b @ 2 + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x00000100 ]
-+
-+# tcp option window kind 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 3 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option window length 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 3 + 1 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option window count 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 3 + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option sack_permitted kind 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 4 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option sack_permitted length 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 4 + 1 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option sack kind 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 5 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option sack length 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 5 + 1 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option sack left 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 0 left 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 1 left 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 10 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 2 left 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 18 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 3 left 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 26 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack right 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 0 right 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 1 right 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 14 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 2 right 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 22 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 3 right 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 30 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option timestamp kind 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 8 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option timestamp length 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 8 + 1 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option timestamp tsval 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 8 + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option timestamp tsecr 1
-+inet test-inet input
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 8 + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-diff --git a/tests/py/ip/tcpopt.t b/tests/py/ip/tcpopt.t
-new file mode 100644
-index 0000000..fccc6dd
---- /dev/null
-+++ b/tests/py/ip/tcpopt.t
-@@ -0,0 +1,38 @@
-+:input;type filter hook input priority 0
-+
-+*ip;test-ip;input
-+
-+tcp option eol kind 1;ok
-+tcp option noop kind 1;ok
-+tcp option maxseg kind 1;ok
-+tcp option maxseg length 1;ok
-+tcp option maxseg size 1;ok
-+tcp option window kind 1;ok
-+tcp option window length 1;ok
-+tcp option window count 1;ok
-+tcp option sack_permitted kind 1;ok
-+tcp option sack_permitted length 1;ok
-+tcp option sack kind 1;ok
-+tcp option sack length 1;ok
-+tcp option sack left 1;ok
-+tcp option sack 0 left 1;ok;tcp option sack left 1
-+tcp option sack 1 left 1;ok
-+tcp option sack 2 left 1;ok
-+tcp option sack 3 left 1;ok
-+tcp option sack right 1;ok
-+tcp option sack 0 right 1;ok;tcp option sack right 1
-+tcp option sack 1 right 1;ok
-+tcp option sack 2 right 1;ok
-+tcp option sack 3 right 1;ok
-+tcp option timestamp kind 1;ok
-+tcp option timestamp length 1;ok
-+tcp option timestamp tsval 1;ok
-+tcp option timestamp tsecr 1;ok
-+
-+tcp option foobar;fail
-+tcp option foo bar;fail
-+tcp option eol left;fail
-+tcp option eol left 1;fail
-+tcp option eol left 1;fail
-+tcp option sack window;fail
-+tcp option sack window 1;fail
-diff --git a/tests/py/ip/tcpopt.t.payload b/tests/py/ip/tcpopt.t.payload
-new file mode 100644
-index 0000000..47e4dee
---- /dev/null
-+++ b/tests/py/ip/tcpopt.t.payload
-@@ -0,0 +1,181 @@
-+# tcp option eol kind 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 0 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option noop kind 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 1 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option maxseg kind 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 2 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option maxseg length 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 2 + 1 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option maxseg size 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 2b @ 2 + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x00000100 ]
-+
-+# tcp option window kind 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 3 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option window length 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 3 + 1 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option window count 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 3 + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option sack_permitted kind 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 4 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option sack_permitted length 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 4 + 1 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option sack kind 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 5 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option sack length 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 5 + 1 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option sack left 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 0 left 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 1 left 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 10 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 2 left 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 18 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 3 left 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 26 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack right 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 0 right 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 1 right 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 14 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 2 right 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 22 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 3 right 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 30 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option timestamp kind 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 8 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option timestamp length 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 8 + 1 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option timestamp tsval 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 8 + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option timestamp tsecr 1
-+ip test-ip input
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 8 + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-diff --git a/tests/py/ip6/tcpopt.t b/tests/py/ip6/tcpopt.t
-new file mode 100644
-index 0000000..d6f2dba
---- /dev/null
-+++ b/tests/py/ip6/tcpopt.t
-@@ -0,0 +1,37 @@
-+:input;type filter hook input priority 0
-+*ip6;test-ip6;input
-+
-+tcp option eol kind 1;ok
-+tcp option noop kind 1;ok
-+tcp option maxseg kind 1;ok
-+tcp option maxseg length 1;ok
-+tcp option maxseg size 1;ok
-+tcp option window kind 1;ok
-+tcp option window length 1;ok
-+tcp option window count 1;ok
-+tcp option sack_permitted kind 1;ok
-+tcp option sack_permitted length 1;ok
-+tcp option sack kind 1;ok
-+tcp option sack length 1;ok
-+tcp option sack left 1;ok
-+tcp option sack 0 left 1;ok;tcp option sack left 1
-+tcp option sack 1 left 1;ok
-+tcp option sack 2 left 1;ok
-+tcp option sack 3 left 1;ok
-+tcp option sack right 1;ok
-+tcp option sack 0 right 1;ok;tcp option sack right 1
-+tcp option sack 1 right 1;ok
-+tcp option sack 2 right 1;ok
-+tcp option sack 3 right 1;ok
-+tcp option timestamp kind 1;ok
-+tcp option timestamp length 1;ok
-+tcp option timestamp tsval 1;ok
-+tcp option timestamp tsecr 1;ok
-+
-+tcp option foobar;fail
-+tcp option foo bar;fail
-+tcp option eol left;fail
-+tcp option eol left 1;fail
-+tcp option eol left 1;fail
-+tcp option sack window;fail
-+tcp option sack window 1;fail
-diff --git a/tests/py/ip6/tcpopt.t.payload b/tests/py/ip6/tcpopt.t.payload
-new file mode 100644
-index 0000000..98389b0
---- /dev/null
-+++ b/tests/py/ip6/tcpopt.t.payload
-@@ -0,0 +1,181 @@
-+# tcp option eol kind 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 0 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option noop kind 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 1 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option maxseg kind 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 2 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option maxseg length 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 2 + 1 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option maxseg size 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 2b @ 2 + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x00000100 ]
-+
-+# tcp option window kind 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 3 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option window length 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 3 + 1 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option window count 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 3 + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option sack_permitted kind 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 4 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option sack_permitted length 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 4 + 1 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option sack kind 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 5 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option sack length 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 5 + 1 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option sack left 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 0 left 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 1 left 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 10 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 2 left 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 18 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 3 left 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 26 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack right 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 0 right 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 1 right 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 14 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 2 right 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 22 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option sack 3 right 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 5 + 30 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option timestamp kind 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 8 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option timestamp length 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 1b @ 8 + 1 => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+
-+# tcp option timestamp tsval 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 8 + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# tcp option timestamp tsecr 1
-+ip6 test-ip input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ exthdr load tcpopt 4b @ 8 + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
+diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
+index 38a4b83..f5e9cc1 100644
+--- a/include/libnftnl/expr.h
++++ b/include/libnftnl/expr.h
+@@ -156,6 +156,7 @@ enum {
+ 	NFTNL_EXPR_EXTHDR_TYPE,
+ 	NFTNL_EXPR_EXTHDR_OFFSET,
+ 	NFTNL_EXPR_EXTHDR_LEN,
++	NFTNL_EXPR_EXTHDR_OP,
+ };
+ 
+ enum {
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index b00a05d..6c0c9ef 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -705,12 +705,13 @@ enum nft_payload_attributes {
+ #define NFTA_PAYLOAD_MAX	(__NFTA_PAYLOAD_MAX - 1)
+ 
+ /**
+- * enum nft_exthdr_attributes - nf_tables IPv6 extension header expression netlink attributes
++ * enum nft_exthdr_attributes - nf_tables extension header expression netlink attributes
+  *
+  * @NFTA_EXTHDR_DREG: destination register (NLA_U32: nft_registers)
+  * @NFTA_EXTHDR_TYPE: extension header type (NLA_U8)
+  * @NFTA_EXTHDR_OFFSET: extension header offset (NLA_U32)
+  * @NFTA_EXTHDR_LEN: extension header length (NLA_U32)
++ * @NFTA_EXTHDR_OP: option match type (NLA_U8)
+  */
+ enum nft_exthdr_attributes {
+ 	NFTA_EXTHDR_UNSPEC,
+@@ -718,11 +719,25 @@ enum nft_exthdr_attributes {
+ 	NFTA_EXTHDR_TYPE,
+ 	NFTA_EXTHDR_OFFSET,
+ 	NFTA_EXTHDR_LEN,
++	NFTA_EXTHDR_OP,
+ 	__NFTA_EXTHDR_MAX
+ };
+ #define NFTA_EXTHDR_MAX		(__NFTA_EXTHDR_MAX - 1)
+ 
+ /**
++ * enum nft_exthdr_op - nf_tables match options
++ *
++ * @NFT_EXTHDR_OP_IPV6: match against ipv6 extension headers
++ * @NFT_EXTHDR_OP_TCP: match against tcp options
++ */
++enum nft_exthdr_op {
++	NFT_EXTHDR_OP_IPV6,
++	NFT_EXTHDR_OP_TCPOPT,
++	__NFT_EXTHDR_OP_MAX
++};
++#define NFT_EXTHDR_OP_MAX	(__NFT_EXTHDR_OP_MAX - 1)
++
++/**
+  * enum nft_meta_keys - nf_tables meta expression keys
+  *
+  * @NFT_META_LEN: packet length (skb->len)
+diff --git a/src/expr/exthdr.c b/src/expr/exthdr.c
+index b164e3f..a64c1bb 100644
+--- a/src/expr/exthdr.c
++++ b/src/expr/exthdr.c
+@@ -33,6 +33,7 @@ struct nftnl_expr_exthdr {
+ 	uint32_t		offset;
+ 	uint32_t		len;
+ 	uint8_t			type;
++	uint32_t		op;
+ };
+ 
+ static int
+@@ -54,6 +55,9 @@ nftnl_expr_exthdr_set(struct nftnl_expr *e, uint16_t type,
+ 	case NFTNL_EXPR_EXTHDR_LEN:
+ 		exthdr->len = *((uint32_t *)data);
+ 		break;
++	case NFTNL_EXPR_EXTHDR_OP:
++		exthdr->op = *((uint32_t *)data);
++		break;
+ 	default:
+ 		return -1;
+ 	}
+@@ -79,6 +83,9 @@ nftnl_expr_exthdr_get(const struct nftnl_expr *e, uint16_t type,
+ 	case NFTNL_EXPR_EXTHDR_LEN:
+ 		*data_len = sizeof(exthdr->len);
+ 		return &exthdr->len;
++	case NFTNL_EXPR_EXTHDR_OP:
++		*data_len = sizeof(exthdr->op);
++		return &exthdr->op;
+ 	}
+ 	return NULL;
+ }
+@@ -99,6 +106,7 @@ static int nftnl_expr_exthdr_cb(const struct nlattr *attr, void *data)
+ 	case NFTA_EXTHDR_DREG:
+ 	case NFTA_EXTHDR_OFFSET:
+ 	case NFTA_EXTHDR_LEN:
++	case NFTA_EXTHDR_OP:
+ 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
+ 			abi_breakage();
+ 		break;
+@@ -121,6 +129,8 @@ nftnl_expr_exthdr_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
+ 		mnl_attr_put_u32(nlh, NFTA_EXTHDR_OFFSET, htonl(exthdr->offset));
+ 	if (e->flags & (1 << NFTNL_EXPR_EXTHDR_LEN))
+ 		mnl_attr_put_u32(nlh, NFTA_EXTHDR_LEN, htonl(exthdr->len));
++	if (e->flags & (1 << NFTNL_EXPR_EXTHDR_OP))
++		mnl_attr_put_u32(nlh, NFTA_EXTHDR_OP, htonl(exthdr->op));
+ }
+ 
+ static int
+@@ -148,10 +158,25 @@ nftnl_expr_exthdr_parse(struct nftnl_expr *e, struct nlattr *attr)
+ 		exthdr->len = ntohl(mnl_attr_get_u32(tb[NFTA_EXTHDR_LEN]));
+ 		e->flags |= (1 << NFTNL_EXPR_EXTHDR_LEN);
+ 	}
++	if (tb[NFTA_EXTHDR_OP]) {
++		exthdr->op = ntohl(mnl_attr_get_u32(tb[NFTA_EXTHDR_OP]));
++		e->flags |= (1 << NFTNL_EXPR_EXTHDR_OP);
++	}
+ 
+ 	return 0;
+ }
+ 
++static const char *op2str(uint8_t op)
++{
++	switch (op) {
++	case NFT_EXTHDR_OP_TCPOPT:
++		return " tcpopt";
++	case NFT_EXTHDR_OP_IPV6:
++	default:
++		return "";
++	}
++}
++
+ static const char *type2str(uint32_t type)
+ {
+ 	switch (type) {
+@@ -170,6 +195,15 @@ static const char *type2str(uint32_t type)
+ 	}
+ }
+ 
++static inline int str2exthdr_op(const char* str)
++{
++	if (!strcmp(str, "tcpopt"))
++		return NFT_EXTHDR_OP_TCPOPT;
++
++	/* if str == "ipv6" or anything else */
++	return NFT_EXTHDR_OP_IPV6;
++}
++
+ static inline int str2exthdr_type(const char *str)
+ {
+ 	if (strcmp(str, "hopopts") == 0)
+@@ -193,6 +227,7 @@ nftnl_expr_exthdr_json_parse(struct nftnl_expr *e, json_t *root,
+ #ifdef JSON_PARSING
+ 	const char *exthdr_type;
+ 	uint32_t uval32;
++	uint8_t uval8;
+ 	int type;
+ 
+ 	if (nftnl_jansson_parse_reg(root, "dreg", NFTNL_TYPE_U32, &uval32,
+@@ -214,6 +249,9 @@ nftnl_expr_exthdr_json_parse(struct nftnl_expr *e, json_t *root,
+ 	if (nftnl_jansson_parse_val(root, "len", NFTNL_TYPE_U32, &uval32, err) == 0)
+ 		nftnl_expr_set_u32(e, NFTNL_EXPR_EXTHDR_LEN, uval32);
+ 
++	if (nftnl_jansson_parse_val(root, "op", NFTNL_TYPE_U32, &uval32, err) == 0)
++		nftnl_expr_set_u32(e, NFTNL_EXPR_EXTHDR_OP, uval32);
++
+ 	return 0;
+ #else
+ 	errno = EOPNOTSUPP;
+@@ -235,6 +273,8 @@ static int nftnl_expr_exthdr_export(char *buf, size_t len,
+ 		nftnl_buf_u32(&b, type, exthdr->offset, OFFSET);
+ 	if (e->flags & (1 << NFTNL_EXPR_EXTHDR_LEN))
+ 		nftnl_buf_u32(&b, type, exthdr->len, LEN);
++	if (e->flags & (1 << NFTNL_EXPR_EXTHDR_OP))
++		nftnl_buf_u32(&b, type, exthdr->op, OP);
+ 
+ 	return nftnl_buf_done(&b);
+ }
+@@ -243,10 +283,9 @@ static int nftnl_expr_exthdr_snprintf_default(char *buf, size_t len,
+ 					      const struct nftnl_expr *e)
+ {
+ 	struct nftnl_expr_exthdr *exthdr = nftnl_expr_data(e);
+-
+-	return snprintf(buf, len, "load %ub @ %u + %u => reg %u ",
+-			exthdr->len, exthdr->type, exthdr->offset,
+-			exthdr->dreg);
++	return snprintf(buf, len, "load%s %ub @ %u + %u => reg %u ",
++			op2str(exthdr->op), exthdr->len, exthdr->type,
++			exthdr->offset, exthdr->dreg);
+ }
+ 
+ static int
+@@ -280,6 +319,8 @@ static bool nftnl_expr_exthdr_cmp(const struct nftnl_expr *e1,
+ 		eq &= (h1->len == h2->len);
+ 	if (e1->flags & (1 << NFTNL_EXPR_EXTHDR_TYPE))
+ 		eq &= (h1->type == h2->type);
++	if (e1->flags & (1 << NFTNL_EXPR_EXTHDR_OP))
++		eq &= (h1->op == h2->op);
+ 
+ 	return eq;
+ }
 -- 
 2.11.1
 
