@@ -1,26 +1,34 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] net: fix description of skb_find_text() according to
- removed functionality
-Date: Wed, 8 Feb 2017 09:44:55 +0100
-Message-ID: <20170208084455.GA1878@salvia>
-References: <20170207.105320.45609559819874123.davem@davemloft.net>
- <1486521937-10638-1-git-send-email-igor.pylypiv@gmail.com>
+Subject: Re: [PATCH nf-next 1/1] net: netfilter: nft_exthdr: add TCP option
+ matching
+Date: Wed, 8 Feb 2017 10:30:35 +0100
+Message-ID: <20170208093035.GA32533@salvia>
+References: <20170207021453.22541-1-mm@skelett.io>
+ <20170207021453.22541-2-mm@skelett.io>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Igor Pylypiv <igor.pylypiv@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
+To: Manuel Messner <mm@skelett.io>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:59768 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754113AbdBHJap (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Feb 2017 04:30:45 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 4C1281373A5
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Feb 2017 10:30:39 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3EF14BAAAC
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Feb 2017 10:30:39 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 26496BAAB2
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Feb 2017 10:30:37 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1486521937-10638-1-git-send-email-igor.pylypiv@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20170207021453.22541-2-mm@skelett.io>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Feb 07, 2017 at 06:45:37PM -0800, Igor Pylypiv wrote:
-> Textsearch state parameter was moved to local scope of the function.
-> This eliminates usage of textsearch_next() to find subsequent occurrences.
-> 
-> Fixes: 59a2440fd3cf ("net: Remove state argument from skb_find_text()")
-> Signed-off-by: Igor Pylypiv <igor.pylypiv@gmail.com>
+On Tue, Feb 07, 2017 at 03:14:53AM +0100, Manuel Messner wrote:
+> This patch implements the kernel side of the TCP option patch.
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Neat work. Applied, thanks Manuel!
