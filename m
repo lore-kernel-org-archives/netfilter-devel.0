@@ -1,38 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 1/9] netfilter: nft_ct: add zone id get support
-Date: Wed, 8 Feb 2017 10:28:34 +0100
-Message-ID: <20170208092834.GA28205@salvia>
-References: <20170203123556.17357-1-fw@strlen.de>
- <20170203123556.17357-2-fw@strlen.de>
+Subject: Re: [PATCH nftables 0/7] TCP option matching
+Date: Wed, 8 Feb 2017 10:32:35 +0100
+Message-ID: <20170208093235.GA4433@salvia>
+References: <20170207021415.22460-1-mm@skelett.io>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
+To: Manuel Messner <mm@skelett.io>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58584 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:32940 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753957AbdBHJ3h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Feb 2017 04:29:37 -0500
+        id S932631AbdBHJcv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Feb 2017 04:32:51 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 8E2261373A5
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Feb 2017 10:28:52 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 8C6CB1373A8
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Feb 2017 10:32:49 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 81CDCBAAB7
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Feb 2017 10:28:52 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 74A8BBAAA7
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Feb 2017 10:32:49 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5CCE3BAAAE
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Feb 2017 10:28:50 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4AE76BAAAC
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Feb 2017 10:32:47 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20170203123556.17357-2-fw@strlen.de>
+In-Reply-To: <20170207021415.22460-1-mm@skelett.io>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Feb 03, 2017 at 01:35:48PM +0100, Florian Westphal wrote:
-> Just like with counters the direction attribute is optional.
-> We set priv->dir to MAX unconditionally to avoid duplicating the assignment
-> for all keys with optional direction.
+On Tue, Feb 07, 2017 at 03:14:08AM +0100, Manuel Messner wrote:
+> This patch set is part of the TCP option matching implementation for nftables.
 > 
-> For keys where direction is mandatory, existing code already returns
-> an error.
+> These patch sets enable nft to match against the following TCP options:
+> * End of Option List
+> * No-Operation
+> * Maximum Segment Size
+> * Window Scale
+> * SACK
+> * SACK Permitted
+> * Timestamps
 
-Applied, thanks Florian.
+Florian, please feel free to push out this once the kernel side hits
+David's tree.
+
+Thanks!
