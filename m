@@ -1,51 +1,46 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: net/ipv4: warning in nf_nat_ipv4_fn
-Date: Wed, 8 Feb 2017 23:10:06 +0100
-Message-ID: <20170208221006.GA11820@breakpoint.cc>
-References: <CAAeHK+zHXNetfauvokxZCrVxNc23oFEPtF2CTzvOkO-2DxQ93A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        James Morris <jmorris@namei.org>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Kostya Serebryany <kcc@google.com>,
-        Eric Dumazet <edumazet@google.com>,
-        syzkaller <syzkaller@googlegroups.com>
-To: Andrey Konovalov <andreyknvl@google.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAAeHK+zHXNetfauvokxZCrVxNc23oFEPtF2CTzvOkO-2DxQ93A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: [PATCH nf] netfilter: nat: remove incorrect debug assert
+Date: Wed,  8 Feb 2017 23:14:29 +0100
+Message-ID: <20170208221429.3555-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:36642 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751449AbdBHWOL (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Feb 2017 17:14:11 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Andrey Konovalov <andreyknvl@google.com> wrote:
-> Hi,
-> 
-> I've got the following error report while fuzzing the kernel with syzkaller.
-> 
-> On commit 926af6273fc683cd98cd0ce7bf0d04a02eed6742.
-> 
-> A reproducer and .config are attached.
-> 
-> WARNING: CPU: 2 PID: 26582 at
-> net/ipv4/netfilter/nf_nat_l3proto_ipv4.c:261
-> nf_nat_ipv4_fn+0x7f2/0xa50
-> net/ipv4/netfilter/nf_nat_l3proto_ipv4.c:261
-> Kernel panic - not syncing: panic_on_warn set ...
+The comment is incorrect, this function does see fragments when
+IP_NODEFRAG is used.  Remove the wrong assertion.
 
-Thats this assert:
-/* We never see fragments: conntrack defrags on pre-routing
- * and local-out, and nf_nat_out protects post-routing.
- */
-NF_CT_ASSERT(!ip_is_fragment(ip_hdr(skb)));
+As conntrack doesn't track fragments skb->nfct will be null
+and no nat is performed.
 
+Reported-by: Andrey Konovalov <andreyknvl@google.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/ipv4/netfilter/nf_nat_l3proto_ipv4.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
-... and its wrong. I will send a patch to remove it.
+diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+index f8aad03d674b..6f5e8d01b876 100644
+--- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+@@ -255,11 +255,6 @@ nf_nat_ipv4_fn(void *priv, struct sk_buff *skb,
+ 	/* maniptype == SRC for postrouting. */
+ 	enum nf_nat_manip_type maniptype = HOOK2MANIP(state->hook);
+ 
+-	/* We never see fragments: conntrack defrags on pre-routing
+-	 * and local-out, and nf_nat_out protects post-routing.
+-	 */
+-	NF_CT_ASSERT(!ip_is_fragment(ip_hdr(skb)));
+-
+ 	ct = nf_ct_get(skb, &ctinfo);
+ 	/* Can't track?  It's not due to stress, or conntrack would
+ 	 * have dropped it.  Hence it's the user's responsibilty to
+-- 
+2.10.2
+
