@@ -1,101 +1,183 @@
-From: Simon Hanisch <hanisch@wh2.tu-dresden.de>
-Subject: nftables bug: Only the first two elements of a map are used for NAT
-Date: Wed, 8 Feb 2017 19:11:17 +0100
-Message-ID: <7b9f63d7-b853-7005-78b1-fb3afc0d0c5a@wh2.tu-dresden.de>
+From: Elise Lennion <elise.lennion@gmail.com>
+Subject: [PATCH nft] doc: Document stateful objects
+Date: Wed, 8 Feb 2017 17:30:55 -0200
+Message-ID: <20170208193055.GA16329@lennorien.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="sUGgi22jg7BdR4l5BmePSeUl4ShPC9C51"
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from atlantis.wh2.tu-dresden.de ([141.30.228.39]:42460 "EHLO
-        atlantis.wh2.tu-dresden.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751094AbdBHShk (ORCPT
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:34885 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751055AbdBHT6f (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Feb 2017 13:37:40 -0500
-Received: from [192.168.178.35] (unknown [85.182.223.249])
-        by atlantis.wh2.tu-dresden.de (Postfix) with ESMTPSA id 0997A83D106
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Feb 2017 18:11:25 +0000 (UTC)
+        Wed, 8 Feb 2017 14:58:35 -0500
+Received: by mail-qk0-f195.google.com with SMTP id u25so19291941qki.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 08 Feb 2017 11:58:34 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---sUGgi22jg7BdR4l5BmePSeUl4ShPC9C51
-Content-Type: multipart/mixed; boundary="eCe3tNAaJWI4JqWKfx0jSoBIboga8FfrJ";
- protected-headers="v1"
-From: Simon Hanisch <hanisch@wh2.tu-dresden.de>
-To: netfilter-devel@vger.kernel.org
-Message-ID: <7b9f63d7-b853-7005-78b1-fb3afc0d0c5a@wh2.tu-dresden.de>
-Subject: nftables bug: Only the first two elements of a map are used for NAT
+This patch adds documentation for stateful objects and updates
+tables description to mention them.
 
---eCe3tNAaJWI4JqWKfx0jSoBIboga8FfrJ
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
+---
+ doc/nft.xml | 134 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 133 insertions(+), 1 deletion(-)
 
-Hi,
+diff --git a/doc/nft.xml b/doc/nft.xml
+index 78e112f..9c2fe78 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -453,7 +453,7 @@ filter input iif $int_ifs accept
+ 		</para>
+ 
+ 		<para>
+-			Tables are containers for chains and sets. They are identified by their address family
++			Tables are containers for chains, sets and stateful objects. They are identified by their address family
+ 			and their name. The address family must be one of
+ 
+ 			<simplelist type="inline">
+@@ -668,6 +668,138 @@ filter input iif $int_ifs accept
+ 	</refsect1>
+ 
+ 	<refsect1>
++		<title>Stateful objects</title>
++		<para>
++			<cmdsynopsis>
++				<group choice="req">
++					<arg>add</arg>
++					<arg>delete</arg>
++					<arg>list</arg>
++					<arg>reset</arg>
++				</group>
++				<command> type</command>
++				<arg choice="opt"><replaceable>family</replaceable></arg>
++				<arg choice="req"><replaceable>table</replaceable></arg>
++				<arg choice="req"><replaceable>object</replaceable></arg>
++			</cmdsynopsis>
++		</para>
++		<para>
++			Stateful objects are attached to tables and are identified by an unique name. They group stateful information from rules, to reference them in rules the keywords "type name" are used e.g. "counter name".
++		</para>
++
++		<variablelist>
++			<varlistentry>
++				<term><option>add</option></term>
++				<listitem>
++					<para>
++						Add a new stateful object in the specified table.
++					</para>
++				</listitem>
++			</varlistentry>
++			<varlistentry>
++				<term><option>delete</option></term>
++				<listitem>
++					<para>
++						Delete the specified object.
++					</para>
++				</listitem>
++			</varlistentry>
++			<varlistentry>
++				<term><option>list</option></term>
++				<listitem>
++					<para>
++						Display stateful information the object holds.
++					</para>
++				</listitem>
++			</varlistentry>
++			<varlistentry>
++				<term><option>reset</option></term>
++				<listitem>
++					<para>
++						List-and-reset stateful object.
++					</para>
++				</listitem>
++			</varlistentry>
++		</variablelist>
++
++		<refsect2>
++			<title>Counter</title>
++			<para>
++				<cmdsynopsis>
++					<command>counter</command>
++					<arg choice="opt">packets bytes</arg>
++				</cmdsynopsis>
++			</para>
++			<table frame="all">
++				<tgroup cols='3' align='left' colsep='1' rowsep='1'>
++					<colspec colname='c1'/>
++					<colspec colname='c2'/>
++					<colspec colname='c3'/>
++					<thead>
++						<row>
++							<entry>Keyword</entry>
++							<entry>Description</entry>
++							<entry>Type</entry>
++						</row>
++					</thead>
++					<tbody>
++						<row>
++							<entry>packets</entry>
++							<entry>initial count of packets</entry>
++							<entry>unsigned integer (64 bit)</entry>
++						</row>
++						<row>
++							<entry>bytes</entry>
++							<entry>initial count of bytes</entry>
++							<entry>unsigned integer (64 bit)</entry>
++						</row>
++					</tbody>
++				</tgroup>
++			</table>
++		</refsect2>
++
++		<refsect2>
++			<title>Quota</title>
++			<para>
++				<cmdsynopsis>
++					<command>quota</command>
++					<group choice="opt">
++						<arg>over</arg>
++						<arg>until</arg>
++					</group>
++					<arg choice="opt">used</arg>
++				</cmdsynopsis>
++			</para>
++			<table frame="all">
++				<tgroup cols='3' align='left' colsep='1' rowsep='1'>
++					<colspec colname='c1'/>
++					<colspec colname='c2'/>
++					<colspec colname='c3'/>
++					<thead>
++						<row>
++							<entry>Keyword</entry>
++							<entry>Description</entry>
++							<entry>Type</entry>
++						</row>
++					</thead>
++					<tbody>
++						<row>
++							<entry>quota</entry>
++							<entry>quota limit, used as the quota name</entry>
++							<entry>Two arguments, unsigned interger (64 bit) and string: bytes, kbytes, mbytes. "over" and "until" go before these arguments</entry>
++						</row>
++						<row>
++							<entry>used</entry>
++							<entry>initial value of used quota</entry>
++							<entry>Two arguments, unsigned interger (64 bit) and string: bytes, kbytes, mbytes</entry>
++						</row>
++					</tbody>
++				</tgroup>
++			</table>
++		</refsect2>
++	</refsect1>
++
++	<refsect1>
+ 		<title>Expressions</title>
+ 		<para>
+ 			Expressions represent values, either constants like network addresses, port numbers etc. or data
+-- 
+2.7.4
 
-we want to use a map for a large NAT setup, mapping subnets to a single
-IP. Thats why we wanted to use a map, but only the first two elements of
-the map are used for the NAT.
-I added two config examples to reproduce the bug. In the first example
-the NAT works fine for the network 100.64.15.0/24, in the second it does
-not. The only difference is the order of the map elements.
-We have build nft from the current master branch, last commit is
-97a2a5bde2f03e33315eab4b76a9e69770b99351.
-
-
-
-Working for 100.64.15.0/24
-
-#!/usr/sbin/nft
-add chain nat postrouting { type nat hook postrouting priority 100 ;}
-add chain nat prerouting { type nat hook prerouting priority 0 ;}
-add map nat subnettoip { type ipv4_addr: ipv4_addr ; flags interval ; }
-add rule ip nat postrouting snat ip saddr map @subnettoip;
-add element nat subnettoip { 100.64.13.0/24 : 192.168.0.32 }
-add element nat subnettoip { 100.64.15.0/24 : 192.168.0.34 }
-add element nat subnettoip { 100.64.14.0/24 : 192.168.0.33 }
-
-
-Not working for 100.64.15.0/24
-
-#!/usr/sbin/nft
-add chain nat postrouting { type nat hook postrouting priority 100 ;}
-add chain nat prerouting { type nat hook prerouting priority 0 ;}
-add map nat subnettoip { type ipv4_addr: ipv4_addr ; flags interval ; }
-add rule ip nat postrouting snat ip saddr map @subnettoip;
-add element nat subnettoip { 100.64.13.0/24 : 192.168.0.32 }
-add element nat subnettoip { 100.64.14.0/24 : 192.168.0.33 }
-add element nat subnettoip { 100.64.15.0/24 : 192.168.0.34 }
-
-
-Greetings,
-Simon
-
-
---eCe3tNAaJWI4JqWKfx0jSoBIboga8FfrJ--
-
---sUGgi22jg7BdR4l5BmePSeUl4ShPC9C51
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJYm19NAAoJEIRZrhfmcZz5gLkP+wTv4uJB8le7yVJ3PWWz4wO+
-ZgcQzY6Z3gXCT0n2F049ZmNrxcf10Qxcz+OIfs3KtVPA1plJeBk3UGIKj+N39VUT
-JKo9Yr993JGd3jXNvgByMa7taC1KPBuFZPSeuYisJRT49dI+qNcXzKCsszTTLZIh
-nSkZW7RmevBRvjWjWN7gaX6kG1Wwu+m/n0BsKOr9kEZZD2rkHPWtQ5g//90i0ZT8
-J2UEcCawWjI1fQi0D1z0a/p2JZ+H3L2Nuln4YzLkvQ6F4t4hF0HvAtKlVajflcZ2
-KHMijY3Jaw6xs5jLOU26WxqzJSv2Ly3V3ydwDs10Lhod/NfmuJYFUjlwLs4fdQeD
-R1/8rN044B13WvHIoGGcY+Cz3WPDAE3Ij+HrKQItvf4NHK9KQq3cRKDYrD2jRfr2
-jyLs5y6eIoGVqbzqNIoKHdRYkoKMDY7X1x502ytWdfwxgflPUv545XgePmGsJFzf
-9C64MEp4s6ffY7uURB+7yMdh4oQvnwmBDPoKg8arKggyu3XFVsx0g0ay+/XcFpPq
-3hFMUC+yVIXAEGizYCIkezjM8DLYX9QDvwlLbtRSrvIAULccuISNWrzP2fBlXuVq
-ERNYR/eir0rPlrKregKggU6Hh0U1wkkT726uZwCIty/MNGKhts7lQj3faJqao7jI
-jC2VQisEBOB8+OC546l5
-=mD9r
------END PGP SIGNATURE-----
-
---sUGgi22jg7BdR4l5BmePSeUl4ShPC9C51--
