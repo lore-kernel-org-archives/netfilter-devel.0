@@ -1,69 +1,24 @@
-From: Paul Moore <pmoore@redhat.com>
-Subject: Re: [RFC PATCH] audit: normalize NETFILTER_PKT
-Date: Tue, 7 Feb 2017 23:02:39 -0500
-Message-ID: <CAGH-KgsKKCCigNRAyZeL1pxHxkrBD270FZpO3O4rLLZAJaQmyw@mail.gmail.com>
-References: <e3af1eaaf566af375dbc79abd4535e86f2fc8a6d.1485522479.git.rgb@redhat.com>
-	<20170131194419.GE27141@madcap2.tricolour.ca>
-	<CAHC9VhQu7sG_mMWjhYC=k-Kr_YQmrOyMboR3mckuBdSqsFuboQ@mail.gmail.com>
-	<6667634.hKks8rloKk@x2>
-	<CAHC9VhRKJjn7VWFusUo7FZy=SBrD_-P51XYye6baZpRC1bkvOQ@mail.gmail.com>
-	<20170207212231.GG26850@madcap2.tricolour.ca>
+From: Igor Pylypiv <igor.pylypiv@gmail.com>
+Subject: [PATCH] net: fix description of skb_find_text() according to removed functionality
+Date: Tue, 7 Feb 2017 23:13:12 -0800
+Message-ID: <CAPt+ddWT3g6qokWaHmsjYwuTQ-xMTa4qxLm6DLtyD6ngosc4PA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: linux-audit@redhat.com,
-        Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
-        Thomas Graf <tgraf@infradead.org>
-To: Richard Guy Briggs <rgb@redhat.com>
-Return-path: <linux-audit-bounces@redhat.com>
-In-Reply-To: <20170207212231.GG26850@madcap2.tricolour.ca>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/linux-audit>
-List-Post: <mailto:linux-audit@redhat.com>
-List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=subscribe>
-Sender: linux-audit-bounces@redhat.com
-Errors-To: linux-audit-bounces@redhat.com
+Content-Type: text/plain; charset=UTF-8
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Feb 7, 2017 at 4:22 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2017-02-06 14:41, Paul Moore wrote:
->> On Sat, Feb 4, 2017 at 8:25 AM, Steve Grubb <sgrubb@redhat.com> wrote:
->> > On Friday, February 3, 2017 6:44:16 PM EST Paul Moore wrote:
->> >> I'm still trying to understand what purpose this record actually
->> >> serves, and what requirements may exist.  In an earlier thread
->> >> somewhere Steve mentioned some broad requirements around data
->> >> import/export, and I really wonder if the NETFILTER_PKT record
->> >> provides anything useful here when it really isn't connecting the
->> >> traffic to the sender/receiver without a lot of additional logging and
->> >> post-processing smarts.  If you were interested in data import/export
->> >> I think auditing the socket syscalls would provide a much more useful
->> >> set of records in the audit log.
->> >
->> > The problem here is we cannot be selective enough through the syscall
->> > interface to get exactly what we want. For example, any auditing of connect
->> > and accept will also get af_unix traffic which is likely to be uid/gid lookups
->> > through sssd or glibc. Typically we want the IPv4/6 traffic. The netfilter rules
->> > are better suited to describing which packets are of interest.
->>
->> Okay, but how useful are these NETFILTER_PKT records, really?  The
->> only linkage you have back to the process on the local machine is via
->> the addr/proto/port tuple and that seems far from ideal.
->
-> And even that could be spoofed easily and gathering more corroborating
-> information would seem useful.
->
-> Would the presence of the SOCKADDR record in any SYSCALL record be
-> useful for somehow tagging a class of fd as being of interest?
+I am not planning to to add a new user of this functions.
+Use of skb_find_text() was a part of my Linux study and its
+description informed me that I can use textsearch_next()
+which I cannot. Just want to fix this.
 
-I don't think we want to create a SOCKADDR record for every syscall,
-but it seems reasonable that we may want to include it for targeted
-syscalls.  Right now it looks like we create a SOCKADDR record
-whenever we copy a sockaddr struct across the kernel/userspace
-boundary, that should be sufficient, yes?
-
--- 
-paul moore
-security @ redhat
+On Tue, Feb 7, 2017 at 7:02 PM, David Miller <davem@davemloft.net> wrote:
+>
+> How about you make edits to this interface when you add an in-tree
+> user as we mentioned in our responses to your previous patch?
+>
+> Thank you.
