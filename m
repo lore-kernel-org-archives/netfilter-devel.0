@@ -1,46 +1,61 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nat: remove incorrect debug assert
-Date: Wed,  8 Feb 2017 23:14:29 +0100
-Message-ID: <20170208221429.3555-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:36642 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751449AbdBHWOL (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Feb 2017 17:14:11 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Paul Moore <paul@paul-moore.com>
+Subject: Re: AUDIT_NETFILTER_PKT message format
+Date: Wed, 8 Feb 2017 18:09:07 -0500
+Message-ID: <CAHC9VhTG-ByCf5v0tmXmVJBhCer3-3AvMUJP45UPTNF_Xik3JA@mail.gmail.com>
+References: <20170117052551.GQ3087@madcap2.tricolour.ca>
+	<20170207205219.GA5864@madcap2.tricolour.ca>
+	<CAGH-KguuAriVuLEE+mb2HwQLcq6ePeDfVyZ=acoxmomnK5R09w@mail.gmail.com>
+	<5128842.c7Bb9yu5kt@x2>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: Richard Guy Briggs <rgb@redhat.com>,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
+        Thomas Graf <tgraf@infradead.org>
+To: Steve Grubb <sgrubb@redhat.com>
+Return-path: <linux-audit-bounces@redhat.com>
+In-Reply-To: <5128842.c7Bb9yu5kt@x2>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/linux-audit>
+List-Post: <mailto:linux-audit@redhat.com>
+List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=subscribe>
+Sender: linux-audit-bounces@redhat.com
+Errors-To: linux-audit-bounces@redhat.com
+List-Id: netfilter-devel.vger.kernel.org
 
-The comment is incorrect, this function does see fragments when
-IP_NODEFRAG is used.  Remove the wrong assertion.
+On Wed, Feb 8, 2017 at 11:30 AM, Steve Grubb <sgrubb@redhat.com> wrote:
+> On Tuesday, February 7, 2017 10:56:39 PM EST Paul Moore wrote:
+>> On Tue, Feb 7, 2017 at 3:52 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+>> > So while I'm not advocating this is what should be done and I'm trying
+>> > to establish bounds to the scope of this feature, but would it be
+>> > reasonable to simply not log packets that were transiting this machine
+>> > without a local endpoint?
+>>
+>> I'm still waiting on more detailed requirements information from
+>> Steve, but based on what we've heard so far, it seems that ignoring
+>> forwarded traffic is a reasonable thing to do.
+>
+> OK, I have done teh analysis to see where things stand on this ...
 
-As conntrack doesn't track fragments skb->nfct will be null
-and no nat is performed.
+...
 
-Reported-by: Andrey Konovalov <andreyknvl@google.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/ipv4/netfilter/nf_nat_l3proto_ipv4.c | 5 -----
- 1 file changed, 5 deletions(-)
+> At this point, I would say there is no purpose for xt_AUDIT.c based on Common
+> Criteria. It looks like its built in response to the
+> CONFIG_NETFILTER_XT_TARGET_AUDIT config option. So, it can be cleanly
+> deprecated.
 
-diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-index f8aad03d674b..6f5e8d01b876 100644
---- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-@@ -255,11 +255,6 @@ nf_nat_ipv4_fn(void *priv, struct sk_buff *skb,
- 	/* maniptype == SRC for postrouting. */
- 	enum nf_nat_manip_type maniptype = HOOK2MANIP(state->hook);
- 
--	/* We never see fragments: conntrack defrags on pre-routing
--	 * and local-out, and nf_nat_out protects post-routing.
--	 */
--	NF_CT_ASSERT(!ip_is_fragment(ip_hdr(skb)));
--
- 	ct = nf_ct_get(skb, &ctinfo);
- 	/* Can't track?  It's not due to stress, or conntrack would
- 	 * have dropped it.  Hence it's the user's responsibilty to
+Based on some off-list discussions with Richard it would appear that
+there are several users of the NETFILTER_PKT record so I am in no
+hurry to deprecate it.  Considering that there are no CC requirements
+on the record, I think we can focus on simply providing a basic record
+that satisfies the whims of the userspace tools without adding any
+pain to the kernel.  I believe Richard is currently working on a
+proposal to do that, let's discuss it further in that thread.
+
 -- 
-2.10.2
-
+paul moore
+www.paul-moore.com
