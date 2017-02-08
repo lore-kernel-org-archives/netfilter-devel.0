@@ -1,23 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: fix description of skb_find_text() according to
- removed functionality
-Date: Tue, 07 Feb 2017 22:02:39 -0500 (EST)
-Message-ID: <20170207.220239.1870087918928590364.davem@davemloft.net>
-References: <20170207.105320.45609559819874123.davem@davemloft.net>
-        <1486521937-10638-1-git-send-email-igor.pylypiv@gmail.com>
+From: Paul Moore <pmoore@redhat.com>
+Subject: Re: AUDIT_NETFILTER_PKT message format
+Date: Tue, 7 Feb 2017 22:56:39 -0500
+Message-ID: <CAGH-KguuAriVuLEE+mb2HwQLcq6ePeDfVyZ=acoxmomnK5R09w@mail.gmail.com>
+References: <20170117052551.GQ3087@madcap2.tricolour.ca> <20170118151520.GY3087@madcap2.tricolour.ca>
+ <CAHC9VhS_6Q=bxnzU8ni1a2fRWnXoMcELzAmy0HmwMH_xhgfRBw@mail.gmail.com>
+ <21839828.eXAB1nqvpV@x2> <20170207205219.GA5864@madcap2.tricolour.ca>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: igor.pylypiv@gmail.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1486521937-10638-1-git-send-email-igor.pylypiv@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: Steve Grubb <sgrubb@redhat.com>,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>,
+        Thomas Graf <tgraf@infradead.org>
+To: Richard Guy Briggs <rgb@redhat.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-oi0-f53.google.com ([209.85.218.53]:34796 "EHLO
+        mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753284AbdBHD4k (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 7 Feb 2017 22:56:40 -0500
+Received: by mail-oi0-f53.google.com with SMTP id s203so75433984oie.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 07 Feb 2017 19:56:40 -0800 (PST)
+In-Reply-To: <20170207205219.GA5864@madcap2.tricolour.ca>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+On Tue, Feb 7, 2017 at 3:52 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> So while I'm not advocating this is what should be done and I'm trying
+> to establish bounds to the scope of this feature, but would it be
+> reasonable to simply not log packets that were transiting this machine
+> without a local endpoint?
 
-How about you make edits to this interface when you add an in-tree
-user as we mentioned in our responses to your previous patch?
+I'm still waiting on more detailed requirements information from
+Steve, but based on what we've heard so far, it seems that ignoring
+forwarded traffic is a reasonable thing to do.
 
-Thank you.
+-- 
+paul moore
+security @ redhat
