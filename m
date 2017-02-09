@@ -1,101 +1,60 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 0/5] nf_tables: rule deletion by description
-Date: Thu,  9 Feb 2017 17:13:45 +0100
-Message-ID: <1486656830-3245-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next 4/5] netfilter: nf_tables: add check_genid to the nfnetlink subsystem
+Date: Thu,  9 Feb 2017 17:13:49 +0100
+Message-ID: <1486656830-3245-5-git-send-email-pablo@netfilter.org>
+References: <1486656830-3245-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45350 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45388 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752602AbdBIQOK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1752700AbdBIQOK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 9 Feb 2017 11:14:10 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5BC0111A11C
-        for <netfilter-devel@vger.kernel.org>; Thu,  9 Feb 2017 17:14:02 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 033FD11A12A
+        for <netfilter-devel@vger.kernel.org>; Thu,  9 Feb 2017 17:14:06 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 48BA3DA725
-        for <netfilter-devel@vger.kernel.org>; Thu,  9 Feb 2017 17:14:02 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E4865DA844
+        for <netfilter-devel@vger.kernel.org>; Thu,  9 Feb 2017 17:14:05 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8BB11DA725
-        for <netfilter-devel@vger.kernel.org>; Thu,  9 Feb 2017 17:13:59 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BED55DA7FA
+        for <netfilter-devel@vger.kernel.org>; Thu,  9 Feb 2017 17:14:03 +0100 (CET)
+In-Reply-To: <1486656830-3245-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+This patch implements the check generation id as provided by nfnetlink.
+This allows us to reject ruleset updates against stale baseline, so
+userspace can retry update with a fresh ruleset cache.
 
-Rule deletion by description is a feature missing these days in
-nf_tables that has been requested already several times by different
-people.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-I'm talking specifically of this feature that is available in iptables:
-
- # iptables -D INPUT -p tcp --dport 22 -j DROP
-
-that allows us to delete the first rule matching this description.
-
-So far, nf_tables allows users to delete rules through unique handle
-numbers that you can list via -a option.
-
-The approach I decided to follow adds most of this logic to userspace.
-Basically, if the user wants to delete a given rule, the idea is to dump
-the ruleset and compare if this rule matches any of the existing ones.
-In case of matching found, annotate the rule handle and use it to delete
-it from the kernel.
-
-I noticed two corner cases that are problematic though:
-
-1) A robot performs a rule deletion-after-addition from the same batch.
-   This rule has no public u64 handle yet, therefore we cannot
-   reference it. Add a new NFTA_RULE_ID, which is similar to NFTA_SET_ID
-   in essence, that indicates an unique rule identifier inside the batch.
-   This can be used to delete this rule not yet with the public handle.
-
-1) Two threads compete to delete duplicated a rule. Even if duplicated
-   rules make no sense, since the first rule would shadow the duplicated
-   one, two robots inserting rules may lead us to this situation. Then,
-   if robot A and robot B race to delete these duplicated rules, they may
-   end up pointing to the same rule handle, so the one losing race will
-   indicate that rule doesn't exist, while one of the two rules will
-   still remain there, leaving the ruleset in inconsistent state.
-   To catch this rare case, this patch introduces a way to validate
-   what ruleset generation userspace expects to operate with. In case,
-   kernel notices that userspace operates with a stale generation
-   number, the kernel returns -ERESTART so userspace can transparently
-   relookup for the rule handle.
-
-I have a userspace patchset to implement rule deletion by description
-for nft, still incomplete (I may push it to a branch though for
-previous).  Main problem so far is that rule comparisons require that
-the representation in both linearize and delinearize paths are the same.
-This feature needs quite a bit of several userspace patches still
-because there are a number of asymmetries in the rule representation
-that need to be fixed, eg. I had to split bitfield transformations that
-we're performing in the evaluation phase into a new specific step
-between evaluation and linearization.
-
-Another solution for this problem is to handle this entirely from
-kernelspace. However, this is specifically cumbersome with anonymous
-sets, that require a full comparison of all elements given that name are
-meaningless. Moreover, on top of that, elements need to be ordered which
-is not guaranteed when iterating over set backends such as hashtable. So
-solving this from kernel look even more complex to me.
-
-Let me know if you have any comment on these, thanks.
-
-Pablo Neira Ayuso (5):
-  netfilter: nfnetlink: get rid of u_intX_t types
-  netfilter: nfnetlink: add nfnetlink_rcv_skb_batch()
-  netfilter: nfnetlink: allow to check for generation ID
-  netfilter: nf_tables: add check_genid to the nfnetlink subsystem
-  netfilter: nf_tables: add NFTA_RULE_ID attribute
-
- include/linux/netfilter/nfnetlink.h      |  1 +
- include/net/netfilter/nf_tables.h        |  3 ++
- include/uapi/linux/netfilter/nf_tables.h |  2 +
- include/uapi/linux/netfilter/nfnetlink.h | 12 +++++
- net/netfilter/nf_tables_api.c            | 32 ++++++++++++
- net/netfilter/nfnetlink.c                | 90 +++++++++++++++++++++-----------
- 6 files changed, 109 insertions(+), 31 deletions(-)
-
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index cb6ae46f6c48..71c60a04b66b 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4972,6 +4972,11 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb)
+ 	return 0;
+ }
+ 
++static bool nf_tables_valid_genid(struct net *net, u32 genid)
++{
++	return net->nft.base_seq == genid;
++}
++
+ static const struct nfnetlink_subsystem nf_tables_subsys = {
+ 	.name		= "nf_tables",
+ 	.subsys_id	= NFNL_SUBSYS_NFTABLES,
+@@ -4979,6 +4984,7 @@ static const struct nfnetlink_subsystem nf_tables_subsys = {
+ 	.cb		= nf_tables_cb,
+ 	.commit		= nf_tables_commit,
+ 	.abort		= nf_tables_abort,
++	.valid_genid	= nf_tables_valid_genid,
+ };
+ 
+ int nft_chain_validate_dependency(const struct nft_chain *chain,
 -- 
 2.1.4
 
