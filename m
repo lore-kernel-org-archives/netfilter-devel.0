@@ -1,62 +1,49 @@
-From: fgao@ikuai8.com
-Subject: [PATCH nf-next 1/1] netfilter: expect: Make return value of nf_ct_expect_insert is void
-Date: Thu,  9 Feb 2017 21:40:38 +0800
-Message-ID: <1486647638-22781-1-git-send-email-fgao@ikuai8.com>
-Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+From: Shaun Crampton <shaun@cantab.net>
+Subject: Re: Concurrent iptables-restore calls clobberring each other
+Date: Thu, 9 Feb 2017 14:39:01 +0000
+Message-ID: <CAB3ewxNX=DegAesrqjb8_7q9-ghHcW-Pr7-LAYfqWX+5E9EqvQ@mail.gmail.com>
+References: <CAB3ewxODtiHoKQChouTcYX7uZxHvHobxxCMLtOH_Uvkco9XaGA@mail.gmail.com>
+ <alpine.LSU.2.20.1702040040050.2578@erq.vanv.qr> <CAB3ewxN62EQgdg1LTCyodOA+xA=SibM=khWpjp3ptzTKpBTw0A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg328.qq.com ([14.17.43.160]:42654 "EHLO smtpbg328.qq.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752375AbdBINsV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 Feb 2017 08:48:21 -0500
+Received: from mail-it0-f68.google.com ([209.85.214.68]:36760 "EHLO
+        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752692AbdBIOkN (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 9 Feb 2017 09:40:13 -0500
+Received: by mail-it0-f68.google.com with SMTP id f200so2412290itf.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 09 Feb 2017 06:39:02 -0800 (PST)
+In-Reply-To: <CAB3ewxN62EQgdg1LTCyodOA+xA=SibM=khWpjp3ptzTKpBTw0A@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+> Is there any protection built into the protocol to prevent concurrent
+> writes from clobbering each other?
 
-Because nf_ct_expect_insert always succeeds now, so make its return
-value is void instead of int. And remove codes used to check its
-return value.
+Ah, I think I see the reason for the behaviour that I'm seeing.  It looks
+like the kernel does check that the number of entries in the table hasn't
+changed since the data was read [1]  That explains why the unrelated rule
+change in my second script causes the COMMIT to fail.
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
----
- net/netfilter/nf_conntrack_expect.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+[1] https://github.com/torvalds/linux/blob/master/net/ipv4/netfilter/ip_tables.c#L1033
 
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index f8dbacf..e19a697 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -353,7 +353,7 @@ void nf_ct_expect_put(struct nf_conntrack_expect *exp)
- }
- EXPORT_SYMBOL_GPL(nf_ct_expect_put);
- 
--static int nf_ct_expect_insert(struct nf_conntrack_expect *exp)
-+static void nf_ct_expect_insert(struct nf_conntrack_expect *exp)
- {
- 	struct nf_conn_help *master_help = nfct_help(exp->master);
- 	struct nf_conntrack_helper *helper;
-@@ -380,7 +380,6 @@ static int nf_ct_expect_insert(struct nf_conntrack_expect *exp)
- 	add_timer(&exp->timeout);
- 
- 	NF_CT_STAT_INC(net, expect_create);
--	return 0;
- }
- 
- /* Race with expectations being used means we could have none to find; OK. */
-@@ -464,9 +463,8 @@ int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
- 	if (ret <= 0)
- 		goto out;
- 
--	ret = nf_ct_expect_insert(expect);
--	if (ret < 0)
--		goto out;
-+	nf_ct_expect_insert(expect);
-+
- 	spin_unlock_bh(&nf_conntrack_expect_lock);
- 	nf_ct_expect_event_report(IPEXP_NEW, expect, portid, report);
- 	return ret;
--- 
-1.9.1
-
-
+On 4 February 2017 at 08:53, Shaun Crampton <shaun@cantab.net> wrote:
+>> This is by design; the RMW cycle in principle also affects the "slower"
+>> iptables - which is why it is slower, because it does only one rule per cycle.
+>
+> Thanks for the response. I understand that the RMW is by design. Is there
+> any protection built into the protocol to prevent concurrent writes from
+> clobbering each other?  I thought I'd read that there was a "version"
+> on the read
+> that let the kernel spot if a write was stale.
+>
+> My second script acts as if there is; the commits of the "kube" loop
+> fail reliably
+> rather than clobbering the writes of the "felix" loop.  However,
+> that's not the case
+> for the first script.  I'm wondering if there is supposed to be
+> protection but it's
+> bugged.
