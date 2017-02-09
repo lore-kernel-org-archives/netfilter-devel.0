@@ -1,60 +1,90 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 4/5] netfilter: nf_tables: add check_genid to the nfnetlink subsystem
-Date: Thu,  9 Feb 2017 17:13:49 +0100
-Message-ID: <1486656830-3245-5-git-send-email-pablo@netfilter.org>
-References: <1486656830-3245-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45388 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752700AbdBIQOK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 9 Feb 2017 11:14:10 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 033FD11A12A
-        for <netfilter-devel@vger.kernel.org>; Thu,  9 Feb 2017 17:14:06 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E4865DA844
-        for <netfilter-devel@vger.kernel.org>; Thu,  9 Feb 2017 17:14:05 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BED55DA7FA
-        for <netfilter-devel@vger.kernel.org>; Thu,  9 Feb 2017 17:14:03 +0100 (CET)
-In-Reply-To: <1486656830-3245-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Paul Moore <paul@paul-moore.com>
+Subject: Re: AUDIT_NETFILTER_PKT message format
+Date: Thu, 9 Feb 2017 11:31:55 -0500
+Message-ID: <CAHC9VhRrDKkoHw7nfApmqCh5GQ8XnjCjALEKG8PBxb4KLvPm9g@mail.gmail.com>
+References: <20170117052551.GQ3087@madcap2.tricolour.ca>
+	<20170207205219.GA5864@madcap2.tricolour.ca>
+	<CAGH-KguuAriVuLEE+mb2HwQLcq6ePeDfVyZ=acoxmomnK5R09w@mail.gmail.com>
+	<5128842.c7Bb9yu5kt@x2>
+	<CAHC9VhTG-ByCf5v0tmXmVJBhCer3-3AvMUJP45UPTNF_Xik3JA@mail.gmail.com>
+	<20170209105617.GA2089@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: Richard Guy Briggs <rgb@redhat.com>,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
+        Thomas Graf <tgraf@infradead.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <linux-audit-bounces@redhat.com>
+In-Reply-To: <20170209105617.GA2089@salvia>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/linux-audit>
+List-Post: <mailto:linux-audit@redhat.com>
+List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=subscribe>
+Sender: linux-audit-bounces@redhat.com
+Errors-To: linux-audit-bounces@redhat.com
+List-Id: netfilter-devel.vger.kernel.org
 
-This patch implements the check generation id as provided by nfnetlink.
-This allows us to reject ruleset updates against stale baseline, so
-userspace can retry update with a fresh ruleset cache.
+On Thu, Feb 9, 2017 at 5:56 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Hi Paul,
+>
+> On Wed, Feb 08, 2017 at 06:09:07PM -0500, Paul Moore wrote:
+>> On Wed, Feb 8, 2017 at 11:30 AM, Steve Grubb <sgrubb@redhat.com> wrote:
+>> > On Tuesday, February 7, 2017 10:56:39 PM EST Paul Moore wrote:
+>> >> On Tue, Feb 7, 2017 at 3:52 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+>> >> > So while I'm not advocating this is what should be done and I'm trying
+>> >> > to establish bounds to the scope of this feature, but would it be
+>> >> > reasonable to simply not log packets that were transiting this machine
+>> >> > without a local endpoint?
+>> >>
+>> >> I'm still waiting on more detailed requirements information from
+>> >> Steve, but based on what we've heard so far, it seems that ignoring
+>> >> forwarded traffic is a reasonable thing to do.
+>> >
+>> > OK, I have done teh analysis to see where things stand on this ...
+>>
+>> ...
+>>
+>> > At this point, I would say there is no purpose for xt_AUDIT.c based on Common
+>> > Criteria. It looks like its built in response to the
+>> > CONFIG_NETFILTER_XT_TARGET_AUDIT config option. So, it can be cleanly
+>> > deprecated.
+>>
+>> Based on some off-list discussions with Richard it would appear that
+>> there are several users of the NETFILTER_PKT record so I am in no
+>> hurry to deprecate it.  Considering that there are no CC requirements
+>> on the record, I think we can focus on simply providing a basic record
+>> that satisfies the whims of the userspace tools without adding any
+>> pain to the kernel.  I believe Richard is currently working on a
+>> proposal to do that, let's discuss it further in that thread.
+>
+> If the concern is to keep the existing output format around, you can
+> add new functions with the specific new layout at the cost of keeping
+> more code around. That should be fine since this code is not much
+> complex IMO. You can probably add a new explicit command line option,
+> eg. --version, that indicates what audit format version you want to
+> use, so users don't break.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+There are several things to consider, and I'm not going to worry too
+much about it until Richard posts his updated RFC.  In quick summary,
+Steve is worried about record formats which don't meet a specific
+format specification (e.g. fields that optionally appear depending on
+the protocol are bad from his perspective) and I'm worried about
+adding a bunch of additional code to the kernel.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index cb6ae46f6c48..71c60a04b66b 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4972,6 +4972,11 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb)
- 	return 0;
- }
- 
-+static bool nf_tables_valid_genid(struct net *net, u32 genid)
-+{
-+	return net->nft.base_seq == genid;
-+}
-+
- static const struct nfnetlink_subsystem nf_tables_subsys = {
- 	.name		= "nf_tables",
- 	.subsys_id	= NFNL_SUBSYS_NFTABLES,
-@@ -4979,6 +4984,7 @@ static const struct nfnetlink_subsystem nf_tables_subsys = {
- 	.cb		= nf_tables_cb,
- 	.commit		= nf_tables_commit,
- 	.abort		= nf_tables_abort,
-+	.valid_genid	= nf_tables_valid_genid,
- };
- 
- int nft_chain_validate_dependency(const struct nft_chain *chain,
+We can discuss this further once we see Richard's patches, he is aware
+of all the concerns and I expect he will have something interesting to
+use as a starting point for further discussion.
+
+> BTW, any plans to add audit support to nf_tables?
+
+It would be nice, but it isn't on my TODO list at the moment; if you
+want to work on it I think that would be great!
+
 -- 
-2.1.4
-
+paul moore
+www.paul-moore.com
