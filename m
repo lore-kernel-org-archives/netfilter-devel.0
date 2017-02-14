@@ -1,40 +1,56 @@
-From: Jamal Hadi Salim <jhs-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>
-Subject: Re: ANNOUNCE: Netdev 2.1 update Feb 14
-Date: Tue, 14 Feb 2017 08:21:33 -0500
-Message-ID: <d3237bc3-4c1e-9f60-4c70-2fa0d799f883@mojatatu.com>
-References: <42736b6d-b23b-bcae-e53d-a943516ce100@mojatatu.com>
+From: Paul Moore <paul@paul-moore.com>
+Subject: Re: AUDIT_NETFILTER_PKT message format
+Date: Tue, 14 Feb 2017 16:06:53 -0500
+Message-ID: <CAHC9VhQfwgcc4KquQm3TtNm-GLS+4YpoF6NkoZ8wzVopAn4Now@mail.gmail.com>
+References: <20170117052551.GQ3087@madcap2.tricolour.ca> <10185842.hTv0ExFpgc@x2>
+ <20170210225445.GS26850@madcap2.tricolour.ca> <3926301.2G9jBBrVEf@x2>
+ <20170213205005.GO26855@madcap2.tricolour.ca> <CAHC9VhTGJMtg6z-WjW+PYCrEAKdrrKhfJdi3j4DB=91r8XYH4Q@mail.gmail.com>
+ <20170214002452.GT26850@madcap2.tricolour.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        info-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        tech-committee-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>,
-        Stephen Jaworski <jaws-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>,
-        Rob Echlin <rob-XjY9sGI/8jX3fQ9qLvQP4Q@public.gmane.org>, lwn-T1hC0tSOHrs@public.gmane.org, people-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org
-To: "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <42736b6d-b23b-bcae-e53d-a943516ce100-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: Steve Grubb <sgrubb@redhat.com>,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>,
+        Thomas Graf <tgraf@infradead.org>
+To: Richard Guy Briggs <rgb@redhat.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-vk0-f44.google.com ([209.85.213.44]:36194 "EHLO
+        mail-vk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751412AbdBNVGz (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 14 Feb 2017 16:06:55 -0500
+Received: by mail-vk0-f44.google.com with SMTP id t8so88090140vke.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Feb 2017 13:06:54 -0800 (PST)
+In-Reply-To: <20170214002452.GT26850@madcap2.tricolour.ca>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 17-02-14 08:16 AM, Jamal Hadi Salim wrote:
->
-> A few announcements:
-> -Registration is open. Register early so we can plan better.
-> https://onlineregistrations.ca/netdev21/
->
-> hotel (If you can get the hotel cheaper online than conference
-> rates please send us email, dont book ):
-> http://www.netdevconf.org/2.1/hotel.html
->
-> News:
-> - We are pleased to announce our first silver sponsor! We thank
-> ZEVENET for their commitment to the netdev community!
->
+On Mon, Feb 13, 2017 at 7:24 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2017-02-13 18:50, Paul Moore wrote:
+>> On Mon, Feb 13, 2017 at 3:50 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
 
-Apologies - small correction. ZEVENET is the _first_ bronze
-sponsor.
-https://www.netdevconf.org/2.1/news.html?sponsor-ZEVENET
+...
 
-cheers,
-jamal
+>> > useless?        smac, dmac, macproto
+>>
+>> Probably useless in the majority of use cases.
+>
+> How do we deal with the minority of cases where it could be quite useful?
+
+First you first need to show me why I should care about this, in other
+words, why *must* you have the fields in the audit record.
+
+>> > helpful         secmark (I forgot to change it from "obj" to "secmark" in my patch).
+>>
+>> We may also want to log the peer label if we are going to log the secmark.
+>
+> Ok, noted.
+
+Please note well the "*if*" portion in the above statement.  I'm not
+overly convinced that either field is all that useful in the majority
+of cases.
+
+-- 
+paul moore
+www.paul-moore.com
