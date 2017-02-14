@@ -1,56 +1,58 @@
-From: Paul Moore <paul@paul-moore.com>
+From: Steve Grubb <sgrubb@redhat.com>
 Subject: Re: AUDIT_NETFILTER_PKT message format
-Date: Tue, 14 Feb 2017 16:06:53 -0500
-Message-ID: <CAHC9VhQfwgcc4KquQm3TtNm-GLS+4YpoF6NkoZ8wzVopAn4Now@mail.gmail.com>
-References: <20170117052551.GQ3087@madcap2.tricolour.ca> <10185842.hTv0ExFpgc@x2>
- <20170210225445.GS26850@madcap2.tricolour.ca> <3926301.2G9jBBrVEf@x2>
- <20170213205005.GO26855@madcap2.tricolour.ca> <CAHC9VhTGJMtg6z-WjW+PYCrEAKdrrKhfJdi3j4DB=91r8XYH4Q@mail.gmail.com>
- <20170214002452.GT26850@madcap2.tricolour.ca>
+Date: Tue, 14 Feb 2017 16:31:55 -0500
+Message-ID: <3292833.iEpdVtO8mH@x2>
+References: <20170117052551.GQ3087@madcap2.tricolour.ca> <3926301.2G9jBBrVEf@x2> <20170213205005.GO26855@madcap2.tricolour.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Steve Grubb <sgrubb@redhat.com>,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
         Netfilter Developer Mailing List
         <netfilter-devel@vger.kernel.org>,
         Thomas Graf <tgraf@infradead.org>
 To: Richard Guy Briggs <rgb@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f44.google.com ([209.85.213.44]:36194 "EHLO
-        mail-vk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751412AbdBNVGz (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Feb 2017 16:06:55 -0500
-Received: by mail-vk0-f44.google.com with SMTP id t8so88090140vke.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Feb 2017 13:06:54 -0800 (PST)
-In-Reply-To: <20170214002452.GT26850@madcap2.tricolour.ca>
+Received: from mx1.redhat.com ([209.132.183.28]:38874 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752573AbdBNVbw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 14 Feb 2017 16:31:52 -0500
+In-Reply-To: <20170213205005.GO26855@madcap2.tricolour.ca>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Feb 13, 2017 at 7:24 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2017-02-13 18:50, Paul Moore wrote:
->> On Mon, Feb 13, 2017 at 3:50 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+On Monday, February 13, 2017 3:50:05 PM EST Richard Guy Briggs wrote:
+> > > > > The alternatives that I currently see are to drop packets for which
+> > > > > there is no local process ownership, or to leave the ownership
+> > > > > fields unset.
+> > > > 
+> > > > What ownership fields are we talking about?
+> > > 
+> > > The ones you want, auid, pid, ses.  Perhaps I'm using the wrong
+> > > terminology.  What technical term is there for the collection of subject
+> > > identifiers?
+> > 
+> > Subject attributes.
+> 
+> Ah ok, I'll try to remember to use that term...
+> 
+> Now that you know what I'm talking about, can you go back and answer the
+> questions I had about packet "ownership" (which is really packet subject
+> attributes)? 
 
-...
+The format for subject attributes would be:
+pid, uid, auid, ses, subj, comm, exe, ...then whatever else you want to add
 
->> > useless?        smac, dmac, macproto
->>
->> Probably useless in the majority of use cases.
->
-> How do we deal with the minority of cases where it could be quite useful?
+This also goes for the netfilter_cfg events.
 
-First you first need to show me why I should care about this, in other
-words, why *must* you have the fields in the audit record.
+> If we have that information, how to we include it in the
+> message format?  And if we don't have it, do we ignore the packet, or do
+> we swing fields out, or do we set those fields to "unset" or do we use
+> an auxiliary record?
 
->> > helpful         secmark (I forgot to change it from "obj" to "secmark" in my patch).
->>
->> We may also want to log the peer label if we are going to log the secmark.
->
-> Ok, noted.
+If you have this for the majority of events, I'd say leave it unset when you 
+don't. We really don't care about packets that simply transit through the 
+system. Also, I suppose it depends on what kind of packet it is. For example, 
+a icmp echo sent to the machine that is blocked is obviously not going to have 
+an owner. But one originating in the machine heading out should.
 
-Please note well the "*if*" portion in the above statement.  I'm not
-overly convinced that either field is all that useful in the majority
-of cases.
-
--- 
-paul moore
-www.paul-moore.com
+-Steve
