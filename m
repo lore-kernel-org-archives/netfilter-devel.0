@@ -1,80 +1,93 @@
-From: Fabian Franz <s1410239008@students.fh-hagenberg.at>
-Subject: Re: [Question] Is there some documentation for nftables development
-Date: Wed, 15 Feb 2017 20:33:22 +0100
-Message-ID: <7a0794eb-f0bd-e9de-9367-004e53145678@students.fh-hagenberg.at>
-References: <f23dc1f5-6965-cdf0-cd7d-04d2c200e4a6@students.fh-hagenberg.at>
- <d73038eb-3609-d4a8-85af-30c81174eb3d@mindchasers.com>
- <fb394aca-8979-332d-c1f0-cbffef52f581@students.fh-hagenberg.at>
- <1487183874.795.1@smtp.gmail.com>
+From: Vishwanath Pai <vpai@akamai.com>
+Subject: Re: Parameter 'size' in type list:set is ignored
+Date: Wed, 15 Feb 2017 15:39:50 -0500
+Message-ID: <eb541502-e6c8-1ac4-5f9b-e57f8ec14044@akamai.com>
+References: <921798b7-0b87-2e15-9f6f-b33adb46c3b8@akamai.com>
+ <alpine.DEB.2.10.1702151020570.30100@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Cc: <netfilter-devel@vger.kernel.org>
-To: Anatole Denis <natolumin@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Patrick McHardy <kaber@trash.net>,
+        Joshua Hunt <johunt@akamai.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from relay01-mailcontrol.conova.com ([217.196.144.161]:57662 "EHLO
-        relay01-mailcontrol.conova.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750800AbdBOTd1 (ORCPT
+Received: from prod-mail-xrelay07.akamai.com ([23.79.238.175]:23012 "EHLO
+        prod-mail-xrelay07.akamai.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750806AbdBOUpC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Feb 2017 14:33:27 -0500
-In-Reply-To: <1487183874.795.1@smtp.gmail.com>
+        Wed, 15 Feb 2017 15:45:02 -0500
+In-Reply-To: <alpine.DEB.2.10.1702151020570.30100@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Anatole,
-
-
-I am aware of this option, but this is still not what I want. For
-example, I want to have a firewall rule
-
-"tcp ssh user fabian accept"
-
-to have a rule with my user in the match. For the authentication, a
-captive portal or a radius server for 802.1X may be an option. The user
-is part of the match and therefore it must be part of the rule (don't
-want to evaluate everything twice).
-
-There is also no reason to queue the full packet to the user space if
-only the source is required.
-
-
-Kind regards
-
-
-Fabian Franz
-
-
-Am 2017-02-15 um 19:37 schrieb Anatole Denis:
-> On mer., févr. 15, 2017 at 6:21 , Fabian Franz
-> <s1410239008@students.fh-hagenberg.at> wrote:
->> Dear Mr. Cochran,
+On 02/15/2017 04:33 AM, Jozsef Kadlecsik wrote:
+> Hi,
+> 
+> On Tue, 14 Feb 2017, Vishwanath Pai wrote:
+> 
+>> I noticed that in recent versions of ipset the parameter 'size' in set 
+>> type list:set is ignored. I noticed this change in the latest upstream 
+>> code. In kernel 4.1 'ipset add' errors out when I try to add more 
+>> elements than 'size' but in 4.10 it does not. For example, if the size 
+>> is set to 4 and I try to add a fifth element to the set: in 4.1 it 
+>> errors out with "set is full" but if I try the same in 4.10 kernel it 
+>> lets me add the 5th element.
+> 
+> Yes, the internal storage method was rewritten from fixed sized arrays to 
+> linked lists.
+>  
+>> I think this change was introduced in v4.2 by the following commit:
+>> commit 00590fdd5be0d763631ef10e6a3e2ce8fc2d9ec3
+>> Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+>> Date:   Sat Jun 13 16:56:02 2015 +0200
 >>
+>>     netfilter: ipset: Introduce RCU locking in list type
 >>
->> even if your document looks good, I am looking for some documentation
->> related to nftables - iptables is NO option because I want to implement
->> a kernel module for nftables doing that.
+>>     Standard rculist is used.
 >>
->> The problem is, that there is a wiki how to use it, but there is no
->> information how to extend it:
->>
->> https://wiki.nftables.org/wiki-nftables/index.php/Main_Page
->
-> From your description, "query a user space application, if the packet
-> is allowed", seems to be exactly nfqueue, which is already developed
-> and in mainline kernel, and supported by nftables. The wiki you link
-> to has a page on it:
-> https://wiki.nftables.org/wiki-nftables/index.php/Queueing_to_userspace.
->
-> As you can also see in the link, there is a userspace library for it,
-> libnetfilter_queue, as well.
->
-> The question is maybe, do you want to solve a problem (in which case I
-> believe nfqueue could be a solution), or write a kernel module (in
-> which case, sorry to be useless, I don't know about any documentation
-> on the kernel side of netfilter) ?
->
-> -- 
-> Anatole
->
+>>     Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> 
+> Exactly.
+>  
+>> Adding more elements than 'size' does not break anything but has a 
+>> side-effect. For example in 4.1 kernel the command 'ipset add test e 
+>> before d' would replace d with e but on 4.10 kernel it will simply add e 
+>> to the list before d without replacing it.
+> 
+> Yes, it's a subtle difference - and I didn't think of it...
+>  
+>> Was this change intentional? Or should we be enforcing 'max elements' on 
+>> this set type? If we should enforce the limit then I can send a patch to 
+>> fix it. Please let me know.
+> 
+> The change was not intentional. Maybe the best solution was to print a 
+> warning that 'size' is ignored when a list type of set is defined with a 
+> size parameter.
+> 
+> It's an incompatibility which cannot be undone: even if we start to 
+> enforce the size parameter then the releases are still out which ignore 
+> that. What is your opinion? Should the limit still be reintroduced?
+> 
+> Best regards,
+> Jozsef
+> -
+> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+> Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+>           H-1525 Budapest 114, POB. 49, Hungary
+> 
 
+Hi Jozsef,
 
+Thank you for confirming. I am OK with the new behavior, and I think it
+keeps things simple. But we should definitely warn the user that size is
+not relevant anymore. And may be not print size during 'ipset l'? We do
+print out 'Number of entries' so that should be enough information for
+the user.
+
+Let me know if you are OK with that, I can send a patch for it.
+
+Thanks,
+Vishwanath
