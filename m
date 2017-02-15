@@ -1,93 +1,75 @@
-From: Vishwanath Pai <vpai@akamai.com>
-Subject: Re: Parameter 'size' in type list:set is ignored
-Date: Wed, 15 Feb 2017 15:39:50 -0500
-Message-ID: <eb541502-e6c8-1ac4-5f9b-e57f8ec14044@akamai.com>
-References: <921798b7-0b87-2e15-9f6f-b33adb46c3b8@akamai.com>
- <alpine.DEB.2.10.1702151020570.30100@blackhole.kfki.hu>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [RFC nf-next] netfilter: ct: add helper assignment support
+Date: Wed, 15 Feb 2017 23:19:03 +0100
+Message-ID: <20170215221903.GB32431@breakpoint.cc>
+References: <20170215162536.982-1-fw@strlen.de>
+ <20170215170558.GA22564@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Joshua Hunt <johunt@akamai.com>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from prod-mail-xrelay07.akamai.com ([23.79.238.175]:23012 "EHLO
-        prod-mail-xrelay07.akamai.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750806AbdBOUpC (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:38062 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752674AbdBOWUH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Feb 2017 15:45:02 -0500
-In-Reply-To: <alpine.DEB.2.10.1702151020570.30100@blackhole.kfki.hu>
+        Wed, 15 Feb 2017 17:20:07 -0500
+Content-Disposition: inline
+In-Reply-To: <20170215170558.GA22564@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02/15/2017 04:33 AM, Jozsef Kadlecsik wrote:
-> Hi,
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > Note from myself, i dislike L3PROTO, it would be nicer to be able
+> > to handle this via the table family but I did not yet find a way
+> > to detect this from the obj->init() function.
 > 
-> On Tue, 14 Feb 2017, Vishwanath Pai wrote:
-> 
->> I noticed that in recent versions of ipset the parameter 'size' in set 
->> type list:set is ignored. I noticed this change in the latest upstream 
->> code. In kernel 4.1 'ipset add' errors out when I try to add more 
->> elements than 'size' but in 4.10 it does not. For example, if the size 
->> is set to 4 and I try to add a fifth element to the set: in 4.1 it 
->> errors out with "set is full" but if I try the same in 4.10 kernel it 
->> lets me add the 5th element.
-> 
-> Yes, the internal storage method was rewritten from fixed sized arrays to 
-> linked lists.
->  
->> I think this change was introduced in v4.2 by the following commit:
->> commit 00590fdd5be0d763631ef10e6a3e2ce8fc2d9ec3
->> Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
->> Date:   Sat Jun 13 16:56:02 2015 +0200
->>
->>     netfilter: ipset: Introduce RCU locking in list type
->>
->>     Standard rculist is used.
->>
->>     Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> 
-> Exactly.
->  
->> Adding more elements than 'size' does not break anything but has a 
->> side-effect. For example in 4.1 kernel the command 'ipset add test e 
->> before d' would replace d with e but on 4.10 kernel it will simply add e 
->> to the list before d without replacing it.
-> 
-> Yes, it's a subtle difference - and I didn't think of it...
->  
->> Was this change intentional? Or should we be enforcing 'max elements' on 
->> this set type? If we should enforce the limit then I can send a patch to 
->> fix it. Please let me know.
-> 
-> The change was not intentional. Maybe the best solution was to print a 
-> warning that 'size' is ignored when a list type of set is defined with a 
-> size parameter.
-> 
-> It's an incompatibility which cannot be undone: even if we start to 
-> enforce the size parameter then the releases are still out which ignore 
-> that. What is your opinion? Should the limit still be reintroduced?
-> 
-> Best regards,
-> Jozsef
-> -
-> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-> Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
->           H-1525 Budapest 114, POB. 49, Hungary
-> 
+> We can pass nft_ctx to obj->init().
 
-Hi Jozsef,
+OK, I can make that change then, no problem.
 
-Thank you for confirming. I am OK with the new behavior, and I think it
-keeps things simple. But we should definitely warn the user that size is
-not relevant anymore. And may be not print size during 'ipset l'? We do
-print out 'Number of entries' so that should be enough information for
-the user.
+> > Its needed for nf_conntrack_helper_try_module_get().
+> > 
+> > This also begs the question of how one would handle
+> > NFPROTO_INET, in that case we'd want both v4 and v6, but that
+> > would require stashing two struct nf_conntrack_helper in
+> > priv area.
+> 
+> Still, someone may want to only enable helper for IPv4 in the inet
+> chain, right? It's a bit of corner case but this attribute provides
+> slight more flexibility.
 
-Let me know if you are OK with that, I can send a patch for it.
+But assignment can be limited via nft ... meta nfproto ipv4, no?
 
-Thanks,
-Vishwanath
+> Probably, we should handle NFPROTO_INET as a real family at some
+> point, so user doesn't have to specify twice the same configuration to
+> attach helpers from inet chains.
+
+Yes, that what I wanted to avoid ...
+
+> On a different front, but related, I've been considering to handle the
+> NFPROTO_INET family from the netfilter/core, so we can get rid of the
+> existing specific code in nf_tables to handle this pseudofamily.
+> Actually, just handle it as a real family. I have a patchset here in a
+> branch I made to do this, I would need to revisit it.
+
+Sounds good to me, although I am not sure how you're going to pull this
+off ;)
+
+> > Any ideas/suggestions?
+> > 
+> > +	NFTA_CT_HELPER_L4PROTO,
+> 
+> Fine by now. We can place here more attributes, such as expectation
+> timeouts and specific per-helper setting (eg. ftp loose).  Just a
+> matter of adding more attributes later on, no problem.
+
+Right, I wanted to be sure that this is the right direction before
+doing this.
+
+> > +	if (nla_strlcpy(name, tb[NFTA_CT_HELPER_NAME], sizeof(name)) >= sizeof(name))
+> > +		return -EINVAL;
+> 
+> nla_policy already ensures we don't go over helper name size.
+
+Right, I'll remove the conditional, thanks Pablo.
