@@ -1,75 +1,77 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Parameter 'size' in type list:set is ignored
-Date: Wed, 15 Feb 2017 10:33:54 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1702151020570.30100@blackhole.kfki.hu>
-References: <921798b7-0b87-2e15-9f6f-b33adb46c3b8@akamai.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Joshua Hunt <johunt@akamai.com>
-To: Vishwanath Pai <vpai@akamai.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH libnftnl 2/3] common: return nlmsghdr in nftnl_batch_{begin,end}()
+Date: Wed, 15 Feb 2017 11:43:35 +0100
+Message-ID: <1487155416-7337-2-git-send-email-pablo@netfilter.org>
+References: <1487155416-7337-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:50426 "EHLO smtp1.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:50872 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751077AbdBOJeC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Feb 2017 04:34:02 -0500
-In-Reply-To: <921798b7-0b87-2e15-9f6f-b33adb46c3b8@akamai.com>
+        id S1751609AbdBOKnv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 15 Feb 2017 05:43:51 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 47F89170D23
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Feb 2017 11:43:49 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2D9A8DA801
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Feb 2017 11:43:49 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4ADE2DA84B
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Feb 2017 11:43:46 +0100 (CET)
+In-Reply-To: <1487155416-7337-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Useful to append netlink attributes after the batch headers.
 
-On Tue, 14 Feb 2017, Vishwanath Pai wrote:
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/libnftnl/common.h |  4 ++--
+ src/common.c              | 12 ++++++------
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-> I noticed that in recent versions of ipset the parameter 'size' in set 
-> type list:set is ignored. I noticed this change in the latest upstream 
-> code. In kernel 4.1 'ipset add' errors out when I try to add more 
-> elements than 'size' but in 4.10 it does not. For example, if the size 
-> is set to 4 and I try to add a fifth element to the set: in 4.1 it 
-> errors out with "set is full" but if I try the same in 4.10 kernel it 
-> lets me add the 5th element.
-
-Yes, the internal storage method was rewritten from fixed sized arrays to 
-linked lists.
+diff --git a/include/libnftnl/common.h b/include/libnftnl/common.h
+index f67f1866560f..62c8f6b5e0a3 100644
+--- a/include/libnftnl/common.h
++++ b/include/libnftnl/common.h
+@@ -49,7 +49,7 @@ void nftnl_parse_err_free(struct nftnl_parse_err *);
+ int nftnl_parse_perror(const char *str, struct nftnl_parse_err *err);
  
-> I think this change was introduced in v4.2 by the following commit:
-> commit 00590fdd5be0d763631ef10e6a3e2ce8fc2d9ec3
-> Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> Date:   Sat Jun 13 16:56:02 2015 +0200
-> 
->     netfilter: ipset: Introduce RCU locking in list type
-> 
->     Standard rculist is used.
-> 
->     Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-
-Exactly.
+ int nftnl_batch_is_supported(void);
+-void nftnl_batch_begin(char *buf, uint32_t seq);
+-void nftnl_batch_end(char *buf, uint32_t seq);
++struct nlmsghdr *nftnl_batch_begin(char *buf, uint32_t seq);
++struct nlmsghdr *nftnl_batch_end(char *buf, uint32_t seq);
  
-> Adding more elements than 'size' does not break anything but has a 
-> side-effect. For example in 4.1 kernel the command 'ipset add test e 
-> before d' would replace d with e but on 4.10 kernel it will simply add e 
-> to the list before d without replacing it.
-
-Yes, it's a subtle difference - and I didn't think of it...
+ #endif
+diff --git a/src/common.c b/src/common.c
+index 0f23785e05d3..a95883c19080 100644
+--- a/src/common.c
++++ b/src/common.c
+@@ -165,17 +165,17 @@ int nftnl_cmd_footer_fprintf(FILE *fp, uint32_t cmd, uint32_t type,
+ 			   nftnl_cmd_footer_fprintf_cb);
+ }
  
-> Was this change intentional? Or should we be enforcing 'max elements' on 
-> this set type? If we should enforce the limit then I can send a patch to 
-> fix it. Please let me know.
+-void nftnl_batch_begin(char *buf, uint32_t seq)
++struct nlmsghdr *nftnl_batch_begin(char *buf, uint32_t seq)
+ {
+-	__nftnl_nlmsg_build_hdr(buf, NFNL_MSG_BATCH_BEGIN, AF_UNSPEC, 0, seq,
+-				NFNL_SUBSYS_NFTABLES);
++	return __nftnl_nlmsg_build_hdr(buf, NFNL_MSG_BATCH_BEGIN, AF_UNSPEC,
++				       0, seq, NFNL_SUBSYS_NFTABLES);
+ }
+ EXPORT_SYMBOL(nftnl_batch_begin);
+ 
+-void nftnl_batch_end(char *buf, uint32_t seq)
++struct nlmsghdr *nftnl_batch_end(char *buf, uint32_t seq)
+ {
+-	__nftnl_nlmsg_build_hdr(buf, NFNL_MSG_BATCH_END, AF_UNSPEC, 0, seq,
+-				NFNL_SUBSYS_NFTABLES);
++	return __nftnl_nlmsg_build_hdr(buf, NFNL_MSG_BATCH_END, AF_UNSPEC,
++				       0, seq, NFNL_SUBSYS_NFTABLES);
+ }
+ EXPORT_SYMBOL(nftnl_batch_end);
+ 
+-- 
+2.1.4
 
-The change was not intentional. Maybe the best solution was to print a 
-warning that 'size' is ignored when a list type of set is defined with a 
-size parameter.
-
-It's an incompatibility which cannot be undone: even if we start to 
-enforce the size parameter then the releases are still out which ignore 
-that. What is your opinion? Should the limit still be reintroduced?
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
