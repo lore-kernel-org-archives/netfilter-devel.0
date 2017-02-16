@@ -1,92 +1,83 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Parameter 'size' in type list:set is ignored
-Date: Thu, 16 Feb 2017 21:21:52 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1702162102150.8526@blackhole.kfki.hu>
-References: <921798b7-0b87-2e15-9f6f-b33adb46c3b8@akamai.com> <alpine.DEB.2.10.1702151020570.30100@blackhole.kfki.hu> <eb541502-e6c8-1ac4-5f9b-e57f8ec14044@akamai.com>
+From: Richard Guy Briggs <rgb@redhat.com>
+Subject: Re: AUDIT_NETFILTER_PKT message format
+Date: Thu, 16 Feb 2017 16:24:23 -0500
+Message-ID: <20170216212423.GL21519@madcap2.tricolour.ca>
+References: <20170117052551.GQ3087@madcap2.tricolour.ca>
+ <3926301.2G9jBBrVEf@x2>
+ <20170213205005.GO26855@madcap2.tricolour.ca>
+ <3292833.iEpdVtO8mH@x2>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Joshua Hunt <johunt@akamai.com>
-To: Vishwanath Pai <vpai@akamai.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>,
+        Thomas Graf <tgraf@infradead.org>
+To: Steve Grubb <sgrubb@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:35465 "EHLO smtp0.kfki.hu"
+Received: from mx1.redhat.com ([209.132.183.28]:37062 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932740AbdBPUV4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Feb 2017 15:21:56 -0500
-In-Reply-To: <eb541502-e6c8-1ac4-5f9b-e57f8ec14044@akamai.com>
+        id S932975AbdBPVY1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Feb 2017 16:24:27 -0500
+Content-Disposition: inline
+In-Reply-To: <3292833.iEpdVtO8mH@x2>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 15 Feb 2017, Vishwanath Pai wrote:
-
-> On 02/15/2017 04:33 AM, Jozsef Kadlecsik wrote:
-> > On Tue, 14 Feb 2017, Vishwanath Pai wrote:
+On 2017-02-14 16:31, Steve Grubb wrote:
+> On Monday, February 13, 2017 3:50:05 PM EST Richard Guy Briggs wrote:
+> > > > > > The alternatives that I currently see are to drop packets for which
+> > > > > > there is no local process ownership, or to leave the ownership
+> > > > > > fields unset.
+> > > > > 
+> > > > > What ownership fields are we talking about?
+> > > > 
+> > > > The ones you want, auid, pid, ses.  Perhaps I'm using the wrong
+> > > > terminology.  What technical term is there for the collection of subject
+> > > > identifiers?
+> > > 
+> > > Subject attributes.
 > > 
-> >> I noticed that in recent versions of ipset the parameter 'size' in set 
-> >> type list:set is ignored. I noticed this change in the latest upstream 
-> >> code. In kernel 4.1 'ipset add' errors out when I try to add more 
-> >> elements than 'size' but in 4.10 it does not. For example, if the size 
-> >> is set to 4 and I try to add a fifth element to the set: in 4.1 it 
-> >> errors out with "set is full" but if I try the same in 4.10 kernel it 
-> >> lets me add the 5th element.
+> > Ah ok, I'll try to remember to use that term...
 > > 
-> > Yes, the internal storage method was rewritten from fixed sized arrays to 
-> > linked lists.
-> >  
-> >> I think this change was introduced in v4.2 by the following commit:
-> >> commit 00590fdd5be0d763631ef10e6a3e2ce8fc2d9ec3
-> >> Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> >> Date:   Sat Jun 13 16:56:02 2015 +0200
-> >>
-> >>     netfilter: ipset: Introduce RCU locking in list type
-> >>
-> >>     Standard rculist is used.
-> >>
-> >>     Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> > 
-> > Exactly.
-> >  
-> >> Adding more elements than 'size' does not break anything but has a 
-> >> side-effect. For example in 4.1 kernel the command 'ipset add test e 
-> >> before d' would replace d with e but on 4.10 kernel it will simply add e 
-> >> to the list before d without replacing it.
-> > 
-> > Yes, it's a subtle difference - and I didn't think of it...
-> >  
-> >> Was this change intentional? Or should we be enforcing 'max elements' on 
-> >> this set type? If we should enforce the limit then I can send a patch to 
-> >> fix it. Please let me know.
-> > 
-> > The change was not intentional. Maybe the best solution was to print a 
-> > warning that 'size' is ignored when a list type of set is defined with a 
-> > size parameter.
-> > 
-> > It's an incompatibility which cannot be undone: even if we start to 
-> > enforce the size parameter then the releases are still out which ignore 
-> > that. What is your opinion? Should the limit still be reintroduced?
+> > Now that you know what I'm talking about, can you go back and answer the
+> > questions I had about packet "ownership" (which is really packet subject
+> > attributes)? 
 > 
-> Thank you for confirming. I am OK with the new behavior, and I think it
-> keeps things simple. But we should definitely warn the user that size is
-> not relevant anymore. And may be not print size during 'ipset l'? We do
-> print out 'Number of entries' so that should be enough information for
-> the user.
+> The format for subject attributes would be:
+> pid, uid, auid, ses, subj, comm, exe, ...then whatever else you want to add
 > 
-> Let me know if you are OK with that, I can send a patch for it.
+> This also goes for the netfilter_cfg events.
 
-We alreade have a parser function for ignored parameters which prints a 
-warning, so please use that.
+Ok, this I can deal with.  Thank you.
 
-However that requires a new revision for the list type, both in user and 
-kernel space in order to keep backward compatibility with older kernels 
-before commit 00590fd. In userspace that's quite simple, in the kernel 
-part it requires a little bit more work.
+> > If we have that information, how to we include it in the
+> > message format?  And if we don't have it, do we ignore the packet, or do
+> > we swing fields out, or do we set those fields to "unset" or do we use
+> > an auxiliary record?
+> 
+> If you have this for the majority of events, I'd say leave it unset when you 
+> don't. We really don't care about packets that simply transit through the 
+> system. Also, I suppose it depends on what kind of packet it is. For example, 
+> a icmp echo sent to the machine that is blocked is obviously not going to have 
+> an owner. But one originating in the machine heading out should.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+I'll add them to the message format and leave them unset if we have no
+information.
+
+The way that the AUDIT target is used by users is going to determine
+what is the majority of events.  The user has complete freedom to set up
+rules such that all of them only log packets transiting the system, but
+this is clearly not the intent of this record.
+
+This sounds like it deserves a blog post to clarify the intent and the
+limitations and/or an update to the xt_AUDIT manpage.
+
+> -Steve
+
+- RGB
+
+--
+Richard Guy Briggs <rgb@redhat.com>
+Kernel Security Engineering, Base Operating Systems, Red Hat
+Remote, Ottawa, Canada
+Voice: +1.647.777.2635, Internal: (81) 32635
