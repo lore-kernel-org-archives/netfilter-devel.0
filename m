@@ -1,33 +1,79 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] doc: Document maps
-Date: Thu, 16 Feb 2017 20:10:53 +0100
-Message-ID: <20170216191053.GA18821@salvia>
-References: <20170213164711.GA12126@lennorien.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] netfilter: ipset: Null pointer exception in ipset
+ list:set
+Date: Thu, 16 Feb 2017 20:58:15 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1702162057140.8526@blackhole.kfki.hu>
+References: <1487198726-21866-1-git-send-email-vpai@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Elise Lennion <elise.lennion@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Patrick McHardy <kaber@trash.net>, johunt@akamai.com,
+        pai.vishwain@gmail.com, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org
+To: Vishwanath Pai <vpai@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37828 "EHLO mail.us.es"
+Received: from smtp0.kfki.hu ([148.6.0.25]:60333 "EHLO smtp0.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932595AbdBPTLC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Feb 2017 14:11:02 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 8B62FB497D
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Feb 2017 20:11:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7C04EDA795
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Feb 2017 20:11:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6E85DDA816
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Feb 2017 20:10:58 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20170213164711.GA12126@lennorien.com>
+        id S932344AbdBPT6Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Feb 2017 14:58:24 -0500
+In-Reply-To: <1487198726-21866-1-git-send-email-vpai@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Feb 13, 2017 at 02:47:11PM -0200, Elise Lennion wrote:
-> This patch adds the missing documentation for maps. Also, updates sets
-> policy to match maps.
+Hi,
 
-Applied, thanks Elise.
+On Wed, 15 Feb 2017, Vishwanath Pai wrote:
+
+> If we use before/after to add an element to an empty list it will cause
+> a kernel panic.
+> 
+> $> cat crash.restore
+> create a hash:ip
+> create b hash:ip
+> create test list:set timeout 5 size 4
+> add test b before a
+> 
+> $> ipset -R < crash.restore
+> 
+> Executing the above will crash the kernel.
+> 
+> Signed-off-by: Vishwanath Pai <vpai@akamai.com>
+> Reviewed-by: Josh Hunt <johunt@akamai.com>
+> ---
+>  net/netfilter/ipset/ip_set_list_set.c | 9 ++++++---
+>  1 file changed, 6 insertions(+), 3 deletions(-)
+> 
+> diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+> index 51077c5..178d4eb 100644
+> --- a/net/netfilter/ipset/ip_set_list_set.c
+> +++ b/net/netfilter/ipset/ip_set_list_set.c
+> @@ -260,11 +260,14 @@ struct list_set {
+>  		else
+>  			prev = e;
+>  	}
+> +
+> +	/* If before/after is used on an empty set */
+> +	if ((d->before > 0 && !next) ||
+> +	    (d->before < 0 && !prev))
+> +		return -IPSET_ERR_REF_EXIST;
+> +
+>  	/* Re-add already existing element */
+>  	if (n) {
+> -		if ((d->before > 0 && !next) ||
+> -		    (d->before < 0 && !prev))
+> -			return -IPSET_ERR_REF_EXIST;
+>  		if (!flag_exist)
+>  			return -IPSET_ERR_EXIST;
+>  		/* Update extensions */
+> -- 
+> 1.9.1
+
+Patch is applied, thank you!
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
