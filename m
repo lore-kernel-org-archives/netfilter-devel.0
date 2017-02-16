@@ -1,74 +1,87 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] netfilter: ipset: Null pointer exception in ipset
- list:set
-Date: Thu, 16 Feb 2017 20:58:15 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1702162057140.8526@blackhole.kfki.hu>
-References: <1487198726-21866-1-git-send-email-vpai@akamai.com>
+Subject: Re: Parameter 'size' in type list:set is ignored
+Date: Thu, 16 Feb 2017 21:21:52 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1702162102150.8526@blackhole.kfki.hu>
+References: <921798b7-0b87-2e15-9f6f-b33adb46c3b8@akamai.com> <alpine.DEB.2.10.1702151020570.30100@blackhole.kfki.hu> <eb541502-e6c8-1ac4-5f9b-e57f8ec14044@akamai.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>, johunt@akamai.com,
-        pai.vishwain@gmail.com, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Patrick McHardy <kaber@trash.net>,
+        Joshua Hunt <johunt@akamai.com>
 To: Vishwanath Pai <vpai@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:60333 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:35465 "EHLO smtp0.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932344AbdBPT6Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Feb 2017 14:58:24 -0500
-In-Reply-To: <1487198726-21866-1-git-send-email-vpai@akamai.com>
+        id S932740AbdBPUV4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Feb 2017 15:21:56 -0500
+In-Reply-To: <eb541502-e6c8-1ac4-5f9b-e57f8ec14044@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
 On Wed, 15 Feb 2017, Vishwanath Pai wrote:
 
-> If we use before/after to add an element to an empty list it will cause
-> a kernel panic.
+> On 02/15/2017 04:33 AM, Jozsef Kadlecsik wrote:
+> > On Tue, 14 Feb 2017, Vishwanath Pai wrote:
+> > 
+> >> I noticed that in recent versions of ipset the parameter 'size' in set 
+> >> type list:set is ignored. I noticed this change in the latest upstream 
+> >> code. In kernel 4.1 'ipset add' errors out when I try to add more 
+> >> elements than 'size' but in 4.10 it does not. For example, if the size 
+> >> is set to 4 and I try to add a fifth element to the set: in 4.1 it 
+> >> errors out with "set is full" but if I try the same in 4.10 kernel it 
+> >> lets me add the 5th element.
+> > 
+> > Yes, the internal storage method was rewritten from fixed sized arrays to 
+> > linked lists.
+> >  
+> >> I think this change was introduced in v4.2 by the following commit:
+> >> commit 00590fdd5be0d763631ef10e6a3e2ce8fc2d9ec3
+> >> Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> >> Date:   Sat Jun 13 16:56:02 2015 +0200
+> >>
+> >>     netfilter: ipset: Introduce RCU locking in list type
+> >>
+> >>     Standard rculist is used.
+> >>
+> >>     Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> > 
+> > Exactly.
+> >  
+> >> Adding more elements than 'size' does not break anything but has a 
+> >> side-effect. For example in 4.1 kernel the command 'ipset add test e 
+> >> before d' would replace d with e but on 4.10 kernel it will simply add e 
+> >> to the list before d without replacing it.
+> > 
+> > Yes, it's a subtle difference - and I didn't think of it...
+> >  
+> >> Was this change intentional? Or should we be enforcing 'max elements' on 
+> >> this set type? If we should enforce the limit then I can send a patch to 
+> >> fix it. Please let me know.
+> > 
+> > The change was not intentional. Maybe the best solution was to print a 
+> > warning that 'size' is ignored when a list type of set is defined with a 
+> > size parameter.
+> > 
+> > It's an incompatibility which cannot be undone: even if we start to 
+> > enforce the size parameter then the releases are still out which ignore 
+> > that. What is your opinion? Should the limit still be reintroduced?
 > 
-> $> cat crash.restore
-> create a hash:ip
-> create b hash:ip
-> create test list:set timeout 5 size 4
-> add test b before a
+> Thank you for confirming. I am OK with the new behavior, and I think it
+> keeps things simple. But we should definitely warn the user that size is
+> not relevant anymore. And may be not print size during 'ipset l'? We do
+> print out 'Number of entries' so that should be enough information for
+> the user.
 > 
-> $> ipset -R < crash.restore
-> 
-> Executing the above will crash the kernel.
-> 
-> Signed-off-by: Vishwanath Pai <vpai@akamai.com>
-> Reviewed-by: Josh Hunt <johunt@akamai.com>
-> ---
->  net/netfilter/ipset/ip_set_list_set.c | 9 ++++++---
->  1 file changed, 6 insertions(+), 3 deletions(-)
-> 
-> diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-> index 51077c5..178d4eb 100644
-> --- a/net/netfilter/ipset/ip_set_list_set.c
-> +++ b/net/netfilter/ipset/ip_set_list_set.c
-> @@ -260,11 +260,14 @@ struct list_set {
->  		else
->  			prev = e;
->  	}
-> +
-> +	/* If before/after is used on an empty set */
-> +	if ((d->before > 0 && !next) ||
-> +	    (d->before < 0 && !prev))
-> +		return -IPSET_ERR_REF_EXIST;
-> +
->  	/* Re-add already existing element */
->  	if (n) {
-> -		if ((d->before > 0 && !next) ||
-> -		    (d->before < 0 && !prev))
-> -			return -IPSET_ERR_REF_EXIST;
->  		if (!flag_exist)
->  			return -IPSET_ERR_EXIST;
->  		/* Update extensions */
-> -- 
-> 1.9.1
+> Let me know if you are OK with that, I can send a patch for it.
 
-Patch is applied, thank you!
+We alreade have a parser function for ignored parameters which prints a 
+warning, so please use that.
+
+However that requires a new revision for the list type, both in user and 
+kernel space in order to keep backward compatibility with older kernels 
+before commit 00590fd. In userspace that's quite simple, in the kernel 
+part it requires a little bit more work.
 
 Best regards,
 Jozsef
