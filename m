@@ -1,78 +1,149 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [4.9.10] ip_route_me_harder() reading off-slab
-Date: Fri, 17 Feb 2017 08:39:28 +0100
-Message-ID: <20170217073928.GA25854@breakpoint.cc>
-References: <CAMVG2ssKxnEsu4=orZyB3UsHwT2CZhpWKFn2UmtoPOEu1KMHPw@mail.gmail.com>
+From: Paul Moore <paul@paul-moore.com>
+Subject: Re: AUDIT_NETFILTER_PKT message format
+Date: Fri, 17 Feb 2017 18:04:30 -0500
+Message-ID: <CAHC9VhTTaPB_fO01F+rV76fAPbT2pdGM2uM7H=WXc1U7RCpybA@mail.gmail.com>
+References: <20170117052551.GQ3087@madcap2.tricolour.ca> <10185842.hTv0ExFpgc@x2>
+ <20170210225445.GS26850@madcap2.tricolour.ca> <3926301.2G9jBBrVEf@x2>
+ <20170213205005.GO26855@madcap2.tricolour.ca> <CAHC9VhTGJMtg6z-WjW+PYCrEAKdrrKhfJdi3j4DB=91r8XYH4Q@mail.gmail.com>
+ <20170214002452.GT26850@madcap2.tricolour.ca> <CAHC9VhTZZN8u1CmVVSn_tmirvY+nGjry1PEcQFM+a-DhcLgoBg@mail.gmail.com>
+ <20170216223612.GM21519@madcap2.tricolour.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netdev <netdev@vger.kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        David Ahern <dsa@cumulusnetworks.com>,
-        Jan Beulich <JBeulich@suse.com>,
-        Eric Dumazet <eric.dumazet@gmail.com>,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: Daniel J Blueman <daniel@quora.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAMVG2ssKxnEsu4=orZyB3UsHwT2CZhpWKFn2UmtoPOEu1KMHPw@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: Steve Grubb <sgrubb@redhat.com>,
+        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>,
+        Thomas Graf <tgraf@infradead.org>
+To: Richard Guy Briggs <rgb@redhat.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-vk0-f54.google.com ([209.85.213.54]:34241 "EHLO
+        mail-vk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964780AbdBQXFb (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 17 Feb 2017 18:05:31 -0500
+Received: by mail-vk0-f54.google.com with SMTP id r136so37593531vke.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Feb 2017 15:04:32 -0800 (PST)
+In-Reply-To: <20170216223612.GM21519@madcap2.tricolour.ca>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Daniel J Blueman <daniel@quora.org> wrote:
+On Thu, Feb 16, 2017 at 5:36 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2017-02-15 19:32, Paul Moore wrote:
+>> On Mon, Feb 13, 2017 at 7:24 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+>> > On 2017-02-13 18:50, Paul Moore wrote:
+>> >> On Mon, Feb 13, 2017 at 3:50 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+>>
+>> ...
+>>
+>> >> > helpful         action, hook
+>> >>
+>> >> I haven't checked, but do we allow setting of an audit key in
+>> >> NETFILTER_PKT records?  It seems like that might be a good thing for
+>> >> the userspace tools and would likely make logging the action/hook
+>> >> unncessary.
+>> >
+>> > Not that I am aware of.  That would be way useful if it were possible.
+>> > "AUDIT" is a netfilter target and you can set the type to "accept",
+>> > "drop" or "reject".  Similarly, having the sub-chain name would be
+>> > useful but that doesn't appear to be available either.  This is why I
+>> > used a "mark" in the testsuite to track packets.
+>>
+>> I've been thinking about this off and on and I think you are on to
+>> something here ... the netfilter mark is very similar to what we do
+>> with the audit keys and the audit-folk on this thread already know how
+>> helpful audit keys can be for associating records with a specific [set
+>> of] audit rules; I'm thinking we should treat the netfilter mark the
+>> same way, after all, this is very much in keeping with how
+>> netfilter/iptables uses the mark data.
+>
+> I felt like I was kind of cheating to use it, but no other fine-grained
+> method was evident to me when I wrote that test script.  In a test
+> script it is a controlled environment with no other conflicting users.
+>
+> My thoughts were that use of it as a key for tracking audit events
+> itself might not be as viable due to other uses of the nfmark.
+>
+> What it comes down to is simply spending a bit more careful design
+> effort to have the uses of nfmark co-exist since I don't see any
+> inherent conflicts.
 
-[ CC nf-devel, pablo ]
+I think it is safe to say that anyone who is going to the trouble of
+using NETFILTER_PKT is going to have a well considered security
+configuration.  I don't view using the nfmark as a shorthand for audit
+to help identify complex netfilter matches to be a major ask in these
+situations, and it seems in keeping with the intent of the nfmark
+concept.
 
-> When booting a VM in libvirt/KVM attached to a local bridge and KASAN
-> enabled on 4.9.10, we see a stream of KASAN warnings about off-slab
-> access [1].
-> 
-> Let me know if you'd like more debug.
+>>  In an effort to simplify
+>> things greatly for the NETFILTER_PKT record I'm going to offer the
+>> following suggestion:
+>>
+>> * Limit NETFILTER_PKT fields to only those present in the IPv4/IPv6
+>> header, e.g. src/dest addresses and next level protocol, and the
+>> netfilter mark.
+>
+> (I'd start with: mark, saddr, daddr, proto)
 
-Does this patch help?
+Yeah, that's what I said ;)
 
-Subject: [PATCH nf] netfilter: use skb_to_full_sk in ip_route_me_harder
+> That seems a bit oversimplified, requiring a lot more effort and lists
+> of rules to track down different application-layer protocols (ports).
 
-inet_sk(skb->sk) is illegal in case skb is attached to request socket.
+I relies more heavily on the nfmark as discussed above.
 
-Fixes: ca6fb0651883 ("tcp: attach SYNACK messages to request sockets instead of listener")
-Reported by: Daniel J Blueman <daniel@quora.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/ipv4/netfilter.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+> This reminds me of Rusty's sig a while back "Premature optmztion is rt
+> of all evl."  ;-)
 
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index b3cc1335adbc..c0cc6aa8cfaa 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -23,7 +23,8 @@ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned int addr_t
- 	struct rtable *rt;
- 	struct flowi4 fl4 = {};
- 	__be32 saddr = iph->saddr;
--	__u8 flags = skb->sk ? inet_sk_flowi_flags(skb->sk) : 0;
-+	const struct sock *sk = skb_to_full_sk(skb);
-+	__u8 flags = sk ? inet_sk_flowi_flags(sk) : 0;
- 	struct net_device *dev = skb_dst(skb)->dev;
- 	unsigned int hh_len;
- 
-@@ -40,7 +41,7 @@ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned int addr_t
- 	fl4.daddr = iph->daddr;
- 	fl4.saddr = saddr;
- 	fl4.flowi4_tos = RT_TOS(iph->tos);
--	fl4.flowi4_oif = skb->sk ? skb->sk->sk_bound_dev_if : 0;
-+	fl4.flowi4_oif = sk ? sk->sk_bound_dev_if : 0;
- 	if (!fl4.flowi4_oif)
- 		fl4.flowi4_oif = l3mdev_master_ifindex(dev);
- 	fl4.flowi4_mark = skb->mark;
-@@ -61,7 +62,7 @@ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned int addr_t
- 	    xfrm_decode_session(skb, flowi4_to_flowi(&fl4), AF_INET) == 0) {
- 		struct dst_entry *dst = skb_dst(skb);
- 		skb_dst_set(skb, NULL);
--		dst = xfrm_lookup(net, dst, flowi4_to_flowi(&fl4), skb->sk, 0);
-+		dst = xfrm_lookup(net, dst, flowi4_to_flowi(&fl4), sk, 0);
- 		if (IS_ERR(dst))
- 			return PTR_ERR(dst);
- 		skb_dst_set(skb, dst);
+Perhaps this is being nitpicky, but you optimize something for a given
+set of requirements, something which we are lacking here.  This isn't
+an optimization, but rather a simplified approach brought about by a
+lack of requirements.
+
+Right now the only real requirement we have is that Steve would like
+something a bit more predictable in the NETFILTER_PKT record
+<insert-my-usual-comments-about-the-audit-kernel/userspace-API-being-a-pile-of-garbage>.
+While we have indications that people are using this in the wild, they
+aren't letting their voices be heard here, or anywhere else that we
+can see, so I'd like to focus on a solution that satisfies Steve and
+doesn't burden us in the future in case we have to start adding
+additional fields/records.  This is why I'm thinking of limiting us to
+just the IP layer information + the nfmark; this should provide a
+fairly rich capability without saddling us with a lot of baggage to
+worry about in the future.  I do agree that it does add some
+administrative setup cost, but as I said earlier, those admins who
+make use of this are likely already used to dealing with a high setup
+cost.
+
+I *really* don't want to add a bunch of new records and fields for a
+bit of functionality with uncertain usage and requirements; that
+almost never works out well for anyone, especially those who have to
+maintain that crap for the long term.
+
+> There are a limited number of actions, hooks, interfaces and protocol
+> families, so this seems plausibly reasonable to ditch in favour of
+> nfmark, but all of these would just need to be re-coded in the nfmark if
+> needed, although the typical assumption about number of interfaces may
+> be naive for those users who may find this sort of auditing very useful.
+> (I'm thinking of network appliances.)
+
+... this is a good time to point out that trying to arrive at a set of
+fields that fully satisfies every use case that comes our way is going
+to be impossible at worst, and increasingly frustrating at best.  I
+think we are always going to need to rely on the nfmark to some
+extent, let's admit that now and make our lives easier; if we hear
+from users (e.g. actual requirements!) in the future we can always add
+new fields/records to make their lives easier.
+
+>> * Teach ausearch and the other relevant audit userspace tools to
+>> search on the netfilter mark much like they currently search on the
+>> audit key.
+>
+> That sounds potentially useful, and until that happens, a user could
+> pull together a perl or python script to deal with them.
+
+Granted I'm stubborn and ornery, but I still do most of lot of log
+spelunking with grep and friends.
+
 -- 
-2.10.2
+paul moore
+www.paul-moore.com
