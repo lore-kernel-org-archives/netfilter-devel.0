@@ -1,49 +1,35 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset 6.31 released
-Date: Sun, 19 Feb 2017 19:29:41 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1702191924300.22013@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH libnftnl 4/9] src: ct: add zone support
+Date: Sun, 19 Feb 2017 20:22:10 +0100
+Message-ID: <20170219192210.GA4031@salvia>
+References: <20170203123556.17357-1-fw@strlen.de>
+ <20170203123556.17357-5-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:45188 "EHLO smtp0.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:58756 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751626AbdBSS3r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 19 Feb 2017 13:29:47 -0500
+        id S1750880AbdBSTWb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 19 Feb 2017 14:22:31 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id BDD5AED904
+        for <netfilter-devel@vger.kernel.org>; Sun, 19 Feb 2017 20:22:29 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B1782DA809
+        for <netfilter-devel@vger.kernel.org>; Sun, 19 Feb 2017 20:22:29 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C6102DA809
+        for <netfilter-devel@vger.kernel.org>; Sun, 19 Feb 2017 20:22:26 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20170203123556.17357-5-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Fri, Feb 03, 2017 at 01:35:51PM +0100, Florian Westphal wrote:
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-ipset 6.31 has just been released with two important bugfixes. So please 
-upgrade your ipset package.
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Userspace changes:
-  - Update manpage about the size parameter of list:set types.
-  - New test to verify that only the intended entries are deleted at hash
-    types.
-Kernel part changes:
-  - netfilter: ipset: Null pointer exception in ipset list:set
-    (Vishwanath Pai)
-    When someone wants to add an entry to an empty list type of set and 
-    specifies and add before/after option, null pointer exception is 
-    triggered.
-  - Fix bug: sometimes valid entries in hash:* types of sets were evicted
-    (reported by Eric Ewanco)
-    The wrong evictions happen when entries are deleted from the set and 
-    the hash bucket is shrinked.
-  - Correct copyright owner
-  - Revert patch "Correct rcu_dereference_bh_nfnl() usage"
-
-You can download the source code of ipset from:
-        http://ipset.netfilter.org
-        ftp://ftp.netfilter.org/pub/ipset/
-        git://git.netfilter.org/ipset.git
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Please, push this chunk for libnftnl into git.netfilter.org, Thanks!
