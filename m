@@ -1,51 +1,46 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nf-next PATCH] nftables: exthdr: Allow checking TCP option presence, too
-Date: Mon, 20 Feb 2017 17:52:27 +0100
-Message-ID: <20170220165227.13505-1-phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: Re: net: possible deadlock in skb_queue_tail
+Date: Mon, 20 Feb 2017 14:51:39 -0800
+Message-ID: <CAM_iQpX9gBPOqGo_hwhNmFrUE=R1CdfJvUfkJ+HSK67ybk9LEg@mail.gmail.com>
+References: <CAAeHK+yCwsZE9iv+OLHJaU+7FEka8UHy_t5vMqFUBpQ8srBbsQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev <netdev@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Kostya Serebryany <kcc@google.com>,
+        Eric Dumazet <edumazet@google.com>,
+        syzkaller <syzkaller@googlegroups.com>
+To: Andrey Konovalov <andreyknvl@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:55863 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752118AbdBTQwh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Feb 2017 11:52:37 -0500
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:35443 "EHLO
+        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750987AbdBTWwB (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 20 Feb 2017 17:52:01 -0500
+In-Reply-To: <CAAeHK+yCwsZE9iv+OLHJaU+7FEka8UHy_t5vMqFUBpQ8srBbsQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- net/netfilter/nft_exthdr.c | 13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+On Mon, Feb 20, 2017 at 5:29 AM, Andrey Konovalov <andreyknvl@google.com> wrote:
+> other info that might help us debug this:
+>
+>  Possible unsafe locking scenario:
+>
+>        CPU0                    CPU1
+>        ----                    ----
+>   lock(&(&pcpu->lock)->rlock);
+>                                lock(&(&list->lock)->rlock#3);
+>                                lock(&(&pcpu->lock)->rlock);
+>   lock(&(&list->lock)->rlock#3);
+>
 
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index c308920b194cd..d212a85d2f333 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -98,14 +98,21 @@ static void nft_exthdr_tcp_eval(const struct nft_expr *expr,
- 			goto err;
- 
- 		offset = i + priv->offset;
--		dest[priv->len / NFT_REG32_SIZE] = 0;
--		memcpy(dest, opt + offset, priv->len);
-+		if (priv->flags & NFT_EXTHDR_F_PRESENT) {
-+			*dest = 1;
-+		} else {
-+			dest[priv->len / NFT_REG32_SIZE] = 0;
-+			memcpy(dest, opt + offset, priv->len);
-+		}
- 
- 		return;
- 	}
- 
- err:
--	regs->verdict.code = NFT_BREAK;
-+	if (priv->flags & NFT_EXTHDR_F_PRESENT)
-+		*dest = 0;
-+	else
-+		regs->verdict.code = NFT_BREAK;
- }
- 
- static const struct nla_policy nft_exthdr_policy[NFTA_EXTHDR_MAX + 1] = {
--- 
-2.11.0
-
+They are different types of sockets and different lists of skb's,
+one is netlink socket the other is udp socket, so I don't think
+we could have a deadlock in this scenario, we probably need to
+explicitly mark them as different lockdep classes.
