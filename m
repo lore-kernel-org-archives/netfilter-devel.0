@@ -1,39 +1,68 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] nfnetlink_log: fix the typo
-Date: Sun, 19 Feb 2017 20:58:39 +0100
-Message-ID: <20170219195839.GA6211@salvia>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: ANNOUNCE: Netdev 2.1 update Feb 20
+Date: Mon, 20 Feb 2017 08:18:15 -0500
+Message-ID: <7ac4b86b-5346-e709-6c45-39271a902ef0@mojatatu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: The netfilter developer mailinglist
-        <netfilter-devel@vger.kernel.org>
-To: Duan Jiong <jduan@fiberhome.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+        info@netdevconf.org, linux-wireless@vger.kernel.org,
+        tech-committee@netdevconf.org, David Miller <davem@davemloft.net>,
+        Stephen Jaworski <jaws@mojatatu.com>, lwn@lwn.net,
+        people@netdevconf.org, Brenda Butler <bjb@mojatatu.com>
+To: "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39450 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750978AbdBST6p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 19 Feb 2017 14:58:45 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2EC23DA722
-        for <netfilter-devel@vger.kernel.org>; Sun, 19 Feb 2017 20:58:42 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 222E0DA7F7
-        for <netfilter-devel@vger.kernel.org>; Sun, 19 Feb 2017 20:58:42 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1B80CDA7F7
-        for <netfilter-devel@vger.kernel.org>; Sun, 19 Feb 2017 20:58:40 +0100 (CET)
-Content-Disposition: inline
+Received: from mail-io0-f196.google.com ([209.85.223.196]:32882 "EHLO
+        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753255AbdBTNS5 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 20 Feb 2017 08:18:57 -0500
+Received: by mail-io0-f196.google.com with SMTP id d198so4499668ioe.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 Feb 2017 05:18:17 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This doesn't apply, sorry :(
 
-$ git am /tmp/nfnetlink_log-fix-the-typo.patch  -s
-Applying: nfnetlink_log: fix the typo
-error: patch failed: net/netfilter/nfnetlink_log.c:1
-error: net/netfilter/nfnetlink_log.c: patch does not apply
-Patch failed at 0001 nfnetlink_log: fix the typo
-The copy of the patch that failed is found in:
-   /.git/rebase-apply/patch
-When you have resolved this problem, run "git am --continue".
-If you prefer to skip this patch, run "git am --skip" instead.
-To restore the original branch and stop patching, run "git am --abort".
+
+A few announcements:
+-Registration is open. Register early so we can plan better.
+https://onlineregistrations.ca/netdev21/
+
+hotel (If you can get the hotel cheaper online than conference
+rates please send us email, dont book ):
+http://www.netdevconf.org/2.1/hotel.html
+
+- We are pleased to announce our first Gold sponsor! We welcome back
+Redhat as sponsors and thank them for their commitment to the netdev
+community!
+
+- We are pleased to announce our first Platinum sponsor: Cumulus
+Networks. Cumulus has always been there for the netdev Community from
+our very first conference.  Thank you Cumulus!
+
+- Our hard working tech committee has accepted another proposal. This
+time veteran netdever Stephen Hemminger digs into the semantics of
+names. Names have consequences he says.
+
+Title: What's in a name?
+---
+Network device names have existed from the earliest days of Unix
+networking and their usage has evolved. This talk is a look at some of
+the issues with network device names. kernel developers often think the
+problem is a userspace issue and nothing can be done but the names are
+a key part of the existing ABI.
+
+In the talk, I will cover how the choice of naming policy interacts
+with applications and cloud environments, what current expectations
+are, and how this interacts with cloud infrastructure. There is no
+solution but there are several things that can be done to improve
+the user experience. Will also give examples including Amazon, Azure,
+Google Compute as well as other non-Linux environments.
+-----
+
+Please note that The Call for Proposals is still open, submit early
+to avoid the hazards of last minute traffic. Refer to:
+http://netdevconf.org/2.1/submit-proposal.html
+
+cheers,
+jamal
