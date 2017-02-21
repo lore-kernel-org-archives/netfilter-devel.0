@@ -1,90 +1,107 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf] netfilter: nat: remove incorrect debug assert
-Date: Tue, 21 Feb 2017 15:40:19 +0100
-Message-ID: <20170221144019.GD9708@breakpoint.cc>
-References: <20170208221429.3555-1-fw@strlen.de>
- <20170221140909.GA3286@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Anatole Denis <anatole@rezel.net>
+Subject: [PATCH nft] erec: Fix input descriptors for included files
+Date: Tue, 21 Feb 2017 15:48:05 +0100
+Message-ID: <20170221144805.22472-1-anatole@rezel.net>
+Cc: Anatole Denis <anatole@rezel.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:60708 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752728AbdBUOla (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Feb 2017 09:41:30 -0500
-Content-Disposition: inline
-In-Reply-To: <20170221140909.GA3286@salvia>
+Received: from inara.rezel.net ([212.129.30.46]:57114 "EHLO inara.rezel.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752529AbdBUO7T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 Feb 2017 09:59:19 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, Feb 08, 2017 at 11:14:29PM +0100, Florian Westphal wrote:
-> > The comment is incorrect, this function does see fragments when
-> > IP_NODEFRAG is used.  Remove the wrong assertion.
-> > 
-> > As conntrack doesn't track fragments skb->nfct will be null
-> > and no nat is performed.
-> 
-> With IP_NODEFRAG, ipv4_conntrack_defrag() will just accept the packet.
-> 
-> So the first fragment will get into nf_conntrack_in(), and I think, if
-> enough information is there in place, it will get a ct object.
+Currently, when creating an error record (erec), the current location in the
+file is duplicated, but not the input_descriptor inside it. Input descriptors
+are added and removed by the parser when including files, and memory references
+in the error record thus become incorrect when a subsequent file is included.
 
-ipv4_get_l4proto():
-       if (iph->frag_off & htons(IP_OFFSET))
-              return -NF_ACCEPT;
+This patch copies the input descriptors recursively to ensure each erec has the
+correct chain of input descriptors at the time of printing.
 
-so yes, you are right, first packet will be tracked in this case.
+For example:
+badinclude.nft:
+```
+include "error.nft"
+include "empty.nft"
+```
+a.nft:
+```
+add rule t c obvious syntax error
+```
+b.nft: (empty file)
 
-> up fragments with offset != 0 which doesn't contain headers will
-> definitely not get a ct object.
-> 
-> Shouldn't handle case this by attaching a template conntrack?
-> Currently this IP_NODEFRAG case is going through as invalid traffic.
-> 
-> My impression is that we're handling this case in a sloppy way, am I
-> missing anything?
+Results in the last included file being referenced and quoted for all errors
+$ nft -f badinclude.nft
+In file included from badinclude.nft:2:1-20:
+./empty.nft:1:34-34: Error: syntax error, unexpected newline
 
-What would you do instead?
+                                 ^
 
-We currently have a suboptimal handling of such cases, but I don't see
-how we can change it without (possibly) breaking existing setups.
-I also don't see how alternative handling is 'better'.
+Expected behavior:
+$ nft -f badinclude.nft -I.
+In file included from badinclude.nft:1:1-20:
+./error.nft:1:34-34: Error: syntax error, unexpected newline
+add rule t c obvious syntax error
+                                 ^
 
-Tagging it as UNTRACKED seems wrong because its used for cases where
-we could track but decide against it, e.g. due to -j NOTRACK or explicit
-tracker whitelist (icmpv6 neigh for instance).
+Signed-off-by: Anatole Denis <anatole@rezel.net>
+---
+ src/erec.c | 32 +++++++++++++++++++++++++++++++-
+ 1 file changed, 31 insertions(+), 1 deletion(-)
 
-Documentation says (iptables-extensions):
+diff --git a/src/erec.c b/src/erec.c
+index 3603216..eacdd97 100644
+--- a/src/erec.c
++++ b/src/erec.c
+@@ -33,15 +33,45 @@ static const char *error_record_names[] = {
+ 	[EREC_ERROR]		= "Error"
+ };
+ 
++static void input_descriptor_destroy(const struct input_descriptor *indesc)
++{
++	if (indesc->location.indesc &&
++	    indesc->location.indesc->type != INDESC_INTERNAL) {
++		input_descriptor_destroy(indesc->location.indesc);
++	}
++	xfree(indesc);
++}
++
++static struct input_descriptor *input_descriptor_dup(const struct input_descriptor *indesc)
++{
++	struct input_descriptor *dup_indesc;
++
++	dup_indesc = xmalloc(sizeof(struct input_descriptor));
++	*dup_indesc = *indesc;
++
++	if (indesc->location.indesc &&
++	    indesc->location.indesc->type != INDESC_INTERNAL)
++		dup_indesc->location.indesc = input_descriptor_dup(indesc->location.indesc);
++
++	return dup_indesc;
++}
++
+ void erec_add_location(struct error_record *erec, const struct location *loc)
+ {
+ 	assert(erec->num_locations < EREC_LOCATIONS_MAX);
+-	erec->locations[erec->num_locations++] = *loc;
++	erec->locations[erec->num_locations] = *loc;
++	erec->locations[erec->num_locations].indesc = input_descriptor_dup(loc->indesc);
++	erec->num_locations++;
+ }
+ 
+ static void erec_destroy(struct error_record *erec)
+ {
++	unsigned int i;
++
+ 	xfree(erec->msg);
++	for (i = 0; i < erec->num_locations; i++) {
++		input_descriptor_destroy(erec->locations[i].indesc);
++	}
+ 	xfree(erec);
+ }
+ 
+-- 
+2.11.1
 
-  INVALID The packet is associated with no known connection.
-  UNTRACKED  The packet is not tracked at all, which happens if  you
-  explictly untrack it by using -j CT --notrack in the raw table.
-
-(XXX: needs a sentence wrt. icmpv6...)
-
-So current behaviour at least appears consistent with documentation.
-
-> > diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-> > ick_inndex f8aad03d674b..6f5e8d01b876 100644
-> > --- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-> > +++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-> > @@ -255,11 +255,6 @@ nf_nat_ipv4_fn(void *priv, struct sk_buff *skb,
-> >  	/* maniptype == SRC for postrouting. */
-> >  	enum nf_nat_manip_type maniptype = HOOK2MANIP(state->hook);
-> >  
-> > -	/* We never see fragments: conntrack defrags on pre-routing
-> > -	 * and local-out, and nf_nat_out protects post-routing.
-> > -	 */
-> > -	NF_CT_ASSERT(!ip_is_fragment(ip_hdr(skb)));
-> > -
-
-We could make this a explicit test+return but that seems weird too,
-we would track the first fragment but would not nat.
-
-However, changing test to if (iph->frag_off) return -NF_ACCEPT seems
-wrong too because we have enough info to track. OTOH, this only happens
-with HDRINCL+raw socket so perhaps we shouldn't care about this and
-just change ipv4 l3 tracker to ignore all packets w. iph->frag_off set.
