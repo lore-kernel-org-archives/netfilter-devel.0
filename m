@@ -1,46 +1,48 @@
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: Re: net: possible deadlock in skb_queue_tail
-Date: Mon, 20 Feb 2017 14:51:39 -0800
-Message-ID: <CAM_iQpX9gBPOqGo_hwhNmFrUE=R1CdfJvUfkJ+HSK67ybk9LEg@mail.gmail.com>
-References: <CAAeHK+yCwsZE9iv+OLHJaU+7FEka8UHy_t5vMqFUBpQ8srBbsQ@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v2] netfilter: xt_hashlimit: Fix integer divide round to
+ zero.
+Date: Tue, 21 Feb 2017 13:48:39 +0100
+Message-ID: <20170221124839.GA3738@salvia>
+References: <1486391287.2374.1.camel@gmail.com>
+ <20170206225033.26231-1-alban.browaeys@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         "David S. Miller" <davem@davemloft.net>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Kostya Serebryany <kcc@google.com>,
-        Eric Dumazet <edumazet@google.com>,
-        syzkaller <syzkaller@googlegroups.com>
-To: Andrey Konovalov <andreyknvl@google.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:35443 "EHLO
-        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750987AbdBTWwB (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Feb 2017 17:52:01 -0500
-In-Reply-To: <CAAeHK+yCwsZE9iv+OLHJaU+7FEka8UHy_t5vMqFUBpQ8srBbsQ@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Alban Browaeys <alban.browaeys@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170206225033.26231-1-alban.browaeys@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Feb 20, 2017 at 5:29 AM, Andrey Konovalov <andreyknvl@google.com> wrote:
-> other info that might help us debug this:
->
->  Possible unsafe locking scenario:
->
->        CPU0                    CPU1
->        ----                    ----
->   lock(&(&pcpu->lock)->rlock);
->                                lock(&(&list->lock)->rlock#3);
->                                lock(&(&pcpu->lock)->rlock);
->   lock(&(&list->lock)->rlock#3);
->
+On Mon, Feb 06, 2017 at 11:50:33PM +0100, Alban Browaeys wrote:
+> Diving the divider by the multiplier before applying to the input.
+> When this would "divide by zero", divide the multiplier by the divider
+> first then multiply the input by this value.
+> 
+> Currently user2creds outputs zero when input value is bigger than the
+> number of slices and  lower than scale.
+> This as then user input is applied an integer divide operation to
+> a number greater than itself (scale).
+> That rounds up to zero, then we mulitply zero by the credits slice size.
+>   iptables -t filter -I INPUT --protocol tcp --match hashlimit
+>   --hashlimit 40/second --hashlimit-burst 20 --hashlimit-mode srcip
+>   --hashlimit-name syn-flood --jump RETURN
+> thus trigger the overflow detection code:
+> xt_hashlimit: overflow, try lower: 25000/20
+> (25000 as hashlimit avd and 20 the burst)
+> Here:
+> 134217 slices of (HZ * CREDITS_PER_JIFFY) size.
+> 500000 is user input value
+> 1000000 is XT_HASHLIMIT_SCALE_v2
+> gives: 0 as user2creds output
+> Setting burst to "1" typically solve the issue ...
+> but setting it to "40" does too !
+> 
+> This is on 32bit arch calling into revision 2 of hashlimit.
 
-They are different types of sockets and different lists of skb's,
-one is netlink socket the other is udp socket, so I don't think
-we could have a deadlock in this scenario, we probably need to
-explicitly mark them as different lockdep classes.
+Applied to nf.git, thanks.
