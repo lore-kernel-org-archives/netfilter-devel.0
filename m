@@ -1,48 +1,56 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] netfilter: xt_hashlimit: Fix integer divide round to
- zero.
-Date: Tue, 21 Feb 2017 13:48:39 +0100
-Message-ID: <20170221124839.GA3738@salvia>
-References: <1486391287.2374.1.camel@gmail.com>
- <20170206225033.26231-1-alban.browaeys@gmail.com>
+Subject: Re: [PATCH 0/2] ipset patches for nf
+Date: Tue, 21 Feb 2017 14:05:52 +0100
+Message-ID: <20170221130552.GA21403@salvia>
+References: <1487528656-21961-1-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Alban Browaeys <alban.browaeys@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:44808 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752744AbdBUNF7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 Feb 2017 08:05:59 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 539881A09B1
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Feb 2017 14:05:56 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 43BA0DA845
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Feb 2017 14:05:56 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BCA6CDA845
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Feb 2017 14:05:53 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20170206225033.26231-1-alban.browaeys@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1487528656-21961-1-git-send-email-kadlec@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Feb 06, 2017 at 11:50:33PM +0100, Alban Browaeys wrote:
-> Diving the divider by the multiplier before applying to the input.
-> When this would "divide by zero", divide the multiplier by the divider
-> first then multiply the input by this value.
+On Sun, Feb 19, 2017 at 07:24:14PM +0100, Jozsef Kadlecsik wrote:
+> Hi Pablo,
 > 
-> Currently user2creds outputs zero when input value is bigger than the
-> number of slices and  lower than scale.
-> This as then user input is applied an integer divide operation to
-> a number greater than itself (scale).
-> That rounds up to zero, then we mulitply zero by the credits slice size.
->   iptables -t filter -I INPUT --protocol tcp --match hashlimit
->   --hashlimit 40/second --hashlimit-burst 20 --hashlimit-mode srcip
->   --hashlimit-name syn-flood --jump RETURN
-> thus trigger the overflow detection code:
-> xt_hashlimit: overflow, try lower: 25000/20
-> (25000 as hashlimit avd and 20 the burst)
-> Here:
-> 134217 slices of (HZ * CREDITS_PER_JIFFY) size.
-> 500000 is user input value
-> 1000000 is XT_HASHLIMIT_SCALE_v2
-> gives: 0 as user2creds output
-> Setting burst to "1" typically solve the issue ...
-> but setting it to "40" does too !
+> Please apply the next patches for ipset in your nf branch.
+> Both patches should go into the stable kernel branches as well,
+> because these are important bugfixes:
 > 
-> This is on 32bit arch calling into revision 2 of hashlimit.
+> * Sometimes valid entries in hash:* types of sets were evicted
+>   due to a typo in an index. The wrong evictions happen when
+>   entries are deleted from the set and the bucket is shrinked.
+>   Bug was reported by Eric Ewanco and the patch fixes
+>   netfilter bugzilla id #1119.
+> * Fixing of a null pointer exception when someone wants to add an
+>   entry to an empty list type of set and specifies an add before/after
+>   option. The fix is from Vishwanath Pai.
+> 
+> Best regards,
+> Jozsef
+> 
+> The following changes since commit f95d7a46bc5722767c30ee223c8b67dd0f2e8793:
+> 
+>   netfilter: ctnetlink: Fix regression in CTA_HELP processing (2017-02-06 12:49:05 +0100)
+> 
+> are available in the git repository at:
+> 
+>   git://blackhole.kfki.hu/nf master
 
-Applied to nf.git, thanks.
+Pulled, thanks Jozsef.
