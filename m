@@ -1,56 +1,77 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/2] ipset patches for nf
-Date: Tue, 21 Feb 2017 14:05:52 +0100
-Message-ID: <20170221130552.GA21403@salvia>
-References: <1487528656-21961-1-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH nf] netfilter: nat: remove incorrect debug assert
+Date: Tue, 21 Feb 2017 15:09:09 +0100
+Message-ID: <20170221140909.GA3286@salvia>
+References: <20170208221429.3555-1-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44808 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59352 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752744AbdBUNF7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Feb 2017 08:05:59 -0500
+        id S1752574AbdBUOJP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 Feb 2017 09:09:15 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 539881A09B1
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Feb 2017 14:05:56 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id AEA9F1DA093
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Feb 2017 15:09:12 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 43BA0DA845
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Feb 2017 14:05:56 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9FAB6DA816
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Feb 2017 15:09:12 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BCA6CDA845
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Feb 2017 14:05:53 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1AC42DA816
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Feb 2017 15:09:10 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1487528656-21961-1-git-send-email-kadlec@blackhole.kfki.hu>
+In-Reply-To: <20170208221429.3555-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Feb 19, 2017 at 07:24:14PM +0100, Jozsef Kadlecsik wrote:
-> Hi Pablo,
+On Wed, Feb 08, 2017 at 11:14:29PM +0100, Florian Westphal wrote:
+> The comment is incorrect, this function does see fragments when
+> IP_NODEFRAG is used.  Remove the wrong assertion.
 > 
-> Please apply the next patches for ipset in your nf branch.
-> Both patches should go into the stable kernel branches as well,
-> because these are important bugfixes:
-> 
-> * Sometimes valid entries in hash:* types of sets were evicted
->   due to a typo in an index. The wrong evictions happen when
->   entries are deleted from the set and the bucket is shrinked.
->   Bug was reported by Eric Ewanco and the patch fixes
->   netfilter bugzilla id #1119.
-> * Fixing of a null pointer exception when someone wants to add an
->   entry to an empty list type of set and specifies an add before/after
->   option. The fix is from Vishwanath Pai.
-> 
-> Best regards,
-> Jozsef
-> 
-> The following changes since commit f95d7a46bc5722767c30ee223c8b67dd0f2e8793:
-> 
->   netfilter: ctnetlink: Fix regression in CTA_HELP processing (2017-02-06 12:49:05 +0100)
-> 
-> are available in the git repository at:
-> 
->   git://blackhole.kfki.hu/nf master
+> As conntrack doesn't track fragments skb->nfct will be null
+> and no nat is performed.
 
-Pulled, thanks Jozsef.
+With IP_NODEFRAG, ipv4_conntrack_defrag() will just accept the packet.
+
+So the first fragment will get into nf_conntrack_in(), and I think, if
+enough information is there in place, it will get a ct object. Follow
+up fragments with offset != 0 which doesn't contain headers will
+definitely not get a ct object.
+
+Shouldn't handle case this by attaching a template conntrack?
+Currently this IP_NODEFRAG case is going through as invalid traffic.
+
+My impression is that we're handling this case in a sloppy way, am I
+missing anything?
+
+> Reported-by: Andrey Konovalov <andreyknvl@google.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  net/ipv4/netfilter/nf_nat_l3proto_ipv4.c | 5 -----
+>  1 file changed, 5 deletions(-)
+> 
+> diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+> index f8aad03d674b..6f5e8d01b876 100644
+> --- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+> +++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+> @@ -255,11 +255,6 @@ nf_nat_ipv4_fn(void *priv, struct sk_buff *skb,
+>  	/* maniptype == SRC for postrouting. */
+>  	enum nf_nat_manip_type maniptype = HOOK2MANIP(state->hook);
+>  
+> -	/* We never see fragments: conntrack defrags on pre-routing
+> -	 * and local-out, and nf_nat_out protects post-routing.
+> -	 */
+> -	NF_CT_ASSERT(!ip_is_fragment(ip_hdr(skb)));
+> -
+>  	ct = nf_ct_get(skb, &ctinfo);
+>  	/* Can't track?  It's not due to stress, or conntrack would
+>  	 * have dropped it.  Hence it's the user's responsibilty to
+> -- 
+> 2.10.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
