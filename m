@@ -1,107 +1,83 @@
-From: Anatole Denis <anatole@rezel.net>
-Subject: [PATCH nft] erec: Fix input descriptors for included files
-Date: Tue, 21 Feb 2017 15:48:05 +0100
-Message-ID: <20170221144805.22472-1-anatole@rezel.net>
-Cc: Anatole Denis <anatole@rezel.net>
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf] netfilter: nat: remove incorrect debug assert
+Date: Tue, 21 Feb 2017 16:54:35 +0100
+Message-ID: <20170221155435.GA5392@salvia>
+References: <20170208221429.3555-1-fw@strlen.de>
+ <20170221140909.GA3286@salvia>
+ <20170221144019.GD9708@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from inara.rezel.net ([212.129.30.46]:57114 "EHLO inara.rezel.net"
+Received: from mail.us.es ([193.147.175.20]:57464 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752529AbdBUO7T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Feb 2017 09:59:19 -0500
+        id S1751133AbdBUPyv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 Feb 2017 10:54:51 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id D95D1A7DC1
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Feb 2017 16:54:47 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C9324DA847
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Feb 2017 16:54:47 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D1E12DA84B
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Feb 2017 16:54:44 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20170221144019.GD9708@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently, when creating an error record (erec), the current location in the
-file is duplicated, but not the input_descriptor inside it. Input descriptors
-are added and removed by the parser when including files, and memory references
-in the error record thus become incorrect when a subsequent file is included.
+On Tue, Feb 21, 2017 at 03:40:19PM +0100, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Wed, Feb 08, 2017 at 11:14:29PM +0100, Florian Westphal wrote:
+> > > The comment is incorrect, this function does see fragments when
+> > > IP_NODEFRAG is used.  Remove the wrong assertion.
+> > > 
+> > > As conntrack doesn't track fragments skb->nfct will be null
+> > > and no nat is performed.
+> > 
+> > With IP_NODEFRAG, ipv4_conntrack_defrag() will just accept the packet.
+> > 
+> > So the first fragment will get into nf_conntrack_in(), and I think, if
+> > enough information is there in place, it will get a ct object.
+> 
+> ipv4_get_l4proto():
+>        if (iph->frag_off & htons(IP_OFFSET))
+>               return -NF_ACCEPT;
+> 
+> so yes, you are right, first packet will be tracked in this case.
 
-This patch copies the input descriptors recursively to ensure each erec has the
-correct chain of input descriptors at the time of printing.
+With NAT in place, this also means the first packet of a flow gets
+mangled, while follow up don't.
 
-For example:
-badinclude.nft:
-```
-include "error.nft"
-include "empty.nft"
-```
-a.nft:
-```
-add rule t c obvious syntax error
-```
-b.nft: (empty file)
+Probably change that spot above to use ip_is_fragment()?
 
-Results in the last included file being referenced and quoted for all errors
-$ nft -f badinclude.nft
-In file included from badinclude.nft:2:1-20:
-./empty.nft:1:34-34: Error: syntax error, unexpected newline
+> > up fragments with offset != 0 which doesn't contain headers will
+> > definitely not get a ct object.
+> > 
+> > Shouldn't handle case this by attaching a template conntrack?
+> > Currently this IP_NODEFRAG case is going through as invalid traffic.
+> > 
+> > My impression is that we're handling this case in a sloppy way, am I
+> > missing anything?
+> 
+> What would you do instead?
+> 
+> We currently have a suboptimal handling of such cases, but I don't see
+> how we can change it without (possibly) breaking existing setups.
 
-                                 ^
+AFAIK, only IP_NODEFRAG locally generated packets would get affected.
+I wonder how this option is used (network testing?). I cannot come up
+with any reasonable stateful ruleset that may work with this. With a
+stateful ruleset in place, the first packet will go through and follow
+up would be INVALID. There are tons of rulesets outthere simply
+logging and dropping invalid ones.
 
-Expected behavior:
-$ nft -f badinclude.nft -I.
-In file included from badinclude.nft:1:1-20:
-./error.nft:1:34-34: Error: syntax error, unexpected newline
-add rule t c obvious syntax error
-                                 ^
+Look, the first packet create an entry in SYN_SENT state, that just
+expires later on.
 
-Signed-off-by: Anatole Denis <anatole@rezel.net>
----
- src/erec.c | 32 +++++++++++++++++++++++++++++++-
- 1 file changed, 31 insertions(+), 1 deletion(-)
+> I also don't see how alternative handling is 'better'.
 
-diff --git a/src/erec.c b/src/erec.c
-index 3603216..eacdd97 100644
---- a/src/erec.c
-+++ b/src/erec.c
-@@ -33,15 +33,45 @@ static const char *error_record_names[] = {
- 	[EREC_ERROR]		= "Error"
- };
- 
-+static void input_descriptor_destroy(const struct input_descriptor *indesc)
-+{
-+	if (indesc->location.indesc &&
-+	    indesc->location.indesc->type != INDESC_INTERNAL) {
-+		input_descriptor_destroy(indesc->location.indesc);
-+	}
-+	xfree(indesc);
-+}
-+
-+static struct input_descriptor *input_descriptor_dup(const struct input_descriptor *indesc)
-+{
-+	struct input_descriptor *dup_indesc;
-+
-+	dup_indesc = xmalloc(sizeof(struct input_descriptor));
-+	*dup_indesc = *indesc;
-+
-+	if (indesc->location.indesc &&
-+	    indesc->location.indesc->type != INDESC_INTERNAL)
-+		dup_indesc->location.indesc = input_descriptor_dup(indesc->location.indesc);
-+
-+	return dup_indesc;
-+}
-+
- void erec_add_location(struct error_record *erec, const struct location *loc)
- {
- 	assert(erec->num_locations < EREC_LOCATIONS_MAX);
--	erec->locations[erec->num_locations++] = *loc;
-+	erec->locations[erec->num_locations] = *loc;
-+	erec->locations[erec->num_locations].indesc = input_descriptor_dup(loc->indesc);
-+	erec->num_locations++;
- }
- 
- static void erec_destroy(struct error_record *erec)
- {
-+	unsigned int i;
-+
- 	xfree(erec->msg);
-+	for (i = 0; i < erec->num_locations; i++) {
-+		input_descriptor_destroy(erec->locations[i].indesc);
-+	}
- 	xfree(erec);
- }
- 
--- 
-2.11.1
-
+We could just handle all the packets in a flow in the same way, so
+they all go through INVALID.
