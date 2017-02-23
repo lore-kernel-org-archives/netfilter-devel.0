@@ -1,129 +1,93 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH V2] audit: normalize NETFILTER_PKT
-Date: Thu, 23 Feb 2017 06:20:15 +0100
-Message-ID: <20170223052015.GE11144@breakpoint.cc>
-References: <9504740e9333a0b7074abe0dddfc487aeeae6cff.1487813996.git.rgb@redhat.com>
+From: Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH V2] audit: normalize NETFILTER_PKT (fwd)
+Date: Thu, 23 Feb 2017 08:12:02 +0100 (CET)
+Message-ID: <alpine.DEB.2.20.1702230810080.2203@hadrien>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Cc: Netfilter Developer Mailing List
         <netfilter-devel@vger.kernel.org>, linux-audit@redhat.com,
+        Richard Guy Briggs <rgb@redhat.com>,
+        Thomas Graf <tgraf@infradead.org>,
+        Eric Paris <eparis@redhat.com>, Paul Moore <pmoore@redhat.com>,
+        Steve Grubb <sgrubb@redhat.com>,
+        Richard Guy Briggs <rgb@redhat.com>,
         Thomas Graf <tgraf@infradead.org>,
         Eric Paris <eparis@redhat.com>, Paul Moore <pmoore@redhat.com>,
         Steve Grubb <sgrubb@redhat.com>
 To: Richard Guy Briggs <rgb@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:40464 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750877AbdBWFVc (ORCPT
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:27232
+        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750891AbdBWHMG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Feb 2017 00:21:32 -0500
-Content-Disposition: inline
-In-Reply-To: <9504740e9333a0b7074abe0dddfc487aeeae6cff.1487813996.git.rgb@redhat.com>
+        Thu, 23 Feb 2017 02:12:06 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Richard Guy Briggs <rgb@redhat.com> wrote:
-> Simplify and eliminate flipping in and out of message fields, relying on nfmark
-> the way we do for audit_key.
-> 
-> +struct nfpkt_par {
-> +	int ipv;
-> +	const void *saddr;
-> +	const void *daddr;
-> +	u8 proto;
-> +};
+Hello,
 
-This is problematic, see below for why.
+It looks like the switch starting on line 106 should be indented more if
+it is expected to be under the if in line 105.  I believe that there
+should also be braces around the switch.  It is a single statement, but it
+is a complex one.
 
-> -static void audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
-> +static void audit_ip4(struct audit_buffer *ab, struct sk_buff *skb, struct nfpkt_par *apar)
->  {
->  	struct iphdr _iph;
->  	const struct iphdr *ih;
->  
-> +	apar->ipv = 4;
->  	ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
-> -	if (!ih) {
-> -		audit_log_format(ab, " truncated=1");
-> +	if (!ih)
->  		return;
+thanks,
+julia
 
-Removing this "truncated" has the consequence that this can later log
-"saddr=0.0.0.0 daddr=0.0.0.0" if we return here.
+---------- Forwarded message ----------
+Date: Thu, 23 Feb 2017 12:43:05 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: kbuild@01.org
+Cc: Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH V2] audit: normalize NETFILTER_PKT
 
-This cannot happen for ip(6)tables because ip stack discards broken l3 headers
-before the netfilter hooks get called, but its possible with NFPROTO_BRIDGE.
+CC: kbuild-all@01.org
+In-Reply-To: <9504740e9333a0b7074abe0dddfc487aeeae6cff.1487813996.git.rgb@redhat.com>
 
-Perhaps you will need to change audit_ip4/6 to return "false" when it can't
-get the l3 information now so we only log zero addresses when the packet
-really did contain them.
+Hi Richard,
 
-> -	audit_log_format(ab, " saddr=%pI4 daddr=%pI4 ipid=%hu proto=%hhu",
-> -		&ih->saddr, &ih->daddr, ntohs(ih->id), ih->protocol);
+[auto build test WARNING on v4.9-rc8]
+[cannot apply to nf-next/master next-20170222]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-Alternatively, one could keep this around. In fact, why is this (re)moved
-in first place?  This move of audit_log_format() seems to only reason
-why *apar struct is required.
+url:    https://github.com/0day-ci/linux/commits/Richard-Guy-Briggs/audit-normalize-NETFILTER_PKT/20170223-110223
+:::::: branch date: 2 hours ago
+:::::: commit date: 2 hours ago
 
-AFAICS this now does:
-  ab = new()
-  log(ab, mark);
-  audit_ip4(&apar);
-  log(&apar);
+>> net/netfilter/xt_AUDIT.c:106:1-2: code aligned with following code on line 116
 
-so might as well keep the log() call within the audit_ip4/6 function.
+git remote add linux-review https://github.com/0day-ci/linux
+git remote update linux-review
+git checkout 8f27486f1987d344c4d9b0de556dfd4209c524bf
+vim +106 net/netfilter/xt_AUDIT.c
 
-> -	audit_proto(ab, skb, ih->protocol, ih->ihl * 4);
-> +	apar->saddr = &ih->saddr;
-> +	apar->daddr = &ih->daddr;
-> +	apar->proto = ih->protocol;
->  }
+8f27486f Richard Guy Briggs 2017-02-22  100  				audit_ip6(ab, skb, &apar);
+43f393ca Thomas Graf        2011-01-16  101  				break;
+43f393ca Thomas Graf        2011-01-16  102  			}
+43f393ca Thomas Graf        2011-01-16  103  		}
+43f393ca Thomas Graf        2011-01-16  104  	}
+8f27486f Richard Guy Briggs 2017-02-22  105  	if (apar.ipv == -1)
+43f393ca Thomas Graf        2011-01-16 @106  	switch (par->family) {
+43f393ca Thomas Graf        2011-01-16  107  	case NFPROTO_IPV4:
+8f27486f Richard Guy Briggs 2017-02-22  108  		audit_ip4(ab, skb, &apar);
+43f393ca Thomas Graf        2011-01-16  109  		break;
+43f393ca Thomas Graf        2011-01-16  110
+43f393ca Thomas Graf        2011-01-16  111  	case NFPROTO_IPV6:
+8f27486f Richard Guy Briggs 2017-02-22  112  		audit_ip6(ab, skb, &apar);
+43f393ca Thomas Graf        2011-01-16  113  		break;
+43f393ca Thomas Graf        2011-01-16  114  	}
+43f393ca Thomas Graf        2011-01-16  115
+8f27486f Richard Guy Briggs 2017-02-22 @116  	switch (apar.ipv) {
+8f27486f Richard Guy Briggs 2017-02-22  117  	case 4:
+8f27486f Richard Guy Briggs 2017-02-22  118  		audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu",
+8f27486f Richard Guy Briggs 2017-02-22  119  			 apar.saddr, apar.daddr, apar.proto);
 
-Caution.  skb_header_pointer() may copy from non-linear skb part
-into _iph, which is on stack, so apar->saddr may be stale once
-function returns. So if you really want to remove the audit_log_format()
-of the saddr/daddr then you need to copy the ip addresses here.
+:::::: The code at line 106 was first introduced by commit
+:::::: 43f393caec0362abe03c72799d3f342af3973070 netfilter: audit target to record accepted/dropped packets
 
-(We guarantee its linear for ip stack but not for NFPROTO_BRIDGE and this function
-is also called for the bridge version of the target).
+:::::: TO: Thomas Graf <tgraf@infradead.org>
+:::::: CC: Patrick McHardy <kaber@trash.net>
 
->  static unsigned int
->  audit_tg(struct sk_buff *skb, const struct xt_action_param *par)
->  {
-> -	const struct xt_audit_info *info = par->targinfo;
->  	struct audit_buffer *ab;
-> +	struct nfpkt_par apar = {
-> +		-1, NULL, NULL, -1,
-> +	};
-
-I suggest to use
-	struct nfpkt_par apar = {
-		.family = par->family,
-	};
-
-if apar is required for some reason.
-
->  	ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
->  	if (ab == NULL)
->  		goto errout;
->  
-> -	audit_log_format(ab, "action=%hhu hook=%u len=%u inif=%s outif=%s",
-> -			 info->type, par->hooknum, skb->len,
-> -			 par->in ? par->in->name : "?",
-> -			 par->out ? par->out->name : "?");
-> -
-> -	if (skb->mark)
-> -		audit_log_format(ab, " mark=%#x", skb->mark);
-> +	audit_log_format(ab, " mark=%#x", skb->mark ?: -1);
-
--1 will be logged as 0xffffffff, no?  whats wrong with
-	audit_log_format(ab, " mark=%#x", skb->mark); ?
-
->  	if (skb->dev && skb->dev->type == ARPHRD_ETHER) {
-> -		audit_log_format(ab, " smac=%pM dmac=%pM macproto=0x%04x",
-> -				 eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest,
-> -				 ntohs(eth_hdr(skb)->h_proto));
-> -
-
-This ARPHDR_ETHER test is no longer needed after logging
-of ether addresses is removed.
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
