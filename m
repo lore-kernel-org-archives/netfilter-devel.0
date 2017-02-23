@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 6/8] netfilter: xt_hashlimit: Fix integer divide round to zero.
-Date: Thu, 23 Feb 2017 12:14:07 +0100
-Message-ID: <1487848449-2731-7-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 8/8] netfilter: nfnetlink: remove static declaration from err_list
+Date: Thu, 23 Feb 2017 12:14:09 +0100
+Message-ID: <1487848449-2731-9-git-send-email-pablo@netfilter.org>
 References: <1487848449-2731-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,80 +10,32 @@ In-Reply-To: <1487848449-2731-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Alban Browaeys <alban.browaeys@gmail.com>
+From: Liping Zhang <zlpnobody@gmail.com>
 
-Diving the divider by the multiplier before applying to the input.
-When this would "divide by zero", divide the multiplier by the divider
-first then multiply the input by this value.
+Otherwise, different subsys will race to access the err_list, with holding
+the different nfnl_lock(subsys_id).
 
-Currently user2creds outputs zero when input value is bigger than the
-number of slices and  lower than scale.
-This as then user input is applied an integer divide operation to
-a number greater than itself (scale).
-That rounds up to zero, then we multiply zero by the credits slice size.
+But this will not happen now, since ->call_batch is only implemented by
+nftables, so the err_list is protected by nfnl_lock(NFNL_SUBSYS_NFTABLES).
 
-  iptables -t filter -I INPUT --protocol tcp --match hashlimit
-  --hashlimit 40/second --hashlimit-burst 20 --hashlimit-mode srcip
-  --hashlimit-name syn-flood --jump RETURN
-
-thus trigger the overflow detection code:
-
-xt_hashlimit: overflow, try lower: 25000/20
-
-(25000 as hashlimit avg and 20 the burst)
-
-Here:
-134217 slices of (HZ * CREDITS_PER_JIFFY) size.
-500000 is user input value
-1000000 is XT_HASHLIMIT_SCALE_v2
-gives: 0 as user2creds output
-Setting burst to "1" typically solve the issue ...
-but setting it to "40" does too !
-
-This is on 32bit arch calling into revision 2 of hashlimit.
-
-Signed-off-by: Alban Browaeys <alban.browaeys@gmail.com>
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_hashlimit.c | 25 +++++++++----------------
- 1 file changed, 9 insertions(+), 16 deletions(-)
+ net/netfilter/nfnetlink.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 10063408141d..84ad5ab34558 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -463,23 +463,16 @@ static u32 xt_hashlimit_len_to_chunks(u32 len)
- /* Precision saver. */
- static u64 user2credits(u64 user, int revision)
- {
--	if (revision == 1) {
--		/* If multiplying would overflow... */
--		if (user > 0xFFFFFFFF / (HZ*CREDITS_PER_JIFFY_v1))
--			/* Divide first. */
--			return div64_u64(user, XT_HASHLIMIT_SCALE)
--				* HZ * CREDITS_PER_JIFFY_v1;
--
--		return div64_u64(user * HZ * CREDITS_PER_JIFFY_v1,
--				 XT_HASHLIMIT_SCALE);
--	} else {
--		if (user > 0xFFFFFFFFFFFFFFFFULL / (HZ*CREDITS_PER_JIFFY))
--			return div64_u64(user, XT_HASHLIMIT_SCALE_v2)
--				* HZ * CREDITS_PER_JIFFY;
-+	u64 scale = (revision == 1) ?
-+		XT_HASHLIMIT_SCALE : XT_HASHLIMIT_SCALE_v2;
-+	u64 cpj = (revision == 1) ?
-+		CREDITS_PER_JIFFY_v1 : CREDITS_PER_JIFFY;
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index a09fa9fd8f3d..6fa448478cba 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -279,7 +279,7 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	struct net *net = sock_net(skb->sk);
+ 	const struct nfnetlink_subsystem *ss;
+ 	const struct nfnl_callback *nc;
+-	static LIST_HEAD(err_list);
++	LIST_HEAD(err_list);
+ 	u32 status;
+ 	int err;
  
--		return div64_u64(user * HZ * CREDITS_PER_JIFFY,
--				 XT_HASHLIMIT_SCALE_v2);
--	}
-+	/* Avoid overflow: divide the constant operands first */
-+	if (scale >= HZ * cpj)
-+		return div64_u64(user, div64_u64(scale, HZ * cpj));
-+
-+	return user * div64_u64(HZ * cpj, scale);
- }
- 
- static u32 user2credits_byte(u32 user)
 -- 
 2.1.4
