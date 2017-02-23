@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 8/8] netfilter: nfnetlink: remove static declaration from err_list
-Date: Thu, 23 Feb 2017 12:14:09 +0100
-Message-ID: <1487848449-2731-9-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 5/8] netfilter: ipset: Null pointer exception in ipset list:set
+Date: Thu, 23 Feb 2017 12:14:06 +0100
+Message-ID: <1487848449-2731-6-git-send-email-pablo@netfilter.org>
 References: <1487848449-2731-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,32 +10,49 @@ In-Reply-To: <1487848449-2731-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Liping Zhang <zlpnobody@gmail.com>
+From: Vishwanath Pai <vpai@akamai.com>
 
-Otherwise, different subsys will race to access the err_list, with holding
-the different nfnl_lock(subsys_id).
+If we use before/after to add an element to an empty list it will cause
+a kernel panic.
 
-But this will not happen now, since ->call_batch is only implemented by
-nftables, so the err_list is protected by nfnl_lock(NFNL_SUBSYS_NFTABLES).
+$> cat crash.restore
+create a hash:ip
+create b hash:ip
+create test list:set timeout 5 size 4
+add test b before a
 
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+$> ipset -R < crash.restore
+
+Executing the above will crash the kernel.
+
+Signed-off-by: Vishwanath Pai <vpai@akamai.com>
+Reviewed-by: Josh Hunt <johunt@akamai.com>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/nfnetlink.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/ipset/ip_set_list_set.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index a09fa9fd8f3d..6fa448478cba 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -279,7 +279,7 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	struct net *net = sock_net(skb->sk);
- 	const struct nfnetlink_subsystem *ss;
- 	const struct nfnl_callback *nc;
--	static LIST_HEAD(err_list);
-+	LIST_HEAD(err_list);
- 	u32 status;
- 	int err;
- 
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index 51077c53d76b..178d4eba013b 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -260,11 +260,14 @@ list_set_uadd(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 		else
+ 			prev = e;
+ 	}
++
++	/* If before/after is used on an empty set */
++	if ((d->before > 0 && !next) ||
++	    (d->before < 0 && !prev))
++		return -IPSET_ERR_REF_EXIST;
++
+ 	/* Re-add already existing element */
+ 	if (n) {
+-		if ((d->before > 0 && !next) ||
+-		    (d->before < 0 && !prev))
+-			return -IPSET_ERR_REF_EXIST;
+ 		if (!flag_exist)
+ 			return -IPSET_ERR_EXIST;
+ 		/* Update extensions */
 -- 
 2.1.4
