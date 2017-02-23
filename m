@@ -1,93 +1,138 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH V2] audit: normalize NETFILTER_PKT (fwd)
-Date: Thu, 23 Feb 2017 08:12:02 +0100 (CET)
-Message-ID: <alpine.DEB.2.20.1702230810080.2203@hadrien>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: netfilter: nft_ct: add zone id set support
+Date: Thu, 23 Feb 2017 10:54:54 +0100
+Message-ID: <CAMuHMdUJ=2+9ko0KEU7rX3rb7vghNj3Xc-HSLSK=-kqQ+CZM6w@mail.gmail.com>
+References: <20170222190219.EC87B661B65@gitolite.kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>, linux-audit@redhat.com,
-        Richard Guy Briggs <rgb@redhat.com>,
-        Thomas Graf <tgraf@infradead.org>,
-        Eric Paris <eparis@redhat.com>, Paul Moore <pmoore@redhat.com>,
-        Steve Grubb <sgrubb@redhat.com>,
-        Richard Guy Briggs <rgb@redhat.com>,
-        Thomas Graf <tgraf@infradead.org>,
-        Eric Paris <eparis@redhat.com>, Paul Moore <pmoore@redhat.com>,
-        Steve Grubb <sgrubb@redhat.com>
-To: Richard Guy Briggs <rgb@redhat.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:27232
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750891AbdBWHMG (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Feb 2017 02:12:06 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170222190219.EC87B661B65@gitolite.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Hi Florian,
 
-It looks like the switch starting on line 106 should be indented more if
-it is expected to be under the if in line 105.  I believe that there
-should also be braces around the switch.  It is a single statement, but it
-is a complex one.
+On Wed, Feb 22, 2017 at 8:02 PM, Linux Kernel Mailing List
+<linux-kernel@vger.kernel.org> wrote:
+> Web:        https://git.kernel.org/torvalds/c/edee4f1e92458299505ff007733=
+f676b00c516a1
+> Commit:     edee4f1e92458299505ff007733f676b00c516a1
+> Parent:     5c178d81b69f08ca3195427a6ea9a46d9af23127
+> Refname:    refs/heads/master
+> Author:     Florian Westphal <fw@strlen.de>
+> AuthorDate: Fri Feb 3 13:35:50 2017 +0100
+> Committer:  Pablo Neira Ayuso <pablo@netfilter.org>
+> CommitDate: Wed Feb 8 14:16:23 2017 +0100
+>
+>     netfilter: nft_ct: add zone id set support
+>
+>     zones allow tracking multiple connections sharing identical tuples,
+>     this is needed e.g. when tracking distinct vlans with overlapping ip
+>     addresses (conntrack is l2 agnostic).
+>
+>     Thus the zone has to be set before the packet is picked up by the
+>     connection tracker.  This is done by means of 'conntrack templates' w=
+hich
+>     are conntrack structures used solely to pass this info from one netfi=
+lter
+>     hook to the next.
+>
+>     The iptables CT target instantiates these connection tracking templat=
+es
+>     once per rule, i.e. the template is fixed/tied to particular zone, ca=
+n
+>     be read-only and therefore be re-used by as many skbs simultaneously =
+as
+>     needed.
+>
+>     We can't follow this model because we want to take the zone id from
+>     an sreg at rule eval time so we could e.g. fill in the zone id from
+>     the packets vlan id or a e.g. nftables key : value maps.
+>
+>     To avoid cost of per packet alloc/free of the template, use a percpu
+>     template 'scratch' object and use the refcount to detect the (unlikel=
+y)
+>     case where the template is still attached to another skb (i.e., previ=
+ous
+>     skb was nfqueued ...).
+>
+>     Signed-off-by: Florian Westphal <fw@strlen.de>
+>     Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-thanks,
-julia
+> --- a/net/netfilter/nft_ct.c
+> +++ b/net/netfilter/nft_ct.c
 
----------- Forwarded message ----------
-Date: Thu, 23 Feb 2017 12:43:05 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: kbuild@01.org
-Cc: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH V2] audit: normalize NETFILTER_PKT
+> @@ -407,6 +503,7 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
+>         unsigned int len;
 
-CC: kbuild-all@01.org
-In-Reply-To: <9504740e9333a0b7074abe0dddfc487aeeae6cff.1487813996.git.rgb@redhat.com>
+With gcc-4.1.2 and -Os:
 
-Hi Richard,
+    net/netfilter/nft_ct.c: In function =E2=80=98nft_ct_set_init=E2=80=99:
+    net/netfilter/nft_ct.c:503: warning: =E2=80=98len=E2=80=99 may be used
+uninitialized in this function
 
-[auto build test WARNING on v4.9-rc8]
-[cannot apply to nf-next/master next-20170222]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+>         int err;
+>
+> +       priv->dir =3D IP_CT_DIR_MAX;
+>         priv->key =3D ntohl(nla_get_be32(tb[NFTA_CT_KEY]));
+>         switch (priv->key) {
+>  #ifdef CONFIG_NF_CONNTRACK_MARK
+> @@ -426,10 +523,28 @@ static int nft_ct_set_init(const struct nft_ctx *ct=
+x,
+>                         return err;
+>                 break;
+>  #endif
+> +#ifdef CONFIG_NF_CONNTRACK_ZONES
+> +       case NFT_CT_ZONE:
+> +               if (!nft_ct_tmpl_alloc_pcpu())
+> +                       return -ENOMEM;
+> +               nft_ct_pcpu_template_refcnt++;
 
-url:    https://github.com/0day-ci/linux/commits/Richard-Guy-Briggs/audit-normalize-NETFILTER_PKT/20170223-110223
-:::::: branch date: 2 hours ago
-:::::: commit date: 2 hours ago
+Unlike for the other cases of the switch statement, "len" is not initialize=
+d
+here...
 
->> net/netfilter/xt_AUDIT.c:106:1-2: code aligned with following code on line 116
+> +               break;
+> +#endif
+>         default:
+>                 return -EOPNOTSUPP;
+>         }
+>
+> +       if (tb[NFTA_CT_DIRECTION]) {
+> +               priv->dir =3D nla_get_u8(tb[NFTA_CT_DIRECTION]);
+> +               switch (priv->dir) {
+> +               case IP_CT_DIR_ORIGINAL:
+> +               case IP_CT_DIR_REPLY:
+> +                       break;
+> +               default:
+> +                       return -EINVAL;
+> +               }
+> +       }
+> +
+>         priv->sreg =3D nft_parse_register(tb[NFTA_CT_SREG]);
+>         err =3D nft_validate_register_load(priv->sreg, len);
 
-git remote add linux-review https://github.com/0day-ci/linux
-git remote update linux-review
-git checkout 8f27486f1987d344c4d9b0de556dfd4209c524bf
-vim +106 net/netfilter/xt_AUDIT.c
+... and used here, which may lead to spurious failures of
+nft_validate_register_load().
 
-8f27486f Richard Guy Briggs 2017-02-22  100  				audit_ip6(ab, skb, &apar);
-43f393ca Thomas Graf        2011-01-16  101  				break;
-43f393ca Thomas Graf        2011-01-16  102  			}
-43f393ca Thomas Graf        2011-01-16  103  		}
-43f393ca Thomas Graf        2011-01-16  104  	}
-8f27486f Richard Guy Briggs 2017-02-22  105  	if (apar.ipv == -1)
-43f393ca Thomas Graf        2011-01-16 @106  	switch (par->family) {
-43f393ca Thomas Graf        2011-01-16  107  	case NFPROTO_IPV4:
-8f27486f Richard Guy Briggs 2017-02-22  108  		audit_ip4(ab, skb, &apar);
-43f393ca Thomas Graf        2011-01-16  109  		break;
-43f393ca Thomas Graf        2011-01-16  110
-43f393ca Thomas Graf        2011-01-16  111  	case NFPROTO_IPV6:
-8f27486f Richard Guy Briggs 2017-02-22  112  		audit_ip6(ab, skb, &apar);
-43f393ca Thomas Graf        2011-01-16  113  		break;
-43f393ca Thomas Graf        2011-01-16  114  	}
-43f393ca Thomas Graf        2011-01-16  115
-8f27486f Richard Guy Briggs 2017-02-22 @116  	switch (apar.ipv) {
-8f27486f Richard Guy Briggs 2017-02-22  117  	case 4:
-8f27486f Richard Guy Briggs 2017-02-22  118  		audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu",
-8f27486f Richard Guy Briggs 2017-02-22  119  			 apar.saddr, apar.daddr, apar.proto);
+Gr{oetje,eeting}s,
 
-:::::: The code at line 106 was first introduced by commit
-:::::: 43f393caec0362abe03c72799d3f342af3973070 netfilter: audit target to record accepted/dropped packets
+                        Geert
 
-:::::: TO: Thomas Graf <tgraf@infradead.org>
-:::::: CC: Patrick McHardy <kaber@trash.net>
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
+.org
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+In personal conversations with technical people, I call myself a hacker. Bu=
+t
+when I'm talking to journalists I just say "programmer" or something like t=
+hat.
+                                -- Linus Torvalds
