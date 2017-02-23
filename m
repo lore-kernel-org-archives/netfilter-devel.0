@@ -1,31 +1,77 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/8] Netfilter fixes for net
-Date: Thu, 23 Feb 2017 11:00:37 -0500 (EST)
-Message-ID: <20170223.110037.1950701283848032077.davem@davemloft.net>
-References: <1487848449-2731-1-git-send-email-pablo@netfilter.org>
+From: Paul Moore <paul@paul-moore.com>
+Subject: Re: [PATCH V2] audit: normalize NETFILTER_PKT
+Date: Thu, 23 Feb 2017 11:57:33 -0500
+Message-ID: <CAHC9VhQwSH-CjWeaPJZhBpK2+vh8YqfG6kVaMCis--WrZCopEQ@mail.gmail.com>
+References: <9504740e9333a0b7074abe0dddfc487aeeae6cff.1487813996.git.rgb@redhat.com>
+	<20170223052015.GE11144@breakpoint.cc>
+	<20170223155156.GL18258@madcap2.tricolour.ca>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([184.105.139.130]:42648 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750916AbdBWQA7 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Feb 2017 11:00:59 -0500
-In-Reply-To: <1487848449-2731-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
+        linux-audit@redhat.com, Florian Westphal <fw@strlen.de>,
+        Thomas Graf <tgraf@infradead.org>
+To: Richard Guy Briggs <rgb@redhat.com>
+Return-path: <linux-audit-bounces@redhat.com>
+In-Reply-To: <20170223155156.GL18258@madcap2.tricolour.ca>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/linux-audit>
+List-Post: <mailto:linux-audit@redhat.com>
+List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=subscribe>
+Sender: linux-audit-bounces@redhat.com
+Errors-To: linux-audit-bounces@redhat.com
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Thu, 23 Feb 2017 12:14:01 +0100
+On Thu, Feb 23, 2017 at 10:51 AM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2017-02-23 06:20, Florian Westphal wrote:
+>> Richard Guy Briggs <rgb@redhat.com> wrote:
+>> > Simplify and eliminate flipping in and out of message fields, relying on nfmark
+>> > the way we do for audit_key.
+>> >
+>> > +struct nfpkt_par {
+>> > +   int ipv;
+>> > +   const void *saddr;
+>> > +   const void *daddr;
+>> > +   u8 proto;
+>> > +};
+>>
+>> This is problematic, see below for why.
+>>
+>> > -static void audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
+>> > +static void audit_ip4(struct audit_buffer *ab, struct sk_buff *skb, struct nfpkt_par *apar)
+>> >  {
+>> >     struct iphdr _iph;
+>> >     const struct iphdr *ih;
+>> >
+>> > +   apar->ipv = 4;
+>> >     ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
+>> > -   if (!ih) {
+>> > -           audit_log_format(ab, " truncated=1");
+>> > +   if (!ih)
+>> >             return;
+>>
+>> Removing this "truncated" has the consequence that this can later log
+>> "saddr=0.0.0.0 daddr=0.0.0.0" if we return here.
+>>
+>> This cannot happen for ip(6)tables because ip stack discards broken l3 headers
+>> before the netfilter hooks get called, but its possible with NFPROTO_BRIDGE.
+>>
+>> Perhaps you will need to change audit_ip4/6 to return "false" when it can't
+>> get the l3 information now so we only log zero addresses when the packet
+>> really did contain them.
+>
+> Ok, to clarify the implications, are you saying that handing a NULL
+> pointer to "saddr=%pI4" will print "0.0.0.0" rather than "(none)" or "?"
 
-> The following patchset contains Netfilter fixes for your net tree,
-> they are:
- ...
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+My initial reaction is that if the packet is so badly
+truncated/malformed that we don't have a full IP header than we should
+just refrain from logging the packet; it's too malformed/garbage to
+offer any useful information and the normal packet processing should
+result in the packet being discarded anyway.
 
-Pulled, thanks a lot!
+-- 
+paul moore
+www.paul-moore.com
