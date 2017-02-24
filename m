@@ -1,93 +1,58 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: net: possible deadlock in skb_queue_tail
-Date: Fri, 24 Feb 2017 03:56:50 +0100
-Message-ID: <20170224025650.GA16439@breakpoint.cc>
-References: <CAAeHK+yCwsZE9iv+OLHJaU+7FEka8UHy_t5vMqFUBpQ8srBbsQ@mail.gmail.com>
+From: Paul Moore <paul@paul-moore.com>
+Subject: Re: [PATCH V2] audit: normalize NETFILTER_PKT
+Date: Fri, 24 Feb 2017 00:56:04 -0500
+Message-ID: <CAHC9VhQK72isWRGcxm6LzobDZ+ovDJq4woO0rQV9eSXacMCZYg@mail.gmail.com>
+References: <9504740e9333a0b7074abe0dddfc487aeeae6cff.1487813996.git.rgb@redhat.com>
+ <20170223052015.GE11144@breakpoint.cc> <20170223155156.GL18258@madcap2.tricolour.ca>
+ <CAHC9VhQwSH-CjWeaPJZhBpK2+vh8YqfG6kVaMCis--WrZCopEQ@mail.gmail.com>
+ <20170223170431.GM18258@madcap2.tricolour.ca> <20170223170647.GA5277@breakpoint.cc>
+ <20170223172030.GO18258@madcap2.tricolour.ca> <20170224015928.GB5277@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, pabeni@redhat.com,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Kostya Serebryany <kcc@google.com>,
-        Eric Dumazet <edumazet@google.com>,
-        syzkaller <syzkaller@googlegroups.com>
-To: Andrey Konovalov <andreyknvl@google.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAAeHK+yCwsZE9iv+OLHJaU+7FEka8UHy_t5vMqFUBpQ8srBbsQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: Richard Guy Briggs <rgb@redhat.com>, linux-audit@redhat.com,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>,
+        Thomas Graf <tgraf@infradead.org>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ua0-f179.google.com ([209.85.217.179]:35014 "EHLO
+        mail-ua0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750997AbdBXF4G (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 24 Feb 2017 00:56:06 -0500
+Received: by mail-ua0-f179.google.com with SMTP id 40so7557543uau.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Feb 2017 21:56:05 -0800 (PST)
+In-Reply-To: <20170224015928.GB5277@breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Andrey Konovalov <andreyknvl@google.com> wrote:
+On Thu, Feb 23, 2017 at 8:59 PM, Florian Westphal <fw@strlen.de> wrote:
+> Richard Guy Briggs <rgb@redhat.com> wrote:
+>> > Not following, sorry, are you saying users can/should use -j MARK
+>> > somehow?
+>>
+>> Part of the discussed design and rationale for stripping many of the
+>> vanishing fields is that when setting up netfilter rules to invoke the
+>> AUDIT target, an accompanying nf mark should be used to indicate which
+>> rule caught that packet, since the chain name and rule number aren't
+>> available to the audit target.  We would use the nf mark similarly to
+>> the way we use a rule key in the audit rules (see man auditctl).
+>
+> I see.  While this works, nfmark might already be used for other
+> purposes such as policy routing, so you might need an extra cookie
+> that can be passed to the AUDIT target instead.
 
-[ CC Paolo ]
+Yes, we discussed the idea that the nfmark field already serves many
+purposes, most of which are related to labeling traffic flows.  I
+agree that using the nfmark may complicate some configurations, but
+using it in this manner seems to be in keeping with the ideas behind
+nfmark (from what I can tell).  As for the configuration complexity, I
+think it is safe to say that any users of the NETFILTER_PKT record
+already have a sufficiently complex system configuration and the added
+complexity here may not be significant; in fact, the existing nfmark
+configuration may be helpful in identifying traffic categories such
+that no changes need to be made.
 
-> I've got the following error report while fuzzing the kernel with syzkaller.
-> 
-> On commit c470abd4fde40ea6a0846a2beab642a578c0b8cd (4.10).
-> 
-> Unfortunately I can't reproduce it.
-
-This needs NETLINK_BROADCAST_ERROR enabled on a netlink socket
-that then subscribes to netfilter conntrack (ctnetlink) events.
-probably syzkaller did this by accident -- impressive.
-
-(one task is the ctnetlink event redelivery worker
- which won't be scheduled otherwise).
-
-> ======================================================
-> [ INFO: possible circular locking dependency detected ]
-> 4.10.0-rc8+ #201 Not tainted
-> -------------------------------------------------------
-> kworker/0:2/1404 is trying to acquire lock:
->  (&(&list->lock)->rlock#3){+.-...}, at: [<ffffffff8335b23f>]
-> skb_queue_tail+0xcf/0x2f0 net/core/skbuff.c:2478
-> 
-> but task is already holding lock:
->  (&(&pcpu->lock)->rlock){+.-...}, at: [<ffffffff8366b55f>] spin_lock
-> include/linux/spinlock.h:302 [inline]
->  (&(&pcpu->lock)->rlock){+.-...}, at: [<ffffffff8366b55f>]
-> ecache_work_evict_list+0xaf/0x590
-> net/netfilter/nf_conntrack_ecache.c:48
-> 
-> which lock already depends on the new lock.
-
-Cong is correct, this is a false positive.
-
-However we should fix this splat.
-
-Paolo, this happens since 7c13f97ffde63cc792c49ec1513f3974f2f05229
-('udp: do fwd memory scheduling on dequeue'), before this
-commit kfree_skb() was invoked outside of the locked section in
-first_packet_length().
-
-cpu 0 call chain:
-- first_packet_length (hold udp sk_receive_queue lock)
-   - kfree_skb
-      - nf_conntrack_destroy
-         - spin_lock(net->ct.pcpu->lock)
-
-cpu 1 call chain:
-- ecache_work_evict_list
-  - spin_lock( net->ct.pcpu->lock)
-  - nf_conntrack_event
-     - aquire netlink socket sk_receive_queue
-
-So this could only ever deadlock if a netlink socket
-calls kfree_skb while holding its sk_receive_queue lock, but afaics
-this is never the case.
-
-There are two ways to avoid this splat (other than lockdep annotation):
-
-1. re-add the list to first_packet_length() and free the
-skbs outside of locked section.
-
-2. change ecache_work_evict_list to not call nf_conntrack_event()
-while holding the pcpu lock.
-
-doing #2 might be a good idea anyway to avoid potential deadlock
-when kfree_skb gets invoked while other cpu holds its sk_receive_queue
-lock, I'll have a look if this is feasible.
+-- 
+paul moore
+www.paul-moore.com
