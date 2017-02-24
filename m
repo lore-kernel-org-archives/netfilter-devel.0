@@ -1,31 +1,41 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH libnftnl] exthdr: remove unused variable uval8
-Date: Thu, 23 Feb 2017 23:35:53 +0100
-Message-ID: <20170223223553.GA12342@breakpoint.cc>
-References: <20170223223306.24394-1-alexander@alemayhu.com>
+From: "Dmitry V. Levin" <ldv@altlinux.org>
+Subject: [PATCH] uapi: fix linux/netfilter/xt_hashlimit.h userspace compilation error
+Date: Fri, 24 Feb 2017 03:23:20 +0300
+Message-ID: <20170224002320.GA31010@altlinux.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org
-To: Alexander Alemayhu <alexander@alemayhu.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:45306 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751246AbdBWWhJ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 23 Feb 2017 17:37:09 -0500
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170223223306.24394-1-alexander@alemayhu.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Alexander Alemayhu <alexander@alemayhu.com> wrote:
-> Was added but not used in d7b451fe1a45 (src: add TCP option matching
-> requirements, 2017-02-07). Fixes the following warning:
-> 
-> expr/exthdr.c: In function ‘nftnl_expr_exthdr_json_parse’:
-> expr/exthdr.c:244:10: warning: unused variable ‘uval8’ [-Wunused-variable]
->   uint8_t uval8;
->           ^~~~~
+Include <linux/limits.h> like some of uapi/linux/netfilter/xt_*.h
+headers do to fix the following linux/netfilter/xt_hashlimit.h
+userspace compilation error:
 
-applied, thanks.
+/usr/include/linux/netfilter/xt_hashlimit.h:90:12: error: 'NAME_MAX' undeclared here (not in a function)
+  char name[NAME_MAX];
+
+Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
+---
+ include/uapi/linux/netfilter/xt_hashlimit.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/uapi/linux/netfilter/xt_hashlimit.h b/include/uapi/linux/netfilter/xt_hashlimit.h
+index 3efc0ca..79da349 100644
+--- a/include/uapi/linux/netfilter/xt_hashlimit.h
++++ b/include/uapi/linux/netfilter/xt_hashlimit.h
+@@ -2,6 +2,7 @@
+ #define _UAPI_XT_HASHLIMIT_H
+ 
+ #include <linux/types.h>
++#include <linux/limits.h>
+ #include <linux/if.h>
+ 
+ /* timings are in milliseconds. */
+-- 
+ldv
