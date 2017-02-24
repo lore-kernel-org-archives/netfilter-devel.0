@@ -1,58 +1,91 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH V2] audit: normalize NETFILTER_PKT
-Date: Fri, 24 Feb 2017 00:56:04 -0500
-Message-ID: <CAHC9VhQK72isWRGcxm6LzobDZ+ovDJq4woO0rQV9eSXacMCZYg@mail.gmail.com>
-References: <9504740e9333a0b7074abe0dddfc487aeeae6cff.1487813996.git.rgb@redhat.com>
- <20170223052015.GE11144@breakpoint.cc> <20170223155156.GL18258@madcap2.tricolour.ca>
- <CAHC9VhQwSH-CjWeaPJZhBpK2+vh8YqfG6kVaMCis--WrZCopEQ@mail.gmail.com>
- <20170223170431.GM18258@madcap2.tricolour.ca> <20170223170647.GA5277@breakpoint.cc>
- <20170223172030.GO18258@madcap2.tricolour.ca> <20170224015928.GB5277@breakpoint.cc>
+From: Dan Williams <dcbw@redhat.com>
+Subject: [PATCH] libiptc: don't set_changed() when checking rules with
+ module jumps
+Date: Fri, 24 Feb 2017 12:15:19 -0600
+Message-ID: <1487960119.27698.11.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Richard Guy Briggs <rgb@redhat.com>, linux-audit@redhat.com,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>,
-        Thomas Graf <tgraf@infradead.org>
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ua0-f179.google.com ([209.85.217.179]:35014 "EHLO
-        mail-ua0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750997AbdBXF4G (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Feb 2017 00:56:06 -0500
-Received: by mail-ua0-f179.google.com with SMTP id 40so7557543uau.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Feb 2017 21:56:05 -0800 (PST)
-In-Reply-To: <20170224015928.GB5277@breakpoint.cc>
+Received: from mx1.redhat.com ([209.132.183.28]:59674 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750995AbdBXSPW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 24 Feb 2017 13:15:22 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mx1.redhat.com (Postfix) with ESMTPS id 5B4004E4CF
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Feb 2017 18:15:22 +0000 (UTC)
+Received: from ovpn-112-32.phx2.redhat.com (ovpn-112-32.phx2.redhat.com [10.3.112.32])
+        by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id v1OIFK72030033
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Feb 2017 13:15:21 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 23, 2017 at 8:59 PM, Florian Westphal <fw@strlen.de> wrote:
-> Richard Guy Briggs <rgb@redhat.com> wrote:
->> > Not following, sorry, are you saying users can/should use -j MARK
->> > somehow?
->>
->> Part of the discussed design and rationale for stripping many of the
->> vanishing fields is that when setting up netfilter rules to invoke the
->> AUDIT target, an accompanying nf mark should be used to indicate which
->> rule caught that packet, since the chain name and rule number aren't
->> available to the audit target.  We would use the nf mark similarly to
->> the way we use a rule key in the audit rules (see man auditctl).
->
-> I see.  While this works, nfmark might already be used for other
-> purposes such as policy routing, so you might need an extra cookie
-> that can be passed to the AUDIT target instead.
+---
+ libiptc/libiptc.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-Yes, we discussed the idea that the nfmark field already serves many
-purposes, most of which are related to labeling traffic flows.  I
-agree that using the nfmark may complicate some configurations, but
-using it in this manner seems to be in keeping with the ideas behind
-nfmark (from what I can tell).  As for the configuration complexity, I
-think it is safe to say that any users of the NETFILTER_PKT record
-already have a sufficiently complex system configuration and the added
-complexity here may not be significant; in fact, the existing nfmark
-configuration may be helpful in identifying traffic categories such
-that no changes need to be made.
-
+diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
+index 2c66d04..a6e7057 100644
+--- a/libiptc/libiptc.c
++++ b/libiptc/libiptc.c
+@@ -1686,7 +1686,8 @@ iptcc_standard_map(struct rule_head *r, int verdict)
+ 
+ static int
+ iptcc_map_target(struct xtc_handle *const handle,
+-	   struct rule_head *r)
++	   struct rule_head *r,
++	   bool dry_run)
+ {
+ 	STRUCT_ENTRY *e = r->entry;
+ 	STRUCT_ENTRY_TARGET *t = GET_TARGET(e);
+@@ -1731,7 +1732,8 @@ iptcc_map_target(struct xtc_handle *const handle,
+ 	       0,
+ 	       FUNCTION_MAXNAMELEN - 1 - strlen(t->u.user.name));
+ 	r->type = IPTCC_R_MODULE;
+-	set_changed(handle);
++	if (!dry_run)
++		set_changed(handle);
+ 	return 1;
+ }
+ 
+@@ -1781,7 +1783,7 @@ TC_INSERT_ENTRY(const IPT_CHAINLABEL chain,
+ 	memcpy(r->entry, e, e->next_offset);
+ 	r->counter_map.maptype = COUNTER_MAP_SET;
+ 
+-	if (!iptcc_map_target(handle, r)) {
++	if (!iptcc_map_target(handle, r, false)) {
+ 		free(r);
+ 		return 0;
+ 	}
+@@ -1831,7 +1833,7 @@ TC_REPLACE_ENTRY(const IPT_CHAINLABEL chain,
+ 	memcpy(r->entry, e, e->next_offset);
+ 	r->counter_map.maptype = COUNTER_MAP_SET;
+ 
+-	if (!iptcc_map_target(handle, r)) {
++	if (!iptcc_map_target(handle, r, false)) {
+ 		free(r);
+ 		return 0;
+ 	}
+@@ -1870,7 +1872,7 @@ TC_APPEND_ENTRY(const IPT_CHAINLABEL chain,
+ 	memcpy(r->entry, e, e->next_offset);
+ 	r->counter_map.maptype = COUNTER_MAP_SET;
+ 
+-	if (!iptcc_map_target(handle, r)) {
++	if (!iptcc_map_target(handle, r, false)) {
+ 		DEBUGP("unable to map target of rule for chain `%s'\n", chain);
+ 		free(r);
+ 		return 0;
+@@ -1976,7 +1978,7 @@ static int delete_entry(const IPT_CHAINLABEL chain, const STRUCT_ENTRY *origfw,
+ 
+ 	memcpy(r->entry, origfw, origfw->next_offset);
+ 	r->counter_map.maptype = COUNTER_MAP_NOMAP;
+-	if (!iptcc_map_target(handle, r)) {
++	if (!iptcc_map_target(handle, r, dry_run)) {
+ 		DEBUGP("unable to map target of rule for chain `%s'\n", chain);
+ 		free(r);
+ 		return 0;
 -- 
-paul moore
-www.paul-moore.com
+2.9.3
