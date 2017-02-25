@@ -1,185 +1,225 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 2/2] netlink: store set byteorder in NFTA_SET_USERDATA
-Date: Sat, 25 Feb 2017 11:54:00 +0100
-Message-ID: <1488020040-24025-2-git-send-email-pablo@netfilter.org>
-References: <1488020040-24025-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 1/2] evaluate: store byteorder for set keys
+Date: Sat, 25 Feb 2017 11:53:59 +0100
+Message-ID: <1488020040-24025-1-git-send-email-pablo@netfilter.org>
 Cc: fw@strlen.de
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57626 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:57624 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751577AbdBYKyf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1751665AbdBYKyf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sat, 25 Feb 2017 05:54:35 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 94C46A417F
-        for <netfilter-devel@vger.kernel.org>; Sat, 25 Feb 2017 11:54:20 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id F096EA417B
+        for <netfilter-devel@vger.kernel.org>; Sat, 25 Feb 2017 11:54:19 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 85844DA7FA
-        for <netfilter-devel@vger.kernel.org>; Sat, 25 Feb 2017 11:54:20 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E1836DA807
+        for <netfilter-devel@vger.kernel.org>; Sat, 25 Feb 2017 11:54:19 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 25DE7DA804
-        for <netfilter-devel@vger.kernel.org>; Sat, 25 Feb 2017 11:54:17 +0100 (CET)
-In-Reply-To: <1488020040-24025-1-git-send-email-pablo@netfilter.org>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9AB2DDA7E0
+        for <netfilter-devel@vger.kernel.org>; Sat, 25 Feb 2017 11:54:15 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The integer datatype has neither specific byteorder nor length. This
-results in the following broken output:
+Selectors that rely on the integer type and expect host endian
+byteorder don't work properly.
 
- # nft list ruleset
- table ip x {
-        chain y {
-                mark set cpu map { 0 : 0x00000001, 16777216 : 0x00000002}
-        }
- }
+We need to keep the byteorder around based on the left hand size
+expression that provides the context, so store the byteorder when
+evaluating the map.
 
-Currently, with BYTEORDER_INVALID, nft defaults on network byteorder,
-hence the output above.
+Before this patch.
 
-This patch stores the key byteorder in the userdata using a TLV
-structure in the NFTA_SET_USERDATA area, so nft can interpret key
-accordingly when dumping the set back to userspace.
+ # nft --debug=netlink add rule x y meta mark set meta cpu map { 0 : 1, 1 : 2 }
+ __map%d x b
+ __map%d x 0
+        element 00000000  : 00000001 0 [end]    element 01000000  : 00000002 0 [end]
+                                                        ^^^^^^^^
 
-Thus, after this patch the listing is correct:
+This is expressed in network byteorder, because the invalid byteorder
+defaults on this.
 
- # nft list ruleset
- table ip x {
-        chain y {
-                mark set cpu map { 0 : 0x00000001, 1 : 0x00000002}
-        }
- }
+After this patch:
+
+ # nft --debug=netlink add rule x y meta mark set meta cpu map { 0 : 1, 1 : 2 }
+ __map%d x b
+ __map%d x 0
+        element 00000000  : 00000001 0 [end]    element 00000001  : 00000002 0 [end]
+                                                        ^^^^^^^^
+
+This is in host byteorder, as the key selector in the map mandates.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-@Florian: You can rebase your ct zone patchset on top of this, so you don't
-          need your original 5/8 anymore.
+ include/datatype.h |  4 ++++
+ src/datatype.c     | 48 +++++++++++++++++++++++++++++++++++++++++++-----
+ src/evaluate.c     | 17 +++++++++++------
+ src/rule.c         |  1 +
+ 4 files changed, 59 insertions(+), 11 deletions(-)
 
-BTW, this uncovered a bug in the new bitmap set type that I'm addressing now.
-
- include/rule.h |  6 ++++++
- src/netlink.c  | 60 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 65 insertions(+), 1 deletion(-)
-
-diff --git a/include/rule.h b/include/rule.h
-index 878563d9fcbc..f5160daf4d8e 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -477,4 +477,10 @@ enum udata_type {
- 
- #define UDATA_COMMENT_MAXLEN 128
- 
-+enum udata_set_type {
-+	UDATA_SET_KEYBYTEORDER,
-+	__UDATA_SET_MAX,
-+};
-+#define UDATA_SET_MAX (__UDATA_SET_MAX - 1)
-+
- #endif /* NFTABLES_RULE_H */
-diff --git a/src/netlink.c b/src/netlink.c
-index 0cc3a517cd90..1f3398225892 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -1104,12 +1104,58 @@ void netlink_dump_set(const struct nftnl_set *nls)
- #endif
+diff --git a/include/datatype.h b/include/datatype.h
+index 9f127f2954e3..68fb2a6c2431 100644
+--- a/include/datatype.h
++++ b/include/datatype.h
+@@ -251,6 +251,10 @@ concat_subtype_lookup(uint32_t type, unsigned int n)
+ 	return datatype_lookup(concat_subtype_id(type, n));
  }
  
-+static int set_parse_udata_cb(const struct nftnl_udata *attr, void *data)
-+{
-+	const struct nftnl_udata **tb = data;
-+	uint8_t type = nftnl_udata_type(attr);
-+	uint8_t len = nftnl_udata_len(attr);
++extern const struct datatype *
++set_keytype_alloc(const struct datatype *orig_dtype, unsigned int byteorder);
++extern void set_keytype_destroy(const struct datatype *dtype);
 +
-+	switch (type) {
-+	case UDATA_SET_KEYBYTEORDER:
-+		if (len != sizeof(uint32_t))
-+			return -1;
-+		break;
-+	default:
-+		return 0;
+ extern void time_print(uint64_t seconds);
+ extern struct error_record *time_parse(const struct location *loc,
+ 				       const char *c, uint64_t *res);
+diff --git a/src/datatype.c b/src/datatype.c
+index f1388dc52d96..bfc8817c2b83 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -965,6 +965,28 @@ static struct datatype *dtype_alloc(void)
+ 	return dtype;
+ }
+ 
++static struct datatype *dtype_clone(const struct datatype *orig_dtype)
++{
++	struct datatype *dtype;
++
++	dtype = xzalloc(sizeof(*dtype));
++	*dtype = *orig_dtype;
++	dtype->name = xstrdup(orig_dtype->name);
++	dtype->desc = xstrdup(orig_dtype->desc);
++	dtype->flags = DTYPE_F_ALLOC;
++
++	return dtype;
++}
++
++static void dtype_free(const struct datatype *dtype)
++{
++	if (dtype->flags & DTYPE_F_ALLOC) {
++		xfree(dtype->name);
++		xfree(dtype->desc);
++		xfree(dtype);
 +	}
-+	tb[type] = attr;
-+	return 0;
 +}
 +
-+static uint32_t set_udata_get_key_byteorder(const void *data, uint32_t data_len)
-+{
-+	const struct nftnl_udata *tb[UDATA_TYPE_MAX + 1] = {};
-+
-+	if (nftnl_udata_parse(data, data_len, set_parse_udata_cb, tb) < 0)
-+		return BYTEORDER_INVALID;
-+
-+	if (!tb[UDATA_SET_KEYBYTEORDER])
-+		return BYTEORDER_INVALID;
-+
-+	return *((uint32_t *)nftnl_udata_get(tb[UDATA_SET_KEYBYTEORDER]));
-+}
-+
-+static enum byteorder set_key_byteorder(const struct nftnl_set *nls)
-+{
-+	enum byteorder byteorder = BYTEORDER_INVALID;
-+	const void *data;
-+	uint32_t len;
-+
-+	if (nftnl_set_is_set(nls, NFTNL_SET_USERDATA)) {
-+		data = nftnl_set_get_data(nls, NFTNL_SET_USERDATA, &len);
-+		byteorder = set_udata_get_key_byteorder(data, len);
-+	}
-+
-+	return byteorder;
-+}
-+
- static struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
- 					   const struct nftnl_set *nls)
+ const struct datatype *concat_type_alloc(uint32_t type)
  {
- 	struct set *set;
- 	const struct datatype *keytype, *datatype;
- 	uint32_t flags, key, data, data_len, objtype = 0;
-+	enum byteorder byteorder;
+ 	const struct datatype *i;
+@@ -1004,11 +1026,27 @@ const struct datatype *concat_type_alloc(uint32_t type)
  
- 	key = nftnl_set_get_u32(nls, NFTNL_SET_KEY_TYPE);
- 	keytype = dtype_map_from_kernel(key);
-@@ -1118,6 +1164,7 @@ static struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
- 				 key);
- 		return NULL;
- 	}
-+	byteorder = set_key_byteorder(nls);
- 
- 	flags = nftnl_set_get_u32(nls, NFTNL_SET_FLAGS);
- 	if (flags & NFT_SET_MAP) {
-@@ -1142,7 +1189,7 @@ static struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
- 	set->handle.table  = xstrdup(nftnl_set_get_str(nls, NFTNL_SET_TABLE));
- 	set->handle.set    = xstrdup(nftnl_set_get_str(nls, NFTNL_SET_NAME));
- 
--	set->keytype = keytype;
-+	set->keytype = set_keytype_alloc(keytype, byteorder);
- 	set->keylen  = nftnl_set_get_u32(nls, NFTNL_SET_KEY_LEN) * BITS_PER_BYTE;
- 	set->flags   = nftnl_set_get_u32(nls, NFTNL_SET_FLAGS);
- 
-@@ -1205,6 +1252,7 @@ static int netlink_add_set_batch(struct netlink_ctx *ctx,
- 				 const struct handle *h, struct set *set,
- 				 bool excl)
+ void concat_type_destroy(const struct datatype *dtype)
  {
-+	struct nftnl_udata_buf *udbuf;
- 	struct nftnl_set *nls;
- 	int err;
- 
-@@ -1239,6 +1287,16 @@ static int netlink_add_set_batch(struct netlink_ctx *ctx,
- 					  set->desc.size);
- 	}
- 
-+	udbuf = nftnl_udata_buf_alloc(NFT_USERDATA_MAXLEN);
-+	if (!udbuf)
-+		memory_allocation_error();
-+	if (!nftnl_udata_put(udbuf, UDATA_SET_KEYBYTEORDER, sizeof(uint32_t),
-+			     &set->keytype->byteorder))
-+		memory_allocation_error();
-+	nftnl_set_set_data(nls, NFTNL_SET_USERDATA, nftnl_udata_buf_data(udbuf),
-+			   nftnl_udata_buf_len(udbuf));
-+	nftnl_udata_buf_free(udbuf);
+-	if (dtype->flags & DTYPE_F_ALLOC) {
+-		xfree(dtype->name);
+-		xfree(dtype->desc);
+-		xfree(dtype);
+-	}
++	dtype_free(dtype);
++}
 +
- 	netlink_dump_set(nls);
++const struct datatype *set_keytype_alloc(const struct datatype *orig_dtype,
++					 unsigned int byteorder)
++{
++	struct datatype *dtype;
++
++	/* Restrict dynamic datatype allocation to generic integer datatype. */
++	if (orig_dtype != &integer_type)
++		return orig_dtype;
++
++	dtype = dtype_clone(orig_dtype);
++	dtype->byteorder = byteorder;
++
++	return dtype;
++}
++
++void set_keytype_destroy(const struct datatype *dtype)
++{
++	dtype_free(dtype);
+ }
  
- 	err = mnl_nft_set_batch_add(nls, excl ? NLM_F_EXCL : 0, ctx->seqnum);
+ static struct error_record *time_unit_parse(const struct location *loc,
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 4817a55c82ef..87da2fd83597 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -63,6 +63,7 @@ static struct expr *implicit_set_declaration(struct eval_ctx *ctx,
+ 					     const char *name,
+ 					     const struct datatype *keytype,
+ 					     unsigned int keylen,
++					     unsigned int keybyteorder,
+ 					     struct expr *expr)
+ {
+ 	struct cmd *cmd;
+@@ -72,7 +73,7 @@ static struct expr *implicit_set_declaration(struct eval_ctx *ctx,
+ 	set = set_alloc(&expr->location);
+ 	set->flags	= NFT_SET_ANONYMOUS | expr->set_flags;
+ 	set->handle.set = xstrdup(name),
+-	set->keytype 	= keytype;
++	set->keytype 	= set_keytype_alloc(keytype, keybyteorder);
+ 	set->keylen	= keylen;
+ 	set->init	= expr;
+ 
+@@ -1170,7 +1171,9 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
+ 	case EXPR_SET:
+ 		mappings = implicit_set_declaration(ctx, "__map%d",
+ 						    ctx->ectx.dtype,
+-						    ctx->ectx.len, mappings);
++						    ctx->ectx.len,
++						    ctx->ectx.byteorder,
++						    mappings);
+ 		mappings->set->datatype = ectx.dtype;
+ 		mappings->set->datalen  = ectx.len;
+ 
+@@ -1505,8 +1508,8 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
+ 		if (right->ops->type == EXPR_SET)
+ 			right = rel->right =
+ 				implicit_set_declaration(ctx, "__set%d",
+-							 left->dtype,
+-							 left->len, right);
++							 left->dtype, left->len,
++							 left->byteorder, right);
+ 		else if (!datatype_equal(left->dtype, right->dtype))
+ 			return expr_binary_error(ctx->msgs, right, left,
+ 						 "datatype mismatch, expected %s, "
+@@ -1565,7 +1568,7 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
+ 			right = rel->right =
+ 				implicit_set_declaration(ctx, "__set%d",
+ 							 left->dtype, left->len,
+-							 right);
++							 left->byteorder, right);
+ 			/* fall through */
+ 		case EXPR_SET_REF:
+ 			assert(rel->op == OP_NEQ);
+@@ -1886,7 +1889,8 @@ static int stmt_evaluate_flow(struct eval_ctx *ctx, struct stmt *stmt)
+ 		set->set_flags |= NFT_SET_TIMEOUT;
+ 
+ 	setref = implicit_set_declaration(ctx, stmt->flow.table ?: "__ft%d",
+-					  key->dtype, key->len, set);
++					  key->dtype, key->len,
++					  key->dtype->byteorder, set);
+ 
+ 	stmt->flow.set = setref;
+ 
+@@ -2518,6 +2522,7 @@ static int stmt_evaluate_objref_map(struct eval_ctx *ctx, struct stmt *stmt)
+ 		mappings = implicit_set_declaration(ctx, "__objmap%d",
+ 						    ctx->ectx.dtype,
+ 						    ctx->ectx.len,
++						    ctx->ectx.byteorder,
+ 						    mappings);
+ 		mappings->set->datatype = &string_type;
+ 		mappings->set->datalen  = NFT_OBJ_MAXNAMELEN * BITS_PER_BYTE;
+diff --git a/src/rule.c b/src/rule.c
+index 0d58073f7333..b47076f000ee 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -210,6 +210,7 @@ void set_free(struct set *set)
+ 	if (set->init != NULL)
+ 		expr_free(set->init);
+ 	handle_free(&set->handle);
++	set_keytype_destroy(set->keytype);
+ 	xfree(set);
+ }
+ 
 -- 
 2.1.4
 
