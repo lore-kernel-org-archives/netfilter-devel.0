@@ -1,105 +1,51 @@
-From: Dan Williams <dcbw@redhat.com>
-Subject: [PATCH v3] libiptc: don't set_changed() when checking rules with
- module jumps
-Date: Sat, 25 Feb 2017 22:02:03 -0600
-Message-ID: <1488081723.31061.5.camel@redhat.com>
-References: <1487960119.27698.11.camel@redhat.com>
-         <1487960755.27698.15.camel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+From: Alexander Alemayhu <alexander@alemayhu.com>
+Subject: [PATCH nft] mnl: continue monitor if errno is ESRCH
+Date: Sun, 26 Feb 2017 17:30:58 +0100
+Message-ID: <20170226163058.24754-1-alexander@alemayhu.com>
+Cc: Alexander Alemayhu <alexander@alemayhu.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:47102 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751890AbdBZEDu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 25 Feb 2017 23:03:50 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id 580AA83F40
-        for <netfilter-devel@vger.kernel.org>; Sun, 26 Feb 2017 04:02:06 +0000 (UTC)
-Received: from ovpn-112-18.phx2.redhat.com (ovpn-112-18.phx2.redhat.com [10.3.112.18])
-        by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id v1Q424Vg017558
-        for <netfilter-devel@vger.kernel.org>; Sat, 25 Feb 2017 23:02:05 -0500
-In-Reply-To: <1487960755.27698.15.camel@redhat.com>
+Received: from mail-lf0-f43.google.com ([209.85.215.43]:36614 "EHLO
+        mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752271AbdBZQb3 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 26 Feb 2017 11:31:29 -0500
+Received: by mail-lf0-f43.google.com with SMTP id b80so24698807lfe.3
+        for <netfilter-devel@vger.kernel.org>; Sun, 26 Feb 2017 08:31:02 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Checking a rule that includes a jump to a module-based target currently
-sets the "changed" flag on the handle, which then causes TC_COMMIT() to
-run through the whole SO_SET_REPLACE/SO_SET_ADD_COUNTERS path.  This
-seems wrong for simply checking rules, an operation which is documented
-as "...does not alter the existing iptables configuration..." but yet
-it clearly could do so.
+Running the test cases in the shell directory while running nft monitor results
+in nft exiting with '# ERROR: No such process'. The minimal steps where I could
+reproduce is:
 
-Fix that by ensuring that rule check operations for module targets
-don't set the changed flag, and thus exit early from TC_COMMIT().
+nft monitor # shell 1
+run-tests.sh testcases/sets/0011add_many_elements_0 # shell 2
 
-Signed-off-by: Dan Williams <dcbw@redhat.com>
+Signed-off-by: Alexander Alemayhu <alexander@alemayhu.com>
 ---
- libiptc/libiptc.c | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
-index 2c66d04..a6e7057 100644
---- a/libiptc/libiptc.c
-+++ b/libiptc/libiptc.c
-@@ -1686,7 +1686,8 @@ iptcc_standard_map(struct rule_head *r, int verdict)
- 
- static int
- iptcc_map_target(struct xtc_handle *const handle,
--	   struct rule_head *r)
-+	   struct rule_head *r,
-+	   bool dry_run)
- {
- 	STRUCT_ENTRY *e = r->entry;
- 	STRUCT_ENTRY_TARGET *t = GET_TARGET(e);
-@@ -1731,7 +1732,8 @@ iptcc_map_target(struct xtc_handle *const handle,
- 	       0,
- 	       FUNCTION_MAXNAMELEN - 1 - strlen(t->u.user.name));
- 	r->type = IPTCC_R_MODULE;
--	set_changed(handle);
-+	if (!dry_run)
-+		set_changed(handle);
- 	return 1;
- }
- 
-@@ -1781,7 +1783,7 @@ TC_INSERT_ENTRY(const IPT_CHAINLABEL chain,
- 	memcpy(r->entry, e, e->next_offset);
- 	r->counter_map.maptype = COUNTER_MAP_SET;
- 
--	if (!iptcc_map_target(handle, r)) {
-+	if (!iptcc_map_target(handle, r, false)) {
- 		free(r);
- 		return 0;
- 	}
-@@ -1831,7 +1833,7 @@ TC_REPLACE_ENTRY(const IPT_CHAINLABEL chain,
- 	memcpy(r->entry, e, e->next_offset);
- 	r->counter_map.maptype = COUNTER_MAP_SET;
- 
--	if (!iptcc_map_target(handle, r)) {
-+	if (!iptcc_map_target(handle, r, false)) {
- 		free(r);
- 		return 0;
- 	}
-@@ -1870,7 +1872,7 @@ TC_APPEND_ENTRY(const IPT_CHAINLABEL chain,
- 	memcpy(r->entry, e, e->next_offset);
- 	r->counter_map.maptype = COUNTER_MAP_SET;
- 
--	if (!iptcc_map_target(handle, r)) {
-+	if (!iptcc_map_target(handle, r, false)) {
- 		DEBUGP("unable to map target of rule for chain `%s'\n", chain);
- 		free(r);
- 		return 0;
-@@ -1976,7 +1978,7 @@ static int delete_entry(const IPT_CHAINLABEL chain, const STRUCT_ENTRY *origfw,
- 
- 	memcpy(r->entry, origfw, origfw->next_offset);
- 	r->counter_map.maptype = COUNTER_MAP_NOMAP;
--	if (!iptcc_map_target(handle, r)) {
-+	if (!iptcc_map_target(handle, r, dry_run)) {
- 		DEBUGP("unable to map target of rule for chain `%s'\n", chain);
- 		free(r);
- 		return 0;
+Not sure if this is considered a fix or desired behaviour, but I was not
+expecting monitor to exit like this.
+
+ src/mnl.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/mnl.c b/src/mnl.c
+index 295dd84a5840..a0066a28b44f 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -1129,7 +1129,10 @@ int mnl_nft_event_listener(struct mnl_socket *nf_sock,
+ 				printf("# ERROR: We lost some netlink events!\n");
+ 				continue;
+ 			}
++
+ 			fprintf(stdout, "# ERROR: %s\n", strerror(errno));
++			if (errno == ESRCH)
++				continue;
+ 			break;
+ 		}
+ 		ret = mnl_cb_run(buf, ret, 0, 0, cb, cb_data);
 -- 
 2.9.3
+
