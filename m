@@ -1,57 +1,60 @@
-From: Richard Guy Briggs <rgb@redhat.com>
-Subject: Re: AUDIT_NETFILTER_PKT message format
-Date: Sun, 26 Feb 2017 14:09:00 -0500
-Message-ID: <20170226190900.GA20724@madcap2.tricolour.ca>
-References: <20170117052551.GQ3087@madcap2.tricolour.ca>
-	<10185842.hTv0ExFpgc@x2>
-	<20170210225445.GS26850@madcap2.tricolour.ca>
-	<3926301.2G9jBBrVEf@x2>
-	<20170213205005.GO26855@madcap2.tricolour.ca>
-	<CAHC9VhTGJMtg6z-WjW+PYCrEAKdrrKhfJdi3j4DB=91r8XYH4Q@mail.gmail.com>
-	<20170214002452.GT26850@madcap2.tricolour.ca>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: nft bug: Deleting map elements with intervals
+Date: Sun, 26 Feb 2017 21:09:58 +0100
+Message-ID: <20170226200958.GA1827@salvia>
+References: <20170226163855.v56ljeaelgqypaeq@wendy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
-        Thomas Graf <tgraf@infradead.org>,
-        Linux-Audit Mailing List <linux-audit@redhat.com>
-To: Paul Moore <paul@paul-moore.com>
-Return-path: <linux-audit-bounces@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Cc: netfilter-devel@vger.kernel.org
+To: Felix Kluge <f.kluge@agdsn.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:48434 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751253AbdBZUKE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 26 Feb 2017 15:10:04 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 4EE16ED90F
+        for <netfilter-devel@vger.kernel.org>; Sun, 26 Feb 2017 21:10:02 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 40B1FDA385
+        for <netfilter-devel@vger.kernel.org>; Sun, 26 Feb 2017 21:10:02 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7CE00DA385
+        for <netfilter-devel@vger.kernel.org>; Sun, 26 Feb 2017 21:09:59 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20170214002452.GT26850@madcap2.tricolour.ca>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/linux-audit>
-List-Post: <mailto:linux-audit@redhat.com>
-List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=subscribe>
-Sender: linux-audit-bounces@redhat.com
-Errors-To: linux-audit-bounces@redhat.com
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20170226163855.v56ljeaelgqypaeq@wendy>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2017-02-13 19:24, Richard Guy Briggs wrote:
-> On 2017-02-13 18:50, Paul Moore wrote:
-> > On Mon, Feb 13, 2017 at 3:50 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> > > useless?        smac, dmac, macproto
-> > 
-> > Probably useless in the majority of use cases.
+On Sun, Feb 26, 2017 at 05:38:55PM +0100, Felix Kluge wrote:
+> Hello,
 > 
-> How do we deal with the minority of cases where it could be quite useful?
-
-It turns out this was required for ebtables support.
-	https://bugzilla.redhat.com/show_bug.cgi?id=642391#c6
-
-> > > - RGB
-> > 
-> > paul moore
+> we're currently trying to use a vertict map to jump to other chains. The
+> key of the map is a subnet.
 > 
-> - RGB
+> table ip filter {
+>   map cgn_map {
+>     type ipv4_addr : verdict
+>     flags interval
+>     elements = {
+>       100.64.2.0/24 : goto chain-100-64-2-0}
+>   }
+> }
+> 
+> 
+> Adding new elements to the map works well:
+> 
+> nft add element filter cgn_map { 100.64.3.0/24 : goto ratelimit-100-64-3-0}
+> 
+> 
+> However, deleting elements from the map does not work:
+> 
+> nft delete element filter cgn_map 100.64.2.0/24
+> <cmdline>:1:36-45: Error: syntax error, unexpected string, expecting '{' or '$'
 
-- RGB
+Parens are missing, this should be:
 
---
-Richard Guy Briggs <rgb@redhat.com>
-Kernel Security Engineering, Base Operating Systems, Red Hat
-Remote, Ottawa, Canada
-Voice: +1.647.777.2635, Internal: (81) 32635
+        nft delete element filter cgn_map { 100.64.2.0/24 }
+
+Thanks.
