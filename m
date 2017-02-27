@@ -1,85 +1,108 @@
-From: Daniel J Blueman <daniel@quora.org>
-Subject: Re: [4.9.10] ip_route_me_harder() reading off-slab
-Date: Mon, 27 Feb 2017 22:41:48 +0800
-Message-ID: <CAMVG2ssH8F-BgUzCxZdcAYgYo_2HMK_0=drg-JS596TT7A=5wA@mail.gmail.com>
-References: <CAMVG2ssKxnEsu4=orZyB3UsHwT2CZhpWKFn2UmtoPOEu1KMHPw@mail.gmail.com>
- <20170217073928.GA25854@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Netdev <netdev@vger.kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        David Ahern <dsa@cumulusnetworks.com>,
-        Jan Beulich <JBeulich@suse.com>,
-        Eric Dumazet <eric.dumazet@gmail.com>,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170217073928.GA25854@breakpoint.cc>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH libnftnl 1/7] object: extend set/get api for u8/u16 types
+Date: Mon, 27 Feb 2017 16:02:49 +0100
+Message-ID: <20170227150255.12624-2-fw@strlen.de>
+References: <20170227150255.12624-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:55740 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751737AbdB0PCl (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Feb 2017 10:02:41 -0500
+In-Reply-To: <20170227150255.12624-1-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 17 February 2017 at 15:39, Florian Westphal <fw@strlen.de> wrote:
-> Daniel J Blueman <daniel@quora.org> wrote:
->
-> [ CC nf-devel, pablo ]
->
->> When booting a VM in libvirt/KVM attached to a local bridge and KASAN
->> enabled on 4.9.10, we see a stream of KASAN warnings about off-slab
->> access [1].
->>
->> Let me know if you'd like more debug.
->
-> Does this patch help?
->
-> Subject: [PATCH nf] netfilter: use skb_to_full_sk in ip_route_me_harder
->
-> inet_sk(skb->sk) is illegal in case skb is attached to request socket.
->
-> Fixes: ca6fb0651883 ("tcp: attach SYNACK messages to request sockets instead of listener")
-> Reported by: Daniel J Blueman <daniel@quora.org>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  net/ipv4/netfilter.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
->
-> diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-> index b3cc1335adbc..c0cc6aa8cfaa 100644
-> --- a/net/ipv4/netfilter.c
-> +++ b/net/ipv4/netfilter.c
-> @@ -23,7 +23,8 @@ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned int addr_t
->         struct rtable *rt;
->         struct flowi4 fl4 = {};
->         __be32 saddr = iph->saddr;
-> -       __u8 flags = skb->sk ? inet_sk_flowi_flags(skb->sk) : 0;
-> +       const struct sock *sk = skb_to_full_sk(skb);
-> +       __u8 flags = sk ? inet_sk_flowi_flags(sk) : 0;
->         struct net_device *dev = skb_dst(skb)->dev;
->         unsigned int hh_len;
->
-> @@ -40,7 +41,7 @@ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned int addr_t
->         fl4.daddr = iph->daddr;
->         fl4.saddr = saddr;
->         fl4.flowi4_tos = RT_TOS(iph->tos);
-> -       fl4.flowi4_oif = skb->sk ? skb->sk->sk_bound_dev_if : 0;
-> +       fl4.flowi4_oif = sk ? sk->sk_bound_dev_if : 0;
->         if (!fl4.flowi4_oif)
->                 fl4.flowi4_oif = l3mdev_master_ifindex(dev);
->         fl4.flowi4_mark = skb->mark;
-> @@ -61,7 +62,7 @@ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned int addr_t
->             xfrm_decode_session(skb, flowi4_to_flowi(&fl4), AF_INET) == 0) {
->                 struct dst_entry *dst = skb_dst(skb);
->                 skb_dst_set(skb, NULL);
-> -               dst = xfrm_lookup(net, dst, flowi4_to_flowi(&fl4), skb->sk, 0);
-> +               dst = xfrm_lookup(net, dst, flowi4_to_flowi(&fl4), sk, 0);
->                 if (IS_ERR(dst))
->                         return PTR_ERR(dst);
->                 skb_dst_set(skb, dst);
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/libnftnl/object.h |  4 ++++
+ src/libnftnl.map          |  8 ++++++++
+ src/object.c              | 26 ++++++++++++++++++++++++++
+ 3 files changed, 38 insertions(+)
 
-Apologies for the delays; this also addresses the issue just fine.
-
-Tested-by: Daniel J Blueman <daniel@quora.org>
-
-Dan
+diff --git a/include/libnftnl/object.h b/include/libnftnl/object.h
+index 074a37789734..ca3abeae66cc 100644
+--- a/include/libnftnl/object.h
++++ b/include/libnftnl/object.h
+@@ -44,12 +44,16 @@ void nftnl_obj_unset(struct nftnl_obj *ne, uint16_t attr);
+ void nftnl_obj_set_data(struct nftnl_obj *ne, uint16_t attr, const void *data,
+ 			uint32_t data_len);
+ void nftnl_obj_set(struct nftnl_obj *ne, uint16_t attr, const void *data);
++void nftnl_obj_set_u8(struct nftnl_obj *ne, uint16_t attr, uint8_t val);
++void nftnl_obj_set_u16(struct nftnl_obj *ne, uint16_t attr, uint16_t val);
+ void nftnl_obj_set_u32(struct nftnl_obj *ne, uint16_t attr, uint32_t val);
+ void nftnl_obj_set_u64(struct nftnl_obj *obj, uint16_t attr, uint64_t val);
+ void nftnl_obj_set_str(struct nftnl_obj *ne, uint16_t attr, const char *str);
+ const void *nftnl_obj_get_data(struct nftnl_obj *ne, uint16_t attr,
+ 			       uint32_t *data_len);
+ const void *nftnl_obj_get(struct nftnl_obj *ne, uint16_t attr);
++uint8_t nftnl_obj_get_u8(struct nftnl_obj *ne, uint16_t attr);
++uint16_t nftnl_obj_get_u16(struct nftnl_obj *obj, uint16_t attr);
+ uint32_t nftnl_obj_get_u32(struct nftnl_obj *ne, uint16_t attr);
+ uint64_t nftnl_obj_get_u64(struct nftnl_obj *obj, uint16_t attr);
+ const char *nftnl_obj_get_str(struct nftnl_obj *ne, uint16_t attr);
+diff --git a/src/libnftnl.map b/src/libnftnl.map
+index 4282367db5b8..efe63bce98ee 100644
+--- a/src/libnftnl.map
++++ b/src/libnftnl.map
+@@ -301,3 +301,11 @@ global:
+ 
+ local: *;
+ };
++
++LIBNFTNL_5.1 {
++	nftnl_obj_get_u8;
++	nftnl_obj_get_u16;
++
++	nftnl_obj_set_u8;
++	nftnl_obj_set_u16;
++} LIBNFTNL_5;
+diff --git a/src/object.c b/src/object.c
+index 773eff6a5a18..e635f6a8ff0e 100644
+--- a/src/object.c
++++ b/src/object.c
+@@ -107,6 +107,18 @@ void nftnl_obj_set(struct nftnl_obj *obj, uint16_t attr, const void *data)
+ }
+ EXPORT_SYMBOL(nftnl_obj_set);
+ 
++void nftnl_obj_set_u8(struct nftnl_obj *obj, uint16_t attr, uint8_t val)
++{
++	nftnl_obj_set_data(obj, attr, &val, sizeof(uint8_t));
++}
++EXPORT_SYMBOL(nftnl_obj_set_u8);
++
++void nftnl_obj_set_u16(struct nftnl_obj *obj, uint16_t attr, uint16_t val)
++{
++	nftnl_obj_set_data(obj, attr, &val, sizeof(uint16_t));
++}
++EXPORT_SYMBOL(nftnl_obj_set_u16);
++
+ void nftnl_obj_set_u32(struct nftnl_obj *obj, uint16_t attr, uint32_t val)
+ {
+ 	nftnl_obj_set_data(obj, attr, &val, sizeof(uint32_t));
+@@ -164,6 +176,20 @@ const void *nftnl_obj_get(struct nftnl_obj *obj, uint16_t attr)
+ }
+ EXPORT_SYMBOL(nftnl_obj_get);
+ 
++uint8_t nftnl_obj_get_u8(struct nftnl_obj *obj, uint16_t attr)
++{
++	const void *ret = nftnl_obj_get(obj, attr);
++	return ret == NULL ? 0 : *((uint8_t *)ret);
++}
++EXPORT_SYMBOL(nftnl_obj_get_u8);
++
++uint16_t nftnl_obj_get_u16(struct nftnl_obj *obj, uint16_t attr)
++{
++	const void *ret = nftnl_obj_get(obj, attr);
++	return ret == NULL ? 0 : *((uint16_t *)ret);
++}
++EXPORT_SYMBOL(nftnl_obj_get_u16);
++
+ uint32_t nftnl_obj_get_u32(struct nftnl_obj *obj, uint16_t attr)
+ {
+ 	const void *ret = nftnl_obj_get(obj, attr);
 -- 
-Daniel J Blueman
+2.10.2
+
