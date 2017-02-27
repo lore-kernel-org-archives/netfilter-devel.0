@@ -1,39 +1,52 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH libnftnl 2/2] object: fix crash when object ops is null
-Date: Mon, 27 Feb 2017 16:44:48 +0100
-Message-ID: <20170227154448.GA15626@salvia>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH libnftnl 1/2] object: don't set NFTNL_OBJ_TYPE unless obj->ops is non-null
+Date: Mon, 27 Feb 2017 15:56:09 +0100
+Message-ID: <20170227145610.12066-2-fw@strlen.de>
 References: <20170227145610.12066-1-fw@strlen.de>
- <20170227145610.12066-3-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44492 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751372AbdB0Pqp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Feb 2017 10:46:45 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 86F06177107
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Feb 2017 16:44:55 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 788BBDA801
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Feb 2017 16:44:55 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 434BCDA729
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Feb 2017 16:44:53 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20170227145610.12066-3-fw@strlen.de>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56168 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751422AbdB0P62 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Feb 2017 10:58:28 -0500
+In-Reply-To: <20170227145610.12066-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Feb 27, 2017 at 03:56:10PM +0100, Florian Westphal wrote:
-> when debugging nft with invalid object type (during development),
-> this will crash here with null deref.  Print (unknown) instead
-> if obj->ops is null.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+If nft sets an invalid type, nftnl_obj_ops_lookup will return NULL.
+In this case we must not set NFTNL_OBJ_TYPE flag, else we later get
+crash in nftnl_obj_nlmsg_build_payload as it dereferences obj->ops.
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/object.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-Thanks Florian.
+diff --git a/src/object.c b/src/object.c
+index 9594d2f99071..62fa48afa2a1 100644
+--- a/src/object.c
++++ b/src/object.c
+@@ -83,6 +83,8 @@ void nftnl_obj_set_data(struct nftnl_obj *obj, uint16_t attr,
+ 		break;
+ 	case NFTNL_OBJ_TYPE:
+ 		obj->ops = nftnl_obj_ops_lookup(*((uint32_t *)data));
++		if (!obj->ops)
++			return;
+ 		break;
+ 	case NFTNL_OBJ_FAMILY:
+ 		obj->family = *((uint32_t *)data);
+@@ -250,7 +252,8 @@ int nftnl_obj_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_obj *obj)
+ 		uint32_t type = ntohl(mnl_attr_get_u32(tb[NFTA_OBJ_TYPE]));
+ 
+ 		obj->ops = nftnl_obj_ops_lookup(type);
+-		obj->flags |= (1 << NFTNL_OBJ_TYPE);
++		if (obj->ops)
++			obj->flags |= (1 << NFTNL_OBJ_TYPE);
+ 	}
+ 	if (tb[NFTA_OBJ_DATA]) {
+ 		if (obj->ops) {
+-- 
+2.10.2
+
