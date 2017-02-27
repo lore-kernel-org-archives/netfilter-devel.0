@@ -1,50 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 6/6] netfilter: nft_set_bitmap: incorrect bitmap size
-Date: Mon, 27 Feb 2017 12:35:42 +0100
-Message-ID: <1488195342-2678-7-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 4/6] netfilter: nf_ct_expect: nf_ct_expect_related_report(): Return zero on success.
+Date: Mon, 27 Feb 2017 12:35:40 +0100
+Message-ID: <1488195342-2678-5-git-send-email-pablo@netfilter.org>
 References: <1488195342-2678-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48542 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752059AbdB0Lgo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Feb 2017 06:36:44 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6A2C8E63F
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Feb 2017 12:36:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5A422DA804
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Feb 2017 12:36:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 420D1DA81A
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Feb 2017 12:35:58 +0100 (CET)
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1488195342-2678-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-priv->bitmap_size stores the real bitmap size, instead of the full
-struct nft_bitmap object.
+From: Jarno Rajahalme <jarno@ovn.org>
 
-Fixes: 665153ff5752 ("netfilter: nf_tables: add bitmap set type")
+Commit 4dee62b1b9b4 ("netfilter: nf_ct_expect: nf_ct_expect_insert()
+returns void") inadvertently changed the successful return value of
+nf_ct_expect_related_report() from 0 to 1, which caused openvswitch
+conntrack integration fail in FTP test cases.
+
+Fix this by always returning zero on the success code path.
+
+Fixes: 4dee62b1b9b4 ("netfilter: nf_ct_expect: nf_ct_expect_insert() returns void")
+Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
+Acked-by: Joe Stringer <joe@ovn.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_bitmap.c | 2 +-
+ net/netfilter/nf_conntrack_expect.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
-index 97f9649bcc7e..152d226552c1 100644
---- a/net/netfilter/nft_set_bitmap.c
-+++ b/net/netfilter/nft_set_bitmap.c
-@@ -258,7 +258,7 @@ static int nft_bitmap_init(const struct nft_set *set,
- {
- 	struct nft_bitmap *priv = nft_set_priv(set);
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index e19a69787d99..d6ace69d57dc 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -467,7 +467,7 @@ int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
  
--	priv->bitmap_size = nft_bitmap_total_size(set->klen);
-+	priv->bitmap_size = nft_bitmap_size(set->klen);
- 
- 	return 0;
- }
+ 	spin_unlock_bh(&nf_conntrack_expect_lock);
+ 	nf_ct_expect_event_report(IPEXP_NEW, expect, portid, report);
+-	return ret;
++	return 0;
+ out:
+ 	spin_unlock_bh(&nf_conntrack_expect_lock);
+ 	return ret;
 -- 
 2.1.4
-
