@@ -1,83 +1,39 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 5/7] evaluate: refactor CMD_OBJ_QUOTA/COUNTER handling
-Date: Mon, 27 Feb 2017 16:02:53 +0100
-Message-ID: <20170227150255.12624-6-fw@strlen.de>
-References: <20170227150255.12624-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH libnftnl 2/2] object: fix crash when object ops is null
+Date: Mon, 27 Feb 2017 16:44:48 +0100
+Message-ID: <20170227154448.GA15626@salvia>
+References: <20170227145610.12066-1-fw@strlen.de>
+ <20170227145610.12066-3-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56062 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751518AbdB0PfN (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Feb 2017 10:35:13 -0500
-In-Reply-To: <20170227150255.12624-1-fw@strlen.de>
+Received: from mail.us.es ([193.147.175.20]:44492 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751372AbdB0Pqp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Feb 2017 10:46:45 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 86F06177107
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Feb 2017 16:44:55 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 788BBDA801
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Feb 2017 16:44:55 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 434BCDA729
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Feb 2017 16:44:53 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20170227145610.12066-3-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-... to make adding CMD_OBJ_CT_HELPER support easier.
+On Mon, Feb 27, 2017 at 03:56:10PM +0100, Florian Westphal wrote:
+> when debugging nft with invalid object type (during development),
+> this will crash here with null deref.  Print (unknown) instead
+> if obj->ops is null.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/evaluate.c | 32 ++++++++++++++++++++------------
- 1 file changed, 20 insertions(+), 12 deletions(-)
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 87da2fd83597..4ac55e177d54 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2916,12 +2916,29 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
- 	}
- }
- 
-+static int cmd_evaluate_list_obj(struct eval_ctx *ctx, const struct cmd *cmd,
-+				 uint32_t obj_type)
-+{
-+	const struct table *table;
-+
-+	if (obj_type == NFT_OBJECT_UNSPEC)
-+		obj_type = NFT_OBJECT_COUNTER;
-+
-+	table = table_lookup(&cmd->handle);
-+	if (table == NULL)
-+		return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
-+				 cmd->handle.table);
-+	if (obj_lookup(table, cmd->handle.obj, obj_type) == NULL)
-+		return cmd_error(ctx, "Could not process rule: Object '%s' does not exist",
-+					 cmd->handle.obj);
-+	return 0;
-+}
-+
- static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- {
- 	struct table *table;
- 	struct set *set;
- 	int ret;
--	uint32_t obj_type = NFT_OBJECT_UNSPEC;
- 
- 	ret = cache_update(cmd->op, ctx->msgs);
- 	if (ret < 0)
-@@ -2977,18 +2994,9 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- 					 cmd->handle.chain);
- 		return 0;
- 	case CMD_OBJ_QUOTA:
--		obj_type = NFT_OBJECT_QUOTA;
-+		return cmd_evaluate_list_obj(ctx, cmd, NFT_OBJECT_QUOTA);
- 	case CMD_OBJ_COUNTER:
--		if (obj_type == NFT_OBJECT_UNSPEC)
--			obj_type = NFT_OBJECT_COUNTER;
--		table = table_lookup(&cmd->handle);
--		if (table == NULL)
--			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
--					 cmd->handle.table);
--		if (obj_lookup(table, cmd->handle.obj, obj_type) == NULL)
--			return cmd_error(ctx, "Could not process rule: Object '%s' does not exist",
--					 cmd->handle.obj);
--		return 0;
-+		return cmd_evaluate_list_obj(ctx, cmd, NFT_OBJECT_COUNTER);
- 	case CMD_OBJ_COUNTERS:
- 	case CMD_OBJ_QUOTAS:
- 		if (cmd->handle.table == NULL)
--- 
-2.10.2
-
+Thanks Florian.
