@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5/6] netfilter: nf_ct_expect: Change __nf_ct_expect_check() return value.
-Date: Mon, 27 Feb 2017 12:35:41 +0100
-Message-ID: <1488195342-2678-6-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 2/6] uapi: stop including linux/sysctl.h in uapi/linux/netfilter.h
+Date: Mon, 27 Feb 2017 12:35:38 +0100
+Message-ID: <1488195342-2678-3-git-send-email-pablo@netfilter.org>
 References: <1488195342-2678-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,43 +10,30 @@ In-Reply-To: <1488195342-2678-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Jarno Rajahalme <jarno@ovn.org>
+From: "Dmitry V. Levin" <ldv@altlinux.org>
 
-Commit 4dee62b1b9b4 ("netfilter: nf_ct_expect: nf_ct_expect_insert()
-returns void") inadvertently changed the successful return value of
-nf_ct_expect_related_report() from 0 to 1 due to
-__nf_ct_expect_check() returning 1 on success.  Prevent this
-regression in the future by changing the return value of
-__nf_ct_expect_check() to 0 on success.
+linux/netfilter.h is the last uapi header file that includes
+linux/sysctl.h but it does not depend on definitions provided
+by this essentially dead header file.
 
-Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
-Acked-by: Joe Stringer <joe@ovn.org>
+Suggested-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_expect.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/uapi/linux/netfilter.h | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index d6ace69d57dc..4b2e1fb28bb4 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -410,7 +410,7 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect)
- 	struct net *net = nf_ct_exp_net(expect);
- 	struct hlist_node *next;
- 	unsigned int h;
--	int ret = 1;
-+	int ret = 0;
+diff --git a/include/uapi/linux/netfilter.h b/include/uapi/linux/netfilter.h
+index 7550e9176a54..c111a91adcc0 100644
+--- a/include/uapi/linux/netfilter.h
++++ b/include/uapi/linux/netfilter.h
+@@ -3,7 +3,6 @@
  
- 	if (!master_help) {
- 		ret = -ESHUTDOWN;
-@@ -460,7 +460,7 @@ int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
+ #include <linux/types.h>
+ #include <linux/compiler.h>
+-#include <linux/sysctl.h>
+ #include <linux/in.h>
+ #include <linux/in6.h>
  
- 	spin_lock_bh(&nf_conntrack_expect_lock);
- 	ret = __nf_ct_expect_check(expect);
--	if (ret <= 0)
-+	if (ret < 0)
- 		goto out;
- 
- 	nf_ct_expect_insert(expect);
 -- 
 2.1.4
