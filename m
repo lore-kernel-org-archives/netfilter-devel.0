@@ -1,46 +1,249 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH libnftnl 2/2] object: fix crash when object ops is null
-Date: Mon, 27 Feb 2017 15:56:10 +0100
-Message-ID: <20170227145610.12066-3-fw@strlen.de>
-References: <20170227145610.12066-1-fw@strlen.de>
+Subject: [PATCH nft 7/7] src: implement add/create/delete for ct helper objects
+Date: Mon, 27 Feb 2017 16:02:55 +0100
+Message-ID: <20170227150255.12624-8-fw@strlen.de>
+References: <20170227150255.12624-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:55970 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56022 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751522AbdB0P2D (ORCPT
+        by vger.kernel.org with ESMTP id S1751372AbdB0Pb7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Feb 2017 10:28:03 -0500
-In-Reply-To: <20170227145610.12066-1-fw@strlen.de>
+        Mon, 27 Feb 2017 10:31:59 -0500
+In-Reply-To: <20170227150255.12624-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-when debugging nft with invalid object type (during development),
-this will crash here with null deref.  Print (unknown) instead
-if obj->ops is null.
-
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/object.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/rule.h     |  4 ++++
+ src/evaluate.c     |  4 ++++
+ src/parser_bison.y | 63 ++++++++++++++++++++++++++++++++++++++++++++++++++++--
+ src/rule.c         | 22 +++++++++++++++++++
+ 4 files changed, 91 insertions(+), 2 deletions(-)
 
-diff --git a/src/object.c b/src/object.c
-index 62fa48afa2a1..773eff6a5a18 100644
---- a/src/object.c
-+++ b/src/object.c
-@@ -396,10 +396,11 @@ static int nftnl_obj_snprintf_dflt(char *buf, size_t size,
- 				   const struct nftnl_obj *obj,
- 				   uint32_t type, uint32_t flags)
+diff --git a/include/rule.h b/include/rule.h
+index 882fc3350c6c..3edf7b9f36bb 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -370,6 +370,7 @@ enum cmd_obj {
+ 	CMD_OBJ_COUNTERS,
+ 	CMD_OBJ_QUOTA,
+ 	CMD_OBJ_QUOTAS,
++	CMD_OBJ_CT_HELPER,
+ 	CMD_OBJ_CT_HELPERS,
+ };
+ 
+@@ -438,6 +439,9 @@ struct cmd {
+ extern struct cmd *cmd_alloc(enum cmd_ops op, enum cmd_obj obj,
+ 			     const struct handle *h, const struct location *loc,
+ 			     void *data);
++extern struct cmd *cmd_alloc_obj_ct(enum cmd_ops op, int type,
++				    const struct handle *h,
++				    const struct location *loc, void *data);
+ extern void cmd_free(struct cmd *cmd);
+ 
+ #include <payload.h>
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 4c8c1e8a4229..2f943c238e6f 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2887,6 +2887,7 @@ static int cmd_evaluate_add(struct eval_ctx *ctx, struct cmd *cmd)
+ 		return table_evaluate(ctx, cmd->table);
+ 	case CMD_OBJ_COUNTER:
+ 	case CMD_OBJ_QUOTA:
++	case CMD_OBJ_CT_HELPER:
+ 		return 0;
+ 	default:
+ 		BUG("invalid command object type %u\n", cmd->obj);
+@@ -2910,6 +2911,7 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
+ 	case CMD_OBJ_TABLE:
+ 	case CMD_OBJ_COUNTER:
+ 	case CMD_OBJ_QUOTA:
++	case CMD_OBJ_CT_HELPER:
+ 		return 0;
+ 	default:
+ 		BUG("invalid command object type %u\n", cmd->obj);
+@@ -2997,6 +2999,8 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
+ 		return cmd_evaluate_list_obj(ctx, cmd, NFT_OBJECT_QUOTA);
+ 	case CMD_OBJ_COUNTER:
+ 		return cmd_evaluate_list_obj(ctx, cmd, NFT_OBJECT_COUNTER);
++	case CMD_OBJ_CT_HELPER:
++		return cmd_evaluate_list_obj(ctx, cmd, NFT_OBJECT_CT_HELPER);
+ 	case CMD_OBJ_COUNTERS:
+ 	case CMD_OBJ_QUOTAS:
+ 	case CMD_OBJ_CT_HELPERS:
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 076e59ae603d..22d922784f19 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -558,8 +558,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %type <expr>			and_rhs_expr exclusive_or_rhs_expr inclusive_or_rhs_expr
+ %destructor { expr_free($$); }	and_rhs_expr exclusive_or_rhs_expr inclusive_or_rhs_expr
+ 
+-%type <obj>			counter_obj quota_obj
+-%destructor { obj_free($$); }	counter_obj quota_obj
++%type <obj>			counter_obj quota_obj ct_obj_alloc
++%destructor { obj_free($$); }	counter_obj quota_obj ct_obj_alloc
+ 
+ %type <expr>			relational_expr
+ %destructor { expr_free($$); }	relational_expr
+@@ -809,6 +809,19 @@ add_cmd			:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_QUOTA, &$2, &@$, $3);
+ 			}
++			|	CT	STRING	obj_spec	ct_obj_alloc	'{' ct_block '}'	stmt_seperator
++			{
++				struct error_record *erec;
++				int type;
++
++				erec = ct_objtype_parse(&@$, $2, &type);
++				if (erec != NULL) {
++					erec_queue(erec, state->msgs);
++					YYERROR;
++				}
++
++				$$ = cmd_alloc_obj_ct(CMD_ADD, type, &$3, &@$, $4);
++			}
+ 			;
+ 
+ replace_cmd		:	RULE		ruleid_spec	rule
+@@ -875,6 +888,19 @@ create_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_CREATE, CMD_OBJ_QUOTA, &$2, &@$, $3);
+ 			}
++			|	CT	STRING	obj_spec	ct_obj_alloc	'{' ct_block '}'	stmt_seperator
++			{
++				struct error_record *erec;
++				int type;
++
++				erec = ct_objtype_parse(&@$, $2, &type);
++				if (erec != NULL) {
++					erec_queue(erec, state->msgs);
++					YYERROR;
++				}
++
++				$$ = cmd_alloc_obj_ct(CMD_CREATE, type, &$3, &@$, $4);
++			}
+ 			;
+ 
+ insert_cmd		:	RULE		rule_position	rule
+@@ -915,6 +941,19 @@ delete_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_QUOTA, &$2, &@$, NULL);
+ 			}
++			|	CT	STRING	obj_spec	ct_obj_alloc
++			{
++				struct error_record *erec;
++				int type;
++
++				erec = ct_objtype_parse(&@$, $2, &type);
++				if (erec != NULL) {
++					erec_queue(erec, state->msgs);
++					YYERROR;
++				}
++
++				$$ = cmd_alloc_obj_ct(CMD_DELETE, type, &$3, &@$, $4);
++			}
+ 			;
+ 
+ list_cmd		:	TABLE		table_spec
+@@ -985,6 +1024,19 @@ list_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_MAP, &$2, &@$, NULL);
+ 			}
++			|	CT		STRING	obj_spec
++			{
++				struct error_record *erec;
++				int type;
++
++				erec = ct_objtype_parse(&@$, $2, &type);
++				if (erec != NULL) {
++					erec_queue(erec, state->msgs);
++					YYERROR;
++				}
++
++				$$ = cmd_alloc_obj_ct(CMD_LIST, type, &$3, &@$, NULL);
++			}
+ 			|       CT              STRING  TABLE   table_spec
+ 			{
+ 				int cmd;
+@@ -2632,6 +2684,13 @@ ct_config		:	TYPE	QUOTED_STRING	stmt_seperator
+ 			}
+ 			;
+ 
++ct_obj_alloc		:
++			{
++				$$ = obj_alloc(&@$);
++				$$->type = NFT_OBJECT_CT_HELPER;
++			}
++			;
++
+ relational_expr		:	expr	/* implicit */	rhs_expr
+ 			{
+ 				$$ = relational_expr_alloc(&@$, OP_IMPLICIT, $1, $2);
+diff --git a/src/rule.c b/src/rule.c
+index 889aa719afaa..e412eac362fb 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -883,6 +883,7 @@ void cmd_free(struct cmd *cmd)
+ 			break;
+ 		case CMD_OBJ_COUNTER:
+ 		case CMD_OBJ_QUOTA:
++		case CMD_OBJ_CT_HELPER:
+ 			obj_free(cmd->object);
+ 			break;
+ 		default:
+@@ -999,6 +1000,7 @@ static int do_command_add(struct netlink_ctx *ctx, struct cmd *cmd, bool excl)
+ 		return do_add_setelems(ctx, &cmd->handle, cmd->expr, excl);
+ 	case CMD_OBJ_COUNTER:
+ 	case CMD_OBJ_QUOTA:
++	case CMD_OBJ_CT_HELPER:
+ 		return netlink_add_obj(ctx, &cmd->handle, cmd->object, excl);
+ 	default:
+ 		BUG("invalid command object type %u\n", cmd->obj);
+@@ -1069,6 +1071,9 @@ static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
+ 	case CMD_OBJ_QUOTA:
+ 		return netlink_delete_obj(ctx, &cmd->handle, &cmd->location,
+ 					  NFT_OBJECT_QUOTA);
++	case CMD_OBJ_CT_HELPER:
++		return netlink_delete_obj(ctx, &cmd->handle, &cmd->location,
++					  NFT_OBJECT_CT_HELPER);
+ 	default:
+ 		BUG("invalid command object type %u\n", cmd->obj);
+ 	}
+@@ -1468,6 +1473,7 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ 	case CMD_OBJ_QUOTA:
+ 	case CMD_OBJ_QUOTAS:
+ 		return do_list_obj(ctx, cmd, NFT_OBJECT_QUOTA);
++	case CMD_OBJ_CT_HELPER:
+ 	case CMD_OBJ_CT_HELPERS:
+ 		return do_list_obj(ctx, cmd, NFT_OBJECT_CT_HELPER);
+ 	default:
+@@ -1616,6 +1622,22 @@ static int do_command_describe(struct netlink_ctx *ctx, struct cmd *cmd)
+ 	return 0;
+ }
+ 
++struct cmd *cmd_alloc_obj_ct(enum cmd_ops op, int type, const struct handle *h,
++			     const struct location *loc, void *data)
++{
++	enum cmd_obj cmd_obj;
++
++	switch (type) {
++	case NFT_OBJECT_CT_HELPER:
++		cmd_obj = CMD_OBJ_CT_HELPER;
++		break;
++	default:
++		BUG("missing type mapping");
++	}
++
++	return cmd_alloc(op, cmd_obj, h, loc, data);
++}
++
+ int do_command(struct netlink_ctx *ctx, struct cmd *cmd)
  {
-+	const char *name = obj->ops ? obj->ops->name : "(unknown)";
- 	int ret, len = size, offset = 0;
- 
- 	ret = snprintf(buf, size, "table %s name %s use %u [ %s ",
--		       obj->table, obj->name, obj->use, obj->ops->name);
-+		       obj->table, obj->name, obj->use, name);
- 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 
- 	if (obj->ops) {
+ 	switch (cmd->op) {
 -- 
 2.10.2
 
