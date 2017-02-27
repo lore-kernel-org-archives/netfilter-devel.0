@@ -1,249 +1,376 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 7/7] src: implement add/create/delete for ct helper objects
-Date: Mon, 27 Feb 2017 16:02:55 +0100
-Message-ID: <20170227150255.12624-8-fw@strlen.de>
+Subject: [PATCH nft 4/7] src: add initial ct helper support
+Date: Mon, 27 Feb 2017 16:02:52 +0100
+Message-ID: <20170227150255.12624-5-fw@strlen.de>
 References: <20170227150255.12624-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56022 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56032 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751372AbdB0Pb7 (ORCPT
+        by vger.kernel.org with ESMTP id S1751387AbdB0Pdf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Feb 2017 10:31:59 -0500
+        Mon, 27 Feb 2017 10:33:35 -0500
 In-Reply-To: <20170227150255.12624-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This adds initial support for defining conntrack helper objects
+which can then be assigned to connections using the objref infrastructure:
+
+table ip filter {
+  ct helper ftp-standard {
+    type "ftp"
+    protocol tcp
+  }
+  chain y {
+	 tcp dport 21 ct helper set "ftp-standard"
+  }
+}
+
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/rule.h     |  4 ++++
- src/evaluate.c     |  4 ++++
- src/parser_bison.y | 63 ++++++++++++++++++++++++++++++++++++++++++++++++++++--
- src/rule.c         | 22 +++++++++++++++++++
- 4 files changed, 91 insertions(+), 2 deletions(-)
+ include/ct.h                        |  1 +
+ include/linux/netfilter/nf_tables.h |  3 +-
+ include/rule.h                      |  7 ++++
+ src/ct.c                            | 10 +++++
+ src/netlink.c                       | 16 ++++++++
+ src/parser_bison.y                  | 80 ++++++++++++++++++++++++++++++++++++-
+ src/rule.c                          | 35 +++++++++++++++-
+ src/statement.c                     | 10 ++++-
+ 8 files changed, 157 insertions(+), 5 deletions(-)
 
+diff --git a/include/ct.h b/include/ct.h
+index 03e76e619e23..ae900ee4fb61 100644
+--- a/include/ct.h
++++ b/include/ct.h
+@@ -31,6 +31,7 @@ extern struct error_record *ct_dir_parse(const struct location *loc,
+ 					 const char *str, int8_t *dir);
+ extern struct error_record *ct_key_parse(const struct location *loc, const char *str,
+ 					 unsigned int *key);
++extern struct error_record *ct_objtype_parse(const struct location *loc, const char *str, int *type);
+ 
+ extern struct stmt *notrack_stmt_alloc(const struct location *loc);
+ 
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 05215d30fe5c..9fa2aa49a36c 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -1249,7 +1249,8 @@ enum nft_fib_flags {
+ #define NFT_OBJECT_UNSPEC	0
+ #define NFT_OBJECT_COUNTER	1
+ #define NFT_OBJECT_QUOTA	2
+-#define __NFT_OBJECT_MAX	3
++#define NFT_OBJECT_CT_HELPER	3
++#define __NFT_OBJECT_MAX	4
+ #define NFT_OBJECT_MAX		(__NFT_OBJECT_MAX - 1)
+ 
+ /**
 diff --git a/include/rule.h b/include/rule.h
-index 882fc3350c6c..3edf7b9f36bb 100644
+index f5160daf4d8e..6a495a9a36be 100644
 --- a/include/rule.h
 +++ b/include/rule.h
-@@ -370,6 +370,7 @@ enum cmd_obj {
- 	CMD_OBJ_COUNTERS,
- 	CMD_OBJ_QUOTA,
- 	CMD_OBJ_QUOTAS,
-+	CMD_OBJ_CT_HELPER,
- 	CMD_OBJ_CT_HELPERS,
+@@ -260,6 +260,12 @@ struct quota {
+ 	uint32_t	flags;
  };
  
-@@ -438,6 +439,9 @@ struct cmd {
- extern struct cmd *cmd_alloc(enum cmd_ops op, enum cmd_obj obj,
- 			     const struct handle *h, const struct location *loc,
- 			     void *data);
-+extern struct cmd *cmd_alloc_obj_ct(enum cmd_ops op, int type,
-+				    const struct handle *h,
-+				    const struct location *loc, void *data);
- extern void cmd_free(struct cmd *cmd);
++struct ct {
++	char helper_name[16];
++	uint16_t l3proto;
++	uint8_t l4proto;
++};
++
+ /**
+  * struct obj - nftables stateful object statement
+  *
+@@ -277,6 +283,7 @@ struct obj {
+ 	union {
+ 		struct counter		counter;
+ 		struct quota		quota;
++		struct ct		ct;
+ 	};
+ };
  
- #include <payload.h>
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 4c8c1e8a4229..2f943c238e6f 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2887,6 +2887,7 @@ static int cmd_evaluate_add(struct eval_ctx *ctx, struct cmd *cmd)
- 		return table_evaluate(ctx, cmd->table);
- 	case CMD_OBJ_COUNTER:
- 	case CMD_OBJ_QUOTA:
-+	case CMD_OBJ_CT_HELPER:
- 		return 0;
+diff --git a/src/ct.c b/src/ct.c
+index 31c7a4b1beda..bd9b25bed1f9 100644
+--- a/src/ct.c
++++ b/src/ct.c
+@@ -346,6 +346,16 @@ struct error_record *ct_key_parse(const struct location *loc, const char *str,
+ 	return error(loc, "syntax error, unexpected %s, known keys are %s", str, buf);
+ }
+ 
++struct error_record *ct_objtype_parse(const struct location *loc, const char *str, int *type)
++{
++	if (strcmp(str, "helper") == 0) {
++		*type = NFT_OBJECT_CT_HELPER;
++		return NULL;
++	}
++
++	return error(loc, "unknown ct class '%s', want 'helper'", str);
++}
++
+ struct expr *ct_expr_alloc(const struct location *loc, enum nft_ct_keys key,
+ 			   int8_t direction)
+ {
+diff --git a/src/netlink.c b/src/netlink.c
+index d2ede2a47c5d..5f2ba107bfd3 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -317,6 +317,15 @@ alloc_nftnl_obj(const struct handle *h, struct obj *obj)
+ 		nftnl_obj_set_u32(nlo, NFTNL_OBJ_QUOTA_FLAGS,
+ 				  obj->quota.flags);
+ 		break;
++	case NFT_OBJECT_CT_HELPER:
++		nftnl_obj_set_str(nlo, NFTNL_OBJ_CT_HELPER_NAME,
++				  obj->ct.helper_name);
++		nftnl_obj_set_u8(nlo, NFTNL_OBJ_CT_HELPER_L4PROTO,
++				  obj->ct.l4proto);
++		if (obj->ct.l3proto)
++			nftnl_obj_set_u16(nlo, NFTNL_OBJ_CT_HELPER_L3PROTO,
++					  obj->ct.l3proto);
++		break;
  	default:
- 		BUG("invalid command object type %u\n", cmd->obj);
-@@ -2910,6 +2911,7 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_TABLE:
- 	case CMD_OBJ_COUNTER:
- 	case CMD_OBJ_QUOTA:
-+	case CMD_OBJ_CT_HELPER:
- 		return 0;
- 	default:
- 		BUG("invalid command object type %u\n", cmd->obj);
-@@ -2997,6 +2999,8 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- 		return cmd_evaluate_list_obj(ctx, cmd, NFT_OBJECT_QUOTA);
- 	case CMD_OBJ_COUNTER:
- 		return cmd_evaluate_list_obj(ctx, cmd, NFT_OBJECT_COUNTER);
-+	case CMD_OBJ_CT_HELPER:
-+		return cmd_evaluate_list_obj(ctx, cmd, NFT_OBJECT_CT_HELPER);
- 	case CMD_OBJ_COUNTERS:
- 	case CMD_OBJ_QUOTAS:
- 	case CMD_OBJ_CT_HELPERS:
+ 		BUG("Unknown type %d\n", obj->type);
+ 		break;
+@@ -1812,6 +1821,13 @@ static struct obj *netlink_delinearize_obj(struct netlink_ctx *ctx,
+ 			nftnl_obj_get_u64(nlo, NFTNL_OBJ_QUOTA_CONSUMED);
+ 		obj->quota.flags =
+ 			nftnl_obj_get_u32(nlo, NFTNL_OBJ_QUOTA_FLAGS);
++		break;
++	case NFT_OBJECT_CT_HELPER:
++		snprintf(obj->ct.helper_name, sizeof(obj->ct.helper_name), "%s",
++			 nftnl_obj_get_str(nlo, NFTNL_OBJ_CT_HELPER_NAME));
++		obj->ct.l3proto = nftnl_obj_get_u16(nlo, NFTNL_OBJ_CT_HELPER_L3PROTO);
++		obj->ct.l4proto = nftnl_obj_get_u8(nlo, NFTNL_OBJ_CT_HELPER_L4PROTO);
++		break;
+ 	}
+ 	obj->type = type;
+ 
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 076e59ae603d..22d922784f19 100644
+index b295bfde2ed3..3ff11ff18cfe 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -558,8 +558,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %type <expr>			and_rhs_expr exclusive_or_rhs_expr inclusive_or_rhs_expr
- %destructor { expr_free($$); }	and_rhs_expr exclusive_or_rhs_expr inclusive_or_rhs_expr
+@@ -136,6 +136,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ 	struct obj		*obj;
+ 	struct counter		*counter;
+ 	struct quota		*quota;
++	struct ct		*ct;
+ 	const struct datatype	*datatype;
+ 	struct handle_spec	handle_spec;
+ 	struct position_spec	position_spec;
+@@ -469,7 +470,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %type <set>			map_block_alloc map_block
+ %destructor { set_free($$); }	map_block_alloc
  
--%type <obj>			counter_obj quota_obj
--%destructor { obj_free($$); }	counter_obj quota_obj
-+%type <obj>			counter_obj quota_obj ct_obj_alloc
-+%destructor { obj_free($$); }	counter_obj quota_obj ct_obj_alloc
+-%type <obj>			obj_block_alloc counter_block quota_block
++%type <obj>			obj_block_alloc counter_block quota_block ct_block
+ %destructor { obj_free($$); }	obj_block_alloc
  
- %type <expr>			relational_expr
- %destructor { expr_free($$); }	relational_expr
-@@ -809,6 +809,19 @@ add_cmd			:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_QUOTA, &$2, &@$, $3);
+ %type <list>			stmt_list
+@@ -634,6 +635,10 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %destructor { expr_free($$); }	tcp_hdr_expr
+ %type <val>			tcp_hdr_field
+ 
++%type <val>			ct_l4protoname	ct_l3protoname
++%type <string>			ct_obj_kind
++%destructor { xfree($$); }     	ct_obj_kind
++
+ %%
+ 
+ input			:	/* empty */
+@@ -1160,6 +1165,24 @@ table_block		:	/* empty */	{ $$ = $<table>-1; }
+ 				list_add_tail(&$4->list, &$1->objs);
+ 				$$ = $1;
  			}
-+			|	CT	STRING	obj_spec	ct_obj_alloc	'{' ct_block '}'	stmt_seperator
++			|	table_block	CT	ct_obj_kind	obj_identifier  obj_block_alloc '{'     ct_block     '}' stmt_seperator
 +			{
 +				struct error_record *erec;
 +				int type;
 +
-+				erec = ct_objtype_parse(&@$, $2, &type);
++				erec = ct_objtype_parse(&@$, $3, &type);
 +				if (erec != NULL) {
 +					erec_queue(erec, state->msgs);
 +					YYERROR;
 +				}
 +
-+				$$ = cmd_alloc_obj_ct(CMD_ADD, type, &$3, &@$, $4);
++				$5->location = @4;
++				$5->type = type;
++				handle_merge(&$5->handle, &$4);
++				handle_free(&$4);
++				list_add_tail(&$5->list, &$1->objs);
++				$$ = $1;
 +			}
  			;
  
- replace_cmd		:	RULE		ruleid_spec	rule
-@@ -875,6 +888,19 @@ create_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_CREATE, CMD_OBJ_QUOTA, &$2, &@$, $3);
+ chain_block_alloc	:	/* empty */
+@@ -1354,6 +1377,16 @@ quota_block		:	/* empty */	{ $$ = $<obj>-1; }
  			}
-+			|	CT	STRING	obj_spec	ct_obj_alloc	'{' ct_block '}'	stmt_seperator
+ 			;
+ 
++ct_block		:	/* empty */	{ $$ = $<obj>-1; }
++			|       ct_block     common_block
++			|       ct_block     stmt_seperator
++			|       ct_block     ct_config
 +			{
-+				struct error_record *erec;
-+				int type;
++				$$ = $1;
++			}
++			;
 +
-+				erec = ct_objtype_parse(&@$, $2, &type);
-+				if (erec != NULL) {
-+					erec_queue(erec, state->msgs);
++
+ type_identifier		:	STRING	{ $$ = $1; }
+ 			|	MARK	{ $$ = xstrdup("mark"); }
+ 			|	DSCP	{ $$ = xstrdup("dscp"); }
+@@ -2546,6 +2579,40 @@ quota_obj		:	quota_config
+ 			}
+ 			;
+ 
++ct_obj_kind		:	STRING		{ $$ = $1; }
++			;
++
++ct_l3protoname		: 	IP		{ $$ = NFPROTO_IPV4; }
++			|	IP6		{ $$ = NFPROTO_IPV6; }
++			;
++
++ct_l4protoname		:	TCP	{ $$ = IPPROTO_TCP; }
++			|	UDP	{ $$ = IPPROTO_UDP; }
++			;
++
++ct_config		:	TYPE	QUOTED_STRING	stmt_seperator
++			{
++				struct ct *ct;
++				int ret;
++
++				ct = &$<obj>0->ct;
++
++				ret = snprintf(ct->helper_name, sizeof(ct->helper_name), "%s", $2);
++				if (ret <= 0 || ret >= (int)sizeof(ct->helper_name)) {
++					erec_queue(error(&@2, "invalid name '%s', max length is %u\n", $2, (int)sizeof(ct->helper_name)), state->msgs);
 +					YYERROR;
 +				}
-+
-+				$$ = cmd_alloc_obj_ct(CMD_CREATE, type, &$3, &@$, $4);
 +			}
- 			;
- 
- insert_cmd		:	RULE		rule_position	rule
-@@ -915,6 +941,19 @@ delete_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_QUOTA, &$2, &@$, NULL);
- 			}
-+			|	CT	STRING	obj_spec	ct_obj_alloc
++			|	PROTOCOL	ct_l4protoname	stmt_seperator
 +			{
-+				struct error_record *erec;
-+				int type;
-+
-+				erec = ct_objtype_parse(&@$, $2, &type);
-+				if (erec != NULL) {
-+					erec_queue(erec, state->msgs);
-+					YYERROR;
-+				}
-+
-+				$$ = cmd_alloc_obj_ct(CMD_DELETE, type, &$3, &@$, $4);
++				$<obj>0->ct.l4proto = $2;
 +			}
- 			;
- 
- list_cmd		:	TABLE		table_spec
-@@ -985,6 +1024,19 @@ list_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_MAP, &$2, &@$, NULL);
- 			}
-+			|	CT		STRING	obj_spec
++			|	L3PROTOCOL	ct_l3protoname	stmt_seperator
 +			{
-+				struct error_record *erec;
-+				int type;
-+
-+				erec = ct_objtype_parse(&@$, $2, &type);
-+				if (erec != NULL) {
-+					erec_queue(erec, state->msgs);
-+					YYERROR;
-+				}
-+
-+				$$ = cmd_alloc_obj_ct(CMD_LIST, type, &$3, &@$, NULL);
-+			}
- 			|       CT              STRING  TABLE   table_spec
- 			{
- 				int cmd;
-@@ -2632,6 +2684,13 @@ ct_config		:	TYPE	QUOTED_STRING	stmt_seperator
- 			}
- 			;
- 
-+ct_obj_alloc		:
-+			{
-+				$$ = obj_alloc(&@$);
-+				$$->type = NFT_OBJECT_CT_HELPER;
++				$<obj>0->ct.l4proto = $2;
 +			}
 +			;
 +
  relational_expr		:	expr	/* implicit */	rhs_expr
  			{
  				$$ = relational_expr_alloc(&@$, OP_IMPLICIT, $1, $2);
+@@ -2988,7 +3055,16 @@ ct_stmt			:	CT	ct_key		SET	expr
+ 					YYERROR;
+ 				}
+ 
+-				$$ = ct_stmt_alloc(&@$, key, $4);
++				switch (key) {
++				case NFT_CT_HELPER:
++					$$ = objref_stmt_alloc(&@$);
++					$$->objref.type = NFT_OBJECT_CT_HELPER;
++					$$->objref.expr = $4;
++					break;
++				default:
++					$$ = ct_stmt_alloc(&@$, key, $4);
++					break;
++				}
+ 			}
+ 			;
+ 
 diff --git a/src/rule.c b/src/rule.c
-index 889aa719afaa..e412eac362fb 100644
+index b47076f000ee..eb31f0e9ec5e 100644
 --- a/src/rule.c
 +++ b/src/rule.c
-@@ -883,6 +883,7 @@ void cmd_free(struct cmd *cmd)
- 			break;
- 		case CMD_OBJ_COUNTER:
- 		case CMD_OBJ_QUOTA:
-+		case CMD_OBJ_CT_HELPER:
- 			obj_free(cmd->object);
- 			break;
- 		default:
-@@ -999,6 +1000,7 @@ static int do_command_add(struct netlink_ctx *ctx, struct cmd *cmd, bool excl)
- 		return do_add_setelems(ctx, &cmd->handle, cmd->expr, excl);
- 	case CMD_OBJ_COUNTER:
- 	case CMD_OBJ_QUOTA:
-+	case CMD_OBJ_CT_HELPER:
- 		return netlink_add_obj(ctx, &cmd->handle, cmd->object, excl);
- 	default:
- 		BUG("invalid command object type %u\n", cmd->obj);
-@@ -1069,6 +1071,9 @@ static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_QUOTA:
- 		return netlink_delete_obj(ctx, &cmd->handle, &cmd->location,
- 					  NFT_OBJECT_QUOTA);
-+	case CMD_OBJ_CT_HELPER:
-+		return netlink_delete_obj(ctx, &cmd->handle, &cmd->location,
-+					  NFT_OBJECT_CT_HELPER);
- 	default:
- 		BUG("invalid command object type %u\n", cmd->obj);
- 	}
-@@ -1468,6 +1473,7 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_QUOTA:
- 	case CMD_OBJ_QUOTAS:
- 		return do_list_obj(ctx, cmd, NFT_OBJECT_QUOTA);
-+	case CMD_OBJ_CT_HELPER:
- 	case CMD_OBJ_CT_HELPERS:
- 		return do_list_obj(ctx, cmd, NFT_OBJECT_CT_HELPER);
- 	default:
-@@ -1616,6 +1622,22 @@ static int do_command_describe(struct netlink_ctx *ctx, struct cmd *cmd)
- 	return 0;
+@@ -1171,6 +1171,29 @@ struct obj *obj_lookup(const struct table *table, const char *name,
+ 	return NULL;
  }
  
-+struct cmd *cmd_alloc_obj_ct(enum cmd_ops op, int type, const struct handle *h,
-+			     const struct location *loc, void *data)
++static const char *proto_name_proto(uint8_t l4, char *b, size_t l)
 +{
-+	enum cmd_obj cmd_obj;
-+
-+	switch (type) {
-+	case NFT_OBJECT_CT_HELPER:
-+		cmd_obj = CMD_OBJ_CT_HELPER;
-+		break;
-+	default:
-+		BUG("missing type mapping");
++	switch (l4) {
++	case IPPROTO_UDP: return "udp";
++	case IPPROTO_TCP: return "tcp";
 +	}
 +
-+	return cmd_alloc(op, cmd_obj, h, loc, data);
++	snprintf(b, l, "%d\n", l4);
++	return b;
 +}
 +
- int do_command(struct netlink_ctx *ctx, struct cmd *cmd)
++static const char *proto_name_family(uint16_t family, char *b, size_t l)
++{
++	switch (family) {
++	case NFPROTO_IPV4: return "ip";
++	case NFPROTO_IPV6: return "ip6";
++	case NFPROTO_INET: return "inet";
++	}
++
++	snprintf(b, l, "%d\n", family);
++	return b;
++}
++
+ static void obj_print_data(const struct obj *obj,
+ 			   struct print_fmt_options *opts)
  {
- 	switch (cmd->op) {
+@@ -1201,6 +1224,15 @@ static void obj_print_data(const struct obj *obj,
+ 		}
+ 		}
+ 		break;
++	case NFT_OBJECT_CT_HELPER: {
++		char buf[16];
++
++		printf("ct helper %s {\n", obj->handle.obj);
++		printf("\t\ttype \"%s\"\n", obj->ct.helper_name);
++		printf("\t\tl3proto %s\n", proto_name_family(obj->ct.l3proto, buf, sizeof(buf)));
++		printf("\t\tprotocol %s", proto_name_proto(obj->ct.l4proto, buf, sizeof(buf)));
++		break;
++		}
+ 	default:
+ 		printf("unknown {%s", opts->nl);
+ 		break;
+@@ -1210,11 +1242,12 @@ static void obj_print_data(const struct obj *obj,
+ static const char *obj_type_name_array[] = {
+ 	[NFT_OBJECT_COUNTER]	= "counter",
+ 	[NFT_OBJECT_QUOTA]	= "quota",
++	[NFT_OBJECT_CT_HELPER]	= "",
+ };
+ 
+ const char *obj_type_name(enum stmt_types type)
+ {
+-	assert(type <= NFT_OBJECT_QUOTA && obj_type_name_array[type]);
++	assert(type <= NFT_OBJECT_CT_HELPER && obj_type_name_array[type]);
+ 
+ 	return obj_type_name_array[type];
+ }
+diff --git a/src/statement.c b/src/statement.c
+index 7ffd25f98ea6..d824dc0bd91a 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -174,6 +174,7 @@ struct stmt *counter_stmt_alloc(const struct location *loc)
+ static const char *objref_type[NFT_OBJECT_MAX + 1] = {
+ 	[NFT_OBJECT_COUNTER]	= "counter",
+ 	[NFT_OBJECT_QUOTA]	= "quota",
++	[NFT_OBJECT_CT_HELPER]	= "cthelper",
+ };
+ 
+ static const char *objref_type_name(uint32_t type)
+@@ -186,7 +187,14 @@ static const char *objref_type_name(uint32_t type)
+ 
+ static void objref_stmt_print(const struct stmt *stmt)
+ {
+-	printf("%s name ", objref_type_name(stmt->objref.type));
++	switch (stmt->objref.type) {
++	case NFT_OBJECT_CT_HELPER:
++		printf("ct helper set ");
++		break;
++	default:
++		printf("%s name ", objref_type_name(stmt->objref.type));
++		break;
++	}
+ 	expr_print(stmt->objref.expr);
+ }
+ 
 -- 
 2.10.2
 
