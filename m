@@ -1,160 +1,117 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH] netfilter: Use pr_cont where appropriate
-Date: Tue, 28 Feb 2017 14:09:24 -0800
-Message-ID: <82a5ec63e547c425644d2dd0165fcc664a2b265e.1488319732.git.joe@perches.com>
-Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>, netdev@vger.kernel.org,
-	bridge@lists.linux-foundation.org, James Morris <jmorris@namei.org>,
-	"David S. Miller" <davem@davemloft.net>, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org, Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	Patrick McHardy <kaber@trash.net>, linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <bridge-bounces@lists.linux-foundation.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
+From: Paul Moore <paul@paul-moore.com>
+Subject: Re: [PATCH V3] audit: normalize NETFILTER_PKT
+Date: Tue, 28 Feb 2017 17:22:50 -0500
+Message-ID: <CAHC9VhTUSz-tyPyZ7PJAH08sfhuACeUTkEKEnnwM_axQ4UdorQ@mail.gmail.com>
+References: <044a666e507a829f8c1d6dcc19ad78cd9f140ddd.1488142060.git.rgb@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: Thomas Woerner <twoerner@redhat.com>, linux-audit@redhat.com,
+        Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
+        Thomas Graf <tgraf@infradead.org>
+To: Richard Guy Briggs <rgb@redhat.com>
+Return-path: <linux-audit-bounces@redhat.com>
+In-Reply-To: <044a666e507a829f8c1d6dcc19ad78cd9f140ddd.1488142060.git.rgb@redhat.com>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/linux-audit>
+List-Post: <mailto:linux-audit@redhat.com>
+List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=subscribe>
+Sender: linux-audit-bounces@redhat.com
+Errors-To: linux-audit-bounces@redhat.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Logging output was changed when simple printks without KERN_CONT
-are now emitted on a new line and KERN_CONT is required to continue
-lines so use pr_cont.
+On Sun, Feb 26, 2017 at 3:49 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> Eliminate flipping in and out of message fields, dropping fields in the process.
+>
+> Sample raw message format IPv4 UDP:
+> type=NETFILTER_PKT msg=audit(1487874761.386:228):  mark=0xae8a2732 saddr=127.0.0.1 daddr=127.0.0.1 proto=17^]
+> Sample raw message format IPv6 ICMP6:
+> type=NETFILTER_PKT msg=audit(1487874761.381:227):  mark=0x223894b7 saddr=::1 daddr=::1 proto=58^]
+>
+> Issue: https://github.com/linux-audit/audit-kernel/issues/11
+> Test case: https://github.com/linux-audit/audit-testsuite/issues/43
+>
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> ---
+>  net/netfilter/xt_AUDIT.c |  122 ++++++++++-----------------------------------
+>  1 files changed, 27 insertions(+), 95 deletions(-)
+>
+> diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
+> index 4973cbd..945fa29 100644
+> --- a/net/netfilter/xt_AUDIT.c
+> +++ b/net/netfilter/xt_AUDIT.c
+> @@ -31,146 +31,78 @@ MODULE_ALIAS("ip6t_AUDIT");
 
-Miscellanea:
+...
 
-o realign arguments
-o use print_hex_dump instead of a local variant
+> -static void audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
+> +static bool audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
+>  {
+>         struct iphdr _iph;
+>         const struct iphdr *ih;
+>
+>         ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- net/bridge/netfilter/ebt_log.c         | 34 +++++++++++++++++-----------------
- net/ipv4/netfilter/nf_nat_snmp_basic.c | 15 ++-------------
- 2 files changed, 19 insertions(+), 30 deletions(-)
+It seems like we should be using skb_network_offset(skb) instead of 0
+above, yes?  Granted, this isn't new, but let's fix it.
 
-diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
-index 98b9c8e8615e..707caea39743 100644
---- a/net/bridge/netfilter/ebt_log.c
-+++ b/net/bridge/netfilter/ebt_log.c
-@@ -62,10 +62,10 @@ print_ports(const struct sk_buff *skb, uint8_t protocol, int offset)
- 		pptr = skb_header_pointer(skb, offset,
- 					  sizeof(_ports), &_ports);
- 		if (pptr == NULL) {
--			printk(" INCOMPLETE TCP/UDP header");
-+			pr_cont(" INCOMPLETE TCP/UDP header");
- 			return;
- 		}
--		printk(" SPT=%u DPT=%u", ntohs(pptr->src), ntohs(pptr->dst));
-+		pr_cont(" SPT=%u DPT=%u", ntohs(pptr->src), ntohs(pptr->dst));
- 	}
- }
- 
-@@ -100,11 +100,11 @@ ebt_log_packet(struct net *net, u_int8_t pf, unsigned int hooknum,
- 
- 		ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
- 		if (ih == NULL) {
--			printk(" INCOMPLETE IP header");
-+			pr_cont(" INCOMPLETE IP header");
- 			goto out;
- 		}
--		printk(" IP SRC=%pI4 IP DST=%pI4, IP tos=0x%02X, IP proto=%d",
--		       &ih->saddr, &ih->daddr, ih->tos, ih->protocol);
-+		pr_cont(" IP SRC=%pI4 IP DST=%pI4, IP tos=0x%02X, IP proto=%d",
-+			&ih->saddr, &ih->daddr, ih->tos, ih->protocol);
- 		print_ports(skb, ih->protocol, ih->ihl*4);
- 		goto out;
- 	}
-@@ -120,11 +120,11 @@ ebt_log_packet(struct net *net, u_int8_t pf, unsigned int hooknum,
- 
- 		ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
- 		if (ih == NULL) {
--			printk(" INCOMPLETE IPv6 header");
-+			pr_cont(" INCOMPLETE IPv6 header");
- 			goto out;
- 		}
--		printk(" IPv6 SRC=%pI6 IPv6 DST=%pI6, IPv6 priority=0x%01X, Next Header=%d",
--		       &ih->saddr, &ih->daddr, ih->priority, ih->nexthdr);
-+		pr_cont(" IPv6 SRC=%pI6 IPv6 DST=%pI6, IPv6 priority=0x%01X, Next Header=%d",
-+			&ih->saddr, &ih->daddr, ih->priority, ih->nexthdr);
- 		nexthdr = ih->nexthdr;
- 		offset_ph = ipv6_skip_exthdr(skb, sizeof(_iph), &nexthdr, &frag_off);
- 		if (offset_ph == -1)
-@@ -142,12 +142,12 @@ ebt_log_packet(struct net *net, u_int8_t pf, unsigned int hooknum,
- 
- 		ah = skb_header_pointer(skb, 0, sizeof(_arph), &_arph);
- 		if (ah == NULL) {
--			printk(" INCOMPLETE ARP header");
-+			pr_cont(" INCOMPLETE ARP header");
- 			goto out;
- 		}
--		printk(" ARP HTYPE=%d, PTYPE=0x%04x, OPCODE=%d",
--		       ntohs(ah->ar_hrd), ntohs(ah->ar_pro),
--		       ntohs(ah->ar_op));
-+		pr_cont(" ARP HTYPE=%d, PTYPE=0x%04x, OPCODE=%d",
-+			ntohs(ah->ar_hrd), ntohs(ah->ar_pro),
-+			ntohs(ah->ar_op));
- 
- 		/* If it's for Ethernet and the lengths are OK,
- 		 * then log the ARP payload
-@@ -161,17 +161,17 @@ ebt_log_packet(struct net *net, u_int8_t pf, unsigned int hooknum,
- 			ap = skb_header_pointer(skb, sizeof(_arph),
- 						sizeof(_arpp), &_arpp);
- 			if (ap == NULL) {
--				printk(" INCOMPLETE ARP payload");
-+				pr_cont(" INCOMPLETE ARP payload");
- 				goto out;
- 			}
--			printk(" ARP MAC SRC=%pM ARP IP SRC=%pI4 ARP MAC DST=%pM ARP IP DST=%pI4",
--					ap->mac_src, ap->ip_src, ap->mac_dst, ap->ip_dst);
-+			pr_cont(" ARP MAC SRC=%pM ARP IP SRC=%pI4 ARP MAC DST=%pM ARP IP DST=%pI4",
-+				ap->mac_src, ap->ip_src,
-+				ap->mac_dst, ap->ip_dst);
- 		}
- 	}
- out:
--	printk("\n");
-+	pr_cont("\n");
- 	spin_unlock_bh(&ebt_log_lock);
--
- }
- 
- static unsigned int
-diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-index c9b52c361da2..ef49989c93b1 100644
---- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
-+++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-@@ -998,18 +998,6 @@ static unsigned char snmp_trap_decode(struct asn1_ctx *ctx,
-  *
-  *****************************************************************************/
- 
--static void hex_dump(const unsigned char *buf, size_t len)
--{
--	size_t i;
--
--	for (i = 0; i < len; i++) {
--		if (i && !(i % 16))
--			printk("\n");
--		printk("%02x ", *(buf + i));
--	}
--	printk("\n");
--}
--
- /*
-  * Parse and mangle SNMP message according to mapping.
-  * (And this is the fucking 'basic' method).
-@@ -1026,7 +1014,8 @@ static int snmp_parse_mangle(unsigned char *msg,
- 	struct snmp_object *obj;
- 
- 	if (debug > 1)
--		hex_dump(msg, len);
-+		print_hex_dump(KERN_DEBUG, "", DUMP_PREFIX_NONE, 16, 1,
-+			       msg, len, 0);
- 
- 	asn1_open(&ctx, msg, len);
- 
+> -       if (!ih) {
+> -               audit_log_format(ab, " truncated=1");
+> -               return;
+> -       }
+> +       if (!ih)
+> +               return false;
+>
+> -       audit_log_format(ab, " saddr=%pI4 daddr=%pI4 ipid=%hu proto=%hhu",
+> -               &ih->saddr, &ih->daddr, ntohs(ih->id), ih->protocol);
+> +       audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu",
+> +                        &ih->saddr, &ih->daddr, ih->protocol);
+>
+> -       if (ntohs(ih->frag_off) & IP_OFFSET) {
+> -               audit_log_format(ab, " frag=1");
+> -               return;
+> -       }
+> -
+> -       audit_proto(ab, skb, ih->protocol, ih->ihl * 4);
+> +       return true;
+>  }
+
+...
+
+>  static unsigned int
+>  audit_tg(struct sk_buff *skb, const struct xt_action_param *par)
+>  {
+> -       const struct xt_audit_info *info = par->targinfo;
+>         struct audit_buffer *ab;
+> +       int fam = -1;
+>
+>         if (audit_enabled == 0)
+>                 goto errout;
+> -
+>         ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
+>         if (ab == NULL)
+>                 goto errout;
+>
+> -       audit_log_format(ab, "action=%hhu hook=%u len=%u inif=%s outif=%s",
+> -                        info->type, par->hooknum, skb->len,
+> -                        par->in ? par->in->name : "?",
+> -                        par->out ? par->out->name : "?");
+> -
+> -       if (skb->mark)
+> -               audit_log_format(ab, " mark=%#x", skb->mark);
+> -
+> -       if (skb->dev && skb->dev->type == ARPHRD_ETHER) {
+> -               audit_log_format(ab, " smac=%pM dmac=%pM macproto=0x%04x",
+> -                                eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest,
+> -                                ntohs(eth_hdr(skb)->h_proto));
+> +       audit_log_format(ab, "mark=%#x", skb->mark ?: -1);
+
+How do Steve's userspace tools like the unset/-1 value represented
+when it is a hex value: -1 or 0xffffffff?
+
 -- 
-2.10.0.rc2.1.g053435c
+paul moore
+www.paul-moore.com
