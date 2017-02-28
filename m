@@ -1,117 +1,40 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH V3] audit: normalize NETFILTER_PKT
-Date: Tue, 28 Feb 2017 17:22:50 -0500
-Message-ID: <CAHC9VhTUSz-tyPyZ7PJAH08sfhuACeUTkEKEnnwM_axQ4UdorQ@mail.gmail.com>
-References: <044a666e507a829f8c1d6dcc19ad78cd9f140ddd.1488142060.git.rgb@redhat.com>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: Re: [PATCH lnfct 2/2] conntrack: revert getobjopt_is_nat condition
+Date: Wed, 1 Mar 2017 07:29:33 +0900
+Message-ID: <20170228222933.GA23726@gmail.com>
+References: <20170228045359.GA21582@gmail.com>
+ <20170228050041.GC21582@gmail.com>
+ <20170228104725.GB1517@salvia>
+ <20170228114453.GA22524@gmail.com>
+ <20170228114809.GA19880@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Thomas Woerner <twoerner@redhat.com>, linux-audit@redhat.com,
-        Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
-        Thomas Graf <tgraf@infradead.org>
-To: Richard Guy Briggs <rgb@redhat.com>
-Return-path: <linux-audit-bounces@redhat.com>
-In-Reply-To: <044a666e507a829f8c1d6dcc19ad78cd9f140ddd.1488142060.git.rgb@redhat.com>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/linux-audit>
-List-Post: <mailto:linux-audit@redhat.com>
-List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=subscribe>
-Sender: linux-audit-bounces@redhat.com
-Errors-To: linux-audit-bounces@redhat.com
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: The netfilter developer mailinglist
+        <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pg0-f54.google.com ([74.125.83.54]:33173 "EHLO
+        mail-pg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751154AbdB1XDS (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 28 Feb 2017 18:03:18 -0500
+Received: by mail-pg0-f54.google.com with SMTP id 25so11752703pgy.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Feb 2017 15:01:41 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20170228114809.GA19880@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Feb 26, 2017 at 3:49 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> Eliminate flipping in and out of message fields, dropping fields in the process.
->
-> Sample raw message format IPv4 UDP:
-> type=NETFILTER_PKT msg=audit(1487874761.386:228):  mark=0xae8a2732 saddr=127.0.0.1 daddr=127.0.0.1 proto=17^]
-> Sample raw message format IPv6 ICMP6:
-> type=NETFILTER_PKT msg=audit(1487874761.381:227):  mark=0x223894b7 saddr=::1 daddr=::1 proto=58^]
->
-> Issue: https://github.com/linux-audit/audit-kernel/issues/11
-> Test case: https://github.com/linux-audit/audit-testsuite/issues/43
->
-> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> ---
->  net/netfilter/xt_AUDIT.c |  122 ++++++++++-----------------------------------
->  1 files changed, 27 insertions(+), 95 deletions(-)
->
-> diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
-> index 4973cbd..945fa29 100644
-> --- a/net/netfilter/xt_AUDIT.c
-> +++ b/net/netfilter/xt_AUDIT.c
-> @@ -31,146 +31,78 @@ MODULE_ALIAS("ip6t_AUDIT");
+ Hi, Pablo
+ 
+On Tue, Feb 28, 2017 at 12:48:09PM +0100, Pablo Neira Ayuso wrote:
+> So you want to check if the addresses mismatch, so we infer from there
+> if there is NAT or not when status bits are not available.
+> 
+> Are you trying to catch up some case in netlink event specifically?
 
-...
+It's nothing. My skimping test for lnfct binding for another languate
+which set only ATTR_REPL_IPV4DST then get NFCT_GOPT_IS_NAT was success,
+but it fails now.
 
-> -static void audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
-> +static bool audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
->  {
->         struct iphdr _iph;
->         const struct iphdr *ih;
->
->         ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
-
-It seems like we should be using skb_network_offset(skb) instead of 0
-above, yes?  Granted, this isn't new, but let's fix it.
-
-> -       if (!ih) {
-> -               audit_log_format(ab, " truncated=1");
-> -               return;
-> -       }
-> +       if (!ih)
-> +               return false;
->
-> -       audit_log_format(ab, " saddr=%pI4 daddr=%pI4 ipid=%hu proto=%hhu",
-> -               &ih->saddr, &ih->daddr, ntohs(ih->id), ih->protocol);
-> +       audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu",
-> +                        &ih->saddr, &ih->daddr, ih->protocol);
->
-> -       if (ntohs(ih->frag_off) & IP_OFFSET) {
-> -               audit_log_format(ab, " frag=1");
-> -               return;
-> -       }
-> -
-> -       audit_proto(ab, skb, ih->protocol, ih->ihl * 4);
-> +       return true;
->  }
-
-...
-
->  static unsigned int
->  audit_tg(struct sk_buff *skb, const struct xt_action_param *par)
->  {
-> -       const struct xt_audit_info *info = par->targinfo;
->         struct audit_buffer *ab;
-> +       int fam = -1;
->
->         if (audit_enabled == 0)
->                 goto errout;
-> -
->         ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
->         if (ab == NULL)
->                 goto errout;
->
-> -       audit_log_format(ab, "action=%hhu hook=%u len=%u inif=%s outif=%s",
-> -                        info->type, par->hooknum, skb->len,
-> -                        par->in ? par->in->name : "?",
-> -                        par->out ? par->out->name : "?");
-> -
-> -       if (skb->mark)
-> -               audit_log_format(ab, " mark=%#x", skb->mark);
-> -
-> -       if (skb->dev && skb->dev->type == ARPHRD_ETHER) {
-> -               audit_log_format(ab, " smac=%pM dmac=%pM macproto=0x%04x",
-> -                                eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest,
-> -                                ntohs(eth_hdr(skb)->h_proto));
-> +       audit_log_format(ab, "mark=%#x", skb->mark ?: -1);
-
-How do Steve's userspace tools like the unset/-1 value represented
-when it is a hex value: -1 or 0xffffffff?
-
--- 
-paul moore
-www.paul-moore.com
+Thanks,
