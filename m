@@ -1,59 +1,64 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v3] libiptc: don't set_changed() when checking rules with
- module jumps
-Date: Tue, 28 Feb 2017 13:18:53 +0100
-Message-ID: <20170228121853.GA20563@salvia>
-References: <1487960119.27698.11.camel@redhat.com>
- <1487960755.27698.15.camel@redhat.com>
- <1488081723.31061.5.camel@redhat.com>
- <20170228113312.GA19580@salvia>
- <20170228120307.GA6834@breakpoint.cc>
+From: Jamal Hadi Salim <jhs-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>
+Subject: ANNOUNCE: Netdev 2.1 update Feb 28
+Date: Tue, 28 Feb 2017 08:24:21 -0500
+Message-ID: <533a66f4-61d5-553c-0396-deb27d8bbe76@mojatatu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: Dan Williams <dcbw@redhat.com>, netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46240 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752010AbdB1MUQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 Feb 2017 07:20:16 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5A7601AAB1B
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Feb 2017 13:18:57 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 49B24DA80B
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Feb 2017 13:18:57 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0C63EDA7E0
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Feb 2017 13:18:55 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20170228120307.GA6834@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+        info-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+        tech-committee-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>,
+        Stephen Jaworski <jaws-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>, lwn-T1hC0tSOHrs@public.gmane.org,
+        people-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org, Brenda Butler <bjb-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>
+To: "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Feb 28, 2017 at 01:03:07PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Sat, Feb 25, 2017 at 10:02:03PM -0600, Dan Williams wrote:
-> > > Checking a rule that includes a jump to a module-based target currently
-> > > sets the "changed" flag on the handle, which then causes TC_COMMIT() to
-> > > run through the whole SO_SET_REPLACE/SO_SET_ADD_COUNTERS path.  This
-> > > seems wrong for simply checking rules, an operation which is documented
-> > > as "...does not alter the existing iptables configuration..." but yet
-> > > it clearly could do so.
-> > > 
-> > > Fix that by ensuring that rule check operations for module targets
-> > > don't set the changed flag, and thus exit early from TC_COMMIT().
-> > 
-> > Thanks for explaining. How are you hitting this problem? I'm curious
-> > to see if I can reproduce it.
-> 
-> Its easy to reproduce.
-> 
-> iptables -t nat -o lo -A POSTROUTING -s 10.2.3.4 -j MASQUERADE
-> iptables -t nat -o lo -C POSTROUTING -s 10.2.3.4 -j MASQUERADE
-> 
-> you should see (via strace) that 2nd command also issues the iptables
-> setsockopt calls.
+A few announcements:
 
-Thanks for explain. Applied, thanks.
+
+1) Going forward we are going to be sending more frequent
+announcements to the conference discussion/announcement list:
+people-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org
+
+You can subscribe via mailman here:
+https://lists.netdevconf.org/cgi-bin/mailman/listinfo/people
+
+We urge people to subscribe to that list to get more up to date
+information and conference discussions. We will still be sending
+weekly summaries and announcements on the netdev list.
+
+If you have already registered for the conference we will
+very likely have registered you already.
+
+2) Reminder: Early registration was extended to March 5.
+
+Register early so we can plan better (and so you can save some $$).
+https://onlineregistrations.ca/netdev21/
+
+- hotel (If you can get the hotel cheaper online than conference
+rates please send us email, dont book ):
+https://www.netdevconf.org/2.1/hotel.html
+
+3) Tech committee has accepted another exciting talk. This
+time from Gilberto Bertin on how Cloudfare is integrating XDP in
+their DDoS mitigation approach. More description:
+
+----
+This talk provides an introduction to how we are planning to integrate
+XDP into our DDoS mitigation pipeline at Cloudflare, which every day
+helps defend our infrastructure from thousands of different attacks,
+in the range of 50-150 Gbps (with peaks of 500 Gbps).
+
+The main points of the presentation are:
+* introduction to the current architecture: from how attack traffic
+is sampled, to attack detection and mitigation, to how BPF fits in
+the current pipeline
+* architecture changes we are expecting, and new tools required
+after we move from our current network kernel bypass setup to XDP
+* issues and questions regarding the current state of XDP
+-----------
+
+cheers,
+jamal
