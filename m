@@ -1,117 +1,153 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 2/4] src: rename set_keytype_alloc() to set_datatype_alloc()
-Date: Tue, 28 Feb 2017 01:01:00 +0100
-Message-ID: <1488240062-27366-2-git-send-email-pablo@netfilter.org>
-References: <1488240062-27366-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 1/4] evaluate: set byteorder as lhs expression context in stmt_evaluate_arg()
+Date: Tue, 28 Feb 2017 01:00:59 +0100
+Message-ID: <1488240062-27366-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47528 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47524 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751285AbdB1ACd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1751030AbdB1ACd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 27 Feb 2017 19:02:33 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 96AB9E62C
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Feb 2017 01:01:11 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 3355FE620
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Feb 2017 01:01:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 87B76DA7E0
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Feb 2017 01:01:11 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 23D54DA804
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Feb 2017 01:01:10 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9ADC9DA7E0
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Feb 2017 01:01:08 +0100 (CET)
-In-Reply-To: <1488240062-27366-1-git-send-email-pablo@netfilter.org>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 09EA2DA725
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Feb 2017 01:01:07 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This function can be used either side of the map, so rename it to
-something generic.
+stmt_evaluate_arg() needs to take the lhs map expression byteorder in
+order to evaluate the lhs of mappings accordingly.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/datatype.h | 4 ++--
- src/datatype.c     | 6 +++---
- src/evaluate.c     | 2 +-
- src/netlink.c      | 2 +-
- src/rule.c         | 2 +-
- 5 files changed, 8 insertions(+), 8 deletions(-)
+ src/evaluate.c | 24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
-diff --git a/include/datatype.h b/include/datatype.h
-index 3ce3a888f063..b78d76f78f76 100644
---- a/include/datatype.h
-+++ b/include/datatype.h
-@@ -254,8 +254,8 @@ concat_subtype_lookup(uint32_t type, unsigned int n)
- }
- 
- extern const struct datatype *
--set_keytype_alloc(const struct datatype *orig_dtype, unsigned int byteorder);
--extern void set_keytype_destroy(const struct datatype *dtype);
-+set_datatype_alloc(const struct datatype *orig_dtype, unsigned int byteorder);
-+extern void set_datatype_destroy(const struct datatype *dtype);
- 
- extern void time_print(uint64_t seconds);
- extern struct error_record *time_parse(const struct location *loc,
-diff --git a/src/datatype.c b/src/datatype.c
-index 64b8b8845b10..6b1dd4a09abb 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -1029,8 +1029,8 @@ void concat_type_destroy(const struct datatype *dtype)
- 	dtype_free(dtype);
- }
- 
--const struct datatype *set_keytype_alloc(const struct datatype *orig_dtype,
--					 unsigned int byteorder)
-+const struct datatype *set_datatype_alloc(const struct datatype *orig_dtype,
-+					  unsigned int byteorder)
- {
- 	struct datatype *dtype;
- 
-@@ -1044,7 +1044,7 @@ const struct datatype *set_keytype_alloc(const struct datatype *orig_dtype,
- 	return dtype;
- }
- 
--void set_keytype_destroy(const struct datatype *dtype)
-+void set_datatype_destroy(const struct datatype *dtype)
- {
- 	if (dtype->flags & DTYPE_F_CLONE)
- 		dtype_free(dtype);
 diff --git a/src/evaluate.c b/src/evaluate.c
-index 21f1a475d5e9..07a611804a90 100644
+index 87da2fd83597..21f1a475d5e9 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -73,7 +73,7 @@ static struct expr *implicit_set_declaration(struct eval_ctx *ctx,
- 	set = set_alloc(&expr->location);
- 	set->flags	= NFT_SET_ANONYMOUS | expr->set_flags;
- 	set->handle.set = xstrdup(name),
--	set->keytype 	= set_keytype_alloc(keytype, keybyteorder);
-+	set->keytype 	= set_datatype_alloc(keytype, keybyteorder);
- 	set->keylen	= keylen;
- 	set->init	= expr;
+@@ -1721,9 +1721,9 @@ static int stmt_evaluate_expr(struct eval_ctx *ctx, struct stmt *stmt)
  
-diff --git a/src/netlink.c b/src/netlink.c
-index 1f3398225892..60d86d61c504 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -1189,7 +1189,7 @@ static struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
- 	set->handle.table  = xstrdup(nftnl_set_get_str(nls, NFTNL_SET_TABLE));
- 	set->handle.set    = xstrdup(nftnl_set_get_str(nls, NFTNL_SET_NAME));
+ static int stmt_evaluate_arg(struct eval_ctx *ctx, struct stmt *stmt,
+ 			     const struct datatype *dtype, unsigned int len,
+-			     struct expr **expr)
++			     enum byteorder byteorder, struct expr **expr)
+ {
+-	expr_set_context(&ctx->ectx, dtype, len);
++	__expr_set_context(&ctx->ectx, dtype, byteorder, len, 0);
+ 	if (expr_evaluate(ctx, expr) < 0)
+ 		return -1;
  
--	set->keytype = set_keytype_alloc(keytype, byteorder);
-+	set->keytype = set_datatype_alloc(keytype, byteorder);
- 	set->keylen  = nftnl_set_get_u32(nls, NFTNL_SET_KEY_LEN) * BITS_PER_BYTE;
- 	set->flags   = nftnl_set_get_u32(nls, NFTNL_SET_FLAGS);
+@@ -1737,7 +1737,7 @@ static int stmt_evaluate_arg(struct eval_ctx *ctx, struct stmt *stmt,
  
-diff --git a/src/rule.c b/src/rule.c
-index b47076f000ee..6045747710db 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -210,7 +210,7 @@ void set_free(struct set *set)
- 	if (set->init != NULL)
- 		expr_free(set->init);
- 	handle_free(&set->handle);
--	set_keytype_destroy(set->keytype);
-+	set_datatype_destroy(set->keytype);
- 	xfree(set);
+ static int stmt_evaluate_verdict(struct eval_ctx *ctx, struct stmt *stmt)
+ {
+-	if (stmt_evaluate_arg(ctx, stmt, &verdict_type, 0, &stmt->expr) < 0)
++	if (stmt_evaluate_arg(ctx, stmt, &verdict_type, 0, 0, &stmt->expr) < 0)
+ 		return -1;
+ 
+ 	switch (stmt->expr->ops->type) {
+@@ -1777,7 +1777,7 @@ static int stmt_evaluate_payload(struct eval_ctx *ctx, struct stmt *stmt)
+ 
+ 	payload = stmt->payload.expr;
+ 	if (stmt_evaluate_arg(ctx, stmt, payload->dtype, payload->len,
+-			      &stmt->payload.val) < 0)
++			      payload->byteorder, &stmt->payload.val) < 0)
+ 		return -1;
+ 
+ 	need_csum = stmt_evaluate_payload_need_csum(payload);
+@@ -1908,6 +1908,7 @@ static int stmt_evaluate_meta(struct eval_ctx *ctx, struct stmt *stmt)
+ 	return stmt_evaluate_arg(ctx, stmt,
+ 				 stmt->meta.tmpl->dtype,
+ 				 stmt->meta.tmpl->len,
++				 stmt->meta.tmpl->byteorder,
+ 				 &stmt->meta.expr);
  }
  
+@@ -1916,6 +1917,7 @@ static int stmt_evaluate_ct(struct eval_ctx *ctx, struct stmt *stmt)
+ 	return stmt_evaluate_arg(ctx, stmt,
+ 				 stmt->ct.tmpl->dtype,
+ 				 stmt->ct.tmpl->len,
++				 stmt->ct.tmpl->byteorder,
+ 				 &stmt->ct.expr);
+ }
+ 
+@@ -2306,7 +2308,8 @@ static int evaluate_addr(struct eval_ctx *ctx, struct stmt *stmt,
+ 		len   = 16 * BITS_PER_BYTE;
+ 	}
+ 
+-	return stmt_evaluate_arg(ctx, stmt, dtype, len, expr);
++	return stmt_evaluate_arg(ctx, stmt, dtype, len, BYTEORDER_BIG_ENDIAN,
++				 expr);
+ }
+ 
+ static int nat_evaluate_transport(struct eval_ctx *ctx, struct stmt *stmt,
+@@ -2321,7 +2324,7 @@ static int nat_evaluate_transport(struct eval_ctx *ctx, struct stmt *stmt,
+ 
+ 	return stmt_evaluate_arg(ctx, stmt,
+ 				 &inet_service_type, 2 * BITS_PER_BYTE,
+-				 expr);
++				 BYTEORDER_BIG_ENDIAN, expr);
+ }
+ 
+ static int stmt_evaluate_nat(struct eval_ctx *ctx, struct stmt *stmt)
+@@ -2400,6 +2403,7 @@ static int stmt_evaluate_dup(struct eval_ctx *ctx, struct stmt *stmt)
+ 		if (stmt->dup.dev != NULL) {
+ 			err = stmt_evaluate_arg(ctx, stmt, &ifindex_type,
+ 						sizeof(uint32_t) * BITS_PER_BYTE,
++						BYTEORDER_HOST_ENDIAN,
+ 						&stmt->dup.dev);
+ 			if (err < 0)
+ 				return err;
+@@ -2414,7 +2418,7 @@ static int stmt_evaluate_dup(struct eval_ctx *ctx, struct stmt *stmt)
+ 
+ 		err = stmt_evaluate_arg(ctx, stmt, &ifindex_type,
+ 					sizeof(uint32_t) * BITS_PER_BYTE,
+-					&stmt->dup.to);
++					BYTEORDER_HOST_ENDIAN, &stmt->dup.to);
+ 		if (err < 0)
+ 			return err;
+ 		break;
+@@ -2436,7 +2440,7 @@ static int stmt_evaluate_fwd(struct eval_ctx *ctx, struct stmt *stmt)
+ 
+ 		err = stmt_evaluate_arg(ctx, stmt, &ifindex_type,
+ 					sizeof(uint32_t) * BITS_PER_BYTE,
+-					&stmt->fwd.to);
++					BYTEORDER_HOST_ENDIAN, &stmt->fwd.to);
+ 		if (err < 0)
+ 			return err;
+ 		break;
+@@ -2450,6 +2454,7 @@ static int stmt_evaluate_queue(struct eval_ctx *ctx, struct stmt *stmt)
+ {
+ 	if (stmt->queue.queue != NULL) {
+ 		if (stmt_evaluate_arg(ctx, stmt, &integer_type, 16,
++				      BYTEORDER_HOST_ENDIAN,
+ 				      &stmt->queue.queue) < 0)
+ 			return -1;
+ 		if (!expr_is_constant(stmt->queue.queue))
+@@ -2490,6 +2495,7 @@ static int stmt_evaluate_set(struct eval_ctx *ctx, struct stmt *stmt)
+ 	if (stmt_evaluate_arg(ctx, stmt,
+ 			      stmt->set.set->set->keytype,
+ 			      stmt->set.set->set->keylen,
++			      stmt->set.set->set->keytype->byteorder,
+ 			      &stmt->set.key) < 0)
+ 		return -1;
+ 	if (expr_is_constant(stmt->set.key))
+@@ -2576,7 +2582,7 @@ static int stmt_evaluate_objref(struct eval_ctx *ctx, struct stmt *stmt)
+ 
+ 	if (stmt_evaluate_arg(ctx, stmt,
+ 			      &string_type, NFT_OBJ_MAXNAMELEN * BITS_PER_BYTE,
+-			      &stmt->objref.expr) < 0)
++			      BYTEORDER_HOST_ENDIAN, &stmt->objref.expr) < 0)
+ 		return -1;
+ 
+ 	if (!expr_is_constant(stmt->objref.expr))
 -- 
 2.1.4
 
