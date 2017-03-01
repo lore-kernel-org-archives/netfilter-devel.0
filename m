@@ -1,137 +1,91 @@
-From: Alin Nastac <alin.nastac@gmail.com>
-Subject: [PATCH] netfilter: Parse ICMPv6 redirects
-Date: Wed,  1 Mar 2017 15:32:47 +0100
-Message-ID: <1488378767-32479-1-git-send-email-alin.nastac@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: Re: [PATCH 09/14] netfilter: conntrack: refine gc worker heuristics,
+ redux
+Date: Wed, 1 Mar 2017 16:02:53 +0100
+Message-ID: <dd8b8fe3-5c73-c7b9-314f-70ceb0abd2b0@6wind.com>
+References: <1485448687-6072-1-git-send-email-pablo@netfilter.org>
+ <1485448687-6072-10-git-send-email-pablo@netfilter.org>
+ <09f1081e-ade3-6099-a3c6-b1b912592f54@6wind.com>
+Reply-To: nicolas.dichtel@6wind.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:35259 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751558AbdCAOdW (ORCPT
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:35646 "EHLO
+        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752173AbdCAPDq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Mar 2017 09:33:22 -0500
-Received: by mail-wr0-f194.google.com with SMTP id u108so1821532wrb.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 01 Mar 2017 06:32:55 -0800 (PST)
-Received: from cplx250.edegem.eu.thmulti.com (14.125.146.82.ipv4.evonet.be. [82.146.125.14])
-        by smtp.gmail.com with ESMTPSA id g127sm2547318wmd.30.2017.03.01.06.32.53
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 01 Mar 2017 06:32:53 -0800 (PST)
+        Wed, 1 Mar 2017 10:03:46 -0500
+Received: by mail-wm0-f42.google.com with SMTP id v186so112471952wmd.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Mar 2017 07:03:12 -0800 (PST)
+In-Reply-To: <09f1081e-ade3-6099-a3c6-b1b912592f54@6wind.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Extract IPv6 packet that triggered the sending of redirect message from
-ICMPv6 Redirected Header option and check if conntrack table contain such
-connection. Mark redirect packet as RELATED if a matching connection is found.
+Le 27/01/2017 à 17:51, Nicolas Dichtel a écrit :
+> Le 26/01/2017 à 17:38, Pablo Neira Ayuso a écrit :
+>> From: Florian Westphal <fw@strlen.de>
+>>
+>> This further refines the changes made to conntrack gc_worker in
+>> commit e0df8cae6c16 ("netfilter: conntrack: refine gc worker heuristics").
+>>
+>> The main idea of that change was to reduce the scan interval when evictions
+>> take place.
+>>
+>> However, on the reporters' setup, there are 1-2 million conntrack entries
+>> in total and roughly 8k new (and closing) connections per second.
+>>
+>> In this case we'll always evict at least one entry per gc cycle and scan
+>> interval is always at 1 jiffy because of this test:
+>>
+>>  } else if (expired_count) {
+>>      gc_work->next_gc_run /= 2U;
+>>      next_run = msecs_to_jiffies(1);
+>>
+>> being true almost all the time.
+>>
+>> Given we scan ~10k entries per run its clearly wrong to reduce interval
+>> based on nonzero eviction count, it will only waste cpu cycles since a vast
+>> majorities of conntracks are not timed out.
+>>
+>> Thus only look at the ratio (scanned entries vs. evicted entries) to make
+>> a decision on whether to reduce or not.
+>>
+>> Because evictor is supposed to only kick in when system turns idle after
+>> a busy period, pick a high ratio -- this makes it 50%.  We thus keep
+>> the idea of increasing scan rate when its likely that table contains many
+>> expired entries.
+>>
+>> In order to not let timed-out entries hang around for too long
+>> (important when using event logging, in which case we want to timely
+>> destroy events), we now scan the full table within at most
+>> GC_MAX_SCAN_JIFFIES (16 seconds) even in worst-case scenario where all
+>> timed-out entries sit in same slot.
+>>
+>> I tested this with a vm under synflood (with
+>> sysctl net.netfilter.nf_conntrack_tcp_timeout_syn_recv=3).
+>>
+>> While flood is ongoing, interval now stays at its max rate
+>> (GC_MAX_SCAN_JIFFIES / GC_MAX_BUCKETS_DIV -> 125ms).
+>>
+>> With feedback from Nicolas Dichtel.
+>>
+>> Reported-by: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
+>> Cc: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+>> Fixes: b87a2f9199ea82eaadc ("netfilter: conntrack: add gc worker to remove timed-out entries")
+>> Signed-off-by: Florian Westphal <fw@strlen.de>
+>> Tested-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+>> Acked-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+>> Tested-by: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
+>> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Pablo, is it possible to queue this patch (and the previous: 08/14) for the 4.9
+> stable?
 
-Signed-off-by: Alin Nastac <alin.nastac@gmail.com>
----
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c | 77 ++++++++++++++++++++++++--
- 1 file changed, 72 insertions(+), 5 deletions(-)
+Pablo, should I submit it formally?
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index d2c2ccb..2f9a985 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -144,7 +144,7 @@ static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
- static int
- icmpv6_error_message(struct net *net, struct nf_conn *tmpl,
- 		     struct sk_buff *skb,
--		     unsigned int icmp6off,
-+		     unsigned int inneripv6off,
- 		     unsigned int hooknum)
- {
- 	struct nf_conntrack_tuple intuple, origtuple;
-@@ -157,9 +157,7 @@ static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
- 
- 	/* Are they talking about one of our connections? */
- 	if (!nf_ct_get_tuplepr(skb,
--			       skb_network_offset(skb)
--				+ sizeof(struct ipv6hdr)
--				+ sizeof(struct icmp6hdr),
-+			       inneripv6off,
- 			       PF_INET6, net, &origtuple)) {
- 		pr_debug("icmpv6_error: Can't get tuple\n");
- 		return -NF_ACCEPT;
-@@ -225,9 +223,78 @@ static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
- 		nf_conntrack_get(skb_nfct(skb));
- 		return NF_ACCEPT;
- 	}
-+	dataoff += sizeof(struct icmp6hdr);
- 
- 	/* is not error message ? */
--	if (icmp6h->icmp6_type >= 128)
-+	if (icmp6h->icmp6_type == NDISC_REDIRECT) {
-+		const struct in6_addr *dst;
-+		struct in6_addr _dst;
-+		const struct nd_opt_hdr *opt;
-+		struct nd_opt_hdr _opt;
-+		const struct ipv6hdr *iph;
-+		struct ipv6hdr _iph;
-+
-+		/* skip target address */
-+		dataoff += sizeof(_dst);
-+
-+		/* read destination address */
-+		dst = skb_header_pointer(skb, dataoff, sizeof(_dst), &_dst);
-+		if (dst == NULL) {
-+			if (LOG_INVALID(net, IPPROTO_ICMPV6))
-+				nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
-+				      "nf_ct_icmpv6: short redirect packet ");
-+			return -NF_ACCEPT;
-+		}
-+		if (ipv6_addr_is_multicast(dst)) {
-+			if (LOG_INVALID(net, IPPROTO_ICMPV6))
-+				nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
-+				      "nf_ct_icmpv6: redirect destination address is multicast ");
-+			return -NF_ACCEPT;
-+		}
-+		dataoff += sizeof(_dst);
-+
-+		/* find redirected header */
-+		while (1) {
-+			opt = skb_header_pointer(skb, dataoff, sizeof(_opt), &_opt);
-+			if (opt == NULL) {
-+				if (LOG_INVALID(net, IPPROTO_ICMPV6))
-+					nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
-+					      "nf_ct_icmpv6: invalid redirect option ");
-+				return -NF_ACCEPT;
-+			}
-+			if (opt->nd_opt_len == 0) {
-+				if (LOG_INVALID(net, IPPROTO_ICMPV6))
-+					nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
-+					      "nf_ct_icmpv6: invalid redirect option length ");
-+				return -NF_ACCEPT;
-+			}
-+
-+			if (opt->nd_opt_type == ND_OPT_REDIRECT_HDR) {
-+				dataoff += 8;
-+				break;
-+			}
-+
-+			dataoff += opt->nd_opt_len << 3;
-+		}
-+
-+		/* read redirect header */
-+		iph = skb_header_pointer(skb, dataoff, sizeof(_iph), &_iph);
-+		if (iph == NULL) {
-+			if (LOG_INVALID(net, IPPROTO_ICMPV6))
-+				nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
-+				      "nf_ct_icmpv6: short redirect header ");
-+			return -NF_ACCEPT;
-+		}
-+
-+		/* validate destination address */
-+		if (!ipv6_addr_equal(&iph->daddr, dst)) {
-+			if (LOG_INVALID(net, IPPROTO_ICMPV6))
-+				nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
-+				      "nf_ct_icmpv6: redirect destination address not matching destination address of redirect header ");
-+			return -NF_ACCEPT;
-+		}
-+	}
-+	else if (icmp6h->icmp6_type >= 128)
- 		return NF_ACCEPT;
- 
- 	return icmpv6_error_message(net, tmpl, skb, dataoff, hooknum);
--- 
-1.7.12.4
 
+Regards,
+Nicolas
