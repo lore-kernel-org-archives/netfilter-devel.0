@@ -1,91 +1,53 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH 09/14] netfilter: conntrack: refine gc worker heuristics,
- redux
-Date: Wed, 1 Mar 2017 16:02:53 +0100
-Message-ID: <dd8b8fe3-5c73-c7b9-314f-70ceb0abd2b0@6wind.com>
-References: <1485448687-6072-1-git-send-email-pablo@netfilter.org>
- <1485448687-6072-10-git-send-email-pablo@netfilter.org>
- <09f1081e-ade3-6099-a3c6-b1b912592f54@6wind.com>
-Reply-To: nicolas.dichtel@6wind.com
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft] mnl: continue monitor if errno is ESRCH
+Date: Wed, 1 Mar 2017 16:18:00 +0100
+Message-ID: <20170301151800.GA1044@salvia>
+References: <20170226163058.24754-1-alexander@alemayhu.com>
+ <20170226202410.GB1827@salvia>
+ <20170301112103.GA14422@salvia>
+ <20170301114140.GA14753@salvia>
+ <20170301145227.GA10448@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Alexander Alemayhu <alexander@alemayhu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:35646 "EHLO
-        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752173AbdCAPDq (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Mar 2017 10:03:46 -0500
-Received: by mail-wm0-f42.google.com with SMTP id v186so112471952wmd.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 01 Mar 2017 07:03:12 -0800 (PST)
-In-Reply-To: <09f1081e-ade3-6099-a3c6-b1b912592f54@6wind.com>
+Received: from mail.us.es ([193.147.175.20]:49198 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751093AbdCAPSM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 1 Mar 2017 10:18:12 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 3612C1AEA75
+        for <netfilter-devel@vger.kernel.org>; Wed,  1 Mar 2017 16:18:07 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 25565DA819
+        for <netfilter-devel@vger.kernel.org>; Wed,  1 Mar 2017 16:18:07 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E44CFDA80B
+        for <netfilter-devel@vger.kernel.org>; Wed,  1 Mar 2017 16:18:01 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20170301145227.GA10448@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le 27/01/2017 à 17:51, Nicolas Dichtel a écrit :
-> Le 26/01/2017 à 17:38, Pablo Neira Ayuso a écrit :
->> From: Florian Westphal <fw@strlen.de>
->>
->> This further refines the changes made to conntrack gc_worker in
->> commit e0df8cae6c16 ("netfilter: conntrack: refine gc worker heuristics").
->>
->> The main idea of that change was to reduce the scan interval when evictions
->> take place.
->>
->> However, on the reporters' setup, there are 1-2 million conntrack entries
->> in total and roughly 8k new (and closing) connections per second.
->>
->> In this case we'll always evict at least one entry per gc cycle and scan
->> interval is always at 1 jiffy because of this test:
->>
->>  } else if (expired_count) {
->>      gc_work->next_gc_run /= 2U;
->>      next_run = msecs_to_jiffies(1);
->>
->> being true almost all the time.
->>
->> Given we scan ~10k entries per run its clearly wrong to reduce interval
->> based on nonzero eviction count, it will only waste cpu cycles since a vast
->> majorities of conntracks are not timed out.
->>
->> Thus only look at the ratio (scanned entries vs. evicted entries) to make
->> a decision on whether to reduce or not.
->>
->> Because evictor is supposed to only kick in when system turns idle after
->> a busy period, pick a high ratio -- this makes it 50%.  We thus keep
->> the idea of increasing scan rate when its likely that table contains many
->> expired entries.
->>
->> In order to not let timed-out entries hang around for too long
->> (important when using event logging, in which case we want to timely
->> destroy events), we now scan the full table within at most
->> GC_MAX_SCAN_JIFFIES (16 seconds) even in worst-case scenario where all
->> timed-out entries sit in same slot.
->>
->> I tested this with a vm under synflood (with
->> sysctl net.netfilter.nf_conntrack_tcp_timeout_syn_recv=3).
->>
->> While flood is ongoing, interval now stays at its max rate
->> (GC_MAX_SCAN_JIFFIES / GC_MAX_BUCKETS_DIV -> 125ms).
->>
->> With feedback from Nicolas Dichtel.
->>
->> Reported-by: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
->> Cc: Nicolas Dichtel <nicolas.dichtel@6wind.com>
->> Fixes: b87a2f9199ea82eaadc ("netfilter: conntrack: add gc worker to remove timed-out entries")
->> Signed-off-by: Florian Westphal <fw@strlen.de>
->> Tested-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
->> Acked-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
->> Tested-by: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
->> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> Pablo, is it possible to queue this patch (and the previous: 08/14) for the 4.9
-> stable?
+On Wed, Mar 01, 2017 at 03:52:27PM +0100, Alexander Alemayhu wrote:
+> On Wed, Mar 01, 2017 at 12:41:40PM +0100, Pablo Neira Ayuso wrote:
+> > 
+> > Actually, this patch would be better. All return values of these
+> > notify function are ignored, so we can turned it into void.
+> 
+> Monitor seems to work as expected and does not exit with this patch.
+> Should all of the tests pass with this? Currently seeing
+> 
+> I: results: [OK] 58 [FAILED] 49 [TOTAL] 107
 
-Pablo, should I submit it formally?
+Hm, I'm hitting this here:
 
+I: results: [OK] 107 [FAILED] 0 [TOTAL] 107
 
-Regards,
-Nicolas
+Running nft git HEAD and nf.git kernel.
+
+If you're on the same page as me, would you run some test individually
+to see what is breaking?
+
+Thanks.
