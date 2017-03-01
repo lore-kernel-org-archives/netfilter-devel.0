@@ -1,350 +1,144 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf 2/2] netfilter: nf_tables: netlink listener hits ESRCH on socket overrun
-Date: Wed,  1 Mar 2017 21:53:26 +0100
-Message-ID: <1488401606-11151-2-git-send-email-pablo@netfilter.org>
-References: <1488401606-11151-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48912 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751055AbdCAVvE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Mar 2017 16:51:04 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AFB2317710D
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Mar 2017 21:53:38 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9E6A4DA725
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Mar 2017 21:53:38 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 66EFBDA7E0
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Mar 2017 21:53:35 +0100 (CET)
-In-Reply-To: <1488401606-11151-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Paul Moore <paul@paul-moore.com>
+Subject: Re: [PATCH V3] audit: normalize NETFILTER_PKT
+Date: Wed, 1 Mar 2017 17:19:27 -0500
+Message-ID: <CAHC9VhTHfyPR-yj4kOAJBeU4D1=o4Uu-=S_STvQoj4OAr9Y-mQ@mail.gmail.com>
+References: <044a666e507a829f8c1d6dcc19ad78cd9f140ddd.1488142060.git.rgb@redhat.com>
+	<CAHC9VhTUSz-tyPyZ7PJAH08sfhuACeUTkEKEnnwM_axQ4UdorQ@mail.gmail.com>
+	<20170301162802.GV18258@madcap2.tricolour.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: Thomas Woerner <twoerner@redhat.com>, linux-audit@redhat.com,
+        Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
+        Thomas Graf <tgraf@infradead.org>
+To: Richard Guy Briggs <rgb@redhat.com>
+Return-path: <linux-audit-bounces@redhat.com>
+In-Reply-To: <20170301162802.GV18258@madcap2.tricolour.ca>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/linux-audit>
+List-Post: <mailto:linux-audit@redhat.com>
+List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=subscribe>
+Sender: linux-audit-bounces@redhat.com
+Errors-To: linux-audit-bounces@redhat.com
+List-Id: netfilter-devel.vger.kernel.org
 
-Netlink listeners are currently hitting ESRCH on socket buffer overruns
-via nf_tables, this error is misleading and inconsistent with regards to
-other existing netlink subsystems. Netlink semantics mandate that
-listeners hit ENOBUFS if the socket buffer overruns.
+On Wed, Mar 1, 2017 at 11:28 AM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2017-02-28 17:22, Paul Moore wrote:
+>> On Sun, Feb 26, 2017 at 3:49 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+>> > Eliminate flipping in and out of message fields, dropping fields in the process.
+>> >
+>> > Sample raw message format IPv4 UDP:
+>> > type=NETFILTER_PKT msg=audit(1487874761.386:228):  mark=0xae8a2732 saddr=127.0.0.1 daddr=127.0.0.1 proto=17^]
+>> > Sample raw message format IPv6 ICMP6:
+>> > type=NETFILTER_PKT msg=audit(1487874761.381:227):  mark=0x223894b7 saddr=::1 daddr=::1 proto=58^]
+>> >
+>> > Issue: https://github.com/linux-audit/audit-kernel/issues/11
+>> > Test case: https://github.com/linux-audit/audit-testsuite/issues/43
+>> >
+>> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+>> > ---
+>> >  net/netfilter/xt_AUDIT.c |  122 ++++++++++-----------------------------------
+>> >  1 files changed, 27 insertions(+), 95 deletions(-)
+>> >
+>> > diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
+>> > index 4973cbd..945fa29 100644
+>> > --- a/net/netfilter/xt_AUDIT.c
+>> > +++ b/net/netfilter/xt_AUDIT.c
+>> > @@ -31,146 +31,78 @@ MODULE_ALIAS("ip6t_AUDIT");
+>>
+>> ...
+>>
+>> > -static void audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
+>> > +static bool audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
+>> >  {
+>> >         struct iphdr _iph;
+>> >         const struct iphdr *ih;
+>> >
+>> >         ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
+>>
+>> It seems like we should be using skb_network_offset(skb) instead of 0
+>> above, yes?  Granted, this isn't new, but let's fix it.
+>
+> Yes, I agree.  How does this even work now?  Maybe the MAC header hasn't
+> been added yet (or has already been processed and stripped off) so that
+> skb->data is already pointing at the network header and hence has an
+> offset of 0.  Can you be more explicit and elaborate to say if this what
+> you were thinking?
 
-Reported-by: Alexander Alemayhu <alexander@alemayhu.com>
-Tested-by: Alexander Alemayhu <alexander@alemayhu.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables.h |   6 +-
- net/netfilter/nf_tables_api.c     | 128 +++++++++++++++++++-------------------
- 2 files changed, 66 insertions(+), 68 deletions(-)
+Unfortunately, not really, I haven't thought through of all the
+situations and it has been a long time since I've had to worry about
+things like this.  I think we are in agreement that it needs to
+change, so let's just make the change.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index ac84686aaafb..2aa8a9d80fbe 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -988,9 +988,9 @@ struct nft_object *nf_tables_obj_lookup(const struct nft_table *table,
- 					const struct nlattr *nla, u32 objtype,
- 					u8 genmask);
- 
--int nft_obj_notify(struct net *net, struct nft_table *table,
--		   struct nft_object *obj, u32 portid, u32 seq,
--		   int event, int family, int report, gfp_t gfp);
-+void nft_obj_notify(struct net *net, struct nft_table *table,
-+		    struct nft_object *obj, u32 portid, u32 seq,
-+		    int event, int family, int report, gfp_t gfp);
- 
- /**
-  *	struct nft_object_type - stateful object type
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index ff7304ae58ac..dcd59b8518af 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -461,16 +461,15 @@ static int nf_tables_fill_table_info(struct sk_buff *skb, struct net *net,
- 	return -1;
- }
- 
--static int nf_tables_table_notify(const struct nft_ctx *ctx, int event)
-+static void nf_tables_table_notify(const struct nft_ctx *ctx, int event)
- {
- 	struct sk_buff *skb;
- 	int err;
- 
- 	if (!ctx->report &&
- 	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
--		return 0;
-+		return;
- 
--	err = -ENOBUFS;
- 	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
- 	if (skb == NULL)
- 		goto err;
-@@ -484,12 +483,12 @@ static int nf_tables_table_notify(const struct nft_ctx *ctx, int event)
- 
- 	err = nfnetlink_send(skb, ctx->net, ctx->portid, NFNLGRP_NFTABLES,
- 			     ctx->report, GFP_KERNEL);
-+	if (err < 0)
-+		goto err;
-+
-+	return;
- err:
--	if (err < 0) {
--		nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES,
--				  err);
--	}
--	return err;
-+	nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES, -ENOBUFS);
- }
- 
- static int nf_tables_dump_tables(struct sk_buff *skb,
-@@ -1050,16 +1049,15 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
- 	return -1;
- }
- 
--static int nf_tables_chain_notify(const struct nft_ctx *ctx, int event)
-+static void nf_tables_chain_notify(const struct nft_ctx *ctx, int event)
- {
- 	struct sk_buff *skb;
- 	int err;
- 
- 	if (!ctx->report &&
- 	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
--		return 0;
-+		return;
- 
--	err = -ENOBUFS;
- 	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
- 	if (skb == NULL)
- 		goto err;
-@@ -1074,12 +1072,12 @@ static int nf_tables_chain_notify(const struct nft_ctx *ctx, int event)
- 
- 	err = nfnetlink_send(skb, ctx->net, ctx->portid, NFNLGRP_NFTABLES,
- 			     ctx->report, GFP_KERNEL);
-+	if (err < 0)
-+		goto err;
-+
-+	return;
- err:
--	if (err < 0) {
--		nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES,
--				  err);
--	}
--	return err;
-+	nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES, -ENOBUFS);
- }
- 
- static int nf_tables_dump_chains(struct sk_buff *skb,
-@@ -1934,18 +1932,16 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
- 	return -1;
- }
- 
--static int nf_tables_rule_notify(const struct nft_ctx *ctx,
--				 const struct nft_rule *rule,
--				 int event)
-+static void nf_tables_rule_notify(const struct nft_ctx *ctx,
-+				  const struct nft_rule *rule, int event)
- {
- 	struct sk_buff *skb;
- 	int err;
- 
- 	if (!ctx->report &&
- 	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
--		return 0;
-+		return;
- 
--	err = -ENOBUFS;
- 	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
- 	if (skb == NULL)
- 		goto err;
-@@ -1960,12 +1956,12 @@ static int nf_tables_rule_notify(const struct nft_ctx *ctx,
- 
- 	err = nfnetlink_send(skb, ctx->net, ctx->portid, NFNLGRP_NFTABLES,
- 			     ctx->report, GFP_KERNEL);
-+	if (err < 0)
-+		goto err;
-+
-+	return;
- err:
--	if (err < 0) {
--		nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES,
--				  err);
--	}
--	return err;
-+	nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES, -ENOBUFS);
- }
- 
- struct nft_rule_dump_ctx {
-@@ -2696,9 +2692,9 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
- 	return -1;
- }
- 
--static int nf_tables_set_notify(const struct nft_ctx *ctx,
--				const struct nft_set *set,
--				int event, gfp_t gfp_flags)
-+static void nf_tables_set_notify(const struct nft_ctx *ctx,
-+				 const struct nft_set *set, int event,
-+			         gfp_t gfp_flags)
- {
- 	struct sk_buff *skb;
- 	u32 portid = ctx->portid;
-@@ -2706,9 +2702,8 @@ static int nf_tables_set_notify(const struct nft_ctx *ctx,
- 
- 	if (!ctx->report &&
- 	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
--		return 0;
-+		return;
- 
--	err = -ENOBUFS;
- 	skb = nlmsg_new(NLMSG_GOODSIZE, gfp_flags);
- 	if (skb == NULL)
- 		goto err;
-@@ -2721,10 +2716,12 @@ static int nf_tables_set_notify(const struct nft_ctx *ctx,
- 
- 	err = nfnetlink_send(skb, ctx->net, portid, NFNLGRP_NFTABLES,
- 			     ctx->report, gfp_flags);
--err:
- 	if (err < 0)
--		nfnetlink_set_err(ctx->net, portid, NFNLGRP_NFTABLES, err);
--	return err;
-+		goto err;
-+
-+	return;
-+err:
-+	nfnetlink_set_err(ctx->net, portid, NFNLGRP_NFTABLES, -ENOBUFS);
- }
- 
- static int nf_tables_dump_sets(struct sk_buff *skb, struct netlink_callback *cb)
-@@ -3504,10 +3501,10 @@ static int nf_tables_fill_setelem_info(struct sk_buff *skb,
- 	return -1;
- }
- 
--static int nf_tables_setelem_notify(const struct nft_ctx *ctx,
--				    const struct nft_set *set,
--				    const struct nft_set_elem *elem,
--				    int event, u16 flags)
-+static void nf_tables_setelem_notify(const struct nft_ctx *ctx,
-+				     const struct nft_set *set,
-+				     const struct nft_set_elem *elem,
-+				     int event, u16 flags)
- {
- 	struct net *net = ctx->net;
- 	u32 portid = ctx->portid;
-@@ -3515,9 +3512,8 @@ static int nf_tables_setelem_notify(const struct nft_ctx *ctx,
- 	int err;
- 
- 	if (!ctx->report && !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
--		return 0;
-+		return;
- 
--	err = -ENOBUFS;
- 	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
- 	if (skb == NULL)
- 		goto err;
-@@ -3531,10 +3527,12 @@ static int nf_tables_setelem_notify(const struct nft_ctx *ctx,
- 
- 	err = nfnetlink_send(skb, net, portid, NFNLGRP_NFTABLES, ctx->report,
- 			     GFP_KERNEL);
--err:
- 	if (err < 0)
--		nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, err);
--	return err;
-+		goto err;
-+
-+	return;
-+err:
-+	nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, -ENOBUFS);
- }
- 
- static struct nft_trans *nft_trans_elem_alloc(struct nft_ctx *ctx,
-@@ -4476,18 +4474,17 @@ static int nf_tables_delobj(struct net *net, struct sock *nlsk,
- 	return nft_delobj(&ctx, obj);
- }
- 
--int nft_obj_notify(struct net *net, struct nft_table *table,
--		   struct nft_object *obj, u32 portid, u32 seq, int event,
--		   int family, int report, gfp_t gfp)
-+void nft_obj_notify(struct net *net, struct nft_table *table,
-+		    struct nft_object *obj, u32 portid, u32 seq, int event,
-+		    int family, int report, gfp_t gfp)
- {
- 	struct sk_buff *skb;
- 	int err;
- 
- 	if (!report &&
- 	    !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
--		return 0;
-+		return;
- 
--	err = -ENOBUFS;
- 	skb = nlmsg_new(NLMSG_GOODSIZE, gfp);
- 	if (skb == NULL)
- 		goto err;
-@@ -4500,20 +4497,20 @@ int nft_obj_notify(struct net *net, struct nft_table *table,
- 	}
- 
- 	err = nfnetlink_send(skb, net, portid, NFNLGRP_NFTABLES, report, gfp);
-+	if (err < 0)
-+		goto err;
-+
-+	return;
- err:
--	if (err < 0) {
--		nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, err);
--	}
--	return err;
-+	nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, -ENOBUFS);
- }
- EXPORT_SYMBOL_GPL(nft_obj_notify);
- 
--static int nf_tables_obj_notify(const struct nft_ctx *ctx,
--				struct nft_object *obj, int event)
-+static void nf_tables_obj_notify(const struct nft_ctx *ctx,
-+				 struct nft_object *obj, int event)
- {
--	return nft_obj_notify(ctx->net, ctx->table, obj, ctx->portid,
--			      ctx->seq, event, ctx->afi->family, ctx->report,
--			      GFP_KERNEL);
-+	nft_obj_notify(ctx->net, ctx->table, obj, ctx->portid, ctx->seq, event,
-+		       ctx->afi->family, ctx->report, GFP_KERNEL);
- }
- 
- static int nf_tables_fill_gen_info(struct sk_buff *skb, struct net *net,
-@@ -4543,7 +4540,8 @@ static int nf_tables_fill_gen_info(struct sk_buff *skb, struct net *net,
- 	return -EMSGSIZE;
- }
- 
--static int nf_tables_gen_notify(struct net *net, struct sk_buff *skb, int event)
-+static void nf_tables_gen_notify(struct net *net, struct sk_buff *skb,
-+				 int event)
- {
- 	struct nlmsghdr *nlh = nlmsg_hdr(skb);
- 	struct sk_buff *skb2;
-@@ -4551,9 +4549,8 @@ static int nf_tables_gen_notify(struct net *net, struct sk_buff *skb, int event)
- 
- 	if (nlmsg_report(nlh) &&
- 	    !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
--		return 0;
-+		return;
- 
--	err = -ENOBUFS;
- 	skb2 = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
- 	if (skb2 == NULL)
- 		goto err;
-@@ -4567,12 +4564,13 @@ static int nf_tables_gen_notify(struct net *net, struct sk_buff *skb, int event)
- 
- 	err = nfnetlink_send(skb2, net, NETLINK_CB(skb).portid,
- 			     NFNLGRP_NFTABLES, nlmsg_report(nlh), GFP_KERNEL);
-+	if (err < 0)
-+		goto err;
-+
-+	return;
- err:
--	if (err < 0) {
--		nfnetlink_set_err(net, NETLINK_CB(skb).portid, NFNLGRP_NFTABLES,
--				  err);
--	}
--	return err;
-+	nfnetlink_set_err(net, NETLINK_CB(skb).portid, NFNLGRP_NFTABLES,
-+			  -ENOBUFS);
- }
- 
- static int nf_tables_getgen(struct net *net, struct sock *nlsk,
--- 
-2.1.4
+> This should be a seperate bug fix patch rather than fixing it in the
+> noise of this substantial re-arrangement.
 
+That's fine, but please send it as one patchset.  Also, to get ahead
+of the next likely question, no I don't think the skb_network_offset()
+fix is -stable worthy at the moment.
+
+>> > -       if (!ih) {
+>> > -               audit_log_format(ab, " truncated=1");
+>> > -               return;
+>> > -       }
+>> > +       if (!ih)
+>> > +               return false;
+>> >
+>> > -       audit_log_format(ab, " saddr=%pI4 daddr=%pI4 ipid=%hu proto=%hhu",
+>> > -               &ih->saddr, &ih->daddr, ntohs(ih->id), ih->protocol);
+>> > +       audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu",
+>> > +                        &ih->saddr, &ih->daddr, ih->protocol);
+>> >
+>> > -       if (ntohs(ih->frag_off) & IP_OFFSET) {
+>> > -               audit_log_format(ab, " frag=1");
+>> > -               return;
+>> > -       }
+>> > -
+>> > -       audit_proto(ab, skb, ih->protocol, ih->ihl * 4);
+>> > +       return true;
+>> >  }
+>>
+>> ...
+>>
+>> >  static unsigned int
+>> >  audit_tg(struct sk_buff *skb, const struct xt_action_param *par)
+>> >  {
+>> > -       const struct xt_audit_info *info = par->targinfo;
+>> >         struct audit_buffer *ab;
+>> > +       int fam = -1;
+>> >
+>> >         if (audit_enabled == 0)
+>> >                 goto errout;
+>> > -
+>> >         ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
+>> >         if (ab == NULL)
+>> >                 goto errout;
+>> >
+>> > -       audit_log_format(ab, "action=%hhu hook=%u len=%u inif=%s outif=%s",
+>> > -                        info->type, par->hooknum, skb->len,
+>> > -                        par->in ? par->in->name : "?",
+>> > -                        par->out ? par->out->name : "?");
+>> > -
+>> > -       if (skb->mark)
+>> > -               audit_log_format(ab, " mark=%#x", skb->mark);
+>> > -
+>> > -       if (skb->dev && skb->dev->type == ARPHRD_ETHER) {
+>> > -               audit_log_format(ab, " smac=%pM dmac=%pM macproto=0x%04x",
+>> > -                                eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest,
+>> > -                                ntohs(eth_hdr(skb)->h_proto));
+>> > +       audit_log_format(ab, "mark=%#x", skb->mark ?: -1);
+>>
+>> How do Steve's userspace tools like the unset/-1 value represented
+>> when it is a hex value: -1 or 0xffffffff?
+>
+> My understanding is they are set up to cope with this.
+
+How does userspace distinguish between an unset nfmark and a nfmark of
+0xffffffff?
+
+--
+paul moore
+www.paul-moore.com
