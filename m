@@ -1,21 +1,21 @@
 From: Alin Nastac <alin.nastac@gmail.com>
 Subject: [PATCH] ipv6: Preserve link scope traffic original oif
-Date: Wed,  1 Mar 2017 14:00:59 +0100
-Message-ID: <1488373259-31296-1-git-send-email-alin.nastac@gmail.com>
+Date: Wed,  1 Mar 2017 14:47:23 +0100
+Message-ID: <1488376043-31976-1-git-send-email-alin.nastac@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34185 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751733AbdCANJe (ORCPT
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:33581 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750815AbdCAOSv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Mar 2017 08:09:34 -0500
-Received: by mail-wm0-f65.google.com with SMTP id m70so7257701wma.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 01 Mar 2017 05:09:28 -0800 (PST)
+        Wed, 1 Mar 2017 09:18:51 -0500
+Received: by mail-qk0-f194.google.com with SMTP id n186so10844377qkb.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Mar 2017 06:18:13 -0800 (PST)
 Received: from cplx250.edegem.eu.thmulti.com (14.125.146.82.ipv4.evonet.be. [82.146.125.14])
-        by smtp.gmail.com with ESMTPSA id o2sm6852716wmb.28.2017.03.01.05.01.06
+        by smtp.gmail.com with ESMTPSA id a69sm3158290qkj.60.2017.03.01.05.47.33
         for <netfilter-devel@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 01 Mar 2017 05:01:06 -0800 (PST)
+        Wed, 01 Mar 2017 05:47:34 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
