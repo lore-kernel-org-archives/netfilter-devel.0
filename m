@@ -1,36 +1,117 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH nf-next v2 2/2] netfilter: nft_hash: support of symmetric hash
-Date: Wed, 1 Mar 2017 12:11:54 +0800
-Message-ID: <CAML_gOc8AAQ6ijDS65c1Qb6cYhBWFbEs814yDH5_27m1t6hsQw@mail.gmail.com>
-References: <20170228173826.e2lx4f2yrbn7aegn@nevthink>
+From: Fabian Franz <s1410239008@students.fh-hagenberg.at>
+Subject: Re: nft authentication
+Date: Wed, 1 Mar 2017 09:14:17 +0100
+Message-ID: <79f454c1-a8ef-5043-35f5-90d83447dc83@students.fh-hagenberg.at>
+References: <e7b26751-8914-e32e-0760-c300bf217b50@students.fh-hagenberg.at>
+ <20170228232451.GA24798@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Laura Garcia Liebana <nevola@gmail.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8BIT
+Cc: <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f52.google.com ([209.85.213.52]:35269 "EHLO
-        mail-vk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750778AbdCAH2R (ORCPT
+Received: from relay02-mailcontrol.conova.com ([217.196.144.162]:49308 "EHLO
+        relay02-mailcontrol.conova.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751704AbdCAIPs (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Mar 2017 02:28:17 -0500
-Received: by mail-vk0-f52.google.com with SMTP id x75so4764136vke.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Feb 2017 23:28:08 -0800 (PST)
-In-Reply-To: <20170228173826.e2lx4f2yrbn7aegn@nevthink>
+        Wed, 1 Mar 2017 03:15:48 -0500
+In-Reply-To: <20170228232451.GA24798@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Dear Mr. Westphal,
 
-2017-03-01 1:38 GMT+08:00 Laura Garcia Liebana <nevola@gmail.com>:
-[...]
-> +static const struct nft_expr_ops *
-> +nft_hash_select_ops(const struct nft_ctx *ctx,
-> +                   const struct nlattr * const tb[])
-> +{
-> +       u32 type;
-> +
-> +       if (!tb[NFTA_HASH_TYPE])
-> +               return ERR_PTR(-EINVAL);
+yes it is academic and what I want to do is user id matching on
+non-local users (which means I need to connect the IP address with an
+user id or something like that). What I want is to keep the full match
+together, nf_queue is a target.
+It should be my last year project but it seems to be impossible to
+finalize due to a lack of documentation. An alternative Method would be
+keeping an array of structs with IP addresses and user IDs in the kernel
+and use those.
 
-For compatibility reason, if tb[NFTA_HASH_TYPE] is NULL, maybe it's better
-to return &nft_jhash_ops instead of reporting error.
+However this way I can see what is going on in the userspace application.
+
+The problem ist, that I cannot get a correct rule reated in nft (auth or
+numbers after it are always underlined)
+
+For example all of those fail:
+
+* auth
+
+* auth 1
+
+* auth user 1
+
+* auth 1 1
+
+so I think it cannot find the auth module or something other goes wrong.
+
+
+lsmod says that it looks ok:
+
+nft_auth               16384  0
+nft_reject_inet        16384  1
+...
+nf_tables              65536  30
+nf_tables_inet,nf_tables_ipv4,nf_tables_ipv6,...,nft_auth,...
+
+
+NFT always ends up with an error like this one:
+
+update link layer protocol context:
+ link layer          : inet <-
+ network layer       : none
+ transport layer     : none
+
+<cmdline>:1:28-33: Evaluate
+add rule inet filter input auth 1 accept
+                           ^^^^^^
+$auth $1
+
+<cmdline>:1:28-33: Evaluate
+add rule inet filter input auth 1 accept
+                           ^^^^^^
+$auth $1
+
+<cmdline>:1:28-31: Evaluate
+add rule inet filter input auth 1 accept
+                           ^^^^
+$auth
+
+Stack now 0 1
+Cleanup: popping nterm input (: )
+<cmdline>:1:28-31: Error: No symbol type information
+add rule inet filter input auth 1 accept
+
+
+created using this command:
+
+nft --debug all add rule inet filter input auth 1 accept
+
+
+I hope this helps you to understand the error.
+
+
+Am 2017-03-01 um 00:24 schrieb Florian Westphal:
+> Fabian Franz <s1410239008@students.fh-hagenberg.at> wrote:
+>> I am working on my module but I cannot get the match visible to the nft
+>> tool. Could you please give me a hint, what is wrong in the code? I have
+>> uploaded it to my web server: http://files.fabian-franz.eu/nft_auth.c
+> I do not know what 'visible to the nft tool' means.
+> No 'obvious' mistake in the register department.
+>
+> My only comment is that it looks like you are re-inventing the wheels
+> we already have, such as nf_log and nf_queue.
+>
+> If this is a learning exercise, fine, but we have real missing
+> functionality that could be added instead.
+>
+> If this targets upstream, you should really discuss what problem wants
+> to be solved.  The building blocks we already have should be enough
+> to do uid based authentication.
+>
+> (something like
+>  nf_log/queue -> userspace daemon -> query -> update nft set w. uid)
+
+
