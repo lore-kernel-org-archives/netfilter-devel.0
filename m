@@ -1,167 +1,62 @@
-From: Richard Guy Briggs <rgb@redhat.com>
-Subject: Re: [PATCH V3] audit: normalize NETFILTER_PKT
-Date: Wed, 1 Mar 2017 17:34:47 -0500
-Message-ID: <20170301223447.GA18258@madcap2.tricolour.ca>
-References: <044a666e507a829f8c1d6dcc19ad78cd9f140ddd.1488142060.git.rgb@redhat.com>
-	<CAHC9VhTUSz-tyPyZ7PJAH08sfhuACeUTkEKEnnwM_axQ4UdorQ@mail.gmail.com>
-	<20170301162802.GV18258@madcap2.tricolour.ca>
-	<CAHC9VhTHfyPR-yj4kOAJBeU4D1=o4Uu-=S_STvQoj4OAr9Y-mQ@mail.gmail.com>
+From: Gao Feng <fgao@ikuai8.com>
+Subject: Re: [PATCH] netfilter: nf_conntrack_sip: fix wrong memory initialisation
+Date: Thu, 2 Mar 2017 06:46:42 +0800
+Message-ID: <CA+6hz4oCGP9enM7=4PS+rrChfDmomQeinsbBLOEvELP=q_H=wQ@mail.gmail.com>
+References: <20170301143327.2C90B6BD30@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Thomas Woerner <twoerner@redhat.com>, linux-audit@redhat.com,
-        Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
-        Thomas Graf <tgraf@infradead.org>
-To: Paul Moore <paul@paul-moore.com>
-Return-path: <linux-audit-bounces@redhat.com>
-Content-Disposition: inline
-In-Reply-To: <CAHC9VhTHfyPR-yj4kOAJBeU4D1=o4Uu-=S_STvQoj4OAr9Y-mQ@mail.gmail.com>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/linux-audit>
-List-Post: <mailto:linux-audit@redhat.com>
-List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=subscribe>
-Sender: linux-audit-bounces@redhat.com
-Errors-To: linux-audit-bounces@redhat.com
+Content-Type: text/plain; charset=UTF-8
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        stable <stable@vger.kernel.org>
+To: Christophe Leroy <christophe.leroy@c-s.fr>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20170301143327.2C90B6BD30@localhost.localdomain>
+Sender: stable-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2017-03-01 17:19, Paul Moore wrote:
-> On Wed, Mar 1, 2017 at 11:28 AM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> > On 2017-02-28 17:22, Paul Moore wrote:
-> >> On Sun, Feb 26, 2017 at 3:49 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> > Eliminate flipping in and out of message fields, dropping fields in the process.
-> >> >
-> >> > Sample raw message format IPv4 UDP:
-> >> > type=NETFILTER_PKT msg=audit(1487874761.386:228):  mark=0xae8a2732 saddr=127.0.0.1 daddr=127.0.0.1 proto=17^]
-> >> > Sample raw message format IPv6 ICMP6:
-> >> > type=NETFILTER_PKT msg=audit(1487874761.381:227):  mark=0x223894b7 saddr=::1 daddr=::1 proto=58^]
-> >> >
-> >> > Issue: https://github.com/linux-audit/audit-kernel/issues/11
-> >> > Test case: https://github.com/linux-audit/audit-testsuite/issues/43
-> >> >
-> >> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> >> > ---
-> >> >  net/netfilter/xt_AUDIT.c |  122 ++++++++++-----------------------------------
-> >> >  1 files changed, 27 insertions(+), 95 deletions(-)
-> >> >
-> >> > diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
-> >> > index 4973cbd..945fa29 100644
-> >> > --- a/net/netfilter/xt_AUDIT.c
-> >> > +++ b/net/netfilter/xt_AUDIT.c
-> >> > @@ -31,146 +31,78 @@ MODULE_ALIAS("ip6t_AUDIT");
-> >>
-> >> ...
-> >>
-> >> > -static void audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
-> >> > +static bool audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
-> >> >  {
-> >> >         struct iphdr _iph;
-> >> >         const struct iphdr *ih;
-> >> >
-> >> >         ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
-> >>
-> >> It seems like we should be using skb_network_offset(skb) instead of 0
-> >> above, yes?  Granted, this isn't new, but let's fix it.
-> >
-> > Yes, I agree.  How does this even work now?  Maybe the MAC header hasn't
-> > been added yet (or has already been processed and stripped off) so that
-> > skb->data is already pointing at the network header and hence has an
-> > offset of 0.  Can you be more explicit and elaborate to say if this what
-> > you were thinking?
-> 
-> Unfortunately, not really, I haven't thought through of all the
-> situations and it has been a long time since I've had to worry about
-> things like this.  I think we are in agreement that it needs to
-> change, so let's just make the change.
+On Wed, Mar 1, 2017 at 10:33 PM, Christophe Leroy
+<christophe.leroy@c-s.fr> wrote:
+> In commit 82de0be6862cd ("netfilter: Add helper array
+> register/unregister functions"),
+> struct nf_conntrack_helper sip[MAX_PORTS][4] was changed to
+> sip[MAX_PORTS * 4], so the memory init should have been changed to
+> memset(&sip[4 * i], 0, 4 * sizeof(sip[i]));
 
-Given Pablo's assurances, this could go either way, fix audit_ip4 to use
-skb_network_offset() or fix audit_ip6 to use zero.  I don't have a
-strong opinion, but using zero would be more efficient while using
-skb_network_offset() would remove the doubt.  Either way, the
-consistency will avoid raising doubt in the future as you have
-(rightfully) done.
+Yes, the memset initialization should be changed too.
 
-> > This should be a seperate bug fix patch rather than fixing it in the
-> > noise of this substantial re-arrangement.
-> 
-> That's fine, but please send it as one patchset.  Also, to get ahead
-> of the next likely question, no I don't think the skb_network_offset()
-> fix is -stable worthy at the moment.
+Thanks
+Feng
 
-It didn't look like a concern given Pablo's assurance.
-
-> >> > -       if (!ih) {
-> >> > -               audit_log_format(ab, " truncated=1");
-> >> > -               return;
-> >> > -       }
-> >> > +       if (!ih)
-> >> > +               return false;
-> >> >
-> >> > -       audit_log_format(ab, " saddr=%pI4 daddr=%pI4 ipid=%hu proto=%hhu",
-> >> > -               &ih->saddr, &ih->daddr, ntohs(ih->id), ih->protocol);
-> >> > +       audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu",
-> >> > +                        &ih->saddr, &ih->daddr, ih->protocol);
-> >> >
-> >> > -       if (ntohs(ih->frag_off) & IP_OFFSET) {
-> >> > -               audit_log_format(ab, " frag=1");
-> >> > -               return;
-> >> > -       }
-> >> > -
-> >> > -       audit_proto(ab, skb, ih->protocol, ih->ihl * 4);
-> >> > +       return true;
-> >> >  }
-> >>
-> >> ...
-> >>
-> >> >  static unsigned int
-> >> >  audit_tg(struct sk_buff *skb, const struct xt_action_param *par)
-> >> >  {
-> >> > -       const struct xt_audit_info *info = par->targinfo;
-> >> >         struct audit_buffer *ab;
-> >> > +       int fam = -1;
-> >> >
-> >> >         if (audit_enabled == 0)
-> >> >                 goto errout;
-> >> > -
-> >> >         ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
-> >> >         if (ab == NULL)
-> >> >                 goto errout;
-> >> >
-> >> > -       audit_log_format(ab, "action=%hhu hook=%u len=%u inif=%s outif=%s",
-> >> > -                        info->type, par->hooknum, skb->len,
-> >> > -                        par->in ? par->in->name : "?",
-> >> > -                        par->out ? par->out->name : "?");
-> >> > -
-> >> > -       if (skb->mark)
-> >> > -               audit_log_format(ab, " mark=%#x", skb->mark);
-> >> > -
-> >> > -       if (skb->dev && skb->dev->type == ARPHRD_ETHER) {
-> >> > -               audit_log_format(ab, " smac=%pM dmac=%pM macproto=0x%04x",
-> >> > -                                eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest,
-> >> > -                                ntohs(eth_hdr(skb)->h_proto));
-> >> > +       audit_log_format(ab, "mark=%#x", skb->mark ?: -1);
-> >>
-> >> How do Steve's userspace tools like the unset/-1 value represented
-> >> when it is a hex value: -1 or 0xffffffff?
-> >
-> > My understanding is they are set up to cope with this.
-> 
-> How does userspace distinguish between an unset nfmark and a nfmark of
-> 0xffffffff?
-
-It never had to deal specifically with nfmark previously because it
-wasn't included if it was blank.  Generally other values that are -1 are
-interpreted by the audit userspace tools as unset (session id, auid,
-etc...)
-
-> paul moore
-
-- RGB
-
---
-Richard Guy Briggs <rgb@redhat.com>
-Kernel Security Engineering, Base Operating Systems, Red Hat
-Remote, Ottawa, Canada
-Voice: +1.647.777.2635, Internal: (81) 32635
+>
+> But as the sip[] table is allocated in the BSS, it is already set to 0
+>
+> Fixes: 82de0be6862cd ("netfilter: Add helper array
+> register/unregister functions")
+> Cc: stable@vger.kernel.org
+>
+> Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
+> ---
+>  net/netfilter/nf_conntrack_sip.c | 2 --
+>  1 file changed, 2 deletions(-)
+>
+> diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+> index 24174c520239..0d17894798b5 100644
+> --- a/net/netfilter/nf_conntrack_sip.c
+> +++ b/net/netfilter/nf_conntrack_sip.c
+> @@ -1628,8 +1628,6 @@ static int __init nf_conntrack_sip_init(void)
+>                 ports[ports_c++] = SIP_PORT;
+>
+>         for (i = 0; i < ports_c; i++) {
+> -               memset(&sip[i], 0, sizeof(sip[i]));
+> -
+>                 nf_ct_helper_init(&sip[4 * i], AF_INET, IPPROTO_UDP, "sip",
+>                                   SIP_PORT, ports[i], i, sip_exp_policy,
+>                                   SIP_EXPECT_MAX,
+> --
+> 2.12.0
+>
