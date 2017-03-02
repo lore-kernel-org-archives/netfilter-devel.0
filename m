@@ -1,366 +1,240 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf,v2] netfilter: nf_tables: don't call nfnetlink_set_err() if nfnetlink_send() fails
-Date: Thu,  2 Mar 2017 15:49:49 +0100
-Message-ID: <1488466189-22844-1-git-send-email-pablo@netfilter.org>
-Cc: alexander@alemayhu.com
+From: Laura Garcia Liebana <nevola@gmail.com>
+Subject: [PATCH nf-next v3 2/2] netfilter: nft_hash: support of symmetric hash
+Date: Thu, 2 Mar 2017 17:00:14 +0100
+Message-ID: <20170302160014.akuuficacpcppfdf@nevthink>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39912 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754171AbdCBOvN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Mar 2017 09:51:13 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A233D1BCFD4
-        for <netfilter-devel@vger.kernel.org>; Thu,  2 Mar 2017 15:49:59 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 90423DA793
-        for <netfilter-devel@vger.kernel.org>; Thu,  2 Mar 2017 15:49:59 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DE4FFDA7F7
-        for <netfilter-devel@vger.kernel.org>; Thu,  2 Mar 2017 15:49:56 +0100 (CET)
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35703 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754242AbdCBQAY (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 2 Mar 2017 11:00:24 -0500
+Received: by mail-wm0-f66.google.com with SMTP id u63so13208305wmu.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 02 Mar 2017 08:00:18 -0800 (PST)
+Received: from nevthink ([91.126.73.162])
+        by smtp.gmail.com with ESMTPSA id m29sm11402132wrm.38.2017.03.02.08.00.16
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 02 Mar 2017 08:00:16 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The underlying nlmsg_multicast() already sets sk->sk_err for us to
-notify socket overruns, so we should not do anything with this return
-value. So we just call nfnetlink_set_err() if:
+This patch provides symmetric hash support according to source
+ip address and port, and destination ip address and port.
 
-1) We fail to allocate the netlink message.
+For this purpose, the __skb_get_hash_symmetric() is used to
+identify the flow as it uses FLOW_DISSECTOR_F_STOP_AT_FLOW_LABEL
+flag by default.
 
-or
+The new attribute NFTA_HASH_TYPE has been included to support
+different types of hashing functions. Currently supported
+NFT_HASH_JENKINS through jhash and NFT_HASH_SYM through symhash.
 
-2) We don't have enough space in the netlink message to place the attribute,
-   which means that we likely need to allocate a larger message.
+The main difference between both types are:
+ - jhash requires an expression with sreg, symhash doesn't.
+ - symhash supports modulus and offset, but not seed.
 
-Before this patch, the internal ESRCH netlink error code which is very
-misleading. Netlink semantics mandate that listeners hit ENOBUFS if the
-socket buffer overruns.
+Examples:
 
-Reported-by: Alexander Alemayhu <alexander@alemayhu.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+ nft add rule ip nat prerouting ct mark set jhash ip saddr mod 2
+ nft add rule ip nat prerouting ct mark set symhash mod 2
+
+By default, jenkins hash will be used if no hash type is
+provided for compatibility reasons.
+
+Signed-off-by: Laura Garcia Liebana <laura.garcia@zevenet.com>
 ---
-v2: Previous patch was still calling nfnetlink_set_err() when nfnetlink_send()
-    fails, this is not correct. Fix it in this new round.
+v2:
+        - Avoid warning due to 'const' from symhash eval skb
+v3:
+	- Set jhash as default ops, according to Liping and Pablo
+suggestions.
 
- include/net/netfilter/nf_tables.h |   6 +-
- net/netfilter/nf_tables_api.c     | 133 ++++++++++++++++----------------------
- 2 files changed, 58 insertions(+), 81 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h | 13 +++++
+ net/netfilter/nft_hash.c                 | 99 +++++++++++++++++++++++++++++++-
+ 2 files changed, 111 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index ac84686aaafb..2aa8a9d80fbe 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -988,9 +988,9 @@ struct nft_object *nf_tables_obj_lookup(const struct nft_table *table,
- 					const struct nlattr *nla, u32 objtype,
- 					u8 genmask);
- 
--int nft_obj_notify(struct net *net, struct nft_table *table,
--		   struct nft_object *obj, u32 portid, u32 seq,
--		   int event, int family, int report, gfp_t gfp);
-+void nft_obj_notify(struct net *net, struct nft_table *table,
-+		    struct nft_object *obj, u32 portid, u32 seq,
-+		    int event, int family, int report, gfp_t gfp);
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 7b730cab99bd..a444a63a9eee 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -793,6 +793,17 @@ enum nft_rt_keys {
+ };
  
  /**
-  *	struct nft_object_type - stateful object type
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index ff7304ae58ac..5e0ccfd5bb37 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -461,16 +461,15 @@ static int nf_tables_fill_table_info(struct sk_buff *skb, struct net *net,
- 	return -1;
++ * enum nft_hash_types - nf_tables hash expression types
++ *
++ * @NFT_HASH_JENKINS: Jenkins Hash
++ * @NFT_HASH_SYM: Symmetric Hash
++ */
++enum nft_hash_types {
++	NFT_HASH_JENKINS,
++	NFT_HASH_SYM,
++};
++
++/**
+  * enum nft_hash_attributes - nf_tables hash expression netlink attributes
+  *
+  * @NFTA_HASH_SREG: source register (NLA_U32)
+@@ -801,6 +812,7 @@ enum nft_rt_keys {
+  * @NFTA_HASH_MODULUS: modulus value (NLA_U32)
+  * @NFTA_HASH_SEED: seed value (NLA_U32)
+  * @NFTA_HASH_OFFSET: add this offset value to hash result (NLA_U32)
++ * @NFTA_HASH_TYPE: hash operation (NLA_U32: nft_hash_types)
+  */
+ enum nft_hash_attributes {
+ 	NFTA_HASH_UNSPEC,
+@@ -810,6 +822,7 @@ enum nft_hash_attributes {
+ 	NFTA_HASH_MODULUS,
+ 	NFTA_HASH_SEED,
+ 	NFTA_HASH_OFFSET,
++	NFTA_HASH_TYPE,
+ 	__NFTA_HASH_MAX,
+ };
+ #define NFTA_HASH_MAX	(__NFTA_HASH_MAX - 1)
+diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
+index ccb834ef049b..a6a4633725bb 100644
+--- a/net/netfilter/nft_hash.c
++++ b/net/netfilter/nft_hash.c
+@@ -38,6 +38,25 @@ static void nft_jhash_eval(const struct nft_expr *expr,
+ 	regs->data[priv->dreg] = h + priv->offset;
  }
  
--static int nf_tables_table_notify(const struct nft_ctx *ctx, int event)
-+static void nf_tables_table_notify(const struct nft_ctx *ctx, int event)
++struct nft_symhash {
++	enum nft_registers      dreg:8;
++	u32			modulus;
++	u32			offset;
++};
++
++static void nft_symhash_eval(const struct nft_expr *expr,
++			     struct nft_regs *regs,
++			     const struct nft_pktinfo *pkt)
++{
++	struct nft_symhash *priv = nft_expr_priv(expr);
++	struct sk_buff *skb = pkt->skb;
++	u32 h;
++
++	h = reciprocal_scale(__skb_get_hash_symmetric(skb), priv->modulus);
++
++	regs->data[priv->dreg] = h + priv->offset;
++}
++
+ static const struct nla_policy nft_hash_policy[NFTA_HASH_MAX + 1] = {
+ 	[NFTA_HASH_SREG]	= { .type = NLA_U32 },
+ 	[NFTA_HASH_DREG]	= { .type = NLA_U32 },
+@@ -45,6 +64,7 @@ static const struct nla_policy nft_hash_policy[NFTA_HASH_MAX + 1] = {
+ 	[NFTA_HASH_MODULUS]	= { .type = NLA_U32 },
+ 	[NFTA_HASH_SEED]	= { .type = NLA_U32 },
+ 	[NFTA_HASH_OFFSET]	= { .type = NLA_U32 },
++	[NFTA_HASH_TYPE]	= { .type = NLA_U32 },
+ };
+ 
+ static int nft_jhash_init(const struct nft_ctx *ctx,
+@@ -92,6 +112,32 @@ static int nft_jhash_init(const struct nft_ctx *ctx,
+ 					   NFT_DATA_VALUE, sizeof(u32));
+ }
+ 
++static int nft_symhash_init(const struct nft_ctx *ctx,
++			    const struct nft_expr *expr,
++			    const struct nlattr * const tb[])
++{
++	struct nft_symhash *priv = nft_expr_priv(expr);
++
++	if (!tb[NFTA_HASH_DREG]    ||
++	    !tb[NFTA_HASH_MODULUS])
++		return -EINVAL;
++
++	if (tb[NFTA_HASH_OFFSET])
++		priv->offset = ntohl(nla_get_be32(tb[NFTA_HASH_OFFSET]));
++
++	priv->dreg = nft_parse_register(tb[NFTA_HASH_DREG]);
++
++	priv->modulus = ntohl(nla_get_be32(tb[NFTA_HASH_MODULUS]));
++	if (priv->modulus <= 1)
++		return -ERANGE;
++
++	if (priv->offset + priv->modulus - 1 < priv->offset)
++		return -EOVERFLOW;
++
++	return nft_validate_register_store(ctx, priv->dreg, NULL,
++					   NFT_DATA_VALUE, sizeof(u32));
++}
++
+ static int nft_jhash_dump(struct sk_buff *skb,
+ 			  const struct nft_expr *expr)
  {
- 	struct sk_buff *skb;
- 	int err;
+@@ -110,6 +156,28 @@ static int nft_jhash_dump(struct sk_buff *skb,
+ 	if (priv->offset != 0)
+ 		if (nla_put_be32(skb, NFTA_HASH_OFFSET, htonl(priv->offset)))
+ 			goto nla_put_failure;
++	if (nla_put_be32(skb, NFTA_HASH_TYPE, htonl(NFT_HASH_JENKINS)))
++		goto nla_put_failure;
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++static int nft_symhash_dump(struct sk_buff *skb,
++			    const struct nft_expr *expr)
++{
++	const struct nft_symhash *priv = nft_expr_priv(expr);
++
++	if (nft_dump_register(skb, NFTA_HASH_DREG, priv->dreg))
++		goto nla_put_failure;
++	if (nla_put_be32(skb, NFTA_HASH_MODULUS, htonl(priv->modulus)))
++		goto nla_put_failure;
++	if (priv->offset != 0)
++		if (nla_put_be32(skb, NFTA_HASH_OFFSET, htonl(priv->offset)))
++			goto nla_put_failure;
++	if (nla_put_be32(skb, NFTA_HASH_TYPE, htonl(NFT_HASH_SYM)))
++		goto nla_put_failure;
+ 	return 0;
  
- 	if (!ctx->report &&
- 	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
--		return 0;
-+		return;
+ nla_put_failure:
+@@ -125,9 +193,38 @@ static const struct nft_expr_ops nft_jhash_ops = {
+ 	.dump		= nft_jhash_dump,
+ };
  
--	err = -ENOBUFS;
- 	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
- 	if (skb == NULL)
- 		goto err;
-@@ -482,14 +481,11 @@ static int nf_tables_table_notify(const struct nft_ctx *ctx, int event)
- 		goto err;
- 	}
- 
--	err = nfnetlink_send(skb, ctx->net, ctx->portid, NFNLGRP_NFTABLES,
--			     ctx->report, GFP_KERNEL);
-+	nfnetlink_send(skb, ctx->net, ctx->portid, NFNLGRP_NFTABLES,
-+		       ctx->report, GFP_KERNEL);
-+	return;
- err:
--	if (err < 0) {
--		nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES,
--				  err);
--	}
--	return err;
-+	nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES, -ENOBUFS);
- }
- 
- static int nf_tables_dump_tables(struct sk_buff *skb,
-@@ -1050,16 +1046,15 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
- 	return -1;
- }
- 
--static int nf_tables_chain_notify(const struct nft_ctx *ctx, int event)
-+static void nf_tables_chain_notify(const struct nft_ctx *ctx, int event)
- {
- 	struct sk_buff *skb;
- 	int err;
- 
- 	if (!ctx->report &&
- 	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
--		return 0;
-+		return;
- 
--	err = -ENOBUFS;
- 	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
- 	if (skb == NULL)
- 		goto err;
-@@ -1072,14 +1067,11 @@ static int nf_tables_chain_notify(const struct nft_ctx *ctx, int event)
- 		goto err;
- 	}
- 
--	err = nfnetlink_send(skb, ctx->net, ctx->portid, NFNLGRP_NFTABLES,
--			     ctx->report, GFP_KERNEL);
-+	nfnetlink_send(skb, ctx->net, ctx->portid, NFNLGRP_NFTABLES,
-+		       ctx->report, GFP_KERNEL);
-+	return;
- err:
--	if (err < 0) {
--		nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES,
--				  err);
--	}
--	return err;
-+	nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES, -ENOBUFS);
- }
- 
- static int nf_tables_dump_chains(struct sk_buff *skb,
-@@ -1934,18 +1926,16 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
- 	return -1;
- }
- 
--static int nf_tables_rule_notify(const struct nft_ctx *ctx,
--				 const struct nft_rule *rule,
--				 int event)
-+static void nf_tables_rule_notify(const struct nft_ctx *ctx,
-+				  const struct nft_rule *rule, int event)
- {
- 	struct sk_buff *skb;
- 	int err;
- 
- 	if (!ctx->report &&
- 	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
--		return 0;
-+		return;
- 
--	err = -ENOBUFS;
- 	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
- 	if (skb == NULL)
- 		goto err;
-@@ -1958,14 +1948,11 @@ static int nf_tables_rule_notify(const struct nft_ctx *ctx,
- 		goto err;
- 	}
- 
--	err = nfnetlink_send(skb, ctx->net, ctx->portid, NFNLGRP_NFTABLES,
--			     ctx->report, GFP_KERNEL);
-+	nfnetlink_send(skb, ctx->net, ctx->portid, NFNLGRP_NFTABLES,
-+		       ctx->report, GFP_KERNEL);
-+	return;
- err:
--	if (err < 0) {
--		nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES,
--				  err);
--	}
--	return err;
-+	nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES, -ENOBUFS);
- }
- 
- struct nft_rule_dump_ctx {
-@@ -2696,9 +2683,9 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
- 	return -1;
- }
- 
--static int nf_tables_set_notify(const struct nft_ctx *ctx,
--				const struct nft_set *set,
--				int event, gfp_t gfp_flags)
-+static void nf_tables_set_notify(const struct nft_ctx *ctx,
-+				 const struct nft_set *set, int event,
-+			         gfp_t gfp_flags)
- {
- 	struct sk_buff *skb;
- 	u32 portid = ctx->portid;
-@@ -2706,9 +2693,8 @@ static int nf_tables_set_notify(const struct nft_ctx *ctx,
- 
- 	if (!ctx->report &&
- 	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
--		return 0;
-+		return;
- 
--	err = -ENOBUFS;
- 	skb = nlmsg_new(NLMSG_GOODSIZE, gfp_flags);
- 	if (skb == NULL)
- 		goto err;
-@@ -2719,12 +2705,11 @@ static int nf_tables_set_notify(const struct nft_ctx *ctx,
- 		goto err;
- 	}
- 
--	err = nfnetlink_send(skb, ctx->net, portid, NFNLGRP_NFTABLES,
--			     ctx->report, gfp_flags);
-+	nfnetlink_send(skb, ctx->net, portid, NFNLGRP_NFTABLES, ctx->report,
-+		       gfp_flags);
-+	return;
- err:
--	if (err < 0)
--		nfnetlink_set_err(ctx->net, portid, NFNLGRP_NFTABLES, err);
--	return err;
-+	nfnetlink_set_err(ctx->net, portid, NFNLGRP_NFTABLES, -ENOBUFS);
- }
- 
- static int nf_tables_dump_sets(struct sk_buff *skb, struct netlink_callback *cb)
-@@ -3504,10 +3489,10 @@ static int nf_tables_fill_setelem_info(struct sk_buff *skb,
- 	return -1;
- }
- 
--static int nf_tables_setelem_notify(const struct nft_ctx *ctx,
--				    const struct nft_set *set,
--				    const struct nft_set_elem *elem,
--				    int event, u16 flags)
-+static void nf_tables_setelem_notify(const struct nft_ctx *ctx,
-+				     const struct nft_set *set,
-+				     const struct nft_set_elem *elem,
-+				     int event, u16 flags)
- {
- 	struct net *net = ctx->net;
- 	u32 portid = ctx->portid;
-@@ -3515,9 +3500,8 @@ static int nf_tables_setelem_notify(const struct nft_ctx *ctx,
- 	int err;
- 
- 	if (!ctx->report && !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
--		return 0;
-+		return;
- 
--	err = -ENOBUFS;
- 	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
- 	if (skb == NULL)
- 		goto err;
-@@ -3529,12 +3513,11 @@ static int nf_tables_setelem_notify(const struct nft_ctx *ctx,
- 		goto err;
- 	}
- 
--	err = nfnetlink_send(skb, net, portid, NFNLGRP_NFTABLES, ctx->report,
--			     GFP_KERNEL);
-+	nfnetlink_send(skb, net, portid, NFNLGRP_NFTABLES, ctx->report,
-+		       GFP_KERNEL);
-+	return;
- err:
--	if (err < 0)
--		nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, err);
--	return err;
-+	nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, -ENOBUFS);
- }
- 
- static struct nft_trans *nft_trans_elem_alloc(struct nft_ctx *ctx,
-@@ -4476,18 +4459,17 @@ static int nf_tables_delobj(struct net *net, struct sock *nlsk,
- 	return nft_delobj(&ctx, obj);
- }
- 
--int nft_obj_notify(struct net *net, struct nft_table *table,
--		   struct nft_object *obj, u32 portid, u32 seq, int event,
--		   int family, int report, gfp_t gfp)
-+void nft_obj_notify(struct net *net, struct nft_table *table,
-+		    struct nft_object *obj, u32 portid, u32 seq, int event,
-+		    int family, int report, gfp_t gfp)
- {
- 	struct sk_buff *skb;
- 	int err;
- 
- 	if (!report &&
- 	    !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
--		return 0;
-+		return;
- 
--	err = -ENOBUFS;
- 	skb = nlmsg_new(NLMSG_GOODSIZE, gfp);
- 	if (skb == NULL)
- 		goto err;
-@@ -4499,21 +4481,18 @@ int nft_obj_notify(struct net *net, struct nft_table *table,
- 		goto err;
- 	}
- 
--	err = nfnetlink_send(skb, net, portid, NFNLGRP_NFTABLES, report, gfp);
-+	nfnetlink_send(skb, net, portid, NFNLGRP_NFTABLES, report, gfp);
-+	return;
- err:
--	if (err < 0) {
--		nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, err);
--	}
--	return err;
-+	nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, -ENOBUFS);
- }
- EXPORT_SYMBOL_GPL(nft_obj_notify);
- 
--static int nf_tables_obj_notify(const struct nft_ctx *ctx,
--				struct nft_object *obj, int event)
-+static void nf_tables_obj_notify(const struct nft_ctx *ctx,
-+				 struct nft_object *obj, int event)
- {
--	return nft_obj_notify(ctx->net, ctx->table, obj, ctx->portid,
--			      ctx->seq, event, ctx->afi->family, ctx->report,
--			      GFP_KERNEL);
-+	nft_obj_notify(ctx->net, ctx->table, obj, ctx->portid, ctx->seq, event,
-+		       ctx->afi->family, ctx->report, GFP_KERNEL);
- }
- 
- static int nf_tables_fill_gen_info(struct sk_buff *skb, struct net *net,
-@@ -4543,7 +4522,8 @@ static int nf_tables_fill_gen_info(struct sk_buff *skb, struct net *net,
- 	return -EMSGSIZE;
- }
- 
--static int nf_tables_gen_notify(struct net *net, struct sk_buff *skb, int event)
-+static void nf_tables_gen_notify(struct net *net, struct sk_buff *skb,
-+				 int event)
- {
- 	struct nlmsghdr *nlh = nlmsg_hdr(skb);
- 	struct sk_buff *skb2;
-@@ -4551,9 +4531,8 @@ static int nf_tables_gen_notify(struct net *net, struct sk_buff *skb, int event)
- 
- 	if (nlmsg_report(nlh) &&
- 	    !nfnetlink_has_listeners(net, NFNLGRP_NFTABLES))
--		return 0;
-+		return;
- 
--	err = -ENOBUFS;
- 	skb2 = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
- 	if (skb2 == NULL)
- 		goto err;
-@@ -4565,14 +4544,12 @@ static int nf_tables_gen_notify(struct net *net, struct sk_buff *skb, int event)
- 		goto err;
- 	}
- 
--	err = nfnetlink_send(skb2, net, NETLINK_CB(skb).portid,
--			     NFNLGRP_NFTABLES, nlmsg_report(nlh), GFP_KERNEL);
-+	nfnetlink_send(skb2, net, NETLINK_CB(skb).portid, NFNLGRP_NFTABLES,
-+		       nlmsg_report(nlh), GFP_KERNEL);
-+	return;
- err:
--	if (err < 0) {
--		nfnetlink_set_err(net, NETLINK_CB(skb).portid, NFNLGRP_NFTABLES,
--				  err);
--	}
--	return err;
-+	nfnetlink_set_err(net, NETLINK_CB(skb).portid, NFNLGRP_NFTABLES,
-+			  -ENOBUFS);
- }
- 
- static int nf_tables_getgen(struct net *net, struct sock *nlsk,
++static const struct nft_expr_ops nft_symhash_ops = {
++	.type		= &nft_hash_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_symhash)),
++	.eval		= nft_symhash_eval,
++	.init		= nft_symhash_init,
++	.dump		= nft_symhash_dump,
++};
++
++static const struct nft_expr_ops *
++nft_hash_select_ops(const struct nft_ctx *ctx,
++		    const struct nlattr * const tb[])
++{
++	u32 type;
++
++	if (!tb[NFTA_HASH_TYPE])
++		return &nft_jhash_ops;
++
++	type = ntohl(nla_get_be32(tb[NFTA_HASH_TYPE]));
++	switch (type) {
++	case NFT_HASH_SYM:
++		return &nft_symhash_ops;
++	case NFT_HASH_JENKINS:
++		return &nft_jhash_ops;
++	default:
++		break;
++	}
++	return ERR_PTR(-EOPNOTSUPP);
++}
++
+ static struct nft_expr_type nft_hash_type __read_mostly = {
+ 	.name		= "hash",
+-	.ops		= &nft_jhash_ops,
++	.select_ops	= &nft_hash_select_ops,
+ 	.policy		= nft_hash_policy,
+ 	.maxattr	= NFTA_HASH_MAX,
+ 	.owner		= THIS_MODULE,
 -- 
-2.1.4
+2.11.0
 
