@@ -1,56 +1,79 @@
-From: Baruch Siach <baruch@tkos.co.il>
-Subject: [PATCH iptables] utils: nfsynproxy: fix build with musl libc
-Date: Thu,  2 Mar 2017 09:35:07 +0200
-Message-ID: <06e0312d0bfd1f0b9e7c23ab654f18524d49e86b.1488440107.git.baruch@tkos.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Baruch Siach <baruch@tkos.co.il>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: fgao@ikuai8.com
+Subject: [PATCH nf 1/1] netfilter: h323,sip: Fix possible dead loop in nat_rtp_rtcp and nf_nat_sdp_media
+Date: Thu,  2 Mar 2017 15:57:00 +0800
+Message-ID: <1488441420-25537-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, davem@davemloft.net,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:49951 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754015AbdCBHhL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Mar 2017 02:37:11 -0500
+Received: from smtpbg328.qq.com ([14.17.43.160]:40996 "EHLO smtpbg328.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750733AbdCBIHy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 2 Mar 2017 03:07:54 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The musl libc exposes some struct tcphdr field only when _GNU_SOURCE is
-defined. Fix the following build failure:
+From: Gao Feng <fgao@ikuai8.com>
 
-nfsynproxy.c: In function ‘parse_packet’:
-nfsynproxy.c:34:9: error: ‘const struct tcphdr’ has no member named ‘syn’
-  if (!th->syn || !th->ack)
-         ^
-nfsynproxy.c:34:21: error: ‘const struct tcphdr’ has no member named ‘ack’
-  if (!th->syn || !th->ack)
-                     ^
-nfsynproxy.c:42:8: error: ‘const struct tcphdr’ has no member named ‘res2’
-  if (th->res2 == 0x1)
-        ^
-nfsynproxy.c:45:13: error: ‘const struct tcphdr’ has no member named ‘doff’
-  length = th->doff * 4 - sizeof(*th);
-             ^
+When h323 and sip try to insert expect nodes, they would increase
+the port by 2 for loop, and the loop condition is that "port != 0".
+So when the start port is odd number, port never increases to zero.
 
-Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+Now make port as u32 instead of u_int16_t, and the loop condition is
+"port <= USHRT_MAX".
+
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
 ---
- utils/nfsynproxy.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/ipv4/netfilter/nf_nat_h323.c | 4 ++--
+ net/netfilter/nf_nat_sip.c       | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/utils/nfsynproxy.c b/utils/nfsynproxy.c
-index baedc92c5d9f..bf5c416340f1 100644
---- a/utils/nfsynproxy.c
-+++ b/utils/nfsynproxy.c
-@@ -6,6 +6,7 @@
-  * published by the Free Software Foundation.
-  */
+diff --git a/net/ipv4/netfilter/nf_nat_h323.c b/net/ipv4/netfilter/nf_nat_h323.c
+index 574f7eb..010fc3e 100644
+--- a/net/ipv4/netfilter/nf_nat_h323.c
++++ b/net/ipv4/netfilter/nf_nat_h323.c
+@@ -183,7 +183,7 @@ static int nat_rtp_rtcp(struct sk_buff *skb, struct nf_conn *ct,
+ 	struct nf_ct_h323_master *info = nfct_help_data(ct);
+ 	int dir = CTINFO2DIR(ctinfo);
+ 	int i;
+-	u_int16_t nated_port;
++	u32 nated_port;
  
-+#define _GNU_SOURCE
- #include <stdlib.h>
- #include <stdbool.h>
- #include <unistd.h>
+ 	/* Set expectations for NAT */
+ 	rtp_exp->saved_proto.udp.port = rtp_exp->tuple.dst.u.udp.port;
+@@ -218,7 +218,7 @@ static int nat_rtp_rtcp(struct sk_buff *skb, struct nf_conn *ct,
+ 
+ 	/* Try to get a pair of ports. */
+ 	for (nated_port = ntohs(rtp_exp->tuple.dst.u.udp.port);
+-	     nated_port != 0; nated_port += 2) {
++	     nated_port <= USHRT_MAX; nated_port += 2) {
+ 		int ret;
+ 
+ 		rtp_exp->tuple.dst.u.udp.port = htons(nated_port);
+diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
+index 791fac4..0b24eb3 100644
+--- a/net/netfilter/nf_nat_sip.c
++++ b/net/netfilter/nf_nat_sip.c
+@@ -548,7 +548,7 @@ static unsigned int nf_nat_sdp_media(struct sk_buff *skb, unsigned int protoff,
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
+-	u_int16_t port;
++	u32 port;
+ 
+ 	/* Connection will come from reply */
+ 	if (nf_inet_addr_cmp(&ct->tuplehash[dir].tuple.src.u3,
+@@ -571,7 +571,7 @@ static unsigned int nf_nat_sdp_media(struct sk_buff *skb, unsigned int protoff,
+ 
+ 	/* Try to get same pair of ports: if not, try to change them. */
+ 	for (port = ntohs(rtp_exp->tuple.dst.u.udp.port);
+-	     port != 0; port += 2) {
++	     port <= USHRT_MAX; port += 2) {
+ 		int ret;
+ 
+ 		rtp_exp->tuple.dst.u.udp.port = htons(port);
 -- 
-2.11.0
+1.9.1
+
 
