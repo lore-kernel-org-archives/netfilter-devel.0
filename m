@@ -1,133 +1,64 @@
-From: Andreas Schultz <aschultz@tpip.net>
-Subject: Re: nftables queue target aborts rules processing unconditionally
-Date: Fri, 3 Mar 2017 16:57:35 +0100 (CET)
-Message-ID: <323159116.287095.1488556655720.JavaMail.zimbra@tpip.net>
-References: <1942735443.286636.1488553299817.JavaMail.zimbra@tpip.net> <20170303154124.GH29213@breakpoint.cc>
+From: Richard Guy Briggs <rgb@redhat.com>
+Subject: Re: [PATCH V3] audit: normalize NETFILTER_PKT
+Date: Fri, 3 Mar 2017 12:03:15 -0500
+Message-ID: <20170303170315.GI18258@madcap2.tricolour.ca>
+References: <20170301162802.GV18258@madcap2.tricolour.ca>
+	<CAHC9VhTHfyPR-yj4kOAJBeU4D1=o4Uu-=S_STvQoj4OAr9Y-mQ@mail.gmail.com>
+	<20170301223447.GA18258@madcap2.tricolour.ca>
+	<CAHC9VhRGSzea_c9Gg-Z3gr8cu2UQA9DhNtba0tf9AShoNakxzw@mail.gmail.com>
+	<20170303020007.GF18258@madcap2.tricolour.ca>
+	<CAHC9VhRoy1TR46ZLfzLB1wzOq=VZfX-RnG=7ogVP1Xphk=qtBg@mail.gmail.com>
+	<20170303115416.GH18258@madcap2.tricolour.ca>
+	<20170303124526.GC29213@breakpoint.cc>
+	<CAHC9VhQNEw4r00Ht-DsQc_t5TYpz395VrT=qGOK5UvxjA7rmRg@mail.gmail.com>
+	<20170303132201.GF29213@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc: Thomas Woerner <twoerner@redhat.com>, linux-audit@redhat.com,
+        Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
+        Thomas Graf <tgraf@infradead.org>
 To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.tpip.net ([92.43.49.48]:48062 "EHLO mail.tpip.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751593AbdCCQgN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Mar 2017 11:36:13 -0500
-In-Reply-To: <20170303154124.GH29213@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <linux-audit-bounces@redhat.com>
+Content-Disposition: inline
+In-Reply-To: <20170303132201.GF29213@breakpoint.cc>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/linux-audit>
+List-Post: <mailto:linux-audit@redhat.com>
+List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=subscribe>
+Sender: linux-audit-bounces@redhat.com
+Errors-To: linux-audit-bounces@redhat.com
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-
------ On Mar 3, 2017, at 4:41 PM, Florian Westphal fw@strlen.de wrote:
-
-> Andreas Schultz <aschultz@tpip.net> wrote:
->> Hi,
->> 
->> The nft queueing seems to have broken the continuation of
->> rule processing when NF_ACCEPT is returned.
+On 2017-03-03 14:22, Florian Westphal wrote:
+> Paul Moore <paul@paul-moore.com> wrote:
+> > On Fri, Mar 3, 2017 at 7:45 AM, Florian Westphal <fw@strlen.de> wrote:
+> > > Richard Guy Briggs <rgb@redhat.com> wrote:
+> > >> > Perhaps I'm missing something here, but let me ask again, how does
+> > >> > userspace distinguish between an unset nfmark and a nfmark of
+> > >> > 0xffffffff?
+> > >>
+> > >> It can't.
+> > >
+> > > It can if you log it as 0, as I asked in patch 1 review.
+> > >
+> > > (You wouldn't log sk uid of 0 as -1 either, would you?)
+> > 
+> > I want to see the code able to handle the full range of nfmark values
+> > as well as the unset case; if that means we need to tweak userspace a
+> > bit, please work with Steve on that.
 > 
-> No, see below
-> 
->> If have the following rules:
->> 
->> table ip filter {
->> 	map client_to_any {
->> 		type ipv4_addr : verdict
->> 		elements = { 10.180.200.72 : goto CIn_1}
->> 	}
->> 
->> 	chain FORWARD {
->> 		type filter hook forward priority 0; policy accept;
->> 		iif { "eth0"} counter packets 1 bytes 84 goto client_to_any
->> 
->> 	chain client_to_any {
->> 		nftrace set 1 # handle 11
->> 		counter packets 1 bytes 84 ip saddr vmap @client_to_any # handle 12
->> 		counter packets 1 bytes 84 queue num 0 # handle 13
->> 		counter packets 0 bytes 0 # handle 14
->> 		counter packets 0 bytes 0 ip saddr vmap @client_to_any # handle 16
->> 		goto DENY # handle 17
->> 	}
->> 
->> }
->> The idea is that the first packet for an yet unknown client will
->> bypass rules #12, match rule 13 and land in queue 0. The userspace
->> process then generates the appropriate rules and return an NF_ACCEPT
->> on the queue.
->> 
->> This should continue the rule processing at rule #14 and finally
->> match on the update vmap in rule #16.
-> 
-> No, unfortunately thats not how NF_QUEUE operates.
-> 
-> On a QUEUE verdict the packet leaves the rule set context,
-> both in iptables and nftables.
-> 
->> The problem is that the rule processing is not continuing as
->> you can see on the counters.
->> 
->> http://www.netfilter.org/documentation/HOWTO/netfilter-hacking-HOWTO.txt
->> clearly states:
->> 
->> > 1. NF_ACCEPT: continue traversal as normal.
->> 
->> So, why is the processing aborted?
-> 
-> NF_ACCEPT makes packets move to the next *netfilter hook*,
-> but thats not the same as the next (nf|ip)tables rule.
-> 
-> e.g. in iptables if you NFQUEUE in mangle input packet re-appears
-> in filter input after an ACCEPT reinject.
+> There is no 'unset nfmark'.  Its just a 32bit integer.
 
-ok, somewhat unexpected (or rather undocumented), but I can live
-with that.
+I was going to say, we'd need an out of band indicator.
 
-I've now experimented with NF_REPEAT to achieve something similar.
-Can I assume that NF_REPEAT should restart the current "netfilter hook*?
-e.g. when we are somewhere in FILTER FORWARD, it will restart with the
-first rule of that hook?
+- RGB
 
-My experiments show that this works with nft when I don't modify the
-ruleset. However, when I modify the ruleset before returning NF_REPEAT,
-the packet will skip the current hook completely.
-
-I don't modify the chain the packet is currently traversing. I only add
-new chains and modify the vmap.
-
->> It also appears as if the nft trace infrastructure does not now how to
->> deal with queues. The above rules lead to this annotated trace output:
->> 
->> > trace id 10d53daf ip filter client_to_any packet: iif "upstream" oif "ens256"
->> > ether saddr 00:50:56:96:9b:1c ether daddr 00:0c:29:46:1f:53 ether type ip6
->> 
->> That's rule #11... Where is the hit on the queue rule and the return??
-> 
-> No idea, I will have a closer look next week.
-> Glancing at the code it should work just fine.
-
-There might a event buffering issue. I have now sometimes seen the queueing
-trace. At other times the event is lost. So maybe the netlink buffer is not
-large enough?
-
-Thanks
-Andreas
-
-
->> The missing trace are only cosmetic (albeit confusing during debugging), but
->> that the queue aborts the rule processing seems to be a bug.
-> 
-> Unfortunately no, this is how it has always been.
-> 
-> I think we could make it work better in nftables but it would require
-> a lot more work and it would leak nf_tables details into the generic
-> core.
-> 
-> We would have to
-> 1. store a pointer to the rule head that caused the queueing in
-> nf_queue_entry struct
-> 2. also store the current generation counter of the table
-> 3. on reinject we'd have to check that rule head pointer is nonzero
-> (i.e. queued from nftables), then call into an nftables specific
-> reinject function that would check if the generation counter is
-> identical (to detect when rules might have been changed in meantime).
+--
+Richard Guy Briggs <rgb@redhat.com>
+Kernel Security Engineering, Base Operating Systems, Red Hat
+Remote, Ottawa, Canada
+Voice: +1.647.777.2635, Internal: (81) 32635
