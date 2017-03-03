@@ -1,61 +1,129 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf 1/1] netfilter: nat_masquerade: Check oom when invoke
- nfct_nat
-Date: Fri, 3 Mar 2017 10:30:41 +0100
-Message-ID: <20170303093041.GA1461@salvia>
-References: <1488506332-21265-1-git-send-email-fgao@ikuai8.com>
+From: Richard Guy Briggs <rgb@redhat.com>
+Subject: Re: [PATCH V3] audit: normalize NETFILTER_PKT
+Date: Fri, 3 Mar 2017 06:54:16 -0500
+Message-ID: <20170303115416.GH18258@madcap2.tricolour.ca>
+References: <044a666e507a829f8c1d6dcc19ad78cd9f140ddd.1488142060.git.rgb@redhat.com>
+	<CAHC9VhTUSz-tyPyZ7PJAH08sfhuACeUTkEKEnnwM_axQ4UdorQ@mail.gmail.com>
+	<20170301162802.GV18258@madcap2.tricolour.ca>
+	<CAHC9VhTHfyPR-yj4kOAJBeU4D1=o4Uu-=S_STvQoj4OAr9Y-mQ@mail.gmail.com>
+	<20170301223447.GA18258@madcap2.tricolour.ca>
+	<CAHC9VhRGSzea_c9Gg-Z3gr8cu2UQA9DhNtba0tf9AShoNakxzw@mail.gmail.com>
+	<20170303020007.GF18258@madcap2.tricolour.ca>
+	<CAHC9VhRoy1TR46ZLfzLB1wzOq=VZfX-RnG=7ogVP1Xphk=qtBg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, gfree.wind@gmail.com
-To: fgao@ikuai8.com
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54838 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751449AbdCCKYp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Mar 2017 05:24:45 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E86C22D15F0
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Mar 2017 10:30:52 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D9872DA816
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Mar 2017 10:30:52 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 27367DA81F
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Mar 2017 10:30:46 +0100 (CET)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: Thomas Woerner <twoerner@redhat.com>, linux-audit@redhat.com,
+        Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
+        Thomas Graf <tgraf@infradead.org>
+To: Paul Moore <paul@paul-moore.com>
+Return-path: <linux-audit-bounces@redhat.com>
 Content-Disposition: inline
-In-Reply-To: <1488506332-21265-1-git-send-email-fgao@ikuai8.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <CAHC9VhRoy1TR46ZLfzLB1wzOq=VZfX-RnG=7ogVP1Xphk=qtBg@mail.gmail.com>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/linux-audit>
+List-Post: <mailto:linux-audit@redhat.com>
+List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=subscribe>
+Sender: linux-audit-bounces@redhat.com
+Errors-To: linux-audit-bounces@redhat.com
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Mar 03, 2017 at 09:58:52AM +0800, fgao@ikuai8.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
+On 2017-03-02 21:54, Paul Moore wrote:
+> On Thu, Mar 2, 2017 at 9:00 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> > On 2017-03-02 19:16, Paul Moore wrote:
+> >> On Wed, Mar 1, 2017 at 5:34 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> >> > On 2017-03-01 17:19, Paul Moore wrote:
+> >> >> On Wed, Mar 1, 2017 at 11:28 AM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> >> >> > On 2017-02-28 17:22, Paul Moore wrote:
+> >> >> >> On Sun, Feb 26, 2017 at 3:49 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> >> >> >> > Eliminate flipping in and out of message fields, dropping fields in the process.
+> >> >> >> >
+> >> >> >> > Sample raw message format IPv4 UDP:
+> >> >> >> > type=NETFILTER_PKT msg=audit(1487874761.386:228):  mark=0xae8a2732 saddr=127.0.0.1 daddr=127.0.0.1 proto=17^]
+> >> >> >> > Sample raw message format IPv6 ICMP6:
+> >> >> >> > type=NETFILTER_PKT msg=audit(1487874761.381:227):  mark=0x223894b7 saddr=::1 daddr=::1 proto=58^]
+> >> >> >> >
+> >> >> >> > Issue: https://github.com/linux-audit/audit-kernel/issues/11
+> >> >> >> > Test case: https://github.com/linux-audit/audit-testsuite/issues/43
+> >> >> >> >
+> >> >> >> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> >> >> >> > ---
+> >> >> >> >  net/netfilter/xt_AUDIT.c |  122 ++++++++++-----------------------------------
+> >> >> >> >  1 files changed, 27 insertions(+), 95 deletions(-)
+> >> >> >> >
+> >> >> >> > diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
+> >> >> >> > index 4973cbd..945fa29 100644
+> >> >> >> > --- a/net/netfilter/xt_AUDIT.c
+> >> >> >> > +++ b/net/netfilter/xt_AUDIT.c
+> >> >> >> > @@ -31,146 +31,78 @@ MODULE_ALIAS("ip6t_AUDIT");
 > 
-> When memory is exhausted, nf_ct_nat_ext_add may return NULL. Then
-> nf_nat_ipv4_fn and nf_nat_ipv6_fn would return NF_ACCEPT in this
-> case.
-> So we need add the NULL check when invoke nfct_nat in these two
-> functions.
+> ...
 > 
-> Signed-off-by: Gao Feng <fgao@ikuai8.com>
-> ---
->  net/ipv4/netfilter/nf_nat_masquerade_ipv4.c | 2 ++
->  net/ipv6/netfilter/nf_nat_masquerade_ipv6.c | 6 +++++-
->  2 files changed, 7 insertions(+), 1 deletion(-)
+> >> >> >> >  static unsigned int
+> >> >> >> >  audit_tg(struct sk_buff *skb, const struct xt_action_param *par)
+> >> >> >> >  {
+> >> >> >> > -       const struct xt_audit_info *info = par->targinfo;
+> >> >> >> >         struct audit_buffer *ab;
+> >> >> >> > +       int fam = -1;
+> >> >> >> >
+> >> >> >> >         if (audit_enabled == 0)
+> >> >> >> >                 goto errout;
+> >> >> >> > -
+> >> >> >> >         ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
+> >> >> >> >         if (ab == NULL)
+> >> >> >> >                 goto errout;
+> >> >> >> >
+> >> >> >> > -       audit_log_format(ab, "action=%hhu hook=%u len=%u inif=%s outif=%s",
+> >> >> >> > -                        info->type, par->hooknum, skb->len,
+> >> >> >> > -                        par->in ? par->in->name : "?",
+> >> >> >> > -                        par->out ? par->out->name : "?");
+> >> >> >> > -
+> >> >> >> > -       if (skb->mark)
+> >> >> >> > -               audit_log_format(ab, " mark=%#x", skb->mark);
+> >> >> >> > -
+> >> >> >> > -       if (skb->dev && skb->dev->type == ARPHRD_ETHER) {
+> >> >> >> > -               audit_log_format(ab, " smac=%pM dmac=%pM macproto=0x%04x",
+> >> >> >> > -                                eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest,
+> >> >> >> > -                                ntohs(eth_hdr(skb)->h_proto));
+> >> >> >> > +       audit_log_format(ab, "mark=%#x", skb->mark ?: -1);
+> >> >> >>
+> >> >> >> How do Steve's userspace tools like the unset/-1 value represented
+> >> >> >> when it is a hex value: -1 or 0xffffffff?
+> >> >> >
+> >> >> > My understanding is they are set up to cope with this.
+> >> >>
+> >> >> How does userspace distinguish between an unset nfmark and a nfmark of
+> >> >> 0xffffffff?
+> >> >
+> >> > It never had to deal specifically with nfmark previously because it
+> >> > wasn't included if it was blank.  Generally other values that are -1 are
+> >> > interpreted by the audit userspace tools as unset (session id, auid,
+> >> > etc...)
+> >>
+> >> Yes, I know, let me get straight to the point: should we use "mark=-1"
+> >> when the nfmark is unset instead of "mark=0xffffffff"?
+> >
+> > I'd prefer to keep the format as it was, explicitly labelled hex.  The
+> > other fields that are printed as unset, -1, come out in the logs as
+> > MAX_UINT: "auid=4294967295 ses=4294967295", so I don't see any reason to
+> > change that convention.  Once that field is known by userspace tools,
+> > they can interpret (-i) that as -1.
 > 
-> diff --git a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-> index ea91058..353ca0c 100644
-> --- a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-> +++ b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-> @@ -38,6 +38,8 @@
->  
->  	ct = nf_ct_get(skb, &ctinfo);
->  	nat = nfct_nat(ct);
-> +	if (!nat)
-> +		return NF_ACCEPT;
+> Perhaps I'm missing something here, but let me ask again, how does
+> userspace distinguish between an unset nfmark and a nfmark of
+> 0xffffffff?
 
-The masquerade target is only called from the nat table. If you look
-at nf_nat_ipv4_fn(), that is called whenever the packet enters a nat
-table, you can indeed check that nfct_nat() must be already there by
-when we call masquerade.
+It can't.
 
-So this is entirely unnecessary.
+> paul moore
+
+- RGB
+
+--
+Richard Guy Briggs <rgb@redhat.com>
+Kernel Security Engineering, Base Operating Systems, Red Hat
+Remote, Ottawa, Canada
+Voice: +1.647.777.2635, Internal: (81) 32635
