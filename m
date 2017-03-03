@@ -1,47 +1,73 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH nf] netfilter: nat: remove incorrect debug assert
-Date: Fri, 3 Mar 2017 20:40:47 +0100 (CET)
-Message-ID: <alpine.DEB.2.11.1703032035220.15461@blackhole.kfki.hu>
-References: <20170208221429.3555-1-fw@strlen.de> <20170221140909.GA3286@salvia> <20170221144019.GD9708@breakpoint.cc> <20170303115534.GA13931@salvia> <20170303124404.GB29213@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 nf] netfilter: don't track fragmented packets
+Date: Fri,  3 Mar 2017 21:44:00 +0100
+Message-ID: <20170303204400.21565-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:42260 "EHLO smtp0.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751602AbdCCTme (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Mar 2017 14:42:34 -0500
-In-Reply-To: <20170303124404.GB29213@breakpoint.cc>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:51930 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752076AbdCCV0d (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 3 Mar 2017 16:26:33 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 3 Mar 2017, Florian Westphal wrote:
+Andrey reports syzkaller splat caused by
 
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > However, changing test to if (iph->frag_off) return -NF_ACCEPT seems
-> > > wrong too because we have enough info to track. OTOH, this only happens
-> > > with HDRINCL+raw socket so perhaps we shouldn't care about this and
-> > > just change ipv4 l3 tracker to ignore all packets w. iph->frag_off set.
-> > 
-> > Florian, unless you rise your hand, I'm going to take this patch so we
-> > at least fix splats here. I still have the impression that this
-> > setsockopt() option and its interaction with netfilter is broken at
-> > many levels.
-> 
-> Hmmm, I think we should disable tracking of all fragmented packets,
-> or at least disable NAT of all fragmented packets.
+NF_CT_ASSERT(!ip_is_fragment(ip_hdr(skb)));
 
-I think that is the safest solution, i.e. disable tracking and NAT for all 
-fragmented packets.
+in ipv4 nat.  But this assertion (and the comment) are wrong, this function
+does see fragments when IP_NODEFRAG setsockopt is used.
 
-> If we NAT 1st packet only then frag reasm won't complete anyway.
+As conntrack doesn't track packets without complete l4 header, only the
+first fragment is tracked.
 
-Best regards,
-Jozsef
+Because applying nat to first packet but not the rest makes no sense this
+also turns off tracking of all fragments.
+
+Reported-by: Andrey Konovalov <andreyknvl@google.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Change since v1:
+  - turn off tracking completely
+
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c | 4 ++++
+ net/ipv4/netfilter/nf_nat_l3proto_ipv4.c       | 5 -----
+ net/netfilter/nf_conntrack_ecache.c            | 2 ++
+ 3 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index fcfd071f4705..ec3e2934dd44 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -165,6 +165,10 @@ static unsigned int ipv4_conntrack_local(void *priv,
+ 	if (skb->len < sizeof(struct iphdr) ||
+ 	    ip_hdrlen(skb) < sizeof(struct iphdr))
+ 		return NF_ACCEPT;
++
++	if (ip_is_fragment(ip_hdr(skb))) /* IP_NODEFRAG setsockopt set */
++		return NF_ACCEPT;
++
+ 	return nf_conntrack_in(state->net, PF_INET, state->hook, skb);
+ }
+ 
+diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+index f8aad03d674b..6f5e8d01b876 100644
+--- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+@@ -255,11 +255,6 @@ nf_nat_ipv4_fn(void *priv, struct sk_buff *skb,
+ 	/* maniptype == SRC for postrouting. */
+ 	enum nf_nat_manip_type maniptype = HOOK2MANIP(state->hook);
+ 
+-	/* We never see fragments: conntrack defrags on pre-routing
+-	 * and local-out, and nf_nat_out protects post-routing.
+-	 */
+-	NF_CT_ASSERT(!ip_is_fragment(ip_hdr(skb)));
 -
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+ 	ct = nf_ct_get(skb, &ctinfo);
+ 	/* Can't track?  It's not due to stress, or conntrack would
+ 	 * have dropped it.  Hence it's the user's responsibilty to
+-- 
+2.10.2
+
