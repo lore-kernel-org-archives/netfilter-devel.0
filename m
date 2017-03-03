@@ -1,59 +1,47 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/4] netfilter: use skb_to_full_sk in ip_route_me_harder
-Date: Fri,  3 Mar 2017 20:22:22 +0100
-Message-ID: <1488568945-4177-2-git-send-email-pablo@netfilter.org>
-References: <1488568945-4177-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1488568945-4177-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH nf] netfilter: nat: remove incorrect debug assert
+Date: Fri, 3 Mar 2017 20:40:47 +0100 (CET)
+Message-ID: <alpine.DEB.2.11.1703032035220.15461@blackhole.kfki.hu>
+References: <20170208221429.3555-1-fw@strlen.de> <20170221140909.GA3286@salvia> <20170221144019.GD9708@breakpoint.cc> <20170303115534.GA13931@salvia> <20170303124404.GB29213@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp0.kfki.hu ([148.6.0.25]:42260 "EHLO smtp0.kfki.hu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751602AbdCCTme (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 3 Mar 2017 14:42:34 -0500
+In-Reply-To: <20170303124404.GB29213@breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
+On Fri, 3 Mar 2017, Florian Westphal wrote:
 
-inet_sk(skb->sk) is illegal in case skb is attached to request socket.
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > However, changing test to if (iph->frag_off) return -NF_ACCEPT seems
+> > > wrong too because we have enough info to track. OTOH, this only happens
+> > > with HDRINCL+raw socket so perhaps we shouldn't care about this and
+> > > just change ipv4 l3 tracker to ignore all packets w. iph->frag_off set.
+> > 
+> > Florian, unless you rise your hand, I'm going to take this patch so we
+> > at least fix splats here. I still have the impression that this
+> > setsockopt() option and its interaction with netfilter is broken at
+> > many levels.
+> 
+> Hmmm, I think we should disable tracking of all fragmented packets,
+> or at least disable NAT of all fragmented packets.
 
-Fixes: ca6fb0651883 ("tcp: attach SYNACK messages to request sockets instead of listener")
-Reported by: Daniel J Blueman <daniel@quora.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Tested-by: Daniel J Blueman <daniel@quora.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/netfilter.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+I think that is the safest solution, i.e. disable tracking and NAT for all 
+fragmented packets.
 
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index b3cc1335adbc..c0cc6aa8cfaa 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -23,7 +23,8 @@ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned int addr_t
- 	struct rtable *rt;
- 	struct flowi4 fl4 = {};
- 	__be32 saddr = iph->saddr;
--	__u8 flags = skb->sk ? inet_sk_flowi_flags(skb->sk) : 0;
-+	const struct sock *sk = skb_to_full_sk(skb);
-+	__u8 flags = sk ? inet_sk_flowi_flags(sk) : 0;
- 	struct net_device *dev = skb_dst(skb)->dev;
- 	unsigned int hh_len;
- 
-@@ -40,7 +41,7 @@ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned int addr_t
- 	fl4.daddr = iph->daddr;
- 	fl4.saddr = saddr;
- 	fl4.flowi4_tos = RT_TOS(iph->tos);
--	fl4.flowi4_oif = skb->sk ? skb->sk->sk_bound_dev_if : 0;
-+	fl4.flowi4_oif = sk ? sk->sk_bound_dev_if : 0;
- 	if (!fl4.flowi4_oif)
- 		fl4.flowi4_oif = l3mdev_master_ifindex(dev);
- 	fl4.flowi4_mark = skb->mark;
-@@ -61,7 +62,7 @@ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned int addr_t
- 	    xfrm_decode_session(skb, flowi4_to_flowi(&fl4), AF_INET) == 0) {
- 		struct dst_entry *dst = skb_dst(skb);
- 		skb_dst_set(skb, NULL);
--		dst = xfrm_lookup(net, dst, flowi4_to_flowi(&fl4), skb->sk, 0);
-+		dst = xfrm_lookup(net, dst, flowi4_to_flowi(&fl4), sk, 0);
- 		if (IS_ERR(dst))
- 			return PTR_ERR(dst);
- 		skb_dst_set(skb, dst);
--- 
-2.1.4
+> If we NAT 1st packet only then frag reasm won't complete anyway.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
