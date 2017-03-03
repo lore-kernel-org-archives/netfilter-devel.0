@@ -1,129 +1,32 @@
-From: Richard Guy Briggs <rgb@redhat.com>
-Subject: Re: [PATCH V3] audit: normalize NETFILTER_PKT
-Date: Fri, 3 Mar 2017 06:54:16 -0500
-Message-ID: <20170303115416.GH18258@madcap2.tricolour.ca>
-References: <044a666e507a829f8c1d6dcc19ad78cd9f140ddd.1488142060.git.rgb@redhat.com>
-	<CAHC9VhTUSz-tyPyZ7PJAH08sfhuACeUTkEKEnnwM_axQ4UdorQ@mail.gmail.com>
-	<20170301162802.GV18258@madcap2.tricolour.ca>
-	<CAHC9VhTHfyPR-yj4kOAJBeU4D1=o4Uu-=S_STvQoj4OAr9Y-mQ@mail.gmail.com>
-	<20170301223447.GA18258@madcap2.tricolour.ca>
-	<CAHC9VhRGSzea_c9Gg-Z3gr8cu2UQA9DhNtba0tf9AShoNakxzw@mail.gmail.com>
-	<20170303020007.GF18258@madcap2.tricolour.ca>
-	<CAHC9VhRoy1TR46ZLfzLB1wzOq=VZfX-RnG=7ogVP1Xphk=qtBg@mail.gmail.com>
+From: =?UTF-8?B?QWxpbiBOxINzdGFj?= <alin.nastac@gmail.com>
+Subject: Re: [PATCH] ipv6: Preserve link scope traffic original oif
+Date: Fri, 3 Mar 2017 12:56:50 +0100
+Message-ID: <CAF1oqRD9sahqwj0u1k44x6EqnjD7czLFDM32nO1o6am4gnprtw@mail.gmail.com>
+References: <1488376043-31976-1-git-send-email-alin.nastac@gmail.com> <20170303113918.GA13435@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Thomas Woerner <twoerner@redhat.com>, linux-audit@redhat.com,
-        Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
-        Thomas Graf <tgraf@infradead.org>
-To: Paul Moore <paul@paul-moore.com>
-Return-path: <linux-audit-bounces@redhat.com>
-Content-Disposition: inline
-In-Reply-To: <CAHC9VhRoy1TR46ZLfzLB1wzOq=VZfX-RnG=7ogVP1Xphk=qtBg@mail.gmail.com>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/linux-audit>
-List-Post: <mailto:linux-audit@redhat.com>
-List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=subscribe>
-Sender: linux-audit-bounces@redhat.com
-Errors-To: linux-audit-bounces@redhat.com
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-yw0-f177.google.com ([209.85.161.177]:33002 "EHLO
+        mail-yw0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751408AbdCCL5i (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 3 Mar 2017 06:57:38 -0500
+Received: by mail-yw0-f177.google.com with SMTP id s15so55506552ywg.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 03 Mar 2017 03:56:51 -0800 (PST)
+In-Reply-To: <20170303113918.GA13435@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2017-03-02 21:54, Paul Moore wrote:
-> On Thu, Mar 2, 2017 at 9:00 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> > On 2017-03-02 19:16, Paul Moore wrote:
-> >> On Wed, Mar 1, 2017 at 5:34 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> > On 2017-03-01 17:19, Paul Moore wrote:
-> >> >> On Wed, Mar 1, 2017 at 11:28 AM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> >> > On 2017-02-28 17:22, Paul Moore wrote:
-> >> >> >> On Sun, Feb 26, 2017 at 3:49 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> >> >> >> > Eliminate flipping in and out of message fields, dropping fields in the process.
-> >> >> >> >
-> >> >> >> > Sample raw message format IPv4 UDP:
-> >> >> >> > type=NETFILTER_PKT msg=audit(1487874761.386:228):  mark=0xae8a2732 saddr=127.0.0.1 daddr=127.0.0.1 proto=17^]
-> >> >> >> > Sample raw message format IPv6 ICMP6:
-> >> >> >> > type=NETFILTER_PKT msg=audit(1487874761.381:227):  mark=0x223894b7 saddr=::1 daddr=::1 proto=58^]
-> >> >> >> >
-> >> >> >> > Issue: https://github.com/linux-audit/audit-kernel/issues/11
-> >> >> >> > Test case: https://github.com/linux-audit/audit-testsuite/issues/43
-> >> >> >> >
-> >> >> >> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> >> >> >> > ---
-> >> >> >> >  net/netfilter/xt_AUDIT.c |  122 ++++++++++-----------------------------------
-> >> >> >> >  1 files changed, 27 insertions(+), 95 deletions(-)
-> >> >> >> >
-> >> >> >> > diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
-> >> >> >> > index 4973cbd..945fa29 100644
-> >> >> >> > --- a/net/netfilter/xt_AUDIT.c
-> >> >> >> > +++ b/net/netfilter/xt_AUDIT.c
-> >> >> >> > @@ -31,146 +31,78 @@ MODULE_ALIAS("ip6t_AUDIT");
-> 
-> ...
-> 
-> >> >> >> >  static unsigned int
-> >> >> >> >  audit_tg(struct sk_buff *skb, const struct xt_action_param *par)
-> >> >> >> >  {
-> >> >> >> > -       const struct xt_audit_info *info = par->targinfo;
-> >> >> >> >         struct audit_buffer *ab;
-> >> >> >> > +       int fam = -1;
-> >> >> >> >
-> >> >> >> >         if (audit_enabled == 0)
-> >> >> >> >                 goto errout;
-> >> >> >> > -
-> >> >> >> >         ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
-> >> >> >> >         if (ab == NULL)
-> >> >> >> >                 goto errout;
-> >> >> >> >
-> >> >> >> > -       audit_log_format(ab, "action=%hhu hook=%u len=%u inif=%s outif=%s",
-> >> >> >> > -                        info->type, par->hooknum, skb->len,
-> >> >> >> > -                        par->in ? par->in->name : "?",
-> >> >> >> > -                        par->out ? par->out->name : "?");
-> >> >> >> > -
-> >> >> >> > -       if (skb->mark)
-> >> >> >> > -               audit_log_format(ab, " mark=%#x", skb->mark);
-> >> >> >> > -
-> >> >> >> > -       if (skb->dev && skb->dev->type == ARPHRD_ETHER) {
-> >> >> >> > -               audit_log_format(ab, " smac=%pM dmac=%pM macproto=0x%04x",
-> >> >> >> > -                                eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest,
-> >> >> >> > -                                ntohs(eth_hdr(skb)->h_proto));
-> >> >> >> > +       audit_log_format(ab, "mark=%#x", skb->mark ?: -1);
-> >> >> >>
-> >> >> >> How do Steve's userspace tools like the unset/-1 value represented
-> >> >> >> when it is a hex value: -1 or 0xffffffff?
-> >> >> >
-> >> >> > My understanding is they are set up to cope with this.
-> >> >>
-> >> >> How does userspace distinguish between an unset nfmark and a nfmark of
-> >> >> 0xffffffff?
-> >> >
-> >> > It never had to deal specifically with nfmark previously because it
-> >> > wasn't included if it was blank.  Generally other values that are -1 are
-> >> > interpreted by the audit userspace tools as unset (session id, auid,
-> >> > etc...)
-> >>
-> >> Yes, I know, let me get straight to the point: should we use "mark=-1"
-> >> when the nfmark is unset instead of "mark=0xffffffff"?
-> >
-> > I'd prefer to keep the format as it was, explicitly labelled hex.  The
-> > other fields that are printed as unset, -1, come out in the logs as
-> > MAX_UINT: "auid=4294967295 ses=4294967295", so I don't see any reason to
-> > change that convention.  Once that field is known by userspace tools,
-> > they can interpret (-i) that as -1.
-> 
-> Perhaps I'm missing something here, but let me ask again, how does
-> userspace distinguish between an unset nfmark and a nfmark of
-> 0xffffffff?
+On Fri, Mar 3, 2017 at 12:39 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Mar 01, 2017 at 02:47:23PM +0100, Alin Nastac wrote:
+>> Link-local and multicast packets must keep their original oif after
+>> ip6_route_me_harder is called.
+>
+> Out of curiosity, how does the setup you use look like to trigger this
+> problem?
 
-It can't.
-
-> paul moore
-
-- RGB
-
---
-Richard Guy Briggs <rgb@redhat.com>
-Kernel Security Engineering, Base Operating Systems, Red Hat
-Remote, Ottawa, Canada
-Voice: +1.647.777.2635, Internal: (81) 32635
+ICMPv6 RA/NS/NA are marked by a -j MARK iptables rule (the mark value
+is used to set the QoS queue).
+Because skb->mark value changed, ip6t_mangle_out will call ip6_route_me_harder.
