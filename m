@@ -1,67 +1,73 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH V3] audit: normalize NETFILTER_PKT
-Date: Fri, 3 Mar 2017 08:56:12 -0500
-Message-ID: <CAHC9VhQ-n3tvZrZT4b2vmJCZ-qoi8sXBjrOR0YmBV+Zu6mJyXw@mail.gmail.com>
-References: <CAHC9VhTUSz-tyPyZ7PJAH08sfhuACeUTkEKEnnwM_axQ4UdorQ@mail.gmail.com>
- <20170301162802.GV18258@madcap2.tricolour.ca> <CAHC9VhTHfyPR-yj4kOAJBeU4D1=o4Uu-=S_STvQoj4OAr9Y-mQ@mail.gmail.com>
- <20170301223447.GA18258@madcap2.tricolour.ca> <CAHC9VhRGSzea_c9Gg-Z3gr8cu2UQA9DhNtba0tf9AShoNakxzw@mail.gmail.com>
- <20170303020007.GF18258@madcap2.tricolour.ca> <CAHC9VhRoy1TR46ZLfzLB1wzOq=VZfX-RnG=7ogVP1Xphk=qtBg@mail.gmail.com>
- <20170303115416.GH18258@madcap2.tricolour.ca> <20170303124526.GC29213@breakpoint.cc>
- <CAHC9VhQNEw4r00Ht-DsQc_t5TYpz395VrT=qGOK5UvxjA7rmRg@mail.gmail.com> <20170303132201.GF29213@breakpoint.cc>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: nft: ah expression doesn't work for IPv6
+Date: Fri, 3 Mar 2017 15:01:57 +0100
+Message-ID: <20170303140157.GB19896@orbyte.nwl.cc>
+References: <20170302195651.GX6099@orbyte.nwl.cc>
+ <20170302210129.GA19330@salvia>
+ <20170302212522.GA8035@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Richard Guy Briggs <rgb@redhat.com>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>, linux-audit@redhat.com,
-        Thomas Woerner <twoerner@redhat.com>,
-        Thomas Graf <tgraf@infradead.org>
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ua0-f180.google.com ([209.85.217.180]:33044 "EHLO
-        mail-ua0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751323AbdCCN4O (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Mar 2017 08:56:14 -0500
-Received: by mail-ua0-f180.google.com with SMTP id c11so63888454uaa.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 03 Mar 2017 05:56:13 -0800 (PST)
-In-Reply-To: <20170303132201.GF29213@breakpoint.cc>
+Received: from orbyte.nwl.cc ([151.80.46.58]:52019 "EHLO mail.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751369AbdCCOLm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 3 Mar 2017 09:11:42 -0500
+Content-Disposition: inline
+In-Reply-To: <20170302212522.GA8035@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Mar 3, 2017 at 8:22 AM, Florian Westphal <fw@strlen.de> wrote:
-> Paul Moore <paul@paul-moore.com> wrote:
->> On Fri, Mar 3, 2017 at 7:45 AM, Florian Westphal <fw@strlen.de> wrote:
->> > Richard Guy Briggs <rgb@redhat.com> wrote:
->> >> > Perhaps I'm missing something here, but let me ask again, how does
->> >> > userspace distinguish between an unset nfmark and a nfmark of
->> >> > 0xffffffff?
->> >>
->> >> It can't.
->> >
->> > It can if you log it as 0, as I asked in patch 1 review.
->> >
->> > (You wouldn't log sk uid of 0 as -1 either, would you?)
->>
->> I want to see the code able to handle the full range of nfmark values
->> as well as the unset case; if that means we need to tweak userspace a
->> bit, please work with Steve on that.
->
-> There is no 'unset nfmark'.  Its just a 32bit integer.
+On Thu, Mar 02, 2017 at 10:25:22PM +0100, Pablo Neira Ayuso wrote:
+> On Thu, Mar 02, 2017 at 10:01:29PM +0100, Pablo Neira Ayuso wrote:
+> > On Thu, Mar 02, 2017 at 08:56:52PM +0100, Phil Sutter wrote:
+> > > Hi,
+> > > 
+> > > There is currently an open issue with nft in that ah expression doesn't
+> > > work for IPv6 since it creates a payload expression which doesn't find
+> > > the AH IPv6 extension header.
+> > > 
+> > > There has been a discussion about this problem off-list in which two
+> > > alternative "solutions" were named, both involve checking the context
+> > > to find out whether one is trying to match an IPv4 or IPv6 packet and
+> > > then create either payload or exthdr expression. Though this solution is
+> > > not optimal, as in (at least) inet table the address family is not given
+> > > per se.
+> > > 
+> > > I had the idea of creating a "real" solution to the problem which
+> > > consists of a payload/exthdr hybrid in kernel space searching for the
+> > > given header in different locations depending on the family of the
+> > > actual package being handled. Ideally this should reuse as much code as
+> > > possible, so maybe "just" create both expressions in user space and in
+> > > kernel space only branch between the two.
+> > 
+> > If the problem is the inet chain, I would prefer we request explicit
+> > dependencies for ah so we generate the right bytecode depending on the
+> > family. Yes, I mean we would need two different rules for each case by
+> > now.
 
-Yes, my apologies, this thread has dragged on so long I muddled the
-details in my mind ... here is what I'm trying to get at, Richard's
-latest patch (unless I've missed one in my inbox) has the following
-line:
+Well, in bison there would have to be a common entrance point, which
+checks the scope and then generates either payload expr, exthdr expr or
+an error depending on what it is. Correct?
 
-  audit_log_format(ab, "mark=%#x", skb->mark ?: -1);
+> > On top of that, do you have a real usecase having both AH traffic for
+> > IPv4 and IPv6 traffic? If you don't I would prefer you just fix what
+> > we have and focus on a different task, we have plenty of work to do
+> > ahead. We can hand over you more useful tasks.
 
-... which I believe to be incorrect.  I was trying to lead Richard
-along to that same realization, but it would appear I'm not having
-much success, so to put it bluntly, here is what I want that line to
-look like:
+Not sure if I understand you correctly, but the use-case is matching on
+some AH header field in IPv6 traffic? But sure, if you think that's too
+exotic I could maybe just add some check somewhere which causes an error
+if the family is not specified or not IPv4 and ah expression is being
+used.
 
-  audit_log_format(ab, "mark=%#x", skb->mark);
+> Sorry, I didn't mean to sound rude. But I would like to see more
+> usecases that would fit into such hybrid. I think we need more
+> usecases (not only AH) to justify this extra complexity that this
+> hybrid (or probably something else we can come up with) requires.
 
--- 
-paul moore
-www.paul-moore.com
+No problem! Didn't sound rude to me, just inappropriate - it's not up to
+you what I'm wasting my time for. :)
+
+Cheers, Phil
