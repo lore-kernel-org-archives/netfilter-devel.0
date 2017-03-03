@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/4] netfilter: nft_set_rbtree: incorrect assumption on lower interval lookups
-Date: Fri,  3 Mar 2017 20:22:24 +0100
-Message-ID: <1488568945-4177-4-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 2/4] netfilter: nf_conntrack_sip: fix wrong memory initialisation
+Date: Fri,  3 Mar 2017 20:22:23 +0100
+Message-ID: <1488568945-4177-3-git-send-email-pablo@netfilter.org>
 References: <1488568945-4177-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,37 +10,35 @@ In-Reply-To: <1488568945-4177-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-In case of adjacent ranges, we may indeed see either the high part of
-the range in first place or the low part of it. Remove this incorrect
-assumption, let's make sure we annotate the low part of the interval in
-case of we have adjacent interva intervals so we hit a matching in
-lookups.
+From: Christophe Leroy <christophe.leroy@c-s.fr>
 
-Reported-by: Simon Hanisch <hanisch@wh2.tu-dresden.de>
+In commit 82de0be6862cd ("netfilter: Add helper array
+register/unregister functions"),
+struct nf_conntrack_helper sip[MAX_PORTS][4] was changed to
+sip[MAX_PORTS * 4], so the memory init should have been changed to
+memset(&sip[4 * i], 0, 4 * sizeof(sip[i]));
+
+But as the sip[] table is allocated in the BSS, it is already set to 0
+
+Fixes: 82de0be6862cd ("netfilter: Add helper array register/unregister functions")
+Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_rbtree.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ net/netfilter/nf_conntrack_sip.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 71e8fb886a73..78dfbf9588b3 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -60,11 +60,10 @@ static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
- 		d = memcmp(this, key, set->klen);
- 		if (d < 0) {
- 			parent = parent->rb_left;
--			/* In case of adjacent ranges, we always see the high
--			 * part of the range in first place, before the low one.
--			 * So don't update interval if the keys are equal.
--			 */
--			if (interval && nft_rbtree_equal(set, this, interval))
-+			if (interval &&
-+			    nft_rbtree_equal(set, this, interval) &&
-+			    nft_rbtree_interval_end(this) &&
-+			    !nft_rbtree_interval_end(interval))
- 				continue;
- 			interval = rbe;
- 		} else if (d > 0)
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 24174c520239..0d17894798b5 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -1628,8 +1628,6 @@ static int __init nf_conntrack_sip_init(void)
+ 		ports[ports_c++] = SIP_PORT;
+ 
+ 	for (i = 0; i < ports_c; i++) {
+-		memset(&sip[i], 0, sizeof(sip[i]));
+-
+ 		nf_ct_helper_init(&sip[4 * i], AF_INET, IPPROTO_UDP, "sip",
+ 				  SIP_PORT, ports[i], i, sip_exp_policy,
+ 				  SIP_EXPECT_MAX,
 -- 
 2.1.4
