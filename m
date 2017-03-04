@@ -1,95 +1,86 @@
-From: Ying Xue <ying.xue@windriver.com>
-Subject: [net] netfilter: nat: sctp: fix ICMP packet to be dropped accidently
-Date: Sat, 4 Mar 2017 18:00:02 +0800
-Message-ID: <1488621602-4152-1-git-send-email-ying.xue@windriver.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Cc: <davem@davemloft.net>, <netdev@vger.kernel.org>
-To: <pablo@netfilter.org>, <netfilter-devel@vger.kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: nf_tables: set pktinfo->thoff at AH header if found
+Date: Sat,  4 Mar 2017 19:53:47 +0100
+Message-ID: <1488653627-4815-1-git-send-email-pablo@netfilter.org>
+Cc: phil@nwl.cc
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:60782 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752007AbdCDSyP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 4 Mar 2017 13:54:15 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B2BED1AEA73
+        for <netfilter-devel@vger.kernel.org>; Sat,  4 Mar 2017 19:54:10 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A1211BAAA2
+        for <netfilter-devel@vger.kernel.org>; Sat,  4 Mar 2017 19:54:10 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 58115BAAA1
+        for <netfilter-devel@vger.kernel.org>; Sat,  4 Mar 2017 19:54:04 +0100 (CET)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Regarding RFC 792, the first 64 bits of the original SCTP datagram's
-data could be contained in ICMP packet, such as:
+Phil Sutter reports that IPv6 AH header matching is broken. From
+userspace, nft generates bytecode that expects to find the AH header at
+NFT_PAYLOAD_TRANSPORT_HEADER both for IPv4 and IPv6. However,
+pktinfo->thoff is set to the inner header after the AH header in IPv6,
+while in IPv4 pktinfo->thoff points to the AH header indeed. This
+behaviour is inconsistent. This patch fixes this problem by updating
+ipv6_find_hdr() to get the IP6_FH_F_AUTH flag so this function stops at
+the AH header, so both IPv4 and IPv6 pktinfo->thoff point to the AH
+header.
 
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |     Type      |     Code      |          Checksum             |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                             unused                            |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |      Internet Header + 64 bits of Original Data Datagram      |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
-However, according to RFC 4960, SCTP datagram header is as below:
-
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |     Source Port Number        |     Destination Port Number   |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                      Verification Tag                         |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                           Checksum                            |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
-It means only the first three fields of SCTP header can be carried in
-ICMP packet except for Checksum field.
-
-At present in sctp_manip_pkt(), no matter whether the packet is ICMP or
-not, it always calculates SCTP packet checksum. However, not only the
-calculation of checksum is unnecessary for ICMP, but also it causes
-another fatal issue that ICMP packet is dropped. The header size of
-SCTP is used to identify whether the writeable length of skb is bigger
-than skb->len through skb_make_writable() in sctp_manip_pkt(). But
-when it deals with ICMP packet, skb_make_writable() directly returns
-false as the writeable length of skb is bigger than skb->len.
-Subsequently ICMP is dropped.
-
-Now we correct this misbahavior. When sctp_manip_pkt() handles ICMP
-packet, 8 bytes rather than the whole SCTP header size is used to check
-if writeable length of skb is overflowed. Meanwhile, as it's meaningless
-to calculate checksum when packet is ICMP, the computation of checksum
-is ignored as well.
-
-Signed-off-by: Ying Xue <ying.xue@windriver.com>
+Reported-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_nat_proto_sctp.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+I prefer to fix this now, rather than living with this inconsistency
+forever. nft IPv6 AH matching has been broken since day 1, so we're sure
+that nobody has been using this.
 
-diff --git a/net/netfilter/nf_nat_proto_sctp.c b/net/netfilter/nf_nat_proto_sctp.c
-index 31d3586..804e8a0 100644
---- a/net/netfilter/nf_nat_proto_sctp.c
-+++ b/net/netfilter/nf_nat_proto_sctp.c
-@@ -33,8 +33,16 @@ sctp_manip_pkt(struct sk_buff *skb,
- 	       enum nf_nat_manip_type maniptype)
+For those willing match to inner headers, I prefer we explore inner
+matching via explicit syntax and likely new payload base definition in
+enum nft_payload_bases.
+
+ include/net/netfilter/nf_tables_ipv6.h | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables_ipv6.h b/include/net/netfilter/nf_tables_ipv6.h
+index d150b5066201..97983d1c05e4 100644
+--- a/include/net/netfilter/nf_tables_ipv6.h
++++ b/include/net/netfilter/nf_tables_ipv6.h
+@@ -9,12 +9,13 @@ nft_set_pktinfo_ipv6(struct nft_pktinfo *pkt,
+ 		     struct sk_buff *skb,
+ 		     const struct nf_hook_state *state)
  {
- 	sctp_sctphdr_t *hdr;
-+	int hdrsize = 8;
++	unsigned int flags = IP6_FH_F_AUTH;
+ 	int protohdr, thoff = 0;
+ 	unsigned short frag_off;
  
--	if (!skb_make_writable(skb, hdroff + sizeof(*hdr)))
-+	/* This could be an inner header returned in imcp packet; in such
-+	 * cases we cannot update the checksum field since it is outside
-+	 * of the 8 bytes of transport layer headers we are guaranteed.
-+	 */
-+	if (skb->len >= hdroff + sizeof(*hdr))
-+		hdrsize = sizeof(*hdr);
-+
-+	if (!skb_make_writable(skb, hdroff + hdrsize))
- 		return false;
+ 	nft_set_pktinfo(pkt, skb, state);
  
- 	hdr = (struct sctphdr *)(skb->data + hdroff);
-@@ -47,6 +55,9 @@ sctp_manip_pkt(struct sk_buff *skb,
- 		hdr->dest = tuple->dst.u.sctp.port;
- 	}
+-	protohdr = ipv6_find_hdr(pkt->skb, &thoff, -1, &frag_off, NULL);
++	protohdr = ipv6_find_hdr(pkt->skb, &thoff, -1, &frag_off, &flags);
+ 	if (protohdr < 0) {
+ 		nft_set_pktinfo_proto_unspec(pkt, skb);
+ 		return;
+@@ -32,6 +33,7 @@ __nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt,
+ 				const struct nf_hook_state *state)
+ {
+ #if IS_ENABLED(CONFIG_IPV6)
++	unsigned int flags = IP6_FH_F_AUTH;
+ 	struct ipv6hdr *ip6h, _ip6h;
+ 	unsigned int thoff = 0;
+ 	unsigned short frag_off;
+@@ -50,7 +52,7 @@ __nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt,
+ 	if (pkt_len + sizeof(*ip6h) > skb->len)
+ 		return -1;
  
-+	if (hdrsize < sizeof(*hdr))
-+		return true;
-+
- 	if (skb->ip_summed != CHECKSUM_PARTIAL) {
- 		hdr->checksum = sctp_compute_cksum(skb, hdroff);
- 		skb->ip_summed = CHECKSUM_NONE;
+-	protohdr = ipv6_find_hdr(pkt->skb, &thoff, -1, &frag_off, NULL);
++	protohdr = ipv6_find_hdr(pkt->skb, &thoff, -1, &frag_off, &flags);
+ 	if (protohdr < 0)
+ 		return -1;
+ 
 -- 
-2.7.4
+2.1.4
+
