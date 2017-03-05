@@ -1,68 +1,44 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf 2/2] netfilter: nft_set_bitmap: fix memory leak
-Date: Mon,  6 Mar 2017 00:02:53 +0800
-Message-ID: <1488729773-48343-2-git-send-email-zlpnobody@163.com>
-References: <1488729773-48343-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
-To: pablo@netfilter.org
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: ANNOUNCE: New talk accepted on Netfilter Connection Tracking
+Date: Sun, 5 Mar 2017 12:25:37 -0500
+Message-ID: <3e9ee6d3-a01b-e7d1-f0d3-487bcc791244@mojatatu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: tech-committee@netdevconf.org, netfilter-devel@vger.kernel.org,
+        Brenda Butler <bjb@mojatatu.com>,
+        Stephen Jaworski <jaws@mojatatu.com>, netfilter@vger.kernel.org
+To: people@netdevconf.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-15.163.com ([220.181.12.15]:60180 "EHLO m12-15.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752290AbdCEQDe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 5 Mar 2017 11:03:34 -0500
-In-Reply-To: <1488729773-48343-1-git-send-email-zlpnobody@163.com>
+Received: from mail-it0-f65.google.com ([209.85.214.65]:34797 "EHLO
+        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750770AbdCERZl (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 5 Mar 2017 12:25:41 -0500
+Received: by mail-it0-f65.google.com with SMTP id r141so7290861ita.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 05 Mar 2017 09:25:40 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <zlpnobody@gmail.com>
+The tech committee would like to announce a new accepted talk.
 
-Unlike other set types, we will not link struct nft_set_ext into our
-internal structure, so we need to free it after activation, otherwise
-the nft_set_ext's memory will be leaked forever.
+Florian Westphal will be demystifying Netfilter Connection Tracking.
+You cant miss this talk!
 
-Also move nf_tables_setelem_notify() to the front of ops->activate, so
-we will not hit the use after free error.
+The description is as follows:
+----
+  This talk will take a look at netfilters connection tracking, namely:
 
-Fixes: 665153ff5752 ("netfilter: nf_tables: add bitmap set type")
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
----
- net/netfilter/nf_tables_api.c  | 2 +-
- net/netfilter/nft_set_bitmap.c | 5 +++++
- 2 files changed, 6 insertions(+), 1 deletion(-)
+     data structures
+     conntrack extensions (what are these, how are they used)
+     NAT handling
+     connection tracking helpers (ftp, sip etc)
+     connection tracking events
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 5e0ccfd..5b949e0 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4809,10 +4809,10 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 		case NFT_MSG_NEWSETELEM:
- 			te = (struct nft_trans_elem *)trans->data;
- 
--			te->set->ops->activate(net, te->set, &te->elem);
- 			nf_tables_setelem_notify(&trans->ctx, te->set,
- 						 &te->elem,
- 						 NFT_MSG_NEWSETELEM, 0);
-+			te->set->ops->activate(net, te->set, &te->elem);
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_DELSETELEM:
-diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
-index 9b024e2..dfaf299 100644
---- a/net/netfilter/nft_set_bitmap.c
-+++ b/net/netfilter/nft_set_bitmap.c
-@@ -127,6 +127,11 @@ static void nft_bitmap_activate(const struct net *net,
- 	nft_bitmap_location(set, nft_set_ext_key(ext), &idx, &off);
- 	/* Enter 11 state. */
- 	priv->bitmap[idx] |= (genmask << off);
-+
-+	/* After the element is active in the bitmap, the dummy extension
-+	 * object is not used anymore, free it now.
-+	 */
-+	nft_set_elem_destroy(set, ext, true);
- }
- 
- static bool nft_bitmap_flush(const struct net *net,
--- 
-2.5.5
+The second part of the talk will focus on conntrack overflow handling 
+('table full') under DoS/packet floods and how handling of such 
+scenarios could be improved.
+----
 
-
+cheers,
+jamal
