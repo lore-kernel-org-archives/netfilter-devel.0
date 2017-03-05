@@ -1,134 +1,67 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf 1/2] netfilter: nft_set_bitmap: fetch the element key based on the set->klen
-Date: Mon,  6 Mar 2017 00:02:52 +0800
-Message-ID: <1488729773-48343-1-git-send-email-zlpnobody@163.com>
+Subject: [PATCH nf 2/2] netfilter: nft_set_bitmap: fix memory leak
+Date: Mon,  6 Mar 2017 00:02:53 +0800
+Message-ID: <1488729773-48343-2-git-send-email-zlpnobody@163.com>
+References: <1488729773-48343-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-15.163.com ([220.181.12.15]:59892 "EHLO m12-15.163.com"
+Received: from m12-15.163.com ([220.181.12.15]:60180 "EHLO m12-15.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752290AbdCEQD2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 5 Mar 2017 11:03:28 -0500
+        id S1752290AbdCEQDe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 5 Mar 2017 11:03:34 -0500
+In-Reply-To: <1488729773-48343-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <zlpnobody@gmail.com>
 
-Currently we just assume the element key as a u32 integer, regardless of
-the set key length.
+Unlike other set types, we will not link struct nft_set_ext into our
+internal structure, so we need to free it after activation, otherwise
+the nft_set_ext's memory will be leaked forever.
 
-This is incorrect, for example, the tcp port number is only 16 bits.
-So when we use the nft_payload expr to get the tcp dport and store
-it to dreg, the dport will be stored at 0~15 bits, and 16~31 bits
-will be padded with zero.
-
-So the reg->data[dreg] will be looked like as below:
-  0          15           31
-  +-+-+-+-+-+-+-+-+-+-+-+-+
-  | tcp dport |      0    |
-  +-+-+-+-+-+-+-+-+-+-+-+-+
-But for these big-endian systems, if we treate this register as a u32
-integer, the element key will be larger than 65535, so the following
-lookup in bitmap set will cause out of bound access.
-
-Another issue is that if we add element with comments in bitmap
-set(although the comments will be ignored eventually), the element will
-vanish strangely. Because we treate the element key as a u32 integer, so
-the comments will become the part of the element key, then the element
-key will also be larger than 65535 and out of bound access will happen:
-  # nft add element t s { 1 comment test }
-
-Since set->klen is 1 or 2, it's fine to treate the element key as a u8 or
-u16 integer.
+Also move nf_tables_setelem_notify() to the front of ops->activate, so
+we will not hit the use after free error.
 
 Fixes: 665153ff5752 ("netfilter: nf_tables: add bitmap set type")
 Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 ---
- net/netfilter/nft_set_bitmap.c | 27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+ net/netfilter/nf_tables_api.c  | 2 +-
+ net/netfilter/nft_set_bitmap.c | 5 +++++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 5e0ccfd..5b949e0 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4809,10 +4809,10 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 		case NFT_MSG_NEWSETELEM:
+ 			te = (struct nft_trans_elem *)trans->data;
+ 
+-			te->set->ops->activate(net, te->set, &te->elem);
+ 			nf_tables_setelem_notify(&trans->ctx, te->set,
+ 						 &te->elem,
+ 						 NFT_MSG_NEWSETELEM, 0);
++			te->set->ops->activate(net, te->set, &te->elem);
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_DELSETELEM:
 diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
-index 152d226..9b024e2 100644
+index 9b024e2..dfaf299 100644
 --- a/net/netfilter/nft_set_bitmap.c
 +++ b/net/netfilter/nft_set_bitmap.c
-@@ -45,9 +45,17 @@ struct nft_bitmap {
- 	u8	bitmap[];
- };
- 
--static inline void nft_bitmap_location(u32 key, u32 *idx, u32 *off)
-+static inline void nft_bitmap_location(const struct nft_set *set,
-+				       const void *key,
-+				       u32 *idx, u32 *off)
- {
--	u32 k = (key << 1);
-+	u32 k;
-+
-+	if (set->klen == 2)
-+		k = *(u16 *)key;
-+	else
-+		k = *(u8 *)key;
-+	k <<= 1;
- 
- 	*idx = k / BITS_PER_BYTE;
- 	*off = k % BITS_PER_BYTE;
-@@ -69,7 +77,7 @@ static bool nft_bitmap_lookup(const struct net *net, const struct nft_set *set,
- 	u8 genmask = nft_genmask_cur(net);
- 	u32 idx, off;
- 
--	nft_bitmap_location(*key, &idx, &off);
-+	nft_bitmap_location(set, key, &idx, &off);
- 
- 	return nft_bitmap_active(priv->bitmap, idx, off, genmask);
- }
-@@ -83,7 +91,7 @@ static int nft_bitmap_insert(const struct net *net, const struct nft_set *set,
- 	u8 genmask = nft_genmask_next(net);
- 	u32 idx, off;
- 
--	nft_bitmap_location(nft_set_ext_key(ext)->data[0], &idx, &off);
-+	nft_bitmap_location(set, nft_set_ext_key(ext), &idx, &off);
- 	if (nft_bitmap_active(priv->bitmap, idx, off, genmask))
- 		return -EEXIST;
- 
-@@ -102,7 +110,7 @@ static void nft_bitmap_remove(const struct net *net,
- 	u8 genmask = nft_genmask_next(net);
- 	u32 idx, off;
- 
--	nft_bitmap_location(nft_set_ext_key(ext)->data[0], &idx, &off);
-+	nft_bitmap_location(set, nft_set_ext_key(ext), &idx, &off);
- 	/* Enter 00 state. */
- 	priv->bitmap[idx] &= ~(genmask << off);
- }
-@@ -116,7 +124,7 @@ static void nft_bitmap_activate(const struct net *net,
- 	u8 genmask = nft_genmask_next(net);
- 	u32 idx, off;
- 
--	nft_bitmap_location(nft_set_ext_key(ext)->data[0], &idx, &off);
-+	nft_bitmap_location(set, nft_set_ext_key(ext), &idx, &off);
+@@ -127,6 +127,11 @@ static void nft_bitmap_activate(const struct net *net,
+ 	nft_bitmap_location(set, nft_set_ext_key(ext), &idx, &off);
  	/* Enter 11 state. */
  	priv->bitmap[idx] |= (genmask << off);
++
++	/* After the element is active in the bitmap, the dummy extension
++	 * object is not used anymore, free it now.
++	 */
++	nft_set_elem_destroy(set, ext, true);
  }
-@@ -128,7 +136,7 @@ static bool nft_bitmap_flush(const struct net *net,
- 	u8 genmask = nft_genmask_next(net);
- 	u32 idx, off;
  
--	nft_bitmap_location(nft_set_ext_key(ext)->data[0], &idx, &off);
-+	nft_bitmap_location(set, nft_set_ext_key(ext), &idx, &off);
- 	/* Enter 10 state, similar to deactivation. */
- 	priv->bitmap[idx] &= ~(genmask << off);
- 
-@@ -161,10 +169,9 @@ static void *nft_bitmap_deactivate(const struct net *net,
- 	struct nft_bitmap *priv = nft_set_priv(set);
- 	u8 genmask = nft_genmask_next(net);
- 	struct nft_set_ext *ext;
--	u32 idx, off, key = 0;
-+	u32 idx, off;
- 
--	memcpy(&key, elem->key.val.data, set->klen);
--	nft_bitmap_location(key, &idx, &off);
-+	nft_bitmap_location(set, elem->key.val.data, &idx, &off);
- 
- 	if (!nft_bitmap_active(priv->bitmap, idx, off, genmask))
- 		return NULL;
+ static bool nft_bitmap_flush(const struct net *net,
 -- 
 2.5.5
 
