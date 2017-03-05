@@ -1,82 +1,135 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf] netfilter: nf_tables: set pktinfo->thoff at AH header
- if found
-Date: Sun, 5 Mar 2017 00:16:32 +0100
-Message-ID: <20170304231632.GA14094@breakpoint.cc>
-References: <1488653627-4815-1-git-send-email-pablo@netfilter.org>
- <20170304194342.GA6457@breakpoint.cc>
- <20170304225817.GA1023@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        phil@nwl.cc
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf 1/2] netfilter: nft_set_bitmap: fetch the element key based on the set->klen
+Date: Mon,  6 Mar 2017 00:02:52 +0800
+Message-ID: <1488729773-48343-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:49966 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752296AbdCDXQh (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 4 Mar 2017 18:16:37 -0500
-Content-Disposition: inline
-In-Reply-To: <20170304225817.GA1023@salvia>
+Received: from m12-15.163.com ([220.181.12.15]:59892 "EHLO m12-15.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752290AbdCEQD2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 5 Mar 2017 11:03:28 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sat, Mar 04, 2017 at 08:43:42PM +0100, Florian Westphal wrote:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > Phil Sutter reports that IPv6 AH header matching is broken. From
-> > > userspace, nft generates bytecode that expects to find the AH header at
-> > > NFT_PAYLOAD_TRANSPORT_HEADER both for IPv4 and IPv6. However,
-> > > pktinfo->thoff is set to the inner header after the AH header in IPv6,
-> > > while in IPv4 pktinfo->thoff points to the AH header indeed. This
-> > > behaviour is inconsistent. This patch fixes this problem by updating
-> > > ipv6_find_hdr() to get the IP6_FH_F_AUTH flag so this function stops at
-> > > the AH header, so both IPv4 and IPv6 pktinfo->thoff point to the AH
-> > > header.
-> > 
-> > This looks wrong.  We need to search until we find a l4 header,
-> > after this patch "tcp dort 22" won't match anymore if an AH header
-> > exists.
-> 
-> Look Florian:
-> 
-> # nft --debug=netlink add rule inet x y tcp dport 22 counter
-> inet x y 
->   [ meta load l4proto => reg 1 ]
->   [ cmp eq reg 1 0x00000006 ]
->   [ payload load 2b @ transport header + 2 => reg 1 ]
->   [ cmp eq reg 1 0x00001600 ]
->   [ counter pkts 0 bytes 0 ]
-> 
-> <cmdline>:1:1-39: Error: Could not process rule: No such file or directory
-> 
-> If we leave things the way they are:
-> 
-> 1) A packet that looks like IPv4 + AH + TCP dport 22 will match.
+From: Liping Zhang <zlpnobody@gmail.com>
 
-It won't match (since iph->protocol is ah, not tcp).
+Currently we just assume the element key as a u32 integer, regardless of
+the set key length.
 
-> 2) A packet that looks like IPv6 + AH + TCP dport 22 will *not* match.
+This is incorrect, for example, the tcp port number is only 16 bits.
+So when we use the nft_payload expr to get the tcp dport and store
+it to dreg, the dport will be stored at 0~15 bits, and 16~31 bits
+will be padded with zero.
 
-We skip all exthdrs and set thoff to the tcp header, so yes, this is
-indeed inconsitent and should be fixed.
+So the reg->data[dreg] will be looked like as below:
+  0          15           31
+  +-+-+-+-+-+-+-+-+-+-+-+-+
+  | tcp dport |      0    |
+  +-+-+-+-+-+-+-+-+-+-+-+-+
+But for these big-endian systems, if we treate this register as a u32
+integer, the element key will be larger than 65535, so the following
+lookup in bitmap set will cause out of bound access.
 
-> If you really want to keep this inconsistent behaviour around, I let
-> you inaugurate the errata section of the nft manpage ;-)
+Another issue is that if we add element with comments in bitmap
+set(although the comments will be ignored eventually), the element will
+vanish strangely. Because we treate the element key as a u32 integer, so
+the comments will become the part of the element key, then the element
+key will also be larger than 65535 and out of bound access will happen:
+  # nft add element t s { 1 comment test }
 
-Yuck :)
+Since set->klen is 1 or 2, it's fine to treate the element key as a u8 or
+u16 integer.
 
-> Seriously, I think it's better if we just fix this and focus on
-> designing a way to match at inner headers if you really need to match
-> on tcp ports encapsulated in ah traffic.
+Fixes: 665153ff5752 ("netfilter: nf_tables: add bitmap set type")
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+---
+ net/netfilter/nft_set_bitmap.c | 27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
-Hmm, question is if it should match by default or not (i.e. if the
-ipv4 or the ipv6 behaviour is the 'better' one).
+diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
+index 152d226..9b024e2 100644
+--- a/net/netfilter/nft_set_bitmap.c
++++ b/net/netfilter/nft_set_bitmap.c
+@@ -45,9 +45,17 @@ struct nft_bitmap {
+ 	u8	bitmap[];
+ };
+ 
+-static inline void nft_bitmap_location(u32 key, u32 *idx, u32 *off)
++static inline void nft_bitmap_location(const struct nft_set *set,
++				       const void *key,
++				       u32 *idx, u32 *off)
+ {
+-	u32 k = (key << 1);
++	u32 k;
++
++	if (set->klen == 2)
++		k = *(u16 *)key;
++	else
++		k = *(u8 *)key;
++	k <<= 1;
+ 
+ 	*idx = k / BITS_PER_BYTE;
+ 	*off = k % BITS_PER_BYTE;
+@@ -69,7 +77,7 @@ static bool nft_bitmap_lookup(const struct net *net, const struct nft_set *set,
+ 	u8 genmask = nft_genmask_cur(net);
+ 	u32 idx, off;
+ 
+-	nft_bitmap_location(*key, &idx, &off);
++	nft_bitmap_location(set, key, &idx, &off);
+ 
+ 	return nft_bitmap_active(priv->bitmap, idx, off, genmask);
+ }
+@@ -83,7 +91,7 @@ static int nft_bitmap_insert(const struct net *net, const struct nft_set *set,
+ 	u8 genmask = nft_genmask_next(net);
+ 	u32 idx, off;
+ 
+-	nft_bitmap_location(nft_set_ext_key(ext)->data[0], &idx, &off);
++	nft_bitmap_location(set, nft_set_ext_key(ext), &idx, &off);
+ 	if (nft_bitmap_active(priv->bitmap, idx, off, genmask))
+ 		return -EEXIST;
+ 
+@@ -102,7 +110,7 @@ static void nft_bitmap_remove(const struct net *net,
+ 	u8 genmask = nft_genmask_next(net);
+ 	u32 idx, off;
+ 
+-	nft_bitmap_location(nft_set_ext_key(ext)->data[0], &idx, &off);
++	nft_bitmap_location(set, nft_set_ext_key(ext), &idx, &off);
+ 	/* Enter 00 state. */
+ 	priv->bitmap[idx] &= ~(genmask << off);
+ }
+@@ -116,7 +124,7 @@ static void nft_bitmap_activate(const struct net *net,
+ 	u8 genmask = nft_genmask_next(net);
+ 	u32 idx, off;
+ 
+-	nft_bitmap_location(nft_set_ext_key(ext)->data[0], &idx, &off);
++	nft_bitmap_location(set, nft_set_ext_key(ext), &idx, &off);
+ 	/* Enter 11 state. */
+ 	priv->bitmap[idx] |= (genmask << off);
+ }
+@@ -128,7 +136,7 @@ static bool nft_bitmap_flush(const struct net *net,
+ 	u8 genmask = nft_genmask_next(net);
+ 	u32 idx, off;
+ 
+-	nft_bitmap_location(nft_set_ext_key(ext)->data[0], &idx, &off);
++	nft_bitmap_location(set, nft_set_ext_key(ext), &idx, &off);
+ 	/* Enter 10 state, similar to deactivation. */
+ 	priv->bitmap[idx] &= ~(genmask << off);
+ 
+@@ -161,10 +169,9 @@ static void *nft_bitmap_deactivate(const struct net *net,
+ 	struct nft_bitmap *priv = nft_set_priv(set);
+ 	u8 genmask = nft_genmask_next(net);
+ 	struct nft_set_ext *ext;
+-	u32 idx, off, key = 0;
++	u32 idx, off;
+ 
+-	memcpy(&key, elem->key.val.data, set->klen);
+-	nft_bitmap_location(key, &idx, &off);
++	nft_bitmap_location(set, elem->key.val.data, &idx, &off);
+ 
+ 	if (!nft_bitmap_active(priv->bitmap, idx, off, genmask))
+ 		return NULL;
+-- 
+2.5.5
 
-One could argue that 'tcp dport 22' should in fact match ip/ah/tcp as
-well, OTOH same could be said for gre and other tunnel encaps so
-treating AH as a 'final' ipv6 exthdr seems to be the right thing to do
-(we can't possibly guess other tunnel headers to skip anyway).
 
-So I am fine with this patch after all, thanks for explaining.
