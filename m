@@ -1,40 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: Use pr_cont where appropriate
-Date: Mon, 6 Mar 2017 18:02:05 +0100
-Message-ID: <20170306170204.GA5643@salvia>
-References: <82a5ec63e547c425644d2dd0165fcc664a2b265e.1488319732.git.joe@perches.com>
+Subject: Re: [PATCH libnftnl] expr: hash: support of symmetric hash
+Date: Mon, 6 Mar 2017 17:59:37 +0100
+Message-ID: <20170306165937.GA5076@salvia>
+References: <20170223111108.r2sw3wr6nbpuip7v@nevthink>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>, netdev@vger.kernel.org,
-	bridge@lists.linux-foundation.org, James Morris <jmorris@namei.org>,
-	Patrick McHardy <kaber@trash.net>, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	"David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Return-path: <bridge-bounces@lists.linux-foundation.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Laura Garcia Liebana <nevola@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:35782 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753087AbdCFRZR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Mar 2017 12:25:17 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 307BBE770
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Mar 2017 17:59:55 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1D4D2DA7E9
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Mar 2017 17:59:55 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CDF4BDA81B
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Mar 2017 17:59:52 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <82a5ec63e547c425644d2dd0165fcc664a2b265e.1488319732.git.joe@perches.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20170223111108.r2sw3wr6nbpuip7v@nevthink>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Feb 28, 2017 at 02:09:24PM -0800, Joe Perches wrote:
-> Logging output was changed when simple printks without KERN_CONT
-> are now emitted on a new line and KERN_CONT is required to continue
-> lines so use pr_cont.
+On Thu, Feb 23, 2017 at 12:11:08PM +0100, Laura Garcia Liebana wrote:
+> This patch provides symmetric hash support according to source
+> ip address and port, and destination ip address and port.
 > 
-> Miscellanea:
+> The new attribute NFTA_HASH_TYPE has been included to support
+> different types of hashing functions. Currently supported
+> NFT_HASH_JENKINS through jhash and NFT_HASH_SYM through symhash.
 > 
-> o realign arguments
-> o use print_hex_dump instead of a local variant
+> The main difference between both types are:
+>  - jhash requires an expression with sreg, symhash doesn't.
+>  - symhash supports modulus and offset, but not seed.
+> 
+> Examples:
+> 
+>  nft add rule ip nat prerouting ct mark set jhash ip saddr mod 2
+>  nft add rule ip nat prerouting ct mark set symhash mod 2
 
-Applied, thanks Joe.
+Applied, thanks.
