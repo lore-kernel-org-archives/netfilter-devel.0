@@ -1,190 +1,105 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next] netfilter: nf_tables: add nft_set_lookup()
-Date: Mon,  6 Mar 2017 17:46:20 +0100
-Message-ID: <1488818780-4001-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH libnftnl] udata: add nftnl_udata_put_u32() and nftnl_udata_get_u32()
+Date: Mon,  6 Mar 2017 17:47:54 +0100
+Message-ID: <1488818874-4089-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43996 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44700 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932183AbdCFQqb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Mar 2017 11:46:31 -0500
+        id S932067AbdCFQsD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Mar 2017 11:48:03 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 99DB1E622
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Mar 2017 17:46:26 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 2A592E62A
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Mar 2017 17:48:00 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 88155DA80B
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Mar 2017 17:46:26 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1A87ADA811
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Mar 2017 17:48:00 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 048CDDA817
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Mar 2017 17:46:24 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B0E71DA81C
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Mar 2017 17:47:57 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This new function consolidates set lookup via either name or ID by
-introducing a new nft_set_lookup() function. Replace existing spots
-where we can use this too.
+Add new helper function to put and to fetch tlv that comes with u32
+payload.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |  9 +++++----
- net/netfilter/nf_tables_api.c     | 31 ++++++++++++++++++++++++-------
- net/netfilter/nft_dynset.c        | 14 ++++----------
- net/netfilter/nft_lookup.c        | 14 ++++----------
- net/netfilter/nft_objref.c        | 14 ++++----------
- 5 files changed, 41 insertions(+), 41 deletions(-)
+ include/libnftnl/udata.h |  3 +++
+ src/libnftnl.map         |  2 ++
+ src/udata.c              | 15 +++++++++++++++
+ 3 files changed, 20 insertions(+)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 2aa8a9d80fbe..f0d46726d06e 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -385,10 +385,11 @@ static inline struct nft_set *nft_set_container_of(const void *priv)
- 	return (void *)priv - offsetof(struct nft_set, data);
+diff --git a/include/libnftnl/udata.h b/include/libnftnl/udata.h
+index d36cef73feb5..e6f80f98b012 100644
+--- a/include/libnftnl/udata.h
++++ b/include/libnftnl/udata.h
+@@ -24,6 +24,8 @@ struct nftnl_udata *nftnl_udata_end(const struct nftnl_udata_buf *buf);
+ /* putters */
+ bool nftnl_udata_put(struct nftnl_udata_buf *buf, uint8_t type, uint32_t len,
+ 		     const void *value);
++bool nftnl_udata_put_u32(struct nftnl_udata_buf *buf, uint8_t type,
++			 uint32_t data);
+ bool nftnl_udata_put_strz(struct nftnl_udata_buf *buf, uint8_t type,
+ 			  const char *strz);
+ 
+@@ -31,6 +33,7 @@ bool nftnl_udata_put_strz(struct nftnl_udata_buf *buf, uint8_t type,
+ uint8_t nftnl_udata_type(const struct nftnl_udata *attr);
+ uint8_t nftnl_udata_len(const struct nftnl_udata *attr);
+ void *nftnl_udata_get(const struct nftnl_udata *attr);
++uint32_t nftnl_udata_get_u32(const struct nftnl_udata *attr);
+ 
+ /* iterator */
+ struct nftnl_udata *nftnl_udata_next(const struct nftnl_udata *attr);
+diff --git a/src/libnftnl.map b/src/libnftnl.map
+index 4282367db5b8..4c082102aa29 100644
+--- a/src/libnftnl.map
++++ b/src/libnftnl.map
+@@ -261,9 +261,11 @@ global:
+   nftnl_udata_end;
+   nftnl_udata_put;
+   nftnl_udata_put_strz;
++  nftnl_udata_put_u32;
+   nftnl_udata_type;
+   nftnl_udata_len;
+   nftnl_udata_get;
++  nftnl_udata_get_u32;
+   nftnl_udata_next;
+   nftnl_udata_parse;
+ 
+diff --git a/src/udata.c b/src/udata.c
+index 60c2f34fa3f5..d679dd053d11 100644
+--- a/src/udata.c
++++ b/src/udata.c
+@@ -94,6 +94,13 @@ bool nftnl_udata_put_strz(struct nftnl_udata_buf *buf, uint8_t type,
  }
+ EXPORT_SYMBOL(nftnl_udata_put_strz);
  
--struct nft_set *nf_tables_set_lookup(const struct nft_table *table,
--				     const struct nlattr *nla, u8 genmask);
--struct nft_set *nf_tables_set_lookup_byid(const struct net *net,
--					  const struct nlattr *nla, u8 genmask);
-+struct nft_set *nft_set_lookup(const struct net *net,
-+			       const struct nft_table *table,
-+			       const struct nlattr *nla_set_name,
-+			       const struct nlattr *nla_set_id,
-+			       u8 genmask);
- 
- static inline unsigned long nft_set_gc_interval(const struct nft_set *set)
- {
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 5e0ccfd5bb37..11df64e04665 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2523,8 +2523,8 @@ static int nft_ctx_init_from_setattr(struct nft_ctx *ctx, struct net *net,
- 	return 0;
- }
- 
--struct nft_set *nf_tables_set_lookup(const struct nft_table *table,
--				     const struct nlattr *nla, u8 genmask)
-+static struct nft_set *nf_tables_set_lookup(const struct nft_table *table,
-+					    const struct nlattr *nla, u8 genmask)
- {
- 	struct nft_set *set;
- 
-@@ -2538,11 +2538,10 @@ struct nft_set *nf_tables_set_lookup(const struct nft_table *table,
- 	}
- 	return ERR_PTR(-ENOENT);
- }
--EXPORT_SYMBOL_GPL(nf_tables_set_lookup);
- 
--struct nft_set *nf_tables_set_lookup_byid(const struct net *net,
--					  const struct nlattr *nla,
--					  u8 genmask)
-+static struct nft_set *nf_tables_set_lookup_byid(const struct net *net,
-+						 const struct nlattr *nla,
-+						 u8 genmask)
- {
- 	struct nft_trans *trans;
- 	u32 id = ntohl(nla_get_be32(nla));
-@@ -2557,7 +2556,25 @@ struct nft_set *nf_tables_set_lookup_byid(const struct net *net,
- 	}
- 	return ERR_PTR(-ENOENT);
- }
--EXPORT_SYMBOL_GPL(nf_tables_set_lookup_byid);
-+
-+struct nft_set *nft_set_lookup(const struct net *net,
-+			       const struct nft_table *table,
-+			       const struct nlattr *nla_set_name,
-+			       const struct nlattr *nla_set_id,
-+			       u8 genmask)
++bool nftnl_udata_put_u32(struct nftnl_udata_buf *buf, uint8_t type,
++			 uint32_t data)
 +{
-+	struct nft_set *set;
-+
-+	set = nf_tables_set_lookup(table, nla_set_name, genmask);
-+	if (IS_ERR(set)) {
-+		if (!nla_set_id)
-+			return set;
-+
-+		set = nf_tables_set_lookup_byid(net, nla_set_id, genmask);
-+	}
-+	return set;
++	return nftnl_udata_put(buf, type, sizeof(data), &data);
 +}
-+EXPORT_SYMBOL_GPL(nft_set_lookup);
++EXPORT_SYMBOL(nftnl_udata_put_u32);
++
+ uint8_t nftnl_udata_type(const struct nftnl_udata *attr)
+ {
+ 	return attr->type;
+@@ -112,6 +119,14 @@ void *nftnl_udata_get(const struct nftnl_udata *attr)
+ }
+ EXPORT_SYMBOL(nftnl_udata_get);
  
- static int nf_tables_set_alloc_name(struct nft_ctx *ctx, struct nft_set *set,
- 				    const char *name)
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index 049ad2d9ee66..3948da380259 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -133,16 +133,10 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 			priv->invert = true;
- 	}
- 
--	set = nf_tables_set_lookup(ctx->table, tb[NFTA_DYNSET_SET_NAME],
--				   genmask);
--	if (IS_ERR(set)) {
--		if (tb[NFTA_DYNSET_SET_ID])
--			set = nf_tables_set_lookup_byid(ctx->net,
--							tb[NFTA_DYNSET_SET_ID],
--							genmask);
--		if (IS_ERR(set))
--			return PTR_ERR(set);
--	}
-+	set = nft_set_lookup(ctx->net, ctx->table, tb[NFTA_DYNSET_SET_NAME],
-+			     tb[NFTA_DYNSET_SET_ID], genmask);
-+	if (IS_ERR(set))
-+		return PTR_ERR(set);
- 
- 	if (set->ops->update == NULL)
- 		return -EOPNOTSUPP;
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index e21aea7e5ec8..475570e89ede 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -71,16 +71,10 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
- 	    tb[NFTA_LOOKUP_SREG] == NULL)
- 		return -EINVAL;
- 
--	set = nf_tables_set_lookup(ctx->table, tb[NFTA_LOOKUP_SET], genmask);
--	if (IS_ERR(set)) {
--		if (tb[NFTA_LOOKUP_SET_ID]) {
--			set = nf_tables_set_lookup_byid(ctx->net,
--							tb[NFTA_LOOKUP_SET_ID],
--							genmask);
--		}
--		if (IS_ERR(set))
--			return PTR_ERR(set);
--	}
-+	set = nft_set_lookup(ctx->net, ctx->table, tb[NFTA_LOOKUP_SET],
-+			     tb[NFTA_LOOKUP_SET_ID], genmask);
-+	if (IS_ERR(set))
-+		return PTR_ERR(set);
- 
- 	if (set->flags & NFT_SET_EVAL)
- 		return -EOPNOTSUPP;
-diff --git a/net/netfilter/nft_objref.c b/net/netfilter/nft_objref.c
-index 1ae8c49ca4a1..1dd428fbaaa3 100644
---- a/net/netfilter/nft_objref.c
-+++ b/net/netfilter/nft_objref.c
-@@ -116,16 +116,10 @@ static int nft_objref_map_init(const struct nft_ctx *ctx,
- 	struct nft_set *set;
- 	int err;
- 
--	set = nf_tables_set_lookup(ctx->table, tb[NFTA_OBJREF_SET_NAME], genmask);
--	if (IS_ERR(set)) {
--		if (tb[NFTA_OBJREF_SET_ID]) {
--			set = nf_tables_set_lookup_byid(ctx->net,
--							tb[NFTA_OBJREF_SET_ID],
--							genmask);
--		}
--		if (IS_ERR(set))
--			return PTR_ERR(set);
--	}
-+	set = nft_set_lookup(ctx->net, ctx->table, tb[NFTA_OBJREF_SET_NAME],
-+			     tb[NFTA_OBJREF_SET_ID], genmask);
-+	if (IS_ERR(set))
-+		return PTR_ERR(set);
- 
- 	if (!(set->flags & NFT_SET_OBJECT))
- 		return -EINVAL;
++uint32_t nftnl_udata_get_u32(const struct nftnl_udata *attr)
++{
++	uint32_t *data = (uint32_t *)attr->value;
++
++	return *data;
++}
++EXPORT_SYMBOL(nftnl_udata_get_u32);
++
+ struct nftnl_udata *nftnl_udata_next(const struct nftnl_udata *attr)
+ {
+ 	return (struct nftnl_udata *)&attr->value[attr->len];
 -- 
 2.1.4
 
