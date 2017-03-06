@@ -1,32 +1,33 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nf-next PATCH] nftables: exthdr: Allow checking TCP option
- presence, too
-Date: Mon, 6 Mar 2017 17:55:05 +0100
-Message-ID: <20170306165505.GA4507@salvia>
-References: <20170220165227.13505-1-phil@nwl.cc>
+Subject: Re: [PATCH] netfilter: remove redundant check on ret being non-zero
+Date: Mon, 6 Mar 2017 18:06:36 +0100
+Message-ID: <20170306170636.GA5955@salvia>
+References: <20170228113115.19888-1-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Phil Sutter <phil@nwl.cc>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53562 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753777AbdCFREh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Mar 2017 12:04:37 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5A201E62A
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Mar 2017 17:55:35 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4C6C0DA814
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Mar 2017 17:55:35 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 28408DA842
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Mar 2017 17:55:33 +0100 (CET)
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S . Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        James Morris <jmorris@namei.org>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Patrick McHardy <kaber@trash.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170220165227.13505-1-phil@nwl.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20170228113115.19888-1-colin.king@canonical.com>
+Sender: kernel-janitors-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Applied to nf-next, thanks Phil.
+On Tue, Feb 28, 2017 at 11:31:15AM +0000, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+> 
+> ret is initialized to zero and if it is set to non-zero in the
+> xt_entry_foreach loop then we exit via the out_free label. Hence
+> the check for ret being non-zero is redundant and can be removed.
+> 
+> Detected by CoverityScan, CID#1357132 ("Logically Dead Code")
 
-I have added a short description to this.
+Applied, thanks.
