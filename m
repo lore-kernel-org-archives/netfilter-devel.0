@@ -1,72 +1,68 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf 1/2] netfilter: nft_set_bitmap: fetch the element key
- based on the set->klen
-Date: Mon, 6 Mar 2017 13:01:19 +0100
-Message-ID: <20170306120119.GA3461@salvia>
-References: <1488729773-48343-1-git-send-email-zlpnobody@163.com>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: ANNOUNCE: New talk accepted on IO no Things
+Date: Mon, 6 Mar 2017 08:32:21 -0500
+Message-ID: <5dea07e6-10bc-421f-15d2-a4f71a4bf7b5@mojatatu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
-To: Liping Zhang <zlpnobody@163.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: tech-committee@netdevconf.org, netfilter-devel@vger.kernel.org,
+        Brenda Butler <bjb@mojatatu.com>,
+        Stephen Jaworski <jaws@mojatatu.com>,
+        netfilter@vger.kernel.org, linux-wireless@vger.kernel.org
+To: people@netdevconf.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46646 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753200AbdCFMBf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Mar 2017 07:01:35 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4A7CF19833F
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Mar 2017 13:01:31 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 386E2DA817
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Mar 2017 13:01:31 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 640DDDA81F
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Mar 2017 13:01:27 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1488729773-48343-1-git-send-email-zlpnobody@163.com>
+Received: from mail-it0-f65.google.com ([209.85.214.65]:35520 "EHLO
+        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752811AbdCFNlv (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Mar 2017 08:41:51 -0500
+Received: by mail-it0-f65.google.com with SMTP id 203so9527465ith.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 06 Mar 2017 05:41:47 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 06, 2017 at 12:02:52AM +0800, Liping Zhang wrote:
-> From: Liping Zhang <zlpnobody@gmail.com>
-> 
-> Currently we just assume the element key as a u32 integer, regardless of
-> the set key length.
-> 
-> This is incorrect, for example, the tcp port number is only 16 bits.
-> So when we use the nft_payload expr to get the tcp dport and store
-> it to dreg, the dport will be stored at 0~15 bits, and 16~31 bits
-> will be padded with zero.
-> 
-> So the reg->data[dreg] will be looked like as below:
->   0          15           31
->   +-+-+-+-+-+-+-+-+-+-+-+-+
->   | tcp dport |      0    |
->   +-+-+-+-+-+-+-+-+-+-+-+-+
-> But for these big-endian systems, if we treate this register as a u32
-> integer, the element key will be larger than 65535, so the following
-> lookup in bitmap set will cause out of bound access.
-> 
-> Another issue is that if we add element with comments in bitmap
-> set(although the comments will be ignored eventually), the element will
-> vanish strangely. Because we treate the element key as a u32 integer, so
-> the comments will become the part of the element key, then the element
-> key will also be larger than 65535 and out of bound access will happen:
->   # nft add element t s { 1 comment test }
 
-Right, the userdata case is not handled properly. And in this case we
-have no specific flag at set creation, so element comments may come
-without previous notice via set flags.
+The tech committee would like to announce a new accepted talk.
 
-I think we have to keep a list of dummy nft_set_ext that is only used
-in the dump path, we can simplify this logic at the cost of increasing
-memory consumption. Another alternative is to keep around a structure
-to store only the set element userdata that we need for comments.
+Alexander Aring will give a talk on IOT _without the things_ ;->
+Building virtual 6LoWPAN Mesh Networks
 
-Let me think.
+Details on the talk:
+----
 
-Your patches look good to me. Probably we can skip 2/2 if we introduce
-the dummy nft_set_ext list, and remove the ->flush field for
-nft_set_iter.
+Operating IEEE 802.15.4 6LoWPAN IOT networks often requires to deal
+with lossy wireless connections. This often requires to run
+experimental work with IPV6 routing protocols e.g RPL etc. Such
+experimental work requires a physical environment which is difficult
+to create or expensive to setup.
 
-Thanks.
+In this talk we describe our approach to create a virtual networking
+environment to address this challenge.
+We use the virtual IEEE 802.15.4 driver "fakelb" to emulate
+multiple virtual PHYs which can talk to each others.
+
+The fakelb driver is similar to the mac80211_hwsim driver and doesn't
+require any IEEE 802.15.4 hardware.
+
+In addition we provide a mechanism to create a mesh network topology
+where these virtual PHYs act as graph edges. Edges are modeled in the
+config as simple 2D-vectors each of which represents the connection between
+one PHY to another PHY. On top of each PHY you can run several 6LoWPAN
+interfaces separated by a network namespace (container).
+
+It is possible to use AF_PACKET to connect other IEEE 802.15.4
+Stacks(e.g RIOT-OS or OpenThread) to be part of the setup interacting
+with the Linux kernel IEEE 802.15.4 stack implementation.
+
+In addition to the described static configuration, it is possible to
+make runtime changes on the physical layer e.g. topology changes or
+manipulate link quality parameters on a per connection basis. Upper
+protocols like RPL need to react on these changes and offer new
+routing paths for your 6LoWPAN network. This talk will describe the
+current state of this work and how you can use it. If time permits, We
+will do a live demonstration of some RPL example where we create a
+mesh network with multiple nodes.
+----
+
+cheers,
+jamal
