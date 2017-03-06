@@ -1,33 +1,39 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: remove redundant check on ret being non-zero
-Date: Mon, 6 Mar 2017 18:06:36 +0100
-Message-ID: <20170306170636.GA5955@salvia>
-References: <20170228113115.19888-1-colin.king@canonical.com>
+From: Kaarle Ritvanen <kaarle.ritvanen@datakunkku.fi>
+Subject: Re: [PATCH ulogd2] adjust ulogd.logrotate to match ulogd.conf
+Date: Mon, 6 Mar 2017 19:06:51 +0200 (EET)
+Message-ID: <alpine.LFD.2.20.1703061844310.6990@kanala.kunkku.net>
+References: <a8e669c7-6f9a-405f-bac3-c7d0c33064eb@email.android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S . Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        James Morris <jmorris@namei.org>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Patrick McHardy <kaber@trash.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170228113115.19888-1-colin.king@canonical.com>
-Sender: kernel-janitors-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
+To: Eric Leblond <eric@regit.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from welho-filter1.welho.com ([83.102.41.23]:56118 "EHLO
+        welho-filter1.welho.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754312AbdCFRG5 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Mar 2017 12:06:57 -0500
+In-Reply-To: <a8e669c7-6f9a-405f-bac3-c7d0c33064eb@email.android.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Feb 28, 2017 at 11:31:15AM +0000, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> ret is initialized to zero and if it is set to non-zero in the
-> xt_entry_foreach loop then we exit via the out_free label. Hence
-> the check for ret being non-zero is redundant and can be removed.
-> 
-> Detected by CoverityScan, CID#1357132 ("Logically Dead Code")
+On Sun, 12 Feb 2017, Eric Leblond wrote:
 
-Applied, thanks.
+> This is not correct. All the listed files are default value for various 
+> existing output modules so we should keep them.
+
+Sorry, I was looking at the default configuration file. Currently, the 
+default configuration file is inconsistent with the module defaults. I 
+think it would be good to harmonize all these, so I posted a couple of 
+patches:
+
+Harmonize default log files:
+http://marc.info/?l=netfilter-devel&m=148697928328626&w=2
+
+Add missing default log files to logrotate configuration:
+http://marc.info/?l=netfilter-devel&m=148697928528629&w=2
+
+I wish somebody would comment these.
+
+BR,
+Kaarle
