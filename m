@@ -1,39 +1,40 @@
-From: Kaarle Ritvanen <kaarle.ritvanen@datakunkku.fi>
-Subject: Re: [PATCH ulogd2] adjust ulogd.logrotate to match ulogd.conf
-Date: Mon, 6 Mar 2017 19:06:51 +0200 (EET)
-Message-ID: <alpine.LFD.2.20.1703061844310.6990@kanala.kunkku.net>
-References: <a8e669c7-6f9a-405f-bac3-c7d0c33064eb@email.android.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: Use pr_cont where appropriate
+Date: Mon, 6 Mar 2017 18:02:05 +0100
+Message-ID: <20170306170204.GA5643@salvia>
+References: <82a5ec63e547c425644d2dd0165fcc664a2b265e.1488319732.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
-To: Eric Leblond <eric@regit.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from welho-filter1.welho.com ([83.102.41.23]:56118 "EHLO
-        welho-filter1.welho.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754312AbdCFRG5 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Mar 2017 12:06:57 -0500
-In-Reply-To: <a8e669c7-6f9a-405f-bac3-c7d0c33064eb@email.android.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>, netdev@vger.kernel.org,
+	bridge@lists.linux-foundation.org, James Morris <jmorris@namei.org>,
+	Patrick McHardy <kaber@trash.net>, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	"David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <82a5ec63e547c425644d2dd0165fcc664a2b265e.1488319732.git.joe@perches.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 12 Feb 2017, Eric Leblond wrote:
+On Tue, Feb 28, 2017 at 02:09:24PM -0800, Joe Perches wrote:
+> Logging output was changed when simple printks without KERN_CONT
+> are now emitted on a new line and KERN_CONT is required to continue
+> lines so use pr_cont.
+> 
+> Miscellanea:
+> 
+> o realign arguments
+> o use print_hex_dump instead of a local variant
 
-> This is not correct. All the listed files are default value for various 
-> existing output modules so we should keep them.
-
-Sorry, I was looking at the default configuration file. Currently, the 
-default configuration file is inconsistent with the module defaults. I 
-think it would be good to harmonize all these, so I posted a couple of 
-patches:
-
-Harmonize default log files:
-http://marc.info/?l=netfilter-devel&m=148697928328626&w=2
-
-Add missing default log files to logrotate configuration:
-http://marc.info/?l=netfilter-devel&m=148697928528629&w=2
-
-I wish somebody would comment these.
-
-BR,
-Kaarle
+Applied, thanks Joe.
