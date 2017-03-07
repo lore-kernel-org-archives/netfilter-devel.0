@@ -1,80 +1,51 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [iptables PATCH] extensions: libxt_conntrack: Fix 'state' translation to nft
-Date: Tue,  7 Mar 2017 16:35:07 +0100
-Message-ID: <20170307153507.14640-1-phil@nwl.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [iptables PATCH] extensions: libxt_conntrack: Fix 'state'
+ translation to nft
+Date: Tue, 7 Mar 2017 17:20:55 +0100
+Message-ID: <20170307162055.GA4753@salvia>
+References: <20170307153507.14640-1-phil@nwl.cc>
+ <20170307161729.GA2233@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:54135 "EHLO mail.nwl.cc"
+Received: from mail.us.es ([193.147.175.20]:38670 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753429AbdCGPnW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Mar 2017 10:43:22 -0500
+        id S1755476AbdCGQV3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 7 Mar 2017 11:21:29 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 8DADA65B17
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Mar 2017 17:20:57 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 80E25DA7FA
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Mar 2017 17:20:57 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4F995DA853
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Mar 2017 17:20:55 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20170307161729.GA2233@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-While translating a conntrack state match in old syntax, matches are
-looked up by name, only. This returned the revision 0 entry since
-matches are registered in reverse order of appearance in the array
-passed to xtables_register_matches(). The problem is that revision 0
-doesn't define an xlate callback.
+On Tue, Mar 07, 2017 at 05:17:29PM +0100, Pablo Neira Ayuso wrote:
+> On Tue, Mar 07, 2017 at 04:35:07PM +0100, Phil Sutter wrote:
+> > While translating a conntrack state match in old syntax, matches are
+> > looked up by name, only. This returned the revision 0 entry since
+> > matches are registered in reverse order of appearance in the array
+> > passed to xtables_register_matches(). The problem is that revision 0
+> > doesn't define an xlate callback.
+> > 
+> > Fix this by reordering the matches in conntrack_mt_reg so that the
+> > highest revision one is found first.
+> 
+> Applied, thanks Phil.
 
-Fix this by reordering the matches in conntrack_mt_reg so that the
-highest revision one is found first.
+Wait.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
-The strange thing here is that I'm pretty sure this has been working
-once. My logs from playing with iptables-restore-translate from November
-2016 indicate that. Yet I have not been able to find a point in iptables
-git history in which it works.
----
- extensions/libxt_conntrack.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+Do you mean this case?
 
-diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
-index 72c522004a7ea..60ce9d1dc0a2e 100644
---- a/extensions/libxt_conntrack.c
-+++ b/extensions/libxt_conntrack.c
-@@ -1507,6 +1507,19 @@ static struct xtables_match conntrack_mt_reg[] = {
- 	{
- 		.family        = NFPROTO_UNSPEC,
- 		.name          = "state",
-+		.revision      = 0,
-+		.version       = XTABLES_VERSION,
-+		.size          = XT_ALIGN(sizeof(struct xt_state_info)),
-+		.userspacesize = XT_ALIGN(sizeof(struct xt_state_info)),
-+		.help          = state_help,
-+		.print         = state_print,
-+		.save          = state_save,
-+		.x6_parse      = state_parse,
-+		.x6_options    = state_opts,
-+	},
-+	{
-+		.family        = NFPROTO_UNSPEC,
-+		.name          = "state",
- 		.real_name     = "conntrack",
- 		.revision      = 1,
- 		.ext_flags     = XTABLES_EXT_ALIAS,
-@@ -1550,19 +1563,6 @@ static struct xtables_match conntrack_mt_reg[] = {
- 		.x6_options    = state_opts,
- 		.xlate         = state_xlate,
- 	},
--	{
--		.family        = NFPROTO_UNSPEC,
--		.name          = "state",
--		.revision      = 0,
--		.version       = XTABLES_VERSION,
--		.size          = XT_ALIGN(sizeof(struct xt_state_info)),
--		.userspacesize = XT_ALIGN(sizeof(struct xt_state_info)),
--		.help          = state_help,
--		.print         = state_print,
--		.save          = state_save,
--		.x6_parse      = state_parse,
--		.x6_options    = state_opts,
--	},
- };
- 
- void _init(void)
--- 
-2.11.0
+# iptables-translate -I INPUT -m state --state NEW
+nft insert rule ip filter INPUT ct state new  counter
 
+Hm, this works here.
