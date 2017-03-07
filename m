@@ -1,63 +1,102 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH nf 1/2] netfilter: nft_set_bitmap: fetch the element key
- based on the set->klen
-Date: Tue, 7 Mar 2017 12:37:56 +0800
-Message-ID: <CAML_gOdOe9cA94MFTd3VJjdw_gGpOxL+arG2rePAK9bOuQ=jew@mail.gmail.com>
-References: <1488729773-48343-1-git-send-email-zlpnobody@163.com>
- <20170306120119.GA3461@salvia> <CAML_gOedJF8udDAt-=aBAUZAvCKUGWh1RnqdLASn42LfoJGCrA@mail.gmail.com>
- <20170306164259.GA1080@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Liping Zhang <zlpnobody@163.com>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: fgao@ikuai8.com
+Subject: [PATCH nf-next 1/1] netfilter: Use bool type instead of int as the return value of nf_conntrack_tuple_taken and nf_nat_used_tuple
+Date: Tue,  7 Mar 2017 12:28:55 +0800
+Message-ID: <1488860935-525-1-git-send-email-fgao@ikuai8.com>
+Cc: Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+        gfree.wind@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ua0-f193.google.com ([209.85.217.193]:36307 "EHLO
-        mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753408AbdCGEjz (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Mar 2017 23:39:55 -0500
-Received: by mail-ua0-f193.google.com with SMTP id y16so19944204uay.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 Mar 2017 20:37:57 -0800 (PST)
-In-Reply-To: <20170306164259.GA1080@salvia>
+Received: from smtpbg340.qq.com ([14.17.44.35]:60189 "EHLO smtpbg340.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753408AbdCGElb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Mar 2017 23:41:31 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2017-03-07 0:42 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-[...]
->> static inline void nft_register_store16(u32 *dreg, u16 value)
->> {
->>         *dreg = 0;
->>         *(u16 *)dreg = value;
->> }
->>
->> static inline void nft_register_store8(u32 *dreg, u8 value)
->> {
->>         *dreg = 0;
->>         *(u8 *)dreg = value;
->> }
->
-> I think this a good idea, send patches to add this and use them for
-> the nf tree, please.
+From: Gao Feng <fgao@ikuai8.com>
 
-OK. I will have a closer look into these.
+These two functions return 1/0 as true or false, so it could use bool
+type directly instead of int.
 
-Thanks Pablo.
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ include/net/netfilter/nf_conntrack.h | 2 +-
+ include/net/netfilter/nf_nat.h       | 2 +-
+ net/netfilter/nf_conntrack_core.c    | 6 +++---
+ net/netfilter/nf_nat_core.c          | 2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
->
->> ...
->>
->> Am I wrong? Or I totally misunderstood this byte-order issue?
->
-> This looks correct to me.
->
-> Note that:
->
-> *dest = 0;
->
-> is just there because of concatenations, so we make sure that we zero
-> the pad given that register allocation happens at 32-bit level.
->
-> Another note: For method 3. __force is there for the sparse checker
-> given the different endianness of both sides of the assignment.
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index f540f9a..32a0394 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -160,7 +160,7 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
+ 
+ /* Is this tuple taken? (ignoring any belonging to the given
+    conntrack). */
+-int nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
++bool nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
+ 			     const struct nf_conn *ignored_conntrack);
+ 
+ #define NFCT_INFOMASK	7UL
+diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
+index c327a43..cfcf25d 100644
+--- a/include/net/netfilter/nf_nat.h
++++ b/include/net/netfilter/nf_nat.h
+@@ -48,7 +48,7 @@ extern unsigned int nf_nat_alloc_null_binding(struct nf_conn *ct,
+ struct nf_conn_nat *nf_ct_nat_ext_add(struct nf_conn *ct);
+ 
+ /* Is this tuple already taken? (not by us)*/
+-int nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
++bool nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
+ 		      const struct nf_conn *ignored_conntrack);
+ 
+ static inline struct nf_conn_nat *nfct_nat(const struct nf_conn *ct)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 071b97f..b0eaa24 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -837,7 +837,7 @@ static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
+ 
+ /* Returns true if a connection correspondings to the tuple (required
+    for NAT). */
+-int
++bool
+ nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
+ 			 const struct nf_conn *ignored_conntrack)
+ {
+@@ -870,7 +870,7 @@ static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
+ 		if (nf_ct_key_equal(h, tuple, zone, net)) {
+ 			NF_CT_STAT_INC_ATOMIC(net, found);
+ 			rcu_read_unlock();
+-			return 1;
++			return true;
+ 		}
+ 	}
+ 
+@@ -881,7 +881,7 @@ static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
+ 
+ 	rcu_read_unlock();
+ 
+-	return 0;
++	return false;
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_tuple_taken);
+ 
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 94b14c5..887a08e 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -135,7 +135,7 @@ static u32 nf_nat_bysource_hash(const void *data, u32 len, u32 seed)
+ }
+ 
+ /* Is this tuple already taken? (not by us) */
+-int
++bool
+ nf_nat_used_tuple(const struct nf_conntrack_tuple *tuple,
+ 		  const struct nf_conn *ignored_conntrack)
+ {
+-- 
+1.9.1
+
+
