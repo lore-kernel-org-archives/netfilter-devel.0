@@ -1,48 +1,58 @@
-From: Taehee Yoo <ap420073@gmail.com>
-Subject: [PATCH] netfilter: nf_reject: remove unused variable
-Date: Tue,  7 Mar 2017 22:02:50 +0900
-Message-ID: <20170307130250.16693-1-ap420073@gmail.com>
-Cc: ap420073@gmail.com
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+From: Eric Leblond <eric@regit.org>
+Subject: Re: [PATCH ulogd2 1/2] ulogd.conf: harmonize log file options with
+ module default values
+Date: Tue, 07 Mar 2017 16:00:02 +0200
+Message-ID: <1488895202.4890.4.camel@regit.org>
+References: <20170213094729.23478-1-kaarle.ritvanen@datakunkku.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+To: Kaarle Ritvanen <kaarle.ritvanen@datakunkku.fi>,
+        netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:36172 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755257AbdCGOGC (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Mar 2017 09:06:02 -0500
-Received: by mail-pf0-f195.google.com with SMTP id j5so248779pfb.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 07 Mar 2017 06:05:16 -0800 (PST)
+Received: from home.regit.org ([37.187.126.138]:38319 "EHLO home.regit.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755246AbdCGOWz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 7 Mar 2017 09:22:55 -0500
+In-Reply-To: <20170213094729.23478-1-kaarle.ritvanen@datakunkku.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-variable oiph is not used.
+Hello Kaarle,
 
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
----
- net/ipv4/netfilter/nf_reject_ipv4.c | 3 ---
- 1 file changed, 3 deletions(-)
+Thanks for the cleaning work. Some comment inside.
 
-diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
-index 146d861..7cd8d0d 100644
---- a/net/ipv4/netfilter/nf_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nf_reject_ipv4.c
-@@ -104,7 +104,6 @@ EXPORT_SYMBOL_GPL(nf_reject_ip_tcphdr_put);
- void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook)
- {
- 	struct sk_buff *nskb;
--	const struct iphdr *oiph;
- 	struct iphdr *niph;
- 	const struct tcphdr *oth;
- 	struct tcphdr _oth;
-@@ -116,8 +115,6 @@ void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook)
- 	if (skb_rtable(oldskb)->rt_flags & (RTCF_BROADCAST | RTCF_MULTICAST))
- 		return;
- 
--	oiph = ip_hdr(oldskb);
--
- 	nskb = alloc_skb(sizeof(struct iphdr) + sizeof(struct tcphdr) +
- 			 LL_MAX_HEADER, GFP_ATOMIC);
- 	if (!nskb)
+On Mon, 2017-02-13 at 11:47 +0200, Kaarle Ritvanen wrote:
+> Signed-off-by: Kaarle Ritvanen <kaarle.ritvanen@datakunkku.fi>
+> ---
+>  ulogd.conf.in | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/ulogd.conf.in b/ulogd.conf.in
+> index 2fcf39a..6e7bdf4 100644
+> --- a/ulogd.conf.in
+> +++ b/ulogd.conf.in
+> @@ -183,15 +183,15 @@ nlgroup=1
+>  socket_path="/tmp/nuauth_ulogd2.sock"
+>  
+>  [emu1]
+> -file="/var/log/ulogd_syslogemu.log"
+> +file="/var/log/ulogd.syslogemu"
+
+I really like the idea of getting an harmonized naming for the log
+files but I think we should do it reverse for values that are not
+commented in the configuration file. Most distributions and install are
+shipping with a copy of default configuration. 
+
+Most users won't have changed the values that are uncommented. So they
+will have on disk the log file with name defined in the configuration
+file. And they will benefit from a new logrotate file. Thus we should
+use the file name defined in the conf as value of the default file name
+in code.
+
+Could you resubmit a patchset ?
+
+BR,
 -- 
-2.9.3
-
+Eric Leblond <eric@regit.org>
+Blog: https://home.regit.org/
