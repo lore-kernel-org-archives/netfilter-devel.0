@@ -1,109 +1,69 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [iptables PATCH] extensions: libxt_conntrack: Fix 'state'
- translation to nft
-Date: Wed, 8 Mar 2017 11:36:52 +0100
-Message-ID: <20170308103652.GA3800@salvia>
-References: <20170307153507.14640-1-phil@nwl.cc>
- <20170307161729.GA2233@salvia>
- <20170307162055.GA4753@salvia>
- <20170307165409.GB19869@orbyte.nwl.cc>
- <20170307193158.GA19663@salvia>
- <20170307200745.GC19869@orbyte.nwl.cc>
+Subject: Re: [PATCH iptables] libxtables: fix wrong naddr when using localhost
+Date: Wed, 8 Mar 2017 10:55:32 +0100
+Message-ID: <20170308095532.GA1723@salvia>
+References: <20170307232813.17428-1-alexander@alemayhu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Alexander Alemayhu <alexander@alemayhu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42664 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:46122 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752458AbdCHKp2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Mar 2017 05:45:28 -0500
+        id S1751291AbdCHKuI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Mar 2017 05:50:08 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 443281CCC2E
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 11:37:01 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id CA2D31AAAF9
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 10:55:36 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 356F2DA849
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 11:37:01 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BB460DA7FA
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 10:55:36 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0AAA4DA808
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 11:36:58 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 601EBDA7E0
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 10:55:34 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20170307200745.GC19869@orbyte.nwl.cc>
+In-Reply-To: <20170307232813.17428-1-alexander@alemayhu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 07, 2017 at 09:07:45PM +0100, Phil Sutter wrote:
-> On Tue, Mar 07, 2017 at 08:31:58PM +0100, Pablo Neira Ayuso wrote:
-> > On Tue, Mar 07, 2017 at 05:54:09PM +0100, Phil Sutter wrote:
-> > > On Tue, Mar 07, 2017 at 05:20:55PM +0100, Pablo Neira Ayuso wrote:
-> > > > On Tue, Mar 07, 2017 at 05:17:29PM +0100, Pablo Neira Ayuso wrote:
-> > > > > On Tue, Mar 07, 2017 at 04:35:07PM +0100, Phil Sutter wrote:
-> > > > > > While translating a conntrack state match in old syntax, matches are
-> > > > > > looked up by name, only. This returned the revision 0 entry since
-> > > > > > matches are registered in reverse order of appearance in the array
-> > > > > > passed to xtables_register_matches(). The problem is that revision 0
-> > > > > > doesn't define an xlate callback.
-> > > > > > 
-> > > > > > Fix this by reordering the matches in conntrack_mt_reg so that the
-> > > > > > highest revision one is found first.
-> > > > > 
-> > > > > Applied, thanks Phil.
-> > > > 
-> > > > Wait.
-> > > > 
-> > > > Do you mean this case?
-> > > > 
-> > > > # iptables-translate -I INPUT -m state --state NEW
-> > > > nft insert rule ip filter INPUT ct state new  counter
-> > > > 
-> > > > Hm, this works here.
-> > > 
-> > > Yes, that's it. And it working for you just emphasizes something's fishy
-> > > here. I just reverted my patch, then it's like this:
-> > > 
-> > > | $ ./configure --prefix=$PWD/install && make && make install
-> > > | [...]
-> > > | $ ./install/sbin/iptables-translate -I INPUT -m state --state NEW
-> > > | nft # -I INPUT -m state --state NEW
-> > > 
-> > > Using 'strace -eopen' I see that libxt_state.so from the install
-> > > destination is used, not the system one.
-> > > 
-> > > Also, I did this change for debugging:
-> > > 
-> > > | --- a/iptables/xtables-translate.c
-> > > | +++ b/iptables/xtables-translate.c
-> > > | @@ -100,6 +100,10 @@ int xlate_matches(const struct iptables_command_state *cs, struct xt_xlate *xl)
-> > > |                         .escape_quotes  = !cs->restore,
-> > > |                 };
-> > > |  
-> > > | +               printf("found match %s, rev %u, xlate is %p\n",
-> > > | +                               matchp->match->name,
-> > > | +                               matchp->match->revision,
-> > > | +                               matchp->match->xlate);
-> > > |                 if (!matchp->match->xlate)
-> > > |                         return 0;
-> > > 
-> > > The output is then:
-> > > 
-> > > | $ ./install/sbin/iptables-translate -I INPUT -m state --state NEW
-> > > | nft found match state, rev 0, xlate is (nil)
-> > > | # -I INPUT -m state --state NEW
-> > > 
-> > > Am I missing something??
-> > 
-> > Via nft_compatible_revision() I'm getting revision 3. Are you using
-> > latest kernel from git?
+On Wed, Mar 08, 2017 at 12:28:13AM +0100, Alexander Alemayhu wrote:
+> $ iptables-translate -A INPUT -p tcp -s localhost --dport 8000 -j ACCEPT
 > 
-> No, I'm running 4.9.10-gentoo here. But a quick test with nf-next kernel
-> from Feb 23rd in a VM shows the same result. I have libnftnl-1.0.6
-> installed, is that relevant?
+> gives
+> 
+>  nft add rule ip filter INPUT ip saddr 127.0.0.1 tcp dport 8000 counter accept
+>  add rule ip filter INPUT ip saddr 127.0.0.1 tcp dport 8000 counter accept
+> 
+> with this patch we get
+> 
+>  nft add rule ip filter INPUT ip saddr 127.0.0.1 tcp dport 8000 counter accept
 
-I have a way to trigger this here, but not sure if that is the problem
-there. If the kernel comes with no nft_compat support, then
-nft_compatible_revision() fails, and
-xtables_fully_register_pending_match() ends up selecting revision 0.
+This is actually a generic problem:
 
-In such case, I can reproduce your problem.
+# iptables -I INPUT -p tcp -s localhost
 
-# iptables-translate -A INPUT -m state --state NEW
-nft # -A INPUT -m state --state NEW 
+results in:
+
+# iptables-save 
+# Generated by iptables-save v1.6.1 on Wed Mar  8 10:53:07 2017
+*filter
+:INPUT ACCEPT [13:1628]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [4:317]
+-A INPUT -s 127.0.0.1/32 -p tcp
+-A INPUT -s 127.0.0.1/32 -p tcp
+COMMIT
+# Completed on Wed Mar  8 10:53:07 2017
+
+Original problem was introduce at:
+
+commit 2d2b5e046aa56a518160716a9ddf9df53fc79c1f
+Author: Arpan Kapoor <rpnkpr@gmail.com>
+Date:   Thu Mar 17 18:27:19 2016 +0530
+
+    libxtables: Replace gethostbyname() with getaddrinfo()
+
+Did you also run iptables tests? See iptables-test.py, although I
+guess our test infrastructure is not catching up this case.
+
+Thanks!
