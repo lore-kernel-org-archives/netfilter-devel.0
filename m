@@ -1,133 +1,131 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH iptables 2/2] libxtables: pass AI_ADDRCONFIG flag to getaddrinfo()
-Date: Wed,  8 Mar 2017 14:16:10 +0100
-Message-ID: <1488978970-30802-2-git-send-email-pablo@netfilter.org>
-References: <1488978970-30802-1-git-send-email-pablo@netfilter.org>
-Cc: alexander@alemayhu.com
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH] extensions: libxt_conntrack: Fix 'state'
+ translation to nft
+Date: Wed, 8 Mar 2017 14:38:42 +0100
+Message-ID: <20170308133842.GA31371@salvia>
+References: <20170307153507.14640-1-phil@nwl.cc>
+ <20170307161729.GA2233@salvia>
+ <20170307162055.GA4753@salvia>
+ <20170307165409.GB19869@orbyte.nwl.cc>
+ <20170307193158.GA19663@salvia>
+ <20170307200745.GC19869@orbyte.nwl.cc>
+ <20170308103652.GA3800@salvia>
+ <20170308123151.GA6028@orbyte.nwl.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55178 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34538 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753130AbdCHNZq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Mar 2017 08:25:46 -0500
+        id S1753333AbdCHNi4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Mar 2017 08:38:56 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 03B2C1A2089
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 14:16:18 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 49BC71AAB0C
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 14:38:51 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E6A97DA807
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 14:16:17 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 35F28DA84D
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 14:38:51 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9C55ADA7F7
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 14:16:15 +0100 (CET)
-In-Reply-To: <1488978970-30802-1-git-send-email-pablo@netfilter.org>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 45F59DA844
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 14:38:47 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20170308123151.GA6028@orbyte.nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-According to man getaddrinfo(3):
+On Wed, Mar 08, 2017 at 01:31:51PM +0100, Phil Sutter wrote:
+> On Wed, Mar 08, 2017 at 11:36:52AM +0100, Pablo Neira Ayuso wrote:
+> > On Tue, Mar 07, 2017 at 09:07:45PM +0100, Phil Sutter wrote:
+> > > On Tue, Mar 07, 2017 at 08:31:58PM +0100, Pablo Neira Ayuso wrote:
+> > > > On Tue, Mar 07, 2017 at 05:54:09PM +0100, Phil Sutter wrote:
+> > > > > On Tue, Mar 07, 2017 at 05:20:55PM +0100, Pablo Neira Ayuso wrote:
+> > > > > > On Tue, Mar 07, 2017 at 05:17:29PM +0100, Pablo Neira Ayuso wrote:
+> > > > > > > On Tue, Mar 07, 2017 at 04:35:07PM +0100, Phil Sutter wrote:
+> > > > > > > > While translating a conntrack state match in old syntax, matches are
+> > > > > > > > looked up by name, only. This returned the revision 0 entry since
+> > > > > > > > matches are registered in reverse order of appearance in the array
+> > > > > > > > passed to xtables_register_matches(). The problem is that revision 0
+> > > > > > > > doesn't define an xlate callback.
+> > > > > > > > 
+> > > > > > > > Fix this by reordering the matches in conntrack_mt_reg so that the
+> > > > > > > > highest revision one is found first.
+> > > > > > > 
+> > > > > > > Applied, thanks Phil.
+> > > > > > 
+> > > > > > Wait.
+> > > > > > 
+> > > > > > Do you mean this case?
+> > > > > > 
+> > > > > > # iptables-translate -I INPUT -m state --state NEW
+> > > > > > nft insert rule ip filter INPUT ct state new  counter
+> > > > > > 
+> > > > > > Hm, this works here.
+> > > > > 
+> > > > > Yes, that's it. And it working for you just emphasizes something's fishy
+> > > > > here. I just reverted my patch, then it's like this:
+> > > > > 
+> > > > > | $ ./configure --prefix=$PWD/install && make && make install
+> > > > > | [...]
+> > > > > | $ ./install/sbin/iptables-translate -I INPUT -m state --state NEW
+> > > > > | nft # -I INPUT -m state --state NEW
+> > > > > 
+> > > > > Using 'strace -eopen' I see that libxt_state.so from the install
+> > > > > destination is used, not the system one.
+> > > > > 
+> > > > > Also, I did this change for debugging:
+> > > > > 
+> > > > > | --- a/iptables/xtables-translate.c
+> > > > > | +++ b/iptables/xtables-translate.c
+> > > > > | @@ -100,6 +100,10 @@ int xlate_matches(const struct iptables_command_state *cs, struct xt_xlate *xl)
+> > > > > |                         .escape_quotes  = !cs->restore,
+> > > > > |                 };
+> > > > > |  
+> > > > > | +               printf("found match %s, rev %u, xlate is %p\n",
+> > > > > | +                               matchp->match->name,
+> > > > > | +                               matchp->match->revision,
+> > > > > | +                               matchp->match->xlate);
+> > > > > |                 if (!matchp->match->xlate)
+> > > > > |                         return 0;
+> > > > > 
+> > > > > The output is then:
+> > > > > 
+> > > > > | $ ./install/sbin/iptables-translate -I INPUT -m state --state NEW
+> > > > > | nft found match state, rev 0, xlate is (nil)
+> > > > > | # -I INPUT -m state --state NEW
+> > > > > 
+> > > > > Am I missing something??
+> > > > 
+> > > > Via nft_compatible_revision() I'm getting revision 3. Are you using
+> > > > latest kernel from git?
+> > > 
+> > > No, I'm running 4.9.10-gentoo here. But a quick test with nf-next kernel
+> > > from Feb 23rd in a VM shows the same result. I have libnftnl-1.0.6
+> > > installed, is that relevant?
+> > 
+> > I have a way to trigger this here, but not sure if that is the problem
+> > there. If the kernel comes with no nft_compat support, then
+> > nft_compatible_revision() fails, and
+> > xtables_fully_register_pending_match() ends up selecting revision 0.
+> > 
+> > In such case, I can reproduce your problem.
+> > 
+> > # iptables-translate -A INPUT -m state --state NEW
+> > nft # -A INPUT -m state --state NEW 
+> 
+> Ah! On my system, nft_compat is built as module and it didn't matter
+> whether I have it loaded or not, nft_compatible_revision() would never
+> succeed.
+> 
+> Oh man, I just found the cause: I was running iptables-translate as
+> unprivileged user. Calling it with sudo magically makes everything work.
+> 
+> I'll have a look whether it's possible to communicate the received
+> -EPERM back to the user.
 
-If hints.ai_flags includes the AI_ADDRCONFIG flag, then IPv4 addresses
-are returned in the list pointed to by res only if the local system has
-at least one IPv4 address configured, and IPv6 addresses are only
-returned if the local system has at least one IPv6 address configured.
-The loopback address is not considered for this case as valid as a
-configured address.
+I wonder if we just update xtables_globals for xtables-translate.c so
+we don't require any kernel intervention, just add a dummy
+nft_compatible_revision() that simply says: Yes, this revision is
+good. So we just let libxtables select the largest revision number all
+the time and we skip traffic and dependencies with the kernel.
 
-This patch removes AI_CANONNAME since we don't need the ->ai_canonname
-field set in this code.
-
-hints.ai_family has been changed to AF_UNSPEC otherwise the
-AI_ADDRCONFIG flag is ignored.
-
-Originally reported as a problem for iptables-translate, but this also
-affects iptables and ip6tables.
-
- $ iptables-translate -A INPUT -s localhost -j ACCEPT
-
-gives duplicated rules:
-
- nft add rule ip filter INPUT ip saddr 127.0.0.1 counter accept
- nft add rule ip filter INPUT ip saddr 127.0.0.1 counter accept
-
-Reported-by: Alexander Alemayhu <alexander@alemayhu.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- libxtables/xtables.c | 32 ++++++++++++++++++++++++--------
- 1 file changed, 24 insertions(+), 8 deletions(-)
-
-diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-index d43f97066ea9..aa0b1eb71c0c 100644
---- a/libxtables/xtables.c
-+++ b/libxtables/xtables.c
-@@ -1367,21 +1367,29 @@ static struct in_addr *host_to_ipaddr(const char *name, unsigned int *naddr)
- 	unsigned int i;
- 
- 	memset(&hints, 0, sizeof(hints));
--	hints.ai_flags    = AI_CANONNAME;
--	hints.ai_family   = AF_INET;
-+	hints.ai_flags    = AI_ADDRCONFIG;
-+	hints.ai_family   = AF_UNSPEC;
- 	hints.ai_socktype = SOCK_RAW;
- 
- 	*naddr = 0;
- 	if ((err = getaddrinfo(name, NULL, &hints, &res)) != 0) {
- 		return NULL;
- 	} else {
--		for (p = res; p != NULL; p = p->ai_next)
-+		for (p = res; p != NULL; p = p->ai_next) {
-+			if (p->ai_family != AF_INET)
-+				continue;
-+
- 			++*naddr;
-+		}
- 		addr = xtables_calloc(*naddr, sizeof(struct in_addr));
--		for (i = 0, p = res; p != NULL; p = p->ai_next)
-+		for (i = 0, p = res; p != NULL; p = p->ai_next) {
-+			if (p->ai_family != AF_INET)
-+				continue;
-+
- 			memcpy(&addr[i++],
- 			       &((const struct sockaddr_in *)p->ai_addr)->sin_addr,
- 			       sizeof(struct in_addr));
-+		}
- 		freeaddrinfo(res);
- 		return addr;
- 	}
-@@ -1657,8 +1665,8 @@ host_to_ip6addr(const char *name, unsigned int *naddr)
- 	unsigned int i;
- 
- 	memset(&hints, 0, sizeof(hints));
--	hints.ai_flags    = AI_CANONNAME;
--	hints.ai_family   = AF_INET6;
-+	hints.ai_flags    = AI_ADDRCONFIG;
-+	hints.ai_family   = AF_UNSPEC;
- 	hints.ai_socktype = SOCK_RAW;
- 
- 	*naddr = 0;
-@@ -1666,14 +1674,22 @@ host_to_ip6addr(const char *name, unsigned int *naddr)
- 		return NULL;
- 	} else {
- 		/* Find length of address chain */
--		for (p = res; p != NULL; p = p->ai_next)
-+		for (p = res; p != NULL; p = p->ai_next) {
-+			if (p->ai_family != AF_INET6)
-+				continue;
-+
- 			++*naddr;
-+		}
- 		/* Copy each element of the address chain */
- 		addr = xtables_calloc(*naddr, sizeof(struct in6_addr));
--		for (i = 0, p = res; p != NULL; p = p->ai_next)
-+		for (i = 0, p = res; p != NULL; p = p->ai_next) {
-+			if (p->ai_family != AF_INET6)
-+				continue;
-+
- 			memcpy(&addr[i++],
- 			       &((const struct sockaddr_in6 *)p->ai_addr)->sin6_addr,
- 			       sizeof(struct in6_addr));
-+		}
- 		freeaddrinfo(res);
- 		return addr;
- 	}
--- 
-2.1.4
-
+It would be great if you can have a look into this. Thanks!
