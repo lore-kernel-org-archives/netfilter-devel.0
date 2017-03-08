@@ -1,190 +1,55 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 1/3] extensions: libxt_socket: add --restore-skmark option
-Date: Wed,  8 Mar 2017 17:25:24 +0100
-Message-ID: <20170308162526.5525-2-jengelh@inai.de>
-References: <1488983584-26091-1-git-send-email-pablo@netfilter.org>
- <20170308162526.5525-1-jengelh@inai.de>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH nf-next 0/2] netfilter: untracked object removal
+Date: Wed, 08 Mar 2017 08:29:54 -0800
+Message-ID: <1488990594.28631.2.camel@edumazet-glaptop3.roam.corp.google.com>
+References: <20170308124950.9369-1-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a3.inai.de ([88.198.180.161]:42554 "EHLO a3.inai.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754146AbdCHQ0V (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Mar 2017 11:26:21 -0500
-In-Reply-To: <20170308162526.5525-1-jengelh@inai.de>
+Received: from mail-pg0-f52.google.com ([74.125.83.52]:36167 "EHLO
+        mail-pg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751309AbdCHQi0 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Mar 2017 11:38:26 -0500
+Received: by mail-pg0-f52.google.com with SMTP id 187so14987260pgb.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 08 Mar 2017 08:38:25 -0800 (PST)
+In-Reply-To: <20170308124950.9369-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Harout Hedeshian <harouth@codeaurora.org>
+On Wed, 2017-03-08 at 13:49 +0100, Florian Westphal wrote:
+> These patches remove the percpu untracked objects, they get replaced
+> with a new (kernel internal) ctinfo state.
+> 
+> This avoids reference counter operations for untracked packets and
+> removes the need to check a conntrack for the UNTRACKED status bit
+> before setting connmark, labels, etc.
+> 
+> I checked with following rule set and things appear to work as
+> expected (i.e., ssh connections don't show up in conntrack -L):
+> 
+> *raw
+> :PREROUTING ACCEPT [455:34825]
+> :OUTPUT ACCEPT [251:29555]
+> [775:63699] -A PREROUTING -p tcp -m tcp --dport 22 -j NOTRACK
+> [251:29555] -A OUTPUT -p tcp -m tcp --sport 22 -j NOTRACK
+> COMMIT
+> *filter
+> :INPUT ACCEPT [0:0]
+> :FORWARD ACCEPT [0:0]
+> :OUTPUT ACCEPT [0:0]
+> [0:0] -A INPUT -m conntrack --ctstate INVALID -j DROP
+> [337:26377] -A INPUT -p tcp -m conntrack --ctstate UNTRACKED -m tcp --dport 22 -j ACCEPT
+> [0:0] -A INPUT -m conntrack --ctstate UNTRACKED
+> [102:13883] -A OUTPUT -p tcp -m conntrack --ctstate UNTRACKED -m tcp --sport 22 -j ACCEPT
+> [0:0] -A OUTPUT -m conntrack --ctstate UNTRACKED
+> COMMIT
 
-xt_socket is useful for matching sockets with IP_TRANSPARENT and
-taking some action on the matching packets. However, it lacks the
-ability to match only a small subset of transparent sockets.
 
-Suppose there are 2 applications, each with its own set of transparent
-sockets. The first application wants all matching packets dropped,
-while the second application wants them forwarded somewhere else.
+Very nice series Florian, thanks !
 
-Add the ability to retore the skb->mark from the sk_mark. The mark
-is only restored if a matching socket is found and the transparent /
-nowildcard conditions are satisfied.
 
-Now the 2 hypothetical applications can differentiate their sockets
-based on a mark value set with SO_MARK.
-
-iptables -t mangle -I PREROUTING -m socket --transparent \
-                                           --restore-skmark -j action
-iptables -t mangle -A action -m mark --mark 10 -j action2
-iptables -t mangle -A action -m mark --mark 11 -j action3
-
-Signed-off-by: Harout Hedeshian <harouth@codeaurora.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- extensions/libxt_socket.c           | 71 +++++++++++++++++++++++++++++++++++++
- include/linux/netfilter/xt_socket.h |  8 +++++
- 2 files changed, 79 insertions(+)
-
-diff --git a/extensions/libxt_socket.c b/extensions/libxt_socket.c
-index f19c280..a99135c 100644
---- a/extensions/libxt_socket.c
-+++ b/extensions/libxt_socket.c
-@@ -10,6 +10,7 @@
- enum {
- 	O_TRANSPARENT = 0,
- 	O_NOWILDCARD = 1,
-+	O_RESTORESKMARK = 2,
- };
- 
- static const struct xt_option_entry socket_mt_opts[] = {
-@@ -23,6 +24,13 @@ static const struct xt_option_entry socket_mt_opts_v2[] = {
- 	XTOPT_TABLEEND,
- };
- 
-+static const struct xt_option_entry socket_mt_opts_v3[] = {
-+	{.name = "transparent", .id = O_TRANSPARENT, .type = XTTYPE_NONE},
-+	{.name = "nowildcard", .id = O_NOWILDCARD, .type = XTTYPE_NONE},
-+	{.name = "restore-skmark", .id = O_RESTORESKMARK, .type = XTTYPE_NONE},
-+	XTOPT_TABLEEND,
-+};
-+
- static void socket_mt_help(void)
- {
- 	printf(
-@@ -38,6 +46,17 @@ static void socket_mt_help_v2(void)
- 		"  --transparent    Ignore non-transparent sockets\n\n");
- }
- 
-+static void socket_mt_help_v3(void)
-+{
-+	printf(
-+		"socket match options:\n"
-+		"  --nowildcard     Do not ignore LISTEN sockets bound on INADDR_ANY\n"
-+		"  --transparent    Ignore non-transparent sockets\n"
-+		"  --restore-skmark Set the packet mark to the socket mark if\n"
-+		"                   the socket matches and transparent / \n"
-+		"                   nowildcard conditions are satisfied\n\n");
-+}
-+
- static void socket_mt_parse(struct xt_option_call *cb)
- {
- 	struct xt_socket_mtinfo1 *info = cb->data;
-@@ -65,6 +84,24 @@ static void socket_mt_parse_v2(struct xt_option_call *cb)
- 	}
- }
- 
-+static void socket_mt_parse_v3(struct xt_option_call *cb)
-+{
-+	struct xt_socket_mtinfo2 *info = cb->data;
-+
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_TRANSPARENT:
-+		info->flags |= XT_SOCKET_TRANSPARENT;
-+		break;
-+	case O_NOWILDCARD:
-+		info->flags |= XT_SOCKET_NOWILDCARD;
-+		break;
-+	case O_RESTORESKMARK:
-+		info->flags |= XT_SOCKET_RESTORESKMARK;
-+		break;
-+	}
-+}
-+
- static void
- socket_mt_save(const void *ip, const struct xt_entry_match *match)
- {
-@@ -101,6 +138,27 @@ socket_mt_print_v2(const void *ip, const struct xt_entry_match *match,
- 	socket_mt_save_v2(ip, match);
- }
- 
-+static void
-+socket_mt_save_v3(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct xt_socket_mtinfo3 *info = (const void *)match->data;
-+
-+	if (info->flags & XT_SOCKET_TRANSPARENT)
-+		printf(" --transparent");
-+	if (info->flags & XT_SOCKET_NOWILDCARD)
-+		printf(" --nowildcard");
-+	if (info->flags & XT_SOCKET_RESTORESKMARK)
-+		printf(" --restore-skmark");
-+}
-+
-+static void
-+socket_mt_print_v3(const void *ip, const struct xt_entry_match *match,
-+		   int numeric)
-+{
-+	printf(" socket");
-+	socket_mt_save_v3(ip, match);
-+}
-+
- static struct xtables_match socket_mt_reg[] = {
- 	{
- 		.name          = "socket",
-@@ -136,6 +194,19 @@ static struct xtables_match socket_mt_reg[] = {
- 		.x6_parse      = socket_mt_parse_v2,
- 		.x6_options    = socket_mt_opts_v2,
- 	},
-+	{
-+		.name          = "socket",
-+		.revision      = 3,
-+		.family        = NFPROTO_UNSPEC,
-+		.version       = XTABLES_VERSION,
-+		.size          = XT_ALIGN(sizeof(struct xt_socket_mtinfo2)),
-+		.userspacesize = XT_ALIGN(sizeof(struct xt_socket_mtinfo2)),
-+		.help          = socket_mt_help_v3,
-+		.print         = socket_mt_print_v3,
-+		.save          = socket_mt_save_v3,
-+		.x6_parse      = socket_mt_parse_v3,
-+		.x6_options    = socket_mt_opts_v3,
-+	},
- };
- 
- void _init(void)
-diff --git a/include/linux/netfilter/xt_socket.h b/include/linux/netfilter/xt_socket.h
-index 6315e2a..87644f8 100644
---- a/include/linux/netfilter/xt_socket.h
-+++ b/include/linux/netfilter/xt_socket.h
-@@ -6,6 +6,7 @@
- enum {
- 	XT_SOCKET_TRANSPARENT = 1 << 0,
- 	XT_SOCKET_NOWILDCARD = 1 << 1,
-+	XT_SOCKET_RESTORESKMARK = 1 << 2,
- };
- 
- struct xt_socket_mtinfo1 {
-@@ -18,4 +19,11 @@ struct xt_socket_mtinfo2 {
- };
- #define XT_SOCKET_FLAGS_V2 (XT_SOCKET_TRANSPARENT | XT_SOCKET_NOWILDCARD)
- 
-+struct xt_socket_mtinfo3 {
-+	__u8 flags;
-+};
-+#define XT_SOCKET_FLAGS_V3 (XT_SOCKET_TRANSPARENT \
-+			   | XT_SOCKET_NOWILDCARD \
-+			   | XT_SOCKET_RESTORESKMARK)
-+
- #endif /* _XT_SOCKET_H */
--- 
-2.10.2
 
