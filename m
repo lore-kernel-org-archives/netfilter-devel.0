@@ -1,100 +1,76 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH 1/3] libxtables: remove unnecessary nesting from host_to_ip(6)addr
-Date: Wed,  8 Mar 2017 17:42:08 +0100
-Message-ID: <20170308164210.6069-1-jengelh@inai.de>
-References: <1488983584-26091-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [net] netfilter: nat: sctp: fix ICMP packet to be dropped
+ accidently
+Date: Wed, 8 Mar 2017 18:29:43 +0100
+Message-ID: <20170308172943.GA8577@salvia>
+References: <1488621602-4152-1-git-send-email-ying.xue@windriver.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org
+To: Ying Xue <ying.xue@windriver.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a3.inai.de ([88.198.180.161]:45114 "EHLO a3.inai.de"
+Received: from mail.us.es ([193.147.175.20]:35474 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752501AbdCHRH2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Mar 2017 12:07:28 -0500
-In-Reply-To: <1488983584-26091-1-git-send-email-pablo@netfilter.org>
+        id S1753254AbdCHRji (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Mar 2017 12:39:38 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 26ED31B2B7F
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 18:29:51 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0C739DA808
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 18:29:51 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CE785DA80B
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 18:29:48 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <1488621602-4152-1-git-send-email-ying.xue@windriver.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The error path already terminally returns from the function, so there
-is no point in having an explicit else block.
+On Sat, Mar 04, 2017 at 06:00:02PM +0800, Ying Xue wrote:
+> Regarding RFC 792, the first 64 bits of the original SCTP datagram's
+> data could be contained in ICMP packet, such as:
+> 
+>     0                   1                   2                   3
+>     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+>    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+>    |     Type      |     Code      |          Checksum             |
+>    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+>    |                             unused                            |
+>    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+>    |      Internet Header + 64 bits of Original Data Datagram      |
+>    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> 
+> However, according to RFC 4960, SCTP datagram header is as below:
+> 
+>     0                   1                   2                   3
+>     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+>    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+>    |     Source Port Number        |     Destination Port Number   |
+>    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+>    |                      Verification Tag                         |
+>    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+>    |                           Checksum                            |
+>    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> 
+> It means only the first three fields of SCTP header can be carried in
+> ICMP packet except for Checksum field.
+> 
+> At present in sctp_manip_pkt(), no matter whether the packet is ICMP or
+> not, it always calculates SCTP packet checksum. However, not only the
+> calculation of checksum is unnecessary for ICMP, but also it causes
+> another fatal issue that ICMP packet is dropped. The header size of
+> SCTP is used to identify whether the writeable length of skb is bigger
+> than skb->len through skb_make_writable() in sctp_manip_pkt(). But
+> when it deals with ICMP packet, skb_make_writable() directly returns
+> false as the writeable length of skb is bigger than skb->len.
+> Subsequently ICMP is dropped.
+> 
+> Now we correct this misbahavior. When sctp_manip_pkt() handles ICMP
+> packet, 8 bytes rather than the whole SCTP header size is used to check
+> if writeable length of skb is overflowed. Meanwhile, as it's meaningless
+> to calculate checksum when packet is ICMP, the computation of checksum
+> is ignored as well.
 
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
- libxtables/xtables.c | 54 +++++++++++++++++++++++-----------------------------
- 1 file changed, 24 insertions(+), 30 deletions(-)
-
-diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-index d43f970..ae73a06 100644
---- a/libxtables/xtables.c
-+++ b/libxtables/xtables.c
-@@ -1372,21 +1372,18 @@ static struct in_addr *host_to_ipaddr(const char *name, unsigned int *naddr)
- 	hints.ai_socktype = SOCK_RAW;
- 
- 	*naddr = 0;
--	if ((err = getaddrinfo(name, NULL, &hints, &res)) != 0) {
-+	err = getaddrinfo(name, NULL, &hints, &res);
-+	if (err != 0)
- 		return NULL;
--	} else {
--		for (p = res; p != NULL; p = p->ai_next)
--			++*naddr;
--		addr = xtables_calloc(*naddr, sizeof(struct in_addr));
--		for (i = 0, p = res; p != NULL; p = p->ai_next)
--			memcpy(&addr[i++],
--			       &((const struct sockaddr_in *)p->ai_addr)->sin_addr,
--			       sizeof(struct in_addr));
--		freeaddrinfo(res);
--		return addr;
--	}
--
--	return NULL;
-+	for (p = res; p != NULL; p = p->ai_next)
-+		++*naddr;
-+	addr = xtables_calloc(*naddr, sizeof(struct in_addr));
-+	for (i = 0, p = res; p != NULL; p = p->ai_next)
-+		memcpy(&addr[i++],
-+		       &((const struct sockaddr_in *)p->ai_addr)->sin_addr,
-+		       sizeof(struct in_addr));
-+	freeaddrinfo(res);
-+	return addr;
- }
- 
- static struct in_addr *
-@@ -1662,23 +1659,20 @@ host_to_ip6addr(const char *name, unsigned int *naddr)
- 	hints.ai_socktype = SOCK_RAW;
- 
- 	*naddr = 0;
--	if ((err = getaddrinfo(name, NULL, &hints, &res)) != 0) {
-+	err = getaddrinfo(name, NULL, &hints, &res);
-+	if (err != 0)
- 		return NULL;
--	} else {
--		/* Find length of address chain */
--		for (p = res; p != NULL; p = p->ai_next)
--			++*naddr;
--		/* Copy each element of the address chain */
--		addr = xtables_calloc(*naddr, sizeof(struct in6_addr));
--		for (i = 0, p = res; p != NULL; p = p->ai_next)
--			memcpy(&addr[i++],
--			       &((const struct sockaddr_in6 *)p->ai_addr)->sin6_addr,
--			       sizeof(struct in6_addr));
--		freeaddrinfo(res);
--		return addr;
--	}
--
--	return NULL;
-+	/* Find length of address chain */
-+	for (p = res; p != NULL; p = p->ai_next)
-+		++*naddr;
-+	/* Copy each element of the address chain */
-+	addr = xtables_calloc(*naddr, sizeof(struct in6_addr));
-+	for (i = 0, p = res; p != NULL; p = p->ai_next)
-+		memcpy(&addr[i++],
-+		       &((const struct sockaddr_in6 *)p->ai_addr)->sin6_addr,
-+		       sizeof(struct in6_addr));
-+	freeaddrinfo(res);
-+	return addr;
- }
- 
- static struct in6_addr *network_to_ip6addr(const char *name)
--- 
-2.10.2
-
+Applied, thanks.
