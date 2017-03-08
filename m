@@ -1,44 +1,32 @@
-From: Tarun Khanna <tkhanna@akamai.com>
-Subject: Question about getting counters for transparent terminated flows
-Date: Wed, 8 Mar 2017 12:37:00 -0500
-Message-ID: <a2f3e82d-0155-4600-5ec9-f3b2a19265cb@akamai.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next] netfilter: bridge: remove unneeded rcu_read_lock
+Date: Wed, 8 Mar 2017 19:02:50 +0100
+Message-ID: <20170308180250.GA30928@salvia>
+References: <20170307114504.2507-1-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from prod-mail-xrelay06.akamai.com ([96.6.114.98]:60038 "EHLO
-        prod-mail-xrelay06.akamai.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753970AbdCHRkH (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Mar 2017 12:40:07 -0500
-Received: from prod-mail-xrelay06.akamai.com (localhost.localdomain [127.0.0.1])
-        by postfix.imss70 (Postfix) with ESMTP id B399C16C9D5
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 17:37:01 +0000 (GMT)
-Received: from prod-mail-relay09.akamai.com (prod-mail-relay09.akamai.com [172.27.22.68])
-        by prod-mail-xrelay06.akamai.com (Postfix) with ESMTP id 9E06916C7C6
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 17:37:01 +0000 (GMT)
-Received: from email.msg.corp.akamai.com (ecp.msg.corp.akamai.com [172.27.123.33])
-        by prod-mail-relay09.akamai.com (Postfix) with ESMTP id 7F61E1E07C
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 17:37:01 +0000 (GMT)
+Received: from mail.us.es ([193.147.175.20]:35216 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753857AbdCHStw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Mar 2017 13:49:52 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 40E5324711
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 19:02:53 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3380DDA80C
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 19:02:53 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 142ECDA7E9
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 19:02:51 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20170307114504.2507-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Tue, Mar 07, 2017 at 12:45:04PM +0100, Florian Westphal wrote:
+> as comment says, the function is always called with rcu read lock held.
 
-I have an application that acts as a transparent proxy for tcp flows. I 
-need to get packet and byte counters for these tcp flows on both sides 
-of the proxy application. I looked at pulling the counters from the 
-kernel using libnetfilter_conntrack. However I noticed that the 
-conntrack library only shows one entry for flows that are terminated 
-transparently. This is an issue, as I am not able to see byte and packet 
-counters for the two sides of the flow separately. Is there a way to get 
-the separate counters for flows that are transparently terminated?
-
-If the flow is terminated but not transparently, I do get two separate 
-entries from libnetfilter_conntrack, and the counters are as I would 
-expect them to be.
-
-Thank you.
-
-Tarun
+Applied, thanks Florian.
