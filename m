@@ -1,17 +1,16 @@
 From: Jan Engelhardt <jengelh@inai.de>
 Subject: [PATCH 3/3] libxtables: avoid returning duplicate address for host resolution
-Date: Wed,  8 Mar 2017 17:26:58 +0100
-Message-ID: <20170308162658.5697-4-jengelh@inai.de>
+Date: Wed,  8 Mar 2017 17:42:10 +0100
+Message-ID: <20170308164210.6069-3-jengelh@inai.de>
 References: <1488983584-26091-1-git-send-email-pablo@netfilter.org>
- <20170308162658.5697-1-jengelh@inai.de>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+ <20170308164210.6069-1-jengelh@inai.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a3.inai.de ([88.198.180.161]:43252 "EHLO a3.inai.de"
+Received: from a3.inai.de ([88.198.180.161]:43614 "EHLO a3.inai.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752378AbdCHQiD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Mar 2017 11:38:03 -0500
-In-Reply-To: <20170308162658.5697-1-jengelh@inai.de>
+        id S1753476AbdCHQmQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Mar 2017 11:42:16 -0500
+In-Reply-To: <20170308164210.6069-1-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
