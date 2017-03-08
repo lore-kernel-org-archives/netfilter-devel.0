@@ -1,55 +1,102 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH nf-next 0/2] netfilter: untracked object removal
-Date: Wed, 08 Mar 2017 08:29:54 -0800
-Message-ID: <1488990594.28631.2.camel@edumazet-glaptop3.roam.corp.google.com>
-References: <20170308124950.9369-1-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: [PATCH 1/3] libxtables: remove unnecessary nesting from host_to_ip(6)addr
+Date: Wed,  8 Mar 2017 17:26:56 +0100
+Message-ID: <20170308162658.5697-2-jengelh@inai.de>
+References: <1488983584-26091-1-git-send-email-pablo@netfilter.org>
+ <20170308162658.5697-1-jengelh@inai.de>
 Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f52.google.com ([74.125.83.52]:36167 "EHLO
-        mail-pg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751309AbdCHQi0 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Mar 2017 11:38:26 -0500
-Received: by mail-pg0-f52.google.com with SMTP id 187so14987260pgb.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Mar 2017 08:38:25 -0800 (PST)
-In-Reply-To: <20170308124950.9369-1-fw@strlen.de>
+Received: from a3.inai.de ([88.198.180.161]:43260 "EHLO a3.inai.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752501AbdCHQiD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Mar 2017 11:38:03 -0500
+In-Reply-To: <20170308162658.5697-1-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 2017-03-08 at 13:49 +0100, Florian Westphal wrote:
-> These patches remove the percpu untracked objects, they get replaced
-> with a new (kernel internal) ctinfo state.
-> 
-> This avoids reference counter operations for untracked packets and
-> removes the need to check a conntrack for the UNTRACKED status bit
-> before setting connmark, labels, etc.
-> 
-> I checked with following rule set and things appear to work as
-> expected (i.e., ssh connections don't show up in conntrack -L):
-> 
-> *raw
-> :PREROUTING ACCEPT [455:34825]
-> :OUTPUT ACCEPT [251:29555]
-> [775:63699] -A PREROUTING -p tcp -m tcp --dport 22 -j NOTRACK
-> [251:29555] -A OUTPUT -p tcp -m tcp --sport 22 -j NOTRACK
-> COMMIT
-> *filter
-> :INPUT ACCEPT [0:0]
-> :FORWARD ACCEPT [0:0]
-> :OUTPUT ACCEPT [0:0]
-> [0:0] -A INPUT -m conntrack --ctstate INVALID -j DROP
-> [337:26377] -A INPUT -p tcp -m conntrack --ctstate UNTRACKED -m tcp --dport 22 -j ACCEPT
-> [0:0] -A INPUT -m conntrack --ctstate UNTRACKED
-> [102:13883] -A OUTPUT -p tcp -m conntrack --ctstate UNTRACKED -m tcp --sport 22 -j ACCEPT
-> [0:0] -A OUTPUT -m conntrack --ctstate UNTRACKED
-> COMMIT
+The error path already terminally returns from the function, so there
+is no point in having an explicit else block.
 
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+---
+ libxtables/xtables.c | 54 +++++++++++++++++++++++-----------------------------
+ 1 file changed, 24 insertions(+), 30 deletions(-)
 
-Very nice series Florian, thanks !
-
-
+diff --git a/libxtables/xtables.c b/libxtables/xtables.c
+index d43f970..ae73a06 100644
+--- a/libxtables/xtables.c
++++ b/libxtables/xtables.c
+@@ -1372,21 +1372,18 @@ static struct in_addr *host_to_ipaddr(const char *name, unsigned int *naddr)
+ 	hints.ai_socktype = SOCK_RAW;
+ 
+ 	*naddr = 0;
+-	if ((err = getaddrinfo(name, NULL, &hints, &res)) != 0) {
++	err = getaddrinfo(name, NULL, &hints, &res);
++	if (err != 0)
+ 		return NULL;
+-	} else {
+-		for (p = res; p != NULL; p = p->ai_next)
+-			++*naddr;
+-		addr = xtables_calloc(*naddr, sizeof(struct in_addr));
+-		for (i = 0, p = res; p != NULL; p = p->ai_next)
+-			memcpy(&addr[i++],
+-			       &((const struct sockaddr_in *)p->ai_addr)->sin_addr,
+-			       sizeof(struct in_addr));
+-		freeaddrinfo(res);
+-		return addr;
+-	}
+-
+-	return NULL;
++	for (p = res; p != NULL; p = p->ai_next)
++		++*naddr;
++	addr = xtables_calloc(*naddr, sizeof(struct in_addr));
++	for (i = 0, p = res; p != NULL; p = p->ai_next)
++		memcpy(&addr[i++],
++		       &((const struct sockaddr_in *)p->ai_addr)->sin_addr,
++		       sizeof(struct in_addr));
++	freeaddrinfo(res);
++	return addr;
+ }
+ 
+ static struct in_addr *
+@@ -1662,23 +1659,20 @@ host_to_ip6addr(const char *name, unsigned int *naddr)
+ 	hints.ai_socktype = SOCK_RAW;
+ 
+ 	*naddr = 0;
+-	if ((err = getaddrinfo(name, NULL, &hints, &res)) != 0) {
++	err = getaddrinfo(name, NULL, &hints, &res);
++	if (err != 0)
+ 		return NULL;
+-	} else {
+-		/* Find length of address chain */
+-		for (p = res; p != NULL; p = p->ai_next)
+-			++*naddr;
+-		/* Copy each element of the address chain */
+-		addr = xtables_calloc(*naddr, sizeof(struct in6_addr));
+-		for (i = 0, p = res; p != NULL; p = p->ai_next)
+-			memcpy(&addr[i++],
+-			       &((const struct sockaddr_in6 *)p->ai_addr)->sin6_addr,
+-			       sizeof(struct in6_addr));
+-		freeaddrinfo(res);
+-		return addr;
+-	}
+-
+-	return NULL;
++	/* Find length of address chain */
++	for (p = res; p != NULL; p = p->ai_next)
++		++*naddr;
++	/* Copy each element of the address chain */
++	addr = xtables_calloc(*naddr, sizeof(struct in6_addr));
++	for (i = 0, p = res; p != NULL; p = p->ai_next)
++		memcpy(&addr[i++],
++		       &((const struct sockaddr_in6 *)p->ai_addr)->sin6_addr,
++		       sizeof(struct in6_addr));
++	freeaddrinfo(res);
++	return addr;
+ }
+ 
+ static struct in6_addr *network_to_ip6addr(const char *name)
+-- 
+2.10.2
 
