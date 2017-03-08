@@ -1,76 +1,43 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [net] netfilter: nat: sctp: fix ICMP packet to be dropped
- accidently
-Date: Wed, 8 Mar 2017 18:29:43 +0100
-Message-ID: <20170308172943.GA8577@salvia>
-References: <1488621602-4152-1-git-send-email-ying.xue@windriver.com>
+Subject: Re: [PATCH v2 nf] netfilter: don't track fragmented packets
+Date: Wed, 8 Mar 2017 18:30:46 +0100
+Message-ID: <20170308173046.GA8605@salvia>
+References: <20170303204400.21565-1-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org
-To: Ying Xue <ying.xue@windriver.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35474 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35480 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753254AbdCHRji (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Mar 2017 12:39:38 -0500
+        id S1753930AbdCHRjn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Mar 2017 12:39:43 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 26ED31B2B7F
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 18:29:51 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 73BBB1B2B6E
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 18:30:50 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0C739DA808
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 18:29:51 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 66BEFDA729
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 18:30:50 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CE785DA80B
-        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 18:29:48 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7689BDA80C
+        for <netfilter-devel@vger.kernel.org>; Wed,  8 Mar 2017 18:30:47 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1488621602-4152-1-git-send-email-ying.xue@windriver.com>
+In-Reply-To: <20170303204400.21565-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Mar 04, 2017 at 06:00:02PM +0800, Ying Xue wrote:
-> Regarding RFC 792, the first 64 bits of the original SCTP datagram's
-> data could be contained in ICMP packet, such as:
+On Fri, Mar 03, 2017 at 09:44:00PM +0100, Florian Westphal wrote:
+> Andrey reports syzkaller splat caused by
 > 
->     0                   1                   2                   3
->     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
->    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
->    |     Type      |     Code      |          Checksum             |
->    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
->    |                             unused                            |
->    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
->    |      Internet Header + 64 bits of Original Data Datagram      |
->    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> NF_CT_ASSERT(!ip_is_fragment(ip_hdr(skb)));
 > 
-> However, according to RFC 4960, SCTP datagram header is as below:
+> in ipv4 nat.  But this assertion (and the comment) are wrong, this function
+> does see fragments when IP_NODEFRAG setsockopt is used.
 > 
->     0                   1                   2                   3
->     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
->    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
->    |     Source Port Number        |     Destination Port Number   |
->    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
->    |                      Verification Tag                         |
->    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
->    |                           Checksum                            |
->    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+> As conntrack doesn't track packets without complete l4 header, only the
+> first fragment is tracked.
 > 
-> It means only the first three fields of SCTP header can be carried in
-> ICMP packet except for Checksum field.
-> 
-> At present in sctp_manip_pkt(), no matter whether the packet is ICMP or
-> not, it always calculates SCTP packet checksum. However, not only the
-> calculation of checksum is unnecessary for ICMP, but also it causes
-> another fatal issue that ICMP packet is dropped. The header size of
-> SCTP is used to identify whether the writeable length of skb is bigger
-> than skb->len through skb_make_writable() in sctp_manip_pkt(). But
-> when it deals with ICMP packet, skb_make_writable() directly returns
-> false as the writeable length of skb is bigger than skb->len.
-> Subsequently ICMP is dropped.
-> 
-> Now we correct this misbahavior. When sctp_manip_pkt() handles ICMP
-> packet, 8 bytes rather than the whole SCTP header size is used to check
-> if writeable length of skb is overflowed. Meanwhile, as it's meaningless
-> to calculate checksum when packet is ICMP, the computation of checksum
-> is ignored as well.
+> Because applying nat to first packet but not the rest makes no sense this
+> also turns off tracking of all fragments.
 
-Applied, thanks.
+Applied, thanks Florian.
