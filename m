@@ -1,142 +1,173 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH 1/5] Introduce boolean datatype and boolean expression
-Date: Fri, 10 Mar 2017 18:13:49 +0100
-Message-ID: <20170310171353.28868-2-phil@nwl.cc>
+Subject: [nft PATCH 4/5] fib: Support existence check
+Date: Fri, 10 Mar 2017 18:13:52 +0100
+Message-ID: <20170310171353.28868-5-phil@nwl.cc>
 References: <20170310171353.28868-1-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:33701 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:43681 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932678AbdCJROS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 10 Mar 2017 12:14:18 -0500
+        id S932595AbdCJRO0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 10 Mar 2017 12:14:26 -0500
 In-Reply-To: <20170310171353.28868-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This allows to check whether a FIB entry exists for a given packet by
+comparing the expression with a boolean keyword like so:
+
+| fib daddr oif exists
+
+The implementation requires introduction of a generic expression flag
+EXPR_F_BOOLEAN which allows relational expression to signal it's LHS
+that a boolean comparison is being done (indicated by boolean type on
+RHS). In contrast to exthdr existence checks, fib expression can't know
+this in beforehand because the LHS syntax is absolutely identical to a
+non-boolean comparison.
+
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/datatype.h |  2 ++
- src/datatype.c     | 19 +++++++++++++++++++
- src/parser_bison.y | 20 ++++++++++++++++++++
- src/scanner.l      |  3 +++
- 4 files changed, 44 insertions(+)
+ include/expression.h                |  2 ++
+ include/linux/netfilter/nf_tables.h |  1 +
+ src/evaluate.c                      | 14 +++++++++++++-
+ src/expression.c                    |  4 ++++
+ src/fib.c                           |  5 ++++-
+ tests/py/inet/fib.t                 |  3 +++
+ tests/py/inet/fib.t.payload         | 10 ++++++++++
+ 7 files changed, 37 insertions(+), 2 deletions(-)
 
-diff --git a/include/datatype.h b/include/datatype.h
-index b78d76f78f76c..e614b96e880bf 100644
---- a/include/datatype.h
-+++ b/include/datatype.h
-@@ -82,6 +82,7 @@ enum datatypes {
- 	TYPE_DSCP,
- 	TYPE_ECN,
- 	TYPE_FIB_ADDR,
-+	TYPE_BOOLEAN,
- 	__TYPE_MAX
- };
- #define TYPE_MAX		(__TYPE_MAX - 1)
-@@ -233,6 +234,7 @@ extern const struct datatype icmp_code_type;
- extern const struct datatype icmpv6_code_type;
- extern const struct datatype icmpx_code_type;
- extern const struct datatype time_type;
-+extern const struct datatype boolean_type;
- 
- extern const struct datatype *concat_type_alloc(uint32_t type);
- extern void concat_type_destroy(const struct datatype *dtype);
-diff --git a/src/datatype.c b/src/datatype.c
-index 6b1dd4a09abbc..c61c4245c3868 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -48,6 +48,7 @@ static const struct datatype *datatypes[TYPE_MAX + 1] = {
- 	[TYPE_ICMP_CODE]	= &icmp_code_type,
- 	[TYPE_ICMPV6_CODE]	= &icmpv6_code_type,
- 	[TYPE_ICMPX_CODE]	= &icmpx_code_type,
-+	[TYPE_BOOLEAN]		= &boolean_type,
+diff --git a/include/expression.h b/include/expression.h
+index 423eae7128f5c..94573de087ad7 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -171,12 +171,14 @@ struct expr_ops {
+  * @EXPR_F_SINGLETON:		singleton (implies primary and constant)
+  * @EXPR_F_PROTOCOL:		expressions describes upper layer protocol
+  * @EXPR_F_INTERVAL_END:	set member ends an open interval
++ * @EXPR_F_BOOLEAN:		expression is boolean (set by relational expr on LHS)
+  */
+ enum expr_flags {
+ 	EXPR_F_CONSTANT		= 0x1,
+ 	EXPR_F_SINGLETON	= 0x2,
+ 	EXPR_F_PROTOCOL		= 0x4,
+ 	EXPR_F_INTERVAL_END	= 0x8,
++	EXPR_F_BOOLEAN		= 0x10,
  };
  
- void datatype_register(const struct datatype *dtype)
-@@ -1104,3 +1105,21 @@ struct error_record *rate_parse(const struct location *loc, const char *str,
+ #include <payload.h>
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 4f7d75682c591..a9280a6541ac6 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -1257,6 +1257,7 @@ enum nft_fib_flags {
+ 	NFTA_FIB_F_MARK		= 1 << 2,	/* use skb->mark */
+ 	NFTA_FIB_F_IIF		= 1 << 3,	/* restrict to iif */
+ 	NFTA_FIB_F_OIF		= 1 << 4,	/* restrict to oif */
++	NFTA_FIB_F_PRESENT	= 1 << 5,	/* check existence only */
+ };
  
- 	return NULL;
+ #define NFT_OBJECT_UNSPEC	0
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 7c039cbab5ec3..7ddbb658f96fa 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1658,6 +1658,17 @@ range:
+ 	return 0;
  }
-+
-+static const struct symbol_table boolean_tbl = {
-+	.base		= BASE_DECIMAL,
-+	.symbols	= {
-+		SYMBOL("exists",	true),
-+		SYMBOL("missing",	false),
-+		SYMBOL_LIST_END
-+	},
-+};
-+
-+const struct datatype boolean_type = {
-+	.type		= TYPE_BOOLEAN,
-+	.name		= "boolean",
-+	.desc		= "boolean type",
-+	.size		= 1,
-+	.basetype	= &integer_type,
-+	.sym_tbl	= &boolean_tbl,
-+};
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index dff8a5ab90ace..f2ae82f471dd6 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -448,6 +448,9 @@ static void location_update(struct location *loc, struct location *rhs, int n)
  
- %token NOTRACK			"notrack"
- 
-+%token EXISTS			"exists"
-+%token MISSING			"missing"
++static int expr_evaluate_fib(struct eval_ctx *ctx, struct expr **exprp)
++{
++	struct expr *expr = *exprp;
 +
- %type <string>			identifier type_identifier string comment_spec
- %destructor { xfree($$); }	identifier type_identifier string comment_spec
- 
-@@ -651,6 +654,10 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %type <val>			tcp_hdr_field
- %type <val>			tcp_hdr_option_type tcp_hdr_option_field
- 
-+%type <expr>			boolean_expr
-+%destructor { expr_free($$); }	boolean_expr
-+%type <val>			boolean_keys
++	if (expr->flags & EXPR_F_BOOLEAN) {
++		expr->fib.flags |= NFTA_FIB_F_PRESENT;
++		expr->dtype = &boolean_type;
++	}
++	return expr_evaluate_primary(ctx, exprp);
++}
 +
- %%
- 
- input			:	/* empty */
-@@ -2655,8 +2662,21 @@ concat_rhs_expr		:	basic_rhs_expr
- 			}
- 			;
- 
-+boolean_keys		:	EXISTS		{ $$ = true; }
-+			|	MISSING		{ $$ = false; }
-+			;
+ static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
+ {
+ #ifdef DEBUG
+@@ -1680,8 +1691,9 @@ static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
+ 		return expr_evaluate_exthdr(ctx, expr);
+ 	case EXPR_VERDICT:
+ 	case EXPR_META:
+-	case EXPR_FIB:
+ 		return expr_evaluate_primary(ctx, expr);
++	case EXPR_FIB:
++		return expr_evaluate_fib(ctx, expr);
+ 	case EXPR_PAYLOAD:
+ 		return expr_evaluate_payload(ctx, expr);
+ 	case EXPR_RT:
+diff --git a/src/expression.c b/src/expression.c
+index da94b79f1d913..a6065524f8be8 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -592,6 +592,10 @@ struct expr *relational_expr_alloc(const struct location *loc, enum ops op,
+ 	expr->left  = left;
+ 	expr->op    = op;
+ 	expr->right = right;
 +
-+boolean_expr		:	boolean_keys
-+			{
-+				$$ = constant_expr_alloc(&@$, &boolean_type,
-+							 BYTEORDER_HOST_ENDIAN,
-+							 1, &$1);
-+			}
-+			;
++	if (right->dtype == &boolean_type)
++		left->flags |= EXPR_F_BOOLEAN;
 +
- primary_rhs_expr	:	symbol_expr		{ $$ = $1; }
- 			|	integer_expr		{ $$ = $1; }
-+			|	boolean_expr		{ $$ = $1; }
- 			|	ETHER
- 			{
- 				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
-diff --git a/src/scanner.l b/src/scanner.l
-index 003f15eb1c3c2..b0d571988650a 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -504,6 +504,9 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "xml"			{ return XML; }
- "json"			{ return JSON; }
+ 	return expr;
+ }
  
-+"exists"		{ return EXISTS; }
-+"missing"		{ return MISSING; }
+diff --git a/src/fib.c b/src/fib.c
+index c65677c811abc..28ef4b50b3ea3 100644
+--- a/src/fib.c
++++ b/src/fib.c
+@@ -73,7 +73,7 @@ static void __fib_expr_print_f(unsigned int *flags, unsigned int f, const char *
+ 
+ static void fib_expr_print(const struct expr *expr)
+ {
+-	unsigned int flags = expr->fib.flags;
++	unsigned int flags = expr->fib.flags & ~NFTA_FIB_F_PRESENT;
+ 
+ 	printf("fib ");
+ 	__fib_expr_print_f(&flags, NFTA_FIB_F_SADDR, "saddr");
+@@ -130,6 +130,9 @@ struct expr *fib_expr_alloc(const struct location *loc,
+ 		BUG("Unknown result %d\n", result);
+ 	}
+ 
++	if (flags & NFTA_FIB_F_PRESENT)
++		type = &boolean_type;
 +
- {addrstring}		{
- 				yylval->string = xstrdup(yytext);
- 				return STRING;
+ 	expr = expr_alloc(loc, &fib_expr_ops, type,
+ 			  BYTEORDER_HOST_ENDIAN, len);
+ 
+diff --git a/tests/py/inet/fib.t b/tests/py/inet/fib.t
+index 9ee282ab1c93d..dbe45d95b4cfe 100644
+--- a/tests/py/inet/fib.t
++++ b/tests/py/inet/fib.t
+@@ -12,3 +12,6 @@ fib saddr . iif oifname "lo";ok
+ fib daddr . iif type local;ok
+ fib daddr . iif type vmap { blackhole : drop, prohibit : drop, unicast : accept };ok
+ fib daddr . oif type local;fail
++
++fib daddr oif exists;ok
++fib daddr oif missing;ok
+diff --git a/tests/py/inet/fib.t.payload b/tests/py/inet/fib.t.payload
+index f5258165384dc..e928a19649133 100644
+--- a/tests/py/inet/fib.t.payload
++++ b/tests/py/inet/fib.t.payload
+@@ -20,3 +20,13 @@ __map%d test-ip 0
+ ip test-ip prerouting
+   [ fib daddr . iif type => reg 1 ]
+   [ lookup reg 1 set __map%d dreg 0 ]
++
++# fib daddr oif exists
++ip test-ip prerouting
++  [ fib daddr oif => reg 1 ]
++  [ cmp eq reg 1 0x00000001 ]
++
++# fib daddr oif missing
++ip test-ip prerouting
++  [ fib daddr oif => reg 1 ]
++  [ cmp eq reg 1 0x00000000 ]
 -- 
 2.11.0
 
