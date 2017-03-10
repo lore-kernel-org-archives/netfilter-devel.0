@@ -1,79 +1,130 @@
-From: Jamal Hadi Salim <jhs@mojatatu.com>
-Subject: ANNOUNCE: New talk! Kernel HTTP/TCP/IP stack for HTTP DDoS mitigation
-Date: Fri, 10 Mar 2017 05:55:41 -0500
-Message-ID: <f3ea5850-377c-4c18-c164-6297488ff404@mojatatu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: tech-committee@netdevconf.org, netfilter-devel@vger.kernel.org,
-        Brenda Butler <bjb@mojatatu.com>,
-        Stephen Jaworski <jaws@mojatatu.com>, netfilter@vger.kernel.org
-To: people@netdevconf.org
+From: Phil Sutter <phil@nwl.cc>
+Subject: [nf-next PATCH] nftables: fib: Support existence check
+Date: Fri, 10 Mar 2017 18:08:02 +0100
+Message-ID: <20170310170802.27802-1-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-io0-f170.google.com ([209.85.223.170]:35514 "EHLO
-        mail-io0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934657AbdCJKzy (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 10 Mar 2017 05:55:54 -0500
-Received: by mail-io0-f170.google.com with SMTP id z13so46435492iof.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 10 Mar 2017 02:55:49 -0800 (PST)
+Received: from orbyte.nwl.cc ([151.80.46.58]:53317 "EHLO mail.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755172AbdCJRIP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 10 Mar 2017 12:08:15 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The tech committee would like to announce a new accepted talk along one
-of the main themes of netdev 2.1: DDOS.
-Alexander Krizhanovsky will be talking about a Kernel HTTP
-implementation designed to deal with HTTP DDoS attacks titled
-"Kernel HTTP/TCP/IP stack for HTTP DDoS mitigation"
+Instead of the actual interface index or name, set destination register
+to just 1 or 0 depending on whether the lookup succeeded or not if
+NFTA_FIB_F_PRESENT was set in userspace.
 
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ include/net/netfilter/nft_fib.h          |  2 +-
+ include/uapi/linux/netfilter/nf_tables.h |  1 +
+ net/ipv4/netfilter/nft_fib_ipv4.c        |  4 ++--
+ net/ipv6/netfilter/nft_fib_ipv6.c        |  2 +-
+ net/netfilter/nft_fib.c                  | 14 +++++++++-----
+ 5 files changed, 14 insertions(+), 9 deletions(-)
 
-The description is as follows:
-----
-Application layer HTTP DDoS attacks are usually mitigated by HTTP
-accelerators or HTTP load balancers. However, the Linux socket
-interface doesn't provide reasonable performance for extreme loads
-caused by DDoS attacks.
+diff --git a/include/net/netfilter/nft_fib.h b/include/net/netfilter/nft_fib.h
+index 5ceb2205e4e3e..381af9469e6ad 100644
+--- a/include/net/netfilter/nft_fib.h
++++ b/include/net/netfilter/nft_fib.h
+@@ -32,6 +32,6 @@ void nft_fib6_eval_type(const struct nft_expr *expr, struct nft_regs *regs,
+ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 		   const struct nft_pktinfo *pkt);
+ 
+-void nft_fib_store_result(void *reg, enum nft_fib_result r,
++void nft_fib_store_result(void *reg, const struct nft_fib *priv,
+ 			  const struct nft_pktinfo *pkt, int index);
+ #endif
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 4f7d75682c591..a9280a6541ac6 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1257,6 +1257,7 @@ enum nft_fib_flags {
+ 	NFTA_FIB_F_MARK		= 1 << 2,	/* use skb->mark */
+ 	NFTA_FIB_F_IIF		= 1 << 3,	/* restrict to iif */
+ 	NFTA_FIB_F_OIF		= 1 << 4,	/* restrict to oif */
++	NFTA_FIB_F_PRESENT	= 1 << 5,	/* check existence only */
+ };
+ 
+ #define NFT_OBJECT_UNSPEC	0
+diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
+index 2981291910dd2..f4e4462cb5bb1 100644
+--- a/net/ipv4/netfilter/nft_fib_ipv4.c
++++ b/net/ipv4/netfilter/nft_fib_ipv4.c
+@@ -90,7 +90,7 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 
+ 	if (nft_hook(pkt) == NF_INET_PRE_ROUTING &&
+ 	    nft_fib_is_loopback(pkt->skb, nft_in(pkt))) {
+-		nft_fib_store_result(dest, priv->result, pkt,
++		nft_fib_store_result(dest, priv, pkt,
+ 				     nft_in(pkt)->ifindex);
+ 		return;
+ 	}
+@@ -99,7 +99,7 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 	if (ipv4_is_zeronet(iph->saddr)) {
+ 		if (ipv4_is_lbcast(iph->daddr) ||
+ 		    ipv4_is_local_multicast(iph->daddr)) {
+-			nft_fib_store_result(dest, priv->result, pkt,
++			nft_fib_store_result(dest, priv, pkt,
+ 					     get_ifindex(pkt->skb->dev));
+ 			return;
+ 		}
+diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
+index 765facf03d45c..e8d88d82636b7 100644
+--- a/net/ipv6/netfilter/nft_fib_ipv6.c
++++ b/net/ipv6/netfilter/nft_fib_ipv6.c
+@@ -159,7 +159,7 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 
+ 	if (nft_hook(pkt) == NF_INET_PRE_ROUTING &&
+ 	    nft_fib_is_loopback(pkt->skb, nft_in(pkt))) {
+-		nft_fib_store_result(dest, priv->result, pkt,
++		nft_fib_store_result(dest, priv, pkt,
+ 				     nft_in(pkt)->ifindex);
+ 		return;
+ 	}
+diff --git a/net/netfilter/nft_fib.c b/net/netfilter/nft_fib.c
+index fd0b19303b0db..21df8cccea658 100644
+--- a/net/netfilter/nft_fib.c
++++ b/net/netfilter/nft_fib.c
+@@ -24,7 +24,8 @@ const struct nla_policy nft_fib_policy[NFTA_FIB_MAX + 1] = {
+ EXPORT_SYMBOL(nft_fib_policy);
+ 
+ #define NFTA_FIB_F_ALL (NFTA_FIB_F_SADDR | NFTA_FIB_F_DADDR | \
+-			NFTA_FIB_F_MARK | NFTA_FIB_F_IIF | NFTA_FIB_F_OIF)
++			NFTA_FIB_F_MARK | NFTA_FIB_F_IIF | NFTA_FIB_F_OIF | \
++			NFTA_FIB_F_PRESENT)
+ 
+ int nft_fib_validate(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 		     const struct nft_data **data)
+@@ -133,19 +134,22 @@ int nft_fib_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ }
+ EXPORT_SYMBOL_GPL(nft_fib_dump);
+ 
+-void nft_fib_store_result(void *reg, enum nft_fib_result r,
++void nft_fib_store_result(void *reg, const struct nft_fib *priv,
+ 			  const struct nft_pktinfo *pkt, int index)
+ {
+ 	struct net_device *dev;
+ 	u32 *dreg = reg;
+ 
+-	switch (r) {
++	switch (priv->result) {
+ 	case NFT_FIB_RESULT_OIF:
+-		*dreg = index;
++		*dreg = (priv->flags & NFTA_FIB_F_PRESENT) ? !!index : index;
+ 		break;
+ 	case NFT_FIB_RESULT_OIFNAME:
+ 		dev = dev_get_by_index_rcu(nft_net(pkt), index);
+-		strncpy(reg, dev ? dev->name : "", IFNAMSIZ);
++		if (priv->flags & NFTA_FIB_F_PRESENT)
++			*dreg = !!dev;
++		else
++			strncpy(reg, dev ? dev->name : "", IFNAMSIZ);
+ 		break;
+ 	default:
+ 		WARN_ON_ONCE(1);
+-- 
+2.11.0
 
-HTTP servers that are based on userland TCP/IP stacks are becoming
-popular because they provide better performance. However, it is
-worth noting that the TCP/IP stack is basically a huge
-and complex piece of code which took years to make robust; so it's
-not wise to implement in user space or run it twice (in  user and
-kernel spaces). The other advantage of the kernel TCP/IP stack is that
-is also well integrated with many powerful tools  like IPTables, IPVS,
-tc, tcpdump and many others. These tools are unavailable for a user
-space TCP/IP stack or require funky complex interfaces.
-
-This talk describes Tempesta FW [1] which introduces HTTPS processing
-to the kernel. HTTPS is built into Linux TCP/IP stack. As an HTTP
-firewall, Tempesta FW implements reach set of rate limits and
-heuristics to defend against HTTPS floods and Slow HTTP attacks. Also
-HTTP cookie challenge is implemented, JavaScript challenge and several
-other more advanced DDoS mitigation techniques are in development now.
-
-Due to the infamy of TLS handshake DDoS attacks, it makes sense to
-perform TLS handshake in the kernel to be able to establish TLS
-connections as soon as possible. While TLS is very complex code, it
-doesn't require complex locking, advanced memory management and so on.
-It only took 1 human month for us to move TLS [2] with all necessary
-HTTPS interfaces to the kernel. Thus, it's easier to move TLS to the
-kernel than than it is to move TCP/IP stack to user space.
-
-To reduce the amount of HTTP processing logic in the kernel we propose
-efficient zero-copy kernel-user space transport for HTTP messages. For
-example, HTTP compression, which isn't crucial for HTTP operation, is
-considered to be implemented in user-space using the transport.
-
-Tempesta FW's benchmarks [3] show that it processes HTTP messages as
-quickly as an HTTP server using user space TCP/IP. Thus, bypassing
-Linux TCP/IP isn’t the only way to get a fast Web server.
-
-[1]. Tempesta FW's source code, https://github.com/tempesta-tech/tempesta
-
-[2]. mbed TLS, https://tls.mbed.org/
-
-[3]. https://github.com/tempesta-tech/tempesta/wiki/Tempesta-FW-benchmark
-----
-
-cheers,
-jamal
