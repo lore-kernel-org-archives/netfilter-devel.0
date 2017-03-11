@@ -1,66 +1,125 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nft] src: fix crash when inputting an incomplete set add command
-Date: Sat, 11 Mar 2017 12:20:11 +0800
-Message-ID: <1489206011-43843-1-git-send-email-zlpnobody@163.com>
+Subject: [PATCH nf-next] netfilter: limit: use per-rule spinlock to improve the scalability
+Date: Sat, 11 Mar 2017 14:08:09 +0800
+Message-ID: <1489212489-30083-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-14.163.com ([220.181.12.14]:46675 "EHLO m12-14.163.com"
+Received: from m12-15.163.com ([220.181.12.15]:53846 "EHLO m12-15.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755175AbdCKEVf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 10 Mar 2017 23:21:35 -0500
+        id S1751325AbdCKGJd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 11 Mar 2017 01:09:33 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <zlpnobody@gmail.com>
 
-After inputting the following nft command, set->keytype is not initialized
-but we try to destroy it, so NULL pointer dereference will happen:
-  # nft add set t s
-  Segmentation fault (core dumped)
-  #0  dtype_free (dtype=0x0) at datatype.c:1049
-  #1  set_datatype_destroy (dtype=0x0) at datatype.c:1051
-  #2  0x0000000000407f1a in set_free (set=0x838790) at rule.c:213
-  #3  0x000000000042ff70 in nft_parse (scanner=scanner@entry=0x8386a0,
-    state=state@entry=0x7ffc313ea670) at parser_bison.c:9355
-  #4  0x000000000040727d in nft_run (scanner=scanner@entry=0x8386a0,
-    state=state@entry=0x7ffc313ea670, msgs=msgs@entry=0x7ffc313ea660)
-    at main.c:237
-  #5  0x0000000000406e4a in main (argc=<optimized out>, argv=<optimized
-    out>) at main.c:376
+The limit token is independent between each rules, so there's no
+need to use a global spinlock.
 
-Fixes: b9b6092304ae ("evaluate: store byteorder for set keys")
 Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 ---
- src/datatype.c | 2 +-
- src/rule.c     | 3 +--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ net/netfilter/nft_limit.c | 10 +++++-----
+ net/netfilter/xt_limit.c  | 11 ++++++-----
+ 2 files changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/src/datatype.c b/src/datatype.c
-index c61c424..06a045b 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -1047,7 +1047,7 @@ const struct datatype *set_datatype_alloc(const struct datatype *orig_dtype,
+diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
+index c6baf41..18dd57a 100644
+--- a/net/netfilter/nft_limit.c
++++ b/net/netfilter/nft_limit.c
+@@ -17,9 +17,8 @@
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables.h>
  
- void set_datatype_destroy(const struct datatype *dtype)
- {
--	if (dtype->flags & DTYPE_F_CLONE)
-+	if (dtype && dtype->flags & DTYPE_F_CLONE)
- 		dtype_free(dtype);
+-static DEFINE_SPINLOCK(limit_lock);
+-
+ struct nft_limit {
++	spinlock_t	lock;
+ 	u64		last;
+ 	u64		tokens;
+ 	u64		tokens_max;
+@@ -34,7 +33,7 @@ static inline bool nft_limit_eval(struct nft_limit *limit, u64 cost)
+ 	u64 now, tokens;
+ 	s64 delta;
+ 
+-	spin_lock_bh(&limit_lock);
++	spin_lock_bh(&limit->lock);
+ 	now = ktime_get_ns();
+ 	tokens = limit->tokens + now - limit->last;
+ 	if (tokens > limit->tokens_max)
+@@ -44,11 +43,11 @@ static inline bool nft_limit_eval(struct nft_limit *limit, u64 cost)
+ 	delta = tokens - cost;
+ 	if (delta >= 0) {
+ 		limit->tokens = delta;
+-		spin_unlock_bh(&limit_lock);
++		spin_unlock_bh(&limit->lock);
+ 		return limit->invert;
+ 	}
+ 	limit->tokens = tokens;
+-	spin_unlock_bh(&limit_lock);
++	spin_unlock_bh(&limit->lock);
+ 	return !limit->invert;
  }
  
-diff --git a/src/rule.c b/src/rule.c
-index f5ff110..056d5ce 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -211,8 +211,7 @@ void set_free(struct set *set)
- 		expr_free(set->init);
- 	handle_free(&set->handle);
- 	set_datatype_destroy(set->keytype);
--	if (set->datatype)
--		set_datatype_destroy(set->datatype);
-+	set_datatype_destroy(set->datatype);
- 	xfree(set);
+@@ -86,6 +85,7 @@ static int nft_limit_init(struct nft_limit *limit,
+ 			limit->invert = true;
+ 	}
+ 	limit->last = ktime_get_ns();
++	spin_lock_init(&limit->lock);
+ 
+ 	return 0;
+ }
+diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
+index dab962d..d27b5f1 100644
+--- a/net/netfilter/xt_limit.c
++++ b/net/netfilter/xt_limit.c
+@@ -18,6 +18,7 @@
+ #include <linux/netfilter/xt_limit.h>
+ 
+ struct xt_limit_priv {
++	spinlock_t lock;
+ 	unsigned long prev;
+ 	uint32_t credit;
+ };
+@@ -32,8 +33,6 @@ MODULE_ALIAS("ip6t_limit");
+  * see net/sched/sch_tbf.c in the linux source tree
+  */
+ 
+-static DEFINE_SPINLOCK(limit_lock);
+-
+ /* Rusty: This is my (non-mathematically-inclined) understanding of
+    this algorithm.  The `average rate' in jiffies becomes your initial
+    amount of credit `credit' and the most credit you can ever have
+@@ -72,7 +71,7 @@ limit_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	struct xt_limit_priv *priv = r->master;
+ 	unsigned long now = jiffies;
+ 
+-	spin_lock_bh(&limit_lock);
++	spin_lock_bh(&priv->lock);
+ 	priv->credit += (now - xchg(&priv->prev, now)) * CREDITS_PER_JIFFY;
+ 	if (priv->credit > r->credit_cap)
+ 		priv->credit = r->credit_cap;
+@@ -80,11 +79,11 @@ limit_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	if (priv->credit >= r->cost) {
+ 		/* We're not limited. */
+ 		priv->credit -= r->cost;
+-		spin_unlock_bh(&limit_lock);
++		spin_unlock_bh(&priv->lock);
+ 		return true;
+ 	}
+ 
+-	spin_unlock_bh(&limit_lock);
++	spin_unlock_bh(&priv->lock);
+ 	return false;
+ }
+ 
+@@ -126,6 +125,8 @@ static int limit_mt_check(const struct xt_mtchk_param *par)
+ 		r->credit_cap = priv->credit; /* Credits full. */
+ 		r->cost = user2credits(r->avg);
+ 	}
++	spin_lock_init(&priv->lock);
++
+ 	return 0;
  }
  
 -- 
