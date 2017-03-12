@@ -1,161 +1,82 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf-next] netfilter: nft_set_rbtree: use per-set rwlock to improve the scalability
-Date: Sun, 12 Mar 2017 19:38:47 +0800
-Message-ID: <1489318727-38911-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
-To: pablo@netfilter.org
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: ANNOUNCE: New talk accepted: TIPC Overlapping Ring Neighbor
+ Monitoring Algorithm
+Date: Sun, 12 Mar 2017 12:03:18 -0400
+Message-ID: <33e99656-80e2-9ba7-0984-01965f5243c0@mojatatu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: tech-committee@netdevconf.org, netfilter-devel@vger.kernel.org,
+        Brenda Butler <bjb@mojatatu.com>,
+        Stephen Jaworski <jaws@mojatatu.com>,
+        netfilter@vger.kernel.org, Heri Muhero <hmuhero@gmail.com>
+To: people@netdevconf.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-12.163.com ([220.181.12.12]:53011 "EHLO m12-12.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755704AbdCLLjm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 12 Mar 2017 07:39:42 -0400
+Received: from mail-io0-f194.google.com ([209.85.223.194]:33218 "EHLO
+        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755757AbdCLQLN (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 12 Mar 2017 12:11:13 -0400
+Received: by mail-io0-f194.google.com with SMTP id f84so11296929ioj.0
+        for <netfilter-devel@vger.kernel.org>; Sun, 12 Mar 2017 09:11:12 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <zlpnobody@gmail.com>
+The tech committee would like to announce a new accepted talk.
 
-Karel Rericha reported that in his test case, ICMP packets going through
-boxes had normally about 5ms latency. But when running nft, actually
-listing the sets with interval flags, latency would go up to 30-100ms.
-This was observed when router throughput is from 600Mbps to 2Gbps.
+Jon Maloy will give a talk on the new TIPC ring neighbor monitoring.
 
-This is because we use a single global spinlock to protect the whole
-rbtree sets, so "dumping sets" will race with the "key lookup" inevitably.
-But actually they are all _readers_, so it's ok to convert the spinlock
-to rwlock to avoid competition between them. Also use per-set rwlock since
-each set is independent.
+Details are
+---------
+Title: Overlapping Ring Neighbor Monitoring Algorithm in 1000-node Clusters
 
-Reported-by: Karel Rericha <karel@unitednetworks.cz>
-Tested-by: Karel Rericha <karel@unitednetworks.cz>
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
----
- net/netfilter/nft_set_rbtree.c | 31 ++++++++++++++++---------------
- 1 file changed, 16 insertions(+), 15 deletions(-)
+In Linux 4.7 we introduced a fundamentally new neighbor monitoring
+algorithm to TIPC. This algorithm has several advantages:
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 78dfbf9..e97e2fb 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -18,9 +18,8 @@
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
- 
--static DEFINE_SPINLOCK(nft_rbtree_lock);
--
- struct nft_rbtree {
-+	rwlock_t		lock;
- 	struct rb_root		root;
- };
- 
-@@ -44,14 +43,14 @@ static bool nft_rbtree_equal(const struct nft_set *set, const void *this,
- static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
- 			      const u32 *key, const struct nft_set_ext **ext)
- {
--	const struct nft_rbtree *priv = nft_set_priv(set);
-+	struct nft_rbtree *priv = nft_set_priv(set);
- 	const struct nft_rbtree_elem *rbe, *interval = NULL;
- 	u8 genmask = nft_genmask_cur(net);
- 	const struct rb_node *parent;
- 	const void *this;
- 	int d;
- 
--	spin_lock_bh(&nft_rbtree_lock);
-+	read_lock_bh(&priv->lock);
- 	parent = priv->root.rb_node;
- 	while (parent != NULL) {
- 		rbe = rb_entry(parent, struct nft_rbtree_elem, node);
-@@ -75,7 +74,7 @@ static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
- 			}
- 			if (nft_rbtree_interval_end(rbe))
- 				goto out;
--			spin_unlock_bh(&nft_rbtree_lock);
-+			read_unlock_bh(&priv->lock);
- 
- 			*ext = &rbe->ext;
- 			return true;
-@@ -85,12 +84,12 @@ static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
- 	if (set->flags & NFT_SET_INTERVAL && interval != NULL &&
- 	    nft_set_elem_active(&interval->ext, genmask) &&
- 	    !nft_rbtree_interval_end(interval)) {
--		spin_unlock_bh(&nft_rbtree_lock);
-+		read_unlock_bh(&priv->lock);
- 		*ext = &interval->ext;
- 		return true;
- 	}
- out:
--	spin_unlock_bh(&nft_rbtree_lock);
-+	read_unlock_bh(&priv->lock);
- 	return false;
- }
- 
-@@ -140,12 +139,13 @@ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 			     const struct nft_set_elem *elem,
- 			     struct nft_set_ext **ext)
- {
-+	struct nft_rbtree *priv = nft_set_priv(set);
- 	struct nft_rbtree_elem *rbe = elem->priv;
- 	int err;
- 
--	spin_lock_bh(&nft_rbtree_lock);
-+	write_lock_bh(&priv->lock);
- 	err = __nft_rbtree_insert(net, set, rbe, ext);
--	spin_unlock_bh(&nft_rbtree_lock);
-+	write_unlock_bh(&priv->lock);
- 
- 	return err;
- }
-@@ -157,9 +157,9 @@ static void nft_rbtree_remove(const struct net *net,
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	struct nft_rbtree_elem *rbe = elem->priv;
- 
--	spin_lock_bh(&nft_rbtree_lock);
-+	write_lock_bh(&priv->lock);
- 	rb_erase(&rbe->node, &priv->root);
--	spin_unlock_bh(&nft_rbtree_lock);
-+	write_unlock_bh(&priv->lock);
- }
- 
- static void nft_rbtree_activate(const struct net *net,
-@@ -224,12 +224,12 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
- 			    struct nft_set *set,
- 			    struct nft_set_iter *iter)
- {
--	const struct nft_rbtree *priv = nft_set_priv(set);
-+	struct nft_rbtree *priv = nft_set_priv(set);
- 	struct nft_rbtree_elem *rbe;
- 	struct nft_set_elem elem;
- 	struct rb_node *node;
- 
--	spin_lock_bh(&nft_rbtree_lock);
-+	read_lock_bh(&priv->lock);
- 	for (node = rb_first(&priv->root); node != NULL; node = rb_next(node)) {
- 		rbe = rb_entry(node, struct nft_rbtree_elem, node);
- 
-@@ -242,13 +242,13 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
- 
- 		iter->err = iter->fn(ctx, set, iter, &elem);
- 		if (iter->err < 0) {
--			spin_unlock_bh(&nft_rbtree_lock);
-+			read_unlock_bh(&priv->lock);
- 			return;
- 		}
- cont:
- 		iter->count++;
- 	}
--	spin_unlock_bh(&nft_rbtree_lock);
-+	read_unlock_bh(&priv->lock);
- }
- 
- static unsigned int nft_rbtree_privsize(const struct nlattr * const nla[])
-@@ -262,6 +262,7 @@ static int nft_rbtree_init(const struct nft_set *set,
- {
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 
-+	rwlock_init(&priv->lock);
- 	priv->root = RB_ROOT;
- 	return 0;
- }
--- 
-2.5.5
+- It scales better than full mesh monitoring. CPU load increases by
+   sqrt(N) instead of by N, network load by sqrt(N)*N instead of N^2.
+
+- Swift neighbor failure discovery is guaranteed even in the presence
+   of a partitioned network, contrary to what regular ring supervision
+   algorithms can do.
+
+- It has short and deterministic failure discovery times, contrary
+   to the Gossip algorithm.
+
+The algorithm is completely distributed, self-adaptive and employs no
+centralized or coordinated state. It scales up to at least 1000 nodes
+with a failure discovery time in the order of 1 second. We believe this
+algorithm should be useful in large container or VM clusters, as well
+as in native systems.
+
+A brief summary of the algorithm:
+
+- Each node sorts all its N known neighbors into a circular list. The
+   algorithm for this is the same on all nodes.
+
+- The node identifies the next sqrt(N) nodes downstream from itself in
+   the list, -its "monitoring domain", and supervises those actively.
+
+- It distributes a record describing its monitoring domain to all the
+   neighbors. A new record is distributed when there is a change, e.g.,
+   a lost node, in the local domain.
+
+- When a node outside a node's local domain is lost, it relies on updates
+   from the sqrt(N) nodes actively monitoring that node for discovering
+   the loss.
+
+- In order to handle failures causing a partitioned network, each node
+   also selects a set of nodes outside its own domain to monitor actively.
+   Those nodes are selected so that no node is more than two active
+   supervision hops away. There will be sqrt(n) such nodes. This
+   guarantees that a node will discover loss of indirectly monitored
+   nodes in a remote partition within a period marginally longer than
+   the detection time for actively monitored nodes.
+
+- Each node will immediately re-calculate a new optimal monitoring
+   configuration upon any change in the cluster.
+-----
 
 
+cheers,
+jamal
