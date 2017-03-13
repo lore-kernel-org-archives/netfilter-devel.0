@@ -1,34 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nf-next PATCH] nftables: fib: Support existence check
-Date: Mon, 13 Mar 2017 13:46:08 +0100
-Message-ID: <20170313124608.GA26921@salvia>
-References: <20170310170802.27802-1-phil@nwl.cc>
+From: =?UTF-8?B?QWxpbiBOxINzdGFj?= <alin.nastac@gmail.com>
+Subject: Re: [PATCH v2] netfilter: Parse ICMPv6 redirects
+Date: Mon, 13 Mar 2017 14:17:39 +0100
+Message-ID: <CAF1oqRDdVPxnpKv4ArDHh0ZJ=4sXuTrMHM=Rzj=WnBe02-xn-Q@mail.gmail.com>
+References: <1488880843-9352-1-git-send-email-alin.nastac@gmail.com> <20170313124050.GA23998@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Phil Sutter <phil@nwl.cc>
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52064 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752359AbdCMMra (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Mar 2017 08:47:30 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A1252EA3F5
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Mar 2017 13:47:27 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 83E44DA850
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Mar 2017 13:47:27 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9D248204FD
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Mar 2017 13:46:17 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20170310170802.27802-1-phil@nwl.cc>
+Received: from mail-yw0-f195.google.com ([209.85.161.195]:36577 "EHLO
+        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752053AbdCMNRn (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 13 Mar 2017 09:17:43 -0400
+Received: by mail-yw0-f195.google.com with SMTP id 2so9577117ywn.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Mar 2017 06:17:42 -0700 (PDT)
+In-Reply-To: <20170313124050.GA23998@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Mar 10, 2017 at 06:08:02PM +0100, Phil Sutter wrote:
-> Instead of the actual interface index or name, set destination register
-> to just 1 or 0 depending on whether the lookup succeeded or not if
-> NFTA_FIB_F_PRESENT was set in userspace.
+Hi Pablo,
 
-Applied, thanks.
+On Mon, Mar 13, 2017 at 1:40 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Tue, Mar 07, 2017 at 11:00:43AM +0100, Alin Nastac wrote:
+>> Extract IPv6 packet that triggered the sending of redirect message from
+>> ICMPv6 Redirected Header option and check if conntrack table contain such
+>> connection. Mark redirect packet as RELATED if a matching connection is found.
+>
+> I think we need a sysctl to enable this on demand, eg.
+> 'nf_conntrack_icmpv6_accept_redirects'
+>
+> This is changing the default behaviour, my main concern here is that
+> filtering policies not accepting redirects will now make it via
+> RELATED.
+
+net/ipv4/netfilter/nf_conntrack_proto_icmp.c  give RELATED status to
+all ICMP redirect messages that refer to valid conntracks. Why would
+ICMPv6 redirect case be any different? Would you implement a similar
+sysctl switch for ICMP redirect RELATED state? And if you do, would
+you accept to enable these switches by default?
+
+IMHO ICMPv6 redirects were not included in the original
+nf_conntrack_proto_icmpv6.c due to relative complexity of their
+format.
