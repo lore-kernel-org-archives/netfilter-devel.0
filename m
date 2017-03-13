@@ -1,37 +1,45 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH 1/2 nf] netfilter: nft_set_bitmap: keep a list of dummy elements
-Date: Mon, 13 Mar 2017 22:23:53 +0800
-Message-ID: <CAML_gOf5DM6W81b34EQQz+hdsFb-72jq4BhtRK4d2657Ks9bHg@mail.gmail.com>
-References: <1489408071-6123-1-git-send-email-pablo@netfilter.org>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: ANNOUNCE: New talk Busypolling next generation
+Date: Mon, 13 Mar 2017 10:29:46 -0400
+Message-ID: <c957a263-ce4c-b317-efd8-d43c9bc39716@mojatatu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: tech-committee@netdevconf.org, netfilter-devel@vger.kernel.org,
+        Brenda Butler <bjb@mojatatu.com>,
+        Stephen Jaworski <jaws@mojatatu.com>, netfilter@vger.kernel.org
+To: people@netdevconf.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f52.google.com ([209.85.213.52]:33705 "EHLO
-        mail-vk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752331AbdCMOXz (ORCPT
+Received: from mail-io0-f196.google.com ([209.85.223.196]:33124 "EHLO
+        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753620AbdCMOaA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Mar 2017 10:23:55 -0400
-Received: by mail-vk0-f52.google.com with SMTP id d188so35746104vka.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Mar 2017 07:23:54 -0700 (PDT)
-In-Reply-To: <1489408071-6123-1-git-send-email-pablo@netfilter.org>
+        Mon, 13 Mar 2017 10:30:00 -0400
+Received: by mail-io0-f196.google.com with SMTP id f84so13458257ioj.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Mar 2017 07:29:59 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+The tech committee would like to announce a new accepted talk.
 
-2017-03-13 20:27 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-> Element comments may come without any prior set flag, so we have to keep
-> a list of dummy struct nft_set_ext to keep this information around. This
-> is only useful for set dumps to userspace. From the packet path, this
-> set type relies on the bitmap representation. This patch simplifies the
-> logic since we don't need to allocate the dummy nft_set_ext structure
-> anymore on the fly at the cost of increasing memory consumption because
-> of the list of dummy struct nft_set_ext.
+Eric Dumazet will be talking about Busypolling next generation
 
-If I didn't misunderstand it, I think after introducing the dummy nft_set_ext,
-the nft_bitmap_estimate() should also be updated? i.e.:
+Summary Description of the talk.
 
-1. est->size should be recalculated
-2. est->space should be changed to NFT_SET_CLASS_O_N
+----
+In this talk I will present the busy polling principles and history in 
+linux kernel, and the ongoing work.
+
+Back in linux-3.11, Eliezer Tamir added what he called low latency 
+socket polling. Idea is let recvmsg() callers directly call a driver 
+polling function, burning cycles an avoiding potential expensive 
+scheduler calls to reduce latencies. linux-4.11 has no more 
+ndo_busy_poll() method and busy polling is now generic for all NAPI drivers.
+
+Next work is to opt-in drivers in a mode where one (or multiple) cpu 
+would be dedicated to run the low-level part of the networking stack, ie 
+shifting from an interrupt driven model to a busy polling one.
+----
+
+cheers,
+jamal
