@@ -1,111 +1,96 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [iptables PATCH] extensions: libxt_statistic: Complete nft translator
-Date: Mon, 13 Mar 2017 17:01:53 +0100
-Message-ID: <20170313160153.21120-1-phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH net] bridge: drop netfilter fake rtable unconditionally
+Date: Mon, 13 Mar 2017 17:38:17 +0100
+Message-ID: <20170313163817.24447-1-fw@strlen.de>
+Cc: <netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>
+To: <netdev@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:39575 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752132AbdCMQCG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Mar 2017 12:02:06 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:33956 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754063AbdCMQiE (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 13 Mar 2017 12:38:04 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This was missing a translation for random mode. The substitute should
-mimick what iptables and xt_statistic kernel module do:
+Andreas reports kernel oops during rmmod of the br_netfilter module.
+Hannes debugged the oops down to a NULL rt6info->rt6i_indev.
 
-- iptables takes p in [0.0; 1.0] as probability of a packet to pass,
-  then passes p' = lround(p * 0x80000000) to kernel.
-- Kernel takes random r in [0; 0x7FFFFFFF] and matches packet if r < p'.
+Problem is that br_netfilter has the nasty concept of adding a fake
+rtable to skb->dst; this happens in a br_netfilter prerouting hook.
 
-The nftables numgen expression works differently:
+A second hook (in bridge LOCAL_IN) is supposed to remove these again
+before the skb is handed up the stack.
 
-- nft takes 32bit int n (RHS) and 32bit modulo m and passes both to
-  kernel.
-- Kernel takes random r in [0; m[ and compares it to n to decide if
-  packet matches.
+However, on module unload hooks get unregistered which means an
+skb could traverse the prerouting hook that attaches the fake_rtable,
+while the 'fake rtable remove' hook gets removed from the hooklist
+immediately after.
 
-So in order to replicate the r < p' condition of xt_statistic, choose
-m = 0x80000000, op = OP_LT and n = p'.
-
-In order to not generate unnecessarily big numbers, divide m and n by
-gcd(m, n) before printing the nft rule.
-
-Here are a few example translations:
-
-$ iptables-translate -A INPUT -m statistic --mode random --probability 0.25
-nft add rule ip filter INPUT numgen random mod 0x4 < 0x1 counter
-
-$ iptables-translate -A INPUT -m statistic --mode random --probability 0.5
-nft add rule ip filter INPUT numgen random mod 0x2 < 0x1 counter
-
-$ iptables-translate -A INPUT -m statistic --mode random --probability 0.75
-nft add rule ip filter INPUT numgen random mod 0x4 < 0x3 counter
-
-$ iptables-translate -A INPUT -m statistic --mode random --probability 0.33
-nft add rule ip filter INPUT numgen random mod 0x20000000 < 0xa8f5c29 counter
-
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Fixes: 34666d467cbf1e2e3c7 ("netfilter: bridge: move br_netfilter out of the core")
+Reported-by: Andreas Karis <akaris@redhat.com>
+Debugged-by: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
-In general, I don't think the code is correct: To really match the
-requested probability, an op of '<=' should be generated instead of '<'.
-But if I'm not mistaken, this is actually a problem of xt_statistic and
-not the converter's.
----
- extensions/libxt_statistic.c | 31 ++++++++++++++++++++++++++++++-
- 1 file changed, 30 insertions(+), 1 deletion(-)
+ David, I know you *love* the fake_rtable turd, but I think
+ this patch should go directly via net and not nf tree.
+ After all, this adds to bridge and removes from the netfilter part.
 
-diff --git a/extensions/libxt_statistic.c b/extensions/libxt_statistic.c
-index 4f3341a3d1162..9e84374257641 100644
---- a/extensions/libxt_statistic.c
-+++ b/extensions/libxt_statistic.c
-@@ -133,15 +133,44 @@ static void statistic_save(const void *ip, const struct xt_entry_match *match)
- 	print_match(info, "--");
+ net/bridge/br_input.c           |  1 +
+ net/bridge/br_netfilter_hooks.c | 21 ---------------------
+ 2 files changed, 1 insertion(+), 21 deletions(-)
+
+diff --git a/net/bridge/br_input.c b/net/bridge/br_input.c
+index 236f34244dbe..013f2290bfa5 100644
+--- a/net/bridge/br_input.c
++++ b/net/bridge/br_input.c
+@@ -30,6 +30,7 @@ EXPORT_SYMBOL(br_should_route_hook);
+ static int
+ br_netif_receive_skb(struct net *net, struct sock *sk, struct sk_buff *skb)
+ {
++	br_drop_fake_rtable(skb);
+ 	return netif_receive_skb(skb);
  }
  
-+/* divide *a and *b by gcd(*a, *b) */
-+static void gcd_div(__u32 *a, __u32 *b)
-+{
-+	__u32 tmp, nom, denom;
-+
-+	if (a > b) {
-+		nom = *a;
-+		denom = *b;
-+	} else {
-+		nom = *b;
-+		denom = *a;
-+	}
-+
-+	while (denom != 0) {
-+		tmp = nom % denom;
-+		nom = denom;
-+		denom = tmp;
-+	}
-+
-+	*a /= nom;
-+	*b /= nom;
-+}
-+
- static int statistic_xlate(struct xt_xlate *xl,
- 			   const struct xt_xlate_mt_params *params)
- {
- 	const struct xt_statistic_info *info =
- 		(struct xt_statistic_info *)params->match->data;
-+	__u32 mod = 0x80000000, prob = info->u.random.probability;
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 95087e6e8258..fa87fbd62bb7 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -521,21 +521,6 @@ static unsigned int br_nf_pre_routing(void *priv,
+ }
  
- 	switch (info->mode) {
- 	case XT_STATISTIC_MODE_RANDOM:
--		return 0;
-+		gcd_div(&prob, &mod);
-+		xt_xlate_add(xl, "numgen random mod 0x%x %s 0x%x",
-+			     mod,
-+			     info->flags & XT_STATISTIC_INVERT ? ">=" : "<",
-+			     prob);
-+		break;
- 	case XT_STATISTIC_MODE_NTH:
- 		xt_xlate_add(xl, "numgen inc mod %u %s%u",
- 			     info->u.nth.every + 1,
+ 
+-/* PF_BRIDGE/LOCAL_IN ************************************************/
+-/* The packet is locally destined, which requires a real
+- * dst_entry, so detach the fake one.  On the way up, the
+- * packet would pass through PRE_ROUTING again (which already
+- * took place when the packet entered the bridge), but we
+- * register an IPv4 PRE_ROUTING 'sabotage' hook that will
+- * prevent this from happening. */
+-static unsigned int br_nf_local_in(void *priv,
+-				   struct sk_buff *skb,
+-				   const struct nf_hook_state *state)
+-{
+-	br_drop_fake_rtable(skb);
+-	return NF_ACCEPT;
+-}
+-
+ /* PF_BRIDGE/FORWARD *************************************************/
+ static int br_nf_forward_finish(struct net *net, struct sock *sk, struct sk_buff *skb)
+ {
+@@ -908,12 +893,6 @@ static struct nf_hook_ops br_nf_ops[] __read_mostly = {
+ 		.priority = NF_BR_PRI_BRNF,
+ 	},
+ 	{
+-		.hook = br_nf_local_in,
+-		.pf = NFPROTO_BRIDGE,
+-		.hooknum = NF_BR_LOCAL_IN,
+-		.priority = NF_BR_PRI_BRNF,
+-	},
+-	{
+ 		.hook = br_nf_forward_ip,
+ 		.pf = NFPROTO_BRIDGE,
+ 		.hooknum = NF_BR_FORWARD,
 -- 
-2.11.0
+2.10.2
 
