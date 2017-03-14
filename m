@@ -1,76 +1,88 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 7/9] files: provide 'raw' table equivalent
-Date: Tue, 14 Mar 2017 20:58:14 +0100
-Message-ID: <20170314195816.1721-8-fw@strlen.de>
+Subject: [PATCH nft 8/9] doc: ct zone set support
+Date: Tue, 14 Mar 2017 20:58:15 +0100
+Message-ID: <20170314195816.1721-9-fw@strlen.de>
 References: <20170314195816.1721-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:42154 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:42158 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751229AbdCNT63 (ORCPT
+        by vger.kernel.org with ESMTP id S1751229AbdCNT6c (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Mar 2017 15:58:29 -0400
+        Tue, 14 Mar 2017 15:58:32 -0400
 In-Reply-To: <20170314195816.1721-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-useful for the 'ct zone set' statement, it has to be done before
-the conntrack lookup but preferrably after the defragmention hook.
-
-In iptables, the functionality resides in the CT target which is
-restricted to the raw table.  This provides the skeleton for nft.
-
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- files/nftables/Makefile.am | 4 +++-
- files/nftables/ipv4-raw    | 6 ++++++
- files/nftables/ipv6-raw    | 6 ++++++
- 3 files changed, 15 insertions(+), 1 deletion(-)
- create mode 100644 files/nftables/ipv4-raw
- create mode 100644 files/nftables/ipv6-raw
+ doc/nft.xml | 28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
 
-diff --git a/files/nftables/Makefile.am b/files/nftables/Makefile.am
-index 1378e2b684f1..a4c7ac7c980b 100644
---- a/files/nftables/Makefile.am
-+++ b/files/nftables/Makefile.am
-@@ -5,9 +5,11 @@ dist_pkgsysconf_DATA =	bridge-filter	\
- 			ipv4-filter	\
- 			ipv4-mangle	\
- 			ipv4-nat	\
-+			ipv4-raw	\
- 			ipv6-filter	\
- 			ipv6-mangle	\
--			ipv6-nat
-+			ipv6-nat	\
-+			ipv6-raw
- 
- install-data-hook:
- 	${SED} -i 's|@sbindir[@]|${sbindir}/|g' ${DESTDIR}${pkgsysconfdir}/*
-diff --git a/files/nftables/ipv4-raw b/files/nftables/ipv4-raw
-new file mode 100644
-index 000000000000..19773ee8bc3b
---- /dev/null
-+++ b/files/nftables/ipv4-raw
-@@ -0,0 +1,6 @@
-+#! @sbindir@nft -f
+diff --git a/doc/nft.xml b/doc/nft.xml
+index de86d2a18258..8ea280417742 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -3347,6 +3347,7 @@ ip6 filter output log flags all
+ 					<group choice="req">
+ 						<arg>mark</arg>
+ 						<arg>label</arg>
++						<arg>zone</arg>
+ 					</group>
+ 					<arg choice="none">set</arg>
+ 					<replaceable>value</replaceable>
+@@ -3354,10 +3355,14 @@ ip6 filter output log flags all
+ 			</para>
+ 			<para>
+ 				The ct statement sets meta data associated with a connection.
++				The zone id has to be assigned before a conntrack lookup takes place,
++				i.e. this has to be done in prerouting and possibly output (if locally
++				generated packets need to be placed in a distinct zone), with a hook
++				priority of -300.
+ 			</para>
+ 			<para>
+ 				<table frame="all">
+-					<title>Meta statement types</title>
++					<title>Conntrack statement types</title>
+ 					<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+ 						<colspec colname='c1'/>
+ 						<colspec colname='c2'/>
+@@ -3380,6 +3385,12 @@ ip6 filter output log flags all
+ 								<entry>Connection tracking label</entry>
+ 								<entry>label</entry>
+ 							</row>
++							<row>
++								<entry>zone</entry>
++								<entry>conntrack zone</entry>
++								<entry>integer (16 bit)</entry>
++							</row>
 +
-+table raw {
-+	chain prerouting	{ type filter hook prerouting priority -300; }
-+	chain output		{ type filter hook output priority -300; }
+ 						</tbody>
+ 					</tgroup>
+ 				</table>
+@@ -3391,6 +3402,21 @@ ip6 filter output log flags all
+ ct set mark meta mark
+ 					</programlisting>
+ 				</example>
++				<example>
++					<title>set zone mapped via interface</title>
++				<programlisting>
++table inet raw {
++  chain prerouting {
++      type filter hook prerouting priority -300;
++      ct zone set iif map { "eth1" : 1, "veth1" : 2 }
++  }
++  chain output {
++      type filter hook output priority -300;
++      ct zone set oif map { "eth1" : 1, "veth1" : 2 }
++  }
 +}
-diff --git a/files/nftables/ipv6-raw b/files/nftables/ipv6-raw
-new file mode 100644
-index 000000000000..5ee56a83987e
---- /dev/null
-+++ b/files/nftables/ipv6-raw
-@@ -0,0 +1,6 @@
-+#! @sbindir@nft -f
-+
-+table ip6 raw {
-+	chain prerouting	{ type filter hook prerouting priority -300; }
-+	chain output		{ type filter hook output priority -300; }
-+}
++				</programlisting>
++			</example>
+ 			</para>
+ 		</refsect2>
+ 		<refsect2>
 -- 
 2.10.2
 
