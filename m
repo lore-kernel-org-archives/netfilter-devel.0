@@ -1,249 +1,202 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 4/9] src: implement add/create/delete for ct helper objects
-Date: Tue, 14 Mar 2017 20:58:11 +0100
-Message-ID: <20170314195816.1721-5-fw@strlen.de>
+Subject: [PATCH nft 5/9] ct: add conntrack event mask support
+Date: Tue, 14 Mar 2017 20:58:12 +0100
+Message-ID: <20170314195816.1721-6-fw@strlen.de>
 References: <20170314195816.1721-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:42148 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:42150 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751196AbdCNT6O (ORCPT
+        by vger.kernel.org with ESMTP id S1751229AbdCNT6R (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Mar 2017 15:58:14 -0400
+        Tue, 14 Mar 2017 15:58:17 -0400
 In-Reply-To: <20170314195816.1721-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/rule.h     |  4 ++++
- src/evaluate.c     |  4 ++++
- src/parser_bison.y | 63 ++++++++++++++++++++++++++++++++++++++++++++++++++++--
- src/rule.c         | 22 +++++++++++++++++++
- 4 files changed, 91 insertions(+), 2 deletions(-)
+ include/datatype.h                            |  1 +
+ include/linux/netfilter/nf_conntrack_common.h | 80 ++++++---------------------
+ include/linux/netfilter/nf_tables.h           |  2 +
+ src/ct.c                                      | 30 ++++++++++
+ 4 files changed, 49 insertions(+), 64 deletions(-)
 
-diff --git a/include/rule.h b/include/rule.h
-index b791cc0a497c..fb4606406a94 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -370,6 +370,7 @@ enum cmd_obj {
- 	CMD_OBJ_COUNTERS,
- 	CMD_OBJ_QUOTA,
- 	CMD_OBJ_QUOTAS,
-+	CMD_OBJ_CT_HELPER,
- 	CMD_OBJ_CT_HELPERS,
+diff --git a/include/datatype.h b/include/datatype.h
+index e614b96e880b..04b7d8808cea 100644
+--- a/include/datatype.h
++++ b/include/datatype.h
+@@ -83,6 +83,7 @@ enum datatypes {
+ 	TYPE_ECN,
+ 	TYPE_FIB_ADDR,
+ 	TYPE_BOOLEAN,
++	TYPE_CT_EVENTBIT,
+ 	__TYPE_MAX
+ };
+ #define TYPE_MAX		(__TYPE_MAX - 1)
+diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
+index 27a1895218db..768ff251308b 100644
+--- a/include/linux/netfilter/nf_conntrack_common.h
++++ b/include/linux/netfilter/nf_conntrack_common.h
+@@ -79,73 +79,25 @@ enum ip_conntrack_status {
+ 	IPS_FIXED_TIMEOUT = (1 << IPS_FIXED_TIMEOUT_BIT),
  };
  
-@@ -438,6 +439,9 @@ struct cmd {
- extern struct cmd *cmd_alloc(enum cmd_ops op, enum cmd_obj obj,
- 			     const struct handle *h, const struct location *loc,
- 			     void *data);
-+extern struct cmd *cmd_alloc_obj_ct(enum cmd_ops op, int type,
-+				    const struct handle *h,
-+				    const struct location *loc, void *data);
- extern void cmd_free(struct cmd *cmd);
+-/* Connection tracking event bits */
+-enum ip_conntrack_events
+-{
+-	/* New conntrack */
+-	IPCT_NEW_BIT = 0,
+-	IPCT_NEW = (1 << IPCT_NEW_BIT),
+-
+-	/* Expected connection */
+-	IPCT_RELATED_BIT = 1,
+-	IPCT_RELATED = (1 << IPCT_RELATED_BIT),
+-
+-	/* Destroyed conntrack */
+-	IPCT_DESTROY_BIT = 2,
+-	IPCT_DESTROY = (1 << IPCT_DESTROY_BIT),
+-
+-	/* Timer has been refreshed */
+-	IPCT_REFRESH_BIT = 3,
+-	IPCT_REFRESH = (1 << IPCT_REFRESH_BIT),
+-
+-	/* Status has changed */
+-	IPCT_STATUS_BIT = 4,
+-	IPCT_STATUS = (1 << IPCT_STATUS_BIT),
+-
+-	/* Update of protocol info */
+-	IPCT_PROTOINFO_BIT = 5,
+-	IPCT_PROTOINFO = (1 << IPCT_PROTOINFO_BIT),
+-
+-	/* Volatile protocol info */
+-	IPCT_PROTOINFO_VOLATILE_BIT = 6,
+-	IPCT_PROTOINFO_VOLATILE = (1 << IPCT_PROTOINFO_VOLATILE_BIT),
+-
+-	/* New helper for conntrack */
+-	IPCT_HELPER_BIT = 7,
+-	IPCT_HELPER = (1 << IPCT_HELPER_BIT),
+-
+-	/* Update of helper info */
+-	IPCT_HELPINFO_BIT = 8,
+-	IPCT_HELPINFO = (1 << IPCT_HELPINFO_BIT),
+-
+-	/* Volatile helper info */
+-	IPCT_HELPINFO_VOLATILE_BIT = 9,
+-	IPCT_HELPINFO_VOLATILE = (1 << IPCT_HELPINFO_VOLATILE_BIT),
+-
+-	/* NAT info */
+-	IPCT_NATINFO_BIT = 10,
+-	IPCT_NATINFO = (1 << IPCT_NATINFO_BIT),
+-
+-	/* Counter highest bit has been set, unused */
+-	IPCT_COUNTER_FILLING_BIT = 11,
+-	IPCT_COUNTER_FILLING = (1 << IPCT_COUNTER_FILLING_BIT),
+-
+-	/* Mark is set */
+-	IPCT_MARK_BIT = 12,
+-	IPCT_MARK = (1 << IPCT_MARK_BIT),
+-
+-	/* NAT sequence adjustment */
+-	IPCT_NATSEQADJ_BIT = 13,
+-	IPCT_NATSEQADJ = (1 << IPCT_NATSEQADJ_BIT),
+-
+-	/* Secmark is set */
+-	IPCT_SECMARK_BIT = 14,
+-	IPCT_SECMARK = (1 << IPCT_SECMARK_BIT),
++/* Connection tracking event types */
++enum ip_conntrack_events {
++	IPCT_NEW,		/* new conntrack */
++	IPCT_RELATED,		/* related conntrack */
++	IPCT_DESTROY,		/* destroyed conntrack */
++	IPCT_REPLY,		/* connection has seen two-way traffic */
++	IPCT_ASSURED,		/* connection status has changed to assured */
++	IPCT_PROTOINFO,		/* protocol information has changed */
++	IPCT_HELPER,		/* new helper has been set */
++	IPCT_MARK,		/* new mark has been set */
++	IPCT_SEQADJ,		/* sequence adjustment has changed */
++	IPCT_NATSEQADJ = IPCT_SEQADJ,
++	IPCT_SECMARK,		/* new security mark has been set */
++	IPCT_LABEL,		/* new connlabel has been set */
+ };
  
- #include <payload.h>
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 20f67ee784dd..8fb716c06244 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2911,6 +2911,7 @@ static int cmd_evaluate_add(struct eval_ctx *ctx, struct cmd *cmd)
- 		return table_evaluate(ctx, cmd->table);
- 	case CMD_OBJ_COUNTER:
- 	case CMD_OBJ_QUOTA:
-+	case CMD_OBJ_CT_HELPER:
- 		return 0;
- 	default:
- 		BUG("invalid command object type %u\n", cmd->obj);
-@@ -2934,6 +2935,7 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_TABLE:
- 	case CMD_OBJ_COUNTER:
- 	case CMD_OBJ_QUOTA:
-+	case CMD_OBJ_CT_HELPER:
- 		return 0;
- 	default:
- 		BUG("invalid command object type %u\n", cmd->obj);
-@@ -3021,6 +3023,8 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- 		return cmd_evaluate_list_obj(ctx, cmd, NFT_OBJECT_QUOTA);
- 	case CMD_OBJ_COUNTER:
- 		return cmd_evaluate_list_obj(ctx, cmd, NFT_OBJECT_COUNTER);
-+	case CMD_OBJ_CT_HELPER:
-+		return cmd_evaluate_list_obj(ctx, cmd, NFT_OBJECT_CT_HELPER);
- 	case CMD_OBJ_COUNTERS:
- 	case CMD_OBJ_QUOTAS:
- 	case CMD_OBJ_CT_HELPERS:
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 4d2b62438eeb..d6f095ef9f64 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -583,8 +583,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %type <expr>			and_rhs_expr exclusive_or_rhs_expr inclusive_or_rhs_expr
- %destructor { expr_free($$); }	and_rhs_expr exclusive_or_rhs_expr inclusive_or_rhs_expr
+ enum ip_conntrack_expect_events {
+-	IPEXP_NEW_BIT = 0,
+-	IPEXP_NEW = (1 << IPEXP_NEW_BIT),
++	IPEXP_NEW,		/* new expectation */
++	IPEXP_DESTROY,		/* destroyed expectation */
+ };
  
--%type <obj>			counter_obj quota_obj
--%destructor { obj_free($$); }	counter_obj quota_obj
-+%type <obj>			counter_obj quota_obj ct_obj_alloc
-+%destructor { obj_free($$); }	counter_obj quota_obj ct_obj_alloc
  
- %type <expr>			relational_expr
- %destructor { expr_free($$); }	relational_expr
-@@ -840,6 +840,19 @@ add_cmd			:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_QUOTA, &$2, &@$, $3);
- 			}
-+			|	CT	STRING	obj_spec	ct_obj_alloc	'{' ct_block '}'	stmt_seperator
-+			{
-+				struct error_record *erec;
-+				int type;
-+
-+				erec = ct_objtype_parse(&@$, $2, &type);
-+				if (erec != NULL) {
-+					erec_queue(erec, state->msgs);
-+					YYERROR;
-+				}
-+
-+				$$ = cmd_alloc_obj_ct(CMD_ADD, type, &$3, &@$, $4);
-+			}
- 			;
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 400f5049a022..9cc39b4458ca 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -901,6 +901,7 @@ enum nft_rt_attributes {
+  * @NFT_CT_BYTES: conntrack bytes
+  * @NFT_CT_AVGPKT: conntrack average bytes per packet
+  * @NFT_CT_ZONE: conntrack zone
++ * @NFT_CT_EVENTMASK: ctnetlink events to be generated for this conntrack
+  */
+ enum nft_ct_keys {
+ 	NFT_CT_STATE,
+@@ -921,6 +922,7 @@ enum nft_ct_keys {
+ 	NFT_CT_BYTES,
+ 	NFT_CT_AVGPKT,
+ 	NFT_CT_ZONE,
++	NFT_CT_EVENTMASK,
+ };
  
- replace_cmd		:	RULE		ruleid_spec	rule
-@@ -906,6 +919,19 @@ create_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_CREATE, CMD_OBJ_QUOTA, &$2, &@$, $3);
- 			}
-+			|	CT	STRING	obj_spec	ct_obj_alloc	'{' ct_block '}'	stmt_seperator
-+			{
-+				struct error_record *erec;
-+				int type;
-+
-+				erec = ct_objtype_parse(&@$, $2, &type);
-+				if (erec != NULL) {
-+					erec_queue(erec, state->msgs);
-+					YYERROR;
-+				}
-+
-+				$$ = cmd_alloc_obj_ct(CMD_CREATE, type, &$3, &@$, $4);
-+			}
- 			;
+ /**
+diff --git a/src/ct.c b/src/ct.c
+index fd8ca87a21fb..5014265a3427 100644
+--- a/src/ct.c
++++ b/src/ct.c
+@@ -100,6 +100,34 @@ static const struct datatype ct_status_type = {
+ 	.sym_tbl	= &ct_status_tbl,
+ };
  
- insert_cmd		:	RULE		rule_position	rule
-@@ -946,6 +972,19 @@ delete_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_QUOTA, &$2, &@$, NULL);
- 			}
-+			|	CT	STRING	obj_spec	ct_obj_alloc
-+			{
-+				struct error_record *erec;
-+				int type;
++static const struct symbol_table ct_events_tbl = {
++	.base		= BASE_HEXADECIMAL,
++	.symbols	= {
++		SYMBOL("new",		1 << IPCT_NEW),
++		SYMBOL("related",	1 << IPCT_RELATED),
++		SYMBOL("destroy",	1 << IPCT_DESTROY),
++		SYMBOL("reply",		1 << IPCT_REPLY),
++		SYMBOL("assured",	1 << IPCT_ASSURED),
++		SYMBOL("protoinfo",	1 << IPCT_PROTOINFO),
++		SYMBOL("helper",	1 << IPCT_HELPER),
++		SYMBOL("mark",		1 << IPCT_MARK),
++		SYMBOL("seqadj",	1 << IPCT_SEQADJ),
++		SYMBOL("secmark",	1 << IPCT_SECMARK),
++		SYMBOL("label",		1 << IPCT_LABEL),
++		SYMBOL_LIST_END
++	},
++};
 +
-+				erec = ct_objtype_parse(&@$, $2, &type);
-+				if (erec != NULL) {
-+					erec_queue(erec, state->msgs);
-+					YYERROR;
-+				}
++static const struct datatype ct_event_type = {
++	.type		= TYPE_CT_EVENTBIT,
++	.name		= "ct_event",
++	.desc		= "conntrack event bits",
++	.byteorder	= BYTEORDER_HOST_ENDIAN,
++	.size		= 4 * BITS_PER_BYTE,
++	.basetype	= &bitmask_type,
++	.sym_tbl	= &ct_events_tbl,
++};
 +
-+				$$ = cmd_alloc_obj_ct(CMD_DELETE, type, &$3, &@$, $4);
-+			}
- 			;
+ static struct symbol_table *ct_label_tbl;
  
- list_cmd		:	TABLE		table_spec
-@@ -1016,6 +1055,19 @@ list_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_MAP, &$2, &@$, NULL);
- 			}
-+			|	CT		STRING	obj_spec
-+			{
-+				struct error_record *erec;
-+				int type;
-+
-+				erec = ct_objtype_parse(&@$, $2, &type);
-+				if (erec != NULL) {
-+					erec_queue(erec, state->msgs);
-+					YYERROR;
-+				}
-+
-+				$$ = cmd_alloc_obj_ct(CMD_LIST, type, &$3, &@$, NULL);
-+			}
- 			|       CT              STRING  TABLE   table_spec
- 			{
- 				int cmd;
-@@ -2664,6 +2716,13 @@ ct_config		:	TYPE	QUOTED_STRING	stmt_seperator
- 			}
- 			;
+ #define CT_LABEL_BIT_SIZE 128
+@@ -236,6 +264,8 @@ static const struct ct_template ct_templates[] = {
+ 					      BYTEORDER_HOST_ENDIAN, 64),
+ 	[NFT_CT_ZONE]		= CT_TEMPLATE("zone", &integer_type,
+ 					      BYTEORDER_HOST_ENDIAN, 16),
++	[NFT_CT_EVENTMASK]	= CT_TEMPLATE("eventmask", &ct_event_type,
++					      BYTEORDER_HOST_ENDIAN, 32),
+ };
  
-+ct_obj_alloc		:
-+			{
-+				$$ = obj_alloc(&@$);
-+				$$->type = NFT_OBJECT_CT_HELPER;
-+			}
-+			;
-+
- relational_expr		:	expr	/* implicit */	rhs_expr
- 			{
- 				$$ = relational_expr_alloc(&@$, OP_IMPLICIT, $1, $2);
-diff --git a/src/rule.c b/src/rule.c
-index 6bffaa3eb63b..eb696873ea12 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -884,6 +884,7 @@ void cmd_free(struct cmd *cmd)
- 			break;
- 		case CMD_OBJ_COUNTER:
- 		case CMD_OBJ_QUOTA:
-+		case CMD_OBJ_CT_HELPER:
- 			obj_free(cmd->object);
- 			break;
- 		default:
-@@ -1000,6 +1001,7 @@ static int do_command_add(struct netlink_ctx *ctx, struct cmd *cmd, bool excl)
- 		return do_add_setelems(ctx, &cmd->handle, cmd->expr, excl);
- 	case CMD_OBJ_COUNTER:
- 	case CMD_OBJ_QUOTA:
-+	case CMD_OBJ_CT_HELPER:
- 		return netlink_add_obj(ctx, &cmd->handle, cmd->object, excl);
- 	default:
- 		BUG("invalid command object type %u\n", cmd->obj);
-@@ -1070,6 +1072,9 @@ static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_QUOTA:
- 		return netlink_delete_obj(ctx, &cmd->handle, &cmd->location,
- 					  NFT_OBJECT_QUOTA);
-+	case CMD_OBJ_CT_HELPER:
-+		return netlink_delete_obj(ctx, &cmd->handle, &cmd->location,
-+					  NFT_OBJECT_CT_HELPER);
- 	default:
- 		BUG("invalid command object type %u\n", cmd->obj);
- 	}
-@@ -1469,6 +1474,7 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_QUOTA:
- 	case CMD_OBJ_QUOTAS:
- 		return do_list_obj(ctx, cmd, NFT_OBJECT_QUOTA);
-+	case CMD_OBJ_CT_HELPER:
- 	case CMD_OBJ_CT_HELPERS:
- 		return do_list_obj(ctx, cmd, NFT_OBJECT_CT_HELPER);
- 	default:
-@@ -1617,6 +1623,22 @@ static int do_command_describe(struct netlink_ctx *ctx, struct cmd *cmd)
- 	return 0;
- }
- 
-+struct cmd *cmd_alloc_obj_ct(enum cmd_ops op, int type, const struct handle *h,
-+			     const struct location *loc, void *data)
-+{
-+	enum cmd_obj cmd_obj;
-+
-+	switch (type) {
-+	case NFT_OBJECT_CT_HELPER:
-+		cmd_obj = CMD_OBJ_CT_HELPER;
-+		break;
-+	default:
-+		BUG("missing type mapping");
-+	}
-+
-+	return cmd_alloc(op, cmd_obj, h, loc, data);
-+}
-+
- int do_command(struct netlink_ctx *ctx, struct cmd *cmd)
- {
- 	switch (cmd->op) {
+ static void ct_print(enum nft_ct_keys key, int8_t dir)
 -- 
 2.10.2
 
