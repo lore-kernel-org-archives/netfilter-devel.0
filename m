@@ -1,73 +1,64 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/2 nf] netfilter: nft_set_bitmap: keep a list of dummy
- elements
-Date: Tue, 14 Mar 2017 11:21:31 +0100
-Message-ID: <20170314102131.GB1281@salvia>
-References: <1489408071-6123-1-git-send-email-pablo@netfilter.org>
- <CAML_gOf5DM6W81b34EQQz+hdsFb-72jq4BhtRK4d2657Ks9bHg@mail.gmail.com>
- <20170313172344.GA32297@salvia>
- <CAML_gOfwcikXVQGOHUXTqhrQAUP4u5sWcci9PzM5q9sAdgx-qA@mail.gmail.com>
+Subject: Re: [PATCH] iptables: set the path of the lock file via a configure
+ option.
+Date: Tue, 14 Mar 2017 11:22:06 +0100
+Message-ID: <20170314102206.GA1933@salvia>
+References: <20170314085550.10153-1-lorenzo@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Liping Zhang <zlpnobody@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, jscherpelz@google.com
+To: Lorenzo Colitti <lorenzo@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35832 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36048 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750744AbdCNKVp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Mar 2017 06:21:45 -0400
+        id S1750876AbdCNKWZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 14 Mar 2017 06:22:25 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0D44C2492B
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Mar 2017 11:21:41 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id C036424935
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Mar 2017 11:22:08 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EE158DA398
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Mar 2017 11:21:40 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A6777DA38C
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Mar 2017 11:22:08 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F17CCDA86C
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Mar 2017 11:21:35 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4B3D9DA3A4
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Mar 2017 11:22:06 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <CAML_gOfwcikXVQGOHUXTqhrQAUP4u5sWcci9PzM5q9sAdgx-qA@mail.gmail.com>
+In-Reply-To: <20170314085550.10153-1-lorenzo@google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 14, 2017 at 05:04:17PM +0800, Liping Zhang wrote:
-> 2017-03-14 1:23 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-> [...]
-> > Anyway, I'll be fine if this triggers some discussions on the set
-> > backend selection at some point, as well as more detailed performance
-> > evaluation. Note this big O notation just tell about the scalability.
-> > Size provides an accurate way to measure how much memory this consumes
-> > but only if userspace tells us how many elements we're going to add
-> > beforehand. On the CPU side, we have no such specific metric as the
-> > memory size. Probably we can introduce some generic cycle metric that
-> > represents the cost of the lookup path, this won't be simple as this
-> > number is not deterministic since there are many things to consider,
-> > so we have to agree on how we calculate this pseudo-metric.
+On Tue, Mar 14, 2017 at 05:55:50PM +0900, Lorenzo Colitti wrote:
+> Currently the iptables lock is hardcoded as "/run/xtables.lock".
+> Allow users to change this path using the --with-xt-lock-name
+> option to ./configure option. This is useful on systems like
+> Android which do not have /run.
 > 
-> Hmm... I think a better selection algorithm is necessary now. I find an
-> obvious drawback for the time being, for example:
+> Tested on Ubuntu, as follows:
 > 
-> When set->klen is 2, the bitmap_set's memory consumption is much
-> higer than others. Only one single set with few elements will occupy at
-> least 16kB, so only 20 rules using sets will consume roughly 320kB, it will
-> become a high burden for these embedded systems which with low memory.
->
-> It's worse that we cannot ignore the bitmap_set, even if we select the the
-> NFT_SET_POL_MEMORY policy without the set size specified, we will still
-> choose the bitmap_set, since it claims that it's space complexity is
-> NFT_SET_CLASS_O_1.
+> 1. By default, the lock is placed in /run/xtables.lock:
+> 
+> $ make distclean-recursive && ./autogen.sh &&
+>   ./configure --disable-nftables --prefix /tmp/iptables &&
+>   make -j64 &&
+>   make install &&
+>   sudo strace -e open,flock /tmp/iptables/sbin/iptables -L foo
+> ...
+> open("/run/xtables.lock", O_RDONLY|O_CREAT, 0600) = 3
+> flock(3, LOCK_EX|LOCK_NB)               = 0
+> iptables: No chain/target/match by that name.
+> 
+> 2. Specifying the lock results in the expected location being
+>    used:
+> 
+> $ make distclean-recursive && ./autogen.sh && \
+>   ./configure --disable-nftables --prefix /tmp/iptables \
+>   --with-xt-lock-name=/tmp/iptables/run/xtables.lock &&
+>   make -j64 &&
+>   make install &&
+>   sudo strace -e open,flock /tmp/iptables/sbin/iptables -L foo
+> ...
+> open("/tmp/iptables/run/xtables.lock", O_RDONLY|O_CREAT, 0600) = 3
+> flock(3, LOCK_EX|LOCK_NB)               = 0
+> iptables: No chain/target/match by that name.
 
-Make sense. Please, submit patches for nf-next to revisit POL_MEMORY
-selection explaining the new criteria. I guess we will need more
-iterations on this set selection as we get more set backends. I wanted
-to dedicate some time on this during the Netfilter Workshop (to be
-announce, by Q2 2017).
-
-Note that an anonymous sets default to POL_PERFORMANCE, so 20 rules
-with anonymous sets would still consumed those 320 kB. So probably we
-need a per-table global policy switch that we can set when the table
-is created. I think updating such knob would result in EOPNOTSUPP at
-this stage, as we would need a way to transfer set representations
-from one backend to another if the policy update results in a
-different set backend configuration in order to support
-performance/memory policy updates.
+Applied, thanks Lorenzo!
