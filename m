@@ -1,7 +1,7 @@
 From: Elena Reshetova <elena.reshetova@intel.com>
-Subject: [PATCH 4/7] net, netfilter: convert nf_acct.refcnt from atomic_t to refcount_t
-Date: Wed, 15 Mar 2017 13:10:42 +0200
-Message-ID: <1489576245-19472-5-git-send-email-elena.reshetova@intel.com>
+Subject: [PATCH 5/7] net, netfilter: convert nf_conntrack_expect.use from atomic_t to refcount_t
+Date: Wed, 15 Mar 2017 13:10:43 +0200
+Message-ID: <1489576245-19472-6-git-send-email-elena.reshetova@intel.com>
 References: <1489576245-19472-1-git-send-email-elena.reshetova@intel.com>
 Cc: linux-kernel@vger.kernel.org, kadlec@blackhole.kfki.hu,
         pablo@netfilter.org, peterz@infradead.org, keescook@chromium.org,
@@ -25,88 +25,103 @@ Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: David Windsor <dwindsor@gmail.com>
 ---
- net/netfilter/nfnetlink_acct.c | 16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ include/net/netfilter/nf_conntrack_expect.h |  4 +++-
+ net/netfilter/nf_conntrack_expect.c         | 10 +++++-----
+ net/netfilter/nf_conntrack_netlink.c        |  4 ++--
+ 3 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
-index d44d89b..f44cbd3 100644
---- a/net/netfilter/nfnetlink_acct.c
-+++ b/net/netfilter/nfnetlink_acct.c
-@@ -11,6 +11,7 @@
- #include <linux/kernel.h>
- #include <linux/skbuff.h>
- #include <linux/atomic.h>
+diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
+index 5ed33ea..65cc2cb 100644
+--- a/include/net/netfilter/nf_conntrack_expect.h
++++ b/include/net/netfilter/nf_conntrack_expect.h
+@@ -5,6 +5,8 @@
+ #ifndef _NF_CONNTRACK_EXPECT_H
+ #define _NF_CONNTRACK_EXPECT_H
+ 
 +#include <linux/refcount.h>
- #include <linux/netlink.h>
- #include <linux/rculist.h>
- #include <linux/slab.h>
-@@ -32,7 +33,7 @@ struct nf_acct {
- 	atomic64_t		bytes;
- 	unsigned long		flags;
- 	struct list_head	head;
--	atomic_t		refcnt;
-+	refcount_t		refcnt;
- 	char			name[NFACCT_NAME_MAX];
- 	struct rcu_head		rcu_head;
- 	char			data[0];
-@@ -123,7 +124,7 @@ static int nfnl_acct_new(struct net *net, struct sock *nfnl,
- 		atomic64_set(&nfacct->pkts,
- 			     be64_to_cpu(nla_get_be64(tb[NFACCT_PKTS])));
- 	}
--	atomic_set(&nfacct->refcnt, 1);
-+	refcount_set(&nfacct->refcnt, 1);
- 	list_add_tail_rcu(&nfacct->head, &net->nfnl_acct_list);
- 	return 0;
++
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_zones.h>
+ 
+@@ -37,7 +39,7 @@ struct nf_conntrack_expect {
+ 	struct timer_list timeout;
+ 
+ 	/* Usage count. */
+-	atomic_t use;
++	refcount_t use;
+ 
+ 	/* Flags */
+ 	unsigned int flags;
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 4b2e1fb..cb29e59 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -133,7 +133,7 @@ nf_ct_expect_find_get(struct net *net,
+ 
+ 	rcu_read_lock();
+ 	i = __nf_ct_expect_find(net, zone, tuple);
+-	if (i && !atomic_inc_not_zero(&i->use))
++	if (i && !refcount_inc_not_zero(&i->use))
+ 		i = NULL;
+ 	rcu_read_unlock();
+ 
+@@ -186,7 +186,7 @@ nf_ct_find_expectation(struct net *net,
+ 		return NULL;
+ 
+ 	if (exp->flags & NF_CT_EXPECT_PERMANENT) {
+-		atomic_inc(&exp->use);
++		refcount_inc(&exp->use);
+ 		return exp;
+ 	} else if (del_timer(&exp->timeout)) {
+ 		nf_ct_unlink_expect(exp);
+@@ -275,7 +275,7 @@ struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me)
+ 		return NULL;
+ 
+ 	new->master = me;
+-	atomic_set(&new->use, 1);
++	refcount_set(&new->use, 1);
+ 	return new;
  }
-@@ -166,7 +167,7 @@ nfnl_acct_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
- 			 NFACCT_PAD) ||
- 	    nla_put_be64(skb, NFACCT_BYTES, cpu_to_be64(bytes),
- 			 NFACCT_PAD) ||
--	    nla_put_be32(skb, NFACCT_USE, htonl(atomic_read(&acct->refcnt))))
-+	    nla_put_be32(skb, NFACCT_USE, htonl(refcount_read(&acct->refcnt))))
- 		goto nla_put_failure;
- 	if (acct->flags & NFACCT_F_QUOTA) {
- 		u64 *quota = (u64 *)acct->data;
-@@ -325,11 +326,12 @@ static int nfnl_acct_get(struct net *net, struct sock *nfnl,
- static int nfnl_acct_try_del(struct nf_acct *cur)
+ EXPORT_SYMBOL_GPL(nf_ct_expect_alloc);
+@@ -348,7 +348,7 @@ static void nf_ct_expect_free_rcu(struct rcu_head *head)
+ 
+ void nf_ct_expect_put(struct nf_conntrack_expect *exp)
  {
- 	int ret = 0;
-+	unsigned int refcount;
- 
- 	/* We want to avoid races with nfnl_acct_put. So only when the current
- 	 * refcnt is 1, we decrease it to 0.
- 	 */
--	if (atomic_cmpxchg(&cur->refcnt, 1, 0) == 1) {
-+	if (refcount_dec_if_one(&cur->refcnt)) {
- 		/* We are protected by nfnl mutex. */
- 		list_del_rcu(&cur->head);
- 		kfree_rcu(cur, rcu_head);
-@@ -413,7 +415,7 @@ struct nf_acct *nfnl_acct_find_get(struct net *net, const char *acct_name)
- 		if (!try_module_get(THIS_MODULE))
- 			goto err;
- 
--		if (!atomic_inc_not_zero(&cur->refcnt)) {
-+		if (!refcount_inc_not_zero(&cur->refcnt)) {
- 			module_put(THIS_MODULE);
- 			goto err;
- 		}
-@@ -429,7 +431,7 @@ EXPORT_SYMBOL_GPL(nfnl_acct_find_get);
- 
- void nfnl_acct_put(struct nf_acct *acct)
- {
--	if (atomic_dec_and_test(&acct->refcnt))
-+	if (refcount_dec_and_test(&acct->refcnt))
- 		kfree_rcu(acct, rcu_head);
- 
- 	module_put(THIS_MODULE);
-@@ -502,7 +504,7 @@ static void __net_exit nfnl_acct_net_exit(struct net *net)
- 	list_for_each_entry_safe(cur, tmp, &net->nfnl_acct_list, head) {
- 		list_del_rcu(&cur->head);
- 
--		if (atomic_dec_and_test(&cur->refcnt))
-+		if (refcount_dec_and_test(&cur->refcnt))
- 			kfree_rcu(cur, rcu_head);
- 	}
+-	if (atomic_dec_and_test(&exp->use))
++	if (refcount_dec_and_test(&exp->use))
+ 		call_rcu(&exp->rcu, nf_ct_expect_free_rcu);
  }
+ EXPORT_SYMBOL_GPL(nf_ct_expect_put);
+@@ -361,7 +361,7 @@ static void nf_ct_expect_insert(struct nf_conntrack_expect *exp)
+ 	unsigned int h = nf_ct_expect_dst_hash(net, &exp->tuple);
+ 
+ 	/* two references : one for hash insert, one for the timer */
+-	atomic_add(2, &exp->use);
++	refcount_add(2, &exp->use);
+ 
+ 	hlist_add_head(&exp->lnode, &master_help->expectations);
+ 	master_help->expecting[exp->class]++;
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 6806b5e..d49cc1e 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -2693,7 +2693,7 @@ ctnetlink_exp_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+ 						    cb->nlh->nlmsg_seq,
+ 						    IPCTNL_MSG_EXP_NEW,
+ 						    exp) < 0) {
+-				if (!atomic_inc_not_zero(&exp->use))
++				if (!refcount_inc_not_zero(&exp->use))
+ 					continue;
+ 				cb->args[1] = (unsigned long)exp;
+ 				goto out;
+@@ -2739,7 +2739,7 @@ ctnetlink_exp_ct_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+ 					    cb->nlh->nlmsg_seq,
+ 					    IPCTNL_MSG_EXP_NEW,
+ 					    exp) < 0) {
+-			if (!atomic_inc_not_zero(&exp->use))
++			if (!refcount_inc_not_zero(&exp->use))
+ 				continue;
+ 			cb->args[1] = (unsigned long)exp;
+ 			goto out;
 -- 
 2.7.4
