@@ -1,44 +1,40 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: nft_ct: do cleanup work when NFTA_CT_DIRECTION is invalid
-Date: Wed, 15 Mar 2017 22:22:08 +0800
-Message-ID: <1489587728-28318-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
-        Liping Zhang <zlpnobody@gmail.com>
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-18.163.com ([220.181.12.18]:38327 "EHLO m12-18.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751152AbdCOOXM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Mar 2017 10:23:12 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Linus =?utf-8?Q?L=C3=BCssing?= <linus.luessing@c0d3.blue>
+Subject: Re: [PATCH net] bridge: ebtables: fix reception of frames
+ DNAT-ed to bridge device
+Date: Wed, 15 Mar 2017 15:27:20 +0100
+Message-ID: <20170315142720.GU15692@otheros>
+References: <20170315031811.22714-1-linus.luessing@c0d3.blue>
+	<20170315102608.GB24366@breakpoint.cc>
+	<20170315104211.GA24409@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Cc: netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
+	Florian Westphal <fw@strlen.de>, linux-kernel@vger.kernel.org,
+	coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S . Miller" <davem@davemloft.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <20170315104211.GA24409@salvia>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Liping Zhang <zlpnobody@gmail.com>
+On Wed, Mar 15, 2017 at 11:42:11AM +0100, Pablo Neira Ayuso wrote:
+> I'm missing then why redirect is not then just enough for Linus usecase.
 
-We should jump to invoke __nft_ct_set_destroy() instead of just
-return error.
+For my usecase, the MAC address is configured by the user from a
+Web-UI. It may or may not be the one from the bridge device.
 
-Fixes: edee4f1e9245 ("netfilter: nft_ct: add zone id set support")
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
----
- net/netfilter/nft_ct.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 91585b5..0264258 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -544,7 +544,8 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
- 		case IP_CT_DIR_REPLY:
- 			break;
- 		default:
--			return -EINVAL;
-+			err = -EINVAL;
-+			goto err1;
- 		}
- 	}
- 
--- 
-2.5.5
-
-
+Besides, found it counter intuitive that DNAT did not work here
+and took me some time to find out why. At least I didn't read about
+any such known limitations of the dnat target in the ebtables
+manpage.
