@@ -1,7 +1,7 @@
 From: Elena Reshetova <elena.reshetova@intel.com>
-Subject: [PATCH 6/7] net, netfilter: convert nfulnl_instance.use from atomic_t to refcount_t
-Date: Wed, 15 Mar 2017 13:10:44 +0200
-Message-ID: <1489576245-19472-7-git-send-email-elena.reshetova@intel.com>
+Subject: [PATCH 1/7] net, netfilter: convert ip_vs_conn.refcnt from atomic_t to refcount_t
+Date: Wed, 15 Mar 2017 13:10:39 +0200
+Message-ID: <1489576245-19472-2-git-send-email-elena.reshetova@intel.com>
 References: <1489576245-19472-1-git-send-email-elena.reshetova@intel.com>
 Cc: linux-kernel@vger.kernel.org, kadlec@blackhole.kfki.hu,
         pablo@netfilter.org, peterz@infradead.org, keescook@chromium.org,
@@ -9,14 +9,10 @@ Cc: linux-kernel@vger.kernel.org, kadlec@blackhole.kfki.hu,
         Hans Liljestrand <ishkamiel@gmail.com>,
         David Windsor <dwindsor@gmail.com>
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:63786 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753783AbdCOLLO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Mar 2017 07:11:14 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1489576245-19472-1-git-send-email-elena.reshetova@intel.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 refcount_t type and corresponding API should be
 used instead of atomic_t when the variable is used as
@@ -29,76 +25,190 @@ Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: David Windsor <dwindsor@gmail.com>
 ---
- net/netfilter/nfnetlink_log.c | 14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ include/net/ip_vs.h                   |  8 +++++---
+ net/netfilter/ipvs/ip_vs_conn.c       | 24 ++++++++++++------------
+ net/netfilter/ipvs/ip_vs_core.c       |  4 ++--
+ net/netfilter/ipvs/ip_vs_proto_sctp.c |  2 +-
+ net/netfilter/ipvs/ip_vs_proto_tcp.c  |  2 +-
+ 5 files changed, 21 insertions(+), 19 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 08247bf..ecd857b 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -40,6 +40,8 @@
- #include <net/netfilter/nfnetlink_log.h>
- 
- #include <linux/atomic.h>
-+#include <linux/refcount.h>
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 7bdfa7d..f1429c3 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -12,6 +12,8 @@
+ #include <linux/list.h>                 /* for struct list_head */
+ #include <linux/spinlock.h>             /* for struct rwlock_t */
+ #include <linux/atomic.h>               /* for struct atomic_t */
++#include <linux/refcount.h>             /* for struct refcount_t */
 +
+ #include <linux/compiler.h>
+ #include <linux/timer.h>
+ #include <linux/bug.h>
+@@ -525,7 +527,7 @@ struct ip_vs_conn {
+ 	struct netns_ipvs	*ipvs;
  
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
- #include "../bridge/br_private.h"
-@@ -57,7 +59,7 @@
- struct nfulnl_instance {
- 	struct hlist_node hlist;	/* global list of instances */
- 	spinlock_t lock;
--	atomic_t use;			/* use count */
-+	refcount_t use;			/* use count */
+ 	/* counter and timer */
+-	atomic_t		refcnt;		/* reference count */
++	refcount_t		refcnt;		/* reference count */
+ 	struct timer_list	timer;		/* Expiration timer */
+ 	volatile unsigned long	timeout;	/* timeout */
  
- 	unsigned int qlen;		/* number of nlmsgs in skb */
- 	struct sk_buff *skb;		/* pre-allocatd skb */
-@@ -115,7 +117,7 @@ __instance_lookup(struct nfnl_log_net *log, u_int16_t group_num)
- static inline void
- instance_get(struct nfulnl_instance *inst)
+@@ -1211,14 +1213,14 @@ struct ip_vs_conn * ip_vs_conn_out_get_proto(struct netns_ipvs *ipvs, int af,
+  */
+ static inline bool __ip_vs_conn_get(struct ip_vs_conn *cp)
  {
--	atomic_inc(&inst->use);
-+	refcount_inc(&inst->use);
+-	return atomic_inc_not_zero(&cp->refcnt);
++	return refcount_inc_not_zero(&cp->refcnt);
  }
  
- static struct nfulnl_instance *
-@@ -125,7 +127,7 @@ instance_lookup_get(struct nfnl_log_net *log, u_int16_t group_num)
- 
- 	rcu_read_lock_bh();
- 	inst = __instance_lookup(log, group_num);
--	if (inst && !atomic_inc_not_zero(&inst->use))
-+	if (inst && !refcount_inc_not_zero(&inst->use))
- 		inst = NULL;
- 	rcu_read_unlock_bh();
- 
-@@ -145,7 +147,7 @@ static void nfulnl_instance_free_rcu(struct rcu_head *head)
- static void
- instance_put(struct nfulnl_instance *inst)
+ /* put back the conn without restarting its timer */
+ static inline void __ip_vs_conn_put(struct ip_vs_conn *cp)
  {
--	if (inst && atomic_dec_and_test(&inst->use))
-+	if (inst && refcount_dec_and_test(&inst->use))
- 		call_rcu_bh(&inst->rcu, nfulnl_instance_free_rcu);
+ 	smp_mb__before_atomic();
+-	atomic_dec(&cp->refcnt);
++	refcount_dec(&cp->refcnt);
  }
+ void ip_vs_conn_put(struct ip_vs_conn *cp);
+ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport);
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index e6a2753..3d2ac71a 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -181,7 +181,7 @@ static inline int ip_vs_conn_hash(struct ip_vs_conn *cp)
  
-@@ -180,7 +182,7 @@ instance_create(struct net *net, u_int16_t group_num,
- 	INIT_HLIST_NODE(&inst->hlist);
- 	spin_lock_init(&inst->lock);
- 	/* needs to be two, since we _put() after creation */
--	atomic_set(&inst->use, 2);
-+	refcount_set(&inst->use, 2);
+ 	if (!(cp->flags & IP_VS_CONN_F_HASHED)) {
+ 		cp->flags |= IP_VS_CONN_F_HASHED;
+-		atomic_inc(&cp->refcnt);
++		refcount_inc(&cp->refcnt);
+ 		hlist_add_head_rcu(&cp->c_list, &ip_vs_conn_tab[hash]);
+ 		ret = 1;
+ 	} else {
+@@ -215,7 +215,7 @@ static inline int ip_vs_conn_unhash(struct ip_vs_conn *cp)
+ 	if (cp->flags & IP_VS_CONN_F_HASHED) {
+ 		hlist_del_rcu(&cp->c_list);
+ 		cp->flags &= ~IP_VS_CONN_F_HASHED;
+-		atomic_dec(&cp->refcnt);
++		refcount_dec(&cp->refcnt);
+ 		ret = 1;
+ 	} else
+ 		ret = 0;
+@@ -242,13 +242,13 @@ static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
+ 	if (cp->flags & IP_VS_CONN_F_HASHED) {
+ 		ret = false;
+ 		/* Decrease refcnt and unlink conn only if we are last user */
+-		if (atomic_cmpxchg(&cp->refcnt, 1, 0) == 1) {
++		if (refcount_dec_if_one(&cp->refcnt)) {
+ 			hlist_del_rcu(&cp->c_list);
+ 			cp->flags &= ~IP_VS_CONN_F_HASHED;
+ 			ret = true;
+ 		}
+ 	} else
+-		ret = atomic_read(&cp->refcnt) ? false : true;
++		ret = refcount_read(&cp->refcnt) ? false : true;
  
- 	setup_timer(&inst->timer, nfulnl_timer, (unsigned long)inst);
+ 	spin_unlock(&cp->lock);
+ 	ct_write_unlock_bh(hash);
+@@ -475,7 +475,7 @@ static void __ip_vs_conn_put_timer(struct ip_vs_conn *cp)
+ void ip_vs_conn_put(struct ip_vs_conn *cp)
+ {
+ 	if ((cp->flags & IP_VS_CONN_F_ONE_PACKET) &&
+-	    (atomic_read(&cp->refcnt) == 1) &&
++	    (refcount_read(&cp->refcnt) == 1) &&
+ 	    !timer_pending(&cp->timer))
+ 		/* expire connection immediately */
+ 		__ip_vs_conn_put_notimer(cp);
+@@ -617,8 +617,8 @@ ip_vs_bind_dest(struct ip_vs_conn *cp, struct ip_vs_dest *dest)
+ 		      IP_VS_DBG_ADDR(cp->af, &cp->vaddr), ntohs(cp->vport),
+ 		      IP_VS_DBG_ADDR(cp->daf, &cp->daddr), ntohs(cp->dport),
+ 		      ip_vs_fwd_tag(cp), cp->state,
+-		      cp->flags, atomic_read(&cp->refcnt),
+-		      atomic_read(&dest->refcnt));
++		      cp->flags, refcount_read(&cp->refcnt),
++		      refcount_read(&dest->refcnt));
  
-@@ -1031,7 +1033,7 @@ static int seq_show(struct seq_file *s, void *v)
- 		   inst->group_num,
- 		   inst->peer_portid, inst->qlen,
- 		   inst->copy_mode, inst->copy_range,
--		   inst->flushtimeout, atomic_read(&inst->use));
-+		   inst->flushtimeout, refcount_read(&inst->use));
+ 	/* Update the connection counters */
+ 	if (!(flags & IP_VS_CONN_F_TEMPLATE)) {
+@@ -714,8 +714,8 @@ static inline void ip_vs_unbind_dest(struct ip_vs_conn *cp)
+ 		      IP_VS_DBG_ADDR(cp->af, &cp->vaddr), ntohs(cp->vport),
+ 		      IP_VS_DBG_ADDR(cp->daf, &cp->daddr), ntohs(cp->dport),
+ 		      ip_vs_fwd_tag(cp), cp->state,
+-		      cp->flags, atomic_read(&cp->refcnt),
+-		      atomic_read(&dest->refcnt));
++		      cp->flags, refcount_read(&cp->refcnt),
++		      refcount_read(&dest->refcnt));
  
- 	return 0;
+ 	/* Update the connection counters */
+ 	if (!(cp->flags & IP_VS_CONN_F_TEMPLATE)) {
+@@ -863,10 +863,10 @@ static void ip_vs_conn_expire(unsigned long data)
+ 
+   expire_later:
+ 	IP_VS_DBG(7, "delayed: conn->refcnt=%d conn->n_control=%d\n",
+-		  atomic_read(&cp->refcnt),
++		  refcount_read(&cp->refcnt),
+ 		  atomic_read(&cp->n_control));
+ 
+-	atomic_inc(&cp->refcnt);
++	refcount_inc(&cp->refcnt);
+ 	cp->timeout = 60*HZ;
+ 
+ 	if (ipvs->sync_state & IP_VS_STATE_MASTER)
+@@ -941,7 +941,7 @@ ip_vs_conn_new(const struct ip_vs_conn_param *p, int dest_af,
+ 	 * it in the table, so that other thread run ip_vs_random_dropentry
+ 	 * but cannot drop this entry.
+ 	 */
+-	atomic_set(&cp->refcnt, 1);
++	refcount_set(&cp->refcnt, 1);
+ 
+ 	cp->control = NULL;
+ 	atomic_set(&cp->n_control, 0);
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index db40050..a3e1b9c 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -542,7 +542,7 @@ ip_vs_schedule(struct ip_vs_service *svc, struct sk_buff *skb,
+ 		      IP_VS_DBG_ADDR(cp->af, &cp->caddr), ntohs(cp->cport),
+ 		      IP_VS_DBG_ADDR(cp->af, &cp->vaddr), ntohs(cp->vport),
+ 		      IP_VS_DBG_ADDR(cp->daf, &cp->daddr), ntohs(cp->dport),
+-		      cp->flags, atomic_read(&cp->refcnt));
++		      cp->flags, refcount_read(&cp->refcnt));
+ 
+ 	ip_vs_conn_stats(cp, svc);
+ 	return cp;
+@@ -1193,7 +1193,7 @@ struct ip_vs_conn *ip_vs_new_conn_out(struct ip_vs_service *svc,
+ 		      IP_VS_DBG_ADDR(cp->af, &cp->caddr), ntohs(cp->cport),
+ 		      IP_VS_DBG_ADDR(cp->af, &cp->vaddr), ntohs(cp->vport),
+ 		      IP_VS_DBG_ADDR(cp->af, &cp->daddr), ntohs(cp->dport),
+-		      cp->flags, atomic_read(&cp->refcnt));
++		      cp->flags, refcount_read(&cp->refcnt));
+ 	LeaveFunction(12);
+ 	return cp;
  }
+diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+index d952d67..56f8e4b 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+@@ -447,7 +447,7 @@ set_sctp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
+ 				ntohs(cp->cport),
+ 				sctp_state_name(cp->state),
+ 				sctp_state_name(next_state),
+-				atomic_read(&cp->refcnt));
++				refcount_read(&cp->refcnt));
+ 		if (dest) {
+ 			if (!(cp->flags & IP_VS_CONN_F_INACTIVE) &&
+ 				(next_state != IP_VS_SCTP_S_ESTABLISHED)) {
+diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+index 5117bcb..12dc8d5 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+@@ -557,7 +557,7 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
+ 			      ntohs(cp->cport),
+ 			      tcp_state_name(cp->state),
+ 			      tcp_state_name(new_state),
+-			      atomic_read(&cp->refcnt));
++			      refcount_read(&cp->refcnt));
+ 
+ 		if (dest) {
+ 			if (!(cp->flags & IP_VS_CONN_F_INACTIVE) &&
 -- 
 2.7.4
-
