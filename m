@@ -1,73 +1,93 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nftables 6/7] tests: add insert-failure test
-Date: Wed, 15 Mar 2017 16:01:10 +0100
-Message-ID: <20170315150111.18477-7-fw@strlen.de>
+Subject: [PATCH v2 nftables 5/7] tests: py: add ct helper tests
+Date: Wed, 15 Mar 2017 16:01:09 +0100
+Message-ID: <20170315150111.18477-6-fw@strlen.de>
 References: <20170315150111.18477-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:46452 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:46450 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753100AbdCOPBP (ORCPT
+        by vger.kernel.org with ESMTP id S1753061AbdCOPBL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Mar 2017 11:01:15 -0400
+        Wed, 15 Mar 2017 11:01:11 -0400
 In-Reply-To: <20170315150111.18477-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It should not be possible to add a ip6 restricted helper to ip family.
+needs minor tweak to nft-test.py so we don't zap the ';' withhin the {}.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- not part of v1 series.
-
- tests/py/ip/objects.t |  1 +
- tests/py/nft-test.py  | 17 ++++++++++++++---
- 2 files changed, 15 insertions(+), 3 deletions(-)
+ no changes since v1.
+ tests/py/ip/objects.t         |  4 ++++
+ tests/py/ip/objects.t.payload | 14 ++++++++++++++
+ tests/py/nft-test.py          | 11 ++++++++++-
+ 3 files changed, 28 insertions(+), 1 deletion(-)
 
 diff --git a/tests/py/ip/objects.t b/tests/py/ip/objects.t
-index ec8e8fd916d4..742ec6af2572 100644
+index 8109402da8ba..ec8e8fd916d4 100644
 --- a/tests/py/ip/objects.t
 +++ b/tests/py/ip/objects.t
-@@ -6,6 +6,7 @@
- %cnt2 type counter;ok
- %qt1 type quota 25 mbytes;ok
- %qt2 type quota over 1 kbytes;ok
-+%cthelp2 type ct helper { type \"ftp\" protocol tcp\; l3proto ip6\; };fail
- 
- ip saddr 192.168.1.3 counter name "cnt2";ok
- ip saddr 192.168.1.3 counter name "cnt3";fail
+@@ -13,3 +13,7 @@ counter name tcp dport map {443 : "cnt1", 80 : "cnt2", 22 : "cnt1"};ok
+ ip saddr 192.168.1.3 quota name "qt1";ok
+ ip saddr 192.168.1.3 quota name "qt3";fail
+ quota name tcp dport map {443 : "qt1", 80 : "qt2", 22 : "qt1"};ok
++
++%cthelp1 type ct helper { type \"ftp\" protocol tcp\; };ok
++ct helper set "cthelp1";ok
++ct helper set tcp dport map {21 : "cthelp1", 2121 : "cthelp1" };ok
+diff --git a/tests/py/ip/objects.t.payload b/tests/py/ip/objects.t.payload
+index b5cad4d1e3fc..6499d36348fe 100644
+--- a/tests/py/ip/objects.t.payload
++++ b/tests/py/ip/objects.t.payload
+@@ -29,3 +29,17 @@ ip test-ip4 output
+   [ cmp eq reg 1 0x00000006 ]
+   [ payload load 2b @ transport header + 2 => reg 1 ]
+   [ objref sreg 1 set __objmap%d id 1 ]
++
++# ct helper set "cthelp1"
++ip test-ip4 output
++  [ objref type 3 name cthelp1 ]
++
++# ct helper set tcp dport map {21 : "cthelp1", 2121 : "cthelp1" }
++__objmap%d test-ip4 43
++__objmap%d test-ip4 0
++        element 00001500  : 0 [end]     element 00004908  : 0 [end]
++ip test-ip4 output
++  [ payload load 1b @ network header + 9 => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
++  [ payload load 2b @ transport header + 2 => reg 1 ]
++  [ objref sreg 1 set __objmap%d id 1 ]
 diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
-index b22404076edd..8d1df3bc517a 100755
+index 25009217e51d..b22404076edd 100755
 --- a/tests/py/nft-test.py
 +++ b/tests/py/nft-test.py
-@@ -517,12 +517,23 @@ def obj_add(o, test_result, filename, lineno):
-             print_error(reason, filename, lineno)
-             return -1
+@@ -885,6 +885,10 @@ def obj_process(obj_line, filename, lineno):
+     obj_type = tokens[2]
+     obj_spcf = ""
  
--        if not _obj_exist(o, filename, lineno):
--            reason = "I have just added the " + obj_handle + \
--                     " to the table " + table.name + " but it does not exist"
-+        exist = _obj_exist(o, filename, lineno)
++    if obj_type == "ct" and tokens[3] == "helper":
++       obj_type = "ct helper"
++       tokens[3] = ""
 +
-+        if exist:
-+            if test_result == "ok":
-+                 return 0
-+            reason = "I added the " + obj_handle + \
-+                     " to the table " + table.name + " but it should have failed"
-             print_error(reason, filename, lineno)
-             return -1
+     if len(tokens) > 3:
+         obj_spcf = " ".join(tokens[3:])
  
-+        if test_result == "fail":
-+            return 0
+@@ -985,7 +989,12 @@ def run_test_file(filename, force_all_family_option, specific_file):
+             continue
+ 
+         if line[0] == "%":  # Adds this object
+-            obj_line = line.rstrip()[1:].split(";")
++            brace = line.rfind("}")
++            if brace < 0:
++                obj_line = line.rstrip()[1:].split(";")
++            else:
++                obj_line = (line[1:brace+1], line[brace+2:].rstrip())
 +
-+        reason = "I have just added the " + obj_handle + \
-+                 " to the table " + table.name + " but it does not exist"
-+        print_error(reason, filename, lineno)
-+        return -1
- 
- def obj_delete(table, filename=None, lineno=None):
-     '''
+             ret = obj_process(obj_line, filename, lineno)
+             tests += 1
+             if ret == -1:
 -- 
 2.10.2
 
