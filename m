@@ -1,39 +1,83 @@
-From: Linus =?utf-8?Q?L=C3=BCssing?= <linus.luessing@c0d3.blue>
-Subject: Re: [PATCH net] bridge: ebtables: fix reception of frames DNAT-ed to
- bridge device
-Date: Wed, 15 Mar 2017 22:16:19 +0100
-Message-ID: <20170315211619.GA3464@otheros>
-References: <20170315031811.22714-1-linus.luessing@c0d3.blue>
- <20170315102608.GB24366@breakpoint.cc>
- <20170315104211.GA24409@salvia>
- <20170315142720.GU15692@otheros>
- <20170315181539.GA31875@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH] proto: Add some exotic ICMPv6 types
+Date: Wed, 15 Mar 2017 22:47:57 +0100
+Message-ID: <20170315214757.GA1289@salvia>
+References: <20170315155501.8603-1-phil@nwl.cc>
+ <20170315161514.GB28159@salvia>
+ <20170315195051.GE17939@orbyte.nwl.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        "David S . Miller" <davem@davemloft.net>,
-        Stephen Hemminger <stephen@networkplumber.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        bridge@lists.linux-foundation.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:41932 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752294AbdCOVsS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 15 Mar 2017 17:48:18 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 1AEB4174D07
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Mar 2017 22:48:00 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0C3B0DA7F7
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Mar 2017 22:48:00 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F403ADA729
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Mar 2017 22:47:57 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20170315181539.GA31875@salvia>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20170315195051.GE17939@orbyte.nwl.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 15, 2017 at 07:15:39PM +0100, Pablo Neira Ayuso wrote:
-> Could you update ebtables dnat to check if the ethernet address
-> matches the one of the input bridge interface, so we mangle the
-> ->pkt_type accordingly from there, instead of doing this from the
-> core?
+On Wed, Mar 15, 2017 at 08:50:51PM +0100, Phil Sutter wrote:
+> On Wed, Mar 15, 2017 at 05:15:14PM +0100, Pablo Neira Ayuso wrote:
+> > On Wed, Mar 15, 2017 at 04:55:01PM +0100, Phil Sutter wrote:
+> > > This adds support for matching on inverse ND messages as defined by
+> > > RFC3122 (not implemented in Linux) and MLDv2 as defined by RFC3810.
+> > > 
+> > > Note that ICMPV6_MLD2_REPORT macro is defined in linux/icmpv6.h but
+> > > including that header leads to conflicts with symbols defined in
+> > > netinet/icmp6.h.
+> > > 
+> > > In addition to the above, "mld-listener-done" is introduced as an alias
+> > > for "mld-listener-reduction".
+> > > 
+> > > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > > ---
+> > > This should resolve netfilter BZ#926.
+> > > ---
+> > >  src/proto.c | 8 ++++++++
+> > >  1 file changed, 8 insertions(+)
+> > > 
+> > > diff --git a/src/proto.c b/src/proto.c
+> > > index fb965304e59d9..6a8eed936d858 100644
+> > > --- a/src/proto.c
+> > > +++ b/src/proto.c
+> > > @@ -632,6 +632,10 @@ const struct proto_desc proto_ip = {
+> > >  
+> > >  #include <netinet/icmp6.h>
+> > >  
+> > > +#define IND_NEIGHBOR_SOLICIT	141
+> > > +#define IND_NEIGHBOR_ADVERT	142
+> > > +#define ICMPV6_MLD2_REPORT	143
+> > > +
+> > >  static const struct symbol_table icmp6_type_tbl = {
+> > >  	.base		= BASE_DECIMAL,
+> > >  	.symbols	= {
+> > > @@ -644,12 +648,16 @@ static const struct symbol_table icmp6_type_tbl = {
+> > >  		SYMBOL("mld-listener-query",		MLD_LISTENER_QUERY),
+> > >  		SYMBOL("mld-listener-report",		MLD_LISTENER_REPORT),
+> > >  		SYMBOL("mld-listener-reduction",	MLD_LISTENER_REDUCTION),
+> > > +		SYMBOL("mld-listener-done",		MLD_LISTENER_REDUCTION),
+> > 
+> > This one is duplicated, right?
+> 
+> Yes, it is the alias which was suggested in the ticket. Is this OK, or
+> should we rather respond with WONTFIX?
 
-Actually, that was the approach I thought about and went for first
-(and it would probably work for me). Just checking against the
-bridge device's net_device::dev_addr.
+Just add this before "mld-listener-reduction" so we use
+"mld-listener-done" when printing this back to userspace. So we
+prioritize the more appropriate syntax.
 
-I scratched it though, as I was afraid that the issue might still
-exist for people using some other upper device on top of the bridge
-device. For instance, macvlan? And iterating over the
-net_device::dev_addrs list seemed too costly for fast path to me.
+> I realize this patch lacks an update to man page and a few test cases.
+> Should I reroll or send a follow-up?
+
+Please do, thank you!
