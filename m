@@ -1,67 +1,61 @@
-From: Gao Feng <fgao@ikuai8.com>
-Subject: Re: [PATCH nf 1/1] netfilter: helper: Fix possible panic caused by
- invoking expectfn unloaded
-Date: Thu, 16 Mar 2017 06:57:58 +0800
-Message-ID: <CA+6hz4q8FEoadzJoZO7ymqJuNZdJZzn3Dka0ztqfE+vJur6oag@mail.gmail.com>
-References: <1489472766-89568-1-git-send-email-fgao@ikuai8.com> <20170315130726.GA6318@salvia>
+From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Subject: Re: [PATCH iptables 1/2] iptables: remove duplicated argument parsing
+ code
+Date: Wed, 15 Mar 2017 17:49:15 -0600
+Message-ID: <30ea803326b87cfdc78ebe8d3b373a04@codeaurora.org>
+References: <20170315134553.35772-1-lorenzo@google.com>
+ <20170315134553.35772-2-lorenzo@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        jscherpelz@google.com, zlpnobody@gmail.com
+To: Lorenzo Colitti <lorenzo@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg202.qq.com ([184.105.206.29]:37120 "EHLO smtpbg202.qq.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753063AbdCOW6F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Mar 2017 18:58:05 -0400
-Received: from mail-pg0-f49.google.com (unknown [74.125.83.49])
-        by esmtp4.qq.com (ESMTP) with SMTP id 0
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Mar 2017 06:57:59 +0800 (CST)
-Received: by mail-pg0-f49.google.com with SMTP id b129so15552396pgc.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Mar 2017 15:57:59 -0700 (PDT)
-In-Reply-To: <20170315130726.GA6318@salvia>
+Received: from smtp.codeaurora.org ([198.145.29.96]:35590 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750919AbdCOXtQ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 15 Mar 2017 19:49:16 -0400
+In-Reply-To: <20170315134553.35772-2-lorenzo@google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+On 2017-03-15 07:45, Lorenzo Colitti wrote:
+> 1. Factor out repeated code to a new xs_has_arg function.
+> 2. Add a new parse_wait_time option to parse the value of -w.
+> 3. Make parse_wait_interval take argc and argv so its callers
+>    can be simpler.
+> 
+> Signed-off-by: Lorenzo Colitti <lorenzo@google.com>
 
-On Wed, Mar 15, 2017 at 9:07 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Tue, Mar 14, 2017 at 02:26:06PM +0800, fgao@ikuai8.com wrote:
->> From: Gao Feng <fgao@ikuai8.com>
->>
->> The helper module permits the helper modules register expectfn, and
->> it could be hold by external caller. But when the module is unloaded,
->> there may be some pending expect nodes which still hold the function
->> reference. It may cause unexpected behavior, even panic.
->>
->> Now it would delete the expect nodes which uses the expectfn when
->> unregister expectfn. And it must use the rcu_read_lock to protect
->> the expectfn until insert it or doesn't access it ever.
->
-> Expectations should be removed by when the helper module is gone, so
-> what is the problem here?
+Hi Lorenzo
 
-Let me explain it as following:
-1. The expectations would be removed by when the helper module is
-gone, but expectfn is not. For example, the file nf_nat_sip.c. It
-registers the expectfn at init, and unregister expectfn at exit. But
-it doesn't remove the expect node when unload;
-The nf_nat_sip.c uses nf_ct_helper_expectfn_register register expectfn
-and nf_ct_helper_expectfn_unregister unregister the expectfn.
+I am seeing a compilation failure with this patch.
+It might require a fix like below.
 
-2. ctlink could create one expect by CTA_EXPECT_FN and without
-CTA_EXPECT_HELP_NAME. It invokes nf_ct_helper_expectfn_find_by_name to
-get expectfn and helper is NULL.
-There is one race condition
-              cpu1
-                                      cpu2
-ctlink creates the expect node with expectfn
+diff --git a/iptables/xtables.c b/iptables/xtables.c
+index 45a7644..bde8ba6 100644
+--- a/iptables/xtables.c
++++ b/iptables/xtables.c
+@@ -1012,9 +1012,10 @@ void do_parse(struct nft_handle *h, int argc, 
+char *argv[],
+                                               "iptables-restore");
+                         }
+                         if (optarg)
+-                               parse_wait_interval(optarg, 
+&wait_interval);
++                               parse_wait_interval(argc, argv,
++                                                   &wait_interval);
+                         else if (xs_has_arg(argc, argv))
+-                               parse_wait_interval(argv[optind++],
++                               parse_wait_interval(argc, argv,
+                                                     &wait_interval);
 
-                               the expectfn is unregistered
-insert the expect node
+                         wait_interval_set = true;
 
-Now the bug comes on. The module which expectfn is in is unloaded.
-
-Best Regards
-Feng
-
-
+--
+Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a 
+Linux Foundation Collaborative Project
