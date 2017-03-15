@@ -1,146 +1,47 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 04/10] netfilter: nft_set_bitmap: fetch the element key based on the set->klen
-Date: Wed, 15 Mar 2017 18:01:06 +0100
-Message-ID: <1489597272-30347-5-git-send-email-pablo@netfilter.org>
-References: <1489597272-30347-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37616 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752703AbdCORBm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Mar 2017 13:01:42 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BEC791324D2
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Mar 2017 18:01:22 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AF58CDA865
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Mar 2017 18:01:22 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 050C5DA865
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Mar 2017 18:01:20 +0100 (CET)
-In-Reply-To: <1489597272-30347-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: Re: [PATCH net] bridge: ebtables: fix reception of frames
+ DNAT-ed to bridge device
+Date: Wed, 15 Mar 2017 19:15:39 +0100
+Message-ID: <20170315181539.GA31875@salvia>
+References: <20170315031811.22714-1-linus.luessing@c0d3.blue>
+	<20170315102608.GB24366@breakpoint.cc>
+	<20170315104211.GA24409@salvia> <20170315142720.GU15692@otheros>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
+	Florian Westphal <fw@strlen.de>, linux-kernel@vger.kernel.org,
+	coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S . Miller" <davem@davemloft.net>
+To: Linus =?iso-8859-1?Q?L=FCssing?= <linus.luessing@c0d3.blue>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <20170315142720.GU15692@otheros>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Liping Zhang <zlpnobody@gmail.com>
+On Wed, Mar 15, 2017 at 03:27:20PM +0100, Linus Lüssing wrote:
+> On Wed, Mar 15, 2017 at 11:42:11AM +0100, Pablo Neira Ayuso wrote:
+> > I'm missing then why redirect is not then just enough for Linus usecase.
+> 
+> For my usecase, the MAC address is configured by the user from a
+> Web-UI. It may or may not be the one from the bridge device.
+> 
+> Besides, found it counter intuitive that DNAT did not work here
+> and took me some time to find out why. At least I didn't read about
+> any such known limitations of the dnat target in the ebtables
+> manpage.
 
-Currently we just assume the element key as a u32 integer, regardless of
-the set key length.
-
-This is incorrect, for example, the tcp port number is only 16 bits.
-So when we use the nft_payload expr to get the tcp dport and store
-it to dreg, the dport will be stored at 0~15 bits, and 16~31 bits
-will be padded with zero.
-
-So the reg->data[dreg] will be looked like as below:
-  0          15           31
-  +-+-+-+-+-+-+-+-+-+-+-+-+
-  | tcp dport |      0    |
-  +-+-+-+-+-+-+-+-+-+-+-+-+
-But for these big-endian systems, if we treate this register as a u32
-integer, the element key will be larger than 65535, so the following
-lookup in bitmap set will cause out of bound access.
-
-Another issue is that if we add element with comments in bitmap
-set(although the comments will be ignored eventually), the element will
-vanish strangely. Because we treate the element key as a u32 integer, so
-the comments will become the part of the element key, then the element
-key will also be larger than 65535 and out of bound access will happen:
-  # nft add element t s { 1 comment test }
-
-Since set->klen is 1 or 2, it's fine to treate the element key as a u8 or
-u16 integer.
-
-Fixes: 665153ff5752 ("netfilter: nf_tables: add bitmap set type")
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_set_bitmap.c | 27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
-
-diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
-index 152d226552c1..9b024e22717b 100644
---- a/net/netfilter/nft_set_bitmap.c
-+++ b/net/netfilter/nft_set_bitmap.c
-@@ -45,9 +45,17 @@ struct nft_bitmap {
- 	u8	bitmap[];
- };
- 
--static inline void nft_bitmap_location(u32 key, u32 *idx, u32 *off)
-+static inline void nft_bitmap_location(const struct nft_set *set,
-+				       const void *key,
-+				       u32 *idx, u32 *off)
- {
--	u32 k = (key << 1);
-+	u32 k;
-+
-+	if (set->klen == 2)
-+		k = *(u16 *)key;
-+	else
-+		k = *(u8 *)key;
-+	k <<= 1;
- 
- 	*idx = k / BITS_PER_BYTE;
- 	*off = k % BITS_PER_BYTE;
-@@ -69,7 +77,7 @@ static bool nft_bitmap_lookup(const struct net *net, const struct nft_set *set,
- 	u8 genmask = nft_genmask_cur(net);
- 	u32 idx, off;
- 
--	nft_bitmap_location(*key, &idx, &off);
-+	nft_bitmap_location(set, key, &idx, &off);
- 
- 	return nft_bitmap_active(priv->bitmap, idx, off, genmask);
- }
-@@ -83,7 +91,7 @@ static int nft_bitmap_insert(const struct net *net, const struct nft_set *set,
- 	u8 genmask = nft_genmask_next(net);
- 	u32 idx, off;
- 
--	nft_bitmap_location(nft_set_ext_key(ext)->data[0], &idx, &off);
-+	nft_bitmap_location(set, nft_set_ext_key(ext), &idx, &off);
- 	if (nft_bitmap_active(priv->bitmap, idx, off, genmask))
- 		return -EEXIST;
- 
-@@ -102,7 +110,7 @@ static void nft_bitmap_remove(const struct net *net,
- 	u8 genmask = nft_genmask_next(net);
- 	u32 idx, off;
- 
--	nft_bitmap_location(nft_set_ext_key(ext)->data[0], &idx, &off);
-+	nft_bitmap_location(set, nft_set_ext_key(ext), &idx, &off);
- 	/* Enter 00 state. */
- 	priv->bitmap[idx] &= ~(genmask << off);
- }
-@@ -116,7 +124,7 @@ static void nft_bitmap_activate(const struct net *net,
- 	u8 genmask = nft_genmask_next(net);
- 	u32 idx, off;
- 
--	nft_bitmap_location(nft_set_ext_key(ext)->data[0], &idx, &off);
-+	nft_bitmap_location(set, nft_set_ext_key(ext), &idx, &off);
- 	/* Enter 11 state. */
- 	priv->bitmap[idx] |= (genmask << off);
- }
-@@ -128,7 +136,7 @@ static bool nft_bitmap_flush(const struct net *net,
- 	u8 genmask = nft_genmask_next(net);
- 	u32 idx, off;
- 
--	nft_bitmap_location(nft_set_ext_key(ext)->data[0], &idx, &off);
-+	nft_bitmap_location(set, nft_set_ext_key(ext), &idx, &off);
- 	/* Enter 10 state, similar to deactivation. */
- 	priv->bitmap[idx] &= ~(genmask << off);
- 
-@@ -161,10 +169,9 @@ static void *nft_bitmap_deactivate(const struct net *net,
- 	struct nft_bitmap *priv = nft_set_priv(set);
- 	u8 genmask = nft_genmask_next(net);
- 	struct nft_set_ext *ext;
--	u32 idx, off, key = 0;
-+	u32 idx, off;
- 
--	memcpy(&key, elem->key.val.data, set->klen);
--	nft_bitmap_location(key, &idx, &off);
-+	nft_bitmap_location(set, elem->key.val.data, &idx, &off);
- 
- 	if (!nft_bitmap_active(priv->bitmap, idx, off, genmask))
- 		return NULL;
--- 
-2.1.4
-
+Could you update ebtables dnat to check if the ethernet address
+matches the one of the input bridge interface, so we mangle the
+->pkt_type accordingly from there, instead of doing this from the
+core?
