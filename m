@@ -1,31 +1,42 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nft 5/9] ct: add conntrack event mask support
-Date: Tue, 14 Mar 2017 21:00:11 +0100
-Message-ID: <20170314200011.GA24366@breakpoint.cc>
-References: <20170314195816.1721-1-fw@strlen.de>
- <20170314195816.1721-6-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: fgao@ikuai8.com
+Subject: [PATCH nf-next 1/1] netfilter: ctlink: Remove duplicated condition check in nfnl_cthelper_create
+Date: Wed, 15 Mar 2017 10:11:08 +0800
+Message-ID: <1489543868-66151-1-git-send-email-fgao@ikuai8.com>
+Cc: Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+        gfree.wind@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:42186 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751037AbdCNUAa (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 14 Mar 2017 16:00:30 -0400
-Content-Disposition: inline
-In-Reply-To: <20170314195816.1721-6-fw@strlen.de>
+Received: from SMTPBG252.QQ.COM ([183.60.52.105]:40609 "EHLO smtpbg252.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750774AbdCOCMs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 14 Mar 2017 22:12:48 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Florian Westphal <fw@strlen.de> wrote:
+From: Gao Feng <fgao@ikuai8.com>
 
-[ nft .. ct eventmask set ...]
+Because its caller nfnl_cthelper_new has already checked the tb[NFCTH_TUPLE],
+so it is unnecessary to check it again in nfnl_cthelper_create.
 
-ahem.  I did not mean to submit this yet as the kernel
-patch assumes that the untracked object doesn't exist anymore (which
-is why I haven't submitted it yet).
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ net/netfilter/nfnetlink_cthelper.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I will not push this patch until the kernel patch is in nf-next.
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
+index de87823..6649578 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -205,7 +205,7 @@
+ 	struct nf_conntrack_helper *helper;
+ 	int ret;
+ 
+-	if (!tb[NFCTH_TUPLE] || !tb[NFCTH_POLICY] || !tb[NFCTH_PRIV_DATA_LEN])
++	if (!tb[NFCTH_POLICY] || !tb[NFCTH_PRIV_DATA_LEN])
+ 		return -EINVAL;
+ 
+ 	helper = kzalloc(sizeof(struct nf_conntrack_helper), GFP_KERNEL);
+-- 
+1.9.1
+
 
