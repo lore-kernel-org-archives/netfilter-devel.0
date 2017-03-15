@@ -1,7 +1,7 @@
 From: Elena Reshetova <elena.reshetova@intel.com>
-Subject: [PATCH 7/7] net, netfilter: convert clusterip_config.refcount and clusterip_config.entries from atomic_t to refcount_t
-Date: Wed, 15 Mar 2017 13:10:45 +0200
-Message-ID: <1489576245-19472-8-git-send-email-elena.reshetova@intel.com>
+Subject: [PATCH 6/7] net, netfilter: convert nfulnl_instance.use from atomic_t to refcount_t
+Date: Wed, 15 Mar 2017 13:10:44 +0200
+Message-ID: <1489576245-19472-7-git-send-email-elena.reshetova@intel.com>
 References: <1489576245-19472-1-git-send-email-elena.reshetova@intel.com>
 Cc: linux-kernel@vger.kernel.org, kadlec@blackhole.kfki.hu,
         pablo@netfilter.org, peterz@infradead.org, keescook@chromium.org,
@@ -9,10 +9,14 @@ Cc: linux-kernel@vger.kernel.org, kadlec@blackhole.kfki.hu,
         Hans Liljestrand <ishkamiel@gmail.com>,
         David Windsor <dwindsor@gmail.com>
 To: netfilter-devel@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mga05.intel.com ([192.55.52.43]:63786 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753783AbdCOLLO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 15 Mar 2017 07:11:14 -0400
 In-Reply-To: <1489576245-19472-1-git-send-email-elena.reshetova@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 refcount_t type and corresponding API should be
 used instead of atomic_t when the variable is used as
@@ -25,82 +29,76 @@ Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: David Windsor <dwindsor@gmail.com>
 ---
- net/ipv4/netfilter/ipt_CLUSTERIP.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ net/netfilter/nfnetlink_log.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 52f2645..fcbdc0c 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -22,6 +22,7 @@
- #include <linux/icmp.h>
- #include <linux/if_arp.h>
- #include <linux/seq_file.h>
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 08247bf..ecd857b 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -40,6 +40,8 @@
+ #include <net/netfilter/nfnetlink_log.h>
+ 
+ #include <linux/atomic.h>
 +#include <linux/refcount.h>
- #include <linux/netfilter_arp.h>
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
-@@ -40,8 +41,8 @@ MODULE_DESCRIPTION("Xtables: CLUSTERIP target");
++
  
- struct clusterip_config {
- 	struct list_head list;			/* list of all configs */
--	atomic_t refcount;			/* reference count */
--	atomic_t entries;			/* number of entries/rules
-+	refcount_t refcount;			/* reference count */
-+	refcount_t entries;			/* number of entries/rules
- 						 * referencing us */
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+ #include "../bridge/br_private.h"
+@@ -57,7 +59,7 @@
+ struct nfulnl_instance {
+ 	struct hlist_node hlist;	/* global list of instances */
+ 	spinlock_t lock;
+-	atomic_t use;			/* use count */
++	refcount_t use;			/* use count */
  
- 	__be32 clusterip;			/* the IP address */
-@@ -77,7 +78,7 @@ struct clusterip_net {
+ 	unsigned int qlen;		/* number of nlmsgs in skb */
+ 	struct sk_buff *skb;		/* pre-allocatd skb */
+@@ -115,7 +117,7 @@ __instance_lookup(struct nfnl_log_net *log, u_int16_t group_num)
  static inline void
- clusterip_config_get(struct clusterip_config *c)
+ instance_get(struct nfulnl_instance *inst)
  {
--	atomic_inc(&c->refcount);
-+	refcount_inc(&c->refcount);
+-	atomic_inc(&inst->use);
++	refcount_inc(&inst->use);
  }
  
+ static struct nfulnl_instance *
+@@ -125,7 +127,7 @@ instance_lookup_get(struct nfnl_log_net *log, u_int16_t group_num)
  
-@@ -89,7 +90,7 @@ static void clusterip_config_rcu_free(struct rcu_head *head)
- static inline void
- clusterip_config_put(struct clusterip_config *c)
- {
--	if (atomic_dec_and_test(&c->refcount))
-+	if (refcount_dec_and_test(&c->refcount))
- 		call_rcu_bh(&c->rcu, clusterip_config_rcu_free);
- }
- 
-@@ -103,7 +104,7 @@ clusterip_config_entry_put(struct clusterip_config *c)
- 	struct clusterip_net *cn = net_generic(net, clusterip_net_id);
- 
- 	local_bh_disable();
--	if (atomic_dec_and_lock(&c->entries, &cn->lock)) {
-+	if (refcount_dec_and_lock(&c->entries, &cn->lock)) {
- 		list_del_rcu(&c->list);
- 		spin_unlock(&cn->lock);
- 		local_bh_enable();
-@@ -149,10 +150,10 @@ clusterip_config_find_get(struct net *net, __be32 clusterip, int entry)
- 			c = NULL;
- 		else
- #endif
--		if (unlikely(!atomic_inc_not_zero(&c->refcount)))
-+		if (unlikely(!refcount_inc_not_zero(&c->refcount)))
- 			c = NULL;
- 		else if (entry)
--			atomic_inc(&c->entries);
-+			refcount_inc(&c->entries);
- 	}
+ 	rcu_read_lock_bh();
+ 	inst = __instance_lookup(log, group_num);
+-	if (inst && !atomic_inc_not_zero(&inst->use))
++	if (inst && !refcount_inc_not_zero(&inst->use))
+ 		inst = NULL;
  	rcu_read_unlock_bh();
  
-@@ -188,8 +189,8 @@ clusterip_config_init(const struct ipt_clusterip_tgt_info *i, __be32 ip,
- 	clusterip_config_init_nodelist(c, i);
- 	c->hash_mode = i->hash_mode;
- 	c->hash_initval = i->hash_initval;
--	atomic_set(&c->refcount, 1);
--	atomic_set(&c->entries, 1);
-+	refcount_set(&c->refcount, 1);
-+	refcount_set(&c->entries, 1);
+@@ -145,7 +147,7 @@ static void nfulnl_instance_free_rcu(struct rcu_head *head)
+ static void
+ instance_put(struct nfulnl_instance *inst)
+ {
+-	if (inst && atomic_dec_and_test(&inst->use))
++	if (inst && refcount_dec_and_test(&inst->use))
+ 		call_rcu_bh(&inst->rcu, nfulnl_instance_free_rcu);
+ }
  
- 	spin_lock_bh(&cn->lock);
- 	if (__clusterip_config_find(net, ip)) {
+@@ -180,7 +182,7 @@ instance_create(struct net *net, u_int16_t group_num,
+ 	INIT_HLIST_NODE(&inst->hlist);
+ 	spin_lock_init(&inst->lock);
+ 	/* needs to be two, since we _put() after creation */
+-	atomic_set(&inst->use, 2);
++	refcount_set(&inst->use, 2);
+ 
+ 	setup_timer(&inst->timer, nfulnl_timer, (unsigned long)inst);
+ 
+@@ -1031,7 +1033,7 @@ static int seq_show(struct seq_file *s, void *v)
+ 		   inst->group_num,
+ 		   inst->peer_portid, inst->qlen,
+ 		   inst->copy_mode, inst->copy_range,
+-		   inst->flushtimeout, atomic_read(&inst->use));
++		   inst->flushtimeout, refcount_read(&inst->use));
+ 
+ 	return 0;
+ }
 -- 
 2.7.4
+
