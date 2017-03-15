@@ -1,7 +1,7 @@
 From: Elena Reshetova <elena.reshetova@intel.com>
-Subject: [PATCH 5/7] net, netfilter: convert nf_conntrack_expect.use from atomic_t to refcount_t
-Date: Wed, 15 Mar 2017 13:10:43 +0200
-Message-ID: <1489576245-19472-6-git-send-email-elena.reshetova@intel.com>
+Subject: [PATCH 7/7] net, netfilter: convert clusterip_config.refcount and clusterip_config.entries from atomic_t to refcount_t
+Date: Wed, 15 Mar 2017 13:10:45 +0200
+Message-ID: <1489576245-19472-8-git-send-email-elena.reshetova@intel.com>
 References: <1489576245-19472-1-git-send-email-elena.reshetova@intel.com>
 Cc: linux-kernel@vger.kernel.org, kadlec@blackhole.kfki.hu,
         pablo@netfilter.org, peterz@infradead.org, keescook@chromium.org,
@@ -25,103 +25,82 @@ Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: David Windsor <dwindsor@gmail.com>
 ---
- include/net/netfilter/nf_conntrack_expect.h |  4 +++-
- net/netfilter/nf_conntrack_expect.c         | 10 +++++-----
- net/netfilter/nf_conntrack_netlink.c        |  4 ++--
- 3 files changed, 10 insertions(+), 8 deletions(-)
+ net/ipv4/netfilter/ipt_CLUSTERIP.c | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index 5ed33ea..65cc2cb 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -5,6 +5,8 @@
- #ifndef _NF_CONNTRACK_EXPECT_H
- #define _NF_CONNTRACK_EXPECT_H
- 
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 52f2645..fcbdc0c 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -22,6 +22,7 @@
+ #include <linux/icmp.h>
+ #include <linux/if_arp.h>
+ #include <linux/seq_file.h>
 +#include <linux/refcount.h>
-+
- #include <net/netfilter/nf_conntrack.h>
- #include <net/netfilter/nf_conntrack_zones.h>
+ #include <linux/netfilter_arp.h>
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+@@ -40,8 +41,8 @@ MODULE_DESCRIPTION("Xtables: CLUSTERIP target");
  
-@@ -37,7 +39,7 @@ struct nf_conntrack_expect {
- 	struct timer_list timeout;
+ struct clusterip_config {
+ 	struct list_head list;			/* list of all configs */
+-	atomic_t refcount;			/* reference count */
+-	atomic_t entries;			/* number of entries/rules
++	refcount_t refcount;			/* reference count */
++	refcount_t entries;			/* number of entries/rules
+ 						 * referencing us */
  
- 	/* Usage count. */
--	atomic_t use;
-+	refcount_t use;
- 
- 	/* Flags */
- 	unsigned int flags;
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 4b2e1fb..cb29e59 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -133,7 +133,7 @@ nf_ct_expect_find_get(struct net *net,
- 
- 	rcu_read_lock();
- 	i = __nf_ct_expect_find(net, zone, tuple);
--	if (i && !atomic_inc_not_zero(&i->use))
-+	if (i && !refcount_inc_not_zero(&i->use))
- 		i = NULL;
- 	rcu_read_unlock();
- 
-@@ -186,7 +186,7 @@ nf_ct_find_expectation(struct net *net,
- 		return NULL;
- 
- 	if (exp->flags & NF_CT_EXPECT_PERMANENT) {
--		atomic_inc(&exp->use);
-+		refcount_inc(&exp->use);
- 		return exp;
- 	} else if (del_timer(&exp->timeout)) {
- 		nf_ct_unlink_expect(exp);
-@@ -275,7 +275,7 @@ struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me)
- 		return NULL;
- 
- 	new->master = me;
--	atomic_set(&new->use, 1);
-+	refcount_set(&new->use, 1);
- 	return new;
- }
- EXPORT_SYMBOL_GPL(nf_ct_expect_alloc);
-@@ -348,7 +348,7 @@ static void nf_ct_expect_free_rcu(struct rcu_head *head)
- 
- void nf_ct_expect_put(struct nf_conntrack_expect *exp)
+ 	__be32 clusterip;			/* the IP address */
+@@ -77,7 +78,7 @@ struct clusterip_net {
+ static inline void
+ clusterip_config_get(struct clusterip_config *c)
  {
--	if (atomic_dec_and_test(&exp->use))
-+	if (refcount_dec_and_test(&exp->use))
- 		call_rcu(&exp->rcu, nf_ct_expect_free_rcu);
+-	atomic_inc(&c->refcount);
++	refcount_inc(&c->refcount);
  }
- EXPORT_SYMBOL_GPL(nf_ct_expect_put);
-@@ -361,7 +361,7 @@ static void nf_ct_expect_insert(struct nf_conntrack_expect *exp)
- 	unsigned int h = nf_ct_expect_dst_hash(net, &exp->tuple);
  
- 	/* two references : one for hash insert, one for the timer */
--	atomic_add(2, &exp->use);
-+	refcount_add(2, &exp->use);
  
- 	hlist_add_head(&exp->lnode, &master_help->expectations);
- 	master_help->expecting[exp->class]++;
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 6806b5e..d49cc1e 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2693,7 +2693,7 @@ ctnetlink_exp_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- 						    cb->nlh->nlmsg_seq,
- 						    IPCTNL_MSG_EXP_NEW,
- 						    exp) < 0) {
--				if (!atomic_inc_not_zero(&exp->use))
-+				if (!refcount_inc_not_zero(&exp->use))
- 					continue;
- 				cb->args[1] = (unsigned long)exp;
- 				goto out;
-@@ -2739,7 +2739,7 @@ ctnetlink_exp_ct_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- 					    cb->nlh->nlmsg_seq,
- 					    IPCTNL_MSG_EXP_NEW,
- 					    exp) < 0) {
--			if (!atomic_inc_not_zero(&exp->use))
-+			if (!refcount_inc_not_zero(&exp->use))
- 				continue;
- 			cb->args[1] = (unsigned long)exp;
- 			goto out;
+@@ -89,7 +90,7 @@ static void clusterip_config_rcu_free(struct rcu_head *head)
+ static inline void
+ clusterip_config_put(struct clusterip_config *c)
+ {
+-	if (atomic_dec_and_test(&c->refcount))
++	if (refcount_dec_and_test(&c->refcount))
+ 		call_rcu_bh(&c->rcu, clusterip_config_rcu_free);
+ }
+ 
+@@ -103,7 +104,7 @@ clusterip_config_entry_put(struct clusterip_config *c)
+ 	struct clusterip_net *cn = net_generic(net, clusterip_net_id);
+ 
+ 	local_bh_disable();
+-	if (atomic_dec_and_lock(&c->entries, &cn->lock)) {
++	if (refcount_dec_and_lock(&c->entries, &cn->lock)) {
+ 		list_del_rcu(&c->list);
+ 		spin_unlock(&cn->lock);
+ 		local_bh_enable();
+@@ -149,10 +150,10 @@ clusterip_config_find_get(struct net *net, __be32 clusterip, int entry)
+ 			c = NULL;
+ 		else
+ #endif
+-		if (unlikely(!atomic_inc_not_zero(&c->refcount)))
++		if (unlikely(!refcount_inc_not_zero(&c->refcount)))
+ 			c = NULL;
+ 		else if (entry)
+-			atomic_inc(&c->entries);
++			refcount_inc(&c->entries);
+ 	}
+ 	rcu_read_unlock_bh();
+ 
+@@ -188,8 +189,8 @@ clusterip_config_init(const struct ipt_clusterip_tgt_info *i, __be32 ip,
+ 	clusterip_config_init_nodelist(c, i);
+ 	c->hash_mode = i->hash_mode;
+ 	c->hash_initval = i->hash_initval;
+-	atomic_set(&c->refcount, 1);
+-	atomic_set(&c->entries, 1);
++	refcount_set(&c->refcount, 1);
++	refcount_set(&c->entries, 1);
+ 
+ 	spin_lock_bh(&cn->lock);
+ 	if (__clusterip_config_find(net, ip)) {
 -- 
 2.7.4
