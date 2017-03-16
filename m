@@ -1,68 +1,53 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH 05/10] netfilter: nf_tables: fix mismatch in big-endian
- system
-Date: Thu, 16 Mar 2017 10:58:04 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6DCFFB26B2@AcuExch.aculab.com>
-References: <1489597272-30347-1-git-send-email-pablo@netfilter.org>
- <1489597272-30347-6-git-send-email-pablo@netfilter.org>
+From: Peter Marczis <peter.marczis@greenwavesystems.com>
+Subject: Re: conntrack (possibly) hangs on our ARM CPU in case we delete 5k+
+ connections as fast as possible
+Date: Thu, 16 Mar 2017 11:58:18 +0100
+Message-ID: <CAMm+moO_0fOrq-gfTAW7rTJtvrwjFoZkw3Z5KjOnjnfcNJM3CA@mail.gmail.com>
+References: <CAMm+moMPBxBmrnNuwK6tK_Bu2oKaxOMj=BK=DtpYT_YStO9P7A@mail.gmail.com>
+ <20170314103300.GA8738@breakpoint.cc> <CAMm+moPG18qx-2xQ6dXK0p=vTjGNfH6Xo_hk2ADWbf8ocmLTkw@mail.gmail.com>
+ <20170314112051.GA23549@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Cc: "davem@davemloft.net" <davem@davemloft.net>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: 'Pablo Neira Ayuso' <pablo@netfilter.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1489597272-30347-6-git-send-email-pablo@netfilter.org>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-it0-f49.google.com ([209.85.214.49]:37346 "EHLO
+        mail-it0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751478AbdCPK6U (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Mar 2017 06:58:20 -0400
+Received: by mail-it0-f49.google.com with SMTP id g138so37961409itb.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Mar 2017 03:58:20 -0700 (PDT)
+In-Reply-To: <20170314112051.GA23549@breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso
-> Sent: 15 March 2017 17:01
-> From: Liping Zhang <zlpnobody@gmail.com>
-> 
-> Currently, there are two different methods to store an u16 integer to
-> the u32 data register. For example:
->   u32 *dest = &regs->data[priv->dreg];
->   1. *dest = 0; *(u16 *) dest = val_u16;
->   2. *dest = val_u16;
-> 
-> For method 1, the u16 value will be stored like this, either in
-> big-endian or little-endian system:
->   0          15           31
->   +-+-+-+-+-+-+-+-+-+-+-+-+
->   |   Value   |     0     |
->   +-+-+-+-+-+-+-+-+-+-+-+-+
-> 
-> For method 2, in little-endian system, the u16 value will be the same
-> as listed above. But in big-endian system, the u16 value will be stored
-> like this:
->   0          15           31
->   +-+-+-+-+-+-+-+-+-+-+-+-+
->   |     0     |   Value   |
->   +-+-+-+-+-+-+-+-+-+-+-+-+
-> 
-> So later we use "memcmp(&regs->data[priv->sreg], data, 2);" to do
-> compare in nft_cmp, nft_lookup expr ..., method 2 will get the wrong
-> result in big-endian system, as 0~15 bits will always be zero.
-> 
-> For the similar reason, when loading an u16 value from the u32 data
-> register, we should use "*(u16 *) sreg;" instead of "(u16)*sreg;",
-> the 2nd method will get the wrong value in the big-endian system.
-...
+Hello Florian !
+Thanks a lot again for the help. We decided to not backport the
+commit, as we far behind. We will upgrade the kernel instead in the
+future...
+Again, thanks a lot for your help.
+Br,
+ Peter.
+Peter G. Marczis
+SW. Developer
+Bregneroedvej 96, 3460 Birkeroed, Denmark
+Cell: +45 28 12 92 10 Skype: 28199210
 
-That seems to be papering over some of the obvious cracks.
 
-The fact that the entire 32bits are zeroed makes me suspect that
-in some places values are written as 8 bits and read later as 32.
-The only way that can work on BE is if the values are always written
-as 32 bit ones (assignment style 2).
+*This e-mail may contain confidential and privileged material for the
+sole use of the intended recipient. Any review, use, distribution or
+disclosure by others is strictly prohibited. If you are not the
+intended recipient (or authorized to receive for the recipient),
+please contact the sender by reply e-mail and delete all copies of
+this message.
 
-OTOH using memcmp(,,2) relies on the data being in the lower addressed
-bytes.
 
-If the data does need to be in the lower addressed bytes I'd suggest
-using a union rather than all the casts.
 
-	David
+On Tue, Mar 14, 2017 at 12:20 PM, Florian Westphal <fw@strlen.de> wrote:
+> Peter Marczis <peter.marczis@greenwavesystems.com> wrote:
+>> I mean we destroy the sockets, we used two very basic python script to
+>> open and close TCP sockets between the WAN and LAN interface.
+>
+> Then my guess wrt. nf_ct_iterate_cleanup is certainly wrong.
+>
