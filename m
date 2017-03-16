@@ -1,61 +1,58 @@
-From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Subject: Re: [PATCH iptables 1/2] iptables: remove duplicated argument parsing
- code
-Date: Wed, 15 Mar 2017 17:49:15 -0600
-Message-ID: <30ea803326b87cfdc78ebe8d3b373a04@codeaurora.org>
-References: <20170315134553.35772-1-lorenzo@google.com>
- <20170315134553.35772-2-lorenzo@google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        jscherpelz@google.com, zlpnobody@gmail.com
-To: Lorenzo Colitti <lorenzo@google.com>
+From: fgao@ikuai8.com
+Subject: [PATCH nf 1/1] netfilter: ctlink: Fix one possible memleak in nfnl_cthelper_create
+Date: Thu, 16 Mar 2017 09:27:36 +0800
+Message-ID: <1489627656-104238-1-git-send-email-fgao@ikuai8.com>
+Cc: Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+        gfree.wind@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:35590 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750919AbdCOXtQ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Mar 2017 19:49:16 -0400
-In-Reply-To: <20170315134553.35772-2-lorenzo@google.com>
+Received: from smtpbg342.qq.com ([14.17.44.37]:57058 "EHLO smtpbg342.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750886AbdCPB2f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 15 Mar 2017 21:28:35 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2017-03-15 07:45, Lorenzo Colitti wrote:
-> 1. Factor out repeated code to a new xs_has_arg function.
-> 2. Add a new parse_wait_time option to parse the value of -w.
-> 3. Make parse_wait_interval take argc and argv so its callers
->    can be simpler.
-> 
-> Signed-off-by: Lorenzo Colitti <lorenzo@google.com>
+From: Gao Feng <fgao@ikuai8.com>
 
-Hi Lorenzo
+When nf_conntrack_helper_register failed, the error handler just frees
+the helper, but it does not free the helper->expect_policy which is
+allocated in nfnl_cthelper_parse_expect_policy.
 
-I am seeing a compilation failure with this patch.
-It might require a fix like below.
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ net/netfilter/nfnetlink_cthelper.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/iptables/xtables.c b/iptables/xtables.c
-index 45a7644..bde8ba6 100644
---- a/iptables/xtables.c
-+++ b/iptables/xtables.c
-@@ -1012,9 +1012,10 @@ void do_parse(struct nft_handle *h, int argc, 
-char *argv[],
-                                               "iptables-restore");
-                         }
-                         if (optarg)
--                               parse_wait_interval(optarg, 
-&wait_interval);
-+                               parse_wait_interval(argc, argv,
-+                                                   &wait_interval);
-                         else if (xs_has_arg(argc, argv))
--                               parse_wait_interval(argv[optind++],
-+                               parse_wait_interval(argc, argv,
-                                                     &wait_interval);
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
+index de87823..f0241a1 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -214,7 +214,7 @@
+ 
+ 	ret = nfnl_cthelper_parse_expect_policy(helper, tb[NFCTH_POLICY]);
+ 	if (ret < 0)
+-		goto err;
++		goto err1;
+ 
+ 	strncpy(helper->name, nla_data(tb[NFCTH_NAME]), NF_CT_HELPER_NAME_LEN);
+ 	helper->data_len = ntohl(nla_get_be32(tb[NFCTH_PRIV_DATA_LEN]));
+@@ -245,10 +245,12 @@
+ 
+ 	ret = nf_conntrack_helper_register(helper);
+ 	if (ret < 0)
+-		goto err;
++		goto err2;
+ 
+ 	return 0;
+-err:
++err2:
++	kfree(helper->expect_policy);
++err1:
+ 	kfree(helper);
+ 	return ret;
+ }
+-- 
+1.9.1
 
-                         wait_interval_set = true;
 
---
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a 
-Linux Foundation Collaborative Project
