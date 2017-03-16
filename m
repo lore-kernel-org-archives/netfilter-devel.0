@@ -1,162 +1,437 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH v2 1/2] proto: Add some exotic ICMPv6 types
-Date: Thu, 16 Mar 2017 13:43:20 +0100
-Message-ID: <20170316124321.23399-1-phil@nwl.cc>
+Subject: [nft PATCH v2 2/2] doc: Describe ICMP(v6) expression and types
+Date: Thu, 16 Mar 2017 13:43:21 +0100
+Message-ID: <20170316124321.23399-2-phil@nwl.cc>
 References: <20170315214757.GA1289@salvia>
+ <20170316124321.23399-1-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:42741 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:47865 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752313AbdCPMnk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Mar 2017 08:43:40 -0400
-In-Reply-To: <20170315214757.GA1289@salvia>
+        id S1752332AbdCPMno (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Mar 2017 08:43:44 -0400
+In-Reply-To: <20170316124321.23399-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This adds support for matching on inverse ND messages as defined by
-RFC3122 (not implemented in Linux) and MLDv2 as defined by RFC3810.
-
-Note that ICMPV6_MLD2_REPORT macro is defined in linux/icmpv6.h but
-including that header leads to conflicts with symbols defined in
-netinet/icmp6.h.
-
-In addition to the above, "mld-listener-done" is introduced as an alias
-for "mld-listener-reduction".
+This adds a description of the icmp and icmpv6 expressions (to match
+various ICMP header fields) as well as the icmp and icmpv6 type types
+(yay) which are used for ICMP(v6) type field.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
 Changes since v1:
-- Reordered symbols in icmp6_type_tbl:
-  - mld-listener-done is the preferred alias
-  - order new symbols by the number they represent
-- Add tests for new types and adjust existing ones for
-  mld-listener-done.
+- Added this patch.
 ---
- src/proto.c                       |  8 ++++++++
- tests/py/ip6/icmpv6.t             |  8 ++++++--
- tests/py/ip6/icmpv6.t.payload.ip6 | 34 +++++++++++++++++++++++++++++++++-
- 3 files changed, 47 insertions(+), 3 deletions(-)
+ doc/nft.xml | 380 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 380 insertions(+)
 
-diff --git a/src/proto.c b/src/proto.c
-index fb965304e59d9..79e9dbf2b33e8 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -632,6 +632,10 @@ const struct proto_desc proto_ip = {
+diff --git a/doc/nft.xml b/doc/nft.xml
+index b3e3d9e7ac632..d412184609135 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -1504,6 +1504,254 @@ filter input tcp option timestamp exists
+ 				</programlisting>
+ 			</example>
+ 		</refsect2>
++		<refsect2>
++			<title>ICMP Type type</title>
++			<para>
++				<table frame="all">
++					<tgroup cols="4" align="left" colsep="1" rowsep="1">
++						<colspec colname="c1"/>
++						<colspec colname="c2"/>
++						<colspec colname="c3"/>
++						<colspec colname="c4"/>
++						<thead>
++							<row>
++								<entry>Name</entry>
++								<entry>Keyword</entry>
++								<entry>Size</entry>
++								<entry>Base type</entry>
++							</row>
++						</thead>
++						<tbody>
++							<row>
++								<entry>ICMP Type</entry>
++								<entry>icmp_type</entry>
++								<entry>8 bit</entry>
++								<entry>integer</entry>
++							</row>
++						</tbody>
++					</tgroup>
++				</table>
++			</para>
++			<para>
++				The ICMP Type type is used to conveniently specify the ICMP header's type field.
++			</para>
++			<para>
++				The following keywords may be used when specifying the ICMP type:
++				<table frame="all">
++					<tgroup cols="2" align="left" colsep="1" rowsep="1">
++						<colspec colname="c1"/>
++						<colspec colname="c2"/>
++						<thead>
++							<row>
++								<entry>Keyword</entry>
++								<entry>Value</entry>
++							</row>
++						</thead>
++						<tbody>
++							<row>
++								<entry>echo-reply</entry>
++								<entry>0</entry>
++							</row>
++							<row>
++								<entry>destination-unreachable</entry>
++								<entry>3</entry>
++							</row>
++							<row>
++								<entry>source-quench</entry>
++								<entry>4</entry>
++							</row>
++							<row>
++								<entry>redirect</entry>
++								<entry>5</entry>
++							</row>
++							<row>
++								<entry>echo-request</entry>
++								<entry>8</entry>
++							</row>
++							<row>
++								<entry>router-advertisement</entry>
++								<entry>9</entry>
++							</row>
++							<row>
++								<entry>router-solicitation</entry>
++								<entry>10</entry>
++							</row>
++							<row>
++								<entry>time-exceeded</entry>
++								<entry>11</entry>
++							</row>
++							<row>
++								<entry>parameter-problem</entry>
++								<entry>12</entry>
++							</row>
++							<row>
++								<entry>timestamp-request</entry>
++								<entry>13</entry>
++							</row>
++							<row>
++								<entry>timestamp-reply</entry>
++								<entry>14</entry>
++							</row>
++							<row>
++								<entry>info-request</entry>
++								<entry>15</entry>
++							</row>
++							<row>
++								<entry>info-reply</entry>
++								<entry>16</entry>
++							</row>
++							<row>
++								<entry>address-mask-request</entry>
++								<entry>17</entry>
++							</row>
++							<row>
++								<entry>address-mask-reply</entry>
++								<entry>18</entry>
++							</row>
++						</tbody>
++					</tgroup>
++				</table>
++			</para>
++			<example>
++				<title>ICMP Type specification</title>
++				<programlisting>
++# match ping packets
++filter output icmp type { echo-request, echo-reply }
++				</programlisting>
++			</example>
++		</refsect2>
++		<refsect2>
++			<title>ICMPv6 Type type</title>
++			<para>
++				<table frame="all">
++					<tgroup cols="4" align="left" colsep="1" rowsep="1">
++						<colspec colname="c1"/>
++						<colspec colname="c2"/>
++						<colspec colname="c3"/>
++						<colspec colname="c4"/>
++						<thead>
++							<row>
++								<entry>Name</entry>
++								<entry>Keyword</entry>
++								<entry>Size</entry>
++								<entry>Base type</entry>
++							</row>
++						</thead>
++						<tbody>
++							<row>
++								<entry>ICMPv6 Type</entry>
++								<entry>icmpv6_type</entry>
++								<entry>8 bit</entry>
++								<entry>integer</entry>
++							</row>
++						</tbody>
++					</tgroup>
++				</table>
++			</para>
++			<para>
++				The ICMPv6 Type type is used to conveniently specify the ICMPv6 header's type field.
++			</para>
++			<para>
++				The following keywords may be used when specifying the ICMPv6 type:
++				<table frame="all">
++					<tgroup cols="2" align="left" colsep="1" rowsep="1">
++						<colspec colname="c1"/>
++						<colspec colname="c2"/>
++						<thead>
++							<row>
++								<entry>Keyword</entry>
++								<entry>Value</entry>
++							</row>
++						</thead>
++						<tbody>
++							<row>
++								<entry>destination-unreachable</entry>
++								<entry>1</entry>
++							</row>
++							<row>
++								<entry>packet-too-big</entry>
++								<entry>2</entry>
++							</row>
++							<row>
++								<entry>time-exceeded</entry>
++								<entry>3</entry>
++							</row>
++							<row>
++								<entry>parameter-problem</entry>
++								<entry>4</entry>
++							</row>
++							<row>
++								<entry>echo-request</entry>
++								<entry>128</entry>
++							</row>
++							<row>
++								<entry>echo-reply</entry>
++								<entry>129</entry>
++							</row>
++							<row>
++								<entry>mld-listener-query</entry>
++								<entry>130</entry>
++							</row>
++							<row>
++								<entry>mld-listener-report</entry>
++								<entry>131</entry>
++							</row>
++							<row>
++								<entry>mld-listener-done</entry>
++								<entry>132</entry>
++							</row>
++							<row>
++								<entry>mld-listener-reduction</entry>
++								<entry>132</entry>
++							</row>
++							<row>
++								<entry>nd-router-solicit</entry>
++								<entry>133</entry>
++							</row>
++							<row>
++								<entry>nd-router-advert</entry>
++								<entry>134</entry>
++							</row>
++							<row>
++								<entry>nd-neighbor-solicit</entry>
++								<entry>135</entry>
++							</row>
++							<row>
++								<entry>nd-neighbor-advert</entry>
++								<entry>136</entry>
++							</row>
++							<row>
++								<entry>nd-redirect</entry>
++								<entry>137</entry>
++							</row>
++							<row>
++								<entry>router-renumbering</entry>
++								<entry>138</entry>
++							</row>
++							<row>
++								<entry>ind-neighbor-solicit</entry>
++								<entry>141</entry>
++							</row>
++							<row>
++								<entry>ind-neighbor-advert</entry>
++								<entry>142</entry>
++							</row>
++							<row>
++								<entry>mld2-listener-report</entry>
++								<entry>143</entry>
++							</row>
++						</tbody>
++					</tgroup>
++				</table>
++			</para>
++			<example>
++				<title>ICMPv6 Type specification</title>
++				<programlisting>
++# match ICMPv6 ping packets
++filter output icmpv6 type { echo-request, echo-reply }
++				</programlisting>
++			</example>
++		</refsect2>
+ 	</refsect1>
  
- #include <netinet/icmp6.h>
+ 	<refsect1>
+@@ -2171,6 +2419,70 @@ inet filter meta nfproto ipv6 output rt nexthop fd00::1
+ 		</refsect2>
  
-+#define IND_NEIGHBOR_SOLICIT	141
-+#define IND_NEIGHBOR_ADVERT	142
-+#define ICMPV6_MLD2_REPORT	143
+ 		<refsect2>
++			<title>ICMP header expression</title>
++			<para>
++				<cmdsynopsis>
++					<command>icmp</command>
++					<arg opt="req"><replaceable>ICMP header field</replaceable></arg>
++				</cmdsynopsis>
++			</para>
++			<para>
++				<table frame="all">
++					<title>ICMP header expression</title>
++					<tgroup cols="3" align="left" colsep="1" rowsep="1">
++						<colspec colname="c1"/>
++						<colspec colname="c2"/>
++						<colspec colname="c3"/>
++						<thead>
++							<row>
++								<entry>Keyword</entry>
++								<entry>Description</entry>
++								<entry>Type</entry>
++							</row>
++						</thead>
++						<tbody>
++							<row>
++								<entry>type</entry>
++								<entry>ICMP type field</entry>
++								<entry>icmp_type</entry>
++							</row>
++							<row>
++								<entry>code</entry>
++								<entry>ICMP code field</entry>
++								<entry>integer (8 bit)</entry>
++							</row>
++							<row>
++								<entry>checksum</entry>
++								<entry>ICMP checksum field</entry>
++								<entry>integer (16 bit)</entry>
++							</row>
++							<row>
++								<entry>id</entry>
++								<entry>ID of echo request/response</entry>
++								<entry>integer (16 bit)</entry>
++							</row>
++							<row>
++								<entry>sequence</entry>
++								<entry>sequence number of echo request/response</entry>
++								<entry>integer (16 bit)</entry>
++							</row>
++							<row>
++								<entry>gateway</entry>
++								<entry>gateway of redirects</entry>
++								<entry>integer (32 bit)</entry>
++							</row>
++							<row>
++								<entry>mtu</entry>
++								<entry>MTU of path MTU discovery</entry>
++								<entry>integer (16 bit)</entry>
++							</row>
++						</tbody>
++					</tgroup>
++				</table>
++			</para>
++		</refsect2>
 +
- static const struct symbol_table icmp6_type_tbl = {
- 	.base		= BASE_DECIMAL,
- 	.symbols	= {
-@@ -643,6 +647,7 @@ static const struct symbol_table icmp6_type_tbl = {
- 		SYMBOL("echo-reply",			ICMP6_ECHO_REPLY),
- 		SYMBOL("mld-listener-query",		MLD_LISTENER_QUERY),
- 		SYMBOL("mld-listener-report",		MLD_LISTENER_REPORT),
-+		SYMBOL("mld-listener-done",		MLD_LISTENER_REDUCTION),
- 		SYMBOL("mld-listener-reduction",	MLD_LISTENER_REDUCTION),
- 		SYMBOL("nd-router-solicit",		ND_ROUTER_SOLICIT),
- 		SYMBOL("nd-router-advert",		ND_ROUTER_ADVERT),
-@@ -650,6 +655,9 @@ static const struct symbol_table icmp6_type_tbl = {
- 		SYMBOL("nd-neighbor-advert",		ND_NEIGHBOR_ADVERT),
- 		SYMBOL("nd-redirect",			ND_REDIRECT),
- 		SYMBOL("router-renumbering",		ICMP6_ROUTER_RENUMBERING),
-+		SYMBOL("ind-neighbor-solicit",		IND_NEIGHBOR_SOLICIT),
-+		SYMBOL("ind-neighbor-advert",		IND_NEIGHBOR_ADVERT),
-+		SYMBOL("mld2-listener-report",		ICMPV6_MLD2_REPORT),
- 		SYMBOL_LIST_END
- 	},
- };
-diff --git a/tests/py/ip6/icmpv6.t b/tests/py/ip6/icmpv6.t
-index afbd45166f3a8..a898fe30c24c7 100644
---- a/tests/py/ip6/icmpv6.t
-+++ b/tests/py/ip6/icmpv6.t
-@@ -11,7 +11,8 @@ icmpv6 type echo-request accept;ok
- icmpv6 type echo-reply accept;ok
- icmpv6 type mld-listener-query accept;ok
- icmpv6 type mld-listener-report accept;ok
--icmpv6 type mld-listener-reduction accept;ok
-+icmpv6 type mld-listener-done accept;ok
-+icmpv6 type mld-listener-reduction accept;ok;icmpv6 type mld-listener-done accept
- icmpv6 type nd-router-solicit accept;ok
- icmpv6 type nd-router-advert accept;ok
- icmpv6 type nd-neighbor-solicit accept;ok
-@@ -19,8 +20,11 @@ icmpv6 type nd-neighbor-advert accept;ok
- icmpv6 type nd-redirect accept;ok
- icmpv6 type parameter-problem accept;ok
- icmpv6 type router-renumbering accept;ok
-+icmpv6 type ind-neighbor-solicit accept;ok
-+icmpv6 type ind-neighbor-advert accept;ok
-+icmpv6 type mld2-listener-report accept;ok
- icmpv6 type {destination-unreachable, time-exceeded, nd-router-solicit} accept;ok
--icmpv6 type {router-renumbering, mld-listener-reduction, time-exceeded, nd-router-solicit} accept;ok
-+icmpv6 type {router-renumbering, mld-listener-done, time-exceeded, nd-router-solicit} accept;ok
- icmpv6 type {mld-listener-query, time-exceeded, nd-router-advert} accept;ok
- icmpv6 type != {mld-listener-query, time-exceeded, nd-router-advert} accept;ok
++		<refsect2>
+ 			<title>IPv6 header expression</title>
+ 			<para>
+ 				<cmdsynopsis>
+@@ -2245,6 +2557,74 @@ inet filter meta nfproto ipv6 output rt nexthop fd00::1
+ 		</refsect2>
  
-diff --git a/tests/py/ip6/icmpv6.t.payload.ip6 b/tests/py/ip6/icmpv6.t.payload.ip6
-index 9fe24963718a0..30f58ca3615bd 100644
---- a/tests/py/ip6/icmpv6.t.payload.ip6
-+++ b/tests/py/ip6/icmpv6.t.payload.ip6
-@@ -54,6 +54,14 @@ ip6 test-ip6 input
-   [ cmp eq reg 1 0x00000083 ]
-   [ immediate reg 0 accept ]
- 
-+# icmpv6 type mld-listener-done accept
-+ip6 test-ip6 input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x0000003a ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000084 ]
-+  [ immediate reg 0 accept ]
-+
- # icmpv6 type mld-listener-reduction accept
- ip6 test-ip6 input
-   [ payload load 1b @ network header + 6 => reg 1 ]
-@@ -118,6 +126,30 @@ ip6 test-ip6 input
-   [ cmp eq reg 1 0x0000008a ]
-   [ immediate reg 0 accept ]
- 
-+# icmpv6 type ind-neighbor-solicit accept
-+ip6 test-ip6 input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x0000003a ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x0000008d ]
-+  [ immediate reg 0 accept ]
-+
-+# icmpv6 type ind-neighbor-advert accept
-+ip6 test-ip6 input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x0000003a ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x0000008e ]
-+  [ immediate reg 0 accept ]
-+
-+# icmpv6 type mld2-listener-report accept
-+ip6 test-ip6 input
-+  [ payload load 1b @ network header + 6 => reg 1 ]
-+  [ cmp eq reg 1 0x0000003a ]
-+  [ payload load 1b @ transport header + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x0000008f ]
-+  [ immediate reg 0 accept ]
-+
- # icmpv6 type {destination-unreachable, time-exceeded, nd-router-solicit} accept
- __set%d test-ip6 3
- __set%d test-ip6 0
-@@ -129,7 +161,7 @@ ip6 test-ip6 input
-   [ lookup reg 1 set __set%d ]
-   [ immediate reg 0 accept ]
- 
--# icmpv6 type {router-renumbering, mld-listener-reduction, time-exceeded, nd-router-solicit} accept
-+# icmpv6 type {router-renumbering, mld-listener-done, time-exceeded, nd-router-solicit} accept
- __set%d test-ip6 3
- __set%d test-ip6 0
- 	element 0000008a  : 0 [end]	element 00000084  : 0 [end]	element 00000003  : 0 [end]	element 00000085  : 0 [end]
+ 		<refsect2>
++			<title>ICMPv6 header expression</title>
++			<para>
++				<cmdsynopsis>
++					<command>icmpv6</command>
++					<arg opt="req"><replaceable>ICMPv6 header field</replaceable></arg>
++				</cmdsynopsis>
++			</para>
++			<para>
++				<table frame="all">
++					<title>ICMPv6 header expression</title>
++					<tgroup cols="3" align="left" colsep="1" rowsep="1">
++						<colspec colname="c1"/>
++						<colspec colname="c2"/>
++						<colspec colname="c3"/>
++						<thead>
++							<row>
++								<entry>Keyword</entry>
++								<entry>Description</entry>
++								<entry>Type</entry>
++							</row>
++						</thead>
++						<tbody>
++							<row>
++								<entry>type</entry>
++								<entry>ICMPv6 type field</entry>
++								<entry>icmpv6_type</entry>
++							</row>
++							<row>
++								<entry>code</entry>
++								<entry>ICMPv6 code field</entry>
++								<entry>integer (8 bit)</entry>
++							</row>
++							<row>
++								<entry>checksum</entry>
++								<entry>ICMPv6 checksum field</entry>
++								<entry>integer (16 bit)</entry>
++							</row>
++							<row>
++								<entry>parameter-problem</entry>
++								<entry>pointer to problem</entry>
++								<entry>integer (32 bit)</entry>
++							</row>
++							<row>
++								<entry>packet-too-big</entry>
++								<entry>oversized MTU</entry>
++								<entry>integer (32 bit)</entry>
++							</row>
++							<row>
++								<entry>id</entry>
++								<entry>ID of echo request/response</entry>
++								<entry>integer (16 bit)</entry>
++							</row>
++							<row>
++								<entry>sequence</entry>
++								<entry>sequence number of echo request/response</entry>
++								<entry>integer (16 bit)</entry>
++							</row>
++							<row>
++								<entry>max-delay</entry>
++								<entry>maximum response delay of MLD queries</entry>
++								<entry>integer (16 bit)</entry>
++							</row>
++						</tbody>
++					</tgroup>
++				</table>
++			</para>
++		</refsect2>
++		<refsect2>
+ 			<title>TCP header expression</title>
+ 			<para>
+ 				<cmdsynopsis>
 -- 
 2.11.0
 
