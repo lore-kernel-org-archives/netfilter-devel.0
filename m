@@ -1,439 +1,693 @@
 From: Lorenzo Colitti <lorenzo@google.com>
-Subject: [PATCH iptables v2 2/2] iptables-restore: support acquiring the lock.
-Date: Thu, 16 Mar 2017 16:55:02 +0900
-Message-ID: <20170316075502.2337-3-lorenzo@google.com>
+Subject: [PATCH iptables v2 1/2] iptables: remove duplicated argument parsing code
+Date: Thu, 16 Mar 2017 16:55:01 +0900
+Message-ID: <20170316075502.2337-2-lorenzo@google.com>
 References: <20170316075502.2337-1-lorenzo@google.com>
 Cc: pablo@netfilter.org, jscherpelz@google.com,
         subashab@codeaurora.org, zlpnobody@gmail.com,
-        Lorenzo Colitti <lorenzo@google.com>,
-        Narayan Kamath <narayan@google.com>
+        Lorenzo Colitti <lorenzo@google.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f170.google.com ([209.85.192.170]:34961 "EHLO
-        mail-pf0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751054AbdCPHzl (ORCPT
+Received: from mail-pf0-f173.google.com ([209.85.192.173]:32954 "EHLO
+        mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750987AbdCPHzl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 16 Mar 2017 03:55:41 -0400
-Received: by mail-pf0-f170.google.com with SMTP id x63so15239279pfx.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Mar 2017 00:55:22 -0700 (PDT)
+Received: by mail-pf0-f173.google.com with SMTP id w189so20656947pfb.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Mar 2017 00:55:17 -0700 (PDT)
 In-Reply-To: <20170316075502.2337-1-lorenzo@google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently, ip[6]tables-restore does not perform any locking, so it
-is not safe to use concurrently with ip[6]tables.
+1. Factor out repeated code to a new xs_has_arg function.
+2. Add a new parse_wait_time option to parse the value of -w.
+3. Make parse_wait_interval take argc and argv so its callers
+   can be simpler.
 
-This patch makes ip[6]tables-restore wait for the lock if -w
-was specified. Arguments to -w and -W are supported in the same
-was as they are in ip[6]tables.
-
-The lock is not acquired on startup. Instead, it is acquired when
-a new table handle is created (on encountering '*') and released
-when the table is committed (COMMIT). This makes it possible to
-keep long-running iptables-restore processes in the background
-(for example, reading commands from a pipe opened by a system
-management daemon) and simultaneously run iptables commands.
-
-If -w is not specified, then the command proceeds without taking
-the lock.
-
-Tested as follows:
-
-1. Run iptables-restore -w, and check that iptables commands work
-   with or without -w.
-2. Type "*filter" into the iptables-restore input. Verify that
-   a) ip[6]tables commands without -w fail with "another app is
-      currently holding the xtables lock...".
-   b) ip[6]tables commands with "-w 2" fail after 2 seconds.
-   c) ip[6]tables commands with "-w" hang until "COMMIT" is
-      typed into the iptables-restore window.
-3. With the lock held by an ip6tables-restore process:
-     strace -e flock /tmp/iptables/sbin/iptables-restore -w 1 -W 100000
-   shows 11 calls to flock and fails.
-4. Run an iptables-restore with -w and one without -w, and check:
-   a) Type "*filter" in the first and then the second, and the
-      second exits with an error.
-   b) Type "*filter" in the second and "*filter" "-S" "COMMIT"
-      into the first. The rules are listed only when the first
-      copy sees "COMMIT".
-
-Signed-off-by: Narayan Kamath <narayan@google.com>
 Signed-off-by: Lorenzo Colitti <lorenzo@google.com>
 ---
- iptables/ip6tables-restore.c | 55 ++++++++++++++++++++++++++++++++++----------
- iptables/ip6tables.c         |  2 +-
- iptables/iptables-restore.c  | 55 ++++++++++++++++++++++++++++++++++----------
- iptables/iptables.c          |  2 +-
- iptables/xshared.c           | 18 ++++++++++-----
- iptables/xshared.h           | 23 +++++++++++++++++-
- 6 files changed, 122 insertions(+), 33 deletions(-)
+ iptables/ip6tables.c   | 62 +++++++++++++-------------------------------------
+ iptables/iptables.c    | 62 +++++++++++++-------------------------------------
+ iptables/xshared.c     | 35 ++++++++++++++++++++++++++--
+ iptables/xshared.h     |  4 +++-
+ iptables/xtables-arp.c | 30 ++++++++----------------
+ iptables/xtables.c     | 62 ++++++++++++++------------------------------------
+ 6 files changed, 95 insertions(+), 160 deletions(-)
 
-diff --git a/iptables/ip6tables-restore.c b/iptables/ip6tables-restore.c
-index dc0acb05a4..8a47f09c95 100644
---- a/iptables/ip6tables-restore.c
-+++ b/iptables/ip6tables-restore.c
-@@ -15,6 +15,7 @@
- #include <stdio.h>
- #include <stdlib.h>
- #include "ip6tables.h"
-+#include "xshared.h"
- #include "xtables.h"
- #include "libiptc/libip6tc.h"
- #include "ip6tables-multi.h"
-@@ -25,17 +26,23 @@
- #define DEBUGP(x, args...)
- #endif
- 
--static int counters = 0, verbose = 0, noflush = 0;
-+static int counters = 0, verbose = 0, noflush = 0, wait = 0;
-+
-+static struct timeval wait_interval = {
-+	.tv_sec	= 1,
-+};
- 
- /* Keeping track of external matches and targets.  */
- static const struct option options[] = {
--	{.name = "counters", .has_arg = false, .val = 'c'},
--	{.name = "verbose",  .has_arg = false, .val = 'v'},
--	{.name = "test",     .has_arg = false, .val = 't'},
--	{.name = "help",     .has_arg = false, .val = 'h'},
--	{.name = "noflush",  .has_arg = false, .val = 'n'},
--	{.name = "modprobe", .has_arg = true,  .val = 'M'},
--	{.name = "table",    .has_arg = true,  .val = 'T'},
-+	{.name = "counters",      .has_arg = 0, .val = 'c'},
-+	{.name = "verbose",       .has_arg = 0, .val = 'v'},
-+	{.name = "test",          .has_arg = 0, .val = 't'},
-+	{.name = "help",          .has_arg = 0, .val = 'h'},
-+	{.name = "noflush",       .has_arg = 0, .val = 'n'},
-+	{.name = "modprobe",      .has_arg = 1, .val = 'M'},
-+	{.name = "table",         .has_arg = 1, .val = 'T'},
-+	{.name = "wait",          .has_arg = 2, .val = 'w'},
-+	{.name = "wait-interval", .has_arg = 2, .val = 'W'},
- 	{NULL},
- };
- 
-@@ -43,14 +50,16 @@ static void print_usage(const char *name, const char *version) __attribute__((no
- 
- static void print_usage(const char *name, const char *version)
- {
--	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h] [-n] [-T table] [-M command]\n"
-+	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h] [-n] [-w secs] [-W usecs] [-T table] [-M command]\n"
- 			"	   [ --counters ]\n"
- 			"	   [ --verbose ]\n"
- 			"	   [ --test ]\n"
- 			"	   [ --help ]\n"
- 			"	   [ --noflush ]\n"
-+			"	   [ --wait=<seconds>\n"
-+			"	   [ --wait-interval=<usecs>\n"
- 			"	   [ --table=<TABLE> ]\n"
--			"          [ --modprobe=<command> ]\n", name);
-+			"	   [ --modprobe=<command> ]\n", name);
- 
- 	exit(1);
- }
-@@ -181,7 +190,7 @@ int ip6tables_restore_main(int argc, char *argv[])
- {
- 	struct xtc_handle *handle = NULL;
- 	char buffer[10240];
--	int c;
-+	int c, lock;
- 	char curtable[XT_TABLE_MAXNAMELEN + 1];
- 	FILE *in;
- 	int in_table = 0, testing = 0;
-@@ -189,6 +198,7 @@ int ip6tables_restore_main(int argc, char *argv[])
- 	const struct xtc_ops *ops = &ip6tc_ops;
- 
- 	line = 0;
-+	lock = XT_LOCK_NOT_ACQUIRED;
- 
- 	ip6tables_globals.program_name = "ip6tables-restore";
- 	c = xtables_init_all(&ip6tables_globals, NFPROTO_IPV6);
-@@ -203,7 +213,7 @@ int ip6tables_restore_main(int argc, char *argv[])
- 	init_extensions6();
- #endif
- 
--	while ((c = getopt_long(argc, argv, "bcvthnM:T:", options, NULL)) != -1) {
-+	while ((c = getopt_long(argc, argv, "bcvthnwWM:T:", options, NULL)) != -1) {
- 		switch (c) {
- 			case 'b':
- 				fprintf(stderr, "-b/--binary option is not implemented\n");
-@@ -224,6 +234,12 @@ int ip6tables_restore_main(int argc, char *argv[])
- 			case 'n':
- 				noflush = 1;
- 				break;
-+			case 'w':
-+				wait = parse_wait_time(argc, argv);
-+				break;
-+			case 'W':
-+				parse_wait_interval(argc, argv, &wait_interval);
-+				break;
- 			case 'M':
- 				xtables_modprobe_program = optarg;
- 				break;
-@@ -268,8 +284,23 @@ int ip6tables_restore_main(int argc, char *argv[])
- 				DEBUGP("Not calling commit, testing\n");
- 				ret = 1;
- 			}
-+
-+			/* Done with the current table, release the lock. */
-+			if (lock >= 0) {
-+				xtables_unlock(lock);
-+				lock = XT_LOCK_NOT_ACQUIRED;
-+			}
-+
- 			in_table = 0;
- 		} else if ((buffer[0] == '*') && (!in_table)) {
-+			/* Acquire a lock before we create a new table handle */
-+			lock = xtables_lock(wait, &wait_interval);
-+			if (lock == XT_LOCK_BUSY) {
-+				fprintf(stderr, "Another app is currently holding the xtables lock. "
-+					"Perhaps you want to use the -w option?\n");
-+				exit(RESOURCE_PROBLEM);
-+			}
-+
- 			/* New table */
- 			char *table;
- 
 diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
-index 4d77721b04..579d347b09 100644
+index 0bd415dec5..4d77721b04 100644
 --- a/iptables/ip6tables.c
 +++ b/iptables/ip6tables.c
-@@ -1779,7 +1779,7 @@ int do_command6(int argc, char *argv[], char **table,
- 	generic_opt_check(command, cs.options);
- 
- 	/* Attempt to acquire the xtables lock */
--	if (!restore && !xtables_lock(wait, &wait_interval)) {
-+	if (!restore && xtables_lock(wait, &wait_interval) == XT_LOCK_BUSY) {
- 		fprintf(stderr, "Another app is currently holding the xtables lock. ");
- 		if (wait == 0)
- 			fprintf(stderr, "Perhaps you want to use the -w option?\n");
-diff --git a/iptables/iptables-restore.c b/iptables/iptables-restore.c
-index 2f1522db52..7bb06d84b1 100644
---- a/iptables/iptables-restore.c
-+++ b/iptables/iptables-restore.c
-@@ -12,6 +12,7 @@
- #include <stdio.h>
- #include <stdlib.h>
- #include "iptables.h"
-+#include "xshared.h"
- #include "xtables.h"
- #include "libiptc/libiptc.h"
- #include "iptables-multi.h"
-@@ -22,17 +23,23 @@
- #define DEBUGP(x, args...)
- #endif
- 
--static int counters = 0, verbose = 0, noflush = 0;
-+static int counters = 0, verbose = 0, noflush = 0, wait = 0;
-+
-+static struct timeval wait_interval = {
-+	.tv_sec	= 1,
-+};
- 
- /* Keeping track of external matches and targets.  */
- static const struct option options[] = {
--	{.name = "counters", .has_arg = false, .val = 'c'},
--	{.name = "verbose",  .has_arg = false, .val = 'v'},
--	{.name = "test",     .has_arg = false, .val = 't'},
--	{.name = "help",     .has_arg = false, .val = 'h'},
--	{.name = "noflush",  .has_arg = false, .val = 'n'},
--	{.name = "modprobe", .has_arg = true,  .val = 'M'},
--	{.name = "table",    .has_arg = true,  .val = 'T'},
-+	{.name = "counters",      .has_arg = 0, .val = 'c'},
-+	{.name = "verbose",       .has_arg = 0, .val = 'v'},
-+	{.name = "test",          .has_arg = 0, .val = 't'},
-+	{.name = "help",          .has_arg = 0, .val = 'h'},
-+	{.name = "noflush",       .has_arg = 0, .val = 'n'},
-+	{.name = "modprobe",      .has_arg = 1, .val = 'M'},
-+	{.name = "table",         .has_arg = 1, .val = 'T'},
-+	{.name = "wait",          .has_arg = 2, .val = 'w'},
-+	{.name = "wait-interval", .has_arg = 2, .val = 'W'},
- 	{NULL},
- };
- 
-@@ -42,14 +49,16 @@ static void print_usage(const char *name, const char *version) __attribute__((no
- 
- static void print_usage(const char *name, const char *version)
- {
--	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h] [-n] [-T table] [-M command]\n"
-+	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h] [-n] [-w secs] [-W usecs] [-T table] [-M command]\n"
- 			"	   [ --counters ]\n"
- 			"	   [ --verbose ]\n"
- 			"	   [ --test ]\n"
- 			"	   [ --help ]\n"
- 			"	   [ --noflush ]\n"
-+			"	   [ --wait=<seconds>\n"
-+			"	   [ --wait-interval=<usecs>\n"
- 			"	   [ --table=<TABLE> ]\n"
--			"          [ --modprobe=<command> ]\n", name);
-+			"	   [ --modprobe=<command> ]\n", name);
- 
- 	exit(1);
- }
-@@ -180,7 +189,7 @@ iptables_restore_main(int argc, char *argv[])
- {
- 	struct xtc_handle *handle = NULL;
- 	char buffer[10240];
--	int c;
-+	int c, lock;
- 	char curtable[XT_TABLE_MAXNAMELEN + 1];
- 	FILE *in;
- 	int in_table = 0, testing = 0;
-@@ -188,6 +197,7 @@ iptables_restore_main(int argc, char *argv[])
- 	const struct xtc_ops *ops = &iptc_ops;
- 
- 	line = 0;
-+	lock = XT_LOCK_NOT_ACQUIRED;
- 
- 	iptables_globals.program_name = "iptables-restore";
- 	c = xtables_init_all(&iptables_globals, NFPROTO_IPV4);
-@@ -202,7 +212,7 @@ iptables_restore_main(int argc, char *argv[])
- 	init_extensions4();
- #endif
- 
--	while ((c = getopt_long(argc, argv, "bcvthnM:T:", options, NULL)) != -1) {
-+	while ((c = getopt_long(argc, argv, "bcvthnwWM:T:", options, NULL)) != -1) {
- 		switch (c) {
- 			case 'b':
- 				fprintf(stderr, "-b/--binary option is not implemented\n");
-@@ -223,6 +233,12 @@ iptables_restore_main(int argc, char *argv[])
- 			case 'n':
- 				noflush = 1;
- 				break;
-+			case 'w':
-+				wait = parse_wait_time(argc, argv);
-+				break;
-+			case 'W':
-+				parse_wait_interval(argc, argv, &wait_interval);
-+				break;
- 			case 'M':
- 				xtables_modprobe_program = optarg;
- 				break;
-@@ -267,8 +283,23 @@ iptables_restore_main(int argc, char *argv[])
- 				DEBUGP("Not calling commit, testing\n");
- 				ret = 1;
+@@ -1400,8 +1400,7 @@ int do_command6(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_DELETE, CMD_NONE,
+ 				    cs.invert);
+ 			chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!') {
++			if (xs_has_arg(argc, argv)) {
+ 				rulenum = parse_rulenumber(argv[optind++]);
+ 				command = CMD_DELETE_NUM;
  			}
-+
-+			/* Done with the current table, release the lock. */
-+			if (lock >= 0) {
-+				xtables_unlock(lock);
-+				lock = XT_LOCK_NOT_ACQUIRED;
-+			}
-+
- 			in_table = 0;
- 		} else if ((buffer[0] == '*') && (!in_table)) {
-+			/* Acquire a lock before we create a new table handle */
-+			lock = xtables_lock(wait, &wait_interval);
-+			if (lock == XT_LOCK_BUSY) {
-+				fprintf(stderr, "Another app is currently holding the xtables lock. "
-+					"Perhaps you want to use the -w option?\n");
-+				exit(RESOURCE_PROBLEM);
-+			}
-+
- 			/* New table */
- 			char *table;
+@@ -1411,8 +1410,7 @@ int do_command6(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_REPLACE, CMD_NONE,
+ 				    cs.invert);
+ 			chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				rulenum = parse_rulenumber(argv[optind++]);
+ 			else
+ 				xtables_error(PARAMETER_PROBLEM,
+@@ -1424,8 +1422,7 @@ int do_command6(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_INSERT, CMD_NONE,
+ 				    cs.invert);
+ 			chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				rulenum = parse_rulenumber(argv[optind++]);
+ 			else rulenum = 1;
+ 			break;
+@@ -1434,11 +1431,9 @@ int do_command6(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_LIST,
+ 				    CMD_ZERO | CMD_ZERO_NUM, cs.invert);
+ 			if (optarg) chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				 && argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				chain = argv[optind++];
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				rulenum = parse_rulenumber(argv[optind++]);
+ 			break;
  
+@@ -1446,11 +1441,9 @@ int do_command6(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_LIST_RULES,
+ 				    CMD_ZERO | CMD_ZERO_NUM, cs.invert);
+ 			if (optarg) chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				 && argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				chain = argv[optind++];
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				rulenum = parse_rulenumber(argv[optind++]);
+ 			break;
+ 
+@@ -1458,8 +1451,7 @@ int do_command6(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_FLUSH, CMD_NONE,
+ 				    cs.invert);
+ 			if (optarg) chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				 && argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				chain = argv[optind++];
+ 			break;
+ 
+@@ -1467,11 +1459,9 @@ int do_command6(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_ZERO, CMD_LIST|CMD_LIST_RULES,
+ 				    cs.invert);
+ 			if (optarg) chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				&& argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				chain = argv[optind++];
+-			if (optind < argc && argv[optind][0] != '-'
+-				&& argv[optind][0] != '!') {
++			if (xs_has_arg(argc, argv)) {
+ 				rulenum = parse_rulenumber(argv[optind++]);
+ 				command = CMD_ZERO_NUM;
+ 			}
+@@ -1488,8 +1478,7 @@ int do_command6(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_DELETE_CHAIN, CMD_NONE,
+ 				    cs.invert);
+ 			if (optarg) chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				 && argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				chain = argv[optind++];
+ 			break;
+ 
+@@ -1497,8 +1486,7 @@ int do_command6(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_RENAME_CHAIN, CMD_NONE,
+ 				    cs.invert);
+ 			chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				newname = argv[optind++];
+ 			else
+ 				xtables_error(PARAMETER_PROBLEM,
+@@ -1511,8 +1499,7 @@ int do_command6(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_SET_POLICY, CMD_NONE,
+ 				    cs.invert);
+ 			chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				policy = argv[optind++];
+ 			else
+ 				xtables_error(PARAMETER_PROBLEM,
+@@ -1622,16 +1609,7 @@ int do_command6(int argc, char *argv[], char **table,
+ 					      "You cannot use `-w' from "
+ 					      "ip6tables-restore");
+ 			}
+-			wait = -1;
+-			if (optarg) {
+-				if (sscanf(optarg, "%i", &wait) != 1)
+-					xtables_error(PARAMETER_PROBLEM,
+-						"wait seconds not numeric");
+-			} else if (optind < argc && argv[optind][0] != '-'
+-						 && argv[optind][0] != '!')
+-				if (sscanf(argv[optind++], "%i", &wait) != 1)
+-					xtables_error(PARAMETER_PROBLEM,
+-						"wait seconds not numeric");
++			wait = parse_wait_time(argc, argv);
+ 			break;
+ 
+ 		case 'W':
+@@ -1640,14 +1618,7 @@ int do_command6(int argc, char *argv[], char **table,
+ 					      "You cannot use `-W' from "
+ 					      "ip6tables-restore");
+ 			}
+-			if (optarg)
+-				parse_wait_interval(optarg, &wait_interval);
+-			else if (optind < argc &&
+-				argv[optind][0] != '-' &&
+-				argv[optind][0] != '!')
+-				parse_wait_interval(argv[optind++],
+-						    &wait_interval);
+-
++			parse_wait_interval(argc, argv, &wait_interval);
+ 			wait_interval_set = true;
+ 			break;
+ 
+@@ -1697,8 +1668,7 @@ int do_command6(int argc, char *argv[], char **table,
+ 			bcnt = strchr(pcnt + 1, ',');
+ 			if (bcnt)
+ 			    bcnt++;
+-			if (!bcnt && optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (!bcnt && xs_has_arg(argc, argv))
+ 				bcnt = argv[optind++];
+ 			if (!bcnt)
+ 				xtables_error(PARAMETER_PROBLEM,
 diff --git a/iptables/iptables.c b/iptables/iptables.c
-index 04be5abb10..62731c5ebb 100644
+index e0d092f0b6..04be5abb10 100644
 --- a/iptables/iptables.c
 +++ b/iptables/iptables.c
-@@ -1766,7 +1766,7 @@ int do_command4(int argc, char *argv[], char **table,
- 	generic_opt_check(command, cs.options);
+@@ -1393,8 +1393,7 @@ int do_command4(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_DELETE, CMD_NONE,
+ 				    cs.invert);
+ 			chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!') {
++			if (xs_has_arg(argc, argv)) {
+ 				rulenum = parse_rulenumber(argv[optind++]);
+ 				command = CMD_DELETE_NUM;
+ 			}
+@@ -1404,8 +1403,7 @@ int do_command4(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_REPLACE, CMD_NONE,
+ 				    cs.invert);
+ 			chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				rulenum = parse_rulenumber(argv[optind++]);
+ 			else
+ 				xtables_error(PARAMETER_PROBLEM,
+@@ -1417,8 +1415,7 @@ int do_command4(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_INSERT, CMD_NONE,
+ 				    cs.invert);
+ 			chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				rulenum = parse_rulenumber(argv[optind++]);
+ 			else rulenum = 1;
+ 			break;
+@@ -1427,11 +1424,9 @@ int do_command4(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_LIST,
+ 				    CMD_ZERO | CMD_ZERO_NUM, cs.invert);
+ 			if (optarg) chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				 && argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				chain = argv[optind++];
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				rulenum = parse_rulenumber(argv[optind++]);
+ 			break;
  
- 	/* Attempt to acquire the xtables lock */
--	if (!restore && !xtables_lock(wait, &wait_interval)) {
-+	if (!restore && xtables_lock(wait, &wait_interval) == XT_LOCK_BUSY) {
- 		fprintf(stderr, "Another app is currently holding the xtables lock. ");
- 		if (wait == 0)
- 			fprintf(stderr, "Perhaps you want to use the -w option?\n");
+@@ -1439,11 +1434,9 @@ int do_command4(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_LIST_RULES,
+ 				    CMD_ZERO|CMD_ZERO_NUM, cs.invert);
+ 			if (optarg) chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				 && argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				chain = argv[optind++];
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				rulenum = parse_rulenumber(argv[optind++]);
+ 			break;
+ 
+@@ -1451,8 +1444,7 @@ int do_command4(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_FLUSH, CMD_NONE,
+ 				    cs.invert);
+ 			if (optarg) chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				 && argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				chain = argv[optind++];
+ 			break;
+ 
+@@ -1460,11 +1452,9 @@ int do_command4(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_ZERO, CMD_LIST|CMD_LIST_RULES,
+ 				    cs.invert);
+ 			if (optarg) chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				&& argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				chain = argv[optind++];
+-			if (optind < argc && argv[optind][0] != '-'
+-				&& argv[optind][0] != '!') {
++			if (xs_has_arg(argc, argv)) {
+ 				rulenum = parse_rulenumber(argv[optind++]);
+ 				command = CMD_ZERO_NUM;
+ 			}
+@@ -1481,8 +1471,7 @@ int do_command4(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_DELETE_CHAIN, CMD_NONE,
+ 				    cs.invert);
+ 			if (optarg) chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				 && argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				chain = argv[optind++];
+ 			break;
+ 
+@@ -1490,8 +1479,7 @@ int do_command4(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_RENAME_CHAIN, CMD_NONE,
+ 				    cs.invert);
+ 			chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				newname = argv[optind++];
+ 			else
+ 				xtables_error(PARAMETER_PROBLEM,
+@@ -1504,8 +1492,7 @@ int do_command4(int argc, char *argv[], char **table,
+ 			add_command(&command, CMD_SET_POLICY, CMD_NONE,
+ 				    cs.invert);
+ 			chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				policy = argv[optind++];
+ 			else
+ 				xtables_error(PARAMETER_PROBLEM,
+@@ -1613,16 +1600,7 @@ int do_command4(int argc, char *argv[], char **table,
+ 					      "You cannot use `-w' from "
+ 					      "iptables-restore");
+ 			}
+-			wait = -1;
+-			if (optarg) {
+-				if (sscanf(optarg, "%i", &wait) != 1)
+-					xtables_error(PARAMETER_PROBLEM,
+-						"wait seconds not numeric");
+-			} else if (optind < argc && argv[optind][0] != '-'
+-						 && argv[optind][0] != '!')
+-				if (sscanf(argv[optind++], "%i", &wait) != 1)
+-					xtables_error(PARAMETER_PROBLEM,
+-						"wait seconds not numeric");
++			wait = parse_wait_time(argc, argv);
+ 			break;
+ 
+ 		case 'W':
+@@ -1631,14 +1609,7 @@ int do_command4(int argc, char *argv[], char **table,
+ 					      "You cannot use `-W' from "
+ 					      "iptables-restore");
+ 			}
+-			if (optarg)
+-				parse_wait_interval(optarg, &wait_interval);
+-			else if (optind < argc &&
+-				 argv[optind][0] != '-' &&
+-				 argv[optind][0] != '!')
+-				parse_wait_interval(argv[optind++],
+-						    &wait_interval);
+-
++			parse_wait_interval(argc, argv, &wait_interval);
+ 			wait_interval_set = true;
+ 			break;
+ 
+@@ -1688,8 +1659,7 @@ int do_command4(int argc, char *argv[], char **table,
+ 			bcnt = strchr(pcnt + 1, ',');
+ 			if (bcnt)
+ 			    bcnt++;
+-			if (!bcnt && optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (!bcnt && xs_has_arg(argc, argv))
+ 				bcnt = argv[optind++];
+ 			if (!bcnt)
+ 				xtables_error(PARAMETER_PROBLEM,
 diff --git a/iptables/xshared.c b/iptables/xshared.c
-index dd5f8be028..5a7fcc0046 100644
+index 383ecf2cf2..dd5f8be028 100644
 --- a/iptables/xshared.c
 +++ b/iptables/xshared.c
-@@ -245,7 +245,7 @@ void xs_init_match(struct xtables_match *match)
- 		match->init(match->m);
+@@ -284,12 +284,36 @@ bool xtables_lock(int wait, struct timeval *wait_interval)
+ 	}
  }
  
--bool xtables_lock(int wait, struct timeval *wait_interval)
-+int xtables_lock(int wait, struct timeval *wait_interval)
+-void parse_wait_interval(const char *str, struct timeval *wait_interval)
++int parse_wait_time(int argc, char *argv[])
  {
- 	struct timeval time_left, wait_time;
- 	int fd, i = 0;
-@@ -255,22 +255,22 @@ bool xtables_lock(int wait, struct timeval *wait_interval)
- 
- 	fd = open(XT_LOCK_NAME, O_CREAT, 0600);
- 	if (fd < 0)
--		return true;
-+		return XT_LOCK_UNSUPPORTED;
- 
- 	if (wait == -1) {
- 		if (flock(fd, LOCK_EX) == 0)
--			return true;
-+			return fd;
- 
- 		fprintf(stderr, "Can't lock %s: %s\n", XT_LOCK_NAME,
- 			strerror(errno));
--		return false;
-+		return XT_LOCK_BUSY;
- 	}
- 
- 	while (1) {
- 		if (flock(fd, LOCK_EX | LOCK_NB) == 0)
--			return true;
-+			return fd;
- 		else if (timercmp(&time_left, wait_interval, <))
--			return false;
-+			return XT_LOCK_BUSY;
- 
- 		if (++i % 10 == 0) {
- 			fprintf(stderr, "Another app is currently holding the xtables lock; "
-@@ -284,6 +284,12 @@ bool xtables_lock(int wait, struct timeval *wait_interval)
- 	}
- }
- 
-+void xtables_unlock(int lock)
-+{
-+	if (lock >= 0)
-+		close(lock);
++	int wait = -1;
++
++	if (optarg) {
++		if (sscanf(optarg, "%i", &wait) != 1)
++			xtables_error(PARAMETER_PROBLEM,
++				"wait seconds not numeric");
++	} else if (xs_has_arg(argc, argv))
++		if (sscanf(argv[optind++], "%i", &wait) != 1)
++			xtables_error(PARAMETER_PROBLEM,
++				"wait seconds not numeric");
++
++	return wait;
 +}
 +
- int parse_wait_time(int argc, char *argv[])
- {
- 	int wait = -1;
++void parse_wait_interval(int argc, char *argv[], struct timeval *wait_interval)
++{
++	const char *arg;
+ 	unsigned int usec;
+ 	int ret;
+ 
+-	ret = sscanf(str, "%u", &usec);
++	if (optarg)
++		arg = optarg;
++	else if (xs_has_arg(argc, argv))
++		arg = argv[optind++];
++	else
++		return;
++
++	ret = sscanf(arg, "%u", &usec);
+ 	if (ret == 1) {
+ 		if (usec > 999999)
+ 			xtables_error(PARAMETER_PROBLEM,
+@@ -302,3 +326,10 @@ void parse_wait_interval(const char *str, struct timeval *wait_interval)
+ 	}
+ 	xtables_error(PARAMETER_PROBLEM, "wait interval not numeric");
+ }
++
++inline bool xs_has_arg(int argc, char *argv[])
++{
++	return optind < argc &&
++	       argv[optind][0] != '-' &&
++	       argv[optind][0] != '!';
++}
 diff --git a/iptables/xshared.h b/iptables/xshared.h
-index d8a697ae66..539e6c243b 100644
+index 18b1cf3764..d8a697ae66 100644
 --- a/iptables/xshared.h
 +++ b/iptables/xshared.h
-@@ -86,7 +86,28 @@ extern struct xtables_match *load_proto(struct iptables_command_state *);
- extern int subcmd_main(int, char **, const struct subcommand *);
- extern void xs_init_target(struct xtables_target *);
+@@ -88,7 +88,9 @@ extern void xs_init_target(struct xtables_target *);
  extern void xs_init_match(struct xtables_match *);
--bool xtables_lock(int wait, struct timeval *wait_interval);
-+
-+/**
-+ * Values for the iptables lock.
-+ *
-+ * A value >= 0 indicates the lock filedescriptor. Other values are:
-+ *
-+ * XT_LOCK_UNSUPPORTED : The system does not support locking, execution will
-+ * proceed lockless.
-+ *
-+ * XT_LOCK_BUSY : The lock was held by another process. xtables_lock only
-+ * returns this value when |wait| == false. If |wait| == true, xtables_lock
-+ * will not return unless the lock has been acquired.
-+ *
-+ * XT_LOCK_NOT_ACQUIRED : We have not yet attempted to acquire the lock.
-+ */
-+enum {
-+	XT_LOCK_BUSY = -1,
-+	XT_LOCK_UNSUPPORTED  = -2,
-+	XT_LOCK_NOT_ACQUIRED  = -3,
-+};
-+extern int xtables_lock(int wait, struct timeval *tv);
-+extern void xtables_unlock(int lock);
+ bool xtables_lock(int wait, struct timeval *wait_interval);
  
- int parse_wait_time(int argc, char *argv[]);
- void parse_wait_interval(int argc, char *argv[], struct timeval *wait_interval);
+-void parse_wait_interval(const char *str, struct timeval *wait_interval);
++int parse_wait_time(int argc, char *argv[]);
++void parse_wait_interval(int argc, char *argv[], struct timeval *wait_interval);
++bool xs_has_arg(int argc, char *argv[]);
+ 
+ extern const struct xtables_afinfo *afinfo;
+ 
+diff --git a/iptables/xtables-arp.c b/iptables/xtables-arp.c
+index bd6d57c2d8..6aa000a14d 100644
+--- a/iptables/xtables-arp.c
++++ b/iptables/xtables-arp.c
+@@ -984,8 +984,7 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table)
+ 			add_command(&command, CMD_DELETE, CMD_NONE,
+ 				    invert);
+ 			chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!') {
++			if (xs_has_arg(argc, argv)) {
+ 				rulenum = parse_rulenumber(argv[optind++]);
+ 				command = CMD_DELETE_NUM;
+ 			}
+@@ -995,8 +994,7 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table)
+ 			add_command(&command, CMD_REPLACE, CMD_NONE,
+ 				    invert);
+ 			chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				rulenum = parse_rulenumber(argv[optind++]);
+ 			else
+ 				xtables_error(PARAMETER_PROBLEM,
+@@ -1008,8 +1006,7 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table)
+ 			add_command(&command, CMD_INSERT, CMD_NONE,
+ 				    invert);
+ 			chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				rulenum = parse_rulenumber(argv[optind++]);
+ 			else rulenum = 1;
+ 			break;
+@@ -1018,8 +1015,7 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table)
+ 			add_command(&command, CMD_LIST, CMD_ZERO,
+ 				    invert);
+ 			if (optarg) chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				 && argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				chain = argv[optind++];
+ 			break;
+ 
+@@ -1027,8 +1023,7 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table)
+ 			add_command(&command, CMD_FLUSH, CMD_NONE,
+ 				    invert);
+ 			if (optarg) chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				 && argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				chain = argv[optind++];
+ 			break;
+ 
+@@ -1036,8 +1031,7 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table)
+ 			add_command(&command, CMD_ZERO, CMD_LIST,
+ 				    invert);
+ 			if (optarg) chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				&& argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				chain = argv[optind++];
+ 			break;
+ 
+@@ -1059,8 +1053,7 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table)
+ 			add_command(&command, CMD_DELETE_CHAIN, CMD_NONE,
+ 				    invert);
+ 			if (optarg) chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				 && argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				chain = argv[optind++];
+ 			break;
+ 
+@@ -1068,8 +1061,7 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table)
+ 			add_command(&command, CMD_RENAME_CHAIN, CMD_NONE,
+ 				    invert);
+ 			chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				newname = argv[optind++];
+ 			else
+ 				xtables_error(PARAMETER_PROBLEM,
+@@ -1082,8 +1074,7 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table)
+ 			add_command(&command, CMD_SET_POLICY, CMD_NONE,
+ 				    invert);
+ 			chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				policy = argv[optind++];
+ 			else
+ 				xtables_error(PARAMETER_PROBLEM,
+@@ -1286,8 +1277,7 @@ int do_commandarp(struct nft_handle *h, int argc, char *argv[], char **table)
+ 			set_option(&options, OPT_COUNTERS, &cs.fw.arp.invflags,
+ 				   invert);
+ 			pcnt = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				bcnt = argv[optind++];
+ 			else
+ 				xtables_error(PARAMETER_PROBLEM,
+diff --git a/iptables/xtables.c b/iptables/xtables.c
+index d222ae991d..286866f75d 100644
+--- a/iptables/xtables.c
++++ b/iptables/xtables.c
+@@ -744,8 +744,7 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+ 			add_command(&p->command, CMD_DELETE, CMD_NONE,
+ 				    cs->invert);
+ 			p->chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!') {
++			if (xs_has_arg(argc, argv)) {
+ 				p->rulenum = parse_rulenumber(argv[optind++]);
+ 				p->command = CMD_DELETE_NUM;
+ 			}
+@@ -755,8 +754,7 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+ 			add_command(&p->command, CMD_REPLACE, CMD_NONE,
+ 				    cs->invert);
+ 			p->chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				p->rulenum = parse_rulenumber(argv[optind++]);
+ 			else
+ 				xtables_error(PARAMETER_PROBLEM,
+@@ -768,8 +766,7 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+ 			add_command(&p->command, CMD_INSERT, CMD_NONE,
+ 				    cs->invert);
+ 			p->chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				p->rulenum = parse_rulenumber(argv[optind++]);
+ 			else
+ 				p->rulenum = 1;
+@@ -780,11 +777,9 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+ 				    CMD_ZERO | CMD_ZERO_NUM, cs->invert);
+ 			if (optarg)
+ 				p->chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				 && argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				p->chain = argv[optind++];
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				p->rulenum = parse_rulenumber(argv[optind++]);
+ 			break;
+ 
+@@ -793,11 +788,9 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+ 				    CMD_ZERO|CMD_ZERO_NUM, cs->invert);
+ 			if (optarg)
+ 				p->chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				 && argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				p->chain = argv[optind++];
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				p->rulenum = parse_rulenumber(argv[optind++]);
+ 			break;
+ 
+@@ -806,8 +799,7 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+ 				    cs->invert);
+ 			if (optarg)
+ 				p->chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				 && argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				p->chain = argv[optind++];
+ 			break;
+ 
+@@ -816,11 +808,9 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+ 				    CMD_LIST|CMD_LIST_RULES, cs->invert);
+ 			if (optarg)
+ 				p->chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				&& argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				p->chain = argv[optind++];
+-			if (optind < argc && argv[optind][0] != '-'
+-				&& argv[optind][0] != '!') {
++			if (xs_has_arg(argc, argv)) {
+ 				p->rulenum = parse_rulenumber(argv[optind++]);
+ 				p->command = CMD_ZERO_NUM;
+ 			}
+@@ -845,8 +835,7 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+ 				    cs->invert);
+ 			if (optarg)
+ 				p->chain = optarg;
+-			else if (optind < argc && argv[optind][0] != '-'
+-				 && argv[optind][0] != '!')
++			else if (xs_has_arg(argc, argv))
+ 				p->chain = argv[optind++];
+ 			break;
+ 
+@@ -854,8 +843,7 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+ 			add_command(&p->command, CMD_RENAME_CHAIN, CMD_NONE,
+ 				    cs->invert);
+ 			p->chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				p->newname = argv[optind++];
+ 			else
+ 				xtables_error(PARAMETER_PROBLEM,
+@@ -868,8 +856,7 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+ 			add_command(&p->command, CMD_SET_POLICY, CMD_NONE,
+ 				    cs->invert);
+ 			p->chain = optarg;
+-			if (optind < argc && argv[optind][0] != '-'
+-			    && argv[optind][0] != '!')
++			if (xs_has_arg(argc, argv))
+ 				p->policy = argv[optind++];
+ 			else
+ 				xtables_error(PARAMETER_PROBLEM,
+@@ -1014,15 +1001,8 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+ 					      "You cannot use `-w' from "
+ 					      "iptables-restore");
+ 			}
+-			if (optarg) {
+-				if (sscanf(optarg, "%i", &wait) != 1)
+-					xtables_error(PARAMETER_PROBLEM,
+-						      "wait seconds not numeric");
+-			} else if (optind < argc && argv[optind][0] != '-'
+-				   && argv[optind][0] != '!')
+-				if (sscanf(argv[optind++], "%i", &wait) != 1)
+-					xtables_error(PARAMETER_PROBLEM,
+-						      "wait seconds not numeric");
++
++			wait = parse_wait_time(argc, argv);
+ 			break;
+ 
+ 		case 'W':
+@@ -1031,14 +1011,8 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+ 					      "You cannot use `-W' from "
+ 					      "iptables-restore");
+ 			}
+-			if (optarg)
+-				parse_wait_interval(optarg, &wait_interval);
+-			else if (optind < argc &&
+-				   argv[optind][0] != '-' &&
+-				   argv[optind][0] != '!')
+-				parse_wait_interval(argv[optind++],
+-						    &wait_interval);
+ 
++			parse_wait_interval(argc, argv, &wait_interval);
+ 			wait_interval_set = true;
+ 			break;
+ 
+@@ -1058,9 +1032,7 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+ 			args->bcnt = strchr(args->pcnt + 1, ',');
+ 			if (args->bcnt)
+ 			    args->bcnt++;
+-			if (!args->bcnt && optind < argc &&
+-			    argv[optind][0] != '-' &&
+-			    argv[optind][0] != '!')
++			if (!args->bcnt && xs_has_arg(argc, argv))
+ 				args->bcnt = argv[optind++];
+ 			if (!args->bcnt)
+ 				xtables_error(PARAMETER_PROBLEM,
 -- 
 2.12.0.367.g23dc2f6d3c-goog
 
