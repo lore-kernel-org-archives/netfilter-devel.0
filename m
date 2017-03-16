@@ -1,49 +1,27 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH 5/5] ipvs: Document sysctl pmtu_disc
-Date: Thu, 16 Mar 2017 13:43:15 +0100
-Message-ID: <1489668195-15240-6-git-send-email-horms@verge.net.au>
-References: <1489668195-15240-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Julian Anastasov <ja@ssi.bg>,
-        Hangbin Liu <liuhangbin@gmail.com>,
-        Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: ANNOUNCE: New Platinum sponsor - Facebook
+Date: Thu, 16 Mar 2017 12:57:03 -0400
+Message-ID: <09dcc6cc-bc5f-4465-0f8c-3c77f73d5abf@mojatatu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: tech-committee@netdevconf.org, netfilter-devel@vger.kernel.org,
+        Brenda Butler <bjb@mojatatu.com>,
+        Stephen Jaworski <jaws@mojatatu.com>,
+        netfilter@vger.kernel.org, linux-wireless@vger.kernel.org,
+        Heri Muhero <hmuhero@gmail.com>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>, lwn@lwn.net
+To: people@netdevconf.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1489668195-15240-1-git-send-email-horms@verge.net.au>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Hangbin Liu <liuhangbin@gmail.com>
 
-Document sysctl pmtu_disc based on commit 3654e61137db ("ipvs: add
-pmtu_disc option to disable IP DF for TUN packets").
+The organizing committee would like to welcome back a repeat
+platinum sponsor, Facebook!
 
-Signed-off-by: Hangbin Liu <liuhangbin@gmail.com>
-Signed-off-by: Simon Horman <horms@verge.net.au>
----
- Documentation/networking/ipvs-sysctl.txt | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Facebook has been a great supporter of the netdev community, we
+thank them!
 
-diff --git a/Documentation/networking/ipvs-sysctl.txt b/Documentation/networking/ipvs-sysctl.txt
-index a6feecd467cd..056898685d40 100644
---- a/Documentation/networking/ipvs-sysctl.txt
-+++ b/Documentation/networking/ipvs-sysctl.txt
-@@ -175,6 +175,14 @@ nat_icmp_send - BOOLEAN
-         for VS/NAT when the load balancer receives packets from real
-         servers but the connection entries don't exist.
- 
-+pmtu_disc - BOOLEAN
-+	0 - disabled
-+	not 0 - enabled (default)
-+
-+	By default, reject with FRAG_NEEDED all DF packets that exceed
-+	the PMTU, irrespective of the forwarding method. For TUN method
-+	the flag can be disabled to fragment such packets.
-+
- secure_tcp - INTEGER
-         0  - disabled (default)
- 
--- 
-2.7.0.rc3.207.g0ac5344
+cheers,
+jamal
