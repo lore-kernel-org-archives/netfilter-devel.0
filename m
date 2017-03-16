@@ -1,55 +1,162 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH 3/5] ipvs: Document sysctl sync_qlen_max and sync_sock_size
-Date: Thu, 16 Mar 2017 13:43:13 +0100
-Message-ID: <1489668195-15240-4-git-send-email-horms@verge.net.au>
-References: <1489668195-15240-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Julian Anastasov <ja@ssi.bg>,
-        Hangbin Liu <liuhangbin@gmail.com>,
-        Simon Horman <horms@verge.net.au>
+From: Phil Sutter <phil@nwl.cc>
+Subject: [nft PATCH v2 1/2] proto: Add some exotic ICMPv6 types
+Date: Thu, 16 Mar 2017 13:43:20 +0100
+Message-ID: <20170316124321.23399-1-phil@nwl.cc>
+References: <20170315214757.GA1289@salvia>
+Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1489668195-15240-1-git-send-email-horms@verge.net.au>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from orbyte.nwl.cc ([151.80.46.58]:42741 "EHLO mail.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752313AbdCPMnk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Mar 2017 08:43:40 -0400
+In-Reply-To: <20170315214757.GA1289@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Hangbin Liu <liuhangbin@gmail.com>
+This adds support for matching on inverse ND messages as defined by
+RFC3122 (not implemented in Linux) and MLDv2 as defined by RFC3810.
 
-Document sysctl sync_qlen_max and sync_sock_size based on
-commit 1c003b1580e2 ("ipvs: wakeup master thread").
+Note that ICMPV6_MLD2_REPORT macro is defined in linux/icmpv6.h but
+including that header leads to conflicts with symbols defined in
+netinet/icmp6.h.
 
-Signed-off-by: Hangbin Liu <liuhangbin@gmail.com>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+In addition to the above, "mld-listener-done" is introduced as an alias
+for "mld-listener-reduction".
+
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- Documentation/networking/ipvs-sysctl.txt | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+Changes since v1:
+- Reordered symbols in icmp6_type_tbl:
+  - mld-listener-done is the preferred alias
+  - order new symbols by the number they represent
+- Add tests for new types and adjust existing ones for
+  mld-listener-done.
+---
+ src/proto.c                       |  8 ++++++++
+ tests/py/ip6/icmpv6.t             |  8 ++++++--
+ tests/py/ip6/icmpv6.t.payload.ip6 | 34 +++++++++++++++++++++++++++++++++-
+ 3 files changed, 47 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/networking/ipvs-sysctl.txt b/Documentation/networking/ipvs-sysctl.txt
-index 7acaaa65451e..159d70b6dff3 100644
---- a/Documentation/networking/ipvs-sysctl.txt
-+++ b/Documentation/networking/ipvs-sysctl.txt
-@@ -217,6 +217,20 @@ sync_retries - INTEGER
- 	to protect against loss of sync messages. The range of the
- 	sync_retries is from 0 to 3.
+diff --git a/src/proto.c b/src/proto.c
+index fb965304e59d9..79e9dbf2b33e8 100644
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -632,6 +632,10 @@ const struct proto_desc proto_ip = {
  
-+sync_qlen_max - UNSIGNED LONG
+ #include <netinet/icmp6.h>
+ 
++#define IND_NEIGHBOR_SOLICIT	141
++#define IND_NEIGHBOR_ADVERT	142
++#define ICMPV6_MLD2_REPORT	143
 +
-+	Hard limit for queued sync messages that are not sent yet. It
-+	defaults to 1/32 of the memory pages but actually represents
-+	number of messages. It will protect us from allocating large
-+	parts of memory when the sending rate is lower than the queuing
-+	rate.
+ static const struct symbol_table icmp6_type_tbl = {
+ 	.base		= BASE_DECIMAL,
+ 	.symbols	= {
+@@ -643,6 +647,7 @@ static const struct symbol_table icmp6_type_tbl = {
+ 		SYMBOL("echo-reply",			ICMP6_ECHO_REPLY),
+ 		SYMBOL("mld-listener-query",		MLD_LISTENER_QUERY),
+ 		SYMBOL("mld-listener-report",		MLD_LISTENER_REPORT),
++		SYMBOL("mld-listener-done",		MLD_LISTENER_REDUCTION),
+ 		SYMBOL("mld-listener-reduction",	MLD_LISTENER_REDUCTION),
+ 		SYMBOL("nd-router-solicit",		ND_ROUTER_SOLICIT),
+ 		SYMBOL("nd-router-advert",		ND_ROUTER_ADVERT),
+@@ -650,6 +655,9 @@ static const struct symbol_table icmp6_type_tbl = {
+ 		SYMBOL("nd-neighbor-advert",		ND_NEIGHBOR_ADVERT),
+ 		SYMBOL("nd-redirect",			ND_REDIRECT),
+ 		SYMBOL("router-renumbering",		ICMP6_ROUTER_RENUMBERING),
++		SYMBOL("ind-neighbor-solicit",		IND_NEIGHBOR_SOLICIT),
++		SYMBOL("ind-neighbor-advert",		IND_NEIGHBOR_ADVERT),
++		SYMBOL("mld2-listener-report",		ICMPV6_MLD2_REPORT),
+ 		SYMBOL_LIST_END
+ 	},
+ };
+diff --git a/tests/py/ip6/icmpv6.t b/tests/py/ip6/icmpv6.t
+index afbd45166f3a8..a898fe30c24c7 100644
+--- a/tests/py/ip6/icmpv6.t
++++ b/tests/py/ip6/icmpv6.t
+@@ -11,7 +11,8 @@ icmpv6 type echo-request accept;ok
+ icmpv6 type echo-reply accept;ok
+ icmpv6 type mld-listener-query accept;ok
+ icmpv6 type mld-listener-report accept;ok
+-icmpv6 type mld-listener-reduction accept;ok
++icmpv6 type mld-listener-done accept;ok
++icmpv6 type mld-listener-reduction accept;ok;icmpv6 type mld-listener-done accept
+ icmpv6 type nd-router-solicit accept;ok
+ icmpv6 type nd-router-advert accept;ok
+ icmpv6 type nd-neighbor-solicit accept;ok
+@@ -19,8 +20,11 @@ icmpv6 type nd-neighbor-advert accept;ok
+ icmpv6 type nd-redirect accept;ok
+ icmpv6 type parameter-problem accept;ok
+ icmpv6 type router-renumbering accept;ok
++icmpv6 type ind-neighbor-solicit accept;ok
++icmpv6 type ind-neighbor-advert accept;ok
++icmpv6 type mld2-listener-report accept;ok
+ icmpv6 type {destination-unreachable, time-exceeded, nd-router-solicit} accept;ok
+-icmpv6 type {router-renumbering, mld-listener-reduction, time-exceeded, nd-router-solicit} accept;ok
++icmpv6 type {router-renumbering, mld-listener-done, time-exceeded, nd-router-solicit} accept;ok
+ icmpv6 type {mld-listener-query, time-exceeded, nd-router-advert} accept;ok
+ icmpv6 type != {mld-listener-query, time-exceeded, nd-router-advert} accept;ok
+ 
+diff --git a/tests/py/ip6/icmpv6.t.payload.ip6 b/tests/py/ip6/icmpv6.t.payload.ip6
+index 9fe24963718a0..30f58ca3615bd 100644
+--- a/tests/py/ip6/icmpv6.t.payload.ip6
++++ b/tests/py/ip6/icmpv6.t.payload.ip6
+@@ -54,6 +54,14 @@ ip6 test-ip6 input
+   [ cmp eq reg 1 0x00000083 ]
+   [ immediate reg 0 accept ]
+ 
++# icmpv6 type mld-listener-done accept
++ip6 test-ip6 input
++  [ payload load 1b @ network header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x0000003a ]
++  [ payload load 1b @ transport header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x00000084 ]
++  [ immediate reg 0 accept ]
 +
-+sync_sock_size - INTEGER
-+	default 0
+ # icmpv6 type mld-listener-reduction accept
+ ip6 test-ip6 input
+   [ payload load 1b @ network header + 6 => reg 1 ]
+@@ -118,6 +126,30 @@ ip6 test-ip6 input
+   [ cmp eq reg 1 0x0000008a ]
+   [ immediate reg 0 accept ]
+ 
++# icmpv6 type ind-neighbor-solicit accept
++ip6 test-ip6 input
++  [ payload load 1b @ network header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x0000003a ]
++  [ payload load 1b @ transport header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x0000008d ]
++  [ immediate reg 0 accept ]
 +
-+	Configuration of SNDBUF (master) or RCVBUF (slave) socket limit.
-+	Default value is 0 (preserve system defaults).
++# icmpv6 type ind-neighbor-advert accept
++ip6 test-ip6 input
++  [ payload load 1b @ network header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x0000003a ]
++  [ payload load 1b @ transport header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x0000008e ]
++  [ immediate reg 0 accept ]
 +
- snat_reroute - BOOLEAN
- 	0 - disabled
- 	not 0 - enabled (default)
++# icmpv6 type mld2-listener-report accept
++ip6 test-ip6 input
++  [ payload load 1b @ network header + 6 => reg 1 ]
++  [ cmp eq reg 1 0x0000003a ]
++  [ payload load 1b @ transport header + 0 => reg 1 ]
++  [ cmp eq reg 1 0x0000008f ]
++  [ immediate reg 0 accept ]
++
+ # icmpv6 type {destination-unreachable, time-exceeded, nd-router-solicit} accept
+ __set%d test-ip6 3
+ __set%d test-ip6 0
+@@ -129,7 +161,7 @@ ip6 test-ip6 input
+   [ lookup reg 1 set __set%d ]
+   [ immediate reg 0 accept ]
+ 
+-# icmpv6 type {router-renumbering, mld-listener-reduction, time-exceeded, nd-router-solicit} accept
++# icmpv6 type {router-renumbering, mld-listener-done, time-exceeded, nd-router-solicit} accept
+ __set%d test-ip6 3
+ __set%d test-ip6 0
+ 	element 0000008a  : 0 [end]	element 00000084  : 0 [end]	element 00000003  : 0 [end]	element 00000085  : 0 [end]
 -- 
-2.7.0.rc3.207.g0ac5344
+2.11.0
+
