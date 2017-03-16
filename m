@@ -1,473 +1,82 @@
-From: Neil Wilson <neil@aldur.co.uk>
-Subject: [PATCH] conntrack: Support IPv6 NAT
-Date: Thu, 16 Mar 2017 11:49:03 +0000
-Message-ID: <1489664943-25811-1-git-send-email-neil@aldur.co.uk>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:33988 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751342AbdCPLtI (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Mar 2017 07:49:08 -0400
-Received: by mail-wr0-f193.google.com with SMTP id u48so5586071wrc.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Mar 2017 04:49:06 -0700 (PDT)
-Received: from localhost.localdomain (host-92-4-72-59.as43234.net. [92.4.72.59])
-        by smtp.gmail.com with ESMTPSA id 78sm3994037wms.14.2017.03.16.04.49.04
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Thu, 16 Mar 2017 04:49:05 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [PATCH 2/5] ipvs: fix sync_threshold description and add sync_refresh_period, sync_retries
+Date: Thu, 16 Mar 2017 13:43:12 +0100
+Message-ID: <1489668195-15240-3-git-send-email-horms@verge.net.au>
+References: <1489668195-15240-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Julian Anastasov <ja@ssi.bg>,
+        Hangbin Liu <liuhangbin@gmail.com>,
+        Simon Horman <horms@verge.net.au>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1489668195-15240-1-git-send-email-horms@verge.net.au>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Refactor and improve nat support to allow conntrack to manage IPv6
-NAT entries.
+From: Hangbin Liu <liuhangbin@gmail.com>
 
-Refactor and improve conntrack nat tests to include IPv6 NAT.
+Fix sync_threshold description which should have two values. Also add
+sync_refresh_period and sync_retries based on commit 749c42b620a9
+("ipvs: reduce sync rate with time thresholds").
 
-Signed-off-by: Neil Wilson <neil@aldur.co.uk>
+Signed-off-by: Hangbin Liu <liuhangbin@gmail.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
 ---
- src/conntrack.c                    | 213 +++++++++++++++++++++++++------------
- tests/conntrack/testsuite/00create |   6 ++
- tests/conntrack/testsuite/03nat    |   8 ++
- tests/conntrack/testsuite/07nat6   |  56 ++++++++++
- 4 files changed, 216 insertions(+), 67 deletions(-)
- create mode 100644 tests/conntrack/testsuite/07nat6
+ Documentation/networking/ipvs-sysctl.txt | 40 +++++++++++++++++++++++++-------
+ 1 file changed, 31 insertions(+), 9 deletions(-)
 
-diff --git a/src/conntrack.c b/src/conntrack.c
-index bd337f4..6e96b58 100644
---- a/src/conntrack.c
-+++ b/src/conntrack.c
-@@ -43,6 +43,8 @@
- #include <stdio.h>
- #include <getopt.h>
- #include <stdlib.h>
-+#include <ctype.h>
-+#include <limits.h>
- #include <stdarg.h>
- #include <errno.h>
- #include <unistd.h>
-@@ -437,6 +439,9 @@ static const int opt2type[] = {
- static const int opt2maskopt[] = {
- 	['s']	= '{',
- 	['d']	= '}',
-+	['g']   = 0,
-+	['j']   = 0,
-+	['n']   = 0,
- 	['r']	= 0, /* no netmask */
- 	['q']	= 0, /* support yet */
- 	['{']	= 0,
-@@ -448,6 +453,8 @@ static const int opt2maskopt[] = {
- static const int opt2family_attr[][2] = {
- 	['s']	= { ATTR_ORIG_IPV4_SRC,	ATTR_ORIG_IPV6_SRC },
- 	['d']	= { ATTR_ORIG_IPV4_DST,	ATTR_ORIG_IPV6_DST },
-+	['g']   = { ATTR_DNAT_IPV4, ATTR_DNAT_IPV6 },
-+	['n']   = { ATTR_SNAT_IPV4, ATTR_SNAT_IPV6 },
- 	['r']	= { ATTR_REPL_IPV4_SRC, ATTR_REPL_IPV6_SRC },
- 	['q']	= { ATTR_REPL_IPV4_DST, ATTR_REPL_IPV6_DST },
- 	['{']	= { ATTR_ORIG_IPV4_SRC,	ATTR_ORIG_IPV6_SRC },
-@@ -459,6 +466,8 @@ static const int opt2family_attr[][2] = {
- static const int opt2attr[] = {
- 	['s']	= ATTR_ORIG_L3PROTO,
- 	['d']	= ATTR_ORIG_L3PROTO,
-+	['g']	= ATTR_ORIG_L3PROTO,
-+	['n']	= ATTR_ORIG_L3PROTO,
- 	['r']	= ATTR_REPL_L3PROTO,
- 	['q']	= ATTR_REPL_L3PROTO,
- 	['{']	= ATTR_ORIG_L3PROTO,
-@@ -1094,58 +1103,85 @@ parse_addr(const char *cp, union ct_address *address, int *mask)
- 	return family;
- }
+diff --git a/Documentation/networking/ipvs-sysctl.txt b/Documentation/networking/ipvs-sysctl.txt
+index e6b1c025fdd8..7acaaa65451e 100644
+--- a/Documentation/networking/ipvs-sysctl.txt
++++ b/Documentation/networking/ipvs-sysctl.txt
+@@ -185,15 +185,37 @@ secure_tcp - INTEGER
+         The value definition is the same as that of drop_entry and
+         drop_packet.
  
--static void
--nat_parse(char *arg, struct nf_conntrack *obj, int type)
-+static bool
-+valid_port(char *cursor)
- {
--	char *colon, *error;
--	union ct_address parse;
-+	const char *str = cursor;
-+	/* Missing port number */
-+	if (!*str)
-+		return false;
- 
--	colon = strchr(arg, ':');
-+	/* Must be entirely digits - no spaces or +/- */
-+	while (*cursor) {
-+		if (!isdigit(*cursor))
-+			return false;
-+		else
-+			++cursor;
-+	}
- 
--	if (colon) {
--		uint16_t port;
-+	/* Must be in range */
-+	errno = 0;
-+	long port = strtol(str, NULL, 10);
- 
--		*colon = '\0';
-+	if ((errno == ERANGE && (port == LONG_MAX || port == LONG_MIN))
-+		|| (errno != 0 && port == 0) || (port > USHRT_MAX))
-+		return false;
- 
--		port = (uint16_t)atoi(colon+1);
--		if (port == 0) {
--			if (strlen(colon+1) == 0) {
--				exit_error(PARAMETER_PROBLEM,
--					   "No port specified after `:'");
--			} else {
--				exit_error(PARAMETER_PROBLEM,
--					   "Port `%s' not valid", colon+1);
--			}
--		}
-+	return true;
-+}
-+
-+static void
-+split_address_and_port(const char *arg, char **address, char **port_str)
-+{
-+	char *cursor = strchr(arg, '[');
-+
-+	if (cursor) {
-+		/* IPv6 address with port*/
-+		char *start = cursor + 1;
- 
--		error = strchr(colon+1, ':');
--		if (error)
-+		cursor = strchr(start, ']');
-+		if (start == cursor) {
-+			exit_error(PARAMETER_PROBLEM,
-+				   "No IPv6 address specified");
-+		} else if (!cursor) {
- 			exit_error(PARAMETER_PROBLEM,
--				   "Invalid port:port syntax");
+-sync_threshold - INTEGER
+-        default 3
 -
--		if (type == CT_OPT_SRC_NAT)
--			nfct_set_attr_u16(tmpl.ct, ATTR_SNAT_PORT, ntohs(port));
--		else if (type == CT_OPT_DST_NAT)
--			nfct_set_attr_u16(tmpl.ct, ATTR_DNAT_PORT, ntohs(port));
--		else if (type == CT_OPT_ANY_NAT) {
--			nfct_set_attr_u16(tmpl.ct, ATTR_SNAT_PORT, ntohs(port));
--			nfct_set_attr_u16(tmpl.ct, ATTR_DNAT_PORT, ntohs(port));
-+				   "No closing ']' around IPv6 address");
- 		}
--	}
-+		size_t len = cursor - start;
- 
--	if (parse_addr(arg, &parse, NULL) == AF_UNSPEC) {
--		if (strlen(arg) == 0) {
--			exit_error(PARAMETER_PROBLEM, "No IP specified");
-+		cursor = strchr(cursor, ':');
-+		if (cursor) {
-+			/* Copy address only if there is a port */
-+			*address = strndup(start, len);
-+		}
-+	} else {
-+		cursor = strchr(arg, ':');
-+		if (cursor && !strchr(cursor + 1, ':')) {
-+			/* IPv4 address with port */
-+			*address = strndup(arg, cursor - arg);
- 		} else {
-+			/* v6 address */
-+			cursor = NULL;
-+		}
-+	}
-+	if (cursor) {
-+		/* Parse port entry */
-+		cursor++;
-+		if (strlen(cursor) == 0) {
- 			exit_error(PARAMETER_PROBLEM,
--					"Invalid IP address `%s'", arg);
-+				   "No port specified after `:'");
- 		}
-+		if (!valid_port(cursor)) {
-+			exit_error(PARAMETER_PROBLEM,
-+				   "Invalid port `%s'", cursor);
-+		}
-+		*port_str = strdup(cursor);
-+	} else {
-+		/* No port colon or more than one colon (ipv6)
-+		 * assume arg is straight IP address and no port
-+		 */
-+		*address = strdup(arg);
- 	}
--
--	if (type == CT_OPT_SRC_NAT || type == CT_OPT_ANY_NAT)
--		nfct_set_attr_u32(tmpl.ct, ATTR_SNAT_IPV4, parse.v4);
--	else if (type == CT_OPT_DST_NAT || type == CT_OPT_ANY_NAT)
--		nfct_set_attr_u32(tmpl.ct, ATTR_DNAT_IPV4, parse.v4);
- }
- 
- static void
-@@ -1289,7 +1325,7 @@ nfct_ip6_net_cmp(const union ct_address *addr, const struct ct_network *net)
- 
- static int
- nfct_ip_net_cmp(int family, const union ct_address *addr,
--                const struct ct_network *net)
-+		const struct ct_network *net)
- {
- 	switch(family) {
- 	case AF_INET:
-@@ -2128,6 +2164,7 @@ static void merge_bitmasks(struct nfct_bitmask **current,
- 	nfct_bitmask_destroy(src);
- }
- 
+-        It sets synchronization threshold, which is the minimum number
+-        of incoming packets that a connection needs to receive before
+-        the connection will be synchronized. A connection will be
+-        synchronized, every time the number of its incoming packets
+-        modulus 50 equals the threshold. The range of the threshold is
+-        from 0 to 49.
++sync_threshold - vector of 2 INTEGERs: sync_threshold, sync_period
++	default 3 50
 +
- static void
- nfct_build_netmask(uint32_t *dst, int b, int n)
- {
-@@ -2147,10 +2184,9 @@ nfct_build_netmask(uint32_t *dst, int b, int n)
- }
- 
- static void
--nfct_set_addr_opt(int opt, struct nf_conntrack *ct, union ct_address *ad,
--		  int l3protonum)
-+nfct_set_addr_only(const int opt, struct nf_conntrack *ct, union ct_address *ad,
-+		   const int l3protonum)
- {
--	options |= opt2type[opt];
- 	switch (l3protonum) {
- 	case AF_INET:
- 		nfct_set_attr_u32(ct,
-@@ -2163,24 +2199,33 @@ nfct_set_addr_opt(int opt, struct nf_conntrack *ct, union ct_address *ad,
- 		              &ad->v6);
- 		break;
- 	}
-+}
++	It sets synchronization threshold, which is the minimum number
++	of incoming packets that a connection needs to receive before
++	the connection will be synchronized. A connection will be
++	synchronized, every time the number of its incoming packets
++	modulus sync_period equals the threshold. The range of the
++	threshold is from 0 to sync_period.
 +
-+static void
-+nfct_set_addr_opt(const int opt, struct nf_conntrack *ct, union ct_address *ad,
-+		  const int l3protonum)
-+{
-+	options |= opt2type[opt];
-+	nfct_set_addr_only(opt, ct, ad, l3protonum);
- 	nfct_set_attr_u8(ct, opt2attr[opt], l3protonum);
- }
- 
- static void
--nfct_parse_addr_from_opt(int opt, struct nf_conntrack *ct,
--                         struct nf_conntrack *ctmask,
--                         union ct_address *ad, int *family)
-+nfct_parse_addr_from_opt(const int opt, const char *arg,
-+			 struct nf_conntrack *ct,
-+			 struct nf_conntrack *ctmask,
-+			 union ct_address *ad, int *family)
- {
--	int l3protonum, mask, maskopt;
-+	int mask, maskopt;
- 
--	l3protonum = parse_addr(optarg, ad, &mask);
-+	const int l3protonum = parse_addr(arg, ad, &mask);
- 	if (l3protonum == AF_UNSPEC) {
- 		exit_error(PARAMETER_PROBLEM,
--			   "Invalid IP address `%s'", optarg);
-+			   "Invalid IP address `%s'", arg);
- 	}
- 	set_family(family, l3protonum);
- 	maskopt = opt2maskopt[opt];
--	if (!maskopt && mask != -1) {
-+	if (mask != -1 && !maskopt) {
- 		exit_error(PARAMETER_PROBLEM,
- 		           "CIDR notation unavailable"
- 		           " for `--%s'", get_long_opt(opt));
-@@ -2192,7 +2237,7 @@ nfct_parse_addr_from_opt(int opt, struct nf_conntrack *ct,
- 	nfct_set_addr_opt(opt, ct, ad, l3protonum);
- 
- 	/* bail if we don't have a netmask to set*/
--	if (!maskopt || mask == -1 || ctmask == NULL)
-+	if (mask == -1 || !maskopt || ctmask == NULL)
- 		return;
- 
- 	switch(l3protonum) {
-@@ -2211,6 +2256,24 @@ nfct_parse_addr_from_opt(int opt, struct nf_conntrack *ct,
- 	nfct_set_addr_opt(maskopt, ctmask, ad, l3protonum);
- }
- 
-+static void
-+nfct_set_nat_details(const int opt, struct nf_conntrack *ct,
-+		     union ct_address *ad, const char *port_str,
-+		     const int family)
-+{
-+	const int type = opt2type[opt];
++	When sync_period and sync_refresh_period are 0, send sync only
++	for state changes or only once when pkts matches sync_threshold
 +
-+	nfct_set_addr_only(opt, ct, ad, family);
-+	if (port_str && type == CT_OPT_SRC_NAT) {
-+		nfct_set_attr_u16(ct, ATTR_SNAT_PORT,
-+				  ntohs((uint16_t)atoi(port_str)));
-+	} else if (port_str && type == CT_OPT_DST_NAT) {
-+		nfct_set_attr_u16(ct, ATTR_DNAT_PORT,
-+				  ntohs((uint16_t)atoi(port_str)));
-+	}
++sync_refresh_period - UNSIGNED INTEGER
++	default 0
 +
-+}
++	In seconds, difference in reported connection timer that triggers
++	new sync message. It can be used to avoid sync messages for the
++	specified period (or half of the connection timeout if it is lower)
++	if connection state is not changed since last sync.
 +
- int main(int argc, char *argv[])
- {
- 	int c, cmd;
-@@ -2289,17 +2352,18 @@ int main(int argc, char *argv[])
- 		case 'd':
- 		case 'r':
- 		case 'q':
--			nfct_parse_addr_from_opt(c, tmpl.ct, tmpl.mask,
--			                         &ad, &family);
-+			nfct_parse_addr_from_opt(c, optarg, tmpl.ct,
-+						 tmpl.mask, &ad, &family);
- 			break;
- 		case '[':
- 		case ']':
--			nfct_parse_addr_from_opt(c, tmpl.exptuple, tmpl.mask,
--			                         &ad, &family);
-+			nfct_parse_addr_from_opt(c, optarg, tmpl.exptuple,
-+						 tmpl.mask, &ad, &family);
- 			break;
- 		case '{':
- 		case '}':
--			nfct_parse_addr_from_opt(c, tmpl.mask, NULL, &ad, &family);
-+			nfct_parse_addr_from_opt(c, optarg, tmpl.mask,
-+						 NULL, &ad, &family);
- 			break;
- 		case 'p':
- 			options |= CT_OPT_PROTO;
-@@ -2341,19 +2405,34 @@ int main(int argc, char *argv[])
- 			break;
- 		case 'n':
- 		case 'g':
--		case 'j': {
--			char *tmp = NULL;
--
-+		case 'j':
- 			options |= opt2type[c];
--
--			tmp = get_optional_arg(argc, argv);
--			if (tmp == NULL)
--				continue;
--
--			set_family(&family, AF_INET);
--			nat_parse(tmp, tmpl.ct, opt2type[c]);
-+			char *optional_arg = get_optional_arg(argc, argv);
++	This is useful for normal connections with high traffic to reduce
++	sync rate. Additionally, retry sync_retries times with period of
++	sync_refresh_period/8.
 +
-+			if (optional_arg) {
-+				char *port_str = NULL;
-+				char *nat_address = NULL;
++sync_retries - INTEGER
++	default 0
 +
-+				split_address_and_port(optional_arg,
-+						       &nat_address,
-+						       &port_str);
-+				nfct_parse_addr_from_opt(c, nat_address,
-+							 tmpl.ct, NULL,
-+							 &ad, &family);
-+				if (c == 'j') {
-+					/* Set details on both src and dst
-+					 * with any-nat
-+					 */
-+					nfct_set_nat_details('g', tmpl.ct, &ad,
-+							     port_str, family);
-+					nfct_set_nat_details('n', tmpl.ct, &ad,
-+							     port_str, family);
-+				} else {
-+					nfct_set_nat_details(c, tmpl.ct, &ad,
-+							     port_str, family);
-+				}
-+			}
- 			break;
--		}
- 		case 'w':
- 		case '(':
- 		case ')':
-diff --git a/tests/conntrack/testsuite/00create b/tests/conntrack/testsuite/00create
-index 40e2c19..afe4342 100644
---- a/tests/conntrack/testsuite/00create
-+++ b/tests/conntrack/testsuite/00create
-@@ -18,3 +18,9 @@
- -I -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 --state LISTEN -u SEEN_REPLY -t 50 ; OK
- # delete reverse
- -D -r 2.2.2.2 -q 1.1.1.1 -p tcp --reply-port-src 11 --reply-port-dst 21 ; OK
-+# create a v6 conntrack
-+-I -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; OK
-+# delete v6 conntrack
-+-D -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 -p tcp --sport 10 --dport 20 ; OK
-+# mismatched address family
-+-I -s 2001:DB8::1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
-diff --git a/tests/conntrack/testsuite/03nat b/tests/conntrack/testsuite/03nat
-index f94e8ff..014feb8 100644
---- a/tests/conntrack/testsuite/03nat
-+++ b/tests/conntrack/testsuite/03nat
-@@ -36,5 +36,13 @@
- -L --dst-nat 3.3.3.3:81 ; OK
- # show
- -L --dst-nat 1.1.1.1:80 ; OK
-+# badport
-+-L --dst-nat 1.1.1.1: ; BAD
-+# badport
-+-L --dst-nat 1.1.1.1::; BAD
-+# badport
-+-L --dst-nat 1.1.1.1:80:80; BAD
-+# badport
-+-L --dst-nat 1.1.1.1:65536; BAD
- # delete
- -D -s 1.1.1.1 ; OK
-diff --git a/tests/conntrack/testsuite/07nat6 b/tests/conntrack/testsuite/07nat6
-new file mode 100644
-index 0000000..8cecd8e
---- /dev/null
-+++ b/tests/conntrack/testsuite/07nat6
-@@ -0,0 +1,56 @@
-+# create dummy
-+-I -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 --dst-nat 2001:DB8::3.3.3.3 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; OK
-+# show
-+-L --dst-nat ; OK
-+# show
-+-L --dst-nat 2001:DB8::3.3.3.3 ; OK
-+# show
-+-L --src-nat ; OK
-+# delete
-+-D -s 2001:DB8::1.1.1.1 ; OK
-+# create dummy again
-+-I -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 --src-nat 2001:DB8::3.3.3.3 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; OK
-+# show
-+-L --src-nat ; OK
-+# show
-+-L --src-nat 2001:DB8::3.3.3.3 ; OK
-+# show
-+-L --dst-nat ; OK
-+# show any-nat
-+-L --any-nat ; OK
-+# delete
-+-D -s 2001:DB8::1.1.1.1 ; OK
-+# bad combination
-+-L --dst-nat --any-nat ; BAD
-+# bad combination
-+-L --src-nat --any-nat ; BAD
-+# bad combination
-+-L --src-nat --dst-nat --any-nat ; BAD
-+# create
-+-I -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 --dst-nat [2001:DB8::3.3.3.3]:80 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; OK
-+# show
-+-L --dst-nat [2001:DB8::3.3.3.3]:80 ; OK
-+# show
-+-L --any-nat [2001:DB8::3.3.3.3]:80 ; OK
-+# show
-+-L --dst-nat [2001:DB8::3.3.3.3]:81 ; OK
-+# show
-+-L --dst-nat [2001:DB8::1.1.1.1]:80 ; OK
-+# noport
-+-L --dst-nat [2001:DB8::1.1.1.1]: ; BAD
-+# badport
-+-L --dst-nat [2001:DB8::1.1.1.1]:: ; BAD
-+# badport
-+-L --dst-nat [2001:DB8::1.1.1.1]:80:80 ; BAD
-+# badport
-+-L --dst-nat [2001:DB8::1.1.1.1]:65536 ; BAD
-+# delete
-+-D -s 2001:DB8::1.1.1.1 ; OK
-+# mismatched address family
-+-I -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 --dst-nat 3.3.3.3 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
-+# mismatched address family
-+-I -s 1.1.1.1 -d 2.2.2.2 --dst-nat 2001:DB8::3.3.3.3 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
-+# create - brackets only for ports in nat
-+-I -s 2001:DB8::1.1.1.1 -d 2001:DB8::2.2.2.2 --dst-nat [2001:DB8::3.3.3.3] -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
-+# create - brackets rejected elsewhere
-+-I -s [2001:DB8::1.1.1.1] -d 2001:DB8::2.2.2.2 --dst-nat 2001:DB8::3.3.3.3 -p tcp --sport 10 --dport 20 --state LISTEN -u SEEN_REPLY -t 50 ; BAD
++	Defines sync retries with period of sync_refresh_period/8. Useful
++	to protect against loss of sync messages. The range of the
++	sync_retries is from 0 to 3.
+ 
+ snat_reroute - BOOLEAN
+ 	0 - disabled
 -- 
-2.7.4
-
+2.7.0.rc3.207.g0ac5344
