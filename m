@@ -1,58 +1,85 @@
-From: fgao@ikuai8.com
-Subject: [PATCH nf 1/1] netfilter: ctlink: Fix one possible memleak in nfnl_cthelper_create
-Date: Thu, 16 Mar 2017 09:27:36 +0800
-Message-ID: <1489627656-104238-1-git-send-email-fgao@ikuai8.com>
-Cc: Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        gfree.wind@gmail.com
+From: Lorenzo Colitti <lorenzo@google.com>
+Subject: [PATCH] iptables: move XT_LOCK_NAME from CFLAGS to config.h.
+Date: Thu, 16 Mar 2017 12:54:20 +0900
+Message-ID: <20170316035420.96237-1-lorenzo@google.com>
+Cc: pablo@netfilter.org, jscherpelz@google.com,
+        Lorenzo Colitti <lorenzo@google.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg342.qq.com ([14.17.44.37]:57058 "EHLO smtpbg342.qq.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750886AbdCPB2f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Mar 2017 21:28:35 -0400
+Received: from mail-pf0-f182.google.com ([209.85.192.182]:33576 "EHLO
+        mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750877AbdCPD4S (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 15 Mar 2017 23:56:18 -0400
+Received: by mail-pf0-f182.google.com with SMTP id w189so17978127pfb.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Mar 2017 20:54:28 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+This slightly simplifies configure.ac and results in more
+correct dependencies.
 
-When nf_conntrack_helper_register failed, the error handler just frees
-the helper, but it does not free the helper->expect_policy which is
-allocated in nfnl_cthelper_parse_expect_policy.
+Tested by running ./configure with --with-xt-lock-name and
+without, and using strace to verify that the right lock is used.
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
+$ make distclean-recursive && ./autogen.sh &&
+  ./configure --disable-nftables --prefix /tmp/iptables &&
+  make -j64 &&
+  make install &&
+  sudo strace -e open,flock /tmp/iptables/sbin/iptables -L foo
+...
+open("/run/xtables.lock", O_RDONLY|O_CREAT, 0600) = 3
+flock(3, LOCK_EX|LOCK_NB)               = 0
+
+$ make distclean-recursive && ./autogen.sh && \
+  ./configure --disable-nftables --prefix /tmp/iptables \
+  --with-xt-lock-name=/tmp/iptables/run/xtables.lock &&
+  make -j64 &&
+  make install &&
+  sudo strace -e open,flock /tmp/iptables/sbin/iptables -L foo
+...
+open("/tmp/iptables/run/xtables.lock", O_RDONLY|O_CREAT, 0600) = 3
+flock(3, LOCK_EX|LOCK_NB)               = 0
+
+Signed-off-by: Lorenzo Colitti <lorenzo@google.com>
 ---
- net/netfilter/nfnetlink_cthelper.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ configure.ac       | 6 ++++--
+ iptables/xshared.c | 1 +
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index de87823..f0241a1 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -214,7 +214,7 @@
+diff --git a/configure.ac b/configure.ac
+index b27502667c..221812a8f3 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -197,7 +197,7 @@ AC_SUBST([blacklist_6_modules])
+ regular_CFLAGS="-Wall -Waggregate-return -Wmissing-declarations \
+ 	-Wmissing-prototypes -Wredundant-decls -Wshadow -Wstrict-prototypes \
+ 	-Winline -pipe";
+-regular_CPPFLAGS="${largefile_cppflags} -DXT_LOCK_NAME=\\\"\${xt_lock_name}\\\" -D_REENTRANT \
++regular_CPPFLAGS="${largefile_cppflags} -D_REENTRANT \
+ 	-DXTABLES_LIBDIR=\\\"\${xtlibdir}\\\" -DXTABLES_INTERNAL";
+ kinclude_CPPFLAGS="";
+ if [[ -n "$kbuilddir" ]]; then
+@@ -235,7 +235,9 @@ AC_SUBST([libxtables_vcurrent])
+ AC_SUBST([libxtables_vage])
+ libxtables_vmajor=$(($libxtables_vcurrent - $libxtables_vage));
+ AC_SUBST([libxtables_vmajor])
+-AC_SUBST([xt_lock_name])
++
++AC_DEFINE_UNQUOTED([XT_LOCK_NAME], "${xt_lock_name}",
++	[Location of the iptables lock file])
  
- 	ret = nfnl_cthelper_parse_expect_policy(helper, tb[NFCTH_POLICY]);
- 	if (ret < 0)
--		goto err;
-+		goto err1;
- 
- 	strncpy(helper->name, nla_data(tb[NFCTH_NAME]), NF_CT_HELPER_NAME_LEN);
- 	helper->data_len = ntohl(nla_get_be32(tb[NFCTH_PRIV_DATA_LEN]));
-@@ -245,10 +245,12 @@
- 
- 	ret = nf_conntrack_helper_register(helper);
- 	if (ret < 0)
--		goto err;
-+		goto err2;
- 
- 	return 0;
--err:
-+err2:
-+	kfree(helper->expect_policy);
-+err1:
- 	kfree(helper);
- 	return ret;
- }
+ AC_CONFIG_FILES([Makefile extensions/GNUmakefile include/Makefile
+ 	iptables/Makefile iptables/xtables.pc
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index 383ecf2cf2..9b8e856e25 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -1,3 +1,4 @@
++#include <config.h>
+ #include <getopt.h>
+ #include <errno.h>
+ #include <libgen.h>
 -- 
-1.9.1
-
+2.12.0.367.g23dc2f6d3c-goog
 
