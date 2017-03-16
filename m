@@ -1,23 +1,31 @@
 From: Lorenzo Colitti <lorenzo@google.com>
-Subject: [PATCH iptables v2]: Support the iptables lock in ip[6]tables-restore
-Date: Thu, 16 Mar 2017 16:55:00 +0900
-Message-ID: <20170316075502.2337-1-lorenzo@google.com>
+Subject: [PATCH iptables v2 2/2] iptables-restore: support acquiring the lock.
+Date: Thu, 16 Mar 2017 16:55:02 +0900
+Message-ID: <20170316075502.2337-3-lorenzo@google.com>
+References: <20170316075502.2337-1-lorenzo@google.com>
 Cc: pablo@netfilter.org, jscherpelz@google.com,
-        subashab@codeaurora.org, zlpnobody@gmail.com
+        subashab@codeaurora.org, zlpnobody@gmail.com,
+        Lorenzo Colitti <lorenzo@google.com>,
+        Narayan Kamath <narayan@google.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f175.google.com ([209.85.192.175]:32943 "EHLO
-        mail-pf0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750951AbdCPHzl (ORCPT
+Received: from mail-pf0-f170.google.com ([209.85.192.170]:34961 "EHLO
+        mail-pf0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751054AbdCPHzl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Thu, 16 Mar 2017 03:55:41 -0400
-Received: by mail-pf0-f175.google.com with SMTP id w189so20656345pfb.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Mar 2017 00:55:13 -0700 (PDT)
+Received: by mail-pf0-f170.google.com with SMTP id x63so15239279pfx.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Mar 2017 00:55:22 -0700 (PDT)
+In-Reply-To: <20170316075502.2337-1-lorenzo@google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This series adds support for -w and -W to ip[6]tables-restore,
-which currently do not perform any locking.
+Currently, ip[6]tables-restore does not perform any locking, so it
+is not safe to use concurrently with ip[6]tables.
+
+This patch makes ip[6]tables-restore wait for the lock if -w
+was specified. Arguments to -w and -W are supported in the same
+was as they are in ip[6]tables.
 
 The lock is not acquired on startup. Instead, it is acquired when
 a new table handle is created (on encountering '*') and released
@@ -25,9 +33,407 @@ when the table is committed (COMMIT). This makes it possible to
 keep long-running iptables-restore processes in the background
 (for example, reading commands from a pipe opened by a system
 management daemon) and simultaneously run iptables commands.
-An example usage is Android's IptablesRestoreController.cpp.
 
-The first patch factors out to common functions the code that
-parses -w and -W, in order not to have to add more copies of it.
-The second patch actually adds support to iptables-restore.
+If -w is not specified, then the command proceeds without taking
+the lock.
+
+Tested as follows:
+
+1. Run iptables-restore -w, and check that iptables commands work
+   with or without -w.
+2. Type "*filter" into the iptables-restore input. Verify that
+   a) ip[6]tables commands without -w fail with "another app is
+      currently holding the xtables lock...".
+   b) ip[6]tables commands with "-w 2" fail after 2 seconds.
+   c) ip[6]tables commands with "-w" hang until "COMMIT" is
+      typed into the iptables-restore window.
+3. With the lock held by an ip6tables-restore process:
+     strace -e flock /tmp/iptables/sbin/iptables-restore -w 1 -W 100000
+   shows 11 calls to flock and fails.
+4. Run an iptables-restore with -w and one without -w, and check:
+   a) Type "*filter" in the first and then the second, and the
+      second exits with an error.
+   b) Type "*filter" in the second and "*filter" "-S" "COMMIT"
+      into the first. The rules are listed only when the first
+      copy sees "COMMIT".
+
+Signed-off-by: Narayan Kamath <narayan@google.com>
+Signed-off-by: Lorenzo Colitti <lorenzo@google.com>
+---
+ iptables/ip6tables-restore.c | 55 ++++++++++++++++++++++++++++++++++----------
+ iptables/ip6tables.c         |  2 +-
+ iptables/iptables-restore.c  | 55 ++++++++++++++++++++++++++++++++++----------
+ iptables/iptables.c          |  2 +-
+ iptables/xshared.c           | 18 ++++++++++-----
+ iptables/xshared.h           | 23 +++++++++++++++++-
+ 6 files changed, 122 insertions(+), 33 deletions(-)
+
+diff --git a/iptables/ip6tables-restore.c b/iptables/ip6tables-restore.c
+index dc0acb05a4..8a47f09c95 100644
+--- a/iptables/ip6tables-restore.c
++++ b/iptables/ip6tables-restore.c
+@@ -15,6 +15,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include "ip6tables.h"
++#include "xshared.h"
+ #include "xtables.h"
+ #include "libiptc/libip6tc.h"
+ #include "ip6tables-multi.h"
+@@ -25,17 +26,23 @@
+ #define DEBUGP(x, args...)
+ #endif
+ 
+-static int counters = 0, verbose = 0, noflush = 0;
++static int counters = 0, verbose = 0, noflush = 0, wait = 0;
++
++static struct timeval wait_interval = {
++	.tv_sec	= 1,
++};
+ 
+ /* Keeping track of external matches and targets.  */
+ static const struct option options[] = {
+-	{.name = "counters", .has_arg = false, .val = 'c'},
+-	{.name = "verbose",  .has_arg = false, .val = 'v'},
+-	{.name = "test",     .has_arg = false, .val = 't'},
+-	{.name = "help",     .has_arg = false, .val = 'h'},
+-	{.name = "noflush",  .has_arg = false, .val = 'n'},
+-	{.name = "modprobe", .has_arg = true,  .val = 'M'},
+-	{.name = "table",    .has_arg = true,  .val = 'T'},
++	{.name = "counters",      .has_arg = 0, .val = 'c'},
++	{.name = "verbose",       .has_arg = 0, .val = 'v'},
++	{.name = "test",          .has_arg = 0, .val = 't'},
++	{.name = "help",          .has_arg = 0, .val = 'h'},
++	{.name = "noflush",       .has_arg = 0, .val = 'n'},
++	{.name = "modprobe",      .has_arg = 1, .val = 'M'},
++	{.name = "table",         .has_arg = 1, .val = 'T'},
++	{.name = "wait",          .has_arg = 2, .val = 'w'},
++	{.name = "wait-interval", .has_arg = 2, .val = 'W'},
+ 	{NULL},
+ };
+ 
+@@ -43,14 +50,16 @@ static void print_usage(const char *name, const char *version) __attribute__((no
+ 
+ static void print_usage(const char *name, const char *version)
+ {
+-	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h] [-n] [-T table] [-M command]\n"
++	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h] [-n] [-w secs] [-W usecs] [-T table] [-M command]\n"
+ 			"	   [ --counters ]\n"
+ 			"	   [ --verbose ]\n"
+ 			"	   [ --test ]\n"
+ 			"	   [ --help ]\n"
+ 			"	   [ --noflush ]\n"
++			"	   [ --wait=<seconds>\n"
++			"	   [ --wait-interval=<usecs>\n"
+ 			"	   [ --table=<TABLE> ]\n"
+-			"          [ --modprobe=<command> ]\n", name);
++			"	   [ --modprobe=<command> ]\n", name);
+ 
+ 	exit(1);
+ }
+@@ -181,7 +190,7 @@ int ip6tables_restore_main(int argc, char *argv[])
+ {
+ 	struct xtc_handle *handle = NULL;
+ 	char buffer[10240];
+-	int c;
++	int c, lock;
+ 	char curtable[XT_TABLE_MAXNAMELEN + 1];
+ 	FILE *in;
+ 	int in_table = 0, testing = 0;
+@@ -189,6 +198,7 @@ int ip6tables_restore_main(int argc, char *argv[])
+ 	const struct xtc_ops *ops = &ip6tc_ops;
+ 
+ 	line = 0;
++	lock = XT_LOCK_NOT_ACQUIRED;
+ 
+ 	ip6tables_globals.program_name = "ip6tables-restore";
+ 	c = xtables_init_all(&ip6tables_globals, NFPROTO_IPV6);
+@@ -203,7 +213,7 @@ int ip6tables_restore_main(int argc, char *argv[])
+ 	init_extensions6();
+ #endif
+ 
+-	while ((c = getopt_long(argc, argv, "bcvthnM:T:", options, NULL)) != -1) {
++	while ((c = getopt_long(argc, argv, "bcvthnwWM:T:", options, NULL)) != -1) {
+ 		switch (c) {
+ 			case 'b':
+ 				fprintf(stderr, "-b/--binary option is not implemented\n");
+@@ -224,6 +234,12 @@ int ip6tables_restore_main(int argc, char *argv[])
+ 			case 'n':
+ 				noflush = 1;
+ 				break;
++			case 'w':
++				wait = parse_wait_time(argc, argv);
++				break;
++			case 'W':
++				parse_wait_interval(argc, argv, &wait_interval);
++				break;
+ 			case 'M':
+ 				xtables_modprobe_program = optarg;
+ 				break;
+@@ -268,8 +284,23 @@ int ip6tables_restore_main(int argc, char *argv[])
+ 				DEBUGP("Not calling commit, testing\n");
+ 				ret = 1;
+ 			}
++
++			/* Done with the current table, release the lock. */
++			if (lock >= 0) {
++				xtables_unlock(lock);
++				lock = XT_LOCK_NOT_ACQUIRED;
++			}
++
+ 			in_table = 0;
+ 		} else if ((buffer[0] == '*') && (!in_table)) {
++			/* Acquire a lock before we create a new table handle */
++			lock = xtables_lock(wait, &wait_interval);
++			if (lock == XT_LOCK_BUSY) {
++				fprintf(stderr, "Another app is currently holding the xtables lock. "
++					"Perhaps you want to use the -w option?\n");
++				exit(RESOURCE_PROBLEM);
++			}
++
+ 			/* New table */
+ 			char *table;
+ 
+diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
+index 4d77721b04..579d347b09 100644
+--- a/iptables/ip6tables.c
++++ b/iptables/ip6tables.c
+@@ -1779,7 +1779,7 @@ int do_command6(int argc, char *argv[], char **table,
+ 	generic_opt_check(command, cs.options);
+ 
+ 	/* Attempt to acquire the xtables lock */
+-	if (!restore && !xtables_lock(wait, &wait_interval)) {
++	if (!restore && xtables_lock(wait, &wait_interval) == XT_LOCK_BUSY) {
+ 		fprintf(stderr, "Another app is currently holding the xtables lock. ");
+ 		if (wait == 0)
+ 			fprintf(stderr, "Perhaps you want to use the -w option?\n");
+diff --git a/iptables/iptables-restore.c b/iptables/iptables-restore.c
+index 2f1522db52..7bb06d84b1 100644
+--- a/iptables/iptables-restore.c
++++ b/iptables/iptables-restore.c
+@@ -12,6 +12,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include "iptables.h"
++#include "xshared.h"
+ #include "xtables.h"
+ #include "libiptc/libiptc.h"
+ #include "iptables-multi.h"
+@@ -22,17 +23,23 @@
+ #define DEBUGP(x, args...)
+ #endif
+ 
+-static int counters = 0, verbose = 0, noflush = 0;
++static int counters = 0, verbose = 0, noflush = 0, wait = 0;
++
++static struct timeval wait_interval = {
++	.tv_sec	= 1,
++};
+ 
+ /* Keeping track of external matches and targets.  */
+ static const struct option options[] = {
+-	{.name = "counters", .has_arg = false, .val = 'c'},
+-	{.name = "verbose",  .has_arg = false, .val = 'v'},
+-	{.name = "test",     .has_arg = false, .val = 't'},
+-	{.name = "help",     .has_arg = false, .val = 'h'},
+-	{.name = "noflush",  .has_arg = false, .val = 'n'},
+-	{.name = "modprobe", .has_arg = true,  .val = 'M'},
+-	{.name = "table",    .has_arg = true,  .val = 'T'},
++	{.name = "counters",      .has_arg = 0, .val = 'c'},
++	{.name = "verbose",       .has_arg = 0, .val = 'v'},
++	{.name = "test",          .has_arg = 0, .val = 't'},
++	{.name = "help",          .has_arg = 0, .val = 'h'},
++	{.name = "noflush",       .has_arg = 0, .val = 'n'},
++	{.name = "modprobe",      .has_arg = 1, .val = 'M'},
++	{.name = "table",         .has_arg = 1, .val = 'T'},
++	{.name = "wait",          .has_arg = 2, .val = 'w'},
++	{.name = "wait-interval", .has_arg = 2, .val = 'W'},
+ 	{NULL},
+ };
+ 
+@@ -42,14 +49,16 @@ static void print_usage(const char *name, const char *version) __attribute__((no
+ 
+ static void print_usage(const char *name, const char *version)
+ {
+-	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h] [-n] [-T table] [-M command]\n"
++	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h] [-n] [-w secs] [-W usecs] [-T table] [-M command]\n"
+ 			"	   [ --counters ]\n"
+ 			"	   [ --verbose ]\n"
+ 			"	   [ --test ]\n"
+ 			"	   [ --help ]\n"
+ 			"	   [ --noflush ]\n"
++			"	   [ --wait=<seconds>\n"
++			"	   [ --wait-interval=<usecs>\n"
+ 			"	   [ --table=<TABLE> ]\n"
+-			"          [ --modprobe=<command> ]\n", name);
++			"	   [ --modprobe=<command> ]\n", name);
+ 
+ 	exit(1);
+ }
+@@ -180,7 +189,7 @@ iptables_restore_main(int argc, char *argv[])
+ {
+ 	struct xtc_handle *handle = NULL;
+ 	char buffer[10240];
+-	int c;
++	int c, lock;
+ 	char curtable[XT_TABLE_MAXNAMELEN + 1];
+ 	FILE *in;
+ 	int in_table = 0, testing = 0;
+@@ -188,6 +197,7 @@ iptables_restore_main(int argc, char *argv[])
+ 	const struct xtc_ops *ops = &iptc_ops;
+ 
+ 	line = 0;
++	lock = XT_LOCK_NOT_ACQUIRED;
+ 
+ 	iptables_globals.program_name = "iptables-restore";
+ 	c = xtables_init_all(&iptables_globals, NFPROTO_IPV4);
+@@ -202,7 +212,7 @@ iptables_restore_main(int argc, char *argv[])
+ 	init_extensions4();
+ #endif
+ 
+-	while ((c = getopt_long(argc, argv, "bcvthnM:T:", options, NULL)) != -1) {
++	while ((c = getopt_long(argc, argv, "bcvthnwWM:T:", options, NULL)) != -1) {
+ 		switch (c) {
+ 			case 'b':
+ 				fprintf(stderr, "-b/--binary option is not implemented\n");
+@@ -223,6 +233,12 @@ iptables_restore_main(int argc, char *argv[])
+ 			case 'n':
+ 				noflush = 1;
+ 				break;
++			case 'w':
++				wait = parse_wait_time(argc, argv);
++				break;
++			case 'W':
++				parse_wait_interval(argc, argv, &wait_interval);
++				break;
+ 			case 'M':
+ 				xtables_modprobe_program = optarg;
+ 				break;
+@@ -267,8 +283,23 @@ iptables_restore_main(int argc, char *argv[])
+ 				DEBUGP("Not calling commit, testing\n");
+ 				ret = 1;
+ 			}
++
++			/* Done with the current table, release the lock. */
++			if (lock >= 0) {
++				xtables_unlock(lock);
++				lock = XT_LOCK_NOT_ACQUIRED;
++			}
++
+ 			in_table = 0;
+ 		} else if ((buffer[0] == '*') && (!in_table)) {
++			/* Acquire a lock before we create a new table handle */
++			lock = xtables_lock(wait, &wait_interval);
++			if (lock == XT_LOCK_BUSY) {
++				fprintf(stderr, "Another app is currently holding the xtables lock. "
++					"Perhaps you want to use the -w option?\n");
++				exit(RESOURCE_PROBLEM);
++			}
++
+ 			/* New table */
+ 			char *table;
+ 
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index 04be5abb10..62731c5ebb 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -1766,7 +1766,7 @@ int do_command4(int argc, char *argv[], char **table,
+ 	generic_opt_check(command, cs.options);
+ 
+ 	/* Attempt to acquire the xtables lock */
+-	if (!restore && !xtables_lock(wait, &wait_interval)) {
++	if (!restore && xtables_lock(wait, &wait_interval) == XT_LOCK_BUSY) {
+ 		fprintf(stderr, "Another app is currently holding the xtables lock. ");
+ 		if (wait == 0)
+ 			fprintf(stderr, "Perhaps you want to use the -w option?\n");
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index dd5f8be028..5a7fcc0046 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -245,7 +245,7 @@ void xs_init_match(struct xtables_match *match)
+ 		match->init(match->m);
+ }
+ 
+-bool xtables_lock(int wait, struct timeval *wait_interval)
++int xtables_lock(int wait, struct timeval *wait_interval)
+ {
+ 	struct timeval time_left, wait_time;
+ 	int fd, i = 0;
+@@ -255,22 +255,22 @@ bool xtables_lock(int wait, struct timeval *wait_interval)
+ 
+ 	fd = open(XT_LOCK_NAME, O_CREAT, 0600);
+ 	if (fd < 0)
+-		return true;
++		return XT_LOCK_UNSUPPORTED;
+ 
+ 	if (wait == -1) {
+ 		if (flock(fd, LOCK_EX) == 0)
+-			return true;
++			return fd;
+ 
+ 		fprintf(stderr, "Can't lock %s: %s\n", XT_LOCK_NAME,
+ 			strerror(errno));
+-		return false;
++		return XT_LOCK_BUSY;
+ 	}
+ 
+ 	while (1) {
+ 		if (flock(fd, LOCK_EX | LOCK_NB) == 0)
+-			return true;
++			return fd;
+ 		else if (timercmp(&time_left, wait_interval, <))
+-			return false;
++			return XT_LOCK_BUSY;
+ 
+ 		if (++i % 10 == 0) {
+ 			fprintf(stderr, "Another app is currently holding the xtables lock; "
+@@ -284,6 +284,12 @@ bool xtables_lock(int wait, struct timeval *wait_interval)
+ 	}
+ }
+ 
++void xtables_unlock(int lock)
++{
++	if (lock >= 0)
++		close(lock);
++}
++
+ int parse_wait_time(int argc, char *argv[])
+ {
+ 	int wait = -1;
+diff --git a/iptables/xshared.h b/iptables/xshared.h
+index d8a697ae66..539e6c243b 100644
+--- a/iptables/xshared.h
++++ b/iptables/xshared.h
+@@ -86,7 +86,28 @@ extern struct xtables_match *load_proto(struct iptables_command_state *);
+ extern int subcmd_main(int, char **, const struct subcommand *);
+ extern void xs_init_target(struct xtables_target *);
+ extern void xs_init_match(struct xtables_match *);
+-bool xtables_lock(int wait, struct timeval *wait_interval);
++
++/**
++ * Values for the iptables lock.
++ *
++ * A value >= 0 indicates the lock filedescriptor. Other values are:
++ *
++ * XT_LOCK_UNSUPPORTED : The system does not support locking, execution will
++ * proceed lockless.
++ *
++ * XT_LOCK_BUSY : The lock was held by another process. xtables_lock only
++ * returns this value when |wait| == false. If |wait| == true, xtables_lock
++ * will not return unless the lock has been acquired.
++ *
++ * XT_LOCK_NOT_ACQUIRED : We have not yet attempted to acquire the lock.
++ */
++enum {
++	XT_LOCK_BUSY = -1,
++	XT_LOCK_UNSUPPORTED  = -2,
++	XT_LOCK_NOT_ACQUIRED  = -3,
++};
++extern int xtables_lock(int wait, struct timeval *tv);
++extern void xtables_unlock(int lock);
+ 
+ int parse_wait_time(int argc, char *argv[]);
+ void parse_wait_interval(int argc, char *argv[], struct timeval *wait_interval);
+-- 
+2.12.0.367.g23dc2f6d3c-goog
 
