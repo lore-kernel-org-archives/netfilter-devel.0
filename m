@@ -1,35 +1,27 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL 0/5] IPVS Updates for v4.12
-Date: Fri, 17 Mar 2017 12:39:32 +0100
-Message-ID: <20170317113932.GA3099@salvia>
-References: <1489668195-15240-1-git-send-email-horms@verge.net.au>
+Subject: Re: [PATCH] net, netfilter: refcounter conversions
+Date: Fri, 17 Mar 2017 12:50:58 +0100
+Message-ID: <20170317115058.GB4979@salvia>
+References: <1489651414-27511-1-git-send-email-elena.reshetova@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        kadlec@blackhole.kfki.hu, peterz@infradead.org,
+        Hans Liljestrand <ishkamiel@gmail.com>,
+        Kees Cook <keescook@chromium.org>,
+        David Windsor <dwindsor@gmail.com>
+To: Elena Reshetova <elena.reshetova@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1489668195-15240-1-git-send-email-horms@verge.net.au>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <1489651414-27511-1-git-send-email-elena.reshetova@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Mar 16, 2017 at 01:43:10PM +0100, Simon Horman wrote:
-> Hi Pablo,
-> 
-> please consider these enhancements to the IPVS for v4.12.
-> 
-> * Update sysctl documentation
-> * Remove unnecessary printk in __ip_vs_init
-> 
-> The following changes since commit 03e5fd0e9bcc1f34b7a542786b34b8f771e7c260:
-> 
->   netfilter: nft_set_rbtree: use per-set rwlock to improve the scalability (2017-03-13 19:30:43 +0100)
-> 
-> are available in the git repository at:
-> 
->   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs-for-v4.12
+On Thu, Mar 16, 2017 at 10:03:34AM +0200, Elena Reshetova wrote:
+> refcount_t type and corresponding API (see include/linux/refcount.h)
+> should be used instead of atomic_t when the variable is used as
+> a reference counter. This allows to avoid accidental
+> refcounter overflows that might lead to use-after-free
+> situations.
 
-Pulled, thanks Simon!
+Applied, thanks.
