@@ -1,62 +1,55 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net] bridge: ebtables: fix reception of frames
- DNAT-ed to bridge device
-Date: Fri, 17 Mar 2017 14:10:44 +0100
-Message-ID: <20170317131044.GA11995@salvia>
-References: <20170315031811.22714-1-linus.luessing@c0d3.blue>
-	<20170315102608.GB24366@breakpoint.cc>
-	<20170315104211.GA24409@salvia> <20170315142720.GU15692@otheros>
-	<20170315181539.GA31875@salvia> <20170315211619.GA3464@otheros>
-	<20170315220605.GA1766@salvia>
+Subject: Re: [PATCH] iptables: move XT_LOCK_NAME from CFLAGS to config.h.
+Date: Fri, 17 Mar 2017 14:14:19 +0100
+Message-ID: <20170317131419.GA12186@salvia>
+References: <20170316035420.96237-1-lorenzo@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
-	Florian Westphal <fw@strlen.de>, linux-kernel@vger.kernel.org,
-	coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S . Miller" <davem@davemloft.net>
-To: Linus =?iso-8859-1?Q?L=FCssing?= <linus.luessing@c0d3.blue>
-Return-path: <bridge-bounces@lists.linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, jscherpelz@google.com
+To: Lorenzo Colitti <lorenzo@google.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:58116 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751010AbdCQNPG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 17 Mar 2017 09:15:06 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 4F7E7EDB00
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Mar 2017 14:14:24 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3D5BDDA86C
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Mar 2017 14:14:24 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 54AE3CA6BF
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Mar 2017 14:14:19 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20170315220605.GA1766@salvia>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20170316035420.96237-1-lorenzo@google.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 15, 2017 at 11:06:05PM +0100, Pablo Neira Ayuso wrote:
-> On Wed, Mar 15, 2017 at 10:16:19PM +0100, Linus Lüssing wrote:
-> > On Wed, Mar 15, 2017 at 07:15:39PM +0100, Pablo Neira Ayuso wrote:
-> > > Could you update ebtables dnat to check if the ethernet address
-> > > matches the one of the input bridge interface, so we mangle the
-> > > ->pkt_type accordingly from there, instead of doing this from the
-> > > core?
-> > 
-> > Actually, that was the approach I thought about and went for first
-> > (and it would probably work for me). Just checking against the
-> > bridge device's net_device::dev_addr.
-> > 
-> > I scratched it though, as I was afraid that the issue might still
-> > exist for people using some other upper device on top of the bridge
-> > device. For instance, macvlan? And iterating over the
-> > net_device::dev_addrs list seemed too costly for fast path to me.
+On Thu, Mar 16, 2017 at 12:54:20PM +0900, Lorenzo Colitti wrote:
+> This slightly simplifies configure.ac and results in more
+> correct dependencies.
 > 
-> I was more thinking of following the simple approach that we follow in
-> ebt_redirect_tg() by taking the input interface.
+> Tested by running ./configure with --with-xt-lock-name and
+> without, and using strace to verify that the right lock is used.
 > 
-> Anyway, I'm ok with this.
+> $ make distclean-recursive && ./autogen.sh &&
+>   ./configure --disable-nftables --prefix /tmp/iptables &&
+>   make -j64 &&
+>   make install &&
+>   sudo strace -e open,flock /tmp/iptables/sbin/iptables -L foo
+> ...
+> open("/run/xtables.lock", O_RDONLY|O_CREAT, 0600) = 3
+> flock(3, LOCK_EX|LOCK_NB)               = 0
+> 
+> $ make distclean-recursive && ./autogen.sh && \
+>   ./configure --disable-nftables --prefix /tmp/iptables \
+>   --with-xt-lock-name=/tmp/iptables/run/xtables.lock &&
+>   make -j64 &&
+>   make install &&
+>   sudo strace -e open,flock /tmp/iptables/sbin/iptables -L foo
+> ...
+> open("/tmp/iptables/run/xtables.lock", O_RDONLY|O_CREAT, 0600) = 3
+> flock(3, LOCK_EX|LOCK_NB)               = 0
 
-Wait.
-
-May this break local multicast listener that are bound to the bridge
-interface? Assuming the bridge interface got an IP address, and that
-there is local multicast listener.
-
-Missing anything here?
+Applied, thanks Lorenzo.
