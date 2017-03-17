@@ -1,35 +1,35 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] conntrack: Support IPv6 NAT
-Date: Fri, 17 Mar 2017 12:42:14 +0100
-Message-ID: <20170317114214.GA4396@salvia>
-References: <1489664943-25811-1-git-send-email-neil@aldur.co.uk>
+Subject: Re: [GIT PULL 0/5] IPVS Updates for v4.12
+Date: Fri, 17 Mar 2017 12:39:32 +0100
+Message-ID: <20170317113932.GA3099@salvia>
+References: <1489668195-15240-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Neil Wilson <neil@aldur.co.uk>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50102 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751022AbdCQLnD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Mar 2017 07:43:03 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B39526B19D
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Mar 2017 12:42:16 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A4635DA91A
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Mar 2017 12:42:16 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5F6D9FAB56
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Mar 2017 12:42:14 +0100 (CET)
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1489664943-25811-1-git-send-email-neil@aldur.co.uk>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1489668195-15240-1-git-send-email-horms@verge.net.au>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Mar 16, 2017 at 11:49:03AM +0000, Neil Wilson wrote:
-> Refactor and improve nat support to allow conntrack to manage IPv6
-> NAT entries.
+On Thu, Mar 16, 2017 at 01:43:10PM +0100, Simon Horman wrote:
+> Hi Pablo,
 > 
-> Refactor and improve conntrack nat tests to include IPv6 NAT.
+> please consider these enhancements to the IPVS for v4.12.
+> 
+> * Update sysctl documentation
+> * Remove unnecessary printk in __ip_vs_init
+> 
+> The following changes since commit 03e5fd0e9bcc1f34b7a542786b34b8f771e7c260:
+> 
+>   netfilter: nft_set_rbtree: use per-set rwlock to improve the scalability (2017-03-13 19:30:43 +0100)
+> 
+> are available in the git repository at:
+> 
+>   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs-for-v4.12
 
-Applied, thanks Neil!
+Pulled, thanks Simon!
