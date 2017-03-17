@@ -1,127 +1,80 @@
-From: Gao Feng <fgao@ikuai8.com>
-Subject: Re: [PATCH nf 1/1] netfilter: helper: Fix possible panic caused by
- invoking expectfn unloaded
-Date: Fri, 17 Mar 2017 22:09:29 +0800
-Message-ID: <CA+6hz4qc3TW+NzeiXZi7GSXLd1QHtTpTv4Ama8ksp8YGsfKiZA@mail.gmail.com>
-References: <1489472766-89568-1-git-send-email-fgao@ikuai8.com> <20170317130833.GA11538@salvia>
+From: Elise Lennion <elise.lennion@gmail.com>
+Subject: [PATCH nft 2/3] parser_bison: Allow flushing maps
+Date: Fri, 17 Mar 2017 12:04:06 -0300
+Message-ID: <20170317150406.GA1298@lennorien.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpproxy19.qq.com ([184.105.206.84]:44803 "EHLO
-        smtpproxy19.qq.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751047AbdCQOJh (ORCPT
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:36830 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751140AbdCQPEX (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Mar 2017 10:09:37 -0400
-Received: from mail-pf0-f178.google.com (unknown [209.85.192.178])
-        by esmtp4.qq.com (ESMTP) with SMTP id 0
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Mar 2017 22:09:31 +0800 (CST)
-Received: by mail-pf0-f178.google.com with SMTP id p189so17200576pfp.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Mar 2017 07:09:31 -0700 (PDT)
-In-Reply-To: <20170317130833.GA11538@salvia>
+        Fri, 17 Mar 2017 11:04:23 -0400
+Received: by mail-qt0-f195.google.com with SMTP id n37so9781546qtb.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Mar 2017 08:04:14 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+This patch enables the command flush on maps, which removes all
+entries in it:
 
-On Fri, Mar 17, 2017 at 9:08 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Tue, Mar 14, 2017 at 02:26:06PM +0800, fgao@ikuai8.com wrote:
->> From: Gao Feng <fgao@ikuai8.com>
->>
->> The helper module permits the helper modules register expectfn, and
->> it could be hold by external caller. But when the module is unloaded,
->> there may be some pending expect nodes which still hold the function
->> reference. It may cause unexpected behavior, even panic.
->>
->> Now it would delete the expect nodes which uses the expectfn when
->> unregister expectfn. And it must use the rcu_read_lock to protect
->> the expectfn until insert it or doesn't access it ever.
->>
->> There is only one caller which doesn't hold the rcu lock now.
->> It is ctnetlink_create_expect.
->>
->> BTW, nf_ct_helper_expectfn_find_by_name/symbol invokes the rcu lock
->> to protect the lookup. But it is not enough, because it returns the
->> nf_ct_helper_expectfn pointer which should be protected by rcu lock.
->> Actually the caller should hold the rcu lock instead of these funcs.
->> I will refine it in the cleanup patch.
->>
->> Signed-off-by: Gao Feng <fgao@ikuai8.com>
->> ---
->>  net/netfilter/nf_conntrack_helper.c  | 23 +++++++++++++++++++++++
->>  net/netfilter/nf_conntrack_netlink.c |  3 +++
->>  2 files changed, 26 insertions(+)
->>
->> diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
->> index 6dc44d9..2be820b 100644
->> --- a/net/netfilter/nf_conntrack_helper.c
->> +++ b/net/netfilter/nf_conntrack_helper.c
->> @@ -305,9 +305,32 @@ void nf_ct_helper_expectfn_register(struct nf_ct_helper_expectfn *n)
->>
->>  void nf_ct_helper_expectfn_unregister(struct nf_ct_helper_expectfn *n)
->>  {
->> +     struct nf_conntrack_expect *exp;
->> +     const struct hlist_node *next;
->> +     u32 i;
->> +
->>       spin_lock_bh(&nf_conntrack_expect_lock);
->>       list_del_rcu(&n->head);
->>       spin_unlock_bh(&nf_conntrack_expect_lock);
->> +
->> +     /* Make sure everyone who holds the expect func already
->> +      * has inserted it
->> +      */
->> +     synchronize_rcu();
->> +
->> +     /* Get rid of expectations used the dying expectfn */
->> +     spin_lock_bh(&nf_conntrack_expect_lock);
->> +     for (i = 0; i < nf_ct_expect_hsize; i++) {
->> +             hlist_for_each_entry_safe(exp, next,
->> +                                       &nf_ct_expect_hash[i], hnode) {
->> +                     if (exp->expectfn == n->expectfn &&
->> +                         del_timer(&exp->timeout)) {
->> +                             nf_ct_unlink_expect(exp);
->> +                             nf_ct_expect_put(exp);
->> +                     }
->> +             }
->> +     }
->
-> Hm. So the problem is when, eg. nf_nat_sip, gets removed via rmmod.
->
-> I think we should do very similar as it happens in
-> nf_conntrack_helper_unregister().
->
-> Actually not use the exp->expectfn as reference, but:
->
-> 1) remove any expectation that belong to this helper.
-> 2) remove any conntrack entry, with NAT is place, that belongs to this
->    helper.
->
-> I would like to see a function that we can call both from
-> nf_conntrack_helper_unregister() and the exit path (module removal) of
-> conntrack NAT helpers, so we consolidate the code.
->
-> Does this look good to you?
+$ nft flush map filter map1
 
-It is good to use one function to deal with the
-nf_conntrack_helper_unregister and nf_ct_helper_expectfn_unregister.
+Command above flushes map 'map1' in table 'filter'.
 
-But there is one problem for nf_ct_helper_expectfn_unregister.
-Let's look at the caller ctnetlink_alloc_expect, it only saves expectfn pointer.
-And there is no any relation between the exp->expectfn and
-exp->helper, because they could be specified by different nlattr data.
-For example, the helper name could be "pptp", while the expectfn could
-be "sip". Actually they are different helper modules.
-Even though it is valid that the exp->help is NULL, because ctlink
-accepts that the cda[CTA_EXPECT_HELP_NAME] is NULL.
+The documentation was updated accordingly.
 
-So I think it could not use the helper as the identifier when remove
-the expectations in nf_ct_helper_expectfn_unregister. Unless we
-introduce another member in expectation to save which module it
-belongs to.
+Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
+---
+ doc/nft.xml        | 9 +++++++++
+ src/parser_bison.y | 4 ++++
+ 2 files changed, 13 insertions(+)
 
-Best Regards
-Feng
-
+diff --git a/doc/nft.xml b/doc/nft.xml
+index b3e3d9e..a63b4c2 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -812,6 +812,7 @@ filter input iif $int_ifs accept
+ 				<group choice="req">
+ 					<arg>delete</arg>
+ 					<arg>list</arg>
++					<arg>flush</arg>
+ 				</group>
+ 				<command> map</command>
+ 				<arg choice="opt"><replaceable>family</replaceable></arg>
+@@ -848,6 +849,14 @@ filter input iif $int_ifs accept
+ 					</para>
+ 				</listitem>
+ 			</varlistentry>
++			<varlistentry>
++				<term><option>flush</option></term>
++				<listitem>
++					<para>
++						Remove all elements from the specified map.
++					</para>
++				</listitem>
++			</varlistentry>
+ 		</variablelist>
+ 
+ 		<table frame="all">
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index e44ff44..841b2e1 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1131,6 +1131,10 @@ flush_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_FLUSH, CMD_OBJ_SET, &$3, &@$, NULL);
+ 			}
++			|	MAP		set_spec
++			{
++				$$ = cmd_alloc(CMD_FLUSH, CMD_OBJ_SET, &$2, &@$, NULL);
++			}
+ 			|	RULESET		ruleset_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_FLUSH, CMD_OBJ_RULESET, &$2, &@$, NULL);
+-- 
+2.7.4
 
