@@ -1,27 +1,53 @@
-From: Jamal Hadi Salim <jhs@mojatatu.com>
-Subject: ANNOUNCE: New Platinum sponsor - Facebook
-Date: Thu, 16 Mar 2017 12:57:03 -0400
-Message-ID: <09dcc6cc-bc5f-4465-0f8c-3c77f73d5abf@mojatatu.com>
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH 05/10] netfilter: nf_tables: fix mismatch in big-endian system
+Date: Fri, 17 Mar 2017 12:31:53 +0800
+Message-ID: <CAML_gOdW4ur_CgxLF6_DG5N1QHOv+6qjiMXQFCOYEr82EV3O=A@mail.gmail.com>
+References: <1489597272-30347-1-git-send-email-pablo@netfilter.org>
+ <1489597272-30347-6-git-send-email-pablo@netfilter.org> <063D6719AE5E284EB5DD2968C1650D6DCFFB26B2@AcuExch.aculab.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: tech-committee@netdevconf.org, netfilter-devel@vger.kernel.org,
-        Brenda Butler <bjb@mojatatu.com>,
-        Stephen Jaworski <jaws@mojatatu.com>,
-        netfilter@vger.kernel.org, linux-wireless@vger.kernel.org,
-        Heri Muhero <hmuhero@gmail.com>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>, lwn@lwn.net
-To: people@netdevconf.org
+Content-Type: text/plain; charset=UTF-8
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: David Laight <David.Laight@aculab.com>
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6DCFFB26B2@AcuExch.aculab.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi David,
+2017-03-16 18:58 GMT+08:00 David Laight <David.Laight@aculab.com>:
+[...]
+>> For the similar reason, when loading an u16 value from the u32 data
+>> register, we should use "*(u16 *) sreg;" instead of "(u16)*sreg;",
+>> the 2nd method will get the wrong value in the big-endian system.
+> ...
+>
+> That seems to be papering over some of the obvious cracks.
+>
+> The fact that the entire 32bits are zeroed makes me suspect that
+> in some places values are written as 8 bits and read later as 32.
+> The only way that can work on BE is if the values are always written
+> as 32 bit ones (assignment style 2).
 
-The organizing committee would like to welcome back a repeat
-platinum sponsor, Facebook!
+In nftables, user can use concatenations to put two or more selectors together.
+For example, we can use "nft add rule x y tcp dport . ip saddr 22 . 1.1.1.1"
+to match the tcp dest port and ip source addr at the same time.
 
-Facebook has been a great supporter of the netdev community, we
-thank them!
+In such case, tcp dport will be stored to REG0 and ip saddr will be stored to
+REG1, so the layout will be like this(from the lowest address):
+  PORT(2 bytes) - XXXX(2 bytes) - IPADDR(4 bytes)
 
-cheers,
-jamal
+Later we will use the statement "memcmp(&reg, &data, 8)" to do compare,
+so the XXXX part must be filled with zero to avoid garbage value.
+
+>
+> OTOH using memcmp(,,2) relies on the data being in the lower addressed
+> bytes.
+>
+> If the data does need to be in the lower addressed bytes I'd suggest
+> using a union rather than all the casts.
+>
+>         David
+>
