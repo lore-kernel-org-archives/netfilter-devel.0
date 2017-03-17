@@ -1,63 +1,35 @@
-From: fgao@ikuai8.com
-Subject: [PATCH nf-next 1/4] netfilter: amanda: Correct the return value comparison of the func nf_nat_mangle_udp_packet
-Date: Fri, 17 Mar 2017 14:47:19 +0800
-Message-ID: <fdfd3853391d136ba390dfdc4dc6884f552e540e.1489726438.git.fgao@ikuai8.com>
-References: <cover.1489726438.git.fgao@ikuai8.com>
-Cc: Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        gfree.wind@gmail.com
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] conntrack: Support IPv6 NAT
+Date: Fri, 17 Mar 2017 12:42:14 +0100
+Message-ID: <20170317114214.GA4396@salvia>
+References: <1489664943-25811-1-git-send-email-neil@aldur.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Neil Wilson <neil@aldur.co.uk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from SMTPBG181.QQ.COM ([119.147.193.88]:53436 "EHLO smtpbg181.qq.com"
+Received: from mail.us.es ([193.147.175.20]:50102 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751126AbdCQGzT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Mar 2017 02:55:19 -0400
-In-Reply-To: <cover.1489726438.git.fgao@ikuai8.com>
+        id S1751022AbdCQLnD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 17 Mar 2017 07:43:03 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B39526B19D
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Mar 2017 12:42:16 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A4635DA91A
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Mar 2017 12:42:16 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5F6D9FAB56
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Mar 2017 12:42:14 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <1489664943-25811-1-git-send-email-neil@aldur.co.uk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+On Thu, Mar 16, 2017 at 11:49:03AM +0000, Neil Wilson wrote:
+> Refactor and improve nat support to allow conntrack to manage IPv6
+> NAT entries.
+> 
+> Refactor and improve conntrack nat tests to include IPv6 NAT.
 
-The return value of nf_nat_mangle_udp_packet actually is 1 and 0 as
-bool type. But the amanda codes compare it with NF_ACCEPT.
-
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
----
- net/netfilter/nf_nat_amanda.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
-
-diff --git a/net/netfilter/nf_nat_amanda.c b/net/netfilter/nf_nat_amanda.c
-index eb77238..e4d61a7 100644
---- a/net/netfilter/nf_nat_amanda.c
-+++ b/net/netfilter/nf_nat_amanda.c
-@@ -33,7 +33,6 @@ static unsigned int help(struct sk_buff *skb,
- {
- 	char buffer[sizeof("65535")];
- 	u_int16_t port;
--	unsigned int ret;
- 
- 	/* Connection comes from client. */
- 	exp->saved_proto.tcp.port = exp->tuple.dst.u.tcp.port;
-@@ -63,14 +62,14 @@ static unsigned int help(struct sk_buff *skb,
- 	}
- 
- 	sprintf(buffer, "%u", port);
--	ret = nf_nat_mangle_udp_packet(skb, exp->master, ctinfo,
--				       protoff, matchoff, matchlen,
--				       buffer, strlen(buffer));
--	if (ret != NF_ACCEPT) {
-+	if (!nf_nat_mangle_udp_packet(skb, exp->master, ctinfo,
-+				      protoff, matchoff, matchlen,
-+				      buffer, strlen(buffer))) {
- 		nf_ct_helper_log(skb, exp->master, "cannot mangle packet");
- 		nf_ct_unexpect_related(exp);
-+		return NF_DROP;
- 	}
--	return ret;
-+	return NF_ACCEPT;
- }
- 
- static void __exit nf_nat_amanda_fini(void)
--- 
-1.9.1
-
-
+Applied, thanks Neil!
