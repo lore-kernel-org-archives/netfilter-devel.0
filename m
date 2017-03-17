@@ -1,123 +1,56 @@
-From: Elise Lennion <elise.lennion@gmail.com>
-Subject: [PATCH nft 3/3] doc: Document add / delete element operations of
- sets and maps
-Date: Fri, 17 Mar 2017 12:04:48 -0300
-Message-ID: <20170317150448.GA1318@lennorien.com>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: ANNOUNCE: New tutorial on XDP
+Date: Fri, 17 Mar 2017 09:17:38 -0400
+Message-ID: <6089d01b-3eaa-00bc-17dc-0c0f48e395a8@mojatatu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:35412 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751301AbdCQPGF (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Mar 2017 11:06:05 -0400
-Received: by mail-qt0-f193.google.com with SMTP id r5so9812145qtb.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Mar 2017 08:05:09 -0700 (PDT)
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: tech-committee@netdevconf.org, netfilter-devel@vger.kernel.org,
+        Brenda Butler <bjb@mojatatu.com>,
+        Stephen Jaworski <jaws@mojatatu.com>,
+        netfilter@vger.kernel.org, linux-wireless@vger.kernel.org,
+        Heri Muhero <hmuhero@gmail.com>
+To: people@netdevconf.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The add / delete operations weren't documented yet. They fit better
-in the sets and maps blocks since these operations are used to directly
-modify their content.
+The tech committee would like to announce our first accepted tutorial
 
-Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
----
- doc/nft.xml | 58 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
+Monsieurs Andy Gospodarek and Jesper Dangaard Brouer will give an
+XDP tutorial catered to mere mortals titled "XDP for the Rest of Us"
 
-diff --git a/doc/nft.xml b/doc/nft.xml
-index a63b4c2..9624703 100644
---- a/doc/nft.xml
-+++ b/doc/nft.xml
-@@ -697,6 +697,19 @@ filter input iif $int_ifs accept
- 				<arg choice="req"><replaceable>table</replaceable></arg>
- 				<arg choice="req"><replaceable>set</replaceable></arg>
- 			</cmdsynopsis>
-+			<cmdsynopsis>
-+				<group choice="req">
-+					<arg>add</arg>
-+					<arg>delete</arg>
-+				</group>
-+				<command> element</command>
-+				<arg choice="opt"><replaceable>family</replaceable></arg>
-+				<arg choice="req"><replaceable>table</replaceable></arg>
-+				<arg choice="req"><replaceable>set</replaceable></arg>
-+				{
-+				<arg choice="req"><replaceable>elements</replaceable></arg>
-+				}
-+			</cmdsynopsis>
- 		</para>
- 		<para>
- 			Sets are elements containers of an user-defined data type, they are uniquely identified by an user-defined name and attached to tables.
-@@ -735,6 +748,22 @@ filter input iif $int_ifs accept
- 					</para>
- 				</listitem>
- 			</varlistentry>
-+			<varlistentry>
-+				<term><option>add element</option></term>
-+				<listitem>
-+					<para>
-+						Comma-separated list of elements to add into the specified set.
-+					</para>
-+				</listitem>
-+			</varlistentry>
-+			<varlistentry>
-+				<term><option>delete element</option></term>
-+				<listitem>
-+					<para>
-+						Comma-separated list of elements to delete from the specified set.
-+					</para>
-+				</listitem>
-+			</varlistentry>
- 		</variablelist>
- 
- 		<table frame="all">
-@@ -819,6 +848,19 @@ filter input iif $int_ifs accept
- 				<arg choice="req"><replaceable>table</replaceable></arg>
- 				<arg choice="req"><replaceable>map</replaceable></arg>
- 			</cmdsynopsis>
-+			<cmdsynopsis>
-+				<group choice="req">
-+					<arg>add</arg>
-+					<arg>delete</arg>
-+				</group>
-+				<command> element</command>
-+				<arg choice="opt"><replaceable>family</replaceable></arg>
-+				<arg choice="req"><replaceable>table</replaceable></arg>
-+				<arg choice="req"><replaceable>map</replaceable></arg>
-+				{
-+				<arg choice="req"><replaceable>elements</replaceable></arg>
-+				}
-+			</cmdsynopsis>
- 		</para>
- 		<para>
- 			Maps store data based on some specific key used as input, they are uniquely identified by an user-defined name and attached to tables.
-@@ -857,6 +899,22 @@ filter input iif $int_ifs accept
- 					</para>
- 				</listitem>
- 			</varlistentry>
-+			<varlistentry>
-+				<term><option>add element</option></term>
-+				<listitem>
-+					<para>
-+						Comma-separated list of elements to add into the specified map.
-+					</para>
-+				</listitem>
-+			</varlistentry>
-+			<varlistentry>
-+				<term><option>delete element</option></term>
-+				<listitem>
-+					<para>
-+						Comma-separated list of element keys to delete from the specified map.
-+					</para>
-+				</listitem>
-+			</varlistentry>
- 		</variablelist>
- 
- 		<table frame="all">
--- 
-2.7.4
+Description:
+-----
+XDP (eXpress Data Path) has been one of the most widely discussed topics 
+for the last few netdev conferences. XDP is the Linux kernels
+answer to operating at the same speeds as kernel bypass solutions
+like DPDK. The typical use-case discussed for XDP is a large
+datacenter or clustered environment, but XDP is obviously not limited
+to those workloads. Since support for XDP now appears in multiple
+network drivers (with more patches landing between the time of this
+writing and the conference date) and is available on x86 and arm64
+architectures, there now exists the possibility to allow a greater 
+number of systems to benefit from this technology.
 
+This tutorial will present an example/case-study where a tool such as
+logtrigger or fail2ban will interact with an application and a BPF
+program to make decisions to drop or allow certain packets early in
+the packet processing step for enhanced DDoS prevention over
+traditional methods.
+Getting started using XDP, goes hand-in-hand with learning eBPF
+(Extended Berkeley Packet Filter), as this is currently the XDP-hook
+language. This tutorial will cover the process of writing/modifying a
+simple BPF program, interacting with BPF maps in a programmatic manner,
+and the potential performance benefit to early drop with XDP compared
+to more traditional drop operations used on some embedded systems that
+are placed much higher in the network stack.
+
+Learning to use XDP can feel like a fairly steep learning curve, but
+the goal of this tutorial is to make this process clear to kernel
+developers, sysadmins, or anyone with DevOps responsibilities.
+-------
+
+
+cheers,
+jamal
