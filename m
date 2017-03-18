@@ -1,79 +1,63 @@
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Subject: Re: [NetDev] ANNOUNCE: New sponsor Netronome
-Date: Sat, 18 Mar 2017 22:22:37 +0000 (UTC)
-Message-ID: <2099393925.18313.1489875757778.JavaMail.zimbra@efficios.com>
-References: <020d0eff-2c5b-aff7-2c51-11398b27dffc@mojatatu.com> <CAMXA6B1noOrAFxzy7YhEW+oNvDFLk3+JcTvjorYfKkuZp5xk=w@mail.gmail.com> <2b522b0c-fdd8-a9e8-bbbd-1bd48881bb08@mojatatu.com>
+From: Jamal Hadi Salim <jhs-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>
+Subject: ANNOUNCE: New talk accepted on TCP algorithms performance on wireless
+ LTE networks
+Date: Sat, 18 Mar 2017 18:22:22 -0400
+Message-ID: <3cafd981-9a0f-9dc4-66a3-351952fae808@mojatatu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Amine Aouled Hamed <amine.ahd@gmail.com>,
-        tech-committee@netdevconf.org, linux-wireless@vger.kernel.org,
-        Heri Muhero <hmuhero@gmail.com>, people@netdevconf.org,
-        netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Jamal Hadi Salim <jhs@mojatatu.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.efficios.com ([167.114.142.141]:48821 "EHLO
-        mail.efficios.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751207AbdCRWWF (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 18 Mar 2017 18:22:05 -0400
-In-Reply-To: <2b522b0c-fdd8-a9e8-bbbd-1bd48881bb08@mojatatu.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: tech-committee-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+        Brenda Butler <bjb-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>,
+        Stephen Jaworski <jaws-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>,
+        netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+        Heri Muhero <hmuhero-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: people-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
------ On Mar 18, 2017, at 8:34 AM, Jamal Hadi Salim jhs@mojatatu.com wrote:
 
-> On 17-03-18 08:27 AM, Amine Aouled Hamed wrote:
->> Can you stop with the spam?
->>
-> 
-> Which mailing list do you represent that considers this spam?
+Someone complained in the last posting that I was "spamming" them.
+If a list admin feels these announcements of a community event as
+spam - please unicast me and I will remove you off future
+announcements.
 
-My personal 2 cents: I got subscribed automatically to
-people@netdevconf.org when I registered to netconf.
+The tech committee would like to announce a new accepted talk.
 
-The level of noise on this list is way too much for me.
-May I respectfully recommend that you guys use this kind of
-mailing list for organizational messages only, and keep the
-schedule and sponsor details to a website, or a summary sent at
-most once or twice before the event.
+Jae Won Chung and Feng Li (at Verizon) have done a lot of work on
+analyzing the effect of the different Linux TCP congestion control
+algorithms on LTE wireless networks while driving on a fast
+highway/road. In this talk they compare CUBIC to BBR.
 
-I will personally unsubscribe from this netdev "people"
-mailing list, which will fix the problem on my side, but
-I won't receive any of the communication related to
-organization of the event from now on, which I think is
-something the event organizers should consider in their
-use of this communication channel with their attendees.
+A little bit more details:
 
-Best regards,
+----
+Unlike IEEE802.11 (wifi) and traditional 3G wireless links,  LTE
+networks have high link variability and large end user mobility.
+There still exists a huge gap in understanding how TCP congestion
+control algorithms variants perform under such conditions.
+Mobile carriers often waste their efforts to improve throughput by
+fine tuning parameters of TCP CUBIC although CUBIC often fails to ramp
+up rapidly to congestion avoidance needs over LTE links.
 
-Mathieu
+To have a better understanding of TCP performance over LTE networks, we
+conduct a comprehensive measurement study to compare CUBIC with its
+latest rival - BBR over a world leading tier-one mobile network in high
+speed driving condition.
+To our best knowledge, there is no measurement effort to compare
+performance of different TCP flavors over LTE networks on highway. In
+addition to our measurement contribution, our in-depth measurement
+result also conclude that:
+1) CUBIC with Hybrid slow start leads to a low radio resource
+utilization;
+2) BBR yields higher throughputs even when SINR is lower and/or hand-off
+happens;
+3) BBR's bottle-neck link bandwidth estimation works well for various
+conditions (including hand-offs); and
+4)BBR is a promising TCP Congestion Control candidate for
+performance enhancement proxies over mobile networks.
 
-> 
-> cheers,
-> jamal
->> On Sat, Mar 18, 2017 at 1:10 PM, Jamal Hadi Salim <jhs@mojatatu.com> wrote:
->>> The organizing committee would like to announce a new silver sponsor,
->>> Netronome.
->>>
->>> Netronome is a returning silver sponsor. The netdev community
->>> appreciates their support once again!
->>>
->>> cheers,
->>> jamal
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe netfilter" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> 
-> 
-> _______________________________________________
-> people mailing list
-> people@lists.netdevconf.org
-> http://lists.netdevconf.org/cgi-bin/mailman/listinfo/people
+----
 
--- 
-Mathieu Desnoyers
-EfficiOS Inc.
-http://www.efficios.com
+cheers,
+jamal
