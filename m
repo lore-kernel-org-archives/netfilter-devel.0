@@ -1,63 +1,84 @@
 From: Jamal Hadi Salim <jhs-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>
-Subject: ANNOUNCE: New talk accepted on TCP algorithms performance on wireless
- LTE networks
-Date: Sat, 18 Mar 2017 18:22:22 -0400
-Message-ID: <3cafd981-9a0f-9dc4-66a3-351952fae808@mojatatu.com>
+Subject: Re: [NetDev] ANNOUNCE: New sponsor Netronome
+Date: Sat, 18 Mar 2017 18:34:52 -0400
+Message-ID: <ea392711-26b0-4d82-d86e-2adf8365b024@mojatatu.com>
+References: <020d0eff-2c5b-aff7-2c51-11398b27dffc@mojatatu.com>
+ <CAMXA6B1noOrAFxzy7YhEW+oNvDFLk3+JcTvjorYfKkuZp5xk=w@mail.gmail.com>
+ <2b522b0c-fdd8-a9e8-bbbd-1bd48881bb08@mojatatu.com>
+ <2099393925.18313.1489875757778.JavaMail.zimbra@efficios.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: tech-committee-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        Brenda Butler <bjb-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>,
-        Stephen Jaworski <jaws-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>,
-        netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        Heri Muhero <hmuhero-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-To: people-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org
+Cc: Amine Aouled Hamed <amine.ahd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,
+        tech-committee-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+        Heri Muhero <hmuhero-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, people-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org,
+        netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mathieu Desnoyers <mathieu.desnoyers-vg+e7yoeK/dWk0Htik3J/w@public.gmane.org>
 Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2099393925.18313.1489875757778.JavaMail.zimbra-vg+e7yoeK/dWk0Htik3J/w@public.gmane.org>
 Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Someone complained in the last posting that I was "spamming" them.
-If a list admin feels these announcements of a community event as
-spam - please unicast me and I will remove you off future
-announcements.
+Thanks for the feedback. And here's some context:
 
-The tech committee would like to announce a new accepted talk.
+We do update the website regularly. We also update twitter.
+Experience (and polls) have shown that none of our attendees
+are big on any of these methods of communication. They
+rely on old school mailing lists.
+We are also not a traditional organized conference that gets
+to know the schedule a few months before the event. We will
+likely never ever be one (3 months to organize and run this
+conference).
+People depend on knowing the content at times to decide
+if they want to show up. This is our way of notifying them.
+The content announcements will continue until the very last
+minute.
 
-Jae Won Chung and Feng Li (at Verizon) have done a lot of work on
-analyzing the effect of the different Linux TCP congestion control
-algorithms on LTE wireless networks while driving on a fast
-highway/road. In this talk they compare CUBIC to BBR.
+In the past these announcements went to a much larger list
+(netdev@) - but now we just send summaries.
 
-A little bit more details:
+So there are several options:
+1)
+Are you a twitter person? Because that is one option - we post
+there all the announcements. If you are then it would make sense
+to unsubscribe from people@ and watch twitter - all events
+will go there.
+2)
+The summaries idea may be useful - but lets hear more voices
+say that..
 
-----
-Unlike IEEE802.11 (wifi) and traditional 3G wireless links,  LTE
-networks have high link variability and large end user mobility.
-There still exists a huge gap in understanding how TCP congestion
-control algorithms variants perform under such conditions.
-Mobile carriers often waste their efforts to improve throughput by
-fine tuning parameters of TCP CUBIC although CUBIC often fails to ramp
-up rapidly to congestion avoidance needs over LTE links.
-
-To have a better understanding of TCP performance over LTE networks, we
-conduct a comprehensive measurement study to compare CUBIC with its
-latest rival - BBR over a world leading tier-one mobile network in high
-speed driving condition.
-To our best knowledge, there is no measurement effort to compare
-performance of different TCP flavors over LTE networks on highway. In
-addition to our measurement contribution, our in-depth measurement
-result also conclude that:
-1) CUBIC with Hybrid slow start leads to a low radio resource
-utilization;
-2) BBR yields higher throughputs even when SINR is lower and/or hand-off
-happens;
-3) BBR's bottle-neck link bandwidth estimation works well for various
-conditions (including hand-offs); and
-4)BBR is a promising TCP Congestion Control candidate for
-performance enhancement proxies over mobile networks.
-
-----
+people@netdevconf is also intended to be a discussion list;
+but maybe we need two lists.
 
 cheers,
 jamal
+
+On 17-03-18 06:22 PM, Mathieu Desnoyers wrote:
+> ----- On Mar 18, 2017, at 8:34 AM, Jamal Hadi Salim jhs-jkUAjuhPggJWk0Htik3J/w@public.gmane.org wrote:
+>
+>> On 17-03-18 08:27 AM, Amine Aouled Hamed wrote:
+>>> Can you stop with the spam?
+>>>
+>>
+>> Which mailing list do you represent that considers this spam?
+>
+> My personal 2 cents: I got subscribed automatically to
+> people-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org when I registered to netconf.
+>
+> The level of noise on this list is way too much for me.
+> May I respectfully recommend that you guys use this kind of
+> mailing list for organizational messages only, and keep the
+> schedule and sponsor details to a website, or a summary sent at
+> most once or twice before the event.
+>
+> I will personally unsubscribe from this netdev "people"
+> mailing list, which will fix the problem on my side, but
+> I won't receive any of the communication related to
+> organization of the event from now on, which I think is
+> something the event organizers should consider in their
+> use of this communication channel with their attendees.
+>
+> Best regards,
+>
+> Mathieu
