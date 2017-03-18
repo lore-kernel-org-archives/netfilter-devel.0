@@ -1,88 +1,138 @@
-From: fgao@ikuai8.com
-Subject: [PATCH nf 1/1] netfilter: ctlink: Fix one possible use-after-free in ctnetlink_create_expect
-Date: Sat, 18 Mar 2017 11:46:10 +0800
-Message-ID: <1489808770-29622-1-git-send-email-fgao@ikuai8.com>
-Cc: Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        gfree.wind@gmail.com
+From: Gao Feng <fgao@ikuai8.com>
+Subject: Re: [PATCH nf 1/1] netfilter: helper: Fix possible panic caused by
+ invoking expectfn unloaded
+Date: Sat, 18 Mar 2017 12:02:58 +0800
+Message-ID: <CA+6hz4qpWqsDYdyBP_W4Fp3HTVPWZWaohjm6FiAs0y=BKbRb9w@mail.gmail.com>
+References: <1489472766-89568-1-git-send-email-fgao@ikuai8.com>
+ <20170317130833.GA11538@salvia> <CA+6hz4qc3TW+NzeiXZi7GSXLd1QHtTpTv4Ama8ksp8YGsfKiZA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from SMTPBG352.QQ.COM ([183.57.50.167]:53577 "EHLO smtpbg352.qq.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751047AbdCRD4i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 17 Mar 2017 23:56:38 -0400
+Received: from smtpproxy19.qq.com ([184.105.206.84]:41861 "EHLO
+        smtpproxy19.qq.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751098AbdCREHs (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 18 Mar 2017 00:07:48 -0400
+Received: from mail-pg0-f49.google.com (unknown [74.125.83.49])
+        by esmtp4.qq.com (ESMTP) with SMTP id 0
+        for <netfilter-devel@vger.kernel.org>; Sat, 18 Mar 2017 12:02:59 +0800 (CST)
+Received: by mail-pg0-f49.google.com with SMTP id 21so18680854pgg.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Mar 2017 21:03:00 -0700 (PDT)
+In-Reply-To: <CA+6hz4qc3TW+NzeiXZi7GSXLd1QHtTpTv4Ama8ksp8YGsfKiZA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+Hi Pablo,
 
-There is no rcu_read_lock during ctlink gets the helper and inserts the
-expectation. So there is one possible use-after-free issue when unload
-the helper module.
+On Fri, Mar 17, 2017 at 10:09 PM, Gao Feng <fgao@ikuai8.com> wrote:
+> Hi Pablo,
+>
+> On Fri, Mar 17, 2017 at 9:08 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>> On Tue, Mar 14, 2017 at 02:26:06PM +0800, fgao@ikuai8.com wrote:
+>>> From: Gao Feng <fgao@ikuai8.com>
+>>>
+>>> The helper module permits the helper modules register expectfn, and
+>>> it could be hold by external caller. But when the module is unloaded,
+>>> there may be some pending expect nodes which still hold the function
+>>> reference. It may cause unexpected behavior, even panic.
+>>>
+>>> Now it would delete the expect nodes which uses the expectfn when
+>>> unregister expectfn. And it must use the rcu_read_lock to protect
+>>> the expectfn until insert it or doesn't access it ever.
+>>>
+>>> There is only one caller which doesn't hold the rcu lock now.
+>>> It is ctnetlink_create_expect.
+>>>
+>>> BTW, nf_ct_helper_expectfn_find_by_name/symbol invokes the rcu lock
+>>> to protect the lookup. But it is not enough, because it returns the
+>>> nf_ct_helper_expectfn pointer which should be protected by rcu lock.
+>>> Actually the caller should hold the rcu lock instead of these funcs.
+>>> I will refine it in the cleanup patch.
+>>>
+>>> Signed-off-by: Gao Feng <fgao@ikuai8.com>
+>>> ---
+>>>  net/netfilter/nf_conntrack_helper.c  | 23 +++++++++++++++++++++++
+>>>  net/netfilter/nf_conntrack_netlink.c |  3 +++
+>>>  2 files changed, 26 insertions(+)
+>>>
+>>> diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+>>> index 6dc44d9..2be820b 100644
+>>> --- a/net/netfilter/nf_conntrack_helper.c
+>>> +++ b/net/netfilter/nf_conntrack_helper.c
+>>> @@ -305,9 +305,32 @@ void nf_ct_helper_expectfn_register(struct nf_ct_helper_expectfn *n)
+>>>
+>>>  void nf_ct_helper_expectfn_unregister(struct nf_ct_helper_expectfn *n)
+>>>  {
+>>> +     struct nf_conntrack_expect *exp;
+>>> +     const struct hlist_node *next;
+>>> +     u32 i;
+>>> +
+>>>       spin_lock_bh(&nf_conntrack_expect_lock);
+>>>       list_del_rcu(&n->head);
+>>>       spin_unlock_bh(&nf_conntrack_expect_lock);
+>>> +
+>>> +     /* Make sure everyone who holds the expect func already
+>>> +      * has inserted it
+>>> +      */
+>>> +     synchronize_rcu();
+>>> +
+>>> +     /* Get rid of expectations used the dying expectfn */
+>>> +     spin_lock_bh(&nf_conntrack_expect_lock);
+>>> +     for (i = 0; i < nf_ct_expect_hsize; i++) {
+>>> +             hlist_for_each_entry_safe(exp, next,
+>>> +                                       &nf_ct_expect_hash[i], hnode) {
+>>> +                     if (exp->expectfn == n->expectfn &&
+>>> +                         del_timer(&exp->timeout)) {
+>>> +                             nf_ct_unlink_expect(exp);
+>>> +                             nf_ct_expect_put(exp);
+>>> +                     }
+>>> +             }
+>>> +     }
+>>
+>> Hm. So the problem is when, eg. nf_nat_sip, gets removed via rmmod.
+>>
+>> I think we should do very similar as it happens in
+>> nf_conntrack_helper_unregister().
+>>
+>> Actually not use the exp->expectfn as reference, but:
+>>
+>> 1) remove any expectation that belong to this helper.
+>> 2) remove any conntrack entry, with NAT is place, that belongs to this
+>>    helper.
+>>
+>> I would like to see a function that we can call both from
+>> nf_conntrack_helper_unregister() and the exit path (module removal) of
+>> conntrack NAT helpers, so we consolidate the code.
+>>
+>> Does this look good to you?
+>
+> It is good to use one function to deal with the
+> nf_conntrack_helper_unregister and nf_ct_helper_expectfn_unregister.
+>
+> But there is one problem for nf_ct_helper_expectfn_unregister.
+> Let's look at the caller ctnetlink_alloc_expect, it only saves expectfn pointer.
+> And there is no any relation between the exp->expectfn and
+> exp->helper, because they could be specified by different nlattr data.
+> For example, the helper name could be "pptp", while the expectfn could
+> be "sip". Actually they are different helper modules.
+> Even though it is valid that the exp->help is NULL, because ctlink
+> accepts that the cda[CTA_EXPECT_HELP_NAME] is NULL.
+>
+> So I think it could not use the helper as the identifier when remove
+> the expectations in nf_ct_helper_expectfn_unregister. Unless we
+> introduce another member in expectation to save which module it
+> belongs to.
+>
+> Best Regards
+> Feng
 
-For example:
+I prepare to use the module as the identifier, is it ok?
+When unregister the helper or expectfn, it traverses all expectations
+and removes nodes whose belong to the module.
 
-        CPU1                                CPU2
-ctlink gets the helper
-                            helper module unload and remove all expectations
-insert the expectation
-
-Now there is one expectation which references one helper whose module is
-unloaded.
-
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
----
- net/netfilter/nf_conntrack_netlink.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 6806b5e..f6d1d63 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -3133,23 +3133,27 @@ static int ctnetlink_del_expect(struct net *net, struct sock *ctnl,
- 		return -ENOENT;
- 	ct = nf_ct_tuplehash_to_ctrack(h);
- 
-+	rcu_read_lock();
- 	if (cda[CTA_EXPECT_HELP_NAME]) {
- 		const char *helpname = nla_data(cda[CTA_EXPECT_HELP_NAME]);
- 
- 		helper = __nf_conntrack_helper_find(helpname, u3,
- 						    nf_ct_protonum(ct));
- 		if (helper == NULL) {
-+			rcu_read_unlock();
- #ifdef CONFIG_MODULES
- 			if (request_module("nfct-helper-%s", helpname) < 0) {
- 				err = -EOPNOTSUPP;
- 				goto err_ct;
- 			}
-+			rcu_read_lock();
- 			helper = __nf_conntrack_helper_find(helpname, u3,
- 							    nf_ct_protonum(ct));
- 			if (helper) {
- 				err = -EAGAIN;
--				goto err_ct;
-+				goto err_rcu;
- 			}
-+			rcu_read_unlock();
- #endif
- 			err = -EOPNOTSUPP;
- 			goto err_ct;
-@@ -3159,11 +3163,13 @@ static int ctnetlink_del_expect(struct net *net, struct sock *ctnl,
- 	exp = ctnetlink_alloc_expect(cda, ct, helper, &tuple, &mask);
- 	if (IS_ERR(exp)) {
- 		err = PTR_ERR(exp);
--		goto err_ct;
-+		goto err_rcu;
- 	}
- 
- 	err = nf_ct_expect_related_report(exp, portid, report);
- 	nf_ct_expect_put(exp);
-+err_rcu:
-+	rcu_read_unlock();
- err_ct:
- 	nf_ct_put(ct);
- 	return err;
--- 
-1.9.1
+Regards
+Feng
 
 
