@@ -1,14 +1,14 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf 4/5] netfilter: nfnl_cthelper: fix memory leak when do update
-Date: Sun, 19 Mar 2017 22:36:01 +0800
-Message-ID: <1489934162-7415-5-git-send-email-zlpnobody@163.com>
+Subject: [PATCH nf 2/5] netfilter: nfnl_cthelper: fix incorrect helper->expect_class_max
+Date: Sun, 19 Mar 2017 22:35:59 +0800
+Message-ID: <1489934162-7415-3-git-send-email-zlpnobody@163.com>
 References: <1489934162-7415-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-17.163.com ([220.181.12.17]:38606 "EHLO m12-17.163.com"
+Received: from m12-17.163.com ([220.181.12.17]:38892 "EHLO m12-17.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751763AbdCSOyM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1751813AbdCSOyM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 19 Mar 2017 10:54:12 -0400
 In-Reply-To: <1489934162-7415-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -16,100 +16,86 @@ List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <zlpnobody@gmail.com>
 
-When invoke nfnl_cthelper_update, we will malloc a new expect_policy,
-then only point the helper->expect_policy to the new one but ignore
-the old one, so it will be leaked forever.
+The helper->expect_class_max must be set to the total number of
+expect_policy minus 1, since we will use the statement "if (class >
+helper->expect_class_max)" to validate the CTA_EXPECT_CLASS attr in
+ctnetlink_alloc_expect.
 
-Another issue is that the user can modify the expect_class_max to a
-new value, for example, decrease the expect_class_max from 3 to 0.
-Then, exp->class created by ctnetlink_alloc_expect may become invalid,
-and out of bound access will happen.
+So for compatibility, set the helper->expect_class_max to the
+NFCTH_POLICY_SET_NUM attr's value minus 1.
 
-So keep it simple, when update the cthelper, reject to modify the
-expect_class_max, and we can modify the struct nf_conntrack_expect_policy
-directly instead of allocing a new object, then memory leak does not
-exist anymore.
+Also: it's invalid when the NFCTH_POLICY_SET_NUM attr's value is zero.
+1. this will result "expect_policy = kzalloc(0, GFP_KERNEL);";
+2. we cannot set the helper->expect_class_max to a proper value.
+
+So if nla_get_be32(tb[NFCTH_POLICY_SET_NUM]) is zero, report -EINVAL to
+the userspace.
 
 Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 ---
- net/netfilter/nfnetlink_cthelper.c | 35 +++++++++++++++++++++++------------
- 1 file changed, 23 insertions(+), 12 deletions(-)
+ net/netfilter/nfnetlink_cthelper.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
 diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index cc70dd5..fc4733f 100644
+index 9c24301..cc70dd5 100644
 --- a/net/netfilter/nfnetlink_cthelper.c
 +++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -156,7 +156,7 @@ nfnl_cthelper_expect_policy_set[NFCTH_POLICY_SET_MAX+1] = {
- 
- static int
- nfnl_cthelper_parse_expect_policy(struct nf_conntrack_helper *helper,
--				  const struct nlattr *attr)
-+				  const struct nlattr *attr, bool update)
- {
+@@ -161,6 +161,7 @@ nfnl_cthelper_parse_expect_policy(struct nf_conntrack_helper *helper,
  	int i, ret;
  	struct nf_conntrack_expect_policy *expect_policy;
-@@ -172,15 +172,23 @@ nfnl_cthelper_parse_expect_policy(struct nf_conntrack_helper *helper,
+ 	struct nlattr *tb[NFCTH_POLICY_SET_MAX+1];
++	unsigned int class_max;
+ 
+ 	ret = nla_parse_nested(tb, NFCTH_POLICY_SET_MAX, attr,
+ 			       nfnl_cthelper_expect_policy_set);
+@@ -170,19 +171,18 @@ nfnl_cthelper_parse_expect_policy(struct nf_conntrack_helper *helper,
+ 	if (!tb[NFCTH_POLICY_SET_NUM])
  		return -EINVAL;
  
- 	class_max = ntohl(nla_get_be32(tb[NFCTH_POLICY_SET_NUM]));
--	if (class_max == 0)
--		return -EINVAL;
--	if (class_max > NF_CT_MAX_EXPECT_CLASSES)
--		return -EOVERFLOW;
+-	helper->expect_class_max =
+-		ntohl(nla_get_be32(tb[NFCTH_POLICY_SET_NUM]));
+-
+-	if (helper->expect_class_max != 0 &&
+-	    helper->expect_class_max > NF_CT_MAX_EXPECT_CLASSES)
++	class_max = ntohl(nla_get_be32(tb[NFCTH_POLICY_SET_NUM]));
++	if (class_max == 0)
++		return -EINVAL;
++	if (class_max > NF_CT_MAX_EXPECT_CLASSES)
+ 		return -EOVERFLOW;
  
--	expect_policy = kzalloc(sizeof(struct nf_conntrack_expect_policy) *
--				class_max, GFP_KERNEL);
--	if (expect_policy == NULL)
--		return -ENOMEM;
-+	if (update) {
-+		if (helper->expect_class_max + 1 != class_max)
-+			return -EINVAL;
-+
-+		expect_policy = helper->expect_policy;
-+	} else {
-+		if (class_max == 0)
-+			return -EINVAL;
-+		if (class_max > NF_CT_MAX_EXPECT_CLASSES)
-+			return -EOVERFLOW;
-+
-+		expect_policy = kcalloc(class_max, sizeof(*expect_policy),
-+					GFP_KERNEL);
-+		if (expect_policy == NULL)
-+			return -ENOMEM;
-+	}
+ 	expect_policy = kzalloc(sizeof(struct nf_conntrack_expect_policy) *
+-				helper->expect_class_max, GFP_KERNEL);
++				class_max, GFP_KERNEL);
+ 	if (expect_policy == NULL)
+ 		return -ENOMEM;
  
- 	for (i = 0; i < class_max; i++) {
+-	for (i=0; i<helper->expect_class_max; i++) {
++	for (i = 0; i < class_max; i++) {
  		if (!tb[NFCTH_POLICY_SET+i])
-@@ -196,7 +204,8 @@ nfnl_cthelper_parse_expect_policy(struct nf_conntrack_helper *helper,
+ 			goto err;
+ 
+@@ -191,6 +191,8 @@ nfnl_cthelper_parse_expect_policy(struct nf_conntrack_helper *helper,
+ 		if (ret < 0)
+ 			goto err;
+ 	}
++
++	helper->expect_class_max = class_max - 1;
  	helper->expect_policy = expect_policy;
  	return 0;
  err:
--	kfree(expect_policy);
-+	if (!update)
-+		kfree(expect_policy);
- 	return -EINVAL;
- }
+@@ -375,10 +377,10 @@ nfnl_cthelper_dump_policy(struct sk_buff *skb,
+ 		goto nla_put_failure;
  
-@@ -214,7 +223,8 @@ nfnl_cthelper_create(const struct nlattr * const tb[],
- 	if (helper == NULL)
- 		return -ENOMEM;
+ 	if (nla_put_be32(skb, NFCTH_POLICY_SET_NUM,
+-			 htonl(helper->expect_class_max)))
++			 htonl(helper->expect_class_max + 1)))
+ 		goto nla_put_failure;
  
--	ret = nfnl_cthelper_parse_expect_policy(helper, tb[NFCTH_POLICY]);
-+	ret = nfnl_cthelper_parse_expect_policy(helper, tb[NFCTH_POLICY],
-+						false);
- 	if (ret < 0)
- 		goto err1;
- 
-@@ -269,7 +279,8 @@ nfnl_cthelper_update(const struct nlattr * const tb[],
- 
- 	if (tb[NFCTH_POLICY]) {
- 		ret = nfnl_cthelper_parse_expect_policy(helper,
--							tb[NFCTH_POLICY]);
-+							tb[NFCTH_POLICY],
-+							true);
- 		if (ret < 0)
- 			return ret;
- 	}
+-	for (i=0; i<helper->expect_class_max; i++) {
++	for (i = 0; i < helper->expect_class_max + 1; i++) {
+ 		nest_parms2 = nla_nest_start(skb,
+ 				(NFCTH_POLICY_SET+i) | NLA_F_NESTED);
+ 		if (nest_parms2 == NULL)
 -- 
 2.5.5
 
