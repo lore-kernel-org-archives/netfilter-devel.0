@@ -1,51 +1,55 @@
-From: Alexander Alemayhu <alexander-lyk0faqGNUlWk0Htik3J/w@public.gmane.org>
-Subject: Re: [NetDev] [NetDev-tech]  ANNOUNCE: New sponsor Netronome
-Date: Sun, 19 Mar 2017 07:06:37 +0100
-Message-ID: <20170319060637.GA3733@gmail.com>
-References: <020d0eff-2c5b-aff7-2c51-11398b27dffc@mojatatu.com>
- <CAMXA6B1noOrAFxzy7YhEW+oNvDFLk3+JcTvjorYfKkuZp5xk=w@mail.gmail.com>
- <2b522b0c-fdd8-a9e8-bbbd-1bd48881bb08@mojatatu.com>
- <2099393925.18313.1489875757778.JavaMail.zimbra@efficios.com>
- <ea392711-26b0-4d82-d86e-2adf8365b024@mojatatu.com>
- <CAAFAkD9uG2UUxxLPDF8fuWCP4gxEmozfw3giOSViaWRE38UhFQ@mail.gmail.com>
- <CAMXA6B0B4q__gYbRM8ksBr3-g1PhjYkk68z9w-gp96h1YZp0FQ@mail.gmail.com>
- <5ce34c9c-29c6-4b59-1fc9-f0b5425a8347@mojatatu.com>
- <CAAnMG+O=DMk5dnUnNktMRywa5mkLA0scty6YpU2fnZyQ8BX+JA@mail.gmail.com>
- <9119c54c-df24-7846-71e5-fc4b6a531488@mojatatu.com>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: ANNOUNCE: New talk accepted! Droplet: DDoS countermeasures powered by
+ BPF + XDP
+Date: Sun, 19 Mar 2017 09:49:40 -0400
+Message-ID: <29545711-ad05-f3f7-0a69-2d329ac70c41@mojatatu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: Alexis Green <agreen-EaYfvaLb8E+tG0bUXCXiUA@public.gmane.org>,
-        tech-committee <tech-committee-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org>,
-        linux-wireless <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
-        Heri Muhero <hmuhero-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, people-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org,
-        netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        Mathieu Desnoyers <mathieu.desnoyers-vg+e7yoeK/dWk0Htik3J/w@public.gmane.org>,
-        netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        Amine Aouled Hamed <amine.ahd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-To: Jamal Hadi Salim <jhs-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <9119c54c-df24-7846-71e5-fc4b6a531488-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: tech-committee@netdevconf.org, netfilter-devel@vger.kernel.org,
+        Brenda Butler <bjb@mojatatu.com>,
+        Stephen Jaworski <jaws@mojatatu.com>,
+        netfilter@vger.kernel.org, linux-wireless@vger.kernel.org,
+        Heri Muhero <hmuhero@gmail.com>
+To: people@netdevconf.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-it0-f65.google.com ([209.85.214.65]:34881 "EHLO
+        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751583AbdCSN6K (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 19 Mar 2017 09:58:10 -0400
+Received: by mail-it0-f65.google.com with SMTP id y18so12335944itc.2
+        for <netfilter-devel@vger.kernel.org>; Sun, 19 Mar 2017 06:57:57 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Mar 18, 2017 at 09:56:36PM -0400, Jamal Hadi Salim wrote:
-> 
-> Note: this discussion already has generated more traffic
-> than a few days worth of announcements ;->
->
+I am going to keep netfilter and wireless lists on for now unless I hear
+more objections. We will be doing about one a day from now until about
+the time of the conference.
 
-IIRC Hajime always added links to the site in his announcements, which
-made it easy to lookup netdev.  Maybe adding some lines about netdev to
-all emails would reduce confusion? Suspect not everyone subscribed to
-these lists knows what netdev is. 
+The tech committee would like to announce a new accepted talk.
 
-Don't consider these emails spam at all :)
+Huapeng Zhou, Doug Porter, Ryan Tierney and Nikita Shirokov
+are going to give a talk on Droplet which is used at Facebook
+to plug in DDoS countermeasures.
 
-Thanks.
+More details:
+----
+Droplet is a generic framework to implement bpf policers to drop
+packets at the earliest stage in the networking stack, preferably at
+line rate. It's born for anti-DDoS and is the preferred infrastructure
+at Facebook to plug in DDoS countermeasures. This talk presents the
+overall architecture of Droplet and discusses a few issues in
+developing and rolling out the software.
 
--- 
-Mit freundlichen Grüßen
+At a high level, Droplet takes bpf policer code written in restricted C
+syntax, compiles it at runtime and hooks it into the kernel. The
+framework abstracts out interactions between user space and kernel
+space so the end user only needs to write policer code. It could chain
+bpf programs together so we get multiple active DDoS countermeasures at
+the same time. The policer code is shipped as configuration, which
+enables fast response time when under active attacks.
+--------
 
-Alexander Alemayhu
+cheers,
+jamal
