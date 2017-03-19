@@ -1,55 +1,59 @@
-From: Jamal Hadi Salim <jhs@mojatatu.com>
-Subject: ANNOUNCE: New talk accepted! Droplet: DDoS countermeasures powered by
- BPF + XDP
-Date: Sun, 19 Mar 2017 09:49:40 -0400
-Message-ID: <29545711-ad05-f3f7-0a69-2d329ac70c41@mojatatu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: tech-committee@netdevconf.org, netfilter-devel@vger.kernel.org,
-        Brenda Butler <bjb@mojatatu.com>,
-        Stephen Jaworski <jaws@mojatatu.com>,
-        netfilter@vger.kernel.org, linux-wireless@vger.kernel.org,
-        Heri Muhero <hmuhero@gmail.com>
-To: people@netdevconf.org
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf 0/5] netfilter: nfnl_cthelper: fix some bugs
+Date: Sun, 19 Mar 2017 22:35:57 +0800
+Message-ID: <1489934162-7415-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-it0-f65.google.com ([209.85.214.65]:34881 "EHLO
-        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751583AbdCSN6K (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 19 Mar 2017 09:58:10 -0400
-Received: by mail-it0-f65.google.com with SMTP id y18so12335944itc.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 19 Mar 2017 06:57:57 -0700 (PDT)
+Received: from m12-17.163.com ([220.181.12.17]:49341 "EHLO m12-17.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751463AbdCSOgy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 19 Mar 2017 10:36:54 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I am going to keep netfilter and wireless lists on for now unless I hear
-more objections. We will be doing about one a day from now until about
-the time of the conference.
+From: Liping Zhang <zlpnobody@gmail.com>
 
-The tech committee would like to announce a new accepted talk.
+This patch set aims to fix some bugs related to nfnetlink_cthelper.
+They are:
+1. if NFCTH_PRIV_DATA_LEN attr is empty, we cannot create a cthelper
+   via nfnetlink
+2. helper->expect_class_max is incorrect
+3. when update cthelper via nfnetlink, memory leak will happen. It's
+   ok to modify the nf_conntrack_expect_policy directly when do update,
+   but drop the const qualifier is required
+4. introduce a dummy list to fix a race when operate nfnl_cthelper
 
-Huapeng Zhou, Doug Porter, Ryan Tierney and Nikita Shirokov
-are going to give a talk on Droplet which is used at Facebook
-to plug in DDoS countermeasures.
+Note, the patch set is based on these three patches which have not
+been applied or showed in nf picktree:
+http://patchwork.ozlabs.org/patch/740302/
+http://patchwork.ozlabs.org/patch/740300/
+http://patchwork.ozlabs.org/patch/739509/
 
-More details:
-----
-Droplet is a generic framework to implement bpf policers to drop
-packets at the earliest stage in the networking stack, preferably at
-line rate. It's born for anti-DDoS and is the preferred infrastructure
-at Facebook to plug in DDoS countermeasures. This talk presents the
-overall architecture of Droplet and discusses a few issues in
-developing and rolling out the software.
+Liping Zhang (5):
+  netfilter: nfnl_cthelper: don't report error if NFCTH_PRIV_DATA_LEN is
+    empty
+  netfilter: nfnl_cthelper: fix incorrect helper->expect_class_max
+  netfilter: drop const qualifier from struct nf_conntrack_expect_policy
+  netfilter: nfnl_cthelper: fix memory leak when do update
+  netfilter: nfnl_cthelper: fix a race when walk the nf_ct_helper_hash
+    table
 
-At a high level, Droplet takes bpf policer code written in restricted C
-syntax, compiles it at runtime and hooks it into the kernel. The
-framework abstracts out interactions between user space and kernel
-space so the end user only needs to write policer code. It could chain
-bpf programs together so we get multiple active DDoS countermeasures at
-the same time. The policer code is shipped as configuration, which
-enables fast response time when under active attacks.
---------
+ include/net/netfilter/nf_conntrack_helper.h |   4 +-
+ net/ipv4/netfilter/nf_nat_snmp_basic.c      |   2 +-
+ net/netfilter/nf_conntrack_amanda.c         |   2 +-
+ net/netfilter/nf_conntrack_expect.c         |   2 +-
+ net/netfilter/nf_conntrack_ftp.c            |   2 +-
+ net/netfilter/nf_conntrack_h323_main.c      |   6 +-
+ net/netfilter/nf_conntrack_helper.c         |   2 +-
+ net/netfilter/nf_conntrack_pptp.c           |   2 +-
+ net/netfilter/nf_conntrack_sane.c           |   2 +-
+ net/netfilter/nf_conntrack_sip.c            |   2 +-
+ net/netfilter/nf_conntrack_tftp.c           |   2 +-
+ net/netfilter/nfnetlink_cthelper.c          | 226 +++++++++++++++-------------
+ 12 files changed, 135 insertions(+), 119 deletions(-)
 
-cheers,
-jamal
+-- 
+2.5.5
+
+
