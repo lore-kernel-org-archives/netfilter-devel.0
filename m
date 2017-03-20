@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 19/22] ipvs: Document sysctl sync_ports
-Date: Mon, 20 Mar 2017 11:08:47 +0100
-Message-ID: <1490004530-9128-20-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 09/22] netfilter: nf_reject: remove unused variable
+Date: Mon, 20 Mar 2017 11:08:37 +0100
+Message-ID: <1490004530-9128-10-git-send-email-pablo@netfilter.org>
 References: <1490004530-9128-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,35 +10,36 @@ In-Reply-To: <1490004530-9128-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Hangbin Liu <liuhangbin@gmail.com>
+From: Taehee Yoo <ap420073@gmail.com>
 
-Document sysctl sync_ports based on commit f73181c8288f ("ipvs: add support
-for sync threads").
+variable oiph is not used.
 
-Signed-off-by: Hangbin Liu <liuhangbin@gmail.com>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- Documentation/networking/ipvs-sysctl.txt | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ net/ipv4/netfilter/nf_reject_ipv4.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/Documentation/networking/ipvs-sysctl.txt b/Documentation/networking/ipvs-sysctl.txt
-index 159d70b6dff3..a6feecd467cd 100644
---- a/Documentation/networking/ipvs-sysctl.txt
-+++ b/Documentation/networking/ipvs-sysctl.txt
-@@ -231,6 +231,14 @@ sync_sock_size - INTEGER
- 	Configuration of SNDBUF (master) or RCVBUF (slave) socket limit.
- 	Default value is 0 (preserve system defaults).
+diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+index 146d86105183..7cd8d0d918f8 100644
+--- a/net/ipv4/netfilter/nf_reject_ipv4.c
++++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+@@ -104,7 +104,6 @@ EXPORT_SYMBOL_GPL(nf_reject_ip_tcphdr_put);
+ void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook)
+ {
+ 	struct sk_buff *nskb;
+-	const struct iphdr *oiph;
+ 	struct iphdr *niph;
+ 	const struct tcphdr *oth;
+ 	struct tcphdr _oth;
+@@ -116,8 +115,6 @@ void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook)
+ 	if (skb_rtable(oldskb)->rt_flags & (RTCF_BROADCAST | RTCF_MULTICAST))
+ 		return;
  
-+sync_ports - INTEGER
-+	default 1
-+
-+	The number of threads that master and backup servers can use for
-+	sync traffic. Every thread will use single UDP port, thread 0 will
-+	use the default port 8848 while last thread will use port
-+	8848+sync_ports-1.
-+
- snat_reroute - BOOLEAN
- 	0 - disabled
- 	not 0 - enabled (default)
+-	oiph = ip_hdr(oldskb);
+-
+ 	nskb = alloc_skb(sizeof(struct iphdr) + sizeof(struct tcphdr) +
+ 			 LL_MAX_HEADER, GFP_ATOMIC);
+ 	if (!nskb)
 -- 
 2.1.4
