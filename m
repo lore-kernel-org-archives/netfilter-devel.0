@@ -1,40 +1,30 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH nf 1/1] netfilter: snmp: Fix one possible panic when
- snmp_trap_helper fail to register
-Date: Mon, 20 Mar 2017 12:37:23 +0300
-Message-ID: <b2344023-5045-a127-a3f2-0fc7ef898505@cogentembedded.com>
-References: <1489974248-60293-1-git-send-email-fgao@ikuai8.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-To: fgao@ikuai8.com, pablo@netfilter.org, jolsa@redhat.com,
-        davem@davemloft.net, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org, gfree.wind@gmail.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1489974248-60293-1-git-send-email-fgao@ikuai8.com>
-Sender: netdev-owner@vger.kernel.org
+From: Elena Reshetova <elena.reshetova@intel.com>
+Subject: [PATCH] netfilter: fix the warning on unused refcount variable
+Date: Mon, 20 Mar 2017 11:43:28 +0200
+Message-ID: <1490003008-17443-1-git-send-email-elena.reshetova@intel.com>
+Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        sfr@canb.auug.org.au, Elena Reshetova <elena.reshetova@intel.com>
+To: pablo@netfilter.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello!
+Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+---
+ net/netfilter/nfnetlink_acct.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-On 3/20/2017 4:44 AM, fgao@ikuai8.com wrote:
-
-> From: Gao Feng <fgao@ikuai8.com>
->
-> In the commit ("netfilter: nf_conntrack: nf_conntrack snmp helper"),
-
-    Need to specify the 12-digit SHA1 ID as well.
-
-> the snmp_helper is replaced by nf_nat_snmp_hook. So the snmp_helper
-> is never registered. But it still tries to unregister the snmp_helper,
-> it could cause the panic.
->
-> Now remove the useless snmp_helper and the unregister call in the
-> error handler.
->
-> Fixes: 93557f53e1fb ("netfilter: nf_conntrack: nf_conntrack snmp helper")
->
-> Signed-off-by: Gao Feng <fgao@ikuai8.com>
-[...]
-
-MBR, Sergei
+diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
+index f44cbd3..c86da17 100644
+--- a/net/netfilter/nfnetlink_acct.c
++++ b/net/netfilter/nfnetlink_acct.c
+@@ -326,7 +326,6 @@ static int nfnl_acct_get(struct net *net, struct sock *nfnl,
+ static int nfnl_acct_try_del(struct nf_acct *cur)
+ {
+ 	int ret = 0;
+-	unsigned int refcount;
+ 
+ 	/* We want to avoid races with nfnl_acct_put. So only when the current
+ 	 * refcnt is 1, we decrease it to 0.
+-- 
+2.7.4
