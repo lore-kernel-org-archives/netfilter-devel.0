@@ -1,119 +1,99 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: invoke synchronize_rcu after set the _hook_ to NULL
-Date: Mon, 20 Mar 2017 21:03:50 +0800
-Message-ID: <1490015030-16403-1-git-send-email-zlpnobody@163.com>
+Subject: [PATCH libnetfilter_cthelper] src: fix incorrect building and parsing of the NFCTH_POLICY_SETX attribute
+Date: Mon, 20 Mar 2017 22:35:22 +0800
+Message-ID: <1490020522-26359-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-15.163.com ([220.181.12.15]:47783 "EHLO m12-15.163.com"
+Received: from m12-13.163.com ([220.181.12.13]:48838 "EHLO m12-13.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753413AbdCTNVn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Mar 2017 09:21:43 -0400
+        id S1754253AbdCTOgF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 20 Mar 2017 10:36:05 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <zlpnobody@gmail.com>
 
-Otherwise, another CPU may access the invalid pointer. For example:
-    CPU0                CPU1
-     -              rcu_read_lock();
-     -              pfunc = _hook_;
-  _hook_ = NULL;          -
-  mod unload              -
-     -                 pfunc(); // invalid, panic
-     -             rcu_read_unlock();
+In nfct_helper_nlmsg_build_policy(), we always set the attribute type to
+NFCTH_POLICY_SET, so we cannot add more than one nfct_helper_policy to
+the kernel.
 
-So we must call synchronize_rcu() to wait the rcu reader to finish.
-
-Also note, in nf_nat_snmp_basic_fini, synchronize_rcu() will be invoked
-by later nf_conntrack_helper_unregister, but I'm inclined to add a
-explicit synchronize_rcu after set the nf_nat_snmp_hook to NULL. Depend
-on such obscure assumptions is not a good idea.
-
-Last, in nfnetlink_cttimeout, we use kfree_rcu to free the time object,
-so in cttimeout_exit, invoking rcu_barrier() is not necessary at all,
-remove it now.
+Also: in nfct_helper_nlmsg_parse_policy(), we will increase the
+helper->policy_num for each nfct_helper_policy, but we mistakenly set it
+to the total number of nfct_helper_policy. So when the total number is
+more than 3, later out of bound access will happen.
 
 Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 ---
- net/ipv4/netfilter/nf_nat_snmp_basic.c | 1 +
- net/netfilter/nf_conntrack_ecache.c    | 2 ++
- net/netfilter/nf_conntrack_netlink.c   | 1 +
- net/netfilter/nf_nat_core.c            | 2 ++
- net/netfilter/nfnetlink_cttimeout.c    | 2 +-
- 5 files changed, 7 insertions(+), 1 deletion(-)
+ src/libnetfilter_cthelper.c | 23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-index c9b52c3..5a8f7c3 100644
---- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
-+++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-@@ -1304,6 +1304,7 @@ static int __init nf_nat_snmp_basic_init(void)
- static void __exit nf_nat_snmp_basic_fini(void)
+diff --git a/src/libnetfilter_cthelper.c b/src/libnetfilter_cthelper.c
+index af543a1..7ed1f64 100644
+--- a/src/libnetfilter_cthelper.c
++++ b/src/libnetfilter_cthelper.c
+@@ -497,12 +497,12 @@ nfct_helper_nlmsg_build_hdr(char *buf, uint8_t cmd,
+ }
+ 
+ static void
+-nfct_helper_nlmsg_build_policy(struct nlmsghdr *nlh,
++nfct_helper_nlmsg_build_policy(struct nlmsghdr *nlh, uint16_t type,
+ 				struct nfct_helper_policy *p)
  {
- 	RCU_INIT_POINTER(nf_nat_snmp_hook, NULL);
-+	synchronize_rcu();
- 	nf_conntrack_helper_unregister(&snmp_trap_helper);
- }
+ 	struct nlattr *nest;
  
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index da9df2d..12cc98f 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -290,6 +290,7 @@ void nf_conntrack_unregister_notifier(struct net *net,
- 	BUG_ON(notify != new);
- 	RCU_INIT_POINTER(net->ct.nf_conntrack_event_cb, NULL);
- 	mutex_unlock(&nf_ct_ecache_mutex);
-+	synchronize_rcu();
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
+-	nest = mnl_attr_nest_start(nlh, NFCTH_POLICY_SET);
++	nest = mnl_attr_nest_start(nlh, type);
+ 	mnl_attr_put_strz(nlh, NFCTH_POLICY_NAME, p->name);
+ 	mnl_attr_put_u32(nlh, NFCTH_POLICY_EXPECT_MAX, htonl(p->expect_max));
+ 	mnl_attr_put_u32(nlh, NFCTH_POLICY_EXPECT_TIMEOUT,
+@@ -549,22 +549,22 @@ nfct_helper_nlmsg_build_payload(struct nlmsghdr *nlh, struct nfct_helper *h)
+ 		int policy_set_num = 0;
  
-@@ -326,6 +327,7 @@ void nf_ct_expect_unregister_notifier(struct net *net,
- 	BUG_ON(notify != new);
- 	RCU_INIT_POINTER(net->ct.nf_expect_event_cb, NULL);
- 	mutex_unlock(&nf_ct_ecache_mutex);
-+	synchronize_rcu();
- }
- EXPORT_SYMBOL_GPL(nf_ct_expect_unregister_notifier);
+ 		if (h->bitset & (1 << NFCTH_ATTR_POLICY1)) {
+-			nfct_helper_nlmsg_build_policy(nlh,
++			nfct_helper_nlmsg_build_policy(nlh, NFCTH_POLICY_SET1,
+ 							h->expect_policy[0]);
+ 			policy_set_num++;
+ 		}
+ 		if (h->bitset & (1 << NFCTH_ATTR_POLICY2)) {
+-			nfct_helper_nlmsg_build_policy(nlh,
++			nfct_helper_nlmsg_build_policy(nlh, NFCTH_POLICY_SET2,
+ 							h->expect_policy[1]);
+ 			policy_set_num++;
+ 		}
+ 		if (h->bitset & (1 << NFCTH_ATTR_POLICY3)) {
+-			nfct_helper_nlmsg_build_policy(nlh,
++			nfct_helper_nlmsg_build_policy(nlh, NFCTH_POLICY_SET3,
+ 							h->expect_policy[2]);
+ 			policy_set_num++;
+ 		}
+ 		if (h->bitset & (1 << NFCTH_ATTR_POLICY4)) {
+-			nfct_helper_nlmsg_build_policy(nlh,
++			nfct_helper_nlmsg_build_policy(nlh, NFCTH_POLICY_SET4,
+ 							h->expect_policy[3]);
+ 			policy_set_num++;
+ 		}
+@@ -717,14 +717,13 @@ nfct_helper_nlmsg_parse_policy_set(const struct nlattr *attr,
+ 				   struct nfct_helper *helper)
+ {
+ 	struct nlattr *tb[NFCTH_POLICY_SET_MAX+1] = {};
+-	int i;
++	int i, policy_num = 0;
  
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 6806b5e..455c2c2 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -3441,6 +3441,7 @@ static void __exit ctnetlink_exit(void)
- 	nfnetlink_subsys_unregister(&ctnl_subsys);
- #ifdef CONFIG_NETFILTER_NETLINK_GLUE_CT
- 	RCU_INIT_POINTER(nfnl_ct_hook, NULL);
-+	synchronize_rcu();
- #endif
- }
- 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 94b14c5..82802e4 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -903,6 +903,8 @@ static void __exit nf_nat_cleanup(void)
- #ifdef CONFIG_XFRM
- 	RCU_INIT_POINTER(nf_nat_decode_session_hook, NULL);
- #endif
-+	synchronize_rcu();
+ 	mnl_attr_parse_nested(attr, nfct_helper_nlmsg_parse_policy_set_cb, tb);
+-	if (tb[NFCTH_POLICY_SET_NUM]) {
+-		helper->policy_num =
+-			ntohl(mnl_attr_get_u32(tb[NFCTH_POLICY_SET_NUM]));
+-	}
+-	for (i=0; i<helper->policy_num; i++) {
++	if (tb[NFCTH_POLICY_SET_NUM])
++		policy_num = ntohl(mnl_attr_get_u32(tb[NFCTH_POLICY_SET_NUM]));
 +
- 	for (i = 0; i < NFPROTO_NUMPROTO; i++)
- 		kfree(nf_nat_l4protos[i]);
- 
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index 139e086..47d6656 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -646,8 +646,8 @@ static void __exit cttimeout_exit(void)
- #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	RCU_INIT_POINTER(nf_ct_timeout_find_get_hook, NULL);
- 	RCU_INIT_POINTER(nf_ct_timeout_put_hook, NULL);
-+	synchronize_rcu();
- #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
--	rcu_barrier();
- }
- 
- module_init(cttimeout_init);
++	for (i=0; i<policy_num; i++) {
+ 		if (tb[NFCTH_POLICY_SET+i]) {
+ 			nfct_helper_nlmsg_parse_policy(tb[NFCTH_POLICY_SET+i],
+ 						       helper);
 -- 
 2.5.5
 
