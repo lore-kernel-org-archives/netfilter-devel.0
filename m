@@ -1,100 +1,55 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH libnetfilter_cthelper] src: fix incorrect building and parsing of the NFCTH_POLICY_SETX attribute
-Date: Mon, 20 Mar 2017 22:35:22 +0800
-Message-ID: <1490020522-26359-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-13.163.com ([220.181.12.13]:48838 "EHLO m12-13.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754253AbdCTOgF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Mar 2017 10:36:05 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH nf v2 1/1] netfilter: snmp: Fix one possible panic when
+ snmp_trap_helper fail to register
+Date: Mon, 20 Mar 2017 19:35:28 +0300
+Message-ID: <4da3e4cf-bcfa-e0fe-539c-4fc03e8959a9@cogentembedded.com>
+References: <1490003728-33866-1-git-send-email-fgao@ikuai8.com>
+ <02f61fe0-37d9-8837-1c8f-390c5dea6ff4@cogentembedded.com>
+ <CA+6hz4pkQR0xvwru2cr8gPgsC6aeEXh+45+82awk_BE5D-mqTQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        "David S. Miller" <davem@davemloft.net>, jolsa@redhat.com,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>
+To: Feng Gao <gfree.wind@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CA+6hz4pkQR0xvwru2cr8gPgsC6aeEXh+45+82awk_BE5D-mqTQ@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Liping Zhang <zlpnobody@gmail.com>
+On 03/20/2017 01:15 PM, Feng Gao wrote:
 
-In nfct_helper_nlmsg_build_policy(), we always set the attribute type to
-NFCTH_POLICY_SET, so we cannot add more than one nfct_helper_policy to
-the kernel.
+>>> From: Gao Feng <fgao@ikuai8.com>
+>>>
+>>> In the commit <93557f53e1fb> ("netfilter: nf_conntrack: nf_conntrack snmp
+>>
+>>
+>>    Angle brackets not needed. :-)
+>>    The commit citing style is the same as for the Fixes: tag.
+>
+> The checkpatch.pl reports the following error, if remove the angle brackets.
 
-Also: in nfct_helper_nlmsg_parse_policy(), we will increase the
-helper->policy_num for each nfct_helper_policy, but we mistakenly set it
-to the total number of nfct_helper_policy. So when the total number is
-more than 3, later out of bound access will happen.
+    Because it stops recognizing the commit ID! :-)
 
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
----
- src/libnetfilter_cthelper.c | 23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+> ERROR: Please use git commit description style 'commit <12+ chars of
+> sha1> ("<title line>")' - ie: 'commit fatal: ambig ("evision or path
+> not in the working tree.")'
 
-diff --git a/src/libnetfilter_cthelper.c b/src/libnetfilter_cthelper.c
-index af543a1..7ed1f64 100644
---- a/src/libnetfilter_cthelper.c
-+++ b/src/libnetfilter_cthelper.c
-@@ -497,12 +497,12 @@ nfct_helper_nlmsg_build_hdr(char *buf, uint8_t cmd,
- }
- 
- static void
--nfct_helper_nlmsg_build_policy(struct nlmsghdr *nlh,
-+nfct_helper_nlmsg_build_policy(struct nlmsghdr *nlh, uint16_t type,
- 				struct nfct_helper_policy *p)
- {
- 	struct nlattr *nest;
- 
--	nest = mnl_attr_nest_start(nlh, NFCTH_POLICY_SET);
-+	nest = mnl_attr_nest_start(nlh, type);
- 	mnl_attr_put_strz(nlh, NFCTH_POLICY_NAME, p->name);
- 	mnl_attr_put_u32(nlh, NFCTH_POLICY_EXPECT_MAX, htonl(p->expect_max));
- 	mnl_attr_put_u32(nlh, NFCTH_POLICY_EXPECT_TIMEOUT,
-@@ -549,22 +549,22 @@ nfct_helper_nlmsg_build_payload(struct nlmsghdr *nlh, struct nfct_helper *h)
- 		int policy_set_num = 0;
- 
- 		if (h->bitset & (1 << NFCTH_ATTR_POLICY1)) {
--			nfct_helper_nlmsg_build_policy(nlh,
-+			nfct_helper_nlmsg_build_policy(nlh, NFCTH_POLICY_SET1,
- 							h->expect_policy[0]);
- 			policy_set_num++;
- 		}
- 		if (h->bitset & (1 << NFCTH_ATTR_POLICY2)) {
--			nfct_helper_nlmsg_build_policy(nlh,
-+			nfct_helper_nlmsg_build_policy(nlh, NFCTH_POLICY_SET2,
- 							h->expect_policy[1]);
- 			policy_set_num++;
- 		}
- 		if (h->bitset & (1 << NFCTH_ATTR_POLICY3)) {
--			nfct_helper_nlmsg_build_policy(nlh,
-+			nfct_helper_nlmsg_build_policy(nlh, NFCTH_POLICY_SET3,
- 							h->expect_policy[2]);
- 			policy_set_num++;
- 		}
- 		if (h->bitset & (1 << NFCTH_ATTR_POLICY4)) {
--			nfct_helper_nlmsg_build_policy(nlh,
-+			nfct_helper_nlmsg_build_policy(nlh, NFCTH_POLICY_SET4,
- 							h->expect_policy[3]);
- 			policy_set_num++;
- 		}
-@@ -717,14 +717,13 @@ nfct_helper_nlmsg_parse_policy_set(const struct nlattr *attr,
- 				   struct nfct_helper *helper)
- {
- 	struct nlattr *tb[NFCTH_POLICY_SET_MAX+1] = {};
--	int i;
-+	int i, policy_num = 0;
- 
- 	mnl_attr_parse_nested(attr, nfct_helper_nlmsg_parse_policy_set_cb, tb);
--	if (tb[NFCTH_POLICY_SET_NUM]) {
--		helper->policy_num =
--			ntohl(mnl_attr_get_u32(tb[NFCTH_POLICY_SET_NUM]));
--	}
--	for (i=0; i<helper->policy_num; i++) {
-+	if (tb[NFCTH_POLICY_SET_NUM])
-+		policy_num = ntohl(mnl_attr_get_u32(tb[NFCTH_POLICY_SET_NUM]));
-+
-+	for (i=0; i<policy_num; i++) {
- 		if (tb[NFCTH_POLICY_SET+i]) {
- 			nfct_helper_nlmsg_parse_policy(tb[NFCTH_POLICY_SET+i],
- 						       helper);
--- 
-2.5.5
+    So check the patch in the correct tree because that seems to be the 
+problem... Angle brackets are surely not required.
 
+> #7:
+> In the commit 93557f53e1fb ("netfilter: nf_conntrack: nf_conntrack snmp
+>
+> total: 1 errors, 0 warnings, 0 checks, 27 lines checked
+>
+>
+> Regards
+> Feng
 
+[...]
+
+MBR, Sergei
