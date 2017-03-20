@@ -1,37 +1,61 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 1/3] parser_bison: Allow flushing flow tables
-Date: Mon, 20 Mar 2017 11:15:18 +0100
-Message-ID: <20170320101518.GA10209@salvia>
-References: <20170317150316.GA1260@lennorien.com>
+From: Feng Gao <gfree.wind@gmail.com>
+Subject: Re: [PATCH nf v2 1/1] netfilter: snmp: Fix one possible panic when
+ snmp_trap_helper fail to register
+Date: Mon, 20 Mar 2017 18:15:48 +0800
+Message-ID: <CA+6hz4pkQR0xvwru2cr8gPgsC6aeEXh+45+82awk_BE5D-mqTQ@mail.gmail.com>
+References: <1490003728-33866-1-git-send-email-fgao@ikuai8.com> <02f61fe0-37d9-8837-1c8f-390c5dea6ff4@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Elise Lennion <elise.lennion@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56054 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753162AbdCTKPX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Mar 2017 06:15:23 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6EDFA2493C
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Mar 2017 11:15:20 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5EB98DA87A
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Mar 2017 11:15:20 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3FAC7DA86C
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Mar 2017 11:15:18 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20170317150316.GA1260@lennorien.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        "David S. Miller" <davem@davemloft.net>, jolsa@redhat.com,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <02f61fe0-37d9-8837-1c8f-390c5dea6ff4@cogentembedded.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Mar 17, 2017 at 12:03:17PM -0300, Elise Lennion wrote:
-> This patch enables the command flush on flow tables, which removes all
-> entries in it:
-> 
-> $ nft flush flow table filter ft-https
-> 
-> Command above flushes flow table 'ft-https' in table 'filter'.
+On Mon, Mar 20, 2017 at 6:09 PM, Sergei Shtylyov
+<sergei.shtylyov@cogentembedded.com> wrote:
+> On 3/20/2017 12:55 PM, fgao@ikuai8.com wrote:
+>
+>> From: Gao Feng <fgao@ikuai8.com>
+>>
+>> In the commit <93557f53e1fb> ("netfilter: nf_conntrack: nf_conntrack snmp
+>
+>
+>    Angle brackets not needed. :-)
+>    The commit citing style is the same as for the Fixes: tag.
 
-Applied, thanks Elise.
+The checkpatch.pl reports the following error, if remove the angle brackets.
+
+ERROR: Please use git commit description style 'commit <12+ chars of
+sha1> ("<title line>")' - ie: 'commit fatal: ambig ("evision or path
+not in the working tree.")'
+#7:
+In the commit 93557f53e1fb ("netfilter: nf_conntrack: nf_conntrack snmp
+
+total: 1 errors, 0 warnings, 0 checks, 27 lines checked
+
+
+Regards
+Feng
+
+>
+>> helper"), the snmp_helper is replaced by nf_nat_snmp_hook. So the
+>> snmp_helper is never registered. But it still tries to unregister the
+>> snmp_helper, it could cause the panic.
+>>
+>> Now remove the useless snmp_helper and the unregister call in the
+>> error handler.
+>>
+>> Fixes: 93557f53e1fb ("netfilter: nf_conntrack: nf_conntrack snmp helper")
+>>
+>> Signed-off-by: Gao Feng <fgao@ikuai8.com>
+>
+> [...]
+>
+> MBR, Sergei
+>
