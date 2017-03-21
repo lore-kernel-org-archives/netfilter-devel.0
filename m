@@ -1,48 +1,97 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Interrest in a ASA-like packet tracer?
-Date: Tue, 21 Mar 2017 15:35:45 +0100
-Message-ID: <20170321143545.GA17321@salvia>
-References: <0fa8faae-5c9e-61b9-ad3f-1ea386555fef@postrobot.de>
+From: =?gb2312?B?uN+35Q==?= <fgao@ikuai8.com>
+Subject: RE: [PATCH net-next 1/1] netfilter: helper: Remove the rcu lock in nf_ct_helper_expectfn_find_by_name and nf_ct_helper_expectfn_find_by_symbol.
+Date: Tue, 21 Mar 2017 22:36:55 +0800
+Message-ID: <005801d2a250$96e35550$c4a9fff0$@ikuai8.com>
+References: <1489480145-54411-1-git-send-email-fgao@ikuai8.com> <20170321143010.GA17014@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org
-To: Oliver =?iso-8859-1?Q?Schr=F6der?= <netfilter@postrobot.de>
+Content-Type: text/plain;
+        charset="gb2312"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>, <gfree.wind@gmail.com>
+To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33834 "EHLO mail.us.es"
+Received: from smtpbg321.qq.com ([14.17.32.30]:55916 "EHLO smtpbg321.qq.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932499AbdCUOfz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Mar 2017 10:35:55 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 10E21170D4B
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 15:35:51 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EB2B9FB44E
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 15:35:50 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 96800FB464
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 15:35:48 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <0fa8faae-5c9e-61b9-ad3f-1ea386555fef@postrobot.de>
+        id S932882AbdCUOqb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 Mar 2017 10:46:31 -0400
+In-Reply-To: <20170321143010.GA17014@salvia>
+Content-Language: zh-cn
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 20, 2017 at 01:33:33PM +0100, Oliver Schröder wrote:
-> Hi list,
-> 
-> inspired by the 'packet-tracer' cli-command of cisco ASAs I have
-> implemented a linux application with the same functionality. For those
-> of you who are not familiar with the command, please read up at lpt's
-> homepage: http://www.o-schroeder.de/projects/lpt/
-> 
-> My question is if this might be of interrest to you? I believe it is a
-> very useful command and possibly should be integrated in iptables?
-> 
-> What do you think?
+Hi Pablo,
 
-Did you have a look at 'nft monitor'?
+> -----Original Message-----
+> From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
+> Sent: Tuesday, March 21, 2017 10:30 PM
+> To: fgao@ikuai8.com
+> Cc: netfilter-devel@vger.kernel.org; gfree.wind@gmail.com
+> Subject: Re: [PATCH net-next 1/1] netfilter: helper: Remove the rcu lock
+in
+> nf_ct_helper_expectfn_find_by_name and
+> nf_ct_helper_expectfn_find_by_symbol.
+> 
+> On Tue, Mar 14, 2017 at 04:29:05PM +0800, fgao@ikuai8.com wrote:
+> > From: Gao Feng <fgao@ikuai8.com>
+> >
+> > Because these two functions return the nf_ct_helper_expectfn pointer
+> > which should be protected by rcu lock. So it should makes sure the
+> > caller should hold the rcu lock, not inside these functions.
+> >
+> > Signed-off-by: Gao Feng <fgao@ikuai8.com>
+> > ---
+> >  net/netfilter/nf_conntrack_helper.c | 6 ++----
+> >  1 file changed, 2 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/net/netfilter/nf_conntrack_helper.c
+> > b/net/netfilter/nf_conntrack_helper.c
+> > index 6dc44d9..bce3d1f 100644
+> > --- a/net/netfilter/nf_conntrack_helper.c
+> > +++ b/net/netfilter/nf_conntrack_helper.c
+> > @@ -311,38 +311,36 @@ void nf_ct_helper_expectfn_unregister(struct
+> > nf_ct_helper_expectfn *n)  }
+> > EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_unregister);
+> >
+> > +/* Caller should hold the rcu lock */
+> >  struct nf_ct_helper_expectfn *
+> >  nf_ct_helper_expectfn_find_by_name(const char *name)  {
+> >  	struct nf_ct_helper_expectfn *cur;
+> >  	bool found = false;
+> >
+> > -	rcu_read_lock();
+> >  	list_for_each_entry_rcu(cur, &nf_ct_helper_expectfn_list, head) {
+> >  		if (!strcmp(cur->name, name)) {
+> >  			found = true;
+> >  			break;
+> >  		}
+> >  	}
+> > -	rcu_read_unlock();
+> >  	return found ? cur : NULL;
+> >  }
+> >  EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_find_by_name);
+> 
+> You have to collapse this patch to:
+> 
+> http://patchwork.ozlabs.org/patch/740576/
+> 
+> Please... use shorter patch subject names, around 80 chars long. There is
+no
+> strict limit that I know, but this subject looks too long.
 
-I'm very much interested in getting feedback on if there is anything
-missing there compared to your tracer.
+Ok. I would make it shorter, and send another update.
 
-Thanks.
+> 
+> I think rcu read side is missing in every invocations to:
+> 
+> __nf_conntrack_helper_find()
+> 
+> in ctnetlink. So this patch would be larger, have a closer look and fix
+this in one
+> go, please.
+
+No problem, I would check all callers. 
+
+Best Regards
+Feng
+
+
