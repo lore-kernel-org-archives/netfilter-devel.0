@@ -1,53 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf 1/5] netfilter: nfnl_cthelper: don't report error if
- NFCTH_PRIV_DATA_LEN is empty
-Date: Tue, 21 Mar 2017 11:18:28 +0100
-Message-ID: <20170321101828.GA1940@salvia>
+Subject: Re: [PATCH nf 4/5] netfilter: nfnl_cthelper: fix memory leak when do
+ update
+Date: Tue, 21 Mar 2017 11:32:08 +0100
+Message-ID: <20170321103208.GC1940@salvia>
 References: <1489934162-7415-1-git-send-email-zlpnobody@163.com>
- <1489934162-7415-2-git-send-email-zlpnobody@163.com>
+ <1489934162-7415-5-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
 To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51978 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34782 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754338AbdCUKSd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Mar 2017 06:18:33 -0400
+        id S1756773AbdCUKcf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 Mar 2017 06:32:35 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5B52CEAA62
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 11:18:30 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 66175EBAC6
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 11:32:26 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4E1B9DA729
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 11:18:30 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 516B3DA395
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 11:32:26 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E4223DA87D
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 11:18:27 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C5565DA874
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 11:32:23 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1489934162-7415-2-git-send-email-zlpnobody@163.com>
+In-Reply-To: <1489934162-7415-5-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Mar 19, 2017 at 10:35:58PM +0800, Liping Zhang wrote:
+On Sun, Mar 19, 2017 at 10:36:01PM +0800, Liping Zhang wrote:
 > From: Liping Zhang <zlpnobody@gmail.com>
 > 
-> Currently, when we create cthelper via nfnetlink, -EINVAL will be
-> returned if the NFCTH_PRIV_DATA_LEN attribute is empty.
+> When invoke nfnl_cthelper_update, we will malloc a new expect_policy,
+> then only point the helper->expect_policy to the new one but ignore
+> the old one, so it will be leaked forever.
 > 
-> But enforcing the user to specify the NFCTH_PRIV_DATA_LEN attr seems
-> unnecessary, so it's better to set the helper->data_len to zero if
-> the NFCTH_PRIV_DATA_LEN attribute is empty.
-> 
-> Found by running example program from libnetfilter_cthelper:
->   # ./libnetfilter_cthelper/examples/nfct-helper-add test 1
->   error: Invalid argument
+> Another issue is that the user can modify the expect_class_max to a
+> new value, for example, decrease the expect_class_max from 3 to 0.
 
-I suggest you fix this userspace example instead, we should always
-send NFCTH_PRIV_DATA_LEN. This is integral part of the helper
-description.
+If the code is allowing this, we should fix it since this is not
+valid. We cannot change the number of classes once the helper has been
+created.
 
-NFCTH_ATTR_PRIV_DATA_LEN has been always set from the conntrack-tools,
-so most likely this example just got outdated at some point of the
-development and nobody noticed so far.
-
-Thanks.
+Users may update the maximum number of expectations and its timeout
+per policy, but not the number of classes once this has been created.
