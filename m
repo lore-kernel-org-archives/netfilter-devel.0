@@ -1,81 +1,88 @@
-From: simran singhal <singhalsimran0@gmail.com>
-Subject: [PATCH 1/2] netfilter: ipset: Remove unnecessary cast on void pointer
-Date: Tue, 21 Mar 2017 17:49:53 +0530
-Message-ID: <1490098794-22518-2-git-send-email-singhalsimran0@gmail.com>
-References: <1490098794-22518-1-git-send-email-singhalsimran0@gmail.com>
-Cc: kadlec@blackhole.kfki.hu, davem@davemloft.net,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com, gregkh@linuxfoundation.org
-To: pablo@netfilter.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1490098794-22518-1-git-send-email-singhalsimran0@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 2/2 nf] netfilter: cthelper: Fix memory leak
+Date: Tue, 21 Mar 2017 13:41:34 +0100
+Message-ID: <1490100094-32269-2-git-send-email-pablo@netfilter.org>
+References: <1490100094-32269-1-git-send-email-pablo@netfilter.org>
+Cc: zlpnobody@gmail.com, jeffy.chen@rock-chips.com,
+        dianders@chromium.org, briannorris@chromium.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:52246 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932549AbdCUMsn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 Mar 2017 08:48:43 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 3D4081324C7
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 13:41:40 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2723BDA86E
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 13:41:40 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E87F0BAC35
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 13:41:37 +0100 (CET)
+In-Reply-To: <1490100094-32269-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-The following Coccinelle script was used to detect this:
-@r@
-expression x;
-void* e;
-type T;
-identifier f;
-@@
-(
-  *((T *)e)
-|
-  ((T *)x)[...]
-|
-  ((T*)x)->f
-|
+From: Jeffy Chen <jeffy.chen@rock-chips.com>
 
-- (T*)
-  e
-)
+We have memory leaks of nf_conntrack_helper & expect_policy.
 
-Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
+Heavily based on your original patch, so I'm keeping you as original author
+for this fix.
 
- --This is my contribution to the netfilter project of
-   Outreachy Round 14. 
+ net/netfilter/nfnetlink_cthelper.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
- net/netfilter/ipset/ip_set_bitmap_gen.h | 4 ++--
- net/netfilter/ipset/ip_set_core.c       | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
-index 6f09a99..d302d98 100644
---- a/net/netfilter/ipset/ip_set_bitmap_gen.h
-+++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
-@@ -232,7 +232,7 @@ mtype_list(const struct ip_set *set,
- 		if (!test_bit(id, map->members) ||
- 		    (SET_WITH_TIMEOUT(set) &&
- #ifdef IP_SET_BITMAP_STORED_TIMEOUT
--		     mtype_is_filled((const struct mtype_elem *)x) &&
-+		     mtype_is_filled(x) &&
- #endif
- 		     ip_set_timeout_expired(ext_timeout(x, set))))
- 			continue;
-@@ -249,7 +249,7 @@ mtype_list(const struct ip_set *set,
- 		if (mtype_do_list(skb, map, id, set->dsize))
- 			goto nla_put_failure;
- 		if (ip_set_put_extensions(skb, set, x,
--		    mtype_is_filled((const struct mtype_elem *)x)))
-+		    mtype_is_filled(x)))
- 			goto nla_put_failure;
- 		ipset_nest_end(skb, nested);
- 	}
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index c296f9b..10a3694 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1915,7 +1915,7 @@ ip_set_sockfn_get(struct sock *sk, int optval, void __user *user, int *len)
- 		ret = -EFAULT;
- 		goto done;
- 	}
--	op = (unsigned int *)data;
-+	op = data;
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
+index ffb51b91e646..bc43d8635cb8 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -214,7 +214,7 @@ nfnl_cthelper_create(const struct nlattr * const tb[],
  
- 	if (*op < IP_SET_OP_VERSION) {
- 		/* Check the version at the beginning of operations */
+ 	ret = nfnl_cthelper_parse_expect_policy(helper, tb[NFCTH_POLICY]);
+ 	if (ret < 0)
+-		goto err;
++		goto err1;
+ 
+ 	strncpy(helper->name, nla_data(tb[NFCTH_NAME]), NF_CT_HELPER_NAME_LEN);
+ 	helper->data_len = ntohl(nla_get_be32(tb[NFCTH_PRIV_DATA_LEN]));
+@@ -245,10 +245,12 @@ nfnl_cthelper_create(const struct nlattr * const tb[],
+ 
+ 	ret = nf_conntrack_helper_register(helper);
+ 	if (ret < 0)
+-		goto err;
++		goto err2;
+ 
+ 	return 0;
+-err:
++err2:
++	kfree(helper->expect_policy);
++err1:
+ 	kfree(helper);
+ 	return ret;
+ }
+@@ -676,6 +678,8 @@ static int nfnl_cthelper_del(struct net *net, struct sock *nfnl,
+ 
+ 			found = true;
+ 			nf_conntrack_helper_unregister(cur);
++			kfree(cur->expect_policy);
++			kfree(cur);
+ 		}
+ 	}
+ 	/* Make sure we return success if we flush and there is no helpers */
+@@ -739,6 +743,8 @@ static void __exit nfnl_cthelper_exit(void)
+ 				continue;
+ 
+ 			nf_conntrack_helper_unregister(cur);
++			kfree(cur->expect_policy);
++			kfree(cur);
+ 		}
+ 	}
+ }
 -- 
-2.7.4
+2.1.4
+
