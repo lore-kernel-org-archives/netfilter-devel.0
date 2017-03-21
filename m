@@ -1,127 +1,48 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf 2/5] netfilter: nfnl_cthelper: fix incorrect
- helper->expect_class_max
-Date: Tue, 21 Mar 2017 11:27:52 +0100
-Message-ID: <20170321102752.GB1940@salvia>
-References: <1489934162-7415-1-git-send-email-zlpnobody@163.com>
- <1489934162-7415-3-git-send-email-zlpnobody@163.com>
+Subject: Re: [PATCH libnetfilter_cthelper] examples: fix double free in
+ nftc-helper-add
+Date: Tue, 21 Mar 2017 11:41:08 +0100
+Message-ID: <20170321104108.GA3034@salvia>
+References: <1489932070-57299-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
 To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40076 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41920 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756343AbdCUKio (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Mar 2017 06:38:44 -0400
+        id S1756305AbdCUKlV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 Mar 2017 06:41:21 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CD835EAA70
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 11:27:59 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id DFDF0EBAC0
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 11:41:17 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BB79DDA2D8
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 11:27:59 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D50BFDA86F
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 11:41:17 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BA08FDA38F
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 11:27:56 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3E761DA87C
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 11:41:12 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1489934162-7415-3-git-send-email-zlpnobody@163.com>
+In-Reply-To: <1489932070-57299-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Mar 19, 2017 at 10:35:59PM +0800, Liping Zhang wrote:
+On Sun, Mar 19, 2017 at 10:01:10PM +0800, Liping Zhang wrote:
 > From: Liping Zhang <zlpnobody@gmail.com>
 > 
-> The helper->expect_class_max must be set to the total number of
-> expect_policy minus 1, since we will use the statement "if (class >
-> helper->expect_class_max)" to validate the CTA_EXPECT_CLASS attr in
-> ctnetlink_alloc_expect.
+> After inputting the following test command, core dump happened:
+>   # ./examples/nfct-helper-add test 1
+>   *** Error in
+>  `.../libnetfilter_cthelper/examples/.libs/lt-nfct-helper-add':
+>   double free or corruption (fasttop): 0x0000000001f3c070 ***
+>   ======= Backtrace: =========
+>   /lib64/libc.so.6(+0x77de5)[0x7fd9ebe88de5]
+>   /lib64/libc.so.6(+0x8022a)[0x7fd9ebe9122a]
+>   /lib64/libc.so.6(cfree+0x4c)[0x7fd9ebe9478c]
+>   [...]
 > 
-> So for compatibility, set the helper->expect_class_max to the
-> NFCTH_POLICY_SET_NUM attr's value minus 1.
-> 
-> Also: it's invalid when the NFCTH_POLICY_SET_NUM attr's value is zero.
-> 1. this will result "expect_policy = kzalloc(0, GFP_KERNEL);";
-> 2. we cannot set the helper->expect_class_max to a proper value.
-> 
-> So if nla_get_be32(tb[NFCTH_POLICY_SET_NUM]) is zero, report -EINVAL to
-> the userspace.
-> 
-> Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
-> ---
->  net/netfilter/nfnetlink_cthelper.c | 20 +++++++++++---------
->  1 file changed, 11 insertions(+), 9 deletions(-)
-> 
-> diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-> index 9c24301..cc70dd5 100644
-> --- a/net/netfilter/nfnetlink_cthelper.c
-> +++ b/net/netfilter/nfnetlink_cthelper.c
-> @@ -161,6 +161,7 @@ nfnl_cthelper_parse_expect_policy(struct nf_conntrack_helper *helper,
->  	int i, ret;
->  	struct nf_conntrack_expect_policy *expect_policy;
->  	struct nlattr *tb[NFCTH_POLICY_SET_MAX+1];
-> +	unsigned int class_max;
->  
->  	ret = nla_parse_nested(tb, NFCTH_POLICY_SET_MAX, attr,
->  			       nfnl_cthelper_expect_policy_set);
-> @@ -170,19 +171,18 @@ nfnl_cthelper_parse_expect_policy(struct nf_conntrack_helper *helper,
->  	if (!tb[NFCTH_POLICY_SET_NUM])
->  		return -EINVAL;
->  
-> -	helper->expect_class_max =
-> -		ntohl(nla_get_be32(tb[NFCTH_POLICY_SET_NUM]));
-> -
-> -	if (helper->expect_class_max != 0 &&
-> -	    helper->expect_class_max > NF_CT_MAX_EXPECT_CLASSES)
-> +	class_max = ntohl(nla_get_be32(tb[NFCTH_POLICY_SET_NUM]));
-> +	if (class_max == 0)
-> +		return -EINVAL;
+> Because "struct nfct_helper_policy *p" had been freed by nfct_helper_free,
+> so there's no need to invoke nfct_helper_policy_free again, otherwise
+> dobule free error will happen.
 
-I think this patch is just fixing up this case. We should always
-provide a policy for the expectation.
-
-> +	if (class_max > NF_CT_MAX_EXPECT_CLASSES)
->  		return -EOVERFLOW;
->  
->  	expect_policy = kzalloc(sizeof(struct nf_conntrack_expect_policy) *
-> -				helper->expect_class_max, GFP_KERNEL);
-> +				class_max, GFP_KERNEL);
->  	if (expect_policy == NULL)
->  		return -ENOMEM;
->  
-> -	for (i=0; i<helper->expect_class_max; i++) {
-> +	for (i = 0; i < class_max; i++) {
->  		if (!tb[NFCTH_POLICY_SET+i])
->  			goto err;
->  
-> @@ -191,6 +191,8 @@ nfnl_cthelper_parse_expect_policy(struct nf_conntrack_helper *helper,
->  		if (ret < 0)
->  			goto err;
->  	}
-> +
-> +	helper->expect_class_max = class_max - 1;
-
-Why - 1 ?
-
-class_max represents the array size, you can just keep this code the
-way it is.
-
->  	helper->expect_policy = expect_policy;
->  	return 0;
->  err:
-> @@ -375,10 +377,10 @@ nfnl_cthelper_dump_policy(struct sk_buff *skb,
->  		goto nla_put_failure;
->  
->  	if (nla_put_be32(skb, NFCTH_POLICY_SET_NUM,
-> -			 htonl(helper->expect_class_max)))
-> +			 htonl(helper->expect_class_max + 1)))
->  		goto nla_put_failure;
->  
-> -	for (i=0; i<helper->expect_class_max; i++) {
-> +	for (i = 0; i < helper->expect_class_max + 1; i++) {
->  		nest_parms2 = nla_nest_start(skb,
->  				(NFCTH_POLICY_SET+i) | NLA_F_NESTED);
->  		if (nest_parms2 == NULL)
-> -- 
-> 2.5.5
-> 
-> 
+Applied, thanks.
