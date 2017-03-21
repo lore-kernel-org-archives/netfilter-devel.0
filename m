@@ -1,81 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net] bridge: ebtables: fix reception of frames
- DNAT-ed to bridge device
-Date: Tue, 21 Mar 2017 11:11:21 +0100
-Message-ID: <20170321101121.GB1719@salvia>
-References: <20170315031811.22714-1-linus.luessing@c0d3.blue>
-	<20170315102608.GB24366@breakpoint.cc>
-	<20170315104211.GA24409@salvia> <20170315142720.GU15692@otheros>
-	<20170315181539.GA31875@salvia> <20170315211619.GA3464@otheros>
-	<20170315220605.GA1766@salvia> <20170317131044.GA11995@salvia>
-	<20170319165506.GA15475@otheros> <20170321000947.GA31709@otheros>
+Subject: Re: [PATCH nf 1/5] netfilter: nfnl_cthelper: don't report error if
+ NFCTH_PRIV_DATA_LEN is empty
+Date: Tue, 21 Mar 2017 11:18:28 +0100
+Message-ID: <20170321101828.GA1940@salvia>
+References: <1489934162-7415-1-git-send-email-zlpnobody@163.com>
+ <1489934162-7415-2-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
-	Florian Westphal <fw@strlen.de>, linux-kernel@vger.kernel.org,
-	coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S . Miller" <davem@davemloft.net>
-To: Linus =?iso-8859-1?Q?L=FCssing?= <linus.luessing@c0d3.blue>
-Return-path: <bridge-bounces@lists.linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: Liping Zhang <zlpnobody@163.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:51978 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754338AbdCUKSd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 Mar 2017 06:18:33 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 5B52CEAA62
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 11:18:30 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4E1B9DA729
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 11:18:30 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E4223DA87D
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 11:18:27 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20170321000947.GA31709@otheros>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1489934162-7415-2-git-send-email-zlpnobody@163.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 21, 2017 at 01:09:47AM +0100, Linus Lüssing wrote:
-> On Sun, Mar 19, 2017 at 05:55:06PM +0100, Linus Lüssing wrote:
-> > On Fri, Mar 17, 2017 at 02:10:44PM +0100, Pablo Neira Ayuso wrote:
-> > > Wait.
-> > > 
-> > > May this break local multicast listener that are bound to the bridge
-> > > interface? Assuming the bridge interface got an IP address, and that
-> > > there is local multicast listener.
-> > > 
-> > > Missing anything here?
-> > 
-> > Hm, for multicast packets usually the code path a few lines
-> > later in br_handle_frame_finish() should be taken instead.
-> > 
-> > But you might be right for IP multicast packets with a unicast MAC
-> > destination (due to whatever reason, for instance via DNAT'ing
-> > again).
-> > 
-> > Will check that - thanks!
+On Sun, Mar 19, 2017 at 10:35:58PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <zlpnobody@gmail.com>
 > 
-> Ok, I tested DNAT'ing an IP multicast packet to the unicast MAC address
-> of the bridge interface.
+> Currently, when we create cthelper via nfnetlink, -EINVAL will be
+> returned if the NFCTH_PRIV_DATA_LEN attribute is empty.
 > 
-> Both ping-ing to an IPv4 and IPv6 multicast listener on br0 worked
-> and was replied to fine, both with or without changing skb->pkt_type
-> from PACKET_MULTICAST to PACKET_HOST.
-> ("$ ping 224.1.0.123" and "$ ping6 ff02::1:ff40:707c%in0" from a
->  network namespace, tied into the bridge via veth)
+> But enforcing the user to specify the NFCTH_PRIV_DATA_LEN attr seems
+> unnecessary, so it's better to set the helper->data_len to zero if
+> the NFCTH_PRIV_DATA_LEN attribute is empty.
 > 
-> Also, a DNAT'ed PACKET_BROADCAST worked, with or without changing
-> it to PACKET_HOST.
-> 
-> I also checked via tcpdump that the destination MAC was changed
-> successfully.
+> Found by running example program from libnetfilter_cthelper:
+>   # ./libnetfilter_cthelper/examples/nfct-helper-add test 1
+>   error: Invalid argument
 
-Thanks for looking into this more in depth.
+I suggest you fix this userspace example instead, we should always
+send NFCTH_PRIV_DATA_LEN. This is integral part of the helper
+description.
 
-> So, so far I wasn't able to find any bugs with the current
-> patch. But I think I like the idea of leaving the skb->pkt_type
-> unaltered for PACKET_MULTICAST and PACKET_BROADCAST, seems cleaner.
-
-Yes, and matching on skb->pkt_type would not break from netfilter.
-
-> I'd just add an "if (skb->pkt_type == PACKET_OTHERHOST)" check
-> then and resend a PATCH v2.
+NFCTH_ATTR_PRIV_DATA_LEN has been always set from the conntrack-tools,
+so most likely this example just got outdated at some point of the
+development and nobody noticed so far.
 
 Thanks.
