@@ -1,40 +1,38 @@
 From: Josh Hunt <johunt@akamai.com>
-Subject: [PATCH 2/5] ipset: hash:ip: add support for new netmask types
-Date: Tue, 21 Mar 2017 14:39:54 -0400
-Message-ID: <1490121597-2140-3-git-send-email-johunt@akamai.com>
+Subject: [PATCH 3/5] ipset: hash:ipport: netmask support
+Date: Tue, 21 Mar 2017 14:39:55 -0400
+Message-ID: <1490121597-2140-4-git-send-email-johunt@akamai.com>
 References: <1490121597-2140-1-git-send-email-johunt@akamai.com>
 Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         Josh Hunt <johunt@akamai.com>
 To: kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from prod-mail-xrelay07.akamai.com ([23.79.238.175]:36231 "EHLO
+Received: from prod-mail-xrelay07.akamai.com ([23.79.238.175]:36233 "EHLO
         prod-mail-xrelay07.akamai.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933305AbdCUSus (ORCPT
+        by vger.kernel.org with ESMTP id S933428AbdCUSus (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 21 Mar 2017 14:50:48 -0400
 In-Reply-To: <1490121597-2140-1-git-send-email-johunt@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Uses new netmask support added in previous commit to allow user to
-specify cidr, netmask, or wildcard mask as arguments to the netmask
-parameter at creation time.
+Adds netmask support to hash:ipport sets.
 
 Signed-off-by: Josh Hunt <johunt@akamai.com>
 ---
- lib/ipset_hash_ip.c | 166 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 166 insertions(+)
+ lib/ipset_hash_ipport.c | 194 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 194 insertions(+)
 
-diff --git a/lib/ipset_hash_ip.c b/lib/ipset_hash_ip.c
-index 2bff34f..36afc59 100644
---- a/lib/ipset_hash_ip.c
-+++ b/lib/ipset_hash_ip.c
-@@ -669,6 +669,171 @@ static struct ipset_type ipset_hash_ip4 = {
+diff --git a/lib/ipset_hash_ipport.c b/lib/ipset_hash_ipport.c
+index 2166922..a2cf79e 100644
+--- a/lib/ipset_hash_ipport.c
++++ b/lib/ipset_hash_ipport.c
+@@ -787,6 +787,199 @@ static struct ipset_type ipset_hash_ipport5 = {
  	.description = "skbinfo support",
  };
  
 +/* Parse commandline arguments */
-+static const struct ipset_arg hash_ip_create_args5[] = {
++static const struct ipset_arg hash_ipport_create_args6[] = {
 +	{ .name = { "family", NULL },
 +	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_FAMILY,
 +	  .parse = ipset_parse_family,		.print = ipset_print_family,
@@ -57,10 +55,6 @@ index 2bff34f..36afc59 100644
 +	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_MAXELEM,
 +	  .parse = ipset_parse_uint32,		.print = ipset_print_number,
 +	},
-+	{ .name = { "netmask", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_NETMASK_MASK,
-+	  .parse = ipset_parse_netmask,		.print = ipset_print_netmask,
-+	},
 +	{ .name = { "timeout", NULL },
 +	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
 +	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
@@ -81,7 +75,11 @@ index 2bff34f..36afc59 100644
 +	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_SKBINFO,
 +	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
 +	},
-+	/* Ignored options: backward compatibilty */
++	{ .name = { "netmask", NULL },
++	  .has_arg = IPSET_MANDATORY_ARG,       .opt = IPSET_OPT_NETMASK_MASK,
++	  .parse = ipset_parse_netmask,         .print = ipset_print_netmask,
++	},
++	/* Backward compatibility */
 +	{ .name = { "probes", NULL },
 +	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_PROBES,
 +	  .parse = ipset_parse_ignored,		.print = ipset_print_number,
@@ -90,14 +88,22 @@ index 2bff34f..36afc59 100644
 +	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_RESIZE,
 +	  .parse = ipset_parse_ignored,		.print = ipset_print_number,
 +	},
-+	{ .name = { "gc", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_GC,
-+	  .parse = ipset_parse_ignored,		.print = ipset_print_number,
++	{ .name = { "from", NULL },
++	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_IP,
++	  .parse = ipset_parse_ignored,
++	},
++	{ .name = { "to", NULL },
++	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_IP_TO,
++	  .parse = ipset_parse_ignored,
++	},
++	{ .name = { "network", NULL },
++	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_IP,
++	  .parse = ipset_parse_ignored,
 +	},
 +	{ },
 +};
 +
-+static const struct ipset_arg hash_ip_add_args5[] = {
++static const struct ipset_arg hash_ipport_add_args6[] = {
 +	{ .name = { "timeout", NULL },
 +	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
 +	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
@@ -129,59 +135,73 @@ index 2bff34f..36afc59 100644
 +	{ },
 +};
 +
-+
-+static const char hash_ip_usage5[] =
-+"create SETNAME hash:ip\n"
++static const char hash_ipport_usage6[] =
++"create SETNAME hash:ip,port\n"
 +"		[family inet|inet6]\n"
 +"               [hashsize VALUE] [maxelem VALUE]\n"
-+"               [netmask CIDR or MASK] [timeout VALUE]\n"
-+"               [counters] [comment] [forceadd] [skbinfo]\n"
-+"add    SETNAME IP [timeout VALUE]\n"
++"               [timeout VALUE] [counters] [comment]\n"
++"		[forceadd] [skbinfo] [netmask CIDR or MASK]\n"
++"add    SETNAME IP,PROTO:PORT [timeout VALUE]\n"
 +"               [packets VALUE] [bytes VALUE] [comment \"string\"]\n"
 +"		[skbmark VALUE] [skbprio VALUE] [skbqueue VALUE]\n"
-+"del    SETNAME IP\n"
-+"test   SETNAME IP\n\n"
++"del    SETNAME IP,PROTO:PORT\n"
++"test   SETNAME IP,PROTO:PORT\n\n"
 +"where depending on the INET family\n"
-+"      IP is a valid IPv4 or IPv6 address (or hostname),\n"
-+"      CIDR is a valid IPv4 or IPv6 CIDR prefix.\n"
++"      IP is a valid IPv4 or IPv6 address (or hostname).\n"
 +"      Adding/deleting multiple elements in IP/CIDR or FROM-TO form\n"
-+"      is supported for IPv4.\n";
++"      is supported for IPv4.\n"
++"      Adding/deleting multiple elements with TCP/SCTP/UDP/UDPLITE\n"
++"      port range is supported both for IPv4 and IPv6.\n";
 +
-+static struct ipset_type ipset_hash_ip5 = {
-+	.name = "hash:ip",
-+	.alias = { "iphash", NULL },
-+	.revision = 5,
++static struct ipset_type ipset_hash_ipport6 = {
++	.name = "hash:ip,port",
++	.alias = { "ipporthash", NULL },
++	.revision = 6,
 +	.family = NFPROTO_IPSET_IPV46,
-+	.dimension = IPSET_DIM_ONE,
++	.dimension = IPSET_DIM_TWO,
 +	.elem = {
 +		[IPSET_DIM_ONE - 1] = {
 +			.parse = ipset_parse_ip4_single6,
 +			.print = ipset_print_ip,
 +			.opt = IPSET_OPT_IP
 +		},
++		[IPSET_DIM_TWO - 1] = {
++			.parse = ipset_parse_proto_port,
++			.print = ipset_print_proto_port,
++			.opt = IPSET_OPT_PORT
++		},
 +	},
 +	.args = {
-+		[IPSET_CREATE] = hash_ip_create_args5,
-+		[IPSET_ADD] = hash_ip_add_args5,
++		[IPSET_CREATE] = hash_ipport_create_args6,
++		[IPSET_ADD] = hash_ipport_add_args6,
 +	},
 +	.mandatory = {
 +		[IPSET_CREATE] = 0,
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP),
++		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_PORT),
++		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_PORT),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
++			| IPSET_FLAG(IPSET_OPT_PORT),
 +	},
 +	.full = {
 +		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_HASHSIZE)
 +			| IPSET_FLAG(IPSET_OPT_MAXELEM)
-+			| IPSET_FLAG(IPSET_OPT_NETMASK)
 +			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
 +			| IPSET_FLAG(IPSET_OPT_COUNTERS)
 +			| IPSET_FLAG(IPSET_OPT_CREATE_COMMENT)
 +			| IPSET_FLAG(IPSET_OPT_FORCEADD)
 +			| IPSET_FLAG(IPSET_OPT_SKBINFO)
++			| IPSET_FLAG(IPSET_OPT_NETMASK)
 +			| IPSET_FLAG(IPSET_OPT_NETMASK_MASK),
 +		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_IP)
 +			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PORT_TO)
++			| IPSET_FLAG(IPSET_OPT_PROTO)
 +			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
 +			| IPSET_FLAG(IPSET_OPT_PACKETS)
 +			| IPSET_FLAG(IPSET_OPT_BYTES)
@@ -190,22 +210,28 @@ index 2bff34f..36afc59 100644
 +			| IPSET_FLAG(IPSET_OPT_SKBPRIO)
 +			| IPSET_FLAG(IPSET_OPT_SKBQUEUE),
 +		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_IP)
-+			| IPSET_FLAG(IPSET_OPT_IP_TO),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP),
++			| IPSET_FLAG(IPSET_OPT_IP_TO)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PORT_TO)
++			| IPSET_FLAG(IPSET_OPT_PROTO),
++		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_IP)
++			| IPSET_FLAG(IPSET_OPT_PORT)
++			| IPSET_FLAG(IPSET_OPT_PROTO),
 +	},
 +
-+	.usage = hash_ip_usage5,
-+	.description = "netmask wildcardmask support",
++	.usage = hash_ipport_usage6,
++	.usagefn = ipset_port_usage,
++	.description = "netmask support",
 +};
 +
  void _init(void);
  void _init(void)
  {
-@@ -677,4 +842,5 @@ void _init(void)
- 	ipset_type_add(&ipset_hash_ip2);
- 	ipset_type_add(&ipset_hash_ip3);
- 	ipset_type_add(&ipset_hash_ip4);
-+	ipset_type_add(&ipset_hash_ip5);
+@@ -795,4 +988,5 @@ void _init(void)
+ 	ipset_type_add(&ipset_hash_ipport3);
+ 	ipset_type_add(&ipset_hash_ipport4);
+ 	ipset_type_add(&ipset_hash_ipport5);
++	ipset_type_add(&ipset_hash_ipport6);
  }
 -- 
 1.9.1
