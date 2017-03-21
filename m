@@ -1,54 +1,81 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH nf 1/5] netfilter: nfnl_cthelper: don't report error if
- NFCTH_PRIV_DATA_LEN is empty
-Date: Tue, 21 Mar 2017 22:26:35 +0800
-Message-ID: <CAML_gOde+SUbv1zLMxVhixBo7Ji8PCayNiWi7nL8biLCrEdAAg@mail.gmail.com>
-References: <1489934162-7415-1-git-send-email-zlpnobody@163.com>
- <1489934162-7415-2-git-send-email-zlpnobody@163.com> <20170321101828.GA1940@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH net-next 1/1] netfilter: helper: Remove the rcu lock in
+ nf_ct_helper_expectfn_find_by_name and nf_ct_helper_expectfn_find_by_symbol.
+Date: Tue, 21 Mar 2017 15:30:10 +0100
+Message-ID: <20170321143010.GA17014@salvia>
+References: <1489480145-54411-1-git-send-email-fgao@ikuai8.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Liping Zhang <zlpnobody@163.com>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, gfree.wind@gmail.com
+To: fgao@ikuai8.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f68.google.com ([209.85.213.68]:34911 "EHLO
-        mail-vk0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757284AbdCUO0z (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Mar 2017 10:26:55 -0400
-Received: by mail-vk0-f68.google.com with SMTP id z204so5341813vkd.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 07:26:36 -0700 (PDT)
-In-Reply-To: <20170321101828.GA1940@salvia>
+Received: from mail.us.es ([193.147.175.20]:59678 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932173AbdCUOaW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 Mar 2017 10:30:22 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9B110170D47
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 15:30:17 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 88D73FB470
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 15:30:17 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CD2ABEBACE
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 15:30:13 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <1489480145-54411-1-git-send-email-fgao@ikuai8.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+On Tue, Mar 14, 2017 at 04:29:05PM +0800, fgao@ikuai8.com wrote:
+> From: Gao Feng <fgao@ikuai8.com>
+> 
+> Because these two functions return the nf_ct_helper_expectfn pointer
+> which should be protected by rcu lock. So it should makes sure the
+> caller should hold the rcu lock, not inside these functions.
+> 
+> Signed-off-by: Gao Feng <fgao@ikuai8.com>
+> ---
+>  net/netfilter/nf_conntrack_helper.c | 6 ++----
+>  1 file changed, 2 insertions(+), 4 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+> index 6dc44d9..bce3d1f 100644
+> --- a/net/netfilter/nf_conntrack_helper.c
+> +++ b/net/netfilter/nf_conntrack_helper.c
+> @@ -311,38 +311,36 @@ void nf_ct_helper_expectfn_unregister(struct nf_ct_helper_expectfn *n)
+>  }
+>  EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_unregister);
+>  
+> +/* Caller should hold the rcu lock */
+>  struct nf_ct_helper_expectfn *
+>  nf_ct_helper_expectfn_find_by_name(const char *name)
+>  {
+>  	struct nf_ct_helper_expectfn *cur;
+>  	bool found = false;
+>  
+> -	rcu_read_lock();
+>  	list_for_each_entry_rcu(cur, &nf_ct_helper_expectfn_list, head) {
+>  		if (!strcmp(cur->name, name)) {
+>  			found = true;
+>  			break;
+>  		}
+>  	}
+> -	rcu_read_unlock();
+>  	return found ? cur : NULL;
+>  }
+>  EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_find_by_name);
 
-2017-03-21 18:18 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-> On Sun, Mar 19, 2017 at 10:35:58PM +0800, Liping Zhang wrote:
->> From: Liping Zhang <zlpnobody@gmail.com>
->>
->> Currently, when we create cthelper via nfnetlink, -EINVAL will be
->> returned if the NFCTH_PRIV_DATA_LEN attribute is empty.
->>
->> But enforcing the user to specify the NFCTH_PRIV_DATA_LEN attr seems
->> unnecessary, so it's better to set the helper->data_len to zero if
->> the NFCTH_PRIV_DATA_LEN attribute is empty.
->>
->> Found by running example program from libnetfilter_cthelper:
->>   # ./libnetfilter_cthelper/examples/nfct-helper-add test 1
->>   error: Invalid argument
->
-> I suggest you fix this userspace example instead, we should always
-> send NFCTH_PRIV_DATA_LEN. This is integral part of the helper
-> description.
->
-> NFCTH_ATTR_PRIV_DATA_LEN has been always set from the conntrack-tools,
-> so most likely this example just got outdated at some point of the
-> development and nobody noticed so far.
+You have to collapse this patch to:
 
-OK, get it. I will send a patch to fix the example codes.
+http://patchwork.ozlabs.org/patch/740576/
 
->
-> Thanks.
+Please... use shorter patch subject names, around 80 chars long. There
+is no strict limit that I know, but this subject looks too long.
+
+I think rcu read side is missing in every invocations to:
+
+__nf_conntrack_helper_find()
+
+in ctnetlink. So this patch would be larger, have a closer look and
+fix this in one go, please.
