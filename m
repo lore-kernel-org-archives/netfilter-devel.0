@@ -1,141 +1,56 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf 1/2,v3] netfilter: nfnetlink_cthelper: fix runtime expectation policy updates
-Date: Tue, 21 Mar 2017 15:57:55 +0100
-Message-ID: <1490108275-19537-1-git-send-email-pablo@netfilter.org>
-Cc: zlpnobody@gmail.com, jeffy.chen@rock-chips.com,
-        briannorris@chromium.org, dianders@chromium.org
-To: netfilter-devel@vger.kernel.org
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH nf 5/5] netfilter: nfnl_cthelper: fix a race when walk the
+ nf_ct_helper_hash table
+Date: Tue, 21 Mar 2017 23:19:11 +0800
+Message-ID: <CAML_gOdeXTEPb2vzjR4LYOif291pto4bF8DjWzndsfh6d1+z+g@mail.gmail.com>
+References: <1489934162-7415-1-git-send-email-zlpnobody@163.com>
+ <1489934162-7415-6-git-send-email-zlpnobody@163.com> <20170321103334.GD1940@salvia>
+ <CAML_gOcmYsogb0BKRxkYh0MF9kW7KTd-HyvEbsa3uL_YTQOa7g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: Liping Zhang <zlpnobody@163.com>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47904 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756517AbdCUPIn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Mar 2017 11:08:43 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D3A28174D05
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 15:58:04 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C1FCCFB461
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 15:58:04 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8E921FB462
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 15:57:58 +0100 (CET)
+Received: from mail-vk0-f53.google.com ([209.85.213.53]:34703 "EHLO
+        mail-vk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757404AbdCUPTN (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 Mar 2017 11:19:13 -0400
+Received: by mail-vk0-f53.google.com with SMTP id z204so40489692vkd.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 08:19:12 -0700 (PDT)
+In-Reply-To: <CAML_gOcmYsogb0BKRxkYh0MF9kW7KTd-HyvEbsa3uL_YTQOa7g@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We only allow runtime updates of expectation policies for timeout and
-maximum number of expectations, otherwise reject the update.
+Hi Pablo,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v3: Fixed expect_class_max semantics. Compile-tested only.
+2017-03-21 22:48 GMT+08:00 Liping Zhang <zlpnobody@gmail.com>:
+> 2017-03-21 18:33 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+>>> +struct nfnl_cthelper {
+>>> +     struct list_head                list;
+>>> +     struct nf_conntrack_helper      *helper;
+>>> +};
+>>> +
+>>> +static LIST_HEAD(nfnl_cthelper_list);
+>>
+>> We need a field possible_net_t so we can store what netns this helper
+>> belongs to, thus in case of flush command, we just remove the helpers
+>> that this netns owns.
 
- net/netfilter/nfnetlink_cthelper.c | 86 +++++++++++++++++++++++++++++++++++++-
- 1 file changed, 84 insertions(+), 2 deletions(-)
+After I have a closer look, I find that we do not support netns for the
+nfct_helper currently. So this possible_net_t field is not necessary for
+the time being.
 
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index 3cd41d105407..90f291e27eb1 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -256,6 +256,89 @@ nfnl_cthelper_create(const struct nlattr * const tb[],
- }
- 
- static int
-+nfnl_cthelper_update_policy_one(const struct nf_conntrack_expect_policy *policy,
-+				struct nf_conntrack_expect_policy *new_policy,
-+				const struct nlattr *attr)
-+{
-+	struct nlattr *tb[NFCTH_POLICY_MAX + 1];
-+	int err;
-+
-+	err = nla_parse_nested(tb, NFCTH_POLICY_MAX, attr,
-+			       nfnl_cthelper_expect_pol);
-+	if (err < 0)
-+		return err;
-+
-+	if (!tb[NFCTH_POLICY_NAME] ||
-+	    !tb[NFCTH_POLICY_EXPECT_MAX] ||
-+	    !tb[NFCTH_POLICY_EXPECT_TIMEOUT])
-+		return -EINVAL;
-+
-+	if (nla_strcmp(tb[NFCTH_POLICY_NAME], policy->name))
-+		return -EBUSY;
-+
-+	new_policy->max_expected =
-+		ntohl(nla_get_be32(tb[NFCTH_POLICY_EXPECT_MAX]));
-+	new_policy->timeout =
-+		ntohl(nla_get_be32(tb[NFCTH_POLICY_EXPECT_TIMEOUT]));
-+
-+	return 0;
-+}
-+
-+static int nfnl_cthelper_update_policy_all(struct nlattr *tb[],
-+					   struct nf_conntrack_helper *helper)
-+{
-+	struct nf_conntrack_expect_policy new_policy[helper->expect_class_max + 1];
-+	struct nf_conntrack_expect_policy *policy;
-+	int i, err;
-+
-+	/* Check first that all policy attributes are well-formed, so we don't
-+	 * leave things in inconsistent state on errors.
-+	 */
-+	for (i = 0; i < helper->expect_class_max + 1; i++) {
-+
-+		if (!tb[NFCTH_POLICY_SET + i])
-+			return -EINVAL;
-+
-+		err = nfnl_cthelper_update_policy_one(&helper->expect_policy[i],
-+						      &new_policy[i],
-+						      tb[NFCTH_POLICY_SET + i]);
-+		if (err < 0)
-+			return err;
-+	}
-+	/* Now we can safely update them. */
-+	for (i = 0; i < helper->expect_class_max + 1; i++) {
-+		policy = (struct nf_conntrack_expect_policy *)
-+				&helper->expect_policy[i];
-+		policy->max_expected = new_policy->max_expected;
-+		policy->timeout	= new_policy->timeout;
-+	}
-+
-+	return 0;
-+}
-+
-+static int nfnl_cthelper_update_policy(struct nf_conntrack_helper *helper,
-+				       const struct nlattr *attr)
-+{
-+	struct nlattr *tb[NFCTH_POLICY_SET_MAX + 1];
-+	unsigned int class_max;
-+	int err;
-+
-+	err = nla_parse_nested(tb, NFCTH_POLICY_SET_MAX, attr,
-+			       nfnl_cthelper_expect_policy_set);
-+	if (err < 0)
-+		return err;
-+
-+	if (!tb[NFCTH_POLICY_SET_NUM])
-+		return -EINVAL;
-+
-+	class_max = ntohl(nla_get_be32(tb[NFCTH_POLICY_SET_NUM]));
-+	if (helper->expect_class_max + 1 != class_max)
-+		return -EBUSY;
-+
-+	return nfnl_cthelper_update_policy_all(tb, helper);
-+}
-+
-+static int
- nfnl_cthelper_update(const struct nlattr * const tb[],
- 		     struct nf_conntrack_helper *helper)
- {
-@@ -265,8 +348,7 @@ nfnl_cthelper_update(const struct nlattr * const tb[],
- 		return -EBUSY;
- 
- 	if (tb[NFCTH_POLICY]) {
--		ret = nfnl_cthelper_parse_expect_policy(helper,
--							tb[NFCTH_POLICY]);
-+		ret = nfnl_cthelper_update_policy(helper, tb[NFCTH_POLICY]);
- 		if (ret < 0)
- 			return ret;
- 	}
--- 
-2.1.4
+I have a quick glance look, supporting netns for helper need a lot works
+to do. We need to both change the nfnetlink_cthelper, nf_conntrack_help
+and so on.
 
+But if you think it's worth to support netns for cthelper, I can finish it in my
+spare time:)
+
+>
+> Yes, good point, I will send v2.
+>
+> Thanks Pablo.
