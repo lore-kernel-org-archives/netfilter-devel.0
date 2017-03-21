@@ -1,81 +1,84 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next 1/1] netfilter: helper: Remove the rcu lock in
- nf_ct_helper_expectfn_find_by_name and nf_ct_helper_expectfn_find_by_symbol.
-Date: Tue, 21 Mar 2017 15:30:10 +0100
-Message-ID: <20170321143010.GA17014@salvia>
-References: <1489480145-54411-1-git-send-email-fgao@ikuai8.com>
+From: "Gao Feng" <gfree.wind@foxmail.com>
+Subject: RE: [PATCH nf v3 2/2] netfilter: helper: Fix possible panic caused by invoking expectfn unloaded
+Date: Tue, 21 Mar 2017 22:20:59 +0800
+Message-ID: <005001d2a24e$5cffea30$16ffbe90$@foxmail.com>
+References: <cover.1490060879.git.fgao@ikuai8.com> <b30c3340a5b543d5544ced6aae5c7d585d423328.1490060879.git.fgao@ikuai8.com> <20170321141329.GA12171@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, gfree.wind@gmail.com
-To: fgao@ikuai8.com
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>, <gfree_wind@126.com>
+To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>, <fgao@ikuai8.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59678 "EHLO mail.us.es"
+Received: from smtpbg323.qq.com ([14.17.32.33]:57592 "EHLO smtpbg323.qq.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932173AbdCUOaW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Mar 2017 10:30:22 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9B110170D47
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 15:30:17 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 88D73FB470
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 15:30:17 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CD2ABEBACE
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 15:30:13 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1489480145-54411-1-git-send-email-fgao@ikuai8.com>
+        id S932968AbdCUOdH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 Mar 2017 10:33:07 -0400
+In-Reply-To: <20170321141329.GA12171@salvia>
+Content-Language: zh-cn
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 14, 2017 at 04:29:05PM +0800, fgao@ikuai8.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
+Hi Pablo,
+
+> -----Original Message-----
+> From: netfilter-devel-owner@vger.kernel.org
+> [mailto:netfilter-devel-owner@vger.kernel.org] On Behalf Of Pablo Neira
+Ayuso
+> Sent: Tuesday, March 21, 2017 10:13 PM
+> To: fgao@ikuai8.com
+> Cc: netfilter-devel@vger.kernel.org; gfree_wind@126.com
+> Subject: Re: [PATCH nf v3 2/2] netfilter: helper: Fix possible panic
+caused by
+> invoking expectfn unloaded
 > 
-> Because these two functions return the nf_ct_helper_expectfn pointer
-> which should be protected by rcu lock. So it should makes sure the
-> caller should hold the rcu lock, not inside these functions.
+> On Tue, Mar 21, 2017 at 02:06:26PM +0800, fgao@ikuai8.com wrote:
+> > From: Gao Feng <fgao@ikuai8.com>
+> >
+> > Because the conntrack NAT module could be rmmod anytime, so we should
+> > really leave things in clean state if such thing happens and make sure
+> > we don't leave any packet running over code that will be gone after
+> > the removal.
+> >
+> > We only removed the expectations when unregister conntrack helper
+before.
+> > Actually it is necessary too when remove the nat helper.
 > 
-> Signed-off-by: Gao Feng <fgao@ikuai8.com>
-> ---
->  net/netfilter/nf_conntrack_helper.c | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
+> We still need something like this, right?
+Yes, we need to remove expect when remove helper and nat_helper.
+
 > 
-> diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-> index 6dc44d9..bce3d1f 100644
-> --- a/net/netfilter/nf_conntrack_helper.c
-> +++ b/net/netfilter/nf_conntrack_helper.c
-> @@ -311,38 +311,36 @@ void nf_ct_helper_expectfn_unregister(struct nf_ct_helper_expectfn *n)
->  }
->  EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_unregister);
->  
-> +/* Caller should hold the rcu lock */
->  struct nf_ct_helper_expectfn *
->  nf_ct_helper_expectfn_find_by_name(const char *name)
->  {
->  	struct nf_ct_helper_expectfn *cur;
->  	bool found = false;
->  
-> -	rcu_read_lock();
->  	list_for_each_entry_rcu(cur, &nf_ct_helper_expectfn_list, head) {
->  		if (!strcmp(cur->name, name)) {
->  			found = true;
->  			break;
->  		}
->  	}
-> -	rcu_read_unlock();
->  	return found ? cur : NULL;
->  }
->  EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_find_by_name);
+> diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c index
+> 791fac4fd745..38f1ed5219e4 100644
+> --- a/net/netfilter/nf_nat_sip.c
+> +++ b/net/netfilter/nf_nat_sip.c
+> @@ -377,6 +377,7 @@ static unsigned int nf_nat_sip_expect(struct sk_buff
+> *skb, unsigned int protoff,
+>         exp->saved_proto.udp.port = exp->tuple.dst.u.udp.port;
+>         exp->dir = !dir;
+>         exp->expectfn = nf_nat_sip_expected;
+> +       exp->nat_module = THIS_MODULE;
+> 
+>         for (; port != 0; port++) {
+>                 int ret;
+> 
+> So if the user invokes:
+> 
+>         rmmod nf_nat_sip
+> 
+> we can get rid of this expectation from nf_ct_flush_expect().
 
-You have to collapse this patch to:
+Oh, I missed the data path, only covered the ctlink codes.
+I would update the patch again.
 
-http://patchwork.ozlabs.org/patch/740576/
+Best Regards
+Feng
 
-Please... use shorter patch subject names, around 80 chars long. There
-is no strict limit that I know, but this subject looks too long.
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
+in the
+> body of a message to majordomo@vger.kernel.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
 
-I think rcu read side is missing in every invocations to:
 
-__nf_conntrack_helper_find()
 
-in ctnetlink. So this patch would be larger, have a closer look and
-fix this in one go, please.
