@@ -1,150 +1,80 @@
-From: Vishwanath Pai <vpai@akamai.com>
-Subject: [PATCH 1/2] netfilter: ipset: warn users of list:set that parameter 'size' is ignored
-Date: Tue, 21 Mar 2017 22:06:21 -0400
-Message-ID: <1490148382-2633-1-git-send-email-vpai@akamai.com>
-Cc: johunt@akamai.com, vpai@akamai.com,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        coreteam@netfilter.org, pai.vishwain@gmail.com
-To: pablo@netfilter.org, kadlec@blackhole.kfki.hu
+From: gfree.wind@foxmail.com
+Subject: [PATCH nf-next v2 1/1] netfilter: helper: Remove useless rcu lock when get expectfn
+Date: Wed, 22 Mar 2017 10:15:02 +0800
+Message-ID: <1490148902-96508-1-git-send-email-gfree.wind@foxmail.com>
+Cc: Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from prod-mail-xrelay05.akamai.com ([23.79.238.179]:10934 "EHLO
-        prod-mail-xrelay05.akamai.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932656AbdCVCKD (ORCPT
+Received: from smtpproxy19.qq.com ([184.105.206.84]:50328 "EHLO
+        smtpproxy19.qq.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933280AbdCVCPU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Mar 2017 22:10:03 -0400
+        Tue, 21 Mar 2017 22:15:20 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Since kernel commit 00590fdd5be0 ("netfilter: ipset: Introduce RCU
-locking in list type"), the parameter 'size' has not been in use and
-is ignored by the kernel. This is not very apparent to the user. This
-commit makes 'size' optional and also warns the user if they try to
-specify it. We also don't print it out on 'ipset l'.
+From: Gao Feng <fgao@ikuai8.com>
 
-I created revision 4 to make this change, revision 3 should work with
-older kernels just like before.
+Because these two functions return the nf_ct_helper_expectfn pointer
+which should be protected by rcu lock. So it should makes sure the
+caller should hold the rcu lock, not inside these functions.
 
-Reviewed-by: Josh Hunt <johunt@akamai.com>
-Signed-off-by: Vishwanath Pai <vpai@akamai.com>
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
 ---
- lib/ipset_list_set.c | 92 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 92 insertions(+)
+ v2: Shorter subject, per Pablo
+ v1: Initial version
 
-diff --git a/lib/ipset_list_set.c b/lib/ipset_list_set.c
-index 45934e7..2d8bc7a 100644
---- a/lib/ipset_list_set.c
-+++ b/lib/ipset_list_set.c
-@@ -322,6 +322,31 @@ static const struct ipset_arg list_set_create_args3[] = {
- 	{ },
- };
- 
-+/* Parse commandline arguments */
-+static const struct ipset_arg list_set_create_args4[] = {
-+	{ .name = { "size", NULL },
-+	  .has_arg = IPSET_OPTIONAL_ARG,	.opt = IPSET_OPT_SIZE,
-+	  .parse = ipset_parse_ignored,
-+	},
-+	{ .name = { "timeout", NULL },
-+	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-+	  .parse = ipset_parse_timeout,		.print = ipset_print_number,
-+	},
-+	{ .name = { "counters", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_COUNTERS,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ .name = { "comment", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_CREATE_COMMENT,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ .name = { "skbinfo", NULL },
-+	  .has_arg = IPSET_NO_ARG,		.opt = IPSET_OPT_SKBINFO,
-+	  .parse = ipset_parse_flag,		.print = ipset_print_flag,
-+	},
-+	{ },
-+};
-+
- static const struct ipset_arg list_set_adt_args3[] = {
- 	{ .name = { "timeout", NULL },
- 	  .has_arg = IPSET_MANDATORY_ARG,	.opt = IPSET_OPT_TIMEOUT,
-@@ -426,6 +451,72 @@ static struct ipset_type ipset_list_set3 = {
- 	.usage = list_set_usage3,
- 	.description = "skbinfo support",
- };
-+
-+static const char list_set_usage4[] =
-+"create SETNAME list:set\n"
-+"               [timeout VALUE] [counters] [comment]\n"
-+"		[skbinfo]\n"
-+"add    SETNAME NAME [before|after NAME] [timeout VALUE]\n"
-+"               [packets VALUE] [bytes VALUE] [comment STRING]\n"
-+"		[skbmark VALUE] [skbprio VALUE] [skbqueue VALUE]\n"
-+"del    SETNAME NAME [before|after NAME]\n"
-+"test   SETNAME NAME [before|after NAME]\n\n"
-+"where NAME are existing set names.\n";
-+
-+static struct ipset_type ipset_list_set4 = {
-+	.name = "list:set",
-+	.alias = { "setlist", NULL },
-+	.revision = 4,
-+	.family = NFPROTO_UNSPEC,
-+	.dimension = IPSET_DIM_ONE,
-+	.elem = {
-+		[IPSET_DIM_ONE - 1] = {
-+			.parse = ipset_parse_setname,
-+			.print = ipset_print_name,
-+			.opt = IPSET_OPT_NAME
-+		},
-+	},
-+	.compat_parse_elem = ipset_parse_name_compat,
-+	.args = {
-+		[IPSET_CREATE] = list_set_create_args4,
-+		[IPSET_ADD] = list_set_adt_args3,
-+		[IPSET_DEL] = list_set_adt_args2,
-+		[IPSET_TEST] = list_set_adt_args2,
-+	},
-+	.mandatory = {
-+		[IPSET_CREATE] = 0,
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_NAME),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_NAME),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_NAME),
-+	},
-+	.full = {
-+		[IPSET_CREATE] = IPSET_FLAG(IPSET_OPT_SIZE)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_COUNTERS)
-+			| IPSET_FLAG(IPSET_OPT_CREATE_COMMENT)
-+			| IPSET_FLAG(IPSET_OPT_SKBINFO),
-+		[IPSET_ADD] = IPSET_FLAG(IPSET_OPT_NAME)
-+			| IPSET_FLAG(IPSET_OPT_BEFORE)
-+			| IPSET_FLAG(IPSET_OPT_NAMEREF)
-+			| IPSET_FLAG(IPSET_OPT_TIMEOUT)
-+			| IPSET_FLAG(IPSET_OPT_PACKETS)
-+			| IPSET_FLAG(IPSET_OPT_BYTES)
-+			| IPSET_FLAG(IPSET_OPT_ADT_COMMENT)
-+			| IPSET_FLAG(IPSET_OPT_SKBMARK)
-+			| IPSET_FLAG(IPSET_OPT_SKBPRIO)
-+			| IPSET_FLAG(IPSET_OPT_SKBQUEUE),
-+		[IPSET_DEL] = IPSET_FLAG(IPSET_OPT_NAME)
-+			| IPSET_FLAG(IPSET_OPT_BEFORE)
-+			| IPSET_FLAG(IPSET_OPT_NAMEREF),
-+		[IPSET_TEST] = IPSET_FLAG(IPSET_OPT_NAME)
-+			| IPSET_FLAG(IPSET_OPT_BEFORE)
-+			| IPSET_FLAG(IPSET_OPT_NAMEREF),
-+	},
-+
-+	.usage = list_set_usage4,
-+	.description = "ignore and warn users about parameter 'size'",
-+};
-+
- void _init(void);
- void _init(void)
- {
-@@ -433,4 +524,5 @@ void _init(void)
- 	ipset_type_add(&ipset_list_set1);
- 	ipset_type_add(&ipset_list_set2);
- 	ipset_type_add(&ipset_list_set3);
-+	ipset_type_add(&ipset_list_set4);
+ net/netfilter/nf_conntrack_helper.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 6dc44d9..bce3d1f 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -311,38 +311,36 @@ void nf_ct_helper_expectfn_unregister(struct nf_ct_helper_expectfn *n)
  }
+ EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_unregister);
+ 
++/* Caller should hold the rcu lock */
+ struct nf_ct_helper_expectfn *
+ nf_ct_helper_expectfn_find_by_name(const char *name)
+ {
+ 	struct nf_ct_helper_expectfn *cur;
+ 	bool found = false;
+ 
+-	rcu_read_lock();
+ 	list_for_each_entry_rcu(cur, &nf_ct_helper_expectfn_list, head) {
+ 		if (!strcmp(cur->name, name)) {
+ 			found = true;
+ 			break;
+ 		}
+ 	}
+-	rcu_read_unlock();
+ 	return found ? cur : NULL;
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_find_by_name);
+ 
++/* Caller should hold the rcu lock */
+ struct nf_ct_helper_expectfn *
+ nf_ct_helper_expectfn_find_by_symbol(const void *symbol)
+ {
+ 	struct nf_ct_helper_expectfn *cur;
+ 	bool found = false;
+ 
+-	rcu_read_lock();
+ 	list_for_each_entry_rcu(cur, &nf_ct_helper_expectfn_list, head) {
+ 		if (cur->expectfn == symbol) {
+ 			found = true;
+ 			break;
+ 		}
+ 	}
+-	rcu_read_unlock();
+ 	return found ? cur : NULL;
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_find_by_symbol);
 -- 
 1.9.1
+
+
+
 
