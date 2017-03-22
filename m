@@ -1,229 +1,67 @@
-From: Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH V4 2/2] audit: normalize NETFILTER_PKT
-Date: Wed, 22 Mar 2017 03:05:37 -0400
-Message-ID: <60af528a786586754a736810889b88a44af6fc5a.1490165887.git.rgb@redhat.com>
-References: <d2ef98ddd4884276879107d4cd4521330e709578.1490165887.git.rgb@redhat.com>
-Cc: Richard Guy Briggs <rgb@redhat.com>,
-        Florian Westphal <fw@strlen.de>,
-        Thomas Woerner <twoerner@redhat.com>,
-        Thomas Graf <tgraf@infradead.org>,
-        Eric Paris <eparis@redhat.com>, Paul Moore <pmoore@redhat.com>,
-        Steve Grubb <sgrubb@redhat.com>
-To: Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>, linux-audit@redhat.com
+From: Alexandru Ardelean <ardeleanalex@gmail.com>
+Subject: Re: [PATCH] ulogd: add +1 char for null char
+Date: Wed, 22 Mar 2017 09:07:26 +0200
+Message-ID: <CA+U=DsoLF=6pOyH+7-+6Shi8ihEBTfbvxFWrvy47kKVDEm7sZg@mail.gmail.com>
+References: <1489998667-15183-1-git-send-email-ardeleanalex@gmail.com> <1490129693.2157.21.camel@regit.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40832 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933819AbdCVHGU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Mar 2017 03:06:20 -0400
-In-Reply-To: <d2ef98ddd4884276879107d4cd4521330e709578.1490165887.git.rgb@redhat.com>
-In-Reply-To: <d2ef98ddd4884276879107d4cd4521330e709578.1490165887.git.rgb@redhat.com>
-References: <d2ef98ddd4884276879107d4cd4521330e709578.1490165887.git.rgb@redhat.com>
+Received: from mail-pg0-f53.google.com ([74.125.83.53]:33676 "EHLO
+        mail-pg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752115AbdCVHOg (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 22 Mar 2017 03:14:36 -0400
+Received: by mail-pg0-f53.google.com with SMTP id w20so2438338pgc.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 00:14:35 -0700 (PDT)
+In-Reply-To: <1490129693.2157.21.camel@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eliminate flipping in and out of message fields, dropping fields in the
-process.
+On Tue, Mar 21, 2017 at 10:54 PM, Eric Leblond <eric@regit.org> wrote:
+> Hello,
+>
+> Thanks for the report and the patch. I'm not sure of your
+> implementation. Can you test with the patch to follow ?
+>
+> On Mon, 2017-03-20 at 10:31 +0200, Alexandru Ardelean wrote:
+>> This is a bit zealous to fix like this, but it seems to work.
+>>
+>> The crash was reproduced on ppc32, with GCC 5.4 & musl libc 1.1.16.
+>>
+>> And also on LEDE (mips_24kc and ARM):
+>> https://github.com/openwrt/packages/issues/4123
+>> https://github.com/openwrt/packages/issues/4090
+>>
+>> I personally saw it on ppc32.
+>> The offending code was in `pluginstance_alloc_init()` line 671:
+>> ```
+>> memcpy(pi->id, pi_id, sizeof(pi->id));
+>> ```
+>
+> Thanks in advance,
+> --
+> Eric Leblond <eric@regit.org>
 
-Sample raw message format IPv4 UDP:
-type=NETFILTER_PKT msg=audit(1487874761.386:228):  mark=0xae8a2732 saddr=127.0.0.1 daddr=127.0.0.1 proto=17^]
-Sample raw message format IPv6 ICMP6:
-type=NETFILTER_PKT msg=audit(1487874761.381:227):  mark=0x223894b7 saddr=::1 daddr=::1 proto=58^]
+Hey,
 
-Issue: https://github.com/linux-audit/audit-kernel/issues/11
-Test case: https://github.com/linux-audit/audit-testsuite/issues/43
+Thanks for the response.
+Will test out your patch & come back.
 
-Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
----
-v4:
-	Write out nfmark unmodified rather than trying to indicate "unset".
-	Collapse/simplify switch/case statements.
-v3:
-	Don't store interim values, but print immediately.
-v2:
-	Trim down to 4 fields.  Add raw samples.
+After submitting mine, there was a similar discussion on one of the
+Github threads [to use strncpy()/strlcpy()].
 
- net/netfilter/xt_AUDIT.c |  124 ++++++++++------------------------------------
- 1 files changed, 27 insertions(+), 97 deletions(-)
+A few questions:
+1) would strlcpy(d,s,len) be better [here & in general] ?  [since it
+guarantees a null-char at the end of `len`] ?
+1a) maybe it could be considered to replace strncpy() in more places
+[where the case is appropriate]
+2) any thoughts on sanitizing the use of ULOGD_MAX_KEYLEN ? ; general
+gist of it would be #define ULOGD_MAX_KEYLEN 32  and remove any
+`ULOGD_MAX_KEYLEN+1`  or   `ULOGD_MAX_KEYLEN-1` ; which sort of seemed
+confusing ; and combined with strlcpy() it should give an overall more
+robust approach
 
-diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
-index cdb7cee..582ee54 100644
---- a/net/netfilter/xt_AUDIT.c
-+++ b/net/netfilter/xt_AUDIT.c
-@@ -31,146 +31,76 @@ MODULE_ALIAS("ip6t_AUDIT");
- MODULE_ALIAS("ebt_AUDIT");
- MODULE_ALIAS("arpt_AUDIT");
- 
--static void audit_proto(struct audit_buffer *ab, struct sk_buff *skb,
--			unsigned int proto, unsigned int offset)
--{
--	switch (proto) {
--	case IPPROTO_TCP:
--	case IPPROTO_UDP:
--	case IPPROTO_UDPLITE: {
--		const __be16 *pptr;
--		__be16 _ports[2];
--
--		pptr = skb_header_pointer(skb, offset, sizeof(_ports), _ports);
--		if (pptr == NULL) {
--			audit_log_format(ab, " truncated=1");
--			return;
--		}
--
--		audit_log_format(ab, " sport=%hu dport=%hu",
--				 ntohs(pptr[0]), ntohs(pptr[1]));
--		}
--		break;
--
--	case IPPROTO_ICMP:
--	case IPPROTO_ICMPV6: {
--		const u8 *iptr;
--		u8 _ih[2];
--
--		iptr = skb_header_pointer(skb, offset, sizeof(_ih), &_ih);
--		if (iptr == NULL) {
--			audit_log_format(ab, " truncated=1");
--			return;
--		}
--
--		audit_log_format(ab, " icmptype=%hhu icmpcode=%hhu",
--				 iptr[0], iptr[1]);
--
--		}
--		break;
--	}
--}
--
--static void audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
-+static bool audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
- {
- 	struct iphdr _iph;
- 	const struct iphdr *ih;
- 
- 	ih = skb_header_pointer(skb, skb_network_offset(skb), sizeof(_iph), &_iph);
--	if (!ih) {
--		audit_log_format(ab, " truncated=1");
--		return;
--	}
-+	if (!ih)
-+		return false;
- 
--	audit_log_format(ab, " saddr=%pI4 daddr=%pI4 ipid=%hu proto=%hhu",
--		&ih->saddr, &ih->daddr, ntohs(ih->id), ih->protocol);
-+	audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu",
-+			 &ih->saddr, &ih->daddr, ih->protocol);
- 
--	if (ntohs(ih->frag_off) & IP_OFFSET) {
--		audit_log_format(ab, " frag=1");
--		return;
--	}
--
--	audit_proto(ab, skb, ih->protocol, ih->ihl * 4);
-+	return true;
- }
- 
--static void audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
-+static bool audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
- {
- 	struct ipv6hdr _ip6h;
- 	const struct ipv6hdr *ih;
- 	u8 nexthdr;
- 	__be16 frag_off;
--	int offset;
- 
- 	ih = skb_header_pointer(skb, skb_network_offset(skb), sizeof(_ip6h), &_ip6h);
--	if (!ih) {
--		audit_log_format(ab, " truncated=1");
--		return;
--	}
-+	if (!ih)
-+		return false;
- 
- 	nexthdr = ih->nexthdr;
--	offset = ipv6_skip_exthdr(skb, skb_network_offset(skb) + sizeof(_ip6h),
--				  &nexthdr, &frag_off);
-+	ipv6_skip_exthdr(skb, skb_network_offset(skb) + sizeof(_ip6h), &nexthdr, &frag_off);
- 
- 	audit_log_format(ab, " saddr=%pI6c daddr=%pI6c proto=%hhu",
- 			 &ih->saddr, &ih->daddr, nexthdr);
- 
--	if (offset)
--		audit_proto(ab, skb, nexthdr, offset);
-+	return true;
- }
- 
- static unsigned int
- audit_tg(struct sk_buff *skb, const struct xt_action_param *par)
- {
--	const struct xt_audit_info *info = par->targinfo;
- 	struct audit_buffer *ab;
-+	int fam = -1;
- 
- 	if (audit_enabled == 0)
- 		goto errout;
--
- 	ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
- 	if (ab == NULL)
- 		goto errout;
- 
--	audit_log_format(ab, "action=%hhu hook=%u len=%u inif=%s outif=%s",
--			 info->type, par->hooknum, skb->len,
--			 par->in ? par->in->name : "?",
--			 par->out ? par->out->name : "?");
--
--	if (skb->mark)
--		audit_log_format(ab, " mark=%#x", skb->mark);
--
--	if (skb->dev && skb->dev->type == ARPHRD_ETHER) {
--		audit_log_format(ab, " smac=%pM dmac=%pM macproto=0x%04x",
--				 eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest,
--				 ntohs(eth_hdr(skb)->h_proto));
--
--		if (par->family == NFPROTO_BRIDGE) {
--			switch (eth_hdr(skb)->h_proto) {
--			case htons(ETH_P_IP):
--				audit_ip4(ab, skb);
--				break;
--
--			case htons(ETH_P_IPV6):
--				audit_ip6(ab, skb);
--				break;
--			}
--		}
--	}
-+	audit_log_format(ab, "mark=%#x", skb->mark);
- 
- 	switch (par->family) {
-+	case NFPROTO_BRIDGE:
-+		switch (eth_hdr(skb)->h_proto) {
-+		case htons(ETH_P_IP):
-+			fam = audit_ip4(ab, skb) ? NFPROTO_IPV4 : -1;
-+			break;
-+		case htons(ETH_P_IPV6):
-+			fam = audit_ip6(ab, skb) ? NFPROTO_IPV6 : -1;
-+			break;
-+		}
-+		break;
- 	case NFPROTO_IPV4:
--		audit_ip4(ab, skb);
-+		fam = audit_ip4(ab, skb) ? NFPROTO_IPV4 : -1;
- 		break;
--
- 	case NFPROTO_IPV6:
--		audit_ip6(ab, skb);
-+		fam = audit_ip6(ab, skb) ? NFPROTO_IPV6 : -1;
- 		break;
- 	}
- 
--#ifdef CONFIG_NETWORK_SECMARK
--	if (skb->secmark)
--		audit_log_secctx(ab, skb->secmark);
--#endif
-+	if (fam == -1)
-+		audit_log_format(ab, " saddr=? daddr=? proto=-1");
- 
- 	audit_log_end(ab);
- 
--- 
-1.7.1
-
+Thanks
+Alex
