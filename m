@@ -1,38 +1,246 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH 3/3] sets: Fix for missing space after last element
-Date: Wed, 22 Mar 2017 12:52:30 +0100
-Message-ID: <20170322115230.GC14374@salvia>
-References: <20170321131902.GA30047@salvia>
- <20170322002636.14081-1-phil@nwl.cc>
- <20170322002636.14081-3-phil@nwl.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Phil Sutter <phil@nwl.cc>
+Subject: [PATCH nf-next] netfilter: nf_tables: add nft_is_base_chain() helper
+Date: Wed, 22 Mar 2017 13:38:35 +0100
+Message-ID: <1490186315-20672-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47202 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53970 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751799AbdCVMa2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Mar 2017 08:30:28 -0400
+        id S1759466AbdCVMis (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 22 Mar 2017 08:38:48 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3BAF6114818
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 12:52:40 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 8D3881373AB
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 13:38:44 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 22DC1DA804
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 12:52:40 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7B661DA804
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 13:38:44 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A9C22DA870
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 12:52:37 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20170322002636.14081-3-phil@nwl.cc>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 52A74DA804
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 13:38:40 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 22, 2017 at 01:26:36AM +0100, Phil Sutter wrote:
-> Not having a space between the last element in a set and the closing
-> curly brace looks ugly, so add it here.
-> 
-> This also adjusts all shell testcases as they match whitespace in nft
-> output and therefore fail otherwise.
+This new helper function allows us to check if this is a basechain.
 
-It's just one extra byte in the output. I don't mind, so applied this.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables.h |  5 +++++
+ net/netfilter/nf_tables_api.c     | 30 +++++++++++++++---------------
+ net/netfilter/nf_tables_netdev.c  |  2 +-
+ net/netfilter/nft_compat.c        | 11 ++++++-----
+ 4 files changed, 27 insertions(+), 21 deletions(-)
+
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 49436849d7d7..308fe42aaf52 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -883,6 +883,11 @@ static inline struct nft_base_chain *nft_base_chain(const struct nft_chain *chai
+ 	return container_of(chain, struct nft_base_chain, chain);
+ }
+ 
++static inline bool nft_is_base_chain(const struct nft_chain *chain)
++{
++	return chain->flags & NFT_BASE_CHAIN;
++}
++
+ int __nft_release_basechain(struct nft_ctx *ctx);
+ 
+ unsigned int nft_do_chain(struct nft_pktinfo *pkt, void *priv);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 12cc5218de96..4caa2fefb51e 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -144,7 +144,7 @@ static int nf_tables_register_hooks(struct net *net,
+ 				    unsigned int hook_nops)
+ {
+ 	if (table->flags & NFT_TABLE_F_DORMANT ||
+-	    !(chain->flags & NFT_BASE_CHAIN))
++	    !nft_is_base_chain(chain))
+ 		return 0;
+ 
+ 	return nf_register_net_hooks(net, nft_base_chain(chain)->ops,
+@@ -157,7 +157,7 @@ static void nf_tables_unregister_hooks(struct net *net,
+ 				       unsigned int hook_nops)
+ {
+ 	if (table->flags & NFT_TABLE_F_DORMANT ||
+-	    !(chain->flags & NFT_BASE_CHAIN))
++	    !nft_is_base_chain(chain))
+ 		return;
+ 
+ 	nf_unregister_net_hooks(net, nft_base_chain(chain)->ops, hook_nops);
+@@ -587,7 +587,7 @@ static void _nf_tables_table_disable(struct net *net,
+ 	list_for_each_entry(chain, &table->chains, list) {
+ 		if (!nft_is_active_next(net, chain))
+ 			continue;
+-		if (!(chain->flags & NFT_BASE_CHAIN))
++		if (!nft_is_base_chain(chain))
+ 			continue;
+ 
+ 		if (cnt && i++ == cnt)
+@@ -608,7 +608,7 @@ static int nf_tables_table_enable(struct net *net,
+ 	list_for_each_entry(chain, &table->chains, list) {
+ 		if (!nft_is_active_next(net, chain))
+ 			continue;
+-		if (!(chain->flags & NFT_BASE_CHAIN))
++		if (!nft_is_base_chain(chain))
+ 			continue;
+ 
+ 		err = nf_register_net_hooks(net, nft_base_chain(chain)->ops,
+@@ -1007,7 +1007,7 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
+ 	if (nla_put_string(skb, NFTA_CHAIN_NAME, chain->name))
+ 		goto nla_put_failure;
+ 
+-	if (chain->flags & NFT_BASE_CHAIN) {
++	if (nft_is_base_chain(chain)) {
+ 		const struct nft_base_chain *basechain = nft_base_chain(chain);
+ 		const struct nf_hook_ops *ops = &basechain->ops[0];
+ 		struct nlattr *nest;
+@@ -1226,7 +1226,7 @@ static void nf_tables_chain_destroy(struct nft_chain *chain)
+ {
+ 	BUG_ON(chain->use > 0);
+ 
+-	if (chain->flags & NFT_BASE_CHAIN) {
++	if (nft_is_base_chain(chain)) {
+ 		struct nft_base_chain *basechain = nft_base_chain(chain);
+ 
+ 		module_put(basechain->type->owner);
+@@ -1364,8 +1364,8 @@ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
+ 	}
+ 
+ 	if (nla[NFTA_CHAIN_POLICY]) {
+-		if ((chain != NULL &&
+-		    !(chain->flags & NFT_BASE_CHAIN)))
++		if (chain != NULL &&
++		    !nft_is_base_chain(chain))
+ 			return -EOPNOTSUPP;
+ 
+ 		if (chain == NULL &&
+@@ -1396,7 +1396,7 @@ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
+ 			struct nft_chain_hook hook;
+ 			struct nf_hook_ops *ops;
+ 
+-			if (!(chain->flags & NFT_BASE_CHAIN))
++			if (!nft_is_base_chain(chain))
+ 				return -EBUSY;
+ 
+ 			err = nft_chain_parse_hook(net, nla, afi, &hook,
+@@ -1433,7 +1433,7 @@ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
+ 		}
+ 
+ 		if (nla[NFTA_CHAIN_COUNTERS]) {
+-			if (!(chain->flags & NFT_BASE_CHAIN))
++			if (!nft_is_base_chain(chain))
+ 				return -EOPNOTSUPP;
+ 
+ 			stats = nft_stats_alloc(nla[NFTA_CHAIN_COUNTERS]);
+@@ -4711,7 +4711,7 @@ static void nft_chain_commit_update(struct nft_trans *trans)
+ 	if (nft_trans_chain_name(trans)[0])
+ 		strcpy(trans->ctx.chain->name, nft_trans_chain_name(trans));
+ 
+-	if (!(trans->ctx.chain->flags & NFT_BASE_CHAIN))
++	if (!nft_is_base_chain(trans->ctx.chain))
+ 		return;
+ 
+ 	basechain = nft_base_chain(trans->ctx.chain);
+@@ -5025,7 +5025,7 @@ int nft_chain_validate_dependency(const struct nft_chain *chain,
+ {
+ 	const struct nft_base_chain *basechain;
+ 
+-	if (chain->flags & NFT_BASE_CHAIN) {
++	if (nft_is_base_chain(chain)) {
+ 		basechain = nft_base_chain(chain);
+ 		if (basechain->type->type != type)
+ 			return -EOPNOTSUPP;
+@@ -5039,7 +5039,7 @@ int nft_chain_validate_hooks(const struct nft_chain *chain,
+ {
+ 	struct nft_base_chain *basechain;
+ 
+-	if (chain->flags & NFT_BASE_CHAIN) {
++	if (nft_is_base_chain(chain)) {
+ 		basechain = nft_base_chain(chain);
+ 
+ 		if ((1 << basechain->ops[0].hooknum) & hook_flags)
+@@ -5349,7 +5349,7 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
+ 					       tb[NFTA_VERDICT_CHAIN], genmask);
+ 		if (IS_ERR(chain))
+ 			return PTR_ERR(chain);
+-		if (chain->flags & NFT_BASE_CHAIN)
++		if (nft_is_base_chain(chain))
+ 			return -EOPNOTSUPP;
+ 
+ 		chain->use++;
+@@ -5522,7 +5522,7 @@ int __nft_release_basechain(struct nft_ctx *ctx)
+ {
+ 	struct nft_rule *rule, *nr;
+ 
+-	BUG_ON(!(ctx->chain->flags & NFT_BASE_CHAIN));
++	BUG_ON(!nft_is_base_chain(ctx->chain));
+ 
+ 	nf_tables_unregister_hooks(ctx->net, ctx->chain->table, ctx->chain,
+ 				   ctx->afi->nops);
+diff --git a/net/netfilter/nf_tables_netdev.c b/net/netfilter/nf_tables_netdev.c
+index 9e2ae424b640..403432988313 100644
+--- a/net/netfilter/nf_tables_netdev.c
++++ b/net/netfilter/nf_tables_netdev.c
+@@ -128,7 +128,7 @@ static int nf_tables_netdev_event(struct notifier_block *this,
+ 		list_for_each_entry(table, &afi->tables, list) {
+ 			ctx.table = table;
+ 			list_for_each_entry_safe(chain, nr, &table->chains, list) {
+-				if (!(chain->flags & NFT_BASE_CHAIN))
++				if (!nft_is_base_chain(chain))
+ 					continue;
+ 
+ 				ctx.chain = chain;
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index fab6bf3f955e..f443f9d22faf 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -42,7 +42,8 @@ static int nft_compat_chain_validate_dependency(const char *tablename,
+ {
+ 	const struct nft_base_chain *basechain;
+ 
+-	if (!tablename || !(chain->flags & NFT_BASE_CHAIN))
++	if (!tablename ||
++	    !nft_is_base_chain(chain))
+ 		return 0;
+ 
+ 	basechain = nft_base_chain(chain);
+@@ -165,7 +166,7 @@ nft_target_set_tgchk_param(struct xt_tgchk_param *par,
+ 	par->entryinfo	= entry;
+ 	par->target	= target;
+ 	par->targinfo	= info;
+-	if (ctx->chain->flags & NFT_BASE_CHAIN) {
++	if (nft_is_base_chain(ctx->chain)) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+ 		const struct nf_hook_ops *ops = &basechain->ops[0];
+@@ -298,7 +299,7 @@ static int nft_target_validate(const struct nft_ctx *ctx,
+ 	unsigned int hook_mask = 0;
+ 	int ret;
+ 
+-	if (ctx->chain->flags & NFT_BASE_CHAIN) {
++	if (nft_is_base_chain(ctx->chain)) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+ 		const struct nf_hook_ops *ops = &basechain->ops[0];
+@@ -379,7 +380,7 @@ nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
+ 	par->entryinfo	= entry;
+ 	par->match	= match;
+ 	par->matchinfo	= info;
+-	if (ctx->chain->flags & NFT_BASE_CHAIN) {
++	if (nft_is_base_chain(ctx->chain)) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+ 		const struct nf_hook_ops *ops = &basechain->ops[0];
+@@ -477,7 +478,7 @@ static int nft_match_validate(const struct nft_ctx *ctx,
+ 	unsigned int hook_mask = 0;
+ 	int ret;
+ 
+-	if (ctx->chain->flags & NFT_BASE_CHAIN) {
++	if (nft_is_base_chain(ctx->chain)) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+ 		const struct nf_hook_ops *ops = &basechain->ops[0];
+-- 
+2.1.4
+
