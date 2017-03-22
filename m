@@ -1,67 +1,37 @@
-From: Alexandru Ardelean <ardeleanalex@gmail.com>
-Subject: Re: [PATCH] ulogd: add +1 char for null char
-Date: Wed, 22 Mar 2017 09:07:26 +0200
-Message-ID: <CA+U=DsoLF=6pOyH+7-+6Shi8ihEBTfbvxFWrvy47kKVDEm7sZg@mail.gmail.com>
-References: <1489998667-15183-1-git-send-email-ardeleanalex@gmail.com> <1490129693.2157.21.camel@regit.org>
+From: Arturo Borrero Gonzalez <arturo@debian.org>
+Subject: Re: [nft PATCH 2/3] tests: shell: netns/0003many_0: Fix cleanup after error
+Date: Wed, 22 Mar 2017 09:45:14 +0100
+Message-ID: <CAOkSjBjjT9h-GZqDpoF4aQf4bkO_-X8=b7_jGo6E2XSWd_XJWw@mail.gmail.com>
+References: <20170321131902.GA30047@salvia> <20170322002636.14081-1-phil@nwl.cc>
+ <20170322002636.14081-2-phil@nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
+Cc: Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f53.google.com ([74.125.83.53]:33676 "EHLO
-        mail-pg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752115AbdCVHOg (ORCPT
+Received: from mail-yw0-f177.google.com ([209.85.161.177]:33731 "EHLO
+        mail-yw0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758778AbdCVIph (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Mar 2017 03:14:36 -0400
-Received: by mail-pg0-f53.google.com with SMTP id w20so2438338pgc.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 00:14:35 -0700 (PDT)
-In-Reply-To: <1490129693.2157.21.camel@regit.org>
+        Wed, 22 Mar 2017 04:45:37 -0400
+Received: by mail-yw0-f177.google.com with SMTP id v76so124836342ywg.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 01:45:36 -0700 (PDT)
+Received: from mail-yw0-f171.google.com (mail-yw0-f171.google.com. [209.85.161.171])
+        by smtp.gmail.com with ESMTPSA id w137sm243871yww.41.2017.03.22.01.45.35
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 22 Mar 2017 01:45:35 -0700 (PDT)
+Received: by mail-yw0-f171.google.com with SMTP id i203so10519444ywc.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 01:45:35 -0700 (PDT)
+In-Reply-To: <20170322002636.14081-2-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 21, 2017 at 10:54 PM, Eric Leblond <eric@regit.org> wrote:
-> Hello,
+On 22 March 2017 at 01:26, Phil Sutter <phil@nwl.cc> wrote:
+> If rule set applying failed, this would leave a stray netns in place.
 >
-> Thanks for the report and the patch. I'm not sure of your
-> implementation. Can you test with the patch to follow ?
->
-> On Mon, 2017-03-20 at 10:31 +0200, Alexandru Ardelean wrote:
->> This is a bit zealous to fix like this, but it seems to work.
->>
->> The crash was reproduced on ppc32, with GCC 5.4 & musl libc 1.1.16.
->>
->> And also on LEDE (mips_24kc and ARM):
->> https://github.com/openwrt/packages/issues/4123
->> https://github.com/openwrt/packages/issues/4090
->>
->> I personally saw it on ppc32.
->> The offending code was in `pluginstance_alloc_init()` line 671:
->> ```
->> memcpy(pi->id, pi_id, sizeof(pi->id));
->> ```
->
-> Thanks in advance,
-> --
-> Eric Leblond <eric@regit.org>
 
-Hey,
+Thanks Phil.
 
-Thanks for the response.
-Will test out your patch & come back.
-
-After submitting mine, there was a similar discussion on one of the
-Github threads [to use strncpy()/strlcpy()].
-
-A few questions:
-1) would strlcpy(d,s,len) be better [here & in general] ?  [since it
-guarantees a null-char at the end of `len`] ?
-1a) maybe it could be considered to replace strncpy() in more places
-[where the case is appropriate]
-2) any thoughts on sanitizing the use of ULOGD_MAX_KEYLEN ? ; general
-gist of it would be #define ULOGD_MAX_KEYLEN 32  and remove any
-`ULOGD_MAX_KEYLEN+1`  or   `ULOGD_MAX_KEYLEN-1` ; which sort of seemed
-confusing ; and combined with strlcpy() it should give an overall more
-robust approach
-
-Thanks
-Alex
+Acked-by: Arturo Borrero Gonzalez <arturo@debian.org>
