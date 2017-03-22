@@ -1,68 +1,35 @@
-From: Richard Guy Briggs <rgb@redhat.com>
-Subject: Re: [PATCH V4 1/2] netfilter: xt_AUDIT: use consistent ipv4 network
-	offset
-Date: Wed, 22 Mar 2017 07:43:18 -0400
-Message-ID: <20170322114318.GC9021@madcap2.tricolour.ca>
-References: <d2ef98ddd4884276879107d4cd4521330e709578.1490165887.git.rgb@redhat.com>
-	<20170322111151.GA2766@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH 1/3] tests: Add test cases for nested anonymous sets
+Date: Wed, 22 Mar 2017 12:51:13 +0100
+Message-ID: <20170322115113.GA14374@salvia>
+References: <20170321131902.GA30047@salvia>
+ <20170322002636.14081-1-phil@nwl.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Florian Westphal <fw@strlen.de>, linux-audit@redhat.com,
-	Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
-	Thomas Woerner <twoerner@redhat.com>, Thomas Graf <tgraf@infradead.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-audit-bounces@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Phil Sutter <phil@nwl.cc>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:50382 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932606AbdCVLvS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 22 Mar 2017 07:51:18 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id C2D65114802
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 12:51:14 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B273FDA862
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 12:51:14 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9630EDA863
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 12:51:12 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20170322111151.GA2766@salvia>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/linux-audit>
-List-Post: <mailto:linux-audit@redhat.com>
-List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=subscribe>
-Sender: linux-audit-bounces@redhat.com
-Errors-To: linux-audit-bounces@redhat.com
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20170322002636.14081-1-phil@nwl.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2017-03-22 12:11, Pablo Neira Ayuso wrote:
-> On Wed, Mar 22, 2017 at 03:05:36AM -0400, Richard Guy Briggs wrote:
-> > Even though the skb->data pointer has been moved from the link layer
-> > header to the network layer header, use the same method to calculate the
-> > offset in ipv4 and ipv6 routines.
-> > 
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > ---
-> >  net/netfilter/xt_AUDIT.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
-> > index 4973cbd..cdb7cee 100644
-> > --- a/net/netfilter/xt_AUDIT.c
-> > +++ b/net/netfilter/xt_AUDIT.c
-> > @@ -76,7 +76,7 @@ static void audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
-> >  	struct iphdr _iph;
-> >  	const struct iphdr *ih;
-> >  
-> > -	ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
-> > +	ih = skb_header_pointer(skb, skb_network_offset(skb), sizeof(_iph), &_iph);
-> 
-> This update is completely pointless.
+On Wed, Mar 22, 2017 at 01:26:34AM +0100, Phil Sutter wrote:
+> This makes sure nesting of anonymous sets works regardless of whether
+> defines are used or not. As a side-effect, it also checks that overlap
+> checking when IP address prefixes are used, works.
 
-Its point is to be consistent with audit_ip6() and to prevent further
-time consumed by confusion and head-scratching.  I know it is slightly
-slower with an identical result.
-
-> If you want I can place it in nf-next, your call.
-
-I'd prefer to bring it through the audit-next tree to avoid the merge
-conflict.
-
-- RGB
-
---
-Richard Guy Briggs <rgb@redhat.com>
-Kernel Security Engineering, Base Operating Systems, Red Hat
-Remote, Ottawa, Canada
-Voice: +1.647.777.2635, Internal: (81) 32635
+Applied, thanks.
