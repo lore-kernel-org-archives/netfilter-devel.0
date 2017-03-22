@@ -1,54 +1,72 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH nf 5/5] netfilter: nfnl_cthelper: fix a race when walk the
- nf_ct_helper_hash table
-Date: Wed, 22 Mar 2017 08:06:10 +0800
-Message-ID: <CAML_gOfoFWSxETKo9-UR=j=y1TQC6SSNcBq9Kuek9_Wd5xeFeg@mail.gmail.com>
-References: <1489934162-7415-1-git-send-email-zlpnobody@163.com>
- <1489934162-7415-6-git-send-email-zlpnobody@163.com> <20170321103334.GD1940@salvia>
- <CAML_gOcmYsogb0BKRxkYh0MF9kW7KTd-HyvEbsa3uL_YTQOa7g@mail.gmail.com>
- <CAML_gOdeXTEPb2vzjR4LYOif291pto4bF8DjWzndsfh6d1+z+g@mail.gmail.com> <20170321152621.GA4069@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Liping Zhang <zlpnobody@163.com>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
+From: Phil Sutter <phil@nwl.cc>
+Subject: [nft PATCH 2/3] tests: shell: netns/0003many_0: Fix cleanup after error
+Date: Wed, 22 Mar 2017 01:26:35 +0100
+Message-ID: <20170322002636.14081-2-phil@nwl.cc>
+References: <20170321131902.GA30047@salvia>
+ <20170322002636.14081-1-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f46.google.com ([209.85.213.46]:34278 "EHLO
-        mail-vk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757788AbdCVAGM (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Mar 2017 20:06:12 -0400
-Received: by mail-vk0-f46.google.com with SMTP id z204so54184669vkd.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 17:06:11 -0700 (PDT)
-In-Reply-To: <20170321152621.GA4069@salvia>
+Received: from orbyte.nwl.cc ([151.80.46.58]:53867 "EHLO mail.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758021AbdCVA1d (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 Mar 2017 20:27:33 -0400
+In-Reply-To: <20170322002636.14081-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2017-03-21 23:26 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-[...]
->>
->> After I have a closer look, I find that we do not support netns for the
->> nfct_helper currently. So this possible_net_t field is not necessary for
->> the time being.
->
-> Oh, I see. This is probably one of the remaining subsystems not having
-> netns support.
->
->> I have a quick glance look, supporting netns for helper need a lot works
->> to do. We need to both change the nfnetlink_cthelper, nf_conntrack_help
->> and so on.
->>
->> But if you think it's worth to support netns for cthelper, I can
->> finish it in my spare time:)
->
-> Let's focus on fixing up the existing issues. It would be great if you
-> can add that later on, once changes in nf.git propagate to
-> nf-next.git.
+If rule set applying failed, this would leave a stray netns in place.
 
-OK, I will keep follow up on it.
+Interestingly, this situation led to other, seemingly unrelated
+testcases to fail with spurious errors, e.g. sets/0015rulesetflush_0:
 
-> BTW, let me also pushed out what I have here into nf.git. I'd
-> appreciate if you can rebase this 5/5 patch on top of it.
+| $ ./run-tests.sh testcases/sets/0015rulesetflush_0
+| I: using nft binary ../../src/nft
+|
+| W: [FAILED]	testcases/sets/0015rulesetflush_0: expected 0 but got 1
+| /tmp/tmp.BY7cuUYL8f:5:1-2: Error: Could not process rule: Operation not supported
+| table inet filter {
+| ^^
+| /tmp/tmp.BY7cuUYL8f:9:1-2: Error: Could not process rule: No such file or directory
+| add element inet filter blacklist_v4 {
+| ^^
+| /tmp/tmp.BY7cuUYL8f:5:1-2: Error: Could not process rule: Operation not supported
+| table inet filter {
+| ^^
+| /tmp/tmp.BY7cuUYL8f:9:1-2: Error: Could not process rule: No such file or directory
+| add element inet filter blacklist_v4 {
+| ^^
+|
+| I: results: [OK] 0 [FAILED] 1 [TOTAL] 1
+|
+| $ ip netns list
+| 1_0003many_0
+| $ ip netns del 1_0003many_0
+|
+| $ ./run-tests.sh testcases/sets/0015rulesetflush_0
+| I: using nft binary ../../src/nft
+|
+| I: [OK]		testcases/sets/0015rulesetflush_0
+|
+| I: results: [OK] 1 [FAILED] 0 [TOTAL] 1
 
-No problem!
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ tests/shell/testcases/netns/0003many_0 | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/tests/shell/testcases/netns/0003many_0 b/tests/shell/testcases/netns/0003many_0
+index f8853ee5a98c2..17d7b93588f34 100755
+--- a/tests/shell/testcases/netns/0003many_0
++++ b/tests/shell/testcases/netns/0003many_0
+@@ -109,6 +109,7 @@ function test_netns()
+ 		echo "E: ruleset in netns $NETNS_NAME differs from the loaded" >&2
+ 	        DIFF="$(which diff)"
+ 	        [ -x $DIFF ] && $DIFF -u <(echo "$RULESET") <(echo "$KERNEL_RULESET")
++		$IP netns del $NETNS_NAME
+ 	        exit 1
+ 	fi
+ 
+-- 
+2.11.0
+
