@@ -1,37 +1,59 @@
-From: Arturo Borrero Gonzalez <arturo@debian.org>
-Subject: Re: [nft PATCH 2/3] tests: shell: netns/0003many_0: Fix cleanup after error
-Date: Wed, 22 Mar 2017 09:45:14 +0100
-Message-ID: <CAOkSjBjjT9h-GZqDpoF4aQf4bkO_-X8=b7_jGo6E2XSWd_XJWw@mail.gmail.com>
-References: <20170321131902.GA30047@salvia> <20170322002636.14081-1-phil@nwl.cc>
- <20170322002636.14081-2-phil@nwl.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH V4 1/2] netfilter: xt_AUDIT: use consistent ipv4 network
+ offset
+Date: Wed, 22 Mar 2017 12:11:51 +0100
+Message-ID: <20170322111151.GA2766@salvia>
+References: <d2ef98ddd4884276879107d4cd4521330e709578.1490165887.git.rgb@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Phil Sutter <phil@nwl.cc>
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>, linux-audit@redhat.com,
+        Florian Westphal <fw@strlen.de>,
+        Thomas Woerner <twoerner@redhat.com>,
+        Thomas Graf <tgraf@infradead.org>,
+        Eric Paris <eparis@redhat.com>, Paul Moore <pmoore@redhat.com>,
+        Steve Grubb <sgrubb@redhat.com>
+To: Richard Guy Briggs <rgb@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yw0-f177.google.com ([209.85.161.177]:33731 "EHLO
-        mail-yw0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758778AbdCVIph (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Mar 2017 04:45:37 -0400
-Received: by mail-yw0-f177.google.com with SMTP id v76so124836342ywg.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 01:45:36 -0700 (PDT)
-Received: from mail-yw0-f171.google.com (mail-yw0-f171.google.com. [209.85.161.171])
-        by smtp.gmail.com with ESMTPSA id w137sm243871yww.41.2017.03.22.01.45.35
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 22 Mar 2017 01:45:35 -0700 (PDT)
-Received: by mail-yw0-f171.google.com with SMTP id i203so10519444ywc.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 01:45:35 -0700 (PDT)
-In-Reply-To: <20170322002636.14081-2-phil@nwl.cc>
+Received: from mail.us.es ([193.147.175.20]:50964 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933647AbdCVLMB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 22 Mar 2017 07:12:01 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 892B2EAA68
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 12:11:57 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7B89EDA871
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 12:11:57 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4B98CDA87D
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 12:11:55 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <d2ef98ddd4884276879107d4cd4521330e709578.1490165887.git.rgb@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 22 March 2017 at 01:26, Phil Sutter <phil@nwl.cc> wrote:
-> If rule set applying failed, this would leave a stray netns in place.
->
+On Wed, Mar 22, 2017 at 03:05:36AM -0400, Richard Guy Briggs wrote:
+> Even though the skb->data pointer has been moved from the link layer
+> header to the network layer header, use the same method to calculate the
+> offset in ipv4 and ipv6 routines.
+> 
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> ---
+>  net/netfilter/xt_AUDIT.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
+> index 4973cbd..cdb7cee 100644
+> --- a/net/netfilter/xt_AUDIT.c
+> +++ b/net/netfilter/xt_AUDIT.c
+> @@ -76,7 +76,7 @@ static void audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
+>  	struct iphdr _iph;
+>  	const struct iphdr *ih;
+>  
+> -	ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
+> +	ih = skb_header_pointer(skb, skb_network_offset(skb), sizeof(_iph), &_iph);
 
-Thanks Phil.
+This update is completely pointless.
 
-Acked-by: Arturo Borrero Gonzalez <arturo@debian.org>
+If you want I can place it in nf-next, your call.
