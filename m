@@ -1,55 +1,45 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH nf 1/2,v3] netfilter: nfnetlink_cthelper: fix runtime
- expectation policy updates
-Date: Wed, 22 Mar 2017 13:38:08 +0800
-Message-ID: <CAML_gOfHxD6ScxARXJBMtE0SvVDioKBUvipY9Hyk8hLQt0edqw@mail.gmail.com>
-References: <1490108275-19537-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>, jeffy.chen@rock-chips.com,
-        briannorris@chromium.org, dianders@chromium.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Richard Guy Briggs <rgb@redhat.com>
+Subject: [PATCH V4 1/2] netfilter: xt_AUDIT: use consistent ipv4 network offset
+Date: Wed, 22 Mar 2017 03:05:36 -0400
+Message-ID: <d2ef98ddd4884276879107d4cd4521330e709578.1490165887.git.rgb@redhat.com>
+Cc: Richard Guy Briggs <rgb@redhat.com>,
+        Florian Westphal <fw@strlen.de>,
+        Thomas Woerner <twoerner@redhat.com>,
+        Thomas Graf <tgraf@infradead.org>,
+        Eric Paris <eparis@redhat.com>, Paul Moore <pmoore@redhat.com>,
+        Steve Grubb <sgrubb@redhat.com>
+To: Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>, linux-audit@redhat.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f66.google.com ([209.85.213.66]:36373 "EHLO
-        mail-vk0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752173AbdCVFiK (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Mar 2017 01:38:10 -0400
-Received: by mail-vk0-f66.google.com with SMTP id d188so15825582vka.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Mar 2017 22:38:09 -0700 (PDT)
-In-Reply-To: <1490108275-19537-1-git-send-email-pablo@netfilter.org>
+Received: from mx1.redhat.com ([209.132.183.28]:35446 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933816AbdCVHGS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 22 Mar 2017 03:06:18 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Even though the skb->data pointer has been moved from the link layer
+header to the network layer header, use the same method to calculate the
+offset in ipv4 and ipv6 routines.
 
-2017-03-21 22:57 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-> We only allow runtime updates of expectation policies for timeout and
-> maximum number of expectations, otherwise reject the update.
->
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> v3: Fixed expect_class_max semantics. Compile-tested only.
+Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+---
+ net/netfilter/xt_AUDIT.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Acked-by: Liping Zhang <zlpnobody@gmail.com>
+diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
+index 4973cbd..cdb7cee 100644
+--- a/net/netfilter/xt_AUDIT.c
++++ b/net/netfilter/xt_AUDIT.c
+@@ -76,7 +76,7 @@ static void audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
+ 	struct iphdr _iph;
+ 	const struct iphdr *ih;
+ 
+-	ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
++	ih = skb_header_pointer(skb, skb_network_offset(skb), sizeof(_iph), &_iph);
+ 	if (!ih) {
+ 		audit_log_format(ab, " truncated=1");
+ 		return;
+-- 
+1.7.1
 
-[...]
-> +       /* Check first that all policy attributes are well-formed, so we don't
-> +        * leave things in inconsistent state on errors.
-> +        */
-
-Good point, I missed this possible error scenario in my original patch 4/5.
-
-> +       for (i = 0; i < helper->expect_class_max + 1; i++) {
-> +
-> +               if (!tb[NFCTH_POLICY_SET + i])
-> +                       return -EINVAL;
-> +
-> +               err = nfnl_cthelper_update_policy_one(&helper->expect_policy[i],
-> +                                                     &new_policy[i],
-> +                                                     tb[NFCTH_POLICY_SET + i]);
-> +               if (err < 0)
-> +                       return err;
-> +       }
-> +       /* Now we can safely update them. */
