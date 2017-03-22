@@ -1,365 +1,174 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH 3/3] sets: Fix for missing space after last element
-Date: Wed, 22 Mar 2017 01:26:36 +0100
-Message-ID: <20170322002636.14081-3-phil@nwl.cc>
+Subject: [nft PATCH 1/3] tests: Add test cases for nested anonymous sets
+Date: Wed, 22 Mar 2017 01:26:34 +0100
+Message-ID: <20170322002636.14081-1-phil@nwl.cc>
 References: <20170321131902.GA30047@salvia>
- <20170322002636.14081-1-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:43699 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:56081 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757943AbdCVA1d (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1757867AbdCVA1d (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Tue, 21 Mar 2017 20:27:33 -0400
-In-Reply-To: <20170322002636.14081-1-phil@nwl.cc>
+In-Reply-To: <20170321131902.GA30047@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Not having a space between the last element in a set and the closing
-curly brace looks ugly, so add it here.
-
-This also adjusts all shell testcases as they match whitespace in nft
-output and therefore fail otherwise.
+This makes sure nesting of anonymous sets works regardless of whether
+defines are used or not. As a side-effect, it also checks that overlap
+checking when IP address prefixes are used, works.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/expression.c                                             |  2 +-
- tests/shell/testcases/maps/0003map_add_many_elements_0       |  2 +-
- tests/shell/testcases/maps/0004interval_map_create_once_0    |  2 +-
- .../testcases/maps/0005interval_map_add_many_elements_0      |  2 +-
- tests/shell/testcases/maps/0006interval_map_overlap_0        |  2 +-
- tests/shell/testcases/netns/0001nft-f_0                      | 12 ++++++------
- tests/shell/testcases/netns/0002loosecommands_0              |  4 ++--
- tests/shell/testcases/netns/0003many_0                       | 12 ++++++------
- tests/shell/testcases/nft-f/0002rollback_rule_0              |  4 ++--
- tests/shell/testcases/nft-f/0003rollback_jump_0              |  4 ++--
- tests/shell/testcases/nft-f/0004rollback_set_0               |  4 ++--
- tests/shell/testcases/nft-f/0005rollback_map_0               |  6 +++---
- tests/shell/testcases/sets/0021nesting_0                     |  2 +-
- tests/shell/testcases/transactions/0035set_0                 |  2 +-
- tests/shell/testcases/transactions/0038set_0                 |  2 +-
- tests/shell/testcases/transactions/0039set_0                 |  2 +-
- 16 files changed, 32 insertions(+), 32 deletions(-)
+ tests/py/ip/sets.t                       |  4 +++
+ tests/py/ip/sets.t.payload.inet          | 19 +++++++++++++
+ tests/py/ip/sets.t.payload.ip            | 15 +++++++++++
+ tests/py/ip/sets.t.payload.netdev        | 19 +++++++++++++
+ tests/shell/testcases/sets/0021nesting_0 | 46 ++++++++++++++++++++++++++++++++
+ 5 files changed, 103 insertions(+)
+ create mode 100755 tests/shell/testcases/sets/0021nesting_0
 
-diff --git a/src/expression.c b/src/expression.c
-index a6065524f8be8..45f3ed8da33c0 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -746,7 +746,7 @@ static void set_expr_print(const struct expr *expr)
- {
- 	printf("{ ");
- 	compound_expr_print(expr, ", ");
--	printf("}");
-+	printf(" }");
- }
+diff --git a/tests/py/ip/sets.t b/tests/py/ip/sets.t
+index 4cca02b61ff04..4d14e8253e528 100644
+--- a/tests/py/ip/sets.t
++++ b/tests/py/ip/sets.t
+@@ -46,3 +46,7 @@ ip saddr != @set33 drop;fail
+ ?set4 192.168.2.0/24;ok
+ ?set4 192.168.1.1;fail
+ ?set4 192.168.3.0/24;ok
++
++# test nested anonymous sets
++ip saddr { { 1.1.1.0, 3.3.3.0 }, 2.2.2.0 };ok;ip saddr { 1.1.1.0, 2.2.2.0, 3.3.3.0 }
++ip saddr { { 1.1.1.0/24, 3.3.3.0/24 }, 2.2.2.0/24 };ok;ip saddr { 1.1.1.0/24, 2.2.2.0/24, 3.3.3.0/24 }
+diff --git a/tests/py/ip/sets.t.payload.inet b/tests/py/ip/sets.t.payload.inet
+index 6d8d6bc3bbce6..35f699c7a13b4 100644
+--- a/tests/py/ip/sets.t.payload.inet
++++ b/tests/py/ip/sets.t.payload.inet
+@@ -30,3 +30,22 @@ inet test-inet input
+   [ lookup reg 1 set set2 0x1 ]
+   [ immediate reg 0 drop ]
  
- static void set_expr_set_type(const struct expr *expr,
-diff --git a/tests/shell/testcases/maps/0003map_add_many_elements_0 b/tests/shell/testcases/maps/0003map_add_many_elements_0
-index a2233e3909ecd..36b1be25eb664 100755
---- a/tests/shell/testcases/maps/0003map_add_many_elements_0
-+++ b/tests/shell/testcases/maps/0003map_add_many_elements_0
-@@ -49,7 +49,7 @@ $NFT -f $tmpfile
- EXPECTED="table ip x {
- 	map y {
- 		type ipv4_addr : ipv4_addr
--		elements = { $(generate_test)}
-+		elements = { $(generate_test) }
- 	}
- }"
- GET=$($NFT list ruleset)
-diff --git a/tests/shell/testcases/maps/0004interval_map_create_once_0 b/tests/shell/testcases/maps/0004interval_map_create_once_0
-index 7d4877eb6e964..1f043875729ee 100755
---- a/tests/shell/testcases/maps/0004interval_map_create_once_0
-+++ b/tests/shell/testcases/maps/0004interval_map_create_once_0
-@@ -48,7 +48,7 @@ EXPECTED="table ip x {
- 	map y {
- 		type ipv4_addr : ipv4_addr
- 		flags interval
--		elements = { $(generate_test)}
-+		elements = { $(generate_test) }
- 	}
- }"
- GET=$($NFT list ruleset)
-diff --git a/tests/shell/testcases/maps/0005interval_map_add_many_elements_0 b/tests/shell/testcases/maps/0005interval_map_add_many_elements_0
-index 824f2c85fb708..4d4f708e38760 100755
---- a/tests/shell/testcases/maps/0005interval_map_add_many_elements_0
-+++ b/tests/shell/testcases/maps/0005interval_map_add_many_elements_0
-@@ -54,7 +54,7 @@ EXPECTED="table ip x {
- 	map y {
- 		type ipv4_addr : ipv4_addr
- 		flags interval
--		elements = { $(generate_test)}
-+		elements = { $(generate_test) }
- 	}
- }"
- GET=$($NFT list ruleset)
-diff --git a/tests/shell/testcases/maps/0006interval_map_overlap_0 b/tests/shell/testcases/maps/0006interval_map_overlap_0
-index c1bf3de111ac9..8597639ea2aaa 100755
---- a/tests/shell/testcases/maps/0006interval_map_overlap_0
-+++ b/tests/shell/testcases/maps/0006interval_map_overlap_0
-@@ -29,7 +29,7 @@ EXPECTED="table ip x {
- 	map y {
- 		type ipv4_addr : ipv4_addr
- 		flags interval
--		elements = { 10.0.1.0/24 : 10.0.0.1, 10.0.2.0/24 : 10.0.0.2}
-+		elements = { 10.0.1.0/24 : 10.0.0.1, 10.0.2.0/24 : 10.0.0.2 }
- 	}
- }"
- GET=$($NFT list ruleset)
-diff --git a/tests/shell/testcases/netns/0001nft-f_0 b/tests/shell/testcases/netns/0001nft-f_0
-index 663167d741c57..435275233f75d 100755
---- a/tests/shell/testcases/netns/0001nft-f_0
-+++ b/tests/shell/testcases/netns/0001nft-f_0
-@@ -19,12 +19,12 @@ trap "rm -rf $tmpfile" EXIT # cleanup if aborted
- RULESET="table ip t {
- 	set s {
- 		type ipv4_addr
--		elements = { 1.1.0.0}
-+		elements = { 1.1.0.0 }
- 	}
++# ip saddr { { 1.1.1.0, 3.3.3.0 }, 2.2.2.0 }
++__set%d t 3
++__set%d t 0
++	element 00010101  : 0 [end]	element 00030303  : 0 [end]	element 00020202  : 0 [end]
++inet test-inet input
++  [ meta load nfproto => reg 1 ]
++  [ cmp eq reg 1 0x00000002 ]
++  [ payload load 4b @ network header + 12 => reg 1 ]
++  [ lookup reg 1 set __set%d ]
++
++# ip saddr { { 1.1.1.0/24, 3.3.3.0/24 }, 2.2.2.0/24 }
++__set%d t 7
++__set%d t 0
++	element 00000000  : 1 [end]	element 00010101  : 0 [end]	element 00020101  : 1 [end]	element 00020202  : 0 [end]	element 00030202  : 1 [end]	element 00030303  : 0 [end]	element 00040303  : 1 [end]
++inet test-inet input
++  [ meta load nfproto => reg 1 ]
++  [ cmp eq reg 1 0x00000002 ]
++  [ payload load 4b @ network header + 12 => reg 1 ]
++  [ lookup reg 1 set __set%d ]
+diff --git a/tests/py/ip/sets.t.payload.ip b/tests/py/ip/sets.t.payload.ip
+index 858a5e1c6bb3e..891a1ee404c7f 100644
+--- a/tests/py/ip/sets.t.payload.ip
++++ b/tests/py/ip/sets.t.payload.ip
+@@ -22,3 +22,18 @@ ip test-ip4 input
+   [ lookup reg 1 set set2 0x1 ]
+   [ immediate reg 0 drop ]
  
- 	chain c {
- 		ct state new
--		udp dport { 12345}
-+		udp dport { 12345 }
- 		ip saddr @s drop
- 		jump other
- 	}
-@@ -35,12 +35,12 @@ RULESET="table ip t {
- table ip6 t {
- 	set s {
- 		type ipv6_addr
--		elements = { fe00::1}
-+		elements = { fe00::1 }
- 	}
++# ip saddr { { 1.1.1.0, 3.3.3.0 }, 2.2.2.0 }
++__set%d test-ip4 3
++__set%d test-ip4 0
++	element 00010101  : 0 [end]	element 00030303  : 0 [end]	element 00020202  : 0 [end]
++ip test-ip4 input
++  [ payload load 4b @ network header + 12 => reg 1 ]
++  [ lookup reg 1 set __set%d ]
++
++# ip saddr { { 1.1.1.0/24, 3.3.3.0/24 }, 2.2.2.0/24 }
++__set%d test-ip4 7
++__set%d test-ip4 0
++	element 00000000  : 1 [end]	element 00010101  : 0 [end]	element 00020101  : 1 [end]	element 00020202  : 0 [end]	element 00030202  : 1 [end]	element 00030303  : 0 [end]	element 00040303  : 1 [end]
++ip test-ip4 input
++  [ payload load 4b @ network header + 12 => reg 1 ]
++  [ lookup reg 1 set __set%d ]
+diff --git a/tests/py/ip/sets.t.payload.netdev b/tests/py/ip/sets.t.payload.netdev
+index 87d54a0f4813e..ae8b6e7c8c46f 100644
+--- a/tests/py/ip/sets.t.payload.netdev
++++ b/tests/py/ip/sets.t.payload.netdev
+@@ -30,3 +30,22 @@ netdev test-netdev ingress
+   [ lookup reg 1 set set2 0x1 ]
+   [ immediate reg 0 drop ]
  
- 	chain c {
- 		ct state new
--		udp dport { 12345}
-+		udp dport { 12345 }
- 		ip6 saddr @s drop
- 		jump other
- 	}
-@@ -51,12 +51,12 @@ table ip6 t {
- table inet t {
- 	set s {
- 		type ipv6_addr
--		elements = { fe00::1}
-+		elements = { fe00::1 }
- 	}
- 
- 	chain c {
- 		ct state new
--		udp dport { 12345}
-+		udp dport { 12345 }
- 		ip6 saddr @s drop
- 		jump other
- 	}
-diff --git a/tests/shell/testcases/netns/0002loosecommands_0 b/tests/shell/testcases/netns/0002loosecommands_0
-index fbaa38658de6a..3910446a5565f 100755
---- a/tests/shell/testcases/netns/0002loosecommands_0
-+++ b/tests/shell/testcases/netns/0002loosecommands_0
-@@ -39,12 +39,12 @@ netns_exec $NETNS_NAME "$NFT add rule ip t c jump other"
- RULESET="table ip t {
- 	set s {
- 		type ipv4_addr
--		elements = { 1.1.0.0}
-+		elements = { 1.1.0.0 }
- 	}
- 
- 	chain c {
- 		ct state new
--		udp dport { 12345}
-+		udp dport { 12345 }
- 		ip saddr @s drop
- 		jump other
- 	}
-diff --git a/tests/shell/testcases/netns/0003many_0 b/tests/shell/testcases/netns/0003many_0
-index 17d7b93588f34..03da6eec85973 100755
---- a/tests/shell/testcases/netns/0003many_0
-+++ b/tests/shell/testcases/netns/0003many_0
-@@ -22,12 +22,12 @@ trap "rm -rf $tmpfile" EXIT # cleanup if aborted
- RULESET="table ip t {
- 	set s {
- 		type ipv4_addr
--		elements = { 1.1.0.0}
-+		elements = { 1.1.0.0 }
- 	}
- 
- 	chain c {
- 		ct state new
--		udp dport { 12345}
-+		udp dport { 12345 }
- 		ip saddr @s drop
- 		jump other
- 	}
-@@ -38,12 +38,12 @@ RULESET="table ip t {
- table ip6 t {
- 	set s {
- 		type ipv6_addr
--		elements = { fe00::1}
-+		elements = { fe00::1 }
- 	}
- 
- 	chain c {
- 		ct state new
--		udp dport { 12345}
-+		udp dport { 12345 }
- 		ip6 saddr @s drop
- 		jump other
- 	}
-@@ -54,12 +54,12 @@ table ip6 t {
- table inet t {
- 	set s {
- 		type ipv6_addr
--		elements = { fe00::1}
-+		elements = { fe00::1 }
- 	}
- 
- 	chain c {
- 		ct state new
--		udp dport { 12345}
-+		udp dport { 12345 }
- 		ip6 saddr @s drop
- 		jump other
- 	}
-diff --git a/tests/shell/testcases/nft-f/0002rollback_rule_0 b/tests/shell/testcases/nft-f/0002rollback_rule_0
-index 5518c0b2de46b..ddeb5423cc4c3 100755
---- a/tests/shell/testcases/nft-f/0002rollback_rule_0
-+++ b/tests/shell/testcases/nft-f/0002rollback_rule_0
-@@ -14,12 +14,12 @@ trap "rm -rf $tmpfile" EXIT # cleanup if aborted
- GOOD_RULESET="table ip t {
- 	set t {
- 		type ipv4_addr
--		elements = { 1.1.1.1}
-+		elements = { 1.1.1.1 }
- 	}
- 
- 	chain c {
- 		ct state new
--		tcp dport { 22222}
-+		tcp dport { 22222 }
- 		ip saddr @t drop
- 		jump other
- 	}
-diff --git a/tests/shell/testcases/nft-f/0003rollback_jump_0 b/tests/shell/testcases/nft-f/0003rollback_jump_0
-index 5c8c6852bc98c..6c43df9db5f82 100755
---- a/tests/shell/testcases/nft-f/0003rollback_jump_0
-+++ b/tests/shell/testcases/nft-f/0003rollback_jump_0
-@@ -14,12 +14,12 @@ trap "rm -rf $tmpfile" EXIT # cleanup if aborted
- GOOD_RULESET="table ip t {
- 	set t {
- 		type ipv4_addr
--		elements = { 1.1.1.1}
-+		elements = { 1.1.1.1 }
- 	}
- 
- 	chain c {
- 		ct state new
--		tcp dport { 22222}
-+		tcp dport { 22222 }
- 		ip saddr @t drop
- 		jump other
- 	}
-diff --git a/tests/shell/testcases/nft-f/0004rollback_set_0 b/tests/shell/testcases/nft-f/0004rollback_set_0
-index db1c84cb1b349..1dea85ec401ad 100755
---- a/tests/shell/testcases/nft-f/0004rollback_set_0
-+++ b/tests/shell/testcases/nft-f/0004rollback_set_0
-@@ -14,12 +14,12 @@ trap "rm -rf $tmpfile" EXIT # cleanup if aborted
- GOOD_RULESET="table ip t {
- 	set t {
- 		type ipv4_addr
--		elements = { 1.1.1.1}
-+		elements = { 1.1.1.1 }
- 	}
- 
- 	chain c {
- 		ct state new
--		tcp dport { 22222}
-+		tcp dport { 22222 }
- 		ip saddr @t drop
- 		jump other
- 	}
-diff --git a/tests/shell/testcases/nft-f/0005rollback_map_0 b/tests/shell/testcases/nft-f/0005rollback_map_0
-index 13bb90752ffc1..777cc7175ef10 100755
---- a/tests/shell/testcases/nft-f/0005rollback_map_0
-+++ b/tests/shell/testcases/nft-f/0005rollback_map_0
-@@ -14,12 +14,12 @@ trap "rm -rf $tmpfile" EXIT # cleanup if aborted
- GOOD_RULESET="table ip t {
- 	set t {
- 		type ipv4_addr
--		elements = { 1.1.1.1}
-+		elements = { 1.1.1.1 }
- 	}
- 
- 	chain c {
- 		ct state new
--		tcp dport { 22222}
-+		tcp dport { 22222 }
- 		ip saddr @t drop
- 		jump other
- 	}
-@@ -31,7 +31,7 @@ GOOD_RULESET="table ip t {
- BAD_RULESET="flush ruleset
- table ip t2 {
- 	chain c2 {
--		tcp dport map {22222: jump other, 11111: jump invalid}
-+		tcp dport map { 22222: jump other, 11111: jump invalid }
- 	}
- 
- 	chain other {
++# ip saddr { { 1.1.1.0, 3.3.3.0 }, 2.2.2.0 }
++__set%d test-netdev 3
++__set%d test-netdev 0
++	element 00010101  : 0 [end]	element 00030303  : 0 [end]	element 00020202  : 0 [end]
++netdev test-netdev ingress
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ payload load 4b @ network header + 12 => reg 1 ]
++  [ lookup reg 1 set __set%d ]
++
++# ip saddr { { 1.1.1.0/24, 3.3.3.0/24 }, 2.2.2.0/24 }
++__set%d test-netdev 7
++__set%d test-netdev 0
++	element 00000000  : 1 [end]	element 00010101  : 0 [end]	element 00020101  : 1 [end]	element 00020202  : 0 [end]	element 00030202  : 1 [end]	element 00030303  : 0 [end]	element 00040303  : 1 [end]
++netdev test-netdev ingress
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ payload load 4b @ network header + 12 => reg 1 ]
++  [ lookup reg 1 set __set%d ]
 diff --git a/tests/shell/testcases/sets/0021nesting_0 b/tests/shell/testcases/sets/0021nesting_0
-index 3bcb61473198c..763d9ae1797e6 100755
---- a/tests/shell/testcases/sets/0021nesting_0
+new file mode 100755
+index 0000000000000..3bcb61473198c
+--- /dev/null
 +++ b/tests/shell/testcases/sets/0021nesting_0
-@@ -33,7 +33,7 @@ fi
- 
- EXPECTED="table ip x {
- 	chain y {
--		ip saddr { 1.1.1.0/24, 2.2.2.0/24, 3.3.3.0/24}
-+		ip saddr { 1.1.1.0/24, 2.2.2.0/24, 3.3.3.0/24 }
- 	}
- }"
- 
-diff --git a/tests/shell/testcases/transactions/0035set_0 b/tests/shell/testcases/transactions/0035set_0
-index a014a69ecd41a..0788e2fe9489b 100755
---- a/tests/shell/testcases/transactions/0035set_0
-+++ b/tests/shell/testcases/transactions/0035set_0
-@@ -27,7 +27,7 @@ fi
- EXPECTED="table ip x {
- 	set y {
- 		type ipv4_addr
--		elements = { 3.3.3.3}
-+		elements = { 3.3.3.3 }
- 	}
- }"
- 
-diff --git a/tests/shell/testcases/transactions/0038set_0 b/tests/shell/testcases/transactions/0038set_0
-index 2e36fa31d3f60..765507555814d 100755
---- a/tests/shell/testcases/transactions/0038set_0
-+++ b/tests/shell/testcases/transactions/0038set_0
-@@ -28,7 +28,7 @@ EXPECTED="table ip x {
- 	set y {
- 		type ipv4_addr
- 		flags interval
--		elements = { 192.168.4.0/24}
-+		elements = { 192.168.4.0/24 }
- 	}
- }"
- 
-diff --git a/tests/shell/testcases/transactions/0039set_0 b/tests/shell/testcases/transactions/0039set_0
-index 2e36fa31d3f60..765507555814d 100755
---- a/tests/shell/testcases/transactions/0039set_0
-+++ b/tests/shell/testcases/transactions/0039set_0
-@@ -28,7 +28,7 @@ EXPECTED="table ip x {
- 	set y {
- 		type ipv4_addr
- 		flags interval
--		elements = { 192.168.4.0/24}
-+		elements = { 192.168.4.0/24 }
- 	}
- }"
- 
+@@ -0,0 +1,46 @@
++#!/bin/bash
++
++set -e
++
++tmpfile=$(mktemp)
++if [ ! -w $tmpfile ] ; then
++        echo "Failed to create tmp file" >&2
++        exit 0
++fi
++
++#trap "rm -rf $tmpfile" EXIT # cleanup if aborted
++
++RULESET='
++define set1 = {
++	2.2.2.0/24,
++}
++define set2 = {
++	$set1,
++	1.1.1.0/24
++}
++table ip x {
++	chain y {
++		ip saddr { 3.3.3.0/24, $set2 }
++	}
++}'
++
++echo "$RULESET" > $tmpfile
++$NFT -f $tmpfile
++if [ $? -ne 0 ] ; then
++        echo "E: unable to load ruleset" >&2
++        exit 1
++fi
++
++EXPECTED="table ip x {
++	chain y {
++		ip saddr { 1.1.1.0/24, 2.2.2.0/24, 3.3.3.0/24}
++	}
++}"
++
++GET="$($NFT list ruleset)"
++
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
 -- 
 2.11.0
 
