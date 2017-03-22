@@ -1,72 +1,68 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH V4 1/2] netfilter: xt_AUDIT: use consistent ipv4 network
- offset
-Date: Wed, 22 Mar 2017 13:56:45 +0100
-Message-ID: <20170322125645.GA21654@salvia>
-References: <d2ef98ddd4884276879107d4cd4521330e709578.1490165887.git.rgb@redhat.com>
- <20170322111151.GA2766@salvia>
- <20170322114318.GC9021@madcap2.tricolour.ca>
+Subject: Re: [PATCH nft] src: allow update of net base w. meta l4proto icmpv6
+Date: Wed, 22 Mar 2017 14:09:02 +0100
+Message-ID: <20170322130902.GA21742@salvia>
+References: <20170321185437.22959-1-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>, linux-audit@redhat.com,
-        Florian Westphal <fw@strlen.de>,
-        Thomas Woerner <twoerner@redhat.com>,
-        Thomas Graf <tgraf@infradead.org>,
-        Eric Paris <eparis@redhat.com>, Paul Moore <pmoore@redhat.com>,
-        Steve Grubb <sgrubb@redhat.com>
-To: Richard Guy Briggs <rgb@redhat.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38276 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47916 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934079AbdCVM4u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Mar 2017 08:56:50 -0400
+        id S1759625AbdCVNJR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 22 Mar 2017 09:09:17 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D7484137B8E
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 13:56:46 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 72E351392A4
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 14:09:08 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C85FDDA872
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 13:56:46 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6329EDA86E
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 14:09:08 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9EB44DA725
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 13:56:44 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 369A5DA86E
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Mar 2017 14:09:06 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20170322114318.GC9021@madcap2.tricolour.ca>
+In-Reply-To: <20170321185437.22959-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 22, 2017 at 07:43:18AM -0400, Richard Guy Briggs wrote:
-> On 2017-03-22 12:11, Pablo Neira Ayuso wrote:
-> > On Wed, Mar 22, 2017 at 03:05:36AM -0400, Richard Guy Briggs wrote:
-> > > Even though the skb->data pointer has been moved from the link layer
-> > > header to the network layer header, use the same method to calculate the
-> > > offset in ipv4 and ipv6 routines.
-> > > 
-> > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > > ---
-> > >  net/netfilter/xt_AUDIT.c |    2 +-
-> > >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > > 
-> > > diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
-> > > index 4973cbd..cdb7cee 100644
-> > > --- a/net/netfilter/xt_AUDIT.c
-> > > +++ b/net/netfilter/xt_AUDIT.c
-> > > @@ -76,7 +76,7 @@ static void audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
-> > >  	struct iphdr _iph;
-> > >  	const struct iphdr *ih;
-> > >  
-> > > -	ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
-> > > +	ih = skb_header_pointer(skb, skb_network_offset(skb), sizeof(_iph), &_iph);
-> > 
-> > This update is completely pointless.
+On Tue, Mar 21, 2017 at 07:54:37PM +0100, Florian Westphal wrote:
+> nft add rule ip6 f i meta l4proto ipv6-icmp icmpv6 type nd-router-advert
+> <cmdline>:1:50-60: Error: conflicting protocols specified: unknown vs. icmpv6
 > 
-> Its point is to be consistent with audit_ip6() and to prevent further
-> time consumed by confusion and head-scratching.  I know it is slightly
-> slower with an identical result.
+> add icmpv6 to nexthdr list so base gets updated correctly.
 > 
-> > If you want I can place it in nf-next, your call.
+> Reported-by: Thomas Woerner <twoerner@redhat.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  NB: This is STILL not correct.
+>  nft add rule ip6 f i meta l4proto ipv6-icmp icmpv6 type nd-router-advert
+>  gets listed as
+>   icmpv6 type nd-router-advert
 > 
-> I'd prefer to bring it through the audit-next tree to avoid the merge
-> conflict.
+> because post processing removes the l3 dependency.
+> 
+> However, "icmpv6 type nd-router-advert" uses dependency
+> ip6 nexthdr icmpv6
+> which isn't the same as meta l4proto icmpv6.
+> 
+> I suspect nft should always generate implicit l4 dependencies
+> via meta in the ipv6 case, what do others think
+> (and not autoremove 'nexthdr' check)?
 
-No problem. I remove this patchset from my patchwork then.
+I think we should use meta l4proto, ip6 nexthdr may point to some of
+the extension headers in the packet actually.
+
+> diff --git a/src/proto.c b/src/proto.c
+> index 79e9dbf2b33e..fcdfbe73c735 100644
+> --- a/src/proto.c
+> +++ b/src/proto.c
+> @@ -779,6 +779,7 @@ const struct proto_desc proto_inet_service = {
+>  		PROTO_LINK(IPPROTO_TCP,		&proto_tcp),
+>  		PROTO_LINK(IPPROTO_DCCP,	&proto_dccp),
+>  		PROTO_LINK(IPPROTO_SCTP,	&proto_sctp),
+> +		PROTO_LINK(IPPROTO_ICMPV6,	&proto_icmp6),
+
+This also allows icmp6 from IPv4, right? I remember I mentioned this
+in a patch that I attached to bugzilla at some point so I didn't apply
+this.
