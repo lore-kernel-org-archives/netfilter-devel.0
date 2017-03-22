@@ -1,94 +1,183 @@
-From: jeffy <jeffy.chen@rock-chips.com>
-Subject: Re: [PATCH 2/2 nf] netfilter: cthelper: Fix memory leak
-Date: Wed, 22 Mar 2017 10:43:30 +0800
-Message-ID: <58D1E4D2.3060207@rock-chips.com>
-References: <1490100094-32269-1-git-send-email-pablo@netfilter.org> <1490100094-32269-2-git-send-email-pablo@netfilter.org>
+From: "Gao Feng" <gfree.wind@foxmail.com>
+Subject: RE: [PATCH RESENT nf 1/1] netfilter: ctlink: Fix one possible use-after-free in ctnetlink_create_expect
+Date: Wed, 22 Mar 2017 11:29:46 +0800
+Message-ID: <001601d2a2bc$8e6a53d0$ab3efb70$@foxmail.com>
+References: <1490145919-110417-1-git-send-email-gfree.wind@foxmail.com> <001101d2a2ac$c20a1140$461e33c0$@foxmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+        charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: zlpnobody@gmail.com, dianders@chromium.org,
-        briannorris@chromium.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
+Cc: "'Gao Feng'" <fgao@ikuai8.com>
+To: <pablo@netfilter.org>, <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from regular1.263xmail.com ([211.150.99.136]:49732 "EHLO
-        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757425AbdCVCoK (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Mar 2017 22:44:10 -0400
-In-Reply-To: <1490100094-32269-2-git-send-email-pablo@netfilter.org>
+Received: from smtpbgau1.qq.com ([54.206.16.166]:44484 "EHLO smtpbgau1.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758647AbdCVDbw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 21 Mar 2017 23:31:52 -0400
+In-Reply-To: <001101d2a2ac$c20a1140$461e33c0$@foxmail.com>
+Content-Language: zh-cn
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi Pablo,
 
-On chromebook kevin:
-Tested-by: Jeffy Chen <jeffy.chen@rock-chips.com>
+> -----Original Message-----
+> From: netfilter-devel-owner@vger.kernel.org
+> [mailto:netfilter-devel-owner@vger.kernel.org] On Behalf Of Gao Feng
+> Sent: Wednesday, March 22, 2017 9:37 AM
+> To: pablo@netfilter.org; netfilter-devel@vger.kernel.org
+> Cc: 'Gao Feng' <fgao@ikuai8.com>
+> Subject: RE: [PATCH RESENT nf 1/1] netfilter: ctlink: Fix one possible
+> use-after-free in ctnetlink_create_expect
+> 
+> Hi Pablo,
+> 
+> > -----Original Message-----
+> > From: netfilter-devel-owner@vger.kernel.org
+> > [mailto:netfilter-devel-owner@vger.kernel.org] On Behalf Of
+> > gfree.wind@foxmail.com
+> > Sent: Wednesday, March 22, 2017 9:25 AM
+> > To: pablo@netfilter.org; netfilter-devel@vger.kernel.org;
+> > gfree.wind@foxmail.com
+> > Cc: Gao Feng <fgao@ikuai8.com>
+> > Subject: [PATCH RESENT nf 1/1] netfilter: ctlink: Fix one possible
+> use-after-free
+> > in ctnetlink_create_expect
+> >
+> > From: Gao Feng <fgao@ikuai8.com>
+> >
+> > There is no rcu_read_lock during ctlink gets the helper and inserts
+> > the expectation. So there is one possible use-after-free issue when
+> > unload the helper module.
+> >
+> > For example:
+> >
+> >         CPU1                                CPU2
+> > ctlink gets the helper
+> >                             helper module unload and remove all
+> > expectations insert the expectation
+> >
+> > Now there is one expectation which references one helper whose module
+> > is unloaded.
+> >
+> > Signed-off-by: Gao Feng <fgao@ikuai8.com>
+> > ---
+> >  net/netfilter/nf_conntrack_netlink.c | 10 ++++++++--
+> >  1 file changed, 8 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/net/netfilter/nf_conntrack_netlink.c
+> > b/net/netfilter/nf_conntrack_netlink.c
+> > index 6806b5e..f6d1d63 100644
+> > --- a/net/netfilter/nf_conntrack_netlink.c
+> > +++ b/net/netfilter/nf_conntrack_netlink.c
+> > @@ -3133,23 +3133,27 @@ static int ctnetlink_del_expect(struct net
+> > *net, struct sock *ctnl,
+> >  		return -ENOENT;
+> >  	ct = nf_ct_tuplehash_to_ctrack(h);
+> >
+> > +	rcu_read_lock();
+> >  	if (cda[CTA_EXPECT_HELP_NAME]) {
+> >  		const char *helpname = nla_data(cda[CTA_EXPECT_HELP_NAME]);
+> >
+> >  		helper = __nf_conntrack_helper_find(helpname, u3,
+> >  						    nf_ct_protonum(ct));
+> >  		if (helper == NULL) {
+> > +			rcu_read_unlock();
+> >  #ifdef CONFIG_MODULES
+> >  			if (request_module("nfct-helper-%s", helpname) < 0)
+> {
+> >  				err = -EOPNOTSUPP;
+> >  				goto err_ct;
+> >  			}
+> > +			rcu_read_lock();
+> >  			helper = __nf_conntrack_helper_find(helpname, u3,
+> >
+> nf_ct_protonum(ct));
+> >  			if (helper) {
+> >  				err = -EAGAIN;
+> > -				goto err_ct;
+> > +				goto err_rcu;
+> >  			}
+> > +			rcu_read_unlock();
+> >  #endif
+> >  			err = -EOPNOTSUPP;
+> >  			goto err_ct;
+> > @@ -3159,11 +3163,13 @@ static int ctnetlink_del_expect(struct net
+> > *net, struct sock *ctnl,
+> >  	exp = ctnetlink_alloc_expect(cda, ct, helper, &tuple, &mask);
+> >  	if (IS_ERR(exp)) {
+> >  		err = PTR_ERR(exp);
+> > -		goto err_ct;
+> > +		goto err_rcu;
+> >  	}
+> >
+> >  	err = nf_ct_expect_related_report(exp, portid, report);
+> >  	nf_ct_expect_put(exp);
+> > +err_rcu:
+> > +	rcu_read_unlock();
+> >  err_ct:
+> >  	nf_ct_put(ct);
+> >  	return err;
+> > --
+> > 1.9.1
+> >
+> >
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe
+netfilter-devel"
+> in
+> > the body of a message to majordomo@vger.kernel.org More majordomo info
+> > at  http://vger.kernel.org/majordomo-info.html
+> 
+> Let's me explain why I resend this patch without any change.
+> Actually I did checked all callers of __nf_conntrack_helper_find before.
+> 
+> There are
+> 1. ctnetlink_create_expect: No rcu lock, and it is my fix; 2.
+> ctnetlink_change_helper: It is protected by
+> spin_lock_bh(&nf_conntrack_expect_lock), although no rcu. I think it is
+not
+> necessary to add rcu again; 3. ctnetlink_create_conntrack: rcu lock
+already 4.
+> ctnetlink_glue_attach_expect: Its caller holds the rcu lock already.
+> nfnl_ct_hook->ctnetlink_glue_hook->ctnetlink_glue_attach_expect.
+> The nfnl_ct_hook is one RCU pointer, it should be protected by RCU.
+> 5. nf_conntrack_helper_try_module_get: It returns the helper pointer. So
+it is
+> necessary that its caller hold the rcu lock.
+> 
+> But I checked the caller of nf_conntrack_helper_try_module_get.
+> They are xt_ct_set_helper and ovs_ct_add_helper, and it seems they don't
+hold
+> the rcu lock.
+> It should be another patch I think.
 
-On 03/21/2017 08:41 PM, Pablo Neira Ayuso wrote:
-> From: Jeffy Chen <jeffy.chen@rock-chips.com>
->
-> We have memory leaks of nf_conntrack_helper & expect_policy.
->
-> Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> Heavily based on your original patch, so I'm keeping you as original author
-> for this fix.
->
->   net/netfilter/nfnetlink_cthelper.c | 12 +++++++++---
->   1 file changed, 9 insertions(+), 3 deletions(-)
->
-> diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-> index ffb51b91e646..bc43d8635cb8 100644
-> --- a/net/netfilter/nfnetlink_cthelper.c
-> +++ b/net/netfilter/nfnetlink_cthelper.c
-> @@ -214,7 +214,7 @@ nfnl_cthelper_create(const struct nlattr * const tb[],
->
->   	ret = nfnl_cthelper_parse_expect_policy(helper, tb[NFCTH_POLICY]);
->   	if (ret < 0)
-> -		goto err;
-> +		goto err1;
-it's safe to kfree a null pointer, so we can use the same goto label 
-with err2.
-But it's up to you, just matter of taste :)
+Now I change my thought, the nf_conntrack_helper_try_module_get should be
+fixed in this patch.
+Because when try_module_get return successfully, we have hold the module.
+So it is ok to use rcu lock in this function inside.
+I would send the v2 patch. 
 
->
->   	strncpy(helper->name, nla_data(tb[NFCTH_NAME]), NF_CT_HELPER_NAME_LEN);
->   	helper->data_len = ntohl(nla_get_be32(tb[NFCTH_PRIV_DATA_LEN]));
-> @@ -245,10 +245,12 @@ nfnl_cthelper_create(const struct nlattr * const tb[],
->
->   	ret = nf_conntrack_helper_register(helper);
->   	if (ret < 0)
-> -		goto err;
-> +		goto err2;
->
->   	return 0;
-> -err:
-> +err2:
-> +	kfree(helper->expect_policy);
-> +err1:
->   	kfree(helper);
->   	return ret;
->   }
-> @@ -676,6 +678,8 @@ static int nfnl_cthelper_del(struct net *net, struct sock *nfnl,
->
->   			found = true;
->   			nf_conntrack_helper_unregister(cur);
-> +			kfree(cur->expect_policy);
-> +			kfree(cur);
->   		}
->   	}
->   	/* Make sure we return success if we flush and there is no helpers */
-> @@ -739,6 +743,8 @@ static void __exit nfnl_cthelper_exit(void)
->   				continue;
->
->   			nf_conntrack_helper_unregister(cur);
-> +			kfree(cur->expect_policy);
-> +			kfree(cur);
->   		}
->   	}
->   }
->
+Best Regards
+Feng
+
+
+> 
+> What's your opinion, Pablo?
+> 
+> Best Regards
+> Feng
+> 
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
+in the
+> body of a message to majordomo@vger.kernel.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
+
 
 
