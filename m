@@ -1,60 +1,128 @@
-From: Jamal Hadi Salim <jhs-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>
-Subject: [ANNOUNCE]: New sponsor and accepted talk
-Date: Thu, 23 Mar 2017 14:46:34 -0400
-Message-ID: <3a7c4196-2812-4894-2f4e-a7d1c88fa650@mojatatu.com>
+From: James Morris <jmorris@namei.org>
+Subject: [ANNOUNCE] Linux Security Summit 2017 - CFP
+Date: Fri, 24 Mar 2017 12:26:43 +1100 (AEDT)
+Message-ID: <alpine.LRH.2.20.1703241217250.10825@namei.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: tech-committee-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        Brenda Butler <bjb-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>,
-        Stephen Jaworski <jaws-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>,
-        netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        Heri Muhero <hmuhero-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-To: people-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/mixed; BOUNDARY="1665246916-1864586338-1490318299=:10825"
+Cc: lwn@lwn.net, fedora-selinux-list@redhat.com, selinux@tycho.nsa.gov,
+        Linux Security Summit Program Committee <lss-pc@lists.linuxfoundation.org>,
+        ubuntu-hardened@lists.ubuntu.com, netfilter-devel@vger.kernel.org,
+        linux-crypto@vger.kernel.org, Audit-ML <linux-audit@redhat.com>,
+        gentoo-hardened@gentoo.org, keyrings@linux-nfs.org,
+        tpmdd-devel@lists.sourceforge.net, kernel-hardening@lists.openwall.com,
+        oss-security@lists.openwall.com, openxt@googlegroups.com,
+        tee-dev@lists.linaro.org
+To: linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <kernel-hardening-return-7094-glkh-kernel-hardening=m.gmane.org@lists.openwall.com>
+List-Post: <mailto:kernel-hardening@lists.openwall.com>
+List-Help: <mailto:kernel-hardening-help@lists.openwall.com>
+List-Unsubscribe: <mailto:kernel-hardening-unsubscribe@lists.openwall.com>
+List-Subscribe: <mailto:kernel-hardening-subscribe@lists.openwall.com>
+Content-ID: <alpine.LRH.2.20.1703241220400.10825@namei.org>
 List-Id: netfilter-devel.vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Two announcements for today. An accepted talk and a new sponsor.
-
-1) The tech committee would like to announce a new accepted talk.
-Arthur Davis and Tom Distler will talk about their quest for a
-quest for a network configuration solution for a large Linux storage
-application
-
-Details are as follows:
--------
-This talk is about our quest for a network configuration solution
-for a large Linux storage application. Our application is based on
-a highly available cluster architecture which requires
-dynamic and reliable software-driven network configuration.
-
-Further requirements include:
-- programmatic access to configure the majority of the Linux network
-   stack,
-- transaction-like semantics where multiple related configurations
-   either fail or succeed as a unit,
-- logic to monitor the system and when it differs from the expected
-   configuration, provide notifications and possibly attempt automatic
-   repairs,
-- and all of this without becoming entangled with application-specific
-   expectations about behaviors and policies.
-
-The talk expands upon the above set of core requirements and discusses
-some of the difficulties around meeting these requirements with
-currently available open source solutions. Our journey leads to a new
-configuration system to meet these requirements, and we discuss some
-key architecture and design aspects of the system.
-
-We are planning to release our work into the open source community and
-we hope the talk will encourage discussion and provide us feedback on
-making this work better.
---------
-
-2) The organizing committee would like to announce
-Savoirfairelinux  joining as a bronze sponsor. Thank you!
+--1665246916-1864586338-1490318299=:10825
+Content-Type: text/plain; CHARSET=ISO-8859-7
+Content-Transfer-Encoding: 8BIT
+Content-ID: <alpine.LRH.2.20.1703241220401.10825@namei.org>
 
 
-cheers,
-jamal
+==============================================================================
+		   ANNOUNCEMENT AND CALL FOR PARTICIPATION
+
+			  LINUX SECURITY SUMMIT 2017
+                         
+			       14-15 September
+			       LOS ANGELES, USA
+==============================================================================
+
+
+DESCRIPTION
+
+  The Linux Security Summit (LSS) is a technical forum for collaboration
+  between Linux developers, researchers, and end users. Its primary aim is to
+  foster community efforts in analyzing and solving Linux security challenges.
+
+  LSS this year will be co-located with the Open Source Summit and the Linux
+  Plumbers Conference.
+
+  The program committee currently seeks proposals for:
+
+    * Refereed Presentations:
+      45 minutes in length, including at least 10 minutes of discussion.
+
+    * Discussion Topics:
+      30 minutes in length.
+
+  Topic areas include, but are not limited to:
+
+    * Kernel self-protection
+    * Access control
+    * Cryptography and key management
+    * Integrity control
+    * Hardware Security
+    * Iot and embedded security
+    * Virtualization and containers
+    * System-specific system hardening
+    * Case studies
+    * Security tools
+    * Security UX
+    * Emerging technologies, threats & techniques 
+
+  Proposals should be submitted via:
+    http://events.linuxfoundation.org/events/linux-security-summit/program/cfp
+
+
+DATES
+
+  * CFP Close: June 5, 2017
+  * CFP Notifications: June 12, 2017
+  * Schedule Announced: June 19, 2017
+  * Slide Submission: August 31, 2017
+
+
+WHO SHOULD ATTEND
+
+  We're seeking a diverse range of attendees, and welcome participation by
+  people involved in Linux security development, operations, and research.
+
+  The LSS is a unique global event which provides the opportunity to present
+  and discuss your work or research with key Linux security community members
+  and maintainers.  It¢s also useful for those who wish to keep up with the
+  latest in Linux security development, and to provide input to the
+  development process.
+
+
+WEB SITE
+
+  http://events.linuxfoundation.org/events/linux-security-summit
+
+
+TWITTER
+
+  For event updates and announcements, follow:
+
+    https://twitter.com/LinuxSecSummit
+  
+
+PROGRAM COMMITTEE
+
+  The program committee for LSS 2017 is:
+
+    * James Morris, Oracle
+    * Serge Hallyn, Canonical
+    * Paul Moore, Red Hat
+    * Stephen Smalley, NSA
+    * Elena Reshetova, Intel
+    * John Johansen, Canonical
+    * Kees Cook, Google
+    * Casey Schaufler, Intel
+    * Mimi Zohar, IBM
+    * David A. Wheeler, Institute for Defense Analyses
+
+  The program committee may be contacted as a group via email:
+    lss-pc () lists.linuxfoundation.org
+--1665246916-1864586338-1490318299=:10825--
