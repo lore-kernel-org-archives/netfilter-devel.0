@@ -1,43 +1,33 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf v3 1/1] netfilter: snmp: Fix one possible panic when
- snmp_trap_helper fail to register
-Date: Fri, 24 Mar 2017 13:21:30 +0100
-Message-ID: <20170324122130.GA3080@salvia>
-References: <1490055749-52357-1-git-send-email-fgao@ikuai8.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nft] src: allow update of net base w. meta l4proto icmpv6
+Date: Fri, 24 Mar 2017 13:21:12 +0100
+Message-ID: <20170324122112.GG10418@breakpoint.cc>
+References: <20170321185437.22959-1-fw@strlen.de>
+ <20170322130902.GA21742@salvia>
+ <20170322134412.GA8584@breakpoint.cc>
+ <20170322152909.GA22809@salvia>
+ <20170322153204.GA22898@salvia>
+ <20170322154400.GB8584@breakpoint.cc>
+ <20170322160726.GA23136@salvia>
+ <20170322192252.GC8584@breakpoint.cc>
+ <20170324115021.GA2515@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: davem@davemloft.net, jolsa@redhat.com,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        gfree.wind@gmail.com
-To: fgao@ikuai8.com
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48800 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933871AbdCXMVh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Mar 2017 08:21:37 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 798ED11E593
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2017 13:21:33 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6A176DA87E
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2017 13:21:33 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7A55FDA87D
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2017 13:21:29 +0100 (CET)
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:38380 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S964908AbdCXMVx (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 24 Mar 2017 08:21:53 -0400
 Content-Disposition: inline
-In-Reply-To: <1490055749-52357-1-git-send-email-fgao@ikuai8.com>
+In-Reply-To: <20170324115021.GA2515@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 21, 2017 at 08:22:29AM +0800, fgao@ikuai8.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
-> 
-> In the commit 93557f53e1fb ("netfilter: nf_conntrack: nf_conntrack snmp
-> helper"), the snmp_helper is replaced by nf_nat_snmp_hook. So the
-> snmp_helper is never registered. But it still tries to unregister the
-> snmp_helper, it could cause the panic.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> We can just use NFT_META_L4PROTO all the time, so we use it from IPv4
+> too, right?
 
-This patch looks correct to me.
-
-But probably for some reason I don't manage to trigger, how do you
-reproduce this?
+Right, we can indeed do that and change ip as well.
