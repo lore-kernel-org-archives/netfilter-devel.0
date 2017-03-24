@@ -1,69 +1,68 @@
-From: "Gao Feng" <gfree.wind@foxmail.com>
-Subject: RE: [PATCH nf v3 1/1] netfilter: snmp: Fix one possible panic when snmp_trap_helper fail to register
-Date: Fri, 24 Mar 2017 20:42:07 +0800
-Message-ID: <000401d2a49c$0d094350$271bc9f0$@foxmail.com>
-References: <1490055749-52357-1-git-send-email-fgao@ikuai8.com> <20170324122130.GA3080@salvia> <20170324122301.GA3160@salvia>
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH nf] netfilter: invoke synchronize_rcu after set the _hook_
+ to NULL
+Date: Fri, 24 Mar 2017 21:01:17 +0800
+Message-ID: <CAML_gOeOE_TSJb2hsNoGBopF_-kxdj3n4c4nzge9qR0q52wpYA@mail.gmail.com>
+References: <1490015030-16403-1-git-send-email-zlpnobody@163.com> <20170324121707.GA2764@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="gb2312"
-Content-Transfer-Encoding: quoted-printable
-Cc: <davem@davemloft.net>, <jolsa@redhat.com>,
-        <netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <gfree.wind@gmail.com>
-To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>, <fgao@ikuai8.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170324122301.GA3160@salvia>
-Content-Language: zh-cn
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: Liping Zhang <zlpnobody@163.com>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-vk0-f50.google.com ([209.85.213.50]:36303 "EHLO
+        mail-vk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932990AbdCXNBT (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 24 Mar 2017 09:01:19 -0400
+Received: by mail-vk0-f50.google.com with SMTP id s68so1849833vke.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2017 06:01:18 -0700 (PDT)
+In-Reply-To: <20170324121707.GA2764@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi Pablo,
 
-> -----Original Message-----
-> From: netfilter-devel-owner@vger.kernel.org
-> [mailto:netfilter-devel-owner@vger.kernel.org] On Behalf Of Pablo =
-Neira
-Ayuso
-> Sent: Friday, March 24, 2017 8:23 PM
-> To: fgao@ikuai8.com
-> Cc: davem@davemloft.net; jolsa@redhat.com;
-netfilter-devel@vger.kernel.org;
-> netdev@vger.kernel.org; gfree.wind@gmail.com
-> Subject: Re: [PATCH nf v3 1/1] netfilter: snmp: Fix one possible panic
-when
-> snmp_trap_helper fail to register
->=20
-> On Fri, Mar 24, 2017 at 01:21:30PM +0100, Pablo Neira Ayuso wrote:
-> > On Tue, Mar 21, 2017 at 08:22:29AM +0800, fgao@ikuai8.com wrote:
-> > > From: Gao Feng <fgao@ikuai8.com>
-> > >
-> > > In the commit 93557f53e1fb ("netfilter: nf_conntrack: nf_conntrack
-> > > snmp helper"), the snmp_helper is replaced by nf_nat_snmp_hook. So
-> > > the snmp_helper is never registered. But it still tries to
-> > > unregister the snmp_helper, it could cause the panic.
-> >
-> > This patch looks correct to me.
-> >
-> > But probably for some reason I don't manage to trigger, how do you
-> > reproduce this?
->=20
-> I'm refering to the panic.
-[=B8=DF=B7=E5]=20
-It is got by reviewing the codes.
-When nf_conntrack_helper_unregister(&snmp_helper), but snmp_helper =
-didn't
-register actually.
-And snmp_helper. hnode is not initialized, it would trigger the issue =
-when
-hlist_del_rcu in nf_conntrack_helper_unregister.
+2017-03-24 20:17 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+>> --- a/net/netfilter/nfnetlink_cttimeout.c
+>> +++ b/net/netfilter/nfnetlink_cttimeout.c
+>> @@ -646,8 +646,8 @@ static void __exit cttimeout_exit(void)
+>>  #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
+>>       RCU_INIT_POINTER(nf_ct_timeout_find_get_hook, NULL);
+>>       RCU_INIT_POINTER(nf_ct_timeout_put_hook, NULL);
+>> +     synchronize_rcu();
+>>  #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
+>> -     rcu_barrier();
+>
+> cttimeout relies on kfree_rcu().
+>
+> Are you sure we don't need this?
+>
+> According to:
+>
+> https://www.kernel.org/doc/Documentation/RCU/rcubarrier.txt
+>
+> "We could try placing a synchronize_rcu() in the module-exit code path,
+> but this is not sufficient."
+>
+> Then:
+>
+> "Please note that rcu_barrier() does -not- imply synchronize_rcu(), in
+> particular, if there are no RCU callbacks queued anywhere,
+> rcu_barrier() is within its rights to return immediately, without
+> waiting for a grace period to elapse."
 
-Best Regards
-Feng
+This is because we use kfree_rcu to free the cttimeout objects. So I think
+rcu_barrier() is not needed anymore.
 
+Quoted from https://lwn.net/Articles/433493/ :
+"And kfree_rcu() is also help for unloadable modules, kfree_rcu() does not
+queue any function which belong to the module, so a rcu_barrier() can
+be avoid when module exit."
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe =
-netfilter-devel"
-in the
-> body of a message to majordomo@vger.kernel.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+Also from commit 9ab1544eb419 ("rcu: introduce kfree_rcu()"):
+"Many rcu callbacks functions just call kfree() on the base structure.
+These functions are trivial, but their size adds up, and furthermore
+when they are used in a kernel module, that module must invoke the
+high-latency rcu_barrier() function at module-unload time."
