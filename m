@@ -1,128 +1,84 @@
-From: James Morris <jmorris@namei.org>
-Subject: [ANNOUNCE] Linux Security Summit 2017 - CFP
-Date: Fri, 24 Mar 2017 12:26:43 +1100 (AEDT)
-Message-ID: <alpine.LRH.2.20.1703241217250.10825@namei.org>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; BOUNDARY="1665246916-1864586338-1490318299=:10825"
-Cc: lwn@lwn.net, fedora-selinux-list@redhat.com, selinux@tycho.nsa.gov,
-        Linux Security Summit Program Committee <lss-pc@lists.linuxfoundation.org>,
-        ubuntu-hardened@lists.ubuntu.com, netfilter-devel@vger.kernel.org,
-        linux-crypto@vger.kernel.org, Audit-ML <linux-audit@redhat.com>,
-        gentoo-hardened@gentoo.org, keyrings@linux-nfs.org,
-        tpmdd-devel@lists.sourceforge.net, kernel-hardening@lists.openwall.com,
-        oss-security@lists.openwall.com, openxt@googlegroups.com,
-        tee-dev@lists.linaro.org
-To: linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org
-Return-path: <kernel-hardening-return-7094-glkh-kernel-hardening=m.gmane.org@lists.openwall.com>
-List-Post: <mailto:kernel-hardening@lists.openwall.com>
-List-Help: <mailto:kernel-hardening-help@lists.openwall.com>
-List-Unsubscribe: <mailto:kernel-hardening-unsubscribe@lists.openwall.com>
-List-Subscribe: <mailto:kernel-hardening-subscribe@lists.openwall.com>
-Content-ID: <alpine.LRH.2.20.1703241220400.10825@namei.org>
-List-Id: netfilter-devel.vger.kernel.org
+From: gfree.wind@foxmail.com
+Subject: [PATCH nf 1/1] netfilter: expect: Make sure the max_expected limit is effective
+Date: Fri, 24 Mar 2017 09:38:37 +0800
+Message-ID: <1490319517-47760-1-git-send-email-gfree.wind@foxmail.com>
+Cc: Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtpbgbr2.qq.com ([54.207.22.56]:34754 "EHLO smtpbgbr2.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750952AbdCXBjB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 23 Mar 2017 21:39:01 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+From: Gao Feng <fgao@ikuai8.com>
 
---1665246916-1864586338-1490318299=:10825
-Content-Type: text/plain; CHARSET=ISO-8859-7
-Content-Transfer-Encoding: 8BIT
-Content-ID: <alpine.LRH.2.20.1703241220401.10825@namei.org>
+Because the type of expecting, the member of nf_conn_help, is u8, it
+would overflow after reach U8_MAX(255). So it doesn't work when we
+configure the max_expected exceeds 255 with expect policy.
 
+Now add the check for max_expected. Return the -EINVAL when it exceeds
+the limit.
 
-==============================================================================
-		   ANNOUNCEMENT AND CALL FOR PARTICIPATION
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ include/net/netfilter/nf_conntrack_expect.h | 1 +
+ net/netfilter/nf_conntrack_helper.c         | 3 +++
+ net/netfilter/nfnetlink_cthelper.c          | 4 ++++
+ 3 files changed, 8 insertions(+)
 
-			  LINUX SECURITY SUMMIT 2017
-                         
-			       14-15 September
-			       LOS ANGELES, USA
-==============================================================================
-
-
-DESCRIPTION
-
-  The Linux Security Summit (LSS) is a technical forum for collaboration
-  between Linux developers, researchers, and end users. Its primary aim is to
-  foster community efforts in analyzing and solving Linux security challenges.
-
-  LSS this year will be co-located with the Open Source Summit and the Linux
-  Plumbers Conference.
-
-  The program committee currently seeks proposals for:
-
-    * Refereed Presentations:
-      45 minutes in length, including at least 10 minutes of discussion.
-
-    * Discussion Topics:
-      30 minutes in length.
-
-  Topic areas include, but are not limited to:
-
-    * Kernel self-protection
-    * Access control
-    * Cryptography and key management
-    * Integrity control
-    * Hardware Security
-    * Iot and embedded security
-    * Virtualization and containers
-    * System-specific system hardening
-    * Case studies
-    * Security tools
-    * Security UX
-    * Emerging technologies, threats & techniques 
-
-  Proposals should be submitted via:
-    http://events.linuxfoundation.org/events/linux-security-summit/program/cfp
-
-
-DATES
-
-  * CFP Close: June 5, 2017
-  * CFP Notifications: June 12, 2017
-  * Schedule Announced: June 19, 2017
-  * Slide Submission: August 31, 2017
+diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
+index 5ed33ea..aa36a31 100644
+--- a/include/net/netfilter/nf_conntrack_expect.h
++++ b/include/net/netfilter/nf_conntrack_expect.h
+@@ -71,6 +71,7 @@ struct nf_conntrack_expect_policy {
+ };
+ 
+ #define NF_CT_EXPECT_CLASS_DEFAULT	0
++#define NF_CT_EXPECT_MAX_CNT		U8_MAX
+ 
+ int nf_conntrack_expect_pernet_init(struct net *net);
+ void nf_conntrack_expect_pernet_fini(struct net *net);
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 6dc44d9..752a977 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -385,6 +385,9 @@ int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
+ 	BUG_ON(me->expect_class_max >= NF_CT_MAX_EXPECT_CLASSES);
+ 	BUG_ON(strlen(me->name) > NF_CT_HELPER_NAME_LEN - 1);
+ 
++	if (me->expect_policy->max_expected > NF_CT_EXPECT_MAX_CNT)
++		return -EINVAL;
++
+ 	mutex_lock(&nf_ct_helper_mutex);
+ 	hlist_for_each_entry(cur, &nf_ct_helper_hash[h], hnode) {
+ 		if (nf_ct_tuple_src_mask_cmp(&cur->tuple, &me->tuple, &mask)) {
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
+index 2b987d2..de841b3 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -143,6 +143,8 @@
+ 		nla_data(tb[NFCTH_POLICY_NAME]), NF_CT_HELPER_NAME_LEN);
+ 	expect_policy->max_expected =
+ 		ntohl(nla_get_be32(tb[NFCTH_POLICY_EXPECT_MAX]));
++	if (expect_policy->max_expected > NF_CT_EXPECT_MAX_CNT)
++		return -EINVAL;
+ 	expect_policy->timeout =
+ 		ntohl(nla_get_be32(tb[NFCTH_POLICY_EXPECT_TIMEOUT]));
+ 
+@@ -280,6 +282,8 @@
+ 
+ 	new_policy->max_expected =
+ 		ntohl(nla_get_be32(tb[NFCTH_POLICY_EXPECT_MAX]));
++	if (new_policy->max_expected > NF_CT_EXPECT_MAX_CNT)
++		return -EINVAL;
+ 	new_policy->timeout =
+ 		ntohl(nla_get_be32(tb[NFCTH_POLICY_EXPECT_TIMEOUT]));
+ 
+-- 
+1.9.1
 
 
-WHO SHOULD ATTEND
-
-  We're seeking a diverse range of attendees, and welcome participation by
-  people involved in Linux security development, operations, and research.
-
-  The LSS is a unique global event which provides the opportunity to present
-  and discuss your work or research with key Linux security community members
-  and maintainers.  It¢s also useful for those who wish to keep up with the
-  latest in Linux security development, and to provide input to the
-  development process.
 
 
-WEB SITE
-
-  http://events.linuxfoundation.org/events/linux-security-summit
-
-
-TWITTER
-
-  For event updates and announcements, follow:
-
-    https://twitter.com/LinuxSecSummit
-  
-
-PROGRAM COMMITTEE
-
-  The program committee for LSS 2017 is:
-
-    * James Morris, Oracle
-    * Serge Hallyn, Canonical
-    * Paul Moore, Red Hat
-    * Stephen Smalley, NSA
-    * Elena Reshetova, Intel
-    * John Johansen, Canonical
-    * Kees Cook, Google
-    * Casey Schaufler, Intel
-    * Mimi Zohar, IBM
-    * David A. Wheeler, Institute for Defense Analyses
-
-  The program committee may be contacted as a group via email:
-    lss-pc () lists.linuxfoundation.org
---1665246916-1864586338-1490318299=:10825--
