@@ -1,85 +1,65 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf v3 1/1] netfilter: snmp: Fix one possible panic when
- snmp_trap_helper fail to register
-Date: Fri, 24 Mar 2017 20:01:58 +0100
-Message-ID: <20170324190158.GA3202@salvia>
-References: <1490055749-52357-1-git-send-email-fgao@ikuai8.com>
+From: Laura Garcia Liebana <laura.garcia@zevenet.com>
+Subject: [PATCH nft] src: hash: fix seed attribute not listed
+Date: Fri, 24 Mar 2017 20:53:12 +0100
+Message-ID: <20170324195312.wv5gdyrpxld5mwbn@nevthink>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: davem@davemloft.net, jolsa@redhat.com,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        gfree.wind@gmail.com
-To: fgao@ikuai8.com
-Return-path: <netdev-owner@vger.kernel.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wr0-f174.google.com ([209.85.128.174]:33175 "EHLO
+        mail-wr0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752556AbdCXTxS (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 24 Mar 2017 15:53:18 -0400
+Received: by mail-wr0-f174.google.com with SMTP id y90so201369wrb.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2017 12:53:17 -0700 (PDT)
+Received: from nevthink ([91.126.74.89])
+        by smtp.gmail.com with ESMTPSA id n80sm1357699wrb.24.2017.03.24.12.53.15
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Fri, 24 Mar 2017 12:53:15 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1490055749-52357-1-git-send-email-fgao@ikuai8.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 21, 2017 at 08:22:29AM +0800, fgao@ikuai8.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
-> 
-> In the commit 93557f53e1fb ("netfilter: nf_conntrack: nf_conntrack snmp
-> helper"), the snmp_helper is replaced by nf_nat_snmp_hook. So the
-> snmp_helper is never registered. But it still tries to unregister the
-> snmp_helper, it could cause the panic.
-> 
-> Now remove the useless snmp_helper and the unregister call in the
-> error handler.
-> 
-> Fixes: 93557f53e1fb ("netfilter: nf_conntrack: nf_conntrack snmp helper")
-> 
-> Signed-off-by: Gao Feng <fgao@ikuai8.com>
-> ---
->  v3: Remove the angle brackets in description, per Sergei
->  v2: Add the SHA1 ID in the description, per Sergei
->  v1: Initial version
-> 
->  net/ipv4/netfilter/nf_nat_snmp_basic.c | 14 +-------------
->  1 file changed, 1 insertion(+), 13 deletions(-)
-> 
-> diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-> index c9b52c3..5787364 100644
-> --- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
-> +++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-> @@ -1260,16 +1260,6 @@ static int help(struct sk_buff *skb, unsigned int protoff,
->  	.timeout	= 180,
->  };
->  
-> -static struct nf_conntrack_helper snmp_helper __read_mostly = {
-> -	.me			= THIS_MODULE,
-> -	.help			= help,
-> -	.expect_policy		= &snmp_exp_policy,
-> -	.name			= "snmp",
-> -	.tuple.src.l3num	= AF_INET,
-> -	.tuple.src.u.udp.port	= cpu_to_be16(SNMP_PORT),
-> -	.tuple.dst.protonum	= IPPROTO_UDP,
-> -};
-> -
->  static struct nf_conntrack_helper snmp_trap_helper __read_mostly = {
->  	.me			= THIS_MODULE,
->  	.help			= help,
-> @@ -1294,10 +1284,8 @@ static int __init nf_nat_snmp_basic_init(void)
->  	RCU_INIT_POINTER(nf_nat_snmp_hook, help);
->  
->  	ret = nf_conntrack_helper_register(&snmp_trap_helper);
-> -	if (ret < 0) {
-> -		nf_conntrack_helper_unregister(&snmp_helper);
-> +	if (ret < 0)
->  		return ret;
-> -	}
->  	return ret;
+The tests warned about a problem with the seed listing.
 
-You can provide a more simplified version after this is removed, I
-think:
+/tests/py# ./nft-test.py ip/hash.t
+ip/hash.t: WARNING: line: 4: 'src/nft add rule --debug=netlink \
+ ip test-ip4 pre ct mark set jhash ip saddr . ip daddr mod 2 \
+ seed 0xdeadbeef': 'ct mark set jhash ip saddr . ip daddr mod 2 \
+ seed 0xdeadbeef' mismatches 'ct mark set jhash ip saddr . ip \
+ daddr mod 2'
+ip/hash.t: WARNING: line: 6: 'src/nft add rule --debug=netlink \
+ ip test-ip4 pre ct mark set jhash ip saddr . ip daddr mod 2 seed \
+ 0xdeadbeef offset 100': 'ct mark set jhash ip saddr . ip daddr \
+ mod 2 seed 0xdeadbeef offset 100' mismatches 'ct mark set jhash \
+ ip saddr . ip daddr mod 2 offset 100'
+ip/hash.t: 6 unit tests, 0 error, 2 warning
 
-@@ -1283,10 +1283,7 @@ static int __init nf_nat_snmp_basic_init(void)
-        BUG_ON(nf_nat_snmp_hook != NULL);
-        RCU_INIT_POINTER(nf_nat_snmp_hook, help);
+The expression type is now treated as an unsigned int in the
+hash_expr_print() function.
+
+Fixes 3a86406 ("src: hash: support of symmetric hash")
+
+Signed-off-by: Laura Garcia Liebana <laura.garcia@zevenet.com>
+---
+ src/hash.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/hash.c b/src/hash.c
+index a7a9612..bec1684 100644
+--- a/src/hash.c
++++ b/src/hash.c
+@@ -28,7 +28,7 @@ static void hash_expr_print(const struct expr *expr)
+ 	}
  
--       ret = nf_conntrack_helper_register(&snmp_trap_helper);
--       if (ret < 0)
--               return ret;
--       return ret;
-+       return nf_conntrack_helper_register(&snmp_trap_helper);
- }
+ 	printf(" mod %u", expr->hash.mod);
+-	if (expr->hash.type & NFT_HASH_JENKINS && expr->hash.seed)
++	if ((expr->hash.type == NFT_HASH_JENKINS) && expr->hash.seed)
+ 		printf(" seed 0x%x", expr->hash.seed);
+ 	if (expr->hash.offset)
+ 		printf(" offset %u", expr->hash.offset);
+-- 
+2.11.0
+
