@@ -1,32 +1,52 @@
-From: Jamal Hadi Salim <jhs@mojatatu.com>
-Subject: [ANNOUNCE]: New Gold sponsor VMware
-Date: Fri, 24 Mar 2017 16:42:15 -0400
-Message-ID: <9aa560f5-597d-9879-b60b-ec95f826d7da@mojatatu.com>
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH nf] netfilter: invoke synchronize_rcu after set the _hook_
+ to NULL
+Date: Sat, 25 Mar 2017 07:55:53 +0800
+Message-ID: <CAML_gOdzYgk5tvZ-3+FgMkT2npoyiKfEq8rR=ynof+9MszWd1w@mail.gmail.com>
+References: <1490015030-16403-1-git-send-email-zlpnobody@163.com>
+ <20170324121707.GA2764@salvia> <CAML_gOeOE_TSJb2hsNoGBopF_-kxdj3n4c4nzge9qR0q52wpYA@mail.gmail.com>
+ <20170324184516.GA2388@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: tech-committee@netdevconf.org, netfilter-devel@vger.kernel.org,
-        Brenda Butler <bjb@mojatatu.com>,
-        Stephen Jaworski <jaws@mojatatu.com>,
-        netfilter@vger.kernel.org, linux-wireless@vger.kernel.org,
-        Heri Muhero <hmuhero@gmail.com>
-To: people@netdevconf.org
+Content-Type: text/plain; charset=UTF-8
+Cc: Liping Zhang <zlpnobody@163.com>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:32804 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S967602AbdCXUm3 (ORCPT
+Received: from mail-vk0-f49.google.com ([209.85.213.49]:35937 "EHLO
+        mail-vk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753714AbdCXX4Q (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Mar 2017 16:42:29 -0400
-Received: by mail-it0-f67.google.com with SMTP id 76so308165itj.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2017 13:42:28 -0700 (PDT)
+        Fri, 24 Mar 2017 19:56:16 -0400
+Received: by mail-vk0-f49.google.com with SMTP id s68so5199468vke.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2017 16:55:54 -0700 (PDT)
+In-Reply-To: <20170324184516.GA2388@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The organizing committee would like to announce a new return
-Gold Sponsor!
+Hi Pablo,
 
-We appreciate VMWware for their consistent support to the netdev
-community.
+2017-03-25 2:45 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+[...]
+> I think we can get this smaller: it should be possible to avoid this
+> synchronize_rcu() call from nf_conntrack_{register,unregister}_notifier().
+> These two are called from ctnetlink netns path, this patch already
+> adds a synchronize_rcu() spot to ctnetlink module removal which is
+> where the event callback can vanish.
+>
+> You can just add a comment there so we don't forget about this, eg.
+>
+> @@ -290,6 +290,7 @@  void nf_conntrack_unregister_notifier(struct net
+> *net,
+>         BUG_ON(notify != new);
+>         RCU_INIT_POINTER(net->ct.nf_conntrack_event_cb, NULL);
+>         mutex_unlock(&nf_ct_ecache_mutex);
+> +       /* synchronize_rcu() is called from ctnetlink. */
+>  }
+>
+> What do you think?
 
-cheers,
-jamal
+Right, this can avoid two useless synchronize_rcu() invocations when
+deleting netns, I will send V2.
+
+Thanks Pablo.
