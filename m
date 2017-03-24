@@ -1,98 +1,85 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: invoke synchronize_rcu after set the
- _hook_ to NULL
-Date: Fri, 24 Mar 2017 19:45:16 +0100
-Message-ID: <20170324184516.GA2388@salvia>
-References: <1490015030-16403-1-git-send-email-zlpnobody@163.com>
- <20170324121707.GA2764@salvia>
- <CAML_gOeOE_TSJb2hsNoGBopF_-kxdj3n4c4nzge9qR0q52wpYA@mail.gmail.com>
+Subject: Re: [PATCH nf v3 1/1] netfilter: snmp: Fix one possible panic when
+ snmp_trap_helper fail to register
+Date: Fri, 24 Mar 2017 20:01:58 +0100
+Message-ID: <20170324190158.GA3202@salvia>
+References: <1490055749-52357-1-git-send-email-fgao@ikuai8.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Liping Zhang <zlpnobody@163.com>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Liping Zhang <zlpnobody@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53792 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751410AbdCXSpX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Mar 2017 14:45:23 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B2D6C1EC2C4
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2017 19:45:19 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A570BFC2DC
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2017 19:45:19 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4453EFB471
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2017 19:45:16 +0100 (CET)
+Cc: davem@davemloft.net, jolsa@redhat.com,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        gfree.wind@gmail.com
+To: fgao@ikuai8.com
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAML_gOeOE_TSJb2hsNoGBopF_-kxdj3n4c4nzge9qR0q52wpYA@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1490055749-52357-1-git-send-email-fgao@ikuai8.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Mar 24, 2017 at 09:01:17PM +0800, Liping Zhang wrote:
-> Hi Pablo,
+On Tue, Mar 21, 2017 at 08:22:29AM +0800, fgao@ikuai8.com wrote:
+> From: Gao Feng <fgao@ikuai8.com>
 > 
-> 2017-03-24 20:17 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-> >> --- a/net/netfilter/nfnetlink_cttimeout.c
-> >> +++ b/net/netfilter/nfnetlink_cttimeout.c
-> >> @@ -646,8 +646,8 @@ static void __exit cttimeout_exit(void)
-> >>  #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
-> >>       RCU_INIT_POINTER(nf_ct_timeout_find_get_hook, NULL);
-> >>       RCU_INIT_POINTER(nf_ct_timeout_put_hook, NULL);
-> >> +     synchronize_rcu();
-> >>  #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
-> >> -     rcu_barrier();
-> >
-> > cttimeout relies on kfree_rcu().
-> >
-> > Are you sure we don't need this?
-> >
-> > According to:
-> >
-> > https://www.kernel.org/doc/Documentation/RCU/rcubarrier.txt
-> >
-> > "We could try placing a synchronize_rcu() in the module-exit code path,
-> > but this is not sufficient."
-> >
-> > Then:
-> >
-> > "Please note that rcu_barrier() does -not- imply synchronize_rcu(), in
-> > particular, if there are no RCU callbacks queued anywhere,
-> > rcu_barrier() is within its rights to return immediately, without
-> > waiting for a grace period to elapse."
+> In the commit 93557f53e1fb ("netfilter: nf_conntrack: nf_conntrack snmp
+> helper"), the snmp_helper is replaced by nf_nat_snmp_hook. So the
+> snmp_helper is never registered. But it still tries to unregister the
+> snmp_helper, it could cause the panic.
 > 
-> This is because we use kfree_rcu to free the cttimeout objects. So I think
-> rcu_barrier() is not needed anymore.
+> Now remove the useless snmp_helper and the unregister call in the
+> error handler.
 > 
-> Quoted from https://lwn.net/Articles/433493/ :
-> "And kfree_rcu() is also help for unloadable modules, kfree_rcu() does not
-> queue any function which belong to the module, so a rcu_barrier() can
-> be avoid when module exit."
+> Fixes: 93557f53e1fb ("netfilter: nf_conntrack: nf_conntrack snmp helper")
 > 
-> Also from commit 9ab1544eb419 ("rcu: introduce kfree_rcu()"):
-> "Many rcu callbacks functions just call kfree() on the base structure.
-> These functions are trivial, but their size adds up, and furthermore
-> when they are used in a kernel module, that module must invoke the
-> high-latency rcu_barrier() function at module-unload time."
+> Signed-off-by: Gao Feng <fgao@ikuai8.com>
+> ---
+>  v3: Remove the angle brackets in description, per Sergei
+>  v2: Add the SHA1 ID in the description, per Sergei
+>  v1: Initial version
+> 
+>  net/ipv4/netfilter/nf_nat_snmp_basic.c | 14 +-------------
+>  1 file changed, 1 insertion(+), 13 deletions(-)
+> 
+> diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+> index c9b52c3..5787364 100644
+> --- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
+> +++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+> @@ -1260,16 +1260,6 @@ static int help(struct sk_buff *skb, unsigned int protoff,
+>  	.timeout	= 180,
+>  };
+>  
+> -static struct nf_conntrack_helper snmp_helper __read_mostly = {
+> -	.me			= THIS_MODULE,
+> -	.help			= help,
+> -	.expect_policy		= &snmp_exp_policy,
+> -	.name			= "snmp",
+> -	.tuple.src.l3num	= AF_INET,
+> -	.tuple.src.u.udp.port	= cpu_to_be16(SNMP_PORT),
+> -	.tuple.dst.protonum	= IPPROTO_UDP,
+> -};
+> -
+>  static struct nf_conntrack_helper snmp_trap_helper __read_mostly = {
+>  	.me			= THIS_MODULE,
+>  	.help			= help,
+> @@ -1294,10 +1284,8 @@ static int __init nf_nat_snmp_basic_init(void)
+>  	RCU_INIT_POINTER(nf_nat_snmp_hook, help);
+>  
+>  	ret = nf_conntrack_helper_register(&snmp_trap_helper);
+> -	if (ret < 0) {
+> -		nf_conntrack_helper_unregister(&snmp_helper);
+> +	if (ret < 0)
+>  		return ret;
+> -	}
+>  	return ret;
 
-Right, thanks for explaining.
+You can provide a more simplified version after this is removed, I
+think:
 
-I think we can get this smaller: it should be possible to avoid this
-synchronize_rcu() call from nf_conntrack_{register,unregister}_notifier().
-These two are called from ctnetlink netns path, this patch already
-adds a synchronize_rcu() spot to ctnetlink module removal which is
-where the event callback can vanish.
-
-You can just add a comment there so we don't forget about this, eg.
-
-@@ -290,6 +290,7 @@  void nf_conntrack_unregister_notifier(struct net
-*net,
-        BUG_ON(notify != new);
-        RCU_INIT_POINTER(net->ct.nf_conntrack_event_cb, NULL);
-        mutex_unlock(&nf_ct_ecache_mutex);
-+       /* synchronize_rcu() is called from ctnetlink. */
+@@ -1283,10 +1283,7 @@ static int __init nf_nat_snmp_basic_init(void)
+        BUG_ON(nf_nat_snmp_hook != NULL);
+        RCU_INIT_POINTER(nf_nat_snmp_hook, help);
+ 
+-       ret = nf_conntrack_helper_register(&snmp_trap_helper);
+-       if (ret < 0)
+-               return ret;
+-       return ret;
++       return nf_conntrack_helper_register(&snmp_trap_helper);
  }
-
-What do you think?
