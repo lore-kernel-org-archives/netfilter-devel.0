@@ -1,42 +1,69 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH libnetfilter_cthelper] src: fix incorrect building and
- parsing of the NFCTH_POLICY_SETX attribute
-Date: Fri, 24 Mar 2017 13:25:30 +0100
-Message-ID: <20170324122530.GA3315@salvia>
-References: <1490020522-26359-1-git-send-email-zlpnobody@163.com>
+From: "Gao Feng" <gfree.wind@foxmail.com>
+Subject: RE: [PATCH nf v3 1/1] netfilter: snmp: Fix one possible panic when snmp_trap_helper fail to register
+Date: Fri, 24 Mar 2017 20:42:07 +0800
+Message-ID: <000401d2a49c$0d094350$271bc9f0$@foxmail.com>
+References: <1490055749-52357-1-git-send-email-fgao@ikuai8.com> <20170324122130.GA3080@salvia> <20170324122301.GA3160@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
-To: Liping Zhang <zlpnobody@163.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51532 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751562AbdCXMZg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Mar 2017 08:25:36 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 93FA611E586
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2017 13:25:32 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 83EA9DA7E9
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2017 13:25:32 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 555D8DA873
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2017 13:25:30 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1490020522-26359-1-git-send-email-zlpnobody@163.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain;
+        charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
+Cc: <davem@davemloft.net>, <jolsa@redhat.com>,
+        <netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <gfree.wind@gmail.com>
+To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>, <fgao@ikuai8.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170324122301.GA3160@salvia>
+Content-Language: zh-cn
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Mar 20, 2017 at 10:35:22PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <zlpnobody@gmail.com>
-> 
-> In nfct_helper_nlmsg_build_policy(), we always set the attribute type to
-> NFCTH_POLICY_SET, so we cannot add more than one nfct_helper_policy to
-> the kernel.
-> 
-> Also: in nfct_helper_nlmsg_parse_policy(), we will increase the
-> helper->policy_num for each nfct_helper_policy, but we mistakenly set it
-> to the total number of nfct_helper_policy. So when the total number is
-> more than 3, later out of bound access will happen.
+Hi Pablo,
 
-Applied, thanks Liping.
+> -----Original Message-----
+> From: netfilter-devel-owner@vger.kernel.org
+> [mailto:netfilter-devel-owner@vger.kernel.org] On Behalf Of Pablo =
+Neira
+Ayuso
+> Sent: Friday, March 24, 2017 8:23 PM
+> To: fgao@ikuai8.com
+> Cc: davem@davemloft.net; jolsa@redhat.com;
+netfilter-devel@vger.kernel.org;
+> netdev@vger.kernel.org; gfree.wind@gmail.com
+> Subject: Re: [PATCH nf v3 1/1] netfilter: snmp: Fix one possible panic
+when
+> snmp_trap_helper fail to register
+>=20
+> On Fri, Mar 24, 2017 at 01:21:30PM +0100, Pablo Neira Ayuso wrote:
+> > On Tue, Mar 21, 2017 at 08:22:29AM +0800, fgao@ikuai8.com wrote:
+> > > From: Gao Feng <fgao@ikuai8.com>
+> > >
+> > > In the commit 93557f53e1fb ("netfilter: nf_conntrack: nf_conntrack
+> > > snmp helper"), the snmp_helper is replaced by nf_nat_snmp_hook. So
+> > > the snmp_helper is never registered. But it still tries to
+> > > unregister the snmp_helper, it could cause the panic.
+> >
+> > This patch looks correct to me.
+> >
+> > But probably for some reason I don't manage to trigger, how do you
+> > reproduce this?
+>=20
+> I'm refering to the panic.
+[=B8=DF=B7=E5]=20
+It is got by reviewing the codes.
+When nf_conntrack_helper_unregister(&snmp_helper), but snmp_helper =
+didn't
+register actually.
+And snmp_helper. hnode is not initialized, it would trigger the issue =
+when
+hlist_del_rcu in nf_conntrack_helper_unregister.
+
+Best Regards
+Feng
+
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe =
+netfilter-devel"
+in the
+> body of a message to majordomo@vger.kernel.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
