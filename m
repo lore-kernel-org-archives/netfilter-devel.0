@@ -1,109 +1,130 @@
-From: gfree.wind@foxmail.com
-Subject: [PATCH nf v2 1/1] netfilter: expect: Make sure the max_expected limit is effective
-Date: Fri, 24 Mar 2017 21:32:19 +0800
-Message-ID: <1490362339-2313-1-git-send-email-gfree.wind@foxmail.com>
-Cc: Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        gfree.wind@foxmail.com
+From: Elise Lennion <elise.lennion@gmail.com>
+Subject: [PATCH nft 1/2] src: Make flush command selective of the set
+ structure type
+Date: Fri, 24 Mar 2017 12:30:41 -0300
+Message-ID: <20170324153041.GA6413@lennorien.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbguseast2.qq.com ([54.204.34.130]:43089 "EHLO
-        smtpbguseast2.qq.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752755AbdCXNck (ORCPT
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:36503 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935200AbdCXPbQ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Mar 2017 09:32:40 -0400
+        Fri, 24 Mar 2017 11:31:16 -0400
+Received: by mail-qk0-f195.google.com with SMTP id n141so864045qke.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2017 08:31:10 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+The internal set infrastructure is used for sets, maps and flow tables.
+The flush command requires the set type but currently it works for all
+of them. E.g. if there is a set named 's' in a table 't' the following
+command shouldn't be valid but still executes:
 
-Because the type of expecting, the member of nf_conn_help, is u8, it
-would overflow after reach U8_MAX(255). So it doesn't work when we
-configure the max_expected exceeds 255 with expect policy.
+$ nft flush flow table t s
 
-Now add the check for max_expected. Return the -EINVAL when it exceeds
-the limit.
+This patch makes the flush command selective so 'flush flow table' only
+works in flow tables and so on.
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
+Fixes: 6d37dae ("parser_bison: Allow flushing maps")
+Fixes: 2daa0ee ("parser_bison: Allow flushing flow tables")
+Signed-off-by: Elise Lennion <elise.lennion@gmail.com>
 ---
- v2: Check the modparam of irc, per Pablo
- v1: initial version
+ src/evaluate.c     | 33 ++++++++++++++++++++++++++++++++-
+ src/parser_bison.y |  8 ++++----
+ src/rule.c         |  2 ++
+ 3 files changed, 38 insertions(+), 5 deletions(-)
 
- include/net/netfilter/nf_conntrack_expect.h | 1 +
- net/netfilter/nf_conntrack_helper.c         | 3 +++
- net/netfilter/nf_conntrack_irc.c            | 6 ++++++
- net/netfilter/nfnetlink_cthelper.c          | 6 ++++++
- 4 files changed, 16 insertions(+)
-
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index 5ed33ea..80f2ff6 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -71,6 +71,7 @@ struct nf_conntrack_expect_policy {
- };
+diff --git a/src/evaluate.c b/src/evaluate.c
+index b5db724..49c5953 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -3080,6 +3080,8 @@ static int cmd_evaluate_reset(struct eval_ctx *ctx, struct cmd *cmd)
  
- #define NF_CT_EXPECT_CLASS_DEFAULT	0
-+#define NF_CT_EXPECT_MAX_CNT		255
+ static int cmd_evaluate_flush(struct eval_ctx *ctx, struct cmd *cmd)
+ {
++	struct table *table;
++	struct set *set;
+ 	int ret;
  
- int nf_conntrack_expect_pernet_init(struct net *net);
- void nf_conntrack_expect_pernet_fini(struct net *net);
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 6dc44d9..752a977 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -385,6 +385,9 @@ int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
- 	BUG_ON(me->expect_class_max >= NF_CT_MAX_EXPECT_CLASSES);
- 	BUG_ON(strlen(me->name) > NF_CT_HELPER_NAME_LEN - 1);
- 
-+	if (me->expect_policy->max_expected > NF_CT_EXPECT_MAX_CNT)
-+		return -EINVAL;
-+
- 	mutex_lock(&nf_ct_helper_mutex);
- 	hlist_for_each_entry(cur, &nf_ct_helper_hash[h], hnode) {
- 		if (nf_ct_tuple_src_mask_cmp(&cur->tuple, &me->tuple, &mask)) {
-diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
-index 1972a14..1a5af4d 100644
---- a/net/netfilter/nf_conntrack_irc.c
-+++ b/net/netfilter/nf_conntrack_irc.c
-@@ -243,6 +243,12 @@ static int __init nf_conntrack_irc_init(void)
- 		return -EINVAL;
+ 	ret = cache_update(cmd->op, ctx->msgs);
+@@ -3096,8 +3098,37 @@ static int cmd_evaluate_flush(struct eval_ctx *ctx, struct cmd *cmd)
+ 		 */
+ 	case CMD_OBJ_CHAIN:
+ 		/* Chains don't hold sets */
+-	case CMD_OBJ_SET:
+ 		break;
++	case CMD_OBJ_SET:
++		table = table_lookup(&cmd->handle);
++		if (table == NULL)
++			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
++					 cmd->handle.table);
++		set = set_lookup(table, cmd->handle.set);
++		if (set == NULL || set->flags & (NFT_SET_MAP | NFT_SET_EVAL))
++			return cmd_error(ctx, "Could not process rule: Set '%s' does not exist",
++					 cmd->handle.set);
++		return 0;
++	case CMD_OBJ_MAP:
++		table = table_lookup(&cmd->handle);
++		if (table == NULL)
++			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
++					 cmd->handle.table);
++		set = set_lookup(table, cmd->handle.set);
++		if (set == NULL || !(set->flags & NFT_SET_MAP))
++			return cmd_error(ctx, "Could not process rule: Map '%s' does not exist",
++					 cmd->handle.set);
++		return 0;
++	case CMD_OBJ_FLOWTABLE:
++		table = table_lookup(&cmd->handle);
++		if (table == NULL)
++			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
++					 cmd->handle.table);
++		set = set_lookup(table, cmd->handle.set);
++		if (set == NULL || !(set->flags & NFT_SET_EVAL))
++			return cmd_error(ctx, "Could not process rule: Flow table '%s' does not exist",
++					 cmd->handle.set);
++		return 0;
+ 	default:
+ 		BUG("invalid command object type %u\n", cmd->obj);
  	}
- 
-+	if (max_dcc_channels > NF_CT_EXPECT_MAX_CNT) {
-+		pr_err("max_dcc_channels must not be more than %u\n",
-+		       NF_CT_EXPECT_MAX_CNT);
-+		return -EINVAL;
-+	}
-+
- 	irc_exp_policy.max_expected = max_dcc_channels;
- 	irc_exp_policy.timeout = dcc_timeout;
- 
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index 2b987d2..d150679 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -143,6 +143,9 @@
- 		nla_data(tb[NFCTH_POLICY_NAME]), NF_CT_HELPER_NAME_LEN);
- 	expect_policy->max_expected =
- 		ntohl(nla_get_be32(tb[NFCTH_POLICY_EXPECT_MAX]));
-+	if (expect_policy->max_expected > NF_CT_EXPECT_MAX_CNT)
-+		return -EINVAL;
-+
- 	expect_policy->timeout =
- 		ntohl(nla_get_be32(tb[NFCTH_POLICY_EXPECT_TIMEOUT]));
- 
-@@ -280,6 +283,9 @@
- 
- 	new_policy->max_expected =
- 		ntohl(nla_get_be32(tb[NFCTH_POLICY_EXPECT_MAX]));
-+	if (new_policy->max_expected > NF_CT_EXPECT_MAX_CNT)
-+		return -EINVAL;
-+
- 	new_policy->timeout =
- 		ntohl(nla_get_be32(tb[NFCTH_POLICY_EXPECT_TIMEOUT]));
- 
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 841b2e1..9f993fd 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1127,13 +1127,13 @@ flush_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_FLUSH, CMD_OBJ_SET, &$2, &@$, NULL);
+ 			}
+-			|	FLOW TABLE	set_spec
++			|	MAP		set_spec
+ 			{
+-				$$ = cmd_alloc(CMD_FLUSH, CMD_OBJ_SET, &$3, &@$, NULL);
++				$$ = cmd_alloc(CMD_FLUSH, CMD_OBJ_MAP, &$2, &@$, NULL);
+ 			}
+-			|	MAP		set_spec
++			|	FLOW TABLE	set_spec
+ 			{
+-				$$ = cmd_alloc(CMD_FLUSH, CMD_OBJ_SET, &$2, &@$, NULL);
++				$$ = cmd_alloc(CMD_FLUSH, CMD_OBJ_FLOWTABLE, &$3, &@$, NULL);
+ 			}
+ 			|	RULESET		ruleset_spec
+ 			{
+diff --git a/src/rule.c b/src/rule.c
+index 997a624..209cf2d 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1512,6 +1512,8 @@ static int do_command_flush(struct netlink_ctx *ctx, struct cmd *cmd)
+ 	case CMD_OBJ_CHAIN:
+ 		return netlink_flush_chain(ctx, &cmd->handle, &cmd->location);
+ 	case CMD_OBJ_SET:
++	case CMD_OBJ_MAP:
++	case CMD_OBJ_FLOWTABLE:
+ 		return netlink_flush_setelems(ctx, &cmd->handle,
+ 					      &cmd->location);
+ 	case CMD_OBJ_RULESET:
 -- 
-1.9.1
-
-
-
+2.7.4
 
