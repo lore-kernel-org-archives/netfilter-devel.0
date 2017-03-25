@@ -1,83 +1,27 @@
-From: gfree.wind@foxmail.com
-Subject: [PATCH nf v5 1/1] netfilter: snmp: Fix one possible panic when snmp_trap_helper fail to register
-Date: Sat, 25 Mar 2017 18:24:36 +0800
-Message-ID: <1490437476-12476-1-git-send-email-gfree.wind@foxmail.com>
-Cc: Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        gfree.wind@foxmail.com
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg202.qq.com ([184.105.206.29]:37400 "EHLO smtpbg202.qq.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751159AbdCYKZC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 25 Mar 2017 06:25:02 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Arushi Singhal <arushisinghal19971997@gmail.com>
+Subject: [PATCH 0/2] net: netfilters: Remove typedef
+Date: Sat, 25 Mar 2017 17:57:54 +0530
+Message-ID: <20170325122756.8743-1-arushisinghal19971997@gmail.com>
+Cc: pablo@netfilter.org, davem@davemloft.net,
+        outreachy-kernel@googlegroups.com, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, gregkh@linuxfoundation.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Arushi Singhal <arushisinghal19971997@gmail.com>
+To: kadlec@blackhole.kfki.hu
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Gao Feng <fgao@ikuai8.com>
+Remove typedef from struct.
 
-In the commit 93557f53e1fb ("netfilter: nf_conntrack: nf_conntrack snmp
-helper"), the snmp_helper is replaced by nf_nat_snmp_hook. So the
-snmp_helper is never registered. But it still tries to unregister the
-snmp_helper, it could cause the panic.
+Arushi Singhal (2):
+  net: netfilter: Remove typedef from "typedef struct field_t"
+  net: netfilter: Remove typedef from "typedef struct bitstr_t"
 
-Now remove the useless snmp_helper and the unregister call in the
-error handler.
+ net/netfilter/nf_conntrack_h323_asn1.c | 98 +++++++++++++++++-----------------
+ 1 file changed, 49 insertions(+), 49 deletions(-)
 
-Fixes: 93557f53e1fb ("netfilter: nf_conntrack: nf_conntrack snmp helper")
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
----
- v5: Remove useless variable, per Liping
- v4: Simplify the codes, per Pablo
- v3: Remove the angle brackets in description, per Sergei
- v2: Add the SHA1 ID in the description, per Sergei
- v1: Initial version
-
- net/ipv4/netfilter/nf_nat_snmp_basic.c | 19 +------------------
- 1 file changed, 1 insertion(+), 18 deletions(-)
-
-diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-index c9b52c3..6309c40 100644
---- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
-+++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-@@ -1260,16 +1260,6 @@ static int help(struct sk_buff *skb, unsigned int protoff,
- 	.timeout	= 180,
- };
- 
--static struct nf_conntrack_helper snmp_helper __read_mostly = {
--	.me			= THIS_MODULE,
--	.help			= help,
--	.expect_policy		= &snmp_exp_policy,
--	.name			= "snmp",
--	.tuple.src.l3num	= AF_INET,
--	.tuple.src.u.udp.port	= cpu_to_be16(SNMP_PORT),
--	.tuple.dst.protonum	= IPPROTO_UDP,
--};
--
- static struct nf_conntrack_helper snmp_trap_helper __read_mostly = {
- 	.me			= THIS_MODULE,
- 	.help			= help,
-@@ -1288,17 +1278,10 @@ static int help(struct sk_buff *skb, unsigned int protoff,
- 
- static int __init nf_nat_snmp_basic_init(void)
- {
--	int ret = 0;
--
- 	BUG_ON(nf_nat_snmp_hook != NULL);
- 	RCU_INIT_POINTER(nf_nat_snmp_hook, help);
- 
--	ret = nf_conntrack_helper_register(&snmp_trap_helper);
--	if (ret < 0) {
--		nf_conntrack_helper_unregister(&snmp_helper);
--		return ret;
--	}
--	return ret;
-+	return nf_conntrack_helper_register(&snmp_trap_helper);
- }
- 
- static void __exit nf_nat_snmp_basic_fini(void)
 -- 
-1.9.1
+This is my contribition to outreachy project nftables.
 
-
-
-
+2.11.0
