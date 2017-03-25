@@ -1,123 +1,106 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf V2] netfilter: invoke synchronize_rcu after set the _hook_ to NULL
-Date: Sat, 25 Mar 2017 08:53:12 +0800
-Message-ID: <1490403192-15663-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-13.163.com ([220.181.12.13]:47259 "EHLO m12-13.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751372AbdCYAxq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Mar 2017 20:53:46 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: "Gao Feng" <gfree.wind@foxmail.com>
+Subject: RE: [PATCH nf v3 1/1] netfilter: snmp: Fix one possible panic when snmp_trap_helper fail to register
+Date: Sat, 25 Mar 2017 10:10:42 +0800
+Message-ID: <000401d2a50d$021d7ad0$06587070$@foxmail.com>
+References: <1490055749-52357-1-git-send-email-fgao@ikuai8.com> <20170324190158.GA3202@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: <davem@davemloft.net>, <jolsa@redhat.com>,
+        <netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <gfree.wind@gmail.com>
+To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170324190158.GA3202@salvia>
+Content-Language: zh-cn
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Liping Zhang <zlpnobody@gmail.com>
+> -----Original Message-----
+> From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
+> Sent: Saturday, March 25, 2017 3:02 AM
+> To: fgao@ikuai8.com
+> Cc: davem@davemloft.net; jolsa@redhat.com;
+netfilter-devel@vger.kernel.org;
+> netdev@vger.kernel.org; gfree.wind@gmail.com
+> Subject: Re: [PATCH nf v3 1/1] netfilter: snmp: Fix one possible panic
+when
+> snmp_trap_helper fail to register
+> 
+> On Tue, Mar 21, 2017 at 08:22:29AM +0800, fgao@ikuai8.com wrote:
+> > From: Gao Feng <fgao@ikuai8.com>
+> >
+> > In the commit 93557f53e1fb ("netfilter: nf_conntrack: nf_conntrack
+> > snmp helper"), the snmp_helper is replaced by nf_nat_snmp_hook. So the
+> > snmp_helper is never registered. But it still tries to unregister the
+> > snmp_helper, it could cause the panic.
+> >
+> > Now remove the useless snmp_helper and the unregister call in the
+> > error handler.
+> >
+> > Fixes: 93557f53e1fb ("netfilter: nf_conntrack: nf_conntrack snmp
+> > helper")
+> >
+> > Signed-off-by: Gao Feng <fgao@ikuai8.com>
+> > ---
+> >  v3: Remove the angle brackets in description, per Sergei
+> >  v2: Add the SHA1 ID in the description, per Sergei
+> >  v1: Initial version
+> >
+> >  net/ipv4/netfilter/nf_nat_snmp_basic.c | 14 +-------------
+> >  1 file changed, 1 insertion(+), 13 deletions(-)
+> >
+> > diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c
+> > b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+> > index c9b52c3..5787364 100644
+> > --- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
+> > +++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+> > @@ -1260,16 +1260,6 @@ static int help(struct sk_buff *skb, unsigned int
+> protoff,
+> >  	.timeout	= 180,
+> >  };
+> >
+> > -static struct nf_conntrack_helper snmp_helper __read_mostly = {
+> > -	.me			= THIS_MODULE,
+> > -	.help			= help,
+> > -	.expect_policy		= &snmp_exp_policy,
+> > -	.name			= "snmp",
+> > -	.tuple.src.l3num	= AF_INET,
+> > -	.tuple.src.u.udp.port	= cpu_to_be16(SNMP_PORT),
+> > -	.tuple.dst.protonum	= IPPROTO_UDP,
+> > -};
+> > -
+> >  static struct nf_conntrack_helper snmp_trap_helper __read_mostly = {
+> >  	.me			= THIS_MODULE,
+> >  	.help			= help,
+> > @@ -1294,10 +1284,8 @@ static int __init nf_nat_snmp_basic_init(void)
+> >  	RCU_INIT_POINTER(nf_nat_snmp_hook, help);
+> >
+> >  	ret = nf_conntrack_helper_register(&snmp_trap_helper);
+> > -	if (ret < 0) {
+> > -		nf_conntrack_helper_unregister(&snmp_helper);
+> > +	if (ret < 0)
+> >  		return ret;
+> > -	}
+> >  	return ret;
+> 
+> You can provide a more simplified version after this is removed, I
+> think:
+Ok. I thought it should not change the style for bug fix.
+I would sent the update patch.
 
-Otherwise, another CPU may access the invalid pointer. For example:
-    CPU0                CPU1
-     -              rcu_read_lock();
-     -              pfunc = _hook_;
-  _hook_ = NULL;          -
-  mod unload              -
-     -                 pfunc(); // invalid, panic
-     -             rcu_read_unlock();
+Best Regards
+Feng
 
-So we must call synchronize_rcu() to wait the rcu reader to finish.
-
-Also note, in nf_nat_snmp_basic_fini, synchronize_rcu() will be invoked
-by later nf_conntrack_helper_unregister, but I'm inclined to add a
-explicit synchronize_rcu after set the nf_nat_snmp_hook to NULL. Depend
-on such obscure assumptions is not a good idea.
-
-Last, in nfnetlink_cttimeout, we use kfree_rcu to free the time object,
-so in cttimeout_exit, invoking rcu_barrier() is not necessary at all,
-remove it too.
-
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
----
- V2: no need to call synchronize_rcu in nf_conntrack_unregister_notifier
-     and nf_ct_expect_unregister_notifier, per Pablo.
-
- net/ipv4/netfilter/nf_nat_snmp_basic.c | 1 +
- net/netfilter/nf_conntrack_ecache.c    | 2 ++
- net/netfilter/nf_conntrack_netlink.c   | 1 +
- net/netfilter/nf_nat_core.c            | 2 ++
- net/netfilter/nfnetlink_cttimeout.c    | 2 +-
- 5 files changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-index c9b52c3..5a8f7c3 100644
---- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
-+++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-@@ -1304,6 +1304,7 @@ static int __init nf_nat_snmp_basic_init(void)
- static void __exit nf_nat_snmp_basic_fini(void)
- {
- 	RCU_INIT_POINTER(nf_nat_snmp_hook, NULL);
-+	synchronize_rcu();
- 	nf_conntrack_helper_unregister(&snmp_trap_helper);
- }
- 
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index da9df2d..22fc321 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -290,6 +290,7 @@ void nf_conntrack_unregister_notifier(struct net *net,
- 	BUG_ON(notify != new);
- 	RCU_INIT_POINTER(net->ct.nf_conntrack_event_cb, NULL);
- 	mutex_unlock(&nf_ct_ecache_mutex);
-+	/* synchronize_rcu() is called from ctnetlink_exit. */
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
- 
-@@ -326,6 +327,7 @@ void nf_ct_expect_unregister_notifier(struct net *net,
- 	BUG_ON(notify != new);
- 	RCU_INIT_POINTER(net->ct.nf_expect_event_cb, NULL);
- 	mutex_unlock(&nf_ct_ecache_mutex);
-+	/* synchronize_rcu() is called from ctnetlink_exit. */
- }
- EXPORT_SYMBOL_GPL(nf_ct_expect_unregister_notifier);
- 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 6806b5e..908d858 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -3442,6 +3442,7 @@ static void __exit ctnetlink_exit(void)
- #ifdef CONFIG_NETFILTER_NETLINK_GLUE_CT
- 	RCU_INIT_POINTER(nfnl_ct_hook, NULL);
- #endif
-+	synchronize_rcu();
- }
- 
- module_init(ctnetlink_init);
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 94b14c5..82802e4 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -903,6 +903,8 @@ static void __exit nf_nat_cleanup(void)
- #ifdef CONFIG_XFRM
- 	RCU_INIT_POINTER(nf_nat_decode_session_hook, NULL);
- #endif
-+	synchronize_rcu();
-+
- 	for (i = 0; i < NFPROTO_NUMPROTO; i++)
- 		kfree(nf_nat_l4protos[i]);
- 
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index 139e086..47d6656 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -646,8 +646,8 @@ static void __exit cttimeout_exit(void)
- #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	RCU_INIT_POINTER(nf_ct_timeout_find_get_hook, NULL);
- 	RCU_INIT_POINTER(nf_ct_timeout_put_hook, NULL);
-+	synchronize_rcu();
- #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
--	rcu_barrier();
- }
- 
- module_init(cttimeout_init);
--- 
-2.5.5
-
-
+> 
+> @@ -1283,10 +1283,7 @@ static int __init nf_nat_snmp_basic_init(void)
+>         BUG_ON(nf_nat_snmp_hook != NULL);
+>         RCU_INIT_POINTER(nf_nat_snmp_hook, help);
+> 
+> -       ret = nf_conntrack_helper_register(&snmp_trap_helper);
+> -       if (ret < 0)
+> -               return ret;
+> -       return ret;
+> +       return nf_conntrack_helper_register(&snmp_trap_helper);
+>  }
