@@ -1,52 +1,123 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH nf] netfilter: invoke synchronize_rcu after set the _hook_
- to NULL
-Date: Sat, 25 Mar 2017 07:55:53 +0800
-Message-ID: <CAML_gOdzYgk5tvZ-3+FgMkT2npoyiKfEq8rR=ynof+9MszWd1w@mail.gmail.com>
-References: <1490015030-16403-1-git-send-email-zlpnobody@163.com>
- <20170324121707.GA2764@salvia> <CAML_gOeOE_TSJb2hsNoGBopF_-kxdj3n4c4nzge9qR0q52wpYA@mail.gmail.com>
- <20170324184516.GA2388@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Liping Zhang <zlpnobody@163.com>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf V2] netfilter: invoke synchronize_rcu after set the _hook_ to NULL
+Date: Sat, 25 Mar 2017 08:53:12 +0800
+Message-ID: <1490403192-15663-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f49.google.com ([209.85.213.49]:35937 "EHLO
-        mail-vk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753714AbdCXX4Q (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Mar 2017 19:56:16 -0400
-Received: by mail-vk0-f49.google.com with SMTP id s68so5199468vke.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Mar 2017 16:55:54 -0700 (PDT)
-In-Reply-To: <20170324184516.GA2388@salvia>
+Received: from m12-13.163.com ([220.181.12.13]:47259 "EHLO m12-13.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751372AbdCYAxq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 24 Mar 2017 20:53:46 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+From: Liping Zhang <zlpnobody@gmail.com>
 
-2017-03-25 2:45 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-[...]
-> I think we can get this smaller: it should be possible to avoid this
-> synchronize_rcu() call from nf_conntrack_{register,unregister}_notifier().
-> These two are called from ctnetlink netns path, this patch already
-> adds a synchronize_rcu() spot to ctnetlink module removal which is
-> where the event callback can vanish.
->
-> You can just add a comment there so we don't forget about this, eg.
->
-> @@ -290,6 +290,7 @@  void nf_conntrack_unregister_notifier(struct net
-> *net,
->         BUG_ON(notify != new);
->         RCU_INIT_POINTER(net->ct.nf_conntrack_event_cb, NULL);
->         mutex_unlock(&nf_ct_ecache_mutex);
-> +       /* synchronize_rcu() is called from ctnetlink. */
->  }
->
-> What do you think?
+Otherwise, another CPU may access the invalid pointer. For example:
+    CPU0                CPU1
+     -              rcu_read_lock();
+     -              pfunc = _hook_;
+  _hook_ = NULL;          -
+  mod unload              -
+     -                 pfunc(); // invalid, panic
+     -             rcu_read_unlock();
 
-Right, this can avoid two useless synchronize_rcu() invocations when
-deleting netns, I will send V2.
+So we must call synchronize_rcu() to wait the rcu reader to finish.
 
-Thanks Pablo.
+Also note, in nf_nat_snmp_basic_fini, synchronize_rcu() will be invoked
+by later nf_conntrack_helper_unregister, but I'm inclined to add a
+explicit synchronize_rcu after set the nf_nat_snmp_hook to NULL. Depend
+on such obscure assumptions is not a good idea.
+
+Last, in nfnetlink_cttimeout, we use kfree_rcu to free the time object,
+so in cttimeout_exit, invoking rcu_barrier() is not necessary at all,
+remove it too.
+
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+---
+ V2: no need to call synchronize_rcu in nf_conntrack_unregister_notifier
+     and nf_ct_expect_unregister_notifier, per Pablo.
+
+ net/ipv4/netfilter/nf_nat_snmp_basic.c | 1 +
+ net/netfilter/nf_conntrack_ecache.c    | 2 ++
+ net/netfilter/nf_conntrack_netlink.c   | 1 +
+ net/netfilter/nf_nat_core.c            | 2 ++
+ net/netfilter/nfnetlink_cttimeout.c    | 2 +-
+ 5 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+index c9b52c3..5a8f7c3 100644
+--- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
++++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+@@ -1304,6 +1304,7 @@ static int __init nf_nat_snmp_basic_init(void)
+ static void __exit nf_nat_snmp_basic_fini(void)
+ {
+ 	RCU_INIT_POINTER(nf_nat_snmp_hook, NULL);
++	synchronize_rcu();
+ 	nf_conntrack_helper_unregister(&snmp_trap_helper);
+ }
+ 
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+index da9df2d..22fc321 100644
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -290,6 +290,7 @@ void nf_conntrack_unregister_notifier(struct net *net,
+ 	BUG_ON(notify != new);
+ 	RCU_INIT_POINTER(net->ct.nf_conntrack_event_cb, NULL);
+ 	mutex_unlock(&nf_ct_ecache_mutex);
++	/* synchronize_rcu() is called from ctnetlink_exit. */
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
+ 
+@@ -326,6 +327,7 @@ void nf_ct_expect_unregister_notifier(struct net *net,
+ 	BUG_ON(notify != new);
+ 	RCU_INIT_POINTER(net->ct.nf_expect_event_cb, NULL);
+ 	mutex_unlock(&nf_ct_ecache_mutex);
++	/* synchronize_rcu() is called from ctnetlink_exit. */
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_expect_unregister_notifier);
+ 
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 6806b5e..908d858 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -3442,6 +3442,7 @@ static void __exit ctnetlink_exit(void)
+ #ifdef CONFIG_NETFILTER_NETLINK_GLUE_CT
+ 	RCU_INIT_POINTER(nfnl_ct_hook, NULL);
+ #endif
++	synchronize_rcu();
+ }
+ 
+ module_init(ctnetlink_init);
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 94b14c5..82802e4 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -903,6 +903,8 @@ static void __exit nf_nat_cleanup(void)
+ #ifdef CONFIG_XFRM
+ 	RCU_INIT_POINTER(nf_nat_decode_session_hook, NULL);
+ #endif
++	synchronize_rcu();
++
+ 	for (i = 0; i < NFPROTO_NUMPROTO; i++)
+ 		kfree(nf_nat_l4protos[i]);
+ 
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index 139e086..47d6656 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -646,8 +646,8 @@ static void __exit cttimeout_exit(void)
+ #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
+ 	RCU_INIT_POINTER(nf_ct_timeout_find_get_hook, NULL);
+ 	RCU_INIT_POINTER(nf_ct_timeout_put_hook, NULL);
++	synchronize_rcu();
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
+-	rcu_barrier();
+ }
+ 
+ module_init(cttimeout_init);
+-- 
+2.5.5
+
+
