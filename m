@@ -1,179 +1,61 @@
-From: Arushi Singhal <arushisinghal19971997@gmail.com>
-Subject: [PATCH] net: netfilters: Remove extra parenthesis
-Date: Sat, 25 Mar 2017 19:23:13 +0530
-Message-ID: <20170325135313.GA10861@arushi-HP-Pavilion-Notebook>
+From: Jamal Hadi Salim <jhs-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>
+Subject: [Netdev ANNOUNCE]: New talk accepted
+Date: Sat, 25 Mar 2017 10:59:48 -0400
+Message-ID: <c82335d3-cd46-a2af-7b4b-4c888ad63999@mojatatu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com
-To: wensong@linux-vs.org
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: tech-committee-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+        Brenda Butler <bjb-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>,
+        Stephen Jaworski <jaws-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>,
+        netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+        Heri Muhero <hmuhero-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: people-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Rmoved parentheses on the right hand side of assignment, as they are
-not required. The following coccinelle script was used to fix this
-issue:
 
-@@
-local idexpression id;
-expression e;
-@@
+The tech committee would like to announce a new accepted talk.
 
-id =
--(
-e
--)
+Tom Herbert will talk about the need for very critical (life or death!)
+infrastructure need for IOT.
 
-Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
----
- net/netfilter/ipvs/ip_vs_proto_tcp.c   | 2 +-
- net/netfilter/nf_conntrack_netlink.c   | 8 ++++----
- net/netfilter/nf_conntrack_proto_tcp.c | 2 +-
- net/netfilter/nft_fib.c                | 2 +-
- net/netfilter/nft_set_bitmap.c         | 2 +-
- net/netfilter/x_tables.c               | 2 +-
- net/netfilter/xt_socket.c              | 8 ++++----
- 7 files changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-index 5117bcb7d2f0..9f2abda017c4 100644
---- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-@@ -487,7 +487,7 @@ static struct tcp_states_t tcp_states_dos [] = {
- 
- static void tcp_timeout_change(struct ip_vs_proto_data *pd, int flags)
- {
--	int on = (flags & 1);		/* secure_tcp */
-+	int on = flags & 1;		/* secure_tcp */
- 
- 	/*
- 	** FIXME: change secure_tcp to independent sysctl var
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 6806b5e73567..aa344c5868c5 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -467,7 +467,7 @@ ctnetlink_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
- 	struct nlattr *nest_parms;
- 	unsigned int flags = portid ? NLM_F_MULTI : 0, event;
- 
--	event = (NFNL_SUBSYS_CTNETLINK << 8 | IPCTNL_MSG_CT_NEW);
-+	event = NFNL_SUBSYS_CTNETLINK << 8 | IPCTNL_MSG_CT_NEW;
- 	nlh = nlmsg_put(skb, portid, seq, event, sizeof(*nfmsg), flags);
- 	if (nlh == NULL)
- 		goto nlmsg_failure;
-@@ -1983,7 +1983,7 @@ ctnetlink_ct_stat_cpu_fill_info(struct sk_buff *skb, u32 portid, u32 seq,
- 	struct nfgenmsg *nfmsg;
- 	unsigned int flags = portid ? NLM_F_MULTI : 0, event;
- 
--	event = (NFNL_SUBSYS_CTNETLINK << 8 | IPCTNL_MSG_CT_GET_STATS_CPU);
-+	event = NFNL_SUBSYS_CTNETLINK << 8 | IPCTNL_MSG_CT_GET_STATS_CPU;
- 	nlh = nlmsg_put(skb, portid, seq, event, sizeof(*nfmsg), flags);
- 	if (nlh == NULL)
- 		goto nlmsg_failure;
-@@ -2066,7 +2066,7 @@ ctnetlink_stat_ct_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
- 	unsigned int flags = portid ? NLM_F_MULTI : 0, event;
- 	unsigned int nr_conntracks = atomic_read(&net->ct.count);
- 
--	event = (NFNL_SUBSYS_CTNETLINK << 8 | IPCTNL_MSG_CT_GET_STATS);
-+	event = NFNL_SUBSYS_CTNETLINK << 8 | IPCTNL_MSG_CT_GET_STATS;
- 	nlh = nlmsg_put(skb, portid, seq, event, sizeof(*nfmsg), flags);
- 	if (nlh == NULL)
- 		goto nlmsg_failure;
-@@ -3223,7 +3223,7 @@ ctnetlink_exp_stat_fill_info(struct sk_buff *skb, u32 portid, u32 seq, int cpu,
- 	struct nfgenmsg *nfmsg;
- 	unsigned int flags = portid ? NLM_F_MULTI : 0, event;
- 
--	event = (NFNL_SUBSYS_CTNETLINK << 8 | IPCTNL_MSG_EXP_GET_STATS_CPU);
-+	event = NFNL_SUBSYS_CTNETLINK << 8 | IPCTNL_MSG_EXP_GET_STATS_CPU;
- 	nlh = nlmsg_put(skb, portid, seq, event, sizeof(*nfmsg), flags);
- 	if (nlh == NULL)
- 		goto nlmsg_failure;
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index b122e9dacfed..2e5e4a4d4778 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -789,7 +789,7 @@ static int tcp_error(struct net *net, struct nf_conn *tmpl,
- 	}
- 
- 	/* Check TCP flags. */
--	tcpflags = (tcp_flag_byte(th) & ~(TCPHDR_ECE|TCPHDR_CWR|TCPHDR_PSH));
-+	tcpflags = tcp_flag_byte(th) & ~(TCPHDR_ECE|TCPHDR_CWR|TCPHDR_PSH);
- 	if (!tcp_valid_flags[tcpflags]) {
- 		if (LOG_INVALID(net, IPPROTO_TCP))
- 			nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
-diff --git a/net/netfilter/nft_fib.c b/net/netfilter/nft_fib.c
-index 29a4906adc27..c907c27b0374 100644
---- a/net/netfilter/nft_fib.c
-+++ b/net/netfilter/nft_fib.c
-@@ -35,7 +35,7 @@ int nft_fib_validate(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	switch (priv->result) {
- 	case NFT_FIB_RESULT_OIF: /* fallthrough */
- 	case NFT_FIB_RESULT_OIFNAME:
--		hooks = (1 << NF_INET_PRE_ROUTING);
-+		hooks = 1 << NF_INET_PRE_ROUTING;
- 		break;
- 	case NFT_FIB_RESULT_ADDRTYPE:
- 		if (priv->flags & NFTA_FIB_F_IIF)
-diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
-index 152d226552c1..09867146539e 100644
---- a/net/netfilter/nft_set_bitmap.c
-+++ b/net/netfilter/nft_set_bitmap.c
-@@ -47,7 +47,7 @@ struct nft_bitmap {
- 
- static inline void nft_bitmap_location(u32 key, u32 *idx, u32 *off)
- {
--	u32 k = (key << 1);
-+	u32 k = key << 1;
- 
- 	*idx = k / BITS_PER_BYTE;
- 	*off = k % BITS_PER_BYTE;
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 14857afc9937..7a4a9beadedb 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -506,7 +506,7 @@ static int xt_check_entry_match(const char *match, const char *target,
- 			return -EINVAL;
- 
- 		length -= pos->u.match_size;
--		pos = ((void *)((char *)(pos) + (pos)->u.match_size));
-+		pos = (void *)((char *)(pos) + (pos)->u.match_size);
- 	} while (length > 0);
- 
- 	return 0;
-diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-index 770bbec878f1..bf86e12808bd 100644
---- a/net/netfilter/xt_socket.c
-+++ b/net/netfilter/xt_socket.c
-@@ -65,9 +65,9 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
- 		/* Ignore sockets listening on INADDR_ANY,
- 		 * unless XT_SOCKET_NOWILDCARD is set
- 		 */
--		wildcard = (!(info->flags & XT_SOCKET_NOWILDCARD) &&
-+		wildcard = !(info->flags & XT_SOCKET_NOWILDCARD) &&
- 			    sk_fullsock(sk) &&
--			    inet_sk(sk)->inet_rcv_saddr == 0);
-+			    inet_sk(sk)->inet_rcv_saddr == 0;
- 
- 		/* Ignore non-transparent sockets,
- 		 * if XT_SOCKET_TRANSPARENT is used
-@@ -122,9 +122,9 @@ socket_mt6_v1_v2_v3(const struct sk_buff *skb, struct xt_action_param *par)
- 		/* Ignore sockets listening on INADDR_ANY
- 		 * unless XT_SOCKET_NOWILDCARD is set
- 		 */
--		wildcard = (!(info->flags & XT_SOCKET_NOWILDCARD) &&
-+		wildcard = !(info->flags & XT_SOCKET_NOWILDCARD) &&
- 			    sk_fullsock(sk) &&
--			    ipv6_addr_any(&sk->sk_v6_rcv_saddr));
-+			    ipv6_addr_any(&sk->sk_v6_rcv_saddr);
- 
- 		/* Ignore non-transparent sockets,
- 		 * if XT_SOCKET_TRANSPARENT is used
--- 
-2.11.0
+More details on the talk:
+
+----
+This talks presents the motivation and direction to support the
+emerging class of IoT applications and protocols that require latencies
+measured in milliseconds on the Internet. These may be thought of as
+"life-critical applications" in the sense that they could be a matter
+of life and death to be correct. For example, a camera monitoring an
+intersection by a school may detect a child darting out into traffic. A
+device attached to the camera may send a warning to an autonomous
+vehicle to apply brakes to avoid hitting the child. The difference in
+reaction time between the an automated system and human is stark--
+about 40 msecs compared to 500 msecs or more for a human.
+
+Real-time IoT protocols need to be implemented with very low latency
+from hazard detection to response, strict latency bounds, be highly
+available, be secure (critical messages can't be spoofed), and be
+resistant to DDOS. A primary use case for such applications, as
+exhibited in the above example, is so-called Vehicle to Infrastructure
+communications (V2X). This implies that communicating devices may be
+highly mobile needing a solution such as ILA or MobileIP. The
+underlying network may also have different flavors including Dedicated
+Short-Range Communications (DSRC) which is standardized as 802.11p, 4G
+or the emerging 5G standard, as well as traditional WIFI.
+
+In order to achieve the tight latency bounds the application, network
+stack, network, scheduling, must all be tightly coordinated.
+Information is usually time sensitive with deadlines of usefulness such
+that techniques such as forward error correction are more likely to be
+used than traditional reliable protocols such as TCP. DTLS handshake
+must also be low latency, as well as any hand-off for implemented
+MobileIP.
+-----
+
+
+cheers,
+jamal
