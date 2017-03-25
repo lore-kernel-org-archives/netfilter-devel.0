@@ -1,57 +1,74 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf] netfilter: nf_ct_ext: fix possible panic after
- nf_ct_extend_unregister
-Date: Sat, 25 Mar 2017 10:38:52 +0100
-Message-ID: <20170325093852.GA16691@breakpoint.cc>
-References: <1490430929-31385-1-git-send-email-zlpnobody@163.com>
+From: "Gao Feng" <gfree.wind@foxmail.com>
+Subject: RE: [PATCH nf v4 1/1] netfilter: snmp: Fix one possible panic when snmp_trap_helper fail to register
+Date: Sat, 25 Mar 2017 18:00:51 +0800
+Message-ID: <000301d2a54e$afc437f0$0f4ca7d0$@foxmail.com>
+References: <1490408646-26051-1-git-send-email-gfree.wind@foxmail.com> <CAML_gOfz33nvrG0fu1KLeMQbYsVSPP6CdoNLUFUiMh8YG7Hs0A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        Liping Zhang <zlpnobody@gmail.com>
-To: Liping Zhang <zlpnobody@163.com>
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Cc: "'Pablo Neira Ayuso'" <pablo@netfilter.org>,
+        "'Netfilter Developer Mailing List'"
+        <netfilter-devel@vger.kernel.org>
+To: "'Liping Zhang'" <zlpnobody@gmail.com>, <gfree.wind@foxmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:43250 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750820AbdCYJjm (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 25 Mar 2017 05:39:42 -0400
-Content-Disposition: inline
-In-Reply-To: <1490430929-31385-1-git-send-email-zlpnobody@163.com>
+Received: from smtpbg202.qq.com ([184.105.206.29]:52240 "EHLO smtpbg202.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751115AbdCYKBF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 25 Mar 2017 06:01:05 -0400
+In-Reply-To: <CAML_gOfz33nvrG0fu1KLeMQbYsVSPP6CdoNLUFUiMh8YG7Hs0A@mail.gmail.com>
+Content-Language: zh-cn
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Liping Zhang <zlpnobody@163.com> wrote:
-> Step 1. Enable SYNPROXY for tcp dport 1234 at FORWARD hook:
->   # iptables -I FORWARD -p tcp --dport 1234 -j SYNPROXY
-> Step 2. Queue the syn packet to the userspace at raw table OUTPUT hook.
->         Also note, in the userspace we only add a 20s' delay, then
->         reinject the syn packet to the kernel:
->   # iptables -t raw -I OUTPUT -p tcp --syn -j NFQUEUE --queue-num 1
-> Step 3. Using "nc 2.2.2.2 1234" to connect the server.
-> Step 4. Now remove the nf_synproxy_core.ko quickly:
->   # iptables -F FORWARD
->   # rmmod ipt_SYNPROXY
->   # rmmod nf_synproxy_core
-> Step 5. After 20s' delay, the syn packet is reinjected to the kernel.
+Hi Liping,
 
-Lovely.
+> -----Original Message-----
+> From: Liping Zhang [mailto:zlpnobody@gmail.com]
+> Sent: Saturday, March 25, 2017 4:17 PM
+> To: gfree.wind@foxmail.com
+> Cc: Pablo Neira Ayuso <pablo@netfilter.org>; Netfilter Developer =
+Mailing List
+> <netfilter-devel@vger.kernel.org>; Gao Feng <fgao@ikuai8.com>
+> Subject: Re: [PATCH nf v4 1/1] netfilter: snmp: Fix one possible panic =
+when
+> snmp_trap_helper fail to register
+>=20
+> Hi Feng,
+>=20
+> 2017-03-25 10:24 GMT+08:00  <gfree.wind@foxmail.com>:
+> [...]
+> > @@ -1293,12 +1283,7 @@ static int __init =
+nf_nat_snmp_basic_init(void)
+> >         BUG_ON(nf_nat_snmp_hook !=3D NULL);
+> >         RCU_INIT_POINTER(nf_nat_snmp_hook, help);
+> >
+> > -       ret =3D nf_conntrack_helper_register(&snmp_trap_helper);
+> > -       if (ret < 0) {
+> > -               nf_conntrack_helper_unregister(&snmp_helper);
+> > -               return ret;
+> > -       }
+> > -       return ret;
+> > +       return nf_conntrack_helper_register(&snmp_trap_helper);
+>=20
+> I think you should also remove the "int ret =3D 0;" statement,
+>=20
+> static int __init nf_nat_snmp_basic_init(void) {
+>      int ret =3D 0;  <--- Here
+>=20
+> Otherwise, GCC will warn "unused variable".
 
-> But having such a obscure restriction of nf_ct_extend_unregister is not a
-> good idea, so we should invoke synchronize_rcu after set nf_ct_ext_types
-> to NULL, and check the NULL pointer when do __nf_ct_ext_add_length. Then
-> it will be easier if we add new ct extend in the future.
+Thanks.
+I didn't see the warning during compiling.
+I think it should be overlapped because I pull the upstream.
+There are other changes.
 
-Agree.
+Next time, I would only touch the changed files and compile.
+Thanks again.
 
-Acked-by: Florian Westphal <fw@strlen.de>
+Feng
 
-> Last, we use kfree_rcu to free nf_ct_ext, so rcu_barrier() is unnecessary
-> anymore, remove it too.
 
-I think with some extra work we could switch to kfree since almost
-all spots that access the extension area do it after obtaining
-a reference on the conntrack.
 
-Someone would need to audit the code first, I suspect the ecache work
-queue isn't safe without the kfree_rcu, perhaps there are other places
-as well.
+
+
