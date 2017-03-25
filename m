@@ -1,73 +1,179 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: nf_ct_helper: permit cthelpers with different names via nfnetlink
-Date: Sat, 25 Mar 2017 21:03:23 +0800
-Message-ID: <1490447003-18592-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-15.163.com ([220.181.12.15]:52032 "EHLO m12-15.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750903AbdCYNEB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 25 Mar 2017 09:04:01 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Arushi Singhal <arushisinghal19971997@gmail.com>
+Subject: [PATCH] net: netfilters: Remove extra parenthesis
+Date: Sat, 25 Mar 2017 19:23:13 +0530
+Message-ID: <20170325135313.GA10861@arushi-HP-Pavilion-Notebook>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com
+To: wensong@linux-vs.org
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Liping Zhang <zlpnobody@gmail.com>
+Rmoved parentheses on the right hand side of assignment, as they are
+not required. The following coccinelle script was used to fix this
+issue:
 
-cthelpers added via nfnetlink may have the same tuple, i.e. except for
-the l3proto and l4proto, other fields are all zero. So even with the
-different names, we will also fail to add them:
-  # nfct helper add ssdp inet udp
-  # nfct helper add tftp inet udp
-  nfct v1.4.3: netlink error: File exists
+@@
+local idexpression id;
+expression e;
+@@
 
-So in order to avoid unpredictable behaviour, we should:
-1. cthelpers can be selected by nft ct helper obj or xt_CT target, so
-report error if duplicated { name, l3proto, l4proto } tuple exist.
-2. cthelpers can be selected by nf_ct_tuple_src_mask_cmp when
-nf_ct_auto_assign_helper is enabled, so also report error if duplicated
-{ l3proto, l4proto, src-port } tuple exist.
+id =
+-(
+e
+-)
 
-Also note, if the cthelper is added from userspace, then the src-port will
-always be zero, it's invalid for nf_ct_auto_assign_helper, so there's no
-need to check the second point listed above.
-
-Fixes: 893e093c786c ("netfilter: nf_ct_helper: bail out on duplicated helpers")
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
 ---
- net/netfilter/nf_conntrack_helper.c | 18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ net/netfilter/ipvs/ip_vs_proto_tcp.c   | 2 +-
+ net/netfilter/nf_conntrack_netlink.c   | 8 ++++----
+ net/netfilter/nf_conntrack_proto_tcp.c | 2 +-
+ net/netfilter/nft_fib.c                | 2 +-
+ net/netfilter/nft_set_bitmap.c         | 2 +-
+ net/netfilter/x_tables.c               | 2 +-
+ net/netfilter/xt_socket.c              | 8 ++++----
+ 7 files changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 6dc44d9..a28ecfa 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -386,10 +386,20 @@ int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
- 	BUG_ON(strlen(me->name) > NF_CT_HELPER_NAME_LEN - 1);
+diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+index 5117bcb7d2f0..9f2abda017c4 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+@@ -487,7 +487,7 @@ static struct tcp_states_t tcp_states_dos [] = {
  
- 	mutex_lock(&nf_ct_helper_mutex);
--	hlist_for_each_entry(cur, &nf_ct_helper_hash[h], hnode) {
--		if (nf_ct_tuple_src_mask_cmp(&cur->tuple, &me->tuple, &mask)) {
--			ret = -EEXIST;
--			goto out;
-+	if (__nf_conntrack_helper_find(me->name, me->tuple.src.l3num,
-+				       me->tuple.dst.protonum)) {
-+		ret = -EEXIST;
-+		goto out;
-+	}
-+
-+	/* avoid unpredictable behaviour for auto_assign_helper */
-+	if (!(me->flags & NF_CT_HELPER_F_USERSPACE)) {
-+		hlist_for_each_entry(cur, &nf_ct_helper_hash[h], hnode) {
-+			if (nf_ct_tuple_src_mask_cmp(&cur->tuple, &me->tuple,
-+						     &mask)) {
-+				ret = -EEXIST;
-+				goto out;
-+			}
- 		}
+ static void tcp_timeout_change(struct ip_vs_proto_data *pd, int flags)
+ {
+-	int on = (flags & 1);		/* secure_tcp */
++	int on = flags & 1;		/* secure_tcp */
+ 
+ 	/*
+ 	** FIXME: change secure_tcp to independent sysctl var
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 6806b5e73567..aa344c5868c5 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -467,7 +467,7 @@ ctnetlink_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
+ 	struct nlattr *nest_parms;
+ 	unsigned int flags = portid ? NLM_F_MULTI : 0, event;
+ 
+-	event = (NFNL_SUBSYS_CTNETLINK << 8 | IPCTNL_MSG_CT_NEW);
++	event = NFNL_SUBSYS_CTNETLINK << 8 | IPCTNL_MSG_CT_NEW;
+ 	nlh = nlmsg_put(skb, portid, seq, event, sizeof(*nfmsg), flags);
+ 	if (nlh == NULL)
+ 		goto nlmsg_failure;
+@@ -1983,7 +1983,7 @@ ctnetlink_ct_stat_cpu_fill_info(struct sk_buff *skb, u32 portid, u32 seq,
+ 	struct nfgenmsg *nfmsg;
+ 	unsigned int flags = portid ? NLM_F_MULTI : 0, event;
+ 
+-	event = (NFNL_SUBSYS_CTNETLINK << 8 | IPCTNL_MSG_CT_GET_STATS_CPU);
++	event = NFNL_SUBSYS_CTNETLINK << 8 | IPCTNL_MSG_CT_GET_STATS_CPU;
+ 	nlh = nlmsg_put(skb, portid, seq, event, sizeof(*nfmsg), flags);
+ 	if (nlh == NULL)
+ 		goto nlmsg_failure;
+@@ -2066,7 +2066,7 @@ ctnetlink_stat_ct_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
+ 	unsigned int flags = portid ? NLM_F_MULTI : 0, event;
+ 	unsigned int nr_conntracks = atomic_read(&net->ct.count);
+ 
+-	event = (NFNL_SUBSYS_CTNETLINK << 8 | IPCTNL_MSG_CT_GET_STATS);
++	event = NFNL_SUBSYS_CTNETLINK << 8 | IPCTNL_MSG_CT_GET_STATS;
+ 	nlh = nlmsg_put(skb, portid, seq, event, sizeof(*nfmsg), flags);
+ 	if (nlh == NULL)
+ 		goto nlmsg_failure;
+@@ -3223,7 +3223,7 @@ ctnetlink_exp_stat_fill_info(struct sk_buff *skb, u32 portid, u32 seq, int cpu,
+ 	struct nfgenmsg *nfmsg;
+ 	unsigned int flags = portid ? NLM_F_MULTI : 0, event;
+ 
+-	event = (NFNL_SUBSYS_CTNETLINK << 8 | IPCTNL_MSG_EXP_GET_STATS_CPU);
++	event = NFNL_SUBSYS_CTNETLINK << 8 | IPCTNL_MSG_EXP_GET_STATS_CPU;
+ 	nlh = nlmsg_put(skb, portid, seq, event, sizeof(*nfmsg), flags);
+ 	if (nlh == NULL)
+ 		goto nlmsg_failure;
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index b122e9dacfed..2e5e4a4d4778 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -789,7 +789,7 @@ static int tcp_error(struct net *net, struct nf_conn *tmpl,
  	}
- 	hlist_add_head_rcu(&me->hnode, &nf_ct_helper_hash[h]);
+ 
+ 	/* Check TCP flags. */
+-	tcpflags = (tcp_flag_byte(th) & ~(TCPHDR_ECE|TCPHDR_CWR|TCPHDR_PSH));
++	tcpflags = tcp_flag_byte(th) & ~(TCPHDR_ECE|TCPHDR_CWR|TCPHDR_PSH);
+ 	if (!tcp_valid_flags[tcpflags]) {
+ 		if (LOG_INVALID(net, IPPROTO_TCP))
+ 			nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
+diff --git a/net/netfilter/nft_fib.c b/net/netfilter/nft_fib.c
+index 29a4906adc27..c907c27b0374 100644
+--- a/net/netfilter/nft_fib.c
++++ b/net/netfilter/nft_fib.c
+@@ -35,7 +35,7 @@ int nft_fib_validate(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	switch (priv->result) {
+ 	case NFT_FIB_RESULT_OIF: /* fallthrough */
+ 	case NFT_FIB_RESULT_OIFNAME:
+-		hooks = (1 << NF_INET_PRE_ROUTING);
++		hooks = 1 << NF_INET_PRE_ROUTING;
+ 		break;
+ 	case NFT_FIB_RESULT_ADDRTYPE:
+ 		if (priv->flags & NFTA_FIB_F_IIF)
+diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
+index 152d226552c1..09867146539e 100644
+--- a/net/netfilter/nft_set_bitmap.c
++++ b/net/netfilter/nft_set_bitmap.c
+@@ -47,7 +47,7 @@ struct nft_bitmap {
+ 
+ static inline void nft_bitmap_location(u32 key, u32 *idx, u32 *off)
+ {
+-	u32 k = (key << 1);
++	u32 k = key << 1;
+ 
+ 	*idx = k / BITS_PER_BYTE;
+ 	*off = k % BITS_PER_BYTE;
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 14857afc9937..7a4a9beadedb 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -506,7 +506,7 @@ static int xt_check_entry_match(const char *match, const char *target,
+ 			return -EINVAL;
+ 
+ 		length -= pos->u.match_size;
+-		pos = ((void *)((char *)(pos) + (pos)->u.match_size));
++		pos = (void *)((char *)(pos) + (pos)->u.match_size);
+ 	} while (length > 0);
+ 
+ 	return 0;
+diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
+index 770bbec878f1..bf86e12808bd 100644
+--- a/net/netfilter/xt_socket.c
++++ b/net/netfilter/xt_socket.c
+@@ -65,9 +65,9 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
+ 		/* Ignore sockets listening on INADDR_ANY,
+ 		 * unless XT_SOCKET_NOWILDCARD is set
+ 		 */
+-		wildcard = (!(info->flags & XT_SOCKET_NOWILDCARD) &&
++		wildcard = !(info->flags & XT_SOCKET_NOWILDCARD) &&
+ 			    sk_fullsock(sk) &&
+-			    inet_sk(sk)->inet_rcv_saddr == 0);
++			    inet_sk(sk)->inet_rcv_saddr == 0;
+ 
+ 		/* Ignore non-transparent sockets,
+ 		 * if XT_SOCKET_TRANSPARENT is used
+@@ -122,9 +122,9 @@ socket_mt6_v1_v2_v3(const struct sk_buff *skb, struct xt_action_param *par)
+ 		/* Ignore sockets listening on INADDR_ANY
+ 		 * unless XT_SOCKET_NOWILDCARD is set
+ 		 */
+-		wildcard = (!(info->flags & XT_SOCKET_NOWILDCARD) &&
++		wildcard = !(info->flags & XT_SOCKET_NOWILDCARD) &&
+ 			    sk_fullsock(sk) &&
+-			    ipv6_addr_any(&sk->sk_v6_rcv_saddr));
++			    ipv6_addr_any(&sk->sk_v6_rcv_saddr);
+ 
+ 		/* Ignore non-transparent sockets,
+ 		 * if XT_SOCKET_TRANSPARENT is used
 -- 
-2.5.5
-
-
+2.11.0
