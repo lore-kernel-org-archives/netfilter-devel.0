@@ -1,56 +1,73 @@
-From: Arushi Singhal <arushisinghal19971997@gmail.com>
-Subject: [PATCH] net: netfilter: Remove multiple assignment.
-Date: Sat, 25 Mar 2017 18:19:47 +0530
-Message-ID: <20170325124946.GA9109@arushi-HP-Pavilion-Notebook>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf] netfilter: nf_ct_helper: permit cthelpers with different names via nfnetlink
+Date: Sat, 25 Mar 2017 21:03:23 +0800
+Message-ID: <1490447003-18592-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:34731 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750867AbdCYMty (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 25 Mar 2017 08:49:54 -0400
-Content-Disposition: inline
+Received: from m12-15.163.com ([220.181.12.15]:52032 "EHLO m12-15.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750903AbdCYNEB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 25 Mar 2017 09:04:01 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch removes multiple assignments.
-Done using coccinelle.
-@@
-identifier i1,i2;
-constant c;
-@@
-- i1=i2=c;
-+ i1=c;
-+ i2=c;
+From: Liping Zhang <zlpnobody@gmail.com>
 
-Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
+cthelpers added via nfnetlink may have the same tuple, i.e. except for
+the l3proto and l4proto, other fields are all zero. So even with the
+different names, we will also fail to add them:
+  # nfct helper add ssdp inet udp
+  # nfct helper add tftp inet udp
+  nfct v1.4.3: netlink error: File exists
+
+So in order to avoid unpredictable behaviour, we should:
+1. cthelpers can be selected by nft ct helper obj or xt_CT target, so
+report error if duplicated { name, l3proto, l4proto } tuple exist.
+2. cthelpers can be selected by nf_ct_tuple_src_mask_cmp when
+nf_ct_auto_assign_helper is enabled, so also report error if duplicated
+{ l3proto, l4proto, src-port } tuple exist.
+
+Also note, if the cthelper is added from userspace, then the src-port will
+always be zero, it's invalid for nf_ct_auto_assign_helper, so there's no
+need to check the second point listed above.
+
+Fixes: 893e093c786c ("netfilter: nf_ct_helper: bail out on duplicated helpers")
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 ---
-contribution to outreachy netfilter project.
+ net/netfilter/nf_conntrack_helper.c | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
- net/netfilter/nf_conntrack_proto_sctp.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 33279aab583d..723386bcc2cb 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -346,7 +346,8 @@ static int sctp_packet(struct nf_conn *ct,
- 		goto out;
- 	}
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 6dc44d9..a28ecfa 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -386,10 +386,20 @@ int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
+ 	BUG_ON(strlen(me->name) > NF_CT_HELPER_NAME_LEN - 1);
  
--	old_state = new_state = SCTP_CONNTRACK_NONE;
-+	old_state = SCTP_CONNTRACK_NONE;
-+	new_state = old_state;
- 	spin_lock_bh(&ct->lock);
- 	for_each_sctp_chunk (skb, sch, _sch, offset, dataoff, count) {
- 		/* Special cases of Verification tag check (Sec 8.5.1) */
+ 	mutex_lock(&nf_ct_helper_mutex);
+-	hlist_for_each_entry(cur, &nf_ct_helper_hash[h], hnode) {
+-		if (nf_ct_tuple_src_mask_cmp(&cur->tuple, &me->tuple, &mask)) {
+-			ret = -EEXIST;
+-			goto out;
++	if (__nf_conntrack_helper_find(me->name, me->tuple.src.l3num,
++				       me->tuple.dst.protonum)) {
++		ret = -EEXIST;
++		goto out;
++	}
++
++	/* avoid unpredictable behaviour for auto_assign_helper */
++	if (!(me->flags & NF_CT_HELPER_F_USERSPACE)) {
++		hlist_for_each_entry(cur, &nf_ct_helper_hash[h], hnode) {
++			if (nf_ct_tuple_src_mask_cmp(&cur->tuple, &me->tuple,
++						     &mask)) {
++				ret = -EEXIST;
++				goto out;
++			}
+ 		}
+ 	}
+ 	hlist_add_head_rcu(&me->hnode, &nf_ct_helper_hash[h]);
 -- 
-2.11.0
+2.5.5
+
 
