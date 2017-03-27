@@ -1,82 +1,157 @@
-From: Gargi Sharma <gs051095@gmail.com>
-Subject: Re: [Outreachy kernel] Re: [PATCH] iptables: Constify option struct
-Date: Tue, 28 Mar 2017 01:27:29 +0530
-Message-ID: <CAOCi2DFc2aURc5gAuF5q6NLvBwiVSbF6cpoF=ipfVwntz=86Hg@mail.gmail.com>
-References: <1490641815-12741-1-git-send-email-gs051095@gmail.com>
- <20170327191239.GA18080@salvia> <CAOCi2DFt9kYKDE8Cn47Pbh=B4-E_PLSKLxXLmsdjfdyNWwcm7Q@mail.gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 4/4] netfilter: ipset: hash:ipport: add netmask support
+Date: Mon, 27 Mar 2017 21:50:10 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1703272136010.16553@blackhole.kfki.hu>
+References: <1490120944-1770-1-git-send-email-johunt@akamai.com> <1490120944-1770-5-git-send-email-johunt@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org,
-        outreachy-kernel <outreachy-kernel@googlegroups.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+To: Josh Hunt <johunt@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:36332 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751651AbdC0T6B (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Mar 2017 15:58:01 -0400
-Received: by mail-it0-f67.google.com with SMTP id 190so13794391itm.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Mar 2017 12:58:00 -0700 (PDT)
-In-Reply-To: <CAOCi2DFt9kYKDE8Cn47Pbh=B4-E_PLSKLxXLmsdjfdyNWwcm7Q@mail.gmail.com>
+Received: from smtp-in.kfki.hu ([148.6.0.28]:38572 "EHLO smtp2.kfki.hu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752110AbdC0UCA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Mar 2017 16:02:00 -0400
+In-Reply-To: <1490120944-1770-5-git-send-email-johunt@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 28, 2017 at 12:45 AM, Gargi Sharma <gs051095@gmail.com> wrote:
-> On Tue, Mar 28, 2017 at 12:42 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->>
->> On Tue, Mar 28, 2017 at 12:40:15AM +0530, Gargi Sharma wrote:
->> > The struct  of the type option is only used to initialise a field
->> > inside the xtables_match struct and is not modified anywhere.
->> > Done using Coccinelle:
->> >
->> > @r1 disable optional_qualifier@
->> > identifier s,i;
->> > position p;
->> > @@
->> >
->> > static struct option i@p[] ={...};
->> >
->> > @ok1@
->> > identifier r1.i;
->> > expression e;
->> > position p;
->> > @@
->> > e = i@p
->> >
->> > @bad@
->> > position p != {r1.p,ok1.p};
->> > identifier r1.i;
->> > @@
->> > e@i@p
->> >
->> > @depends on !bad disable optional_qualifier@
->> > identifier r1.i;
->> > @@
->> > static
->> > +const
->> > struct option i[] = { ... };
->>
->> Applied, thanks.
->>
->> You can probably have a look at ebtables.git, probably there are more
->> things to constify there.
+On Tue, 21 Mar 2017, Josh Hunt wrote:
 
-Hi Pablo,
+> Initial netmask support for hash:ipport set types.
+> 
+> Signed-off-by: Josh Hunt <johunt@akamai.com>
+> ---
+>  net/netfilter/ipset/ip_set_hash_ipport.c | 29 ++++++++++++++++++++++++++++-
+>  1 file changed, 28 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
+> index f438740..39244c0 100644
+> --- a/net/netfilter/ipset/ip_set_hash_ipport.c
+> +++ b/net/netfilter/ipset/ip_set_hash_ipport.c
+> @@ -29,7 +29,8 @@
+>  /*				2    Counters support added */
+>  /*				3    Comments support added */
+>  /*				4    Forceadd support added */
+> -#define IPSET_TYPE_REV_MAX	5 /* skbinfo support added */
+> +/*				5    skbinfo support added */
+> +#define IPSET_TYPE_REV_MAX	6 /* netmask support added */
+>  
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
+> @@ -38,6 +39,7 @@
+>  
+>  /* Type specific function prefix */
+>  #define HTYPE		hash_ipport
+> +#define IP_SET_HASH_WITH_NETMASK
+>  
+>  /* IPv4 variant */
+>  
+> @@ -95,12 +97,16 @@ struct hash_ipport4_elem {
+>  	ipset_adtfn adtfn = set->variant->adt[adt];
+>  	struct hash_ipport4_elem e = { .ip = 0 };
+>  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+> +	const struct hash_ipport4 *h = set->data;
+>  
+>  	if (!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
+>  				 &e.port, &e.proto))
+>  		return -EINVAL;
+>  
+>  	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
+> +	e.ip &= h->netmask.mask.ip;
+> +	if (e.ip == 0)
+> +		return -EINVAL;
 
-There are around 18 files being affected by this semantic patch in
-ebtables. Should I still send them as a single patch(since it might be
-difficult to review a large single patch)?
+This checking is not needed, because only the fully zero valued hash 
+elements are not allowed and ip_set_get_ip4_port() excludes the zero 
+protocol value.
 
-Thanks!
-Gargi
->>
-> Okay, I will. :)
->
-> Thanks!
-> Gargi
->> --
->> You received this message because you are subscribed to the Google Groups "outreachy-kernel" group.
->> To unsubscribe from this group and stop receiving emails from it, send an email to outreachy-kernel+unsubscribe@googlegroups.com.
->> To post to this group, send email to outreachy-kernel@googlegroups.com.
->> To view this discussion on the web visit https://groups.google.com/d/msgid/outreachy-kernel/20170327191239.GA18080%40salvia.
->> For more options, visit https://groups.google.com/d/optout.
+>  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+>  }
+>  
+> @@ -132,6 +138,10 @@ struct hash_ipport4_elem {
+>  	if (ret)
+>  		return ret;
+>  
+> +	e.ip &= h->netmask.mask.ip;
+> +	if (e.ip == 0)
+> +		return -EINVAL;
+> +
+
+The same here as at the hash_ipport4_kadt() function.
+
+The handling of adding multiple elements from a range is missing here as 
+well. It's more complicated compared to the hash:ip type, because we must 
+allow to add multiple elements with a single IP address and a wildcard 
+mask value, but with a range of port numbers.
+
+>  	e.port = nla_get_be16(tb[IPSET_ATTR_PORT]);
+>  
+>  	if (tb[IPSET_ATTR_PROTO]) {
+> @@ -237,6 +247,12 @@ struct hash_ipport6_elem {
+>  	next->port = d->port;
+>  }
+>  
+> +static inline void
+> +hash_ipport6_netmask(union nf_inet_addr *ip, const union nf_inet_addr *mask)
+> +{
+> +	nf_inet_addr_mask_inplace(ip, mask);
+> +}
+> +
+>  #undef MTYPE
+>  #undef HOST_MASK
+>  
+> @@ -253,12 +269,17 @@ struct hash_ipport6_elem {
+>  	ipset_adtfn adtfn = set->variant->adt[adt];
+>  	struct hash_ipport6_elem e = { .ip = { .all = { 0 } } };
+>  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+> +	const struct hash_ipport6 *h = set->data;
+>  
+>  	if (!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
+>  				 &e.port, &e.proto))
+>  		return -EINVAL;
+>  
+>  	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
+> +	hash_ipport6_netmask(&e.ip, &h->netmask.mask);
+> +	if (ipv6_addr_any(&e.ip.in6))
+> +		return -EINVAL;
+> +
+
+The checking is unnecessary...
+
+>  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
+>  }
+>  
+> @@ -298,6 +319,10 @@ struct hash_ipport6_elem {
+>  	if (ret)
+>  		return ret;
+>  
+> +	hash_ipport6_netmask(&e.ip, &h->netmask.mask);
+> +	if (ipv6_addr_any(&e.ip.in6))
+> +		return -EINVAL;
+
+... and here as well.
+
+>  	e.port = nla_get_be16(tb[IPSET_ATTR_PORT]);
+>  
+>  	if (tb[IPSET_ATTR_PROTO]) {
+> @@ -354,6 +379,8 @@ struct hash_ipport6_elem {
+>  		[IPSET_ATTR_PROTO]	= { .type = NLA_U8 },
+>  		[IPSET_ATTR_TIMEOUT]	= { .type = NLA_U32 },
+>  		[IPSET_ATTR_CADT_FLAGS]	= { .type = NLA_U32 },
+> +		[IPSET_ATTR_NETMASK]    = { .type = NLA_U8 },
+> +		[IPSET_ATTR_NETMASK_MASK] = { .type = NLA_NESTED },
+>  	},
+>  	.adt_policy	= {
+>  		[IPSET_ATTR_IP]		= { .type = NLA_NESTED },
+> -- 
+> 1.9.1
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
