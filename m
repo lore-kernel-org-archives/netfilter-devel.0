@@ -1,47 +1,59 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [Outreachy kernel] Re: [PATCH] net: netfilter: Remove multiple
- assignment.
-Date: Mon, 27 Mar 2017 14:21:53 +0200
-Message-ID: <20170327122153.GA25113@salvia>
-References: <20170325124946.GA9109@arushi-HP-Pavilion-Notebook>
- <20170327120827.GA15676@salvia>
- <CA+XqjF_4cXL58vnxgKmawuZ4F0ZqvU1KvAtRbJv_r1ArLTpExw@mail.gmail.com>
+Subject: Re: [PATCH nf-next 1/1] netfilter: Use bool type instead of int as
+ the return value of nf_conntrack_tuple_taken and nf_nat_used_tuple
+Date: Mon, 27 Mar 2017 14:24:43 +0200
+Message-ID: <20170327122443.GA25192@salvia>
+References: <1488860935-525-1-git-send-email-fgao@ikuai8.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-        outreachy-kernel@googlegroups.com
-To: Arushi Singhal <arushisinghal19971997@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, gfree.wind@gmail.com
+To: fgao@ikuai8.com
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:59994 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752147AbdC0MZf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Mar 2017 08:25:35 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 887B4EAA7F
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Mar 2017 14:24:53 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 771AEBAC28
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Mar 2017 14:24:53 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 69638BAC40
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Mar 2017 14:24:46 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <CA+XqjF_4cXL58vnxgKmawuZ4F0ZqvU1KvAtRbJv_r1ArLTpExw@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1488860935-525-1-git-send-email-fgao@ikuai8.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 27, 2017 at 05:48:41PM +0530, Arushi Singhal wrote:
-> On Mon, Mar 27, 2017 at 5:38 PM, Pablo Neira Ayuso <pablo@netfilter.org>
-> wrote:
+On Tue, Mar 07, 2017 at 12:28:55PM +0800, fgao@ikuai8.com wrote:
+> From: Gao Feng <fgao@ikuai8.com>
 > 
-> > On Sat, Mar 25, 2017 at 06:19:47PM +0530, Arushi Singhal wrote:
-> > > This patch removes multiple assignments.
-> > > Done using coccinelle.
-> > > @@
-> > > identifier i1,i2;
-> > > constant c;
-> > > @@
-> > > - i1=i2=c;
-> > > + i1=c;
-> > > + i2=c;
-> >
-> > You have to explain why this is bad.
-> >
+> These two functions return 1/0 as true or false, so it could use bool
+> type directly instead of int.
+
+Too long patch subject.
+ 
+> Signed-off-by: Gao Feng <fgao@ikuai8.com>
+> ---
+>  include/net/netfilter/nf_conntrack.h | 2 +-
+>  include/net/netfilter/nf_nat.h       | 2 +-
+>  net/netfilter/nf_conntrack_core.c    | 6 +++---
+>  net/netfilter/nf_nat_core.c          | 2 +-
+>  4 files changed, 6 insertions(+), 6 deletions(-)
 > 
-> It is against the kernel coding style and we have to avoid multiple
-> assignments to make the code more readable.
-> This error is found using Checkpatch.pl script.
+> diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+> index f540f9a..32a0394 100644
+> --- a/include/net/netfilter/nf_conntrack.h
+> +++ b/include/net/netfilter/nf_conntrack.h
+> @@ -160,7 +160,7 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
+>  
+>  /* Is this tuple taken? (ignoring any belonging to the given
+>     conntrack). */
+> -int nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
+> +bool nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
+>  			     const struct nf_conn *ignored_conntrack);
 
-Then, please place this information in your patch description.
-
-Thanks!
+Did you audit callers if they handle this type change accordingly? I
+don't see any description about this on your patch.
