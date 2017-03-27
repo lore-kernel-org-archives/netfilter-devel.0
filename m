@@ -1,151 +1,82 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 3/4] netfilter: ipset: hash:ip: add support for new
- netmask types
-Date: Mon, 27 Mar 2017 21:35:16 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1703272124530.16553@blackhole.kfki.hu>
-References: <1490120944-1770-1-git-send-email-johunt@akamai.com> <1490120944-1770-4-git-send-email-johunt@akamai.com>
+From: Gargi Sharma <gs051095@gmail.com>
+Subject: Re: [Outreachy kernel] Re: [PATCH] iptables: Constify option struct
+Date: Tue, 28 Mar 2017 01:27:29 +0530
+Message-ID: <CAOCi2DFc2aURc5gAuF5q6NLvBwiVSbF6cpoF=ipfVwntz=86Hg@mail.gmail.com>
+References: <1490641815-12741-1-git-send-email-gs051095@gmail.com>
+ <20170327191239.GA18080@salvia> <CAOCi2DFt9kYKDE8Cn47Pbh=B4-E_PLSKLxXLmsdjfdyNWwcm7Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-To: Josh Hunt <johunt@akamai.com>
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org,
+        outreachy-kernel <outreachy-kernel@googlegroups.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:52083 "EHLO smtp1.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751723AbdC0Tf0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Mar 2017 15:35:26 -0400
-In-Reply-To: <1490120944-1770-4-git-send-email-johunt@akamai.com>
+Received: from mail-it0-f67.google.com ([209.85.214.67]:36332 "EHLO
+        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751651AbdC0T6B (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Mar 2017 15:58:01 -0400
+Received: by mail-it0-f67.google.com with SMTP id 190so13794391itm.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Mar 2017 12:58:00 -0700 (PDT)
+In-Reply-To: <CAOCi2DFt9kYKDE8Cn47Pbh=B4-E_PLSKLxXLmsdjfdyNWwcm7Q@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 21 Mar 2017, Josh Hunt wrote:
+On Tue, Mar 28, 2017 at 12:45 AM, Gargi Sharma <gs051095@gmail.com> wrote:
+> On Tue, Mar 28, 2017 at 12:42 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>>
+>> On Tue, Mar 28, 2017 at 12:40:15AM +0530, Gargi Sharma wrote:
+>> > The struct  of the type option is only used to initialise a field
+>> > inside the xtables_match struct and is not modified anywhere.
+>> > Done using Coccinelle:
+>> >
+>> > @r1 disable optional_qualifier@
+>> > identifier s,i;
+>> > position p;
+>> > @@
+>> >
+>> > static struct option i@p[] ={...};
+>> >
+>> > @ok1@
+>> > identifier r1.i;
+>> > expression e;
+>> > position p;
+>> > @@
+>> > e = i@p
+>> >
+>> > @bad@
+>> > position p != {r1.p,ok1.p};
+>> > identifier r1.i;
+>> > @@
+>> > e@i@p
+>> >
+>> > @depends on !bad disable optional_qualifier@
+>> > identifier r1.i;
+>> > @@
+>> > static
+>> > +const
+>> > struct option i[] = { ... };
+>>
+>> Applied, thanks.
+>>
+>> You can probably have a look at ebtables.git, probably there are more
+>> things to constify there.
 
-> Enable new netmask suport for hash:ip set types.
-> 
-> Example usage:
-> 
-> Legacy behavior:
-> ipset create foo hash:ip family inet6 netmask 64
-> 
-> New netmask support (equivalent to legacy example):
-> ipset create foo hash:ip family inet6 netmask ffff:ffff:ffff:ffff::
-> 
-> New wildcard mask support:
-> ipset create foo hash:ip family inet6 netmask ffff:ffff:ffff:0:0:ffff:ffff:ffff
-> 
-> The 3 mask types are supported for ipv4 sets as well.
-> 
-> Signed-off-by: Josh Hunt <johunt@akamai.com>
-> ---
->  net/netfilter/ipset/ip_set_hash_ip.c | 20 +++++++++++---------
->  1 file changed, 11 insertions(+), 9 deletions(-)
-> 
-> diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
-> index 20bfbd3..74aa4a6 100644
-> --- a/net/netfilter/ipset/ip_set_hash_ip.c
-> +++ b/net/netfilter/ipset/ip_set_hash_ip.c
-> @@ -27,7 +27,8 @@
->  /*				1	   Counters support */
->  /*				2	   Comments support */
->  /*				3	   Forceadd support */
-> -#define IPSET_TYPE_REV_MAX	4	/* skbinfo support  */
-> +/*				4	   skbinfo support  */
-> +#define IPSET_TYPE_REV_MAX	5	/* nf_inet_addr netmask support  */
->  
->  MODULE_LICENSE("GPL");
->  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
-> @@ -89,7 +90,7 @@ struct hash_ip4_elem {
->  	__be32 ip;
->  
->  	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &ip);
-> -	ip &= ip_set_netmask(h->netmask);
-> +	ip &= h->netmask.mask.ip;
->  	if (ip == 0)
->  		return -EINVAL;
->  
-> @@ -122,7 +123,7 @@ struct hash_ip4_elem {
->  	if (ret)
->  		return ret;
->  
-> -	ip &= ip_set_hostmask(h->netmask);
-> +	ip &= ntohl(h->netmask.mask.ip);
->  
->  	if (adt == IPSET_TEST) {
->  		e.ip = htonl(ip);
-> @@ -146,7 +147,7 @@ struct hash_ip4_elem {
->  		ip_set_mask_from_to(ip, ip_to, cidr);
->  	}
->  
-> -	hosts = h->netmask == 32 ? 1 : 2 << (32 - h->netmask - 1);
-> +	hosts = (h->netmask.cidr == 32 || !h->netmask.cidr) ? 1 : 2 << (32 - h->netmask.cidr - 1);
+Hi Pablo,
 
-This part is insufficient, because I dont't see how netmask.cidr could be 
-calculated when netmask.mask is an arbitrary wildcard mask. Also, the code 
-allows to add multiple elements in a range which is not handled properly.
+There are around 18 files being affected by this semantic patch in
+ebtables. Should I still send them as a single patch(since it might be
+difficult to review a large single patch)?
 
-What I'd like to see is as follows:
-
-- If IPSET_ATTR_NETMASK_MASK attribute is passed then the set creation 
-  routine should check whether the value can be converted to a cidr value
-  and if yes then set netmask.cidr.
-- If netmask.cidr value is not valid (i.e. zero), then the add/del 
-  loop for multiple elements should be skipped, i.e. instead of
-
-        if (adt == IPSET_TEST) {
-
-  it should be something like
-
-        if (adt == IPSET_TEST || !h->netmask.cidr) {
-
->  	if (retried)
->  		ip = ntohl(h->next.ip);
-> @@ -182,9 +183,9 @@ struct hash_ip6_elem {
->  }
->  
->  static inline void
-> -hash_ip6_netmask(union nf_inet_addr *ip, u8 prefix)
-> +hash_ip6_netmask(union nf_inet_addr *ip, const union nf_inet_addr *mask)
->  {
-> -	ip6_netmask(ip, prefix);
-> +	nf_inet_addr_mask_inplace(ip, mask);
->  }
->  
->  static bool
-> @@ -223,7 +224,7 @@ struct hash_ip6_elem {
->  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
->  
->  	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
-> -	hash_ip6_netmask(&e.ip, h->netmask);
-> +	hash_ip6_netmask(&e.ip, &h->netmask.mask);
->  	if (ipv6_addr_any(&e.ip.in6))
->  		return -EINVAL;
->  
-> @@ -262,7 +263,7 @@ struct hash_ip6_elem {
->  	if (ret)
->  		return ret;
->  
-> -	hash_ip6_netmask(&e.ip, h->netmask);
-> +	hash_ip6_netmask(&e.ip, &h->netmask.mask);
->  	if (ipv6_addr_any(&e.ip.in6))
->  		return -IPSET_ERR_HASH_ELEM;
->  
-> @@ -286,7 +287,8 @@ struct hash_ip6_elem {
->  		[IPSET_ATTR_PROBES]	= { .type = NLA_U8 },
->  		[IPSET_ATTR_RESIZE]	= { .type = NLA_U8  },
->  		[IPSET_ATTR_TIMEOUT]	= { .type = NLA_U32 },
-> -		[IPSET_ATTR_NETMASK]	= { .type = NLA_U8  },
-> +		[IPSET_ATTR_NETMASK]	= { .type = NLA_U8 },
-> +		[IPSET_ATTR_NETMASK_MASK] = { .type = NLA_NESTED },
->  		[IPSET_ATTR_CADT_FLAGS]	= { .type = NLA_U32 },
->  	},
->  	.adt_policy	= {
-> -- 
-> 1.9.1
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Thanks!
+Gargi
+>>
+> Okay, I will. :)
+>
+> Thanks!
+> Gargi
+>> --
+>> You received this message because you are subscribed to the Google Groups "outreachy-kernel" group.
+>> To unsubscribe from this group and stop receiving emails from it, send an email to outreachy-kernel+unsubscribe@googlegroups.com.
+>> To post to this group, send email to outreachy-kernel@googlegroups.com.
+>> To view this discussion on the web visit https://groups.google.com/d/msgid/outreachy-kernel/20170327191239.GA18080%40salvia.
+>> For more options, visit https://groups.google.com/d/optout.
