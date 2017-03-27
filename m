@@ -1,35 +1,86 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/2] netfilter: Remove unnecessary cast on void pointer
-Date: Mon, 27 Mar 2017 14:27:03 +0200
-Message-ID: <20170327122703.GA25227@salvia>
-References: <1490098794-22518-1-git-send-email-singhalsimran0@gmail.com>
+From: "Gao Feng" <gfree.wind@foxmail.com>
+Subject: RE: [PATCH nf-next 1/4] netfilter: amanda: Correct the return value comparison of the func nf_nat_mangle_udp_packet
+Date: Mon, 27 Mar 2017 20:48:57 +0800
+Message-ID: <000801d2a6f8$80709dd0$8151d970$@foxmail.com>
+References: <cover.1489726438.git.fgao@ikuai8.com> <fdfd3853391d136ba390dfdc4dc6884f552e540e.1489726438.git.fgao@ikuai8.com> <20170327121232.GA15713@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kadlec@blackhole.kfki.hu, davem@davemloft.net,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com, gregkh@linuxfoundation.org
-To: simran singhal <singhalsimran0@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1490098794-22518-1-git-send-email-singhalsimran0@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>, <gfree.wind@gmail.com>
+To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtpbg302.qq.com ([184.105.206.27]:58164 "EHLO smtpbg302.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752278AbdC0MtI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Mar 2017 08:49:08 -0400
+In-Reply-To: <20170327121232.GA15713@salvia>
+Content-Language: zh-cn
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 21, 2017 at 05:49:52PM +0530, simran singhal wrote:
-> This patch series remove unnecessary cast on void pointer.
+> -----Original Message-----
+> From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
+> Sent: Monday, March 27, 2017 8:13 PM
+> To: fgao@ikuai8.com
+> Cc: netfilter-devel@vger.kernel.org; gfree.wind@gmail.com
+> Subject: Re: [PATCH nf-next 1/4] netfilter: amanda: Correct the return
+value
+> comparison of the func nf_nat_mangle_udp_packet
 > 
-> simran singhal (2):
->   netfilter: ipset: Remove unnecessary cast on void pointer
->   netfilter: Remove unnecessary cast on void pointer
+> On Fri, Mar 17, 2017 at 02:47:19PM +0800, fgao@ikuai8.com wrote:
+> > From: Gao Feng <fgao@ikuai8.com>
+> >
+> > The return value of nf_nat_mangle_udp_packet actually is 1 and 0 as
+> > bool type. But the amanda codes compare it with NF_ACCEPT.
+> >
+> > Signed-off-by: Gao Feng <fgao@ikuai8.com>
+> > ---
+> >  net/netfilter/nf_nat_amanda.c | 11 +++++------
+> >  1 file changed, 5 insertions(+), 6 deletions(-)
+> >
+> > diff --git a/net/netfilter/nf_nat_amanda.c
+> > b/net/netfilter/nf_nat_amanda.c index eb77238..e4d61a7 100644
+> > --- a/net/netfilter/nf_nat_amanda.c
+> > +++ b/net/netfilter/nf_nat_amanda.c
+> > @@ -33,7 +33,6 @@ static unsigned int help(struct sk_buff *skb,  {
+> >  	char buffer[sizeof("65535")];
+> >  	u_int16_t port;
+> > -	unsigned int ret;
+> >
+> >  	/* Connection comes from client. */
+> >  	exp->saved_proto.tcp.port = exp->tuple.dst.u.tcp.port; @@ -63,14
+> > +62,14 @@ static unsigned int help(struct sk_buff *skb,
+> >  	}
+> >
+> >  	sprintf(buffer, "%u", port);
+> > -	ret = nf_nat_mangle_udp_packet(skb, exp->master, ctinfo,
+> > -				       protoff, matchoff, matchlen,
+> > -				       buffer, strlen(buffer));
+> > -	if (ret != NF_ACCEPT) {
+> > +	if (!nf_nat_mangle_udp_packet(skb, exp->master, ctinfo,
+> > +				      protoff, matchoff, matchlen,
+> > +				      buffer, strlen(buffer))) {
+> >  		nf_ct_helper_log(skb, exp->master, "cannot mangle packet");
+> >  		nf_ct_unexpect_related(exp);
+> > +		return NF_DROP;
+> >  	}
+> > -	return ret;
+> > +	return NF_ACCEPT;
+> 
+> This cleanup patches are a bit oversplit.
+> 
+> Better, send one patch where you update nf_nat_mangle_udp_packet() and
+> nf_nat_mangle_tcp_packet() to return boolean and update *all of the
+netfilter
+> spots* where we use them accordingly.
+> 
+> Please be careful on this...
+Ok, I would merge them into one patch.
+I already checked them before, but I would check it again after merge.
 
-Please, merge this two patches in one single patch.
+Regards
+Feng
 
-I have to pass up batches to David, and I would like this cleanups are
-grouped into the same logical change.
 
-Is there more occurrences of this in the Netfilter tree? Please have a
-look at net/ipv4/netfilter/ net/ipv6/netfilter/ and
-net/bridge/netfilter, we also have code there.
 
-Thanks.
