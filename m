@@ -1,101 +1,65 @@
-From: Kaarle Ritvanen <kaarle.ritvanen@datakunkku.fi>
-Subject: [PATCH v2 ulogd2 1/2] harmonize log file defaults with ulogd.conf
-Date: Mon, 27 Mar 2017 21:43:38 +0300
-Message-ID: <20170327184339.11850-1-kaarle.ritvanen@datakunkku.fi>
-Cc: Kaarle Ritvanen <kaarle.ritvanen@datakunkku.fi>
+From: Gargi Sharma <gs051095@gmail.com>
+Subject: [PATCH 0/4] Constify option structures
+Date: Tue, 28 Mar 2017 00:15:26 +0530
+Message-ID: <cover.1490640256.git.gs051095@gmail.com>
+Cc: pablo@netfilter.orgm, outreachy-kernel@googlegroups.com,
+        Gargi Sharma <gs051095@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from welho-filter4.welho.com ([83.102.41.26]:37195 "EHLO
-        welho-filter4.welho.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751413AbdC0SoS (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:34014 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752149AbdC0Sq1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Mar 2017 14:44:18 -0400
+        Mon, 27 Mar 2017 14:46:27 -0400
+Received: by mail-pg0-f65.google.com with SMTP id o123so12301004pga.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Mar 2017 11:46:21 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Kaarle Ritvanen <kaarle.ritvanen@datakunkku.fi>
----
- doc/ulogd.sgml               | 4 ++--
- output/ulogd_output_GPRINT.c | 2 +-
- output/ulogd_output_LOGEMU.c | 2 +-
- output/ulogd_output_NACCT.c  | 2 +-
- output/ulogd_output_OPRINT.c | 2 +-
- 5 files changed, 6 insertions(+), 6 deletions(-)
+The struct option is generally used only to initialise
+fields inside certain structs and is not modified anywhere.
+Done using Coccinelle:
 
-diff --git a/doc/ulogd.sgml b/doc/ulogd.sgml
-index 65a63cf..de799f4 100644
---- a/doc/ulogd.sgml
-+++ b/doc/ulogd.sgml
-@@ -422,7 +422,7 @@ to a file.  The only useful application is debugging.
- <descrip>
- <tag>dumpfile</tag>
- The filename where it should log to. The default is
--<tt>/var/log/ulogd.pktlog</tt>
-+<tt>/var/log/ulogd_oprint.log</tt>
- </descrip>
- 
- <sect2>ulogd_output_LOGEMU.so
-@@ -433,7 +433,7 @@ as possible. Logging is done to a seperate textfile instead of syslog, though.
- The module defines the following configuration directives:
- <descrip>
- <tag>file</tag>The filename where it should log to. The default is
--<tt>/var/log/ulogd.syslogemu</tt>
-+<tt>/var/log/ulogd_syslogemu.log</tt>
- <tag>sync</tag>Set this to 1 if you want to have your logfile written
- synchronously. This may reduce performance, but makes your log-lines appear
- immediately.  The default is <tt>0</tt>
-diff --git a/output/ulogd_output_GPRINT.c b/output/ulogd_output_GPRINT.c
-index 4f49c34..bc7aa34 100644
---- a/output/ulogd_output_GPRINT.c
-+++ b/output/ulogd_output_GPRINT.c
-@@ -31,7 +31,7 @@
- #include <ulogd/conffile.h>
- 
- #ifndef ULOGD_GPRINT_DEFAULT
--#define ULOGD_GPRINT_DEFAULT	"/var/log/ulogd.gprint"
-+#define ULOGD_GPRINT_DEFAULT	"/var/log/ulogd_gprint.log"
- #endif
- 
- struct gprint_priv {
-diff --git a/output/ulogd_output_LOGEMU.c b/output/ulogd_output_LOGEMU.c
-index bb27209..cfcfab7 100644
---- a/output/ulogd_output_LOGEMU.c
-+++ b/output/ulogd_output_LOGEMU.c
-@@ -37,7 +37,7 @@
- #endif
- 
- #ifndef ULOGD_LOGEMU_DEFAULT
--#define ULOGD_LOGEMU_DEFAULT	"/var/log/ulogd.syslogemu"
-+#define ULOGD_LOGEMU_DEFAULT	"/var/log/ulogd_syslogemu.log"
- #endif
- 
- #ifndef ULOGD_LOGEMU_SYNC_DEFAULT
-diff --git a/output/ulogd_output_NACCT.c b/output/ulogd_output_NACCT.c
-index 9de8a73..d369c7a 100644
---- a/output/ulogd_output_NACCT.c
-+++ b/output/ulogd_output_NACCT.c
-@@ -29,7 +29,7 @@
- #include <ulogd/ulogd.h>
- #include <ulogd/conffile.h>
- 
--#define NACCT_FILE_DEFAULT	"/var/log/nacctdata.log"
-+#define NACCT_FILE_DEFAULT	"/var/log/ulogd_nacct.log"
- 
- /* config accessors (lazy me...) */
- #define NACCT_CFG_FILE(pi)	((pi)->config_kset->ces[0].u.string)
-diff --git a/output/ulogd_output_OPRINT.c b/output/ulogd_output_OPRINT.c
-index e390c84..6fde445 100644
---- a/output/ulogd_output_OPRINT.c
-+++ b/output/ulogd_output_OPRINT.c
-@@ -28,7 +28,7 @@
- #include <ulogd/conffile.h>
- 
- #ifndef ULOGD_OPRINT_DEFAULT
--#define ULOGD_OPRINT_DEFAULT	"/var/log/ulogd.pktlog"
-+#define ULOGD_OPRINT_DEFAULT	"/var/log/ulogd_oprint.log"
- #endif
- 
- #define NIPQUAD(addr) \
+@r1 disable optional_qualifier@
+identifier s,i;
+position p;
+@@
+
+static struct option i@p[] ={...};
+
+@ok1@
+identifier r1.i;
+expression e;
+position p;
+@@
+e = i@p
+
+@bad@
+position p != {r1.p,ok1.p};
+identifier r1.i;
+@@
+e@i@p
+
+@depends on !bad disable optional_qualifier@
+identifier r1.i;
+@@
+static
++const
+struct option i[] = { ... };
+
+
+Gargi Sharma (4):
+  extensions: libebt_limit: Constify option struct
+  extenstions: libebt_mark_m: Constify option struct
+  extensions: libebt_mark: Constify option struct
+  extensions: libebt_nflog: Constify option struct
+
+ extensions/libebt_limit.c  | 2 +-
+ extensions/libebt_mark.c   | 2 +-
+ extensions/libebt_mark_m.c | 2 +-
+ extensions/libebt_nflog.c  | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
+
 -- 
-2.9.3
+2.7.4
 
