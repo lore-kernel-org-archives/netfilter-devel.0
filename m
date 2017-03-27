@@ -1,150 +1,417 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 4/4] netfilter: ipset: hash:ipport: add netmask support
-Date: Mon, 27 Mar 2017 21:50:10 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1703272136010.16553@blackhole.kfki.hu>
-References: <1490120944-1770-1-git-send-email-johunt@akamai.com> <1490120944-1770-5-git-send-email-johunt@akamai.com>
+Subject: Re: [PATCH 1/5] ipset: netmask: expand to support cidr and full
+ mask
+Date: Mon, 27 Mar 2017 22:08:52 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1703272201200.16553@blackhole.kfki.hu>
+References: <1490121597-2140-1-git-send-email-johunt@akamai.com> <1490121597-2140-2-git-send-email-johunt@akamai.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 To: Josh Hunt <johunt@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:38572 "EHLO smtp2.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:60384 "EHLO smtp0.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752110AbdC0UCA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Mar 2017 16:02:00 -0400
-In-Reply-To: <1490120944-1770-5-git-send-email-johunt@akamai.com>
+        id S1752215AbdC0UJ1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Mar 2017 16:09:27 -0400
+In-Reply-To: <1490121597-2140-2-git-send-email-johunt@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 On Tue, 21 Mar 2017, Josh Hunt wrote:
 
-> Initial netmask support for hash:ipport set types.
+> Convert netmask to store cidr and netmask.
 > 
 > Signed-off-by: Josh Hunt <johunt@akamai.com>
 > ---
->  net/netfilter/ipset/ip_set_hash_ipport.c | 29 ++++++++++++++++++++++++++++-
->  1 file changed, 28 insertions(+), 1 deletion(-)
+>  include/libipset/data.h         |  5 ++-
+>  include/libipset/linux_ip_set.h |  5 +++
+>  include/libipset/print.h        |  3 ++
+>  lib/data.c                      | 25 +++++++++++++--
+>  lib/debug.c                     |  1 +
+>  lib/parse.c                     | 68 ++++++++++++++++++++++++++++++++++++-----
+>  lib/print.c                     | 39 +++++++++++++++++++++--
+>  lib/session.c                   |  8 +++++
+>  8 files changed, 141 insertions(+), 13 deletions(-)
 > 
-> diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
-> index f438740..39244c0 100644
-> --- a/net/netfilter/ipset/ip_set_hash_ipport.c
-> +++ b/net/netfilter/ipset/ip_set_hash_ipport.c
-> @@ -29,7 +29,8 @@
->  /*				2    Counters support added */
->  /*				3    Comments support added */
->  /*				4    Forceadd support added */
-> -#define IPSET_TYPE_REV_MAX	5 /* skbinfo support added */
-> +/*				5    skbinfo support added */
-> +#define IPSET_TYPE_REV_MAX	6 /* netmask support added */
+> diff --git a/include/libipset/data.h b/include/libipset/data.h
+> index ca21890..0314cfb 100644
+> --- a/include/libipset/data.h
+> +++ b/include/libipset/data.h
+> @@ -37,6 +37,7 @@ enum ipset_opt {
+>  	IPSET_OPT_RESIZE,
+>  	IPSET_OPT_SIZE,
+>  	IPSET_OPT_FORCEADD,
+> +	IPSET_OPT_NETMASK_MASK,
+>  	/* Create-specific options, filled out by the kernel */
+>  	IPSET_OPT_ELEMENTS,
+>  	IPSET_OPT_REFERENCES,
+> @@ -66,6 +67,7 @@ enum ipset_opt {
+>  	IPSET_OPT_SKBMARK,
+>  	IPSET_OPT_SKBPRIO,
+>  	IPSET_OPT_SKBQUEUE,
+> +	IPSET_OPT_NETMASK_FLAG,
+>  	/* Internal options */
+>  	IPSET_OPT_FLAGS = 48,	/* IPSET_FLAG_EXIST| */
+>  	IPSET_OPT_CADT_FLAGS,	/* IPSET_FLAG_BEFORE| */
+> @@ -101,7 +103,8 @@ enum ipset_opt {
+>  	| IPSET_FLAG(IPSET_OPT_COUNTERS)\
+>  	| IPSET_FLAG(IPSET_OPT_CREATE_COMMENT)\
+>  	| IPSET_FLAG(IPSET_OPT_FORCEADD)\
+> -	| IPSET_FLAG(IPSET_OPT_SKBINFO))
+> +	| IPSET_FLAG(IPSET_OPT_SKBINFO)\
+> +	| IPSET_FLAG(IPSET_OPT_NETMASK_MASK))
 >  
->  MODULE_LICENSE("GPL");
->  MODULE_AUTHOR("Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>");
-> @@ -38,6 +39,7 @@
+>  #define IPSET_ADT_FLAGS			\
+>  	(IPSET_FLAG(IPSET_OPT_IP)	\
+> diff --git a/include/libipset/linux_ip_set.h b/include/libipset/linux_ip_set.h
+> index def91b9..4f93886 100644
+> --- a/include/libipset/linux_ip_set.h
+> +++ b/include/libipset/linux_ip_set.h
+> @@ -84,6 +84,7 @@ enum {
+>  	IPSET_ATTR_CADT_LINENO = IPSET_ATTR_LINENO,	/* 9 */
+>  	IPSET_ATTR_MARK,	/* 10 */
+>  	IPSET_ATTR_MARKMASK,	/* 11 */
+> +	IPSET_ATTR_NETMASK_MASK,/* 12 */
+>  	/* Reserve empty slots */
+>  	IPSET_ATTR_CADT_MAX = 16,
+>  	/* Create-only specific attributes */
+> @@ -199,6 +200,8 @@ enum ipset_cadt_flags {
+>  	IPSET_FLAG_WITH_FORCEADD = (1 << IPSET_FLAG_BIT_WITH_FORCEADD),
+>  	IPSET_FLAG_BIT_WITH_SKBINFO = 6,
+>  	IPSET_FLAG_WITH_SKBINFO = (1 << IPSET_FLAG_BIT_WITH_SKBINFO),
+> +	IPSET_FLAG_BIT_WITH_NETMASK = 7,
+> +	IPSET_FLAG_WITH_NETMASK = (1 << IPSET_FLAG_BIT_WITH_NETMASK),
+>  	IPSET_FLAG_CADT_MAX	= 15,
+>  };
 >  
->  /* Type specific function prefix */
->  #define HTYPE		hash_ipport
-> +#define IP_SET_HASH_WITH_NETMASK
+> @@ -206,6 +209,8 @@ enum ipset_cadt_flags {
+>  enum ipset_create_flags {
+>  	IPSET_CREATE_FLAG_BIT_FORCEADD = 0,
+>  	IPSET_CREATE_FLAG_FORCEADD = (1 << IPSET_CREATE_FLAG_BIT_FORCEADD),
+> +	IPSET_CREATE_FLAG_BIT_NETMASK = 1,
+> +	IPSET_CREATE_FLAG_NETMASK = (1 << IPSET_CREATE_FLAG_BIT_NETMASK),
+>  	IPSET_CREATE_FLAG_BIT_MAX = 7,
+>  };
 >  
->  /* IPv4 variant */
+> diff --git a/include/libipset/print.h b/include/libipset/print.h
+> index 2103ce1..f9e77d3 100644
+> --- a/include/libipset/print.h
+> +++ b/include/libipset/print.h
+> @@ -74,6 +74,9 @@ extern int ipset_print_flag(char *buf, unsigned int len,
+>  extern int ipset_print_elem(char *buf, unsigned int len,
+>  			    const struct ipset_data *data,
+>  			    enum ipset_opt opt, uint8_t env);
+> +extern int ipset_print_netmask(char *buf, unsigned int len,
+> +			    const struct ipset_data *data,
+> +			    enum ipset_opt opt, uint8_t env);
 >  
-> @@ -95,12 +97,16 @@ struct hash_ipport4_elem {
->  	ipset_adtfn adtfn = set->variant->adt[adt];
->  	struct hash_ipport4_elem e = { .ip = 0 };
->  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
-> +	const struct hash_ipport4 *h = set->data;
+>  #define ipset_print_portnum	ipset_print_number
 >  
->  	if (!ip_set_get_ip4_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
->  				 &e.port, &e.proto))
->  		return -EINVAL;
+> diff --git a/lib/data.c b/lib/data.c
+> index 8372a2f..951a124 100644
+> --- a/lib/data.c
+> +++ b/lib/data.c
+> @@ -24,6 +24,11 @@
+>   * We always store the data in host order, *except* IP addresses.
+>   */
 >  
->  	ip4addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip);
-> +	e.ip &= h->netmask.mask.ip;
-> +	if (e.ip == 0)
-> +		return -EINVAL;
-
-This checking is not needed, because only the fully zero valued hash 
-elements are not allowed and ip_set_get_ip4_port() excludes the zero 
-protocol value.
-
->  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
->  }
->  
-> @@ -132,6 +138,10 @@ struct hash_ipport4_elem {
->  	if (ret)
->  		return ret;
->  
-> +	e.ip &= h->netmask.mask.ip;
-> +	if (e.ip == 0)
-> +		return -EINVAL;
+> +struct ipset_netmask {
+> +	uint8_t cidr;
+> +	union nf_inet_addr mask;
+> +};
 > +
-
-The same here as at the hash_ipport4_kadt() function.
-
-The handling of adding multiple elements from a range is missing here as 
-well. It's more complicated compared to the hash:ip type, because we must 
-allow to add multiple elements with a single IP address and a wildcard 
-mask value, but with a range of port numbers.
-
->  	e.port = nla_get_be16(tb[IPSET_ATTR_PORT]);
->  
->  	if (tb[IPSET_ATTR_PROTO]) {
-> @@ -237,6 +247,12 @@ struct hash_ipport6_elem {
->  	next->port = d->port;
+>  struct ipset_data {
+>  	/* Option bits: which fields are set */
+>  	uint64_t bits;
+> @@ -51,7 +56,7 @@ struct ipset_data {
+>  		struct {
+>  			uint8_t probes;
+>  			uint8_t resize;
+> -			uint8_t netmask;
+> +			struct ipset_netmask netmask;
+>  			uint32_t hashsize;
+>  			uint32_t maxelem;
+>  			uint32_t markmask;
+> @@ -295,7 +300,13 @@ ipset_data_set(struct ipset_data *data, enum ipset_opt opt, const void *value)
+>  		data->create.markmask = *(const uint32_t *) value;
+>  		break;
+>  	case IPSET_OPT_NETMASK:
+> -		data->create.netmask = *(const uint8_t *) value;
+> +		data->create.netmask.cidr = *(const uint8_t *) value;
+> +		break;
+> +	case IPSET_OPT_NETMASK_MASK:
+> +		if (!(data->family == NFPROTO_IPV4 ||
+> +		      data->family == NFPROTO_IPV6))
+> +			return -1;
+> +		copy_addr(data->family, &data->create.netmask.mask, value);
+>  		break;
+>  	case IPSET_OPT_PROBES:
+>  		data->create.probes = *(const uint8_t *) value;
+> @@ -318,6 +329,9 @@ ipset_data_set(struct ipset_data *data, enum ipset_opt opt, const void *value)
+>  	case IPSET_OPT_SKBINFO:
+>  		cadt_flag_type_attr(data, opt, IPSET_FLAG_WITH_SKBINFO);
+>  		break;
+> +	case IPSET_OPT_NETMASK_FLAG:
+> +		cadt_flag_type_attr(data, opt, IPSET_FLAG_WITH_NETMASK);
+> +		break;
+>  	/* Create-specific options, filled out by the kernel */
+>  	case IPSET_OPT_ELEMENTS:
+>  		data->create.elements = *(const uint32_t *) value;
+> @@ -495,7 +509,9 @@ ipset_data_get(const struct ipset_data *data, enum ipset_opt opt)
+>  	case IPSET_OPT_MARKMASK:
+>  		return &data->create.markmask;
+>  	case IPSET_OPT_NETMASK:
+> -		return &data->create.netmask;
+> +		return &data->create.netmask.cidr;
+> +	case IPSET_OPT_NETMASK_MASK:
+> +		return &data->create.netmask.mask;
+>  	case IPSET_OPT_PROBES:
+>  		return &data->create.probes;
+>  	case IPSET_OPT_RESIZE:
+> @@ -558,6 +574,7 @@ ipset_data_get(const struct ipset_data *data, enum ipset_opt opt)
+>  	case IPSET_OPT_CREATE_COMMENT:
+>  	case IPSET_OPT_FORCEADD:
+>  	case IPSET_OPT_SKBINFO:
+> +	case IPSET_OPT_NETMASK_FLAG:
+>  		return &data->cadt_flags;
+>  	default:
+>  		return NULL;
+> @@ -581,6 +598,7 @@ ipset_data_sizeof(enum ipset_opt opt, uint8_t family)
+>  	case IPSET_OPT_IP_TO:
+>  	case IPSET_OPT_IP2:
+>  	case IPSET_OPT_IP2_TO:
+> +	case IPSET_OPT_NETMASK_MASK:
+>  		return family == NFPROTO_IPV4 ? sizeof(uint32_t)
+>  					 : sizeof(struct in6_addr);
+>  	case IPSET_OPT_MARK:
+> @@ -623,6 +641,7 @@ ipset_data_sizeof(enum ipset_opt opt, uint8_t family)
+>  	case IPSET_OPT_NOMATCH:
+>  	case IPSET_OPT_COUNTERS:
+>  	case IPSET_OPT_FORCEADD:
+> +	case IPSET_OPT_NETMASK_FLAG:
+>  		return sizeof(uint32_t);
+>  	case IPSET_OPT_ADT_COMMENT:
+>  		return IPSET_MAX_COMMENT_SIZE + 1;
+> diff --git a/lib/debug.c b/lib/debug.c
+> index 6f831ec..a32f709 100644
+> --- a/lib/debug.c
+> +++ b/lib/debug.c
+> @@ -40,6 +40,7 @@ static const struct ipset_attrname createattr2name[] = {
+>  	[IPSET_ATTR_MAXELEM]	= { .name = "MAXELEM" },
+>  	[IPSET_ATTR_MARKMASK]	= { .name = "MARKMASK" },
+>  	[IPSET_ATTR_NETMASK]	= { .name = "NETMASK" },
+> +	[IPSET_ATTR_NETMASK_MASK] = { .name = "NETMASK_MASK" },
+>  	[IPSET_ATTR_PROBES]	= { .name = "PROBES" },
+>  	[IPSET_ATTR_RESIZE]	= { .name = "RESIZE" },
+>  	[IPSET_ATTR_SIZE]	= { .name = "SIZE" },
+> diff --git a/lib/parse.c b/lib/parse.c
+> index 88d2888..5c41c37 100644
+> --- a/lib/parse.c
+> +++ b/lib/parse.c
+> @@ -1654,7 +1654,35 @@ ipset_parse_uint8(struct ipset_session *session,
 >  }
 >  
-> +static inline void
-> +hash_ipport6_netmask(union nf_inet_addr *ip, const union nf_inet_addr *mask)
+>  /**
+> + * ipset_cidr_to_mask - convert cidr value to mask stored in nf_inet_addr
+> + * @addr: store resulting mask here
+> + * @cidr: value to convert to mask
+> + * @family: INET family type
+> + *
+> + * Parse cidr value and convert it into a mask stored in an nf_inet_addr.
+> + */
+> +static void
+> +ipset_cidr_to_mask(union nf_inet_addr *addr, uint8_t cidr, uint8_t family)
 > +{
-> +	nf_inet_addr_mask_inplace(ip, mask);
+> +	uint8_t i;
+> +	uint8_t addrsize = (family == NFPROTO_IPV4) ? 1 : 4;
+> +
+> +        for (i=0; i < addrsize; i++) {
+> +		if (!cidr) {
+> +			addr->all[i] = 0;
+> +		} else if (cidr >= 32) {
+> +			addr->all[i] = 0xffffffff;
+> +			cidr -= 32;
+> +		} else {
+> +			addr->all[i] = htonl(~((1 << (32 - cidr)) - 1));
+> +			break;
+> +		}
+> +	}
+> +}
+
+If either IPSET_ATTR_NETMASK or IPSET_ATTR_NETMASK_MASK is passed then
+I think ipset_cidr_to_mask() is unnecessary.
+
+> +/**
+>   * ipset_parse_netmask - parse string as a CIDR netmask value
+> + *			 or netmask value
+>   * @session: session structure
+>   * @opt: option kind of the data
+>   * @str: string to parse
+> @@ -1669,12 +1697,13 @@ int
+>  ipset_parse_netmask(struct ipset_session *session,
+>  		    enum ipset_opt opt, const char *str)
+>  {
+> -	uint8_t family, cidr;
+> +	uint8_t family, cidr = 0;
+>  	struct ipset_data *data;
+>  	int err = 0;
+> +	union nf_inet_addr netmask = {};
+>  
+>  	assert(session);
+> -	assert(opt == IPSET_OPT_NETMASK);
+> +	assert(opt == IPSET_OPT_NETMASK_MASK || opt == IPSET_OPT_NETMASK);
+>  	assert(str);
+>  
+>  	data = ipset_session_data(session);
+> @@ -1684,16 +1713,41 @@ ipset_parse_netmask(struct ipset_session *session,
+>  		ipset_data_set(data, IPSET_OPT_FAMILY, &family);
+>  	}
+>  
+> +	/* Try to parse input as CIDR first */
+>  	err = string_to_cidr(session, str, 1,
+>  			     family == NFPROTO_IPV4 ? 32 : 128,
+>  			     &cidr);
+>  
+> -	if (err)
+> -		return syntax_err("netmask is out of the inclusive range "
+> -				  "of 1-%u",
+> -				  family == NFPROTO_IPV4 ? 32 : 128);
+> +	if (opt == IPSET_OPT_NETMASK) {
+> +		if (err)
+> +			return syntax_err("netmask is out of the inclusive range "
+> +					  "of 1-%u",
+> +					  family == NFPROTO_IPV4 ? 32 : 128);
+> +
+> +		return ipset_data_set(data, opt, &cidr);
+> +	} else {
+> +
+> +		/* If that fails, attempt to parse as an IP addr */
+> +		if (err) {
+> +			/* Store mask value as input by user */
+> +			err = parse_ipaddr(session, opt, str, family);
+> +			if (err)
+> +				return err;
+>  
+> -	return ipset_data_set(data, opt, &cidr);
+> +			/* Check if it's a CIDR and store if it is */
+> +			netmask = *(const union nf_inet_addr *) ipset_data_get(data, IPSET_OPT_NETMASK_MASK);
+> +		} else {
+> +			ipset_cidr_to_mask(&netmask, cidr, family);
+> +
+> +			err = ipset_data_set(data, opt, &netmask);
+> +			if (err)
+> +				return err;
+> +		}
+> +
+> +		ipset_data_set(data, IPSET_OPT_NETMASK_FLAG, &family);
+> +
+> +		return ipset_data_set(data, IPSET_OPT_NETMASK, &cidr);
+> +	}
+>  }
+
+The parser should work with IPSET_OPT_NETMASK only and depending on the 
+value, it should set either IPSET_OPT_NETMASK (cidr is parsed) or
+both IPSET_OPT_NETMASK_MASK (wildcard mask is passed) and  
+IPSET_CREATE_FLAG_NETMASK.
+
+>  /**
+> diff --git a/lib/print.c b/lib/print.c
+> index 7dd229e..cc450c6 100644
+> --- a/lib/print.c
+> +++ b/lib/print.c
+> @@ -241,6 +241,39 @@ SNPRINTF_IP(32, 4)
+>  SNPRINTF_IP(128, 6)
+>  
+>  /**
+> + * ipset_print_netmask - print netmask in either CIDR or address to string
+> + * @buf: printing buffer
+> + * @len: length of available buffer space
+> + * @data: data blob
+> + * @opt: the option kind
+> + * @env: environment flags
+> + *
+> + * If the netmask can be represented as a CIDR print that, otherwise print
+> + * the mask value.
+> + *
+> + * Return length of printed string or error size.
+> + */
+> +int
+> +ipset_print_netmask(char *buf, unsigned int len,
+> +		    const struct ipset_data *data, enum ipset_opt opt,
+> +		    uint8_t env)
+> +{
+> +	uint8_t cidr;
+> +
+> +	assert(buf);
+> +	assert(len > 0);
+> +	assert(data);
+> +	assert(opt == IPSET_OPT_NETMASK_MASK);
+> +
+> +	cidr = *(const uint8_t *) ipset_data_get(data, IPSET_OPT_NETMASK);
+> +
+> +	if (cidr)
+> +		return snprintf(buf, len, "%u", cidr);
+> +	else
+> +		return ipset_print_ip(buf, len, data, opt, env);
 > +}
 > +
->  #undef MTYPE
->  #undef HOST_MASK
+> +/**
+>   * ipset_print_ip - print IPv4|IPv6 address to string
+>   * @buf: printing buffer
+>   * @len: length of available buffer space
+> @@ -265,7 +298,7 @@ ipset_print_ip(char *buf, unsigned int len,
+>  	assert(buf);
+>  	assert(len > 0);
+>  	assert(data);
+> -	assert(opt == IPSET_OPT_IP || opt == IPSET_OPT_IP2);
+> +	assert(opt == IPSET_OPT_IP || opt == IPSET_OPT_IP2 || opt == IPSET_OPT_NETMASK_MASK);
 >  
-> @@ -253,12 +269,17 @@ struct hash_ipport6_elem {
->  	ipset_adtfn adtfn = set->variant->adt[adt];
->  	struct hash_ipport6_elem e = { .ip = { .all = { 0 } } };
->  	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
-> +	const struct hash_ipport6 *h = set->data;
->  
->  	if (!ip_set_get_ip6_port(skb, opt->flags & IPSET_DIM_TWO_SRC,
->  				 &e.port, &e.proto))
->  		return -EINVAL;
->  
->  	ip6addrptr(skb, opt->flags & IPSET_DIM_ONE_SRC, &e.ip.in6);
-> +	hash_ipport6_netmask(&e.ip, &h->netmask.mask);
-> +	if (ipv6_addr_any(&e.ip.in6))
-> +		return -EINVAL;
-> +
-
-The checking is unnecessary...
-
->  	return adtfn(set, &e, &ext, &opt->ext, opt->cmdflags);
->  }
->  
-> @@ -298,6 +319,10 @@ struct hash_ipport6_elem {
->  	if (ret)
->  		return ret;
->  
-> +	hash_ipport6_netmask(&e.ip, &h->netmask.mask);
-> +	if (ipv6_addr_any(&e.ip.in6))
-> +		return -EINVAL;
-
-... and here as well.
-
->  	e.port = nla_get_be16(tb[IPSET_ATTR_PORT]);
->  
->  	if (tb[IPSET_ATTR_PROTO]) {
-> @@ -354,6 +379,8 @@ struct hash_ipport6_elem {
->  		[IPSET_ATTR_PROTO]	= { .type = NLA_U8 },
->  		[IPSET_ATTR_TIMEOUT]	= { .type = NLA_U32 },
->  		[IPSET_ATTR_CADT_FLAGS]	= { .type = NLA_U32 },
-> +		[IPSET_ATTR_NETMASK]    = { .type = NLA_U8 },
-> +		[IPSET_ATTR_NETMASK_MASK] = { .type = NLA_NESTED },
+>  	D("len: %u", len);
+>  	family = ipset_data_family(data);
+> @@ -944,7 +977,6 @@ ipset_print_data(char *buf, unsigned int len,
+>  	case IPSET_OPT_HASHSIZE:
+>  	case IPSET_OPT_MAXELEM:
+>  	case IPSET_OPT_MARKMASK:
+> -	case IPSET_OPT_NETMASK:
+>  	case IPSET_OPT_PROBES:
+>  	case IPSET_OPT_RESIZE:
+>  	case IPSET_OPT_TIMEOUT:
+> @@ -953,6 +985,9 @@ ipset_print_data(char *buf, unsigned int len,
+>  	case IPSET_OPT_SIZE:
+>  		size = ipset_print_number(buf, len, data, opt, env);
+>  		break;
+> +	case IPSET_OPT_NETMASK_MASK:
+> +		size = ipset_print_netmask(buf, len, data, opt, env);
+> +		break;
+>  	default:
+>  		return -1;
+>  	}
+> diff --git a/lib/session.c b/lib/session.c
+> index 1bdaaa7..55eab83 100644
+> --- a/lib/session.c
+> +++ b/lib/session.c
+> @@ -414,6 +414,10 @@ static const struct ipset_attr_policy create_attrs[] = {
+>  		.type = MNL_TYPE_U32,
+>  		.opt = IPSET_OPT_MEMSIZE,
 >  	},
->  	.adt_policy	= {
->  		[IPSET_ATTR_IP]		= { .type = NLA_NESTED },
+> +	[IPSET_ATTR_NETMASK_MASK] = {
+> +		.type = MNL_TYPE_NESTED,
+> +		.opt = IPSET_OPT_NETMASK_MASK,
+> +	},
+>  };
+>  
+>  static const struct ipset_attr_policy adt_attrs[] = {
+> @@ -1494,6 +1498,10 @@ rawdata2attr(struct ipset_session *session, struct nlmsghdr *nlh,
+>  	if (attr->type == MNL_TYPE_NESTED) {
+>  		/* IP addresses */
+>  		struct nlattr *nested;
+> +
+> +		if (type == IPSET_ATTR_NETMASK_MASK)
+> +			family = ipset_data_family(session->data);
+> +
+>  		int atype = family == NFPROTO_IPV4 ? IPSET_ATTR_IPADDR_IPV4
+>  					      : IPSET_ATTR_IPADDR_IPV6;
+>  
 > -- 
 > 1.9.1
 
