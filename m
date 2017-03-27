@@ -1,47 +1,68 @@
-From: Gargi Sharma <gs051095@gmail.com>
-Subject: [PATCH 4/4] extensions: libebt_nflog: Constify option struct
-Date: Tue, 28 Mar 2017 00:15:30 +0530
-Message-ID: <2811ba791e2e24bed3a7eabb354f06b9807404d4.1490640256.git.gs051095@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [Outreachy kernel] [PATCH 0/4] Constify option structures
+Date: Mon, 27 Mar 2017 20:49:40 +0200
+Message-ID: <20170327184940.GA21804@salvia>
 References: <cover.1490640256.git.gs051095@gmail.com>
-Cc: pablo@netfilter.orgm, outreachy-kernel@googlegroups.com,
-        Gargi Sharma <gs051095@gmail.com>
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.orgm,
+        outreachy-kernel@googlegroups.com
+To: Gargi Sharma <gs051095@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:33135 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752238AbdC0Sqr (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Mar 2017 14:46:47 -0400
-Received: by mail-pg0-f67.google.com with SMTP id 79so15080643pgf.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Mar 2017 11:46:36 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:37770 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751294AbdC0SuO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Mar 2017 14:50:14 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id AB88B392E05
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Mar 2017 20:49:45 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9D830DA848
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Mar 2017 20:49:45 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9142DDA86B
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Mar 2017 20:49:43 +0200 (CEST)
+Content-Disposition: inline
 In-Reply-To: <cover.1490640256.git.gs051095@gmail.com>
-In-Reply-To: <cover.1490640256.git.gs051095@gmail.com>
-References: <cover.1490640256.git.gs051095@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The struct brnflog_opts of the type options is
-used to initialise extra_opts field inside the
-xtables_target struct and is not modified anywhere.
+On Tue, Mar 28, 2017 at 12:15:26AM +0530, Gargi Sharma wrote:
+> The struct option is generally used only to initialise
+> fields inside certain structs and is not modified anywhere.
+> Done using Coccinelle:
+> 
+> @r1 disable optional_qualifier@
+> identifier s,i;
+> position p;
+> @@
+> 
+> static struct option i@p[] ={...};
+> 
+> @ok1@
+> identifier r1.i;
+> expression e;
+> position p;
+> @@
+> e = i@p
+> 
+> @bad@
+> position p != {r1.p,ok1.p};
+> identifier r1.i;
+> @@
+> e@i@p
+> 
+> @depends on !bad disable optional_qualifier@
+> identifier r1.i;
+> @@
+> static
+> +const
+> struct option i[] = { ... };
 
-Signed-off-by: Gargi Sharma <gs051095@gmail.com>
----
- extensions/libebt_nflog.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Please indicate what userspace tree in the subject, I guess this is
+iptables.
 
-diff --git a/extensions/libebt_nflog.c b/extensions/libebt_nflog.c
-index fef7196..5f1d13b 100644
---- a/extensions/libebt_nflog.c
-+++ b/extensions/libebt_nflog.c
-@@ -30,7 +30,7 @@ enum {
- 	NFLOG_NFLOG	= 0x16,
- };
- 
--static struct option brnflog_opts[] = {
-+static const struct option brnflog_opts[] = {
- 	{ .name = "nflog-group",     .has_arg = true,  .val = NFLOG_GROUP},
- 	{ .name = "nflog-prefix",    .has_arg = true,  .val = NFLOG_PREFIX},
- 	{ .name = "nflog-range",     .has_arg = true,  .val = NFLOG_RANGE},
--- 
-2.7.4
+And merge them all into one single patch, they are part of the same
+logical change.
 
+Thanks!
