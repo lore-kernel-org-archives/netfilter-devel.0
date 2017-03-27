@@ -1,86 +1,76 @@
 From: "Gao Feng" <gfree.wind@foxmail.com>
-Subject: RE: [PATCH nf-next 1/4] netfilter: amanda: Correct the return value comparison of the func nf_nat_mangle_udp_packet
-Date: Mon, 27 Mar 2017 20:48:57 +0800
-Message-ID: <000801d2a6f8$80709dd0$8151d970$@foxmail.com>
-References: <cover.1489726438.git.fgao@ikuai8.com> <fdfd3853391d136ba390dfdc4dc6884f552e540e.1489726438.git.fgao@ikuai8.com> <20170327121232.GA15713@salvia>
+Subject: RE: [PATCH nf-next 1/1] netfilter: Use bool type instead of int as the return value of nf_conntrack_tuple_taken and nf_nat_used_tuple
+Date: Mon, 27 Mar 2017 20:50:24 +0800
+Message-ID: <000901d2a6f8$b402ac60$1c080520$@foxmail.com>
+References: <1488860935-525-1-git-send-email-fgao@ikuai8.com> <20170327122443.GA25192@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain;
         charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Cc: <netfilter-devel@vger.kernel.org>, <gfree.wind@gmail.com>
-To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>
+To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>, <fgao@ikuai8.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg302.qq.com ([184.105.206.27]:58164 "EHLO smtpbg302.qq.com"
+Received: from smtpbg302.qq.com ([184.105.206.27]:51425 "EHLO smtpbg302.qq.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752278AbdC0MtI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 27 Mar 2017 08:49:08 -0400
-In-Reply-To: <20170327121232.GA15713@salvia>
+        id S1752145AbdC0Mug (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Mar 2017 08:50:36 -0400
+In-Reply-To: <20170327122443.GA25192@salvia>
 Content-Language: zh-cn
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+
 > -----Original Message-----
-> From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
-> Sent: Monday, March 27, 2017 8:13 PM
+> From: netfilter-devel-owner@vger.kernel.org
+> [mailto:netfilter-devel-owner@vger.kernel.org] On Behalf Of Pablo Neira
+Ayuso
+> Sent: Monday, March 27, 2017 8:25 PM
 > To: fgao@ikuai8.com
 > Cc: netfilter-devel@vger.kernel.org; gfree.wind@gmail.com
-> Subject: Re: [PATCH nf-next 1/4] netfilter: amanda: Correct the return
-value
-> comparison of the func nf_nat_mangle_udp_packet
+> Subject: Re: [PATCH nf-next 1/1] netfilter: Use bool type instead of int
+as the
+> return value of nf_conntrack_tuple_taken and nf_nat_used_tuple
 > 
-> On Fri, Mar 17, 2017 at 02:47:19PM +0800, fgao@ikuai8.com wrote:
+> On Tue, Mar 07, 2017 at 12:28:55PM +0800, fgao@ikuai8.com wrote:
 > > From: Gao Feng <fgao@ikuai8.com>
 > >
-> > The return value of nf_nat_mangle_udp_packet actually is 1 and 0 as
-> > bool type. But the amanda codes compare it with NF_ACCEPT.
-> >
+> > These two functions return 1/0 as true or false, so it could use bool
+> > type directly instead of int.
+> 
+> Too long patch subject.
+Ok, I would make it shorter.
+> 
 > > Signed-off-by: Gao Feng <fgao@ikuai8.com>
 > > ---
-> >  net/netfilter/nf_nat_amanda.c | 11 +++++------
-> >  1 file changed, 5 insertions(+), 6 deletions(-)
+> >  include/net/netfilter/nf_conntrack.h | 2 +-
+> >  include/net/netfilter/nf_nat.h       | 2 +-
+> >  net/netfilter/nf_conntrack_core.c    | 6 +++---
+> >  net/netfilter/nf_nat_core.c          | 2 +-
+> >  4 files changed, 6 insertions(+), 6 deletions(-)
 > >
-> > diff --git a/net/netfilter/nf_nat_amanda.c
-> > b/net/netfilter/nf_nat_amanda.c index eb77238..e4d61a7 100644
-> > --- a/net/netfilter/nf_nat_amanda.c
-> > +++ b/net/netfilter/nf_nat_amanda.c
-> > @@ -33,7 +33,6 @@ static unsigned int help(struct sk_buff *skb,  {
-> >  	char buffer[sizeof("65535")];
-> >  	u_int16_t port;
-> > -	unsigned int ret;
+> > diff --git a/include/net/netfilter/nf_conntrack.h
+> > b/include/net/netfilter/nf_conntrack.h
+> > index f540f9a..32a0394 100644
+> > --- a/include/net/netfilter/nf_conntrack.h
+> > +++ b/include/net/netfilter/nf_conntrack.h
+> > @@ -160,7 +160,7 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
 > >
-> >  	/* Connection comes from client. */
-> >  	exp->saved_proto.tcp.port = exp->tuple.dst.u.tcp.port; @@ -63,14
-> > +62,14 @@ static unsigned int help(struct sk_buff *skb,
-> >  	}
-> >
-> >  	sprintf(buffer, "%u", port);
-> > -	ret = nf_nat_mangle_udp_packet(skb, exp->master, ctinfo,
-> > -				       protoff, matchoff, matchlen,
-> > -				       buffer, strlen(buffer));
-> > -	if (ret != NF_ACCEPT) {
-> > +	if (!nf_nat_mangle_udp_packet(skb, exp->master, ctinfo,
-> > +				      protoff, matchoff, matchlen,
-> > +				      buffer, strlen(buffer))) {
-> >  		nf_ct_helper_log(skb, exp->master, "cannot mangle packet");
-> >  		nf_ct_unexpect_related(exp);
-> > +		return NF_DROP;
-> >  	}
-> > -	return ret;
-> > +	return NF_ACCEPT;
+> >  /* Is this tuple taken? (ignoring any belonging to the given
+> >     conntrack). */
+> > -int nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
+> > +bool nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
+> >  			     const struct nf_conn *ignored_conntrack);
 > 
-> This cleanup patches are a bit oversplit.
-> 
-> Better, send one patch where you update nf_nat_mangle_udp_packet() and
-> nf_nat_mangle_tcp_packet() to return boolean and update *all of the
-netfilter
-> spots* where we use them accordingly.
-> 
-> Please be careful on this...
-Ok, I would merge them into one patch.
-I already checked them before, but I would check it again after merge.
+> Did you audit callers if they handle this type change accordingly? I don't
+see
+> any description about this on your patch.
+I will add the caller description in the update patch.
 
 Regards
 Feng
-
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
+in the
+> body of a message to majordomo@vger.kernel.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
 
