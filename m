@@ -1,74 +1,77 @@
-From: simran singhal <singhalsimran0@gmail.com>
-Subject: [PATCH v3] netfilter: Compress return logic
-Date: Tue, 28 Mar 2017 14:36:33 +0530
-Message-ID: <20170328090633.GA22149@singhal-Inspiron-5558>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kadlec@blackhole.kfki.hu, davem@davemloft.net,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        gregkh@linuxfoundation.org, outreachy-kernel@googlegroups.com,
-        wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Gargi Sharma <gs051095@gmail.com>
+Subject: [PATCH 0/3] ebtables: Constify option struct
+Date: Tue, 28 Mar 2017 16:57:48 +0530
+Message-ID: <cover.1490699407.git.gs051095@gmail.com>
+Cc: pablo@netfilter.org, outreachy-kernel@googlegroups.com,
+        Gargi Sharma <gs051095@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:34994 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755471AbdC1L2N (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 28 Mar 2017 07:28:13 -0400
+Received: by mail-pg0-f66.google.com with SMTP id g2so20605128pge.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Mar 2017 04:28:12 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Simplify function returns by merging assignment and return into one
-statement.
+The struct option is generally used only to initialise
+fields inside certain structs and is not modified anywhere.
+Done using Coccinelle:
 
-Signed-off-by: simran singhal <singhalsimran0@gmail.com>
----
- v3:
-   -change commit message.
-   -merge two patches into one.
- v2:
-   -Change the subject of cover patch
+@r1 disable optional_qualifier@
+identifier s,i;
+position p;
+@@
 
- net/netfilter/ipset/ip_set_list_set.c | 5 +----
- net/netfilter/ipvs/ip_vs_ftp.c        | 5 +----
- 2 files changed, 2 insertions(+), 8 deletions(-)
+static struct option i@p[] ={...};
 
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index 178d4eb..2fff6b5 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -453,7 +453,6 @@ static size_t
- list_set_memsize(const struct list_set *map, size_t dsize)
- {
- 	struct set_elem *e;
--	size_t memsize;
- 	u32 n = 0;
- 
- 	rcu_read_lock();
-@@ -461,9 +460,7 @@ list_set_memsize(const struct list_set *map, size_t dsize)
- 		n++;
- 	rcu_read_unlock();
- 
--	memsize = sizeof(*map) + n * dsize;
--
--	return memsize;
-+	return (sizeof(*map) + n * dsize);
- }
- 
- static int
-diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-index d30c327..c93c937 100644
---- a/net/netfilter/ipvs/ip_vs_ftp.c
-+++ b/net/netfilter/ipvs/ip_vs_ftp.c
-@@ -482,11 +482,8 @@ static struct pernet_operations ip_vs_ftp_ops = {
- 
- static int __init ip_vs_ftp_init(void)
- {
--	int rv;
--
--	rv = register_pernet_subsys(&ip_vs_ftp_ops);
- 	/* rcu_barrier() is called by netns on error */
--	return rv;
-+	return register_pernet_subsys(&ip_vs_ftp_ops);
- }
- 
- /*
+@ok1@
+identifier r1.i;
+expression e;
+position p;
+@@
+e = i@p
+
+@bad@
+position p != {r1.p,ok1.p};
+identifier r1.i;
+@@
+e@i@p
+
+@depends on !bad disable optional_qualifier@
+identifier r1.i;
+@@
+static
++const
+struct option i[] = { ... };
+
+Gargi Sharma (3):
+  ebtables: extensions: Constify option struct
+  ebtables: extensions: Constify option struct
+  ebtables: extensions: Constify option struct
+
+ extensions/ebt_802_3.c    | 2 +-
+ extensions/ebt_among.c    | 2 +-
+ extensions/ebt_arp.c      | 2 +-
+ extensions/ebt_arpreply.c | 2 +-
+ extensions/ebt_inat.c     | 4 ++--
+ extensions/ebt_ip.c       | 2 +-
+ extensions/ebt_limit.c    | 2 +-
+ extensions/ebt_log.c      | 2 +-
+ extensions/ebt_mark.c     | 2 +-
+ extensions/ebt_mark_m.c   | 2 +-
+ extensions/ebt_nat.c      | 4 ++--
+ extensions/ebt_nflog.c    | 2 +-
+ extensions/ebt_pkttype.c  | 2 +-
+ extensions/ebt_redirect.c | 2 +-
+ extensions/ebt_standard.c | 2 +-
+ extensions/ebt_stp.c      | 2 +-
+ extensions/ebt_ulog.c     | 2 +-
+ extensions/ebt_vlan.c     | 2 +-
+ 18 files changed, 20 insertions(+), 20 deletions(-)
+
 -- 
 2.7.4
+
