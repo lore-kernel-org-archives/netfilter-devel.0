@@ -1,45 +1,164 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 2/4] netfilter: ipset: generalize netmask to support cidr
- and mask values
-Date: Tue, 28 Mar 2017 22:54:00 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1703282252520.20934@blackhole.kfki.hu>
-References: <1490120944-1770-1-git-send-email-johunt@akamai.com> <1490120944-1770-3-git-send-email-johunt@akamai.com> <alpine.DEB.2.11.1703272110580.16553@blackhole.kfki.hu> <e813c815-6803-6268-2bc0-cfe28f128093@akamai.com> <alpine.DEB.2.11.1703282010360.20521@blackhole.kfki.hu>
- <c9e1322d-4436-cf3d-0780-e37c18228e2f@akamai.com>
+From: simran singhal <singhalsimran0@gmail.com>
+Subject: [PATCH] net: netfilter: Use seq_puts()/seq_putc() where possible
+Date: Wed, 29 Mar 2017 03:25:17 +0530
+Message-ID: <20170328215517.GA18237@singhal-Inspiron-5558>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-To: Josh Hunt <johunt@akamai.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:60990 "EHLO smtp2.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751882AbdC1UyG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 Mar 2017 16:54:06 -0400
-In-Reply-To: <c9e1322d-4436-cf3d-0780-e37c18228e2f@akamai.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com
+To: wensong@linux-vs.org
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 28 Mar 2017, Josh Hunt wrote:
+For string without format specifiers, use seq_puts(). For
+seq_printf("\n"), use seq_putc('\n').
 
-> > Thinking over it I understand better your approach: replace 
-> > IPSET_ATTR_NETMASK with IPSET_ATTR_NETMASK_MASK completely and keeping 
-> > the former for backward compatibility reasons only. What I propose is 
-> > able to maintain syntax-compatibility in the sense that what is passed 
-> > to the kernel as cidr/netmask can be saved from there in the same 
-> > syntax.
-> 
-> I have not gone through all of your comments yet, but my intention was 
-> to make sure that if cidrs are used they are presented the same way they 
-> are today (prior to my patches.) If a user uses the new full netmask 
-> support then that is what is shown. This way we stay consistent with 
-> whatever the user inputs at create time.
+Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+---
+ net/netfilter/ipvs/ip_vs_ctl.c          | 8 ++++----
+ net/netfilter/nf_conntrack_expect.c     | 4 ++--
+ net/netfilter/nf_conntrack_standalone.c | 6 +++---
+ net/netfilter/nf_log.c                  | 4 ++--
+ net/netfilter/nf_synproxy_core.c        | 6 +++---
+ net/netfilter/xt_recent.c               | 2 +-
+ 6 files changed, 15 insertions(+), 15 deletions(-)
 
-Yes, you are right, some conversion confused me.
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index efe348a..c3423e3 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -2130,8 +2130,8 @@ static int ip_vs_stats_show(struct seq_file *seq, void *v)
+ /*               01234567 01234567 01234567 0123456701234567 0123456701234567 */
+ 	seq_puts(seq,
+ 		 "   Total Incoming Outgoing         Incoming         Outgoing\n");
+-	seq_printf(seq,
+-		   "   Conns  Packets  Packets            Bytes            Bytes\n");
++	seq_puts(seq,
++		 "   Conns  Packets  Packets            Bytes            Bytes\n");
+ 
+ 	ip_vs_copy_stats(&show, &net_ipvs(net)->tot_stats);
+ 	seq_printf(seq, "%8LX %8LX %8LX %16LX %16LX\n\n",
+@@ -2178,8 +2178,8 @@ static int ip_vs_stats_percpu_show(struct seq_file *seq, void *v)
+ /*               01234567 01234567 01234567 0123456701234567 0123456701234567 */
+ 	seq_puts(seq,
+ 		 "       Total Incoming Outgoing         Incoming         Outgoing\n");
+-	seq_printf(seq,
+-		   "CPU    Conns  Packets  Packets            Bytes            Bytes\n");
++	seq_puts(seq,
++		 "CPU    Conns  Packets  Packets            Bytes            Bytes\n");
+ 
+ 	for_each_possible_cpu(i) {
+ 		struct ip_vs_cpu_stats *u = per_cpu_ptr(cpustats, i);
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 4b2e1fb..74c384e 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -549,7 +549,7 @@ static int exp_seq_show(struct seq_file *s, void *v)
+ 		seq_printf(s, "%ld ", timer_pending(&expect->timeout)
+ 			   ? (long)(expect->timeout.expires - jiffies)/HZ : 0);
+ 	else
+-		seq_printf(s, "- ");
++		seq_puts(s, "- ");
+ 	seq_printf(s, "l3proto = %u proto=%u ",
+ 		   expect->tuple.src.l3num,
+ 		   expect->tuple.dst.protonum);
+@@ -559,7 +559,7 @@ static int exp_seq_show(struct seq_file *s, void *v)
+ 				       expect->tuple.dst.protonum));
+ 
+ 	if (expect->flags & NF_CT_EXPECT_PERMANENT) {
+-		seq_printf(s, "PERMANENT");
++		seq_puts(s, "PERMANENT");
+ 		delim = ",";
+ 	}
+ 	if (expect->flags & NF_CT_EXPECT_INACTIVE) {
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 2256147..ccb5cb9 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -250,7 +250,7 @@ static int ct_seq_show(struct seq_file *s, void *v)
+ 		goto release;
+ 
+ 	if (!(test_bit(IPS_SEEN_REPLY_BIT, &ct->status)))
+-		seq_printf(s, "[UNREPLIED] ");
++		seq_puts(s, "[UNREPLIED] ");
+ 
+ 	print_tuple(s, &ct->tuplehash[IP_CT_DIR_REPLY].tuple,
+ 		    l3proto, l4proto);
+@@ -261,7 +261,7 @@ static int ct_seq_show(struct seq_file *s, void *v)
+ 		goto release;
+ 
+ 	if (test_bit(IPS_ASSURED_BIT, &ct->status))
+-		seq_printf(s, "[ASSURED] ");
++		seq_puts(s, "[ASSURED] ");
+ 
+ 	if (seq_has_overflowed(s))
+ 		goto release;
+@@ -350,7 +350,7 @@ static int ct_cpu_seq_show(struct seq_file *seq, void *v)
+ 	const struct ip_conntrack_stat *st = v;
+ 
+ 	if (v == SEQ_START_TOKEN) {
+-		seq_printf(seq, "entries  searched found new invalid ignore delete delete_list insert insert_failed drop early_drop icmp_error  expect_new expect_create expect_delete search_restart\n");
++		seq_puts(seq, "entries  searched found new invalid ignore delete delete_list insert insert_failed drop early_drop icmp_error  expect_new expect_create expect_delete search_restart\n");
+ 		return 0;
+ 	}
+ 
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index 8d85a05..cc32727 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -376,13 +376,13 @@ static int seq_show(struct seq_file *s, void *v)
+ 		logger = nft_log_dereference(loggers[*pos][i]);
+ 		seq_printf(s, "%s", logger->name);
+ 		if (i == 0 && loggers[*pos][i + 1] != NULL)
+-			seq_printf(s, ",");
++			seq_puts(s, ",");
+ 
+ 		if (seq_has_overflowed(s))
+ 			return -ENOSPC;
+ 	}
+ 
+-	seq_printf(s, ")\n");
++	seq_puts(s, ")\n");
+ 
+ 	if (seq_has_overflowed(s))
+ 		return -ENOSPC;
+diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+index 7c6d1fb..abe03e8 100644
+--- a/net/netfilter/nf_synproxy_core.c
++++ b/net/netfilter/nf_synproxy_core.c
+@@ -287,9 +287,9 @@ static int synproxy_cpu_seq_show(struct seq_file *seq, void *v)
+ 	struct synproxy_stats *stats = v;
+ 
+ 	if (v == SEQ_START_TOKEN) {
+-		seq_printf(seq, "entries\t\tsyn_received\t"
+-				"cookie_invalid\tcookie_valid\t"
+-				"cookie_retrans\tconn_reopened\n");
++		seq_puts(seq, "entries\t\tsyn_received\t"
++			      "cookie_invalid\tcookie_valid\t"
++			      "cookie_retrans\tconn_reopened\n");
+ 		return 0;
+ 	}
+ 
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+index 1d89a4e..37d581a 100644
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -532,7 +532,7 @@ static int recent_seq_show(struct seq_file *seq, void *v)
+ 			   &e->addr.in6, e->ttl, e->stamps[i], e->index);
+ 	for (i = 0; i < e->nstamps; i++)
+ 		seq_printf(seq, "%s %lu", i ? "," : "", e->stamps[i]);
+-	seq_printf(seq, "\n");
++	seq_putc(seq, '\n');
+ 	return 0;
+ }
+ 
+-- 
+2.7.4
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
