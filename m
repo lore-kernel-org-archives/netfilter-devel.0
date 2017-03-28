@@ -1,43 +1,33 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH v2] netfilter: Clean up tests if NULL returned on
- failure
-Date: Tue, 28 Mar 2017 15:54:40 +0200 (CEST)
-Message-ID: <alpine.LSU.2.20.1703281552040.21255@n3.vanv.qr>
-References: <20170328131340.GA19688@singhal-Inspiron-5558>
+Subject: Re: [PATCH] netfilter: ipset: Use max macro instead of ternary
+ operator
+Date: Tue, 28 Mar 2017 16:03:09 +0200 (CEST)
+Message-ID: <alpine.LSU.2.20.1703281555450.21255@n3.vanv.qr>
+References: <20170328133256.GA24590@singhal-Inspiron-5558>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Cc: wensong@linux-vs.org, Simon Horman <horms@verge.net.au>,
-        Julian Anastasov <ja@ssi.bg>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc: pablo@netfilter.org, outreachy-kernel@googlegroups.com,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 To: simran singhal <singhalsimran0@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a3.inai.de ([88.198.180.161]:57306 "EHLO a3.inai.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752538AbdC1Nyy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 Mar 2017 09:54:54 -0400
-In-Reply-To: <20170328131340.GA19688@singhal-Inspiron-5558>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170328133256.GA24590@singhal-Inspiron-5558>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 2017-03-28 15:13, simran singhal wrote:
+On Tuesday 2017-03-28 15:32, simran singhal wrote:
 
->Some functions like kmalloc/kzalloc return NULL on failure. When NULL
->represents failure, !x is commonly used.
+>This patch replaces ternary operator with macro max as it shorter and
+>thus increases code readability.
 >
->@@ -910,7 +910,7 @@ ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest,
-> 	}
-> 
-> 	dest = kzalloc(sizeof(struct ip_vs_dest), GFP_KERNEL);
->-	if (dest == NULL)
->+	if (!dest)
-> 		return -ENOMEM;
+>-	return (ret < 0 ? 0 : ret);
+>+	return max(0, ret);
 
-This kind of transformation however is not cleanup anymore, it's really 
-bikeshedding and should be avoided. There are pro and cons for both 
-variants, and there is not really an overwhelming number of arguments 
-for either variant to justify the change.
+While the two are functionally equivalent, "max" conveys a meaning of 
+"upper bound" (think ceil(3)), i.e. a _count of something_, but the 
+function still returns a logical "error or bool".
+
+Such a change may be usable in an IOCCC or a codegolf contest,
+but it destroys rather than improves readability IMHO.
