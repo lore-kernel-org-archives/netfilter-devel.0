@@ -1,70 +1,43 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: nfnetlink_queue: fix secctx memory leak
-Date: Tue, 28 Mar 2017 22:59:25 +0800
-Message-ID: <1490713165-60445-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, r.kubiak@samsung.com,
-        Liping Zhang <zlpnobody@gmail.com>
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-12.163.com ([220.181.12.12]:44731 "EHLO m12-12.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752655AbdC1PAr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 Mar 2017 11:00:47 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [Outreachy kernel] [PATCH] net: netfilter: Remove complexity
+Date: Tue, 28 Mar 2017 17:26:07 +0200
+Message-ID: <20170328152607.GA1735@salvia>
+References: <20170328130032.GA5009@arushi-HP-Pavilion-Notebook>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, davem@davemloft.net,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        outreachy-kernel@googlegroups.com
+To: Arushi Singhal <arushisinghal19971997@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170328130032.GA5009@arushi-HP-Pavilion-Notebook>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Liping Zhang <zlpnobody@gmail.com>
+On Tue, Mar 28, 2017 at 06:30:56PM +0530, Arushi Singhal wrote:
+> To remove complexity of code the function is added in nfnetlink.h
+> to make code more clear and readable.
 
-We must call security_release_secctx to free the memory returned by
-security_secid_to_secctx, otherwise memory may be leaked forever.
+Patch looks good, you can also use this new function from other
+_fill_info() functions in the netfilter code, eg.
 
-Fixes: ef493bd930ae ("netfilter: nfnetlink_queue: add security context information")
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
----
- net/netfilter/nfnetlink_queue.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+        nfnl_cthelper_fill_info()
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 3ee0b8a..933509e 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -443,7 +443,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	skb = alloc_skb(size, GFP_ATOMIC);
- 	if (!skb) {
- 		skb_tx_error(entskb);
--		return NULL;
-+		goto nlmsg_failure;
- 	}
- 
- 	nlh = nlmsg_put(skb, 0, 0,
-@@ -452,7 +452,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	if (!nlh) {
- 		skb_tx_error(entskb);
- 		kfree_skb(skb);
--		return NULL;
-+		goto nlmsg_failure;
- 	}
- 	nfmsg = nlmsg_data(nlh);
- 	nfmsg->nfgen_family = entry->state.pf;
-@@ -598,12 +598,17 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	}
- 
- 	nlh->nlmsg_len = skb->len;
-+	if (seclen)
-+		security_release_secctx(secdata, seclen);
- 	return skb;
- 
- nla_put_failure:
- 	skb_tx_error(entskb);
- 	kfree_skb(skb);
- 	net_err_ratelimited("nf_queue: error creating packet message\n");
-+nlmsg_failure:
-+	if (seclen)
-+		security_release_secctx(secdata, seclen);
- 	return NULL;
- }
- 
--- 
-2.5.5
+Take the time to make a careful look at the netfilter tree to see if
+we can have a good bunch of new clients of this function in one go.
+Most likely many of the nfnetlink_*.c files can use this.
 
+BTW, you can also indicate in your patch description that this is
+opencoded in a way that makes it error prone for future netfilter
+netlink subsystems.
 
+Please search for a better patch title, this one is too generic. I
+understand selecting a good patch title is something that exercise.
+
+I'd suggest this:
+
+        netfilter: add nfnl_msg_type() helper function
+
+Never give up, revamp and resubmit, thanks!
