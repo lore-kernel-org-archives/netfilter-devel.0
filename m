@@ -1,33 +1,38 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH] netfilter: ipset: Use max macro instead of ternary
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH] netfilter: ipset: Use max macro instead of ternary
  operator
-Date: Tue, 28 Mar 2017 16:03:09 +0200 (CEST)
-Message-ID: <alpine.LSU.2.20.1703281555450.21255@n3.vanv.qr>
+Date: Tue, 28 Mar 2017 14:13:03 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6DCFFC0145@AcuExch.aculab.com>
 References: <20170328133256.GA24590@singhal-Inspiron-5558>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: pablo@netfilter.org, outreachy-kernel@googlegroups.com,
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Cc: "outreachy-kernel@googlegroups.com"
+        <outreachy-kernel@googlegroups.com>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: simran singhal <singhalsimran0@gmail.com>
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "coreteam@netfilter.org" <coreteam@netfilter.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: 'simran singhal' <singhalsimran0@gmail.com>,
+        "pablo@netfilter.org" <pablo@netfilter.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20170328133256.GA24590@singhal-Inspiron-5558>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 2017-03-28 15:32, simran singhal wrote:
+From: simran singhal
+> Sent: 28 March 2017 14:33
+> This patch replaces ternary operator with macro max as it shorter and
+> thus increases code readability. Macro max return the maximum of the two
+> compared values.
+...
+>  	/* Convert error codes to nomatch */
+> -	return (ret < 0 ? 0 : ret);
+> +	return max(0, ret);
 
->This patch replaces ternary operator with macro max as it shorter and
->thus increases code readability.
->
->-	return (ret < 0 ? 0 : ret);
->+	return max(0, ret);
+It might be shorter but it isn't more readable.
 
-While the two are functionally equivalent, "max" conveys a meaning of 
-"upper bound" (think ceil(3)), i.e. a _count of something_, but the 
-function still returns a logical "error or bool".
-
-Such a change may be usable in an IOCCC or a codegolf contest,
-but it destroys rather than improves readability IMHO.
+	David
