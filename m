@@ -1,51 +1,63 @@
-From: Arushi Singhal <arushisinghal19971997@gmail.com>
-Subject: [PATCH v2] net: netfilter: Remove multiple assignment.
-Date: Tue, 28 Mar 2017 04:03:27 +0530
-Message-ID: <20170327223326.GA486@arushi-HP-Pavilion-Notebook>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, davem@davemloft.net,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: gfree.wind@foxmail.com
+Subject: [PATCH nf-next 1/1] netfilter: ctlink: Return error directly when create expect without help
+Date: Tue, 28 Mar 2017 09:52:52 +0800
+Message-ID: <1490665972-10967-1-git-send-email-gfree.wind@foxmail.com>
+Cc: Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+        gfree.wind@foxmail.com
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtpbgsg2.qq.com ([54.254.200.128]:35228 "EHLO smtpbgsg2.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753757AbdC1BxP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Mar 2017 21:53:15 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch removes multiple assignments to follow the kernel coding
-style as also reported by checkpatch.pl.
-Done using coccinelle.
-@@
-identifier i1,i2;
-constant c;
-@@
-- i1=i2=c;
-+ i1=c;
-+ i2=i1;
+From: Gao Feng <fgao@ikuai8.com>
 
-Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
+The expect check func "__nf_ct_expect_check" asks the master_help is
+necessary. So it is unnecessary to go ahead in ctnetlink_alloc_expect
+when there is no help.
+
+Actually the commit bc01befdcf3e ("netfilter: ctnetlink: add support
+for user-space expectation helpers") permits ctlink create one expect
+even though there is no master help. But the latter commit 3d058d7bc2c5
+("netfilter: rework user-space expectation helper support") disables
+it again.
+
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
 ---
-changes in v2
- -Make the commit message more clear and appropriate.
+ net/netfilter/nf_conntrack_netlink.c | 14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
 
- net/netfilter/nf_conntrack_proto_sctp.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 33279aab583d..723386bcc2cb 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -346,7 +346,8 @@ static int sctp_packet(struct nf_conn *ct,
- 		goto out;
- 	}
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index d49cc1e..c9af545 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -3049,18 +3049,8 @@ static int ctnetlink_del_expect(struct net *net, struct sock *ctnl,
  
--	old_state = new_state = SCTP_CONNTRACK_NONE;
-+	old_state = SCTP_CONNTRACK_NONE;
-+	new_state = old_state;
- 	spin_lock_bh(&ct->lock);
- 	for_each_sctp_chunk (skb, sch, _sch, offset, dataoff, count) {
- 		/* Special cases of Verification tag check (Sec 8.5.1) */
+ 	help = nfct_help(ct);
+ 	if (!help) {
+-		if (!cda[CTA_EXPECT_TIMEOUT]) {
+-			err = -EINVAL;
+-			goto err_out;
+-		}
+-		exp->timeout.expires =
+-		  jiffies + ntohl(nla_get_be32(cda[CTA_EXPECT_TIMEOUT])) * HZ;
+-
+-		exp->flags = NF_CT_EXPECT_USERSPACE;
+-		if (cda[CTA_EXPECT_FLAGS]) {
+-			exp->flags |=
+-				ntohl(nla_get_be32(cda[CTA_EXPECT_FLAGS]));
+-		}
++		err = -EOPNOTSUPP;
++		goto err_out;
+ 	} else {
+ 		if (cda[CTA_EXPECT_FLAGS]) {
+ 			exp->flags = ntohl(nla_get_be32(cda[CTA_EXPECT_FLAGS]));
 -- 
-2.11.0
+1.9.1
+
+
+
+
