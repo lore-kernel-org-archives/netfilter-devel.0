@@ -1,302 +1,407 @@
-From: Gargi Sharma <gs051095@gmail.com>
-Subject: [PATCH v2] ebtables: extensions: Constify option struct
-Date: Tue, 28 Mar 2017 18:18:47 +0530
-Message-ID: <1490705327-2845-1-git-send-email-gs051095@gmail.com>
-Cc: pablo@netfilter.org, outreachy-kernel@googlegroups.com,
-        Gargi Sharma <gs051095@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:32868 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932658AbdC1MuK (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 Mar 2017 08:50:10 -0400
-Received: by mail-pg0-f66.google.com with SMTP id 79so21181452pgf.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Mar 2017 05:49:08 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: simran singhal <singhalsimran0@gmail.com>
+Subject: [PATCH] net: Remove unnecessary cast on void pointer
+Date: Tue, 28 Mar 2017 18:20:48 +0530
+Message-ID: <20170328125048.GA25091@singhal-Inspiron-5558>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: kadlec@blackhole.kfki.hu, davem@davemloft.net,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com, gregkh@linuxfoundation.org,
+        Stephen Hemminger <stephen@networkplumber.org>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        James Morris <jmorris@namei.org>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Patrick McHardy <kaber@trash.net>,
+        bridge@lists.linux-foundation.org
+To: pablo@netfilter.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The struct  of the type option is only used to initialise a field
-inside the ebt_u_watcher or ebt_u_target or ebt_u_match struct and
-is not modified anywhere.
+The following Coccinelle script was used to detect this:
+@r@
+expression x;
+void* e;
+type T;
+identifier f;
+@@
+(
+  *((T *)e)
+|
+  ((T *)x)[...]
+|
+  ((T*)x)->f
+|
 
-Signed-off-by: Gargi Sharma <gs051095@gmail.com>
+- (T*)
+  e
+)
+
+Signed-off-by: simran singhal <singhalsimran0@gmail.com>
 ---
-Changes in v2:
-	- Squash patches in the patchset.
----
- extensions/ebt_802_3.c    | 2 +-
- extensions/ebt_among.c    | 2 +-
- extensions/ebt_arp.c      | 2 +-
- extensions/ebt_arpreply.c | 2 +-
- extensions/ebt_inat.c     | 4 ++--
- extensions/ebt_ip.c       | 2 +-
- extensions/ebt_limit.c    | 2 +-
- extensions/ebt_log.c      | 2 +-
- extensions/ebt_mark.c     | 2 +-
- extensions/ebt_mark_m.c   | 2 +-
- extensions/ebt_nat.c      | 4 ++--
- extensions/ebt_nflog.c    | 2 +-
- extensions/ebt_pkttype.c  | 2 +-
- extensions/ebt_redirect.c | 2 +-
- extensions/ebt_standard.c | 2 +-
- extensions/ebt_stp.c      | 2 +-
- extensions/ebt_ulog.c     | 2 +-
- extensions/ebt_vlan.c     | 2 +-
- 18 files changed, 20 insertions(+), 20 deletions(-)
+ net/bridge/netfilter/ebtables.c         |  2 +-
+ net/ipv4/netfilter/arp_tables.c         | 20 ++++++++------------
+ net/ipv4/netfilter/ip_tables.c          | 20 ++++++++------------
+ net/ipv6/netfilter/ip6_tables.c         | 20 ++++++++------------
+ net/netfilter/ipset/ip_set_bitmap_gen.h |  4 ++--
+ net/netfilter/ipset/ip_set_core.c       |  2 +-
+ net/netfilter/nf_conntrack_proto.c      |  2 +-
+ net/netfilter/nft_set_hash.c            |  2 +-
+ net/netfilter/xt_hashlimit.c            | 10 +++++-----
+ 9 files changed, 35 insertions(+), 47 deletions(-)
 
-diff --git a/extensions/ebt_802_3.c b/extensions/ebt_802_3.c
-index dd22eb2..4584849 100644
---- a/extensions/ebt_802_3.c
-+++ b/extensions/ebt_802_3.c
-@@ -17,7 +17,7 @@
- #define _802_3_SAP '1'
- #define _802_3_TYPE '2'
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 79b6991..bdc629e 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1713,7 +1713,7 @@ static int compat_copy_entry_to_user(struct ebt_entry *e, void __user **dstptr,
+ 	if (*size < sizeof(*ce))
+ 		return -EINVAL;
  
--static struct option opts[] =
-+static const struct option opts[] =
- {
- 	{ "802_3-sap"   , required_argument, 0, _802_3_SAP },
- 	{ "802_3-type"  , required_argument, 0, _802_3_TYPE },
-diff --git a/extensions/ebt_among.c b/extensions/ebt_among.c
-index f97d07e..e4fc5ac 100644
---- a/extensions/ebt_among.c
-+++ b/extensions/ebt_among.c
-@@ -26,7 +26,7 @@
- #define AMONG_DST_F '3'
- #define AMONG_SRC_F '4'
+-	ce = (struct ebt_entry __user *)*dstptr;
++	ce = *dstptr;
+ 	if (copy_to_user(ce, e, sizeof(*ce)))
+ 		return -EFAULT;
  
--static struct option opts[] = {
-+static const struct option opts[] = {
- 	{"among-dst", required_argument, 0, AMONG_DST},
- 	{"among-src", required_argument, 0, AMONG_SRC},
- 	{"among-dst-file", required_argument, 0, AMONG_DST_F},
-diff --git a/extensions/ebt_arp.c b/extensions/ebt_arp.c
-index 64d337d..b281955 100644
---- a/extensions/ebt_arp.c
-+++ b/extensions/ebt_arp.c
-@@ -24,7 +24,7 @@
- #define ARP_MAC_S  '6'
- #define ARP_MAC_D  '7'
- #define ARP_GRAT   '8'
--static struct option opts[] =
-+static const struct option opts[] =
- {
- 	{ "arp-opcode"    , required_argument, 0, ARP_OPCODE },
- 	{ "arp-op"        , required_argument, 0, ARP_OPCODE },
-diff --git a/extensions/ebt_arpreply.c b/extensions/ebt_arpreply.c
-index c3757f3..51eda66 100644
---- a/extensions/ebt_arpreply.c
-+++ b/extensions/ebt_arpreply.c
-@@ -19,7 +19,7 @@ static int mac_supplied;
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 6241a81..f046c12 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -310,7 +310,7 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
+ 	for (hook = 0; hook < NF_ARP_NUMHOOKS; hook++) {
+ 		unsigned int pos = newinfo->hook_entry[hook];
+ 		struct arpt_entry *e
+-			= (struct arpt_entry *)(entry0 + pos);
++			= (entry0 + pos);
  
- #define REPLY_MAC '1'
- #define REPLY_TARGET '2'
--static struct option opts[] =
-+static const struct option opts[] =
- {
- 	{ "arpreply-mac" ,    required_argument, 0, REPLY_MAC    },
- 	{ "arpreply-target" , required_argument, 0, REPLY_TARGET },
-diff --git a/extensions/ebt_inat.c b/extensions/ebt_inat.c
-index 1aa9435..681975d 100644
---- a/extensions/ebt_inat.c
-+++ b/extensions/ebt_inat.c
-@@ -23,7 +23,7 @@ static int s_sub_supplied, d_sub_supplied;
- #define NAT_D_SUB '2'
- #define NAT_S_TARGET '3'
- #define NAT_D_TARGET '3'
--static struct option opts_s[] =
-+static const struct option opts_s[] =
- {
- 	{ "isnat-list"     , required_argument, 0, NAT_S },
- 	{ "isnat-sub"      , required_argument, 0, NAT_S_SUB },
-@@ -31,7 +31,7 @@ static struct option opts_s[] =
- 	{ 0 }
- };
+ 		if (!(valid_hooks & (1 << hook)))
+ 			continue;
+@@ -354,14 +354,12 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
+ 					if (pos == oldpos)
+ 						goto next;
  
--static struct option opts_d[] =
-+static const struct option opts_d[] =
- {
- 	{ "idnat-list"     , required_argument, 0, NAT_D },
- 	{ "idnat-sub"      , required_argument, 0, NAT_D_SUB },
-diff --git a/extensions/ebt_ip.c b/extensions/ebt_ip.c
-index 4e0b7f0..59559fe 100644
---- a/extensions/ebt_ip.c
-+++ b/extensions/ebt_ip.c
-@@ -25,7 +25,7 @@
- #define IP_SPORT  '5'
- #define IP_DPORT  '6'
+-					e = (struct arpt_entry *)
+-						(entry0 + pos);
++					e = (entry0 + pos);
+ 				} while (oldpos == pos + e->next_offset);
  
--static struct option opts[] =
-+static const struct option opts[] =
- {
- 	{ "ip-source"           , required_argument, 0, IP_SOURCE },
- 	{ "ip-src"              , required_argument, 0, IP_SOURCE },
-diff --git a/extensions/ebt_limit.c b/extensions/ebt_limit.c
-index d189a09..2cbf4de 100644
---- a/extensions/ebt_limit.c
-+++ b/extensions/ebt_limit.c
-@@ -41,7 +41,7 @@ static int string_to_number(const char *s, unsigned int min, unsigned int max,
- #define ARG_LIMIT		'1'
- #define ARG_LIMIT_BURST		'2'
+ 				/* Move along one */
+ 				size = e->next_offset;
+-				e = (struct arpt_entry *)
+-					(entry0 + pos + size);
++				e = (entry0 + pos + size);
+ 				if (pos + size >= newinfo->size)
+ 					return 0;
+ 				e->counters.pcnt = pos;
+@@ -376,16 +374,14 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
+ 					if (!xt_find_jump_offset(offsets, newpos,
+ 								 newinfo->number))
+ 						return 0;
+-					e = (struct arpt_entry *)
+-						(entry0 + newpos);
++					e = (entry0 + newpos);
+ 				} else {
+ 					/* ... this is a fallthru */
+ 					newpos = pos + e->next_offset;
+ 					if (newpos >= newinfo->size)
+ 						return 0;
+ 				}
+-				e = (struct arpt_entry *)
+-					(entry0 + newpos);
++				e = (entry0 + newpos);
+ 				e->counters.pcnt = pos;
+ 				pos = newpos;
+ 			}
+@@ -683,7 +679,7 @@ static int copy_entries_to_user(unsigned int total_size,
+ 	for (off = 0, num = 0; off < total_size; off += e->next_offset, num++){
+ 		const struct xt_entry_target *t;
  
--static struct option opts[] =
-+static const struct option opts[] =
- {
- 	{ "limit",		required_argument, 0, ARG_LIMIT },
- 	{ "limit-burst",	required_argument, 0, ARG_LIMIT_BURST },
-diff --git a/extensions/ebt_log.c b/extensions/ebt_log.c
-index 1cf831a..97d5091 100644
---- a/extensions/ebt_log.c
-+++ b/extensions/ebt_log.c
-@@ -61,7 +61,7 @@ static int name_to_loglevel(char* arg)
- #define LOG_IP     '4'
- #define LOG_LOG    '5'
- #define LOG_IP6    '6'
--static struct option opts[] =
-+static const struct option opts[] =
- {
- 	{ "log-prefix", required_argument, 0, LOG_PREFIX },
- 	{ "log-level" , required_argument, 0, LOG_LEVEL  },
-diff --git a/extensions/ebt_mark.c b/extensions/ebt_mark.c
-index 5776b1c..4cf1378 100644
---- a/extensions/ebt_mark.c
-+++ b/extensions/ebt_mark.c
-@@ -20,7 +20,7 @@ static int mark_supplied;
- #define MARK_ORMARK  '3'
- #define MARK_ANDMARK '4'
- #define MARK_XORMARK '5'
--static struct option opts[] =
-+static const struct option opts[] =
- {
- 	{ "mark-target" , required_argument, 0, MARK_TARGET },
- 	/* an oldtime messup, we should have always used the scheme
-diff --git a/extensions/ebt_mark_m.c b/extensions/ebt_mark_m.c
-index 2a259b0..7561f05 100644
---- a/extensions/ebt_mark_m.c
-+++ b/extensions/ebt_mark_m.c
-@@ -15,7 +15,7 @@
+-		e = (struct arpt_entry *)(loc_cpu_entry + off);
++		e = (loc_cpu_entry + off);
+ 		if (copy_to_user(userptr + off, e, sizeof(*e))) {
+ 			ret = -EFAULT;
+ 			goto free_counters;
+@@ -1130,7 +1126,7 @@ compat_copy_entry_from_user(struct compat_arpt_entry *e, void **dstptr,
+ 	int h;
  
- #define MARK '1'
+ 	origsize = *size;
+-	de = (struct arpt_entry *)*dstptr;
++	de = *dstptr;
+ 	memcpy(de, e, sizeof(struct arpt_entry));
+ 	memcpy(&de->counters, &e->counters, sizeof(e->counters));
  
--static struct option opts[] =
-+static const struct option opts[] =
- {
- 	{ "mark", required_argument, 0, MARK },
- 	{ 0 }
-diff --git a/extensions/ebt_nat.c b/extensions/ebt_nat.c
-index e6afbf8..00d9cd4 100644
---- a/extensions/ebt_nat.c
-+++ b/extensions/ebt_nat.c
-@@ -21,7 +21,7 @@ static int to_source_supplied, to_dest_supplied;
- #define NAT_S_TARGET '2'
- #define NAT_D_TARGET '2'
- #define NAT_S_ARP '3'
--static struct option opts_s[] =
-+static const struct option opts_s[] =
- {
- 	{ "to-source"     , required_argument, 0, NAT_S },
- 	{ "to-src"        , required_argument, 0, NAT_S },
-@@ -30,7 +30,7 @@ static struct option opts_s[] =
- 	{ 0 }
- };
+@@ -1324,7 +1320,7 @@ static int compat_copy_entry_to_user(struct arpt_entry *e, void __user **dstptr,
+ 	int ret;
  
--static struct option opts_d[] =
-+static const struct option opts_d[] =
- {
- 	{ "to-destination", required_argument, 0, NAT_D },
- 	{ "to-dst"        , required_argument, 0, NAT_D },
-diff --git a/extensions/ebt_nflog.c b/extensions/ebt_nflog.c
-index 0cd10e0..405673a 100644
---- a/extensions/ebt_nflog.c
-+++ b/extensions/ebt_nflog.c
-@@ -25,7 +25,7 @@ enum {
- 	NFLOG_NFLOG = 0x16,
- };
+ 	origsize = *size;
+-	ce = (struct compat_arpt_entry __user *)*dstptr;
++	ce = *dstptr;
+ 	if (copy_to_user(ce, e, sizeof(struct arpt_entry)) != 0 ||
+ 	    copy_to_user(&ce->counters, &counters[i],
+ 	    sizeof(counters[i])) != 0)
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 384b857..af57eea 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -382,7 +382,7 @@ mark_source_chains(const struct xt_table_info *newinfo,
+ 	   to 0 as we leave), and comefrom to save source hook bitmask */
+ 	for (hook = 0; hook < NF_INET_NUMHOOKS; hook++) {
+ 		unsigned int pos = newinfo->hook_entry[hook];
+-		struct ipt_entry *e = (struct ipt_entry *)(entry0 + pos);
++		struct ipt_entry *e = (entry0 + pos);
  
--static struct option nflog_opts[] = {
-+static const struct option nflog_opts[] = {
- 	{"nflog-group", required_argument, NULL, NFLOG_GROUP},
- 	{"nflog-prefix", required_argument, NULL, NFLOG_PREFIX},
- 	{"nflog-range", required_argument, NULL, NFLOG_RANGE},
-diff --git a/extensions/ebt_pkttype.c b/extensions/ebt_pkttype.c
-index 5b5cb03..486c85c 100644
---- a/extensions/ebt_pkttype.c
-+++ b/extensions/ebt_pkttype.c
-@@ -27,7 +27,7 @@ char *classes[] =
- 	"\0"
- };
+ 		if (!(valid_hooks & (1 << hook)))
+ 			continue;
+@@ -424,14 +424,12 @@ mark_source_chains(const struct xt_table_info *newinfo,
+ 					if (pos == oldpos)
+ 						goto next;
  
--static struct option opts[] =
-+static const struct option opts[] =
- {
- 	{ "pkttype-type"        , required_argument, 0, '1' },
- 	{ 0 }
-diff --git a/extensions/ebt_redirect.c b/extensions/ebt_redirect.c
-index e470818..3f8227a 100644
---- a/extensions/ebt_redirect.c
-+++ b/extensions/ebt_redirect.c
-@@ -14,7 +14,7 @@
- #include <linux/netfilter_bridge/ebt_redirect.h>
+-					e = (struct ipt_entry *)
+-						(entry0 + pos);
++					e = (entry0 + pos);
+ 				} while (oldpos == pos + e->next_offset);
  
- #define REDIRECT_TARGET '1'
--static struct option opts[] =
-+static const struct option opts[] =
- {
- 	{ "redirect-target", required_argument, 0, REDIRECT_TARGET },
- 	{ 0 }
-diff --git a/extensions/ebt_standard.c b/extensions/ebt_standard.c
-index 67d4d7c..81edead 100644
---- a/extensions/ebt_standard.c
-+++ b/extensions/ebt_standard.c
-@@ -11,7 +11,7 @@
- #include <getopt.h>
- #include "../include/ebtables_u.h"
+ 				/* Move along one */
+ 				size = e->next_offset;
+-				e = (struct ipt_entry *)
+-					(entry0 + pos + size);
++				e = (entry0 + pos + size);
+ 				if (pos + size >= newinfo->size)
+ 					return 0;
+ 				e->counters.pcnt = pos;
+@@ -446,16 +444,14 @@ mark_source_chains(const struct xt_table_info *newinfo,
+ 					if (!xt_find_jump_offset(offsets, newpos,
+ 								 newinfo->number))
+ 						return 0;
+-					e = (struct ipt_entry *)
+-						(entry0 + newpos);
++					e = (entry0 + newpos);
+ 				} else {
+ 					/* ... this is a fallthru */
+ 					newpos = pos + e->next_offset;
+ 					if (newpos >= newinfo->size)
+ 						return 0;
+ 				}
+-				e = (struct ipt_entry *)
+-					(entry0 + newpos);
++				e = (entry0 + newpos);
+ 				e->counters.pcnt = pos;
+ 				pos = newpos;
+ 			}
+@@ -834,7 +830,7 @@ copy_entries_to_user(unsigned int total_size,
+ 		const struct xt_entry_match *m;
+ 		const struct xt_entry_target *t;
  
--static struct option opts[] =
-+static const struct option opts[] =
- {
- 	{0}
- };
-diff --git a/extensions/ebt_stp.c b/extensions/ebt_stp.c
-index 2b108a7..5c5fc33 100644
---- a/extensions/ebt_stp.c
-+++ b/extensions/ebt_stp.c
-@@ -27,7 +27,7 @@
- #define STP_FWDD	'l'
- #define STP_NUMOPS 12
+-		e = (struct ipt_entry *)(loc_cpu_entry + off);
++		e = (loc_cpu_entry + off);
+ 		if (copy_to_user(userptr + off, e, sizeof(*e))) {
+ 			ret = -EFAULT;
+ 			goto free_counters;
+@@ -1229,7 +1225,7 @@ compat_copy_entry_to_user(struct ipt_entry *e, void __user **dstptr,
+ 	int ret = 0;
  
--static struct option opts[] =
-+static const struct option opts[] =
- {
- 	{ "stp-type"         , required_argument, 0, STP_TYPE},
- 	{ "stp-flags"        , required_argument, 0, STP_FLAGS},
-diff --git a/extensions/ebt_ulog.c b/extensions/ebt_ulog.c
-index 162586d..54eec53 100644
---- a/extensions/ebt_ulog.c
-+++ b/extensions/ebt_ulog.c
-@@ -24,7 +24,7 @@
- #define ULOG_CPRANGE    '3'
- #define ULOG_QTHRESHOLD '4'
- #define ULOG_ULOG       '5'
--static struct option opts[] =
-+static const struct option opts[] =
- {
- 	{ "ulog-prefix"    , required_argument, 0, ULOG_PREFIX     },
- 	{ "ulog-nlgroup"   , required_argument, 0, ULOG_NLGROUP    },
-diff --git a/extensions/ebt_vlan.c b/extensions/ebt_vlan.c
-index 6714c82..0a37067 100644
---- a/extensions/ebt_vlan.c
-+++ b/extensions/ebt_vlan.c
-@@ -25,7 +25,7 @@
- #define VLAN_PRIO  '2'
- #define VLAN_ENCAP '3'
+ 	origsize = *size;
+-	ce = (struct compat_ipt_entry __user *)*dstptr;
++	ce = *dstptr;
+ 	if (copy_to_user(ce, e, sizeof(struct ipt_entry)) != 0 ||
+ 	    copy_to_user(&ce->counters, &counters[i],
+ 	    sizeof(counters[i])) != 0)
+@@ -1366,7 +1362,7 @@ compat_copy_entry_from_user(struct compat_ipt_entry *e, void **dstptr,
+ 	struct xt_entry_match *ematch;
  
--static struct option opts[] = {
-+static const struct option opts[] = {
- 	{"vlan-id"   , required_argument, NULL, VLAN_ID},
- 	{"vlan-prio" , required_argument, NULL, VLAN_PRIO},
- 	{"vlan-encap", required_argument, NULL, VLAN_ENCAP},
+ 	origsize = *size;
+-	de = (struct ipt_entry *)*dstptr;
++	de = *dstptr;
+ 	memcpy(de, e, sizeof(struct ipt_entry));
+ 	memcpy(&de->counters, &e->counters, sizeof(e->counters));
+ 
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 1e15c54..ef730e9 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -411,7 +411,7 @@ mark_source_chains(const struct xt_table_info *newinfo,
+ 	   to 0 as we leave), and comefrom to save source hook bitmask */
+ 	for (hook = 0; hook < NF_INET_NUMHOOKS; hook++) {
+ 		unsigned int pos = newinfo->hook_entry[hook];
+-		struct ip6t_entry *e = (struct ip6t_entry *)(entry0 + pos);
++		struct ip6t_entry *e = (entry0 + pos);
+ 
+ 		if (!(valid_hooks & (1 << hook)))
+ 			continue;
+@@ -453,14 +453,12 @@ mark_source_chains(const struct xt_table_info *newinfo,
+ 					if (pos == oldpos)
+ 						goto next;
+ 
+-					e = (struct ip6t_entry *)
+-						(entry0 + pos);
++					e = (entry0 + pos);
+ 				} while (oldpos == pos + e->next_offset);
+ 
+ 				/* Move along one */
+ 				size = e->next_offset;
+-				e = (struct ip6t_entry *)
+-					(entry0 + pos + size);
++				e = (entry0 + pos + size);
+ 				if (pos + size >= newinfo->size)
+ 					return 0;
+ 				e->counters.pcnt = pos;
+@@ -475,16 +473,14 @@ mark_source_chains(const struct xt_table_info *newinfo,
+ 					if (!xt_find_jump_offset(offsets, newpos,
+ 								 newinfo->number))
+ 						return 0;
+-					e = (struct ip6t_entry *)
+-						(entry0 + newpos);
++					e = (entry0 + newpos);
+ 				} else {
+ 					/* ... this is a fallthru */
+ 					newpos = pos + e->next_offset;
+ 					if (newpos >= newinfo->size)
+ 						return 0;
+ 				}
+-				e = (struct ip6t_entry *)
+-					(entry0 + newpos);
++				e = (entry0 + newpos);
+ 				e->counters.pcnt = pos;
+ 				pos = newpos;
+ 			}
+@@ -863,7 +859,7 @@ copy_entries_to_user(unsigned int total_size,
+ 		const struct xt_entry_match *m;
+ 		const struct xt_entry_target *t;
+ 
+-		e = (struct ip6t_entry *)(loc_cpu_entry + off);
++		e = (loc_cpu_entry + off);
+ 		if (copy_to_user(userptr + off, e, sizeof(*e))) {
+ 			ret = -EFAULT;
+ 			goto free_counters;
+@@ -1258,7 +1254,7 @@ compat_copy_entry_to_user(struct ip6t_entry *e, void __user **dstptr,
+ 	int ret = 0;
+ 
+ 	origsize = *size;
+-	ce = (struct compat_ip6t_entry __user *)*dstptr;
++	ce = *dstptr;
+ 	if (copy_to_user(ce, e, sizeof(struct ip6t_entry)) != 0 ||
+ 	    copy_to_user(&ce->counters, &counters[i],
+ 	    sizeof(counters[i])) != 0)
+@@ -1394,7 +1390,7 @@ compat_copy_entry_from_user(struct compat_ip6t_entry *e, void **dstptr,
+ 	struct xt_entry_match *ematch;
+ 
+ 	origsize = *size;
+-	de = (struct ip6t_entry *)*dstptr;
++	de = *dstptr;
+ 	memcpy(de, e, sizeof(struct ip6t_entry));
+ 	memcpy(&de->counters, &e->counters, sizeof(e->counters));
+ 
+diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
+index 6f09a99..d302d98 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_gen.h
++++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
+@@ -232,7 +232,7 @@ mtype_list(const struct ip_set *set,
+ 		if (!test_bit(id, map->members) ||
+ 		    (SET_WITH_TIMEOUT(set) &&
+ #ifdef IP_SET_BITMAP_STORED_TIMEOUT
+-		     mtype_is_filled((const struct mtype_elem *)x) &&
++		     mtype_is_filled(x) &&
+ #endif
+ 		     ip_set_timeout_expired(ext_timeout(x, set))))
+ 			continue;
+@@ -249,7 +249,7 @@ mtype_list(const struct ip_set *set,
+ 		if (mtype_do_list(skb, map, id, set->dsize))
+ 			goto nla_put_failure;
+ 		if (ip_set_put_extensions(skb, set, x,
+-		    mtype_is_filled((const struct mtype_elem *)x)))
++		    mtype_is_filled(x)))
+ 			goto nla_put_failure;
+ 		ipset_nest_end(skb, nested);
+ 	}
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index c296f9b..10a3694 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -1915,7 +1915,7 @@ ip_set_sockfn_get(struct sock *sk, int optval, void __user *user, int *len)
+ 		ret = -EFAULT;
+ 		goto done;
+ 	}
+-	op = (unsigned int *)data;
++	op = data;
+ 
+ 	if (*op < IP_SET_OP_VERSION) {
+ 		/* Check the version at the beginning of operations */
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 48d8354..ec665c8 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -202,7 +202,7 @@ static int kill_l3proto(struct nf_conn *i, void *data)
+ static int kill_l4proto(struct nf_conn *i, void *data)
+ {
+ 	struct nf_conntrack_l4proto *l4proto;
+-	l4proto = (struct nf_conntrack_l4proto *)data;
++	l4proto = data;
+ 	return nf_ct_protonum(i) == l4proto->l4proto &&
+ 	       nf_ct_l3num(i) == l4proto->l3proto;
+ }
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index 5f65272..8ec086b 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -352,7 +352,7 @@ static int nft_hash_init(const struct nft_set *set,
+ 
+ static void nft_hash_elem_destroy(void *ptr, void *arg)
+ {
+-	nft_set_elem_destroy((const struct nft_set *)arg, ptr, true);
++	nft_set_elem_destroy(arg, ptr, true);
+ }
+ 
+ static void nft_hash_destroy(const struct nft_set *set)
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 2a6dfe8..762e187 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -119,7 +119,7 @@ static int
+ cfg_copy(struct hashlimit_cfg2 *to, void *from, int revision)
+ {
+ 	if (revision == 1) {
+-		struct hashlimit_cfg1 *cfg = (struct hashlimit_cfg1 *)from;
++		struct hashlimit_cfg1 *cfg = from;
+ 
+ 		to->mode = cfg->mode;
+ 		to->avg = cfg->avg;
+@@ -895,7 +895,7 @@ static void *dl_seq_start(struct seq_file *s, loff_t *pos)
+ static void *dl_seq_next(struct seq_file *s, void *v, loff_t *pos)
+ {
+ 	struct xt_hashlimit_htable *htable = s->private;
+-	unsigned int *bucket = (unsigned int *)v;
++	unsigned int *bucket = v;
+ 
+ 	*pos = ++(*bucket);
+ 	if (*pos >= htable->cfg.size) {
+@@ -909,7 +909,7 @@ static void dl_seq_stop(struct seq_file *s, void *v)
+ 	__releases(htable->lock)
+ {
+ 	struct xt_hashlimit_htable *htable = s->private;
+-	unsigned int *bucket = (unsigned int *)v;
++	unsigned int *bucket = v;
+ 
+ 	if (!IS_ERR(bucket))
+ 		kfree(bucket);
+@@ -980,7 +980,7 @@ static int dl_seq_real_show(struct dsthash_ent *ent, u_int8_t family,
+ static int dl_seq_show_v1(struct seq_file *s, void *v)
+ {
+ 	struct xt_hashlimit_htable *htable = s->private;
+-	unsigned int *bucket = (unsigned int *)v;
++	unsigned int *bucket = v;
+ 	struct dsthash_ent *ent;
+ 
+ 	if (!hlist_empty(&htable->hash[*bucket])) {
+@@ -994,7 +994,7 @@ static int dl_seq_show_v1(struct seq_file *s, void *v)
+ static int dl_seq_show(struct seq_file *s, void *v)
+ {
+ 	struct xt_hashlimit_htable *htable = s->private;
+-	unsigned int *bucket = (unsigned int *)v;
++	unsigned int *bucket = v;
+ 	struct dsthash_ent *ent;
+ 
+ 	if (!hlist_empty(&htable->hash[*bucket])) {
 -- 
 2.7.4
-
