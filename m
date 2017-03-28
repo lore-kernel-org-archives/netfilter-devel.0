@@ -1,48 +1,89 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 2/4] netfilter: ipset: generalize netmask to support cidr
- and mask values
-Date: Tue, 28 Mar 2017 20:28:54 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1703282010360.20521@blackhole.kfki.hu>
-References: <1490120944-1770-1-git-send-email-johunt@akamai.com> <1490120944-1770-3-git-send-email-johunt@akamai.com> <alpine.DEB.2.11.1703272110580.16553@blackhole.kfki.hu> <e813c815-6803-6268-2bc0-cfe28f128093@akamai.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Gargi Sharma <gs051095@gmail.com>
+Subject: [RFC v2] extensions: libxt_TOS: Add translation to nft
+Date: Wed, 29 Mar 2017 00:20:18 +0530
+Message-ID: <1490727018-25703-1-git-send-email-gs051095@gmail.com>
 Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-To: Josh Hunt <johunt@akamai.com>
+        Gargi Sharma <gs051095@gmail.com>
+To: gsoc2013@lists.netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:34122 "EHLO smtp0.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753517AbdC1S27 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 Mar 2017 14:28:59 -0400
-In-Reply-To: <e813c815-6803-6268-2bc0-cfe28f128093@akamai.com>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:35157 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753130AbdC1Su7 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 28 Mar 2017 14:50:59 -0400
+Received: by mail-pg0-f65.google.com with SMTP id g2so23254379pge.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Mar 2017 11:50:58 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Josh,
+Add translation for TOS to nftables. TOS is deprecated
+ans DSCP is ued in place of it. The first 6 bits of
+TOS specify the DSCP value.
 
-On Tue, 28 Mar 2017, Josh Hunt wrote:
+Examples:
 
-> > Overall, I like the feature and the patches. After reviewing I comment
-> > only the parts where I believe some modifications are needed.
-> 
-> Thanks for the review. I'll go through this and send a v2 in the next 
-> few days.
+$ iptables-translate -t mangle -A PREROUTING -p TCP --dport 22 -j TOS --set-tos 0x10
+nft add rule ip mangle PREROUTING tcp dport 22 counter  ip6 dscp set 0x04
 
-Thinking over it I understand better your approach: replace 
-IPSET_ATTR_NETMASK with IPSET_ATTR_NETMASK_MASK completely and keeping the 
-former for backward compatibility reasons only. What I propose is able to 
-maintain syntax-compatibility in the sense that what is passed to the 
-kernel as cidr/netmask can be saved from there in the same syntax.
+Signed-off-by: Gargi Sharma <gs051095@gmail.com>
+---
+Changes in v2:
+	- Added DSCP conversion.
+---
+ extensions/libxt_TOS.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-The exemption from adding multiple entries from a range in the case of 
-non-cidr value netmask must also be documented in the manpage. Maybe it'd 
-be even better additionally to return an explicit error in such cases: 
-thus it cannot lead to a misunderstanding from user point of view.
+diff --git a/extensions/libxt_TOS.c b/extensions/libxt_TOS.c
+index cef5876..f284d83 100644
+--- a/extensions/libxt_TOS.c
++++ b/extensions/libxt_TOS.c
+@@ -183,6 +183,30 @@ static void tos_tg_save(const void *ip, const struct xt_entry_target *target)
+ 	printf(" --set-tos 0x%02x/0x%02x", info->tos_value, info->tos_mask);
+ }
+ 
++static int tos_xlate(struct xt_xlate *xl,
++		     const struct xt_xlate_tg_params *params)
++{
++	const struct ipt_tos_target_info *info =
++			(struct ipt_tos_target_info *) params->target->data;
++
++	__u8 dscp = (info->tos)>>2;
++	xt_xlate_add(xl, "ip dscp set 0x%02x", dscp);
++
++	return 1;
++}
++
++static int tos_xlate6(struct xt_xlate *xl,
++		     const struct xt_xlate_tg_params *params)
++{
++	const struct ipt_tos_target_info *info =
++			(struct ipt_tos_target_info *) params->target->data;
++
++	__u8 dscp = (info->tos)>>2;
++	xt_xlate_add(xl, " ip6 dscp set 0x%02x", dscp);
++
++	return 1;
++}
++
+ static struct xtables_target tos_tg_reg[] = {
+ 	{
+ 		.version       = XTABLES_VERSION,
+@@ -197,6 +221,7 @@ static struct xtables_target tos_tg_reg[] = {
+ 		.x6_parse      = tos_tg_parse_v0,
+ 		.x6_fcheck     = tos_tg_check,
+ 		.x6_options    = tos_tg_opts_v0,
++		.xlate	       = tos_xlate,
+ 	},
+ 	{
+ 		.version       = XTABLES_VERSION,
+@@ -211,6 +236,7 @@ static struct xtables_target tos_tg_reg[] = {
+ 		.x6_parse      = tos_tg_parse,
+ 		.x6_fcheck     = tos_tg_check,
+ 		.x6_options    = tos_tg_opts,
++		.xlate	       = tos_xlate6,
+ 	},
+ };
+ 
+-- 
+2.7.4
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
