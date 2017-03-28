@@ -1,40 +1,74 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: ipvs: don't check for presence of nat extension
-Date: Tue, 28 Mar 2017 10:31:20 +0200
-Message-ID: <20170328083120.2291-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:52116 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754657AbdC1Ibe (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 Mar 2017 04:31:34 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: simran singhal <singhalsimran0@gmail.com>
+Subject: [PATCH v3] netfilter: Compress return logic
+Date: Tue, 28 Mar 2017 14:36:33 +0530
+Message-ID: <20170328090633.GA22149@singhal-Inspiron-5558>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: kadlec@blackhole.kfki.hu, davem@davemloft.net,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        gregkh@linuxfoundation.org, outreachy-kernel@googlegroups.com,
+        wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg
+To: pablo@netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Check for the NAT status bits, they are set once conntrack needs NAT in source or
-reply direction, this is slightly faster than nfct_nat() as that has to check the
-extension area.
+Simplify function returns by merging assignment and return into one
+statement.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: simran singhal <singhalsimran0@gmail.com>
 ---
- net/netfilter/ipvs/ip_vs_ftp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ v3:
+   -change commit message.
+   -merge two patches into one.
+ v2:
+   -Change the subject of cover patch
 
+ net/netfilter/ipset/ip_set_list_set.c | 5 +----
+ net/netfilter/ipvs/ip_vs_ftp.c        | 5 +----
+ 2 files changed, 2 insertions(+), 8 deletions(-)
+
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index 178d4eb..2fff6b5 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -453,7 +453,6 @@ static size_t
+ list_set_memsize(const struct list_set *map, size_t dsize)
+ {
+ 	struct set_elem *e;
+-	size_t memsize;
+ 	u32 n = 0;
+ 
+ 	rcu_read_lock();
+@@ -461,9 +460,7 @@ list_set_memsize(const struct list_set *map, size_t dsize)
+ 		n++;
+ 	rcu_read_unlock();
+ 
+-	memsize = sizeof(*map) + n * dsize;
+-
+-	return memsize;
++	return (sizeof(*map) + n * dsize);
+ }
+ 
+ static int
 diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-index d30c327bb578..2e2bf7428cd1 100644
+index d30c327..c93c937 100644
 --- a/net/netfilter/ipvs/ip_vs_ftp.c
 +++ b/net/netfilter/ipvs/ip_vs_ftp.c
-@@ -260,7 +260,7 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
- 		buf_len = strlen(buf);
+@@ -482,11 +482,8 @@ static struct pernet_operations ip_vs_ftp_ops = {
  
- 		ct = nf_ct_get(skb, &ctinfo);
--		if (ct && !nf_ct_is_untracked(ct) && nfct_nat(ct)) {
-+		if (ct && !nf_ct_is_untracked(ct) && (ct->status & IPS_NAT_MASK)) {
- 			/* If mangling fails this function will return 0
- 			 * which will cause the packet to be dropped.
- 			 * Mangling can only fail under memory pressure,
+ static int __init ip_vs_ftp_init(void)
+ {
+-	int rv;
+-
+-	rv = register_pernet_subsys(&ip_vs_ftp_ops);
+ 	/* rcu_barrier() is called by netns on error */
+-	return rv;
++	return register_pernet_subsys(&ip_vs_ftp_ops);
+ }
+ 
+ /*
 -- 
-2.10.2
-
+2.7.4
