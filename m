@@ -1,42 +1,42 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [RFC] extensions: libxt_TOS: Add translation to nft
-Date: Tue, 28 Mar 2017 17:52:07 +0200
-Message-ID: <20170328155207.GA18679@breakpoint.cc>
-References: <1490715972-30517-1-git-send-email-gs051095@gmail.com>
+From: SIMRAN SINGHAL <singhalsimran0@gmail.com>
+Subject: Re: [PATCH v2] netfilter: Clean up tests if NULL returned on failure
+Date: Tue, 28 Mar 2017 21:53:30 +0530
+Message-ID: <CALrZqyPeR6X1RrqOsGfLbbZ2rPQgOf=50Rs+ot0kxkkA464V5w@mail.gmail.com>
+References: <20170328131340.GA19688@singhal-Inspiron-5558> <alpine.LSU.2.20.1703281552040.21255@n3.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: gsoc2013@lists.netfilter.org, pablo@netfilter.org,
-        netfilter-devel@vger.kernel.org
-To: Gargi Sharma <gs051095@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56774 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752053AbdC1Pwz (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 Mar 2017 11:52:55 -0400
-Content-Disposition: inline
-In-Reply-To: <1490715972-30517-1-git-send-email-gs051095@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: wensong@linux-vs.org, Simon Horman <horms@verge.net.au>,
+        Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel <outreachy-kernel@googlegroups.com>
+To: Jan Engelhardt <jengelh@inai.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.LSU.2.20.1703281552040.21255@n3.vanv.qr>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Gargi Sharma <gs051095@gmail.com> wrote:
-> Add translation for TOS to nftables.
-> 
-> Examples:
-> 
-> $ iptables-translate -t mangle -A PREROUTING -p TCP --dport 22 -j TOS --set-tos 0x10
-> nft add rule ip mangle PREROUTING tcp dport 22 counter --set-tos 0x10/0xff
-> 
-> $ iptables-translate -A PREROUTING -t mangle -p tcp --sport ftp-data -j TOS --set-tos 0x02/0x10
-> nft add rule ip mangle PREROUTING tcp sport 20 counter --set-tos 0x02/0x10
+On Tue, Mar 28, 2017 at 7:24 PM, Jan Engelhardt <jengelh@inai.de> wrote:
+> On Tuesday 2017-03-28 15:13, simran singhal wrote:
+>
+>>Some functions like kmalloc/kzalloc return NULL on failure. When NULL
+>>represents failure, !x is commonly used.
+>>
+>>@@ -910,7 +910,7 @@ ip_vs_new_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest,
+>>       }
+>>
+>>       dest = kzalloc(sizeof(struct ip_vs_dest), GFP_KERNEL);
+>>-      if (dest == NULL)
+>>+      if (!dest)
+>>               return -ENOMEM;
+>
+> This kind of transformation however is not cleanup anymore, it's really
+> bikeshedding and should be avoided. There are pro and cons for both
+> variants, and there is not really an overwhelming number of arguments
+> for either variant to justify the change.
 
-You did not test this :-/
-
-nft add rule ip mangle PREROUTING tcp sport 20 counter --set-tos 0x02/0x10
-nft: unrecognized option '--set-tos'
-
-besides, there is no TOS support in nftables.
-Please look at xt_DSCP.c and the xlate function there.
-
-You could rewrite -j TOS iptables rules to their corresponding dscp
-eqivalent in some cases at least.
+Sorry, but I didn't get what you are trying to convey. And particularly pros and
+cons of both variants.
