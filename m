@@ -1,279 +1,48 @@
-From: Arushi Singhal <arushisinghal19971997@gmail.com>
-Subject: [PATCH] net: netfilter: Remove typedef from "typedef struct
- bitstr_t".
-Date: Tue, 28 Mar 2017 23:54:13 +0530
-Message-ID: <20170328182413.GA14102@arushi-HP-Pavilion-Notebook>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 2/4] netfilter: ipset: generalize netmask to support cidr
+ and mask values
+Date: Tue, 28 Mar 2017 20:28:54 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1703282010360.20521@blackhole.kfki.hu>
+References: <1490120944-1770-1-git-send-email-johunt@akamai.com> <1490120944-1770-3-git-send-email-johunt@akamai.com> <alpine.DEB.2.11.1703272110580.16553@blackhole.kfki.hu> <e813c815-6803-6268-2bc0-cfe28f128093@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, davem@davemloft.net,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com
-To: pablo@netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+To: Josh Hunt <johunt@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:34296 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754509AbdC1SYT (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 Mar 2017 14:24:19 -0400
-Content-Disposition: inline
+Received: from smtp-in.kfki.hu ([148.6.0.25]:34122 "EHLO smtp0.kfki.hu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753517AbdC1S27 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 28 Mar 2017 14:28:59 -0400
+In-Reply-To: <e813c815-6803-6268-2bc0-cfe28f128093@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch removes typedefs from struct and renames it from "typedef struct
-bitstr_t" to "struct bitstr" as per kernel coding standards."
+Hi Josh,
 
-Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
----
- net/netfilter/nf_conntrack_h323_asn1.c | 80 +++++++++++++++++-----------------
- 1 file changed, 40 insertions(+), 40 deletions(-)
+On Tue, 28 Mar 2017, Josh Hunt wrote:
 
-diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
-index fb8cf238a76f..4502c0d6071d 100644
---- a/net/netfilter/nf_conntrack_h323_asn1.c
-+++ b/net/netfilter/nf_conntrack_h323_asn1.c
-@@ -91,41 +91,41 @@ struct field {
- };
- 
- /* Bit Stream */
--typedef struct {
-+struct bitstr {
- 	unsigned char *buf;
- 	unsigned char *beg;
- 	unsigned char *end;
- 	unsigned char *cur;
- 	unsigned int bit;
--} bitstr_t;
-+};
- 
- /* Tool Functions */
- #define INC_BIT(bs) if((++(bs)->bit)>7){(bs)->cur++;(bs)->bit=0;}
- #define INC_BITS(bs,b) if(((bs)->bit+=(b))>7){(bs)->cur+=(bs)->bit>>3;(bs)->bit&=7;}
- #define BYTE_ALIGN(bs) if((bs)->bit){(bs)->cur++;(bs)->bit=0;}
- #define CHECK_BOUND(bs,n) if((bs)->cur+(n)>(bs)->end)return(H323_ERROR_BOUND)
--static unsigned int get_len(bitstr_t *bs);
--static unsigned int get_bit(bitstr_t *bs);
--static unsigned int get_bits(bitstr_t *bs, unsigned int b);
--static unsigned int get_bitmap(bitstr_t *bs, unsigned int b);
--static unsigned int get_uint(bitstr_t *bs, int b);
-+static unsigned int get_len(struct bitstr *bs);
-+static unsigned int get_bit(struct bitstr *bs);
-+static unsigned int get_bits(struct bitstr *bs, unsigned int b);
-+static unsigned int get_bitmap(struct bitstr *bs, unsigned int b);
-+static unsigned int get_uint(struct bitstr *bs, int b);
- 
- /* Decoder Functions */
--static int decode_nul(bitstr_t *bs, const struct field *f, char *base, int level);
--static int decode_bool(bitstr_t *bs, const struct field *f, char *base, int level);
--static int decode_oid(bitstr_t *bs, const struct field *f, char *base, int level);
--static int decode_int(bitstr_t *bs, const struct field *f, char *base, int level);
--static int decode_enum(bitstr_t *bs, const struct field *f, char *base, int level);
--static int decode_bitstr(bitstr_t *bs, const struct field *f, char *base, int level);
--static int decode_numstr(bitstr_t *bs, const struct field *f, char *base, int level);
--static int decode_octstr(bitstr_t *bs, const struct field *f, char *base, int level);
--static int decode_bmpstr(bitstr_t *bs, const struct field *f, char *base, int level);
--static int decode_seq(bitstr_t *bs, const struct field *f, char *base, int level);
--static int decode_seqof(bitstr_t *bs, const struct field *f, char *base, int level);
--static int decode_choice(bitstr_t *bs, const struct field *f, char *base, int level);
-+static int decode_nul(struct bitstr *bs, const struct field *f, char *base, int level);
-+static int decode_bool(struct bitstr *bs, const struct field *f, char *base, int level);
-+static int decode_oid(struct bitstr *bs, const struct field *f, char *base, int level);
-+static int decode_int(struct bitstr *bs, const struct field *f, char *base, int level);
-+static int decode_enum(struct bitstr *bs, const struct field *f, char *base, int level);
-+static int decode_bitstr(struct bitstr *bs, const struct field *f, char *base, int level);
-+static int decode_numstr(struct bitstr *bs, const struct field *f, char *base, int level);
-+static int decode_octstr(struct bitstr *bs, const struct field *f, char *base, int level);
-+static int decode_bmpstr(struct bitstr *bs, const struct field *f, char *base, int level);
-+static int decode_seq(struct bitstr *bs, const struct field *f, char *base, int level);
-+static int decode_seqof(struct bitstr *bs, const struct field *f, char *base, int level);
-+static int decode_choice(struct bitstr *bs, const struct field *f, char *base, int level);
- 
- /* Decoder Functions Vector */
--typedef int (*decoder_t)(bitstr_t *, const struct field *, char *, int);
-+typedef int (*decoder_t)(struct bitstr *, const struct field *, char *, int);
- static const decoder_t Decoders[] = {
- 	decode_nul,
- 	decode_bool,
-@@ -150,7 +150,7 @@ static const decoder_t Decoders[] = {
-  * Functions
-  ****************************************************************************/
- /* Assume bs is aligned && v < 16384 */
--static unsigned int get_len(bitstr_t *bs)
-+static unsigned int get_len(struct bitstr *bs)
- {
- 	unsigned int v;
- 
-@@ -166,7 +166,7 @@ static unsigned int get_len(bitstr_t *bs)
- }
- 
- /****************************************************************************/
--static unsigned int get_bit(bitstr_t *bs)
-+static unsigned int get_bit(struct bitstr *bs)
- {
- 	unsigned int b = (*bs->cur) & (0x80 >> bs->bit);
- 
-@@ -177,7 +177,7 @@ static unsigned int get_bit(bitstr_t *bs)
- 
- /****************************************************************************/
- /* Assume b <= 8 */
--static unsigned int get_bits(bitstr_t *bs, unsigned int b)
-+static unsigned int get_bits(struct bitstr *bs, unsigned int b)
- {
- 	unsigned int v, l;
- 
-@@ -203,7 +203,7 @@ static unsigned int get_bits(bitstr_t *bs, unsigned int b)
- 
- /****************************************************************************/
- /* Assume b <= 32 */
--static unsigned int get_bitmap(bitstr_t *bs, unsigned int b)
-+static unsigned int get_bitmap(struct bitstr *bs, unsigned int b)
- {
- 	unsigned int v, l, shift, bytes;
- 
-@@ -242,7 +242,7 @@ static unsigned int get_bitmap(bitstr_t *bs, unsigned int b)
- /****************************************************************************
-  * Assume bs is aligned and sizeof(unsigned int) == 4
-  ****************************************************************************/
--static unsigned int get_uint(bitstr_t *bs, int b)
-+static unsigned int get_uint(struct bitstr *bs, int b)
- {
- 	unsigned int v = 0;
- 
-@@ -264,7 +264,7 @@ static unsigned int get_uint(bitstr_t *bs, int b)
- }
- 
- /****************************************************************************/
--static int decode_nul(bitstr_t *bs, const struct field *f,
-+static int decode_nul(struct bitstr *bs, const struct field *f,
-                       char *base, int level)
- {
- 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
-@@ -273,7 +273,7 @@ static int decode_nul(bitstr_t *bs, const struct field *f,
- }
- 
- /****************************************************************************/
--static int decode_bool(bitstr_t *bs, const struct field *f,
-+static int decode_bool(struct bitstr *bs, const struct field *f,
-                        char *base, int level)
- {
- 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
-@@ -285,7 +285,7 @@ static int decode_bool(bitstr_t *bs, const struct field *f,
- }
- 
- /****************************************************************************/
--static int decode_oid(bitstr_t *bs, const struct field *f,
-+static int decode_oid(struct bitstr *bs, const struct field *f,
-                       char *base, int level)
- {
- 	int len;
-@@ -302,7 +302,7 @@ static int decode_oid(bitstr_t *bs, const struct field *f,
- }
- 
- /****************************************************************************/
--static int decode_int(bitstr_t *bs, const struct field *f,
-+static int decode_int(struct bitstr *bs, const struct field *f,
-                       char *base, int level)
- {
- 	unsigned int len;
-@@ -346,7 +346,7 @@ static int decode_int(bitstr_t *bs, const struct field *f,
- }
- 
- /****************************************************************************/
--static int decode_enum(bitstr_t *bs, const struct field *f,
-+static int decode_enum(struct bitstr *bs, const struct field *f,
-                        char *base, int level)
- {
- 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
-@@ -362,7 +362,7 @@ static int decode_enum(bitstr_t *bs, const struct field *f,
- }
- 
- /****************************************************************************/
--static int decode_bitstr(bitstr_t *bs, const struct field *f,
-+static int decode_bitstr(struct bitstr *bs, const struct field *f,
-                          char *base, int level)
- {
- 	unsigned int len;
-@@ -396,7 +396,7 @@ static int decode_bitstr(bitstr_t *bs, const struct field *f,
- }
- 
- /****************************************************************************/
--static int decode_numstr(bitstr_t *bs, const struct field *f,
-+static int decode_numstr(struct bitstr *bs, const struct field *f,
-                          char *base, int level)
- {
- 	unsigned int len;
-@@ -414,7 +414,7 @@ static int decode_numstr(bitstr_t *bs, const struct field *f,
- }
- 
- /****************************************************************************/
--static int decode_octstr(bitstr_t *bs, const struct field *f,
-+static int decode_octstr(struct bitstr *bs, const struct field *f,
-                          char *base, int level)
- {
- 	unsigned int len;
-@@ -463,7 +463,7 @@ static int decode_octstr(bitstr_t *bs, const struct field *f,
- }
- 
- /****************************************************************************/
--static int decode_bmpstr(bitstr_t *bs, const struct field *f,
-+static int decode_bmpstr(struct bitstr *bs, const struct field *f,
-                          char *base, int level)
- {
- 	unsigned int len;
-@@ -489,7 +489,7 @@ static int decode_bmpstr(bitstr_t *bs, const struct field *f,
- }
- 
- /****************************************************************************/
--static int decode_seq(bitstr_t *bs, const struct field *f,
-+static int decode_seq(struct bitstr *bs, const struct field *f,
-                       char *base, int level)
- {
- 	unsigned int ext, bmp, i, opt, len = 0, bmp2, bmp2_len;
-@@ -606,7 +606,7 @@ static int decode_seq(bitstr_t *bs, const struct field *f,
- }
- 
- /****************************************************************************/
--static int decode_seqof(bitstr_t *bs, const struct field *f,
-+static int decode_seqof(struct bitstr *bs, const struct field *f,
-                         char *base, int level)
- {
- 	unsigned int count, effective_count = 0, i, len = 0;
-@@ -696,7 +696,7 @@ static int decode_seqof(bitstr_t *bs, const struct field *f,
- 
- 
- /****************************************************************************/
--static int decode_choice(bitstr_t *bs, const struct field *f,
-+static int decode_choice(struct bitstr *bs, const struct field *f,
-                          char *base, int level)
- {
- 	unsigned int type, ext, len = 0;
-@@ -772,7 +772,7 @@ int DecodeRasMessage(unsigned char *buf, size_t sz, RasMessage *ras)
- 		FNAME("RasMessage") CHOICE, 5, 24, 32, DECODE | EXT,
- 		0, _RasMessage
- 	};
--	bitstr_t bs;
-+	struct bitstr bs;
- 
- 	bs.buf = bs.beg = bs.cur = buf;
- 	bs.end = buf + sz;
-@@ -789,7 +789,7 @@ static int DecodeH323_UserInformation(unsigned char *buf, unsigned char *beg,
- 		FNAME("H323-UserInformation") SEQ, 1, 2, 2, DECODE | EXT,
- 		0, _H323_UserInformation
- 	};
--	bitstr_t bs;
-+	struct bitstr bs;
- 
- 	bs.buf = buf;
- 	bs.beg = bs.cur = beg;
-@@ -808,7 +808,7 @@ int DecodeMultimediaSystemControlMessage(unsigned char *buf, size_t sz,
- 		FNAME("MultimediaSystemControlMessage") CHOICE, 2, 4, 4,
- 		DECODE | EXT, 0, _MultimediaSystemControlMessage
- 	};
--	bitstr_t bs;
-+	struct bitstr bs;
- 
- 	bs.buf = bs.beg = bs.cur = buf;
- 	bs.end = buf + sz;
--- 
-2.11.0
+> > Overall, I like the feature and the patches. After reviewing I comment
+> > only the parts where I believe some modifications are needed.
+> 
+> Thanks for the review. I'll go through this and send a v2 in the next 
+> few days.
 
+Thinking over it I understand better your approach: replace 
+IPSET_ATTR_NETMASK with IPSET_ATTR_NETMASK_MASK completely and keeping the 
+former for backward compatibility reasons only. What I propose is able to 
+maintain syntax-compatibility in the sense that what is passed to the 
+kernel as cidr/netmask can be saved from there in the same syntax.
+
+The exemption from adding multiple entries from a range in the case of 
+non-cidr value netmask must also be documented in the manpage. Maybe it'd 
+be even better additionally to return an explicit error in such cases: 
+thus it cannot lead to a misunderstanding from user point of view.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
