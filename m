@@ -1,167 +1,113 @@
-From: gfree.wind@foxmail.com
-Subject: [PATCH nf v3 1/1] netfilter: helper: Add the rcu lock when call __nf_conntrack_helper_find
-Date: Wed, 29 Mar 2017 19:11:27 +0800
-Message-ID: <1490785887-17732-1-git-send-email-gfree.wind@foxmail.com>
-Cc: Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        gfree.wind@foxmail.com
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next v2 1/1] netfilter: helper: Remove useless rcu
+ lock when get expectfn
+Date: Wed, 29 Mar 2017 12:44:12 +0200
+Message-ID: <20170329104412.GA6337@salvia>
+References: <1490148902-96508-1-git-send-email-gfree.wind@foxmail.com>
+ <20170329100730.GA4131@salvia>
+ <000301d2a877$4e174c50$ea45e4f0$@foxmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, 'Gao Feng' <fgao@ikuai8.com>
+To: Gao Feng <gfree.wind@foxmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg202.qq.com ([184.105.206.29]:50522 "EHLO smtpbg202.qq.com"
+Received: from mail.us.es ([193.147.175.20]:55772 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754184AbdC2LLp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 Mar 2017 07:11:45 -0400
+        id S1752092AbdC2KoT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 29 Mar 2017 06:44:19 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B2C91BA1B3
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Mar 2017 12:44:15 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A1D18DA877
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Mar 2017 12:44:15 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DBCECDA87D
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Mar 2017 12:44:11 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <000301d2a877$4e174c50$ea45e4f0$@foxmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+On Wed, Mar 29, 2017 at 06:29:10PM +0800, Gao Feng wrote:
+> Hi Pablo,
+> 
+> > -----Original Message-----
+> > From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
+> > Sent: Wednesday, March 29, 2017 6:08 PM
+> > To: gfree.wind@foxmail.com
+> > Cc: netfilter-devel@vger.kernel.org; Gao Feng <fgao@ikuai8.com>
+> > Subject: Re: [PATCH nf-next v2 1/1] netfilter: helper: Remove useless rcu
+> lock
+> > when get expectfn
+> > 
+> > On Wed, Mar 22, 2017 at 10:15:02AM +0800, gfree.wind@foxmail.com wrote:
+> > > From: Gao Feng <fgao@ikuai8.com>
+> > >
+> > > Because these two functions return the nf_ct_helper_expectfn pointer
+> > > which should be protected by rcu lock. So it should makes sure the
+> > > caller should hold the rcu lock, not inside these functions.
+> > >
+> > > Signed-off-by: Gao Feng <fgao@ikuai8.com>
+> > > ---
+> > >  v2: Shorter subject, per Pablo
+> > >  v1: Initial version
+> > >
+> > >  net/netfilter/nf_conntrack_helper.c | 6 ++----
+> > >  1 file changed, 2 insertions(+), 4 deletions(-)
+> > >
+> > > diff --git a/net/netfilter/nf_conntrack_helper.c
+> > > b/net/netfilter/nf_conntrack_helper.c
+> > > index 6dc44d9..bce3d1f 100644
+> > > --- a/net/netfilter/nf_conntrack_helper.c
+> > > +++ b/net/netfilter/nf_conntrack_helper.c
+> > > @@ -311,38 +311,36 @@ void nf_ct_helper_expectfn_unregister(struct
+> > > nf_ct_helper_expectfn *n)  }
+> > > EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_unregister);
+> > >
+> > > +/* Caller should hold the rcu lock */
+> > >  struct nf_ct_helper_expectfn *
+> > >  nf_ct_helper_expectfn_find_by_name(const char *name)  {
+> > >  	struct nf_ct_helper_expectfn *cur;
+> > >  	bool found = false;
+> > >
+> > > -	rcu_read_lock();
+> > >  	list_for_each_entry_rcu(cur, &nf_ct_helper_expectfn_list, head) {
+> > >  		if (!strcmp(cur->name, name)) {
+> > >  			found = true;
+> > >  			break;
+> > >  		}
+> > >  	}
+> > > -	rcu_read_unlock();
+> > >  	return found ? cur : NULL;
+> > >  }
+> > >  EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_find_by_name);
+> > 
+> > nf_ct_helper_expectfn_find_by_name() is called from ctnetlink, via
+> > ctnetlink_create_expect() and rcu read side lock is not held there.
+> There are two reasons.
+> 1. The rcu lock would be added in my patch " netfilter: helper: Add the rcu
+> lock when call __nf_conntrack_helper_find" for nf
+> https://patchwork.ozlabs.org/patch/741865/.
 
-When invoke __nf_conntrack_helper_find, it needs the rcu lock to
-protect the helper module which would not be unloaded.
+If you have interdependencies between two patches like this, it's
+better to make it in one single go.
 
-Now there are two caller nf_conntrack_helper_try_module_get and
-ctnetlink_create_expect which don't hold rcu lock. And the other
-callers left like ctnetlink_change_helper, ctnetlink_create_conntrack,
-and ctnetlink_glue_attach_expect, they already hold the rcu lock
-or spin_lock_bh.
+> So the ctnetlink_create_expect would hold the rcu lock after apply that
+> patch.
+> 
+> 2. Because these two functions return one pointer which needs RCU lock, so
+> the caller must hold rcu lock.
+> Or it still meets one error even though there is one rcu lock in these two
+> functions.
+> Because the memory which the returned pointer point to would be freed
+> already after rcu_read_unlock.
+> So the rcu lock is unnecessary in these functions.
 
-Remove the rcu lock in functions nf_ct_helper_expectfn_find_by_name
-and nf_ct_helper_expectfn_find_by_symbol. Because they return one pointer
-which needs rcu lock, so their caller should hold the rcu lock, not in
-these two functions.
+That's right. You're fixing up a real problem, no doubt.
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
----
- v3: Merge another refine patch, remove useless rcu lock, per Pablo
- v2: add the rcu lock in nf_conntrack_helper_try_module_get
- v1: initial version
+I'm just questioning that I think that if you are fixing up rcu
+locking, which seems to be the case, you just do it in one single
+patch.
 
- net/netfilter/nf_conntrack_helper.c  | 17 ++++++++++++-----
- net/netfilter/nf_conntrack_netlink.c | 10 ++++++++--
- 2 files changed, 20 insertions(+), 7 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 6dc44d9..4eeb341 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -158,16 +158,25 @@ struct nf_conntrack_helper *
- {
- 	struct nf_conntrack_helper *h;
- 
-+	rcu_read_lock();
-+
- 	h = __nf_conntrack_helper_find(name, l3num, protonum);
- #ifdef CONFIG_MODULES
- 	if (h == NULL) {
--		if (request_module("nfct-helper-%s", name) == 0)
-+		rcu_read_unlock();
-+		if (request_module("nfct-helper-%s", name) == 0) {
-+			rcu_read_lock();
- 			h = __nf_conntrack_helper_find(name, l3num, protonum);
-+		} else {
-+			return h;
-+		}
- 	}
- #endif
- 	if (h != NULL && !try_module_get(h->me))
- 		h = NULL;
- 
-+	rcu_read_unlock();
-+
- 	return h;
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_helper_try_module_get);
-@@ -311,38 +320,36 @@ void nf_ct_helper_expectfn_unregister(struct nf_ct_helper_expectfn *n)
- }
- EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_unregister);
- 
-+/* Caller should hold the rcu lock */
- struct nf_ct_helper_expectfn *
- nf_ct_helper_expectfn_find_by_name(const char *name)
- {
- 	struct nf_ct_helper_expectfn *cur;
- 	bool found = false;
- 
--	rcu_read_lock();
- 	list_for_each_entry_rcu(cur, &nf_ct_helper_expectfn_list, head) {
- 		if (!strcmp(cur->name, name)) {
- 			found = true;
- 			break;
- 		}
- 	}
--	rcu_read_unlock();
- 	return found ? cur : NULL;
- }
- EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_find_by_name);
- 
-+/* Caller should hold the rcu lock */
- struct nf_ct_helper_expectfn *
- nf_ct_helper_expectfn_find_by_symbol(const void *symbol)
- {
- 	struct nf_ct_helper_expectfn *cur;
- 	bool found = false;
- 
--	rcu_read_lock();
- 	list_for_each_entry_rcu(cur, &nf_ct_helper_expectfn_list, head) {
- 		if (cur->expectfn == symbol) {
- 			found = true;
- 			break;
- 		}
- 	}
--	rcu_read_unlock();
- 	return found ? cur : NULL;
- }
- EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_find_by_symbol);
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 6806b5e..f6d1d63 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -3133,23 +3133,27 @@ static int ctnetlink_del_expect(struct net *net, struct sock *ctnl,
- 		return -ENOENT;
- 	ct = nf_ct_tuplehash_to_ctrack(h);
- 
-+	rcu_read_lock();
- 	if (cda[CTA_EXPECT_HELP_NAME]) {
- 		const char *helpname = nla_data(cda[CTA_EXPECT_HELP_NAME]);
- 
- 		helper = __nf_conntrack_helper_find(helpname, u3,
- 						    nf_ct_protonum(ct));
- 		if (helper == NULL) {
-+			rcu_read_unlock();
- #ifdef CONFIG_MODULES
- 			if (request_module("nfct-helper-%s", helpname) < 0) {
- 				err = -EOPNOTSUPP;
- 				goto err_ct;
- 			}
-+			rcu_read_lock();
- 			helper = __nf_conntrack_helper_find(helpname, u3,
- 							    nf_ct_protonum(ct));
- 			if (helper) {
- 				err = -EAGAIN;
--				goto err_ct;
-+				goto err_rcu;
- 			}
-+			rcu_read_unlock();
- #endif
- 			err = -EOPNOTSUPP;
- 			goto err_ct;
-@@ -3159,11 +3163,13 @@ static int ctnetlink_del_expect(struct net *net, struct sock *ctnl,
- 	exp = ctnetlink_alloc_expect(cda, ct, helper, &tuple, &mask);
- 	if (IS_ERR(exp)) {
- 		err = PTR_ERR(exp);
--		goto err_ct;
-+		goto err_rcu;
- 	}
- 
- 	err = nf_ct_expect_related_report(exp, portid, report);
- 	nf_ct_expect_put(exp);
-+err_rcu:
-+	rcu_read_unlock();
- err_ct:
- 	nf_ct_put(ct);
- 	return err;
--- 
-1.9.1
-
-
-
-
+Thanks!
