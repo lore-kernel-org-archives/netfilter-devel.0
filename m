@@ -1,63 +1,41 @@
-From: Arushi Singhal <arushisinghal19971997@gmail.com>
-Subject: [PATCH v2] net: netfilter: remove unused variable
-Date: Wed, 29 Mar 2017 20:27:52 +0530
-Message-ID: <20170329145752.GA2756@arushi-HP-Pavilion-Notebook>
+From: Varsha Rao <rvarsha016@gmail.com>
+Subject: [PATCH 0/2] iptables: Fix multiple checkpatch issues.
+Date: Thu, 30 Mar 2017 00:56:38 +0530
+Message-ID: <58dc0a73.437c630a.9094a.51f4@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Julian Anastasov <ja@ssi.bg>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org
-To: outreachy-kernel@googlegroups.com
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: outreachy-kernel <outreachy-kernel@googlegroups.com>
+To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:34808 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753325AbdC2T0p (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 29 Mar 2017 15:26:45 -0400
+Received: by mail-pg0-f66.google.com with SMTP id o123so4141327pga.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Mar 2017 12:26:44 -0700 (PDT)
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch uses the following coccinelle script to remove
-a variable that was simply used to store the return
-value of a function call before returning it:
+This patchset fixes multiple checkpatch issues.
 
-@@
-identifier len,f;
-@@
+Varsha Rao (2):
+  iptables: Remove explicit static variables initalization.
+  iptables: Remove unnecessary braces.
 
--int len;
- ... when != len
-     when strict
--len =
-+return
-        f(...);
--return len;
+ iptables/ip6tables-restore.c   |  2 +-
+ iptables/ip6tables-save.c      |  2 +-
+ iptables/iptables-restore.c    |  2 +-
+ iptables/iptables-save.c       |  2 +-
+ iptables/iptables-standalone.c |  3 +--
+ iptables/iptables-xml.c        | 10 +++++-----
+ iptables/iptables.c            |  3 +--
+ iptables/xtables-arp.c         |  2 +-
+ iptables/xtables-standalone.c  |  3 +--
+ iptables/xtables-translate.c   |  6 ++----
+ 10 files changed, 15 insertions(+), 20 deletions(-)
 
-Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
----
-changes in v2
-   - remove extra blank line.
-
- net/netfilter/ipvs/ip_vs_ftp.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-index d30c327bb578..c93c93762354 100644
---- a/net/netfilter/ipvs/ip_vs_ftp.c
-+++ b/net/netfilter/ipvs/ip_vs_ftp.c
-@@ -482,11 +482,8 @@ static struct pernet_operations ip_vs_ftp_ops = {
- 
- static int __init ip_vs_ftp_init(void)
- {
--	int rv;
--
--	rv = register_pernet_subsys(&ip_vs_ftp_ops);
- 	/* rcu_barrier() is called by netns on error */
--	return rv;
-+	return register_pernet_subsys(&ip_vs_ftp_ops);
- }
- 
- /*
 -- 
-2.11.0
+2.9.3
+
