@@ -1,72 +1,106 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: nf_ct_helper: permit cthelpers with
- different names via nfnetlink
-Date: Wed, 29 Mar 2017 13:50:25 +0200
-Message-ID: <20170329115025.GB6697@salvia>
-References: <1490447003-18592-1-git-send-email-zlpnobody@163.com>
- <20170329104131.GA6237@salvia>
- <CAML_gOepJknV1Nn8k28twci5S7=V7qOs41Bc4fTZ9UvbJ_Ehhw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Liping Zhang <zlpnobody@163.com>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Liping Zhang <zlpnobody@gmail.com>
+Subject: [PATCH 0/8] Netfilter fixes for net
+Date: Wed, 29 Mar 2017 14:14:02 +0200
+Message-ID: <1490789650-7294-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52342 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43020 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755984AbdC2Lui (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 29 Mar 2017 07:50:38 -0400
+        id S1754661AbdC2MOd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 29 Mar 2017 08:14:33 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A36A9E976C
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Mar 2017 13:50:34 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id AA281EBAC9
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Mar 2017 14:14:29 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 92E43DA903
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Mar 2017 13:50:34 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9AA79DA86F
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Mar 2017 14:14:29 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 683B9DA8FE
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Mar 2017 13:50:32 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <CAML_gOepJknV1Nn8k28twci5S7=V7qOs41Bc4fTZ9UvbJ_Ehhw@mail.gmail.com>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D837EDA91A
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Mar 2017 14:14:25 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 29, 2017 at 07:05:10PM +0800, Liping Zhang wrote:
-> Hi Pablo,
-> 
-> 2017-03-29 18:41 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-> [...]
-> > Wait.
-> >
-> > Just a comestic change, would this look better if we just do:
-> >
-> >         hlist_for_each_entry(cur, &nf_ct_helper_hash[h], hnode) {
-> >                  if (!strcmp(h->name, name) &&
-> >                      (h->tuple.src.l3num != NFPROTO_UNSPEC &&
-> >                       h->tuple.src.l3num != l3num)) &&
-> 
-> I think this check condition here should be:
-> (h->tuple.src.l3num == NFPROTO_UNSPEC || h->tuple.src.l3num == l3num)
+Hi David,
 
-Yes, I noticed after sending indeed.
+The following patchset contains a rather large update with Netfilter
+fixes, specifically targeted to incorrect RCU usage in several spots and
+the userspace conntrack helper infrastructure (nfnetlink_cthelper),
+more specifically they are:
 
-> >                      h->tuple.dst.protonum == protonum) {
-> >                         ret = -EEXIST;
-> >                         goto out;
-> >                  }
-> >
-> >                  /* avoid unpredictable behaviour for auto_assign_helper */
-> >                  if (!(me->flags & NF_CT_HELPER_F_USERSPACE)) &&
-> >                      nf_ct_tuple_src_mask_cmp(&cur->tuple, &me->tuple, &mask)) {
-> >                         ret = -EEXIST;
-> >                         goto out;
-> >         }
-> >
-> > __nf_conntrack_helper_find() uses the _rcu variant to iterate over the
-> > helper hash table, and we don't need this given we hold the mutex.
-> > This is likely going to spot false positives with the RCU debugging
-> > instrumentation I think.
-> 
-> Right, I did not notice this point. I will send V2 later.
+1) expect_class_max is incorrect set via cthelper, as in kernel semantics
+   mandate that this represents the array of expectation classes minus 1.
+   Patch from Liping Zhang.
+
+2) Expectation policy updates via cthelper are currently broken for several
+   reasons: This code allows illegal changes in the policy such as changing
+   the number of expeciation classes, it is leaking the updated policy and
+   such update occurs with no RCU protection at all. Fix this by adding a
+   new nfnl_cthelper_update_policy() that describes what is really legal on
+   the update path.
+
+3) Fix several memory leaks in cthelper, from Jeffy Chen.
+
+4) synchronize_rcu() is missing in the removal path of several modules,
+   this may lead to races since CPU may still be running on code that has
+   just gone. Also from Liping Zhang.
+
+5) Don't use the helper hashtable from cthelper, it is not safe to walk
+   over those bits without the helper mutex. Fix this by introducing a
+   new independent list for userspace helpers. From Liping Zhang.
+
+6) nf_ct_extend_unregister() needs synchronize_rcu() to make sure no
+   packets are walking on any conntrack extension that is gone after
+   module removal, again from Liping.
+
+7) nf_nat_snmp may crash if we fail to unregister the helper due to
+   accidental leftover code, from Gao Feng.
+
+8) Fix leak in nfnetlink_queue with secctx support, from Liping Zhang.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
 Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit db7f00b8dba6d687b6ab1f2e9309acfd214fcb4b:
+
+  tcp: tcp_get_info() should read tcp_time_stamp later (2017-03-16 21:37:13 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to 77c1c03c5b8ef28e55bb0aff29b1e006037ca645:
+
+  netfilter: nfnetlink_queue: fix secctx memory leak (2017-03-29 12:20:50 +0200)
+
+----------------------------------------------------------------
+Gao Feng (1):
+      netfilter: nf_nat_snmp: Fix panic when snmp_trap_helper fails to register
+
+Jeffy Chen (1):
+      netfilter: nfnl_cthelper: Fix memory leak
+
+Liping Zhang (5):
+      netfilter: nfnl_cthelper: fix incorrect helper->expect_class_max
+      netfilter: invoke synchronize_rcu after set the _hook_ to NULL
+      netfilter: nfnl_cthelper: fix a race when walk the nf_ct_helper_hash table
+      netfilter: nf_ct_ext: fix possible panic after nf_ct_extend_unregister
+      netfilter: nfnetlink_queue: fix secctx memory leak
+
+Pablo Neira Ayuso (1):
+      netfilter: nfnl_cthelper: fix runtime expectation policy updates
+
+ net/ipv4/netfilter/nf_nat_snmp_basic.c |  20 +--
+ net/netfilter/nf_conntrack_ecache.c    |   2 +
+ net/netfilter/nf_conntrack_extend.c    |  13 +-
+ net/netfilter/nf_conntrack_netlink.c   |   1 +
+ net/netfilter/nf_nat_core.c            |   2 +
+ net/netfilter/nfnetlink_cthelper.c     | 287 +++++++++++++++++++++------------
+ net/netfilter/nfnetlink_cttimeout.c    |   2 +-
+ net/netfilter/nfnetlink_queue.c        |   9 +-
+ 8 files changed, 206 insertions(+), 130 deletions(-)
