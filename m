@@ -1,35 +1,41 @@
-From: Jamal Hadi Salim <jhs-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>
-Subject: ANNOUNCE: netdev 2.1 conference Schedule out!
-Date: Tue, 28 Mar 2017 18:21:22 -0400
-Message-ID: <53040eb8-7a93-591e-97ed-542f702de1f3@mojatatu.com>
+From: simran singhal <singhalsimran0@gmail.com>
+Subject: [PATCH] net: netfilter: Use list_{next/prev}_entry instead of
+ list_entry
+Date: Wed, 29 Mar 2017 11:15:40 +0530
+Message-ID: <20170329054540.GA15593@singhal-Inspiron-5558>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: tech-committee-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        Brenda Butler <bjb-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>,
-        Stephen Jaworski <jaws-jkUAjuhPggJWk0Htik3J/w@public.gmane.org>,
-        netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        Heri Muhero <hmuhero-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,
-        "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lwn-T1hC0tSOHrs@public.gmane.org
-To: people-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com
+To: pablo@netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This patch replace list_entry with list_prev_entry as it makes the
+code more clear to read.
 
-The tech committee would like to announce the schedule.
+Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+---
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-There is a lot of great great content which we hope you are
-going to enjoy.
-
-There were also many other fantastic submissions which we were
-unfortunately unable to accommodate. We appreciate everyone that
-took the time to make a submission.
-
-Please visit:
-http://www.netdevconf.org/2.1/schedule.html
-
-for more details.
-
-cheers,
-jamal
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index b7645d7..a341eaf 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1895,7 +1895,7 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
+ 		goto nla_put_failure;
+ 
+ 	if ((event != NFT_MSG_DELRULE) && (rule->list.prev != &chain->rules)) {
+-		prule = list_entry(rule->list.prev, struct nft_rule, list);
++		prule = list_prev_entry(rule, list);
+ 		if (nla_put_be64(skb, NFTA_RULE_POSITION,
+ 				 cpu_to_be64(prule->handle),
+ 				 NFTA_RULE_PAD))
+-- 
+2.7.4
