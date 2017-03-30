@@ -1,71 +1,29 @@
-From: Arushi Singhal <arushisinghal19971997@gmail.com>
-Subject: [PATCH] iptables: extensions: Remove typedef in struct.
-Date: Thu, 30 Mar 2017 14:34:05 +0530
-Message-ID: <20170330090405.GA26814@arushi-HP-Pavilion-Notebook>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH nf-next] netfilter: ipvs: don't check for presence of nat
+ extension
+Date: Thu, 30 Mar 2017 14:42:32 +0200
+Message-ID: <20170330124232.GA2980@verge.net.au>
+References: <20170328083120.2291-1-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: outreachy-kernel@googlegroups.com
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:34044 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753338AbdC3JEL (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:36671 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933173AbdC3Mmi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 Mar 2017 05:04:11 -0400
-Received: by mail-pg0-f67.google.com with SMTP id o123so8510450pga.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 Mar 2017 02:04:10 -0700 (PDT)
+        Thu, 30 Mar 2017 08:42:38 -0400
 Content-Disposition: inline
+In-Reply-To: <20170328083120.2291-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The Linux kernel coding style guidelines suggest not using typedefs for
-structure. This patch gets rid of the typedefs for "_code".
-The following Coccinelle semantic patch detects the cases for struct
-type:
+On Tue, Mar 28, 2017 at 10:31:20AM +0200, Florian Westphal wrote:
+> Check for the NAT status bits, they are set once conntrack needs NAT in source or
+> reply direction, this is slightly faster than nfct_nat() as that has to check the
+> extension area.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-@tn@
-identifier i;
-type td;
-@@
-
--typedef
- struct i { ... }
--td
- ;
-
-@@
-type tn.td;
-identifier tn.i;
-@@
-
--td
-+ struct i
-
-Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
----
- extensions/libebt_log.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/extensions/libebt_log.c b/extensions/libebt_log.c
-index 0799185..f170af0 100644
---- a/extensions/libebt_log.c
-+++ b/extensions/libebt_log.c
-@@ -27,12 +27,12 @@
- #define LOG_LOG    '5'
- #define LOG_IP6    '6'
- 
--typedef struct _code {
-+struct code {
- 	char *c_name;
- 	int c_val;
--} CODE;
-+};
- 
--static CODE eight_priority[] = {
-+static struct code eight_priority[] = {
- 	{ "emerg", LOG_EMERG },
- 	{ "alert", LOG_ALERT },
- 	{ "crit", LOG_CRIT },
--- 
-2.11.0
-
+Thanks, applied.
