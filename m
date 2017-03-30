@@ -1,29 +1,42 @@
 From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH nf-next] netfilter: ipvs: don't check for presence of nat
- extension
-Date: Thu, 30 Mar 2017 14:42:32 +0200
-Message-ID: <20170330124232.GA2980@verge.net.au>
-References: <20170328083120.2291-1-fw@strlen.de>
+Subject: Re: [PATCH v2] net: netfilter: remove unused variable
+Date: Thu, 30 Mar 2017 14:55:09 +0200
+Message-ID: <20170330125509.GD2980@verge.net.au>
+References: <20170329145752.GA2756@arushi-HP-Pavilion-Notebook>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:36671 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933173AbdC3Mmi (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 Mar 2017 08:42:38 -0400
+Cc: outreachy-kernel@googlegroups.com,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-kernel@vger.kernel.org
+To: Arushi Singhal <arushisinghal19971997@gmail.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170328083120.2291-1-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20170329145752.GA2756@arushi-HP-Pavilion-Notebook>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Mar 28, 2017 at 10:31:20AM +0200, Florian Westphal wrote:
-> Check for the NAT status bits, they are set once conntrack needs NAT in source or
-> reply direction, this is slightly faster than nfct_nat() as that has to check the
-> extension area.
+On Wed, Mar 29, 2017 at 08:27:52PM +0530, Arushi Singhal wrote:
+> This patch uses the following coccinelle script to remove
+> a variable that was simply used to store the return
+> value of a function call before returning it:
 > 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+> @@
+> identifier len,f;
+> @@
+> 
+> -int len;
+>  ... when != len
+>      when strict
+> -len =
+> +return
+>         f(...);
+> -return len;
+> 
+> Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
 
-Thanks, applied.
+Applied with patch prefix updated to "ipvs:".
