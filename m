@@ -1,55 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] net: netfilter: remove unused variable
-Date: Thu, 30 Mar 2017 16:36:41 +0200
-Message-ID: <20170330143641.GA999@salvia>
-References: <20170329145752.GA2756@arushi-HP-Pavilion-Notebook>
- <20170330125509.GD2980@verge.net.au>
- <CA+XqjF_pbKoYC+UM9ad2wOvBo6gNnEEWnrUjJHfuDcFx3jEEzQ@mail.gmail.com>
+From: Arushi Singhal <arushisinghal19971997@gmail.com>
+Subject: [PATCH] iptables: extensions: Place trailing */ on a separate line.
+Date: Thu, 30 Mar 2017 23:30:31 +0530
+Message-ID: <20170330180031.GA3701@arushi-HP-Pavilion-Notebook>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Simon Horman <horms@verge.net.au>,
-        outreachy-kernel@googlegroups.com,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Julian Anastasov <ja@ssi.bg>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, LKML <linux-kernel@vger.kernel.org>
-To: Arushi Singhal <arushisinghal19971997@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: outreachy-kernel@googlegroups.com
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:35455 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933150AbdC3SAh (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 30 Mar 2017 14:00:37 -0400
+Received: by mail-pg0-f67.google.com with SMTP id g2so11632741pge.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 Mar 2017 11:00:36 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <CA+XqjF_pbKoYC+UM9ad2wOvBo6gNnEEWnrUjJHfuDcFx3jEEzQ@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Mar 30, 2017 at 07:38:08PM +0530, Arushi Singhal wrote:
-> On Thu, Mar 30, 2017 at 6:25 PM, Simon Horman <horms@verge.net.au> wrote:
-> 
-> > On Wed, Mar 29, 2017 at 08:27:52PM +0530, Arushi Singhal wrote:
-> > > This patch uses the following coccinelle script to remove
-> > > a variable that was simply used to store the return
-> > > value of a function call before returning it:
-> > >
-> > > @@
-> > > identifier len,f;
-> > > @@
-> > >
-> > > -int len;
-> > >  ... when != len
-> > >      when strict
-> > > -len =
-> > > +return
-> > >         f(...);
-> > > -return len;
-> > >
-> > > Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
-> >
-> > Applied with patch prefix updated to "ipvs:".
-> >
-> Hi
-> Thanks
-> How can I see my accepted patches of netfilter.
+Solve the checkpatch issue:
+"Block comments use a trailing */ on a separate line"
 
-You can use links from patchwork:
+Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
+---
+ extensions/libebt_mark.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-http://patchwork.ozlabs.org/project/netfilter-devel/
+diff --git a/extensions/libebt_mark.c b/extensions/libebt_mark.c
+index 7b80b22..1cc2c2a 100644
+--- a/extensions/libebt_mark.c
++++ b/extensions/libebt_mark.c
+@@ -28,7 +28,8 @@ static int mark_supplied;
+ static const struct option brmark_opts[] = {
+ 	{ .name = "mark-target",.has_arg = true,	.val = MARK_TARGET },
+ 	/* an oldtime messup, we should have always used the scheme
+-	 * <extension-name>-<option> */
++	 * <extension-name>-<option>
++	 */
+ 	{ .name = "set-mark",	.has_arg = true,	.val = MARK_SETMARK },
+ 	{ .name = "mark-set",	.has_arg = true,	.val = MARK_SETMARK },
+ 	{ .name = "mark-or",	.has_arg = true,	.val = MARK_ORMARK },
+-- 
+2.11.0
+
