@@ -1,64 +1,68 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: Writing metadata to a packet
-Date: Fri, 31 Mar 2017 08:29:12 +0200
-Message-ID: <CAJ26g5TYNQ63e_JP8v10u6suU+Gd7RwHYxa8My_NhJrdGPH2Uw@mail.gmail.com>
-References: <577C8ADD.60007@oracle.com> <1467793086.1273.12.camel@edumazet-glaptop3.roam.corp.google.com>
- <58DDE622.8070107@oracle.com>
+From: Arushi Singhal <arushisinghal19971997@gmail.com>
+Subject: [PATCH] iptables: extensions: Add/Remove the braces where necessary
+Date: Fri, 31 Mar 2017 15:36:59 +0530
+Message-ID: <20170331100659.GA21407@arushi-HP-Pavilion-Notebook>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Vikas <vikas.c.kumar@oracle.com>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mars.intermailgate.com ([80.242.145.70]:54978 "EHLO
-        mars.intermailgate.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932268AbdCaGiv (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:33568 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932342AbdCaKHI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 31 Mar 2017 02:38:51 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by mars.intermailgate.com (Postfix) with ESMTP id DB87E25E34
-        for <netfilter-devel@vger.kernel.org>; Fri, 31 Mar 2017 08:29:15 +0200 (CEST)
-Received: from mail-it0-f54.google.com (mail-it0-f54.google.com [209.85.214.54])
-        by mars.intermailgate.com (Postfix) with ESMTPSA id AAC7B25E23
-        for <netfilter-devel@vger.kernel.org>; Fri, 31 Mar 2017 08:29:14 +0200 (CEST)
-Received: by mail-it0-f54.google.com with SMTP id 190so6979211itm.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 Mar 2017 23:29:14 -0700 (PDT)
-In-Reply-To: <58DDE622.8070107@oracle.com>
+        Fri, 31 Mar 2017 06:07:08 -0400
+Received: by mail-pg0-f67.google.com with SMTP id 79so16233147pgf.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 Mar 2017 03:07:07 -0700 (PDT)
+Received: from arushi-HP-Pavilion-Notebook ([14.139.82.6])
+        by smtp.gmail.com with ESMTPSA id z185sm9507241pfb.6.2017.03.31.03.07.04
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Fri, 31 Mar 2017 03:07:05 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Vikas,
+To follow the coding style of kernel the braces are removed/added and
+placed properly, if not.
 
-in a very controlled environment, loadbalancer to real servers, I'm
-doing that using the IP TOS / DSCP header bits - manipulating them
-using the TOS target, on the loadbalancer, in mangle/PREROUTING rules,
-and matching them using the tos match on the realservers (nat
-PREROUTING) to effect REDIRECT to different local ports (various
-apache listening ports).
+Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
+---
+ extensions/libebt_802_3.c | 3 +--
+ extensions/libebt_ip.c    | 5 ++---
+ 2 files changed, 3 insertions(+), 5 deletions(-)
 
-Not for the faint of heart...
+diff --git a/extensions/libebt_802_3.c b/extensions/libebt_802_3.c
+index f05d02e..801fb51 100644
+--- a/extensions/libebt_802_3.c
++++ b/extensions/libebt_802_3.c
+@@ -111,8 +111,7 @@ static void br802_3_print(const void *ip, const struct xt_entry_match *match,
+ 	}
+ }
+ 
+-static struct xtables_match br802_3_match =
+-{
++static struct xtables_match br802_3_match = {
+ 	.name		= "802_3",
+ 	.revision	= 0,
+ 	.version	= XTABLES_VERSION,
+diff --git a/extensions/libebt_ip.c b/extensions/libebt_ip.c
+index 6b301e2..5943120 100644
+--- a/extensions/libebt_ip.c
++++ b/extensions/libebt_ip.c
+@@ -274,11 +274,10 @@ static void brip_print(const void *ip, const struct xt_entry_match *match,
+ 		if (info->invflags & EBT_IP_PROTO)
+ 			printf("! ");
+ 		pe = getprotobynumber(info->protocol);
+-		if (pe == NULL) {
++		if (pe == NULL)
+ 			printf("%d ", info->protocol);
+-		} else {
++		else
+ 			printf("%s ", pe->p_name);
+-		}
+ 	}
+ 	if (info->bitmask & EBT_IP_SPORT) {
+ 		printf("--ip-sport ");
+-- 
+2.11.0
 
-There is no nice wide standard "I've got these bits to freely set and
-get them to arbitrary destinations" mechanism on the IP or TCP layer.
-netfilter can't invent such...
-
-best regards
-  Patrick
-
-
-On Fri, Mar 31, 2017 at 7:16 AM, Vikas <vikas.c.kumar@oracle.com> wrote:
-> Hi,
->
-> I was wondering if how we can set some user specified values when we punt a
-> packet from source to destination in a infrastructure which uses netfilter?
-> More precisely at the source side so that when packet reaches destination
-> host, it can decode the metadata values.
-> Is their a way out? Any pointer/link would be appreciated.
->
-> Regards
-> Vikas
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
