@@ -1,68 +1,52 @@
-From: Arushi Singhal <arushisinghal19971997@gmail.com>
-Subject: [PATCH] iptables: extensions: Add/Remove the braces where necessary
-Date: Fri, 31 Mar 2017 15:36:59 +0530
-Message-ID: <20170331100659.GA21407@arushi-HP-Pavilion-Notebook>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+From: gfree.wind@foxmail.com
+Subject: [PATCH nf v5 0/3] Refine the robust of helper expectfn
+Date: Fri, 31 Mar 2017 18:38:18 +0800
+Message-ID: <cover.1490955730.git.fgao@ikuai8.com>
+Cc: Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+        gfree.wind@foxmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:33568 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932342AbdCaKHI (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 31 Mar 2017 06:07:08 -0400
-Received: by mail-pg0-f67.google.com with SMTP id 79so16233147pgf.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 31 Mar 2017 03:07:07 -0700 (PDT)
-Received: from arushi-HP-Pavilion-Notebook ([14.139.82.6])
-        by smtp.gmail.com with ESMTPSA id z185sm9507241pfb.6.2017.03.31.03.07.04
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Fri, 31 Mar 2017 03:07:05 -0700 (PDT)
-Content-Disposition: inline
+Received: from smtpbgau1.qq.com ([54.206.16.166]:56732 "EHLO smtpbgau1.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754213AbdCaKij (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 31 Mar 2017 06:38:39 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-To follow the coding style of kernel the braces are removed/added and
-placed properly, if not.
+From: Gao Feng <fgao@ikuai8.com>
 
-Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
----
- extensions/libebt_802_3.c | 3 +--
- extensions/libebt_ip.c    | 5 ++---
- 2 files changed, 3 insertions(+), 5 deletions(-)
+These patches are used to refine the codes of helper expectfn, and
+enhance its robust, including fixing possible panic bug.
 
-diff --git a/extensions/libebt_802_3.c b/extensions/libebt_802_3.c
-index f05d02e..801fb51 100644
---- a/extensions/libebt_802_3.c
-+++ b/extensions/libebt_802_3.c
-@@ -111,8 +111,7 @@ static void br802_3_print(const void *ip, const struct xt_entry_match *match,
- 	}
- }
- 
--static struct xtables_match br802_3_match =
--{
-+static struct xtables_match br802_3_match = {
- 	.name		= "802_3",
- 	.revision	= 0,
- 	.version	= XTABLES_VERSION,
-diff --git a/extensions/libebt_ip.c b/extensions/libebt_ip.c
-index 6b301e2..5943120 100644
---- a/extensions/libebt_ip.c
-+++ b/extensions/libebt_ip.c
-@@ -274,11 +274,10 @@ static void brip_print(const void *ip, const struct xt_entry_match *match,
- 		if (info->invflags & EBT_IP_PROTO)
- 			printf("! ");
- 		pe = getprotobynumber(info->protocol);
--		if (pe == NULL) {
-+		if (pe == NULL)
- 			printf("%d ", info->protocol);
--		} else {
-+		else
- 			printf("%s ", pe->p_name);
--		}
- 	}
- 	if (info->bitmask & EBT_IP_SPORT) {
- 		printf("--ip-sport ");
+Gao Feng (3):
+  netfilter: helper: Rename struct nf_ct_helper_expectfn to
+    nf_ct_nat_helper
+  netfilter: nat_helper: Make sure every proto nat module uses its
+    nat_helper
+  netfilter: nat_helper: Remove the expectations when its module is
+    unloaded
+
+ include/net/netfilter/nf_conntrack_expect.h |  5 +-
+ include/net/netfilter/nf_conntrack_helper.h | 13 ++--
+ net/ipv4/netfilter/nf_nat_h323.c            | 55 +++++++++++------
+ net/netfilter/ipvs/ip_vs_nfct.c             |  8 ++-
+ net/netfilter/nf_conntrack_broadcast.c      |  2 +-
+ net/netfilter/nf_conntrack_core.c           |  4 +-
+ net/netfilter/nf_conntrack_expect.c         | 10 ++-
+ net/netfilter/nf_conntrack_helper.c         | 94 +++++++++++++++++------------
+ net/netfilter/nf_conntrack_netlink.c        | 20 +++---
+ net/netfilter/nf_conntrack_pptp.c           | 15 ++++-
+ net/netfilter/nf_nat_amanda.c               | 10 ++-
+ net/netfilter/nf_nat_core.c                 |  7 ++-
+ net/netfilter/nf_nat_ftp.c                  | 10 ++-
+ net/netfilter/nf_nat_irc.c                  | 10 ++-
+ net/netfilter/nf_nat_sip.c                  | 23 ++++---
+ net/netfilter/nf_nat_tftp.c                 | 10 ++-
+ 16 files changed, 194 insertions(+), 102 deletions(-)
+
 -- 
-2.11.0
+1.9.1
+
+
+
 
