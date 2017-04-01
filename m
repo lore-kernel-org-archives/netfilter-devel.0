@@ -1,11 +1,10 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] ipv4: netfilter: Comparison to NULL could be written
-Date: Sat, 01 Apr 2017 06:05:59 -0700
-Message-ID: <1491051959.27353.40.camel@perches.com>
-References: <20170401083520.GA2037@arushi-HP-Pavilion-Notebook>
+From: simran singhal <singhalsimran0@gmail.com>
+Subject: [PATCH] net: ipv4: netfilter: Remove unused function
+ nf_nat_need_gre()
+Date: Sat, 1 Apr 2017 19:06:33 +0530
+Message-ID: <20170401133633.GA2208@singhal-Inspiron-5558>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         "David S. Miller" <davem@davemloft.net>,
         Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
@@ -14,33 +13,48 @@ Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Patrick McHardy <kaber@trash.net>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Arushi Singhal <arushisinghal19971997@gmail.com>,
-        pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtprelay0153.hostedemail.com ([216.40.44.153]:55807 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751259AbdDANGE (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 1 Apr 2017 09:06:04 -0400
-In-Reply-To: <20170401083520.GA2037@arushi-HP-Pavilion-Notebook>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: pablo@netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 2017-04-01 at 14:05 +0530, Arushi Singhal wrote:
-> Fixed coding style for null comparisons to be more
-> consistant with the rest of the kernel coding style.
+The function nf_nat_need_gre() on being called, simply returns
+back. The function doesn't have FIXME code around.
+Hence, nf_nat_need_gre() and its calls have been removed.
 
-typo: consistent and trivia:
+Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+---
+ net/ipv4/netfilter/nf_nat_pptp.c      | 2 --
+ net/ipv4/netfilter/nf_nat_proto_gre.c | 6 ------
+ 2 files changed, 8 deletions(-)
 
-> diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-[]
-> @@ -653,7 +653,7 @@ static struct xt_counters *alloc_counters(const struct xt_table *table)
->  	countersize = sizeof(struct xt_counters) * private->number;
->  	counters = vzalloc(countersize);
->  
-> -	if (counters == NULL)
-> +	if (!counters)
->  		return ERR_PTR(-ENOMEM);
-
-This could also remove the blank link above the test.
-
+diff --git a/net/ipv4/netfilter/nf_nat_pptp.c b/net/ipv4/netfilter/nf_nat_pptp.c
+index b3ca21b..747e737 100644
+--- a/net/ipv4/netfilter/nf_nat_pptp.c
++++ b/net/ipv4/netfilter/nf_nat_pptp.c
+@@ -282,8 +282,6 @@ pptp_inbound_pkt(struct sk_buff *skb,
+ 
+ static int __init nf_nat_helper_pptp_init(void)
+ {
+-	nf_nat_need_gre();
+-
+ 	BUG_ON(nf_nat_pptp_hook_outbound != NULL);
+ 	RCU_INIT_POINTER(nf_nat_pptp_hook_outbound, pptp_outbound_pkt);
+ 
+diff --git a/net/ipv4/netfilter/nf_nat_proto_gre.c b/net/ipv4/netfilter/nf_nat_proto_gre.c
+index edf0500..c020a4d 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_gre.c
++++ b/net/ipv4/netfilter/nf_nat_proto_gre.c
+@@ -142,9 +142,3 @@ static void __exit nf_nat_proto_gre_fini(void)
+ 
+ module_init(nf_nat_proto_gre_init);
+ module_exit(nf_nat_proto_gre_fini);
+-
+-void nf_nat_need_gre(void)
+-{
+-	return;
+-}
+-EXPORT_SYMBOL_GPL(nf_nat_need_gre);
+-- 
+2.7.4
