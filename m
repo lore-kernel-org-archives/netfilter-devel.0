@@ -1,61 +1,46 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: ctnetlink: make it safer when checking the ct helper name
-Date: Sat,  1 Apr 2017 20:55:44 +0800
-Message-ID: <1491051344-29766-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, cernekee@chromium.org,
-        Liping Zhang <zlpnobody@gmail.com>
-To: pablo@netfilter.org
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH] ipv4: netfilter: Comparison to NULL could be written
+Date: Sat, 01 Apr 2017 06:05:59 -0700
+Message-ID: <1491051959.27353.40.camel@perches.com>
+References: <20170401083520.GA2037@arushi-HP-Pavilion-Notebook>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        James Morris <jmorris@namei.org>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Patrick McHardy <kaber@trash.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Arushi Singhal <arushisinghal19971997@gmail.com>,
+        pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-12.163.com ([220.181.12.12]:60105 "EHLO m12-12.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751353AbdDAM4b (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 1 Apr 2017 08:56:31 -0400
+Received: from smtprelay0153.hostedemail.com ([216.40.44.153]:55807 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751259AbdDANGE (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 1 Apr 2017 09:06:04 -0400
+In-Reply-To: <20170401083520.GA2037@arushi-HP-Pavilion-Notebook>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <zlpnobody@gmail.com>
+On Sat, 2017-04-01 at 14:05 +0530, Arushi Singhal wrote:
+> Fixed coding style for null comparisons to be more
+> consistant with the rest of the kernel coding style.
 
-One CPU is doing ctnetlink_change_helper(), while another CPU is doing
-unhelp() at the same time. So even if help->helper is not NULL at first,
-the later statement strcmp(help->helper->name, ...) may still access
-the NULL pointer.
+typo: consistent and trivia:
 
-So we must use rcu_read_lock and rcu_dereference to avoid such _bad_
-thing happen.
+> diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+[]
+> @@ -653,7 +653,7 @@ static struct xt_counters *alloc_counters(const struct xt_table *table)
+>  	countersize = sizeof(struct xt_counters) * private->number;
+>  	counters = vzalloc(countersize);
+>  
+> -	if (counters == NULL)
+> +	if (!counters)
+>  		return ERR_PTR(-ENOMEM);
 
-Fixes: f95d7a46bc57 ("netfilter: ctnetlink: Fix regression in CTA_HELP processing")
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
----
- net/netfilter/nf_conntrack_netlink.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 59ee27d..7b83bbf 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1488,11 +1488,16 @@ static int ctnetlink_change_helper(struct nf_conn *ct,
- 		 * treat the second attempt as a no-op instead of returning
- 		 * an error.
- 		 */
--		if (help && help->helper &&
--		    !strcmp(help->helper->name, helpname))
--			return 0;
--		else
--			return -EBUSY;
-+		err = -EBUSY;
-+		if (help) {
-+			rcu_read_lock();
-+			helper = rcu_dereference(help->helper);
-+			if (helper && !strcmp(helper->name, helpname))
-+				err = 0;
-+			rcu_read_unlock();
-+		}
-+
-+		return err;
- 	}
- 
- 	if (!strcmp(helpname, "")) {
--- 
-2.5.5
-
+This could also remove the blank link above the test.
 
