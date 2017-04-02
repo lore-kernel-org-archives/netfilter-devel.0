@@ -1,70 +1,63 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: make it safer during the inet6_dev->addr_list traversal
-Date: Sun,  2 Apr 2017 17:27:53 +0800
-Message-ID: <1491125273-8002-1-git-send-email-zlpnobody@163.com>
+Subject: [PATCH nf] netfilter: ctnetlink: skip dumping expect when nfct_help(ct) is NULL
+Date: Sun,  2 Apr 2017 18:01:33 +0800
+Message-ID: <1491127293-11235-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-16.163.com ([220.181.12.16]:33976 "EHLO m12-16.163.com"
+Received: from m12-12.163.com ([220.181.12.12]:47702 "EHLO m12-12.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750984AbdDBJ2Z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 2 Apr 2017 05:28:25 -0400
+        id S1751024AbdDBKCJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 2 Apr 2017 06:02:09 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <zlpnobody@gmail.com>
 
-inet6_dev->addr_list is protected by inet6_dev->lock, so only using
-rcu_read_lock is not enough, we should acquire read_lock_bh(&idev->lock)
-before the inet6_dev->addr_list traversal.
+For IPCTNL_MSG_EXP_GET, if the CTA_EXPECT_MASTER attr is specified, then
+the NLM_F_DUMP request will dump the expectations related to this
+connection tracking.
+
+But we forget to check whether the conntrack has nf_conn_help or not,
+so if nfct_help(ct) is NULL, oops will happen:
+
+ BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
+ IP: ctnetlink_exp_ct_dump_table+0xf9/0x1e0 [nf_conntrack_netlink]
+ Call Trace:
+  ? ctnetlink_exp_ct_dump_table+0x75/0x1e0 [nf_conntrack_netlink]
+  netlink_dump+0x124/0x2a0
+  __netlink_dump_start+0x161/0x190
+  ctnetlink_dump_exp_ct+0x16c/0x1bc [nf_conntrack_netlink]
+  ? ctnetlink_exp_fill_info.constprop.33+0xf0/0xf0 [nf_conntrack_netlink]
+  ? ctnetlink_glue_seqadj+0x20/0x20 [nf_conntrack_netlink]
+  ctnetlink_get_expect+0x32e/0x370 [nf_conntrack_netlink]
+  ? debug_lockdep_rcu_enabled+0x1d/0x20
+  nfnetlink_rcv_msg+0x60a/0x6a9 [nfnetlink]
+  ? nfnetlink_rcv_msg+0x1b9/0x6a9 [nfnetlink]
+  [...]
 
 Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 ---
- net/netfilter/nf_nat_redirect.c | 2 ++
- net/netfilter/xt_TPROXY.c       | 5 ++++-
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_netlink.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/net/netfilter/nf_nat_redirect.c b/net/netfilter/nf_nat_redirect.c
-index d438698..86067560 100644
---- a/net/netfilter/nf_nat_redirect.c
-+++ b/net/netfilter/nf_nat_redirect.c
-@@ -101,11 +101,13 @@ nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range *range,
- 		rcu_read_lock();
- 		idev = __in6_dev_get(skb->dev);
- 		if (idev != NULL) {
-+			read_lock_bh(&idev->lock);
- 			list_for_each_entry(ifa, &idev->addr_list, if_list) {
- 				newdst = ifa->addr;
- 				addr = true;
- 				break;
- 			}
-+			read_unlock_bh(&idev->lock);
- 		}
- 		rcu_read_unlock();
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index f776314..1bb2f27 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -2783,6 +2783,12 @@ static int ctnetlink_dump_exp_ct(struct net *net, struct sock *ctnl,
+ 		return -ENOENT;
  
-diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
-index 80cb7ba..df7f1df 100644
---- a/net/netfilter/xt_TPROXY.c
-+++ b/net/netfilter/xt_TPROXY.c
-@@ -393,7 +393,8 @@ tproxy_laddr6(struct sk_buff *skb, const struct in6_addr *user_laddr,
- 
- 	rcu_read_lock();
- 	indev = __in6_dev_get(skb->dev);
--	if (indev)
-+	if (indev) {
-+		read_lock_bh(&indev->lock);
- 		list_for_each_entry(ifa, &indev->addr_list, if_list) {
- 			if (ifa->flags & (IFA_F_TENTATIVE | IFA_F_DEPRECATED))
- 				continue;
-@@ -401,6 +402,8 @@ tproxy_laddr6(struct sk_buff *skb, const struct in6_addr *user_laddr,
- 			laddr = &ifa->addr;
- 			break;
- 		}
-+		read_unlock_bh(&indev->lock);
+ 	ct = nf_ct_tuplehash_to_ctrack(h);
++	/* No expectation linked to this connection tracking. */
++	if (!nfct_help(ct)) {
++		nf_ct_put(ct);
++		return 0;
 +	}
- 	rcu_read_unlock();
++
+ 	c.data = ct;
  
- 	return laddr ? laddr : daddr;
+ 	err = netlink_dump_start(ctnl, skb, nlh, &c);
 -- 
 2.5.5
 
