@@ -1,39 +1,123 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: KASAN, xt_TCPMSS  finally found nasty use-after-free bug? 4.10.8
-Date: Sun, 02 Apr 2017 05:32:24 -0700
-Message-ID: <1491136344.10124.10.camel@edumazet-glaptop3.roam.corp.google.com>
-References: <6c6e2f7505f969d8c2998efff24063ba@nuclearcat.com>
-         <1491132259.10124.3.camel@edumazet-glaptop3.roam.corp.google.com>
-         <20170402114545.GA31804@breakpoint.cc>
-         <1491134084.10124.6.camel@edumazet-glaptop3.roam.corp.google.com>
-         <1491135593.10124.9.camel@edumazet-glaptop3.roam.corp.google.com>
-         <4442718191e17f0ff91bf1359da6d631@nuclearcat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Florian Westphal <fw@strlen.de>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, netdev-owner@vger.kernel.org
-To: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
+From: Arushi Singhal <arushisinghal19971997@gmail.com>
+Subject: [PATCH 2/2] iptables: iptables: unnecessary cast on void pointer
+Date: Sun,  2 Apr 2017 19:21:04 +0530
+Message-ID: <20170402135104.24342-2-arushisinghal19971997@gmail.com>
+References: <20170402135104.24342-1-arushisinghal19971997@gmail.com>
+Cc: kadlec@blackhole.kfki.hu, davem@davemloft.net,
+        kuznet@ms2.inr.ac.ru, jmorris@namei.org, yoshfuji@linux-ipv6.org,
+        kaber@trash.net, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Arushi Singhal <arushisinghal19971997@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:35473 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751014AbdDBMc1 (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:33081 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751571AbdDBNvT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 2 Apr 2017 08:32:27 -0400
-In-Reply-To: <4442718191e17f0ff91bf1359da6d631@nuclearcat.com>
+        Sun, 2 Apr 2017 09:51:19 -0400
+In-Reply-To: <20170402135104.24342-1-arushisinghal19971997@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 2017-04-02 at 15:25 +0300, Denys Fedoryshchenko wrote:
-> >  	 */
-> I will add also WARN_ON_ONCE(tcp_hdrlen >= 15 * 4) before, for 
-> curiosity, if this condition are triggered. Is it fine like that?
+The following Coccinelle script was used to detect this:
+@r@
+expression x;
+void* e;
+type T;
+identifier f;
+@@
+(
+  *((T *)e)
+|
+  ((T *)x)[...]
+|
+  ((T*)x)->f
+|
 
-Sure.
+- (T*)
+  e
+)
 
+Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
+---
+ iptables/nft-arp.c     |  4 ++--
+ iptables/xtables-arp.c | 12 ++++++------
+ 2 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
+index 0e13b8c..335963c 100644
+--- a/iptables/nft-arp.c
++++ b/iptables/nft-arp.c
+@@ -62,7 +62,7 @@ addr_to_host(const struct in_addr *addr)
+ 					sizeof(struct in_addr), AF_INET)) != NULL)
+ 		return (char *) host->h_name;
+ 
+-	return (char *) NULL;
++	return NULL;
+ }
+ 
+ static char *
+@@ -73,7 +73,7 @@ addr_to_network(const struct in_addr *addr)
+ 	if ((net = getnetbyaddr((long) ntohl(addr->s_addr), AF_INET)) != NULL)
+ 		return (char *) net->n_name;
+ 
+-	return (char *) NULL;
++	return NULL;
+ }
+ 
+ static char *
+diff --git a/iptables/xtables-arp.c b/iptables/xtables-arp.c
+index 85feb48..d346d3e 100644
+--- a/iptables/xtables-arp.c
++++ b/iptables/xtables-arp.c
+@@ -361,11 +361,11 @@ dotted_to_addr(const char *dotted)
+ 	p = buf;
+ 	for (i = 0; i < 3; i++) {
+ 		if ((q = strchr(p, '.')) == NULL)
+-			return (struct in_addr *) NULL;
++			return NULL;
+ 
+ 		*q = '\0';
+ 		if (string_to_number(p, 0, 255, &onebyte) == -1)
+-			return (struct in_addr *) NULL;
++			return NULL;
+ 
+ 		addrp[i] = (unsigned char) onebyte;
+ 		p = q + 1;
+@@ -373,7 +373,7 @@ dotted_to_addr(const char *dotted)
+ 
+ 	/* we've checked 3 bytes, now we check the last one */
+ 	if (string_to_number(p, 0, 255, &onebyte) == -1)
+-		return (struct in_addr *) NULL;
++		return NULL;
+ 
+ 	addrp[3] = (unsigned char) onebyte;
+ 
+@@ -388,12 +388,12 @@ network_to_addr(const char *name)
+ 
+ 	if ((net = getnetbyname(name)) != NULL) {
+ 		if (net->n_addrtype != AF_INET)
+-			return (struct in_addr *) NULL;
++			return NULL;
+ 		addr.s_addr = htonl((unsigned long) net->n_net);
+ 		return &addr;
+ 	}
+ 
+-	return (struct in_addr *) NULL;
++	return NULL;
+ }
+ 
+ static void
+@@ -614,7 +614,7 @@ host_to_addr(const char *name, unsigned int *naddr)
+ 		return addr;
+ 	}
+ 
+-	return (struct in_addr *) NULL;
++	return NULL;
+ }
+ 
+ /*
+-- 
+2.11.0
 
