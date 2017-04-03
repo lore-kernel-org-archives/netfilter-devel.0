@@ -1,99 +1,75 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [PATCH libmnl] nlmsg: introduce mnl_nlmsg_batch_rest to get the rest
- length
-Date: Mon, 3 Apr 2017 15:11:27 +0900
-Message-ID: <20170403061127.GA2329@gmail.com>
+From: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
+Subject: Re: KASAN, xt_TCPMSS  finally found nasty use-after-free bug? 4.10.8
+Date: Mon, 03 Apr 2017 11:10:44 +0300
+Message-ID: <35bef48734458fd995d9d4080da5db22@nuclearcat.com>
+References: <6c6e2f7505f969d8c2998efff24063ba@nuclearcat.com>
+ <1491132259.10124.3.camel@edumazet-glaptop3.roam.corp.google.com>
+ <20170402114545.GA31804@breakpoint.cc>
+ <1491134084.10124.6.camel@edumazet-glaptop3.roam.corp.google.com>
+ <1491135593.10124.9.camel@edumazet-glaptop3.roam.corp.google.com>
+ <4442718191e17f0ff91bf1359da6d631@nuclearcat.com>
+ <1491136344.10124.10.camel@edumazet-glaptop3.roam.corp.google.com>
+ <f005315a672d82fae34f932f4a7f3d5f@nuclearcat.com>
+ <1491153268.10124.12.camel@edumazet-glaptop3.roam.corp.google.com>
+ <1491153972.10124.14.camel@edumazet-glaptop3.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: The netfilter developer mailinglist
-        <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:35405 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751141AbdDCGLb (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 Apr 2017 02:11:31 -0400
-Received: by mail-pg0-f67.google.com with SMTP id g2so27469889pge.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 02 Apr 2017 23:11:31 -0700 (PDT)
-Received: from gmail.com (softbank218138040024.bbtec.net. [218.138.40.24])
-        by smtp.gmail.com with ESMTPSA id w129sm23122319pfb.130.2017.04.02.23.11.29
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 02 Apr 2017 23:11:30 -0700 (PDT)
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Florian Westphal <fw@strlen.de>,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, netdev-owner@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1491153972.10124.14.camel@edumazet-glaptop3.roam.corp.google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Recent languages implements array to hold its length. This patch
-enables to help to wrap these. As of this C library, we can use
-this like below without double sized buffer.
+On 2017-04-02 20:26, Eric Dumazet wrote:
+> On Sun, 2017-04-02 at 10:14 -0700, Eric Dumazet wrote:
+> 
+>> Could that be that netfilter does not abort earlier if TCP header is
+>> completely wrong ?
+>> 
+> 
+> Yes, I wonder if this patch would be better, unless we replicate the
+> th->doff sanity check in all netfilter modules dissecting TCP frames.
+> 
+> diff --git a/net/netfilter/xt_tcpudp.c b/net/netfilter/xt_tcpudp.c
+> index
+> ade024c90f4f129a7c384e9e1cbfdb8ffe73065f..8cb4eadd5ba1c20e74bc27ee52a0bc36a5b26725
+> 100644
+> --- a/net/netfilter/xt_tcpudp.c
+> +++ b/net/netfilter/xt_tcpudp.c
+> @@ -103,11 +103,11 @@ static bool tcp_mt(const struct sk_buff *skb,
+> struct xt_action_param *par)
+>  	if (!NF_INVF(tcpinfo, XT_TCP_INV_FLAGS,
+>  		     (((unsigned char *)th)[13] & tcpinfo->flg_mask) == 
+> tcpinfo->flg_cmp))
+>  		return false;
+> +	if (th->doff * 4 < sizeof(_tcph)) {
+> +		par->hotdrop = true;
+> +		return false;
+> +	}
+>  	if (tcpinfo->option) {
+> -		if (th->doff * 4 < sizeof(_tcph)) {
+> -			par->hotdrop = true;
+> -			return false;
+> -		}
+>  		if (!tcp_find_option(tcpinfo->option, skb, par->thoff,
+>  				     th->doff*4 - sizeof(_tcph),
+>  				     tcpinfo->invflags & XT_TCP_INV_OPTION,
+I modified patch a little as:
+if (th->doff * 4 < sizeof(_tcph)) {
+  par->hotdrop = true;
+  WARN_ON_ONCE(!tcpinfo->option);
+  return false;
+}
 
-    char buf[MNL_SOCKET_BUFFER_SIZE];
-
-    b = mnl_nlmsg_batch_start(buf, sizeof(buf));
-    nlbuf = mnl_nlmsg_batch_current(b);
-    rest = mnl_nlmsg_batch_rest(b);
-    if (rest < NLMSG_HDRLEN)
-            return false;
-    nlh = mnl_nlmsg_put_header(nlbuf);
-    ...
-    if (!mnl_attr_put_u8_check(nlh, rest, 1, 2))
-            return false;
-    ...
-
-Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
----
- include/libmnl/libmnl.h |  1 +
- src/libmnl.map          |  4 ++++
- src/nlmsg.c             | 12 ++++++++++++
- 3 files changed, 17 insertions(+)
-
-diff --git a/include/libmnl/libmnl.h b/include/libmnl/libmnl.h
-index 0331da7..8cfe137 100644
---- a/include/libmnl/libmnl.h
-+++ b/include/libmnl/libmnl.h
-@@ -76,6 +76,7 @@ extern void mnl_nlmsg_batch_reset(struct mnl_nlmsg_batch *b);
- extern void *mnl_nlmsg_batch_head(struct mnl_nlmsg_batch *b);
- extern void *mnl_nlmsg_batch_current(struct mnl_nlmsg_batch *b);
- extern bool mnl_nlmsg_batch_is_empty(struct mnl_nlmsg_batch *b);
-+extern size_t mnl_nlmsg_batch_rest(const struct mnl_nlmsg_batch *b);
- 
- /*
-  * Netlink attributes API
-diff --git a/src/libmnl.map b/src/libmnl.map
-index e5920e5..97b31d7 100644
---- a/src/libmnl.map
-+++ b/src/libmnl.map
-@@ -77,3 +77,7 @@ LIBMNL_1.2 {
-   mnl_socket_open2;
-   mnl_socket_fdopen;
- } LIBMNL_1.1;
-+
-+LIBMNL_1.3 {
-+  mnl_nlmsg_batch_rest;
-+} LIBMNL_1.2;
-diff --git a/src/nlmsg.c b/src/nlmsg.c
-index f9448a5..614e434 100644
---- a/src/nlmsg.c
-+++ b/src/nlmsg.c
-@@ -562,5 +562,17 @@ bool mnl_nlmsg_batch_is_empty(struct mnl_nlmsg_batch *b)
- }
- 
- /**
-+ * mnl_nlmsg_batch_rest - get the rest of the batch buffer size
-+ * \param b pointer to batch
-+ *
-+ * This function returns the rest of the batch buffer size
-+ */
-+EXPORT_SYMBOL(mnl_nlmsg_batch_rest);
-+size_t mnl_nlmsg_batch_rest(const struct mnl_nlmsg_batch *b)
-+{
-+        return b->limit - b->buflen;
-+}
-+
-+/**
-  * @}
-  */
--- 
-2.11.0
-
+And it did triggered WARN once at morning, and didn't hit KASAN. I will 
+run for a while more, to see if it is ok, and then if stable, will try 
+to enable SFQ again.
