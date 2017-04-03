@@ -1,75 +1,88 @@
-From: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
-Subject: Re: KASAN, xt_TCPMSS  finally found nasty use-after-free bug? 4.10.8
-Date: Mon, 03 Apr 2017 11:10:44 +0300
-Message-ID: <35bef48734458fd995d9d4080da5db22@nuclearcat.com>
-References: <6c6e2f7505f969d8c2998efff24063ba@nuclearcat.com>
- <1491132259.10124.3.camel@edumazet-glaptop3.roam.corp.google.com>
- <20170402114545.GA31804@breakpoint.cc>
- <1491134084.10124.6.camel@edumazet-glaptop3.roam.corp.google.com>
- <1491135593.10124.9.camel@edumazet-glaptop3.roam.corp.google.com>
- <4442718191e17f0ff91bf1359da6d631@nuclearcat.com>
- <1491136344.10124.10.camel@edumazet-glaptop3.roam.corp.google.com>
- <f005315a672d82fae34f932f4a7f3d5f@nuclearcat.com>
- <1491153268.10124.12.camel@edumazet-glaptop3.roam.corp.google.com>
- <1491153972.10124.14.camel@edumazet-glaptop3.roam.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Florian Westphal <fw@strlen.de>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org, netdev-owner@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1491153972.10124.14.camel@edumazet-glaptop3.roam.corp.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nft] hash: generate a random seed if seed option is empty
+Date: Mon,  3 Apr 2017 16:29:57 +0800
+Message-ID: <1491208197-5493-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, laura.garcia@zevenet.com,
+        Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from m12-14.163.com ([220.181.12.14]:39470 "EHLO m12-14.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751291AbdDCIak (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 3 Apr 2017 04:30:40 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2017-04-02 20:26, Eric Dumazet wrote:
-> On Sun, 2017-04-02 at 10:14 -0700, Eric Dumazet wrote:
-> 
->> Could that be that netfilter does not abort earlier if TCP header is
->> completely wrong ?
->> 
-> 
-> Yes, I wonder if this patch would be better, unless we replicate the
-> th->doff sanity check in all netfilter modules dissecting TCP frames.
-> 
-> diff --git a/net/netfilter/xt_tcpudp.c b/net/netfilter/xt_tcpudp.c
-> index
-> ade024c90f4f129a7c384e9e1cbfdb8ffe73065f..8cb4eadd5ba1c20e74bc27ee52a0bc36a5b26725
-> 100644
-> --- a/net/netfilter/xt_tcpudp.c
-> +++ b/net/netfilter/xt_tcpudp.c
-> @@ -103,11 +103,11 @@ static bool tcp_mt(const struct sk_buff *skb,
-> struct xt_action_param *par)
->  	if (!NF_INVF(tcpinfo, XT_TCP_INV_FLAGS,
->  		     (((unsigned char *)th)[13] & tcpinfo->flg_mask) == 
-> tcpinfo->flg_cmp))
->  		return false;
-> +	if (th->doff * 4 < sizeof(_tcph)) {
-> +		par->hotdrop = true;
-> +		return false;
-> +	}
->  	if (tcpinfo->option) {
-> -		if (th->doff * 4 < sizeof(_tcph)) {
-> -			par->hotdrop = true;
-> -			return false;
-> -		}
->  		if (!tcp_find_option(tcpinfo->option, skb, par->thoff,
->  				     th->doff*4 - sizeof(_tcph),
->  				     tcpinfo->invflags & XT_TCP_INV_OPTION,
-I modified patch a little as:
-if (th->doff * 4 < sizeof(_tcph)) {
-  par->hotdrop = true;
-  WARN_ON_ONCE(!tcpinfo->option);
-  return false;
-}
+From: Liping Zhang <zlpnobody@gmail.com>
 
-And it did triggered WARN once at morning, and didn't hit KASAN. I will 
-run for a while more, to see if it is ok, and then if stable, will try 
-to enable SFQ again.
+Typing the "nft add rule x y ct mark set jhash ip saddr mod 2" will
+not generate a random seed, instead, the seed will always be zero.
+
+So if seed option is empty, we shoulde not set the NFTA_HASH_SEED
+attribute, then a random seed will be generted in the kernel.
+
+Also: just to keep it simple, "seed 0" is equal to "seed opt is empty",
+since this is not a big problem.
+
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+---
+ Note, another kernel patch is necessary to avoid the annoying warning
+ from "nft-test.py ip/hash.t":
+ ip/hash.t: WARNING: line: 5: 'src/nft add rule --debug=netlink ip test-ip4
+ pre ct mark set jhash ip saddr . ip daddr mod 2': 'ct mark set jhash ip saddr
+ . ip daddr mod 2' mismatches 'ct mark set jhash ip saddr . ip daddr mod 2
+ seed 0xd6ab633c'
+
+ src/netlink_linearize.c    | 3 ++-
+ tests/py/ip/hash.t         | 1 +
+ tests/py/ip/hash.t.payload | 7 +++++++
+ 3 files changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index b2f27b7..0dba658 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -139,7 +139,8 @@ static void netlink_gen_hash(struct netlink_linearize_ctx *ctx,
+ 	}
+ 	netlink_put_register(nle, NFTNL_EXPR_HASH_DREG, dreg);
+ 	nftnl_expr_set_u32(nle, NFTNL_EXPR_HASH_MODULUS, expr->hash.mod);
+-	nftnl_expr_set_u32(nle, NFTNL_EXPR_HASH_SEED, expr->hash.seed);
++	if (expr->hash.seed)
++		nftnl_expr_set_u32(nle, NFTNL_EXPR_HASH_SEED, expr->hash.seed);
+ 	nftnl_expr_set_u32(nle, NFTNL_EXPR_HASH_OFFSET, expr->hash.offset);
+ 	nftnl_expr_set_u32(nle, NFTNL_EXPR_HASH_TYPE, expr->hash.type);
+ 	nftnl_rule_add_expr(ctx->nlr, nle);
+diff --git a/tests/py/ip/hash.t b/tests/py/ip/hash.t
+index 2becef6..a8e975b 100644
+--- a/tests/py/ip/hash.t
++++ b/tests/py/ip/hash.t
+@@ -3,6 +3,7 @@
+ 
+ ct mark set jhash ip saddr . ip daddr mod 2 seed 0xdeadbeef;ok
+ ct mark set jhash ip saddr . ip daddr mod 2;ok
++ct mark set jhash ip saddr . ip daddr mod 2 seed 0x0;ok;ct mark set jhash ip saddr . ip daddr mod 2
+ ct mark set jhash ip saddr . ip daddr mod 2 seed 0xdeadbeef offset 100;ok
+ ct mark set jhash ip saddr . ip daddr mod 2 offset 100;ok
+ dnat to jhash ip saddr mod 2 seed 0xdeadbeef map { 0 : 192.168.20.100, 1 : 192.168.30.100 };ok
+diff --git a/tests/py/ip/hash.t.payload b/tests/py/ip/hash.t.payload
+index 21227e9..71ab065 100644
+--- a/tests/py/ip/hash.t.payload
++++ b/tests/py/ip/hash.t.payload
+@@ -12,6 +12,13 @@ ip test-ip4 pre
+   [ hash reg 1 = jhash(reg 2, 8, 0x0) % mod 2 ]
+   [ ct set mark with reg 1 ]
+ 
++# ct mark set jhash ip saddr . ip daddr mod 2 seed 0x0
++ip test-ip4 pre
++  [ payload load 4b @ network header + 12 => reg 2 ]
++  [ payload load 4b @ network header + 16 => reg 13 ]
++  [ hash reg 1 = jhash(reg 2, 8, 0x0) % mod 2 ]
++  [ ct set mark with reg 1 ]
++
+ # ct mark set jhash ip saddr . ip daddr mod 2 seed 0xdeadbeef offset 100
+ ip test-ip4 pre
+   [ payload load 4b @ network header + 12 => reg 2 ]
+-- 
+2.5.5
+
+
