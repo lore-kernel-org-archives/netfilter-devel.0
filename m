@@ -1,140 +1,263 @@
-From: Dan Williams <dcbw@redhat.com>
-Subject: [PATCH] iptables-restore/ip6tables-restore: add --version/-V
- argument
-Date: Mon, 03 Apr 2017 16:32:40 -0500
-Message-ID: <1491255160.5423.16.camel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+From: Skylar Chang <chiaweic@codeaurora.org>
+Subject: [PATCH] libnfnetlink: Add API support for passing bound file descriptor
+Date: Mon,  3 Apr 2017 15:44:27 -0700
+Message-ID: <1491259467-21230-1-git-send-email-chiaweic@codeaurora.org>
+Cc: Skylar Chang <chiaweic@codeaurora.org>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+        npendhar@codeaurora.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51070 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751842AbdDCVcm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 Apr 2017 17:32:42 -0400
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mx1.redhat.com (Postfix) with ESMTPS id B1E4031F3E9
-        for <netfilter-devel@vger.kernel.org>; Mon,  3 Apr 2017 21:32:41 +0000 (UTC)
-Received: from ovpn-112-30.phx2.redhat.com (ovpn-112-30.phx2.redhat.com [10.3.112.30])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 32A0B78491
-        for <netfilter-devel@vger.kernel.org>; Mon,  3 Apr 2017 21:32:41 +0000 (UTC)
+Received: from wolverine02.qualcomm.com ([199.106.114.251]:37248 "EHLO
+        wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751515AbdDCWod (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 3 Apr 2017 18:44:33 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Prints program version just like iptables/ip6tables.
+Add API support to accept pre-bound file descriptor from a
+privileged process for creating a handle. Also clean-up
+the handle without close the passing file descriptor. This
+paves the path for privilege separation.
 
-Signed-off-by: Dan Williams <dcbw@redhat.com>
+Signed-off-by: Skylar Chang <chiaweic@codeaurora.org>
 ---
- iptables/ip6tables-restore.c | 15 +++++++++++----
- iptables/iptables-restore.c  | 10 ++++++++--
- 2 files changed, 20 insertions(+), 11 deletions(-)
+ include/libnfnetlink/libnfnetlink.h |   7 +++
+ src/libnfnetlink.c                  | 116 ++++++++++++++++++++++++++++++------
+ 2 files changed, 106 insertions(+), 17 deletions(-)
 
-diff --git a/iptables/ip6tables-restore.c b/iptables/ip6tables-restore.c
-index 8a47f09..83f4e4c 100644
---- a/iptables/ip6tables-restore.c
-+++ b/iptables/ip6tables-restore.c
-@@ -36,6 +36,7 @@ static struct timeval wait_interval = {
- static const struct option options[] = {
- 	{.name = "counters",      .has_arg = 0, .val = 'c'},
- 	{.name = "verbose",       .has_arg = 0, .val = 'v'},
-+	{.name = "version",       .has_arg = 0, .val = 'V'},
- 	{.name = "test",          .has_arg = 0, .val = 't'},
- 	{.name = "help",          .has_arg = 0, .val = 'h'},
- 	{.name = "noflush",       .has_arg = 0, .val = 'n'},
-@@ -48,11 +49,15 @@ static const struct option options[] = {
+diff --git a/include/libnfnetlink/libnfnetlink.h b/include/libnfnetlink/libnfnetlink.h
+index cd0be3d..437eb55 100644
+--- a/include/libnfnetlink/libnfnetlink.h
++++ b/include/libnfnetlink/libnfnetlink.h
+@@ -19,6 +19,7 @@
+ #include <sys/socket.h>	/* for sa_family_t */
+ #include <linux/netlink.h>
+ #include <libnfnetlink/linux_nfnetlink.h>
++#include <stdbool.h>
  
- static void print_usage(const char *name, const char *version) __attribute__((noreturn));
+ #ifndef NETLINK_NETFILTER
+ #define NETLINK_NETFILTER 12
+@@ -67,11 +68,17 @@ extern unsigned int nfnl_portid(const struct nfnl_handle *h);
  
-+#define prog_name ip6tables_globals.program_name
-+#define prog_vers ip6tables_globals.program_version
+ /* get a new library handle */
+ extern struct nfnl_handle *nfnl_open(void);
++extern struct nfnl_handle *nfnl_open2(int fd, bool bind);
+ extern int nfnl_close(struct nfnl_handle *);
++extern int nfnl_close2(struct nfnl_handle *);
+ 
+ extern struct nfnl_subsys_handle *nfnl_subsys_open(struct nfnl_handle *, 
+ 						   uint8_t, uint8_t,
+ 						   unsigned int);
++extern struct nfnl_subsys_handle *nfnl_subsys_open2(struct nfnl_handle *,
++						   u_int8_t, u_int8_t,
++						   unsigned int,
++						   bool bind);
+ extern void nfnl_subsys_close(struct nfnl_subsys_handle *);
+ 
+ /* set and unset sequence tracking */
+diff --git a/src/libnfnetlink.c b/src/libnfnetlink.c
+index df57533..9fba98e 100644
+--- a/src/libnfnetlink.c
++++ b/src/libnfnetlink.c
+@@ -161,6 +161,18 @@ static int recalc_rebind_subscriptions(struct nfnl_handle *nfnlh)
+ 	return 0;
+ }
+ 
++static void recalc_subscriptions(struct nfnl_handle *nfnlh)
++{
++	int i;
++	u_int32_t new_subscriptions = nfnlh->subscriptions;
 +
- static void print_usage(const char *name, const char *version)
++	for (i = 0; i < NFNL_MAX_SUBSYS; i++)
++		new_subscriptions |= nfnlh->subsys[i].subscriptions;
++
++	nfnlh->local.nl_groups = new_subscriptions;
++	nfnlh->subscriptions = new_subscriptions;
++}
++
+ /**
+  * nfnl_open - open a nfnetlink handler
+  *
+@@ -173,16 +185,42 @@ static int recalc_rebind_subscriptions(struct nfnl_handle *nfnlh)
+ struct nfnl_handle *nfnl_open(void)
  {
--	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h] [-n] [-w secs] [-W usecs] [-T table] [-M command]\n"
-+	fprintf(stderr, "Usage: %s [-c] [-v] [-V] [-t] [-h] [-n] [-w secs] [-W usecs] [-T table] [-M command]\n"
- 			"	   [ --counters ]\n"
- 			"	   [ --verbose ]\n"
-+			"	   [ --version]\n"
- 			"	   [ --test ]\n"
- 			"	   [ --help ]\n"
- 			"	   [ --noflush ]\n"
-@@ -78,8 +83,7 @@ static struct xtc_handle *create_handle(const char *tablename)
+ 	struct nfnl_handle *nfnlh;
++	int fd;
++
++	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_NETFILTER);
++	if (fd == -1)
++		return NULL;
++	nfnlh = nfnl_open2(fd, true);
++	if (nfnlh == NULL)
++		close(fd);
++	return nfnlh;
++}
++
++/**
++ * nfnl_open2 - open a nfnetlink handler
++ * @fd: passing file descriptor
++ * @bind:  indicate the passing fd needs to be binded or not
++ *
++ * This function creates a nfnetlink handler, this is required to establish
++ * a communication between the userspace and the nfnetlink system.
++ *
++ * On success, a valid address that points to a nfnl_handle structure
++ * is returned. On error, NULL is returned and errno is set approapiately.
++ */
++struct nfnl_handle *nfnl_open2(int fd, bool bind)
++{
++	struct nfnl_handle *nfnlh;
+ 	unsigned int addr_len;
  
- 	if (!handle) {
- 		xtables_error(PARAMETER_PROBLEM, "%s: unable to initialize "
--			"table '%s'\n", ip6tables_globals.program_name,
--			tablename);
-+			"table '%s'\n", prog_name, tablename);
- 		exit(1);
++	if (!fd)
++		goto err;
++
+ 	nfnlh = malloc(sizeof(*nfnlh));
+ 	if (!nfnlh)
+ 		return NULL;
+ 
+ 	memset(nfnlh, 0, sizeof(*nfnlh));
+-	nfnlh->fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_NETFILTER);
+-	if (nfnlh->fd == -1)
+-		goto err_free;
++	nfnlh->fd = fd;
+ 
+ 	nfnlh->local.nl_family = AF_NETLINK;
+ 	nfnlh->peer.nl_family = AF_NETLINK;
+@@ -191,11 +229,11 @@ struct nfnl_handle *nfnl_open(void)
+ 	getsockname(nfnlh->fd, (struct sockaddr *)&nfnlh->local, &addr_len);
+ 	if (addr_len != sizeof(nfnlh->local)) {
+ 		errno = EINVAL;
+-		goto err_close;
++		goto err_free;
  	}
- 	return handle;
-@@ -213,7 +217,7 @@ int ip6tables_restore_main(int argc, char *argv[])
- 	init_extensions6();
- #endif
+ 	if (nfnlh->local.nl_family != AF_NETLINK) {
+ 		errno = EINVAL;
+-		goto err_close;
++		goto err_free;
+ 	}
+ 	nfnlh->seq = time(NULL);
+ 	nfnlh->rcv_buffer_size = NFNL_BUFFSIZE;
+@@ -204,25 +242,28 @@ struct nfnl_handle *nfnl_open(void)
+ 	 * binding to pid '0' will default */
  
--	while ((c = getopt_long(argc, argv, "bcvthnwWM:T:", options, NULL)) != -1) {
-+	while ((c = getopt_long(argc, argv, "bcvVthnwWM:T:", options, NULL)) != -1) {
- 		switch (c) {
- 			case 'b':
- 				fprintf(stderr, "-b/--binary option is not implemented\n");
-@@ -224,6 +228,9 @@ int ip6tables_restore_main(int argc, char *argv[])
- 			case 'v':
- 				verbose = 1;
- 				break;
-+			case 'V':
-+				printf("%s v%s\n", prog_name, prog_vers);
-+				exit(0);
- 			case 't':
- 				testing = 1;
- 				break;
-diff --git a/iptables/iptables-restore.c b/iptables/iptables-restore.c
-index 7bb06d8..a51deb5 100644
---- a/iptables/iptables-restore.c
-+++ b/iptables/iptables-restore.c
-@@ -33,6 +33,7 @@ static struct timeval wait_interval = {
- static const struct option options[] = {
- 	{.name = "counters",      .has_arg = 0, .val = 'c'},
- 	{.name = "verbose",       .has_arg = 0, .val = 'v'},
-+	{.name = "version",       .has_arg = 0, .val = 'V'},
- 	{.name = "test",          .has_arg = 0, .val = 't'},
- 	{.name = "help",          .has_arg = 0, .val = 'h'},
- 	{.name = "noflush",       .has_arg = 0, .val = 'n'},
-@@ -46,12 +47,14 @@ static const struct option options[] = {
- static void print_usage(const char *name, const char *version) __attribute__((noreturn));
+ 	/* let us do the initial bind */
+-	if (recalc_rebind_subscriptions(nfnlh) < 0)
+-		goto err_close;
++	if (bind) {
++		if (recalc_rebind_subscriptions(nfnlh) < 0)
++			goto err_free;
++	} else {
++		recalc_subscriptions(nfnlh);
++	}
  
- #define prog_name iptables_globals.program_name
-+#define prog_vers iptables_globals.program_version
+ 	/* use getsockname to get the netlink pid that the kernel assigned us */
+ 	addr_len = sizeof(nfnlh->local);
+ 	getsockname(nfnlh->fd, (struct sockaddr *)&nfnlh->local, &addr_len);
+ 	if (addr_len != sizeof(nfnlh->local)) {
+ 		errno = EINVAL;
+-		goto err_close;
++		goto err_free;
+ 	}
+ 	/* sequence tracking enabled by default */
+ 	nfnlh->flags |= NFNL_F_SEQTRACK_ENABLED;
  
- static void print_usage(const char *name, const char *version)
+ 	return nfnlh;
+ 
+-err_close:
+-	close(nfnlh->fd);
+ err_free:
+ 	free(nfnlh);
++err:
+ 	return NULL;
+ }
+ 
+@@ -276,7 +317,31 @@ struct nfnl_subsys_handle *
+ nfnl_subsys_open(struct nfnl_handle *nfnlh, uint8_t subsys_id,
+ 		 uint8_t cb_count, uint32_t subscriptions)
  {
--	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h] [-n] [-w secs] [-W usecs] [-T table] [-M command]\n"
-+	fprintf(stderr, "Usage: %s [-c] [-v] [-V] [-t] [-h] [-n] [-w secs] [-W usecs] [-T table] [-M command]\n"
- 			"	   [ --counters ]\n"
- 			"	   [ --verbose ]\n"
-+			"	   [ --version]\n"
- 			"	   [ --test ]\n"
- 			"	   [ --help ]\n"
- 			"	   [ --noflush ]\n"
-@@ -212,7 +215,7 @@ iptables_restore_main(int argc, char *argv[])
- 	init_extensions4();
- #endif
++	return nfnl_subsys_open2 (nfnlh, subsys_id, cb_count, subscriptions, true);
++}
++
++/**
++ * nfnl_subsys_open2 - open a netlink subsystem
++ * @nfnlh: libnfnetlink handle
++ * @subsys_id: which nfnetlink subsystem we are interested in
++ * @cb_count: number of callbacks that are used maximum.
++ * @subscriptions: netlink groups we want to be subscribed to
++ * @bind: indicate the passing fd needs to be binded or not
++ *
++ * This function creates a subsystem handler that contains the set of
++ * callbacks that handle certain types of messages coming from a netfilter
++ * subsystem. Initially the callback set is empty, you can register callbacks
++ * via nfnl_callback_register().
++ *
++ * On error, NULL is returned and errno is set appropiately. On success,
++ * a valid address that points to a nfnl_subsys_handle structure is returned.
++ */
++struct nfnl_subsys_handle *
++nfnl_subsys_open2(struct nfnl_handle *nfnlh, u_int8_t subsys_id,
++		 u_int8_t cb_count, u_int32_t subscriptions, bool bind)
++{
+ 	struct nfnl_subsys_handle *ssh;
++	int err = 0;
  
--	while ((c = getopt_long(argc, argv, "bcvthnwWM:T:", options, NULL)) != -1) {
-+	while ((c = getopt_long(argc, argv, "bcvVthnwWM:T:", options, NULL)) != -1) {
- 		switch (c) {
- 			case 'b':
- 				fprintf(stderr, "-b/--binary option is not implemented\n");
-@@ -223,6 +226,9 @@ iptables_restore_main(int argc, char *argv[])
- 			case 'v':
- 				verbose = 1;
- 				break;
-+			case 'V':
-+				printf("%s v%s\n", prog_name, prog_vers);
-+				exit(0);
- 			case 't':
- 				testing = 1;
- 				break;
+ 	assert(nfnlh);
+ 
+@@ -302,12 +367,15 @@ nfnl_subsys_open(struct nfnl_handle *nfnlh, uint8_t subsys_id,
+ 
+ 	/* although now we have nfnl_join to subscribe to certain
+ 	 * groups, just keep this to ensure compatibility */
+-	if (recalc_rebind_subscriptions(nfnlh) < 0) {
++	if (bind)
++		err = recalc_rebind_subscriptions(nfnlh);
++	else
++		recalc_subscriptions(nfnlh);
++	if (err < 0) {
+ 		free(ssh->cb);
+ 		ssh->cb = NULL;
+ 		return NULL;
+ 	}
+-	
+ 	return ssh;
+ }
+ 
+@@ -338,16 +406,30 @@ void nfnl_subsys_close(struct nfnl_subsys_handle *ssh)
+  */
+ int nfnl_close(struct nfnl_handle *nfnlh)
+ {
+-	int i, ret;
++	int ret;
+ 
+ 	assert(nfnlh);
+-
+-	for (i = 0; i < NFNL_MAX_SUBSYS; i++)
+-		nfnl_subsys_close(&nfnlh->subsys[i]);
+-
+ 	ret = close(nfnlh->fd);
+ 	if (ret < 0)
+ 		return ret;
++	return nfnl_close2(nfnlh);
++}
++
++/**
++ * nfnl_close2 - close a nfnetlink handler but keep fd
++ * @nfnlh: nfnetlink handler
++ *
++ * This function closes the nfnetlink handler. On success, 0 is returned.
++ * On error, -1 is returned and errno is set appropiately.
++ */
++int nfnl_close2(struct nfnl_handle *nfnlh)
++{
++	int i;
++
++	assert(nfnlh);
++
++	for (i = 0; i < NFNL_MAX_SUBSYS; i++)
++		nfnl_subsys_close(&nfnlh->subsys[i]);
+ 
+ 	free(nfnlh);
+ 
 -- 
-2.9.3
+1.9.1
+
