@@ -1,66 +1,54 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: nft_hash: do not dump the auto generated seed
-Date: Mon,  3 Apr 2017 16:34:38 +0800
-Message-ID: <1491208478-6119-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, laura.garcia@zevenet.com,
-        Liping Zhang <zlpnobody@gmail.com>
-To: pablo@netfilter.org
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: KASAN, xt_TCPMSS  finally found nasty use-after-free bug? 4.10.8
+Date: Mon, 03 Apr 2017 05:09:03 -0700
+Message-ID: <1491221343.10124.16.camel@edumazet-glaptop3.roam.corp.google.com>
+References: <6c6e2f7505f969d8c2998efff24063ba@nuclearcat.com>
+         <1491132259.10124.3.camel@edumazet-glaptop3.roam.corp.google.com>
+         <20170402114545.GA31804@breakpoint.cc>
+         <1491134084.10124.6.camel@edumazet-glaptop3.roam.corp.google.com>
+         <1491135593.10124.9.camel@edumazet-glaptop3.roam.corp.google.com>
+         <4442718191e17f0ff91bf1359da6d631@nuclearcat.com>
+         <1491136344.10124.10.camel@edumazet-glaptop3.roam.corp.google.com>
+         <f005315a672d82fae34f932f4a7f3d5f@nuclearcat.com>
+         <1491153268.10124.12.camel@edumazet-glaptop3.roam.corp.google.com>
+         <1491153972.10124.14.camel@edumazet-glaptop3.roam.corp.google.com>
+         <35bef48734458fd995d9d4080da5db22@nuclearcat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Florian Westphal <fw@strlen.de>,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org, netdev-owner@vger.kernel.org
+To: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-14.163.com ([220.181.12.14]:52197 "EHLO m12-14.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751622AbdDCIfS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 Apr 2017 04:35:18 -0400
+Received: from mail-io0-f193.google.com ([209.85.223.193]:33060 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751376AbdDCMJG (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 3 Apr 2017 08:09:06 -0400
+In-Reply-To: <35bef48734458fd995d9d4080da5db22@nuclearcat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <zlpnobody@gmail.com>
+On Mon, 2017-04-03 at 11:10 +0300, Denys Fedoryshchenko wrote:
 
-This can prevent the nft utility from printing out the auto generated
-seed to the user, which is unnecessary and confusing.
+> I modified patch a little as:
+> if (th->doff * 4 < sizeof(_tcph)) {
+>   par->hotdrop = true;
+>   WARN_ON_ONCE(!tcpinfo->option);
+>   return false;
+> }
+> 
+> And it did triggered WARN once at morning, and didn't hit KASAN. I will 
+> run for a while more, to see if it is ok, and then if stable, will try 
+> to enable SFQ again.
 
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
----
- net/netfilter/nft_hash.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
-
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index eb2721a..c4dad12 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -21,6 +21,7 @@ struct nft_hash {
- 	enum nft_registers      sreg:8;
- 	enum nft_registers      dreg:8;
- 	u8			len;
-+	bool			autogen_seed:1;
- 	u32			modulus;
- 	u32			seed;
- 	u32			offset;
-@@ -82,10 +83,12 @@ static int nft_hash_init(const struct nft_ctx *ctx,
- 	if (priv->offset + priv->modulus - 1 < priv->offset)
- 		return -EOVERFLOW;
- 
--	if (tb[NFTA_HASH_SEED])
-+	if (tb[NFTA_HASH_SEED]) {
- 		priv->seed = ntohl(nla_get_be32(tb[NFTA_HASH_SEED]));
--	else
-+	} else {
-+		priv->autogen_seed = true;
- 		get_random_bytes(&priv->seed, sizeof(priv->seed));
-+	}
- 
- 	return nft_validate_register_load(priv->sreg, len) &&
- 	       nft_validate_register_store(ctx, priv->dreg, NULL,
-@@ -105,7 +108,8 @@ static int nft_hash_dump(struct sk_buff *skb,
- 		goto nla_put_failure;
- 	if (nla_put_be32(skb, NFTA_HASH_MODULUS, htonl(priv->modulus)))
- 		goto nla_put_failure;
--	if (nla_put_be32(skb, NFTA_HASH_SEED, htonl(priv->seed)))
-+	if (!priv->autogen_seed &&
-+	    nla_put_be32(skb, NFTA_HASH_SEED, htonl(priv->seed)))
- 		goto nla_put_failure;
- 	if (priv->offset != 0)
- 		if (nla_put_be32(skb, NFTA_HASH_OFFSET, htonl(priv->offset)))
--- 
-2.5.5
+Excellent news !
+We will post an official fix today, thanks a lot for this detective work
+Denys.
 
 
