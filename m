@@ -1,35 +1,41 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH] net: netfilter: Use seq_puts()/seq_putc() where possible
-Date: Tue, 4 Apr 2017 13:59:48 -0400
-Message-ID: <20170404175948.GD7257@verge.net.au>
-References: <20170328215517.GA18237@singhal-Inspiron-5558>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] src: fix build warning on i686
+Date: Tue,  4 Apr 2017 20:46:01 +0200
+Message-ID: <20170404184601.15961-1-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: wensong@linux-vs.org, Julian Anastasov <ja@ssi.bg>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com
-To: simran singhal <singhalsimran0@gmail.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170328215517.GA18237@singhal-Inspiron-5558>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37120 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752166AbdDDSoS (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 4 Apr 2017 14:44:18 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 29, 2017 at 03:25:17AM +0530, simran singhal wrote:
-> For string without format specifiers, use seq_puts(). For
-> seq_printf("\n"), use seq_putc('\n').
-> 
-> Signed-off-by: simran singhal <singhalsimran0@gmail.com>
-> ---
->  net/netfilter/ipvs/ip_vs_ctl.c          | 8 ++++----
+datatype.c:182:13: warning: format ‘%lu’ expects argument of type ‘long unsigned int’, but argument 2 has type ‘uint64_t {aka long long unsigned int}’ [-Wformat=] printf("%lu", val);
 
-Simran, I would be happy to pick up the IPVS version if it was posted as a
-separate patch.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/datatype.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Alternative, Pablo, if you would like to take this patch feel free to add:
+diff --git a/src/datatype.c b/src/datatype.c
+index 06a045b..d2eed76 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -179,7 +179,7 @@ void symbolic_constant_print(const struct symbol_table *tbl,
+ 		printf("\"");
+ 
+ 	if (numeric_output > NUMERIC_ALL)
+-		printf("%lu", val);
++		printf("%"PRIu64"", val);
+ 	else
+ 		printf("%s", s->identifier);
+ 
+-- 
+2.9.3
 
-Acked-by: Simon Horman <horms+renesas@verge.net.au>
