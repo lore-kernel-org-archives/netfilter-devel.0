@@ -1,16 +1,16 @@
 From: Skylar Chang <chiaweic@codeaurora.org>
-Subject: [PATCH] libnfnetlink: Add API support for passing bound file descriptor
-Date: Mon,  3 Apr 2017 15:44:27 -0700
-Message-ID: <1491259467-21230-1-git-send-email-chiaweic@codeaurora.org>
+Subject: [PATCH] libnetfilter_conntrack: Add API support for passing bound file descriptor
+Date: Mon,  3 Apr 2017 17:01:10 -0700
+Message-ID: <1491264070-4855-1-git-send-email-chiaweic@codeaurora.org>
 Cc: Skylar Chang <chiaweic@codeaurora.org>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+To: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
         npendhar@codeaurora.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from wolverine02.qualcomm.com ([199.106.114.251]:37248 "EHLO
+Received: from wolverine02.qualcomm.com ([199.106.114.251]:42006 "EHLO
         wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751515AbdDCWod (ORCPT
+        with ESMTP id S1751845AbdDDABP (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 3 Apr 2017 18:44:33 -0400
+        Mon, 3 Apr 2017 20:01:15 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -19,244 +19,158 @@ privileged process for creating a handle. Also clean-up
 the handle without close the passing file descriptor. This
 paves the path for privilege separation.
 
-Signed-off-by: Skylar Chang <chiaweic@codeaurora.org>
+Change-Id: I815fb20cf1aadf931679d9470e6977a45681b4c9
 ---
- include/libnfnetlink/libnfnetlink.h |   7 +++
- src/libnfnetlink.c                  | 116 ++++++++++++++++++++++++++++++------
- 2 files changed, 106 insertions(+), 17 deletions(-)
+ .../libnetfilter_conntrack.h                       |  6 ++
+ src/main.c                                         | 69 +++++++++++++++++++---
+ 2 files changed, 68 insertions(+), 7 deletions(-)
 
-diff --git a/include/libnfnetlink/libnfnetlink.h b/include/libnfnetlink/libnfnetlink.h
-index cd0be3d..437eb55 100644
---- a/include/libnfnetlink/libnfnetlink.h
-+++ b/include/libnfnetlink/libnfnetlink.h
-@@ -19,6 +19,7 @@
- #include <sys/socket.h>	/* for sa_family_t */
- #include <linux/netlink.h>
- #include <libnfnetlink/linux_nfnetlink.h>
-+#include <stdbool.h>
+diff --git a/include/libnetfilter_conntrack/libnetfilter_conntrack.h b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
+index b8d458c..1bc3529 100644
+--- a/include/libnetfilter_conntrack/libnetfilter_conntrack.h
++++ b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
+@@ -40,10 +40,16 @@ struct nfct_handle;
+  * [Open|close] a conntrack handler
+  */
+ extern struct nfct_handle *nfct_open(uint8_t, unsigned);
++extern struct nfct_handle *nfct_open2(uint8_t, unsigned, int);
+ extern struct nfct_handle *nfct_open_nfnl(struct nfnl_handle *nfnlh,
+ 					  uint8_t subsys_id,
+ 					  unsigned int subscriptions);
++extern struct nfct_handle *nfct_open_nfnl2(struct nfnl_handle *nfnlh,
++					  uint8_t subsys_id,
++					  unsigned int subscriptions,
++					  bool bind);
+ extern int nfct_close(struct nfct_handle *cth);
++extern int nfct_close2(struct nfct_handle *cth, bool keep_fd);
  
- #ifndef NETLINK_NETFILTER
- #define NETLINK_NETFILTER 12
-@@ -67,11 +68,17 @@ extern unsigned int nfnl_portid(const struct nfnl_handle *h);
- 
- /* get a new library handle */
- extern struct nfnl_handle *nfnl_open(void);
-+extern struct nfnl_handle *nfnl_open2(int fd, bool bind);
- extern int nfnl_close(struct nfnl_handle *);
-+extern int nfnl_close2(struct nfnl_handle *);
- 
- extern struct nfnl_subsys_handle *nfnl_subsys_open(struct nfnl_handle *, 
- 						   uint8_t, uint8_t,
- 						   unsigned int);
-+extern struct nfnl_subsys_handle *nfnl_subsys_open2(struct nfnl_handle *,
-+						   u_int8_t, u_int8_t,
-+						   unsigned int,
-+						   bool bind);
- extern void nfnl_subsys_close(struct nfnl_subsys_handle *);
- 
- /* set and unset sequence tracking */
-diff --git a/src/libnfnetlink.c b/src/libnfnetlink.c
-index df57533..9fba98e 100644
---- a/src/libnfnetlink.c
-+++ b/src/libnfnetlink.c
-@@ -161,6 +161,18 @@ static int recalc_rebind_subscriptions(struct nfnl_handle *nfnlh)
- 	return 0;
- }
- 
-+static void recalc_subscriptions(struct nfnl_handle *nfnlh)
-+{
-+	int i;
-+	u_int32_t new_subscriptions = nfnlh->subscriptions;
-+
-+	for (i = 0; i < NFNL_MAX_SUBSYS; i++)
-+		new_subscriptions |= nfnlh->subsys[i].subscriptions;
-+
-+	nfnlh->local.nl_groups = new_subscriptions;
-+	nfnlh->subscriptions = new_subscriptions;
-+}
-+
- /**
-  * nfnl_open - open a nfnetlink handler
-  *
-@@ -173,16 +185,42 @@ static int recalc_rebind_subscriptions(struct nfnl_handle *nfnlh)
- struct nfnl_handle *nfnl_open(void)
+ extern int nfct_fd(struct nfct_handle *cth);
+ extern const struct nfnl_handle *nfct_nfnlh(struct nfct_handle *cth);
+diff --git a/src/main.c b/src/main.c
+index 2cbf79e..a136088 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -16,29 +16,38 @@ struct nfct_handle *nfct_open_nfnl(struct nfnl_handle *nfnlh,
+ 				   uint8_t subsys_id,
+ 				   unsigned int subscriptions)
  {
- 	struct nfnl_handle *nfnlh;
-+	int fd;
 +
-+	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_NETFILTER);
-+	if (fd == -1)
-+		return NULL;
-+	nfnlh = nfnl_open2(fd, true);
-+	if (nfnlh == NULL)
-+		close(fd);
-+	return nfnlh;
++	return nfct_open_nfnl2(nfnlh, subsys_id, subscriptions, true);
 +}
 +
-+/**
-+ * nfnl_open2 - open a nfnetlink handler
-+ * @fd: passing file descriptor
-+ * @bind:  indicate the passing fd needs to be binded or not
-+ *
-+ * This function creates a nfnetlink handler, this is required to establish
-+ * a communication between the userspace and the nfnetlink system.
-+ *
-+ * On success, a valid address that points to a nfnl_handle structure
-+ * is returned. On error, NULL is returned and errno is set approapiately.
-+ */
-+struct nfnl_handle *nfnl_open2(int fd, bool bind)
++struct nfct_handle *nfct_open_nfnl2(struct nfnl_handle *nfnlh,
++				   uint8_t subsys_id,
++				   unsigned int subscriptions, bool bind)
 +{
-+	struct nfnl_handle *nfnlh;
- 	unsigned int addr_len;
+ 	struct nfct_handle *cth;
  
-+	if (!fd)
-+		goto err;
-+
- 	nfnlh = malloc(sizeof(*nfnlh));
- 	if (!nfnlh)
+ 	cth = malloc(sizeof(struct nfct_handle));
+ 	if (!cth)
  		return NULL;
+-	
+ 	memset(cth, 0, sizeof(*cth));
+ 	cth->nfnlh = nfnlh;
  
- 	memset(nfnlh, 0, sizeof(*nfnlh));
--	nfnlh->fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_NETFILTER);
--	if (nfnlh->fd == -1)
--		goto err_free;
-+	nfnlh->fd = fd;
- 
- 	nfnlh->local.nl_family = AF_NETLINK;
- 	nfnlh->peer.nl_family = AF_NETLINK;
-@@ -191,11 +229,11 @@ struct nfnl_handle *nfnl_open(void)
- 	getsockname(nfnlh->fd, (struct sockaddr *)&nfnlh->local, &addr_len);
- 	if (addr_len != sizeof(nfnlh->local)) {
- 		errno = EINVAL;
--		goto err_close;
-+		goto err_free;
+ 	if (subsys_id == 0 || subsys_id == NFNL_SUBSYS_CTNETLINK) {
+-		cth->nfnlssh_ct = nfnl_subsys_open(cth->nfnlh, 
+-						   NFNL_SUBSYS_CTNETLINK, 
++		cth->nfnlssh_ct = nfnl_subsys_open2(cth->nfnlh,
++						   NFNL_SUBSYS_CTNETLINK,
+ 						   IPCTNL_MSG_MAX,
+-						   subscriptions);
++						   subscriptions,
++						   bind);
+ 		if (!cth->nfnlssh_ct)
+ 			goto out_free;
  	}
- 	if (nfnlh->local.nl_family != AF_NETLINK) {
- 		errno = EINVAL;
--		goto err_close;
-+		goto err_free;
+ 
+ 	if (subsys_id == 0 || subsys_id == NFNL_SUBSYS_CTNETLINK_EXP) {
+-		cth->nfnlssh_exp = nfnl_subsys_open(cth->nfnlh,
++		cth->nfnlssh_exp = nfnl_subsys_open2(cth->nfnlh,
+ 						    NFNL_SUBSYS_CTNETLINK_EXP,
+ 						    IPCTNL_MSG_EXP_MAX,
+-						    subscriptions);
++						    subscriptions,
++						    bind);
+ 		if (!cth->nfnlssh_exp)
+ 			goto out_free;
  	}
- 	nfnlh->seq = time(NULL);
- 	nfnlh->rcv_buffer_size = NFNL_BUFFSIZE;
-@@ -204,25 +242,28 @@ struct nfnl_handle *nfnl_open(void)
- 	 * binding to pid '0' will default */
- 
- 	/* let us do the initial bind */
--	if (recalc_rebind_subscriptions(nfnlh) < 0)
--		goto err_close;
-+	if (bind) {
-+		if (recalc_rebind_subscriptions(nfnlh) < 0)
-+			goto err_free;
-+	} else {
-+		recalc_subscriptions(nfnlh);
-+	}
- 
- 	/* use getsockname to get the netlink pid that the kernel assigned us */
- 	addr_len = sizeof(nfnlh->local);
- 	getsockname(nfnlh->fd, (struct sockaddr *)&nfnlh->local, &addr_len);
- 	if (addr_len != sizeof(nfnlh->local)) {
- 		errno = EINVAL;
--		goto err_close;
-+		goto err_free;
- 	}
- 	/* sequence tracking enabled by default */
- 	nfnlh->flags |= NFNL_F_SEQTRACK_ENABLED;
- 
- 	return nfnlh;
- 
--err_close:
--	close(nfnlh->fd);
- err_free:
- 	free(nfnlh);
-+err:
+@@ -57,7 +66,6 @@ out_free:
+ 	free(cth);
  	return NULL;
  }
- 
-@@ -276,7 +317,31 @@ struct nfnl_subsys_handle *
- nfnl_subsys_open(struct nfnl_handle *nfnlh, uint8_t subsys_id,
- 		 uint8_t cb_count, uint32_t subscriptions)
- {
-+	return nfnl_subsys_open2 (nfnlh, subsys_id, cb_count, subscriptions, true);
+-
+ /**
+  * \defgroup LibrarySetup Library setup
+  * @{
+@@ -92,7 +100,39 @@ struct nfct_handle *nfct_open(uint8_t subsys_id, unsigned subscriptions)
+ 	nfcth = nfct_open_nfnl(nfnlh, subsys_id, subscriptions);
+ 	if (!nfcth)
+ 		nfnl_close(nfnlh);
++	return nfcth;
 +}
-+
+ 
 +/**
-+ * nfnl_subsys_open2 - open a netlink subsystem
-+ * @nfnlh: libnfnetlink handle
-+ * @subsys_id: which nfnetlink subsystem we are interested in
-+ * @cb_count: number of callbacks that are used maximum.
-+ * @subscriptions: netlink groups we want to be subscribed to
-+ * @bind: indicate the passing fd needs to be binded or not
++ * nfct_open2 - open a ctnetlink handler by given fd
++ * \param subsys_id can be NFNL_SUBSYS_CTNETLINK or NFNL_SUBSYS_CTNETLINK_EXP
++ * \param subscriptions ctnetlink groups to subscribe to events
++ * \param fd use bound file descriptor to get nfnl_handle
 + *
-+ * This function creates a subsystem handler that contains the set of
-+ * callbacks that handle certain types of messages coming from a netfilter
-+ * subsystem. Initially the callback set is empty, you can register callbacks
-+ * via nfnl_callback_register().
++ * This function returns a handler to send commands to and receive replies from
++ * kernel-space. You can pass the following subsystem IDs:
 + *
-+ * On error, NULL is returned and errno is set appropiately. On success,
-+ * a valid address that points to a nfnl_subsys_handle structure is returned.
++ * - NFNL_SUBSYS_CTNETLINK: if you are only interested in conntrack operations
++ * (excluding expectations).
++ * - NFNL_SUBSYS_CTNETLINK_EXP: if you are only interested in expectation
++ * operations (exclude conntracks).
++ * - NFNL_SUBSYS_NONE: if you are interested in both conntrack and expectation
++ * operations.
++ *
++ * On error, NULL is returned and errno is explicitly set.
 + */
-+struct nfnl_subsys_handle *
-+nfnl_subsys_open2(struct nfnl_handle *nfnlh, u_int8_t subsys_id,
-+		 u_int8_t cb_count, u_int32_t subscriptions, bool bind)
++struct nfct_handle *nfct_open2(uint8_t subsys_id, unsigned subscriptions, int fd)
 +{
- 	struct nfnl_subsys_handle *ssh;
-+	int err = 0;
- 
- 	assert(nfnlh);
- 
-@@ -302,12 +367,15 @@ nfnl_subsys_open(struct nfnl_handle *nfnlh, uint8_t subsys_id,
- 
- 	/* although now we have nfnl_join to subscribe to certain
- 	 * groups, just keep this to ensure compatibility */
--	if (recalc_rebind_subscriptions(nfnlh) < 0) {
-+	if (bind)
-+		err = recalc_rebind_subscriptions(nfnlh);
-+	else
-+		recalc_subscriptions(nfnlh);
-+	if (err < 0) {
- 		free(ssh->cb);
- 		ssh->cb = NULL;
- 		return NULL;
- 	}
--	
- 	return ssh;
++	struct nfnl_handle *nfnlh = nfnl_open2(fd, false);
++	struct nfct_handle *nfcth;
++
++	if (!nfnlh)
++		return NULL;
++
++	nfcth = nfct_open_nfnl2(nfnlh, subsys_id, subscriptions, false);
++	if (!nfcth) {
++		nfnl_close2(nfnlh);
++	}
+ 	return nfcth;
  }
  
-@@ -338,16 +406,30 @@ void nfnl_subsys_close(struct nfnl_subsys_handle *ssh)
+@@ -104,6 +144,18 @@ struct nfct_handle *nfct_open(uint8_t subsys_id, unsigned subscriptions)
   */
- int nfnl_close(struct nfnl_handle *nfnlh)
+ int nfct_close(struct nfct_handle *cth)
  {
--	int i, ret;
-+	int ret;
- 
- 	assert(nfnlh);
--
--	for (i = 0; i < NFNL_MAX_SUBSYS; i++)
--		nfnl_subsys_close(&nfnlh->subsys[i]);
--
- 	ret = close(nfnlh->fd);
- 	if (ret < 0)
- 		return ret;
-+	return nfnl_close2(nfnlh);
++	return nfct_close2(cth, false);
 +}
 +
 +/**
-+ * nfnl_close2 - close a nfnetlink handler but keep fd
-+ * @nfnlh: nfnetlink handler
++ * nfct_close2 - close a ctnetlink handler
++ * \param cth handler obtained via nfct_open()
++ * \param keep_fd to indicate not close the file descriptor
 + *
-+ * This function closes the nfnetlink handler. On success, 0 is returned.
-+ * On error, -1 is returned and errno is set appropiately.
++ * This function returns -1 on error and errno is explicitly set.
 + */
-+int nfnl_close2(struct nfnl_handle *nfnlh)
++int nfct_close2(struct nfct_handle *cth, bool keep_fd)
 +{
-+	int i;
-+
-+	assert(nfnlh);
-+
-+	for (i = 0; i < NFNL_MAX_SUBSYS; i++)
-+		nfnl_subsys_close(&nfnlh->subsys[i]);
+ 	int err;
  
- 	free(nfnlh);
+ 	if (cth->nfnlssh_exp) {
+@@ -131,6 +183,9 @@ int nfct_close(struct nfct_handle *cth)
+ 	cth->nfnl_cb_exp.data = NULL;
+ 	cth->nfnl_cb_exp.attr_count = 0;
+ 
++	if (keep_fd)
++		err = nfnl_close2(cth->nfnlh);
++	else
+ 	err = nfnl_close(cth->nfnlh);
+ 	free(cth);
  
 -- 
 1.9.1
