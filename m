@@ -1,63 +1,51 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH] net: netfilters: Remove unnecessary parenthesis
-Date: Tue, 4 Apr 2017 13:48:16 -0400
-Message-ID: <20170404174816.GC7257@verge.net.au>
-References: <20170328132648.GA6644@arushi-HP-Pavilion-Notebook>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] net: netfilter: Replace explicit NULL comparison with !
+ operator
+Date: Tue, 4 Apr 2017 19:56:00 +0200
+Message-ID: <20170404175600.GB1154@salvia>
+References: <20170329101406.GA29770@arushi-HP-Pavilion-Notebook>
+ <20170404174111.GB7257@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: wensong@linux-vs.org, Julian Anastasov <ja@ssi.bg>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc: wensong@linux-vs.org, Simon Horman <horms@verge.net.au>,
+        outreachy-kernel@googlegroups.com, Julian Anastasov <ja@ssi.bg>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         davem@davemloft.net, netdev@vger.kernel.org,
         lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com
+        coreteam@netfilter.org, linux-kernel@vger.kernel.org
 To: Arushi Singhal <arushisinghal19971997@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:57416 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755208AbdDDRsV (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 4 Apr 2017 13:48:21 -0400
+Received: from mail.us.es ([193.147.175.20]:48610 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753188AbdDDR4K (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 4 Apr 2017 13:56:10 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E6406FF2D2
+        for <netfilter-devel@vger.kernel.org>; Tue,  4 Apr 2017 19:56:05 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D462C9D699
+        for <netfilter-devel@vger.kernel.org>; Tue,  4 Apr 2017 19:56:05 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9A3A49D692
+        for <netfilter-devel@vger.kernel.org>; Tue,  4 Apr 2017 19:56:03 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20170328132648.GA6644@arushi-HP-Pavilion-Notebook>
+In-Reply-To: <20170404174111.GB7257@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 28, 2017 at 06:56:48PM +0530, Arushi Singhal wrote:
-> Rmoved parentheses on the right hand side of assignment, as they are
-> not required. The following coccinelle script was used to fix this
-> issue:
+On Tue, Apr 04, 2017 at 01:41:11PM -0400, Simon Horman wrote:
+> On Wed, Mar 29, 2017 at 03:45:01PM +0530, Arushi Singhal wrote:
+> > Replace explicit NULL comparison with ! operator to simplify code.
+> > 
+> > Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
+> > ---
+> >  net/netfilter/ipvs/ip_vs_ctl.c         |  8 ++---
+> >  net/netfilter/ipvs/ip_vs_proto.c       |  8 ++---
 > 
-> @@
-> local idexpression id;
-> expression e;
-> @@
-> 
-> id =
-> -(
-> e
-> -)
-> 
-> Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
-> ---
->  net/netfilter/ipvs/ip_vs_proto_tcp.c   | 2 +-
+> I count 18 instances of "!= NULL in net/netfilter/ipvs/ip_vs_proto but this
+> patch only seems to update 8 of them. I would prefer to fix all or none of
+> them.
 
-grep seems to find some other instances of this problem for IPVS.
-I would prefer if all of them were fixed.
+Agreed.
 
-$ grep -n "= *(.*);" net/netfilter/ipvs/*
-After some manual filtering I see
-
-net/netfilter/ipvs/ip_vs_ctl.c:113:     nomem = (availmem < ipvs->sysctl_amemthresh);
-net/netfilter/ipvs/ip_vs_ctl.c:279:     ahash ^= ((size_t) ipvs >> 8);
-net/netfilter/ipvs/ip_vs_proto_tcp.c:490:       int on = (flags & 1);          /* secure_tcp */
-net/netfilter/ipvs/ip_vs_proto_tcp.c:498:       pd->tcp_state_table = (on ? tcp_states_dos : tcp_states);
-net/netfilter/ipvs/ip_vs_sync.c:719:    s->v4.type = (cp->af == AF_INET6 ? STYPE_F_INET6 : 0);
-net/netfilter/ipvs/ip_vs_sync.c:948:                    cp->timeout = (3*60*HZ)
-
-As mentioned elsewhere: If you would like me to pick up patches for IPVS
-then please post patches that only update IPVS files. I'm also happy for
-Pablo to pick up patches that include both IPVS and non-IPVS Netfilter
-updates of this nature.  Pablo can offer his own guidance here.
-
+Please address all instances and resubmit.
