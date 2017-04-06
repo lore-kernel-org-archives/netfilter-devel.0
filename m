@@ -1,70 +1,57 @@
-From: "Gao Feng" <gfree.wind@foxmail.com>
-Subject: RE: [PATCH nf 1/1] netfilter: xt_CT: Fix one possible memleak of timeout
-Date: Thu, 6 Apr 2017 19:21:32 +0800
-Message-ID: <006401d2aec7$f284cc80$d78e6580$@foxmail.com>
-References: <1491476698-45220-1-git-send-email-gfree.wind@foxmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/2] iptables: Remove explicit static variables
+ initalization.
+Date: Thu, 6 Apr 2017 18:22:14 +0200
+Message-ID: <20170406162214.GA5655@salvia>
+References: <cover.1490815157.git.rvarsha016@gmail.com>
+ <58dc0a89.549c620a.6eb0a.5c33@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: <gfree.wind@foxmail.com>, <pablo@netfilter.org>,
-        <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+        outreachy-kernel <outreachy-kernel@googlegroups.com>
+To: Varsha Rao <rvarsha016@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg202.qq.com ([184.105.206.29]:37869 "EHLO smtpbg202.qq.com"
+Received: from mail.us.es ([193.147.175.20]:32986 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751415AbdDFLVf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Apr 2017 07:21:35 -0400
-In-Reply-To: <1491476698-45220-1-git-send-email-gfree.wind@foxmail.com>
-Content-Language: zh-cn
+        id S934201AbdDFQWg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 6 Apr 2017 12:22:36 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CBC3D11ADC7
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Apr 2017 18:22:31 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BB814DA86B
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Apr 2017 18:22:31 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B4BB9DA872
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Apr 2017 18:22:29 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <58dc0a89.549c620a.6eb0a.5c33@mx.google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi All,
+On Thu, Mar 30, 2017 at 12:57:02AM +0530, Varsha Rao wrote:
+> Static variables are initialized to zero by default, so remove explicit
+> initalization. This patch fixes the checkpatch issue.
 
-> -----Original Message-----
-> From: gfree.wind@foxmail.com [mailto:gfree.wind@foxmail.com]
-> Sent: Thursday, April 6, 2017 7:05 PM
-> To: pablo@netfilter.org; netfilter-devel@vger.kernel.org
-> Cc: Gao Feng <fgao@ikuai8.com>
-> Subject: [PATCH nf 1/1] netfilter: xt_CT: Fix one possible memleak of
-timeout
-> 
-> From: Gao Feng <fgao@ikuai8.com>
-> 
-> When nf_ct_timeout_ext_add failed in xt_ct_set_timeout, it should free the
-> timeout refcnt.
-> 
-> Now goto the err_put_timeout error handler instead of going ahead.
-> 
-> Signed-off-by: Gao Feng <fgao@ikuai8.com>
-> ---
->  net/netfilter/xt_CT.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c index
-> b008db0..3cd812c 100644
-> --- a/net/netfilter/xt_CT.c
-> +++ b/net/netfilter/xt_CT.c
-> @@ -168,7 +168,7 @@ static void __xt_ct_tg_timeout_put(struct ctnl_timeout
-> *timeout)
->  	}
->  	timeout_ext = nf_ct_timeout_ext_add(ct, timeout, GFP_ATOMIC);
->  	if (timeout_ext == NULL)
-> -		ret = -ENOMEM;
-> +		goto err_put_timeout;
-> 
->  	rcu_read_unlock();
->  	return ret;
-> --
-> 1.9.1
-> 
-Sorry, please ignore this patch.
-I have sent the v2 patch which keep the -ENOMEM assignment.
+Applied.
 
-Regards
-Feng 
+But I had to add this chunk:
 
+diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
+index a551c8c19f7f..6afa0d0ec5b1 100644
+--- a/iptables/xtables-restore.c
++++ b/iptables/xtables-restore.c
+@@ -24,7 +24,7 @@
+ #define DEBUGP(x, args...)
+ #endif
+ 
+-static int counters = 0, verbose = 0, noflush = 0;
++static int counters, verbose, noflush;
+ 
+ /* Keeping track of external matches and targets.  */
+ static const struct option options[] = {
 
+You have to be more careful. It's good if you just fix all spots in
+one single go.
 
-
-
+Thanks!
