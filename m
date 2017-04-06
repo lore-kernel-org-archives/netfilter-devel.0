@@ -1,78 +1,66 @@
-From: "Gao Feng" <gfree.wind@foxmail.com>
-Subject: RE: [PATCH nf-next v2 1/1] netfilter: nat: Correct the return value check for nat mangled packet
-Date: Fri, 7 Apr 2017 06:20:33 +0800
-Message-ID: <001901d2af24$026e6b40$074b41c0$@foxmail.com>
-References: <1490627528-32491-1-git-send-email-gfree.wind@foxmail.com> <20170406191819.GA3749@salvia> <20170406192450.GA4195@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC v2] extensions: libxt_TOS: Add translation to nft
+Date: Fri, 7 Apr 2017 00:43:24 +0200
+Message-ID: <20170406224324.GA1661@salvia>
+References: <1490727018-25703-1-git-send-email-gs051095@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>, "'Gao Feng'" <fgao@ikuai8.com>
-To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: gsoc2013@lists.netfilter.org, netfilter-devel@vger.kernel.org
+To: Gargi Sharma <gs051095@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpproxy19.qq.com ([184.105.206.84]:55919 "EHLO
-        smtpproxy19.qq.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752226AbdDFWUg (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Apr 2017 18:20:36 -0400
-In-Reply-To: 
-Content-Language: zh-cn
+Received: from mail.us.es ([193.147.175.20]:38088 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751938AbdDFWnk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 6 Apr 2017 18:43:40 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id BA23D137B8B
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Apr 2017 00:43:36 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A9922DA804
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Apr 2017 00:43:36 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2CCEDDA848
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Apr 2017 00:43:33 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <1490727018-25703-1-git-send-email-gs051095@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> -----Original Message-----
-> From: Gao Feng [mailto:gfree.wind@foxmail.com]
-> Sent: Friday, April 7, 2017 6:16 AM
-> To: 'Pablo Neira Ayuso' <pablo@netfilter.org>
-> Cc: 'netfilter-devel@vger.kernel.org' <netfilter-devel@vger.kernel.org>;
-'Gao
-> Feng' <fgao@ikuai8.com>
-> Subject: RE: [PATCH nf-next v2 1/1] netfilter: nat: Correct the return
-value
-> check for nat mangled packet
+On Wed, Mar 29, 2017 at 12:20:18AM +0530, Gargi Sharma wrote:
+> Add translation for TOS to nftables. TOS is deprecated
+> ans DSCP is ued in place of it. The first 6 bits of
+> TOS specify the DSCP value.
 > 
-> Hi Palbo,
+> Examples:
 > 
-> > -----Original Message-----
-> > From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
-> > Sent: Friday, April 7, 2017 3:25 AM
-> > To: gfree.wind@foxmail.com
-> > Cc: netfilter-devel@vger.kernel.org; Gao Feng <fgao@ikuai8.com>
-> > Subject: Re: [PATCH nf-next v2 1/1] netfilter: nat: Correct the return
-> > value check for nat mangled packet
-> >
-> > On Thu, Apr 06, 2017 at 09:18:19PM +0200, Pablo Neira Ayuso wrote:
-> > > On Mon, Mar 27, 2017 at 11:12:08PM +0800, gfree.wind@foxmail.com
-> > wrote:
-> > > > From: Gao Feng <fgao@ikuai8.com>
-> > > >
-> > > > The return value type of function nf_nat_mangle_tcp/udp_packet is
-> > > > int, but actually it is used as bool type. And most codes follow
-> > > > this rule, for example, the sip, h323, and ftp. But some codes
-> > > > treat the return value as NF_ACCEPT and NF_DROP, like amanda and
-irc.
-> > > >
-> > > > Now use the bool type instead of the int to make it clear.
-> > >
-> > > One spot still not converted.
-> > >
-> > > I'm going to collapse this patch to yours. Please review so you
-> > > don't have to send a v3.
-> >
-> > And if this chunk looks good to you, I'll apply this patch with this
-> > title:
-> >
-> > netfilter: nf_nat: nf_nat_mangle_{udp,tcp}_packet returns Boolean
-> 
-> Thanks, it is ok to me.
-> 
-> Best Regards
-> Feng
+> $ iptables-translate -t mangle -A PREROUTING -p TCP --dport 22 -j TOS --set-tos 0x10
+> nft add rule ip mangle PREROUTING tcp dport 22 counter  ip6 dscp set 0x04
 
-Sorry, I misspelled your name in the last email.
+Applied, but I had to mangle this patch.
 
-Best Regards
-Feng
+Coding style is not correct, for two reason, see below.
 
+> diff --git a/extensions/libxt_TOS.c b/extensions/libxt_TOS.c
+> index cef5876..f284d83 100644
+> --- a/extensions/libxt_TOS.c
+> +++ b/extensions/libxt_TOS.c
+> @@ -183,6 +183,30 @@ static void tos_tg_save(const void *ip, const struct xt_entry_target *target)
+>  	printf(" --set-tos 0x%02x/0x%02x", info->tos_value, info->tos_mask);
+>  }
+>  
+> +static int tos_xlate(struct xt_xlate *xl,
+> +		     const struct xt_xlate_tg_params *params)
+> +{
+> +	const struct ipt_tos_target_info *info =
+> +			(struct ipt_tos_target_info *) params->target->data;
+> +
+^^^
+No need for new line here.
 
+> +	__u8 dscp = (info->tos)>>2;
 
+Missing space here between declaration and code.
+You can just use uint8_t from stdint.h BTW.
+And the parens are not required, plus missing spaces:
+
+	__u8 dscp = info->tos >> 2;
