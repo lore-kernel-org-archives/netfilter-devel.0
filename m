@@ -1,72 +1,79 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables] tests: add regression tests for
- xtables-translate
-Date: Fri, 7 Apr 2017 00:58:15 +0200
-Message-ID: <20170406225815.GA3041@salvia>
-References: <20170331123438.29573-1-pablombg@gmail.com>
+Subject: Re: [PATCH] net: ipv4: netfilter: Remove unused function
+ nf_nat_need_gre()
+Date: Fri, 7 Apr 2017 01:06:14 +0200
+Message-ID: <20170406230614.GA20513@salvia>
+References: <20170401133633.GA2208@singhal-Inspiron-5558>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        James Morris <jmorris@namei.org>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Patrick McHardy <kaber@trash.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: simran singhal <singhalsimran0@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40212 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41372 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751039AbdDFW6X (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Apr 2017 18:58:23 -0400
+        id S1752775AbdDFXGZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 6 Apr 2017 19:06:25 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DFDCB137B8A
-        for <netfilter-devel@vger.kernel.org>; Fri,  7 Apr 2017 00:58:18 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 0B72D137B8E
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Apr 2017 01:06:21 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CEEB8DA729
-        for <netfilter-devel@vger.kernel.org>; Fri,  7 Apr 2017 00:58:18 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id ED39EDA86B
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Apr 2017 01:06:20 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 18030DA804
-        for <netfilter-devel@vger.kernel.org>; Fri,  7 Apr 2017 00:58:16 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C1B94DA86E
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Apr 2017 01:06:18 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20170331123438.29573-1-pablombg@gmail.com>
+In-Reply-To: <20170401133633.GA2208@singhal-Inspiron-5558>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Mar 31, 2017 at 02:34:38PM +0200, Pablo M. Bermudo Garay wrote:
-> This test suite is intended to detect regressions in the translation
-> infrastructure. The script checks if ip[6]tables-translate produces the
-> expected output, otherwise it prints the wrong translation and the
-> expected one.
+On Sat, Apr 01, 2017 at 07:06:33PM +0530, simran singhal wrote:
+> The function nf_nat_need_gre() on being called, simply returns
+> back. The function doesn't have FIXME code around.
+> Hence, nf_nat_need_gre() and its calls have been removed.
 > 
-> ** Arguments
+> Signed-off-by: simran singhal <singhalsimran0@gmail.com>
+> ---
+>  net/ipv4/netfilter/nf_nat_pptp.c      | 2 --
+>  net/ipv4/netfilter/nf_nat_proto_gre.c | 6 ------
+>  2 files changed, 8 deletions(-)
 > 
->   --all     # Show also passed tests
->   [test]    # Run only the specified test file
-> 
-> ** Test files structure
-> 
-> Test files are located under extensions directory. Every file contains
-> tests about specific extension translations. A test file name must end
-> with ".txlate".
-> 
-> Inside the files, every single test is defined by two consecutive lines:
-> ip[6]tables-translate command and expected result. One blank line is left
-> between tests by convention.
-> 
-> e.g.
-> 
->   $ cat extensions/libxt_cpu.txlate
->   iptables-translate -A INPUT -p tcp --dport 80 -m cpu --cpu 0 -j ACCEPT
->   nft add rule ip filter INPUT tcp dport 80 cpu 0 counter accept
-> 
->   iptables-translate -A INPUT -p tcp --dport 80 -m cpu ! --cpu 1 -j ACCEPT
->   nft add rule ip filter INPUT tcp dport 80 cpu != 1 counter accept
+> diff --git a/net/ipv4/netfilter/nf_nat_pptp.c b/net/ipv4/netfilter/nf_nat_pptp.c
+> index b3ca21b..747e737 100644
+> --- a/net/ipv4/netfilter/nf_nat_pptp.c
+> +++ b/net/ipv4/netfilter/nf_nat_pptp.c
+> @@ -282,8 +282,6 @@ pptp_inbound_pkt(struct sk_buff *skb,
+>  
+>  static int __init nf_nat_helper_pptp_init(void)
+>  {
+> -	nf_nat_need_gre();
+> -
+>  	BUG_ON(nf_nat_pptp_hook_outbound != NULL);
+>  	RCU_INIT_POINTER(nf_nat_pptp_hook_outbound, pptp_outbound_pkt);
+>  
+> diff --git a/net/ipv4/netfilter/nf_nat_proto_gre.c b/net/ipv4/netfilter/nf_nat_proto_gre.c
+> index edf0500..c020a4d 100644
+> --- a/net/ipv4/netfilter/nf_nat_proto_gre.c
+> +++ b/net/ipv4/netfilter/nf_nat_proto_gre.c
+> @@ -142,9 +142,3 @@ static void __exit nf_nat_proto_gre_fini(void)
+>  
+>  module_init(nf_nat_proto_gre_init);
+>  module_exit(nf_nat_proto_gre_fini);
+> -
+> -void nf_nat_need_gre(void)
+> -{
+> -	return;
+> -}
+> -EXPORT_SYMBOL_GPL(nf_nat_need_gre);
 
-Nice... But how this works? :)
+There is a good reason why we have this :)
 
-# python xlate-test.py 
-Traceback (most recent call last):
-  File "xlate-test.py", line 85, in <module>
-    main()
-  File "xlate-test.py", line 78, in main
-    load_test_files()
-  File "xlate-test.py", line 65, in load_test_files
-    run_test(test, payload)
-  File "xlate-test.py", line 43, in run_test
-    output = subprocess.run(shlex.split(line), stdout=subprocess.PIPE)
-AttributeError: 'module' object has no attribute 'run'
+By digging out and doing a bit of software archeology work via the
+'git annotate' you know this triggers an explicit module dependency.
