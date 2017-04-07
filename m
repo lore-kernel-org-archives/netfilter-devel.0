@@ -1,52 +1,39 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] net: Remove unnecessary cast on void pointer
-Date: Fri, 7 Apr 2017 17:27:12 +0200
-Message-ID: <20170407152712.GA1466@salvia>
-References: <20170328190516.GA19531@singhal-Inspiron-5558>
+Subject: Re: [PATCH] net: netfilter: Use seq_puts()/seq_putc() where possible
+Date: Fri, 7 Apr 2017 17:30:22 +0200
+Message-ID: <20170407153022.GB1466@salvia>
+References: <20170328215517.GA18237@singhal-Inspiron-5558>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: gregkh@linuxfoundation.org, Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
-	linux-kernel@vger.kernel.org, James Morris <jmorris@namei.org>,
-	outreachy-kernel@googlegroups.com, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
-	Patrick McHardy <kaber@trash.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>, davem@davemloft.net
+Cc: wensong@linux-vs.org, Simon Horman <horms@verge.net.au>,
+        Julian Anastasov <ja@ssi.bg>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com
 To: simran singhal <singhalsimran0@gmail.com>
-Return-path: <bridge-bounces@lists.linux-foundation.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:52620 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755811AbdDGPa2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 7 Apr 2017 11:30:28 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 44E391324C5
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Apr 2017 17:30:24 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 30E29DA913
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Apr 2017 17:30:24 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E72D6DA874
+        for <netfilter-devel@vger.kernel.org>; Fri,  7 Apr 2017 17:30:21 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20170328190516.GA19531@singhal-Inspiron-5558>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20170328215517.GA18237@singhal-Inspiron-5558>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 29, 2017 at 12:35:16AM +0530, simran singhal wrote:
-> The following Coccinelle script was used to detect this:
-> @r@
-> expression x;
-> void* e;
-> type T;
-> identifier f;
-> @@
-> (
->   *((T *)e)
-> |
->   ((T *)x)[...]
-> |
->   ((T*)x)->f
-> |
-> 
-> - (T*)
->   e
-> )
-> 
-> Unnecessary parantheses are also remove.
+On Wed, Mar 29, 2017 at 03:25:17AM +0530, simran singhal wrote:
+> For string without format specifiers, use seq_puts(). For
+> seq_printf("\n"), use seq_putc('\n').
 
 Applied, thanks.
