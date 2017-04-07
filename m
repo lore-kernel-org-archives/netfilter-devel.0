@@ -1,38 +1,66 @@
-From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
-Subject: Re: [PATCH iptables] tests: add regression tests for xtables-translate
-Date: Fri, 7 Apr 2017 12:48:06 +0200
-Message-ID: <CAAaDf4s5CTVJBf-_efXdy3fX5bxV_7pJaqdWDO=gk-OU3iPpTg@mail.gmail.com>
-References: <20170331123438.29573-1-pablombg@gmail.com> <20170406225815.GA3041@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: gfree.wind@foxmail.com
+Subject: [PATCH nf-next 1/1] netfilter: cttimeout: Refine cttimeout_del_timeout
+Date: Fri,  7 Apr 2017 19:25:36 +0800
+Message-ID: <1491564336-44483-1-git-send-email-gfree.wind@foxmail.com>
+Cc: Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-it0-f54.google.com ([209.85.214.54]:37809 "EHLO
-        mail-it0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754815AbdDGKsJ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Apr 2017 06:48:09 -0400
-Received: by mail-it0-f54.google.com with SMTP id a140so40700050ita.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 07 Apr 2017 03:48:08 -0700 (PDT)
-In-Reply-To: <20170406225815.GA3041@salvia>
+Received: from smtpbgau2.qq.com ([54.206.34.216]:44615 "EHLO smtpbgau2.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753883AbdDGLZy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 7 Apr 2017 07:25:54 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> Nice... But how this works? :)
->
-> # python xlate-test.py
-> Traceback (most recent call last):
->   File "xlate-test.py", line 85, in <module>
->     main()
->   File "xlate-test.py", line 78, in main
->     load_test_files()
->   File "xlate-test.py", line 65, in load_test_files
->     run_test(test, payload)
->   File "xlate-test.py", line 43, in run_test
->     output = subprocess.run(shlex.split(line), stdout=subprocess.PIPE)
-> AttributeError: 'module' object has no attribute 'run'
+From: Gao Feng <fgao@ikuai8.com>
 
-The script is written using python3. The shebang points to the python3
-interpreter, so the script can be executed with ./xlate-test.py or
-python3 xlate-test.py.
+1. Return one error when try to delete all timeouts and meet one erorr;
+2. Delete the condition block when fail to delete specified timeout.
+It is more clear that it would stop the loop when find one matched timeout.
+
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ net/netfilter/nfnetlink_cttimeout.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index baa75f3..220847a 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -361,11 +361,17 @@ static int cttimeout_del_timeout(struct net *net, struct sock *ctnl,
+ 	char *name;
+ 
+ 	if (!cda[CTA_TIMEOUT_NAME]) {
++		int cur_ret;
++
++		ret = 0;
+ 		list_for_each_entry_safe(cur, tmp, &net->nfct_timeout_list,
+-					 head)
+-			ctnl_timeout_try_del(net, cur);
++					 head) {
++			cur_ret = ctnl_timeout_try_del(net, cur);
++			if (cur_ret && !ret)
++				ret = cur_ret;
++		}
+ 
+-		return 0;
++		return ret;
+ 	}
+ 	name = nla_data(cda[CTA_TIMEOUT_NAME]);
+ 
+@@ -374,9 +380,6 @@ static int cttimeout_del_timeout(struct net *net, struct sock *ctnl,
+ 			continue;
+ 
+ 		ret = ctnl_timeout_try_del(net, cur);
+-		if (ret < 0)
+-			return ret;
+-
+ 		break;
+ 	}
+ 	return ret;
+-- 
+1.9.1
+
+
+
+
