@@ -1,71 +1,63 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH nf] netfilter: nft_hash: do not dump the auto generated seed
-Date: Sat, 8 Apr 2017 08:23:51 +0800
-Message-ID: <CAML_gOewoMeAm_jsgZbvDCAKuAY6Q3xDBLVS8s=E0JZQWiRR5Q@mail.gmail.com>
-References: <1491208478-6119-1-git-send-email-zlpnobody@163.com> <CAE=SJfBZmZD8YuEd0XzZ3ejuoVncfOGBOqh50fu1ENBWr7Qdww@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Cc: Liping Zhang <zlpnobody@163.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: =?UTF-8?Q?Laura_Garc=C3=ADa_Li=C3=A9bana?=
-        <laura.garcia@zevenet.com>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf] netfilter: xt_CT: fix cthelper module's refcnt leak
+Date: Sat,  8 Apr 2017 11:38:48 +0800
+Message-ID: <1491622728-55625-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f65.google.com ([209.85.213.65]:34615 "EHLO
-        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752103AbdDHAXx (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Apr 2017 20:23:53 -0400
-Received: by mail-vk0-f65.google.com with SMTP id y16so11468863vky.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 07 Apr 2017 17:23:53 -0700 (PDT)
-In-Reply-To: <CAE=SJfBZmZD8YuEd0XzZ3ejuoVncfOGBOqh50fu1ENBWr7Qdww@mail.gmail.com>
+Received: from m12-16.163.com ([220.181.12.16]:39514 "EHLO m12-16.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751011AbdDHDja (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 7 Apr 2017 23:39:30 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Laura,
+From: Liping Zhang <zlpnobody@gmail.com>
 
-2017-04-08 5:19 GMT+08:00 Laura Garc=C3=ADa Li=C3=A9bana <laura.garcia@zeve=
-net.com>:
-> On Mon, Apr 3, 2017 at 10:34 AM, Liping Zhang <zlpnobody@163.com> wrote:
->>
->> From: Liping Zhang <zlpnobody@gmail.com>
->>
->> This can prevent the nft utility from printing out the auto generated
->> seed to the user, which is unnecessary and confusing.
->>
->> Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
->> ---
->>  net/netfilter/nft_hash.c | 10 +++++++---
->>  1 file changed, 7 insertions(+), 3 deletions(-)
->>
->> diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
->> index eb2721a..c4dad12 100644
->> --- a/net/netfilter/nft_hash.c
->> +++ b/net/netfilter/nft_hash.c
->> @@ -21,6 +21,7 @@ struct nft_hash {
->>         enum nft_registers      sreg:8;
->>         enum nft_registers      dreg:8;
->>         u8                      len;
->> +       bool                    autogen_seed:1;
->
-> Hi Liping, I don't think that hiding the seed value would be useful, and
-> even adding this attribute doesn't worth it just to hide the seed.
->
+We should call module_put when the time policy is not found. Otherwise,
+the related cthelper module cannot be removed anymore.
 
-If we don't do this thing, if the user inputting the following nft rules:
-  # nft add rule x y ct mark set jhash ip saddr mod 2
+It is easy to reproduce by typing the following command:
+  # iptables -t raw -A OUTPUT -p tcp -j CT --helper ftp --timeout xxx
 
-Then nft list ruleset will display something like this, where 0xd6ab633c
-is very unpredictable, and the user doesn't care the seed at all:
-  ct mark set jhash ip saddr mod 2 seed 0xd6ab633c
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+---
+ net/netfilter/xt_CT.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-This will cause annoying complain when running "nft-test.py ip/hash.t".
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index b008db0..841cfba 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -200,6 +200,7 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
+ 			  struct xt_ct_target_info_v1 *info)
+ {
+ 	struct nf_conntrack_zone zone;
++	struct nf_conn_help *help;
+ 	struct nf_conn *ct;
+ 	int ret = -EOPNOTSUPP;
+ 
+@@ -248,7 +249,7 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
+ 	if (info->timeout[0]) {
+ 		ret = xt_ct_set_timeout(ct, par, info->timeout);
+ 		if (ret < 0)
+-			goto err3;
++			goto err4;
+ 	}
+ 	__set_bit(IPS_CONFIRMED_BIT, &ct->status);
+ 	nf_conntrack_get(&ct->ct_general);
+@@ -256,6 +257,10 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
+ 	info->ct = ct;
+ 	return 0;
+ 
++err4:
++	help = nfct_help(ct);
++	if (help)
++		module_put(help->helper->me);
+ err3:
+ 	nf_ct_tmpl_free(ct);
+ err2:
+-- 
+2.5.5
 
-But another problem is this, I remember that Pablo is implementing a new
-delete rule syntax, something like this:
-"nft del rule x y ct mark set jhash ip saddr mod 2"
 
-The unpredictable seed will cause the above rule failed, since the seed
-is not the same, so we cannot find a matched nft rule.
