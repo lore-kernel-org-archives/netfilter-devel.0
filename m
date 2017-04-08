@@ -1,27 +1,30 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] net: ipv6: Remove unneccessary comments
-Date: Sat, 8 Apr 2017 22:12:04 +0200
-Message-ID: <20170408201204.GA2679@salvia>
-References: <20170408154930.GA6924@arushi-HP-Pavilion-Notebook>
+Subject: Re: [PATCH] net: netfilter: Replace explicit NULL comparisons
+Date: Sat, 8 Apr 2017 22:14:38 +0200
+Message-ID: <20170408201438.GC2679@salvia>
+References: <20170408172113.GA9352@arushi-HP-Pavilion-Notebook>
+ <nycvar.YFH.7.76.1704082020530.14011@n3.vanv.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+Cc: Arushi Singhal <arushisinghal19971997@gmail.com>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        James Morris <jmorris@namei.org>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Patrick McHardy <kaber@trash.net>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Arushi Singhal <arushisinghal19971997@gmail.com>
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170408154930.GA6924@arushi-HP-Pavilion-Notebook>
+In-Reply-To: <nycvar.YFH.7.76.1704082020530.14011@n3.vanv.qr>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Apr 08, 2017 at 09:19:30PM +0530, Arushi Singhal wrote:
-> This comments are obsolete and should go, as there are no set of rules per
-> CPU anymore.
+On Sat, Apr 08, 2017 at 08:21:56PM +0200, Jan Engelhardt wrote:
+> On Saturday 2017-04-08 19:21, Arushi Singhal wrote:
+> 
+> >Replace explicit NULL comparison with ! operator to simplify code.
+> 
+> I still wouldn't do this, for the same reason as before. Comparing to 
+> NULL explicitly more or less gave an extra guarantee that the other 
+> operand was also a pointer.
 
-Applied, thanks.
+Arushi, where does it say in the coding style that this is prefered?
