@@ -1,62 +1,71 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: xt_CT: fix cthelper module's refcnt leak
-Date: Sat,  8 Apr 2017 11:38:48 +0800
-Message-ID: <1491622728-55625-1-git-send-email-zlpnobody@163.com>
+Subject: [PATCH nf-next] netfilter: nf_conntrack: make nf_conntrack_max as an unsigned int knob
+Date: Sat,  8 Apr 2017 17:32:25 +0800
+Message-ID: <1491643945-8557-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-16.163.com ([220.181.12.16]:39514 "EHLO m12-16.163.com"
+Received: from m12-15.163.com ([220.181.12.15]:47162 "EHLO m12-15.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751011AbdDHDja (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Apr 2017 23:39:30 -0400
+        id S1751523AbdDHJc7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 8 Apr 2017 05:32:59 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <zlpnobody@gmail.com>
 
-We should call module_put when the time policy is not found. Otherwise,
-the related cthelper module cannot be removed anymore.
+It doesn't work when we set a large value to the nf_conntrack_max, as
+well as the nf_conntrack_expect_max:
+  # echo 4294967295 > /proc/sys/net/nf_conntrack_max
+  bash: echo: write error: Invalid argument
 
-It is easy to reproduce by typing the following command:
-  # iptables -t raw -A OUTPUT -p tcp -j CT --helper ftp --timeout xxx
+So convert to use proc_douintvec.
 
 Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 ---
- net/netfilter/xt_CT.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_standalone.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-index b008db0..841cfba 100644
---- a/net/netfilter/xt_CT.c
-+++ b/net/netfilter/xt_CT.c
-@@ -200,6 +200,7 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
- 			  struct xt_ct_target_info_v1 *info)
- {
- 	struct nf_conntrack_zone zone;
-+	struct nf_conn_help *help;
- 	struct nf_conn *ct;
- 	int ret = -EOPNOTSUPP;
- 
-@@ -248,7 +249,7 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
- 	if (info->timeout[0]) {
- 		ret = xt_ct_set_timeout(ct, par, info->timeout);
- 		if (ret < 0)
--			goto err3;
-+			goto err4;
- 	}
- 	__set_bit(IPS_CONFIRMED_BIT, &ct->status);
- 	nf_conntrack_get(&ct->ct_general);
-@@ -256,6 +257,10 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
- 	info->ct = ct;
- 	return 0;
- 
-+err4:
-+	help = nfct_help(ct);
-+	if (help)
-+		module_put(help->helper->me);
- err3:
- 	nf_ct_tmpl_free(ct);
- err2:
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 2256147..7f131a3 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -479,9 +479,9 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 	{
+ 		.procname	= "nf_conntrack_max",
+ 		.data		= &nf_conntrack_max,
+-		.maxlen		= sizeof(int),
++		.maxlen		= sizeof(unsigned int),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
++		.proc_handler	= proc_douintvec,
+ 	},
+ 	{
+ 		.procname	= "nf_conntrack_count",
+@@ -516,9 +516,9 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 	{
+ 		.procname	= "nf_conntrack_expect_max",
+ 		.data		= &nf_ct_expect_max,
+-		.maxlen		= sizeof(int),
++		.maxlen		= sizeof(unsigned int),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
++		.proc_handler	= proc_douintvec,
+ 	},
+ 	{
+ 		.procname	= "nf_conntrack_default_on",
+@@ -534,9 +534,9 @@ static struct ctl_table nf_ct_netfilter_table[] = {
+ 	{
+ 		.procname	= "nf_conntrack_max",
+ 		.data		= &nf_conntrack_max,
+-		.maxlen		= sizeof(int),
++		.maxlen		= sizeof(unsigned int),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
++		.proc_handler	= proc_douintvec,
+ 	},
+ 	{ }
+ };
 -- 
 2.5.5
 
