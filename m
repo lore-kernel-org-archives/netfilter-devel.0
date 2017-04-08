@@ -1,44 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net] netfilter: xt_TCPMSS: add more sanity tests on
- tcph->doff
-Date: Sat, 8 Apr 2017 22:24:43 +0200
-Message-ID: <20170408202443.GA3373@salvia>
-References: <6c6e2f7505f969d8c2998efff24063ba@nuclearcat.com>
- <1491132259.10124.3.camel@edumazet-glaptop3.roam.corp.google.com>
- <1491242111.10124.32.camel@edumazet-glaptop3.roam.corp.google.com>
+Subject: Re: [PATCH iptables] extensions: libxt_hashlimit: fix 64-bit printf
+ formats
+Date: Sat, 8 Apr 2017 22:29:17 +0200
+Message-ID: <20170408202917.GA3568@salvia>
+References: <1491565649-16679-1-git-send-email-James.Cowgill@imgtec.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: James Cowgill <James.Cowgill@imgtec.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55076 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55584 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752512AbdDHUYu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 8 Apr 2017 16:24:50 -0400
+        id S1751505AbdDHU3X (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 8 Apr 2017 16:29:23 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3347F24935
-        for <netfilter-devel@vger.kernel.org>; Sat,  8 Apr 2017 22:24:45 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 4567F24935
+        for <netfilter-devel@vger.kernel.org>; Sat,  8 Apr 2017 22:29:19 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C8602DA862
-        for <netfilter-devel@vger.kernel.org>; Sat,  8 Apr 2017 22:24:49 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DB6BBDA7E9
+        for <netfilter-devel@vger.kernel.org>; Sat,  8 Apr 2017 22:29:23 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AABEBDA865
-        for <netfilter-devel@vger.kernel.org>; Sat,  8 Apr 2017 22:24:47 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C55B8DA7F7
+        for <netfilter-devel@vger.kernel.org>; Sat,  8 Apr 2017 22:29:21 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1491242111.10124.32.camel@edumazet-glaptop3.roam.corp.google.com>
+In-Reply-To: <1491565649-16679-1-git-send-email-James.Cowgill@imgtec.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Apr 03, 2017 at 10:55:11AM -0700, Eric Dumazet wrote:
-> From: Eric Dumazet <edumazet@google.com>
+On Fri, Apr 07, 2017 at 12:47:29PM +0100, James Cowgill wrote:
+> hashlimit was using "%lu" in a lot of printf format specifiers to print
+> 64-bit integers. This is incorrect on 32-bit architectures because
+> "long int" is 32-bits there. On MIPS, it was causing iptables to
+> segfault when printing these integers.
 > 
-> Denys provided an awesome KASAN report pointing to an use
-> after free in xt_TCPMSS
-> 
-> I have provided three patches to fix this issue, either in xt_TCPMSS or
-> in xt_tcpudp.c. It seems xt_TCPMSS patch has the smallest possible
-> impact.
+> Fix by using the correct format specifier.
 
-Applied to nf.git, thanks!
+One comment below...
+
+> @@ -262,7 +262,7 @@ static uint64_t parse_burst(const char *burst, int revision)
+>  	if (v > max)
+>  		xtables_error(PARAMETER_PROBLEM, "bad value for option "
+>  			"\"--hashlimit-burst\", value \"%s\" too large "
+> -				"(max %lumb).", burst, max/1024/1024);
+> +				"(max %" PRIu64 "mb).", burst, max/1024/1024);
+                                        ^      ^
+
+I can remove this whitespaces, right? I'm looking at other spots in
+the iptables code and I would like to keep this consistent.
+
+No need to resent the patch, I can just mangle this here and apply.
+
+Thanks!
