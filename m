@@ -1,72 +1,56 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf-next] netfilter: nf_conntrack: make nf_conntrack_max as an unsigned int knob
-Date: Sat,  8 Apr 2017 17:32:25 +0800
-Message-ID: <1491643945-8557-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+From: Arushi Singhal <arushisinghal19971997@gmail.com>
+Subject: [PATCH] net: ipv6: Remove unneccessary comments
+Date: Sat, 8 Apr 2017 21:19:30 +0530
+Message-ID: <20170408154930.GA6924@arushi-HP-Pavilion-Notebook>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        James Morris <jmorris@namei.org>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Patrick McHardy <kaber@trash.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-15.163.com ([220.181.12.15]:47162 "EHLO m12-15.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751523AbdDHJc7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 8 Apr 2017 05:32:59 -0400
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:36047 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751428AbdDHPth (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 8 Apr 2017 11:49:37 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <zlpnobody@gmail.com>
+This comments are obsolete and should go, as there are no set of rules per
+CPU anymore.
 
-It doesn't work when we set a large value to the nf_conntrack_max, as
-well as the nf_conntrack_expect_max:
-  # echo 4294967295 > /proc/sys/net/nf_conntrack_max
-  bash: echo: write error: Invalid argument
-
-So convert to use proc_douintvec.
-
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
 ---
- net/netfilter/nf_conntrack_standalone.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ net/ipv6/netfilter/ip6_tables.c | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 2256147..7f131a3 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -479,9 +479,9 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 	{
- 		.procname	= "nf_conntrack_max",
- 		.data		= &nf_conntrack_max,
--		.maxlen		= sizeof(int),
-+		.maxlen		= sizeof(unsigned int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_douintvec,
- 	},
- 	{
- 		.procname	= "nf_conntrack_count",
-@@ -516,9 +516,9 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 	{
- 		.procname	= "nf_conntrack_expect_max",
- 		.data		= &nf_ct_expect_max,
--		.maxlen		= sizeof(int),
-+		.maxlen		= sizeof(unsigned int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_douintvec,
- 	},
- 	{
- 		.procname	= "nf_conntrack_default_on",
-@@ -534,9 +534,9 @@ static struct ctl_table nf_ct_netfilter_table[] = {
- 	{
- 		.procname	= "nf_conntrack_max",
- 		.data		= &nf_conntrack_max,
--		.maxlen		= sizeof(int),
-+		.maxlen		= sizeof(unsigned int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_douintvec,
- 	},
- 	{ }
- };
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 1e15c54fd5e2..e52234a111d6 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -51,15 +51,6 @@ void *ip6t_alloc_initial_table(const struct xt_table *info)
+ }
+ EXPORT_SYMBOL_GPL(ip6t_alloc_initial_table);
+ 
+-/*
+-   We keep a set of rules for each CPU, so we can avoid write-locking
+-   them in the softirq when updating the counters and therefore
+-   only need to read-lock in the softirq; doing a write_lock_bh() in user
+-   context stops packets coming through and allows user context to read
+-   the counters or update the rules.
+-
+-   Hence the start of any table is given by get_table() below.  */
+-
+ /* Returns whether matches rule or not. */
+ /* Performance critical - called for every packet */
+ static inline bool
 -- 
-2.5.5
-
+2.11.0
 
