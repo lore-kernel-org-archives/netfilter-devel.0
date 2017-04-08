@@ -1,24 +1,27 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH] net: netfilter: Replace explicit NULL comparisons
-Date: Sat, 8 Apr 2017 20:21:56 +0200 (CEST)
-Message-ID: <nycvar.YFH.7.76.1704082020530.14011@n3.vanv.qr>
-References: <20170408172113.GA9352@arushi-HP-Pavilion-Notebook>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] net: ipv6: Remove unneccessary comments
+Date: Sat, 8 Apr 2017 22:12:04 +0200
+Message-ID: <20170408201204.GA2679@salvia>
+References: <20170408154930.GA6924@arushi-HP-Pavilion-Notebook>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: pablo@netfilter.org, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        James Morris <jmorris@namei.org>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Patrick McHardy <kaber@trash.net>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 To: Arushi Singhal <arushisinghal19971997@gmail.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170408172113.GA9352@arushi-HP-Pavilion-Notebook>
+Content-Disposition: inline
+In-Reply-To: <20170408154930.GA6924@arushi-HP-Pavilion-Notebook>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Saturday 2017-04-08 19:21, Arushi Singhal wrote:
+On Sat, Apr 08, 2017 at 09:19:30PM +0530, Arushi Singhal wrote:
+> This comments are obsolete and should go, as there are no set of rules per
+> CPU anymore.
 
->Replace explicit NULL comparison with ! operator to simplify code.
-
-I still wouldn't do this, for the same reason as before. Comparing to 
-NULL explicitly more or less gave an extra guarantee that the other 
-operand was also a pointer.
+Applied, thanks.
