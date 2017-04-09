@@ -1,46 +1,84 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH] net: netfilter: Replace explicit NULL comparisons
-Date: Sun, 9 Apr 2017 17:36:22 +0800
-Message-ID: <CAML_gOeX=c9AxpuFBGes_ogQSZe+s1Rg3-rBL1Q4RX9Gv5hcZg@mail.gmail.com>
-References: <20170408172113.GA9352@arushi-HP-Pavilion-Notebook>
- <nycvar.YFH.7.76.1704082020530.14011@n3.vanv.qr> <20170408201438.GC2679@salvia>
- <CA+XqjF_8=+GB7oq6wKoxk_+FfPeni+tLaVMAE6k6tP-KOOEi6Q@mail.gmail.com> <nycvar.YFH.7.76.1704091025350.18194@n3.vanv.qr>
+From: <simon.a.t.hardy@gmail.com>
+Subject: (unknown)
+Date: Sun, 09 Apr 2017 20:48:01 -0000
+Message-ID: <149177088144.24862.9489525799816047053@witelecom.com.br>
+Reply-To: <simon.a.t.hardy@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Arushi Singhal <arushisinghal19971997@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@inai.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <nycvar.YFH.7.76.1704091025350.18194@n3.vanv.qr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: application/zip; name="4_netfilter-devel.zip"
+Content-Transfer-Encoding: base64
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 201-55-179-25.witelecom.com.br ([201.55.179.25]:3145 "HELO
+        witelecom.com.br" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with SMTP id S1752463AbdDIUsI (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 9 Apr 2017 16:48:08 -0400
+Subject: 
+Content-Disposition: attachment
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-2017-04-09 16:26 GMT+08:00 Jan Engelhardt <jengelh@inai.de>:
->
-> On Sunday 2017-04-09 05:42, Arushi Singhal wrote:
->>On Sun, Apr 9, 2017 at 1:44 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->>      On Sat, Apr 08, 2017 at 08:21:56PM +0200, Jan Engelhardt wrote:
->>      > On Saturday 2017-04-08 19:21, Arushi Singhal wrote:
->>      >
->>      > >Replace explicit NULL comparison with ! operator to simplify code.
->>      >
->>      > I still wouldn't do this, for the same reason as before. Comparing to
->>      > NULL explicitly more or less gave an extra guarantee that the other
->>      > operand was also a pointer.
->>
->>      Arushi, where does it say in the coding style that this is prefered?
->>
->>This is reported by checkpatch.pl script.
->
-> checkpatch has been controversial at times, like when people took the 80
-> character limit way too literally. Changing pointer comparisons looks like
-> another thing that is better left ignored.
-
-Yes, I agree too. Converting the "if (p != NULL)" to "if (p)" like this seems
-unnecessary.
+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
