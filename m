@@ -1,76 +1,72 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: ctnetlink: remove unnecessary
- nf_conntrack_expect_lock protection
-Date: Mon, 10 Apr 2017 14:02:05 +0200
-Message-ID: <20170410120205.GE2155@salvia>
-References: <1491056064-19687-1-git-send-email-zlpnobody@163.com>
- <20170408211615.GB5301@salvia>
- <CAML_gOdrjnSB-FxHj9oTfVFWODmNGxh5y0GZ2JPOMqjp=xa1ng@mail.gmail.com>
+Subject: Re: [PATCH nf 1/1] netfilter: seqadj: Fix possible non-linear data
+ access for TCP header
+Date: Mon, 10 Apr 2017 14:06:39 +0200
+Message-ID: <20170410120639.GA2386@salvia>
+References: <1491820563-98023-1-git-send-email-gfree.wind@foxmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Liping Zhang <zlpnobody@163.com>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Liping Zhang <zlpnobody@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, Gao Feng <fgao@ikuai8.com>
+To: gfree.wind@foxmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50518 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52800 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753165AbdDJMCX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Apr 2017 08:02:23 -0400
+        id S1752955AbdDJMHD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Apr 2017 08:07:03 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3ACC352309
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 14:02:19 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 410DE5230A
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 14:06:54 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2A9E3BAC34
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 14:02:19 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2FAF1BAAA7
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 14:06:54 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F2A25BAC34
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 14:02:11 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 82146BAAA3
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 14:06:50 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <CAML_gOdrjnSB-FxHj9oTfVFWODmNGxh5y0GZ2JPOMqjp=xa1ng@mail.gmail.com>
+In-Reply-To: <1491820563-98023-1-git-send-email-gfree.wind@foxmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Apr 09, 2017 at 12:21:22PM +0800, Liping Zhang wrote:
-> Hi Pablo,
+On Mon, Apr 10, 2017 at 06:36:03PM +0800, gfree.wind@foxmail.com wrote:
+> From: Gao Feng <fgao@ikuai8.com>
 > 
-> 2017-04-09 5:16 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-> > On Sat, Apr 01, 2017 at 10:14:24PM +0800, Liping Zhang wrote:
-> >> @@ -1960,9 +1955,7 @@ static int ctnetlink_new_conntrack(struct net *net, struct sock *ctnl,
-> >>       err = -EEXIST;
-> >>       ct = nf_ct_tuplehash_to_ctrack(h);
-> >>       if (!(nlh->nlmsg_flags & NLM_F_EXCL)) {
-> >> -             spin_lock_bh(&nf_conntrack_expect_lock);
-> >>               err = ctnetlink_change_conntrack(ct, cda);
-> >> -             spin_unlock_bh(&nf_conntrack_expect_lock);
-> >
-> > We used to have a central spinlock here.
-> >
-> >         spin_lock_bh(&nf_conntrack_lock);
-> >
-> > that was removed time ago, so this go converted to use
-> > nf_conntrack_expect_lock.
+> The current call path of nf_ct_tcp_seqadj_set is the following.
 > 
-> This patch should add:
+> nfqnl_recv_verdict->ctnetlink_glue_hook->ctnetlink_glue_seqadj
+> ->nf_ct_tcp_seqadj_set.
 > 
-> Fixes: ca7433df3a67 ("netfilter: conntrack: seperate expect locking
-> from nf_conntrack_lock")
+> It couldn't make sure the TCP header is in the linear data part.
+> So use the skb_header_pointer instead of the current codes.
 > 
-> Commit ca7433df3a67 add spin_lock_bh(&nf_conntrack_expect_lock) in
-> nf_ct_remove_expectations, but we also lock the _expect_lock before calling
-> ctnetlink_change_conntrack, so dead lock will happen:
+> BTW, the nf_ct_tcp_seqadj_set is one external function of netfilter
+> which works in the network layer, it should not assume the transport
+> header is in the linear data.
 > 
->  spin_lock_bh(&nf_conntrack_expect_lock):
-> ->err = ctnetlink_change_conntrack(ct, cda)
-> -->ctnetlink_change_helper
-> --->if (!strcmp(helpname, "")) nf_ct_remove_expectations()
-> ---->spin_lock_bh(&nf_conntrack_expect_lock); //lock _expect_lock
-> again, dead lock!
+> Signed-off-by: Gao Feng <fgao@ikuai8.com>
+> ---
+>  net/netfilter/nf_conntrack_seqadj.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
+> index ef7063e..80394ab 100644
+> --- a/net/netfilter/nf_conntrack_seqadj.c
+> +++ b/net/netfilter/nf_conntrack_seqadj.c
+> @@ -61,11 +61,14 @@ void nf_ct_tcp_seqadj_set(struct sk_buff *skb,
+>  			  s32 off)
+>  {
+>  	const struct tcphdr *th;
+> +	struct tcphdr tcph;
+>  
+>  	if (nf_ct_protonum(ct) != IPPROTO_TCP)
+>  		return;
+>  
+> -	th = (struct tcphdr *)(skb_network_header(skb) + ip_hdrlen(skb));
+> +	th = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(tcph), &tcph);
+> +	if (!th)
+> +		return;
 
-I agree this is fixing the deadlock but see below.
+This fix is required since your recent upgrade to check for 4 bytes
+instead of 8 bytes from conntrack. Please confirm this.
 
-> Since ctnetlink_change_conntrack is unrelated to nf_conntrack_expect_lock,
-> so remove it can fix this issue.
-
-But packets may be updating a conntrack at the same time that we're
-mangling via ctnetlink, right?
+If so, it would be good to review the NAT code to see if there are
+more spots that are not broken since that change...
