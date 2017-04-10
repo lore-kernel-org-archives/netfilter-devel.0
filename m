@@ -1,39 +1,47 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH iptables] extensions: libxt_hashlimit: fix 64-bit printf
- formats
-Date: Mon, 10 Apr 2017 17:59:07 +0200 (CEST)
-Message-ID: <nycvar.YFH.7.76.1704101749480.27401@n3.vanv.qr>
-References: <1491565649-16679-1-git-send-email-James.Cowgill@imgtec.com> <20170408202917.GA3568@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: James Cowgill <James.Cowgill@imgtec.com>,
-        netfilter-devel@vger.kernel.org
+From: Simon Horman <horms@verge.net.au>
+Subject: [GIT 0/3] Second Round of IPVS Updates for v4.12
+Date: Mon, 10 Apr 2017 09:58:32 -0700
+Message-ID: <1491843515-1627-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a3.inai.de ([88.198.180.161]:37902 "EHLO a3.inai.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754241AbdDJP7J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Apr 2017 11:59:09 -0400
-In-Reply-To: <20170408202917.GA3568@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+Hi Pablo,
+
+please consider these clean-ups and enhancements to IPVS for v4.12.
+
+* Removal unused variable
+* Use kzalloc where appropriate
+* More efficient detection of presence of NAT extension
 
 
-On Saturday 2017-04-08 22:29, Pablo Neira Ayuso wrote:
->> @@ -262,7 +262,7 @@ static uint64_t parse_burst(const char *burst, int revision)
->>  	if (v > max)
->>  		xtables_error(PARAMETER_PROBLEM, "bad value for option "
->>  			"\"--hashlimit-burst\", value \"%s\" too large "
->> -				"(max %lumb).", burst, max/1024/1024);
->> +				"(max %" PRIu64 "mb).", burst, max/1024/1024);
->                                        ^      ^
->
->I can remove this whitespaces, right?
+The following changes since commit 592d42ac7fd36408979e09bf2f170f2595dab7b8:
 
-With my distro hat on:
+  Merge branch 'qed-IOV-cleanups' (2017-03-21 19:02:38 -0700)
 
-Clumping these together like "foo"BAR"baz" has already caused compile failures
-in the broader scope of distributions (thousands of packages) because languages
-introduced new tokenization rules. Admittedly, this occurred in C++ (namely,
-user-defined string literals), but it does show that tokens which logically are
-separate should stay separate.
+are available in the git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git ipvs2-for-v4.12
+
+for you to fetch changes up to e24113769960980579610ecfd657bb17f19373a3:
+
+  ipvs: remove unused variable (2017-03-30 14:54:47 +0200)
+
+----------------------------------------------------------------
+Arushi Singhal (1):
+      ipvs: remove unused variable
+
+Florian Westphal (1):
+      netfilter: ipvs: don't check for presence of nat extension
+
+Varsha Rao (1):
+      netfilter: ipvs: Replace kzalloc with kcalloc.
+
+ net/netfilter/ipvs/ip_vs_ftp.c  | 7 ++-----
+ net/netfilter/ipvs/ip_vs_sync.c | 4 ++--
+ 2 files changed, 4 insertions(+), 7 deletions(-)
