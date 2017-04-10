@@ -1,69 +1,48 @@
 From: Aaron Conole <aconole@bytheb.org>
-Subject: [PATCH nf-next] ipvs: remove unused function ip_vs_set_state_timeout
-Date: Mon, 10 Apr 2017 15:50:44 -0400
-Message-ID: <20170410195044.19646-1-aconole@bytheb.org>
-Cc: Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Julian Anastasov <ja@ssi.bg>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH nf-next] ipset: remove unused function __ip_set_get_netlink
+Date: Mon, 10 Apr 2017 15:52:37 -0400
+Message-ID: <20170410195237.19909-1-aconole@bytheb.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:35499 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752042AbdDJTwm (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Apr 2017 15:52:42 -0400
+Received: by mail-qt0-f195.google.com with SMTP id o36so4690719qtb.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 12:52:42 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-There are no in-tree callers of this function and it isn't exported.
+There are no in-tree callers.
 
 Signed-off-by: Aaron Conole <aconole@bytheb.org>
 ---
- include/net/ip_vs.h              |  2 --
- net/netfilter/ipvs/ip_vs_proto.c | 22 ----------------------
- 2 files changed, 24 deletions(-)
+ net/netfilter/ipset/ip_set_core.c | 8 --------
+ 1 file changed, 8 deletions(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 8a4a57b8..c76fedb 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -1349,8 +1349,6 @@ int ip_vs_protocol_init(void);
- void ip_vs_protocol_cleanup(void);
- void ip_vs_protocol_timeout_change(struct netns_ipvs *ipvs, int flags);
- int *ip_vs_create_timeout_table(int *table, int size);
--int ip_vs_set_state_timeout(int *table, int num, const char *const *names,
--			    const char *name, int to);
- void ip_vs_tcpudp_debug_packet(int af, struct ip_vs_protocol *pp,
- 			       const struct sk_buff *skb, int offset,
- 			       const char *msg);
-diff --git a/net/netfilter/ipvs/ip_vs_proto.c b/net/netfilter/ipvs/ip_vs_proto.c
-index 8ae4807..ca880a3 100644
---- a/net/netfilter/ipvs/ip_vs_proto.c
-+++ b/net/netfilter/ipvs/ip_vs_proto.c
-@@ -193,28 +193,6 @@ ip_vs_create_timeout_table(int *table, int size)
- }
- 
- 
--/*
-- *	Set timeout value for state specified by name
-- */
--int
--ip_vs_set_state_timeout(int *table, int num, const char *const *names,
--			const char *name, int to)
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index c296f9b..68ba531 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -501,14 +501,6 @@ __ip_set_put(struct ip_set *set)
+  * a separate reference counter
+  */
+ static inline void
+-__ip_set_get_netlink(struct ip_set *set)
 -{
--	int i;
--
--	if (!table || !name || !to)
--		return -EINVAL;
--
--	for (i = 0; i < num; i++) {
--		if (strcmp(names[i], name))
--			continue;
--		table[i] = to * HZ;
--		return 0;
--	}
--	return -ENOENT;
+-	write_lock_bh(&ip_set_ref_lock);
+-	set->ref_netlink++;
+-	write_unlock_bh(&ip_set_ref_lock);
 -}
 -
--
- const char * ip_vs_state_name(__u16 proto, int state)
+-static inline void
+ __ip_set_put_netlink(struct ip_set *set)
  {
- 	struct ip_vs_protocol *pp = ip_vs_proto_get(proto);
+ 	write_lock_bh(&ip_set_ref_lock);
 -- 
 2.9.3
+
