@@ -1,59 +1,43 @@
-From: gfree.wind@foxmail.com
-Subject: [PATCH nf 1/1] netfilter: seqadj: Fix possible non-linear data access for TCP header
-Date: Mon, 10 Apr 2017 18:36:03 +0800
-Message-ID: <1491820563-98023-1-git-send-email-gfree.wind@foxmail.com>
-Cc: Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbgbr2.qq.com ([54.207.22.56]:36791 "EHLO smtpbgbr2.qq.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753017AbdDJKgT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Apr 2017 06:36:19 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] net: netfilter: Replace explicit NULL comparisons
+Date: Mon, 10 Apr 2017 13:51:44 +0200
+Message-ID: <20170410115144.GA2155@salvia>
+References: <20170408172113.GA9352@arushi-HP-Pavilion-Notebook>
+ <nycvar.YFH.7.76.1704082020530.14011@n3.vanv.qr>
+ <20170408201438.GC2679@salvia>
+ <CA+XqjF_8=+GB7oq6wKoxk_+FfPeni+tLaVMAE6k6tP-KOOEi6Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Jan Engelhardt <jengelh@inai.de>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Arushi Singhal <arushisinghal19971997@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CA+XqjF_8=+GB7oq6wKoxk_+FfPeni+tLaVMAE6k6tP-KOOEi6Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Gao Feng <fgao@ikuai8.com>
+On Sun, Apr 09, 2017 at 09:12:18AM +0530, Arushi Singhal wrote:
+> On Sun, Apr 9, 2017 at 1:44 AM, Pablo Neira Ayuso <pablo@netfilter.org>
+> wrote:
+> 
+> > On Sat, Apr 08, 2017 at 08:21:56PM +0200, Jan Engelhardt wrote:
+> > > On Saturday 2017-04-08 19:21, Arushi Singhal wrote:
+> > >
+> > > >Replace explicit NULL comparison with ! operator to simplify code.
+> > >
+> > > I still wouldn't do this, for the same reason as before. Comparing to
+> > > NULL explicitly more or less gave an extra guarantee that the other
+> > > operand was also a pointer.
+> >
+> > Arushi, where does it say in the coding style that this is prefered?
+> 
+> This is reported by checkpatch.pl script.
 
-The current call path of nf_ct_tcp_seqadj_set is the following.
-
-nfqnl_recv_verdict->ctnetlink_glue_hook->ctnetlink_glue_seqadj
-->nf_ct_tcp_seqadj_set.
-
-It couldn't make sure the TCP header is in the linear data part.
-So use the skb_header_pointer instead of the current codes.
-
-BTW, the nf_ct_tcp_seqadj_set is one external function of netfilter
-which works in the network layer, it should not assume the transport
-header is in the linear data.
-
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
----
- net/netfilter/nf_conntrack_seqadj.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
-index ef7063e..80394ab 100644
---- a/net/netfilter/nf_conntrack_seqadj.c
-+++ b/net/netfilter/nf_conntrack_seqadj.c
-@@ -61,11 +61,14 @@ void nf_ct_tcp_seqadj_set(struct sk_buff *skb,
- 			  s32 off)
- {
- 	const struct tcphdr *th;
-+	struct tcphdr tcph;
- 
- 	if (nf_ct_protonum(ct) != IPPROTO_TCP)
- 		return;
- 
--	th = (struct tcphdr *)(skb_network_header(skb) + ip_hdrlen(skb));
-+	th = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(tcph), &tcph);
-+	if (!th)
-+		return;
- 	nf_ct_seqadj_set(ct, ctinfo, th->seq, off);
- }
- EXPORT_SYMBOL_GPL(nf_ct_tcp_seqadj_set);
--- 
-1.9.1
-
-
-
-
+I don't find it in the coding style. I think this is what it stands as
+preference in this case IMO. Otherwise, it would be good to get the
+kernel coding style document in sync with it, including the reason why
+this way to express thing is cleaner. We have to justify the changes.
