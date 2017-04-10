@@ -1,74 +1,69 @@
-From: Dan Williams <dcbw@redhat.com>
-Subject: [PATCH 2/2 v2] iptables-restore.8: document -w/-W options
-Date: Mon, 10 Apr 2017 12:35:18 -0500
-Message-ID: <1491845718.28450.4.camel@redhat.com>
-References: <1491255160.5423.16.camel@redhat.com>
-         <20170408220418.GA8524@salvia> <1491707416.27302.1.camel@redhat.com>
-         <20170410115356.GC2155@salvia> <1491845516.28450.3.camel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50900 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753963AbdDJRfU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Apr 2017 13:35:20 -0400
-In-Reply-To: <1491845516.28450.3.camel@redhat.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Aaron Conole <aconole@bytheb.org>
+Subject: [PATCH nf-next] ipvs: remove unused function ip_vs_set_state_timeout
+Date: Mon, 10 Apr 2017 15:50:44 -0400
+Message-ID: <20170410195044.19646-1-aconole@bytheb.org>
+Cc: Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Julian Anastasov <ja@ssi.bg>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Fixes: 999eaa241212d3952ddff39a99d0d55a74e3639e
+There are no in-tree callers of this function and it isn't exported.
 
-Signed-off-by: Dan Williams <dcbw@redhat.com>
+Signed-off-by: Aaron Conole <aconole@bytheb.org>
 ---
- iptables/iptables-restore.8.in | 25 +++++++++++++++++++++----
- 1 file changed, 21 insertions(+), 4 deletions(-)
+ include/net/ip_vs.h              |  2 --
+ net/netfilter/ipvs/ip_vs_proto.c | 22 ----------------------
+ 2 files changed, 24 deletions(-)
 
-diff --git a/iptables/iptables-restore.8.in b/iptables/iptables-restore.8.in
-index bba505d..f751492 100644
---- a/iptables/iptables-restore.8.in
-+++ b/iptables/iptables-restore.8.in
-@@ -23,11 +23,13 @@ iptables-restore \(em Restore IP Tables
- .P
- ip6tables-restore \(em Restore IPv6 Tables
- .SH SYNOPSIS
--\fBiptables\-restore\fP [\fB\-chntvV\fP] [\fB\-M\fP \fImodprobe\fP]
--[\fB\-T\fP \fIname\fP] [\fBfile\fP]
-+\fBiptables\-restore\fP [\fB\-chntvV\fP] [\fB\-w\fP \fIsecs\fP]
-+[\fB\-W\fP \fIusecs\fP] [\fB\-M\fP \fImodprobe\fP] [\fB\-T\fP \fIname\fP]
-+[\fBfile\fP]
- .P
--\fBip6tables\-restore\fP [\fB\-chntvV\fP] [\fB\-M\fP \fImodprobe\fP]
--[\fB\-T\fP \fIname\fP] [\fBfile\fP]
-+\fBip6tables\-restore\fP [\fB\-chntvV\fP] [\fB\-w\fP \fIsecs\fP]
-+[\fB\-W\fP \fIusecs\fP] [\fB\-M\fP \fImodprobe\fP] [\fB\-T\fP \fIname\fP]
-+[\fBfile\fP]
- .SH DESCRIPTION
- .PP
- .B iptables-restore
-@@ -56,6 +58,21 @@ Print additional debug info during ruleset processing.
- \fB\-V\fP, \fB\-\-version\fP
- Print the program version number.
- .TP
-+\fB\-w\fP, \fB\-\-wait\fP [\fIseconds\fP]
-+Wait for the xtables lock.
-+To prevent multiple instances of the program from running concurrently,
-+an attempt will be made to obtain an exclusive lock at launch.  By default,
-+the program will exit if the lock cannot be obtained.  This option will
-+make the program wait (indefinitely or for optional \fIseconds\fP) until
-+the exclusive lock can be obtained.
-+.TP
-+\fB\-W\fP, \fB\-\-wait-interval\fP \fImicroseconds\fP
-+Interval to wait per each iteration.
-+When running latency sensitive applications, waiting for the xtables lock
-+for extended durations may not be acceptable. This option will make each
-+iteration take the amount of time specified. The default interval is
-+1 second. This option only works with \fB\-w\fP.
-+.TP
- \fB\-M\fP, \fB\-\-modprobe\fP \fImodprobe_program\fP
- Specify the path to the modprobe program. By default, iptables-restore will
- inspect /proc/sys/kernel/modprobe to determine the executable's path.
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 8a4a57b8..c76fedb 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -1349,8 +1349,6 @@ int ip_vs_protocol_init(void);
+ void ip_vs_protocol_cleanup(void);
+ void ip_vs_protocol_timeout_change(struct netns_ipvs *ipvs, int flags);
+ int *ip_vs_create_timeout_table(int *table, int size);
+-int ip_vs_set_state_timeout(int *table, int num, const char *const *names,
+-			    const char *name, int to);
+ void ip_vs_tcpudp_debug_packet(int af, struct ip_vs_protocol *pp,
+ 			       const struct sk_buff *skb, int offset,
+ 			       const char *msg);
+diff --git a/net/netfilter/ipvs/ip_vs_proto.c b/net/netfilter/ipvs/ip_vs_proto.c
+index 8ae4807..ca880a3 100644
+--- a/net/netfilter/ipvs/ip_vs_proto.c
++++ b/net/netfilter/ipvs/ip_vs_proto.c
+@@ -193,28 +193,6 @@ ip_vs_create_timeout_table(int *table, int size)
+ }
+ 
+ 
+-/*
+- *	Set timeout value for state specified by name
+- */
+-int
+-ip_vs_set_state_timeout(int *table, int num, const char *const *names,
+-			const char *name, int to)
+-{
+-	int i;
+-
+-	if (!table || !name || !to)
+-		return -EINVAL;
+-
+-	for (i = 0; i < num; i++) {
+-		if (strcmp(names[i], name))
+-			continue;
+-		table[i] = to * HZ;
+-		return 0;
+-	}
+-	return -ENOENT;
+-}
+-
+-
+ const char * ip_vs_state_name(__u16 proto, int state)
+ {
+ 	struct ip_vs_protocol *pp = ip_vs_proto_get(proto);
 -- 
 2.9.3
