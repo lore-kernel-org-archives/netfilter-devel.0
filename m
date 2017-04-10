@@ -1,72 +1,53 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf 1/1] netfilter: seqadj: Fix possible non-linear data
- access for TCP header
-Date: Mon, 10 Apr 2017 14:06:39 +0200
-Message-ID: <20170410120639.GA2386@salvia>
-References: <1491820563-98023-1-git-send-email-gfree.wind@foxmail.com>
+From: Taehee Yoo <ap420073@gmail.com>
+Subject: Re: [PATCH] netfilter: nat: remove rcu_read_lock in __nf_nat_decode_session.
+Date: Mon, 10 Apr 2017 21:30:48 +0900
+Message-ID: <CAMArcTXwyZmKK49W9X6NvcJJn8S9-XS3sL4JNnXoZxpxtQBqug@mail.gmail.com>
+References: <20170327152850.19812-1-ap420073@gmail.com> <20170406195125.GA6515@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Gao Feng <fgao@ikuai8.com>
-To: gfree.wind@foxmail.com
+Content-Type: text/plain; charset=UTF-8
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52800 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752955AbdDJMHD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Apr 2017 08:07:03 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 410DE5230A
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 14:06:54 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2FAF1BAAA7
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 14:06:54 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 82146BAAA3
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 14:06:50 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1491820563-98023-1-git-send-email-gfree.wind@foxmail.com>
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:33110 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752251AbdDJMau (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Apr 2017 08:30:50 -0400
+Received: by mail-qk0-f195.google.com with SMTP id p22so18945520qka.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 05:30:49 -0700 (PDT)
+In-Reply-To: <20170406195125.GA6515@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Apr 10, 2017 at 06:36:03PM +0800, gfree.wind@foxmail.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
-> 
-> The current call path of nf_ct_tcp_seqadj_set is the following.
-> 
-> nfqnl_recv_verdict->ctnetlink_glue_hook->ctnetlink_glue_seqadj
-> ->nf_ct_tcp_seqadj_set.
-> 
-> It couldn't make sure the TCP header is in the linear data part.
-> So use the skb_header_pointer instead of the current codes.
-> 
-> BTW, the nf_ct_tcp_seqadj_set is one external function of netfilter
-> which works in the network layer, it should not assume the transport
-> header is in the linear data.
-> 
-> Signed-off-by: Gao Feng <fgao@ikuai8.com>
-> ---
->  net/netfilter/nf_conntrack_seqadj.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
-> index ef7063e..80394ab 100644
-> --- a/net/netfilter/nf_conntrack_seqadj.c
-> +++ b/net/netfilter/nf_conntrack_seqadj.c
-> @@ -61,11 +61,14 @@ void nf_ct_tcp_seqadj_set(struct sk_buff *skb,
->  			  s32 off)
->  {
->  	const struct tcphdr *th;
-> +	struct tcphdr tcph;
->  
->  	if (nf_ct_protonum(ct) != IPPROTO_TCP)
->  		return;
->  
-> -	th = (struct tcphdr *)(skb_network_header(skb) + ip_hdrlen(skb));
-> +	th = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(tcph), &tcph);
-> +	if (!th)
-> +		return;
+Thank you for your review!
 
-This fix is required since your recent upgrade to check for 4 bytes
-instead of 8 bytes from conntrack. Please confirm this.
+2017-04-07 4:51 GMT+09:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+> On Tue, Mar 28, 2017 at 12:28:50AM +0900, Taehee Yoo wrote:
+>> __nf_nat_decode_session is called from nf_nat_decode_session as decodefn.
+>> before calling decodefn, it already set rcu_read_lock. so rcu_read_lock in
+>> __nf_nat_decode_session can be removed.
+>
+> Could you have close look at the tree to confirm if we have more spots
+> where rcu_read_lock is unnecessary?
+>
+> $ git grep rcu_read_lock net/netfilter/ | wc -l
+> 158
+> $ git grep rcu_read_lock
+> net/ipv4/netfilter/ | wc -l
+> 3
+> $ git grep rcu_read_lock
+> net/ipv6/netfilter/ | wc -l
+> 2
+> $ git grep rcu_read_lock
+> net/bridge/netfilter/ | wc -l
+>
+> It's a fair good amount, it would take me around one hour probably to
+> evaluate those here.
+>
+> If you can help us on verifying this, it would be simply great.
+>
+> Thanks!
 
-If so, it would be good to review the NAT code to see if there are
-more spots that are not broken since that change...
+okay, I confirm whole rcu_read_lock then I will resend a single patch
+as soon as possible.
+may be it needs a week.
