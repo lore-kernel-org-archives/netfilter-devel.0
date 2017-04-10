@@ -1,51 +1,59 @@
-From: James Cowgill <James.Cowgill@imgtec.com>
-Subject: Re: [PATCH iptables] extensions: libxt_hashlimit: fix 64-bit printf
- formats
-Date: Mon, 10 Apr 2017 10:38:44 +0100
-Message-ID: <e6f3b34b-eec5-77cf-abd6-66ce90a1e7f8@imgtec.com>
-References: <1491565649-16679-1-git-send-email-James.Cowgill@imgtec.com>
- <20170408202917.GA3568@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@vger.kernel.org>
+From: gfree.wind@foxmail.com
+Subject: [PATCH nf 1/1] netfilter: seqadj: Fix possible non-linear data access for TCP header
+Date: Mon, 10 Apr 2017 18:36:03 +0800
+Message-ID: <1491820563-98023-1-git-send-email-gfree.wind@foxmail.com>
+Cc: Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailapp01.imgtec.com ([195.59.15.196]:35701 "EHLO
-        mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751134AbdDJJiq (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Apr 2017 05:38:46 -0400
-Received: from HHMAIL01.hh.imgtec.org (unknown [10.100.10.19])
-        by Forcepoint Email with ESMTPS id 2E49C37A9CEB7
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 10:38:42 +0100 (IST)
-In-Reply-To: <20170408202917.GA3568@salvia>
+Received: from smtpbgbr2.qq.com ([54.207.22.56]:36791 "EHLO smtpbgbr2.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753017AbdDJKgT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Apr 2017 06:36:19 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 08/04/17 21:29, Pablo Neira Ayuso wrote:
-> On Fri, Apr 07, 2017 at 12:47:29PM +0100, James Cowgill wrote:
->> hashlimit was using "%lu" in a lot of printf format specifiers to print
->> 64-bit integers. This is incorrect on 32-bit architectures because
->> "long int" is 32-bits there. On MIPS, it was causing iptables to
->> segfault when printing these integers.
->>
->> Fix by using the correct format specifier.
-> 
-> One comment below...
-> 
->> @@ -262,7 +262,7 @@ static uint64_t parse_burst(const char *burst, int revision)
->>  	if (v > max)
->>  		xtables_error(PARAMETER_PROBLEM, "bad value for option "
->>  			"\"--hashlimit-burst\", value \"%s\" too large "
->> -				"(max %lumb).", burst, max/1024/1024);
->> +				"(max %" PRIu64 "mb).", burst, max/1024/1024);
->                                         ^      ^
-> 
-> I can remove this whitespaces, right? I'm looking at other spots in
-> the iptables code and I would like to keep this consistent.
-> 
-> No need to resent the patch, I can just mangle this here and apply.
+From: Gao Feng <fgao@ikuai8.com>
 
-Yes removing the spaces around PRIu64 should be fine.
+The current call path of nf_ct_tcp_seqadj_set is the following.
 
-James
+nfqnl_recv_verdict->ctnetlink_glue_hook->ctnetlink_glue_seqadj
+->nf_ct_tcp_seqadj_set.
+
+It couldn't make sure the TCP header is in the linear data part.
+So use the skb_header_pointer instead of the current codes.
+
+BTW, the nf_ct_tcp_seqadj_set is one external function of netfilter
+which works in the network layer, it should not assume the transport
+header is in the linear data.
+
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ net/netfilter/nf_conntrack_seqadj.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
+index ef7063e..80394ab 100644
+--- a/net/netfilter/nf_conntrack_seqadj.c
++++ b/net/netfilter/nf_conntrack_seqadj.c
+@@ -61,11 +61,14 @@ void nf_ct_tcp_seqadj_set(struct sk_buff *skb,
+ 			  s32 off)
+ {
+ 	const struct tcphdr *th;
++	struct tcphdr tcph;
+ 
+ 	if (nf_ct_protonum(ct) != IPPROTO_TCP)
+ 		return;
+ 
+-	th = (struct tcphdr *)(skb_network_header(skb) + ip_hdrlen(skb));
++	th = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(tcph), &tcph);
++	if (!th)
++		return;
+ 	nf_ct_seqadj_set(ct, ctinfo, th->seq, off);
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_tcp_seqadj_set);
+-- 
+1.9.1
+
+
+
+
