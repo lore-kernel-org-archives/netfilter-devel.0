@@ -1,48 +1,76 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables-restore/ip6tables-restore: add --version/-V
- argument
-Date: Mon, 10 Apr 2017 13:53:56 +0200
-Message-ID: <20170410115356.GC2155@salvia>
-References: <1491255160.5423.16.camel@redhat.com>
- <20170408220418.GA8524@salvia>
- <1491707416.27302.1.camel@redhat.com>
+Subject: Re: [PATCH nf] netfilter: ctnetlink: remove unnecessary
+ nf_conntrack_expect_lock protection
+Date: Mon, 10 Apr 2017 14:02:05 +0200
+Message-ID: <20170410120205.GE2155@salvia>
+References: <1491056064-19687-1-git-send-email-zlpnobody@163.com>
+ <20170408211615.GB5301@salvia>
+ <CAML_gOdrjnSB-FxHj9oTfVFWODmNGxh5y0GZ2JPOMqjp=xa1ng@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Dan Williams <dcbw@redhat.com>
+Cc: Liping Zhang <zlpnobody@163.com>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>
+To: Liping Zhang <zlpnobody@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44692 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:50518 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751615AbdDJLyK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Apr 2017 07:54:10 -0400
+        id S1753165AbdDJMCX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Apr 2017 08:02:23 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 034FB52308
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 13:54:06 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 3ACC352309
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 14:02:19 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E7188BAAA8
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 13:54:05 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2A9E3BAC34
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 14:02:19 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2763CBAAA1
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 13:54:03 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F2A25BAC34
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 14:02:11 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1491707416.27302.1.camel@redhat.com>
+In-Reply-To: <CAML_gOdrjnSB-FxHj9oTfVFWODmNGxh5y0GZ2JPOMqjp=xa1ng@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Apr 08, 2017 at 10:10:16PM -0500, Dan Williams wrote:
-> On Sun, 2017-04-09 at 00:04 +0200, Pablo Neira Ayuso wrote:
-> > On Mon, Apr 03, 2017 at 04:32:40PM -0500, Dan Williams wrote:
-> > > Prints program version just like iptables/ip6tables.
-> > 
-> > Applied, thanks.
-> > 
-> > You sent us a chunk for the manpage?
+On Sun, Apr 09, 2017 at 12:21:22PM +0800, Liping Zhang wrote:
+> Hi Pablo,
 > 
-> I did not, but I will.  I noticed there wasn't one for the iptables-
-> restore --wait changes either, was Lorenzo going to send one?  Mine
-> would probably conflict with that.
+> 2017-04-09 5:16 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+> > On Sat, Apr 01, 2017 at 10:14:24PM +0800, Liping Zhang wrote:
+> >> @@ -1960,9 +1955,7 @@ static int ctnetlink_new_conntrack(struct net *net, struct sock *ctnl,
+> >>       err = -EEXIST;
+> >>       ct = nf_ct_tuplehash_to_ctrack(h);
+> >>       if (!(nlh->nlmsg_flags & NLM_F_EXCL)) {
+> >> -             spin_lock_bh(&nf_conntrack_expect_lock);
+> >>               err = ctnetlink_change_conntrack(ct, cda);
+> >> -             spin_unlock_bh(&nf_conntrack_expect_lock);
+> >
+> > We used to have a central spinlock here.
+> >
+> >         spin_lock_bh(&nf_conntrack_lock);
+> >
+> > that was removed time ago, so this go converted to use
+> > nf_conntrack_expect_lock.
+> 
+> This patch should add:
+> 
+> Fixes: ca7433df3a67 ("netfilter: conntrack: seperate expect locking
+> from nf_conntrack_lock")
+> 
+> Commit ca7433df3a67 add spin_lock_bh(&nf_conntrack_expect_lock) in
+> nf_ct_remove_expectations, but we also lock the _expect_lock before calling
+> ctnetlink_change_conntrack, so dead lock will happen:
+> 
+>  spin_lock_bh(&nf_conntrack_expect_lock):
+> ->err = ctnetlink_change_conntrack(ct, cda)
+> -->ctnetlink_change_helper
+> --->if (!strcmp(helpname, "")) nf_ct_remove_expectations()
+> ---->spin_lock_bh(&nf_conntrack_expect_lock); //lock _expect_lock
+> again, dead lock!
 
-Right. I forgot to ask for that chunk to Lorenzo.
+I agree this is fixing the deadlock but see below.
 
-If you can help us on adding these missing chunks to the manpage, I
-would really appreciate this. Thanks!
+> Since ctnetlink_change_conntrack is unrelated to nf_conntrack_expect_lock,
+> so remove it can fix this issue.
+
+But packets may be updating a conntrack at the same time that we're
+mangling via ctnetlink, right?
