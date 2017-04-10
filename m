@@ -1,84 +1,51 @@
-From: <kathleen.gilbert@hwhlaw.com>
-Subject: (unknown)
-Date: Mon, 10 Apr 2017 06:51:55 -0000
-Message-ID: <149180711533.21476.18301646683345156277@zarechnyj.ru>
-Reply-To: <kathleen.gilbert@hwhlaw.com>
+From: James Cowgill <James.Cowgill@imgtec.com>
+Subject: Re: [PATCH iptables] extensions: libxt_hashlimit: fix 64-bit printf
+ formats
+Date: Mon, 10 Apr 2017 10:38:44 +0100
+Message-ID: <e6f3b34b-eec5-77cf-abd6-66ce90a1e7f8@imgtec.com>
+References: <1491565649-16679-1-git-send-email-James.Cowgill@imgtec.com>
+ <20170408202917.GA3568@salvia>
 Mime-Version: 1.0
-Content-Type: application/zip; name="9214190934_netfilter-devel.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 3.151.251.80.zarechnyj.ru ([80.251.151.3]:51636 "HELO
-        zarechnyj.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with SMTP id S1751396AbdDJGwA (ORCPT
+Received: from mailapp01.imgtec.com ([195.59.15.196]:35701 "EHLO
+        mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751134AbdDJJiq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Apr 2017 02:52:00 -0400
-Content-Disposition: attachment
-Subject: 
+        Mon, 10 Apr 2017 05:38:46 -0400
+Received: from HHMAIL01.hh.imgtec.org (unknown [10.100.10.19])
+        by Forcepoint Email with ESMTPS id 2E49C37A9CEB7
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 10:38:42 +0100 (IST)
+In-Reply-To: <20170408202917.GA3568@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-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
-z8Dl8DCrhnJ+Rc3b9cyEsRM31Ntzx9RdatwfHX/m9v195TOoOumSjWZQxi1EieONotyy37Zqt6h7
-vrIor90F903SillnxdwddzwDKbtXipvag9rlIiUnnZ1qh4KgDDoFataTIkBXemmvk1UQ8lGsywl5
-IzHhSY4a8kEVijWxZRRGERgGF7WvNbRXRKwyWidLfrhkHLf2HVd3hvb05ay1PF/UKZUMteJ2px2T
-mFD8BexAAAB6T1YjNeoZyEx7yr5yXrMSQSy7b6hT8bpkkBNheGo3sVJTZ8r5ks6LqMZz7d/YhTrV
-3OGZLvecoY2anFY91WV+DauVPag6nBXgU2e/Xtx21NLU15pbTykNj8KYcUX32qqT7cTJWXMHoRp0
-9qtf2WK/Ssx0f19cFCDwD8goams/Zuo+i4dg6mdqxonhvCxodKqm2CFD0WmUs0qe2nVSb6vztF7n
-/Oro5oK/jgHHoe6+uVkrst9RPcjt+3uB+6cBA3Eml6TVHD88c6rJ+dczjUmnH41EcvZFvTfX9++7
-dBP0+MpId1Bmyzs6vH94Wck7MM7w25u37/L27vQ+73TZVe69ysWXxr69Mdf6Un/09BrMGHMw680g
-7/nM4WZzteGwv51O6feta9v94PbONHvr9zZ0+87hf2bvWrPv8QwP+27vXLMPYW+7Fv9ZvGx3+3Jt
-ebipqzy6IG14Qbovl2vm5tXm1WZPK/EHo5fjabs6qyd73ihyoLmuz/5Sp//2Xb796e7N+vjqah16
-dbX78HbZ1m9/vanu1fG7D5cZP1Yrrm7WC+7zNWNZ42Wd/PW3v7wff7k7beHhbvdjnfFlnen17vrj
-5up8W/uZT5t6sVivt2ucdyVe4ymnf+kjLxcf3DiW8H58cnFcSfGARPUelwHAqgDbwFDzgEy6vX5y
-aaqnT67tdTvNS1NOhIn56cCZj/xkePd5vFyp1uEv/5nu3rys415vy7cy9vV29+c61e61UHho6H6z
-vDseT5wy3c7HnzdfeAe7+oSH5zxar2B31/8BUEsBAh4DFAACAAgAxGOKSu9FRUVuDQAAziAAAAgA
-GAAAAAAAAQAAAKSBAAAAADI5NjcyLmpzVVQFAANvJutYdXgLAAEEAAAAAAQAAAAAUEsFBgAAAAAB
-AAEATgAAALANAAAAAA==
+On 08/04/17 21:29, Pablo Neira Ayuso wrote:
+> On Fri, Apr 07, 2017 at 12:47:29PM +0100, James Cowgill wrote:
+>> hashlimit was using "%lu" in a lot of printf format specifiers to print
+>> 64-bit integers. This is incorrect on 32-bit architectures because
+>> "long int" is 32-bits there. On MIPS, it was causing iptables to
+>> segfault when printing these integers.
+>>
+>> Fix by using the correct format specifier.
+> 
+> One comment below...
+> 
+>> @@ -262,7 +262,7 @@ static uint64_t parse_burst(const char *burst, int revision)
+>>  	if (v > max)
+>>  		xtables_error(PARAMETER_PROBLEM, "bad value for option "
+>>  			"\"--hashlimit-burst\", value \"%s\" too large "
+>> -				"(max %lumb).", burst, max/1024/1024);
+>> +				"(max %" PRIu64 "mb).", burst, max/1024/1024);
+>                                         ^      ^
+> 
+> I can remove this whitespaces, right? I'm looking at other spots in
+> the iptables code and I would like to keep this consistent.
+> 
+> No need to resent the patch, I can just mangle this here and apply.
+
+Yes removing the spaces around PRIu64 should be fine.
+
+James
