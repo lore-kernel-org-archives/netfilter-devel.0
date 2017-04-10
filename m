@@ -1,19 +1,17 @@
 From: Khem Raj <raj.khem@gmail.com>
-Subject: [libnetfilter_queue][PATCH 2/2] Declare the define visivility attribute together
-Date: Mon, 10 Apr 2017 12:58:04 -0700
-Message-ID: <20170410195804.18238-2-raj.khem@gmail.com>
-References: <20170410195804.18238-1-raj.khem@gmail.com>
+Subject: [libnftnl][PATCH] Declare the define visivility attribute together
+Date: Mon, 10 Apr 2017 14:24:18 -0700
+Message-ID: <20170410212418.32026-1-raj.khem@gmail.com>
 Cc: Khem Raj <raj.khem@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:33973 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751792AbdDJT6P (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:35380 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751876AbdDJVYd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Apr 2017 15:58:15 -0400
-Received: by mail-pg0-f67.google.com with SMTP id o123so26997899pga.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 12:58:15 -0700 (PDT)
-In-Reply-To: <20170410195804.18238-1-raj.khem@gmail.com>
+        Mon, 10 Apr 2017 17:24:33 -0400
+Received: by mail-pg0-f65.google.com with SMTP id g2so27161633pge.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 14:24:32 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -24,1220 +22,2940 @@ fail to link due to these missing symbols
 
 Signed-off-by: Khem Raj <raj.khem@gmail.com>
 ---
- doxygen.cfg.in           |   2 +-
- src/extra/ipv4.c         |  15 +++----
- src/extra/ipv6.c         |   9 ++--
- src/extra/pktbuff.c      |  42 ++++++------------
- src/extra/tcp.c          |  21 +++------
- src/extra/udp.c          |  21 +++------
- src/internal.h           |   5 +--
- src/libnetfilter_queue.c | 108 ++++++++++++++++-------------------------------
- src/nlmsg.c              |  21 +++------
- 9 files changed, 82 insertions(+), 162 deletions(-)
+ doxygen.cfg.in  |   2 +-
+ include/utils.h |   5 +--
+ src/batch.c     |  21 ++++-------
+ src/chain.c     | 102 +++++++++++++++++---------------------------------
+ src/common.c    |  21 ++++-------
+ src/expr.c      |  51 +++++++++----------------
+ src/gen.c       |  39 +++++++------------
+ src/object.c    |  99 ++++++++++++++++--------------------------------
+ src/rule.c      | 114 +++++++++++++++++++-------------------------------------
+ src/ruleset.c   |  48 ++++++++----------------
+ src/set.c       |  96 ++++++++++++++++-------------------------------
+ src/set_elem.c  |  72 ++++++++++++-----------------------
+ src/table.c     |  90 +++++++++++++++-----------------------------
+ src/trace.c     |  27 +++++---------
+ src/udata.c     |  48 ++++++++----------------
+ 15 files changed, 279 insertions(+), 556 deletions(-)
 
 diff --git a/doxygen.cfg.in b/doxygen.cfg.in
-index a7378ca..659abee 100644
+index 23fcad4..e49f28d 100644
 --- a/doxygen.cfg.in
 +++ b/doxygen.cfg.in
 @@ -72,7 +72,7 @@ RECURSIVE              = YES
  EXCLUDE                = 
  EXCLUDE_SYMLINKS       = NO
- EXCLUDE_PATTERNS       = 
+ EXCLUDE_PATTERNS       = */.git/* .*.d
 -EXCLUDE_SYMBOLS        = EXPORT_SYMBOL
 +EXCLUDE_SYMBOLS        =
  EXAMPLE_PATH           = 
  EXAMPLE_PATTERNS       = 
  EXAMPLE_RECURSIVE      = NO
-diff --git a/src/extra/ipv4.c b/src/extra/ipv4.c
-index a93d113..56d5dc7 100644
---- a/src/extra/ipv4.c
-+++ b/src/extra/ipv4.c
-@@ -32,7 +32,7 @@
-  * This funcion returns NULL if the IPv4 is malformed or the protocol version
-  * is not 4. On success, it returns a valid pointer to the IPv4 header.
-  */
--struct iphdr *nfq_ip_get_hdr(struct pkt_buff *pktb)
-+struct iphdr __EXPORTED *nfq_ip_get_hdr(struct pkt_buff *pktb)
- {
- 	struct iphdr *iph;
- 	unsigned int pktlen = pktb->tail - pktb->network_header;
-@@ -53,14 +53,13 @@ struct iphdr *nfq_ip_get_hdr(struct pkt_buff *pktb)
+diff --git a/include/utils.h b/include/utils.h
+index 2f5cf34..ff8207e 100644
+--- a/include/utils.h
++++ b/include/utils.h
+@@ -9,10 +9,9 @@
  
- 	return iph;
- }
--EXPORT_SYMBOL(nfq_ip_get_hdr);
- 
- /**
-  * nfq_ip_set_transport_header - set transport header
-  * \param pktb: pointer to network packet buffer
-  * \param iph: pointer to the IPv4 header
-  */
--int nfq_ip_set_transport_header(struct pkt_buff *pktb, struct iphdr *iph)
-+int __EXPORTED nfq_ip_set_transport_header(struct pkt_buff *pktb, struct iphdr *iph)
- {
- 	int doff = iph->ihl * 4;
- 
-@@ -71,7 +70,6 @@ int nfq_ip_set_transport_header(struct pkt_buff *pktb, struct iphdr *iph)
- 	pktb->transport_header = pktb->network_header + doff;
- 	return 0;
- }
--EXPORT_SYMBOL(nfq_ip_set_transport_header);
- 
- /**
-  * nfq_ip_set_checksum - set IPv4 checksum
-@@ -80,14 +78,13 @@ EXPORT_SYMBOL(nfq_ip_set_transport_header);
-  * \note Call to this function if you modified the IPv4 header to update the
-  * checksum.
-  */
--void nfq_ip_set_checksum(struct iphdr *iph)
-+void __EXPORTED nfq_ip_set_checksum(struct iphdr *iph)
- {
- 	uint32_t iph_len = iph->ihl * 4;
- 
- 	iph->check = 0;
- 	iph->check = nfq_checksum(0, (uint16_t *)iph, iph_len);
- }
--EXPORT_SYMBOL(nfq_ip_set_checksum);
- 
- /**
-  * nfq_ip_mangle - mangle IPv4 packet buffer
-@@ -100,7 +97,7 @@ EXPORT_SYMBOL(nfq_ip_set_checksum);
-  *
-  * \note This function recalculates the IPv4 checksum (if needed).
-  */
--int nfq_ip_mangle(struct pkt_buff *pkt, unsigned int dataoff,
-+int __EXPORTED nfq_ip_mangle(struct pkt_buff *pkt, unsigned int dataoff,
- 		  unsigned int match_offset, unsigned int match_len,
- 		  const char *rep_buffer, unsigned int rep_len)
- {
-@@ -116,7 +113,6 @@ int nfq_ip_mangle(struct pkt_buff *pkt, unsigned int dataoff,
- 
- 	return 1;
- }
--EXPORT_SYMBOL(nfq_ip_mangle);
- 
- /**
-  * nfq_pkt_snprintf_ip - print IPv4 header into buffer in iptables LOG format
-@@ -128,7 +124,7 @@ EXPORT_SYMBOL(nfq_ip_mangle);
-  * case that there is enough room in the buffer. Read snprintf manpage for more
-  * information to know more about this strange behaviour.
-  */
--int nfq_ip_snprintf(char *buf, size_t size, const struct iphdr *iph)
-+int __EXPORTED nfq_ip_snprintf(char *buf, size_t size, const struct iphdr *iph)
- {
- 	int ret;
- 	struct in_addr src = { iph->saddr };
-@@ -147,7 +143,6 @@ int nfq_ip_snprintf(char *buf, size_t size, const struct iphdr *iph)
- 
- 	return ret;
- }
--EXPORT_SYMBOL(nfq_ip_snprintf);
- 
- /**
-  * @}
-diff --git a/src/extra/ipv6.c b/src/extra/ipv6.c
-index 7c5dc9b..6641c6b 100644
---- a/src/extra/ipv6.c
-+++ b/src/extra/ipv6.c
-@@ -33,7 +33,7 @@
-  * This funcion returns NULL if an invalid header is found. On sucess, it
-  * returns a valid pointer to the header.
-  */
--struct ip6_hdr *nfq_ip6_get_hdr(struct pkt_buff *pktb)
-+struct ip6_hdr __EXPORTED *nfq_ip6_get_hdr(struct pkt_buff *pktb)
- {
- 	struct ip6_hdr *ip6h;
- 	unsigned int pktlen = pktb->tail - pktb->network_header;
-@@ -50,7 +50,6 @@ struct ip6_hdr *nfq_ip6_get_hdr(struct pkt_buff *pktb)
- 
- 	return ip6h;
- }
--EXPORT_SYMBOL(nfq_ip6_get_hdr);
- 
- /**
-  * nfq_ip6_set_transport_header - set transport header pointer for IPv6 packet
-@@ -61,7 +60,7 @@ EXPORT_SYMBOL(nfq_ip6_get_hdr);
-  * This function returns 1 if the protocol has been found and the transport
-  * header has been set. Otherwise, it returns 0.
-  */
--int nfq_ip6_set_transport_header(struct pkt_buff *pktb, struct ip6_hdr *ip6h,
-+int __EXPORTED nfq_ip6_set_transport_header(struct pkt_buff *pktb, struct ip6_hdr *ip6h,
- 				 uint8_t target)
- {
- 	uint8_t nexthdr = ip6h->ip6_nxt;
-@@ -115,7 +114,6 @@ int nfq_ip6_set_transport_header(struct pkt_buff *pktb, struct ip6_hdr *ip6h,
- 	pktb->transport_header = cur;
- 	return cur ? 1 : 0;
- }
--EXPORT_SYMBOL(nfq_ip6_set_transport_header);
- 
- /**
-  * nfq_ip6_snprintf - print IPv6 header into one buffer in iptables LOG format
-@@ -124,7 +122,7 @@ EXPORT_SYMBOL(nfq_ip6_set_transport_header);
-  * \param ip6_hdr: pointer to a valid IPv6 header.
-  *
-  */
--int nfq_ip6_snprintf(char *buf, size_t size, const struct ip6_hdr *ip6h)
-+int __EXPORTED nfq_ip6_snprintf(char *buf, size_t size, const struct ip6_hdr *ip6h)
- {
- 	int ret;
- 	char src[INET6_ADDRSTRLEN];
-@@ -143,7 +141,6 @@ int nfq_ip6_snprintf(char *buf, size_t size, const struct ip6_hdr *ip6h)
- 
- 	return ret;
- }
--EXPORT_SYMBOL(nfq_ip6_snprintf);
- 
- /**
-  * @}
-diff --git a/src/extra/pktbuff.c b/src/extra/pktbuff.c
-index 1c15a00..54d8244 100644
---- a/src/extra/pktbuff.c
-+++ b/src/extra/pktbuff.c
-@@ -40,7 +40,7 @@
-  *
-  * \return a pointer to a new queue handle or NULL on failure.
-  */
--struct pkt_buff *
-+struct pkt_buff __EXPORTED *
- pktb_alloc(int family, void *data, size_t len, size_t extra)
- {
- 	struct pkt_buff *pktb;
-@@ -84,120 +84,108 @@ pktb_alloc(int family, void *data, size_t len, size_t extra)
- 	}
- 	return pktb;
- }
--EXPORT_SYMBOL(pktb_alloc);
- 
- /**
-  * pktb_data - return pointer to the beginning of the packet buffer
-  * \param pktb Pointer to packet buffer
-  */
--uint8_t *pktb_data(struct pkt_buff *pktb)
-+uint8_t __EXPORTED *pktb_data(struct pkt_buff *pktb)
- {
- 	return pktb->data;
- }
--EXPORT_SYMBOL(pktb_data);
- 
- /**
-  * pktb_len - return length of the packet buffer
-  * \param pktb Pointer to packet buffer
-  */
--uint32_t pktb_len(struct pkt_buff *pktb)
-+uint32_t __EXPORTED pktb_len(struct pkt_buff *pktb)
- {
- 	return pktb->len;
- }
--EXPORT_SYMBOL(pktb_len);
- 
- /**
-  * pktb_free - release packet buffer
-  * \param pktb Pointer to packet buffer
-  */
--void pktb_free(struct pkt_buff *pktb)
-+void __EXPORTED pktb_free(struct pkt_buff *pktb)
- {
- 	free(pktb);
- }
--EXPORT_SYMBOL(pktb_free);
- 
- /**
-  * pktb_push - update pointer to the beginning of the packet buffer
-  * \param pktb Pointer to packet buffer
-  */
--void pktb_push(struct pkt_buff *pktb, unsigned int len)
-+void __EXPORTED pktb_push(struct pkt_buff *pktb, unsigned int len)
- {
- 	pktb->data -= len;
- 	pktb->len += len;
- }
--EXPORT_SYMBOL(pktb_push);
- 
- /**
-  * pktb_pull - update pointer to the beginning of the packet buffer
-  * \param pktb Pointer to packet buffer
-  */
--void pktb_pull(struct pkt_buff *pktb, unsigned int len)
-+void __EXPORTED pktb_pull(struct pkt_buff *pktb, unsigned int len)
- {
- 	pktb->data += len;
- 	pktb->len -= len;
- }
--EXPORT_SYMBOL(pktb_pull);
- 
- /**
-  * pktb_put - add extra bytes to the tail of the packet buffer
-  * \param pktb Pointer to packet buffer
-  */
--void pktb_put(struct pkt_buff *pktb, unsigned int len)
-+void __EXPORTED pktb_put(struct pkt_buff *pktb, unsigned int len)
- {
- 	pktb->tail += len;
- 	pktb->len += len;
- }
--EXPORT_SYMBOL(pktb_put);
- 
- /**
-  * pktb_trim - set new length for this packet buffer
-  * \param pktb Pointer to packet buffer
-  */
--void pktb_trim(struct pkt_buff *pktb, unsigned int len)
-+void __EXPORTED pktb_trim(struct pkt_buff *pktb, unsigned int len)
- {
- 	pktb->len = len;
- }
--EXPORT_SYMBOL(pktb_trim);
- 
- /**
-  * pktb_tailroom - get room in bytes in the tail of the packet buffer
-  * \param pktb Pointer to packet buffer
-  */
--unsigned int pktb_tailroom(struct pkt_buff *pktb)
-+unsigned int __EXPORTED pktb_tailroom(struct pkt_buff *pktb)
- {
- 	return pktb->data_len - pktb->len;
- }
--EXPORT_SYMBOL(pktb_tailroom);
- 
- /**
-  * pktb_mac_header - return pointer to layer 2 header (if any)
-  * \param pktb Pointer to packet buffer
-  */
--uint8_t *pktb_mac_header(struct pkt_buff *pktb)
-+uint8_t __EXPORTED *pktb_mac_header(struct pkt_buff *pktb)
- {
- 	return pktb->mac_header;
- }
--EXPORT_SYMBOL(pktb_mac_header);
- 
- /**
-  * pktb_network_header - return pointer to layer 3 header
-  * \param pktb Pointer to packet buffer
-  */
--uint8_t *pktb_network_header(struct pkt_buff *pktb)
-+uint8_t __EXPORTED *pktb_network_header(struct pkt_buff *pktb)
- {
- 	return pktb->network_header;
- }
--EXPORT_SYMBOL(pktb_network_header);
- 
- /**
-  * pktb_transport_header - return pointer to layer 4 header (if any)
-  * \param pktb Pointer to packet buffer
-  */
--uint8_t *pktb_transport_header(struct pkt_buff *pktb)
-+uint8_t __EXPORTED *pktb_transport_header(struct pkt_buff *pktb)
- {
- 	return pktb->transport_header;
- }
--EXPORT_SYMBOL(pktb_transport_header);
- 
- static int pktb_expand_tail(struct pkt_buff *pkt, int extra)
- {
-@@ -224,7 +212,7 @@ static int enlarge_pkt(struct pkt_buff *pkt, unsigned int extra)
- 	return 1;
- }
- 
--int pktb_mangle(struct pkt_buff *pkt,
-+int __EXPORTED pktb_mangle(struct pkt_buff *pkt,
- 		 unsigned int dataoff,
- 		 unsigned int match_offset,
- 		 unsigned int match_len,
-@@ -258,17 +246,15 @@ int pktb_mangle(struct pkt_buff *pkt,
- 	pkt->mangled = true;
- 	return 1;
- }
--EXPORT_SYMBOL(pktb_mangle);
- 
- /**
-  * pktb_mangled - return true if packet has been mangled
-  * \param pktb Pointer to packet buffer
-  */
--bool pktb_mangled(const struct pkt_buff *pkt)
-+bool __EXPORTED pktb_mangled(const struct pkt_buff *pkt)
- {
- 	return pkt->mangled;
- }
--EXPORT_SYMBOL(pktb_mangled);
- 
- /**
-  * @}
-diff --git a/src/extra/tcp.c b/src/extra/tcp.c
-index d1cd79d..8038ce5 100644
---- a/src/extra/tcp.c
-+++ b/src/extra/tcp.c
-@@ -40,7 +40,7 @@
-  * \note You have to call nfq_ip_set_transport_header or
-  * nfq_ip6_set_transport_header first to access the TCP header.
-  */
--struct tcphdr *nfq_tcp_get_hdr(struct pkt_buff *pktb)
-+struct tcphdr __EXPORTED *nfq_tcp_get_hdr(struct pkt_buff *pktb)
- {
- 	if (pktb->transport_header == NULL)
- 		return NULL;
-@@ -51,14 +51,13 @@ struct tcphdr *nfq_tcp_get_hdr(struct pkt_buff *pktb)
- 
- 	return (struct tcphdr *)pktb->transport_header;
- }
--EXPORT_SYMBOL(nfq_tcp_get_hdr);
- 
- /**
-  * nfq_tcp_get_payload - get the TCP packet payload
-  * \param tcph: pointer to the TCP header
-  * \param pktb: pointer to user-space network packet buffer
-  */
--void *nfq_tcp_get_payload(struct tcphdr *tcph, struct pkt_buff *pktb)
-+void __EXPORTED *nfq_tcp_get_payload(struct tcphdr *tcph, struct pkt_buff *pktb)
- {
- 	unsigned int len = tcph->doff * 4;
- 
-@@ -72,47 +71,43 @@ void *nfq_tcp_get_payload(struct tcphdr *tcph, struct pkt_buff *pktb)
- 
- 	return pktb->transport_header + len;
- }
--EXPORT_SYMBOL(nfq_tcp_get_payload);
- 
- /**
-  * nfq_tcp_get_payload_len - get the tcp packet payload
-  * \param tcph: pointer to the TCP header
-  * \param pktb: pointer to user-space network packet buffer
-  */
--unsigned int
-+unsigned int __EXPORTED
- nfq_tcp_get_payload_len(struct tcphdr *tcph, struct pkt_buff *pktb)
- {
- 	return pktb->tail - pktb->transport_header;
- }
--EXPORT_SYMBOL(nfq_tcp_get_payload_len);
- 
- /**
-  * nfq_tcp_set_checksum_ipv4 - computes IPv4/TCP packet checksum
-  * \param tcph: pointer to the TCP header
-  * \param iph: pointer to the IPv4 header
-  */
--void
-+void __EXPORTED
- nfq_tcp_compute_checksum_ipv4(struct tcphdr *tcph, struct iphdr *iph)
- {
- 	/* checksum field in header needs to be zero for calculation. */
- 	tcph->check = 0;
- 	tcph->check = nfq_checksum_tcpudp_ipv4(iph);
- }
--EXPORT_SYMBOL(nfq_tcp_compute_checksum_ipv4);
- 
- /**
-  * nfq_tcp_set_checksum_ipv6 - computes IPv6/TCP packet checksum
-  * \param tcph: pointer to the TCP header
-  * \param iph: pointer to the IPv6 header
-  */
--void
-+void __EXPORTED
- nfq_tcp_compute_checksum_ipv6(struct tcphdr *tcph, struct ip6_hdr *ip6h)
- {
- 	/* checksum field in header needs to be zero for calculation. */
- 	tcph->check = 0;
- 	tcph->check = nfq_checksum_tcpudp_ipv6(ip6h, tcph);
- }
--EXPORT_SYMBOL(nfq_tcp_compute_checksum_ipv6);
- 
- /*
-  *	The union cast uses a gcc extension to avoid aliasing problems
-@@ -134,7 +129,7 @@ union tcp_word_hdr {
-  * \param tcp: pointer to a valid tcp header.
-  *
-  */
--int nfq_tcp_snprintf(char *buf, size_t size, const struct tcphdr *tcph)
-+int __EXPORTED nfq_tcp_snprintf(char *buf, size_t size, const struct tcphdr *tcph)
- {
- 	int ret, len = 0;
- 
-@@ -177,7 +172,6 @@ int nfq_tcp_snprintf(char *buf, size_t size, const struct tcphdr *tcph)
- 
- 	return ret;
- }
--EXPORT_SYMBOL(nfq_tcp_snprintf);
- 
- /**
-  * nfq_tcp_mangle_ipv4 - mangle TCP/IPv4 packet buffer
-@@ -189,7 +183,7 @@ EXPORT_SYMBOL(nfq_tcp_snprintf);
-  *
-  * \note This function recalculates the IPv4 and TCP checksums for you.
-  */
--int
-+int __EXPORTED
- nfq_tcp_mangle_ipv4(struct pkt_buff *pkt,
- 		    unsigned int match_offset, unsigned int match_len,
- 		    const char *rep_buffer, unsigned int rep_len)
-@@ -208,7 +202,6 @@ nfq_tcp_mangle_ipv4(struct pkt_buff *pkt,
- 
- 	return 1;
- }
--EXPORT_SYMBOL(nfq_tcp_mangle_ipv4);
- 
- /**
-  * @}
-diff --git a/src/extra/udp.c b/src/extra/udp.c
-index 8c44a66..99c8faa 100644
---- a/src/extra/udp.c
-+++ b/src/extra/udp.c
-@@ -37,7 +37,7 @@
-  * This function returns NULL if invalid UDP header is found. On success,
-  * it returns the UDP header.
-  */
--struct udphdr *nfq_udp_get_hdr(struct pkt_buff *pktb)
-+struct udphdr __EXPORTED *nfq_udp_get_hdr(struct pkt_buff *pktb)
- {
- 	if (pktb->transport_header == NULL)
- 		return NULL;
-@@ -48,14 +48,13 @@ struct udphdr *nfq_udp_get_hdr(struct pkt_buff *pktb)
- 
- 	return (struct udphdr *)pktb->transport_header;
- }
--EXPORT_SYMBOL(nfq_udp_get_hdr);
- 
- /**
-  * nfq_udp_get_payload - get the UDP packet payload.
-  * \param udph: the pointer to the UDP header.
-  * \param tail: pointer to the tail of the packet
-  */
--void *nfq_udp_get_payload(struct udphdr *udph, struct pkt_buff *pktb)
-+void __EXPORTED *nfq_udp_get_payload(struct udphdr *udph, struct pkt_buff *pktb)
- {
- 	uint16_t len = ntohs(udph->len);
- 
-@@ -69,17 +68,15 @@ void *nfq_udp_get_payload(struct udphdr *udph, struct pkt_buff *pktb)
- 
- 	return pktb->transport_header + sizeof(struct udphdr);
- }
--EXPORT_SYMBOL(nfq_udp_get_payload);
- 
- /**
-  * nfq_udp_get_payload_len - get the udp packet payload.
-  * \param udp: the pointer to the udp header.
-  */
--unsigned int nfq_udp_get_payload_len(struct udphdr *udph, struct pkt_buff *pktb)
-+unsigned int __EXPORTED nfq_udp_get_payload_len(struct udphdr *udph, struct pkt_buff *pktb)
- {
- 	return pktb->tail - pktb->transport_header;
- }
--EXPORT_SYMBOL(nfq_udp_get_payload_len);
- 
- /**
-  * nfq_udp_set_checksum_ipv4 - computes a IPv4/TCP packet's segment
-@@ -91,14 +88,13 @@ EXPORT_SYMBOL(nfq_udp_get_payload_len);
-  * \see nfq_pkt_compute_ip_checksum
-  * \see nfq_pkt_compute_udp_checksum
-  */
--void
-+void __EXPORTED
- nfq_udp_compute_checksum_ipv4(struct udphdr *udph, struct iphdr *iph)
- {
- 	/* checksum field in header needs to be zero for calculation. */
- 	udph->check = 0;
- 	udph->check = nfq_checksum_tcpudp_ipv4(iph);
- }
--EXPORT_SYMBOL(nfq_udp_compute_checksum_ipv4);
- 
- /**
-  * nfq_udp_set_checksum_ipv6 - computes a IPv6/TCP packet's segment
-@@ -110,14 +106,13 @@ EXPORT_SYMBOL(nfq_udp_compute_checksum_ipv4);
-  * \see nfq_pkt_compute_ip_checksum
-  * \see nfq_pkt_compute_udp_checksum
-  */
--void
-+void __EXPORTED
- nfq_udp_compute_checksum_ipv6(struct udphdr *udph, struct ip6_hdr *ip6h)
- {
- 	/* checksum field in header needs to be zero for calculation. */
- 	udph->check = 0;
- 	udph->check = nfq_checksum_tcpudp_ipv6(ip6h, udph);
- }
--EXPORT_SYMBOL(nfq_udp_compute_checksum_ipv6);
- 
- /**
-  * nfq_tcp_mangle_ipv4 - mangle TCP/IPv4 packet buffer
-@@ -129,7 +124,7 @@ EXPORT_SYMBOL(nfq_udp_compute_checksum_ipv6);
-  *
-  * \note This function recalculates the IPv4 and TCP checksums for you.
-  */
--int
-+int __EXPORTED
- nfq_udp_mangle_ipv4(struct pkt_buff *pkt,
- 		    unsigned int match_offset, unsigned int match_len,
- 		    const char *rep_buffer, unsigned int rep_len)
-@@ -148,7 +143,6 @@ nfq_udp_mangle_ipv4(struct pkt_buff *pkt,
- 
- 	return 1;
- }
--EXPORT_SYMBOL(nfq_udp_mangle_ipv4);
- 
- /**
-  * nfq_pkt_snprintf_udp_hdr - print udp header into one buffer in a humnan
-@@ -158,12 +152,11 @@ EXPORT_SYMBOL(nfq_udp_mangle_ipv4);
-  * \param udp: pointer to a valid udp header.
-  *
-  */
--int nfq_udp_snprintf(char *buf, size_t size, const struct udphdr *udph)
-+int __EXPORTED nfq_udp_snprintf(char *buf, size_t size, const struct udphdr *udph)
- {
- 	return snprintf(buf, size, "SPT=%u DPT=%u ",
- 			htons(udph->source), htons(udph->dest));
- }
--EXPORT_SYMBOL(nfq_udp_snprintf);
- 
- /**
-  * @}
-diff --git a/src/internal.h b/src/internal.h
-index 558d267..79b0752 100644
---- a/src/internal.h
-+++ b/src/internal.h
-@@ -5,10 +5,9 @@
- #include <stdint.h>
- #include <stdbool.h>
+ #include "config.h"
  #ifdef HAVE_VISIBILITY_HIDDEN
 -#	define __visible	__attribute__((visibility("default")))
--#	define EXPORT_SYMBOL(x)	typeof(x) (x) __visible
+-#	define EXPORT_SYMBOL(x)	typeof(x) (x) __visible;
 +#	define __EXPORTED	__attribute__((visibility("default")))
  #else
 -#	define EXPORT_SYMBOL
-+#	define __EXPORTED
++#	define __EXPORT
  #endif
  
- struct iphdr;
-diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
-index 065d618..ab0b66b 100644
---- a/src/libnetfilter_queue.c
-+++ b/src/libnetfilter_queue.c
-@@ -133,8 +133,7 @@ struct nfq_data {
- 	struct nfattr **data;
- };
- 
--int nfq_errno;
--EXPORT_SYMBOL(nfq_errno);
-+int __EXPORTED nfq_errno;
- 
- /***********************************************************************
-  * low level stuff 
-@@ -218,11 +217,10 @@ static int __nfq_rcv_pkt(struct nlmsghdr *nlh, struct nfattr *nfa[],
- 
- /* public interface */
- 
--struct nfnl_handle *nfq_nfnlh(struct nfq_handle *h)
-+struct nfnl_handle __EXPORTED *nfq_nfnlh(struct nfq_handle *h)
- {
- 	return h->nfnlh;
+ #define __noreturn	__attribute__((__noreturn__))
+diff --git a/src/batch.c b/src/batch.c
+index 5ee3fd7..3bedd26 100644
+--- a/src/batch.c
++++ b/src/batch.c
+@@ -57,7 +57,7 @@ static void nftnl_batch_add_page(struct nftnl_batch_page *page,
+ 	list_add_tail(&page->head, &batch->page_list);
  }
--EXPORT_SYMBOL(nfq_nfnlh);
  
- /**
-  *
-@@ -294,11 +292,10 @@ EXPORT_SYMBOL(nfq_nfnlh);
-  * over the netlink connection associated with the given queue connection
-  * handle.
-  */
--int nfq_fd(struct nfq_handle *h)
-+int __EXPORTED nfq_fd(struct nfq_handle *h)
+-struct nftnl_batch *nftnl_batch_alloc(uint32_t pg_size, uint32_t pg_overrun_size)
++struct nftnl_batch __EXPORTED *nftnl_batch_alloc(uint32_t pg_size, uint32_t pg_overrun_size)
  {
- 	return nfnl_fd(nfq_nfnlh(h));
- }
--EXPORT_SYMBOL(nfq_fd);
- /**
-  * @}
-  */
-@@ -349,7 +346,7 @@ EXPORT_SYMBOL(nfq_fd);
-  *
-  * \return a pointer to a new queue handle or NULL on failure.
-  */
--struct nfq_handle *nfq_open(void)
-+struct nfq_handle __EXPORTED *nfq_open(void)
- {
- 	struct nfnl_handle *nfnlh = nfnl_open();
- 	struct nfq_handle *qh;
-@@ -366,7 +363,6 @@ struct nfq_handle *nfq_open(void)
- 
- 	return qh;
- }
--EXPORT_SYMBOL(nfq_open);
- 
- /**
-  * @}
-@@ -382,7 +378,7 @@ EXPORT_SYMBOL(nfq_open);
-  *
-  * \return a pointer to a new queue handle or NULL on failure.
-  */
--struct nfq_handle *nfq_open_nfnl(struct nfnl_handle *nfnlh)
-+struct nfq_handle __EXPORTED *nfq_open_nfnl(struct nfnl_handle *nfnlh)
- {
- 	struct nfnl_callback pkt_cb = {
- 		.call		= __nfq_rcv_pkt,
-@@ -419,7 +415,6 @@ out_free:
- 	free(h);
+ 	struct nftnl_batch *batch;
+ 	struct nftnl_batch_page *page;
+@@ -80,9 +80,8 @@ err1:
+ 	free(batch);
  	return NULL;
  }
--EXPORT_SYMBOL(nfq_open_nfnl);
+-EXPORT_SYMBOL(nftnl_batch_alloc);
  
- /**
-  * \addtogroup LibrarySetup
-@@ -438,7 +433,7 @@ EXPORT_SYMBOL(nfq_open_nfnl);
-  *
-  * \return 0 on success, non-zero on failure. 
-  */
--int nfq_close(struct nfq_handle *h)
-+int __EXPORTED nfq_close(struct nfq_handle *h)
+-void nftnl_batch_free(struct nftnl_batch *batch)
++void __EXPORTED nftnl_batch_free(struct nftnl_batch *batch)
  {
- 	int ret;
- 	
-@@ -447,7 +442,6 @@ int nfq_close(struct nfq_handle *h)
- 		free(h);
- 	return ret;
- }
--EXPORT_SYMBOL(nfq_close);
+ 	struct nftnl_batch_page *page, *next;
  
- /**
-  * nfq_bind_pf - bind a nfqueue handler to a given protocol family
-@@ -460,11 +454,10 @@ EXPORT_SYMBOL(nfq_close);
-  *
-  * \return integer inferior to 0 in case of failure
-  */
--int nfq_bind_pf(struct nfq_handle *h, uint16_t pf)
-+int __EXPORTED nfq_bind_pf(struct nfq_handle *h, uint16_t pf)
+@@ -94,9 +93,8 @@ void nftnl_batch_free(struct nftnl_batch *batch)
+ 
+ 	free(batch);
+ }
+-EXPORT_SYMBOL(nftnl_batch_free);
+ 
+-int nftnl_batch_update(struct nftnl_batch *batch)
++int __EXPORTED nftnl_batch_update(struct nftnl_batch *batch)
  {
- 	return __build_send_cfg_msg(h, NFQNL_CFG_CMD_PF_BIND, 0, pf);
- }
--EXPORT_SYMBOL(nfq_bind_pf);
- 
- /**
-  * nfq_unbind_pf - unbind nfqueue handler from a protocol family
-@@ -476,11 +469,10 @@ EXPORT_SYMBOL(nfq_bind_pf);
-  *
-  * This call is obsolete, Linux kernels from 3.8 onwards ignore it.
-  */
--int nfq_unbind_pf(struct nfq_handle *h, uint16_t pf)
-+int __EXPORTED nfq_unbind_pf(struct nfq_handle *h, uint16_t pf)
- {
- 	return __build_send_cfg_msg(h, NFQNL_CFG_CMD_PF_UNBIND, 0, pf);
- }
--EXPORT_SYMBOL(nfq_unbind_pf);
- 
- 
- /**
-@@ -524,7 +516,7 @@ typedef int nfq_callback(struct nfq_q_handle *qh,
-  * The callback should return < 0 to stop processing.
-  */
- 
--struct nfq_q_handle *nfq_create_queue(struct nfq_handle *h, 
-+struct nfq_q_handle __EXPORTED *nfq_create_queue(struct nfq_handle *h, 
- 		uint16_t num,
- 		nfq_callback *cb,
- 		void *data)
-@@ -555,7 +547,6 @@ struct nfq_q_handle *nfq_create_queue(struct nfq_handle *h,
- 	add_qh(qh);
- 	return qh;
- }
--EXPORT_SYMBOL(nfq_create_queue);
- 
- /**
-  * @}
-@@ -573,7 +564,7 @@ EXPORT_SYMBOL(nfq_create_queue);
-  * Removes the binding for the specified queue handle. This call also unbind
-  * from the nfqueue handler, so you don't have to call nfq_unbind_pf.
-  */
--int nfq_destroy_queue(struct nfq_q_handle *qh)
-+int __EXPORTED nfq_destroy_queue(struct nfq_q_handle *qh)
- {
- 	int ret = __build_send_cfg_msg(qh->h, NFQNL_CFG_CMD_UNBIND, qh->id, 0);
- 	if (ret == 0) {
-@@ -583,7 +574,6 @@ int nfq_destroy_queue(struct nfq_q_handle *qh)
- 
- 	return ret;
- }
--EXPORT_SYMBOL(nfq_destroy_queue);
- 
- /**
-  * nfq_handle_packet - handle a packet received from the nfqueue subsystem
-@@ -597,11 +587,10 @@ EXPORT_SYMBOL(nfq_destroy_queue);
-  *
-  * \return 0 on success, non-zero on failure.
-  */
--int nfq_handle_packet(struct nfq_handle *h, char *buf, int len)
-+int __EXPORTED nfq_handle_packet(struct nfq_handle *h, char *buf, int len)
- {
- 	return nfnl_handle_packet(h->nfnlh, buf, len);
- }
--EXPORT_SYMBOL(nfq_handle_packet);
- 
- /**
-  * nfq_set_mode - set the amount of packet data that nfqueue copies to userspace
-@@ -618,7 +607,7 @@ EXPORT_SYMBOL(nfq_handle_packet);
-  *
-  * \return -1 on error; >=0 otherwise.
-  */
--int nfq_set_mode(struct nfq_q_handle *qh,
-+int __EXPORTED nfq_set_mode(struct nfq_q_handle *qh,
- 		uint8_t mode, uint32_t range)
- {
- 	union {
-@@ -638,7 +627,6 @@ int nfq_set_mode(struct nfq_q_handle *qh,
- 
- 	return nfnl_query(qh->h->nfnlh, &u.nmh);
- }
--EXPORT_SYMBOL(nfq_set_mode);
- 
- /**
-  * nfq_set_queue_flags - set flags (options) for the kernel queue
-@@ -690,7 +678,7 @@ EXPORT_SYMBOL(nfq_set_mode);
-  *
-  * \return -1 on error with errno set appropriately; =0 otherwise.
-  */
--int nfq_set_queue_flags(struct nfq_q_handle *qh,
-+int __EXPORTED nfq_set_queue_flags(struct nfq_q_handle *qh,
- 			uint32_t mask, uint32_t flags)
- {
- 	union {
-@@ -711,7 +699,6 @@ int nfq_set_queue_flags(struct nfq_q_handle *qh,
- 
- 	return nfnl_query(qh->h->nfnlh, &u.nmh);
- }
--EXPORT_SYMBOL(nfq_set_queue_flags);
- 
- /**
-  * nfq_set_queue_maxlen - Set kernel queue maximum length parameter
-@@ -724,7 +711,7 @@ EXPORT_SYMBOL(nfq_set_queue_flags);
-  *
-  * \return -1 on error; >=0 otherwise.
-  */
--int nfq_set_queue_maxlen(struct nfq_q_handle *qh,
-+int __EXPORTED nfq_set_queue_maxlen(struct nfq_q_handle *qh,
- 				uint32_t queuelen)
- {
- 	union {
-@@ -742,7 +729,6 @@ int nfq_set_queue_maxlen(struct nfq_q_handle *qh,
- 
- 	return nfnl_query(qh->h->nfnlh, &u.nmh);
- }
--EXPORT_SYMBOL(nfq_set_queue_maxlen);
- 
- /**
-  * @}
-@@ -829,14 +815,13 @@ static int __set_verdict(struct nfq_q_handle *qh, uint32_t id,
-  *
-  * \return -1 on error; >= 0 otherwise.
-  */
--int nfq_set_verdict(struct nfq_q_handle *qh, uint32_t id,
-+int __EXPORTED nfq_set_verdict(struct nfq_q_handle *qh, uint32_t id,
- 		uint32_t verdict, uint32_t data_len,
- 		const unsigned char *buf)
- {
- 	return __set_verdict(qh, id, verdict, 0, 0, data_len, buf,
- 						NFQNL_MSG_VERDICT);
- }
--EXPORT_SYMBOL(nfq_set_verdict);
- 
- /**
-  * nfq_set_verdict2 - like nfq_set_verdict, but you can set the mark.
-@@ -847,14 +832,13 @@ EXPORT_SYMBOL(nfq_set_verdict);
-  * \param data_len number of bytes of data pointed to by #buf
-  * \param buf the buffer that contains the packet data
-  */
--int nfq_set_verdict2(struct nfq_q_handle *qh, uint32_t id,
-+int __EXPORTED nfq_set_verdict2(struct nfq_q_handle *qh, uint32_t id,
- 		     uint32_t verdict, uint32_t mark,
- 		     uint32_t data_len, const unsigned char *buf)
- {
- 	return __set_verdict(qh, id, verdict, htonl(mark), 1, data_len,
- 						buf, NFQNL_MSG_VERDICT);
- }
--EXPORT_SYMBOL(nfq_set_verdict2);
- 
- /**
-  * nfq_set_verdict_batch - issue verdicts on several packets at once
-@@ -868,13 +852,12 @@ EXPORT_SYMBOL(nfq_set_verdict2);
-  * batch support was added in Linux 3.1.
-  * These functions will fail silently on older kernels.
-  */
--int nfq_set_verdict_batch(struct nfq_q_handle *qh, uint32_t id,
-+int __EXPORTED nfq_set_verdict_batch(struct nfq_q_handle *qh, uint32_t id,
- 					  uint32_t verdict)
- {
- 	return __set_verdict(qh, id, verdict, 0, 0, 0, NULL,
- 					NFQNL_MSG_VERDICT_BATCH);
- }
--EXPORT_SYMBOL(nfq_set_verdict_batch);
- 
- /**
-  * nfq_set_verdict_batch2 - like nfq_set_verdict_batch, but you can set a mark.
-@@ -883,13 +866,12 @@ EXPORT_SYMBOL(nfq_set_verdict_batch);
-  * \param verdict verdict to return to netfilter (NF_ACCEPT, NF_DROP)
-  * \param mark mark to put on packet
-  */
--int nfq_set_verdict_batch2(struct nfq_q_handle *qh, uint32_t id,
-+int __EXPORTED nfq_set_verdict_batch2(struct nfq_q_handle *qh, uint32_t id,
- 		     uint32_t verdict, uint32_t mark)
- {
- 	return __set_verdict(qh, id, verdict, htonl(mark), 1, 0,
- 				NULL, NFQNL_MSG_VERDICT_BATCH);
- }
--EXPORT_SYMBOL(nfq_set_verdict_batch2);
- 
- /**
-  * nfq_set_verdict_mark - like nfq_set_verdict, but you can set the mark.
-@@ -905,14 +887,13 @@ EXPORT_SYMBOL(nfq_set_verdict_batch2);
-  * This function is deprecated since it is broken, its use is highly
-  * discouraged. Please, use nfq_set_verdict2 instead.
-  */
--int nfq_set_verdict_mark(struct nfq_q_handle *qh, uint32_t id,
-+int __EXPORTED nfq_set_verdict_mark(struct nfq_q_handle *qh, uint32_t id,
- 		uint32_t verdict, uint32_t mark,
- 		uint32_t data_len, const unsigned char *buf)
- {
- 	return __set_verdict(qh, id, verdict, mark, 1, data_len, buf,
- 						NFQNL_MSG_VERDICT);
- }
--EXPORT_SYMBOL(nfq_set_verdict_mark);
- 
- /**
-  * @}
-@@ -947,12 +928,11 @@ EXPORT_SYMBOL(nfq_set_verdict_mark);
- 	} __attribute__ ((packed));
- \endverbatim
-  */
--struct nfqnl_msg_packet_hdr *nfq_get_msg_packet_hdr(struct nfq_data *nfad)
-+struct nfqnl_msg_packet_hdr __EXPORTED *nfq_get_msg_packet_hdr(struct nfq_data *nfad)
- {
- 	return nfnl_get_pointer_to_data(nfad->data, NFQA_PACKET_HDR,
- 					struct nfqnl_msg_packet_hdr);
- }
--EXPORT_SYMBOL(nfq_get_msg_packet_hdr);
- 
- /**
-  * nfq_get_nfmark - get the packet mark
-@@ -960,11 +940,10 @@ EXPORT_SYMBOL(nfq_get_msg_packet_hdr);
-  *
-  * \return the netfilter mark currently assigned to the given queued packet.
-  */
--uint32_t nfq_get_nfmark(struct nfq_data *nfad)
-+uint32_t __EXPORTED nfq_get_nfmark(struct nfq_data *nfad)
- {
- 	return ntohl(nfnl_get_data(nfad->data, NFQA_MARK, uint32_t));
- }
--EXPORT_SYMBOL(nfq_get_nfmark);
- 
- /**
-  * nfq_get_timestamp - get the packet timestamp
-@@ -975,7 +954,7 @@ EXPORT_SYMBOL(nfq_get_nfmark);
-  *
-  * \return 0 on success, non-zero on failure.
-  */
--int nfq_get_timestamp(struct nfq_data *nfad, struct timeval *tv)
-+int __EXPORTED nfq_get_timestamp(struct nfq_data *nfad, struct timeval *tv)
- {
- 	struct nfqnl_msg_packet_timestamp *qpt;
- 	qpt = nfnl_get_pointer_to_data(nfad->data, NFQA_TIMESTAMP,
-@@ -988,7 +967,6 @@ int nfq_get_timestamp(struct nfq_data *nfad, struct timeval *tv)
- 
- 	return 0;
- }
--EXPORT_SYMBOL(nfq_get_timestamp);
- 
- /**
-  * nfq_get_indev - get the interface that the packet was received through
-@@ -1001,11 +979,10 @@ EXPORT_SYMBOL(nfq_get_timestamp);
-  * \warning all nfq_get_dev() functions return 0 if not set, since linux
-  * only allows ifindex >= 1, see net/core/dev.c:2600  (in 2.6.13.1)
-  */
--uint32_t nfq_get_indev(struct nfq_data *nfad)
-+uint32_t __EXPORTED nfq_get_indev(struct nfq_data *nfad)
- {
- 	return ntohl(nfnl_get_data(nfad->data, NFQA_IFINDEX_INDEV, uint32_t));
- }
--EXPORT_SYMBOL(nfq_get_indev);
- 
- /**
-  * nfq_get_physindev - get the physical interface that the packet was received
-@@ -1015,11 +992,10 @@ EXPORT_SYMBOL(nfq_get_indev);
-  * If the returned index is 0, the packet was locally generated or the
-  * physical input interface is no longer known (ie. POSTROUTING?).
-  */
--uint32_t nfq_get_physindev(struct nfq_data *nfad)
-+uint32_t __EXPORTED nfq_get_physindev(struct nfq_data *nfad)
- {
- 	return ntohl(nfnl_get_data(nfad->data, NFQA_IFINDEX_PHYSINDEV, uint32_t));
- }
--EXPORT_SYMBOL(nfq_get_physindev);
- 
- /**
-  * nfq_get_outdev - gets the interface that the packet will be routed out
-@@ -1029,11 +1005,10 @@ EXPORT_SYMBOL(nfq_get_physindev);
-  * returned index is 0, the packet is destined for localhost or the output
-  * interface is not yet known (ie. PREROUTING?).
-  */
--uint32_t nfq_get_outdev(struct nfq_data *nfad)
-+uint32_t __EXPORTED nfq_get_outdev(struct nfq_data *nfad)
- {
- 	return ntohl(nfnl_get_data(nfad->data, NFQA_IFINDEX_OUTDEV, uint32_t));
- }
--EXPORT_SYMBOL(nfq_get_outdev);
- 
- /**
-  * nfq_get_physoutdev - get the physical interface that the packet output
-@@ -1045,11 +1020,10 @@ EXPORT_SYMBOL(nfq_get_outdev);
-  * 
-  * \return The index of physical interface that the packet output will be routed out.
-  */
--uint32_t nfq_get_physoutdev(struct nfq_data *nfad)
-+uint32_t __EXPORTED nfq_get_physoutdev(struct nfq_data *nfad)
- {
- 	return ntohl(nfnl_get_data(nfad->data, NFQA_IFINDEX_PHYSOUTDEV, uint32_t));
- }
--EXPORT_SYMBOL(nfq_get_physoutdev);
- 
- /**
-  * nfq_get_indev_name - get the name of the interface the packet
-@@ -1089,13 +1063,12 @@ EXPORT_SYMBOL(nfq_get_physoutdev);
- \endverbatim
-  *
-  */
--int nfq_get_indev_name(struct nlif_handle *nlif_handle,
-+int __EXPORTED nfq_get_indev_name(struct nlif_handle *nlif_handle,
- 			struct nfq_data *nfad, char *name)
- {
- 	uint32_t ifindex = nfq_get_indev(nfad);
- 	return nlif_index2name(nlif_handle, ifindex, name);
- }
--EXPORT_SYMBOL(nfq_get_indev_name);
- 
- /**
-  * nfq_get_physindev_name - get the name of the physical interface the
-@@ -1109,13 +1082,12 @@ EXPORT_SYMBOL(nfq_get_indev_name);
-  *
-  * \return  -1 in case of error, > 0 if it succeed. 
-  */
--int nfq_get_physindev_name(struct nlif_handle *nlif_handle,
-+int __EXPORTED nfq_get_physindev_name(struct nlif_handle *nlif_handle,
- 			   struct nfq_data *nfad, char *name)
- {
- 	uint32_t ifindex = nfq_get_physindev(nfad);
- 	return nlif_index2name(nlif_handle, ifindex, name);
- }
--EXPORT_SYMBOL(nfq_get_physindev_name);
- 
- /**
-  * nfq_get_outdev_name - get the name of the physical interface the
-@@ -1129,13 +1101,12 @@ EXPORT_SYMBOL(nfq_get_physindev_name);
-  *
-  * \return  -1 in case of error, > 0 if it succeed. 
-  */
--int nfq_get_outdev_name(struct nlif_handle *nlif_handle,
-+int __EXPORTED nfq_get_outdev_name(struct nlif_handle *nlif_handle,
- 			struct nfq_data *nfad, char *name)
- {
- 	uint32_t ifindex = nfq_get_outdev(nfad);
- 	return nlif_index2name(nlif_handle, ifindex, name);
- }
--EXPORT_SYMBOL(nfq_get_outdev_name);
- 
- /**
-  * nfq_get_physoutdev_name - get the name of the interface the
-@@ -1150,13 +1121,12 @@ EXPORT_SYMBOL(nfq_get_outdev_name);
-  * \return  -1 in case of error, > 0 if it succeed. 
-  */
- 
--int nfq_get_physoutdev_name(struct nlif_handle *nlif_handle,
-+int __EXPORTED nfq_get_physoutdev_name(struct nlif_handle *nlif_handle,
- 			    struct nfq_data *nfad, char *name)
- {
- 	uint32_t ifindex = nfq_get_physoutdev(nfad);
- 	return nlif_index2name(nlif_handle, ifindex, name);
- }
--EXPORT_SYMBOL(nfq_get_physoutdev_name);
- 
- /**
-  * nfq_get_packet_hw
-@@ -1180,12 +1150,11 @@ EXPORT_SYMBOL(nfq_get_physoutdev_name);
- 	} __attribute__ ((packed));
- \endverbatim
-  */
--struct nfqnl_msg_packet_hw *nfq_get_packet_hw(struct nfq_data *nfad)
-+struct nfqnl_msg_packet_hw __EXPORTED *nfq_get_packet_hw(struct nfq_data *nfad)
- {
- 	return nfnl_get_pointer_to_data(nfad->data, NFQA_HWADDR,
- 					struct nfqnl_msg_packet_hw);
- }
--EXPORT_SYMBOL(nfq_get_packet_hw);
- 
- /**
-  * nfq_get_uid - get the UID of the user the packet belongs to
-@@ -1193,7 +1162,7 @@ EXPORT_SYMBOL(nfq_get_packet_hw);
-  *
-  * \return 1 if there is a UID available, 0 otherwise.
-  */
--int nfq_get_uid(struct nfq_data *nfad, uint32_t *uid)
-+int __EXPORTED nfq_get_uid(struct nfq_data *nfad, uint32_t *uid)
- {
- 	if (!nfnl_attr_present(nfad->data, NFQA_UID))
- 		return 0;
-@@ -1201,7 +1170,6 @@ int nfq_get_uid(struct nfq_data *nfad, uint32_t *uid)
- 	*uid = ntohl(nfnl_get_data(nfad->data, NFQA_UID, uint32_t));
- 	return 1;
- }
--EXPORT_SYMBOL(nfq_get_uid);
- 
- /**
-  * nfq_get_gid - get the GID of the user the packet belongs to
-@@ -1209,7 +1177,7 @@ EXPORT_SYMBOL(nfq_get_uid);
-  *
-  * \return 1 if there is a GID available, 0 otherwise.
-  */
--int nfq_get_gid(struct nfq_data *nfad, uint32_t *gid)
-+int __EXPORTED nfq_get_gid(struct nfq_data *nfad, uint32_t *gid)
- {
- 	if (!nfnl_attr_present(nfad->data, NFQA_GID))
- 		return 0;
-@@ -1217,7 +1185,6 @@ int nfq_get_gid(struct nfq_data *nfad, uint32_t *gid)
- 	*gid = ntohl(nfnl_get_data(nfad->data, NFQA_GID, uint32_t));
- 	return 1;
- }
--EXPORT_SYMBOL(nfq_get_gid);
- 
- 
- /**
-@@ -1227,7 +1194,7 @@ EXPORT_SYMBOL(nfq_get_gid);
-  *
-  * \return -1 on error, otherwise > 0
-  */
--int nfq_get_secctx(struct nfq_data *nfad, unsigned char **secdata)
-+int __EXPORTED nfq_get_secctx(struct nfq_data *nfad, unsigned char **secdata)
- {
- 	if (!nfnl_attr_present(nfad->data, NFQA_SECCTX))
- 		return -1;
-@@ -1240,7 +1207,6 @@ int nfq_get_secctx(struct nfq_data *nfad, unsigned char **secdata)
- 
- 	return 0;
- }
--EXPORT_SYMBOL(nfq_get_secctx);
- 
- /**
-  * nfq_get_payload - get payload 
-@@ -1253,7 +1219,7 @@ EXPORT_SYMBOL(nfq_get_secctx);
-  *
-  * \return -1 on error, otherwise > 0.
-  */
--int nfq_get_payload(struct nfq_data *nfad, unsigned char **data)
-+int __EXPORTED nfq_get_payload(struct nfq_data *nfad, unsigned char **data)
- {
- 	*data = (unsigned char *)
- 		nfnl_get_pointer_to_data(nfad->data, NFQA_PAYLOAD, char);
-@@ -1262,7 +1228,6 @@ int nfq_get_payload(struct nfq_data *nfad, unsigned char **data)
- 
+ 	struct nftnl_batch_page *page;
+ 	struct nlmsghdr *last_nlh;
+@@ -119,21 +117,18 @@ int nftnl_batch_update(struct nftnl_batch *batch)
+ err1:
  	return -1;
  }
--EXPORT_SYMBOL(nfq_get_payload);
+-EXPORT_SYMBOL(nftnl_batch_update);
  
- /**
-  * @}
-@@ -1307,7 +1272,7 @@ do {								\
-  * would have been printed into the buffer (in case that there is enough
-  * room in it). See snprintf() return value for more information.
-  */
--int nfq_snprintf_xml(char *buf, size_t rem, struct nfq_data *tb, int flags)
-+int __EXPORTED nfq_snprintf_xml(char *buf, size_t rem, struct nfq_data *tb, int flags)
+-void *nftnl_batch_buffer(struct nftnl_batch *batch)
++void __EXPORTED *nftnl_batch_buffer(struct nftnl_batch *batch)
  {
- 	struct nfqnl_msg_packet_hdr *ph;
- 	struct nfqnl_msg_packet_hw *hwph;
-@@ -1460,7 +1425,6 @@ int nfq_snprintf_xml(char *buf, size_t rem, struct nfq_data *tb, int flags)
- 
- 	return len;
+ 	return mnl_nlmsg_batch_current(batch->current_page->batch);
  }
--EXPORT_SYMBOL(nfq_snprintf_xml);
+-EXPORT_SYMBOL(nftnl_batch_buffer);
  
- /**
-  * @}
-diff --git a/src/nlmsg.c b/src/nlmsg.c
-index ba28c77..5582407 100644
---- a/src/nlmsg.c
-+++ b/src/nlmsg.c
-@@ -30,7 +30,7 @@
-  * @{
-  */
- 
--void nfq_nlmsg_verdict_put(struct nlmsghdr *nlh, int id, int verdict)
-+void __EXPORTED nfq_nlmsg_verdict_put(struct nlmsghdr *nlh, int id, int verdict)
+-uint32_t nftnl_batch_buffer_len(struct nftnl_batch *batch)
++uint32_t __EXPORTED nftnl_batch_buffer_len(struct nftnl_batch *batch)
  {
- 	struct nfqnl_msg_verdict_hdr vh = {
- 		.verdict	= htonl(verdict),
-@@ -38,20 +38,17 @@ void nfq_nlmsg_verdict_put(struct nlmsghdr *nlh, int id, int verdict)
- 	};
- 	mnl_attr_put(nlh, NFQA_VERDICT_HDR, sizeof(vh), &vh);
+ 	return mnl_nlmsg_batch_size(batch->current_page->batch);
  }
--EXPORT_SYMBOL(nfq_nlmsg_verdict_put);
+-EXPORT_SYMBOL(nftnl_batch_buffer_len);
  
--void nfq_nlmsg_verdict_put_mark(struct nlmsghdr *nlh, uint32_t mark)
-+void __EXPORTED nfq_nlmsg_verdict_put_mark(struct nlmsghdr *nlh, uint32_t mark)
+-int nftnl_batch_iovec_len(struct nftnl_batch *batch)
++int __EXPORTED nftnl_batch_iovec_len(struct nftnl_batch *batch)
  {
- 	mnl_attr_put_u32(nlh, NFQA_MARK, htonl(mark));
+ 	int num_pages = batch->num_pages;
+ 
+@@ -143,9 +138,8 @@ int nftnl_batch_iovec_len(struct nftnl_batch *batch)
+ 
+ 	return num_pages;
  }
--EXPORT_SYMBOL(nfq_nlmsg_verdict_put_mark);
+-EXPORT_SYMBOL(nftnl_batch_iovec_len);
+ 
+-void nftnl_batch_iovec(struct nftnl_batch *batch, struct iovec *iov,
++void __EXPORTED nftnl_batch_iovec(struct nftnl_batch *batch, struct iovec *iov,
+ 		       uint32_t iovlen)
+ {
+ 	struct nftnl_batch_page *page;
+@@ -160,4 +154,3 @@ void nftnl_batch_iovec(struct nftnl_batch *batch, struct iovec *iov,
+ 		i++;
+ 	}
+ }
+-EXPORT_SYMBOL(nftnl_batch_iovec);
+diff --git a/src/chain.c b/src/chain.c
+index 29860c5..362fa0d 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -87,13 +87,12 @@ static const char *nftnl_hooknum2str(int family, int hooknum)
+ 	return "unknown";
+ }
+ 
+-struct nftnl_chain *nftnl_chain_alloc(void)
++struct nftnl_chain __EXPORTED *nftnl_chain_alloc(void)
+ {
+ 	return calloc(1, sizeof(struct nftnl_chain));
+ }
+-EXPORT_SYMBOL(nftnl_chain_alloc);
+ 
+-void nftnl_chain_free(const struct nftnl_chain *c)
++void __EXPORTED nftnl_chain_free(const struct nftnl_chain *c)
+ {
+ 	if (c->flags & (1 << NFTNL_CHAIN_NAME))
+ 		xfree(c->name);
+@@ -105,15 +104,13 @@ void nftnl_chain_free(const struct nftnl_chain *c)
+ 		xfree(c->dev);
+ 	xfree(c);
+ }
+-EXPORT_SYMBOL(nftnl_chain_free);
+ 
+-bool nftnl_chain_is_set(const struct nftnl_chain *c, uint16_t attr)
++bool __EXPORTED nftnl_chain_is_set(const struct nftnl_chain *c, uint16_t attr)
+ {
+ 	return c->flags & (1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_chain_is_set);
+ 
+-void nftnl_chain_unset(struct nftnl_chain *c, uint16_t attr)
++void __EXPORTED nftnl_chain_unset(struct nftnl_chain *c, uint16_t attr)
+ {
+ 	if (!(c->flags & (1 << attr)))
+ 		return;
+@@ -147,7 +144,6 @@ void nftnl_chain_unset(struct nftnl_chain *c, uint16_t attr)
+ 
+ 	c->flags &= ~(1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_chain_unset);
+ 
+ static uint32_t nftnl_chain_validate[NFTNL_CHAIN_MAX + 1] = {
+ 	[NFTNL_CHAIN_HOOKNUM]	= sizeof(uint32_t),
+@@ -159,7 +155,7 @@ static uint32_t nftnl_chain_validate[NFTNL_CHAIN_MAX + 1] = {
+ 	[NFTNL_CHAIN_FAMILY]		= sizeof(uint32_t),
+ };
+ 
+-int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
++int __EXPORTED nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
+ 			 const void *data, uint32_t data_len)
+ {
+ 	nftnl_assert_attr_exists(attr, NFTNL_CHAIN_MAX);
+@@ -226,45 +222,38 @@ int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
+ 	c->flags |= (1 << attr);
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_chain_set_data);
+ 
+-void nftnl_chain_set(struct nftnl_chain *c, uint16_t attr, const void *data)
++void __EXPORTED nftnl_chain_set(struct nftnl_chain *c, uint16_t attr, const void *data)
+ {
+ 	nftnl_chain_set_data(c, attr, data, nftnl_chain_validate[attr]);
+ }
+-EXPORT_SYMBOL(nftnl_chain_set);
+ 
+-void nftnl_chain_set_u32(struct nftnl_chain *c, uint16_t attr, uint32_t data)
++void __EXPORTED nftnl_chain_set_u32(struct nftnl_chain *c, uint16_t attr, uint32_t data)
+ {
+ 	nftnl_chain_set_data(c, attr, &data, sizeof(uint32_t));
+ }
+-EXPORT_SYMBOL(nftnl_chain_set_u32);
+ 
+-void nftnl_chain_set_s32(struct nftnl_chain *c, uint16_t attr, int32_t data)
++void __EXPORTED nftnl_chain_set_s32(struct nftnl_chain *c, uint16_t attr, int32_t data)
+ {
+ 	nftnl_chain_set_data(c, attr, &data, sizeof(int32_t));
+ }
+-EXPORT_SYMBOL(nftnl_chain_set_s32);
+ 
+-void nftnl_chain_set_u64(struct nftnl_chain *c, uint16_t attr, uint64_t data)
++void __EXPORTED nftnl_chain_set_u64(struct nftnl_chain *c, uint16_t attr, uint64_t data)
+ {
+ 	nftnl_chain_set_data(c, attr, &data, sizeof(uint64_t));
+ }
+-EXPORT_SYMBOL(nftnl_chain_set_u64);
+ 
+-void nftnl_chain_set_u8(struct nftnl_chain *c, uint16_t attr, uint8_t data)
++void __EXPORTED nftnl_chain_set_u8(struct nftnl_chain *c, uint16_t attr, uint8_t data)
+ {
+ 	nftnl_chain_set_data(c, attr, &data, sizeof(uint8_t));
+ }
+-EXPORT_SYMBOL(nftnl_chain_set_u8);
+ 
+-int nftnl_chain_set_str(struct nftnl_chain *c, uint16_t attr, const char *str)
++int __EXPORTED nftnl_chain_set_str(struct nftnl_chain *c, uint16_t attr, const char *str)
+ {
+ 	return nftnl_chain_set_data(c, attr, str, strlen(str) + 1);
+ }
+-EXPORT_SYMBOL(nftnl_chain_set_str);
+ 
+-const void *nftnl_chain_get_data(const struct nftnl_chain *c, uint16_t attr,
++const void __EXPORTED *nftnl_chain_get_data(const struct nftnl_chain *c, uint16_t attr,
+ 				 uint32_t *data_len)
+ {
+ 	if (!(c->flags & (1 << attr)))
+@@ -310,22 +299,19 @@ const void *nftnl_chain_get_data(const struct nftnl_chain *c, uint16_t attr,
+ 	}
+ 	return NULL;
+ }
+-EXPORT_SYMBOL(nftnl_chain_get_data);
+ 
+-const void *nftnl_chain_get(const struct nftnl_chain *c, uint16_t attr)
++const void __EXPORTED *nftnl_chain_get(const struct nftnl_chain *c, uint16_t attr)
+ {
+ 	uint32_t data_len;
+ 	return nftnl_chain_get_data(c, attr, &data_len);
+ }
+-EXPORT_SYMBOL(nftnl_chain_get);
+ 
+-const char *nftnl_chain_get_str(const struct nftnl_chain *c, uint16_t attr)
++const char __EXPORTED *nftnl_chain_get_str(const struct nftnl_chain *c, uint16_t attr)
+ {
+ 	return nftnl_chain_get(c, attr);
+ }
+-EXPORT_SYMBOL(nftnl_chain_get_str);
+ 
+-uint32_t nftnl_chain_get_u32(const struct nftnl_chain *c, uint16_t attr)
++uint32_t __EXPORTED nftnl_chain_get_u32(const struct nftnl_chain *c, uint16_t attr)
+ {
+ 	uint32_t data_len;
+ 	const uint32_t *val = nftnl_chain_get_data(c, attr, &data_len);
+@@ -334,9 +320,8 @@ uint32_t nftnl_chain_get_u32(const struct nftnl_chain *c, uint16_t attr)
+ 
+ 	return val ? *val : 0;
+ }
+-EXPORT_SYMBOL(nftnl_chain_get_u32);
+ 
+-int32_t nftnl_chain_get_s32(const struct nftnl_chain *c, uint16_t attr)
++int32_t __EXPORTED nftnl_chain_get_s32(const struct nftnl_chain *c, uint16_t attr)
+ {
+ 	uint32_t data_len;
+ 	const int32_t *val = nftnl_chain_get_data(c, attr, &data_len);
+@@ -345,9 +330,8 @@ int32_t nftnl_chain_get_s32(const struct nftnl_chain *c, uint16_t attr)
+ 
+ 	return val ? *val : 0;
+ }
+-EXPORT_SYMBOL(nftnl_chain_get_s32);
+ 
+-uint64_t nftnl_chain_get_u64(const struct nftnl_chain *c, uint16_t attr)
++uint64_t __EXPORTED nftnl_chain_get_u64(const struct nftnl_chain *c, uint16_t attr)
+ {
+ 	uint32_t data_len;
+ 	const uint64_t *val = nftnl_chain_get_data(c, attr, &data_len);
+@@ -356,9 +340,8 @@ uint64_t nftnl_chain_get_u64(const struct nftnl_chain *c, uint16_t attr)
+ 
+ 	return val ? *val : 0;
+ }
+-EXPORT_SYMBOL(nftnl_chain_get_u64);
+ 
+-uint8_t nftnl_chain_get_u8(const struct nftnl_chain *c, uint16_t attr)
++uint8_t __EXPORTED nftnl_chain_get_u8(const struct nftnl_chain *c, uint16_t attr)
+ {
+ 	uint32_t data_len;
+ 	const uint8_t *val = nftnl_chain_get_data(c, attr, &data_len);
+@@ -367,9 +350,8 @@ uint8_t nftnl_chain_get_u8(const struct nftnl_chain *c, uint16_t attr)
+ 
+ 	return val ? *val : 0;
+ }
+-EXPORT_SYMBOL(nftnl_chain_get_u8);
+ 
+-void nftnl_chain_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nftnl_chain *c)
++void __EXPORTED nftnl_chain_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nftnl_chain *c)
+ {
+ 	if (c->flags & (1 << NFTNL_CHAIN_TABLE))
+ 		mnl_attr_put_strz(nlh, NFTA_CHAIN_TABLE, c->table);
+@@ -404,7 +386,6 @@ void nftnl_chain_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nftnl_ch
+ 	if (c->flags & (1 << NFTNL_CHAIN_TYPE))
+ 		mnl_attr_put_strz(nlh, NFTA_CHAIN_TYPE, c->type);
+ }
+-EXPORT_SYMBOL(nftnl_chain_nlmsg_build_payload);
+ 
+ static int nftnl_chain_parse_attr_cb(const struct nlattr *attr, void *data)
+ {
+@@ -529,7 +510,7 @@ static int nftnl_chain_parse_hook(struct nlattr *attr, struct nftnl_chain *c)
+ 	return 0;
+ }
+ 
+-int nftnl_chain_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_chain *c)
++int __EXPORTED nftnl_chain_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_chain *c)
+ {
+ 	struct nlattr *tb[NFTA_CHAIN_MAX+1] = {};
+ 	struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);
+@@ -590,7 +571,6 @@ int nftnl_chain_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_chain *c)
+ 
+ 	return ret;
+ }
+-EXPORT_SYMBOL(nftnl_chain_nlmsg_parse);
+ 
+ static inline int nftnl_str2hooknum(int family, const char *hook)
+ {
+@@ -732,19 +712,17 @@ static int nftnl_chain_do_parse(struct nftnl_chain *c, enum nftnl_parse_type typ
+ 	return ret;
+ }
+ 
+-int nftnl_chain_parse(struct nftnl_chain *c, enum nftnl_parse_type type,
++int __EXPORTED nftnl_chain_parse(struct nftnl_chain *c, enum nftnl_parse_type type,
+ 		    const char *data, struct nftnl_parse_err *err)
+ {
+ 	return nftnl_chain_do_parse(c, type, data, err, NFTNL_PARSE_BUFFER);
+ }
+-EXPORT_SYMBOL(nftnl_chain_parse);
+ 
+-int nftnl_chain_parse_file(struct nftnl_chain *c, enum nftnl_parse_type type,
++int __EXPORTED nftnl_chain_parse_file(struct nftnl_chain *c, enum nftnl_parse_type type,
+ 			 FILE *fp, struct nftnl_parse_err *err)
+ {
+ 	return nftnl_chain_do_parse(c, type, fp, err, NFTNL_PARSE_FILE);
+ }
+-EXPORT_SYMBOL(nftnl_chain_parse_file);
+ 
+ static int nftnl_chain_export(char *buf, size_t size,
+ 			      const struct nftnl_chain *c, int type)
+@@ -841,13 +819,12 @@ static int nftnl_chain_cmd_snprintf(char *buf, size_t size,
+ 	return offset;
+ }
+ 
+-int nftnl_chain_snprintf(char *buf, size_t size, const struct nftnl_chain *c,
++int __EXPORTED nftnl_chain_snprintf(char *buf, size_t size, const struct nftnl_chain *c,
+ 			 uint32_t type, uint32_t flags)
+ {
+ 	return nftnl_chain_cmd_snprintf(buf, size, c, nftnl_flag2cmd(flags), type,
+ 				      flags);
+ }
+-EXPORT_SYMBOL(nftnl_chain_snprintf);
+ 
+ static int nftnl_chain_do_snprintf(char *buf, size_t size, const void *c,
+ 				   uint32_t cmd, uint32_t type, uint32_t flags)
+@@ -855,19 +832,18 @@ static int nftnl_chain_do_snprintf(char *buf, size_t size, const void *c,
+ 	return nftnl_chain_snprintf(buf, size, c, type, flags);
+ }
+ 
+-int nftnl_chain_fprintf(FILE *fp, const struct nftnl_chain *c, uint32_t type,
++int __EXPORTED nftnl_chain_fprintf(FILE *fp, const struct nftnl_chain *c, uint32_t type,
+ 			uint32_t flags)
+ {
+ 	return nftnl_fprintf(fp, c, NFTNL_CMD_UNSPEC, type, flags,
+ 			   nftnl_chain_do_snprintf);
+ }
+-EXPORT_SYMBOL(nftnl_chain_fprintf);
+ 
+ struct nftnl_chain_list {
+ 	struct list_head list;
+ };
+ 
+-struct nftnl_chain_list *nftnl_chain_list_alloc(void)
++struct nftnl_chain_list __EXPORTED *nftnl_chain_list_alloc(void)
+ {
+ 	struct nftnl_chain_list *list;
+ 
+@@ -879,9 +855,8 @@ struct nftnl_chain_list *nftnl_chain_list_alloc(void)
+ 
+ 	return list;
+ }
+-EXPORT_SYMBOL(nftnl_chain_list_alloc);
+ 
+-void nftnl_chain_list_free(struct nftnl_chain_list *list)
++void __EXPORTED nftnl_chain_list_free(struct nftnl_chain_list *list)
+ {
+ 	struct nftnl_chain *r, *tmp;
+ 
+@@ -891,33 +866,28 @@ void nftnl_chain_list_free(struct nftnl_chain_list *list)
+ 	}
+ 	xfree(list);
+ }
+-EXPORT_SYMBOL(nftnl_chain_list_free);
+ 
+-int nftnl_chain_list_is_empty(const struct nftnl_chain_list *list)
++int __EXPORTED nftnl_chain_list_is_empty(const struct nftnl_chain_list *list)
+ {
+ 	return list_empty(&list->list);
+ }
+-EXPORT_SYMBOL(nftnl_chain_list_is_empty);
+ 
+-void nftnl_chain_list_add(struct nftnl_chain *r, struct nftnl_chain_list *list)
++void __EXPORTED nftnl_chain_list_add(struct nftnl_chain *r, struct nftnl_chain_list *list)
+ {
+ 	list_add(&r->head, &list->list);
+ }
+-EXPORT_SYMBOL(nftnl_chain_list_add);
+ 
+-void nftnl_chain_list_add_tail(struct nftnl_chain *r, struct nftnl_chain_list *list)
++void __EXPORTED nftnl_chain_list_add_tail(struct nftnl_chain *r, struct nftnl_chain_list *list)
+ {
+ 	list_add_tail(&r->head, &list->list);
+ }
+-EXPORT_SYMBOL(nftnl_chain_list_add_tail);
+ 
+-void nftnl_chain_list_del(struct nftnl_chain *r)
++void __EXPORTED nftnl_chain_list_del(struct nftnl_chain *r)
+ {
+ 	list_del(&r->head);
+ }
+-EXPORT_SYMBOL(nftnl_chain_list_del);
+ 
+-int nftnl_chain_list_foreach(struct nftnl_chain_list *chain_list,
++int __EXPORTED nftnl_chain_list_foreach(struct nftnl_chain_list *chain_list,
+ 			   int (*cb)(struct nftnl_chain *r, void *data),
+ 			   void *data)
+ {
+@@ -931,14 +901,13 @@ int nftnl_chain_list_foreach(struct nftnl_chain_list *chain_list,
+ 	}
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_chain_list_foreach);
+ 
+ struct nftnl_chain_list_iter {
+ 	const struct nftnl_chain_list	*list;
+ 	struct nftnl_chain		*cur;
+ };
+ 
+-struct nftnl_chain_list_iter *
++struct nftnl_chain_list_iter __EXPORTED *
+ nftnl_chain_list_iter_create(const struct nftnl_chain_list *l)
+ {
+ 	struct nftnl_chain_list_iter *iter;
+@@ -955,9 +924,8 @@ nftnl_chain_list_iter_create(const struct nftnl_chain_list *l)
+ 
+ 	return iter;
+ }
+-EXPORT_SYMBOL(nftnl_chain_list_iter_create);
+ 
+-struct nftnl_chain *nftnl_chain_list_iter_next(struct nftnl_chain_list_iter *iter)
++struct nftnl_chain __EXPORTED *nftnl_chain_list_iter_next(struct nftnl_chain_list_iter *iter)
+ {
+ 	struct nftnl_chain *r = iter->cur;
+ 
+@@ -971,10 +939,8 @@ struct nftnl_chain *nftnl_chain_list_iter_next(struct nftnl_chain_list_iter *ite
+ 
+ 	return r;
+ }
+-EXPORT_SYMBOL(nftnl_chain_list_iter_next);
+ 
+-void nftnl_chain_list_iter_destroy(struct nftnl_chain_list_iter *iter)
++void __EXPORTED nftnl_chain_list_iter_destroy(struct nftnl_chain_list_iter *iter)
+ {
+ 	xfree(iter);
+ }
+-EXPORT_SYMBOL(nftnl_chain_list_iter_destroy);
+diff --git a/src/common.c b/src/common.c
+index a95883c..68bce2e 100644
+--- a/src/common.c
++++ b/src/common.c
+@@ -43,15 +43,14 @@ static struct nlmsghdr *__nftnl_nlmsg_build_hdr(char *buf, uint16_t type,
+ 	return nlh;
+ }
+ 
+-struct nlmsghdr *nftnl_nlmsg_build_hdr(char *buf, uint16_t type, uint16_t family,
++struct nlmsghdr __EXPORTED *nftnl_nlmsg_build_hdr(char *buf, uint16_t type, uint16_t family,
+ 				       uint16_t flags, uint32_t seq)
+ {
+ 	return __nftnl_nlmsg_build_hdr(buf, (NFNL_SUBSYS_NFTABLES << 8) | type,
+ 				       family, flags, seq, 0);
+ }
+-EXPORT_SYMBOL(nftnl_nlmsg_build_hdr);
+ 
+-struct nftnl_parse_err *nftnl_parse_err_alloc(void)
++struct nftnl_parse_err __EXPORTED *nftnl_parse_err_alloc(void)
+ {
+ 	struct nftnl_parse_err *err;
+ 
+@@ -63,15 +62,13 @@ struct nftnl_parse_err *nftnl_parse_err_alloc(void)
+ 
+ 	return err;
+ }
+-EXPORT_SYMBOL(nftnl_parse_err_alloc);
+ 
+-void nftnl_parse_err_free(struct nftnl_parse_err *err)
++void __EXPORTED nftnl_parse_err_free(struct nftnl_parse_err *err)
+ {
+ 	xfree(err);
+ }
+-EXPORT_SYMBOL(nftnl_parse_err_free);
+ 
+-int nftnl_parse_perror(const char *msg, struct nftnl_parse_err *err)
++int __EXPORTED nftnl_parse_perror(const char *msg, struct nftnl_parse_err *err)
+ {
+ 	switch (err->error) {
+ 	case NFTNL_PARSE_EBADINPUT:
+@@ -89,7 +86,6 @@ int nftnl_parse_perror(const char *msg, struct nftnl_parse_err *err)
+ 		return fprintf(stderr, "%s: Undefined error\n", msg);
+ 	}
+ }
+-EXPORT_SYMBOL(nftnl_parse_perror);
+ 
+ int nftnl_cmd_header_snprintf(char *buf, size_t size, uint32_t cmd, uint32_t type,
+ 			    uint32_t flags)
+@@ -165,21 +161,19 @@ int nftnl_cmd_footer_fprintf(FILE *fp, uint32_t cmd, uint32_t type,
+ 			   nftnl_cmd_footer_fprintf_cb);
+ }
+ 
+-struct nlmsghdr *nftnl_batch_begin(char *buf, uint32_t seq)
++struct nlmsghdr __EXPORTED *nftnl_batch_begin(char *buf, uint32_t seq)
+ {
+ 	return __nftnl_nlmsg_build_hdr(buf, NFNL_MSG_BATCH_BEGIN, AF_UNSPEC,
+ 				       0, seq, NFNL_SUBSYS_NFTABLES);
+ }
+-EXPORT_SYMBOL(nftnl_batch_begin);
+ 
+-struct nlmsghdr *nftnl_batch_end(char *buf, uint32_t seq)
++struct nlmsghdr __EXPORTED *nftnl_batch_end(char *buf, uint32_t seq)
+ {
+ 	return __nftnl_nlmsg_build_hdr(buf, NFNL_MSG_BATCH_END, AF_UNSPEC,
+ 				       0, seq, NFNL_SUBSYS_NFTABLES);
+ }
+-EXPORT_SYMBOL(nftnl_batch_end);
+ 
+-int nftnl_batch_is_supported(void)
++int __EXPORTED nftnl_batch_is_supported(void)
+ {
+ 	struct mnl_socket *nl;
+ 	struct mnl_nlmsg_batch *b;
+@@ -236,4 +230,3 @@ err:
+ 	mnl_nlmsg_batch_stop(b);
+ 	return -1;
+ }
+-EXPORT_SYMBOL(nftnl_batch_is_supported);
+diff --git a/src/expr.c b/src/expr.c
+index 10ba2c4..c7eb2b4 100644
+--- a/src/expr.c
++++ b/src/expr.c
+@@ -24,7 +24,7 @@
+ 
+ #include <libnftnl/expr.h>
+ 
+-struct nftnl_expr *nftnl_expr_alloc(const char *name)
++struct nftnl_expr __EXPORTED *nftnl_expr_alloc(const char *name)
+ {
+ 	struct nftnl_expr *expr;
+ 	struct expr_ops *ops;
+@@ -43,24 +43,21 @@ struct nftnl_expr *nftnl_expr_alloc(const char *name)
+ 
+ 	return expr;
+ }
+-EXPORT_SYMBOL(nftnl_expr_alloc);
+ 
+-void nftnl_expr_free(const struct nftnl_expr *expr)
++void __EXPORTED nftnl_expr_free(const struct nftnl_expr *expr)
+ {
+ 	if (expr->ops->free)
+ 		expr->ops->free(expr);
+ 
+ 	xfree(expr);
+ }
+-EXPORT_SYMBOL(nftnl_expr_free);
+ 
+-bool nftnl_expr_is_set(const struct nftnl_expr *expr, uint16_t type)
++bool __EXPORTED nftnl_expr_is_set(const struct nftnl_expr *expr, uint16_t type)
+ {
+ 	return expr->flags & (1 << type);
+ }
+-EXPORT_SYMBOL(nftnl_expr_is_set);
+ 
+-int nftnl_expr_set(struct nftnl_expr *expr, uint16_t type,
++int __EXPORTED nftnl_expr_set(struct nftnl_expr *expr, uint16_t type,
+ 		   const void *data, uint32_t data_len)
+ {
+ 	switch(type) {
+@@ -73,43 +70,37 @@ int nftnl_expr_set(struct nftnl_expr *expr, uint16_t type,
+ 	expr->flags |= (1 << type);
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_expr_set);
  
 -void
 +void __EXPORTED
- nfq_nlmsg_verdict_put_pkt(struct nlmsghdr *nlh, const void *pkt, uint32_t plen)
+ nftnl_expr_set_u8(struct nftnl_expr *expr, uint16_t type, uint8_t data)
  {
- 	mnl_attr_put(nlh, NFQA_PAYLOAD, plen, pkt);
+ 	nftnl_expr_set(expr, type, &data, sizeof(uint8_t));
  }
--EXPORT_SYMBOL(nfq_nlmsg_verdict_put_pkt);
+-EXPORT_SYMBOL(nftnl_expr_set_u8);
  
- /**
-  * @}
-@@ -85,7 +82,7 @@ EXPORT_SYMBOL(nfq_nlmsg_verdict_put_pkt);
-  *   given protocol family.  Both commands are ignored by Linux kernel 3.8 and
-  *   later versions.
-  */
--void nfq_nlmsg_cfg_put_cmd(struct nlmsghdr *nlh, uint16_t pf, uint8_t cmd)
-+void __EXPORTED nfq_nlmsg_cfg_put_cmd(struct nlmsghdr *nlh, uint16_t pf, uint8_t cmd)
+-void
++void __EXPORTED
+ nftnl_expr_set_u16(struct nftnl_expr *expr, uint16_t type, uint16_t data)
  {
- 	struct nfqnl_msg_config_cmd command = {
- 		.command = cmd,
-@@ -93,9 +90,8 @@ void nfq_nlmsg_cfg_put_cmd(struct nlmsghdr *nlh, uint16_t pf, uint8_t cmd)
- 	};
- 	mnl_attr_put(nlh, NFQA_CFG_CMD, sizeof(command), &command);
+ 	nftnl_expr_set(expr, type, &data, sizeof(uint16_t));
  }
--EXPORT_SYMBOL(nfq_nlmsg_cfg_put_cmd);
+-EXPORT_SYMBOL(nftnl_expr_set_u16);
  
--void nfq_nlmsg_cfg_put_params(struct nlmsghdr *nlh, uint8_t mode, int range)
-+void __EXPORTED nfq_nlmsg_cfg_put_params(struct nlmsghdr *nlh, uint8_t mode, int range)
+-void
++void __EXPORTED
+ nftnl_expr_set_u32(struct nftnl_expr *expr, uint16_t type, uint32_t data)
  {
- 	struct nfqnl_msg_config_params params = {
- 		.copy_range = htonl(range),
-@@ -103,13 +99,11 @@ void nfq_nlmsg_cfg_put_params(struct nlmsghdr *nlh, uint8_t mode, int range)
- 	};
- 	mnl_attr_put(nlh, NFQA_CFG_PARAMS, sizeof(params), &params);
+ 	nftnl_expr_set(expr, type, &data, sizeof(uint32_t));
  }
--EXPORT_SYMBOL(nfq_nlmsg_cfg_put_params);
+-EXPORT_SYMBOL(nftnl_expr_set_u32);
  
--void nfq_nlmsg_cfg_put_qmaxlen(struct nlmsghdr *nlh, uint32_t queue_maxlen)
-+void __EXPORTED nfq_nlmsg_cfg_put_qmaxlen(struct nlmsghdr *nlh, uint32_t queue_maxlen)
+-void
++void __EXPORTED
+ nftnl_expr_set_u64(struct nftnl_expr *expr, uint16_t type, uint64_t data)
  {
- 	mnl_attr_put_u32(nlh, NFQA_CFG_QUEUE_MAXLEN, htonl(queue_maxlen));
+ 	nftnl_expr_set(expr, type, &data, sizeof(uint64_t));
  }
--EXPORT_SYMBOL(nfq_nlmsg_cfg_put_qmaxlen);
+-EXPORT_SYMBOL(nftnl_expr_set_u64);
  
- /**
-  * @}
-@@ -179,12 +173,11 @@ static int nfq_pkt_parse_attr_cb(const struct nlattr *attr, void *data)
-  * This function returns MNL_CB_ERROR if any error occurs, or MNL_CB_OK on
-  * success.
-  */
--int nfq_nlmsg_parse(const struct nlmsghdr *nlh, struct nlattr **attr)
-+int __EXPORTED nfq_nlmsg_parse(const struct nlmsghdr *nlh, struct nlattr **attr)
+-int nftnl_expr_set_str(struct nftnl_expr *expr, uint16_t type, const char *str)
++int __EXPORTED nftnl_expr_set_str(struct nftnl_expr *expr, uint16_t type, const char *str)
  {
- 	return mnl_attr_parse(nlh, sizeof(struct nfgenmsg),
- 			      nfq_pkt_parse_attr_cb, attr);
+ 	return nftnl_expr_set(expr, type, str, strlen(str) + 1);
  }
--EXPORT_SYMBOL(nfq_nlmsg_parse);
+-EXPORT_SYMBOL(nftnl_expr_set_str);
  
- /**
-  * @}
+-const void *nftnl_expr_get(const struct nftnl_expr *expr,
++const void __EXPORTED *nftnl_expr_get(const struct nftnl_expr *expr,
+ 			      uint16_t type, uint32_t *data_len)
+ {
+ 	const void *ret;
+@@ -129,9 +120,8 @@ const void *nftnl_expr_get(const struct nftnl_expr *expr,
+ 
+ 	return ret;
+ }
+-EXPORT_SYMBOL(nftnl_expr_get);
+ 
+-uint8_t nftnl_expr_get_u8(const struct nftnl_expr *expr, uint16_t type)
++uint8_t __EXPORTED nftnl_expr_get_u8(const struct nftnl_expr *expr, uint16_t type)
+ {
+ 	const void *data;
+ 	uint32_t data_len;
+@@ -145,9 +135,8 @@ uint8_t nftnl_expr_get_u8(const struct nftnl_expr *expr, uint16_t type)
+ 
+ 	return *((uint8_t *)data);
+ }
+-EXPORT_SYMBOL(nftnl_expr_get_u8);
+ 
+-uint16_t nftnl_expr_get_u16(const struct nftnl_expr *expr, uint16_t type)
++uint16_t __EXPORTED nftnl_expr_get_u16(const struct nftnl_expr *expr, uint16_t type)
+ {
+ 	const void *data;
+ 	uint32_t data_len;
+@@ -161,9 +150,8 @@ uint16_t nftnl_expr_get_u16(const struct nftnl_expr *expr, uint16_t type)
+ 
+ 	return *((uint16_t *)data);
+ }
+-EXPORT_SYMBOL(nftnl_expr_get_u16);
+ 
+-uint32_t nftnl_expr_get_u32(const struct nftnl_expr *expr, uint16_t type)
++uint32_t __EXPORTED nftnl_expr_get_u32(const struct nftnl_expr *expr, uint16_t type)
+ {
+ 	const void *data;
+ 	uint32_t data_len;
+@@ -177,9 +165,8 @@ uint32_t nftnl_expr_get_u32(const struct nftnl_expr *expr, uint16_t type)
+ 
+ 	return *((uint32_t *)data);
+ }
+-EXPORT_SYMBOL(nftnl_expr_get_u32);
+ 
+-uint64_t nftnl_expr_get_u64(const struct nftnl_expr *expr, uint16_t type)
++uint64_t __EXPORTED nftnl_expr_get_u64(const struct nftnl_expr *expr, uint16_t type)
+ {
+ 	const void *data;
+ 	uint32_t data_len;
+@@ -193,17 +180,15 @@ uint64_t nftnl_expr_get_u64(const struct nftnl_expr *expr, uint16_t type)
+ 
+ 	return *((uint64_t *)data);
+ }
+-EXPORT_SYMBOL(nftnl_expr_get_u64);
+ 
+-const char *nftnl_expr_get_str(const struct nftnl_expr *expr, uint16_t type)
++const char __EXPORTED *nftnl_expr_get_str(const struct nftnl_expr *expr, uint16_t type)
+ {
+ 	uint32_t data_len;
+ 
+ 	return (const char *)nftnl_expr_get(expr, type, &data_len);
+ }
+-EXPORT_SYMBOL(nftnl_expr_get_str);
+ 
+-bool nftnl_expr_cmp(const struct nftnl_expr *e1, const struct nftnl_expr *e2)
++bool __EXPORTED nftnl_expr_cmp(const struct nftnl_expr *e1, const struct nftnl_expr *e2)
+ {
+ 	if (e1->flags != e2->flags ||
+ 	    strcmp(e1->ops->name, e2->ops->name) != 0)
+@@ -211,7 +196,6 @@ bool nftnl_expr_cmp(const struct nftnl_expr *e1, const struct nftnl_expr *e2)
+ 
+ 	return e1->ops->cmp(e1, e2);
+ }
+-EXPORT_SYMBOL(nftnl_expr_cmp);
+ 
+ void nftnl_expr_build_payload(struct nlmsghdr *nlh, struct nftnl_expr *expr)
+ {
+@@ -275,7 +259,7 @@ err1:
+ 	return NULL;
+ }
+ 
+-int nftnl_expr_snprintf(char *buf, size_t size, const struct nftnl_expr *expr,
++int __EXPORTED nftnl_expr_snprintf(char *buf, size_t size, const struct nftnl_expr *expr,
+ 			uint32_t type, uint32_t flags)
+ {
+ 	int ret;
+@@ -289,4 +273,3 @@ int nftnl_expr_snprintf(char *buf, size_t size, const struct nftnl_expr *expr,
+ 
+ 	return offset;
+ }
+-EXPORT_SYMBOL(nftnl_expr_snprintf);
+diff --git a/src/gen.c b/src/gen.c
+index 213562e..8b45caa 100644
+--- a/src/gen.c
++++ b/src/gen.c
+@@ -29,25 +29,22 @@ struct nftnl_gen {
+ 	uint32_t flags;
+ };
+ 
+-struct nftnl_gen *nftnl_gen_alloc(void)
++struct nftnl_gen __EXPORTED *nftnl_gen_alloc(void)
+ {
+ 	return calloc(1, sizeof(struct nftnl_gen));
+ }
+-EXPORT_SYMBOL(nftnl_gen_alloc);
+ 
+-void nftnl_gen_free(const struct nftnl_gen *gen)
++void __EXPORTED nftnl_gen_free(const struct nftnl_gen *gen)
+ {
+ 	xfree(gen);
+ }
+-EXPORT_SYMBOL(nftnl_gen_free);
+ 
+-bool nftnl_gen_is_set(const struct nftnl_gen *gen, uint16_t attr)
++bool __EXPORTED nftnl_gen_is_set(const struct nftnl_gen *gen, uint16_t attr)
+ {
+ 	return gen->flags & (1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_gen_is_set);
+ 
+-void nftnl_gen_unset(struct nftnl_gen *gen, uint16_t attr)
++void __EXPORTED nftnl_gen_unset(struct nftnl_gen *gen, uint16_t attr)
+ {
+ 	if (!(gen->flags & (1 << attr)))
+ 		return;
+@@ -58,13 +55,12 @@ void nftnl_gen_unset(struct nftnl_gen *gen, uint16_t attr)
+ 	}
+ 	gen->flags &= ~(1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_gen_unset);
+ 
+ static uint32_t nftnl_gen_validate[NFTNL_GEN_MAX + 1] = {
+ 	[NFTNL_GEN_ID]	= sizeof(uint32_t),
+ };
+ 
+-int nftnl_gen_set_data(struct nftnl_gen *gen, uint16_t attr,
++int __EXPORTED nftnl_gen_set_data(struct nftnl_gen *gen, uint16_t attr,
+ 		       const void *data, uint32_t data_len)
+ {
+ 	nftnl_assert_attr_exists(attr, NFTNL_GEN_MAX);
+@@ -78,21 +74,18 @@ int nftnl_gen_set_data(struct nftnl_gen *gen, uint16_t attr,
+ 	gen->flags |= (1 << attr);
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_gen_set_data);
+ 
+-int nftnl_gen_set(struct nftnl_gen *gen, uint16_t attr, const void *data)
++int __EXPORTED nftnl_gen_set(struct nftnl_gen *gen, uint16_t attr, const void *data)
+ {
+ 	return nftnl_gen_set_data(gen, attr, data, nftnl_gen_validate[attr]);
+ }
+-EXPORT_SYMBOL(nftnl_gen_set);
+ 
+-void nftnl_gen_set_u32(struct nftnl_gen *gen, uint16_t attr, uint32_t val)
++void __EXPORTED nftnl_gen_set_u32(struct nftnl_gen *gen, uint16_t attr, uint32_t val)
+ {
+ 	nftnl_gen_set_data(gen, attr, &val, sizeof(uint32_t));
+ }
+-EXPORT_SYMBOL(nftnl_gen_set_u32);
+ 
+-const void *nftnl_gen_get_data(const struct nftnl_gen *gen, uint16_t attr,
++const void __EXPORTED *nftnl_gen_get_data(const struct nftnl_gen *gen, uint16_t attr,
+ 			       uint32_t *data_len)
+ {
+ 	if (!(gen->flags & (1 << attr)))
+@@ -105,21 +98,18 @@ const void *nftnl_gen_get_data(const struct nftnl_gen *gen, uint16_t attr,
+ 	}
+ 	return NULL;
+ }
+-EXPORT_SYMBOL(nftnl_gen_get_data);
+ 
+-const void *nftnl_gen_get(const struct nftnl_gen *gen, uint16_t attr)
++const void __EXPORTED *nftnl_gen_get(const struct nftnl_gen *gen, uint16_t attr)
+ {
+ 	uint32_t data_len;
+ 	return nftnl_gen_get_data(gen, attr, &data_len);
+ }
+-EXPORT_SYMBOL(nftnl_gen_get);
+ 
+-uint32_t nftnl_gen_get_u32(const struct nftnl_gen *gen, uint16_t attr)
++uint32_t __EXPORTED nftnl_gen_get_u32(const struct nftnl_gen *gen, uint16_t attr)
+ {
+ 	const void *ret = nftnl_gen_get(gen, attr);
+ 	return ret == NULL ? 0 : *((uint32_t *)ret);
+ }
+-EXPORT_SYMBOL(nftnl_gen_get_u32);
+ 
+ static int nftnl_gen_parse_attr_cb(const struct nlattr *attr, void *data)
+ {
+@@ -140,7 +130,7 @@ static int nftnl_gen_parse_attr_cb(const struct nlattr *attr, void *data)
+ 	return MNL_CB_OK;
+ }
+ 
+-int nftnl_gen_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_gen *gen)
++int __EXPORTED nftnl_gen_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_gen *gen)
+ {
+ 	struct nlattr *tb[NFTA_GEN_MAX + 1] = {};
+ 	struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);
+@@ -154,7 +144,6 @@ int nftnl_gen_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_gen *gen)
+ 	}
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_gen_nlmsg_parse);
+ 
+ static int nftnl_gen_snprintf_default(char *buf, size_t size,
+ 				      const struct nftnl_gen *gen)
+@@ -186,13 +175,12 @@ static int nftnl_gen_cmd_snprintf(char *buf, size_t size,
+ 	return offset;
+ }
+ 
+-int nftnl_gen_snprintf(char *buf, size_t size, const struct nftnl_gen *gen,
++int __EXPORTED nftnl_gen_snprintf(char *buf, size_t size, const struct nftnl_gen *gen,
+ 		       uint32_t type, uint32_t flags)
+ {;
+ 	return nftnl_gen_cmd_snprintf(buf, size, gen, nftnl_flag2cmd(flags), type,
+ 				    flags);
+ }
+-EXPORT_SYMBOL(nftnl_gen_snprintf);
+ 
+ static int nftnl_gen_do_snprintf(char *buf, size_t size, const void *gen,
+ 				 uint32_t cmd, uint32_t type, uint32_t flags)
+@@ -200,10 +188,9 @@ static int nftnl_gen_do_snprintf(char *buf, size_t size, const void *gen,
+ 	return nftnl_gen_snprintf(buf, size, gen, type, flags);
+ }
+ 
+-int nftnl_gen_fprintf(FILE *fp, const struct nftnl_gen *gen, uint32_t type,
++int __EXPORTED nftnl_gen_fprintf(FILE *fp, const struct nftnl_gen *gen, uint32_t type,
+ 		      uint32_t flags)
+ {
+ 	return nftnl_fprintf(fp, gen, NFTNL_CMD_UNSPEC, type, flags,
+ 			   nftnl_gen_do_snprintf);
+ }
+-EXPORT_SYMBOL(nftnl_gen_fprintf);
+diff --git a/src/object.c b/src/object.c
+index e1a5ac4..d409c6d 100644
+--- a/src/object.c
++++ b/src/object.c
+@@ -39,13 +39,12 @@ static struct obj_ops *nftnl_obj_ops_lookup(uint32_t type)
+ 	return obj_ops[type];
+ }
+ 
+-struct nftnl_obj *nftnl_obj_alloc(void)
++struct nftnl_obj __EXPORTED *nftnl_obj_alloc(void)
+ {
+ 	return calloc(1, sizeof(struct nftnl_obj));
+ }
+-EXPORT_SYMBOL(nftnl_obj_alloc);
+ 
+-void nftnl_obj_free(const struct nftnl_obj *obj)
++void __EXPORTED nftnl_obj_free(const struct nftnl_obj *obj)
+ {
+ 	if (obj->flags & (1 << NFTNL_OBJ_TABLE))
+ 		xfree(obj->table);
+@@ -54,20 +53,18 @@ void nftnl_obj_free(const struct nftnl_obj *obj)
+ 
+ 	xfree(obj);
+ }
+-EXPORT_SYMBOL(nftnl_obj_free);
+ 
+-bool nftnl_obj_is_set(const struct nftnl_obj *obj, uint16_t attr)
++bool __EXPORTED nftnl_obj_is_set(const struct nftnl_obj *obj, uint16_t attr)
+ {
+ 	return obj->flags & (1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_obj_is_set);
+ 
+ static uint32_t nftnl_obj_validate[NFTNL_OBJ_MAX + 1] = {
+ 	[NFTNL_OBJ_FAMILY]	= sizeof(uint32_t),
+ 	[NFTNL_OBJ_USE]		= sizeof(uint32_t),
+ };
+ 
+-void nftnl_obj_set_data(struct nftnl_obj *obj, uint16_t attr,
++void __EXPORTED nftnl_obj_set_data(struct nftnl_obj *obj, uint16_t attr,
+ 			const void *data, uint32_t data_len)
+ {
+ 	if (attr < NFTNL_OBJ_MAX)
+@@ -100,45 +97,38 @@ void nftnl_obj_set_data(struct nftnl_obj *obj, uint16_t attr,
+ 	}
+ 	obj->flags |= (1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_obj_set_data);
+ 
+-void nftnl_obj_set(struct nftnl_obj *obj, uint16_t attr, const void *data)
++void __EXPORTED nftnl_obj_set(struct nftnl_obj *obj, uint16_t attr, const void *data)
+ {
+ 	nftnl_obj_set_data(obj, attr, data, nftnl_obj_validate[attr]);
+ }
+-EXPORT_SYMBOL(nftnl_obj_set);
+ 
+-void nftnl_obj_set_u8(struct nftnl_obj *obj, uint16_t attr, uint8_t val)
++void __EXPORTED nftnl_obj_set_u8(struct nftnl_obj *obj, uint16_t attr, uint8_t val)
+ {
+ 	nftnl_obj_set_data(obj, attr, &val, sizeof(uint8_t));
+ }
+-EXPORT_SYMBOL(nftnl_obj_set_u8);
+ 
+-void nftnl_obj_set_u16(struct nftnl_obj *obj, uint16_t attr, uint16_t val)
++void __EXPORTED nftnl_obj_set_u16(struct nftnl_obj *obj, uint16_t attr, uint16_t val)
+ {
+ 	nftnl_obj_set_data(obj, attr, &val, sizeof(uint16_t));
+ }
+-EXPORT_SYMBOL(nftnl_obj_set_u16);
+ 
+-void nftnl_obj_set_u32(struct nftnl_obj *obj, uint16_t attr, uint32_t val)
++void __EXPORTED nftnl_obj_set_u32(struct nftnl_obj *obj, uint16_t attr, uint32_t val)
+ {
+ 	nftnl_obj_set_data(obj, attr, &val, sizeof(uint32_t));
+ }
+-EXPORT_SYMBOL(nftnl_obj_set_u32);
+ 
+-void nftnl_obj_set_u64(struct nftnl_obj *obj, uint16_t attr, uint64_t val)
++void __EXPORTED nftnl_obj_set_u64(struct nftnl_obj *obj, uint16_t attr, uint64_t val)
+ {
+ 	nftnl_obj_set_data(obj, attr, &val, sizeof(uint64_t));
+ }
+-EXPORT_SYMBOL(nftnl_obj_set_u64);
+ 
+-void nftnl_obj_set_str(struct nftnl_obj *obj, uint16_t attr, const char *str)
++void __EXPORTED nftnl_obj_set_str(struct nftnl_obj *obj, uint16_t attr, const char *str)
+ {
+ 	nftnl_obj_set_data(obj, attr, str, 0);
+ }
+-EXPORT_SYMBOL(nftnl_obj_set_str);
+ 
+-const void *nftnl_obj_get_data(struct nftnl_obj *obj, uint16_t attr,
++const void __EXPORTED *nftnl_obj_get_data(struct nftnl_obj *obj, uint16_t attr,
+ 			       uint32_t *data_len)
+ {
+ 	if (!(obj->flags & (1 << attr)))
+@@ -168,50 +158,43 @@ const void *nftnl_obj_get_data(struct nftnl_obj *obj, uint16_t attr,
+ 	}
+ 	return NULL;
+ }
+-EXPORT_SYMBOL(nftnl_obj_get_data);
+ 
+-const void *nftnl_obj_get(struct nftnl_obj *obj, uint16_t attr)
++const void __EXPORTED *nftnl_obj_get(struct nftnl_obj *obj, uint16_t attr)
+ {
+ 	uint32_t data_len;
+ 	return nftnl_obj_get_data(obj, attr, &data_len);
+ }
+-EXPORT_SYMBOL(nftnl_obj_get);
+ 
+-uint8_t nftnl_obj_get_u8(struct nftnl_obj *obj, uint16_t attr)
++uint8_t __EXPORTED nftnl_obj_get_u8(struct nftnl_obj *obj, uint16_t attr)
+ {
+ 	const void *ret = nftnl_obj_get(obj, attr);
+ 	return ret == NULL ? 0 : *((uint8_t *)ret);
+ }
+-EXPORT_SYMBOL(nftnl_obj_get_u8);
+ 
+-uint16_t nftnl_obj_get_u16(struct nftnl_obj *obj, uint16_t attr)
++uint16_t __EXPORTED nftnl_obj_get_u16(struct nftnl_obj *obj, uint16_t attr)
+ {
+ 	const void *ret = nftnl_obj_get(obj, attr);
+ 	return ret == NULL ? 0 : *((uint16_t *)ret);
+ }
+-EXPORT_SYMBOL(nftnl_obj_get_u16);
+ 
+-uint32_t nftnl_obj_get_u32(struct nftnl_obj *obj, uint16_t attr)
++uint32_t __EXPORTED nftnl_obj_get_u32(struct nftnl_obj *obj, uint16_t attr)
+ {
+ 	const void *ret = nftnl_obj_get(obj, attr);
+ 	return ret == NULL ? 0 : *((uint32_t *)ret);
+ }
+-EXPORT_SYMBOL(nftnl_obj_get_u32);
+ 
+-uint64_t nftnl_obj_get_u64(struct nftnl_obj *obj, uint16_t attr)
++uint64_t __EXPORTED nftnl_obj_get_u64(struct nftnl_obj *obj, uint16_t attr)
+ {
+ 	const void *ret = nftnl_obj_get(obj, attr);
+ 	return ret == NULL ? 0 : *((uint64_t *)ret);
+ }
+-EXPORT_SYMBOL(nftnl_obj_get_u64);
+ 
+-const char *nftnl_obj_get_str(struct nftnl_obj *obj, uint16_t attr)
++const char __EXPORTED *nftnl_obj_get_str(struct nftnl_obj *obj, uint16_t attr)
+ {
+ 	return nftnl_obj_get(obj, attr);
+ }
+-EXPORT_SYMBOL(nftnl_obj_get_str);
+ 
+-void nftnl_obj_nlmsg_build_payload(struct nlmsghdr *nlh,
++void __EXPORTED nftnl_obj_nlmsg_build_payload(struct nlmsghdr *nlh,
+ 				   const struct nftnl_obj *obj)
+ {
+ 	if (obj->flags & (1 << NFTNL_OBJ_TABLE))
+@@ -228,7 +211,6 @@ void nftnl_obj_nlmsg_build_payload(struct nlmsghdr *nlh,
+ 		mnl_attr_nest_end(nlh, nest);
+ 	}
+ }
+-EXPORT_SYMBOL(nftnl_obj_nlmsg_build_payload);
+ 
+ static int nftnl_obj_parse_attr_cb(const struct nlattr *attr, void *data)
+ {
+@@ -258,7 +240,7 @@ static int nftnl_obj_parse_attr_cb(const struct nlattr *attr, void *data)
+ 	return MNL_CB_OK;
+ }
+ 
+-int nftnl_obj_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_obj *obj)
++int __EXPORTED nftnl_obj_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_obj *obj)
+ {
+ 	struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);
+ 	struct nlattr *tb[NFTA_OBJ_MAX + 1] = {};
+@@ -299,7 +281,6 @@ int nftnl_obj_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_obj *obj)
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_obj_nlmsg_parse);
+ 
+ #ifdef JSON_PARSING
+ static int nftnl_jansson_parse_obj(struct nftnl_obj *t, json_t *tree,
+@@ -377,19 +358,17 @@ static int nftnl_obj_do_parse(struct nftnl_obj *obj, enum nftnl_parse_type type,
+ 	return ret;
+ }
+ 
+-int nftnl_obj_parse(struct nftnl_obj *obj, enum nftnl_parse_type type,
++int __EXPORTED nftnl_obj_parse(struct nftnl_obj *obj, enum nftnl_parse_type type,
+ 		      const char *data, struct nftnl_parse_err *err)
+ {
+ 	return nftnl_obj_do_parse(obj, type, data, err, NFTNL_PARSE_BUFFER);
+ }
+-EXPORT_SYMBOL(nftnl_obj_parse);
+ 
+-int nftnl_obj_parse_file(struct nftnl_obj *obj, enum nftnl_parse_type type,
++int __EXPORTED nftnl_obj_parse_file(struct nftnl_obj *obj, enum nftnl_parse_type type,
+ 			   FILE *fp, struct nftnl_parse_err *err)
+ {
+ 	return nftnl_obj_do_parse(obj, type, fp, err, NFTNL_PARSE_FILE);
+ }
+-EXPORT_SYMBOL(nftnl_obj_parse_file);
+ 
+ static int nftnl_obj_export(char *buf, size_t size,
+ 			    const struct nftnl_obj *obj,
+@@ -469,13 +448,12 @@ static int nftnl_obj_cmd_snprintf(char *buf, size_t size,
+ 	return offset;
+ }
+ 
+-int nftnl_obj_snprintf(char *buf, size_t size, const struct nftnl_obj *obj,
++int __EXPORTED nftnl_obj_snprintf(char *buf, size_t size, const struct nftnl_obj *obj,
+ 		       uint32_t type, uint32_t flags)
+ {
+ 	return nftnl_obj_cmd_snprintf(buf, size, obj, nftnl_flag2cmd(flags),
+ 				      type, flags);
+ }
+-EXPORT_SYMBOL(nftnl_obj_snprintf);
+ 
+ static int nftnl_obj_do_snprintf(char *buf, size_t size, const void *obj,
+ 				 uint32_t cmd, uint32_t type, uint32_t flags)
+@@ -483,19 +461,18 @@ static int nftnl_obj_do_snprintf(char *buf, size_t size, const void *obj,
+ 	return nftnl_obj_snprintf(buf, size, obj, type, flags);
+ }
+ 
+-int nftnl_obj_fprintf(FILE *fp, const struct nftnl_obj *obj, uint32_t type,
++int __EXPORTED nftnl_obj_fprintf(FILE *fp, const struct nftnl_obj *obj, uint32_t type,
+ 		      uint32_t flags)
+ {
+ 	return nftnl_fprintf(fp, obj, NFTNL_CMD_UNSPEC, type, flags,
+ 			     nftnl_obj_do_snprintf);
+ }
+-EXPORT_SYMBOL(nftnl_obj_fprintf);
+ 
+ struct nftnl_obj_list {
+ 	struct list_head list;
+ };
+ 
+-struct nftnl_obj_list *nftnl_obj_list_alloc(void)
++struct nftnl_obj_list __EXPORTED *nftnl_obj_list_alloc(void)
+ {
+ 	struct nftnl_obj_list *list;
+ 
+@@ -507,9 +484,8 @@ struct nftnl_obj_list *nftnl_obj_list_alloc(void)
+ 
+ 	return list;
+ }
+-EXPORT_SYMBOL(nftnl_obj_list_alloc);
+ 
+-void nftnl_obj_list_free(struct nftnl_obj_list *list)
++void __EXPORTED nftnl_obj_list_free(struct nftnl_obj_list *list)
+ {
+ 	struct nftnl_obj *r, *tmp;
+ 
+@@ -519,34 +495,29 @@ void nftnl_obj_list_free(struct nftnl_obj_list *list)
+ 	}
+ 	xfree(list);
+ }
+-EXPORT_SYMBOL(nftnl_obj_list_free);
+ 
+-int nftnl_obj_list_is_empty(struct nftnl_obj_list *list)
++int __EXPORTED nftnl_obj_list_is_empty(struct nftnl_obj_list *list)
+ {
+ 	return list_empty(&list->list);
+ }
+-EXPORT_SYMBOL(nftnl_obj_list_is_empty);
+ 
+-void nftnl_obj_list_add(struct nftnl_obj *r, struct nftnl_obj_list *list)
++void __EXPORTED nftnl_obj_list_add(struct nftnl_obj *r, struct nftnl_obj_list *list)
+ {
+ 	list_add(&r->head, &list->list);
+ }
+-EXPORT_SYMBOL(nftnl_obj_list_add);
+ 
+-void nftnl_obj_list_add_tail(struct nftnl_obj *r,
++void __EXPORTED nftnl_obj_list_add_tail(struct nftnl_obj *r,
+ 			       struct nftnl_obj_list *list)
+ {
+ 	list_add_tail(&r->head, &list->list);
+ }
+-EXPORT_SYMBOL(nftnl_obj_list_add_tail);
+ 
+-void nftnl_obj_list_del(struct nftnl_obj *t)
++void __EXPORTED nftnl_obj_list_del(struct nftnl_obj *t)
+ {
+ 	list_del(&t->head);
+ }
+-EXPORT_SYMBOL(nftnl_obj_list_del);
+ 
+-int nftnl_obj_list_foreach(struct nftnl_obj_list *table_list,
++int __EXPORTED nftnl_obj_list_foreach(struct nftnl_obj_list *table_list,
+ 			     int (*cb)(struct nftnl_obj *t, void *data),
+ 			     void *data)
+ {
+@@ -560,14 +531,13 @@ int nftnl_obj_list_foreach(struct nftnl_obj_list *table_list,
+ 	}
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_obj_list_foreach);
+ 
+ struct nftnl_obj_list_iter {
+ 	struct nftnl_obj_list	*list;
+ 	struct nftnl_obj	*cur;
+ };
+ 
+-struct nftnl_obj_list_iter *
++struct nftnl_obj_list_iter __EXPORTED *
+ nftnl_obj_list_iter_create(struct nftnl_obj_list *l)
+ {
+ 	struct nftnl_obj_list_iter *iter;
+@@ -584,9 +554,8 @@ nftnl_obj_list_iter_create(struct nftnl_obj_list *l)
+ 
+ 	return iter;
+ }
+-EXPORT_SYMBOL(nftnl_obj_list_iter_create);
+ 
+-struct nftnl_obj *nftnl_obj_list_iter_next(struct nftnl_obj_list_iter *iter)
++struct nftnl_obj __EXPORTED *nftnl_obj_list_iter_next(struct nftnl_obj_list_iter *iter)
+ {
+ 	struct nftnl_obj *r = iter->cur;
+ 
+@@ -600,10 +569,8 @@ struct nftnl_obj *nftnl_obj_list_iter_next(struct nftnl_obj_list_iter *iter)
+ 
+ 	return r;
+ }
+-EXPORT_SYMBOL(nftnl_obj_list_iter_next);
+ 
+-void nftnl_obj_list_iter_destroy(struct nftnl_obj_list_iter *iter)
++void __EXPORTED nftnl_obj_list_iter_destroy(struct nftnl_obj_list_iter *iter)
+ {
+ 	xfree(iter);
+ }
+-EXPORT_SYMBOL(nftnl_obj_list_iter_destroy);
+diff --git a/src/rule.c b/src/rule.c
+index 6c22141..ad8609f 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -52,7 +52,7 @@ struct nftnl_rule {
+ 	struct list_head expr_list;
+ };
+ 
+-struct nftnl_rule *nftnl_rule_alloc(void)
++struct nftnl_rule __EXPORTED *nftnl_rule_alloc(void)
+ {
+ 	struct nftnl_rule *r;
+ 
+@@ -64,9 +64,8 @@ struct nftnl_rule *nftnl_rule_alloc(void)
+ 
+ 	return r;
+ }
+-EXPORT_SYMBOL(nftnl_rule_alloc);
+ 
+-void nftnl_rule_free(const struct nftnl_rule *r)
++void __EXPORTED nftnl_rule_free(const struct nftnl_rule *r)
+ {
+ 	struct nftnl_expr *e, *tmp;
+ 
+@@ -82,15 +81,13 @@ void nftnl_rule_free(const struct nftnl_rule *r)
+ 
+ 	xfree(r);
+ }
+-EXPORT_SYMBOL(nftnl_rule_free);
+ 
+-bool nftnl_rule_is_set(const struct nftnl_rule *r, uint16_t attr)
++bool __EXPORTED nftnl_rule_is_set(const struct nftnl_rule *r, uint16_t attr)
+ {
+ 	return r->flags & (1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_rule_is_set);
+ 
+-void nftnl_rule_unset(struct nftnl_rule *r, uint16_t attr)
++void __EXPORTED nftnl_rule_unset(struct nftnl_rule *r, uint16_t attr)
+ {
+ 	if (!(r->flags & (1 << attr)))
+ 		return;
+@@ -116,7 +113,6 @@ void nftnl_rule_unset(struct nftnl_rule *r, uint16_t attr)
+ 
+ 	r->flags &= ~(1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_rule_unset);
+ 
+ static uint32_t nftnl_rule_validate[NFTNL_RULE_MAX + 1] = {
+ 	[NFTNL_RULE_HANDLE]		= sizeof(uint64_t),
+@@ -127,7 +123,7 @@ static uint32_t nftnl_rule_validate[NFTNL_RULE_MAX + 1] = {
+ 	[NFTNL_RULE_ID]			= sizeof(uint32_t),
+ };
+ 
+-int nftnl_rule_set_data(struct nftnl_rule *r, uint16_t attr,
++int __EXPORTED nftnl_rule_set_data(struct nftnl_rule *r, uint16_t attr,
+ 			const void *data, uint32_t data_len)
+ {
+ 	nftnl_assert_attr_exists(attr, NFTNL_RULE_MAX);
+@@ -183,33 +179,28 @@ int nftnl_rule_set_data(struct nftnl_rule *r, uint16_t attr,
+ 	r->flags |= (1 << attr);
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_rule_set_data);
+ 
+-int nftnl_rule_set(struct nftnl_rule *r, uint16_t attr, const void *data)
++int __EXPORTED nftnl_rule_set(struct nftnl_rule *r, uint16_t attr, const void *data)
+ {
+ 	return nftnl_rule_set_data(r, attr, data, nftnl_rule_validate[attr]);
+ }
+-EXPORT_SYMBOL(nftnl_rule_set);
+ 
+-void nftnl_rule_set_u32(struct nftnl_rule *r, uint16_t attr, uint32_t val)
++void __EXPORTED nftnl_rule_set_u32(struct nftnl_rule *r, uint16_t attr, uint32_t val)
+ {
+ 	nftnl_rule_set_data(r, attr, &val, sizeof(uint32_t));
+ }
+-EXPORT_SYMBOL(nftnl_rule_set_u32);
+ 
+-void nftnl_rule_set_u64(struct nftnl_rule *r, uint16_t attr, uint64_t val)
++void __EXPORTED nftnl_rule_set_u64(struct nftnl_rule *r, uint16_t attr, uint64_t val)
+ {
+ 	nftnl_rule_set_data(r, attr, &val, sizeof(uint64_t));
+ }
+-EXPORT_SYMBOL(nftnl_rule_set_u64);
+ 
+-int nftnl_rule_set_str(struct nftnl_rule *r, uint16_t attr, const char *str)
++int __EXPORTED nftnl_rule_set_str(struct nftnl_rule *r, uint16_t attr, const char *str)
+ {
+ 	return nftnl_rule_set_data(r, attr, str, strlen(str) + 1);
+ }
+-EXPORT_SYMBOL(nftnl_rule_set_str);
+ 
+-const void *nftnl_rule_get_data(const struct nftnl_rule *r, uint16_t attr,
++const void __EXPORTED *nftnl_rule_get_data(const struct nftnl_rule *r, uint16_t attr,
+ 				   uint32_t *data_len)
+ {
+ 	if (!(r->flags & (1 << attr)))
+@@ -246,22 +237,19 @@ const void *nftnl_rule_get_data(const struct nftnl_rule *r, uint16_t attr,
+ 	}
+ 	return NULL;
+ }
+-EXPORT_SYMBOL(nftnl_rule_get_data);
+ 
+-const void *nftnl_rule_get(const struct nftnl_rule *r, uint16_t attr)
++const void __EXPORTED *nftnl_rule_get(const struct nftnl_rule *r, uint16_t attr)
+ {
+ 	uint32_t data_len;
+ 	return nftnl_rule_get_data(r, attr, &data_len);
+ }
+-EXPORT_SYMBOL(nftnl_rule_get);
+ 
+-const char *nftnl_rule_get_str(const struct nftnl_rule *r, uint16_t attr)
++const char __EXPORTED *nftnl_rule_get_str(const struct nftnl_rule *r, uint16_t attr)
+ {
+ 	return nftnl_rule_get(r, attr);
+ }
+-EXPORT_SYMBOL(nftnl_rule_get_str);
+ 
+-uint32_t nftnl_rule_get_u32(const struct nftnl_rule *r, uint16_t attr)
++uint32_t __EXPORTED nftnl_rule_get_u32(const struct nftnl_rule *r, uint16_t attr)
+ {
+ 	uint32_t data_len;
+ 	const uint32_t *val = nftnl_rule_get_data(r, attr, &data_len);
+@@ -270,9 +258,8 @@ uint32_t nftnl_rule_get_u32(const struct nftnl_rule *r, uint16_t attr)
+ 
+ 	return val ? *val : 0;
+ }
+-EXPORT_SYMBOL(nftnl_rule_get_u32);
+ 
+-uint64_t nftnl_rule_get_u64(const struct nftnl_rule *r, uint16_t attr)
++uint64_t __EXPORTED nftnl_rule_get_u64(const struct nftnl_rule *r, uint16_t attr)
+ {
+ 	uint32_t data_len;
+ 	const uint64_t *val = nftnl_rule_get_data(r, attr, &data_len);
+@@ -281,9 +268,8 @@ uint64_t nftnl_rule_get_u64(const struct nftnl_rule *r, uint16_t attr)
+ 
+ 	return val ? *val : 0;
+ }
+-EXPORT_SYMBOL(nftnl_rule_get_u64);
+ 
+-uint8_t nftnl_rule_get_u8(const struct nftnl_rule *r, uint16_t attr)
++uint8_t __EXPORTED nftnl_rule_get_u8(const struct nftnl_rule *r, uint16_t attr)
+ {
+ 	uint32_t data_len;
+ 	const uint8_t *val = nftnl_rule_get_data(r, attr, &data_len);
+@@ -292,9 +278,8 @@ uint8_t nftnl_rule_get_u8(const struct nftnl_rule *r, uint16_t attr)
+ 
+ 	return val ? *val : 0;
+ }
+-EXPORT_SYMBOL(nftnl_rule_get_u8);
+ 
+-void nftnl_rule_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_rule *r)
++void __EXPORTED nftnl_rule_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_rule *r)
+ {
+ 	struct nftnl_expr *expr;
+ 	struct nlattr *nest, *nest2;
+@@ -335,13 +320,11 @@ void nftnl_rule_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_rule *r)
+ 	if (r->flags & (1 << NFTNL_RULE_ID))
+ 		mnl_attr_put_u32(nlh, NFTA_RULE_ID, htonl(r->id));
+ }
+-EXPORT_SYMBOL(nftnl_rule_nlmsg_build_payload);
+ 
+-void nftnl_rule_add_expr(struct nftnl_rule *r, struct nftnl_expr *expr)
++void __EXPORTED nftnl_rule_add_expr(struct nftnl_rule *r, struct nftnl_expr *expr)
+ {
+ 	list_add_tail(&expr->head, &r->expr_list);
+ }
+-EXPORT_SYMBOL(nftnl_rule_add_expr);
+ 
+ static int nftnl_rule_parse_attr_cb(const struct nlattr *attr, void *data)
+ {
+@@ -441,7 +424,7 @@ static int nftnl_rule_parse_compat(struct nlattr *nest, struct nftnl_rule *r)
+ 	return 0;
+ }
+ 
+-int nftnl_rule_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_rule *r)
++int __EXPORTED nftnl_rule_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_rule *r)
+ {
+ 	struct nlattr *tb[NFTA_RULE_MAX+1] = {};
+ 	struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);
+@@ -510,7 +493,6 @@ int nftnl_rule_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_rule *r)
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_rule_nlmsg_parse);
+ 
+ #ifdef JSON_PARSING
+ int nftnl_jansson_parse_rule(struct nftnl_rule *r, json_t *tree,
+@@ -658,19 +640,17 @@ static int nftnl_rule_do_parse(struct nftnl_rule *r, enum nftnl_parse_type type,
+ 
+ 	return ret;
+ }
+-int nftnl_rule_parse(struct nftnl_rule *r, enum nftnl_parse_type type,
++int __EXPORTED nftnl_rule_parse(struct nftnl_rule *r, enum nftnl_parse_type type,
+ 		   const char *data, struct nftnl_parse_err *err)
+ {
+ 	return nftnl_rule_do_parse(r, type, data, err, NFTNL_PARSE_BUFFER);
+ }
+-EXPORT_SYMBOL(nftnl_rule_parse);
+ 
+-int nftnl_rule_parse_file(struct nftnl_rule *r, enum nftnl_parse_type type,
++int __EXPORTED nftnl_rule_parse_file(struct nftnl_rule *r, enum nftnl_parse_type type,
+ 			FILE *fp, struct nftnl_parse_err *err)
+ {
+ 	return nftnl_rule_do_parse(r, type, fp, err, NFTNL_PARSE_FILE);
+ }
+-EXPORT_SYMBOL(nftnl_rule_parse_file);
+ 
+ static int nftnl_rule_export(char *buf, size_t size,
+ 			     const struct nftnl_rule *r,
+@@ -819,13 +799,12 @@ static int nftnl_rule_cmd_snprintf(char *buf, size_t size,
+ 	return offset;
+ }
+ 
+-int nftnl_rule_snprintf(char *buf, size_t size, const struct nftnl_rule *r,
++int __EXPORTED nftnl_rule_snprintf(char *buf, size_t size, const struct nftnl_rule *r,
+ 			uint32_t type, uint32_t flags)
+ {
+ 	return nftnl_rule_cmd_snprintf(buf, size, r, nftnl_flag2cmd(flags), type,
+ 				     flags);
+ }
+-EXPORT_SYMBOL(nftnl_rule_snprintf);
+ 
+ static int nftnl_rule_do_snprintf(char *buf, size_t size, const void *r,
+ 				  uint32_t cmd, uint32_t type, uint32_t flags)
+@@ -833,15 +812,14 @@ static int nftnl_rule_do_snprintf(char *buf, size_t size, const void *r,
+ 	return nftnl_rule_snprintf(buf, size, r, type, flags);
+ }
+ 
+-int nftnl_rule_fprintf(FILE *fp, const struct nftnl_rule *r, uint32_t type,
++int __EXPORTED nftnl_rule_fprintf(FILE *fp, const struct nftnl_rule *r, uint32_t type,
+ 		       uint32_t flags)
+ {
+ 	return nftnl_fprintf(fp, r, NFTNL_CMD_UNSPEC, type, flags,
+ 			   nftnl_rule_do_snprintf);
+ }
+-EXPORT_SYMBOL(nftnl_rule_fprintf);
+ 
+-int nftnl_expr_foreach(struct nftnl_rule *r,
++int __EXPORTED nftnl_expr_foreach(struct nftnl_rule *r,
+                           int (*cb)(struct nftnl_expr *e, void *data),
+                           void *data)
+ {
+@@ -855,7 +833,6 @@ int nftnl_expr_foreach(struct nftnl_rule *r,
+        }
+        return 0;
+ }
+-EXPORT_SYMBOL(nftnl_expr_foreach);
+ 
+ struct nftnl_expr_iter {
+ 	const struct nftnl_rule	*r;
+@@ -873,7 +850,7 @@ static void nftnl_expr_iter_init(const struct nftnl_rule *r,
+ 				       head);
+ }
+ 
+-struct nftnl_expr_iter *nftnl_expr_iter_create(const struct nftnl_rule *r)
++struct nftnl_expr_iter __EXPORTED *nftnl_expr_iter_create(const struct nftnl_rule *r)
+ {
+ 	struct nftnl_expr_iter *iter;
+ 
+@@ -885,9 +862,8 @@ struct nftnl_expr_iter *nftnl_expr_iter_create(const struct nftnl_rule *r)
+ 
+ 	return iter;
+ }
+-EXPORT_SYMBOL(nftnl_expr_iter_create);
+ 
+-struct nftnl_expr *nftnl_expr_iter_next(struct nftnl_expr_iter *iter)
++struct nftnl_expr __EXPORTED *nftnl_expr_iter_next(struct nftnl_expr_iter *iter)
+ {
+ 	struct nftnl_expr *expr = iter->cur;
+ 
+@@ -901,15 +877,13 @@ struct nftnl_expr *nftnl_expr_iter_next(struct nftnl_expr_iter *iter)
+ 
+ 	return expr;
+ }
+-EXPORT_SYMBOL(nftnl_expr_iter_next);
+ 
+-void nftnl_expr_iter_destroy(struct nftnl_expr_iter *iter)
++void __EXPORTED nftnl_expr_iter_destroy(struct nftnl_expr_iter *iter)
+ {
+ 	xfree(iter);
+ }
+-EXPORT_SYMBOL(nftnl_expr_iter_destroy);
+ 
+-bool nftnl_rule_cmp(const struct nftnl_rule *r1, const struct nftnl_rule *r2)
++bool __EXPORTED nftnl_rule_cmp(const struct nftnl_rule *r1, const struct nftnl_rule *r2)
+ {
+ 	struct nftnl_expr_iter it1, it2;
+ 	struct nftnl_expr *e1, *e2;
+@@ -938,13 +912,12 @@ bool nftnl_rule_cmp(const struct nftnl_rule *r1, const struct nftnl_rule *r2)
+ 
+ 	return eq;
+ }
+-EXPORT_SYMBOL(nftnl_rule_cmp);
+ 
+ struct nftnl_rule_list {
+ 	struct list_head list;
+ };
+ 
+-struct nftnl_rule_list *nftnl_rule_list_alloc(void)
++struct nftnl_rule_list __EXPORTED *nftnl_rule_list_alloc(void)
+ {
+ 	struct nftnl_rule_list *list;
+ 
+@@ -956,9 +929,8 @@ struct nftnl_rule_list *nftnl_rule_list_alloc(void)
+ 
+ 	return list;
+ }
+-EXPORT_SYMBOL(nftnl_rule_list_alloc);
+ 
+-void nftnl_rule_list_free(struct nftnl_rule_list *list)
++void __EXPORTED nftnl_rule_list_free(struct nftnl_rule_list *list)
+ {
+ 	struct nftnl_rule *r, *tmp;
+ 
+@@ -968,33 +940,28 @@ void nftnl_rule_list_free(struct nftnl_rule_list *list)
+ 	}
+ 	xfree(list);
+ }
+-EXPORT_SYMBOL(nftnl_rule_list_free);
+ 
+-int nftnl_rule_list_is_empty(const struct nftnl_rule_list *list)
++int __EXPORTED nftnl_rule_list_is_empty(const struct nftnl_rule_list *list)
+ {
+ 	return list_empty(&list->list);
+ }
+-EXPORT_SYMBOL(nftnl_rule_list_is_empty);
+ 
+-void nftnl_rule_list_add(struct nftnl_rule *r, struct nftnl_rule_list *list)
++void __EXPORTED nftnl_rule_list_add(struct nftnl_rule *r, struct nftnl_rule_list *list)
+ {
+ 	list_add(&r->head, &list->list);
+ }
+-EXPORT_SYMBOL(nftnl_rule_list_add);
+ 
+-void nftnl_rule_list_add_tail(struct nftnl_rule *r, struct nftnl_rule_list *list)
++void __EXPORTED nftnl_rule_list_add_tail(struct nftnl_rule *r, struct nftnl_rule_list *list)
+ {
+ 	list_add_tail(&r->head, &list->list);
+ }
+-EXPORT_SYMBOL(nftnl_rule_list_add_tail);
+ 
+-void nftnl_rule_list_del(struct nftnl_rule *r)
++void __EXPORTED nftnl_rule_list_del(struct nftnl_rule *r)
+ {
+ 	list_del(&r->head);
+ }
+-EXPORT_SYMBOL(nftnl_rule_list_del);
+ 
+-int nftnl_rule_list_foreach(struct nftnl_rule_list *rule_list,
++int __EXPORTED nftnl_rule_list_foreach(struct nftnl_rule_list *rule_list,
+ 			  int (*cb)(struct nftnl_rule *r, void *data),
+ 			  void *data)
+ {
+@@ -1008,14 +975,13 @@ int nftnl_rule_list_foreach(struct nftnl_rule_list *rule_list,
+ 	}
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_rule_list_foreach);
+ 
+ struct nftnl_rule_list_iter {
+ 	const struct nftnl_rule_list	*list;
+ 	struct nftnl_rule		*cur;
+ };
+ 
+-struct nftnl_rule_list_iter *
++struct nftnl_rule_list_iter __EXPORTED *
+ nftnl_rule_list_iter_create(const struct nftnl_rule_list *l)
+ {
+ 	struct nftnl_rule_list_iter *iter;
+@@ -1032,15 +998,13 @@ nftnl_rule_list_iter_create(const struct nftnl_rule_list *l)
+ 
+ 	return iter;
+ }
+-EXPORT_SYMBOL(nftnl_rule_list_iter_create);
+ 
+-struct nftnl_rule *nftnl_rule_list_iter_cur(struct nftnl_rule_list_iter *iter)
++struct nftnl_rule __EXPORTED *nftnl_rule_list_iter_cur(struct nftnl_rule_list_iter *iter)
+ {
+ 	return iter->cur;
+ }
+-EXPORT_SYMBOL(nftnl_rule_list_iter_cur);
+ 
+-struct nftnl_rule *nftnl_rule_list_iter_next(struct nftnl_rule_list_iter *iter)
++struct nftnl_rule __EXPORTED *nftnl_rule_list_iter_next(struct nftnl_rule_list_iter *iter)
+ {
+ 	struct nftnl_rule *r = iter->cur;
+ 
+@@ -1054,10 +1018,8 @@ struct nftnl_rule *nftnl_rule_list_iter_next(struct nftnl_rule_list_iter *iter)
+ 
+ 	return r;
+ }
+-EXPORT_SYMBOL(nftnl_rule_list_iter_next);
+ 
+-void nftnl_rule_list_iter_destroy(const struct nftnl_rule_list_iter *iter)
++void __EXPORTED nftnl_rule_list_iter_destroy(const struct nftnl_rule_list_iter *iter)
+ {
+ 	xfree(iter);
+ }
+-EXPORT_SYMBOL(nftnl_rule_list_iter_destroy);
+diff --git a/src/ruleset.c b/src/ruleset.c
+index 6ef2956..10d48f6 100644
+--- a/src/ruleset.c
++++ b/src/ruleset.c
+@@ -55,13 +55,12 @@ struct nftnl_parse_ctx {
+ 	uint16_t flags;
+ };
+ 
+-struct nftnl_ruleset *nftnl_ruleset_alloc(void)
++struct nftnl_ruleset __EXPORTED *nftnl_ruleset_alloc(void)
+ {
+ 	return calloc(1, sizeof(struct nftnl_ruleset));
+ }
+-EXPORT_SYMBOL(nftnl_ruleset_alloc);
+ 
+-void nftnl_ruleset_free(const struct nftnl_ruleset *r)
++void __EXPORTED nftnl_ruleset_free(const struct nftnl_ruleset *r)
+ {
+ 	if (r->flags & (1 << NFTNL_RULESET_TABLELIST))
+ 		nftnl_table_list_free(r->table_list);
+@@ -73,15 +72,13 @@ void nftnl_ruleset_free(const struct nftnl_ruleset *r)
+ 		nftnl_rule_list_free(r->rule_list);
+ 	xfree(r);
+ }
+-EXPORT_SYMBOL(nftnl_ruleset_free);
+ 
+-bool nftnl_ruleset_is_set(const struct nftnl_ruleset *r, uint16_t attr)
++bool __EXPORTED nftnl_ruleset_is_set(const struct nftnl_ruleset *r, uint16_t attr)
+ {
+ 	return r->flags & (1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_ruleset_is_set);
+ 
+-void nftnl_ruleset_unset(struct nftnl_ruleset *r, uint16_t attr)
++void __EXPORTED nftnl_ruleset_unset(struct nftnl_ruleset *r, uint16_t attr)
+ {
+ 	if (!(r->flags & (1 << attr)))
+ 		return;
+@@ -102,9 +99,8 @@ void nftnl_ruleset_unset(struct nftnl_ruleset *r, uint16_t attr)
+ 	}
+ 	r->flags &= ~(1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_ruleset_unset);
+ 
+-void nftnl_ruleset_set(struct nftnl_ruleset *r, uint16_t attr, void *data)
++void __EXPORTED nftnl_ruleset_set(struct nftnl_ruleset *r, uint16_t attr, void *data)
+ {
+ 	switch (attr) {
+ 	case NFTNL_RULESET_TABLELIST:
+@@ -128,9 +124,8 @@ void nftnl_ruleset_set(struct nftnl_ruleset *r, uint16_t attr, void *data)
+ 	}
+ 	r->flags |= (1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_ruleset_set);
+ 
+-void *nftnl_ruleset_get(const struct nftnl_ruleset *r, uint16_t attr)
++void __EXPORTED *nftnl_ruleset_get(const struct nftnl_ruleset *r, uint16_t attr)
+ {
+ 	if (!(r->flags & (1 << attr)))
+ 		return NULL;
+@@ -148,9 +143,8 @@ void *nftnl_ruleset_get(const struct nftnl_ruleset *r, uint16_t attr)
+ 		return NULL;
+ 	}
+ }
+-EXPORT_SYMBOL(nftnl_ruleset_get);
+ 
+-void nftnl_ruleset_ctx_free(const struct nftnl_parse_ctx *ctx)
++void __EXPORTED nftnl_ruleset_ctx_free(const struct nftnl_parse_ctx *ctx)
+ {
+ 	switch (ctx->type) {
+ 	case NFTNL_RULESET_TABLE:
+@@ -171,15 +165,13 @@ void nftnl_ruleset_ctx_free(const struct nftnl_parse_ctx *ctx)
+ 		break;
+ 	}
+ }
+-EXPORT_SYMBOL(nftnl_ruleset_ctx_free);
+ 
+-bool nftnl_ruleset_ctx_is_set(const struct nftnl_parse_ctx *ctx, uint16_t attr)
++bool __EXPORTED nftnl_ruleset_ctx_is_set(const struct nftnl_parse_ctx *ctx, uint16_t attr)
+ {
+ 	return ctx->flags & (1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_ruleset_ctx_is_set);
+ 
+-void *nftnl_ruleset_ctx_get(const struct nftnl_parse_ctx *ctx, uint16_t attr)
++void __EXPORTED *nftnl_ruleset_ctx_get(const struct nftnl_parse_ctx *ctx, uint16_t attr)
+ {
+ 	if (!(ctx->flags & (1 << attr)))
+ 		return NULL;
+@@ -203,14 +195,12 @@ void *nftnl_ruleset_ctx_get(const struct nftnl_parse_ctx *ctx, uint16_t attr)
+ 		return NULL;
+ 	}
+ }
+-EXPORT_SYMBOL(nftnl_ruleset_ctx_get);
+ 
+-uint32_t nftnl_ruleset_ctx_get_u32(const struct nftnl_parse_ctx *ctx, uint16_t attr)
++uint32_t __EXPORTED nftnl_ruleset_ctx_get_u32(const struct nftnl_parse_ctx *ctx, uint16_t attr)
+ {
+ 	const void *ret = nftnl_ruleset_ctx_get(ctx, attr);
+ 	return ret == NULL ? 0 : *((uint32_t *)ret);
+ }
+-EXPORT_SYMBOL(nftnl_ruleset_ctx_get_u32);
+ 
+ #if defined(JSON_PARSING)
+ static void nftnl_ruleset_ctx_set(struct nftnl_parse_ctx *ctx, uint16_t attr,
+@@ -593,22 +583,20 @@ nftnl_ruleset_do_parse(enum nftnl_parse_type type, const void *data,
+ 	return ret;
+ }
+ 
+-int nftnl_ruleset_parse_file_cb(enum nftnl_parse_type type, FILE *fp,
++int __EXPORTED nftnl_ruleset_parse_file_cb(enum nftnl_parse_type type, FILE *fp,
+ 			      struct nftnl_parse_err *err, void *data,
+ 			      int (*cb)(const struct nftnl_parse_ctx *ctx))
+ {
+ 	return nftnl_ruleset_do_parse(type, fp, err, NFTNL_PARSE_FILE, data, cb);
+ }
+-EXPORT_SYMBOL(nftnl_ruleset_parse_file_cb);
+ 
+-int nftnl_ruleset_parse_buffer_cb(enum nftnl_parse_type type, const char *buffer,
++int __EXPORTED nftnl_ruleset_parse_buffer_cb(enum nftnl_parse_type type, const char *buffer,
+ 				struct nftnl_parse_err *err, void *data,
+ 				int (*cb)(const struct nftnl_parse_ctx *ctx))
+ {
+ 	return nftnl_ruleset_do_parse(type, buffer, err, NFTNL_PARSE_BUFFER, data,
+ 				    cb);
+ }
+-EXPORT_SYMBOL(nftnl_ruleset_parse_buffer_cb);
+ 
+ static int nftnl_ruleset_cb(const struct nftnl_parse_ctx *ctx)
+ {
+@@ -671,19 +659,17 @@ static int nftnl_ruleset_cb(const struct nftnl_parse_ctx *ctx)
+ 	return 0;
+ }
+ 
+-int nftnl_ruleset_parse(struct nftnl_ruleset *r, enum nftnl_parse_type type,
++int __EXPORTED nftnl_ruleset_parse(struct nftnl_ruleset *r, enum nftnl_parse_type type,
+ 		      const char *data, struct nftnl_parse_err *err)
+ {
+ 	return nftnl_ruleset_parse_buffer_cb(type, data, err, r, nftnl_ruleset_cb);
+ }
+-EXPORT_SYMBOL(nftnl_ruleset_parse);
+ 
+-int nftnl_ruleset_parse_file(struct nftnl_ruleset *rs, enum nftnl_parse_type type,
++int __EXPORTED nftnl_ruleset_parse_file(struct nftnl_ruleset *rs, enum nftnl_parse_type type,
+ 			   FILE *fp, struct nftnl_parse_err *err)
+ {
+ 	return nftnl_ruleset_parse_file_cb(type, fp, err, rs, nftnl_ruleset_cb);
+ }
+-EXPORT_SYMBOL(nftnl_ruleset_parse_file);
+ 
+ static const char *nftnl_ruleset_o_opentag(uint32_t type)
+ {
+@@ -928,7 +914,7 @@ static int nftnl_ruleset_cmd_snprintf(char *buf, size_t size,
+ 	}
+ }
+ 
+-int nftnl_ruleset_snprintf(char *buf, size_t size, const struct nftnl_ruleset *r,
++int __EXPORTED nftnl_ruleset_snprintf(char *buf, size_t size, const struct nftnl_ruleset *r,
+ 			 uint32_t type, uint32_t flags)
+ {
+ 	switch (type) {
+@@ -943,7 +929,6 @@ int nftnl_ruleset_snprintf(char *buf, size_t size, const struct nftnl_ruleset *r
+ 		return -1;
+ 	}
+ }
+-EXPORT_SYMBOL(nftnl_ruleset_snprintf);
+ 
+ static int nftnl_ruleset_fprintf_tables(FILE *fp, const struct nftnl_ruleset *rs,
+ 				      uint32_t type, uint32_t flags)
+@@ -1157,10 +1142,9 @@ static int nftnl_ruleset_cmd_fprintf(FILE *fp, const struct nftnl_ruleset *rs,
+ 	return len;
+ }
+ 
+-int nftnl_ruleset_fprintf(FILE *fp, const struct nftnl_ruleset *rs, uint32_t type,
++int __EXPORTED nftnl_ruleset_fprintf(FILE *fp, const struct nftnl_ruleset *rs, uint32_t type,
+ 			uint32_t flags)
+ {
+ 	return nftnl_ruleset_cmd_fprintf(fp, rs, nftnl_flag2cmd(flags), type,
+ 				       flags);
+ }
+-EXPORT_SYMBOL(nftnl_ruleset_fprintf);
+diff --git a/src/set.c b/src/set.c
+index cce5e63..33a6794 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -27,7 +27,7 @@
+ #include <libnftnl/set.h>
+ #include <libnftnl/expr.h>
+ 
+-struct nftnl_set *nftnl_set_alloc(void)
++struct nftnl_set __EXPORTED *nftnl_set_alloc(void)
+ {
+ 	struct nftnl_set *s;
+ 
+@@ -38,9 +38,8 @@ struct nftnl_set *nftnl_set_alloc(void)
+ 	INIT_LIST_HEAD(&s->element_list);
+ 	return s;
+ }
+-EXPORT_SYMBOL(nftnl_set_alloc);
+ 
+-void nftnl_set_free(const struct nftnl_set *s)
++void __EXPORTED nftnl_set_free(const struct nftnl_set *s)
+ {
+ 	struct nftnl_set_elem *elem, *tmp;
+ 
+@@ -55,15 +54,13 @@ void nftnl_set_free(const struct nftnl_set *s)
+ 	}
+ 	xfree(s);
+ }
+-EXPORT_SYMBOL(nftnl_set_free);
+ 
+-bool nftnl_set_is_set(const struct nftnl_set *s, uint16_t attr)
++bool __EXPORTED nftnl_set_is_set(const struct nftnl_set *s, uint16_t attr)
+ {
+ 	return s->flags & (1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_set_is_set);
+ 
+-void nftnl_set_unset(struct nftnl_set *s, uint16_t attr)
++void __EXPORTED nftnl_set_unset(struct nftnl_set *s, uint16_t attr)
+ {
+ 	if (!(s->flags & (1 << attr)))
+ 		return;
+@@ -97,7 +94,6 @@ void nftnl_set_unset(struct nftnl_set *s, uint16_t attr)
+ 
+ 	s->flags &= ~(1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_set_unset);
+ 
+ static uint32_t nftnl_set_validate[NFTNL_SET_MAX + 1] = {
+ 	[NFTNL_SET_FLAGS]		= sizeof(uint32_t),
+@@ -113,7 +109,7 @@ static uint32_t nftnl_set_validate[NFTNL_SET_MAX + 1] = {
+ 	[NFTNL_SET_GC_INTERVAL]	= sizeof(uint32_t),
+ };
+ 
+-int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
++int __EXPORTED nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
+ 		       uint32_t data_len)
+ {
+ 	nftnl_assert_attr_exists(attr, NFTNL_SET_MAX);
+@@ -186,33 +182,28 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
+ 	s->flags |= (1 << attr);
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_set_set_data);
+ 
+-int nftnl_set_set(struct nftnl_set *s, uint16_t attr, const void *data)
++int __EXPORTED nftnl_set_set(struct nftnl_set *s, uint16_t attr, const void *data)
+ {
+ 	return nftnl_set_set_data(s, attr, data, nftnl_set_validate[attr]);
+ }
+-EXPORT_SYMBOL(nftnl_set_set);
+ 
+-void nftnl_set_set_u32(struct nftnl_set *s, uint16_t attr, uint32_t val)
++void __EXPORTED nftnl_set_set_u32(struct nftnl_set *s, uint16_t attr, uint32_t val)
+ {
+ 	nftnl_set_set(s, attr, &val);
+ }
+-EXPORT_SYMBOL(nftnl_set_set_u32);
+ 
+-void nftnl_set_set_u64(struct nftnl_set *s, uint16_t attr, uint64_t val)
++void __EXPORTED nftnl_set_set_u64(struct nftnl_set *s, uint16_t attr, uint64_t val)
+ {
+ 	nftnl_set_set(s, attr, &val);
+ }
+-EXPORT_SYMBOL(nftnl_set_set_u64);
+ 
+-int nftnl_set_set_str(struct nftnl_set *s, uint16_t attr, const char *str)
++int __EXPORTED nftnl_set_set_str(struct nftnl_set *s, uint16_t attr, const char *str)
+ {
+ 	return nftnl_set_set_data(s, attr, str, strlen(str) + 1);
+ }
+-EXPORT_SYMBOL(nftnl_set_set_str);
+ 
+-const void *nftnl_set_get_data(const struct nftnl_set *s, uint16_t attr,
++const void __EXPORTED *nftnl_set_get_data(const struct nftnl_set *s, uint16_t attr,
+ 			       uint32_t *data_len)
+ {
+ 	if (!(s->flags & (1 << attr)))
+@@ -267,22 +258,19 @@ const void *nftnl_set_get_data(const struct nftnl_set *s, uint16_t attr,
+ 	}
+ 	return NULL;
+ }
+-EXPORT_SYMBOL(nftnl_set_get_data);
+ 
+-const void *nftnl_set_get(const struct nftnl_set *s, uint16_t attr)
++const void __EXPORTED *nftnl_set_get(const struct nftnl_set *s, uint16_t attr)
+ {
+ 	uint32_t data_len;
+ 	return nftnl_set_get_data(s, attr, &data_len);
+ }
+-EXPORT_SYMBOL(nftnl_set_get);
+ 
+-const char *nftnl_set_get_str(const struct nftnl_set *s, uint16_t attr)
++const char __EXPORTED *nftnl_set_get_str(const struct nftnl_set *s, uint16_t attr)
+ {
+ 	return nftnl_set_get(s, attr);
+ }
+-EXPORT_SYMBOL(nftnl_set_get_str);
+ 
+-uint32_t nftnl_set_get_u32(const struct nftnl_set *s, uint16_t attr)
++uint32_t __EXPORTED nftnl_set_get_u32(const struct nftnl_set *s, uint16_t attr)
+ {
+ 	uint32_t data_len;
+ 	const uint32_t *val = nftnl_set_get_data(s, attr, &data_len);
+@@ -291,9 +279,8 @@ uint32_t nftnl_set_get_u32(const struct nftnl_set *s, uint16_t attr)
+ 
+ 	return val ? *val : 0;
+ }
+-EXPORT_SYMBOL(nftnl_set_get_u32);
+ 
+-uint64_t nftnl_set_get_u64(const struct nftnl_set *s, uint16_t attr)
++uint64_t __EXPORTED nftnl_set_get_u64(const struct nftnl_set *s, uint16_t attr)
+ {
+ 	uint32_t data_len;
+ 	const uint64_t *val = nftnl_set_get_data(s, attr, &data_len);
+@@ -302,7 +289,6 @@ uint64_t nftnl_set_get_u64(const struct nftnl_set *s, uint16_t attr)
+ 
+ 	return val ? *val : 0;
+ }
+-EXPORT_SYMBOL(nftnl_set_get_u64);
+ 
+ struct nftnl_set *nftnl_set_clone(const struct nftnl_set *set)
+ {
+@@ -351,7 +337,7 @@ nftnl_set_nlmsg_build_desc_payload(struct nlmsghdr *nlh, struct nftnl_set *s)
+ 	mnl_attr_nest_end(nlh, nest);
+ }
+ 
+-void nftnl_set_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_set *s)
++void __EXPORTED nftnl_set_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_set *s)
+ {
+ 	if (s->flags & (1 << NFTNL_SET_TABLE))
+ 		mnl_attr_put_strz(nlh, NFTA_SET_TABLE, s->table);
+@@ -383,7 +369,6 @@ void nftnl_set_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_set *s)
+ 	if (s->flags & (1 << NFTNL_SET_USERDATA))
+ 		mnl_attr_put(nlh, NFTA_SET_USERDATA, s->user.len, s->user.data);
+ }
+-EXPORT_SYMBOL(nftnl_set_nlmsg_build_payload);
+ 
+ static int nftnl_set_parse_attr_cb(const struct nlattr *attr, void *data)
+ {
+@@ -463,7 +448,7 @@ static int nftnl_set_desc_parse(struct nftnl_set *s,
+ 	return 0;
+ }
+ 
+-int nftnl_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_set *s)
++int __EXPORTED nftnl_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_set *s)
+ {
+ 	struct nlattr *tb[NFTA_SET_MAX+1] = {};
+ 	struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);
+@@ -546,7 +531,6 @@ int nftnl_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_set *s)
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_set_nlmsg_parse);
+ 
+ #ifdef JSON_PARSING
+ static int nftnl_jansson_parse_set_info(struct nftnl_set *s, json_t *tree,
+@@ -718,19 +702,17 @@ static int nftnl_set_do_parse(struct nftnl_set *s, enum nftnl_parse_type type,
+ 
+ 	return ret;
+ }
+-int nftnl_set_parse(struct nftnl_set *s, enum nftnl_parse_type type,
++int __EXPORTED nftnl_set_parse(struct nftnl_set *s, enum nftnl_parse_type type,
+ 		  const char *data, struct nftnl_parse_err *err)
+ {
+ 	return nftnl_set_do_parse(s, type, data, err, NFTNL_PARSE_BUFFER);
+ }
+-EXPORT_SYMBOL(nftnl_set_parse);
+ 
+-int nftnl_set_parse_file(struct nftnl_set *s, enum nftnl_parse_type type,
++int __EXPORTED nftnl_set_parse_file(struct nftnl_set *s, enum nftnl_parse_type type,
+ 		       FILE *fp, struct nftnl_parse_err *err)
+ {
+ 	return nftnl_set_do_parse(s, type, fp, err, NFTNL_PARSE_FILE);
+ }
+-EXPORT_SYMBOL(nftnl_set_parse_file);
+ 
+ static int nftnl_set_snprintf_json(char *buf, size_t size,
+ 				   const struct nftnl_set *s,
+@@ -918,13 +900,12 @@ static int nftnl_set_cmd_snprintf(char *buf, size_t size,
+ 	return offset;
+ }
+ 
+-int nftnl_set_snprintf(char *buf, size_t size, const struct nftnl_set *s,
++int __EXPORTED nftnl_set_snprintf(char *buf, size_t size, const struct nftnl_set *s,
+ 		       uint32_t type, uint32_t flags)
+ {
+ 	return nftnl_set_cmd_snprintf(buf, size, s, nftnl_flag2cmd(flags), type,
+ 				    flags);
+ }
+-EXPORT_SYMBOL(nftnl_set_snprintf);
+ 
+ static int nftnl_set_do_snprintf(char *buf, size_t size, const void *s,
+ 				 uint32_t cmd, uint32_t type, uint32_t flags)
+@@ -932,25 +913,23 @@ static int nftnl_set_do_snprintf(char *buf, size_t size, const void *s,
+ 	return nftnl_set_snprintf(buf, size, s, type, flags);
+ }
+ 
+-int nftnl_set_fprintf(FILE *fp, const struct nftnl_set *s, uint32_t type,
++int __EXPORTED nftnl_set_fprintf(FILE *fp, const struct nftnl_set *s, uint32_t type,
+ 		      uint32_t flags)
+ {
+ 	return nftnl_fprintf(fp, s, NFTNL_CMD_UNSPEC, type, flags,
+ 			   nftnl_set_do_snprintf);
+ }
+-EXPORT_SYMBOL(nftnl_set_fprintf);
+ 
+-void nftnl_set_elem_add(struct nftnl_set *s, struct nftnl_set_elem *elem)
++void __EXPORTED nftnl_set_elem_add(struct nftnl_set *s, struct nftnl_set_elem *elem)
+ {
+ 	list_add_tail(&elem->head, &s->element_list);
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_add);
+ 
+ struct nftnl_set_list {
+ 	struct list_head list;
+ };
+ 
+-struct nftnl_set_list *nftnl_set_list_alloc(void)
++struct nftnl_set_list __EXPORTED *nftnl_set_list_alloc(void)
+ {
+ 	struct nftnl_set_list *list;
+ 
+@@ -962,9 +941,8 @@ struct nftnl_set_list *nftnl_set_list_alloc(void)
+ 
+ 	return list;
+ }
+-EXPORT_SYMBOL(nftnl_set_list_alloc);
+ 
+-void nftnl_set_list_free(struct nftnl_set_list *list)
++void __EXPORTED nftnl_set_list_free(struct nftnl_set_list *list)
+ {
+ 	struct nftnl_set *s, *tmp;
+ 
+@@ -974,33 +952,28 @@ void nftnl_set_list_free(struct nftnl_set_list *list)
+ 	}
+ 	xfree(list);
+ }
+-EXPORT_SYMBOL(nftnl_set_list_free);
+ 
+-int nftnl_set_list_is_empty(const struct nftnl_set_list *list)
++int __EXPORTED nftnl_set_list_is_empty(const struct nftnl_set_list *list)
+ {
+ 	return list_empty(&list->list);
+ }
+-EXPORT_SYMBOL(nftnl_set_list_is_empty);
+ 
+-void nftnl_set_list_add(struct nftnl_set *s, struct nftnl_set_list *list)
++void __EXPORTED nftnl_set_list_add(struct nftnl_set *s, struct nftnl_set_list *list)
+ {
+ 	list_add(&s->head, &list->list);
+ }
+-EXPORT_SYMBOL(nftnl_set_list_add);
+ 
+-void nftnl_set_list_add_tail(struct nftnl_set *s, struct nftnl_set_list *list)
++void __EXPORTED nftnl_set_list_add_tail(struct nftnl_set *s, struct nftnl_set_list *list)
+ {
+ 	list_add_tail(&s->head, &list->list);
+ }
+-EXPORT_SYMBOL(nftnl_set_list_add_tail);
+ 
+-void nftnl_set_list_del(struct nftnl_set *s)
++void __EXPORTED nftnl_set_list_del(struct nftnl_set *s)
+ {
+ 	list_del(&s->head);
+ }
+-EXPORT_SYMBOL(nftnl_set_list_del);
+ 
+-int nftnl_set_list_foreach(struct nftnl_set_list *set_list,
++int __EXPORTED nftnl_set_list_foreach(struct nftnl_set_list *set_list,
+ 			 int (*cb)(struct nftnl_set *t, void *data), void *data)
+ {
+ 	struct nftnl_set *cur, *tmp;
+@@ -1013,14 +986,13 @@ int nftnl_set_list_foreach(struct nftnl_set_list *set_list,
+ 	}
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_set_list_foreach);
+ 
+ struct nftnl_set_list_iter {
+ 	const struct nftnl_set_list	*list;
+ 	struct nftnl_set		*cur;
+ };
+ 
+-struct nftnl_set_list_iter *
++struct nftnl_set_list_iter __EXPORTED *
+ nftnl_set_list_iter_create(const struct nftnl_set_list *l)
+ {
+ 	struct nftnl_set_list_iter *iter;
+@@ -1037,16 +1009,14 @@ nftnl_set_list_iter_create(const struct nftnl_set_list *l)
+ 
+ 	return iter;
+ }
+-EXPORT_SYMBOL(nftnl_set_list_iter_create);
+ 
+-struct nftnl_set *
++struct nftnl_set __EXPORTED *
+ nftnl_set_list_iter_cur(const struct nftnl_set_list_iter *iter)
+ {
+ 	return iter->cur;
+ }
+-EXPORT_SYMBOL(nftnl_set_list_iter_cur);
+ 
+-struct nftnl_set *nftnl_set_list_iter_next(struct nftnl_set_list_iter *iter)
++struct nftnl_set __EXPORTED *nftnl_set_list_iter_next(struct nftnl_set_list_iter *iter)
+ {
+ 	struct nftnl_set *s = iter->cur;
+ 
+@@ -1060,13 +1030,11 @@ struct nftnl_set *nftnl_set_list_iter_next(struct nftnl_set_list_iter *iter)
+ 
+ 	return s;
+ }
+-EXPORT_SYMBOL(nftnl_set_list_iter_next);
+ 
+-void nftnl_set_list_iter_destroy(const struct nftnl_set_list_iter *iter)
++void __EXPORTED nftnl_set_list_iter_destroy(const struct nftnl_set_list_iter *iter)
+ {
+ 	xfree(iter);
+ }
+-EXPORT_SYMBOL(nftnl_set_list_iter_destroy);
+ 
+ static struct nftnl_set *nftnl_set_lookup(const char *this_set_name,
+ 				      struct nftnl_set_list *set_list)
+diff --git a/src/set_elem.c b/src/set_elem.c
+index 433b896..bd1e895 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -27,7 +27,7 @@
+ #include <libnftnl/rule.h>
+ #include <libnftnl/expr.h>
+ 
+-struct nftnl_set_elem *nftnl_set_elem_alloc(void)
++struct nftnl_set_elem __EXPORTED *nftnl_set_elem_alloc(void)
+ {
+ 	struct nftnl_set_elem *s;
+ 
+@@ -37,9 +37,8 @@ struct nftnl_set_elem *nftnl_set_elem_alloc(void)
+ 
+ 	return s;
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_alloc);
+ 
+-void nftnl_set_elem_free(struct nftnl_set_elem *s)
++void __EXPORTED nftnl_set_elem_free(struct nftnl_set_elem *s)
+ {
+ 	if (s->flags & (1 << NFTNL_SET_ELEM_CHAIN))
+ 		xfree(s->data.chain);
+@@ -55,15 +54,13 @@ void nftnl_set_elem_free(struct nftnl_set_elem *s)
+ 
+ 	xfree(s);
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_free);
+ 
+-bool nftnl_set_elem_is_set(const struct nftnl_set_elem *s, uint16_t attr)
++bool __EXPORTED nftnl_set_elem_is_set(const struct nftnl_set_elem *s, uint16_t attr)
+ {
+ 	return s->flags & (1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_is_set);
+ 
+-void nftnl_set_elem_unset(struct nftnl_set_elem *s, uint16_t attr)
++void __EXPORTED nftnl_set_elem_unset(struct nftnl_set_elem *s, uint16_t attr)
+ {
+ 	if (!(s->flags & (1 << attr)))
+ 		return;
+@@ -94,9 +91,8 @@ void nftnl_set_elem_unset(struct nftnl_set_elem *s, uint16_t attr)
+ 
+ 	s->flags &= ~(1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_unset);
+ 
+-int nftnl_set_elem_set(struct nftnl_set_elem *s, uint16_t attr,
++int __EXPORTED nftnl_set_elem_set(struct nftnl_set_elem *s, uint16_t attr,
+ 		       const void *data, uint32_t data_len)
+ {
+ 	switch(attr) {
+@@ -147,27 +143,23 @@ int nftnl_set_elem_set(struct nftnl_set_elem *s, uint16_t attr,
+ 	s->flags |= (1 << attr);
+ 	return -1;
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_set);
+ 
+-void nftnl_set_elem_set_u32(struct nftnl_set_elem *s, uint16_t attr, uint32_t val)
++void __EXPORTED nftnl_set_elem_set_u32(struct nftnl_set_elem *s, uint16_t attr, uint32_t val)
+ {
+ 	nftnl_set_elem_set(s, attr, &val, sizeof(uint32_t));
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_set_u32);
+ 
+-void nftnl_set_elem_set_u64(struct nftnl_set_elem *s, uint16_t attr, uint64_t val)
++void __EXPORTED nftnl_set_elem_set_u64(struct nftnl_set_elem *s, uint16_t attr, uint64_t val)
+ {
+ 	nftnl_set_elem_set(s, attr, &val, sizeof(uint64_t));
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_set_u64);
+ 
+-int nftnl_set_elem_set_str(struct nftnl_set_elem *s, uint16_t attr, const char *str)
++int __EXPORTED nftnl_set_elem_set_str(struct nftnl_set_elem *s, uint16_t attr, const char *str)
+ {
+ 	return nftnl_set_elem_set(s, attr, str, strlen(str) + 1);
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_set_str);
+ 
+-const void *nftnl_set_elem_get(struct nftnl_set_elem *s, uint16_t attr, uint32_t *data_len)
++const void __EXPORTED *nftnl_set_elem_get(struct nftnl_set_elem *s, uint16_t attr, uint32_t *data_len)
+ {
+ 	if (!(s->flags & (1 << attr)))
+ 		return NULL;
+@@ -205,31 +197,27 @@ const void *nftnl_set_elem_get(struct nftnl_set_elem *s, uint16_t attr, uint32_t
+ 	}
+ 	return NULL;
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_get);
+ 
+-const char *nftnl_set_elem_get_str(struct nftnl_set_elem *s, uint16_t attr)
++const char __EXPORTED *nftnl_set_elem_get_str(struct nftnl_set_elem *s, uint16_t attr)
+ {
+ 	uint32_t size;
+ 
+ 	return nftnl_set_elem_get(s, attr, &size);
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_get_str);
+ 
+-uint32_t nftnl_set_elem_get_u32(struct nftnl_set_elem *s, uint16_t attr)
++uint32_t __EXPORTED nftnl_set_elem_get_u32(struct nftnl_set_elem *s, uint16_t attr)
+ {
+ 	uint32_t size;
+ 	uint32_t val = *((uint32_t *)nftnl_set_elem_get(s, attr, &size));
+ 	return val;
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_get_u32);
+ 
+-uint64_t nftnl_set_elem_get_u64(struct nftnl_set_elem *s, uint16_t attr)
++uint64_t __EXPORTED nftnl_set_elem_get_u64(struct nftnl_set_elem *s, uint16_t attr)
+ {
+ 	uint32_t size;
+ 	uint64_t val = *((uint64_t *)nftnl_set_elem_get(s, attr, &size));
+ 	return val;
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_get_u64);
+ 
+ struct nftnl_set_elem *nftnl_set_elem_clone(struct nftnl_set_elem *elem)
+ {
+@@ -315,7 +303,7 @@ static struct nlattr *nftnl_set_elem_build(struct nlmsghdr *nlh,
+ 	return nest2;
+ }
+ 
+-void nftnl_set_elems_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_set *s)
++void __EXPORTED nftnl_set_elems_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_set *s)
+ {
+ 	struct nftnl_set_elem *elem;
+ 	struct nlattr *nest1;
+@@ -332,7 +320,6 @@ void nftnl_set_elems_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_set
+ 
+ 	mnl_attr_nest_end(nlh, nest1);
+ }
+-EXPORT_SYMBOL(nftnl_set_elems_nlmsg_build_payload);
+ 
+ static int nftnl_set_elem_parse_attr_cb(const struct nlattr *attr, void *data)
+ {
+@@ -503,7 +490,7 @@ static int nftnl_set_elems_parse(struct nftnl_set *s, const struct nlattr *nest)
+ 	return ret;
+ }
+ 
+-int nftnl_set_elems_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_set *s)
++int __EXPORTED nftnl_set_elems_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_set *s)
+ {
+ 	struct nlattr *tb[NFTA_SET_ELEM_LIST_MAX+1] = {};
+ 	struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);
+@@ -546,7 +533,6 @@ int nftnl_set_elems_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_set *s)
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_set_elems_nlmsg_parse);
+ 
+ static int nftnl_set_elem_json_parse(struct nftnl_set_elem *e, const void *json,
+ 				   struct nftnl_parse_err *err,
+@@ -587,19 +573,17 @@ nftnl_set_elem_do_parse(struct nftnl_set_elem *e, enum nftnl_parse_type type,
+ 
+ 	return ret;
+ }
+-int nftnl_set_elem_parse(struct nftnl_set_elem *e, enum nftnl_parse_type type,
++int __EXPORTED nftnl_set_elem_parse(struct nftnl_set_elem *e, enum nftnl_parse_type type,
+ 		       const char *data, struct nftnl_parse_err *err)
+ {
+ 	return nftnl_set_elem_do_parse(e, type, data, err, NFTNL_PARSE_BUFFER);
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_parse);
+ 
+-int nftnl_set_elem_parse_file(struct nftnl_set_elem *e, enum nftnl_parse_type type,
++int __EXPORTED nftnl_set_elem_parse_file(struct nftnl_set_elem *e, enum nftnl_parse_type type,
+ 			    FILE *fp, struct nftnl_parse_err *err)
+ {
+ 	return nftnl_set_elem_do_parse(e, type, fp, err, NFTNL_PARSE_FILE);
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_parse_file);
+ 
+ static int nftnl_set_elem_snprintf_json(char *buf, size_t size,
+ 					const struct nftnl_set_elem *e,
+@@ -719,14 +703,13 @@ static int nftnl_set_elem_cmd_snprintf(char *buf, size_t size,
+ 	return offset;
+ }
+ 
+-int nftnl_set_elem_snprintf(char *buf, size_t size,
++int __EXPORTED nftnl_set_elem_snprintf(char *buf, size_t size,
+ 			    const struct nftnl_set_elem *e,
+ 			    uint32_t type, uint32_t flags)
+ {
+ 	return nftnl_set_elem_cmd_snprintf(buf, size, e, nftnl_flag2cmd(flags),
+ 					 type, flags);
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_snprintf);
+ 
+ static int nftnl_set_elem_do_snprintf(char *buf, size_t size, const void *e,
+ 				      uint32_t cmd, uint32_t type,
+@@ -735,15 +718,14 @@ static int nftnl_set_elem_do_snprintf(char *buf, size_t size, const void *e,
+ 	return nftnl_set_elem_snprintf(buf, size, e, type, flags);
+ }
+ 
+-int nftnl_set_elem_fprintf(FILE *fp, struct nftnl_set_elem *se, uint32_t type,
++int __EXPORTED nftnl_set_elem_fprintf(FILE *fp, struct nftnl_set_elem *se, uint32_t type,
+ 			 uint32_t flags)
+ {
+ 	return nftnl_fprintf(fp, se, NFTNL_CMD_UNSPEC, type, flags,
+ 			   nftnl_set_elem_do_snprintf);
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_fprintf);
+ 
+-int nftnl_set_elem_foreach(struct nftnl_set *s,
++int __EXPORTED nftnl_set_elem_foreach(struct nftnl_set *s,
+ 			 int (*cb)(struct nftnl_set_elem *e, void *data),
+ 			 void *data)
+ {
+@@ -757,7 +739,6 @@ int nftnl_set_elem_foreach(struct nftnl_set *s,
+ 	}
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_set_elem_foreach);
+ 
+ struct nftnl_set_elems_iter {
+ 	const struct nftnl_set		*set;
+@@ -765,7 +746,7 @@ struct nftnl_set_elems_iter {
+ 	struct nftnl_set_elem		*cur;
+ };
+ 
+-struct nftnl_set_elems_iter *
++struct nftnl_set_elems_iter __EXPORTED *
+ nftnl_set_elems_iter_create(const struct nftnl_set *s)
+ {
+ 	struct nftnl_set_elems_iter *iter;
+@@ -784,16 +765,14 @@ nftnl_set_elems_iter_create(const struct nftnl_set *s)
+ 
+ 	return iter;
+ }
+-EXPORT_SYMBOL(nftnl_set_elems_iter_create);
+ 
+-struct nftnl_set_elem *
++struct nftnl_set_elem __EXPORTED *
+ nftnl_set_elems_iter_cur(const struct nftnl_set_elems_iter *iter)
+ {
+ 	return iter->cur;
+ }
+-EXPORT_SYMBOL(nftnl_set_elems_iter_cur);
+ 
+-struct nftnl_set_elem *nftnl_set_elems_iter_next(struct nftnl_set_elems_iter *iter)
++struct nftnl_set_elem __EXPORTED *nftnl_set_elems_iter_next(struct nftnl_set_elems_iter *iter)
+ {
+ 	struct nftnl_set_elem *s = iter->cur;
+ 
+@@ -806,13 +785,11 @@ struct nftnl_set_elem *nftnl_set_elems_iter_next(struct nftnl_set_elems_iter *it
+ 
+ 	return s;
+ }
+-EXPORT_SYMBOL(nftnl_set_elems_iter_next);
+ 
+-void nftnl_set_elems_iter_destroy(struct nftnl_set_elems_iter *iter)
++void __EXPORTED nftnl_set_elems_iter_destroy(struct nftnl_set_elems_iter *iter)
+ {
+ 	xfree(iter);
+ }
+-EXPORT_SYMBOL(nftnl_set_elems_iter_destroy);
+ 
+ static bool nftnl_attr_nest_overflow(struct nlmsghdr *nlh,
+ 				   const struct nlattr *from,
+@@ -831,7 +808,7 @@ static bool nftnl_attr_nest_overflow(struct nlmsghdr *nlh,
+ 	return false;
+ }
+ 
+-int nftnl_set_elems_nlmsg_build_payload_iter(struct nlmsghdr *nlh,
++int __EXPORTED nftnl_set_elems_nlmsg_build_payload_iter(struct nlmsghdr *nlh,
+ 					   struct nftnl_set_elems_iter *iter)
+ {
+ 	struct nftnl_set_elem *elem;
+@@ -861,4 +838,3 @@ int nftnl_set_elems_nlmsg_build_payload_iter(struct nlmsghdr *nlh,
+ 
+ 	return ret;
+ }
+-EXPORT_SYMBOL(nftnl_set_elems_nlmsg_build_payload_iter);
+diff --git a/src/table.c b/src/table.c
+index a7d5a8f..0e99f3c 100644
+--- a/src/table.c
++++ b/src/table.c
+@@ -36,28 +36,25 @@ struct nftnl_table {
+ 	uint32_t	flags;
+ };
+ 
+-struct nftnl_table *nftnl_table_alloc(void)
++struct nftnl_table __EXPORTED *nftnl_table_alloc(void)
+ {
+ 	return calloc(1, sizeof(struct nftnl_table));
+ }
+-EXPORT_SYMBOL(nftnl_table_alloc);
+ 
+-void nftnl_table_free(const struct nftnl_table *t)
++void __EXPORTED nftnl_table_free(const struct nftnl_table *t)
+ {
+ 	if (t->flags & (1 << NFTNL_TABLE_NAME))
+ 		xfree(t->name);
+ 
+ 	xfree(t);
+ }
+-EXPORT_SYMBOL(nftnl_table_free);
+ 
+-bool nftnl_table_is_set(const struct nftnl_table *t, uint16_t attr)
++bool __EXPORTED nftnl_table_is_set(const struct nftnl_table *t, uint16_t attr)
+ {
+ 	return t->flags & (1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_table_is_set);
+ 
+-void nftnl_table_unset(struct nftnl_table *t, uint16_t attr)
++void __EXPORTED nftnl_table_unset(struct nftnl_table *t, uint16_t attr)
+ {
+ 	if (!(t->flags & (1 << attr)))
+ 		return;
+@@ -74,14 +71,13 @@ void nftnl_table_unset(struct nftnl_table *t, uint16_t attr)
+ 	}
+ 	t->flags &= ~(1 << attr);
+ }
+-EXPORT_SYMBOL(nftnl_table_unset);
+ 
+ static uint32_t nftnl_table_validate[NFTNL_TABLE_MAX + 1] = {
+ 	[NFTNL_TABLE_FLAGS]	= sizeof(uint32_t),
+ 	[NFTNL_TABLE_FAMILY]	= sizeof(uint32_t),
+ };
+ 
+-int nftnl_table_set_data(struct nftnl_table *t, uint16_t attr,
++int __EXPORTED nftnl_table_set_data(struct nftnl_table *t, uint16_t attr,
+ 			 const void *data, uint32_t data_len)
+ {
+ 	nftnl_assert_attr_exists(attr, NFTNL_TABLE_MAX);
+@@ -109,33 +105,28 @@ int nftnl_table_set_data(struct nftnl_table *t, uint16_t attr,
+ 	t->flags |= (1 << attr);
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_table_set_data);
+ 
+-void nftnl_table_set(struct nftnl_table *t, uint16_t attr, const void *data)
++void __EXPORTED nftnl_table_set(struct nftnl_table *t, uint16_t attr, const void *data)
+ {
+ 	nftnl_table_set_data(t, attr, data, nftnl_table_validate[attr]);
+ }
+-EXPORT_SYMBOL(nftnl_table_set);
+ 
+-void nftnl_table_set_u32(struct nftnl_table *t, uint16_t attr, uint32_t val)
++void __EXPORTED nftnl_table_set_u32(struct nftnl_table *t, uint16_t attr, uint32_t val)
+ {
+ 	nftnl_table_set_data(t, attr, &val, sizeof(uint32_t));
+ }
+-EXPORT_SYMBOL(nftnl_table_set_u32);
+ 
+-void nftnl_table_set_u8(struct nftnl_table *t, uint16_t attr, uint8_t val)
++void __EXPORTED nftnl_table_set_u8(struct nftnl_table *t, uint16_t attr, uint8_t val)
+ {
+ 	nftnl_table_set_data(t, attr, &val, sizeof(uint8_t));
+ }
+-EXPORT_SYMBOL(nftnl_table_set_u8);
+ 
+-int nftnl_table_set_str(struct nftnl_table *t, uint16_t attr, const char *str)
++int __EXPORTED nftnl_table_set_str(struct nftnl_table *t, uint16_t attr, const char *str)
+ {
+ 	return nftnl_table_set_data(t, attr, str, strlen(str) + 1);
+ }
+-EXPORT_SYMBOL(nftnl_table_set_str);
+ 
+-const void *nftnl_table_get_data(const struct nftnl_table *t, uint16_t attr,
++const void __EXPORTED *nftnl_table_get_data(const struct nftnl_table *t, uint16_t attr,
+ 				 uint32_t *data_len)
+ {
+ 	if (!(t->flags & (1 << attr)))
+@@ -157,43 +148,37 @@ const void *nftnl_table_get_data(const struct nftnl_table *t, uint16_t attr,
+ 	}
+ 	return NULL;
+ }
+-EXPORT_SYMBOL(nftnl_table_get_data);
+ 
+-const void *nftnl_table_get(const struct nftnl_table *t, uint16_t attr)
++const void __EXPORTED *nftnl_table_get(const struct nftnl_table *t, uint16_t attr)
+ {
+ 	uint32_t data_len;
+ 	return nftnl_table_get_data(t, attr, &data_len);
+ }
+-EXPORT_SYMBOL(nftnl_table_get);
+ 
+-uint32_t nftnl_table_get_u32(const struct nftnl_table *t, uint16_t attr)
++uint32_t __EXPORTED nftnl_table_get_u32(const struct nftnl_table *t, uint16_t attr)
+ {
+ 	const void *ret = nftnl_table_get(t, attr);
+ 	return ret == NULL ? 0 : *((uint32_t *)ret);
+ }
+-EXPORT_SYMBOL(nftnl_table_get_u32);
+ 
+-uint8_t nftnl_table_get_u8(const struct nftnl_table *t, uint16_t attr)
++uint8_t __EXPORTED nftnl_table_get_u8(const struct nftnl_table *t, uint16_t attr)
+ {
+ 	const void *ret = nftnl_table_get(t, attr);
+ 	return ret == NULL ? 0 : *((uint8_t *)ret);
+ }
+-EXPORT_SYMBOL(nftnl_table_get_u8);
+ 
+-const char *nftnl_table_get_str(const struct nftnl_table *t, uint16_t attr)
++const char __EXPORTED *nftnl_table_get_str(const struct nftnl_table *t, uint16_t attr)
+ {
+ 	return nftnl_table_get(t, attr);
+ }
+-EXPORT_SYMBOL(nftnl_table_get_str);
+ 
+-void nftnl_table_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nftnl_table *t)
++void __EXPORTED nftnl_table_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nftnl_table *t)
+ {
+ 	if (t->flags & (1 << NFTNL_TABLE_NAME))
+ 		mnl_attr_put_strz(nlh, NFTA_TABLE_NAME, t->name);
+ 	if (t->flags & (1 << NFTNL_TABLE_FLAGS))
+ 		mnl_attr_put_u32(nlh, NFTA_TABLE_FLAGS, htonl(t->table_flags));
+ }
+-EXPORT_SYMBOL(nftnl_table_nlmsg_build_payload);
+ 
+ static int nftnl_table_parse_attr_cb(const struct nlattr *attr, void *data)
+ {
+@@ -219,7 +204,7 @@ static int nftnl_table_parse_attr_cb(const struct nlattr *attr, void *data)
+ 	return MNL_CB_OK;
+ }
+ 
+-int nftnl_table_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_table *t)
++int __EXPORTED nftnl_table_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_table *t)
+ {
+ 	struct nlattr *tb[NFTA_TABLE_MAX+1] = {};
+ 	struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);
+@@ -249,7 +234,6 @@ int nftnl_table_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_table *t)
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_table_nlmsg_parse);
+ 
+ #ifdef JSON_PARSING
+ int nftnl_jansson_parse_table(struct nftnl_table *t, json_t *tree,
+@@ -330,19 +314,17 @@ static int nftnl_table_do_parse(struct nftnl_table *t, enum nftnl_parse_type typ
+ 	return ret;
+ }
+ 
+-int nftnl_table_parse(struct nftnl_table *t, enum nftnl_parse_type type,
++int __EXPORTED nftnl_table_parse(struct nftnl_table *t, enum nftnl_parse_type type,
+ 		    const char *data, struct nftnl_parse_err *err)
+ {
+ 	return nftnl_table_do_parse(t, type, data, err, NFTNL_PARSE_BUFFER);
+ }
+-EXPORT_SYMBOL(nftnl_table_parse);
+ 
+-int nftnl_table_parse_file(struct nftnl_table *t, enum nftnl_parse_type type,
++int __EXPORTED nftnl_table_parse_file(struct nftnl_table *t, enum nftnl_parse_type type,
+ 			 FILE *fp, struct nftnl_parse_err *err)
+ {
+ 	return nftnl_table_do_parse(t, type, fp, err, NFTNL_PARSE_FILE);
+ }
+-EXPORT_SYMBOL(nftnl_table_parse_file);
+ 
+ static int nftnl_table_export(char *buf, size_t size,
+ 			      const struct nftnl_table *t, int type)
+@@ -400,13 +382,12 @@ static int nftnl_table_cmd_snprintf(char *buf, size_t size,
+ 	return offset;
+ }
+ 
+-int nftnl_table_snprintf(char *buf, size_t size, const struct nftnl_table *t,
++int __EXPORTED nftnl_table_snprintf(char *buf, size_t size, const struct nftnl_table *t,
+ 			 uint32_t type, uint32_t flags)
+ {
+ 	return nftnl_table_cmd_snprintf(buf, size, t, nftnl_flag2cmd(flags), type,
+ 				      flags);
+ }
+-EXPORT_SYMBOL(nftnl_table_snprintf);
+ 
+ static int nftnl_table_do_snprintf(char *buf, size_t size, const void *t,
+ 				   uint32_t cmd, uint32_t type, uint32_t flags)
+@@ -414,19 +395,18 @@ static int nftnl_table_do_snprintf(char *buf, size_t size, const void *t,
+ 	return nftnl_table_snprintf(buf, size, t, type, flags);
+ }
+ 
+-int nftnl_table_fprintf(FILE *fp, const struct nftnl_table *t, uint32_t type,
++int __EXPORTED nftnl_table_fprintf(FILE *fp, const struct nftnl_table *t, uint32_t type,
+ 			uint32_t flags)
+ {
+ 	return nftnl_fprintf(fp, t, NFTNL_CMD_UNSPEC, type, flags,
+ 			   nftnl_table_do_snprintf);
+ }
+-EXPORT_SYMBOL(nftnl_table_fprintf);
+ 
+ struct nftnl_table_list {
+ 	struct list_head list;
+ };
+ 
+-struct nftnl_table_list *nftnl_table_list_alloc(void)
++struct nftnl_table_list __EXPORTED *nftnl_table_list_alloc(void)
+ {
+ 	struct nftnl_table_list *list;
+ 
+@@ -438,9 +418,8 @@ struct nftnl_table_list *nftnl_table_list_alloc(void)
+ 
+ 	return list;
+ }
+-EXPORT_SYMBOL(nftnl_table_list_alloc);
+ 
+-void nftnl_table_list_free(struct nftnl_table_list *list)
++void __EXPORTED nftnl_table_list_free(struct nftnl_table_list *list)
+ {
+ 	struct nftnl_table *r, *tmp;
+ 
+@@ -450,33 +429,28 @@ void nftnl_table_list_free(struct nftnl_table_list *list)
+ 	}
+ 	xfree(list);
+ }
+-EXPORT_SYMBOL(nftnl_table_list_free);
+ 
+-int nftnl_table_list_is_empty(const struct nftnl_table_list *list)
++int __EXPORTED nftnl_table_list_is_empty(const struct nftnl_table_list *list)
+ {
+ 	return list_empty(&list->list);
+ }
+-EXPORT_SYMBOL(nftnl_table_list_is_empty);
+ 
+-void nftnl_table_list_add(struct nftnl_table *r, struct nftnl_table_list *list)
++void __EXPORTED nftnl_table_list_add(struct nftnl_table *r, struct nftnl_table_list *list)
+ {
+ 	list_add(&r->head, &list->list);
+ }
+-EXPORT_SYMBOL(nftnl_table_list_add);
+ 
+-void nftnl_table_list_add_tail(struct nftnl_table *r, struct nftnl_table_list *list)
++void __EXPORTED nftnl_table_list_add_tail(struct nftnl_table *r, struct nftnl_table_list *list)
+ {
+ 	list_add_tail(&r->head, &list->list);
+ }
+-EXPORT_SYMBOL(nftnl_table_list_add_tail);
+ 
+-void nftnl_table_list_del(struct nftnl_table *t)
++void __EXPORTED nftnl_table_list_del(struct nftnl_table *t)
+ {
+ 	list_del(&t->head);
+ }
+-EXPORT_SYMBOL(nftnl_table_list_del);
+ 
+-int nftnl_table_list_foreach(struct nftnl_table_list *table_list,
++int __EXPORTED nftnl_table_list_foreach(struct nftnl_table_list *table_list,
+ 			   int (*cb)(struct nftnl_table *t, void *data),
+ 			   void *data)
+ {
+@@ -490,14 +464,13 @@ int nftnl_table_list_foreach(struct nftnl_table_list *table_list,
+ 	}
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_table_list_foreach);
+ 
+ struct nftnl_table_list_iter {
+ 	const struct nftnl_table_list	*list;
+ 	struct nftnl_table		*cur;
+ };
+ 
+-struct nftnl_table_list_iter *
++struct nftnl_table_list_iter __EXPORTED *
+ nftnl_table_list_iter_create(const struct nftnl_table_list *l)
+ {
+ 	struct nftnl_table_list_iter *iter;
+@@ -514,9 +487,8 @@ nftnl_table_list_iter_create(const struct nftnl_table_list *l)
+ 
+ 	return iter;
+ }
+-EXPORT_SYMBOL(nftnl_table_list_iter_create);
+ 
+-struct nftnl_table *nftnl_table_list_iter_next(struct nftnl_table_list_iter *iter)
++struct nftnl_table __EXPORTED *nftnl_table_list_iter_next(struct nftnl_table_list_iter *iter)
+ {
+ 	struct nftnl_table *r = iter->cur;
+ 
+@@ -530,10 +502,8 @@ struct nftnl_table *nftnl_table_list_iter_next(struct nftnl_table_list_iter *ite
+ 
+ 	return r;
+ }
+-EXPORT_SYMBOL(nftnl_table_list_iter_next);
+ 
+-void nftnl_table_list_iter_destroy(const struct nftnl_table_list_iter *iter)
++void __EXPORTED nftnl_table_list_iter_destroy(const struct nftnl_table_list_iter *iter)
+ {
+ 	xfree(iter);
+ }
+-EXPORT_SYMBOL(nftnl_table_list_iter_destroy);
+diff --git a/src/trace.c b/src/trace.c
+index bd05d3c..4739ef9 100644
+--- a/src/trace.c
++++ b/src/trace.c
+@@ -52,14 +52,12 @@ struct nftnl_trace {
+ 	uint32_t flags;
+ };
+ 
+-EXPORT_SYMBOL(nftnl_trace_alloc);
+-struct nftnl_trace *nftnl_trace_alloc(void)
++struct nftnl_trace __EXPORTED *nftnl_trace_alloc(void)
+ {
+ 	return calloc(1, sizeof(struct nftnl_trace));
+ }
+ 
+-EXPORT_SYMBOL(nftnl_trace_free);
+-void nftnl_trace_free(const struct nftnl_trace *t)
++void __EXPORTED nftnl_trace_free(const struct nftnl_trace *t)
+ {
+ 	xfree(t->chain);
+ 	xfree(t->table);
+@@ -70,8 +68,7 @@ void nftnl_trace_free(const struct nftnl_trace *t)
+ 	xfree(t);
+ }
+ 
+-EXPORT_SYMBOL(nftnl_trace_is_set);
+-bool nftnl_trace_is_set(const struct nftnl_trace *t, uint16_t attr)
++bool __EXPORTED nftnl_trace_is_set(const struct nftnl_trace *t, uint16_t attr)
+ {
+ 	return t->flags & (1 << attr);
+ }
+@@ -130,8 +127,7 @@ static int nftnl_trace_parse_attr_cb(const struct nlattr *attr, void *data)
+ 	return MNL_CB_OK;
+ }
+ 
+-EXPORT_SYMBOL(nftnl_trace_get_data);
+-const void *nftnl_trace_get_data(const struct nftnl_trace *trace,
++const void __EXPORTED *nftnl_trace_get_data(const struct nftnl_trace *trace,
+ 				 uint16_t type, uint32_t *data_len)
+ {
+ 	enum nftnl_trace_attr attr = type;
+@@ -201,8 +197,7 @@ const void *nftnl_trace_get_data(const struct nftnl_trace *trace,
+ 	return NULL;
+ }
+ 
+-EXPORT_SYMBOL(nftnl_trace_get_str);
+-const char *nftnl_trace_get_str(const struct nftnl_trace *trace, uint16_t type)
++const char __EXPORTED *nftnl_trace_get_str(const struct nftnl_trace *trace, uint16_t type)
+ {
+ 	if (!nftnl_trace_is_set(trace, type))
+ 		return NULL;
+@@ -216,8 +211,7 @@ const char *nftnl_trace_get_str(const struct nftnl_trace *trace, uint16_t type)
+ 	return NULL;
+ }
+ 
+-EXPORT_SYMBOL(nftnl_trace_get_u16);
+-uint16_t nftnl_trace_get_u16(const struct nftnl_trace *trace, uint16_t type)
++uint16_t __EXPORTED nftnl_trace_get_u16(const struct nftnl_trace *trace, uint16_t type)
+ {
+ 	const uint16_t *d;
+ 	uint32_t dlen;
+@@ -229,8 +223,7 @@ uint16_t nftnl_trace_get_u16(const struct nftnl_trace *trace, uint16_t type)
+ 	return 0;
+ }
+ 
+-EXPORT_SYMBOL(nftnl_trace_get_u32);
+-uint32_t nftnl_trace_get_u32(const struct nftnl_trace *trace, uint16_t type)
++uint32_t __EXPORTED nftnl_trace_get_u32(const struct nftnl_trace *trace, uint16_t type)
+ {
+ 	const uint32_t *d;
+ 	uint32_t dlen;
+@@ -242,8 +235,7 @@ uint32_t nftnl_trace_get_u32(const struct nftnl_trace *trace, uint16_t type)
+ 	return 0;
+ }
+ 
+-EXPORT_SYMBOL(nftnl_trace_get_u64);
+-uint64_t nftnl_trace_get_u64(const struct nftnl_trace *trace, uint16_t type)
++uint64_t __EXPORTED nftnl_trace_get_u64(const struct nftnl_trace *trace, uint16_t type)
+ {
+ 	const uint64_t *d;
+ 	uint32_t dlen;
+@@ -323,9 +315,8 @@ static int nftnl_trace_parse_verdict(const struct nlattr *attr,
+ 	}
+ 	return 0;
+ }
+-EXPORT_SYMBOL(nftnl_trace_nlmsg_parse);
+ 
+-int nftnl_trace_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_trace *t)
++int __EXPORTED nftnl_trace_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_trace *t)
+ {
+ 	struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);
+ 	struct nlattr *tb[NFTA_TRACE_MAX+1] = {};
+diff --git a/src/udata.c b/src/udata.c
+index d679dd0..7e2de0f 100644
+--- a/src/udata.c
++++ b/src/udata.c
+@@ -16,7 +16,7 @@
+ #include <stdint.h>
+ #include <string.h>
+ 
+-struct nftnl_udata_buf *nftnl_udata_buf_alloc(uint32_t data_size)
++struct nftnl_udata_buf __EXPORTED *nftnl_udata_buf_alloc(uint32_t data_size)
+ {
+ 	struct nftnl_udata_buf *buf;
+ 
+@@ -28,47 +28,40 @@ struct nftnl_udata_buf *nftnl_udata_buf_alloc(uint32_t data_size)
+ 
+ 	return buf;
+ }
+-EXPORT_SYMBOL(nftnl_udata_buf_alloc);
+ 
+-void nftnl_udata_buf_free(const struct nftnl_udata_buf *buf)
++void __EXPORTED nftnl_udata_buf_free(const struct nftnl_udata_buf *buf)
+ {
+ 	xfree(buf);
+ }
+-EXPORT_SYMBOL(nftnl_udata_buf_free);
+ 
+-uint32_t nftnl_udata_buf_len(const struct nftnl_udata_buf *buf)
++uint32_t __EXPORTED nftnl_udata_buf_len(const struct nftnl_udata_buf *buf)
+ {
+ 	return (uint32_t)(buf->end - buf->data);
+ }
+-EXPORT_SYMBOL(nftnl_udata_buf_len);
+ 
+-void *nftnl_udata_buf_data(const struct nftnl_udata_buf *buf)
++void __EXPORTED *nftnl_udata_buf_data(const struct nftnl_udata_buf *buf)
+ {
+ 	return (void *)buf->data;
+ }
+-EXPORT_SYMBOL(nftnl_udata_buf_data);
+ 
+-void nftnl_udata_buf_put(struct nftnl_udata_buf *buf, const void *data,
++void __EXPORTED nftnl_udata_buf_put(struct nftnl_udata_buf *buf, const void *data,
+ 			 uint32_t len)
+ {
+ 	memcpy(buf->data, data, len <= buf->size ? len : buf->size);
+ 	buf->end = buf->data + len;
+ }
+-EXPORT_SYMBOL(nftnl_udata_buf_put);
+ 
+-struct nftnl_udata *nftnl_udata_start(const struct nftnl_udata_buf *buf)
++struct nftnl_udata __EXPORTED *nftnl_udata_start(const struct nftnl_udata_buf *buf)
+ {
+ 	return (struct nftnl_udata *)buf->data;
+ }
+-EXPORT_SYMBOL(nftnl_udata_start);
+ 
+-struct nftnl_udata *nftnl_udata_end(const struct nftnl_udata_buf *buf)
++struct nftnl_udata __EXPORTED *nftnl_udata_end(const struct nftnl_udata_buf *buf)
+ {
+ 	return (struct nftnl_udata *)buf->end;
+ }
+-EXPORT_SYMBOL(nftnl_udata_end);
+ 
+-bool nftnl_udata_put(struct nftnl_udata_buf *buf, uint8_t type, uint32_t len,
++bool __EXPORTED nftnl_udata_put(struct nftnl_udata_buf *buf, uint8_t type, uint32_t len,
+ 		     const void *value)
+ {
+ 	struct nftnl_udata *attr;
+@@ -85,55 +78,47 @@ bool nftnl_udata_put(struct nftnl_udata_buf *buf, uint8_t type, uint32_t len,
+ 
+ 	return true;
+ }
+-EXPORT_SYMBOL(nftnl_udata_put);
+ 
+-bool nftnl_udata_put_strz(struct nftnl_udata_buf *buf, uint8_t type,
++bool __EXPORTED nftnl_udata_put_strz(struct nftnl_udata_buf *buf, uint8_t type,
+ 			  const char *strz)
+ {
+ 	return nftnl_udata_put(buf, type, strlen(strz) + 1, strz);
+ }
+-EXPORT_SYMBOL(nftnl_udata_put_strz);
+ 
+-bool nftnl_udata_put_u32(struct nftnl_udata_buf *buf, uint8_t type,
++bool __EXPORTED nftnl_udata_put_u32(struct nftnl_udata_buf *buf, uint8_t type,
+ 			 uint32_t data)
+ {
+ 	return nftnl_udata_put(buf, type, sizeof(data), &data);
+ }
+-EXPORT_SYMBOL(nftnl_udata_put_u32);
+ 
+-uint8_t nftnl_udata_type(const struct nftnl_udata *attr)
++uint8_t __EXPORTED nftnl_udata_type(const struct nftnl_udata *attr)
+ {
+ 	return attr->type;
+ }
+-EXPORT_SYMBOL(nftnl_udata_type);
+ 
+-uint8_t nftnl_udata_len(const struct nftnl_udata *attr)
++uint8_t __EXPORTED nftnl_udata_len(const struct nftnl_udata *attr)
+ {
+ 	return attr->len;
+ }
+-EXPORT_SYMBOL(nftnl_udata_len);
+ 
+-void *nftnl_udata_get(const struct nftnl_udata *attr)
++void __EXPORTED *nftnl_udata_get(const struct nftnl_udata *attr)
+ {
+ 	return (void *)attr->value;
+ }
+-EXPORT_SYMBOL(nftnl_udata_get);
+ 
+-uint32_t nftnl_udata_get_u32(const struct nftnl_udata *attr)
++uint32_t __EXPORTED nftnl_udata_get_u32(const struct nftnl_udata *attr)
+ {
+ 	uint32_t *data = (uint32_t *)attr->value;
+ 
+ 	return *data;
+ }
+-EXPORT_SYMBOL(nftnl_udata_get_u32);
+ 
+-struct nftnl_udata *nftnl_udata_next(const struct nftnl_udata *attr)
++struct nftnl_udata __EXPORTED *nftnl_udata_next(const struct nftnl_udata *attr)
+ {
+ 	return (struct nftnl_udata *)&attr->value[attr->len];
+ }
+-EXPORT_SYMBOL(nftnl_udata_next);
+ 
+-int nftnl_udata_parse(const void *data, uint32_t data_len, nftnl_udata_cb_t cb,
++int __EXPORTED nftnl_udata_parse(const void *data, uint32_t data_len, nftnl_udata_cb_t cb,
+ 		      void *cb_data)
+ {
+ 	int ret = 0;
+@@ -147,4 +132,3 @@ int nftnl_udata_parse(const void *data, uint32_t data_len, nftnl_udata_cb_t cb,
+ 
+ 	return ret;
+ }
+-EXPORT_SYMBOL(nftnl_udata_parse);
 -- 
-2.12.2
+2.11.0 (Apple Git-81)
 
