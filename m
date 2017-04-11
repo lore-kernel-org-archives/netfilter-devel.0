@@ -1,132 +1,76 @@
-From: "Gao Feng" <gfree.wind@foxmail.com>
-Subject: RE: [PATCH nf 1/1] netfilter: seqadj: Fix possible non-linear data access for TCP header
-Date: Tue, 11 Apr 2017 10:53:53 +0800
-Message-ID: <003501d2b26e$db373220$91a59660$@foxmail.com>
-References: <1491820563-98023-1-git-send-email-gfree.wind@foxmail.com> <20170410120639.GA2386@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>, "'Gao Feng'" <fgao@ikuai8.com>
-To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>
+From: gfree.wind@foxmail.com
+Subject: [PATCH nf-next 1/1] netfilter: SYNPROXY: Return NF_STOLEN instead of NF_DROP during handshaking
+Date: Tue, 11 Apr 2017 12:09:10 +0800
+Message-ID: <1491883750-78913-1-git-send-email-gfree.wind@foxmail.com>
+Cc: Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbgau2.qq.com ([54.206.34.216]:58156 "EHLO smtpbgau2.qq.com"
+Received: from smtpbg299.qq.com ([184.105.67.99]:50631 "EHLO smtpbg299.qq.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751564AbdDKCx6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Apr 2017 22:53:58 -0400
-In-Reply-To: <20170410120639.GA2386@salvia>
-Content-Language: zh-cn
+        id S1752179AbdDKEJZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 11 Apr 2017 00:09:25 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+From: Gao Feng <fgao@ikuai8.com>
 
-> -----Original Message-----
-> From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
-> Sent: Monday, April 10, 2017 8:07 PM
-> To: gfree.wind@foxmail.com
-> Cc: netfilter-devel@vger.kernel.org; Gao Feng <fgao@ikuai8.com>
-> Subject: Re: [PATCH nf 1/1] netfilter: seqadj: Fix possible non-linear
-data access
-> for TCP header
-> 
-> On Mon, Apr 10, 2017 at 06:36:03PM +0800, gfree.wind@foxmail.com wrote:
-> > From: Gao Feng <fgao@ikuai8.com>
-> >
-> > The current call path of nf_ct_tcp_seqadj_set is the following.
-> >
-> > nfqnl_recv_verdict->ctnetlink_glue_hook->ctnetlink_glue_seqadj
-> > ->nf_ct_tcp_seqadj_set.
-> >
-> > It couldn't make sure the TCP header is in the linear data part.
-> > So use the skb_header_pointer instead of the current codes.
-> >
-> > BTW, the nf_ct_tcp_seqadj_set is one external function of netfilter
-> > which works in the network layer, it should not assume the transport
-> > header is in the linear data.
-> >
-> > Signed-off-by: Gao Feng <fgao@ikuai8.com>
-> > ---
-> >  net/netfilter/nf_conntrack_seqadj.c | 5 ++++-
-> >  1 file changed, 4 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/net/netfilter/nf_conntrack_seqadj.c
-> > b/net/netfilter/nf_conntrack_seqadj.c
-> > index ef7063e..80394ab 100644
-> > --- a/net/netfilter/nf_conntrack_seqadj.c
-> > +++ b/net/netfilter/nf_conntrack_seqadj.c
-> > @@ -61,11 +61,14 @@ void nf_ct_tcp_seqadj_set(struct sk_buff *skb,
-> >  			  s32 off)
-> >  {
-> >  	const struct tcphdr *th;
-> > +	struct tcphdr tcph;
-> >
-> >  	if (nf_ct_protonum(ct) != IPPROTO_TCP)
-> >  		return;
-> >
-> > -	th = (struct tcphdr *)(skb_network_header(skb) + ip_hdrlen(skb));
-> > +	th = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(tcph), &tcph);
-> > +	if (!th)
-> > +		return;
-> 
-> This fix is required since your recent upgrade to check for 4 bytes
-instead of 8
-> bytes from conntrack. Please confirm this.
+Current SYNPROXY codes return NF_DROP during normal TCP handshaking,
+it is not friendly to caller. Because the nf_hook_slow would treat
+the NF_DROP as an error, and return -EPERM.
+As a result, it may cause the top caller think it meets one error.
 
-Do you mean the commit e5e693ab49a95e1994979972eea224eefa81eba9 "netfilter:
-conntrack: Only need first 4 bytes to get l4proto ports"?
-Sorry, I could not figure out why it would break the rule, and cause issue.
+So use NF_STOLEN instead of NF_DROP now because there is no error
+happened indeed, and free the skb directly.
 
-Let's look at one change for TCP of that commit as following
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ net/ipv4/netfilter/ipt_SYNPROXY.c  | 7 ++++---
+ net/ipv6/netfilter/ip6t_SYNPROXY.c | 6 ++++--
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c
-b/net/netfilter/nf_conntrack_proto_tcp.c
-index 70c8381..4abe9e1 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -282,8 +282,8 @@ static bool tcp_pkt_to_tuple(const struct sk_buff *skb,
-unsigned int dataoff,
-        const struct tcphdr *hp;
-        struct tcphdr _hdr;
-
--       /* Actually only need first 8 bytes. */
--       hp = skb_header_pointer(skb, dataoff, 8, &_hdr);
-+       /* Actually only need first 4 bytes to get ports. */
-+       hp = skb_header_pointer(skb, dataoff, 4, &_hdr);
-        if (hp == NULL)
-                return false;
-
-The skb_header_pointer only copies the data, not make the data linear.
-So I think it is ok after 4 bytes instead of 8 bytes.
-It only affect the local variable, not the skb.
-
-> 
-> If so, it would be good to review the NAT code to see if there are more
-spots
-> that are not broken since that change...
-
-I also check the other codes of Netfilter.
-
-grep -in skb_network_header * in nf/net/netfilter and
-nf/net/ipv4(6)/netfilter/
-nf_nat_helper.c:41:     data = skb_network_header(skb) + dataoff;
-nf_tables_core.c:99:            ptr = skb_network_header(skb) +
-pkt->xt.thoff;
-xt_TCPMSS.c:104:        tcph = (struct tcphdr *)(skb_network_header(skb) +
-tcphoff);
-xt_TCPMSS.c:163:                tcph = (struct tcphdr
-*)(skb_network_header(skb) + tcphoff);
-xt_TCPOPTSTRIP.c:54:    tcph = (struct tcphdr *)(skb_network_header(skb) +
-tcphoff);
-arpt_mangle.c:23:       arpptr = skb_network_header(skb) + sizeof(*arp);
-
-all of them make sure the skb is linear, except the nf_tables_core.c which
-use the skb_tail_pointer to exclude the non-linear data.
-
-So there is only nf_ct_tcp_seqadj_set which need fixed.
-
-Best Regards
-Feng
-
+diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
+index 3240a26..9ed80d4 100644
+--- a/net/ipv4/netfilter/ipt_SYNPROXY.c
++++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
+@@ -293,12 +293,13 @@
+ 					  XT_SYNPROXY_OPT_ECN);
+ 
+ 		synproxy_send_client_synack(net, skb, th, &opts);
+-		return NF_DROP;
+-
++		consume_skb(skb);
++		return NF_STOLEN;
+ 	} else if (th->ack && !(th->fin || th->rst || th->syn)) {
+ 		/* ACK from client */
+ 		synproxy_recv_client_ack(net, skb, th, &opts, ntohl(th->seq));
+-		return NF_DROP;
++		consume_skb(skb);
++		return NF_STOLEN;
+ 	}
+ 
+ 	return XT_CONTINUE;
+diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+index 4ef1ddd..d5d5725 100644
+--- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
++++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+@@ -307,12 +307,14 @@
+ 					  XT_SYNPROXY_OPT_ECN);
+ 
+ 		synproxy_send_client_synack(net, skb, th, &opts);
+-		return NF_DROP;
++		consume_skb(skb);
++		return NF_STOLEN;
+ 
+ 	} else if (th->ack && !(th->fin || th->rst || th->syn)) {
+ 		/* ACK from client */
+ 		synproxy_recv_client_ack(net, skb, th, &opts, ntohl(th->seq));
+-		return NF_DROP;
++		consume_skb(skb);
++		return NF_STOLEN;
+ 	}
+ 
+ 	return XT_CONTINUE;
+-- 
+1.9.1
 
 
