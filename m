@@ -1,267 +1,133 @@
-From: Khem Raj <raj.khem@gmail.com>
-Subject: [libnetfilter-acct][PATCH] Declare the define visibility attribute together
-Date: Mon, 10 Apr 2017 15:27:48 -0700
-Message-ID: <20170410222748.10825-1-raj.khem@gmail.com>
-Cc: Khem Raj <raj.khem@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: =?gb2312?B?uN+35Q==?= <fgao@ikuai8.com>
+Subject: RE: [PATCH nf 1/1] netfilter: seqadj: Fix possible non-linear data access for TCP header
+Date: Tue, 11 Apr 2017 08:59:31 +0800
+Message-ID: <001201d2b25e$e1479340$a3d6b9c0$@ikuai8.com>
+References: <1491820563-98023-1-git-send-email-gfree.wind@foxmail.com> <20170410120639.GA2386@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain;
+        charset="gb2312"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>
+To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>,
+        <gfree.wind@foxmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:36807 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751983AbdDJW17 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Apr 2017 18:27:59 -0400
-Received: by mail-pg0-f68.google.com with SMTP id 81so27360914pgh.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Apr 2017 15:27:58 -0700 (PDT)
+Received: from smtpbgau1.qq.com ([54.206.16.166]:35703 "EHLO smtpbgau1.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750761AbdDKA7i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Apr 2017 20:59:38 -0400
+In-Reply-To: <20170410120639.GA2386@salvia>
+Content-Language: zh-cn
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-clang ignores the visibility attribute if its not
-defined before the definition. As a result these
-symbols become hidden and consumers of this library
-fail to link due to these missing symbols
+Hi Pablo,
 
-Signed-off-by: Khem Raj <raj.khem@gmail.com>
----
- doxygen.cfg.in          |  2 +-
- src/internal.h          |  5 ++---
- src/libnetfilter_acct.c | 41 ++++++++++++++---------------------------
- 3 files changed, 17 insertions(+), 31 deletions(-)
+> -----Original Message-----
+> From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
+> Sent: Monday, April 10, 2017 8:07 PM
+> To: gfree.wind@foxmail.com
+> Cc: netfilter-devel@vger.kernel.org; Gao Feng <fgao@ikuai8.com>
+> Subject: Re: [PATCH nf 1/1] netfilter: seqadj: Fix possible non-linear
+data access
+> for TCP header
+> 
+> On Mon, Apr 10, 2017 at 06:36:03PM +0800, gfree.wind@foxmail.com wrote:
+> > From: Gao Feng <fgao@ikuai8.com>
+> >
+> > The current call path of nf_ct_tcp_seqadj_set is the following.
+> >
+> > nfqnl_recv_verdict->ctnetlink_glue_hook->ctnetlink_glue_seqadj
+> > ->nf_ct_tcp_seqadj_set.
+> >
+> > It couldn't make sure the TCP header is in the linear data part.
+> > So use the skb_header_pointer instead of the current codes.
+> >
+> > BTW, the nf_ct_tcp_seqadj_set is one external function of netfilter
+> > which works in the network layer, it should not assume the transport
+> > header is in the linear data.
+> >
+> > Signed-off-by: Gao Feng <fgao@ikuai8.com>
+> > ---
+> >  net/netfilter/nf_conntrack_seqadj.c | 5 ++++-
+> >  1 file changed, 4 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/net/netfilter/nf_conntrack_seqadj.c
+> > b/net/netfilter/nf_conntrack_seqadj.c
+> > index ef7063e..80394ab 100644
+> > --- a/net/netfilter/nf_conntrack_seqadj.c
+> > +++ b/net/netfilter/nf_conntrack_seqadj.c
+> > @@ -61,11 +61,14 @@ void nf_ct_tcp_seqadj_set(struct sk_buff *skb,
+> >  			  s32 off)
+> >  {
+> >  	const struct tcphdr *th;
+> > +	struct tcphdr tcph;
+> >
+> >  	if (nf_ct_protonum(ct) != IPPROTO_TCP)
+> >  		return;
+> >
+> > -	th = (struct tcphdr *)(skb_network_header(skb) + ip_hdrlen(skb));
+> > +	th = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(tcph), &tcph);
+> > +	if (!th)
+> > +		return;
+> 
+> This fix is required since your recent upgrade to check for 4 bytes
+instead of 8
+> bytes from conntrack. Please confirm this.
 
-diff --git a/doxygen.cfg.in b/doxygen.cfg.in
-index 7f4bd04..fe64d48 100644
---- a/doxygen.cfg.in
-+++ b/doxygen.cfg.in
-@@ -72,7 +72,7 @@ RECURSIVE              = YES
- EXCLUDE                = 
- EXCLUDE_SYMLINKS       = NO
- EXCLUDE_PATTERNS       = */.git/* .*.d
--EXCLUDE_SYMBOLS        = EXPORT_SYMBOL nfacct
-+EXCLUDE_SYMBOLS        = nfacct
- EXAMPLE_PATH           = 
- EXAMPLE_PATTERNS       = 
- EXAMPLE_RECURSIVE      = NO
-diff --git a/src/internal.h b/src/internal.h
-index f0cc2e1..e5c5ffd 100644
---- a/src/internal.h
-+++ b/src/internal.h
-@@ -3,10 +3,9 @@
- 
- #include "config.h"
- #ifdef HAVE_VISIBILITY_HIDDEN
--#	define __visible	__attribute__((visibility("default")))
--#	define EXPORT_SYMBOL(x)	typeof(x) (x) __visible
-+#	define __EXPORT	__attribute__((visibility("default")))
- #else
--#	define EXPORT_SYMBOL
-+#	define __EXPORT
- #endif
- 
- #include <endian.h>
-diff --git a/src/libnetfilter_acct.c b/src/libnetfilter_acct.c
-index b0bcf67..0220d14 100644
---- a/src/libnetfilter_acct.c
-+++ b/src/libnetfilter_acct.c
-@@ -76,21 +76,19 @@ struct nfacct {
-  * In case of success, this function returns a valid pointer, otherwise NULL
-  * s returned and errno is appropriately set.
-  */
--struct nfacct *nfacct_alloc(void)
-+struct nfacct __EXPORT *nfacct_alloc(void)
- {
- 	return calloc(1, sizeof(struct nfacct));
- }
--EXPORT_SYMBOL(nfacct_alloc);
- 
- /**
-  * nfacct_free - release one accounting object
-  * \param nfacct pointer to the accounting object
-  */
--void nfacct_free(struct nfacct *nfacct)
-+void __EXPORT nfacct_free(struct nfacct *nfacct)
- {
- 	free(nfacct);
- }
--EXPORT_SYMBOL(nfacct_free);
- 
- /**
-  * nfacct_attr_set - set one attribute of the accounting object
-@@ -98,7 +96,7 @@ EXPORT_SYMBOL(nfacct_free);
-  * \param type attribute type you want to set
-  * \param data pointer to data that will be used to set this attribute
-  */
--void
-+void __EXPORT
- nfacct_attr_set(struct nfacct *nfacct, enum nfacct_attr_type type,
- 		const void *data)
- {
-@@ -126,7 +124,6 @@ nfacct_attr_set(struct nfacct *nfacct, enum nfacct_attr_type type,
- 		break;
- 	}
- }
--EXPORT_SYMBOL(nfacct_attr_set);
- 
- /**
-  * nfacct_attr_set_str - set one attribute the accounting object
-@@ -134,13 +131,12 @@ EXPORT_SYMBOL(nfacct_attr_set);
-  * \param type attribute type you want to set
-  * \param name string that will be used to set this attribute
-  */
--void
-+void __EXPORT
- nfacct_attr_set_str(struct nfacct *nfacct, enum nfacct_attr_type type,
- 		    const char *name)
- {
- 	nfacct_attr_set(nfacct, type, name);
- }
--EXPORT_SYMBOL(nfacct_attr_set_str);
- 
- /**
-  * nfacct_attr_set_u64 - set one attribute the accounting object
-@@ -148,20 +144,19 @@ EXPORT_SYMBOL(nfacct_attr_set_str);
-  * \param type attribute type you want to set
-  * \param value unsigned 64-bits integer
-  */
--void
-+void __EXPORT
- nfacct_attr_set_u64(struct nfacct *nfacct, enum nfacct_attr_type type,
- 		    uint64_t value)
- {
- 	nfacct_attr_set(nfacct, type, &value);
- }
--EXPORT_SYMBOL(nfacct_attr_set_u64);
- 
- /**
-  * nfacct_attr_unset - unset one attribute the accounting object
-  * \param nfacct pointer to the accounting object
-  * \param type attribute type you want to set
-  */
--void
-+void __EXPORT
- nfacct_attr_unset(struct nfacct *nfacct, enum nfacct_attr_type type)
- {
- 	switch(type) {
-@@ -182,7 +177,6 @@ nfacct_attr_unset(struct nfacct *nfacct, enum nfacct_attr_type type)
- 		break;
- 	}
- }
--EXPORT_SYMBOL(nfacct_attr_unset);
- 
- /**
-  * nfacct_attr_get - get one attribute the accounting object
-@@ -192,7 +186,7 @@ EXPORT_SYMBOL(nfacct_attr_unset);
-  * This function returns a valid pointer to the attribute data. If a
-  * unsupported attribute is used, this returns NULL.
-  */
--const void *nfacct_attr_get(struct nfacct *nfacct, enum nfacct_attr_type type)
-+const void __EXPORT *nfacct_attr_get(struct nfacct *nfacct, enum nfacct_attr_type type)
- {
- 	const void *ret = NULL;
- 
-@@ -220,7 +214,6 @@ const void *nfacct_attr_get(struct nfacct *nfacct, enum nfacct_attr_type type)
- 	}
- 	return ret;
- }
--EXPORT_SYMBOL(nfacct_attr_get);
- 
- /**
-  * nfacct_attr_get_str - get one attribute the accounting object
-@@ -230,12 +223,11 @@ EXPORT_SYMBOL(nfacct_attr_get);
-  * This function returns a valid pointer to the beginning of the string.
-  * If the attribute is unsupported, this returns NULL.
-  */
--const char *
-+const char __EXPORT *
- nfacct_attr_get_str(struct nfacct *nfacct, enum nfacct_attr_type type)
- {
- 	return nfacct_attr_get(nfacct, type);
- }
--EXPORT_SYMBOL(nfacct_attr_get_str);
- 
- /**
-  * nfacct_attr_get_u64 - get one attribute the accounting object
-@@ -245,12 +237,11 @@ EXPORT_SYMBOL(nfacct_attr_get_str);
-  * This function returns a unsigned 64-bits integer. If the attribute is
-  * unsupported, this returns NULL.
-  */
--uint64_t nfacct_attr_get_u64(struct nfacct *nfacct, enum nfacct_attr_type type)
-+uint64_t __EXPORT nfacct_attr_get_u64(struct nfacct *nfacct, enum nfacct_attr_type type)
- {
- 	const void *ret = nfacct_attr_get(nfacct, type);
- 	return ret ? *((uint64_t *)ret) : 0;
- }
--EXPORT_SYMBOL(nfacct_attr_get_u64);
- 
- static int
- nfacct_snprintf_plain(char *buf, size_t rem, struct nfacct *nfacct,
-@@ -424,8 +415,8 @@ err:
-  * This function returns -1 in case that some mandatory attributes are
-  * missing. On sucess, it returns 0.
-  */
--int nfacct_snprintf(char *buf, size_t size, struct nfacct *nfacct,
--		    uint16_t type, uint16_t flags)
-+int __EXPORT nfacct_snprintf(char *buf, size_t size, struct nfacct *nfacct,
-+		             uint16_t type, uint16_t flags)
- {
- 	int ret = 0;
- 
-@@ -445,7 +436,6 @@ int nfacct_snprintf(char *buf, size_t size, struct nfacct *nfacct,
- 	}
- 	return ret;
- }
--EXPORT_SYMBOL(nfacct_snprintf);
- 
- /**
-  * @}
-@@ -484,7 +474,7 @@ EXPORT_SYMBOL(nfacct_snprintf);
-  * - Command NFNL_MSG_ACCT_DEL, to delete one specific nfacct object (if
-  *   unused, otherwise you hit EBUSY).
-  */
--struct nlmsghdr *
-+struct nlmsghdr __EXPORT *
- nfacct_nlmsg_build_hdr(char *buf, uint8_t cmd, uint16_t flags, uint32_t seq)
- {
- 	struct nlmsghdr *nlh;
-@@ -502,14 +492,13 @@ nfacct_nlmsg_build_hdr(char *buf, uint8_t cmd, uint16_t flags, uint32_t seq)
- 
- 	return nlh;
- }
--EXPORT_SYMBOL(nfacct_nlmsg_build_hdr);
- 
- /**
-  * nfacct_nlmsg_build_payload - build payload from accounting object
-  * \param nlh: netlink message that you want to use to add the payload.
-  * \param nfacct: pointer to a accounting object
-  */
--void nfacct_nlmsg_build_payload(struct nlmsghdr *nlh, struct nfacct *nfacct)
-+void __EXPORT nfacct_nlmsg_build_payload(struct nlmsghdr *nlh, struct nfacct *nfacct)
- {
- 	if (nfacct->bitset & (1 << NFACCT_ATTR_NAME))
- 		mnl_attr_put_strz(nlh, NFACCT_NAME, nfacct->name);
-@@ -526,7 +515,6 @@ void nfacct_nlmsg_build_payload(struct nlmsghdr *nlh, struct nfacct *nfacct)
- 	if (nfacct->bitset & (1 << NFACCT_ATTR_QUOTA))
- 		mnl_attr_put_u64(nlh, NFACCT_QUOTA, htobe64(nfacct->quota));
- }
--EXPORT_SYMBOL(nfacct_nlmsg_build_payload);
- 
- static int nfacct_nlmsg_parse_attr_cb(const struct nlattr *attr, void *data)
- {
-@@ -563,7 +551,7 @@ static int nfacct_nlmsg_parse_attr_cb(const struct nlattr *attr, void *data)
-  * This function returns -1 in case that some mandatory attributes are
-  * missing. On sucess, it returns 0.
-  */
--int
-+int __EXPORT
- nfacct_nlmsg_parse_payload(const struct nlmsghdr *nlh, struct nfacct *nfacct)
- {
- 	struct nlattr *tb[NFACCT_MAX+1] = {};
-@@ -589,7 +577,6 @@ nfacct_nlmsg_parse_payload(const struct nlmsghdr *nlh, struct nfacct *nfacct)
- 
- 	return 0;
- }
--EXPORT_SYMBOL(nfacct_nlmsg_parse_payload);
- 
- /**
-  * @}
--- 
-2.12.2
+Do you mean the commit e5e693ab49a95e1994979972eea224eefa81eba9 "netfilter:
+conntrack: Only need first 4 bytes to get l4proto ports"?
+Sorry, I could not figure out why it would break the rule, and cause issue.
+
+Let's look at one change for TCP of that commit as following
+
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c
+b/net/netfilter/nf_conntrack_proto_tcp.c
+index 70c8381..4abe9e1 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -282,8 +282,8 @@ static bool tcp_pkt_to_tuple(const struct sk_buff *skb,
+unsigned int dataoff,
+        const struct tcphdr *hp;
+        struct tcphdr _hdr;
+
+-       /* Actually only need first 8 bytes. */
+-       hp = skb_header_pointer(skb, dataoff, 8, &_hdr);
++       /* Actually only need first 4 bytes to get ports. */
++       hp = skb_header_pointer(skb, dataoff, 4, &_hdr);
+        if (hp == NULL)
+                return false;
+
+The skb_header_pointer only copies the data, not make the data linear.
+So I think it is ok after 4 bytes instead of 8 bytes.
+It only affect the local variable, not the skb.
+
+> 
+> If so, it would be good to review the NAT code to see if there are more
+spots
+> that are not broken since that change...
+
+I also check the other codes of Netfilter.
+
+grep -in skb_network_header * in nf/net/netfilter and
+nf/net/ipv4(6)/netfilter/
+nf_nat_helper.c:41:     data = skb_network_header(skb) + dataoff;
+nf_tables_core.c:99:            ptr = skb_network_header(skb) +
+pkt->xt.thoff;
+xt_TCPMSS.c:104:        tcph = (struct tcphdr *)(skb_network_header(skb) +
+tcphoff);
+xt_TCPMSS.c:163:                tcph = (struct tcphdr
+*)(skb_network_header(skb) + tcphoff);
+xt_TCPOPTSTRIP.c:54:    tcph = (struct tcphdr *)(skb_network_header(skb) +
+tcphoff);
+arpt_mangle.c:23:       arpptr = skb_network_header(skb) + sizeof(*arp);
+
+all of them make sure the skb is linear, except the nf_tables_core.c which
+use the skb_tail_pointer to exclude the non-linear data.
+
+So there is only nf_ct_tcp_seqadj_set which need fixed.
+
+Best Regards
+Feng
+
+
 
