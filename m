@@ -1,20 +1,20 @@
-From: =?gb2312?B?uN+35Q==?= <fgao@ikuai8.com>
+From: "Gao Feng" <gfree.wind@foxmail.com>
 Subject: RE: [PATCH nf 1/1] netfilter: seqadj: Fix possible non-linear data access for TCP header
-Date: Tue, 11 Apr 2017 08:59:31 +0800
-Message-ID: <001201d2b25e$e1479340$a3d6b9c0$@ikuai8.com>
+Date: Tue, 11 Apr 2017 10:44:40 +0800
+Message-ID: <003301d2b26d$91e8faf0$b5baf0d0$@foxmail.com>
 References: <1491820563-98023-1-git-send-email-gfree.wind@foxmail.com> <20170410120639.GA2386@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain;
-        charset="gb2312"
+        charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Cc: <netfilter-devel@vger.kernel.org>
 To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>,
         <gfree.wind@foxmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbgau1.qq.com ([54.206.16.166]:35703 "EHLO smtpbgau1.qq.com"
+Received: from smtpbg65.qq.com ([103.7.28.233]:51884 "EHLO smtpbg65.qq.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750761AbdDKA7i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Apr 2017 20:59:38 -0400
+        id S1751564AbdDKCos (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Apr 2017 22:44:48 -0400
 In-Reply-To: <20170410120639.GA2386@salvia>
 Content-Language: zh-cn
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -73,7 +73,6 @@ data access
 > This fix is required since your recent upgrade to check for 4 bytes
 instead of 8
 > bytes from conntrack. Please confirm this.
-
 Do you mean the commit e5e693ab49a95e1994979972eea224eefa81eba9 "netfilter:
 conntrack: Only need first 4 bytes to get l4proto ports"?
 Sorry, I could not figure out why it would break the rule, and cause issue.
