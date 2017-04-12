@@ -1,121 +1,42 @@
 From: gfree.wind@foxmail.com
-Subject: [PATCH nf-next v2 1/1] netfilter: SYNPROXY: Return NF_STOLEN instead of NF_DROP during handshaking
-Date: Wed, 12 Apr 2017 10:14:50 +0800
-Message-ID: <1491963290-84377-1-git-send-email-gfree.wind@foxmail.com>
+Subject: [PATCH nf 1/1] netfilter: nf_nat: Fix return NF_DROP in nfnetlink_parse_nat_setup
+Date: Wed, 12 Apr 2017 18:33:03 +0800
+Message-ID: <1491993183-93903-1-git-send-email-gfree.wind@foxmail.com>
 Cc: Gao Feng <fgao@ikuai8.com>
 To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpproxy19.qq.com ([184.105.206.84]:45617 "EHLO
-        smtpproxy19.qq.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751951AbdDLCPF (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Apr 2017 22:15:05 -0400
+Received: from smtpbg202.qq.com ([184.105.206.29]:48887 "EHLO smtpbg202.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752508AbdDLKdU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Apr 2017 06:33:20 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Gao Feng <fgao@ikuai8.com>
 
-Current SYNPROXY codes return NF_DROP during normal TCP handshaking,
-it is not friendly to caller. Because the nf_hook_slow would treat
-the NF_DROP as an error, and return -EPERM.
-As a result, it may cause the top caller think it meets one error.
-
-So use NF_STOLEN instead of NF_DROP now because there is no error
-happened indeed, and free the skb directly.
+The __nf_nat_alloc_null_binding invokes nf_nat_setup_info which may
+return NF_DROP when memory is exhausted, so convert NF_DROP to -ENOMEM
+to make ctnetlink happy. Or ctnetlink_setup_nat treats it as a success
+when one error NF_DROP happens actully.
 
 Signed-off-by: Gao Feng <fgao@ikuai8.com>
 ---
- v2: Add the check for synproxy_recv_client_ack, per Gao Feng,
- v1: initial version
+ net/netfilter/nf_nat_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- net/ipv4/netfilter/ipt_SYNPROXY.c  | 21 ++++++++++++++-------
- net/ipv6/netfilter/ip6t_SYNPROXY.c | 20 ++++++++++++++------
- 2 files changed, 28 insertions(+), 13 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
-index 3240a26..ab0f576 100644
---- a/net/ipv4/netfilter/ipt_SYNPROXY.c
-+++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
-@@ -293,12 +293,16 @@
- 					  XT_SYNPROXY_OPT_ECN);
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 82802e4..55746cd 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -819,7 +819,7 @@ static int nfnetlink_parse_nat_proto(struct nlattr *attr,
  
- 		synproxy_send_client_synack(net, skb, th, &opts);
--		return NF_DROP;
--
-+		consume_skb(skb);
-+		return NF_STOLEN;
- 	} else if (th->ack && !(th->fin || th->rst || th->syn)) {
- 		/* ACK from client */
--		synproxy_recv_client_ack(net, skb, th, &opts, ntohl(th->seq));
--		return NF_DROP;
-+		if (synproxy_recv_client_ack(net, skb, th, &opts, ntohl(th->seq))) {
-+			consume_skb(skb);
-+			return NF_STOLEN;
-+		} else {
-+			return NF_DROP;
-+		}
- 	}
+ 	/* No NAT information has been passed, allocate the null-binding */
+ 	if (attr == NULL)
+-		return __nf_nat_alloc_null_binding(ct, manip);
++		return __nf_nat_alloc_null_binding(ct, manip) == NF_DROP ? -ENOMEM : 0;
  
- 	return XT_CONTINUE;
-@@ -367,10 +371,13 @@ static unsigned int ipv4_synproxy_hook(void *priv,
- 			 * number match the one of first SYN.
- 			 */
- 			if (synproxy_recv_client_ack(net, skb, th, &opts,
--						     ntohl(th->seq) + 1))
-+						     ntohl(th->seq) + 1)) {
- 				this_cpu_inc(snet->stats->cookie_retrans);
--
--			return NF_DROP;
-+				consume_skb(skb);
-+				return NF_STOLEN;
-+			} else {
-+				return NF_DROP;
-+			}
- 		}
- 
- 		synproxy->isn = ntohl(th->ack_seq);
-diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-index 4ef1ddd..6a4f49e 100644
---- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
-+++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-@@ -307,12 +307,17 @@
- 					  XT_SYNPROXY_OPT_ECN);
- 
- 		synproxy_send_client_synack(net, skb, th, &opts);
--		return NF_DROP;
-+		consume_skb(skb);
-+		return NF_STOLEN;
- 
- 	} else if (th->ack && !(th->fin || th->rst || th->syn)) {
- 		/* ACK from client */
--		synproxy_recv_client_ack(net, skb, th, &opts, ntohl(th->seq));
--		return NF_DROP;
-+		if (synproxy_recv_client_ack(net, skb, th, &opts, ntohl(th->seq))) {
-+			consume_skb(skb);
-+			return NF_STOLEN;
-+		} else {
-+			return NF_DROP;
-+		}
- 	}
- 
- 	return XT_CONTINUE;
-@@ -388,10 +393,13 @@ static unsigned int ipv6_synproxy_hook(void *priv,
- 			 * number match the one of first SYN.
- 			 */
- 			if (synproxy_recv_client_ack(net, skb, th, &opts,
--						     ntohl(th->seq) + 1))
-+						     ntohl(th->seq) + 1)) {
- 				this_cpu_inc(snet->stats->cookie_retrans);
--
--			return NF_DROP;
-+				consume_skb(skb);
-+				return NF_STOLEN;
-+			} else {
-+				return NF_DROP;
-+			}
- 		}
- 
- 		synproxy->isn = ntohl(th->ack_seq);
+ 	err = nfnetlink_parse_nat(attr, ct, &range, l3proto);
+ 	if (err < 0)
 -- 
 1.9.1
 
