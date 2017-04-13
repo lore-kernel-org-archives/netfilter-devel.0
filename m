@@ -1,67 +1,209 @@
-From: gfree.wind@foxmail.com
-Subject: [PATCH nf-next 1/1] netfilter: ecache: Refine the nf_ct_deliver_cached_events
-Date: Thu, 13 Apr 2017 09:35:49 +0800
-Message-ID: <1492047349-99130-1-git-send-email-gfree.wind@foxmail.com>
-Cc: Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+From: "Gao Feng" <gfree.wind@foxmail.com>
+Subject: RE: [PATCH nf] netfilter: ctnetlink: make it safer when updating ct->status
+Date: Thu, 13 Apr 2017 10:42:27 +0800
+Message-ID: <000001d2b3ff$9777d110$c6677330$@foxmail.com>
+References: <1492012596-60889-1-git-send-email-zlpnobody@163.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>, <cernekee@chromium.org>,
+        "'Liping Zhang'" <zlpnobody@gmail.com>
+To: "'Liping Zhang'" <zlpnobody@163.com>, <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpproxy19.qq.com ([184.105.206.84]:49079 "EHLO
-        smtpproxy19.qq.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752134AbdDMBgA (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Apr 2017 21:36:00 -0400
+Received: from smtpbg202.qq.com ([184.105.206.29]:53722 "EHLO smtpbg202.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751803AbdDMCmb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Apr 2017 22:42:31 -0400
+In-Reply-To: <1492012596-60889-1-git-send-email-zlpnobody@163.com>
+Content-Language: zh-cn
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+Hi Liping,
 
-1. Remove single !events condition check to deliver the missed event
-even though there is no new event happened.
+> -----Original Message-----
+> From: netfilter-devel-owner@vger.kernel.org
+> [mailto:netfilter-devel-owner@vger.kernel.org] On Behalf Of Liping Zhang
+> Sent: Wednesday, April 12, 2017 11:57 PM
+> To: pablo@netfilter.org
+> Cc: netfilter-devel@vger.kernel.org; cernekee@chromium.org; Liping Zhang
+> <zlpnobody@gmail.com>
+> Subject: [PATCH nf] netfilter: ctnetlink: make it safer when updating
+ct->status
+> 
+> From: Liping Zhang <zlpnobody@gmail.com>
+> 
+> User can update the ct->status via nfnetlink, but using a non-atomic
+operation
+> "ct->status |= status;". This is unsafe, and may clear IPS_DYING_BIT bit
+set by
+> another CPU unexpectedly. For example:
+>          CPU0                            CPU1
+>   ctnetlink_change_status        __nf_conntrack_find_get
+>       old = ct->status              nf_ct_gc_expired
+>           -                         nf_ct_kill
+>           -                      test_and_set_bit(IPS_DYING_BIT
+>           -                             -
+>   ct->status = old | status;<-- oops, _DYING_ is cleared!
+> 
+> So using a series of atomic bit operation to solve the above issue.
+> 
+> Also note, user shouldn't set IPS_TEMPLATE, IPS_SEQ_ADJUST directly.
+> 
+> If we set the IPS_TEMPLATE_BIT, ct will be freed by nf_ct_tmpl_free, but
+> actually it is alloced by nf_conntrack_alloc.
+> 
+> If we set the IPS_SEQ_ADJUST_BIT, this may cause the NULL pointer
+deference,
+> as the nfct_seqadj(ct) maybe NULL.
+> 
+> So make these two bits be unchangable too.
+> 
+> Last, add some comments to describe the logic change due to the commit
+> a963d710f367 ("netfilter: ctnetlink: Fix regression in CTA_STATUS
+processing"),
+> which makes me feel a little confusing.
+> 
+> Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+> ---
+>  include/uapi/linux/netfilter/nf_conntrack_common.h | 13 +++++---
+>  net/netfilter/nf_conntrack_netlink.c               | 35
+> ++++++++++++++++------
+>  2 files changed, 35 insertions(+), 13 deletions(-)
+> 
+> diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h
+> b/include/uapi/linux/netfilter/nf_conntrack_common.h
+> index 6a8e33d..38fc383 100644
+> --- a/include/uapi/linux/netfilter/nf_conntrack_common.h
+> +++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
+> @@ -82,10 +82,6 @@ enum ip_conntrack_status {
+>  	IPS_DYING_BIT = 9,
+>  	IPS_DYING = (1 << IPS_DYING_BIT),
+> 
+> -	/* Bits that cannot be altered from userland. */
+> -	IPS_UNCHANGEABLE_MASK = (IPS_NAT_DONE_MASK | IPS_NAT_MASK |
+> -				 IPS_EXPECTED | IPS_CONFIRMED | IPS_DYING),
+> -
+>  	/* Connection has fixed timeout. */
+>  	IPS_FIXED_TIMEOUT_BIT = 10,
+>  	IPS_FIXED_TIMEOUT = (1 << IPS_FIXED_TIMEOUT_BIT), @@ -101,6
+> +97,15 @@ enum ip_conntrack_status {
+>  	/* Conntrack got a helper explicitly attached via CT target. */
+>  	IPS_HELPER_BIT = 13,
+>  	IPS_HELPER = (1 << IPS_HELPER_BIT),
+> +
+> +	/* Be careful here, modifying these bits can make things messy,
+> +	 * so don't let users modify them directly.
+> +	 */
+> +	IPS_UNCHANGEABLE_MASK = (IPS_NAT_DONE_MASK | IPS_NAT_MASK |
+> +				 IPS_EXPECTED | IPS_CONFIRMED | IPS_DYING |
+> +				 IPS_SEQ_ADJUST | IPS_TEMPLATE),
+> +
+> +	__IPS_MAX_BIT = 14,
+>  };
+> 
+>  /* Connection tracking event types */
+> diff --git a/net/netfilter/nf_conntrack_netlink.c
+> b/net/netfilter/nf_conntrack_netlink.c
+> index 908d858..68efe1a 100644
+> --- a/net/netfilter/nf_conntrack_netlink.c
+> +++ b/net/netfilter/nf_conntrack_netlink.c
+> @@ -1419,6 +1419,26 @@ ctnetlink_parse_nat_setup(struct nf_conn *ct,  }
+> #endif
+> 
+> +static void
+> +__ctnetlink_change_status(struct nf_conn *ct, unsigned long on,
+> +			  unsigned long off)
+> +{
+> +	unsigned long mask;
+> +	unsigned int bit;
+> +
+> +	for (bit = 0; bit < __IPS_MAX_BIT; bit++) {
+> +		mask = 1 << bit;
+> +		/* Ignore these unchangable bits */
+> +		if (mask & IPS_UNCHANGEABLE_MASK)
+> +			continue;
 
-Consider this case:
-1) nf_ct_deliver_cached_events is invoked at the first time, the
-event is failed to deliver, then the missed is set.
-2) nf_ct_deliver_cached_events is invoked again, but there is no
-any new event happened.
-The missed event is lost really.
+How about clear the bits of on and off with IPS_UNCHANGEABLE_MASK before
+loop.
+Like "on &= ~ IPS_UNCHANGEABLE_MASK";
+Then the "if (mask & IPS_UNCHANGEABLE_MASK)" could be removed.
 
-It would try to send the missed event again after remove this check.
-And it is ok if there is no missed event because the latter check
-!((events | missed) & e->ctmask) could avoid it.
+BTW, when some bits are set both of on and off, the "on" would be effective,
+but "off" not.
+So I think we could use BUILD_BUG_ON to avoid it during building.
+BUILD_BUG_ON(on&mask);
 
-2. Correct the return value check of notify->fcn.
-When send the event successfully, it returns 0, not postive value.
+Best Regards
+Feng
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
----
- net/netfilter/nf_conntrack_ecache.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index da9df2d..1e4e257 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -195,7 +195,7 @@ void nf_ct_deliver_cached_events(struct nf_conn *ct)
- 
- 	events = xchg(&e->cache, 0);
- 
--	if (!nf_ct_is_confirmed(ct) || nf_ct_is_dying(ct) || !events)
-+	if (!nf_ct_is_confirmed(ct) || nf_ct_is_dying(ct))
- 		goto out_unlock;
- 
- 	/* We make a copy of the missed event cache without taking
-@@ -212,7 +212,7 @@ void nf_ct_deliver_cached_events(struct nf_conn *ct)
- 
- 	ret = notify->fcn(events | missed, &item);
- 
--	if (likely(ret >= 0 && !missed))
-+	if (likely(ret == 0 && !missed))
- 		goto out_unlock;
- 
- 	spin_lock_bh(&ct->lock);
--- 
-1.9.1
-
+> +
+> +		if (on & mask)
+> +			set_bit(bit, &ct->status);
+> +		else if (off & mask)
+> +			clear_bit(bit, &ct->status);
+> +	}
+> +}
+> +
+>  static int
+>  ctnetlink_change_status(struct nf_conn *ct, const struct nlattr * const
+cda[])
+> { @@ -1438,10 +1458,7 @@ ctnetlink_change_status(struct nf_conn *ct, const
+> struct nlattr * const cda[])
+>  		/* ASSURED bit can only be set */
+>  		return -EBUSY;
+> 
+> -	/* Be careful here, modifying NAT bits can screw up things,
+> -	 * so don't let users modify them directly if they don't pass
+> -	 * nf_nat_range. */
+> -	ct->status |= status & ~(IPS_NAT_DONE_MASK | IPS_NAT_MASK);
+> +	__ctnetlink_change_status(ct, status, 0);
+>  	return 0;
+>  }
+> 
+> @@ -1632,7 +1649,7 @@ ctnetlink_change_seq_adj(struct nf_conn *ct,
+>  		if (ret < 0)
+>  			return ret;
+> 
+> -		ct->status |= IPS_SEQ_ADJUST;
+> +		set_bit(IPS_SEQ_ADJUST_BIT, &ct->status);
+>  	}
+> 
+>  	if (cda[CTA_SEQ_ADJ_REPLY]) {
+> @@ -1641,7 +1658,7 @@ ctnetlink_change_seq_adj(struct nf_conn *ct,
+>  		if (ret < 0)
+>  			return ret;
+> 
+> -		ct->status |= IPS_SEQ_ADJUST;
+> +		set_bit(IPS_SEQ_ADJUST_BIT, &ct->status);
+>  	}
+> 
+>  	return 0;
+> @@ -2295,10 +2312,10 @@ ctnetlink_update_status(struct nf_conn *ct, const
+> struct nlattr * const cda[])
+>  	/* This check is less strict than ctnetlink_change_status()
+>  	 * because callers often flip IPS_EXPECTED bits when sending
+>  	 * an NFQA_CT attribute to the kernel.  So ignore the
+> -	 * unchangeable bits but do not error out.
+> +	 * unchangeable bits but do not error out. Also user programs
+> +	 * are allowed to clear the bits that they are allowed to change.
+>  	 */
+> -	ct->status = (status & ~IPS_UNCHANGEABLE_MASK) |
+> -		     (ct->status & IPS_UNCHANGEABLE_MASK);
+> +	__ctnetlink_change_status(ct, status, ~status);
+>  	return 0;
+>  }
+> 
+> --
+> 2.5.5
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
 
