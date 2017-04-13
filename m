@@ -1,7 +1,7 @@
 From: "Gao Feng" <gfree.wind@foxmail.com>
 Subject: RE: [PATCH nf] netfilter: ctnetlink: make it safer when updating ct->status
-Date: Thu, 13 Apr 2017 10:42:27 +0800
-Message-ID: <000001d2b3ff$9777d110$c6677330$@foxmail.com>
+Date: Thu, 13 Apr 2017 10:43:52 +0800
+Message-ID: <000101d2b3ff$c9fc6740$5df535c0$@foxmail.com>
 References: <1492012596-60889-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -11,199 +11,211 @@ Cc: <netfilter-devel@vger.kernel.org>, <cernekee@chromium.org>,
         "'Liping Zhang'" <zlpnobody@gmail.com>
 To: "'Liping Zhang'" <zlpnobody@163.com>, <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg202.qq.com ([184.105.206.29]:53722 "EHLO smtpbg202.qq.com"
+Received: from smtpbgau2.qq.com ([54.206.34.216]:38689 "EHLO smtpbgau2.qq.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751803AbdDMCmb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Apr 2017 22:42:31 -0400
-In-Reply-To: <1492012596-60889-1-git-send-email-zlpnobody@163.com>
+        id S1755557AbdDMCn5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Apr 2017 22:43:57 -0400
+In-Reply-To: 
 Content-Language: zh-cn
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Liping,
-
 > -----Original Message-----
-> From: netfilter-devel-owner@vger.kernel.org
-> [mailto:netfilter-devel-owner@vger.kernel.org] On Behalf Of Liping Zhang
-> Sent: Wednesday, April 12, 2017 11:57 PM
-> To: pablo@netfilter.org
-> Cc: netfilter-devel@vger.kernel.org; cernekee@chromium.org; Liping Zhang
+> From: Gao Feng [mailto:gfree.wind@foxmail.com]
+> Sent: Thursday, April 13, 2017 10:42 AM
+> To: 'Liping Zhang' <zlpnobody@163.com>; 'pablo@netfilter.org'
+> <pablo@netfilter.org>
+> Cc: 'netfilter-devel@vger.kernel.org' <netfilter-devel@vger.kernel.org>;
+> 'cernekee@chromium.org' <cernekee@chromium.org>; 'Liping Zhang'
 > <zlpnobody@gmail.com>
-> Subject: [PATCH nf] netfilter: ctnetlink: make it safer when updating
-ct->status
+> Subject: RE: [PATCH nf] netfilter: ctnetlink: make it safer when updating
+> ct->status
 > 
-> From: Liping Zhang <zlpnobody@gmail.com>
+> Hi Liping,
 > 
-> User can update the ct->status via nfnetlink, but using a non-atomic
-operation
-> "ct->status |= status;". This is unsafe, and may clear IPS_DYING_BIT bit
-set by
-> another CPU unexpectedly. For example:
->          CPU0                            CPU1
->   ctnetlink_change_status        __nf_conntrack_find_get
->       old = ct->status              nf_ct_gc_expired
->           -                         nf_ct_kill
->           -                      test_and_set_bit(IPS_DYING_BIT
->           -                             -
->   ct->status = old | status;<-- oops, _DYING_ is cleared!
+> > -----Original Message-----
+> > From: netfilter-devel-owner@vger.kernel.org
+> > [mailto:netfilter-devel-owner@vger.kernel.org] On Behalf Of Liping
+> > Zhang
+> > Sent: Wednesday, April 12, 2017 11:57 PM
+> > To: pablo@netfilter.org
+> > Cc: netfilter-devel@vger.kernel.org; cernekee@chromium.org; Liping
+> > Zhang <zlpnobody@gmail.com>
+> > Subject: [PATCH nf] netfilter: ctnetlink: make it safer when updating
+> > ct->status
+> >
+> > From: Liping Zhang <zlpnobody@gmail.com>
+> >
+> > User can update the ct->status via nfnetlink, but using a non-atomic
+> > operation "ct->status |= status;". This is unsafe, and may clear
+> > IPS_DYING_BIT bit set by another CPU unexpectedly. For example:
+> >          CPU0                            CPU1
+> >   ctnetlink_change_status        __nf_conntrack_find_get
+> >       old = ct->status              nf_ct_gc_expired
+> >           -                         nf_ct_kill
+> >           -                      test_and_set_bit(IPS_DYING_BIT
+> >           -                             -
+> >   ct->status = old | status;<-- oops, _DYING_ is cleared!
+> >
+> > So using a series of atomic bit operation to solve the above issue.
+> >
+> > Also note, user shouldn't set IPS_TEMPLATE, IPS_SEQ_ADJUST directly.
+> >
+> > If we set the IPS_TEMPLATE_BIT, ct will be freed by nf_ct_tmpl_free,
+> > but actually it is alloced by nf_conntrack_alloc.
+> >
+> > If we set the IPS_SEQ_ADJUST_BIT, this may cause the NULL pointer
+> > deference, as the nfct_seqadj(ct) maybe NULL.
+> >
+> > So make these two bits be unchangable too.
+> >
+> > Last, add some comments to describe the logic change due to the commit
+> > a963d710f367 ("netfilter: ctnetlink: Fix regression in CTA_STATUS
+> > processing"), which makes me feel a little confusing.
+> >
+> > Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+> > ---
+> >  include/uapi/linux/netfilter/nf_conntrack_common.h | 13 +++++---
+> >  net/netfilter/nf_conntrack_netlink.c               | 35
+> > ++++++++++++++++------
+> >  2 files changed, 35 insertions(+), 13 deletions(-)
+> >
+> > diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h
+> > b/include/uapi/linux/netfilter/nf_conntrack_common.h
+> > index 6a8e33d..38fc383 100644
+> > --- a/include/uapi/linux/netfilter/nf_conntrack_common.h
+> > +++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
+> > @@ -82,10 +82,6 @@ enum ip_conntrack_status {
+> >  	IPS_DYING_BIT = 9,
+> >  	IPS_DYING = (1 << IPS_DYING_BIT),
+> >
+> > -	/* Bits that cannot be altered from userland. */
+> > -	IPS_UNCHANGEABLE_MASK = (IPS_NAT_DONE_MASK | IPS_NAT_MASK |
+> > -				 IPS_EXPECTED | IPS_CONFIRMED | IPS_DYING),
+> > -
+> >  	/* Connection has fixed timeout. */
+> >  	IPS_FIXED_TIMEOUT_BIT = 10,
+> >  	IPS_FIXED_TIMEOUT = (1 << IPS_FIXED_TIMEOUT_BIT), @@ -101,6
+> > +97,15 @@ enum ip_conntrack_status {
+> >  	/* Conntrack got a helper explicitly attached via CT target. */
+> >  	IPS_HELPER_BIT = 13,
+> >  	IPS_HELPER = (1 << IPS_HELPER_BIT),
+> > +
+> > +	/* Be careful here, modifying these bits can make things messy,
+> > +	 * so don't let users modify them directly.
+> > +	 */
+> > +	IPS_UNCHANGEABLE_MASK = (IPS_NAT_DONE_MASK | IPS_NAT_MASK |
+> > +				 IPS_EXPECTED | IPS_CONFIRMED | IPS_DYING |
+> > +				 IPS_SEQ_ADJUST | IPS_TEMPLATE),
+> > +
+> > +	__IPS_MAX_BIT = 14,
+> >  };
+> >
+> >  /* Connection tracking event types */ diff --git
+> > a/net/netfilter/nf_conntrack_netlink.c
+> > b/net/netfilter/nf_conntrack_netlink.c
+> > index 908d858..68efe1a 100644
+> > --- a/net/netfilter/nf_conntrack_netlink.c
+> > +++ b/net/netfilter/nf_conntrack_netlink.c
+> > @@ -1419,6 +1419,26 @@ ctnetlink_parse_nat_setup(struct nf_conn *ct,
+> > } #endif
+> >
+> > +static void
+> > +__ctnetlink_change_status(struct nf_conn *ct, unsigned long on,
+> > +			  unsigned long off)
+> > +{
+> > +	unsigned long mask;
+> > +	unsigned int bit;
+> > +
+> > +	for (bit = 0; bit < __IPS_MAX_BIT; bit++) {
+> > +		mask = 1 << bit;
+> > +		/* Ignore these unchangable bits */
+> > +		if (mask & IPS_UNCHANGEABLE_MASK)
+> > +			continue;
 > 
-> So using a series of atomic bit operation to solve the above issue.
+> How about clear the bits of on and off with IPS_UNCHANGEABLE_MASK before
+> loop.
+> Like "on &= ~ IPS_UNCHANGEABLE_MASK";
+> Then the "if (mask & IPS_UNCHANGEABLE_MASK)" could be removed.
 > 
-> Also note, user shouldn't set IPS_TEMPLATE, IPS_SEQ_ADJUST directly.
-> 
-> If we set the IPS_TEMPLATE_BIT, ct will be freed by nf_ct_tmpl_free, but
-> actually it is alloced by nf_conntrack_alloc.
-> 
-> If we set the IPS_SEQ_ADJUST_BIT, this may cause the NULL pointer
-deference,
-> as the nfct_seqadj(ct) maybe NULL.
-> 
-> So make these two bits be unchangable too.
-> 
-> Last, add some comments to describe the logic change due to the commit
-> a963d710f367 ("netfilter: ctnetlink: Fix regression in CTA_STATUS
-processing"),
-> which makes me feel a little confusing.
-> 
-> Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
-> ---
->  include/uapi/linux/netfilter/nf_conntrack_common.h | 13 +++++---
->  net/netfilter/nf_conntrack_netlink.c               | 35
-> ++++++++++++++++------
->  2 files changed, 35 insertions(+), 13 deletions(-)
-> 
-> diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h
-> b/include/uapi/linux/netfilter/nf_conntrack_common.h
-> index 6a8e33d..38fc383 100644
-> --- a/include/uapi/linux/netfilter/nf_conntrack_common.h
-> +++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
-> @@ -82,10 +82,6 @@ enum ip_conntrack_status {
->  	IPS_DYING_BIT = 9,
->  	IPS_DYING = (1 << IPS_DYING_BIT),
-> 
-> -	/* Bits that cannot be altered from userland. */
-> -	IPS_UNCHANGEABLE_MASK = (IPS_NAT_DONE_MASK | IPS_NAT_MASK |
-> -				 IPS_EXPECTED | IPS_CONFIRMED | IPS_DYING),
-> -
->  	/* Connection has fixed timeout. */
->  	IPS_FIXED_TIMEOUT_BIT = 10,
->  	IPS_FIXED_TIMEOUT = (1 << IPS_FIXED_TIMEOUT_BIT), @@ -101,6
-> +97,15 @@ enum ip_conntrack_status {
->  	/* Conntrack got a helper explicitly attached via CT target. */
->  	IPS_HELPER_BIT = 13,
->  	IPS_HELPER = (1 << IPS_HELPER_BIT),
-> +
-> +	/* Be careful here, modifying these bits can make things messy,
-> +	 * so don't let users modify them directly.
-> +	 */
-> +	IPS_UNCHANGEABLE_MASK = (IPS_NAT_DONE_MASK | IPS_NAT_MASK |
-> +				 IPS_EXPECTED | IPS_CONFIRMED | IPS_DYING |
-> +				 IPS_SEQ_ADJUST | IPS_TEMPLATE),
-> +
-> +	__IPS_MAX_BIT = 14,
->  };
-> 
->  /* Connection tracking event types */
-> diff --git a/net/netfilter/nf_conntrack_netlink.c
-> b/net/netfilter/nf_conntrack_netlink.c
-> index 908d858..68efe1a 100644
-> --- a/net/netfilter/nf_conntrack_netlink.c
-> +++ b/net/netfilter/nf_conntrack_netlink.c
-> @@ -1419,6 +1419,26 @@ ctnetlink_parse_nat_setup(struct nf_conn *ct,  }
-> #endif
-> 
-> +static void
-> +__ctnetlink_change_status(struct nf_conn *ct, unsigned long on,
-> +			  unsigned long off)
-> +{
-> +	unsigned long mask;
-> +	unsigned int bit;
-> +
-> +	for (bit = 0; bit < __IPS_MAX_BIT; bit++) {
-> +		mask = 1 << bit;
-> +		/* Ignore these unchangable bits */
-> +		if (mask & IPS_UNCHANGEABLE_MASK)
-> +			continue;
+> BTW, when some bits are set both of on and off, the "on" would be
+effective,
+> but "off" not.
+> So I think we could use BUILD_BUG_ON to avoid it during building.
+> BUILD_BUG_ON(on&mask);
 
-How about clear the bits of on and off with IPS_UNCHANGEABLE_MASK before
-loop.
-Like "on &= ~ IPS_UNCHANGEABLE_MASK";
-Then the "if (mask & IPS_UNCHANGEABLE_MASK)" could be removed.
+It is typo. Should be BUILD_BUG_ON(on&off).
 
-BTW, when some bits are set both of on and off, the "on" would be effective,
-but "off" not.
-So I think we could use BUILD_BUG_ON to avoid it during building.
-BUILD_BUG_ON(on&mask);
-
-Best Regards
+Regards
 Feng
-
-> +
-> +		if (on & mask)
-> +			set_bit(bit, &ct->status);
-> +		else if (off & mask)
-> +			clear_bit(bit, &ct->status);
-> +	}
-> +}
-> +
->  static int
->  ctnetlink_change_status(struct nf_conn *ct, const struct nlattr * const
-cda[])
-> { @@ -1438,10 +1458,7 @@ ctnetlink_change_status(struct nf_conn *ct, const
-> struct nlattr * const cda[])
->  		/* ASSURED bit can only be set */
->  		return -EBUSY;
 > 
-> -	/* Be careful here, modifying NAT bits can screw up things,
-> -	 * so don't let users modify them directly if they don't pass
-> -	 * nf_nat_range. */
-> -	ct->status |= status & ~(IPS_NAT_DONE_MASK | IPS_NAT_MASK);
-> +	__ctnetlink_change_status(ct, status, 0);
->  	return 0;
->  }
+> Best Regards
+> Feng
 > 
-> @@ -1632,7 +1649,7 @@ ctnetlink_change_seq_adj(struct nf_conn *ct,
->  		if (ret < 0)
->  			return ret;
-> 
-> -		ct->status |= IPS_SEQ_ADJUST;
-> +		set_bit(IPS_SEQ_ADJUST_BIT, &ct->status);
->  	}
-> 
->  	if (cda[CTA_SEQ_ADJ_REPLY]) {
-> @@ -1641,7 +1658,7 @@ ctnetlink_change_seq_adj(struct nf_conn *ct,
->  		if (ret < 0)
->  			return ret;
-> 
-> -		ct->status |= IPS_SEQ_ADJUST;
-> +		set_bit(IPS_SEQ_ADJUST_BIT, &ct->status);
->  	}
-> 
->  	return 0;
-> @@ -2295,10 +2312,10 @@ ctnetlink_update_status(struct nf_conn *ct, const
-> struct nlattr * const cda[])
->  	/* This check is less strict than ctnetlink_change_status()
->  	 * because callers often flip IPS_EXPECTED bits when sending
->  	 * an NFQA_CT attribute to the kernel.  So ignore the
-> -	 * unchangeable bits but do not error out.
-> +	 * unchangeable bits but do not error out. Also user programs
-> +	 * are allowed to clear the bits that they are allowed to change.
->  	 */
-> -	ct->status = (status & ~IPS_UNCHANGEABLE_MASK) |
-> -		     (ct->status & IPS_UNCHANGEABLE_MASK);
-> +	__ctnetlink_change_status(ct, status, ~status);
->  	return 0;
->  }
-> 
-> --
-> 2.5.5
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
-in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > +
+> > +		if (on & mask)
+> > +			set_bit(bit, &ct->status);
+> > +		else if (off & mask)
+> > +			clear_bit(bit, &ct->status);
+> > +	}
+> > +}
+> > +
+> >  static int
+> >  ctnetlink_change_status(struct nf_conn *ct, const struct nlattr *
+> > const cda[]) { @@ -1438,10 +1458,7 @@ ctnetlink_change_status(struct
+> > nf_conn *ct, const struct nlattr * const cda[])
+> >  		/* ASSURED bit can only be set */
+> >  		return -EBUSY;
+> >
+> > -	/* Be careful here, modifying NAT bits can screw up things,
+> > -	 * so don't let users modify them directly if they don't pass
+> > -	 * nf_nat_range. */
+> > -	ct->status |= status & ~(IPS_NAT_DONE_MASK | IPS_NAT_MASK);
+> > +	__ctnetlink_change_status(ct, status, 0);
+> >  	return 0;
+> >  }
+> >
+> > @@ -1632,7 +1649,7 @@ ctnetlink_change_seq_adj(struct nf_conn *ct,
+> >  		if (ret < 0)
+> >  			return ret;
+> >
+> > -		ct->status |= IPS_SEQ_ADJUST;
+> > +		set_bit(IPS_SEQ_ADJUST_BIT, &ct->status);
+> >  	}
+> >
+> >  	if (cda[CTA_SEQ_ADJ_REPLY]) {
+> > @@ -1641,7 +1658,7 @@ ctnetlink_change_seq_adj(struct nf_conn *ct,
+> >  		if (ret < 0)
+> >  			return ret;
+> >
+> > -		ct->status |= IPS_SEQ_ADJUST;
+> > +		set_bit(IPS_SEQ_ADJUST_BIT, &ct->status);
+> >  	}
+> >
+> >  	return 0;
+> > @@ -2295,10 +2312,10 @@ ctnetlink_update_status(struct nf_conn *ct,
+> > const struct nlattr * const cda[])
+> >  	/* This check is less strict than ctnetlink_change_status()
+> >  	 * because callers often flip IPS_EXPECTED bits when sending
+> >  	 * an NFQA_CT attribute to the kernel.  So ignore the
+> > -	 * unchangeable bits but do not error out.
+> > +	 * unchangeable bits but do not error out. Also user programs
+> > +	 * are allowed to clear the bits that they are allowed to change.
+> >  	 */
+> > -	ct->status = (status & ~IPS_UNCHANGEABLE_MASK) |
+> > -		     (ct->status & IPS_UNCHANGEABLE_MASK);
+> > +	__ctnetlink_change_status(ct, status, ~status);
+> >  	return 0;
+> >  }
+> >
+> > --
+> > 2.5.5
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe
+> > netfilter-devel" in the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
 
