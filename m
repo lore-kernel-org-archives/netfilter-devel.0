@@ -1,45 +1,71 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH nf] netfilter: xt_CT: fix cthelper module's refcnt leak
-Date: Fri, 14 Apr 2017 07:09:58 +0800
-Message-ID: <CAML_gOe-gAk0fyhRE9e4chqL7=nEOqc5_cWBO0YvqAAKqZXHSw@mail.gmail.com>
-References: <1491622728-55625-1-git-send-email-zlpnobody@163.com> <20170413223056.GA5106@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next v2 1/1] netfilter: SYNPROXY: Return NF_STOLEN
+ instead of NF_DROP during handshaking
+Date: Fri, 14 Apr 2017 01:11:35 +0200
+Message-ID: <20170413231135.GA7158@salvia>
+References: <1491963290-84377-1-git-send-email-gfree.wind@foxmail.com>
+ <20170413215749.GA4208@salvia>
+ <001201d2b4aa$57bc8ba0$0735a2e0$@foxmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Liping Zhang <zlpnobody@163.com>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>, Gao Feng <fgao@ikuai8.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Gao Feng <gfree.wind@foxmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ua0-f169.google.com ([209.85.217.169]:36641 "EHLO
-        mail-ua0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751657AbdDMXJ7 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2017 19:09:59 -0400
-Received: by mail-ua0-f169.google.com with SMTP id a1so40976834uaf.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Apr 2017 16:09:59 -0700 (PDT)
-In-Reply-To: <20170413223056.GA5106@salvia>
+Received: from mail.us.es ([193.147.175.20]:54974 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752070AbdDMXLn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Apr 2017 19:11:43 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E5227C108D
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:11:38 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2DDB5DA804
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:11:44 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 03307DA725
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:11:42 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <001201d2b4aa$57bc8ba0$0735a2e0$@foxmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+On Fri, Apr 14, 2017 at 07:04:44AM +0800, Gao Feng wrote:
+> > -----Original Message-----
+> > From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
+> > 
+> > On Wed, Apr 12, 2017 at 10:14:50AM +0800, gfree.wind@foxmail.com wrote:
+> > >
+> > > Current SYNPROXY codes return NF_DROP during normal TCP handshaking,
+> > > it is not friendly to caller. Because the nf_hook_slow would treat the
+> > > NF_DROP as an error, and return -EPERM.
+> > > As a result, it may cause the top caller think it meets one error.
+> > >
+> > > So use NF_STOLEN instead of NF_DROP now because there is no error
+> > > happened indeed, and free the skb directly.
+> > 
+> > Is this really addressing a real problem? How did you reproduce it?
+> 
+> We defined the NF_DROP and NF_STOLEN, I think we should use them clearly.
+> When NF_DROP happens, it means one error happened.
 
-2017-04-14 6:30 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
->> We should call module_put when the time policy is not found. Otherwise,
->> the related cthelper module cannot be removed anymore.
->>
->> It is easy to reproduce by typing the following command:
->>   # iptables -t raw -A OUTPUT -p tcp -j CT --helper ftp --timeout xxx
->
-> Can we fix all leaks in the error path in one single patch for xt_CT?
+That's a valid concern. How did you tested this change?
 
-Right.
+[...]
+> Sorry, I always use one command "git format-patch -s -n master..XX"
+> according to one document
+> whose title is "HOWTO: Create and submit your first Linux kernel patch using
+> GIT".
+> 
+> It generate the "1/1" by default.
 
-> Feng sent me a patch to fix another issue there, so if either you or
-> him send me one single patch to fix all xt_CT refcount leaks in one
-> go, I'd appreciate.
+There are ways to avoid that. Only you send 1/1 patches.
 
-Feng, since you spotted this issue earlier, can you send a new patch to do this?
-With a new patch name: "netfilter: xt_CT: fix refcnt leak on error path".
+> I will try to lookup other documents about the patch rule, and correct the
+> current command.
 
-Also you can add my:
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+OK.
+
+[...]
+> More carefully, and don't rush more.
+
+Thank you.
