@@ -1,67 +1,58 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf 1/1] netfilter: cttimeout: Fix one possible
- use-after-free issue
-Date: Fri, 14 Apr 2017 00:44:00 +0200
-Message-ID: <20170413224400.GA5350@salvia>
-References: <1491476949-92872-1-git-send-email-gfree.wind@foxmail.com>
- <20170413214756.GA3960@salvia>
- <001101d2b4a6$37cbce40$a7636ac0$@foxmail.com>
+Subject: Re: [PATCH nf-next 1/1] netfilter: cttimeout: Refine
+ cttimeout_del_timeout
+Date: Fri, 14 Apr 2017 00:58:32 +0200
+Message-ID: <20170413225832.GA5541@salvia>
+References: <1491564336-44483-1-git-send-email-gfree.wind@foxmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Gao Feng <gfree.wind@foxmail.com>
+Cc: netfilter-devel@vger.kernel.org, Gao Feng <fgao@ikuai8.com>
+To: gfree.wind@foxmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51324 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53202 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750735AbdDMWoX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2017 18:44:23 -0400
+        id S1752040AbdDMW6u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Apr 2017 18:58:50 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E1E53BA716
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 00:44:16 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 5A02FBDF67
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 00:58:45 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2AB7CDA725
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 00:44:22 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 94F09DA80B
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 00:58:50 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 74721DA725
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 00:44:19 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EB1ECDA807
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 00:58:46 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <001101d2b4a6$37cbce40$a7636ac0$@foxmail.com>
+In-Reply-To: <1491564336-44483-1-git-send-email-gfree.wind@foxmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Apr 14, 2017 at 06:35:13AM +0800, Gao Feng wrote:
-> > -----Original Message-----
-> > From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
-> > On Thu, Apr 06, 2017 at 07:09:09PM +0800, gfree.wind@foxmail.com wrote:
-> > >
-> > > The function ctnl_untimeout is used to untimeout every conntrack which
-> > > is using the timeout. But it is necessary to add one barrier
-> > > synchronize_rcu because of racing. Maybe one conntrack has already
-> > > owned this timeout, but it is not inserted into unconfirmed list or
-> > > the hash list, when ctnl_untimeout untimeout the conntracks
-> > 
-> > This object is released via kfree_rcu().
-> > 
-> > You have to describe better the race scenario.
+On Fri, Apr 07, 2017 at 07:25:36PM +0800, gfree.wind@foxmail.com wrote:
+> From: Gao Feng <fgao@ikuai8.com>
 > 
-> Let me describe it with a call path
-> CPU1     			                  CPU2
-> alloc new conn
-> add timeout ext
-> 	
-> ctnl_timeout_try_del
->                                    untimeout all conns in list
-> 	
-> kfree_rcu.
-> conn is confirmed.
+> 1. Return one error when try to delete all timeouts and meet one erorr;
+> 2. Delete the condition block when fail to delete specified timeout.
+> It is more clear that it would stop the loop when find one matched timeout.
 > 
-> As the show above, when cpu2 untimeout all conns in list, the new conn of
-> cpu1
-> is not confirmed. The new conn still owns the timeout pointer. After the
-> timeout
-> mem is freed really, it points to one invalid mem.
+> Signed-off-by: Gao Feng <fgao@ikuai8.com>
+> ---
+>  net/netfilter/nfnetlink_cttimeout.c | 15 +++++++++------
+>  1 file changed, 9 insertions(+), 6 deletions(-)
+> 
+> diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+> index baa75f3..220847a 100644
+> --- a/net/netfilter/nfnetlink_cttimeout.c
+> +++ b/net/netfilter/nfnetlink_cttimeout.c
+> @@ -361,11 +361,17 @@ static int cttimeout_del_timeout(struct net *net, struct sock *ctnl,
+>  	char *name;
+>  
+>  	if (!cda[CTA_TIMEOUT_NAME]) {
+> +		int cur_ret;
+> +
+> +		ret = 0;
+>  		list_for_each_entry_safe(cur, tmp, &net->nfct_timeout_list,
+> -					 head)
+> -			ctnl_timeout_try_del(net, cur);
 
-You add this to your patch description and resubmit.
-
-Please, send me one patch or two maximum at a time. Until I don't
-apply one, you don't send me a new one.
+This code ignores ctnl_timeout_try_del() on purpose, to implement the
+flush operation.
