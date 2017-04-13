@@ -1,109 +1,37 @@
-From: "Gao Feng" <gfree.wind@foxmail.com>
-Subject: RE: [PATCH nf-next v2 1/1] netfilter: SYNPROXY: Return NF_STOLEN instead of NF_DROP during handshaking
-Date: Fri, 14 Apr 2017 07:04:44 +0800
-Message-ID: <001201d2b4aa$57bc8ba0$0735a2e0$@foxmail.com>
-References: <1491963290-84377-1-git-send-email-gfree.wind@foxmail.com> <20170413215749.GA4208@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/2 v2] iptables-restore/ip6tables-restore: add
+ --version/-V argument
+Date: Fri, 14 Apr 2017 01:05:14 +0200
+Message-ID: <20170413230514.GA6713@salvia>
+References: <1491255160.5423.16.camel@redhat.com>
+ <20170408220418.GA8524@salvia>
+ <1491707416.27302.1.camel@redhat.com>
+ <20170410115356.GC2155@salvia>
+ <1491845516.28450.3.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>
-To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>,
-        <gfree.wind@foxmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Dan Williams <dcbw@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg202.qq.com ([184.105.206.29]:47973 "EHLO smtpbg202.qq.com"
+Received: from mail.us.es ([193.147.175.20]:54154 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751576AbdDMXEt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2017 19:04:49 -0400
-In-Reply-To: <20170413215749.GA4208@salvia>
-Content-Language: zh-cn
+        id S1752040AbdDMXFZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Apr 2017 19:05:25 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 1D334C108C
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:05:21 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5C056DA86D
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:05:26 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5BBD0DA7E9
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:05:24 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <1491845516.28450.3.camel@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> -----Original Message-----
-> From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
-> 
-> On Wed, Apr 12, 2017 at 10:14:50AM +0800, gfree.wind@foxmail.com wrote:
-> >
-> > Current SYNPROXY codes return NF_DROP during normal TCP handshaking,
-> > it is not friendly to caller. Because the nf_hook_slow would treat the
-> > NF_DROP as an error, and return -EPERM.
-> > As a result, it may cause the top caller think it meets one error.
-> >
-> > So use NF_STOLEN instead of NF_DROP now because there is no error
-> > happened indeed, and free the skb directly.
-> 
-> Is this really addressing a real problem? How did you reproduce it?
+On Mon, Apr 10, 2017 at 12:31:56PM -0500, Dan Williams wrote:
+> Prints program version just like iptables/ip6tables.
 
-We defined the NF_DROP and NF_STOLEN, I think we should use them clearly.
-When NF_DROP happens, it means one error happened.
-
-In this case, when synproxy returns NF_DROP, it would be returned as the
-return
-value of netif_receive_skb.
-And some driver would check the return value, like sb1250-mac.c.
-Its function "sbdma_rx_process" checks the return value of
-"netif_receive_skb".
-
-dropped = netif_receive_skb(sb);
-if (dropped == NET_RX_DROP) {
-    dev->stats.rx_dropped++;
-........
-
-The "NET_RX_DROP" is same as NF_DROP. When return NF_DROP, it would add the 
-dropped counter.
-
-
-> 
-> BTW, your patch title is wrong.
-> 
-> [PATCH nf-next v2 1/1]
->                   ^^^
-> 
-> This 1/1 is completely useless, please remove it in your follow up
-patches.
-
-Sorry, I always use one command "git format-patch -s -n master..XX"
-according to one document
-whose title is "HOWTO: Create and submit your first Linux kernel patch using
-GIT".
-
-It generate the "1/1" by default.
-
-I will try to lookup other documents about the patch rule, and correct the
-current command.
-
-> 
-> Moreover, you should be more careful, *really*, this is not a speed coding
-> contest. You tend to send me follow up patch version just hours afterwards
-> because you rush too much.
-
-Yes, it is my fault. I would pay more attention on it.
-I treated the patch commit as the power which could push me investigate the
-kernel codes.
-When one commit is accept, it would excite me a lot.
-
->From now on, I would use the power more carefully, and don't rush more.
-
-> 
-> Be more careful, use the same email address to send your patches. Drop
-quote
-> the full email in your replies...
-
-I would drop the quote by manual carefully. 
-As mentioned in other email, I have to change my email from gmail, and try
-to find one which could support text email well recently
-
-More carefully, and don't rush more.
-I must follow it.
-
-Best Regards
-Feng
-
-> 
-> Other than that, I may start ignoring your patches, it's too hard to keep
-up with
-> this.
-
-
-
+Applied, thanks.
