@@ -1,67 +1,54 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnetfilter_queue][PATCH 2/2] Declare the define visivility
- attribute together
-Date: Fri, 14 Apr 2017 01:49:11 +0200
-Message-ID: <20170413234911.GA9656@salvia>
-References: <20170410195804.18238-1-raj.khem@gmail.com>
- <20170410195804.18238-2-raj.khem@gmail.com>
- <20170413233719.GB8577@salvia>
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH nf V2] netfilter: nf_ct_helper: permit cthelpers with
+ different names via nfnetlink
+Date: Fri, 14 Apr 2017 07:50:26 +0800
+Message-ID: <CAML_gOdLUzEteQC1UEw8N9FEnudWHfM3K-hv7hy5xKwehRWNCA@mail.gmail.com>
+References: <1490792404-6035-1-git-send-email-zlpnobody@163.com>
+ <CAML_gOdMiDPy==pvW5D5MrJZ1UfnpAzK172R4QbehnSkmHZP0w@mail.gmail.com> <20170413222914.GA5089@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Khem Raj <raj.khem@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Cc: Liping Zhang <zlpnobody@163.com>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59100 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753288AbdDMXt3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2017 19:49:29 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 901A1C1241
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:49:24 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CE015DA729
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:49:29 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7F2E1DA7F7
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:49:26 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20170413233719.GB8577@salvia>
+Received: from mail-vk0-f53.google.com ([209.85.213.53]:36213 "EHLO
+        mail-vk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753288AbdDMXu1 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Apr 2017 19:50:27 -0400
+Received: by mail-vk0-f53.google.com with SMTP id q78so4289025vke.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Apr 2017 16:50:27 -0700 (PDT)
+In-Reply-To: <20170413222914.GA5089@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Apr 14, 2017 at 01:37:19AM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Apr 10, 2017 at 12:58:04PM -0700, Khem Raj wrote:
-> > clang ignores the visibility attribute if its not
-> > defined before the definition. As a result these
-> > symbols become hidden and consumers of this library
-> > fail to link due to these missing symbols
-> 
-> Also applied, thanks.
+Hi Pablo,
 
-Argh. Now we have two different ways to do this accross different
-libraries.
+2017-04-14 6:29 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+[...]
+>> After I have a closer look, inside hlist_for_each_entry_rcu, we use the
+>> rcu_dereference_raw() to get the pointer, and this will not generate warning:
+>>
+>> #define hlist_for_each_entry_rcu(pos, head, member) \
+>>     for (pos = hlist_entry_safe (rcu_dereference_raw(hlist_first_rcu(head)),\
+>>                          typeof(*(pos)), member);
+>>    ....
+>>
+>> Then "This is likely going to spot false positives with the RCU
+>> debugging instrumentation"
+>> will not happen.
+>
+> Right, instrumentation will not trigger any problem.
+>
+> But even if instrumention is not a problem, I just would like to avoid
+> people sending me "obvious" fixes afterwards, by removing _rcu since
+> they see this code runs under mutex or how knows what.
 
-Moreover, in you patch:
+I'm a little confusing about this one.
 
-http://patchwork.ozlabs.org/patch/749223/
+I found "http://patchwork.ozlabs.org/patch/744786/" and
+"http://patchwork.ozlabs.org/patch/743472/" were both set
+to "Changes Requested".
 
-+int __EXPORTED nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
-                         const void *data, uint32_t data_len)
-
-for what it used to be:
-
-+int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
-                         const void *data, uint32_t data_len)
-
-I wonder if there is a way to do this without a follow up patch to fix
-all these indentations.
-
-If this is just to fix clang, can you probably follow this patch instead?
-
-http://git.netfilter.org/libmnl/commit/?id=dcdb47373a375087d2dd8cee5e2a9c66fcc147eb
-
-It would be good if you send me a patch for libnetfilter_queue that
-applies on top of you previous patch, or I can simply revert.
-
-I just would like to keep this consistent for all libraries while
-fixing this clang issue.
+So which one is you prefer to :)? What's next step should I do?
