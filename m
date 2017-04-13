@@ -1,108 +1,109 @@
-From: Jarno Rajahalme <jarno@ovn.org>
-Subject: Re: [PATCH nf] datapath: Delete conntrack entry clashing with an expectation.
-Date: Thu, 13 Apr 2017 16:02:34 -0700
-Message-ID: <A64CC64B-1882-4292-9A89-1E8F913422B4@ovn.org>
-References: <1492124482-122989-1-git-send-email-jarno@ovn.org>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Cc: joe@ovn.org
-To: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
+From: "Gao Feng" <gfree.wind@foxmail.com>
+Subject: RE: [PATCH nf-next v2 1/1] netfilter: SYNPROXY: Return NF_STOLEN instead of NF_DROP during handshaking
+Date: Fri, 14 Apr 2017 07:04:44 +0800
+Message-ID: <001201d2b4aa$57bc8ba0$0735a2e0$@foxmail.com>
+References: <1491963290-84377-1-git-send-email-gfree.wind@foxmail.com> <20170413215749.GA4208@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>
+To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>,
+        <gfree.wind@foxmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:33359 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751657AbdDMXCh (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2017 19:02:37 -0400
-Received: by mail-pg0-f67.google.com with SMTP id 63so856560pgh.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Apr 2017 16:02:37 -0700 (PDT)
-In-Reply-To: <1492124482-122989-1-git-send-email-jarno@ovn.org>
+Received: from smtpbg202.qq.com ([184.105.206.29]:47973 "EHLO smtpbg202.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751576AbdDMXEt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Apr 2017 19:04:49 -0400
+In-Reply-To: <20170413215749.GA4208@salvia>
+Content-Language: zh-cn
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Sorry for the mistake in the commit title, will send v2 shortly.
+> -----Original Message-----
+> From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
+> 
+> On Wed, Apr 12, 2017 at 10:14:50AM +0800, gfree.wind@foxmail.com wrote:
+> >
+> > Current SYNPROXY codes return NF_DROP during normal TCP handshaking,
+> > it is not friendly to caller. Because the nf_hook_slow would treat the
+> > NF_DROP as an error, and return -EPERM.
+> > As a result, it may cause the top caller think it meets one error.
+> >
+> > So use NF_STOLEN instead of NF_DROP now because there is no error
+> > happened indeed, and free the skb directly.
+> 
+> Is this really addressing a real problem? How did you reproduce it?
 
-  Jarno
+We defined the NF_DROP and NF_STOLEN, I think we should use them clearly.
+When NF_DROP happens, it means one error happened.
 
-> On Apr 13, 2017, at 4:01 PM, Jarno Rajahalme <jarno@ovn.org> wrote:
+In this case, when synproxy returns NF_DROP, it would be returned as the
+return
+value of netif_receive_skb.
+And some driver would check the return value, like sb1250-mac.c.
+Its function "sbdma_rx_process" checks the return value of
+"netif_receive_skb".
+
+dropped = netif_receive_skb(sb);
+if (dropped == NET_RX_DROP) {
+    dev->stats.rx_dropped++;
+........
+
+The "NET_RX_DROP" is same as NF_DROP. When return NF_DROP, it would add the 
+dropped counter.
+
+
 > 
-> Conntrack helpers do not check for a potentially clashing conntrack
-> entry when creating a new expectation.  Also, nf_conntrack_in() will
-> check expectations (via init_conntrack()) only if a conntrack entry
-> can not be found.  The expectation for a packet which also matches an
-> existing conntrack entry will not be removed by conntrack, and is
-> currently handled inconsistently by OVS, as OVS expects the
-> expectation to be removed when the connection tracking entry matching
-> that expectation is confirmed.
+> BTW, your patch title is wrong.
 > 
-> It should be noted that normally an IP stack would not allow reuse of
-> a 5-tuple of an old (possibly lingering) connection for a new data
-> connection, so this is somewhat unlikely corner case.  However, it is
-> possible that a misbehaving source could cause conntrack entries be
-> created that could then interfere with new related connections.
+> [PATCH nf-next v2 1/1]
+>                   ^^^
 > 
-> Fix this in the OVS module by deleting the clashing conntrack entry
-> after an expectation has been matched.  This causes the following
-> nf_conntrack_in() call also find the expectation and remove it when
-> creating the new conntrack entry, as well as the forthcoming reply
-> direction packets to match the new related connection instead of the
-> old clashing conntrack entry.
+> This 1/1 is completely useless, please remove it in your follow up
+patches.
+
+Sorry, I always use one command "git format-patch -s -n master..XX"
+according to one document
+whose title is "HOWTO: Create and submit your first Linux kernel patch using
+GIT".
+
+It generate the "1/1" by default.
+
+I will try to lookup other documents about the patch rule, and correct the
+current command.
+
 > 
-> Fixes: 7f8a436eaa2c ("openvswitch: Add conntrack action")
-> Reported-by: Yang Song <yangsong@vmware.com>
-> Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
-> ---
-> net/openvswitch/conntrack.c | 32 +++++++++++++++++++++++++++++++-
-> 1 file changed, 31 insertions(+), 1 deletion(-)
+> Moreover, you should be more careful, *really*, this is not a speed coding
+> contest. You tend to send me follow up patch version just hours afterwards
+> because you rush too much.
+
+Yes, it is my fault. I would pay more attention on it.
+I treated the patch commit as the power which could push me investigate the
+kernel codes.
+When one commit is accept, it would excite me a lot.
+
+>From now on, I would use the power more carefully, and don't rush more.
+
 > 
-> diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
-> index 7b2c2fc..e1a77be 100644
-> --- a/net/openvswitch/conntrack.c
-> +++ b/net/openvswitch/conntrack.c
-> @@ -514,10 +514,40 @@ ovs_ct_expect_find(struct net *net, const struct nf_conntrack_zone *zone,
-> 		   u16 proto, const struct sk_buff *skb)
-> {
-> 	struct nf_conntrack_tuple tuple;
-> +	struct nf_conntrack_expect *exp;
+> Be more careful, use the same email address to send your patches. Drop
+quote
+> the full email in your replies...
+
+I would drop the quote by manual carefully. 
+As mentioned in other email, I have to change my email from gmail, and try
+to find one which could support text email well recently
+
+More carefully, and don't rush more.
+I must follow it.
+
+Best Regards
+Feng
+
 > 
-> 	if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb), proto, net, &tuple))
-> 		return NULL;
-> -	return __nf_ct_expect_find(net, zone, &tuple);
-> +
-> +	exp = __nf_ct_expect_find(net, zone, &tuple);
-> +
-> +	if (exp) {
-> +		struct nf_conntrack_tuple_hash *h;
-> +
-> +		/* Delete existing conntrack entry, if it clashes with the
-> +		 * expectation.  This can happen since conntrack ALGs do not
-> +		 * check for clashes between (new) expectations and existing
-> +		 * conntrack entries.  nf_conntrack_in() will check the
-> +		 * expectations only if a conntrack entry can not be found,
-> +		 * which can lead to OVS finding the expectation (here) in the
-> +		 * init direction, but which will not be removed by the
-> +		 * nf_conntrack_in() call, if a matching conntrack entry is
-> +		 * found instead.  In this case all init direction packets
-> +		 * would be reported as new related packets, while reply
-> +		 * direction packets would be reported as un-related
-> +		 * established packets. */
-> +
-> +		h = nf_conntrack_find_get(net, zone, &tuple);
-> +		if (h) {
-> +			struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
-> +
-> +			if (nf_ct_is_confirmed(ct))
-> +				nf_ct_delete(ct, 0, 0);
-> +			nf_conntrack_put(&ct->ct_general);
-> +		}
-> +	}
-> +
-> +	return exp;
-> }
-> 
-> /* This replicates logic from nf_conntrack_core.c that is not exported. */
-> -- 
-> 2.1.4
-> 
+> Other than that, I may start ignoring your patches, it's too hard to keep
+up with
+> this.
+
+
 
