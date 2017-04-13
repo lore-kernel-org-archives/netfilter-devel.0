@@ -1,64 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf v2 1/1] netfilter: xt_CT: Fix one possible memleak of
- timeout
-Date: Fri, 14 Apr 2017 00:24:46 +0200
-Message-ID: <20170413222446.GA4978@salvia>
-References: <1491477574-82700-1-git-send-email-gfree.wind@foxmail.com>
+Subject: Re: [PATCH libmnl] nlmsg: introduce mnl_nlmsg_batch_rest to get the
+ rest length
+Date: Fri, 14 Apr 2017 00:27:00 +0200
+Message-ID: <20170413222700.GA5024@salvia>
+References: <20170403061127.GA2329@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Gao Feng <fgao@ikuai8.com>
-To: gfree.wind@foxmail.com
+Cc: The netfilter developer mailinglist
+        <netfilter-devel@vger.kernel.org>
+To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49098 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49276 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751638AbdDMWZ1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2017 18:25:27 -0400
+        id S1752121AbdDMW1M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Apr 2017 18:27:12 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 433F1BA714
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 00:25:08 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 589A2BA712
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 00:27:07 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 81751DA86B
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 00:25:13 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 97130DA7F7
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 00:27:12 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D597ADA7E9
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 00:25:09 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8B14EDA7E9
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 00:27:10 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1491477574-82700-1-git-send-email-gfree.wind@foxmail.com>
+In-Reply-To: <20170403061127.GA2329@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 06, 2017 at 07:19:34PM +0800, gfree.wind@foxmail.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
+On Mon, Apr 03, 2017 at 03:11:27PM +0900, Ken-ichirou MATSUZAWA wrote:
+> Recent languages implements array to hold its length. This patch
+> enables to help to wrap these. As of this C library, we can use
+> this like below without double sized buffer.
 > 
-> When nf_ct_timeout_ext_add failed in xt_ct_set_timeout, it should
-> free the timeout refcnt.
+>     char buf[MNL_SOCKET_BUFFER_SIZE];
 > 
-> Now goto the err_put_timeout error handler instead of going ahead.
-> 
-> Signed-off-by: Gao Feng <fgao@ikuai8.com>
-> ---
->  v2: Keep the ret = -ENOMEM, per Gao Feng
->  v1: initial version
-> 
->  net/netfilter/xt_CT.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-> index b008db0..a1783b6 100644
-> --- a/net/netfilter/xt_CT.c
-> +++ b/net/netfilter/xt_CT.c
-> @@ -167,8 +167,10 @@ static void __xt_ct_tg_timeout_put(struct ctnl_timeout *timeout)
->  		goto err_put_timeout;
->  	}
->  	timeout_ext = nf_ct_timeout_ext_add(ct, timeout, GFP_ATOMIC);
-> -	if (timeout_ext == NULL)
-> +	if (!timeout_ext) {
->  		ret = -ENOMEM;
-> +		goto err_put_timeout;
-> +	}
+>     b = mnl_nlmsg_batch_start(buf, sizeof(buf));
+>     nlbuf = mnl_nlmsg_batch_current(b);
+>     rest = mnl_nlmsg_batch_rest(b);
+>     if (rest < NLMSG_HDRLEN)
+>             return false;
 
-This also needs to be fixed, just a few line after this:
+Only for this usecase above?
 
-        timeout_ext = nf_ct_timeout_ext_add(ct, timeout, GFP_ATOMIC);
-        if (timeout_ext == NULL)
-                ret = -ENOMEM;
+>     nlh = mnl_nlmsg_put_header(nlbuf);
+
+Probably we need mnl_nlmsg_put_header_check()?
+
+>     ...
+>     if (!mnl_attr_put_u8_check(nlh, rest, 1, 2))
+>             return false;
+>     ...
