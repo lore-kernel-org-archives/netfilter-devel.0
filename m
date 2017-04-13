@@ -1,71 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next v2 1/1] netfilter: SYNPROXY: Return NF_STOLEN
- instead of NF_DROP during handshaking
-Date: Fri, 14 Apr 2017 01:11:35 +0200
-Message-ID: <20170413231135.GA7158@salvia>
-References: <1491963290-84377-1-git-send-email-gfree.wind@foxmail.com>
- <20170413215749.GA4208@salvia>
- <001201d2b4aa$57bc8ba0$0735a2e0$@foxmail.com>
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH nft] hash: generate a random seed if seed option is empty
+Date: Fri, 14 Apr 2017 07:13:20 +0800
+Message-ID: <CAML_gOdPm1X3gudfEdMwCo95y3998KP-dvGWiPLi=EeapEdNJg@mail.gmail.com>
+References: <1491208197-5493-1-git-send-email-zlpnobody@163.com> <20170413205709.GA2039@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Gao Feng <gfree.wind@foxmail.com>
+Content-Type: text/plain; charset=UTF-8
+Cc: Liping Zhang <zlpnobody@163.com>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>,
+        =?UTF-8?Q?Laura_Garc=C3=ADa_Li=C3=A9bana?=
+        <laura.garcia@zevenet.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54974 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752070AbdDMXLn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2017 19:11:43 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E5227C108D
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:11:38 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2DDB5DA804
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:11:44 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 03307DA725
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:11:42 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <001201d2b4aa$57bc8ba0$0735a2e0$@foxmail.com>
+Received: from mail-vk0-f51.google.com ([209.85.213.51]:34503 "EHLO
+        mail-vk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751657AbdDMXNW (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Apr 2017 19:13:22 -0400
+Received: by mail-vk0-f51.google.com with SMTP id z204so34393114vkd.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Apr 2017 16:13:22 -0700 (PDT)
+In-Reply-To: <20170413205709.GA2039@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Apr 14, 2017 at 07:04:44AM +0800, Gao Feng wrote:
-> > -----Original Message-----
-> > From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
-> > 
-> > On Wed, Apr 12, 2017 at 10:14:50AM +0800, gfree.wind@foxmail.com wrote:
-> > >
-> > > Current SYNPROXY codes return NF_DROP during normal TCP handshaking,
-> > > it is not friendly to caller. Because the nf_hook_slow would treat the
-> > > NF_DROP as an error, and return -EPERM.
-> > > As a result, it may cause the top caller think it meets one error.
-> > >
-> > > So use NF_STOLEN instead of NF_DROP now because there is no error
-> > > happened indeed, and free the skb directly.
-> > 
-> > Is this really addressing a real problem? How did you reproduce it?
-> 
-> We defined the NF_DROP and NF_STOLEN, I think we should use them clearly.
-> When NF_DROP happens, it means one error happened.
+Hi Pablo,
 
-That's a valid concern. How did you tested this change?
-
+2017-04-14 4:57 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
 [...]
-> Sorry, I always use one command "git format-patch -s -n master..XX"
-> according to one document
-> whose title is "HOWTO: Create and submit your first Linux kernel patch using
-> GIT".
-> 
-> It generate the "1/1" by default.
+>> -     nftnl_expr_set_u32(nle, NFTNL_EXPR_HASH_SEED, expr->hash.seed);
+>> +     if (expr->hash.seed)
+>> +             nftnl_expr_set_u32(nle, NFTNL_EXPR_HASH_SEED, expr->hash.seed);
+>
+> I prefer we have a hash.seed_set, instead of relying on 0 meaning
+> "unset".
 
-There are ways to avoid that. Only you send 1/1 patches.
+OK, I will send V2 based on your suggestions.
 
-> I will try to lookup other documents about the patch rule, and correct the
-> current command.
-
-OK.
-
-[...]
-> More carefully, and don't rush more.
-
-Thank you.
+> I'm thinking of people willing to implement some sort of poor man
+> symmetric hashing with two rules, one per each direction. The seed
+> needs to be the same so the jhash is consistent.
