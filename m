@@ -1,98 +1,80 @@
-From: Jarno Rajahalme <jarno@ovn.org>
-Subject: [PATCH nf v2] net/openvswitch: Delete conntrack entry clashing with an expectation.
-Date: Thu, 13 Apr 2017 16:05:19 -0700
-Message-ID: <1492124719-123107-1-git-send-email-jarno@ovn.org>
-Cc: jarno@ovn.org, joe@ovn.org
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf 2/2] netfilter: nfnl_cthelper: reject del request if
+ helper obj is in use
+Date: Fri, 14 Apr 2017 01:16:42 +0200
+Message-ID: <20170413231642.GA7338@salvia>
+References: <1491726134-23686-1-git-send-email-zlpnobody@163.com>
+ <1491726134-23686-3-git-send-email-zlpnobody@163.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from slow1-d.mail.gandi.net ([217.70.178.86]:33904 "EHLO
-        slow1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752359AbdDMXN1 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2017 19:13:27 -0400
-Received: from relay7-d.mail.gandi.net (relay7-d.mail.gandi.net [217.70.183.200])
-        by slow1-d.mail.gandi.net (Postfix) with ESMTP id 1C4A347A895
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:05:41 +0200 (CEST)
+Received: from mail.us.es ([193.147.175.20]:55520 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752077AbdDMXRA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Apr 2017 19:17:00 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 6CD46C1093
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:16:54 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id ABA73DA86B
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:16:59 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A2B9FDA862
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:16:57 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <1491726134-23686-3-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Conntrack helpers do not check for a potentially clashing conntrack
-entry when creating a new expectation.  Also, nf_conntrack_in() will
-check expectations (via init_conntrack()) only if a conntrack entry
-can not be found.  The expectation for a packet which also matches an
-existing conntrack entry will not be removed by conntrack, and is
-currently handled inconsistently by OVS, as OVS expects the
-expectation to be removed when the connection tracking entry matching
-that expectation is confirmed.
+On Sun, Apr 09, 2017 at 04:22:14PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <zlpnobody@gmail.com>
+> 
+> We can still delete the ct helper even if it is in use, this will cause
+> a use-after-free error. In more detail, I mean:
+>   # nfct helper add ssdp inet udp
+>   # iptables -t raw -A OUTPUT -p udp -j CT --helper ssdp
+>   # nfct helper delete ssdp //--> succeed!
+> 
+> So add reference count to fix this issue, if ct helper is used by
+> others, reject the delete request.
+> 
+> Apply this patch:
+>   # nfct helper delete ssdp
+>   nfct v1.4.3: netlink error: Device or resource busy
+> 
+> Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+> ---
+>  Also note, nft ct helper obj only exists in nf-next tree, so after this
+>  patch appeared in nf-next, I will send another patch to fix it.
+> 
+>  include/net/netfilter/nf_conntrack_helper.h |  2 ++
+>  net/netfilter/nf_conntrack_helper.c         |  6 ++++++
+>  net/netfilter/nfnetlink_cthelper.c          | 17 +++++++++++------
+>  3 files changed, 19 insertions(+), 6 deletions(-)
+> 
+> diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+> index 65e1dcf..c7a9ad7 100644
+> --- a/include/net/netfilter/nf_conntrack_helper.h
+> +++ b/include/net/netfilter/nf_conntrack_helper.h
+> @@ -9,6 +9,7 @@
+>  
+>  #ifndef _NF_CONNTRACK_HELPER_H
+>  #define _NF_CONNTRACK_HELPER_H
+> +#include <linux/refcount.h>
+>  #include <net/netfilter/nf_conntrack.h>
+>  #include <net/netfilter/nf_conntrack_extend.h>
+>  #include <net/netfilter/nf_conntrack_expect.h>
+> @@ -26,6 +27,7 @@ struct nf_conntrack_helper {
+>  	struct hlist_node hnode;	/* Internal use. */
+>  
+>  	char name[NF_CT_HELPER_NAME_LEN]; /* name of the module */
+> +	refcount_t refcnt;
 
-It should be noted that normally an IP stack would not allow reuse of
-a 5-tuple of an old (possibly lingering) connection for a new data
-connection, so this is somewhat unlikely corner case.  However, it is
-possible that a misbehaving source could cause conntrack entries be
-created that could then interfere with new related connections.
+Should this new refcnt; thing be in the new struct nfnl_cthelper?
 
-Fix this in the OVS module by deleting the clashing conntrack entry
-after an expectation has been matched.  This causes the following
-nf_conntrack_in() call also find the expectation and remove it when
-creating the new conntrack entry, as well as the forthcoming reply
-direction packets to match the new related connection instead of the
-old clashing conntrack entry.
+I think this refcount is only required by the userspace helper
+infrastructure, not existing in-kernel helpers.
 
-Fixes: 7f8a436eaa2c ("openvswitch: Add conntrack action")
-Reported-by: Yang Song <yangsong@vmware.com>
-Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
----
-v2: Fixed commit title.
-
-net/openvswitch/conntrack.c | 32 +++++++++++++++++++++++++++++++-
- 1 file changed, 31 insertions(+), 1 deletion(-)
-
-diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
-index 7b2c2fc..e1a77be 100644
---- a/net/openvswitch/conntrack.c
-+++ b/net/openvswitch/conntrack.c
-@@ -514,10 +514,40 @@ ovs_ct_expect_find(struct net *net, const struct nf_conntrack_zone *zone,
- 		   u16 proto, const struct sk_buff *skb)
- {
- 	struct nf_conntrack_tuple tuple;
-+	struct nf_conntrack_expect *exp;
- 
- 	if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb), proto, net, &tuple))
- 		return NULL;
--	return __nf_ct_expect_find(net, zone, &tuple);
-+
-+	exp = __nf_ct_expect_find(net, zone, &tuple);
-+
-+	if (exp) {
-+		struct nf_conntrack_tuple_hash *h;
-+
-+		/* Delete existing conntrack entry, if it clashes with the
-+		 * expectation.  This can happen since conntrack ALGs do not
-+		 * check for clashes between (new) expectations and existing
-+		 * conntrack entries.  nf_conntrack_in() will check the
-+		 * expectations only if a conntrack entry can not be found,
-+		 * which can lead to OVS finding the expectation (here) in the
-+		 * init direction, but which will not be removed by the
-+		 * nf_conntrack_in() call, if a matching conntrack entry is
-+		 * found instead.  In this case all init direction packets
-+		 * would be reported as new related packets, while reply
-+		 * direction packets would be reported as un-related
-+		 * established packets. */
-+
-+		h = nf_conntrack_find_get(net, zone, &tuple);
-+		if (h) {
-+			struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
-+
-+			if (nf_ct_is_confirmed(ct))
-+				nf_ct_delete(ct, 0, 0);
-+			nf_conntrack_put(&ct->ct_general);
-+		}
-+	}
-+
-+	return exp;
- }
- 
- /* This replicates logic from nf_conntrack_core.c that is not exported. */
--- 
-2.1.4
-
+I think like that we can skip patch 1/2 in this series.
