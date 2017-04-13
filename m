@@ -1,90 +1,67 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf 2/2] netfilter: nfnl_cthelper: reject del request if
- helper obj is in use
-Date: Fri, 14 Apr 2017 01:42:38 +0200
-Message-ID: <20170413234238.GA9252@salvia>
-References: <1491726134-23686-1-git-send-email-zlpnobody@163.com>
- <1491726134-23686-3-git-send-email-zlpnobody@163.com>
- <20170413231642.GA7338@salvia>
- <CAML_gOdybRbrQCAY20tmoE1Zkv=S6NOXvTA5nJq0wVL7CQnSjw@mail.gmail.com>
- <20170413234204.GA9226@salvia>
+Subject: Re: [libnetfilter_queue][PATCH 2/2] Declare the define visivility
+ attribute together
+Date: Fri, 14 Apr 2017 01:49:11 +0200
+Message-ID: <20170413234911.GA9656@salvia>
+References: <20170410195804.18238-1-raj.khem@gmail.com>
+ <20170410195804.18238-2-raj.khem@gmail.com>
+ <20170413233719.GB8577@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Liping Zhang <zlpnobody@163.com>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Liping Zhang <zlpnobody@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Khem Raj <raj.khem@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58380 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59100 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752792AbdDMXnE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2017 19:43:04 -0400
+        id S1753288AbdDMXt3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Apr 2017 19:49:29 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 925B0C1241
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:42:59 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 901A1C1241
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:49:24 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CEC68DA86C
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:43:04 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CE015DA729
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:49:29 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B47ECDA86D
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:43:02 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7F2E1DA7F7
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 01:49:26 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20170413234204.GA9226@salvia>
+In-Reply-To: <20170413233719.GB8577@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Apr 14, 2017 at 01:42:04AM +0200, Pablo Neira Ayuso wrote:
-> On Fri, Apr 14, 2017 at 07:37:50AM +0800, Liping Zhang wrote:
-> > Hi Pablo,
-> > 
-> > 2017-04-14 7:16 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-> > [...]
-> > >>  #ifndef _NF_CONNTRACK_HELPER_H
-> > >>  #define _NF_CONNTRACK_HELPER_H
-> > >> +#include <linux/refcount.h>
-> > >>  #include <net/netfilter/nf_conntrack.h>
-> > >>  #include <net/netfilter/nf_conntrack_extend.h>
-> > >>  #include <net/netfilter/nf_conntrack_expect.h>
-> > >> @@ -26,6 +27,7 @@ struct nf_conntrack_helper {
-> > >>       struct hlist_node hnode;        /* Internal use. */
-> > >>
-> > >>       char name[NF_CT_HELPER_NAME_LEN]; /* name of the module */
-> > >> +     refcount_t refcnt;
-> > >
-> > > Should this new refcnt; thing be in the new struct nfnl_cthelper?
-> > >
-> > > I think this refcount is only required by the userspace helper
-> > > infrastructure, not existing in-kernel helpers.
-> > >
-> > > I think like that we can skip patch 1/2 in this series.
-> > 
-> > We must call nf_conntrack_helper_try_module_get to get the helper,
-> > either it is userspace or  in-kernel helpers. Also the caller didn't care
-> > the helpers is userspace or in-kernel, so I think introducing the
-> > nf_conntrack_helper_put is necessary.
-> > 
-> > Also, this path set is prepared for per-net helper. For in-kernel helpers,
-> > we will still need to  kmemdup the original one. I mean:
-> >       helper = kmemdup(ftp_helper);
-> >       helper->expect_policy = kmemdup(ftp_exp_policy);
-> >       nf_conntrack_helper_register(net, helper);
-> > 
-> > And similar to nfnetlink_cttimeout, for net_exit, we should:
-> > list_for_each_entry_safe()
-> >     unregister_helper();
-> >     if (refcount_dec_and_test(&cur->refcnt))
-> >         call_rcu(free_xxx);
-> > 
-> > For nf_conntrack_helper_put, we should:
-> > if (refcount_dec_and_test(&cur->refcnt))
-> >     call_rcu(free_xxx);
-> > 
-> > So I think put this "refcount_t refcnt" to struct nf_conntrack_helper
-> > is better.
+On Fri, Apr 14, 2017 at 01:37:19AM +0200, Pablo Neira Ayuso wrote:
+> On Mon, Apr 10, 2017 at 12:58:04PM -0700, Khem Raj wrote:
+> > clang ignores the visibility attribute if its not
+> > defined before the definition. As a result these
+> > symbols become hidden and consumers of this library
+> > fail to link due to these missing symbols
 > 
-> OK, please resubmit target to nf-next. It's too late for patches
-> already for nf, we're at -rc6 and this problem has been there for a
-> bit of time. So waiting a bit more to get this fixed should be OK.
+> Also applied, thanks.
 
-BTW, you may have to wait until dependencies (ie. patches in nf.git)
-show up in nf-next.git, it may take a little while to propagate.
+Argh. Now we have two different ways to do this accross different
+libraries.
+
+Moreover, in you patch:
+
+http://patchwork.ozlabs.org/patch/749223/
+
++int __EXPORTED nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
+                         const void *data, uint32_t data_len)
+
+for what it used to be:
+
++int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
+                         const void *data, uint32_t data_len)
+
+I wonder if there is a way to do this without a follow up patch to fix
+all these indentations.
+
+If this is just to fix clang, can you probably follow this patch instead?
+
+http://git.netfilter.org/libmnl/commit/?id=dcdb47373a375087d2dd8cee5e2a9c66fcc147eb
+
+It would be good if you send me a patch for libnetfilter_queue that
+applies on top of you previous patch, or I can simply revert.
+
+I just would like to keep this consistent for all libraries while
+fixing this clang issue.
