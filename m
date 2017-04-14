@@ -1,49 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf v2] netfilter: cttimeout: Fix one possible
- use-after-free issue
-Date: Fri, 14 Apr 2017 03:28:26 +0200
-Message-ID: <20170414012826.GA30669@salvia>
-References: <1492132420-70400-1-git-send-email-gfree.wind@foxmail.com>
+Subject: Re: [libnetfilter_queue][PATCH 2/2] Declare the define visivility
+ attribute together
+Date: Fri, 14 Apr 2017 03:30:44 +0200
+Message-ID: <20170414013044.GA30760@salvia>
+References: <20170410195804.18238-1-raj.khem@gmail.com>
+ <20170410195804.18238-2-raj.khem@gmail.com>
+ <20170413233719.GB8577@salvia>
+ <20170413234911.GA9656@salvia>
+ <7d497c66-5e61-8ba0-667b-1f1f3fed2460@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Gao Feng <fgao@ikuai8.com>
-To: gfree.wind@foxmail.com
+Content-Transfer-Encoding: 8BIT
+Cc: netfilter-devel@vger.kernel.org
+To: Khem Raj <raj.khem@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42518 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42758 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751255AbdDNB2n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2017 21:28:43 -0400
+        id S1751255AbdDNBay (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Apr 2017 21:30:54 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 1C8B3E0443
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 03:28:38 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 523CFE0443
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 03:30:49 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0C9DAFB461
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 03:28:38 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 44444FB45F
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 03:30:49 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6420CFB462
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 03:28:34 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 874D3FB463
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 03:30:46 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1492132420-70400-1-git-send-email-gfree.wind@foxmail.com>
+In-Reply-To: <7d497c66-5e61-8ba0-667b-1f1f3fed2460@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Apr 14, 2017 at 09:13:40AM +0800, gfree.wind@foxmail.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
+On Thu, Apr 13, 2017 at 06:22:54PM -0700, Khem Raj wrote:
+> > It would be good if you send me a patch for libnetfilter_queue that
+> > applies on top of you previous patch, or I can simply revert.
 > 
-> The function ctnl_untimeout is used to untimeout every conntrack
-> which is using the timeout. But it is necessary to add one barrier
-> synchronize_rcu because of racing. Maybe one conntrack has already
-> owned this timeout, but it is not inserted into unconfirmed list or
-> the hash list, when ctnl_untimeout untimeout the conntracks
+> I will send a patch which uses EXPORT_FUNCTION instead and declare it
+> before definition like libmnl
 > 
-> Let me describe it with a call path
-> CPU1				CPU2
-> alloc new conn
-> add timeout ext
-> 				ctnl_timeout_try_del
-> 				untimeout all conns in list
-> 				kfree_rcu.
-> conn is confirmed.
+> I am fine with revert or patch on top, I can do both just let me know
 
-Then this confirmed conn gets a timeout_ext->timeout == NULL since
-ctnl_untimeout() is called first.
+I have reverted it. Please follow up with a new patch. Thanks!
