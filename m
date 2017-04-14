@@ -1,118 +1,208 @@
-From: "Gao Feng" <gfree.wind@foxmail.com>
-Subject: RE: [PATCH nf-next v2 1/1] netfilter: SYNPROXY: Return NF_STOLEN instead of NF_DROP during handshaking
-Date: Fri, 14 Apr 2017 12:52:05 +0800
-Message-ID: <001401d2b4da$dd757ba0$986072e0$@foxmail.com>
-References: <1491963290-84377-1-git-send-email-gfree.wind@foxmail.com> <20170413215749.GA4208@salvia> <001201d2b4aa$57bc8ba0$0735a2e0$@foxmail.com> <20170413231135.GA7158@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>
-To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>
+From: Vincent Bernat <vincent@bernat.im>
+Subject: [PATCH iptables v2] iptables-restore/save: exit when given an unknown option
+Date: Fri, 14 Apr 2017 13:56:21 +0200
+Message-ID: <20170414115621.13812-1-vincent@bernat.im>
+References: <20170413211627.GA2387@salvia>
+Cc: Vincent Bernat <vincent@bernat.im>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg62.qq.com ([103.7.29.139]:46315 "EHLO smtpbg64.qq.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750888AbdDNEwH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 14 Apr 2017 00:52:07 -0400
-In-Reply-To: <20170413231135.GA7158@salvia>
-Content-Language: zh-cn
+Received: from bart.luffy.cx ([78.47.78.131]:59882 "EHLO bart.luffy.cx"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750784AbdDNL4y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 14 Apr 2017 07:56:54 -0400
+In-Reply-To: <20170413211627.GA2387@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> -----Original Message-----
-> From: netfilter-devel-owner@vger.kernel.org
-> On Fri, Apr 14, 2017 at 07:04:44AM +0800, Gao Feng wrote:
-> > > -----Original Message-----
-> > > From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
-> > >
-> > > On Wed, Apr 12, 2017 at 10:14:50AM +0800, gfree.wind@foxmail.com
-> wrote:
-> > > >
-> > > > Current SYNPROXY codes return NF_DROP during normal TCP
-> > > > handshaking, it is not friendly to caller. Because the
-> > > > nf_hook_slow would treat the NF_DROP as an error, and return -EPERM.
-> > > > As a result, it may cause the top caller think it meets one error.
-> > > >
-> > > > So use NF_STOLEN instead of NF_DROP now because there is no error
-> > > > happened indeed, and free the skb directly.
-> > >
-> > > Is this really addressing a real problem? How did you reproduce it?
-> >
-> > We defined the NF_DROP and NF_STOLEN, I think we should use them
-> clearly.
-> > When NF_DROP happens, it means one error happened.
-> 
-> That's a valid concern. How did you tested this change?
+When an unknown option is given, iptables-restore should exit instead of
+continue its operation. For example, if `--table` was misspelled, this
+could lead to an unwanted change. Moreover, exit with a status code of
+1. Make the same change for iptables-save.
 
-The test is a little hacker. The following is my whole test process.
-1. Add one "print" member in the struct sk_buff; it would be zero by
-default;
-2. Add one log in the netif_receive_skb_internal 
-+       if (skb->print)
-+               pr_info("skb(%p) ret is %d\n", skb, ret);
-3. the iptable rule is "iptables -A INPUT -p tcp --dport 12345 -m conntrack
---ctstate NEW -j SYNPROXY"
+OTOH, exit with a status code of 0 when requesting help.
 
-Test NF_DROP with the original codes:
-1. I comment out the "kfree_skb" in the NF_DROP handler of nf_hook_slow.
-2. Add one log before return NF_DROP in the synproxy codes
-pr_info("skb(%p) is dropped\n", skb);
+Signed-off-by: Vincent Bernat <vincent@bernat.im>
+---
+ iptables/ip6tables-restore.c | 10 +++++-----
+ iptables/ip6tables-save.c    |  4 ++++
+ iptables/iptables-restore.c  | 10 +++++-----
+ iptables/iptables-save.c     |  4 ++++
+ iptables/xtables-restore.c   | 10 +++++-----
+ iptables/xtables-save.c      |  4 ++++
+ 6 files changed, 27 insertions(+), 15 deletions(-)
 
-The result is following:
-[   71.765035] skb(ffff9a6208bd7500) is dropped
-[   71.765049] skb(ffff9a6208bd7500) ret is -1
-
-Test NF_STOLEN with the patch:
-1. I comment out the "consume_skb" before return NF_STOLEN;
-2. Add the log before return NF_STOLEN in the synproxy codes
-pr_info("skb(%p) is stolen\n", skb);
-
-The test result is following:
-[  221.564370] skb(ffff9a01214a8c00) is stolen
-[  221.564383] skb(ffff9a01214a8c00) ret is 0
-
-To summary, netif_receive_skb would return -EPERM when Netfilter returns
-NF_DROP,
-but NF_STOLEN not.
-For the caller which cares about the return value of netif_receive_skb would
-treat it
-as one error.
-Like cfv_rx_poll() in drivers/net/caif/caif_virtio.c.
-                err = netif_receive_skb(skb);
-                if (unlikely(err)) {
-                        ++cfv->ndev->stats.rx_dropped;
-                } else {
-                        ++cfv->ndev->stats.rx_packets;
-                        cfv->ndev->stats.rx_bytes += skb_len;
-                }
-It would cause the driver increase the dropped counter.
-
-Best Regards
-Feng
-
-> 
-> [...]
-> > Sorry, I always use one command "git format-patch -s -n master..XX"
-> > according to one document
-> > whose title is "HOWTO: Create and submit your first Linux kernel patch
-> > using GIT".
-> >
-> > It generate the "1/1" by default.
-> 
-> There are ways to avoid that. Only you send 1/1 patches.
-> 
-> > I will try to lookup other documents about the patch rule, and correct
-> > the current command.
-> 
-> OK.
-> 
-> [...]
-> > More carefully, and don't rush more.
-> 
-> Thank you.
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
-in the
-> body of a message to majordomo@vger.kernel.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+diff --git a/iptables/ip6tables-restore.c b/iptables/ip6tables-restore.c
+index 8a47f09c9503..b12d7f7f22bd 100644
+--- a/iptables/ip6tables-restore.c
++++ b/iptables/ip6tables-restore.c
+@@ -46,8 +46,6 @@ static const struct option options[] = {
+ 	{NULL},
+ };
+ 
+-static void print_usage(const char *name, const char *version) __attribute__((noreturn));
+-
+ static void print_usage(const char *name, const char *version)
+ {
+ 	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h] [-n] [-w secs] [-W usecs] [-T table] [-M command]\n"
+@@ -60,8 +58,6 @@ static void print_usage(const char *name, const char *version)
+ 			"	   [ --wait-interval=<usecs>\n"
+ 			"	   [ --table=<TABLE> ]\n"
+ 			"	   [ --modprobe=<command> ]\n", name);
+-
+-	exit(1);
+ }
+ 
+ static struct xtc_handle *create_handle(const char *tablename)
+@@ -230,7 +226,7 @@ int ip6tables_restore_main(int argc, char *argv[])
+ 			case 'h':
+ 				print_usage("ip6tables-restore",
+ 					    IPTABLES_VERSION);
+-				break;
++				exit(0);
+ 			case 'n':
+ 				noflush = 1;
+ 				break;
+@@ -246,6 +242,10 @@ int ip6tables_restore_main(int argc, char *argv[])
+ 			case 'T':
+ 				tablename = optarg;
+ 				break;
++			default:
++				fprintf(stderr,
++					"Try `ip6tables-restore -h' for more information.\n");
++				exit(1);
+ 		}
+ 	}
+ 
+diff --git a/iptables/ip6tables-save.c b/iptables/ip6tables-save.c
+index 053413a9dfe2..a6006146e460 100644
+--- a/iptables/ip6tables-save.c
++++ b/iptables/ip6tables-save.c
+@@ -162,6 +162,10 @@ int ip6tables_save_main(int argc, char *argv[])
+ 		case 'd':
+ 			do_output(tablename);
+ 			exit(0);
++		default:
++			fprintf(stderr,
++				"Look at manual page `ip6tables-save.8' for more information.\n");
++			exit(1);
+ 		}
+ 	}
+ 
+diff --git a/iptables/iptables-restore.c b/iptables/iptables-restore.c
+index 7bb06d84b1bf..246ade05b30d 100644
+--- a/iptables/iptables-restore.c
++++ b/iptables/iptables-restore.c
+@@ -43,8 +43,6 @@ static const struct option options[] = {
+ 	{NULL},
+ };
+ 
+-static void print_usage(const char *name, const char *version) __attribute__((noreturn));
+-
+ #define prog_name iptables_globals.program_name
+ 
+ static void print_usage(const char *name, const char *version)
+@@ -59,8 +57,6 @@ static void print_usage(const char *name, const char *version)
+ 			"	   [ --wait-interval=<usecs>\n"
+ 			"	   [ --table=<TABLE> ]\n"
+ 			"	   [ --modprobe=<command> ]\n", name);
+-
+-	exit(1);
+ }
+ 
+ static struct xtc_handle *create_handle(const char *tablename)
+@@ -229,7 +225,7 @@ iptables_restore_main(int argc, char *argv[])
+ 			case 'h':
+ 				print_usage("iptables-restore",
+ 					    IPTABLES_VERSION);
+-				break;
++				exit(0);
+ 			case 'n':
+ 				noflush = 1;
+ 				break;
+@@ -245,6 +241,10 @@ iptables_restore_main(int argc, char *argv[])
+ 			case 'T':
+ 				tablename = optarg;
+ 				break;
++			default:
++				fprintf(stderr,
++					"Try `iptables-restore -h' for more information.\n");
++				exit(1);
+ 		}
+ 	}
+ 
+diff --git a/iptables/iptables-save.c b/iptables/iptables-save.c
+index e8ae9c6c4cc9..d2c1ca9ecb2b 100644
+--- a/iptables/iptables-save.c
++++ b/iptables/iptables-save.c
+@@ -161,6 +161,10 @@ iptables_save_main(int argc, char *argv[])
+ 		case 'd':
+ 			do_output(tablename);
+ 			exit(0);
++		default:
++			fprintf(stderr,
++				"Look at manual page `iptables-save.8' for more information.\n");
++			exit(1);
+ 		}
+ 	}
+ 
+diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
+index a551c8c19f7f..f018e6f454d5 100644
+--- a/iptables/xtables-restore.c
++++ b/iptables/xtables-restore.c
+@@ -40,8 +40,6 @@ static const struct option options[] = {
+ 	{NULL},
+ };
+ 
+-static void print_usage(const char *name, const char *version) __attribute__((noreturn));
+-
+ #define prog_name xtables_globals.program_name
+ 
+ static void print_usage(const char *name, const char *version)
+@@ -56,8 +54,6 @@ static void print_usage(const char *name, const char *version)
+ 			"          [ --modprobe=<command> ]\n"
+ 			"	   [ --ipv4 ]\n"
+ 			"	   [ --ipv6 ]\n", name);
+-
+-	exit(1);
+ }
+ 
+ static int parse_counters(char *string, struct xt_counters *ctr)
+@@ -486,7 +482,7 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
+ 			case 'h':
+ 				print_usage("xtables-restore",
+ 					    IPTABLES_VERSION);
+-				break;
++				exit(0);
+ 			case 'n':
+ 				noflush = 1;
+ 				break;
+@@ -503,6 +499,10 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
+ 				h.family = AF_INET6;
+ 				xtables_set_nfproto(AF_INET6);
+ 				break;
++			default:
++				fprintf(stderr,
++					"Try `xtables-restore -h' for more information.\n");
++				exit(1);
+ 		}
+ 	}
+ 
+diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
+index f30867cf62bb..abd840af6607 100644
+--- a/iptables/xtables-save.c
++++ b/iptables/xtables-save.c
+@@ -130,6 +130,10 @@ xtables_save_main(int family, const char *progname, int argc, char *argv[])
+ 			h.family = AF_INET6;
+ 			xtables_set_nfproto(AF_INET6);
+ 			break;
++		default:
++			fprintf(stderr,
++				"Look at manual page `xtables-save.8' for more information.\n");
++			exit(1);
+ 		}
+ 	}
+ 
+-- 
+2.11.0
 
