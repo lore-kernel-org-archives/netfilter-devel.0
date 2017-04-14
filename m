@@ -1,54 +1,66 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf v5 2/3] netfilter: nat_helper: Make sure every proto
- nat module uses its nat_helper
-Date: Fri, 14 Apr 2017 03:02:49 +0200
-Message-ID: <20170414010249.GA29837@salvia>
-References: <cover.1490955730.git.fgao@ikuai8.com>
- <74aaa9aaa69d65fa46d56faf5c4de671abf4a5cf.1490955730.git.fgao@ikuai8.com>
- <20170414001107.GA28754@salvia>
- <000001d2b4b8$97256c40$c57044c0$@foxmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Gao Feng <gfree.wind@foxmail.com>
+From: gfree.wind@foxmail.com
+Subject: [PATCH nf v2] netfilter: cttimeout: Fix one possible use-after-free issue
+Date: Fri, 14 Apr 2017 09:13:40 +0800
+Message-ID: <1492132420-70400-1-git-send-email-gfree.wind@foxmail.com>
+Cc: Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39304 "EHLO mail.us.es"
+Received: from smtpbgau2.qq.com ([54.206.34.216]:53086 "EHLO smtpbgau2.qq.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753351AbdDNBCz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2017 21:02:55 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D29F4E044A
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 03:02:49 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C3415DA865
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 03:02:49 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9F60CDA793
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 03:02:47 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <000001d2b4b8$97256c40$c57044c0$@foxmail.com>
+        id S1750764AbdDNBOh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Apr 2017 21:14:37 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Apr 14, 2017 at 08:46:44AM +0800, Gao Feng wrote:
-> > -----Original Message-----
-> > From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
-> > On Fri, Mar 31, 2017 at 06:38:20PM +0800, gfree.wind@foxmail.com wrote:
-> > > +static struct nf_ct_nat_helper pptp_nat = {
-> > > +	.name			= "pptp_nat",
-> > 
-> > Why all these with "xyz_nat" names?
-> 
-> I just used the variable name before.
-> How about rename it to "xyz_nat_helper"?
-> > 
-> > This is going to break ctnetlink, as this is the name that identifies the
-> NAT
-> > helper to be used.
+From: Gao Feng <fgao@ikuai8.com>
 
-This name is exposed to userspace, right?
+The function ctnl_untimeout is used to untimeout every conntrack
+which is using the timeout. But it is necessary to add one barrier
+synchronize_rcu because of racing. Maybe one conntrack has already
+owned this timeout, but it is not inserted into unconfirmed list or
+the hash list, when ctnl_untimeout untimeout the conntracks
 
-So FTP uses to rely on the "nat-follow-master" expectfn. But now the
-name will be "ftp_nat".
+Let me describe it with a call path
+CPU1				CPU2
+alloc new conn
+add timeout ext
+				ctnl_timeout_try_del
+				untimeout all conns in list
+				kfree_rcu.
+conn is confirmed.
 
-If that is the case, this would break backward.
+As the show above, when cpu2 untimeout all conns in list and the new
+conn of cpu1 is not confirmed, the new conn still owns the timeout
+pointer. After the timeout mem is freed really, it points to one
+invalid mem.
+
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ v2: Add the call path in the comment
+ v1: initial version
+
+ net/netfilter/nfnetlink_cttimeout.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index 47d6656..af0cc87 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -304,6 +304,11 @@ static void ctnl_untimeout(struct net *net, struct ctnl_timeout *timeout)
+ 	spinlock_t *lock;
+ 	int i, cpu;
+ 
++	/* Make sure the conntrack using the timeout already in the unconfirmed
++	 * list or in the hash table.
++	 */
++	synchronize_rcu();
++
+ 	for_each_possible_cpu(cpu) {
+ 		struct ct_pcpu *pcpu = per_cpu_ptr(net->ct.pcpu_lists, cpu);
+ 
+-- 
+1.9.1
+
+
+
+
