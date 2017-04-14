@@ -1,63 +1,54 @@
-From: "Gao Feng" <gfree.wind@foxmail.com>
-Subject: RE: [PATCH nf] netfilter: xt_CT: fix cthelper module's refcnt leak
-Date: Fri, 14 Apr 2017 08:49:33 +0800
-Message-ID: <000101d2b4b8$fc4220a0$f4c661e0$@foxmail.com>
-References: <1491622728-55625-1-git-send-email-zlpnobody@163.com> <20170413223056.GA5106@salvia> <CAML_gOe-gAk0fyhRE9e4chqL7=nEOqc5_cWBO0YvqAAKqZXHSw@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf v5 2/3] netfilter: nat_helper: Make sure every proto
+ nat module uses its nat_helper
+Date: Fri, 14 Apr 2017 03:02:49 +0200
+Message-ID: <20170414010249.GA29837@salvia>
+References: <cover.1490955730.git.fgao@ikuai8.com>
+ <74aaa9aaa69d65fa46d56faf5c4de671abf4a5cf.1490955730.git.fgao@ikuai8.com>
+ <20170414001107.GA28754@salvia>
+ <000001d2b4b8$97256c40$c57044c0$@foxmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Cc: "'Liping Zhang'" <zlpnobody@163.com>,
-        "'Netfilter Developer Mailing List'"
-        <netfilter-devel@vger.kernel.org>
-To: "'Liping Zhang'" <zlpnobody@gmail.com>,
-        "'Pablo Neira Ayuso'" <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Gao Feng <gfree.wind@foxmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbgbr2.qq.com ([54.207.22.56]:45502 "EHLO smtpbgbr2.qq.com"
+Received: from mail.us.es ([193.147.175.20]:39304 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753351AbdDNAtj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2017 20:49:39 -0400
-In-Reply-To: <CAML_gOe-gAk0fyhRE9e4chqL7=nEOqc5_cWBO0YvqAAKqZXHSw@mail.gmail.com>
-Content-Language: zh-cn
+        id S1753351AbdDNBCz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Apr 2017 21:02:55 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id D29F4E044A
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 03:02:49 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C3415DA865
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 03:02:49 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9F60CDA793
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 03:02:47 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <000001d2b4b8$97256c40$c57044c0$@foxmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> -----Original Message-----
-> From: Liping Zhang [mailto:zlpnobody@gmail.com]
-> Hi Pablo,
->=20
-> 2017-04-14 6:30 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-> >> We should call module_put when the time policy is not found.
-> >> Otherwise, the related cthelper module cannot be removed anymore.
-> >>
-> >> It is easy to reproduce by typing the following command:
-> >>   # iptables -t raw -A OUTPUT -p tcp -j CT --helper ftp --timeout =
-xxx
-> >
-> > Can we fix all leaks in the error path in one single patch for =
-xt_CT?
->=20
-> Right.
->=20
-> > Feng sent me a patch to fix another issue there, so if either you or
-> > him send me one single patch to fix all xt_CT refcount leaks in one
-> > go, I'd appreciate.
->=20
-> Feng, since you spotted this issue earlier, can you send a new patch =
-to do this?
-> With a new patch name: "netfilter: xt_CT: fix refcnt leak on error =
-path".
+On Fri, Apr 14, 2017 at 08:46:44AM +0800, Gao Feng wrote:
+> > -----Original Message-----
+> > From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
+> > On Fri, Mar 31, 2017 at 06:38:20PM +0800, gfree.wind@foxmail.com wrote:
+> > > +static struct nf_ct_nat_helper pptp_nat = {
+> > > +	.name			= "pptp_nat",
+> > 
+> > Why all these with "xyz_nat" names?
+> 
+> I just used the variable name before.
+> How about rename it to "xyz_nat_helper"?
+> > 
+> > This is going to break ctnetlink, as this is the name that identifies the
+> NAT
+> > helper to be used.
 
-Thanks.
+This name is exposed to userspace, right?
 
->=20
-> Also you can add my:
-> Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+So FTP uses to rely on the "nat-follow-master" expectfn. But now the
+name will be "ftp_nat".
 
-No problem.
-
-Regards
-Feng
-
-
-
+If that is the case, this would break backward.
