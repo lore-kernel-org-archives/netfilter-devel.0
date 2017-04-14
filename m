@@ -1,68 +1,87 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5/9] netfilter: make it safer during the inet6_dev->addr_list traversal
-Date: Fri, 14 Apr 2017 02:26:47 +0200
-Message-ID: <1492129611-29336-6-git-send-email-pablo@netfilter.org>
-References: <1492129611-29336-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1492129611-29336-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: "Gao Feng" <gfree.wind@foxmail.com>
+Subject: RE: [PATCH nf v5 2/3] netfilter: nat_helper: Make sure every proto nat module uses its nat_helper
+Date: Fri, 14 Apr 2017 08:46:44 +0800
+Message-ID: <000001d2b4b8$97256c40$c57044c0$@foxmail.com>
+References: <cover.1490955730.git.fgao@ikuai8.com> <74aaa9aaa69d65fa46d56faf5c4de671abf4a5cf.1490955730.git.fgao@ikuai8.com> <20170414001107.GA28754@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>
+To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>,
+        <gfree.wind@foxmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtpbguseast2.qq.com ([54.204.34.130]:38911 "EHLO
+        smtpbguseast2.qq.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753400AbdDNAqs (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 13 Apr 2017 20:46:48 -0400
+In-Reply-To: <20170414001107.GA28754@salvia>
+Content-Language: zh-cn
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <zlpnobody@gmail.com>
+> -----Original Message-----
+> From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
+> On Fri, Mar 31, 2017 at 06:38:20PM +0800, gfree.wind@foxmail.com wrote:
+> > +static struct nf_ct_nat_helper pptp_nat = {
+> > +	.name			= "pptp_nat",
+> 
+> Why all these with "xyz_nat" names?
 
-inet6_dev->addr_list is protected by inet6_dev->lock, so only using
-rcu_read_lock is not enough, we should acquire read_lock_bh(&idev->lock)
-before the inet6_dev->addr_list traversal.
+I just used the variable name before.
+How about rename it to "xyz_nat_helper"?
+> 
+> This is going to break ctnetlink, as this is the name that identifies the
+NAT
+> helper to be used.
+> 
+> > +	.expectfn		= pptp_expectfn,
+> > +};
+> > +
+> >  static void pptp_expectfn(struct nf_conn *ct,
+> >  			 struct nf_conntrack_expect *exp)
+> >  {
+> > @@ -221,7 +229,7 @@ static int exp_gre(struct nf_conn *ct, __be16
+callid,
+> __be16 peer_callid)
+> >  			  &ct->tuplehash[dir].tuple.src.u3,
+> >  			  &ct->tuplehash[dir].tuple.dst.u3,
+> >  			  IPPROTO_GRE, &peer_callid, &callid);
+> > -	exp_orig->expectfn = pptp_expectfn;
+> > +	exp_orig->nat_helper = &pptp_nat;
+> >
+> >  	/* reply direction, PAC->PNS */
+> >  	dir = IP_CT_DIR_REPLY;
+> > @@ -230,7 +238,7 @@ static int exp_gre(struct nf_conn *ct, __be16
+callid,
+> __be16 peer_callid)
+> >  			  &ct->tuplehash[dir].tuple.src.u3,
+> >  			  &ct->tuplehash[dir].tuple.dst.u3,
+> >  			  IPPROTO_GRE, &callid, &peer_callid);
+> > -	exp_reply->expectfn = pptp_expectfn;
+> > +	exp_reply->nat_helper = &pptp_nat;
+> 
+> Why do we need to attach nat_helper instead of expectfn? I would prefer we
+> do not.
 
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_nat_redirect.c | 2 ++
- net/netfilter/xt_TPROXY.c       | 5 ++++-
- 2 files changed, 6 insertions(+), 1 deletion(-)
+Because we need to introduce another member "expectfn_module" in the third
+patch.
+If insisted on the current style, the codes would look like the following:
+	exp_reply->expectfn = pptp_expectfn;
+	exp_reply->expectfn_module = THIS_MODULE;
 
-diff --git a/net/netfilter/nf_nat_redirect.c b/net/netfilter/nf_nat_redirect.c
-index d43869879fcf..86067560a318 100644
---- a/net/netfilter/nf_nat_redirect.c
-+++ b/net/netfilter/nf_nat_redirect.c
-@@ -101,11 +101,13 @@ nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range *range,
- 		rcu_read_lock();
- 		idev = __in6_dev_get(skb->dev);
- 		if (idev != NULL) {
-+			read_lock_bh(&idev->lock);
- 			list_for_each_entry(ifa, &idev->addr_list, if_list) {
- 				newdst = ifa->addr;
- 				addr = true;
- 				break;
- 			}
-+			read_unlock_bh(&idev->lock);
- 		}
- 		rcu_read_unlock();
- 
-diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
-index 80cb7babeb64..df7f1df00330 100644
---- a/net/netfilter/xt_TPROXY.c
-+++ b/net/netfilter/xt_TPROXY.c
-@@ -393,7 +393,8 @@ tproxy_laddr6(struct sk_buff *skb, const struct in6_addr *user_laddr,
- 
- 	rcu_read_lock();
- 	indev = __in6_dev_get(skb->dev);
--	if (indev)
-+	if (indev) {
-+		read_lock_bh(&indev->lock);
- 		list_for_each_entry(ifa, &indev->addr_list, if_list) {
- 			if (ifa->flags & (IFA_F_TENTATIVE | IFA_F_DEPRECATED))
- 				continue;
-@@ -401,6 +402,8 @@ tproxy_laddr6(struct sk_buff *skb, const struct in6_addr *user_laddr,
- 			laddr = &ifa->addr;
- 			break;
- 		}
-+		read_unlock_bh(&indev->lock);
-+	}
- 	rcu_read_unlock();
- 
- 	return laddr ? laddr : daddr;
--- 
-2.1.4
+There are two assignments when using expect_fn.
+It isn't only a little duplicated, but also it is easy to lost the module
+assignment and bring one bug.
+
+If attached the nat_helper instead of expectfn, there would be only one
+assignment.
+
+Regards
+Feng
+
+
+
+
+
