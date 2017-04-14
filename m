@@ -1,31 +1,50 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/9] Netfilter fixes for net
-Date: Fri, 14 Apr 2017 10:59:06 -0400 (EDT)
-Message-ID: <20170414.105906.384241609462277727.davem@davemloft.net>
-References: <1492129611-29336-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+From: Jarno Rajahalme <jarno@ovn.org>
+Subject: Re: [PATCH nf v2] net/openvswitch: Delete conntrack entry clashing with an expectation.
+Date: Fri, 14 Apr 2017 09:49:21 -0700
+Message-ID: <1FF3ABD3-9D31-4A6A-B906-0A6308E06D1E@ovn.org>
+References: <1492124719-123107-1-git-send-email-jarno@ovn.org> <CAML_gOeTJoEZPtzMdd0oBg5EES6T5PRZKVjxpmf9X6u7ba0ngA@mail.gmail.com>
+Mime-Version: 1.0 (1.0)
+Content-Type: text/plain;
+        charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Cc: Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>, joe@ovn.org
+To: Liping Zhang <zlpnobody@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([184.105.139.130]:46098 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752949AbdDNO7P (ORCPT
+Received: from relay7-d.mail.gandi.net ([217.70.183.200]:59056 "EHLO
+        relay7-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752897AbdDNQtf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 14 Apr 2017 10:59:15 -0400
-In-Reply-To: <1492129611-29336-1-git-send-email-pablo@netfilter.org>
+        Fri, 14 Apr 2017 12:49:35 -0400
+In-Reply-To: <CAML_gOeTJoEZPtzMdd0oBg5EES6T5PRZKVjxpmf9X6u7ba0ngA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Fri, 14 Apr 2017 02:26:42 +0200
 
-> The following patchset contains Netfilter fixes for your net tree,
-> they are:
- ...
-> You can pull these changes from:
+> On Apr 13, 2017, at 21:18, Liping Zhang <zlpnobody@gmail.com> wrote:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+> Hi Jarno,
+> 
+> 2017-04-14 7:05 GMT+08:00 Jarno Rajahalme <jarno@ovn.org>:
+> [...]
+>> +               h = nf_conntrack_find_get(net, zone, &tuple);
+>> +               if (h) {
+>> +                       struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
+>> +
+>> +                       if (nf_ct_is_confirmed(ct))
+> 
+> If the _ct_ could be got by nf_conntrack_find_get(),  it means that
+> the _ct_ have
+> been confirmed already, so the judgement "if (nf_ct_is_confirmed(ct))" seems
+> unnecessary.
+> 
 
-Pulled, thanks Pablo.
+You are right, thanks for pointing this out! Will send v3 later today,
+
+  Jarno
+
+>> +                               nf_ct_delete(ct, 0, 0);
+>> +                       nf_conntrack_put(&ct->ct_general);
+>> +               }
+>> +       }
+
