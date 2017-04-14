@@ -1,79 +1,31 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH nf-next] ipset: remove unused function
- __ip_set_get_netlink
-Date: Fri, 14 Apr 2017 16:15:41 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1704141612410.5084@blackhole.kfki.hu>
-References: <20170410195237.19909-1-aconole@bytheb.org> <20170413232842.GC7721@salvia>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/9] Netfilter fixes for net
+Date: Fri, 14 Apr 2017 10:59:06 -0400 (EDT)
+Message-ID: <20170414.105906.384241609462277727.davem@davemloft.net>
+References: <1492129611-29336-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netdev@vger.kernel.org, Aaron Conole <aconole@bytheb.org>,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:56610 "EHLO smtp1.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751544AbdDNOPq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 14 Apr 2017 10:15:46 -0400
-In-Reply-To: <20170413232842.GC7721@salvia>
+Received: from shards.monkeyblade.net ([184.105.139.130]:46098 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752949AbdDNO7P (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 14 Apr 2017 10:59:15 -0400
+In-Reply-To: <1492129611-29336-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Fri, 14 Apr 2017 02:26:42 +0200
 
-On Fri, 14 Apr 2017, Pablo Neira Ayuso wrote:
-
-> On Mon, Apr 10, 2017 at 03:52:37PM -0400, Aaron Conole wrote:
-> > There are no in-tree callers.
+> The following patchset contains Netfilter fixes for your net tree,
+> they are:
+ ...
+> You can pull these changes from:
 > 
-> @Jozsef, let me know if I should just take this to save you a pull
-> request.
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-Just take it, thank you.
-
-Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-
-Best regards,
-Jozsef
-
-> > Signed-off-by: Aaron Conole <aconole@bytheb.org>
-> > ---
-> >  net/netfilter/ipset/ip_set_core.c | 8 --------
-> >  1 file changed, 8 deletions(-)
-> > 
-> > diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> > index c296f9b..68ba531 100644
-> > --- a/net/netfilter/ipset/ip_set_core.c
-> > +++ b/net/netfilter/ipset/ip_set_core.c
-> > @@ -501,14 +501,6 @@ __ip_set_put(struct ip_set *set)
-> >   * a separate reference counter
-> >   */
-> >  static inline void
-> > -__ip_set_get_netlink(struct ip_set *set)
-> > -{
-> > -	write_lock_bh(&ip_set_ref_lock);
-> > -	set->ref_netlink++;
-> > -	write_unlock_bh(&ip_set_ref_lock);
-> > -}
-> > -
-> > -static inline void
-> >  __ip_set_put_netlink(struct ip_set *set)
-> >  {
-> >  	write_lock_bh(&ip_set_ref_lock);
-> > -- 
-> > 2.9.3
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Pulled, thanks Pablo.
