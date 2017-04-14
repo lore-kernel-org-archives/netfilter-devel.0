@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 7/9] netfilter: nf_ct_expect: use proper RCU list traversal/update APIs
-Date: Fri, 14 Apr 2017 02:26:49 +0200
-Message-ID: <1492129611-29336-8-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 5/9] netfilter: make it safer during the inet6_dev->addr_list traversal
+Date: Fri, 14 Apr 2017 02:26:47 +0200
+Message-ID: <1492129611-29336-6-git-send-email-pablo@netfilter.org>
 References: <1492129611-29336-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,65 +12,57 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Liping Zhang <zlpnobody@gmail.com>
 
-We should use proper RCU list APIs to manipulate help->expectations,
-as we can dump the conntrack's expectations via nfnetlink, i.e. in
-ctnetlink_exp_ct_dump_table(), where only rcu_read_lock is acquired.
-
-So for list traversal, use hlist_for_each_entry_rcu; for list add/del,
-use hlist_add_head_rcu and hlist_del_rcu.
+inet6_dev->addr_list is protected by inet6_dev->lock, so only using
+rcu_read_lock is not enough, we should acquire read_lock_bh(&idev->lock)
+before the inet6_dev->addr_list traversal.
 
 Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_expect.c  | 4 ++--
- net/netfilter/nf_conntrack_netlink.c | 6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ net/netfilter/nf_nat_redirect.c | 2 ++
+ net/netfilter/xt_TPROXY.c       | 5 ++++-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 4b2e1fb28bb4..d80073037856 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -57,7 +57,7 @@ void nf_ct_unlink_expect_report(struct nf_conntrack_expect *exp,
- 	hlist_del_rcu(&exp->hnode);
- 	net->ct.expect_count--;
+diff --git a/net/netfilter/nf_nat_redirect.c b/net/netfilter/nf_nat_redirect.c
+index d43869879fcf..86067560a318 100644
+--- a/net/netfilter/nf_nat_redirect.c
++++ b/net/netfilter/nf_nat_redirect.c
+@@ -101,11 +101,13 @@ nf_nat_redirect_ipv6(struct sk_buff *skb, const struct nf_nat_range *range,
+ 		rcu_read_lock();
+ 		idev = __in6_dev_get(skb->dev);
+ 		if (idev != NULL) {
++			read_lock_bh(&idev->lock);
+ 			list_for_each_entry(ifa, &idev->addr_list, if_list) {
+ 				newdst = ifa->addr;
+ 				addr = true;
+ 				break;
+ 			}
++			read_unlock_bh(&idev->lock);
+ 		}
+ 		rcu_read_unlock();
  
--	hlist_del(&exp->lnode);
-+	hlist_del_rcu(&exp->lnode);
- 	master_help->expecting[exp->class]--;
+diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
+index 80cb7babeb64..df7f1df00330 100644
+--- a/net/netfilter/xt_TPROXY.c
++++ b/net/netfilter/xt_TPROXY.c
+@@ -393,7 +393,8 @@ tproxy_laddr6(struct sk_buff *skb, const struct in6_addr *user_laddr,
  
- 	nf_ct_expect_event_report(IPEXP_DESTROY, exp, portid, report);
-@@ -363,7 +363,7 @@ static void nf_ct_expect_insert(struct nf_conntrack_expect *exp)
- 	/* two references : one for hash insert, one for the timer */
- 	atomic_add(2, &exp->use);
- 
--	hlist_add_head(&exp->lnode, &master_help->expectations);
-+	hlist_add_head_rcu(&exp->lnode, &master_help->expectations);
- 	master_help->expecting[exp->class]++;
- 
- 	hlist_add_head_rcu(&exp->hnode, &nf_ct_expect_hash[h]);
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index f78eadba343d..dc7dfd68fafe 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2680,8 +2680,8 @@ ctnetlink_exp_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- 	last = (struct nf_conntrack_expect *)cb->args[1];
- 	for (; cb->args[0] < nf_ct_expect_hsize; cb->args[0]++) {
- restart:
--		hlist_for_each_entry(exp, &nf_ct_expect_hash[cb->args[0]],
--				     hnode) {
-+		hlist_for_each_entry_rcu(exp, &nf_ct_expect_hash[cb->args[0]],
-+					 hnode) {
- 			if (l3proto && exp->tuple.src.l3num != l3proto)
- 				continue;
- 
-@@ -2732,7 +2732,7 @@ ctnetlink_exp_ct_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
  	rcu_read_lock();
- 	last = (struct nf_conntrack_expect *)cb->args[1];
- restart:
--	hlist_for_each_entry(exp, &help->expectations, lnode) {
-+	hlist_for_each_entry_rcu(exp, &help->expectations, lnode) {
- 		if (l3proto && exp->tuple.src.l3num != l3proto)
- 			continue;
- 		if (cb->args[1]) {
+ 	indev = __in6_dev_get(skb->dev);
+-	if (indev)
++	if (indev) {
++		read_lock_bh(&indev->lock);
+ 		list_for_each_entry(ifa, &indev->addr_list, if_list) {
+ 			if (ifa->flags & (IFA_F_TENTATIVE | IFA_F_DEPRECATED))
+ 				continue;
+@@ -401,6 +402,8 @@ tproxy_laddr6(struct sk_buff *skb, const struct in6_addr *user_laddr,
+ 			laddr = &ifa->addr;
+ 			break;
+ 		}
++		read_unlock_bh(&indev->lock);
++	}
+ 	rcu_read_unlock();
+ 
+ 	return laddr ? laddr : daddr;
 -- 
 2.1.4
