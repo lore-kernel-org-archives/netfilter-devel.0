@@ -1,63 +1,83 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf v5 2/3] netfilter: nat_helper: Make sure every proto
- nat module uses its nat_helper
-Date: Fri, 14 Apr 2017 02:11:07 +0200
-Message-ID: <20170414001107.GA28754@salvia>
-References: <cover.1490955730.git.fgao@ikuai8.com>
- <74aaa9aaa69d65fa46d56faf5c4de671abf4a5cf.1490955730.git.fgao@ikuai8.com>
+Subject: Re: [PATCH nf-next] ipvs: remove unused function
+ ip_vs_set_state_timeout
+Date: Fri, 14 Apr 2017 02:13:09 +0200
+Message-ID: <20170414001309.GA28870@salvia>
+References: <20170410195044.19646-1-aconole@bytheb.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Gao Feng <fgao@ikuai8.com>
-To: gfree.wind@foxmail.com
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33294 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751718AbdDNALX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 13 Apr 2017 20:11:23 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B7C7DC125F
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 02:11:18 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7B53FDA848
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 02:11:18 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2400CDA862
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 Apr 2017 02:11:12 +0200 (CEST)
+Cc: netfilter-devel@vger.kernel.org,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Julian Anastasov <ja@ssi.bg>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Aaron Conole <aconole@bytheb.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <74aaa9aaa69d65fa46d56faf5c4de671abf4a5cf.1490955730.git.fgao@ikuai8.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20170410195044.19646-1-aconole@bytheb.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Mar 31, 2017 at 06:38:20PM +0800, gfree.wind@foxmail.com wrote:
-> +static struct nf_ct_nat_helper pptp_nat = {
-> +	.name			= "pptp_nat",
+On Mon, Apr 10, 2017 at 03:50:44PM -0400, Aaron Conole wrote:
+> There are no in-tree callers of this function and it isn't exported.
 
-Why all these with "xyz_nat" names?
+Simon, let me know if you want to take this, or just add your
+Signed-off-by.
 
-This is going to break ctnetlink, as this is the name that identifies
-the NAT helper to be used.
+Thanks!
 
-> +	.expectfn		= pptp_expectfn,
-> +};
-> +
->  static void pptp_expectfn(struct nf_conn *ct,
->  			 struct nf_conntrack_expect *exp)
->  {
-> @@ -221,7 +229,7 @@ static int exp_gre(struct nf_conn *ct, __be16 callid, __be16 peer_callid)
->  			  &ct->tuplehash[dir].tuple.src.u3,
->  			  &ct->tuplehash[dir].tuple.dst.u3,
->  			  IPPROTO_GRE, &peer_callid, &callid);
-> -	exp_orig->expectfn = pptp_expectfn;
-> +	exp_orig->nat_helper = &pptp_nat;
+> Signed-off-by: Aaron Conole <aconole@bytheb.org>
+> ---
+>  include/net/ip_vs.h              |  2 --
+>  net/netfilter/ipvs/ip_vs_proto.c | 22 ----------------------
+>  2 files changed, 24 deletions(-)
+> 
+> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+> index 8a4a57b8..c76fedb 100644
+> --- a/include/net/ip_vs.h
+> +++ b/include/net/ip_vs.h
+> @@ -1349,8 +1349,6 @@ int ip_vs_protocol_init(void);
+>  void ip_vs_protocol_cleanup(void);
+>  void ip_vs_protocol_timeout_change(struct netns_ipvs *ipvs, int flags);
+>  int *ip_vs_create_timeout_table(int *table, int size);
+> -int ip_vs_set_state_timeout(int *table, int num, const char *const *names,
+> -			    const char *name, int to);
+>  void ip_vs_tcpudp_debug_packet(int af, struct ip_vs_protocol *pp,
+>  			       const struct sk_buff *skb, int offset,
+>  			       const char *msg);
+> diff --git a/net/netfilter/ipvs/ip_vs_proto.c b/net/netfilter/ipvs/ip_vs_proto.c
+> index 8ae4807..ca880a3 100644
+> --- a/net/netfilter/ipvs/ip_vs_proto.c
+> +++ b/net/netfilter/ipvs/ip_vs_proto.c
+> @@ -193,28 +193,6 @@ ip_vs_create_timeout_table(int *table, int size)
+>  }
 >  
->  	/* reply direction, PAC->PNS */
->  	dir = IP_CT_DIR_REPLY;
-> @@ -230,7 +238,7 @@ static int exp_gre(struct nf_conn *ct, __be16 callid, __be16 peer_callid)
->  			  &ct->tuplehash[dir].tuple.src.u3,
->  			  &ct->tuplehash[dir].tuple.dst.u3,
->  			  IPPROTO_GRE, &callid, &peer_callid);
-> -	exp_reply->expectfn = pptp_expectfn;
-> +	exp_reply->nat_helper = &pptp_nat;
-
-Why do we need to attach nat_helper instead of expectfn? I would
-prefer we do not.
+>  
+> -/*
+> - *	Set timeout value for state specified by name
+> - */
+> -int
+> -ip_vs_set_state_timeout(int *table, int num, const char *const *names,
+> -			const char *name, int to)
+> -{
+> -	int i;
+> -
+> -	if (!table || !name || !to)
+> -		return -EINVAL;
+> -
+> -	for (i = 0; i < num; i++) {
+> -		if (strcmp(names[i], name))
+> -			continue;
+> -		table[i] = to * HZ;
+> -		return 0;
+> -	}
+> -	return -ENOENT;
+> -}
+> -
+> -
+>  const char * ip_vs_state_name(__u16 proto, int state)
+>  {
+>  	struct ip_vs_protocol *pp = ip_vs_proto_get(proto);
+> -- 
+> 2.9.3
+> 
