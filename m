@@ -1,114 +1,90 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf-next] netfilter: nft_ct: allow to set ctnetlink event types of a connection
-Date: Sat, 15 Apr 2017 12:26:04 +0200
-Message-ID: <20170415102604.29236-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf V3] netfilter: nf_ct_helper: permit cthelpers with different names via nfnetlink
+Date: Sat, 15 Apr 2017 19:27:42 +0800
+Message-ID: <1492255662-57602-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56970 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752091AbdDOKZq (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 15 Apr 2017 06:25:46 -0400
+Received: from m12-16.163.com ([220.181.12.16]:58568 "EHLO m12-16.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752497AbdDOL2T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 15 Apr 2017 07:28:19 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-By default the kernel emits all ctnetlink events for a connection.
-This allows to select the types of events to generate.
+From: Liping Zhang <zlpnobody@gmail.com>
 
-This can be used to e.g. only send DESTROY events but no NEW/UPDATE ones
-and will work even if sysctl net.netfilter.nf_conntrack_events is set to 0.
+cthelpers added via nfnetlink may have the same tuple, i.e. except for
+the l3proto and l4proto, other fields are all zero. So even with the
+different names, we will also fail to add them:
+  # nfct helper add ssdp inet udp
+  # nfct helper add tftp inet udp
+  nfct v1.4.3: netlink error: File exists
 
-This was already possible via iptables' CT target, but the nft version has
-the advantage that it can also be used with already-established conntracks.
+So in order to avoid unpredictable behaviour, we should:
+1. cthelpers can be selected by nft ct helper obj or xt_CT target, so
+report error if duplicated { name, l3proto, l4proto } tuple exist.
+2. cthelpers can be selected by nf_ct_tuple_src_mask_cmp when
+nf_ct_auto_assign_helper is enabled, so also report error if duplicated
+{ l3proto, l4proto, src-port } tuple exist.
 
-The added nf_ct_is_template() check isn't a bug fix as we only support
-mark and labels (and unlike ecache the conntrack core doesn't copy those).
+Also note, if the cthelper is added from userspace, then the src-port will
+always be zero, it's invalid for nf_ct_auto_assign_helper, so there's no
+need to check the second point listed above.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 893e093c786c ("netfilter: nf_ct_helper: bail out on duplicated helpers")
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 ---
- Changes since v1:
-  - use nft_reg_load16() helper
-  - add extension if its not there and ct isn't confirmed yet.
+ V3: no changes, rebase on nf.git and resubmit
+ V2: drop to use __nf_conntrack_helper_find, per Pablo
 
- include/uapi/linux/netfilter/nf_tables.h |  2 ++
- net/netfilter/nft_ct.c                   | 25 ++++++++++++++++++++++++-
- 2 files changed, 26 insertions(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_helper.c | 26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
- NFT_CT_EXPMASK is still missing, adding it should be very simple, its
- essentially copy&paste of this and the two ctevent userspace patches
- (nft/libnftnl).
-
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 8f3842690d17..683f6f88fcac 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -901,6 +901,7 @@ enum nft_rt_attributes {
-  * @NFT_CT_BYTES: conntrack bytes
-  * @NFT_CT_AVGPKT: conntrack average bytes per packet
-  * @NFT_CT_ZONE: conntrack zone
-+ * @NFT_CT_EVENTMASK: ctnetlink events to be generated for this conntrack
-  */
- enum nft_ct_keys {
- 	NFT_CT_STATE,
-@@ -921,6 +922,7 @@ enum nft_ct_keys {
- 	NFT_CT_BYTES,
- 	NFT_CT_AVGPKT,
- 	NFT_CT_ZONE,
-+	NFT_CT_EVENTMASK,
- };
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 4eeb341..99bcd44 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -386,17 +386,33 @@ int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
+ 	struct nf_conntrack_tuple_mask mask = { .src.u.all = htons(0xFFFF) };
+ 	unsigned int h = helper_hash(&me->tuple);
+ 	struct nf_conntrack_helper *cur;
+-	int ret = 0;
++	int ret = 0, i;
  
- /**
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 6c6fd48b024c..1d0a24b3b020 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -264,7 +264,7 @@ static void nft_ct_set_eval(const struct nft_expr *expr,
- 	struct nf_conn *ct;
+ 	BUG_ON(me->expect_policy == NULL);
+ 	BUG_ON(me->expect_class_max >= NF_CT_MAX_EXPECT_CLASSES);
+ 	BUG_ON(strlen(me->name) > NF_CT_HELPER_NAME_LEN - 1);
  
- 	ct = nf_ct_get(skb, &ctinfo);
--	if (ct == NULL)
-+	if (ct == NULL || nf_ct_is_template(ct))
- 		return;
- 
- 	switch (priv->key) {
-@@ -284,6 +284,22 @@ static void nft_ct_set_eval(const struct nft_expr *expr,
- 				      NF_CT_LABELS_MAX_SIZE / sizeof(u32));
- 		break;
- #endif
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
-+	case NFT_CT_EVENTMASK: {
-+		struct nf_conntrack_ecache *e = nf_ct_ecache_find(ct);
-+		u16 ctmask = nft_reg_load16(&regs->data[priv->sreg]);
-+
-+		if (e) {
-+			if (e->ctmask != ctmask)
-+				e->ctmask = ctmask;
-+			break;
+ 	mutex_lock(&nf_ct_helper_mutex);
+-	hlist_for_each_entry(cur, &nf_ct_helper_hash[h], hnode) {
+-		if (nf_ct_tuple_src_mask_cmp(&cur->tuple, &me->tuple, &mask)) {
+-			ret = -EEXIST;
+-			goto out;
++	for (i = 0; i < nf_ct_helper_hsize; i++) {
++		hlist_for_each_entry(cur, &nf_ct_helper_hash[i], hnode) {
++			if (!strcmp(cur->name, me->name) &&
++			    (cur->tuple.src.l3num == NFPROTO_UNSPEC ||
++			     cur->tuple.src.l3num == me->tuple.src.l3num) &&
++			    cur->tuple.dst.protonum == me->tuple.dst.protonum) {
++				ret = -EEXIST;
++				goto out;
++			}
 +		}
-+
-+		if (ctmask && !nf_ct_is_confirmed(ct))
-+			nf_ct_ecache_ext_add(ct, ctmask, 0, GFP_ATOMIC);
-+		break;
 +	}
-+#endif
- 	default:
- 		break;
++
++	/* avoid unpredictable behaviour for auto_assign_helper */
++	if (!(me->flags & NF_CT_HELPER_F_USERSPACE)) {
++		hlist_for_each_entry(cur, &nf_ct_helper_hash[h], hnode) {
++			if (nf_ct_tuple_src_mask_cmp(&cur->tuple, &me->tuple,
++						     &mask)) {
++				ret = -EEXIST;
++				goto out;
++			}
+ 		}
  	}
-@@ -539,6 +555,13 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
- 		len = sizeof(u16);
- 		break;
- #endif
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
-+	case NFT_CT_EVENTMASK:
-+		if (tb[NFTA_CT_DIRECTION])
-+			return -EINVAL;
-+		len = sizeof(u32);
-+		break;
-+#endif
- 	default:
- 		return -EOPNOTSUPP;
- 	}
+ 	hlist_add_head_rcu(&me->hnode, &nf_ct_helper_hash[h]);
 -- 
-2.10.2
+2.5.5
+
 
