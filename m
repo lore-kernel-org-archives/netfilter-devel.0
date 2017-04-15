@@ -1,47 +1,86 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 0/6] netfilter: remove support for variably-sized extensions
-Date: Sun, 16 Apr 2017 01:29:13 +0200
-Message-ID: <20170415232919.13671-1-fw@strlen.de>
+Subject: [PATCH nf-next 1/6] netfilter: conntrack: move helper struct to nf_conntrack_helper.h
+Date: Sun, 16 Apr 2017 01:29:14 +0200
+Message-ID: <20170415232919.13671-2-fw@strlen.de>
+References: <20170415232919.13671-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57826 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57828 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754704AbdDOX3C (ORCPT
+        by vger.kernel.org with ESMTP id S1754704AbdDOX3G (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 15 Apr 2017 19:29:02 -0400
+        Sat, 15 Apr 2017 19:29:06 -0400
+In-Reply-To: <20170415232919.13671-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-3 years ago we had to bump the offsets to the extensions
-(223b02d923ecd7c84cf9780bb3686f455d279279,
-"netfilter: nf_conntrack: reserve two bytes for nf_ct_ext->len")
-because total size of all extensions had increased to a point where u8
-did overflow.
+its definition is not needed in nf_conntrack.h.
 
-We already dieted the extensions back to more reasonable sizes, however,
-I never wanted to switch back because overflow produces hard to diagnose
-crash bugs, and we could not add compile-time assert because extensions
-can be dynamically sized.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/net/netfilter/nf_conntrack.h        | 19 -------------------
+ include/net/netfilter/nf_conntrack_helper.h | 17 +++++++++++++++++
+ 2 files changed, 17 insertions(+), 19 deletions(-)
 
-This series makes the last veriable-sized extension (helper)
-fixed in size by adding a 32byte scratch area for helpers to use
-and then adds the compile-time asserts to catch overflow during build
-time.
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 4978a82b75fa..8ece3612d0cd 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -50,25 +50,6 @@ union nf_conntrack_expect_proto {
+ #define NF_CT_ASSERT(x)
+ #endif
+ 
+-struct nf_conntrack_helper;
+-
+-/* Must be kept in sync with the classes defined by helpers */
+-#define NF_CT_MAX_EXPECT_CLASSES	4
+-
+-/* nf_conn feature for connections that have a helper */
+-struct nf_conn_help {
+-	/* Helper. if any */
+-	struct nf_conntrack_helper __rcu *helper;
+-
+-	struct hlist_head expectations;
+-
+-	/* Current number of expected connections */
+-	u8 expecting[NF_CT_MAX_EXPECT_CLASSES];
+-
+-	/* private helper information. */
+-	char data[];
+-};
+-
+ #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
+ #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
+ 
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index 1eaac1f4cd6a..15d746558665 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -52,6 +52,23 @@ struct nf_conntrack_helper {
+ 	unsigned int queue_num;		/* For user-space helpers. */
+ };
+ 
++/* Must be kept in sync with the classes defined by helpers */
++#define NF_CT_MAX_EXPECT_CLASSES	4
++
++/* nf_conn feature for connections that have a helper */
++struct nf_conn_help {
++	/* Helper. if any */
++	struct nf_conntrack_helper __rcu *helper;
++
++	struct hlist_head expectations;
++
++	/* Current number of expected connections */
++	u8 expecting[NF_CT_MAX_EXPECT_CLASSES];
++
++	/* private helper information. */
++	char data[];
++};
++
+ struct nf_conntrack_helper *__nf_conntrack_helper_find(const char *name,
+ 						       u16 l3num, u8 protonum);
+ 
+-- 
+2.10.2
 
- include/net/netfilter/nf_conntrack.h        |   19 ----------------
- include/net/netfilter/nf_conntrack_extend.h |   12 ++--------
- include/net/netfilter/nf_conntrack_helper.h |   31 ++++++++++++++++++++++----
- net/netfilter/nf_conntrack_amanda.c         |    2 +
- net/netfilter/nf_conntrack_core.c           |   33 ++++++++++++++++++++++++++++
- net/netfilter/nf_conntrack_extend.c         |   16 +++++--------
- net/netfilter/nf_conntrack_ftp.c            |    8 +++---
- net/netfilter/nf_conntrack_h323_main.c      |    6 +----
- net/netfilter/nf_conntrack_helper.c         |    6 +----
- net/netfilter/nf_conntrack_irc.c            |    2 -
- net/netfilter/nf_conntrack_netbios_ns.c     |    2 +
- net/netfilter/nf_conntrack_pptp.c           |    3 +-
- net/netfilter/nf_conntrack_sane.c           |    8 +++---
- net/netfilter/nf_conntrack_sip.c            |   14 +++++------
- net/netfilter/nf_conntrack_tftp.c           |    6 +++--
- net/netfilter/nfnetlink_cthelper.c          |   10 ++++++--
- 16 files changed, 106 insertions(+), 72 deletions(-)
