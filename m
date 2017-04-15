@@ -1,255 +1,110 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 4/6] netfilter: helpers: remove data_len usage for inkernel helpers
-Date: Sun, 16 Apr 2017 01:29:17 +0200
-Message-ID: <20170415232919.13671-5-fw@strlen.de>
+Subject: [PATCH nf-next 5/6] netfilter: remove last traces of variable-sized extensions
+Date: Sun, 16 Apr 2017 01:29:18 +0200
+Message-ID: <20170415232919.13671-6-fw@strlen.de>
 References: <20170415232919.13671-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57834 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57840 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755116AbdDOX3Q (ORCPT
+        by vger.kernel.org with ESMTP id S1755116AbdDOX3T (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 15 Apr 2017 19:29:16 -0400
+        Sat, 15 Apr 2017 19:29:19 -0400
 In-Reply-To: <20170415232919.13671-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-No need to track this for inkernel helpers anymore as
-NF_CT_HELPER_BUILD_BUG_ON checks do this now.
-
-All inkernel helpers know what kind of structure they
-stored in helper->data.
+get rid of the (now unused) nf_ct_ext_add_length define and also
+rename the function to plain nf_ct_ext_add().
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack_helper.h | 11 ++++++-----
- net/netfilter/nf_conntrack_ftp.c            |  6 ++----
- net/netfilter/nf_conntrack_h323_main.c      |  4 ----
- net/netfilter/nf_conntrack_helper.c         |  6 ++----
- net/netfilter/nf_conntrack_irc.c            |  2 +-
- net/netfilter/nf_conntrack_pptp.c           |  1 -
- net/netfilter/nf_conntrack_sane.c           |  6 ++----
- net/netfilter/nf_conntrack_sip.c            | 12 ++++--------
- net/netfilter/nf_conntrack_tftp.c           |  4 ++--
- 9 files changed, 19 insertions(+), 33 deletions(-)
+ include/net/netfilter/nf_conntrack_extend.h |  8 +-------
+ net/netfilter/nf_conntrack_extend.c         | 16 +++++++---------
+ 2 files changed, 8 insertions(+), 16 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index 29539ed1008f..e04fa7691e5d 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -29,9 +29,6 @@ struct nf_conntrack_helper {
- 	struct module *me;		/* pointer to self */
- 	const struct nf_conntrack_expect_policy *expect_policy;
+diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
+index 1c3035dda31f..4ec645c8b647 100644
+--- a/include/net/netfilter/nf_conntrack_extend.h
++++ b/include/net/netfilter/nf_conntrack_extend.h
+@@ -86,13 +86,7 @@ static inline void nf_ct_ext_free(struct nf_conn *ct)
+ }
  
--	/* length of internal data, ie. sizeof(struct nf_ct_*_master) */
--	size_t data_len;
+ /* Add this type, returns pointer to data or NULL. */
+-void *__nf_ct_ext_add_length(struct nf_conn *ct, enum nf_ct_ext_id id,
+-			     size_t var_alloc_len, gfp_t gfp);
 -
- 	/* Tuple of things we will help (compared against server response) */
- 	struct nf_conntrack_tuple tuple;
+-#define nf_ct_ext_add(ct, id, gfp) \
+-	((id##_TYPE *)__nf_ct_ext_add_length((ct), (id), 0, (gfp)))
+-#define nf_ct_ext_add_length(ct, id, len, gfp) \
+-	((id##_TYPE *)__nf_ct_ext_add_length((ct), (id), (len), (gfp)))
++void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp);
  
-@@ -49,7 +46,11 @@ struct nf_conntrack_helper {
- 	unsigned int expect_class_max;
+ #define NF_CT_EXT_F_PREALLOC	0x0001
  
- 	unsigned int flags;
--	unsigned int queue_num;		/* For user-space helpers. */
-+
-+	/* For user-space helpers: */
-+	unsigned int queue_num;
-+	/* length of userspace private data stored in nf_conn_help->data */
-+	u16 data_len;
- };
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index 008299b7f78f..b5879a9c748d 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -44,8 +44,7 @@ void __nf_ct_ext_destroy(struct nf_conn *ct)
+ EXPORT_SYMBOL(__nf_ct_ext_destroy);
  
- /* Must be kept in sync with the classes defined by helpers */
-@@ -82,7 +83,7 @@ void nf_ct_helper_init(struct nf_conntrack_helper *helper,
- 		       u16 l3num, u16 protonum, const char *name,
- 		       u16 default_port, u16 spec_port, u32 id,
- 		       const struct nf_conntrack_expect_policy *exp_pol,
--		       u32 expect_class_max, u32 data_len,
-+		       u32 expect_class_max,
- 		       int (*help)(struct sk_buff *skb, unsigned int protoff,
- 				   struct nf_conn *ct,
- 				   enum ip_conntrack_info ctinfo),
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index 58e1256cd05d..f0e9a7511e1a 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -591,12 +591,10 @@ static int __init nf_conntrack_ftp_init(void)
- 	for (i = 0; i < ports_c; i++) {
- 		nf_ct_helper_init(&ftp[2 * i], AF_INET, IPPROTO_TCP, "ftp",
- 				  FTP_PORT, ports[i], ports[i], &ftp_exp_policy,
--				  0, sizeof(struct nf_ct_ftp_master), help,
--				  nf_ct_ftp_from_nlattr, THIS_MODULE);
-+				  0, help, nf_ct_ftp_from_nlattr, THIS_MODULE);
- 		nf_ct_helper_init(&ftp[2 * i + 1], AF_INET6, IPPROTO_TCP, "ftp",
- 				  FTP_PORT, ports[i], ports[i], &ftp_exp_policy,
--				  0, sizeof(struct nf_ct_ftp_master), help,
--				  nf_ct_ftp_from_nlattr, THIS_MODULE);
-+				  0, help, nf_ct_ftp_from_nlattr, THIS_MODULE);
- 	}
- 
- 	ret = nf_conntrack_helpers_register(ftp, ports_c * 2);
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index e98204349efe..3bcdc718484e 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -637,7 +637,6 @@ static const struct nf_conntrack_expect_policy h245_exp_policy = {
- static struct nf_conntrack_helper nf_conntrack_helper_h245 __read_mostly = {
- 	.name			= "H.245",
- 	.me			= THIS_MODULE,
--	.data_len		= sizeof(struct nf_ct_h323_master),
- 	.tuple.src.l3num	= AF_UNSPEC,
- 	.tuple.dst.protonum	= IPPROTO_UDP,
- 	.help			= h245_help,
-@@ -1215,7 +1214,6 @@ static struct nf_conntrack_helper nf_conntrack_helper_q931[] __read_mostly = {
- 	{
- 		.name			= "Q.931",
- 		.me			= THIS_MODULE,
--		.data_len		= sizeof(struct nf_ct_h323_master),
- 		.tuple.src.l3num	= AF_INET,
- 		.tuple.src.u.tcp.port	= cpu_to_be16(Q931_PORT),
- 		.tuple.dst.protonum	= IPPROTO_TCP,
-@@ -1800,7 +1798,6 @@ static struct nf_conntrack_helper nf_conntrack_helper_ras[] __read_mostly = {
- 	{
- 		.name			= "RAS",
- 		.me			= THIS_MODULE,
--		.data_len		= sizeof(struct nf_ct_h323_master),
- 		.tuple.src.l3num	= AF_INET,
- 		.tuple.src.u.udp.port	= cpu_to_be16(RAS_PORT),
- 		.tuple.dst.protonum	= IPPROTO_UDP,
-@@ -1810,7 +1807,6 @@ static struct nf_conntrack_helper nf_conntrack_helper_ras[] __read_mostly = {
- 	{
- 		.name			= "RAS",
- 		.me			= THIS_MODULE,
--		.data_len		= sizeof(struct nf_ct_h323_master),
- 		.tuple.src.l3num	= AF_INET6,
- 		.tuple.src.u.udp.port	= cpu_to_be16(RAS_PORT),
- 		.tuple.dst.protonum	= IPPROTO_UDP,
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 33ebb78649f8..8239b4406f56 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -178,8 +178,7 @@ nf_ct_helper_ext_add(struct nf_conn *ct,
+ static void *
+-nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id,
+-		 size_t var_alloc_len, gfp_t gfp)
++nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id, gfp_t gfp)
  {
- 	struct nf_conn_help *help;
- 
--	help = nf_ct_ext_add_length(ct, NF_CT_EXT_HELPER,
--				    helper->data_len, gfp);
-+	help = nf_ct_ext_add(ct, NF_CT_EXT_HELPER, gfp);
- 	if (help)
- 		INIT_HLIST_HEAD(&help->expectations);
- 	else
-@@ -484,7 +483,7 @@ void nf_ct_helper_init(struct nf_conntrack_helper *helper,
- 		       u16 l3num, u16 protonum, const char *name,
- 		       u16 default_port, u16 spec_port, u32 id,
- 		       const struct nf_conntrack_expect_policy *exp_pol,
--		       u32 expect_class_max, u32 data_len,
-+		       u32 expect_class_max,
- 		       int (*help)(struct sk_buff *skb, unsigned int protoff,
- 				   struct nf_conn *ct,
- 				   enum ip_conntrack_info ctinfo),
-@@ -497,7 +496,6 @@ void nf_ct_helper_init(struct nf_conntrack_helper *helper,
- 	helper->tuple.src.u.all = htons(spec_port);
- 	helper->expect_policy = exp_pol;
- 	helper->expect_class_max = expect_class_max;
--	helper->data_len = data_len;
- 	helper->help = help;
- 	helper->from_nlattr = from_nlattr;
- 	helper->me = module;
-diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
-index 1a5af4d4af2d..5523acce9d69 100644
---- a/net/netfilter/nf_conntrack_irc.c
-+++ b/net/netfilter/nf_conntrack_irc.c
-@@ -263,7 +263,7 @@ static int __init nf_conntrack_irc_init(void)
- 	for (i = 0; i < ports_c; i++) {
- 		nf_ct_helper_init(&irc[i], AF_INET, IPPROTO_TCP, "irc",
- 				  IRC_PORT, ports[i], i, &irc_exp_policy,
--				  0, 0, help, NULL, THIS_MODULE);
-+				  0, help, NULL, THIS_MODULE);
+ 	unsigned int off, len;
+ 	struct nf_ct_ext_type *t;
+@@ -59,8 +58,8 @@ nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id,
  	}
  
- 	ret = nf_conntrack_helpers_register(&irc[0], ports_c);
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
-index 34fac4c52c4c..126031909fc7 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -596,7 +596,6 @@ static const struct nf_conntrack_expect_policy pptp_exp_policy = {
- static struct nf_conntrack_helper pptp __read_mostly = {
- 	.name			= "pptp",
- 	.me			= THIS_MODULE,
--	.data_len		= sizeof(struct nf_ct_pptp_master),
- 	.tuple.src.l3num	= AF_INET,
- 	.tuple.src.u.tcp.port	= cpu_to_be16(PPTP_CONTROL_PORT),
- 	.tuple.dst.protonum	= IPPROTO_TCP,
-diff --git a/net/netfilter/nf_conntrack_sane.c b/net/netfilter/nf_conntrack_sane.c
-index 1121db08d048..ae457f39d5ce 100644
---- a/net/netfilter/nf_conntrack_sane.c
-+++ b/net/netfilter/nf_conntrack_sane.c
-@@ -198,13 +198,11 @@ static int __init nf_conntrack_sane_init(void)
- 	for (i = 0; i < ports_c; i++) {
- 		nf_ct_helper_init(&sane[2 * i], AF_INET, IPPROTO_TCP, "sane",
- 				  SANE_PORT, ports[i], ports[i],
--				  &sane_exp_policy, 0,
--				  sizeof(struct nf_ct_sane_master), help, NULL,
-+				  &sane_exp_policy, 0, help, NULL,
- 				  THIS_MODULE);
- 		nf_ct_helper_init(&sane[2 * i + 1], AF_INET6, IPPROTO_TCP, "sane",
- 				  SANE_PORT, ports[i], ports[i],
--				  &sane_exp_policy, 0,
--				  sizeof(struct nf_ct_sane_master), help, NULL,
-+				  &sane_exp_policy, 0, help, NULL,
- 				  THIS_MODULE);
+ 	off = ALIGN(sizeof(struct nf_ct_ext), t->align);
+-	len = off + t->len + var_alloc_len;
+-	alloc_size = t->alloc_size + var_alloc_len;
++	len = off + t->len;
++	alloc_size = t->alloc_size;
+ 	rcu_read_unlock();
+ 
+ 	*ext = kzalloc(alloc_size, gfp);
+@@ -73,8 +72,7 @@ nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id,
+ 	return (void *)(*ext) + off;
+ }
+ 
+-void *__nf_ct_ext_add_length(struct nf_conn *ct, enum nf_ct_ext_id id,
+-			     size_t var_alloc_len, gfp_t gfp)
++void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ {
+ 	struct nf_ct_ext *old, *new;
+ 	int newlen, newoff;
+@@ -85,7 +83,7 @@ void *__nf_ct_ext_add_length(struct nf_conn *ct, enum nf_ct_ext_id id,
+ 
+ 	old = ct->ext;
+ 	if (!old)
+-		return nf_ct_ext_create(&ct->ext, id, var_alloc_len, gfp);
++		return nf_ct_ext_create(&ct->ext, id, gfp);
+ 
+ 	if (__nf_ct_ext_exist(old, id))
+ 		return NULL;
+@@ -98,7 +96,7 @@ void *__nf_ct_ext_add_length(struct nf_conn *ct, enum nf_ct_ext_id id,
  	}
  
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 79bbcc4d52ee..d38af4274335 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -1630,23 +1630,19 @@ static int __init nf_conntrack_sip_init(void)
- 	for (i = 0; i < ports_c; i++) {
- 		nf_ct_helper_init(&sip[4 * i], AF_INET, IPPROTO_UDP, "sip",
- 				  SIP_PORT, ports[i], i, sip_exp_policy,
--				  SIP_EXPECT_MAX,
--				  sizeof(struct nf_ct_sip_master), sip_help_udp,
-+				  SIP_EXPECT_MAX, sip_help_udp,
- 				  NULL, THIS_MODULE);
- 		nf_ct_helper_init(&sip[4 * i + 1], AF_INET, IPPROTO_TCP, "sip",
- 				  SIP_PORT, ports[i], i, sip_exp_policy,
--				  SIP_EXPECT_MAX,
--				  sizeof(struct nf_ct_sip_master), sip_help_tcp,
-+				  SIP_EXPECT_MAX, sip_help_tcp,
- 				  NULL, THIS_MODULE);
- 		nf_ct_helper_init(&sip[4 * i + 2], AF_INET6, IPPROTO_UDP, "sip",
- 				  SIP_PORT, ports[i], i, sip_exp_policy,
--				  SIP_EXPECT_MAX,
--				  sizeof(struct nf_ct_sip_master), sip_help_udp,
-+				  SIP_EXPECT_MAX, sip_help_udp,
- 				  NULL, THIS_MODULE);
- 		nf_ct_helper_init(&sip[4 * i + 3], AF_INET6, IPPROTO_TCP, "sip",
- 				  SIP_PORT, ports[i], i, sip_exp_policy,
--				  SIP_EXPECT_MAX,
--				  sizeof(struct nf_ct_sip_master), sip_help_tcp,
-+				  SIP_EXPECT_MAX, sip_help_tcp,
- 				  NULL, THIS_MODULE);
- 	}
+ 	newoff = ALIGN(old->len, t->align);
+-	newlen = newoff + t->len + var_alloc_len;
++	newlen = newoff + t->len;
+ 	rcu_read_unlock();
  
-diff --git a/net/netfilter/nf_conntrack_tftp.c b/net/netfilter/nf_conntrack_tftp.c
-index 27e2f6f904dc..0ec6779fd5d9 100644
---- a/net/netfilter/nf_conntrack_tftp.c
-+++ b/net/netfilter/nf_conntrack_tftp.c
-@@ -121,10 +121,10 @@ static int __init nf_conntrack_tftp_init(void)
- 	for (i = 0; i < ports_c; i++) {
- 		nf_ct_helper_init(&tftp[2 * i], AF_INET, IPPROTO_UDP, "tftp",
- 				  TFTP_PORT, ports[i], i, &tftp_exp_policy,
--				  0, 0, tftp_help, NULL, THIS_MODULE);
-+				  0, tftp_help, NULL, THIS_MODULE);
- 		nf_ct_helper_init(&tftp[2 * i + 1], AF_INET6, IPPROTO_UDP, "tftp",
- 				  TFTP_PORT, ports[i], i, &tftp_exp_policy,
--				  0, 0, tftp_help, NULL, THIS_MODULE);
-+				  0, tftp_help, NULL, THIS_MODULE);
- 	}
+ 	new = __krealloc(old, newlen, gfp);
+@@ -115,7 +113,7 @@ void *__nf_ct_ext_add_length(struct nf_conn *ct, enum nf_ct_ext_id id,
+ 	memset((void *)new + newoff, 0, newlen - newoff);
+ 	return (void *)new + newoff;
+ }
+-EXPORT_SYMBOL(__nf_ct_ext_add_length);
++EXPORT_SYMBOL(nf_ct_ext_add);
  
- 	ret = nf_conntrack_helpers_register(tftp, ports_c * 2);
+ static void update_alloc_size(struct nf_ct_ext_type *type)
+ {
 -- 
 2.10.2
 
