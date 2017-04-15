@@ -1,119 +1,47 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v3 nf-next] netfilter: nft_ct: allow to set ctnetlink event types of a connection
-Date: Sat, 15 Apr 2017 19:26:10 +0200
-Message-ID: <20170415172610.5807-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 0/6] netfilter: remove support for variably-sized extensions
+Date: Sun, 16 Apr 2017 01:29:13 +0200
+Message-ID: <20170415232919.13671-1-fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57448 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57826 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753827AbdDORZw (ORCPT
+        by vger.kernel.org with ESMTP id S1754704AbdDOX3C (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 15 Apr 2017 13:25:52 -0400
+        Sat, 15 Apr 2017 19:29:02 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-By default the kernel emits all ctnetlink events for a connection.
-This allows to select the types of events to generate.
+3 years ago we had to bump the offsets to the extensions
+(223b02d923ecd7c84cf9780bb3686f455d279279,
+"netfilter: nf_conntrack: reserve two bytes for nf_ct_ext->len")
+because total size of all extensions had increased to a point where u8
+did overflow.
 
-This can be used to e.g. only send DESTROY events but no NEW/UPDATE ones
-and will work even if sysctl net.netfilter.nf_conntrack_events is set to 0.
+We already dieted the extensions back to more reasonable sizes, however,
+I never wanted to switch back because overflow produces hard to diagnose
+crash bugs, and we could not add compile-time assert because extensions
+can be dynamically sized.
 
-This was already possible via iptables' CT target, but the nft version has
-the advantage that it can also be used with already-established conntracks.
+This series makes the last veriable-sized extension (helper)
+fixed in size by adding a 32byte scratch area for helpers to use
+and then adds the compile-time asserts to catch overflow during build
+time.
 
-The added nf_ct_is_template() check isn't a bug fix as we only support
-mark and labels (and unlike ecache the conntrack core doesn't copy those).
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Changes since v2:
-  - use u32 ctmask and load register directly, pointed
-  out by Liping.  nft userspace populates an u32 register
-  with a hostendian mask, so nft_reg_load16() is wrong.
-
- Changes since v1:
-  - use nft_reg_load16() helper
-  - add extension if its not there and ct isn't confirmed yet.
-
- include/uapi/linux/netfilter/nf_tables.h |  2 ++
- net/netfilter/nft_ct.c                   | 25 ++++++++++++++++++++++++-
- 2 files changed, 26 insertions(+), 1 deletion(-)
-
- NFT_CT_EXPMASK is still missing, adding it should be very simple, its
- essentially copy&paste of this and the two ctevent userspace patches
- (nft/libnftnl).
-
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 8f3842690d17..683f6f88fcac 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -901,6 +901,7 @@ enum nft_rt_attributes {
-  * @NFT_CT_BYTES: conntrack bytes
-  * @NFT_CT_AVGPKT: conntrack average bytes per packet
-  * @NFT_CT_ZONE: conntrack zone
-+ * @NFT_CT_EVENTMASK: ctnetlink events to be generated for this conntrack
-  */
- enum nft_ct_keys {
- 	NFT_CT_STATE,
-@@ -921,6 +922,7 @@ enum nft_ct_keys {
- 	NFT_CT_BYTES,
- 	NFT_CT_AVGPKT,
- 	NFT_CT_ZONE,
-+	NFT_CT_EVENTMASK,
- };
- 
- /**
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 6c6fd48b024c..a34ceb38fc55 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -264,7 +264,7 @@ static void nft_ct_set_eval(const struct nft_expr *expr,
- 	struct nf_conn *ct;
- 
- 	ct = nf_ct_get(skb, &ctinfo);
--	if (ct == NULL)
-+	if (ct == NULL || nf_ct_is_template(ct))
- 		return;
- 
- 	switch (priv->key) {
-@@ -284,6 +284,22 @@ static void nft_ct_set_eval(const struct nft_expr *expr,
- 				      NF_CT_LABELS_MAX_SIZE / sizeof(u32));
- 		break;
- #endif
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
-+	case NFT_CT_EVENTMASK: {
-+		struct nf_conntrack_ecache *e = nf_ct_ecache_find(ct);
-+		u32 ctmask = regs->data[priv->sreg];
-+
-+		if (e) {
-+			if (e->ctmask != ctmask)
-+				e->ctmask = ctmask;
-+			break;
-+		}
-+
-+		if (ctmask && !nf_ct_is_confirmed(ct))
-+			nf_ct_ecache_ext_add(ct, ctmask, 0, GFP_ATOMIC);
-+		break;
-+	}
-+#endif
- 	default:
- 		break;
- 	}
-@@ -539,6 +555,13 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
- 		len = sizeof(u16);
- 		break;
- #endif
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
-+	case NFT_CT_EVENTMASK:
-+		if (tb[NFTA_CT_DIRECTION])
-+			return -EINVAL;
-+		len = sizeof(u32);
-+		break;
-+#endif
- 	default:
- 		return -EOPNOTSUPP;
- 	}
--- 
-2.10.2
-
+ include/net/netfilter/nf_conntrack.h        |   19 ----------------
+ include/net/netfilter/nf_conntrack_extend.h |   12 ++--------
+ include/net/netfilter/nf_conntrack_helper.h |   31 ++++++++++++++++++++++----
+ net/netfilter/nf_conntrack_amanda.c         |    2 +
+ net/netfilter/nf_conntrack_core.c           |   33 ++++++++++++++++++++++++++++
+ net/netfilter/nf_conntrack_extend.c         |   16 +++++--------
+ net/netfilter/nf_conntrack_ftp.c            |    8 +++---
+ net/netfilter/nf_conntrack_h323_main.c      |    6 +----
+ net/netfilter/nf_conntrack_helper.c         |    6 +----
+ net/netfilter/nf_conntrack_irc.c            |    2 -
+ net/netfilter/nf_conntrack_netbios_ns.c     |    2 +
+ net/netfilter/nf_conntrack_pptp.c           |    3 +-
+ net/netfilter/nf_conntrack_sane.c           |    8 +++---
+ net/netfilter/nf_conntrack_sip.c            |   14 +++++------
+ net/netfilter/nf_conntrack_tftp.c           |    6 +++--
+ net/netfilter/nfnetlink_cthelper.c          |   10 ++++++--
+ 16 files changed, 106 insertions(+), 72 deletions(-)
