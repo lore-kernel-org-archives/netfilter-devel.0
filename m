@@ -1,208 +1,114 @@
-From: Vincent Bernat <vincent@bernat.im>
-Subject: [PATCH iptables v3] iptables-restore/save: exit when given an unknown option
-Date: Sat, 15 Apr 2017 12:16:47 +0200
-Message-ID: <20170415101647.20650-1-vincent@bernat.im>
-References: <20170414115621.13812-1-vincent@bernat.im>
-Cc: Vincent Bernat <vincent@bernat.im>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 nf-next] netfilter: nft_ct: allow to set ctnetlink event types of a connection
+Date: Sat, 15 Apr 2017 12:26:04 +0200
+Message-ID: <20170415102604.29236-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bart.luffy.cx ([78.47.78.131]:37150 "EHLO bart.luffy.cx"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752091AbdDOKRM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 15 Apr 2017 06:17:12 -0400
-In-Reply-To: <20170414115621.13812-1-vincent@bernat.im>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56970 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752091AbdDOKZq (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 15 Apr 2017 06:25:46 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When an unknown option is given, iptables-restore should exit instead of
-continue its operation. For example, if `--table` was misspelled, this
-could lead to an unwanted change. Moreover, exit with a status code of
-1. Make the same change for iptables-save.
+By default the kernel emits all ctnetlink events for a connection.
+This allows to select the types of events to generate.
 
-OTOH, exit with a status code of 0 when requesting help.
+This can be used to e.g. only send DESTROY events but no NEW/UPDATE ones
+and will work even if sysctl net.netfilter.nf_conntrack_events is set to 0.
 
-Signed-off-by: Vincent Bernat <vincent@bernat.im>
+This was already possible via iptables' CT target, but the nft version has
+the advantage that it can also be used with already-established conntracks.
+
+The added nf_ct_is_template() check isn't a bug fix as we only support
+mark and labels (and unlike ecache the conntrack core doesn't copy those).
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- iptables/ip6tables-restore.c | 10 +++++-----
- iptables/ip6tables-save.c    |  4 ++++
- iptables/iptables-restore.c  | 10 +++++-----
- iptables/iptables-save.c     |  4 ++++
- iptables/xtables-restore.c   | 10 +++++-----
- iptables/xtables-save.c      |  4 ++++
- 6 files changed, 27 insertions(+), 15 deletions(-)
+ Changes since v1:
+  - use nft_reg_load16() helper
+  - add extension if its not there and ct isn't confirmed yet.
 
-diff --git a/iptables/ip6tables-restore.c b/iptables/ip6tables-restore.c
-index 419a2b0e89cc..39a881dfcee0 100644
---- a/iptables/ip6tables-restore.c
-+++ b/iptables/ip6tables-restore.c
-@@ -47,8 +47,6 @@ static const struct option options[] = {
- 	{NULL},
+ include/uapi/linux/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nft_ct.c                   | 25 ++++++++++++++++++++++++-
+ 2 files changed, 26 insertions(+), 1 deletion(-)
+
+ NFT_CT_EXPMASK is still missing, adding it should be very simple, its
+ essentially copy&paste of this and the two ctevent userspace patches
+ (nft/libnftnl).
+
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 8f3842690d17..683f6f88fcac 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -901,6 +901,7 @@ enum nft_rt_attributes {
+  * @NFT_CT_BYTES: conntrack bytes
+  * @NFT_CT_AVGPKT: conntrack average bytes per packet
+  * @NFT_CT_ZONE: conntrack zone
++ * @NFT_CT_EVENTMASK: ctnetlink events to be generated for this conntrack
+  */
+ enum nft_ct_keys {
+ 	NFT_CT_STATE,
+@@ -921,6 +922,7 @@ enum nft_ct_keys {
+ 	NFT_CT_BYTES,
+ 	NFT_CT_AVGPKT,
+ 	NFT_CT_ZONE,
++	NFT_CT_EVENTMASK,
  };
  
--static void print_usage(const char *name, const char *version) __attribute__((noreturn));
--
- #define prog_name ip6tables_globals.program_name
- #define prog_vers ip6tables_globals.program_version
+ /**
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 6c6fd48b024c..1d0a24b3b020 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -264,7 +264,7 @@ static void nft_ct_set_eval(const struct nft_expr *expr,
+ 	struct nf_conn *ct;
  
-@@ -65,8 +63,6 @@ static void print_usage(const char *name, const char *version)
- 			"	   [ --wait-interval=<usecs>\n"
- 			"	   [ --table=<TABLE> ]\n"
- 			"	   [ --modprobe=<command> ]\n", name);
--
--	exit(1);
- }
+ 	ct = nf_ct_get(skb, &ctinfo);
+-	if (ct == NULL)
++	if (ct == NULL || nf_ct_is_template(ct))
+ 		return;
  
- static struct xtc_handle *create_handle(const char *tablename)
-@@ -237,7 +233,7 @@ int ip6tables_restore_main(int argc, char *argv[])
- 			case 'h':
- 				print_usage("ip6tables-restore",
- 					    IPTABLES_VERSION);
--				break;
-+				exit(0);
- 			case 'n':
- 				noflush = 1;
- 				break;
-@@ -253,6 +249,10 @@ int ip6tables_restore_main(int argc, char *argv[])
- 			case 'T':
- 				tablename = optarg;
- 				break;
-+			default:
-+				fprintf(stderr,
-+					"Try `ip6tables-restore -h' for more information.\n");
-+				exit(1);
- 		}
+ 	switch (priv->key) {
+@@ -284,6 +284,22 @@ static void nft_ct_set_eval(const struct nft_expr *expr,
+ 				      NF_CT_LABELS_MAX_SIZE / sizeof(u32));
+ 		break;
+ #endif
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
++	case NFT_CT_EVENTMASK: {
++		struct nf_conntrack_ecache *e = nf_ct_ecache_find(ct);
++		u16 ctmask = nft_reg_load16(&regs->data[priv->sreg]);
++
++		if (e) {
++			if (e->ctmask != ctmask)
++				e->ctmask = ctmask;
++			break;
++		}
++
++		if (ctmask && !nf_ct_is_confirmed(ct))
++			nf_ct_ecache_ext_add(ct, ctmask, 0, GFP_ATOMIC);
++		break;
++	}
++#endif
+ 	default:
+ 		break;
  	}
- 
-diff --git a/iptables/ip6tables-save.c b/iptables/ip6tables-save.c
-index c2495d20feb9..250ca20492b6 100644
---- a/iptables/ip6tables-save.c
-+++ b/iptables/ip6tables-save.c
-@@ -162,6 +162,10 @@ int ip6tables_save_main(int argc, char *argv[])
- 		case 'd':
- 			do_output(tablename);
- 			exit(0);
-+		default:
-+			fprintf(stderr,
-+				"Look at manual page `ip6tables-save.8' for more information.\n");
-+			exit(1);
- 		}
+@@ -539,6 +555,13 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
+ 		len = sizeof(u16);
+ 		break;
+ #endif
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
++	case NFT_CT_EVENTMASK:
++		if (tb[NFTA_CT_DIRECTION])
++			return -EINVAL;
++		len = sizeof(u32);
++		break;
++#endif
+ 	default:
+ 		return -EOPNOTSUPP;
  	}
- 
-diff --git a/iptables/iptables-restore.c b/iptables/iptables-restore.c
-index cb06559b1906..876fe06d7fa6 100644
---- a/iptables/iptables-restore.c
-+++ b/iptables/iptables-restore.c
-@@ -44,8 +44,6 @@ static const struct option options[] = {
- 	{NULL},
- };
- 
--static void print_usage(const char *name, const char *version) __attribute__((noreturn));
--
- #define prog_name iptables_globals.program_name
- #define prog_vers iptables_globals.program_version
- 
-@@ -62,8 +60,6 @@ static void print_usage(const char *name, const char *version)
- 			"	   [ --wait-interval=<usecs>\n"
- 			"	   [ --table=<TABLE> ]\n"
- 			"	   [ --modprobe=<command> ]\n", name);
--
--	exit(1);
- }
- 
- static struct xtc_handle *create_handle(const char *tablename)
-@@ -235,7 +231,7 @@ iptables_restore_main(int argc, char *argv[])
- 			case 'h':
- 				print_usage("iptables-restore",
- 					    IPTABLES_VERSION);
--				break;
-+				exit(0);
- 			case 'n':
- 				noflush = 1;
- 				break;
-@@ -251,6 +247,10 @@ iptables_restore_main(int argc, char *argv[])
- 			case 'T':
- 				tablename = optarg;
- 				break;
-+			default:
-+				fprintf(stderr,
-+					"Try `iptables-restore -h' for more information.\n");
-+				exit(1);
- 		}
- 	}
- 
-diff --git a/iptables/iptables-save.c b/iptables/iptables-save.c
-index fbc605932c09..52929b0996e9 100644
---- a/iptables/iptables-save.c
-+++ b/iptables/iptables-save.c
-@@ -161,6 +161,10 @@ iptables_save_main(int argc, char *argv[])
- 		case 'd':
- 			do_output(tablename);
- 			exit(0);
-+		default:
-+			fprintf(stderr,
-+				"Look at manual page `iptables-save.8' for more information.\n");
-+			exit(1);
- 		}
- 	}
- 
-diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
-index 6afa0d0ec5b1..15824f0f40b5 100644
---- a/iptables/xtables-restore.c
-+++ b/iptables/xtables-restore.c
-@@ -40,8 +40,6 @@ static const struct option options[] = {
- 	{NULL},
- };
- 
--static void print_usage(const char *name, const char *version) __attribute__((noreturn));
--
- #define prog_name xtables_globals.program_name
- 
- static void print_usage(const char *name, const char *version)
-@@ -56,8 +54,6 @@ static void print_usage(const char *name, const char *version)
- 			"          [ --modprobe=<command> ]\n"
- 			"	   [ --ipv4 ]\n"
- 			"	   [ --ipv6 ]\n", name);
--
--	exit(1);
- }
- 
- static int parse_counters(char *string, struct xt_counters *ctr)
-@@ -486,7 +482,7 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
- 			case 'h':
- 				print_usage("xtables-restore",
- 					    IPTABLES_VERSION);
--				break;
-+				exit(0);
- 			case 'n':
- 				noflush = 1;
- 				break;
-@@ -503,6 +499,10 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
- 				h.family = AF_INET6;
- 				xtables_set_nfproto(AF_INET6);
- 				break;
-+			default:
-+				fprintf(stderr,
-+					"Try `xtables-restore -h' for more information.\n");
-+				exit(1);
- 		}
- 	}
- 
-diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
-index f30867cf62bb..abd840af6607 100644
---- a/iptables/xtables-save.c
-+++ b/iptables/xtables-save.c
-@@ -130,6 +130,10 @@ xtables_save_main(int family, const char *progname, int argc, char *argv[])
- 			h.family = AF_INET6;
- 			xtables_set_nfproto(AF_INET6);
- 			break;
-+		default:
-+			fprintf(stderr,
-+				"Look at manual page `xtables-save.8' for more information.\n");
-+			exit(1);
- 		}
- 	}
- 
 -- 
-2.11.0
+2.10.2
 
