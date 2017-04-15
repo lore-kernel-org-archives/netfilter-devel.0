@@ -1,90 +1,55 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf V3] netfilter: nf_ct_helper: permit cthelpers with different names via nfnetlink
-Date: Sat, 15 Apr 2017 19:27:42 +0800
-Message-ID: <1492255662-57602-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
-To: pablo@netfilter.org
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH v2 nf-next] netfilter: nft_ct: allow to set ctnetlink
+ event types of a connection
+Date: Sat, 15 Apr 2017 21:21:19 +0800
+Message-ID: <CAML_gOcrkR6SOqcWrEk=+=QhVb+YZuLg1n6duXk=UsSV0zaAMg@mail.gmail.com>
+References: <20170415102604.29236-1-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-16.163.com ([220.181.12.16]:58568 "EHLO m12-16.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752497AbdDOL2T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 15 Apr 2017 07:28:19 -0400
+Received: from mail-ua0-f181.google.com ([209.85.217.181]:35783 "EHLO
+        mail-ua0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753441AbdDONVV (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 15 Apr 2017 09:21:21 -0400
+Received: by mail-ua0-f181.google.com with SMTP id f10so36016599uaa.2
+        for <netfilter-devel@vger.kernel.org>; Sat, 15 Apr 2017 06:21:20 -0700 (PDT)
+In-Reply-To: <20170415102604.29236-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <zlpnobody@gmail.com>
+Hi Florian,
 
-cthelpers added via nfnetlink may have the same tuple, i.e. except for
-the l3proto and l4proto, other fields are all zero. So even with the
-different names, we will also fail to add them:
-  # nfct helper add ssdp inet udp
-  # nfct helper add tftp inet udp
-  nfct v1.4.3: netlink error: File exists
+2017-04-15 18:26 GMT+08:00 Florian Westphal <fw@strlen.de>:
+[...]
+> +#ifdef CONFIG_NF_CONNTRACK_EVENTS
+> +       case NFT_CT_EVENTMASK: {
+> +               struct nf_conntrack_ecache *e = nf_ct_ecache_find(ct);
+> +               u16 ctmask = nft_reg_load16(&regs->data[priv->sreg]);
 
-So in order to avoid unpredictable behaviour, we should:
-1. cthelpers can be selected by nft ct helper obj or xt_CT target, so
-report error if duplicated { name, l3proto, l4proto } tuple exist.
-2. cthelpers can be selected by nf_ct_tuple_src_mask_cmp when
-nf_ct_auto_assign_helper is enabled, so also report error if duplicated
-{ l3proto, l4proto, src-port } tuple exist.
+Hmm, I find that in nft utility, this ctmask is defined as a 32 bit value.
+So using nft_reg_load16 maybe wrong. In order to avoid ambiguity,
+I think it's better to convert it to "u32 ctmask = regs->data[priv->sreg];".
 
-Also note, if the cthelper is added from userspace, then the src-port will
-always be zero, it's invalid for nf_ct_auto_assign_helper, so there's no
-need to check the second point listed above.
+Referring to http://patchwork.ozlabs.org/patch/751013/:
++static const struct datatype ct_event_type = {
++ .type = TYPE_CT_EVENTBIT,
++ .name = "ct_event",
++ .desc = "conntrack event bits",
++ .byteorder = BYTEORDER_HOST_ENDIAN,
++ .size = 4 * BITS_PER_BYTE,
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Fixes: 893e093c786c ("netfilter: nf_ct_helper: bail out on duplicated helpers")
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
----
- V3: no changes, rebase on nf.git and resubmit
- V2: drop to use __nf_conntrack_helper_find, per Pablo
-
- net/netfilter/nf_conntrack_helper.c | 26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 4eeb341..99bcd44 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -386,17 +386,33 @@ int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
- 	struct nf_conntrack_tuple_mask mask = { .src.u.all = htons(0xFFFF) };
- 	unsigned int h = helper_hash(&me->tuple);
- 	struct nf_conntrack_helper *cur;
--	int ret = 0;
-+	int ret = 0, i;
- 
- 	BUG_ON(me->expect_policy == NULL);
- 	BUG_ON(me->expect_class_max >= NF_CT_MAX_EXPECT_CLASSES);
- 	BUG_ON(strlen(me->name) > NF_CT_HELPER_NAME_LEN - 1);
- 
- 	mutex_lock(&nf_ct_helper_mutex);
--	hlist_for_each_entry(cur, &nf_ct_helper_hash[h], hnode) {
--		if (nf_ct_tuple_src_mask_cmp(&cur->tuple, &me->tuple, &mask)) {
--			ret = -EEXIST;
--			goto out;
-+	for (i = 0; i < nf_ct_helper_hsize; i++) {
-+		hlist_for_each_entry(cur, &nf_ct_helper_hash[i], hnode) {
-+			if (!strcmp(cur->name, me->name) &&
-+			    (cur->tuple.src.l3num == NFPROTO_UNSPEC ||
-+			     cur->tuple.src.l3num == me->tuple.src.l3num) &&
-+			    cur->tuple.dst.protonum == me->tuple.dst.protonum) {
-+				ret = -EEXIST;
-+				goto out;
-+			}
-+		}
-+	}
-+
-+	/* avoid unpredictable behaviour for auto_assign_helper */
-+	if (!(me->flags & NF_CT_HELPER_F_USERSPACE)) {
-+		hlist_for_each_entry(cur, &nf_ct_helper_hash[h], hnode) {
-+			if (nf_ct_tuple_src_mask_cmp(&cur->tuple, &me->tuple,
-+						     &mask)) {
-+				ret = -EEXIST;
-+				goto out;
-+			}
- 		}
- 	}
- 	hlist_add_head_rcu(&me->hnode, &nf_ct_helper_hash[h]);
--- 
-2.5.5
-
-
+> +
+> +               if (e) {
+> +                       if (e->ctmask != ctmask)
+> +                               e->ctmask = ctmask;
+> +                       break;
+> +               }
+> +
+> +               if (ctmask && !nf_ct_is_confirmed(ct))
+> +                       nf_ct_ecache_ext_add(ct, ctmask, 0, GFP_ATOMIC);
+> +               break;
+> +       }
