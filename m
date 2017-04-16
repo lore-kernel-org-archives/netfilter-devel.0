@@ -1,100 +1,290 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 6/6] netfilter: conntrack: use u8 for extension sizes again
-Date: Sun, 16 Apr 2017 01:29:19 +0200
-Message-ID: <20170415232919.13671-7-fw@strlen.de>
-References: <20170415232919.13671-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: allow early drop of assured conntracks
+Date: Sun, 16 Apr 2017 22:08:53 +0200
+Message-ID: <20170416200853.11239-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57850 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:59108 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755202AbdDOX32 (ORCPT
+        by vger.kernel.org with ESMTP id S1756634AbdDPUIg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 15 Apr 2017 19:29:28 -0400
-In-Reply-To: <20170415232919.13671-1-fw@strlen.de>
+        Sun, 16 Apr 2017 16:08:36 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 223b02d923ecd7c84cf9780bb3686f455d279279
-("netfilter: nf_conntrack: reserve two bytes for nf_ct_ext->len")
-had to increase size of the extension offsets because total size of the
-extensions had increased to a point where u8 did overflow.
+If insertion of a new conntrack fails because the table is full, the kernel
+searches the next buckets of the hash slot where the new connection
+was supposed to be inserted at for an entry that hasn't seen traffic
+in reply direction (non-assured), if it finds one, that entry is
+is dropped and the new connection entry is allocated.
 
-3 years later we've managed to diet extensions a bit and we no longer
-need u16.  Furthermore we can now add a compile-time assertion for this
-problem.
+Allow the conntrack gc worker to also remove *assured* conntracks if
+resources are low.
 
+Do this by querying the l4 tracker, e.g. tcp connections are now dropped
+if they are no longer established (e.g. in finwait).
+
+This could be refined further, e.g. by adding 'soft' established timeout
+(i.e., a timeout that is only used once we get close to resource
+exhaustion).
+
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack_extend.h |  4 ++--
- net/netfilter/nf_conntrack_core.c           | 33 +++++++++++++++++++++++++++++
- 2 files changed, 35 insertions(+), 2 deletions(-)
+ include/net/netfilter/nf_conntrack_l4proto.h |  3 ++
+ net/netfilter/nf_conntrack_core.c            | 49 ++++++++++++++++++++++++++++
+ net/netfilter/nf_conntrack_proto_dccp.c      | 16 +++++++++
+ net/netfilter/nf_conntrack_proto_sctp.c      | 16 +++++++++
+ net/netfilter/nf_conntrack_proto_tcp.c       | 18 ++++++++++
+ 5 files changed, 102 insertions(+)
 
-diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
-index 4ec645c8b647..5fc908dc9f32 100644
---- a/include/net/netfilter/nf_conntrack_extend.h
-+++ b/include/net/netfilter/nf_conntrack_extend.h
-@@ -43,8 +43,8 @@ enum nf_ct_ext_id {
- /* Extensions: optional stuff which isn't permanently in struct. */
- struct nf_ct_ext {
- 	struct rcu_head rcu;
--	u16 offset[NF_CT_EXT_NUM];
--	u16 len;
-+	u8 offset[NF_CT_EXT_NUM];
-+	u8 len;
- 	char data[0];
- };
+diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+index 85e993e278d5..7032e044bbe2 100644
+--- a/include/net/netfilter/nf_conntrack_l4proto.h
++++ b/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -58,6 +58,9 @@ struct nf_conntrack_l4proto {
+ 		     unsigned int dataoff,
+ 		     u_int8_t pf, unsigned int hooknum);
  
++	/* called by gc worker if table is full */
++	bool (*can_early_drop)(const struct nf_conn *ct);
++
+ 	/* Print out the per-protocol part of the tuple. Return like seq_* */
+ 	void (*print_tuple)(struct seq_file *s,
+ 			    const struct nf_conntrack_tuple *);
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 03150f60714d..62368b05cef5 100644
+index 03150f60714d..396ef740a687 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -1804,12 +1804,45 @@ EXPORT_SYMBOL_GPL(nf_conntrack_set_hashsize);
- module_param_call(hashsize, nf_conntrack_set_hashsize, param_get_uint,
- 		  &nf_conntrack_htable_size, 0600);
+@@ -76,6 +76,7 @@ struct conntrack_gc_work {
+ 	struct delayed_work	dwork;
+ 	u32			last_bucket;
+ 	bool			exiting;
++	bool			early_drop;
+ 	long			next_gc_run;
+ };
  
-+static unsigned int total_extension_size(void)
+@@ -951,10 +952,30 @@ static noinline int early_drop(struct net *net, unsigned int _hash)
+ 	return false;
+ }
+ 
++static bool gc_worker_skip_ct(const struct nf_conn *ct)
 +{
-+	/* remember to add new extensions below */
-+	BUILD_BUG_ON(NF_CT_EXT_NUM > 9);
++	return !nf_ct_is_confirmed(ct) || nf_ct_is_dying(ct);
++}
 +
-+	return sizeof(struct nf_ct_ext) +
-+	       sizeof(struct nf_conn_help)
-+#if IS_ENABLED(CONFIG_NF_NAT)
-+		+ sizeof(struct nf_conn_nat)
-+#endif
-+		+ sizeof(struct nf_conn_seqadj)
-+		+ sizeof(struct nf_conn_acct)
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
-+		+ sizeof(struct nf_conntrack_ecache)
-+#endif
-+#ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
-+		+ sizeof(struct nf_conn_tstamp)
-+#endif
-+#ifdef CONFIG_NF_CONNTRACK_TIMEOUT
-+		+ sizeof(struct nf_conn_timeout)
-+#endif
-+#ifdef CONFIG_NF_CONNTRACK_LABELS
-+		+ sizeof(struct nf_conn_labels)
-+#endif
-+#if IS_ENABLED(CONFIG_NETFILTER_SYNPROXY)
-+		+ sizeof(struct nf_conn_synproxy)
-+#endif
-+	;
-+};
++static bool gc_worker_can_early_drop(const struct nf_conn *ct)
++{
++	const struct nf_conntrack_l4proto *l4proto;
 +
- int nf_conntrack_init_start(void)
++	if (!test_bit(IPS_ASSURED_BIT, &ct->status))
++		return true;
++
++	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
++	if (l4proto->can_early_drop && l4proto->can_early_drop(ct))
++		return true;
++
++	return false;
++}
++
+ static void gc_worker(struct work_struct *work)
  {
- 	int max_factor = 8;
- 	int ret = -ENOMEM;
- 	int i;
+ 	unsigned int min_interval = max(HZ / GC_MAX_BUCKETS_DIV, 1u);
+ 	unsigned int i, goal, buckets = 0, expired_count = 0;
++	unsigned int nf_conntrack_max95 = 0;
+ 	struct conntrack_gc_work *gc_work;
+ 	unsigned int ratio, scanned = 0;
+ 	unsigned long next_run;
+@@ -963,6 +984,8 @@ static void gc_worker(struct work_struct *work)
  
-+	/* struct nf_ct_ext uses u8 to store offsets/size */
-+	BUILD_BUG_ON(total_extension_size() > 255u);
+ 	goal = nf_conntrack_htable_size / GC_MAX_BUCKETS_DIV;
+ 	i = gc_work->last_bucket;
++	if (gc_work->early_drop)
++		nf_conntrack_max95 = nf_conntrack_max / 100u * 95u;
+ 
+ 	do {
+ 		struct nf_conntrack_tuple_hash *h;
+@@ -979,6 +1002,8 @@ static void gc_worker(struct work_struct *work)
+ 			i = 0;
+ 
+ 		hlist_nulls_for_each_entry_rcu(h, n, &ct_hash[i], hnnode) {
++			struct net *net;
 +
- 	seqcount_init(&nf_conntrack_generation);
+ 			tmp = nf_ct_tuplehash_to_ctrack(h);
  
- 	for (i = 0; i < CONNTRACK_LOCKS; i++)
+ 			scanned++;
+@@ -987,6 +1012,27 @@ static void gc_worker(struct work_struct *work)
+ 				expired_count++;
+ 				continue;
+ 			}
++
++			if (nf_conntrack_max95 == 0 || gc_worker_skip_ct(tmp))
++				continue;
++
++			net = nf_ct_net(tmp);
++			if (atomic_read(&net->ct.count) < nf_conntrack_max95)
++				continue;
++
++			/* need to take reference to avoid possible races */
++			if (!atomic_inc_not_zero(&tmp->ct_general.use))
++				continue;
++
++			if (gc_worker_skip_ct(tmp)) {
++				nf_ct_put(tmp);
++				continue;
++			}
++
++			if (gc_worker_can_early_drop(tmp))
++				nf_ct_kill(tmp);
++
++			nf_ct_put(tmp);
+ 		}
+ 
+ 		/* could check get_nulls_value() here and restart if ct
+@@ -1032,6 +1078,7 @@ static void gc_worker(struct work_struct *work)
+ 
+ 	next_run = gc_work->next_gc_run;
+ 	gc_work->last_bucket = i;
++	gc_work->early_drop = false;
+ 	queue_delayed_work(system_long_wq, &gc_work->dwork, next_run);
+ }
+ 
+@@ -1057,6 +1104,8 @@ __nf_conntrack_alloc(struct net *net,
+ 	if (nf_conntrack_max &&
+ 	    unlikely(atomic_read(&net->ct.count) > nf_conntrack_max)) {
+ 		if (!early_drop(net, hash)) {
++			if (!conntrack_gc_work.early_drop)
++				conntrack_gc_work.early_drop = true;
+ 			atomic_dec(&net->ct.count);
+ 			net_warn_ratelimited("nf_conntrack: table full, dropping packet\n");
+ 			return ERR_PTR(-ENOMEM);
+diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
+index 93dd1c5b7bff..4b3b6e1cadc9 100644
+--- a/net/netfilter/nf_conntrack_proto_dccp.c
++++ b/net/netfilter/nf_conntrack_proto_dccp.c
+@@ -609,6 +609,20 @@ static int dccp_error(struct net *net, struct nf_conn *tmpl,
+ 	return -NF_ACCEPT;
+ }
+ 
++static bool dccp_can_early_drop(const struct nf_conn *ct)
++{
++	switch (ct->proto.dccp.state) {
++	case CT_DCCP_CLOSEREQ:
++	case CT_DCCP_CLOSING:
++	case CT_DCCP_TIMEWAIT:
++		return true;
++	default:
++		break;
++	}
++
++	return false;
++}
++
+ static void dccp_print_tuple(struct seq_file *s,
+ 			     const struct nf_conntrack_tuple *tuple)
+ {
+@@ -868,6 +882,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp4 __read_mostly = {
+ 	.packet			= dccp_packet,
+ 	.get_timeouts		= dccp_get_timeouts,
+ 	.error			= dccp_error,
++	.can_early_drop		= dccp_can_early_drop,
+ 	.print_tuple		= dccp_print_tuple,
+ 	.print_conntrack	= dccp_print_conntrack,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+@@ -902,6 +917,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp6 __read_mostly = {
+ 	.packet			= dccp_packet,
+ 	.get_timeouts		= dccp_get_timeouts,
+ 	.error			= dccp_error,
++	.can_early_drop		= dccp_can_early_drop,
+ 	.print_tuple		= dccp_print_tuple,
+ 	.print_conntrack	= dccp_print_conntrack,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 33279aab583d..b34b49c59a1c 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -535,6 +535,20 @@ static int sctp_error(struct net *net, struct nf_conn *tpl, struct sk_buff *skb,
+ 	return -NF_ACCEPT;
+ }
+ 
++static bool sctp_can_early_drop(const struct nf_conn *ct)
++{
++	switch (ct->proto.sctp.state) {
++	case SCTP_CONNTRACK_SHUTDOWN_SENT:
++	case SCTP_CONNTRACK_SHUTDOWN_RECD:
++	case SCTP_CONNTRACK_SHUTDOWN_ACK_SENT:
++		return true;
++	default:
++		break;
++	}
++
++	return false;
++}
++
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 
+ #include <linux/netfilter/nfnetlink.h>
+@@ -783,6 +797,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4 __read_mostly = {
+ 	.get_timeouts		= sctp_get_timeouts,
+ 	.new 			= sctp_new,
+ 	.error			= sctp_error,
++	.can_early_drop		= sctp_can_early_drop,
+ 	.me 			= THIS_MODULE,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 	.to_nlattr		= sctp_to_nlattr,
+@@ -818,6 +833,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6 __read_mostly = {
+ 	.get_timeouts		= sctp_get_timeouts,
+ 	.new 			= sctp_new,
+ 	.error			= sctp_error,
++	.can_early_drop		= sctp_can_early_drop,
+ 	.me 			= THIS_MODULE,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 	.to_nlattr		= sctp_to_nlattr,
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index b122e9dacfed..d0c0a31dfe74 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1172,6 +1172,22 @@ static bool tcp_new(struct nf_conn *ct, const struct sk_buff *skb,
+ 	return true;
+ }
+ 
++static bool tcp_can_early_drop(const struct nf_conn *ct)
++{
++	switch (ct->proto.tcp.state) {
++	case TCP_CONNTRACK_FIN_WAIT:
++	case TCP_CONNTRACK_LAST_ACK:
++	case TCP_CONNTRACK_TIME_WAIT:
++	case TCP_CONNTRACK_CLOSE:
++	case TCP_CONNTRACK_CLOSE_WAIT:
++		return true;
++	default:
++		break;
++	}
++
++	return false;
++}
++
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 
+ #include <linux/netfilter/nfnetlink.h>
+@@ -1549,6 +1565,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4 __read_mostly =
+ 	.get_timeouts		= tcp_get_timeouts,
+ 	.new 			= tcp_new,
+ 	.error			= tcp_error,
++	.can_early_drop		= tcp_can_early_drop,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 	.to_nlattr		= tcp_to_nlattr,
+ 	.nlattr_size		= tcp_nlattr_size,
+@@ -1586,6 +1603,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6 __read_mostly =
+ 	.get_timeouts		= tcp_get_timeouts,
+ 	.new 			= tcp_new,
+ 	.error			= tcp_error,
++	.can_early_drop		= tcp_can_early_drop,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 	.to_nlattr		= tcp_to_nlattr,
+ 	.nlattr_size		= tcp_nlattr_size,
 -- 
 2.10.2
 
