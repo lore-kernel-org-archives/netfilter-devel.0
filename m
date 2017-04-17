@@ -1,162 +1,315 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf 3/4] netfilter: ctnetlink: make it safer when updating ct->status
-Date: Mon, 17 Apr 2017 21:18:57 +0800
-Message-ID: <1492435138-28283-4-git-send-email-zlpnobody@163.com>
-References: <1492435138-28283-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
-To: pablo@netfilter.org
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH nf-next] netfilter: allow early drop of assured
+ conntracks
+Date: Mon, 17 Apr 2017 16:39:01 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1704162328510.13290@blackhole.kfki.hu>
+References: <20170416200853.11239-1-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-17.163.com ([220.181.12.17]:56647 "EHLO m12-17.163.com"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:41867 "EHLO smtp1.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753726AbdDQNTw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Apr 2017 09:19:52 -0400
-In-Reply-To: <1492435138-28283-1-git-send-email-zlpnobody@163.com>
+        id S1752373AbdDQOjG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Apr 2017 10:39:06 -0400
+In-Reply-To: <20170416200853.11239-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <zlpnobody@gmail.com>
+Hi Florian,
 
-After converting to use rcu for conntrack hash, one CPU may update
-the ct->status via ctnetlink, while another CPU may process the
-packets and update the ct->status.
+On Sun, 16 Apr 2017, Florian Westphal wrote:
 
-So the non-atomic operation "ct->status |= status;" via ctnetlink
-becomes unsafe, and this may clear the IPS_DYING_BIT bit set by
-another CPU unexpectedly. For example:
-         CPU0                            CPU1
-  ctnetlink_change_status        __nf_conntrack_find_get
-      old = ct->status              nf_ct_gc_expired
-          -                         nf_ct_kill
-          -                      test_and_set_bit(IPS_DYING_BIT
-      new = old | status;                 -
-  ct->status = new; <-- oops, _DYING_ is cleared!
+> If insertion of a new conntrack fails because the table is full, the 
+> kernel searches the next buckets of the hash slot where the new 
+> connection was supposed to be inserted at for an entry that hasn't seen 
+> traffic in reply direction (non-assured), if it finds one, that entry is 
+> is dropped and the new connection entry is allocated.
+> 
+> Allow the conntrack gc worker to also remove *assured* conntracks if 
+> resources are low.
+> 
+> Do this by querying the l4 tracker, e.g. tcp connections are now dropped 
+> if they are no longer established (e.g. in finwait).
+> 
+> This could be refined further, e.g. by adding 'soft' established timeout 
+> (i.e., a timeout that is only used once we get close to resource 
+> exhaustion).
 
-Now using a series of atomic bit operation to solve the above issue.
+I like the idea and the implementation:
 
-Also note, user shouldn't set IPS_TEMPLATE, IPS_SEQ_ADJUST directly,
-so make these two bits be unchangable too.
+Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-If we set the IPS_TEMPLATE_BIT, ct will be freed by nf_ct_tmpl_free,
-but actually it is alloced by nf_conntrack_alloc.
-If we set the IPS_SEQ_ADJUST_BIT, this may cause the NULL pointer
-deference, as the nfct_seqadj(ct) maybe NULL.
+Best regards,
+Jozsef
 
-Last, add some comments to describe the logic change due to the
-commit a963d710f367 ("netfilter: ctnetlink: Fix regression in CTA_STATUS
-processing"), which makes me feel a little confusing.
+> Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  include/net/netfilter/nf_conntrack_l4proto.h |  3 ++
+>  net/netfilter/nf_conntrack_core.c            | 49 ++++++++++++++++++++++++++++
+>  net/netfilter/nf_conntrack_proto_dccp.c      | 16 +++++++++
+>  net/netfilter/nf_conntrack_proto_sctp.c      | 16 +++++++++
+>  net/netfilter/nf_conntrack_proto_tcp.c       | 18 ++++++++++
+>  5 files changed, 102 insertions(+)
+> 
+> diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+> index 85e993e278d5..7032e044bbe2 100644
+> --- a/include/net/netfilter/nf_conntrack_l4proto.h
+> +++ b/include/net/netfilter/nf_conntrack_l4proto.h
+> @@ -58,6 +58,9 @@ struct nf_conntrack_l4proto {
+>  		     unsigned int dataoff,
+>  		     u_int8_t pf, unsigned int hooknum);
+>  
+> +	/* called by gc worker if table is full */
+> +	bool (*can_early_drop)(const struct nf_conn *ct);
+> +
+>  	/* Print out the per-protocol part of the tuple. Return like seq_* */
+>  	void (*print_tuple)(struct seq_file *s,
+>  			    const struct nf_conntrack_tuple *);
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> index 03150f60714d..396ef740a687 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -76,6 +76,7 @@ struct conntrack_gc_work {
+>  	struct delayed_work	dwork;
+>  	u32			last_bucket;
+>  	bool			exiting;
+> +	bool			early_drop;
+>  	long			next_gc_run;
+>  };
+>  
+> @@ -951,10 +952,30 @@ static noinline int early_drop(struct net *net, unsigned int _hash)
+>  	return false;
+>  }
+>  
+> +static bool gc_worker_skip_ct(const struct nf_conn *ct)
+> +{
+> +	return !nf_ct_is_confirmed(ct) || nf_ct_is_dying(ct);
+> +}
+> +
+> +static bool gc_worker_can_early_drop(const struct nf_conn *ct)
+> +{
+> +	const struct nf_conntrack_l4proto *l4proto;
+> +
+> +	if (!test_bit(IPS_ASSURED_BIT, &ct->status))
+> +		return true;
+> +
+> +	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
+> +	if (l4proto->can_early_drop && l4proto->can_early_drop(ct))
+> +		return true;
+> +
+> +	return false;
+> +}
+> +
+>  static void gc_worker(struct work_struct *work)
+>  {
+>  	unsigned int min_interval = max(HZ / GC_MAX_BUCKETS_DIV, 1u);
+>  	unsigned int i, goal, buckets = 0, expired_count = 0;
+> +	unsigned int nf_conntrack_max95 = 0;
+>  	struct conntrack_gc_work *gc_work;
+>  	unsigned int ratio, scanned = 0;
+>  	unsigned long next_run;
+> @@ -963,6 +984,8 @@ static void gc_worker(struct work_struct *work)
+>  
+>  	goal = nf_conntrack_htable_size / GC_MAX_BUCKETS_DIV;
+>  	i = gc_work->last_bucket;
+> +	if (gc_work->early_drop)
+> +		nf_conntrack_max95 = nf_conntrack_max / 100u * 95u;
+>  
+>  	do {
+>  		struct nf_conntrack_tuple_hash *h;
+> @@ -979,6 +1002,8 @@ static void gc_worker(struct work_struct *work)
+>  			i = 0;
+>  
+>  		hlist_nulls_for_each_entry_rcu(h, n, &ct_hash[i], hnnode) {
+> +			struct net *net;
+> +
+>  			tmp = nf_ct_tuplehash_to_ctrack(h);
+>  
+>  			scanned++;
+> @@ -987,6 +1012,27 @@ static void gc_worker(struct work_struct *work)
+>  				expired_count++;
+>  				continue;
+>  			}
+> +
+> +			if (nf_conntrack_max95 == 0 || gc_worker_skip_ct(tmp))
+> +				continue;
+> +
+> +			net = nf_ct_net(tmp);
+> +			if (atomic_read(&net->ct.count) < nf_conntrack_max95)
+> +				continue;
+> +
+> +			/* need to take reference to avoid possible races */
+> +			if (!atomic_inc_not_zero(&tmp->ct_general.use))
+> +				continue;
+> +
+> +			if (gc_worker_skip_ct(tmp)) {
+> +				nf_ct_put(tmp);
+> +				continue;
+> +			}
+> +
+> +			if (gc_worker_can_early_drop(tmp))
+> +				nf_ct_kill(tmp);
+> +
+> +			nf_ct_put(tmp);
+>  		}
+>  
+>  		/* could check get_nulls_value() here and restart if ct
+> @@ -1032,6 +1078,7 @@ static void gc_worker(struct work_struct *work)
+>  
+>  	next_run = gc_work->next_gc_run;
+>  	gc_work->last_bucket = i;
+> +	gc_work->early_drop = false;
+>  	queue_delayed_work(system_long_wq, &gc_work->dwork, next_run);
+>  }
+>  
+> @@ -1057,6 +1104,8 @@ __nf_conntrack_alloc(struct net *net,
+>  	if (nf_conntrack_max &&
+>  	    unlikely(atomic_read(&net->ct.count) > nf_conntrack_max)) {
+>  		if (!early_drop(net, hash)) {
+> +			if (!conntrack_gc_work.early_drop)
+> +				conntrack_gc_work.early_drop = true;
+>  			atomic_dec(&net->ct.count);
+>  			net_warn_ratelimited("nf_conntrack: table full, dropping packet\n");
+>  			return ERR_PTR(-ENOMEM);
+> diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
+> index 93dd1c5b7bff..4b3b6e1cadc9 100644
+> --- a/net/netfilter/nf_conntrack_proto_dccp.c
+> +++ b/net/netfilter/nf_conntrack_proto_dccp.c
+> @@ -609,6 +609,20 @@ static int dccp_error(struct net *net, struct nf_conn *tmpl,
+>  	return -NF_ACCEPT;
+>  }
+>  
+> +static bool dccp_can_early_drop(const struct nf_conn *ct)
+> +{
+> +	switch (ct->proto.dccp.state) {
+> +	case CT_DCCP_CLOSEREQ:
+> +	case CT_DCCP_CLOSING:
+> +	case CT_DCCP_TIMEWAIT:
+> +		return true;
+> +	default:
+> +		break;
+> +	}
+> +
+> +	return false;
+> +}
+> +
+>  static void dccp_print_tuple(struct seq_file *s,
+>  			     const struct nf_conntrack_tuple *tuple)
+>  {
+> @@ -868,6 +882,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp4 __read_mostly = {
+>  	.packet			= dccp_packet,
+>  	.get_timeouts		= dccp_get_timeouts,
+>  	.error			= dccp_error,
+> +	.can_early_drop		= dccp_can_early_drop,
+>  	.print_tuple		= dccp_print_tuple,
+>  	.print_conntrack	= dccp_print_conntrack,
+>  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+> @@ -902,6 +917,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp6 __read_mostly = {
+>  	.packet			= dccp_packet,
+>  	.get_timeouts		= dccp_get_timeouts,
+>  	.error			= dccp_error,
+> +	.can_early_drop		= dccp_can_early_drop,
+>  	.print_tuple		= dccp_print_tuple,
+>  	.print_conntrack	= dccp_print_conntrack,
+>  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+> diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+> index 33279aab583d..b34b49c59a1c 100644
+> --- a/net/netfilter/nf_conntrack_proto_sctp.c
+> +++ b/net/netfilter/nf_conntrack_proto_sctp.c
+> @@ -535,6 +535,20 @@ static int sctp_error(struct net *net, struct nf_conn *tpl, struct sk_buff *skb,
+>  	return -NF_ACCEPT;
+>  }
+>  
+> +static bool sctp_can_early_drop(const struct nf_conn *ct)
+> +{
+> +	switch (ct->proto.sctp.state) {
+> +	case SCTP_CONNTRACK_SHUTDOWN_SENT:
+> +	case SCTP_CONNTRACK_SHUTDOWN_RECD:
+> +	case SCTP_CONNTRACK_SHUTDOWN_ACK_SENT:
+> +		return true;
+> +	default:
+> +		break;
+> +	}
+> +
+> +	return false;
+> +}
+> +
+>  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+>  
+>  #include <linux/netfilter/nfnetlink.h>
+> @@ -783,6 +797,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4 __read_mostly = {
+>  	.get_timeouts		= sctp_get_timeouts,
+>  	.new 			= sctp_new,
+>  	.error			= sctp_error,
+> +	.can_early_drop		= sctp_can_early_drop,
+>  	.me 			= THIS_MODULE,
+>  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+>  	.to_nlattr		= sctp_to_nlattr,
+> @@ -818,6 +833,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6 __read_mostly = {
+>  	.get_timeouts		= sctp_get_timeouts,
+>  	.new 			= sctp_new,
+>  	.error			= sctp_error,
+> +	.can_early_drop		= sctp_can_early_drop,
+>  	.me 			= THIS_MODULE,
+>  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+>  	.to_nlattr		= sctp_to_nlattr,
+> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+> index b122e9dacfed..d0c0a31dfe74 100644
+> --- a/net/netfilter/nf_conntrack_proto_tcp.c
+> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
+> @@ -1172,6 +1172,22 @@ static bool tcp_new(struct nf_conn *ct, const struct sk_buff *skb,
+>  	return true;
+>  }
+>  
+> +static bool tcp_can_early_drop(const struct nf_conn *ct)
+> +{
+> +	switch (ct->proto.tcp.state) {
+> +	case TCP_CONNTRACK_FIN_WAIT:
+> +	case TCP_CONNTRACK_LAST_ACK:
+> +	case TCP_CONNTRACK_TIME_WAIT:
+> +	case TCP_CONNTRACK_CLOSE:
+> +	case TCP_CONNTRACK_CLOSE_WAIT:
+> +		return true;
+> +	default:
+> +		break;
+> +	}
+> +
+> +	return false;
+> +}
+> +
+>  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+>  
+>  #include <linux/netfilter/nfnetlink.h>
+> @@ -1549,6 +1565,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4 __read_mostly =
+>  	.get_timeouts		= tcp_get_timeouts,
+>  	.new 			= tcp_new,
+>  	.error			= tcp_error,
+> +	.can_early_drop		= tcp_can_early_drop,
+>  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+>  	.to_nlattr		= tcp_to_nlattr,
+>  	.nlattr_size		= tcp_nlattr_size,
+> @@ -1586,6 +1603,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6 __read_mostly =
+>  	.get_timeouts		= tcp_get_timeouts,
+>  	.new 			= tcp_new,
+>  	.error			= tcp_error,
+> +	.can_early_drop		= tcp_can_early_drop,
+>  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+>  	.to_nlattr		= tcp_to_nlattr,
+>  	.nlattr_size		= tcp_nlattr_size,
+> -- 
+> 2.10.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Fixes: 76507f69c44e ("[NETFILTER]: nf_conntrack: use RCU for conntrack hash")
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
----
- include/uapi/linux/netfilter/nf_conntrack_common.h | 13 ++++++---
- net/netfilter/nf_conntrack_netlink.c               | 33 ++++++++++++++++------
- 2 files changed, 33 insertions(+), 13 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
-index 6a8e33d..38fc383 100644
---- a/include/uapi/linux/netfilter/nf_conntrack_common.h
-+++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
-@@ -82,10 +82,6 @@ enum ip_conntrack_status {
- 	IPS_DYING_BIT = 9,
- 	IPS_DYING = (1 << IPS_DYING_BIT),
- 
--	/* Bits that cannot be altered from userland. */
--	IPS_UNCHANGEABLE_MASK = (IPS_NAT_DONE_MASK | IPS_NAT_MASK |
--				 IPS_EXPECTED | IPS_CONFIRMED | IPS_DYING),
 -
- 	/* Connection has fixed timeout. */
- 	IPS_FIXED_TIMEOUT_BIT = 10,
- 	IPS_FIXED_TIMEOUT = (1 << IPS_FIXED_TIMEOUT_BIT),
-@@ -101,6 +97,15 @@ enum ip_conntrack_status {
- 	/* Conntrack got a helper explicitly attached via CT target. */
- 	IPS_HELPER_BIT = 13,
- 	IPS_HELPER = (1 << IPS_HELPER_BIT),
-+
-+	/* Be careful here, modifying these bits can make things messy,
-+	 * so don't let users modify them directly.
-+	 */
-+	IPS_UNCHANGEABLE_MASK = (IPS_NAT_DONE_MASK | IPS_NAT_MASK |
-+				 IPS_EXPECTED | IPS_CONFIRMED | IPS_DYING |
-+				 IPS_SEQ_ADJUST | IPS_TEMPLATE),
-+
-+	__IPS_MAX_BIT = 14,
- };
- 
- /* Connection tracking event types */
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index e5f9777..86deed6 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1419,6 +1419,24 @@ ctnetlink_parse_nat_setup(struct nf_conn *ct,
- }
- #endif
- 
-+static void
-+__ctnetlink_change_status(struct nf_conn *ct, unsigned long on,
-+			  unsigned long off)
-+{
-+	unsigned int bit;
-+
-+	/* Ignore these unchangable bits */
-+	on &= ~IPS_UNCHANGEABLE_MASK;
-+	off &= ~IPS_UNCHANGEABLE_MASK;
-+
-+	for (bit = 0; bit < __IPS_MAX_BIT; bit++) {
-+		if (on & (1 << bit))
-+			set_bit(bit, &ct->status);
-+		else if (off & (1 << bit))
-+			clear_bit(bit, &ct->status);
-+	}
-+}
-+
- static int
- ctnetlink_change_status(struct nf_conn *ct, const struct nlattr * const cda[])
- {
-@@ -1438,10 +1456,7 @@ ctnetlink_change_status(struct nf_conn *ct, const struct nlattr * const cda[])
- 		/* ASSURED bit can only be set */
- 		return -EBUSY;
- 
--	/* Be careful here, modifying NAT bits can screw up things,
--	 * so don't let users modify them directly if they don't pass
--	 * nf_nat_range. */
--	ct->status |= status & ~(IPS_NAT_DONE_MASK | IPS_NAT_MASK);
-+	__ctnetlink_change_status(ct, status, 0);
- 	return 0;
- }
- 
-@@ -1628,7 +1643,7 @@ ctnetlink_change_seq_adj(struct nf_conn *ct,
- 		if (ret < 0)
- 			return ret;
- 
--		ct->status |= IPS_SEQ_ADJUST;
-+		set_bit(IPS_SEQ_ADJUST_BIT, &ct->status);
- 	}
- 
- 	if (cda[CTA_SEQ_ADJ_REPLY]) {
-@@ -1637,7 +1652,7 @@ ctnetlink_change_seq_adj(struct nf_conn *ct,
- 		if (ret < 0)
- 			return ret;
- 
--		ct->status |= IPS_SEQ_ADJUST;
-+		set_bit(IPS_SEQ_ADJUST_BIT, &ct->status);
- 	}
- 
- 	return 0;
-@@ -2289,10 +2304,10 @@ ctnetlink_update_status(struct nf_conn *ct, const struct nlattr * const cda[])
- 	/* This check is less strict than ctnetlink_change_status()
- 	 * because callers often flip IPS_EXPECTED bits when sending
- 	 * an NFQA_CT attribute to the kernel.  So ignore the
--	 * unchangeable bits but do not error out.
-+	 * unchangeable bits but do not error out. Also user programs
-+	 * are allowed to clear the bits that they are allowed to change.
- 	 */
--	ct->status = (status & ~IPS_UNCHANGEABLE_MASK) |
--		     (ct->status & IPS_UNCHANGEABLE_MASK);
-+	__ctnetlink_change_status(ct, status, ~status);
- 	return 0;
- }
- 
--- 
-2.5.5
-
-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
