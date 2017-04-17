@@ -1,67 +1,161 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf 1/4] netfilter: ctnetlink: drop the incorrect cthelper module request
-Date: Mon, 17 Apr 2017 21:18:55 +0800
-Message-ID: <1492435138-28283-2-git-send-email-zlpnobody@163.com>
+Subject: [PATCH nf 3/4] netfilter: ctnetlink: make it safer when updating ct->status
+Date: Mon, 17 Apr 2017 21:18:57 +0800
+Message-ID: <1492435138-28283-4-git-send-email-zlpnobody@163.com>
 References: <1492435138-28283-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-17.163.com ([220.181.12.17]:56528 "EHLO m12-17.163.com"
+Received: from m12-17.163.com ([220.181.12.17]:56647 "EHLO m12-17.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753477AbdDQNTu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Apr 2017 09:19:50 -0400
+        id S1753726AbdDQNTw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Apr 2017 09:19:52 -0400
 In-Reply-To: <1492435138-28283-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <zlpnobody@gmail.com>
 
-First, when creating a new ct, we will invoke request_module to try to
-load the related inkernel cthelper. So there's no need to call the
-request_module again when updating the ct helpinfo.
+After converting to use rcu for conntrack hash, one CPU may update
+the ct->status via ctnetlink, while another CPU may process the
+packets and update the ct->status.
 
-Second, ctnetlink_change_helper may be called with rcu_read_lock held,
-i.e. rcu_read_lock -> nfqnl_recv_verdict -> nfqnl_ct_parse ->
-ctnetlink_glue_parse -> ctnetlink_glue_parse_ct ->
-ctnetlink_change_helper. But the request_module invocation may sleep,
-so we can't call it with the rcu_read_lock held.
+So the non-atomic operation "ct->status |= status;" via ctnetlink
+becomes unsafe, and this may clear the IPS_DYING_BIT bit set by
+another CPU unexpectedly. For example:
+         CPU0                            CPU1
+  ctnetlink_change_status        __nf_conntrack_find_get
+      old = ct->status              nf_ct_gc_expired
+          -                         nf_ct_kill
+          -                      test_and_set_bit(IPS_DYING_BIT
+      new = old | status;                 -
+  ct->status = new; <-- oops, _DYING_ is cleared!
 
-Remove it now.
+Now using a series of atomic bit operation to solve the above issue.
 
+Also note, user shouldn't set IPS_TEMPLATE, IPS_SEQ_ADJUST directly,
+so make these two bits be unchangable too.
+
+If we set the IPS_TEMPLATE_BIT, ct will be freed by nf_ct_tmpl_free,
+but actually it is alloced by nf_conntrack_alloc.
+If we set the IPS_SEQ_ADJUST_BIT, this may cause the NULL pointer
+deference, as the nfct_seqadj(ct) maybe NULL.
+
+Last, add some comments to describe the logic change due to the
+commit a963d710f367 ("netfilter: ctnetlink: Fix regression in CTA_STATUS
+processing"), which makes me feel a little confusing.
+
+Fixes: 76507f69c44e ("[NETFILTER]: nf_conntrack: use RCU for conntrack hash")
 Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 ---
- net/netfilter/nf_conntrack_netlink.c | 17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ include/uapi/linux/netfilter/nf_conntrack_common.h | 13 ++++++---
+ net/netfilter/nf_conntrack_netlink.c               | 33 ++++++++++++++++------
+ 2 files changed, 33 insertions(+), 13 deletions(-)
 
+diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
+index 6a8e33d..38fc383 100644
+--- a/include/uapi/linux/netfilter/nf_conntrack_common.h
++++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
+@@ -82,10 +82,6 @@ enum ip_conntrack_status {
+ 	IPS_DYING_BIT = 9,
+ 	IPS_DYING = (1 << IPS_DYING_BIT),
+ 
+-	/* Bits that cannot be altered from userland. */
+-	IPS_UNCHANGEABLE_MASK = (IPS_NAT_DONE_MASK | IPS_NAT_MASK |
+-				 IPS_EXPECTED | IPS_CONFIRMED | IPS_DYING),
+-
+ 	/* Connection has fixed timeout. */
+ 	IPS_FIXED_TIMEOUT_BIT = 10,
+ 	IPS_FIXED_TIMEOUT = (1 << IPS_FIXED_TIMEOUT_BIT),
+@@ -101,6 +97,15 @@ enum ip_conntrack_status {
+ 	/* Conntrack got a helper explicitly attached via CT target. */
+ 	IPS_HELPER_BIT = 13,
+ 	IPS_HELPER = (1 << IPS_HELPER_BIT),
++
++	/* Be careful here, modifying these bits can make things messy,
++	 * so don't let users modify them directly.
++	 */
++	IPS_UNCHANGEABLE_MASK = (IPS_NAT_DONE_MASK | IPS_NAT_MASK |
++				 IPS_EXPECTED | IPS_CONFIRMED | IPS_DYING |
++				 IPS_SEQ_ADJUST | IPS_TEMPLATE),
++
++	__IPS_MAX_BIT = 14,
+ };
+ 
+ /* Connection tracking event types */
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index dc7dfd6..48c1845 100644
+index e5f9777..86deed6 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1512,23 +1512,8 @@ static int ctnetlink_change_helper(struct nf_conn *ct,
+@@ -1419,6 +1419,24 @@ ctnetlink_parse_nat_setup(struct nf_conn *ct,
+ }
+ #endif
  
- 	helper = __nf_conntrack_helper_find(helpname, nf_ct_l3num(ct),
- 					    nf_ct_protonum(ct));
--	if (helper == NULL) {
--#ifdef CONFIG_MODULES
--		spin_unlock_bh(&nf_conntrack_expect_lock);
--
--		if (request_module("nfct-helper-%s", helpname) < 0) {
--			spin_lock_bh(&nf_conntrack_expect_lock);
--			return -EOPNOTSUPP;
--		}
--
--		spin_lock_bh(&nf_conntrack_expect_lock);
--		helper = __nf_conntrack_helper_find(helpname, nf_ct_l3num(ct),
--						    nf_ct_protonum(ct));
--		if (helper)
--			return -EAGAIN;
--#endif
-+	if (helper == NULL)
- 		return -EOPNOTSUPP;
--	}
++static void
++__ctnetlink_change_status(struct nf_conn *ct, unsigned long on,
++			  unsigned long off)
++{
++	unsigned int bit;
++
++	/* Ignore these unchangable bits */
++	on &= ~IPS_UNCHANGEABLE_MASK;
++	off &= ~IPS_UNCHANGEABLE_MASK;
++
++	for (bit = 0; bit < __IPS_MAX_BIT; bit++) {
++		if (on & (1 << bit))
++			set_bit(bit, &ct->status);
++		else if (off & (1 << bit))
++			clear_bit(bit, &ct->status);
++	}
++}
++
+ static int
+ ctnetlink_change_status(struct nf_conn *ct, const struct nlattr * const cda[])
+ {
+@@ -1438,10 +1456,7 @@ ctnetlink_change_status(struct nf_conn *ct, const struct nlattr * const cda[])
+ 		/* ASSURED bit can only be set */
+ 		return -EBUSY;
  
- 	if (help) {
- 		if (help->helper == helper) {
+-	/* Be careful here, modifying NAT bits can screw up things,
+-	 * so don't let users modify them directly if they don't pass
+-	 * nf_nat_range. */
+-	ct->status |= status & ~(IPS_NAT_DONE_MASK | IPS_NAT_MASK);
++	__ctnetlink_change_status(ct, status, 0);
+ 	return 0;
+ }
+ 
+@@ -1628,7 +1643,7 @@ ctnetlink_change_seq_adj(struct nf_conn *ct,
+ 		if (ret < 0)
+ 			return ret;
+ 
+-		ct->status |= IPS_SEQ_ADJUST;
++		set_bit(IPS_SEQ_ADJUST_BIT, &ct->status);
+ 	}
+ 
+ 	if (cda[CTA_SEQ_ADJ_REPLY]) {
+@@ -1637,7 +1652,7 @@ ctnetlink_change_seq_adj(struct nf_conn *ct,
+ 		if (ret < 0)
+ 			return ret;
+ 
+-		ct->status |= IPS_SEQ_ADJUST;
++		set_bit(IPS_SEQ_ADJUST_BIT, &ct->status);
+ 	}
+ 
+ 	return 0;
+@@ -2289,10 +2304,10 @@ ctnetlink_update_status(struct nf_conn *ct, const struct nlattr * const cda[])
+ 	/* This check is less strict than ctnetlink_change_status()
+ 	 * because callers often flip IPS_EXPECTED bits when sending
+ 	 * an NFQA_CT attribute to the kernel.  So ignore the
+-	 * unchangeable bits but do not error out.
++	 * unchangeable bits but do not error out. Also user programs
++	 * are allowed to clear the bits that they are allowed to change.
+ 	 */
+-	ct->status = (status & ~IPS_UNCHANGEABLE_MASK) |
+-		     (ct->status & IPS_UNCHANGEABLE_MASK);
++	__ctnetlink_change_status(ct, status, ~status);
+ 	return 0;
+ }
+ 
 -- 
 2.5.5
 
