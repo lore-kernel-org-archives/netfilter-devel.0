@@ -1,315 +1,76 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH nf-next] netfilter: allow early drop of assured
- conntracks
-Date: Mon, 17 Apr 2017 16:39:01 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1704162328510.13290@blackhole.kfki.hu>
-References: <20170416200853.11239-1-fw@strlen.de>
+From: Linus =?utf-8?Q?L=C3=BCssing?= <linus.luessing@c0d3.blue>
+Subject: Re: [PATCH v2] bridge: ebtables: fix reception of frames
+ DNAT-ed to bridge device
+Date: Mon, 17 Apr 2017 17:21:33 +0200
+Message-ID: <20170417152133.GA5175@otheros>
+References: <20170321222845.8373-1-linus.luessing@c0d3.blue>
+	<20170321163245.34159349@xeon-e3>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:41867 "EHLO smtp1.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752373AbdDQOjG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Apr 2017 10:39:06 -0400
-In-Reply-To: <20170416200853.11239-1-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Cc: netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
+	linux-kernel@vger.kernel.org, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S . Miller" <davem@davemloft.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Stephen Hemminger <stephen@networkplumber.org>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <20170321163245.34159349@xeon-e3>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Florian,
-
-On Sun, 16 Apr 2017, Florian Westphal wrote:
-
-> If insertion of a new conntrack fails because the table is full, the 
-> kernel searches the next buckets of the hash slot where the new 
-> connection was supposed to be inserted at for an entry that hasn't seen 
-> traffic in reply direction (non-assured), if it finds one, that entry is 
-> is dropped and the new connection entry is allocated.
+On Tue, Mar 21, 2017 at 04:32:45PM -0700, Stephen Hemminger wrote:
+> On Tue, 21 Mar 2017 23:28:45 +0100
+> Linus Lüssing <linus.luessing@c0d3.blue> wrote:
 > 
-> Allow the conntrack gc worker to also remove *assured* conntracks if 
-> resources are low.
+> > However, the IP code drops it in the beginning of ip_input.c/ip_rcv()
+> > as the dnat target did not update the skb->pkt_type. If after
+> > dnat'ing the packet is now destined to us then the skb->pkt_type
+> > needs to be updated from PACKET_OTHERHOST to PACKET_HOST, too.
 > 
-> Do this by querying the l4 tracker, e.g. tcp connections are now dropped 
-> if they are no longer established (e.g. in finwait).
-> 
-> This could be refined further, e.g. by adding 'soft' established timeout 
-> (i.e., a timeout that is only used once we get close to resource 
-> exhaustion).
+> Why not fix DNAT netfilter module rather than hacking bridge code here.
 
-I like the idea and the implementation:
+Sorry for the late response. Wanted to do some more testing before
+replying.
 
-Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+My assumptions regarding macvlan were wrong:
 
-Best regards,
-Jozsef
+A) The code my patch adds is not touched in the case of a macvlan
+device on top of a bridge - with macvlan there seems to be no FDB entry
+for the MAC address of the macvlan device at all, actually, resulting
+in the flooding of a frame intended for that device (is this, ehm,
+known/intended?).
 
-> Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  include/net/netfilter/nf_conntrack_l4proto.h |  3 ++
->  net/netfilter/nf_conntrack_core.c            | 49 ++++++++++++++++++++++++++++
->  net/netfilter/nf_conntrack_proto_dccp.c      | 16 +++++++++
->  net/netfilter/nf_conntrack_proto_sctp.c      | 16 +++++++++
->  net/netfilter/nf_conntrack_proto_tcp.c       | 18 ++++++++++
->  5 files changed, 102 insertions(+)
-> 
-> diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-> index 85e993e278d5..7032e044bbe2 100644
-> --- a/include/net/netfilter/nf_conntrack_l4proto.h
-> +++ b/include/net/netfilter/nf_conntrack_l4proto.h
-> @@ -58,6 +58,9 @@ struct nf_conntrack_l4proto {
->  		     unsigned int dataoff,
->  		     u_int8_t pf, unsigned int hooknum);
->  
-> +	/* called by gc worker if table is full */
-> +	bool (*can_early_drop)(const struct nf_conn *ct);
-> +
->  	/* Print out the per-protocol part of the tuple. Return like seq_* */
->  	void (*print_tuple)(struct seq_file *s,
->  			    const struct nf_conntrack_tuple *);
-> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> index 03150f60714d..396ef740a687 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -76,6 +76,7 @@ struct conntrack_gc_work {
->  	struct delayed_work	dwork;
->  	u32			last_bucket;
->  	bool			exiting;
-> +	bool			early_drop;
->  	long			next_gc_run;
->  };
->  
-> @@ -951,10 +952,30 @@ static noinline int early_drop(struct net *net, unsigned int _hash)
->  	return false;
->  }
->  
-> +static bool gc_worker_skip_ct(const struct nf_conn *ct)
-> +{
-> +	return !nf_ct_is_confirmed(ct) || nf_ct_is_dying(ct);
-> +}
-> +
-> +static bool gc_worker_can_early_drop(const struct nf_conn *ct)
-> +{
-> +	const struct nf_conntrack_l4proto *l4proto;
-> +
-> +	if (!test_bit(IPS_ASSURED_BIT, &ct->status))
-> +		return true;
-> +
-> +	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
-> +	if (l4proto->can_early_drop && l4proto->can_early_drop(ct))
-> +		return true;
-> +
-> +	return false;
-> +}
-> +
->  static void gc_worker(struct work_struct *work)
->  {
->  	unsigned int min_interval = max(HZ / GC_MAX_BUCKETS_DIV, 1u);
->  	unsigned int i, goal, buckets = 0, expired_count = 0;
-> +	unsigned int nf_conntrack_max95 = 0;
->  	struct conntrack_gc_work *gc_work;
->  	unsigned int ratio, scanned = 0;
->  	unsigned long next_run;
-> @@ -963,6 +984,8 @@ static void gc_worker(struct work_struct *work)
->  
->  	goal = nf_conntrack_htable_size / GC_MAX_BUCKETS_DIV;
->  	i = gc_work->last_bucket;
-> +	if (gc_work->early_drop)
-> +		nf_conntrack_max95 = nf_conntrack_max / 100u * 95u;
->  
->  	do {
->  		struct nf_conntrack_tuple_hash *h;
-> @@ -979,6 +1002,8 @@ static void gc_worker(struct work_struct *work)
->  			i = 0;
->  
->  		hlist_nulls_for_each_entry_rcu(h, n, &ct_hash[i], hnnode) {
-> +			struct net *net;
-> +
->  			tmp = nf_ct_tuplehash_to_ctrack(h);
->  
->  			scanned++;
-> @@ -987,6 +1012,27 @@ static void gc_worker(struct work_struct *work)
->  				expired_count++;
->  				continue;
->  			}
-> +
-> +			if (nf_conntrack_max95 == 0 || gc_worker_skip_ct(tmp))
-> +				continue;
-> +
-> +			net = nf_ct_net(tmp);
-> +			if (atomic_read(&net->ct.count) < nf_conntrack_max95)
-> +				continue;
-> +
-> +			/* need to take reference to avoid possible races */
-> +			if (!atomic_inc_not_zero(&tmp->ct_general.use))
-> +				continue;
-> +
-> +			if (gc_worker_skip_ct(tmp)) {
-> +				nf_ct_put(tmp);
-> +				continue;
-> +			}
-> +
-> +			if (gc_worker_can_early_drop(tmp))
-> +				nf_ct_kill(tmp);
-> +
-> +			nf_ct_put(tmp);
->  		}
->  
->  		/* could check get_nulls_value() here and restart if ct
-> @@ -1032,6 +1078,7 @@ static void gc_worker(struct work_struct *work)
->  
->  	next_run = gc_work->next_gc_run;
->  	gc_work->last_bucket = i;
-> +	gc_work->early_drop = false;
->  	queue_delayed_work(system_long_wq, &gc_work->dwork, next_run);
->  }
->  
-> @@ -1057,6 +1104,8 @@ __nf_conntrack_alloc(struct net *net,
->  	if (nf_conntrack_max &&
->  	    unlikely(atomic_read(&net->ct.count) > nf_conntrack_max)) {
->  		if (!early_drop(net, hash)) {
-> +			if (!conntrack_gc_work.early_drop)
-> +				conntrack_gc_work.early_drop = true;
->  			atomic_dec(&net->ct.count);
->  			net_warn_ratelimited("nf_conntrack: table full, dropping packet\n");
->  			return ERR_PTR(-ENOMEM);
-> diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-> index 93dd1c5b7bff..4b3b6e1cadc9 100644
-> --- a/net/netfilter/nf_conntrack_proto_dccp.c
-> +++ b/net/netfilter/nf_conntrack_proto_dccp.c
-> @@ -609,6 +609,20 @@ static int dccp_error(struct net *net, struct nf_conn *tmpl,
->  	return -NF_ACCEPT;
->  }
->  
-> +static bool dccp_can_early_drop(const struct nf_conn *ct)
-> +{
-> +	switch (ct->proto.dccp.state) {
-> +	case CT_DCCP_CLOSEREQ:
-> +	case CT_DCCP_CLOSING:
-> +	case CT_DCCP_TIMEWAIT:
-> +		return true;
-> +	default:
-> +		break;
-> +	}
-> +
-> +	return false;
-> +}
-> +
->  static void dccp_print_tuple(struct seq_file *s,
->  			     const struct nf_conntrack_tuple *tuple)
->  {
-> @@ -868,6 +882,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp4 __read_mostly = {
->  	.packet			= dccp_packet,
->  	.get_timeouts		= dccp_get_timeouts,
->  	.error			= dccp_error,
-> +	.can_early_drop		= dccp_can_early_drop,
->  	.print_tuple		= dccp_print_tuple,
->  	.print_conntrack	= dccp_print_conntrack,
->  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
-> @@ -902,6 +917,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp6 __read_mostly = {
->  	.packet			= dccp_packet,
->  	.get_timeouts		= dccp_get_timeouts,
->  	.error			= dccp_error,
-> +	.can_early_drop		= dccp_can_early_drop,
->  	.print_tuple		= dccp_print_tuple,
->  	.print_conntrack	= dccp_print_conntrack,
->  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
-> diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-> index 33279aab583d..b34b49c59a1c 100644
-> --- a/net/netfilter/nf_conntrack_proto_sctp.c
-> +++ b/net/netfilter/nf_conntrack_proto_sctp.c
-> @@ -535,6 +535,20 @@ static int sctp_error(struct net *net, struct nf_conn *tpl, struct sk_buff *skb,
->  	return -NF_ACCEPT;
->  }
->  
-> +static bool sctp_can_early_drop(const struct nf_conn *ct)
-> +{
-> +	switch (ct->proto.sctp.state) {
-> +	case SCTP_CONNTRACK_SHUTDOWN_SENT:
-> +	case SCTP_CONNTRACK_SHUTDOWN_RECD:
-> +	case SCTP_CONNTRACK_SHUTDOWN_ACK_SENT:
-> +		return true;
-> +	default:
-> +		break;
-> +	}
-> +
-> +	return false;
-> +}
-> +
->  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
->  
->  #include <linux/netfilter/nfnetlink.h>
-> @@ -783,6 +797,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4 __read_mostly = {
->  	.get_timeouts		= sctp_get_timeouts,
->  	.new 			= sctp_new,
->  	.error			= sctp_error,
-> +	.can_early_drop		= sctp_can_early_drop,
->  	.me 			= THIS_MODULE,
->  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
->  	.to_nlattr		= sctp_to_nlattr,
-> @@ -818,6 +833,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6 __read_mostly = {
->  	.get_timeouts		= sctp_get_timeouts,
->  	.new 			= sctp_new,
->  	.error			= sctp_error,
-> +	.can_early_drop		= sctp_can_early_drop,
->  	.me 			= THIS_MODULE,
->  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
->  	.to_nlattr		= sctp_to_nlattr,
-> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-> index b122e9dacfed..d0c0a31dfe74 100644
-> --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> @@ -1172,6 +1172,22 @@ static bool tcp_new(struct nf_conn *ct, const struct sk_buff *skb,
->  	return true;
->  }
->  
-> +static bool tcp_can_early_drop(const struct nf_conn *ct)
-> +{
-> +	switch (ct->proto.tcp.state) {
-> +	case TCP_CONNTRACK_FIN_WAIT:
-> +	case TCP_CONNTRACK_LAST_ACK:
-> +	case TCP_CONNTRACK_TIME_WAIT:
-> +	case TCP_CONNTRACK_CLOSE:
-> +	case TCP_CONNTRACK_CLOSE_WAIT:
-> +		return true;
-> +	default:
-> +		break;
-> +	}
-> +
-> +	return false;
-> +}
-> +
->  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
->  
->  #include <linux/netfilter/nfnetlink.h>
-> @@ -1549,6 +1565,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4 __read_mostly =
->  	.get_timeouts		= tcp_get_timeouts,
->  	.new 			= tcp_new,
->  	.error			= tcp_error,
-> +	.can_early_drop		= tcp_can_early_drop,
->  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
->  	.to_nlattr		= tcp_to_nlattr,
->  	.nlattr_size		= tcp_nlattr_size,
-> @@ -1586,6 +1603,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6 __read_mostly =
->  	.get_timeouts		= tcp_get_timeouts,
->  	.new 			= tcp_new,
->  	.error			= tcp_error,
-> +	.can_early_drop		= tcp_can_early_drop,
->  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
->  	.to_nlattr		= tcp_to_nlattr,
->  	.nlattr_size		= tcp_nlattr_size,
-> -- 
-> 2.10.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+B) ip_rcv() does not drop for a macvlan device, because macvlan
+unconditionally sets skb->pkt_type to PACKET_HOST in macvlan_handle_frame().
 
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+(And I guess, maybe I shouldn't actually care that much about
+macvlans on top of a bridge, as a veth-pair is much cleaner for that?)
+
+
+Regarding netdev::dev_addrs, if I understand the kernel code correctly, it
+is only, potentially populated with more than netdev::dev_addr for two
+drivers, via dev_addr_add(): bnx2x and ixgbe. So for a bridge device,
+there should never be more than one item in netdev::dev_addrs
+(= netdev::dev_addr), correct?
+
+
+So, currently I'm happy with moving the fix into the ebtables dnat
+code and just checking against the netdev::dev_addr of the bridge
+device now. (if anyone has any suggestions regarding upper devices
+I should test with that, then please let me know)
+
+(Sorry, Pablo, for me pressing against your earlier suggestion to
+put the fix in the ebtables dnat instead of bridge code. :( )
+
+Regards, Linus
