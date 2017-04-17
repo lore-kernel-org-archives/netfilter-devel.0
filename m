@@ -1,55 +1,52 @@
-From: <wvhyvcm.abyxg@jippii.com>
-Subject: (unknown)
-Date: Mon, 17 Apr 2017 02:26:43 -0000
-Message-ID: <149239600381.20709.3187554117700732242@entelvias.com.br>
-Mime-Version: 1.0
-Content-Type: application/zip; name="BALLANCE-84324839693493-netfilter-devel.zip"
-Content-Transfer-Encoding: base64
-To: "netfilter-devel" <netfilter-devel@vger.kernel.org>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf 0/4] netfilter: ctnetlink: fix some bugs related to ct update
+Date: Mon, 17 Apr 2017 21:18:54 +0800
+Message-ID: <1492435138-28283-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Dinamico-102-5.entelvias.com.br ([131.108.102.5]:56770 "HELO
-        entelvias.com.br" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with SMTP id S932331AbdDQC0s (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 16 Apr 2017 22:26:48 -0400
-Content-Disposition: attachment
-Subject: 
+Received: from m12-17.163.com ([220.181.12.17]:56529 "EHLO m12-17.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752796AbdDQNTt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Apr 2017 09:19:49 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-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
-ZAcAAAAA
+From: Liping Zhang <zlpnobody@gmail.com>
+
+This patch set aims to fix some bugs related to ctnetlink_change_conntrack.
+
+First, we may invoke request_module with rcu_read_lock held, this is wrong,
+as the request_module invocation may sleep. Fixed by PATCH #1.
+
+Second, the unnecessary nf_conntrack_expect_lock will cause dead lock, which
+was introduced by commit ca7433df3a67 ("netfilter: conntrack: seperate expect
+locking from nf_conntrack_lock"). This is fixed by PATCH #2.
+
+Third, Pablo pointed out that packets may be updating a conntrack at the
+same time that we're mangling via ctnetlink, it's better to fix the
+possible race together. So I audited the related source codes as follows:
+1. CTA_HELP: for the userspace cthelper, no problem; for the inkernel
+             cthelper, there's only one user: nf_ct_ftp_from_nlattr,
+             but it only sets two flags, so no problem too.
+2. CTA_TIMEOUT: only modify the ct->timeout, so no problem
+3. CTA_STATUS: possible race will happen, fixed by PATCH #3
+4. CTA_PROTOINFO: protected by ct->lock, no problem
+5. CTA_MARK: only modify the ct->mark, no problem
+6. CTA_SEQ_ADJ_X: should be protectd by ct->lock, fixed by PATCH #4
+7. CTA_LABELS: use cmpxchg to update labels, so no problem
+
+Liping Zhang (4):
+  netfilter: ctnetlink: drop the incorrect cthelper module request
+  netfilter: ctnetlink: fix deadlock due to acquire _expect_lock twice
+  netfilter: ctnetlink: make it safer when updating ct->status
+  netfilter: ctnetlink: acquire ct->lock before operating nf_ct_seqadj
+
+ include/uapi/linux/netfilter/nf_conntrack_common.h | 13 +++-
+ net/netfilter/nf_conntrack_netlink.c               | 89 ++++++++++++----------
+ 2 files changed, 58 insertions(+), 44 deletions(-)
+
+-- 
+2.5.5
+
+
