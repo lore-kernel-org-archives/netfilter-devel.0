@@ -1,76 +1,42 @@
-From: Linus =?utf-8?Q?L=C3=BCssing?= <linus.luessing@c0d3.blue>
-Subject: Re: [PATCH v2] bridge: ebtables: fix reception of frames
- DNAT-ed to bridge device
-Date: Mon, 17 Apr 2017 17:21:33 +0200
-Message-ID: <20170417152133.GA5175@otheros>
-References: <20170321222845.8373-1-linus.luessing@c0d3.blue>
-	<20170321163245.34159349@xeon-e3>
+From: Matthias Kaehlcke <mka@chromium.org>
+Subject: Doubt about CTA_EXPECT_* values passed to ctnetlink_parse_tuple()
+Date: Mon, 17 Apr 2017 15:37:30 -0700
+Message-ID: <20170417223730.GR28657@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
-	linux-kernel@vger.kernel.org, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S . Miller" <davem@davemloft.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Stephen Hemminger <stephen@networkplumber.org>
-Return-path: <bridge-bounces@lists.linux-foundation.org>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pg0-f48.google.com ([74.125.83.48]:35839 "EHLO
+        mail-pg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754971AbdDQWhc (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Apr 2017 18:37:32 -0400
+Received: by mail-pg0-f48.google.com with SMTP id 72so69679750pge.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Apr 2017 15:37:32 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20170321163245.34159349@xeon-e3>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 21, 2017 at 04:32:45PM -0700, Stephen Hemminger wrote:
-> On Tue, 21 Mar 2017 23:28:45 +0100
-> Linus Lüssing <linus.luessing@c0d3.blue> wrote:
-> 
-> > However, the IP code drops it in the beginning of ip_input.c/ip_rcv()
-> > as the dnat target did not update the skb->pkt_type. If after
-> > dnat'ing the packet is now destined to us then the skb->pkt_type
-> > needs to be updated from PACKET_OTHERHOST to PACKET_HOST, too.
-> 
-> Why not fix DNAT netfilter module rather than hacking bridge code here.
+Hi,
 
-Sorry for the late response. Wanted to do some more testing before
-replying.
+While working on clang support for kernel builds I came across at what
+at first sight looks like an enum mismatch in the netfilter conntrack
+code:
 
-My assumptions regarding macvlan were wrong:
+In multiple occasions CTA_EXPECT_* values (of type enum ctattr_expect)
+are passed to ctnetlink_parse_tuple(), which expects an 'enum
+ctattr_type' as type argument.
 
-A) The code my patch adds is not touched in the case of a macvlan
-device on top of a bridge - with macvlan there seems to be no FDB entry
-for the MAC address of the macvlan device at all, actually, resulting
-in the flooding of a frame intended for that device (is this, ehm,
-known/intended?).
+In other cases unintentional use of a wrong enum type maybe be
+obvious, in this case however it isn't clear to me which 'enum
+ctattr_type' should be passed instead, so I wonder if the use of the
+different type is intended.
 
-B) ip_rcv() does not drop for a macvlan device, because macvlan
-unconditionally sets skb->pkt_type to PACKET_HOST in macvlan_handle_frame().
+Could someone please briefly clarify? My background on netfilter
+internals is zero, so please forgive my probably naive question.
 
-(And I guess, maybe I shouldn't actually care that much about
-macvlans on top of a bridge, as a veth-pair is much cleaner for that?)
+Thanks
 
-
-Regarding netdev::dev_addrs, if I understand the kernel code correctly, it
-is only, potentially populated with more than netdev::dev_addr for two
-drivers, via dev_addr_add(): bnx2x and ixgbe. So for a bridge device,
-there should never be more than one item in netdev::dev_addrs
-(= netdev::dev_addr), correct?
-
-
-So, currently I'm happy with moving the fix into the ebtables dnat
-code and just checking against the netdev::dev_addr of the bridge
-device now. (if anyone has any suggestions regarding upper devices
-I should test with that, then please let me know)
-
-(Sorry, Pablo, for me pressing against your earlier suggestion to
-put the fix in the ebtables dnat instead of bridge code. :( )
-
-Regards, Linus
+Matthias
