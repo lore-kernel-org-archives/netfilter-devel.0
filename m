@@ -1,74 +1,56 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] nefilter: eache: reduce struct size from 32 to 24 byte
-Date: Tue, 18 Apr 2017 17:27:32 +0200
-Message-ID: <20170418152732.19759-1-fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: ipvs: fix incorrect conflict resolution
+Date: Tue, 18 Apr 2017 17:49:56 +0200
+Message-ID: <20170418154956.22233-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:36804 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:36950 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751032AbdDRP1P (ORCPT
+        by vger.kernel.org with ESMTP id S1751783AbdDRQBq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Apr 2017 11:27:15 -0400
+        Tue, 18 Apr 2017 12:01:46 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Only "cache" needs to use ulong (its used with set_bit()), missed can use
-u16.  Also add build-time assertion to ensure event bits fit.
+The commit ab8bc7ed864b9c4f1fcb00a22bbe4e0f66ce8003
+("netfilter: remove nf_ct_is_untracked")
+changed the line
+   if (ct && !nf_ct_is_untracked(ct) && nfct_nat(ct)) {
+	   to
+   if (ct && nfct_nat(ct)) {
+
+meanwhile, the commit 41390895e50bc4f28abe384c6b35ac27464a20ec
+("netfilter: ipvs: don't check for presence of nat extension")
+from ipvs-next had changed the same line to
+
+  if (ct && !nf_ct_is_untracked(ct) && (ct->status & IPS_NAT_MASK)) {
+
+When ipvs-next got merged into nf-next, the merge resolution took
+the first version, dropping the conversion of nfct_nat().
+
+While this doesn't cause a problem at the moment, it will once we stop
+adding the nat extension by default.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack_ecache.h        | 4 ++--
- include/uapi/linux/netfilter/nf_conntrack_common.h | 3 +++
- net/netfilter/nf_conntrack_ecache.c                | 3 +++
- 3 files changed, 8 insertions(+), 2 deletions(-)
+ Pablo, I prefer if this can go via nf-next rather than ipvs-next.
 
-diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
-index 12d967b58726..2a10c6570fcc 100644
---- a/include/net/netfilter/nf_conntrack_ecache.h
-+++ b/include/net/netfilter/nf_conntrack_ecache.h
-@@ -20,11 +20,11 @@ enum nf_ct_ecache_state {
+diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
+index af3a9bbdf2ae..fb780be76d15 100644
+--- a/net/netfilter/ipvs/ip_vs_ftp.c
++++ b/net/netfilter/ipvs/ip_vs_ftp.c
+@@ -260,8 +260,9 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
+ 		buf_len = strlen(buf);
  
- struct nf_conntrack_ecache {
- 	unsigned long cache;		/* bitops want long */
--	unsigned long missed;		/* missed events */
-+	u16 missed;			/* missed events */
- 	u16 ctmask;			/* bitmask of ct events to be delivered */
- 	u16 expmask;			/* bitmask of expect events to be delivered */
-+	enum nf_ct_ecache_state state:8;/* ecache state */
- 	u32 portid;			/* netlink portid of destroyer */
--	enum nf_ct_ecache_state state;	/* ecache state */
- };
- 
- static inline struct nf_conntrack_ecache *
-diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
-index 6a8e33dd4ecb..8039d00d986b 100644
---- a/include/uapi/linux/netfilter/nf_conntrack_common.h
-+++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
-@@ -117,6 +117,9 @@ enum ip_conntrack_events {
- 	IPCT_NATSEQADJ = IPCT_SEQADJ,
- 	IPCT_SECMARK,		/* new security mark has been set */
- 	IPCT_LABEL,		/* new connlabel has been set */
-+#ifdef __KERNEL__
-+	__IPCT_MAX
-+#endif
- };
- 
- enum ip_conntrack_expect_events {
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index 94b6c2e39346..757b60fc083e 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -434,6 +434,9 @@ int nf_conntrack_ecache_init(void)
- 	int ret = nf_ct_extend_register(&event_extend);
- 	if (ret < 0)
- 		pr_err("nf_ct_event: Unable to register event extension.\n");
+ 		ct = nf_ct_get(skb, &ctinfo);
+-		if (ct && nfct_nat(ct)) {
++		if (ct && (ct->status & IPS_NAT_MASK)) {
+ 			bool mangled;
 +
-+	BUILD_BUG_ON(__IPCT_MAX >= 16);	/* ctmask, missed use u16 */
-+
- 	return ret;
- }
- 
+ 			/* If mangling fails this function will return 0
+ 			 * which will cause the packet to be dropped.
+ 			 * Mangling can only fail under memory pressure,
 -- 
 2.10.2
 
