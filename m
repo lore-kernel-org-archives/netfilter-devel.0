@@ -1,79 +1,62 @@
-From: Matthias Kaehlcke <mka@chromium.org>
-Subject: Re: [PATCH] netfilter: ctnetlink: Make some parameters integer to
- avoid enum mismatch
-Date: Wed, 19 Apr 2017 12:59:14 -0700
-Message-ID: <20170419195914.GG128305@google.com>
-References: <20170419183920.21936-1-mka@chromium.org>
- <1492630870.30293.3.camel@perches.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next] netfilter: tcp: Use TCP_MAX_WSCALE instead of
+ literal 14
+Date: Wed, 19 Apr 2017 22:38:16 +0200
+Message-ID: <20170419203816.GA25446@salvia>
+References: <1492565022-110676-1-git-send-email-gfree.wind@foxmail.com>
+ <20170419155822.GA8603@salvia>
+ <1492618928.22296.2.camel@edumazet-glaptop3.roam.corp.google.com>
+ <20170419195755.GA16404@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S . Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Grant Grundler <grundler@chromium.org>,
-        Greg Hackmann <ghackmann@google.com>,
-        Michael Davidson <md@google.com>
-To: Joe Perches <joe@perches.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: gfree.wind@foxmail.com, netfilter-devel@vger.kernel.org,
+        Gao Feng <fgao@ikuai8.com>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:34088 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S939514AbdDSUiW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 19 Apr 2017 16:38:22 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 0CC54C106A
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 22:38:17 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F06CDDA871
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 22:38:16 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 37393DA865
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 22:38:13 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1492630870.30293.3.camel@perches.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20170419195755.GA16404@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-El Wed, Apr 19, 2017 at 12:41:10PM -0700 Joe Perches ha dit:
-
-> On Wed, 2017-04-19 at 11:39 -0700, Matthias Kaehlcke wrote:
-> > Not all parameters passed to ctnetlink_parse_tuple() and
-> > ctnetlink_exp_dump_tuple() match the enum type in the signatures of these
-> > functions.
-> 
-> Maybe that should be changed/fixed.
-
-Please see the previous discussion at
-http://www.spinics.net/lists/netfilter-devel/msg47540.html
-
-> > Since this is intended change the argument type of to be an int
-> > value.
-> 
-> u32 is not int, it's unsigned int
-
-I would argue that an unsigned int is an int(eger) and considered it
-an unnecessary detail for the commit message to be explicit. I can
-change it if others deem it incorrect.
-
-Cheers
-
-Matthias
-
-> > Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
-> > ---
-> >  net/netfilter/nf_conntrack_netlink.c | 7 +++----
-> >  1 file changed, 3 insertions(+), 4 deletions(-)
+On Wed, Apr 19, 2017 at 09:57:55PM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Apr 19, 2017 at 09:22:08AM -0700, Eric Dumazet wrote:
+> > On Wed, 2017-04-19 at 17:58 +0200, Pablo Neira Ayuso wrote:
+> > > On Wed, Apr 19, 2017 at 09:23:42AM +0800, gfree.wind@foxmail.com wrote:
+> > > > From: Gao Feng <fgao@ikuai8.com>
+> > > > 
+> > > > The window scale may be enlarged from 14 to 15 according to the itef
+> > > > draft https://tools.ietf.org/html/draft-nishida-tcpm-maxwin-03.
+> > > > 
+> > > > Use the macro TCP_MAX_WSCALE to support it easily with TCP stack in
+> > > > the future.
+> > > 
+> > > Applied, thanks.
 > > 
-> > diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-> > index dc7dfd68fafe..775eb5d9165b 100644
-> > --- a/net/netfilter/nf_conntrack_netlink.c
-> > +++ b/net/netfilter/nf_conntrack_netlink.c
-> > @@ -1006,9 +1006,8 @@ static const struct nla_policy tuple_nla_policy[CTA_TUPLE_MAX+1] = {
-> >  
-> >  static int
-> >  ctnetlink_parse_tuple(const struct nlattr * const cda[],
-> > -		      struct nf_conntrack_tuple *tuple,
-> > -		      enum ctattr_type type, u_int8_t l3num,
-> > -		      struct nf_conntrack_zone *zone)
-> > +		      struct nf_conntrack_tuple *tuple, u32 type,
-> > +		      u_int8_t l3num, struct nf_conntrack_zone *zone)
-> >  {
-> >  	struct nlattr *tb[CTA_TUPLE_MAX+1];
-> >  	int err;
-> > @@ -2443,7 +2442,7 @@ static struct nfnl_ct_hook ctnetlink_glue_hook = {
-> >  
-> >  static int ctnetlink_exp_dump_tuple(struct sk_buff *skb,
-> >  				    const struct nf_conntrack_tuple *tuple,
-> > -				    enum ctattr_expect type)
-> > +				    u32 type)
-> >  {
-> >  	struct nlattr *nest_parms;
-> >  
+> > Note that linux kernel is not ready yet for a TCP_MAX_WSCALE being
+> > changed to 15.
+> > 
+> > Signed 32bit sk counters can already be abused with 1GB TCP windows, for
+> > malicious peers sending SACK forcing linux to increase its memory usage
+> > above 2GB and overflows are pretty bad.
+> 
+> We have tend to use our own definitions for the TCP connection
+> tracking so far. This one I checked it refers RFC1323 too.
+> 
+> If this semantics may change from one way to another in a way that may
+> break conntracking, please let me know, I can toss it here.
+
+Or I can just amend the commit here to remove the "enlarged from 14 to
+15" comment, I was going to push out this now, but I'll wait a bit.
