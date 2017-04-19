@@ -1,47 +1,107 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH nf-next] netfilter: tcp: Use TCP_MAX_WSCALE instead of
- literal 14
-Date: Wed, 19 Apr 2017 09:22:08 -0700
-Message-ID: <1492618928.22296.2.camel@edumazet-glaptop3.roam.corp.google.com>
-References: <1492565022-110676-1-git-send-email-gfree.wind@foxmail.com>
-         <20170419155822.GA8603@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: gfree.wind@foxmail.com, netfilter-devel@vger.kernel.org,
-        Gao Feng <fgao@ikuai8.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] ipvs: convert to use pernet nf_hook api
+Date: Wed, 19 Apr 2017 18:25:22 +0200
+Message-ID: <20170419162522.20486-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-io0-f196.google.com ([209.85.223.196]:33356 "EHLO
-        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965796AbdDSQWL (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:43230 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S966124AbdDSQZE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Apr 2017 12:22:11 -0400
-Received: by mail-io0-f196.google.com with SMTP id k87so4813881ioi.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 09:22:10 -0700 (PDT)
-In-Reply-To: <20170419155822.GA8603@salvia>
+        Wed, 19 Apr 2017 12:25:04 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 2017-04-19 at 17:58 +0200, Pablo Neira Ayuso wrote:
-> On Wed, Apr 19, 2017 at 09:23:42AM +0800, gfree.wind@foxmail.com wrote:
-> > From: Gao Feng <fgao@ikuai8.com>
-> > 
-> > The window scale may be enlarged from 14 to 15 according to the itef
-> > draft https://tools.ietf.org/html/draft-nishida-tcpm-maxwin-03.
-> > 
-> > Use the macro TCP_MAX_WSCALE to support it easily with TCP stack in
-> > the future.
-> 
-> Applied, thanks.
+nf_(un)register_hooks has to maintain an internal hook list to add/remove
+those hooks from net namespaces as they are added/deleted.
 
-Note that linux kernel is not ready yet for a TCP_MAX_WSCALE being
-changed to 15.
+ipvs already uses pernet_ops, so we can switch to the (more recent)
+pernet hook api instead.
 
-Signed 32bit sk counters can already be abused with 1GB TCP windows, for
-malicious peers sending SACK forcing linux to increase its memory usage
-above 2GB and overflows are pretty bad.
+Compile tested only.
 
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ It would be nice to (eventually) remove the old api that still provides
+ the illusion of global hooks, this is one of the more low-hanging fruits
+ towards making that happen.
 
+ net/netfilter/ipvs/ip_vs_core.c | 19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index b4a746d0e39b..d2d7bdf1d510 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -2200,6 +2200,7 @@ static struct nf_hook_ops ip_vs_ops[] __read_mostly = {
+ static int __net_init __ip_vs_init(struct net *net)
+ {
+ 	struct netns_ipvs *ipvs;
++	int ret;
+ 
+ 	ipvs = net_generic(net, ip_vs_net_id);
+ 	if (ipvs == NULL)
+@@ -2231,11 +2232,17 @@ static int __net_init __ip_vs_init(struct net *net)
+ 	if (ip_vs_sync_net_init(ipvs) < 0)
+ 		goto sync_fail;
+ 
++	ret = nf_register_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
++	if (ret < 0)
++		goto hook_fail;
++
+ 	return 0;
+ /*
+  * Error handling
+  */
+ 
++hook_fail:
++	ip_vs_sync_net_cleanup(ipvs);
+ sync_fail:
+ 	ip_vs_conn_net_cleanup(ipvs);
+ conn_fail:
+@@ -2255,6 +2262,7 @@ static void __net_exit __ip_vs_cleanup(struct net *net)
+ {
+ 	struct netns_ipvs *ipvs = net_ipvs(net);
+ 
++	nf_unregister_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
+ 	ip_vs_service_net_cleanup(ipvs);	/* ip_vs_flush() with locks */
+ 	ip_vs_conn_net_cleanup(ipvs);
+ 	ip_vs_app_net_cleanup(ipvs);
+@@ -2315,24 +2323,16 @@ static int __init ip_vs_init(void)
+ 	if (ret < 0)
+ 		goto cleanup_sub;
+ 
+-	ret = nf_register_hooks(ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
+-	if (ret < 0) {
+-		pr_err("can't register hooks.\n");
+-		goto cleanup_dev;
+-	}
+-
+ 	ret = ip_vs_register_nl_ioctl();
+ 	if (ret < 0) {
+ 		pr_err("can't register netlink/ioctl.\n");
+-		goto cleanup_hooks;
++		goto cleanup_dev;
+ 	}
+ 
+ 	pr_info("ipvs loaded.\n");
+ 
+ 	return ret;
+ 
+-cleanup_hooks:
+-	nf_unregister_hooks(ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
+ cleanup_dev:
+ 	unregister_pernet_device(&ipvs_core_dev_ops);
+ cleanup_sub:
+@@ -2349,7 +2349,6 @@ static int __init ip_vs_init(void)
+ static void __exit ip_vs_cleanup(void)
+ {
+ 	ip_vs_unregister_nl_ioctl();
+-	nf_unregister_hooks(ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
+ 	unregister_pernet_device(&ipvs_core_dev_ops);
+ 	unregister_pernet_subsys(&ipvs_core_ops);	/* free ip_vs struct */
+ 	ip_vs_conn_cleanup();
+-- 
+2.10.2
 
