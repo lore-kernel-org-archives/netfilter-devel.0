@@ -1,118 +1,33 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 3/3] netfilter: conntrack: handle initial extension alloc via krealloc
-Date: Wed, 19 Apr 2017 23:44:38 +0200
-Message-ID: <20170419214438.20938-4-fw@strlen.de>
-References: <20170419214438.20938-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+Subject: Re: nfqueue buf size for recv()
+Date: Wed, 19 Apr 2017 23:45:21 +0200
+Message-ID: <20170419214521.GD17294@breakpoint.cc>
+References: <20170419165024.GA28485@legohost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Oleg <lego12239@yandex.ru>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:45110 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:45124 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S969734AbdDSVoa (ORCPT
+        by vger.kernel.org with ESMTP id S1761818AbdDSVqi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Apr 2017 17:44:30 -0400
-In-Reply-To: <20170419214438.20938-1-fw@strlen.de>
+        Wed, 19 Apr 2017 17:46:38 -0400
+Content-Disposition: inline
+In-Reply-To: <20170419165024.GA28485@legohost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-krealloc(NULL, ..) is same as kmalloc(), so we can avoid special-casing
-the initial allocation after the prealloc removal (we had to use
-->alloc_len as the initial allocation size).
+Oleg <lego12239@yandex.ru> wrote:
+> Can anybody tell me how can i determine a right buf size for recv()
+> in libnetfilter_queue program.
+> 
+> http://www.netfilter.org/projects/libnetfilter_queue/doxygen/group__Queue.html#gae36aee5b74d0c88d2f8530e356f68b79
+> 
+> tells nothing about this.
 
-This also means we do not zero the preallocated memory anymore; only
-offsets[].  Existing code makes sure the new (used) extension space gets
-zeroed out.
+I'd suggest a 80k buffer to be on safe side.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conntrack_extend.c | 51 +++++++++++--------------------------
- 1 file changed, 15 insertions(+), 36 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
-index 5c66816eb965..9114d51fae2e 100644
---- a/net/netfilter/nf_conntrack_extend.c
-+++ b/net/netfilter/nf_conntrack_extend.c
-@@ -44,49 +44,24 @@ void __nf_ct_ext_destroy(struct nf_conn *ct)
- }
- EXPORT_SYMBOL(__nf_ct_ext_destroy);
- 
--static void *
--nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id, gfp_t gfp)
--{
--	unsigned int off, len, alloc;
--	struct nf_ct_ext_type *t;
--
--	rcu_read_lock();
--	t = rcu_dereference(nf_ct_ext_types[id]);
--	if (!t) {
--		rcu_read_unlock();
--		return NULL;
--	}
--
--	off = ALIGN(sizeof(struct nf_ct_ext), t->align);
--	len = off + t->len;
--	rcu_read_unlock();
--
--	alloc = max(len, NF_CT_EXT_PREALLOC);
--	*ext = kzalloc(alloc, gfp);
--	if (!*ext)
--		return NULL;
--
--	(*ext)->offset[id] = off;
--	(*ext)->len = len;
--
--	return (void *)(*ext) + off;
--}
--
- void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
- {
-+	unsigned int newlen, newoff, oldlen, alloc;
- 	struct nf_ct_ext *old, *new;
--	int newlen, newoff;
- 	struct nf_ct_ext_type *t;
- 
- 	/* Conntrack must not be confirmed to avoid races on reallocation. */
- 	NF_CT_ASSERT(!nf_ct_is_confirmed(ct));
- 
- 	old = ct->ext;
--	if (!old)
--		return nf_ct_ext_create(&ct->ext, id, gfp);
- 
--	if (__nf_ct_ext_exist(old, id))
--		return NULL;
-+	if (old) {
-+		if (__nf_ct_ext_exist(old, id))
-+			return NULL;
-+		oldlen = old->len;
-+	} else {
-+		oldlen = sizeof(*new);
-+	}
- 
- 	rcu_read_lock();
- 	t = rcu_dereference(nf_ct_ext_types[id]);
-@@ -95,15 +70,19 @@ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
- 		return NULL;
- 	}
- 
--	newoff = ALIGN(old->len, t->align);
-+	newoff = ALIGN(oldlen, t->align);
- 	newlen = newoff + t->len;
- 	rcu_read_unlock();
- 
--	new = __krealloc(old, newlen, gfp);
-+	alloc = max(newlen, NF_CT_EXT_PREALLOC);
-+	new = __krealloc(old, alloc, gfp);
- 	if (!new)
- 		return NULL;
- 
--	if (new != old) {
-+	if (!old) {
-+		RCU_INIT_POINTER(ct->ext, new);
-+		memset(new->offset, 0, sizeof(new->offset));
-+	} else if (new != old) {
- 		kfree_rcu(old, rcu);
- 		rcu_assign_pointer(ct->ext, new);
- 	}
--- 
-2.10.2
+You need to be able to hold the size of one packet, which could be up to
+64k depending on options/mtu) plus all the extra netlink meta data.
 
