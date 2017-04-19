@@ -1,39 +1,39 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: tcp: Use TCP_MAX_WSCALE instead of
- literal 14
-Date: Wed, 19 Apr 2017 17:58:22 +0200
-Message-ID: <20170419155822.GA8603@salvia>
-References: <1492565022-110676-1-git-send-email-gfree.wind@foxmail.com>
+Subject: Re: [PATCH iptables v3] iptables-restore/save: exit when given an
+ unknown option
+Date: Wed, 19 Apr 2017 18:00:57 +0200
+Message-ID: <20170419160057.GA21073@salvia>
+References: <20170414115621.13812-1-vincent@bernat.im>
+ <20170415101647.20650-1-vincent@bernat.im>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Gao Feng <fgao@ikuai8.com>
-To: gfree.wind@foxmail.com
+Cc: netfilter-devel@vger.kernel.org
+To: Vincent Bernat <vincent@bernat.im>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57034 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58396 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965466AbdDSP6h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Apr 2017 11:58:37 -0400
+        id S1765628AbdDSQBM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 19 Apr 2017 12:01:12 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 155E82EFEAC
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 17:58:32 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 7980E2EFEB1
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 18:01:02 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E57D2FC600
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 17:58:31 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6B6CAEBAD5
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 18:01:02 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E11EEFEFCB
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 17:58:23 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AC2D8FC5FC
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 18:00:55 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1492565022-110676-1-git-send-email-gfree.wind@foxmail.com>
+In-Reply-To: <20170415101647.20650-1-vincent@bernat.im>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 19, 2017 at 09:23:42AM +0800, gfree.wind@foxmail.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
+On Sat, Apr 15, 2017 at 12:16:47PM +0200, Vincent Bernat wrote:
+> When an unknown option is given, iptables-restore should exit instead of
+> continue its operation. For example, if `--table` was misspelled, this
+> could lead to an unwanted change. Moreover, exit with a status code of
+> 1. Make the same change for iptables-save.
 > 
-> The window scale may be enlarged from 14 to 15 according to the itef
-> draft https://tools.ietf.org/html/draft-nishida-tcpm-maxwin-03.
-> 
-> Use the macro TCP_MAX_WSCALE to support it easily with TCP stack in
-> the future.
+> OTOH, exit with a status code of 0 when requesting help.
 
 Applied, thanks.
