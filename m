@@ -1,39 +1,54 @@
-From: Oleg <lego12239@yandex.ru>
-Subject: nfqueue buf size for recv()
-Date: Wed, 19 Apr 2017 19:50:24 +0300
-Message-ID: <20170419165024.GA28485@legohost>
-Reply-To: Oleg <lego12239@yandex.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from forward13h.cmail.yandex.net ([87.250.230.155]:55296 "EHLO
-        forward13h.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S938482AbdDSQ44 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Apr 2017 12:56:56 -0400
-Received: from smtp1o.mail.yandex.net (smtp1o.mail.yandex.net [37.140.190.26])
-        by forward13h.cmail.yandex.net (Yandex) with ESMTP id 794B02280E
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 19:49:44 +0300 (MSK)
-Received: from smtp1o.mail.yandex.net (localhost.localdomain [127.0.0.1])
-        by smtp1o.mail.yandex.net (Yandex) with ESMTP id 530C4130073B
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 19:49:43 +0300 (MSK)
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Matthias Kaehlcke <mka@chromium.org>
+Subject: [PATCH] netfilter: ctnetlink: Make some parameters integer to avoid enum mismatch
+Date: Wed, 19 Apr 2017 11:39:20 -0700
+Message-ID: <20170419183920.21936-1-mka@chromium.org>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Grant Grundler <grundler@chromium.org>,
+        Greg Hackmann <ghackmann@google.com>,
+        Michael Davidson <md@google.com>,
+        Matthias Kaehlcke <mka@chromium.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S . Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-  Hi, all.
+Not all parameters passed to ctnetlink_parse_tuple() and
+ctnetlink_exp_dump_tuple() match the enum type in the signatures of these
+functions. Since this is intended change the argument type of to be an int
+value.
 
-Can anybody tell me how can i determine a right buf size for recv()
-in libnetfilter_queue program.
+Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
+---
+ net/netfilter/nf_conntrack_netlink.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-http://www.netfilter.org/projects/libnetfilter_queue/doxygen/group__Queue.html#gae36aee5b74d0c88d2f8530e356f68b79
-
-tells nothing about this.
-
-P.S. sorry, for noob question.
-P.P.S. sorry, if i chosen a wrong list for my question.
-
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index dc7dfd68fafe..775eb5d9165b 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1006,9 +1006,8 @@ static const struct nla_policy tuple_nla_policy[CTA_TUPLE_MAX+1] = {
+ 
+ static int
+ ctnetlink_parse_tuple(const struct nlattr * const cda[],
+-		      struct nf_conntrack_tuple *tuple,
+-		      enum ctattr_type type, u_int8_t l3num,
+-		      struct nf_conntrack_zone *zone)
++		      struct nf_conntrack_tuple *tuple, u32 type,
++		      u_int8_t l3num, struct nf_conntrack_zone *zone)
+ {
+ 	struct nlattr *tb[CTA_TUPLE_MAX+1];
+ 	int err;
+@@ -2443,7 +2442,7 @@ static struct nfnl_ct_hook ctnetlink_glue_hook = {
+ 
+ static int ctnetlink_exp_dump_tuple(struct sk_buff *skb,
+ 				    const struct nf_conntrack_tuple *tuple,
+-				    enum ctattr_expect type)
++				    u32 type)
+ {
+ 	struct nlattr *nest_parms;
+ 
 -- 
-Олег Неманов (Oleg Nemanov)
+2.12.2.816.g2cccc81164-goog
