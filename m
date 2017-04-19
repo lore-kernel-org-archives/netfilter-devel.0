@@ -1,33 +1,50 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: nfqueue buf size for recv()
-Date: Wed, 19 Apr 2017 23:45:21 +0200
-Message-ID: <20170419214521.GD17294@breakpoint.cc>
-References: <20170419165024.GA28485@legohost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Oleg <lego12239@yandex.ru>
+Subject: [PATCH nf-next] netfilter: decnet: only register hooks in init namespace
+Date: Thu, 20 Apr 2017 00:42:07 +0200
+Message-ID: <20170419224207.3219-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:45124 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:45322 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1761818AbdDSVqi (ORCPT
+        by vger.kernel.org with ESMTP id S1765212AbdDSWlt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Apr 2017 17:46:38 -0400
-Content-Disposition: inline
-In-Reply-To: <20170419165024.GA28485@legohost>
+        Wed, 19 Apr 2017 18:41:49 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Oleg <lego12239@yandex.ru> wrote:
-> Can anybody tell me how can i determine a right buf size for recv()
-> in libnetfilter_queue program.
-> 
-> http://www.netfilter.org/projects/libnetfilter_queue/doxygen/group__Queue.html#gae36aee5b74d0c88d2f8530e356f68b79
-> 
-> tells nothing about this.
+looks like decnet isn't namespacified in first place, so restrict hook
+registration to the initial namespace.
 
-I'd suggest a 80k buffer to be on safe side.
+Prepares for eventual removal of legacy nf_register_hook() api.
 
-You need to be able to hold the size of one packet, which could be up to
-64k depending on options/mtu) plus all the extra netlink meta data.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/decnet/netfilter/dn_rtmsg.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/decnet/netfilter/dn_rtmsg.c b/net/decnet/netfilter/dn_rtmsg.c
+index 85f2fdc360c2..f44303a40105 100644
+--- a/net/decnet/netfilter/dn_rtmsg.c
++++ b/net/decnet/netfilter/dn_rtmsg.c
+@@ -134,7 +134,7 @@ static int __init dn_rtmsg_init(void)
+ 		return -ENOMEM;
+ 	}
+ 
+-	rv = nf_register_hook(&dnrmg_ops);
++	rv = nf_register_net_hook(&init_net, &dnrmg_ops);
+ 	if (rv) {
+ 		netlink_kernel_release(dnrmg);
+ 	}
+@@ -144,7 +144,7 @@ static int __init dn_rtmsg_init(void)
+ 
+ static void __exit dn_rtmsg_fini(void)
+ {
+-	nf_unregister_hook(&dnrmg_ops);
++	nf_unregister_net_hook(&init_net, &dnrmg_ops);
+ 	netlink_kernel_release(dnrmg);
+ }
+ 
+-- 
+2.10.2
 
