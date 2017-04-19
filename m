@@ -1,86 +1,67 @@
-From: Matthias Kaehlcke <mka@chromium.org>
-Subject: Re: Doubt about CTA_EXPECT_* values passed to ctnetlink_parse_tuple()
-Date: Tue, 18 Apr 2017 12:43:15 -0700
-Message-ID: <20170418194315.GE128305@google.com>
-References: <20170417223730.GR28657@google.com>
- <20170418083947.GA1720@salvia>
- <20170418194116.GD128305@google.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="a8Wt8u1KmwUX3Y2C"
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: gfree.wind@foxmail.com
+Subject: [PATCH nf-next] netfilter: tcp: Use TCP_MAX_WSCALE instead of literal 14
+Date: Wed, 19 Apr 2017 09:23:42 +0800
+Message-ID: <1492565022-110676-1-git-send-email-gfree.wind@foxmail.com>
+Cc: Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f180.google.com ([209.85.192.180]:35075 "EHLO
-        mail-pf0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754528AbdDRTnR (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Apr 2017 15:43:17 -0400
-Received: by mail-pf0-f180.google.com with SMTP id i5so1325802pfc.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Apr 2017 12:43:17 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20170418194116.GD128305@google.com>
+Received: from smtpbgbr2.qq.com ([54.207.22.56]:39947 "EHLO smtpbgbr2.qq.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758886AbdDSBYP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Apr 2017 21:24:15 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Gao Feng <fgao@ikuai8.com>
 
---a8Wt8u1KmwUX3Y2C
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+The window scale may be enlarged from 14 to 15 according to the itef
+draft https://tools.ietf.org/html/draft-nishida-tcpm-maxwin-03.
 
-El Tue, Apr 18, 2017 at 12:41:16PM -0700 Matthias Kaehlcke ha dit:
+Use the macro TCP_MAX_WSCALE to support it easily with TCP stack in
+the future.
 
-> Hi Pablo,
-> 
-> Thanks for your reply!
-> 
-> El Tue, Apr 18, 2017 at 10:39:47AM +0200 Pablo Neira Ayuso ha dit:
-> 
-> > On Mon, Apr 17, 2017 at 03:37:30PM -0700, Matthias Kaehlcke wrote:
-> > > Hi,
-> > > 
-> > > While working on clang support for kernel builds I came across at what
-> > > at first sight looks like an enum mismatch in the netfilter conntrack
-> > > code:
-> > > 
-> > > In multiple occasions CTA_EXPECT_* values (of type enum ctattr_expect)
-> > > are passed to ctnetlink_parse_tuple(), which expects an 'enum
-> > > ctattr_type' as type argument.
-> > 
-> > Are you refering to this? See patch.
-> 
-> Almost, see patch :)
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ net/netfilter/nf_conntrack_proto_tcp.c | 7 +++----
+ net/netfilter/nf_synproxy_core.c       | 4 ++--
+ 2 files changed, 5 insertions(+), 6 deletions(-)
 
-This time with patch
-
---a8Wt8u1KmwUX3Y2C
-Content-Type: text/x-diff; charset=utf-8
-Content-Disposition: attachment; filename="y.patch"
-
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 27540455dc62..4d7f3780d64b 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1006,9 +1006,8 @@ static const struct nla_policy tuple_nla_policy[CTA_TUPLE_MAX+1] = {
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index b122e9d..741acdc 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -419,10 +419,9 @@ static void tcp_options(const struct sk_buff *skb,
+ 				 && opsize == TCPOLEN_WINDOW) {
+ 				state->td_scale = *(u_int8_t *)ptr;
  
- static int
- ctnetlink_parse_tuple(const struct nlattr * const cda[],
--		      struct nf_conntrack_tuple *tuple,
--		      enum ctattr_type type, u_int8_t l3num,
--		      struct nf_conntrack_zone *zone)
-+		      struct nf_conntrack_tuple *tuple, u32 type,
-+		      u_int8_t l3num, struct nf_conntrack_zone *zone)
- {
- 	struct nlattr *tb[CTA_TUPLE_MAX+1];
- 	int err;
-@@ -2405,7 +2404,7 @@ static struct nfnl_ct_hook ctnetlink_glue_hook = {
- 
- static int ctnetlink_exp_dump_tuple(struct sk_buff *skb,
- 				    const struct nf_conntrack_tuple *tuple,
--				    enum ctattr_expect type)
-+				    uint32_t type)
- {
- 	struct nlattr *nest_parms;
- 
+-				if (state->td_scale > 14) {
+-					/* See RFC1323 */
+-					state->td_scale = 14;
+-				}
++				if (state->td_scale > TCP_MAX_WSCALE)
++					state->td_scale = TCP_MAX_WSCALE;
++
+ 				state->flags |=
+ 					IP_CT_TCP_FLAG_WINDOW_SCALE;
+ 			}
+diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+index abe03e8..a504e87 100644
+--- a/net/netfilter/nf_synproxy_core.c
++++ b/net/netfilter/nf_synproxy_core.c
+@@ -66,8 +66,8 @@
+ 			case TCPOPT_WINDOW:
+ 				if (opsize == TCPOLEN_WINDOW) {
+ 					opts->wscale = *ptr;
+-					if (opts->wscale > 14)
+-						opts->wscale = 14;
++					if (opts->wscale > TCP_MAX_WSCALE)
++						opts->wscale = TCP_MAX_WSCALE;
+ 					opts->options |= XT_SYNPROXY_OPT_WSCALE;
+ 				}
+ 				break;
+-- 
+1.9.1
 
---a8Wt8u1KmwUX3Y2C--
+
+
+
