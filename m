@@ -1,47 +1,43 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 0/6] netfilter: remove support for variably-sized
- extensions
-Date: Wed, 19 Apr 2017 17:56:14 +0200
-Message-ID: <20170419155614.GA8531@salvia>
-References: <20170415232919.13671-1-fw@strlen.de>
+Subject: Re: [PATCH v3 nf-next] netfilter: nft_ct: allow to set ctnetlink
+ event types of a connection
+Date: Wed, 19 Apr 2017 17:56:37 +0200
+Message-ID: <20170419155637.GB8531@salvia>
+References: <20170415172610.5807-1-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56220 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56376 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S937335AbdDSP4W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Apr 2017 11:56:22 -0400
+        id S937815AbdDSP4v (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 19 Apr 2017 11:56:51 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 38FD32E786B
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 17:56:17 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 7A9452E786C
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 17:56:41 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 297E1FC5F2
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 17:56:17 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6B780FC5E8
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 17:56:41 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2C957FC5F8
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 17:56:14 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4F37CFC5EB
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 17:56:39 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20170415232919.13671-1-fw@strlen.de>
+In-Reply-To: <20170415172610.5807-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Apr 16, 2017 at 01:29:13AM +0200, Florian Westphal wrote:
-> 3 years ago we had to bump the offsets to the extensions
-> (223b02d923ecd7c84cf9780bb3686f455d279279,
-> "netfilter: nf_conntrack: reserve two bytes for nf_ct_ext->len")
-> because total size of all extensions had increased to a point where u8
-> did overflow.
+On Sat, Apr 15, 2017 at 07:26:10PM +0200, Florian Westphal wrote:
+> By default the kernel emits all ctnetlink events for a connection.
+> This allows to select the types of events to generate.
 > 
-> We already dieted the extensions back to more reasonable sizes, however,
-> I never wanted to switch back because overflow produces hard to diagnose
-> crash bugs, and we could not add compile-time assert because extensions
-> can be dynamically sized.
+> This can be used to e.g. only send DESTROY events but no NEW/UPDATE ones
+> and will work even if sysctl net.netfilter.nf_conntrack_events is set to 0.
 > 
-> This series makes the last veriable-sized extension (helper)
-> fixed in size by adding a 32byte scratch area for helpers to use
-> and then adds the compile-time asserts to catch overflow during build
-> time.
+> This was already possible via iptables' CT target, but the nft version has
+> the advantage that it can also be used with already-established conntracks.
+> 
+> The added nf_ct_is_template() check isn't a bug fix as we only support
+> mark and labels (and unlike ecache the conntrack core doesn't copy those).
 
-Series applied.
+applied, thanks.
