@@ -1,80 +1,86 @@
-From: Michael Bailey <strictlymike@gmail.com>
-Subject: Mixing tables for NFQUEUE target
-Date: Tue, 18 Apr 2017 23:41:12 -0500
-Message-ID: <CAKQaGz-3RxG2jVCbyGWUVik9uzpTaMZ5XCg8tnGzgGbWPFyz-g@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Doubt about CTA_EXPECT_* values passed to ctnetlink_parse_tuple()
+Date: Wed, 19 Apr 2017 10:58:39 +0200
+Message-ID: <20170419085839.GA1197@salvia>
+References: <20170417223730.GR28657@google.com>
+ <20170418083947.GA1720@salvia>
+ <20170418194116.GD128305@google.com>
+ <20170418194315.GE128305@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: Matthias Kaehlcke <mka@chromium.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qt0-f171.google.com ([209.85.216.171]:36346 "EHLO
-        mail-qt0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751958AbdDSElO (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Apr 2017 00:41:14 -0400
-Received: by mail-qt0-f171.google.com with SMTP id g60so10440476qtd.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Apr 2017 21:41:14 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:45556 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1761268AbdDSI6u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 19 Apr 2017 04:58:50 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 4CA4924716
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 10:58:44 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3C03BDA86E
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 10:58:44 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4023ADA87A
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Apr 2017 10:58:41 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20170418194315.GE128305@google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Tue, Apr 18, 2017 at 12:43:15PM -0700, Matthias Kaehlcke wrote:
+> El Tue, Apr 18, 2017 at 12:41:16PM -0700 Matthias Kaehlcke ha dit:
+> 
+> > Hi Pablo,
+> > 
+> > Thanks for your reply!
+> > 
+> > El Tue, Apr 18, 2017 at 10:39:47AM +0200 Pablo Neira Ayuso ha dit:
+> > 
+> > > On Mon, Apr 17, 2017 at 03:37:30PM -0700, Matthias Kaehlcke wrote:
+> > > > Hi,
+> > > > 
+> > > > While working on clang support for kernel builds I came across at what
+> > > > at first sight looks like an enum mismatch in the netfilter conntrack
+> > > > code:
+> > > > 
+> > > > In multiple occasions CTA_EXPECT_* values (of type enum ctattr_expect)
+> > > > are passed to ctnetlink_parse_tuple(), which expects an 'enum
+> > > > ctattr_type' as type argument.
+> > > 
+> > > Are you refering to this? See patch.
+> > 
+> > Almost, see patch :)
+> 
+> This time with patch
 
-Is there any harm in mangling a packet in an INPUT/mangle hook point
-on the way into the system and un-mangling it in the OUTPUT/raw hook
-point on the way out? I'll describe my setup, problem, observations,
-hypothesis, and the fix. I would be keen to hear if there is a more
-orthodox solution.
+> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+> index 27540455dc62..4d7f3780d64b 100644
+> --- a/net/netfilter/nf_conntrack_netlink.c
+> +++ b/net/netfilter/nf_conntrack_netlink.c
+> @@ -1006,9 +1006,8 @@ static const struct nla_policy tuple_nla_policy[CTA_TUPLE_MAX+1] = {
+>  
+>  static int
+>  ctnetlink_parse_tuple(const struct nlattr * const cda[],
+> -		      struct nf_conntrack_tuple *tuple,
+> -		      enum ctattr_type type, u_int8_t l3num,
+> -		      struct nf_conntrack_zone *zone)
+> +		      struct nf_conntrack_tuple *tuple, u32 type,
+> +		      u_int8_t l3num, struct nf_conntrack_zone *zone)
+>  {
+>  	struct nlattr *tb[CTA_TUPLE_MAX+1];
+>  	int err;
+> @@ -2405,7 +2404,7 @@ static struct nfnl_ct_hook ctnetlink_glue_hook = {
+>  
+>  static int ctnetlink_exp_dump_tuple(struct sk_buff *skb,
+>  				    const struct nf_conntrack_tuple *tuple,
+> -				    enum ctattr_expect type)
+> +				    uint32_t type)
+>  {
+>  	struct nlattr *nest_parms;
+>  
 
-I have a remote client configured with another machine as its gateway.
-On this "gateway", I have IP redirection using:
-
-iptables -t nat -I PREROUTING -j REDIRECT
-
-I'm simultaneously implementing dynamic port forwarding (DPF) using
-the NFQUEUE target and python-netfilterqueue. My code mangles packets:
-it updates destination port numbers on the way in, refreshes them on
-the way out, and always recalculates checksums.
-
-When my DPF code is inactive and the client attempts to talk to an
-arbitrary IP, the gateway sends response packets that look like they
-come from <arbitrary IP>. The client and gateway finish the three-way
-TCP handshake, establish a connection, and exchange information.
-
-But when my port forwarding code _does_ mangle packets, the gateway
-sends the SYN,ACK with its own IP address and the TCP three-way
-handshake fails with the client sending an RST.
-
-I believed my DPF code in the INPUT/mangle and OUTPUT/mangle hook
-points was preventing the system from recognizing response packets, so
-I investigated.
-
-Based on xt_REDIRECT.c, nf_nat_redirect.c from Linux 4.9.6, and
-looking the module dependencies on my system, my understanding is that
-the REDIRECT rule I am using depends upon connection tracking to
-calculate a tuple against incoming packets and then calculate an
-inverse-tuple to identify and fix up reply packets on their way out of
-the OUTPUT/nat hook point. The documentation here seems to describe
-some of the tuple/inverse-tuple behavior I saw in the source files,
-and says it occurs during the PREROUTING and OUTPUT chains:
-
-http://netfilter.org/documentation/HOWTO/netfilter-hacking-HOWTO-4.html
-
-I believe my choice of chains/tables caused the tuple to be calculated
-using the original port, and the inverse-tuple to be calculated using
-the modified port. Does that sound right?
-
-As a solution, I tried moving my fix-up callback to the OUTPUT/raw
-hook location, and it looks as if this allows my NFQUEUE DPF code to
-co-exist peacefully with the static REDIRECT rule.
-
-Could I be creating an undesired consequence by mixing tables (mangle
-vs. nat), or is this the right answer?
-
-I also saw what looked like a robust library of connection tracking
-and NAT code in net/netfilter/nf_conntrack_*.c that looked like it was
-for tracking connections for many protocols other than just TCP and
-UDP. For instance, nf_conntrack_irc.c. Is that all code that Netfilter
-may use to support the REDIRECT rule I created using iptables above,
-depending on the protocols that are in use at a given time?
-
-Thanks for any answers you can give,
-Michael
+Looks fine. Please, add title, description and Signed-off-by tag, I'll
+take it :)
