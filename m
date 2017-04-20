@@ -1,179 +1,161 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf-next 1/3] netfilter: conntrack: remove prealloc support
-Date: Thu, 20 Apr 2017 09:54:22 +0200
-Message-ID: <20170420075424.12190-2-fw@strlen.de>
+Subject: [PATCH v2 nf-next 2/3] netfilter: conntrack: mark extension structs as const
+Date: Thu, 20 Apr 2017 09:54:23 +0200
+Message-ID: <20170420075424.12190-3-fw@strlen.de>
 References: <20170420075424.12190-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:46728 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:46732 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S938741AbdDTHyJ (ORCPT
+        by vger.kernel.org with ESMTP id S943256AbdDTHyN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Apr 2017 03:54:09 -0400
+        Thu, 20 Apr 2017 03:54:13 -0400
 In-Reply-To: <20170420075424.12190-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
-
-It was used by the nat extension, but since commit
-7c9664351980 ("netfilter: move nat hlist_head to nf_conn") its only needed
-for connections that use MASQUERADE target or a nat helper.
-
-Also it seems a lot easier to preallocate a fixed size instead.
-
-With default settings, conntrack first adds ecache extension (sysctl
-defaults to 1), so we get 40(ct extension header) + 24 (ecache) == 64 byte
-on x86_64 for initial allocation.
-
-Followup patches can constify the extension structs and avoid
-the initial zeroing of the entire extension area.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
  No changes since v1.
 
- include/net/netfilter/nf_conntrack_extend.h |  6 ----
- net/netfilter/nf_conntrack_extend.c         | 49 +++--------------------------
- net/netfilter/nf_nat_core.c                 |  1 -
- 3 files changed, 4 insertions(+), 52 deletions(-)
+ include/net/netfilter/nf_conntrack_extend.h | 4 ++--
+ net/netfilter/nf_conntrack_acct.c           | 2 +-
+ net/netfilter/nf_conntrack_ecache.c         | 2 +-
+ net/netfilter/nf_conntrack_extend.c         | 4 ++--
+ net/netfilter/nf_conntrack_helper.c         | 2 +-
+ net/netfilter/nf_conntrack_labels.c         | 2 +-
+ net/netfilter/nf_conntrack_seqadj.c         | 2 +-
+ net/netfilter/nf_conntrack_timeout.c        | 2 +-
+ net/netfilter/nf_conntrack_timestamp.c      | 2 +-
+ 9 files changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
-index 5fc908dc9f32..dd776bf9e2fa 100644
+index dd776bf9e2fa..b01f73fb4dcb 100644
 --- a/include/net/netfilter/nf_conntrack_extend.h
 +++ b/include/net/netfilter/nf_conntrack_extend.h
-@@ -88,21 +88,15 @@ static inline void nf_ct_ext_free(struct nf_conn *ct)
- /* Add this type, returns pointer to data or NULL. */
- void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp);
- 
--#define NF_CT_EXT_F_PREALLOC	0x0001
--
- struct nf_ct_ext_type {
- 	/* Destroys relationships (can be NULL). */
- 	void (*destroy)(struct nf_conn *ct);
- 
- 	enum nf_ct_ext_id id;
- 
--	unsigned int flags;
--
- 	/* Length and min alignment. */
- 	u8 len;
+@@ -99,6 +99,6 @@ struct nf_ct_ext_type {
  	u8 align;
--	/* initial size of nf_ct_ext. */
--	u8 alloc_size;
  };
  
- int nf_ct_extend_register(struct nf_ct_ext_type *type);
+-int nf_ct_extend_register(struct nf_ct_ext_type *type);
+-void nf_ct_extend_unregister(struct nf_ct_ext_type *type);
++int nf_ct_extend_register(const struct nf_ct_ext_type *type);
++void nf_ct_extend_unregister(const struct nf_ct_ext_type *type);
+ #endif /* _NF_CONNTRACK_EXTEND_H */
+diff --git a/net/netfilter/nf_conntrack_acct.c b/net/netfilter/nf_conntrack_acct.c
+index 45da11afa785..866916712905 100644
+--- a/net/netfilter/nf_conntrack_acct.c
++++ b/net/netfilter/nf_conntrack_acct.c
+@@ -55,7 +55,7 @@ seq_print_acct(struct seq_file *s, const struct nf_conn *ct, int dir)
+ };
+ EXPORT_SYMBOL_GPL(seq_print_acct);
+ 
+-static struct nf_ct_ext_type acct_extend __read_mostly = {
++static const struct nf_ct_ext_type acct_extend = {
+ 	.len	= sizeof(struct nf_conn_acct),
+ 	.align	= __alignof__(struct nf_conn_acct),
+ 	.id	= NF_CT_EXT_ACCT,
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+index 515212948125..caac41ad9483 100644
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -347,7 +347,7 @@ static struct ctl_table event_sysctl_table[] = {
+ };
+ #endif /* CONFIG_SYSCTL */
+ 
+-static struct nf_ct_ext_type event_extend __read_mostly = {
++static const struct nf_ct_ext_type event_extend = {
+ 	.len	= sizeof(struct nf_conntrack_ecache),
+ 	.align	= __alignof__(struct nf_conntrack_ecache),
+ 	.id	= NF_CT_EXT_ECACHE,
 diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
-index b5879a9c748d..2e4b41bc67a0 100644
+index 2e4b41bc67a0..5c66816eb965 100644
 --- a/net/netfilter/nf_conntrack_extend.c
 +++ b/net/netfilter/nf_conntrack_extend.c
-@@ -18,6 +18,7 @@
- 
- static struct nf_ct_ext_type __rcu *nf_ct_ext_types[NF_CT_EXT_NUM];
- static DEFINE_MUTEX(nf_ct_ext_type_mutex);
-+#define NF_CT_EXT_PREALLOC	128u /* conntrack events are on by default */
- 
- void __nf_ct_ext_destroy(struct nf_conn *ct)
- {
-@@ -46,9 +47,8 @@ EXPORT_SYMBOL(__nf_ct_ext_destroy);
- static void *
- nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id, gfp_t gfp)
- {
--	unsigned int off, len;
-+	unsigned int off, len, alloc;
- 	struct nf_ct_ext_type *t;
--	size_t alloc_size;
- 
- 	rcu_read_lock();
- 	t = rcu_dereference(nf_ct_ext_types[id]);
-@@ -59,10 +59,10 @@ nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id, gfp_t gfp)
- 
- 	off = ALIGN(sizeof(struct nf_ct_ext), t->align);
- 	len = off + t->len;
--	alloc_size = t->alloc_size;
- 	rcu_read_unlock();
- 
--	*ext = kzalloc(alloc_size, gfp);
-+	alloc = max(len, NF_CT_EXT_PREALLOC);
-+	*ext = kzalloc(alloc, gfp);
- 	if (!*ext)
- 		return NULL;
- 
-@@ -115,41 +115,6 @@ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
- }
+@@ -116,7 +116,7 @@ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
  EXPORT_SYMBOL(nf_ct_ext_add);
  
--static void update_alloc_size(struct nf_ct_ext_type *type)
--{
--	int i, j;
--	struct nf_ct_ext_type *t1, *t2;
--	enum nf_ct_ext_id min = 0, max = NF_CT_EXT_NUM - 1;
--
--	/* unnecessary to update all types */
--	if ((type->flags & NF_CT_EXT_F_PREALLOC) == 0) {
--		min = type->id;
--		max = type->id;
--	}
--
--	/* This assumes that extended areas in conntrack for the types
--	   whose NF_CT_EXT_F_PREALLOC bit set are allocated in order */
--	for (i = min; i <= max; i++) {
--		t1 = rcu_dereference_protected(nf_ct_ext_types[i],
--				lockdep_is_held(&nf_ct_ext_type_mutex));
--		if (!t1)
--			continue;
--
--		t1->alloc_size = ALIGN(sizeof(struct nf_ct_ext), t1->align) +
--				 t1->len;
--		for (j = 0; j < NF_CT_EXT_NUM; j++) {
--			t2 = rcu_dereference_protected(nf_ct_ext_types[j],
--				lockdep_is_held(&nf_ct_ext_type_mutex));
--			if (t2 == NULL || t2 == t1 ||
--			    (t2->flags & NF_CT_EXT_F_PREALLOC) == 0)
--				continue;
--
--			t1->alloc_size = ALIGN(t1->alloc_size, t2->align)
--					 + t2->len;
--		}
--	}
--}
--
  /* This MUST be called in process context. */
- int nf_ct_extend_register(struct nf_ct_ext_type *type)
+-int nf_ct_extend_register(struct nf_ct_ext_type *type)
++int nf_ct_extend_register(const struct nf_ct_ext_type *type)
  {
-@@ -161,12 +126,7 @@ int nf_ct_extend_register(struct nf_ct_ext_type *type)
- 		goto out;
- 	}
+ 	int ret = 0;
  
--	/* This ensures that nf_ct_ext_create() can allocate enough area
--	   before updating alloc_size */
--	type->alloc_size = ALIGN(sizeof(struct nf_ct_ext), type->align)
--			   + type->len;
- 	rcu_assign_pointer(nf_ct_ext_types[type->id], type);
--	update_alloc_size(type);
- out:
- 	mutex_unlock(&nf_ct_ext_type_mutex);
- 	return ret;
-@@ -178,7 +138,6 @@ void nf_ct_extend_unregister(struct nf_ct_ext_type *type)
+@@ -134,7 +134,7 @@ int nf_ct_extend_register(struct nf_ct_ext_type *type)
+ EXPORT_SYMBOL_GPL(nf_ct_extend_register);
+ 
+ /* This MUST be called in process context. */
+-void nf_ct_extend_unregister(struct nf_ct_ext_type *type)
++void nf_ct_extend_unregister(const struct nf_ct_ext_type *type)
  {
  	mutex_lock(&nf_ct_ext_type_mutex);
  	RCU_INIT_POINTER(nf_ct_ext_types[type->id], NULL);
--	update_alloc_size(type);
- 	mutex_unlock(&nf_ct_ext_type_mutex);
- 	synchronize_rcu();
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 8239b4406f56..a57a52f173f7 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -535,7 +535,7 @@ void nf_conntrack_helpers_unregister(struct nf_conntrack_helper *helper,
  }
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 9cbf49f9c1b7..86eeacbb4793 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -717,7 +717,6 @@ static struct nf_ct_ext_type nat_extend __read_mostly = {
- 	.align		= __alignof__(struct nf_conn_nat),
- 	.destroy	= nf_nat_cleanup_conntrack,
- 	.id		= NF_CT_EXT_NAT,
--	.flags		= NF_CT_EXT_F_PREALLOC,
- };
+ EXPORT_SYMBOL_GPL(nf_conntrack_helpers_unregister);
  
- #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+-static struct nf_ct_ext_type helper_extend __read_mostly = {
++static const struct nf_ct_ext_type helper_extend = {
+ 	.len	= sizeof(struct nf_conn_help),
+ 	.align	= __alignof__(struct nf_conn_help),
+ 	.id	= NF_CT_EXT_HELPER,
+diff --git a/net/netfilter/nf_conntrack_labels.c b/net/netfilter/nf_conntrack_labels.c
+index bcab8bde7312..adf219859901 100644
+--- a/net/netfilter/nf_conntrack_labels.c
++++ b/net/netfilter/nf_conntrack_labels.c
+@@ -82,7 +82,7 @@ void nf_connlabels_put(struct net *net)
+ }
+ EXPORT_SYMBOL_GPL(nf_connlabels_put);
+ 
+-static struct nf_ct_ext_type labels_extend __read_mostly = {
++static const struct nf_ct_ext_type labels_extend = {
+ 	.len    = sizeof(struct nf_conn_labels),
+ 	.align  = __alignof__(struct nf_conn_labels),
+ 	.id     = NF_CT_EXT_LABELS,
+diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
+index ef7063eced7c..a975efd6b8c3 100644
+--- a/net/netfilter/nf_conntrack_seqadj.c
++++ b/net/netfilter/nf_conntrack_seqadj.c
+@@ -231,7 +231,7 @@ s32 nf_ct_seq_offset(const struct nf_conn *ct,
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_seq_offset);
+ 
+-static struct nf_ct_ext_type nf_ct_seqadj_extend __read_mostly = {
++static const struct nf_ct_ext_type nf_ct_seqadj_extend = {
+ 	.len	= sizeof(struct nf_conn_seqadj),
+ 	.align	= __alignof__(struct nf_conn_seqadj),
+ 	.id	= NF_CT_EXT_SEQADJ,
+diff --git a/net/netfilter/nf_conntrack_timeout.c b/net/netfilter/nf_conntrack_timeout.c
+index 26e742006c48..46aee65f339b 100644
+--- a/net/netfilter/nf_conntrack_timeout.c
++++ b/net/netfilter/nf_conntrack_timeout.c
+@@ -31,7 +31,7 @@ EXPORT_SYMBOL_GPL(nf_ct_timeout_find_get_hook);
+ void (*nf_ct_timeout_put_hook)(struct ctnl_timeout *timeout) __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_ct_timeout_put_hook);
+ 
+-static struct nf_ct_ext_type timeout_extend __read_mostly = {
++static const struct nf_ct_ext_type timeout_extend = {
+ 	.len	= sizeof(struct nf_conn_timeout),
+ 	.align	= __alignof__(struct nf_conn_timeout),
+ 	.id	= NF_CT_EXT_TIMEOUT,
+diff --git a/net/netfilter/nf_conntrack_timestamp.c b/net/netfilter/nf_conntrack_timestamp.c
+index 7a394df0deb7..4c4734b78318 100644
+--- a/net/netfilter/nf_conntrack_timestamp.c
++++ b/net/netfilter/nf_conntrack_timestamp.c
+@@ -33,7 +33,7 @@ static struct ctl_table tstamp_sysctl_table[] = {
+ };
+ #endif /* CONFIG_SYSCTL */
+ 
+-static struct nf_ct_ext_type tstamp_extend __read_mostly = {
++static const struct nf_ct_ext_type tstamp_extend = {
+ 	.len	= sizeof(struct nf_conn_tstamp),
+ 	.align	= __alignof__(struct nf_conn_tstamp),
+ 	.id	= NF_CT_EXT_TSTAMP,
 -- 
 2.10.2
 
