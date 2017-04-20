@@ -1,262 +1,102 @@
 From: Arturo Borrero Gonzalez <arturo@debian.org>
-Subject: [conntrack-tools PATCH 1/4] conntrackd: factorice tx_queue functions
-Date: Thu, 20 Apr 2017 19:28:00 +0200
-Message-ID: <149270928083.1751.9498250834672625764.stgit@nfdev2.cica.es>
+Subject: [conntrack-tools PATCH 2/4] conntrackd: warn users about queue
+ allocation errors
+Date: Thu, 20 Apr 2017 19:28:06 +0200
+Message-ID: <149270928606.1751.8172963085482513292.stgit@nfdev2.cica.es>
+References: <149270928083.1751.9498250834672625764.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:36720 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:36723 "EHLO smtp.cica.es"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S938918AbdDTR2J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Apr 2017 13:28:09 -0400
+        id S938918AbdDTR2O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 20 Apr 2017 13:28:14 -0400
 Received: from localhost (unknown [127.0.0.1])
-        by smtp.cica.es (Postfix) with ESMTP id E937E51F360
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Apr 2017 17:28:07 +0000 (UTC)
+        by smtp.cica.es (Postfix) with ESMTP id 5D90951F360
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Apr 2017 17:28:12 +0000 (UTC)
 Received: from smtp.cica.es ([127.0.0.1])
         by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id DAJtR4a-NZ8z for <netfilter-devel@vger.kernel.org>;
-        Thu, 20 Apr 2017 19:28:01 +0200 (CEST)
+        with ESMTP id sxxRpomRyc63 for <netfilter-devel@vger.kernel.org>;
+        Thu, 20 Apr 2017 19:28:06 +0200 (CEST)
 Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
         (Authenticated sender: servers@cica.es)
-        by smtp.cica.es (Postfix) with ESMTP id 9074E51F358
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Apr 2017 19:28:01 +0200 (CEST)
+        by smtp.cica.es (Postfix) with ESMTP id C09A351F35C
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Apr 2017 19:28:06 +0200 (CEST)
+In-Reply-To: <149270928083.1751.9498250834672625764.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-They are shared by both sync-ftfw and sync-notrack.
+These warnings, if they happen, should help users.
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
 ---
- include/Makefile.am |    2 +-
- include/queue_tx.h  |    7 ++++++
- src/Makefile.am     |    2 +-
- src/queue_tx.c      |   60 +++++++++++++++++++++++++++++++++++++++++++++++++++
- src/sync-ftfw.c     |   37 +------------------------------
- src/sync-notrack.c  |   37 +------------------------------
- 6 files changed, 71 insertions(+), 74 deletions(-)
- create mode 100644 include/queue_tx.h
- create mode 100644 src/queue_tx.c
+ src/channel.c  |    6 +++++-
+ src/queue_tx.c |   11 +++++++++--
+ 2 files changed, 14 insertions(+), 3 deletions(-)
 
-diff --git a/include/Makefile.am b/include/Makefile.am
-index e81463a..84fd608 100644
---- a/include/Makefile.am
-+++ b/include/Makefile.am
-@@ -6,5 +6,5 @@ noinst_HEADERS = alarm.h jhash.h cache.h linux_list.h linux_rbtree.h \
- 		 network.h filter.h queue.h vector.h cidr.h \
- 		 traffic_stats.h netlink.h fds.h event.h bitops.h channel.h \
- 		 process.h origin.h internal.h external.h date.h nfct.h \
--		 helper.h myct.h stack.h systemd.h
-+		 helper.h myct.h stack.h systemd.h queue_tx.h
+diff --git a/src/channel.c b/src/channel.c
+index acbfa7d..b2f114d 100644
+--- a/src/channel.c
++++ b/src/channel.c
+@@ -19,6 +19,7 @@
+ #include "channel.h"
+ #include "network.h"
+ #include "queue.h"
++#include "log.h"
  
-diff --git a/include/queue_tx.h b/include/queue_tx.h
-new file mode 100644
-index 0000000..e29b1f0
---- /dev/null
-+++ b/include/queue_tx.h
-@@ -0,0 +1,7 @@
-+#ifndef _QUEUE_TX_H_
-+#define _QUEUE_TX_H_
-+
-+void tx_queue_add_ctlmsg(uint32_t flags, uint32_t from, uint32_t to);
-+void tx_queue_add_ctlmsg2(uint32_t flags);
-+
-+#endif /* _QUEUE_TX_H_ */
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 144c52c..39c7315 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -37,7 +37,7 @@ endif
+ static struct channel_ops *ops[CHANNEL_MAX];
+ extern struct channel_ops channel_mcast;
+@@ -161,8 +162,11 @@ static void channel_enqueue_errors(struct channel *c)
+ 	struct channel_error *error;
  
- nfct_LDFLAGS = -export-dynamic @LAZY_LDFLAGS@
+ 	qobj = queue_object_new(Q_ELEM_ERR, sizeof(struct channel_error));
+-	if (qobj == NULL)
++	if (qobj == NULL) {
++		dlog(LOG_WARNING, "could not enqueue channel errors, failed to"
++		     " allocate memory");
+ 		return;
++	}
  
--conntrackd_SOURCES = alarm.c main.c run.c hash.c queue.c rbtree.c \
-+conntrackd_SOURCES = alarm.c main.c run.c hash.c queue.c queue_tx.c rbtree.c \
- 		    local.c log.c mcast.c udp.c netlink.c vector.c \
- 		    filter.c fds.c event.c process.c origin.c date.c \
- 		    cache.c cache-ct.c cache-exp.c \
+ 	error		= (struct channel_error *)qobj->data;
+ 	error->len	= c->buffer->len;
 diff --git a/src/queue_tx.c b/src/queue_tx.c
-new file mode 100644
-index 0000000..0c99163
---- /dev/null
+index 0c99163..83eb111 100644
+--- a/src/queue_tx.c
 +++ b/src/queue_tx.c
-@@ -0,0 +1,60 @@
-+/*
-+ * (C) 2006-2011 by Pablo Neira Ayuso <pablo@netfilter.org>
-+ * (C) 2011 by Vyatta Inc. <http://www.vyatta.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <stdint.h>
-+#include "queue_tx.h"
-+#include "queue.h"
-+#include "conntrackd.h"
-+#include "network.h"
-+
-+void tx_queue_add_ctlmsg(uint32_t flags, uint32_t from, uint32_t to)
-+{
-+	struct queue_object *qobj;
-+	struct nethdr_ack *ack;
-+
-+	qobj = queue_object_new(Q_ELEM_CTL, sizeof(struct nethdr_ack));
-+	if (qobj == NULL)
-+		return;
-+
-+	ack		= (struct nethdr_ack *)qobj->data;
-+	ack->type 	= NET_T_CTL;
-+	ack->flags	= flags;
-+	ack->from	= from;
-+	ack->to		= to;
-+
-+	if (queue_add(STATE_SYNC(tx_queue), &qobj->qnode) < 0)
-+		queue_object_free(qobj);
-+}
-+
-+void tx_queue_add_ctlmsg2(uint32_t flags)
-+{
-+	struct queue_object *qobj;
-+	struct nethdr *ctl;
-+
-+	qobj = queue_object_new(Q_ELEM_CTL, sizeof(struct nethdr_ack));
-+	if (qobj == NULL)
-+		return;
-+
-+	ctl		= (struct nethdr *)qobj->data;
-+	ctl->type 	= NET_T_CTL;
-+	ctl->flags	= flags;
-+
-+	if (queue_add(STATE_SYNC(tx_queue), &qobj->qnode) < 0)
-+		queue_object_free(qobj);
-+}
-diff --git a/src/sync-ftfw.c b/src/sync-ftfw.c
-index aa6838a..ce5270b 100644
---- a/src/sync-ftfw.c
-+++ b/src/sync-ftfw.c
-@@ -20,6 +20,7 @@
- #include "conntrackd.h"
- #include "sync.h"
+@@ -22,6 +22,7 @@
  #include "queue.h"
-+#include "queue_tx.h"
- #include "network.h"
- #include "alarm.h"
- #include "log.h"
-@@ -95,42 +96,6 @@ static void nethdr_set_hello(struct nethdr *net)
- 	}
- }
- 
--static void tx_queue_add_ctlmsg(uint32_t flags, uint32_t from, uint32_t to)
--{
--	struct queue_object *qobj;
--	struct nethdr_ack *ack;
--
--	qobj = queue_object_new(Q_ELEM_CTL, sizeof(struct nethdr_ack));
--	if (qobj == NULL)
--		return;
--
--	ack		= (struct nethdr_ack *)qobj->data;
--	ack->type 	= NET_T_CTL;
--	ack->flags	= flags;
--	ack->from	= from;
--	ack->to		= to;
--
--	if (queue_add(STATE_SYNC(tx_queue), &qobj->qnode) < 0)
--		queue_object_free(qobj);
--}
--
--static void tx_queue_add_ctlmsg2(uint32_t flags)
--{
--	struct queue_object *qobj;
--	struct nethdr *ctl;
--
--	qobj = queue_object_new(Q_ELEM_CTL, sizeof(struct nethdr_ack));
--	if (qobj == NULL)
--		return;
--
--	ctl		= (struct nethdr *)qobj->data;
--	ctl->type 	= NET_T_CTL;
--	ctl->flags	= flags;
--
--	if (queue_add(STATE_SYNC(tx_queue), &qobj->qnode) < 0)
--		queue_object_free(qobj);
--}
--
- /* this function is called from the alarm framework */
- static void do_alive_alarm(struct alarm_block *a, void *data)
- {
-diff --git a/src/sync-notrack.c b/src/sync-notrack.c
-index 7ade3a7..5b6814d 100644
---- a/src/sync-notrack.c
-+++ b/src/sync-notrack.c
-@@ -20,6 +20,7 @@
  #include "conntrackd.h"
- #include "sync.h"
- #include "queue.h"
-+#include "queue_tx.h"
  #include "network.h"
- #include "log.h"
- #include "cache.h"
-@@ -56,25 +57,6 @@ static struct cache_extra cache_notrack_extra = {
- 	.destroy	= cache_notrack_del
- };
++#include "log.h"
  
--static void tx_queue_add_ctlmsg(uint32_t flags, uint32_t from, uint32_t to)
--{
--	struct queue_object *qobj;
--	struct nethdr_ack *ack;
--
--	qobj = queue_object_new(Q_ELEM_CTL, sizeof(struct nethdr_ack));
--	if (qobj == NULL)
--		return;
--
--	ack		= (struct nethdr_ack *)qobj->data;
--        ack->type	= NET_T_CTL;
--	ack->flags	= flags;
--	ack->from	= from;
--	ack->to		= to;
--
--	if (queue_add(STATE_SYNC(tx_queue), &qobj->qnode) < 0)
--		queue_object_free(qobj);
--}
--
- static int do_cache_to_tx(void *data1, void *data2)
+ void tx_queue_add_ctlmsg(uint32_t flags, uint32_t from, uint32_t to)
  {
- 	struct cache_object *obj = data2;
-@@ -228,23 +210,6 @@ static void notrack_enqueue(struct cache_object *obj, int query)
- 		cache_object_get(obj);
- }
+@@ -29,8 +30,11 @@ void tx_queue_add_ctlmsg(uint32_t flags, uint32_t from, uint32_t to)
+ 	struct nethdr_ack *ack;
  
--static void tx_queue_add_ctlmsg2(uint32_t flags)
--{
--	struct queue_object *qobj;
--	struct nethdr *ctl;
--
--	qobj = queue_object_new(Q_ELEM_CTL, sizeof(struct nethdr_ack));
+ 	qobj = queue_object_new(Q_ELEM_CTL, sizeof(struct nethdr_ack));
 -	if (qobj == NULL)
--		return;
--
--	ctl		= (struct nethdr *)qobj->data;
--	ctl->type	= NET_T_CTL;
--	ctl->flags	= flags;
--
--	if (queue_add(STATE_SYNC(tx_queue), &qobj->qnode) < 0)
--		queue_object_free(qobj);
--}
--
- static void do_alive_alarm(struct alarm_block *a, void *data)
- {
- 	tx_queue_add_ctlmsg2(NET_F_ALIVE);
++	if (qobj == NULL) {
++		dlog(LOG_WARNING, "could not queue ACK message. Failed to "
++		     "allocate memory");
+ 		return;
++	}
+ 
+ 	ack		= (struct nethdr_ack *)qobj->data;
+ 	ack->type 	= NET_T_CTL;
+@@ -48,8 +52,11 @@ void tx_queue_add_ctlmsg2(uint32_t flags)
+ 	struct nethdr *ctl;
+ 
+ 	qobj = queue_object_new(Q_ELEM_CTL, sizeof(struct nethdr_ack));
+-	if (qobj == NULL)
++	if (qobj == NULL) {
++		dlog(LOG_WARNING, "could not queue CTL message. Failed to "
++		     "allocate memory");
+ 		return;
++	}
+ 
+ 	ctl		= (struct nethdr *)qobj->data;
+ 	ctl->type 	= NET_T_CTL;
 
