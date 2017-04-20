@@ -1,85 +1,87 @@
-From: Paolo Abeni <pabeni@redhat.com>
-Subject: [PATCH] ipvs: explicitly forbid ipv6 service/dest creation if ipv6 mod is disabled
-Date: Thu, 20 Apr 2017 11:44:16 +0200
-Message-ID: <2a5c88ca5670baade900e2b1f05a0dcc9927a29d.1492681122.git.pabeni@redhat.com>
-Cc: lvs-devel@vger.kernel.org, Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Julian Anastasov <ja@ssi.bg>, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH nf-next] netfilter: tcp: Use TCP_MAX_WSCALE instead of
+ literal 14
+Date: Thu, 20 Apr 2017 05:07:02 -0700
+Message-ID: <1492690022.22296.27.camel@edumazet-glaptop3.roam.corp.google.com>
+References: <1492565022-110676-1-git-send-email-gfree.wind@foxmail.com>
+         <20170419155822.GA8603@salvia>
+         <1492618928.22296.2.camel@edumazet-glaptop3.roam.corp.google.com>
+         <20170419195755.GA16404@salvia> <20170419203816.GA25446@salvia>
+         <002901d2b96f$47891400$d69b3c00$@foxmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: 'Pablo Neira Ayuso' <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+To: Gao Feng <gfree.wind@foxmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:33566 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966723AbdDTMHF (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 20 Apr 2017 08:07:05 -0400
+Received: by mail-oi0-f65.google.com with SMTP id a189so8889228oib.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Apr 2017 05:07:05 -0700 (PDT)
+In-Reply-To: <002901d2b96f$47891400$d69b3c00$@foxmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-When creating a new ipvs service, ipv6 addresses are always accepted
-if CONFIG_IP_VS_IPV6 is enabled. On dest creation the address family
-is not explicitly checked.
+On Thu, 2017-04-20 at 08:44 +0800, Gao Feng wrote:
+> > On Wed, Apr 19, 2017 at 09:57:55PM +0200, Pablo Neira Ayuso wrote:
+> > > On Wed, Apr 19, 2017 at 09:22:08AM -0700, Eric Dumazet wrote:
+> > > > On Wed, 2017-04-19 at 17:58 +0200, Pablo Neira Ayuso wrote:
+> > > > > On Wed, Apr 19, 2017 at 09:23:42AM +0800, gfree.wind@foxmail.com
+> > wrote:
+> > > > > > From: Gao Feng <fgao@ikuai8.com>
+> > > > > >
+> > > > > > The window scale may be enlarged from 14 to 15 according to the
+> > > > > > itef draft
+> https://tools.ietf.org/html/draft-nishida-tcpm-maxwin-03.
+> > > > > >
+> > > > > > Use the macro TCP_MAX_WSCALE to support it easily with TCP stack
+> > > > > > in the future.
+> > > > >
+> > > > > Applied, thanks.
+> > > >
+> > > > Note that linux kernel is not ready yet for a TCP_MAX_WSCALE being
+> > > > changed to 15.
+> > > >
+> > > > Signed 32bit sk counters can already be abused with 1GB TCP windows,
+> > > > for malicious peers sending SACK forcing linux to increase its
+> > > > memory usage above 2GB and overflows are pretty bad.
+> > >
+> > > We have tend to use our own definitions for the TCP connection
+> > > tracking so far. This one I checked it refers RFC1323 too.
+> > >
+> > > If this semantics may change from one way to another in a way that may
+> > > break conntracking, please let me know, I can toss it here.
+> > 
+> > Or I can just amend the commit here to remove the "enlarged from 14 to 15"
+> > comment, I was going to push out this now, but I'll wait a bit.
+> 
+> Thanks Eric & Pablo,
+> When the wscale is really enlarged to 15 one day, these Netfilter codes may
+> be modified.
+> Because it would reset the wscale value to the max value which Netfilter
+> support it.
+> 	if (state->td_scale > 14)
+> 		state->td_scale = 14;
+> It would cause the receive see a less window size than sender announced
+> actually.
 
-This allows the user-space to configure ipvs services even if the
-system is booted with ipv6.disable=1. On specific configuration, ipvs
-can try to call ipv6 routing code at setup time, causing the kernel to
-oops due to fib6_rules_ops being NULL.
+Simply because some middle boxes are enforcing the limit of 14, a change
+of TCP stacks on peers might be simply not possible without causing
+serious interoperability issues.
 
-This change addresses the issue adding a check for the ipv6
-module being enabled while validating ipv6 service operations and
-adding the same validation for dest operations.
+This IETF draft assumes TCP peers can freely decide of what they can do,
+but experience shows that they can not.
 
-According to git history, this issue is apparently present since
-the introduction of ipv6 support, and the oops can be triggered
-since commit 09571c7ae30865ad ("IPVS: Add function to determine
-if IPv6 address is local")
+TCP FastOpen for example hit a bug in linux TCP conntracking, and some
+linux middle boxes are still having this bug.
 
-Fixes: 09571c7ae30865ad ("IPVS: Add function to determine if IPv6 address is local")
-Signed-off-by: Paolo Abeni <pabeni@redhat.com>
----
- net/netfilter/ipvs/ip_vs_ctl.c | 22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+( SYN messages with data payload was not really considered in the past )
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 5aeb0dd..4d753be 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -3078,6 +3078,17 @@ static int ip_vs_genl_dump_services(struct sk_buff *skb,
- 	return skb->len;
- }
- 
-+static bool ip_vs_is_af_valid(int af)
-+{
-+	if (af == AF_INET)
-+		return true;
-+#ifdef CONFIG_IP_VS_IPV6
-+	if (af == AF_INET6 && ipv6_mod_enabled())
-+		return true;
-+#endif
-+	return false;
-+}
-+
- static int ip_vs_genl_parse_service(struct netns_ipvs *ipvs,
- 				    struct ip_vs_service_user_kern *usvc,
- 				    struct nlattr *nla, int full_entry,
-@@ -3104,11 +3115,7 @@ static int ip_vs_genl_parse_service(struct netns_ipvs *ipvs,
- 	memset(usvc, 0, sizeof(*usvc));
- 
- 	usvc->af = nla_get_u16(nla_af);
--#ifdef CONFIG_IP_VS_IPV6
--	if (usvc->af != AF_INET && usvc->af != AF_INET6)
--#else
--	if (usvc->af != AF_INET)
--#endif
-+	if (!ip_vs_is_af_valid(usvc->af))
- 		return -EAFNOSUPPORT;
- 
- 	if (nla_fwmark) {
-@@ -3610,6 +3617,11 @@ static int ip_vs_genl_set_cmd(struct sk_buff *skb, struct genl_info *info)
- 		if (udest.af == 0)
- 			udest.af = svc->af;
- 
-+		if (!ip_vs_is_af_valid(udest.af)) {
-+			ret = -EAFNOSUPPORT;
-+			goto out;
-+		}
-+
- 		if (udest.af != svc->af && cmd != IPVS_CMD_DEL_DEST) {
- 			/* The synchronization protocol is incompatible
- 			 * with mixed family services
--- 
-2.9.3
+
+
+
+
