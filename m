@@ -1,95 +1,179 @@
-From: "Gao Feng" <gfree.wind@foxmail.com>
-Subject: RE: [PATCH nf-next] netfilter: tcp: Use TCP_MAX_WSCALE instead of literal 14
-Date: Fri, 21 Apr 2017 09:28:03 +0800
-Message-ID: <002701d2ba3e$859eef10$90dccd30$@foxmail.com>
-References: <1492565022-110676-1-git-send-email-gfree.wind@foxmail.com>  <20170419155822.GA8603@salvia>  <1492618928.22296.2.camel@edumazet-glaptop3.roam.corp.google.com>       <20170419195755.GA16404@salvia> <20170419203816.GA25446@salvia>         <002901d2b96f$47891400$d69b3c00$@foxmail.com> <1492690022.22296.27.camel@edumazet-glaptop3.roam.corp.google.com>
+From: Arturo Borrero Gonzalez <arturo@debian.org>
+Subject: [nft RFC PATCH] rule: introduce new option to print set elements
+ per line
+Date: Fri, 21 Apr 2017 12:30:24 +0200
+Message-ID: <149277062417.14594.14270713486442491994.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Cc: "'Pablo Neira Ayuso'" <pablo@netfilter.org>,
-        <netfilter-devel@vger.kernel.org>
-To: "'Eric Dumazet'" <eric.dumazet@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg298.qq.com ([184.105.67.102]:38263 "EHLO smtpbg298.qq.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1034159AbdDUB2O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Apr 2017 21:28:14 -0400
-In-Reply-To: <1492690022.22296.27.camel@edumazet-glaptop3.roam.corp.google.com>
-Content-Language: zh-cn
+Received: from smtp3.cica.es ([150.214.5.190]:47029 "EHLO smtp.cica.es"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1037595AbdDUKae (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 21 Apr 2017 06:30:34 -0400
+Received: from localhost (unknown [127.0.0.1])
+        by smtp.cica.es (Postfix) with ESMTP id 5278951F376
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Apr 2017 10:30:31 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id ll3_csk6ToMC for <netfilter-devel@vger.kernel.org>;
+        Fri, 21 Apr 2017 12:30:25 +0200 (CEST)
+Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
+        (Authenticated sender: servers@cica.es)
+        by smtp.cica.es (Postfix) with ESMTP id 04DD151F377
+        for <netfilter-devel@vger.kernel.org>; Fri, 21 Apr 2017 12:30:24 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> From: Eric Dumazet [mailto:eric.dumazet@gmail.com]
-> On Thu, 2017-04-20 at 08:44 +0800, Gao Feng wrote:
-> > > On Wed, Apr 19, 2017 at 09:57:55PM +0200, Pablo Neira Ayuso wrote:
-> > > > On Wed, Apr 19, 2017 at 09:22:08AM -0700, Eric Dumazet wrote:
-> > > > > On Wed, 2017-04-19 at 17:58 +0200, Pablo Neira Ayuso wrote:
-> > > > > > On Wed, Apr 19, 2017 at 09:23:42AM +0800,
-> > > > > > gfree.wind@foxmail.com
-> > > wrote:
-> > > > > > > From: Gao Feng <fgao@ikuai8.com>
-> > > > > > >
-> > > > > > > The window scale may be enlarged from 14 to 15 according =
-to
-> > > > > > > the itef draft
-> > https://tools.ietf.org/html/draft-nishida-tcpm-maxwin-03.
-> > > > > > >
-> > > > > > > Use the macro TCP_MAX_WSCALE to support it easily with TCP
-> > > > > > > stack in the future.
-> > > > > >
-> > > > > > Applied, thanks.
-> > > > >
-> > > > > Note that linux kernel is not ready yet for a TCP_MAX_WSCALE
-> > > > > being changed to 15.
-> > > > >
-> > > > > Signed 32bit sk counters can already be abused with 1GB TCP
-> > > > > windows, for malicious peers sending SACK forcing linux to
-> > > > > increase its memory usage above 2GB and overflows are pretty =
-bad.
-> > > >
-> > > > We have tend to use our own definitions for the TCP connection
-> > > > tracking so far. This one I checked it refers RFC1323 too.
-> > > >
-> > > > If this semantics may change from one way to another in a way =
-that
-> > > > may break conntracking, please let me know, I can toss it here.
-> > >
-> > > Or I can just amend the commit here to remove the "enlarged from =
-14 to
-> 15"
-> > > comment, I was going to push out this now, but I'll wait a bit.
-> >
-> > Thanks Eric & Pablo,
-> > When the wscale is really enlarged to 15 one day, these Netfilter
-> > codes may be modified.
-> > Because it would reset the wscale value to the max value which
-> > Netfilter support it.
-> > 	if (state->td_scale > 14)
-> > 		state->td_scale =3D 14;
-> > It would cause the receive see a less window size than sender
-> > announced actually.
->=20
-> Simply because some middle boxes are enforcing the limit of 14, a =
-change of
-> TCP stacks on peers might be simply not possible without causing =
-serious
-> interoperability issues.
->=20
-> This IETF draft assumes TCP peers can freely decide of what they can =
-do, but
-> experience shows that they can not.
->=20
-> TCP FastOpen for example hit a bug in linux TCP conntracking, and some =
-linux
-> middle boxes are still having this bug.
->=20
-> ( SYN messages with data payload was not really considered in the past =
-)
->=20
+Add a new option to nft to print set elements per line instead
+of all in a single line.
+This is useful when printing a ruleset with very big sets.
 
-Thanks Eric, I learn a lot.
+The new option is -t/--elements.
 
-Best Regards
-Feng
+Annonymous sets/maps/concats are not affected by this. The default
+behaviour is not changed.
+
+Example:
+
+% nft list ruleset -t -nn
+table ip t {
+	set s {
+		type inet_service
+		elements = { 1,
+				2,
+				3,
+				4,
+				12345 }
+	}
+
+	set s2 {
+		type ipv4_addr . inet_service
+		elements = { 1.1.1.1 . 22,
+				1.1.1.1 . 222,
+				1.1.1.1 . 2222,
+				2.1.1.1 . 22222 }
+	}
+
+	chain c {
+		ip saddr { 1.1.1.1, 2.2.2.2 }
+		ip saddr . tcp dport { 1.1.1.1 . 22 }
+	}
+}
+
+
+Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
+---
+ include/expression.h |    1 +
+ include/nftables.h   |    1 +
+ src/expression.c     |    2 +-
+ src/main.c           |   12 +++++++++++-
+ src/rule.c           |    2 ++
+ 5 files changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/include/expression.h b/include/expression.h
+index 9ba87e8..2721434 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -243,6 +243,7 @@ struct expr {
+ 			struct list_head	expressions;
+ 			unsigned int		size;
+ 			uint32_t		set_flags;
++			const char		*delim;
+ 		};
+ 		struct {
+ 			/* EXPR_SET_REF */
+diff --git a/include/nftables.h b/include/nftables.h
+index 6f54155..93b3845 100644
+--- a/include/nftables.h
++++ b/include/nftables.h
+@@ -29,6 +29,7 @@ extern unsigned int numeric_output;
+ extern unsigned int stateless_output;
+ extern unsigned int ip2name_output;
+ extern unsigned int handle_output;
++extern unsigned int elements_output;
+ extern unsigned int debug_level;
+ extern const char *include_paths[INCLUDE_PATHS_MAX];
+ 
+diff --git a/src/expression.c b/src/expression.c
+index 45f3ed8..5164567 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -745,7 +745,7 @@ struct expr *list_expr_alloc(const struct location *loc)
+ static void set_expr_print(const struct expr *expr)
+ {
+ 	printf("{ ");
+-	compound_expr_print(expr, ", ");
++	compound_expr_print(expr, expr->delim ? expr->delim : ", ");
+ 	printf(" }");
+ }
+ 
+diff --git a/src/main.c b/src/main.c
+index 1cc8b39..13a2a78 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -33,6 +33,7 @@ unsigned int numeric_output;
+ unsigned int stateless_output;
+ unsigned int ip2name_output;
+ unsigned int handle_output;
++unsigned int elements_output;
+ #ifdef DEBUG
+ unsigned int debug_level;
+ #endif
+@@ -51,10 +52,11 @@ enum opt_vals {
+ 	OPT_IP2NAME		= 'N',
+ 	OPT_DEBUG		= 'd',
+ 	OPT_HANDLE_OUTPUT	= 'a',
++	OPT_ELEMENTS_OUTPUT	= 't',
+ 	OPT_INVALID		= '?',
+ };
+ 
+-#define OPTSTRING	"hvf:iI:vnsNa"
++#define OPTSTRING	"hvf:iI:vnsNat"
+ 
+ static const struct option options[] = {
+ 	{
+@@ -103,6 +105,10 @@ static const struct option options[] = {
+ 		.val		= OPT_HANDLE_OUTPUT,
+ 	},
+ 	{
++		.name		= "elements",
++		.val		= OPT_ELEMENTS_OUTPUT,
++	},
++	{
+ 		.name		= NULL
+ 	}
+ };
+@@ -126,6 +132,7 @@ static void show_help(const char *name)
+ "  -N				Translate IP addresses to names.\n"
+ "  -a, --handle			Output rule handle.\n"
+ "  -I, --includepath <directory>	Add <directory> to the paths searched for include files.\n"
++"  -t, --elements		Output map/set elements with line breaks instead of a single line.\n"
+ #ifdef DEBUG
+ "  --debug <level [,level...]>	Specify debugging level (scanner, parser, eval, netlink, mnl, proto-ctx, segtree, all)\n"
+ #endif
+@@ -333,6 +340,9 @@ int main(int argc, char * const *argv)
+ 		case OPT_HANDLE_OUTPUT:
+ 			handle_output++;
+ 			break;
++		case OPT_ELEMENTS_OUTPUT:
++			elements_output++;
++			break;
+ 		case OPT_INVALID:
+ 			exit(NFT_EXIT_FAILURE);
+ 		}
+diff --git a/src/rule.c b/src/rule.c
+index 209cf2d..340cb10 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -353,6 +353,8 @@ static void do_set_print(const struct set *set, struct print_fmt_options *opts)
+ 
+ 	if (set->init != NULL && set->init->size > 0) {
+ 		printf("%s%selements = ", opts->tab, opts->tab);
++		if (elements_output > 0)
++			set->init->delim = ",\n\t\t\t\t";
+ 		expr_print(set->init);
+ 		printf("%s", opts->nl);
+ 	}
 
