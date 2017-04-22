@@ -1,59 +1,56 @@
-From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: Re: [PATCH next] iptables: on revision mismatch, do not call print/save
-Date: Fri, 21 Apr 2017 19:45:13 -0400
-Message-ID: <CAF=yD-+agqtwhkc+pQV+68K0pZiFZX13GcQZVR_Tv7SM_zkmZQ@mail.gmail.com>
-References: <1481235401-46043-1-git-send-email-willemdebruijn.kernel@gmail.com>
- <alpine.DEB.2.11.1704212202250.30178@blackhole.kfki.hu>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH] ipvs: explicitly forbid ipv6 service/dest creation if
+ ipv6 mod is disabled
+Date: Sat, 22 Apr 2017 14:16:34 +0300 (EEST)
+Message-ID: <alpine.LFD.2.20.1704221355290.1974@ja.home.ssi.bg>
+References: <2a5c88ca5670baade900e2b1f05a0dcc9927a29d.1492681122.git.pabeni@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Willem de Bruijn <willemb@google.com>, anubis@iwwd.com
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:35087 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1426325AbdDUXpz (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 21 Apr 2017 19:45:55 -0400
-Received: by mail-qk0-f194.google.com with SMTP id k139so14274895qke.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Apr 2017 16:45:55 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.11.1704212202250.30178@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>, netdev@vger.kernel.org
+To: Paolo Abeni <pabeni@redhat.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <2a5c88ca5670baade900e2b1f05a0dcc9927a29d.1492681122.git.pabeni@redhat.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Apr 21, 2017 at 4:15 PM, Jozsef Kadlecsik
-<kadlec@blackhole.kfki.hu> wrote:
-> Hi,
->
-> On Thu, 8 Dec 2016, Willem de Bruijn wrote:
->
->> From: Willem de Bruijn <willemb@google.com>
->>
->> Between revisions, the layout of xtables data may change completely.
->> Do not interpret the data in a revision M with a module of revision N.
->>
->> Signed-off-by: Willem de Bruijn <willemb@google.com>
->> ---
->>  iptables/ip6tables.c | 18 ++++++++++++++----
->>  iptables/iptables.c  | 18 ++++++++++++++----
->>  2 files changed, 28 insertions(+), 8 deletions(-)
->
-> The patch breaks backward/forward compatibility in a match/target.
->
-> When the list of the revisions of a given match/target of iptables is not
-> exactly the same as for the kernel counter part (when the kernel module
-> supports less revisions than iptables), then in spite of the supported
-> match/target, " [unsupported revision]" is printed instead of the
-> arguments. See https://bugzilla.netfilter.org/show_bug.cgi?id=1147.
 
-Thanks for the report.
+	Hello,
 
-> Please consider reverting the patch. Or we should not stop in
-> xtables_find_match/xtables_find_target at revision checking when the
-> revision does not match, until all possibilities is not exhausted.
+On Thu, 20 Apr 2017, Paolo Abeni wrote:
 
-This seems like the better solution to me. The patch fixes a real issue
-where garbage is printed by misinterpreting struct fields. Iptables should
-try to lookup the matching revision for a match or target, instead of
-returning the first one. I'll take a look.
+> When creating a new ipvs service, ipv6 addresses are always accepted
+> if CONFIG_IP_VS_IPV6 is enabled. On dest creation the address family
+> is not explicitly checked.
+> 
+> This allows the user-space to configure ipvs services even if the
+> system is booted with ipv6.disable=1. On specific configuration, ipvs
+> can try to call ipv6 routing code at setup time, causing the kernel to
+> oops due to fib6_rules_ops being NULL.
+> 
+> This change addresses the issue adding a check for the ipv6
+> module being enabled while validating ipv6 service operations and
+> adding the same validation for dest operations.
+> 
+> According to git history, this issue is apparently present since
+> the introduction of ipv6 support, and the oops can be triggered
+> since commit 09571c7ae30865ad ("IPVS: Add function to determine
+> if IPv6 address is local")
+> 
+> Fixes: 09571c7ae30865ad ("IPVS: Add function to determine if IPv6 address is local")
+> Signed-off-by: Paolo Abeni <pabeni@redhat.com>
+
+	Looks good to me but I see two places that can benefit
+from such check:
+
+- in ip_vs_genl_new_daemon() if we do not want to create IPv6 sockets
+for the sync protocol in make_send_sock() and make_receive_sock().
+Not sure if this can lead to crashes.
+
+- in ip_vs_proc_sync_conn() if we do not want backup server to accept 
+IPv6 conns because they may be created even when dests are missing.
+We may use retc = 10 there. Not fatal but may eat memory for
+conns that will not be used.
+
+Regards
