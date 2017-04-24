@@ -1,184 +1,37 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 3/3] netfilter: nf_queue: only call synchronize_net twice if nf_queue is active
-Date: Mon, 24 Apr 2017 15:37:41 +0200
-Message-ID: <20170424133741.2707-4-fw@strlen.de>
-References: <20170424133741.2707-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: "Ms. Katherine" <ulia@distral.ro>
+Subject: EXTREMELY IMPORTANT
+Date: Mon, 24 Apr 2017 19:59:28 +0100
+Message-ID: <20170424185933.C982B51B37F9@mail.distral.ro>
+Reply-To: kathrynnmison@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+To: Recipients <ulia@distral.ro>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:43548 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1171675AbdDXNhj (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Apr 2017 09:37:39 -0400
-In-Reply-To: <20170424133741.2707-1-fw@strlen.de>
+Received: from mail.distral.ro ([5.2.192.160]:60309 "EHLO mail.distral.ro"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1174095AbdDXUOv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 24 Apr 2017 16:14:51 -0400
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nf_unregister_net_hook(s) can avoid a second call to synchronize_net,
-provided there is no nfqueue active in that net namespace (which is
-the common case).
+Dear Beloved, Sorry for the inconvenience, I am getting in touch with you regarding an extremely important and urgent matter, Please I need your urgent assistance and idea to finish up a project (Orphanage Home) Due to my health condition, Everything is available to finish up the project, All I need is your idea and trust.
 
-This also gets rid of the extra arg to nf_queue_nf_hook_drop(), normally
-this gets called during netns cleanup so no packets should be queued.
+Sehr geehrte Geliebte, traurig für die Unannehmlichkeiten, ich bin in Kontakt mit Ihnen über eine äußerst wichtige und dringende Angelegenheit, Bitte brauche ich Ihre dringende Hilfe und Idee, um ein Projekt zu beenden (Orphanage Home) Wegen meines Gesundheitszustandes ist alles verfügbar Beenden Sie das Projekt, Alles was ich brauche ist Ihre Idee und Vertrauen.
 
-For the rare case of base chain being unregistered or module removal
-while nfqueue is in use the extra hiccup due to the packet drops isn't
-a big deal.
+Please contact me for more details.
+Contact Email: kathrynnmison@gmail.com
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Thanks
+
 ---
- include/net/netfilter/nf_queue.h |  3 +--
- net/netfilter/core.c             | 21 ++++++++++++---------
- net/netfilter/nf_internals.h     |  2 +-
- net/netfilter/nf_queue.c         |  7 +++++--
- net/netfilter/nfnetlink_queue.c  | 18 ++++++++----------
- 5 files changed, 27 insertions(+), 24 deletions(-)
+This email has been checked for viruses by Avast antivirus software.
+https://www.avast.com/antivirus
 
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index 09948d10e38e..4454719ff849 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -24,8 +24,7 @@ struct nf_queue_entry {
- struct nf_queue_handler {
- 	int		(*outfn)(struct nf_queue_entry *entry,
- 				 unsigned int queuenum);
--	void		(*nf_hook_drop)(struct net *net,
--					const struct nf_hook_entry *hooks);
-+	unsigned int	(*nf_hook_drop)(struct net *net);
- };
- 
- void nf_register_queue_handler(struct net *net, const struct nf_queue_handler *qh);
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index b5d908851cc8..552d606e57ca 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -162,14 +162,17 @@ __nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
- void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
- {
- 	struct nf_hook_entry *p = __nf_unregister_net_hook(net, reg);
-+	unsigned int nfq;
- 
- 	if (!p)
- 		return;
- 
- 	synchronize_net();
--	nf_queue_nf_hook_drop(net, p);
-+
- 	/* other cpu might still process nfqueue verdict that used reg */
--	synchronize_net();
-+	nfq = nf_queue_nf_hook_drop(net);
-+	if (nfq)
-+		synchronize_net();
- 	kfree(p);
- }
- EXPORT_SYMBOL(nf_unregister_net_hook);
-@@ -198,7 +201,7 @@ void nf_unregister_net_hooks(struct net *net, const struct nf_hook_ops *reg,
- 			     unsigned int hookcount)
- {
- 	struct nf_hook_entry *to_free[16];
--	unsigned int i, n;
-+	unsigned int i, n, nfq;
- 
- 	do {
- 		n = min_t(unsigned int, hookcount, ARRAY_SIZE(to_free));
-@@ -208,12 +211,12 @@ void nf_unregister_net_hooks(struct net *net, const struct nf_hook_ops *reg,
- 
- 		synchronize_net();
- 
--		for (i = 0; i < n; i++) {
--			if (to_free[i])
--				nf_queue_nf_hook_drop(net, to_free[i]);
--		}
--
--		synchronize_net();
-+		/* need 2nd synchronize_net() if nfqueue is used, skb
-+		 * can get reinjected right before nf_queue_hook_drop()
-+		 */
-+		nfq = nf_queue_nf_hook_drop(net);
-+		if (nfq)
-+			synchronize_net();
- 
- 		for (i = 0; i < n; i++)
- 			kfree(to_free[i]);
-diff --git a/net/netfilter/nf_internals.h b/net/netfilter/nf_internals.h
-index c46d214d5323..bfa742da83af 100644
---- a/net/netfilter/nf_internals.h
-+++ b/net/netfilter/nf_internals.h
-@@ -14,7 +14,7 @@
- /* nf_queue.c */
- int nf_queue(struct sk_buff *skb, struct nf_hook_state *state,
- 	     struct nf_hook_entry **entryp, unsigned int verdict);
--void nf_queue_nf_hook_drop(struct net *net, const struct nf_hook_entry *entry);
-+unsigned int nf_queue_nf_hook_drop(struct net *net);
- int __init netfilter_queue_init(void);
- 
- /* nf_log.c */
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 4a7662486f44..043850c9d154 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -96,15 +96,18 @@ void nf_queue_entry_get_refs(struct nf_queue_entry *entry)
- }
- EXPORT_SYMBOL_GPL(nf_queue_entry_get_refs);
- 
--void nf_queue_nf_hook_drop(struct net *net, const struct nf_hook_entry *entry)
-+unsigned int nf_queue_nf_hook_drop(struct net *net)
- {
- 	const struct nf_queue_handler *qh;
-+	unsigned int count = 0;
- 
- 	rcu_read_lock();
- 	qh = rcu_dereference(net->nf.queue_handler);
- 	if (qh)
--		qh->nf_hook_drop(net, entry);
-+		count = qh->nf_hook_drop(net);
- 	rcu_read_unlock();
-+
-+	return count;
- }
- 
- static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index d09ab49e102a..dd8ec5b0fcd9 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -922,16 +922,10 @@ static struct notifier_block nfqnl_dev_notifier = {
- 	.notifier_call	= nfqnl_rcv_dev_event,
- };
- 
--static int nf_hook_cmp(struct nf_queue_entry *entry, unsigned long entry_ptr)
--{
--	return rcu_access_pointer(entry->hook) ==
--		(struct nf_hook_entry *)entry_ptr;
--}
--
--static void nfqnl_nf_hook_drop(struct net *net,
--			       const struct nf_hook_entry *hook)
-+static unsigned int nfqnl_nf_hook_drop(struct net *net)
- {
- 	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
-+	unsigned int instances = 0;
- 	int i;
- 
- 	rcu_read_lock();
-@@ -939,10 +933,14 @@ static void nfqnl_nf_hook_drop(struct net *net,
- 		struct nfqnl_instance *inst;
- 		struct hlist_head *head = &q->instance_table[i];
- 
--		hlist_for_each_entry_rcu(inst, head, hlist)
--			nfqnl_flush(inst, nf_hook_cmp, (unsigned long)hook);
-+		hlist_for_each_entry_rcu(inst, head, hlist) {
-+			nfqnl_flush(inst, NULL, 0);
-+			instances++;
-+		}
- 	}
- 	rcu_read_unlock();
-+
-+	return instances;
- }
- 
- static int
+
 -- 
-2.10.2
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
 
