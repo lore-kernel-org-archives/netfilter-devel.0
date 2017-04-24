@@ -1,78 +1,74 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: nft_dynset: continue to next expr if _OP_ADD succeeded
-Date: Sun, 23 Apr 2017 18:29:30 +0800
-Message-ID: <1492943370-38461-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, rwhite@pobox.com,
-        Liping Zhang <zlpnobody@gmail.com>
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-13.163.com ([220.181.12.13]:34823 "EHLO m12-13.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1044816AbdDWKah (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 23 Apr 2017 06:30:37 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Paolo Abeni <pabeni@redhat.com>
+Subject: Re: [PATCH] ipvs: explicitly forbid ipv6 service/dest creation if
+ ipv6 mod is disabled
+Date: Mon, 24 Apr 2017 08:50:51 +0200
+Message-ID: <1493016651.5744.1.camel@redhat.com>
+References: <2a5c88ca5670baade900e2b1f05a0dcc9927a29d.1492681122.git.pabeni@redhat.com>
+         <alpine.LFD.2.20.1704221355290.1974@ja.home.ssi.bg>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>, netdev@vger.kernel.org
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.20.1704221355290.1974@ja.home.ssi.bg>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Liping Zhang <zlpnobody@gmail.com>
+Hi,
 
-Currently, after adding the following nft rules:
-  # nft add set x target1 { type ipv4_addr \; flags timeout \;}
-  # nft add rule x y set add ip daddr timeout 1d @target1 counter
+On Sat, 2017-04-22 at 14:16 +0300, Julian Anastasov wrote:
+> On Thu, 20 Apr 2017, Paolo Abeni wrote:
+> 
+> > When creating a new ipvs service, ipv6 addresses are always accepted
+> > if CONFIG_IP_VS_IPV6 is enabled. On dest creation the address family
+> > is not explicitly checked.
+> > 
+> > This allows the user-space to configure ipvs services even if the
+> > system is booted with ipv6.disable=1. On specific configuration, ipvs
+> > can try to call ipv6 routing code at setup time, causing the kernel to
+> > oops due to fib6_rules_ops being NULL.
+> > 
+> > This change addresses the issue adding a check for the ipv6
+> > module being enabled while validating ipv6 service operations and
+> > adding the same validation for dest operations.
+> > 
+> > According to git history, this issue is apparently present since
+> > the introduction of ipv6 support, and the oops can be triggered
+> > since commit 09571c7ae30865ad ("IPVS: Add function to determine
+> > if IPv6 address is local")
+> > 
+> > Fixes: 09571c7ae30865ad ("IPVS: Add function to determine if IPv6 address is local")
+> > Signed-off-by: Paolo Abeni <pabeni@redhat.com>
+> 
+> 	Looks good to me but I see two places that can benefit
+> from such check:
 
-the counters will always be zero despite of the elements are added
-to the dynamic set "target1" or not, as we will break the nft expr
-traversal unconditionally:
-  # nft list ruleset
-  ...
-  set target1 {
-      ...
-      elements = { 8.8.8.8 expires 23h59m53s}
-  }
-  chain output {
-      ...
-      set add ip daddr timeout 1d @target1 counter packets 0 bytes 0
-                                                           ^       ^
-      ...
-  }
+I'm sorry for the lag, I was delayed by other notorious issues ;-)
+I'm unable to trigger any crash with the patched kernel.
 
-Since we add the elements to the set successfully, we should continue
-to the next expression.
+> - in ip_vs_genl_new_daemon() if we do not want to create IPv6 sockets
+> for the sync protocol in make_send_sock() and make_receive_sock().
+> Not sure if this can lead to crashes.
 
-Additionally, if elements are added to "flow table" successfully, we
-will _always_ continue to the next expr, even if the operation is
-_OP_ADD. So it's better to keep them to be consistent.
+This one is, AFAICS, safe, because ip_vs_genl_new_daemon() calls
+start_sync_thread(), which tries to create a socket of the specified
+address family before doing any real action. Such operation will fail
+gracefully, and overall we will get an - expected - error to userspace.
 
-Fixes: 22fe54d5fefc ("netfilter: nf_tables: add support for dynamic set updates")
-Reported-by: Robert White <rwhite@pobox.com>
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
----
- net/netfilter/nft_dynset.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+> - in ip_vs_proc_sync_conn() if we do not want backup server to accept 
+> IPv6 conns because they may be created even when dests are missing.
+> We may use retc = 10 there. Not fatal but may eat memory for
+> conns that will not be used.
 
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index 049ad2d..fafbeea 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -82,8 +82,7 @@ static void nft_dynset_eval(const struct nft_expr *expr,
- 		    nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION)) {
- 			timeout = priv->timeout ? : set->timeout;
- 			*nft_set_ext_expiration(ext) = jiffies + timeout;
--		} else if (sexpr == NULL)
--			goto out;
-+		}
- 
- 		if (sexpr != NULL)
- 			sexpr->ops->eval(sexpr, regs, pkt);
-@@ -92,7 +91,7 @@ static void nft_dynset_eval(const struct nft_expr *expr,
- 			regs->verdict.code = NFT_BREAK;
- 		return;
- 	}
--out:
-+
- 	if (!priv->invert)
- 		regs->verdict.code = NFT_BREAK;
- }
--- 
-2.5.5
+If I read the above correct correctly, even that should be safe, for
+the same reason: ipv6 socket creation will fail if ipv6 is disabled.
 
+The problem with the patched code is that it tries to resolve ipv6
+addresses that are not created/validated by the kernel.
 
+Cheers,
+
+Paolo
