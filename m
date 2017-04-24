@@ -1,35 +1,36 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH] ipvs: explicitly forbid ipv6 service/dest creation if
- ipv6 mod is disabled
-Date: Mon, 24 Apr 2017 10:21:30 +0300 (EEST)
-Message-ID: <alpine.LFD.2.20.1704241017030.2492@ja.home.ssi.bg>
-References: <2a5c88ca5670baade900e2b1f05a0dcc9927a29d.1492681122.git.pabeni@redhat.com>  <alpine.LFD.2.20.1704221355290.1974@ja.home.ssi.bg> <1493016651.5744.1.camel@redhat.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next] netfilter: decnet: only register hooks in init
+ namespace
+Date: Mon, 24 Apr 2017 10:37:33 +0200
+Message-ID: <20170424083733.GA3395@salvia>
+References: <20170419224207.3219-1-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>, netdev@vger.kernel.org
-To: Paolo Abeni <pabeni@redhat.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <1493016651.5744.1.camel@redhat.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:51454 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1166764AbdDXIhn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 24 Apr 2017 04:37:43 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id C71DF523C8
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Apr 2017 10:37:36 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B8222FF2C5
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Apr 2017 10:37:36 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6A454FF124
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Apr 2017 10:37:34 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20170419224207.3219-1-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-
-	Hello,
-
-On Mon, 24 Apr 2017, Paolo Abeni wrote:
-
-> Hi,
+On Thu, Apr 20, 2017 at 12:42:07AM +0200, Florian Westphal wrote:
+> looks like decnet isn't namespacified in first place, so restrict hook
+> registration to the initial namespace.
 > 
-> The problem with the patched code is that it tries to resolve ipv6
-> addresses that are not created/validated by the kernel.
+> Prepares for eventual removal of legacy nf_register_hook() api.
 
-	OK. Simon, please apply to ipvs tree.
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+Applied, thanks.
