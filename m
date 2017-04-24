@@ -1,30 +1,126 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 0/3] netfilter: speed up netns cleanup
-Date: Mon, 24 Apr 2017 15:37:38 +0200
-Message-ID: <20170424133741.2707-1-fw@strlen.de>
+Subject: [PATCH nf-next 1/3] netfilter: batch synchronize_net calls during hook unregister
+Date: Mon, 24 Apr 2017 15:37:39 +0200
+Message-ID: <20170424133741.2707-2-fw@strlen.de>
+References: <20170424133741.2707-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:43538 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:43540 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1170993AbdDXNh3 (ORCPT
+        by vger.kernel.org with ESMTP id S1170993AbdDXNhc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Apr 2017 09:37:29 -0400
+        Mon, 24 Apr 2017 09:37:32 -0400
+In-Reply-To: <20170424133741.2707-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-low hanging fruits to speed up netns cleanup in netfilter.
-We're way too happy to issue expensive synchronize_rcu() all
-over the place.
+synchronize_net is expensive and slows down netns cleanup a lot.
 
-On my test vm 8 processes doing 32 unshare each finish in ~3 minutes,
-with these patches it gets down to 40 seconds.
+We have two APIs to unregister a hook:
+nf_unregister_net_hook (which calls synchronize_net())
+and
+nf_unregister_net_hooks (calls nf_unregister_net_hook in a loop)
 
-We could probably further improve this.
+Make nf_unregister_net_hook a wapper around new helper
+__nf_unregister_net_hook, which unlinks the hook but does not free it.
 
- include/net/netfilter/nf_queue.h |    3 --
- net/netfilter/core.c             |   55 ++++++++++++++++++++++++++++++++-------
- net/netfilter/nf_internals.h     |    2 -
- net/netfilter/nf_log.c           |    1 
- net/netfilter/nf_queue.c         |    7 +++-
- net/netfilter/nfnetlink_queue.c  |   18 +++++-------
- 6 files changed, 61 insertions(+), 25 deletions(-)
+Then, we can call that helper in nf_unregister_net_hooks and then
+call synchronize_net() only once.
+
+Andrey Konovalov reports this change improves syzkaller fuzzing speed at
+least twice.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/core.c | 46 ++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 40 insertions(+), 6 deletions(-)
+
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index a87a6f8a74d8..b5d908851cc8 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -126,14 +126,15 @@ int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ }
+ EXPORT_SYMBOL(nf_register_net_hook);
+ 
+-void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
++static struct nf_hook_entry *
++__nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ {
+ 	struct nf_hook_entry __rcu **pp;
+ 	struct nf_hook_entry *p;
+ 
+ 	pp = nf_hook_entry_head(net, reg);
+ 	if (WARN_ON_ONCE(!pp))
+-		return;
++		return NULL;
+ 
+ 	mutex_lock(&nf_hook_mutex);
+ 	for (; (p = nf_entry_dereference(*pp)) != NULL; pp = &p->next) {
+@@ -145,7 +146,7 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ 	mutex_unlock(&nf_hook_mutex);
+ 	if (!p) {
+ 		WARN(1, "nf_unregister_net_hook: hook not found!\n");
+-		return;
++		return NULL;
+ 	}
+ #ifdef CONFIG_NETFILTER_INGRESS
+ 	if (reg->pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_INGRESS)
+@@ -154,6 +155,17 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ #ifdef HAVE_JUMP_LABEL
+ 	static_key_slow_dec(&nf_hooks_needed[reg->pf][reg->hooknum]);
+ #endif
++
++	return p;
++}
++
++void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
++{
++	struct nf_hook_entry *p = __nf_unregister_net_hook(net, reg);
++
++	if (!p)
++		return;
++
+ 	synchronize_net();
+ 	nf_queue_nf_hook_drop(net, p);
+ 	/* other cpu might still process nfqueue verdict that used reg */
+@@ -183,10 +195,32 @@ int nf_register_net_hooks(struct net *net, const struct nf_hook_ops *reg,
+ EXPORT_SYMBOL(nf_register_net_hooks);
+ 
+ void nf_unregister_net_hooks(struct net *net, const struct nf_hook_ops *reg,
+-			     unsigned int n)
++			     unsigned int hookcount)
+ {
+-	while (n-- > 0)
+-		nf_unregister_net_hook(net, &reg[n]);
++	struct nf_hook_entry *to_free[16];
++	unsigned int i, n;
++
++	do {
++		n = min_t(unsigned int, hookcount, ARRAY_SIZE(to_free));
++
++		for (i = 0; i < n; i++)
++			to_free[i] = __nf_unregister_net_hook(net, &reg[i]);
++
++		synchronize_net();
++
++		for (i = 0; i < n; i++) {
++			if (to_free[i])
++				nf_queue_nf_hook_drop(net, to_free[i]);
++		}
++
++		synchronize_net();
++
++		for (i = 0; i < n; i++)
++			kfree(to_free[i]);
++
++		reg += n;
++		hookcount -= n;
++	} while (hookcount > 0);
+ }
+ EXPORT_SYMBOL(nf_unregister_net_hooks);
+ 
+-- 
+2.10.2
+
