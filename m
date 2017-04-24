@@ -1,42 +1,48 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH] ipvs: explicitly forbid ipv6 service/dest creation if
- ipv6 mod is disabled
-Date: Mon, 24 Apr 2017 11:54:44 +0200
-Message-ID: <20170424095444.GF2047@verge.net.au>
-References: <2a5c88ca5670baade900e2b1f05a0dcc9927a29d.1492681122.git.pabeni@redhat.com>
- <alpine.LFD.2.20.1704221355290.1974@ja.home.ssi.bg>
- <1493016651.5744.1.camel@redhat.com>
- <alpine.LFD.2.20.1704241017030.2492@ja.home.ssi.bg>
+From: Dave Johnson <dave-kernel@centerclick.org>
+Subject: Re: [PATCH] netfilter: Wrong icmp6 checksum for ICMPV6_TIME_EXCEED
+ in reverse SNATv6 path
+Date: Mon, 24 Apr 2017 09:11:24 -0400
+Message-ID: <22781.63868.363065.484165@gargle.gargle.HOWL>
+References: <22774.51265.265373.257836@gargle.gargle.HOWL>
+        <22776.44325.616928.335465@gargle.gargle.HOWL>
+        <20170424084312.GA3597@salvia>
+        <22781.62083.680363.165680@gargle.gargle.HOWL>
+        <22781.63534.706649.79254@gargle.gargle.HOWL>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Paolo Abeni <pabeni@redhat.com>, netfilter-devel@vger.kernel.org,
-        lvs-devel@vger.kernel.org, Wensong Zhang <wensong@linux-vs.org>,
-        netdev@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
+Content-Transfer-Encoding: 7bit
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:40557 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1168204AbdDXJyv (ORCPT
+Received: from lexington.centerclick.org ([45.32.7.34]:59825 "EHLO
+        lexington.centerclick.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1170833AbdDXNSz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Apr 2017 05:54:51 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.20.1704241017030.2492@ja.home.ssi.bg>
+        Mon, 24 Apr 2017 09:18:55 -0400
+In-Reply-To: <22781.63534.706649.79254@gargle.gargle.HOWL>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Apr 24, 2017 at 10:21:30AM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Mon, 24 Apr 2017, Paolo Abeni wrote:
-> 
-> > Hi,
-> > 
-> > The problem with the patched code is that it tries to resolve ipv6
-> > addresses that are not created/validated by the kernel.
-> 
-> 	OK. Simon, please apply to ipvs tree.
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
 
-Thanks, done.
+When recalculating the outer ICMPv6 checksum for a reverse path NATv6
+such as ICMPV6_TIME_EXCEED nf_nat_icmpv6_reply_translation() was
+accessing data beyond the headlen of the skb for non-linear skb.  This
+resulted in incorrect ICMPv6 checksum as garbage data was used.
+
+Patch replaces csum_partial() with skb_checksum() which supports
+non-linear skbs similar to nf_nat_icmp_reply_translation() from ipv4.
+
+Signed-off-by: Dave Johnson <dave-kernel@centerclick.org>
+---
+diff -rup linux-4.9.23.orig/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c linux-4.9.23/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
+--- linux-4.9.23.orig/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c	2017-04-18 01:12:30.000000000 -0400
++++ linux-4.9.23/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c	2017-04-24 09:00:31.476785772 -0400
+@@ -235,7 +235,7 @@ int nf_nat_icmpv6_reply_translation(stru
+ 		inside->icmp6.icmp6_cksum =
+ 			csum_ipv6_magic(&ipv6h->saddr, &ipv6h->daddr,
+ 					skb->len - hdrlen, IPPROTO_ICMPV6,
+-					csum_partial(&inside->icmp6,
++					skb_checksum(skb, hdrlen,
+ 						     skb->len - hdrlen, 0));
+ 	}
+ 
