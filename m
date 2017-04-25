@@ -1,53 +1,55 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: nft_set_bitmap: free dummy elements when
- destroy the set
-Date: Tue, 25 Apr 2017 11:06:44 +0200
-Message-ID: <20170425090644.GA2894@salvia>
-References: <1492270656-1664-1-git-send-email-zlpnobody@163.com>
+Subject: Re: [PATCH nf 0/4] netfilter: ctnetlink: fix some bugs related to ct
+ update
+Date: Tue, 25 Apr 2017 11:07:20 +0200
+Message-ID: <20170425090720.GA2907@salvia>
+References: <1492435138-28283-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
 To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43794 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44260 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1177029AbdDYJHE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Apr 2017 05:07:04 -0400
+        id S1176350AbdDYJHl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Apr 2017 05:07:41 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0828E6D587
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:06:44 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id B4F886D584
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:07:35 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EE107FF2C0
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:06:43 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A6070468
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:07:35 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 811D4468
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:06:41 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1DD75FF2C5
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:07:32 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1492270656-1664-1-git-send-email-zlpnobody@163.com>
+In-Reply-To: <1492435138-28283-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Apr 15, 2017 at 11:37:36PM +0800, Liping Zhang wrote:
+On Mon, Apr 17, 2017 at 09:18:54PM +0800, Liping Zhang wrote:
 > From: Liping Zhang <zlpnobody@gmail.com>
 > 
-> We forget to free dummy elements when deleting the set. So when I was
-> running nft-test.py, I saw many kmemleak warnings:
->   kmemleak: 1344 new suspected memory leaks ...
->   # cat /sys/kernel/debug/kmemleak
->   unreferenced object 0xffff8800631345c8 (size 32):
->   comm "nft", pid 9075, jiffies 4295743309 (age 1354.815s)
->   hex dump (first 32 bytes):
->     f8 63 13 63 00 88 ff ff 88 79 13 63 00 88 ff ff  .c.c.....y.c....
->     04 0c 00 00 00 00 00 00 00 00 00 00 08 03 00 00  ................
->   backtrace:
->     [<ffffffff819059da>] kmemleak_alloc+0x4a/0xa0
->     [<ffffffff81288174>] __kmalloc+0x164/0x310
->     [<ffffffffa061269d>] nft_set_elem_init+0x3d/0x1b0 [nf_tables]
->     [<ffffffffa06130da>] nft_add_set_elem+0x45a/0x8c0 [nf_tables]
->     [<ffffffffa0613645>] nf_tables_newsetelem+0x105/0x1d0 [nf_tables]
->     [<ffffffffa05fe6d4>] nfnetlink_rcv+0x414/0x770 [nfnetlink]
->     [<ffffffff817f0ca6>] netlink_unicast+0x1f6/0x310
->     [<ffffffff817f10c6>] netlink_sendmsg+0x306/0x3b0
->   ...
+> This patch set aims to fix some bugs related to ctnetlink_change_conntrack.
+> 
+> First, we may invoke request_module with rcu_read_lock held, this is wrong,
+> as the request_module invocation may sleep. Fixed by PATCH #1.
+> 
+> Second, the unnecessary nf_conntrack_expect_lock will cause dead lock, which
+> was introduced by commit ca7433df3a67 ("netfilter: conntrack: seperate expect
+> locking from nf_conntrack_lock"). This is fixed by PATCH #2.
+> 
+> Third, Pablo pointed out that packets may be updating a conntrack at the
+> same time that we're mangling via ctnetlink, it's better to fix the
+> possible race together. So I audited the related source codes as follows:
+> 1. CTA_HELP: for the userspace cthelper, no problem; for the inkernel
+>              cthelper, there's only one user: nf_ct_ftp_from_nlattr,
+>              but it only sets two flags, so no problem too.
+> 2. CTA_TIMEOUT: only modify the ct->timeout, so no problem
+> 3. CTA_STATUS: possible race will happen, fixed by PATCH #3
+> 4. CTA_PROTOINFO: protected by ct->lock, no problem
+> 5. CTA_MARK: only modify the ct->mark, no problem
+> 6. CTA_SEQ_ADJ_X: should be protectd by ct->lock, fixed by PATCH #4
+> 7. CTA_LABELS: use cmpxchg to update labels, so no problem
 
-Applied, thanks.
+Series applied, thanks.
