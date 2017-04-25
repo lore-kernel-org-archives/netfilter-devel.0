@@ -1,102 +1,86 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [conntrack-tools PATCH 2/4] conntrackd: warn users about queue
- allocation errors
-Date: Tue, 25 Apr 2017 15:16:53 +0200
-Message-ID: <20170425131653.GA1050@salvia>
+Subject: Re: [conntrack-tools PATCH 4/4] conntrackd: introduce RequestResync
+ option
+Date: Tue, 25 Apr 2017 15:18:43 +0200
+Message-ID: <20170425131843.GB1050@salvia>
 References: <149270928083.1751.9498250834672625764.stgit@nfdev2.cica.es>
- <149270928606.1751.8172963085482513292.stgit@nfdev2.cica.es>
- <20170425113401.GA5355@salvia>
- <CAOkSjBh8rV0U1FjWYsOetKBzGyzMH4dx44ir+h6CikZdrWS5Eg@mail.gmail.com>
+ <149270929676.1751.18425946182083865800.stgit@nfdev2.cica.es>
+ <20170425113732.GB5355@salvia>
+ <CAOkSjBiYGg76HichZbLkmyHyHTV3OPu3H7BqSE1ZJki0gh7pxA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Netfilter Development Mailing list
         <netfilter-devel@vger.kernel.org>
 To: Arturo Borrero Gonzalez <arturo@debian.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55862 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56874 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1947692AbdDYNQ6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Apr 2017 09:16:58 -0400
+        id S1428860AbdDYNS5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Apr 2017 09:18:57 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 817E61A0987
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 15:16:52 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 084271A0983
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 15:18:46 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 710D5FF145
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 15:16:52 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EBECFFF2C1
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 15:18:45 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 33709FF2C8
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 15:16:50 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C485FFF124
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 15:18:43 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBh8rV0U1FjWYsOetKBzGyzMH4dx44ir+h6CikZdrWS5Eg@mail.gmail.com>
+In-Reply-To: <CAOkSjBiYGg76HichZbLkmyHyHTV3OPu3H7BqSE1ZJki0gh7pxA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 25, 2017 at 02:40:45PM +0200, Arturo Borrero Gonzalez wrote:
-> On 25 April 2017 at 13:34, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Thu, Apr 20, 2017 at 07:28:06PM +0200, Arturo Borrero Gonzalez wrote:
-> >> These warnings, if they happen, should help users.
+On Tue, Apr 25, 2017 at 02:46:52PM +0200, Arturo Borrero Gonzalez wrote:
+> On 25 April 2017 at 13:37, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Thu, Apr 20, 2017 at 07:28:16PM +0200, Arturo Borrero Gonzalez wrote:
+> >> In some environments where both nodes of a cluster share all the conntracks,
+> >> after an initial or manual resync, the conntrack information diverges from
+> >> node to node.
 > >>
-> >> Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
-> >> ---
-> >>  src/channel.c  |    6 +++++-
-> >>  src/queue_tx.c |   11 +++++++++--
-> >>  2 files changed, 14 insertions(+), 3 deletions(-)
+> >> I have observed that this is not due to syncronization problems, given the
+> >> link between the nodes is very stable and stats show no issues.
+> >> So, this could be due to every node of the cluster seing slighly different
+> >> traffic and flow updates, perhaps different tiemouts being applied to
+> >> the conntracks in every node.
+> >> A manual resync (using conntrackd -n) resolves these issues inmediately.
 > >>
-> >> diff --git a/src/channel.c b/src/channel.c
-> >> index acbfa7d..b2f114d 100644
-> >> --- a/src/channel.c
-> >> +++ b/src/channel.c
-> >> @@ -19,6 +19,7 @@
-> >>  #include "channel.h"
-> >>  #include "network.h"
-> >>  #include "queue.h"
-> >> +#include "log.h"
+> >> This new configuration option tells conntrackd to request a resync
+> >> with the other node, similar to what could happen manually using
+> >> the 'conntrackd -n' command.
 > >>
-> >>  static struct channel_ops *ops[CHANNEL_MAX];
-> >>  extern struct channel_ops channel_mcast;
-> >> @@ -161,8 +162,11 @@ static void channel_enqueue_errors(struct channel *c)
-> >>       struct channel_error *error;
+> >> By now this option is only valid in NOTRACK sync mode.
 > >>
-> >>       qobj = queue_object_new(Q_ELEM_ERR, sizeof(struct channel_error));
-> >> -     if (qobj == NULL)
-> >> +     if (qobj == NULL) {
-> >> +             dlog(LOG_WARNING, "could not enqueue channel errors, failed to"
-> >> +                  " allocate memory");
+> >> Example configuration:
+> >>
+> >> [...]
+> >> Sync {
+> >>         Mode NOTRACK {
+> >>                 DisableInternalCache on
+> >>                 DisableExternalCache on
+> >>                 RequestResync 30
 > >
-> > Did you ever hit this?
+> > This looks very similar to the timer based approach that it is already
+> > there. Did you give it a try?
 > >
->
-> I don't know, no way to know in a production system since this happen silently.
+> 
+> Yes. The timer based approach is... timer based (async).
+> 
+> It doesn't fit in an environment where you need to sync events as soon
+> as they happen.
 
-No problem. I just wanted to know if you're addressing a real issue or
-you just found this spot with not log message when passing by.
+IIRC the timer based works like this:
 
-> Since conntrackd can be of critical importance in some environments I
-> guess it doesn't harm to be more verbose. This concrete memory
-> allocation failure isn't interesting per se, but it could be related
-> to other more serious issues on the system.
+1) If event occurs, sync message is send.
+2) After some time, we send a message to tell the other peer the entry
+   is still there.
+3) If no message is received, then the entry expires.
 
-Yes, but this is going to full the logs if ever happen.
+> > This approach doesn't solve nicely the case where you have an entry
+> > with a large timeout that got out of sync.
+> 
+> My idea is to be able to automatically force-sync nodes every 2 o 3
+> minutes (in my case).
 
-Better add stats:
-
-        /* statistics */
-        struct {
-                uint64_t        msg_rcv_malformed;
-                uint32_t        msg_rcv_bad_version;
-                uint32_t        msg_rcv_bad_payload;
-                uint32_t        msg_rcv_bad_header;
-                uint32_t        msg_rcv_bad_type;
-                uint32_t        msg_rcv_truncated;
-                uint32_t        msg_rcv_bad_size;
-                uint32_t        msg_snd_malformed;
-                uint64_t        msg_rcv_lost;
-                uint64_t        msg_rcv_before;
-        } error;
-
-A quick glance at the code to see how we're globaling deal with lack
-of memory would be good. There's little we can do in that situation,
-and in my experience this most likely point to a memory leak.
-
-So better follow a less agressive way than filling the logs, OK? We
-indeed have a way to report this via the existing -s options.
+I see. Just wanted to know why the existing timer based doesn't fit
+well for you.
