@@ -1,86 +1,32 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [conntrack-tools PATCH 4/4] conntrackd: introduce RequestResync
- option
-Date: Tue, 25 Apr 2017 15:18:43 +0200
-Message-ID: <20170425131843.GB1050@salvia>
-References: <149270928083.1751.9498250834672625764.stgit@nfdev2.cica.es>
- <149270929676.1751.18425946182083865800.stgit@nfdev2.cica.es>
- <20170425113732.GB5355@salvia>
- <CAOkSjBiYGg76HichZbLkmyHyHTV3OPu3H7BqSE1ZJki0gh7pxA@mail.gmail.com>
+From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+Subject: Re: [nft RFC PATCH] expression: print sets and maps in pretty format
+Date: Wed, 26 Apr 2017 00:00:12 +0200
+Message-ID: <CAAaDf4sLCNeR6re98yNOcrvi=6RkPKb-O9ROU+8F3ZyGhWjPUA@mail.gmail.com>
+References: <149312374138.17592.11887464748028997707.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org
 To: Arturo Borrero Gonzalez <arturo@debian.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56874 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1428860AbdDYNS5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Apr 2017 09:18:57 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 084271A0983
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 15:18:46 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EBECFFF2C1
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 15:18:45 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C485FFF124
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 15:18:43 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBiYGg76HichZbLkmyHyHTV3OPu3H7BqSE1ZJki0gh7pxA@mail.gmail.com>
+Received: from mail-io0-f169.google.com ([209.85.223.169]:33243 "EHLO
+        mail-io0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1955009AbdDYWAP (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Apr 2017 18:00:15 -0400
+Received: by mail-io0-f169.google.com with SMTP id k87so226516049ioi.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 15:00:14 -0700 (PDT)
+In-Reply-To: <149312374138.17592.11887464748028997707.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 25, 2017 at 02:46:52PM +0200, Arturo Borrero Gonzalez wrote:
-> On 25 April 2017 at 13:37, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Thu, Apr 20, 2017 at 07:28:16PM +0200, Arturo Borrero Gonzalez wrote:
-> >> In some environments where both nodes of a cluster share all the conntracks,
-> >> after an initial or manual resync, the conntrack information diverges from
-> >> node to node.
-> >>
-> >> I have observed that this is not due to syncronization problems, given the
-> >> link between the nodes is very stable and stats show no issues.
-> >> So, this could be due to every node of the cluster seing slighly different
-> >> traffic and flow updates, perhaps different tiemouts being applied to
-> >> the conntracks in every node.
-> >> A manual resync (using conntrackd -n) resolves these issues inmediately.
-> >>
-> >> This new configuration option tells conntrackd to request a resync
-> >> with the other node, similar to what could happen manually using
-> >> the 'conntrackd -n' command.
-> >>
-> >> By now this option is only valid in NOTRACK sync mode.
-> >>
-> >> Example configuration:
-> >>
-> >> [...]
-> >> Sync {
-> >>         Mode NOTRACK {
-> >>                 DisableInternalCache on
-> >>                 DisableExternalCache on
-> >>                 RequestResync 30
-> >
-> > This looks very similar to the timer based approach that it is already
-> > there. Did you give it a try?
-> >
-> 
-> Yes. The timer based approach is... timer based (async).
-> 
-> It doesn't fit in an environment where you need to sync events as soon
-> as they happen.
+2017-04-25 14:35 GMT+02:00 Arturo Borrero Gonzalez <arturo@debian.org>:
+> Print elements per line instead of all in a single line.
+> The elements which can be 'short' are printed 5 per line,
+> and others, like IPv4 addresses are printed 2 per line.
 
-IIRC the timer based works like this:
+The default terminfo tab size is 8. Why not align the first column of
+elements for this case? It is only needed to replace the last tab of
+"newline" with five spaces.
 
-1) If event occurs, sync message is send.
-2) After some time, we send a message to tell the other peer the entry
-   is still there.
-3) If no message is received, then the entry expires.
-
-> > This approach doesn't solve nicely the case where you have an entry
-> > with a large timeout that got out of sync.
-> 
-> My idea is to be able to automatically force-sync nodes every 2 o 3
-> minutes (in my case).
-
-I see. Just wanted to know why the existing timer based doesn't fit
-well for you.
+-       const char *newline = ",\n\t\t\t\t";
++       const char *newline = ",\n\t\t\t     ";
