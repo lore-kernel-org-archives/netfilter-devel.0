@@ -1,38 +1,61 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: Wrong icmp6 checksum for ICMPV6_TIME_EXCEED
- in reverse SNATv6 path
-Date: Tue, 25 Apr 2017 11:15:01 +0200
-Message-ID: <20170425091501.GA3557@salvia>
-References: <22774.51265.265373.257836@gargle.gargle.HOWL>
- <22776.44325.616928.335465@gargle.gargle.HOWL>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [nft,RFC] rule: introduce new option to print set elements per
+ line
+Date: Tue, 25 Apr 2017 11:20:10 +0200
+Message-ID: <20170425092010.GA21171@breakpoint.cc>
+References: <149277062417.14594.14270713486442491994.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Dave Johnson <dave-kernel@centerclick.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo@debian.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49134 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1176083AbdDYJPK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Apr 2017 05:15:10 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7AB036B187
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:15:04 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 68098FF2C8
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:15:04 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DE36CFF2DA
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:15:01 +0200 (CEST)
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:47770 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1177301AbdDYJUO (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Apr 2017 05:20:14 -0400
 Content-Disposition: inline
-In-Reply-To: <22776.44325.616928.335465@gargle.gargle.HOWL>
+In-Reply-To: <149277062417.14594.14270713486442491994.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 20, 2017 at 08:44:21AM -0400, Dave Johnson wrote:
+Arturo Borrero Gonzalez <arturo@debian.org> wrote:
+> Add a new option to nft to print set elements per line instead
+> of all in a single line.
+> This is useful when printing a ruleset with very big sets.
 > 
-> When recalculating the outer ICMPv6 checksum for a reverse path NATv6
-> such as ICMPV6_TIME_EXCEED nf_nat_icmpv6_reply_translation() was
-> accessing data beyond the headlen of the skb for non-linear skb.  This
-> resulted in incorrect ICMPv6 checksum as garbage data was used.
+> The new option is -t/--elements.
+> 
+> Annonymous sets/maps/concats are not affected by this. The default
+> behaviour is not changed.
 
-Applied to nf, thanks.
+Nice patch, thanks Arturo!
+Why make this an option in first place?
+
+> % nft list ruleset -t -nn
+> table ip t {
+> 	set s {
+> 		type inet_service
+> 		elements = { 1,
+> 				2,
+> 				3,
+> 				4,
+> 				12345 }
+> 	}
+
+How hard would it be to make it so that this is still
+printed in single line (enough space left)?
+
+> 	set s2 {
+> 		type ipv4_addr . inet_service
+> 		elements = { 1.1.1.1 . 22,
+> 				1.1.1.1 . 222,
+> 				1.1.1.1 . 2222,
+> 				2.1.1.1 . 22222 }
+> 	}
+
+But not this?
+
+Printing all addresses in a single line is unreadable, it seems
+strange to have an option to make it nice and then make 'unreadable'
+the default :)
