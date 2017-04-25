@@ -1,189 +1,72 @@
 From: Arturo Borrero Gonzalez <arturo@debian.org>
-Subject: [nft RFC PATCH] expression: print sets and maps in pretty format
-Date: Tue, 25 Apr 2017 14:35:41 +0200
-Message-ID: <149312374138.17592.11887464748028997707.stgit@nfdev2.cica.es>
+Subject: Re: [conntrack-tools PATCH 2/4] conntrackd: warn users about queue
+ allocation errors
+Date: Tue, 25 Apr 2017 14:40:45 +0200
+Message-ID: <CAOkSjBh8rV0U1FjWYsOetKBzGyzMH4dx44ir+h6CikZdrWS5Eg@mail.gmail.com>
+References: <149270928083.1751.9498250834672625764.stgit@nfdev2.cica.es>
+ <149270928606.1751.8172963085482513292.stgit@nfdev2.cica.es> <20170425113401.GA5355@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:48601 "EHLO smtp.cica.es"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1031194AbdDYMfu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Apr 2017 08:35:50 -0400
-Received: from localhost (unknown [127.0.0.1])
-        by smtp.cica.es (Postfix) with ESMTP id F2FA951F2DA
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 12:35:47 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id 8pDqnhzPSWz2 for <netfilter-devel@vger.kernel.org>;
-        Tue, 25 Apr 2017 14:35:42 +0200 (CEST)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-        (Authenticated sender: servers@cica.es)
-        by smtp.cica.es (Postfix) with ESMTP id 32B8551F2DD
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 14:35:42 +0200 (CEST)
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:34739 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1430486AbdDYMlH (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Apr 2017 08:41:07 -0400
+Received: by mail-oi0-f68.google.com with SMTP id y11so33445672oie.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 05:41:07 -0700 (PDT)
+Received: from mail-oi0-f49.google.com (mail-oi0-f49.google.com. [209.85.218.49])
+        by smtp.gmail.com with ESMTPSA id s193sm9419575oie.21.2017.04.25.05.41.05
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 25 Apr 2017 05:41:05 -0700 (PDT)
+Received: by mail-oi0-f49.google.com with SMTP id y11so137315572oie.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 05:41:05 -0700 (PDT)
+In-Reply-To: <20170425113401.GA5355@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Print elements per line instead of all in a single line.
-The elements which can be 'short' are printed 5 per line,
-and others, like IPv4 addresses are printed 2 per line.
+On 25 April 2017 at 13:34, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Thu, Apr 20, 2017 at 07:28:06PM +0200, Arturo Borrero Gonzalez wrote:
+>> These warnings, if they happen, should help users.
+>>
+>> Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
+>> ---
+>>  src/channel.c  |    6 +++++-
+>>  src/queue_tx.c |   11 +++++++++--
+>>  2 files changed, 14 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/src/channel.c b/src/channel.c
+>> index acbfa7d..b2f114d 100644
+>> --- a/src/channel.c
+>> +++ b/src/channel.c
+>> @@ -19,6 +19,7 @@
+>>  #include "channel.h"
+>>  #include "network.h"
+>>  #include "queue.h"
+>> +#include "log.h"
+>>
+>>  static struct channel_ops *ops[CHANNEL_MAX];
+>>  extern struct channel_ops channel_mcast;
+>> @@ -161,8 +162,11 @@ static void channel_enqueue_errors(struct channel *c)
+>>       struct channel_error *error;
+>>
+>>       qobj = queue_object_new(Q_ELEM_ERR, sizeof(struct channel_error));
+>> -     if (qobj == NULL)
+>> +     if (qobj == NULL) {
+>> +             dlog(LOG_WARNING, "could not enqueue channel errors, failed to"
+>> +                  " allocate memory");
+>
+> Did you ever hit this?
+>
 
-Example:
+I don't know, no way to know in a production system since this happen silently.
 
-% nft list ruleset -nnn
-table ip t {
-	set s {
-		type inet_service
-		elements = {1, 2, 3, 4, 10,
-				432, 433, 434, 435, 436,
-				437, 438, 439, 440, 441,
-				442, 443, 444, 445, 446,
-				447, 448, 449, 450, 12345 }
-	}
-
-	map m {
-		type inet_service . iface_index : verdict
-		elements = {123 . "lo" : accept,
-				1234 . "lo" : accept,
-				12345 . "lo" : accept,
-				12346 . "lo" : accept,
-				12347 . "lo" : accept }
-	}
-
-
-	set s2 {
-		type ipv4_addr
-		elements = { 1.1.1.1, 2.2.2.2,
-				3.3.3.3, 4.4.3.4,
-				4.4.4.4, 5.5.5.3,
-				5.5.5.5 }
-	}
-
-	chain c {
-		ip saddr . tcp dport {1.1.1.1 . 22, 2.2.2.2 . 80 }
-		tcp dport {33333, 44444 }
-		iif vmap {0 : accept }
-	}
-}
-
-NOTE: some testcases require updates because the output change.
-
-Signed-off-by: Arturo Borrero Gonzalez <arturo@debian.org>
----
- include/expression.h |    1 +
- include/nftables.h   |    1 +
- src/expression.c     |   58 +++++++++++++++++++++++++++++++++++++++++++++++++-
- src/netlink.c        |    2 ++
- 4 files changed, 61 insertions(+), 1 deletion(-)
-
-diff --git a/include/expression.h b/include/expression.h
-index 9ba87e8..2721434 100644
---- a/include/expression.h
-+++ b/include/expression.h
-@@ -243,6 +243,7 @@ struct expr {
- 			struct list_head	expressions;
- 			unsigned int		size;
- 			uint32_t		set_flags;
-+			const char		*delim;
- 		};
- 		struct {
- 			/* EXPR_SET_REF */
-diff --git a/include/nftables.h b/include/nftables.h
-index 6f54155..93b3845 100644
---- a/include/nftables.h
-+++ b/include/nftables.h
-@@ -29,6 +29,7 @@ extern unsigned int numeric_output;
- extern unsigned int stateless_output;
- extern unsigned int ip2name_output;
- extern unsigned int handle_output;
-+extern unsigned int elements_output;
- extern unsigned int debug_level;
- extern const char *include_paths[INCLUDE_PATHS_MAX];
- 
-diff --git a/src/expression.c b/src/expression.c
-index 45f3ed8..7646b30 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -742,10 +742,66 @@ struct expr *list_expr_alloc(const struct location *loc)
- 	return compound_expr_alloc(loc, &list_expr_ops);
- }
- 
-+static const char *calculate_delim(const struct expr *expr, int *count)
-+{
-+	const char *newline = ",\n\t\t\t\t";
-+	const char *singleline = ", ";
-+
-+	if (expr->set_flags & NFT_SET_ANONYMOUS)
-+		return singleline;
-+
-+	if (!expr->dtype)
-+		return newline;
-+
-+	switch (expr->dtype->type) {
-+	case TYPE_NFPROTO:
-+	case TYPE_INTEGER:
-+	case TYPE_ARPOP:
-+	case TYPE_INET_PROTOCOL:
-+	case TYPE_INET_SERVICE:
-+	case TYPE_TCP_FLAG:
-+	case TYPE_DCCP_PKTTYPE:
-+	case TYPE_MARK:
-+	case TYPE_IFINDEX:
-+	case TYPE_CLASSID:
-+	case TYPE_UID:
-+	case TYPE_GID:
-+	case TYPE_CT_DIR:
-+		if (*count < 5)
-+			return singleline;
-+		*count = 0;
-+		break;
-+	case TYPE_IPADDR:
-+	case TYPE_CT_STATE:
-+	case TYPE_CT_STATUS:
-+	case TYPE_PKTTYPE:
-+		if (*count < 2)
-+			return singleline;
-+		*count = 0;
-+		break;
-+
-+	default:
-+		break;
-+	}
-+
-+	return newline;
-+}
-+
- static void set_expr_print(const struct expr *expr)
- {
-+	const struct expr *i;
-+	const char *d = "";
-+	int count = 0;
-+
- 	printf("{ ");
--	compound_expr_print(expr, ", ");
-+
-+	list_for_each_entry(i, &expr->expressions, list) {
-+		printf("%s", d);
-+		expr_print(i);
-+		count++;
-+		d = calculate_delim(expr, &count);
-+	}
-+
- 	printf(" }");
- }
- 
-diff --git a/src/netlink.c b/src/netlink.c
-index 6fbb67d..59e8918 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -1730,6 +1730,8 @@ int netlink_get_setelems(struct netlink_ctx *ctx, const struct handle *h,
- 	ctx->set = set;
- 	set->init = set_expr_alloc(loc);
- 	nftnl_set_elem_foreach(nls, list_setelem_cb, ctx);
-+	set->init->set_flags = set->flags;
-+	set->init->dtype = set->keytype;
- 
- 	if (!(set->flags & NFT_SET_INTERVAL))
- 		list_expr_sort(&ctx->set->init->expressions);
-
+Since conntrackd can be of critical importance in some environments I
+guess it doesn't harm
+to be more verbose. This concrete memory allocation failure isn't
+interesting per se, but it could be related
+to other more serious issues on the system.
