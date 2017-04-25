@@ -1,36 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables 1/2] tests: xlate: remove python 3.5 dependency
-Date: Tue, 25 Apr 2017 11:00:01 +0200
-Message-ID: <20170425090001.GA2382@salvia>
-References: <1492557549-578-1-git-send-email-pablombg@gmail.com>
+Subject: Re: [PATCH nf v3] netfilter: xt_CT: fix refcnt leak on error path
+Date: Tue, 25 Apr 2017 11:05:18 +0200
+Message-ID: <20170425090518.GA2833@salvia>
+References: <1492135208-52964-1-git-send-email-gfree.wind@foxmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, Gao Feng <fgao@ikuai8.com>,
+        Liping Zhang <zlpnobody@gmail.com>
+To: gfree.wind@foxmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37788 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43038 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1177033AbdDYJAL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Apr 2017 05:00:11 -0400
+        id S937253AbdDYJFb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Apr 2017 05:05:31 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 244DA80FE2
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:00:05 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 0B3737F5E6
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:05:20 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1582810218F
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:00:05 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EF7F8FF2D1
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:05:19 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5699BFF2DC
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 10:59:59 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7C8BFFF6F3
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:05:15 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1492557549-578-1-git-send-email-pablombg@gmail.com>
+In-Reply-To: <1492135208-52964-1-git-send-email-gfree.wind@foxmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 19, 2017 at 01:19:08AM +0200, Pablo M. Bermudo Garay wrote:
-> This commit replaces subprocess.run (introduced in python 3.5) with
-> subprocess.Popen (supported since the first version of python 3).
+On Fri, Apr 14, 2017 at 10:00:08AM +0800, gfree.wind@foxmail.com wrote:
+> From: Gao Feng <fgao@ikuai8.com>
 > 
-> Furthermore, the output has been improved when ip[6]tables-translate
-> exits with non-zero return code.
+> There are two cases which causes refcnt leak.
+> 
+> 1. When nf_ct_timeout_ext_add failed in xt_ct_set_timeout, it should
+> free the timeout refcnt.
+> Now goto the err_put_timeout error handler instead of going ahead.
+> 
+> 2. When the time policy is not found, we should call module_put.
+> Otherwise, the related cthelper module cannot be removed anymore.
+> It is easy to reproduce by typing the following command:
+>   # iptables -t raw -A OUTPUT -p tcp -j CT --helper ftp --timeout xxx
 
 Applied, thanks.
