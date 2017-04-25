@@ -1,69 +1,61 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net v3] bridge: ebtables: fix reception of
- frames DNAT-ed to bridge device/port
-Date: Tue, 25 Apr 2017 11:10:22 +0200
-Message-ID: <20170425091022.GB2930@salvia>
-References: <20170419194733.19006-1-linus.luessing@c0d3.blue>
+Subject: Re: [PATCH nf] netfilter: nft_dynset: continue to next expr if
+ _OP_ADD succeeded
+Date: Tue, 25 Apr 2017 11:14:36 +0200
+Message-ID: <20170425091436.GA3527@salvia>
+References: <1492943370-38461-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
-	linux-kernel@vger.kernel.org, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S . Miller" <davem@davemloft.net>
-To: Linus =?iso-8859-1?Q?L=FCssing?= <linus.luessing@c0d3.blue>
-Return-path: <bridge-bounces@lists.linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, rwhite@pobox.com,
+        Liping Zhang <zlpnobody@gmail.com>
+To: Liping Zhang <zlpnobody@163.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:48886 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932986AbdDYJOq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Apr 2017 05:14:46 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 932A16B183
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:14:40 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 84255FF2CE
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:14:40 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 088EDFF2D7
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:14:37 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20170419194733.19006-1-linus.luessing@c0d3.blue>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1492943370-38461-1-git-send-email-zlpnobody@163.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 19, 2017 at 09:47:33PM +0200, Linus Lüssing wrote:
-> When trying to redirect bridged frames to the bridge device itself or
-> a bridge port (brouting) via the dnat target then this currently fails:
+On Sun, Apr 23, 2017 at 06:29:30PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <zlpnobody@gmail.com>
 > 
-> The ethernet destination of the frame is dnat'ed to the MAC address of
-> the bridge device or port just fine. However, the IP code drops it in
-> the beginning of ip_input.c/ip_rcv() as the dnat target left
-> the skb->pkt_type as PACKET_OTHERHOST.
+> Currently, after adding the following nft rules:
+>   # nft add set x target1 { type ipv4_addr \; flags timeout \;}
+>   # nft add rule x y set add ip daddr timeout 1d @target1 counter
 > 
-> Fixing this by resetting skb->pkt_type to an appropriate type after
-> dnat'ing.
+> the counters will always be zero despite of the elements are added
+> to the dynamic set "target1" or not, as we will break the nft expr
+> traversal unconditionally:
+>   # nft list ruleset
+>   ...
+>   set target1 {
+>       ...
+>       elements = { 8.8.8.8 expires 23h59m53s}
+>   }
+>   chain output {
+>       ...
+>       set add ip daddr timeout 1d @target1 counter packets 0 bytes 0
+>                                                            ^       ^
+>       ...
+>   }
+> 
+> Since we add the elements to the set successfully, we should continue
+> to the next expression.
+> 
+> Additionally, if elements are added to "flow table" successfully, we
+> will _always_ continue to the next expr, even if the operation is
+> _OP_ADD. So it's better to keep them to be consistent.
 
 Applied, thanks.
-
-One comment below.
-> @@ -18,11 +19,32 @@ static unsigned int
->  ebt_dnat_tg(struct sk_buff *skb, const struct xt_action_param *par)
->  {
->  	const struct ebt_nat_info *info = par->targinfo;
-> +	struct net_device *dev;
->  
->  	if (!skb_make_writable(skb, 0))
->  		return EBT_DROP;
->  
->  	ether_addr_copy(eth_hdr(skb)->h_dest, info->mac);
-> +
-> +	if (is_multicast_ether_addr(info->mac)) {
-> +		if (is_broadcast_ether_addr(info->mac))
-> +			skb->pkt_type = PACKET_BROADCAST;
-> +		else
-> +			skb->pkt_type = PACKET_MULTICAST;
-> +	} else {
-> +		rcu_read_lock();
-
-I'm going to manually remove this explicit rcu_read_lock() here, no
-need to resend. We're guaranteed to run from packet path with read
-side lock from netfilter hooks. So we just save some cycles from
-running this unnecessary nesting.
-
-Let me know if I'm missing anything. Thanks!
