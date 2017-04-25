@@ -1,44 +1,55 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf v3] netfilter: xt_CT: fix refcnt leak on error path
-Date: Tue, 25 Apr 2017 11:05:18 +0200
-Message-ID: <20170425090518.GA2833@salvia>
-References: <1492135208-52964-1-git-send-email-gfree.wind@foxmail.com>
+Subject: Re: [PATCH nf v3] net/openvswitch: Delete conntrack entry clashing
+ with an expectation.
+Date: Tue, 25 Apr 2017 11:06:09 +0200
+Message-ID: <20170425090609.GB2833@salvia>
+References: <1492205198-41758-1-git-send-email-jarno@ovn.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Gao Feng <fgao@ikuai8.com>,
-        Liping Zhang <zlpnobody@gmail.com>
-To: gfree.wind@foxmail.com
+Cc: netfilter-devel@vger.kernel.org, joe@ovn.org
+To: Jarno Rajahalme <jarno@ovn.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43038 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43416 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S937253AbdDYJFb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Apr 2017 05:05:31 -0400
+        id S1177222AbdDYJGP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Apr 2017 05:06:15 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0B3737F5E6
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:05:20 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 4B62B6D580
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:06:09 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EF7F8FF2D1
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:05:19 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3B1C1FF2DB
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:06:09 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7C8BFFF6F3
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:05:15 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2A8DFA6C1
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Apr 2017 11:06:06 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1492135208-52964-1-git-send-email-gfree.wind@foxmail.com>
+In-Reply-To: <1492205198-41758-1-git-send-email-jarno@ovn.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Apr 14, 2017 at 10:00:08AM +0800, gfree.wind@foxmail.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
+On Fri, Apr 14, 2017 at 02:26:38PM -0700, Jarno Rajahalme wrote:
+> Conntrack helpers do not check for a potentially clashing conntrack
+> entry when creating a new expectation.  Also, nf_conntrack_in() will
+> check expectations (via init_conntrack()) only if a conntrack entry
+> can not be found.  The expectation for a packet which also matches an
+> existing conntrack entry will not be removed by conntrack, and is
+> currently handled inconsistently by OVS, as OVS expects the
+> expectation to be removed when the connection tracking entry matching
+> that expectation is confirmed.
 > 
-> There are two cases which causes refcnt leak.
+> It should be noted that normally an IP stack would not allow reuse of
+> a 5-tuple of an old (possibly lingering) connection for a new data
+> connection, so this is somewhat unlikely corner case.  However, it is
+> possible that a misbehaving source could cause conntrack entries be
+> created that could then interfere with new related connections.
 > 
-> 1. When nf_ct_timeout_ext_add failed in xt_ct_set_timeout, it should
-> free the timeout refcnt.
-> Now goto the err_put_timeout error handler instead of going ahead.
-> 
-> 2. When the time policy is not found, we should call module_put.
-> Otherwise, the related cthelper module cannot be removed anymore.
-> It is easy to reproduce by typing the following command:
->   # iptables -t raw -A OUTPUT -p tcp -j CT --helper ftp --timeout xxx
+> Fix this in the OVS module by deleting the clashing conntrack entry
+> after an expectation has been matched.  This causes the following
+> nf_conntrack_in() call also find the expectation and remove it when
+> creating the new conntrack entry, as well as the forthcoming reply
+> direction packets to match the new related connection instead of the
+> old clashing conntrack entry.
 
-Applied, thanks.
+Applied, with minor changes that we have already discussed here.
+
+Thanks.
