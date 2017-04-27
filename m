@@ -1,75 +1,92 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH 2/2] masquerade: Complain if no prerouting chain exists
-Date: Thu, 27 Apr 2017 15:24:39 +0200
-Message-ID: <20170427132439.9443-2-phil@nwl.cc>
-References: <20170427132439.9443-1-phil@nwl.cc>
+Subject: [nft PATCH 1/2] erec: Make __stmt_binary_error a little more versatile
+Date: Thu, 27 Apr 2017 15:24:38 +0200
+Message-ID: <20170427132439.9443-1-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:37247 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:55873 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1034237AbdD0NYw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Apr 2017 09:24:52 -0400
-In-Reply-To: <20170427132439.9443-1-phil@nwl.cc>
+        id S1162129AbdD0NY6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 27 Apr 2017 09:24:58 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-As reported in netfilter bz#1105, masquerading won't work if there isn't
-at least an empty base chain hooked into prerouting. In order to raise
-awareness of this problem at the user, complain if a masquerading
-statement is added and the table does not contain an appropriate
-prerouting chain already.
+In order to allow for printing (at least) also warnings, rename
+__stmt_binary_error to __stmt_binary_msg and pass the severity as first
+parameter. Then create __stmt_binary_error macro to reestablish the old
+signature.
 
-To not break user scripts which add the required chain at a later point,
-accept the command anyway.
-
-A better solution would be to create the required chain as a dependency
-and drop it again on return path or if the user adds his own one later,
-though I doubt the extra effort is feasible here.
+Finally, add similar macros for printing warnings. And since these are
+supposed to be non-fatal, make __stmt_binary_msg return 0 if a severity
+below EREC_ERROR was given. This allows to still use it in return
+statements.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/evaluate.c | 20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ include/erec.h | 16 ++++++++++++----
+ src/erec.c     | 13 +++++++------
+ 2 files changed, 19 insertions(+), 10 deletions(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 49c5953ae1687..a89ada19298a5 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2379,6 +2379,8 @@ static int stmt_evaluate_nat(struct eval_ctx *ctx, struct stmt *stmt)
+diff --git a/include/erec.h b/include/erec.h
+index 36e0efa4fc1d9..0babfc0ff488c 100644
+--- a/include/erec.h
++++ b/include/erec.h
+@@ -63,11 +63,19 @@ extern void erec_print_list(FILE *f, struct list_head *list);
  
- static int stmt_evaluate_masq(struct eval_ctx *ctx, struct stmt *stmt)
- {
-+	struct table *table;
-+	struct chain *chain;
- 	int err;
+ struct eval_ctx;
  
- 	err = nat_evaluate_family(ctx, stmt);
-@@ -2392,7 +2394,23 @@ static int stmt_evaluate_masq(struct eval_ctx *ctx, struct stmt *stmt)
+-extern int __fmtstring(4, 5) __stmt_binary_error(struct eval_ctx *ctx,
+-						 const struct location *l1,
+-						 const struct location *l2,
+-						 const char *fmt, ...);
++extern int __fmtstring(5, 6) __stmt_binary_msg(enum error_record_types type,
++					       struct eval_ctx *ctx,
++					       const struct location *l1,
++					       const struct location *l2,
++					       const char *fmt, ...);
+ 
++#define __stmt_binary_warning(ctx, l1, l2, fmt, args...) \
++	__stmt_binary_msg(EREC_WARNING, ctx, l1, l2, fmt, ## args)
++#define stmt_warning(ctx, s1, fmt, args...) \
++	__stmt_binary_warning(ctx, &(s1)->location, NULL, fmt, ## args)
++
++#define __stmt_binary_error(ctx, l1, l2, fmt, args...) \
++	__stmt_binary_msg(EREC_ERROR, ctx, l1, l2, fmt, ## args)
+ #define stmt_error(ctx, s1, fmt, args...) \
+ 	__stmt_binary_error(ctx, &(s1)->location, NULL, fmt, ## args)
+ #define stmt_binary_error(ctx, s1, s2, fmt, args...) \
+diff --git a/src/erec.c b/src/erec.c
+index eacdd97a21cbc..7b9c2420d416c 100644
+--- a/src/erec.c
++++ b/src/erec.c
+@@ -208,19 +208,20 @@ void erec_print_list(FILE *f, struct list_head *list)
  	}
- 
- 	stmt->flags |= STMT_F_TERMINAL;
--	return 0;
-+
-+	err = cache_update(CMD_INVALID, ctx->msgs);
-+	if (err < 0)
-+		return err;
-+
-+	table = table_lookup_global(ctx);
-+	if (!table)
-+		return stmt_error(ctx, stmt, "referenced table not found");
-+
-+	list_for_each_entry(chain, &table->chains, list) {
-+		if (!strcmp(chain->type, "nat") &&
-+		    chain->hooknum == NF_INET_PRE_ROUTING)
-+			return 0;
-+	}
-+
-+	return stmt_warning(ctx, stmt,
-+			    "this requires at least an empty prerouting chain");
  }
  
- static int stmt_evaluate_redir(struct eval_ctx *ctx, struct stmt *stmt)
+-int __fmtstring(4, 5) __stmt_binary_error(struct eval_ctx *ctx,
+-					  const struct location *l1,
+-					  const struct location *l2,
+-					  const char *fmt, ...)
++int __fmtstring(5, 6) __stmt_binary_msg(enum error_record_types type,
++					struct eval_ctx *ctx,
++					const struct location *l1,
++					const struct location *l2,
++					const char *fmt, ...)
+ {
+ 	struct error_record *erec;
+ 	va_list ap;
+ 
+ 	va_start(ap, fmt);
+-	erec = erec_vcreate(EREC_ERROR, l1, fmt, ap);
++	erec = erec_vcreate(type, l1, fmt, ap);
+ 	if (l2 != NULL)
+ 		erec_add_location(erec, l2);
+ 	va_end(ap);
+ 	erec_queue(erec, ctx->msgs);
+-	return -1;
++	return type >= EREC_ERROR ? -1 : 0;
+ }
 -- 
 2.11.0
 
