@@ -1,92 +1,54 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH 1/2] erec: Make __stmt_binary_error a little more versatile
-Date: Thu, 27 Apr 2017 15:24:38 +0200
-Message-ID: <20170427132439.9443-1-phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: snmp: avoid stack size warning
+Date: Thu, 27 Apr 2017 16:39:43 +0200
+Message-ID: <20170427143943.5099-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:55873 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1162129AbdD0NY6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Apr 2017 09:24:58 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:59782 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1162181AbdD0OjZ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 27 Apr 2017 10:39:25 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In order to allow for printing (at least) also warnings, rename
-__stmt_binary_error to __stmt_binary_msg and pass the severity as first
-parameter. Then create __stmt_binary_error macro to reestablish the old
-signature.
+net/ipv4/netfilter/nf_nat_snmp_basic.c:1158:1: warning: the frame size
+of 1160 bytes is larger than 1024 bytes
 
-Finally, add similar macros for printing warnings. And since these are
-supposed to be non-fatal, make __stmt_binary_msg return 0 if a severity
-below EREC_ERROR was given. This allows to still use it in return
-statements.
-
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/erec.h | 16 ++++++++++++----
- src/erec.c     | 13 +++++++------
- 2 files changed, 19 insertions(+), 10 deletions(-)
 
-diff --git a/include/erec.h b/include/erec.h
-index 36e0efa4fc1d9..0babfc0ff488c 100644
---- a/include/erec.h
-+++ b/include/erec.h
-@@ -63,11 +63,19 @@ extern void erec_print_list(FILE *f, struct list_head *list);
+diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+index da04b9c33ef3..d5b1e0b3f687 100644
+--- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
++++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+@@ -827,8 +827,8 @@ static unsigned char snmp_object_decode(struct asn1_ctx *ctx,
+ 	return 1;
+ }
  
- struct eval_ctx;
- 
--extern int __fmtstring(4, 5) __stmt_binary_error(struct eval_ctx *ctx,
--						 const struct location *l1,
--						 const struct location *l2,
--						 const char *fmt, ...);
-+extern int __fmtstring(5, 6) __stmt_binary_msg(enum error_record_types type,
-+					       struct eval_ctx *ctx,
-+					       const struct location *l1,
-+					       const struct location *l2,
-+					       const char *fmt, ...);
- 
-+#define __stmt_binary_warning(ctx, l1, l2, fmt, args...) \
-+	__stmt_binary_msg(EREC_WARNING, ctx, l1, l2, fmt, ## args)
-+#define stmt_warning(ctx, s1, fmt, args...) \
-+	__stmt_binary_warning(ctx, &(s1)->location, NULL, fmt, ## args)
-+
-+#define __stmt_binary_error(ctx, l1, l2, fmt, args...) \
-+	__stmt_binary_msg(EREC_ERROR, ctx, l1, l2, fmt, ## args)
- #define stmt_error(ctx, s1, fmt, args...) \
- 	__stmt_binary_error(ctx, &(s1)->location, NULL, fmt, ## args)
- #define stmt_binary_error(ctx, s1, s2, fmt, args...) \
-diff --git a/src/erec.c b/src/erec.c
-index eacdd97a21cbc..7b9c2420d416c 100644
---- a/src/erec.c
-+++ b/src/erec.c
-@@ -208,19 +208,20 @@ void erec_print_list(FILE *f, struct list_head *list)
+-static unsigned char snmp_request_decode(struct asn1_ctx *ctx,
+-					 struct snmp_request *request)
++static unsigned char noinline_for_stack
++snmp_request_decode(struct asn1_ctx *ctx, struct snmp_request *request)
+ {
+ 	unsigned int cls, con, tag;
+ 	unsigned char *end;
+@@ -920,10 +920,10 @@ static inline void mangle_address(unsigned char *begin,
  	}
  }
  
--int __fmtstring(4, 5) __stmt_binary_error(struct eval_ctx *ctx,
--					  const struct location *l1,
--					  const struct location *l2,
--					  const char *fmt, ...)
-+int __fmtstring(5, 6) __stmt_binary_msg(enum error_record_types type,
-+					struct eval_ctx *ctx,
-+					const struct location *l1,
-+					const struct location *l2,
-+					const char *fmt, ...)
+-static unsigned char snmp_trap_decode(struct asn1_ctx *ctx,
+-				      struct snmp_v1_trap *trap,
+-				      const struct oct1_map *map,
+-				      __sum16 *check)
++static unsigned char noinline_for_stack
++snmp_trap_decode(struct asn1_ctx *ctx, struct snmp_v1_trap *trap,
++		 const struct oct1_map *map,
++		 __sum16 *check)
  {
- 	struct error_record *erec;
- 	va_list ap;
- 
- 	va_start(ap, fmt);
--	erec = erec_vcreate(EREC_ERROR, l1, fmt, ap);
-+	erec = erec_vcreate(type, l1, fmt, ap);
- 	if (l2 != NULL)
- 		erec_add_location(erec, l2);
- 	va_end(ap);
- 	erec_queue(erec, ctx->msgs);
--	return -1;
-+	return type >= EREC_ERROR ? -1 : 0;
- }
+ 	unsigned int cls, con, tag, len;
+ 	unsigned char *end;
 -- 
-2.11.0
+2.10.2
 
