@@ -1,56 +1,67 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL v2 0/1] IPVS Fixes for v4.11
-Date: Fri, 28 Apr 2017 16:24:45 +0200
-Message-ID: <20170428142445.GA9408@salvia>
-References: <20170428101154.9750-1-horms@verge.net.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
+Subject: [PATCH nf] netfilter: update MAINTAINERS file
+Date: Fri, 28 Apr 2017 16:54:37 +0200
+Message-ID: <1493391277-10563-1-git-send-email-pablo@netfilter.org>
+Cc: fw@strlen.de
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41248 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51696 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S969497AbdD1OYy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Apr 2017 10:24:54 -0400
+        id S1032294AbdD1Oyr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 28 Apr 2017 10:54:47 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2DC8F20992C
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Apr 2017 16:24:48 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id E317A209932
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Apr 2017 16:54:40 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 200961B31CF
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Apr 2017 16:24:48 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D3F0F1850E
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Apr 2017 16:54:40 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B28B01AF439
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Apr 2017 16:24:45 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20170428101154.9750-1-horms@verge.net.au>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A5D41185C75
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Apr 2017 16:54:36 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Apr 28, 2017 at 12:11:53PM +0200, Simon Horman wrote:
-> Hi Pablo,
-> 
-> please consider this fix to IPVS for v4.11.
-> Or if it is too late for v4.11 please consider it for v4.12.
-> I would also like it considered for stable.
-> 
-> * Explicitly forbid ipv6 service/dest creation if ipv6 mod is disabled
->   to avoid oops caused by IPVS accesing IPv6 routing code in such
->   circumstances.
-> 
-> Change since v1 of pull request:
-> * Rebase on nf
-> * Correct URL; it should be ipvs not ipvs-next
-> 
-> 
-> The following changes since commit 9dd2ab609eef736d5639e0de1bcc2e71e714b28e:
-> 
->   netfilter: Wrong icmp6 checksum for ICMPV6_TIME_EXCEED in reverse SNATv6 path (2017-04-25 11:10:38 +0200)
-> 
-> are available in the git repository at:
-> 
->   http://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git ipvs-fixes-for-v4.11
+Several updates on the MAINTAINERS section for Netfilter:
 
-Pulled into nf, thanks Simon.
+1) Add Florian Westphal, he's been part of the coreteam since October 2012.
+   He's been dedicating tireless efforts to improve the Netfilter codebase,
+   fix bugs and push ongoing new developments ever since.
+
+2) Add http://www.nftables.org/ URL, currently pointing to
+   http://www.netfilter.org.
+
+3) Update project status from Supported to Maintained.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+@Florian: Let me add some lines on your inclusion, and update other stuff
+          I wanted to include/update in the Netfilter section.
+
+ MAINTAINERS | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 38d3e4ed7208..fc95cb06fb29 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8701,14 +8701,16 @@ F:	drivers/net/ethernet/neterion/
+ NETFILTER
+ M:	Pablo Neira Ayuso <pablo@netfilter.org>
+ M:	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
++M:	Florian Westphal <fw@strlen.de>
+ L:	netfilter-devel@vger.kernel.org
+ L:	coreteam@netfilter.org
+ W:	http://www.netfilter.org/
+ W:	http://www.iptables.org/
++W:	http://www.nftables.org/
+ Q:	http://patchwork.ozlabs.org/project/netfilter-devel/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+-S:	Supported
++S:	Maintained
+ F:	include/linux/netfilter*
+ F:	include/linux/netfilter/
+ F:	include/net/netfilter/
+-- 
+2.1.4
+
