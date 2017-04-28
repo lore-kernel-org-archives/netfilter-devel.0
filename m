@@ -1,67 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf] netfilter: update MAINTAINERS file
-Date: Fri, 28 Apr 2017 16:54:37 +0200
-Message-ID: <1493391277-10563-1-git-send-email-pablo@netfilter.org>
-Cc: fw@strlen.de
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH 2/2] masquerade: Complain if no prerouting chain
+ exists
+Date: Fri, 28 Apr 2017 16:58:01 +0200
+Message-ID: <20170428145801.GA10616@salvia>
+References: <20170427132439.9443-1-phil@nwl.cc>
+ <20170427132439.9443-2-phil@nwl.cc>
+ <CAOkSjBjdnywsFENgBLQfQr2aXMTDpU9ztXm_Y4V1==E61hH05g@mail.gmail.com>
+ <20170428080523.GI20805@orbyte.nwl.cc>
+ <CAOkSjBjtJ0_xymJ_iMuKwxtqArEh_dHs=Tgjo271PnLy4K84ng@mail.gmail.com>
+ <20170428082824.GJ20805@orbyte.nwl.cc>
+ <CAOkSjBi=oYsB2wDxq0-1ejaUrwrt+vRcAjCKO8f4RXv2=cqq=Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Phil Sutter <phil@nwl.cc>,
+        Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo@debian.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51696 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52496 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1032294AbdD1Oyr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Apr 2017 10:54:47 -0400
+        id S1751249AbdD1O6G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 28 Apr 2017 10:58:06 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E317A209932
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Apr 2017 16:54:40 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 16545210564
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Apr 2017 16:58:00 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D3F0F1850E
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Apr 2017 16:54:40 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 081B11850C
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Apr 2017 16:58:00 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A5D41185C75
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Apr 2017 16:54:36 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E70F6FF2F1
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Apr 2017 16:57:57 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <CAOkSjBi=oYsB2wDxq0-1ejaUrwrt+vRcAjCKO8f4RXv2=cqq=Q@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Several updates on the MAINTAINERS section for Netfilter:
+On Fri, Apr 28, 2017 at 11:02:53AM +0200, Arturo Borrero Gonzalez wrote:
+> On 28 April 2017 at 10:28, Phil Sutter <phil@nwl.cc> wrote:
+[...]
+> > Ah, thanks for the pointer! I tend to ignore anything that's not in the
+> > man page. :)
+> 
+> Well, I guess adding more info to the man page won't hurt.
+> 
+> Things I would add:
+>  * some bits about NAT chains configuration (this issue)
+>  * info about base chains priorities
+>  * some bits about atomic operations
 
-1) Add Florian Westphal, he's been part of the coreteam since October 2012.
-   He's been dedicating tireless efforts to improve the Netfilter codebase,
-   fix bugs and push ongoing new developments ever since.
-
-2) Add http://www.nftables.org/ URL, currently pointing to
-   http://www.netfilter.org.
-
-3) Update project status from Supported to Maintained.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-@Florian: Let me add some lines on your inclusion, and update other stuff
-          I wanted to include/update in the Netfilter section.
-
- MAINTAINERS | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 38d3e4ed7208..fc95cb06fb29 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8701,14 +8701,16 @@ F:	drivers/net/ethernet/neterion/
- NETFILTER
- M:	Pablo Neira Ayuso <pablo@netfilter.org>
- M:	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-+M:	Florian Westphal <fw@strlen.de>
- L:	netfilter-devel@vger.kernel.org
- L:	coreteam@netfilter.org
- W:	http://www.netfilter.org/
- W:	http://www.iptables.org/
-+W:	http://www.nftables.org/
- Q:	http://patchwork.ozlabs.org/project/netfilter-devel/list/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
--S:	Supported
-+S:	Maintained
- F:	include/linux/netfilter*
- F:	include/linux/netfilter/
- F:	include/net/netfilter/
--- 
-2.1.4
-
+Either we update the existing documentation (manpage and wiki) as
+Arturo suggest or we add some sort of transparent automatic NAT chain
+registration in the kernel.
