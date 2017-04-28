@@ -1,34 +1,117 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] netfilter: x_tables: unlock on error in
- xt_find_table_lock()
-Date: Fri, 28 Apr 2017 15:03:14 +0200
-Message-ID: <20170428130314.GA26935@breakpoint.cc>
-References: <20170428125756.s4ycoffclspnr4zo@mwanda>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        kernel-janitors@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] tests: shell: delete element and chain in transaction
+Date: Fri, 28 Apr 2017 15:07:06 +0200
+Message-ID: <1493384826-3685-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:35934 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1425931AbdD1NDk (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Apr 2017 09:03:40 -0400
-Content-Disposition: inline
-In-Reply-To: <20170428125756.s4ycoffclspnr4zo@mwanda>
+Received: from mail.us.es ([193.147.175.20]:40814 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755555AbdD1NHZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 28 Apr 2017 09:07:25 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9DF151EC2D1
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Apr 2017 15:07:13 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 847961850E
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Apr 2017 15:07:13 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 882381B2EF3
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Apr 2017 15:07:09 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> According to my static checker we should unlock here before the return.
-> That seems reasonable to me as well.
+This patch adds a test to test refcounting from element to chain and
+objects.
 
-Indeed, thanks for the fix!
+Reported-by: Andreas Schultz <aschultz@tpip.net>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ tests/shell/testcases/transactions/0040set_0 | 76 ++++++++++++++++++++++++++++
+ 1 file changed, 76 insertions(+)
+ create mode 100755 tests/shell/testcases/transactions/0040set_0
 
-Acked-by: Florian Westphal <fw@strlen.de>
+diff --git a/tests/shell/testcases/transactions/0040set_0 b/tests/shell/testcases/transactions/0040set_0
+new file mode 100755
+index 000000000000..241703d90340
+--- /dev/null
++++ b/tests/shell/testcases/transactions/0040set_0
+@@ -0,0 +1,76 @@
++#!/bin/bash
++
++set -e
++
++tmpfile=$(mktemp)
++if [ ! -w $tmpfile ] ; then
++        echo "Failed to create tmp file" >&2
++        exit 0
++fi
++
++trap "rm -rf $tmpfile" EXIT # cleanup if aborted
++
++RULESET="table ip filter {
++	map client_to_any {
++		type ipv4_addr : verdict
++		elements = { 1.2.3.4 : goto CIn_1 }
++	}
++
++	chain FORWARD {
++		type filter hook forward priority 0; policy accept;
++		goto client_to_any
++	}
++
++	chain client_to_any {
++		ip saddr vmap @client_to_any
++	}
++
++	chain CIn_1 {
++	}
++}"
++echo "$RULESET" > $tmpfile
++$NFT -f $tmpfile
++if [ $? -ne 0 ] ; then
++        echo "E: unable to load good ruleset" >&2
++        exit 1
++fi
++
++GET="$($NFT list ruleset)"
++
++if [ "$RULESET" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$RULESET") <(echo "$GET")
++	exit 1
++fi
++
++RULESET="delete element ip filter client_to_any { 1.2.3.4 : goto CIn_1 }
++delete chain ip filter CIn_1"
++echo "$RULESET" > $tmpfile
++$NFT -f $tmpfile
++if [ $? -ne 0 ] ; then
++        echo "E: unable to load good ruleset" >&2
++        exit 1
++fi
++
++GET="$($NFT list ruleset)"
++
++EXPECTED="table ip filter {
++	map client_to_any {
++		type ipv4_addr : verdict
++	}
++
++	chain FORWARD {
++		type filter hook forward priority 0; policy accept;
++		goto client_to_any
++	}
++
++	chain client_to_any {
++		ip saddr vmap @client_to_any
++	}
++}"
++
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
+-- 
+2.1.4
 
