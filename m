@@ -1,60 +1,88 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nft PATCH 2/2] masquerade: Complain if no prerouting chain
- exists
-Date: Fri, 28 Apr 2017 17:59:29 +0200
-Message-ID: <20170428155929.GO20805@orbyte.nwl.cc>
-References: <20170427132439.9443-1-phil@nwl.cc>
- <20170427132439.9443-2-phil@nwl.cc>
- <CAOkSjBjdnywsFENgBLQfQr2aXMTDpU9ztXm_Y4V1==E61hH05g@mail.gmail.com>
- <20170428080523.GI20805@orbyte.nwl.cc>
- <CAOkSjBjtJ0_xymJ_iMuKwxtqArEh_dHs=Tgjo271PnLy4K84ng@mail.gmail.com>
- <20170428082824.GJ20805@orbyte.nwl.cc>
- <CAOkSjBi=oYsB2wDxq0-1ejaUrwrt+vRcAjCKO8f4RXv2=cqq=Q@mail.gmail.com>
- <20170428145801.GA10616@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Arturo Borrero Gonzalez <arturo@debian.org>,
-        Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf-next] netfilter: nf_ct_ext: invoke destroy even when ext is not attached
+Date: Sat, 29 Apr 2017 21:59:49 +0800
+Message-ID: <1493474389-9217-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
+        Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:39291 "EHLO mail.nwl.cc"
+Received: from m12-15.163.com ([220.181.12.15]:40807 "EHLO m12-15.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1163916AbdD1P7a (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Apr 2017 11:59:30 -0400
-Content-Disposition: inline
-In-Reply-To: <20170428145801.GA10616@salvia>
+        id S1166866AbdD2OAt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 29 Apr 2017 10:00:49 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Apr 28, 2017 at 04:58:01PM +0200, Pablo Neira Ayuso wrote:
-> On Fri, Apr 28, 2017 at 11:02:53AM +0200, Arturo Borrero Gonzalez wrote:
-> > On 28 April 2017 at 10:28, Phil Sutter <phil@nwl.cc> wrote:
-> [...]
-> > > Ah, thanks for the pointer! I tend to ignore anything that's not in the
-> > > man page. :)
-> > 
-> > Well, I guess adding more info to the man page won't hurt.
-> > 
-> > Things I would add:
-> >  * some bits about NAT chains configuration (this issue)
-> >  * info about base chains priorities
-> >  * some bits about atomic operations
-> 
-> Either we update the existing documentation (manpage and wiki) as
-> Arturo suggest or we add some sort of transparent automatic NAT chain
-> registration in the kernel.
+From: Liping Zhang <zlpnobody@gmail.com>
 
-I had considered that already, but didn't see an easy way to do it in
-kernel space. Also, in order to do it properly, one would have to remove
-it again if it's counterpart is removed, which further complicates
-things. Hence my poor man's approach of just warning about it.
+For NF_NAT_MANIP_SRC, we will insert the ct to the nat_bysource_table,
+then remove it from the nat_bysource_table via nat_extend->destroy.
 
-For the time being, I'll add a note to the man page pointing this out.
-If it will become unnecessary in the future, it can still be removed.
+But now, the nat extension is attached on demand, so if the nat extension
+is not attached, we will not be notified when the ct is destroyed, i.e.
+we may fail to remove ct from the nat_bysource_table.
 
-Cheers, Phil
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So just keep it simple, even if the extension is not attached, we will
+still invoke the related ext->destroy. And this will also preserve the
+flexibility for the future extension.
+
+Fixes: 9a08ecfe74d7 ("netfilter: don't attach a nat extension by default")
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+---
+ include/net/netfilter/nf_conntrack_extend.h | 7 +------
+ net/netfilter/nf_conntrack_extend.c         | 8 ++------
+ 2 files changed, 3 insertions(+), 12 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
+index b01f73f..4944bc9 100644
+--- a/include/net/netfilter/nf_conntrack_extend.h
++++ b/include/net/netfilter/nf_conntrack_extend.h
+@@ -69,12 +69,7 @@ static inline void *__nf_ct_ext_find(const struct nf_conn *ct, u8 id)
+ 	((id##_TYPE *)__nf_ct_ext_find((ext), (id)))
+ 
+ /* Destroy all relationships */
+-void __nf_ct_ext_destroy(struct nf_conn *ct);
+-static inline void nf_ct_ext_destroy(struct nf_conn *ct)
+-{
+-	if (ct->ext)
+-		__nf_ct_ext_destroy(ct);
+-}
++void nf_ct_ext_destroy(struct nf_conn *ct);
+ 
+ /* Free operation. If you want to free a object referred from private area,
+  * please implement __nf_ct_ext_free() and call it.
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index 68ae1be..6c605e8 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -20,16 +20,12 @@ static struct nf_ct_ext_type __rcu *nf_ct_ext_types[NF_CT_EXT_NUM];
+ static DEFINE_MUTEX(nf_ct_ext_type_mutex);
+ #define NF_CT_EXT_PREALLOC	128u /* conntrack events are on by default */
+ 
+-void __nf_ct_ext_destroy(struct nf_conn *ct)
++void nf_ct_ext_destroy(struct nf_conn *ct)
+ {
+ 	unsigned int i;
+ 	struct nf_ct_ext_type *t;
+-	struct nf_ct_ext *ext = ct->ext;
+ 
+ 	for (i = 0; i < NF_CT_EXT_NUM; i++) {
+-		if (!__nf_ct_ext_exist(ext, i))
+-			continue;
+-
+ 		rcu_read_lock();
+ 		t = rcu_dereference(nf_ct_ext_types[i]);
+ 
+@@ -42,7 +38,7 @@ void __nf_ct_ext_destroy(struct nf_conn *ct)
+ 		rcu_read_unlock();
+ 	}
+ }
+-EXPORT_SYMBOL(__nf_ct_ext_destroy);
++EXPORT_SYMBOL(nf_ct_ext_destroy);
+ 
+ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ {
+-- 
+2.5.5
+
+
