@@ -1,34 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/53] Netfilter/IPVS updates for net-next
-Date: Mon, 01 May 2017 10:48:27 -0400 (EDT)
-Message-ID: <20170501.104827.786675318199510333.davem@davemloft.net>
-References: <1493635640-24325-1-git-send-email-pablo@netfilter.org>
-        <20170501105353.GA24620@salvia>
+From: Matthias Kaehlcke <mka@chromium.org>
+Subject: Re: [PATCH] netfilter: ctnetlink: Make some parameters integer to
+ avoid enum mismatch
+Date: Mon, 1 May 2017 11:07:30 -0700
+Message-ID: <20170501180730.GV128305@google.com>
+References: <20170419183920.21936-1-mka@chromium.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([184.105.139.130]:33172 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1165477AbdEAOs3 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 1 May 2017 10:48:29 -0400
-In-Reply-To: <20170501105353.GA24620@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Grant Grundler <grundler@chromium.org>,
+        Greg Hackmann <ghackmann@google.com>,
+        Michael Davidson <md@google.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S . Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170419183920.21936-1-mka@chromium.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 1 May 2017 12:53:53 +0200
+El Wed, Apr 19, 2017 at 11:39:20AM -0700 Matthias Kaehlcke ha dit:
 
-> On Mon, May 01, 2017 at 12:46:27PM +0200, Pablo Neira Ayuso wrote:
->> Hi David,
->> 
->> The following patchset contains Netfilter updates for your net-next
->> tree. A large bunch of code cleanups, XXX they are:
+> Not all parameters passed to ctnetlink_parse_tuple() and
+> ctnetlink_exp_dump_tuple() match the enum type in the signatures of these
+> functions. Since this is intended change the argument type of to be an int
+> value.
 > 
-> Oh well, it case you can amend XXX thing there, David. This should be
-> instead...
+> Signed-off-by: Matthias Kaehlcke <mka@chromium.org>
+> ---
 
-Fixed.
+Ping, any comments on this patch?
+
+Thanks
+
+Matthias
