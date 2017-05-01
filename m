@@ -1,49 +1,100 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf] netfilter: nf_tables: check if same extensions are set when adding elements
-Date: Mon,  1 May 2017 12:58:50 +0200
-Message-ID: <1493636330-25262-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52826 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S969003AbdEAK7B (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 1 May 2017 06:59:01 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 490C7210568
-        for <netfilter-devel@vger.kernel.org>; Mon,  1 May 2017 12:58:55 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3B973ED32D
-        for <netfilter-devel@vger.kernel.org>; Mon,  1 May 2017 12:58:55 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E6E77DA870
-        for <netfilter-devel@vger.kernel.org>; Mon,  1 May 2017 12:58:52 +0200 (CEST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: [PATCH 3.10.105,3.12.73,3.16.43,4.1.39 -stable 2/3] ipvs: SNAT packet replies only for NATed connections
+Date: Mon,  1 May 2017 16:45:36 +0300
+Message-ID: <20170501134537.4715-3-ja@ssi.bg>
+References: <20170501134537.4715-1-ja@ssi.bg>
+Cc: netfilter-devel@vger.kernel.org, Simon Horman <horms@verge.net.au>,
+        lvs-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <20170501134537.4715-1-ja@ssi.bg>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-If no NLM_F_EXCL is set and the element already exists in the set, make
-sure that both elements have the same extensions.
+We do not check if packet from real server is for NAT
+connection before performing SNAT. This causes problems
+for setups that use DR/TUN and allow local clients to
+access the real server directly, for example:
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+- local client in director creates IPVS-DR/TUN connection
+CIP->VIP and the request packets are routed to RIP.
+Talks are finished but IPVS connection is not expired yet.
+
+- second local client creates non-IPVS connection CIP->RIP
+with same reply tuple RIP->CIP and when replies are received
+on LOCAL_IN we wrongly assign them for the first client
+connection because RIP->CIP matches the reply direction.
+As result, IPVS SNATs replies for non-IPVS connections.
+
+The problem is more visible to local UDP clients but in rare
+cases it can happen also for TCP or remote clients when the
+real server sends the reply traffic via the director.
+
+So, better to be more precise for the reply traffic.
+As replies are not expected for DR/TUN connections, better
+to not touch them.
+
+Reported-by: Nick Moriarty <nick.moriarty@york.ac.uk>
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
 ---
- net/netfilter/nf_tables_api.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ net/netfilter/ipvs/ip_vs_core.c | 19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 6e7a5fabc0cb..d0578aede993 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3757,6 +3757,11 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	err = set->ops->insert(ctx->net, set, &elem, &ext2);
- 	if (err) {
- 		if (err == -EEXIST) {
-+			if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA) ^
-+			    nft_set_ext_exists(ext2, NFT_SET_EXT_DATA) ||
-+			    nft_set_ext_exists(ext, NFT_SET_EXT_OBJREF) ^
-+			    nft_set_ext_exists(ext2, NFT_SET_EXT_OBJREF))
-+				return -EBUSY;
- 			if ((nft_set_ext_exists(ext, NFT_SET_EXT_DATA) &&
- 			     nft_set_ext_exists(ext2, NFT_SET_EXT_DATA) &&
- 			     memcmp(nft_set_ext_data(ext),
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 1c6a71c..ca66520 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -795,10 +795,8 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
+ {
+ 	unsigned int verdict = NF_DROP;
+ 
+-	if (IP_VS_FWD_METHOD(cp) != 0) {
+-		pr_err("shouldn't reach here, because the box is on the "
+-		       "half connection in the tun/dr module.\n");
+-	}
++	if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ)
++		goto ignore_cp;
+ 
+ 	/* Ensure the checksum is correct */
+ 	if (!skb_csum_unnecessary(skb) && ip_vs_checksum_complete(skb, ihl)) {
+@@ -832,6 +830,8 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
+ 		ip_vs_notrack(skb);
+ 	else
+ 		ip_vs_update_conntrack(skb, cp, 0);
++
++ignore_cp:
+ 	verdict = NF_ACCEPT;
+ 
+ out:
+@@ -1182,8 +1182,11 @@ ip_vs_out(unsigned int hooknum, struct sk_buff *skb, int af)
+ 	 */
+ 	cp = pp->conn_out_get(af, skb, &iph, 0);
+ 
+-	if (likely(cp))
++	if (likely(cp)) {
++		if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ)
++			goto ignore_cp;
+ 		return handle_response(af, skb, pd, cp, &iph, hooknum);
++	}
+ 	if (sysctl_nat_icmp_send(net) &&
+ 	    (pp->protocol == IPPROTO_TCP ||
+ 	     pp->protocol == IPPROTO_UDP ||
+@@ -1225,9 +1228,15 @@ ip_vs_out(unsigned int hooknum, struct sk_buff *skb, int af)
+ 			}
+ 		}
+ 	}
++
++out:
+ 	IP_VS_DBG_PKT(12, af, pp, skb, 0,
+ 		      "ip_vs_out: packet continues traversal as normal");
+ 	return NF_ACCEPT;
++
++ignore_cp:
++	__ip_vs_conn_put(cp);
++	goto out;
+ }
+ 
+ /*
 -- 
-2.1.4
+2.9.3
 
