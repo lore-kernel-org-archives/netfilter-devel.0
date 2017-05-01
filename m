@@ -1,102 +1,76 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 37/53] ipvs: convert to use pernet nf_hook api
-Date: Mon,  1 May 2017 12:47:04 +0200
-Message-ID: <1493635640-24325-38-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 35/53] netfilter: tcp: Use TCP_MAX_WSCALE instead of literal 14
+Date: Mon,  1 May 2017 12:47:02 +0200
+Message-ID: <1493635640-24325-36-git-send-email-pablo@netfilter.org>
 References: <1493635640-24325-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:49670 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S378961AbdEAKso (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 1 May 2017 06:48:44 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id D944220993E
+        for <netfilter-devel@vger.kernel.org>; Mon,  1 May 2017 12:47:58 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C8571DA90B
+        for <netfilter-devel@vger.kernel.org>; Mon,  1 May 2017 12:47:58 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6B1BA468
+        for <netfilter-devel@vger.kernel.org>; Mon,  1 May 2017 12:47:55 +0200 (CEST)
 In-Reply-To: <1493635640-24325-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
+From: Gao Feng <fgao@ikuai8.com>
 
-nf_(un)register_hooks has to maintain an internal hook list to add/remove
-those hooks from net namespaces as they are added/deleted.
+The window scale may be enlarged from 14 to 15 according to the itef
+draft https://tools.ietf.org/html/draft-nishida-tcpm-maxwin-03.
 
-ipvs already uses pernet_ops, so we can switch to the (more recent)
-pernet hook api instead.
+Use the macro TCP_MAX_WSCALE to support it easily with TCP stack in
+the future.
 
-Compile tested only.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_core.c | 19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ net/netfilter/nf_conntrack_proto_tcp.c | 7 +++----
+ net/netfilter/nf_synproxy_core.c       | 4 ++--
+ 2 files changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index b4a746d0e39b..d2d7bdf1d510 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2200,6 +2200,7 @@ static struct nf_hook_ops ip_vs_ops[] __read_mostly = {
- static int __net_init __ip_vs_init(struct net *net)
- {
- 	struct netns_ipvs *ipvs;
-+	int ret;
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index d0c0a31dfe74..d61a68759dea 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -419,10 +419,9 @@ static void tcp_options(const struct sk_buff *skb,
+ 				 && opsize == TCPOLEN_WINDOW) {
+ 				state->td_scale = *(u_int8_t *)ptr;
  
- 	ipvs = net_generic(net, ip_vs_net_id);
- 	if (ipvs == NULL)
-@@ -2231,11 +2232,17 @@ static int __net_init __ip_vs_init(struct net *net)
- 	if (ip_vs_sync_net_init(ipvs) < 0)
- 		goto sync_fail;
- 
-+	ret = nf_register_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
-+	if (ret < 0)
-+		goto hook_fail;
+-				if (state->td_scale > 14) {
+-					/* See RFC1323 */
+-					state->td_scale = 14;
+-				}
++				if (state->td_scale > TCP_MAX_WSCALE)
++					state->td_scale = TCP_MAX_WSCALE;
 +
- 	return 0;
- /*
-  * Error handling
-  */
- 
-+hook_fail:
-+	ip_vs_sync_net_cleanup(ipvs);
- sync_fail:
- 	ip_vs_conn_net_cleanup(ipvs);
- conn_fail:
-@@ -2255,6 +2262,7 @@ static void __net_exit __ip_vs_cleanup(struct net *net)
- {
- 	struct netns_ipvs *ipvs = net_ipvs(net);
- 
-+	nf_unregister_net_hooks(net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
- 	ip_vs_service_net_cleanup(ipvs);	/* ip_vs_flush() with locks */
- 	ip_vs_conn_net_cleanup(ipvs);
- 	ip_vs_app_net_cleanup(ipvs);
-@@ -2315,24 +2323,16 @@ static int __init ip_vs_init(void)
- 	if (ret < 0)
- 		goto cleanup_sub;
- 
--	ret = nf_register_hooks(ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
--	if (ret < 0) {
--		pr_err("can't register hooks.\n");
--		goto cleanup_dev;
--	}
--
- 	ret = ip_vs_register_nl_ioctl();
- 	if (ret < 0) {
- 		pr_err("can't register netlink/ioctl.\n");
--		goto cleanup_hooks;
-+		goto cleanup_dev;
- 	}
- 
- 	pr_info("ipvs loaded.\n");
- 
- 	return ret;
- 
--cleanup_hooks:
--	nf_unregister_hooks(ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
- cleanup_dev:
- 	unregister_pernet_device(&ipvs_core_dev_ops);
- cleanup_sub:
-@@ -2349,7 +2349,6 @@ static int __init ip_vs_init(void)
- static void __exit ip_vs_cleanup(void)
- {
- 	ip_vs_unregister_nl_ioctl();
--	nf_unregister_hooks(ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
- 	unregister_pernet_device(&ipvs_core_dev_ops);
- 	unregister_pernet_subsys(&ipvs_core_ops);	/* free ip_vs struct */
- 	ip_vs_conn_cleanup();
+ 				state->flags |=
+ 					IP_CT_TCP_FLAG_WINDOW_SCALE;
+ 			}
+diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+index abe03e869f7b..a504e87c6ddf 100644
+--- a/net/netfilter/nf_synproxy_core.c
++++ b/net/netfilter/nf_synproxy_core.c
+@@ -66,8 +66,8 @@ synproxy_parse_options(const struct sk_buff *skb, unsigned int doff,
+ 			case TCPOPT_WINDOW:
+ 				if (opsize == TCPOLEN_WINDOW) {
+ 					opts->wscale = *ptr;
+-					if (opts->wscale > 14)
+-						opts->wscale = 14;
++					if (opts->wscale > TCP_MAX_WSCALE)
++						opts->wscale = TCP_MAX_WSCALE;
+ 					opts->options |= XT_SYNPROXY_OPT_WSCALE;
+ 				}
+ 				break;
 -- 
 2.1.4
+
