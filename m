@@ -1,15 +1,19 @@
 From: Julian Anastasov <ja@ssi.bg>
-Subject: [PATCH 3.10.105,3.12.73,3.16.43,4.1.39 -stable 2/3] ipvs: SNAT packet replies only for NATed connections
-Date: Mon,  1 May 2017 16:45:36 +0300
-Message-ID: <20170501134537.4715-3-ja@ssi.bg>
+Subject: [PATCH 3.2.88,3.4.113 -stable 1/3] ipvs: SNAT packet replies only for NATed connections
+Date: Mon,  1 May 2017 16:45:35 +0300
+Message-ID: <20170501134537.4715-2-ja@ssi.bg>
 References: <20170501134537.4715-1-ja@ssi.bg>
 Cc: netfilter-devel@vger.kernel.org, Simon Horman <horms@verge.net.au>,
         lvs-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <lvs-devel-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ja.ssi.bg ([178.16.129.10]:33628 "EHLO ja.ssi.bg"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S938548AbdEANqo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 1 May 2017 09:46:44 -0400
 In-Reply-To: <20170501134537.4715-1-ja@ssi.bg>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 We do not check if packet from real server is for NAT
 connection before performing SNAT. This causes problems
@@ -41,7 +45,7 @@ Signed-off-by: Julian Anastasov <ja@ssi.bg>
  1 file changed, 14 insertions(+), 5 deletions(-)
 
 diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 1c6a71c..ca66520 100644
+index 197ed93..3152091 100644
 --- a/net/netfilter/ipvs/ip_vs_core.c
 +++ b/net/netfilter/ipvs/ip_vs_core.c
 @@ -795,10 +795,8 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
@@ -66,15 +70,15 @@ index 1c6a71c..ca66520 100644
  	verdict = NF_ACCEPT;
  
  out:
-@@ -1182,8 +1182,11 @@ ip_vs_out(unsigned int hooknum, struct sk_buff *skb, int af)
+@@ -1178,8 +1178,11 @@ ip_vs_out(unsigned int hooknum, struct sk_buff *skb, int af)
  	 */
- 	cp = pp->conn_out_get(af, skb, &iph, 0);
+ 	cp = pp->conn_out_get(af, skb, &iph, iph.len, 0);
  
 -	if (likely(cp))
 +	if (likely(cp)) {
 +		if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ)
 +			goto ignore_cp;
- 		return handle_response(af, skb, pd, cp, &iph, hooknum);
+ 		return handle_response(af, skb, pd, cp, iph.len, hooknum);
 +	}
  	if (sysctl_nat_icmp_send(net) &&
  	    (pp->protocol == IPPROTO_TCP ||
