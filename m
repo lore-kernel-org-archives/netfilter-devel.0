@@ -1,42 +1,106 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next] netfilter: nf_ct_ext: invoke destroy even when
- ext is not attached
-Date: Sat, 29 Apr 2017 22:03:10 +0200
-Message-ID: <20170429200310.GC26935@breakpoint.cc>
-References: <1493474389-9217-1-git-send-email-zlpnobody@163.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org, fw@strlen.de,
-        Liping Zhang <zlpnobody@gmail.com>
-To: Liping Zhang <zlpnobody@163.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next 3/4] netfilter: nf_tables: missing sanitization in data from userspace
+Date: Mon,  1 May 2017 10:58:02 +0200
+Message-ID: <1493629083-2847-3-git-send-email-pablo@netfilter.org>
+References: <1493629083-2847-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:39246 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1036093AbdD2UDZ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 29 Apr 2017 16:03:25 -0400
-Content-Disposition: inline
-In-Reply-To: <1493474389-9217-1-git-send-email-zlpnobody@163.com>
+Received: from mail.us.es ([193.147.175.20]:48446 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S376359AbdEAI6S (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 1 May 2017 04:58:18 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 480B61F4B7E
+        for <netfilter-devel@vger.kernel.org>; Mon,  1 May 2017 10:58:11 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3769DFF124
+        for <netfilter-devel@vger.kernel.org>; Mon,  1 May 2017 10:58:11 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1FA90FF2D0
+        for <netfilter-devel@vger.kernel.org>; Mon,  1 May 2017 10:58:09 +0200 (CEST)
+In-Reply-To: <1493629083-2847-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Liping Zhang <zlpnobody@163.com> wrote:
-> From: Liping Zhang <zlpnobody@gmail.com>
-> 
-> For NF_NAT_MANIP_SRC, we will insert the ct to the nat_bysource_table,
-> then remove it from the nat_bysource_table via nat_extend->destroy.
+Do not assume userspace always sends us NFT_DATA_VALUE for bitwise and
+cmp expressions. Although NFT_DATA_VERDICT does not make any sense, it
+is still possible to handcraft a netlink message using this incorrect
+data type.
 
-Right, I forgot about that.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+This patch replaces [nf-next,2/4] netfilter: nf_tables: remove
+nft_data_uninit() on NFT_DATA_VALUE.
 
-> But now, the nat extension is attached on demand, so if the nat extension
-> is not attached, we will not be notified when the ct is destroyed, i.e.
-> we may fail to remove ct from the nat_bysource_table.
->
-> So just keep it simple, even if the extension is not attached, we will
-> still invoke the related ext->destroy. And this will also preserve the
-> flexibility for the future extension.
+We cannot assume userspace sends us something right, so it may indeed use a
+verdict to compare/bitwise even if it doesn't make it sense, leading to a chain
+refcount leak.
 
-So afaics only helper and nat have destructors and both are safe to be
-called if the extension isn't present.
+ net/netfilter/nft_bitwise.c | 19 ++++++++++++++-----
+ net/netfilter/nft_cmp.c     | 12 ++++++++++--
+ 2 files changed, 24 insertions(+), 7 deletions(-)
 
-IOW, this looks correct to me, thanks for finding and fixing this.
+diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
+index 877d9acd91ef..96bd4f325b0f 100644
+--- a/net/netfilter/nft_bitwise.c
++++ b/net/netfilter/nft_bitwise.c
+@@ -83,17 +83,26 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
+ 			    tb[NFTA_BITWISE_MASK]);
+ 	if (err < 0)
+ 		return err;
+-	if (d1.len != priv->len)
+-		return -EINVAL;
++	if (d1.len != priv->len) {
++		err = -EINVAL;
++		goto err1;
++	}
+ 
+ 	err = nft_data_init(NULL, &priv->xor, sizeof(priv->xor), &d2,
+ 			    tb[NFTA_BITWISE_XOR]);
+ 	if (err < 0)
+-		return err;
+-	if (d2.len != priv->len)
+-		return -EINVAL;
++		goto err1;
++	if (d2.len != priv->len) {
++		err = -EINVAL;
++		goto err2;
++	}
+ 
+ 	return 0;
++err2:
++	nft_data_uninit(&priv->xor, d2.type);
++err1:
++	nft_data_uninit(&priv->mask, d1.type);
++	return err;
+ }
+ 
+ static int nft_bitwise_dump(struct sk_buff *skb, const struct nft_expr *expr)
+diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
+index 2b96effeadc1..8c9d0fb19118 100644
+--- a/net/netfilter/nft_cmp.c
++++ b/net/netfilter/nft_cmp.c
+@@ -201,10 +201,18 @@ nft_cmp_select_ops(const struct nft_ctx *ctx, const struct nlattr * const tb[])
+ 	if (err < 0)
+ 		return ERR_PTR(err);
+ 
++	if (desc.type != NFT_DATA_VALUE) {
++		err = -EINVAL;
++		goto err1;
++	}
++
+ 	if (desc.len <= sizeof(u32) && op == NFT_CMP_EQ)
+ 		return &nft_cmp_fast_ops;
+-	else
+-		return &nft_cmp_ops;
++
++	return &nft_cmp_ops;
++err1:
++	nft_data_uninit(&data, desc.type);
++	return ERR_PTR(-EINVAL);
+ }
+ 
+ struct nft_expr_type nft_cmp_type __read_mostly = {
+-- 
+2.1.4
+
