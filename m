@@ -1,67 +1,108 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [conntrack-tools PATCH 2/4] conntrackd: warn users about queue
- allocation errors
-Date: Tue, 2 May 2017 12:09:28 +0200
-Message-ID: <20170502100928.GA2602@salvia>
-References: <149270928083.1751.9498250834672625764.stgit@nfdev2.cica.es>
- <149270928606.1751.8172963085482513292.stgit@nfdev2.cica.es>
- <20170425113401.GA5355@salvia>
- <CAOkSjBh8rV0U1FjWYsOetKBzGyzMH4dx44ir+h6CikZdrWS5Eg@mail.gmail.com>
- <20170425131653.GA1050@salvia>
- <CAOkSjBh47LuV_MyqmfruQ2JeY0-jqs1+fQLs+eTyRUEWL3ui+w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo@debian.org>
+From: Phil Sutter <phil@nwl.cc>
+Subject: [nft PATCH] nft.8: Enhance NAT documentation
+Date: Tue,  2 May 2017 19:51:27 +0200
+Message-ID: <20170502175127.30805-1-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39316 "EHLO mail.us.es"
+Received: from orbyte.nwl.cc ([151.80.46.58]:46799 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750789AbdEBKJc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 May 2017 06:09:32 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3FE09303D09
-        for <netfilter-devel@vger.kernel.org>; Tue,  2 May 2017 12:09:26 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2E9E3FF6F9
-        for <netfilter-devel@vger.kernel.org>; Tue,  2 May 2017 12:09:26 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1F613FF2E2
-        for <netfilter-devel@vger.kernel.org>; Tue,  2 May 2017 12:09:24 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBh47LuV_MyqmfruQ2JeY0-jqs1+fQLs+eTyRUEWL3ui+w@mail.gmail.com>
+        id S1750864AbdEBRvk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 2 May 2017 13:51:40 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 02, 2017 at 10:34:12AM +0200, Arturo Borrero Gonzalez wrote:
-> On 25 April 2017 at 15:16, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >
-> > Yes, but this is going to full the logs if ever happen.
-> >
-> > Better add stats:
-> >
-> >         /* statistics */
-> >         struct {
-> >                 uint64_t        msg_rcv_malformed;
-> >                 uint32_t        msg_rcv_bad_version;
-> >                 uint32_t        msg_rcv_bad_payload;
-> >                 uint32_t        msg_rcv_bad_header;
-> >                 uint32_t        msg_rcv_bad_type;
-> >                 uint32_t        msg_rcv_truncated;
-> >                 uint32_t        msg_rcv_bad_size;
-> >                 uint32_t        msg_snd_malformed;
-> >                 uint64_t        msg_rcv_lost;
-> >                 uint64_t        msg_rcv_before;
-> >         } error;
-> >
-> > A quick glance at the code to see how we're globaling deal with lack
-> > of memory would be good. There's little we can do in that situation,
-> > and in my experience this most likely point to a memory leak.
-> >
-> > So better follow a less agressive way than filling the logs, OK? We
-> > indeed have a way to report this via the existing -s options.
-> 
-> Ok, then I can drop this patch from the series and add later a couple
-> more of stats.
+This adds documentation about masquerade and redirect statements, points
+out that for any NAT statement both prerouting and postrouting chains
+are required and adds a bunch of examples to the section's end.
 
-Please do. Thanks.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ doc/nft.xml | 58 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 57 insertions(+), 1 deletion(-)
+
+diff --git a/doc/nft.xml b/doc/nft.xml
+index 4d0e89cd2054c..5680cdf1f5a22 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -4121,12 +4121,45 @@ ct eventmask set new or related or destroy
+ 						<arg choice="opt">:<replaceable>port</replaceable> - <replaceable>port</replaceable></arg></arg>
+ 						<arg choice="opt">persistent, random, fully-random</arg>
+ 				</cmdsynopsis>
++				<cmdsynopsis>
++						<command>masquerade</command>
++						<arg choice="none">to
++						<arg choice="opt">:<replaceable>port</replaceable></arg></arg>
++						<arg choice="opt">persistent, random, fully-random</arg>
++				</cmdsynopsis>
++				<cmdsynopsis>
++						<command>masquerade</command>
++						<arg choice="none">to
++						<arg choice="opt">:<replaceable>port</replaceable> - <replaceable>port</replaceable></arg></arg>
++						<arg choice="opt">persistent, random, fully-random</arg>
++				</cmdsynopsis>
++				<cmdsynopsis>
++						<command>redirect</command>
++						<arg choice="none">to
++						<arg choice="opt">:<replaceable>port</replaceable></arg></arg>
++						<arg choice="opt">persistent, random, fully-random</arg>
++				</cmdsynopsis>
++				<cmdsynopsis>
++						<command>redirect</command>
++						<arg choice="none">to
++						<arg choice="opt">:<replaceable>port</replaceable> - <replaceable>port</replaceable></arg></arg>
++						<arg choice="opt">persistent, random, fully-random</arg>
++				</cmdsynopsis>
+ 			</para>
+ 			<para>
+ 				The nat statements are only valid from nat chain types.
+ 			</para>
+ 			<para>
+-				The <command>snat</command> statement is only valid in the postrouting and input hooks, it specifies that the source address of the packet should be modified. The <command>dnat</command> statement is only valid in the prerouting and output chains, it specifies that the destination address of the packet should be modified. You can use non-base chains which are called from base chains of nat chain type too. All future packets in this connection will also be mangled, and rules should cease being examined.
++				The <command>snat</command> and <command>masquerade</command> statements specify that the source address of the packet should be modified. While <command>snat</command> is only valid in the postrouting and input chains, <command>masquerade</command> makes sense only in postrouting. The <command>dnat</command> and <command>redirect</command> statements are only valid in the prerouting and output chains, they specify that the destination address of the packet should be modified. You can use non-base chains which are called from base chains of nat chain type too. All future packets in this connection will also be mangled, and rules should cease being examined.
++			</para>
++			<para>
++				The <command>masquerade</command> statement is a special form of <command>snat</command> which always uses the outgoing interface's IP address to translate to. It is particularly useful on gateways with dynamic (public) IP addresses.
++			</para>
++			<para>
++				The <command>redirect</command> statement is a special form of <command>dnat</command> which always translates the destination address to the local host's one. It comes in handy if one only wants to alter the destination port of incoming traffic on different interfaces.
++			</para>
++			<para>
++				Note that all nat statements require both prerouting and postrouting base chains to be present since otherwise packets on the return path won't be seen by netfilter and therefore no reverse translation will take place.
+ 			</para>
+ 			<para>
+ 				<table frame="all">
+@@ -4183,7 +4216,30 @@ ct eventmask set new or related or destroy
+ 						</tbody>
+ 					</tgroup>
+ 				</table>
++			</para>
++			<para>
++				<example>
++					<title>Using NAT statements</title>
++					<programlisting>
++# create a suitable table/chain setup for all further examples
++add table nat
++add chain nat prerouting { type nat hook prerouting priority 0; }
++add chain nat postrouting { type nat hook postrouting priority 100; }
++
++# translate source addresses of all packets leaving via eth0 to address 1.2.3.4
++add rule nat postrouting oif eth0 snat to 1.2.3.4
+ 
++# redirect all traffic entering via eth0 to destination address 192.168.1.120
++add rule nat prerouting iif eth0 dnat to 192.168.1.120
++
++# translate source addresses of all packets leaving via eth0 to whatever
++# locally generated packets would use as source to reach the same destination
++add rule nat postrouting oif eth0 masquerade
++
++# redirect incoming TCP traffic for port 22 to port 2222
++add rule nat prerouting tcp dport 22 redirect to :2222
++					</programlisting>
++				</example>
+ 			</para>
+ 		</refsect2>
+ 		<refsect2>
+-- 
+2.11.0
+
