@@ -1,8 +1,8 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [conntrack-tools PATCH 2/4] conntrackd: warn users about queue
  allocation errors
-Date: Tue, 2 May 2017 12:03:32 +0200
-Message-ID: <20170502100332.GE2321@salvia>
+Date: Tue, 2 May 2017 12:09:28 +0200
+Message-ID: <20170502100928.GA2602@salvia>
 References: <149270928083.1751.9498250834672625764.stgit@nfdev2.cica.es>
  <149270928606.1751.8172963085482513292.stgit@nfdev2.cica.es>
  <20170425113401.GA5355@salvia>
@@ -15,19 +15,19 @@ Cc: Netfilter Development Mailing list
         <netfilter-devel@vger.kernel.org>
 To: Arturo Borrero Gonzalez <arturo@debian.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35626 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39316 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750792AbdEBKDh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 May 2017 06:03:37 -0400
+        id S1750789AbdEBKJc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 2 May 2017 06:09:32 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0F0CF2EFEA2
-        for <netfilter-devel@vger.kernel.org>; Tue,  2 May 2017 12:03:31 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 3FE09303D09
+        for <netfilter-devel@vger.kernel.org>; Tue,  2 May 2017 12:09:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 00820FF2D0
-        for <netfilter-devel@vger.kernel.org>; Tue,  2 May 2017 12:03:31 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2E9E3FF6F9
+        for <netfilter-devel@vger.kernel.org>; Tue,  2 May 2017 12:09:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E476BFF124
-        for <netfilter-devel@vger.kernel.org>; Tue,  2 May 2017 12:03:28 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1F613FF2E2
+        for <netfilter-devel@vger.kernel.org>; Tue,  2 May 2017 12:09:24 +0200 (CEST)
 Content-Disposition: inline
 In-Reply-To: <CAOkSjBh47LuV_MyqmfruQ2JeY0-jqs1+fQLs+eTyRUEWL3ui+w@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -64,4 +64,4 @@ On Tue, May 02, 2017 at 10:34:12AM +0200, Arturo Borrero Gonzalez wrote:
 > Ok, then I can drop this patch from the series and add later a couple
 > more of stats.
 
-Great. Thanks Arturo.
+Please do. Thanks.
