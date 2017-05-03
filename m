@@ -1,67 +1,57 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 15/16] netfilter: update MAINTAINERS file
-Date: Wed,  3 May 2017 11:32:10 +0200
-Message-ID: <1493803931-2837-16-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 14/16] netfilter: x_tables: unlock on error in xt_find_table_lock()
+Date: Wed,  3 May 2017 11:32:09 +0200
+Message-ID: <1493803931-2837-15-git-send-email-pablo@netfilter.org>
 References: <1493803931-2837-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45788 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45802 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753063AbdECJcn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 May 2017 05:32:43 -0400
+        id S1753121AbdECJcy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 3 May 2017 05:32:54 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id F13131D94A9
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2017 11:32:30 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id B5BAD1CE158
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2017 11:32:29 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E050CFC3DC
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2017 11:32:30 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A50C1FC3DC
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2017 11:32:29 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 58CBCA8F7
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2017 11:32:28 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8CDD2FF2F1
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2017 11:32:27 +0200 (CEST)
 In-Reply-To: <1493803931-2837-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Several updates on the MAINTAINERS section for Netfilter:
+From: Dan Carpenter <dan.carpenter@oracle.com>
 
-1) Add Florian Westphal, he's been part of the coreteam since October 2012.
-   He's been dedicating tireless efforts to improve the Netfilter codebase,
-   fix bugs and push ongoing new developments ever since.
+According to my static checker we should unlock here before the return.
+That seems reasonable to me as well.
 
-2) Add http://www.nftables.org/ URL, currently pointing to
-   http://www.netfilter.org.
-
-3) Update project status from Supported to Maintained.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes" b9e69e127397 ("netfilter: xtables: don't hook tables by default")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 Acked-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- MAINTAINERS | 4 +++-
+ net/netfilter/x_tables.c | 4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 38d3e4ed7208..fc95cb06fb29 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8701,14 +8701,16 @@ F:	drivers/net/ethernet/neterion/
- NETFILTER
- M:	Pablo Neira Ayuso <pablo@netfilter.org>
- M:	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-+M:	Florian Westphal <fw@strlen.de>
- L:	netfilter-devel@vger.kernel.org
- L:	coreteam@netfilter.org
- W:	http://www.netfilter.org/
- W:	http://www.iptables.org/
-+W:	http://www.nftables.org/
- Q:	http://patchwork.ozlabs.org/project/netfilter-devel/list/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
--S:	Supported
-+S:	Maintained
- F:	include/linux/netfilter*
- F:	include/linux/netfilter/
- F:	include/net/netfilter/
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 14857afc9937..f134d384852f 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1051,8 +1051,10 @@ struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
+ 	list_for_each_entry(t, &init_net.xt.tables[af], list) {
+ 		if (strcmp(t->name, name))
+ 			continue;
+-		if (!try_module_get(t->me))
++		if (!try_module_get(t->me)) {
++			mutex_unlock(&xt[af].mutex);
+ 			return NULL;
++		}
+ 
+ 		mutex_unlock(&xt[af].mutex);
+ 		if (t->table_init(net) != 0) {
 -- 
 2.1.4
 
