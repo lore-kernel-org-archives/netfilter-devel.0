@@ -1,55 +1,47 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH] netfilter: conntrack: Force inlining of build check to prevent build failure
-Date: Wed,  3 May 2017 14:18:43 +0200
-Message-ID: <1493813923-5441-1-git-send-email-geert@linux-m68k.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-To: "David S . Miller" <davem@davemloft.net>,
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] netfilter: conntrack: Force inlining of build check to
+ prevent build failure
+Date: Wed, 3 May 2017 14:32:31 +0200
+Message-ID: <CAK8P3a23oEo1zYdFD2nSFzvEc6SF_hoW+4OBig_SY3C1oHJA+g@mail.gmail.com>
+References: <1493813923-5441-1-git-send-email-geert@linux-m68k.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: "David S . Miller" <davem@davemloft.net>,
         Florian Westphal <fw@strlen.de>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from baptiste.telenet-ops.be ([195.130.132.51]:40408 "EHLO
-        baptiste.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751619AbdECMSs (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 May 2017 08:18:48 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Networking <netdev@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1493813923-5441-1-git-send-email-geert@linux-m68k.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-If gcc (e.g. 4.1.2) decides not to inline total_extension_size(), the
-build will fail with:
+On Wed, May 3, 2017 at 2:18 PM, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+> If gcc (e.g. 4.1.2) decides not to inline total_extension_size(), the
+> build will fail with:
+>
+>     net/built-in.o: In function `nf_conntrack_init_start':
+>     (.text+0x9baf6): undefined reference to `__compiletime_assert_1893'
+>
+> or
+>
+>     ERROR: "__compiletime_assert_1893" [net/netfilter/nf_conntrack.ko] undefined!
+>
+> Fix this by forcing inlining of total_extension_size().
+>
+> Fixes: b3a5db109e0670d6 ("netfilter: conntrack: use u8 for extension sizes again")
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-    net/built-in.o: In function `nf_conntrack_init_start':
-    (.text+0x9baf6): undefined reference to `__compiletime_assert_1893'
+I saw this as well when I tried building with "gcc-7 -Og", and came to the same
+conclusion.
 
-or
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 
-    ERROR: "__compiletime_assert_1893" [net/netfilter/nf_conntrack.ko] undefined!
+With -Og, there were a couple of other instances of BUILD_BUG_ON() failing
+to see a compile-time constant, presumably as it fails to inline any functions
+that are not explicitly marked inline.
 
-Fix this by forcing inlining of total_extension_size().
-
-Fixes: b3a5db109e0670d6 ("netfilter: conntrack: use u8 for extension sizes again")
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
----
- net/netfilter/nf_conntrack_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index f9245dbfe4356da6..3c8f1ed2f5558fe0 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1853,7 +1853,7 @@ EXPORT_SYMBOL_GPL(nf_conntrack_set_hashsize);
- module_param_call(hashsize, nf_conntrack_set_hashsize, param_get_uint,
- 		  &nf_conntrack_htable_size, 0600);
- 
--static unsigned int total_extension_size(void)
-+static __always_inline unsigned int total_extension_size(void)
- {
- 	/* remember to add new extensions below */
- 	BUILD_BUG_ON(NF_CT_EXT_NUM > 9);
--- 
-2.7.4
-
+       Arnd
