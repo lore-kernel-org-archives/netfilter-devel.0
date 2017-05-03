@@ -1,153 +1,95 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 00/16] Netfilter/IPVS/OVS fixes for net
-Date: Wed,  3 May 2017 11:31:55 +0200
-Message-ID: <1493803931-2837-1-git-send-email-pablo@netfilter.org>
+From: dalin liu <kendodada@gmail.com>
+Subject: .nf_ct_iterate_cleanup panic
+Date: Wed, 3 May 2017 18:40:49 +0800
+Message-ID: <CAHp8Fza4+-yF=FXtz6srQPggjvxrgexY-LgzmC9mUeyu2sZnHw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: davem@davemloft.net, netdev@vger.kernel.org
+Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45648 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752862AbdECJc3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 May 2017 05:32:29 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 531D01C4443
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2017 11:32:22 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 40315FF14F
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2017 11:32:22 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 99FECDA865
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 May 2017 11:32:15 +0200 (CEST)
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:37910 "EHLO
+        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751063AbdECKkv (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 3 May 2017 06:40:51 -0400
+Received: by mail-wm0-f46.google.com with SMTP id r190so52852848wme.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 03 May 2017 03:40:50 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi David,
+kernel version: 4.4.56
 
-The following patchset contains a rather large batch of Netfilter, IPVS
-and OVS fixes for your net tree. This includes fixes for ctnetlink, the
-userspace conntrack helper infrastructure, conntrack OVS support,
-ebtables DNAT target, several leaks in error path among other. More
-specifically, they are:
+In my linux box,when some PPPoE link are disconnected,
+nf_ct_iterate_cleanup will be called.nf_ct_iterate_cleanup may have
+access to the wrong conntrack address:
 
-1) Fix reference count leak in the CT target error path, from Gao Feng.
+<1>[927268.772583] BUG: unable to handle kernel paging request at
+ffff88a0050402c7
+<1>[927268.785578] IP: [<ffffffff818c7472>] nf_ct_iterate_cleanup+0xa2/0x230
+<4>[927268.792969] PGD 0
+<4>[927268.800512] Oops: 0000 [#1] SMP
+<4>[927268.808463] Modules linked in: ipmi_watchdog iptable_raw xt_CT
+nf_nat_sip nf_nat_pptp nf_nat_proto_gre nf_nat_ftp nf_conntrack_sip
+nf_conntrack_pptp nf_conntrack_proto_gre nf_conntrack_ftp
+ip_set_hash_netiface ip_set_hash_net ip_set_hash_ip xt_set ip_set
+ixgbe(O) vxlan igb(O) e1000e(O)
+<4>[927268.862764] CPU: 46 PID: 6186 Comm: pppd Tainted: G           O
+   4.4.56 #58
+<4>[927268.882176] Hardware name: Supermicro Super Server/X10DRL-i,
+BIOS 2.0a 08/25/2016
+<4>[927268.903142] task: ffff880472611c40 ti: ffff880223ed8000
+task.ti: ffff880223ed8000
+<4>[927268.925685] RIP: 0010:[<ffffffff818c7472>]
+[<ffffffff818c7472>] nf_ct_iterate_cleanup+0xa2/0x230
+<4>[927268.949862] RSP: 0018:ffff880223edbc28  EFLAGS: 00010246
+<4>[927268.962330] RAX: ffffc90001eb1000 RBX: ffffffff8193a8d0 RCX:
+ffff8801f4a668a8
+<4>[927268.988124] RDX: 0000000000000001 RSI: 0000000000000200 RDI:
+ffffffff82007af4
+<4>[927269.015332] RBP: ffff880223edbc78 R08: ffff88047fc43f08 R09:
+0000000000000101
+<4>[927269.043272] R10: 0000000000000000 R11: 0000000000000000 R12:
+0000000000006c89
+<4>[927269.072536] R13: ffffffff820ac780 R14: ffff88a005040290 R15:
+ffff8801f56f2a80
+<4>[927269.102576] FS:  00007f1d30a3d720(0000)
+GS:ffff88047fc40000(0000) knlGS:0000000000000000
+<4>[927269.132067] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+<4>[927269.147159] CR2: ffff88a0050402c7 CR3: 000000046e37e000 CR4:
+00000000001406e0
+<4>[927269.177840] Stack:
+<4>[927269.192958]  ffff880223edbc38 0000000000000000 000000000000013d
+ffffffff0013593d
+<4>[927269.223469]  ffff880223edbc88 0000000000000002 ffff880223edbd20
+00000000fffffff0
+<4>[927269.253778]  ffffffff820b7050 0000000000000000 ffff880223edbc88
+ffffffff8193a940
+<4>[927269.283402] Call Trace:
+<4>[927269.297585]  [<ffffffff8193a940>] masq_device_event+0x30/0x40
+<4>[927269.311561]  [<ffffffff8108de0b>] notifier_call_chain+0x4b/0x70
+<4>[927269.325391]  [<ffffffff8108df01>] raw_notifier_call_chain+0x11/0x20
+<4>[927269.338999]  [<ffffffff81870c9b>] call_netdevice_notifiers_info+0x3b/0x70
+<4>[927269.352544]  [<ffffffff81870d31>] call_netdevice_notifiers+0x11/0x20
+<4>[927269.365945]  [<ffffffff818782ef>] __dev_notify_flags+0x5f/0xb0
+<4>[927269.379318]  [<ffffffff81878a54>] dev_change_flags+0x54/0x70
+<4>[927269.392522]  [<ffffffff8191bf31>] devinet_ioctl+0x5a1/0x670
+<4>[927269.405462]  [<ffffffff8191cd16>] inet_ioctl+0x66/0x80
+<4>[927269.418095]  [<ffffffff8185b776>] sock_ioctl+0x66/0x260
+<4>[927269.430430]  [<ffffffff81176301>] do_vfs_ioctl+0x81/0x4d0
+<4>[927269.442515]  [<ffffffff81176797>] SyS_ioctl+0x47/0x80
+<4>[927269.454330]  [<ffffffff819ad997>] entry_SYSCALL_64_fastpath+0x12/0x6a
+<4>[927269.465924] Code: 00 00 0f 83 54 01 00 00 49 8b 85 80 0c 00 00
+4e 8b 34 f0 41 f6 c6 01 74 12 e9 3e 01 00 00 4d 8b 36 41 f6 c6 01 0f
+85 31 01 00 00 <41> 80 7e 37 00 75 ec 4d 8d 7e f0 4c 89 e6 4c 89 ff ff
+d3 85 c0
+<1>[927269.506749] RIP  [<ffffffff818c7472>] nf_ct_iterate_cleanup+0xa2/0x230
+<4>[927269.519054]  RSP <ffff880223edbc28>
+<4>[927269.531071] CR2: ffff88a0050402c7
+<4>[927269.552110] ---[ end trace 01e3243232603b17 ]---
+<0>[927270.934341] Kernel panic - not syncing: Fatal exception in interrupt
 
-2) Remove conntrack entry clashing with a matching expectation, patch
-   from Jarno Rajahalme.
-
-3) Fix bogus EEXIST when registering two different userspace helpers,
-   from Liping Zhang.
-
-4) Don't leak dummy elements in the new bitmap set type in nf_tables,
-   from Liping Zhang.
-
-5) Get rid of module autoload from conntrack update path in ctnetlink,
-   we don't need autoload at this late stage and it is happening with
-   rcu read lock held which is not good. From Liping Zhang.
-
-6) Fix deadlock due to double-acquire of the expect_lock from conntrack
-   update path, this fixes a bug that was introduced when the central
-   spinlock got removed. Again from Liping Zhang.
-
-7) Safe ct->status update from ctnetlink path, from Liping. The expect_lock
-   protection that was selected when the central spinlock was removed was
-   not really protecting anything at all.
-
-8) Protect sequence adjustment under ct->lock.
-
-9) Missing socket match with IPv6, from Peter Tirsek.
-
-10) Adjust skb->pkt_type of DNAT'ed frames from ebtables, from
-    Linus Luessing.
-
-11) Don't give up on evaluating the expression on new entries added via
-    dynset expression in nf_tables, from Liping Zhang.
-
-12) Use skb_checksum() when mangling icmpv6 in IPv6 NAT as this deals
-    with non-linear skbuffs.
-
-13) Don't allow IPv6 service in IPVS if no IPv6 support is available,
-    from Paolo Abeni.
-
-14) Missing mutex release in error path of xt_find_table_lock(), from
-    Dan Carpenter.
-
-15) Update maintainers files, Netfilter section. Add Florian to the
-    file, refer to nftables.org and change project status from Supported
-    to Maintained.
-
-16) Bail out on mismatching extensions in element updates in nf_tables.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks!
-
-----------------------------------------------------------------
-
-The following changes since commit 94836ecf1e7378b64d37624fbb81fe48fbd4c772:
-
-  Merge tag 'nfsd-4.11-2' of git://linux-nfs.org/~bfields/linux (2017-04-21 16:37:48 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to 9744a6fcefcb4d56501d69adb04c24559d353cad:
-
-  netfilter: nf_tables: check if same extensions are set when adding elements (2017-05-03 10:58:00 +0200)
-
-----------------------------------------------------------------
-Dan Carpenter (1):
-      netfilter: x_tables: unlock on error in xt_find_table_lock()
-
-Dave Johnson (1):
-      netfilter: Wrong icmp6 checksum for ICMPV6_TIME_EXCEED in reverse SNATv6 path
-
-Gao Feng (1):
-      netfilter: xt_CT: fix refcnt leak on error path
-
-Jarno Rajahalme (1):
-      openvswitch: Delete conntrack entry clashing with an expectation.
-
-Linus Lüssing (1):
-      bridge: ebtables: fix reception of frames DNAT-ed to bridge device/port
-
-Liping Zhang (7):
-      netfilter: nf_ct_helper: permit cthelpers with different names via nfnetlink
-      netfilter: nft_set_bitmap: free dummy elements when destroy the set
-      netfilter: ctnetlink: drop the incorrect cthelper module request
-      netfilter: ctnetlink: fix deadlock due to acquire _expect_lock twice
-      netfilter: ctnetlink: make it safer when updating ct->status
-      netfilter: ctnetlink: acquire ct->lock before operating nf_ct_seqadj
-      netfilter: nft_dynset: continue to next expr if _OP_ADD succeeded
-
-Pablo Neira Ayuso (3):
-      Merge tag 'ipvs-fixes-for-v4.11' of http://git.kernel.org/.../horms/ipvs
-      netfilter: update MAINTAINERS file
-      netfilter: nf_tables: check if same extensions are set when adding elements
-
-Paolo Abeni (1):
-      ipvs: explicitly forbid ipv6 service/dest creation if ipv6 mod is disabled
-
-Peter Tirsek (1):
-      netfilter: xt_socket: Fix broken IPv6 handling
-
- MAINTAINERS                                        |  4 +-
- include/uapi/linux/netfilter/nf_conntrack_common.h | 13 +++-
- net/bridge/netfilter/ebt_dnat.c                    | 20 +++++
- net/ipv6/netfilter/nf_nat_l3proto_ipv6.c           |  2 +-
- net/netfilter/ipvs/ip_vs_ctl.c                     | 22 ++++--
- net/netfilter/nf_conntrack_helper.c                | 26 +++++--
- net/netfilter/nf_conntrack_netlink.c               | 89 ++++++++++++----------
- net/netfilter/nf_tables_api.c                      |  5 ++
- net/netfilter/nft_dynset.c                         |  5 +-
- net/netfilter/nft_set_bitmap.c                     |  5 ++
- net/netfilter/x_tables.c                           |  4 +-
- net/netfilter/xt_CT.c                              | 11 ++-
- net/netfilter/xt_socket.c                          |  2 +-
- net/openvswitch/conntrack.c                        | 30 +++++++-
- 14 files changed, 174 insertions(+), 64 deletions(-)
+----------------------------
+103c: 0f 85 31 01 00 00     jne    1173 <nf_ct_iterate_cleanup+0x1d3>
+if (NF_CT_DIRECTION(h) != IP_CT_DIR_ORIGINAL)
+1042: 41 80 7e 37 00       cmpb   $0x0,0x37(%r14)
+1047: 75 ec                 jne    1035 <nf_ct_iterate_cleanup+0x95>
