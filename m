@@ -1,108 +1,59 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH] nft.8: Enhance NAT documentation
-Date: Tue,  2 May 2017 19:51:27 +0200
-Message-ID: <20170502175127.30805-1-phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:46799 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750864AbdEBRvk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 May 2017 13:51:40 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 04/16] netfilter: nft_set_bitmap: free dummy elements when destroy the set
+Date: Wed,  3 May 2017 11:31:59 +0200
+Message-ID: <1493803931-2837-5-git-send-email-pablo@netfilter.org>
+References: <1493803931-2837-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1493803931-2837-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This adds documentation about masquerade and redirect statements, points
-out that for any NAT statement both prerouting and postrouting chains
-are required and adds a bunch of examples to the section's end.
+From: Liping Zhang <zlpnobody@gmail.com>
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+We forget to free dummy elements when deleting the set. So when I was
+running nft-test.py, I saw many kmemleak warnings:
+  kmemleak: 1344 new suspected memory leaks ...
+  # cat /sys/kernel/debug/kmemleak
+  unreferenced object 0xffff8800631345c8 (size 32):
+  comm "nft", pid 9075, jiffies 4295743309 (age 1354.815s)
+  hex dump (first 32 bytes):
+    f8 63 13 63 00 88 ff ff 88 79 13 63 00 88 ff ff  .c.c.....y.c....
+    04 0c 00 00 00 00 00 00 00 00 00 00 08 03 00 00  ................
+  backtrace:
+    [<ffffffff819059da>] kmemleak_alloc+0x4a/0xa0
+    [<ffffffff81288174>] __kmalloc+0x164/0x310
+    [<ffffffffa061269d>] nft_set_elem_init+0x3d/0x1b0 [nf_tables]
+    [<ffffffffa06130da>] nft_add_set_elem+0x45a/0x8c0 [nf_tables]
+    [<ffffffffa0613645>] nf_tables_newsetelem+0x105/0x1d0 [nf_tables]
+    [<ffffffffa05fe6d4>] nfnetlink_rcv+0x414/0x770 [nfnetlink]
+    [<ffffffff817f0ca6>] netlink_unicast+0x1f6/0x310
+    [<ffffffff817f10c6>] netlink_sendmsg+0x306/0x3b0
+  ...
+
+Fixes: e920dde516088 ("netfilter: nft_set_bitmap: keep a list of dummy elements")
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- doc/nft.xml | 58 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 57 insertions(+), 1 deletion(-)
+ net/netfilter/nft_set_bitmap.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/doc/nft.xml b/doc/nft.xml
-index 4d0e89cd2054c..5680cdf1f5a22 100644
---- a/doc/nft.xml
-+++ b/doc/nft.xml
-@@ -4121,12 +4121,45 @@ ct eventmask set new or related or destroy
- 						<arg choice="opt">:<replaceable>port</replaceable> - <replaceable>port</replaceable></arg></arg>
- 						<arg choice="opt">persistent, random, fully-random</arg>
- 				</cmdsynopsis>
-+				<cmdsynopsis>
-+						<command>masquerade</command>
-+						<arg choice="none">to
-+						<arg choice="opt">:<replaceable>port</replaceable></arg></arg>
-+						<arg choice="opt">persistent, random, fully-random</arg>
-+				</cmdsynopsis>
-+				<cmdsynopsis>
-+						<command>masquerade</command>
-+						<arg choice="none">to
-+						<arg choice="opt">:<replaceable>port</replaceable> - <replaceable>port</replaceable></arg></arg>
-+						<arg choice="opt">persistent, random, fully-random</arg>
-+				</cmdsynopsis>
-+				<cmdsynopsis>
-+						<command>redirect</command>
-+						<arg choice="none">to
-+						<arg choice="opt">:<replaceable>port</replaceable></arg></arg>
-+						<arg choice="opt">persistent, random, fully-random</arg>
-+				</cmdsynopsis>
-+				<cmdsynopsis>
-+						<command>redirect</command>
-+						<arg choice="none">to
-+						<arg choice="opt">:<replaceable>port</replaceable> - <replaceable>port</replaceable></arg></arg>
-+						<arg choice="opt">persistent, random, fully-random</arg>
-+				</cmdsynopsis>
- 			</para>
- 			<para>
- 				The nat statements are only valid from nat chain types.
- 			</para>
- 			<para>
--				The <command>snat</command> statement is only valid in the postrouting and input hooks, it specifies that the source address of the packet should be modified. The <command>dnat</command> statement is only valid in the prerouting and output chains, it specifies that the destination address of the packet should be modified. You can use non-base chains which are called from base chains of nat chain type too. All future packets in this connection will also be mangled, and rules should cease being examined.
-+				The <command>snat</command> and <command>masquerade</command> statements specify that the source address of the packet should be modified. While <command>snat</command> is only valid in the postrouting and input chains, <command>masquerade</command> makes sense only in postrouting. The <command>dnat</command> and <command>redirect</command> statements are only valid in the prerouting and output chains, they specify that the destination address of the packet should be modified. You can use non-base chains which are called from base chains of nat chain type too. All future packets in this connection will also be mangled, and rules should cease being examined.
-+			</para>
-+			<para>
-+				The <command>masquerade</command> statement is a special form of <command>snat</command> which always uses the outgoing interface's IP address to translate to. It is particularly useful on gateways with dynamic (public) IP addresses.
-+			</para>
-+			<para>
-+				The <command>redirect</command> statement is a special form of <command>dnat</command> which always translates the destination address to the local host's one. It comes in handy if one only wants to alter the destination port of incoming traffic on different interfaces.
-+			</para>
-+			<para>
-+				Note that all nat statements require both prerouting and postrouting base chains to be present since otherwise packets on the return path won't be seen by netfilter and therefore no reverse translation will take place.
- 			</para>
- 			<para>
- 				<table frame="all">
-@@ -4183,7 +4216,30 @@ ct eventmask set new or related or destroy
- 						</tbody>
- 					</tgroup>
- 				</table>
-+			</para>
-+			<para>
-+				<example>
-+					<title>Using NAT statements</title>
-+					<programlisting>
-+# create a suitable table/chain setup for all further examples
-+add table nat
-+add chain nat prerouting { type nat hook prerouting priority 0; }
-+add chain nat postrouting { type nat hook postrouting priority 100; }
-+
-+# translate source addresses of all packets leaving via eth0 to address 1.2.3.4
-+add rule nat postrouting oif eth0 snat to 1.2.3.4
+diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
+index 8ebbc2940f4c..b988162b5b15 100644
+--- a/net/netfilter/nft_set_bitmap.c
++++ b/net/netfilter/nft_set_bitmap.c
+@@ -257,6 +257,11 @@ static int nft_bitmap_init(const struct nft_set *set,
  
-+# redirect all traffic entering via eth0 to destination address 192.168.1.120
-+add rule nat prerouting iif eth0 dnat to 192.168.1.120
+ static void nft_bitmap_destroy(const struct nft_set *set)
+ {
++	struct nft_bitmap *priv = nft_set_priv(set);
++	struct nft_bitmap_elem *be, *n;
 +
-+# translate source addresses of all packets leaving via eth0 to whatever
-+# locally generated packets would use as source to reach the same destination
-+add rule nat postrouting oif eth0 masquerade
-+
-+# redirect incoming TCP traffic for port 22 to port 2222
-+add rule nat prerouting tcp dport 22 redirect to :2222
-+					</programlisting>
-+				</example>
- 			</para>
- 		</refsect2>
- 		<refsect2>
++	list_for_each_entry_safe(be, n, &priv->list, head)
++		nft_set_elem_destroy(set, be, true);
+ }
+ 
+ static bool nft_bitmap_estimate(const struct nft_set_desc *desc, u32 features,
 -- 
-2.11.0
-
+2.1.4
