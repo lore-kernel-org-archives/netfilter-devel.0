@@ -1,34 +1,63 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH] nft.8: Enhance NAT documentation
-Date: Thu, 4 May 2017 10:24:24 +0200
-Message-ID: <20170504082424.GA1691@salvia>
-References: <20170502175127.30805-1-phil@nwl.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Phil Sutter <phil@nwl.cc>
+From: Phil Sutter <phil@nwl.cc>
+Subject: [nf-next PATCH] netfilter: nf_tables: Return info of added rules back to user space
+Date: Thu,  4 May 2017 14:34:17 +0200
+Message-ID: <20170504123417.22088-1-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40878 "EHLO mail.us.es"
+Received: from orbyte.nwl.cc ([151.80.46.58]:56099 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750865AbdEDIYo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 May 2017 04:24:44 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 98B61396266
-        for <netfilter-devel@vger.kernel.org>; Thu,  4 May 2017 10:24:37 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8A846A0AAC
-        for <netfilter-devel@vger.kernel.org>; Thu,  4 May 2017 10:24:37 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8F00518527
-        for <netfilter-devel@vger.kernel.org>; Thu,  4 May 2017 10:24:35 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20170502175127.30805-1-phil@nwl.cc>
+        id S1750936AbdEDMea (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 4 May 2017 08:34:30 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 02, 2017 at 07:51:27PM +0200, Phil Sutter wrote:
-> This adds documentation about masquerade and redirect statements, points
-> out that for any NAT statement both prerouting and postrouting chains
-> are required and adds a bunch of examples to the section's end.
+This allows user space to reliably match kernel generated handles with
+added rules for reference.
 
-Applied, thanks.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ net/netfilter/nf_tables_api.c | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 1c6482d2c4dcf..71bce5d024409 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2142,6 +2142,7 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
+ 	struct nft_userdata *udata;
+ 	struct nft_trans *trans = NULL;
+ 	struct nft_expr *expr;
++	struct sk_buff *skb2;
+ 	struct nft_ctx ctx;
+ 	struct nlattr *tmp;
+ 	unsigned int size, i, n, ulen = 0, usize = 0;
+@@ -2281,8 +2282,24 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
+ 		goto err3;
+ 	}
+ 	chain->use++;
+-	return 0;
+ 
++	skb2 = alloc_skb(NLMSG_GOODSIZE, GFP_KERNEL);
++	if (!skb2) {
++		err = -ENOMEM;
++		goto err4;
++	}
++	err = nf_tables_fill_rule_info(skb2, net, NETLINK_CB(skb).portid,
++				       nlh->nlmsg_seq, NFT_MSG_NEWRULE, 0,
++				       nfmsg->nfgen_family, table, chain, rule);
++	if (err < 0)
++		goto err5;
++
++	return nlmsg_unicast(nlsk, skb2, NETLINK_CB(skb).portid);
++
++err5:
++	kfree_skb(skb2);
++err4:
++	chain->use--;
+ err3:
+ 	list_del_rcu(&rule->list);
+ err2:
+-- 
+2.11.0
+
