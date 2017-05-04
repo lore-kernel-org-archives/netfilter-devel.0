@@ -1,79 +1,68 @@
-From: Thomas Woerner <twoerner@redhat.com>
-Subject: Re: [nft PATCH] List handles of added rules if requested
-Date: Thu, 4 May 2017 17:37:25 +0200
-Message-ID: <4d219738-b12e-3c33-7ba3-bcb54b82bf2a@redhat.com>
-References: <20170504123421.22147-1-phil@nwl.cc>
- <20170504133626.GC5607@salvia> <20170504134419.GG13320@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] parser: allow listing sets in one table
+Date: Thu,  4 May 2017 18:09:31 +0200
+Message-ID: <20170504160931.15400-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40586 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751330AbdEDPh1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 May 2017 11:37:27 -0400
-In-Reply-To: <20170504134419.GG13320@breakpoint.cc>
-Content-Language: en-US
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57638 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754522AbdEDQJS (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 4 May 2017 12:09:18 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 05/04/2017 03:44 PM, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> On Thu, May 04, 2017 at 02:34:21PM +0200, Phil Sutter wrote:
->>> Being able to retrieve an added rule's handle atomically is a crucial
->>> feature for scripts invoking nft command: Without it, there is no way to
->>> be sure a handle extracted from 'nft list ruleset' command actually
->>> refers to the rule one has added before or that of another process which
->>> ran in between.
->>>
->>> Extracting an added rule's handle itself is not an easy task already,
->>> since there is a chance that a given rule is printed differently than
->>> when it was added before. A simple example is port number vs. service
->>> name:
->>>
->>> | nft add rule ip t c tcp dport { ssh, 80 } accept
->>>
->>> There is no way to make 'nft list ruleset' return the rule just like
->>> this as depending on whether '-nn' was given or not, it either prints
->>> the set as '{ ssh, http }' or '{ 22, 80 }' but never in the mixed form
->>> that was used when adding it.
->>>
->>> This patch prints an identifying string for each added rule which may be
->>> used as single parameter to a later 'nft delete rule' command. So a
->>> simple scripting example looks like this:
->>>
->>> | handle=$(nft add rule ip t c counter)
->>
->> This is a hack.
->>
->> We should follow the rule description path.
-> 
-> You mean delete-by-name?
-> 
-> Its just as ugly, just a different kind of ugly.
-> 
-Delete by name for rules would be an atomic operation. The solution above is 
-not as two calls are needed to remove one rule. Saving the handles while the 
-rule has been added is not possible all the time and will most likely require 
-bigger changes in several projects.
+currently nft can lists sets:
+nft list sets
 
-I also do not understand why delete by name is possible for tables, chains and 
-sets but not for rules.
+but unlike e.g. 'quotas' or 'counters' we didn't support
+restricting it to a table.  Now its possible to restrict set
+definition listing to one table:
 
-Delete by name for rules is also something that would help to be able to create 
-an nftables backend for firewalld easily. firewalld is using a transaction 
-model for iptables, that I'd also like to use for nftables. With this it is 
-possible to add and remove rules in one -restore call for IPv4 and one for 
-IPv6. Using this with gathering handles will take more time and will not be atomic.
+nft list sets table inet filter
 
-Though: Flushing the whole rule set and recreation of the new rule set could be 
-done in an atomic operation. But it will destroy everything else.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/evaluate.c     | 2 +-
+ src/parser_bison.y | 4 ++++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-> Will you delete the first match?  The last one?  All of them? > --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 49c5953ae168..1cfe7675162e 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -3037,6 +3037,7 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
+ 	case CMD_OBJ_COUNTERS:
+ 	case CMD_OBJ_QUOTAS:
+ 	case CMD_OBJ_CT_HELPERS:
++	case CMD_OBJ_SETS:
+ 		if (cmd->handle.table == NULL)
+ 			return 0;
+ 		if (table_lookup(&cmd->handle) == NULL)
+@@ -3044,7 +3045,6 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
+ 					 cmd->handle.table);
+ 		return 0;
+ 	case CMD_OBJ_CHAINS:
+-	case CMD_OBJ_SETS:
+ 	case CMD_OBJ_RULESET:
+ 	case CMD_OBJ_FLOWTABLES:
+ 	case CMD_OBJ_MAPS:
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 8db887a47d3e..6be94a9b873f 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1007,6 +1007,10 @@ list_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_SETS, &$2, &@$, NULL);
+ 			}
++			|	SETS		TABLE	table_spec
++			{
++				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_SETS, &$3, &@$, NULL);
++			}
+ 			|	SET		set_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_SET, &$2, &@$, NULL);
+-- 
+2.10.2
+
