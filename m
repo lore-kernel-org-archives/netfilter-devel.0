@@ -1,116 +1,48 @@
-From: Paolo Abeni <pabeni@redhat.com>
-Subject: Re: net: possible deadlock in skb_queue_tail
-Date: Thu, 04 May 2017 16:05:29 +0200
-Message-ID: <1493906729.2274.6.camel@redhat.com>
-References: <CAAeHK+yCwsZE9iv+OLHJaU+7FEka8UHy_t5vMqFUBpQ8srBbsQ@mail.gmail.com>
-         <20170224025650.GA16439@breakpoint.cc>
-         <CAAeHK+wNPLWKy7q-mpPFrgK6pvnGYA9aPc_rs5d4sSvpvtoxDA@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH -stable 0/3] ipvs: patches for stable
+Date: Thu, 4 May 2017 16:09:20 +0200
+Message-ID: <20170504140920.GA6629@salvia>
+References: <20170501134537.4715-1-ja@ssi.bg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Kostya Serebryany <kcc@google.com>,
-        Eric Dumazet <edumazet@google.com>,
-        syzkaller <syzkaller@googlegroups.com>
-To: Andrey Konovalov <andreyknvl@google.com>,
-        Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, Simon Horman <horms@verge.net.au>,
+        lvs-devel@vger.kernel.org
+To: Julian Anastasov <ja@ssi.bg>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46332 "EHLO mx1.redhat.com"
+Received: from mail.us.es ([193.147.175.20]:33888 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751333AbdEDOFe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 May 2017 10:05:34 -0400
-In-Reply-To: <CAAeHK+wNPLWKy7q-mpPFrgK6pvnGYA9aPc_rs5d4sSvpvtoxDA@mail.gmail.com>
+        id S1755458AbdEDOJd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 4 May 2017 10:09:33 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 13C5021057B
+        for <netfilter-devel@vger.kernel.org>; Thu,  4 May 2017 16:09:27 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E1727FF14F
+        for <netfilter-devel@vger.kernel.org>; Thu,  4 May 2017 16:09:26 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 96EBD102182
+        for <netfilter-devel@vger.kernel.org>; Thu,  4 May 2017 16:09:20 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20170501134537.4715-1-ja@ssi.bg>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2017-05-04 at 15:49 +0200, Andrey Konovalov wrote:
-> On Fri, Feb 24, 2017 at 3:56 AM, Florian Westphal <fw@strlen.de> wrote:
-> > Andrey Konovalov <andreyknvl@google.com> wrote:
-> > 
-> > [ CC Paolo ]
-> > 
-> > > I've got the following error report while fuzzing the kernel with syzkaller.
-> > > 
-> > > On commit c470abd4fde40ea6a0846a2beab642a578c0b8cd (4.10).
-> > > 
-> > > Unfortunately I can't reproduce it.
-> > 
-> > This needs NETLINK_BROADCAST_ERROR enabled on a netlink socket
-> > that then subscribes to netfilter conntrack (ctnetlink) events.
-> > probably syzkaller did this by accident -- impressive.
-> > 
-> > (one task is the ctnetlink event redelivery worker
-> >  which won't be scheduled otherwise).
-> > 
-> > > ======================================================
-> > > [ INFO: possible circular locking dependency detected ]
-> > > 4.10.0-rc8+ #201 Not tainted
-> > > -------------------------------------------------------
-> > > kworker/0:2/1404 is trying to acquire lock:
-> > >  (&(&list->lock)->rlock#3){+.-...}, at: [<ffffffff8335b23f>]
-> > > skb_queue_tail+0xcf/0x2f0 net/core/skbuff.c:2478
-> > > 
-> > > but task is already holding lock:
-> > >  (&(&pcpu->lock)->rlock){+.-...}, at: [<ffffffff8366b55f>] spin_lock
-> > > include/linux/spinlock.h:302 [inline]
-> > >  (&(&pcpu->lock)->rlock){+.-...}, at: [<ffffffff8366b55f>]
-> > > ecache_work_evict_list+0xaf/0x590
-> > > net/netfilter/nf_conntrack_ecache.c:48
-> > > 
-> > > which lock already depends on the new lock.
-> > 
-> > Cong is correct, this is a false positive.
-> > 
-> > However we should fix this splat.
-> > 
-> > Paolo, this happens since 7c13f97ffde63cc792c49ec1513f3974f2f05229
-> > ('udp: do fwd memory scheduling on dequeue'), before this
-> > commit kfree_skb() was invoked outside of the locked section in
-> > first_packet_length().
-> > 
-> > cpu 0 call chain:
-> > - first_packet_length (hold udp sk_receive_queue lock)
-> >    - kfree_skb
-> >       - nf_conntrack_destroy
-> >          - spin_lock(net->ct.pcpu->lock)
-> > 
-> > cpu 1 call chain:
-> > - ecache_work_evict_list
-> >   - spin_lock( net->ct.pcpu->lock)
-> >   - nf_conntrack_event
-> >      - aquire netlink socket sk_receive_queue
-> > 
-> > So this could only ever deadlock if a netlink socket
-> > calls kfree_skb while holding its sk_receive_queue lock, but afaics
-> > this is never the case.
-> > 
-> > There are two ways to avoid this splat (other than lockdep annotation):
-> > 
-> > 1. re-add the list to first_packet_length() and free the
-> > skbs outside of locked section.
-> > 
-> > 2. change ecache_work_evict_list to not call nf_conntrack_event()
-> > while holding the pcpu lock.
-> > 
-> > doing #2 might be a good idea anyway to avoid potential deadlock
-> > when kfree_skb gets invoked while other cpu holds its sk_receive_queue
-> > lock, I'll have a look if this is feasible.
+On Mon, May 01, 2017 at 04:45:34PM +0300, Julian Anastasov wrote:
+> 	Hello,
 > 
-> Hi!
+> The following patches are rediffs for "ipvs: SNAT packet replies
+> only for NATed connections" for different stable kernels:
 > 
-> Any updates on this?
+> The official patch for the net tree (will come from Simon) works for:
+> 4.9.25, 4.10.13, 4.11, net tree
 > 
-> I might have missed the patch if there was one.
-> 
-> Thanks!
+> Patch 1: 3.2.88, 3.4.113
+> Patch 2: 3.10.105, 3.12.73, 3.16.43, 4.1.39
+> Patch 3: 4.4.65
 
-That has should be fixed via lockdep annotation with
-581319c58600b54612c417aff32ae9bbd79f4cdb
+Thanks Julian.
 
-Paolo
+Could you indicate what upstream commit these patches refer to? stable
+maintainer need this.
 
+These are backports, right?
