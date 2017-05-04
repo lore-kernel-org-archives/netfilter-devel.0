@@ -1,70 +1,56 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nf-next PATCH] netfilter: nf_tables: Return info of added rules
- back to user space
-Date: Thu, 4 May 2017 15:35:44 +0200
-Message-ID: <20170504133544.GB5607@salvia>
-References: <20170504123417.22088-1-phil@nwl.cc>
+Subject: Re: [nft PATCH] List handles of added rules if requested
+Date: Thu, 4 May 2017 15:36:26 +0200
+Message-ID: <20170504133626.GC5607@salvia>
+References: <20170504123421.22147-1-phil@nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
 To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51724 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51930 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751565AbdEDNfx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 4 May 2017 09:35:53 -0400
+        id S1751565AbdEDNgf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 4 May 2017 09:36:35 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 19212210566
-        for <netfilter-devel@vger.kernel.org>; Thu,  4 May 2017 15:35:46 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 5BF0E210566
+        for <netfilter-devel@vger.kernel.org>; Thu,  4 May 2017 15:36:28 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0943EFF2D8
-        for <netfilter-devel@vger.kernel.org>; Thu,  4 May 2017 15:35:46 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4B354FF2C1
+        for <netfilter-devel@vger.kernel.org>; Thu,  4 May 2017 15:36:28 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D6CABFF2D3
-        for <netfilter-devel@vger.kernel.org>; Thu,  4 May 2017 15:35:43 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2E817FF2C8
+        for <netfilter-devel@vger.kernel.org>; Thu,  4 May 2017 15:36:26 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20170504123417.22088-1-phil@nwl.cc>
+In-Reply-To: <20170504123421.22147-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 04, 2017 at 02:34:17PM +0200, Phil Sutter wrote:
-> This allows user space to reliably match kernel generated handles with
-> added rules for reference.
+On Thu, May 04, 2017 at 02:34:21PM +0200, Phil Sutter wrote:
+> Being able to retrieve an added rule's handle atomically is a crucial
+> feature for scripts invoking nft command: Without it, there is no way to
+> be sure a handle extracted from 'nft list ruleset' command actually
+> refers to the rule one has added before or that of another process which
+> ran in between.
 > 
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
->  net/netfilter/nf_tables_api.c | 19 ++++++++++++++++++-
->  1 file changed, 18 insertions(+), 1 deletion(-)
+> Extracting an added rule's handle itself is not an easy task already,
+> since there is a chance that a given rule is printed differently than
+> when it was added before. A simple example is port number vs. service
+> name:
 > 
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index 1c6482d2c4dcf..71bce5d024409 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -2142,6 +2142,7 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
->  	struct nft_userdata *udata;
->  	struct nft_trans *trans = NULL;
->  	struct nft_expr *expr;
-> +	struct sk_buff *skb2;
->  	struct nft_ctx ctx;
->  	struct nlattr *tmp;
->  	unsigned int size, i, n, ulen = 0, usize = 0;
-> @@ -2281,8 +2282,24 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
->  		goto err3;
->  	}
->  	chain->use++;
-> -	return 0;
->  
-> +	skb2 = alloc_skb(NLMSG_GOODSIZE, GFP_KERNEL);
-> +	if (!skb2) {
-> +		err = -ENOMEM;
-> +		goto err4;
-> +	}
-> +	err = nf_tables_fill_rule_info(skb2, net, NETLINK_CB(skb).portid,
-> +				       nlh->nlmsg_seq, NFT_MSG_NEWRULE, 0,
-> +				       nfmsg->nfgen_family, table, chain, rule);
-> +	if (err < 0)
-> +		goto err5;
-> +
-> +	return nlmsg_unicast(nlsk, skb2, NETLINK_CB(skb).portid);
+> | nft add rule ip t c tcp dport { ssh, 80 } accept
+> 
+> There is no way to make 'nft list ruleset' return the rule just like
+> this as depending on whether '-nn' was given or not, it either prints
+> the set as '{ ssh, http }' or '{ 22, 80 }' but never in the mixed form
+> that was used when adding it.
+> 
+> This patch prints an identifying string for each added rule which may be
+> used as single parameter to a later 'nft delete rule' command. So a
+> simple scripting example looks like this:
+> 
+> | handle=$(nft add rule ip t c counter)
 
-You can achieve this already via NLM_F_ECHO.
+This is a hack.
+
+We should follow the rule description path.
