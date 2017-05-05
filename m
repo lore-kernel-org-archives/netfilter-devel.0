@@ -1,61 +1,64 @@
-From: Oliver Ford <ojford@gmail.com>
-Subject: [PATCH 1/1] libxtables: Display weird character warning for wildcards
-Date: Fri,  5 May 2017 11:11:50 +0000
-Message-ID: <1493982710-10847-1-git-send-email-ojford@gmail.com>
-Cc: Oliver Ford <ojford@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: "Puustinen, Ismo" <ismo.puustinen@intel.com>
+Subject: Re: [nft PATCH] List handles of added rules if requested
+Date: Fri, 5 May 2017 11:18:37 +0000
+Message-ID: <1493983116.2675.4.camel@intel.com>
+References: <20170504123421.22147-1-phil@nwl.cc>
+         <20170504133626.GC5607@salvia> <20170504134419.GG13320@breakpoint.cc>
+         <20170504140042.GA6436@salvia> <20170504222612.GD20805@orbyte.nwl.cc>
+         <20170505104954.GA1676@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+To: "phil@nwl.cc" <phil@nwl.cc>, "fw@strlen.de" <fw@strlen.de>,
+        "pablo@netfilter.org" <pablo@netfilter.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36253 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751090AbdEELMU (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 5 May 2017 07:12:20 -0400
-Received: by mail-wm0-f68.google.com with SMTP id u65so652418wmu.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 05 May 2017 04:12:20 -0700 (PDT)
+Received: from mga06.intel.com ([134.134.136.31]:60875 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751788AbdEELSm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 5 May 2017 07:18:42 -0400
+In-Reply-To: <20170505104954.GA1676@salvia>
+Content-Language: en-US
+Content-ID: <079CF295489AE04994979BE4C7ADC899@intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Change the scope of the weird character check loop so that
-it checks for invalid characters when the interface name
-contains a wildcard.
-
-Fixes Bugzilla #1085.
-
-Signed-off-by: Oliver Ford <ojford@gmail.com>
----
- libxtables/xtables.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
-
-diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-index 891d81a..57a1102 100644
---- a/libxtables/xtables.c
-+++ b/libxtables/xtables.c
-@@ -538,15 +538,15 @@ void xtables_parse_interface(const char *arg, char *vianame,
- 	} else {
- 		/* Include nul-terminator in match */
- 		memset(mask, 0xFF, vialen + 1);
--		for (i = 0; vianame[i]; i++) {
--			if (vianame[i] == '/' ||
--			    vianame[i] == ' ') {
--				fprintf(stderr,
--					"Warning: weird character in interface"
--					" `%s' ('/' and ' ' are not allowed by the kernel).\n",
--					vianame);
--				break;
--			}
-+	}
-+
-+	/* Display warning on invalid characters */
-+	for (i = 0; vianame[i]; i++) {
-+		if (vianame[i] == '/' || vianame[i] == ' ') {
-+			fprintf(stderr,	"Warning: weird character in interface"
-+				" `%s' ('/' and ' ' are not allowed by the kernel).\n",
-+				vianame);
-+			break;
- 		}
- 	}
- }
--- 
-2.11.0
-
-
+T24gRnJpLCAyMDE3LTA1LTA1IGF0IDEyOjQ5ICswMjAwLCBQYWJsbyBOZWlyYSBBeXVzbyB3cm90
+ZToNCj4gVGhpcyBkb2VzIG5vdCBpbnRlZ3JhdGUgYXQgYWxsIGludG8gdGhlIHNjcmlwdGluZyBm
+ZWF0dXJlcyB3ZSBoYXZlIGluDQo+IA0KPiBuZnRhYmxlcy4gV2UgZG9uJ3Qgd2FudCBwZW9wbGUg
+dG8gdXNlIGJhc2ggKG9yIGxpa2UpIHNoZWxsIHNjcmlwdHMNCj4gYW55bW9yZSwgdGhleSBhcmUg
+YmFkLCB0aGV5IGJyZWFrIGF0b21pY2l0eSBmb3IgdXMuIFdlIHNob3VsZCBleHRlbmQNCj4gbmF0
+aXZlIG5mdGFibGVzIHNjcmlwdGluZyBjYXBhYmlsaXRpZXMgdG8gc3VwcG9ydCB3aGF0IHVzZXIg
+bmVlZCwNCj4gbmF0aXZlbHkuIExvb2ssIHRoaXMgd2lsbCBub3Qgd29yayB3aXRoIG5mdCAtaSBl
+aXRoZXIuLi4NCj4gDQo+IEFuZCB0aGlzIGFsc28gd2lsbCBub3Qgd29yayBmb3Igcm9ib3RzIHVz
+aW5nIGluY3JlbWVudGFsIHVwZGF0ZXMgdmlhDQo+IG5mdCAtZi4gQW5kIHdlIHZlcnkgbXVjaCB3
+YW50IHRvIHN1cHBvcnQgc3VjaCB0cmFuc2FjdGlvbiBsaWtlDQo+IHNjaGVtZSwNCj4gaWUuIHBs
+YWNlIGEgYnVuY2ggb2YgaW5jcmVtZW50YWwgdXBkYXRlcyBpbiBvbmUgc2luZ2xlIGZpbGUgYW5k
+IGFwcGx5DQo+IHRoYXQgaW4gb25lIHNpbmdsZSB0cmFuc2FjdGlvbi4NCj4gDQo+IFRoaXMgaXMg
+anVzdCBjb3ZlcmluZyBvbmUgdmVyeSBzcGVjaWZpYyB1c2VjYXNlLCB0aGF0IGlzLCB1c2VycyBo
+YXZlDQo+IGENCj4gcXVpY2sgd2F5IHRvIGRlbGV0ZSB0aGUgcnVsZSB0aGF0IGp1c3QgYWRkZWQu
+IEFuZCB3ZSBoYXZlIGJldHRlciB3YXlzDQo+IHRvIGFjaGlldmUgdGhpcywgYW5kIHRoYXQgd2ls
+bCB3b3JrIGZyb20gYWxsIHRoZSBzY2VuYXJpb3MgdGhhdCBJDQo+IGRlc2NyaWJlZCBhYm92ZS4N
+Cg0KSSB3b3VsZCBiZSBpbnRlcmVzdGVkIGluIGFueSBkb2N1bWVudGF0aW9uIHlvdSBtaWdodCBo
+YXZlIGNvbmNlcm5pbmcNCnRoZSAiYmV0dGVyIHdheXMiIG9mIGNyZWF0aW5nIG1vZHVsYXIgcnVs
+ZXNldHMsIHRoYXQgaXMsIGF1dG9tYXRpY2FsbHkNCmFkZGluZyBhbmQgZGVsZXRpbmcgcnVsZXMg
+YW5kIHJ1bGUgZ3JvdXBzLiBUaGlzIGlzIGEgcmVhbCBpc3N1ZSB0aGF0DQpJJ20gY3VycmVudGx5
+IHN0cnVnZ2xpbmcgd2l0aC4NCg0KTXkgdXNlIGNhc2UgaXMgIHByZXR0eSBzaW1wbGU6IHdoZW4g
+YSBzZXJ2aWNlIGlzIGxvYWRlZCwgaXQgYWxzbyBsb2Fkcw0KdGhlIGZpcmV3YWxsIHJ1bGVzIGFz
+c29jaWF0ZWQgd2l0aCBpdC4gV2hlbiBhIHNlcnZpY2UgaXMgc3RvcHBlZCwgdGhlDQpydWxlcyBj
+b3JyZXNwb25kaW5nIHRvIHRoZSBzZXJ2aWNlIGFyZSB1bmxvYWRlZC4gVGhlcmUgaXMgbm8NCmlu
+dGVyYWN0aXZlIHVzZXIgcHJlc2VudCBpbiB0aGUgc3lzdGVtLg0KDQpIYXZpbmcgIm5mdCBhZGQg
+cnVsZSAuLi4iIHJldHVybiBhIHJ1bGUgaGFuZGxlIHdvdWxkIGZpeCB0aGlzLCBzbyBJIHdhcw0K
+aGFwcHkgdG8gc2VlIFBoaWwncyBwYXRjaGVzLiBDdXJyZW50bHkgSSBoYXZlIHRvIGxvYWQgdGhl
+IHJ1bGVzIGluDQp0aGVpciBvd24gY2hhaW5zIChvbmUgY2hhaW4gcGVyIHNlcnZpY2UpIGFuZCB0
+aGVuIHVzZSBhIHBhY2tldCBtYXJraW5nDQpzY2hlbWUgdG8gc2VlIGlmIHRoZSBwYWNrZXQgaGFz
+IGJlZW4gbWFya2VkIHRvIGJlIGFjY2VwdGVkIGJ5IGF0IGxlYXN0DQpvbmUgc2VydmljZSBjaGFp
+bi4gV2hlbiBhIHNlcnZpY2UgaXMgc3RvcHBlZCwgSSB0aGVuIHJlbW92ZSB0aGUNCmNvcnJlc3Bv
+bmRpbmcgY2hhaW4uIFRoZSBwYWNrZXQgbWFya2luZyBzY2hlbWUgaXMgcXVpdGUgdWdseSB0aG91
+Z2gsDQphbmQgdGhlwqBzZXJ2aWNlIGNoYWlucyBuZWVkIHRvIGtub3cgaG93IHRoZSBwYWNrZXRz
+IG5lZWQgdG8gYmUgbWFya2VkDQpzbyB0aGF0IHRoZXkgZ2V0IGFjY2VwdGVkIGJ5IHRoZSBmaW5h
+bCBjaGFpbi4NCg0KSSBjYW4ndCB1c2UgdGhlICJqdW1wIiBmYWNpbGl0eSB0byBqdW1wIHRvIHRo
+ZSBzZXJ2aWNlIGNoYWlucywgYmVjYXVzZQ0KdGhlbiBJIHdvdWxkIG5lZWQgdG8gYmUgYWJsZSB0
+byByZW1vdmUgdGhlICJqdW1wIiBydWxlIHdoZW4gdGhlIHNlcnZpY2UNCmlzIHVubG9hZGVkLCB3
+aGljaCBpcyBhZ2FpbiBub3QgcG9zc2libGUgd2l0aG91dCB0aGUgcnVsZSBoYW5kbGUuDQoNCklz
+bW8=
