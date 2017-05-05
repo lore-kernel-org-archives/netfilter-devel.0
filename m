@@ -1,64 +1,85 @@
-From: "Puustinen, Ismo" <ismo.puustinen@intel.com>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: [nft PATCH] List handles of added rules if requested
-Date: Fri, 5 May 2017 11:18:37 +0000
-Message-ID: <1493983116.2675.4.camel@intel.com>
+Date: Fri, 5 May 2017 13:56:45 +0200
+Message-ID: <20170505115645.GA5016@breakpoint.cc>
 References: <20170504123421.22147-1-phil@nwl.cc>
-         <20170504133626.GC5607@salvia> <20170504134419.GG13320@breakpoint.cc>
-         <20170504140042.GA6436@salvia> <20170504222612.GD20805@orbyte.nwl.cc>
-         <20170505104954.GA1676@salvia>
+ <20170504133626.GC5607@salvia>
+ <20170504134419.GG13320@breakpoint.cc>
+ <20170504140042.GA6436@salvia>
+ <20170504222612.GD20805@orbyte.nwl.cc>
+ <20170505104954.GA1676@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-To: "phil@nwl.cc" <phil@nwl.cc>, "fw@strlen.de" <fw@strlen.de>,
-        "pablo@netfilter.org" <pablo@netfilter.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, regit@netfilter.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:60875 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751788AbdEELSm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 5 May 2017 07:18:42 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:60916 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751180AbdEEL5G (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 5 May 2017 07:57:06 -0400
+Content-Disposition: inline
 In-Reply-To: <20170505104954.GA1676@salvia>
-Content-Language: en-US
-Content-ID: <079CF295489AE04994979BE4C7ADC899@intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-T24gRnJpLCAyMDE3LTA1LTA1IGF0IDEyOjQ5ICswMjAwLCBQYWJsbyBOZWlyYSBBeXVzbyB3cm90
-ZToNCj4gVGhpcyBkb2VzIG5vdCBpbnRlZ3JhdGUgYXQgYWxsIGludG8gdGhlIHNjcmlwdGluZyBm
-ZWF0dXJlcyB3ZSBoYXZlIGluDQo+IA0KPiBuZnRhYmxlcy4gV2UgZG9uJ3Qgd2FudCBwZW9wbGUg
-dG8gdXNlIGJhc2ggKG9yIGxpa2UpIHNoZWxsIHNjcmlwdHMNCj4gYW55bW9yZSwgdGhleSBhcmUg
-YmFkLCB0aGV5IGJyZWFrIGF0b21pY2l0eSBmb3IgdXMuIFdlIHNob3VsZCBleHRlbmQNCj4gbmF0
-aXZlIG5mdGFibGVzIHNjcmlwdGluZyBjYXBhYmlsaXRpZXMgdG8gc3VwcG9ydCB3aGF0IHVzZXIg
-bmVlZCwNCj4gbmF0aXZlbHkuIExvb2ssIHRoaXMgd2lsbCBub3Qgd29yayB3aXRoIG5mdCAtaSBl
-aXRoZXIuLi4NCj4gDQo+IEFuZCB0aGlzIGFsc28gd2lsbCBub3Qgd29yayBmb3Igcm9ib3RzIHVz
-aW5nIGluY3JlbWVudGFsIHVwZGF0ZXMgdmlhDQo+IG5mdCAtZi4gQW5kIHdlIHZlcnkgbXVjaCB3
-YW50IHRvIHN1cHBvcnQgc3VjaCB0cmFuc2FjdGlvbiBsaWtlDQo+IHNjaGVtZSwNCj4gaWUuIHBs
-YWNlIGEgYnVuY2ggb2YgaW5jcmVtZW50YWwgdXBkYXRlcyBpbiBvbmUgc2luZ2xlIGZpbGUgYW5k
-IGFwcGx5DQo+IHRoYXQgaW4gb25lIHNpbmdsZSB0cmFuc2FjdGlvbi4NCj4gDQo+IFRoaXMgaXMg
-anVzdCBjb3ZlcmluZyBvbmUgdmVyeSBzcGVjaWZpYyB1c2VjYXNlLCB0aGF0IGlzLCB1c2VycyBo
-YXZlDQo+IGENCj4gcXVpY2sgd2F5IHRvIGRlbGV0ZSB0aGUgcnVsZSB0aGF0IGp1c3QgYWRkZWQu
-IEFuZCB3ZSBoYXZlIGJldHRlciB3YXlzDQo+IHRvIGFjaGlldmUgdGhpcywgYW5kIHRoYXQgd2ls
-bCB3b3JrIGZyb20gYWxsIHRoZSBzY2VuYXJpb3MgdGhhdCBJDQo+IGRlc2NyaWJlZCBhYm92ZS4N
-Cg0KSSB3b3VsZCBiZSBpbnRlcmVzdGVkIGluIGFueSBkb2N1bWVudGF0aW9uIHlvdSBtaWdodCBo
-YXZlIGNvbmNlcm5pbmcNCnRoZSAiYmV0dGVyIHdheXMiIG9mIGNyZWF0aW5nIG1vZHVsYXIgcnVs
-ZXNldHMsIHRoYXQgaXMsIGF1dG9tYXRpY2FsbHkNCmFkZGluZyBhbmQgZGVsZXRpbmcgcnVsZXMg
-YW5kIHJ1bGUgZ3JvdXBzLiBUaGlzIGlzIGEgcmVhbCBpc3N1ZSB0aGF0DQpJJ20gY3VycmVudGx5
-IHN0cnVnZ2xpbmcgd2l0aC4NCg0KTXkgdXNlIGNhc2UgaXMgIHByZXR0eSBzaW1wbGU6IHdoZW4g
-YSBzZXJ2aWNlIGlzIGxvYWRlZCwgaXQgYWxzbyBsb2Fkcw0KdGhlIGZpcmV3YWxsIHJ1bGVzIGFz
-c29jaWF0ZWQgd2l0aCBpdC4gV2hlbiBhIHNlcnZpY2UgaXMgc3RvcHBlZCwgdGhlDQpydWxlcyBj
-b3JyZXNwb25kaW5nIHRvIHRoZSBzZXJ2aWNlIGFyZSB1bmxvYWRlZC4gVGhlcmUgaXMgbm8NCmlu
-dGVyYWN0aXZlIHVzZXIgcHJlc2VudCBpbiB0aGUgc3lzdGVtLg0KDQpIYXZpbmcgIm5mdCBhZGQg
-cnVsZSAuLi4iIHJldHVybiBhIHJ1bGUgaGFuZGxlIHdvdWxkIGZpeCB0aGlzLCBzbyBJIHdhcw0K
-aGFwcHkgdG8gc2VlIFBoaWwncyBwYXRjaGVzLiBDdXJyZW50bHkgSSBoYXZlIHRvIGxvYWQgdGhl
-IHJ1bGVzIGluDQp0aGVpciBvd24gY2hhaW5zIChvbmUgY2hhaW4gcGVyIHNlcnZpY2UpIGFuZCB0
-aGVuIHVzZSBhIHBhY2tldCBtYXJraW5nDQpzY2hlbWUgdG8gc2VlIGlmIHRoZSBwYWNrZXQgaGFz
-IGJlZW4gbWFya2VkIHRvIGJlIGFjY2VwdGVkIGJ5IGF0IGxlYXN0DQpvbmUgc2VydmljZSBjaGFp
-bi4gV2hlbiBhIHNlcnZpY2UgaXMgc3RvcHBlZCwgSSB0aGVuIHJlbW92ZSB0aGUNCmNvcnJlc3Bv
-bmRpbmcgY2hhaW4uIFRoZSBwYWNrZXQgbWFya2luZyBzY2hlbWUgaXMgcXVpdGUgdWdseSB0aG91
-Z2gsDQphbmQgdGhlwqBzZXJ2aWNlIGNoYWlucyBuZWVkIHRvIGtub3cgaG93IHRoZSBwYWNrZXRz
-IG5lZWQgdG8gYmUgbWFya2VkDQpzbyB0aGF0IHRoZXkgZ2V0IGFjY2VwdGVkIGJ5IHRoZSBmaW5h
-bCBjaGFpbi4NCg0KSSBjYW4ndCB1c2UgdGhlICJqdW1wIiBmYWNpbGl0eSB0byBqdW1wIHRvIHRo
-ZSBzZXJ2aWNlIGNoYWlucywgYmVjYXVzZQ0KdGhlbiBJIHdvdWxkIG5lZWQgdG8gYmUgYWJsZSB0
-byByZW1vdmUgdGhlICJqdW1wIiBydWxlIHdoZW4gdGhlIHNlcnZpY2UNCmlzIHVubG9hZGVkLCB3
-aGljaCBpcyBhZ2FpbiBub3QgcG9zc2libGUgd2l0aG91dCB0aGUgcnVsZSBoYW5kbGUuDQoNCklz
-bW8=
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+
+[ CC Eric ]
+
+> On Fri, May 05, 2017 at 12:26:12AM +0200, Phil Sutter wrote:
+> > While I think it's not a bad idea to allow users experienced with
+> > iptables to apply their muscle memory to nftables as well, I don't quite
+> > get what should hold us back from leveraging this feature nftables
+> > provides over iptables. The existence of a unique identifier is a big
+> > plus in my point of view, it's just not really useful yet since users
+> > have no safe way to get that handle for the rule they added.
+> >
+> > Are you OK with providing both alternatives in parallel? If not, why?
+> 
+> This does not integrate at all into the scripting features we have in
+> nftables. We don't want people to use bash (or like) shell scripts
+> anymore, they are bad, they break atomicity for us. We should extend
+> native nftables scripting capabilities to support what user need,
+> natively. Look, this will not work with nft -i either...
+
+Yes.  OTOH I don't think we want programs to parse nft frontend
+text output either...
+
+Eric, whats the status wrt libnft?
+
+> And this also will not work for robots using incremental updates via
+> nft -f. And we very much want to support such transaction like scheme,
+> ie. place a bunch of incremental updates in one single file and apply
+> that in one single transaction.
+
+Right.
+
+> This is just covering one very specific usecase, that is, users have a
+> quick way to delete the rule that just added. And we have better ways
+> to achieve this, and that will work from all the scenarios that I
+> described above.
+
+What about (as first step) to extend nft monitor?
+
+f.e. afaics kernels update notifications already contain the netlink
+portid of the peer that added a rule, perhaps we can display that?
+
+nft monitor
+add rule ip saddr 1.2.3.4 # nlport 123
+
+We could use that to then also display the process that currently owns
+this portid, e.g.:
+
+add rule ip saddr 1.2.3.4 # nlportid 123 # nlport 123 (nft?)
+delete rule inet filter input handle 5 # nlport 42 (firewalld?)
+
+We might also consider extending it to display/group transaction ids
+to the user so its easier to identify batches.
+
+What do you think?
+
+FWIW, I believe that deletion by handle and by textual description
+both have their use-cases so its more of a question on how to implement
+this in a sensible way.
