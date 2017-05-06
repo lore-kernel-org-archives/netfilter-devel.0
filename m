@@ -1,80 +1,85 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: don't setup nat info for confirmed ct
-Date: Sat,  6 May 2017 20:28:02 +0800
-Message-ID: <20170506122802.5630-1-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
-        Liping Zhang <zlpnobody@gmail.com>
-To: pablo@netfilter.org
+From: Pavel Vajarov <pavel@x3me.net>
+Subject: How to reinject a packet (skb) at some later point in time
+Date: Sat, 6 May 2017 19:21:03 +0300
+Message-ID: <CAJEV1ijznokQj78RNXTRxMnrnRTBtoWZUVwcB4k7JHYb9FfLJw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-15.163.com ([220.181.12.15]:43515 "EHLO m12-15.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750773AbdEFM2v (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 6 May 2017 08:28:51 -0400
+Received: from mail-oi0-f42.google.com ([209.85.218.42]:34541 "EHLO
+        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751255AbdEFQVE (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 6 May 2017 12:21:04 -0400
+Received: by mail-oi0-f42.google.com with SMTP id b204so15195883oii.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 06 May 2017 09:21:04 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <zlpnobody@gmail.com>
+Hi,
 
-We cannot setup nat info if the ct has been confirmed already, else,
-different cpu may race to handle the same ct. In extreme situation,
-we may hit the "BUG_ON(nf_nat_initialized(ct, maniptype))" in the
-nf_nat_setup_info.
+First, I'd like to say why I need this. Maybe, I've taken the wrong
+path to achieve the goal.
+We have a user space TCP proxy working in transparent mode (TPROXY)
+and we would like to not accept a connection to the user space if the
+proxy can't connect to the original destination. The problem is that
+the proxy stops being truly transparent when it accepts a connection
+but can't connect to the original destination, because the last is
+down, overloaded, etc.
 
-Also running the following commands will easily hit NF_CT_ASSERT in
-nf_conntrack_alter_reply:
-  # nft flush ruleset
-  # ping -c 2 -W 1 1.1.1.111 &
-  # nft add table t
-  # nft add chain t c {type nat hook postrouting priority 0 \;}
-  # nft add rule t c snat to 4.5.6.7
-  WARNING: CPU: 1 PID: 10065 at net/netfilter/nf_conntrack_core.c:1472
-  nf_conntrack_alter_reply+0x9a/0x1a0 [nf_conntrack]
-  [...]
-  Call Trace:
-   nf_nat_setup_info+0xad/0x840 [nf_nat]
-   ? deactivate_slab+0x65d/0x6c0
-   nft_nat_eval+0xcd/0x100 [nft_nat]
-   nft_do_chain+0xff/0x5d0 [nf_tables]
-   ? mark_held_locks+0x6f/0xa0
-   ? __local_bh_enable_ip+0x70/0xa0
-   ? trace_hardirqs_on_caller+0x11f/0x190
-   ? ipt_do_table+0x310/0x610
-   ? trace_hardirqs_on+0xd/0x10
-   ? __local_bh_enable_ip+0x70/0xa0
-   ? ipt_do_table+0x32b/0x610
-   ? __lock_acquire+0x2ac/0x1580
-   ? ipt_do_table+0x32b/0x610
-   nft_nat_do_chain+0x65/0x80 [nft_chain_nat_ipv4]
-   nf_nat_ipv4_fn+0x1ae/0x240 [nf_nat_ipv4]
-   nf_nat_ipv4_out+0x4a/0xf0 [nf_nat_ipv4]
-   nft_nat_ipv4_out+0x15/0x20 [nft_chain_nat_ipv4]
-   nf_hook_slow+0x2c/0xf0
-   ip_output+0x154/0x270
+In order to fix the above problem I was thinking for a way to try to
+make a connection to the origin before accepting the input connection.
+Later if the proxy can make connection to the origin it'll accept the
+pending input connection. If the proxy can't make connection to the
+origin in few seconds it'll drop the pending input connection.
+I've rough understanding how the accept of new TCP connections works
+in the Linux kernel and If I'm not wrong the kernel automatically
+sends SYN,ACK to the incoming SYN packet as long as there is a free
+slot in the accept queue(s). So I was thinking for a way to delay the
+incoming SYN packets until the user space makes decision whether to
+accept the SYN packet or drop it.
 
-So for the confirmed ct, just ignore it and return NF_ACCEPT.
+One way, that I found to achieve the above was through the
+libnetfilter_queue. However, according to the experiment that I did,
+it can't cope well when there are few hundreds and even few thousands
+pending SYN packets. As far as I thought about it, the problems come
+from two things:
+1. The kernel functionality in net/netfilter/nfnetlink_queue.c usues
+linked list to store pending packets and it doesn't perform well when
+we need to search by packet id there when the user space issues
+NF_ACCEPT verdict at some time later.
+2. There are input SYN re-transmits which goes to the user space
+simply to be dropped (NF_DROP) because the original SYN packet with
+the same (src ip:port -> dst ip:port) is still waiting it's verdict,
+and there is no point keeping the re-transmitted SYN packets.
 
-Fixes: 9a08ecfe74d7 ("netfilter: don't attach a nat extension by default")
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
----
- net/netfilter/nf_nat_core.c | 4 ++++
- 1 file changed, 4 insertions(+)
+So, after the above experiment I started to search a way to do the
+main logic with a kernel module and netlink socket to communicate the
+knowledge about (src ip:port, dst ip:port) to the user space and the
+verdict back. Note that the logic needs to happen at given
+position/rule in the iptables because not all of the traffic coming
+into the machine is redirected to the user space application and thus
+the 'delay logic' must not try to check every SYN.
+One way to achieve this, that I thought about, was to write kernel
+module similar to nfnetlink_queue which will use hashtable instead of
+linked list for the queue and will drop immediately repeated SYNs. The
+module was going to use nf_reinject to reinject the delayed packets
+back in the kernel stack. However, the problem with such module is
+that nf_register_queue_handler is supposed to be called only once for
+the whole kernel (there is only one queueing backend in the kernel)
+and when I call it from my kernel module registration routine the
+kernel frowns about it, because there is already registered handler
+there
+(WARN_ON(rcu_access_pointer(queue_handler));).
+I think, I can implement most of the logic in iptables target module
+which will return NF_STOLEN for the packets which it want's to be
+checked. So my main question is how to reinject such packets later
+because I do not have there nf_hook_state with okfn to call, as the
+the net/netfilter/nf_queue.c does on nf_reinject.
 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index b48d6b5..ef0be32 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -409,6 +409,10 @@ nf_nat_setup_info(struct nf_conn *ct,
- {
- 	struct nf_conntrack_tuple curr_tuple, new_tuple;
- 
-+	/* Can't setup nat info for confirmed ct. */
-+	if (nf_ct_is_confirmed(ct))
-+		return NF_ACCEPT;
-+
- 	NF_CT_ASSERT(maniptype == NF_NAT_MANIP_SRC ||
- 		     maniptype == NF_NAT_MANIP_DST);
- 	BUG_ON(nf_nat_initialized(ct, maniptype));
--- 
-2.9.3
+It became a long post, but I'll appreciate all responses even if they
+don't answer the original question, because they can give me some
+clues to solve the main problem in a different way.
 
-
+Thanks,
+Pavel.
