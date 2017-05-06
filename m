@@ -1,139 +1,80 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH v2] List handles of added rules if requested
-Date: Fri,  5 May 2017 16:33:23 +0200
-Message-ID: <20170505143323.29654-1-phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf] netfilter: don't setup nat info for confirmed ct
+Date: Sat,  6 May 2017 20:28:02 +0800
+Message-ID: <20170506122802.5630-1-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
+        Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:34003 "EHLO mail.nwl.cc"
+Received: from m12-15.163.com ([220.181.12.15]:43515 "EHLO m12-15.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751384AbdEEOdh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 5 May 2017 10:33:37 -0400
+        id S1750773AbdEFM2v (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 6 May 2017 08:28:51 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Being able to retrieve an added rule's handle atomically is a crucial
-feature for scripts invoking nft command: Without it, there is no way to
-be sure a handle extracted from 'nft list ruleset' command actually
-refers to the rule one has added before or that of another process which
-ran in between.
+From: Liping Zhang <zlpnobody@gmail.com>
 
-Extracting an added rule's handle itself is not an easy task already,
-since there is a chance that a given rule is printed differently than
-when it was added before. A simple example is port number vs. service
-name:
+We cannot setup nat info if the ct has been confirmed already, else,
+different cpu may race to handle the same ct. In extreme situation,
+we may hit the "BUG_ON(nf_nat_initialized(ct, maniptype))" in the
+nf_nat_setup_info.
 
-| nft add rule ip t c tcp dport { ssh, 80 } accept
+Also running the following commands will easily hit NF_CT_ASSERT in
+nf_conntrack_alter_reply:
+  # nft flush ruleset
+  # ping -c 2 -W 1 1.1.1.111 &
+  # nft add table t
+  # nft add chain t c {type nat hook postrouting priority 0 \;}
+  # nft add rule t c snat to 4.5.6.7
+  WARNING: CPU: 1 PID: 10065 at net/netfilter/nf_conntrack_core.c:1472
+  nf_conntrack_alter_reply+0x9a/0x1a0 [nf_conntrack]
+  [...]
+  Call Trace:
+   nf_nat_setup_info+0xad/0x840 [nf_nat]
+   ? deactivate_slab+0x65d/0x6c0
+   nft_nat_eval+0xcd/0x100 [nft_nat]
+   nft_do_chain+0xff/0x5d0 [nf_tables]
+   ? mark_held_locks+0x6f/0xa0
+   ? __local_bh_enable_ip+0x70/0xa0
+   ? trace_hardirqs_on_caller+0x11f/0x190
+   ? ipt_do_table+0x310/0x610
+   ? trace_hardirqs_on+0xd/0x10
+   ? __local_bh_enable_ip+0x70/0xa0
+   ? ipt_do_table+0x32b/0x610
+   ? __lock_acquire+0x2ac/0x1580
+   ? ipt_do_table+0x32b/0x610
+   nft_nat_do_chain+0x65/0x80 [nft_chain_nat_ipv4]
+   nf_nat_ipv4_fn+0x1ae/0x240 [nf_nat_ipv4]
+   nf_nat_ipv4_out+0x4a/0xf0 [nf_nat_ipv4]
+   nft_nat_ipv4_out+0x15/0x20 [nft_chain_nat_ipv4]
+   nf_hook_slow+0x2c/0xf0
+   ip_output+0x154/0x270
 
-There is no way to make 'nft list ruleset' return the rule just like
-this as depending on whether '-nn' was given or not, it either prints
-the set as '{ ssh, http }' or '{ 22, 80 }' but never in the mixed form
-that was used when adding it.
+So for the confirmed ct, just ignore it and return NF_ACCEPT.
 
-This patch prints an identifying string for each added rule which may be
-used as single parameter to a later 'nft delete rule' command. So a
-simple scripting example looks like this:
-
-| handle=$(nft add rule ip t c counter)
-| ...
-| nft delete rule $handle
-
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Fixes: 9a08ecfe74d7 ("netfilter: don't attach a nat extension by default")
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 ---
-Changes since v1:
-- Pass NLM_F_ECHO to kernel to leverage already existing reporting
-  infrastructure and therefore not require a seperate kernel patch.
-- Limit mnl_callback() action to NEWRULE messages - when replacing a
-  rule, it would otherwise print the deleted rule as well.
----
- src/mnl.c     | 30 +++++++++++++++++++++++++++++-
- src/netlink.c |  6 ++++--
- 2 files changed, 33 insertions(+), 3 deletions(-)
+ net/netfilter/nf_nat_core.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/src/mnl.c b/src/mnl.c
-index 295dd84a58406..c92d036dcc132 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -26,9 +26,11 @@
- #include <string.h>
- #include <sys/socket.h>
- #include <arpa/inet.h>
-+#include <inttypes.h>
- #include <errno.h>
- #include <utils.h>
- #include <nftables.h>
-+#include <rule.h>
- 
- static int seq;
- 
-@@ -242,6 +244,32 @@ static ssize_t mnl_nft_socket_sendmsg(const struct mnl_socket *nl)
- 	return sendmsg(mnl_socket_get_fd(nl), &msg, 0);
- }
- 
-+static int mnl_callback(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct nftnl_rule *nlr;
-+
-+	if (!handle_output ||
-+	    NFNL_MSG_TYPE(nlh->nlmsg_type) != NFT_MSG_NEWRULE)
-+		return MNL_CB_OK;
-+
-+	nlr = nftnl_rule_alloc();
-+	if (!nlr)
-+		memory_allocation_error();
-+
-+	if (nftnl_rule_nlmsg_parse(nlh, nlr) < 0)
-+		goto out_free;
-+
-+	printf("%s %s %s handle %" PRIu64 "\n",
-+	       family2str(nftnl_rule_get_u32(nlr, NFTNL_RULE_FAMILY)),
-+	       nftnl_rule_get_str(nlr, NFTNL_RULE_TABLE),
-+	       nftnl_rule_get_str(nlr, NFTNL_RULE_CHAIN),
-+	       nftnl_rule_get_u64(nlr, NFTNL_RULE_HANDLE));
-+
-+out_free:
-+	nftnl_rule_free(nlr);
-+	return MNL_CB_OK;
-+}
-+
- int mnl_batch_talk(struct mnl_socket *nl, struct list_head *err_list)
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index b48d6b5..ef0be32 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -409,6 +409,10 @@ nf_nat_setup_info(struct nf_conn *ct,
  {
- 	int ret, fd = mnl_socket_get_fd(nl), portid = mnl_socket_get_portid(nl);
-@@ -271,7 +299,7 @@ int mnl_batch_talk(struct mnl_socket *nl, struct list_head *err_list)
- 		if (ret == -1)
- 			return -1;
+ 	struct nf_conntrack_tuple curr_tuple, new_tuple;
  
--		ret = mnl_cb_run(rcv_buf, ret, 0, portid, NULL, NULL);
-+		ret = mnl_cb_run(rcv_buf, ret, 0, portid, &mnl_callback, NULL);
- 		/* Continue on error, make sure we get all acknowledgments */
- 		if (ret == -1)
- 			mnl_err_list_node_add(err_list, errno, nlh->nlmsg_seq);
-diff --git a/src/netlink.c b/src/netlink.c
-index 6fbb67da7f76f..7e7261fe1e1d4 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -445,9 +445,11 @@ int netlink_add_rule_batch(struct netlink_ctx *ctx,
- 	struct nftnl_rule *nlr;
- 	int err;
- 
-+	flags += NLM_F_EXCL | NLM_F_ECHO;
++	/* Can't setup nat info for confirmed ct. */
++	if (nf_ct_is_confirmed(ct))
++		return NF_ACCEPT;
 +
- 	nlr = alloc_nftnl_rule(&rule->handle);
- 	netlink_linearize_rule(ctx, nlr, rule);
--	err = mnl_nft_rule_batch_add(nlr, flags | NLM_F_EXCL, ctx->seqnum);
-+	err = mnl_nft_rule_batch_add(nlr, flags, ctx->seqnum);
- 	nftnl_rule_free(nlr);
- 	if (err < 0)
- 		netlink_io_error(ctx, &rule->location,
-@@ -465,7 +467,7 @@ int netlink_replace_rule_batch(struct netlink_ctx *ctx, const struct handle *h,
- 
- 	nlr = alloc_nftnl_rule(&rule->handle);
- 	netlink_linearize_rule(ctx, nlr, rule);
--	err = mnl_nft_rule_batch_replace(nlr, 0, ctx->seqnum);
-+	err = mnl_nft_rule_batch_replace(nlr, NLM_F_ECHO, ctx->seqnum);
- 	nftnl_rule_free(nlr);
- 
- 	if (err < 0)
+ 	NF_CT_ASSERT(maniptype == NF_NAT_MANIP_SRC ||
+ 		     maniptype == NF_NAT_MANIP_DST);
+ 	BUG_ON(nf_nat_initialized(ct, maniptype));
 -- 
-2.11.0
+2.9.3
+
 
