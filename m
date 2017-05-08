@@ -1,61 +1,125 @@
-From: Pavel Vajarov <pavel@x3me.net>
-Subject: Re: How to reinject a packet (skb) at some later point in time
-Date: Sun, 7 May 2017 17:59:35 +0300
-Message-ID: <CAJEV1igPB6fxkmkqg5PV01V7JpuS8ZB_PmAuJ03D23oyS_ocKw@mail.gmail.com>
-References: <CAJEV1ijznokQj78RNXTRxMnrnRTBtoWZUVwcB4k7JHYb9FfLJw@mail.gmail.com>
- <20170506194009.GB20672@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] netlink_delinearize: don't kill dependencies accross statements
+Date: Mon,  8 May 2017 10:17:50 +0200
+Message-ID: <20170508081750.28093-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:36069 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756925AbdEGWVx (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:38424 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751440AbdEHIRf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 7 May 2017 18:21:53 -0400
-Received: by mail-oi0-f42.google.com with SMTP id h4so32848294oib.3
-        for <netfilter-devel@vger.kernel.org>; Sun, 07 May 2017 15:21:53 -0700 (PDT)
-In-Reply-To: <20170506194009.GB20672@breakpoint.cc>
+        Mon, 8 May 2017 04:17:35 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+nft currently translates
+ip protocol tcp meta mark set 1 tcp dport 22
+to
+mark set 0x00000001 tcp dport 22
 
-> I think you should change our in kernel nfnetlink_queue backend
-> to use a single hash table to store nf_entry.
->
-> You can use rhashtable, and hash via
->
-> hash(netns, queueid, packetid, secret);
->
-> to avoid the linear searches in kernel.
-> This will unfortunately need repeated lookups for the VERDICT_BATCH
-> case though so we might end up needing two hash tables (2nd one would
-> a rhlist one that just hashes lists via hash(netns, queueid, secret),
-> used by VERDICT_BATCH.
+This is wrong, the latter form is same as
 
-This seems doable for me.
-The problem is that we use kernel, with some modifications in the tcp stack,
-which is provided/maintained by a different company. I can see no way,
-at least currently, the other company to allow us to do changes in the kernel
-that they provide. The only way, we've done some things in the kernel so far,
-was through kernel modules which we developed and tested against the main
-stream kernel and the other company produced the final build of the modules.
-That's the reason I was searching for a solution with a kernel module.
+mark set 0x00000001 ip protocol tcp tcp dport 22
 
-> It might be possible to avoid that by combining nfqueue with -m
-> hashlimit and a small timeout (or nft flow statement) instead.
->
-> Or do you consider that too broken?
+and thats not correct (original rule sets mark for tcp packets only).
 
-I didn't think about it. It seems acceptable. The only cons,
-if I understand it correctly, is that some connections may get
-slightly more delay
-because it may drop the first syns for a some tcp connections, for others it
-may drop the first and the some of the re-transmitted syns. This way for some
-connections the syn packet which will provoke checking of the origin will be
-additionally delayed.
+We need to clear the dependency stack whenever we see a statement other
+than stmt_expr, as these will have side effects (counter, payload
+mangling, logging and the like).
 
-Thanks for the response,
-Pavel.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/payload.h         |  2 ++
+ src/netlink_delinearize.c | 28 +++++++++++++++++++++++++++-
+ src/payload.c             |  5 +++++
+ 3 files changed, 34 insertions(+), 1 deletion(-)
+
+diff --git a/include/payload.h b/include/payload.h
+index a3d23095119c..8e357aef461e 100644
+--- a/include/payload.h
++++ b/include/payload.h
+@@ -35,6 +35,8 @@ struct payload_dep_ctx {
+ extern bool payload_is_known(const struct expr *expr);
+ extern bool payload_is_stacked(const struct proto_desc *desc,
+ 			       const struct expr *expr);
++
++void payload_dependency_reset(struct payload_dep_ctx *ctx);
+ extern void payload_dependency_store(struct payload_dep_ctx *ctx,
+ 				     struct stmt *stmt,
+ 				     enum proto_bases base);
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 4a0b8dcc5651..a65a97da89fb 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -2153,6 +2153,27 @@ static void stmt_payload_postprocess(struct rule_pp_ctx *ctx)
+ 	expr_postprocess(ctx, &stmt->payload.val);
+ }
+ 
++/*
++ * We can only remove payload dependencies if they occur without
++ * a statment with side effects in between.
++ *
++ * For instance:
++ * 'ip protocol tcp tcp dport 22 counter' is same as
++ * 'tcp dport 22 counter'.
++ *
++ * 'ip protocol tcp counter tcp dport 22' cannot be written as
++ * 'counter tcp dport 22' (that would be counter ip protocol tcp, but
++ * that counts every packet, not just ip/tcp).
++ */
++static void
++rule_maybe_reset_payload_deps(struct payload_dep_ctx *pdctx, enum stmt_types t)
++{
++	if (t == STMT_EXPRESSION)
++		return;
++
++	payload_dependency_reset(pdctx);
++}
++
+ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *rule)
+ {
+ 	struct rule_pp_ctx rctx;
+@@ -2162,9 +2183,11 @@ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *r
+ 	proto_ctx_init(&rctx.pctx, rule->handle.family);
+ 
+ 	list_for_each_entry_safe(stmt, next, &rule->stmts, list) {
++		enum stmt_types type = stmt->ops->type;
++
+ 		rctx.stmt = stmt;
+ 
+-		switch (stmt->ops->type) {
++		switch (type) {
+ 		case STMT_EXPRESSION:
+ 			stmt_expr_postprocess(&rctx);
+ 			break;
+@@ -2217,7 +2240,10 @@ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *r
+ 		default:
+ 			break;
+ 		}
++
+ 		rctx.pdctx.prev = rctx.stmt;
++
++		rule_maybe_reset_payload_deps(&rctx.pdctx, type);
+ 	}
+ }
+ 
+diff --git a/src/payload.c b/src/payload.c
+index 169954bad207..55128fee1498 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -366,6 +366,11 @@ bool payload_is_stacked(const struct proto_desc *desc, const struct expr *expr)
+ 	return next && next->base == desc->base;
+ }
+ 
++void payload_dependency_reset(struct payload_dep_ctx *ctx)
++{
++	memset(ctx, 0, sizeof(*ctx));
++}
++
+ /**
+  * payload_dependency_store - store a possibly redundant protocol match
+  *
+-- 
+2.10.2
+
