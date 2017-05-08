@@ -1,81 +1,68 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: .config for iptables icmp rule delete failure
-Date: Mon, 8 May 2017 22:22:36 +0200
-Message-ID: <20170508202236.GC9660@breakpoint.cc>
-References: <20170507204306.GW25861@madcap2.tricolour.ca>
+From: Sergey Yermakov <sergey@epmaki.net>
+Subject: Changing destination ip and port of TEE'ed udp
+Date: Mon, 8 May 2017 16:22:11 -0600
+Message-ID: <fbc2b521-5f4d-dc10-ee52-c17c5fbc810c@epmaki.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: fwestpha@redhat.com, netfilter-devel@vger.kernel.org,
-        pmoore@redhat.com, pvrabec@redhat.com, willemb@google.com
-To: Richard Guy Briggs <rgb@redhat.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:41138 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752594AbdEHUXD (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 May 2017 16:23:03 -0400
-Content-Disposition: inline
-In-Reply-To: <20170507204306.GW25861@madcap2.tricolour.ca>
+Received: from mout.perfora.net ([74.208.4.197]:55251 "EHLO mout.perfora.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750941AbdEHW1P (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 May 2017 18:27:15 -0400
+Received: from [10.45.134.66] ([4.68.55.4]) by mrelay.perfora.net (mreueus003
+ [74.208.5.2]) with ESMTPSA (Nemesis) id 0LcQqG-1drK54282Q-00jtoG for
+ <netfilter-devel@vger.kernel.org>; Tue, 09 May 2017 00:22:12 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Richard Guy Briggs <rgb@redhat.com> wrote:
+Hello,
 
-[ CC'ing Willem ]
+1. Sorry if this has been already asked before ( couldn't find the 
+answer in the archives) or the wrong list.
 
-> (Summary of IRC conversation for background...)
-> Paul Moore and I hit what appears to be a bug since f25's 4.10.11 and
-> upstream's 4.11-rc3 that would fail to locate on deletion an icmp rule
-> in iptables.  Paul narrowed it down to the icmp option.
-> Here's our issue where it came up: 
-> 	https://github.com/linux-audit/audit-testsuite/pull/43#issuecomment-296831880
-> 
-> The test case is:
-> # iptables -t mangle -I INPUT -i lo -p icmp --icmp-type 1 -j MARK --set-mark 0xdeadbeef
-> # iptables -t mangle -D INPUT -i lo -p icmp --icmp-type 1 -j MARK --set-mark 0xdeadbeef
-> The error we're getting is "iptables: No chain/target/match by that name."
+2. Changing the destination ip and port of TEE'ed udp datagrams seems 
+doable and I was just wondering if there are some arguments against 
+adding it to TEE.
 
-This is a iptables (yes, userspace) bug exposed with
-f77bc5b23fb1af51fc0faa8a479dea8969eb5079
-(iptables: use match, target and data copy_to_user helpers)
+Something like this:
 
-icmp is 4 byte in size, but for some silly(?) reason userspace size
-in iptables userland is set as XT_ALIGN(sizeof(ipt_icmp), so userspace
-thinks its 8.
+# iptables -t mangle -A PREROUTING -i lo -p udp --dport 223 -j TEE 
+--gateway 192.168.0.1 --new-dst 192.168.0.21 --new-dport 201
 
-In 4.10, kernel copied the full kernel blob to userspace, and since
-its allocated with kz/vzalloc the 4 padding bytes are 0.
+# iptables -t mangle -L -nv --line
+Chain PREROUTING (policy ACCEPT 159 packets, 14878 bytes)
+num   pkts bytes target     prot opt in     out source               
+destination
+1        0     0 TEE        udp  --  lo     * 0.0.0.0/0            
+0.0.0.0/0           udp dpt:223 TEE gw:192.168.0.1 new-dst:192.168.0.21 
+new-dport:201
+..
 
-libiptc uses malloc, so in case that contains garbage bytes the
-memcmp() used to figure out if we found the correct rule in libiptc
-during -D mode returns false because it chokes on the extra padding
-after struct ipt_icmp match :-/
+$ nc -u 0 223 <<<'test'
 
-Simples fix is to use calloc/memset to 0 in libiptc, but we can't
-go with userspace-only fix ...
+# tcpdump -nn -i eth0 port 201 or 223
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+..
+15:59:01.618826 IP 127.0.0.1.38060 > 192.168.0.21.201: UDP, length 5
 
-So we have to fix this in the kernel and have xt_data_to_user()
-zero out any padding as well.
 
-Willem, if you don't have time to fix this let me know and i'll
-try to work on this tomorrow.
+3. w/o --new-dst and --new-dport : the way it is right now.
 
-For testing, this iptables patch makes things barf reliably regardless what
-malloc/libc is doing:
+# iptables -t mangle -A PREROUTING -i lo -p udp --dport 223 -j TEE 
+--gateway 192.168.0.1
+# iptables -t mangle -L -nv --line
+..
+num   pkts bytes target     prot opt in     out source               
+destination
+1        1    33 TEE        udp  --  lo     * 0.0.0.0/0            
+0.0.0.0/0           udp dpt:223 TEE gw:192.168.0.1 new-dst:192.168.0.21 
+new-dport:201
+2        0     0 TEE        udp  --  lo     * 0.0.0.0/0            
+0.0.0.0/0           udp dpt:223 TEE gw:192.168.0.1
 
-diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
-index 2c66d04..9497a5e 100644
---- a/libiptc/libiptc.c
-+++ b/libiptc/libiptc.c
-@@ -1286,6 +1286,7 @@ alloc_handle(const char *tablename, unsigned int size, unsigned int num_rules)
-        if (!h->entries)
-                goto out_free_handle;
- 
-+       memset(h->entries, 0x42, sizeof(STRUCT_GET_ENTRIES) + size);
-        strcpy(h->entries->name, tablename);
-        h->entries->size = size;
+thx,
+-sergey
 
-iptables -A INPUT -p icmp --icmp-type 1 &&
-iptables -D INPUT -p icmp --icmp-type 1
 
-Works on 4.10, but not >= 4.11 (assumes x86_64 kernel+userland).
