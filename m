@@ -1,125 +1,111 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] netlink_delinearize: don't kill dependencies accross statements
-Date: Mon,  8 May 2017 10:17:50 +0200
-Message-ID: <20170508081750.28093-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [PATCH] ipvs: SNAT packet replies only for NATed connections
+Date: Mon,  8 May 2017 11:48:43 +0200
+Message-ID: <1494236923-8015-2-git-send-email-horms@verge.net.au>
+References: <1494236923-8015-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:38424 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751440AbdEHIRf (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:58176 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752240AbdEHJsu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 May 2017 04:17:35 -0400
+        Mon, 8 May 2017 05:48:50 -0400
+In-Reply-To: <1494236923-8015-1-git-send-email-horms@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nft currently translates
-ip protocol tcp meta mark set 1 tcp dport 22
-to
-mark set 0x00000001 tcp dport 22
+From: Julian Anastasov <ja@ssi.bg>
 
-This is wrong, the latter form is same as
+We do not check if packet from real server is for NAT
+connection before performing SNAT. This causes problems
+for setups that use DR/TUN and allow local clients to
+access the real server directly, for example:
 
-mark set 0x00000001 ip protocol tcp tcp dport 22
+- local client in director creates IPVS-DR/TUN connection
+CIP->VIP and the request packets are routed to RIP.
+Talks are finished but IPVS connection is not expired yet.
 
-and thats not correct (original rule sets mark for tcp packets only).
+- second local client creates non-IPVS connection CIP->RIP
+with same reply tuple RIP->CIP and when replies are received
+on LOCAL_IN we wrongly assign them for the first client
+connection because RIP->CIP matches the reply direction.
+As result, IPVS SNATs replies for non-IPVS connections.
 
-We need to clear the dependency stack whenever we see a statement other
-than stmt_expr, as these will have side effects (counter, payload
-mangling, logging and the like).
+The problem is more visible to local UDP clients but in rare
+cases it can happen also for TCP or remote clients when the
+real server sends the reply traffic via the director.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+So, better to be more precise for the reply traffic.
+As replies are not expected for DR/TUN connections, better
+to not touch them.
+
+Reported-by: Nick Moriarty <nick.moriarty@york.ac.uk>
+Tested-by: Nick Moriarty <nick.moriarty@york.ac.uk>
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Simon Horman <horms@verge.net.au>
 ---
- include/payload.h         |  2 ++
- src/netlink_delinearize.c | 28 +++++++++++++++++++++++++++-
- src/payload.c             |  5 +++++
- 3 files changed, 34 insertions(+), 1 deletion(-)
+ net/netfilter/ipvs/ip_vs_core.c | 19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-diff --git a/include/payload.h b/include/payload.h
-index a3d23095119c..8e357aef461e 100644
---- a/include/payload.h
-+++ b/include/payload.h
-@@ -35,6 +35,8 @@ struct payload_dep_ctx {
- extern bool payload_is_known(const struct expr *expr);
- extern bool payload_is_stacked(const struct proto_desc *desc,
- 			       const struct expr *expr);
-+
-+void payload_dependency_reset(struct payload_dep_ctx *ctx);
- extern void payload_dependency_store(struct payload_dep_ctx *ctx,
- 				     struct stmt *stmt,
- 				     enum proto_bases base);
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 4a0b8dcc5651..a65a97da89fb 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -2153,6 +2153,27 @@ static void stmt_payload_postprocess(struct rule_pp_ctx *ctx)
- 	expr_postprocess(ctx, &stmt->payload.val);
- }
- 
-+/*
-+ * We can only remove payload dependencies if they occur without
-+ * a statment with side effects in between.
-+ *
-+ * For instance:
-+ * 'ip protocol tcp tcp dport 22 counter' is same as
-+ * 'tcp dport 22 counter'.
-+ *
-+ * 'ip protocol tcp counter tcp dport 22' cannot be written as
-+ * 'counter tcp dport 22' (that would be counter ip protocol tcp, but
-+ * that counts every packet, not just ip/tcp).
-+ */
-+static void
-+rule_maybe_reset_payload_deps(struct payload_dep_ctx *pdctx, enum stmt_types t)
-+{
-+	if (t == STMT_EXPRESSION)
-+		return;
-+
-+	payload_dependency_reset(pdctx);
-+}
-+
- static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *rule)
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index d2d7bdf1d510..ad99c1ceea6f 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -849,10 +849,8 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
  {
- 	struct rule_pp_ctx rctx;
-@@ -2162,9 +2183,11 @@ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *r
- 	proto_ctx_init(&rctx.pctx, rule->handle.family);
+ 	unsigned int verdict = NF_DROP;
  
- 	list_for_each_entry_safe(stmt, next, &rule->stmts, list) {
-+		enum stmt_types type = stmt->ops->type;
+-	if (IP_VS_FWD_METHOD(cp) != 0) {
+-		pr_err("shouldn't reach here, because the box is on the "
+-		       "half connection in the tun/dr module.\n");
+-	}
++	if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ)
++		goto ignore_cp;
+ 
+ 	/* Ensure the checksum is correct */
+ 	if (!skb_csum_unnecessary(skb) && ip_vs_checksum_complete(skb, ihl)) {
+@@ -886,6 +884,8 @@ static int handle_response_icmp(int af, struct sk_buff *skb,
+ 		ip_vs_notrack(skb);
+ 	else
+ 		ip_vs_update_conntrack(skb, cp, 0);
 +
- 		rctx.stmt = stmt;
++ignore_cp:
+ 	verdict = NF_ACCEPT;
  
--		switch (stmt->ops->type) {
-+		switch (type) {
- 		case STMT_EXPRESSION:
- 			stmt_expr_postprocess(&rctx);
- 			break;
-@@ -2217,7 +2240,10 @@ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *r
- 		default:
- 			break;
+ out:
+@@ -1385,8 +1385,11 @@ ip_vs_out(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, in
+ 	 */
+ 	cp = pp->conn_out_get(ipvs, af, skb, &iph);
+ 
+-	if (likely(cp))
++	if (likely(cp)) {
++		if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ)
++			goto ignore_cp;
+ 		return handle_response(af, skb, pd, cp, &iph, hooknum);
++	}
+ 
+ 	/* Check for real-server-started requests */
+ 	if (atomic_read(&ipvs->conn_out_counter)) {
+@@ -1444,9 +1447,15 @@ ip_vs_out(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, in
+ 			}
  		}
-+
- 		rctx.pdctx.prev = rctx.stmt;
-+
-+		rule_maybe_reset_payload_deps(&rctx.pdctx, type);
  	}
- }
- 
-diff --git a/src/payload.c b/src/payload.c
-index 169954bad207..55128fee1498 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -366,6 +366,11 @@ bool payload_is_stacked(const struct proto_desc *desc, const struct expr *expr)
- 	return next && next->base == desc->base;
- }
- 
-+void payload_dependency_reset(struct payload_dep_ctx *ctx)
-+{
-+	memset(ctx, 0, sizeof(*ctx));
-+}
 +
- /**
-  * payload_dependency_store - store a possibly redundant protocol match
-  *
++out:
+ 	IP_VS_DBG_PKT(12, af, pp, skb, iph.off,
+ 		      "ip_vs_out: packet continues traversal as normal");
+ 	return NF_ACCEPT;
++
++ignore_cp:
++	__ip_vs_conn_put(cp);
++	goto out;
+ }
+ 
+ /*
 -- 
-2.10.2
+2.1.4
 
