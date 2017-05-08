@@ -1,57 +1,64 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH -stable 0/3] ipvs: patches for stable
-Date: Mon, 8 May 2017 11:50:26 +0200
-Message-ID: <20170508095026.GC4569@verge.net.au>
-References: <20170501134537.4715-1-ja@ssi.bg>
- <20170504140920.GA6629@salvia>
- <alpine.LFD.2.20.1705042140230.2123@ja.home.ssi.bg>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH v2] List handles of added rules if requested
+Date: Mon, 8 May 2017 19:31:09 +0200
+Message-ID: <20170508173109.GA32191@salvia>
+References: <20170505143323.29654-1-phil@nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
+Cc: netfilter-devel@vger.kernel.org
+To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:58247 "EHLO
-        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753374AbdEHJub (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 May 2017 05:50:31 -0400
+Received: from mail.us.es ([193.147.175.20]:45554 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754244AbdEHRbV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 May 2017 13:31:21 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 8E6C71EC2C6
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 May 2017 19:31:14 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7F3AF1B908E
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 May 2017 19:31:14 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0C7311B9092
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 May 2017 19:31:12 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.20.1705042140230.2123@ja.home.ssi.bg>
+In-Reply-To: <20170505143323.29654-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 04, 2017 at 09:48:08PM +0300, Julian Anastasov wrote:
+On Fri, May 05, 2017 at 04:33:23PM +0200, Phil Sutter wrote:
+> Being able to retrieve an added rule's handle atomically is a crucial
+> feature for scripts invoking nft command: Without it, there is no way to
+> be sure a handle extracted from 'nft list ruleset' command actually
+> refers to the rule one has added before or that of another process which
+> ran in between.
 > 
-> 	Hello,
+> Extracting an added rule's handle itself is not an easy task already,
+> since there is a chance that a given rule is printed differently than
+> when it was added before. A simple example is port number vs. service
+> name:
 > 
-> On Thu, 4 May 2017, Pablo Neira Ayuso wrote:
+> | nft add rule ip t c tcp dport { ssh, 80 } accept
 > 
-> > On Mon, May 01, 2017 at 04:45:34PM +0300, Julian Anastasov wrote:
-> > > 	Hello,
-> > > 
-> > > The following patches are rediffs for "ipvs: SNAT packet replies
-> > > only for NATed connections" for different stable kernels:
-> > > 
-> > > The official patch for the net tree (will come from Simon) works for:
-> > > 4.9.25, 4.10.13, 4.11, net tree
-> > > 
-> > > Patch 1: 3.2.88, 3.4.113
-> > > Patch 2: 3.10.105, 3.12.73, 3.16.43, 4.1.39
-> > > Patch 3: 4.4.65
-> > 
-> > Thanks Julian.
-> > 
-> > Could you indicate what upstream commit these patches refer to? stable
-> > maintainer need this.
-> > 
-> > These are backports, right?
+> There is no way to make 'nft list ruleset' return the rule just like
+> this as depending on whether '-nn' was given or not, it either prints
+> the set as '{ ssh, http }' or '{ 22, 80 }' but never in the mixed form
+> that was used when adding it.
 > 
-> 	Yes. Simon added the official patch to the ipvs tree and
-> the next step is to post it to you. May be you have to defer
-> these backports. If needed, I can send them again later.
+> This patch prints an identifying string for each added rule which may be
+> used as single parameter to a later 'nft delete rule' command. So a
+> simple scripting example looks like this:
+> 
+> | handle=$(nft add rule ip t c counter)
+> | ...
+> | nft delete rule $handle
+> 
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+> Changes since v1:
+> - Pass NLM_F_ECHO to kernel to leverage already existing reporting
+>   infrastructure and therefore not require a seperate kernel patch.
+> - Limit mnl_callback() action to NEWRULE messages - when replacing a
+>   rule, it would otherwise print the deleted rule as well.
 
-Hi Pablo,
-
-sorry for the confusion. I have now posted the fix for you to consider for
-mainline. Please see "[GIT PULL 0/1] IPVS Fixes for v4.12".
+This does not work for nft -i.
