@@ -1,40 +1,42 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] netlink_delink_delinearize: don't store dependency unless relop checks is eq check
-Date: Tue,  9 May 2017 17:37:11 +0200
-Message-ID: <20170509153711.26130-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft 00/10] switch l4 dependency to meta l4proto
+Date: Tue,  9 May 2017 17:51:12 +0200
+Message-ID: <20170509155122.26356-1-fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:44468 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:44544 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754404AbdEIPhK (ORCPT
+        by vger.kernel.org with ESMTP id S1755579AbdEIPvF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 9 May 2017 11:37:10 -0400
+        Tue, 9 May 2017 11:51:05 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-'ip protocol ne 6' is not a dependency for nexthdr protocol, and must
-not be stored as such.
+Currently nft inserts different types of dependencies for l4 protocols,
+depending on the family.
 
-Fixes: 0b858391781ba308 ("src: annotate follow up dependency just after killing another")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/netlink_delinearize.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+For inet, nft inserts 'meta l4proto' to e.g. check for tcp.
+For ip, nft uses 'ip protocol' instead.
+For ipv6, 'ip6 nexthdr' is used.
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index a65a97da89fb..f0288cd49914 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -1332,7 +1332,7 @@ static void payload_match_expand(struct rule_pp_ctx *ctx,
- 			payload_dependency_store(&ctx->pdctx, nstmt, base - stacked);
- 		} else {
- 			payload_dependency_kill(&ctx->pdctx, nexpr->left);
--			if (left->flags & EXPR_F_PROTOCOL)
-+			if (expr->op == OP_EQ && left->flags & EXPR_F_PROTOCOL)
- 				payload_dependency_store(&ctx->pdctx, nstmt, base - stacked);
- 		}
- 	}
--- 
-2.10.2
+And the latter is a problem, because this means that
+'tcp dport 22' will only match tcp packets that do not have a ipv6 extension
+header.
 
+This first switches implicit ipv6 dependency to 'meta l4proto', so
+the last transport header protocol will be considered instead of the
+first ipv6 nexthdr value.
+
+For ip, this problem doesn't exist, however, since it makes things
+a bit simpler when nft creates the same l4 dependency for ip/ip6/inet/bridge
+and so on the later patches in this series will also switch ipv4 over to
+meta expression.
+
+ src/evaluate.c            |    8 ++++++++
+ src/netlink_delinearize.c |    6 ++++++
+ src/payload.c             |   24 +++++++++++++++++++++++-
+ src/proto.c               |    6 ++++--
+ 4 files changed, 41 insertions(+), 3 deletions(-)
+
+[ diffstat exludes test/ intentionally.
+  Also, last patch uses -C mode to avoid a huge 7000 line diff.  ]
