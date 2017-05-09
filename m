@@ -1,29 +1,43 @@
-From: Jan Engelhardt <jengelh@inai.de>
+From: Sergey Yermakov <sergey@epmaki.net>
 Subject: Re: Changing destination ip and port of TEE'ed udp
-Date: Tue, 9 May 2017 00:29:04 +0200 (CEST)
-Message-ID: <nycvar.YFH.7.76.1705090028280.1724@n3.vanv.qr>
+Date: Mon, 8 May 2017 18:51:51 -0600
+Message-ID: <bf8bd631-544f-4935-af98-5506a67f1da4@epmaki.net>
 References: <fbc2b521-5f4d-dc10-ee52-c17c5fbc810c@epmaki.net>
+ <6411b93c-1e13-19ea-b90a-d41df584502e@epmaki.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Sergey Yermakov <sergey@epmaki.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a3.inai.de ([88.198.180.161]:43986 "EHLO a3.inai.de"
+Received: from mout.perfora.net ([74.208.4.196]:52427 "EHLO mout.perfora.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752145AbdEHW3H (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 May 2017 18:29:07 -0400
-In-Reply-To: <fbc2b521-5f4d-dc10-ee52-c17c5fbc810c@epmaki.net>
+        id S1751243AbdEIAvy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 May 2017 20:51:54 -0400
+Received: from [192.168.0.31] ([75.171.210.125]) by mrelay.perfora.net
+ (mreueus003 [74.208.5.2]) with ESMTPSA (Nemesis) id 0Lw03n-1e6Lmn2ixJ-017lNV
+ for <netfilter-devel@vger.kernel.org>; Tue, 09 May 2017 02:51:52 +0200
+In-Reply-To: <6411b93c-1e13-19ea-b90a-d41df584502e@epmaki.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 2017-05-09 00:22, Sergey Yermakov wrote:
+ > It's not TEE's job to modify the packet - that's for DNAT left to do.
 
-> Hello,
->
-> 1. Sorry if this has been already asked before ( couldn't find the answer in
-> the archives) or the wrong list.
->
-> 2. Changing the destination ip and port of TEE'ed udp datagrams seems doable
-> and I was just wondering if there are some arguments against adding it to TEE.
+I see. thx.
 
-It's not TEE's job to modify the packet - that's for DNAT left to do.
+What would be the best approach using DNAT for the following scenario 
+instead of having this ? :
+
+# iptables .. -j TEE --gateway 192.168.0.1 --new-dst 192.168.0.21 
+--new-dport 201
+# iptables .. -j TEE --gateway 192.168.1.2 --new-dst 192.168.1.22 
+--new-dport 201
+# iptables .. -j TEE --gateway 192.168.1.2 --new-dst 192.168.1.23 
+--new-dport 202
+
+scenario:
+I have a server (192.168.3.20/24) that is getting a quite substantial 
+amount of udp data on some port and I need to replicate that data out to 
+192.168.0.21/24, 192.168.1.22/24 and 192.168.1.23/24 servers ?
+
+thx,
+-sergey
