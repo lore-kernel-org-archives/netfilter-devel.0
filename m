@@ -1,50 +1,82 @@
-From: <kathleen.gilbert@hwhlaw.com>
-Subject: 18978
-Date: Tue, 09 May 2017 01:01:28 -0000
-Message-ID: <149429168802.31457.16599778566256047007@sta.211.ru>
+From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+Subject: Re: .config for iptables icmp rule delete failure
+Date: Mon, 8 May 2017 22:22:15 -0400
+Message-ID: <CA+FuTSdikLZoOZDXLPG933DP6sBzqSU0s9DE7L+3Y4xMquK3fQ@mail.gmail.com>
+References: <20170507204306.GW25861@madcap2.tricolour.ca> <20170508202236.GC9660@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: application/zip; name="43892509.zip"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: Richard Guy Briggs <rgb@redhat.com>, fwestpha@redhat.com,
+        netfilter-devel <netfilter-devel@vger.kernel.org>,
+        pmoore@redhat.com, pvrabec@redhat.com
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 162.82.248.178.sta.211.ru ([178.248.82.162]:33174 "HELO
-        sta.211.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-        id S1751205AbdEIBBc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 May 2017 21:01:32 -0400
-Content-Disposition: attachment
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:32891 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751094AbdEICWt (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 May 2017 22:22:49 -0400
+Received: by mail-wm0-f67.google.com with SMTP id y10so19286936wmh.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 08 May 2017 19:22:48 -0700 (PDT)
+Received: from mail-wm0-f47.google.com (mail-wm0-f47.google.com. [74.125.82.47])
+        by smtp.gmail.com with ESMTPSA id l7sm22835333wrc.52.2017.05.08.19.22.46
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 08 May 2017 19:22:46 -0700 (PDT)
+Received: by mail-wm0-f47.google.com with SMTP id u65so104618699wmu.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 08 May 2017 19:22:46 -0700 (PDT)
+In-Reply-To: <20170508202236.GC9660@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-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
+On Mon, May 8, 2017 at 4:22 PM, Florian Westphal <fw@strlen.de> wrote:
+> Richard Guy Briggs <rgb@redhat.com> wrote:
+>
+> [ CC'ing Willem ]
+>
+>> (Summary of IRC conversation for background...)
+>> Paul Moore and I hit what appears to be a bug since f25's 4.10.11 and
+>> upstream's 4.11-rc3 that would fail to locate on deletion an icmp rule
+>> in iptables.  Paul narrowed it down to the icmp option.
+>> Here's our issue where it came up:
+>>       https://github.com/linux-audit/audit-testsuite/pull/43#issuecomment-296831880
+>>
+>> The test case is:
+>> # iptables -t mangle -I INPUT -i lo -p icmp --icmp-type 1 -j MARK --set-mark 0xdeadbeef
+>> # iptables -t mangle -D INPUT -i lo -p icmp --icmp-type 1 -j MARK --set-mark 0xdeadbeef
+>> The error we're getting is "iptables: No chain/target/match by that name."
+>
+> This is a iptables (yes, userspace) bug exposed with
+> f77bc5b23fb1af51fc0faa8a479dea8969eb5079
+> (iptables: use match, target and data copy_to_user helpers)
+>
+> icmp is 4 byte in size, but for some silly(?) reason userspace size
+> in iptables userland is set as XT_ALIGN(sizeof(ipt_icmp), so userspace
+> thinks its 8.
+>
+> In 4.10, kernel copied the full kernel blob to userspace, and since
+> its allocated with kz/vzalloc the 4 padding bytes are 0.
+>
+> libiptc uses malloc, so in case that contains garbage bytes the
+> memcmp() used to figure out if we found the correct rule in libiptc
+> during -D mode returns false because it chokes on the extra padding
+> after struct ipt_icmp match :-/
+>
+> Simples fix is to use calloc/memset to 0 in libiptc, but we can't
+> go with userspace-only fix ...
+>
+> So we have to fix this in the kernel and have xt_data_to_user()
+> zero out any padding as well.
+>
+> Willem, if you don't have time to fix this let me know and i'll
+> try to work on this tomorrow.
+
+Thanks, Florian. Also for the detailed context. I'm having a look.
+The following might be sufficient. It fixes the given example for me.
+
+@@ -288,6 +288,10 @@ int xt_data_to_user(void __user *dst, const void *src,
+        usersize = usersize ? : size;
+        if (copy_to_user(dst, src, usersize))
+                return -EFAULT;
++       size = XT_ALIGN(size);
+        if (usersize != size && clear_user(dst + usersize, size - usersize))
+                return -EFAULT;
