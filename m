@@ -1,54 +1,70 @@
 From: Phil Sutter <phil@nwl.cc>
 Subject: Re: [nft PATCH RFC] monitor: Support printing processes which caused
  the event
-Date: Wed, 10 May 2017 16:02:44 +0200
-Message-ID: <20170510140244.GW20805@orbyte.nwl.cc>
+Date: Wed, 10 May 2017 16:39:46 +0200
+Message-ID: <20170510143946.GX20805@orbyte.nwl.cc>
 References: <20170510105510.891-1-phil@nwl.cc>
- <CAOkSjBhBTB8uDspnqx7F9vHt0GcCeAyt_3e+Lzm5nMG9pQKnOA@mail.gmail.com>
+ <20170510112724.GD16263@breakpoint.cc>
+ <20170510113855.GD29824@salvia>
+ <20170510115748.GE16263@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>
-To: Arturo Borrero Gonzalez <arturo@debian.org>
+        netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:39439 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:42665 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753224AbdEJODB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 May 2017 10:03:01 -0400
+        id S1753070AbdEJOjx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 10 May 2017 10:39:53 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBhBTB8uDspnqx7F9vHt0GcCeAyt_3e+Lzm5nMG9pQKnOA@mail.gmail.com>
+In-Reply-To: <20170510115748.GE16263@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, May 10, 2017 at 02:52:49PM +0200, Arturo Borrero Gonzalez wrote:
-> On 10 May 2017 at 12:55, Phil Sutter <phil@nwl.cc> wrote:
-> > This adds support for printing the process ID and name for changes which
-> > 'nft monitor' reports:
-> >
-> > | nft -a -p monitor
-> > | add chain ip t2 bla3 # pid 11616 (nft)
-> >
-> > If '-n' was given in addition to '-p', parsing the process name from
-> > /proc/<pid>/cmdline is suppressed.
-> >
-> > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > Cc: Florian Westphal <fw@strlen.de>
-> > ---
-> >  include/nftables.h |  1 +
-> >  src/main.c         | 12 ++++++++++-
-> >  src/netlink.c      | 60 +++++++++++++++++++++++++++++++++++++++++++++++++-----
-> >  src/rule.c         |  2 --
-> >  4 files changed, 67 insertions(+), 8 deletions(-)
-> >
-> 
-> If you are about to parse the textual nft output anyway, (which
-> doesn't seems like a good idea BTW),
-> why you don't simply add a rule comment?:
-> 
-> % nft add rule inet filter input counter comment "added by my app"
+Hi,
 
-Sometimes you don't control the instance adding the rule, then this is
-not an option.
+On Wed, May 10, 2017 at 01:57:48PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Wed, May 10, 2017 at 01:27:24PM +0200, Florian Westphal wrote:
+> > > While most programs set it to their process id there is no guarantee.
+> > > Its just a (unique) 32 bit identifier.
+> > 
+> > It's actually the kernel that decides what portID the socket gets
+> > IIRC. For the first socket it uses the process ID, then for follow up
+> > sockets, it just looks for a spare ID in the negative range of the 32
+> > bit, if my memory serves well.
+> 
+> Argh, yes, of course...
+> 
+> > > Afaics one has to use /proc/net/netlink to map the portid to the inode
+> > > and then walk /proc/*/fd/* to find the socket with that inode.
+> > > 
+> > > Perhaps there is a simpler way, maybe you can check what ss is doing
+> > > and what info can be obtained via netlink diag.
+> > 
+> > I wouldn't be surprise if we need more kernel infrastructure to deal
+> > with this. Parsing /proc for a netlink thing is definitely not ideal.
+> 
+> Yes.  From nft monitor point of view the most easy solution would be
+> if the process id (or even the name?) would be sent back to userspace in a netlink
+> attribute.  Do you think we can extend nf_tables to include
+> get_task_comm() name and/or pid when/if we send update notifications?
+> 
+> (The pid is actually not that useful as process might have exited
+> already).
+
+The question is where to put it. Looking at the netlink message
+structure, I see two options:
+
+A) Extend struct nfgenmsg to contain PID and process name (a buffer of
+   length TASK_COMM_LEN).
+B) Add type-specific attributes for each type, like NFTA_RULE_PID and
+   NFTA_RULE_PNAME.
+
+The problem with A) is that it will break older user space expecting
+sizeof(struct nfgenmsg) to be shorter. Additional attributes should not
+be a problem here, but having to add them for each object type seems to
+be a really ugly solution.
 
 Cheers, Phil
