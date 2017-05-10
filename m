@@ -1,87 +1,44 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nft PATCH RFC] monitor: Support printing processes which caused
- the event
-Date: Wed, 10 May 2017 17:11:31 +0200
-Message-ID: <20170510151131.GY20805@orbyte.nwl.cc>
-References: <20170510105510.891-1-phil@nwl.cc>
- <20170510112724.GD16263@breakpoint.cc>
- <20170510113855.GD29824@salvia>
- <20170510115748.GE16263@breakpoint.cc>
- <20170510143946.GX20805@orbyte.nwl.cc>
- <20170510145437.GA17305@breakpoint.cc>
+Subject: RFC: Ideas about possible solutions for nfbz#949
+Date: Wed, 10 May 2017 17:34:29 +0200
+Message-ID: <20170510153429.GZ20805@orbyte.nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+        Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:40303 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:50599 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753001AbdEJPLd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 May 2017 11:11:33 -0400
+        id S1753487AbdEJPeb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 10 May 2017 11:34:31 -0400
 Content-Disposition: inline
-In-Reply-To: <20170510145437.GA17305@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, May 10, 2017 at 04:54:37PM +0200, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > Hi,
-> > 
-> > On Wed, May 10, 2017 at 01:57:48PM +0200, Florian Westphal wrote:
-> > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > On Wed, May 10, 2017 at 01:27:24PM +0200, Florian Westphal wrote:
-> > > > > While most programs set it to their process id there is no guarantee.
-> > > > > Its just a (unique) 32 bit identifier.
-> > > > 
-> > > > It's actually the kernel that decides what portID the socket gets
-> > > > IIRC. For the first socket it uses the process ID, then for follow up
-> > > > sockets, it just looks for a spare ID in the negative range of the 32
-> > > > bit, if my memory serves well.
-> > > 
-> > > Argh, yes, of course...
-> > > 
-> > > > > Afaics one has to use /proc/net/netlink to map the portid to the inode
-> > > > > and then walk /proc/*/fd/* to find the socket with that inode.
-> > > > > 
-> > > > > Perhaps there is a simpler way, maybe you can check what ss is doing
-> > > > > and what info can be obtained via netlink diag.
-> > > > 
-> > > > I wouldn't be surprise if we need more kernel infrastructure to deal
-> > > > with this. Parsing /proc for a netlink thing is definitely not ideal.
-> > > 
-> > > Yes.  From nft monitor point of view the most easy solution would be
-> > > if the process id (or even the name?) would be sent back to userspace in a netlink
-> > > attribute.  Do you think we can extend nf_tables to include
-> > > get_task_comm() name and/or pid when/if we send update notifications?
-> > > 
-> > > (The pid is actually not that useful as process might have exited
-> > > already).
-> > 
-> > The question is where to put it. Looking at the netlink message
-> > structure, I see two options:
-> > 
-> > A) Extend struct nfgenmsg to contain PID and process name (a buffer of
-> >    length TASK_COMM_LEN).
-> > B) Add type-specific attributes for each type, like NFTA_RULE_PID and
-> >    NFTA_RULE_PNAME.
-> > 
-> > The problem with A) is that it will break older user space expecting
-> > sizeof(struct nfgenmsg) to be shorter.
-> 
-> Right, A) is a non-starter.
-> 
-> > Additional attributes should not
-> > be a problem here, but having to add them for each object type seems to
-> > be a really ugly solution.
-> 
-> I don't find it ugly, but alternatively we could add a new type of info
-> sent at the beginning of the commit phase (before all the table/rule etc
-> updates) and include it there.
+Hi,
 
-You mean as a separate netlink message? Then we would have to map that
-message to the actual notification, no? Or do you think it's sufficient
-to cache the last PID/name received and use it for the monitor messages
-until an update to them comes in?
+Netfilter Bugzilla #949[1] complains about broken output when trying to
+match icmpv6 message fields. This is a problem in how payload match is
+implemented in nft: The given match (e.g. 'icmp6 id 2') is broken down
+to a simple match of header data at a specific offset. Sadly this does
+not work with ICMP(v6) since header structure depends on the packet's
+ICMP type and on return path there is no information about which type of
+message the user wanted to match against.
+
+My idea was to build something like the protocol dependencies we have
+for e.g. TCP header fields but with ICMP, a given header field might be
+present in multiple message types (e.g. icmp6_id is present in echo
+request as well as reply).
+
+I already considered inserting a match for icmp6 type against an
+anonymous set (like 'icmp6 type { echo-request, echo-reply }'), but
+having this as an implicit dependency and resolving with previous
+matches, etc. becomes pretty complex.
+
+Do you think I should try following a different approach (via userdata
+e.g.)?
 
 Thanks, Phil
+
+[1] https://bugzilla.netfilter.org/show_bug.cgi?id=949
