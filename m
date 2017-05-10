@@ -1,123 +1,68 @@
-From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: [PATCH nf] xtables: zero padding in data_to_user
-Date: Tue,  9 May 2017 16:17:37 -0400
-Message-ID: <20170509201737.102987-1-willemdebruijn.kernel@gmail.com>
-Cc: netdev@vger.kernel.org, rgb@redhat.com, fwestpha@redhat.com,
-        pmoore@redhat.com, pvrabec@redhat.com, pablo@netfilter.org,
-        davem@davemloft.net, Willem de Bruijn <willemb@google.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [nft PATCH v2] List handles of added rules if requested
+Date: Wed, 10 May 2017 10:17:45 +0200
+Message-ID: <20170510081745.GP20805@orbyte.nwl.cc>
+References: <20170505143323.29654-1-phil@nwl.cc>
+ <20170508173109.GA32191@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from orbyte.nwl.cc ([151.80.46.58]:56359 "EHLO mail.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752511AbdEJIRs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 10 May 2017 04:17:48 -0400
+Content-Disposition: inline
+In-Reply-To: <20170508173109.GA32191@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Willem de Bruijn <willemb@google.com>
+On Mon, May 08, 2017 at 07:31:09PM +0200, Pablo Neira Ayuso wrote:
+> On Fri, May 05, 2017 at 04:33:23PM +0200, Phil Sutter wrote:
+> > Being able to retrieve an added rule's handle atomically is a crucial
+> > feature for scripts invoking nft command: Without it, there is no way to
+> > be sure a handle extracted from 'nft list ruleset' command actually
+> > refers to the rule one has added before or that of another process which
+> > ran in between.
+> > 
+> > Extracting an added rule's handle itself is not an easy task already,
+> > since there is a chance that a given rule is printed differently than
+> > when it was added before. A simple example is port number vs. service
+> > name:
+> > 
+> > | nft add rule ip t c tcp dport { ssh, 80 } accept
+> > 
+> > There is no way to make 'nft list ruleset' return the rule just like
+> > this as depending on whether '-nn' was given or not, it either prints
+> > the set as '{ ssh, http }' or '{ 22, 80 }' but never in the mixed form
+> > that was used when adding it.
+> > 
+> > This patch prints an identifying string for each added rule which may be
+> > used as single parameter to a later 'nft delete rule' command. So a
+> > simple scripting example looks like this:
+> > 
+> > | handle=$(nft add rule ip t c counter)
+> > | ...
+> > | nft delete rule $handle
+> > 
+> > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > ---
+> > Changes since v1:
+> > - Pass NLM_F_ECHO to kernel to leverage already existing reporting
+> >   infrastructure and therefore not require a seperate kernel patch.
+> > - Limit mnl_callback() action to NEWRULE messages - when replacing a
+> >   rule, it would otherwise print the deleted rule as well.
+> 
+> This does not work for nft -i.
 
-When looking up an iptables rule, the iptables binary compares the
-aligned match and target data (XT_ALIGN). In some cases this can
-exceed the actual data size to include padding bytes.
+It does, if I pass '-a' along with '-i':
 
-Before commit f77bc5b23fb1 ("iptables: use match, target and data
-copy_to_user helpers") the malloc()ed bytes were overwritten by the
-kernel with kzalloced contents, zeroing the padding and making the
-comparison succeed. After this patch, the kernel copies and clears
-only data, leaving the padding bytes undefined.
+| % sudo ./src/nft -i -a
+| nft> replace rule ip t c handle 2 counter accept
+| ip t c handle 2
+| nft> 
 
-Extend the clear operation from data size to aligned data size to
-include the padding bytes, if any.
+Or should this behave differently then in your opinion?
 
-Padding bytes can be observed in both match and target, and the bug
-triggered, by issuing a rule with match icmp and target ACCEPT:
-
-  iptables -t mangle -A INPUT -i lo -p icmp --icmp-type 1 -j ACCEPT
-  iptables -t mangle -D INPUT -i lo -p icmp --icmp-type 1 -j ACCEPT
-
-Fixes: f77bc5b23fb1 ("iptables: use match, target and data copy_to_user helpers")
-Reported-by: Paul Moore <pmoore@redhat.com>
-Reported-by: Richard Guy Briggs <rgb@redhat.com>
-Signed-off-by: Willem de Bruijn <willemb@google.com>
----
- include/linux/netfilter/x_tables.h | 2 +-
- net/bridge/netfilter/ebtables.c    | 9 ++++++---
- net/netfilter/x_tables.c           | 9 ++++++---
- 3 files changed, 13 insertions(+), 7 deletions(-)
-
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index be378cf47fcc..b3044c2c62cb 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -294,7 +294,7 @@ int xt_match_to_user(const struct xt_entry_match *m,
- int xt_target_to_user(const struct xt_entry_target *t,
- 		      struct xt_entry_target __user *u);
- int xt_data_to_user(void __user *dst, const void *src,
--		    int usersize, int size);
-+		    int usersize, int size, int aligned_size);
- 
- void *xt_copy_counters_from_user(const void __user *user, unsigned int len,
- 				 struct xt_counters_info *info, bool compat);
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 9ec0c9f908fa..9c6e619f452b 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -1373,7 +1373,8 @@ static inline int ebt_obj_to_user(char __user *um, const char *_name,
- 	strlcpy(name, _name, sizeof(name));
- 	if (copy_to_user(um, name, EBT_FUNCTION_MAXNAMELEN) ||
- 	    put_user(datasize, (int __user *)(um + EBT_FUNCTION_MAXNAMELEN)) ||
--	    xt_data_to_user(um + entrysize, data, usersize, datasize))
-+	    xt_data_to_user(um + entrysize, data, usersize, datasize,
-+			    XT_ALIGN(datasize)))
- 		return -EFAULT;
- 
- 	return 0;
-@@ -1658,7 +1659,8 @@ static int compat_match_to_user(struct ebt_entry_match *m, void __user **dstptr,
- 		if (match->compat_to_user(cm->data, m->data))
- 			return -EFAULT;
- 	} else {
--		if (xt_data_to_user(cm->data, m->data, match->usersize, msize))
-+		if (xt_data_to_user(cm->data, m->data, match->usersize, msize,
-+				    COMPAT_XT_ALIGN(msize)))
- 			return -EFAULT;
- 	}
- 
-@@ -1687,7 +1689,8 @@ static int compat_target_to_user(struct ebt_entry_target *t,
- 		if (target->compat_to_user(cm->data, t->data))
- 			return -EFAULT;
- 	} else {
--		if (xt_data_to_user(cm->data, t->data, target->usersize, tsize))
-+		if (xt_data_to_user(cm->data, t->data, target->usersize, tsize,
-+				    COMPAT_XT_ALIGN(tsize)))
- 			return -EFAULT;
- 	}
- 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index f134d384852f..c64716a735b0 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -283,12 +283,13 @@ static int xt_obj_to_user(u16 __user *psize, u16 size,
- 		       &U->u.user.revision, K->u.kernel.TYPE->revision)
- 
- int xt_data_to_user(void __user *dst, const void *src,
--		    int usersize, int size)
-+		    int usersize, int size, int aligned_size)
- {
- 	usersize = usersize ? : size;
- 	if (copy_to_user(dst, src, usersize))
- 		return -EFAULT;
--	if (usersize != size && clear_user(dst + usersize, size - usersize))
-+	if (usersize != aligned_size &&
-+	    clear_user(dst + usersize, aligned_size - usersize))
- 		return -EFAULT;
- 
- 	return 0;
-@@ -298,7 +299,9 @@ EXPORT_SYMBOL_GPL(xt_data_to_user);
- #define XT_DATA_TO_USER(U, K, TYPE, C_SIZE)				\
- 	xt_data_to_user(U->data, K->data,				\
- 			K->u.kernel.TYPE->usersize,			\
--			C_SIZE ? : K->u.kernel.TYPE->TYPE##size)
-+			C_SIZE ? : K->u.kernel.TYPE->TYPE##size,	\
-+			C_SIZE ? COMPAT_XT_ALIGN(C_SIZE) :		\
-+				 XT_ALIGN(K->u.kernel.TYPE->TYPE##size))
- 
- int xt_match_to_user(const struct xt_entry_match *m,
- 		     struct xt_entry_match __user *u)
--- 
-2.13.0.rc2.291.g57267f2277-goog
+Thanks, Phil
