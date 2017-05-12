@@ -1,40 +1,50 @@
-From: linzhang <xiaolou4617@gmail.com>
-Subject: [PATCH] net: netfilter: netlink: delete extra spaces
-Date: Fri, 12 May 2017 13:11:06 +0800
-Message-ID: <1494565866-23308-1-git-send-email-xiaolou4617@gmail.com>
-Cc: kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linzhang <xiaolou4617@gmail.com>
-To: pablo@netfilter.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: gfree.wind@vip.163.com
+Subject: [PATCH nf] ebtables: arpreply: Add the standard target sanity check
+Date: Fri, 12 May 2017 17:44:10 +0800
+Message-ID: <1494582250-120912-1-git-send-email-gfree.wind@vip.163.com>
+Cc: Gao Feng <gfree.wind@vip.163.com>
+To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from proxy90-7.mail.163.com ([43.230.90.7]:55456 "EHLO
+        proxy90-7.mail.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932315AbdELJpZ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 12 May 2017 05:45:25 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch cleans up extra spaces.
+From: Gao Feng <gfree.wind@vip.163.com>
 
-Signed-off-by: linzhang <xiaolou4617@gmail.com>
+The info->target is from userspace and it would be used directly.
+So we need to add the sanity check to make sure it is a valid standard
+target, although the ebtables tool has already checked it. Kernel need
+to check anything from userspace.
+
+If the target was set as an evil value, it would break the ebtables
+and cause a panic. Because the non-standard target is treated as one
+offset.
+
+Signed-off-by: Gao Feng <gfree.wind@vip.163.com>
 ---
- net/netfilter/nf_conntrack_netlink.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/bridge/netfilter/ebt_arpreply.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index dcf561b..356e6f0 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -634,11 +634,11 @@ static size_t ctnetlink_nlmsg_size(const struct nf_conn *ct)
- 	if (events & (1 << IPCT_DESTROY)) {
- 		type = IPCTNL_MSG_CT_DELETE;
- 		group = NFNLGRP_CONNTRACK_DESTROY;
--	} else  if (events & ((1 << IPCT_NEW) | (1 << IPCT_RELATED))) {
-+	} else if (events & ((1 << IPCT_NEW) | (1 << IPCT_RELATED))) {
- 		type = IPCTNL_MSG_CT_NEW;
- 		flags = NLM_F_CREATE|NLM_F_EXCL;
- 		group = NFNLGRP_CONNTRACK_NEW;
--	} else  if (events) {
-+	} else if (events) {
- 		type = IPCTNL_MSG_CT_NEW;
- 		group = NFNLGRP_CONNTRACK_UPDATE;
- 	} else
+diff --git a/net/bridge/netfilter/ebt_arpreply.c b/net/bridge/netfilter/ebt_arpreply.c
+index 5929309..c4886d9 100644
+--- a/net/bridge/netfilter/ebt_arpreply.c
++++ b/net/bridge/netfilter/ebt_arpreply.c
+@@ -68,6 +68,9 @@ static int ebt_arpreply_tg_check(const struct xt_tgchk_param *par)
+ 	if (e->ethproto != htons(ETH_P_ARP) ||
+ 	    e->invflags & EBT_IPROTO)
+ 		return -EINVAL;
++	if (INVALID_TARGET)
++		return -EINVAL;
++
+ 	return 0;
+ }
+ 
 -- 
-1.8.3.1
+1.9.1
+
+
