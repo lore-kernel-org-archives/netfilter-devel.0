@@ -1,55 +1,40 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [PATCH] netfilter: synproxy: fix conntrackd interaction
-Date: Thu, 11 May 2017 18:56:38 +0200
-Message-ID: <20170511165638.10913-1-eric@regit.org>
-References: <20170511181428.4b3416cc@redhat.com>
-Cc: brouer@redhat.com, netfilter-devel@vger.kernel.org,
-        Eric Leblond <eric@regit.org>
+From: linzhang <xiaolou4617@gmail.com>
+Subject: [PATCH] net: netfilter: netlink: delete extra spaces
+Date: Fri, 12 May 2017 13:11:06 +0800
+Message-ID: <1494565866-23308-1-git-send-email-xiaolou4617@gmail.com>
+Cc: kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linzhang <xiaolou4617@gmail.com>
 To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from home.regit.org ([37.187.126.138]:53924 "EHLO home.regit.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751262AbdEKQ4v (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 11 May 2017 12:56:51 -0400
-In-Reply-To: <20170511181428.4b3416cc@redhat.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This patch fixes the creation of connection tracking entry from
-netlink when synproxy is used. It was missing the addition of
-the synproxy extension.
+This patch cleans up extra spaces.
 
-This was causing kernel crashes when a conntrack entry created by
-conntrackd was used after the switch of traffic from active node
-to the passive node.
-
-Signed-off-by: Eric Leblond <eric@regit.org>
+Signed-off-by: linzhang <xiaolou4617@gmail.com>
 ---
- net/netfilter/nf_conntrack_netlink.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ net/netfilter/nf_conntrack_netlink.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index dcf561b5c97a..1a127677ffe1 100644
+index dcf561b..356e6f0 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -45,6 +45,8 @@
- #include <net/netfilter/nf_conntrack_zones.h>
- #include <net/netfilter/nf_conntrack_timestamp.h>
- #include <net/netfilter/nf_conntrack_labels.h>
-+#include <net/netfilter/nf_conntrack_seqadj.h>
-+#include <net/netfilter/nf_conntrack_synproxy.h>
- #ifdef CONFIG_NF_NAT_NEEDED
- #include <net/netfilter/nf_nat_core.h>
- #include <net/netfilter/nf_nat_l4proto.h>
-@@ -1828,6 +1830,8 @@ ctnetlink_create_conntrack(struct net *net,
- 	nf_ct_tstamp_ext_add(ct, GFP_ATOMIC);
- 	nf_ct_ecache_ext_add(ct, 0, 0, GFP_ATOMIC);
- 	nf_ct_labels_ext_add(ct);
-+	nfct_seqadj_ext_add(ct);
-+	nfct_synproxy_ext_add(ct);
- 
- 	/* we must add conntrack extensions before confirmation. */
- 	ct->status |= IPS_CONFIRMED;
+@@ -634,11 +634,11 @@ static size_t ctnetlink_nlmsg_size(const struct nf_conn *ct)
+ 	if (events & (1 << IPCT_DESTROY)) {
+ 		type = IPCTNL_MSG_CT_DELETE;
+ 		group = NFNLGRP_CONNTRACK_DESTROY;
+-	} else  if (events & ((1 << IPCT_NEW) | (1 << IPCT_RELATED))) {
++	} else if (events & ((1 << IPCT_NEW) | (1 << IPCT_RELATED))) {
+ 		type = IPCTNL_MSG_CT_NEW;
+ 		flags = NLM_F_CREATE|NLM_F_EXCL;
+ 		group = NFNLGRP_CONNTRACK_NEW;
+-	} else  if (events) {
++	} else if (events) {
+ 		type = IPCTNL_MSG_CT_NEW;
+ 		group = NFNLGRP_CONNTRACK_UPDATE;
+ 	} else
 -- 
-2.11.0
-
+1.8.3.1
