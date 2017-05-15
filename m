@@ -1,30 +1,51 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf V2 1/2] netfilter: introduce nf_conntrack_helper_put
- helper function
-Date: Mon, 15 May 2017 18:37:01 +0200
-Message-ID: <20170515163701.GB3863@salvia>
+Subject: Re: [PATCH nf V2 2/2] netfilter: nfnl_cthelper: reject del request
+ if helper obj is in use
+Date: Mon, 15 May 2017 18:37:28 +0200
+Message-ID: <20170515163728.GC3863@salvia>
 References: <20170507140156.16487-1-zlpnobody@163.com>
- <20170507140156.16487-2-zlpnobody@163.com>
+ <20170507140156.16487-3-zlpnobody@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
 To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:54444 "EHLO
+Received: from ganesha.gnumonks.org ([213.95.27.120]:54458 "EHLO
         ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759959AbdEOQhF (ORCPT
+        with ESMTP id S1756156AbdEOQhc (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 May 2017 12:37:05 -0400
+        Mon, 15 May 2017 12:37:32 -0400
 Content-Disposition: inline
-In-Reply-To: <20170507140156.16487-2-zlpnobody@163.com>
+In-Reply-To: <20170507140156.16487-3-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, May 07, 2017 at 10:01:55PM +0800, Liping Zhang wrote:
+On Sun, May 07, 2017 at 10:01:56PM +0800, Liping Zhang wrote:
 > From: Liping Zhang <zlpnobody@gmail.com>
 > 
-> And convert module_put invocation to nf_conntrack_helper_put, this is
-> prepared for the followup patch, which will add a refcnt for cthelper,
-> so we can reject the deleting request when cthelper is in use.
+> We can still delete the ct helper even if it is in use, this will cause
+> a use-after-free error. In more detail, I mean:
+>   # nfct helper add ssdp inet udp
+>   # iptables -t raw -A OUTPUT -p udp -j CT --helper ssdp
+>   # nfct helper delete ssdp //--> oops, succeed!
+>   BUG: unable to handle kernel paging request at 000026ca
+>   IP: 0x26ca
+>   [...]
+>   Call Trace:
+>    ? ipv4_helper+0x62/0x80 [nf_conntrack_ipv4]
+>    nf_hook_slow+0x21/0xb0
+>    ip_output+0xe9/0x100
+>    ? ip_fragment.constprop.54+0xc0/0xc0
+>    ip_local_out+0x33/0x40
+>    ip_send_skb+0x16/0x80
+>    udp_send_skb+0x84/0x240
+>    udp_sendmsg+0x35d/0xa50
+> 
+> So add reference count to fix this issue, if ct helper is used by
+> others, reject the delete request.
+> 
+> Apply this patch:
+>   # nfct helper delete ssdp
+>   nfct v1.4.3: netlink error: Device or resource busy
 
 Applied, thanks.
