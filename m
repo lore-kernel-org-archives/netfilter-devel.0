@@ -1,72 +1,92 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf v6 2/3] netfilter: nat_helper: Register one
- nf_ct_nat_helper each proto nat module
-Date: Mon, 15 May 2017 19:20:52 +0200
-Message-ID: <20170515172052.GA5872@salvia>
-References: <1493945713-67263-1-git-send-email-gfree.wind@vip.163.com>
- <1493945713-67263-2-git-send-email-gfree.wind@vip.163.com>
+Subject: Re: [nf-next PATCH] netfilter: nf_tables: Report transactions'
+ process info to user space
+Date: Mon, 15 May 2017 19:54:44 +0200
+Message-ID: <20170515175444.GA6179@salvia>
+References: <20170515145149.26114-1-phil@nwl.cc>
+ <20170515155331.GA32385@salvia>
+ <20170515164432.GL20805@orbyte.nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kadlec@blackhole.kfki.hu, fw@strlen.de,
-        netfilter-devel@vger.kernel.org
-To: gfree.wind@vip.163.com
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+        Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:54966 "EHLO
+Received: from ganesha.gnumonks.org ([213.95.27.120]:55201 "EHLO
         ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932745AbdEORU5 (ORCPT
+        with ESMTP id S1757956AbdEORyt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 May 2017 13:20:57 -0400
+        Mon, 15 May 2017 13:54:49 -0400
 Content-Disposition: inline
-In-Reply-To: <1493945713-67263-2-git-send-email-gfree.wind@vip.163.com>
+In-Reply-To: <20170515164432.GL20805@orbyte.nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, May 05, 2017 at 08:55:12AM +0800, gfree.wind@vip.163.com wrote:
-> diff --git a/net/ipv4/netfilter/nf_nat_h323.c b/net/ipv4/netfilter/nf_nat_h323.c
-> index 346e764..ce2095c 100644
-> --- a/net/ipv4/netfilter/nf_nat_h323.c
-> +++ b/net/ipv4/netfilter/nf_nat_h323.c
-> @@ -21,6 +21,26 @@
->  #include <linux/netfilter/nf_conntrack_h323.h>
->  
->  /****************************************************************************/
-> +static void ip_nat_q931_expect(struct nf_conn *new,
-> +			       struct nf_conntrack_expect *this);
-> +static void ip_nat_callforwarding_expect(struct nf_conn *new,
-> +					 struct nf_conntrack_expect *this);
-> +
-> +static struct nf_ct_nat_helper q931_nat = {
-> +	.name		= "Q.931",
-> +	.expectfn	= ip_nat_q931_expect,
-> +};
-> +
-> +static struct nf_ct_nat_helper callforwarding_nat = {
-> +	.name		= "callforwarding",
-> +	.expectfn	= ip_nat_callforwarding_expect,
-> +};
+On Mon, May 15, 2017 at 06:44:32PM +0200, Phil Sutter wrote:
+> On Mon, May 15, 2017 at 05:53:31PM +0200, Pablo Neira Ayuso wrote:
+> > On Mon, May 15, 2017 at 04:51:49PM +0200, Phil Sutter wrote:
+> > > When committing a transaction, report PID and name of user space process
+> > > which initiated it.
+> > > 
+> > > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > > ---
+> > >  include/uapi/linux/netfilter/nf_tables.h | 16 +++++++++++
+> > >  net/netfilter/nf_tables_api.c            | 49 ++++++++++++++++++++++++++++++++
+> > >  2 files changed, 65 insertions(+)
+> > > 
+> > > diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> > > index 683f6f88fcace..7c012690a5f02 100644
+> > > --- a/include/uapi/linux/netfilter/nf_tables.h
+> > > +++ b/include/uapi/linux/netfilter/nf_tables.h
+> > > @@ -90,6 +90,7 @@ enum nft_verdicts {
+> > >   * @NFT_MSG_GETOBJ: get a stateful object (enum nft_obj_attributes)
+> > >   * @NFT_MSG_DELOBJ: delete a stateful object (enum nft_obj_attributes)
+> > >   * @NFT_MSG_GETOBJ_RESET: get and reset a stateful object (enum nft_obj_attributes)
+> > > + * @NFT_MSG_PROC_INFO: get info about user space process which initiated the transaction
+> > >   */
+> > >  enum nf_tables_msg_types {
+> > >  	NFT_MSG_NEWTABLE,
+> > > @@ -114,6 +115,7 @@ enum nf_tables_msg_types {
+> > >  	NFT_MSG_GETOBJ,
+> > >  	NFT_MSG_DELOBJ,
+> > >  	NFT_MSG_GETOBJ_RESET,
+> > > +	NFT_MSG_PROC_INFO,
+> > 
+> > No need for a new message. You can place this into existing the NEWGEN
+> > messages.
+> 
+> But that message is sent last and so at the time nft sees it, the events
+> will have been printed already, no?
 
-Almost there...
+This is an event, so it is asynchronous. From a timely perspective, we
+get nothing if we send it just a bit before.
 
-> +static struct nf_ct_nat_helper follow_master_nat = {
-> +	.name		= "h323-nat-follow-master",
+I suspect the problem is the lack of context, ie. access ctx->portid,
+ctx->seq and ctx->report, then we should take this from the original
+initial netlink message header coming in the batch (see
+nfnetlink_rcv_batch() in nfnetlink.c).
 
-This is a new symbol. There was no "h323-nat-follow-master" before
-this patch, and this is exposed to userspace.
+Look, we send a batch from userspace that look like this:
 
-This should be "nat-follow-master" instead, so you need a way to
-register this for several helpers that support this.
-
-Probably you need a type field, eg.
-
-static struct nf_ct_nat_helper h323_follow_master_nat = {
-        .type           = NF_CT_HELPER_H323,
-        .name           = "nat-follow-master",
+        netlink header [ type = NFNL_MSG_BATCH_BEGIN ]
+        nfnetlink header
+        payload
+        netlink header [ type = nfnl_msg_type(NFNL_SUBSYS_NFTABLES, NFT_MSG_NEWRULE) ]
+        nfnetlink header
+        payload
         ...
-};
+        netlink header [ type = NFNL_MSG_BATCH_END ]
+        nfnetlink header
 
-So we can keep using "nat-follow-master" from different helpers, as it
-happens currently. This should also allow us to validate if someone
-wants to attach a expectfn symbol that is not support by the helper.
+There's an initial NFNL_MSG_BATCH_BEGIN and a trailing
+NFNL_MSG_BATCH_END. No trailing NFNL_MSG_BATCH_END means abort
+transaction, it provides a way to test if a ruleset applies cleanly,
+similar to the -C command in iptables (this doesn't exist in nft
+userspace though yet, it would be good to add this).
 
-We need a way to relate the helper itself with this new
-nf_ct_nat_helper structure that doesn't exist in the code yet.
+I think you should extract this relevant information you need from the
+initial NFNL_MSG_BATCH_BEGIN netlink header, so semantically, this
+applies to the result of the batch, ie. you use it from the NEWGEN
+message.
+
+We should pass some structure to nf_tables_commit() that provides this
+global information, probably in an initial patch in the series.
