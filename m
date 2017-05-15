@@ -1,31 +1,61 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: synproxy: fix conntrackd interaction
-Date: Mon, 15 May 2017 18:52:38 +0200
-Message-ID: <20170515165238.GA3999@salvia>
-References: <20170511181428.4b3416cc@redhat.com>
- <20170511165638.10913-1-eric@regit.org>
+Subject: Re: [PATCH nf] ebtables: arpreply: Add the standard target sanity
+ check
+Date: Mon, 15 May 2017 18:56:02 +0200
+Message-ID: <20170515165602.GA4018@salvia>
+References: <1494582250-120912-1-git-send-email-gfree.wind@vip.163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: brouer@redhat.com, netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
+Cc: kadlec@blackhole.kfki.hu, fw@strlen.de,
+        netfilter-devel@vger.kernel.org
+To: gfree.wind@vip.163.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:54615 "EHLO
+Received: from ganesha.gnumonks.org ([213.95.27.120]:54657 "EHLO
         ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935224AbdEOQwo (ORCPT
+        with ESMTP id S932514AbdEOQ4H (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 May 2017 12:52:44 -0400
+        Mon, 15 May 2017 12:56:07 -0400
 Content-Disposition: inline
-In-Reply-To: <20170511165638.10913-1-eric@regit.org>
+In-Reply-To: <1494582250-120912-1-git-send-email-gfree.wind@vip.163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 11, 2017 at 06:56:38PM +0200, Eric Leblond wrote:
-> This patch fixes the creation of connection tracking entry from
-> netlink when synproxy is used. It was missing the addition of
-> the synproxy extension.
+On Fri, May 12, 2017 at 05:44:10PM +0800, gfree.wind@vip.163.com wrote:
+> From: Gao Feng <gfree.wind@vip.163.com>
 > 
-> This was causing kernel crashes when a conntrack entry created by
-> conntrackd was used after the switch of traffic from active node
-> to the passive node.
+> The info->target is from userspace and it would be used directly.
+> So we need to add the sanity check to make sure it is a valid standard
+> target, although the ebtables tool has already checked it. Kernel need
+> to check anything from userspace.
+> 
+> If the target was set as an evil value, it would break the ebtables
+> and cause a panic. Because the non-standard target is treated as one
+> offset.
+> 
+> Signed-off-by: Gao Feng <gfree.wind@vip.163.com>
+> ---
+>  net/bridge/netfilter/ebt_arpreply.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/net/bridge/netfilter/ebt_arpreply.c b/net/bridge/netfilter/ebt_arpreply.c
+> index 5929309..c4886d9 100644
+> --- a/net/bridge/netfilter/ebt_arpreply.c
+> +++ b/net/bridge/netfilter/ebt_arpreply.c
+> @@ -68,6 +68,9 @@ static int ebt_arpreply_tg_check(const struct xt_tgchk_param *par)
+>  	if (e->ethproto != htons(ETH_P_ARP) ||
+>  	    e->invflags & EBT_IPROTO)
+>  		return -EINVAL;
+> +	if (INVALID_TARGET)
 
-Applied, thanks Eric.
+Please, add:
+
+static inline bool ebt_invalid_target(int target)
+{
+        return (target < -NUM_STANDARD_TARGETS || target >= 0);
+}
+
+and use it in this fix.
+
+So we can get rid of this obscure INVALID_TARGET macro.
+
+Thanks.
