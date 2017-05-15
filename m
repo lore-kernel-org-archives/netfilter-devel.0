@@ -1,64 +1,58 @@
 From: Eric Leblond <eric@regit.org>
-Subject: Re: [PATCH] netfilter: synproxy: fix conntrackd interaction
-Date: Mon, 15 May 2017 23:53:44 +0200
-Message-ID: <1494885224.15338.2.camel@regit.org>
-References: <20170515165238.GA3999@salvia>
-         <fbaa0cbd-a13d-46e3-a796-023439433dda@email.android.com>
-         <20170515175549.GA6393@salvia>
+Subject: Re: [PATCH ulogd2 1/2] ulogd.conf: harmonize log file options with
+ module default values
+Date: Tue, 16 May 2017 00:05:21 +0200
+Message-ID: <1494885921.15338.6.camel@regit.org>
+References: <20170213094729.23478-1-kaarle.ritvanen@datakunkku.fi>
+         <1488895202.4890.4.camel@regit.org>
+         <alpine.LFD.2.20.1703272133320.10745@kanala.kunkku.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-15"
 Content-Transfer-Encoding: 8bit
-Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>,
-        brouer@redhat.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Kaarle Ritvanen <kaarle.ritvanen@datakunkku.fi>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from home.regit.org ([37.187.126.138]:53320 "EHLO home.regit.org"
+Received: from home.regit.org ([37.187.126.138]:53594 "EHLO home.regit.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751082AbdEOVxw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 May 2017 17:53:52 -0400
-In-Reply-To: <20170515175549.GA6393@salvia>
+        id S1751201AbdEOWF3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 May 2017 18:05:29 -0400
+In-Reply-To: <alpine.LFD.2.20.1703272133320.10745@kanala.kunkku.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hello,
 
-On Mon, 2017-05-15 at 19:55 +0200, Pablo Neira Ayuso wrote:
-> On Mon, May 15, 2017 at 07:49:18PM +0200, Eric Leblond wrote:
-> >    Hello,
-> >    Le 15 mai 2017 6:52 PM, Pablo Neira Ayuso <pablo@netfilter.org>
-> > a
-> >    écrit :
-> > 
-> >      On Thu, May 11, 2017 at 06:56:38PM +0200, Eric Leblond wrote:
-> >      > This patch fixes the creation of connection tracking entry
-> > from
-> >      > netlink when synproxy is used. It was missing the addition
-> > of
-> >      > the synproxy extension.
-> >      >
-> >      > This was causing kernel crashes when a conntrack entry
-> > created by
-> >      > conntrackd was used after the switch of traffic from active
-> > node
-> >      > to the passive node.
-> >      Applied, thanks Eric.
-> > 
-> >    Thanks Pablo !
-> >    Will you push it to stable as it is causing a crash on older
-> > kernel
-> >    like 3.16?
+On Wed, 2017-04-12 at 14:40 +0300, Kaarle Ritvanen wrote:
+> On Tue, 7 Mar 2017, Eric Leblond wrote:
 > 
-> Does this compile cleanly as is?
+> > I really like the idea of getting an harmonized naming for the log
+> > files but I think we should do it reverse for values that are not
+> > commented in the configuration file. Most distributions and install
+> > are
+> > shipping with a copy of default configuration. 
+> > 
+> > Most users won't have changed the values that are uncommented. So
+> > they
+> > will have on disk the log file with name defined in the
+> > configuration
+> > file. And they will benefit from a new logrotate file. Thus we
+> > should
+> > use the file name defined in the conf as value of the default file
+> > name
+> > in code.
+> > 
+> > Could you resubmit a patchset ?
+> 
+> I preprared a new patch set according to your feedback:
+> 
+> http://marc.info/?l=netfilter-devel&m=149064027208491&w=2
+> http://marc.info/?l=netfilter-devel&m=149064028308496&w=2
+> 
+> Please take a look at them.
 
-Yes, I have tested the patch on 3.16.1 and it applies cleanly. I've
-build module for 4.1 and patch applies too. I did not test it but code
-is unchanged.
+No excuse on me to have missed that. Really sorry. I've just pushed
+that to git.
 
-> If so, I can just request -stable maintainer to take it as soon as
-> this hits upstream.
-
-Thanks!
-
-BR,
+Best regards,
 -- 
 Eric Leblond <eric@regit.org>
