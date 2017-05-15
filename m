@@ -1,27 +1,99 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [conntrack-tools PATCH 2/2] conntrackd: request resync at startup
-Date: Mon, 15 May 2017 18:22:04 +0200
-Message-ID: <20170515162204.GB371@salvia>
-References: <149431567027.23472.7461747418695885217.stgit@nfdev2.cica.es>
- <149431567553.23472.560268360348133271.stgit@nfdev2.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo@debian.org>
+Subject: [PATCH nf 1/2] netfilter: nf_tables: missing sanitization in data from userspace
+Date: Mon, 15 May 2017 18:24:12 +0200
+Message-ID: <1494865453-3314-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:54317 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751314AbdEOQWO (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 May 2017 12:22:14 -0400
-Content-Disposition: inline
-In-Reply-To: <149431567553.23472.560268360348133271.stgit@nfdev2.cica.es>
+Received: from mail.us.es ([193.147.175.20]:58232 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751287AbdEOQYx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 May 2017 12:24:53 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 28AFADFE3B
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 May 2017 18:24:41 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EF37E1021A3
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 May 2017 18:24:40 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id DDBF4102195
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 May 2017 18:24:17 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 09, 2017 at 09:41:15AM +0200, Arturo Borrero Gonzalez wrote:
-> If a node goes to live, ask the other for resync at startup.
-> This has to be done usually by hand, but I guess is an operation common
-> enough to add some bits to ease people life here.
+Do not assume userspace always sends us NFT_DATA_VALUE for bitwise and
+cmp expressions. Although NFT_DATA_VERDICT does not make any sense, it
+is still possible to handcraft a netlink message using this incorrect
+data type.
 
-Also applied, thanks.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Rebased on top of nf. Remove previous cleanup patches.
+
+ net/netfilter/nft_bitwise.c | 19 ++++++++++++++-----
+ net/netfilter/nft_cmp.c     | 12 ++++++++++--
+ 2 files changed, 24 insertions(+), 7 deletions(-)
+
+diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
+index 877d9acd91ef..96bd4f325b0f 100644
+--- a/net/netfilter/nft_bitwise.c
++++ b/net/netfilter/nft_bitwise.c
+@@ -83,17 +83,26 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
+ 			    tb[NFTA_BITWISE_MASK]);
+ 	if (err < 0)
+ 		return err;
+-	if (d1.len != priv->len)
+-		return -EINVAL;
++	if (d1.len != priv->len) {
++		err = -EINVAL;
++		goto err1;
++	}
+ 
+ 	err = nft_data_init(NULL, &priv->xor, sizeof(priv->xor), &d2,
+ 			    tb[NFTA_BITWISE_XOR]);
+ 	if (err < 0)
+-		return err;
+-	if (d2.len != priv->len)
+-		return -EINVAL;
++		goto err1;
++	if (d2.len != priv->len) {
++		err = -EINVAL;
++		goto err2;
++	}
+ 
+ 	return 0;
++err2:
++	nft_data_uninit(&priv->xor, d2.type);
++err1:
++	nft_data_uninit(&priv->mask, d1.type);
++	return err;
+ }
+ 
+ static int nft_bitwise_dump(struct sk_buff *skb, const struct nft_expr *expr)
+diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
+index 2b96effeadc1..8c9d0fb19118 100644
+--- a/net/netfilter/nft_cmp.c
++++ b/net/netfilter/nft_cmp.c
+@@ -201,10 +201,18 @@ nft_cmp_select_ops(const struct nft_ctx *ctx, const struct nlattr * const tb[])
+ 	if (err < 0)
+ 		return ERR_PTR(err);
+ 
++	if (desc.type != NFT_DATA_VALUE) {
++		err = -EINVAL;
++		goto err1;
++	}
++
+ 	if (desc.len <= sizeof(u32) && op == NFT_CMP_EQ)
+ 		return &nft_cmp_fast_ops;
+-	else
+-		return &nft_cmp_ops;
++
++	return &nft_cmp_ops;
++err1:
++	nft_data_uninit(&data, desc.type);
++	return ERR_PTR(-EINVAL);
+ }
+ 
+ struct nft_expr_type nft_cmp_type __read_mostly = {
+-- 
+2.1.4
+
