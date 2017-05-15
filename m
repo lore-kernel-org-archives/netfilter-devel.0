@@ -1,139 +1,278 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [nf-next PATCH] netfilter: nf_tables: Report transactions' process info to user space
-Date: Mon, 15 May 2017 16:51:49 +0200
-Message-ID: <20170515145149.26114-1-phil@nwl.cc>
+Subject: [nft PATCH 2/2] monitor: Support printing processes which caused the event
+Date: Mon, 15 May 2017 16:51:54 +0200
+Message-ID: <20170515145154.26189-3-phil@nwl.cc>
+References: <20170515145154.26189-1-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:45301 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:52615 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965547AbdEOOwC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 May 2017 10:52:02 -0400
+        id S934555AbdEOOwM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 May 2017 10:52:12 -0400
+In-Reply-To: <20170515145154.26189-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When committing a transaction, report PID and name of user space process
-which initiated it.
+This adds support for printing the process ID and name for changes which
+'nft monitor' reports:
+
+| nft -a -p monitor
+| add chain ip t2 bla3 # pid 11616 (nft)
+
+If '-n' was given in addition to '-p', parsing the process name from
+/proc/<pid>/cmdline is suppressed.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/uapi/linux/netfilter/nf_tables.h | 16 +++++++++++
- net/netfilter/nf_tables_api.c            | 49 ++++++++++++++++++++++++++++++++
- 2 files changed, 65 insertions(+)
+ include/nftables.h |  1 +
+ src/main.c         | 12 ++++++++-
+ src/netlink.c      | 76 ++++++++++++++++++++++++++++++++++++++++++++++++++----
+ src/rule.c         |  2 --
+ 4 files changed, 83 insertions(+), 8 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 683f6f88fcace..7c012690a5f02 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -90,6 +90,7 @@ enum nft_verdicts {
-  * @NFT_MSG_GETOBJ: get a stateful object (enum nft_obj_attributes)
-  * @NFT_MSG_DELOBJ: delete a stateful object (enum nft_obj_attributes)
-  * @NFT_MSG_GETOBJ_RESET: get and reset a stateful object (enum nft_obj_attributes)
-+ * @NFT_MSG_PROC_INFO: get info about user space process which initiated the transaction
-  */
- enum nf_tables_msg_types {
- 	NFT_MSG_NEWTABLE,
-@@ -114,6 +115,7 @@ enum nf_tables_msg_types {
- 	NFT_MSG_GETOBJ,
- 	NFT_MSG_DELOBJ,
- 	NFT_MSG_GETOBJ_RESET,
-+	NFT_MSG_PROC_INFO,
- 	NFT_MSG_MAX,
+diff --git a/include/nftables.h b/include/nftables.h
+index 6f541557364ba..9107b56b26151 100644
+--- a/include/nftables.h
++++ b/include/nftables.h
+@@ -29,6 +29,7 @@ extern unsigned int numeric_output;
+ extern unsigned int stateless_output;
+ extern unsigned int ip2name_output;
+ extern unsigned int handle_output;
++extern unsigned int pid_output;
+ extern unsigned int debug_level;
+ extern const char *include_paths[INCLUDE_PATHS_MAX];
+ 
+diff --git a/src/main.c b/src/main.c
+index 1cc8b39ff4ab9..670e6791e8877 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -33,6 +33,7 @@ unsigned int numeric_output;
+ unsigned int stateless_output;
+ unsigned int ip2name_output;
+ unsigned int handle_output;
++unsigned int pid_output;
+ #ifdef DEBUG
+ unsigned int debug_level;
+ #endif
+@@ -51,10 +52,11 @@ enum opt_vals {
+ 	OPT_IP2NAME		= 'N',
+ 	OPT_DEBUG		= 'd',
+ 	OPT_HANDLE_OUTPUT	= 'a',
++	OPT_PID_OUTPUT		= 'p',
+ 	OPT_INVALID		= '?',
  };
  
-@@ -1375,4 +1377,18 @@ enum nft_ng_types {
- };
- #define NFT_NG_MAX	(__NFT_NG_MAX - 1)
+-#define OPTSTRING	"hvf:iI:vnsNa"
++#define OPTSTRING	"hvf:iI:vnsNap"
  
-+/**
-+ * enum nft_proc_info_attributes - nf_tables process information netlink attributes
-+ *
-+ * @NFTA_PROC_PID: process id (NLA_U32)
-+ * @NFTA_PROC_NAME: process name (NLA_STRING)
-+ */
-+enum nft_proc_info_attributes {
-+	NFTA_PROC_UNSPEC,
-+	NFTA_PROC_PID,
-+	NFTA_PROC_NAME,
-+	__NFTA_PROC_MAX
-+};
-+#define NFTA_PROC_MAX	(__NFTA_PROC_MAX - 1)
-+
- #endif /* _LINUX_NF_TABLES_H */
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 1c6482d2c4dcf..7cdfbecbcd542 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -11,6 +11,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/list.h>
-+#include <linux/sched.h>
- #include <linux/skbuff.h>
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
-@@ -4748,6 +4749,49 @@ static void nf_tables_commit_release(struct nft_trans *trans)
- 	kfree(trans);
+ static const struct option options[] = {
+ 	{
+@@ -103,6 +105,10 @@ static const struct option options[] = {
+ 		.val		= OPT_HANDLE_OUTPUT,
+ 	},
+ 	{
++		.name		= "pid",
++		.val		= OPT_PID_OUTPUT,
++	},
++	{
+ 		.name		= NULL
+ 	}
+ };
+@@ -125,6 +131,7 @@ static void show_help(const char *name)
+ "  -s, --stateless		Omit stateful information of ruleset.\n"
+ "  -N				Translate IP addresses to names.\n"
+ "  -a, --handle			Output rule handle.\n"
++"  -p, --pid			Output process information in monitor.\n"
+ "  -I, --includepath <directory>	Add <directory> to the paths searched for include files.\n"
+ #ifdef DEBUG
+ "  --debug <level [,level...]>	Specify debugging level (scanner, parser, eval, netlink, mnl, proto-ctx, segtree, all)\n"
+@@ -333,6 +340,9 @@ int main(int argc, char * const *argv)
+ 		case OPT_HANDLE_OUTPUT:
+ 			handle_output++;
+ 			break;
++		case OPT_PID_OUTPUT:
++			pid_output++;
++			break;
+ 		case OPT_INVALID:
+ 			exit(NFT_EXIT_FAILURE);
+ 		}
+diff --git a/src/netlink.c b/src/netlink.c
+index 7e7261fe1e1d4..baf43ad83edfe 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -2068,6 +2068,53 @@ next:
+ 	nftnl_expr_iter_destroy(nlrei);
  }
  
-+static void nf_tables_proc_notify(const struct nft_ctx *ctx)
++struct {
++	unsigned int portid;
++	int pid;
++	char *name;
++} proc_info = { 0 };
++
++static int netlink_events_proc_info_cb(const struct nlmsghdr *nlh, int type,
++				       struct netlink_mon_handler *monh)
 +{
-+	char buf[TASK_COMM_LEN];
-+	struct nfgenmsg *nfmsg;
-+	struct nlmsghdr *nlh;
-+	struct sk_buff *skb;
-+	int event;
++	const struct nlattr *attr;
 +
-+	if (!ctx->report &&
-+	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
-+		return;
++	proc_info.portid = nlh->nlmsg_pid;
 +
-+	skb = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
-+	if (skb == NULL)
-+		goto err;
-+
-+	event = nfnl_msg_type(NFNL_SUBSYS_NFTABLES, NFT_MSG_PROC_INFO);
-+	nlh = nlmsg_put(skb, ctx->portid, ctx->seq,
-+			event, sizeof(struct nfgenmsg), 0);
-+	if (nlh == NULL)
-+		goto nla_put_failure;
-+
-+	nfmsg = nlmsg_data(nlh);
-+	nfmsg->nfgen_family	= ctx->afi->family;
-+	nfmsg->version		= NFNETLINK_V0;
-+	nfmsg->res_id		= htons(ctx->net->nft.base_seq & 0xffff);
-+
-+	if (nla_put_be32(skb, NFTA_PROC_PID, htonl(task_pid_nr(current))) ||
-+	    nla_put_string(skb, NFTA_PROC_NAME, get_task_comm(buf, current)))
-+		goto nla_put_failure;
-+
-+	nlmsg_end(skb, nlh);
-+	nfnetlink_send(skb, ctx->net, ctx->portid,
-+		       NFNLGRP_NFTABLES, ctx->report, GFP_KERNEL);
-+	return;
-+
-+nla_put_failure:
-+	nlmsg_trim(skb, nlh);
-+	kfree_skb(skb);
-+err:
-+	nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES, -ENOBUFS);
++	mnl_attr_for_each(attr, nlh, sizeof(struct nfgenmsg)) {
++		switch (mnl_attr_get_type(attr)) {
++		case NFTA_PROC_NAME:
++			if (mnl_attr_validate(attr, MNL_TYPE_NUL_STRING) < 0)
++				break;
++			if (proc_info.name)
++				free(proc_info.name);
++			proc_info.name = strdup(mnl_attr_get_string(attr));
++			break;
++		case NFTA_PROC_PID:
++			if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
++				break;
++			proc_info.pid = ntohl(mnl_attr_get_u32(attr));
++			break;
++		}
++	}
++	return MNL_CB_OK;
 +}
 +
- static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- {
- 	struct nft_trans *trans, *next;
-@@ -4764,6 +4808,11 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 	 */
- 	synchronize_rcu();
- 
-+	trans = list_first_entry_or_null(&net->nft.commit_list,
-+					 struct nft_trans, list);
-+	if (trans)
-+		nf_tables_proc_notify(&trans->ctx);
++static void print_pid(const struct nlmsghdr *nlh)
++{
++	/* never return outdated info (should not happen) */
++	if (nlh->nlmsg_pid != proc_info.portid)
++		return;
 +
- 	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
- 		switch (trans->msg_type) {
- 		case NFT_MSG_NEWTABLE:
++	if (!pid_output)
++		return;
++	printf(" # pid %u", proc_info.pid);
++
++	if (numeric_output)
++		return;
++	printf(" (%s)", proc_info.name);
++}
++
+ static int netlink_events_table_cb(const struct nlmsghdr *nlh, int type,
+ 				   struct netlink_mon_handler *monh)
+ {
+@@ -2089,8 +2136,10 @@ static int netlink_events_table_cb(const struct nlmsghdr *nlh, int type,
+ 
+ 		family = nftnl_table_get_u32(nlt, NFTNL_TABLE_FAMILY);
+ 
+-		printf("%s %s\n", family2str(family),
++		printf("%s %s", family2str(family),
+ 		       nftnl_table_get_str(nlt, NFTNL_TABLE_NAME));
++		print_pid(nlh);
++		printf("\n");
+ 		break;
+ 	case NFTNL_OUTPUT_XML:
+ 	case NFTNL_OUTPUT_JSON:
+@@ -2125,12 +2174,16 @@ static int netlink_events_chain_cb(const struct nlmsghdr *nlh, int type,
+ 			c = netlink_delinearize_chain(monh->ctx, nlc);
+ 			chain_print_plain(c);
+ 			chain_free(c);
++			print_pid(nlh);
++			printf("\n");
+ 			break;
+ 		case NFT_MSG_DELCHAIN:
+ 			family = nftnl_chain_get_u32(nlc, NFTNL_CHAIN_FAMILY);
+-			printf("delete chain %s %s %s\n", family2str(family),
++			printf("delete chain %s %s %s", family2str(family),
+ 			       nftnl_chain_get_str(nlc, NFTNL_CHAIN_TABLE),
+ 			       nftnl_chain_get_str(nlc, NFTNL_CHAIN_NAME));
++			print_pid(nlh);
++			printf("\n");
+ 			break;
+ 		}
+ 		break;
+@@ -2170,14 +2223,17 @@ static int netlink_events_set_cb(const struct nlmsghdr *nlh, int type,
+ 			}
+ 			set_print_plain(set);
+ 			set_free(set);
++			print_pid(nlh);
+ 			printf("\n");
+ 			break;
+ 		case NFT_MSG_DELSET:
+ 			family = nftnl_set_get_u32(nls, NFTNL_SET_FAMILY);
+-			printf("delete set %s %s %s\n",
++			printf("delete set %s %s %s",
+ 			       family2str(family),
+ 			       nftnl_set_get_str(nls, NFTNL_SET_TABLE),
+ 			       nftnl_set_get_str(nls, NFTNL_SET_NAME));
++			print_pid(nlh);
++			printf("\n");
+ 			break;
+ 		}
+ 		break;
+@@ -2257,6 +2313,7 @@ static int netlink_events_setelem_cb(const struct nlmsghdr *nlh, int type,
+ 		}
+ 		printf("element %s %s %s ", family2str(family), table, setname);
+ 		expr_print(dummyset->init);
++		print_pid(nlh);
+ 		printf("\n");
+ 
+ 		set_free(dummyset);
+@@ -2294,15 +2351,18 @@ static int netlink_events_obj_cb(const struct nlmsghdr *nlh, int type,
+ 			}
+ 			obj_print_plain(obj);
+ 			obj_free(obj);
++			print_pid(nlh);
+ 			printf("\n");
+ 			break;
+ 		case NFT_MSG_DELOBJ:
+ 			family = nftnl_obj_get_u32(nlo, NFTNL_OBJ_FAMILY);
+-			printf("delete %s %s %s %s\n",
++			printf("delete %s %s %s %s",
+ 			       obj_type_name(nftnl_obj_get_u32(nlo, NFTNL_OBJ_TYPE)),
+ 			       family2str(family),
+ 			       nftnl_obj_get_str(nlo, NFTNL_OBJ_TABLE),
+ 			       nftnl_obj_get_str(nlo, NFTNL_OBJ_NAME));
++			print_pid(nlh);
++			printf("\n");
+ 			break;
+ 		}
+ 		break;
+@@ -2351,13 +2411,16 @@ static int netlink_events_rule_cb(const struct nlmsghdr *nlh, int type,
+ 
+ 			printf("add rule %s %s %s ", family, table, chain);
+ 			rule_print(r);
++			print_pid(nlh);
+ 			printf("\n");
+ 
+ 			rule_free(r);
+ 			break;
+ 		case NFT_MSG_DELRULE:
+-			printf("delete rule %s %s %s handle %u\n",
++			printf("delete rule %s %s %s handle %u",
+ 			       family, table, chain, (unsigned int)handle);
++			print_pid(nlh);
++			printf("\n");
+ 			break;
+ 		}
+ 		break;
+@@ -2880,6 +2943,9 @@ static int netlink_events_cb(const struct nlmsghdr *nlh, void *data)
+ 		return ret;
+ 
+ 	switch (type) {
++	case NFT_MSG_PROC_INFO:
++		ret = netlink_events_proc_info_cb(nlh, type, monh);
++		break;
+ 	case NFT_MSG_NEWTABLE:
+ 	case NFT_MSG_DELTABLE:
+ 		ret = netlink_events_table_cb(nlh, type, monh);
+diff --git a/src/rule.c b/src/rule.c
+index 209cf2d7d9f60..10095320348eb 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -691,8 +691,6 @@ void chain_print_plain(const struct chain *chain)
+ 		       chain->type, chain->hookstr,
+ 		       chain->priority, chain_policy2str(chain->policy));
+ 	}
+-
+-	printf("\n");
+ }
+ 
+ struct table *table_alloc(void)
 -- 
 2.11.0
 
