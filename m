@@ -1,55 +1,51 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH 1/2] include: Add proc_info symbols to nf_tables.h
-Date: Mon, 15 May 2017 16:51:53 +0200
-Message-ID: <20170515145154.26189-2-phil@nwl.cc>
-References: <20170515145154.26189-1-phil@nwl.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nf-next PATCH] netfilter: nf_tables: Report transactions'
+ process info to user space
+Date: Mon, 15 May 2017 17:53:31 +0200
+Message-ID: <20170515155331.GA32385@salvia>
+References: <20170515145149.26114-1-phil@nwl.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:44317 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965550AbdEOOwY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 May 2017 10:52:24 -0400
-In-Reply-To: <20170515145154.26189-1-phil@nwl.cc>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:53955 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755171AbdEOPxi (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 May 2017 11:53:38 -0400
+Content-Disposition: inline
+In-Reply-To: <20170515145149.26114-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- include/linux/netfilter/nf_tables.h | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+On Mon, May 15, 2017 at 04:51:49PM +0200, Phil Sutter wrote:
+> When committing a transaction, report PID and name of user space process
+> which initiated it.
+> 
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+>  include/uapi/linux/netfilter/nf_tables.h | 16 +++++++++++
+>  net/netfilter/nf_tables_api.c            | 49 ++++++++++++++++++++++++++++++++
+>  2 files changed, 65 insertions(+)
+> 
+> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> index 683f6f88fcace..7c012690a5f02 100644
+> --- a/include/uapi/linux/netfilter/nf_tables.h
+> +++ b/include/uapi/linux/netfilter/nf_tables.h
+> @@ -90,6 +90,7 @@ enum nft_verdicts {
+>   * @NFT_MSG_GETOBJ: get a stateful object (enum nft_obj_attributes)
+>   * @NFT_MSG_DELOBJ: delete a stateful object (enum nft_obj_attributes)
+>   * @NFT_MSG_GETOBJ_RESET: get and reset a stateful object (enum nft_obj_attributes)
+> + * @NFT_MSG_PROC_INFO: get info about user space process which initiated the transaction
+>   */
+>  enum nf_tables_msg_types {
+>  	NFT_MSG_NEWTABLE,
+> @@ -114,6 +115,7 @@ enum nf_tables_msg_types {
+>  	NFT_MSG_GETOBJ,
+>  	NFT_MSG_DELOBJ,
+>  	NFT_MSG_GETOBJ_RESET,
+> +	NFT_MSG_PROC_INFO,
 
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 683f6f88fcace..2a73c80f80f65 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -114,6 +114,7 @@ enum nf_tables_msg_types {
- 	NFT_MSG_GETOBJ,
- 	NFT_MSG_DELOBJ,
- 	NFT_MSG_GETOBJ_RESET,
-+	NFT_MSG_PROC_INFO,
- 	NFT_MSG_MAX,
- };
- 
-@@ -1375,4 +1376,18 @@ enum nft_ng_types {
- };
- #define NFT_NG_MAX	(__NFT_NG_MAX - 1)
- 
-+/**
-+ * enum nft_proc_info_attributes - nf_tables process information netlink attributes
-+ *
-+ * @NFTA_PROC_PID: process id (NLA_U32)
-+ * @NFTA_PROC_NAME: process name (NLA_STRING)
-+ */
-+enum nft_proc_info_attributes {
-+        NFTA_PROC_UNSPEC,
-+        NFTA_PROC_PID,
-+        NFTA_PROC_NAME,
-+        __NFTA_PROC_MAX
-+};
-+#define NFTA_PROC_MAX   (__NFTA_PROC_MAX - 1)
-+
- #endif /* _LINUX_NF_TABLES_H */
--- 
-2.11.0
-
+No need for a new message. You can place this into existing the NEWGEN
+messages.
