@@ -1,63 +1,41 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: don't setup nat info for confirmed ct
-Date: Mon, 15 May 2017 18:46:24 +0200
-Message-ID: <20170515164624.GA3948@salvia>
-References: <20170506122802.5630-1-zlpnobody@163.com>
+Subject: Re: [PATCH nf] xtables: zero padding in data_to_user
+Date: Mon, 15 May 2017 18:52:22 +0200
+Message-ID: <20170515165222.GA3986@salvia>
+References: <20170509201737.102987-1-willemdebruijn.kernel@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
-        Liping Zhang <zlpnobody@gmail.com>
-To: Liping Zhang <zlpnobody@163.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:54554 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751034AbdEOQq3 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 May 2017 12:46:29 -0400
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        rgb@redhat.com, fwestpha@redhat.com, pmoore@redhat.com,
+        pvrabec@redhat.com, davem@davemloft.net,
+        Willem de Bruijn <willemb@google.com>
+To: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170506122802.5630-1-zlpnobody@163.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20170509201737.102987-1-willemdebruijn.kernel@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, May 06, 2017 at 08:28:02PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <zlpnobody@gmail.com>
+On Tue, May 09, 2017 at 04:17:37PM -0400, Willem de Bruijn wrote:
+> From: Willem de Bruijn <willemb@google.com>
 > 
-> We cannot setup nat info if the ct has been confirmed already, else,
-> different cpu may race to handle the same ct. In extreme situation,
-> we may hit the "BUG_ON(nf_nat_initialized(ct, maniptype))" in the
-> nf_nat_setup_info.
+> When looking up an iptables rule, the iptables binary compares the
+> aligned match and target data (XT_ALIGN). In some cases this can
+> exceed the actual data size to include padding bytes.
 > 
-> Also running the following commands will easily hit NF_CT_ASSERT in
-> nf_conntrack_alter_reply:
->   # nft flush ruleset
->   # ping -c 2 -W 1 1.1.1.111 &
->   # nft add table t
->   # nft add chain t c {type nat hook postrouting priority 0 \;}
->   # nft add rule t c snat to 4.5.6.7
->   WARNING: CPU: 1 PID: 10065 at net/netfilter/nf_conntrack_core.c:1472
->   nf_conntrack_alter_reply+0x9a/0x1a0 [nf_conntrack]
->   [...]
->   Call Trace:
->    nf_nat_setup_info+0xad/0x840 [nf_nat]
->    ? deactivate_slab+0x65d/0x6c0
->    nft_nat_eval+0xcd/0x100 [nft_nat]
->    nft_do_chain+0xff/0x5d0 [nf_tables]
->    ? mark_held_locks+0x6f/0xa0
->    ? __local_bh_enable_ip+0x70/0xa0
->    ? trace_hardirqs_on_caller+0x11f/0x190
->    ? ipt_do_table+0x310/0x610
->    ? trace_hardirqs_on+0xd/0x10
->    ? __local_bh_enable_ip+0x70/0xa0
->    ? ipt_do_table+0x32b/0x610
->    ? __lock_acquire+0x2ac/0x1580
->    ? ipt_do_table+0x32b/0x610
->    nft_nat_do_chain+0x65/0x80 [nft_chain_nat_ipv4]
->    nf_nat_ipv4_fn+0x1ae/0x240 [nf_nat_ipv4]
->    nf_nat_ipv4_out+0x4a/0xf0 [nf_nat_ipv4]
->    nft_nat_ipv4_out+0x15/0x20 [nft_chain_nat_ipv4]
->    nf_hook_slow+0x2c/0xf0
->    ip_output+0x154/0x270
+> Before commit f77bc5b23fb1 ("iptables: use match, target and data
+> copy_to_user helpers") the malloc()ed bytes were overwritten by the
+> kernel with kzalloced contents, zeroing the padding and making the
+> comparison succeed. After this patch, the kernel copies and clears
+> only data, leaving the padding bytes undefined.
 > 
-> So for the confirmed ct, just ignore it and return NF_ACCEPT.
+> Extend the clear operation from data size to aligned data size to
+> include the padding bytes, if any.
+> 
+> Padding bytes can be observed in both match and target, and the bug
+> triggered, by issuing a rule with match icmp and target ACCEPT:
+> 
+>   iptables -t mangle -A INPUT -i lo -p icmp --icmp-type 1 -j ACCEPT
+>   iptables -t mangle -D INPUT -i lo -p icmp --icmp-type 1 -j ACCEPT
 
 Applied, thanks.
