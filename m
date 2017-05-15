@@ -1,45 +1,71 @@
-From: Ralph Sennhauser <ralph.sennhauser@gmail.com>
-Subject: [PATCH xtables-addons] build: support for Linux 4.12
-Date: Sun, 14 May 2017 18:16:11 +0200
-Message-ID: <20170514161611.8498-1-ralph.sennhauser@gmail.com>
-Cc: Ralph Sennhauser <ralph.sennhauser@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [Bug 1145] nft 0.7: expression.c:966: range_expr_value_low:
+ Assertion '0' failed.
+Date: Mon, 15 May 2017 14:03:57 +0200
+Message-ID: <20170515120357.GA32767@breakpoint.cc>
+References: <bug-1145-20@https.bugzilla.netfilter.org/>
+ <bug-1145-20-O7t1kbwESB@https.bugzilla.netfilter.org/>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: ian.kumlien@gmail.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35514 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758876AbdENQQd (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:36504 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1758339AbdEOMEe (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 14 May 2017 12:16:33 -0400
-Received: by mail-wm0-f66.google.com with SMTP id v4so22902994wmb.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 14 May 2017 09:16:32 -0700 (PDT)
+        Mon, 15 May 2017 08:04:34 -0400
+Content-Disposition: inline
+In-Reply-To: <bug-1145-20-O7t1kbwESB@https.bugzilla.netfilter.org/>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-As a result of commit cc41c84b7e7f ("netfilter: kill the fake untracked
-conntrack objects") the helper nf_ct_is_untracked always returns false
-and commit ab8bc7ed864b ("netfilter: remove nf_ct_is_untracked") removes
-it all together.
+bugzilla-daemon@netfilter.org <bugzilla-daemon@netfilter.org> wrote:
 
-Signed-off-by: Ralph Sennhauser <ralph.sennhauser@gmail.com>
----
- extensions/xt_LOGMARK.c | 2 ++
- 1 file changed, 2 insertions(+)
+[ Switching to email ]
 
-diff --git a/extensions/xt_LOGMARK.c b/extensions/xt_LOGMARK.c
-index ed14604..6c00d1d 100644
---- a/extensions/xt_LOGMARK.c
-+++ b/extensions/xt_LOGMARK.c
-@@ -87,8 +87,10 @@ logmark_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 	printk(" ctdir=%s", dir_names[ctinfo >= IP_CT_IS_REPLY]);
- 	if (ct == NULL)
- 		printk(" ct=NULL ctmark=NULL ctstate=INVALID ctstatus=NONE");
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
- 	else if (nf_ct_is_untracked(ct))
- 		printk(" ct=UNTRACKED ctmark=NULL ctstate=UNTRACKED ctstatus=NONE");
-+#endif
- 	else
- 		logmark_ct(ct, ctinfo);
- 
--- 
-2.10.2
+> https://bugzilla.netfilter.org/show_bug.cgi?id=1145
+> 
+> --- Comment #1 from Ian Kumlien <ian.kumlien@gmail.com> ---
+> Is there anything obvious that i'm doing wrong? Is there something else i could
+> try?
+
+This boils down to nested sets:
+
+define dnat_host        = 10.1.2.3
+define dnat_ports       = { 1234-1567 }
+
+define port_allow = {
+        53,             # dns
+        $dnat_ports,    # dnat
+}
+define port_allow_tcp = {
+        80,
+        443,
+        $port_allow
+}
+define port_allow_udp = {
+        67, 68,         # dhcp
+        123, 1027,      # ntp
+        $port_allow
+}
+
+... which we don't support at the moment.
+
+So, should we
+a). expand/'inline' the sets?
+
+(i.e. port_allow_tcp would contain
+ 1234-1567, 53, 80, 443)
+
+b) support lookups within lookups?
+
+This would be needed to support non-anonymous sets within sets.
+
+or
+
+c) never support this?  This would probably need some work on parser
+to be able to provide a clean error message rather than BUG() ...
+
+Opinions?
 
