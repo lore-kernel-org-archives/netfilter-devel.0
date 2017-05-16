@@ -1,47 +1,58 @@
-From: "Gao Feng" <gfree.wind@vip.163.com>
-Subject: Re:Re: [PATCH nf v2] ebtables: arpreply: Add the standard target
- sanity check
-Date: Tue, 16 May 2017 17:53:51 +0800 (CST)
-Message-ID: <3fccf479.15f41.15c10ad983a.Coremail.gfree.wind@vip.163.com>
-References: <1494898218-97426-1-git-send-email-gfree.wind@vip.163.com>
- <20170516082400.GA11114@salvia> <20170516094324.GA18427@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft 01/10] src: allow update of net base w. meta l4proto
+ icmpv6
+Date: Tue, 16 May 2017 12:04:52 +0200
+Message-ID: <20170516100452.GA19069@salvia>
+References: <20170509155122.26356-1-fw@strlen.de>
+ <20170509155122.26356-2-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=GBK
-Content-Transfer-Encoding: base64
-Cc: stephen@networkplumber.org, fw@strlen.de,
-        netfilter-devel@vger.kernel.org
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m173-177.vip.163.com ([123.58.177.173]:40120 "EHLO
-        m173-177.vip.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750795AbdEPKAS (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:33497 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751960AbdEPKE5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 May 2017 06:00:18 -0400
-In-Reply-To: <20170516094324.GA18427@salvia>
+        Tue, 16 May 2017 06:04:57 -0400
+Content-Disposition: inline
+In-Reply-To: <20170509155122.26356-2-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-CkF0IDIwMTctMDUtMTYgMTc6NDM6MjQsICJQYWJsbyBOZWlyYSBBeXVzbyIgPHBhYmxvQG5ldGZp
-bHRlci5vcmc+IHdyb3RlOgo+T24gVHVlLCBNYXkgMTYsIDIwMTcgYXQgMTA6MjQ6MDBBTSArMDIw
-MCwgUGFibG8gTmVpcmEgQXl1c28gd3JvdGU6Cj4+IE9uIFR1ZSwgTWF5IDE2LCAyMDE3IGF0IDA5
-OjMwOjE4QU0gKzA4MDAsIGdmcmVlLndpbmRAdmlwLjE2My5jb20gd3JvdGU6Cj4+ID4gRnJvbTog
-R2FvIEZlbmcgPGdmcmVlLndpbmRAdmlwLjE2My5jb20+Cj4+ID4gCj4+ID4gVGhlIGluZm8tPnRh
-cmdldCBpcyBmcm9tIHVzZXJzcGFjZSBhbmQgaXQgd291bGQgYmUgdXNlZCBkaXJlY3RseS4KPj4g
-PiBTbyB3ZSBuZWVkIHRvIGFkZCB0aGUgc2FuaXR5IGNoZWNrIHRvIG1ha2Ugc3VyZSBpdCBpcyBh
-IHZhbGlkIHN0YW5kYXJkCj4+ID4gdGFyZ2V0LCBhbHRob3VnaCB0aGUgZWJ0YWJsZXMgdG9vbCBo
-YXMgYWxyZWFkeSBjaGVja2VkIGl0LiBLZXJuZWwgbmVlZAo+PiA+IHRvIGNoZWNrIGFueXRoaW5n
-IGZyb20gdXNlcnNwYWNlLgo+PiA+IAo+PiA+IElmIHRoZSB0YXJnZXQgd2FzIHNldCBhcyBhbiBl
-dmlsIHZhbHVlLCBpdCB3b3VsZCBicmVhayB0aGUgZWJ0YWJsZXMKPj4gPiBhbmQgY2F1c2UgYSBw
-YW5pYy4gQmVjYXVzZSB0aGUgbm9uLXN0YW5kYXJkIHRhcmdldCBpcyB0cmVhdGVkIGFzIG9uZQo+
-PiA+IG9mZnNldC4KPj4gPiAKPj4gPiBOb3cgYWRkIG9uZSBoZWxwZXIgZnVuY3Rpb24gZWJ0X2lu
-dmFsaWRfdGFyZ2V0LCBhbmQgd2Ugd291bGQgcmVwbGFjZQo+PiA+IHRoZSBtYWNybyBJTlZBTElE
-X1RBUkdFVCBsYXRlci4KPj4gCj4+IEFwcGxpZWQsIHRoYW5rcy4KPj4gCj4+IFRoZXJlIGlzIGEg
-ZmV3IGJ1bmNoIG9mIHNwb3RzIHRoYXQgY2FuIHVzZSB0aGlzIGluZGVlZC4gRm9sbG93IHVwIHdp
-dGgKPj4gYSBwYXRjaCBmb3IgbmYtbmV4dCBvbmNlIG1lcmdlIHdpbmRvdyBvcGVucyB1cC4KCkkg
-d291bGQgcGF5IHNvbWUgYXR0ZW50aW9uIHdoZW4gbmYgaXMgbWVyZ2VkIGludG8gbmYtbmV4dC4K
-Cj4KPlBsZWFzZSwgdXNlOgo+Cj5uZXRmaWx0ZXI6IC4uLgo+Cj5hcyB5b3UgaW5pdGlhbCBwYXRj
-aCBzdWJqZWN0IG5leHQgdGltZS4uLgoKT0suIEkgdGhvdWdodCB0aGUgZWJ0YWJsZXMgY29kZXMg
-c2hvdWxkIHVzZSBwcmVmaXggImVidGFibGVzOiAiLCBhbmQgSSBjaGVja2VkIGl0IHdpdGggZ2l0
-IGxvZy4KVGhlcmUgd2VyZSBzb21lIGNvbW1pdHMgd2hpY2ggdXNlcyAiZWJ0YWJsZXMiIGFzIHBy
-ZWZpeC4KCkNvdWxkIEkgYXNzdW1lIGJvdGggb2YgZWJ0YWJsZXMgYW5kIGFycHRhYmxlcyB1c2Vz
-IHRoZSBuZXRmaWx0ZXIgYXMgcHJlZml4PwoKUmVnYXJkcwpGZW5nCgoK
+On Tue, May 09, 2017 at 05:51:13PM +0200, Florian Westphal wrote:
+> nft add rule ip6 f i meta l4proto ipv6-icmp icmpv6 type nd-router-advert
+> <cmdline>:1:50-60: Error: conflicting protocols specified: unknown vs. icmpv6
+>
+> add icmpv6 to nexthdr list so base gets updated correctly.
+
+I would like to see a new test coming with this patch. So we can
+easily relate the fix with the new test.
+
+> Reported-by: Thomas Woerner <twoerner@redhat.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+>  src/proto.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/src/proto.c b/src/proto.c
+> index 79e9dbf2b33e..fcdfbe73c735 100644
+> --- a/src/proto.c
+> +++ b/src/proto.c
+> @@ -779,6 +779,7 @@ const struct proto_desc proto_inet_service = {
+>  		PROTO_LINK(IPPROTO_TCP,		&proto_tcp),
+>  		PROTO_LINK(IPPROTO_DCCP,	&proto_dccp),
+>  		PROTO_LINK(IPPROTO_SCTP,	&proto_sctp),
+> +		PROTO_LINK(IPPROTO_ICMPV6,	&proto_icmp6),
+>  	},
+>  	.templates	= {
+>  		[0]	= PROTO_META_TEMPLATE("l4proto", &inet_protocol_type, NFT_META_L4PROTO, 8),
+> -- 
+> 2.10.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
