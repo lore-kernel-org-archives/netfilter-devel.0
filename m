@@ -1,58 +1,54 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: [PATCH ulogd2 1/2] ulogd.conf: harmonize log file options with
- module default values
-Date: Tue, 16 May 2017 00:05:21 +0200
-Message-ID: <1494885921.15338.6.camel@regit.org>
-References: <20170213094729.23478-1-kaarle.ritvanen@datakunkku.fi>
-         <1488895202.4890.4.camel@regit.org>
-         <alpine.LFD.2.20.1703272133320.10745@kanala.kunkku.net>
+From: "Gao Feng" <gfree.wind@vip.163.com>
+Subject: Re:Re: [PATCH nf] ebtables: arpreply: Add the standard target
+ sanity check
+Date: Tue, 16 May 2017 08:27:17 +0800 (CST)
+Message-ID: <44cee3b9.c55e.15c0ea6e5d3.Coremail.gfree.wind@vip.163.com>
+References: <1494582250-120912-1-git-send-email-gfree.wind@vip.163.com>
+ <20170515165602.GA4018@salvia> <20170515165659.GA4254@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org
-To: Kaarle Ritvanen <kaarle.ritvanen@datakunkku.fi>
+Content-Type: text/plain; charset=GBK
+Content-Transfer-Encoding: base64
+Cc: kadlec@blackhole.kfki.hu, fw@strlen.de,
+        netfilter-devel@vger.kernel.org
+To: "Pablo Neira Ayuso" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from home.regit.org ([37.187.126.138]:53594 "EHLO home.regit.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751201AbdEOWF3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 May 2017 18:05:29 -0400
-In-Reply-To: <alpine.LFD.2.20.1703272133320.10745@kanala.kunkku.net>
+Received: from proxy90-7.mail.163.com ([43.230.90.7]:51841 "EHLO
+        proxy90-7.mail.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750711AbdEPA2I (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 May 2017 20:28:08 -0400
+In-Reply-To: <20170515165659.GA4254@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
-
-On Wed, 2017-04-12 at 14:40 +0300, Kaarle Ritvanen wrote:
-> On Tue, 7 Mar 2017, Eric Leblond wrote:
-> 
-> > I really like the idea of getting an harmonized naming for the log
-> > files but I think we should do it reverse for values that are not
-> > commented in the configuration file. Most distributions and install
-> > are
-> > shipping with a copy of default configuration. 
-> > 
-> > Most users won't have changed the values that are uncommented. So
-> > they
-> > will have on disk the log file with name defined in the
-> > configuration
-> > file. And they will benefit from a new logrotate file. Thus we
-> > should
-> > use the file name defined in the conf as value of the default file
-> > name
-> > in code.
-> > 
-> > Could you resubmit a patchset ?
-> 
-> I preprared a new patch set according to your feedback:
-> 
-> http://marc.info/?l=netfilter-devel&m=149064027208491&w=2
-> http://marc.info/?l=netfilter-devel&m=149064028308496&w=2
-> 
-> Please take a look at them.
-
-No excuse on me to have missed that. Really sorry. I've just pushed
-that to git.
-
-Best regards,
--- 
-Eric Leblond <eric@regit.org>
+QXQgMjAxNy0wNS0xNiAwMDo1Njo1OSwgIlBhYmxvIE5laXJhIEF5dXNvIiA8cGFibG9AbmV0Zmls
+dGVyLm9yZz4gd3JvdGU6Cj5PbiBNb24sIE1heSAxNSwgMjAxNyBhdCAwNjo1NjowMlBNICswMjAw
+LCBQYWJsbyBOZWlyYSBBeXVzbyB3cm90ZToKPj4gT24gRnJpLCBNYXkgMTIsIDIwMTcgYXQgMDU6
+NDQ6MTBQTSArMDgwMCwgZ2ZyZWUud2luZEB2aXAuMTYzLmNvbSB3cm90ZToKPj4gPiBGcm9tOiBH
+YW8gRmVuZyA8Z2ZyZWUud2luZEB2aXAuMTYzLmNvbT4KPj4gPiAKPj4gPiBUaGUgaW5mby0+dGFy
+Z2V0IGlzIGZyb20gdXNlcnNwYWNlIGFuZCBpdCB3b3VsZCBiZSB1c2VkIGRpcmVjdGx5Lgo+PiA+
+IFNvIHdlIG5lZWQgdG8gYWRkIHRoZSBzYW5pdHkgY2hlY2sgdG8gbWFrZSBzdXJlIGl0IGlzIGEg
+dmFsaWQgc3RhbmRhcmQKPj4gPiB0YXJnZXQsIGFsdGhvdWdoIHRoZSBlYnRhYmxlcyB0b29sIGhh
+cyBhbHJlYWR5IGNoZWNrZWQgaXQuIEtlcm5lbCBuZWVkCj4+ID4gdG8gY2hlY2sgYW55dGhpbmcg
+ZnJvbSB1c2Vyc3BhY2UuCj4+ID4gCj4+ID4gSWYgdGhlIHRhcmdldCB3YXMgc2V0IGFzIGFuIGV2
+aWwgdmFsdWUsIGl0IHdvdWxkIGJyZWFrIHRoZSBlYnRhYmxlcwo+PiA+IGFuZCBjYXVzZSBhIHBh
+bmljLiBCZWNhdXNlIHRoZSBub24tc3RhbmRhcmQgdGFyZ2V0IGlzIHRyZWF0ZWQgYXMgb25lCj4+
+ID4gb2Zmc2V0Lgo+PiA+IAo+PiA+IFNpZ25lZC1vZmYtYnk6IEdhbyBGZW5nIDxnZnJlZS53aW5k
+QHZpcC4xNjMuY29tPgo+PiA+IC0tLQo+PiA+ICBuZXQvYnJpZGdlL25ldGZpbHRlci9lYnRfYXJw
+cmVwbHkuYyB8IDMgKysrCj4+ID4gIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKykKPj4g
+PiAKPj4gPiBkaWZmIC0tZ2l0IGEvbmV0L2JyaWRnZS9uZXRmaWx0ZXIvZWJ0X2FycHJlcGx5LmMg
+Yi9uZXQvYnJpZGdlL25ldGZpbHRlci9lYnRfYXJwcmVwbHkuYwo+PiA+IGluZGV4IDU5MjkzMDku
+LmM0ODg2ZDkgMTAwNjQ0Cj4+ID4gLS0tIGEvbmV0L2JyaWRnZS9uZXRmaWx0ZXIvZWJ0X2FycHJl
+cGx5LmMKPj4gPiArKysgYi9uZXQvYnJpZGdlL25ldGZpbHRlci9lYnRfYXJwcmVwbHkuYwo+PiA+
+IEBAIC02OCw2ICs2OCw5IEBAIHN0YXRpYyBpbnQgZWJ0X2FycHJlcGx5X3RnX2NoZWNrKGNvbnN0
+IHN0cnVjdCB4dF90Z2Noa19wYXJhbSAqcGFyKQo+PiA+ICAJaWYgKGUtPmV0aHByb3RvICE9IGh0
+b25zKEVUSF9QX0FSUCkgfHwKPj4gPiAgCSAgICBlLT5pbnZmbGFncyAmIEVCVF9JUFJPVE8pCj4+
+ID4gIAkJcmV0dXJuIC1FSU5WQUw7Cj4+ID4gKwlpZiAoSU5WQUxJRF9UQVJHRVQpCj4+IAo+PiBQ
+bGVhc2UsIGFkZDoKPj4gCj4+IHN0YXRpYyBpbmxpbmUgYm9vbCBlYnRfaW52YWxpZF90YXJnZXQo
+aW50IHRhcmdldCkKPj4gewo+PiAgICAgICAgIHJldHVybiAodGFyZ2V0IDwgLU5VTV9TVEFOREFS
+RF9UQVJHRVRTIHx8IHRhcmdldCA+PSAwKTsKPj4gfQo+PiAKPj4gYW5kIHVzZSBpdCBpbiB0aGlz
+IGZpeC4KPj4gCj4+IFNvIHdlIGNhbiBnZXQgcmlkIG9mIHRoaXMgb2JzY3VyZSBJTlZBTElEX1RB
+UkdFVCBtYWNyby4KPgo+T25jZSB0aGlzIHByb3BhZ2F0ZXMgdG8gbmYtbmV4dC5naXQsIHlvdSBj
+YW4gc2VuZCBhIGZvbGxvdyB1cCBwYXRjaCB0bwo+dXNlIHRoaXMgbmV3IGZ1bmN0aW9uIGZyb20g
+bW9yZSBzcG90cywgc28gd2UgY2FuIGtpbGwgSU5WQUxJRF9UQVJHRVQKPmZvciBnb29kLgoKT0ss
+IG5vIHByb2JsZW0uCgpSZWdhcmRzCkZlbmcKCgoK
