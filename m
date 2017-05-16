@@ -1,30 +1,41 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: crash on >= 4.9.0 kernel seems nf related
-Date: Tue, 16 May 2017 10:21:28 +0200
-Message-ID: <20170516082128.GB16290@breakpoint.cc>
-References: <CAJO99T==ryD91RF_O71F2k=m8_UokF+nwQnfi6pAGH7Oj7V+ZQ@mail.gmail.com>
- <CAJO99TkhZLWTpKEk=7VGbXhZvDD4ajiOaxd0bjnxKucq=_2Z0A@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf v2] ebtables: arpreply: Add the standard target sanity
+ check
+Date: Tue, 16 May 2017 10:24:00 +0200
+Message-ID: <20170516082400.GA11114@salvia>
+References: <1494898218-97426-1-git-send-email-gfree.wind@vip.163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-To: =?iso-8859-15?Q?Bj=F8rnar?= Ness <bjornar.ness@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: stephen@networkplumber.org, fw@strlen.de,
+        netfilter-devel@vger.kernel.org
+To: gfree.wind@vip.163.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:40900 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750885AbdEPIWG (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:60830 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751139AbdEPIYI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 May 2017 04:22:06 -0400
+        Tue, 16 May 2017 04:24:08 -0400
 Content-Disposition: inline
-In-Reply-To: <CAJO99TkhZLWTpKEk=7VGbXhZvDD4ajiOaxd0bjnxKucq=_2Z0A@mail.gmail.com>
+In-Reply-To: <1494898218-97426-1-git-send-email-gfree.wind@vip.163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Bjørnar Ness <bjornar.ness@gmail.com> wrote:
-> Is this an issue  for igb, or netfilter?
+On Tue, May 16, 2017 at 09:30:18AM +0800, gfree.wind@vip.163.com wrote:
+> From: Gao Feng <gfree.wind@vip.163.com>
+> 
+> The info->target is from userspace and it would be used directly.
+> So we need to add the sanity check to make sure it is a valid standard
+> target, although the ebtables tool has already checked it. Kernel need
+> to check anything from userspace.
+> 
+> If the target was set as an evil value, it would break the ebtables
+> and cause a panic. Because the non-standard target is treated as one
+> offset.
+> 
+> Now add one helper function ebt_invalid_target, and we would replace
+> the macro INVALID_TARGET later.
 
-I'd lean towards igb, afaics the occurence of the gc worker
-is coincidence.
+Applied, thanks.
 
-Or does it show up in all such traces?
+There is a few bunch of spots that can use this indeed. Follow up with
+a patch for nf-next once merge window opens up.
