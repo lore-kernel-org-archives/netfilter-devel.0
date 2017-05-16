@@ -1,54 +1,71 @@
-From: "Gao Feng" <gfree.wind@vip.163.com>
-Subject: Re:Re: [PATCH nf] ebtables: arpreply: Add the standard target
- sanity check
-Date: Tue, 16 May 2017 08:27:17 +0800 (CST)
-Message-ID: <44cee3b9.c55e.15c0ea6e5d3.Coremail.gfree.wind@vip.163.com>
-References: <1494582250-120912-1-git-send-email-gfree.wind@vip.163.com>
- <20170515165602.GA4018@salvia> <20170515165659.GA4254@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=GBK
-Content-Transfer-Encoding: base64
-Cc: kadlec@blackhole.kfki.hu, fw@strlen.de,
+From: gfree.wind@vip.163.com
+Subject: [PATCH nf v2] ebtables: arpreply: Add the standard target sanity check
+Date: Tue, 16 May 2017 09:30:18 +0800
+Message-ID: <1494898218-97426-1-git-send-email-gfree.wind@vip.163.com>
+Cc: Gao Feng <gfree.wind@vip.163.com>
+To: stephen@networkplumber.org, pablo@netfilter.org, fw@strlen.de,
         netfilter-devel@vger.kernel.org
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from proxy90-7.mail.163.com ([43.230.90.7]:51841 "EHLO
-        proxy90-7.mail.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750711AbdEPA2I (ORCPT
+Received: from m181-177.vip.163.com ([123.58.177.181]:47357 "EHLO
+        m181-177.vip.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750997AbdEPBgK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 May 2017 20:28:08 -0400
-In-Reply-To: <20170515165659.GA4254@salvia>
+        Mon, 15 May 2017 21:36:10 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-QXQgMjAxNy0wNS0xNiAwMDo1Njo1OSwgIlBhYmxvIE5laXJhIEF5dXNvIiA8cGFibG9AbmV0Zmls
-dGVyLm9yZz4gd3JvdGU6Cj5PbiBNb24sIE1heSAxNSwgMjAxNyBhdCAwNjo1NjowMlBNICswMjAw
-LCBQYWJsbyBOZWlyYSBBeXVzbyB3cm90ZToKPj4gT24gRnJpLCBNYXkgMTIsIDIwMTcgYXQgMDU6
-NDQ6MTBQTSArMDgwMCwgZ2ZyZWUud2luZEB2aXAuMTYzLmNvbSB3cm90ZToKPj4gPiBGcm9tOiBH
-YW8gRmVuZyA8Z2ZyZWUud2luZEB2aXAuMTYzLmNvbT4KPj4gPiAKPj4gPiBUaGUgaW5mby0+dGFy
-Z2V0IGlzIGZyb20gdXNlcnNwYWNlIGFuZCBpdCB3b3VsZCBiZSB1c2VkIGRpcmVjdGx5Lgo+PiA+
-IFNvIHdlIG5lZWQgdG8gYWRkIHRoZSBzYW5pdHkgY2hlY2sgdG8gbWFrZSBzdXJlIGl0IGlzIGEg
-dmFsaWQgc3RhbmRhcmQKPj4gPiB0YXJnZXQsIGFsdGhvdWdoIHRoZSBlYnRhYmxlcyB0b29sIGhh
-cyBhbHJlYWR5IGNoZWNrZWQgaXQuIEtlcm5lbCBuZWVkCj4+ID4gdG8gY2hlY2sgYW55dGhpbmcg
-ZnJvbSB1c2Vyc3BhY2UuCj4+ID4gCj4+ID4gSWYgdGhlIHRhcmdldCB3YXMgc2V0IGFzIGFuIGV2
-aWwgdmFsdWUsIGl0IHdvdWxkIGJyZWFrIHRoZSBlYnRhYmxlcwo+PiA+IGFuZCBjYXVzZSBhIHBh
-bmljLiBCZWNhdXNlIHRoZSBub24tc3RhbmRhcmQgdGFyZ2V0IGlzIHRyZWF0ZWQgYXMgb25lCj4+
-ID4gb2Zmc2V0Lgo+PiA+IAo+PiA+IFNpZ25lZC1vZmYtYnk6IEdhbyBGZW5nIDxnZnJlZS53aW5k
-QHZpcC4xNjMuY29tPgo+PiA+IC0tLQo+PiA+ICBuZXQvYnJpZGdlL25ldGZpbHRlci9lYnRfYXJw
-cmVwbHkuYyB8IDMgKysrCj4+ID4gIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKykKPj4g
-PiAKPj4gPiBkaWZmIC0tZ2l0IGEvbmV0L2JyaWRnZS9uZXRmaWx0ZXIvZWJ0X2FycHJlcGx5LmMg
-Yi9uZXQvYnJpZGdlL25ldGZpbHRlci9lYnRfYXJwcmVwbHkuYwo+PiA+IGluZGV4IDU5MjkzMDku
-LmM0ODg2ZDkgMTAwNjQ0Cj4+ID4gLS0tIGEvbmV0L2JyaWRnZS9uZXRmaWx0ZXIvZWJ0X2FycHJl
-cGx5LmMKPj4gPiArKysgYi9uZXQvYnJpZGdlL25ldGZpbHRlci9lYnRfYXJwcmVwbHkuYwo+PiA+
-IEBAIC02OCw2ICs2OCw5IEBAIHN0YXRpYyBpbnQgZWJ0X2FycHJlcGx5X3RnX2NoZWNrKGNvbnN0
-IHN0cnVjdCB4dF90Z2Noa19wYXJhbSAqcGFyKQo+PiA+ICAJaWYgKGUtPmV0aHByb3RvICE9IGh0
-b25zKEVUSF9QX0FSUCkgfHwKPj4gPiAgCSAgICBlLT5pbnZmbGFncyAmIEVCVF9JUFJPVE8pCj4+
-ID4gIAkJcmV0dXJuIC1FSU5WQUw7Cj4+ID4gKwlpZiAoSU5WQUxJRF9UQVJHRVQpCj4+IAo+PiBQ
-bGVhc2UsIGFkZDoKPj4gCj4+IHN0YXRpYyBpbmxpbmUgYm9vbCBlYnRfaW52YWxpZF90YXJnZXQo
-aW50IHRhcmdldCkKPj4gewo+PiAgICAgICAgIHJldHVybiAodGFyZ2V0IDwgLU5VTV9TVEFOREFS
-RF9UQVJHRVRTIHx8IHRhcmdldCA+PSAwKTsKPj4gfQo+PiAKPj4gYW5kIHVzZSBpdCBpbiB0aGlz
-IGZpeC4KPj4gCj4+IFNvIHdlIGNhbiBnZXQgcmlkIG9mIHRoaXMgb2JzY3VyZSBJTlZBTElEX1RB
-UkdFVCBtYWNyby4KPgo+T25jZSB0aGlzIHByb3BhZ2F0ZXMgdG8gbmYtbmV4dC5naXQsIHlvdSBj
-YW4gc2VuZCBhIGZvbGxvdyB1cCBwYXRjaCB0bwo+dXNlIHRoaXMgbmV3IGZ1bmN0aW9uIGZyb20g
-bW9yZSBzcG90cywgc28gd2UgY2FuIGtpbGwgSU5WQUxJRF9UQVJHRVQKPmZvciBnb29kLgoKT0ss
-IG5vIHByb2JsZW0uCgpSZWdhcmRzCkZlbmcKCgoK
+From: Gao Feng <gfree.wind@vip.163.com>
+
+The info->target is from userspace and it would be used directly.
+So we need to add the sanity check to make sure it is a valid standard
+target, although the ebtables tool has already checked it. Kernel need
+to check anything from userspace.
+
+If the target was set as an evil value, it would break the ebtables
+and cause a panic. Because the non-standard target is treated as one
+offset.
+
+Now add one helper function ebt_invalid_target, and we would replace
+the macro INVALID_TARGET later.
+
+Signed-off-by: Gao Feng <gfree.wind@vip.163.com>
+---
+ v2: Add one helper function ebt_invalid_target instead of INVALID_TARGET, per Pablo
+ v1: initial version
+
+ include/linux/netfilter_bridge/ebtables.h | 5 +++++
+ net/bridge/netfilter/ebt_arpreply.c       | 3 +++
+ 2 files changed, 8 insertions(+)
+
+diff --git a/include/linux/netfilter_bridge/ebtables.h b/include/linux/netfilter_bridge/ebtables.h
+index a30efb4..e0cbf17 100644
+--- a/include/linux/netfilter_bridge/ebtables.h
++++ b/include/linux/netfilter_bridge/ebtables.h
+@@ -125,4 +125,9 @@ extern unsigned int ebt_do_table(struct sk_buff *skb,
+ /* True if the target is not a standard target */
+ #define INVALID_TARGET (info->target < -NUM_STANDARD_TARGETS || info->target >= 0)
+ 
++static inline bool ebt_invalid_target(int target)
++{
++	return (target < -NUM_STANDARD_TARGETS || target >= 0);
++}
++
+ #endif
+diff --git a/net/bridge/netfilter/ebt_arpreply.c b/net/bridge/netfilter/ebt_arpreply.c
+index 5929309..db85230 100644
+--- a/net/bridge/netfilter/ebt_arpreply.c
++++ b/net/bridge/netfilter/ebt_arpreply.c
+@@ -68,6 +68,9 @@ static int ebt_arpreply_tg_check(const struct xt_tgchk_param *par)
+ 	if (e->ethproto != htons(ETH_P_ARP) ||
+ 	    e->invflags & EBT_IPROTO)
+ 		return -EINVAL;
++	if (ebt_invalid_target(info->target))
++		return -EINVAL;
++
+ 	return 0;
+ }
+ 
+-- 
+1.9.1
+
+
