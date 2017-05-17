@@ -1,83 +1,80 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [Bug 1145] nft 0.7: expression.c:966: range_expr_value_low:
- Assertion '0' failed.
-Date: Tue, 16 May 2017 13:34:52 +0200
-Message-ID: <20170516113452.GQ20805@orbyte.nwl.cc>
-References: <bug-1145-20@https.bugzilla.netfilter.org/>
- <bug-1145-20-O7t1kbwESB@https.bugzilla.netfilter.org/>
- <20170515120357.GA32767@breakpoint.cc>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: build failure after merge of the netfilter tree
+Date: Wed, 17 May 2017 13:45:36 +1000
+Message-ID: <20170517134536.3ce21d47@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, ian.kumlien@gmail.com
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Willem de Bruijn <willemb@google.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:55351 "EHLO mail.nwl.cc"
+Received: from ozlabs.org ([103.22.144.67]:44507 "EHLO ozlabs.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752186AbdEPLey (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 May 2017 07:34:54 -0400
-Content-Disposition: inline
-In-Reply-To: <20170515120357.GA32767@breakpoint.cc>
+        id S1751045AbdEQDpj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 16 May 2017 23:45:39 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hi all,
 
-On Mon, May 15, 2017 at 02:03:57PM +0200, Florian Westphal wrote:
-> bugzilla-daemon@netfilter.org <bugzilla-daemon@netfilter.org> wrote:
-> 
-> [ Switching to email ]
-> 
-> > https://bugzilla.netfilter.org/show_bug.cgi?id=1145
-> > 
-> > --- Comment #1 from Ian Kumlien <ian.kumlien@gmail.com> ---
-> > Is there anything obvious that i'm doing wrong? Is there something else i could
-> > try?
-> 
-> This boils down to nested sets:
-> 
-> define dnat_host        = 10.1.2.3
-> define dnat_ports       = { 1234-1567 }
-> 
-> define port_allow = {
->         53,             # dns
->         $dnat_ports,    # dnat
-> }
-> define port_allow_tcp = {
->         80,
->         443,
->         $port_allow
-> }
-> define port_allow_udp = {
->         67, 68,         # dhcp
->         123, 1027,      # ntp
->         $port_allow
-> }
-> 
-> ... which we don't support at the moment.
+After merging the netfilter tree, today's linux-next build (i386
+defconfig) failed like this:
 
-Actually, we do support this kind of nesting: Back in March I sent a
-number of patches to fix for nested sets constructed via defines like
-above, see a6b75b837f5e8 ("evaluate: set: Allow for set elems to be
-sets") and the following two for details.
+net/netfilter/x_tables.c: In function 'xt_match_to_user':
+net/netfilter/x_tables.c:303:13: error: implicit declaration of function 'COMPAT_XT_ALIGN' [-Werror=implicit-function-declaration]
+    C_SIZE ? COMPAT_XT_ALIGN(C_SIZE) :  \
+             ^
+net/netfilter/x_tables.c:310:9: note: in expansion of macro 'XT_DATA_TO_USER'
+         XT_DATA_TO_USER(u, m, match, 0);
+         ^
 
-The reason why above fails though is the use of a range in
-dnat_ports. If I drop it from the port_allow define, the above is
-accepted and appears correct.
+Caused by commit
 
-> So, should we
-> a). expand/'inline' the sets?
-> 
-> (i.e. port_allow_tcp would contain
->  1234-1567, 53, 80, 443)
+  324318f0248c ("netfilter: xtables: zero padding in data_to_user")
 
-This is what I would expect the above to turn into.
+In the !CONFIG_COMPAT case C_SIZE will always be zero, but the compiler
+is still looking for the macro :-(
 
-> b) support lookups within lookups?
-> 
-> This would be needed to support non-anonymous sets within sets.
+I added this cludge patch (I am sure it can be done better):
 
-Sounds like a nice project, but for the issue at hand I don't think it's
-necessary. So maybe get this issue (range in set not allowed) fixed and
-postpone the named set in set thing for later? :)
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Wed, 17 May 2017 13:36:26 +1000
+Subject: [PATCH] netfilter: xtables: fix for zero padding in data_to_user
 
-Cheers, Phil
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+---
+ net/netfilter/x_tables.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index d17769599c10..2b1785993a92 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -296,12 +296,20 @@ int xt_data_to_user(void __user *dst, const void *src,
+ }
+ EXPORT_SYMBOL_GPL(xt_data_to_user);
+ 
++#ifdef CONFIG_COMPAT
+ #define XT_DATA_TO_USER(U, K, TYPE, C_SIZE)				\
+ 	xt_data_to_user(U->data, K->data,				\
+ 			K->u.kernel.TYPE->usersize,			\
+ 			C_SIZE ? : K->u.kernel.TYPE->TYPE##size,	\
+ 			C_SIZE ? COMPAT_XT_ALIGN(C_SIZE) :		\
+ 				 XT_ALIGN(K->u.kernel.TYPE->TYPE##size))
++#else
++#define XT_DATA_TO_USER(U, K, TYPE, C_SIZE)				\
++	xt_data_to_user(U->data, K->data,				\
++			K->u.kernel.TYPE->usersize,			\
++			C_SIZE ? : K->u.kernel.TYPE->TYPE##size,	\
++			C_SIZE ? : XT_ALIGN(K->u.kernel.TYPE->TYPE##size))
++#endif
+ 
+ int xt_match_to_user(const struct xt_entry_match *m,
+ 		     struct xt_entry_match __user *u)
+
+-- 
+Cheers,
+Stephen Rothwell
