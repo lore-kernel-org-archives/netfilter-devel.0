@@ -1,84 +1,100 @@
-From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: Re: linux-next: build failure after merge of the netfilter tree
-Date: Wed, 17 May 2017 11:29:19 -0400
-Message-ID: <CA+FuTScZAee2BDVn0DFdQ99bt3SoVgmUiENMHDfMyoyb-iVnKA@mail.gmail.com>
-References: <20170517134536.3ce21d47@canb.auug.org.au> <CA+FuTSfKpNj6kAfEGVnE=SN-OK0+8vbFiZTr1kaHd1x+9HEYdw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        Linux-Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-To: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+FuTSfKpNj6kAfEGVnE=SN-OK0+8vbFiZTr1kaHd1x+9HEYdw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Oliver Ford <ojford@gmail.com>
+Subject: [PATCH 1/1] iptables: Fix crash on malformed iptables-restore
+Date: Wed, 17 May 2017 16:47:41 +0000
+Message-ID: <1495039661-9178-1-git-send-email-ojford@gmail.com>
+Cc: Oliver Ford <ojford@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36803 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753986AbdEQQrz (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 17 May 2017 12:47:55 -0400
+Received: by mail-wm0-f65.google.com with SMTP id k15so3553225wmh.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 17 May 2017 09:47:54 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, May 17, 2017 at 1:02 AM, Willem de Bruijn
-<willemdebruijn.kernel@gmail.com> wrote:
-> On Tue, May 16, 2017 at 11:45 PM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
->> Hi all,
->>
->> After merging the netfilter tree, today's linux-next build (i386
->> defconfig) failed like this:
->>
->> net/netfilter/x_tables.c: In function 'xt_match_to_user':
->> net/netfilter/x_tables.c:303:13: error: implicit declaration of function 'COMPAT_XT_ALIGN' [-Werror=implicit-function-declaration]
->>     C_SIZE ? COMPAT_XT_ALIGN(C_SIZE) :  \
->>              ^
->> net/netfilter/x_tables.c:310:9: note: in expansion of macro 'XT_DATA_TO_USER'
->>          XT_DATA_TO_USER(u, m, match, 0);
->>          ^
->>
->> Caused by commit
->>
->>   324318f0248c ("netfilter: xtables: zero padding in data_to_user")
->>
->> In the !CONFIG_COMPAT case C_SIZE will always be zero, but the compiler
->> is still looking for the macro :-(
->
-> Apologies for the breakage.
->
->> I added this cludge patch (I am sure it can be done better):
->>
->> From: Stephen Rothwell <sfr@canb.auug.org.au>
->> Date: Wed, 17 May 2017 13:36:26 +1000
->> Subject: [PATCH] netfilter: xtables: fix for zero padding in data_to_user
->>
->> Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
->> ---
->>  net/netfilter/x_tables.c | 8 ++++++++
->>  1 file changed, 8 insertions(+)
->>
->> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
->> index d17769599c10..2b1785993a92 100644
->> --- a/net/netfilter/x_tables.c
->> +++ b/net/netfilter/x_tables.c
->> @@ -296,12 +296,20 @@ int xt_data_to_user(void __user *dst, const void *src,
->>  }
->>  EXPORT_SYMBOL_GPL(xt_data_to_user);
->>
->> +#ifdef CONFIG_COMPAT
->>  #define XT_DATA_TO_USER(U, K, TYPE, C_SIZE)                            \
->>         xt_data_to_user(U->data, K->data,                               \
->>                         K->u.kernel.TYPE->usersize,                     \
->>                         C_SIZE ? : K->u.kernel.TYPE->TYPE##size,        \
->>                         C_SIZE ? COMPAT_XT_ALIGN(C_SIZE) :              \
->>                                  XT_ALIGN(K->u.kernel.TYPE->TYPE##size))
->> +#else
->> +#define XT_DATA_TO_USER(U, K, TYPE, C_SIZE)                            \
->> +       xt_data_to_user(U->data, K->data,                               \
->> +                       K->u.kernel.TYPE->usersize,                     \
->> +                       C_SIZE ? : K->u.kernel.TYPE->TYPE##size,        \
->> +                       C_SIZE ? : XT_ALIGN(K->u.kernel.TYPE->TYPE##size))
->> +#endif
->>
->
-> I will send a patch to the netfilter to define a separate
-> COMPAT_XT_DATA_TO_USER inside the CONFIG_COMPAT region further down
-> the file. This also allows simplifying XT_DATA_TO_USER by removing
-> those ternary statements.
+Fixes the crash reported in Bugzilla #1131 where a malformed
+parameter that specifies the table option can create an invalid
+pointer.
 
-Full patch out for review at http://patchwork.ozlabs.org/patch/763655/
+Improves the tables option check to find a beginning '-' followed by
+a 't' anywhere in the parameter.
+
+Signed-off-by: Oliver Ford <ojford@gmail.com>
+---
+ iptables/ip6tables-restore.c |  3 +--
+ iptables/iptables-restore.c  |  3 +--
+ iptables/iptables-xml.c      | 10 ++++------
+ iptables/xtables-restore.c   |  3 +--
+ 4 files changed, 7 insertions(+), 12 deletions(-)
+
+diff --git a/iptables/ip6tables-restore.c b/iptables/ip6tables-restore.c
+index 39a881d..1a8cc5e 100644
+--- a/iptables/ip6tables-restore.c
++++ b/iptables/ip6tables-restore.c
+@@ -165,8 +165,7 @@ static void add_param_to_argv(char *parsestart)
+ 			param_buffer[param_len] = '\0';
+ 
+ 			/* check if table name specified */
+-			if (!strncmp(param_buffer, "-t", 2)
+-                            || !strncmp(param_buffer, "--table", 8)) {
++			if (param_buffer[0] == '-' && strchr(param_buffer, 't')) {
+ 				xtables_error(PARAMETER_PROBLEM,
+ 				"The -t option (seen in line %u) cannot be "
+ 				"used in ip6tables-restore.\n", line);
+diff --git a/iptables/iptables-restore.c b/iptables/iptables-restore.c
+index 876fe06..70dc7eb 100644
+--- a/iptables/iptables-restore.c
++++ b/iptables/iptables-restore.c
+@@ -162,8 +162,7 @@ static void add_param_to_argv(char *parsestart)
+ 			param_buffer[param_len] = '\0';
+ 
+ 			/* check if table name specified */
+-			if (!strncmp(param_buffer, "-t", 2)
+-			    || !strncmp(param_buffer, "--table", 8)) {
++			if (param_buffer[0] == '-' && strchr(param_buffer, 't')) {
+ 				xtables_error(PARAMETER_PROBLEM,
+ 				"The -t option (seen in line %u) cannot be "
+ 				"used in iptables-restore.\n", line);
+diff --git a/iptables/iptables-xml.c b/iptables/iptables-xml.c
+index 2e093b5..fe219ae 100644
+--- a/iptables/iptables-xml.c
++++ b/iptables/iptables-xml.c
+@@ -819,13 +819,11 @@ iptables_xml_main(int argc, char *argv[])
+ 					*(param_buffer + param_len) = '\0';
+ 
+ 					/* check if table name specified */
+-					if (!strncmp(param_buffer, "-t", 3)
+-					    || !strncmp(param_buffer,
+-							"--table", 8)) {
++					if (param_buffer[0] == '-' && strchr(param_buffer, 't')) {
+ 						xtables_error(PARAMETER_PROBLEM,
+-							   "Line %u seems to have a "
+-							   "-t table option.\n",
+-							   line);
++							"Line %u seems to have a "
++							"-t table option.\n",
++							line);
+ 						exit(1);
+ 					}
+ 
+diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
+index 15824f0..75a64a7 100644
+--- a/iptables/xtables-restore.c
++++ b/iptables/xtables-restore.c
+@@ -136,8 +136,7 @@ static void add_param_to_argv(char *parsestart)
+ 			param_buffer[param_len] = '\0';
+ 
+ 			/* check if table name specified */
+-			if (!strncmp(param_buffer, "-t", 2)
+-			    || !strncmp(param_buffer, "--table", 8)) {
++			if (param_buffer[0] == '-' && strchr(param_buffer, 't')) {
+ 				xtables_error(PARAMETER_PROBLEM,
+ 				"The -t option (seen in line %u) cannot be "
+ 				"used in xtables-restore.\n", line);
+-- 
+2.11.0
+
+
