@@ -1,7 +1,7 @@
 From: Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH 2/6 RFC] netfilter: normalize ebtables function declarations
-Date: Thu, 18 May 2017 13:21:48 -0400
-Message-ID: <ee2f932ececc1e9b7bbbcce474eac5d8effae757.1495124188.git.rgb@redhat.com>
+Subject: [PATCH 3/6 RFC] netfilter: audit only on xtables and ebtables syscall rule or standalone
+Date: Thu, 18 May 2017 13:21:49 -0400
+Message-ID: <ac9a2120311288328a81d3e07a68857ebd32a21b.1495124188.git.rgb@redhat.com>
 References: <cover.1495124188.git.rgb@redhat.com>
 Cc: Richard Guy Briggs <rgb@redhat.com>,
         Florian Westphal <fw@strlen.de>,
@@ -12,239 +12,182 @@ Cc: Richard Guy Briggs <rgb@redhat.com>,
 To: Netfilter Developer Mailing List
         <netfilter-devel@vger.kernel.org>, linux-audit@redhat.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56206 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:60836 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932280AbdERRXV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 May 2017 13:23:21 -0400
+        id S932421AbdERRXY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 18 May 2017 13:23:24 -0400
 In-Reply-To: <cover.1495124188.git.rgb@redhat.com>
 In-Reply-To: <cover.1495124188.git.rgb@redhat.com>
 References: <cover.1495124188.git.rgb@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Git context diffs were being produced with unhelpful declaration types in the
-place of function names to help identify the funciton in which changes were
-made.
+There were syscall events unsolicited by any audit rule caused by a missing
+!audit_dummy_context() check before creating an
+iptables/ip6tables/arptables/ebtables NETFILTER_CFG record.  Check
+!audit_dummy_context() before creating the NETFILTER_CFG record.
 
-Normalize ebtables function declarations so that git context diff function
-labels work as expected.
+The vast majority of observed unaccompanied records are caused by the fedora
+default rule: "-a never,task" and the occasional early startup one is I believe
+caused by the iptables filter table module hard linked into the kernel rather
+than a loadable module. The !audit_dummy_context() check above should avoid
+them.  Audit only when there is an existing syscall audit rule, otherwise issue
+a standalone record only on table modification rather than empty table
+creation.
+
+Add subject attributes to the new standalone NETFILTER_CFGSOLO record using
+a newly exported audit_log_task().
+
+Since the record format will change anyways, this seemed like the right time to
+change the order of the fields to put the protocol family before the table
+name.
+
+Here is a new sample accompanied record:
+  type=NETFILTER_CFG msg=audit(1494977049.375:9418): family=2 table=filter entries=84
+
+and unaccompanied case:
+  type=UNKNOWN[1331] msg=audit(1494815998.168:163): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=system_u:system_r:iptables_t:s0 pid=597 comm="iptables-restor" exe="/usr/sbin/xtables-multi" family=2 table=filter entries=4
+
+See: https://github.com/linux-audit/audit-kernel/issues/25
+See: https://github.com/linux-audit/audit-kernel/issues/35
 
 Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 ---
- net/bridge/netfilter/ebtables.c |   92 +++++++++++++++++++-------------------
- 1 files changed, 46 insertions(+), 46 deletions(-)
+ include/linux/audit.h           |    4 +++-
+ include/uapi/linux/audit.h      |    1 +
+ kernel/auditsc.c                |    3 ++-
+ net/bridge/netfilter/ebtables.c |   25 +++++++++++++++++++------
+ net/netfilter/x_tables.c        |   26 +++++++++++++++++++-------
+ 5 files changed, 44 insertions(+), 15 deletions(-)
 
+diff --git a/include/linux/audit.h b/include/linux/audit.h
+index 2150bdc..b6fcab1 100644
+--- a/include/linux/audit.h
++++ b/include/linux/audit.h
+@@ -155,7 +155,7 @@ extern void		    audit_log_link_denied(const char *operation,
+ static inline void	    audit_log_secctx(struct audit_buffer *ab, u32 secid)
+ { }
+ #endif
+-
++extern void audit_log_task(struct audit_buffer *ab);
+ extern int audit_log_task_context(struct audit_buffer *ab);
+ extern void audit_log_task_info(struct audit_buffer *ab,
+ 				struct task_struct *tsk);
+@@ -205,6 +205,8 @@ static inline void audit_log_link_denied(const char *string,
+ { }
+ static inline void audit_log_secctx(struct audit_buffer *ab, u32 secid)
+ { }
++static inline void audit_log_task(struct audit_buffer *ab)
++{ }
+ static inline int audit_log_task_context(struct audit_buffer *ab)
+ {
+ 	return 0;
+diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
+index 0714a66..8bee3f5 100644
+--- a/include/uapi/linux/audit.h
++++ b/include/uapi/linux/audit.h
+@@ -112,6 +112,7 @@
+ #define AUDIT_FEATURE_CHANGE	1328	/* audit log listing feature changes */
+ #define AUDIT_REPLACE		1329	/* Replace auditd if this packet unanswerd */
+ #define AUDIT_KERN_MODULE	1330	/* Kernel Module events */
++#define AUDIT_NETFILTER_CFGSOLO	1331	/* Netfilter chain modifications standalone */
+ 
+ #define AUDIT_AVC		1400	/* SE Linux avc denial or grant */
+ #define AUDIT_SELINUX_ERR	1401	/* Internal SE Linux Errors */
+diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+index b2dcbe6..8ac38e6 100644
+--- a/kernel/auditsc.c
++++ b/kernel/auditsc.c
+@@ -2383,7 +2383,7 @@ void __audit_log_kern_module(char *name)
+ 	context->type = AUDIT_KERN_MODULE;
+ }
+ 
+-static void audit_log_task(struct audit_buffer *ab)
++void audit_log_task(struct audit_buffer *ab)
+ {
+ 	kuid_t auid, uid;
+ 	kgid_t gid;
+@@ -2404,6 +2404,7 @@ static void audit_log_task(struct audit_buffer *ab)
+ 	audit_log_untrustedstring(ab, get_task_comm(comm, current));
+ 	audit_log_d_path_exe(ab, current->mm);
+ }
++EXPORT_SYMBOL_GPL(audit_log_task);
+ 
+ /**
+  * audit_core_dumps - record information about processes that end abnormally
 diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 79b6991..13d7fe2 100644
+index 13d7fe2..743f9e6 100644
 --- a/net/bridge/netfilter/ebtables.c
 +++ b/net/bridge/netfilter/ebtables.c
-@@ -84,9 +84,9 @@ static int ebt_standard_compat_to_user(void __user *dst, const void *src)
+@@ -1071,12 +1071,25 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
+ 	if (audit_enabled) {
+ 		struct audit_buffer *ab;
+ 
+-		ab = audit_log_start(current->audit_context, GFP_KERNEL,
+-				     AUDIT_NETFILTER_CFG);
+-		if (ab) {
+-			audit_log_format(ab, "table=%s family=%u entries=%u",
+-					 repl->name, AF_BRIDGE, repl->nentries);
+-			audit_log_end(ab);
++		if(!audit_dummy_context()) {
++			ab = audit_log_start(current->audit_context, GFP_KERNEL,
++					     AUDIT_NETFILTER_CFG);
++			if (ab) {
++				audit_log_format(ab, "family=%u table=%s entries=%u",
++						 AF_BRIDGE, repl->name,
++						 repl->nentries);
++				audit_log_end(ab);
++			}
++		} else if(repl->nentries) {
++			ab = audit_log_start(NULL, GFP_KERNEL,
++					     AUDIT_NETFILTER_CFGSOLO);
++			if (ab) {
++				audit_log_task(ab);
++				audit_log_format(ab, " family=%u table=%s entries=%u",
++						 AF_BRIDGE, repl->name,
++						 repl->nentries);
++				audit_log_end(ab);
++			}
+ 		}
+ 	}
  #endif
- };
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 99c27ed..8d28fff 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1195,13 +1195,25 @@ struct xt_table_info *xt_replace_table(struct xt_table *table,
+ 	if (audit_enabled) {
+ 		struct audit_buffer *ab;
  
--static inline int
--ebt_do_watcher(const struct ebt_entry_watcher *w, struct sk_buff *skb,
--	       struct xt_action_param *par)
-+static inline int ebt_do_watcher(const struct ebt_entry_watcher *w,
-+				 struct sk_buff *skb,
-+				 struct xt_action_param *par)
- {
- 	par->target   = w->u.watcher;
- 	par->targinfo = w->data;
-@@ -95,17 +95,17 @@ static int ebt_standard_compat_to_user(void __user *dst, const void *src)
- 	return 0;
- }
- 
--static inline int
--ebt_do_match(struct ebt_entry_match *m, const struct sk_buff *skb,
--	     struct xt_action_param *par)
-+static inline int ebt_do_match(struct ebt_entry_match *m,
-+			       const struct sk_buff *skb,
-+			       struct xt_action_param *par)
- {
- 	par->match     = m->u.match;
- 	par->matchinfo = m->data;
- 	return m->u.match->match(skb, par) ? EBT_MATCH : EBT_NOMATCH;
- }
- 
--static inline int
--ebt_dev_check(const char *entry, const struct net_device *device)
-+static inline int ebt_dev_check(const char *entry,
-+				const struct net_device *device)
- {
- 	int i = 0;
- 	const char *devname;
-@@ -122,9 +122,10 @@ static int ebt_standard_compat_to_user(void __user *dst, const void *src)
- }
- 
- /* process standard matches */
--static inline int
--ebt_basic_match(const struct ebt_entry *e, const struct sk_buff *skb,
--		const struct net_device *in, const struct net_device *out)
-+static inline int ebt_basic_match(const struct ebt_entry *e,
-+				  const struct sk_buff *skb,
-+				  const struct net_device *in,
-+				  const struct net_device *out)
- {
- 	const struct ethhdr *h = eth_hdr(skb);
- 	const struct net_bridge_port *p;
-@@ -171,8 +172,7 @@ static int ebt_standard_compat_to_user(void __user *dst, const void *src)
- 	return 0;
- }
- 
--static inline
--struct ebt_entry *ebt_next_entry(const struct ebt_entry *entry)
-+static inline struct ebt_entry *ebt_next_entry(const struct ebt_entry *entry)
- {
- 	return (void *)entry + entry->next_offset;
- }
-@@ -313,9 +313,9 @@ unsigned int ebt_do_table(struct sk_buff *skb,
- }
- 
- /* If it succeeds, returns element and locks mutex */
--static inline void *
--find_inlist_lock_noload(struct list_head *head, const char *name, int *error,
--			struct mutex *mutex)
-+static inline void * find_inlist_lock_noload(struct list_head *head,
-+					     const char *name, int *error,
-+					     struct mutex *mutex)
- {
- 	struct {
- 		struct list_head list;
-@@ -332,26 +332,26 @@ unsigned int ebt_do_table(struct sk_buff *skb,
- 	return NULL;
- }
- 
--static void *
--find_inlist_lock(struct list_head *head, const char *name, const char *prefix,
--		 int *error, struct mutex *mutex)
-+static void * find_inlist_lock(struct list_head *head, const char *name,
-+			       const char *prefix, int *error,
-+			       struct mutex *mutex)
- {
- 	return try_then_request_module(
- 			find_inlist_lock_noload(head, name, error, mutex),
- 			"%s%s", prefix, name);
- }
- 
--static inline struct ebt_table *
--find_table_lock(struct net *net, const char *name, int *error,
--		struct mutex *mutex)
-+static inline struct ebt_table * find_table_lock(struct net *net,
-+						 const char *name, int *error,
-+						 struct mutex *mutex)
- {
- 	return find_inlist_lock(&net->xt.tables[NFPROTO_BRIDGE], name,
- 				"ebtable_", error, mutex);
- }
- 
--static inline int
--ebt_check_match(struct ebt_entry_match *m, struct xt_mtchk_param *par,
--		unsigned int *cnt)
-+static inline int ebt_check_match(struct ebt_entry_match *m,
-+				  struct xt_mtchk_param *par,
-+				  unsigned int *cnt)
- {
- 	const struct ebt_entry *e = par->entryinfo;
- 	struct xt_match *match;
-@@ -386,9 +386,9 @@ unsigned int ebt_do_table(struct sk_buff *skb,
- 	return 0;
- }
- 
--static inline int
--ebt_check_watcher(struct ebt_entry_watcher *w, struct xt_tgchk_param *par,
--		  unsigned int *cnt)
-+static inline int ebt_check_watcher(struct ebt_entry_watcher *w,
-+				    struct xt_tgchk_param *par,
-+				    unsigned int *cnt)
- {
- 	const struct ebt_entry *e = par->entryinfo;
- 	struct xt_target *watcher;
-@@ -489,8 +489,7 @@ static int ebt_verify_pointers(const struct ebt_replace *repl,
- /* this one is very careful, as it is the first function
-  * to parse the userspace data
-  */
--static inline int
--ebt_check_entry_size_and_hooks(const struct ebt_entry *e,
-+static inline int ebt_check_entry_size_and_hooks(const struct ebt_entry *e,
- 			       const struct ebt_table_info *newinfo,
- 			       unsigned int *n, unsigned int *cnt,
- 			       unsigned int *totalcnt, unsigned int *udc_cnt)
-@@ -558,9 +557,10 @@ struct ebt_cl_stack {
- /* We need these positions to check that the jumps to a different part of the
-  * entries is a jump to the beginning of a new chain.
-  */
--static inline int
--ebt_get_udc_positions(struct ebt_entry *e, struct ebt_table_info *newinfo,
--		      unsigned int *n, struct ebt_cl_stack *udc)
-+static inline int ebt_get_udc_positions(struct ebt_entry *e,
-+					struct ebt_table_info *newinfo,
-+					unsigned int *n,
-+					struct ebt_cl_stack *udc)
- {
- 	int i;
- 
-@@ -584,8 +584,8 @@ struct ebt_cl_stack {
- 	return 0;
- }
- 
--static inline int
--ebt_cleanup_match(struct ebt_entry_match *m, struct net *net, unsigned int *i)
-+static inline int ebt_cleanup_match(struct ebt_entry_match *m,
-+				    struct net *net, unsigned int *i)
- {
- 	struct xt_mtdtor_param par;
- 
-@@ -602,8 +602,8 @@ struct ebt_cl_stack {
- 	return 0;
- }
- 
--static inline int
--ebt_cleanup_watcher(struct ebt_entry_watcher *w, struct net *net, unsigned int *i)
-+static inline int ebt_cleanup_watcher(struct ebt_entry_watcher *w,
-+				      struct net *net, unsigned int *i)
- {
- 	struct xt_tgdtor_param par;
- 
-@@ -620,8 +620,8 @@ struct ebt_cl_stack {
- 	return 0;
- }
- 
--static inline int
--ebt_cleanup_entry(struct ebt_entry *e, struct net *net, unsigned int *cnt)
-+static inline int ebt_cleanup_entry(struct ebt_entry *e, struct net *net,
-+				    unsigned int *cnt)
- {
- 	struct xt_tgdtor_param par;
- 	struct ebt_entry_target *t;
-@@ -645,11 +645,11 @@ struct ebt_cl_stack {
- 	return 0;
- }
- 
--static inline int
--ebt_check_entry(struct ebt_entry *e, struct net *net,
--		const struct ebt_table_info *newinfo,
--		const char *name, unsigned int *cnt,
--		struct ebt_cl_stack *cl_s, unsigned int udc_cnt)
-+static inline int ebt_check_entry(struct ebt_entry *e, struct net *net,
-+				  const struct ebt_table_info *newinfo,
-+				  const char *name, unsigned int *cnt,
-+				  struct ebt_cl_stack *cl_s,
-+				  unsigned int udc_cnt)
- {
- 	struct ebt_entry_target *t;
- 	struct xt_target *target;
-@@ -1157,8 +1157,8 @@ static int do_replace(struct net *net, const void __user *user,
- 	return ret;
- }
- 
--struct ebt_table *
--ebt_register_table(struct net *net, const struct ebt_table *input_table)
-+struct ebt_table * ebt_register_table(struct net *net,
-+				      const struct ebt_table *input_table)
- {
- 	struct ebt_table_info *newinfo;
- 	struct ebt_table *t, *table;
+-		ab = audit_log_start(current->audit_context, GFP_KERNEL,
+-				     AUDIT_NETFILTER_CFG);
+-		if (ab) {
+-			audit_log_format(ab, "table=%s family=%u entries=%u",
+-					 table->name, table->af,
+-					 private->number);
+-			audit_log_end(ab);
++		if(!audit_dummy_context()) {
++			ab = audit_log_start(current->audit_context, GFP_KERNEL,
++					     AUDIT_NETFILTER_CFG);
++			if (ab) {
++				audit_log_format(ab, "family=%u table=%s entries=%u",
++						 table->af, table->name,
++						 private->number);
++				audit_log_end(ab);
++			}
++		} else if(private->stacksize || private->number || private->initial_entries) {
++			ab = audit_log_start(NULL, GFP_KERNEL,
++					     AUDIT_NETFILTER_CFGSOLO);
++			if (ab) {
++				audit_log_task(ab);
++				audit_log_format(ab, " family=%u table=%s entries=%u",
++						 table->af, table->name,
++						 private->number);
++				audit_log_end(ab);
++			}
+ 		}
+ 	}
+ #endif
 -- 
 1.7.1
 
