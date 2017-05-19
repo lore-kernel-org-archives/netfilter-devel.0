@@ -1,99 +1,107 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nf-next PATCH] netfilter: nf_tables: Report transactions'
- process info to user space
-Date: Fri, 19 May 2017 12:41:28 +0200
-Message-ID: <20170519104128.GG17767@orbyte.nwl.cc>
-References: <20170515145149.26114-1-phil@nwl.cc>
- <20170515155331.GA32385@salvia>
- <20170515164432.GL20805@orbyte.nwl.cc>
- <20170515175444.GA6179@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Oliver Ford <ojford@gmail.com>
+Subject: [PATCH v4 1/1] iptables: Fix crash on malformed iptables-restore
+Date: Fri, 19 May 2017 11:22:36 +0000
+Message-ID: <1495192956-9207-1-git-send-email-ojford@gmail.com>
+Cc: Oliver Ford <ojford@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:50561 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752878AbdESKla (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 May 2017 06:41:30 -0400
-Content-Disposition: inline
-In-Reply-To: <20170515175444.GA6179@salvia>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35857 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750793AbdESLWn (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 19 May 2017 07:22:43 -0400
+Received: by mail-wm0-f68.google.com with SMTP id k15so16387041wmh.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 May 2017 04:22:42 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, May 15, 2017 at 07:54:44PM +0200, Pablo Neira Ayuso wrote:
-> On Mon, May 15, 2017 at 06:44:32PM +0200, Phil Sutter wrote:
-> > On Mon, May 15, 2017 at 05:53:31PM +0200, Pablo Neira Ayuso wrote:
-> > > On Mon, May 15, 2017 at 04:51:49PM +0200, Phil Sutter wrote:
-> > > > When committing a transaction, report PID and name of user space process
-> > > > which initiated it.
-> > > > 
-> > > > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > > > ---
-> > > >  include/uapi/linux/netfilter/nf_tables.h | 16 +++++++++++
-> > > >  net/netfilter/nf_tables_api.c            | 49 ++++++++++++++++++++++++++++++++
-> > > >  2 files changed, 65 insertions(+)
-> > > > 
-> > > > diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-> > > > index 683f6f88fcace..7c012690a5f02 100644
-> > > > --- a/include/uapi/linux/netfilter/nf_tables.h
-> > > > +++ b/include/uapi/linux/netfilter/nf_tables.h
-> > > > @@ -90,6 +90,7 @@ enum nft_verdicts {
-> > > >   * @NFT_MSG_GETOBJ: get a stateful object (enum nft_obj_attributes)
-> > > >   * @NFT_MSG_DELOBJ: delete a stateful object (enum nft_obj_attributes)
-> > > >   * @NFT_MSG_GETOBJ_RESET: get and reset a stateful object (enum nft_obj_attributes)
-> > > > + * @NFT_MSG_PROC_INFO: get info about user space process which initiated the transaction
-> > > >   */
-> > > >  enum nf_tables_msg_types {
-> > > >  	NFT_MSG_NEWTABLE,
-> > > > @@ -114,6 +115,7 @@ enum nf_tables_msg_types {
-> > > >  	NFT_MSG_GETOBJ,
-> > > >  	NFT_MSG_DELOBJ,
-> > > >  	NFT_MSG_GETOBJ_RESET,
-> > > > +	NFT_MSG_PROC_INFO,
-> > > 
-> > > No need for a new message. You can place this into existing the NEWGEN
-> > > messages.
-> > 
-> > But that message is sent last and so at the time nft sees it, the events
-> > will have been printed already, no?
-> 
-> This is an event, so it is asynchronous. From a timely perspective, we
-> get nothing if we send it just a bit before.
+Fixes the crash reported in Bugzilla #1131 where a malformed parameter that
+specifies the table option during a restore can create an invalid pointer.
+It was discovered during fuzz testing that options like '-ftf'
+can cause a segfault. A parameter that includes a 't' is not currently
+filtered correctly.
 
-My concern was that it's not possible to keep the additional information
-in the same line as the events it is interesting for. So in order to not
-introduce caching in 'nft monitor', the new format would be something
-like this:
+Improves the filtering to:
+Filter a beginning '-' followed by a character other than '-' and then a 't'
+anywhere in the parameter. This filters parameters like '-ftf'.
+Filter '--table', stopping when the parameter length is reached. Because the
+getopt_long function allows abbreviations, any unique abbreviation of '--table'
+will be treated as '--table'. This filters parameters like '--t', '--ta', but not
+'--ttl' or '--target'.
 
-| add chain ip t c
-| new generation 3 by process 2841 (nft)
-| add table ip t2
-| add chain ip t2 c
-| add rule ip t2 c counter packets 0 bytes 0
-| new generation 4 by process 2851 (nft)
+Signed-off-by: Oliver Ford <ojford@gmail.com>
+---
+ iptables/ip6tables-restore.c | 5 +++--
+ iptables/iptables-restore.c  | 5 +++--
+ iptables/iptables-xml.c      | 6 +++---
+ iptables/xtables-restore.c   | 5 +++--
+ 4 files changed, 12 insertions(+), 9 deletions(-)
 
-Is this fine with you, or do you have something different in mind?
+diff --git a/iptables/ip6tables-restore.c b/iptables/ip6tables-restore.c
+index 39a881d..98e9c5f 100644
+--- a/iptables/ip6tables-restore.c
++++ b/iptables/ip6tables-restore.c
+@@ -165,8 +165,9 @@ static void add_param_to_argv(char *parsestart)
+ 			param_buffer[param_len] = '\0';
+ 
+ 			/* check if table name specified */
+-			if (!strncmp(param_buffer, "-t", 2)
+-                            || !strncmp(param_buffer, "--table", 8)) {
++			if ((param_buffer[0] == '-' && param_buffer[1] != '-' &&
++				strchr(param_buffer, 't')) ||
++				!strncmp(param_buffer, "--table", strlen(param_buffer))) {
+ 				xtables_error(PARAMETER_PROBLEM,
+ 				"The -t option (seen in line %u) cannot be "
+ 				"used in ip6tables-restore.\n", line);
+diff --git a/iptables/iptables-restore.c b/iptables/iptables-restore.c
+index 876fe06..c945745 100644
+--- a/iptables/iptables-restore.c
++++ b/iptables/iptables-restore.c
+@@ -162,8 +162,9 @@ static void add_param_to_argv(char *parsestart)
+ 			param_buffer[param_len] = '\0';
+ 
+ 			/* check if table name specified */
+-			if (!strncmp(param_buffer, "-t", 2)
+-			    || !strncmp(param_buffer, "--table", 8)) {
++			if ((param_buffer[0] == '-' && param_buffer[1] != '-' &&
++				strchr(param_buffer, 't')) ||
++				!strncmp(param_buffer, "--table", strlen(param_buffer))) {
+ 				xtables_error(PARAMETER_PROBLEM,
+ 				"The -t option (seen in line %u) cannot be "
+ 				"used in iptables-restore.\n", line);
+diff --git a/iptables/iptables-xml.c b/iptables/iptables-xml.c
+index 2e093b5..de56138 100644
+--- a/iptables/iptables-xml.c
++++ b/iptables/iptables-xml.c
+@@ -819,9 +819,9 @@ iptables_xml_main(int argc, char *argv[])
+ 					*(param_buffer + param_len) = '\0';
+ 
+ 					/* check if table name specified */
+-					if (!strncmp(param_buffer, "-t", 3)
+-					    || !strncmp(param_buffer,
+-							"--table", 8)) {
++					if ((param_buffer[0] == '-' && param_buffer[1] != '-' &&
++						strchr(param_buffer, 't')) ||
++						!strncmp(param_buffer, "--table", strlen(param_buffer))) {
+ 						xtables_error(PARAMETER_PROBLEM,
+ 							   "Line %u seems to have a "
+ 							   "-t table option.\n",
+diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
+index 15824f0..642b07f 100644
+--- a/iptables/xtables-restore.c
++++ b/iptables/xtables-restore.c
+@@ -136,8 +136,9 @@ static void add_param_to_argv(char *parsestart)
+ 			param_buffer[param_len] = '\0';
+ 
+ 			/* check if table name specified */
+-			if (!strncmp(param_buffer, "-t", 2)
+-			    || !strncmp(param_buffer, "--table", 8)) {
++			if ((param_buffer[0] == '-' && param_buffer[1] != '-' &&
++				strchr(param_buffer, 't')) ||
++				!strncmp(param_buffer, "--table", strlen(param_buffer))) {
+ 				xtables_error(PARAMETER_PROBLEM,
+ 				"The -t option (seen in line %u) cannot be "
+ 				"used in xtables-restore.\n", line);
+-- 
+2.11.0
 
-> I suspect the problem is the lack of context, ie. access ctx->portid,
-> ctx->seq and ctx->report, then we should take this from the original
-> initial netlink message header coming in the batch (see
-> nfnetlink_rcv_batch() in nfnetlink.c).
-
-That's not necessary? My current PoC looks like this:
-
-| @@ -4538,7 +4539,9 @@ static int nf_tables_fill_gen_info(struct sk_buff *skb, struct net *net,
-|         nfmsg->version          = NFNETLINK_V0;
-|         nfmsg->res_id           = htons(net->nft.base_seq & 0xffff);
-|  
-| -       if (nla_put_be32(skb, NFTA_GEN_ID, htonl(net->nft.base_seq)))
-| +       if (nla_put_be32(skb, NFTA_GEN_ID, htonl(net->nft.base_seq)) ||
-| +           nla_put_be32(skb, NFTA_GEN_PROC_PID, htonl(task_pid_nr(current))) ||
-| +           nla_put_string(skb, NFTA_GEN_PROC_NAME, get_task_comm(buf, current)))
-|                 goto nla_put_failure;
-|  
-|         nlmsg_end(skb, nlh);
-
-Or do you think it's not safe to access 'current' at this point?
-
-Thanks, Phil
