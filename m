@@ -1,111 +1,95 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft v3 3/7] src: ipv6: switch implicit dependencies to meta l4proto
-Date: Fri, 19 May 2017 22:11:07 +0200
-Message-ID: <20170519201111.7402-4-fw@strlen.de>
+Subject: [PATCH nft 4/7] payload: enforce ip/ip6 protocol depending on icmp or icmpv6
+Date: Fri, 19 May 2017 22:11:08 +0200
+Message-ID: <20170519201111.7402-5-fw@strlen.de>
 References: <20170519201111.7402-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:34040 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:34044 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754392AbdESULD (ORCPT
+        by vger.kernel.org with ESMTP id S1755022AbdESULG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 May 2017 16:11:03 -0400
+        Fri, 19 May 2017 16:11:06 -0400
 In-Reply-To: <20170519201111.7402-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-when using rule like
+After some discussion with Pablo we agreed to treat icmp/icmpv6 specially.
 
-ip6 filter input tcp dport 22
-nft generates:
-  [ payload load 1b @ network header + 6 => reg 1 ]
-  [ cmp eq reg 1 0x00000006 ]
-  [ payload load 2b @ transport header + 2 => reg 1 ]
-  [ cmp eq reg 1 0x00001600 ]
+in the case of a rule like 'tcp dport 22' the inet, bridge and netdev
+families only care about the lower layer protocol.
 
-which is: ip6 filter input ip6 nexthdr tcp dport 22
-IOW, such a rule won't match if e.g. a fragment header is in place.
+In the icmpv6 case however we'd like to also enforce an ipv6 protocol check
+(and ipv4 check in icmp case).
 
-This changes ip6_proto to use 'meta l4proto' which is the protocol header
-found by exthdr walk.
+This extends payload_gen_special_dependency() to consider this.
+With this patch:
 
-A side effect is that for bridge we get a shorter dependency chain as it
-no longer needs to prepend 'ether proto ipv6' for old 'ip6 nexthdr' dep.
+add rule $pf filter input meta l4proto icmpv6
+add rule $pf filter input meta l4proto icmpv6 icmpv6 type echo-request
+add rule $pf filter input icmpv6 type echo-request
 
-Only problem:
+will work in all tables and all families.
+For inet/bridge/netdev, an ipv6 protocol dependency is added; this will
+not match ipv4 packets with ip->protocol == icmpv6, EXCEPT in the case
+of the ip family.
 
-ip6 nexthdr tcp tcp dport 22
-will now inject a (useless) meta l4 dependency as ip6 nexthdr is no
-longer flagged as EXPR_F_PROTOCOL, to avoid this add a small helper
-that skips the unneded meta dependency in that case.
+Its still possible to match icmpv6-in-ipv4 in inet/bridge/netdev with an
+explicit dependency:
+
+add rule inet f i ip protocol ipv6-icmp meta l4proto ipv6-icmp icmpv6 type ...
+
+Implicit dependencies won't get removed at the moment, so
+  bridge ... icmp type echo-request
+will be shown as
+  ether type ip meta l4proto 1 icmp type echo-request
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- Change since v2: collapsed two patches from v2 into
- this one, no other changes.
+ Patch was not part of v2
 
- src/payload.c | 19 ++++++++++++++++++-
- src/proto.c   |  2 +-
- 2 files changed, 19 insertions(+), 2 deletions(-)
+ src/payload.c | 27 +++++++++++++++++++++++----
+ 1 file changed, 23 insertions(+), 4 deletions(-)
 
 diff --git a/src/payload.c b/src/payload.c
-index 31e5a0244837..38db15ee2664 100644
+index 38db15ee2664..8796ee57fd4c 100644
 --- a/src/payload.c
 +++ b/src/payload.c
-@@ -117,6 +117,23 @@ static const struct expr_ops payload_expr_ops = {
- 	.pctx_update	= payload_expr_pctx_update,
- };
- 
-+/*
-+ * ipv6 is special case, we normally use 'meta l4proto' to fetch the last
-+ * l4 header of the ipv6 extension header chain so we will also match
-+ * tcp after a fragmentation header, for instance.
-+ *
-+ * If user specifically asks for nexthdr x, treat is as a full
-+ * dependency rather than injecting another (useless) meta l4 one.
-+ */
-+static bool proto_key_is_protocol(const struct proto_desc *desc, unsigned int type)
-+{
-+	if (type == desc->protocol_key ||
-+	    (desc == &proto_ip6 && type == IP6HDR_NEXTHDR))
-+		return true;
+@@ -264,10 +264,29 @@ payload_gen_special_dependency(struct eval_ctx *ctx, const struct expr *expr)
+ 	case PROTO_BASE_LL_HDR:
+ 		return payload_get_get_ll_hdr(ctx);
+ 	case PROTO_BASE_TRANSPORT_HDR:
+-		if (expr->payload.desc == &proto_icmp)
+-			return &proto_ip;
+-		if (expr->payload.desc == &proto_icmp6)
+-			return &proto_ip6;
++		if (expr->payload.desc == &proto_icmp ||
++		    expr->payload.desc == &proto_icmp6) {
++			const struct proto_desc *desc, *desc_upper;
++			struct stmt *nstmt;
 +
-+	return false;
-+}
++			desc = ctx->pctx.protocol[PROTO_BASE_LL_HDR].desc;
++			if (!desc) {
++				desc = payload_get_get_ll_hdr(ctx);
++				if (!desc)
++					break;
++			}
 +
- struct expr *payload_expr_alloc(const struct location *loc,
- 				const struct proto_desc *desc,
- 				unsigned int type)
-@@ -129,7 +146,7 @@ struct expr *payload_expr_alloc(const struct location *loc,
- 	if (desc != NULL) {
- 		tmpl = &desc->templates[type];
- 		base = desc->base;
--		if (type == desc->protocol_key)
-+		if (proto_key_is_protocol(desc, type))
- 			flags = EXPR_F_PROTOCOL;
- 	} else {
- 		tmpl = &proto_unknown_template;
-diff --git a/src/proto.c b/src/proto.c
-index fcdfbe73c735..3b20a5fd35b1 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -707,7 +707,6 @@ const struct proto_desc proto_icmp6 = {
- const struct proto_desc proto_ip6 = {
- 	.name		= "ip6",
- 	.base		= PROTO_BASE_NETWORK_HDR,
--	.protocol_key	= IP6HDR_NEXTHDR,
- 	.protocols	= {
- 		PROTO_LINK(IPPROTO_ESP,		&proto_esp),
- 		PROTO_LINK(IPPROTO_AH,		&proto_ah),
-@@ -720,6 +719,7 @@ const struct proto_desc proto_ip6 = {
- 		PROTO_LINK(IPPROTO_ICMPV6,	&proto_icmp6),
- 	},
- 	.templates	= {
-+		[0]	= PROTO_META_TEMPLATE("l4proto", &inet_protocol_type, NFT_META_L4PROTO, 8),
- 		[IP6HDR_VERSION]	= HDR_BITFIELD("version", &integer_type, 0, 4),
- 		[IP6HDR_DSCP]		= HDR_BITFIELD("dscp", &dscp_type, 4, 6),
- 		[IP6HDR_ECN]		= HDR_BITFIELD("ecn", &ecn_type, 10, 2),
++			desc_upper = &proto_ip6;
++			if (expr->payload.desc == &proto_icmp)
++				desc_upper = &proto_ip;
++
++			if (payload_add_dependency(ctx, desc, desc_upper,
++						   expr, &nstmt) < 0)
++				return NULL;
++
++			list_add_tail(&nstmt->list, &ctx->stmt->list);
++			return desc_upper;
++		}
+ 		return &proto_inet_service;
+ 	default:
+ 		break;
 -- 
 2.13.0
 
