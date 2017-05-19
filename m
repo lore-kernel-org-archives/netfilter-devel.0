@@ -1,211 +1,223 @@
-From: Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH 6/6 RFC] netfilter: add audit netns ID
-Date: Thu, 18 May 2017 13:21:52 -0400
-Message-ID: <c19c5f9a2b5bf8d43ced7a0a10d2da80934f242a.1495124188.git.rgb@redhat.com>
-References: <cover.1495124188.git.rgb@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Richard Guy Briggs <rgb@redhat.com>, Florian Westphal <fw@strlen.de>,
-	Thomas Woerner <twoerner@redhat.com>, Thomas Graf <tgraf@infradead.org>
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
-	linux-audit@redhat.com
-Return-path: <linux-audit-bounces@redhat.com>
-In-Reply-To: <cover.1495124188.git.rgb@redhat.com>
-In-Reply-To: <cover.1495124188.git.rgb@redhat.com>
-References: <cover.1495124188.git.rgb@redhat.com>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/linux-audit>
-List-Post: <mailto:linux-audit@redhat.com>
-List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=subscribe>
-Sender: linux-audit-bounces@redhat.com
-Errors-To: linux-audit-bounces@redhat.com
-List-Id: netfilter-devel.vger.kernel.org
+From: Lorenzo Colitti <lorenzo@google.com>
+Subject: [PATCH] iptables: insist that the lock is held.
+Date: Fri, 19 May 2017 16:08:59 +0900
+Message-ID: <20170519070859.75808-1-lorenzo@google.com>
+Cc: pablo@netfilter.org, jscherpelz@google.com,
+        subashab@codeaurora.org, dcbw@redhat.com, aconole@bytheb.org,
+        Lorenzo Colitti <lorenzo@google.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pg0-f51.google.com ([74.125.83.51]:35488 "EHLO
+        mail-pg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751225AbdESHJM (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 19 May 2017 03:09:12 -0400
+Received: by mail-pg0-f51.google.com with SMTP id q125so34091124pgq.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 May 2017 00:09:12 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Seemingly duplicate NETFILTER_CFG records are not actually exact duplicates
-that are caused by netfilter table initialization in different network
-namespaces from the same syscall.  To differentiate the NETFILTER_CFG records,
-the network namespace ID (proc inode) was added to the record to make this
-source evident.
+Currently, iptables programs will exit with an error if the
+iptables lock cannot be acquired, but will silently continue if
+the lock cannot be opened at all. This can cause unexpected
+failures (with unhelpful error messages) in the presence of
+concurrent updates, which can be very difficult to find in a
+complex or multi-administrator system.
 
-Here is a sample event with accompanied records:
-  time->Sun May 14 22:40:26 2017
-  type=PROCTITLE msg=audit(1494816026.072:248): proctitle=2F7362696E2F6D6F6470726F6265002D71002D2D0065627461626C655F6E6174
-  type=KERN_MODULE msg=audit(1494816026.072:248): name="ebtable_nat"
-  type=SYSCALL msg=audit(1494816026.072:248): arch=c000003e syscall=313 success=yes exit=0 a0=0 a1=55c4648d4106 a2=0 a3=0 items=0 ppid=84 pid=431 auid=4294967295 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=(none) ses=4294967295 comm="modprobe" exe="/usr/bin/kmod" subj=system_u:system_r:insmod_t:s0 key="mod-load"
-  type=NETFILTER_CFG msg=audit(1494816026.072:248): op=register net=324 family=7 table=nat entries=0
-  type=NETFILTER_CFG msg=audit(1494816026.072:248): op=register net=121 family=7 table=nat entries=0
+Instead, refuse to do anything if the lock cannot be acquired.
+The behaviour is not affected by command-line flags because:
 
-and unaccompanied cases:
-  type=UNKNOWN[1331] msg=audit(1494815998.178:167): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=system_u:system_r:iptables_t:s0 pid=598 comm="ip6tables-resto" exe="/usr/sbin/xtables-multi" op=replace net=121 family=10 table=filter entries=4
+1. In order to reliably avoid concurrent modification, all
+   invocations of iptables commands must follow this behaviour.
+2. Whether or not the lock can be opened is typically not
+   a run-time condition but is likely to be a configuration
+   error.
 
-See: https://github.com/linux-audit/audit-kernel/issues/25
+Existing systems that depended on things working mostly correctly
+even if there was no lock might be affected by this change.
+However, that is arguably a configuration error, and now that the
+iptables lock is configurable, it is trivial to provide a lock
+file that is always accessible: if nothing else, the iptables
+binary itself can be used. The lock does not have to be writable,
+only readable.
 
-Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+Tested by configuring the system to use an xtables.lock file in
+a non-existent directory and observing that all commands failed.
+
+Signed-off-by: Lorenzo Colitti <lorenzo@google.com>
 ---
- include/linux/netfilter/x_tables.h |    1 +
- net/bridge/netfilter/ebtables.c    |   13 +++++++++----
- net/ipv4/netfilter/arp_tables.c    |    2 +-
- net/ipv4/netfilter/ip_tables.c     |    2 +-
- net/ipv6/netfilter/ip6_tables.c    |    2 +-
- net/netfilter/x_tables.c           |   10 +++++++---
- 6 files changed, 20 insertions(+), 10 deletions(-)
+ iptables/ip6tables-restore.c |  7 +------
+ iptables/ip6tables.c         | 11 ++---------
+ iptables/iptables-restore.c  |  7 +------
+ iptables/iptables.c          | 11 ++---------
+ iptables/xshared.c           | 31 ++++++++++++++++++++++++++++---
+ iptables/xshared.h           |  7 +++----
+ 6 files changed, 37 insertions(+), 37 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index be378cf..6be4a04 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -308,6 +308,7 @@ struct xt_table *xt_register_table(struct net *net,
- struct xt_table_info *xt_replace_table(struct xt_table *table,
- 				       unsigned int num_counters,
- 				       struct xt_table_info *newinfo,
-+				       struct net *net,
- 				       int *error);
+diff --git a/iptables/ip6tables-restore.c b/iptables/ip6tables-restore.c
+index 39a881dfce..1e50bf0db2 100644
+--- a/iptables/ip6tables-restore.c
++++ b/iptables/ip6tables-restore.c
+@@ -301,12 +301,7 @@ int ip6tables_restore_main(int argc, char *argv[])
+ 			in_table = 0;
+ 		} else if ((buffer[0] == '*') && (!in_table)) {
+ 			/* Acquire a lock before we create a new table handle */
+-			lock = xtables_lock(wait, &wait_interval);
+-			if (lock == XT_LOCK_BUSY) {
+-				fprintf(stderr, "Another app is currently holding the xtables lock. "
+-					"Perhaps you want to use the -w option?\n");
+-				exit(RESOURCE_PROBLEM);
+-			}
++			lock = xtables_lock_or_exit(wait, &wait_interval);
  
- struct xt_match *xt_find_match(u8 af, const char *name, u8 revision);
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 59b63a8..0f77b2a 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -27,6 +27,7 @@
- #include <linux/smp.h>
- #include <linux/cpumask.h>
- #include <linux/audit.h>
-+#define PROC_DYNAMIC_FIRST 0xF0000000U
- #include <net/sock.h>
- /* needed for logical [in,out]-dev filtering */
- #include "../br_private.h"
-@@ -1075,7 +1076,8 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
- 			ab = audit_log_start(current->audit_context, GFP_KERNEL,
- 					     AUDIT_NETFILTER_CFG);
- 			if (ab) {
--				audit_log_format(ab, "op=replace family=%u table=%s entries=%u",
-+				audit_log_format(ab, "op=replace net=%u family=%u table=%s entries=%u",
-+						 net->ns.inum - PROC_DYNAMIC_FIRST,
- 						 AF_BRIDGE, repl->name,
- 						 repl->nentries);
- 				audit_log_end(ab);
-@@ -1085,7 +1087,8 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
- 					     AUDIT_NETFILTER_CFGSOLO);
- 			if (ab) {
- 				audit_log_task(ab);
--				audit_log_format(ab, " op=replace family=%u table=%s entries=%u",
-+				audit_log_format(ab, " op=replace net=%u family=%u table=%s entries=%u",
-+						 net->ns.inum - PROC_DYNAMIC_FIRST,
- 						 AF_BRIDGE, repl->name,
- 						 repl->nentries);
- 				audit_log_end(ab);
-@@ -1259,7 +1262,8 @@ struct ebt_table * ebt_register_table(struct net *net,
- 			ab = audit_log_start(current->audit_context, GFP_KERNEL,
- 					     AUDIT_NETFILTER_CFG);
- 			if (ab) {
--				audit_log_format(ab, "op=register family=%u table=%s entries=%u",
-+				audit_log_format(ab, "op=register net=%u family=%u table=%s entries=%u",
-+						 net->ns.inum - PROC_DYNAMIC_FIRST,
- 						 AF_BRIDGE, repl->name,
- 						 repl->nentries);
- 				audit_log_end(ab);
-@@ -1269,7 +1273,8 @@ struct ebt_table * ebt_register_table(struct net *net,
- 					     AUDIT_NETFILTER_CFGSOLO);
- 			if (ab) {
- 				audit_log_task(ab);
--				audit_log_format(ab, " op=register family=%u table=%s entries=%u",
-+				audit_log_format(ab, " op=register net=%u family=%u table=%s entries=%u",
-+						 net->ns.inum - PROC_DYNAMIC_FIRST,
- 						 AF_BRIDGE, repl->name,
- 						 repl->nentries);
- 				audit_log_end(ab);
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 6241a81..4933a5a 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -904,7 +904,7 @@ static int __do_replace(struct net *net, const char *name,
- 		goto put_module;
- 	}
+ 			/* New table */
+ 			char *table;
+diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
+index 579d347b09..49bd006fb2 100644
+--- a/iptables/ip6tables.c
++++ b/iptables/ip6tables.c
+@@ -1779,15 +1779,8 @@ int do_command6(int argc, char *argv[], char **table,
+ 	generic_opt_check(command, cs.options);
  
--	oldinfo = xt_replace_table(t, num_counters, newinfo, &ret);
-+	oldinfo = xt_replace_table(t, num_counters, newinfo, net, &ret);
- 	if (!oldinfo)
- 		goto put_module;
+ 	/* Attempt to acquire the xtables lock */
+-	if (!restore && xtables_lock(wait, &wait_interval) == XT_LOCK_BUSY) {
+-		fprintf(stderr, "Another app is currently holding the xtables lock. ");
+-		if (wait == 0)
+-			fprintf(stderr, "Perhaps you want to use the -w option?\n");
+-		else
+-			fprintf(stderr, "Stopped waiting after %ds.\n", wait);
+-		xtables_free_opts(1);
+-		exit(RESOURCE_PROBLEM);
+-	}
++	if (!restore)
++		xtables_lock_or_exit(wait, &wait_interval);
  
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 384b857..c638607 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -1066,7 +1066,7 @@ static int get_info(struct net *net, void __user *user,
- 		goto put_module;
- 	}
+ 	/* only allocate handle if we weren't called with a handle */
+ 	if (!*handle)
+diff --git a/iptables/iptables-restore.c b/iptables/iptables-restore.c
+index 876fe06d7f..d79fe328cc 100644
+--- a/iptables/iptables-restore.c
++++ b/iptables/iptables-restore.c
+@@ -299,12 +299,7 @@ iptables_restore_main(int argc, char *argv[])
+ 			in_table = 0;
+ 		} else if ((buffer[0] == '*') && (!in_table)) {
+ 			/* Acquire a lock before we create a new table handle */
+-			lock = xtables_lock(wait, &wait_interval);
+-			if (lock == XT_LOCK_BUSY) {
+-				fprintf(stderr, "Another app is currently holding the xtables lock. "
+-					"Perhaps you want to use the -w option?\n");
+-				exit(RESOURCE_PROBLEM);
+-			}
++			lock = xtables_lock_or_exit(wait, &wait_interval);
  
--	oldinfo = xt_replace_table(t, num_counters, newinfo, &ret);
-+	oldinfo = xt_replace_table(t, num_counters, newinfo, net, &ret);
- 	if (!oldinfo)
- 		goto put_module;
+ 			/* New table */
+ 			char *table;
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index 97cbda91cf..69d19feca1 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -1765,15 +1765,8 @@ int do_command4(int argc, char *argv[], char **table,
+ 	generic_opt_check(command, cs.options);
  
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 1e15c54..87ef83b 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1096,7 +1096,7 @@ static int get_info(struct net *net, void __user *user,
- 		goto put_module;
- 	}
+ 	/* Attempt to acquire the xtables lock */
+-	if (!restore && xtables_lock(wait, &wait_interval) == XT_LOCK_BUSY) {
+-		fprintf(stderr, "Another app is currently holding the xtables lock. ");
+-		if (wait == 0)
+-			fprintf(stderr, "Perhaps you want to use the -w option?\n");
+-		else
+-			fprintf(stderr, "Stopped waiting after %ds.\n", wait);
+-		xtables_free_opts(1);
+-		exit(RESOURCE_PROBLEM);
+-	}
++	if (!restore)
++		xtables_lock_or_exit(wait, &wait_interval);
  
--	oldinfo = xt_replace_table(t, num_counters, newinfo, &ret);
-+	oldinfo = xt_replace_table(t, num_counters, newinfo, net, &ret);
- 	if (!oldinfo)
- 		goto put_module;
+ 	/* only allocate handle if we weren't called with a handle */
+ 	if (!*handle)
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index 3fbe3b1a99..825479c338 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -246,7 +246,7 @@ void xs_init_match(struct xtables_match *match)
+ 		match->init(match->m);
+ }
  
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 395ebd3..35533f1 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -26,6 +26,7 @@
- #include <linux/mm.h>
- #include <linux/slab.h>
- #include <linux/audit.h>
-+#define PROC_DYNAMIC_FIRST 0xF0000000U
- #include <linux/user_namespace.h>
- #include <net/net_namespace.h>
- 
-@@ -1151,6 +1152,7 @@ static int xt_jumpstack_alloc(struct xt_table_info *i)
- struct xt_table_info *xt_replace_table(struct xt_table *table,
- 				       unsigned int num_counters,
- 				       struct xt_table_info *newinfo,
-+				       struct net *net,
- 				       int *error)
+-int xtables_lock(int wait, struct timeval *wait_interval)
++static int xtables_lock(int wait, struct timeval *wait_interval)
  {
- 	struct xt_table_info *private;
-@@ -1199,8 +1201,9 @@ struct xt_table_info *xt_replace_table(struct xt_table *table,
- 			ab = audit_log_start(current->audit_context, GFP_KERNEL,
- 					     AUDIT_NETFILTER_CFG);
- 			if (ab) {
--				audit_log_format(ab, "op=%s family=%u table=%s entries=%u",
-+				audit_log_format(ab, "op=%s net=%u family=%u table=%s entries=%u",
- 						 private->number ? "replace" : "register",
-+						 net->ns.inum - PROC_DYNAMIC_FIRST,
- 						 table->af, table->name,
- 						 private->number);
- 				audit_log_end(ab);
-@@ -1210,7 +1213,8 @@ struct xt_table_info *xt_replace_table(struct xt_table *table,
- 					     AUDIT_NETFILTER_CFGSOLO);
- 			if (ab) {
- 				audit_log_task(ab);
--				audit_log_format(ab, " op=replace family=%u table=%s entries=%u",
-+				audit_log_format(ab, " op=replace net=%u family=%u table=%s entries=%u",
-+						 net->ns.inum - PROC_DYNAMIC_FIRST,
- 						 table->af, table->name,
- 						 private->number);
- 				audit_log_end(ab);
-@@ -1251,7 +1255,7 @@ struct xt_table *xt_register_table(struct net *net,
- 	/* Simplifies replace_table code. */
- 	table->private = bootstrap;
+ 	struct timeval time_left, wait_time;
+ 	int fd, i = 0;
+@@ -255,8 +255,11 @@ int xtables_lock(int wait, struct timeval *wait_interval)
+ 	time_left.tv_usec = 0;
  
--	if (!xt_replace_table(table, 0, newinfo, &ret))
-+	if (!xt_replace_table(table, 0, newinfo, net, &ret))
- 		goto unlock;
+ 	fd = open(XT_LOCK_NAME, O_CREAT, 0600);
+-	if (fd < 0)
+-		return XT_LOCK_UNSUPPORTED;
++	if (fd < 0) {
++		fprintf(stderr, "Fatal: can't open lock file %s: %s\n",
++			XT_LOCK_NAME, strerror(errno));
++		return XT_LOCK_FAILED;
++	}
  
- 	private = table->private;
+ 	if (wait == -1) {
+ 		if (flock(fd, LOCK_EX) == 0)
+@@ -291,6 +294,28 @@ void xtables_unlock(int lock)
+ 		close(lock);
+ }
+ 
++int xtables_lock_or_exit(int wait, struct timeval *wait_interval)
++{
++	int lock = xtables_lock(wait, wait_interval);
++
++	if (lock == XT_LOCK_FAILED) {
++		xtables_free_opts(1);
++		exit(RESOURCE_PROBLEM);
++	}
++
++	if (lock == XT_LOCK_BUSY) {
++		fprintf(stderr, "Another app is currently holding the xtables lock. ");
++		if (wait == 0)
++			fprintf(stderr, "Perhaps you want to use the -w option?\n");
++		else
++			fprintf(stderr, "Stopped waiting after %ds.\n", wait);
++		xtables_free_opts(1);
++		exit(RESOURCE_PROBLEM);
++	}
++
++	return lock;
++}
++
+ int parse_wait_time(int argc, char *argv[])
+ {
+ 	int wait = -1;
+diff --git a/iptables/xshared.h b/iptables/xshared.h
+index 539e6c243b..7e6d085931 100644
+--- a/iptables/xshared.h
++++ b/iptables/xshared.h
+@@ -92,8 +92,7 @@ extern void xs_init_match(struct xtables_match *);
+  *
+  * A value >= 0 indicates the lock filedescriptor. Other values are:
+  *
+- * XT_LOCK_UNSUPPORTED : The system does not support locking, execution will
+- * proceed lockless.
++ * XT_LOCK_FAILED : The lock could not be acquired.
+  *
+  * XT_LOCK_BUSY : The lock was held by another process. xtables_lock only
+  * returns this value when |wait| == false. If |wait| == true, xtables_lock
+@@ -103,11 +102,11 @@ extern void xs_init_match(struct xtables_match *);
+  */
+ enum {
+ 	XT_LOCK_BUSY = -1,
+-	XT_LOCK_UNSUPPORTED  = -2,
++	XT_LOCK_FAILED = -2,
+ 	XT_LOCK_NOT_ACQUIRED  = -3,
+ };
+-extern int xtables_lock(int wait, struct timeval *tv);
+ extern void xtables_unlock(int lock);
++extern int xtables_lock_or_exit(int wait, struct timeval *tv);
+ 
+ int parse_wait_time(int argc, char *argv[]);
+ void parse_wait_interval(int argc, char *argv[], struct timeval *wait_interval);
 -- 
-1.7.1
+2.13.0.303.g4ebf302169-goog
+
