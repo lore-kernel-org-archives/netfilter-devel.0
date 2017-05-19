@@ -1,74 +1,46 @@
-From: Oliver Ford <ojford@gmail.com>
-Subject: Re: [PATCH v3 1/1] iptables: Fix crash on malformed iptables-restore
-Date: Fri, 19 May 2017 13:03:01 +0100
-Message-ID: <CAGMVOds=AKndSW7hp8fnRps6NpYjGz-AoppqFBD82ZPJhRRROQ@mail.gmail.com>
-References: <1495187664-7807-1-git-send-email-ojford@gmail.com>
- <20170519100410.GB28091@breakpoint.cc> <CAGMVOdu7K-e2t9eU03er+GguG3WYHFwcxR68H+S+Ra6PQok+Yg@mail.gmail.com>
- <20170519103825.GC28091@breakpoint.cc> <CAGMVOduXqbvS=V0Y+pNmXrV2GSTCe2Nv4fWSBcuys81efwQ++w@mail.gmail.com>
- <20170519113613.GD28091@breakpoint.cc>
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: [PATCH net-next 1/2] netfilter: resolve warnings about missing prototypes
+Date: Fri, 19 May 2017 09:29:41 -0700
+Message-ID: <20170519162942.30004-1-sthemmin@microsoft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@vger.kernel.org,
+        Stephen Hemminger <sthemmin@microsoft.com>
+To: pablo@netfilter.org, fw@strlen.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f49.google.com ([209.85.213.49]:35613 "EHLO
-        mail-vk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751003AbdESMDD (ORCPT
+Received: from mail-pf0-f182.google.com ([209.85.192.182]:33409 "EHLO
+        mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751003AbdESQ3u (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 May 2017 08:03:03 -0400
-Received: by mail-vk0-f49.google.com with SMTP id h16so10618917vkd.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 May 2017 05:03:03 -0700 (PDT)
-In-Reply-To: <20170519113613.GD28091@breakpoint.cc>
+        Fri, 19 May 2017 12:29:50 -0400
+Received: by mail-pf0-f182.google.com with SMTP id e193so42233675pfh.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 May 2017 09:29:50 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, May 19, 2017 at 12:36 PM, Florian Westphal <fw@strlen.de> wrote:
-> Oliver Ford <ojford@gmail.com> wrote:
->> On Fri, May 19, 2017 at 11:38 AM, Florian Westphal <fw@strlen.de> wrote:
->> > Oliver Ford <ojford@gmail.com> wrote:
->> >> On Fri, May 19, 2017 at 11:04 AM, Florian Westphal <fw@strlen.de> wrote:
->> >> > Oliver Ford <ojford@gmail.com> wrote:
->> >> >> Filter a beginning '--t'. Because the getopt_long function allows abbreviations,
->> >> >> any parameter beginning with '--t' will be treated as '--table'.
->> >> >
->> >> > No, thats not correct:
->> >> > --t is treated as --table.
->> >> > --tfoo is an invalid option.
->> >> > --ttl is ttl.
->> >> >
->> >> > So this:
->> >> >
->> >> >> +                             || !strncmp(param_buffer, "--t", 3)) {
->> >> >>                               xtables_error(PARAMETER_PROBLEM,
->> >> >> +                                     "The -t option (seen in line %u) cannot be "
->> >> >> +                                     "used in ip6tables-restore.\n", line);
->> >> >
->> >> > .. rejects rules like
->> >> >
->> >> > -A INPUT -m ttl --ttl 32
->> >>
->> >> Would strncmp(param_buffer, "--ta", 4) work? I don't think there are
->> >> any options that begin with --ta other than --table.
->> >
->> > That won't catch '--t'.
->> >
->> > It will also add trouble later if any module adds an option like --tap,
->> > --tail, --target, etc.
->> >
->> > Whats wrong with:
->> >
->> > if ((param_buffer[0] == '-' && param_buffer[1] != '-' &&
->> >      strchr(param_buffer, 't') ||
->> >      (!strncmp(param_buffer, "--t", 3) &&
->> >       !strncmp(param_buffer, "--table", strlen(param_buffer)))) {
->> >
->> > ?
->>
->> I've just sent v4 that definitely works now. If you've got
->> "!strncmp(param_buffer, "--table", strlen(param_buffer))" you don't
->> also need "!strncmp(param_buffer, "--t", 3)" as --t will get filtered.
->
-> Its needed, else '--' marker gets detected as 'table', e.g.:
-> -A INPUT -m ttl --ttl 32 -j ACCEPT --
+Missing include file causes:
 
-Ok I've put that back in in v5 and just sent it.
+net/netfilter/nf_dup_netdev.c:26:6: warning: no previous prototype for ‘nf_fwd_netdev_egress’ [-Wmissing-prototypes]
+net/netfilter/nf_dup_netdev.c:40:6: warning: no previous prototype for ‘nf_dup_netdev_egress’ [-Wmissing-prototypes]
+
+Signed-off-by: Stephen Hemminger <sthemmin@microsoft.com>
+---
+ net/netfilter/nf_dup_netdev.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
+index c9d7f95768ab..f4a566e67213 100644
+--- a/net/netfilter/nf_dup_netdev.c
++++ b/net/netfilter/nf_dup_netdev.c
+@@ -13,6 +13,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nf_dup_netdev.h>
+ 
+ static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev)
+ {
+-- 
+2.11.0
+
