@@ -1,97 +1,39 @@
-From: Oliver Ford <ojford@gmail.com>
-Subject: Re: [PATCH v2 1/1] iptables: Fix crash on malformed iptables-restore
-Date: Fri, 19 May 2017 10:55:44 +0100
-Message-ID: <CAGMVOdvXsrOe8NvuDqZ2zVgZzx-GM1SuiAHhMfTF+v4f98v=Pw@mail.gmail.com>
-References: <1495117105-32762-1-git-send-email-ojford@gmail.com>
- <20170518144218.GC1272@breakpoint.cc> <CAGMVOdswbPCFa1Di6FGGBSznkz36E+iN4b0QJFyS1Ex7JYr75w@mail.gmail.com>
- <20170518152003.GD1272@breakpoint.cc> <CAGMVOdtSQvn0ei25725kY2iR4NXQwcLVCpYB5WZwjN_=YV_79Q@mail.gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v3 1/1] iptables: Fix crash on malformed iptables-restore
+Date: Fri, 19 May 2017 12:04:10 +0200
+Message-ID: <20170519100410.GB28091@breakpoint.cc>
+References: <1495187664-7807-1-git-send-email-ojford@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Oliver Ford <ojford@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f48.google.com ([209.85.213.48]:35058 "EHLO
-        mail-vk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751772AbdESJzq (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:59446 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753053AbdESKEy (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 May 2017 05:55:46 -0400
-Received: by mail-vk0-f48.google.com with SMTP id h16so9221887vkd.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 May 2017 02:55:45 -0700 (PDT)
-In-Reply-To: <CAGMVOdtSQvn0ei25725kY2iR4NXQwcLVCpYB5WZwjN_=YV_79Q@mail.gmail.com>
+        Fri, 19 May 2017 06:04:54 -0400
+Content-Disposition: inline
+In-Reply-To: <1495187664-7807-1-git-send-email-ojford@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 18, 2017 at 4:29 PM, Oliver Ford <ojford@gmail.com> wrote:
-> On Thu, May 18, 2017 at 4:20 PM, Florian Westphal <fw@strlen.de> wrote:
->> Oliver Ford <ojford@gmail.com> wrote:
->>> On Thu, May 18, 2017 at 3:42 PM, Florian Westphal <fw@strlen.de> wrote:
->>> > Oliver Ford <ojford@gmail.com> wrote:
->>> >> --- a/iptables/ip6tables-restore.c
->>> >> +++ b/iptables/ip6tables-restore.c
->>> >> @@ -165,14 +165,33 @@ static void add_param_to_argv(char *parsestart)
->>> >>                       param_buffer[param_len] = '\0';
->>> >>
->>> >>                       /* check if table name specified */
->>> >> -                     if (!strncmp(param_buffer, "-t", 2)
->>> >> -                            || !strncmp(param_buffer, "--table", 8)) {
->>> >> +                     if (param_buffer[0] == '-' && param_buffer[1] != '-'
->>> >> +                             && strchr(param_buffer, 't')) {
->>> >>                               xtables_error(PARAMETER_PROBLEM,
->>> >> -                             "The -t option (seen in line %u) cannot be "
->>> >> -                             "used in ip6tables-restore.\n", line);
->>> >> +                                     "The -t option (seen in line %u) cannot be "
->>> >> +                                     "used in ip6tables-restore.\n", line);
->>> >> +                             exit(1);
->>> >> +                     } else if (!strncmp(param_buffer, "--", 2)
->>> >> +                             && strchr(param_buffer, 't')) {
->>> >
->>> > Why this strchr() ?
->>> >
->>> > if (!strncmp(param_buffer, "--t", 3) &&
->>> >     !strncmp(param_buffer, "--table", strlen(param_buffer))
->>> >        err();
->>> >
->>> > should work.
->>> >
->>>
->>> "strncmp(param_buffer, "--t", 3)" wouldn't return 0 if you had an
->>> invalid parameter like "--ftabl".
->>
->> Yes, but that will just throw an error:
->> iptables-restore v1.6.0: unknown option "--ftab"
->>
->>> >> +                             /* If we begin with a '--' and have a 't', check
->>> >> +                              * that the parameter is in the list of valid options */
->>> >> +                             const char* t_options[] = {
->>> >
->>> > If this is needed, I'd suggest
->>> >
->>> > static const char * const t_options[] = {
->>> >
->>> >> +                                     "delete", "insert", "list", "list-rules", "delete-chain",
->>> >> +                                     "destination", "dst", "protocol", "in-interface", "match",
->>> >> +                                     "out-interface", "wait", "wait-interval", "exact",
->>> >> +                                     "fragments", "set-counters", "goto"};
->>> >> +                             int i, opt_len = ARRAY_SIZE(t_options);
->>> >> +                             for (i = 0; i < opt_len; i++) {
->>> >> +                                     if (!strcmp(param_buffer + 2, t_options[i])) {
->>> >> +                                             goto t_passed;
->>> >> +                                     }
->>> >> +                             }
->>> >
->>> > If this t_options[] thing is really needed i'd try to stick this into
->>> > a helper function so we don't have to duplicate this in all 3
->>> > incarnations.
->>> >
->>> > Thanks for working on this.
->>>
->>> Can do, but the code already duplicates everything else across all 3
->>> incarnations so I thought it best to stick with the established
->>> pattern :-) If you'd prefer it extracted I'll send a new version.
->>
->> That pattern sucks :-)
->
-> Ok, I'll make version three with these changes.
+Oliver Ford <ojford@gmail.com> wrote:
+> Filter a beginning '--t'. Because the getopt_long function allows abbreviations,
+> any parameter beginning with '--t' will be treated as '--table'.
 
-I've just sent version 3 with a much simplified check. Now it filters
-a single '-' with a 't' anywhere, or a '--t'. That seems to do the
-trick.
+No, thats not correct:
+--t is treated as --table.
+--tfoo is an invalid option.
+--ttl is ttl.
+
+So this:
+
+> +				|| !strncmp(param_buffer, "--t", 3)) {
+>  				xtables_error(PARAMETER_PROBLEM,
+> +					"The -t option (seen in line %u) cannot be "
+> +					"used in ip6tables-restore.\n", line);
+
+.. rejects rules like
+
+-A INPUT -m ttl --ttl 32
