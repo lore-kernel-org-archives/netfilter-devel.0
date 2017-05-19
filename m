@@ -1,217 +1,113 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH v3] List handles of added rules if requested
-Date: Fri, 19 May 2017 13:45:32 +0200
-Message-ID: <20170519114532.4484-1-phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Oliver Ford <ojford@gmail.com>
+Subject: [PATCH v5 1/1] iptables: Fix crash on malformed iptables-restore
+Date: Fri, 19 May 2017 12:02:26 +0000
+Message-ID: <1495195346-6340-1-git-send-email-ojford@gmail.com>
+Cc: Oliver Ford <ojford@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:54321 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751598AbdESLpq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 May 2017 07:45:46 -0400
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:35899 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750793AbdESMCg (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 19 May 2017 08:02:36 -0400
+Received: by mail-wr0-f196.google.com with SMTP id v42so2758495wrc.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 May 2017 05:02:35 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Being able to retrieve an added rule's handle atomically is a crucial
-feature for scripts invoking nft command: Without it, there is no way to
-be sure a handle extracted from 'nft list ruleset' command actually
-refers to the rule one has added before or that of another process which
-ran in between.
+Fixes the crash reported in Bugzilla #1131 where a malformed parameter that
+specifies the table option during a restore can create an invalid pointer.
+It was discovered during fuzz testing that options like '-ftf'
+can cause a segfault. A parameter that includes a 't' is not currently
+filtered correctly.
 
-Extracting an added rule's handle itself is not an easy task already,
-since there is a chance that a given rule is printed differently than
-when it was added before. A simple example is port number vs. service
-name:
+Improves the filtering to:
+Filter a beginning '-' followed by a character other than '-' and then a 't'
+anywhere in the parameter. This filters parameters like '-ftf'.
+Filter '--t'.
+Filter '--table', stopping when the parameter length is reached. Because the
+getopt_long function allows abbreviations, any unique abbreviation of '--table'
+will be treated as '--table'. This filters parameters like '--t', '--ta', but not
+'--ttl' or '--target'.
 
-| nft add rule ip t c tcp dport { ssh, 80 } accept
-
-There is no way to make 'nft list ruleset' return the rule just like
-this as depending on whether '-nn' was given or not, it either prints
-the set as '{ ssh, http }' or '{ 22, 80 }' but never in the mixed form
-that was used when adding it.
-
-This patch adds the option to print an identifying string for each added
-rule which may be used as single parameter to a later 'nft delete rule'
-command. So a simple scripting example looks like this:
-
-| handle=$(nft --echo add rule ip t c counter)
-| ...
-| nft delete rule $handle
-
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Oliver Ford <ojford@gmail.com>
 ---
-Changes since v2:
-- Introduce --echo flag to turn the feature explicitly on instead of
-  reusing --handle option.
-- Don't add NLM_F_ECHO to flags if echo_output is not enabled.
+ iptables/ip6tables-restore.c | 6 ++++--
+ iptables/iptables-restore.c  | 6 ++++--
+ iptables/iptables-xml.c      | 7 ++++---
+ iptables/xtables-restore.c   | 6 ++++--
+ 4 files changed, 16 insertions(+), 9 deletions(-)
 
-Changes since v1:
-- Pass NLM_F_ECHO to kernel to leverage already existing reporting
-  infrastructure and therefore not require a seperate kernel patch.
-- Limit mnl_callback() action to NEWRULE messages - when replacing a
-  rule, it would otherwise print the deleted rule as well.
----
- include/nftables.h |  1 +
- src/main.c         | 12 +++++++++++-
- src/mnl.c          | 30 +++++++++++++++++++++++++++++-
- src/netlink.c      | 10 ++++++++--
- 4 files changed, 49 insertions(+), 4 deletions(-)
-
-diff --git a/include/nftables.h b/include/nftables.h
-index 6f541557364ba..d1c2561497c4e 100644
---- a/include/nftables.h
-+++ b/include/nftables.h
-@@ -29,6 +29,7 @@ extern unsigned int numeric_output;
- extern unsigned int stateless_output;
- extern unsigned int ip2name_output;
- extern unsigned int handle_output;
-+extern unsigned int echo_output;
- extern unsigned int debug_level;
- extern const char *include_paths[INCLUDE_PATHS_MAX];
+diff --git a/iptables/ip6tables-restore.c b/iptables/ip6tables-restore.c
+index 39a881d..966f189 100644
+--- a/iptables/ip6tables-restore.c
++++ b/iptables/ip6tables-restore.c
+@@ -165,8 +165,10 @@ static void add_param_to_argv(char *parsestart)
+ 			param_buffer[param_len] = '\0';
  
-diff --git a/src/main.c b/src/main.c
-index 1cc8b39ff4ab9..2166f8d94382b 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -33,6 +33,7 @@ unsigned int numeric_output;
- unsigned int stateless_output;
- unsigned int ip2name_output;
- unsigned int handle_output;
-+unsigned int echo_output;
- #ifdef DEBUG
- unsigned int debug_level;
- #endif
-@@ -51,10 +52,11 @@ enum opt_vals {
- 	OPT_IP2NAME		= 'N',
- 	OPT_DEBUG		= 'd',
- 	OPT_HANDLE_OUTPUT	= 'a',
-+	OPT_ECHO		= 'e',
- 	OPT_INVALID		= '?',
- };
+ 			/* check if table name specified */
+-			if (!strncmp(param_buffer, "-t", 2)
+-                            || !strncmp(param_buffer, "--table", 8)) {
++			if ((param_buffer[0] == '-' && param_buffer[1] != '-' &&
++				strchr(param_buffer, 't')) ||
++				(!strncmp(param_buffer, "--t", 3)
++				&& !strncmp(param_buffer, "--table", strlen(param_buffer)))) {
+ 				xtables_error(PARAMETER_PROBLEM,
+ 				"The -t option (seen in line %u) cannot be "
+ 				"used in ip6tables-restore.\n", line);
+diff --git a/iptables/iptables-restore.c b/iptables/iptables-restore.c
+index 876fe06..18ea655 100644
+--- a/iptables/iptables-restore.c
++++ b/iptables/iptables-restore.c
+@@ -162,8 +162,10 @@ static void add_param_to_argv(char *parsestart)
+ 			param_buffer[param_len] = '\0';
  
--#define OPTSTRING	"hvf:iI:vnsNa"
-+#define OPTSTRING	"hvf:iI:vnsNae"
+ 			/* check if table name specified */
+-			if (!strncmp(param_buffer, "-t", 2)
+-			    || !strncmp(param_buffer, "--table", 8)) {
++			if ((param_buffer[0] == '-' && param_buffer[1] != '-' &&
++				strchr(param_buffer, 't')) ||
++				(!strncmp(param_buffer, "--t", 3)
++				&& !strncmp(param_buffer, "--table", strlen(param_buffer)))) {
+ 				xtables_error(PARAMETER_PROBLEM,
+ 				"The -t option (seen in line %u) cannot be "
+ 				"used in iptables-restore.\n", line);
+diff --git a/iptables/iptables-xml.c b/iptables/iptables-xml.c
+index 2e093b5..05e3bf8 100644
+--- a/iptables/iptables-xml.c
++++ b/iptables/iptables-xml.c
+@@ -819,9 +819,10 @@ iptables_xml_main(int argc, char *argv[])
+ 					*(param_buffer + param_len) = '\0';
  
- static const struct option options[] = {
- 	{
-@@ -103,6 +105,10 @@ static const struct option options[] = {
- 		.val		= OPT_HANDLE_OUTPUT,
- 	},
- 	{
-+		.name		= "echo",
-+		.val		= OPT_ECHO,
-+	},
-+	{
- 		.name		= NULL
- 	}
- };
-@@ -125,6 +131,7 @@ static void show_help(const char *name)
- "  -s, --stateless		Omit stateful information of ruleset.\n"
- "  -N				Translate IP addresses to names.\n"
- "  -a, --handle			Output rule handle.\n"
-+"  -e, --echo			Print added rules.\n"
- "  -I, --includepath <directory>	Add <directory> to the paths searched for include files.\n"
- #ifdef DEBUG
- "  --debug <level [,level...]>	Specify debugging level (scanner, parser, eval, netlink, mnl, proto-ctx, segtree, all)\n"
-@@ -333,6 +340,9 @@ int main(int argc, char * const *argv)
- 		case OPT_HANDLE_OUTPUT:
- 			handle_output++;
- 			break;
-+		case OPT_ECHO:
-+			echo_output++;
-+			break;
- 		case OPT_INVALID:
- 			exit(NFT_EXIT_FAILURE);
- 		}
-diff --git a/src/mnl.c b/src/mnl.c
-index 295dd84a58406..9d7efec356cd2 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -26,9 +26,11 @@
- #include <string.h>
- #include <sys/socket.h>
- #include <arpa/inet.h>
-+#include <inttypes.h>
- #include <errno.h>
- #include <utils.h>
- #include <nftables.h>
-+#include <rule.h>
+ 					/* check if table name specified */
+-					if (!strncmp(param_buffer, "-t", 3)
+-					    || !strncmp(param_buffer,
+-							"--table", 8)) {
++					if ((param_buffer[0] == '-' && param_buffer[1] != '-' &&
++						strchr(param_buffer, 't')) ||
++						(!strncmp(param_buffer, "--t", 3)
++						&& !strncmp(param_buffer, "--table", strlen(param_buffer)))) {
+ 						xtables_error(PARAMETER_PROBLEM,
+ 							   "Line %u seems to have a "
+ 							   "-t table option.\n",
+diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
+index 15824f0..e99231a 100644
+--- a/iptables/xtables-restore.c
++++ b/iptables/xtables-restore.c
+@@ -136,8 +136,10 @@ static void add_param_to_argv(char *parsestart)
+ 			param_buffer[param_len] = '\0';
  
- static int seq;
- 
-@@ -242,6 +244,32 @@ static ssize_t mnl_nft_socket_sendmsg(const struct mnl_socket *nl)
- 	return sendmsg(mnl_socket_get_fd(nl), &msg, 0);
- }
- 
-+static int mnl_callback(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct nftnl_rule *nlr;
-+
-+	if (!echo_output ||
-+	    NFNL_MSG_TYPE(nlh->nlmsg_type) != NFT_MSG_NEWRULE)
-+		return MNL_CB_OK;
-+
-+	nlr = nftnl_rule_alloc();
-+	if (!nlr)
-+		memory_allocation_error();
-+
-+	if (nftnl_rule_nlmsg_parse(nlh, nlr) < 0)
-+		goto out_free;
-+
-+	printf("%s %s %s handle %" PRIu64 "\n",
-+	       family2str(nftnl_rule_get_u32(nlr, NFTNL_RULE_FAMILY)),
-+	       nftnl_rule_get_str(nlr, NFTNL_RULE_TABLE),
-+	       nftnl_rule_get_str(nlr, NFTNL_RULE_CHAIN),
-+	       nftnl_rule_get_u64(nlr, NFTNL_RULE_HANDLE));
-+
-+out_free:
-+	nftnl_rule_free(nlr);
-+	return MNL_CB_OK;
-+}
-+
- int mnl_batch_talk(struct mnl_socket *nl, struct list_head *err_list)
- {
- 	int ret, fd = mnl_socket_get_fd(nl), portid = mnl_socket_get_portid(nl);
-@@ -271,7 +299,7 @@ int mnl_batch_talk(struct mnl_socket *nl, struct list_head *err_list)
- 		if (ret == -1)
- 			return -1;
- 
--		ret = mnl_cb_run(rcv_buf, ret, 0, portid, NULL, NULL);
-+		ret = mnl_cb_run(rcv_buf, ret, 0, portid, &mnl_callback, NULL);
- 		/* Continue on error, make sure we get all acknowledgments */
- 		if (ret == -1)
- 			mnl_err_list_node_add(err_list, errno, nlh->nlmsg_seq);
-diff --git a/src/netlink.c b/src/netlink.c
-index 59e8918d2ba0c..b2df8df1c29b9 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -445,6 +445,9 @@ int netlink_add_rule_batch(struct netlink_ctx *ctx,
- 	struct nftnl_rule *nlr;
- 	int err;
- 
-+	if (echo_output)
-+		flags |= NLM_F_ECHO;
-+
- 	nlr = alloc_nftnl_rule(&rule->handle);
- 	netlink_linearize_rule(ctx, nlr, rule);
- 	err = mnl_nft_rule_batch_add(nlr, flags | NLM_F_EXCL, ctx->seqnum);
-@@ -461,11 +464,14 @@ int netlink_replace_rule_batch(struct netlink_ctx *ctx, const struct handle *h,
- 			       const struct location *loc)
- {
- 	struct nftnl_rule *nlr;
--	int err;
-+	int flags = 0, err;
-+
-+	if (echo_output)
-+		flags = NLM_F_ECHO;
- 
- 	nlr = alloc_nftnl_rule(&rule->handle);
- 	netlink_linearize_rule(ctx, nlr, rule);
--	err = mnl_nft_rule_batch_replace(nlr, 0, ctx->seqnum);
-+	err = mnl_nft_rule_batch_replace(nlr, flags, ctx->seqnum);
- 	nftnl_rule_free(nlr);
- 
- 	if (err < 0)
+ 			/* check if table name specified */
+-			if (!strncmp(param_buffer, "-t", 2)
+-			    || !strncmp(param_buffer, "--table", 8)) {
++			if ((param_buffer[0] == '-' && param_buffer[1] != '-' &&
++				strchr(param_buffer, 't')) ||
++				(!strncmp(param_buffer, "--t", 3)
++				&& !strncmp(param_buffer, "--table", strlen(param_buffer)))) {
+ 				xtables_error(PARAMETER_PROBLEM,
+ 				"The -t option (seen in line %u) cannot be "
+ 				"used in xtables-restore.\n", line);
 -- 
 2.11.0
+
 
