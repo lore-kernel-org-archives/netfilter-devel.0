@@ -1,150 +1,70 @@
-From: Xin Long <lucien.xin@gmail.com>
-Subject: [PATCH net] netfilter: do not hold dev in ipt_CLUSTERIP
-Date: Sat, 20 May 2017 17:08:06 +0800
-Message-ID: <cc6ebc3f8784d8d537737a1e18b443a2e0c7313a.1495271286.git.lucien.xin@gmail.com>
-Cc: davem@davemloft.net, fw@strlen.de
-To: network dev <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: <cv@raneen.com.eg>
+Subject: (unknown)
+Date: Sat, 20 May 2017 14:29:39 -0000
+Message-ID: <149529057931.18080.9373014943654189417@cable.net.co>
+Mime-Version: 1.0
+Content-Type: application/zip; name="65318589.zip"
+Content-Transfer-Encoding: base64
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from static-ip-18152024832.cable.net.co ([181.52.248.32]:54759 "HELO
+        cable.net.co" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with SMTP id S1751417AbdETO3n (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 20 May 2017 10:29:43 -0400
+Content-Disposition: attachment
+Subject: 
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-It's a terrible thing to hold dev in iptables target. When the dev is
-being removed, unregister_netdevice has to wait for the dev to become
-free. dmesg will keep logging the err:
-
-  kernel:unregister_netdevice: waiting for veth0_in to become free. \
-  Usage count = 1
-
-until iptables rules with this target are removed manually.
-
-The worse thing is when deleting a netns, a virtual nic will be deleted
-instead of reset to init_net in default_device_ops exit/exit_batch. As
-it is earlier than to flush the iptables rules in iptable_filter_net_ops
-exit, unregister_netdevice will block to wait for the nic to become free.
-
-As unregister_netdevice is actually waiting for iptables rules flushing
-while iptables rules have to be flushed after unregister_netdevice. This
-'dead lock' will cause unregister_netdevice to block there forever. As
-the netns is not available to operate at that moment, iptables rules can
-not even be flushed manually either.
-
-The reproducer can be:
-
-  # ip netns add test
-  # ip link add veth0_in type veth peer name veth0_out
-  # ip link set veth0_in netns test
-  # ip netns exec test ip link set lo up
-  # ip netns exec test ip link set veth0_in up
-  # ip netns exec test iptables -I INPUT -d 1.2.3.4 -i veth0_in -j \
-    CLUSTERIP --new --clustermac 89:d4:47:eb:9a:fa --total-nodes 3 \
-    --local-node 1 --hashmode sourceip-sourceport
-  # ip netns del test
-
-This issue can be triggered by all virtual nics with ipt_CLUSTERIP.
-
-This patch is to fix it by not holding dev in ipt_CLUSTERIP, but only
-save dev->ifindex instead of dev. When removing the mc from the dev,
-it will get dev by c->ifindex through dev_get_by_index.
-
-Note that it doesn't save dev->name but dev->ifindex, as a dev->name
-can be changed, it will confuse ipt_CLUSTERIP.
-
-Reported-by: Jianlin Shi <jishi@redhat.com>
-Signed-off-by: Xin Long <lucien.xin@gmail.com>
----
- net/ipv4/netfilter/ipt_CLUSTERIP.c | 31 ++++++++++++++++++-------------
- 1 file changed, 18 insertions(+), 13 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 038f293..d1adb2f 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -47,7 +47,7 @@ struct clusterip_config {
- 
- 	__be32 clusterip;			/* the IP address */
- 	u_int8_t clustermac[ETH_ALEN];		/* the MAC address */
--	struct net_device *dev;			/* device */
-+	int ifindex;				/* device ifindex */
- 	u_int16_t num_total_nodes;		/* total number of nodes */
- 	unsigned long local_nodes;		/* node number array */
- 
-@@ -98,19 +98,23 @@ clusterip_config_put(struct clusterip_config *c)
-  * entry(rule) is removed, remove the config from lists, but don't free it
-  * yet, since proc-files could still be holding references */
- static inline void
--clusterip_config_entry_put(struct clusterip_config *c)
-+clusterip_config_entry_put(struct net *net, struct clusterip_config *c)
- {
--	struct net *net = dev_net(c->dev);
- 	struct clusterip_net *cn = net_generic(net, clusterip_net_id);
- 
- 	local_bh_disable();
- 	if (refcount_dec_and_lock(&c->entries, &cn->lock)) {
-+		struct net_device *dev;
-+
- 		list_del_rcu(&c->list);
- 		spin_unlock(&cn->lock);
- 		local_bh_enable();
- 
--		dev_mc_del(c->dev, c->clustermac);
--		dev_put(c->dev);
-+		dev = dev_get_by_index(net, c->ifindex);
-+		if (dev) {
-+			dev_mc_del(dev, c->clustermac);
-+			dev_put(dev);
-+		}
- 
- 		/* In case anyone still accesses the file, the open/close
- 		 * functions are also incrementing the refcount on their own,
-@@ -182,7 +186,7 @@ clusterip_config_init(const struct ipt_clusterip_tgt_info *i, __be32 ip,
- 	if (!c)
- 		return ERR_PTR(-ENOMEM);
- 
--	c->dev = dev;
-+	c->ifindex = dev->ifindex;
- 	c->clusterip = ip;
- 	memcpy(&c->clustermac, &i->clustermac, ETH_ALEN);
- 	c->num_total_nodes = i->num_total_nodes;
-@@ -427,12 +431,14 @@ static int clusterip_tg_check(const struct xt_tgchk_param *par)
- 			}
- 
- 			config = clusterip_config_init(cipinfo,
--							e->ip.dst.s_addr, dev);
-+						       e->ip.dst.s_addr, dev);
- 			if (IS_ERR(config)) {
- 				dev_put(dev);
- 				return PTR_ERR(config);
- 			}
--			dev_mc_add(config->dev, config->clustermac);
-+
-+			dev_mc_add(dev, config->clustermac);
-+			dev_put(dev);
- 		}
- 	}
- 	cipinfo->config = config;
-@@ -458,7 +464,7 @@ static void clusterip_tg_destroy(const struct xt_tgdtor_param *par)
- 
- 	/* if no more entries are referencing the config, remove it
- 	 * from the list and destroy the proc entry */
--	clusterip_config_entry_put(cipinfo->config);
-+	clusterip_config_entry_put(par->net, cipinfo->config);
- 
- 	clusterip_config_put(cipinfo->config);
- 
-@@ -558,10 +564,9 @@ arp_mangle(void *priv,
- 	 * addresses on different interfacs.  However, in the CLUSTERIP case
- 	 * this wouldn't work, since we didn't subscribe the mcast group on
- 	 * other interfaces */
--	if (c->dev != state->out) {
--		pr_debug("not mangling arp reply on different "
--			 "interface: cip'%s'-skb'%s'\n",
--			 c->dev->name, state->out->name);
-+	if (c->ifindex != state->out->ifindex) {
-+		pr_debug("not mangling arp reply on different interface: cip'%d'-skb'%d'\n",
-+			 c->ifindex, state->out->ifindex);
- 		clusterip_config_put(c);
- 		return NF_ACCEPT;
- 	}
--- 
-2.1.0
+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
+pEGv0dIBUEsFBgAAAAABAAEAWwAAAM0KAAAAAA==
