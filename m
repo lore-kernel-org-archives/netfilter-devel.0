@@ -1,70 +1,68 @@
-From: <cv@raneen.com.eg>
-Subject: (unknown)
-Date: Sat, 20 May 2017 14:29:39 -0000
-Message-ID: <149529057931.18080.9373014943654189417@cable.net.co>
-Mime-Version: 1.0
-Content-Type: application/zip; name="65318589.zip"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf] netfilter: ctnetlink: fix incorrect nf_ct_put during hash resize
+Date: Sun, 21 May 2017 07:22:49 +0800
+Message-ID: <1495322569-63361-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from static-ip-18152024832.cable.net.co ([181.52.248.32]:54759 "HELO
-        cable.net.co" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with SMTP id S1751417AbdETO3n (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 20 May 2017 10:29:43 -0400
-Content-Disposition: attachment
-Subject: 
+Received: from m12-15.163.com ([220.181.12.15]:49795 "EHLO m12-15.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751367AbdETXXX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 20 May 2017 19:23:23 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-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
-pEGv0dIBUEsFBgAAAAABAAEAWwAAAM0KAAAAAA==
+From: Liping Zhang <zlpnobody@gmail.com>
+
+If nf_conntrack_htable_size was adjusted by the user during the ct
+dump operation, we may invoke nf_ct_put twice for the same ct, i.e.
+the "last" ct. This will cause the ct will be freed but still linked
+in hash buckets.
+
+It's very easy to reproduce the problem by the following commands:
+  # while : ; do
+  echo $RANDOM > /proc/sys/net/netfilter/nf_conntrack_buckets
+  done
+  # while : ; do
+  conntrack -L
+  done
+  # iperf -s 127.0.0.1 &
+  # iperf -c 127.0.0.1 -P 60 -t 36000
+
+After a while, the system will hang like this:
+  NMI watchdog: BUG: soft lockup - CPU#1 stuck for 22s! [bash:20184]
+  NMI watchdog: BUG: soft lockup - CPU#0 stuck for 22s! [iperf:20382]
+  ...
+
+So at last if we find cb->args[1] is equal to "last", this means hash
+resize happened, then we can set cb->args[1] to 0 to fix the above
+issue.
+
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+---
+ net/netfilter/nf_conntrack_netlink.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index dcf561b..3b449e0 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -888,8 +888,13 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+ 	}
+ out:
+ 	local_bh_enable();
+-	if (last)
++	if (last) {
++		/* nf ct hash resize happened, now clear the leftover. */
++		if ((struct nf_conn *)cb->args[1] == last)
++			cb->args[1] = 0;
++
+ 		nf_ct_put(last);
++	}
+ 
+ 	while (i) {
+ 		i--;
+-- 
+2.5.5
+
+
