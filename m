@@ -1,70 +1,150 @@
-From: <sophie.norman@macquarie.com>
-Subject: (unknown)
-Date: Sat, 20 May 2017 00:40:09 -0000
-Message-ID: <149524080905.1557.944687585470819121@candw.ag>
-Mime-Version: 1.0
-Content-Type: application/zip; name="260009073203663.zip"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 69-57-228-151.candw.ag ([69.57.228.151]:40272 "HELO candw.ag"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-        id S1750760AbdETAkd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 May 2017 20:40:33 -0400
-Subject: 
-Content-Disposition: attachment
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Xin Long <lucien.xin@gmail.com>
+Subject: [PATCH net] netfilter: do not hold dev in ipt_CLUSTERIP
+Date: Sat, 20 May 2017 17:08:06 +0800
+Message-ID: <cc6ebc3f8784d8d537737a1e18b443a2e0c7313a.1495271286.git.lucien.xin@gmail.com>
+Cc: davem@davemloft.net, fw@strlen.de
+To: network dev <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-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
+It's a terrible thing to hold dev in iptables target. When the dev is
+being removed, unregister_netdevice has to wait for the dev to become
+free. dmesg will keep logging the err:
+
+  kernel:unregister_netdevice: waiting for veth0_in to become free. \
+  Usage count = 1
+
+until iptables rules with this target are removed manually.
+
+The worse thing is when deleting a netns, a virtual nic will be deleted
+instead of reset to init_net in default_device_ops exit/exit_batch. As
+it is earlier than to flush the iptables rules in iptable_filter_net_ops
+exit, unregister_netdevice will block to wait for the nic to become free.
+
+As unregister_netdevice is actually waiting for iptables rules flushing
+while iptables rules have to be flushed after unregister_netdevice. This
+'dead lock' will cause unregister_netdevice to block there forever. As
+the netns is not available to operate at that moment, iptables rules can
+not even be flushed manually either.
+
+The reproducer can be:
+
+  # ip netns add test
+  # ip link add veth0_in type veth peer name veth0_out
+  # ip link set veth0_in netns test
+  # ip netns exec test ip link set lo up
+  # ip netns exec test ip link set veth0_in up
+  # ip netns exec test iptables -I INPUT -d 1.2.3.4 -i veth0_in -j \
+    CLUSTERIP --new --clustermac 89:d4:47:eb:9a:fa --total-nodes 3 \
+    --local-node 1 --hashmode sourceip-sourceport
+  # ip netns del test
+
+This issue can be triggered by all virtual nics with ipt_CLUSTERIP.
+
+This patch is to fix it by not holding dev in ipt_CLUSTERIP, but only
+save dev->ifindex instead of dev. When removing the mc from the dev,
+it will get dev by c->ifindex through dev_get_by_index.
+
+Note that it doesn't save dev->name but dev->ifindex, as a dev->name
+can be changed, it will confuse ipt_CLUSTERIP.
+
+Reported-by: Jianlin Shi <jishi@redhat.com>
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
+---
+ net/ipv4/netfilter/ipt_CLUSTERIP.c | 31 ++++++++++++++++++-------------
+ 1 file changed, 18 insertions(+), 13 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 038f293..d1adb2f 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -47,7 +47,7 @@ struct clusterip_config {
+ 
+ 	__be32 clusterip;			/* the IP address */
+ 	u_int8_t clustermac[ETH_ALEN];		/* the MAC address */
+-	struct net_device *dev;			/* device */
++	int ifindex;				/* device ifindex */
+ 	u_int16_t num_total_nodes;		/* total number of nodes */
+ 	unsigned long local_nodes;		/* node number array */
+ 
+@@ -98,19 +98,23 @@ clusterip_config_put(struct clusterip_config *c)
+  * entry(rule) is removed, remove the config from lists, but don't free it
+  * yet, since proc-files could still be holding references */
+ static inline void
+-clusterip_config_entry_put(struct clusterip_config *c)
++clusterip_config_entry_put(struct net *net, struct clusterip_config *c)
+ {
+-	struct net *net = dev_net(c->dev);
+ 	struct clusterip_net *cn = net_generic(net, clusterip_net_id);
+ 
+ 	local_bh_disable();
+ 	if (refcount_dec_and_lock(&c->entries, &cn->lock)) {
++		struct net_device *dev;
++
+ 		list_del_rcu(&c->list);
+ 		spin_unlock(&cn->lock);
+ 		local_bh_enable();
+ 
+-		dev_mc_del(c->dev, c->clustermac);
+-		dev_put(c->dev);
++		dev = dev_get_by_index(net, c->ifindex);
++		if (dev) {
++			dev_mc_del(dev, c->clustermac);
++			dev_put(dev);
++		}
+ 
+ 		/* In case anyone still accesses the file, the open/close
+ 		 * functions are also incrementing the refcount on their own,
+@@ -182,7 +186,7 @@ clusterip_config_init(const struct ipt_clusterip_tgt_info *i, __be32 ip,
+ 	if (!c)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	c->dev = dev;
++	c->ifindex = dev->ifindex;
+ 	c->clusterip = ip;
+ 	memcpy(&c->clustermac, &i->clustermac, ETH_ALEN);
+ 	c->num_total_nodes = i->num_total_nodes;
+@@ -427,12 +431,14 @@ static int clusterip_tg_check(const struct xt_tgchk_param *par)
+ 			}
+ 
+ 			config = clusterip_config_init(cipinfo,
+-							e->ip.dst.s_addr, dev);
++						       e->ip.dst.s_addr, dev);
+ 			if (IS_ERR(config)) {
+ 				dev_put(dev);
+ 				return PTR_ERR(config);
+ 			}
+-			dev_mc_add(config->dev, config->clustermac);
++
++			dev_mc_add(dev, config->clustermac);
++			dev_put(dev);
+ 		}
+ 	}
+ 	cipinfo->config = config;
+@@ -458,7 +464,7 @@ static void clusterip_tg_destroy(const struct xt_tgdtor_param *par)
+ 
+ 	/* if no more entries are referencing the config, remove it
+ 	 * from the list and destroy the proc entry */
+-	clusterip_config_entry_put(cipinfo->config);
++	clusterip_config_entry_put(par->net, cipinfo->config);
+ 
+ 	clusterip_config_put(cipinfo->config);
+ 
+@@ -558,10 +564,9 @@ arp_mangle(void *priv,
+ 	 * addresses on different interfacs.  However, in the CLUSTERIP case
+ 	 * this wouldn't work, since we didn't subscribe the mcast group on
+ 	 * other interfaces */
+-	if (c->dev != state->out) {
+-		pr_debug("not mangling arp reply on different "
+-			 "interface: cip'%s'-skb'%s'\n",
+-			 c->dev->name, state->out->name);
++	if (c->ifindex != state->out->ifindex) {
++		pr_debug("not mangling arp reply on different interface: cip'%d'-skb'%d'\n",
++			 c->ifindex, state->out->ifindex);
+ 		clusterip_config_put(c);
+ 		return NF_ACCEPT;
+ 	}
+-- 
+2.1.0
