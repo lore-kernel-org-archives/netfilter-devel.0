@@ -1,47 +1,52 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next 2/3] netfilter: nf_ct_helper: use
- nf_ct_iterate_cleanup to unlink helper objs
-Date: Sun, 21 May 2017 13:10:47 +0200
-Message-ID: <20170521111047.GF1004@breakpoint.cc>
-References: <1495345149-57674-1-git-send-email-zlpnobody@163.com>
- <1495345149-57674-3-git-send-email-zlpnobody@163.com>
- <20170521081521.GD1004@breakpoint.cc>
- <CAML_gOc1OHEc_evYoXj2f0O1CMGLVc0MMNYgVE0xNtzXPXNJtQ@mail.gmail.com>
- <20170521103153.GE1004@breakpoint.cc>
- <CAML_gOd3gqwTisxo64nxRbUoq_1QovyLTf=hxG=ks-Tv0h_tMw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, Liping Zhang <zlpnobody@163.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Liping Zhang <zlpnobody@gmail.com>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf] netfilter: nat: use atomic bit op to clear the _SRC_NAT_DONE_BIT
+Date: Sun, 21 May 2017 22:38:11 +0800
+Message-ID: <1495377491-46768-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
+        Liping Zhang <zlpnobody@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37148 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751474AbdEULLh (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 May 2017 07:11:37 -0400
-Content-Disposition: inline
-In-Reply-To: <CAML_gOd3gqwTisxo64nxRbUoq_1QovyLTf=hxG=ks-Tv0h_tMw@mail.gmail.com>
+Received: from m12-13.163.com ([220.181.12.13]:57851 "EHLO m12-13.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751302AbdEUOjZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 21 May 2017 10:39:25 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Liping Zhang <zlpnobody@gmail.com> wrote:
-> Yes, here we should use clear_bit(IPS_SRC_NAT_DONE_BIT, &ct->status);
-> (For IPS_DST_NAT_DONE, we don't care about it, so we can
-> leave it unchanged.)
+From: Liping Zhang <zlpnobody@gmail.com>
 
-Oh, right.
+We need to clear the IPS_SRC_NAT_DONE_BIT to indicate that the ct has
+been removed from nat_bysource table. But unfortunately, we use the
+non-atomic bit operation: "ct->status &= ~IPS_NAT_DONE_MASK". So
+there's a race condition that we may clear the _DYING_BIT set by
+another CPU unexpectedly.
 
-> > Thats also broken(racy).  We have to audit all the non-atomic writes of
-> > ct->status and change them to set/clear_bit()...
-> 
-> I audited the related codes just now, this seems to be the last
-> ct->status writer which use non-atomic bit operation(of course,
-> except these unconfirmed ct->status writer).
-> 
-> I will have a further and closer check. If you are not opposed to,
-> I can send a related patch to fix this. :)
+Since we don't care about the IPS_DST_NAT_DONE_BIT, so just using
+clear_bit to clear the IPS_SRC_NAT_DONE_BIT is enough.
 
-That would be great, thanks Liping!
+Also note, this is the last user which use the non-atomic bit operation
+to update the confirmed ct->status.
+
+Reported-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+---
+ net/netfilter/nf_nat_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index ef0be32..6c72922 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -566,7 +566,7 @@ static int nf_nat_proto_clean(struct nf_conn *ct, void *data)
+ 	 * Else, when the conntrack is destoyed, nf_nat_cleanup_conntrack()
+ 	 * will delete entry from already-freed table.
+ 	 */
+-	ct->status &= ~IPS_NAT_DONE_MASK;
++	clear_bit(IPS_SRC_NAT_DONE_BIT, &ct->status);
+ 	rhltable_remove(&nf_nat_bysource_table, &ct->nat_bysource,
+ 			nf_nat_bysource_params);
+ 
+-- 
+2.5.5
+
+
