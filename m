@@ -1,65 +1,188 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 4/5] netfilter: conntrack: restart iteration on resize
-Date: Sun, 21 May 2017 12:52:58 +0200
-Message-ID: <20170521105259.10239-5-fw@strlen.de>
+Subject: [PATCH nf-next 3/5] netfilter: conntrack: add nf_ct_iterate_destroy
+Date: Sun, 21 May 2017 12:52:57 +0200
+Message-ID: <20170521105259.10239-4-fw@strlen.de>
 References: <20170521105259.10239-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37108 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37104 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752440AbdEUKxA (ORCPT
+        by vger.kernel.org with ESMTP id S1752440AbdEUKw5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 May 2017 06:53:00 -0400
+        Sun, 21 May 2017 06:52:57 -0400
 In-Reply-To: <20170521105259.10239-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We could some conntracks when a resize occurs in parallel.
+sledgehammer to be used on module unload (to remove affected conntracks
+from all namespaces).
 
-Avoid this by sampling generation seqcnt and doing a restart if needed.
+It will also flag all unconfirmed conntracks as dying, i.e. they will
+not be committed to main table.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_conntrack_core.c | 20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+ include/net/netfilter/nf_conntrack.h |  4 ++
+ net/netfilter/nf_conntrack_core.c    | 87 ++++++++++++++++++++++++++++++------
+ 2 files changed, 78 insertions(+), 13 deletions(-)
 
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index f21180ea4558..48407569585d 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -229,6 +229,10 @@ void nf_ct_iterate_cleanup_net(struct net *net,
+ 			       int (*iter)(struct nf_conn *i, void *data),
+ 			       void *data, u32 portid, int report);
+ 
++/* also set unconfirmed conntracks as dying. Only use in module exit path. */
++void nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data),
++			   void *data);
++
+ struct nf_conntrack_zone;
+ 
+ void nf_conntrack_free(struct nf_conn *ct);
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 7ecee79c78b8..c3bd9b086dcc 100644
+index 08733685d732..7ecee79c78b8 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -1623,17 +1623,25 @@ get_next_corpse(int (*iter)(struct nf_conn *i, void *data),
- static void nf_ct_iterate_cleanup(int (*iter)(struct nf_conn *i, void *data),
- 				  void *data, u32 portid, int report)
+@@ -1586,7 +1586,7 @@ static void nf_conntrack_attach(struct sk_buff *nskb, const struct sk_buff *skb)
+ 
+ /* Bring out ya dead! */
+ static struct nf_conn *
+-get_next_corpse(struct net *net, int (*iter)(struct nf_conn *i, void *data),
++get_next_corpse(int (*iter)(struct nf_conn *i, void *data),
+ 		void *data, unsigned int *bucket)
  {
-+	unsigned int bucket = 0, sequence;
- 	struct nf_conn *ct;
+ 	struct nf_conntrack_tuple_hash *h;
+@@ -1603,8 +1603,7 @@ get_next_corpse(struct net *net, int (*iter)(struct nf_conn *i, void *data),
+ 				if (NF_CT_DIRECTION(h) != IP_CT_DIR_ORIGINAL)
+ 					continue;
+ 				ct = nf_ct_tuplehash_to_ctrack(h);
+-				if (net_eq(nf_ct_net(ct), net) &&
+-				    iter(ct, data))
++				if (iter(ct, data))
+ 					goto found;
+ 			}
+ 		}
+@@ -1621,6 +1620,39 @@ get_next_corpse(struct net *net, int (*iter)(struct nf_conn *i, void *data),
+ 	return ct;
+ }
+ 
++static void nf_ct_iterate_cleanup(int (*iter)(struct nf_conn *i, void *data),
++				  void *data, u32 portid, int report)
++{
++	struct nf_conn *ct;
++	unsigned int bucket = 0;
++
++	might_sleep();
++
++	while ((ct = get_next_corpse(iter, data, &bucket)) != NULL) {
++		/* Time to push up daises... */
++
++		nf_ct_delete(ct, portid, report);
++		nf_ct_put(ct);
++		cond_resched();
++	}
++}
++
++struct iter_data {
++	int (*iter)(struct nf_conn *i, void *data);
++	void *data;
++	struct net *net;
++};
++
++static int iter_net_only(struct nf_conn *i, void *data)
++{
++	struct iter_data *d = data;
++
++	if (!net_eq(d->net, nf_ct_net(i)))
++		return 0;
++
++	return d->iter(i, d->data);
++}
++
+ static void
+ __nf_ct_unconfirmed_destroy(struct net *net)
+ {
+@@ -1653,8 +1685,7 @@ void nf_ct_iterate_cleanup_net(struct net *net,
+ 			       int (*iter)(struct nf_conn *i, void *data),
+ 			       void *data, u32 portid, int report)
+ {
+-	struct nf_conn *ct;
 -	unsigned int bucket = 0;
++	struct iter_data d;
  
  	might_sleep();
  
--	while ((ct = get_next_corpse(iter, data, &bucket)) != NULL) {
+@@ -1663,21 +1694,51 @@ void nf_ct_iterate_cleanup_net(struct net *net,
+ 
+ 	__nf_ct_unconfirmed_destroy(net);
+ 
++	d.iter = iter;
++	d.data = data;
++	d.net = net;
++
+ 	synchronize_net();
+ 
+-	while ((ct = get_next_corpse(net, iter, data, &bucket)) != NULL) {
 -		/* Time to push up daises... */
-+	for (;;) {
-+		sequence = read_seqcount_begin(&nf_conntrack_generation);
++	nf_ct_iterate_cleanup(iter_net_only, &d, portid, report);
++}
++EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup_net);
  
 -		nf_ct_delete(ct, portid, report);
 -		nf_ct_put(ct);
 -		cond_resched();
-+		while ((ct = get_next_corpse(iter, data, &bucket)) != NULL) {
-+			/* Time to push up daises... */
++/**
++ * nf_ct_iterate_destroy - destroy unconfirmed conntracks and iterate table
++ * @iter: callback to invoke for each conntrack
++ * @data: data to pass to @iter
++ *
++ * Like nf_ct_iterate_cleanup, but first marks conntracks on the
++ * unconfirmed list as dying (so they will not be inserted into
++ * main table).
++ */
++void
++nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
++{
++	struct net *net;
 +
-+			nf_ct_delete(ct, portid, report);
-+			nf_ct_put(ct);
-+			cond_resched();
-+		}
-+
-+		if (!read_seqcount_retry(&nf_conntrack_generation, sequence))
-+			break;
-+		bucket = 0;
++	rtnl_lock();
++	for_each_net(net) {
++		if (atomic_read(&net->ct.count) == 0)
++			continue;
++		__nf_ct_unconfirmed_destroy(net);
  	}
++	rtnl_unlock();
++
++	/* a conntrack could have been unlinked from unconfirmed list
++	 * before we grabbed pcpu lock in __nf_ct_unconfirmed_destroy().
++	 * This makes sure its inserted into conntrack table.
++	 */
++	synchronize_net();
++
++	nf_ct_iterate_cleanup(iter, data, 0, 0);
+ }
+-EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup_net);
++EXPORT_SYMBOL_GPL(nf_ct_iterate_destroy);
+ 
+ static int kill_all(struct nf_conn *i, void *data)
+ {
+-	return 1;
++	return net_eq(nf_ct_net(i), data);
  }
  
+ void nf_ct_free_hashtable(void *hash, unsigned int size)
+@@ -1742,7 +1803,7 @@ void nf_conntrack_cleanup_net_list(struct list_head *net_exit_list)
+ i_see_dead_people:
+ 	busy = 0;
+ 	list_for_each_entry(net, net_exit_list, exit_list) {
+-		nf_ct_iterate_cleanup_net(net, kill_all, NULL, 0, 0);
++		nf_ct_iterate_cleanup(kill_all, net, 0, 0);
+ 		if (atomic_read(&net->ct.count) != 0)
+ 			busy = 1;
+ 	}
 -- 
 2.13.0
 
