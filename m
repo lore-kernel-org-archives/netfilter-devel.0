@@ -1,188 +1,117 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 3/5] netfilter: conntrack: add nf_ct_iterate_destroy
-Date: Sun, 21 May 2017 12:52:57 +0200
-Message-ID: <20170521105259.10239-4-fw@strlen.de>
+Subject: [PATCH nf-next 5/5] netfilter: nat: destroy nat mappings on module exit path only
+Date: Sun, 21 May 2017 12:52:59 +0200
+Message-ID: <20170521105259.10239-6-fw@strlen.de>
 References: <20170521105259.10239-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37104 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37114 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752440AbdEUKw5 (ORCPT
+        by vger.kernel.org with ESMTP id S1753090AbdEUKxD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 May 2017 06:52:57 -0400
+        Sun, 21 May 2017 06:53:03 -0400
 In-Reply-To: <20170521105259.10239-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-sledgehammer to be used on module unload (to remove affected conntracks
-from all namespaces).
+We don't need pernetns cleanup anymore.  If the netns is being
+destroyed, conntrack netns exit will kill all entries in this namespace,
+and neither conntrack hash table nor bysource hash are per namespace.
 
-It will also flag all unconfirmed conntracks as dying, i.e. they will
-not be committed to main table.
+For the rmmod case, we have to make sure we remove all entries from the
+nat bysource table, so call the new nf_ct_iterate_destroy in module exit
+path.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack.h |  4 ++
- net/netfilter/nf_conntrack_core.c    | 87 ++++++++++++++++++++++++++++++------
- 2 files changed, 78 insertions(+), 13 deletions(-)
+ net/netfilter/nf_nat_core.c | 37 +++++--------------------------------
+ 1 file changed, 5 insertions(+), 32 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index f21180ea4558..48407569585d 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -229,6 +229,10 @@ void nf_ct_iterate_cleanup_net(struct net *net,
- 			       int (*iter)(struct nf_conn *i, void *data),
- 			       void *data, u32 portid, int report);
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 46eac534f0d0..32b749ea2014 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -578,12 +578,8 @@ static void nf_nat_l4proto_clean(u8 l3proto, u8 l4proto)
+ 		.l3proto = l3proto,
+ 		.l4proto = l4proto,
+ 	};
+-	struct net *net;
  
-+/* also set unconfirmed conntracks as dying. Only use in module exit path. */
-+void nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data),
-+			   void *data);
-+
- struct nf_conntrack_zone;
- 
- void nf_conntrack_free(struct nf_conn *ct);
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 08733685d732..7ecee79c78b8 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1586,7 +1586,7 @@ static void nf_conntrack_attach(struct sk_buff *nskb, const struct sk_buff *skb)
- 
- /* Bring out ya dead! */
- static struct nf_conn *
--get_next_corpse(struct net *net, int (*iter)(struct nf_conn *i, void *data),
-+get_next_corpse(int (*iter)(struct nf_conn *i, void *data),
- 		void *data, unsigned int *bucket)
- {
- 	struct nf_conntrack_tuple_hash *h;
-@@ -1603,8 +1603,7 @@ get_next_corpse(struct net *net, int (*iter)(struct nf_conn *i, void *data),
- 				if (NF_CT_DIRECTION(h) != IP_CT_DIR_ORIGINAL)
- 					continue;
- 				ct = nf_ct_tuplehash_to_ctrack(h);
--				if (net_eq(nf_ct_net(ct), net) &&
--				    iter(ct, data))
-+				if (iter(ct, data))
- 					goto found;
- 			}
- 		}
-@@ -1621,6 +1620,39 @@ get_next_corpse(struct net *net, int (*iter)(struct nf_conn *i, void *data),
- 	return ct;
+-	rtnl_lock();
+-	for_each_net(net)
+-		nf_ct_iterate_cleanup_net(net, nf_nat_proto_remove, &clean, 0, 0);
+-	rtnl_unlock();
++	nf_ct_iterate_destroy(nf_nat_proto_remove, &clean);
  }
  
-+static void nf_ct_iterate_cleanup(int (*iter)(struct nf_conn *i, void *data),
-+				  void *data, u32 portid, int report)
-+{
-+	struct nf_conn *ct;
-+	unsigned int bucket = 0;
-+
-+	might_sleep();
-+
-+	while ((ct = get_next_corpse(iter, data, &bucket)) != NULL) {
-+		/* Time to push up daises... */
-+
-+		nf_ct_delete(ct, portid, report);
-+		nf_ct_put(ct);
-+		cond_resched();
-+	}
-+}
-+
-+struct iter_data {
-+	int (*iter)(struct nf_conn *i, void *data);
-+	void *data;
-+	struct net *net;
-+};
-+
-+static int iter_net_only(struct nf_conn *i, void *data)
-+{
-+	struct iter_data *d = data;
-+
-+	if (!net_eq(d->net, nf_ct_net(i)))
-+		return 0;
-+
-+	return d->iter(i, d->data);
-+}
-+
- static void
- __nf_ct_unconfirmed_destroy(struct net *net)
- {
-@@ -1653,8 +1685,7 @@ void nf_ct_iterate_cleanup_net(struct net *net,
- 			       int (*iter)(struct nf_conn *i, void *data),
- 			       void *data, u32 portid, int report)
- {
--	struct nf_conn *ct;
--	unsigned int bucket = 0;
-+	struct iter_data d;
+ static void nf_nat_l3proto_clean(u8 l3proto)
+@@ -591,13 +587,8 @@ static void nf_nat_l3proto_clean(u8 l3proto)
+ 	struct nf_nat_proto_clean clean = {
+ 		.l3proto = l3proto,
+ 	};
+-	struct net *net;
  
- 	might_sleep();
+-	rtnl_lock();
+-
+-	for_each_net(net)
+-		nf_ct_iterate_cleanup_net(net, nf_nat_proto_remove, &clean, 0, 0);
+-	rtnl_unlock();
++	nf_ct_iterate_destroy(nf_nat_proto_remove, &clean);
+ }
  
-@@ -1663,21 +1694,51 @@ void nf_ct_iterate_cleanup_net(struct net *net,
+ /* Protocol registration. */
+@@ -818,17 +809,6 @@ nfnetlink_parse_nat_setup(struct nf_conn *ct,
+ }
+ #endif
  
- 	__nf_ct_unconfirmed_destroy(net);
- 
-+	d.iter = iter;
-+	d.data = data;
-+	d.net = net;
-+
- 	synchronize_net();
- 
--	while ((ct = get_next_corpse(net, iter, data, &bucket)) != NULL) {
--		/* Time to push up daises... */
-+	nf_ct_iterate_cleanup(iter_net_only, &d, portid, report);
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup_net);
- 
--		nf_ct_delete(ct, portid, report);
--		nf_ct_put(ct);
--		cond_resched();
-+/**
-+ * nf_ct_iterate_destroy - destroy unconfirmed conntracks and iterate table
-+ * @iter: callback to invoke for each conntrack
-+ * @data: data to pass to @iter
-+ *
-+ * Like nf_ct_iterate_cleanup, but first marks conntracks on the
-+ * unconfirmed list as dying (so they will not be inserted into
-+ * main table).
-+ */
-+void
-+nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
-+{
-+	struct net *net;
-+
-+	rtnl_lock();
-+	for_each_net(net) {
-+		if (atomic_read(&net->ct.count) == 0)
-+			continue;
-+		__nf_ct_unconfirmed_destroy(net);
+-static void __net_exit nf_nat_net_exit(struct net *net)
+-{
+-	struct nf_nat_proto_clean clean = {};
+-
+-	nf_ct_iterate_cleanup_net(net, nf_nat_proto_clean, &clean, 0, 0);
+-}
+-
+-static struct pernet_operations nf_nat_net_ops = {
+-	.exit = nf_nat_net_exit,
+-};
+-
+ static struct nf_ct_helper_expectfn follow_master_nat = {
+ 	.name		= "nat-follow-master",
+ 	.expectfn	= nf_nat_follow_master,
+@@ -849,10 +829,6 @@ static int __init nf_nat_init(void)
+ 		return ret;
  	}
-+	rtnl_unlock();
-+
-+	/* a conntrack could have been unlinked from unconfirmed list
-+	 * before we grabbed pcpu lock in __nf_ct_unconfirmed_destroy().
-+	 * This makes sure its inserted into conntrack table.
-+	 */
-+	synchronize_net();
-+
-+	nf_ct_iterate_cleanup(iter, data, 0, 0);
- }
--EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup_net);
-+EXPORT_SYMBOL_GPL(nf_ct_iterate_destroy);
  
- static int kill_all(struct nf_conn *i, void *data)
+-	ret = register_pernet_subsys(&nf_nat_net_ops);
+-	if (ret < 0)
+-		goto cleanup_extend;
+-
+ 	nf_ct_helper_expectfn_register(&follow_master_nat);
+ 
+ 	BUG_ON(nfnetlink_parse_nat_setup_hook != NULL);
+@@ -863,18 +839,15 @@ static int __init nf_nat_init(void)
+ 	RCU_INIT_POINTER(nf_nat_decode_session_hook, __nf_nat_decode_session);
+ #endif
+ 	return 0;
+-
+- cleanup_extend:
+-	rhltable_destroy(&nf_nat_bysource_table);
+-	nf_ct_extend_unregister(&nat_extend);
+-	return ret;
+ }
+ 
+ static void __exit nf_nat_cleanup(void)
  {
--	return 1;
-+	return net_eq(nf_ct_net(i), data);
- }
++	struct nf_nat_proto_clean clean = {};
+ 	unsigned int i;
  
- void nf_ct_free_hashtable(void *hash, unsigned int size)
-@@ -1742,7 +1803,7 @@ void nf_conntrack_cleanup_net_list(struct list_head *net_exit_list)
- i_see_dead_people:
- 	busy = 0;
- 	list_for_each_entry(net, net_exit_list, exit_list) {
--		nf_ct_iterate_cleanup_net(net, kill_all, NULL, 0, 0);
-+		nf_ct_iterate_cleanup(kill_all, net, 0, 0);
- 		if (atomic_read(&net->ct.count) != 0)
- 			busy = 1;
- 	}
+-	unregister_pernet_subsys(&nf_nat_net_ops);
++	nf_ct_iterate_destroy(nf_nat_proto_clean, &clean);
++
+ 	nf_ct_extend_unregister(&nat_extend);
+ 	nf_ct_helper_expectfn_unregister(&follow_master_nat);
+ 	RCU_INIT_POINTER(nfnetlink_parse_nat_setup_hook, NULL);
 -- 
 2.13.0
 
