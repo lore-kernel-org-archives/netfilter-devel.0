@@ -1,117 +1,81 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 5/5] netfilter: nat: destroy nat mappings on module exit path only
-Date: Sun, 21 May 2017 12:52:59 +0200
-Message-ID: <20170521105259.10239-6-fw@strlen.de>
-References: <20170521105259.10239-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH nf-next 2/3] netfilter: nf_ct_helper: use
+ nf_ct_iterate_cleanup to unlink helper objs
+Date: Sun, 21 May 2017 19:05:36 +0800
+Message-ID: <CAML_gOd3gqwTisxo64nxRbUoq_1QovyLTf=hxG=ks-Tv0h_tMw@mail.gmail.com>
+References: <1495345149-57674-1-git-send-email-zlpnobody@163.com>
+ <1495345149-57674-3-git-send-email-zlpnobody@163.com> <20170521081521.GD1004@breakpoint.cc>
+ <CAML_gOc1OHEc_evYoXj2f0O1CMGLVc0MMNYgVE0xNtzXPXNJtQ@mail.gmail.com> <20170521103153.GE1004@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: Liping Zhang <zlpnobody@163.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37114 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753090AbdEUKxD (ORCPT
+Received: from mail-vk0-f65.google.com ([209.85.213.65]:35164 "EHLO
+        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750994AbdEULFi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 May 2017 06:53:03 -0400
-In-Reply-To: <20170521105259.10239-1-fw@strlen.de>
+        Sun, 21 May 2017 07:05:38 -0400
+Received: by mail-vk0-f65.google.com with SMTP id x71so3837549vkd.2
+        for <netfilter-devel@vger.kernel.org>; Sun, 21 May 2017 04:05:38 -0700 (PDT)
+In-Reply-To: <20170521103153.GE1004@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We don't need pernetns cleanup anymore.  If the netns is being
-destroyed, conntrack netns exit will kill all entries in this namespace,
-and neither conntrack hash table nor bysource hash are per namespace.
+Hi Florian,
 
-For the rmmod case, we have to make sure we remove all entries from the
-nat bysource table, so call the new nf_ct_iterate_destroy in module exit
-path.
+2017-05-21 18:31 GMT+08:00 Florian Westphal <fw@strlen.de>:
+> Liping Zhang <zlpnobody@gmail.com> wrote:
+>> Hi Florian,
+>>
+>> 2017-05-21 16:15 GMT+08:00 Florian Westphal <fw@strlen.de>:
+>> [...]
+>> > this is broken for unconfirmed conntracks, as
+>> > other cpu can reallocate the extension area.
+>>
+>> Right, I missed this point, thanks for your reminder.
+>>
+>> > For the module removal case, we have no choice but to toss the
+>> > unconfirmed conntracks.
+>> >
+>> > Same for patch #3.
+>> >
+>> > I plan to submit my patches soon, perhaps its best if I only
+>> > submit the first couple of patches so you can rebase on top of that?
+>>
+>> I read your nfct_iterate_cleanup_15 patch series just now.
+>> Your patch set did more jobs, also including all the jobs which
+>> my patch set did. :)
+>>
+>> I think it's better to do these things together, so I'm fine if you
+>> can mark my patch set as Superseded. :)
+>
+> What about this: I will submit first half of my patches, then you can
+> rebase your two patches on top and send them, then I can rebase again
+> the rest.  What do you think?
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_nat_core.c | 37 +++++--------------------------------
- 1 file changed, 5 insertions(+), 32 deletions(-)
+OK. Fine with me.
 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 46eac534f0d0..32b749ea2014 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -578,12 +578,8 @@ static void nf_nat_l4proto_clean(u8 l3proto, u8 l4proto)
- 		.l3proto = l3proto,
- 		.l4proto = l4proto,
- 	};
--	struct net *net;
- 
--	rtnl_lock();
--	for_each_net(net)
--		nf_ct_iterate_cleanup_net(net, nf_nat_proto_remove, &clean, 0, 0);
--	rtnl_unlock();
-+	nf_ct_iterate_destroy(nf_nat_proto_remove, &clean);
- }
- 
- static void nf_nat_l3proto_clean(u8 l3proto)
-@@ -591,13 +587,8 @@ static void nf_nat_l3proto_clean(u8 l3proto)
- 	struct nf_nat_proto_clean clean = {
- 		.l3proto = l3proto,
- 	};
--	struct net *net;
- 
--	rtnl_lock();
--
--	for_each_net(net)
--		nf_ct_iterate_cleanup_net(net, nf_nat_proto_remove, &clean, 0, 0);
--	rtnl_unlock();
-+	nf_ct_iterate_destroy(nf_nat_proto_remove, &clean);
- }
- 
- /* Protocol registration. */
-@@ -818,17 +809,6 @@ nfnetlink_parse_nat_setup(struct nf_conn *ct,
- }
- #endif
- 
--static void __net_exit nf_nat_net_exit(struct net *net)
--{
--	struct nf_nat_proto_clean clean = {};
--
--	nf_ct_iterate_cleanup_net(net, nf_nat_proto_clean, &clean, 0, 0);
--}
--
--static struct pernet_operations nf_nat_net_ops = {
--	.exit = nf_nat_net_exit,
--};
--
- static struct nf_ct_helper_expectfn follow_master_nat = {
- 	.name		= "nat-follow-master",
- 	.expectfn	= nf_nat_follow_master,
-@@ -849,10 +829,6 @@ static int __init nf_nat_init(void)
- 		return ret;
- 	}
- 
--	ret = register_pernet_subsys(&nf_nat_net_ops);
--	if (ret < 0)
--		goto cleanup_extend;
--
- 	nf_ct_helper_expectfn_register(&follow_master_nat);
- 
- 	BUG_ON(nfnetlink_parse_nat_setup_hook != NULL);
-@@ -863,18 +839,15 @@ static int __init nf_nat_init(void)
- 	RCU_INIT_POINTER(nf_nat_decode_session_hook, __nf_nat_decode_session);
- #endif
- 	return 0;
--
-- cleanup_extend:
--	rhltable_destroy(&nf_nat_bysource_table);
--	nf_ct_extend_unregister(&nat_extend);
--	return ret;
- }
- 
- static void __exit nf_nat_cleanup(void)
- {
-+	struct nf_nat_proto_clean clean = {};
- 	unsigned int i;
- 
--	unregister_pernet_subsys(&nf_nat_net_ops);
-+	nf_ct_iterate_destroy(nf_nat_proto_clean, &clean);
-+
- 	nf_ct_extend_unregister(&nat_extend);
- 	nf_ct_helper_expectfn_unregister(&follow_master_nat);
- 	RCU_INIT_POINTER(nfnetlink_parse_nat_setup_hook, NULL);
--- 
-2.13.0
+> BTW, I found another bug just now, but I don't have time to address it
+> right now:
+>
+> nf_nat_proto_clean() does:
+>
+> ct->status &= ~IPS_NAT_DONE_MASK;
 
+Yes, here we should use clear_bit(IPS_SRC_NAT_DONE_BIT, &ct->status);
+(For IPS_DST_NAT_DONE, we don't care about it, so we can
+leave it unchanged.)
+
+> Thats also broken(racy).  We have to audit all the non-atomic writes of
+> ct->status and change them to set/clear_bit()...
+
+I audited the related codes just now, this seems to be the last
+ct->status writer which use non-atomic bit operation(of course,
+except these unconfirmed ct->status writer).
+
+I will have a further and closer check. If you are not opposed to,
+I can send a related patch to fix this. :)
