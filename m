@@ -1,71 +1,33 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf] netfilter: nft_set_rbtree: handle re-addition element after deletion
-Date: Mon, 22 May 2017 00:17:30 +0200
-Message-ID: <1495405050-2332-1-git-send-email-pablo@netfilter.org>
-Cc: w.bumiller@proxmox.com
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57922 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756978AbdEUWRn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 May 2017 18:17:43 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2D40713BB82
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 May 2017 00:17:34 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1FA33FF2F1
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 May 2017 00:17:34 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F1E42DA870
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 May 2017 00:17:31 +0200 (CEST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: Re: [PATCH 00/12] Netfilter/IPVS fixes for net
+Date: Mon, 22 May 2017 00:25:38 +0200
+Message-ID: <20170521222538.GA2370@salvia>
+References: <1495182833-2272-1-git-send-email-pablo@netfilter.org>
+ <20170521.130033.1427773613973278051.davem@davemloft.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170521.130033.1427773613973278051.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The existing code selects no next branch to be inspected when
-re-inserting an inactive element into the rb-tree, looping endlessly.
-This patch restricts the check for active elements to the EEXIST case
-only.
+On Sun, May 21, 2017 at 01:00:33PM -0400, David Miller wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> Date: Fri, 19 May 2017 10:33:41 +0200
+> 
+> > The following patchset contains Netfilter/IPVS fixes for your net tree,
+> > they are:
+>  ...
+> > You can pull these changes from:
+> > 
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+> 
+> Pulled, thanks Pablo.
 
-Fixes: e701001e7cbe ("netfilter: nft_rbtree: allow adjacent intervals with dynamic updates")
-Reported-by: Wolfgang Bumiller <w.bumiller@proxmox.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_set_rbtree.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+Thanks David!
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index e97e2fb53f0a..fbdbaa00dd5f 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -116,17 +116,17 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 		else if (d > 0)
- 			p = &parent->rb_right;
- 		else {
--			if (nft_set_elem_active(&rbe->ext, genmask)) {
--				if (nft_rbtree_interval_end(rbe) &&
--				    !nft_rbtree_interval_end(new))
--					p = &parent->rb_left;
--				else if (!nft_rbtree_interval_end(rbe) &&
--					 nft_rbtree_interval_end(new))
--					p = &parent->rb_right;
--				else {
--					*ext = &rbe->ext;
--					return -EEXIST;
--				}
-+			if (nft_rbtree_interval_end(rbe) &&
-+			    !nft_rbtree_interval_end(new)) {
-+				p = &parent->rb_left;
-+			} else if (!nft_rbtree_interval_end(rbe) &&
-+				   nft_rbtree_interval_end(new)) {
-+				p = &parent->rb_right;
-+			} else if (nft_set_elem_active(&rbe->ext, genmask)) {
-+				*ext = &rbe->ext;
-+				return -EEXIST;
-+			} else {
-+				p = &parent->rb_left;
- 			}
- 		}
- 	}
--- 
-2.1.4
-
+Could you merge net into net-next as well? I have several patches for
+net-next that need to apply on these fixes. No rush BTW.
