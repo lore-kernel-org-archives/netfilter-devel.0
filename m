@@ -1,54 +1,47 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] extensions: libxt_hashlimit: fix 64-bit printf formats
-Date: Tue, 23 May 2017 23:11:48 +0200
-Message-ID: <20170523211148.GA8779@salvia>
-References: <1495116985-27115-1-git-send-email-alin.nastac@gmail.com>
+Subject: Re: [PATCH nft v3 0/7] switch l4 dependency to meta l4proto
+Date: Tue, 23 May 2017 23:21:46 +0200
+Message-ID: <20170523212146.GA8918@salvia>
+References: <20170519201111.7402-1-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Alin Nastac <alin.nastac@gmail.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38990 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40978 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1162002AbdEWVLx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 May 2017 17:11:53 -0400
+        id S1033373AbdEWVWF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 23 May 2017 17:22:05 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A0780E122C
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 May 2017 23:11:44 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 0FA4AE122E
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 May 2017 23:21:47 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 91A12FF2F1
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 May 2017 23:11:44 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 011A6FF2E2
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 May 2017 23:21:47 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7EE0DFF2F1
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 May 2017 23:11:42 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E49D318521
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 May 2017 23:21:44 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1495116985-27115-1-git-send-email-alin.nastac@gmail.com>
+In-Reply-To: <20170519201111.7402-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 18, 2017 at 04:16:25PM +0200, Alin Nastac wrote:
-> Furthermore, this extension use a mix of PRIu64 and %llu formats for
-> uint64_t values. IMO it should use only one, for the sake of consistency.
+On Fri, May 19, 2017 at 10:11:04PM +0200, Florian Westphal wrote:
+> Currently nft inserts different types of dependencies for l4 protocols,
+> depending on the family.
 > 
-> Signed-off-by: Alin Nastac <alin.nastac@gmail.com>
-> ---
->  extensions/libxt_hashlimit.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> For inet, nft inserts 'meta l4proto' to e.g. check for tcp, for
+> ip, nft uses 'ip protocol'. Both are fine.  The ip6 family however
+> uses 'ip6 nexthdr', and thats a problem because e.g. tcp dport 22 will
+> not match packets that use ipv6 extension headers.
 > 
-> diff --git a/extensions/libxt_hashlimit.c b/extensions/libxt_hashlimit.c
-> index 9e63e1e..970bad9 100644
-> --- a/extensions/libxt_hashlimit.c
-> +++ b/extensions/libxt_hashlimit.c
-> @@ -942,7 +942,7 @@ static void print_packets_rate_xlate(struct xt_xlate *xl, uint64_t avg,
->  		    _rates[i].mult / avg < _rates[i].mult % avg)
->  			break;
->  
-> -	xt_xlate_add(xl, " %llu/%s burst %lu packets",
-> +	xt_xlate_add(xl, " %"PRIu64"/%s burst %"PRIu64" packets",
->  		     _rates[i-1].mult / avg, _rates[i-1].name, burst);
+> The series switches both ipv6 and ipv4 to use meta l4 instead
+> so ipv6 will always check the last transport header value.
+> 
+> We could ignore ip as only ipv6 uses extension headers.
+> However, switching ipv4 as well makes things a bit simpler because nft
+> then creates the same l4 dependency for all families.
 
-Are there more spots that can be converted in this
-extensions/libxt_hashlimit.c file?
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-I see more %llu in spots for burst. If so, it would be great to fix
-them all.
+Thanks Florian.
