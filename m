@@ -1,63 +1,87 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: conntrack: fix false CRC32c mismatch using
- paged skb
-Date: Tue, 23 May 2017 23:29:09 +0200
-Message-ID: <20170523212909.GA9041@salvia>
-References: <f156034b4975584477c319a0946eb7adfc8d1e36.1495119678.git.dcaratti@redhat.com>
- <20170519084103.GA2512@salvia>
- <1495193970.2897.48.camel@redhat.com>
- <1495547465.3148.10.camel@redhat.com>
- <20170523193533.GA5009@salvia>
+Subject: Re: [PATCH nf] netfilter: ctnetlink: fix incorrect nf_ct_put during
+ hash resize
+Date: Tue, 23 May 2017 23:34:27 +0200
+Message-ID: <20170523213427.GA9071@salvia>
+References: <1495322569-63361-1-git-send-email-zlpnobody@163.com>
+ <20170521000047.GA1004@breakpoint.cc>
+ <CAML_gOdnZkbCp8JnVpd8bbeTQuhK7hMtQio4iuLQe137HxE_+g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-To: Davide Caratti <dcaratti@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, Liping Zhang <zlpnobody@163.com>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>
+To: Liping Zhang <zlpnobody@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42092 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42878 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1034109AbdEWV3X (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 May 2017 17:29:23 -0400
+        id S1031569AbdEWVer (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 23 May 2017 17:34:47 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E678EE1231
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 May 2017 23:29:09 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 19A65E1229
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 May 2017 23:34:39 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D8E3BFF2F1
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 May 2017 23:29:09 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 08EC7FF2F9
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 May 2017 23:34:39 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CD700FF2F6
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 May 2017 23:29:07 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E1E8BFF2C8
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 May 2017 23:34:36 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20170523193533.GA5009@salvia>
+In-Reply-To: <CAML_gOdnZkbCp8JnVpd8bbeTQuhK7hMtQio4iuLQe137HxE_+g@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 23, 2017 at 09:35:33PM +0200, Pablo Neira Ayuso wrote:
-> On Tue, May 23, 2017 at 03:51:05PM +0200, Davide Caratti wrote:
-> > hello Pablo,
-> > On Fri, 2017-05-19 at 13:39 +0200, Davide Caratti wrote:
-> > > On Fri, 2017-05-19 at 10:41 +0200, Pablo Neira Ayuso wrote:
-> > > > I mean, I can see other spots in the kernel tree that may be affected by this?
-> > > > Or is it that you're only observing this from a path that is specific
-> > > > of conntrack?
-> > > 
-> > > I did the check before posting, and the kernel code seemed to already
-> > > ensure skb is writable until SCTP header + sizeof(SCTP header) offset,
-> > > before calling sctp_compute_cksum(). Just to be sure, I re-did that check
-> > > today: besides nf_conntrack sctp_error(), I'm only doubtful about IPVS
-> > > sctp_csum_check() (but I don't have a test scenario yet).
-> > 
-> > looking at IPVS code: it seems to me that the only call to sctp_csum_check()
-> > is inside sctp_snat_handler(), after skb_make_writable() has returned
-> > successfully.  So, apparently misuse of sctp_compute_cksum() affects only
-> > nf_conntrack module in sctp_error() callback.
-> > 
-> > Maybe this patch needs 'Fixes: cf6e007eef83 ("netfilter: conntrack: validate
-> > SCTP crc32c in PREROUTING")' tag ?
+On Sun, May 21, 2017 at 08:59:45AM +0800, Liping Zhang wrote:
+> Hi Florian,
 > 
-> Thanks for explaining.
+> 2017-05-21 8:00 GMT+08:00 Florian Westphal <fw@strlen.de>:
+> [...]
+> > Yes, you're right, seems this was added in
+> > 93bb0ceb75be2fdfa9fc0dd1fb522d9ada515d9c (it adds the 'goto out').
 > 
-> I will append this "Fixes:" tag to this patch once I apply this.
+> I added some trace logs, and when the hash size reduced, for example,
+> from 60000 to 500, then the issue would happen.
+> 
+> Actually, hitting 'goto out' is not easy, so the issue exists for a very long
+> time. Maybe commit 89f2e21883b5("[NETFILTER]: ctnetlink: change
+> table dumping not to require an unique ID") is to blame for it.
+> 
+> > Your patch looks correct.
+> >
+> > However, why do we bump refcnt of 'last' in the first place?
+> >
+> > Its only the continuation marker, i.e. its expected to reside
+> > in the hash slot at cb->args[0], but after rehash this might not
+> > be true either.
+> >
+> > I think we should simplify this, just take the verbatim address,
+> > and clear it right at start of ctnetlink_dump_table, i.e.
+> >
+> > unsigned long last = cb->args[1];
+> > cb->args[1] = 0;
+> >
+> > for (; cb->args[0] < nf_conntrack_htable_size; cb->args[0]++) {
+> >          ...
+> >     hlist_nulls_for_each_entry ... {
+> >        ...
+> >        if (last) {
+> >             if (last != (unsigned long)ct))
+> >                cont;
+> >             last = 0;
+> >        }
+> >        ...
+> >        dump();
+> >     }
+> >     last = 0; /* reset it, as it wasn't in args[0] slot */
+> >  }
+> >
+> > Do you see any problem with that?
+> 
+> I think this will be better, this will make code more clean.
+> Also we can clean up the ctnetlink_exp_ct_dump_table too.
 
-Applied, thanks.
+@Florian, no objection then if I place this into nf.git?
+
+I will append the Fixes: tag:
+
+Fixes: 89f2e21883b5 ("[NETFILTER]: ctnetlink: change table dumping not to require an unique ID")
