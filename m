@@ -1,76 +1,61 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH 0/4 RFC] Support IPv6 AH header matches
-Date: Wed, 24 May 2017 12:36:42 +0200
-Message-ID: <20170524103642.GA23278@salvia>
-References: <20170522164936.28034-1-phil@nwl.cc>
+Subject: Re: [PATCH nf] netfilter: ctnetlink: fix incorrect nf_ct_put during
+ hash resize
+Date: Wed, 24 May 2017 12:24:44 +0200
+Message-ID: <20170524102444.GA23086@salvia>
+References: <1495322569-63361-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Phil Sutter <phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48382 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39524 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S939515AbdEXKgr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 May 2017 06:36:47 -0400
+        id S969405AbdEXKYu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 24 May 2017 06:24:50 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 269031EF5E7
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 12:36:39 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 25A461EF5E5
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 12:24:41 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1557E6E7AB
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 12:36:39 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 164E0FF2F6
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 12:24:41 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0929918500
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 12:36:37 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E9F1710078E
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 12:24:38 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20170522164936.28034-1-phil@nwl.cc>
+In-Reply-To: <1495322569-63361-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, May 22, 2017 at 06:49:32PM +0200, Phil Sutter wrote:
-> The following series allows users to match on IPv6 AH header fields. I
-> consider this a bit of a hack since it's the "cheap" solution. As to why
-> this is, let me first picture the problem once again:
+On Sun, May 21, 2017 at 07:22:49AM +0800, Liping Zhang wrote:
+> From: Liping Zhang <zlpnobody@gmail.com>
 > 
-> AH header is an extension header in IPv6 land. This means in order to
-> find it, one has to use ip6_find_hdr() (in kernel space) since
-> pkt->xt.thoff (which payload expression uses) points past extension
-> headers in IPv6 packets. So while the existing AH header match for IPv4
-> uses payload expression, a theoretical one for IPv6 has to use exthdr
-> expression.
+> If nf_conntrack_htable_size was adjusted by the user during the ct
+> dump operation, we may invoke nf_ct_put twice for the same ct, i.e.
+> the "last" ct. This will cause the ct will be freed but still linked
+> in hash buckets.
 > 
-> Expressions are constructed in user space at rule creation time, so it
-> is not always clear which packet family they will get applied to (see
-> inet or bridge family tables).
+> It's very easy to reproduce the problem by the following commands:
+>   # while : ; do
+>   echo $RANDOM > /proc/sys/net/netfilter/nf_conntrack_buckets
+>   done
+>   # while : ; do
+>   conntrack -L
+>   done
+>   # iperf -s 127.0.0.1 &
+>   # iperf -c 127.0.0.1 -P 60 -t 36000
 > 
-> I see two alternatives for solving this situation: The better one is to
-> allow the kernel to choose the right expression (payload or exthdr)
-> depending on IP address family when searching the AH header. The other
-> one is presented here: Userspace demands the user to clarify which IP
-> address family an AH header match should apply to, so it can create the
-> right expression for the job.
+> After a while, the system will hang like this:
+>   NMI watchdog: BUG: soft lockup - CPU#1 stuck for 22s! [bash:20184]
+>   NMI watchdog: BUG: soft lockup - CPU#0 stuck for 22s! [iperf:20382]
+>   ...
 > 
-> For the sake of simplicity, in this implementation I went without some
-> kind of placeholder expression but just convert the parser-generated
-> payload expression into an exthdr one if protocol context states layer 3
-> is IPv6.
-> 
-> I looked at netlink debug output and the following commands seem to turn
-> out right:
-> 
-> | $ nft add rule ip t c ah spi 2	# ip table family
-> | $ nft add rule ip6 t c ah spi 2	# ip6 table family
-> | $ nft add rule inet t c ip6 version 6 ah spi 2
-> | $ nft add rule inet t c ip version 4 ah spi 2
-> 
-> There are still a few oddities here: E.g. 'meta protocol ip6' is not
-> sufficient since that doesn't create a protocol dependency, hence why I
-> used the somewhat redundant 'ip6 version 6' match instead. So if we
-> decide to use the solution proposed here, I'd suggest do patch up meta
-> expression to generate the dependency as well.
+> So at last if we find cb->args[1] is equal to "last", this means hash
+> resize happened, then we can set cb->args[1] to 0 to fix the above
+> issue.
 
-We fixed this from the kernel side, so both IPv4 and IPv6 meta l4proto
-says ah. And transport offsets are set to the AH header.
+Applied, thanks.
 
-So the code we already have should work out of the box.
+I have added:
 
-Am I missing anything?
+Fixes: d205dc40798d ("[NETFILTER]: ctnetlink: fix deadlock in table dumping")
