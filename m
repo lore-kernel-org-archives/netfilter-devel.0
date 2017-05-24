@@ -1,10 +1,10 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/6 RFC] netfilter: normalize x_table function
- declarations
-Date: Wed, 24 May 2017 19:37:31 +0200
-Message-ID: <20170524173731.GC7439@salvia>
+From: Richard Guy Briggs <rgb@redhat.com>
+Subject: Re: [PATCH 6/6 RFC] netfilter: add audit netns ID
+Date: Wed, 24 May 2017 14:04:03 -0400
+Message-ID: <20170524180403.GK6203@madcap2.tricolour.ca>
 References: <cover.1495124188.git.rgb@redhat.com>
- <d7a00d229e93586d0aed5950d79e95f3d552dae6.1495124188.git.rgb@redhat.com>
+ <c19c5f9a2b5bf8d43ced7a0a10d2da80934f242a.1495124188.git.rgb@redhat.com>
+ <20170524173106.GA7439@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Netfilter Developer Mailing List
@@ -13,36 +13,69 @@ Cc: Netfilter Developer Mailing List
         Thomas Woerner <twoerner@redhat.com>,
         Thomas Graf <tgraf@infradead.org>,
         Eric Paris <eparis@redhat.com>, Paul Moore <pmoore@redhat.com>,
-        Steve Grubb <sgrubb@redhat.com>
-To: Richard Guy Briggs <rgb@redhat.com>
+        Steve Grubb <sgrubb@redhat.com>,
+        "Eric W. Biederman" <ebiederm@xmission.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48588 "EHLO mail.us.es"
+Received: from mx1.redhat.com ([209.132.183.28]:54358 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753880AbdEXRhj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 May 2017 13:37:39 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id BEF42DFF26
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 19:37:30 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9A9051021A6
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 19:37:30 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 07BFD1021A4
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 19:37:26 +0200 (CEST)
+        id S1754408AbdEXSEQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 24 May 2017 14:04:16 -0400
 Content-Disposition: inline
-In-Reply-To: <d7a00d229e93586d0aed5950d79e95f3d552dae6.1495124188.git.rgb@redhat.com>
+In-Reply-To: <20170524173106.GA7439@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 18, 2017 at 01:21:47PM -0400, Richard Guy Briggs wrote:
-> Git context diffs were being produced with unhelpful declaration types in the
-> place of function names to help identify the funciton in which changes were
-> made.
+On 2017-05-24 19:31, Pablo Neira Ayuso wrote:
+> Cc'ing Eric Biederman.
 > 
-> Normalize x_table function declarations so that git context diff function
-> labels work as expected.
+> On Thu, May 18, 2017 at 01:21:52PM -0400, Richard Guy Briggs wrote:
+> > diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+> > index 59b63a8..0f77b2a 100644
+> > --- a/net/bridge/netfilter/ebtables.c
+> > +++ b/net/bridge/netfilter/ebtables.c
+> > @@ -27,6 +27,7 @@
+> >  #include <linux/smp.h>
+> >  #include <linux/cpumask.h>
+> >  #include <linux/audit.h>
+> > +#define PROC_DYNAMIC_FIRST 0xF0000000U
+> >  #include <net/sock.h>
+> >  /* needed for logical [in,out]-dev filtering */
+> >  #include "../br_private.h"
+> > @@ -1075,7 +1076,8 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
+> >  			ab = audit_log_start(current->audit_context, GFP_KERNEL,
+> >  					     AUDIT_NETFILTER_CFG);
+> >  			if (ab) {
+> > -				audit_log_format(ab, "op=replace family=%u table=%s entries=%u",
+> > +				audit_log_format(ab, "op=replace net=%u family=%u table=%s entries=%u",
+> > +						 net->ns.inum - PROC_DYNAMIC_FIRST,
+> 
+> IIRC, there was a discussion on exposing netns i-node number to
+> userspace time ago on netdev and Eric Biederman was not happy about
+> this?
 
-I know of people that usually complain on this cleanups, since they
-just add extra work to backports.
+He was not happy about it being exposed in the /proc filesystem.  We've
+been talking since then and while we've not come to a definitive
+conclusion there is a communication channel open.
 
-But I have no major objection to this if you want to push it forward.
+This is more of an RFC patch than the rest of this set and I didn't
+seriously expect this one to be accepted, I did want to present the idea
+to see if there were concerns or better ideas generated how to
+differentiate this record from a seemingly identical one.  The only
+other ID would be the network namespace' struct pointer.
+
+At this stage, one thing that is missing is a device number to qualify
+this namespace ID.
+
+Once I started printing the namespace proc inode number (minus the
+starting offset) in decimal, it was very clear what was happenning and
+seemed worth sharing that debugging tool patch.
+
+- RGB
+
+--
+Richard Guy Briggs <rgb@redhat.com>
+Sr. S/W Engineer, Kernel Security, Base Operating Systems
+Remote, Ottawa, Red Hat Canada
+IRC: rgb, SunRaycer
+Voice: +1.647.777.2635, Internal: (81) 32635
