@@ -1,78 +1,89 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 1/9] netfilter: nft_set_hash: unnecessary forward declaration
-Date: Wed, 24 May 2017 11:50:45 +0200
-Message-ID: <1495619453-22307-2-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next 2/9] netfilter: nf_tables: no size estimation if number of set elements is unknown
+Date: Wed, 24 May 2017 11:50:46 +0200
+Message-ID: <1495619453-22307-3-git-send-email-pablo@netfilter.org>
 References: <1495619453-22307-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41162 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41172 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S936649AbdEXJvI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S936713AbdEXJvI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 24 May 2017 05:51:08 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C61741EC2C0
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:50:58 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 6CB841EC2C3
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:50:59 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B5D14100A6E
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:50:58 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5BC43102185
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:50:59 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 39F04100A45
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:50:56 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4661AFF137
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:50:57 +0200 (CEST)
 In-Reply-To: <1495619453-22307-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Replace struct rhashtable_params forward declaration by the structure
-definition itself.
+This size estimation is ignored by the existing set backend selection
+logic, since this estimation structure is stack allocated, set this to
+~0 to make it easier to catch bugs in future changes.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_hash.c | 18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ net/netfilter/nft_set_hash.c   | 17 ++++-------------
+ net/netfilter/nft_set_rbtree.c |  8 +++-----
+ 2 files changed, 7 insertions(+), 18 deletions(-)
 
 diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 3d3a6df4ce70..850be3a00e62 100644
+index 850be3a00e62..1f1cc33895fd 100644
 --- a/net/netfilter/nft_set_hash.c
 +++ b/net/netfilter/nft_set_hash.c
-@@ -40,8 +40,6 @@ struct nft_hash_cmp_arg {
- 	u8				genmask;
- };
- 
--static const struct rhashtable_params nft_hash_params;
--
- static inline u32 nft_hash_key(const void *data, u32 len, u32 seed)
+@@ -365,22 +365,13 @@ static void nft_hash_destroy(const struct nft_set *set)
+ static bool nft_hash_estimate(const struct nft_set_desc *desc, u32 features,
+ 			      struct nft_set_estimate *est)
  {
- 	const struct nft_hash_cmp_arg *arg = data;
-@@ -71,6 +69,14 @@ static inline int nft_hash_cmp(struct rhashtable_compare_arg *arg,
- 	return 0;
- }
- 
-+static const struct rhashtable_params nft_hash_params = {
-+	.head_offset		= offsetof(struct nft_hash_elem, node),
-+	.hashfn			= nft_hash_key,
-+	.obj_hashfn		= nft_hash_obj,
-+	.obj_cmpfn		= nft_hash_cmp,
-+	.automatic_shrinking	= true,
-+};
-+
- static bool nft_hash_lookup(const struct net *net, const struct nft_set *set,
- 			    const u32 *key, const struct nft_set_ext **ext)
- {
-@@ -320,14 +326,6 @@ static unsigned int nft_hash_privsize(const struct nlattr * const nla[])
- 	return sizeof(struct nft_hash);
- }
- 
--static const struct rhashtable_params nft_hash_params = {
--	.head_offset		= offsetof(struct nft_hash_elem, node),
--	.hashfn			= nft_hash_key,
--	.obj_hashfn		= nft_hash_obj,
--	.obj_cmpfn		= nft_hash_cmp,
--	.automatic_shrinking	= true,
--};
+-	unsigned int esize;
 -
- static int nft_hash_init(const struct nft_set *set,
- 			 const struct nft_set_desc *desc,
- 			 const struct nlattr * const tb[])
+-	esize = sizeof(struct nft_hash_elem);
+-	if (desc->size) {
++	if (desc->size)
+ 		est->size = sizeof(struct nft_hash) +
+ 			    roundup_pow_of_two(desc->size * 4 / 3) *
+ 			    sizeof(struct nft_hash_elem *) +
+-			    desc->size * esize;
+-	} else {
+-		/* Resizing happens when the load drops below 30% or goes
+-		 * above 75%. The average of 52.5% load (approximated by 50%)
+-		 * is used for the size estimation of the hash buckets,
+-		 * meaning we calculate two buckets per element.
+-		 */
+-		est->size = esize + 2 * sizeof(struct nft_hash_elem *);
+-	}
++			    desc->size * sizeof(struct nft_hash_elem);
++	else
++		est->size = ~0;
+ 
+ 	est->lookup = NFT_SET_CLASS_O_1;
+ 	est->space  = NFT_SET_CLASS_O_N;
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index e97e2fb53f0a..fbfb3cbb3916 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -283,13 +283,11 @@ static void nft_rbtree_destroy(const struct nft_set *set)
+ static bool nft_rbtree_estimate(const struct nft_set_desc *desc, u32 features,
+ 				struct nft_set_estimate *est)
+ {
+-	unsigned int nsize;
+-
+-	nsize = sizeof(struct nft_rbtree_elem);
+ 	if (desc->size)
+-		est->size = sizeof(struct nft_rbtree) + desc->size * nsize;
++		est->size = sizeof(struct nft_rbtree) +
++			    desc->size * sizeof(struct nft_rbtree_elem);
+ 	else
+-		est->size = nsize;
++		est->size = ~0;
+ 
+ 	est->lookup = NFT_SET_CLASS_O_LOG_N;
+ 	est->space  = NFT_SET_CLASS_O_N;
 -- 
 2.1.4
 
