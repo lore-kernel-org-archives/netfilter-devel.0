@@ -1,70 +1,81 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 9/9,v2] netfilter: nft_set_hash: add lookup variant for fixed size hashtable
-Date: Wed, 24 May 2017 18:39:10 +0200
-Message-ID: <1495643950-6543-2-git-send-email-pablo@netfilter.org>
-References: <1495643950-6543-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next 8/9,v2] netfilter: nft_set_hash: add non-resizable hashtable implementation
+Date: Wed, 24 May 2017 18:39:09 +0200
+Message-ID: <1495643950-6543-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53980 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:54000 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1761981AbdEXQjW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 May 2017 12:39:22 -0400
+        id S1763825AbdEXQjX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 24 May 2017 12:39:23 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 1BEFFDFE26
+        by mail.us.es (Postfix) with ESMTP id 7104CDFE37
         for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 18:39:14 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0D170FF2CE
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 546BE1852E
         for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 18:39:14 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B72891852E
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 18:39:11 +0200 (CEST)
-In-Reply-To: <1495643950-6543-1-git-send-email-pablo@netfilter.org>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6D554102181
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 18:39:10 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch provides a faster variant of the lookup function for 2 and 4
-byte keys. Optimizing the one byte case is not worth, as the set backend
-selection will always select the bitmap set type for such case.
+This patch adds a simple non-resizable hashtable implementation. If the
+user specifies the set size, then this new faster hashtable flavour is
+selected.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 v2: missing rcu read side lock.
 
- net/netfilter/nft_set_hash.c | 60 ++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 58 insertions(+), 2 deletions(-)
+ net/netfilter/nft_set_hash.c | 210 +++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 202 insertions(+), 8 deletions(-)
 
 diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index b2eab94362d6..0fa01d772c5e 100644
+index 466cb7092dfa..b2eab94362d6 100644
 --- a/net/netfilter/nft_set_hash.c
 +++ b/net/netfilter/nft_set_hash.c
-@@ -409,6 +409,38 @@ static bool nft_hash_lookup(const struct net *net, const struct nft_set *set,
- 	return false;
- }
- 
-+/* nft_hash_select_ops() makes sure key size can be either 2 or 4 bytes . */
-+static inline u32 nft_hash_key(const u32 *key, u32 klen)
-+{
-+	if (klen == 4)
-+		return *key;
+@@ -371,14 +371,181 @@ static u32 nft_hash_buckets(u32 size)
+ static bool nft_rhash_estimate(const struct nft_set_desc *desc, u32 features,
+ 			       struct nft_set_estimate *est)
+ {
+-	if (desc->size)
+-		est->size = sizeof(struct nft_rhash) +
+-			    nft_hash_buckets(desc->size) *
+-			    sizeof(struct nft_rhash_elem *) +
+-			    desc->size * sizeof(struct nft_rhash_elem);
+-	else
+-		est->size = ~0;
++	est->size   = ~0;
++	est->lookup = NFT_SET_CLASS_O_1;
++	est->space  = NFT_SET_CLASS_O_N;
 +
-+	return *(u16 *)key;
++	return true;
 +}
 +
-+static bool nft_hash_lookup_fast(const struct net *net,
-+				 const struct nft_set *set,
-+				 const u32 *key, const struct nft_set_ext **ext)
++struct nft_hash {
++	u32				seed;
++	u32				buckets;
++	struct hlist_head		table[];
++};
++
++struct nft_hash_elem {
++	struct hlist_node		node;
++	struct nft_set_ext		ext;
++};
++
++static bool nft_hash_lookup(const struct net *net, const struct nft_set *set,
++			    const u32 *key, const struct nft_set_ext **ext)
 +{
 +	struct nft_hash *priv = nft_set_priv(set);
 +	u8 genmask = nft_genmask_cur(net);
 +	const struct nft_hash_elem *he;
-+	u32 hash, k1, k2;
++	u32 hash;
 +
-+	k1 = nft_hash_key(key, set->klen);
-+	hash = jhash_1word(k1, priv->seed);
++	hash = jhash(key, set->klen, priv->seed);
 +	hash = reciprocal_scale(hash, priv->buckets);
 +	hlist_for_each_entry_rcu(he, &priv->table[hash], node) {
-+		k2 = nft_hash_key(nft_set_ext_key(&he->ext)->data, set->klen);
-+		if (k1 == k2 &&
++		if (!memcmp(nft_set_ext_key(&he->ext), key, set->klen) &&
 +		    nft_set_elem_active(&he->ext, genmask)) {
 +			*ext = &he->ext;
 +			return true;
@@ -73,14 +84,151 @@ index b2eab94362d6..0fa01d772c5e 100644
 +	return false;
 +}
 +
- static int nft_hash_insert(const struct net *net, const struct nft_set *set,
- 			   const struct nft_set_elem *elem,
- 			   struct nft_set_ext **ext)
-@@ -588,12 +620,36 @@ static struct nft_set_ops nft_hash_ops __read_mostly = {
- 	.features	= NFT_SET_MAP | NFT_SET_OBJECT,
++static int nft_hash_insert(const struct net *net, const struct nft_set *set,
++			   const struct nft_set_elem *elem,
++			   struct nft_set_ext **ext)
++{
++	struct nft_hash_elem *this = elem->priv, *he;
++	struct nft_hash *priv = nft_set_priv(set);
++	u8 genmask = nft_genmask_next(net);
++	u32 hash;
++
++	hash = jhash(nft_set_ext_key(&this->ext), set->klen, priv->seed);
++	hash = reciprocal_scale(hash, priv->buckets);
++	hlist_for_each_entry(he, &priv->table[hash], node) {
++		if (!memcmp(nft_set_ext_key(&this->ext),
++			    nft_set_ext_key(&he->ext), set->klen) &&
++		    nft_set_elem_active(&he->ext, genmask)) {
++			*ext = &he->ext;
++			return -EEXIST;
++		}
++	}
++	hlist_add_head_rcu(&this->node, &priv->table[hash]);
++	return 0;
++}
++
++static void nft_hash_activate(const struct net *net, const struct nft_set *set,
++			      const struct nft_set_elem *elem)
++{
++	struct nft_hash_elem *he = elem->priv;
++
++	nft_set_elem_change_active(net, set, &he->ext);
++}
++
++static bool nft_hash_flush(const struct net *net,
++			   const struct nft_set *set, void *priv)
++{
++	struct nft_hash_elem *he = priv;
++
++	nft_set_elem_change_active(net, set, &he->ext);
++	return true;
++}
++
++static void *nft_hash_deactivate(const struct net *net,
++				 const struct nft_set *set,
++				 const struct nft_set_elem *elem)
++{
++	struct nft_hash *priv = nft_set_priv(set);
++	struct nft_hash_elem *this = elem->priv, *he;
++	u8 genmask = nft_genmask_next(net);
++	u32 hash;
++
++	hash = jhash(nft_set_ext_key(&this->ext), set->klen, priv->seed);
++	hash = reciprocal_scale(hash, priv->buckets);
++	hlist_for_each_entry(he, &priv->table[hash], node) {
++		if (!memcmp(nft_set_ext_key(&this->ext), &elem->key.val,
++			    set->klen) ||
++		    nft_set_elem_active(&he->ext, genmask)) {
++			nft_set_elem_change_active(net, set, &he->ext);
++			return he;
++		}
++	}
++	return NULL;
++}
++
++static void nft_hash_remove(const struct net *net,
++			    const struct nft_set *set,
++			    const struct nft_set_elem *elem)
++{
++	struct nft_hash_elem *he = elem->priv;
++
++	hlist_del_rcu(&he->node);
++}
++
++static void nft_hash_walk(const struct nft_ctx *ctx, struct nft_set *set,
++			  struct nft_set_iter *iter)
++{
++	struct nft_hash *priv = nft_set_priv(set);
++	struct nft_hash_elem *he;
++	struct nft_set_elem elem;
++	int i;
++
++	for (i = 0; i < priv->buckets; i++) {
++		hlist_for_each_entry_rcu(he, &priv->table[i], node) {
++			if (iter->count < iter->skip)
++				goto cont;
++			if (!nft_set_elem_active(&he->ext, iter->genmask))
++				goto cont;
++
++			elem.priv = he;
++
++			iter->err = iter->fn(ctx, set, iter, &elem);
++			if (iter->err < 0)
++				return;
++cont:
++			iter->count++;
++		}
++	}
++}
++
++static unsigned int nft_hash_privsize(const struct nlattr * const nla[],
++				      const struct nft_set_desc *desc)
++{
++	return sizeof(struct nft_hash) +
++	       nft_hash_buckets(desc->size) * sizeof(struct hlist_head);
++}
++
++static int nft_hash_init(const struct nft_set *set,
++			 const struct nft_set_desc *desc,
++			 const struct nlattr * const tb[])
++{
++	struct nft_hash *priv = nft_set_priv(set);
++
++	priv->buckets = nft_hash_buckets(desc->size);
++	get_random_bytes(&priv->seed, sizeof(priv->seed));
++
++	return 0;
++}
++
++static void nft_hash_destroy(const struct nft_set *set)
++{
++	struct nft_hash *priv = nft_set_priv(set);
++	struct nft_hash_elem *he;
++	struct hlist_node *next;
++	int i;
++
++	for (i = 0; i < priv->buckets; i++) {
++		hlist_for_each_entry_safe(he, next, &priv->table[i], node) {
++			hlist_del_rcu(&he->node);
++			nft_set_elem_destroy(set, he, true);
++		}
++	}
++}
+ 
++static bool nft_hash_estimate(const struct nft_set_desc *desc, u32 features,
++			      struct nft_set_estimate *est)
++{
++	est->size   = sizeof(struct nft_hash) +
++		      nft_hash_buckets(desc->size) * sizeof(struct hlist_head) +
++		      desc->size * sizeof(struct nft_hash_elem);
+ 	est->lookup = NFT_SET_CLASS_O_1;
+ 	est->space  = NFT_SET_CLASS_O_N;
+ 
+@@ -404,8 +571,35 @@ static struct nft_set_ops nft_rhash_ops __read_mostly = {
+ 	.features	= NFT_SET_MAP | NFT_SET_OBJECT | NFT_SET_TIMEOUT,
  };
  
-+static struct nft_set_ops nft_hash_fast_ops __read_mostly = {
++static struct nft_set_ops nft_hash_ops __read_mostly = {
 +	.type		= &nft_hash_type,
 +	.privsize       = nft_hash_privsize,
 +	.elemsize	= offsetof(struct nft_hash_elem, ext),
@@ -92,29 +240,27 @@ index b2eab94362d6..0fa01d772c5e 100644
 +	.deactivate	= nft_hash_deactivate,
 +	.flush		= nft_hash_flush,
 +	.remove		= nft_hash_remove,
-+	.lookup		= nft_hash_lookup_fast,
++	.lookup		= nft_hash_lookup,
 +	.walk		= nft_hash_walk,
 +	.features	= NFT_SET_MAP | NFT_SET_OBJECT,
 +};
 +
- static const struct nft_set_ops *
- nft_hash_select_ops(const struct nft_ctx *ctx, const struct nft_set_desc *desc,
- 		    u32 flags)
- {
--	if (desc->size)
--		return &nft_hash_ops;
-+	if (desc->size) {
-+		switch (desc->klen) {
-+		case 2:
-+		case 4:
-+			return &nft_hash_fast_ops;
-+		default:
-+			return &nft_hash_ops;
-+		}
-+	}
++static const struct nft_set_ops *
++nft_hash_select_ops(const struct nft_ctx *ctx, const struct nft_set_desc *desc,
++		    u32 flags)
++{
++	if (desc->size)
++		return &nft_hash_ops;
++
++	return &nft_rhash_ops;
++}
++
+ static struct nft_set_type nft_hash_type __read_mostly = {
+-	.ops		= &nft_rhash_ops,
++	.select_ops	= nft_hash_select_ops,
+ 	.owner		= THIS_MODULE,
+ };
  
- 	return &nft_rhash_ops;
- }
 -- 
 2.1.4
 
