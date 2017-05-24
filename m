@@ -1,68 +1,120 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] extensions: libxt_cluster: Add translation to nft
-Date: Wed, 24 May 2017 18:05:22 +0200
-Message-ID: <20170524160522.GA25268@salvia>
-References: <1495629111-8206-1-git-send-email-mayhs11saini@gmail.com>
- <20170524154419.GA24697@salvia>
- <20170524154615.GB32408@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Shyam Saini <mayhs11saini@gmail.com>,
-        netfilter-devel@vger.kernel.org, arturo@debian.org
-To: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 9/9,v2] netfilter: nft_set_hash: add lookup variant for fixed size hashtable
+Date: Wed, 24 May 2017 18:39:10 +0200
+Message-ID: <1495643950-6543-2-git-send-email-pablo@netfilter.org>
+References: <1495643950-6543-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38796 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53980 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965420AbdEXQFb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 May 2017 12:05:31 -0400
+        id S1761981AbdEXQjW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 24 May 2017 12:39:22 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3F8FCDFE36
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 18:05:23 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 1BEFFDFE26
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 18:39:14 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3226F100A47
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 18:05:23 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0D170FF2CE
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 18:39:14 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F3C6F100796
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 18:05:20 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20170524154615.GB32408@breakpoint.cc>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B72891852E
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 18:39:11 +0200 (CEST)
+In-Reply-To: <1495643950-6543-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, May 24, 2017 at 05:46:15PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Wed, May 24, 2017 at 06:01:51PM +0530, Shyam Saini wrote:
-> > > Add translation for cluster to nft
-> > 
-> > I think this should be:
-> > 
-> >         -m cluster --cluster-total-nodes 2 --cluster-local-node 1 --cluster-hash-seed 0xdeadbeef
-> > 
-> > should be translated to:
-> > 
-> >         jhash ct original saddr mod 2 seed 0xdeadbeef eq 0
-> > 
-> > if --cluster-local-node is 2, then:
-> > 
-> >         jhash ct original saddr mod 2 seed 0xdeadbeef eq 1
-> 
-> Looks good.  But I think we need to take care of mangling pkttype as
-> well, right?
+This patch provides a faster variant of the lookup function for 2 and 4
+byte keys. Optimizing the one byte case is not worth, as the set backend
+selection will always select the bitmap set type for such case.
 
-We should if we want to 1:1 translation, yes.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: missing rcu read side lock.
 
-Actually, if we rely on the nft arp mac address mangling (to use
-multicast ethernet address, ie. RFC violation to cheat dummy switch
-just in case you need this to get a packet flooded to two ports), we
-could just do this upfront in the ruleset, ie.
+ net/netfilter/nft_set_hash.c | 60 ++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 58 insertions(+), 2 deletions(-)
 
-        ether daddr 01:00:5e:00:01:01 meta set pkttype host
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index b2eab94362d6..0fa01d772c5e 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -409,6 +409,38 @@ static bool nft_hash_lookup(const struct net *net, const struct nft_set *set,
+ 	return false;
+ }
+ 
++/* nft_hash_select_ops() makes sure key size can be either 2 or 4 bytes . */
++static inline u32 nft_hash_key(const u32 *key, u32 klen)
++{
++	if (klen == 4)
++		return *key;
++
++	return *(u16 *)key;
++}
++
++static bool nft_hash_lookup_fast(const struct net *net,
++				 const struct nft_set *set,
++				 const u32 *key, const struct nft_set_ext **ext)
++{
++	struct nft_hash *priv = nft_set_priv(set);
++	u8 genmask = nft_genmask_cur(net);
++	const struct nft_hash_elem *he;
++	u32 hash, k1, k2;
++
++	k1 = nft_hash_key(key, set->klen);
++	hash = jhash_1word(k1, priv->seed);
++	hash = reciprocal_scale(hash, priv->buckets);
++	hlist_for_each_entry_rcu(he, &priv->table[hash], node) {
++		k2 = nft_hash_key(nft_set_ext_key(&he->ext)->data, set->klen);
++		if (k1 == k2 &&
++		    nft_set_elem_active(&he->ext, genmask)) {
++			*ext = &he->ext;
++			return true;
++		}
++	}
++	return false;
++}
++
+ static int nft_hash_insert(const struct net *net, const struct nft_set *set,
+ 			   const struct nft_set_elem *elem,
+ 			   struct nft_set_ext **ext)
+@@ -588,12 +620,36 @@ static struct nft_set_ops nft_hash_ops __read_mostly = {
+ 	.features	= NFT_SET_MAP | NFT_SET_OBJECT,
+ };
+ 
++static struct nft_set_ops nft_hash_fast_ops __read_mostly = {
++	.type		= &nft_hash_type,
++	.privsize       = nft_hash_privsize,
++	.elemsize	= offsetof(struct nft_hash_elem, ext),
++	.estimate	= nft_hash_estimate,
++	.init		= nft_hash_init,
++	.destroy	= nft_hash_destroy,
++	.insert		= nft_hash_insert,
++	.activate	= nft_hash_activate,
++	.deactivate	= nft_hash_deactivate,
++	.flush		= nft_hash_flush,
++	.remove		= nft_hash_remove,
++	.lookup		= nft_hash_lookup_fast,
++	.walk		= nft_hash_walk,
++	.features	= NFT_SET_MAP | NFT_SET_OBJECT,
++};
++
+ static const struct nft_set_ops *
+ nft_hash_select_ops(const struct nft_ctx *ctx, const struct nft_set_desc *desc,
+ 		    u32 flags)
+ {
+-	if (desc->size)
+-		return &nft_hash_ops;
++	if (desc->size) {
++		switch (desc->klen) {
++		case 2:
++		case 4:
++			return &nft_hash_fast_ops;
++		default:
++			return &nft_hash_ops;
++		}
++	}
+ 
+ 	return &nft_rhash_ops;
+ }
+-- 
+2.1.4
 
-Using the mac address that we set to arp replies, instead of blind
-mangling the mac address.
-
-Anyway, yes, something like:
-
-         jhash ct original saddr mod 2 seed 0xdeadbeef eq 0 meta pkttype set host
-
-should be good enough.
