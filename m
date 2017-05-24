@@ -1,75 +1,52 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 1/3] rule: adjust set expression size accordingly with intervals
-Date: Wed, 24 May 2017 11:53:16 +0200
-Message-ID: <1495619598-22759-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 2/3] segtree: reset element size counter before adding intervals to set
+Date: Wed, 24 May 2017 11:53:17 +0200
+Message-ID: <1495619598-22759-2-git-send-email-pablo@netfilter.org>
+References: <1495619598-22759-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42614 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42638 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932854AbdEXJxd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 May 2017 05:53:33 -0400
+        id S936744AbdEXJxf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 24 May 2017 05:53:35 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 1F8D81EC2C7
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:53:25 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 6C55D1EC2C1
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:53:27 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 122CBFF6F6
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:53:25 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5C5C5100A46
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:53:27 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9D896100796
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:53:22 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 41406FF6F9
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:53:25 +0200 (CEST)
+In-Reply-To: <1495619598-22759-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-For implicit sets, we have to call set_to_intervals() before we add the
-set so we have the net size in elements.
+Otherwise we get double the real size in terms of set elements during
+the interval expansion to individual elements.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/rule.c | 17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ src/segtree.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/src/rule.c b/src/rule.c
-index 5923bf64101e..0d9e393ab26f 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -914,10 +914,6 @@ static int do_add_chain(struct netlink_ctx *ctx, const struct handle *h,
- static int __do_add_setelems(struct netlink_ctx *ctx, const struct handle *h,
- 			     struct set *set, struct expr *expr, bool excl)
- {
--	if (set->flags & NFT_SET_INTERVAL &&
--	    set_to_intervals(ctx->msgs, set, expr, true) < 0)
--		return -1;
--
- 	expr->set_flags |= set->flags;
- 	if (netlink_add_setelems(ctx, h, expr, excl) < 0)
+diff --git a/src/segtree.c b/src/segtree.c
+index 8df82a801ae4..15e8849cd684 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -552,6 +552,7 @@ int set_to_intervals(struct list_head *errs, struct set *set,
  		return -1;
-@@ -934,18 +930,27 @@ static int do_add_setelems(struct netlink_ctx *ctx, const struct handle *h,
- 	table = table_lookup(h);
- 	set = set_lookup(table, h->set);
+ 	segtree_linearize(&list, set, init, &tree, add);
  
-+	if (set->flags & NFT_SET_INTERVAL &&
-+	    set_to_intervals(ctx->msgs, set, init, true) < 0)
-+		return -1;
++	init->size = 0;
+ 	list_for_each_entry_safe(ei, next, &list, list) {
+ 		if (segtree_debug()) {
+ 			pr_gmp_debug("list: [%.*Zx %.*Zx]\n",
+@@ -566,6 +567,7 @@ int set_to_intervals(struct list_head *errs, struct set *set,
+ 		expr_print(init);
+ 		pr_gmp_debug("\n");
+ 	}
 +
- 	return __do_add_setelems(ctx, h, set, init, excl);
- }
- 
- static int do_add_set(struct netlink_ctx *ctx, const struct handle *h,
- 		      struct set *set, bool excl)
- {
-+	if (set->init != NULL) {
-+		if (set->flags & NFT_SET_INTERVAL &&
-+		    set_to_intervals(ctx->msgs, set, set->init, true) < 0)
-+			return -1;
-+	}
- 	if (netlink_add_set(ctx, h, set, excl) < 0)
- 		return -1;
--	if (set->init != NULL)
-+	if (set->init != NULL) {
- 		return __do_add_setelems(ctx, &set->handle, set, set->init,
- 					 false);
--
-+	}
  	return 0;
  }
  
