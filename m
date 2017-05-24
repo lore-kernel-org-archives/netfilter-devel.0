@@ -1,58 +1,64 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf] netfilter: ctnetlink: fix incorrect nf_ct_put during
- hash resize
-Date: Wed, 24 May 2017 08:22:00 +0200
-Message-ID: <20170524062200.GB11547@breakpoint.cc>
-References: <1495322569-63361-1-git-send-email-zlpnobody@163.com>
- <20170521000047.GA1004@breakpoint.cc>
- <CAML_gOdnZkbCp8JnVpd8bbeTQuhK7hMtQio4iuLQe137HxE_+g@mail.gmail.com>
- <20170523213427.GA9071@salvia>
- <20170523222855.GA11547@breakpoint.cc>
- <CAML_gOcOaq_jMkWpjBLxo9Hr=sUu6hSWrRv=y89D--iCutEX7g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Liping Zhang <zlpnobody@163.com>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Liping Zhang <zlpnobody@gmail.com>
+From: Alin Nastac <alin.nastac@gmail.com>
+Subject: [PATCH v3] extensions: libxt_hashlimit: fix uint64_t printf formats
+Date: Wed, 24 May 2017 09:13:58 +0200
+Message-ID: <1495610038-29297-1-git-send-email-alin.nastac@technicolor.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:42140 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S934596AbdEXGWT (ORCPT
+Received: from mail-it0-f67.google.com ([209.85.214.67]:36326 "EHLO
+        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935569AbdEXHOJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 May 2017 02:22:19 -0400
-Content-Disposition: inline
-In-Reply-To: <CAML_gOcOaq_jMkWpjBLxo9Hr=sUu6hSWrRv=y89D--iCutEX7g@mail.gmail.com>
+        Wed, 24 May 2017 03:14:09 -0400
+Received: by mail-it0-f67.google.com with SMTP id i206so16940472ita.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 00:14:09 -0700 (PDT)
+Received: from cplx1037.edegem.eu.thmulti.com ([2001:4158:f012:c10:2a10:7bff:fec5:6f08])
+        by smtp.gmail.com with ESMTPSA id i74sm1352732itb.5.2017.05.24.00.14.07
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Wed, 24 May 2017 00:14:07 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Liping Zhang <zlpnobody@gmail.com> wrote:
-> 2017-05-24 6:28 GMT+08:00 Florian Westphal <fw@strlen.de>:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> [...]
-> >> I will append the Fixes: tag:
-> >>
-> >> Fixes: 89f2e21883b5 ("[NETFILTER]: ctnetlink: change table dumping not to require an unique ID")
-> >
-> > That commit looks fine to me, it seems to make sure to put
-> > "last" only once in all cases.
-> >
-> > 93bb0ceb75be2fdfa9fc0dd1 however adds a check on cb->args[0], and if
-> > that is hit it will do a put() on last, and then, the "done" netlink
-> > callback will do another put operation on cb->args[1] (i.e., last).
-> 
-> After I have a closer look, I think this patch should add:
-> 
-> Fixes: d205dc40798d ("[NETFILTER]: ctnetlink: fix deadlock in table dumping")
-> 
-> After this commit, when the hash size was reduced, for example,
-> from 60000 to 600, then we may put the "last" ct twice, as we may
-> fail to go into the iteration and clear the cb->args[1], so:
-> 
-> 1. nf_ct_put(last) by ctnetlink_dump_table, but cb->args[1] still
-> point to the "last"
-> 2. nf_ct_put((struct nf_conn *)cb->args[1]) by ctnetlink_done
+From: Alin Nastac <alin.nastac@gmail.com>
 
-You are right.
+The remaining %llu formats are used for unsigned long long values.
+
+Signed-off-by: Alin Nastac <alin.nastac@gmail.com>
+---
+ extensions/libxt_hashlimit.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/extensions/libxt_hashlimit.c b/extensions/libxt_hashlimit.c
+index 9e63e1e..d7de540 100644
+--- a/extensions/libxt_hashlimit.c
++++ b/extensions/libxt_hashlimit.c
+@@ -736,7 +736,7 @@ hashlimit_mt_print(const struct hashlimit_cfg2 *cfg, unsigned int dmask, int rev
+ 		quantum = print_bytes(cfg->avg, cfg->burst, "");
+ 	} else {
+ 		quantum = print_rate(cfg->avg, revision);
+-		printf(" burst %llu", cfg->burst);
++		printf(" burst %"PRIu64, cfg->burst);
+ 	}
+ 	if (cfg->mode & (XT_HASHLIMIT_HASH_SIP | XT_HASHLIMIT_HASH_SPT |
+ 	    XT_HASHLIMIT_HASH_DIP | XT_HASHLIMIT_HASH_DPT)) {
+@@ -846,7 +846,7 @@ hashlimit_mt_save(const struct hashlimit_cfg2 *cfg, const char* name, unsigned i
+ 		quantum = print_bytes(cfg->avg, cfg->burst, "--hashlimit-");
+ 	} else {
+ 		quantum = print_rate(cfg->avg, revision);
+-		printf(" --hashlimit-burst %llu", cfg->burst);
++		printf(" --hashlimit-burst %"PRIu64, cfg->burst);
+ 	}
+ 
+ 	if (cfg->mode & (XT_HASHLIMIT_HASH_SIP | XT_HASHLIMIT_HASH_SPT |
+@@ -942,7 +942,7 @@ static void print_packets_rate_xlate(struct xt_xlate *xl, uint64_t avg,
+ 		    _rates[i].mult / avg < _rates[i].mult % avg)
+ 			break;
+ 
+-	xt_xlate_add(xl, " %llu/%s burst %lu packets",
++	xt_xlate_add(xl, " %"PRIu64"/%s burst %"PRIu64" packets",
+ 		     _rates[i-1].mult / avg, _rates[i-1].name, burst);
+ }
+ 
+-- 
+2.7.4
+
