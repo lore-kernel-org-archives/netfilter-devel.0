@@ -1,267 +1,110 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 8/9] netfilter: nft_set_hash: add non-resizable hashtable implementation
-Date: Wed, 24 May 2017 11:50:52 +0200
-Message-ID: <1495619453-22307-9-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next 7/9] netfilter: nf_tables: allow large allocations for new sets
+Date: Wed, 24 May 2017 11:50:51 +0200
+Message-ID: <1495619453-22307-8-git-send-email-pablo@netfilter.org>
 References: <1495619453-22307-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41522 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41524 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S938658AbdEXJvx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S938640AbdEXJvx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Wed, 24 May 2017 05:51:53 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E1E0C1EC2CC
+        by mail.us.es (Postfix) with ESMTP id 183541EC2CA
         for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:51:03 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CF17F1007AC
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 08746FF6F9
         for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:51:03 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8FD4D18500
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:51:01 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E54BDFF2CE
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:51:00 +0200 (CEST)
 In-Reply-To: <1495619453-22307-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds a simple non-resizable hashtable implementation. If the
-user specifies the set size, then this new faster hashtable flavour is
-selected.
+The new fixed size hashtable backend implementation may result in a
+large array of buckets that would spew splats from mm. Update this code
+to fall back on vmalloc in case the memory allocation order is too
+costly.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_hash.c | 212 +++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 203 insertions(+), 9 deletions(-)
+ net/netfilter/nf_tables_api.c | 19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 466cb7092dfa..a10271a4d5ae 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -371,14 +371,7 @@ static u32 nft_hash_buckets(u32 size)
- static bool nft_rhash_estimate(const struct nft_set_desc *desc, u32 features,
- 			       struct nft_set_estimate *est)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 2969016d8cad..0e54090caa8a 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -13,6 +13,7 @@
+ #include <linux/list.h>
+ #include <linux/skbuff.h>
+ #include <linux/netlink.h>
++#include <linux/vmalloc.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/nf_tables.h>
+@@ -2909,13 +2910,13 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
  {
--	if (desc->size)
--		est->size = sizeof(struct nft_rhash) +
--			    nft_hash_buckets(desc->size) *
--			    sizeof(struct nft_rhash_elem *) +
--			    desc->size * sizeof(struct nft_rhash_elem);
--	else
--		est->size = ~0;
--
-+	est->size   = ~0;
- 	est->lookup = NFT_SET_CLASS_O_1;
- 	est->space  = NFT_SET_CLASS_O_N;
+ 	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
+ 	u8 genmask = nft_genmask_next(net);
++	unsigned int size, alloc_size;
+ 	const struct nft_set_ops *ops;
+ 	struct nft_af_info *afi;
+ 	struct nft_table *table;
+ 	struct nft_set *set;
+ 	struct nft_ctx ctx;
+ 	char name[NFT_SET_MAXNAMELEN];
+-	unsigned int size;
+ 	bool create;
+ 	u64 timeout;
+ 	u32 ktype, dtype, flags, policy, gc_int, objtype;
+@@ -3031,6 +3032,8 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 	if (IS_ERR(set)) {
+ 		if (PTR_ERR(set) != -ENOENT)
+ 			return PTR_ERR(set);
++
++		set = NULL;
+ 	} else {
+ 		if (nlh->nlmsg_flags & NLM_F_EXCL)
+ 			return -EEXIST;
+@@ -3054,10 +3057,16 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 	if (ops->privsize != NULL)
+ 		size = ops->privsize(nla, &desc);
  
-@@ -404,8 +397,209 @@ static struct nft_set_ops nft_rhash_ops __read_mostly = {
- 	.features	= NFT_SET_MAP | NFT_SET_OBJECT | NFT_SET_TIMEOUT,
- };
+-	err = -ENOMEM;
+-	set = kzalloc(sizeof(*set) + size + udlen, GFP_KERNEL);
++	alloc_size = sizeof(*set) + size + udlen;
++	if (alloc_size <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER))
++		set = kzalloc(alloc_size, GFP_KERNEL | __GFP_NOWARN |
++					  __GFP_NORETRY);
+ 	if (set == NULL)
++		set = vzalloc(alloc_size);
++	if (set == NULL) {
++		err = -ENOMEM;
+ 		goto err1;
++	}
  
-+struct nft_hash {
-+	u32				seed;
-+	u32				buckets;
-+	struct hlist_head		table[];
-+};
-+
-+struct nft_hash_elem {
-+	struct hlist_node		node;
-+	struct nft_set_ext		ext;
-+};
-+
-+static bool nft_hash_lookup(const struct net *net, const struct nft_set *set,
-+			    const u32 *key, const struct nft_set_ext **ext)
-+{
-+	struct nft_hash *priv = nft_set_priv(set);
-+	u8 genmask = nft_genmask_cur(net);
-+	const struct nft_hash_elem *he;
-+	u32 hash;
-+
-+	hash = jhash(key, set->klen, priv->seed);
-+	hash = reciprocal_scale(hash, priv->buckets);
-+	hlist_for_each_entry(he, &priv->table[hash], node) {
-+		if (!memcmp(nft_set_ext_key(&he->ext), key, set->klen) &&
-+		    nft_set_elem_active(&he->ext, genmask)) {
-+			*ext = &he->ext;
-+			return true;
-+		}
-+	}
-+	return false;
-+}
-+
-+static int nft_hash_insert(const struct net *net, const struct nft_set *set,
-+			   const struct nft_set_elem *elem,
-+			   struct nft_set_ext **ext)
-+{
-+	struct nft_hash_elem *this = elem->priv, *he;
-+	struct nft_hash *priv = nft_set_priv(set);
-+	u8 genmask = nft_genmask_next(net);
-+	u32 hash;
-+
-+	hash = jhash(nft_set_ext_key(&this->ext), set->klen, priv->seed);
-+	hash = reciprocal_scale(hash, priv->buckets);
-+	hlist_for_each_entry(he, &priv->table[hash], node) {
-+		if (!memcmp(nft_set_ext_key(&this->ext),
-+			    nft_set_ext_key(&he->ext), set->klen) &&
-+		    nft_set_elem_active(&he->ext, genmask)) {
-+			*ext = &he->ext;
-+			return -EEXIST;
-+		}
-+	}
-+	hlist_add_head(&this->node, &priv->table[hash]);
-+	return 0;
-+}
-+
-+static void nft_hash_activate(const struct net *net, const struct nft_set *set,
-+			      const struct nft_set_elem *elem)
-+{
-+	struct nft_hash_elem *he = elem->priv;
-+
-+	nft_set_elem_change_active(net, set, &he->ext);
-+}
-+
-+static bool nft_hash_flush(const struct net *net,
-+			   const struct nft_set *set, void *priv)
-+{
-+	struct nft_hash_elem *he = priv;
-+
-+	nft_set_elem_change_active(net, set, &he->ext);
-+	return true;
-+}
-+
-+static void *nft_hash_deactivate(const struct net *net,
-+				 const struct nft_set *set,
-+				 const struct nft_set_elem *elem)
-+{
-+	struct nft_hash *priv = nft_set_priv(set);
-+	struct nft_hash_elem *this = elem->priv, *he;
-+	u8 genmask = nft_genmask_next(net);
-+	u32 hash;
-+
-+	hash = jhash(nft_set_ext_key(&this->ext), set->klen, priv->seed);
-+	hash = reciprocal_scale(hash, priv->buckets);
-+	hlist_for_each_entry(he, &priv->table[hash], node) {
-+		if (!memcmp(nft_set_ext_key(&this->ext), &elem->key.val,
-+			    set->klen) ||
-+		    nft_set_elem_active(&he->ext, genmask)) {
-+			nft_set_elem_change_active(net, set, &he->ext);
-+			return he;
-+		}
-+	}
-+	return NULL;
-+}
-+
-+static void nft_hash_remove(const struct net *net,
-+			    const struct nft_set *set,
-+			    const struct nft_set_elem *elem)
-+{
-+	struct nft_hash_elem *he = elem->priv;
-+
-+	hlist_del(&he->node);
-+}
-+
-+static void nft_hash_walk(const struct nft_ctx *ctx, struct nft_set *set,
-+			  struct nft_set_iter *iter)
-+{
-+	struct nft_hash *priv = nft_set_priv(set);
-+	struct nft_hash_elem *he;
-+	struct nft_set_elem elem;
-+	int i;
-+
-+	for (i = 0; i < priv->buckets; i++) {
-+		hlist_for_each_entry(he, &priv->table[i], node) {
-+			if (iter->count < iter->skip)
-+				goto cont;
-+			if (!nft_set_elem_active(&he->ext, iter->genmask))
-+				goto cont;
-+
-+			elem.priv = he;
-+
-+			iter->err = iter->fn(ctx, set, iter, &elem);
-+			if (iter->err < 0)
-+				return;
-+cont:
-+			iter->count++;
-+		}
-+	}
-+}
-+
-+static unsigned int nft_hash_privsize(const struct nlattr * const nla[],
-+				      const struct nft_set_desc *desc)
-+{
-+	return sizeof(struct nft_hash) +
-+	       nft_hash_buckets(desc->size) * sizeof(struct hlist_head);
-+}
-+
-+static int nft_hash_init(const struct nft_set *set,
-+			 const struct nft_set_desc *desc,
-+			 const struct nlattr * const tb[])
-+{
-+	struct nft_hash *priv = nft_set_priv(set);
-+
-+	priv->buckets = nft_hash_buckets(desc->size);
-+	get_random_bytes(&priv->seed, sizeof(priv->seed));
-+
-+	return 0;
-+}
-+
-+static void nft_hash_destroy(const struct nft_set *set)
-+{
-+	struct nft_hash *priv = nft_set_priv(set);
-+	struct nft_hash_elem *he;
-+	struct hlist_node *next;
-+	int i;
-+
-+	for (i = 0; i < priv->buckets; i++) {
-+		hlist_for_each_entry_safe(he, next, &priv->table[i], node) {
-+			hlist_del(&he->node);
-+			nft_set_elem_destroy(set, he, true);
-+		}
-+	}
-+}
-+
-+static bool nft_hash_estimate(const struct nft_set_desc *desc, u32 features,
-+			      struct nft_set_estimate *est)
-+{
-+	est->size   = sizeof(struct nft_hash) +
-+		      nft_hash_buckets(desc->size) * sizeof(struct hlist_head) +
-+		      desc->size * sizeof(struct nft_hash_elem);
-+	est->lookup = NFT_SET_CLASS_O_1;
-+	est->space  = NFT_SET_CLASS_O_N;
-+
-+	return true;
-+}
-+
-+static struct nft_set_ops nft_hash_ops __read_mostly = {
-+	.type		= &nft_hash_type,
-+	.privsize       = nft_hash_privsize,
-+	.elemsize	= offsetof(struct nft_hash_elem, ext),
-+	.estimate	= nft_hash_estimate,
-+	.init		= nft_hash_init,
-+	.destroy	= nft_hash_destroy,
-+	.insert		= nft_hash_insert,
-+	.activate	= nft_hash_activate,
-+	.deactivate	= nft_hash_deactivate,
-+	.flush		= nft_hash_flush,
-+	.remove		= nft_hash_remove,
-+	.lookup		= nft_hash_lookup,
-+	.walk		= nft_hash_walk,
-+	.features	= NFT_SET_MAP | NFT_SET_OBJECT,
-+};
-+
-+static const struct nft_set_ops *
-+nft_hash_select_ops(const struct nft_ctx *ctx, const struct nft_set_desc *desc,
-+		    u32 flags)
-+{
-+	if (desc->size)
-+		return &nft_hash_ops;
-+
-+	return &nft_rhash_ops;
-+}
-+
- static struct nft_set_type nft_hash_type __read_mostly = {
--	.ops		= &nft_rhash_ops,
-+	.select_ops	= nft_hash_select_ops,
- 	.owner		= THIS_MODULE,
- };
+ 	nla_strlcpy(name, nla[NFTA_SET_NAME], sizeof(set->name));
+ 	err = nf_tables_set_alloc_name(&ctx, set, name);
+@@ -3100,7 +3109,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ err3:
+ 	ops->destroy(set);
+ err2:
+-	kfree(set);
++	kvfree(set);
+ err1:
+ 	module_put(ops->type->owner);
+ 	return err;
+@@ -3110,7 +3119,7 @@ static void nft_set_destroy(struct nft_set *set)
+ {
+ 	set->ops->destroy(set);
+ 	module_put(set->ops->type->owner);
+-	kfree(set);
++	kvfree(set);
+ }
  
+ static void nf_tables_set_destroy(const struct nft_ctx *ctx, struct nft_set *set)
 -- 
 2.1.4
 
