@@ -1,448 +1,349 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 3/9] netfilter: nft_set_hash: use nft_rhash prefix for resizable set backend
-Date: Wed, 24 May 2017 11:50:47 +0200
-Message-ID: <1495619453-22307-4-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next 4/9] netfilter: nf_tables: select set backend flavour depending on description
+Date: Wed, 24 May 2017 11:50:48 +0200
+Message-ID: <1495619453-22307-5-git-send-email-pablo@netfilter.org>
 References: <1495619453-22307-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41184 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41200 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S936733AbdEXJvJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 May 2017 05:51:09 -0400
+        id S936739AbdEXJvK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 24 May 2017 05:51:10 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 8F8801EC2C1
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:51:00 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 9A0141EC2CD
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:51:01 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 725126E7C1
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:51:00 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 851AC100799
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:51:01 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 066A26E7C1
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BCDB6100A7C
         for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 11:50:58 +0200 (CEST)
 In-Reply-To: <1495619453-22307-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch prepares the introduction of a non-resizable hashtable
-implementation that is significantly faster.
+This patch adds the infrastructure to support several implementations of
+the same set type. This selection will be based on the set description
+and the features available for this set. This allow us to select set
+backend implementation that will result in better performance numbers.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_hash.c | 212 +++++++++++++++++++++----------------------
- 1 file changed, 106 insertions(+), 106 deletions(-)
+ include/net/netfilter/nf_tables.h | 26 +++++++++++++----
+ net/netfilter/nf_tables_api.c     | 59 ++++++++++++++++++++++++---------------
+ net/netfilter/nft_set_bitmap.c    | 10 +++++--
+ net/netfilter/nft_set_hash.c      | 10 +++++--
+ net/netfilter/nft_set_rbtree.c    | 10 +++++--
+ 5 files changed, 80 insertions(+), 35 deletions(-)
 
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 1f1cc33895fd..7c21e3da0d88 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -22,43 +22,43 @@
- #include <net/netfilter/nf_tables.h>
- 
- /* We target a hash table size of 4, element hint is 75% of final size */
--#define NFT_HASH_ELEMENT_HINT 3
-+#define NFT_RHASH_ELEMENT_HINT 3
- 
--struct nft_hash {
-+struct nft_rhash {
- 	struct rhashtable		ht;
- 	struct delayed_work		gc_work;
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 8a8bab8d7b15..f27012098846 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -281,6 +281,23 @@ struct nft_set_estimate {
+ 	enum nft_set_class	space;
  };
  
--struct nft_hash_elem {
-+struct nft_rhash_elem {
- 	struct rhash_head		node;
- 	struct nft_set_ext		ext;
++/**
++ *      struct nft_set_type - nf_tables set type
++ *
++ *      @select_ops: function to select nft_set_ops
++ *      @ops: default ops, used when no select_ops functions is present
++ *      @list: used internally
++ *      @owner: module reference
++ */
++struct nft_set_type {
++	const struct nft_set_ops	*(*select_ops)(const struct nft_ctx *,
++						       const struct nft_set_desc *desc,
++						       u32 flags);
++	const struct nft_set_ops	*ops;
++	struct list_head		list;
++	struct module			*owner;
++};
++
+ struct nft_set_ext;
+ struct nft_expr;
+ 
+@@ -297,8 +314,6 @@ struct nft_expr;
+  *	@privsize: function to return size of set private data
+  *	@init: initialize private data of new set instance
+  *	@destroy: destroy private data of set instance
+- *	@list: nf_tables_set_ops list node
+- *	@owner: module reference
+  *	@elemsize: element private size
+  *	@features: features supported by the implementation
+  */
+@@ -345,14 +360,13 @@ struct nft_set_ops {
+ 						const struct nlattr * const nla[]);
+ 	void				(*destroy)(const struct nft_set *set);
+ 
+-	struct list_head		list;
+-	struct module			*owner;
+ 	unsigned int			elemsize;
+ 	u32				features;
++	const struct nft_set_type	*type;
  };
  
--struct nft_hash_cmp_arg {
-+struct nft_rhash_cmp_arg {
- 	const struct nft_set		*set;
- 	const u32			*key;
- 	u8				genmask;
- };
+-int nft_register_set(struct nft_set_ops *ops);
+-void nft_unregister_set(struct nft_set_ops *ops);
++int nft_register_set(struct nft_set_type *type);
++void nft_unregister_set(struct nft_set_type *type);
  
--static inline u32 nft_hash_key(const void *data, u32 len, u32 seed)
-+static inline u32 nft_rhash_key(const void *data, u32 len, u32 seed)
+ /**
+  * 	struct nft_set - nf_tables set instance
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index da314be0c048..c0b2b19607e1 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2377,64 +2377,77 @@ static int nf_tables_delrule(struct net *net, struct sock *nlsk,
+  * Sets
+  */
+ 
+-static LIST_HEAD(nf_tables_set_ops);
++static LIST_HEAD(nf_tables_set_types);
+ 
+-int nft_register_set(struct nft_set_ops *ops)
++int nft_register_set(struct nft_set_type *type)
  {
--	const struct nft_hash_cmp_arg *arg = data;
-+	const struct nft_rhash_cmp_arg *arg = data;
- 
- 	return jhash(arg->key, len, seed);
- }
- 
--static inline u32 nft_hash_obj(const void *data, u32 len, u32 seed)
-+static inline u32 nft_rhash_obj(const void *data, u32 len, u32 seed)
- {
--	const struct nft_hash_elem *he = data;
-+	const struct nft_rhash_elem *he = data;
- 
- 	return jhash(nft_set_ext_key(&he->ext), len, seed);
- }
- 
--static inline int nft_hash_cmp(struct rhashtable_compare_arg *arg,
--			       const void *ptr)
-+static inline int nft_rhash_cmp(struct rhashtable_compare_arg *arg,
-+				const void *ptr)
- {
--	const struct nft_hash_cmp_arg *x = arg->key;
--	const struct nft_hash_elem *he = ptr;
-+	const struct nft_rhash_cmp_arg *x = arg->key;
-+	const struct nft_rhash_elem *he = ptr;
- 
- 	if (memcmp(nft_set_ext_key(&he->ext), x->key, x->set->klen))
- 		return 1;
-@@ -69,49 +69,49 @@ static inline int nft_hash_cmp(struct rhashtable_compare_arg *arg,
+ 	nfnl_lock(NFNL_SUBSYS_NFTABLES);
+-	list_add_tail_rcu(&ops->list, &nf_tables_set_ops);
++	list_add_tail_rcu(&type->list, &nf_tables_set_types);
+ 	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
  	return 0;
  }
+ EXPORT_SYMBOL_GPL(nft_register_set);
  
--static const struct rhashtable_params nft_hash_params = {
--	.head_offset		= offsetof(struct nft_hash_elem, node),
--	.hashfn			= nft_hash_key,
--	.obj_hashfn		= nft_hash_obj,
--	.obj_cmpfn		= nft_hash_cmp,
-+static const struct rhashtable_params nft_rhash_params = {
-+	.head_offset		= offsetof(struct nft_rhash_elem, node),
-+	.hashfn			= nft_rhash_key,
-+	.obj_hashfn		= nft_rhash_obj,
-+	.obj_cmpfn		= nft_rhash_cmp,
- 	.automatic_shrinking	= true,
- };
- 
--static bool nft_hash_lookup(const struct net *net, const struct nft_set *set,
--			    const u32 *key, const struct nft_set_ext **ext)
-+static bool nft_rhash_lookup(const struct net *net, const struct nft_set *set,
-+			     const u32 *key, const struct nft_set_ext **ext)
+-void nft_unregister_set(struct nft_set_ops *ops)
++void nft_unregister_set(struct nft_set_type *type)
  {
--	struct nft_hash *priv = nft_set_priv(set);
--	const struct nft_hash_elem *he;
--	struct nft_hash_cmp_arg arg = {
-+	struct nft_rhash *priv = nft_set_priv(set);
-+	const struct nft_rhash_elem *he;
-+	struct nft_rhash_cmp_arg arg = {
- 		.genmask = nft_genmask_cur(net),
- 		.set	 = set,
- 		.key	 = key,
- 	};
- 
--	he = rhashtable_lookup_fast(&priv->ht, &arg, nft_hash_params);
-+	he = rhashtable_lookup_fast(&priv->ht, &arg, nft_rhash_params);
- 	if (he != NULL)
- 		*ext = &he->ext;
- 
- 	return !!he;
+ 	nfnl_lock(NFNL_SUBSYS_NFTABLES);
+-	list_del_rcu(&ops->list);
++	list_del_rcu(&type->list);
+ 	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
  }
+ EXPORT_SYMBOL_GPL(nft_unregister_set);
  
--static bool nft_hash_update(struct nft_set *set, const u32 *key,
--			    void *(*new)(struct nft_set *,
--					 const struct nft_expr *,
--					 struct nft_regs *regs),
--			    const struct nft_expr *expr,
--			    struct nft_regs *regs,
--			    const struct nft_set_ext **ext)
-+static bool nft_rhash_update(struct nft_set *set, const u32 *key,
-+			     void *(*new)(struct nft_set *,
-+					  const struct nft_expr *,
-+					  struct nft_regs *regs),
-+			     const struct nft_expr *expr,
-+			     struct nft_regs *regs,
-+			     const struct nft_set_ext **ext)
++#define NFT_SET_FEATURES	(NFT_SET_INTERVAL | NFT_SET_MAP | \
++				 NFT_SET_TIMEOUT | NFT_SET_OBJECT)
++
++static bool nft_set_ops_candidate(const struct nft_set_ops *ops, u32 flags)
++{
++	return (flags & ops->features) == (flags & NFT_SET_FEATURES);
++}
++
+ /*
+  * Select a set implementation based on the data characteristics and the
+  * given policy. The total memory use might not be known if no size is
+  * given, in that case the amount of memory per element is used.
+  */
+ static const struct nft_set_ops *
+-nft_select_set_ops(const struct nlattr * const nla[],
++nft_select_set_ops(const struct nft_ctx *ctx,
++		   const struct nlattr * const nla[],
+ 		   const struct nft_set_desc *desc,
+ 		   enum nft_set_policies policy)
  {
--	struct nft_hash *priv = nft_set_priv(set);
--	struct nft_hash_elem *he, *prev;
--	struct nft_hash_cmp_arg arg = {
-+	struct nft_rhash *priv = nft_set_priv(set);
-+	struct nft_rhash_elem *he, *prev;
-+	struct nft_rhash_cmp_arg arg = {
- 		.genmask = NFT_GENMASK_ANY,
- 		.set	 = set,
- 		.key	 = key,
- 	};
+ 	const struct nft_set_ops *ops, *bops;
+ 	struct nft_set_estimate est, best;
+-	u32 features;
++	const struct nft_set_type *type;
++	u32 flags = 0;
  
--	he = rhashtable_lookup_fast(&priv->ht, &arg, nft_hash_params);
-+	he = rhashtable_lookup_fast(&priv->ht, &arg, nft_rhash_params);
- 	if (he != NULL)
- 		goto out;
- 
-@@ -120,7 +120,7 @@ static bool nft_hash_update(struct nft_set *set, const u32 *key,
- 		goto err1;
- 
- 	prev = rhashtable_lookup_get_insert_key(&priv->ht, &arg, &he->node,
--						nft_hash_params);
-+						nft_rhash_params);
- 	if (IS_ERR(prev))
- 		goto err2;
- 
-@@ -140,21 +140,21 @@ static bool nft_hash_update(struct nft_set *set, const u32 *key,
- 	return false;
- }
- 
--static int nft_hash_insert(const struct net *net, const struct nft_set *set,
--			   const struct nft_set_elem *elem,
--			   struct nft_set_ext **ext)
-+static int nft_rhash_insert(const struct net *net, const struct nft_set *set,
-+			    const struct nft_set_elem *elem,
-+			    struct nft_set_ext **ext)
- {
--	struct nft_hash *priv = nft_set_priv(set);
--	struct nft_hash_elem *he = elem->priv;
--	struct nft_hash_cmp_arg arg = {
-+	struct nft_rhash *priv = nft_set_priv(set);
-+	struct nft_rhash_elem *he = elem->priv;
-+	struct nft_rhash_cmp_arg arg = {
- 		.genmask = nft_genmask_next(net),
- 		.set	 = set,
- 		.key	 = elem->key.val.data,
- 	};
--	struct nft_hash_elem *prev;
-+	struct nft_rhash_elem *prev;
- 
- 	prev = rhashtable_lookup_get_insert_key(&priv->ht, &arg, &he->node,
--					       nft_hash_params);
-+						nft_rhash_params);
- 	if (IS_ERR(prev))
- 		return PTR_ERR(prev);
- 	if (prev) {
-@@ -164,19 +164,19 @@ static int nft_hash_insert(const struct net *net, const struct nft_set *set,
- 	return 0;
- }
- 
--static void nft_hash_activate(const struct net *net, const struct nft_set *set,
--			      const struct nft_set_elem *elem)
-+static void nft_rhash_activate(const struct net *net, const struct nft_set *set,
-+			       const struct nft_set_elem *elem)
- {
--	struct nft_hash_elem *he = elem->priv;
-+	struct nft_rhash_elem *he = elem->priv;
- 
- 	nft_set_elem_change_active(net, set, &he->ext);
- 	nft_set_elem_clear_busy(&he->ext);
- }
- 
--static bool nft_hash_flush(const struct net *net,
--			   const struct nft_set *set, void *priv)
-+static bool nft_rhash_flush(const struct net *net,
-+			    const struct nft_set *set, void *priv)
- {
--	struct nft_hash_elem *he = priv;
-+	struct nft_rhash_elem *he = priv;
- 
- 	if (!nft_set_elem_mark_busy(&he->ext) ||
- 	    !nft_is_active(net, &he->ext)) {
-@@ -186,22 +186,22 @@ static bool nft_hash_flush(const struct net *net,
- 	return false;
- }
- 
--static void *nft_hash_deactivate(const struct net *net,
--				 const struct nft_set *set,
--				 const struct nft_set_elem *elem)
-+static void *nft_rhash_deactivate(const struct net *net,
-+				  const struct nft_set *set,
-+				  const struct nft_set_elem *elem)
- {
--	struct nft_hash *priv = nft_set_priv(set);
--	struct nft_hash_elem *he;
--	struct nft_hash_cmp_arg arg = {
-+	struct nft_rhash *priv = nft_set_priv(set);
-+	struct nft_rhash_elem *he;
-+	struct nft_rhash_cmp_arg arg = {
- 		.genmask = nft_genmask_next(net),
- 		.set	 = set,
- 		.key	 = elem->key.val.data,
- 	};
- 
- 	rcu_read_lock();
--	he = rhashtable_lookup_fast(&priv->ht, &arg, nft_hash_params);
-+	he = rhashtable_lookup_fast(&priv->ht, &arg, nft_rhash_params);
- 	if (he != NULL &&
--	    !nft_hash_flush(net, set, he))
-+	    !nft_rhash_flush(net, set, he))
- 		he = NULL;
- 
- 	rcu_read_unlock();
-@@ -209,21 +209,21 @@ static void *nft_hash_deactivate(const struct net *net,
- 	return he;
- }
- 
--static void nft_hash_remove(const struct net *net,
--			    const struct nft_set *set,
--			    const struct nft_set_elem *elem)
-+static void nft_rhash_remove(const struct net *net,
-+			     const struct nft_set *set,
-+			     const struct nft_set_elem *elem)
- {
--	struct nft_hash *priv = nft_set_priv(set);
--	struct nft_hash_elem *he = elem->priv;
-+	struct nft_rhash *priv = nft_set_priv(set);
-+	struct nft_rhash_elem *he = elem->priv;
- 
--	rhashtable_remove_fast(&priv->ht, &he->node, nft_hash_params);
-+	rhashtable_remove_fast(&priv->ht, &he->node, nft_rhash_params);
- }
- 
--static void nft_hash_walk(const struct nft_ctx *ctx, struct nft_set *set,
--			  struct nft_set_iter *iter)
-+static void nft_rhash_walk(const struct nft_ctx *ctx, struct nft_set *set,
-+			   struct nft_set_iter *iter)
- {
--	struct nft_hash *priv = nft_set_priv(set);
--	struct nft_hash_elem *he;
-+	struct nft_rhash *priv = nft_set_priv(set);
-+	struct nft_rhash_elem *he;
- 	struct rhashtable_iter hti;
- 	struct nft_set_elem elem;
- 	int err;
-@@ -272,16 +272,16 @@ static void nft_hash_walk(const struct nft_ctx *ctx, struct nft_set *set,
- 	rhashtable_walk_exit(&hti);
- }
- 
--static void nft_hash_gc(struct work_struct *work)
-+static void nft_rhash_gc(struct work_struct *work)
- {
- 	struct nft_set *set;
--	struct nft_hash_elem *he;
--	struct nft_hash *priv;
-+	struct nft_rhash_elem *he;
-+	struct nft_rhash *priv;
- 	struct nft_set_gc_batch *gcb = NULL;
- 	struct rhashtable_iter hti;
- 	int err;
- 
--	priv = container_of(work, struct nft_hash, gc_work.work);
-+	priv = container_of(work, struct nft_rhash, gc_work.work);
- 	set  = nft_set_container_of(priv);
- 
- 	err = rhashtable_walk_init(&priv->ht, &hti, GFP_KERNEL);
-@@ -307,7 +307,7 @@ static void nft_hash_gc(struct work_struct *work)
- 		gcb = nft_set_gc_batch_check(set, gcb, GFP_ATOMIC);
- 		if (gcb == NULL)
- 			goto out;
--		rhashtable_remove_fast(&priv->ht, &he->node, nft_hash_params);
-+		rhashtable_remove_fast(&priv->ht, &he->node, nft_rhash_params);
- 		atomic_dec(&set->nelems);
- 		nft_set_gc_batch_add(gcb, he);
+ #ifdef CONFIG_MODULES
+-	if (list_empty(&nf_tables_set_ops)) {
++	if (list_empty(&nf_tables_set_types)) {
+ 		nfnl_unlock(NFNL_SUBSYS_NFTABLES);
+ 		request_module("nft-set");
+ 		nfnl_lock(NFNL_SUBSYS_NFTABLES);
+-		if (!list_empty(&nf_tables_set_ops))
++		if (!list_empty(&nf_tables_set_types))
+ 			return ERR_PTR(-EAGAIN);
  	}
-@@ -321,55 +321,55 @@ static void nft_hash_gc(struct work_struct *work)
- 			   nft_set_gc_interval(set));
+ #endif
+-	features = 0;
+-	if (nla[NFTA_SET_FLAGS] != NULL) {
+-		features = ntohl(nla_get_be32(nla[NFTA_SET_FLAGS]));
+-		features &= NFT_SET_INTERVAL | NFT_SET_MAP | NFT_SET_TIMEOUT |
+-			    NFT_SET_OBJECT;
+-	}
++	if (nla[NFTA_SET_FLAGS] != NULL)
++		flags = ntohl(nla_get_be32(nla[NFTA_SET_FLAGS]));
+ 
+ 	bops	    = NULL;
+ 	best.size   = ~0;
+ 	best.lookup = ~0;
+ 	best.space  = ~0;
+ 
+-	list_for_each_entry(ops, &nf_tables_set_ops, list) {
+-		if ((ops->features & features) != features)
++	list_for_each_entry(type, &nf_tables_set_types, list) {
++		if (!type->select_ops)
++			ops = type->ops;
++		else
++			ops = type->select_ops(ctx, desc, flags);
++		if (!ops)
++			continue;
++
++		if (!nft_set_ops_candidate(ops, flags))
+ 			continue;
+-		if (!ops->estimate(desc, features, &est))
++		if (!ops->estimate(desc, flags, &est))
+ 			continue;
+ 
+ 		switch (policy) {
+@@ -2465,10 +2478,10 @@ nft_select_set_ops(const struct nlattr * const nla[],
+ 			break;
+ 		}
+ 
+-		if (!try_module_get(ops->owner))
++		if (!try_module_get(type->owner))
+ 			continue;
+ 		if (bops != NULL)
+-			module_put(bops->owner);
++			module_put(bops->type->owner);
+ 
+ 		bops = ops;
+ 		best = est;
+@@ -3029,7 +3042,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 	if (!(nlh->nlmsg_flags & NLM_F_CREATE))
+ 		return -ENOENT;
+ 
+-	ops = nft_select_set_ops(nla, &desc, policy);
++	ops = nft_select_set_ops(&ctx, nla, &desc, policy);
+ 	if (IS_ERR(ops))
+ 		return PTR_ERR(ops);
+ 
+@@ -3089,14 +3102,14 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ err2:
+ 	kfree(set);
+ err1:
+-	module_put(ops->owner);
++	module_put(ops->type->owner);
+ 	return err;
  }
  
--static unsigned int nft_hash_privsize(const struct nlattr * const nla[])
-+static unsigned int nft_rhash_privsize(const struct nlattr * const nla[])
+ static void nft_set_destroy(struct nft_set *set)
  {
--	return sizeof(struct nft_hash);
-+	return sizeof(struct nft_rhash);
+ 	set->ops->destroy(set);
+-	module_put(set->ops->owner);
++	module_put(set->ops->type->owner);
+ 	kfree(set);
  }
  
--static int nft_hash_init(const struct nft_set *set,
--			 const struct nft_set_desc *desc,
--			 const struct nlattr * const tb[])
-+static int nft_rhash_init(const struct nft_set *set,
-+			  const struct nft_set_desc *desc,
-+			  const struct nlattr * const tb[])
- {
--	struct nft_hash *priv = nft_set_priv(set);
--	struct rhashtable_params params = nft_hash_params;
-+	struct nft_rhash *priv = nft_set_priv(set);
-+	struct rhashtable_params params = nft_rhash_params;
- 	int err;
- 
--	params.nelem_hint = desc->size ?: NFT_HASH_ELEMENT_HINT;
-+	params.nelem_hint = desc->size ?: NFT_RHASH_ELEMENT_HINT;
- 	params.key_len	  = set->klen;
- 
- 	err = rhashtable_init(&priv->ht, &params);
- 	if (err < 0)
- 		return err;
- 
--	INIT_DEFERRABLE_WORK(&priv->gc_work, nft_hash_gc);
-+	INIT_DEFERRABLE_WORK(&priv->gc_work, nft_rhash_gc);
- 	if (set->flags & NFT_SET_TIMEOUT)
- 		queue_delayed_work(system_power_efficient_wq, &priv->gc_work,
- 				   nft_set_gc_interval(set));
- 	return 0;
- }
- 
--static void nft_hash_elem_destroy(void *ptr, void *arg)
-+static void nft_rhash_elem_destroy(void *ptr, void *arg)
- {
- 	nft_set_elem_destroy(arg, ptr, true);
- }
- 
--static void nft_hash_destroy(const struct nft_set *set)
-+static void nft_rhash_destroy(const struct nft_set *set)
- {
--	struct nft_hash *priv = nft_set_priv(set);
-+	struct nft_rhash *priv = nft_set_priv(set);
- 
- 	cancel_delayed_work_sync(&priv->gc_work);
--	rhashtable_free_and_destroy(&priv->ht, nft_hash_elem_destroy,
-+	rhashtable_free_and_destroy(&priv->ht, nft_rhash_elem_destroy,
- 				    (void *)set);
- }
- 
--static bool nft_hash_estimate(const struct nft_set_desc *desc, u32 features,
--			      struct nft_set_estimate *est)
-+static bool nft_rhash_estimate(const struct nft_set_desc *desc, u32 features,
-+			       struct nft_set_estimate *est)
- {
- 	if (desc->size)
--		est->size = sizeof(struct nft_hash) +
-+		est->size = sizeof(struct nft_rhash) +
- 			    roundup_pow_of_two(desc->size * 4 / 3) *
--			    sizeof(struct nft_hash_elem *) +
--			    desc->size * sizeof(struct nft_hash_elem);
-+			    sizeof(struct nft_rhash_elem *) +
-+			    desc->size * sizeof(struct nft_rhash_elem);
- 	else
- 		est->size = ~0;
- 
-@@ -379,32 +379,32 @@ static bool nft_hash_estimate(const struct nft_set_desc *desc, u32 features,
+diff --git a/net/netfilter/nft_set_bitmap.c b/net/netfilter/nft_set_bitmap.c
+index b988162b5b15..87d17691278f 100644
+--- a/net/netfilter/nft_set_bitmap.c
++++ b/net/netfilter/nft_set_bitmap.c
+@@ -278,7 +278,9 @@ static bool nft_bitmap_estimate(const struct nft_set_desc *desc, u32 features,
  	return true;
  }
  
--static struct nft_set_ops nft_hash_ops __read_mostly = {
--	.privsize       = nft_hash_privsize,
--	.elemsize	= offsetof(struct nft_hash_elem, ext),
--	.estimate	= nft_hash_estimate,
--	.init		= nft_hash_init,
--	.destroy	= nft_hash_destroy,
--	.insert		= nft_hash_insert,
--	.activate	= nft_hash_activate,
--	.deactivate	= nft_hash_deactivate,
--	.flush		= nft_hash_flush,
--	.remove		= nft_hash_remove,
--	.lookup		= nft_hash_lookup,
--	.update		= nft_hash_update,
--	.walk		= nft_hash_walk,
-+static struct nft_set_ops nft_rhash_ops __read_mostly = {
-+	.privsize       = nft_rhash_privsize,
-+	.elemsize	= offsetof(struct nft_rhash_elem, ext),
-+	.estimate	= nft_rhash_estimate,
-+	.init		= nft_rhash_init,
-+	.destroy	= nft_rhash_destroy,
-+	.insert		= nft_rhash_insert,
-+	.activate	= nft_rhash_activate,
-+	.deactivate	= nft_rhash_deactivate,
-+	.flush		= nft_rhash_flush,
-+	.remove		= nft_rhash_remove,
-+	.lookup		= nft_rhash_lookup,
-+	.update		= nft_rhash_update,
-+	.walk		= nft_rhash_walk,
++static struct nft_set_type nft_bitmap_type;
+ static struct nft_set_ops nft_bitmap_ops __read_mostly = {
++	.type		= &nft_bitmap_type,
+ 	.privsize	= nft_bitmap_privsize,
+ 	.elemsize	= offsetof(struct nft_bitmap_elem, ext),
+ 	.estimate	= nft_bitmap_estimate,
+@@ -291,17 +293,21 @@ static struct nft_set_ops nft_bitmap_ops __read_mostly = {
+ 	.activate	= nft_bitmap_activate,
+ 	.lookup		= nft_bitmap_lookup,
+ 	.walk		= nft_bitmap_walk,
++};
++
++static struct nft_set_type nft_bitmap_type __read_mostly = {
++	.ops		= &nft_bitmap_ops,
+ 	.owner		= THIS_MODULE,
+ };
+ 
+ static int __init nft_bitmap_module_init(void)
+ {
+-	return nft_register_set(&nft_bitmap_ops);
++	return nft_register_set(&nft_bitmap_type);
+ }
+ 
+ static void __exit nft_bitmap_module_exit(void)
+ {
+-	nft_unregister_set(&nft_bitmap_ops);
++	nft_unregister_set(&nft_bitmap_type);
+ }
+ 
+ module_init(nft_bitmap_module_init);
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index 7c21e3da0d88..4ba0717408d9 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -379,7 +379,9 @@ static bool nft_rhash_estimate(const struct nft_set_desc *desc, u32 features,
+ 	return true;
+ }
+ 
++static struct nft_set_type nft_hash_type;
+ static struct nft_set_ops nft_rhash_ops __read_mostly = {
++	.type		= &nft_hash_type,
+ 	.privsize       = nft_rhash_privsize,
+ 	.elemsize	= offsetof(struct nft_rhash_elem, ext),
+ 	.estimate	= nft_rhash_estimate,
+@@ -394,17 +396,21 @@ static struct nft_set_ops nft_rhash_ops __read_mostly = {
+ 	.update		= nft_rhash_update,
+ 	.walk		= nft_rhash_walk,
  	.features	= NFT_SET_MAP | NFT_SET_OBJECT | NFT_SET_TIMEOUT,
++};
++
++static struct nft_set_type nft_hash_type __read_mostly = {
++	.ops		= &nft_rhash_ops,
  	.owner		= THIS_MODULE,
  };
  
  static int __init nft_hash_module_init(void)
  {
--	return nft_register_set(&nft_hash_ops);
-+	return nft_register_set(&nft_rhash_ops);
+-	return nft_register_set(&nft_rhash_ops);
++	return nft_register_set(&nft_hash_type);
  }
  
  static void __exit nft_hash_module_exit(void)
  {
--	nft_unregister_set(&nft_hash_ops);
-+	nft_unregister_set(&nft_rhash_ops);
+-	nft_unregister_set(&nft_rhash_ops);
++	nft_unregister_set(&nft_hash_type);
  }
  
  module_init(nft_hash_module_init);
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index fbfb3cbb3916..29d41d378339 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -295,7 +295,9 @@ static bool nft_rbtree_estimate(const struct nft_set_desc *desc, u32 features,
+ 	return true;
+ }
+ 
++static struct nft_set_type nft_rbtree_type;
+ static struct nft_set_ops nft_rbtree_ops __read_mostly = {
++	.type		= &nft_rbtree_type,
+ 	.privsize	= nft_rbtree_privsize,
+ 	.elemsize	= offsetof(struct nft_rbtree_elem, ext),
+ 	.estimate	= nft_rbtree_estimate,
+@@ -309,17 +311,21 @@ static struct nft_set_ops nft_rbtree_ops __read_mostly = {
+ 	.lookup		= nft_rbtree_lookup,
+ 	.walk		= nft_rbtree_walk,
+ 	.features	= NFT_SET_INTERVAL | NFT_SET_MAP | NFT_SET_OBJECT,
++};
++
++static struct nft_set_type nft_rbtree_type __read_mostly = {
++	.ops		= &nft_rbtree_ops,
+ 	.owner		= THIS_MODULE,
+ };
+ 
+ static int __init nft_rbtree_module_init(void)
+ {
+-	return nft_register_set(&nft_rbtree_ops);
++	return nft_register_set(&nft_rbtree_type);
+ }
+ 
+ static void __exit nft_rbtree_module_exit(void)
+ {
+-	nft_unregister_set(&nft_rbtree_ops);
++	nft_unregister_set(&nft_rbtree_type);
+ }
+ 
+ module_init(nft_rbtree_module_init);
 -- 
 2.1.4
 
