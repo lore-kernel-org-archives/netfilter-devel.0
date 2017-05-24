@@ -1,63 +1,68 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH] evaluate: prevent using sets in payload statements
-Date: Wed, 24 May 2017 17:49:06 +0200
-Message-ID: <20170524154906.GA24991@salvia>
-References: <149563146450.21555.7985467199304693684.stgit@nfdev2.cica.es>
- <20170524154820.GC24697@salvia>
+Subject: Re: [PATCH 1/1] extensions: libxt_cluster: Add translation to nft
+Date: Wed, 24 May 2017 18:05:22 +0200
+Message-ID: <20170524160522.GA25268@salvia>
+References: <1495629111-8206-1-git-send-email-mayhs11saini@gmail.com>
+ <20170524154419.GA24697@salvia>
+ <20170524154615.GB32408@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo@debian.org>
+Cc: Shyam Saini <mayhs11saini@gmail.com>,
+        netfilter-devel@vger.kernel.org, arturo@debian.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60720 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:38796 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752668AbdEXPtQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 May 2017 11:49:16 -0400
+        id S965420AbdEXQFb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 24 May 2017 12:05:31 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9A141DFE31
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 17:49:07 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 3F8FCDFE36
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 18:05:23 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8B473FF6FD
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 17:49:07 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3226F100A47
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 18:05:23 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7C386A0AAC
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 17:49:05 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F3C6F100796
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 May 2017 18:05:20 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20170524154820.GC24697@salvia>
+In-Reply-To: <20170524154615.GB32408@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, May 24, 2017 at 05:48:20PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, May 24, 2017 at 03:11:04PM +0200, Arturo Borrero Gonzalez wrote:
-> > Prevent this assert:
+On Wed, May 24, 2017 at 05:46:15PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Wed, May 24, 2017 at 06:01:51PM +0530, Shyam Saini wrote:
+> > > Add translation for cluster to nft
 > > 
-> > % nft [..] tcp dport set { 0 , 1 }
-> > BUG: unknown expression type set reference
-> > nft: netlink_linearize.c:696: netlink_gen_expr: Assertion `0' failed.
-> > Aborted
+> > I think this should be:
 > > 
-> > We can't use a set here because we will not known what value to use.
+> >         -m cluster --cluster-total-nodes 2 --cluster-local-node 1 --cluster-hash-seed 0xdeadbeef
 > > 
-> > With this patch, this is produced:
+> > should be translated to:
 > > 
-> > % nft [..] tcp dport set {1, 2 }
-> > <cmdline>:1:19-27: Error: you cannot use a set here
-> > add rule ip nat c tcp dport set {1, 2 }
-> >                   ^^^^^^^^^~~~~~~~~~~~~
-> > % nft [..] tcp dport set @s
-> > <cmdline>:1:19-27: Error: you cannot reference a set here
-> > add rule ip nat c tcp dport set @s
-> >                   ^^^^^^^^^~~~~~~~
+> >         jhash ct original saddr mod 2 seed 0xdeadbeef eq 0
 > > 
-> > Using maps is still allowed:
+> > if --cluster-local-node is 2, then:
 > > 
-> > % nft [..] tcp dport set numgen inc mod 2 map { 0 : 4040 , 1 : 4050 }
+> >         jhash ct original saddr mod 2 seed 0xdeadbeef eq 1
 > 
-> Good catch.
-> 
-> I think we should reject this more generically, ie.
-> 
-> nft add rule x y meta mark set {1, 2 }
+> Looks good.  But I think we need to take care of mangling pkttype as
+> well, right?
 
-I mean, the example above is not payload, but it should be rejected
-too.
+We should if we want to 1:1 translation, yes.
+
+Actually, if we rely on the nft arp mac address mangling (to use
+multicast ethernet address, ie. RFC violation to cheat dummy switch
+just in case you need this to get a packet flooded to two ports), we
+could just do this upfront in the ruleset, ie.
+
+        ether daddr 01:00:5e:00:01:01 meta set pkttype host
+
+Using the mac address that we set to arp replies, instead of blind
+mangling the mac address.
+
+Anyway, yes, something like:
+
+         jhash ct original saddr mod 2 seed 0xdeadbeef eq 0 meta pkttype set host
+
+should be good enough.
