@@ -1,54 +1,47 @@
-From: Richard Guy Briggs <rgb@redhat.com>
-Subject: Re: [PATCH 1/6 RFC] netfilter: normalize x_table function
- declarations
-Date: Wed, 24 May 2017 18:30:03 -0400
-Message-ID: <20170524223003.GN6203@madcap2.tricolour.ca>
-References: <cover.1495124188.git.rgb@redhat.com>
- <d7a00d229e93586d0aed5950d79e95f3d552dae6.1495124188.git.rgb@redhat.com>
- <20170524173731.GC7439@salvia>
+From: Shyam Saini <mayhs11saini@gmail.com>
+Subject: Re: [PATCH 1/1] extensions: libxt_cluster: Add translation to nft
+Date: Thu, 25 May 2017 15:40:54 +0530
+Message-ID: <CAOfkYf5aor9go6YYY1TFWq5nbdXF4WPaH4fjqUtRU1wMAAuHjQ@mail.gmail.com>
+References: <1495629111-8206-1-git-send-email-mayhs11saini@gmail.com> <20170524154302.GE11547@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>, linux-audit@redhat.com,
-        Florian Westphal <fw@strlen.de>,
-        Thomas Woerner <twoerner@redhat.com>,
-        Thomas Graf <tgraf@infradead.org>,
-        Eric Paris <eparis@redhat.com>, Paul Moore <pmoore@redhat.com>,
-        Steve Grubb <sgrubb@redhat.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="UTF-8"
+Cc: g@breakpoint.cc, netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Arturo Borrero Gonzalez <arturo@debian.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34122 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1164439AbdEXWaP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 May 2017 18:30:15 -0400
-Content-Disposition: inline
-In-Reply-To: <20170524173731.GC7439@salvia>
+Received: from mail-oi0-f43.google.com ([209.85.218.43]:33296 "EHLO
+        mail-oi0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751912AbdEYKKz (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 May 2017 06:10:55 -0400
+Received: by mail-oi0-f43.google.com with SMTP id w10so274916163oif.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 May 2017 03:10:55 -0700 (PDT)
+In-Reply-To: <20170524154302.GE11547@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2017-05-24 19:37, Pablo Neira Ayuso wrote:
-> On Thu, May 18, 2017 at 01:21:47PM -0400, Richard Guy Briggs wrote:
-> > Git context diffs were being produced with unhelpful declaration types in the
-> > place of function names to help identify the funciton in which changes were
-> > made.
-> > 
-> > Normalize x_table function declarations so that git context diff function
-> > labels work as expected.
-> 
-> I know of people that usually complain on this cleanups, since they
-> just add extra work to backports.
+>> Add translation for cluster to nft
+>>
+>> $ sudo iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 2 --cluster-local-node 1 --cluster-hash-seed
+>> 0xdeadbeef -j MARK --set-mark 0xffff
+>>
+>> nft add rule ip mangle PREROUTING iifname eth1 ct state {new,established, related, untracked} ct direction original mark set jhash ip saddr mod 2 seed 0xdeadbeef offset 1 counter meta mark set 0xffff
+>
+> Can you explain why ct expression is needed in this way?
 
-Arguably all cleanups add work on backports, including spelling fixes.  ;-)
+ct original is to get original direction
 
-> But I have no major objection to this if you want to push it forward.
+After your explanation,
+i realised adding "ct state {new,established, related, untracked}"  was mistake.
 
-Thanks.
+> afaics translation would be (untested):
+>
+> nft add rule ip mangle PREROUTING iifname eth1 mark set jhash ct saddr mod 2 seed 0xdeadbeef offset 1 counter meta mark set 0xffff fib saddr type multicast meta pkttype set host
+>
+> we might need to implement "ct master-saddr" to deal with ct->master use
+> in xt_cluster as well, but we could do that later as a followup.
+> fib saddr type is needed to not set real mutlicast traffic to unicast
+> type and only catch l3-unicast-in-l2-multicast.
 
-- RGB
-
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
+Thanks a lot for explanation.
