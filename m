@@ -1,59 +1,37 @@
-From: Pavel Vajarov <pavel@x3me.net>
-Subject: NFQUEUE and TRPOXY
-Date: Thu, 25 May 2017 14:51:49 +0300
-Message-ID: <CAJEV1ihZ7UC7BQnz66gfT-+Tm3c+bcSmmAJEzBX3oFx-j5LYpg@mail.gmail.com>
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH nf-next 7/9] netfilter: nf_tables: allow large allocations
+ for new sets
+Date: Fri, 26 May 2017 18:02:34 +0800
+Message-ID: <CAML_gOcajZUmbsFb56BFwAFe-hje-jT3nvF3A99JOg9khTMMdA@mail.gmail.com>
+References: <1495619453-22307-1-git-send-email-pablo@netfilter.org> <1495619453-22307-8-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-To: netfilter-devel@vger.kernel.org
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f41.google.com ([209.85.218.41]:32843 "EHLO
-        mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936230AbdEYLvu (ORCPT
+Received: from mail-ua0-f180.google.com ([209.85.217.180]:34460 "EHLO
+        mail-ua0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756588AbdEZKCk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 May 2017 07:51:50 -0400
-Received: by mail-oi0-f41.google.com with SMTP id w10so277345735oif.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 May 2017 04:51:49 -0700 (PDT)
+        Fri, 26 May 2017 06:02:40 -0400
+Received: by mail-ua0-f180.google.com with SMTP id u10so3374633uaf.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 26 May 2017 03:02:40 -0700 (PDT)
+In-Reply-To: <1495619453-22307-8-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hi Pablo,
 
-Let me first say our usage scenario of the above two targets.
-We have a proxy working in transparent mode. We would like the proxy
-to not accept a connection from the client if it can't connect to the
-origin. This way it can become even more transparent.
+2017-05-24 17:50 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+[...]
+> -       err = -ENOMEM;
+> -       set = kzalloc(sizeof(*set) + size + udlen, GFP_KERNEL);
+> +       alloc_size = sizeof(*set) + size + udlen;
+> +       if (alloc_size <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER))
+> +               set = kzalloc(alloc_size, GFP_KERNEL | __GFP_NOWARN |
+> +                                         __GFP_NORETRY);
+>         if (set == NULL)
+> +               set = vzalloc(alloc_size);
 
-So we decided to try the NFQUEUE target and send the incoming SYN
-packets to the user space application. The application there tries to
-connect to the origin and if it succeeds it issues NF_ACCEPT. If it
-can't connect in a few seconds to the origin it issues NF_DROP.
-
-Here are the related iptables-rules in the mangle table:
--A PREROUTING -i eth0 -p tcp -m tcp --dport 80 -j TPROXY --on-port
-8081 --on-ip 127.0.0.1 --tproxy-mark 0x1/0x1
--A INPUT -i eth0 -p tcp -m tcp --dport 80 --tcp-flags FIN,SYN,RST,ACK
-SYN -j NFQUEUE --queue-num 0
-
-The user space application correctly receives the SYN packets and
-connects to the origin. The problem is that when it issues the
-NF_ACCEPT verdict nothing seems to happen. I mean that the application
-doesn't receive any connect request.
- I think that the connected tproxy socket, bound to the client ip:port
-and connected to the origin ip:port, somehow breaks the things. If I
-change the bind port of this socket to some different number
-everything works correctly and the application receives connect
-request on it's listener socket.
-
-Saw in the source code of the xt_TPROXY that it just assign a
-different socket, in my case the listener socket, to the incoming
-skbuff. I suppose that somehow instead of the assigned socket the
-newly connected is used inside the network stack, but couldn't find
-how this can happen. Tried to trace the logic through the
-net/ipv4/ip_input.c, net/ipv4/tcp_v4.c and net/ipv4/tcp_input.c, but
-still can't find how this happens.
-
-I'll really appreciate if somebody can give me some piece of advice
-about this case.
-
-Thanks,
-Pavel.
+I think maybe we can use "set = kvzalloc(alloc_size, GFP_KERNEL);" to simplify
+the above codes.
