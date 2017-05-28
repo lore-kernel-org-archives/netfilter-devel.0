@@ -1,35 +1,37 @@
 From: kbuild test robot <lkp@intel.com>
-Subject: Re: [PATCH nf-next V2] netfilter: cttimeout: use
- nf_ct_iterate_cleanup_net to unlink timeout objs
-Date: Mon, 29 May 2017 00:07:28 +0800
-Message-ID: <201705282328.DHsxSWuh%fengguang.wu@intel.com>
-References: <1495982239-17054-1-git-send-email-zlpnobody@163.com>
+Subject: Re: [PATCH nf-next V2] netfilter: nf_ct_helper: use
+ nf_ct_iterate_destroy to unlink helper objs
+Date: Mon, 29 May 2017 00:37:59 +0800
+Message-ID: <201705290003.JDCsnEQi%fengguang.wu@intel.com>
+References: <1495982152-16918-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="OgqxwSJOaUobr8KG"
+Content-Type: multipart/mixed; boundary="bg08WKrSYDhXBjb5"
 Cc: kbuild-all@01.org, pablo@netfilter.org,
         netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
 To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:33353 "EHLO mga06.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:8347 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750791AbdE1QIR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 28 May 2017 12:08:17 -0400
+        id S1750791AbdE1QiS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 28 May 2017 12:38:18 -0400
 Content-Disposition: inline
-In-Reply-To: <1495982239-17054-1-git-send-email-zlpnobody@163.com>
+In-Reply-To: <1495982152-16918-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---OgqxwSJOaUobr8KG
+--bg08WKrSYDhXBjb5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
 Hi Liping,
 
-[auto build test ERROR on nf-next/master]
+[auto build test ERROR on nf/master]
+[also build test ERROR on v4.12-rc2 next-20170526]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-url:    https://github.com/0day-ci/linux/commits/Liping-Zhang/netfilter-cttimeout-use-nf_ct_iterate_cleanup_net-to-unlink-timeout-objs/20170528-232231
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+url:    https://github.com/0day-ci/linux/commits/Liping-Zhang/netfilter-nf_ct_helper-use-nf_ct_iterate_destroy-to-unlink-helper-objs/20170528-230817
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
 config: x86_64-randconfig-x014-201722 (attached as .config)
 compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
 reproduce:
@@ -38,109 +40,94 @@ reproduce:
 
 All errors (new ones prefixed by >>):
 
-   net/netfilter/nfnetlink_cttimeout.c: In function 'ctnl_untimeout':
->> net/netfilter/nfnetlink_cttimeout.c:303:2: error: implicit declaration of function 'nf_ct_iterate_cleanup_net' [-Werror=implicit-function-declaration]
-     nf_ct_iterate_cleanup_net(net, untimeout, timeout, 0, 0);
-     ^~~~~~~~~~~~~~~~~~~~~~~~~
+   net//netfilter/nf_conntrack_helper.c: In function 'nf_conntrack_helper_unregister':
+>> net//netfilter/nf_conntrack_helper.c:471:2: error: implicit declaration of function 'nf_ct_iterate_destroy' [-Werror=implicit-function-declaration]
+     nf_ct_iterate_destroy(unhelp, me);
+     ^~~~~~~~~~~~~~~~~~~~~
    Cyclomatic Complexity 5 include/linux/compiler.h:__read_once_size
    Cyclomatic Complexity 5 include/linux/compiler.h:__write_once_size
-   Cyclomatic Complexity 1 arch/x86/include/asm/bitops.h:fls64
-   Cyclomatic Complexity 1 include/linux/log2.h:__ilog2_u64
-   Cyclomatic Complexity 1 include/linux/list.h:INIT_LIST_HEAD
-   Cyclomatic Complexity 1 include/linux/list.h:__list_del
-   Cyclomatic Complexity 1 include/asm-generic/getorder.h:__get_order
-   Cyclomatic Complexity 1 arch/x86/include/asm/atomic.h:atomic_read
+   Cyclomatic Complexity 3 arch/x86/include/asm/bitops.h:set_bit
+   Cyclomatic Complexity 1 arch/x86/include/asm/bitops.h:constant_test_bit
    Cyclomatic Complexity 1 arch/x86/include/asm/atomic.h:atomic_set
+   Cyclomatic Complexity 1 include/linux/list.h:__list_del
+   Cyclomatic Complexity 1 include/linux/spinlock.h:spin_lock_bh
+   Cyclomatic Complexity 1 include/linux/spinlock.h:spin_unlock_bh
    Cyclomatic Complexity 1 include/linux/refcount.h:refcount_set
-   Cyclomatic Complexity 1 include/linux/refcount.h:refcount_read
+   Cyclomatic Complexity 1 include/net/net_namespace.h:read_pnet
    Cyclomatic Complexity 1 include/linux/module.h:module_is_live
    Cyclomatic Complexity 3 include/linux/module.h:try_module_get
    Cyclomatic Complexity 1 include/linux/module.h:module_put
-   Cyclomatic Complexity 68 include/linux/slab.h:kmalloc_large
-   Cyclomatic Complexity 5 include/linux/slab.h:kmalloc
-   Cyclomatic Complexity 1 include/linux/slab.h:kzalloc
-   Cyclomatic Complexity 1 include/linux/skbuff.h:skb_is_nonlinear
-   Cyclomatic Complexity 1 include/linux/skbuff.h:skb_tail_pointer
-   Cyclomatic Complexity 2 include/linux/skbuff.h:skb_tailroom
-   Cyclomatic Complexity 1 include/net/net_namespace.h:read_pnet
-   Cyclomatic Complexity 1 include/net/netlink.h:nlmsg_msg_size
-   Cyclomatic Complexity 1 include/net/netlink.h:nlmsg_total_size
-   Cyclomatic Complexity 1 include/net/netlink.h:nlmsg_data
-   Cyclomatic Complexity 1 include/net/netlink.h:nlmsg_end
-   Cyclomatic Complexity 1 include/net/netlink.h:nla_data
-   Cyclomatic Complexity 1 include/net/netlink.h:nla_len
-   Cyclomatic Complexity 1 include/net/netlink.h:nla_get_be16
-   Cyclomatic Complexity 1 include/net/netlink.h:nla_get_u8
-   Cyclomatic Complexity 1 include/net/netlink.h:nla_nest_end
-   Cyclomatic Complexity 1 include/net/sock.h:sock_net
+   Cyclomatic Complexity 1 include/net/netfilter/nf_conntrack.h:nf_ct_l3num
+   Cyclomatic Complexity 1 include/net/netfilter/nf_conntrack.h:nf_ct_net
    Cyclomatic Complexity 1 include/net/netfilter/nf_conntrack_extend.h:__nf_ct_ext_exist
    Cyclomatic Complexity 3 include/net/netfilter/nf_conntrack_extend.h:nf_ct_ext_exist
    Cyclomatic Complexity 2 include/net/netfilter/nf_conntrack_extend.h:__nf_ct_ext_find
-   Cyclomatic Complexity 1 include/net/netfilter/nf_conntrack_timeout.h:nf_ct_timeout_find
-   Cyclomatic Complexity 1 include/linux/netfilter/nfnetlink.h:nfnl_msg_type
-   Cyclomatic Complexity 1 net/netfilter/nfnetlink_cttimeout.c:cttimeout_net_init
-   Cyclomatic Complexity 12 net/netfilter/nfnetlink_cttimeout.c:untimeout
-   Cyclomatic Complexity 4 net/netfilter/nfnetlink_cttimeout.c:ctnl_timeout_put
+   Cyclomatic Complexity 1 include/net/netfilter/nf_conntrack_helper.h:nfct_help
+   Cyclomatic Complexity 1 include/net/netfilter/nf_conntrack_ecache.h:nf_conntrack_event
+   Cyclomatic Complexity 1 net//netfilter/nf_conntrack_helper.c:helper_hash
+   Cyclomatic Complexity 4 net//netfilter/nf_conntrack_helper.c:unhelp
+   Cyclomatic Complexity 17 net//netfilter/nf_conntrack_helper.c:__nf_conntrack_helper_find
+   Cyclomatic Complexity 14 include/net/netfilter/nf_conntrack_tuple.h:nf_ct_tuple_src_mask_cmp
+   Cyclomatic Complexity 7 net//netfilter/nf_conntrack_helper.c:__nf_ct_helper_find
+   Cyclomatic Complexity 5 net//netfilter/nf_conntrack_helper.c:nf_ct_helper_expectfn_find_by_name
+   Cyclomatic Complexity 5 net//netfilter/nf_conntrack_helper.c:nf_ct_helper_expectfn_find_by_symbol
+   Cyclomatic Complexity 3 include/linux/list.h:__hlist_del
+   Cyclomatic Complexity 1 include/linux/rculist.h:hlist_del_rcu
    Cyclomatic Complexity 1 include/linux/rcupdate.h:rcu_lock_acquire
    Cyclomatic Complexity 5 include/linux/rcupdate.h:rcu_read_lock
    Cyclomatic Complexity 1 include/linux/rcupdate.h:rcu_lock_release
    Cyclomatic Complexity 5 include/linux/rcupdate.h:rcu_read_unlock
-   Cyclomatic Complexity 6 net/netfilter/nfnetlink_cttimeout.c:ctnl_timeout_find_get
-   Cyclomatic Complexity 1 include/linux/skbuff.h:alloc_skb
-   Cyclomatic Complexity 1 include/net/netlink.h:nlmsg_new
-   Cyclomatic Complexity 2 include/net/netlink.h:nlmsg_put
-   Cyclomatic Complexity 1 include/net/netlink.h:nla_put_be16
-   Cyclomatic Complexity 1 include/net/netlink.h:nla_put_u8
-   Cyclomatic Complexity 2 include/net/netlink.h:nla_nest_start
-   Cyclomatic Complexity 1 include/net/netlink.h:nla_put_be32
-   Cyclomatic Complexity 4 include/net/netlink.h:nlmsg_trim
-   Cyclomatic Complexity 1 include/net/netlink.h:nlmsg_cancel
-   Cyclomatic Complexity 12 net/netfilter/nfnetlink_cttimeout.c:cttimeout_default_fill_info
-   Cyclomatic Complexity 18 net/netfilter/nfnetlink_cttimeout.c:cttimeout_default_get
-   Cyclomatic Complexity 1 include/net/netlink.h:nla_parse_nested
-   Cyclomatic Complexity 4 net/netfilter/nfnetlink_cttimeout.c:ctnl_timeout_parse_policy
-   Cyclomatic Complexity 16 net/netfilter/nfnetlink_cttimeout.c:cttimeout_default_set
+   Cyclomatic Complexity 10 net//netfilter/nf_conntrack_helper.c:nf_conntrack_helper_try_module_get
+   Cyclomatic Complexity 1 net//netfilter/nf_conntrack_helper.c:nf_conntrack_helper_put
+   Cyclomatic Complexity 3 net//netfilter/nf_conntrack_helper.c:nf_ct_helper_ext_add
+   Cyclomatic Complexity 6 net//netfilter/nf_conntrack_helper.c:nf_ct_lookup_helper
+   Cyclomatic Complexity 30 net//netfilter/nf_conntrack_helper.c:__nf_ct_try_assign_helper
+   Cyclomatic Complexity 4 include/linux/rculist.h:__list_add_rcu
+   Cyclomatic Complexity 1 include/linux/rculist.h:list_add_rcu
+   Cyclomatic Complexity 1 net//netfilter/nf_conntrack_helper.c:nf_ct_helper_expectfn_register
    Cyclomatic Complexity 2 include/linux/list.h:__list_del_entry
    Cyclomatic Complexity 1 include/linux/rculist.h:list_del_rcu
-   Cyclomatic Complexity 1 net/netfilter/nfnetlink_cttimeout.c:ctnl_untimeout
-   Cyclomatic Complexity 4 net/netfilter/nfnetlink_cttimeout.c:ctnl_timeout_try_del
-   Cyclomatic Complexity 9 net/netfilter/nfnetlink_cttimeout.c:cttimeout_del_timeout
-   Cyclomatic Complexity 3 include/linux/netlink.h:netlink_dump_start
-   Cyclomatic Complexity 1 include/net/netlink.h:nla_put_string
-   Cyclomatic Complexity 14 net/netfilter/nfnetlink_cttimeout.c:ctnl_timeout_fill_info
-   Cyclomatic Complexity 15 net/netfilter/nfnetlink_cttimeout.c:cttimeout_get_timeout
-   Cyclomatic Complexity 13 net/netfilter/nfnetlink_cttimeout.c:ctnl_timeout_dump
-   Cyclomatic Complexity 4 include/linux/rculist.h:__list_add_rcu
-   Cyclomatic Complexity 1 include/linux/rculist.h:list_add_tail_rcu
-   Cyclomatic Complexity 38 net/netfilter/nfnetlink_cttimeout.c:cttimeout_new_timeout
-   Cyclomatic Complexity 5 net/netfilter/nfnetlink_cttimeout.c:cttimeout_net_exit
-   Cyclomatic Complexity 5 net/netfilter/nfnetlink_cttimeout.c:cttimeout_init
-   Cyclomatic Complexity 1 net/netfilter/nfnetlink_cttimeout.c:cttimeout_exit
+   Cyclomatic Complexity 1 net//netfilter/nf_conntrack_helper.c:nf_ct_helper_expectfn_unregister
+   Cyclomatic Complexity 5 net//netfilter/nf_conntrack_helper.c:nf_ct_helper_log
+   Cyclomatic Complexity 5 include/linux/rculist.h:hlist_add_head_rcu
+   Cyclomatic Complexity 27 net//netfilter/nf_conntrack_helper.c:nf_conntrack_helper_register
+   Cyclomatic Complexity 1 include/linux/lockdep.h:lock_is_held
+   Cyclomatic Complexity 13 net//netfilter/nf_conntrack_helper.c:nf_conntrack_helper_unregister
+   Cyclomatic Complexity 2 net//netfilter/nf_conntrack_helper.c:nf_conntrack_helpers_unregister
+   Cyclomatic Complexity 6 net//netfilter/nf_conntrack_helper.c:nf_conntrack_helpers_register
+   Cyclomatic Complexity 3 net//netfilter/nf_conntrack_helper.c:nf_ct_helper_init
+   Cyclomatic Complexity 7 net//netfilter/nf_conntrack_helper.c:nf_conntrack_helper_init_sysctl
+   Cyclomatic Complexity 1 net//netfilter/nf_conntrack_helper.c:nf_conntrack_helper_fini_sysctl
+   Cyclomatic Complexity 15 net//netfilter/nf_conntrack_helper.c:nf_ct_helper_destroy
+   Cyclomatic Complexity 1 net//netfilter/nf_conntrack_helper.c:nf_conntrack_helper_pernet_init
+   Cyclomatic Complexity 1 net//netfilter/nf_conntrack_helper.c:nf_conntrack_helper_pernet_fini
+   Cyclomatic Complexity 5 net//netfilter/nf_conntrack_helper.c:nf_conntrack_helper_init
+   Cyclomatic Complexity 1 net//netfilter/nf_conntrack_helper.c:nf_conntrack_helper_fini
    cc1: some warnings being treated as errors
 
-vim +/nf_ct_iterate_cleanup_net +303 net/netfilter/nfnetlink_cttimeout.c
+vim +/nf_ct_iterate_destroy +471 net//netfilter/nf_conntrack_helper.c
 
-   297		/* We are not intended to delete this conntrack. */
-   298		return 0;
-   299	}
-   300	
-   301	static void ctnl_untimeout(struct net *net, struct ctnl_timeout *timeout)
-   302	{
- > 303		nf_ct_iterate_cleanup_net(net, untimeout, timeout, 0, 0);
-   304	}
-   305	
-   306	/* try to delete object, fail if it is still in use. */
+   465						) == me || exp->helper == me))
+   466					nf_ct_remove_expect(exp);
+   467			}
+   468		}
+   469		spin_unlock_bh(&nf_conntrack_expect_lock);
+   470	
+ > 471		nf_ct_iterate_destroy(unhelp, me);
+   472	}
+   473	EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
+   474	
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---OgqxwSJOaUobr8KG
+--bg08WKrSYDhXBjb5
 Content-Type: application/gzip
 Content-Disposition: attachment; filename=".config.gz"
 Content-Transfer-Encoding: base64
 
-H4sICHftKlkAAy5jb25maWcAlFxbc+S2jn7Pr+ia7MM5D5mxPR5nUlt+oCSqm6clURGlvvhF
+H4sICDnsKlkAAy5jb25maWcAlFxbc+S2jn7Pr+ia7MM5D5mxPR5nUlt+oCSqm6clURGlvvhF
 5bF7Jq74MseXk2R//QKgLiQF9Wa3ak+mCZAESRD4AEL+8YcfF+Lt9enh+vXu5vr+/q/Ft8Pj
 4fn69XC7+Hp3f/jvRaIXha4XMlH1e2DO7h7f/vzw5+eL9uJ8cf7+9Oz9yU/PN6eL9eH58XC/
 iJ8ev959e4MB7p4ef/jxh1gXqVoCb6Tqy7/6nzvq7v0ef6jC1FUT10oXbSJjnchqJOqmLpu6
@@ -673,4 +660,4 @@ uKHE+G9VJMmJybXnExj0jS1T82rp/mJEQJm7YQ6S/A5jqFgA6LttgJ+mdnh22AUx184EKerM
 SZtcZSkaDIIa0jhGFS1a6OaxRAwYNak6+pYPJHTDy4jXGh/5ndecEUWJyszbuakMTbZSWdtG
 a7ALFnIoYXUos6j/Ay6nUPZhuAEA
 
---OgqxwSJOaUobr8KG--
+--bg08WKrSYDhXBjb5--
