@@ -1,62 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/4] netfilter: nat: use atomic bit op to clear the _SRC_NAT_DONE_BIT
-Date: Mon, 29 May 2017 13:34:31 +0200
-Message-ID: <1496057672-6751-4-git-send-email-pablo@netfilter.org>
-References: <1496057672-6751-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v3] extensions: libxt_hashlimit: fix uint64_t printf
+ formats
+Date: Mon, 29 May 2017 14:02:08 +0200
+Message-ID: <20170529120208.GA11167@salvia>
+References: <1495610038-29297-1-git-send-email-alin.nastac@technicolor.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@vger.kernel.org
+To: Alin Nastac <alin.nastac@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53098 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40226 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751188AbdE2Lev (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 May 2017 07:34:51 -0400
+        id S1750986AbdE2MCS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 29 May 2017 08:02:18 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 1057A303D05
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 May 2017 13:34:42 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 502B8303D04
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 May 2017 14:02:09 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 01528100A46
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 May 2017 13:34:42 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3FD5F100A6C
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 May 2017 14:02:09 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1453C100A46
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 May 2017 13:34:40 +0200 (CEST)
-In-Reply-To: <1496057672-6751-1-git-send-email-pablo@netfilter.org>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A188DFF6FE
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 May 2017 14:02:06 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <1495610038-29297-1-git-send-email-alin.nastac@technicolor.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <zlpnobody@gmail.com>
+On Wed, May 24, 2017 at 09:13:58AM +0200, Alin Nastac wrote:
+> From: Alin Nastac <alin.nastac@gmail.com>
+>
+> The remaining %llu formats are used for unsigned long long values.
 
-We need to clear the IPS_SRC_NAT_DONE_BIT to indicate that the ct has
-been removed from nat_bysource table. But unfortunately, we use the
-non-atomic bit operation: "ct->status &= ~IPS_NAT_DONE_MASK". So
-there's a race condition that we may clear the _DYING_BIT set by
-another CPU unexpectedly.
+Hm, still problems here:
 
-Since we don't care about the IPS_DST_NAT_DONE_BIT, so just using
-clear_bit to clear the IPS_SRC_NAT_DONE_BIT is enough.
-
-Also note, this is the last user which use the non-atomic bit operation
-to update the confirmed ct->status.
-
-Reported-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_nat_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index ef0be325a0c6..6c72922d20ca 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -566,7 +566,7 @@ static int nf_nat_proto_clean(struct nf_conn *ct, void *data)
- 	 * Else, when the conntrack is destoyed, nf_nat_cleanup_conntrack()
- 	 * will delete entry from already-freed table.
- 	 */
--	ct->status &= ~IPS_NAT_DONE_MASK;
-+	clear_bit(IPS_SRC_NAT_DONE_BIT, &ct->status);
- 	rhltable_remove(&nf_nat_bysource_table, &ct->nat_bysource,
- 			nf_nat_bysource_params);
- 
--- 
-2.1.4
-
+libxt_hashlimit.c: In function ‘hashlimit_mt_print’:
+libxt_hashlimit.c:739:3: warning: format ‘%lu’ expects argument of type ‘long unsigned int’, but argument 2 has type ‘__u64’ [-Wformat=]   printf(" burst %"PRIu64, cfg->burst);
+   printf(" burst %"PRIu64, cfg->burst);
+   ^
+libxt_hashlimit.c: In function ‘hashlimit_mt_save’:
+libxt_hashlimit.c:849:3: warning: format ‘%lu’ expects argument of type ‘long unsigned int’, but argument 2 has type ‘__u64’ [-Wformat=]
+   printf(" --hashlimit-burst %"PRIu64, cfg->burst);
