@@ -1,70 +1,68 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH conntrack-tools] ipv6: remove use of HAVE_INET_PTON_IPV6
-Date: Mon, 29 May 2017 18:25:23 +0200
-Message-ID: <20170529162523.GA22681@salvia>
-References: <1496072655-26752-1-git-send-email-nicolas.dichtel@6wind.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] meta: permit meta nfproto ip in ip family
+Date: Mon, 29 May 2017 19:25:37 +0200
+Message-ID: <20170529172538.27878-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50186 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750844AbdE2QZn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 May 2017 12:25:43 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 65FC581424
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 May 2017 18:25:34 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 57070102186
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 May 2017 18:25:34 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6727E100A41
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 May 2017 18:25:32 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1496072655-26752-1-git-send-email-nicolas.dichtel@6wind.com>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:33228 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750864AbdE2RZU (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 29 May 2017 13:25:20 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, May 29, 2017 at 05:44:15PM +0200, Nicolas Dichtel wrote:
-> The goal of this patch is to fix the ipv6 support when conntrackd is
-> cross-compiled. The AC_RUN_IFELSE macro must be avoided as much as possible.
-> See section 6.6 of the gnu autoconf:
-> "If you really need to test for a runtime behavior while configuring, you can
->  write a test program to determine the result, and compile and run it using
->  AC_RUN_IFELSE. Avoid running test programs if possible, because this prevents
->  people from configuring your package for cross-compiling."
-> 
-> Let's remove this check and test the returned error to handle the case where
-> ipv6 is not supported (inet_pton() returns -1 when the family is not supported).
+works:
+add rule ip filter input ct original saddr 1.2.3.4
+(family ctx init initialises network base to proto_ip).
 
-Much less ifdef pollution, much better indeed.
+fails to parse 1.2.3.4 address:
+add rule ip filter input meta nfproto ipv4 ct original saddr 1.2.3.4
 
-One comment below:
+... because meta_expr_pctx_update() won't find a dependency
+from "ip" to "ip" and then overwrites the correct base with proto_unknown.
 
-> diff --git a/src/read_config_yy.y b/src/read_config_yy.y
-> index 3bb7c5f90017..e4fd277a47ea 100644
-> --- a/src/read_config_yy.y
-> +++ b/src/read_config_yy.y
-> @@ -240,17 +240,17 @@ multicast_option : T_IPV4_ADDR T_IP
->  multicast_option : T_IPV6_ADDR T_IP
->  {
->  	__max_dedicated_links_reached();
-> +	int err;
->  
-> -#ifdef HAVE_INET_PTON_IPV6
-> -	if (inet_pton(AF_INET6, $2,
-> -		      &conf.channel[conf.channel_num].u.mcast.in) <= 0) {
-> +	err = inet_pton(AF_INET6, $2,
-> +			&conf.channel[conf.channel_num].u.mcast.in);
-> +	if (err == 0) {
->  		dlog(LOG_WARNING, "%s is not a valid IPv6 address", $2);
->  		break;
-> +	} else if (err < 0) {
-> +		dlog(LOG_WARNING, "inet_pton(): IPv6 unsupported!");
-> +		break;
+"meta nfproto ip" is useless in the ip family, as it will always match,
+i.e.  a better (but more compliated) fix would be to remove the statement
+during evaluation.
 
-Probably better to exit() here and to use LOG_ERR instead?
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/meta.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-If we cannot interpret this IPv6 address, we shouldn't go much
-further.
+diff --git a/src/meta.c b/src/meta.c
+index cb7c1368e087..dd09d49560cd 100644
+--- a/src/meta.c
++++ b/src/meta.c
+@@ -497,6 +497,7 @@ static void meta_expr_pctx_update(struct proto_ctx *ctx,
+ 	const struct hook_proto_desc *h = &hook_proto_desc[ctx->family];
+ 	const struct expr *left = expr->left, *right = expr->right;
+ 	const struct proto_desc *desc;
++	uint8_t protonum;
+ 
+ 	assert(expr->op == OP_EQ);
+ 
+@@ -514,10 +515,16 @@ static void meta_expr_pctx_update(struct proto_ctx *ctx,
+ 		proto_ctx_update(ctx, PROTO_BASE_LL_HDR, &expr->location, desc);
+ 		break;
+ 	case NFT_META_NFPROTO:
+-		desc = proto_find_upper(h->desc, mpz_get_uint8(right->value));
+-		if (desc == NULL)
++		protonum = mpz_get_uint8(right->value);
++		desc = proto_find_upper(h->desc, protonum);
++		if (desc == NULL) {
+ 			desc = &proto_unknown;
+ 
++			if (protonum == ctx->family &&
++			    h->base == PROTO_BASE_NETWORK_HDR)
++				desc = h->desc;
++		}
++
+ 		proto_ctx_update(ctx, PROTO_BASE_NETWORK_HDR, &expr->location, desc);
+ 		break;
+ 	case NFT_META_L4PROTO:
+-- 
+2.13.0
+
