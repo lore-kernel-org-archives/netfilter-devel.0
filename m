@@ -1,68 +1,133 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] meta: permit meta nfproto ip in ip family
-Date: Mon, 29 May 2017 19:25:37 +0200
-Message-ID: <20170529172538.27878-1-fw@strlen.de>
+Subject: [PATCH nft] ct: fix inet/bridge/netdev family handling for saddr/daddr
+Date: Mon, 29 May 2017 19:25:38 +0200
+Message-ID: <20170529172538.27878-2-fw@strlen.de>
+References: <20170529172538.27878-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:33228 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:33232 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750864AbdE2RZU (ORCPT
+        by vger.kernel.org with ESMTP id S1750886AbdE2RZj (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 May 2017 13:25:20 -0400
+        Mon, 29 May 2017 13:25:39 -0400
+In-Reply-To: <20170529172538.27878-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-works:
-add rule ip filter input ct original saddr 1.2.3.4
-(family ctx init initialises network base to proto_ip).
+"ct orignal saddr" has an invalid data type, as the address can be either ipv4 or ipv6.
+For some cases we could infer it from the rhs, but there are cases where we don't have any
+information, e.g. when passing ct original saddr to jhash expression.
 
-fails to parse 1.2.3.4 address:
-add rule ip filter input meta nfproto ipv4 ct original saddr 1.2.3.4
+So do the same thing that we do for "rt nexthop" -- error out and hint to user
+they need to specifiy the desired address type with "meta nfproto".
 
-... because meta_expr_pctx_update() won't find a dependency
-from "ip" to "ip" and then overwrites the correct base with proto_unknown.
-
-"meta nfproto ip" is useless in the ip family, as it will always match,
-i.e.  a better (but more compliated) fix would be to remove the statement
-during evaluation.
-
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/meta.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ src/evaluate.c            | 27 ++++++++++++++++++++-------
+ tests/py/any/ct.t         |  4 ++++
+ tests/py/any/ct.t.payload |  7 +++++++
+ 3 files changed, 31 insertions(+), 7 deletions(-)
 
-diff --git a/src/meta.c b/src/meta.c
-index cb7c1368e087..dd09d49560cd 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -497,6 +497,7 @@ static void meta_expr_pctx_update(struct proto_ctx *ctx,
- 	const struct hook_proto_desc *h = &hook_proto_desc[ctx->family];
- 	const struct expr *left = expr->left, *right = expr->right;
- 	const struct proto_desc *desc;
-+	uint8_t protonum;
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 4ca14842a184..311c86c5abe9 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -649,6 +649,13 @@ static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **exprp)
+ 	return 0;
+ }
  
- 	assert(expr->op == OP_EQ);
- 
-@@ -514,10 +515,16 @@ static void meta_expr_pctx_update(struct proto_ctx *ctx,
- 		proto_ctx_update(ctx, PROTO_BASE_LL_HDR, &expr->location, desc);
- 		break;
- 	case NFT_META_NFPROTO:
--		desc = proto_find_upper(h->desc, mpz_get_uint8(right->value));
--		if (desc == NULL)
-+		protonum = mpz_get_uint8(right->value);
-+		desc = proto_find_upper(h->desc, protonum);
-+		if (desc == NULL) {
- 			desc = &proto_unknown;
- 
-+			if (protonum == ctx->family &&
-+			    h->base == PROTO_BASE_NETWORK_HDR)
-+				desc = h->desc;
-+		}
++static int expr_error_base(struct list_head *msgs, const struct expr *e)
++{
++	return expr_error(msgs, e,
++			  "meta nfproto ipv4 or ipv6 must be specified "
++			  "before %s expression", e->ops->name);
++}
 +
- 		proto_ctx_update(ctx, PROTO_BASE_NETWORK_HDR, &expr->location, desc);
+ /*
+  * RT expression: validate protocol dependencies.
+  */
+@@ -663,22 +670,17 @@ static int expr_evaluate_rt(struct eval_ctx *ctx, struct expr **expr)
+ 	switch (rt->rt.key) {
+ 	case NFT_RT_NEXTHOP4:
+ 		if (base != &proto_ip)
+-			goto err;
++			return expr_error_base(ctx->msgs, rt);
  		break;
- 	case NFT_META_L4PROTO:
+ 	case NFT_RT_NEXTHOP6:
+ 		if (base != &proto_ip6)
+-			goto err;
++			return expr_error_base(ctx->msgs, rt);
+ 		break;
+ 	default:
+ 		break;
+ 	}
+ 
+ 	return expr_evaluate_primary(ctx, expr);
+-
+-err:
+-	return expr_error(ctx->msgs, rt,
+-			  "meta nfproto ipv4 or ipv6 must be specified "
+-			  "before routing expression");
+ }
+ 
+ /*
+@@ -687,10 +689,21 @@ err:
+  */
+ static int expr_evaluate_ct(struct eval_ctx *ctx, struct expr **expr)
+ {
++	const struct proto_desc *base;
+ 	struct expr *ct = *expr;
+ 
+ 	ct_expr_update_type(&ctx->pctx, ct);
+ 
++	base = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
++	switch (ct->ct.key) {
++	case NFT_CT_SRC:
++	case NFT_CT_DST:
++		if (base != &proto_ip && base != &proto_ip6)
++			return expr_error_base(ctx->msgs, ct);
++	default:
++		break;
++	}
++
+ 	return expr_evaluate_primary(ctx, expr);
+ }
+ 
+diff --git a/tests/py/any/ct.t b/tests/py/any/ct.t
+index 96a80f84a218..667126e656ae 100644
+--- a/tests/py/any/ct.t
++++ b/tests/py/any/ct.t
+@@ -91,6 +91,10 @@ ct bytes original reply;fail
+ # missing direction
+ ct saddr 1.2.3.4;fail
+ 
++meta nfproto ipv4 ct original saddr 1.2.3.4;ok
++# wrong base (ip6 but ipv4 address given)
++meta nfproto ipv6 ct original saddr 1.2.3.4;fail
++
+ # direction, but must be used without
+ ct original mark 42;fail
+ # swapped key and direction
+diff --git a/tests/py/any/ct.t.payload b/tests/py/any/ct.t.payload
+index 6077e5da63b8..c5fa7c8d49e4 100644
+--- a/tests/py/any/ct.t.payload
++++ b/tests/py/any/ct.t.payload
+@@ -373,6 +373,13 @@ ip test-ip4 output
+   [ byteorder reg 1 = hton(reg 1, 8, 8) ]
+   [ cmp lt reg 1 0x00000000 0xf4010000 ]
+ 
++# meta nfproto ipv4 ct original saddr 1.2.3.4
++ip test-ip4 output
++  [ meta load nfproto => reg 1 ]
++  [ cmp eq reg 1 0x00000002 ]
++  [ ct load src => reg 1 , dir original ]
++  [ cmp eq reg 1 0x04030201 ]
++
+ # ct status expected,seen-reply,assured,confirmed,snat,dnat,dying
+ ip test-ip4 output
+   [ ct load status => reg 1 ]
 -- 
 2.13.0
 
