@@ -1,42 +1,61 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [4.9.y,netfilter] please, cherry-pick da2f27e9e615
-Date: Mon, 29 May 2017 13:22:23 +0200
-Message-ID: <20170529112223.GA5252@salvia>
+Subject: Re: [PATCH] netfilter: Remove duplicated rcu_read_lock.
+Date: Mon, 29 May 2017 13:23:24 +0200
+Message-ID: <20170529112324.GA6287@salvia>
+References: <alpine.LFD.2.20.1705241508270.9575@ja.home.ssi.bg>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Juergen Schmidt <abcdmail@freenet.de>,
-        netfilter-devel@vger.kernel.org
-To: stable@lists.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42764 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750871AbdE2LWd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 May 2017 07:22:33 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 754211EC2C1
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 May 2017 13:22:24 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 64E05114D8A
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 May 2017 13:22:24 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AD266114D82
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 May 2017 13:22:20 +0200 (CEST)
+Cc: Taehee Yoo <ap420073@gmail.com>, Simon Horman <horms@verge.net.au>,
+        netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.20.1705241508270.9575@ja.home.ssi.bg>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Wed, May 24, 2017 at 03:25:41PM +0300, Julian Anastasov wrote:
+> 
+> 	Hello,
+> 
+> 	The IPVS part from patch looks good but can be extended
+> to also remove rcu_read_lock and rcu_read_unlock from:
+> 
+> 1. all app_conn_bind methods because ip_vs_bind_app() is called
+> always under RCU lock from ip_vs_try_bind_dest() and ip_vs_conn_new().
+> I.e. from sctp_app_conn_bind, tcp_app_conn_bind and udp_app_conn_bind.
+> 
+> 2. ip_vs_xmit.c, all locks
+> 
+> 	IMHO, using comments instead of locks is not needed, it is
+> enough that the commit message explains why RCU locks are removed
+> 
+> 	More details:
+> 
+> In IPVS we have the following contexts:
+> - packet RX/TX: does not need locks because packets come from hooks
+> - sync msg RX: backup server uses RCU locks while registering new conns
+> - ip_vs_ctl.c: configuration get/set, RCU locks needed
+> - xt_ipvs.c: It is a NF match
+> 
+> As result, rcu_read_lock and rcu_read_unlock can be removed from:
+> - ip_vs_core.c: all
+> - ip_vs_ctl.c:
+> 	- from ip_vs_has_real_service
+> 	- all other places need the RCU locking
+> - ip_vs_ftp.c: all
+> - ip_vs_proto_sctp.c: all
+> - ip_vs_proto_tcp.c: all
+> - ip_vs_proto_udp.c: all
+> - ip_vs_xmit.c: all (contains only packet processing)
+> 
+> Locks should remain in:
+> - ip_vs_conn.c
+> - ip_vs_pe.c
+> - ip_vs_sync.c
 
-Please, 4.9 stable maintainer, cherry-pick this commit:
+Julian, thanks a lot for this careful review!
 
-commit da2f27e9e615d1c799c9582b15262458da61fddc
-Author: Christophe Leroy <christophe.leroy@c-s.fr>
-Date:   Wed Mar 1 15:33:26 2017 +0100
+I have marked this patch as "Changed Requested".
 
-    netfilter: nf_conntrack_sip: fix wrong memory initialisation
-
-We have a user complaining about this bug that manifests in 4.9:
-
-http://marc.info/?l=netfilter&m=149577235017072&w=2
-
-Thanks!
+Thanks.
