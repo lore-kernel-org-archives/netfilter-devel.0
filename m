@@ -1,61 +1,66 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: Remove duplicated rcu_read_lock.
-Date: Mon, 29 May 2017 13:23:24 +0200
-Message-ID: <20170529112324.GA6287@salvia>
-References: <alpine.LFD.2.20.1705241508270.9575@ja.home.ssi.bg>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Taehee Yoo <ap420073@gmail.com>, Simon Horman <horms@verge.net.au>,
-        netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.20.1705241508270.9575@ja.home.ssi.bg>
-Sender: lvs-devel-owner@vger.kernel.org
+Subject: [PATCH 4/4] netfilter: ctnetlink: fix incorrect nf_ct_put during hash resize
+Date: Mon, 29 May 2017 13:34:32 +0200
+Message-ID: <1496057672-6751-5-git-send-email-pablo@netfilter.org>
+References: <1496057672-6751-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1496057672-6751-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, May 24, 2017 at 03:25:41PM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> 	The IPVS part from patch looks good but can be extended
-> to also remove rcu_read_lock and rcu_read_unlock from:
-> 
-> 1. all app_conn_bind methods because ip_vs_bind_app() is called
-> always under RCU lock from ip_vs_try_bind_dest() and ip_vs_conn_new().
-> I.e. from sctp_app_conn_bind, tcp_app_conn_bind and udp_app_conn_bind.
-> 
-> 2. ip_vs_xmit.c, all locks
-> 
-> 	IMHO, using comments instead of locks is not needed, it is
-> enough that the commit message explains why RCU locks are removed
-> 
-> 	More details:
-> 
-> In IPVS we have the following contexts:
-> - packet RX/TX: does not need locks because packets come from hooks
-> - sync msg RX: backup server uses RCU locks while registering new conns
-> - ip_vs_ctl.c: configuration get/set, RCU locks needed
-> - xt_ipvs.c: It is a NF match
-> 
-> As result, rcu_read_lock and rcu_read_unlock can be removed from:
-> - ip_vs_core.c: all
-> - ip_vs_ctl.c:
-> 	- from ip_vs_has_real_service
-> 	- all other places need the RCU locking
-> - ip_vs_ftp.c: all
-> - ip_vs_proto_sctp.c: all
-> - ip_vs_proto_tcp.c: all
-> - ip_vs_proto_udp.c: all
-> - ip_vs_xmit.c: all (contains only packet processing)
-> 
-> Locks should remain in:
-> - ip_vs_conn.c
-> - ip_vs_pe.c
-> - ip_vs_sync.c
+From: Liping Zhang <zlpnobody@gmail.com>
 
-Julian, thanks a lot for this careful review!
+If nf_conntrack_htable_size was adjusted by the user during the ct
+dump operation, we may invoke nf_ct_put twice for the same ct, i.e.
+the "last" ct. This will cause the ct will be freed but still linked
+in hash buckets.
 
-I have marked this patch as "Changed Requested".
+It's very easy to reproduce the problem by the following commands:
+  # while : ; do
+  echo $RANDOM > /proc/sys/net/netfilter/nf_conntrack_buckets
+  done
+  # while : ; do
+  conntrack -L
+  done
+  # iperf -s 127.0.0.1 &
+  # iperf -c 127.0.0.1 -P 60 -t 36000
 
-Thanks.
+After a while, the system will hang like this:
+  NMI watchdog: BUG: soft lockup - CPU#1 stuck for 22s! [bash:20184]
+  NMI watchdog: BUG: soft lockup - CPU#0 stuck for 22s! [iperf:20382]
+  ...
+
+So at last if we find cb->args[1] is equal to "last", this means hash
+resize happened, then we can set cb->args[1] to 0 to fix the above
+issue.
+
+Fixes: d205dc40798d ("[NETFILTER]: ctnetlink: fix deadlock in table dumping")
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_netlink.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 9799a50bc604..a8be9b72e6cd 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -890,8 +890,13 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+ 	}
+ out:
+ 	local_bh_enable();
+-	if (last)
++	if (last) {
++		/* nf ct hash resize happened, now clear the leftover. */
++		if ((struct nf_conn *)cb->args[1] == last)
++			cb->args[1] = 0;
++
+ 		nf_ct_put(last);
++	}
+ 
+ 	while (i) {
+ 		i--;
+-- 
+2.1.4
