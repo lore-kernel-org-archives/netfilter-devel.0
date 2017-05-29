@@ -1,48 +1,70 @@
-From: =?UTF-8?B?QWxpbiBOxINzdGFj?= <alin.nastac@gmail.com>
-Subject: Re: [PATCH v3] extensions: libxt_hashlimit: fix uint64_t printf formats
-Date: Mon, 29 May 2017 14:18:51 +0200
-Message-ID: <CAF1oqRCxKcEBMGTKqD6PCoGBOkwxr2TRz7j9pz_h4VWQZe-9Kw@mail.gmail.com>
-References: <1495610038-29297-1-git-send-email-alin.nastac@technicolor.com> <20170529120208.GA11167@salvia>
+From: Taehee Yoo <ap420073@gmail.com>
+Subject: Re: [PATCH] netfilter: Remove duplicated rcu_read_lock.
+Date: Tue, 30 May 2017 00:12:04 +0900
+Message-ID: <CAMArcTXviyp7acsv+eRYW7yGseWj+THLQ4GPg04NJieTd3SegA@mail.gmail.com>
+References: <alpine.LFD.2.20.1705241508270.9575@ja.home.ssi.bg>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yb0-f173.google.com ([209.85.213.173]:34165 "EHLO
-        mail-yb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750994AbdE2MSx (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 May 2017 08:18:53 -0400
-Received: by mail-yb0-f173.google.com with SMTP id 132so14310920ybq.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 May 2017 05:18:52 -0700 (PDT)
-In-Reply-To: <20170529120208.GA11167@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Simon Horman <horms@verge.net.au>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>, lvs-devel@vger.kernel.org
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.20.1705241508270.9575@ja.home.ssi.bg>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, May 29, 2017 at 2:02 PM, Pablo Neira Ayuso <pablo@netfilter.org> wr=
-ote:
-> On Wed, May 24, 2017 at 09:13:58AM +0200, Alin Nastac wrote:
->> From: Alin Nastac <alin.nastac@gmail.com>
->>
->> The remaining %llu formats are used for unsigned long long values.
+2017-05-24 21:25 GMT+09:00 Julian Anastasov <ja@ssi.bg>:
 >
-> Hm, still problems here:
+>         Hello,
 >
-> libxt_hashlimit.c: In function =E2=80=98hashlimit_mt_print=E2=80=99:
-> libxt_hashlimit.c:739:3: warning: format =E2=80=98%lu=E2=80=99 expects ar=
-gument of type =E2=80=98long unsigned int=E2=80=99, but argument 2 has type=
- =E2=80=98__u64=E2=80=99 [-Wformat=3D]   printf(" burst %"PRIu64, cfg->burs=
-t);
->    printf(" burst %"PRIu64, cfg->burst);
->    ^
-> libxt_hashlimit.c: In function =E2=80=98hashlimit_mt_save=E2=80=99:
-> libxt_hashlimit.c:849:3: warning: format =E2=80=98%lu=E2=80=99 expects ar=
-gument of type =E2=80=98long unsigned int=E2=80=99, but argument 2 has type=
- =E2=80=98__u64=E2=80=99 [-Wformat=3D]
->    printf(" --hashlimit-burst %"PRIu64, cfg->burst);
+>         The IPVS part from patch looks good but can be extended
+> to also remove rcu_read_lock and rcu_read_unlock from:
+>
+> 1. all app_conn_bind methods because ip_vs_bind_app() is called
+> always under RCU lock from ip_vs_try_bind_dest() and ip_vs_conn_new().
+> I.e. from sctp_app_conn_bind, tcp_app_conn_bind and udp_app_conn_bind.
+>
+> 2. ip_vs_xmit.c, all locks
+>
+>         IMHO, using comments instead of locks is not needed, it is
+> enough that the commit message explains why RCU locks are removed
+>
+I agree that. so I'll remove comments in v2 patch.
 
-On second thought, seems that "%"PRIu64 is equivalent in your case
-with "%lu". Maybe it is better to replace all %"PRIu64" with %llu.
-After all, uint64_t is supposed to be unsigned long long on all
-architectures, isn't it so?
+>         More details:
+>
+> In IPVS we have the following contexts:
+> - packet RX/TX: does not need locks because packets come from hooks
+> - sync msg RX: backup server uses RCU locks while registering new conns
+> - ip_vs_ctl.c: configuration get/set, RCU locks needed
+> - xt_ipvs.c: It is a NF match
+>
+This comments are very helpful for me.
+
+> As result, rcu_read_lock and rcu_read_unlock can be removed from:
+> - ip_vs_core.c: all
+> - ip_vs_ctl.c:
+>         - from ip_vs_has_real_service
+>         - all other places need the RCU locking
+> - ip_vs_ftp.c: all
+> - ip_vs_proto_sctp.c: all
+> - ip_vs_proto_tcp.c: all
+> - ip_vs_proto_udp.c: all
+> - ip_vs_xmit.c: all (contains only packet processing)
+>
+> Locks should remain in:
+> - ip_vs_conn.c
+> - ip_vs_pe.c
+> - ip_vs_sync.c
+>
+> Regards
+>
+> --
+> Julian Anastasov <ja@ssi.bg>
+
+Thank you so much for helpful review!
+I'll make a v2 patch included your suggestion.
+
+Thanks a lot!
