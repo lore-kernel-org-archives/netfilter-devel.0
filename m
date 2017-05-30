@@ -1,101 +1,125 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: move table iteration out of netns exit paths
-Date: Tue, 30 May 2017 11:31:06 +0200
-Message-ID: <20170530093106.10138-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netns: add and use net_ns_barrier
+Date: Tue, 30 May 2017 11:38:12 +0200
+Message-ID: <20170530093812.10712-1-fw@strlen.de>
+Cc: netdev@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        "Eric W. Biederman" <ebiederm@xmission.com>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:35322 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:35362 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751002AbdE3Jav (ORCPT
+        by vger.kernel.org with ESMTP id S1750811AbdE3JiK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 May 2017 05:30:51 -0400
+        Tue, 30 May 2017 05:38:10 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We only need to iterate & remove in case of module removal;
-for netns destruction all conntracks will be removed anyway.
+Quoting Joe Stringer:
+  If a user loads nf_conntrack_ftp, sends FTP traffic through a network
+  namespace, destroys that namespace then unloads the FTP helper module,
+  then the kernel will crash.
 
+Events that lead to the crash:
+1. conntrack is created with ftp helper in netns x
+2. This netns is destroyed
+3. netns destruction is scheduled
+4. netns destruction wq starts, removes netns from global list
+5. ftp helper is unloaded, which resets all helpers of the conntracks
+via for_each_net()
+
+but because netns is already gone from list the for_each_net() loop
+doesn't include it, therefore all of these conntracks are unaffected.
+
+6. helper module unload finishes
+7. netns wq invokes destructor for rmmod'ed helper
+
+CC: "Eric W. Biederman" <ebiederm@xmission.com>
+Reported-by: Joe Stringer <joe@ovn.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_conntrack_proto.c | 26 +++++++++++++++++---------
- 1 file changed, 17 insertions(+), 9 deletions(-)
+ Eric, I'd like an explicit (n)ack from you for this one.
 
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index b7d01f27d463..6a36623e897c 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -265,6 +265,8 @@ void nf_ct_l3proto_unregister(struct nf_conntrack_l3proto *proto)
- 	mutex_unlock(&nf_ct_proto_mutex);
+ include/net/net_namespace.h       |  3 +++
+ net/core/net_namespace.c          | 17 +++++++++++++++++
+ net/netfilter/nf_conntrack_core.c |  9 +++++++++
+ 3 files changed, 29 insertions(+)
+
+diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
+index fe80bb48ab1f..a24a57593202 100644
+--- a/include/net/net_namespace.h
++++ b/include/net/net_namespace.h
+@@ -158,6 +158,7 @@ extern struct net init_net;
+ struct net *copy_net_ns(unsigned long flags, struct user_namespace *user_ns,
+ 			struct net *old_net);
  
- 	synchronize_rcu();
-+	/* Remove all contrack entries for this protocol */
-+	nf_ct_iterate_destroy(kill_l3proto, proto);
++void net_ns_barrier(void);
+ #else /* CONFIG_NET_NS */
+ #include <linux/sched.h>
+ #include <linux/nsproxy.h>
+@@ -168,6 +169,8 @@ static inline struct net *copy_net_ns(unsigned long flags,
+ 		return ERR_PTR(-EINVAL);
+ 	return old_net;
  }
- EXPORT_SYMBOL_GPL(nf_ct_l3proto_unregister);
- 
-@@ -280,9 +282,6 @@ void nf_ct_l3proto_pernet_unregister(struct net *net,
- 	 */
- 	if (proto->net_ns_put)
- 		proto->net_ns_put(net);
--
--	/* Remove all contrack entries for this protocol */
--	nf_ct_iterate_cleanup_net(net, kill_l3proto, proto, 0, 0);
- }
- EXPORT_SYMBOL_GPL(nf_ct_l3proto_pernet_unregister);
- 
-@@ -421,17 +420,23 @@ int nf_ct_l4proto_pernet_register_one(struct net *net,
- }
- EXPORT_SYMBOL_GPL(nf_ct_l4proto_pernet_register_one);
- 
--void nf_ct_l4proto_unregister_one(struct nf_conntrack_l4proto *l4proto)
-+static void __nf_ct_l4proto_unregister_one(struct nf_conntrack_l4proto *l4proto)
 +
- {
- 	BUG_ON(l4proto->l3proto >= PF_MAX);
++static inline void net_ns_barrier(void) {}
+ #endif /* CONFIG_NET_NS */
  
--	mutex_lock(&nf_ct_proto_mutex);
- 	BUG_ON(rcu_dereference_protected(
- 			nf_ct_protos[l4proto->l3proto][l4proto->l4proto],
- 			lockdep_is_held(&nf_ct_proto_mutex)
- 			) != l4proto);
- 	rcu_assign_pointer(nf_ct_protos[l4proto->l3proto][l4proto->l4proto],
- 			   &nf_conntrack_l4proto_generic);
-+}
+ 
+diff --git a/net/core/net_namespace.c b/net/core/net_namespace.c
+index 1934efd4a9d4..1f15abb1d733 100644
+--- a/net/core/net_namespace.c
++++ b/net/core/net_namespace.c
+@@ -482,6 +482,23 @@ static void cleanup_net(struct work_struct *work)
+ 		net_drop_ns(net);
+ 	}
+ }
 +
-+void nf_ct_l4proto_unregister_one(struct nf_conntrack_l4proto *l4proto)
++/**
++ * net_ns_barrier - wait until concurrent net_cleanup_work is done
++ *
++ * cleanup_net runs from work queue and will first remove namespaces
++ * from the global list, then run net exit functions.
++ *
++ * Call this in module exit path to make sure that all netns
++ * ->exit ops have been invoked before the function is removed.
++ */
++void net_ns_barrier(void)
 +{
-+	mutex_lock(&nf_ct_proto_mutex);
-+	__nf_ct_l4proto_unregister_one(l4proto);
- 	mutex_unlock(&nf_ct_proto_mutex);
- 
- 	synchronize_rcu();
-@@ -448,9 +453,6 @@ void nf_ct_l4proto_pernet_unregister_one(struct net *net,
- 
- 	pn->users--;
- 	nf_ct_l4proto_unregister_sysctl(net, pn, l4proto);
--
--	/* Remove all contrack entries for this protocol */
--	nf_ct_iterate_cleanup_net(net, kill_l4proto, l4proto, 0, 0);
- }
- EXPORT_SYMBOL_GPL(nf_ct_l4proto_pernet_unregister_one);
- 
-@@ -500,8 +502,14 @@ EXPORT_SYMBOL_GPL(nf_ct_l4proto_pernet_register);
- void nf_ct_l4proto_unregister(struct nf_conntrack_l4proto *l4proto[],
- 			      unsigned int num_proto)
- {
-+	mutex_lock(&nf_ct_proto_mutex);
- 	while (num_proto-- != 0)
--		nf_ct_l4proto_unregister_one(l4proto[num_proto]);
-+		__nf_ct_l4proto_unregister_one(l4proto[num_proto]);
-+	mutex_unlock(&nf_ct_proto_mutex);
++	mutex_lock(&net_mutex);
++	mutex_unlock(&net_mutex);
++}
++EXPORT_SYMBOL(net_ns_barrier);
 +
-+	synchronize_net();
-+	/* Remove all contrack entries for this protocol */
-+	nf_ct_iterate_destroy(kill_l4proto, l4proto);
- }
- EXPORT_SYMBOL_GPL(nf_ct_l4proto_unregister);
+ static DECLARE_WORK(net_cleanup_work, cleanup_net);
  
+ void __put_net(struct net *net)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index c3bd9b086dcc..ee972ee7bf81 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1720,6 +1720,8 @@ EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup_net);
+  * Like nf_ct_iterate_cleanup, but first marks conntracks on the
+  * unconfirmed list as dying (so they will not be inserted into
+  * main table).
++ *
++ * Can only be called in module exit path.
+  */
+ void
+ nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
+@@ -1734,6 +1736,13 @@ nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
+ 	}
+ 	rtnl_unlock();
+ 
++	/* Need to wait for netns cleanup worker to finish, if its
++	 * running -- it might have deleted a net namespace from
++	 * the global list, so our __nf_ct_unconfirmed_destroy() might
++	 * not have affected all namespaces.
++	 */
++	net_ns_barrier();
++
+ 	/* a conntrack could have been unlinked from unconfirmed list
+ 	 * before we grabbed pcpu lock in __nf_ct_unconfirmed_destroy().
+ 	 * This makes sure its inserted into conntrack table.
 -- 
 2.13.0
 
