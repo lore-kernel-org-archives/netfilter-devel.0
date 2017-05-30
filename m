@@ -1,112 +1,127 @@
-From: Shyam Saini <mayhs11saini@gmail.com>
-Subject: Re: [PATCHv2] extensions: libxt_cluster: Add translation to nft
-Date: Tue, 30 May 2017 20:47:09 +0530
-Message-ID: <CAOfkYf5KT7EG75yOb5UhhLNGjvQrRL9+SJudZrq=2Drxy142GQ@mail.gmail.com>
-References: <1496132734-3829-1-git-send-email-mayhs11saini@gmail.com>
- <20170530100855.GC1273@salvia> <20170530102014.GA1674@salvia>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [nf-next PATCH] netfilter: nf_tables: Report transactions'
+ process info to user space
+Date: Tue, 30 May 2017 18:21:49 +0200
+Message-ID: <20170530162149.ydp5lfdalfcww7nh@base.sg13b.nwl.cc>
+References: <20170515145149.26114-1-phil@nwl.cc>
+ <20170515155331.GA32385@salvia>
+ <20170515164432.GL20805@orbyte.nwl.cc>
+ <20170515175444.GA6179@salvia>
+ <20170519104128.GG17767@orbyte.nwl.cc>
+ <20170530121211.GA3032@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: netfilter-devel@vger.kernel.org,
-        Arturo Borrero Gonzalez <arturo@debian.org>,
-        Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:34223 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750796AbdE3PRL (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 May 2017 11:17:11 -0400
-Received: by mail-oi0-f66.google.com with SMTP id w10so16301911oif.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 May 2017 08:17:10 -0700 (PDT)
-In-Reply-To: <20170530102014.GA1674@salvia>
+Received: from orbyte.nwl.cc ([151.80.46.58]:40117 "EHLO mail.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751041AbdE3QRD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 May 2017 12:17:03 -0400
+Content-Disposition: inline
+In-Reply-To: <20170530121211.GA3032@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 30, 2017 at 3:50 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Tue, May 30, 2017 at 12:08:55PM +0200, Pablo Neira Ayuso wrote:
->> On Tue, May 30, 2017 at 01:55:34PM +0530, Shyam Saini wrote:
->> > Add translation for cluster match to nftables
->> >
->> > $ sudo iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 2 --cluster-local-node 1 --cluster-hash-seed
->> > 0xdeadbeef -j MARK --set-mark 0xffff
->> > nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 2 seed 0xdeadbeef eq 0 meta pkttype set host counter meta mark set
->> > 0xffff
->> >
->> > $ sudo iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 2 --cluster-local-nodemask 1 --cluster-hash-seed
->> > 0xdeadbeef -j MARK --set-mark 0xffff
->> > nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 2 seed 0xdeadbeef eq 0 meta pkttype set host counter meta mark set
->> > 0xffff
->> >
->> >  --debug=netlink Result
->> > ip mangle PREROUTING
->> >   [ meta load iifname => reg 1 ]
->> >   [ cmp eq reg 1 0x31687465 0x00000000 0x00000000 0x00000000 ]
->> >   [ ct load src => reg 2 , dir original ]
->> >   [ hash reg 1 = jhash(reg 2, 4, 0xdeadbeef) % mod 2 ]
->> >   [ cmp eq reg 1 0x00000000 ]
->> >   [ immediate reg 1 0x00000000 ]
->> >   [ meta set pkttype with reg 1 ]
->> >   [ counter pkts 0 bytes 0 ]
->> >   [ immediate reg 1 0x0000ffff ]
->> >   [ meta set mark with reg 1 ]
->> >
->> > For Example:
->> >
->> > If we have  total 2 nodes (i.e, --cluster-total-nodes is 2) in the cluster then
->> >  modulus 2 = {0, 1}
->> >
->> > For node 1 (--cluster-local-node 1)
->> >     jhash ct original saddr mod 2 seed 0xdeadbeef eq 0
->> >
->> > For  node 2 (--cluster-local-node 2)
->> >     jhash ct original saddr mod 2 seed 0xdeadbeef eq 1
->> >
->> > Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
->> > ---
->> >  extensions/libxt_cluster.c | 11 +++++++++++
->> >  1 file changed, 11 insertions(+)
->> >
->> > diff --git a/extensions/libxt_cluster.c b/extensions/libxt_cluster.c
->> > index 3adff12..f2abd18 100644
->> > --- a/extensions/libxt_cluster.c
->> > +++ b/extensions/libxt_cluster.c
->> > @@ -126,6 +126,16 @@ cluster_save(const void *ip, const struct xt_entry_match *match)
->> >             info->total_nodes, info->hash_seed);
->> >  }
->> >
->> > +static int cluster_xlate(struct xt_xlate *xl,
->> > +           const struct xt_xlate_mt_params *params)
->> > +{
->> > +   const struct xt_cluster_match_info *info = (const struct xt_cluster_match_info *)params->match->data;
->> > +
->> > +   xt_xlate_add(xl, "jhash ct original saddr mod %u seed 0x%08x eq 0 meta pkttype set host",
->>
->> This should use "eq %u" because:
->>
->>       xt_xlate_add(xl, "jhash ct original saddr mod %u seed 0x%08x eq %u meta pkttype set host",
->
-> Forget this I mentioned below, got mixed with another email to you.
->
-> What I'm telling here is, the "eq %u" should be used to translate
-> info->node_mask.
->
-> Note that info->node_mask is a bitmask, so you have to interpret this
-> accordingly from the translation.
+On Tue, May 30, 2017 at 02:12:11PM +0200, Pablo Neira Ayuso wrote:
+> On Fri, May 19, 2017 at 12:41:28PM +0200, Phil Sutter wrote:
+> > On Mon, May 15, 2017 at 07:54:44PM +0200, Pablo Neira Ayuso wrote:
+> > > On Mon, May 15, 2017 at 06:44:32PM +0200, Phil Sutter wrote:
+> > > > On Mon, May 15, 2017 at 05:53:31PM +0200, Pablo Neira Ayuso wrote:
+> > > > > On Mon, May 15, 2017 at 04:51:49PM +0200, Phil Sutter wrote:
+> > > > > > When committing a transaction, report PID and name of user space process
+> > > > > > which initiated it.
+> > > > > > 
+> > > > > > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > > > > > ---
+> > > > > >  include/uapi/linux/netfilter/nf_tables.h | 16 +++++++++++
+> > > > > >  net/netfilter/nf_tables_api.c            | 49 ++++++++++++++++++++++++++++++++
+> > > > > >  2 files changed, 65 insertions(+)
+> > > > > > 
+> > > > > > diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> > > > > > index 683f6f88fcace..7c012690a5f02 100644
+> > > > > > --- a/include/uapi/linux/netfilter/nf_tables.h
+> > > > > > +++ b/include/uapi/linux/netfilter/nf_tables.h
+> > > > > > @@ -90,6 +90,7 @@ enum nft_verdicts {
+> > > > > >   * @NFT_MSG_GETOBJ: get a stateful object (enum nft_obj_attributes)
+> > > > > >   * @NFT_MSG_DELOBJ: delete a stateful object (enum nft_obj_attributes)
+> > > > > >   * @NFT_MSG_GETOBJ_RESET: get and reset a stateful object (enum nft_obj_attributes)
+> > > > > > + * @NFT_MSG_PROC_INFO: get info about user space process which initiated the transaction
+> > > > > >   */
+> > > > > >  enum nf_tables_msg_types {
+> > > > > >  	NFT_MSG_NEWTABLE,
+> > > > > > @@ -114,6 +115,7 @@ enum nf_tables_msg_types {
+> > > > > >  	NFT_MSG_GETOBJ,
+> > > > > >  	NFT_MSG_DELOBJ,
+> > > > > >  	NFT_MSG_GETOBJ_RESET,
+> > > > > > +	NFT_MSG_PROC_INFO,
+> > > > > 
+> > > > > No need for a new message. You can place this into existing the NEWGEN
+> > > > > messages.
+> > > > 
+> > > > But that message is sent last and so at the time nft sees it, the events
+> > > > will have been printed already, no?
+> > > 
+> > > This is an event, so it is asynchronous. From a timely perspective, we
+> > > get nothing if we send it just a bit before.
+> > 
+> > My concern was that it's not possible to keep the additional information
+> > in the same line as the events it is interesting for. So in order to not
+> > introduce caching in 'nft monitor', the new format would be something
+> > like this:
+> > 
+> > | add chain ip t c
+> > | new generation 3 by process 2841 (nft)
+> > | add table ip t2
+> > | add chain ip t2 c
+> > | add rule ip t2 c counter packets 0 bytes 0
+> > | new generation 4 by process 2851 (nft)
+> > 
+> > Is this fine with you, or do you have something different in mind?
+> 
+> This is ok, I would just print it like this:
+> 
+> # new generation 3 by process 2841 (nft)
+> 
+> starting with '#', since this is not a valid nft syntax, but just
+> context information.
 
-by this you mean, we have to take bitwise AND with generated jhash?
+ACK.
 
-http://elixir.free-electrons.com/linux/latest/source/net/netfilter/xt_cluster.c#L132
+> > > I suspect the problem is the lack of context, ie. access ctx->portid,
+> > > ctx->seq and ctx->report, then we should take this from the original
+> > > initial netlink message header coming in the batch (see
+> > > nfnetlink_rcv_batch() in nfnetlink.c).
+> > 
+> > That's not necessary? My current PoC looks like this:
+> 
+> What I mean is that that we should use the heading netlink message as
+> netlink context (portid, flags) for the NEWGEN message. This is
+> currently broken. I'll send a patch to fix this, so you can send a
+> follow up of this on top of this.
 
+OK, thanks!
 
-> Note that we have to support --cluster-local-nodemask too, you can
-> translate this using a set, ie.
->
-> jhash ct original saddr mod 4 seed 0x1234 { 0, 1 } meta pkttype set host
->
+> > | @@ -4538,7 +4539,9 @@ static int nf_tables_fill_gen_info(struct sk_buff *skb, struct net *net,
+> > |         nfmsg->version          = NFNETLINK_V0;
+> > |         nfmsg->res_id           = htons(net->nft.base_seq & 0xffff);
+> > |  
+> > | -       if (nla_put_be32(skb, NFTA_GEN_ID, htonl(net->nft.base_seq)))
+> > | +       if (nla_put_be32(skb, NFTA_GEN_ID, htonl(net->nft.base_seq)) ||
+> > | +           nla_put_be32(skb, NFTA_GEN_PROC_PID, htonl(task_pid_nr(current))) ||
+> > | +           nla_put_string(skb, NFTA_GEN_PROC_NAME, get_task_comm(buf, current)))
+> > |                 goto nla_put_failure;
+> > |  
+> > |         nlmsg_end(skb, nlh);
+> > 
+> > Or do you think it's not safe to access 'current' at this point?
+> 
+> I'm not very familiar with the usage of 'current' in this case, so it
+> would be good to double check on the implications of this.
 
-Translation should print set of node id depending on the number of nodes.
-For example for total_nodes = 4, it should print
-jhash ct original saddr mod 4 seed 0x1234 { 0, 1, 2, 3 } meta pkttype set host
-Right?
+It is only valid in process context. I suspected the whole transaction
+to happen with rtnl lock held, so it should be safe. But I'll check this
+before preparing a real patch. If I was wrong, I can still cache it's
+value at transaction start.
 
-> OK?
+Thanks, Phil
