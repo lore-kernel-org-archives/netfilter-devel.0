@@ -1,105 +1,81 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCHv2] extensions: libxt_cluster: Add translation to nft
-Date: Tue, 30 May 2017 12:20:14 +0200
-Message-ID: <20170530102014.GA1674@salvia>
-References: <1496132734-3829-1-git-send-email-mayhs11saini@gmail.com>
- <20170530100855.GC1273@salvia>
+From: Neutron Soutmun <neo.neutron@gmail.com>
+Subject: [PATCH] ipset: Fix ipset command replacement in runtest.sh
+Date: Tue, 30 May 2017 17:46:33 +0700
+Message-ID: <20170530104633.xb3urujnizjkc4n6@hydrogen>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, arturo@debian.org, fw@strlen.de
-To: Shyam Saini <mayhs11saini@gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="rbjgjx2rcdrygtym"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36488 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751004AbdE3KUW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 May 2017 06:20:22 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AED871DA080
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 May 2017 12:20:13 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9FCF4FF2D2
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 May 2017 12:20:13 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A884DFF2D2
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 May 2017 12:20:11 +0200 (CEST)
+Received: from mail-pf0-f182.google.com ([209.85.192.182]:34585 "EHLO
+        mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751024AbdE3Kqi (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 May 2017 06:46:38 -0400
+Received: by mail-pf0-f182.google.com with SMTP id 9so69004197pfj.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 May 2017 03:46:38 -0700 (PDT)
+Received: from hydrogen ([180.183.101.225])
+        by smtp.gmail.com with ESMTPSA id q135sm27466729pgq.41.2017.05.30.03.46.36
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Tue, 30 May 2017 03:46:36 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20170530100855.GC1273@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 30, 2017 at 12:08:55PM +0200, Pablo Neira Ayuso wrote:
-> On Tue, May 30, 2017 at 01:55:34PM +0530, Shyam Saini wrote:
-> > Add translation for cluster match to nftables
-> > 
-> > $ sudo iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 2 --cluster-local-node 1 --cluster-hash-seed
-> > 0xdeadbeef -j MARK --set-mark 0xffff
-> > nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 2 seed 0xdeadbeef eq 0 meta pkttype set host counter meta mark set
-> > 0xffff
-> > 
-> > $ sudo iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 2 --cluster-local-nodemask 1 --cluster-hash-seed
-> > 0xdeadbeef -j MARK --set-mark 0xffff
-> > nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 2 seed 0xdeadbeef eq 0 meta pkttype set host counter meta mark set
-> > 0xffff
-> > 
-> >  --debug=netlink Result
-> > ip mangle PREROUTING
-> >   [ meta load iifname => reg 1 ]
-> >   [ cmp eq reg 1 0x31687465 0x00000000 0x00000000 0x00000000 ]
-> >   [ ct load src => reg 2 , dir original ]
-> >   [ hash reg 1 = jhash(reg 2, 4, 0xdeadbeef) % mod 2 ]
-> >   [ cmp eq reg 1 0x00000000 ]
-> >   [ immediate reg 1 0x00000000 ]
-> >   [ meta set pkttype with reg 1 ]
-> >   [ counter pkts 0 bytes 0 ]
-> >   [ immediate reg 1 0x0000ffff ]
-> >   [ meta set mark with reg 1 ]
-> > 
-> > For Example:
-> > 
-> > If we have  total 2 nodes (i.e, --cluster-total-nodes is 2) in the cluster then
-> >  modulus 2 = {0, 1}
-> > 
-> > For node 1 (--cluster-local-node 1)
-> > 	jhash ct original saddr mod 2 seed 0xdeadbeef eq 0
-> > 
-> > For  node 2 (--cluster-local-node 2)
-> > 	jhash ct original saddr mod 2 seed 0xdeadbeef eq 1
-> > 
-> > Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
-> > ---
-> >  extensions/libxt_cluster.c | 11 +++++++++++
-> >  1 file changed, 11 insertions(+)
-> > 
-> > diff --git a/extensions/libxt_cluster.c b/extensions/libxt_cluster.c
-> > index 3adff12..f2abd18 100644
-> > --- a/extensions/libxt_cluster.c
-> > +++ b/extensions/libxt_cluster.c
-> > @@ -126,6 +126,16 @@ cluster_save(const void *ip, const struct xt_entry_match *match)
-> >  		info->total_nodes, info->hash_seed);
-> >  }
-> >  
-> > +static int cluster_xlate(struct xt_xlate *xl,
-> > +		const struct xt_xlate_mt_params *params)
-> > +{
-> > +	const struct xt_cluster_match_info *info = (const struct xt_cluster_match_info *)params->match->data;
-> > +
-> > +	xt_xlate_add(xl, "jhash ct original saddr mod %u seed 0x%08x eq 0 meta pkttype set host",
-> 
-> This should use "eq %u" because:
-> 
-> 	xt_xlate_add(xl, "jhash ct original saddr mod %u seed 0x%08x eq %u meta pkttype set host",
 
-Forget this I mentioned below, got mixed with another email to you.
+--rbjgjx2rcdrygtym
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-What I'm telling here is, the "eq %u" should be used to translate
-info->node_mask.
+  Fix the ipset command replacement.
 
-Note that info->node_mask is a bitmask, so you have to interpret this
-accordingly from the translation.
+  For ipset=3D"/sbin/ipset"
 
-Note that we have to support --cluster-local-nodemask too, you can
-translate this using a set, ie.
+  Actual:
+    /sbin//sbin/ipset 2>.foo.err | ... | xargs -n1 ipset
+  Expected:
+    /sbin/ipset 2>.foo.err | ... | xargs -n1 /sbin/ipset
+---
+ tests/runtest.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-jhash ct original saddr mod 4 seed 0x1234 { 0, 1 } meta pkttype set host
+diff --git a/tests/runtest.sh b/tests/runtest.sh
+index 186f11d..8f4c02a 100755
+--- a/tests/runtest.sh
++++ b/tests/runtest.sh
+@@ -96,7 +96,7 @@ for types in $tests; do
+ 	echo -ne "$types: $what: "
+ 	cmd=3D`echo $cmd | sed "s|ipset|$ipset 2>.foo.err|"`
+ 	# For the case: ipset list | ... | xargs -n1 ipset
+-	cmd=3D`echo $cmd | sed "s|ipset|$ipset|"`
++	cmd=3D`echo $cmd | sed "s|ipset|$ipset|2g"`
+ 	eval $cmd
+ 	r=3D$?
+ 	# echo $ret $r
+--=20
+2.11.0
 
-OK?
+
+--rbjgjx2rcdrygtym
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE9TLaEOVj7oRECXehnQRwvabNxFcFAlktTYUACgkQnQRwvabN
+xFcJNg/+LLMdZbjREt0tgAM53681zZ5AoMXHmvKF9svpUfOLkbeWVkH0E4lnTYAq
+I7EGVnoTtcKE2VGwF30qGnyfYCZ/ne0YObMdp/2U3vtNibP0uFQjykTUbTj6gKny
+f2cuKOUD7eoZZ59l492OxYiAJPr04HIb18UcDeRg6MtAazlhVkK3K/2CNm798NZl
+39FauOZebDV2VoB3vAuT3uDAMkGKwdtvk+hkrjY3+/GCLCuvzP3gertaMgp3IdJu
+uadFVgBwot9bG7vxXnFAaUc2khxoSXfihULpgFsr9UJmsuYhkEGV4bT51qVZP4EZ
+zwCFKXk4rPi86EOdGpZkUJ5NFpw/LeLdz8iBxnEQaAHYZP03sm9hH6FXsTCpOZpV
+gKpil3j3CGeXksJ8jLEGMJaH29cQgNKP6xUSx33eW4KCGJe+WdmHKKkzeWuWolW8
+3zYnXoM/y06KfSONBljfUDIqxRfMr8n/R0uvp3qD0ADEvsg84AyXPo+iemjsX2w2
+75zU4Ee7nD+xneRQqS8HuVFFNWeXJC+Vfz6S5/UeDssjCfN1qjTDHn9n+Eqbu2b7
+YL8E4fSBwUtyGEAHxzrpC1moOEdGCdlVyRQDvHTMj36kEGZ4N9JZ6rfOAW1EiqXb
+9ax1iHd6ZCetTSD0rPziQwA1Kb/VwzvAPaUB6z/Ypwpe/sHyT68=
+=lmLV
+-----END PGP SIGNATURE-----
+
+--rbjgjx2rcdrygtym--
