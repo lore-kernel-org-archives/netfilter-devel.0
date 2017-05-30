@@ -1,41 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/4] Netfilter fixes for net
-Date: Mon, 29 May 2017 23:20:48 -0400 (EDT)
-Message-ID: <20170529.232048.1583898671889129502.davem@davemloft.net>
-References: <1496057672-6751-1-git-send-email-pablo@netfilter.org>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: Re: [PATCH conntrack-tools] ipv6: remove use of HAVE_INET_PTON_IPV6
+Date: Tue, 30 May 2017 09:54:55 +0200
+Message-ID: <023cbfd9-3d9a-24b7-442d-1c16347fca9e@6wind.com>
+References: <1496072655-26752-1-git-send-email-nicolas.dichtel@6wind.com>
+ <20170529162523.GA22681@salvia>
+Reply-To: nicolas.dichtel@6wind.com
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1496057672-6751-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wm0-f48.google.com ([74.125.82.48]:35381 "EHLO
+        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750811AbdE3Hy6 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 May 2017 03:54:58 -0400
+Received: by mail-wm0-f48.google.com with SMTP id b84so80877021wmh.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 May 2017 00:54:57 -0700 (PDT)
+In-Reply-To: <20170529162523.GA22681@salvia>
+Content-Language: fr
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 29 May 2017 13:34:28 +0200
-
-> Hi David,
+Le 29/05/2017 à 18:25, Pablo Neira Ayuso a écrit :
+[snip]
+>> -#ifdef HAVE_INET_PTON_IPV6
+>> -	if (inet_pton(AF_INET6, $2,
+>> -		      &conf.channel[conf.channel_num].u.mcast.in) <= 0) {
+>> +	err = inet_pton(AF_INET6, $2,
+>> +			&conf.channel[conf.channel_num].u.mcast.in);
+>> +	if (err == 0) {
+>>  		dlog(LOG_WARNING, "%s is not a valid IPv6 address", $2);
+>>  		break;
+>> +	} else if (err < 0) {
+>> +		dlog(LOG_WARNING, "inet_pton(): IPv6 unsupported!");
+>> +		break;
 > 
-> The following patchset contains Netfilter fixes for your net tree,
-> they are:
-> 
-> 1) Conntrack SCTP CRC32c checksum mangling may operate on non-linear
->    skbuff, patch from Davide Caratti.
-> 
-> 2) nf_tables rb-tree set backend does not handle element re-addition
->    after deletion in the same transaction, leading to infinite loop.
-> 
-> 3) Atomically unclear the IPS_SRC_NAT_DONE_BIT on nat module removal,
->    from Liping Zhang.
-> 
-> 4) Conntrack hashtable resizing while ctnetlink dump is progress leads
->    to a dead reference to released objects in the lists, also from
->    Liping.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Pulled, thanks a lot Pablo.
+> Probably better to exit() here and to use LOG_ERR instead?
+Sure, I kept the previous behavior, but indeed, it's better to exit. I will send
+a new version.
