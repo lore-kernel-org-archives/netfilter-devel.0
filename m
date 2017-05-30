@@ -1,125 +1,95 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netns: add and use net_ns_barrier
-Date: Tue, 30 May 2017 11:38:12 +0200
-Message-ID: <20170530093812.10712-1-fw@strlen.de>
-Cc: netdev@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        "Eric W. Biederman" <ebiederm@xmission.com>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCHv2] extensions: libxt_cluster: Add translation to nft
+Date: Tue, 30 May 2017 12:08:55 +0200
+Message-ID: <20170530100855.GC1273@salvia>
+References: <1496132734-3829-1-git-send-email-mayhs11saini@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, arturo@debian.org, fw@strlen.de
+To: Shyam Saini <mayhs11saini@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:35362 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750811AbdE3JiK (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 May 2017 05:38:10 -0400
+Received: from mail.us.es ([193.147.175.20]:57224 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750925AbdE3KJR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 May 2017 06:09:17 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id D688E1DA080
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 May 2017 12:09:07 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5AB6C100A73
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 May 2017 12:08:51 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5D910FF2D2
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 May 2017 12:08:49 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <1496132734-3829-1-git-send-email-mayhs11saini@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Quoting Joe Stringer:
-  If a user loads nf_conntrack_ftp, sends FTP traffic through a network
-  namespace, destroys that namespace then unloads the FTP helper module,
-  then the kernel will crash.
+On Tue, May 30, 2017 at 01:55:34PM +0530, Shyam Saini wrote:
+> Add translation for cluster match to nftables
+> 
+> $ sudo iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 2 --cluster-local-node 1 --cluster-hash-seed
+> 0xdeadbeef -j MARK --set-mark 0xffff
+> nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 2 seed 0xdeadbeef eq 0 meta pkttype set host counter meta mark set
+> 0xffff
+> 
+> $ sudo iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 2 --cluster-local-nodemask 1 --cluster-hash-seed
+> 0xdeadbeef -j MARK --set-mark 0xffff
+> nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 2 seed 0xdeadbeef eq 0 meta pkttype set host counter meta mark set
+> 0xffff
+> 
+>  --debug=netlink Result
+> ip mangle PREROUTING
+>   [ meta load iifname => reg 1 ]
+>   [ cmp eq reg 1 0x31687465 0x00000000 0x00000000 0x00000000 ]
+>   [ ct load src => reg 2 , dir original ]
+>   [ hash reg 1 = jhash(reg 2, 4, 0xdeadbeef) % mod 2 ]
+>   [ cmp eq reg 1 0x00000000 ]
+>   [ immediate reg 1 0x00000000 ]
+>   [ meta set pkttype with reg 1 ]
+>   [ counter pkts 0 bytes 0 ]
+>   [ immediate reg 1 0x0000ffff ]
+>   [ meta set mark with reg 1 ]
+> 
+> For Example:
+> 
+> If we have  total 2 nodes (i.e, --cluster-total-nodes is 2) in the cluster then
+>  modulus 2 = {0, 1}
+> 
+> For node 1 (--cluster-local-node 1)
+> 	jhash ct original saddr mod 2 seed 0xdeadbeef eq 0
+> 
+> For  node 2 (--cluster-local-node 2)
+> 	jhash ct original saddr mod 2 seed 0xdeadbeef eq 1
+> 
+> Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
+> ---
+>  extensions/libxt_cluster.c | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
+> 
+> diff --git a/extensions/libxt_cluster.c b/extensions/libxt_cluster.c
+> index 3adff12..f2abd18 100644
+> --- a/extensions/libxt_cluster.c
+> +++ b/extensions/libxt_cluster.c
+> @@ -126,6 +126,16 @@ cluster_save(const void *ip, const struct xt_entry_match *match)
+>  		info->total_nodes, info->hash_seed);
+>  }
+>  
+> +static int cluster_xlate(struct xt_xlate *xl,
+> +		const struct xt_xlate_mt_params *params)
+> +{
+> +	const struct xt_cluster_match_info *info = (const struct xt_cluster_match_info *)params->match->data;
+> +
+> +	xt_xlate_add(xl, "jhash ct original saddr mod %u seed 0x%08x eq 0 meta pkttype set host",
 
-Events that lead to the crash:
-1. conntrack is created with ftp helper in netns x
-2. This netns is destroyed
-3. netns destruction is scheduled
-4. netns destruction wq starts, removes netns from global list
-5. ftp helper is unloaded, which resets all helpers of the conntracks
-via for_each_net()
+This should use "eq %u" because:
 
-but because netns is already gone from list the for_each_net() loop
-doesn't include it, therefore all of these conntracks are unaffected.
+	xt_xlate_add(xl, "jhash ct original saddr mod %u seed 0x%08x eq %u meta pkttype set host",
 
-6. helper module unload finishes
-7. netns wq invokes destructor for rmmod'ed helper
+Also check:
 
-CC: "Eric W. Biederman" <ebiederm@xmission.com>
-Reported-by: Joe Stringer <joe@ovn.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Eric, I'd like an explicit (n)ack from you for this one.
+        ldd /path/to/your/iptables binary
 
- include/net/net_namespace.h       |  3 +++
- net/core/net_namespace.c          | 17 +++++++++++++++++
- net/netfilter/nf_conntrack_core.c |  9 +++++++++
- 3 files changed, 29 insertions(+)
-
-diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
-index fe80bb48ab1f..a24a57593202 100644
---- a/include/net/net_namespace.h
-+++ b/include/net/net_namespace.h
-@@ -158,6 +158,7 @@ extern struct net init_net;
- struct net *copy_net_ns(unsigned long flags, struct user_namespace *user_ns,
- 			struct net *old_net);
- 
-+void net_ns_barrier(void);
- #else /* CONFIG_NET_NS */
- #include <linux/sched.h>
- #include <linux/nsproxy.h>
-@@ -168,6 +169,8 @@ static inline struct net *copy_net_ns(unsigned long flags,
- 		return ERR_PTR(-EINVAL);
- 	return old_net;
- }
-+
-+static inline void net_ns_barrier(void) {}
- #endif /* CONFIG_NET_NS */
- 
- 
-diff --git a/net/core/net_namespace.c b/net/core/net_namespace.c
-index 1934efd4a9d4..1f15abb1d733 100644
---- a/net/core/net_namespace.c
-+++ b/net/core/net_namespace.c
-@@ -482,6 +482,23 @@ static void cleanup_net(struct work_struct *work)
- 		net_drop_ns(net);
- 	}
- }
-+
-+/**
-+ * net_ns_barrier - wait until concurrent net_cleanup_work is done
-+ *
-+ * cleanup_net runs from work queue and will first remove namespaces
-+ * from the global list, then run net exit functions.
-+ *
-+ * Call this in module exit path to make sure that all netns
-+ * ->exit ops have been invoked before the function is removed.
-+ */
-+void net_ns_barrier(void)
-+{
-+	mutex_lock(&net_mutex);
-+	mutex_unlock(&net_mutex);
-+}
-+EXPORT_SYMBOL(net_ns_barrier);
-+
- static DECLARE_WORK(net_cleanup_work, cleanup_net);
- 
- void __put_net(struct net *net)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index c3bd9b086dcc..ee972ee7bf81 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1720,6 +1720,8 @@ EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup_net);
-  * Like nf_ct_iterate_cleanup, but first marks conntracks on the
-  * unconfirmed list as dying (so they will not be inserted into
-  * main table).
-+ *
-+ * Can only be called in module exit path.
-  */
- void
- nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
-@@ -1734,6 +1736,13 @@ nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
- 	}
- 	rtnl_unlock();
- 
-+	/* Need to wait for netns cleanup worker to finish, if its
-+	 * running -- it might have deleted a net namespace from
-+	 * the global list, so our __nf_ct_unconfirmed_destroy() might
-+	 * not have affected all namespaces.
-+	 */
-+	net_ns_barrier();
-+
- 	/* a conntrack could have been unlinked from unconfirmed list
- 	 * before we grabbed pcpu lock in __nf_ct_unconfirmed_destroy().
- 	 * This makes sure its inserted into conntrack table.
--- 
-2.13.0
-
+and check what libraries you're suing, probably your iptables binary
+using old ones.
