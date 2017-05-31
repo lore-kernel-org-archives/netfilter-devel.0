@@ -1,101 +1,49 @@
-From: gfree.wind@vip.163.com
-Subject: [PATCH v2 nf-next] netfilter: ebt: Use new helper ebt_invalid_target to check target
-Date: Wed, 31 May 2017 16:55:43 +0800
-Message-ID: <1496220943-98621-1-git-send-email-gfree.wind@vip.163.com>
-Cc: Gao Feng <gfree.wind@vip.163.com>
-To: pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-177180.vip.163.com ([123.58.177.180]:55123 "EHLO
-        mail-177180.vip.163.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750869AbdEaI4J (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 May 2017 04:56:09 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH nf-next] netns: add and use net_ns_barrier
+Date: Wed, 31 May 2017 12:55:27 -0400 (EDT)
+Message-ID: <20170531.125527.1553231867217469072.davem@davemloft.net>
+References: <20170530093812.10712-1-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        ebiederm@xmission.com
+To: fw@strlen.de
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170530093812.10712-1-fw@strlen.de>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Gao Feng <gfree.wind@vip.163.com>
+From: Florian Westphal <fw@strlen.de>
+Date: Tue, 30 May 2017 11:38:12 +0200
 
-Use the new helper function ebt_invalid_target instead of the old
-macro INVALID_TARGET and other duplicated codes to enhance the readability.
+> Quoting Joe Stringer:
+>   If a user loads nf_conntrack_ftp, sends FTP traffic through a network
+>   namespace, destroys that namespace then unloads the FTP helper module,
+>   then the kernel will crash.
+> 
+> Events that lead to the crash:
+> 1. conntrack is created with ftp helper in netns x
+> 2. This netns is destroyed
+> 3. netns destruction is scheduled
+> 4. netns destruction wq starts, removes netns from global list
+> 5. ftp helper is unloaded, which resets all helpers of the conntracks
+> via for_each_net()
+> 
+> but because netns is already gone from list the for_each_net() loop
+> doesn't include it, therefore all of these conntracks are unaffected.
+> 
+> 6. helper module unload finishes
+> 7. netns wq invokes destructor for rmmod'ed helper
+> 
+> CC: "Eric W. Biederman" <ebiederm@xmission.com>
+> Reported-by: Joe Stringer <joe@ovn.org>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  Eric, I'd like an explicit (n)ack from you for this one.
 
-Signed-off-by: Gao Feng <gfree.wind@vip.163.com>
----
- v2: Replace the target check of ebt_mark/snat, per Pablo
- v1: Initial version
+Indeed, Eric, please do.
 
- include/linux/netfilter_bridge/ebtables.h | 2 --
- net/bridge/netfilter/ebt_dnat.c           | 2 +-
- net/bridge/netfilter/ebt_mark.c           | 2 +-
- net/bridge/netfilter/ebt_redirect.c       | 2 +-
- net/bridge/netfilter/ebt_snat.c           | 2 +-
- 5 files changed, 4 insertions(+), 6 deletions(-)
+Otherwise I'm fine with the generic parts:
 
-diff --git a/include/linux/netfilter_bridge/ebtables.h b/include/linux/netfilter_bridge/ebtables.h
-index e0cbf17..2c2a551 100644
---- a/include/linux/netfilter_bridge/ebtables.h
-+++ b/include/linux/netfilter_bridge/ebtables.h
-@@ -122,8 +122,6 @@ extern unsigned int ebt_do_table(struct sk_buff *skb,
- #define BASE_CHAIN (par->hook_mask & (1 << NF_BR_NUMHOOKS))
- /* Clear the bit in the hook mask that tells if the rule is on a base chain */
- #define CLEAR_BASE_CHAIN_BIT (par->hook_mask &= ~(1 << NF_BR_NUMHOOKS))
--/* True if the target is not a standard target */
--#define INVALID_TARGET (info->target < -NUM_STANDARD_TARGETS || info->target >= 0)
- 
- static inline bool ebt_invalid_target(int target)
- {
-diff --git a/net/bridge/netfilter/ebt_dnat.c b/net/bridge/netfilter/ebt_dnat.c
-index e0bb624..dfc86a0 100644
---- a/net/bridge/netfilter/ebt_dnat.c
-+++ b/net/bridge/netfilter/ebt_dnat.c
-@@ -61,7 +61,7 @@ static int ebt_dnat_tg_check(const struct xt_tgchk_param *par)
- 	    (strcmp(par->table, "broute") != 0 ||
- 	    hook_mask & ~(1 << NF_BR_BROUTING)))
- 		return -EINVAL;
--	if (INVALID_TARGET)
-+	if (ebt_invalid_target(info->target))
- 		return -EINVAL;
- 	return 0;
- }
-diff --git a/net/bridge/netfilter/ebt_mark.c b/net/bridge/netfilter/ebt_mark.c
-index 66697cb..19f0f95 100644
---- a/net/bridge/netfilter/ebt_mark.c
-+++ b/net/bridge/netfilter/ebt_mark.c
-@@ -44,7 +44,7 @@ static int ebt_mark_tg_check(const struct xt_tgchk_param *par)
- 	tmp = info->target | ~EBT_VERDICT_BITS;
- 	if (BASE_CHAIN && tmp == EBT_RETURN)
- 		return -EINVAL;
--	if (tmp < -NUM_STANDARD_TARGETS || tmp >= 0)
-+	if (ebt_invalid_target(tmp))
- 		return -EINVAL;
- 	tmp = info->target & ~EBT_VERDICT_BITS;
- 	if (tmp != MARK_SET_VALUE && tmp != MARK_OR_VALUE &&
-diff --git a/net/bridge/netfilter/ebt_redirect.c b/net/bridge/netfilter/ebt_redirect.c
-index 8d2a85e..a7223ea 100644
---- a/net/bridge/netfilter/ebt_redirect.c
-+++ b/net/bridge/netfilter/ebt_redirect.c
-@@ -47,7 +47,7 @@ static int ebt_redirect_tg_check(const struct xt_tgchk_param *par)
- 	    (strcmp(par->table, "broute") != 0 ||
- 	    hook_mask & ~(1 << NF_BR_BROUTING)))
- 		return -EINVAL;
--	if (INVALID_TARGET)
-+	if (ebt_invalid_target(info->target))
- 		return -EINVAL;
- 	return 0;
- }
-diff --git a/net/bridge/netfilter/ebt_snat.c b/net/bridge/netfilter/ebt_snat.c
-index e56ccd0..11cf9e9 100644
---- a/net/bridge/netfilter/ebt_snat.c
-+++ b/net/bridge/netfilter/ebt_snat.c
-@@ -51,7 +51,7 @@ static int ebt_snat_tg_check(const struct xt_tgchk_param *par)
- 	if (BASE_CHAIN && tmp == EBT_RETURN)
- 		return -EINVAL;
- 
--	if (tmp < -NUM_STANDARD_TARGETS || tmp >= 0)
-+	if (ebt_invalid_target(tmp))
- 		return -EINVAL;
- 	tmp = info->target | EBT_VERDICT_BITS;
- 	if ((tmp & ~NAT_ARP_BIT) != ~NAT_ARP_BIT)
--- 
-1.9.1
-
-
+Acked-by: David S. Miller <davem@davemloft.net>
