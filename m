@@ -1,66 +1,89 @@
 From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH 3/6 RFC] netfilter: audit only on xtables and ebtables
- syscall rule or standalone
-Date: Fri, 2 Jun 2017 11:25:17 -0400
-Message-ID: <CAHC9VhQ15-aW_=oK8MiJSuHAWQs8oqDcPn5k3rb0H1TS7UBKFA@mail.gmail.com>
-References: <cover.1495124188.git.rgb@redhat.com> <ac9a2120311288328a81d3e07a68857ebd32a21b.1495124188.git.rgb@redhat.com>
- <20170524173606.GB7439@salvia> <20170524180952.GL6203@madcap2.tricolour.ca>
+Subject: Re: [PATCH 4/6 RFC] netfilter: ebtables: audit table registration
+Date: Fri, 2 Jun 2017 11:27:05 -0400
+Message-ID: <CAHC9VhR_9LdeeYz9a2it-deXJwfLtNX2dhQs779r9ji9cskGAw@mail.gmail.com>
+References: <cover.1495124188.git.rgb@redhat.com> <d3dbe9460fbe3b1b264c65237111b5c0e2b8ebf9.1495124188.git.rgb@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Cc: Florian Westphal <fw@strlen.de>, linux-audit@redhat.com,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>,
+Cc: Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>, linux-audit@redhat.com,
+        Florian Westphal <fw@strlen.de>,
         Thomas Woerner <twoerner@redhat.com>,
         Thomas Graf <tgraf@infradead.org>
-To: Richard Guy Briggs <rgb@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
+To: Richard Guy Briggs <rgb@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:35402 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750971AbdFBPZY (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:35793 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750813AbdFBP1H (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Jun 2017 11:25:24 -0400
-Received: by mail-lf0-f66.google.com with SMTP id v20so2046656lfa.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 02 Jun 2017 08:25:23 -0700 (PDT)
-In-Reply-To: <20170524180952.GL6203@madcap2.tricolour.ca>
+        Fri, 2 Jun 2017 11:27:07 -0400
+Received: by mail-lf0-f67.google.com with SMTP id v20so2049798lfa.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 02 Jun 2017 08:27:07 -0700 (PDT)
+In-Reply-To: <d3dbe9460fbe3b1b264c65237111b5c0e2b8ebf9.1495124188.git.rgb@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, May 24, 2017 at 2:09 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2017-05-24 19:36, Pablo Neira Ayuso wrote:
->> On Thu, May 18, 2017 at 01:21:49PM -0400, Richard Guy Briggs wrote:
->> > There were syscall events unsolicited by any audit rule caused by a missing
->> > !audit_dummy_context() check before creating an
->> > iptables/ip6tables/arptables/ebtables NETFILTER_CFG record.  Check
->> > !audit_dummy_context() before creating the NETFILTER_CFG record.
->> >
->> > The vast majority of observed unaccompanied records are caused by the fedora
->> > default rule: "-a never,task" and the occasional early startup one is I believe
->> > caused by the iptables filter table module hard linked into the kernel rather
->> > than a loadable module. The !audit_dummy_context() check above should avoid
->> > them.  Audit only when there is an existing syscall audit rule, otherwise issue
->> > a standalone record only on table modification rather than empty table
->> > creation.
->> >
->> > Add subject attributes to the new standalone NETFILTER_CFGSOLO record using
->> > a newly exported audit_log_task().
->>
->> This new NETFILTER_CFGSOLO looks like audit infra is missing some way
->> to export a revision / context to userspace? It's duplicating quite a
->> bit of the code from what I can see in this patch.
+On Thu, May 18, 2017 at 1:21 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> Generate audit NETFILTER_CFG records on ebtables table registration.
 >
-> Interesting you brought that up.  I did another revision that stores
-> this information in a struct audit_context and greatly simplifies the
-> code in netfilter and re-uses code in audit itself, which may be a
-> better way to go, but that idea needed to settle a bit more before
-> seeing peer review.
+> Previously this was only being done for all x_tables operations and ebtables
+> table replacement.
 >
-> I'm also having doubts about two record types.
+> Audit only when there is an existing syscall audit rule, otherwise issue a
+> standalone record only on table modification rather than empty table creation.
+> Include subject attributes to the new standalone NETFILTER_CFGSOLO record using
+> audit_log_task().
+>
+> Here is a sample accompanied record:
+>   type=NETFILTER_CFG msg=audit(1494907217.558:5403): family=7 table=filter entries=0
+>
+> and unaccompanied case:
+>   type=UNKNOWN[1331] msg=audit(1494723394.832:111): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=system_u:system_r:iptables_t:s0 pid=556 comm="ebtables-restor" exe="/usr/sbin/ebtables-restore" family=7 table=broute entries=1
+>
+> See: https://github.com/linux-audit/audit-kernel/issues/43
+>
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> ---
+>  net/bridge/netfilter/ebtables.c |   26 ++++++++++++++++++++++++++
+>  1 files changed, 26 insertions(+), 0 deletions(-)
+>
+> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+> index 743f9e6..7499232 100644
+> --- a/net/bridge/netfilter/ebtables.c
+> +++ b/net/bridge/netfilter/ebtables.c
+> @@ -1251,6 +1251,32 @@ struct ebt_table * ebt_register_table(struct net *net,
+>         }
+>         list_add(&table->list, &net->xt.tables[NFPROTO_BRIDGE]);
+>         mutex_unlock(&ebt_mutex);
+> +#ifdef CONFIG_AUDIT
+> +       if (audit_enabled) {
+> +               struct audit_buffer *ab;
+> +
+> +               if(!audit_dummy_context()) {
+> +                       ab = audit_log_start(current->audit_context, GFP_KERNEL,
+> +                                            AUDIT_NETFILTER_CFG);
+> +                       if (ab) {
+> +                               audit_log_format(ab, "family=%u table=%s entries=%u",
+> +                                                AF_BRIDGE, repl->name,
+> +                                                repl->nentries);
+> +                               audit_log_end(ab);
+> +                       }
+> +               } else if(repl->nentries) {
+> +                       ab = audit_log_start(NULL, GFP_KERNEL,
+> +                                            AUDIT_NETFILTER_CFGSOLO);
+> +                       if (ab) {
+> +                               audit_log_task(ab);
+> +                               audit_log_format(ab, " family=%u table=%s entries=%u",
+> +                                                AF_BRIDGE, repl->name,
+> +                                                repl->nentries);
+> +                               audit_log_end(ab);
+> +                       }
+> +               }
+> +       }
+> +#endif
 
-Richard and I had a discussion about this a week (or two?) ago and I'm
-currently of the opinion that two record types are a mistake.  I agree
-that we need to add the audit_dummy_context() check but the other
-changes in this patch I'm less excited about.
+Similar comments from patch 3/6 apply here, let's stick with a single
+audit record type.
 
 -- 
 paul moore
