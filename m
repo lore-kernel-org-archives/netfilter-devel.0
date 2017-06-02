@@ -1,69 +1,67 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next] netns: add and use net_ns_barrier
-Date: Fri, 2 Jun 2017 11:53:42 +0200
-Message-ID: <20170602095342.GC13569@breakpoint.cc>
-References: <20170530093812.10712-1-fw@strlen.de>
- <063D6719AE5E284EB5DD2968C1650D6DD000799C@AcuExch.aculab.com>
+From: Paul Moore <paul@paul-moore.com>
+Subject: Re: [PATCH 3/6 RFC] netfilter: audit only on xtables and ebtables
+ syscall rule or standalone
+Date: Fri, 2 Jun 2017 11:25:17 -0400
+Message-ID: <CAHC9VhQ15-aW_=oK8MiJSuHAWQs8oqDcPn5k3rb0H1TS7UBKFA@mail.gmail.com>
+References: <cover.1495124188.git.rgb@redhat.com> <ac9a2120311288328a81d3e07a68857ebd32a21b.1495124188.git.rgb@redhat.com>
+ <20170524173606.GB7439@salvia> <20170524180952.GL6203@madcap2.tricolour.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: 'Florian Westphal' <fw@strlen.de>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "Eric W. Biederman" <ebiederm@xmission.com>
-To: David Laight <David.Laight@ACULAB.COM>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6DD000799C@AcuExch.aculab.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Cc: Florian Westphal <fw@strlen.de>, linux-audit@redhat.com,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>,
+        Thomas Woerner <twoerner@redhat.com>,
+        Thomas Graf <tgraf@infradead.org>
+To: Richard Guy Briggs <rgb@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:35402 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750971AbdFBPZY (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 2 Jun 2017 11:25:24 -0400
+Received: by mail-lf0-f66.google.com with SMTP id v20so2046656lfa.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 02 Jun 2017 08:25:23 -0700 (PDT)
+In-Reply-To: <20170524180952.GL6203@madcap2.tricolour.ca>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-David Laight <David.Laight@ACULAB.COM> wrote:
-> From: Florian Westphal
-> > Sent: 30 May 2017 10:38
-> > 
-> > Quoting Joe Stringer:
-> >   If a user loads nf_conntrack_ftp, sends FTP traffic through a network
-> >   namespace, destroys that namespace then unloads the FTP helper module,
-> >   then the kernel will crash.
-> > 
-> > Events that lead to the crash:
-> > 1. conntrack is created with ftp helper in netns x
-> > 2. This netns is destroyed
-> > 3. netns destruction is scheduled
-> > 4. netns destruction wq starts, removes netns from global list
-> > 5. ftp helper is unloaded, which resets all helpers of the conntracks
-> > via for_each_net()
-> > 
-> > but because netns is already gone from list the for_each_net() loop
-> > doesn't include it, therefore all of these conntracks are unaffected.
-> > 
-> > 6. helper module unload finishes
-> > 7. netns wq invokes destructor for rmmod'ed helper
-> > 
-> ...
-> >  void
-> >  nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
-> > @@ -1734,6 +1736,13 @@ nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
-> >  	}
-> >  	rtnl_unlock();
-> > 
-> > +	/* Need to wait for netns cleanup worker to finish, if its
-> > +	 * running -- it might have deleted a net namespace from
-> > +	 * the global list, so our __nf_ct_unconfirmed_destroy() might
-> > +	 * not have affected all namespaces.
-> > +	 */
-> > +	net_ns_barrier();
-> > +
-> 
-> A problem I see is that nothing obvious guarantees that the cleanup worker
-> has actually started.
+On Wed, May 24, 2017 at 2:09 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2017-05-24 19:36, Pablo Neira Ayuso wrote:
+>> On Thu, May 18, 2017 at 01:21:49PM -0400, Richard Guy Briggs wrote:
+>> > There were syscall events unsolicited by any audit rule caused by a missing
+>> > !audit_dummy_context() check before creating an
+>> > iptables/ip6tables/arptables/ebtables NETFILTER_CFG record.  Check
+>> > !audit_dummy_context() before creating the NETFILTER_CFG record.
+>> >
+>> > The vast majority of observed unaccompanied records are caused by the fedora
+>> > default rule: "-a never,task" and the occasional early startup one is I believe
+>> > caused by the iptables filter table module hard linked into the kernel rather
+>> > than a loadable module. The !audit_dummy_context() check above should avoid
+>> > them.  Audit only when there is an existing syscall audit rule, otherwise issue
+>> > a standalone record only on table modification rather than empty table
+>> > creation.
+>> >
+>> > Add subject attributes to the new standalone NETFILTER_CFGSOLO record using
+>> > a newly exported audit_log_task().
+>>
+>> This new NETFILTER_CFGSOLO looks like audit infra is missing some way
+>> to export a revision / context to userspace? It's duplicating quite a
+>> bit of the code from what I can see in this patch.
+>
+> Interesting you brought that up.  I did another revision that stores
+> this information in a struct audit_context and greatly simplifies the
+> code in netfilter and re-uses code in audit itself, which may be a
+> better way to go, but that idea needed to settle a bit more before
+> seeing peer review.
+>
+> I'm also having doubts about two record types.
 
-If it hasn't even started, the earlier for_each_net() has seen all
-net namespaces and we managed to clear helper extensions of all conntracks.
+Richard and I had a discussion about this a week (or two?) ago and I'm
+currently of the opinion that two record types are a mistake.  I agree
+that we need to add the audit_dummy_context() check but the other
+changes in this patch I'm less excited about.
 
-Same in case it has finished already: netns cleanup work queue has
-free'd all the affected conntracks we might have missed.
-
-We only are in trouble if netns work queue is running concurrently:
-netns cleanup first removes net namespaces from the global list,
-so nf_ct_iterate_destroy might have missed these.
+-- 
+paul moore
+www.paul-moore.com
