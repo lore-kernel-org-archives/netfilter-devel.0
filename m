@@ -1,115 +1,89 @@
 From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH 5/6 RFC] netfilter: add audit operation field
-Date: Fri, 2 Jun 2017 11:28:25 -0400
-Message-ID: <CAHC9VhQw3=hCp4p6_0Oe657D0pVNsOuPoGhycUCqeW_LDHmWPg@mail.gmail.com>
-References: <cover.1495124188.git.rgb@redhat.com>
-	<dc0ac01f79f91a817b9a3f1e7c37f5805329c8e5.1495124188.git.rgb@redhat.com>
+Subject: Re: [PATCH 6/6 RFC] netfilter: add audit netns ID
+Date: Fri, 2 Jun 2017 11:32:46 -0400
+Message-ID: <CAHC9VhRkgh=au1sconT+C5LMjspWvAcXL9_b0NqTZXUQ0NetGg@mail.gmail.com>
+References: <cover.1495124188.git.rgb@redhat.com> <c19c5f9a2b5bf8d43ced7a0a10d2da80934f242a.1495124188.git.rgb@redhat.com>
+ <20170524173106.GA7439@salvia> <20170524180403.GK6203@madcap2.tricolour.ca> <87tw4aavll.fsf@xmission.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Thomas Woerner <twoerner@redhat.com>, Florian Westphal <fw@strlen.de>,
-	linux-audit@redhat.com,
-	Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>,
-	Thomas Graf <tgraf@infradead.org>
-To: Richard Guy Briggs <rgb@redhat.com>
-Return-path: <linux-audit-bounces@redhat.com>
-In-Reply-To: <dc0ac01f79f91a817b9a3f1e7c37f5805329c8e5.1495124188.git.rgb@redhat.com>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/linux-audit>
-List-Post: <mailto:linux-audit@redhat.com>
-List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=subscribe>
-Sender: linux-audit-bounces@redhat.com
-Errors-To: linux-audit-bounces@redhat.com
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Cc: Florian Westphal <fw@strlen.de>, linux-audit@redhat.com,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>,
+        Thomas Woerner <twoerner@redhat.com>,
+        Thomas Graf <tgraf@infradead.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+To: "Eric W. Biederman" <ebiederm@xmission.com>,
+        Richard Guy Briggs <rgb@redhat.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:34910 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750971AbdFBPct (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 2 Jun 2017 11:32:49 -0400
+Received: by mail-lf0-f68.google.com with SMTP id v20so2059886lfa.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 02 Jun 2017 08:32:48 -0700 (PDT)
+In-Reply-To: <87tw4aavll.fsf@xmission.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 18, 2017 at 1:21 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> Add the operation performed (register or replace) to the NETFILTER_CFG and
-> NETFILTER_CFGSOLO records.
+On Wed, May 24, 2017 at 3:44 PM, Eric W. Biederman
+<ebiederm@xmission.com> wrote:
+> Richard Guy Briggs <rgb@redhat.com> writes:
 >
-> Here are sample records for accompanied:
->   type=NETFILTER_CFG msg=audit(1494981627.248:9764): op=replace family=7 table=broute entries=0
+>> On 2017-05-24 19:31, Pablo Neira Ayuso wrote:
+>>> Cc'ing Eric Biederman.
+>>>
+>>> On Thu, May 18, 2017 at 01:21:52PM -0400, Richard Guy Briggs wrote:
+>>> > diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+>>> > index 59b63a8..0f77b2a 100644
+>>> > --- a/net/bridge/netfilter/ebtables.c
+>>> > +++ b/net/bridge/netfilter/ebtables.c
+>>> > @@ -27,6 +27,7 @@
+>>> >  #include <linux/smp.h>
+>>> >  #include <linux/cpumask.h>
+>>> >  #include <linux/audit.h>
+>>> > +#define PROC_DYNAMIC_FIRST 0xF0000000U
+>>> >  #include <net/sock.h>
+>>> >  /* needed for logical [in,out]-dev filtering */
+>>> >  #include "../br_private.h"
+>>> > @@ -1075,7 +1076,8 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
+>>> >                    ab = audit_log_start(current->audit_context, GFP_KERNEL,
+>>> >                                         AUDIT_NETFILTER_CFG);
+>>> >                    if (ab) {
+>>> > -                          audit_log_format(ab, "op=replace family=%u table=%s entries=%u",
+>>> > +                          audit_log_format(ab, "op=replace net=%u family=%u table=%s entries=%u",
+>>> > +                                           net->ns.inum - PROC_DYNAMIC_FIRST,
+>>>
+>>> IIRC, there was a discussion on exposing netns i-node number to
+>>> userspace time ago on netdev and Eric Biederman was not happy about
+>>> this?
+>>
+>> He was not happy about it being exposed in the /proc filesystem.  We've
+>> been talking since then and while we've not come to a definitive
+>> conclusion there is a communication channel open.
+>>
+>> This is more of an RFC patch than the rest of this set and I didn't
+>> seriously expect this one to be accepted, I did want to present the idea
+>> to see if there were concerns or better ideas generated how to
+>> differentiate this record from a seemingly identical one.  The only
+>> other ID would be the network namespace' struct pointer.
+>>
+>> At this stage, one thing that is missing is a device number to qualify
+>> this namespace ID.
+>>
+>> Once I started printing the namespace proc inode number (minus the
+>> starting offset) in decimal, it was very clear what was happenning and
+>> seemed worth sharing that debugging tool patch.
 >
-> and unaccompanied cases:
->   type=UNKNOWN[1331] msg=audit(1494815998.178:167): auid=4294967295 uid=0 gid=0 ses=4294967295 subj=system_u:system_r:iptables_t:s0 pid=598 comm="ip6tables-resto" exe="/usr/sbin/xtables-multi" op=replace family=10 table=filter entries=4
+> If the appropriate device number and full inode number is included I
+> don't have any deep problems with the idea.  I don't like the bare inode
+> number as we have had in the past and may in the future have these inode
+> numbers in multiple filesystems so the inode number by itself is not
+> unique.
 
-A reminder to add new fields to the end of the record.
-
-> See: https://github.com/linux-audit/audit-kernel/issues/25
->
-> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> ---
->  net/bridge/netfilter/ebtables.c |    8 ++++----
->  net/netfilter/x_tables.c        |    5 +++--
->  2 files changed, 7 insertions(+), 6 deletions(-)
->
-> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-> index 7499232..59b63a8 100644
-> --- a/net/bridge/netfilter/ebtables.c
-> +++ b/net/bridge/netfilter/ebtables.c
-> @@ -1075,7 +1075,7 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
->                         ab = audit_log_start(current->audit_context, GFP_KERNEL,
->                                              AUDIT_NETFILTER_CFG);
->                         if (ab) {
-> -                               audit_log_format(ab, "family=%u table=%s entries=%u",
-> +                               audit_log_format(ab, "op=replace family=%u table=%s entries=%u",
->                                                  AF_BRIDGE, repl->name,
->                                                  repl->nentries);
->                                 audit_log_end(ab);
-> @@ -1085,7 +1085,7 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
->                                              AUDIT_NETFILTER_CFGSOLO);
->                         if (ab) {
->                                 audit_log_task(ab);
-> -                               audit_log_format(ab, " family=%u table=%s entries=%u",
-> +                               audit_log_format(ab, " op=replace family=%u table=%s entries=%u",
->                                                  AF_BRIDGE, repl->name,
->                                                  repl->nentries);
->                                 audit_log_end(ab);
-> @@ -1259,7 +1259,7 @@ struct ebt_table * ebt_register_table(struct net *net,
->                         ab = audit_log_start(current->audit_context, GFP_KERNEL,
->                                              AUDIT_NETFILTER_CFG);
->                         if (ab) {
-> -                               audit_log_format(ab, "family=%u table=%s entries=%u",
-> +                               audit_log_format(ab, "op=register family=%u table=%s entries=%u",
->                                                  AF_BRIDGE, repl->name,
->                                                  repl->nentries);
->                                 audit_log_end(ab);
-> @@ -1269,7 +1269,7 @@ struct ebt_table * ebt_register_table(struct net *net,
->                                              AUDIT_NETFILTER_CFGSOLO);
->                         if (ab) {
->                                 audit_log_task(ab);
-> -                               audit_log_format(ab, " family=%u table=%s entries=%u",
-> +                               audit_log_format(ab, " op=register family=%u table=%s entries=%u",
->                                                  AF_BRIDGE, repl->name,
->                                                  repl->nentries);
->                                 audit_log_end(ab);
-> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-> index 8d28fff..395ebd3 100644
-> --- a/net/netfilter/x_tables.c
-> +++ b/net/netfilter/x_tables.c
-> @@ -1199,7 +1199,8 @@ struct xt_table_info *xt_replace_table(struct xt_table *table,
->                         ab = audit_log_start(current->audit_context, GFP_KERNEL,
->                                              AUDIT_NETFILTER_CFG);
->                         if (ab) {
-> -                               audit_log_format(ab, "family=%u table=%s entries=%u",
-> +                               audit_log_format(ab, "op=%s family=%u table=%s entries=%u",
-> +                                                private->number ? "replace" : "register",
->                                                  table->af, table->name,
->                                                  private->number);
->                                 audit_log_end(ab);
-> @@ -1209,7 +1210,7 @@ struct xt_table_info *xt_replace_table(struct xt_table *table,
->                                              AUDIT_NETFILTER_CFGSOLO);
->                         if (ab) {
->                                 audit_log_task(ab);
-> -                               audit_log_format(ab, " family=%u table=%s entries=%u",
-> +                               audit_log_format(ab, " op=replace family=%u table=%s entries=%u",
->                                                  table->af, table->name,
->                                                  private->number);
->                                 audit_log_end(ab);
-> --
-> 1.7.1
+Let's punt on this netfilter record specific patch until we sort out
+the general problem of recording namespace/container information in
+the audit records.
 
 -- 
 paul moore
