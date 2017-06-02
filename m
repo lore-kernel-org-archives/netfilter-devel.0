@@ -1,83 +1,43 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next] netns: add and use net_ns_barrier
-Date: Thu, 1 Jun 2017 10:52:59 +0200
-Message-ID: <20170601085259.GA6067@breakpoint.cc>
-References: <20170530093812.10712-1-fw@strlen.de>
- <87y3tcj3n7.fsf@xmission.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <87y3tcj3n7.fsf@xmission.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Jike Song <jike.song@intel.com>
+Subject: [PATCH] netfilter, kbuild: use canonical method to specify objs.
+Date: Fri,  2 Jun 2017 17:35:37 +0800
+Message-ID: <1496396137-22173-1-git-send-email-jike.song@intel.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Jike Song <jike.song@intel.com>
+To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:31710 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751239AbdFBJfq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 2 Jun 2017 05:35:46 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric W. Biederman <ebiederm@xmission.com> wrote:
-> Florian Westphal <fw@strlen.de> writes:
-> 
-> > Quoting Joe Stringer:
-> >   If a user loads nf_conntrack_ftp, sends FTP traffic through a network
-> >   namespace, destroys that namespace then unloads the FTP helper module,
-> >   then the kernel will crash.
-> >
-> > Events that lead to the crash:
-> > 1. conntrack is created with ftp helper in netns x
-> > 2. This netns is destroyed
-> > 3. netns destruction is scheduled
-> > 4. netns destruction wq starts, removes netns from global list
-> > 5. ftp helper is unloaded, which resets all helpers of the conntracks
-> > via for_each_net()
-> >
-> > but because netns is already gone from list the for_each_net() loop
-> > doesn't include it, therefore all of these conntracks are unaffected.
-> >
-> > 6. helper module unload finishes
-> > 7. netns wq invokes destructor for rmmod'ed helper
-> >
-> > CC: "Eric W. Biederman" <ebiederm@xmission.com>
-> > Reported-by: Joe Stringer <joe@ovn.org>
-> > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > ---
-> >  Eric, I'd like an explicit (n)ack from you for this one.
-> 
-> This doesn't look too scary but I have the impression we have addressed
-> this elsewhere with a different solution.
-> 
-> Looking...
-> 
-> Ok.  unregister_pernet_operations takes the net_mutex and thus
-> gives you this barrier automatically.
-> 
-> Hmm.  Why isn't this working for conntrack, looking...
-> 
-> nf_conntrack_ftp doesn't use unregister_pernet_operations...
-> nf_conntract_ftp does use nf_conntrack_helpers_unregister
-> 
-> I think I almost see the problem.
-> 
-> What is the per net code that stops dealing with the nf_conntract_ftp?
-> 
-> I am trying to figure out if your netns_barrier is reasonable or if
-> it treating the symptom.  I am having trouble seeing enough of what
-> conntrack is doing to judge.
-> 
-> Am I correct in understanding that the root problem is there is
-> something pointing to ftp_exp_policy at the time of module unload?
+Should use ":=" instead of "+=".
 
-Joe described it nicely, problem is that after unload we may have
-conntracks that still have a nf_conn_help extension attached that
-has a pointer to a structure that resided in the (unloaded) module.
+Signed-off-by: Jike Song <jike.song@intel.com>
+---
+ net/netfilter/Makefile | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-Normally these references should have been NULL'd out by
-nf_ct_iterate_destroy(), however, there is a small chance that
-its for_each_net() misses namespaces already removed-from-list by
-concurrent netns workqueue cleanup.
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index c9b78e7..9133809 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -70,10 +70,9 @@ obj-$(CONFIG_NETFILTER_SYNPROXY) += nf_synproxy_core.o
+ obj-$(CONFIG_NF_DUP_NETDEV)	+= nf_dup_netdev.o
+ 
+ # nf_tables
+-nf_tables-objs += nf_tables_core.o nf_tables_api.o nf_tables_trace.o
+-nf_tables-objs += nft_immediate.o nft_cmp.o nft_range.o
+-nf_tables-objs += nft_bitwise.o nft_byteorder.o nft_payload.o
+-nf_tables-objs += nft_lookup.o nft_dynset.o
++nf_tables-objs := nf_tables_core.o nf_tables_api.o nf_tables_trace.o \
++		  nft_immediate.o nft_cmp.o nft_range.o nft_bitwise.o \
++		  nft_byteorder.o nft_payload.o nft_lookup.o nft_dynset.o
+ 
+ obj-$(CONFIG_NF_TABLES)		+= nf_tables.o
+ obj-$(CONFIG_NF_TABLES_INET)	+= nf_tables_inet.o
+-- 
+1.9.3
 
-I guess another solution to fix this would be to add dummy pernet
-ops to all conntrack helpers so they block on unregister_pernet_subsys().
-
-But thats rather ugly IMO since they don't have any notion of a net
-namespace in first place.
