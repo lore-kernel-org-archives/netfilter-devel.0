@@ -1,666 +1,399 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf-next RFC 2/5] netfilter: make nf_conntrack_helper_register become per-net
-Date: Sun,  4 Jun 2017 23:25:06 +0800
-Message-ID: <1496589909-56730-3-git-send-email-zlpnobody@163.com>
+Subject: [PATCH nf-next RFC 3/5] netfilter: make each ct helper belong to a specific netns
+Date: Sun,  4 Jun 2017 23:25:07 +0800
+Message-ID: <1496589909-56730-4-git-send-email-zlpnobody@163.com>
 References: <1496589909-56730-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-18.163.com ([220.181.12.18]:51320 "EHLO m12-18.163.com"
+Received: from m12-18.163.com ([220.181.12.18]:51436 "EHLO m12-18.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751218AbdFDPZs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 4 Jun 2017 11:25:48 -0400
+        id S1751218AbdFDPZv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 4 Jun 2017 11:25:51 -0400
 In-Reply-To: <1496589909-56730-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <zlpnobody@gmail.com>
 
-Now we add "struct net *" parameter to the nf_conntrack_helper_register/
-unregister function, and make the kernel built-in ct helpers to use
-pernet subsys operation.
+This is the first part to support net namespace for ct helpers.
+When we register a ct helper, we will store the related netns.
 
-Also note, after this patch, we only support ct helper register in
-&init_net netns, but the followup patches will restore to support all
-netns.
+So later, we can only find the ct helper belong to a specified
+netns, i.e. we will add "struct net *" parameter to these
+ct_helper_find functions and filter the cthelper by netns.
 
 Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
 ---
- include/net/netfilter/nf_conntrack_helper.h | 17 ++++++++++------
- net/ipv4/netfilter/nf_nat_snmp_basic.c      | 19 ++++++++++++++++--
- net/netfilter/nf_conntrack_amanda.c         | 23 +++++++++++++++++----
- net/netfilter/nf_conntrack_ftp.c            | 19 ++++++++++++++++--
- net/netfilter/nf_conntrack_h323_main.c      | 31 ++++++++++++++++++-----------
- net/netfilter/nf_conntrack_helper.c         | 26 ++++++++++++++++--------
- net/netfilter/nf_conntrack_irc.c            | 19 ++++++++++++++++--
- net/netfilter/nf_conntrack_netbios_ns.c     | 19 ++++++++++++++++--
- net/netfilter/nf_conntrack_pptp.c           | 19 ++++++++++++++++--
- net/netfilter/nf_conntrack_sane.c           | 19 ++++++++++++++++--
- net/netfilter/nf_conntrack_sip.c            | 19 ++++++++++++++++--
- net/netfilter/nf_conntrack_snmp.c           | 19 ++++++++++++++++--
- net/netfilter/nf_conntrack_tftp.c           | 19 ++++++++++++++++--
- net/netfilter/nfnetlink_cthelper.c          |  6 +++---
- 14 files changed, 223 insertions(+), 51 deletions(-)
+ include/net/netfilter/nf_conntrack_helper.h | 13 ++++++-
+ include/net/netns/conntrack.h               |  2 +
+ net/netfilter/nf_conntrack_helper.c         | 57 ++++++++++++++++++++---------
+ net/netfilter/nf_conntrack_netlink.c        | 15 +++++---
+ net/netfilter/nft_ct.c                      | 12 ++++--
+ net/netfilter/xt_CT.c                       |  3 +-
+ net/openvswitch/conntrack.c                 |  7 ++--
+ 7 files changed, 76 insertions(+), 33 deletions(-)
 
 diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index c519bb5..991b6d0 100644
+index 991b6d0..7ac67c4 100644
 --- a/include/net/netfilter/nf_conntrack_helper.h
 +++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -95,12 +95,17 @@ void nf_ct_helper_init(struct nf_conntrack_helper *helper,
- 					  struct nf_conn *ct),
- 		       struct module *module);
+@@ -26,6 +26,8 @@ enum nf_ct_helper_flags {
+ struct nf_conntrack_helper {
+ 	struct hlist_node hnode;	/* Internal use. */
  
--int nf_conntrack_helper_register(struct nf_conntrack_helper *);
--void nf_conntrack_helper_unregister(struct nf_conntrack_helper *);
--
--int nf_conntrack_helpers_register(struct nf_conntrack_helper *, unsigned int);
--void nf_conntrack_helpers_unregister(struct nf_conntrack_helper *,
--				     unsigned int);
-+int nf_conntrack_helper_register(struct net *net,
-+				 struct nf_conntrack_helper *me);
-+void nf_conntrack_helper_unregister(struct net *net,
-+				    struct nf_conntrack_helper *me);
++	possible_net_t net;
 +
-+int nf_conntrack_helpers_register(struct net *net,
-+				  struct nf_conntrack_helper *helper,
-+				  unsigned int n);
-+void nf_conntrack_helpers_unregister(struct net *net,
-+				     struct nf_conntrack_helper *helper,
-+				     unsigned int n);
+ 	char name[NF_CT_HELPER_NAME_LEN]; /* name of the module */
+ 	refcount_t refcnt;
+ 	struct module *me;		/* pointer to self */
+@@ -75,10 +77,17 @@ struct nf_conn_help {
+ #define NF_CT_HELPER_BUILD_BUG_ON(structsize) \
+ 	BUILD_BUG_ON((structsize) > FIELD_SIZEOF(struct nf_conn_help, data))
  
- struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct,
- 					  struct nf_conntrack_helper *helper,
-diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-index d5b1e0b..270b583 100644
---- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
-+++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-@@ -1259,6 +1259,21 @@ static struct nf_conntrack_helper snmp_trap_helper __read_mostly = {
- 	.tuple.dst.protonum	= IPPROTO_UDP,
- };
- 
-+static int __net_init snmp_trap_net_init(struct net *net)
+-struct nf_conntrack_helper *__nf_conntrack_helper_find(const char *name,
++static inline struct net *nf_ct_helper_net(struct nf_conntrack_helper *helper)
 +{
-+	return nf_conntrack_helper_register(net, &snmp_trap_helper);
++	return read_pnet(&helper->net);
 +}
 +
-+static void __net_exit snmp_trap_net_exit(struct net *net)
-+{
-+	nf_conntrack_helper_unregister(net, &snmp_trap_helper);
-+}
++struct nf_conntrack_helper *__nf_conntrack_helper_find(struct net *net,
++						       const char *name,
+ 						       u16 l3num, u8 protonum);
+ 
+-struct nf_conntrack_helper *nf_conntrack_helper_try_module_get(const char *name,
++struct nf_conntrack_helper *nf_conntrack_helper_try_module_get(struct net *net,
++							       const char *name,
+ 							       u16 l3num,
+ 							       u8 protonum);
+ void nf_conntrack_helper_put(struct nf_conntrack_helper *helper);
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+index 17724c6..244b794 100644
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
+@@ -111,6 +111,8 @@ struct netns_ct {
+ 	int			sysctl_tstamp;
+ 	int			sysctl_checksum;
+ 
++	unsigned int		nf_ct_helper_count;
 +
-+static struct pernet_operations snmp_trap_net_ops = {
-+	.init	= snmp_trap_net_init,
-+	.exit	= snmp_trap_net_exit,
-+};
-+
- /*****************************************************************************
-  *
-  * Module stuff.
-@@ -1270,14 +1285,14 @@ static int __init nf_nat_snmp_basic_init(void)
- 	BUG_ON(nf_nat_snmp_hook != NULL);
- 	RCU_INIT_POINTER(nf_nat_snmp_hook, help);
- 
--	return nf_conntrack_helper_register(&snmp_trap_helper);
-+	return register_pernet_subsys(&snmp_trap_net_ops);
- }
- 
- static void __exit nf_nat_snmp_basic_fini(void)
- {
- 	RCU_INIT_POINTER(nf_nat_snmp_hook, NULL);
- 	synchronize_rcu();
--	nf_conntrack_helper_unregister(&snmp_trap_helper);
-+	unregister_pernet_subsys(&snmp_trap_net_ops);
- }
- 
- module_init(nf_nat_snmp_basic_init);
-diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
-index 20edd58..b2d38c0 100644
---- a/net/netfilter/nf_conntrack_amanda.c
-+++ b/net/netfilter/nf_conntrack_amanda.c
-@@ -193,12 +193,28 @@ static struct nf_conntrack_helper amanda_helper[2] __read_mostly = {
- 	},
- };
- 
-+static int __net_init amanda_net_init(struct net *net)
-+{
-+	return nf_conntrack_helpers_register(net, amanda_helper,
-+					     ARRAY_SIZE(amanda_helper));
-+}
-+
-+static void __net_exit amanda_net_exit(struct net *net)
-+{
-+	nf_conntrack_helpers_unregister(net, amanda_helper,
-+					ARRAY_SIZE(amanda_helper));
-+}
-+
-+static struct pernet_operations amanda_net_ops = {
-+	.init	= amanda_net_init,
-+	.exit	= amanda_net_exit,
-+};
-+
- static void __exit nf_conntrack_amanda_fini(void)
- {
- 	int i;
- 
--	nf_conntrack_helpers_unregister(amanda_helper,
--					ARRAY_SIZE(amanda_helper));
-+	unregister_pernet_subsys(&amanda_net_ops);
- 	for (i = 0; i < ARRAY_SIZE(search); i++)
- 		textsearch_destroy(search[i].ts);
- }
-@@ -218,8 +234,7 @@ static int __init nf_conntrack_amanda_init(void)
- 			goto err1;
- 		}
- 	}
--	ret = nf_conntrack_helpers_register(amanda_helper,
--					    ARRAY_SIZE(amanda_helper));
-+	ret = register_pernet_subsys(&amanda_net_ops);
- 	if (ret < 0)
- 		goto err1;
- 	return 0;
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index f0e9a75..d4a779c 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -566,10 +566,25 @@ static const struct nf_conntrack_expect_policy ftp_exp_policy = {
- 	.timeout	= 5 * 60,
- };
- 
-+static int __net_init ftp_net_init(struct net *net)
-+{
-+	return nf_conntrack_helpers_register(net, ftp, ports_c * 2);
-+}
-+
-+static void __net_exit ftp_net_exit(struct net *net)
-+{
-+	nf_conntrack_helpers_unregister(net, ftp, ports_c * 2);
-+}
-+
-+static struct pernet_operations ftp_net_ops = {
-+	.init	= ftp_net_init,
-+	.exit	= ftp_net_exit,
-+};
-+
- /* don't make this __exit, since it's called from __init ! */
- static void nf_conntrack_ftp_fini(void)
- {
--	nf_conntrack_helpers_unregister(ftp, ports_c * 2);
-+	unregister_pernet_subsys(&ftp_net_ops);
- 	kfree(ftp_buffer);
- }
- 
-@@ -597,7 +612,7 @@ static int __init nf_conntrack_ftp_init(void)
- 				  0, help, nf_ct_ftp_from_nlattr, THIS_MODULE);
- 	}
- 
--	ret = nf_conntrack_helpers_register(ftp, ports_c * 2);
-+	ret = register_pernet_subsys(&ftp_net_ops);
- 	if (ret < 0) {
- 		pr_err("failed to register helpers\n");
- 		kfree(ftp_buffer);
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index f71f0d2..ec314d9 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -1815,44 +1815,51 @@ static struct nf_conntrack_helper nf_conntrack_helper_ras[] __read_mostly = {
- 	},
- };
- 
--static int __init h323_helper_init(void)
-+static int __net_init h323_net_init(struct net *net)
- {
- 	int ret;
- 
--	ret = nf_conntrack_helper_register(&nf_conntrack_helper_h245);
-+	ret = nf_conntrack_helper_register(net, &nf_conntrack_helper_h245);
- 	if (ret < 0)
- 		return ret;
--	ret = nf_conntrack_helpers_register(nf_conntrack_helper_q931,
-+	ret = nf_conntrack_helpers_register(net, nf_conntrack_helper_q931,
- 					ARRAY_SIZE(nf_conntrack_helper_q931));
- 	if (ret < 0)
- 		goto err1;
--	ret = nf_conntrack_helpers_register(nf_conntrack_helper_ras,
-+	ret = nf_conntrack_helpers_register(net, nf_conntrack_helper_ras,
- 					ARRAY_SIZE(nf_conntrack_helper_ras));
- 	if (ret < 0)
- 		goto err2;
- 
- 	return 0;
-+
- err2:
--	nf_conntrack_helpers_unregister(nf_conntrack_helper_q931,
-+	nf_conntrack_helpers_unregister(net, nf_conntrack_helper_q931,
- 					ARRAY_SIZE(nf_conntrack_helper_q931));
- err1:
--	nf_conntrack_helper_unregister(&nf_conntrack_helper_h245);
-+	nf_conntrack_helper_unregister(net, &nf_conntrack_helper_h245);
- 	return ret;
-+
- }
- 
--static void __exit h323_helper_exit(void)
-+static void __net_exit h323_net_exit(struct net *net)
- {
--	nf_conntrack_helpers_unregister(nf_conntrack_helper_ras,
-+	nf_conntrack_helpers_unregister(net, nf_conntrack_helper_ras,
- 					ARRAY_SIZE(nf_conntrack_helper_ras));
--	nf_conntrack_helpers_unregister(nf_conntrack_helper_q931,
-+	nf_conntrack_helpers_unregister(net, nf_conntrack_helper_q931,
- 					ARRAY_SIZE(nf_conntrack_helper_q931));
--	nf_conntrack_helper_unregister(&nf_conntrack_helper_h245);
-+	nf_conntrack_helper_unregister(net, &nf_conntrack_helper_h245);
- }
- 
-+static struct pernet_operations h323_net_ops = {
-+	.init	= h323_net_init,
-+	.exit	= h323_net_exit,
-+};
-+
- /****************************************************************************/
- static void __exit nf_conntrack_h323_fini(void)
- {
--	h323_helper_exit();
-+	unregister_pernet_subsys(&h323_net_ops);
- 	kfree(h323_buffer);
- 	pr_debug("nf_ct_h323: fini\n");
- }
-@@ -1867,7 +1874,7 @@ static int __init nf_conntrack_h323_init(void)
- 	h323_buffer = kmalloc(65536, GFP_KERNEL);
- 	if (!h323_buffer)
- 		return -ENOMEM;
--	ret = h323_helper_init();
-+	ret = register_pernet_subsys(&h323_net_ops);
- 	if (ret < 0)
- 		goto err1;
- 	pr_debug("nf_ct_h323: init success\n");
+ 	struct ct_pcpu __percpu *pcpu_lists;
+ 	struct ip_conntrack_stat __percpu *stat;
+ 	struct nf_ct_event_notifier __rcu *nf_conntrack_event_cb;
 diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 9129bb3..9a52788 100644
+index 9a52788..3f3eeb9 100644
 --- a/net/netfilter/nf_conntrack_helper.c
 +++ b/net/netfilter/nf_conntrack_helper.c
-@@ -391,13 +391,17 @@ void nf_ct_helper_log(struct sk_buff *skb, const struct nf_conn *ct,
- }
- EXPORT_SYMBOL_GPL(nf_ct_helper_log);
+@@ -36,7 +36,6 @@ struct hlist_head *nf_ct_helper_hash __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_ct_helper_hash);
+ unsigned int nf_ct_helper_hsize __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_ct_helper_hsize);
+-static unsigned int nf_ct_helper_count __read_mostly;
  
--int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
-+int nf_conntrack_helper_register(struct net *net,
-+				 struct nf_conntrack_helper *me)
+ static bool nf_ct_auto_assign_helper __read_mostly = false;
+ module_param_named(nf_conntrack_helper, nf_ct_auto_assign_helper, bool, 0644);
+@@ -106,24 +105,33 @@ static void nf_conntrack_helper_fini_sysctl(struct net *net)
+ 
+ /* Stupid hash, but collision free for the default registrations of the
+  * helpers currently in the kernel. */
+-static unsigned int helper_hash(const struct nf_conntrack_tuple *tuple)
++static unsigned int helper_hash(struct net *net,
++				const struct nf_conntrack_tuple *tuple)
+ {
+-	return (((tuple->src.l3num << 8) | tuple->dst.protonum) ^
+-		(__force __u16)tuple->src.u.all) % nf_ct_helper_hsize;
++	unsigned int hash;
++
++	hash = ((tuple->src.l3num << 8) | tuple->dst.protonum) ^
++	       (__force __u16)tuple->src.u.all;
++	hash ^= net_hash_mix(net);
++
++	return hash % nf_ct_helper_hsize;
+ }
+ 
+ static struct nf_conntrack_helper *
+-__nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
++__nf_ct_helper_find(struct net *net, const struct nf_conntrack_tuple *tuple)
+ {
+ 	struct nf_conntrack_helper *helper;
+ 	struct nf_conntrack_tuple_mask mask = { .src.u.all = htons(0xFFFF) };
+ 	unsigned int h;
+ 
+-	if (!nf_ct_helper_count)
++	if (!net->ct.nf_ct_helper_count)
+ 		return NULL;
+ 
+-	h = helper_hash(tuple);
++	h = helper_hash(net, tuple);
+ 	hlist_for_each_entry_rcu(helper, &nf_ct_helper_hash[h], hnode) {
++		if (!net_eq(net, nf_ct_helper_net(helper)))
++			continue;
++
+ 		if (nf_ct_tuple_src_mask_cmp(tuple, &helper->tuple, &mask))
+ 			return helper;
+ 	}
+@@ -131,13 +139,17 @@ __nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
+ }
+ 
+ struct nf_conntrack_helper *
+-__nf_conntrack_helper_find(const char *name, u16 l3num, u8 protonum)
++__nf_conntrack_helper_find(struct net *net, const char *name,
++			   u16 l3num, u8 protonum)
+ {
+ 	struct nf_conntrack_helper *h;
+ 	unsigned int i;
+ 
+ 	for (i = 0; i < nf_ct_helper_hsize; i++) {
+ 		hlist_for_each_entry_rcu(h, &nf_ct_helper_hash[i], hnode) {
++			if (!net_eq(net, nf_ct_helper_net(h)))
++				continue;
++
+ 			if (strcmp(h->name, name))
+ 				continue;
+ 
+@@ -154,19 +166,21 @@ __nf_conntrack_helper_find(const char *name, u16 l3num, u8 protonum)
+ EXPORT_SYMBOL_GPL(__nf_conntrack_helper_find);
+ 
+ struct nf_conntrack_helper *
+-nf_conntrack_helper_try_module_get(const char *name, u16 l3num, u8 protonum)
++nf_conntrack_helper_try_module_get(struct net *net, const char *name,
++				   u16 l3num, u8 protonum)
+ {
+ 	struct nf_conntrack_helper *h;
+ 
+ 	rcu_read_lock();
+ 
+-	h = __nf_conntrack_helper_find(name, l3num, protonum);
++	h = __nf_conntrack_helper_find(net, name, l3num, protonum);
+ #ifdef CONFIG_MODULES
+ 	if (h == NULL) {
+ 		rcu_read_unlock();
+ 		if (request_module("nfct-helper-%s", name) == 0) {
+ 			rcu_read_lock();
+-			h = __nf_conntrack_helper_find(name, l3num, protonum);
++			h = __nf_conntrack_helper_find(net, name, l3num,
++						       protonum);
+ 		} else {
+ 			return h;
+ 		}
+@@ -213,7 +227,8 @@ nf_ct_lookup_helper(struct nf_conn *ct, struct net *net)
+ 	if (!net->ct.sysctl_auto_assign_helper) {
+ 		if (net->ct.auto_assign_helper_warned)
+ 			return NULL;
+-		if (!__nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple))
++		if (!__nf_ct_helper_find(net,
++					 &ct->tuplehash[IP_CT_DIR_REPLY].tuple))
+ 			return NULL;
+ 		pr_info("nf_conntrack: default automatic helper assignment "
+ 			"has been turned off for security reasons and CT-based "
+@@ -223,7 +238,7 @@ nf_ct_lookup_helper(struct nf_conn *ct, struct net *net)
+ 		return NULL;
+ 	}
+ 
+-	return __nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
++	return __nf_ct_helper_find(net, &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+ }
+ 
+ 
+@@ -395,7 +410,7 @@ int nf_conntrack_helper_register(struct net *net,
+ 				 struct nf_conntrack_helper *me)
  {
  	struct nf_conntrack_tuple_mask mask = { .src.u.all = htons(0xFFFF) };
- 	unsigned int h = helper_hash(&me->tuple);
+-	unsigned int h = helper_hash(&me->tuple);
++	unsigned int h = helper_hash(net, &me->tuple);
  	struct nf_conntrack_helper *cur;
  	int ret = 0, i;
  
-+	if (!net_eq(net, &init_net))
-+		return 0;
-+
- 	BUG_ON(me->expect_policy == NULL);
- 	BUG_ON(me->expect_class_max >= NF_CT_MAX_EXPECT_CLASSES);
- 	BUG_ON(strlen(me->name) > NF_CT_HELPER_NAME_LEN - 1);
-@@ -437,12 +441,16 @@ int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_helper_register);
- 
--void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
-+void nf_conntrack_helper_unregister(struct net *net,
-+				    struct nf_conntrack_helper *me)
- {
- 	struct nf_conntrack_expect *exp;
- 	const struct hlist_node *next;
- 	unsigned int i;
- 
-+	if (!net_eq(net, &init_net))
-+		return 0;
-+
+@@ -412,6 +427,9 @@ int nf_conntrack_helper_register(struct net *net,
  	mutex_lock(&nf_ct_helper_mutex);
- 	hlist_del_rcu(&me->hnode);
- 	nf_ct_helper_count--;
-@@ -500,14 +508,15 @@ void nf_ct_helper_init(struct nf_conntrack_helper *helper,
- }
- EXPORT_SYMBOL_GPL(nf_ct_helper_init);
- 
--int nf_conntrack_helpers_register(struct nf_conntrack_helper *helper,
-+int nf_conntrack_helpers_register(struct net *net,
-+				  struct nf_conntrack_helper *helper,
- 				  unsigned int n)
- {
- 	unsigned int i;
- 	int err = 0;
- 
- 	for (i = 0; i < n; i++) {
--		err = nf_conntrack_helper_register(&helper[i]);
-+		err = nf_conntrack_helper_register(net, &helper[i]);
- 		if (err < 0)
- 			goto err;
- 	}
-@@ -515,16 +524,17 @@ int nf_conntrack_helpers_register(struct nf_conntrack_helper *helper,
- 	return err;
- err:
- 	if (i > 0)
--		nf_conntrack_helpers_unregister(helper, i);
-+		nf_conntrack_helpers_unregister(net, helper, i);
- 	return err;
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_helpers_register);
- 
--void nf_conntrack_helpers_unregister(struct nf_conntrack_helper *helper,
--				unsigned int n)
-+void nf_conntrack_helpers_unregister(struct net *net,
-+				     struct nf_conntrack_helper *helper,
-+				     unsigned int n)
- {
- 	while (n-- > 0)
--		nf_conntrack_helper_unregister(&helper[n]);
-+		nf_conntrack_helper_unregister(net, &helper[n]);
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_helpers_unregister);
- 
-diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
-index 5523acc..ff7bd54 100644
---- a/net/netfilter/nf_conntrack_irc.c
-+++ b/net/netfilter/nf_conntrack_irc.c
-@@ -232,6 +232,21 @@ static int help(struct sk_buff *skb, unsigned int protoff,
- static struct nf_conntrack_helper irc[MAX_PORTS] __read_mostly;
- static struct nf_conntrack_expect_policy irc_exp_policy;
- 
-+static int __net_init irc_net_init(struct net *net)
-+{
-+	return nf_conntrack_helpers_register(net, irc, ports_c);
-+}
+ 	for (i = 0; i < nf_ct_helper_hsize; i++) {
+ 		hlist_for_each_entry(cur, &nf_ct_helper_hash[i], hnode) {
++			if (!net_eq(net, nf_ct_helper_net(cur)))
++				continue;
 +
-+static void __net_exit irc_net_exit(struct net *net)
-+{
-+	nf_conntrack_helpers_unregister(net, irc, ports_c);
-+}
+ 			if (!strcmp(cur->name, me->name) &&
+ 			    (cur->tuple.src.l3num == NFPROTO_UNSPEC ||
+ 			     cur->tuple.src.l3num == me->tuple.src.l3num) &&
+@@ -425,6 +443,9 @@ int nf_conntrack_helper_register(struct net *net,
+ 	/* avoid unpredictable behaviour for auto_assign_helper */
+ 	if (!(me->flags & NF_CT_HELPER_F_USERSPACE)) {
+ 		hlist_for_each_entry(cur, &nf_ct_helper_hash[h], hnode) {
++			if (!net_eq(net, nf_ct_helper_net(cur)))
++				continue;
 +
-+static struct pernet_operations irc_net_ops = {
-+	.init	= irc_net_init,
-+	.exit	= irc_net_exit,
-+};
-+
- static void nf_conntrack_irc_fini(void);
- 
- static int __init nf_conntrack_irc_init(void)
-@@ -266,7 +281,7 @@ static int __init nf_conntrack_irc_init(void)
- 				  0, help, NULL, THIS_MODULE);
- 	}
- 
--	ret = nf_conntrack_helpers_register(&irc[0], ports_c);
-+	ret = register_pernet_subsys(&irc_net_ops);
- 	if (ret) {
- 		pr_err("failed to register helpers\n");
- 		kfree(irc_buffer);
-@@ -280,7 +295,7 @@ static int __init nf_conntrack_irc_init(void)
-  * it is needed by the init function */
- static void nf_conntrack_irc_fini(void)
- {
--	nf_conntrack_helpers_unregister(irc, ports_c);
-+	unregister_pernet_subsys(&irc_net_ops);
- 	kfree(irc_buffer);
- }
- 
-diff --git a/net/netfilter/nf_conntrack_netbios_ns.c b/net/netfilter/nf_conntrack_netbios_ns.c
-index 496ce17..91f3bed 100644
---- a/net/netfilter/nf_conntrack_netbios_ns.c
-+++ b/net/netfilter/nf_conntrack_netbios_ns.c
-@@ -56,17 +56,32 @@ static struct nf_conntrack_helper helper __read_mostly = {
- 	.expect_policy		= &exp_policy,
- };
- 
-+static int __net_init netbios_ns_net_init(struct net *net)
-+{
-+	return nf_conntrack_helper_register(net, &helper);
-+}
-+
-+static void __net_exit netbios_ns_net_exit(struct net *net)
-+{
-+	nf_conntrack_helper_unregister(net, &helper);
-+}
-+
-+static struct pernet_operations netbios_ns_net_ops = {
-+	.init	= netbios_ns_net_init,
-+	.exit	= netbios_ns_net_exit,
-+};
-+
- static int __init nf_conntrack_netbios_ns_init(void)
- {
- 	NF_CT_HELPER_BUILD_BUG_ON(0);
- 
- 	exp_policy.timeout = timeout;
--	return nf_conntrack_helper_register(&helper);
-+	return register_pernet_subsys(&netbios_ns_net_ops);
- }
- 
- static void __exit nf_conntrack_netbios_ns_fini(void)
- {
--	nf_conntrack_helper_unregister(&helper);
-+	unregister_pernet_subsys(&netbios_ns_net_ops);
- }
- 
- module_init(nf_conntrack_netbios_ns_init);
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
-index 6959e93..c3ef5f2 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -612,16 +612,31 @@ static struct nf_conntrack_helper pptp __read_mostly = {
- 	.expect_policy		= &pptp_exp_policy,
- };
- 
-+static int __net_init pptp_net_init(struct net *net)
-+{
-+	return nf_conntrack_helper_register(net, &pptp);
-+}
-+
-+static void __net_exit pptp_net_exit(struct net *net)
-+{
-+	nf_conntrack_helper_unregister(net, &pptp);
-+}
-+
-+static struct pernet_operations pptp_net_ops = {
-+	.init	= pptp_net_init,
-+	.exit	= pptp_net_exit,
-+};
-+
- static int __init nf_conntrack_pptp_init(void)
- {
- 	NF_CT_HELPER_BUILD_BUG_ON(sizeof(struct nf_ct_pptp_master));
- 
--	return nf_conntrack_helper_register(&pptp);
-+	return register_pernet_subsys(&pptp_net_ops);
- }
- 
- static void __exit nf_conntrack_pptp_fini(void)
- {
--	nf_conntrack_helper_unregister(&pptp);
-+	unregister_pernet_subsys(&pptp_net_ops);
- }
- 
- module_init(nf_conntrack_pptp_init);
-diff --git a/net/netfilter/nf_conntrack_sane.c b/net/netfilter/nf_conntrack_sane.c
-index ae457f3..30d8da5 100644
---- a/net/netfilter/nf_conntrack_sane.c
-+++ b/net/netfilter/nf_conntrack_sane.c
-@@ -173,10 +173,25 @@ static const struct nf_conntrack_expect_policy sane_exp_policy = {
- 	.timeout	= 5 * 60,
- };
- 
-+static int __net_init sane_net_init(struct net *net)
-+{
-+	return nf_conntrack_helpers_register(net, sane, ports_c * 2);
-+}
-+
-+static void __net_exit sane_net_exit(struct net *net)
-+{
-+	nf_conntrack_helpers_unregister(net, sane, ports_c * 2);
-+}
-+
-+static struct pernet_operations sane_net_ops = {
-+	.init	= sane_net_init,
-+	.exit	= sane_net_exit,
-+};
-+
- /* don't make this __exit, since it's called from __init ! */
- static void nf_conntrack_sane_fini(void)
- {
--	nf_conntrack_helpers_unregister(sane, ports_c * 2);
-+	unregister_pernet_subsys(&sane_net_ops);
- 	kfree(sane_buffer);
- }
- 
-@@ -206,7 +221,7 @@ static int __init nf_conntrack_sane_init(void)
- 				  THIS_MODULE);
- 	}
- 
--	ret = nf_conntrack_helpers_register(sane, ports_c * 2);
-+	ret = register_pernet_subsys(&sane_net_ops);
- 	if (ret < 0) {
- 		pr_err("failed to register helpers\n");
- 		kfree(sane_buffer);
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index d38af42..70be381 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -1613,9 +1613,24 @@ static const struct nf_conntrack_expect_policy sip_exp_policy[SIP_EXPECT_MAX + 1
- 	},
- };
- 
-+static int __net_init sip_net_init(struct net *net)
-+{
-+	return nf_conntrack_helpers_register(net, sip, ports_c * 4);
-+}
-+
-+static void __net_exit sip_net_exit(struct net *net)
-+{
-+	nf_conntrack_helpers_unregister(net, sip, ports_c * 4);
-+}
-+
-+static struct pernet_operations sip_net_ops = {
-+	.init	= sip_net_init,
-+	.exit	= sip_net_exit,
-+};
-+
- static void nf_conntrack_sip_fini(void)
- {
--	nf_conntrack_helpers_unregister(sip, ports_c * 4);
-+	unregister_pernet_subsys(&sip_net_ops);
- }
- 
- static int __init nf_conntrack_sip_init(void)
-@@ -1646,7 +1661,7 @@ static int __init nf_conntrack_sip_init(void)
- 				  NULL, THIS_MODULE);
- 	}
- 
--	ret = nf_conntrack_helpers_register(sip, ports_c * 4);
-+	ret = register_pernet_subsys(&sip_net_ops);
- 	if (ret < 0) {
- 		pr_err("failed to register helpers\n");
- 		return ret;
-diff --git a/net/netfilter/nf_conntrack_snmp.c b/net/netfilter/nf_conntrack_snmp.c
-index 87b95a2..4a89129 100644
---- a/net/netfilter/nf_conntrack_snmp.c
-+++ b/net/netfilter/nf_conntrack_snmp.c
-@@ -63,15 +63,30 @@ static struct nf_conntrack_helper helper __read_mostly = {
- 	.expect_policy		= &exp_policy,
- };
- 
-+static int __net_init snmp_net_init(struct net *net)
-+{
-+	return nf_conntrack_helper_register(net, &helper);
-+}
-+
-+static void __net_exit snmp_net_exit(struct net *net)
-+{
-+	nf_conntrack_helper_unregister(net, &helper);
-+}
-+
-+static struct pernet_operations snmp_net_ops = {
-+	.init	= snmp_net_init,
-+	.exit	= snmp_net_exit,
-+};
-+
- static int __init nf_conntrack_snmp_init(void)
- {
- 	exp_policy.timeout = timeout;
--	return nf_conntrack_helper_register(&helper);
-+	return register_pernet_subsys(&snmp_net_ops);
- }
- 
- static void __exit nf_conntrack_snmp_fini(void)
- {
--	nf_conntrack_helper_unregister(&helper);
-+	unregister_pernet_subsys(&snmp_net_ops);
- }
- 
- module_init(nf_conntrack_snmp_init);
-diff --git a/net/netfilter/nf_conntrack_tftp.c b/net/netfilter/nf_conntrack_tftp.c
-index 0ec6779..163cfd7 100644
---- a/net/netfilter/nf_conntrack_tftp.c
-+++ b/net/netfilter/nf_conntrack_tftp.c
-@@ -104,9 +104,24 @@ static const struct nf_conntrack_expect_policy tftp_exp_policy = {
- 	.timeout	= 5 * 60,
- };
- 
-+static int __net_init tftp_net_init(struct net *net)
-+{
-+	return nf_conntrack_helpers_register(net, tftp, ports_c * 2);
-+}
-+
-+static void __net_exit tftp_net_exit(struct net *net)
-+{
-+	nf_conntrack_helpers_unregister(net, tftp, ports_c * 2);
-+}
-+
-+static struct pernet_operations tftp_net_ops = {
-+	.init	= tftp_net_init,
-+	.exit	= tftp_net_exit,
-+};
-+
- static void nf_conntrack_tftp_fini(void)
- {
--	nf_conntrack_helpers_unregister(tftp, ports_c * 2);
-+	unregister_pernet_subsys(&tftp_net_ops);
- }
- 
- static int __init nf_conntrack_tftp_init(void)
-@@ -127,7 +142,7 @@ static int __init nf_conntrack_tftp_init(void)
- 				  0, tftp_help, NULL, THIS_MODULE);
- 	}
- 
--	ret = nf_conntrack_helpers_register(tftp, ports_c * 2);
-+	ret = register_pernet_subsys(&tftp_net_ops);
- 	if (ret < 0) {
- 		pr_err("failed to register helpers\n");
- 		return ret;
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index be678a3..90603b1 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -265,7 +265,7 @@ nfnl_cthelper_create(const struct nlattr * const tb[],
+ 			if (nf_ct_tuple_src_mask_cmp(&cur->tuple, &me->tuple,
+ 						     &mask)) {
+ 				ret = -EEXIST;
+@@ -432,9 +453,11 @@ int nf_conntrack_helper_register(struct net *net,
+ 			}
  		}
  	}
++
++	write_pnet(&me->net, net);
+ 	refcount_set(&me->refcnt, 1);
+ 	hlist_add_head_rcu(&me->hnode, &nf_ct_helper_hash[h]);
+-	nf_ct_helper_count++;
++	net->ct.nf_ct_helper_count++;
+ out:
+ 	mutex_unlock(&nf_ct_helper_mutex);
+ 	return ret;
+@@ -453,7 +476,7 @@ void nf_conntrack_helper_unregister(struct net *net,
  
--	ret = nf_conntrack_helper_register(helper);
-+	ret = nf_conntrack_helper_register(&init_net, helper);
- 	if (ret < 0)
- 		goto err2;
+ 	mutex_lock(&nf_ct_helper_mutex);
+ 	hlist_del_rcu(&me->hnode);
+-	nf_ct_helper_count--;
++	net->ct.nf_ct_helper_count--;
+ 	mutex_unlock(&nf_ct_helper_mutex);
  
-@@ -702,7 +702,7 @@ static int nfnl_cthelper_del(struct net *net, struct sock *nfnl,
+ 	/* Make sure every nothing is still using the helper unless its a
+@@ -476,7 +499,7 @@ void nf_conntrack_helper_unregister(struct net *net,
+ 	}
+ 	spin_unlock_bh(&nf_conntrack_expect_lock);
  
- 		if (refcount_dec_if_one(&cur->refcnt)) {
- 			found = true;
--			nf_conntrack_helper_unregister(cur);
-+			nf_conntrack_helper_unregister(net, cur);
- 			kfree(cur->expect_policy);
+-	nf_ct_iterate_destroy(unhelp, me);
++	nf_ct_iterate_cleanup_net(net, unhelp, me, 0, 0);
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
  
- 			list_del(&nlcth->list);
-@@ -767,7 +767,7 @@ static void __exit nfnl_cthelper_exit(void)
- 	list_for_each_entry_safe(nlcth, n, &nfnl_cthelper_list, list) {
- 		cur = &nlcth->helper;
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index e1eca47..a7c25b9 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1529,7 +1529,8 @@ static int ctnetlink_change_helper(struct nf_conn *ct,
+ 	}
  
--		nf_conntrack_helper_unregister(cur);
-+		nf_conntrack_helper_unregister(&init_net, cur);
- 		kfree(cur->expect_policy);
- 		kfree(nlcth);
+ 	rcu_read_lock();
+-	helper = __nf_conntrack_helper_find(helpname, nf_ct_l3num(ct),
++	helper = __nf_conntrack_helper_find(nf_ct_net(ct),
++					    helpname, nf_ct_l3num(ct),
+ 					    nf_ct_protonum(ct));
+ 	if (helper == NULL) {
+ 		rcu_read_unlock();
+@@ -1777,7 +1778,8 @@ ctnetlink_create_conntrack(struct net *net,
+  		if (err < 0)
+ 			goto err2;
+ 
+-		helper = __nf_conntrack_helper_find(helpname, nf_ct_l3num(ct),
++		helper = __nf_conntrack_helper_find(net,
++						    helpname, nf_ct_l3num(ct),
+ 						    nf_ct_protonum(ct));
+ 		if (helper == NULL) {
+ 			rcu_read_unlock();
+@@ -1788,7 +1790,7 @@ ctnetlink_create_conntrack(struct net *net,
+ 			}
+ 
+ 			rcu_read_lock();
+-			helper = __nf_conntrack_helper_find(helpname,
++			helper = __nf_conntrack_helper_find(net, helpname,
+ 							    nf_ct_l3num(ct),
+ 							    nf_ct_protonum(ct));
+ 			if (helper) {
+@@ -2409,7 +2411,8 @@ ctnetlink_glue_attach_expect(const struct nlattr *attr, struct nf_conn *ct,
+ 	if (cda[CTA_EXPECT_HELP_NAME]) {
+ 		const char *helpname = nla_data(cda[CTA_EXPECT_HELP_NAME]);
+ 
+-		helper = __nf_conntrack_helper_find(helpname, nf_ct_l3num(ct),
++		helper = __nf_conntrack_helper_find(nf_ct_net(ct),
++						    helpname, nf_ct_l3num(ct),
+ 						    nf_ct_protonum(ct));
+ 		if (helper == NULL)
+ 			return -EOPNOTSUPP;
+@@ -3145,7 +3148,7 @@ ctnetlink_create_expect(struct net *net,
+ 	if (cda[CTA_EXPECT_HELP_NAME]) {
+ 		const char *helpname = nla_data(cda[CTA_EXPECT_HELP_NAME]);
+ 
+-		helper = __nf_conntrack_helper_find(helpname, u3,
++		helper = __nf_conntrack_helper_find(net, helpname, u3,
+ 						    nf_ct_protonum(ct));
+ 		if (helper == NULL) {
+ 			rcu_read_unlock();
+@@ -3155,7 +3158,7 @@ ctnetlink_create_expect(struct net *net,
+ 				goto err_ct;
+ 			}
+ 			rcu_read_lock();
+-			helper = __nf_conntrack_helper_find(helpname, u3,
++			helper = __nf_conntrack_helper_find(net, helpname, u3,
+ 							    nf_ct_protonum(ct));
+ 			if (helper) {
+ 				err = -EAGAIN;
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 1678e9e..e7e0bfd 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -789,22 +789,26 @@ static int nft_ct_helper_obj_init(const struct nft_ctx *ctx,
+ 		if (ctx->afi->family == NFPROTO_IPV6)
+ 			return -EINVAL;
+ 
+-		help4 = nf_conntrack_helper_try_module_get(name, family,
++		help4 = nf_conntrack_helper_try_module_get(ctx->net,
++							   name, family,
+ 							   priv->l4proto);
+ 		break;
+ 	case NFPROTO_IPV6:
+ 		if (ctx->afi->family == NFPROTO_IPV4)
+ 			return -EINVAL;
+ 
+-		help6 = nf_conntrack_helper_try_module_get(name, family,
++		help6 = nf_conntrack_helper_try_module_get(ctx->net,
++							   name, family,
+ 							   priv->l4proto);
+ 		break;
+ 	case NFPROTO_NETDEV: /* fallthrough */
+ 	case NFPROTO_BRIDGE: /* same */
+ 	case NFPROTO_INET:
+-		help4 = nf_conntrack_helper_try_module_get(name, NFPROTO_IPV4,
++		help4 = nf_conntrack_helper_try_module_get(ctx->net,
++							   name, NFPROTO_IPV4,
+ 							   priv->l4proto);
+-		help6 = nf_conntrack_helper_try_module_get(name, NFPROTO_IPV6,
++		help6 = nf_conntrack_helper_try_module_get(ctx->net,
++							   name, NFPROTO_IPV6,
+ 							   priv->l4proto);
+ 		break;
+ 	default:
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index 623ef37..6775b3e 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -87,7 +87,8 @@ xt_ct_set_helper(struct nf_conn *ct, const char *helper_name,
+ 		return -ENOENT;
+ 	}
+ 
+-	helper = nf_conntrack_helper_try_module_get(helper_name, par->family,
++	helper = nf_conntrack_helper_try_module_get(par->net,
++						    helper_name, par->family,
+ 						    proto);
+ 	if (helper == NULL) {
+ 		pr_info("No such helper \"%s\"\n", helper_name);
+diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
+index 08679eb..3ae1194 100644
+--- a/net/openvswitch/conntrack.c
++++ b/net/openvswitch/conntrack.c
+@@ -1108,13 +1108,14 @@ int ovs_ct_execute(struct net *net, struct sk_buff *skb,
+ 	return err;
+ }
+ 
+-static int ovs_ct_add_helper(struct ovs_conntrack_info *info, const char *name,
++static int ovs_ct_add_helper(struct net *net,
++			     struct ovs_conntrack_info *info, const char *name,
+ 			     const struct sw_flow_key *key, bool log)
+ {
+ 	struct nf_conntrack_helper *helper;
+ 	struct nf_conn_help *help;
+ 
+-	helper = nf_conntrack_helper_try_module_get(name, info->family,
++	helper = nf_conntrack_helper_try_module_get(net, name, info->family,
+ 						    key->ip.proto);
+ 	if (!helper) {
+ 		OVS_NLERR(log, "Unknown helper \"%s\"", name);
+@@ -1447,7 +1448,7 @@ int ovs_ct_copy_action(struct net *net, const struct nlattr *attr,
+ 	nf_conntrack_get(&ct_info.ct->ct_general);
+ 
+ 	if (helper) {
+-		err = ovs_ct_add_helper(&ct_info, helper, key, log);
++		err = ovs_ct_add_helper(net, &ct_info, helper, key, log);
+ 		if (err)
+ 			goto err_free_ct;
  	}
 -- 
 2.5.5
