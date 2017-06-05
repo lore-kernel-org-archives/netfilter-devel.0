@@ -1,55 +1,143 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH nf-next RFC 0/5] netfilter: add net namespace support for cthelper
-Date: Mon, 5 Jun 2017 13:11:19 +0800
-Message-ID: <CAML_gOf3dW1kVpyObPZoHWSb44DX3w6vhsWXq11xwFU2pFnvFA@mail.gmail.com>
-References: <1496589909-56730-1-git-send-email-zlpnobody@163.com> <20170604160753.GA843@breakpoint.cc>
+From: Davide Caratti <dcaratti@redhat.com>
+Subject: Re: [PATCH nf] netfilter: nf_ct_dccp/sctp: fix memory leak after
+ netns cleanup
+Date: Mon, 05 Jun 2017 10:09:50 +0200
+Message-ID: <1496650189.2884.2.camel@redhat.com>
+References: <1496575054-17168-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Cc: Liping Zhang <zlpnobody@163.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: Liping Zhang <zlpnobody@163.com>, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f66.google.com ([209.85.213.66]:35221 "EHLO
-        mail-vk0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751249AbdFEFLU (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 5 Jun 2017 01:11:20 -0400
-Received: by mail-vk0-f66.google.com with SMTP id 19so3534780vkd.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 04 Jun 2017 22:11:20 -0700 (PDT)
-In-Reply-To: <20170604160753.GA843@breakpoint.cc>
+Received: from mx1.redhat.com ([209.132.183.28]:35448 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751336AbdFEIJw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 5 Jun 2017 04:09:52 -0400
+In-Reply-To: <1496575054-17168-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Florian & Pablo,
+hello Liping,
 
-2017-06-05 0:07 GMT+08:00 Florian Westphal <fw@strlen.de>:
-> Liping Zhang <zlpnobody@163.com> wrote:
->> This patch set aims to add net namespace support for the ct helper,
->> it is a little large, but I try my best to split them to a relative
->> smaller patches, which will help to review. Comments are welcome.
->
-> Why?  Could you explain what kind of functionality is added here, or
-> what problem is fixed?
->
-> Why do we need per netns complexity for helpers?
+On Sun, 2017-06-04 at 19:17 +0800, Liping Zhang wrote:
+> From: Liping Zhang <zlpnobody@gmail.com>
+> 
+> After running the following commands for a while, kmemleak reported that
+> "1879 new suspected memory leaks" happened:
+>   # while : ; do
+>   ip netns add test
+>   ip netns delete test
+>   done
+> 
+>   unreferenced object 0xffff88006342fa38 (size 1024):
+>   comm "ip", pid 15477, jiffies 4295982857 (age 957.836s)
+>   hex dump (first 32 bytes):
+>     b8 b0 4d a0 ff ff ff ff c0 34 c3 59 00 88 ff ff  ..M......4.Y....
+>     04 00 00 00 a4 01 00 00 00 00 00 00 00 00 00 00  ................
+>   backtrace:
+>     [<ffffffff8190510a>] kmemleak_alloc+0x4a/0xa0
+>     [<ffffffff81284130>] __kmalloc_track_caller+0x150/0x300
+>     [<ffffffff812302d0>] kmemdup+0x20/0x50
+>     [<ffffffffa04d598a>] dccp_init_net+0x8a/0x160 [nf_conntrack]
+>     [<ffffffffa04cf9f5>] nf_ct_l4proto_pernet_register_one+0x25/0x90
+>   ...
+>   unreferenced object 0xffff88006342da58 (size 1024):
+>   comm "ip", pid 15477, jiffies 4295982857 (age 957.836s)
+>   hex dump (first 32 bytes):
+>     10 b3 4d a0 ff ff ff ff 04 35 c3 59 00 88 ff ff  ..M......5.Y....
+>     04 00 00 00 a4 01 00 00 00 00 00 00 00 00 00 00  ................
+>   backtrace:
+>     [<ffffffff8190510a>] kmemleak_alloc+0x4a/0xa0
+>     [<ffffffff81284130>] __kmalloc_track_caller+0x150/0x300
+>     [<ffffffff812302d0>] kmemdup+0x20/0x50
+>     [<ffffffffa04d6a9d>] sctp_init_net+0x5d/0x130 [nf_conntrack]
+>     [<ffffffffa04cf9f5>] nf_ct_l4proto_pernet_register_one+0x25/0x90
+>   ...
+> 
+> This is because we forgot to implement the get_net_proto for sctp and
+> dccp, so we won't invoke the nf_ct_unregister_sysctl to free the
+> ctl_table when do netns cleanup. Also note, we will fail to register
+> the sysctl for dccp/sctp either due to the lack of get_net_proto.
+> 
 
-I remembered Pablo told me that the ct helpers "is probably one of
-the remaining subsystems not having netns support", when I sent
-patches to fix other issues.
+that's right, I removed the assignment of l4proto->net_id, but I (wrongly)
+  didn't implement l4proto->get_net_proto(): this made nf_ct_l4proto_net()
+systematically return NULL.
 
-So I try to accomplish the netns support for ct helpers.
-(see https://patchwork.ozlabs.org/patch/740692/).
+thank you for fixing this!
 
-For these user ct helpers, after per netns support, we can config
-different policy to these ct helpers with the same name.(But indeed,
-this flexible seems less valuable, we can accomplish it in different
-ways).
+Acked-by: Davide Caratti <dcaratti@redhat.com>
 
-For these kernel built-in ct helpers, per netns support is indeed
-unnecessary. Especially after Florian's patch: "netns: add and
-use net_ns_barrier".
+> Fixes: c51d39010a1b ("netfilter: conntrack: built-in support for DCCP")
+> Fixes: a85406afeb3e ("netfilter: conntrack: built-in support for SCTP")
+> Cc: Davide Caratti <dcaratti@redhat.com>
+> Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+> ---
+>  net/netfilter/nf_conntrack_proto_dccp.c | 7 +++++++
+>  net/netfilter/nf_conntrack_proto_sctp.c | 7 +++++++
+>  2 files changed, 14 insertions(+)
+> 
+> diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
+> index b553fdd..4707d99 100644
+> --- a/net/netfilter/nf_conntrack_proto_dccp.c
+> +++ b/net/netfilter/nf_conntrack_proto_dccp.c
+> @@ -872,6 +872,11 @@ static int dccp_init_net(struct net *net, u_int16_t proto)
+>  	return dccp_kmemdup_sysctl_table(net, pn, dn);
+>  }
+>  
+> +static struct nf_proto_net *dccp_get_net_proto(struct net *net)
+> +{
+> +	return &net->ct.nf_ct_proto.dccp.pn;
+> +}
+> +
+>  struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp4 __read_mostly = {
+>  	.l3proto		= AF_INET,
+>  	.l4proto		= IPPROTO_DCCP,
+> @@ -904,6 +909,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp4 __read_mostly = {
+>  	},
+>  #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
+>  	.init_net		= dccp_init_net,
+> +	.get_net_proto		= dccp_get_net_proto,
+>  };
+>  EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_dccp4);
+>  
+> @@ -939,5 +945,6 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp6 __read_mostly = {
+>  	},
+>  #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
+>  	.init_net		= dccp_init_net,
+> +	.get_net_proto		= dccp_get_net_proto,
+>  };
+>  EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_dccp6);
+> diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+> index 1c5b14a..4ed976f 100644
+> --- a/net/netfilter/nf_conntrack_proto_sctp.c
+> +++ b/net/netfilter/nf_conntrack_proto_sctp.c
+> @@ -786,6 +786,11 @@ static int sctp_init_net(struct net *net, u_int16_t proto)
+>  	return sctp_kmemdup_sysctl_table(pn, sn);
+>  }
+>  
+> +static struct nf_proto_net *sctp_get_net_proto(struct net *net)
+> +{
+> +	return &net->ct.nf_ct_proto.sctp.pn;
+> +}
+> +
+>  struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4 __read_mostly = {
+>  	.l3proto		= PF_INET,
+>  	.l4proto 		= IPPROTO_SCTP,
+> @@ -819,6 +824,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4 __read_mostly = {
+>  	},
+>  #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
+>  	.init_net		= sctp_init_net,
+> +	.get_net_proto		= sctp_get_net_proto,
+>  };
+>  EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_sctp4);
+>  
+> @@ -855,5 +861,6 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6 __read_mostly = {
+>  #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
+>  #endif
+>  	.init_net		= sctp_init_net,
+> +	.get_net_proto		= sctp_get_net_proto,
+>  };
+>  EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_sctp6);
 
-Anyway, I have no objection to drop this patch set, as it increased
-too much complexity but earned a very little.
