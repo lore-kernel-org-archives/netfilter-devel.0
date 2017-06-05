@@ -1,66 +1,95 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH V2] netfilter: Remove duplicated rcu_read_lock.
-Date: Mon, 5 Jun 2017 21:59:11 +0300 (EEST)
-Message-ID: <alpine.LFD.2.20.1706052155480.7008@ja.home.ssi.bg>
-References: <20170605152125.24978-1-ap420073@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Taehee Yoo <ap420073@gmail.com>
+From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+Subject: [PATCH iptables 3/3] xtables-translate: fix double space before comment
+Date: Tue,  6 Jun 2017 00:08:28 +0200
+Message-ID: <20170605220828.4738-3-pablombg@gmail.com>
+References: <20170605220828.4738-1-pablombg@gmail.com>
+Cc: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:34662 "EHLO ja.ssi.bg"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751170AbdFES7T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 5 Jun 2017 14:59:19 -0400
-In-Reply-To: <20170605152125.24978-1-ap420073@gmail.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35390 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751276AbdFEWK2 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 5 Jun 2017 18:10:28 -0400
+Received: by mail-wm0-f68.google.com with SMTP id g15so32005992wmc.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 05 Jun 2017 15:10:27 -0700 (PDT)
+In-Reply-To: <20170605220828.4738-1-pablombg@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+When a comment translation immediately follows a counter statement, two
+spaces are printed between "counter" and "comment" keywords.
 
-	Hello,
+The counter statement is almost always followed by a target, so we need
+to move the space following "counter" to the beginning of the target
+translation.
 
-On Tue, 6 Jun 2017, Taehee Yoo wrote:
+Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
+---
+ iptables/nft-ipv4.c          |  2 +-
+ iptables/nft-ipv6.c          |  2 +-
+ iptables/xtables-translate.c | 11 ++++++-----
+ 3 files changed, 8 insertions(+), 7 deletions(-)
 
-> Some functions are called by nf_hook() and these
-> functions hold rcu_read_lock() But nf_hook() already holds
-> rcu_read_lock() therefore callee's rcu_read_lock() are useless.
+diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
+index e5947a7c..cf311513 100644
+--- a/iptables/nft-ipv4.c
++++ b/iptables/nft-ipv4.c
+@@ -488,7 +488,7 @@ static int nft_ipv4_xlate(const void *data, struct xt_xlate *xl)
+ 		return ret;
+ 
+ 	/* Always add counters per rule, as in iptables */
+-	xt_xlate_add(xl, "counter ");
++	xt_xlate_add(xl, "counter");
+ 	ret = xlate_action(cs, !!(cs->fw.ip.flags & IPT_F_GOTO), xl);
+ 
+ 	comment = xt_xlate_get_comment(xl);
+diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
+index 9cf4058f..53526369 100644
+--- a/iptables/nft-ipv6.c
++++ b/iptables/nft-ipv6.c
+@@ -437,7 +437,7 @@ static int nft_ipv6_xlate(const void *data, struct xt_xlate *xl)
+ 		return ret;
+ 
+ 	/* Always add counters per rule, as in iptables */
+-	xt_xlate_add(xl, "counter ");
++	xt_xlate_add(xl, "counter");
+ 	ret = xlate_action(cs, !!(cs->fw6.ipv6.flags & IP6T_F_GOTO), xl);
+ 
+ 	comment = xt_xlate_get_comment(xl);
+diff --git a/iptables/xtables-translate.c b/iptables/xtables-translate.c
+index e049f24e..3e6c7051 100644
+--- a/iptables/xtables-translate.c
++++ b/iptables/xtables-translate.c
+@@ -60,12 +60,13 @@ int xlate_action(const struct iptables_command_state *cs, bool goto_set,
+ 	if (cs->target != NULL) {
+ 		/* Standard target? */
+ 		if (strcmp(cs->jumpto, XTC_LABEL_ACCEPT) == 0)
+-			xt_xlate_add(xl, "accept");
++			xt_xlate_add(xl, " accept");
+ 		else if (strcmp(cs->jumpto, XTC_LABEL_DROP) == 0)
+-			xt_xlate_add(xl, "drop");
++			xt_xlate_add(xl, " drop");
+ 		else if (strcmp(cs->jumpto, XTC_LABEL_RETURN) == 0)
+-			xt_xlate_add(xl, "return");
++			xt_xlate_add(xl, " return");
+ 		else if (cs->target->xlate) {
++			xt_xlate_add(xl, " ");
+ 			struct xt_xlate_tg_params params = {
+ 				.ip		= (const void *)&cs->fw,
+ 				.target		= cs->target->t,
+@@ -79,9 +80,9 @@ int xlate_action(const struct iptables_command_state *cs, bool goto_set,
+ 	} else if (strlen(cs->jumpto) > 0) {
+ 		/* Not standard, then it's a go / jump to chain */
+ 		if (goto_set)
+-			xt_xlate_add(xl, "goto %s", cs->jumpto);
++			xt_xlate_add(xl, " goto %s", cs->jumpto);
+ 		else
+-			xt_xlate_add(xl, "jump %s", cs->jumpto);
++			xt_xlate_add(xl, " jump %s", cs->jumpto);
+ 	}
+ 
+ 	return ret;
+-- 
+2.11.0
 
-...
-
-> Signed-off-by: Taehee Yoo <ap420073@gmail.com>
-
-	IPVS part looks ok to me,
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-> ---
-> 
-> V2:
->    - Remove comments.
->    - The rcu_read_lock under below functions are removed.
->     - {tcp, udp, sctp}_app_conn_bind,
->     - ip_vs_bypass_xmit,
->     - ip_vs_bypass_xmit_v6,
->     - ip_vs_nat_xmit,
->     - ip_vs_nat_xmit_v6,
->     - ip_vs_tunnel_xmit,
->     - ip_vs_tunnel_xmit_v6
->     - ip_vs_dr_xmit,
->     - ip_vs_dr_xmit_v6
->     - destroy_conntrack,
->     - __ctnetlink_glue_build,
->     - ctnetlink_expect_event,
->     - ctnetlink_proto_size,
->     - ctnetlink_conntrack_event,
->     - nfqnl_nf_hook_drop,
->     - tproxy_laddr6.
-> 
-> V1:
->    - Initial version
-
-...
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
