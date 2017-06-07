@@ -1,38 +1,37 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] netlink_delinearize: prefer ct event set foo,bar
- over 'set foo|bar'
-Date: Wed, 7 Jun 2017 17:24:10 +0200
-Message-ID: <20170607152410.GA14650@salvia>
-References: <20170607151647.22788-1-fw@strlen.de>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nft 2/2] src: rename ct eventmask to event
+Date: Wed, 7 Jun 2017 17:31:12 +0200
+Message-ID: <20170607153112.GB23661@strlen.de>
+References: <20170607102410.21024-1-fw@strlen.de>
+ <20170607102410.21024-2-fw@strlen.de>
+ <20170607103820.GB9280@salvia>
+ <20170607110751.GC18283@breakpoint.cc>
+ <20170607112750.GA9759@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52204 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751049AbdFGPYO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Jun 2017 11:24:14 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 00DB0275FA7
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Jun 2017 17:24:05 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E7D0C4EA83
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Jun 2017 17:24:04 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DEF2A100A67
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Jun 2017 17:24:02 +0200 (CEST)
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:46452 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750831AbdFGPat (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 7 Jun 2017 11:30:49 -0400
 Content-Disposition: inline
-In-Reply-To: <20170607151647.22788-1-fw@strlen.de>
+In-Reply-To: <20170607112750.GA9759@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 07, 2017 at 05:16:47PM +0200, Florian Westphal wrote:
-> Translate binop representation to a list-based one, so nft prints
-> "ct event destroy,new" instead of 'ct event destroy|new'.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Jun 07, 2017 at 01:07:51PM +0200, Florian Westphal wrote:
+> > I could of course stick a check for the key type into
+> > netlink_delinerize.c but thats ugly.
+> > 
+> > Alterntively I could hook into ct_stmt_print and dissect there.
+> > 
+> > Any idea/preference?
 > 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-Thanks Florian.
+> I suggest you always use the comma separated one to print this.
+ 
+I've pushed a revised version of this patch + the 'use comma' patch
+to master, thanks!
