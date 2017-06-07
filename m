@@ -1,90 +1,205 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nft] meta: permit meta nfproto ip in ip family
-Date: Tue, 6 Jun 2017 20:57:39 +0200
-Message-ID: <20170606185739.GC13566@breakpoint.cc>
-References: <20170529172538.27878-1-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: Ismo Puustinen <ismo.puustinen@intel.com>
+Subject: [PATCH 1/3] scanner: add files in include dirs in alphabetical order.
+Date: Wed,  7 Jun 2017 11:35:57 +0300
+Message-ID: <20170607083559.10051-1-ismo.puustinen@intel.com>
+Cc: Ismo Puustinen <ismo.puustinen@intel.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:41650 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751589AbdFFS6M (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Jun 2017 14:58:12 -0400
-Content-Disposition: inline
-In-Reply-To: <20170529172538.27878-1-fw@strlen.de>
+Received: from mga01.intel.com ([192.55.52.88]:14579 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751647AbdFGIiJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 7 Jun 2017 04:38:09 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Florian Westphal <fw@strlen.de> wrote:
-> works:
-> add rule ip filter input ct original saddr 1.2.3.4
-> (family ctx init initialises network base to proto_ip).
-> 
-> fails to parse 1.2.3.4 address:
-> add rule ip filter input meta nfproto ipv4 ct original saddr 1.2.3.4
-> 
-> ... because meta_expr_pctx_update() won't find a dependency
-> from "ip" to "ip" and then overwrites the correct base with proto_unknown.
-> 
-> "meta nfproto ip" is useless in the ip family, as it will always match,
-> i.e.  a better (but more compliated) fix would be to remove the statement
-> during evaluation.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  src/meta.c | 11 +++++++++--
->  1 file changed, 9 insertions(+), 2 deletions(-)
-> 
-> diff --git a/src/meta.c b/src/meta.c
-> index cb7c1368e087..dd09d49560cd 100644
-> --- a/src/meta.c
-> +++ b/src/meta.c
-> @@ -497,6 +497,7 @@ static void meta_expr_pctx_update(struct proto_ctx *ctx,
->  	const struct hook_proto_desc *h = &hook_proto_desc[ctx->family];
->  	const struct expr *left = expr->left, *right = expr->right;
->  	const struct proto_desc *desc;
-> +	uint8_t protonum;
->  
->  	assert(expr->op == OP_EQ);
->  
-> @@ -514,10 +515,16 @@ static void meta_expr_pctx_update(struct proto_ctx *ctx,
->  		proto_ctx_update(ctx, PROTO_BASE_LL_HDR, &expr->location, desc);
->  		break;
->  	case NFT_META_NFPROTO:
-> -		desc = proto_find_upper(h->desc, mpz_get_uint8(right->value));
-> -		if (desc == NULL)
-> +		protonum = mpz_get_uint8(right->value);
-> +		desc = proto_find_upper(h->desc, protonum);
-> +		if (desc == NULL) {
->  			desc = &proto_unknown;
->  
-> +			if (protonum == ctx->family &&
-> +			    h->base == PROTO_BASE_NETWORK_HDR)
-> +				desc = h->desc;
-> +		}
-> +
+This means that if you have a directory structure like this
 
-I've pushed this.
+    /foo
+    /foo/02_rules.nft
+    /foo/01_rules.nft
 
-One thing to keep in mind for future:
+where *.nft files in directory /foo are nft scripts, then an include
+statement in another nft script like this
 
-NFT_META_NFPROTO is basically useless except for inet pseudo-family.
+    include "/foo/"
 
-For bridge it will be NFPROTO_BRIDGE, so if we ever get bridge
-conntrack support we will need some other dependency instead to
-set the needed context info (perhaps based off ct entry itself...)
+guarantees that "01_rules.nft" is loaded before "02_rules.nft".
 
-Perhaps we should extend eval step to kill this dependency, or reject
-statements when they occur in wrong context.
+Signed-off-by: Ismo Puustinen <ismo.puustinen@intel.com>
+---
+ src/scanner.l | 102 ++++++++++++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 75 insertions(+), 27 deletions(-)
 
-Examples:
-
-add rule ip filter input meta nfproto ipv4  // always true
-add rule ip filter input meta nfproto != ipv4  // always false
-add rule ip filter input meta nfproto ipv6  // always false
-add rule bridge filter input meta nfproto ipv6  // always false
-
+diff --git a/src/scanner.l b/src/scanner.l
+index fe65e0c..4050cba 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -13,10 +13,12 @@
+ #include <dirent.h>
+ #include <libgen.h>
+ #include <limits.h>
++#include <unistd.h>
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+ #include <linux/types.h>
+ #include <linux/netfilter.h>
++#include <sys/stat.h>
+ 
+ #include <nftables.h>
+ #include <erec.h>
+@@ -668,14 +670,39 @@ int scanner_read_file(void *scanner, const char *filename,
+ 	return include_file(scanner, filename, loc);
+ }
+ 
++static int directoryfilter(const struct dirent *de)
++{
++	if (strcmp(de->d_name, ".") == 0 ||
++			strcmp(de->d_name, "..") == 0)
++		return 0;
++
++	/* Accept other filenames. If we want to enable filtering based on
++	 * filename suffix (*.nft), this would be the place to do it.
++	 */
++
++	return 1;
++}
++
++static void free_scandir_des(struct dirent **des, int n_des)
++{
++	int i;
++
++	for (i = 0; i < n_des; i++) {
++		free(des[i]);
++	}
++
++	free(des);
++}
++
+ static int include_directory(void *scanner, const char *dirname,
+-			     DIR *directory, const struct location *loc)
++			     const struct location *loc)
+ {
+ 	struct parser_state *state = yyget_extra(scanner);
++	struct dirent **des = NULL;
+ 	struct error_record *erec;
+-	struct dirent *de;
++	int ret, n_des = 0, i;
++	char dirbuf[PATH_MAX];
+ 	FILE *f;
+-	int ret;
+ 
+ 	if (!dirname[0] || dirname[strlen(dirname)-1] != '/') {
+ 		erec = error(loc, "Include directory name \"%s\" does not end in '/'",
+@@ -684,23 +711,32 @@ static int include_directory(void *scanner, const char *dirname,
+ 	}
+ 
+ 	/* If the path is a directory, assume that all files there need
+-	 * to be included.
++	 * to be included. Sort the file list in alphabetical order.
+ 	 */
+-	while ((de = readdir(directory))) {
+-		char dirbuf[PATH_MAX];
++	n_des = scandir(dirname, &des, directoryfilter, alphasort);
++	if (n_des < 0) {
++		erec = error(loc, "Failed to scan directory contents for \"%s\"",
++			     dirname);
++		goto err;
++	}
++	else if (n_des == 0) {
++		/* nothing to do */
++		free(des);
++		return 0;
++	}
+ 
++	/* We need to push the files in reverse order, so that they will be
++	 * popped in the correct order.
++	 */
++	for (i = n_des-1; i >= 0; i--) {
+ 		ret = snprintf(dirbuf, sizeof(dirbuf), "%s/%s", dirname,
+-			       de->d_name);
++			       des[i]->d_name);
+ 		if (ret < 0 || ret >= PATH_MAX) {
+ 			erec = error(loc, "Too long file path \"%s/%s\"\n",
+-				     dirname, de->d_name);
++				     dirname, des[i]->d_name);
+ 			goto err;
+ 		}
+ 
+-		if (strcmp(de->d_name, ".") == 0 ||
+-		    strcmp(de->d_name, "..") == 0)
+-			continue;
+-
+ 		f = fopen(dirbuf, "r");
+ 		if (f == NULL) {
+ 			erec = error(loc, "Could not open file \"%s\": %s\n",
+@@ -708,12 +744,14 @@ static int include_directory(void *scanner, const char *dirname,
+ 			goto err;
+ 		}
+ 
+-		erec = scanner_push_file(scanner, de->d_name, f, loc);
++		erec = scanner_push_file(scanner, des[i]->d_name, f, loc);
+ 		if (erec != NULL)
+ 			goto err;
+ 	}
++	free_scandir_des(des, n_des);
+ 	return 0;
+ err:
++	free_scandir_des(des, n_des);
+ 	erec_queue(erec, state->msgs);
+ 	return -1;
+ }
+@@ -721,27 +759,37 @@ err:
+ static int include_dentry(void *scanner, const char *filename,
+ 			  const struct location *loc)
+ {
+-	DIR *directory;
++	struct parser_state *state = yyget_extra(scanner);
++	struct error_record *erec;
++	struct stat st;
+ 	int ret;
+ 
+-	/* The file can be either a simple file or a directory which
+-	 * contains files.
+-	 */
+-	directory = opendir(filename);
+-	if (directory == NULL &&
+-	    errno != ENOTDIR) {
+-		/* Could not access the directory or file, keep on searching.
++	/* stat the file */
++	ret = stat(filename, &st);
++
++	if (ret == -1 && errno == ENOENT)
++		/* Could not find the directory or file, keep on searching.
+ 		 * Return value '1' indicates to the caller that we should still
+ 		 * search in the next include directory.
+ 		 */
+-		ret = 1;
+-	} else if (directory != NULL) {
+-		ret = include_directory(scanner, filename, directory, loc);
+-		closedir(directory);
+-	} else {
+-		ret = include_file(scanner, filename, loc);
++		return 1;
++	else if (ret == 0) {
++		if (S_ISDIR(st.st_mode))
++			return include_directory(scanner, filename, loc);
++		else if (S_ISREG(st.st_mode))
++			return include_file(scanner, filename, loc);
++		else {
++			errno = EINVAL;
++			ret = -1;
++		}
+ 	}
+ 
++	/* Process error for failed stat and cases where the file is not a
++	 * directory or (a link to) a regular file.
++	 */
++	erec = error(loc, "Failed to access file \"%s\": %s\n",
++			filename, strerror(errno));
++	erec_queue(erec, state->msgs);
+ 	return ret;
+ }
+ 
+-- 
+2.9.4
 
