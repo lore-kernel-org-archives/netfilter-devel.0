@@ -1,64 +1,38 @@
-From: Mateusz Jurczyk <mjurczyk@google.com>
-Subject: [PATCH v2] decnet: dn_rtmsg: Improve input length sanitization in dnrmg_receive_user_skb
-Date: Wed,  7 Jun 2017 16:14:29 +0200
-Message-ID: <20170607141429.5781-1-mjurczyk@google.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v2] decnet: dn_rtmsg: Improve input length sanitization
+ in dnrmg_receive_user_skb
+Date: Wed, 7 Jun 2017 16:18:39 +0200
+Message-ID: <20170607141839.GD18283@breakpoint.cc>
 References: <20170607131429.30441-1-mjurczyk@google.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
+ <20170607141429.5781-1-mjurczyk@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         linux-decnet-user@lists.sourceforge.net, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wr0-f177.google.com ([209.85.128.177]:36862 "EHLO
-        mail-wr0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751473AbdFGOOd (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Jun 2017 10:14:33 -0400
-Received: by mail-wr0-f177.google.com with SMTP id v111so6784489wrc.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 07 Jun 2017 07:14:32 -0700 (PDT)
-In-Reply-To: <20170607131429.30441-1-mjurczyk@google.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Mateusz Jurczyk <mjurczyk@google.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170607141429.5781-1-mjurczyk@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Verify that the length of the socket buffer is sufficient to cover the
-nlmsghdr structure before accessing the nlh->nlmsg_len field for further
-input sanitization. If the client only supplies 1-3 bytes of data in
-sk_buff, then nlh->nlmsg_len remains partially uninitialized and
-contains leftover memory from the corresponding kernel allocation.
-Operating on such data may result in indeterminate evaluation of the
-nlmsg_len < sizeof(*nlh) expression.
+Mateusz Jurczyk <mjurczyk@google.com> wrote:
+> Verify that the length of the socket buffer is sufficient to cover the
+> nlmsghdr structure before accessing the nlh->nlmsg_len field for further
+> input sanitization. If the client only supplies 1-3 bytes of data in
+> sk_buff, then nlh->nlmsg_len remains partially uninitialized and
+> contains leftover memory from the corresponding kernel allocation.
+> Operating on such data may result in indeterminate evaluation of the
+> nlmsg_len < sizeof(*nlh) expression.
+> 
+> The bug was discovered by a runtime instrumentation designed to detect
+> use of uninitialized memory in the kernel. The patch prevents this and
+> other similar tools (e.g. KMSAN) from flagging this behavior in the future.
 
-The bug was discovered by a runtime instrumentation designed to detect
-use of uninitialized memory in the kernel. The patch prevents this and
-other similar tools (e.g. KMSAN) from flagging this behavior in the future.
-
-Signed-off-by: Mateusz Jurczyk <mjurczyk@google.com>
----
-Changes in v2:
-  - Compare skb->len against sizeof(*nlh) instead of sizeof(nlh->nlmsg_len)
-    to avoid assuming the layout of the nlmsghdr structure. This was
-    motivated by Eric Dumazet's comment on a related patch submission.
-
- net/decnet/netfilter/dn_rtmsg.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/net/decnet/netfilter/dn_rtmsg.c b/net/decnet/netfilter/dn_rtmsg.c
-index 1ed81ac6dd1a..aa8ffecc46a4 100644
---- a/net/decnet/netfilter/dn_rtmsg.c
-+++ b/net/decnet/netfilter/dn_rtmsg.c
-@@ -102,7 +102,9 @@ static inline void dnrmg_receive_user_skb(struct sk_buff *skb)
- {
- 	struct nlmsghdr *nlh = nlmsg_hdr(skb);
- 
--	if (nlh->nlmsg_len < sizeof(*nlh) || skb->len < nlh->nlmsg_len)
-+	if (skb->len < sizeof(*nlh) ||
-+	    nlh->nlmsg_len < sizeof(*nlh) ||
-+	    skb->len < nlh->nlmsg_len)
- 		return;
- 
- 	if (!netlink_capable(skb, CAP_NET_ADMIN))
--- 
-2.13.1.508.gb3defc5cc-goog
-
+Instead of changing all the internal users wouldn't it be better
+to add this check once in netlink_unicast_kernel?
