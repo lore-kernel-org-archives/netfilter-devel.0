@@ -1,55 +1,54 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/3] scanner: add files in include dirs in alphabetical
- order.
-Date: Thu, 8 Jun 2017 12:17:35 +0200
-Message-ID: <20170608101735.GA2735@salvia>
-References: <20170607083559.10051-1-ismo.puustinen@intel.com>
- <CAOkSjBjeTaZTJDEViBRq2y1q715EssHUdgxOFNVf1H7JzpJ6hw@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v2] decnet: dn_rtmsg: Improve input length sanitization
+ in dnrmg_receive_user_skb
+Date: Thu, 08 Jun 2017 10:39:46 -0400 (EDT)
+Message-ID: <20170608.103946.1162801326439212865.davem@davemloft.net>
+References: <20170607141429.5781-1-mjurczyk@google.com>
+        <20170607141839.GD18283@breakpoint.cc>
+        <CAPr8fOQNP+y78xJqx5BNUfY6Rmjj2R8+jrz3Ett1SgdY+a5WLw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Ismo Puustinen <ismo.puustinen@intel.com>,
-        Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo@debian.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:48165 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750725AbdFHKRn (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Jun 2017 06:17:43 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBjeTaZTJDEViBRq2y1q715EssHUdgxOFNVf1H7JzpJ6hw@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: fw@strlen.de, pablo@netfilter.org, kadlec@blackhole.kfki.hu,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-decnet-user@lists.sourceforge.net, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+To: mjurczyk@google.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CAPr8fOQNP+y78xJqx5BNUfY6Rmjj2R8+jrz3Ett1SgdY+a5WLw@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jun 07, 2017 at 09:40:53PM +0200, Arturo Borrero Gonzalez wrote:
-> On 7 June 2017 at 10:35, Ismo Puustinen <ismo.puustinen@intel.com> wrote:
-> >
-> > +static int directoryfilter(const struct dirent *de)
-> > +{
-> > +       if (strcmp(de->d_name, ".") == 0 ||
-> > +                       strcmp(de->d_name, "..") == 0)
-> > +               return 0;
-> > +
-> > +       /* Accept other filenames. If we want to enable filtering based on
-> > +        * filename suffix (*.nft), this would be the place to do it.
-> > +        */
-> > +
+From: Mateusz Jurczyk <mjurczyk@google.com>
+Date: Wed, 7 Jun 2017 16:41:57 +0200
+
+> On Wed, Jun 7, 2017 at 4:18 PM, Florian Westphal <fw@strlen.de> wrote:
+>> Mateusz Jurczyk <mjurczyk@google.com> wrote:
+>>> Verify that the length of the socket buffer is sufficient to cover the
+>>> nlmsghdr structure before accessing the nlh->nlmsg_len field for further
+>>> input sanitization. If the client only supplies 1-3 bytes of data in
+>>> sk_buff, then nlh->nlmsg_len remains partially uninitialized and
+>>> contains leftover memory from the corresponding kernel allocation.
+>>> Operating on such data may result in indeterminate evaluation of the
+>>> nlmsg_len < sizeof(*nlh) expression.
+>>>
+>>> The bug was discovered by a runtime instrumentation designed to detect
+>>> use of uninitialized memory in the kernel. The patch prevents this and
+>>> other similar tools (e.g. KMSAN) from flagging this behavior in the future.
+>>
+>> Instead of changing all the internal users wouldn't it be better
+>> to add this check once in netlink_unicast_kernel?
+>>
 > 
-> This filter by suffix is good to have IMHO.
-> I guess that forcing users to explicitly create a file for nftables
-> (or at least give a specific suffix) reduces chances for user errors.
+> Perhaps. I must admit I'm not very familiar with this code
+> area/interface, so I preferred to fix the few specific cases instead
+> of submitting a general patch, which might have some unexpected side
+> effects, e.g. behavior different from one of the internal clients etc.
+> 
+> If you think one check in netlink_unicast_kernel is a better way to do
+> it, I'm happy to implement it like that.
 
-You mean, this new include directory feature just takes *.nft files,
-right?
+Until we decide to add the check to netlink_unicast_kernel(), I'm applying
+this and queueing it up for -stable.
 
-Then, to keep it consistent, we should also display a warning in
-include file with no .nft postfix. At deprecate the existing behaviour
-at some point, ie. bail out if you include a file that has no trailing
-.nft in its name.
-
-If we follow this path, all ruleset file will end up using .nft as
-a trailer in the name.
-
-Is there any other similar software following this approach? How is
-'ferm' doing this?
+Thanks.
