@@ -1,54 +1,85 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2] decnet: dn_rtmsg: Improve input length sanitization
- in dnrmg_receive_user_skb
-Date: Thu, 08 Jun 2017 10:39:46 -0400 (EDT)
-Message-ID: <20170608.103946.1162801326439212865.davem@davemloft.net>
-References: <20170607141429.5781-1-mjurczyk@google.com>
-        <20170607141839.GD18283@breakpoint.cc>
-        <CAPr8fOQNP+y78xJqx5BNUfY6Rmjj2R8+jrz3Ett1SgdY+a5WLw@mail.gmail.com>
+From: Arturo Borrero Gonzalez <arturo@debian.org>
+Subject: Re: [PATCH 1/3] scanner: add files in include dirs in alphabetical order.
+Date: Thu, 8 Jun 2017 18:37:57 +0200
+Message-ID: <CAOkSjBiTkEbhLtmRQq4ifYv7QQ352tCLfd6kT9DN=XsB=KtR7Q@mail.gmail.com>
+References: <20170607083559.10051-1-ismo.puustinen@intel.com>
+ <CAOkSjBjeTaZTJDEViBRq2y1q715EssHUdgxOFNVf1H7JzpJ6hw@mail.gmail.com> <20170608101735.GA2735@salvia>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: fw@strlen.de, pablo@netfilter.org, kadlec@blackhole.kfki.hu,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-decnet-user@lists.sourceforge.net, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-To: mjurczyk@google.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAPr8fOQNP+y78xJqx5BNUfY6Rmjj2R8+jrz3Ett1SgdY+a5WLw@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Cc: Ismo Puustinen <ismo.puustinen@intel.com>,
+        Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-it0-f65.google.com ([209.85.214.65]:36747 "EHLO
+        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751413AbdFHQiT (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 8 Jun 2017 12:38:19 -0400
+Received: by mail-it0-f65.google.com with SMTP id 185so1414704itv.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 08 Jun 2017 09:38:19 -0700 (PDT)
+Received: from mail-io0-f171.google.com (mail-io0-f171.google.com. [209.85.223.171])
+        by smtp.gmail.com with ESMTPSA id w16sm2332589iod.26.2017.06.08.09.38.18
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 08 Jun 2017 09:38:18 -0700 (PDT)
+Received: by mail-io0-f171.google.com with SMTP id k93so22589225ioi.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 08 Jun 2017 09:38:18 -0700 (PDT)
+In-Reply-To: <20170608101735.GA2735@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Mateusz Jurczyk <mjurczyk@google.com>
-Date: Wed, 7 Jun 2017 16:41:57 +0200
-
-> On Wed, Jun 7, 2017 at 4:18 PM, Florian Westphal <fw@strlen.de> wrote:
->> Mateusz Jurczyk <mjurczyk@google.com> wrote:
->>> Verify that the length of the socket buffer is sufficient to cover the
->>> nlmsghdr structure before accessing the nlh->nlmsg_len field for further
->>> input sanitization. If the client only supplies 1-3 bytes of data in
->>> sk_buff, then nlh->nlmsg_len remains partially uninitialized and
->>> contains leftover memory from the corresponding kernel allocation.
->>> Operating on such data may result in indeterminate evaluation of the
->>> nlmsg_len < sizeof(*nlh) expression.
->>>
->>> The bug was discovered by a runtime instrumentation designed to detect
->>> use of uninitialized memory in the kernel. The patch prevents this and
->>> other similar tools (e.g. KMSAN) from flagging this behavior in the future.
+On 8 June 2017 at 12:17, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Jun 07, 2017 at 09:40:53PM +0200, Arturo Borrero Gonzalez wrote:
+>> On 7 June 2017 at 10:35, Ismo Puustinen <ismo.puustinen@intel.com> wrote:
+>> >
+>> > +static int directoryfilter(const struct dirent *de)
+>> > +{
+>> > +       if (strcmp(de->d_name, ".") == 0 ||
+>> > +                       strcmp(de->d_name, "..") == 0)
+>> > +               return 0;
+>> > +
+>> > +       /* Accept other filenames. If we want to enable filtering based on
+>> > +        * filename suffix (*.nft), this would be the place to do it.
+>> > +        */
+>> > +
 >>
->> Instead of changing all the internal users wouldn't it be better
->> to add this check once in netlink_unicast_kernel?
->>
-> 
-> Perhaps. I must admit I'm not very familiar with this code
-> area/interface, so I preferred to fix the few specific cases instead
-> of submitting a general patch, which might have some unexpected side
-> effects, e.g. behavior different from one of the internal clients etc.
-> 
-> If you think one check in netlink_unicast_kernel is a better way to do
-> it, I'm happy to implement it like that.
+>> This filter by suffix is good to have IMHO.
+>> I guess that forcing users to explicitly create a file for nftables
+>> (or at least give a specific suffix) reduces chances for user errors.
+>
+> You mean, this new include directory feature just takes *.nft files,
+> right?
+>
 
-Until we decide to add the check to netlink_unicast_kernel(), I'm applying
-this and queueing it up for -stable.
+Yes,
 
-Thanks.
+> Then, to keep it consistent, we should also display a warning in
+> include file with no .nft postfix. At deprecate the existing behaviour
+> at some point, ie. bail out if you include a file that has no trailing
+> .nft in its name.
+>
+> If we follow this path, all ruleset file will end up using .nft as
+> a trailer in the name.
+>
+
+but perhaps it makes sense to differentiate two cases:
+ * include a single file: accept arbitrary names
+ * include a whole dir: accept only files ending in .nft
+
+This seems to be what sysctl(8) does when loading a single file vs a directory.
+I'm thinking in a case where you have a README in the directory or
+other unrelated file.
+
+If the idea is to allow drop files (a good idea indeed), then being
+explicit is a good approach.
+
+> Is there any other similar software following this approach? How is
+> 'ferm' doing this?
+
+ferm seems to load arbitrary files. In the docs they suggest using
+.ferm files but the code
+seems to allow whatever.
+However, they have a set of regexp hardcoded to avoid loading things
+like backups file an the like.
+So, yes, probably forcing to .nft is sensible.
