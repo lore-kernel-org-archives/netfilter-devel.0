@@ -1,85 +1,97 @@
-From: Arturo Borrero Gonzalez <arturo@debian.org>
-Subject: Re: [PATCH 1/3] scanner: add files in include dirs in alphabetical order.
-Date: Thu, 8 Jun 2017 18:37:57 +0200
-Message-ID: <CAOkSjBiTkEbhLtmRQq4ifYv7QQ352tCLfd6kT9DN=XsB=KtR7Q@mail.gmail.com>
-References: <20170607083559.10051-1-ismo.puustinen@intel.com>
- <CAOkSjBjeTaZTJDEViBRq2y1q715EssHUdgxOFNVf1H7JzpJ6hw@mail.gmail.com> <20170608101735.GA2735@salvia>
+From: Oleg <lego12239@yandex.ru>
+Subject: nfqueue accepted packet is disappeared
+Date: Thu, 8 Jun 2017 21:15:19 +0300
+Message-ID: <20170608181519.GA27147@legohost>
+Reply-To: Oleg <lego12239@yandex.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Ismo Puustinen <ismo.puustinen@intel.com>,
-        Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-it0-f65.google.com ([209.85.214.65]:36747 "EHLO
-        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751413AbdFHQiT (ORCPT
+Received: from forward10h.cmail.yandex.net ([87.250.230.221]:36305 "EHLO
+        forward10h.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751383AbdFHSV0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Jun 2017 12:38:19 -0400
-Received: by mail-it0-f65.google.com with SMTP id 185so1414704itv.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 08 Jun 2017 09:38:19 -0700 (PDT)
-Received: from mail-io0-f171.google.com (mail-io0-f171.google.com. [209.85.223.171])
-        by smtp.gmail.com with ESMTPSA id w16sm2332589iod.26.2017.06.08.09.38.18
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 08 Jun 2017 09:38:18 -0700 (PDT)
-Received: by mail-io0-f171.google.com with SMTP id k93so22589225ioi.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 08 Jun 2017 09:38:18 -0700 (PDT)
-In-Reply-To: <20170608101735.GA2735@salvia>
+        Thu, 8 Jun 2017 14:21:26 -0400
+Received: from smtp4j.mail.yandex.net (smtp4j.mail.yandex.net [5.45.198.129])
+        by forward10h.cmail.yandex.net (Yandex) with ESMTP id 4AC4121955
+        for <netfilter-devel@vger.kernel.org>; Thu,  8 Jun 2017 21:14:06 +0300 (MSK)
+Received: from smtp4j.mail.yandex.net (localhost.localdomain [127.0.0.1])
+        by smtp4j.mail.yandex.net (Yandex) with ESMTP id 2955D324069E
+        for <netfilter-devel@vger.kernel.org>; Thu,  8 Jun 2017 21:14:05 +0300 (MSK)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 8 June 2017 at 12:17, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, Jun 07, 2017 at 09:40:53PM +0200, Arturo Borrero Gonzalez wrote:
->> On 7 June 2017 at 10:35, Ismo Puustinen <ismo.puustinen@intel.com> wrote:
->> >
->> > +static int directoryfilter(const struct dirent *de)
->> > +{
->> > +       if (strcmp(de->d_name, ".") == 0 ||
->> > +                       strcmp(de->d_name, "..") == 0)
->> > +               return 0;
->> > +
->> > +       /* Accept other filenames. If we want to enable filtering based on
->> > +        * filename suffix (*.nft), this would be the place to do it.
->> > +        */
->> > +
->>
->> This filter by suffix is good to have IMHO.
->> I guess that forcing users to explicitly create a file for nftables
->> (or at least give a specific suffix) reduces chances for user errors.
->
-> You mean, this new include directory feature just takes *.nft files,
-> right?
->
+  Hi all!
 
-Yes,
+I have the test environment consists of 2 qemu VMs with next
+network configuration:
 
-> Then, to keep it consistent, we should also display a warning in
-> include file with no .nft postfix. At deprecate the existing behaviour
-> at some point, ie. bail out if you include a file that has no trailing
-> .nft in its name.
->
-> If we follow this path, all ruleset file will end up using .nft as
-> a trailer in the name.
->
+VM2 eth0 --> [host br1] --> eth1 VM1 eth0 --> [host br0] --> Internet
 
-but perhaps it makes sense to differentiate two cases:
- * include a single file: accept arbitrary names
- * include a whole dir: accept only files ending in .nft
+I test nfqueue based filter running at VM1, which now simply accepts
+all packets from eth1 immediately on callback entering:
 
-This seems to be what sysctl(8) does when loading a single file vs a directory.
-I'm thinking in a case where you have a README in the directory or
-other unrelated file.
+static int
+cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg, struct nfq_data *nfad,
+  void *data)
+{
+	struct nfqnl_msg_packet_hdr *ph;
+	unsigned int verdict = NF_ACCEPT;
+	int ret;
+	
+	ph = nfq_get_msg_packet_hdr(nfad);
+	ret = nfq_set_verdict(qh, ntohl(ph->packet_id), verdict, 0, NULL);
+	if (ret < 0)
+		ERR_OUT("nfq_set_verdict() error");
+	
+	return ret;
+}
 
-If the idea is to allow drop files (a good idea indeed), then being
-explicit is a good approach.
+ping from VM2 works well, but next command is delayed for several seconds:
 
-> Is there any other similar software following this approach? How is
-> 'ferm' doing this?
+~# telnet google.com 80
 
-ferm seems to load arbitrary files. In the docs they suggest using
-.ferm files but the code
-seems to allow whatever.
-However, they have a set of regexp hardcoded to avoid loading things
-like backups file an the like.
-So, yes, probably forcing to .nft is sensible.
+tcpdump on br0 and br1 shows that telnet sends 2 dns requests (A & AAAA)
+and we see it on br1:
+
+20:58:20.289941 IP 192.168.78.2.58758 > 8.8.8.8.53: 32688+ A? google.com. (28)
+20:58:20.289985 IP 192.168.78.2.58758 > 8.8.8.8.53: 37919+ AAAA? google.com. (28)
+20:58:20.315317 IP 8.8.8.8.53 > 192.168.78.2.58758: 32688 6/0/0 A 173.194.222.102, A 173.194.222.100, A 173.194.222.101, A 173.194.222.138, A 173.194.222.113, A 173.194.222.139 (124)
+
+but reply is only 1, because on br0 the second request is disappear:
+
+20:58:20.290354 IP 192.168.77.32.58758 > 8.8.8.8.53: 32688+ A? google.com. (28)
+20:58:20.314921 IP 8.8.8.8.53 > 192.168.77.32.58758: 32688 6/0/0 A 173.194.222.102, A 173.194.222.100, A 173.194.222.101, A 173.194.222.138, A 173.194.222.113, A 173.194.222.139 (124)
+
+After 5 seconds telnet repeats 2 dns requests again and now it gets 2
+replies. On br1:
+
+20:58:25.294296 IP 192.168.78.2.58758 > 8.8.8.8.53: 32688+ A? google.com. (28)
+20:58:25.299535 IP 8.8.8.8.53 > 192.168.78.2.58758: 32688 6/0/0 A 173.194.222.102, A 173.194.222.100, A 173.194.222.101, A 173.194.222.138, A 173.194.222.113, A 173.194.222.139 (124)
+20:58:25.300172 IP 192.168.78.2.58758 > 8.8.8.8.53: 37919+ AAAA? google.com. (28)
+20:58:25.322761 IP 8.8.8.8.53 > 192.168.78.2.58758: 37919 1/0/0 AAAA 2a00:1450:4010:c0b::8a (56)
+
+On br0 we now see 2 requests as expected:
+
+20:58:25.295072 IP 192.168.77.32.58758 > 8.8.8.8.53: 32688+ A? google.com. (28)
+20:58:25.299056 IP 8.8.8.8.53 > 192.168.77.32.58758: 32688 6/0/0 A 173.194.222.102, A 173.194.222.100, A 173.194.222.101, A 173.194.222.138, A 173.194.222.113, A 173.194.222.139 (124)
+20:58:25.301021 IP 192.168.77.32.58758 > 8.8.8.8.53: 37919+ AAAA? google.com. (28)
+20:58:25.322186 IP 8.8.8.8.53 > 192.168.77.32.58758: 37919 1/0/0 AAAA 2a00:1450:4010:c0b::8a (56)
+
+When i remove from iptables in VM1 nfqueue rule, telnet works well and
+all packets are forwared.
+
+So, my question is, what is happen with first AAAA request and how
+i can fix this?
+
+kernel: 4.4.6
+iptables: 1.4.21
+libnetfilter_queue: 1.0.2
+
+Thanks!
+
+
+-- 
+Олег Неманов (Oleg Nemanov)
