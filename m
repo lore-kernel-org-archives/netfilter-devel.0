@@ -1,38 +1,23 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [4.9.y,netfilter] please, cherry-pick da2f27e9e615
-Date: Mon, 12 Jun 2017 23:25:23 +0200
-Message-ID: <20170612212523.GA12418@salvia>
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: Re: [PATCH nf-next] netns: add and use net_ns_barrier
+Date: Mon, 12 Jun 2017 14:47:50 -0700
+Message-ID: <CAM_iQpXgrQcbrQsMVoomcsHtk4JffRjJ27FLRoignndAzFVkug@mail.gmail.com>
+References: <20170530093812.10712-1-fw@strlen.de> <87y3tcj3n7.fsf@xmission.com>
+ <20170601085259.GA6067@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Juergen Schmidt <abcdmail@freenet.de>,
-        netfilter-devel@vger.kernel.org
-To: stable@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:34242 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752883AbdFLVZk (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Jun 2017 17:25:40 -0400
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>,
+        netfilter-devel@vger.kernel.org,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170601085259.GA6067@breakpoint.cc>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Resending this, I used the wrong stable email address.
+On Thu, Jun 1, 2017 at 1:52 AM, Florian Westphal <fw@strlen.de> wrote:
+> Joe described it nicely, problem is that after unload we may have
+> conntracks that still have a nf_conn_help extension attached that
+> has a pointer to a structure that resided in the (unloaded) module.
 
--o-
-
-Hi,
-
-Please, 4.9 stable maintainer, cherry-pick this commit:
-
-commit da2f27e9e615d1c799c9582b15262458da61fddc
-Author: Christophe Leroy <christophe.leroy@c-s.fr>
-Date:   Wed Mar 1 15:33:26 2017 +0100
-
-    netfilter: nf_conntrack_sip: fix wrong memory initialisation
-
-We have a user complaining about this bug that manifests in 4.9:
-
-http://marc.info/?l=netfilter&m=149577235017072&w=2
-
-Thanks!
+Why not hold a refcnt for its module?
