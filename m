@@ -1,62 +1,39 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCHv2] tests: shell: Add test for ambguity while setting the
- value
-Date: Mon, 12 Jun 2017 11:22:07 +0200
-Message-ID: <20170612092207.GA3997@salvia>
-References: <1497024060-6142-1-git-send-email-mayhs11saini@gmail.com>
+Subject: Re: [conntrack-tools PATCH v2] conntrackd: make the daemon run in RT
+ mode by default
+Date: Mon, 12 Jun 2017 11:24:36 +0200
+Message-ID: <20170612092436.GA5500@salvia>
+References: <149725643738.6842.5325404856389402790.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Shyam Saini <mayhs11saini@gmail.com>
+To: Arturo Borrero Gonzalez <arturo@debian.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:56853 "EHLO
+Received: from ganesha.gnumonks.org ([213.95.27.120]:56896 "EHLO
         ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751925AbdFLJWL (ORCPT
+        with ESMTP id S1752158AbdFLJY4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Jun 2017 05:22:11 -0400
+        Mon, 12 Jun 2017 05:24:56 -0400
 Content-Disposition: inline
-In-Reply-To: <1497024060-6142-1-git-send-email-mayhs11saini@gmail.com>
+In-Reply-To: <149725643738.6842.5325404856389402790.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 09, 2017 at 09:31:00PM +0530, Shyam Saini wrote:
-> diff --git a/tests/shell/testcases/sets/0023unknown_value_to_use_0 b/tests/shell/testcases/sets/0023unknown_value_to_use_0
-> new file mode 100755
-> index 0000000..ee9be68
-> --- /dev/null
-> +++ b/tests/shell/testcases/sets/0023unknown_value_to_use_0
-> @@ -0,0 +1,33 @@
-> +#!/bin/bash
-> +
-> +	# This test checks bug identified and fixed in the commit Id "986dea8".
-> +	# i.e, If in a statement there are  multiple src data then it would be totally ambiguous to decide which value to set.
-> +        
-> +	# Before this commit 986dea8, nft returns 134 which indicates the bug but after this commit it returns 1.
-> +	# We don't add this test in python testsuite, because there we can't detect 134 != 1 (returns code stating failure) 	
-> +
-> +declare -a rules=(
-> +"tcp dport set {1, 2, 3}" "udp dport set {1, 2, 3}"
-> +"meta pkttype set {unicast, multicast, broadcast}"
-> +"meta mark set {0xffff, 0xcc}"
-> +"ct mark set {0x11333, 0x11}" "ct zone set {123, 127}"
-> +"ct label set {123, 127}" 
-> +"ct event set {new, related, destroy, label}"
-> +"ether daddr set {01:00:5e:00:01:01, 01:00:5e:00:02:02}"
-> +"ip saddr set {192.19.1.2, 191.1.22.1}"
-> +)
-> +
-> +$NFT add table t
-> +$NFT add chain t c
-> +
-> +for (( i = 0 ; i < ${#rules[@]} ; i++ ))
-> +do
-> +	$NFT add rule t c ${rules[$i]}
-> +	ret=$?
-> +	if [ $ret -ne 1 ];
-> +	then
-> +		echo "E: failed test: returned $ret instead of 1" >&2
-> +		exit 1
-> +	fi
-> +done
+On Mon, Jun 12, 2017 at 10:34:35AM +0200, Arturo Borrero Gonzalez wrote:
+> In order to prevent netlink buffer overrun, conntrackd is recommended to run
+> at max priority.
+> Make conntrackd to use a RT (SHED_RR) scheduler by default at max priority.
+> This is common among other HA daemons. For example corosync uses SCHED_RR
+> by default.
+> The scheduler configuration option is kept in order to allow admins to perform
+> fine-tuning, but it is deleted from example configuration files.
+> 
+> Note that this default sched priority is so high that it makes the nice value
+> useless, so deprecate the nice configuration. Anyway the nice value can be set
+> externally at runtime using nice/renice.
+> 
+> The code is moved to the init() routine. In case of error setting the
+> scheduler, the system default will be used. Report a message to the user
+> and continue working.
 
-Better use tests/py/ for this?
+Applied, thanks Arturo.
