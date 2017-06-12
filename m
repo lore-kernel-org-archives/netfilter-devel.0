@@ -1,74 +1,33 @@
-From: <roeper@stadt-wittenburg.de>
-Subject: (unknown)
-Date: Sun, 11 Jun 2017 07:27:29 -0000
-Message-ID: <149716604958.8931.5104721633482928009@surnet.ru>
+From: Arturo Borrero Gonzalez <arturo@debian.org>
+Subject: Re: [conntrack-tools PATCH v2] In order to prevent netlink buffer
+ overrun, conntrackd is recommended to run
+Date: Mon, 12 Jun 2017 08:59:55 +0200
+Message-ID: <CAOkSjBhnGKg7xNm5JV=wx_2AQgUQ=FG6ht=K3N2P8DxsfPqp6Q@mail.gmail.com>
+References: <149701358527.10722.10273308514407546921.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: application/zip; name="700323777.zip"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+To: Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ip-31-162-213-225.dsl.surnet.ru ([31.162.213.225]:37181 "HELO
-        surnet.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-        id S1751784AbdFKH1d (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 11 Jun 2017 03:27:33 -0400
-Content-Disposition: attachment
-Subject: 
+Received: from mail-it0-f46.google.com ([209.85.214.46]:36342 "EHLO
+        mail-it0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752157AbdFLHAY (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 12 Jun 2017 03:00:24 -0400
+Received: by mail-it0-f46.google.com with SMTP id m47so19764261iti.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jun 2017 00:00:23 -0700 (PDT)
+Received: from mail-it0-f42.google.com (mail-it0-f42.google.com. [209.85.214.42])
+        by smtp.gmail.com with ESMTPSA id m195sm4297747ioe.35.2017.06.12.00.00.20
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 12 Jun 2017 00:00:20 -0700 (PDT)
+Received: by mail-it0-f42.google.com with SMTP id m47so19763809iti.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jun 2017 00:00:20 -0700 (PDT)
+In-Reply-To: <149701358527.10722.10273308514407546921.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-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
+On 9 June 2017 at 15:06, Arturo Borrero Gonzalez <arturo@debian.org> wrote:
+> at max priority.
+
+oops, ugly. Resending
