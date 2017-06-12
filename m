@@ -1,33 +1,67 @@
-From: Arturo Borrero Gonzalez <arturo@debian.org>
-Subject: Re: [conntrack-tools PATCH v2] In order to prevent netlink buffer
- overrun, conntrackd is recommended to run
-Date: Mon, 12 Jun 2017 08:59:55 +0200
-Message-ID: <CAOkSjBhnGKg7xNm5JV=wx_2AQgUQ=FG6ht=K3N2P8DxsfPqp6Q@mail.gmail.com>
-References: <149701358527.10722.10273308514407546921.stgit@nfdev2.cica.es>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/3] scanner: add files in include dirs in alphabetical
+ order.
+Date: Mon, 12 Jun 2017 10:10:07 +0200
+Message-ID: <20170612081007.GA2462@salvia>
+References: <20170607083559.10051-1-ismo.puustinen@intel.com>
+ <CAOkSjBjeTaZTJDEViBRq2y1q715EssHUdgxOFNVf1H7JzpJ6hw@mail.gmail.com>
+ <20170608101735.GA2735@salvia>
+ <CAOkSjBiTkEbhLtmRQq4ifYv7QQ352tCLfd6kT9DN=XsB=KtR7Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-To: Netfilter Development Mailing list
+Content-Type: text/plain; charset=us-ascii
+Cc: Ismo Puustinen <ismo.puustinen@intel.com>,
+        Netfilter Development Mailing list
         <netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo@debian.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-it0-f46.google.com ([209.85.214.46]:36342 "EHLO
-        mail-it0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752157AbdFLHAY (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:56307 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750730AbdFLIKW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Jun 2017 03:00:24 -0400
-Received: by mail-it0-f46.google.com with SMTP id m47so19764261iti.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jun 2017 00:00:23 -0700 (PDT)
-Received: from mail-it0-f42.google.com (mail-it0-f42.google.com. [209.85.214.42])
-        by smtp.gmail.com with ESMTPSA id m195sm4297747ioe.35.2017.06.12.00.00.20
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 12 Jun 2017 00:00:20 -0700 (PDT)
-Received: by mail-it0-f42.google.com with SMTP id m47so19763809iti.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jun 2017 00:00:20 -0700 (PDT)
-In-Reply-To: <149701358527.10722.10273308514407546921.stgit@nfdev2.cica.es>
+        Mon, 12 Jun 2017 04:10:22 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOkSjBiTkEbhLtmRQq4ifYv7QQ352tCLfd6kT9DN=XsB=KtR7Q@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 9 June 2017 at 15:06, Arturo Borrero Gonzalez <arturo@debian.org> wrote:
-> at max priority.
+On Thu, Jun 08, 2017 at 06:37:57PM +0200, Arturo Borrero Gonzalez wrote:
+> On 8 June 2017 at 12:17, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+[...]
+> > Then, to keep it consistent, we should also display a warning in
+> > include file with no .nft postfix. At deprecate the existing behaviour
+> > at some point, ie. bail out if you include a file that has no trailing
+> > .nft in its name.
+> >
+> > If we follow this path, all ruleset file will end up using .nft as
+> > a trailer in the name.
+> >
+> 
+> but perhaps it makes sense to differentiate two cases:
+>  * include a single file: accept arbitrary names
+>  * include a whole dir: accept only files ending in .nft
+> 
+> This seems to be what sysctl(8) does when loading a single file vs a directory.
+> I'm thinking in a case where you have a README in the directory or
+> other unrelated file.
 
-oops, ugly. Resending
+I see, it makes sense indeed to have a way to skip files you don't
+want. But I still would like this behaviour is consistent.
+
+> If the idea is to allow drop files (a good idea indeed), then being
+> explicit is a good approach.
+> 
+> > Is there any other similar software following this approach? How is
+> > 'ferm' doing this?
+> 
+> ferm seems to load arbitrary files. In the docs they suggest using
+> .ferm files but the code
+> seems to allow whatever.
+> However, they have a set of regexp hardcoded to avoid loading things
+> like backups file an the like.
+> So, yes, probably forcing to .nft is sensible.
+
+I would go for glob support, ie.
+
+include ./nft-ruleset-files/*.nft
+
+so you can explicit indicate what file pattern you want to load.
