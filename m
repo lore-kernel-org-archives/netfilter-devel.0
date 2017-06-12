@@ -1,104 +1,38 @@
-From: <amin@goettingen.aidshilfe.de>
-Subject: (unknown)
-Date: Mon, 12 Jun 2017 15:02:56 -0000
-Message-ID: <149727977694.23066.7893246225585409822@qubee.com.bd>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [4.9.y,netfilter] please, cherry-pick da2f27e9e615
+Date: Mon, 12 Jun 2017 23:25:23 +0200
+Message-ID: <20170612212523.GA12418@salvia>
 Mime-Version: 1.0
-Content-Type: application/zip; name="311766356839.zip"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Juergen Schmidt <abcdmail@freenet.de>,
+        netfilter-devel@vger.kernel.org
+To: stable@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from AWBL11-177.qubee.com.bd ([180.234.11.177]:52081 "HELO
-        qubee.com.bd" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with SMTP id S1752044AbdFLPDE (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:34242 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752883AbdFLVZk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 12 Jun 2017 11:03:04 -0400
-Content-Disposition: attachment
-Subject: 
+        Mon, 12 Jun 2017 17:25:40 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-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
-BgAAAAABAAEAWgAAAFcSAAAAAA==
+Resending this, I used the wrong stable email address.
+
+-o-
+
+Hi,
+
+Please, 4.9 stable maintainer, cherry-pick this commit:
+
+commit da2f27e9e615d1c799c9582b15262458da61fddc
+Author: Christophe Leroy <christophe.leroy@c-s.fr>
+Date:   Wed Mar 1 15:33:26 2017 +0100
+
+    netfilter: nf_conntrack_sip: fix wrong memory initialisation
+
+We have a user complaining about this bug that manifests in 4.9:
+
+http://marc.info/?l=netfilter&m=149577235017072&w=2
+
+Thanks!
