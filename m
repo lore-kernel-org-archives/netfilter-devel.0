@@ -1,105 +1,55 @@
-From: <sophie.norman@macquarie.com>
-Subject: (unknown)
-Date: Wed, 14 Jun 2017 11:42:25 -0000
-Message-ID: <149744054589.19456.6945015980314590684@hinet.net>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: using nft & iptables nat in parallel
+Date: Wed, 14 Jun 2017 13:53:38 +0200
+Message-ID: <20170614115338.GB5591@breakpoint.cc>
+References: <20170614092448.GB10130@breakpoint.cc>
+ <CAOkSjBiSrj_V0nJoV8zXmfN-0mDcbfYEuf_knAnp+cHgOa=ePA@mail.gmail.com>
+ <20170614095803.GC10130@breakpoint.cc>
+ <20170614104008.GA14452@salvia>
+ <20170614111934.GA5591@breakpoint.cc>
+ <20170614112934.GA21546@salvia>
 Mime-Version: 1.0
-Content-Type: application/zip; name="297272492.zip"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>,
+        Arturo Borrero Gonzalez <arturo@debian.org>,
+        Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 111-249-188-226.dynamic-ip.hinet.net ([111.249.188.226]:51923
-        "HELO hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with SMTP id S1750756AbdFNLmb (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:53266 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751707AbdFNLyS (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Jun 2017 07:42:31 -0400
-Subject: 
-Content-Disposition: attachment
+        Wed, 14 Jun 2017 07:54:18 -0400
+Content-Disposition: inline
+In-Reply-To: <20170614112934.GA21546@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-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
-PeXSAVBLBQYAAAAAAQABAFsAAACWEgAAAAA=
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > That still means drastic change, swapping out xt_core for nftables
+> > rather than using "old" iptables is still a big difference...
+> 
+> Not drastic. The idea is that compat provides same semantics. Did you
+> give it a try to evaluate the state of this?
+
+Not yet.
+
+> The extra hook has a performance impact though, is it something that
+> would just go away one x_tables is gone? What is your plan on this?
+
+Once we do it we can't remove it again, because you can have multiple
+nat base chains after this change, and removing hook and merging it back
+into the l3 nat code means first chain attaches a null binding again.
+
+> On a different front (just an idea), I would really like to provide an
+> alternative to setting conntrack templates, so we can get rid of
+> having a chain (hence another hook) just to set the zone. It's just
+> more cycles on a hook to do something very simple.
+
+I don't think it can be done, the zone id has to be set before conntrack
+lookup, I see no way to avoid this?
+
+So even if we find a way to transport zone id from one hook to the
+next (sans skb->nfct template) we still need one extra hook to
+configure/set the zone id to use.
