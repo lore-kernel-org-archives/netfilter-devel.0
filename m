@@ -1,56 +1,49 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: using nft & iptables nat in parallel
-Date: Wed, 14 Jun 2017 11:24:48 +0200
-Message-ID: <20170614092448.GB10130@breakpoint.cc>
+From: Arturo Borrero Gonzalez <arturo@debian.org>
+Subject: Re: using nft & iptables nat in parallel
+Date: Wed, 14 Jun 2017 11:37:55 +0200
+Message-ID: <CAOkSjBiSrj_V0nJoV8zXmfN-0mDcbfYEuf_knAnp+cHgOa=ePA@mail.gmail.com>
+References: <20170614092448.GB10130@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Cc: Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:52626 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751866AbdFNJZd (ORCPT
+Received: from mail-it0-f54.google.com ([209.85.214.54]:34827 "EHLO
+        mail-it0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751707AbdFNJiR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Jun 2017 05:25:33 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.84_2)
-        (envelope-from <fw@strlen.de>)
-        id 1dL4Xg-0001A8-7M
-        for netfilter-devel@vger.kernel.org; Wed, 14 Jun 2017 11:24:48 +0200
-Content-Disposition: inline
+        Wed, 14 Jun 2017 05:38:17 -0400
+Received: by mail-it0-f54.google.com with SMTP id m62so55897762itc.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Jun 2017 02:38:17 -0700 (PDT)
+Received: from mail-it0-f54.google.com (mail-it0-f54.google.com. [209.85.214.54])
+        by smtp.gmail.com with ESMTPSA id 131sm142957ioo.5.2017.06.14.02.38.16
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 14 Jun 2017 02:38:16 -0700 (PDT)
+Received: by mail-it0-f54.google.com with SMTP id m47so55874229iti.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Jun 2017 02:38:16 -0700 (PDT)
+In-Reply-To: <20170614092448.GB10130@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi.
+On 14 June 2017 at 11:24, Florian Westphal <fw@strlen.de> wrote:
+>
+> Another side effect is that this avoids the need to add (in nft case)
+> the 'empty' nat base chains to take care of reply translation.
+>
 
-As you might know its currently not possible to use iptables
-and nft nat at the same time.
+good!
 
-I had a look at this and think we should fix this as follows:
+> Thoughts?
+>
 
-1. decouple nat rewrite from nat chain/iptable_nat iteration.
+I'm curious, What is the use case of using both nftables and iptables
+at the same time?
+Some missing functionality in nft?
+Perhaps some ipt->nft partial migration procedure?
 
-Currently we do this from nf_nat_ipv4/6_fn, so first call (be it nft nat
-or ip(6)table_nat) attaches nat translation or a null binding which makes
-2nd invocation a no-op.
+>
+> This would also possibly allow us to add nat hooks in the INET family.
 
-2. place a l3 protocol independent function that does null binding and
-rewrite in nf_nat_core.  It can be independent because nf_nat_info has
-the l3 information and we don't need to deal with anything special
-except hooking at either NFPROTO_IPV4 or V6.
-
-3. make all the nat expressions/targets call a helper function at
-init/destroy time so we can register the new rewrite hooks.
-This is easy, all these currently call nf_ct_netns_get/put so we
-only need to add nf_nat_netns_get/put which calls nf_ct_netns_get
-and registers a nat null-bind/rewrite hook.
-
-The downside is that we need one more hook function at priority
-NF_IP_PRI_NAT_SRC/DST + 1 in all places except forward.
-
-Another side effect is that this avoids the need to add (in nft case)
-the 'empty' nat base chains to take care of reply translation.
-
-Thoughts?
-
-Otherwise I'll have a go at this.
-
-This would also possibly allow us to add nat hooks in the INET family.
+good!
