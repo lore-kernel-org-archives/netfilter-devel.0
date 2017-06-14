@@ -1,46 +1,92 @@
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: Re: [PATCH nf-next] netns: add and use net_ns_barrier
-Date: Tue, 13 Jun 2017 14:16:28 -0700
-Message-ID: <CAM_iQpXiHOarvPHweT+=bRmztU0VeNQhUgHw7B7qbwndJ0NBUg@mail.gmail.com>
-References: <20170530093812.10712-1-fw@strlen.de> <87y3tcj3n7.fsf@xmission.com>
- <20170601085259.GA6067@breakpoint.cc> <CAM_iQpXgrQcbrQsMVoomcsHtk4JffRjJ27FLRoignndAzFVkug@mail.gmail.com>
- <20170613061656.GF18283@breakpoint.cc> <CAM_iQpUtZZBXQNB+tWJikQNmCHBot3tp7vAsc6+Xnh5H__6++g@mail.gmail.com>
- <20170613180713.GA10130@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>,
-        netfilter-devel@vger.kernel.org,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170613180713.GA10130@breakpoint.cc>
-Sender: netdev-owner@vger.kernel.org
+From: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+Subject: [PATCH] netfilter: conntrack: fix clash resolution in nat
+Date: Wed, 14 Jun 2017 16:11:23 +0800
+Message-ID: <1497427883-3771-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jun 13, 2017 at 11:07 AM, Florian Westphal <fw@strlen.de> wrote:
-> Historically it wasn't needed because we just clear out the helper area
-> in the affected conntracks (i.e, future packets are not inspected by
-> the helper anymore).
->
-> When conntracks were made per-netns this problem was added as we're not
-> guaranteed to see all net namespace because module_exit and netns cleanup
-> can run concurrently.
->
-> We can still use the "old" model if we guarantee that we wait for
-> netns cleanup to finish (which is what this patch does).
->
-> The alternative, as you pointed out, is to take a module reference for
-> each conntrack that uses the helper (and put again when connection is
-> destroyed).
+In our openstack environment, slow dns lookup for hostname when
+parallel dns requests for IPv4 and IPv6 addresses from VM, the
+second IPv6 request(AAAA record) is dropped on its way in compute
+node.
 
-Yeah, this is exactly what I am suggesting and I fully expect this could
-need more work than this barrier.
+We found many similar related links:
+https://bbs.archlinux.org/viewtopic.php?id=75770
+http://www.spinics.net/lists/netfilter-devel/msg15860.html
+https://www.spinics.net/lists/netfilter-devel/msg37565.html
 
->
-> I don't really care that much except that if we go for the latter
-> solution users cannot "just rmmod" the module anymore but might have
-> to manually remove the affected connections first.
+After the commit 71d8c47fc653 ("netfilter: conntrack: introduce clash
+resolution on insertion race") can fix packet drop, the second IPv6
+request packet would be forwarded by compute node, but the udp source
+port is bogus, start from 1024:
+14:52:10.868485 IP 10.136.5.132.55785 > 10.136.5.1.domain: 3957+ A?
+www.baidu.com. (31)
+14:52:10.868544 IP 10.136.5.132.1024 > 10.136.5.1.domain: 13826+ AAAA?
+www.baidu.com. (31)
 
-This is not bad because the module is indeed being used in this scenario
-so EBUSY is expected, or do we need to guarantee conntrack modules
-are not held by existing connections?
+And after the commit 590b52e10d41 ("netfilter: conntrack: skip clash
+resolution if nat is in place") , it exclude nat situation, but the
+packet drops issue come back again.
+
+This patch revert the last commit. If l4proto allow clash but the tuple is
+used by the conntrack that wins race, the original tuple can be reused.
+
+Fixes: 590b52e10d41 ("netfilter: conntrack: skip clash resolution if 25
+nat is in place")
+Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+---
+ net/netfilter/nf_conntrack_core.c | 1 -
+ net/netfilter/nf_nat_core.c       | 4 +++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index e847dba..7e16518 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -699,7 +699,6 @@ static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
+ 
+ 	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
+ 	if (l4proto->allow_clash &&
+-	    ((ct->status & IPS_NAT_DONE_MASK) == 0) &&
+ 	    !nf_ct_is_dying(ct) &&
+ 	    atomic_inc_not_zero(&ct->ct_general.use)) {
+ 		enum ip_conntrack_info oldinfo;
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 6c72922..9edfca2 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -328,6 +328,7 @@ static int nf_nat_bysource_cmp(struct rhashtable_compare_arg *arg,
+ 	const struct nf_conntrack_zone *zone;
+ 	const struct nf_nat_l3proto *l3proto;
+ 	const struct nf_nat_l4proto *l4proto;
++	const struct nf_conntrack_l4proto *ct_l4proto;
+ 	struct net *net = nf_ct_net(ct);
+ 
+ 	zone = nf_ct_zone(ct);
+@@ -336,6 +337,7 @@ static int nf_nat_bysource_cmp(struct rhashtable_compare_arg *arg,
+ 	l3proto = __nf_nat_l3proto_find(orig_tuple->src.l3num);
+ 	l4proto = __nf_nat_l4proto_find(orig_tuple->src.l3num,
+ 					orig_tuple->dst.protonum);
++	ct_l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
+ 
+ 	/* 1) If this srcip/proto/src-proto-part is currently mapped,
+ 	 * and that same mapping gives a unique tuple within the given
+@@ -349,7 +351,7 @@ static int nf_nat_bysource_cmp(struct rhashtable_compare_arg *arg,
+ 	    !(range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
+ 		/* try the original tuple first */
+ 		if (in_range(l3proto, l4proto, orig_tuple, range)) {
+-			if (!nf_nat_used_tuple(orig_tuple, ct)) {
++			if (!nf_nat_used_tuple(orig_tuple, ct) || ct_l4proto->allow_clash) {
+ 				*tuple = *orig_tuple;
+ 				goto out;
+ 			}
+-- 
+1.8.3.1
