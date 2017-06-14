@@ -1,51 +1,87 @@
-From: Arturo Borrero Gonzalez <arturo@debian.org>
-Subject: Re: using nft & iptables nat in parallel
-Date: Wed, 14 Jun 2017 15:22:46 +0200
-Message-ID: <CAOkSjBgpg8cfovK9_mQLF1+WQfAjEsAe=-jsaY4=G_LTtgENcA@mail.gmail.com>
-References: <20170614092448.GB10130@breakpoint.cc> <CAOkSjBiSrj_V0nJoV8zXmfN-0mDcbfYEuf_knAnp+cHgOa=ePA@mail.gmail.com>
- <20170614095803.GC10130@breakpoint.cc>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH nf-next] netns: add and use net_ns_barrier
+Date: Wed, 14 Jun 2017 09:20:25 -0500
+Message-ID: <87wp8eabx2.fsf@xmission.com>
+References: <20170530093812.10712-1-fw@strlen.de>
+        <87y3tcj3n7.fsf@xmission.com> <20170601085259.GA6067@breakpoint.cc>
+        <CAM_iQpXgrQcbrQsMVoomcsHtk4JffRjJ27FLRoignndAzFVkug@mail.gmail.com>
+        <20170613061656.GF18283@breakpoint.cc>
+        <CAM_iQpUtZZBXQNB+tWJikQNmCHBot3tp7vAsc6+Xnh5H__6++g@mail.gmail.com>
+        <20170614084147.GC31030@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain
+Cc: Cong Wang <xiyou.wangcong@gmail.com>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org,
+        Linux Kernel Network Developers <netdev@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-io0-f175.google.com ([209.85.223.175]:35008 "EHLO
-        mail-io0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752496AbdFNNXN (ORCPT
+Received: from out01.mta.xmission.com ([166.70.13.231]:45546 "EHLO
+        out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750717AbdFNO1d (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Jun 2017 09:23:13 -0400
-Received: by mail-io0-f175.google.com with SMTP id k93so277091ioi.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Jun 2017 06:23:13 -0700 (PDT)
-Received: from mail-io0-f174.google.com (mail-io0-f174.google.com. [209.85.223.174])
-        by smtp.gmail.com with ESMTPSA id l19sm21250ioe.3.2017.06.14.06.23.07
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 14 Jun 2017 06:23:07 -0700 (PDT)
-Received: by mail-io0-f174.google.com with SMTP id t87so331231ioe.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Jun 2017 06:23:07 -0700 (PDT)
-In-Reply-To: <20170614095803.GC10130@breakpoint.cc>
+        Wed, 14 Jun 2017 10:27:33 -0400
+In-Reply-To: <20170614084147.GC31030@salvia> (Pablo Neira Ayuso's message of
+        "Wed, 14 Jun 2017 10:41:47 +0200")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 14 June 2017 at 11:58, Florian Westphal <fw@strlen.de> wrote:
-> Arturo Borrero Gonzalez <arturo@debian.org> wrote:
->> I'm curious, What is the use case of using both nftables and iptables
->> at the same time?
->> Some missing functionality in nft?
->> Perhaps some ipt->nft partial migration procedure?
->
-> Yes, partial migration.
->
-> Right now there are an awful lot of tools out there (docker, libvirt,
-> kubernetes, ..) that call iptables(-restore) directly (or inject them via
-> firewalld).
->
+Pablo Neira Ayuso <pablo@netfilter.org> writes:
 
-Well, just quickly checked firewalld code [0].
-It relies so massively in ipXtables/ipset that I bet a migration to
-nftables would require a major rewrite.
+> Hi!
+>
+> On Tue, Jun 13, 2017 at 09:35:20AM -0700, Cong Wang wrote:
+>> On Mon, Jun 12, 2017 at 11:16 PM, Florian Westphal <fw@strlen.de> wrote:
+>> > Cong Wang <xiyou.wangcong@gmail.com> wrote:
+>> >> On Thu, Jun 1, 2017 at 1:52 AM, Florian Westphal <fw@strlen.de> wrote:
+>> >> > Joe described it nicely, problem is that after unload we may have
+>> >> > conntracks that still have a nf_conn_help extension attached that
+>> >> > has a pointer to a structure that resided in the (unloaded) module.
+>> >>
+>> >> Why not hold a refcnt for its module?
+>> >
+>> > That would work as well.
+>> >
+>> > I'm not sure its nice to disallow rmmod of helper modules if they are
+>> > used by a connection however.
+>> 
+>> I am _not_ suggesting to disallow rmmod.
+>> 
+>> >
+>> > Right now you can "rmmod nf_conntrack_foo" at any time and this should
+>> > work just fine without first having to flush affected conntracks
+>> > manually.
+>> 
+>> My point is that since netns wq could invoke code of that module,
+>> why it doesn't hold a refcnt of that module?
+>> 
+>> I am not familiar with netfilter code base so not sure if that is
+>> hard to do or not, but it looks more elegant than this barrier.
+>
+> Florian has added a new native interface to integrate helpers into
+> nftables in a much better way than we do now, that allows much more
+> fine grain configuration. This new interface bumps refcounts on
+> helpers as you suggest.
+>
+> However, we still have to sort of keep the existing behaviour around,
+> people has been relying on this rmmod feature to globally disable
+> helpers. It's very old thing indeed and as you can see, very sparse
+> grain for the netns era... But still I think we need this.
+>
+> So I'm inclined to take this, and keep an eye to deprecate this
+> behaviour in a several years ahead once. Probably we can get rid of
+> this barrier at some point.
 
-Not sure if iptables-compat address this case, or even a high level libnftables.
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 
-[0] https://github.com/t-woerner/firewalld/blob/master/src/firewall/core/ipXtables.py
+If it works I don't have any problems with the code and it sounds like
+it works.
+
+My apologies for the delay.  There is an email black hole between Forian
+and myself and I missed his replies.  Which gave me a very distored
+picture of the conversation.
+
+Eric
+
+
+
