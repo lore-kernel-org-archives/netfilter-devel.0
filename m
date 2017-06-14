@@ -1,87 +1,71 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH nf-next] netns: add and use net_ns_barrier
-Date: Wed, 14 Jun 2017 09:20:25 -0500
-Message-ID: <87wp8eabx2.fsf@xmission.com>
-References: <20170530093812.10712-1-fw@strlen.de>
-        <87y3tcj3n7.fsf@xmission.com> <20170601085259.GA6067@breakpoint.cc>
-        <CAM_iQpXgrQcbrQsMVoomcsHtk4JffRjJ27FLRoignndAzFVkug@mail.gmail.com>
-        <20170613061656.GF18283@breakpoint.cc>
-        <CAM_iQpUtZZBXQNB+tWJikQNmCHBot3tp7vAsc6+Xnh5H__6++g@mail.gmail.com>
-        <20170614084147.GC31030@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: using nft & iptables nat in parallel
+Date: Wed, 14 Jun 2017 19:13:12 +0200
+Message-ID: <20170614171312.GA7062@salvia>
+References: <20170614092448.GB10130@breakpoint.cc>
+ <CAOkSjBiSrj_V0nJoV8zXmfN-0mDcbfYEuf_knAnp+cHgOa=ePA@mail.gmail.com>
+ <20170614095803.GC10130@breakpoint.cc>
+ <20170614104008.GA14452@salvia>
+ <20170614111934.GA5591@breakpoint.cc>
+ <20170614112934.GA21546@salvia>
+ <20170614115338.GB5591@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: Cong Wang <xiyou.wangcong@gmail.com>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Arturo Borrero Gonzalez <arturo@debian.org>,
+        Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:45546 "EHLO
-        out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750717AbdFNO1d (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Jun 2017 10:27:33 -0400
-In-Reply-To: <20170614084147.GC31030@salvia> (Pablo Neira Ayuso's message of
-        "Wed, 14 Jun 2017 10:41:47 +0200")
+Received: from mail.us.es ([193.147.175.20]:59122 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752141AbdFNRNR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Jun 2017 13:13:17 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B77053066AF
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Jun 2017 19:13:06 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A5E286DAC4
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Jun 2017 19:13:06 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A2AF571E8
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Jun 2017 19:13:04 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20170614115338.GB5591@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> writes:
+On Wed, Jun 14, 2017 at 01:53:38PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> 
+> > The extra hook has a performance impact though, is it something that
+> > would just go away one x_tables is gone? What is your plan on this?
+> 
+> Once we do it we can't remove it again, because you can have multiple
+> nat base chains after this change, and removing hook and merging it back
+> into the l3 nat code means first chain attaches a null binding again.
 
-> Hi!
+With multiple nat chains, in case of overlap, we would just take the
+last coming in the pipeline. Just like several chains several times
+the same packet from a filter chain, right?
+
+> > On a different front (just an idea), I would really like to provide an
+> > alternative to setting conntrack templates, so we can get rid of
+> > having a chain (hence another hook) just to set the zone. It's just
+> > more cycles on a hook to do something very simple.
+> 
+> I don't think it can be done, the zone id has to be set before conntrack
+> lookup, I see no way to avoid this?
 >
-> On Tue, Jun 13, 2017 at 09:35:20AM -0700, Cong Wang wrote:
->> On Mon, Jun 12, 2017 at 11:16 PM, Florian Westphal <fw@strlen.de> wrote:
->> > Cong Wang <xiyou.wangcong@gmail.com> wrote:
->> >> On Thu, Jun 1, 2017 at 1:52 AM, Florian Westphal <fw@strlen.de> wrote:
->> >> > Joe described it nicely, problem is that after unload we may have
->> >> > conntracks that still have a nf_conn_help extension attached that
->> >> > has a pointer to a structure that resided in the (unloaded) module.
->> >>
->> >> Why not hold a refcnt for its module?
->> >
->> > That would work as well.
->> >
->> > I'm not sure its nice to disallow rmmod of helper modules if they are
->> > used by a connection however.
->> 
->> I am _not_ suggesting to disallow rmmod.
->> 
->> >
->> > Right now you can "rmmod nf_conntrack_foo" at any time and this should
->> > work just fine without first having to flush affected conntracks
->> > manually.
->> 
->> My point is that since netns wq could invoke code of that module,
->> why it doesn't hold a refcnt of that module?
->> 
->> I am not familiar with netfilter code base so not sure if that is
->> hard to do or not, but it looks more elegant than this barrier.
->
-> Florian has added a new native interface to integrate helpers into
-> nftables in a much better way than we do now, that allows much more
-> fine grain configuration. This new interface bumps refcounts on
-> helpers as you suggest.
->
-> However, we still have to sort of keep the existing behaviour around,
-> people has been relying on this rmmod feature to globally disable
-> helpers. It's very old thing indeed and as you can see, very sparse
-> grain for the netns era... But still I think we need this.
->
-> So I'm inclined to take this, and keep an eye to deprecate this
-> behaviour in a several years ahead once. Probably we can get rid of
-> this barrier at some point.
+> So even if we find a way to transport zone id from one hook to the
+> next (sans skb->nfct template) we still need one extra hook to
+> configure/set the zone id to use.
 
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Can we do this from rule? So we run sort of nf_conntrack_in() from a
+expression that enables tracking? I remember you mentioned about ICMP
+and related traffic, we just have to document how to configure this so
+people don't shoot on the feet, ie. track both tcp and icmp if you
+want to do this right with this selective tracking expressed in
+positive logic (contrary to the notrack, negative, logic).
 
-If it works I don't have any problems with the code and it sounds like
-it works.
-
-My apologies for the delay.  There is an email black hole between Forian
-and myself and I missed his replies.  Which gave me a very distored
-picture of the conversation.
-
-Eric
-
-
-
+I guess you would need something like this for bridge conntrack
+support, right?
