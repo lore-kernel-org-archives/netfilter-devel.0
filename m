@@ -1,97 +1,69 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 4/4] evaluate: reject meta nfproto outside of inet family
-Date: Fri, 16 Jun 2017 22:34:11 +0200
-Message-ID: <20170616203411.16408-5-fw@strlen.de>
-References: <20170616203411.16408-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Piotr Sawicki <piotr.sawicki@gmail.com>
+Subject: [NFQUEUE] lack of UID/GID fields in fragmented packets
+Date: Sat, 17 Jun 2017 18:58:12 +0200
+Message-ID: <oi3n2u$cs6$1@blaine.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:39958 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752041AbdFPUeG (ORCPT
+Received: from [195.159.176.226] ([195.159.176.226]:46413 "EHLO
+        blaine.gmane.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1750720AbdFQRFM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 16 Jun 2017 16:34:06 -0400
-In-Reply-To: <20170616203411.16408-1-fw@strlen.de>
+        Sat, 17 Jun 2017 13:05:12 -0400
+Received: from list by blaine.gmane.org with local (Exim 4.84_2)
+        (envelope-from <gnnd-netfilter-devel@m.gmane.org>)
+        id 1dMH9k-0001aW-NQ
+        for netfilter-devel@vger.kernel.org; Sat, 17 Jun 2017 19:05:04 +0200
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-meta nfproto loads the hook family type of the current rule context
-in the kernel, i.e. it will be NFPROTO_IPV6 for ip6 family,
-NFPROTO_BRIDGE for bridge and so on.
+Hi,
 
-The only case where this is useful is the inet pseudo family,
-where this is useful to determine the real hook family
-(NFPROTO_IPV4 or NFPROTO_IPV6).
+I'm developing a user-space firewall service for managing outgoing 
+network traffic. I want to control the access to the Internet on a per 
+user basis.
+So far, I've made a simple skeleton application which works quite well. 
+The NFQUEUE is attached to the output chain of the mangle table.
 
-In all other families 'meta nfproto' is either always true or false.
+Iptables -t mangle -A OUTPUT -j NFQUEUE --queue-num 0
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- doc/nft.xml    |  9 ++++++++-
- src/evaluate.c | 15 ++++++++++++++-
- 2 files changed, 22 insertions(+), 2 deletions(-)
+The queue is configured to capture only meta-data of outgoing packets. 
+The application reads the UID and GID fields from a captured packet. 
+After checking a permission, the application issues a verdict. The 
+configuration of NFQUEUE looks as follows:
 
-diff --git a/doc/nft.xml b/doc/nft.xml
-index d0d37396dddf..e9ccd63c7164 100644
---- a/doc/nft.xml
-+++ b/doc/nft.xml
-@@ -478,7 +478,9 @@ filter input iif $int_ifs accept
- 			</simplelist>.
- 
- 			The <literal>inet</literal> address family is a dummy family which is used to create
--			hybrid IPv4/IPv6 tables.
-+			hybrid IPv4/IPv6 tables.  The <literal>meta</literal> expression <literal>nfproto</literal>
-+			keyword can be used to test which family (ipv4 or ipv6) context the packet is being processed in.
-+
- 
- 			When no address family is specified, <literal>ip</literal> is used by default.
- 		</para>
-@@ -1907,6 +1909,11 @@ filter output icmpv6 type { echo-request, echo-reply }
- 								<entry>integer (32 bit)</entry>
- 							</row>
- 							<row>
-+								<entry>nfproto</entry>
-+								<entry>real hook protocol family, useful only in inet table</entry>
-+								<entry>integer (32 bit)</entry>
-+							</row>
-+							<row>
- 								<entry>protocol</entry>
- 								<entry>Ethertype protocol value</entry>
- 								<entry>ether_type</entry>
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 311c86c5abe9..4cbbd5f9b52a 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1691,6 +1691,18 @@ static int expr_evaluate_fib(struct eval_ctx *ctx, struct expr **exprp)
- 	return expr_evaluate_primary(ctx, exprp);
- }
- 
-+static int expr_evaluate_meta(struct eval_ctx *ctx, struct expr **exprp)
-+{
-+	struct expr *meta = *exprp;
-+
-+	if (ctx->pctx.family != NFPROTO_INET &&
-+	    meta->flags & EXPR_F_PROTOCOL &&
-+	    meta->meta.key == NFT_META_NFPROTO)
-+		return expr_error(ctx->msgs, meta,
-+					  "meta nfproto is only useful in the inet family");
-+	return expr_evaluate_primary(ctx, exprp);
-+}
-+
- static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
- {
- #ifdef DEBUG
-@@ -1712,8 +1724,9 @@ static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
- 	case EXPR_EXTHDR:
- 		return expr_evaluate_exthdr(ctx, expr);
- 	case EXPR_VERDICT:
--	case EXPR_META:
- 		return expr_evaluate_primary(ctx, expr);
-+	case EXPR_META:
-+		return expr_evaluate_meta(ctx, expr);
- 	case EXPR_FIB:
- 		return expr_evaluate_fib(ctx, expr);
- 	case EXPR_PAYLOAD:
--- 
-2.13.0
+nfq_set_mode (qh, NFQNL_COPY_META, 0xffff);
+nfq_set_queue_flags (qh, NFQA_CFG_F_UID_GID, NFQA_CFG_F_UID_GID)
+
+Everything works fine until I try to send huge packets. When the size of 
+these packets is larger than MTU then the fragmentation occurs. I've 
+observed that the first fragment has valid UID and GID fields, but the 
+rest of the fragments do not include them.
+
+I've found that the remedy for this concern is to set NFQA_CFG_F_GSO flag.
+
+nfq_set_queue_flags (qh, NFQA_CFG_F_GSO, NFQA_CFG_F_GSO)
+
+ From the analysis of the Linux kernel source code, I've figured out 
+that when the above flag is not set, the processed packet is not 
+fragmented before pushing it into the queue. So, the problem is in 
+fragmentation mechanism.
+
+The UID and GID fields (credentials) are taken from the socket structure 
+(sk) of a socket buffer (skb) (skb->sk->sk_socket->file->f_cred). The sk 
+field of skb may be NULL only if the skb originates from some internal 
+kernel subsystem.
+
+A user space application which sends network traffic via a BSD socket 
+always produces skb having valid sk and thus having valid credentials.
+
+I've found that when the fragmentation procedure splits the packet into 
+fragments, it keeps a valid sk only in the first fragment. Therefore, it 
+is impossible to fetch valid UID and GID fields from the rest of the 
+fragments.
+
+Is it intended behavior, or is it a bug?
 
