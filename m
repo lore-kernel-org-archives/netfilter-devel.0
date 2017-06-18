@@ -1,45 +1,69 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: ebt_nflog: fix unexpected truncated packet
-Date: Sun, 18 Jun 2017 10:51:09 +0800
-Message-ID: <1497754269-44413-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
-        Liping Zhang <zlpnobody@gmail.com>,
-        Vishwanath Pai <vpai@akamai.com>
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft v3] src: Pass stateless, numeric, ip2name and handle
+ variables as structure members.
+Date: Sun, 18 Jun 2017 11:24:09 +0200
+Message-ID: <20170618092409.GA2214@salvia>
+References: <5943a3bc.4c17620a.524bc.7af5@mx.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Varsha Rao <rvarsha016@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-17.163.com ([220.181.12.17]:49283 "EHLO m12-17.163.com"
+Received: from mail.us.es ([193.147.175.20]:43182 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751727AbdFRCvx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 17 Jun 2017 22:51:53 -0400
+        id S1750898AbdFRJYW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 18 Jun 2017 05:24:22 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id A93F1E1229
+        for <netfilter-devel@vger.kernel.org>; Sun, 18 Jun 2017 11:24:11 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9739F102183
+        for <netfilter-devel@vger.kernel.org>; Sun, 18 Jun 2017 11:24:11 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B4005100A79
+        for <netfilter-devel@vger.kernel.org>; Sun, 18 Jun 2017 11:24:09 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <5943a3bc.4c17620a.524bc.7af5@mx.google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <zlpnobody@gmail.com>
+On Fri, Jun 16, 2017 at 02:54:06PM +0530, Varsha Rao wrote:
+> libnftables library will be created soon. So declare numeric_output,
+> stateless_output, ip2name_output and handle_output as members of
+> structure output_ctx, instead of global variables. Rename these
+> variables as following,
+> 
+> numeric_output -> numeric
+> stateless_output -> stateless
+> ip2name_output -> ip2name
+> handle_output -> handle
+> 
+> Also add struct output_ctx *octx as member of struct netlink_ctx.
 
-"struct nf_loginfo li;" is a local variable, so we should set the flags
-to 0 explicitly, else, packets maybe truncated unexpectedly when copied
-to the userspace.
+Applied, thanks Varsha. Some small changes though, see below.
 
-Fixes: 7643507fe8b5 ("netfilter: xt_NFLOG: nflog-range does not truncate packets")
-Cc: Vishwanath Pai <vpai@akamai.com>
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
----
- net/bridge/netfilter/ebt_nflog.c | 1 +
- 1 file changed, 1 insertion(+)
+> diff --git a/src/main.c b/src/main.c
+> index 5089ff2..d09fd78 100644
+> --- a/src/main.c
+> +++ b/src/main.c
+> @@ -28,11 +28,8 @@
+>  #include <iface.h>
+>  #include <cli.h>
+>  
+> +struct output_ctx octx;
 
-diff --git a/net/bridge/netfilter/ebt_nflog.c b/net/bridge/netfilter/ebt_nflog.c
-index c1dc486..da1c2fd 100644
---- a/net/bridge/netfilter/ebt_nflog.c
-+++ b/net/bridge/netfilter/ebt_nflog.c
-@@ -30,6 +30,7 @@ ebt_nflog_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 	li.u.ulog.copy_len = info->len;
- 	li.u.ulog.group = info->group;
- 	li.u.ulog.qthreshold = info->threshold;
-+	li.u.ulog.flags = 0;
- 
- 	nf_log_packet(net, PF_BRIDGE, xt_hooknum(par), skb, xt_in(par),
- 		      xt_out(par), &li, "%s", info->prefix);
--- 
-2.5.5
+I turned this into 'static struct ...'
 
+>  unsigned int max_errors = 10;
+> -unsigned int numeric_output;
+> -unsigned int stateless_output;
+> -unsigned int ip2name_output;
+> -unsigned int handle_output;
+>  #ifdef DEBUG
+>  unsigned int debug_level;
+>  #endif
+[...]
 
+And some other small comestic changes, but overall looks good!
+
+Thanks!
