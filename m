@@ -1,52 +1,62 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 4/4] evaluate: reject meta nfproto outside of inet family
-Date: Sun, 18 Jun 2017 11:52:37 +0200
-Message-ID: <20170618095237.GA3312@salvia>
-References: <20170616203411.16408-1-fw@strlen.de>
- <20170616203411.16408-5-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] evaluate: merge nested set flags
+Date: Sun, 18 Jun 2017 13:13:34 +0200
+Message-ID: <1497784414-10028-1-git-send-email-pablo@netfilter.org>
+Cc: ian.kumlien@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48292 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60660 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750898AbdFRJwq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 18 Jun 2017 05:52:46 -0400
+        id S1750995AbdFRLNm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 18 Jun 2017 07:13:42 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5B6B5E1229
-        for <netfilter-devel@vger.kernel.org>; Sun, 18 Jun 2017 11:52:36 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 5912217AE3F
+        for <netfilter-devel@vger.kernel.org>; Sun, 18 Jun 2017 13:13:32 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 40D71FF6DC
-        for <netfilter-devel@vger.kernel.org>; Sun, 18 Jun 2017 11:52:36 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4BCCDD191C
+        for <netfilter-devel@vger.kernel.org>; Sun, 18 Jun 2017 13:13:32 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5C856D1D9A
-        for <netfilter-devel@vger.kernel.org>; Sun, 18 Jun 2017 11:52:34 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20170616203411.16408-5-fw@strlen.de>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 05CD9202A2
+        for <netfilter-devel@vger.kernel.org>; Sun, 18 Jun 2017 13:13:30 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 16, 2017 at 10:34:11PM +0200, Florian Westphal wrote:
-> diff --git a/src/evaluate.c b/src/evaluate.c
-> index 311c86c5abe9..4cbbd5f9b52a 100644
-> --- a/src/evaluate.c
-> +++ b/src/evaluate.c
-> @@ -1691,6 +1691,18 @@ static int expr_evaluate_fib(struct eval_ctx *ctx, struct expr **exprp)
->  	return expr_evaluate_primary(ctx, exprp);
->  }
->  
-> +static int expr_evaluate_meta(struct eval_ctx *ctx, struct expr **exprp)
-> +{
-> +	struct expr *meta = *exprp;
-> +
-> +	if (ctx->pctx.family != NFPROTO_INET &&
-> +	    meta->flags & EXPR_F_PROTOCOL &&
-> +	    meta->meta.key == NFT_META_NFPROTO)
-> +		return expr_error(ctx->msgs, meta,
-> +					  "meta nfproto is only useful in the inet family");
+A set may contain a nested set element definition, merge the nested set
+flags so we don't hit:
 
-Nitpick: Before you push this one, you probably want to mangle this
-line to get it aligned with expr_error().
+ BUG: invalid data expression type range
+ nft: netlink.c:400: netlink_gen_data: Assertion `0' failed.
+ Aborted
 
-Thanks!
+With the following example ruleset:
+
+ define dnat_ports      = { 1234-1567 }
+ define port_allow      = {
+        53,             # dns
+        $dnat_ports,    # dnat
+ }
+
+ add rule x y tcp dport $port_allow accept
+
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1145
+Fixes: a6b75b837f5e ("evaluate: set: Allow for set elems to be sets")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/evaluate.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 04367cedc62e..736ee1b0ee21 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1150,6 +1150,7 @@ static int expr_evaluate_set(struct eval_ctx *ctx, struct expr **expr)
+ 		    i->key->ops->type == EXPR_SET) {
+ 			struct expr *new = expr_clone(i->key);
+ 
++			set->set_flags |= i->key->set_flags;
+ 			list_replace(&i->list, &new->list);
+ 			expr_free(i);
+ 			i = new;
+-- 
+2.1.4
+
