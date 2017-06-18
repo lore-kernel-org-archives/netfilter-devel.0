@@ -1,42 +1,45 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [NFQUEUE] lack of UID/GID fields in fragmented packets
-Date: Sat, 17 Jun 2017 22:23:20 +0200
-Message-ID: <20170617202320.GA28291@breakpoint.cc>
-References: <oi3n2u$cs6$1@blaine.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Piotr Sawicki <piotr.sawicki@gmail.com>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf] netfilter: ebt_nflog: fix unexpected truncated packet
+Date: Sun, 18 Jun 2017 10:51:09 +0800
+Message-ID: <1497754269-44413-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
+        Liping Zhang <zlpnobody@gmail.com>,
+        Vishwanath Pai <vpai@akamai.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:41848 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752093AbdFQUYG (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 17 Jun 2017 16:24:06 -0400
-Content-Disposition: inline
-In-Reply-To: <oi3n2u$cs6$1@blaine.gmane.org>
+Received: from m12-17.163.com ([220.181.12.17]:49283 "EHLO m12-17.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751727AbdFRCvx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 17 Jun 2017 22:51:53 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Piotr Sawicki <piotr.sawicki@gmail.com> wrote:
-> Everything works fine until I try to send huge packets. When the size of
-> these packets is larger than MTU then the fragmentation occurs. I've
-> observed that the first fragment has valid UID and GID fields, but the rest
-> of the fragments do not include them.
-> 
-> I've found that the remedy for this concern is to set NFQA_CFG_F_GSO flag.
+From: Liping Zhang <zlpnobody@gmail.com>
 
-All users should set this flag.
+"struct nf_loginfo li;" is a local variable, so we should set the flags
+to 0 explicitly, else, packets maybe truncated unexpectedly when copied
+to the userspace.
 
-We can't make it default because it breaks old applications
-that can't deal with large (offload) packets.
+Fixes: 7643507fe8b5 ("netfilter: xt_NFLOG: nflog-range does not truncate packets")
+Cc: Vishwanath Pai <vpai@akamai.com>
+Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
+---
+ net/bridge/netfilter/ebt_nflog.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-> I've found that when the fragmentation procedure splits the packet into
-> fragments, it keeps a valid sk only in the first fragment. Therefore, it is
-> impossible to fetch valid UID and GID fields from the rest of the fragments.
-> 
-> Is it intended behavior, or is it a bug?
+diff --git a/net/bridge/netfilter/ebt_nflog.c b/net/bridge/netfilter/ebt_nflog.c
+index c1dc486..da1c2fd 100644
+--- a/net/bridge/netfilter/ebt_nflog.c
++++ b/net/bridge/netfilter/ebt_nflog.c
+@@ -30,6 +30,7 @@ ebt_nflog_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ 	li.u.ulog.copy_len = info->len;
+ 	li.u.ulog.group = info->group;
+ 	li.u.ulog.qthreshold = info->threshold;
++	li.u.ulog.flags = 0;
+ 
+ 	nf_log_packet(net, PF_BRIDGE, xt_hooknum(par), skb, xt_in(par),
+ 		      xt_out(par), &li, "%s", info->prefix);
+-- 
+2.5.5
 
-Neither.  UID code was added later, so this wasn't a problem.
-I would suggest to just set F_GSO flag; it has no disadvantages.
 
