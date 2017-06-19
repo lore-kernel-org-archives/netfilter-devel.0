@@ -1,48 +1,64 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf] netfilter: nf_ct_dccp/sctp: fix memory leak after
- netns cleanup
-Date: Mon, 19 Jun 2017 17:52:38 +0200
-Message-ID: <20170619155238.GC28291@breakpoint.cc>
-References: <1496575054-17168-1-git-send-email-zlpnobody@163.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH net] netfilter: do not hold dev in ipt_CLUSTERIP
+Date: Mon, 19 Jun 2017 19:08:37 +0200
+Message-ID: <20170619170837.GA4763@salvia>
+References: <cc6ebc3f8784d8d537737a1e18b443a2e0c7313a.1495271286.git.lucien.xin@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        Liping Zhang <zlpnobody@gmail.com>,
-        Davide Caratti <dcaratti@redhat.com>
-To: Liping Zhang <zlpnobody@163.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:47406 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752577AbdFSPxe (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 19 Jun 2017 11:53:34 -0400
+Cc: network dev <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net, fw@strlen.de
+To: Xin Long <lucien.xin@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1496575054-17168-1-git-send-email-zlpnobody@163.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <cc6ebc3f8784d8d537737a1e18b443a2e0c7313a.1495271286.git.lucien.xin@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Liping Zhang <zlpnobody@163.com> wrote:
-> From: Liping Zhang <zlpnobody@gmail.com>
+On Sat, May 20, 2017 at 05:08:06PM +0800, Xin Long wrote:
+> It's a terrible thing to hold dev in iptables target. When the dev is
+> being removed, unregister_netdevice has to wait for the dev to become
+> free. dmesg will keep logging the err:
 > 
-> After running the following commands for a while, kmemleak reported that
-> "1879 new suspected memory leaks" happened:
->   # while : ; do
->   ip netns add test
->   ip netns delete test
->   done
+>   kernel:unregister_netdevice: waiting for veth0_in to become free. \
+>   Usage count = 1
+> 
+> until iptables rules with this target are removed manually.
+> 
+> The worse thing is when deleting a netns, a virtual nic will be deleted
+> instead of reset to init_net in default_device_ops exit/exit_batch. As
+> it is earlier than to flush the iptables rules in iptable_filter_net_ops
+> exit, unregister_netdevice will block to wait for the nic to become free.
+> 
+> As unregister_netdevice is actually waiting for iptables rules flushing
+> while iptables rules have to be flushed after unregister_netdevice. This
+> 'dead lock' will cause unregister_netdevice to block there forever. As
+> the netns is not available to operate at that moment, iptables rules can
+> not even be flushed manually either.
+> 
+> The reproducer can be:
+> 
+>   # ip netns add test
+>   # ip link add veth0_in type veth peer name veth0_out
+>   # ip link set veth0_in netns test
+>   # ip netns exec test ip link set lo up
+>   # ip netns exec test ip link set veth0_in up
+>   # ip netns exec test iptables -I INPUT -d 1.2.3.4 -i veth0_in -j \
+>     CLUSTERIP --new --clustermac 89:d4:47:eb:9a:fa --total-nodes 3 \
+>     --local-node 1 --hashmode sourceip-sourceport
+>   # ip netns del test
+> 
+> This issue can be triggered by all virtual nics with ipt_CLUSTERIP.
+> 
+> This patch is to fix it by not holding dev in ipt_CLUSTERIP, but only
+> save dev->ifindex instead of dev. When removing the mc from the dev,
+> it will get dev by c->ifindex through dev_get_by_index.
+> 
+> Note that it doesn't save dev->name but dev->ifindex, as a dev->name
+> can be changed, it will confuse ipt_CLUSTERIP.
 
-Acked-by: Florian Westphal <fw@strlen.de>
+Applied to nf-next.
 
-I think we might want to add this to nf-next:
+This problem has been there since day 1, and it's a large patch, so I
+prefer we follow nf-next path.
 
-@@ -408,8 +410,10 @@ int nf_ct_l4proto_pernet_register_one(struct net *net,
-	pn = nf_ct_l4proto_net(net, l4proto);
--       if (pn == NULL)
-+       if (pn == NULL) {
-+               ret = -EINVAL;
-		goto out;
-+	}
-
-so that nf_ct_l4proto_pernet_register_one() will return failure.
-
-Maybe even add a WARN_ON in nf_ct_l4proto_net() to catch this.
+Thanks!
