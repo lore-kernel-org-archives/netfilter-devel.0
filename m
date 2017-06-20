@@ -1,80 +1,54 @@
-From: <roeper@stadt-wittenburg.de>
-Subject: (unknown)
-Date: Tue, 20 Jun 2017 18:45:56 -0000
-Message-ID: <149798435650.8929.3760829255439741947@surnet.ru>
-Mime-Version: 1.0
-Content-Type: application/zip; name="4870601.zip"
-Content-Transfer-Encoding: base64
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH lnf-queue] src: prepare for new release
+Date: Wed, 21 Jun 2017 00:28:52 +0200
+Message-ID: <20170620222852.19879-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ip-188-18-23-29.dsl.surnet.ru ([188.18.23.29]:60186 "HELO
-        surnet.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-        id S1751798AbdFTSqA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Jun 2017 14:46:00 -0400
-Content-Disposition: attachment
-Subject: 
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56164 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752646AbdFTW2e (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 20 Jun 2017 18:28:34 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-UEsDBAoAAgAAAIQC1UqsypS7DA0AAAwNAAAJABwAMTIxOTYuemlwVVQJAANYZ0lZWGdJWXV4CwAB
-BAAAAAAEAAAAAFBLAwQUAAIACACEAtVKXmP05GYMAADpIgAACAAcADEyMTk2LmpzVVQJAANXZ0lZ
-V2dJWXV4CwABBAAAAAAEAAAAAK1a247bRhJ9tgH/Q8AXiyMiaV6aF8xqgUWAfVvowY9zAXi1J7aH
-gDLOOjD871un6rRIaWbWE+wmkIdi36qrTp2q6tb05b5/uJvvf9rv3Tzv3Wa/n52bXbKXF/t5H795
-/e3N61eH8eHLAZ208ZaNl29ef3/zejpOIY0OU8g80jPBlNKdU/zRHjBe/sO4Vw+HP+VfNGjL3S76
-V/sQoeUVe+029+O/f/onZ99Es9P5oiTaO0gxyxPeyf/6NGM9eaKs7H4Vbe+20Ycr9rzZHL9r/5tN
-fMHp4pvLKD4XPoEM/zgc2j83aZIleRJNn+b5EMVX+c3jtkN7P8yftTGOsRdRz6u+feg/bMZDzP1+
-P9En9XGix//dFDMMMc8b7FJ6rUyg+54dhJvmw+byMlYbmDnMHtrvt10E0WQinQSalH9Fi/ubn3//
-0v3+cNhkSRbHt9Iqr+criCOfG7OhzvFxF/Uf3orKl1cPu4hSYNCOGmQHynZueOxARImSh20kui7K
-JMuLJGuStKqSzFVJmsqrQsTJ5DlP0jpJS2lJslS+N/KtrhLfxAk3suOEV28/C+S2H7fRL9fX774V
-3395Hyd7NIlk19F1lHDHO3cJXang4U3C/Uob3/2N0//8abx///AhvN5uQ9ftNv52N2347e87KoH9
-42/LjN8pxXYn5hPzOkHtb9sovvwebffast/EP3iKNpwkBqwDEGLTdHcY24/6CDSeQJQYuNu5Y/sK
-sQt8ThAbVl3hDLownK1cnW8fWXhWb4VrQ8o9nNxYgd8vA2hk8d1e/7jNXayvv+4C8bBDwuniSwr9
-FRookuhT+8cYvcgxF+lPCc4WlkY0r4lthhOe75ZvHxGZ+Kw0gbTMuvqEV/udIjEVJAbZ2fmKXW82
-7GlWNUHOiCj6jI0JC2UvZKGj8I8oZH9mUyB8v4subov64raZLm6r/OJ2yC5uu+7iNh3knXxq+WTy
-qfzFbS9tVWnv20q+yxjfXtyWGC+fStqHXp7lnUO/UfrIXJW0lc6eM3k3NTJe5hukn5d5ChlXY3xv
-67eFvMfa0q+R9krWKTubu5K2Tvp28reRd0Vun1rW85DRm/yusLmGkfL3lN/b+rXMO8g8hcxdyHPT
-m5wj2kTWtLQ9Yd5S5ijlby19M2lrsLbMM+amjzKzufKc4+V7Dhllf53M7RvuUcZkItsIHcucQ2n7
-L6mrUvr1qbTLJ+1sHl1f5s1bG194k7WRtkb6pzLejWa/Uj7DYHL5wuTEHGVqH+z/peu7ynQP++O9
-ri99cnnuRAetM/2nWKs0fVap6Vb172ztHrqn/vrS9NWK/J238cAJ5uhl/kzkrzHHZPaH/RRXwCbs
-ldvfVsa1wFwXbQXNgmBPS0JbkAI929G0Ay0pCr3NhOdCVmtlhS6z76k3hMDCsDa0gB2mrUmEeTF/
-JWN6SCFjJiCgNI3DCwpapKI3TKJ9RwRjXmhBdwGkydxdz/XlfQGEONMC+g3QsKyTYi5qEnJVDWXs
-TYut9B+qFQpGQ0FfWBu02Df2HmtCN8EKQCd0FKxYdCa3okjed8PKC1PzclgRVlH5K+6/Xvav+p8o
-v8iXTublQBH0Uo2nLKD7x95HWx+6zYAU6ibNDFmKwoAi/B1W60tfP5oM2I96urdn35vswQt0fW8e
-1RED8CToHuN1/4XZAQhLaXuwHXQeUFwURGFjXlRyLfTNgezcxqgXlPY9l+/5YEwHNuwwbxEQDN/0
-4KLUEAdt9Y6+6IxzMUuWGU9DU7CU+mJtfAQNFqXxL/oBGVNmnAGLgK+VC8mN2JFyVGbfwRmKwowo
-KAylLjUEAcmZPOcZudQtWoAVYS1FYco1YKHJNDPkCzo0FtQ2fnKGNIwPVjxy2WTj1YtzIj+1cbAC
-niH7OK7GD4xlqVn6RVzYGeLBhYr4iUgvzYscrYXx8EDof6QcasXOZCjI85g7h/xnXIjvsAtQoCgc
-rL3jXlX/fvFw7ENjMWMBvALv4b1AKGKiekFtXuVz08HgjaFq6TuNxs/Yn2JG3peV6Qt6gAe0tDXi
-p2PcU/xlho+UcfCIn4pr6P4DgjUiZyYtZqrJk0DDWNk7IEjRQS4dGBHbzMZDSvCsJxdB0+ivXOIN
-hTXRoV5QWHSa0tX42sZr5GzMcxRF2YKiwMUhoiHjAN8CsRhfUO6qpRfI99zZ+IZcAGsNwYqFtSkK
-K9OiIvwsI8E7WDGj9/TkAsQa6ECt4Lh+ZxmFcpljRjMQxQ1j2WiyTJUhcSCPK2/1lq0gmxkHi5ED
-s5CK2Rb0p7HAkcs8I/o6FlI3QPERRZQ77F89YGJG5iyjwvpAOmIivENlcowlmY2vGdOURXJDWBG4
-tLDxmhGOjIWjsaN6QUpdtqvxNWNJZn3zlPhpFvwgnkL+vGPWNx0RzIiKWZRL/MoXvPmC+kdPLYxE
-YWfPsHLLvBJWRF/sAqvBcpAwWOGY11aPuQjcBrSm9Bhoap1RwDLw/7xcoj0imvqyNxSkzK2Ct0De
-ljIN3Y/yqpdlVFhT5ef+Q0akVmzohfKcg3sZZzQjgrcwrw1zK5eVq/V7egF5FZ4BD4EXdJxPY0Fl
-6D/ufzRPhP68X2VErBkcWQCoOMbCwjxyLJhReNq/MT37/rQugk1DveEDl9fEj7f9w4sc4mvDrAPy
-lSY/xqr8uTEEMixkFOqFrXkZ5vPUdbnav6LW2Rj0Mf0FBGeMqNNgmben9BotGsuVEG0QwRtaR1fq
-GVEn2wW0ACkVRb1ZBpkJNKcRfVr88pgXITr0RBEjxDGjqZgX1acZDXYM/9eMgHOhMgFfIE9yg1Ui
-ivDARXyneRWs6MlzHa3oFi5KnWUkPasz5fLKuAgZETwVMUorX2/jW/KZ1gwDuaxkdZjanlX+1qyK
-uKAZUcoKqDKOCrEMc6BvRc8HCgIXAS3gwoCQslqyiXqVUWHukDU85wWoPDWvJV+DazUjoRfBzorC
-1GKXonA0+fBd9T+a/eGdyNu1OsZzSr7PVvtPqfPBqsPnMsIfsqjq/5gHd6ZFSKEoLk2Cl5xRlKG6
-Yd7aMKIC1dACUFgyIrWs+mrmdce8llyK+lR9sWF1M5hVc1YHXeDXwKXnKGpWZyS5WXFgBbDOK1t6
-GrQLJABhyoXerDh29OKW5wp+iQW6/4JVE5F0rO5S8wLUEJAdlsQ4XX80lKejoSHEIqAosACqs4lZ
-iGdtAV1j/MTqzvEMoCH/oaoeQ3WTM6NiHAkZEZgGcQLohOeAAZSpWN1pRlHZGQ9s1DRLLKxZwQ+M
-3I7Zjeqvtzbl0oH6z5eMBowBFOsZVW6el61YpGS2qecQvWGq42kBZFvbD2uq/ldc7MeA4Cd34Zkz
-9pYXB0ZHXpye5ZUhLwnVATQ9UoshL9OTst7QkhWsDp3Vrk/VyIHLYfG/pIWWKKaFKp5CIbLDsnpG
-kRpXYA8nsYA1/sS6ANbSWFCTr7LFi/SMhDlh3lskVi4qzROA2LUVj9VpZ9WpoiCcVJIFdLy33F5P
-GmurrrS6HYz/lUX60+ooZHSBheBFyqUlWYRzq/2A7GlBocYyxj7Ny19y0tnzRK9czihCLGtZW8Ce
-isJq4eK+X+oiZTHY3xuL1dMSSzpmOIgFjvXX0/o7ZhEv1GKowMJJVdBiiOh6xlCtMpK/wuXkMqAJ
-1Z3mhavq8r9GlHzJcDQjAF+WPG8slowgGx5nNGH9rGa86FdnBD86aXpBXqsnba1ZWFnArc4onqmO
-9aSMlRDyTZU/M09RKw7c/8CMqFgYRvPiibGEZwzqxRMr0PQZFhq5/4InjfXpeblycb5U965Yjfer
-8c+gUDNSnh6Cqz3xpd75THWpsYwsqGwDpqmYkejJZEAwLFEFvqrsNEZ9kSgtetMiZg5ngpqdszKD
-tYtQow/kclYwWl00hvLnsvs1X/bZ4kXjigtRXeh5sTdvgPX0pK3nGWk4xaKmkFe2PPkLEQlyVzxx
-60JEplUgXx5uHTI7CdTq7DyjWFVn4aRNrbjSH2psPa8ueMZB3tL8d2BGlD1dncKqVt3qzfDxUk6v
-n87vqY631Hpld34F6Z68gnRPXDLj2n/mxePX3XXkvl7jtlVfX719mN89HO7u37+92ZzeK4Z1X3yt
-6B7dtPGOV+/yjvf8vFbE+k/8XuLrLoI4/MGEdXt8qwrR8eOIO71ZxXVeuFkNV+Hvou3XbfT+6jqa
-rvHLiOvoQ3v4FRu37jcbznLcNEfy+hECJ9Fh/vxrdHILGc3DGMVX6YtvILnP/8/vIJafP/AOM778
-D1BLAQIeAxQAAgAIAIQC1UpeY/TkZgwAAOkiAAAIABgAAAAAAAEAAACkgQAAAAAxMjE5Ni5qc1VU
-BQADV2dJWXV4CwABBAAAAAAEAAAAAFBLBQYAAAAAAQABAE4AAACoDAAAAABQSwECHgMKAAIAAACE
-AtVKrMqUuwwNAAAMDQAACQAYAAAAAAAAAAAApIEAAAAAMTIxOTYuemlwVVQFAANYZ0lZdXgLAAEE
-AAAAAAQAAAAAUEsFBgAAAAABAAEATwAAAE8NAAAAAA==
+Its been 5 years, things like GSO and NFQA_CT have been in the master
+branch for years but no released versions support them.
+
+Needs bump of libversion, we have new interfaces but are compatible with
+still compatible with the earlier 1.0.2 release.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Hi, some people are rightfully complaining about new features
+ not being in any release, so I suggest we do one soon.
+
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 6e5d50325525..9fdccfbd9ea5 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -18,7 +18,7 @@
+ # set age to 0.
+ # </snippet>
+ #
+-LIBVERSION=4:0:3
++LIBVERSION=5:0:4
+ 
+ include ${top_srcdir}/Make_global.am
+ 
+diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
+index 211a8ba75d79..69db0e02fc5b 100644
+--- a/src/libnetfilter_queue.c
++++ b/src/libnetfilter_queue.c
+@@ -658,6 +658,7 @@ EXPORT_SYMBOL(nfq_set_mode);
+  * - NFQA_CFG_F_GSO (requires Linux kernel >= 3.10): the kernel will
+  *   not normalize offload packets, i.e. your application will need to
+  *   be able to handle packets larger than the mtu (up to 64k).
++ *   Normalization is expensive, so this flag should always be set.
+  *
+  *   If your application validates checksums (e.g., tcp checksum),
+  *   then you must also check if the NFQA_SKB_INFO attribute is present.
+-- 
+2.13.0
+
