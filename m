@@ -1,54 +1,41 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH lnf-queue] src: prepare for new release
-Date: Wed, 21 Jun 2017 00:28:52 +0200
-Message-ID: <20170620222852.19879-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+Subject: [4.11.y netfilter] 4.11 iptables regression fix
+Date: Wed, 21 Jun 2017 10:41:51 +0200
+Message-ID: <20170621084151.GD28291@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: davem@davemloft.net, pablo@netfilter.org,
+        netfilter-devel@vger.kernel.org
+To: stable@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56164 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57940 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752646AbdFTW2e (ORCPT
+        by vger.kernel.org with ESMTP id S1752002AbdFUImp (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 20 Jun 2017 18:28:34 -0400
+        Wed, 21 Jun 2017 04:42:45 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Its been 5 years, things like GSO and NFQA_CT have been in the master
-branch for years but no released versions support them.
+Hi.
 
-Needs bump of libversion, we have new interfaces but are compatible with
-still compatible with the earlier 1.0.2 release.
+Please consider picking up
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Hi, some people are rightfully complaining about new features
- not being in any release, so I suggest we do one soon.
+commit 324318f0248c31be8a08984146e7e4dd7cdd091d
+Author: Willem de Bruijn <willemb@google.com>
+netfilter: xtables: zero padding in data_to_user
 
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 6e5d50325525..9fdccfbd9ea5 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -18,7 +18,7 @@
- # set age to 0.
- # </snippet>
- #
--LIBVERSION=4:0:3
-+LIBVERSION=5:0:4
- 
- include ${top_srcdir}/Make_global.am
- 
-diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
-index 211a8ba75d79..69db0e02fc5b 100644
---- a/src/libnetfilter_queue.c
-+++ b/src/libnetfilter_queue.c
-@@ -658,6 +658,7 @@ EXPORT_SYMBOL(nfq_set_mode);
-  * - NFQA_CFG_F_GSO (requires Linux kernel >= 3.10): the kernel will
-  *   not normalize offload packets, i.e. your application will need to
-  *   be able to handle packets larger than the mtu (up to 64k).
-+ *   Normalization is expensive, so this flag should always be set.
-  *
-  *   If your application validates checksums (e.g., tcp checksum),
-  *   then you must also check if the NFQA_SKB_INFO attribute is present.
--- 
-2.13.0
+After this, you will also need to pick
 
+commit 751a9c763849f5859cb69ea44b0430d00672f637
+Author: Willem de Bruijn <willemb@google.com>
+netfilter: xtables: fix build failure from COMPAT_XT_ALIGN outside CONFIG_COMPAT
+
+Both apply cleanly to 4.11.  Earlier kernels are not affected.
+
+Without these two patches we fail to delete rules, e.g.
+
+iptables -A INPUT -i lo -p icmp --icmp-type 1 -j ACCEPT
+iptables -D INPUT -i lo -p icmp --icmp-type 1 -j ACCEPT
+
+2nd command fails to delete the newly added rule.
