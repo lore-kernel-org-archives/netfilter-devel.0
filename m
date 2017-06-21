@@ -1,56 +1,165 @@
-From: Shyam Saini <mayhs11saini@gmail.com>
-Subject: Re: [PATCHv3] tests: py: Add test for ambiguity while setting the value
-Date: Wed, 21 Jun 2017 14:20:59 +0530
-Message-ID: <CAOfkYf6pn6jTUjVpwcYok3QuXTp_v8SX17hNeNHAPfiUQhALYw@mail.gmail.com>
-References: <1497641742-25272-1-git-send-email-mayhs11saini@gmail.com>
- <20170618092913.GA8026@salvia> <20170618094830.GA3183@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Laurent Fasnacht <l@libres.ch>
+Subject: [PATCH] nft: make raw payloads work
+Date: Wed, 21 Jun 2017 11:07:00 +0200
+Message-ID: <1498036020-22214-1-git-send-email-l@libres.ch>
+Cc: Laurent Fasnacht <l@libres.ch>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f48.google.com ([209.85.218.48]:34533 "EHLO
-        mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752566AbdFUIvB (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Jun 2017 04:51:01 -0400
-Received: by mail-oi0-f48.google.com with SMTP id b6so86598742oia.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Jun 2017 01:51:00 -0700 (PDT)
-In-Reply-To: <20170618094830.GA3183@salvia>
+Received: from mail.o-t.ch ([78.40.74.172]:58919 "EHLO mail.o-t.ch"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751128AbdFUJMv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 21 Jun 2017 05:12:51 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Jun 18, 2017 at 3:18 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sun, Jun 18, 2017 at 11:29:13AM +0200, Pablo Neira Ayuso wrote:
->> On Sat, Jun 17, 2017 at 01:05:42AM +0530, Shyam Saini wrote:
->> > This test checks bug identified and fixed in the commit mentioned below
->> > In a statement if there are  multiple src data then it  would be
->> > totally ambiguous to decide which value to set.
->> >
->> > Before the commit was made it returned 134(BUG), but now it returns 1
->> > i.e, an error message.
->>
->> Applied, thanks.
->>
->> One change though before applying, see below.
->
-> BTW, shouldn't we check for explicit exit code 1 in rule_add() in
-> tests/py/?
->
->> > Test: 986dea8 ("evaluate: avoid reference to multiple src data in
->> > statements which set values")
->
-> It would be good to run this test with and without 986dea8.
->
-> If we hit exit code 134, the py test should complain even if we say
-> "fail".
->
-> Basically, test py with 'fail' is fine if we fail gracefully, not if
-> we hit BUG.
->
-> Probably just a matter of making a oneline patch for nft-tests.py to
-> enforce this?
-Patch sent,
+In nftables, there is a rather (IMO) undocumented feature, raw payloads.
 
-Thanks
+It would be useful both for development and to quickly extend nftables for corner cases.
+
+Unfortunately, it is broken in current master (syntax is not consistent between print and parse,
+and any practical usage doesn't work).
+
+This patch defines a new syntax, and makes it usable in practice:
+
+@<protocol>,<base>,<data type>,<offset>,<length>
+
+Example (rewrite arp packet target hardware address if target protocol address matches a given address):
+
+meta iif enp2s0 arp ptype 0x0800 arp htype 1 arp hlen 6 arp plen 4 @arp,nh,ipv4_addr,192,32 192.168.143.16 @arp,nh,ether_addr,144,48 set 11:22:33:44:55:66 accept;
+
+Signed-off-by: Laurent Fasnacht <l@libres.ch>
+---
+ include/proto.h    |  2 ++
+ src/parser_bison.y | 32 ++++++++++++++++++++++++++------
+ src/payload.c      | 15 +++++++++++++--
+ 3 files changed, 41 insertions(+), 8 deletions(-)
+
+diff --git a/include/proto.h b/include/proto.h
+index 01188ab..a7c696f 100644
+--- a/include/proto.h
++++ b/include/proto.h
+@@ -295,6 +295,8 @@ enum sctp_hdr_fields {
+ 	SCTPHDR_CHECKSUM,
+ };
+ 
++#define RAWHDR_FIELD 0xffffffff
++
+ extern const struct proto_desc proto_icmp;
+ extern const struct proto_desc proto_ah;
+ extern const struct proto_desc proto_esp;
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index a8448e1..c49b589 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -138,6 +138,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ 	struct quota		*quota;
+ 	struct ct		*ct;
+ 	const struct datatype	*datatype;
++	const struct proto_desc	*proto_desc;
+ 	struct handle_spec	handle_spec;
+ 	struct position_spec	position_spec;
+ 	const struct exthdr_desc *exthdr_desc;
+@@ -463,6 +464,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %type <val>			type_identifier_list
+ %type <datatype>		data_type
+ 
++%type <proto_desc>		protocol
++
+ %type <cmd>			line
+ %destructor { cmd_free($$); }	line
+ 
+@@ -1445,6 +1448,23 @@ data_type		:	type_identifier_list
+ 					$$ = datatype_lookup($1);
+ 			}
+ 			;
++			
++protocol		:	ETHER		{ $$ = &proto_eth; }
++			|	VLAN		{ $$ = &proto_vlan; }
++			|	ARP		{ $$ = &proto_arp; }
++			|	IP		{ $$ = &proto_ip; }
++			|	ICMP		{ $$ = &proto_icmp; }
++			|	IP6		{ $$ = &proto_ip6; }
++			|	ICMP6		{ $$ = &proto_icmp6; }
++			|	AH		{ $$ = &proto_ah; }
++			|	ESP		{ $$ = &proto_esp; }
++			|	COMP		{ $$ = &proto_comp; }
++			|	UDP		{ $$ = &proto_udp; }
++			|	UDPLITE		{ $$ = &proto_udplite; }
++			|	TCP		{ $$ = &proto_tcp; }
++			|	DCCP		{ $$ = &proto_dccp; }
++			|	SCTP		{ $$ = &proto_sctp; }
++			;
+ 
+ type_identifier_list	:	type_identifier
+ 			{
+@@ -3260,13 +3280,13 @@ payload_expr		:	payload_raw_expr
+ 			|	sctp_hdr_expr
+ 			;
+ 
+-payload_raw_expr	:	AT	payload_base_spec	COMMA	NUM	COMMA	NUM
++payload_raw_expr	:	AT	protocol	COMMA	payload_base_spec	COMMA	data_type	COMMA	NUM	COMMA	NUM
+ 			{
+-				$$ = payload_expr_alloc(&@$, NULL, 0);
+-				$$->payload.base	= $2;
+-				$$->payload.offset	= $4;
+-				$$->len			= $6;
+-				$$->dtype		= &integer_type;
++				$$ = payload_expr_alloc(&@$, $2, RAWHDR_FIELD);
++				$$->payload.base   = $4;
++				$$->payload.offset = $8;
++				$$->dtype          = $6;
++				$$->len            = $10;
+ 			}
+ 			;
+ 
+diff --git a/src/payload.c b/src/payload.c
+index 7f94ff7..e75c83c 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -48,8 +48,10 @@ static void payload_expr_print(const struct expr *expr, struct output_ctx *octx)
+ 	if (payload_is_known(expr))
+ 		printf("%s %s", desc->name, tmpl->token);
+ 	else
+-		printf("payload @%s,%u,%u",
++		printf("@%s,%s,%s,%u,%u",
++		       desc->name,
+ 		       proto_base_tokens[expr->payload.base],
++		       expr->dtype->name,
+ 		       expr->payload.offset, expr->len);
+ }
+ 
+@@ -149,7 +151,11 @@ struct expr *payload_expr_alloc(const struct location *loc,
+ 	unsigned int flags = 0;
+ 
+ 	if (desc != NULL) {
+-		tmpl = &desc->templates[type];
++		if (type == RAWHDR_FIELD) {
++			tmpl = &proto_unknown_template;
++		} else {
++			tmpl = &desc->templates[type];
++		}
+ 		base = desc->base;
+ 		if (proto_key_is_protocol(desc, type))
+ 			flags = EXPR_F_PROTOCOL;
+@@ -509,6 +515,9 @@ void payload_expr_complete(struct expr *expr, const struct proto_ctx *ctx)
+ 		expr->payload.tmpl = tmpl;
+ 		return;
+ 	}
++
++	/* This is a raw payload */
++	expr->payload.desc = desc;
+ }
+ 
+ static unsigned int mask_to_offset(const struct expr *mask)
+@@ -641,6 +650,8 @@ raw:
+ 	payload_init_raw(new, expr->payload.base, expr->payload.offset,
+ 			 expr->len);
+ 	list_add_tail(&new->list, list);
++	if (desc)
++		new->payload.desc = desc;
+ }
+ 
+ static bool payload_is_adjacent(const struct expr *e1, const struct expr *e2)
+-- 
+2.1.4
+
