@@ -1,54 +1,53 @@
 From: Shyam Saini <mayhs11saini@gmail.com>
-Subject: Re: [PATCHv3] tests: py: Add test for ambiguity while setting the value
-Date: Wed, 21 Jun 2017 14:16:35 +0530
-Message-ID: <CAOfkYf7th9qh81iUD-c_AFYHy05t=ccjTj0=UZ6XYfeU7u41hQ@mail.gmail.com>
-References: <1497641742-25272-1-git-send-email-mayhs11saini@gmail.com>
- <20170618092913.GA8026@salvia> <20170618093137.GA12806@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] tests: py: Fail test forcefully when bug is not fixed
+Date: Wed, 21 Jun 2017 14:17:45 +0530
+Message-ID: <1498034865-11321-1-git-send-email-mayhs11saini@gmail.com>
+Cc: Shyam Saini <mayhs11saini@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f54.google.com ([209.85.218.54]:35565 "EHLO
-        mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751038AbdFUIqh (ORCPT
+Received: from mail-pf0-f170.google.com ([209.85.192.170]:34799 "EHLO
+        mail-pf0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752413AbdFUIsl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 21 Jun 2017 04:46:37 -0400
-Received: by mail-oi0-f54.google.com with SMTP id c189so63560158oia.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Jun 2017 01:46:37 -0700 (PDT)
-In-Reply-To: <20170618093137.GA12806@salvia>
+        Wed, 21 Jun 2017 04:48:41 -0400
+Received: by mail-pf0-f170.google.com with SMTP id s66so81840700pfs.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 Jun 2017 01:48:40 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Jun 18, 2017 at 3:01 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sun, Jun 18, 2017 at 11:29:13AM +0200, Pablo Neira Ayuso wrote:
->> On Sat, Jun 17, 2017 at 01:05:42AM +0530, Shyam Saini wrote:
->> > This test checks bug identified and fixed in the commit mentioned below
->> > In a statement if there are  multiple src data then it  would be
->> > totally ambiguous to decide which value to set.
->> >
->> > Before the commit was made it returned 134(BUG), but now it returns 1
->> > i.e, an error message.
->>
->> Applied, thanks.
->>
->> One change though before applying, see below.
->>
->> > Test: 986dea8 ("evaluate: avoid reference to multiple src data in
->> > statements which set values")
->
-> BTW, please update .gitconfig in your home to add:
->
-> [core]
->         abbrev = 12
->
-> So we get commit abbrev of 12 chars at least.
->
-> 7 may lead to ambiguities in the future, as a hash with the same
-> prefix may show up later on.
-Done
+when we have "fail" in the test cases then py test doesn't complain
+anything, but the test should complain if the fix is not applied.
 
-Thanks a lot :)
+Before applying the [Test] commit, nft throws following error message
+and exits with error code 134.
+$ nft add rule x y tcp dport set { 0 , 1 }
+    BUG: unknown expression type set reference
+    nft: netlink_linearize.c:696: netlink_gen_expr: Assertion `0' failed.
+    Aborted
 
-> Thanks!
+This commit enforces nft-test.py to throw error message when the fix
+is not applied.
+
+Test:986dea8a4a9d ("evaluate: avoid reference to multiple src data in
+statements which set values")
+Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
+---
+ tests/py/nft-test.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
+index c1da71aaf827..8d099a15aaf8 100755
+--- a/tests/py/nft-test.py
++++ b/tests/py/nft-test.py
+@@ -702,7 +702,7 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
+             ret = execute_cmd(cmd, filename, lineno, payload_log)
+ 
+             state = rule[1].rstrip()
+-            if (ret == 0 and state == "fail") or (ret != 0 and state == "ok"):
++            if (ret in [0,134] and state == "fail") or (ret != 0 and state == "ok"):
+                 if state == "fail":
+                     test_state = "This rule should have failed."
+                 else:
+-- 
+1.9.1
+
