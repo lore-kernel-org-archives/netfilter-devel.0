@@ -1,44 +1,68 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] bump version to 1.0.3
-Date: Fri, 23 Jun 2017 10:52:16 +0200
-Message-ID: <20170623085216.GA1370@salvia>
-References: <20170621211846.20630-1-richard@nod.at>
- <8c83afe4-3947-13cb-0bbd-973ac8ef960f@nod.at>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-To: Richard Weinberger <richard@nod.at>
+From: Shyam Saini <mayhs11saini@gmail.com>
+Subject: [PATCH 1/2] tests: shell: Add test for incomplete set add set command
+Date: Fri, 23 Jun 2017 17:35:55 +0530
+Message-ID: <1498219556-25179-1-git-send-email-mayhs11saini@gmail.com>
+Cc: Shyam Saini <mayhs11saini@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43426 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753759AbdFWIw0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 23 Jun 2017 04:52:26 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0935D1B8408
-        for <netfilter-devel@vger.kernel.org>; Fri, 23 Jun 2017 10:52:15 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EF13AA7F25
-        for <netfilter-devel@vger.kernel.org>; Fri, 23 Jun 2017 10:52:14 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BC437DA46C
-        for <netfilter-devel@vger.kernel.org>; Fri, 23 Jun 2017 10:52:12 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <8c83afe4-3947-13cb-0bbd-973ac8ef960f@nod.at>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:34730 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751230AbdFWMGY (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 23 Jun 2017 08:06:24 -0400
+Received: by mail-pf0-f194.google.com with SMTP id d5so7072850pfe.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 23 Jun 2017 05:06:23 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 21, 2017 at 11:20:36PM +0200, Richard Weinberger wrote:
-> Am 21.06.2017 um 23:18 schrieb Richard Weinberger:
-> > Time to make a new version such that distros can pick this version.
-> > Many distros ship only 1.0.2 which is almost five years old and
-> > does not support recent netfilter features such as NFQA_CT.
-> > 
-> > Signed-off-by: Richard Weinberger <richard@nod.at>
-> > ---
-> > Hi!
-> > 
-> > As discussed with Florian on IRC, it is time for a new version.
-> > I think we don't have to change the API version, so just increment
-> > the release version.
+Before the [Test] commit if we run nft with incomplete "add set"
+command it caused segmentation fault and exit with error code 139 and
+further it didn't throw any error message.
 
-Will schedule time releases by next week.
+  For example:
+    $ sudo nft add set t s
+
+But after the [Test] commit it throws syntax error message and exits with
+return value 1.
+
+  For example:
+    $ sudo nft add set t s
+    <cmdline>:1:12-12: Error: syntax error, unexpected newline, expecting '{'
+    add set t s
+               ^
+
+This commit tests changes made in the [Test] commit.
+
+Test:c6cd7c22548a ( "src: fix crash when inputting an incomplete set add
+command" )
+Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
+---
+ .../testcases/sets/0023incomplete_add_set_command_0      | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+ create mode 100755 tests/shell/testcases/sets/0023incomplete_add_set_command_0
+
+diff --git a/tests/shell/testcases/sets/0023incomplete_add_set_command_0 b/tests/shell/testcases/sets/0023incomplete_add_set_command_0
+new file mode 100755
+index 000000000000..b7535f7059db
+--- /dev/null
++++ b/tests/shell/testcases/sets/0023incomplete_add_set_command_0
+@@ -0,0 +1,16 @@
++#!/bin/bash
++
++# This testscase checks bug identified and fixed in the commit Id "c6cd7c22548a"
++# Before the commit c6cd7c22548a, nft returns 139 (i.e, segmentation fault) which
++# indicates the bug but after the commit it returns 1.
++
++$NFT add table t
++$NFT add set t c
++
++ret=$?
++if [ $ret -ne 1 ] ;
++then
++	echo "E: returned $ret instead of 1" >&2
++	exit 1
++fi
++
+-- 
+1.9.1
+
