@@ -1,33 +1,52 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH net-next] netfilter: conntrack: add a new
- NF_CT_EXT_EXPAND extension
-Date: Mon, 26 Jun 2017 18:53:09 +0200
-Message-ID: <20170626165309.GM29636@breakpoint.cc>
-References: <1498457446-30135-1-git-send-email-xiaolou4617@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/2] tests: shell: Add test for incomplete set add set
+ command
+Date: Mon, 26 Jun 2017 18:59:42 +0200
+Message-ID: <20170626165942.GA8489@salvia>
+References: <1498219556-25179-1-git-send-email-mayhs11saini@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
-        davem@davemloft.net, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-To: Lin Zhang <xiaolou4617@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Shyam Saini <mayhs11saini@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:33796 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751101AbdFZQ7s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 26 Jun 2017 12:59:48 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 1DE21E0422
+        for <netfilter-devel@vger.kernel.org>; Mon, 26 Jun 2017 18:59:37 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0948C1B405D
+        for <netfilter-devel@vger.kernel.org>; Mon, 26 Jun 2017 18:59:37 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D4A94A7F25
+        for <netfilter-devel@vger.kernel.org>; Mon, 26 Jun 2017 18:59:33 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1498457446-30135-1-git-send-email-xiaolou4617@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1498219556-25179-1-git-send-email-mayhs11saini@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Lin Zhang <xiaolou4617@gmail.com> wrote:
->   In the current conntrack extend code, if we want to add a new
-> extension, we must be add a new extension id and recompile kernel.
-> I think that is not be convenient for users, so i add a new extension named
-> NF_CT_EXT_EXPAND for supporting dynamic register/unregister expansion
-> in runtime that means if kernel support NF_CT_EXT_EXPAND extension,
-> user could call nf_ct_expand_area_add() to register a new expansion
-> but not need to predefine an id in enum nf_ct_ext_id.
+On Fri, Jun 23, 2017 at 05:35:55PM +0530, Shyam Saini wrote:
+> Before the [Test] commit if we run nft with incomplete "add set"
+> command it caused segmentation fault and exit with error code 139 and
+> further it didn't throw any error message.
+> 
+>   For example:
+>     $ sudo nft add set t s
+> 
+> But after the [Test] commit it throws syntax error message and exits with
+> return value 1.
+> 
+>   For example:
+>     $ sudo nft add set t s
+>     <cmdline>:1:12-12: Error: syntax error, unexpected newline, expecting '{'
+>     add set t s
+>                ^
+> 
+> This commit tests changes made in the [Test] commit.
 
-We never did this because its only required for out of tree modules.
+Applied, thanks.
 
-I would prefer if such extensions are discussed/proposed on nf-devel
-instead, and then, if there is agreement that the extension is useful,
-it can be submitted for inclusion in mainline kernel instead.
+I have reworked a bit your commit message, it looks a bit convoluted.
+No worries, have a look at what I pushed out for reference.
