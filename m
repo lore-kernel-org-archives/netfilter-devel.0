@@ -1,88 +1,48 @@
-From: Piotr Sawicki <piotr.sawicki@gmail.com>
-Subject: [PATCH] libnetfilter_queue: Add information about retrieving
- UID/GID/SECCTX fields
-Date: Mon, 26 Jun 2017 22:31:30 +0200
-Message-ID: <oirqus$3p1$1@blaine.gmane.org>
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] netfilter: ip_tables: remove useless variable assignment in
+ get_info()
+Date: Mon, 26 Jun 2017 17:34:28 -0500
+Message-ID: <20170626223428.GA11614@embeddedgus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [195.159.176.226] ([195.159.176.226]:41192 "EHLO
-        blaine.gmane.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-        with ESMTP id S1751432AbdFZUbj (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 26 Jun 2017 16:31:39 -0400
-Received: from list by blaine.gmane.org with local (Exim 4.84_2)
-        (envelope-from <gnnd-netfilter-devel@m.gmane.org>)
-        id 1dPafT-0004r0-15
-        for netfilter-devel@vger.kernel.org; Mon, 26 Jun 2017 22:31:31 +0200
-Content-Language: en-US
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        James Morris <jmorris@namei.org>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Patrick McHardy <kaber@trash.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Piotr Radoslaw Sawicki <piotr.sawicki@gmail.com>
+Value assigned to variable _ret_ at line 970 is overwritten either at
+line 986 or 988, before it can be used. This makes such variable
+assignment useless.
 
-Add information about retrieving UID/GID/SECCTX fields
-
-Signed-off-by: Piotr Radoslaw Sawicki <piotr.sawicki@gmail.com>
+Addresses-Coverity-ID: 1226932
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
 ---
-  src/libnetfilter_queue.c | 19 +++++++++++++++++++
-  1 file changed, 19 insertions(+)
+ net/ipv4/netfilter/ip_tables.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
-index 1702158..4002687 100644
---- a/src/libnetfilter_queue.c
-+++ b/src/libnetfilter_queue.c
-@@ -698,6 +698,13 @@ EXPORT_SYMBOL(nfq_set_mode);
-  	flags &= ~NFQA_CFG_F_FAIL_OPEN;
-  	err = nfq_set_queue_flags(qh, mask, flags);
-  \endverbatim
-+ *  - NFQA_CFG_F_SECCTX: the kernel will dump security context of the 
-socket to
-+ *  which each packet belongs.
-+ *
-+ *  \warning
-+ *  When fragmentation occurs and NFQA_CFG_F_GSO is NOT set then the kernel
-+ *  dumps UID/GID and security context fields only for one fragment. To 
-deal with
-+ *  this limitation always set NFQA_CFG_F_GSO.
-   *
-   * \return -1 on error with errno set appropriately; =0 otherwise.
-   */
-@@ -1201,6 +1208,10 @@ EXPORT_SYMBOL(nfq_get_packet_hw);
-  /**
-   * nfq_get_uid - get the UID of the user the packet belongs to
-   * \param nfad Netlink packet data handle passed to callback function
-+ * \warning If the NFQA_CFG_F_GSO flag is not set, then fragmented packets
-+ *       may be pushed into the queue. In this case, only one fragment will
-+ *       have the UID field set. To deal with this issue always set
-+ *       NFQA_CFG_F_GSO.
-   *
-   * \return 1 if there is a UID available, 0 otherwise.
-   */
-@@ -1217,6 +1228,10 @@ EXPORT_SYMBOL(nfq_get_uid);
-  /**
-   * nfq_get_gid - get the GID of the user the packet belongs to
-   * \param nfad Netlink packet data handle passed to callback function
-+ * \warning If the NFQA_CFG_F_GSO flag is not set, then fragmented packets
-+ *       may be pushed into the queue. In this case, only one fragment will
-+ *       have the GID field set. To deal with this issue always set
-+ *       NFQA_CFG_F_GSO.
-   *
-   * \return 1 if there is a GID available, 0 otherwise.
-   */
-@@ -1235,6 +1250,10 @@ EXPORT_SYMBOL(nfq_get_gid);
-   * nfq_get_secctx - get the security context for this packet
-   * \param nfad Netlink packet data handle passed to callback function
-   * \param secdata data to write the security context to
-+ * \warning If the NFQA_CFG_F_GSO flag is not set, then fragmented packets
-+ *       may be pushed into the queue. In this case, only one fragment will
-+ *       have the SECCTX field set. To deal with this issue always set
-+ *       NFQA_CFG_F_GSO.
-   *
-   * \return -1 on error, otherwise > 0
-   */
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 2a55a40..648697c 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -967,7 +967,7 @@ static int get_info(struct net *net, void __user *user,
+ 		struct xt_table_info tmp;
+ 
+ 		if (compat) {
+-			ret = compat_table_info(private, &tmp);
++			compat_table_info(private, &tmp);
+ 			xt_compat_flush_offsets(AF_INET);
+ 			private = &tmp;
+ 		}
 -- 
-2.7.4
-
+2.5.0
