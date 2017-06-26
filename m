@@ -1,93 +1,67 @@
-From: Shyam Saini <mayhs11saini@gmail.com>
-Subject: Re: [PATCH 1/2] tests: shell: Add test for incomplete set add set command
-Date: Mon, 26 Jun 2017 23:46:50 +0530
-Message-ID: <CAOfkYf4+b4yM7YVBozdJ9OyQsULZ=8juNGcz8SVdpT=skJRUHQ@mail.gmail.com>
-References: <1498219556-25179-1-git-send-email-mayhs11saini@gmail.com>
- <20170626165942.GA8489@salvia> <CAOfkYf7jSLBq65ALTjdi0JK=ajPkg_db0sSYPkv7tFrLA2u1gg@mail.gmail.com>
- <20170626173725.GA12032@salvia> <CAOfkYf6Ap6__=6kTodK9m5jhvq6yU4cLM1E8WK_NwE8dEwBKjw@mail.gmail.com>
- <20170626180834.GA12436@salvia>
+From: Loic <hackurx@opensec.fr>
+Subject: Re: [netfilter-core] Heap overflow in xt_geoip.c
+Date: Mon, 26 Jun 2017 20:41:13 +0200
+Message-ID: <f2aa016334df64f2e88dc7b0cb802762@opensec.fr>
+References: <CAFwXZv_CZanNT=MTcA7G_5YtgJ07+2Xf-poXy2dNfv+V=j4iLw@mail.gmail.com>
+ <59482edb.6385df0a.e863a.a6ca.GMRIR@mx.google.com>
+ <6358d530697ad564236584c07d2f3cb2@opensec.fr> <20170621161642.GB6117@salvia>
+ <nycvar.YFH.7.76.1706252143110.6159@n3.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f45.google.com ([209.85.218.45]:35915 "EHLO
-        mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751308AbdFZSQw (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 26 Jun 2017 14:16:52 -0400
-Received: by mail-oi0-f45.google.com with SMTP id p187so5324759oif.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 26 Jun 2017 11:16:52 -0700 (PDT)
-In-Reply-To: <20170626180834.GA12436@salvia>
+Received: from mail.opensec.fr ([82.236.169.210]:56552 "EHLO mail.opensec.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751403AbdFZStk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 26 Jun 2017 14:49:40 -0400
+In-Reply-To: <nycvar.YFH.7.76.1706252143110.6159@n3.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jun 26, 2017 at 11:38 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Mon, Jun 26, 2017 at 11:24:23PM +0530, Shyam Saini wrote:
->> On Mon, Jun 26, 2017 at 11:07 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> > On Mon, Jun 26, 2017 at 11:02:34PM +0530, Shyam Saini wrote:
->> >> On Mon, Jun 26, 2017 at 10:29 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> >> > On Fri, Jun 23, 2017 at 05:35:55PM +0530, Shyam Saini wrote:
->> >> >> Before the [Test] commit if we run nft with incomplete "add set"
->> >> >> command it caused segmentation fault and exit with error code 139 and
->> >> >> further it didn't throw any error message.
->> >> >>
->> >> >>   For example:
->> >> >>     $ sudo nft add set t s
->> >> >>
->> >> >> But after the [Test] commit it throws syntax error message and exits with
->> >> >> return value 1.
->> >> >>
->> >> >>   For example:
->> >> >>     $ sudo nft add set t s
->> >> >>     <cmdline>:1:12-12: Error: syntax error, unexpected newline, expecting '{'
->> >> >>     add set t s
->> >> >>                ^
->> >> >>
->> >> >> This commit tests changes made in the [Test] commit.
->> >> >
->> >> > Applied, thanks.
->> >> >
->> >> > I have reworked a bit your commit message, it looks a bit convoluted.
->> >>
->> >> Thanks a lot :)
->> >>
->> >> > No worries, have a look at what I pushed out for reference.
->> >>
->> >> Shouldn't we follow conventions mentioned in "scripts/checkpatch.pl" ?
->> >
->> > Interesting.
->> >
->> > So the [test] thing is something that checkpatch.pl suggests, right?
->> yes something like that.
->>
->> > I would like to know more about that new thing, do you have
->> > documentation about this?
->>
->> No documentation but yeah it throws following error when convention is
->> not followed.
->>
->> "ERROR: Please use git commit description style 'commit <12+ chars of
->> sha1> ("<title line>")' - ie: 'commit c6cd7c22548a ("src: fix crash
->> when inputting an incomplete set add command")'"
->
-> Ah, that's different thing.
->
-> so no need for the [Test] tag you are adding.
+Le 2017-06-25 21:45, Jan Engelhardt a écrit :
+> On Wednesday 2017-06-21 18:16, Pablo Neira Ayuso wrote:
+> 
+>> Hi Loic,
+>> 
+>> On Tue, Jun 20, 2017 at 08:31:26PM +0200, Loic wrote:
+>>> Hi,
+>>> 
+>>> I think there is a problem in the geoip code because I detect this:
+>>> 
+>>> grep -ar "cicus.162_313 max" /usr/src/xtables-addons-2.12/extensions/
+>>> /usr/src/xtables-addons-2.12/extensions/xt_geoip.o:cicus.162_313 max,
+>>> count: 7, decl: vmalloc; num: 1; context: fndecl;
+>>> /usr/src/xtables-addons-2.12/extensions/xt_geoip.o:/usr/src/xtables-addons-2.12/extensions/xt_geoip.ccicus.162_313
+>>> max, count: 5, decl: size_overflow MARK_NO copy_user_generic 3; num:
+>>> 0; context: attr;
+>>> /usr/src/xtables-addons-2.12/extensions/xt_geoip.ko:cicus.162_313 
+>>> max,
+>>> count: 7, decl: vmalloc; num: 1; context: fndecl;
+>>> /usr/src/xtables-addons-2.12/extensions/xt_geoip.ko:/usr/src/xtables-addons-2.12/extensions/xt_geoip.ccicus.162_313
+>>> max, count: 5, decl: size_overflow MARK_NO copy_user_generic 3; num:
+>>> 0; context: attr;
+>>> 
+>>> You maybe can draw inspiration for resolve this by "vmalloc_usercopy" 
+>>> in
+>>> PAX_USERCOPY from PaX/Grsecurity.
+>> 
+>> This is out of tree code, Cc'ing Jan, who maintains this.
+> 
+> What is cicus and what are these messages supposed to tell me?
 
-Sure
-> This means that:
->
-> commit c6cd7c22548a ("src: fix crash when inputting an incomplete set add command")
->
-> is the right way to refer to commits. That's a valid thing indeed, we
-> should stick to that.
+This comes from the size_overflow plugin :
+https://github.com/ephox-gcc-plugins/size_overflow
 
-After adding  "commit" keyword in the same commit message the error gone .
-Sorry, my bad.
+After I'm not an expert I just detected this:
+grep -ai size_overflow "xt_geoip.ko"
+/usr/src/xtables-addons-2.12/extensions/xt_geoip.ccicus.162_313 max, 
+count: 5, decl: # size_overflow MARK_NO copy_user_generic 3; num: 0; 
+context: attr;
 
-> Let's stick to this in follow up patches, OK?
-Sure
+-- 
+Best regards,
 
-Thanks a lot
+Loic
