@@ -1,35 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] netfilter: nfnetlink: Improve input length
- sanitization in nfnetlink_rcv
-Date: Tue, 27 Jun 2017 17:58:25 +0200
-Message-ID: <20170627155825.GA4885@salvia>
-References: <1496841821.736.35.camel@edumazet-glaptop3.roam.corp.google.com>
- <20170607135038.1592-1-mjurczyk@google.com>
+Subject: Re: [PATCH 1/2] scanner: support for wildcards in include statements.
+Date: Tue, 27 Jun 2017 18:11:11 +0200
+Message-ID: <20170627161111.GA5969@salvia>
+References: <20170627121459.32608-1-ismo.puustinen@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Mateusz Jurczyk <mjurczyk@google.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Ismo Puustinen <ismo.puustinen@intel.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:54080 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752371AbdF0QLV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 27 Jun 2017 12:11:21 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 8683DEAA60
+        for <netfilter-devel@vger.kernel.org>; Tue, 27 Jun 2017 18:11:09 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 76CA5DA840
+        for <netfilter-devel@vger.kernel.org>; Tue, 27 Jun 2017 18:11:09 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 71A65DA840
+        for <netfilter-devel@vger.kernel.org>; Tue, 27 Jun 2017 18:11:07 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20170607135038.1592-1-mjurczyk@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20170627121459.32608-1-ismo.puustinen@intel.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 07, 2017 at 03:50:38PM +0200, Mateusz Jurczyk wrote:
-> Verify that the length of the socket buffer is sufficient to cover the
-> nlmsghdr structure before accessing the nlh->nlmsg_len field for further
-> input sanitization. If the client only supplies 1-3 bytes of data in
-> sk_buff, then nlh->nlmsg_len remains partially uninitialized and
-> contains leftover memory from the corresponding kernel allocation.
-> Operating on such data may result in indeterminate evaluation of the
-> nlmsg_len < NLMSG_HDRLEN expression.
+On Tue, Jun 27, 2017 at 03:14:58PM +0300, Ismo Puustinen wrote:
+> Use glob() to find paths in include statements. The rules are these:
 > 
-> The bug was discovered by a runtime instrumentation designed to detect
-> use of uninitialized memory in the kernel. The patch prevents this and
-> other similar tools (e.g. KMSAN) from flagging this behavior in the future.
+>   1. If no files can be found in the pattern with wildcards, do not
+>      return an error.
+>   2. Do not match any files beginning with '.'.
+>   3. Do not handle include directories anymore. For example, the
+>      statement:
+>        include "foo/"
+>      would now need to be rewritten:
+>        include "foo/*"
 
-Applied, thanks.
+Applied, thanks Ismo.
+
+P.S: I made some comestic changes to make it fit into the existing
+coding style, no issue.
