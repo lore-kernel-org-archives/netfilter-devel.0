@@ -1,47 +1,35 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/2] scanner: support for wildcards in include statements.
-Date: Tue, 27 Jun 2017 18:14:54 +0200
-Message-ID: <20170627161454.GA8344@salvia>
-References: <20170627121459.32608-1-ismo.puustinen@intel.com>
- <20170627161111.GA5969@salvia>
+Subject: Re: [PATCH] libnetfilter_queue: Add information about retrieving
+ UID/GID/SECCTX fields
+Date: Tue, 27 Jun 2017 18:48:23 +0200
+Message-ID: <20170627164823.GA8693@salvia>
+References: <oirqus$3p1$1@blaine.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Ismo Puustinen <ismo.puustinen@intel.com>
+To: Piotr Sawicki <piotr.sawicki@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55648 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:38520 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751507AbdF0QPI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 27 Jun 2017 12:15:08 -0400
+        id S1751492AbdF0Qsd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 27 Jun 2017 12:48:33 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E00EBEAA63
-        for <netfilter-devel@vger.kernel.org>; Tue, 27 Jun 2017 18:14:51 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 2B480EAA6E
+        for <netfilter-devel@vger.kernel.org>; Tue, 27 Jun 2017 18:48:22 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D00E5CFDE4
-        for <netfilter-devel@vger.kernel.org>; Tue, 27 Jun 2017 18:14:51 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1C1941B4046
+        for <netfilter-devel@vger.kernel.org>; Tue, 27 Jun 2017 18:48:22 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BC7DBD2AE7
-        for <netfilter-devel@vger.kernel.org>; Tue, 27 Jun 2017 18:14:49 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4425A1B3D5C
+        for <netfilter-devel@vger.kernel.org>; Tue, 27 Jun 2017 18:48:19 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20170627161111.GA5969@salvia>
+In-Reply-To: <oirqus$3p1$1@blaine.gmane.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jun 27, 2017 at 06:11:11PM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Jun 27, 2017 at 03:14:58PM +0300, Ismo Puustinen wrote:
-> > Use glob() to find paths in include statements. The rules are these:
-> > 
-> >   1. If no files can be found in the pattern with wildcards, do not
-> >      return an error.
-> >   2. Do not match any files beginning with '.'.
-> >   3. Do not handle include directories anymore. For example, the
-> >      statement:
-> >        include "foo/"
-> >      would now need to be rewritten:
-> >        include "foo/*"
+On Mon, Jun 26, 2017 at 10:31:30PM +0200, Piotr Sawicki wrote:
+> From: Piotr Radoslaw Sawicki <piotr.sawicki@gmail.com>
 > 
-> Applied, thanks Ismo.
+> Add information about retrieving UID/GID/SECCTX fields
 
-BTW, please, send me an update for the manpage.
-
-Thanks!
+Applied, thanks.
