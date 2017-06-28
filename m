@@ -1,106 +1,110 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 13/17] src: ct: print nfproto name for some header fields
-Date: Wed, 28 Jun 2017 12:14:06 +0200
-Message-ID: <20170628101410.29134-3-fw@strlen.de>
+Subject: [PATCH 11/17] src: unifiy meta and ct postprocessing
+Date: Wed, 28 Jun 2017 12:14:04 +0200
+Message-ID: <20170628101410.29134-1-fw@strlen.de>
 References: <20170628100659.26976-1-fw@strlen.de>
- <20170628101410.29134-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:33444 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:33440 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751532AbdF1KN7 (ORCPT
+        by vger.kernel.org with ESMTP id S1751855AbdF1KNx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Jun 2017 06:13:59 -0400
-In-Reply-To: <20170628101410.29134-1-fw@strlen.de>
+        Wed, 28 Jun 2017 06:13:53 -0400
+In-Reply-To: <20170628100659.26976-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-this prints "original saddr|daddr $NFPROTO" to make output
-symmetric with the syntax that we now prefer on input side.
+>From postprocess point of view meta and ct are logically the same,
+except that their storage area overlaps (union type), so if we
+extract the relevant fields we can move all of it into a single
+helper and support dependency store/kill for both expressions.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/ct.c | 28 +++++++++++++++++++++++-----
- 1 file changed, 23 insertions(+), 5 deletions(-)
+ src/netlink_delinearize.c | 50 +++++++++++++++++++++--------------------------
+ 1 file changed, 22 insertions(+), 28 deletions(-)
 
-diff --git a/src/ct.c b/src/ct.c
-index a5fd04ffbfaa..c0568874a748 100644
---- a/src/ct.c
-+++ b/src/ct.c
-@@ -16,6 +16,8 @@
- #include <inttypes.h>
- #include <string.h>
- 
-+#include <netinet/ip.h>
-+#include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
- #include <linux/netfilter/nf_conntrack_common.h>
- #include <linux/netfilter/nf_conntrack_tuple_common.h>
-@@ -269,9 +271,10 @@ static const struct ct_template ct_templates[] = {
- 					      BYTEORDER_HOST_ENDIAN, 32),
- };
- 
--static void ct_print(enum nft_ct_keys key, int8_t dir)
-+static void ct_print(enum nft_ct_keys key, int8_t dir, uint8_t nfproto)
- {
- 	const struct symbolic_constant *s;
-+	const struct proto_desc *desc;
- 
- 	printf("ct ");
- 	if (dir < 0)
-@@ -283,13 +286,25 @@ static void ct_print(enum nft_ct_keys key, int8_t dir)
- 			break;
- 		}
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index c523c8ed4862..d24af46c89a8 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1367,12 +1367,29 @@ static void payload_match_postprocess(struct rule_pp_ctx *ctx,
  	}
-+
-+	switch (key) {
-+	case NFT_CT_SRC: /* fallthrough */
-+	case NFT_CT_DST:
-+		desc = proto_find_upper(&proto_inet, nfproto);
-+		if (desc)
-+			printf("%s ", desc->name);
-+		break;
-+	default:
-+		break;
-+	}
-+
-  done:
- 	printf("%s", ct_templates[key].token);
  }
  
- static void ct_expr_print(const struct expr *expr, struct output_ctx *octx)
+-static void ct_meta_common_postprocess(const struct expr *expr)
++static void ct_meta_common_postprocess(struct rule_pp_ctx *ctx,
++				       const struct expr *expr,
++				       enum proto_bases base)
  {
--	ct_print(expr->ct.key, expr->ct.direction);
-+	ct_print(expr->ct.key, expr->ct.direction, expr->ct.nfproto);
- }
+ 	const struct expr *left = expr->left;
+ 	struct expr *right = expr->right;
  
- static bool ct_expr_cmp(const struct expr *e1, const struct expr *e2)
-@@ -394,10 +409,13 @@ void ct_expr_update_type(struct proto_ctx *ctx, struct expr *expr)
- 	switch (expr->ct.key) {
- 	case NFT_CT_SRC:
- 	case NFT_CT_DST:
--		if (desc == &proto_ip)
-+		if (desc == &proto_ip) {
- 			expr->dtype = &ipaddr_type;
--		else if (desc == &proto_ip6)
-+			expr->ct.nfproto = NFPROTO_IPV4;
-+		} else if (desc == &proto_ip6) {
- 			expr->dtype = &ip6addr_type;
-+			expr->ct.nfproto = NFPROTO_IPV6;
+ 	switch (expr->op) {
++	case OP_EQ:
++		if (expr->right->ops->type == EXPR_RANGE)
++			break;
++
++		expr->left->ops->pctx_update(&ctx->pctx, expr);
++
++		if (ctx->pdctx.pbase == PROTO_BASE_INVALID &&
++		    left->flags & EXPR_F_PROTOCOL) {
++			payload_dependency_store(&ctx->pdctx, ctx->stmt, base);
++		} else if (ctx->pdctx.pbase < PROTO_BASE_TRANSPORT_HDR) {
++			__payload_dependency_kill(&ctx->pdctx, base);
++			if (left->flags & EXPR_F_PROTOCOL)
++				payload_dependency_store(&ctx->pdctx, ctx->stmt, base);
 +		}
- 
- 		expr->len = expr->dtype->size;
- 		break;
-@@ -414,7 +432,7 @@ void ct_expr_update_type(struct proto_ctx *ctx, struct expr *expr)
- 
- static void ct_stmt_print(const struct stmt *stmt, struct output_ctx *octx)
++		break;
+ 	case OP_NEQ:
+ 		if (right->ops->type != EXPR_SET && right->ops->type != EXPR_SET_REF)
+ 			break;
+@@ -1388,40 +1405,17 @@ static void ct_meta_common_postprocess(const struct expr *expr)
+ static void meta_match_postprocess(struct rule_pp_ctx *ctx,
+ 				   const struct expr *expr)
  {
--	ct_print(stmt->ct.key, stmt->ct.direction);
-+	ct_print(stmt->ct.key, stmt->ct.direction, 0);
- 	printf(" set ");
- 	expr_print(stmt->ct.expr, octx);
+-	struct expr *left = expr->left;
+-
+-	switch (expr->op) {
+-	case OP_EQ:
+-		if (expr->right->ops->type == EXPR_RANGE)
+-			break;
+-
+-		expr->left->ops->pctx_update(&ctx->pctx, expr);
++	const struct expr *left = expr->left;
+ 
+-		if (ctx->pdctx.pbase == PROTO_BASE_INVALID &&
+-		    left->flags & EXPR_F_PROTOCOL)
+-			payload_dependency_store(&ctx->pdctx, ctx->stmt,
+-						 left->meta.base);
+-		break;
+-	default:
+-		ct_meta_common_postprocess(expr);
+-		break;
+-	}
++	ct_meta_common_postprocess(ctx, expr, left->meta.base);
  }
+ 
+ static void ct_match_postprocess(struct rule_pp_ctx *ctx,
+ 				 const struct expr *expr)
+ {
+-	switch (expr->op) {
+-	case OP_EQ:
+-		if (expr->right->ops->type == EXPR_RANGE)
+-			break;
++	const struct expr *left = expr->left;
+ 
+-		expr->left->ops->pctx_update(&ctx->pctx, expr);
+-		break;
+-	default:
+-		ct_meta_common_postprocess(expr);
+-		break;
+-	}
++	ct_meta_common_postprocess(ctx, expr, left->ct.base);
+ }
+ 
+ /* Convert a bitmask to a prefix length */
 -- 
 2.13.0
 
