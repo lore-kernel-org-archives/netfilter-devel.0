@@ -1,44 +1,44 @@
-From: Ismo Puustinen <ismo.puustinen@intel.com>
-Subject: [PATCH] man: add include statement documentation.
-Date: Wed, 28 Jun 2017 11:16:57 +0300
-Message-ID: <20170628081657.25371-1-ismo.puustinen@intel.com>
-Cc: Ismo Puustinen <ismo.puustinen@intel.com>
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [nft crap] ct original ip saddr ... handling
+Date: Wed, 28 Jun 2017 12:06:42 +0200
+Message-ID: <20170628100659.26976-1-fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:23584 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751469AbdF1IRC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Jun 2017 04:17:02 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:33338 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751469AbdF1KGl (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 28 Jun 2017 06:06:41 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add to man page information about using the wildcard include statements.
+I am running out of time so I have to send this unfinished/non-working
+state.
 
-Signed-off-by: Ismo Puustinen <ismo.puustinen@intel.com>
----
- doc/nft.xml | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+It breaks because ct is riddled with conflicts,
+in nft we've handled original/reply as STRING to avoid conflicts
+with 'arp reply', so we cannot add
 
-diff --git a/doc/nft.xml b/doc/nft.xml
-index 970acb5..9c9192c 100644
---- a/doc/nft.xml
-+++ b/doc/nft.xml
-@@ -229,8 +229,13 @@ vi:ts=4 sw=4
- 				-h/--help option.
- 			</para>
- 			<para>
--				If the <literal>filename</literal> parameter is a directory, then all files in
--				the directory are loaded in alphabetical order.
-+				Include statements support the usual shell wildcard symbols
-+				(<literal>*,?,[]</literal>). Having no matches for an include statement is not
-+				an error, if wildcard symbols are used in the include statement. This allows having
-+				potentially empty include directories for statements like
-+				<literal>include "/etc/firewall/rules/*"</literal>. The wildcard matches are
-+				loaded in alphabetical order. Files beginning with dot (<literal>.</literal>) are
-+				not matched by include statements.
- 			</para>
- 		</refsect2>
- 		<refsect2>
--- 
-2.9.4
+ct original ip saddr
+
+because it is
+ct STRING	IP	SADDR
+
+and that conflicts with basic use where 'ip saddr' could be payload
+expression, and STRING is one of the normal ct tokens and not a direction.
+
+I am trying to fix this here by moving all ct keywords back to tokens.
+There are no shift/reduce errors, things compile fine, and all
+test cases work.  Its just that we break 'ct event set label':
+
+Works:
+ct event set new or reply
+ct event set new,reply
+ct event set new,label
+fails:
+ct event set label ('expects COMMA')
+
+Other than that it should work, this also adds dependency removal
+for meta and ct when de-linearizing rulesets and gets rid of
+the uneeded meta dependency when using rt nexthop in inet table.
 
