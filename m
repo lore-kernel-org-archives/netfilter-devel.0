@@ -1,84 +1,62 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 17/17] doc: update man page
-Date: Wed, 28 Jun 2017 12:14:10 +0200
-Message-ID: <20170628101410.29134-7-fw@strlen.de>
-References: <20170628100659.26976-1-fw@strlen.de>
- <20170628101410.29134-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+Subject: Re: crash on >= 4.9.0 kernel seems nf related
+Date: Wed, 28 Jun 2017 12:23:23 +0200
+Message-ID: <20170628102323.GO29636@breakpoint.cc>
+References: <CAJO99T==ryD91RF_O71F2k=m8_UokF+nwQnfi6pAGH7Oj7V+ZQ@mail.gmail.com>
+ <CAJO99TkhZLWTpKEk=7VGbXhZvDD4ajiOaxd0bjnxKucq=_2Z0A@mail.gmail.com>
+ <20170516082128.GB16290@breakpoint.cc>
+ <CAJO99T=4LQgUngzoSvpVED_+hxYT1bOtHzUXjBu-Jq4d4+7SuA@mail.gmail.com>
+ <CAJO99T=5RPz691h9kAnSsC4fy_54o3qWU_2o-4FhHrxp5af7MQ@mail.gmail.com>
+ <20170626131632.GI29636@breakpoint.cc>
+ <CAJO99TnXE_5d4+1cEhRK570n6jOKntYn85c9rcMP8T0KuWdDHQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 8bit
+Cc: Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+To: =?iso-8859-15?Q?Bj=F8rnar?= Ness <bjornar.ness@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:33454 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:33518 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751899AbdF1KON (ORCPT
+        by vger.kernel.org with ESMTP id S1751500AbdF1KY0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Jun 2017 06:14:13 -0400
-In-Reply-To: <20170628101410.29134-1-fw@strlen.de>
+        Wed, 28 Jun 2017 06:24:26 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJO99TnXE_5d4+1cEhRK570n6jOKntYn85c9rcMP8T0KuWdDHQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-you can now use "rt ip|ip6 nexthop" and "ct original|reply ip|ip6 saddr|daddr"
-to tell nft if you want to match ipv4 or ipv6.
+Bjørnar Ness <bjornar.ness@gmail.com> wrote:
+> 2017-06-26 15:16 GMT+02:00 Florian Westphal <fw@strlen.de>:
+> > perf top might help pinpoint the source.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- doc/nft.xml | 23 ++++++++++++++++++-----
- 1 file changed, 18 insertions(+), 5 deletions(-)
+Leaving this here, this info would help.
 
-diff --git a/doc/nft.xml b/doc/nft.xml
-index 970acb541e00..99cdfe42c633 100644
---- a/doc/nft.xml
-+++ b/doc/nft.xml
-@@ -492,7 +492,6 @@ filter input iif $int_ifs accept
- 			hybrid IPv4/IPv6 tables.  The <literal>meta</literal> expression <literal>nfproto</literal>
- 			keyword can be used to test which family (ipv4 or ipv6) context the packet is being processed in.
- 
--
- 			When no address family is specified, <literal>ip</literal> is used by default.
- 		</para>
- 
-@@ -2265,8 +2264,8 @@ filter output rt classid 10
- # IP family dependent rt expressions
- ip filter output rt nexthop 192.168.0.1
- ip6 filter output rt nexthop fd00::1
--inet filter meta nfproto ipv4 output rt nexthop 192.168.0.1
--inet filter meta nfproto ipv6 output rt nexthop fd00::1
-+inet filter output rt ip nexthop 192.168.0.1
-+inet filter output rt ip6 nexthop fd00::1
- 					</programlisting>
- 				</example>
- 			</para>
-@@ -3385,8 +3384,6 @@ ip6 filter input frag more-fragments 1 counter
- 					<group choice="req">
- 						<arg>l3proto</arg>
- 						<arg>protocol</arg>
--						<arg>saddr</arg>
--						<arg>daddr</arg>
- 						<arg>proto-src</arg>
- 						<arg>proto-dst</arg>
- 						<arg>bytes</arg>
-@@ -3395,6 +3392,22 @@ ip6 filter input frag more-fragments 1 counter
- 						<arg>zone</arg>
- 					</group>
- 				</cmdsynopsis>
-+				<cmdsynopsis>
-+					<command>ct</command>
-+					<group choice="req">
-+						<arg>original</arg>
-+						<arg>reply</arg>
-+					</group>
-+					<group choice="req">
-+						<arg>ip</arg>
-+						<arg>ip6</arg>
-+					</group>
-+					<group choice="req">
-+						<arg>saddr</arg>
-+						<arg>daddr</arg>
-+					</group>
-+				</cmdsynopsis>
-+
- 			</para>
- 			<para>
- 				<table frame="all">
--- 
-2.13.0
+> > What kernel is this, exactly?
+> >
+> > 4.10 (and 4.9.14 and later) has a change to make gc worker use less
+> > cycles.
+> 
+> We see the behavior in 4.11.0 and 4.12.0-rc6 as well
+> 
+> > But I don't see the NAT connection.
+> 
+> Not sure what you mean here. We do not eed to have rules in the
+> postrouting chain for it
+> to tear down the server.
 
+I mean that presence of NAT postrouting hook has, to the best of my
+knowledge, no effect on the ct gc worker.
+
+But perhaps this isn't the gc worker after all, perf top would help.
+
+The only effect that the postrouting hook has is bringing rhashtables
+'rhlist' interface into the mix, as we use that for the nat bysource
+table.
+
+> Monitoring conntrack entries also shows me
+> this is stable around 120k
+
+What does that mean?
+Do you mean you run into problems after 120k entries?
