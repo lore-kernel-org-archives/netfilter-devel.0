@@ -1,138 +1,69 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 04/17] parser: compact list of rhs keyword expressions
-Date: Wed, 28 Jun 2017 12:06:46 +0200
-Message-ID: <20170628100659.26976-5-fw@strlen.de>
+Subject: [PATCH 06/17] bison: permit keywords in list_stmt_expressions
+Date: Wed, 28 Jun 2017 12:06:48 +0200
+Message-ID: <20170628100659.26976-7-fw@strlen.de>
 References: <20170628100659.26976-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:33352 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:33362 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751469AbdF1KGz (ORCPT
+        by vger.kernel.org with ESMTP id S1751528AbdF1KHC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Jun 2017 06:06:55 -0400
+        Wed, 28 Jun 2017 06:07:02 -0400
 In-Reply-To: <20170628100659.26976-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Condenses the copy/pastry via a define, will make it less of a hassle
-to extend this list later if needed.
+previous patch makes 'ct event set label' work, but we also need
+to allow "set new, label".
 
-Based on earlier patch from Pablo.
+This changes the definition to also contain keyword symbol expressions.
+Unfortunately, the older "|" syntax, "ct event new | label" (not in any release)
+doesn't work anymore because it requires primary_expr to work and that
+causes ambiguities in the parser (we can only re-use keywords if they're
+restricted to RHS expressions).
 
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/parser_bison.y | 72 ++++++++++++------------------------------------------
- 1 file changed, 16 insertions(+), 56 deletions(-)
+ src/parser_bison.y | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 86f0464295eb..a95c16adde61 100644
+index 66f031d3ca69..577f4bee167e 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -97,6 +97,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- 
- #define YYLLOC_DEFAULT(Current, Rhs, N)	location_update(&Current, Rhs, N)
- 
-+#define symbol_value(loc, str) \
-+	symbol_expr_alloc(loc, SYMBOL_VALUE, current_scope(state), str)
- %}
- 
- /* Declaration section */
-@@ -580,8 +582,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %type <expr>			flow_key_expr flow_key_expr_alloc
- %destructor { expr_free($$); }	flow_key_expr flow_key_expr_alloc
- 
--%type <expr>			expr initializer_expr
--%destructor { expr_free($$); }	expr initializer_expr
-+%type <expr>			expr initializer_expr keyword_expr
-+%destructor { expr_free($$); }	expr initializer_expr keyword_expr
+@@ -587,8 +587,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
  
  %type <expr>			rhs_expr concat_rhs_expr basic_rhs_expr
  %destructor { expr_free($$); }	rhs_expr concat_rhs_expr basic_rhs_expr
-@@ -2795,39 +2797,21 @@ boolean_expr		:	boolean_keys
- 			}
+-%type <expr>			primary_rhs_expr list_rhs_expr shift_rhs_expr
+-%destructor { expr_free($$); }	primary_rhs_expr list_rhs_expr shift_rhs_expr
++%type <expr>			primary_rhs_expr list_rhs_expr shift_rhs_expr	symbol_rhs_expr
++%destructor { expr_free($$); }	primary_rhs_expr list_rhs_expr shift_rhs_expr	symbol_rhs_expr
+ %type <expr>			and_rhs_expr exclusive_or_rhs_expr inclusive_or_rhs_expr
+ %destructor { expr_free($$); }	and_rhs_expr exclusive_or_rhs_expr inclusive_or_rhs_expr
+ 
+@@ -3092,13 +3092,17 @@ ct_key_dir_optional	:	BYTES		{ $$ = NFT_CT_BYTES; }
+ 			|	ZONE		{ $$ = NFT_CT_ZONE; }
  			;
  
-+keyword_expr		:	ETHER                   { $$ = symbol_value(&@$, "ether"); }
-+			|	IP			{ $$ = symbol_value(&@$, "ip"); }
-+			|	IP6			{ $$ = symbol_value(&@$, "ip6"); }
-+			|	VLAN			{ $$ = symbol_value(&@$, "vlan"); }
-+			|	ARP			{ $$ = symbol_value(&@$, "arp"); }
-+			|	DNAT			{ $$ = symbol_value(&@$, "dnat"); }
-+			|	SNAT			{ $$ = symbol_value(&@$, "snat"); }
-+			|	ECN			{ $$ = symbol_value(&@$, "ecn"); }
-+			|	RESET			{ $$ = symbol_value(&@$, "reset"); }
+-list_stmt_expr		:	symbol_expr	COMMA	symbol_expr
++symbol_rhs_expr		:	symbol_expr
++			|	keyword_expr
 +			;
 +
- primary_rhs_expr	:	symbol_expr		{ $$ = $1; }
- 			|	integer_expr		{ $$ = $1; }
- 			|	boolean_expr		{ $$ = $1; }
--			|	ETHER
--			{
--				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
--						       current_scope(state),
--						       "ether");
--			}
--			|	IP
--			{
--				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
--						       current_scope(state),
--						       "ip");
--			}
--			|	IP6
--			{
--				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
--						       current_scope(state),
--						       "ip6");
--			}
--			|	VLAN
--			{
--				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
--						       current_scope(state),
--						       "vlan");
--			}
--			|	ARP
--			{
--				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
--						       current_scope(state),
--						       "arp");
--			}
-+			|	keyword_expr		{ $$ = $1; }
- 			|	TCP
++list_stmt_expr		:	symbol_rhs_expr	COMMA	symbol_rhs_expr
  			{
- 				uint8_t data = IPPROTO_TCP;
-@@ -2905,30 +2889,6 @@ primary_rhs_expr	:	symbol_expr		{ $$ = $1; }
- 							 BYTEORDER_HOST_ENDIAN,
- 							 sizeof(data) * BITS_PER_BYTE, &data);
+ 				$$ = list_expr_alloc(&@$);
+ 				compound_expr_add($$, $1);
+ 				compound_expr_add($$, $3);
  			}
--			|	SNAT
--			{
--				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
--						       current_scope(state),
--						       "snat");
--			}
--			|	DNAT
--			{
--				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
--						       current_scope(state),
--						       "dnat");
--			}
--			|	ECN
--			{
--				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
--						       current_scope(state),
--						       "ecn");
--			}
--			|	RESET
--			{
--				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
--						       current_scope(state),
--						       "reset");
--			}
- 			;
- 
- relational_op		:	EQ		{ $$ = OP_EQ; }
+-			|	list_stmt_expr	COMMA		symbol_expr
++			|	list_stmt_expr	COMMA		symbol_rhs_expr
+ 			{
+ 				$1->location = @$;
+ 				compound_expr_add($1, $3);
 -- 
 2.13.0
 
