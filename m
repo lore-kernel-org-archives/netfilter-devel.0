@@ -1,193 +1,57 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 10/17] src: ct: add eval part to inject dependencies for ct saddr/daddr
-Date: Wed, 28 Jun 2017 12:06:52 +0200
-Message-ID: <20170628100659.26976-11-fw@strlen.de>
+Subject: [PATCH 12/17] tests: update inet/bridge icmp test case
+Date: Wed, 28 Jun 2017 12:14:05 +0200
+Message-ID: <20170628101410.29134-2-fw@strlen.de>
 References: <20170628100659.26976-1-fw@strlen.de>
+ <20170628101410.29134-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:33378 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:33442 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751489AbdF1KHR (ORCPT
+        by vger.kernel.org with ESMTP id S1751559AbdF1KOB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Jun 2017 06:07:17 -0400
-In-Reply-To: <20170628100659.26976-1-fw@strlen.de>
+        Wed, 28 Jun 2017 06:14:01 -0400
+In-Reply-To: <20170628101410.29134-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nft has enough context to determine if a dependeny is needed.
-
-add rule ip filter ct original ip6 saddr
-allows nft to generate an error due to conflicting bases (ip vs ip6).
-
-add rule inet filter ct original ip6 saddr
-allows nft to inject an ipv6 dependency expression.
-
-add rule inet filter ct original saddr
-will print an error and will suggest to add ip/ip6 keyword.
-
-Delinerize and print support will be added in followup patches.
+after previous change nft now culls the dependency chain:
+'icmpv6 type echo-request' is shown as-is, and not
+'meta nfproto ipv6 meta l4proto 58 icmpv6 type echo-request' anymore.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/ct.c       | 26 +++++++++++-----------
- src/evaluate.c | 70 +++++++++++++++++++++++++++++++++++++++++++++++++++++-----
- 2 files changed, 77 insertions(+), 19 deletions(-)
+ tests/py/bridge/icmpX.t | 4 ++--
+ tests/py/inet/icmpX.t   | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/src/ct.c b/src/ct.c
-index a4ea6192074a..a5fd04ffbfaa 100644
---- a/src/ct.c
-+++ b/src/ct.c
-@@ -308,21 +308,21 @@ static void ct_expr_clone(struct expr *new, const struct expr *expr)
- static void ct_expr_pctx_update(struct proto_ctx *ctx, const struct expr *expr)
- {
- 	const struct expr *left = expr->left, *right = expr->right;
--	const struct proto_desc *base, *desc;
-+	const struct proto_desc *base = NULL, *desc;
-+	uint32_t nhproto;
+diff --git a/tests/py/bridge/icmpX.t b/tests/py/bridge/icmpX.t
+index 0a1019c3a309..8c0a59799871 100644
+--- a/tests/py/bridge/icmpX.t
++++ b/tests/py/bridge/icmpX.t
+@@ -3,6 +3,6 @@
+ *bridge;test-bridge;input
  
- 	assert(expr->op == OP_EQ);
+ ip protocol icmp icmp type echo-request;ok;icmp type echo-request
+-icmp type echo-request;ok;ether type ip meta l4proto 1 icmp type echo-request
++icmp type echo-request;ok
+ ip6 nexthdr icmpv6 icmpv6 type echo-request;ok;icmpv6 type echo-request
+-icmpv6 type echo-request;ok;ether type ip6 meta l4proto 58 icmpv6 type echo-request
++icmpv6 type echo-request;ok
+diff --git a/tests/py/inet/icmpX.t b/tests/py/inet/icmpX.t
+index 7617e701a6d7..1b467a18e764 100644
+--- a/tests/py/inet/icmpX.t
++++ b/tests/py/inet/icmpX.t
+@@ -3,6 +3,6 @@
+ *inet;test-inet;input
  
--	switch (left->ct.key) {
--	case NFT_CT_PROTOCOL:
--		base = ctx->protocol[PROTO_BASE_NETWORK_HDR].desc;
--		desc = proto_find_upper(base, mpz_get_uint32(right->value));
-+	nhproto = mpz_get_uint32(right->value);
- 
--		proto_ctx_update(ctx, PROTO_BASE_TRANSPORT_HDR,
--				 &expr->location, desc);
--		break;
--	default:
--		break;
--	}
-+	base = ctx->protocol[left->ct.base].desc;
-+	if (!base)
-+		return;
-+	desc = proto_find_upper(base, nhproto);
-+	if (!desc)
-+		return;
-+
-+	proto_ctx_update(ctx, left->ct.base + 1, &expr->location, desc);
- }
- 
- static const struct expr_ops ct_expr_ops = {
-@@ -389,10 +389,11 @@ void ct_expr_update_type(struct proto_ctx *ctx, struct expr *expr)
- {
- 	const struct proto_desc *desc;
- 
-+	desc = ctx->protocol[expr->ct.base].desc;
-+
- 	switch (expr->ct.key) {
- 	case NFT_CT_SRC:
- 	case NFT_CT_DST:
--		desc = ctx->protocol[PROTO_BASE_NETWORK_HDR].desc;
- 		if (desc == &proto_ip)
- 			expr->dtype = &ipaddr_type;
- 		else if (desc == &proto_ip6)
-@@ -402,7 +403,6 @@ void ct_expr_update_type(struct proto_ctx *ctx, struct expr *expr)
- 		break;
- 	case NFT_CT_PROTO_SRC:
- 	case NFT_CT_PROTO_DST:
--		desc = ctx->protocol[PROTO_BASE_TRANSPORT_HDR].desc;
- 		if (desc == NULL)
- 			break;
- 		expr->dtype = &inet_service_type;
-diff --git a/src/evaluate.c b/src/evaluate.c
-index ca8b63b74fdc..2d63de0c84e4 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -685,27 +685,85 @@ static int expr_evaluate_rt(struct eval_ctx *ctx, struct expr **expr)
- 	return expr_evaluate_primary(ctx, expr);
- }
- 
-+static int ct_gen_nh_dependency(struct eval_ctx *ctx, struct expr *ct)
-+{
-+	const struct proto_desc *base, *base_now;
-+	struct expr *left, *right, *dep;
-+	struct stmt *nstmt = NULL;
-+
-+	base_now = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
-+
-+	switch (ct->ct.nfproto) {
-+	case NFPROTO_IPV4:
-+		base = &proto_ip;
-+		break;
-+	case NFPROTO_IPV6:
-+		base = &proto_ip6;
-+		break;
-+	default:
-+		base = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
-+		if (base == &proto_ip)
-+			ct->ct.nfproto = NFPROTO_IPV4;
-+		else if (base == &proto_ip)
-+			ct->ct.nfproto = NFPROTO_IPV6;
-+
-+		if (base)
-+			break;
-+
-+		return expr_error(ctx->msgs, ct,
-+				  "cannot determine ip protocol version, use \"ip %1$caddr\" or \"ip6 %1$caddr\" instead",
-+				  ct->ct.key == NFT_CT_SRC ? 's' : 'd');
-+	}
-+
-+	/* no additional dependency needed? */
-+	if (base == base_now)
-+		return 0;
-+
-+	if (base_now && base_now != base)
-+		return expr_error(ctx->msgs, ct,
-+				  "conflicting dependencies: %s vs. %s\n",
-+				  base->name,
-+				  ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc->name);
-+	switch (ctx->pctx.family) {
-+	case NFPROTO_IPV4:
-+	case NFPROTO_IPV6:
-+		return 0;
-+	}
-+
-+	left = ct_expr_alloc(&ct->location, NFT_CT_L3PROTOCOL, ct->ct.direction, ct->ct.nfproto);
-+
-+	right = constant_expr_alloc(&ct->location, left->dtype,
-+				    left->dtype->byteorder, left->len,
-+				    constant_data_ptr(ct->ct.nfproto, left->len));
-+	dep = relational_expr_alloc(&ct->location, OP_EQ, left, right);
-+
-+	left->ops->pctx_update(&ctx->pctx, dep);
-+
-+	nstmt = expr_stmt_alloc(&dep->location, dep);
-+
-+	list_add_tail(&nstmt->list, &ctx->stmt->list);
-+	return 0;
-+}
-+
- /*
-  * CT expression: update the protocol dependant types bases on the protocol
-  * context.
-  */
- static int expr_evaluate_ct(struct eval_ctx *ctx, struct expr **expr)
- {
--	const struct proto_desc *base;
- 	struct expr *ct = *expr;
- 
--	ct_expr_update_type(&ctx->pctx, ct);
--
--	base = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
- 	switch (ct->ct.key) {
- 	case NFT_CT_SRC:
- 	case NFT_CT_DST:
--		if (base != &proto_ip && base != &proto_ip6)
--			return expr_error_base(ctx->msgs, ct);
-+		ct_gen_nh_dependency(ctx, ct);
-+		break;
- 	default:
- 		break;
- 	}
- 
-+	ct_expr_update_type(&ctx->pctx, ct);
-+
- 	return expr_evaluate_primary(ctx, expr);
- }
- 
+ ip protocol icmp icmp type echo-request;ok;icmp type echo-request
+-icmp type echo-request;ok;meta nfproto ipv4 meta l4proto 1 icmp type echo-request
++icmp type echo-request;ok
+ ip6 nexthdr icmpv6 icmpv6 type echo-request;ok;icmpv6 type echo-request
+-icmpv6 type echo-request;ok;meta nfproto ipv6 meta l4proto 58 icmpv6 type echo-request
++icmpv6 type echo-request;ok
 -- 
 2.13.0
 
