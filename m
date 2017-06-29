@@ -1,70 +1,105 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] nft: make raw payloads work
-Date: Thu, 29 Jun 2017 18:18:40 +0200
-Message-ID: <20170629161840.GA6789@salvia>
-References: <1498036020-22214-1-git-send-email-l@libres.ch>
+Subject: Re: [PATCH v2] netfilter: nfnetlink: Improve input length
+ sanitization in nfnetlink_rcv
+Date: Thu, 29 Jun 2017 18:22:40 +0200
+Message-ID: <20170629162240.GA6883@salvia>
+References: <1496841821.736.35.camel@edumazet-glaptop3.roam.corp.google.com>
+ <20170607135038.1592-1-mjurczyk@google.com>
+ <20170627155825.GA4885@salvia>
+ <20170627170527.GA13513@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Laurent Fasnacht <l@libres.ch>
+Content-Type: multipart/mixed; boundary="DocE+STaALJfprDB"
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Mateusz Jurczyk <mjurczyk@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48458 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49978 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751690AbdF2QSx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Jun 2017 12:18:53 -0400
+        id S1752837AbdF2QWu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 29 Jun 2017 12:22:50 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C9A769B80F
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jun 2017 18:18:41 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 350B5A4169
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jun 2017 18:22:39 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5F4B3CFDF4
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jun 2017 18:18:41 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 25759D1CCC
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jun 2017 18:22:39 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E2241CFDE6
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jun 2017 18:18:33 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5118DD1CA7
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jun 2017 18:22:36 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1498036020-22214-1-git-send-email-l@libres.ch>
+In-Reply-To: <20170627170527.GA13513@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Laurent,
 
-On Wed, Jun 21, 2017 at 11:07:00AM +0200, Laurent Fasnacht wrote:
-> In nftables, there is a rather (IMO) undocumented feature, raw payloads.
+--DocE+STaALJfprDB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Jun 27, 2017 at 07:05:27PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Jun 27, 2017 at 05:58:25PM +0200, Pablo Neira Ayuso wrote:
+> > On Wed, Jun 07, 2017 at 03:50:38PM +0200, Mateusz Jurczyk wrote:
+> > > Verify that the length of the socket buffer is sufficient to cover the
+> > > nlmsghdr structure before accessing the nlh->nlmsg_len field for further
+> > > input sanitization. If the client only supplies 1-3 bytes of data in
+> > > sk_buff, then nlh->nlmsg_len remains partially uninitialized and
+> > > contains leftover memory from the corresponding kernel allocation.
+> > > Operating on such data may result in indeterminate evaluation of the
+> > > nlmsg_len < NLMSG_HDRLEN expression.
+> > > 
+> > > The bug was discovered by a runtime instrumentation designed to detect
+> > > use of uninitialized memory in the kernel. The patch prevents this and
+> > > other similar tools (e.g. KMSAN) from flagging this behavior in the future.
+> > 
+> > Applied, thanks.
 > 
-> It would be useful both for development and to quickly extend nftables for corner cases.
+> Wait, I keeping this back after closer look.
 > 
-> Unfortunately, it is broken in current master (syntax is not consistent between print and parse,
-> and any practical usage doesn't work).
+> I think we have to remove this:
 > 
-> This patch defines a new syntax, and makes it usable in practice:
+>         if (nlh->nlmsg_len < NLMSG_HDRLEN || <---
+>             skb->len < NLMSG_HDRLEN + sizeof(struct nfgenmsg))
+>                 return;
 > 
-> @<protocol>,<base>,<data type>,<offset>,<length>
+> in nfnetlink_rcv_skb_batch()
 > 
-> Example (rewrite arp packet target hardware address if target protocol address matches a given address):
-> 
-> meta iif enp2s0 arp ptype 0x0800 arp htype 1 arp hlen 6 arp plen 4 @arp,nh,ipv4_addr,192,32 192.168.143.16 @arp,nh,ether_addr,144,48 set 11:22:33:44:55:66 accept;
+> now that we make this unfront check from nfnetlink_rcv().
 
-One thing related to this example: Would you send a patch to extend
-the arp family to match sender/target fields in the header? We only
-support ARP IPv4, so we can assume the header is "fixed size" for the
-offset layout definitions. See src/proto.c, have a look at the arp
-protocol definition.
+BTW, I can just mangle your patch here to delete such line to speed up
+things. See the mangled patch that is attached to this email.
 
-Regarding raw protocol matching. Depending on the datatype, we may not
-need the size. I mean, in case of the ipv4_addr datatype, this is
-already 4 bytes. For (the generic) integer type fields, we need this
-size indeed.
+Thanks.
 
-So I think we should allow two different syntax, one with size, and
-another with no size. If you select a datatype with a fixed size, then
-bail out during the parser/evaluation phase.
+--DocE+STaALJfprDB
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="x.patch"
 
-Something else: If the user specifies a raw expression that matches a
-protocol field that is already defined by nft, this should
-automatically translate this to the native nft representation.
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 80f5ecf2c3d7..ff1f4ce6fba4 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -463,8 +463,7 @@ static void nfnetlink_rcv_skb_batch(struct sk_buff *skb, struct nlmsghdr *nlh)
+ 	if (msglen > skb->len)
+ 		msglen = skb->len;
+ 
+-	if (nlh->nlmsg_len < NLMSG_HDRLEN ||
+-	    skb->len < NLMSG_HDRLEN + sizeof(struct nfgenmsg))
++	if (skb->len < NLMSG_HDRLEN + sizeof(struct nfgenmsg))
+ 		return;
+ 
+ 	err = nla_parse(cda, NFNL_BATCH_MAX, attr, attrlen, nfnl_batch_policy,
+@@ -491,7 +490,8 @@ static void nfnetlink_rcv(struct sk_buff *skb)
+ {
+ 	struct nlmsghdr *nlh = nlmsg_hdr(skb);
+ 
+-	if (nlh->nlmsg_len < NLMSG_HDRLEN ||
++	if (skb->len < NLMSG_HDRLEN ||
++	    nlh->nlmsg_len < NLMSG_HDRLEN ||
+ 	    skb->len < nlh->nlmsg_len)
+ 		return;
+ 
 
-It would be also great if you could add a bit of tests for the
-tests/py infrastructure, or at least, document the bunch of examples
-you have used to test this.
-
-Thanks!
+--DocE+STaALJfprDB--
