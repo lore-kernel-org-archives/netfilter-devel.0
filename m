@@ -1,40 +1,65 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nf] netfilter: nf_ct_dccp/sctp: fix memory leak after netns
- cleanup
-Date: Thu, 29 Jun 2017 01:36:30 +0200
-Message-ID: <20170628233630.GE4803@salvia>
-References: <1496575054-17168-1-git-send-email-zlpnobody@163.com>
- <20170628182408.GA13678@outlook.office365.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [nft crap] ct original ip saddr ... handling
+Date: Thu, 29 Jun 2017 02:39:49 +0200
+Message-ID: <20170629003949.GD9307@breakpoint.cc>
+References: <20170628100659.26976-1-fw@strlen.de>
+ <20170628163545.GA3874@salvia>
+ <20170628223139.GB9307@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Liping Zhang <zlpnobody@163.com>, netfilter-devel@vger.kernel.org,
-        Liping Zhang <zlpnobody@gmail.com>,
-        Davide Caratti <dcaratti@redhat.com>
-To: Andrei Vagin <avagin@virtuozzo.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47412 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751495AbdF1Xgf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 28 Jun 2017 19:36:35 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C2D1652310
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jun 2017 01:36:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B3C56DA80A
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jun 2017 01:36:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AFE4CDA7F4
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jun 2017 01:36:21 +0200 (CEST)
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37776 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751518AbdF2Akx (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 28 Jun 2017 20:40:53 -0400
 Content-Disposition: inline
-In-Reply-To: <20170628182408.GA13678@outlook.office365.com>
+In-Reply-To: <20170628223139.GB9307@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 28, 2017 at 11:24:09AM -0700, Andrei Vagin wrote:
-> Hi,
-> 
-> We met the same issue in 4.12-rc7. Is there any chanse to push this
-> patch to Linus' tree before the v4.12?
+Florian Westphal <fw@strlen.de> wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > There are no shift/reduce errors, things compile fine, and all
+> > > test cases work.  Its just that we break 'ct event set label':
+> > > 
+> > > Works:
+> > > ct event set new or reply
+> > > ct event set new,reply
+> > > ct event set new,label
+> > > fails:
+> > > ct event set label ('expects COMMA')
+ 
+> > This can be fixed, it's just a matter we need more time, right?
 
-Very late, I'm expecting no -rc8 so I suspect not getting in time. But
-I will drive this to -stable so this hits v4.12.x.
+Actually 'event set label' is simple to fix; just add keyword_expr
+to the ct_stmt_expr list.
+
+But another problem(?) is this:
+
+works:
+ct event label or new
+ct event set reply or new
+doesn't work:
+ct event set label or new
+
+(not strictly related to 'label', any other keyword like tcp, ip, etc.
+ has same problem, they just don't overlap with event names so would not
+ work anyway).
+
+I currently see no way to resolve this, unfortunately.
+For ct statements (and meta) we need to support plain expressions as SET
+argument, at least in some cases, such as:
+
+meta set mark or 42
+
+This is ambiguous because we have both tokens and symbolic constants.
+
+If we can live with the 'or' not being supported for ct event mask I
+think we're fine (it will work when forcing string type, i.e.
+ct event set "label" or new).
+
+Also, the 'label, new' format will work fine.
