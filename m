@@ -1,42 +1,79 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 03/29] netfilter: dup: resolve warnings about missing prototypes
-Date: Fri, 30 Jun 2017 00:53:01 +0200
-Message-ID: <1498776807-11124-4-git-send-email-pablo@netfilter.org>
-References: <1498776807-11124-1-git-send-email-pablo@netfilter.org>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: [PATCH RFC 0/26] Remove spin_unlock_wait()
+Date: Thu, 29 Jun 2017 16:59:18 -0700
+Message-ID: <20170629235918.GA6445@linux.vnet.ibm.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1498776807-11124-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        oleg@redhat.com, akpm@linux-foundation.org, mingo@redhat.com,
+        dave@stgolabs.net, manfred@colorfullife.com, tj@kernel.org,
+        arnd@arndb.de, linux-arch@vger.kernel.org, will.deacon@arm.com,
+        peterz@infradead.org, stern@rowland.harvard.edu,
+        parri.andrea@gmail.com, torvalds@linux-foundation.org
+To: linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: stephen hemminger <stephen@networkplumber.org>
+Hello!
 
-Missing include file causes:
+There is no agreed-upon definition of spin_unlock_wait()'s semantics,
+and it appears that all callers could do just as well with a lock/unlock
+pair.  This series therefore removes spin_unlock_wait() and changes
+its users to instead use a lock/unlock pair.  The commits are as follows,
+in three groups:
 
-net/netfilter/nf_dup_netdev.c:26:6: warning: no previous prototype for ‘nf_fwd_netdev_egress’ [-Wmissing-prototypes]
-net/netfilter/nf_dup_netdev.c:40:6: warning: no previous prototype for ‘nf_dup_netdev_egress’ [-Wmissing-prototypes]
+1-7.	Change uses of spin_unlock_wait() and raw_spin_unlock_wait()
+	to instead use a spin_lock/spin_unlock pair.  These may be
+	applied in any order, but must be applied before any later
+	commits in this series.  The commit logs state why I believe
+	that these commits won't noticeably degrade performance.
 
-Signed-off-by: Stephen Hemminger <sthemmin@microsoft.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_dup_netdev.c | 1 +
- 1 file changed, 1 insertion(+)
+8.	Remove core-kernel definitions for spin_unlock_wait() and
+	raw_spin_unlock_wait().
 
-diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
-index c9d7f95768ab..f4a566e67213 100644
---- a/net/netfilter/nf_dup_netdev.c
-+++ b/net/netfilter/nf_dup_netdev.c
-@@ -13,6 +13,7 @@
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_dup_netdev.h>
- 
- static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev)
- {
--- 
-2.1.4
+9-26.	Remove arch-specific definitions of arch_spin_unlock_wait().
+
+Thoughts?
+
+							Thanx, Paul
+
+------------------------------------------------------------------------
+
+ arch/alpha/include/asm/spinlock.h    |    5 -
+ arch/arc/include/asm/spinlock.h      |    5 -
+ arch/arm/include/asm/spinlock.h      |   16 ----
+ arch/arm64/include/asm/spinlock.h    |   58 +----------------
+ arch/blackfin/include/asm/spinlock.h |    5 -
+ arch/hexagon/include/asm/spinlock.h  |    5 -
+ arch/ia64/include/asm/spinlock.h     |   21 ------
+ arch/m32r/include/asm/spinlock.h     |    5 -
+ arch/metag/include/asm/spinlock.h    |    5 -
+ arch/mips/include/asm/spinlock.h     |   16 ----
+ arch/mn10300/include/asm/spinlock.h  |    5 -
+ arch/parisc/include/asm/spinlock.h   |    7 --
+ arch/powerpc/include/asm/spinlock.h  |   33 ---------
+ arch/s390/include/asm/spinlock.h     |    7 --
+ arch/sh/include/asm/spinlock-cas.h   |    5 -
+ arch/sh/include/asm/spinlock-llsc.h  |    5 -
+ arch/sparc/include/asm/spinlock_32.h |    5 -
+ arch/sparc/include/asm/spinlock_64.h |    5 -
+ arch/tile/include/asm/spinlock_32.h  |    2 
+ arch/tile/include/asm/spinlock_64.h  |    2 
+ arch/tile/lib/spinlock_32.c          |   23 ------
+ arch/tile/lib/spinlock_64.c          |   22 ------
+ arch/xtensa/include/asm/spinlock.h   |    5 -
+ drivers/ata/libata-eh.c              |    8 --
+ include/asm-generic/qspinlock.h      |   14 ----
+ include/linux/spinlock.h             |   31 ---------
+ include/linux/spinlock_up.h          |    6 -
+ ipc/sem.c                            |    3 
+ kernel/exit.c                        |    3 
+ kernel/locking/qspinlock.c           |  117 -----------------------------------
+ kernel/sched/completion.c            |    9 --
+ kernel/sched/core.c                  |    3 
+ kernel/task_work.c                   |    3 
+ net/netfilter/nf_conntrack_core.c    |   26 ++-----
+ 34 files changed, 26 insertions(+), 464 deletions(-)
