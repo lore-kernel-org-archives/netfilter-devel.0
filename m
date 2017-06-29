@@ -1,105 +1,125 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] netfilter: nfnetlink: Improve input length
- sanitization in nfnetlink_rcv
-Date: Thu, 29 Jun 2017 18:22:40 +0200
-Message-ID: <20170629162240.GA6883@salvia>
-References: <1496841821.736.35.camel@edumazet-glaptop3.roam.corp.google.com>
- <20170607135038.1592-1-mjurczyk@google.com>
- <20170627155825.GA4885@salvia>
- <20170627170527.GA13513@salvia>
+Subject: Re: [PATCH] netfilter: conntrack: fix clash resolution in nat
+Date: Thu, 29 Jun 2017 18:45:34 +0200
+Message-ID: <20170629164534.GA7271@salvia>
+References: <1497427883-3771-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="DocE+STaALJfprDB"
+Content-Type: text/plain; charset=us-ascii
 Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Mateusz Jurczyk <mjurczyk@google.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49978 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752837AbdF2QWu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 29 Jun 2017 12:22:50 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 350B5A4169
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jun 2017 18:22:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 25759D1CCC
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jun 2017 18:22:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5118DD1CA7
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jun 2017 18:22:36 +0200 (CEST)
+To: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170627170527.GA13513@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1497427883-3771-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---DocE+STaALJfprDB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Jun 27, 2017 at 07:05:27PM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Jun 27, 2017 at 05:58:25PM +0200, Pablo Neira Ayuso wrote:
-> > On Wed, Jun 07, 2017 at 03:50:38PM +0200, Mateusz Jurczyk wrote:
-> > > Verify that the length of the socket buffer is sufficient to cover the
-> > > nlmsghdr structure before accessing the nlh->nlmsg_len field for further
-> > > input sanitization. If the client only supplies 1-3 bytes of data in
-> > > sk_buff, then nlh->nlmsg_len remains partially uninitialized and
-> > > contains leftover memory from the corresponding kernel allocation.
-> > > Operating on such data may result in indeterminate evaluation of the
-> > > nlmsg_len < NLMSG_HDRLEN expression.
-> > > 
-> > > The bug was discovered by a runtime instrumentation designed to detect
-> > > use of uninitialized memory in the kernel. The patch prevents this and
-> > > other similar tools (e.g. KMSAN) from flagging this behavior in the future.
-> > 
-> > Applied, thanks.
+On Wed, Jun 14, 2017 at 04:11:23PM +0800, Haishuang Yan wrote:
+> In our openstack environment, slow dns lookup for hostname when
+> parallel dns requests for IPv4 and IPv6 addresses from VM, the
+> second IPv6 request(AAAA record) is dropped on its way in compute
+> node.
 > 
-> Wait, I keeping this back after closer look.
+> We found many similar related links:
+> https://bbs.archlinux.org/viewtopic.php?id=75770
+> http://www.spinics.net/lists/netfilter-devel/msg15860.html
+> https://www.spinics.net/lists/netfilter-devel/msg37565.html
 > 
-> I think we have to remove this:
+> After the commit 71d8c47fc653 ("netfilter: conntrack: introduce clash
+> resolution on insertion race") can fix packet drop, the second IPv6
+> request packet would be forwarded by compute node, but the udp source
+> port is bogus, start from 1024:
+> 14:52:10.868485 IP 10.136.5.132.55785 > 10.136.5.1.domain: 3957+ A?
+> www.baidu.com. (31)
+> 14:52:10.868544 IP 10.136.5.132.1024 > 10.136.5.1.domain: 13826+ AAAA?
+> www.baidu.com. (31)
 > 
->         if (nlh->nlmsg_len < NLMSG_HDRLEN || <---
->             skb->len < NLMSG_HDRLEN + sizeof(struct nfgenmsg))
->                 return;
+> And after the commit 590b52e10d41 ("netfilter: conntrack: skip clash
+> resolution if nat is in place") , it exclude nat situation, but the
+> packet drops issue come back again.
 > 
-> in nfnetlink_rcv_skb_batch()
+> This patch revert the last commit. If l4proto allow clash but the tuple is
+> used by the conntrack that wins race, the original tuple can be reused.
 > 
-> now that we make this unfront check from nfnetlink_rcv().
+> Fixes: 590b52e10d41 ("netfilter: conntrack: skip clash resolution if 25
+> nat is in place")
+> Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+> ---
+>  net/netfilter/nf_conntrack_core.c | 1 -
+>  net/netfilter/nf_nat_core.c       | 4 +++-
+>  2 files changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> index e847dba..7e16518 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -699,7 +699,6 @@ static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
+>  
+>  	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
+>  	if (l4proto->allow_clash &&
+> -	    ((ct->status & IPS_NAT_DONE_MASK) == 0) &&
+>  	    !nf_ct_is_dying(ct) &&
+>  	    atomic_inc_not_zero(&ct->ct_general.use)) {
+>  		enum ip_conntrack_info oldinfo;
+> diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+> index 6c72922..9edfca2 100644
+> --- a/net/netfilter/nf_nat_core.c
+> +++ b/net/netfilter/nf_nat_core.c
+> @@ -328,6 +328,7 @@ static int nf_nat_bysource_cmp(struct rhashtable_compare_arg *arg,
+>  	const struct nf_conntrack_zone *zone;
+>  	const struct nf_nat_l3proto *l3proto;
+>  	const struct nf_nat_l4proto *l4proto;
+> +	const struct nf_conntrack_l4proto *ct_l4proto;
+>  	struct net *net = nf_ct_net(ct);
+>  
+>  	zone = nf_ct_zone(ct);
+> @@ -336,6 +337,7 @@ static int nf_nat_bysource_cmp(struct rhashtable_compare_arg *arg,
+>  	l3proto = __nf_nat_l3proto_find(orig_tuple->src.l3num);
+>  	l4proto = __nf_nat_l4proto_find(orig_tuple->src.l3num,
+>  					orig_tuple->dst.protonum);
+> +	ct_l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
+>  
+>  	/* 1) If this srcip/proto/src-proto-part is currently mapped,
+>  	 * and that same mapping gives a unique tuple within the given
+> @@ -349,7 +351,7 @@ static int nf_nat_bysource_cmp(struct rhashtable_compare_arg *arg,
+>  	    !(range->flags & NF_NAT_RANGE_PROTO_RANDOM_ALL)) {
+>  		/* try the original tuple first */
+>  		if (in_range(l3proto, l4proto, orig_tuple, range)) {
+> -			if (!nf_nat_used_tuple(orig_tuple, ct)) {
+> +			if (!nf_nat_used_tuple(orig_tuple, ct) || ct_l4proto->allow_clash) {
 
-BTW, I can just mangle your patch here to delete such line to speed up
-things. See the mangled patch that is attached to this email.
 
-Thanks.
+Hm, this is defeating clash resolution logic entirely. I mean, with
+this this would not call nf_nat_l4proto_unique_tuple() so we get a
+unique tuple.
 
---DocE+STaALJfprDB
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="x.patch"
+My concern with this is that, although this is fixing the issue for
+you, I suspect this is breaking SNAT/masquerade in case we get two
+clients in the LAN if both flow have a tuple that matches this:
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 80f5ecf2c3d7..ff1f4ce6fba4 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -463,8 +463,7 @@ static void nfnetlink_rcv_skb_batch(struct sk_buff *skb, struct nlmsghdr *nlh)
- 	if (msglen > skb->len)
- 		msglen = skb->len;
- 
--	if (nlh->nlmsg_len < NLMSG_HDRLEN ||
--	    skb->len < NLMSG_HDRLEN + sizeof(struct nfgenmsg))
-+	if (skb->len < NLMSG_HDRLEN + sizeof(struct nfgenmsg))
- 		return;
- 
- 	err = nla_parse(cda, NFNL_BATCH_MAX, attr, attrlen, nfnl_batch_policy,
-@@ -491,7 +490,8 @@ static void nfnetlink_rcv(struct sk_buff *skb)
- {
- 	struct nlmsghdr *nlh = nlmsg_hdr(skb);
- 
--	if (nlh->nlmsg_len < NLMSG_HDRLEN ||
-+	if (skb->len < NLMSG_HDRLEN ||
-+	    nlh->nlmsg_len < NLMSG_HDRLEN ||
- 	    skb->len < nlh->nlmsg_len)
- 		return;
- 
+        *, srcport, dst-IP, dst-port
 
---DocE+STaALJfprDB--
+The problem that we have with this is a race condition, the problem is
+that the second packet doesn't find a confirmed conntrack in the
+hashes, so it gets its own one and NAT makes sure such tuple is
+unique.
+
+So far, the only way I see to fix this is to postpone packet mangling
+that NAT performs after the clash resolution code in
+nf_conntrack_confirm(). But that changes the behaviour in a way that
+would break matching rules that assume the existing behaviour, that
+is, nf_nat_setup() mangles the packet.
+
+>  				*tuple = *orig_tuple;
+>  				goto out;
+>  			}
+> -- 
+> 1.8.3.1
+> 
+> 
+> 
