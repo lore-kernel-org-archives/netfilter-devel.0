@@ -1,51 +1,58 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH 25/29] netfilter, kbuild: use canonical method to
- specify objs.
-Date: Fri, 30 Jun 2017 11:17:41 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6DD002E9F3@AcuExch.aculab.com>
-References: <1498776807-11124-1-git-send-email-pablo@netfilter.org>
- <1498776807-11124-26-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] Netfilter (+folks) userday in Faro, Portugal (Monday,
+ July 3th)
+Date: Fri, 30 Jun 2017 14:15:26 +0200
+Message-ID: <20170630121526.GA1446@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Cc: "davem@davemloft.net" <davem@davemloft.net>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: 'Pablo Neira Ayuso' <pablo@netfilter.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-out4.electric.net ([192.162.216.186]:56689 "EHLO
-        smtp-out4.electric.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751722AbdF3LR6 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 30 Jun 2017 07:17:58 -0400
-In-Reply-To: <1498776807-11124-26-git-send-email-pablo@netfilter.org>
-Content-Language: en-US
+Received: from mail.us.es ([193.147.175.20]:48238 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751927AbdF3MPf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 30 Jun 2017 08:15:35 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 6BF7C4D650
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Jun 2017 14:15:23 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5DF52CA6C4
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Jun 2017 14:15:23 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4F14DCFDE9
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Jun 2017 14:15:21 +0200 (CEST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso
-> Sent: 29 June 2017 23:53
-> Should use ":=" instead of "+=".
-...
-> diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-> index c9b78e7b342f..913380919301 100644
-> --- a/net/netfilter/Makefile
-> +++ b/net/netfilter/Makefile
-> @@ -70,10 +70,9 @@ obj-$(CONFIG_NETFILTER_SYNPROXY) += nf_synproxy_core.o
->  obj-$(CONFIG_NF_DUP_NETDEV)	+= nf_dup_netdev.o
-> 
->  # nf_tables
-> -nf_tables-objs += nf_tables_core.o nf_tables_api.o nf_tables_trace.o
-> -nf_tables-objs += nft_immediate.o nft_cmp.o nft_range.o
-> -nf_tables-objs += nft_bitwise.o nft_byteorder.o nft_payload.o
-> -nf_tables-objs += nft_lookup.o nft_dynset.o
-> +nf_tables-objs := nf_tables_core.o nf_tables_api.o nf_tables_trace.o \
-> +		  nft_immediate.o nft_cmp.o nft_range.o nft_bitwise.o \
-> +		  nft_byteorder.o nft_payload.o nft_lookup.o nft_dynset.o
+Hi!
 
-Why?
-My preference is to add each file on its own line.
-Generates much less churn when files are added or removed.
+We're releasing today the planning for our Netfilter (and folks)
+userday in Faro, Portugal. This is the pre-event that traditionally
+come before the Netfilter developer Workshop.
 
-	David
+This is the planning:
 
+9h:     Welcoming (Pablo Neira)
+9h15:   Suricata and its interaction with Netfilter (Eric Leblond)
+10h:    Coffe break
+10h15:  OVS and OVN (Joe Stringer)
+10h50:  Introduction to kasan and syzkaller (Florian Westphal)
+11h25:  Netfilter logging (Eric Leblond)
+12h:    Lunch
+14:     Linux network stack walkthrough (Florian Westphal)
+14h50:  Hands-on: migrate your laptop to nftables (Netfilter coreteam)
+15h:    Coffe break
+15h10:  TCP/IP is Boring: A tour of cellular protocol stacks (Harald Welte)
+16h:    Closing
+
+This event will take place in the Campus da Penha, in the University
+of Algarve, Building 9, room 2.25 (second floor).
+
+This event is public, free (no cost) and it requires no previous
+invitation. If you're in the area, you are welcome to join us.
+
+Thanks!
+
+P.S: Please, note that the Netfilter developer workshop starts on July
+     4th and it requires an invitation to attend indeed.
