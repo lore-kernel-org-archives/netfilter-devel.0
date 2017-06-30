@@ -1,74 +1,62 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 1/3] netfilter: exthdr: factor out tcp option access
-Date: Fri, 30 Jun 2017 19:28:46 +0200
-Message-ID: <20170630172848.18196-1-fw@strlen.de>
+Subject: [PATCH nf-next 2/3] netfilter: exthdr: split netlink dump function
+Date: Fri, 30 Jun 2017 19:28:47 +0200
+Message-ID: <20170630172848.18196-2-fw@strlen.de>
+References: <20170630172848.18196-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:47202 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:47204 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751666AbdF3R2f (ORCPT
+        by vger.kernel.org with ESMTP id S1751728AbdF3R2i (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 30 Jun 2017 13:28:35 -0400
+        Fri, 30 Jun 2017 13:28:38 -0400
+In-Reply-To: <20170630172848.18196-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+so eval and uncoming eval_set versions can reuse a common helper.
+
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_exthdr.c | 33 +++++++++++++++++++++------------
- 1 file changed, 21 insertions(+), 12 deletions(-)
+ net/netfilter/nft_exthdr.c | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
 diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index 1ec49fe5845f..921c95f2c583 100644
+index 921c95f2c583..e3a6eebe7e0c 100644
 --- a/net/netfilter/nft_exthdr.c
 +++ b/net/netfilter/nft_exthdr.c
-@@ -61,6 +61,26 @@ static void nft_exthdr_ipv6_eval(const struct nft_expr *expr,
- 	regs->verdict.code = NFT_BREAK;
+@@ -180,12 +180,8 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
+ 					   NFT_DATA_VALUE, priv->len);
  }
  
-+static void *
-+nft_tcp_header_pointer(const struct nft_pktinfo *pkt,
-+		       unsigned int len, void *buffer, unsigned int *tcphdr_len)
+-static int nft_exthdr_dump(struct sk_buff *skb, const struct nft_expr *expr)
++static int nft_exthdr_dump_common(struct sk_buff *skb, const struct nft_exthdr *priv)
+ {
+-	const struct nft_exthdr *priv = nft_expr_priv(expr);
+-
+-	if (nft_dump_register(skb, NFTA_EXTHDR_DREG, priv->dreg))
+-		goto nla_put_failure;
+ 	if (nla_put_u8(skb, NFTA_EXTHDR_TYPE, priv->type))
+ 		goto nla_put_failure;
+ 	if (nla_put_be32(skb, NFTA_EXTHDR_OFFSET, htonl(priv->offset)))
+@@ -202,6 +198,16 @@ static int nft_exthdr_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 	return -1;
+ }
+ 
++static int nft_exthdr_dump(struct sk_buff *skb, const struct nft_expr *expr)
 +{
-+	struct tcphdr *tcph;
++	const struct nft_exthdr *priv = nft_expr_priv(expr);
 +
-+	if (!pkt->tprot_set || pkt->tprot != IPPROTO_TCP)
-+		return NULL;
++	if (nft_dump_register(skb, NFTA_EXTHDR_DREG, priv->dreg))
++		return -1;
 +
-+	tcph = skb_header_pointer(pkt->skb, pkt->xt.thoff, sizeof(*tcph), buffer);
-+	if (!tcph)
-+		return NULL;
-+
-+	*tcphdr_len = __tcp_hdrlen(tcph);
-+	if (*tcphdr_len < sizeof(*tcph) || *tcphdr_len > len)
-+		return NULL;
-+
-+	return skb_header_pointer(pkt->skb, pkt->xt.thoff, *tcphdr_len, buffer);
++	return nft_exthdr_dump_common(skb, priv);
 +}
 +
- static void nft_exthdr_tcp_eval(const struct nft_expr *expr,
- 				struct nft_regs *regs,
- 				const struct nft_pktinfo *pkt)
-@@ -72,18 +92,7 @@ static void nft_exthdr_tcp_eval(const struct nft_expr *expr,
- 	struct tcphdr *tcph;
- 	u8 *opt;
- 
--	if (!pkt->tprot_set || pkt->tprot != IPPROTO_TCP)
--		goto err;
--
--	tcph = skb_header_pointer(pkt->skb, pkt->xt.thoff, sizeof(*tcph), buff);
--	if (!tcph)
--		goto err;
--
--	tcphdr_len = __tcp_hdrlen(tcph);
--	if (tcphdr_len < sizeof(*tcph))
--		goto err;
--
--	tcph = skb_header_pointer(pkt->skb, pkt->xt.thoff, tcphdr_len, buff);
-+	tcph = nft_tcp_header_pointer(pkt, sizeof(buff), buff, &tcphdr_len);
- 	if (!tcph)
- 		goto err;
- 
+ static struct nft_expr_type nft_exthdr_type;
+ static const struct nft_expr_ops nft_exthdr_ipv6_ops = {
+ 	.type		= &nft_exthdr_type,
 -- 
 2.13.0
 
