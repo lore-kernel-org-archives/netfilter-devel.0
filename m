@@ -1,54 +1,60 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH RFC 12/26] arm64: Remove spin_unlock_wait() arch-specific
- definitions
-Date: Fri, 30 Jun 2017 10:29:43 -0700
-Message-ID: <20170630172943.GY2393@linux.vnet.ibm.com>
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: Re: [PATCH RFC 02/26] task_work: Replace spin_unlock_wait() with
+ lock/unlock pair
+Date: Fri, 30 Jun 2017 21:21:23 +0200
+Message-ID: <20170630192123.GA8471@redhat.com>
 References: <20170629235918.GA6445@linux.vnet.ibm.com>
- <1498780894-8253-12-git-send-email-paulmck@linux.vnet.ibm.com>
- <20170630092057.GD9726@arm.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+ <1498780894-8253-2-git-send-email-paulmck@linux.vnet.ibm.com>
+ <20170630110445.GA5123@redhat.com>
+ <20170630125020.GU2393@linux.vnet.ibm.com>
+ <20170630152010.GA6935@redhat.com>
+ <20170630161607.GX2393@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org, oleg@redhat.com, akpm@linux-foundation.org,
+        netdev@vger.kernel.org, akpm@linux-foundation.org,
         mingo@redhat.com, dave@stgolabs.net, manfred@colorfullife.com,
         tj@kernel.org, arnd@arndb.de, linux-arch@vger.kernel.org,
-        peterz@infradead.org, stern@rowland.harvard.edu,
-        parri.andrea@gmail.com, torvalds@linux-foundation.org,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        linux-arm-kernel@lists.infradead.org
-To: Will Deacon <will.deacon@arm.com>
-Return-path: <linux-arch-owner@vger.kernel.org>
+        will.deacon@arm.com, peterz@infradead.org,
+        stern@rowland.harvard.edu, parri.andrea@gmail.com,
+        torvalds@linux-foundation.org
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170630092057.GD9726@arm.com>
-Sender: linux-arch-owner@vger.kernel.org
+In-Reply-To: <20170630161607.GX2393@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jun 30, 2017 at 10:20:57AM +0100, Will Deacon wrote:
-> On Thu, Jun 29, 2017 at 05:01:20PM -0700, Paul E. McKenney wrote:
-> > There is no agreed-upon definition of spin_unlock_wait()'s semantics,
-> > and it appears that all callers could do just as well with a lock/unlock
-> > pair.  This commit therefore removes the underlying arch-specific
-> > arch_spin_unlock_wait().
-> > 
-> > Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-> > Cc: Catalin Marinas <catalin.marinas@arm.com>
-> > Cc: Will Deacon <will.deacon@arm.com>
-> > Cc: <linux-arm-kernel@lists.infradead.org>
-> > Cc: Peter Zijlstra <peterz@infradead.org>
-> > Cc: Alan Stern <stern@rowland.harvard.edu>
-> > Cc: Andrea Parri <parri.andrea@gmail.com>
-> > Cc: Linus Torvalds <torvalds@linux-foundation.org>
-> > ---
-> >  arch/arm64/include/asm/spinlock.h | 58 ++++-----------------------------------
-> >  1 file changed, 5 insertions(+), 53 deletions(-)
-> 
-> I'm going to miss this code.
+On 06/30, Paul E. McKenney wrote:
+>
+> On Fri, Jun 30, 2017 at 05:20:10PM +0200, Oleg Nesterov wrote:
+> >
+> > I do not think the overhead will be noticeable in this particular case.
+> >
+> > But I am not sure I understand why do we want to unlock_wait. Yes I agree,
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-;-) ;-) ;-)
+if it was not clear, I tried to say "why do we want to _remove_ unlock_wait".
 
-> Acked-by: Will Deacon <will.deacon@arm.com>
+> > it has some problems, but still...
+> >
+> > The code above looks strange for me. If we are going to repeat this pattern
+> > the perhaps we should add a helper for lock+unlock and name it unlock_wait2 ;)
+> >
+> > If not, we should probably change this code more:
+>
+> This looks -much- better than my patch!  May I have your Signed-off-by?
 
-Applied, thank you!
+Only if you promise to replace all RCU flavors with a single simple implementation
+based on rwlock ;)
 
-							Thanx, Paul
+Seriously, of course I won't argue, and it seems that nobody except me likes
+this primitive, but to me spin_unlock_wait() looks like synchronize_rcu(() and
+sometimes it makes sense.
+
+Including this particular case. task_work_run() is going to flush/destroy the
+->task_works list, so it needs to wait until all currently executing "readers"
+(task_work_cancel()'s which have started before ->task_works was updated) have
+completed.
+
+Oleg.
