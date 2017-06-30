@@ -1,82 +1,93 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH RFC 25/26] tile: Remove spin_unlock_wait() arch-specific
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH RFC 08/26] locking: Remove spin_unlock_wait() generic
  definitions
-Date: Thu, 29 Jun 2017 17:24:46 -0700
-Message-ID: <20170630002446.GM2393@linux.vnet.ibm.com>
+Date: Fri, 30 Jun 2017 10:19:29 +0100
+Message-ID: <20170630091928.GC9726@arm.com>
 References: <20170629235918.GA6445@linux.vnet.ibm.com>
- <1498780894-8253-25-git-send-email-paulmck@linux.vnet.ibm.com>
- <CA+55aFxf=4+LEk6wSE3HPFdwSf_F0Ny9NRGXaA6daikY+TGbDg@mail.gmail.com>
- <CA+55aFyogF0gpZ+5KHabFaYDhAq0awPzpSVj9S2q9EZnoY2eXQ@mail.gmail.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+ <1498780894-8253-8-git-send-email-paulmck@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        Oleg Nesterov <oleg@redhat.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        Manfred Spraul <manfred@colorfullife.com>,
-        Tejun Heo <tj@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-        Will Deacon <will.deacon@arm.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Andrea Parri <parri.andrea@gmail.com>,
-        Chris Metcalf <cmetcalf@mellanox.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org, oleg@redhat.com, akpm@linux-foundation.org,
+        mingo@redhat.com, dave@stgolabs.net, manfred@colorfullife.com,
+        tj@kernel.org, arnd@arndb.de, linux-arch@vger.kernel.org,
+        peterz@infradead.org, stern@rowland.harvard.edu,
+        parri.andrea@gmail.com, torvalds@linux-foundation.org
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CA+55aFyogF0gpZ+5KHabFaYDhAq0awPzpSVj9S2q9EZnoY2eXQ@mail.gmail.com>
+In-Reply-To: <1498780894-8253-8-git-send-email-paulmck@linux.vnet.ibm.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Jun 29, 2017 at 05:10:41PM -0700, Linus Torvalds wrote:
-> On Thu, Jun 29, 2017 at 5:06 PM, Linus Torvalds
-> <torvalds@linux-foundation.org> wrote:
-> >
-> > Please don't make this one commit fopr every architecture.
-> >
-> > Once something gets removed, it gets removed. There's no point in
-> > "remove it from architecture X". If there are no more users, we're
-> > done with it, and making it be 25 patches with the same commit message
-> > instead of just one doesn't help anybody.
+On Thu, Jun 29, 2017 at 05:01:16PM -0700, Paul E. McKenney wrote:
+> There is no agreed-upon definition of spin_unlock_wait()'s semantics,
+> and it appears that all callers could do just as well with a lock/unlock
+> pair.  This commit therefore removes spin_unlock_wait() and related
+> definitions from core code.
 > 
-> Just to clarify: I think the actual *users* are worth doing one by
-> one, particularly if there are user-specific explanations of what that
-> particular code wanted, and why spin_unlock_wait() doesn't really
-> help.
+> Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Alan Stern <stern@rowland.harvard.edu>
+> Cc: Andrea Parri <parri.andrea@gmail.com>
+> Cc: Linus Torvalds <torvalds@linux-foundation.org>
+> ---
+>  include/asm-generic/qspinlock.h |  14 -----
+>  include/linux/spinlock.h        |  31 -----------
+>  include/linux/spinlock_up.h     |   6 ---
+>  kernel/locking/qspinlock.c      | 117 ----------------------------------------
+>  4 files changed, 168 deletions(-)
 
-Got it, and I did merge -only- the arch-specific definition removals
-into one commit.  Should I also merge the core-code definition removals
-into that same commit, or is it OK to remove the core-code definitions
-with one commit and the arch-specific definitions with another.
+[...]
 
-(My guess is that you would prefer I removed -all- definitions with one
-commit, including the core-kernel definitions, but at this point I figure
-I should just ask.)
+> diff --git a/kernel/locking/qspinlock.c b/kernel/locking/qspinlock.c
+> index b2caec7315af..64a9051e4c2c 100644
+> --- a/kernel/locking/qspinlock.c
+> +++ b/kernel/locking/qspinlock.c
+> @@ -267,123 +267,6 @@ static __always_inline u32  __pv_wait_head_or_lock(struct qspinlock *lock,
+>  #define queued_spin_lock_slowpath	native_queued_spin_lock_slowpath
+>  #endif
+>  
+> -/*
+> - * Various notes on spin_is_locked() and spin_unlock_wait(), which are
+> - * 'interesting' functions:
+> - *
+> - * PROBLEM: some architectures have an interesting issue with atomic ACQUIRE
+> - * operations in that the ACQUIRE applies to the LOAD _not_ the STORE (ARM64,
+> - * PPC). Also qspinlock has a similar issue per construction, the setting of
+> - * the locked byte can be unordered acquiring the lock proper.
+> - *
+> - * This gets to be 'interesting' in the following cases, where the /should/s
+> - * end up false because of this issue.
+> - *
+> - *
+> - * CASE 1:
+> - *
+> - * So the spin_is_locked() correctness issue comes from something like:
+> - *
+> - *   CPU0				CPU1
+> - *
+> - *   global_lock();			local_lock(i)
+> - *     spin_lock(&G)			  spin_lock(&L[i])
+> - *     for (i)				  if (!spin_is_locked(&G)) {
+> - *       spin_unlock_wait(&L[i]);	    smp_acquire__after_ctrl_dep();
+> - *					    return;
+> - *					  }
+> - *					  // deal with fail
+> - *
+> - * Where it is important CPU1 sees G locked or CPU0 sees L[i] locked such
+> - * that there is exclusion between the two critical sections.
+> - *
+> - * The load from spin_is_locked(&G) /should/ be constrained by the ACQUIRE from
+> - * spin_lock(&L[i]), and similarly the load(s) from spin_unlock_wait(&L[i])
+> - * /should/ be constrained by the ACQUIRE from spin_lock(&G).
+> - *
+> - * Similarly, later stuff is constrained by the ACQUIRE from CTRL+RMB.
 
-> And I think that you actually have those per-user insights by now,
-> after looking at the long thread.
+Might be worth keeping this comment about spin_is_locked, since we're not
+removing that guy just yet!
 
-One Acked-by thus far, so some progress!
-
-> So I'm not saying "do one patch for the whole series". One patch per
-> removal of use is fine - in fact preferred.
-
-Got it.  It allows the developers and maintainers to tell me where my
-analysis is wrong, for one thing.  ;-)
-
-> But once there are no actual more users, just remove all the
-> architecture definitions in one go, because explaining the same thing
-> several times doesn't actually help anything.
-> 
-> In fact, *if* we end up ever resurrecting that thing, it's good if we
-> can resurrect it in one go. Then we can resurrect the one or two users
-> that turned out to matter after all and could come up with why some
-> particular ordering was ok too.
-
-Understood!
-
-							Thanx, Paul
+Will
