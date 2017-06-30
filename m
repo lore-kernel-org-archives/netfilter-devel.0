@@ -1,47 +1,54 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH RFC 12/26] arm64: Remove spin_unlock_wait() arch-specific
- definitions
-Date: Fri, 30 Jun 2017 10:20:57 +0100
-Message-ID: <20170630092057.GD9726@arm.com>
-References: <20170629235918.GA6445@linux.vnet.ibm.com>
- <1498780894-8253-12-git-send-email-paulmck@linux.vnet.ibm.com>
+From: Varsha Rao <rvarsha016@gmail.com>
+Subject: [PATCH nft 0/3] include: Remove datatype_register(), __init and
+ __exit macros.
+Date: Fri, 30 Jun 2017 14:54:27 +0530
+Message-ID: <cover.1498814530.git.rvarsha016@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org, oleg@redhat.com, akpm@linux-foundation.org,
-        mingo@redhat.com, dave@stgolabs.net, manfred@colorfullife.com,
-        tj@kernel.org, arnd@arndb.de, linux-arch@vger.kernel.org,
-        peterz@infradead.org, stern@rowland.harvard.edu,
-        parri.andrea@gmail.com, torvalds@linux-foundation.org,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        linux-arm-kernel@lists.infradead.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Return-path: <linux-arch-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:35206 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751421AbdF3JYe (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 30 Jun 2017 05:24:34 -0400
+Received: by mail-pg0-f65.google.com with SMTP id f127so14795755pgc.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Jun 2017 02:24:33 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1498780894-8253-12-git-send-email-paulmck@linux.vnet.ibm.com>
-Sender: linux-arch-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 29, 2017 at 05:01:20PM -0700, Paul E. McKenney wrote:
-> There is no agreed-upon definition of spin_unlock_wait()'s semantics,
-> and it appears that all callers could do just as well with a lock/unlock
-> pair.  This commit therefore removes the underlying arch-specific
-> arch_spin_unlock_wait().
-> 
-> Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: <linux-arm-kernel@lists.infradead.org>
-> Cc: Peter Zijlstra <peterz@infradead.org>
-> Cc: Alan Stern <stern@rowland.harvard.edu>
-> Cc: Andrea Parri <parri.andrea@gmail.com>
-> Cc: Linus Torvalds <torvalds@linux-foundation.org>
-> ---
->  arch/arm64/include/asm/spinlock.h | 58 ++++-----------------------------------
->  1 file changed, 5 insertions(+), 53 deletions(-)
+This patchset removes datatype_register() function, __init and __exit
+macro definitions.
 
-I'm going to miss this code.
+Varsha Rao (3):
+  include: Remove datatype_register().
+  include: Remove __init macro definition.
+  include: Remove __exit macro definition.
 
-Acked-by: Will Deacon <will.deacon@arm.com>
+ include/ct.h       |  3 +++
+ include/datatype.h |  1 -
+ include/exthdr.h   |  1 +
+ include/fib.h      |  2 ++
+ include/meta.h     |  7 ++++++-
+ include/nftables.h | 18 ++++++++++++++++++
+ include/proto.h    |  8 ++++++++
+ include/rt.h       |  1 +
+ include/utils.h    |  2 --
+ src/ct.c           | 17 +++++------------
+ src/datatype.c     | 29 +++++++++++++++++++++--------
+ src/exthdr.c       |  7 +------
+ src/fib.c          |  7 +------
+ src/gmputil.c      |  2 +-
+ src/main.c         | 26 ++++++++++++++++++++++++++
+ src/meta.c         | 52 +++++++++-------------------------------------------
+ src/netlink.c      |  4 ++--
+ src/proto.c        | 24 ++++++------------------
+ src/rt.c           | 11 +++--------
+ src/xt.c           |  2 +-
+ 20 files changed, 115 insertions(+), 109 deletions(-)
 
-Will
+-- 
+2.9.4
+
