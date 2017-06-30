@@ -1,274 +1,54 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [RFC PATCH nf-next 3/3] netfilter: exthdr: early set support
-Date: Fri, 30 Jun 2017 19:28:48 +0200
-Message-ID: <20170630172848.18196-3-fw@strlen.de>
-References: <20170630172848.18196-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:47208 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751657AbdF3R2l (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 30 Jun 2017 13:28:41 -0400
-In-Reply-To: <20170630172848.18196-1-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH RFC 12/26] arm64: Remove spin_unlock_wait() arch-specific
+ definitions
+Date: Fri, 30 Jun 2017 10:29:43 -0700
+Message-ID: <20170630172943.GY2393@linux.vnet.ibm.com>
+References: <20170629235918.GA6445@linux.vnet.ibm.com>
+ <1498780894-8253-12-git-send-email-paulmck@linux.vnet.ibm.com>
+ <20170630092057.GD9726@arm.com>
+Reply-To: paulmck@linux.vnet.ibm.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org, oleg@redhat.com, akpm@linux-foundation.org,
+        mingo@redhat.com, dave@stgolabs.net, manfred@colorfullife.com,
+        tj@kernel.org, arnd@arndb.de, linux-arch@vger.kernel.org,
+        peterz@infradead.org, stern@rowland.harvard.edu,
+        parri.andrea@gmail.com, torvalds@linux-foundation.org,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        linux-arm-kernel@lists.infradead.org
+To: Will Deacon <will.deacon@arm.com>
+Return-path: <linux-arch-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170630092057.GD9726@arm.com>
+Sender: linux-arch-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This allows setting 2 and 4 byte quantities in the tcp option space.
-This allows native replacement for xt_TCPMSS in nf_tables.
+On Fri, Jun 30, 2017 at 10:20:57AM +0100, Will Deacon wrote:
+> On Thu, Jun 29, 2017 at 05:01:20PM -0700, Paul E. McKenney wrote:
+> > There is no agreed-upon definition of spin_unlock_wait()'s semantics,
+> > and it appears that all callers could do just as well with a lock/unlock
+> > pair.  This commit therefore removes the underlying arch-specific
+> > arch_spin_unlock_wait().
+> > 
+> > Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+> > Cc: Catalin Marinas <catalin.marinas@arm.com>
+> > Cc: Will Deacon <will.deacon@arm.com>
+> > Cc: <linux-arm-kernel@lists.infradead.org>
+> > Cc: Peter Zijlstra <peterz@infradead.org>
+> > Cc: Alan Stern <stern@rowland.harvard.edu>
+> > Cc: Andrea Parri <parri.andrea@gmail.com>
+> > Cc: Linus Torvalds <torvalds@linux-foundation.org>
+> > ---
+> >  arch/arm64/include/asm/spinlock.h | 58 ++++-----------------------------------
+> >  1 file changed, 5 insertions(+), 53 deletions(-)
+> 
+> I'm going to miss this code.
 
-Todo:
--TCPOPTSTRIP equivalent
--possibly restrict write support so we can't generate
-invalid options (e.g., don't allow write to kind,len).
+;-) ;-) ;-)
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/uapi/linux/netfilter/nf_tables.h |   4 +-
- net/netfilter/nft_exthdr.c               | 161 ++++++++++++++++++++++++++++++-
- 2 files changed, 162 insertions(+), 3 deletions(-)
+> Acked-by: Will Deacon <will.deacon@arm.com>
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 683f6f88fcac..4766f5091b5f 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -731,7 +731,8 @@ enum nft_exthdr_op {
-  * @NFTA_EXTHDR_OFFSET: extension header offset (NLA_U32)
-  * @NFTA_EXTHDR_LEN: extension header length (NLA_U32)
-  * @NFTA_EXTHDR_FLAGS: extension header flags (NLA_U32)
-- * @NFTA_EXTHDR_OP: option match type (NLA_U8)
-+ * @NFTA_EXTHDR_OP: option match type (NLA_U32)
-+ * @NFTA_EXTHDR_SREG: option match type (NLA_U32)
-  */
- enum nft_exthdr_attributes {
- 	NFTA_EXTHDR_UNSPEC,
-@@ -741,6 +742,7 @@ enum nft_exthdr_attributes {
- 	NFTA_EXTHDR_LEN,
- 	NFTA_EXTHDR_FLAGS,
- 	NFTA_EXTHDR_OP,
-+	NFTA_EXTHDR_SREG,
- 	__NFTA_EXTHDR_MAX
- };
- #define NFTA_EXTHDR_MAX		(__NFTA_EXTHDR_MAX - 1)
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index e3a6eebe7e0c..214211699f8d 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -8,6 +8,7 @@
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
- 
-+#include <asm/unaligned.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/module.h>
-@@ -23,6 +24,7 @@ struct nft_exthdr {
- 	u8			len;
- 	u8			op;
- 	enum nft_registers	dreg:8;
-+	enum nft_registers	sreg:8;
- 	u8			flags;
- };
- 
-@@ -124,6 +126,88 @@ static void nft_exthdr_tcp_eval(const struct nft_expr *expr,
- 		regs->verdict.code = NFT_BREAK;
- }
- 
-+static void nft_exthdr_tcp_set_eval(const struct nft_expr *expr,
-+				    struct nft_regs *regs,
-+				    const struct nft_pktinfo *pkt)
-+{
-+	u8 buff[sizeof(struct tcphdr) + MAX_TCP_OPTION_SPACE];
-+	struct nft_exthdr *priv = nft_expr_priv(expr);
-+	unsigned int i, optl, tcphdr_len, offset;
-+	struct tcphdr *tcph;
-+	u8 *opt;
-+	u32 src;
-+
-+	tcph = nft_tcp_header_pointer(pkt, sizeof(buff), buff, &tcphdr_len);
-+	if (!tcph)
-+		return;
-+
-+	opt = (u8 *)tcph;
-+	for (i = sizeof(*tcph); i < tcphdr_len - 1; i += optl) {
-+		union {
-+			u8 octet;
-+			__be16 v16;
-+			__be32 v32;
-+		} old, new;
-+
-+		optl = optlen(opt, i);
-+
-+		if (priv->type != opt[i])
-+			continue;
-+
-+		if (i + optl > tcphdr_len || priv->len + priv->offset > optl)
-+			return;
-+
-+		if (!skb_make_writable(pkt->skb, pkt->xt.thoff + i + priv->len))
-+			return;
-+
-+		tcph = nft_tcp_header_pointer(pkt, sizeof(buff), buff,
-+					      &tcphdr_len);
-+		if (!tcph)
-+			return;
-+
-+		src = regs->data[priv->sreg];
-+		offset = i + priv->offset;
-+
-+		switch (priv->len) {
-+		case 2:
-+			old.v16 = get_unaligned((u16 *)(opt + offset));
-+			new.v16 = src;
-+
-+			if (old.v16 == new.v16)
-+				return;
-+
-+			switch (priv->type) {
-+			case TCPOPT_MSS:
-+				/* increase can cause connection to stall */
-+				if (ntohs(old.v16) <= ntohs(new.v16))
-+					return;
-+			break;
-+			}
-+
-+			put_unaligned(new.v16, (u16*)(opt + offset));
-+			inet_proto_csum_replace2(&tcph->check, pkt->skb,
-+						 old.v16, new.v16, false);
-+			break;
-+		case 4:
-+			new.v32 = src;
-+			old.v32 = get_unaligned((u32 *)(opt + offset));
-+
-+			if (old.v32 == new.v32)
-+				return;
-+
-+			put_unaligned(new.v32, (u32*)(opt + offset));
-+			inet_proto_csum_replace4(&tcph->check, pkt->skb,
-+						 old.v32, new.v32, false);
-+			break;
-+		default:
-+			WARN_ON_ONCE(1);
-+			break;
-+		}
-+
-+		return;
-+	}
-+}
-+
- static const struct nla_policy nft_exthdr_policy[NFTA_EXTHDR_MAX + 1] = {
- 	[NFTA_EXTHDR_DREG]		= { .type = NLA_U32 },
- 	[NFTA_EXTHDR_TYPE]		= { .type = NLA_U8 },
-@@ -180,6 +264,52 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
- 					   NFT_DATA_VALUE, priv->len);
- }
- 
-+static int nft_exthdr_tcp_set_init(const struct nft_ctx *ctx,
-+				   const struct nft_expr *expr,
-+				   const struct nlattr * const tb[])
-+{
-+	struct nft_exthdr *priv = nft_expr_priv(expr);
-+	u32 offset, len, flags = 0, op = NFT_EXTHDR_OP_IPV6;
-+	int err;
-+
-+	if (!tb[NFTA_EXTHDR_SREG] ||
-+	    !tb[NFTA_EXTHDR_TYPE] ||
-+	    !tb[NFTA_EXTHDR_OFFSET] ||
-+	    !tb[NFTA_EXTHDR_LEN])
-+		return -EINVAL;
-+
-+	if (tb[NFTA_EXTHDR_DREG] || tb[NFTA_EXTHDR_FLAGS])
-+		return -EINVAL;
-+
-+	err = nft_parse_u32_check(tb[NFTA_EXTHDR_OFFSET], U8_MAX, &offset);
-+	if (err < 0)
-+		return err;
-+
-+	err = nft_parse_u32_check(tb[NFTA_EXTHDR_LEN], U8_MAX, &len);
-+	if (err < 0)
-+		return err;
-+
-+	switch (len) {
-+	case 2: break;
-+	case 4: break;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+
-+	err = nft_parse_u32_check(tb[NFTA_EXTHDR_OP], U8_MAX, &op);
-+	if (err < 0)
-+		return err;
-+
-+	priv->type   = nla_get_u8(tb[NFTA_EXTHDR_TYPE]);
-+	priv->offset = offset;
-+	priv->len    = len;
-+	priv->sreg   = nft_parse_register(tb[NFTA_EXTHDR_SREG]);
-+	priv->flags  = flags;
-+	priv->op     = op;
-+
-+	return nft_validate_register_load(priv->sreg, priv->len);
-+}
-+
- static int nft_exthdr_dump_common(struct sk_buff *skb, const struct nft_exthdr *priv)
- {
- 	if (nla_put_u8(skb, NFTA_EXTHDR_TYPE, priv->type))
-@@ -208,6 +338,16 @@ static int nft_exthdr_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	return nft_exthdr_dump_common(skb, priv);
- }
- 
-+static int nft_exthdr_dump_set(struct sk_buff *skb, const struct nft_expr *expr)
-+{
-+	const struct nft_exthdr *priv = nft_expr_priv(expr);
-+
-+	if (nft_dump_register(skb, NFTA_EXTHDR_SREG, priv->sreg))
-+		return -1;
-+
-+	return nft_exthdr_dump_common(skb, priv);
-+}
-+
- static struct nft_expr_type nft_exthdr_type;
- static const struct nft_expr_ops nft_exthdr_ipv6_ops = {
- 	.type		= &nft_exthdr_type,
-@@ -225,6 +365,14 @@ static const struct nft_expr_ops nft_exthdr_tcp_ops = {
- 	.dump		= nft_exthdr_dump,
- };
- 
-+static const struct nft_expr_ops nft_exthdr_tcp_set_ops = {
-+	.type		= &nft_exthdr_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_exthdr)),
-+	.eval		= nft_exthdr_tcp_set_eval,
-+	.init		= nft_exthdr_tcp_set_init,
-+	.dump		= nft_exthdr_dump_set,
-+};
-+
- static const struct nft_expr_ops *
- nft_exthdr_select_ops(const struct nft_ctx *ctx,
- 		      const struct nlattr * const tb[])
-@@ -234,12 +382,21 @@ nft_exthdr_select_ops(const struct nft_ctx *ctx,
- 	if (!tb[NFTA_EXTHDR_OP])
- 		return &nft_exthdr_ipv6_ops;
- 
-+	if (tb[NFTA_EXTHDR_SREG] && tb[NFTA_EXTHDR_DREG])
-+		return ERR_PTR(-EOPNOTSUPP);
-+
- 	op = ntohl(nla_get_u32(tb[NFTA_EXTHDR_OP]));
- 	switch (op) {
- 	case NFT_EXTHDR_OP_TCPOPT:
--		return &nft_exthdr_tcp_ops;
-+		if (tb[NFTA_EXTHDR_SREG])
-+			return &nft_exthdr_tcp_set_ops;
-+		if (tb[NFTA_EXTHDR_DREG])
-+			return &nft_exthdr_tcp_ops;
-+		break;
- 	case NFT_EXTHDR_OP_IPV6:
--		return &nft_exthdr_ipv6_ops;
-+		if (tb[NFTA_EXTHDR_DREG])
-+			return &nft_exthdr_ipv6_ops;
-+		break;
- 	}
- 
- 	return ERR_PTR(-EOPNOTSUPP);
--- 
-2.13.0
+Applied, thank you!
 
+							Thanx, Paul
