@@ -1,112 +1,56 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH RFC 08/26] locking: Remove spin_unlock_wait() generic
- definitions
-Date: Fri, 30 Jun 2017 14:13:39 +0100
-Message-ID: <20170630131339.GA14118@arm.com>
-References: <20170629235918.GA6445@linux.vnet.ibm.com>
- <1498780894-8253-8-git-send-email-paulmck@linux.vnet.ibm.com>
- <20170630091928.GC9726@arm.com>
- <20170630123815.GT2393@linux.vnet.ibm.com>
+From: Mateusz Jurczyk <mjurczyk@google.com>
+Subject: Re: [PATCH v2] netfilter: nfnetlink: Improve input length
+ sanitization in nfnetlink_rcv
+Date: Fri, 30 Jun 2017 17:19:05 +0200
+Message-ID: <CAPr8fOR1G7WeSW9S=xgSxT5_sTS8fs9-496Gzy_-5VLgECoXAQ@mail.gmail.com>
+References: <1496841821.736.35.camel@edumazet-glaptop3.roam.corp.google.com>
+ <20170607135038.1592-1-mjurczyk@google.com> <20170627155825.GA4885@salvia>
+ <20170627170527.GA13513@salvia> <20170629162240.GA6883@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org, oleg@redhat.com, akpm@linux-foundation.org,
-        mingo@redhat.com, dave@stgolabs.net, manfred@colorfullife.com,
-        tj@kernel.org, arnd@arndb.de, linux-arch@vger.kernel.org,
-        peterz@infradead.org, stern@rowland.harvard.edu,
-        parri.andrea@gmail.com, torvalds@linux-foundation.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170630123815.GT2393@linux.vnet.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170629162240.GA6883@salvia>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jun 30, 2017 at 05:38:15AM -0700, Paul E. McKenney wrote:
-> On Fri, Jun 30, 2017 at 10:19:29AM +0100, Will Deacon wrote:
-> > On Thu, Jun 29, 2017 at 05:01:16PM -0700, Paul E. McKenney wrote:
-> > > There is no agreed-upon definition of spin_unlock_wait()'s semantics,
-> > > and it appears that all callers could do just as well with a lock/unlock
-> > > pair.  This commit therefore removes spin_unlock_wait() and related
-> > > definitions from core code.
-> > > 
-> > > Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-> > > Cc: Arnd Bergmann <arnd@arndb.de>
-> > > Cc: Ingo Molnar <mingo@redhat.com>
-> > > Cc: Will Deacon <will.deacon@arm.com>
-> > > Cc: Peter Zijlstra <peterz@infradead.org>
-> > > Cc: Alan Stern <stern@rowland.harvard.edu>
-> > > Cc: Andrea Parri <parri.andrea@gmail.com>
-> > > Cc: Linus Torvalds <torvalds@linux-foundation.org>
-> > > ---
-> > >  include/asm-generic/qspinlock.h |  14 -----
-> > >  include/linux/spinlock.h        |  31 -----------
-> > >  include/linux/spinlock_up.h     |   6 ---
-> > >  kernel/locking/qspinlock.c      | 117 ----------------------------------------
-> > >  4 files changed, 168 deletions(-)
-> > 
-> > [...]
-> > 
-> > > diff --git a/kernel/locking/qspinlock.c b/kernel/locking/qspinlock.c
-> > > index b2caec7315af..64a9051e4c2c 100644
-> > > --- a/kernel/locking/qspinlock.c
-> > > +++ b/kernel/locking/qspinlock.c
-> > > @@ -267,123 +267,6 @@ static __always_inline u32  __pv_wait_head_or_lock(struct qspinlock *lock,
-> > >  #define queued_spin_lock_slowpath	native_queued_spin_lock_slowpath
-> > >  #endif
-> > >  
-> > > -/*
-> > > - * Various notes on spin_is_locked() and spin_unlock_wait(), which are
-> > > - * 'interesting' functions:
-> > > - *
-> > > - * PROBLEM: some architectures have an interesting issue with atomic ACQUIRE
-> > > - * operations in that the ACQUIRE applies to the LOAD _not_ the STORE (ARM64,
-> > > - * PPC). Also qspinlock has a similar issue per construction, the setting of
-> > > - * the locked byte can be unordered acquiring the lock proper.
-> > > - *
-> > > - * This gets to be 'interesting' in the following cases, where the /should/s
-> > > - * end up false because of this issue.
-> > > - *
-> > > - *
-> > > - * CASE 1:
-> > > - *
-> > > - * So the spin_is_locked() correctness issue comes from something like:
-> > > - *
-> > > - *   CPU0				CPU1
-> > > - *
-> > > - *   global_lock();			local_lock(i)
-> > > - *     spin_lock(&G)			  spin_lock(&L[i])
-> > > - *     for (i)				  if (!spin_is_locked(&G)) {
-> > > - *       spin_unlock_wait(&L[i]);	    smp_acquire__after_ctrl_dep();
-> > > - *					    return;
-> > > - *					  }
-> > > - *					  // deal with fail
-> > > - *
-> > > - * Where it is important CPU1 sees G locked or CPU0 sees L[i] locked such
-> > > - * that there is exclusion between the two critical sections.
-> > > - *
-> > > - * The load from spin_is_locked(&G) /should/ be constrained by the ACQUIRE from
-> > > - * spin_lock(&L[i]), and similarly the load(s) from spin_unlock_wait(&L[i])
-> > > - * /should/ be constrained by the ACQUIRE from spin_lock(&G).
-> > > - *
-> > > - * Similarly, later stuff is constrained by the ACQUIRE from CTRL+RMB.
-> > 
-> > Might be worth keeping this comment about spin_is_locked, since we're not
-> > removing that guy just yet!
-> 
-> Ah, all the examples had spin_unlock_wait() in them.  So what I need to
-> do is to create a spin_unlock_wait()-free example to illustrate the
-> text starting with "The load from spin_is_locked(", correct?
+On Thu, Jun 29, 2017 at 6:22 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Tue, Jun 27, 2017 at 07:05:27PM +0200, Pablo Neira Ayuso wrote:
+>> On Tue, Jun 27, 2017 at 05:58:25PM +0200, Pablo Neira Ayuso wrote:
+>> > On Wed, Jun 07, 2017 at 03:50:38PM +0200, Mateusz Jurczyk wrote:
+>> > > Verify that the length of the socket buffer is sufficient to cover the
+>> > > nlmsghdr structure before accessing the nlh->nlmsg_len field for further
+>> > > input sanitization. If the client only supplies 1-3 bytes of data in
+>> > > sk_buff, then nlh->nlmsg_len remains partially uninitialized and
+>> > > contains leftover memory from the corresponding kernel allocation.
+>> > > Operating on such data may result in indeterminate evaluation of the
+>> > > nlmsg_len < NLMSG_HDRLEN expression.
+>> > >
+>> > > The bug was discovered by a runtime instrumentation designed to detect
+>> > > use of uninitialized memory in the kernel. The patch prevents this and
+>> > > other similar tools (e.g. KMSAN) from flagging this behavior in the future.
+>> >
+>> > Applied, thanks.
+>>
+>> Wait, I keeping this back after closer look.
+>>
+>> I think we have to remove this:
+>>
+>>         if (nlh->nlmsg_len < NLMSG_HDRLEN || <---
+>>             skb->len < NLMSG_HDRLEN + sizeof(struct nfgenmsg))
+>>                 return;
+>>
+>> in nfnetlink_rcv_skb_batch()
+>>
+>> now that we make this unfront check from nfnetlink_rcv().
+>
+> BTW, I can just mangle your patch here to delete such line to speed up
+> things. See the mangled patch that is attached to this email.
 
-Yeah, I think so.
-
-> I also need to check all uses of spin_is_locked().  There might no
-> longer be any that rely on any particular ordering...
-
-Right. I think we're looking for the "insane case" as per 38b850a73034
-(which was apparently used by ipc/sem.c at the time, but no longer).
-
-There's a usage in kernel/debug/debug_core.c, but it doesn't fill me with
-joy.
-
-Will
+Sure, I think the condition in nfnetlink_rcv_skb_batch() can be now
+safely removed. Feel free to proceed with the mangled patch. Thanks.
