@@ -1,37 +1,60 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [4.9.y,netfilter] please, cherry-pick 2638fd0f92d4
-Date: Sat, 1 Jul 2017 16:11:24 +0200
-Message-ID: <20170701141124.GB8136@kroah.com>
-References: <20170629150021.GA5346@salvia>
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: Re: [PATCH RFC 06/26] ipc: Replace spin_unlock_wait() with
+ lock/unlock pair
+Date: Sat, 1 Jul 2017 21:23:03 +0200
+Message-ID: <d6da8548-6d4e-7537-05b6-8d32812c49d2@colorfullife.com>
+References: <20170629235918.GA6445@linux.vnet.ibm.com>
+ <1498780894-8253-6-git-send-email-paulmck@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: stable@vger.kernel.org, Guillaume Nault <g.nault@alphalink.fr>,
-        netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170629150021.GA5346@salvia>
-Sender: stable-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        oleg@redhat.com, akpm@linux-foundation.org, mingo@redhat.com,
+        dave@stgolabs.net, tj@kernel.org, arnd@arndb.de,
+        linux-arch@vger.kernel.org, will.deacon@arm.com,
+        peterz@infradead.org, stern@rowland.harvard.edu,
+        parri.andrea@gmail.com, torvalds@linux-foundation.org
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+        linux-kernel@vger.kernel.org
+Return-path: <linux-arch-owner@vger.kernel.org>
+In-Reply-To: <1498780894-8253-6-git-send-email-paulmck@linux.vnet.ibm.com>
+Content-Language: en-US
+Sender: linux-arch-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Jun 29, 2017 at 05:00:21PM +0200, Pablo Neira Ayuso wrote:
-> Hi Greg,
-> 
-> Please, cherry-pick this commit:
-> 
-> commit 2638fd0f92d4397884fd991d8f4925cb3f081901
-> Author: Eric Dumazet <edumazet@google.com>
-> Date:   Mon Apr 3 10:55:11 2017 -0700
-> 
->     netfilter: xt_TCPMSS: add more sanity tests on tcph->doff
-> 
-> People are experiencing crashes in production without this patch:
-> 
-> http://marc.info/?l=linux-netdev&m=149759912312430&w=2
-> 
-> [ Note for other stable maintainers: This patch applies cleanly here
->   from 3.16 onwards. ]
-
-Now applied, thanks!
-
-greg k-h
+On 06/30/2017 02:01 AM, Paul E. McKenney wrote:
+> There is no agreed-upon definition of spin_unlock_wait()'s semantics,
+> and it appears that all callers could do just as well with a lock/unlock
+> pair.  This commit therefore replaces the spin_unlock_wait() call in
+> exit_sem() with spin_lock() followed immediately by spin_unlock().
+> This should be safe from a performance perspective because exit_sem()
+> is rarely invoked in production.
+>
+> Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Davidlohr Bueso <dave@stgolabs.net>
+> Cc: Manfred Spraul <manfred@colorfullife.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Alan Stern <stern@rowland.harvard.edu>
+> Cc: Andrea Parri <parri.andrea@gmail.com>
+> Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Acked-by: Manfred Spraul <manfred@colorfullife.com>
+> ---
+>   ipc/sem.c | 3 ++-
+>   1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/ipc/sem.c b/ipc/sem.c
+> index 947dc2348271..e88d0749a929 100644
+> --- a/ipc/sem.c
+> +++ b/ipc/sem.c
+> @@ -2096,7 +2096,8 @@ void exit_sem(struct task_struct *tsk)
+>   			 * possibility where we exit while freeary() didn't
+>   			 * finish unlocking sem_undo_list.
+>   			 */
+> -			spin_unlock_wait(&ulp->lock);
+> +			spin_lock(&ulp->lock);
+> +			spin_unlock(&ulp->lock);
+>   			rcu_read_unlock();
+>   			break;
+>   		}
