@@ -1,65 +1,74 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH RFC 08/26] locking: Remove spin_unlock_wait() generic
- definitions
-Date: Mon, 3 Jul 2017 14:15:14 +0100
-Message-ID: <20170703131514.GE1573@arm.com>
-References: <20170629235918.GA6445@linux.vnet.ibm.com>
- <1498780894-8253-8-git-send-email-paulmck@linux.vnet.ibm.com>
- <20170630091928.GC9726@arm.com>
- <20170630123815.GT2393@linux.vnet.ibm.com>
- <20170630131339.GA14118@arm.com>
- <20170630221840.GI2393@linux.vnet.ibm.com>
+From: <roeper@stadt-wittenburg.de>
+Subject: (unknown)
+Date: Mon, 03 Jul 2017 13:30:43 -0000
+Message-ID: <149908864336.8931.5936266833426456314@udm.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org, oleg@redhat.com, akpm@linux-foundation.org,
-        mingo@redhat.com, dave@stgolabs.net, manfred@colorfullife.com,
-        tj@kernel.org, arnd@arndb.de, linux-arch@vger.kernel.org,
-        peterz@infradead.org, stern@rowland.harvard.edu,
-        parri.andrea@gmail.com, torvalds@linux-foundation.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170630221840.GI2393@linux.vnet.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: application/zip; name="EMAIL_76537910174_netfilter-devel.zip"
+Content-Transfer-Encoding: base64
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from a229.sub78.net78.udm.net ([78.85.78.229]:35267 "HELO udm.net"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1754284AbdGCNar (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 3 Jul 2017 09:30:47 -0400
+Subject: 
+Content-Disposition: attachment
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 30, 2017 at 03:18:40PM -0700, Paul E. McKenney wrote:
-> On Fri, Jun 30, 2017 at 02:13:39PM +0100, Will Deacon wrote:
-> > On Fri, Jun 30, 2017 at 05:38:15AM -0700, Paul E. McKenney wrote:
-> > > I also need to check all uses of spin_is_locked().  There might no
-> > > longer be any that rely on any particular ordering...
-> > 
-> > Right. I think we're looking for the "insane case" as per 38b850a73034
-> > (which was apparently used by ipc/sem.c at the time, but no longer).
-> > 
-> > There's a usage in kernel/debug/debug_core.c, but it doesn't fill me with
-> > joy.
-> 
-> That is indeed an interesting one...  But my first round will be what
-> semantics the implementations seem to provide:
-> 
-> Acquire courtesy of TSO: s390, sparc, x86.
-> Acquire: ia64 (in reality fully ordered).
-> Control dependency: alpha, arc, arm, blackfin, hexagon, m32r, mn10300, tile,
-> 	xtensa.
-> Control dependency plus leading full barrier: arm64, powerpc.
-> UP-only: c6x, cris, frv, h8300, m68k, microblaze nios2, openrisc, um, unicore32.
-> 
-> Special cases:
-> 	metag: Acquire if !CONFIG_METAG_SMP_WRITE_REORDERING.
-> 	       Otherwise control dependency?
-> 	mips: Control dependency, acquire if CONFIG_CPU_CAVIUM_OCTEON.
-> 	parisc: Acquire courtesy of TSO, but why barrier in smp_load_acquire?
-> 	sh: Acquire if one of SH4A, SH5, or J2, otherwise acquire?  UP-only?
-> 
-> Are these correct, or am I missing something with any of them?
-
-That looks about right but, at least on ARM, I think we have to consider
-the semantics of spin_is_locked with respect to the other spin_* functions,
-rather than in isolation.
-
-For example, ARM only has a control dependency, but spin_lock has a trailing
-smp_mb() and spin_unlock has both leading and trailing smp_mb().
-
-Will
+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
