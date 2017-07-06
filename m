@@ -1,169 +1,233 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH v2 1/9] net/netfilter/nf_conntrack_core: Fix
- net_conntrack_lock()
-Date: Thu, 6 Jul 2017 13:26:42 -0700
-Message-ID: <20170706202642.GQ2393@linux.vnet.ibm.com>
-References: <20170705232955.GA15992@linux.vnet.ibm.com>
- <1499297503-23852-1-git-send-email-paulmck@linux.vnet.ibm.com>
- <113516eb-8615-4468-0127-1a491d34c83c@colorfullife.com>
-Reply-To: paulmck@linux.vnet.ibm.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org, oleg@redhat.com, akpm@linux-foundation.org,
-        mingo@redhat.com, dave@stgolabs.net, tj@kernel.org, arnd@arndb.de,
-        linux-arch@vger.kernel.org, will.deacon@arm.com,
-        peterz@infradead.org, stern@rowland.harvard.edu,
-        parri.andrea@gmail.com, torvalds@linux-foundation.org,
-        stable@vger.kernel.org, Sasha Levin <sasha.levin@oracle.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-To: Manfred Spraul <manfred@colorfullife.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <113516eb-8615-4468-0127-1a491d34c83c@colorfullife.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: remove old pre-netns era hook api
+Date: Thu,  6 Jul 2017 23:17:44 +0200
+Message-ID: <20170706211744.17683-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:39232 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751899AbdGFVR4 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 6 Jul 2017 17:17:56 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 06, 2017 at 08:45:59PM +0200, Manfred Spraul wrote:
-> Hi Paul,
-> 
-> On 07/06/2017 01:31 AM, Paul E. McKenney wrote:
-> >From: Manfred Spraul <manfred@colorfullife.com>
-> >
-> >As we want to remove spin_unlock_wait() and replace it with explicit
-> >spin_lock()/spin_unlock() calls, we can use this to simplify the
-> >locking.
-> >
-> >In addition:
-> >- Reading nf_conntrack_locks_all needs ACQUIRE memory ordering.
-> >- The new code avoids the backwards loop.
-> >
-> >Only slightly tested, I did not manage to trigger calls to
-> >nf_conntrack_all_lock().
-> 
-> If you want:
-> Attached would be V2, with adapted comments.
+no more users in the tree, remove this.
 
-I do like the improved comments, thank you!  Queued, and will be part
-of a later v3 of the series.
+The old api is racy wrt. module removal, all users have been converted
+to the netns-aware api.
 
-							Thanx, Paul
+The old api pretended we still have global hooks but that has not been
+true for a long time.
 
-> --
->     Manfred
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/linux/netfilter.h |   9 ---
+ net/netfilter/core.c      | 143 ----------------------------------------------
+ 2 files changed, 152 deletions(-)
 
-> >From e3562faa1bc96e883108505e05deecaf38c87a26 Mon Sep 17 00:00:00 2001
-> From: Manfred Spraul <manfred@colorfullife.com>
-> Date: Sun, 21 Aug 2016 07:17:55 +0200
-> Subject: [PATCH 1/2] net/netfilter/nf_conntrack_core: Fix net_conntrack_lock()
-> 
-> As we want to remove spin_unlock_wait() and replace it with explicit
-> spin_lock()/spin_unlock() calls, we can use this to simplify the
-> locking.
-> 
-> In addition:
-> - Reading nf_conntrack_locks_all needs ACQUIRE memory ordering.
-> - The new code avoids the backwards loop.
-> 
-> Only slightly tested, I did not manage to trigger calls to
-> nf_conntrack_all_lock().
-> 
-> V2: With improved comments, to clearly show how the barriers
->     pair.
-> 
-> Fixes: b16c29191dc8
-> Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-> Cc: <stable@vger.kernel.org>
-> Cc: Alan Stern <stern@rowland.harvard.edu>
-> Cc: Sasha Levin <sasha.levin@oracle.com>
-> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> Cc: netfilter-devel@vger.kernel.org
-> ---
->  net/netfilter/nf_conntrack_core.c | 52 ++++++++++++++++++++++-----------------
->  1 file changed, 29 insertions(+), 23 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> index 9979f46..51390fe 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -96,19 +96,26 @@ static struct conntrack_gc_work conntrack_gc_work;
-> 
->  void nf_conntrack_lock(spinlock_t *lock) __acquires(lock)
->  {
-> +	/* 1) Acquire the lock */
->  	spin_lock(lock);
-> -	while (unlikely(nf_conntrack_locks_all)) {
-> -		spin_unlock(lock);
-> 
-> -		/*
-> -		 * Order the 'nf_conntrack_locks_all' load vs. the
-> -		 * spin_unlock_wait() loads below, to ensure
-> -		 * that 'nf_conntrack_locks_all_lock' is indeed held:
-> -		 */
-> -		smp_rmb(); /* spin_lock(&nf_conntrack_locks_all_lock) */
-> -		spin_unlock_wait(&nf_conntrack_locks_all_lock);
-> -		spin_lock(lock);
-> -	}
-> +	/* 2) read nf_conntrack_locks_all, with ACQUIRE semantics
-> +	 * It pairs with the smp_store_release() in nf_conntrack_all_unlock()
-> +	 */
-> +	if (likely(smp_load_acquire(&nf_conntrack_locks_all) == false))
-> +		return;
-> +
-> +	/* fast path failed, unlock */
-> +	spin_unlock(lock);
-> +
-> +	/* Slow path 1) get global lock */
-> +	spin_lock(&nf_conntrack_locks_all_lock);
-> +
-> +	/* Slow path 2) get the lock we want */
-> +	spin_lock(lock);
-> +
-> +	/* Slow path 3) release the global lock */
-> +	spin_unlock(&nf_conntrack_locks_all_lock);
->  }
->  EXPORT_SYMBOL_GPL(nf_conntrack_lock);
-> 
-> @@ -149,28 +156,27 @@ static void nf_conntrack_all_lock(void)
->  	int i;
-> 
->  	spin_lock(&nf_conntrack_locks_all_lock);
-> -	nf_conntrack_locks_all = true;
-> 
-> -	/*
-> -	 * Order the above store of 'nf_conntrack_locks_all' against
-> -	 * the spin_unlock_wait() loads below, such that if
-> -	 * nf_conntrack_lock() observes 'nf_conntrack_locks_all'
-> -	 * we must observe nf_conntrack_locks[] held:
-> -	 */
-> -	smp_mb(); /* spin_lock(&nf_conntrack_locks_all_lock) */
-> +	nf_conntrack_locks_all = true;
-> 
->  	for (i = 0; i < CONNTRACK_LOCKS; i++) {
-> -		spin_unlock_wait(&nf_conntrack_locks[i]);
-> +		spin_lock(&nf_conntrack_locks[i]);
-> +
-> +		/* This spin_unlock provides the "release" to ensure that
-> +		 * nf_conntrack_locks_all==true is visible to everyone that
-> +		 * acquired spin_lock(&nf_conntrack_locks[]).
-> +		 */
-> +		spin_unlock(&nf_conntrack_locks[i]);
->  	}
->  }
-> 
->  static void nf_conntrack_all_unlock(void)
->  {
-> -	/*
-> -	 * All prior stores must be complete before we clear
-> +	/* All prior stores must be complete before we clear
->  	 * 'nf_conntrack_locks_all'. Otherwise nf_conntrack_lock()
->  	 * might observe the false value but not the entire
-> -	 * critical section:
-> +	 * critical section.
-> +	 * It pairs with the smp_load_acquire() in nf_conntrack_lock()
->  	 */
->  	smp_store_release(&nf_conntrack_locks_all, false);
->  	spin_unlock(&nf_conntrack_locks_all_lock);
-> -- 
-> 2.9.4
-> 
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index a4b97be..22f0810 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -61,8 +61,6 @@ typedef unsigned int nf_hookfn(void *priv,
+ 			       struct sk_buff *skb,
+ 			       const struct nf_hook_state *state);
+ struct nf_hook_ops {
+-	struct list_head	list;
+-
+ 	/* User fills in from here down. */
+ 	nf_hookfn		*hook;
+ 	struct net_device	*dev;
+@@ -160,13 +158,6 @@ int nf_register_net_hooks(struct net *net, const struct nf_hook_ops *reg,
+ void nf_unregister_net_hooks(struct net *net, const struct nf_hook_ops *reg,
+ 			     unsigned int n);
+ 
+-int nf_register_hook(struct nf_hook_ops *reg);
+-void nf_unregister_hook(struct nf_hook_ops *reg);
+-int nf_register_hooks(struct nf_hook_ops *reg, unsigned int n);
+-void nf_unregister_hooks(struct nf_hook_ops *reg, unsigned int n);
+-int _nf_register_hooks(struct nf_hook_ops *reg, unsigned int n);
+-void _nf_unregister_hooks(struct nf_hook_ops *reg, unsigned int n);
+-
+ /* Functions to register get/setsockopt ranges (non-inclusive).  You
+    need to check permissions yourself! */
+ int nf_register_sockopt(struct nf_sockopt_ops *reg);
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 552d606..368610d 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -227,114 +227,6 @@ void nf_unregister_net_hooks(struct net *net, const struct nf_hook_ops *reg,
+ }
+ EXPORT_SYMBOL(nf_unregister_net_hooks);
+ 
+-static LIST_HEAD(nf_hook_list);
+-
+-static int _nf_register_hook(struct nf_hook_ops *reg)
+-{
+-	struct net *net, *last;
+-	int ret;
+-
+-	for_each_net(net) {
+-		ret = nf_register_net_hook(net, reg);
+-		if (ret && ret != -ENOENT)
+-			goto rollback;
+-	}
+-	list_add_tail(&reg->list, &nf_hook_list);
+-
+-	return 0;
+-rollback:
+-	last = net;
+-	for_each_net(net) {
+-		if (net == last)
+-			break;
+-		nf_unregister_net_hook(net, reg);
+-	}
+-	return ret;
+-}
+-
+-int nf_register_hook(struct nf_hook_ops *reg)
+-{
+-	int ret;
+-
+-	rtnl_lock();
+-	ret = _nf_register_hook(reg);
+-	rtnl_unlock();
+-
+-	return ret;
+-}
+-EXPORT_SYMBOL(nf_register_hook);
+-
+-static void _nf_unregister_hook(struct nf_hook_ops *reg)
+-{
+-	struct net *net;
+-
+-	list_del(&reg->list);
+-	for_each_net(net)
+-		nf_unregister_net_hook(net, reg);
+-}
+-
+-void nf_unregister_hook(struct nf_hook_ops *reg)
+-{
+-	rtnl_lock();
+-	_nf_unregister_hook(reg);
+-	rtnl_unlock();
+-}
+-EXPORT_SYMBOL(nf_unregister_hook);
+-
+-int nf_register_hooks(struct nf_hook_ops *reg, unsigned int n)
+-{
+-	unsigned int i;
+-	int err = 0;
+-
+-	for (i = 0; i < n; i++) {
+-		err = nf_register_hook(&reg[i]);
+-		if (err)
+-			goto err;
+-	}
+-	return err;
+-
+-err:
+-	if (i > 0)
+-		nf_unregister_hooks(reg, i);
+-	return err;
+-}
+-EXPORT_SYMBOL(nf_register_hooks);
+-
+-/* Caller MUST take rtnl_lock() */
+-int _nf_register_hooks(struct nf_hook_ops *reg, unsigned int n)
+-{
+-	unsigned int i;
+-	int err = 0;
+-
+-	for (i = 0; i < n; i++) {
+-		err = _nf_register_hook(&reg[i]);
+-		if (err)
+-			goto err;
+-	}
+-	return err;
+-
+-err:
+-	if (i > 0)
+-		_nf_unregister_hooks(reg, i);
+-	return err;
+-}
+-EXPORT_SYMBOL(_nf_register_hooks);
+-
+-void nf_unregister_hooks(struct nf_hook_ops *reg, unsigned int n)
+-{
+-	while (n-- > 0)
+-		nf_unregister_hook(&reg[n]);
+-}
+-EXPORT_SYMBOL(nf_unregister_hooks);
+-
+-/* Caller MUST take rtnl_lock */
+-void _nf_unregister_hooks(struct nf_hook_ops *reg, unsigned int n)
+-{
+-	while (n-- > 0)
+-		_nf_unregister_hook(&reg[n]);
+-}
+-EXPORT_SYMBOL(_nf_unregister_hooks);
+-
+ /* Returns 1 if okfn() needs to be executed by the caller,
+  * -EPERM for NF_DROP, 0 otherwise.  Caller must hold rcu_read_lock. */
+ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state,
+@@ -450,37 +342,6 @@ void (*nf_nat_decode_session_hook)(struct sk_buff *, struct flowi *);
+ EXPORT_SYMBOL(nf_nat_decode_session_hook);
+ #endif
+ 
+-static int nf_register_hook_list(struct net *net)
+-{
+-	struct nf_hook_ops *elem;
+-	int ret;
+-
+-	rtnl_lock();
+-	list_for_each_entry(elem, &nf_hook_list, list) {
+-		ret = nf_register_net_hook(net, elem);
+-		if (ret && ret != -ENOENT)
+-			goto out_undo;
+-	}
+-	rtnl_unlock();
+-	return 0;
+-
+-out_undo:
+-	list_for_each_entry_continue_reverse(elem, &nf_hook_list, list)
+-		nf_unregister_net_hook(net, elem);
+-	rtnl_unlock();
+-	return ret;
+-}
+-
+-static void nf_unregister_hook_list(struct net *net)
+-{
+-	struct nf_hook_ops *elem;
+-
+-	rtnl_lock();
+-	list_for_each_entry(elem, &nf_hook_list, list)
+-		nf_unregister_net_hook(net, elem);
+-	rtnl_unlock();
+-}
+-
+ static int __net_init netfilter_net_init(struct net *net)
+ {
+ 	int i, h, ret;
+@@ -500,16 +361,12 @@ static int __net_init netfilter_net_init(struct net *net)
+ 		return -ENOMEM;
+ 	}
+ #endif
+-	ret = nf_register_hook_list(net);
+-	if (ret)
+-		remove_proc_entry("netfilter", net->proc_net);
+ 
+ 	return ret;
+ }
+ 
+ static void __net_exit netfilter_net_exit(struct net *net)
+ {
+-	nf_unregister_hook_list(net);
+ 	remove_proc_entry("netfilter", net->proc_net);
+ }
+ 
+-- 
+2.9.4
+
