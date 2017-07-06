@@ -1,40 +1,36 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/2] netfilter: ebt_nflog: fix unexpected truncated packet
-Date: Thu,  6 Jul 2017 14:54:25 +0200
-Message-ID: <1499345665-7428-3-git-send-email-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/2] Netfilter fixes for net
+Date: Thu, 06 Jul 2017 14:03:27 +0100 (WEST)
+Message-ID: <20170706.140327.271511080332706958.davem@davemloft.net>
 References: <1499345665-7428-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1499345665-7428-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Liping Zhang <zlpnobody@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu,  6 Jul 2017 14:54:23 +0200
 
-"struct nf_loginfo li;" is a local variable, so we should set the flags
-to 0 explicitly, else, packets maybe truncated unexpectedly when copied
-to the userspace.
+> The following patchset contains two Netfilter fixes for your net tree,
+> they are:
+> 
+> 1) Fix memleak from netns release path of conntrack protocol trackers,
+>    patch from Liping Zhang.
+> 
+> 2) Uninitialized flags field in ebt_log, that results in unpredictable
+>    logging format in ebtables, also from Liping.
+> 
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+> 
+> Thanks a lot!
 
-Fixes: 7643507fe8b5 ("netfilter: xt_NFLOG: nflog-range does not truncate packets")
-Cc: Vishwanath Pai <vpai@akamai.com>
-Signed-off-by: Liping Zhang <zlpnobody@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/bridge/netfilter/ebt_nflog.c | 1 +
- 1 file changed, 1 insertion(+)
+My name is David, and how do you do?
 
-diff --git a/net/bridge/netfilter/ebt_nflog.c b/net/bridge/netfilter/ebt_nflog.c
-index c1dc48686200..da1c2fdc08c8 100644
---- a/net/bridge/netfilter/ebt_nflog.c
-+++ b/net/bridge/netfilter/ebt_nflog.c
-@@ -30,6 +30,7 @@ ebt_nflog_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 	li.u.ulog.copy_len = info->len;
- 	li.u.ulog.group = info->group;
- 	li.u.ulog.qthreshold = info->threshold;
-+	li.u.ulog.flags = 0;
- 
- 	nf_log_packet(net, PF_BRIDGE, xt_hooknum(par), skb, xt_in(par),
- 		      xt_out(par), &li, "%s", info->prefix);
--- 
-2.1.4
+Pulled, thanks Pablo.
