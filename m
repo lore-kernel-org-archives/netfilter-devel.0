@@ -1,124 +1,63 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH RFC 21/26] powerpc: Remove spin_unlock_wait()
- arch-specific definitions
-Date: Wed, 5 Jul 2017 16:57:38 -0700
-Message-ID: <20170705235738.GK2393@linux.vnet.ibm.com>
-References: <20170629235918.GA6445@linux.vnet.ibm.com>
- <1498780894-8253-21-git-send-email-paulmck@linux.vnet.ibm.com>
- <20170702035807.tnzmkynyevfobt5a@tardis>
-Reply-To: paulmck@linux.vnet.ibm.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-        parri.andrea@gmail.com, dave@stgolabs.net,
-        manfred@colorfullife.com, arnd@arndb.de, peterz@infradead.org,
-        netdev@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        will.deacon@arm.com, oleg@redhat.com, mingo@redhat.com,
-        netfilter-devel@vger.kernel.org, tj@kernel.org,
-        stern@rowland.harvard.edu, akpm@linux-foundation.org,
-        torvalds@linux-foundation.org, Paul Mackerras <paulus@samba.org>
-To: Boqun Feng <boqun.feng@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/2] Netfilter fixes for net
+Date: Thu,  6 Jul 2017 14:54:23 +0200
+Message-ID: <1499345665-7428-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:36576 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751896AbdGEX5o (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 5 Jul 2017 19:57:44 -0400
-Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.20/8.16.0.20) with SMTP id v65Nsa3K132500
-        for <netfilter-devel@vger.kernel.org>; Wed, 5 Jul 2017 19:57:43 -0400
-Received: from e15.ny.us.ibm.com (e15.ny.us.ibm.com [129.33.205.205])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 2bgvxcj1uq-1
-        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
-        for <netfilter-devel@vger.kernel.org>; Wed, 05 Jul 2017 19:57:43 -0400
-Received: from localhost
-        by e15.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <netfilter-devel@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-        Wed, 5 Jul 2017 19:57:42 -0400
-Content-Disposition: inline
-In-Reply-To: <20170702035807.tnzmkynyevfobt5a@tardis>
+Received: from mail.us.es ([193.147.175.20]:38574 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752540AbdGFMyf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 6 Jul 2017 08:54:35 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id AE52D4D657
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Jul 2017 14:54:23 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A13D4DA57E
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Jul 2017 14:54:23 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 611C0DA46C
+        for <netfilter-devel@vger.kernel.org>; Thu,  6 Jul 2017 14:54:19 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Jul 02, 2017 at 11:58:07AM +0800, Boqun Feng wrote:
-> On Thu, Jun 29, 2017 at 05:01:29PM -0700, Paul E. McKenney wrote:
-> > There is no agreed-upon definition of spin_unlock_wait()'s semantics,
-> > and it appears that all callers could do just as well with a lock/unlock
-> > pair.  This commit therefore removes the underlying arch-specific
-> > arch_spin_unlock_wait().
-> > 
-> > Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-> > Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> > Cc: Paul Mackerras <paulus@samba.org>
-> > Cc: Michael Ellerman <mpe@ellerman.id.au>
-> > Cc: <linuxppc-dev@lists.ozlabs.org>
-> > Cc: Will Deacon <will.deacon@arm.com>
-> > Cc: Peter Zijlstra <peterz@infradead.org>
-> > Cc: Alan Stern <stern@rowland.harvard.edu>
-> > Cc: Andrea Parri <parri.andrea@gmail.com>
-> > Cc: Linus Torvalds <torvalds@linux-foundation.org>
-> 
-> Acked-by: Boqun Feng <boqun.feng@gmail.com>
+Hi David,
 
-And finally applied in preparation for v2 of the patch series.
+The following patchset contains two Netfilter fixes for your net tree,
+they are:
 
-Thank you!!!
+1) Fix memleak from netns release path of conntrack protocol trackers,
+   patch from Liping Zhang.
 
-							Thanx, Paul
+2) Uninitialized flags field in ebt_log, that results in unpredictable
+   logging format in ebtables, also from Liping.
 
-> Regards,
-> Boqun
-> 
-> > ---
-> >  arch/powerpc/include/asm/spinlock.h | 33 ---------------------------------
-> >  1 file changed, 33 deletions(-)
-> > 
-> > diff --git a/arch/powerpc/include/asm/spinlock.h b/arch/powerpc/include/asm/spinlock.h
-> > index 8c1b913de6d7..d256e448ea49 100644
-> > --- a/arch/powerpc/include/asm/spinlock.h
-> > +++ b/arch/powerpc/include/asm/spinlock.h
-> > @@ -170,39 +170,6 @@ static inline void arch_spin_unlock(arch_spinlock_t *lock)
-> >  	lock->slock = 0;
-> >  }
-> >  
-> > -static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
-> > -{
-> > -	arch_spinlock_t lock_val;
-> > -
-> > -	smp_mb();
-> > -
-> > -	/*
-> > -	 * Atomically load and store back the lock value (unchanged). This
-> > -	 * ensures that our observation of the lock value is ordered with
-> > -	 * respect to other lock operations.
-> > -	 */
-> > -	__asm__ __volatile__(
-> > -"1:	" PPC_LWARX(%0, 0, %2, 0) "\n"
-> > -"	stwcx. %0, 0, %2\n"
-> > -"	bne- 1b\n"
-> > -	: "=&r" (lock_val), "+m" (*lock)
-> > -	: "r" (lock)
-> > -	: "cr0", "xer");
-> > -
-> > -	if (arch_spin_value_unlocked(lock_val))
-> > -		goto out;
-> > -
-> > -	while (lock->slock) {
-> > -		HMT_low();
-> > -		if (SHARED_PROCESSOR)
-> > -			__spin_yield(lock);
-> > -	}
-> > -	HMT_medium();
-> > -
-> > -out:
-> > -	smp_mb();
-> > -}
-> > -
-> >  /*
-> >   * Read-write spinlocks, allowing multiple readers
-> >   * but only one writer.
-> > -- 
-> > 2.5.2
-> > 
+You can pull these changes from:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
+Thanks a lot!
+
+----------------------------------------------------------------
+
+The following changes since commit e20bd60bf62a2448be873653c7febca1d4d73afc:
+
+  net: usb: asix88179_178a: Add support for the Belkin B2B128 (2017-06-27 15:46:07 -0400)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to 91af6ba7ff16bd7e5919aedfe70aad73a3375619:
+
+  netfilter: ebt_nflog: fix unexpected truncated packet (2017-06-29 18:47:02 +0200)
+
+----------------------------------------------------------------
+Liping Zhang (2):
+      netfilter: nf_ct_dccp/sctp: fix memory leak after netns cleanup
+      netfilter: ebt_nflog: fix unexpected truncated packet
+
+ net/bridge/netfilter/ebt_nflog.c        | 1 +
+ net/netfilter/nf_conntrack_proto_dccp.c | 7 +++++++
+ net/netfilter/nf_conntrack_proto_sctp.c | 7 +++++++
+ 3 files changed, 15 insertions(+)
