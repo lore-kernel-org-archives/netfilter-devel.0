@@ -1,96 +1,154 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH v2 0/9] Remove spin_unlock_wait()
-Date: Thu, 6 Jul 2017 08:21:10 -0700
-Message-ID: <20170706152110.GZ2393@linux.vnet.ibm.com>
-References: <20170629235918.GA6445@linux.vnet.ibm.com>
- <20170705232955.GA15992@linux.vnet.ibm.com>
- <063D6719AE5E284EB5DD2968C1650D6DD0033F01@AcuExch.aculab.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Arturo Borrero Gonzalez <arturo@netfilter.org>
+Subject: [PATCH] monitor: fix printing of range elements in named sets
+Date: Thu, 06 Jul 2017 16:36:45 +0200
+Message-ID: <149935174634.19966.16018870027671610502.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "oleg@redhat.com" <oleg@redhat.com>,
-        "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-        "mingo@redhat.com" <mingo@redhat.com>,
-        "dave@stgolabs.net" <dave@stgolabs.net>,
-        "manfred@colorfullife.com" <manfred@colorfullife.com>,
-        "tj@kernel.org" <tj@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>,
-        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-        "will.deacon@arm.com" <will.deacon@arm.com>,
-        "peterz@infradead.org" <peterz@infradead.org>,
-        "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>,
-        "parri.andrea@gmail.com" <parri.andrea@gmail.com>,
-        "torvalds@linux-foundation.org" <torvalds@linux
-To: David Laight <David.Laight@ACULAB.COM>
-Return-path: <linux-arch-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6DD0033F01@AcuExch.aculab.com>
-Sender: linux-arch-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: phil@nwl.cc
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp3.cica.es ([150.214.5.190]:41675 "EHLO smtp.cica.es"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750970AbdGFPsE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 6 Jul 2017 11:48:04 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 06, 2017 at 02:12:24PM +0000, David Laight wrote:
-> From: Paul E. McKenney
-> > Sent: 06 July 2017 00:30
-> > There is no agreed-upon definition of spin_unlock_wait()'s semantics,
-> > and it appears that all callers could do just as well with a lock/unlock
-> > pair.  This series therefore removes spin_unlock_wait() and changes
-> > its users to instead use a lock/unlock pair.  The commits are as follows,
-> > in three groups:
-> > 
-> > 1-7.	Change uses of spin_unlock_wait() and raw_spin_unlock_wait()
-> > 	to instead use a spin_lock/spin_unlock pair.  These may be
-> > 	applied in any order, but must be applied before any later
-> > 	commits in this series.  The commit logs state why I believe
-> > 	that these commits won't noticeably degrade performance.
-> 
-> I can't help feeling that it might be better to have a spin_lock_sync()
-> call that is equivalent to a spin_lock/spin_unlock pair.
-> The default implementation being an inline function that does exactly that.
-> This would let an architecture implement a more efficient version.
-> 
-> It might even be that this is the defined semantics of spin_unlock_wait().
+If you add set elements to interval sets, the output is wrong.
+Fix this by caching first element of the range (first event),
+then wait for the second element of the range (second event) to
+print them both at the same time.
 
-That was in fact my first proposal, see the comment header in current
-mainline for spin_unlock_wait() in include/linux/spinlock.h.  But Linus
-quite rightly pointed out that if spin_unlock_wait() was to be defined in
-this way, we should get rid of spin_unlock_wait() entirely, especially
-given that there are not very many calls to spin_unlock_wait() and
-also given that none of them are particularly performance critical.
-Hence the current patch set, which does just that.
+We also avoid printing the first null element required in the RB tree.
 
-> Note that it can only be useful to do a spin_lock/unlock pair if it is
-> impossible for another code path to try to acquire the lock.
-> (Or, at least, the code can't care if the lock is acquired just after.)
+Before this patch:
 
-Indeed!  As Oleg Nesterov pointed out, a spin_lock()/spin_unlock() pair
-is sort of like synchronize_rcu() for a given lock, where that lock's
-critical sections play the role of RCU read-side critical sections.
-So anything before the pair is visible to later critical sections, and
-anything in prior critical sections is visible to anything after the pair.
-But again, as Linus pointed out, if we are going to have these semantics,
-just do spin_lock() immediately followed by spin_unlock().
+% nft add element t s {10-20, 30-40}
+add element ip t s { 0 }
+add element ip t s { 10 }
+add element ip t s { ftp }
+add element ip t s { 30 }
+add element ip t s { 41 }
 
-> So if it can de determined that the lock isn't held (a READ_ONCE()
-> might be enough) the lock itself need not be acquired (with the
-> associated slow bus cycles).
+After this patch:
 
-If you want the full semantics of a spin_lock()/spin_unlock() pair,
-you need a full memory barrier before the READ_ONCE(), even on x86.
-Without that memory barrier, you don't get the effect of the release
-implicit in spin_unlock().
+% nft add element t s {10-20, 30-40}
+add element ip t s { 10-20 }
+add element ip t s { 30-40 }
 
-For weaker architectures, such as PowerPC and ARM, a READ_ONCE()
-does -not- suffice, not at all, even with smp_mb() before and after.
-I encourage you to take a look at arch_spin_unlock_wait() in arm64
-and powerpc if youi are interested.  There were also some lengthy LKML
-threads discussing this about 18 months ago that could be illuminating.
+CC: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
+---
 
-And yes, there are architecture-specific optimizations for an
-empty spin_lock()/spin_unlock() critical section, and the current
-arch_spin_unlock_wait() implementations show some of these optimizations.
-But I expect that performance benefits would need to be demonstrated at
-the system level.
+This was discussed during Netfilter Workshop 2017 in Faro, Portugal.
+I think Phil has another patch to address this issue from a different
+approach.
 
-							Thanx, Paul
+ include/rule.h |    2 ++
+ src/netlink.c  |   50 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 52 insertions(+)
+
+diff --git a/include/rule.h b/include/rule.h
+index 7424b21..1b44e4c 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -217,6 +217,7 @@ extern struct rule *rule_lookup(const struct chain *chain, uint64_t handle);
+  * @datalen:	mapping data len
+  * @objtype:	mapping object type
+  * @init:	initializer
++ * @rg_cache:	cached range element (left)
+  * @policy:	set mechanism policy
+  * @desc:	set mechanism desc
+  */
+@@ -234,6 +235,7 @@ struct set {
+ 	unsigned int		datalen;
+ 	uint32_t		objtype;
+ 	struct expr		*init;
++	struct expr		*rg_cache;
+ 	uint32_t		policy;
+ 	struct {
+ 		uint32_t	size;
+diff --git a/src/netlink.c b/src/netlink.c
+index 880502c..ad0e712 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -2198,6 +2198,46 @@ out:
+ 	return MNL_CB_OK;
+ }
+ 
++/* returns true if the event should be ignored (i.e. null element) */
++static bool netlink_event_ignore_range_event(struct nftnl_set_elem *nlse)
++{
++        uint32_t flags = 0;
++
++	if (nftnl_set_elem_is_set(nlse, NFTNL_SET_ELEM_FLAGS))
++		flags = nftnl_set_elem_get_u32(nlse, NFTNL_SET_ELEM_FLAGS);
++	if (!(flags & NFT_SET_ELEM_INTERVAL_END))
++		return false;
++
++	if (nftnl_set_elem_get_u32(nlse, NFTNL_SET_ELEM_KEY) != 0)
++		return false;
++
++	return true;
++}
++
++/* returns true if the we cached the range element */
++static bool netlink_event_range_cache(struct set *cached_set,
++				      struct set *dummyset)
++{
++	struct expr *elem;
++
++	/* not an interval ? */
++	if (!(cached_set->flags & NFT_SET_INTERVAL))
++		return false;
++
++	/* cache first element of the range */
++	elem = list_entry(dummyset->init->expressions.prev, struct expr, list);
++	if (!(elem->flags & EXPR_F_INTERVAL_END)) {
++		cached_set->rg_cache = expr_clone(elem);
++		return true;
++	}
++
++	/* we have all the information now */
++	compound_expr_add(dummyset->init, cached_set->rg_cache);
++	interval_map_decompose(dummyset->init);
++
++	return false;
++}
++
+ static int netlink_events_setelem_cb(const struct nlmsghdr *nlh, int type,
+ 				     struct netlink_mon_handler *monh)
+ {
+@@ -2240,6 +2280,11 @@ static int netlink_events_setelem_cb(const struct nlmsghdr *nlh, int type,
+ 
+ 		nlse = nftnl_set_elems_iter_next(nlsei);
+ 		while (nlse != NULL) {
++			if (netlink_event_ignore_range_event(nlse)) {
++				set_free(dummyset);
++				nftnl_set_elems_iter_destroy(nlsei);
++				goto out;
++			}
+ 			if (netlink_delinearize_setelem(nlse, dummyset) < 0) {
+ 				set_free(dummyset);
+ 				nftnl_set_elems_iter_destroy(nlsei);
+@@ -2251,6 +2296,10 @@ static int netlink_events_setelem_cb(const struct nlmsghdr *nlh, int type,
+ 
+ 		switch (type) {
+ 		case NFT_MSG_NEWSETELEM:
++			if (netlink_event_range_cache(set, dummyset)) {
++				set_free(dummyset);
++				goto out;
++			}
+ 			printf("add ");
+ 			break;
+ 		case NFT_MSG_DELSETELEM:
+@@ -2264,6 +2313,7 @@ static int netlink_events_setelem_cb(const struct nlmsghdr *nlh, int type,
+ 		expr_print(dummyset->init, monh->ctx->octx);
+ 		printf("\n");
+ 
++		expr_free(set->rg_cache);
+ 		set_free(dummyset);
+ 		break;
+ 	case NFTNL_OUTPUT_XML:
+
