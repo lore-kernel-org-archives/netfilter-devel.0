@@ -1,94 +1,158 @@
-From: <simon.a.t.hardy@gmail.com>
-Subject: (unknown)
-Date: Thu, 06 Jul 2017 17:35:54 -0000
-Message-ID: <149936255449.4332.9940197378651050222@deu.edu.tr>
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: Re: [PATCH RFC 01/26] netfilter: Replace spin_unlock_wait() with
+ lock/unlock pair
+Date: Thu, 6 Jul 2017 20:43:28 +0200
+Message-ID: <ee509620-8ba5-be45-743e-f077a457c01d@colorfullife.com>
+References: <Pine.LNX.4.44L0.1707031543170.2027-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: application/zip; name="EMAIL_7662351347_netfilter-devel.zip"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from katalog.adm.deu.edu.tr ([193.140.151.4]:44990 "HELO deu.edu.tr"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-        id S1751654AbdGFRgA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Jul 2017 13:36:00 -0400
-Content-Disposition: attachment
-Subject: 
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: multipart/mixed;
+ boundary="------------564DE116543083334572D59F"
+Cc: paulmck@linux.vnet.ibm.com, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        oleg@redhat.com, akpm@linux-foundation.org, mingo@redhat.com,
+        dave@stgolabs.net, tj@kernel.org, arnd@arndb.de,
+        linux-arch@vger.kernel.org, will.deacon@arm.com,
+        peterz@infradead.org, parri.andrea@gmail.com,
+        torvalds@linux-foundation.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>, coreteam@netfilter.org,
+        1vier1@web.de
+To: Alan Stern <stern@rowland.harvard.edu>
+Return-path: <linux-arch-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1707031543170.2027-100000@iolanthe.rowland.org>
+Content-Language: en-US
+Sender: linux-arch-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-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
-EAAAAAA=
+This is a multi-part message in MIME format.
+--------------564DE116543083334572D59F
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Hi Alan,
+
+On 07/03/2017 09:57 PM, Alan Stern wrote:
+>
+> (Alternatively, you could make nf_conntrack_all_unlock() do a
+> lock+unlock on all the locks in the array, just like
+> nf_conntrack_all_lock().  But of course, that would be a lot less
+> efficient.)
+Hmmmm.
+
+Someone with a weakly ordered system who can test this?
+semop() has a very short hotpath.
+
+Either with aim9.shared_memory.ops_per_sec or
+
+#sem-scalebench -t 10 -m 0
+https://github.com/manfred-colorfu/ipcscale/blob/master/sem-scalebench.cpp
+--
+     Manfred
+
+--------------564DE116543083334572D59F
+Content-Type: text/x-patch;
+ name="0002-ipc-sem.c-avoid-smp_load_acuqire-in-the-hot-path.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0002-ipc-sem.c-avoid-smp_load_acuqire-in-the-hot-path.patch"
+
+>From b549e0281b66124b62aa94543f91b0e616abaf52 Mon Sep 17 00:00:00 2001
+From: Manfred Spraul <manfred@colorfullife.com>
+Date: Thu, 6 Jul 2017 20:05:44 +0200
+Subject: [PATCH 2/2] ipc/sem.c: avoid smp_load_acuqire() in the hot-path
+
+Alan Stern came up with an interesting idea:
+If we perform a spin_lock()/spin_unlock() pair in the slow path, then
+we can skip the smp_load_acquire() in the hot path.
+
+What do you think?
+
+* When we removed the smp_mb() from the hot path, it was a user space
+  visible speed-up of 11%:
+
+  https://lists.01.org/pipermail/lkp/2017-February/005520.html
+
+* On x86, there is no improvement - as smp_load_acquire is READ_ONCE().
+
+* Slowing down the slow path should not hurt:
+  Due to the hysteresis code, the slow path is at least factor 10
+  rarer than it was before.
+
+Especially: Who is able to test it?
+
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+---
+ ipc/sem.c | 33 +++++++++++++++++++--------------
+ 1 file changed, 19 insertions(+), 14 deletions(-)
+
+diff --git a/ipc/sem.c b/ipc/sem.c
+index 947dc23..75a4358 100644
+--- a/ipc/sem.c
++++ b/ipc/sem.c
+@@ -186,16 +186,15 @@ static int sysvipc_sem_proc_show(struct seq_file *s, void *it);
+  *	* either local or global sem_lock() for read.
+  *
+  * Memory ordering:
+- * Most ordering is enforced by using spin_lock() and spin_unlock().
++ * All ordering is enforced by using spin_lock() and spin_unlock().
+  * The special case is use_global_lock:
+  * Setting it from non-zero to 0 is a RELEASE, this is ensured by
+- * using smp_store_release().
+- * Testing if it is non-zero is an ACQUIRE, this is ensured by using
+- * smp_load_acquire().
+- * Setting it from 0 to non-zero must be ordered with regards to
+- * this smp_load_acquire(), this is guaranteed because the smp_load_acquire()
+- * is inside a spin_lock() and after a write from 0 to non-zero a
+- * spin_lock()+spin_unlock() is done.
++ * performing spin_lock()/spin_lock() on every semaphore before setting to
++ * non-zero.
++ * Setting it from 0 to non-zero is an ACQUIRE, this is ensured by
++ * performing spin_lock()/spin_lock() on every semaphore after setting to
++ * non-zero.
++ * Testing if it is non-zero is within spin_lock(), no need for a barrier.
+  */
+ 
+ #define sc_semmsl	sem_ctls[0]
+@@ -325,13 +324,20 @@ static void complexmode_tryleave(struct sem_array *sma)
+ 		return;
+ 	}
+ 	if (sma->use_global_lock == 1) {
++		int i;
++		struct sem *sem;
+ 		/*
+ 		 * Immediately after setting use_global_lock to 0,
+-		 * a simple op can start. Thus: all memory writes
+-		 * performed by the current operation must be visible
+-		 * before we set use_global_lock to 0.
++		 * a simple op can start.
++		 * Perform a full lock/unlock, to guarantee memory
++		 * ordering.
+ 		 */
+-		smp_store_release(&sma->use_global_lock, 0);
++		for (i = 0; i < sma->sem_nsems; i++) {
++			sem = sma->sem_base + i;
++			spin_lock(&sem->lock);
++			spin_unlock(&sem->lock);
++		}
++		sma->use_global_lock = 0;
+ 	} else {
+ 		sma->use_global_lock--;
+ 	}
+@@ -379,8 +385,7 @@ static inline int sem_lock(struct sem_array *sma, struct sembuf *sops,
+ 		 */
+ 		spin_lock(&sem->lock);
+ 
+-		/* pairs with smp_store_release() */
+-		if (!smp_load_acquire(&sma->use_global_lock)) {
++		if (!sma->use_global_lock) {
+ 			/* fast path successful! */
+ 			return sops->sem_num;
+ 		}
+-- 
+2.9.4
+
+
+--------------564DE116543083334572D59F--
