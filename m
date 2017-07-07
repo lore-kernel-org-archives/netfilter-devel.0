@@ -1,103 +1,76 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v2 0/9] Remove spin_unlock_wait()
-Date: Fri, 7 Jul 2017 12:33:49 +0200
-Message-ID: <20170707103349.yohrygljglwx6qn2@gmail.com>
-References: <20170629235918.GA6445@linux.vnet.ibm.com>
- <20170705232955.GA15992@linux.vnet.ibm.com>
- <063D6719AE5E284EB5DD2968C1650D6DD0033F01@AcuExch.aculab.com>
- <20170706160555.xc63yydk77gmttae@hirez.programming.kicks-ass.net>
- <20170706162024.GD2393@linux.vnet.ibm.com>
- <20170706165036.v4u5rbz56si4emw5@hirez.programming.kicks-ass.net>
- <20170707083128.wqk6msuuhtyykhpu@gmail.com>
- <20170707084427.vdsmwkgqx6uvg7tw@hirez.programming.kicks-ass.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-        David Laight <David.Laight@ACULAB.COM>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "oleg@redhat.com" <oleg@redhat.com>,
-        "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-        "mingo@redhat.com" <mingo@redhat.com>,
-        "dave@stgolabs.net" <dave@stgolabs.net>,
-        "manfred@colorfullife.com" <manfred@colorfullife.com>,
-        "tj@kernel.org" <tj@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>,
-        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-        "will.deacon@arm.com" <will.deacon@arm.com>,
-        "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>,
-        "parri.andrea@gmail.com" <parri.andrea@gmail.com>,
-To: Peter Zijlstra <peterz@infradead.org>
-Return-path: <linux-arch-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170707084427.vdsmwkgqx6uvg7tw@hirez.programming.kicks-ass.net>
-Sender: linux-arch-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: nat: fix src map lookup
+Date: Fri,  7 Jul 2017 13:07:17 +0200
+Message-ID: <20170707110717.4746-1-fw@strlen.de>
+Cc: jaco@uls.co.za, Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:41028 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751680AbdGGLHs (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 7 Jul 2017 07:07:48 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+When doing initial conversion to rhashtable I replaced the bucket
+walk with a single rhashtable_lookup_fast().
 
-* Peter Zijlstra <peterz@infradead.org> wrote:
+When moving to rhlist I failed to properly walk the list of identical
+tuples, but that is what is needed for this to work correctly.
+The table contains the original tuples, so the reply tuples are all
+distinct.
 
-> You missed the one in do_exit(), which I thought was the original one.
+We currently decide that mapping is (not) in range only based on the
+first entry, but in case its not we need to try the reply tuple of the
+next entry until we either find an in-range mapping or we checked
+all the entries.
 
-Indeed, it's raw_spin_unlock_wait() which my git grep pattern missed.
+This bug makes nat core attempt collision resolution while it might be
+able to use the mapping as-is.
 
-But it's not the original spin_unlock_wait(): the pi_lock and priority inheritance 
-is a newfangled invention that Linus (rightfully) resisted for years.
+Fixes: 870190a9ec90 ("netfilter: nat: convert nat bysrc hash to rhashtable")
+Reported-by: Jaco Kroon <jaco@uls.co.za>
+Tested-by: Jaco Kroon <jaco@uls.co.za>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_nat_core.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-The original spin_unlock_wait() was for the global scheduler_lock, long gone.
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 832c5a0..eb54178 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -222,20 +222,21 @@ find_appropriate_src(struct net *net,
+ 		.tuple = tuple,
+ 		.zone = zone
+ 	};
+-	struct rhlist_head *hl;
++	struct rhlist_head *hl, *h;
+ 
+ 	hl = rhltable_lookup(&nf_nat_bysource_table, &key,
+ 			     nf_nat_bysource_params);
+-	if (!hl)
+-		return 0;
+ 
+-	ct = container_of(hl, typeof(*ct), nat_bysource);
++	rhl_for_each_entry_rcu(ct, h, hl, nat_bysource) {
++		nf_ct_invert_tuplepr(result,
++				     &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
++		result->dst = tuple->dst;
+ 
+-	nf_ct_invert_tuplepr(result,
+-			     &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
+-	result->dst = tuple->dst;
++		if (in_range(l3proto, l4proto, result, range))
++			return 1;
++	}
+ 
+-	return in_range(l3proto, l4proto, result, range);
++	return 0;
+ }
+ 
+ /* For [FUTURE] fragmentation handling, we want the least-used
+-- 
+2.9.4
 
-Here's the full history of the original spin_unlock_wait() usecase in the 
-do_exit() path, for the historically interested:
-
- [1997/04] v2.1.36:
-
-      the spin_unlock_wait() primitive gets introduced as part of release()
-
- [1998/08] v2.1.114:
-
-      the release() usecase gets converted to an open coded spin_lock()+unlock() 
-      poll loop over scheduler_lock
-
- [1999/05] v2.3.11pre3:
-
-      open coded loop is changed over to poll p->has_cpu
-
- [1999/07] v2.3.12pre6:
-
-      ->has_cpu loop poll loop is converted to a spin_lock()+unlock() 
-      poll loop over runqueue_lock
-
- [2000/06] 2.4.0-test6pre4:
-
-      combined open coded p->has_cpu poll loop is added back, in addition to the
-      lock()+unlock() loop
-
- [2000/11] 2.4.0-test12pre4:
-
-      lock+unlock loop is changed from scheduler_lock to task_lock
-
- [2001/11] v2.4.14.9:
-
-       ->has_cpu gets renamed to ->cpus_runnable
-
- [2001/12] v2.5.1.10:
-
-       poll loop is factored out from exit()'s release() function 
-       to the scheduler's new wait_task_inactive() function
-
- ...
-
- [2017/07] v4.12:
-
-      wait_task_inactive() is still alive and kicking. Its poll loop has
-      increased in complexity, but it still does not use spin_unlock_wait()
-
-So it was always a mess, and we relatively early flipped from the clever 
-spin_unlock_wait() implementation to an open coded lock+unlock poll loop.
-
-TL;DR: The original do_exit() usecase is gone, it does not use spin_unlock_wait(),
-       since 1998.
-
-Thanks,
-
-	Ingo
