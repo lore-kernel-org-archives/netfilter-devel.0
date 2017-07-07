@@ -1,118 +1,70 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft v3] include: Remove __init and __exit macro
- definitions.
-Date: Fri, 7 Jul 2017 10:40:27 +0200
-Message-ID: <20170707084027.GA1609@salvia>
-References: <595e9838.8a0e620a.759bf.3e0f@mx.google.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH v2 0/9] Remove spin_unlock_wait()
+Date: Fri, 7 Jul 2017 10:44:27 +0200
+Message-ID: <20170707084427.vdsmwkgqx6uvg7tw@hirez.programming.kicks-ass.net>
+References: <20170629235918.GA6445@linux.vnet.ibm.com>
+ <20170705232955.GA15992@linux.vnet.ibm.com>
+ <063D6719AE5E284EB5DD2968C1650D6DD0033F01@AcuExch.aculab.com>
+ <20170706160555.xc63yydk77gmttae@hirez.programming.kicks-ass.net>
+ <20170706162024.GD2393@linux.vnet.ibm.com>
+ <20170706165036.v4u5rbz56si4emw5@hirez.programming.kicks-ass.net>
+ <20170707083128.wqk6msuuhtyykhpu@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Varsha Rao <rvarsha016@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51272 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751782AbdGGIkh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Jul 2017 04:40:37 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3BCF95232D
-        for <netfilter-devel@vger.kernel.org>; Fri,  7 Jul 2017 10:40:24 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2DC0CD1CB3
-        for <netfilter-devel@vger.kernel.org>; Fri,  7 Jul 2017 10:40:24 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 07D99D1CA2
-        for <netfilter-devel@vger.kernel.org>; Fri,  7 Jul 2017 10:40:22 +0200 (CEST)
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+        David Laight <David.Laight@ACULAB.COM>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "oleg@redhat.com" <oleg@redhat.com>,
+        "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
+        "mingo@redhat.com" <mingo@redhat.com>,
+        "dave@stgolabs.net" <dave@stgolabs.net>,
+        "manfred@colorfullife.com" <manfred@colorfullife.com>,
+        "tj@kernel.org" <tj@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>,
+        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
+        "will.deacon@arm.com" <will.deacon@arm.com>,
+        "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>,
+        "parri.andrea@gmail.com" <parri.andrea@gmail.com>,
+To: Ingo Molnar <mingo@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <595e9838.8a0e620a.759bf.3e0f@mx.google.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20170707083128.wqk6msuuhtyykhpu@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Varsha,
+On Fri, Jul 07, 2017 at 10:31:28AM +0200, Ingo Molnar wrote:
+> Here's a quick list of all the use cases:
+> 
+>  net/netfilter/nf_conntrack_core.c:
+> 
+>    - This is I believe the 'original', historic spin_unlock_wait() usecase that
+>      still exists in the kernel. spin_unlock_wait() is only used in a rare case, 
+>      when the netfilter hash is resized via nf_conntrack_hash_resize() - which is 
+>      a very heavy operation to begin with. It will no doubt get slower with the 
+>      proposed changes, but it probably does not matter. A networking person 
+>      Acked-by would be nice though.
+> 
+>  drivers/ata/libata-eh.c:
+> 
+>    - Locking of the ATA port in ata_scsi_cmd_error_handler(), presumably this can
+>      race with IRQs and ioctls() on other CPUs. Very likely not performance 
+>      sensitive in any fashion, on IO errors things stop for many seconds anyway.
+> 
+>  ipc/sem.c:
+> 
+>    - A rare race condition branch in the SysV IPC semaphore freeing code in 
+>      exit_sem() - where even the main code flow is not performance sensitive, 
+>      because typical database workloads get their semaphore arrays during startup 
+>      and don't ever do heavy runtime allocation/freeing of them.
+> 
+>  kernel/sched/completion.c:
+> 
+>    - completion_done(). This is actually a (comparatively) rarely used completion 
+>      API call - almost all the upstream usecases are in drivers, plus two in 
+>      filesystems - neither usecase seems in a performance critical hot path. 
+>      Completions typically involve scheduling and context switching, so in the 
+>      worst case the proposed change adds overhead to a scheduling slow path.
+> 
 
-On Fri, Jul 07, 2017 at 01:36:10AM +0530, Varsha Rao wrote:
-[...]
-> diff --git a/src/main.c b/src/main.c
-> index 7fbf00a..020ae6e 100644
-> --- a/src/main.c
-> +++ b/src/main.c
-> @@ -190,7 +190,7 @@ static int nft_netlink(struct nft_ctx *nft, struct parser_state *state,
-
-Please, pass 'struct mnl_socket *nf_sock' as parameter to nft_netlink.
-
-No need for nft->nf_sock field, we only need it in nft_netlink(), and
-if we pass it as parameter, it should be just fine.
-
-Look, I want that nf_sock becomes a parameter since, like this, the
-mnl_socket details get exposed, which gives us more flexibility.
-
->  	struct mnl_err *err, *tmp;
->  	LIST_HEAD(err_list);
->  	uint32_t batch_seqnum;
-> -	bool batch_supported = netlink_batch_supported();
-> +	bool batch_supported = netlink_batch_supported(nft->nf_sock);
->  	int ret = 0;
->  
->  	batch = mnl_batch_init();
-> @@ -203,6 +203,7 @@ static int nft_netlink(struct nft_ctx *nft, struct parser_state *state,
->  		ctx.batch = batch;
->  		ctx.batch_supported = batch_supported;
->  		ctx.octx = &nft->output;
-> +		ctx.nf_sock = nft->nf_sock;
->  		init_list_head(&ctx.list);
->  		ret = do_command(&ctx, cmd);
->  		if (ret < 0)
-> @@ -262,6 +263,28 @@ err1:
->  	return ret;
->  }
->  
-> +void nft_init(void)
-> +{
-> +	mark_table_init();
-> +        realm_table_rt_init();
-> +        devgroup_table_init();
-> +        realm_table_meta_init();
-> +        ct_label_table_init();
-> +        gmp_init();
-   ^^^^^^^^
-indentation is broken here, use 8-chars tab.
-
-> +#ifdef HAVE_LIBXTABLES
-> +         xt_init();
-> +#endif
-> +}
-> +
-> +void nft_exit(void)
-> +{
-> +	ct_label_table_exit();
-> +	realm_table_rt_exit();
-> +	devgroup_table_exit();
-> +	realm_table_meta_exit();
-> +	mark_table_exit();
-> +}
-> +
->  int main(int argc, char * const *argv)
->  {
->  	struct parser_state state;
-> @@ -271,7 +294,11 @@ int main(int argc, char * const *argv)
->  	unsigned int len;
->  	bool interactive = false;
->  	int i, val, rc = NFT_EXIT_SUCCESS;
-> +	struct mnl_socket *nf_sock = NULL; /* XXX: netlink_socket_open(). */
-
-Here:
-
-        struct mnl_socket *nf_sock;
-
-should be enough. You can remove the comment and the initialization to
-NULL.
-
-> +	nft_init();
-> +	nf_sock = netlink_open_sock();
-> +	nft.nf_sock = nf_sock;
->  	while (1) {
->  		val = getopt_long(argc, argv, OPTSTRING, options, NULL);
->  		if (val == -1)
-
-Everything else looks good to me.
-
-Thanks!
+You missed the one in do_exit(), which I thought was the original one.
