@@ -1,85 +1,60 @@
-From: valdis.kletnieks@vt.edu
-Subject: Re: how to get consistent value of "nf_conntrack_htable_size" and
-	"nf_conntrack_hash" in a kernel module ?
-Date: Fri, 07 Jul 2017 12:30:03 -0400
-Message-ID: <7036.1499445003@turing-police.cc.vt.edu>
-References: <1DAD1BCA-3138-4A7E-B64E-405EA12E6111@introo.me>
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: Re: [PATCH v2 0/9] Remove spin_unlock_wait()
+Date: Fri, 7 Jul 2017 19:47:58 +0200
+Message-ID: <48164d9a-f291-94f3-e0b1-98bb312bf846@colorfullife.com>
+References: <20170629235918.GA6445@linux.vnet.ibm.com>
+ <20170705232955.GA15992@linux.vnet.ibm.com>
+ <063D6719AE5E284EB5DD2968C1650D6DD0033F01@AcuExch.aculab.com>
+ <20170706160555.xc63yydk77gmttae@hirez.programming.kicks-ass.net>
+ <20170706162024.GD2393@linux.vnet.ibm.com>
+ <20170706165036.v4u5rbz56si4emw5@hirez.programming.kicks-ass.net>
+ <20170707083128.wqk6msuuhtyykhpu@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6444842417860573845=="
-Cc: netfilter-devel@vger.kernel.org,
-	kernelnewbies <kernelnewbies@kernelnewbies.org>
-To: Shiyao Ma <i@introo.me>
-Return-path: <kernelnewbies-bounces+glkk-kernelnewbies=gmane.org@kernelnewbies.org>
-In-Reply-To: <1DAD1BCA-3138-4A7E-B64E-405EA12E6111@introo.me>
-List-Unsubscribe: <https://lists.kernelnewbies.org/mailman/listinfo/kernelnewbies>,
-	<mailto:kernelnewbies-request@kernelnewbies.org?subject=unsubscribe>
-List-Archive: <http://lists.kernelnewbies.org/pipermail/kernelnewbies>
-List-Post: <mailto:kernelnewbies@kernelnewbies.org>
-List-Help: <mailto:kernelnewbies-request@kernelnewbies.org?subject=help>
-List-Subscribe: <https://lists.kernelnewbies.org/mailman/listinfo/kernelnewbies>,
-	<mailto:kernelnewbies-request@kernelnewbies.org?subject=subscribe>
-Sender: kernelnewbies-bounces+glkk-kernelnewbies=gmane.org@kernelnewbies.org
-Errors-To: kernelnewbies-bounces+glkk-kernelnewbies=gmane.org@kernelnewbies.org
-List-Id: netfilter-devel.vger.kernel.org
-
---===============6444842417860573845==
-Content-Type: multipart/signed; boundary="==_Exmh_1499445003_2904P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+        David Laight <David.Laight@ACULAB.COM>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "oleg@redhat.com" <oleg@redhat.com>,
+        "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
+        "mingo@redhat.com" <mingo@redhat.com>,
+        "dave@stgolabs.net" <dave@stgolabs.net>,
+        "tj@kernel.org" <tj@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>,
+        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
+        "will.deacon@arm.com" <will.deacon@arm.com>,
+        "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>,
+        "parri.andrea@gmail.com" <parri.andrea@gmail.com>,
+        "torvalds@linux-foundation.org" <torvalds@linux-foundation.o
+To: Ingo Molnar <mingo@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:33919 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750848AbdGGRsC (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 7 Jul 2017 13:48:02 -0400
+Received: by mail-wr0-f194.google.com with SMTP id k67so9121363wrc.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 07 Jul 2017 10:48:02 -0700 (PDT)
+In-Reply-To: <20170707083128.wqk6msuuhtyykhpu@gmail.com>
+Content-Language: en-US
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
---==_Exmh_1499445003_2904P
-Content-Type: text/plain; charset=us-ascii
+Hi Ingo,
 
-On Fri, 07 Jul 2017 23:55:25 +0800, Shiyao Ma said:
+On 07/07/2017 10:31 AM, Ingo Molnar wrote:
+>
+> There's another, probably just as significant advantage: queued_spin_unlock_wait()
+> is 'read-only', while spin_lock()+spin_unlock() dirties the lock cache line. On
+> any bigger system this should make a very measurable difference - if
+> spin_unlock_wait() is ever used in a performance critical code path.
+At least for ipc/sem:
+Dirtying the cacheline (in the slow path) allows to remove a smp_mb() in 
+the hot path.
+So for sem_lock(), I either need a primitive that dirties the cacheline 
+or sem_lock() must continue to use spin_lock()/spin_unlock().
 
-> I want to foreach all the `struct nf_conn's in my out-of-tree kernel module.
-
-What are you trying to do?  Hint: the very concept of "all" the nf_conn's is a
-very racy one, especially on high-powered servers that have multiple 40 gigabit
-ethernet cards on them, talking to other high-powered servers on the same
-subnet. It's possible to get several million TCP connections in TIME_WAIT in a
-matter of seconds.  The end result is that the kernel code is very much
-optimized for the problem of "find *THIS* one nf_conn related to the packet
-we're looking at before the next one shows up in a few microseconds", and
-things like 'netstat -a' can basically go pound sand if they want to be 100%
-accurate.
-
-Summary:  It's quite possible for hundreds or even thousands of nf_conn's
-to come and go in the time it takes you to walk the list.
-
-> How to get a consistent value of `nf_conntrack_htable_size' and `nf_conntrack_hash' ?
-
-What makes you think that "consistent value" is a concept that applies
-to these numbers?  As mentioned above, they can be bouncing all over
-the place on timespans smaller than the time needed to walk the list...
-
---==_Exmh_1499445003_2904P
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Comment: Exmh version 2.8.0 04/21/2017
-
-iQEVAwUBWV+3C40DS38y7CIcAQJ3JAf8DPBAf12RXjnue7vqVoapcxGPgbkSr0I+
-pyly3IGhEcbOwsYISnbFgtKnVnTKTlZRYu191I40rz/t5cCgIkrxD3JZut3//N0O
-Z0OGyRjzZDrq85QxhFaQUTGs2JgzQyVHuqaZ4gbYdwVoULiWQBKdXp9tgFEOYGrn
-2v7j0W19D0OqOcBxBDZhMU01MwC4U2bHQhC8uT/5/+FxxfMHCA5ho/u7oIi5aFnv
-jG3CqZuv7s9YuwGHo25UmH18aqvJGKvE4wLYOynK+wHJKY+thFOIA+5eMkYJwjfz
-bFnDONWLr5gbk9Hfkw5rZn1kqgJUh7yKdIfKRpn2bCu8JjspRjneIg==
-=S7oc
------END PGP SIGNATURE-----
-
---==_Exmh_1499445003_2904P--
-
-
---===============6444842417860573845==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Kernelnewbies mailing list
-Kernelnewbies@kernelnewbies.org
-https://lists.kernelnewbies.org/mailman/listinfo/kernelnewbies
-
---===============6444842417860573845==--
+--
+     Manfred
