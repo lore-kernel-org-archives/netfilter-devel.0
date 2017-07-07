@@ -1,60 +1,47 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH v2 0/9] Remove spin_unlock_wait()
-Date: Fri, 7 Jul 2017 07:41:07 -0700
-Message-ID: <20170707144107.GA27202@linux.vnet.ibm.com>
-References: <20170629235918.GA6445@linux.vnet.ibm.com>
- <20170705232955.GA15992@linux.vnet.ibm.com>
- <063D6719AE5E284EB5DD2968C1650D6DD0033F01@AcuExch.aculab.com>
- <20170706160555.xc63yydk77gmttae@hirez.programming.kicks-ass.net>
- <20170706162024.GD2393@linux.vnet.ibm.com>
- <20170706165036.v4u5rbz56si4emw5@hirez.programming.kicks-ass.net>
- <20170707083128.wqk6msuuhtyykhpu@gmail.com>
-Reply-To: paulmck@linux.vnet.ibm.com
-Mime-Version: 1.0
+From: Shiyao Ma <i@introo.me>
+Subject: how to get consistent value of "nf_conntrack_htable_size" and
+ "nf_conntrack_hash" in a kernel module ?
+Date: Fri, 7 Jul 2017 23:55:25 +0800
+Message-ID: <1DAD1BCA-3138-4A7E-B64E-405EA12E6111@introo.me>
+Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
 Content-Type: text/plain; charset=us-ascii
-Cc: Peter Zijlstra <peterz@infradead.org>,
-        David Laight <David.Laight@ACULAB.COM>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "oleg@redhat.com" <oleg@redhat.com>,
-        "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-        "mingo@redhat.com" <mingo@redhat.com>,
-        "dave@stgolabs.net" <dave@stgolabs.net>,
-        "manfred@colorfullife.com" <manfred@colorfullife.com>,
-        "tj@kernel.org" <tj@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>,
-        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-        "will.deacon@arm.com" <will.deacon@arm.com>,
-        "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>,
-        "parri.andrea@gmail.com" <parri.andrea@gmail.com>,
-        "torval
-To: Ingo Molnar <mingo@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170707083128.wqk6msuuhtyykhpu@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+To: netfilter-devel@vger.kernel.org,
+        kernelnewbies <kernelnewbies@kernelnewbies.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pg0-f41.google.com ([74.125.83.41]:33499 "EHLO
+        mail-pg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752000AbdGGPza (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 7 Jul 2017 11:55:30 -0400
+Received: by mail-pg0-f41.google.com with SMTP id k14so19236970pgr.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 07 Jul 2017 08:55:29 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jul 07, 2017 at 10:31:28AM +0200, Ingo Molnar wrote:
+Hi,
 
-[ . . . ]
+I want to foreach all the `struct nf_conn's in my out-of-tree kernel =
+module.
 
-> In fact I'd argue that any future high performance spin_unlock_wait() user is 
-> probably better off open coding the unlock-wait poll loop (and possibly thinking 
-> hard about eliminating it altogether). If such patterns pop up in the kernel we 
-> can think about consolidating them into a single read-only primitive again.
+My plan is to get the `nf_conntrack_htable_size' and =
+`nf_conntrack_hash', then do some read on the hash table.
 
-I would like any reintroduction to include a header comment saying exactly
-what the consolidated primitive actually does and does not do.  ;-)
+However, the symbol `nf_conntrack_generation' is not exported, so I =
+cannot do things like this:
 
-> I.e. I think the proposed changes are doing no harm, and the unavailability of a 
-> generic primitive does not hinder future optimizations either in any significant 
-> fashion.
+struct hlist_nulls_head *hptr;
+unsigned int sequence, hsz;
 
-I will have a v3 with updated comments from Manfred.  Thoughts on when/where
-to push this?
+do {
+    sequence =3D read_seqcount_begin(&nf_conntrack_generation);
+    hsz =3D nf_conntrack_htable_size;
+    hptr =3D nf_conntrack_hash;
+} while (read_seqcount_retry(&nf_conntrack_generation, sequence));
 
-The reason I ask is if this does not go in during this merge window, I need
-to fix the header comment on spin_unlock_wait().
 
-							Thanx, Paul
+How to get a consistent value of `nf_conntrack_htable_size' and =
+`nf_conntrack_hash' ?
+
+
+Thanks.=
