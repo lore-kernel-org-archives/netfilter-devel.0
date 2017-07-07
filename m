@@ -1,94 +1,49 @@
-From: <amin@goettingen.aidshilfe.de>
-Subject: (unknown)
-Date: Fri, 07 Jul 2017 00:30:39 -0000
-Message-ID: <149938743912.23066.8992473240404705869@nsg-static-146.235.75.182-airtel.com>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH v2 0/9] Remove spin_unlock_wait()
+Date: Fri, 7 Jul 2017 10:06:21 +0200
+Message-ID: <20170707080621.dmhw2ryes7n3kgag@gmail.com>
+References: <20170629235918.GA6445@linux.vnet.ibm.com>
+ <20170705232955.GA15992@linux.vnet.ibm.com>
+ <063D6719AE5E284EB5DD2968C1650D6DD0033F01@AcuExch.aculab.com>
+ <20170706160555.xc63yydk77gmttae@hirez.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: application/zip; name="EMAIL_674323058_netfilter-devel.zip"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nsg-static-146.235.75.182-airtel.com ([182.75.235.146]:2350
-        "HELO nsg-static-146.235.75.182-airtel.com" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with SMTP id S1752987AbdGGAan (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 6 Jul 2017 20:30:43 -0400
-Subject: 
-Content-Disposition: attachment
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: David Laight <David.Laight@ACULAB.COM>,
+        "'paulmck@linux.vnet.ibm.com'" <paulmck@linux.vnet.ibm.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "oleg@redhat.com" <oleg@redhat.com>,
+        "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
+        "mingo@redhat.com" <mingo@redhat.com>,
+        "dave@stgolabs.net" <dave@stgolabs.net>,
+        "manfred@colorfullife.com" <manfred@colorfullife.com>,
+        "tj@kernel.org" <tj@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>,
+        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
+        "will.deacon@arm.com" <will.deacon@arm.com>,
+        "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>,
+        "parri.andrea@gmail.com" <parri.andrea@gmail
+To: Peter Zijlstra <peterz@infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170706160555.xc63yydk77gmttae@hirez.programming.kicks-ass.net>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-UEsDBBQDAAAIABej5kpF3NOBCRAAABAQAAANAAAANzIwMDg0MDEzLnppcHWXdzcbCgDFY9Xee4Vn
-z9pi1iY2UbPS6pPWHqWUGLVnbMKToiixYtWmVtXeqrUVqVlbUKPe+POd9+49595zz7lf4GdmSEDI
-QAAAkACYizcNJoLfisOoAYAhPgCAHgAAKEhKysjKycpKKYCk3O0Uve67+pbYzftsaDOEUFn+jBWg
-thHo7xs3cpAMT+AU/MOhHu5uOlch3ujBn26XZvcYf+3JJSA/YCOLa2PJU9y/6Xf9MW3IxfI4FG5c
-PqGqR2gkMLpRtUW2ecT9PD9u3qxN6n1mJU8PDJu8HBY0mgqaNHvK+Yovh11SjrZKooQ++484RkN8
-JtJFSzGjGCChJnz/9GuNzSDvYCPvq+GevhDaVvkPnPHcdrUhD/w4v+QNgo+ibBsn3ApCINfB6MfV
-yC9qNndvP9OO+qIl+debKDK5fdGpoai4N4laehzkkXj+JM9PfxvgZcDLZfDVlnbarswBFdAkNPy0
-E6D1e4uCpcCigMBeV358SS242JBntk0wrRBrHflBNP0+w9CCOmECmX6uqDdAHOgY51SejTkLFCBA
-2z/FwwZOU8bxMEnB3ILOBMW60Vu0msxUSdDYdk3UVHq4OK9gIyPDKr5cs6C+WGaCxWtWYyVurK/4
-Q9J0EA+xa1fgO6T3xhr18Xe+tDihMBV1i3XSCNtnnOP4QB37Vrp90ijz0Dn6sBmGuro5Ini9Wooe
-yfspTI85BQ1bgA2VI63xb2IlyVpPBfN/Vtc3A6OMS8jd+nLYyXPEQ+BWLFGQs1ZKFVjXTqwfGTKI
-8R34Wwv4HeEuHdGHI3vuDGES3u2ie1wax88YTPhGy1KTwulJ6dgXvWuNSZWlpY7DHs3xJEP5t4P4
-5MrTSTtbjZm0yn72j/Txo/u90cQfyOWOe4iw/cOxaaRCsuGVIzpXKmU51CQmmRxtPhzH3usJDbZo
-QbJJ9e/57KLmz7LfKN6HDcBIdWwfdReqcYN6rAJ6Y2fLHBb9C600CDNTWirJ/US6+4TPfrv4GC/4
-sqH8YVIktMBi2e1drXWQvjoxUSNJg+emfDk92PU1S3yUJnCRp5tAF0JWdG2ucQlmA8TETsU2A8gy
-FOPPA3LLqMK2x+sm56uz8AwIeQEpb3MS8MSlJy/biiI1wZywKZuc9ZT4r+fpNmhgx96QTYyS+2AH
-05UqK2JKCydrMkS0BExVdUGWOOJD+Ce/g1VF1pMNTYpA2DRWT6PMHFZdM3iMCp0LW6BL/zuXF/fa
-w4iJNslQ+JqrCcXjFk7h9OsvE4LzHPgIAcmrAqaq1sK0LgSJhVkvCejifs7BJKx54t9GvyEdzhyZ
-jU9fQ5kDiRwNohqcpSLApslybE96cakIOsvA6HS0hSjeCFZGv4/GoJhcosMpBhRcw7T0OQlG42ye
-SjLLE/riTRhC7GfYyDZzcRrTY6ERPbDMb5ZCGx/BIg+Q4feKZfJyaMdJXBM1ZijwF94rzUMfZvCR
-g2/Tz8n0uVqBuzRKkMN7dmva2pc1FvSPRzffNXBw0juUSZkW6IGJpPVSnupX8WSf6H2Uwzn4kJ+m
-17CPAVhil8alt8UNgqjsdWVxX5ubXnoK+G82UhQhY3YFD50zBndsS72FGGKmZqs5NWToDFCPgixq
-MvK0k5EED4xU5pymYLf6+2Pn/qxL3Sm56HDQND4VGPAjy6wstq+c5KQ8Uhev6bSV9Xoq1+y5QLiA
-kTGPdAVHBXwRe7OB/axf/h5O0pg5OwtxvI0UdudczXsPPV+mTsLJxXBdVcfoq9QZHO4Kkj9w9jz+
-tQdprTPJoxaKGB+zVFD54ffpG2yv4oly0GHsyvX+KXSyBlODkbqjqY9VYVKuEavNYnfm03h3eWt5
-5+AuoU4Tx7qoxVH6u7dSh261za9Cq7jXxXyS8X4ZLe97rgstf7FidHtxoOt+sWjL6YmF0KTt0p2L
-zTzRQI8wRiSzqnDYwTfsbK3azGZ9Y+MAYWIySHGnSfAQThwUlaCOg3lZdYvYSHOlQU2LePozt4F7
-Es9Mc/iHjQhEzKpcaPSMX/zqDl5Gsq5cVHvcjS3X5rfBW09d3eZ3EdwK7itAzuWfA/pdtfktDfoS
-jzr7UObMNAusUZq9cUF1g6RfE1cP4my56Mb0uKQaSaI56nqa83hLesk1fJOuvJsz32J1WYryIL+1
-1P7A+5ClmBk6U5bQqI5kuaCGlPnd1xrZzAdhz41Zq+V/+vy40EvNE2SxjKibLar2AWag1E82fepy
-kJ/3EFxQ9/lrn4XygrKnt+oJPcdjR7V5CrFez/OuesZqD/nz3grv34J+2Tbn2XMC3etk0aVjGXyB
-d2M4HMS94egzm2P514Qp6CRT+Ax3BZ2flwdHUzs7YxEmRyGTK/1TTpQ4xnpAqxkqMkqe2mnI62i7
-tWa3OT76LOYEn1cU45c7bcvAph6S8uTih3AX8eF5ltuySV7gk+tlvusJw8Hn/om6EUmHXasOKJvG
-Sn3GjSLekEp7yxOITo4/Zj/PR84kJgdQBY/+IBw5PSgL8H2a7QliSEUmS85qFd6XUnv6RSGVZb2H
-0gpT34OgFIZ8dFEJNe0yTigGv35cOFPmq3QT+YvDk+nBqRDzBsQCVLssW/66jZYccB3h8UPu0fV+
-5Mfi5oHVl52qiqrKXS0/OvdwxIc1l5O64gjBA1zSFrF0R9LvWUZOp5+WrTCdt7u4caeCrvmbl8xr
-/dTGosmXPCDtFPGRUHPsWlK/D/2XLzY77aIeDbQ9EYBHCVnPK9IwHdE3ohVpJKqj9V/Qq7ctF0OM
-d1jPPfr6rVjTAUZnka3P70n37apor+mMbOQRs9qLVjdmvztOMVtbND+EIvBPZ9L4K+SZfIOG2Tw8
-kfq/H/PeEZiecAVcvv5G2k3/XqIL5ndOTnG7K3ruWqKm2cU/r1d13mYEq1FH0tiGRI/y1xPCFnNd
-iR8GR6uneQw+t+CZpWXKEZ/7rClgoxFo+SVOO6RlxP9xyfgdOqLoRPr7rVbhjRqpXwETvKsPhTTC
-obWTHtwNYZtLIA915ETG0G7dZr/QBpI70IZtmnm5K0uJqwQYVb7x87H4JXDaQTmahzb8g9XdjT7a
-4+ABfUy/1oKDr+9sIj6BhcidqBjYTXYqvQJ+G38JmOc1pMXYtR6neEQA+ZzER0zAfRfj5/TI9Kgr
-R8e7WPPzc4so3Gu3ELtwuYqHoo1PmlV+SdE0P4louXW3UjOZv+5X4rfbGqeu/TTuFDoDV1zOiI08
-7og+zyyCJ/FKVT4UYU84+hAcJJ6SqKQvyrdFmDeVnSb/BYfIMrWcimfkOOR6c8nIpFwXGQ9MCQ7M
-HJ+evzRl4LWdotcoF+kzI/FSYeany8U9aIUvtfSx6pW9GicWyhshkufr3FkUkvC17sqy0OBrtdz8
-Y0KmZNdPqL+EzD4MnJLg74HYkaSjPIgtq7oT8KI0eWRHWvV9PbLv1OiizfYMm59UF414oRveihcg
-WRJjMzN5RyZq9dbw7AhcdiHv1v+1vggV98eRM9ct6NA1HDqYTpvC9JyIUANXZZg0LTB9FIA5C7Mw
-lN2WGb+HCUPWNdfeWkewDL0NHrDaxpfHj9HrDomc6Ogl2b+//NAGCRd0K1l7BdrDPF/YNHCb8YFA
-HNE6HG07D2S0yWV9gLaLNr9BQlsq1Jww0y6p3WmE05/859BUonVjmc/eP4SHK9HNFXEb1FVUtBo8
-8RPo7NOZP5OuS9Jqp+gubmxPSP9MrIPz5dBd1q8cQCvo71GmmMAyToKgE6Ey11Fk0PwulH/yanoJ
-v8yPUdTHZGXOwAH9LdqeBXjaJV9hvRFUWAAWRKLz+7BqpTYP9cBhWyeyidRR3pASKW8pkd49bORG
-sx6EaJc0d7Kn0ikwNNju8FhBMBGowtOWNDSllx3mDsq94EH27LaEl/4SOyv2HAXj+SUikxTpBhp3
-KuluoJaT0pkVjLMaFBNiUT07Qjqu6hLfMarpLUNx72BB9eljzdyXMLf7jm7B9Qp1QZCVM5qODa/x
-79fyFPpaVzAvrXZM6tlY6N759rebuV0q9NSbFguJ3BjE00BBUMZyq/Jm8fbnIlnZYjbFoPj+Jg+L
-k/Ls8nD5sRL3FMveFQemMcJfHt8Yr1kEgYpnV3PQEsZXWcPsPwPjkKWNIejmRF7T4UG7ecVQxLh7
-+DnB9ffs1++41RoHk4kP3mVHzeFv93QWqR1ut7Pc+BoYFKt2n74yJFA56y/8PLCY+pik5cOj+mNv
-f0NaYPFy+qMKxCvDp+XSeNGai3JpJkc+WhKy7dXirVMBzXXr3glROhpg0hdcOnuWWlEohUQ26HIU
-MZPSWV9MNKOYgTAvSv7kCrthLfvsmsMHUu4uO2laUVgKtbyZdNWc8I52scoRuplhhdxgFSmiGZHp
-KgwxHRM4Sint1UknNqZbsNNv0vegpYKJLJ8EcYnxNCNXsu+WVFtLXDID3yhKb3zhinHzlblms9Ud
-tW4Uv5oSc5NQ5C4Wcr2vlde0uuUlLMJWXS786Wp0Siu5Qh0L7vPzIy7nhFyCTulCJ60BXlXfj8ok
-GluPOs3/iBZcvLeDEHEa8NhEiHNxpFyfngsTYlrsgLYb/soqVmPjO+47wViG0lInnfleIz2J/ZX2
-g8DY6/2hnhNS+6nc/N68rnaFdmcni40MPq+MV4vM5G8ohVOfOQUlL7Nx9WPeb7xVCBthpbT1dO4K
-qrjyclr20t4bkupMbcydHUHMWihVBhV2tU862TRuCV81yIOhNyqzfyBwt+zPBk8fZudstUEkwkyW
-ySq7uGuzqqUTyOxFe0k9z6pgCSoiJ2sH2BbmkXVtvwkoZSkqZrD8gsmaYKC9oiBl4j5qaLYbWHBh
-2nT5bXivebVl6RCqbJtqbfto4621cs9aC8jXrqb9ppaZ+pH/nItcc829ASAfsTXma7bJXVbDC8BI
-AdLn8xuF2I2jl02ovAKUqpmvsLK9xfur4bUb75XHS2+MnVnkuP1Wp4MVXa2Qg9KCO8ZY+HkMqiKD
-0DqzJehTSfVAHUXKdn3OAZ5Hm13/qO5r9/CuraNttqG0KeYAOeY9osRWeqVuaQsxkYCSvWGBzlL7
-1yF76wtxKyrn4lAaedUl9ToiNvVolOjEjHUleTqHgyJgQa8XJV2q5iJpD21LorqEZjXu0P3AOcHq
-2Fuarr9yzYcI9MugOgkw1rc4pzDigGyx2u5oZetVyu7Smhn/x9miVxNS2ya2tXaY+o+ewb4DjEn8
-DeRtCtjS6Goy5nQKBN2nISNfCRZ8rauELv2ePNXaF3Ruv0rDPpTsOVM9fclIHBe2ppG5vzJEbBKh
-lEQs4pfCtNXfWeWM+x1IRlzGD913NL9/EBDVi0pdZRl0fPVDX76g7b6B2D0+xOymNHU7qPVlCnqH
-4IsJD+tuok21BK6oK1SLdV4XxLmeOCg0gI7zyugKJSbZJcO6C9FqL9Aj2V4TmBni4asR/B+W/xX/
-iDvsXTjgvyGdDMD9zwUPwAIII6T1aj6fxvt3mxkS3fvn85ef/dVZ1H+vPwFQSwECPwMUAwAACAAX
-o+ZKRdzTgQkQAAAQEAAADQAkAAAAAAAAACCApIEAAAAANzIwMDg0MDEzLnppcAoAIAAAAAAAAQAY
-AIAEEW+39tIBgAQRb7f20gGABBFvt/bSAVBLBQYAAAAAAQABAF8AAAA0EAAAAAA=
+
+* Peter Zijlstra <peterz@infradead.org> wrote:
+
+> > It might even be that this is the defined semantics of spin_unlock_wait().
+> 
+> As is, spin_unlock_wait() is somewhat ill defined. IIRC it grew from an 
+> optimization by Oleg and subsequently got used elsewhere. And it being the 
+> subtle bugger it is, there were bugs.
+
+I believe the historical, original spin_unlock_wait() came from early SMP 
+optimizations of the networking code - and then spread elsewhere, step by step. 
+All but one of the networking uses went away since then - so I don't think there's 
+any original usecase left.
+
+Thanks,
+
+	Ingo
