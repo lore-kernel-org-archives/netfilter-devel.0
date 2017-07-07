@@ -1,60 +1,97 @@
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: Re: [PATCH v2 0/9] Remove spin_unlock_wait()
-Date: Fri, 7 Jul 2017 19:47:58 +0200
-Message-ID: <48164d9a-f291-94f3-e0b1-98bb312bf846@colorfullife.com>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: [PATCH v3 0/9] Remove spin_unlock_wait()
+Date: Fri, 7 Jul 2017 12:27:04 -0700
+Message-ID: <20170707192704.GA6144@linux.vnet.ibm.com>
 References: <20170629235918.GA6445@linux.vnet.ibm.com>
  <20170705232955.GA15992@linux.vnet.ibm.com>
- <063D6719AE5E284EB5DD2968C1650D6DD0033F01@AcuExch.aculab.com>
- <20170706160555.xc63yydk77gmttae@hirez.programming.kicks-ass.net>
- <20170706162024.GD2393@linux.vnet.ibm.com>
- <20170706165036.v4u5rbz56si4emw5@hirez.programming.kicks-ass.net>
- <20170707083128.wqk6msuuhtyykhpu@gmail.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-        David Laight <David.Laight@ACULAB.COM>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "oleg@redhat.com" <oleg@redhat.com>,
-        "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-        "mingo@redhat.com" <mingo@redhat.com>,
-        "dave@stgolabs.net" <dave@stgolabs.net>,
-        "tj@kernel.org" <tj@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>,
-        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-        "will.deacon@arm.com" <will.deacon@arm.com>,
-        "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>,
-        "parri.andrea@gmail.com" <parri.andrea@gmail.com>,
-        "torvalds@linux-foundation.org" <torvalds@linux-foundation.o
-To: Ingo Molnar <mingo@kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:33919 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750848AbdGGRsC (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Jul 2017 13:48:02 -0400
-Received: by mail-wr0-f194.google.com with SMTP id k67so9121363wrc.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 07 Jul 2017 10:48:02 -0700 (PDT)
-In-Reply-To: <20170707083128.wqk6msuuhtyykhpu@gmail.com>
-Content-Language: en-US
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        oleg@redhat.com, akpm@linux-foundation.org, mingo@redhat.com,
+        dave@stgolabs.net, manfred@colorfullife.com, tj@kernel.org,
+        arnd@arndb.de, linux-arch@vger.kernel.org, will.deacon@arm.com,
+        peterz@infradead.org, stern@rowland.harvard.edu,
+        parri.andrea@gmail.com, torvalds@linux-foundation.org
+To: linux-kernel@vger.kernel.org
+Return-path: <linux-arch-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170705232955.GA15992@linux.vnet.ibm.com>
+Sender: linux-arch-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Ingo,
+Hello!
 
-On 07/07/2017 10:31 AM, Ingo Molnar wrote:
->
-> There's another, probably just as significant advantage: queued_spin_unlock_wait()
-> is 'read-only', while spin_lock()+spin_unlock() dirties the lock cache line. On
-> any bigger system this should make a very measurable difference - if
-> spin_unlock_wait() is ever used in a performance critical code path.
-At least for ipc/sem:
-Dirtying the cacheline (in the slow path) allows to remove a smp_mb() in 
-the hot path.
-So for sem_lock(), I either need a primitive that dirties the cacheline 
-or sem_lock() must continue to use spin_lock()/spin_unlock().
+There is no agreed-upon definition of spin_unlock_wait()'s semantics,
+and it appears that all callers could do just as well with a lock/unlock
+pair.  This series therefore removes spin_unlock_wait() and changes
+its users to instead use a lock/unlock pair.  The commits are as follows,
+in three groups:
 
---
-     Manfred
+1-7.	Change uses of spin_unlock_wait() and raw_spin_unlock_wait()
+	to instead use a spin_lock/spin_unlock pair.  These may be
+	applied in any order, but must be applied before any later
+	commits in this series.  The commit logs state why I believe
+	that these commits won't noticeably degrade performance.
+
+8.	Remove core-kernel definitions for spin_unlock_wait() and
+	raw_spin_unlock_wait().
+
+9.	Remove arch-specific definitions of arch_spin_unlock_wait().
+
+Changes since v2:
+
+o	Add comment-only update from Manfred.
+
+Changes since v1:
+
+o	Disable interrupts where needed, thus avoiding embarrassing
+	interrupt-based self-deadlocks.
+
+o	Substitute Manfred's patch for contrack_lock (#1 above).
+
+o	Substitute Oleg's patch for task_work (#2 above).
+
+o	Use more efficient barrier based on Arnd Bergmann feedback.
+
+o	Merge the arch commits.
+
+							Thanx, Paul
+
+------------------------------------------------------------------------
+
+ arch/alpha/include/asm/spinlock.h    |    5 -
+ arch/arc/include/asm/spinlock.h      |    5 -
+ arch/arm/include/asm/spinlock.h      |   16 ----
+ arch/arm64/include/asm/spinlock.h    |   58 +----------------
+ arch/blackfin/include/asm/spinlock.h |    5 -
+ arch/hexagon/include/asm/spinlock.h  |    5 -
+ arch/ia64/include/asm/spinlock.h     |   21 ------
+ arch/m32r/include/asm/spinlock.h     |    5 -
+ arch/metag/include/asm/spinlock.h    |    5 -
+ arch/mips/include/asm/spinlock.h     |   16 ----
+ arch/mn10300/include/asm/spinlock.h  |    5 -
+ arch/parisc/include/asm/spinlock.h   |    7 --
+ arch/powerpc/include/asm/spinlock.h  |   33 ---------
+ arch/s390/include/asm/spinlock.h     |    7 --
+ arch/sh/include/asm/spinlock-cas.h   |    5 -
+ arch/sh/include/asm/spinlock-llsc.h  |    5 -
+ arch/sparc/include/asm/spinlock_32.h |    5 -
+ arch/sparc/include/asm/spinlock_64.h |    5 -
+ arch/tile/include/asm/spinlock_32.h  |    2 
+ arch/tile/include/asm/spinlock_64.h  |    2 
+ arch/tile/lib/spinlock_32.c          |   23 ------
+ arch/tile/lib/spinlock_64.c          |   22 ------
+ arch/xtensa/include/asm/spinlock.h   |    5 -
+ drivers/ata/libata-eh.c              |    8 --
+ include/asm-generic/qspinlock.h      |   14 ----
+ include/linux/spinlock.h             |   31 ---------
+ include/linux/spinlock_up.h          |    6 -
+ ipc/sem.c                            |    3 
+ kernel/exit.c                        |    3 
+ kernel/locking/qspinlock.c           |  117 -----------------------------------
+ kernel/sched/completion.c            |    9 --
+ kernel/sched/core.c                  |    5 -
+ kernel/task_work.c                   |    8 --
+ net/netfilter/nf_conntrack_core.c    |   52 ++++++++-------
+ 34 files changed, 48 insertions(+), 475 deletions(-)
