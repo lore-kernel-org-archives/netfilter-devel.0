@@ -1,46 +1,60 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nftables: onlly allow in/output for arp packets
-Date: Fri,  7 Jul 2017 13:29:03 +0200
-Message-ID: <20170707112903.9545-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:41104 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750938AbdGGL3J (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 7 Jul 2017 07:29:09 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH v2 0/9] Remove spin_unlock_wait()
+Date: Fri, 7 Jul 2017 07:41:07 -0700
+Message-ID: <20170707144107.GA27202@linux.vnet.ibm.com>
+References: <20170629235918.GA6445@linux.vnet.ibm.com>
+ <20170705232955.GA15992@linux.vnet.ibm.com>
+ <063D6719AE5E284EB5DD2968C1650D6DD0033F01@AcuExch.aculab.com>
+ <20170706160555.xc63yydk77gmttae@hirez.programming.kicks-ass.net>
+ <20170706162024.GD2393@linux.vnet.ibm.com>
+ <20170706165036.v4u5rbz56si4emw5@hirez.programming.kicks-ass.net>
+ <20170707083128.wqk6msuuhtyykhpu@gmail.com>
+Reply-To: paulmck@linux.vnet.ibm.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Peter Zijlstra <peterz@infradead.org>,
+        David Laight <David.Laight@ACULAB.COM>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "oleg@redhat.com" <oleg@redhat.com>,
+        "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
+        "mingo@redhat.com" <mingo@redhat.com>,
+        "dave@stgolabs.net" <dave@stgolabs.net>,
+        "manfred@colorfullife.com" <manfred@colorfullife.com>,
+        "tj@kernel.org" <tj@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>,
+        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
+        "will.deacon@arm.com" <will.deacon@arm.com>,
+        "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>,
+        "parri.andrea@gmail.com" <parri.andrea@gmail.com>,
+        "torval
+To: Ingo Molnar <mingo@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170707083128.wqk6msuuhtyykhpu@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-arp packets cannot be forwarded.
+On Fri, Jul 07, 2017 at 10:31:28AM +0200, Ingo Molnar wrote:
 
-They can be bridged, but then they can be filtered using
-either ebtables or nftables bridge family.
+[ . . . ]
 
-The bridge netfilter exposes a "call-arptables" switch which
-pushes packets into arptables, but lets not expose this for nftables, so better
-close this asap.
+> In fact I'd argue that any future high performance spin_unlock_wait() user is 
+> probably better off open coding the unlock-wait poll loop (and possibly thinking 
+> hard about eliminating it altogether). If such patterns pop up in the kernel we 
+> can think about consolidating them into a single read-only primitive again.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/ipv4/netfilter/nf_tables_arp.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+I would like any reintroduction to include a header comment saying exactly
+what the consolidated primitive actually does and does not do.  ;-)
 
-diff --git a/net/ipv4/netfilter/nf_tables_arp.c b/net/ipv4/netfilter/nf_tables_arp.c
-index 805c8dd..4bbc273 100644
---- a/net/ipv4/netfilter/nf_tables_arp.c
-+++ b/net/ipv4/netfilter/nf_tables_arp.c
-@@ -72,8 +72,7 @@ static const struct nf_chain_type filter_arp = {
- 	.family		= NFPROTO_ARP,
- 	.owner		= THIS_MODULE,
- 	.hook_mask	= (1 << NF_ARP_IN) |
--			  (1 << NF_ARP_OUT) |
--			  (1 << NF_ARP_FORWARD),
-+			  (1 << NF_ARP_OUT),
- };
- 
- static int __init nf_tables_arp_init(void)
--- 
-2.9.4
+> I.e. I think the proposed changes are doing no harm, and the unavailability of a 
+> generic primitive does not hinder future optimizations either in any significant 
+> fashion.
 
+I will have a v3 with updated comments from Manfred.  Thoughts on when/where
+to push this?
+
+The reason I ask is if this does not go in during this merge window, I need
+to fix the header comment on spin_unlock_wait().
+
+							Thanx, Paul
