@@ -1,9 +1,8 @@
-From: Ingo Molnar <mingo@kernel.org>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Subject: Re: [PATCH v2 0/9] Remove spin_unlock_wait()
-Date: Sat, 8 Jul 2017 14:30:19 +0200
-Message-ID: <20170708123018.qiwmyf3x43i4pgsg@gmail.com>
-References: <20170629235918.GA6445@linux.vnet.ibm.com>
- <20170705232955.GA15992@linux.vnet.ibm.com>
+Date: Sat, 8 Jul 2017 07:45:50 -0700
+Message-ID: <20170708144550.GQ2393@linux.vnet.ibm.com>
+References: <20170705232955.GA15992@linux.vnet.ibm.com>
  <063D6719AE5E284EB5DD2968C1650D6DD0033F01@AcuExch.aculab.com>
  <20170706160555.xc63yydk77gmttae@hirez.programming.kicks-ass.net>
  <20170706162024.GD2393@linux.vnet.ibm.com>
@@ -12,6 +11,8 @@ References: <20170629235918.GA6445@linux.vnet.ibm.com>
  <48164d9a-f291-94f3-e0b1-98bb312bf846@colorfullife.com>
  <20170708083543.tnr7yyhojmyiluw4@gmail.com>
  <20170708113946.GN2393@linux.vnet.ibm.com>
+ <20170708123018.qiwmyf3x43i4pgsg@gmail.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Manfred Spraul <manfred@colorfullife.com>,
@@ -30,73 +31,91 @@ Cc: Manfred Spraul <manfred@colorfullife.com>,
         "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>,
         "parri.andrea@gmail.com" <parri.andrea@gmail.com>,
         "torvalds@linux-fou
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Return-path: <linux-arch-owner@vger.kernel.org>
+To: Ingo Molnar <mingo@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170708113946.GN2393@linux.vnet.ibm.com>
-Sender: linux-arch-owner@vger.kernel.org
+In-Reply-To: <20170708123018.qiwmyf3x43i4pgsg@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-* Paul E. McKenney <paulmck@linux.vnet.ibm.com> wrote:
-
-> On Sat, Jul 08, 2017 at 10:35:43AM +0200, Ingo Molnar wrote:
-> > 
-> > * Manfred Spraul <manfred@colorfullife.com> wrote:
-> > 
-> > > Hi Ingo,
-> > > 
-> > > On 07/07/2017 10:31 AM, Ingo Molnar wrote:
-> > > > 
-> > > > There's another, probably just as significant advantage: queued_spin_unlock_wait()
-> > > > is 'read-only', while spin_lock()+spin_unlock() dirties the lock cache line. On
-> > > > any bigger system this should make a very measurable difference - if
-> > > > spin_unlock_wait() is ever used in a performance critical code path.
-> > > At least for ipc/sem:
-> > > Dirtying the cacheline (in the slow path) allows to remove a smp_mb() in the
-> > > hot path.
-> > > So for sem_lock(), I either need a primitive that dirties the cacheline or
-> > > sem_lock() must continue to use spin_lock()/spin_unlock().
-> > 
-> > Technically you could use spin_trylock()+spin_unlock() and avoid the lock acquire 
-> > spinning on spin_unlock() and get very close to the slow path performance of a 
-> > pure cacheline-dirtying behavior.
-> > 
-> > But adding something like spin_barrier(), which purely dirties the lock cacheline, 
-> > would be even faster, right?
+On Sat, Jul 08, 2017 at 02:30:19PM +0200, Ingo Molnar wrote:
 > 
-> Interestingly enough, the arm64 and powerpc implementations of
-> spin_unlock_wait() were very close to what it sounds like you are
-> describing.
+> * Paul E. McKenney <paulmck@linux.vnet.ibm.com> wrote:
+> 
+> > On Sat, Jul 08, 2017 at 10:35:43AM +0200, Ingo Molnar wrote:
+> > > 
+> > > * Manfred Spraul <manfred@colorfullife.com> wrote:
+> > > 
+> > > > Hi Ingo,
+> > > > 
+> > > > On 07/07/2017 10:31 AM, Ingo Molnar wrote:
+> > > > > 
+> > > > > There's another, probably just as significant advantage: queued_spin_unlock_wait()
+> > > > > is 'read-only', while spin_lock()+spin_unlock() dirties the lock cache line. On
+> > > > > any bigger system this should make a very measurable difference - if
+> > > > > spin_unlock_wait() is ever used in a performance critical code path.
+> > > > At least for ipc/sem:
+> > > > Dirtying the cacheline (in the slow path) allows to remove a smp_mb() in the
+> > > > hot path.
+> > > > So for sem_lock(), I either need a primitive that dirties the cacheline or
+> > > > sem_lock() must continue to use spin_lock()/spin_unlock().
+> > > 
+> > > Technically you could use spin_trylock()+spin_unlock() and avoid the lock acquire 
+> > > spinning on spin_unlock() and get very close to the slow path performance of a 
+> > > pure cacheline-dirtying behavior.
+> > > 
+> > > But adding something like spin_barrier(), which purely dirties the lock cacheline, 
+> > > would be even faster, right?
+> > 
+> > Interestingly enough, the arm64 and powerpc implementations of
+> > spin_unlock_wait() were very close to what it sounds like you are
+> > describing.
+> 
+> So could we perhaps solve all our problems by defining the generic version thusly:
+> 
+> void spin_unlock_wait(spinlock_t *lock)
+> {
+> 	if (spin_trylock(lock))
+> 		spin_unlock(lock);
+> }
+> 
+> ... and perhaps rename it to spin_barrier() [or whatever proper name there would 
+> be]?
 
-So could we perhaps solve all our problems by defining the generic version thusly:
+As lockdep, 0day Test Robot, Linus Torvalds, and several others let me
+know in response to my original (thankfully RFC!) patch series, this needs
+to disable irqs to work in the general case.  For example, if the lock
+in question is an irq-disabling lock, you take an interrupt just after
+a successful spin_trylock(), and that interrupt acquires the same lock,
+the actuarial statistics of your kernel degrade sharply and suddenly.
 
-void spin_unlock_wait(spinlock_t *lock)
-{
-	if (spin_trylock(lock))
-		spin_unlock(lock);
-}
+What I get for sending out untested patches!  :-/
 
-... and perhaps rename it to spin_barrier() [or whatever proper name there would 
-be]?
+> Architectures can still optimize it, to remove the small window where the lock is 
+> held locally - as long as the ordering is at least as strong as the generic 
+> version.
+> 
+> This would have various advantages:
+> 
+>  - semantics are well-defined
+> 
+>  - the generic implementation is already pretty well optimized (no spinning)
+> 
+>  - it would make it usable for the IPC performance optimization
+> 
+>  - architectures could still optimize it to eliminate the window where the lock is
+>    held locally - if there's such instructions available.
+> 
+> Was this proposed before, or am I missing something?
 
-Architectures can still optimize it, to remove the small window where the lock is 
-held locally - as long as the ordering is at least as strong as the generic 
-version.
+It was sort of proposed...
 
-This would have various advantages:
+https://marc.info/?l=linux-arch&m=149912878628355&w=2
 
- - semantics are well-defined
+But do we have a situation where normal usage of spin_lock() and
+spin_unlock() is causing performance or scalability trouble?
 
- - the generic implementation is already pretty well optimized (no spinning)
+(We do have at least one situation in fnic that appears to be buggy use of
+spin_is_locked(), and proposing a patch for that case in on my todo list.)
 
- - it would make it usable for the IPC performance optimization
-
- - architectures could still optimize it to eliminate the window where the lock is
-   held locally - if there's such instructions available.
-
-Was this proposed before, or am I missing something?
-
-Thanks,
-
-	Ingo
+							Thanx, Paul
