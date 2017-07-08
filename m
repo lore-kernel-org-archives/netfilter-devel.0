@@ -1,21 +1,12 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+From: Alan Stern <stern@rowland.harvard.edu>
 Subject: Re: [PATCH v2 0/9] Remove spin_unlock_wait()
-Date: Sat, 8 Jul 2017 07:45:50 -0700
-Message-ID: <20170708144550.GQ2393@linux.vnet.ibm.com>
-References: <20170705232955.GA15992@linux.vnet.ibm.com>
- <063D6719AE5E284EB5DD2968C1650D6DD0033F01@AcuExch.aculab.com>
- <20170706160555.xc63yydk77gmttae@hirez.programming.kicks-ass.net>
- <20170706162024.GD2393@linux.vnet.ibm.com>
- <20170706165036.v4u5rbz56si4emw5@hirez.programming.kicks-ass.net>
- <20170707083128.wqk6msuuhtyykhpu@gmail.com>
- <48164d9a-f291-94f3-e0b1-98bb312bf846@colorfullife.com>
- <20170708083543.tnr7yyhojmyiluw4@gmail.com>
- <20170708113946.GN2393@linux.vnet.ibm.com>
- <20170708123018.qiwmyf3x43i4pgsg@gmail.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+Date: Sat, 8 Jul 2017 12:21:53 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1707081157020.17878-100000@netrider.rowland.org>
+References: <20170708123018.qiwmyf3x43i4pgsg@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Manfred Spraul <manfred@colorfullife.com>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+        Manfred Spraul <manfred@colorfullife.com>,
         Peter Zijlstra <peterz@infradead.org>,
         David Laight <David.Laight@ACULAB.COM>,
         "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
@@ -28,18 +19,19 @@ Cc: Manfred Spraul <manfred@colorfullife.com>,
         "tj@kernel.org" <tj@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>,
         "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
         "will.deacon@arm.com" <will.deacon@arm.com>,
-        "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>,
         "parri.andrea@gmail.com" <parri.andrea@gmail.com>,
-        "torvalds@linux-fou
+        "torvalds@linux-foundation.
 To: Ingo Molnar <mingo@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20170708123018.qiwmyf3x43i4pgsg@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Jul 08, 2017 at 02:30:19PM +0200, Ingo Molnar wrote:
-> 
+Pardon me for barging in, but I found this whole interchange extremely 
+confusing...
+
+On Sat, 8 Jul 2017, Ingo Molnar wrote:
+
 > * Paul E. McKenney <paulmck@linux.vnet.ibm.com> wrote:
 > 
 > > On Sat, Jul 08, 2017 at 10:35:43AM +0200, Ingo Molnar wrote:
@@ -59,11 +51,19 @@ On Sat, Jul 08, 2017 at 02:30:19PM +0200, Ingo Molnar wrote:
 > > > > hot path.
 > > > > So for sem_lock(), I either need a primitive that dirties the cacheline or
 > > > > sem_lock() must continue to use spin_lock()/spin_unlock().
-> > > 
+
+This statement doesn't seem to make sense.  Did Manfred mean to write 
+"smp_mb()" instead of "spin_lock()/spin_unlock()"?
+
 > > > Technically you could use spin_trylock()+spin_unlock() and avoid the lock acquire 
 > > > spinning on spin_unlock() and get very close to the slow path performance of a 
 > > > pure cacheline-dirtying behavior.
-> > > 
+
+This is even more confusing.  Did Ingo mean to suggest using 
+"spin_trylock()+spin_unlock()" in place of "spin_lock()+spin_unlock()" 
+could provide the desired ordering guarantee without delaying other 
+CPUs that may try to acquire the lock?  That seems highly questionable.
+
 > > > But adding something like spin_barrier(), which purely dirties the lock cacheline, 
 > > > would be even faster, right?
 > > 
@@ -78,19 +78,21 @@ On Sat, Jul 08, 2017 at 02:30:19PM +0200, Ingo Molnar wrote:
 > 	if (spin_trylock(lock))
 > 		spin_unlock(lock);
 > }
-> 
+
+How could this possibly be a generic version of spin_unlock_wait()?  
+It does nothing at all (with no ordering properties) if some other CPU
+currently holds the lock, whereas the real spin_unlock_wait() would
+wait until the other CPU released the lock (or possibly longer).
+
+And if no other CPU currently holds the lock, this has exactly the same
+performance properties as spin_lock()+spin_unlock(), so what's the
+advantage?
+
+Alan Stern
+
 > ... and perhaps rename it to spin_barrier() [or whatever proper name there would 
 > be]?
-
-As lockdep, 0day Test Robot, Linus Torvalds, and several others let me
-know in response to my original (thankfully RFC!) patch series, this needs
-to disable irqs to work in the general case.  For example, if the lock
-in question is an irq-disabling lock, you take an interrupt just after
-a successful spin_trylock(), and that interrupt acquires the same lock,
-the actuarial statistics of your kernel degrade sharply and suddenly.
-
-What I get for sending out untested patches!  :-/
-
+> 
 > Architectures can still optimize it, to remove the small window where the lock is 
 > held locally - as long as the ordering is at least as strong as the generic 
 > version.
@@ -107,15 +109,7 @@ What I get for sending out untested patches!  :-/
 >    held locally - if there's such instructions available.
 > 
 > Was this proposed before, or am I missing something?
-
-It was sort of proposed...
-
-https://marc.info/?l=linux-arch&m=149912878628355&w=2
-
-But do we have a situation where normal usage of spin_lock() and
-spin_unlock() is causing performance or scalability trouble?
-
-(We do have at least one situation in fnic that appears to be buggy use of
-spin_is_locked(), and proposing a patch for that case in on my todo list.)
-
-							Thanx, Paul
+> 
+> Thanks,
+> 
+> 	Ingo
