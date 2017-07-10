@@ -1,81 +1,60 @@
 From: Eric Leblond <eric@regit.org>
-Subject: [nft PATCH 6/7] scanner: free filename when destroying scanner
-Date: Tue, 11 Jul 2017 00:32:54 +0200
-Message-ID: <20170710223255.29885-7-eric@regit.org>
+Subject: [nft PATCH 1/7] src: fix memory leak when listing rules
+Date: Tue, 11 Jul 2017 00:32:49 +0200
+Message-ID: <20170710223255.29885-2-eric@regit.org>
 References: <20170710223255.29885-1-eric@regit.org>
 Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from home.regit.org ([37.187.126.138]:41162 "EHLO home.regit.org"
+Received: from home.regit.org ([37.187.126.138]:41126 "EHLO home.regit.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754928AbdGJWdT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 10 Jul 2017 18:33:19 -0400
+        id S1754221AbdGJWdO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 10 Jul 2017 18:33:14 -0400
 In-Reply-To: <20170710223255.29885-1-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-To be able to do so we duplicate the name in the indesc if it is
-set.
+When listing rules we were calling strdup on the table name
+but variable was just used locally.
+
+Found via `nft list ruleset` run with ASAN:
+
+Direct leak of 4 byte(s) in 1 object(s) allocated from:
+    #0 0x45cca0 in __interceptor_strdup (/usr/local/sbin/nft+0x45cca0)
+    #1 0x593c71 in xstrdup /home/eric/git/netfilter/nftables/src/utils.c:75:8
+    #2 0x513b34 in do_list_ruleset /home/eric/git/netfilter/nftables/src/rule.c:1388:23
+    #3 0x50e178 in do_command_list /home/eric/git/netfilter/nftables/src/rule.c:1500:10
+    #4 0x50d3ea in do_command /home/eric/git/netfilter/nftables/src/rule.c:1696:10
+    #5 0x5061ae in nft_netlink /home/eric/git/netfilter/nftables/src/main.c:207:9
+    #6 0x505b87 in nft_run /home/eric/git/netfilter/nftables/src/main.c:255:8
+    #7 0x50771f in main /home/eric/git/netfilter/nftables/src/main.c:392:6
+    #8 0x7fa1f326d2b0 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x202b0)
 
 Signed-off-by: Eric Leblond <eric@regit.org>
 ---
- src/erec.c    |  5 +++++
- src/scanner.l | 11 +++++++++--
- 2 files changed, 14 insertions(+), 2 deletions(-)
+ src/rule.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/src/erec.c b/src/erec.c
-index eacdd97..439add9 100644
---- a/src/erec.c
-+++ b/src/erec.c
-@@ -39,6 +39,8 @@ static void input_descriptor_destroy(const struct input_descriptor *indesc)
- 	    indesc->location.indesc->type != INDESC_INTERNAL) {
- 		input_descriptor_destroy(indesc->location.indesc);
+diff --git a/src/rule.c b/src/rule.c
+index f65674c..58d640e 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1385,12 +1385,14 @@ static int do_list_ruleset(struct netlink_ctx *ctx, struct cmd *cmd)
+ 			continue;
+ 
+ 		cmd->handle.family = table->handle.family;
+-		cmd->handle.table = xstrdup(table->handle.table);
++		cmd->handle.table = table->handle.table;
+ 
+ 		if (do_list_table(ctx, cmd, table) < 0)
+ 			return -1;
  	}
-+	if (indesc->name)
-+		xfree(indesc->name);
- 	xfree(indesc);
- }
  
-@@ -53,6 +55,9 @@ static struct input_descriptor *input_descriptor_dup(const struct input_descript
- 	    indesc->location.indesc->type != INDESC_INTERNAL)
- 		dup_indesc->location.indesc = input_descriptor_dup(indesc->location.indesc);
- 
-+	if (indesc->name)
-+		dup_indesc->name = xstrdup(indesc->name);
++	cmd->handle.table = NULL;
 +
- 	return dup_indesc;
+ 	return 0;
  }
  
-diff --git a/src/scanner.l b/src/scanner.l
-index 86a03f3..7d5437f 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -835,6 +835,7 @@ void scanner_push_buffer(void *scanner, const struct input_descriptor *indesc,
- 	state->indesc = &state->indescs[state->indesc_idx++];
- 	memcpy(state->indesc, indesc, sizeof(*state->indesc));
- 	state->indesc->data = buffer;
-+	state->indesc->name = NULL;
- 
- 	b = yy_scan_string(buffer, scanner);
- 	assert(b != NULL);
-@@ -858,9 +859,15 @@ void scanner_destroy(struct parser_state *scanner)
- {
- 	struct parser_state *state = yyget_extra(scanner);
- 
--	/* Can't free indesc name - locations might still be in use */
--	while (state->indesc_idx--)
-+	do {
-+		struct input_descriptor *inpdesc =
-+			&state->indescs[state->indesc_idx];
-+		if (inpdesc && inpdesc->name) {
-+			xfree(inpdesc->name);
-+			inpdesc->name = NULL;
-+		}
- 		yypop_buffer_state(scanner);
-+	} while (state->indesc_idx--);
- 
- 	yylex_destroy(scanner);
- }
 -- 
 2.13.2
 
