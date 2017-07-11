@@ -1,35 +1,59 @@
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: Re: net-next STATUS page
-Date: Tue, 11 Jul 2017 09:49:54 -0700
-Message-ID: <CAM_iQpUrq3jxNCceCKdm-qCgM7OkG3SOnz=H=_r=_7sHOft4fQ@mail.gmail.com>
-References: <20170711.072416.2014054416066621222.davem@davemloft.net>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [PATCH] monitor: fix printing of range elements in named sets
+Date: Tue, 11 Jul 2017 20:11:04 +0200
+Message-ID: <20170711181104.GP16375@orbyte.nwl.cc>
+References: <149935174634.19966.16018870027671610502.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        linux-wireless <linux-wireless@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+To: Arturo Borrero Gonzalez <arturo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lf0-f52.google.com ([209.85.215.52]:33101 "EHLO
-        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934072AbdGKQuQ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 11 Jul 2017 12:50:16 -0400
-In-Reply-To: <20170711.072416.2014054416066621222.davem@davemloft.net>
+Received: from orbyte.nwl.cc ([151.80.46.58]:54543 "EHLO mail.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756185AbdGKSLG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 11 Jul 2017 14:11:06 -0400
+Content-Disposition: inline
+In-Reply-To: <149935174634.19966.16018870027671610502.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jul 11, 2017 at 7:24 AM, David Miller <davem@davemloft.net> wrote:
->
-> It has gotten to the point that even casually walking around
-> Faro, Portugal last week, random German tourists would stop
-> me in the street and ask if net-next was open or not.
->
-> Therefore, in order to avoid any and all confusion I have created this
-> web site:
->
->         http://vger.kernel.org/~davem/net-next.html
->
-> Please refer to it if you are ever in doubt.
+Hi,
 
-Can we update netdev-FAQ too? ;)
+On Thu, Jul 06, 2017 at 04:36:45PM +0200, Arturo Borrero Gonzalez wrote:
+> If you add set elements to interval sets, the output is wrong.
+> Fix this by caching first element of the range (first event),
+> then wait for the second element of the range (second event) to
+> print them both at the same time.
+
+As promised, I am preparing my own solution for side-by-side comparison.
+Though I'm running into problems and want to use the occasion to discuss
+them first:
+
+What I wasn't able to solve yet are half-open ranges, like so:
+
+| nft add set ip t portrange { type inet_service; flags interval; }
+| nft add element ip t portrange { 1024-65535 }
+
+In this case there is only a single element with value 1024 which
+doesn't have EXPR_F_INTERVAL_END set. Looking at
+interval_map_decompose(), this is identified to be a range till the end
+of the scope if it's the last element in the set.
+
+In monitor code though, I can't predict whether an interval end element
+will come afterwards or not, so I end up caching the element and
+everything turns into a mess. I'm pretty sure your solution has the same
+problem, could you check that?
+
+Right now, I only see two ways to get this sorted:
+
+1) Change kernel code to always include both start end end of a range in
+   a single notification. This would eliminate the need for any caching
+   in netlink_events_setelem_cb() altogether!
+
+2) Change monitor code to cache all events until the final NFTA_GEN_ID
+   message, then handle all messages at once.
+
+What do you think?
+
+Thanks, Phil
