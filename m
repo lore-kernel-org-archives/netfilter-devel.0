@@ -1,37 +1,35 @@
-From: Phil Sutter <phil-ydcDiazATMQ@public.gmane.org>
+From: Cong Wang <xiyou.wangcong@gmail.com>
 Subject: Re: net-next STATUS page
-Date: Tue, 11 Jul 2017 17:15:03 +0200
-Message-ID: <20170711151503.GM16375@orbyte.nwl.cc>
+Date: Tue, 11 Jul 2017 09:49:54 -0700
+Message-ID: <CAM_iQpUrq3jxNCceCKdm-qCgM7OkG3SOnz=H=_r=_7sHOft4fQ@mail.gmail.com>
 References: <20170711.072416.2014054416066621222.davem@davemloft.net>
- <20170711150506.GE1874@nanopsycho>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-        linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170711150506.GE1874@nanopsycho>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-lf0-f52.google.com ([209.85.215.52]:33101 "EHLO
+        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934072AbdGKQuQ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 11 Jul 2017 12:50:16 -0400
+In-Reply-To: <20170711.072416.2014054416066621222.davem@davemloft.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jul 11, 2017 at 05:05:06PM +0200, Jiri Pirko wrote:
-> Tue, Jul 11, 2017 at 04:24:16PM CEST, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org wrote:
-> >
-> >It has gotten to the point that even casually walking around
-> >Faro, Portugal last week, random German tourists would stop
-> >me in the street and ask if net-next was open or not.
-> >
-> >Therefore, in order to avoid any and all confusion I have created this
-> >web site:
-> >
-> >	http://vger.kernel.org/~davem/net-next.html
-> 
-> Hallelujah!
-> 
-> You remember I suggested this couple of years ago? :)
+On Tue, Jul 11, 2017 at 7:24 AM, David Miller <davem@davemloft.net> wrote:
+>
+> It has gotten to the point that even casually walking around
+> Faro, Portugal last week, random German tourists would stop
+> me in the street and ask if net-next was open or not.
+>
+> Therefore, in order to avoid any and all confusion I have created this
+> web site:
+>
+>         http://vger.kernel.org/~davem/net-next.html
+>
+> Please refer to it if you are ever in doubt.
 
-Never underestimate the power of German tourists. I even heard stories
-about them causing bad dreams!
-
-Cheers, Phil
+Can we update netdev-FAQ too? ;)
