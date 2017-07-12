@@ -1,106 +1,80 @@
 From: Arturo Borrero Gonzalez <arturo@netfilter.org>
-Subject: Re: [nft PATCH] set_expr: Allow passing the parent set to set_expr_alloc()
-Date: Wed, 12 Jul 2017 08:43:10 +0200
-Message-ID: <CAOkSjBi0c2RJMtSw1KADjEkH-djevs=ZYVHkfzCfKJyej-SDTQ@mail.gmail.com>
-References: <20170711215952.11056-1-phil@nwl.cc>
+Subject: Re: [PATCH] monitor: fix printing of range elements in named sets
+Date: Wed, 12 Jul 2017 13:24:24 +0200
+Message-ID: <CAOkSjBgWYqk1sd-Z2A8_DUUTK3pMW3b=W-8qiYAkQ5imc32TEA@mail.gmail.com>
+References: <149935174634.19966.16018870027671610502.stgit@nfdev2.cica.es> <20170711181104.GP16375@orbyte.nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+To: Phil Sutter <phil@nwl.cc>,
+        Arturo Borrero Gonzalez <arturo@netfilter.org>,
         Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Phil Sutter <phil@nwl.cc>
+        <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:35662 "EHLO
-        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751378AbdGLGnc (ORCPT
+Received: from mail-it0-f52.google.com ([209.85.214.52]:36555 "EHLO
+        mail-it0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932246AbdGLLYr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Jul 2017 02:43:32 -0400
-Received: by mail-it0-f66.google.com with SMTP id v193so1346337itc.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Jul 2017 23:43:32 -0700 (PDT)
-Received: from mail-it0-f45.google.com (mail-it0-f45.google.com. [209.85.214.45])
-        by smtp.gmail.com with ESMTPSA id v65sm1100007iod.28.2017.07.11.23.43.31
+        Wed, 12 Jul 2017 07:24:47 -0400
+Received: by mail-it0-f52.google.com with SMTP id m68so9935277ith.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Jul 2017 04:24:47 -0700 (PDT)
+Received: from mail-io0-f169.google.com (mail-io0-f169.google.com. [209.85.223.169])
+        by smtp.gmail.com with ESMTPSA id i5sm1055893iti.20.2017.07.12.04.24.45
         for <netfilter-devel@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 11 Jul 2017 23:43:31 -0700 (PDT)
-Received: by mail-it0-f45.google.com with SMTP id m68so7027040ith.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Jul 2017 23:43:31 -0700 (PDT)
-In-Reply-To: <20170711215952.11056-1-phil@nwl.cc>
+        Wed, 12 Jul 2017 04:24:45 -0700 (PDT)
+Received: by mail-io0-f169.google.com with SMTP id z62so10762893ioi.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Jul 2017 04:24:45 -0700 (PDT)
+In-Reply-To: <20170711181104.GP16375@orbyte.nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11 July 2017 at 23:59, Phil Sutter <phil@nwl.cc> wrote:
-> Usually one wants to at least initialize set_flags from the parent, so
-> make allocation of a set's set expression more convenient.
+On 11 July 2017 at 20:11, Phil Sutter <phil@nwl.cc> wrote:
+> Hi,
 >
-> The idea to do this came when fixing an issue with output formatting of
-> larger anonymous sets in nft monitor: Since
-> netlink_events_cache_addset() didn't initialize set_flags,
-> calculate_delim() didn't detect it's an anonymous set and therefore
-> added newlines to the output.
+> On Thu, Jul 06, 2017 at 04:36:45PM +0200, Arturo Borrero Gonzalez wrote:
+>> If you add set elements to interval sets, the output is wrong.
+>> Fix this by caching first element of the range (first event),
+>> then wait for the second element of the range (second event) to
+>> print them both at the same time.
 >
-> Reported-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
-> Fixes: a9dc3ceabc10f ("expression: print sets and maps in pretty format")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
-
-Thanks for working on this Phil :-)
-
-some comments below
-
-> diff --git a/src/expression.c b/src/expression.c
-> index f90ca6035bd3a..f51fbae281b95 100644
-> --- a/src/expression.c
-> +++ b/src/expression.c
-> @@ -824,9 +824,16 @@ static const struct expr_ops set_expr_ops = {
->         .destroy        = compound_expr_destroy,
->  };
+> As promised, I am preparing my own solution for side-by-side comparison.
+> Though I'm running into problems and want to use the occasion to discuss
+> them first:
 >
-> -struct expr *set_expr_alloc(const struct location *loc)
-> +struct expr *set_expr_alloc(const struct location *loc, const struct set *set)
->  {
-> -       return compound_expr_alloc(loc, &set_expr_ops);
-> +       struct expr *set_expr = compound_expr_alloc(loc, &set_expr_ops);
-> +
-> +       if (set) {
-> +               set_expr->set_flags = set->flags;
-> +               set_expr->dtype = set->keytype;
-> +       }
-> +
-> +       return set_expr;
->  }
-
-What about:
-
-if (!set)
-     return set_expr;
-
-set_expr->set_flags = set->flags;
-[..]
-return set_expr;
-
-
-> diff --git a/src/segtree.c b/src/segtree.c
-> index a2316a7b98041..f53536210018d 100644
-> --- a/src/segtree.c
-> +++ b/src/segtree.c
-> @@ -602,10 +602,12 @@ static int expr_value_cmp(const void *p1, const void *p2)
->         int ret;
+> What I wasn't able to solve yet are half-open ranges, like so:
 >
->         ret = mpz_cmp(expr_value(e1)->value, expr_value(e2)->value);
-> -       if (ret == 0 && (e1->flags & EXPR_F_INTERVAL_END))
-> -               return -1;
-> -       else
-> -               return 1;
-> +       if (ret == 0) {
-> +               if (e1->flags & EXPR_F_INTERVAL_END)
-> +                       return -1;
-> +               else if (e2->flags & EXPR_F_INTERVAL_END)
-> +                       return 1;
-> +       }
+> | nft add set ip t portrange { type inet_service; flags interval; }
+> | nft add element ip t portrange { 1024-65535 }
 >
->         return ret;
->  }
-> --
+> In this case there is only a single element with value 1024 which
+> doesn't have EXPR_F_INTERVAL_END set. Looking at
+> interval_map_decompose(), this is identified to be a range till the end
+> of the scope if it's the last element in the set.
+>
+> In monitor code though, I can't predict whether an interval end element
+> will come afterwards or not, so I end up caching the element and
+> everything turns into a mess. I'm pretty sure your solution has the same
+> problem, could you check that?
+>
+> Right now, I only see two ways to get this sorted:
+>
+> 1) Change kernel code to always include both start end end of a range in
+>    a single notification. This would eliminate the need for any caching
+>    in netlink_events_setelem_cb() altogether!
+>
+> 2) Change monitor code to cache all events until the final NFTA_GEN_ID
+>    message, then handle all messages at once.
+>
+> What do you think?
+>
 
-^^^
-this last chunk belongs to another patch?
+We should avoid touching the kernel for this.
+
+Anyway, my patch doesn't solve the same issue for deleting range elements.
+In this patch I added the logic in netlink_events_setelem_cb() and
+probably a better place for this
+is in the netlink_events_cache_update() routine.
+
+I'm sending a patch to add a bit of debugging to the monitor code path
+meanwhile we solve this issue.
