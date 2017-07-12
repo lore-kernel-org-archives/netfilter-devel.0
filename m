@@ -1,89 +1,73 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nft PATCH] set_expr: Allow passing the parent set to
- set_expr_alloc()
-Date: Wed, 12 Jul 2017 14:03:15 +0200
-Message-ID: <20170712120315.GR16375@orbyte.nwl.cc>
-References: <20170711215952.11056-1-phil@nwl.cc>
- <CAOkSjBi0c2RJMtSw1KADjEkH-djevs=ZYVHkfzCfKJyej-SDTQ@mail.gmail.com>
+Subject: Re: [PATCH] monitor: fix printing of range elements in named sets
+Date: Wed, 12 Jul 2017 14:13:43 +0200
+Message-ID: <20170712121343.GT16375@orbyte.nwl.cc>
+References: <149935174634.19966.16018870027671610502.stgit@nfdev2.cica.es>
+ <20170711181104.GP16375@orbyte.nwl.cc>
+ <CAOkSjBgWYqk1sd-Z2A8_DUUTK3pMW3b=W-8qiYAkQ5imc32TEA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
+Cc: Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
 To: Arturo Borrero Gonzalez <arturo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:53073 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:47201 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756241AbdGLMDR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Jul 2017 08:03:17 -0400
+        id S1750738AbdGLMNp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Jul 2017 08:13:45 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBi0c2RJMtSw1KADjEkH-djevs=ZYVHkfzCfKJyej-SDTQ@mail.gmail.com>
+In-Reply-To: <CAOkSjBgWYqk1sd-Z2A8_DUUTK3pMW3b=W-8qiYAkQ5imc32TEA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jul 12, 2017 at 08:43:10AM +0200, Arturo Borrero Gonzalez wrote:
-> On 11 July 2017 at 23:59, Phil Sutter <phil@nwl.cc> wrote:
-> > diff --git a/src/expression.c b/src/expression.c
-> > index f90ca6035bd3a..f51fbae281b95 100644
-> > --- a/src/expression.c
-> > +++ b/src/expression.c
-> > @@ -824,9 +824,16 @@ static const struct expr_ops set_expr_ops = {
-> >         .destroy        = compound_expr_destroy,
-> >  };
+Hi,
+
+On Wed, Jul 12, 2017 at 01:24:24PM +0200, Arturo Borrero Gonzalez wrote:
+> On 11 July 2017 at 20:11, Phil Sutter <phil@nwl.cc> wrote:
+> > Hi,
 > >
-> > -struct expr *set_expr_alloc(const struct location *loc)
-> > +struct expr *set_expr_alloc(const struct location *loc, const struct set *set)
-> >  {
-> > -       return compound_expr_alloc(loc, &set_expr_ops);
-> > +       struct expr *set_expr = compound_expr_alloc(loc, &set_expr_ops);
-> > +
-> > +       if (set) {
-> > +               set_expr->set_flags = set->flags;
-> > +               set_expr->dtype = set->keytype;
-> > +       }
-> > +
-> > +       return set_expr;
-> >  }
-> 
-> What about:
-> 
-> if (!set)
->      return set_expr;
-> 
-> set_expr->set_flags = set->flags;
-> [..]
-> return set_expr;
-
-Yes, why not. I did it the other way around to point out that the extra
-parameter is purely optional. But OTOH, kill all the indenting! ;)
-
-> > diff --git a/src/segtree.c b/src/segtree.c
-> > index a2316a7b98041..f53536210018d 100644
-> > --- a/src/segtree.c
-> > +++ b/src/segtree.c
-> > @@ -602,10 +602,12 @@ static int expr_value_cmp(const void *p1, const void *p2)
-> >         int ret;
+> > On Thu, Jul 06, 2017 at 04:36:45PM +0200, Arturo Borrero Gonzalez wrote:
+> >> If you add set elements to interval sets, the output is wrong.
+> >> Fix this by caching first element of the range (first event),
+> >> then wait for the second element of the range (second event) to
+> >> print them both at the same time.
 > >
-> >         ret = mpz_cmp(expr_value(e1)->value, expr_value(e2)->value);
-> > -       if (ret == 0 && (e1->flags & EXPR_F_INTERVAL_END))
-> > -               return -1;
-> > -       else
-> > -               return 1;
-> > +       if (ret == 0) {
-> > +               if (e1->flags & EXPR_F_INTERVAL_END)
-> > +                       return -1;
-> > +               else if (e2->flags & EXPR_F_INTERVAL_END)
-> > +                       return 1;
-> > +       }
+> > As promised, I am preparing my own solution for side-by-side comparison.
+> > Though I'm running into problems and want to use the occasion to discuss
+> > them first:
 > >
-> >         return ret;
-> >  }
-> > --
+> > What I wasn't able to solve yet are half-open ranges, like so:
+> >
+> > | nft add set ip t portrange { type inet_service; flags interval; }
+> > | nft add element ip t portrange { 1024-65535 }
+> >
+> > In this case there is only a single element with value 1024 which
+> > doesn't have EXPR_F_INTERVAL_END set. Looking at
+> > interval_map_decompose(), this is identified to be a range till the end
+> > of the scope if it's the last element in the set.
+> >
+> > In monitor code though, I can't predict whether an interval end element
+> > will come afterwards or not, so I end up caching the element and
+> > everything turns into a mess. I'm pretty sure your solution has the same
+> > problem, could you check that?
+> >
+> > Right now, I only see two ways to get this sorted:
+> >
+> > 1) Change kernel code to always include both start end end of a range in
+> >    a single notification. This would eliminate the need for any caching
+> >    in netlink_events_setelem_cb() altogether!
+> >
+> > 2) Change monitor code to cache all events until the final NFTA_GEN_ID
+> >    message, then handle all messages at once.
+> >
+> > What do you think?
+> >
 > 
-> ^^^
-> this last chunk belongs to another patch?
+> We should avoid touching the kernel for this.
 
-Oh crap, no idea how I managed to combine these commits while rebasing.
-Thanks for the review, I'll follow-up with a v2.
+I found a userspace solution yesterday: I created a new callback for
+NFT_MSG_NEWGEN, which will take care of the remaining cached element.
+Patch follows later.
 
-Cheers, Phil
+Thanks, Phil
