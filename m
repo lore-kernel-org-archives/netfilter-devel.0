@@ -1,113 +1,89 @@
-From: Arturo Borrero Gonzalez <arturo@netfilter.org>
-Subject: [nft PATCH] monitor: add debug messages
-Date: Wed, 12 Jul 2017 13:29:49 +0200
-Message-ID: <149985898964.3446.4650892786570168840.stgit@nfdev2.cica.es>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [nft PATCH] set_expr: Allow passing the parent set to
+ set_expr_alloc()
+Date: Wed, 12 Jul 2017 14:03:15 +0200
+Message-ID: <20170712120315.GR16375@orbyte.nwl.cc>
+References: <20170711215952.11056-1-phil@nwl.cc>
+ <CAOkSjBi0c2RJMtSw1KADjEkH-djevs=ZYVHkfzCfKJyej-SDTQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:59519 "EHLO smtp.cica.es"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1756272AbdGLL36 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Jul 2017 07:29:58 -0400
-Received: from localhost (unknown [127.0.0.1])
-        by smtp.cica.es (Postfix) with ESMTP id 7AEDF51F4CC
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Jul 2017 11:29:56 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id pmqMDIq0rr2R for <netfilter-devel@vger.kernel.org>;
-        Wed, 12 Jul 2017 13:29:50 +0200 (CEST)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-        (Authenticated sender: servers@cica.es)
-        by smtp.cica.es (Postfix) with ESMTP id DB8E051F453
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Jul 2017 13:29:50 +0200 (CEST)
+Received: from orbyte.nwl.cc ([151.80.46.58]:53073 "EHLO mail.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756241AbdGLMDR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Jul 2017 08:03:17 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOkSjBi0c2RJMtSw1KADjEkH-djevs=ZYVHkfzCfKJyej-SDTQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add some debug messages in the monitor/trace code paths to ease development
-and debugging in case of errors.
+On Wed, Jul 12, 2017 at 08:43:10AM +0200, Arturo Borrero Gonzalez wrote:
+> On 11 July 2017 at 23:59, Phil Sutter <phil@nwl.cc> wrote:
+> > diff --git a/src/expression.c b/src/expression.c
+> > index f90ca6035bd3a..f51fbae281b95 100644
+> > --- a/src/expression.c
+> > +++ b/src/expression.c
+> > @@ -824,9 +824,16 @@ static const struct expr_ops set_expr_ops = {
+> >         .destroy        = compound_expr_destroy,
+> >  };
+> >
+> > -struct expr *set_expr_alloc(const struct location *loc)
+> > +struct expr *set_expr_alloc(const struct location *loc, const struct set *set)
+> >  {
+> > -       return compound_expr_alloc(loc, &set_expr_ops);
+> > +       struct expr *set_expr = compound_expr_alloc(loc, &set_expr_ops);
+> > +
+> > +       if (set) {
+> > +               set_expr->set_flags = set->flags;
+> > +               set_expr->dtype = set->keytype;
+> > +       }
+> > +
+> > +       return set_expr;
+> >  }
+> 
+> What about:
+> 
+> if (!set)
+>      return set_expr;
+> 
+> set_expr->set_flags = set->flags;
+> [..]
+> return set_expr;
 
-After this patch, running 'nft monitor --debug=mnl,netlink' is more verbose.
+Yes, why not. I did it the other way around to point out that the extra
+parameter is purely optional. But OTOH, kill all the indenting! ;)
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
----
- src/mnl.c     |    7 +++++++
- src/netlink.c |   39 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 46 insertions(+)
+> > diff --git a/src/segtree.c b/src/segtree.c
+> > index a2316a7b98041..f53536210018d 100644
+> > --- a/src/segtree.c
+> > +++ b/src/segtree.c
+> > @@ -602,10 +602,12 @@ static int expr_value_cmp(const void *p1, const void *p2)
+> >         int ret;
+> >
+> >         ret = mpz_cmp(expr_value(e1)->value, expr_value(e2)->value);
+> > -       if (ret == 0 && (e1->flags & EXPR_F_INTERVAL_END))
+> > -               return -1;
+> > -       else
+> > -               return 1;
+> > +       if (ret == 0) {
+> > +               if (e1->flags & EXPR_F_INTERVAL_END)
+> > +                       return -1;
+> > +               else if (e2->flags & EXPR_F_INTERVAL_END)
+> > +                       return 1;
+> > +       }
+> >
+> >         return ret;
+> >  }
+> > --
+> 
+> ^^^
+> this last chunk belongs to another patch?
 
-diff --git a/src/mnl.c b/src/mnl.c
-index da7c090..cf060a4 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -1139,6 +1139,13 @@ int mnl_nft_event_listener(struct mnl_socket *nf_sock,
- 			fprintf(stdout, "# ERROR: %s\n", strerror(errno));
- 			break;
- 		}
-+
-+#ifdef DEBUG
-+		if (debug_level & DEBUG_MNL) {
-+			mnl_nlmsg_fprintf(stdout, buf, sizeof(buf),
-+					  sizeof(struct nfgenmsg));
-+		}
-+#endif /* DEBUG */
- 		ret = mnl_cb_run(buf, ret, 0, 0, cb, cb_data);
- 		if (ret <= 0)
- 			break;
-diff --git a/src/netlink.c b/src/netlink.c
-index 880502c..50ed25f 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -2877,12 +2877,51 @@ static int netlink_events_trace_cb(const struct nlmsghdr *nlh, int type,
- 	return MNL_CB_OK;
- }
- 
-+#ifdef DEBUG
-+/* only those which could be useful listening to events */
-+static const char *const nftnl_msg_types[NFT_MSG_MAX] = {
-+	[NFT_MSG_NEWTABLE]	= "NFT_MSG_NEWTABLE",
-+	[NFT_MSG_DELTABLE]	= "NFT_MSG_DELTABLE",
-+	[NFT_MSG_NEWCHAIN]	= "NFT_MSG_NEWCHAIN",
-+	[NFT_MSG_DELCHAIN]	= "NFT_MSG_DELCHAIN",
-+	[NFT_MSG_NEWSET]	= "NFT_MSG_NEWSET",
-+	[NFT_MSG_DELSET]	= "NFT_MSG_DELSET",
-+	[NFT_MSG_NEWSETELEM]	= "NFT_MSG_NEWSETELEM",
-+	[NFT_MSG_DELSETELEM]	= "NFT_MSG_DELSETELEM",
-+	[NFT_MSG_NEWRULE]	= "NFT_MSG_NEWRULE",
-+	[NFT_MSG_DELRULE]	= "NFT_MSG_DELRULE",
-+	[NFT_MSG_TRACE]		= "NFT_MSG_TRACE",
-+	[NFT_MSG_NEWGEN]	= "NFT_MSG_NEWGEN",
-+	[NFT_MSG_NEWOBJ]	= "NFT_MSG_NEWOBJ",
-+	[NFT_MSG_DELOBJ]	= "NFT_MSG_DELOBJ",
-+};
-+
-+static const char *nftnl_msgtype2str(uint16_t type)
-+{
-+	if (type >= NFT_MSG_MAX || !nftnl_msg_types[type])
-+		return "unknown";
-+
-+	return nftnl_msg_types[type];
-+}
-+#endif /* DEBUG */
-+
-+static void netlink_events_debug(uint16_t type)
-+{
-+#ifdef DEBUG
-+	if (!(debug_level & DEBUG_NETLINK))
-+		return;
-+
-+	printf("netlink event: %s\n", nftnl_msgtype2str(type));
-+#endif /* DEBUG */
-+}
-+
- static int netlink_events_cb(const struct nlmsghdr *nlh, void *data)
- {
- 	int ret = MNL_CB_OK;
- 	uint16_t type = NFNL_MSG_TYPE(nlh->nlmsg_type);
- 	struct netlink_mon_handler *monh = (struct netlink_mon_handler *)data;
- 
-+	netlink_events_debug(type);
- 	netlink_events_cache_update(monh, nlh, type);
- 
- 	if (!(monh->monitor_flags & (1 << type)))
+Oh crap, no idea how I managed to combine these commits while rebasing.
+Thanks for the review, I'll follow-up with a v2.
 
+Cheers, Phil
