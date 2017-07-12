@@ -1,80 +1,113 @@
 From: Arturo Borrero Gonzalez <arturo@netfilter.org>
-Subject: Re: [PATCH] monitor: fix printing of range elements in named sets
-Date: Wed, 12 Jul 2017 13:24:24 +0200
-Message-ID: <CAOkSjBgWYqk1sd-Z2A8_DUUTK3pMW3b=W-8qiYAkQ5imc32TEA@mail.gmail.com>
-References: <149935174634.19966.16018870027671610502.stgit@nfdev2.cica.es> <20170711181104.GP16375@orbyte.nwl.cc>
+Subject: [nft PATCH] monitor: add debug messages
+Date: Wed, 12 Jul 2017 13:29:49 +0200
+Message-ID: <149985898964.3446.4650892786570168840.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-To: Phil Sutter <phil@nwl.cc>,
-        Arturo Borrero Gonzalez <arturo@netfilter.org>,
-        Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-it0-f52.google.com ([209.85.214.52]:36555 "EHLO
-        mail-it0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932246AbdGLLYr (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Jul 2017 07:24:47 -0400
-Received: by mail-it0-f52.google.com with SMTP id m68so9935277ith.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Jul 2017 04:24:47 -0700 (PDT)
-Received: from mail-io0-f169.google.com (mail-io0-f169.google.com. [209.85.223.169])
-        by smtp.gmail.com with ESMTPSA id i5sm1055893iti.20.2017.07.12.04.24.45
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 12 Jul 2017 04:24:45 -0700 (PDT)
-Received: by mail-io0-f169.google.com with SMTP id z62so10762893ioi.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Jul 2017 04:24:45 -0700 (PDT)
-In-Reply-To: <20170711181104.GP16375@orbyte.nwl.cc>
+Received: from smtp3.cica.es ([150.214.5.190]:59519 "EHLO smtp.cica.es"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1756272AbdGLL36 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 12 Jul 2017 07:29:58 -0400
+Received: from localhost (unknown [127.0.0.1])
+        by smtp.cica.es (Postfix) with ESMTP id 7AEDF51F4CC
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Jul 2017 11:29:56 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id pmqMDIq0rr2R for <netfilter-devel@vger.kernel.org>;
+        Wed, 12 Jul 2017 13:29:50 +0200 (CEST)
+Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
+        (Authenticated sender: servers@cica.es)
+        by smtp.cica.es (Postfix) with ESMTP id DB8E051F453
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Jul 2017 13:29:50 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11 July 2017 at 20:11, Phil Sutter <phil@nwl.cc> wrote:
-> Hi,
->
-> On Thu, Jul 06, 2017 at 04:36:45PM +0200, Arturo Borrero Gonzalez wrote:
->> If you add set elements to interval sets, the output is wrong.
->> Fix this by caching first element of the range (first event),
->> then wait for the second element of the range (second event) to
->> print them both at the same time.
->
-> As promised, I am preparing my own solution for side-by-side comparison.
-> Though I'm running into problems and want to use the occasion to discuss
-> them first:
->
-> What I wasn't able to solve yet are half-open ranges, like so:
->
-> | nft add set ip t portrange { type inet_service; flags interval; }
-> | nft add element ip t portrange { 1024-65535 }
->
-> In this case there is only a single element with value 1024 which
-> doesn't have EXPR_F_INTERVAL_END set. Looking at
-> interval_map_decompose(), this is identified to be a range till the end
-> of the scope if it's the last element in the set.
->
-> In monitor code though, I can't predict whether an interval end element
-> will come afterwards or not, so I end up caching the element and
-> everything turns into a mess. I'm pretty sure your solution has the same
-> problem, could you check that?
->
-> Right now, I only see two ways to get this sorted:
->
-> 1) Change kernel code to always include both start end end of a range in
->    a single notification. This would eliminate the need for any caching
->    in netlink_events_setelem_cb() altogether!
->
-> 2) Change monitor code to cache all events until the final NFTA_GEN_ID
->    message, then handle all messages at once.
->
-> What do you think?
->
+Add some debug messages in the monitor/trace code paths to ease development
+and debugging in case of errors.
 
-We should avoid touching the kernel for this.
+After this patch, running 'nft monitor --debug=mnl,netlink' is more verbose.
 
-Anyway, my patch doesn't solve the same issue for deleting range elements.
-In this patch I added the logic in netlink_events_setelem_cb() and
-probably a better place for this
-is in the netlink_events_cache_update() routine.
+Signed-off-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
+---
+ src/mnl.c     |    7 +++++++
+ src/netlink.c |   39 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 46 insertions(+)
 
-I'm sending a patch to add a bit of debugging to the monitor code path
-meanwhile we solve this issue.
+diff --git a/src/mnl.c b/src/mnl.c
+index da7c090..cf060a4 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -1139,6 +1139,13 @@ int mnl_nft_event_listener(struct mnl_socket *nf_sock,
+ 			fprintf(stdout, "# ERROR: %s\n", strerror(errno));
+ 			break;
+ 		}
++
++#ifdef DEBUG
++		if (debug_level & DEBUG_MNL) {
++			mnl_nlmsg_fprintf(stdout, buf, sizeof(buf),
++					  sizeof(struct nfgenmsg));
++		}
++#endif /* DEBUG */
+ 		ret = mnl_cb_run(buf, ret, 0, 0, cb, cb_data);
+ 		if (ret <= 0)
+ 			break;
+diff --git a/src/netlink.c b/src/netlink.c
+index 880502c..50ed25f 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -2877,12 +2877,51 @@ static int netlink_events_trace_cb(const struct nlmsghdr *nlh, int type,
+ 	return MNL_CB_OK;
+ }
+ 
++#ifdef DEBUG
++/* only those which could be useful listening to events */
++static const char *const nftnl_msg_types[NFT_MSG_MAX] = {
++	[NFT_MSG_NEWTABLE]	= "NFT_MSG_NEWTABLE",
++	[NFT_MSG_DELTABLE]	= "NFT_MSG_DELTABLE",
++	[NFT_MSG_NEWCHAIN]	= "NFT_MSG_NEWCHAIN",
++	[NFT_MSG_DELCHAIN]	= "NFT_MSG_DELCHAIN",
++	[NFT_MSG_NEWSET]	= "NFT_MSG_NEWSET",
++	[NFT_MSG_DELSET]	= "NFT_MSG_DELSET",
++	[NFT_MSG_NEWSETELEM]	= "NFT_MSG_NEWSETELEM",
++	[NFT_MSG_DELSETELEM]	= "NFT_MSG_DELSETELEM",
++	[NFT_MSG_NEWRULE]	= "NFT_MSG_NEWRULE",
++	[NFT_MSG_DELRULE]	= "NFT_MSG_DELRULE",
++	[NFT_MSG_TRACE]		= "NFT_MSG_TRACE",
++	[NFT_MSG_NEWGEN]	= "NFT_MSG_NEWGEN",
++	[NFT_MSG_NEWOBJ]	= "NFT_MSG_NEWOBJ",
++	[NFT_MSG_DELOBJ]	= "NFT_MSG_DELOBJ",
++};
++
++static const char *nftnl_msgtype2str(uint16_t type)
++{
++	if (type >= NFT_MSG_MAX || !nftnl_msg_types[type])
++		return "unknown";
++
++	return nftnl_msg_types[type];
++}
++#endif /* DEBUG */
++
++static void netlink_events_debug(uint16_t type)
++{
++#ifdef DEBUG
++	if (!(debug_level & DEBUG_NETLINK))
++		return;
++
++	printf("netlink event: %s\n", nftnl_msgtype2str(type));
++#endif /* DEBUG */
++}
++
+ static int netlink_events_cb(const struct nlmsghdr *nlh, void *data)
+ {
+ 	int ret = MNL_CB_OK;
+ 	uint16_t type = NFNL_MSG_TYPE(nlh->nlmsg_type);
+ 	struct netlink_mon_handler *monh = (struct netlink_mon_handler *)data;
+ 
++	netlink_events_debug(type);
+ 	netlink_events_cache_update(monh, nlh, type);
+ 
+ 	if (!(monh->monitor_flags & (1 << type)))
+
