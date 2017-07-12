@@ -1,50 +1,56 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nft PATCH 2/4] list: Introduce list_last_entry
-Date: Wed, 12 Jul 2017 21:15:05 +0200
-Message-ID: <20170712191505.GF16375@orbyte.nwl.cc>
-References: <20170712123658.25363-1-phil@nwl.cc>
- <20170712123658.25363-3-phil@nwl.cc>
- <CAOkSjBgy1e_L8a8Epo8XbYWH8_GTdBX=KeWZLC_nqeOYtU8jdg@mail.gmail.com>
+From: Richard Weinberger <richard@nod.at>
+Subject: Re: nf_conntrack: Infoleak via CTA_ID and CTA_EXPECT_ID
+Date: Wed, 12 Jul 2017 23:26:35 +0200
+Message-ID: <1daf1401-5009-df1c-a77a-a271811c0760@nod.at>
+References: <c84e0301-2bb6-8932-2ed5-939340762159@nod.at>
+ <20170630193544.GM9307@breakpoint.cc>
+ <f3d78dc5-7694-8e01-ac4d-54fc248a96f1@nod.at>
+ <20170630195547.GN9307@breakpoint.cc>
+ <ad87cf0f-2ff4-48d7-b53c-bc4b5e98cfca@nod.at>
+ <20170701103504.GO9307@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:52627 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752450AbdGLTPH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 12 Jul 2017 15:15:07 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBgy1e_L8a8Epo8XbYWH8_GTdBX=KeWZLC_nqeOYtU8jdg@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        David Miller <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        David Gstir <david@sigma-star.at>, kaber@trash.net,
+        "keescook@chromium.org" <keescook@chromium.org>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170701103504.GO9307@breakpoint.cc>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jul 12, 2017 at 05:41:32PM +0200, Arturo Borrero Gonzalez wrote:
-> On 12 July 2017 at 14:36, Phil Sutter <phil@nwl.cc> wrote:
-> > Similar to list_first_entry, this macro allows to retrieve the list's
-> > last entry.
-> >
-> > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > ---
-> >  include/list.h | 11 +++++++++++
-> >  1 file changed, 11 insertions(+)
-> 
-> Phil,
-> 
-> I think you can safely merge this patch into 1/4.
-> 
-> Better to introduce new functions at the same time of the callers, the
-> same patch.
+Florian,
 
-Well, patches 2 and 3 are used by patch 4, so not added afterwards (that
-would be a bummer indeed). I kept them separate for a purpose: When
-backporting fixes, it is often quite annoying when one has to fiddle
-these independent parts out of another patch which does something
-unrelated. So whenever One wants to backport a patch using
-list_first_entry() (in this example), there is a separate commit to
-backport which contains the macro and nothing else. No big deal in this
-case, though so no objections merging them.
+Am 01.07.2017 um 12:35 schrieb Florian Westphal:
+>>> Perhaps we can place that in a new extension (its not needed in any
+>>> fastpath ops)?
+>>
+>> To get rid of the infoleak we have to re-introduce the id field in struct nf_conn
+>> and struct nf_conntrack_expect.
+> 
+> Why will this not work?
 
-Thanks, Phil
+You are right, when we compute the ID from the whole object, it should be fine.
+
+>> Otherwise have nothing to compare against in the conntrack/expect remove case.
+> 
+> Not following, sorry.  The id is not used anywhere except when we send
+> info to userspace.
+> 
+> The compare on removal is not needed afaics, and its also not used when
+> doing lookup to begin with, so we can just recompute it?
+
+Isn't this a way too much overhead?
+
+I personally favor Pablo's per-cpu counter approach.
+That way the IDs are unique again and we get rid of the info leak without
+much effort.
+
+Thanks,
+//richard
