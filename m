@@ -1,108 +1,31 @@
-From: <kim.frederiksen@regionh.dk>
-Subject: (unknown)
-Date: Sun, 16 Jul 2017 07:25:44 -0000
-Message-ID: <150018994493.17620.5569892195211371850@permonline.ru>
+From: sorcus@inwebse.com
+Subject: Problem with snat.
+Date: Sun, 16 Jul 2017 22:07:04 +0000
+Message-ID: <366821a9f3ba0d10162c23ef0e2c27e8@inwebse.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="EMAIL_1833111554328_netfilter-devel.zip
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dsl-5-141-22-18.permonline.ru ([5.141.22.18]:35893 "HELO
-        permonline.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with SMTP id S1750829AbdGPHZt (ORCPT
+Received: from static.118.237.9.5.clients.your-server.de ([5.9.237.118]:41266
+        "EHLO server.inwebse.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751124AbdGPWyV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 16 Jul 2017 03:25:49 -0400
-Content-Disposition: attachment
-Subject: 
+        Sun, 16 Jul 2017 18:54:21 -0400
+Received: from admin by server.inwebse.org with local (Exim 4.89)
+        (envelope-from <sorcus@inwebse.com>)
+        id 1dWrgu-00015i-H7
+        for netfilter-devel@vger.kernel.org; Mon, 17 Jul 2017 01:07:04 +0300
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-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
-AAAAAA==
+Can you confirm that a bug or not?
+
+https://serverfault.com/questions/861375/what-wrong-with-snat-in-nftables
+http://marc.info/?t=149969788400002&r=1&w=2
+https://github.com/NixOS/nixpkgs/issues/27093
+
+No one can help me. And i don't know what i need doing now.
+Thank you.
+
