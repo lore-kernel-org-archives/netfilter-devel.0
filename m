@@ -1,31 +1,17 @@
-From: sorcus@inwebse.com
-Subject: Problem with snat.
-Date: Sun, 16 Jul 2017 22:07:04 +0000
-Message-ID: <366821a9f3ba0d10162c23ef0e2c27e8@inwebse.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: net-next is OPEN
+Date: Sun, 16 Jul 2017 16:39:11 -0700 (PDT)
+Message-ID: <20170716.163911.1974814491628160405.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from static.118.237.9.5.clients.your-server.de ([5.9.237.118]:41266
-        "EHLO server.inwebse.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751124AbdGPWyV (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 16 Jul 2017 18:54:21 -0400
-Received: from admin by server.inwebse.org with local (Exim 4.89)
-        (envelope-from <sorcus@inwebse.com>)
-        id 1dWrgu-00015i-H7
-        for netfilter-devel@vger.kernel.org; Mon, 17 Jul 2017 01:07:04 +0300
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Can you confirm that a bug or not?
 
-https://serverfault.com/questions/861375/what-wrong-with-snat-in-nftables
-http://marc.info/?t=149969788400002&r=1&w=2
-https://github.com/NixOS/nixpkgs/issues/27093
+Tell your friends.
 
-No one can help me. And i don't know what i need doing now.
-Thank you.
-
+http://vger.kernel.org/~davem/net-next.html
