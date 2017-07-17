@@ -1,52 +1,38 @@
-From: Jiri Slaby <jslaby@suse.cz>
-Subject: [PATCH 1/1] netfilter: nf_ct_expect: fix expect removal
-Date: Mon, 17 Jul 2017 17:06:48 +0200
-Message-ID: <20170717150648.10058-1-jslaby@suse.cz>
-Cc: linux-kernel@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>,
-        Gao Feng <fgao@ikuai8.com>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: pablo@netfilter.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf] netfilter: remove old pre-netns era hook api
+Date: Mon, 17 Jul 2017 17:07:42 +0200
+Message-ID: <20170717150742.GA9791@salvia>
+References: <20170706211744.17683-1-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:55558 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751280AbdGQPHr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Jul 2017 11:07:47 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id C3735249C2
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jul 2017 17:07:33 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B67E31B3D59
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jul 2017 17:07:33 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B10591B3D5A
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jul 2017 17:07:31 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20170706211744.17683-1-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Commit ec0e3f01114a ("netfilter: nf_ct_expect: Add
-nf_ct_remove_expect()") introduced a helper nf_ct_remove_expect. It was
-used over the code, but one location used a wrong variable and it
-resulted in a crash in this call stack:
-  -> nf_ct_expect_related_report
-  -> nf_ct_remove_expect
-  -> del_timer
-  -> detach_if_pending
+On Thu, Jul 06, 2017 at 11:17:44PM +0200, Florian Westphal wrote:
+> no more users in the tree, remove this.
+> 
+> The old api is racy wrt. module removal, all users have been converted
+> to the netns-aware api.
+> 
+> The old api pretended we still have global hooks but that has not been
+> true for a long time.
 
-Switch to the proper variable.
-
-Fixes: ec0e3f01114a
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Gao Feng <fgao@ikuai8.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: <netfilter-devel@vger.kernel.org>
-Cc: <coreteam@netfilter.org>
----
- net/netfilter/nf_conntrack_expect.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index e03d16ed550d..899c2c36da13 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -422,7 +422,7 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect)
- 	h = nf_ct_expect_dst_hash(net, &expect->tuple);
- 	hlist_for_each_entry_safe(i, next, &nf_ct_expect_hash[h], hnode) {
- 		if (expect_matches(i, expect)) {
--			if (nf_ct_remove_expect(expect))
-+			if (nf_ct_remove_expect(i))
- 				break;
- 		} else if (expect_clash(i, expect)) {
- 			ret = -EBUSY;
--- 
-2.13.3
+Applied, thanks.
