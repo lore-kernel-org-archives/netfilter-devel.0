@@ -1,61 +1,222 @@
-From: Jiri Slaby <jslaby@suse.cz>
-Subject: Re: 4.12 nf_conntrack_expect crash
-Date: Mon, 17 Jul 2017 16:54:43 +0200
-Message-ID: <12e1fdf4-2936-d2a7-e537-1038fbf5b7a3@suse.cz>
-References: <2194e012-5a89-54f0-db46-ff9ce6aa3953@suse.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: 7bit
-Cc: kadlec@blackhole.kfki.hu, Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Linux kernel mailing list <linux-kernel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>, fgao@ikuai8.com
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2194e012-5a89-54f0-db46-ff9ce6aa3953@suse.cz>
-Content-Language: en-GB
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Phil Sutter <phil@nwl.cc>
+Subject: [nft PATCH 2/2] tests: Add basic monitor testing framework
+Date: Mon, 17 Jul 2017 17:06:06 +0200
+Message-ID: <20170717150606.32097-3-phil@nwl.cc>
+References: <20170717150606.32097-1-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org,
+        Arturo Borrero Gonzalez <arturo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from orbyte.nwl.cc ([151.80.46.58]:54091 "EHLO mail.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751291AbdGQPGZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Jul 2017 11:06:25 -0400
+In-Reply-To: <20170717150606.32097-1-phil@nwl.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 07/17/2017, 04:49 PM, Jiri Slaby wrote:
-> Hi,
-> 
-> on my system, I see a crash in del_timer invoked in nf_conntrack_expect.
-> See the attached picture.
-> 
-> I somehow suspect this commit:
-> 
-> commit ec0e3f01114ad327112432a4da8840eb22fed577
-> Author: Gao Feng <fgao@ikuai8.com>
-> Date:   Mon Mar 27 10:31:26 2017 +0800
-> 
->     netfilter: nf_ct_expect: Add nf_ct_remove_expect()
-> 
-> 
-> I am going to play with it (debug, try to revert, etc.) if you have no
-> better idea...
+This implements testing of 'nft monitor' output correctness and adds a
+number of testcases for named sets.
 
-This?
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ tests/monitor/run-tests.sh             | 78 ++++++++++++++++++++++++++++++++++
+ tests/monitor/testcases/set-mixed.t    | 21 +++++++++
+ tests/monitor/testcases/set-multiple.t | 15 +++++++
+ tests/monitor/testcases/set-simple.t   | 49 +++++++++++++++++++++
+ 4 files changed, 163 insertions(+)
+ create mode 100755 tests/monitor/run-tests.sh
+ create mode 100644 tests/monitor/testcases/set-mixed.t
+ create mode 100644 tests/monitor/testcases/set-multiple.t
+ create mode 100644 tests/monitor/testcases/set-simple.t
 
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -422,7 +422,7 @@ static inline int __nf_ct_expect_check(struct
-nf_conntrack_expect *expect)
-        h = nf_ct_expect_dst_hash(net, &expect->tuple);
-        hlist_for_each_entry_safe(i, next, &nf_ct_expect_hash[h], hnode) {
-                if (expect_matches(i, expect)) {
--                       if (nf_ct_remove_expect(expect))
-+                       if (nf_ct_remove_expect(i))
-                                break;
-                } else if (expect_clash(i, expect)) {
-                        ret = -EBUSY;
-
-
-
-> 
-> thanks,
-> 
-
-
+diff --git a/tests/monitor/run-tests.sh b/tests/monitor/run-tests.sh
+new file mode 100755
+index 0000000000000..7447adf1febd6
+--- /dev/null
++++ b/tests/monitor/run-tests.sh
+@@ -0,0 +1,78 @@
++#!/bin/bash
++
++cd $(dirname $0)
++
++testdir=$(mktemp -d)
++if [ ! -d $testdir ]; then
++	echo "Failed to create test directory" >&2
++	exit 0
++fi
++trap "rm -rf $testdir" EXIT
++
++nft=../../src/nft
++command_file=$(mktemp -p $testdir)
++output_file=$(mktemp -p $testdir)
++
++cmd_append() {
++	echo "$*" >>$command_file
++}
++output_append() {
++	echo "$*" >>$output_file
++}
++run_test() {
++	monitor_output=$(mktemp -p $testdir)
++	$nft monitor >$monitor_output &
++	monitor_pid=$!
++
++	sleep 0.5
++
++	$nft -f $command_file || {
++		echo "nft command failed!"
++		kill $monitor_pid
++		wait >/dev/null 2>&1
++		exit 1
++	}
++	sleep 0.5
++	kill $monitor_pid
++	wait >/dev/null 2>&1
++	if ! diff -Z -q $monitor_output $output_file >/dev/null 2>&1; then
++		echo "monitor output differs!"
++		diff -Z -u $output_file $monitor_output
++		exit 1
++	fi
++	rm $command_file
++	rm $output_file
++	touch $command_file
++	touch $output_file
++}
++
++for testcase in testcases/*.t; do
++	echo "running tests from file $(basename $testcase)"
++	# files are like this:
++	#
++	# I add table ip t
++	# O add table ip t
++	# I add chain ip t c
++	# O add chain ip t c
++
++	$nft flush ruleset
++
++	input_complete=false
++	while read dir line; do
++		case $dir in
++		I)
++			$input_complete && run_test
++			input_complete=false
++			cmd_append "$line"
++			;;
++		O)
++			input_complete=true
++			output_append "$line"
++			;;
++		'#'|'')
++			# ignore comments and empty lines
++			;;
++		esac
++	done <$testcase
++	$input_complete && run_test
++done
+diff --git a/tests/monitor/testcases/set-mixed.t b/tests/monitor/testcases/set-mixed.t
+new file mode 100644
+index 0000000000000..afdfd32deab66
+--- /dev/null
++++ b/tests/monitor/testcases/set-mixed.t
+@@ -0,0 +1,21 @@
++# first the setup
++I add table ip t
++O add table ip t
++I add chain ip t c
++O add chain ip t c
++I add set ip t portrange { type inet_service; flags interval; }
++O add set ip t portrange { type inet_service;flags interval }
++I add set ip t ports { type inet_service; }
++O add set ip t ports { type inet_service;}
++
++# make sure concurrent adds work
++I add element ip t portrange { 1024-65535 }
++I add element ip t ports { 10 }
++O add element ip t portrange { 1024-65535 }
++O add element ip t ports { 10 }
++
++# delete items again
++I delete element ip t portrange { 1024-65535 }
++I delete element ip t ports { 10 }
++O delete element ip t portrange { 1024-65535 }
++O delete element ip t ports { 10 }
+diff --git a/tests/monitor/testcases/set-multiple.t b/tests/monitor/testcases/set-multiple.t
+new file mode 100644
+index 0000000000000..c017678d9d074
+--- /dev/null
++++ b/tests/monitor/testcases/set-multiple.t
+@@ -0,0 +1,15 @@
++# first the setup
++I add table ip t
++O add table ip t
++I add chain ip t c
++O add chain ip t c
++I add set ip t portrange { type inet_service; flags interval; }
++O add set ip t portrange { type inet_service;flags interval }
++I add set ip t portrange2 { type inet_service; flags interval; }
++O add set ip t portrange2 { type inet_service;flags interval }
++
++# make sure concurrent adds work
++I add element ip t portrange { 1024-65535 }
++I add element ip t portrange2 { 10-20 }
++O add element ip t portrange { 1024-65535 }
++O add element ip t portrange2 { 10-20 }
+diff --git a/tests/monitor/testcases/set-simple.t b/tests/monitor/testcases/set-simple.t
+new file mode 100644
+index 0000000000000..64b6e3456bf4e
+--- /dev/null
++++ b/tests/monitor/testcases/set-simple.t
+@@ -0,0 +1,49 @@
++# first the setup
++I add table ip t
++O add table ip t
++I add chain ip t c
++O add chain ip t c
++I add set ip t portrange { type inet_service; flags interval; }
++O add set ip t portrange { type inet_service;flags interval }
++
++# adding some ranges
++I add element ip t portrange { 1-10 }
++O add element ip t portrange { 1-10 }
++I add element ip t portrange { 1024-65535 }
++O add element ip t portrange { 1024-65535 }
++I add element ip t portrange { 20-30, 40-50 }
++O add element ip t portrange { 20-30 }
++O add element ip t portrange { 40-50 }
++
++# test flushing -> elements are removed in reverse
++I flush set ip t portrange
++O delete element ip t portrange { 1024-65535 }
++O delete element ip t portrange { 40-50 }
++O delete element ip t portrange { 20-30 }
++O delete element ip t portrange { 1-10 }
++
++# make sure lower scope boundary works
++I add element ip t portrange { 0-10 }
++O add element ip t portrange { 0-10 }
++
++# make sure half open before other element works
++I add element ip t portrange { 1024-65535 }
++I add element ip t portrange { 100-200 }
++O add element ip t portrange { 1024-65535 }
++O add element ip t portrange { 100-200 }
++
++# make sure deletion of elements works
++I delete element ip t portrange { 0-10 }
++O delete element ip t portrange { 0-10 }
++I delete element ip t portrange { 100-200 }
++I delete element ip t portrange { 1024-65535 }
++O delete element ip t portrange { 100-200 }
++O delete element ip t portrange { 1024-65535 }
++
++# make sure mixed add/delete works
++I add element ip t portrange { 10-20 }
++I add element ip t portrange { 1024-65535 }
++I delete element ip t portrange { 10-20 }
++O add element ip t portrange { 10-20 }
++O add element ip t portrange { 1024-65535 }
++O delete element ip t portrange { 10-20 }
 -- 
-js
-suse labs
+2.13.1
+
