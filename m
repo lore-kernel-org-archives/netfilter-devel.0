@@ -1,50 +1,33 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft v4] include: Remove __init and __exit macro
- definitions.
-Date: Mon, 17 Jul 2017 14:26:07 +0200
-Message-ID: <20170717122607.GA7416@salvia>
-References: <59601b38.05c2620a.1b29f.4776@mx.google.com>
+From: sorcus@inwebse.com
+Subject: Re: Problem with snat.
+Date: Mon, 17 Jul 2017 12:50:11 +0000
+Message-ID: <851e0a73c4138e932ff6a9f40cc79696@inwebse.com>
+References: <366821a9f3ba0d10162c23ef0e2c27e8@inwebse.com>
+ <CAOkSjBin_=55oxx=HdY9aLAdE4vC0NJt8ne1kT4H470E82T0qA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Varsha Rao <rvarsha016@gmail.com>
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37364 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751304AbdGQM0L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Jul 2017 08:26:11 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id A31BB25D32
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jul 2017 14:25:58 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 93520DA80E
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jul 2017 14:25:58 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8C69ED1CAA
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jul 2017 14:25:56 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <59601b38.05c2620a.1b29f.4776@mx.google.com>
+Received: from static.118.237.9.5.clients.your-server.de ([5.9.237.118]:56906
+        "EHLO server.inwebse.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751290AbdGQMuN (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Jul 2017 08:50:13 -0400
+In-Reply-To: <CAOkSjBin_=55oxx=HdY9aLAdE4vC0NJt8ne1kT4H470E82T0qA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Jul 08, 2017 at 05:07:23AM +0530, Varsha Rao wrote:
-> Add nft_init and nft_exit functions, which calls _init and _exit
-> functions in main.c file. Remove __init and __exit macro definitions as
-> libnftables library will be created soon. Rename realm_table_init() and
-> realm_table_exit() functions to avoid ambiguity as
-> realm_table_rt_init(), realm_table_meta_init, realm_table_rt_exit() and
-> realm_table_meta_exit() in rt.c and meta.c files.
+Thank you so much. Now it's working.
 
-Applied with changes.
+On 2017-07-17 06:22, Arturo Borrero Gonzalez wrote:
+> You are probably lacking the reply NAT chain, which needs to be 
+> registered.
+> 
+> https://wiki.nftables.org/wiki-nftables/index.php/Performing_Network_Address_Translation_(NAT)
+> 
+> I'm updating right now the wiki to put this in bold.
 
-Please, next time, split your patches into logical changes. In this
-patch that are two logical changes that are not related:
-
-1) Pass nf_sock to functions as parameter.
-2) Remove __init and __exit functions.
-
-So I have split this patch in two before pushing out.
-
-Just note for the next time, no problem.
-
-Thanks Varsha.
