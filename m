@@ -1,130 +1,47 @@
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/5] Netfilter fixes for net
+Date: Tue, 18 Jul 2017 12:03:40 -0700 (PDT)
+Message-ID: <20170718.120340.1012556068669757824.davem@davemloft.net>
+References: <1500372839-6735-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1500372839-6735-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next] netfilter: nf_tables: keep chain counters away from hot path
-Date: Tue, 18 Jul 2017 20:18:09 +0200
-Message-ID: <1500401889-19412-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52782 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751427AbdGRSSU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jul 2017 14:18:20 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E6C7824924
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2017 20:18:07 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D5B04DA81E
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2017 20:18:07 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B7236D1CA2
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2017 20:18:05 +0200 (CEST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Date: Tue, 18 Jul 2017 12:13:54 +0200
 
-These chain counters are only used by the iptables-compat tool, that
-allow users to use the x_tables extensions from the existing nf_tables
-framework. This patch makes nf_tables by ~5% for the general usecase,
-ie. native nft users, where no chain counters are used at all.
+> The following patchset contains Netfilter fixes for your net tree,
+> they are:
+> 
+> 1) Missing netlink message sanity check in nfnetlink, patch from
+>    Mateusz Jurczyk.
+> 
+> 2) We now have netfilter per-netns hooks, so let's kill global hook
+>    infrastructure, this infrastructure is known to be racy with netns.
+>    We don't care about out of tree modules. Patch from Florian Westphal.
+> 
+> 3) find_appropriate_src() is buggy when colissions happens after the
+>    conversion of the nat bysource to rhashtable. Also from Florian.
+> 
+> 4) Remove forward chain in nf_tables arp family, it's useless and it is
+>    causing quite a bit of confusion, from Florian Westphal.
+> 
+> 5) nf_ct_remove_expect() is called with the wrong parameter, causing
+>    kernel oops, patch from Florian Westphal.
+> 
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables_core.h |  2 ++
- net/netfilter/nf_tables_api.c          | 11 +++--------
- net/netfilter/nf_tables_core.c         | 26 ++++++++++++++++++--------
- 3 files changed, 23 insertions(+), 16 deletions(-)
+Pulled, thanks a lot.
 
-diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
-index 8f690effec37..424684c33771 100644
---- a/include/net/netfilter/nf_tables_core.h
-+++ b/include/net/netfilter/nf_tables_core.h
-@@ -49,6 +49,8 @@ struct nft_payload_set {
- };
- 
- extern const struct nft_expr_ops nft_payload_fast_ops;
-+
-+extern struct static_key_false nft_counters_enabled;
- extern struct static_key_false nft_trace_enabled;
- 
- #endif /* _NET_NF_TABLES_CORE_H */
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 7843efa33c59..7fbf0070aba1 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1240,6 +1240,8 @@ static void nf_tables_chain_destroy(struct nft_chain *chain)
- 
- 		module_put(basechain->type->owner);
- 		free_percpu(basechain->stats);
-+		if (basechain->stats)
-+			static_branch_dec(&nft_counters_enabled);
- 		if (basechain->ops[0].dev != NULL)
- 			dev_put(basechain->ops[0].dev);
- 		kfree(basechain);
-@@ -1504,14 +1506,7 @@ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
- 				return PTR_ERR(stats);
- 			}
- 			basechain->stats = stats;
--		} else {
--			stats = netdev_alloc_pcpu_stats(struct nft_stats);
--			if (stats == NULL) {
--				nft_chain_release_hook(&hook);
--				kfree(basechain);
--				return -ENOMEM;
--			}
--			rcu_assign_pointer(basechain->stats, stats);
-+			static_branch_inc(&nft_counters_enabled);
- 		}
- 
- 		hookfn = hook.type->hooks[hook.num];
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 65dbeadcb118..c5bab08b0d73 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -114,6 +114,22 @@ static bool nft_payload_fast_eval(const struct nft_expr *expr,
- 	return true;
- }
- 
-+DEFINE_STATIC_KEY_FALSE(nft_counters_enabled);
-+
-+static noinline void nft_update_chain_stats(const struct nft_chain *chain,
-+					    const struct nft_pktinfo *pkt)
-+{
-+	struct nft_stats *stats;
-+
-+	local_bh_disable();
-+	stats = this_cpu_ptr(rcu_dereference(nft_base_chain(chain)->stats));
-+	u64_stats_update_begin(&stats->syncp);
-+	stats->pkts++;
-+	stats->bytes += pkt->skb->len;
-+	u64_stats_update_end(&stats->syncp);
-+	local_bh_enable();
-+}
-+
- struct nft_jumpstack {
- 	const struct nft_chain	*chain;
- 	const struct nft_rule	*rule;
-@@ -130,7 +146,6 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
- 	struct nft_regs regs;
- 	unsigned int stackptr = 0;
- 	struct nft_jumpstack jumpstack[NFT_JUMP_STACK_SIZE];
--	struct nft_stats *stats;
- 	int rulenum;
- 	unsigned int gencursor = nft_genmask_cur(net);
- 	struct nft_traceinfo info;
-@@ -220,13 +235,8 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
- 	nft_trace_packet(&info, basechain, NULL, -1,
- 			 NFT_TRACETYPE_POLICY);
- 
--	rcu_read_lock_bh();
--	stats = this_cpu_ptr(rcu_dereference(nft_base_chain(basechain)->stats));
--	u64_stats_update_begin(&stats->syncp);
--	stats->pkts++;
--	stats->bytes += pkt->skb->len;
--	u64_stats_update_end(&stats->syncp);
--	rcu_read_unlock_bh();
-+	if (static_branch_unlikely(&nft_counters_enabled))
-+		nft_update_chain_stats(basechain, pkt);
- 
- 	return nft_base_chain(basechain)->policy;
- }
--- 
-2.1.4
+What about that change Eric Dumazet was talking about with Florian
+that stopped instantiating conntrack by default in new namespaces?
 
+Just curious.
