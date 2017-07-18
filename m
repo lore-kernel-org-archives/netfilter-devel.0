@@ -1,75 +1,67 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/5] netfilter: nat: fix src map lookup
-Date: Tue, 18 Jul 2017 12:13:57 +0200
-Message-ID: <1500372839-6735-4-git-send-email-pablo@netfilter.org>
-References: <1500372839-6735-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
+From: Sabrina Dubroca <sd@queasysnail.net>
+Subject: [PATCH nf] netfilter: ipt_CLUSTERIP: fix use-after-free of proc entry
+Date: Tue, 18 Jul 2017 14:56:17 +0200
+Message-ID: <dcf5953ca3d90bddf3b496d7bb86c9d30f7069f4.1500381553.git.sd@queasysnail.net>
+Cc: Xin Long <lucien.xin@gmail.com>,
+        Sabrina Dubroca <sd@queasysnail.net>
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1500372839-6735-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:55268 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751371AbdGRM4Z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Jul 2017 08:56:25 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
+When we delete a netns with a CLUSTERIP rule, clusterip_net_exit() is
+called first, removing /proc/net/ipt_CLUSTERIP.
+Then clusterip_config_entry_put() is called from clusterip_tg_destroy(),
+and tries to remove its entry under /proc/net/ipt_CLUSTERIP/.
 
-When doing initial conversion to rhashtable I replaced the bucket
-walk with a single rhashtable_lookup_fast().
+Fix this by checking that the parent directory of the entry to remove
+hasn't already been deleted.
 
-When moving to rhlist I failed to properly walk the list of identical
-tuples, but that is what is needed for this to work correctly.
-The table contains the original tuples, so the reply tuples are all
-distinct.
+The following triggers a KASAN splat (stealing the reproducer from
+202f59afd441, thanks to Jianlin Shi and Xin Long):
 
-We currently decide that mapping is (not) in range only based on the
-first entry, but in case its not we need to try the reply tuple of the
-next entry until we either find an in-range mapping or we checked
-all the entries.
+    ip netns add test
+    ip link add veth0_in type veth peer name veth0_out
+    ip link set veth0_in netns test
+    ip netns exec test ip link set lo up
+    ip netns exec test ip link set veth0_in up
+    ip netns exec test iptables -I INPUT -d 1.2.3.4 -i veth0_in -j     \
+        CLUSTERIP --new --clustermac 89:d4:47:eb:9a:fa --total-nodes 3 \
+        --local-node 1 --hashmode sourceip-sourceport
+    ip netns del test
 
-This bug makes nat core attempt collision resolution while it might be
-able to use the mapping as-is.
-
-Fixes: 870190a9ec90 ("netfilter: nat: convert nat bysrc hash to rhashtable")
-Reported-by: Jaco Kroon <jaco@uls.co.za>
-Tested-by: Jaco Kroon <jaco@uls.co.za>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: ce4ff76c15a8 ("netfilter: ipt_CLUSTERIP: make proc directory per net namespace")
+Signed-off-by: Sabrina Dubroca <sd@queasysnail.net>
 ---
- net/netfilter/nf_nat_core.c | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ net/ipv4/netfilter/ipt_CLUSTERIP.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 832c5a08d9a5..eb541786ccb7 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -222,20 +222,21 @@ find_appropriate_src(struct net *net,
- 		.tuple = tuple,
- 		.zone = zone
- 	};
--	struct rhlist_head *hl;
-+	struct rhlist_head *hl, *h;
- 
- 	hl = rhltable_lookup(&nf_nat_bysource_table, &key,
- 			     nf_nat_bysource_params);
--	if (!hl)
--		return 0;
- 
--	ct = container_of(hl, typeof(*ct), nat_bysource);
-+	rhl_for_each_entry_rcu(ct, h, hl, nat_bysource) {
-+		nf_ct_invert_tuplepr(result,
-+				     &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-+		result->dst = tuple->dst;
- 
--	nf_ct_invert_tuplepr(result,
--			     &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
--	result->dst = tuple->dst;
-+		if (in_range(l3proto, l4proto, result, range))
-+			return 1;
-+	}
- 
--	return in_range(l3proto, l4proto, result, range);
-+	return 0;
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 7d72decb80f9..efaa04dcc80e 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -117,7 +117,8 @@ clusterip_config_entry_put(struct net *net, struct clusterip_config *c)
+ 		 * functions are also incrementing the refcount on their own,
+ 		 * so it's safe to remove the entry even if it's in use. */
+ #ifdef CONFIG_PROC_FS
+-		proc_remove(c->pde);
++		if (cn->procdir)
++			proc_remove(c->pde);
+ #endif
+ 		return;
+ 	}
+@@ -815,6 +816,7 @@ static void clusterip_net_exit(struct net *net)
+ #ifdef CONFIG_PROC_FS
+ 	struct clusterip_net *cn = net_generic(net, clusterip_net_id);
+ 	proc_remove(cn->procdir);
++	cn->procdir = NULL;
+ #endif
+ 	nf_unregister_net_hook(net, &cip_arp_ops);
  }
- 
- /* For [FUTURE] fragmentation handling, we want the least-used
 -- 
-2.1.4
+2.13.2
+
