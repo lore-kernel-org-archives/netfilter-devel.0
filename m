@@ -1,82 +1,63 @@
-From: =?gb2312?B?uN+35Q==?= <fgao@ikuai8.com>
-Subject: RE: 4.12 nf_conntrack_expect crash
-Date: Tue, 18 Jul 2017 08:23:26 +0800
-Message-ID: <000301d2ff5c$135cab00$3a160100$@ikuai8.com>
-References: <2194e012-5a89-54f0-db46-ff9ce6aa3953@suse.cz> <12e1fdf4-2936-d2a7-e537-1038fbf5b7a3@suse.cz>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [nft PATCH 1/2] monitor: Rewrite SETELEM callback
+Date: Tue, 18 Jul 2017 11:05:16 +0200
+Message-ID: <20170718090516.GU16375@orbyte.nwl.cc>
+References: <20170717150606.32097-1-phil@nwl.cc>
+ <20170717150606.32097-2-phil@nwl.cc>
+ <20170717163018.GA1244@salvia>
+ <20170717164114.GR16375@orbyte.nwl.cc>
+ <20170717171629.GA2221@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="gb2312"
-Content-Transfer-Encoding: 7bit
-Cc: <kadlec@blackhole.kfki.hu>, "'Florian Westphal'" <fw@strlen.de>,
-        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-        "'Linux kernel mailing list'" <linux-kernel@vger.kernel.org>
-To: "'Jiri Slaby'" <jslaby@suse.cz>,
-        "'Pablo Neira Ayuso'" <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+        Arturo Borrero Gonzalez <arturo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbgau1.qq.com ([54.206.16.166]:49336 "EHLO smtpbgau1.qq.com"
+Received: from orbyte.nwl.cc ([151.80.46.58]:35685 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751383AbdGRAXi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Jul 2017 20:23:38 -0400
-In-Reply-To: <12e1fdf4-2936-d2a7-e537-1038fbf5b7a3@suse.cz>
-Content-Language: zh-cn
+        id S1751334AbdGRJFR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Jul 2017 05:05:17 -0400
+Content-Disposition: inline
+In-Reply-To: <20170717171629.GA2221@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jiri,
+On Mon, Jul 17, 2017 at 07:16:29PM +0200, Pablo Neira Ayuso wrote:
+> On Mon, Jul 17, 2017 at 06:41:14PM +0200, Phil Sutter wrote:
+> > On Mon, Jul 17, 2017 at 06:30:18PM +0200, Pablo Neira Ayuso wrote:
+> > > On Mon, Jul 17, 2017 at 05:06:05PM +0200, Phil Sutter wrote:
+> > > [...]
+> > > > +static int netlink_events_setelem_newgen_cb(const struct nlmsghdr *nlh,
+> > > > +					    int type,
+> > > > +					    struct netlink_mon_handler *monh)
+> > > > +{
+> > > > +	setelem_cache_print_default(monh);
+> > > > +
+> > > > +	return MNL_CB_OK;
+> > > >  }
+> > > 
+> > > I would really like we don't rely on newgen for this. If there is no
+> > > way to catch a case with the existing way we represent this, then we
+> > > probably need to fix things from the kernel.
+> > > 
+> > > Before we follow that patch, I would like to understand what corner
+> > > case is pushing us to use the newgen event.
+> > 
+> > It is required for half-open ranges occurring at the end of the
+> > transaction: For those, we only get a single element without
+> > EXPR_F_INTERVAL_END flag set. Since this could also be the first part of
+> > a regular range, monitor has to wait for what's next - which is in doubt
+> > only the NEWGEN message.
+> > 
+> > Maybe we could introduce a new flag to mark these?
+> 
+> Right, I think we need the new flag indeed, only for userspace.
+> 
+> Would you propose one and the specific semantics for it?
 
-> From: Jiri Slaby [mailto:jslaby@suse.cz]
-> Subject: Re: 4.12 nf_conntrack_expect crash
-> 
-> On 07/17/2017, 04:49 PM, Jiri Slaby wrote:
-> > Hi,
-> >
-> > on my system, I see a crash in del_timer invoked in nf_conntrack_expect.
-> > See the attached picture.
-> >
-> > I somehow suspect this commit:
-> >
-> > commit ec0e3f01114ad327112432a4da8840eb22fed577
-> > Author: Gao Feng <fgao@ikuai8.com>
-> > Date:   Mon Mar 27 10:31:26 2017 +0800
-> >
-> >     netfilter: nf_ct_expect: Add nf_ct_remove_expect()
-> >
-> >
-> > I am going to play with it (debug, try to revert, etc.) if you have no
-> > better idea...
-> 
-> This?
-> 
-> --- a/net/netfilter/nf_conntrack_expect.c
-> +++ b/net/netfilter/nf_conntrack_expect.c
-> @@ -422,7 +422,7 @@ static inline int __nf_ct_expect_check(struct
-> nf_conntrack_expect *expect)
->         h = nf_ct_expect_dst_hash(net, &expect->tuple);
->         hlist_for_each_entry_safe(i, next, &nf_ct_expect_hash[h], hnode) {
->                 if (expect_matches(i, expect)) {
-> -                       if (nf_ct_remove_expect(expect))
-> +                       if (nf_ct_remove_expect(i))
->                                 break;
->                 } else if (expect_clash(i, expect)) {
->                         ret = -EBUSY;
-> 
-> 
-> 
-> >
-> > thanks,
-> >
-> 
-> 
-> --
-> js
-> suse labs
+My current PoC passes the additional flag as userdata attribute so the
+kernel won't reject the element due to unknown flag. Is that fine with
+you? I'm trying to avoid changing the kernel so the solution is
+backwards compatible.
 
-It is a bug caused by typo indeed. I am sorry about that.
-And Florian has fixed it recently, but thanks your catch again.
-
-Regards
-Feng
-
-
-
-
+Cheers, Phil
