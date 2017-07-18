@@ -1,54 +1,130 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf] netfilter: nft_compat: check extension hook mask only if set
-Date: Tue, 18 Jul 2017 20:16:30 +0200
-Message-ID: <1500401790-15328-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next] netfilter: nf_tables: keep chain counters away from hot path
+Date: Tue, 18 Jul 2017 20:18:09 +0200
+Message-ID: <1500401889-19412-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52498 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52782 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751408AbdGRSQi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jul 2017 14:16:38 -0400
+        id S1751427AbdGRSSU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Jul 2017 14:18:20 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4985D24927
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2017 20:16:25 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id E6C7824924
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2017 20:18:07 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 30EA8DA7F1
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2017 20:16:25 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D5B04DA81E
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2017 20:18:07 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B9469DA80E
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2017 20:16:22 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B7236D1CA2
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2017 20:18:05 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If the x_tables extension comes with no hook mask, skip this validation.
+These chain counters are only used by the iptables-compat tool, that
+allow users to use the x_tables extensions from the existing nf_tables
+framework. This patch makes nf_tables by ~5% for the general usecase,
+ie. native nft users, where no chain counters are used at all.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_compat.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/net/netfilter/nf_tables_core.h |  2 ++
+ net/netfilter/nf_tables_api.c          | 11 +++--------
+ net/netfilter/nf_tables_core.c         | 26 ++++++++++++++++++--------
+ 3 files changed, 23 insertions(+), 16 deletions(-)
 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index f5a7cb68694e..b89f4f65b2a0 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -305,7 +305,7 @@ static int nft_target_validate(const struct nft_ctx *ctx,
- 		const struct nf_hook_ops *ops = &basechain->ops[0];
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index 8f690effec37..424684c33771 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -49,6 +49,8 @@ struct nft_payload_set {
+ };
  
- 		hook_mask = 1 << ops->hooknum;
--		if (!(hook_mask & target->hooks))
-+		if (target->hooks && !(hook_mask & target->hooks))
- 			return -EINVAL;
+ extern const struct nft_expr_ops nft_payload_fast_ops;
++
++extern struct static_key_false nft_counters_enabled;
+ extern struct static_key_false nft_trace_enabled;
  
- 		ret = nft_compat_chain_validate_dependency(target->table,
-@@ -484,7 +484,7 @@ static int nft_match_validate(const struct nft_ctx *ctx,
- 		const struct nf_hook_ops *ops = &basechain->ops[0];
+ #endif /* _NET_NF_TABLES_CORE_H */
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 7843efa33c59..7fbf0070aba1 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1240,6 +1240,8 @@ static void nf_tables_chain_destroy(struct nft_chain *chain)
  
- 		hook_mask = 1 << ops->hooknum;
--		if (!(hook_mask & match->hooks))
-+		if (match->hooks && !(hook_mask & match->hooks))
- 			return -EINVAL;
+ 		module_put(basechain->type->owner);
+ 		free_percpu(basechain->stats);
++		if (basechain->stats)
++			static_branch_dec(&nft_counters_enabled);
+ 		if (basechain->ops[0].dev != NULL)
+ 			dev_put(basechain->ops[0].dev);
+ 		kfree(basechain);
+@@ -1504,14 +1506,7 @@ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
+ 				return PTR_ERR(stats);
+ 			}
+ 			basechain->stats = stats;
+-		} else {
+-			stats = netdev_alloc_pcpu_stats(struct nft_stats);
+-			if (stats == NULL) {
+-				nft_chain_release_hook(&hook);
+-				kfree(basechain);
+-				return -ENOMEM;
+-			}
+-			rcu_assign_pointer(basechain->stats, stats);
++			static_branch_inc(&nft_counters_enabled);
+ 		}
  
- 		ret = nft_compat_chain_validate_dependency(match->table,
+ 		hookfn = hook.type->hooks[hook.num];
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 65dbeadcb118..c5bab08b0d73 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -114,6 +114,22 @@ static bool nft_payload_fast_eval(const struct nft_expr *expr,
+ 	return true;
+ }
+ 
++DEFINE_STATIC_KEY_FALSE(nft_counters_enabled);
++
++static noinline void nft_update_chain_stats(const struct nft_chain *chain,
++					    const struct nft_pktinfo *pkt)
++{
++	struct nft_stats *stats;
++
++	local_bh_disable();
++	stats = this_cpu_ptr(rcu_dereference(nft_base_chain(chain)->stats));
++	u64_stats_update_begin(&stats->syncp);
++	stats->pkts++;
++	stats->bytes += pkt->skb->len;
++	u64_stats_update_end(&stats->syncp);
++	local_bh_enable();
++}
++
+ struct nft_jumpstack {
+ 	const struct nft_chain	*chain;
+ 	const struct nft_rule	*rule;
+@@ -130,7 +146,6 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+ 	struct nft_regs regs;
+ 	unsigned int stackptr = 0;
+ 	struct nft_jumpstack jumpstack[NFT_JUMP_STACK_SIZE];
+-	struct nft_stats *stats;
+ 	int rulenum;
+ 	unsigned int gencursor = nft_genmask_cur(net);
+ 	struct nft_traceinfo info;
+@@ -220,13 +235,8 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+ 	nft_trace_packet(&info, basechain, NULL, -1,
+ 			 NFT_TRACETYPE_POLICY);
+ 
+-	rcu_read_lock_bh();
+-	stats = this_cpu_ptr(rcu_dereference(nft_base_chain(basechain)->stats));
+-	u64_stats_update_begin(&stats->syncp);
+-	stats->pkts++;
+-	stats->bytes += pkt->skb->len;
+-	u64_stats_update_end(&stats->syncp);
+-	rcu_read_unlock_bh();
++	if (static_branch_unlikely(&nft_counters_enabled))
++		nft_update_chain_stats(basechain, pkt);
+ 
+ 	return nft_base_chain(basechain)->policy;
+ }
 -- 
 2.1.4
 
