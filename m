@@ -1,52 +1,82 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] libnetfilter_conntrack: bump version to 1.0.7
-Date: Mon, 17 Jul 2017 19:21:55 +0200
-Message-ID: <20170717172155.GA2434@salvia>
-References: <20170710203350.29166-1-richard@nod.at>
- <20170717154014.GA32112@salvia>
- <2f1aae18-6706-dd67-654d-1146c035c0d5@nod.at>
- <20170717160316.GA573@salvia>
- <nycvar.YFH.7.76.1707171808410.32562@n3.vanv.qr>
+From: =?gb2312?B?uN+35Q==?= <fgao@ikuai8.com>
+Subject: RE: 4.12 nf_conntrack_expect crash
+Date: Tue, 18 Jul 2017 08:23:26 +0800
+Message-ID: <000301d2ff5c$135cab00$3a160100$@ikuai8.com>
+References: <2194e012-5a89-54f0-db46-ff9ce6aa3953@suse.cz> <12e1fdf4-2936-d2a7-e537-1038fbf5b7a3@suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Richard Weinberger <richard@nod.at>,
-        netfilter-devel@vger.kernel.org, fw@strlen.de
-To: Jan Engelhardt <jengelh@inai.de>
+Content-Type: text/plain;
+        charset="gb2312"
+Content-Transfer-Encoding: 7bit
+Cc: <kadlec@blackhole.kfki.hu>, "'Florian Westphal'" <fw@strlen.de>,
+        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+        "'Linux kernel mailing list'" <linux-kernel@vger.kernel.org>
+To: "'Jiri Slaby'" <jslaby@suse.cz>,
+        "'Pablo Neira Ayuso'" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40760 "EHLO mail.us.es"
+Received: from smtpbgau1.qq.com ([54.206.16.166]:49336 "EHLO smtpbgau1.qq.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751293AbdGQRWI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 17 Jul 2017 13:22:08 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AAEE924711
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jul 2017 19:21:55 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9BDCFDA46D
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jul 2017 19:21:55 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 38177DA80E
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Jul 2017 19:21:53 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <nycvar.YFH.7.76.1707171808410.32562@n3.vanv.qr>
+        id S1751383AbdGRAXi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 17 Jul 2017 20:23:38 -0400
+In-Reply-To: <12e1fdf4-2936-d2a7-e537-1038fbf5b7a3@suse.cz>
+Content-Language: zh-cn
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jul 17, 2017 at 06:28:48PM +0200, Jan Engelhardt wrote:
-> 
-> On Monday 2017-07-17 18:03, Pablo Neira Ayuso wrote:
-> >
-> >IIRC, we should always bump current and version even if no changes
-> >happen. Rules are here:
-> >
-> >http://git.netfilter.org/libmnl/tree/Make_global.am
-> 
-> If I read those rules correctly -
-> 
->  "If any interfaces have been added"
-> 
-> - then, since no interface was added, removed, or otherwise modified, no bump
-> is the right thing.
+Hi Jiri,
 
-Right, after another read, it seems bump is unnecessary.
+> From: Jiri Slaby [mailto:jslaby@suse.cz]
+> Subject: Re: 4.12 nf_conntrack_expect crash
+> 
+> On 07/17/2017, 04:49 PM, Jiri Slaby wrote:
+> > Hi,
+> >
+> > on my system, I see a crash in del_timer invoked in nf_conntrack_expect.
+> > See the attached picture.
+> >
+> > I somehow suspect this commit:
+> >
+> > commit ec0e3f01114ad327112432a4da8840eb22fed577
+> > Author: Gao Feng <fgao@ikuai8.com>
+> > Date:   Mon Mar 27 10:31:26 2017 +0800
+> >
+> >     netfilter: nf_ct_expect: Add nf_ct_remove_expect()
+> >
+> >
+> > I am going to play with it (debug, try to revert, etc.) if you have no
+> > better idea...
+> 
+> This?
+> 
+> --- a/net/netfilter/nf_conntrack_expect.c
+> +++ b/net/netfilter/nf_conntrack_expect.c
+> @@ -422,7 +422,7 @@ static inline int __nf_ct_expect_check(struct
+> nf_conntrack_expect *expect)
+>         h = nf_ct_expect_dst_hash(net, &expect->tuple);
+>         hlist_for_each_entry_safe(i, next, &nf_ct_expect_hash[h], hnode) {
+>                 if (expect_matches(i, expect)) {
+> -                       if (nf_ct_remove_expect(expect))
+> +                       if (nf_ct_remove_expect(i))
+>                                 break;
+>                 } else if (expect_clash(i, expect)) {
+>                         ret = -EBUSY;
+> 
+> 
+> 
+> >
+> > thanks,
+> >
+> 
+> 
+> --
+> js
+> suse labs
 
-So I'm taking Richard's patch as is.
+It is a bug caused by typo indeed. I am sorry about that.
+And Florian has fixed it recently, but thanks your catch again.
+
+Regards
+Feng
+
+
+
+
