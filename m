@@ -1,23 +1,29 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 0/5] Netfilter fixes for net
-Date: Tue, 18 Jul 2017 23:11:57 +0200
-Message-ID: <20170718211157.GA5832@breakpoint.cc>
-References: <1500372839-6735-1-git-send-email-pablo@netfilter.org>
- <20170718.120340.1012556068669757824.davem@davemloft.net>
+Subject: Re: [PATCH] netfilter: fix netfilter_net_init() return
+Date: Tue, 18 Jul 2017 23:12:29 +0200
+Message-ID: <20170718211229.GB5832@breakpoint.cc>
+References: <20170718193856.yh2qd2j5bloiuq5r@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        kernel-janitors@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:53866 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752256AbdGRVOK (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Jul 2017 17:14:10 -0400
 Content-Disposition: inline
-In-Reply-To: <20170718.120340.1012556068669757824.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20170718193856.yh2qd2j5bloiuq5r@mwanda>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-David Miller <davem@davemloft.net> wrote:
-> What about that change Eric Dumazet was talking about with Florian
-> that stopped instantiating conntrack by default in new namespaces?
+Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> We accidentally return an uninitialized variable.
 
-Seems more appropriate for -next.  If you prefer net instead, let me know
-and I'll get to work.
+Ugh, indeed, thanks for the quick fix!
