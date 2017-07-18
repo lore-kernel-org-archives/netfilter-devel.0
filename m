@@ -1,49 +1,23 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [PATCH] netfilter: fix netfilter_net_init() return
-Date: Tue, 18 Jul 2017 22:38:56 +0300
-Message-ID: <20170718193856.yh2qd2j5bloiuq5r@mwanda>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 0/5] Netfilter fixes for net
+Date: Tue, 18 Jul 2017 23:11:57 +0200
+Message-ID: <20170718211157.GA5832@breakpoint.cc>
+References: <1500372839-6735-1-git-send-email-pablo@netfilter.org>
+ <20170718.120340.1012556068669757824.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        kernel-janitors@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:22425 "EHLO
-        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751427AbdGRTjc (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jul 2017 15:39:32 -0400
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20170718.120340.1012556068669757824.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-We accidentally return an uninitialized variable.
+David Miller <davem@davemloft.net> wrote:
+> What about that change Eric Dumazet was talking about with Florian
+> that stopped instantiating conntrack by default in new namespaces?
 
-Fixes: cf56c2f892a8 ("netfilter: remove old pre-netns era hook api")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 368610dbc3c0..974cf2a3795a 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -344,7 +344,7 @@ EXPORT_SYMBOL(nf_nat_decode_session_hook);
- 
- static int __net_init netfilter_net_init(struct net *net)
- {
--	int i, h, ret;
-+	int i, h;
- 
- 	for (i = 0; i < ARRAY_SIZE(net->nf.hooks); i++) {
- 		for (h = 0; h < NF_MAX_HOOKS; h++)
-@@ -362,7 +362,7 @@ static int __net_init netfilter_net_init(struct net *net)
- 	}
- #endif
- 
--	return ret;
-+	return 0;
- }
- 
- static void __net_exit netfilter_net_exit(struct net *net)
+Seems more appropriate for -next.  If you prefer net instead, let me know
+and I'll get to work.
