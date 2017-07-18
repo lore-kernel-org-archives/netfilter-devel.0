@@ -1,74 +1,68 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nft PATCH 1/2] monitor: Rewrite SETELEM callback
-Date: Tue, 18 Jul 2017 11:17:26 +0200
-Message-ID: <20170718091726.GW16375@orbyte.nwl.cc>
-References: <20170717150606.32097-1-phil@nwl.cc>
- <20170717150606.32097-2-phil@nwl.cc>
- <20170717163018.GA1244@salvia>
- <20170717164114.GR16375@orbyte.nwl.cc>
- <20170717171629.GA2221@salvia>
- <20170718090516.GU16375@orbyte.nwl.cc>
- <20170718090937.GA1114@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-        Arturo Borrero Gonzalez <arturo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:48935 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751334AbdGRJR1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jul 2017 05:17:27 -0400
-Content-Disposition: inline
-In-Reply-To: <20170718090937.GA1114@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/5] Netfilter fixes for net
+Date: Tue, 18 Jul 2017 12:13:54 +0200
+Message-ID: <1500372839-6735-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jul 18, 2017 at 11:09:37AM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Jul 18, 2017 at 11:05:16AM +0200, Phil Sutter wrote:
-> > On Mon, Jul 17, 2017 at 07:16:29PM +0200, Pablo Neira Ayuso wrote:
-> > > On Mon, Jul 17, 2017 at 06:41:14PM +0200, Phil Sutter wrote:
-> > > > On Mon, Jul 17, 2017 at 06:30:18PM +0200, Pablo Neira Ayuso wrote:
-> > > > > On Mon, Jul 17, 2017 at 05:06:05PM +0200, Phil Sutter wrote:
-> > > > > [...]
-> > > > > > +static int netlink_events_setelem_newgen_cb(const struct nlmsghdr *nlh,
-> > > > > > +					    int type,
-> > > > > > +					    struct netlink_mon_handler *monh)
-> > > > > > +{
-> > > > > > +	setelem_cache_print_default(monh);
-> > > > > > +
-> > > > > > +	return MNL_CB_OK;
-> > > > > >  }
-> > > > > 
-> > > > > I would really like we don't rely on newgen for this. If there is no
-> > > > > way to catch a case with the existing way we represent this, then we
-> > > > > probably need to fix things from the kernel.
-> > > > > 
-> > > > > Before we follow that patch, I would like to understand what corner
-> > > > > case is pushing us to use the newgen event.
-> > > > 
-> > > > It is required for half-open ranges occurring at the end of the
-> > > > transaction: For those, we only get a single element without
-> > > > EXPR_F_INTERVAL_END flag set. Since this could also be the first part of
-> > > > a regular range, monitor has to wait for what's next - which is in doubt
-> > > > only the NEWGEN message.
-> > > > 
-> > > > Maybe we could introduce a new flag to mark these?
-> > > 
-> > > Right, I think we need the new flag indeed, only for userspace.
-> > > 
-> > > Would you propose one and the specific semantics for it?
-> > 
-> > My current PoC passes the additional flag as userdata attribute so the
-> > kernel won't reject the element due to unknown flag. Is that fine with
-> > you? I'm trying to avoid changing the kernel so the solution is
-> > backwards compatible.
-> 
-> I suggest you add a new flag to SET_ELEM instead. Userdata area usage
-> is exclusive to userspace.
+Hi David,
 
-You mean nft_set_elem_flags? The new flag will indeed be used by
-userspace only: It is set when creating a half-open range and not used
-by the kernel at all.
+The following patchset contains Netfilter fixes for your net tree,
+they are:
 
-Thanks, Phil
+1) Missing netlink message sanity check in nfnetlink, patch from
+   Mateusz Jurczyk.
+
+2) We now have netfilter per-netns hooks, so let's kill global hook
+   infrastructure, this infrastructure is known to be racy with netns.
+   We don't care about out of tree modules. Patch from Florian Westphal.
+
+3) find_appropriate_src() is buggy when colissions happens after the
+   conversion of the nat bysource to rhashtable. Also from Florian.
+
+4) Remove forward chain in nf_tables arp family, it's useless and it is
+   causing quite a bit of confusion, from Florian Westphal.
+
+5) nf_ct_remove_expect() is called with the wrong parameter, causing
+   kernel oops, patch from Florian Westphal.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 533da29b584de5ae0e9dafafbe52809f59cb5300:
+
+  Merge branch 'bcmgenet-Fragmented-SKB-corrections' (2017-07-15 21:29:08 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to 36ac344e16e04e3e55e8fed7446095a6458c64e6:
+
+  netfilter: expect: fix crash when putting uninited expectation (2017-07-17 17:03:12 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (4):
+      netfilter: remove old pre-netns era hook api
+      netfilter: nat: fix src map lookup
+      netfilter: nf_tables: only allow in/output for arp packets
+      netfilter: expect: fix crash when putting uninited expectation
+
+Mateusz Jurczyk (1):
+      netfilter: nfnetlink: Improve input length sanitization in nfnetlink_rcv
+
+ include/linux/netfilter.h           |   9 ---
+ net/ipv4/netfilter/nf_tables_arp.c  |   3 +-
+ net/netfilter/core.c                | 143 ------------------------------------
+ net/netfilter/nf_conntrack_expect.c |   2 +-
+ net/netfilter/nf_nat_core.c         |  17 +++--
+ net/netfilter/nfnetlink.c           |   6 +-
+ 6 files changed, 14 insertions(+), 166 deletions(-)
