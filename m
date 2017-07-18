@@ -1,67 +1,84 @@
-From: Sabrina Dubroca <sd@queasysnail.net>
-Subject: [PATCH nf] netfilter: ipt_CLUSTERIP: fix use-after-free of proc entry
-Date: Tue, 18 Jul 2017 14:56:17 +0200
-Message-ID: <dcf5953ca3d90bddf3b496d7bb86c9d30f7069f4.1500381553.git.sd@queasysnail.net>
-Cc: Xin Long <lucien.xin@gmail.com>,
-        Sabrina Dubroca <sd@queasysnail.net>
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH 1/2] monitor: Rewrite SETELEM callback
+Date: Tue, 18 Jul 2017 16:32:30 +0200
+Message-ID: <20170718143230.GA6745@salvia>
+References: <20170717150606.32097-1-phil@nwl.cc>
+ <20170717150606.32097-2-phil@nwl.cc>
+ <20170717163018.GA1244@salvia>
+ <20170717164114.GR16375@orbyte.nwl.cc>
+ <20170717171629.GA2221@salvia>
+ <20170718090516.GU16375@orbyte.nwl.cc>
+ <20170718090937.GA1114@salvia>
+ <20170718091726.GW16375@orbyte.nwl.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+        Arturo Borrero Gonzalez <arturo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55268 "EHLO mx1.redhat.com"
+Received: from mail.us.es ([193.147.175.20]:42174 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751371AbdGRM4Z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jul 2017 08:56:25 -0400
+        id S1751457AbdGROcv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Jul 2017 10:32:51 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 6032E523DF
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2017 16:32:37 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4527FD1CA9
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2017 16:32:37 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 294ABDA80E
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2017 16:32:35 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20170718091726.GW16375@orbyte.nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When we delete a netns with a CLUSTERIP rule, clusterip_net_exit() is
-called first, removing /proc/net/ipt_CLUSTERIP.
-Then clusterip_config_entry_put() is called from clusterip_tg_destroy(),
-and tries to remove its entry under /proc/net/ipt_CLUSTERIP/.
+On Tue, Jul 18, 2017 at 11:17:26AM +0200, Phil Sutter wrote:
+> On Tue, Jul 18, 2017 at 11:09:37AM +0200, Pablo Neira Ayuso wrote:
+> > On Tue, Jul 18, 2017 at 11:05:16AM +0200, Phil Sutter wrote:
+> > > On Mon, Jul 17, 2017 at 07:16:29PM +0200, Pablo Neira Ayuso wrote:
+> > > > On Mon, Jul 17, 2017 at 06:41:14PM +0200, Phil Sutter wrote:
+> > > > > On Mon, Jul 17, 2017 at 06:30:18PM +0200, Pablo Neira Ayuso wrote:
+> > > > > > On Mon, Jul 17, 2017 at 05:06:05PM +0200, Phil Sutter wrote:
+> > > > > > [...]
+> > > > > > > +static int netlink_events_setelem_newgen_cb(const struct nlmsghdr *nlh,
+> > > > > > > +					    int type,
+> > > > > > > +					    struct netlink_mon_handler *monh)
+> > > > > > > +{
+> > > > > > > +	setelem_cache_print_default(monh);
+> > > > > > > +
+> > > > > > > +	return MNL_CB_OK;
+> > > > > > >  }
+> > > > > > 
+> > > > > > I would really like we don't rely on newgen for this. If there is no
+> > > > > > way to catch a case with the existing way we represent this, then we
+> > > > > > probably need to fix things from the kernel.
+> > > > > > 
+> > > > > > Before we follow that patch, I would like to understand what corner
+> > > > > > case is pushing us to use the newgen event.
+> > > > > 
+> > > > > It is required for half-open ranges occurring at the end of the
+> > > > > transaction: For those, we only get a single element without
+> > > > > EXPR_F_INTERVAL_END flag set. Since this could also be the first part of
+> > > > > a regular range, monitor has to wait for what's next - which is in doubt
+> > > > > only the NEWGEN message.
+> > > > > 
+> > > > > Maybe we could introduce a new flag to mark these?
+> > > > 
+> > > > Right, I think we need the new flag indeed, only for userspace.
+> > > > 
+> > > > Would you propose one and the specific semantics for it?
+> > > 
+> > > My current PoC passes the additional flag as userdata attribute so the
+> > > kernel won't reject the element due to unknown flag. Is that fine with
+> > > you? I'm trying to avoid changing the kernel so the solution is
+> > > backwards compatible.
+> > 
+> > I suggest you add a new flag to SET_ELEM instead. Userdata area usage
+> > is exclusive to userspace.
+> 
+> You mean nft_set_elem_flags? The new flag will indeed be used by
+> userspace only: It is set when creating a half-open range and not used
+> by the kernel at all.
 
-Fix this by checking that the parent directory of the entry to remove
-hasn't already been deleted.
-
-The following triggers a KASAN splat (stealing the reproducer from
-202f59afd441, thanks to Jianlin Shi and Xin Long):
-
-    ip netns add test
-    ip link add veth0_in type veth peer name veth0_out
-    ip link set veth0_in netns test
-    ip netns exec test ip link set lo up
-    ip netns exec test ip link set veth0_in up
-    ip netns exec test iptables -I INPUT -d 1.2.3.4 -i veth0_in -j     \
-        CLUSTERIP --new --clustermac 89:d4:47:eb:9a:fa --total-nodes 3 \
-        --local-node 1 --hashmode sourceip-sourceport
-    ip netns del test
-
-Fixes: ce4ff76c15a8 ("netfilter: ipt_CLUSTERIP: make proc directory per net namespace")
-Signed-off-by: Sabrina Dubroca <sd@queasysnail.net>
----
- net/ipv4/netfilter/ipt_CLUSTERIP.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 7d72decb80f9..efaa04dcc80e 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -117,7 +117,8 @@ clusterip_config_entry_put(struct net *net, struct clusterip_config *c)
- 		 * functions are also incrementing the refcount on their own,
- 		 * so it's safe to remove the entry even if it's in use. */
- #ifdef CONFIG_PROC_FS
--		proc_remove(c->pde);
-+		if (cn->procdir)
-+			proc_remove(c->pde);
- #endif
- 		return;
- 	}
-@@ -815,6 +816,7 @@ static void clusterip_net_exit(struct net *net)
- #ifdef CONFIG_PROC_FS
- 	struct clusterip_net *cn = net_generic(net, clusterip_net_id);
- 	proc_remove(cn->procdir);
-+	cn->procdir = NULL;
- #endif
- 	nf_unregister_net_hook(net, &cip_arp_ops);
- }
--- 
-2.13.2
-
+That's fine indeed.
