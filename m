@@ -1,84 +1,197 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH 1/2] monitor: Rewrite SETELEM callback
-Date: Tue, 18 Jul 2017 16:32:30 +0200
-Message-ID: <20170718143230.GA6745@salvia>
-References: <20170717150606.32097-1-phil@nwl.cc>
- <20170717150606.32097-2-phil@nwl.cc>
- <20170717163018.GA1244@salvia>
- <20170717164114.GR16375@orbyte.nwl.cc>
- <20170717171629.GA2221@salvia>
- <20170718090516.GU16375@orbyte.nwl.cc>
- <20170718090937.GA1114@salvia>
- <20170718091726.GW16375@orbyte.nwl.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+From: Phil Sutter <phil@nwl.cc>
+Subject: [nft PATCH 1/3] segtree: Introduce flag for half-open range elements
+Date: Tue, 18 Jul 2017 17:40:27 +0200
+Message-ID: <20170718154029.23976-2-phil@nwl.cc>
+References: <20170718154029.23976-1-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org,
         Arturo Borrero Gonzalez <arturo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42174 "EHLO mail.us.es"
+Received: from orbyte.nwl.cc ([151.80.46.58]:56025 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751457AbdGROcv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 18 Jul 2017 10:32:51 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6032E523DF
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2017 16:32:37 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4527FD1CA9
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2017 16:32:37 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 294ABDA80E
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2017 16:32:35 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20170718091726.GW16375@orbyte.nwl.cc>
+        id S1751338AbdGRPkm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Jul 2017 11:40:42 -0400
+In-Reply-To: <20170718154029.23976-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jul 18, 2017 at 11:17:26AM +0200, Phil Sutter wrote:
-> On Tue, Jul 18, 2017 at 11:09:37AM +0200, Pablo Neira Ayuso wrote:
-> > On Tue, Jul 18, 2017 at 11:05:16AM +0200, Phil Sutter wrote:
-> > > On Mon, Jul 17, 2017 at 07:16:29PM +0200, Pablo Neira Ayuso wrote:
-> > > > On Mon, Jul 17, 2017 at 06:41:14PM +0200, Phil Sutter wrote:
-> > > > > On Mon, Jul 17, 2017 at 06:30:18PM +0200, Pablo Neira Ayuso wrote:
-> > > > > > On Mon, Jul 17, 2017 at 05:06:05PM +0200, Phil Sutter wrote:
-> > > > > > [...]
-> > > > > > > +static int netlink_events_setelem_newgen_cb(const struct nlmsghdr *nlh,
-> > > > > > > +					    int type,
-> > > > > > > +					    struct netlink_mon_handler *monh)
-> > > > > > > +{
-> > > > > > > +	setelem_cache_print_default(monh);
-> > > > > > > +
-> > > > > > > +	return MNL_CB_OK;
-> > > > > > >  }
-> > > > > > 
-> > > > > > I would really like we don't rely on newgen for this. If there is no
-> > > > > > way to catch a case with the existing way we represent this, then we
-> > > > > > probably need to fix things from the kernel.
-> > > > > > 
-> > > > > > Before we follow that patch, I would like to understand what corner
-> > > > > > case is pushing us to use the newgen event.
-> > > > > 
-> > > > > It is required for half-open ranges occurring at the end of the
-> > > > > transaction: For those, we only get a single element without
-> > > > > EXPR_F_INTERVAL_END flag set. Since this could also be the first part of
-> > > > > a regular range, monitor has to wait for what's next - which is in doubt
-> > > > > only the NEWGEN message.
-> > > > > 
-> > > > > Maybe we could introduce a new flag to mark these?
-> > > > 
-> > > > Right, I think we need the new flag indeed, only for userspace.
-> > > > 
-> > > > Would you propose one and the specific semantics for it?
-> > > 
-> > > My current PoC passes the additional flag as userdata attribute so the
-> > > kernel won't reject the element due to unknown flag. Is that fine with
-> > > you? I'm trying to avoid changing the kernel so the solution is
-> > > backwards compatible.
-> > 
-> > I suggest you add a new flag to SET_ELEM instead. Userdata area usage
-> > is exclusive to userspace.
-> 
-> You mean nft_set_elem_flags? The new flag will indeed be used by
-> userspace only: It is set when creating a half-open range and not used
-> by the kernel at all.
+This flag is required by userspace only, so can live within userdata.
+It's sole purpose is for 'nft monitor' to detect half-open ranges (which
+are comprised of a single element only).
 
-That's fine indeed.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ include/expression.h |  1 +
+ include/rule.h       |  7 ++++++
+ src/netlink.c        | 66 ++++++++++++++++++++++++++++++++++++++--------------
+ src/segtree.c        |  5 ++++
+ 4 files changed, 62 insertions(+), 17 deletions(-)
+
+diff --git a/include/expression.h b/include/expression.h
+index 68a36e8af792a..202eb4c140eda 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -180,6 +180,7 @@ enum expr_flags {
+ 	EXPR_F_PROTOCOL		= 0x4,
+ 	EXPR_F_INTERVAL_END	= 0x8,
+ 	EXPR_F_BOOLEAN		= 0x10,
++	EXPR_F_INTERVAL_OPEN	= 0x20,
+ };
+ 
+ #include <payload.h>
+diff --git a/include/rule.h b/include/rule.h
+index 7424b21c6e019..592c93ddd0e2f 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -503,4 +503,11 @@ enum udata_set_type {
+ };
+ #define UDATA_SET_MAX (__UDATA_SET_MAX - 1)
+ 
++enum udata_set_elem_type {
++	UDATA_SET_ELEM_COMMENT,
++	UDATA_SET_ELEM_FLAGS,
++	__UDATA_SET_ELEM_MAX,
++};
++#define UDATA_SET_ELEM_MAX (__UDATA_SET_ELEM_MAX - 1)
++
+ #endif /* NFTABLES_RULE_H */
+diff --git a/src/netlink.c b/src/netlink.c
+index 2e30622de4bb1..be26188e097aa 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -211,7 +211,7 @@ static struct nftnl_set_elem *alloc_nftnl_setelem(const struct expr *set,
+ 	const struct expr *elem, *key, *data;
+ 	struct nftnl_set_elem *nlse;
+ 	struct nft_data_linearize nld;
+-	struct nftnl_udata_buf *udbuf;
++	struct nftnl_udata_buf *udbuf = NULL;
+ 
+ 	nlse = nftnl_set_elem_alloc();
+ 	if (nlse == NULL)
+@@ -232,13 +232,22 @@ static struct nftnl_set_elem *alloc_nftnl_setelem(const struct expr *set,
+ 	if (elem->timeout)
+ 		nftnl_set_elem_set_u64(nlse, NFTNL_SET_ELEM_TIMEOUT,
+ 				       elem->timeout);
+-	if (elem->comment) {
++	if (elem->comment || expr->flags & EXPR_F_INTERVAL_OPEN) {
+ 		udbuf = nftnl_udata_buf_alloc(NFT_USERDATA_MAXLEN);
+ 		if (!udbuf)
+ 			memory_allocation_error();
+-		if (!nftnl_udata_put_strz(udbuf, UDATA_TYPE_COMMENT,
++	}
++	if (elem->comment) {
++		if (!nftnl_udata_put_strz(udbuf, UDATA_SET_ELEM_COMMENT,
+ 					  elem->comment))
+ 			memory_allocation_error();
++	}
++	if (expr->flags & EXPR_F_INTERVAL_OPEN) {
++		if (!nftnl_udata_put_u32(udbuf, UDATA_SET_ELEM_FLAGS,
++					 EXPR_F_INTERVAL_OPEN))
++			memory_allocation_error();
++	}
++	if (udbuf) {
+ 		nftnl_set_elem_set(nlse, NFTNL_SET_ELEM_USERDATA,
+ 				   nftnl_udata_buf_data(udbuf),
+ 				   nftnl_udata_buf_len(udbuf));
+@@ -1603,17 +1612,45 @@ static int parse_udata_cb(const struct nftnl_udata *attr, void *data)
+ 	return 0;
+ }
+ 
+-static char *udata_get_comment(const void *data, uint32_t data_len)
++static int set_elem_parse_udata_cb(const struct nftnl_udata *attr, void *data)
+ {
+-	const struct nftnl_udata *tb[UDATA_TYPE_MAX + 1] = {};
++	const struct nftnl_udata **tb = data;
++	unsigned char *value = nftnl_udata_get(attr);
++	uint8_t type = nftnl_udata_type(attr);
++	uint8_t len = nftnl_udata_len(attr);
+ 
+-	if (nftnl_udata_parse(data, data_len, parse_udata_cb, tb) < 0)
+-		return NULL;
++	switch (type) {
++	case UDATA_SET_ELEM_COMMENT:
++		if (value[len - 1] != '\0')
++			return -1;
++		break;
++	case UDATA_SET_ELEM_FLAGS:
++		if (len != sizeof(uint32_t))
++			return -1;
++		break;
++	default:
++		return 0;
++	}
++	tb[type] = attr;
++	return 0;
++}
+ 
+-	if (!tb[UDATA_TYPE_COMMENT])
+-		return NULL;
++static void set_elem_parse_udata(struct nftnl_set_elem *nlse,
++				 struct expr *expr)
++{
++	const struct nftnl_udata *ud[UDATA_SET_ELEM_MAX + 1] = {};
++	const void *data;
++	uint32_t len;
+ 
+-	return xstrdup(nftnl_udata_get(tb[UDATA_TYPE_COMMENT]));
++	data = nftnl_set_elem_get(nlse, NFTNL_SET_ELEM_USERDATA, &len);
++	if (nftnl_udata_parse(data, len, set_elem_parse_udata_cb, ud))
++		return;
++
++	if (ud[UDATA_SET_ELEM_COMMENT])
++		expr->comment =
++			xstrdup(nftnl_udata_get(ud[UDATA_SET_ELEM_COMMENT]));
++	if (ud[UDATA_SET_ELEM_FLAGS])
++		expr->flags |= nftnl_udata_get_u32(ud[UDATA_SET_ELEM_FLAGS]);
+ }
+ 
+ static int netlink_delinearize_setelem(struct nftnl_set_elem *nlse,
+@@ -1647,13 +1684,8 @@ static int netlink_delinearize_setelem(struct nftnl_set_elem *nlse,
+ 		expr->timeout	 = nftnl_set_elem_get_u64(nlse, NFTNL_SET_ELEM_TIMEOUT);
+ 	if (nftnl_set_elem_is_set(nlse, NFTNL_SET_ELEM_EXPIRATION))
+ 		expr->expiration = nftnl_set_elem_get_u64(nlse, NFTNL_SET_ELEM_EXPIRATION);
+-	if (nftnl_set_elem_is_set(nlse, NFTNL_SET_ELEM_USERDATA)) {
+-		const void *data;
+-		uint32_t len;
+-
+-		data = nftnl_set_elem_get(nlse, NFTNL_SET_ELEM_USERDATA, &len);
+-		expr->comment = udata_get_comment(data, len);
+-	}
++	if (nftnl_set_elem_is_set(nlse, NFTNL_SET_ELEM_USERDATA))
++		set_elem_parse_udata(nlse, expr);
+ 	if (nftnl_set_elem_is_set(nlse, NFTNL_SET_ELEM_EXPR)) {
+ 		const struct nftnl_expr *nle;
+ 
+diff --git a/src/segtree.c b/src/segtree.c
+index f53536210018d..de98600bf1bcc 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -37,6 +37,7 @@ struct seg_tree {
+ 
+ enum elementary_interval_flags {
+ 	EI_F_INTERVAL_END	= 0x1,
++	EI_F_INTERVAL_OPEN	= 0x2,
+ };
+ 
+ /**
+@@ -512,6 +513,8 @@ static void segtree_linearize(struct list_head *list, const struct set *set,
+ 		mpz_bitmask(q, tree->keylen);
+ 		nei = ei_alloc(p, q, NULL, EI_F_INTERVAL_END);
+ 		list_add_tail(&nei->list, list);
++	} else {
++		prev->flags |= EI_F_INTERVAL_OPEN;
+ 	}
+ 
+ 	mpz_clear(p);
+@@ -538,6 +541,8 @@ static void set_insert_interval(struct expr *set, struct seg_tree *tree,
+ 
+ 	if (ei->flags & EI_F_INTERVAL_END)
+ 		expr->flags |= EXPR_F_INTERVAL_END;
++	if (ei->flags & EI_F_INTERVAL_OPEN)
++		expr->flags |= EXPR_F_INTERVAL_OPEN;
+ 
+ 	compound_expr_add(set, expr);
+ }
+-- 
+2.13.1
+
