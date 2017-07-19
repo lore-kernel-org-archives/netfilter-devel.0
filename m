@@ -1,31 +1,47 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/5] Netfilter fixes for net
-Date: Tue, 18 Jul 2017 14:54:31 -0700 (PDT)
-Message-ID: <20170718.145431.917938736055432958.davem@davemloft.net>
-References: <1500372839-6735-1-git-send-email-pablo@netfilter.org>
-        <20170718.120340.1012556068669757824.davem@davemloft.net>
-        <20170718211157.GA5832@breakpoint.cc>
+From: Xin Long <lucien.xin@gmail.com>
+Subject: Re: [PATCH nf] netfilter: ipt_CLUSTERIP: fix use-after-free of proc entry
+Date: Wed, 19 Jul 2017 12:29:58 +1200
+Message-ID: <CADvbK_f8Ya17-nmXLatEqEXFU6+bo=nOjFW1yn8oZcRGYG5u8Q@mail.gmail.com>
+References: <dcf5953ca3d90bddf3b496d7bb86c9d30f7069f4.1500381553.git.sd@queasysnail.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        netdev@vger.kernel.org
-To: fw@strlen.de
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170718211157.GA5832@breakpoint.cc>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Cc: netfilter-devel@vger.kernel.org
+To: Sabrina Dubroca <sd@queasysnail.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:35668 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751969AbdGSA37 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 18 Jul 2017 20:29:59 -0400
+Received: by mail-qk0-f195.google.com with SMTP id t186so2860775qkf.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Jul 2017 17:29:59 -0700 (PDT)
+In-Reply-To: <dcf5953ca3d90bddf3b496d7bb86c9d30f7069f4.1500381553.git.sd@queasysnail.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
-Date: Tue, 18 Jul 2017 23:11:57 +0200
+On Wed, Jul 19, 2017 at 12:56 AM, Sabrina Dubroca <sd@queasysnail.net> wrote:
+> When we delete a netns with a CLUSTERIP rule, clusterip_net_exit() is
+> called first, removing /proc/net/ipt_CLUSTERIP.
+> Then clusterip_config_entry_put() is called from clusterip_tg_destroy(),
+> and tries to remove its entry under /proc/net/ipt_CLUSTERIP/.
+>
+> Fix this by checking that the parent directory of the entry to remove
+> hasn't already been deleted.
+>
+> The following triggers a KASAN splat (stealing the reproducer from
+> 202f59afd441, thanks to Jianlin Shi and Xin Long):
+>
+>     ip netns add test
+>     ip link add veth0_in type veth peer name veth0_out
+>     ip link set veth0_in netns test
+>     ip netns exec test ip link set lo up
+>     ip netns exec test ip link set veth0_in up
+>     ip netns exec test iptables -I INPUT -d 1.2.3.4 -i veth0_in -j     \
+>         CLUSTERIP --new --clustermac 89:d4:47:eb:9a:fa --total-nodes 3 \
+>         --local-node 1 --hashmode sourceip-sourceport
+>     ip netns del test
+>
+> Fixes: ce4ff76c15a8 ("netfilter: ipt_CLUSTERIP: make proc directory per net namespace")
+> Signed-off-by: Sabrina Dubroca <sd@queasysnail.net>
 
-> David Miller <davem@davemloft.net> wrote:
->> What about that change Eric Dumazet was talking about with Florian
->> that stopped instantiating conntrack by default in new namespaces?
-> 
-> Seems more appropriate for -next.  If you prefer net instead, let me know
-> and I'll get to work.
-
-Yeah it's more on the -next side, albeit annoying.
-
-Ok, so nevermind :)
+Reviewed-by: Xin Long <lucien.xin@gmail.com>
