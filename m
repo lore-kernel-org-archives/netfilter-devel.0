@@ -1,44 +1,74 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nft PATCH v3 2/3] monitor: Fix printing of range elements in
- named sets
-Date: Wed, 19 Jul 2017 20:22:49 +0200
-Message-ID: <20170719182249.GD16375@orbyte.nwl.cc>
-References: <20170719130529.25398-1-phil@nwl.cc>
- <20170719130529.25398-3-phil@nwl.cc>
- <20170719171736.GB18828@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-        Arturo Borrero Gonzalez <arturo@netfilter.org>
+Subject: [nf-next PATCH 1/5] networking: Introduce nla_strdup()
+Date: Thu, 20 Jul 2017 17:24:46 +0200
+Message-ID: <20170720152450.27693-2-phil@nwl.cc>
+References: <20170720152450.27693-1-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:47965 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:56615 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752858AbdGSSWv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 19 Jul 2017 14:22:51 -0400
-Content-Disposition: inline
-In-Reply-To: <20170719171736.GB18828@salvia>
+        id S965193AbdGTPZD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 20 Jul 2017 11:25:03 -0400
+In-Reply-To: <20170720152450.27693-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jul 19, 2017 at 07:17:36PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Jul 19, 2017 at 03:05:28PM +0200, Phil Sutter wrote:
-> > diff --git a/include/rule.h b/include/rule.h
-> > index a25e99bdf4cfd..6acd5fa810ef5 100644
-> > --- a/include/rule.h
-> > +++ b/include/rule.h
-> > @@ -217,6 +217,7 @@ extern struct rule *rule_lookup(const struct chain *chain, uint64_t handle);
-> >   * @datalen:	mapping data len
-> >   * @objtype:	mapping object type
-> >   * @init:	initializer
-> > + * @rg_cache:	cached range element (left)
-> 
-> Just a side note. This field is very much exclusive to event monitor
-> printing, I would prefer this is cached somewhere else, away from the
-> structure, if possible.
+This is similar to strdup() for netlink string attributes.
 
-My solution was to make dummyset static and use it as a cache. Would
-that be acceptible? I went with Arturo's solution since you seemed to
-appreciate it and I didn't want to "steal" his credit. :)
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ include/net/netlink.h |  1 +
+ lib/nlattr.c          | 24 ++++++++++++++++++++++++
+ 2 files changed, 25 insertions(+)
 
-Cheers, Phil
+diff --git a/include/net/netlink.h b/include/net/netlink.h
+index 01709172b3d38..5c1fc1d4b0969 100644
+--- a/include/net/netlink.h
++++ b/include/net/netlink.h
+@@ -247,6 +247,7 @@ int nla_parse(struct nlattr **tb, int maxtype, const struct nlattr *head,
+ int nla_policy_len(const struct nla_policy *, int);
+ struct nlattr *nla_find(const struct nlattr *head, int len, int attrtype);
+ size_t nla_strlcpy(char *dst, const struct nlattr *nla, size_t dstsize);
++char *nla_strdup(const struct nlattr *nla, gfp_t flags);
+ int nla_memcpy(void *dest, const struct nlattr *src, int count);
+ int nla_memcmp(const struct nlattr *nla, const void *data, size_t size);
+ int nla_strcmp(const struct nlattr *nla, const char *str);
+diff --git a/lib/nlattr.c b/lib/nlattr.c
+index a7e0b16078dff..af8716fb8a3bf 100644
+--- a/lib/nlattr.c
++++ b/lib/nlattr.c
+@@ -272,6 +272,30 @@ size_t nla_strlcpy(char *dst, const struct nlattr *nla, size_t dstsize)
+ EXPORT_SYMBOL(nla_strlcpy);
+ 
+ /**
++ * nla_strdup - Copy string attribute payload into a newly allocated buffer
++ * @nla: attribute to copy the string from
++ * @flags: the type of memory to allocate (see kmalloc).
++ *
++ * Returns a pointer to the allocated buffer or NULL on error.
++ */
++char *nla_strdup(const struct nlattr *nla, gfp_t flags)
++{
++	size_t srclen = nla_len(nla);
++	char *src = nla_data(nla), *dst;
++
++	if (srclen > 0 && src[srclen - 1] == '\0')
++		srclen--;
++
++	dst = kmalloc(srclen + 1, flags);
++	if (dst != NULL) {
++		memcpy(dst, src, srclen);
++		dst[srclen] = '\0';
++	}
++	return dst;
++}
++EXPORT_SYMBOL(nla_strdup);
++
++/**
+  * nla_memcpy - Copy a netlink attribute into another memory area
+  * @dest: where to copy to memcpy
+  * @src: netlink attribute to copy from
+-- 
+2.13.1
+
