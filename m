@@ -1,210 +1,174 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [nf-next PATCH 3/5] netfilter: nf_tables: Unlimit chain name length
-Date: Thu, 20 Jul 2017 17:24:48 +0200
-Message-ID: <20170720152450.27693-4-phil@nwl.cc>
+Subject: [nf-next PATCH 4/5] netfilter: nf_tables: Unlimit set name length
+Date: Thu, 20 Jul 2017 17:24:49 +0200
+Message-ID: <20170720152450.27693-5-phil@nwl.cc>
 References: <20170720152450.27693-1-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:34389 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:35911 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965393AbdGTPZJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 20 Jul 2017 11:25:09 -0400
+        id S965361AbdGTPZQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 20 Jul 2017 11:25:16 -0400
 In-Reply-To: <20170720152450.27693-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/net/netfilter/nf_tables.h        |  4 +--
+ include/net/netfilter/nf_tables.h        |  2 +-
  include/uapi/linux/netfilter/nf_tables.h |  1 -
- net/netfilter/nf_tables_api.c            | 43 +++++++++++++++++++++-----------
- net/netfilter/nf_tables_trace.c          |  8 +++---
- 4 files changed, 36 insertions(+), 20 deletions(-)
+ net/netfilter/nf_tables_api.c            | 24 ++++++++++++++++--------
+ net/netfilter/nft_dynset.c               |  3 +--
+ net/netfilter/nft_lookup.c               |  3 +--
+ net/netfilter/nft_objref.c               |  3 +--
+ 6 files changed, 20 insertions(+), 16 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 05ecf78ec0787..be1610162ee02 100644
+index be1610162ee02..66ba62fa7d90e 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -859,7 +859,7 @@ struct nft_chain {
- 	u16				level;
- 	u8				flags:6,
- 					genmask:2;
--	char				name[NFT_CHAIN_MAXNAMELEN];
+@@ -396,7 +396,7 @@ void nft_unregister_set(struct nft_set_type *type);
+ struct nft_set {
+ 	struct list_head		list;
+ 	struct list_head		bindings;
+-	char				name[NFT_SET_MAXNAMELEN];
 +	char				*name;
- };
- 
- enum nft_chain_type {
-@@ -1272,7 +1272,7 @@ struct nft_trans_set {
- 
- struct nft_trans_chain {
- 	bool				update;
--	char				name[NFT_CHAIN_MAXNAMELEN];
-+	char				*name;
- 	struct nft_stats __percpu	*stats;
- 	u8				policy;
- };
+ 	u32				ktype;
+ 	u32				dtype;
+ 	u32				objtype;
 diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 97f339245c446..08349c9faecda 100644
+index 08349c9faecda..343fea07dd4bd 100644
 --- a/include/uapi/linux/netfilter/nf_tables.h
 +++ b/include/uapi/linux/netfilter/nf_tables.h
 @@ -1,7 +1,6 @@
  #ifndef _LINUX_NF_TABLES_H
  #define _LINUX_NF_TABLES_H
  
--#define NFT_CHAIN_MAXNAMELEN	32
- #define NFT_SET_MAXNAMELEN	32
+-#define NFT_SET_MAXNAMELEN	32
  #define NFT_OBJ_MAXNAMELEN	32
  #define NFT_USERDATA_MAXLEN	256
+ 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index d22e8bad123b4..a83438ce89391 100644
+index a83438ce89391..6ec3a58518feb 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -941,8 +941,7 @@ static struct nft_chain *nf_tables_chain_lookup(const struct nft_table *table,
- static const struct nla_policy nft_chain_policy[NFTA_CHAIN_MAX + 1] = {
- 	[NFTA_CHAIN_TABLE]	= { .type = NLA_STRING },
- 	[NFTA_CHAIN_HANDLE]	= { .type = NLA_U64 },
--	[NFTA_CHAIN_NAME]	= { .type = NLA_STRING,
--				    .len = NFT_CHAIN_MAXNAMELEN - 1 },
-+	[NFTA_CHAIN_NAME]	= { .type = NLA_STRING },
- 	[NFTA_CHAIN_HOOK]	= { .type = NLA_NESTED },
- 	[NFTA_CHAIN_POLICY]	= { .type = NLA_U32 },
- 	[NFTA_CHAIN_TYPE]	= { .type = NLA_STRING },
-@@ -1246,8 +1245,10 @@ static void nf_tables_chain_destroy(struct nft_chain *chain)
- 		free_percpu(basechain->stats);
- 		if (basechain->ops[0].dev != NULL)
- 			dev_put(basechain->ops[0].dev);
-+		kfree(chain->name);
- 		kfree(basechain);
- 	} else {
-+		kfree(chain->name);
- 		kfree(chain);
+@@ -2537,8 +2537,7 @@ nft_select_set_ops(const struct nft_ctx *ctx,
+ 
+ static const struct nla_policy nft_set_policy[NFTA_SET_MAX + 1] = {
+ 	[NFTA_SET_TABLE]		= { .type = NLA_STRING },
+-	[NFTA_SET_NAME]			= { .type = NLA_STRING,
+-					    .len = NFT_SET_MAXNAMELEN - 1 },
++	[NFTA_SET_NAME]			= { .type = NLA_STRING },
+ 	[NFTA_SET_FLAGS]		= { .type = NLA_U32 },
+ 	[NFTA_SET_KEY_TYPE]		= { .type = NLA_U32 },
+ 	[NFTA_SET_KEY_LEN]		= { .type = NLA_U32 },
+@@ -2649,7 +2648,7 @@ static int nf_tables_set_alloc_name(struct nft_ctx *ctx, struct nft_set *set,
+ 	unsigned long *inuse;
+ 	unsigned int n = 0, min = 0;
+ 
+-	p = strnchr(name, NFT_SET_MAXNAMELEN, '%');
++	p = strchr(name, '%');
+ 	if (p != NULL) {
+ 		if (p[1] != 'd' || strchr(p + 2, '%'))
+ 			return -EINVAL;
+@@ -2680,7 +2679,10 @@ static int nf_tables_set_alloc_name(struct nft_ctx *ctx, struct nft_set *set,
+ 		free_page((unsigned long)inuse);
  	}
- }
-@@ -1472,8 +1473,13 @@ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
- 			nft_trans_chain_policy(trans) = -1;
  
- 		if (nla[NFTA_CHAIN_HANDLE] && name) {
--			nla_strlcpy(nft_trans_chain_name(trans), name,
--				    NFT_CHAIN_MAXNAMELEN);
-+			nft_trans_chain_name(trans) =
-+				nla_strdup(name, GFP_KERNEL);
-+			if (!nft_trans_chain_name(trans)) {
-+				kfree(trans);
-+				free_percpu(stats);
-+				return -ENOMEM;
-+			}
- 		}
- 		list_add_tail(&trans->list, &net->nft.commit_list);
- 		return 0;
-@@ -1547,7 +1553,11 @@ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
- 	INIT_LIST_HEAD(&chain->rules);
- 	chain->handle = nf_tables_alloc_handle(table);
- 	chain->table = table;
--	nla_strlcpy(chain->name, name, NFT_CHAIN_MAXNAMELEN);
-+	chain->name = nla_strdup(name, GFP_KERNEL);
-+	if (!chain->name) {
-+		err = -ENOMEM;
-+		goto err1;
-+	}
- 
- 	err = nf_tables_register_hooks(net, table, chain, afi->nops);
- 	if (err < 0)
-@@ -1877,8 +1887,7 @@ static struct nft_rule *nf_tables_rule_lookup(const struct nft_chain *chain,
- 
- static const struct nla_policy nft_rule_policy[NFTA_RULE_MAX + 1] = {
- 	[NFTA_RULE_TABLE]	= { .type = NLA_STRING },
--	[NFTA_RULE_CHAIN]	= { .type = NLA_STRING,
--				    .len = NFT_CHAIN_MAXNAMELEN - 1 },
-+	[NFTA_RULE_CHAIN]	= { .type = NLA_STRING },
- 	[NFTA_RULE_HANDLE]	= { .type = NLA_U64 },
- 	[NFTA_RULE_EXPRESSIONS]	= { .type = NLA_NESTED },
- 	[NFTA_RULE_COMPAT]	= { .type = NLA_NESTED },
-@@ -1981,7 +1990,7 @@ static void nf_tables_rule_notify(const struct nft_ctx *ctx,
- 
- struct nft_rule_dump_ctx {
- 	char *table;
--	char chain[NFT_CHAIN_MAXNAMELEN];
-+	char *chain;
- };
- 
- static int nf_tables_dump_rules(struct sk_buff *skb,
-@@ -2049,6 +2058,7 @@ static int nf_tables_dump_rules_done(struct netlink_callback *cb)
- 
- 	if (ctx) {
- 		kfree(ctx->table);
-+		kfree(ctx->chain);
- 		kfree(ctx);
- 	}
- 	return 0;
-@@ -2090,9 +2100,15 @@ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
- 					return -ENOMEM;
- 				}
- 			}
--			if (nla[NFTA_RULE_CHAIN])
--				nla_strlcpy(ctx->chain, nla[NFTA_RULE_CHAIN],
--					    sizeof(ctx->chain));
-+			if (nla[NFTA_RULE_CHAIN]) {
-+				ctx->chain = nla_strdup(nla[NFTA_RULE_CHAIN],
-+							GFP_KERNEL);
-+				if (!ctx->chain) {
-+					kfree(ctx->table);
-+					kfree(ctx);
-+					return -ENOMEM;
-+				}
-+			}
- 			c.data = ctx;
- 		}
- 
-@@ -4859,7 +4875,7 @@ static void nft_chain_commit_update(struct nft_trans *trans)
- {
- 	struct nft_base_chain *basechain;
- 
--	if (nft_trans_chain_name(trans)[0])
-+	if (nft_trans_chain_name(trans))
- 		strcpy(trans->ctx.chain->name, nft_trans_chain_name(trans));
- 
- 	if (!nft_is_base_chain(trans->ctx.chain))
-@@ -5457,8 +5473,7 @@ EXPORT_SYMBOL_GPL(nft_validate_register_store);
- 
- static const struct nla_policy nft_verdict_policy[NFTA_VERDICT_MAX + 1] = {
- 	[NFTA_VERDICT_CODE]	= { .type = NLA_U32 },
--	[NFTA_VERDICT_CHAIN]	= { .type = NLA_STRING,
--				    .len = NFT_CHAIN_MAXNAMELEN - 1 },
-+	[NFTA_VERDICT_CHAIN]	= { .type = NLA_STRING },
- };
- 
- static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
-diff --git a/net/netfilter/nf_tables_trace.c b/net/netfilter/nf_tables_trace.c
-index e95098c1faaf0..37e664baeb18c 100644
---- a/net/netfilter/nf_tables_trace.c
-+++ b/net/netfilter/nf_tables_trace.c
-@@ -175,12 +175,10 @@ void nft_trace_notify(struct nft_traceinfo *info)
- 		return;
- 
- 	size = nlmsg_total_size(sizeof(struct nfgenmsg)) +
--		nla_total_size(NFT_CHAIN_MAXNAMELEN) +
- 		nla_total_size_64bit(sizeof(__be64)) +	/* rule handle */
- 		nla_total_size(sizeof(__be32)) +	/* trace type */
- 		nla_total_size(0) +			/* VERDICT, nested */
- 			nla_total_size(sizeof(u32)) +	/* verdict code */
--			nla_total_size(NFT_CHAIN_MAXNAMELEN) + /* jump target */
- 		nla_total_size(sizeof(u32)) +		/* id */
- 		nla_total_size(NFT_TRACETYPE_LL_HSIZE) +
- 		nla_total_size(NFT_TRACETYPE_NETWORK_HSIZE) +
-@@ -194,7 +192,11 @@ void nft_trace_notify(struct nft_traceinfo *info)
- 		nla_total_size(sizeof(u32));		/* policy */
- 
- 	if (info->chain)
--		size += nla_total_size(strlen(info->chain->table->name));
-+		size += nla_total_size(strlen(info->chain->table->name)) +
-+			nla_total_size(strlen(info->chain->name));
+-	snprintf(set->name, sizeof(set->name), name, min + n);
++	set->name = kasprintf(GFP_KERNEL, name, min + n);
++	if (!set->name)
++		return -ENOMEM;
 +
-+	if (info->verdict->chain)
-+		size += nla_total_size(strlen(info->verdict->chain->name)); /* jump target */
+ 	list_for_each_entry(i, &ctx->table->sets, list) {
+ 		if (!nft_is_active_next(ctx->net, i))
+ 			continue;
+@@ -2957,7 +2959,7 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 	struct nft_table *table;
+ 	struct nft_set *set;
+ 	struct nft_ctx ctx;
+-	char name[NFT_SET_MAXNAMELEN];
++	char *name;
+ 	unsigned int size;
+ 	bool create;
+ 	u64 timeout;
+@@ -3103,8 +3105,14 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+ 		goto err1;
+ 	}
  
- 	skb = nlmsg_new(size, GFP_ATOMIC);
- 	if (!skb)
+-	nla_strlcpy(name, nla[NFTA_SET_NAME], sizeof(set->name));
++	name = nla_strdup(nla[NFTA_SET_NAME], GFP_KERNEL);
++	if (!name) {
++		err = -ENOMEM;
++		goto err2;
++	}
++
+ 	err = nf_tables_set_alloc_name(&ctx, set, name);
++	kfree(name);
+ 	if (err < 0)
+ 		goto err2;
+ 
+@@ -3154,6 +3162,7 @@ static void nft_set_destroy(struct nft_set *set)
+ {
+ 	set->ops->destroy(set);
+ 	module_put(set->ops->type->owner);
++	kfree(set->name);
+ 	kvfree(set);
+ }
+ 
+@@ -3303,8 +3312,7 @@ static const struct nla_policy nft_set_elem_policy[NFTA_SET_ELEM_MAX + 1] = {
+ 
+ static const struct nla_policy nft_set_elem_list_policy[NFTA_SET_ELEM_LIST_MAX + 1] = {
+ 	[NFTA_SET_ELEM_LIST_TABLE]	= { .type = NLA_STRING },
+-	[NFTA_SET_ELEM_LIST_SET]	= { .type = NLA_STRING,
+-					    .len = NFT_SET_MAXNAMELEN - 1 },
++	[NFTA_SET_ELEM_LIST_SET]	= { .type = NLA_STRING },
+ 	[NFTA_SET_ELEM_LIST_ELEMENTS]	= { .type = NLA_NESTED },
+ 	[NFTA_SET_ELEM_LIST_SET_ID]	= { .type = NLA_U32 },
+ };
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index 66221ad891a9f..fa280e315077c 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -97,8 +97,7 @@ static void nft_dynset_eval(const struct nft_expr *expr,
+ }
+ 
+ static const struct nla_policy nft_dynset_policy[NFTA_DYNSET_MAX + 1] = {
+-	[NFTA_DYNSET_SET_NAME]	= { .type = NLA_STRING,
+-				    .len = NFT_SET_MAXNAMELEN - 1 },
++	[NFTA_DYNSET_SET_NAME]	= { .type = NLA_STRING },
+ 	[NFTA_DYNSET_SET_ID]	= { .type = NLA_U32 },
+ 	[NFTA_DYNSET_OP]	= { .type = NLA_U32 },
+ 	[NFTA_DYNSET_SREG_KEY]	= { .type = NLA_U32 },
+diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
+index 475570e89ede7..cc073d8736681 100644
+--- a/net/netfilter/nft_lookup.c
++++ b/net/netfilter/nft_lookup.c
+@@ -49,8 +49,7 @@ static void nft_lookup_eval(const struct nft_expr *expr,
+ }
+ 
+ static const struct nla_policy nft_lookup_policy[NFTA_LOOKUP_MAX + 1] = {
+-	[NFTA_LOOKUP_SET]	= { .type = NLA_STRING,
+-				    .len = NFT_SET_MAXNAMELEN - 1 },
++	[NFTA_LOOKUP_SET]	= { .type = NLA_STRING },
+ 	[NFTA_LOOKUP_SET_ID]	= { .type = NLA_U32 },
+ 	[NFTA_LOOKUP_SREG]	= { .type = NLA_U32 },
+ 	[NFTA_LOOKUP_DREG]	= { .type = NLA_U32 },
+diff --git a/net/netfilter/nft_objref.c b/net/netfilter/nft_objref.c
+index 1dd428fbaaa3f..a242f2700c2e8 100644
+--- a/net/netfilter/nft_objref.c
++++ b/net/netfilter/nft_objref.c
+@@ -191,8 +191,7 @@ static const struct nla_policy nft_objref_policy[NFTA_OBJREF_MAX + 1] = {
+ 				    .len = NFT_OBJ_MAXNAMELEN - 1 },
+ 	[NFTA_OBJREF_IMM_TYPE]	= { .type = NLA_U32 },
+ 	[NFTA_OBJREF_SET_SREG]	= { .type = NLA_U32 },
+-	[NFTA_OBJREF_SET_NAME]	= { .type = NLA_STRING,
+-				    .len = NFT_SET_MAXNAMELEN - 1 },
++	[NFTA_OBJREF_SET_NAME]	= { .type = NLA_STRING },
+ 	[NFTA_OBJREF_SET_ID]	= { .type = NLA_U32 },
+ };
+ 
 -- 
 2.13.1
 
