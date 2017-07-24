@@ -1,7 +1,7 @@
 From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: [PATCH net-next 3/6] benet: fix set but not used warning
-Date: Mon, 24 Jul 2017 10:25:20 -0700
-Message-ID: <20170724172523.13135-4-sthemmin@microsoft.com>
+Subject: [PATCH net-next 4/6] netfilter: remove unused variable
+Date: Mon, 24 Jul 2017 10:25:21 -0700
+Message-ID: <20170724172523.13135-5-sthemmin@microsoft.com>
 References: <20170724172523.13135-1-sthemmin@microsoft.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -17,27 +17,25 @@ In-Reply-To: <20170724172523.13135-1-sthemmin@microsoft.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-warning: variable ‘netdev’ set but not used
+warning: ‘recent_old_fops’ defined but not used
 
 Signed-off-by: Stephen Hemminger <sthemmin@microsoft.com>
 ---
- drivers/net/ethernet/emulex/benet/be_roce.c | 3 ---
- 1 file changed, 3 deletions(-)
+ net/netfilter/xt_recent.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/emulex/benet/be_roce.c b/drivers/net/ethernet/emulex/benet/be_roce.c
-index 2b62841c4c63..05989aafaf32 100644
---- a/drivers/net/ethernet/emulex/benet/be_roce.c
-+++ b/drivers/net/ethernet/emulex/benet/be_roce.c
-@@ -139,10 +139,7 @@ int be_roce_register_driver(struct ocrdma_driver *drv)
- 	}
- 	ocrdma_drv = drv;
- 	list_for_each_entry(dev, &be_adapter_list, entry) {
--		struct net_device *netdev;
--
- 		_be_roce_dev_add(dev);
--		netdev = dev->netdev;
- 	}
- 	mutex_unlock(&be_adapter_list_lock);
- 	return 0;
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+index 3f6c4fa78bdb..245fa350a7a8 100644
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -106,7 +106,7 @@ static DEFINE_SPINLOCK(recent_lock);
+ static DEFINE_MUTEX(recent_mutex);
+ 
+ #ifdef CONFIG_PROC_FS
+-static const struct file_operations recent_old_fops, recent_mt_fops;
++static const struct file_operations recent_mt_fops;
+ #endif
+ 
+ static u_int32_t hash_rnd __read_mostly;
 -- 
 2.11.0
