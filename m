@@ -1,259 +1,76 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 1/4] netfilter: expect: add and use nf_ct_expect_iterate helpers
-Date: Mon, 24 Jul 2017 18:57:21 +0200
-Message-ID: <20170724165724.10576-2-fw@strlen.de>
+Subject: [PATCH nf-next 3/4] netfilter: conntrack: destroy functions need to free queued packets
+Date: Mon, 24 Jul 2017 18:57:23 +0200
+Message-ID: <20170724165724.10576-4-fw@strlen.de>
 References: <20170724165724.10576-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:48304 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:48308 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753776AbdGXQ5J (ORCPT
+        by vger.kernel.org with ESMTP id S932731AbdGXQ5M (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Jul 2017 12:57:09 -0400
+        Mon, 24 Jul 2017 12:57:12 -0400
 In-Reply-To: <20170724165724.10576-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We have several spots that open-code a expect walk, add a helper
-that is similar to nf_ct_iterate_destroy/nf_ct_iterate_cleanup.
+queued skbs might be using conntrack extensions that are being removed,
+such as timeout.  This happens for skbs that have a skb->nfct in
+unconfirmed state (i.e., not in hash table yet).
+
+This is destructive, but there are only two use cases:
+ - module removal (rare)
+ - netns cleanup (most likely no conntracks exist, and if they do,
+   they are removed anyway later on).
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack_expect.h |  5 +++
- net/netfilter/nf_conntrack_expect.c         | 54 +++++++++++++++++++++++++
- net/netfilter/nf_conntrack_helper.c         | 34 +++++++---------
- net/netfilter/nf_conntrack_netlink.c        | 63 ++++++++++-------------------
- 4 files changed, 95 insertions(+), 61 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 4 ++++
+ net/netfilter/nf_queue.c          | 1 +
+ 2 files changed, 5 insertions(+)
 
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index 2ba54feaccd8..818def011110 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -107,6 +107,11 @@ void nf_ct_remove_expectations(struct nf_conn *ct);
- void nf_ct_unexpect_related(struct nf_conntrack_expect *exp);
- bool nf_ct_remove_expect(struct nf_conntrack_expect *exp);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index c8b87eaa17a2..258077980a93 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -56,6 +56,8 @@
+ #include <net/netfilter/nf_nat_helper.h>
+ #include <net/netns/hash.h>
  
-+void nf_ct_expect_iterate_destroy(bool (*iter)(struct nf_conntrack_expect *e, void *data), void *data);
-+void nf_ct_expect_iterate_net(struct net *net,
-+			      bool (*iter)(struct nf_conntrack_expect *e, void *data),
-+                              void *data, u32 portid, int report);
++#include "nf_internals.h"
 +
- /* Allocate space for an expectation: this is mandatory before calling
-    nf_ct_expect_related.  You will have to call put afterwards. */
- struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me);
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 899c2c36da13..e65d9b27dd39 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -474,6 +474,60 @@ int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
- }
- EXPORT_SYMBOL_GPL(nf_ct_expect_related_report);
+ #define NF_CONNTRACK_VERSION	"0.5.0"
  
-+void nf_ct_expect_iterate_destroy(bool (*iter)(struct nf_conntrack_expect *e, void *data),
-+				  void *data)
-+{
-+	struct nf_conntrack_expect *exp;
-+	const struct hlist_node *next;
-+	unsigned int i;
-+
-+	spin_lock_bh(&nf_conntrack_expect_lock);
-+
-+	for (i = 0; i < nf_ct_expect_hsize; i++) {
-+		hlist_for_each_entry_safe(exp, next,
-+					  &nf_ct_expect_hash[i],
-+					  hnode) {
-+			if (iter(exp, data) && del_timer(&exp->timeout)) {
-+				nf_ct_unlink_expect(exp);
-+				nf_ct_expect_put(exp);
-+			}
-+		}
-+	}
-+
-+	spin_unlock_bh(&nf_conntrack_expect_lock);
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_expect_iterate_destroy);
-+
-+void nf_ct_expect_iterate_net(struct net *net,
-+			      bool (*iter)(struct nf_conntrack_expect *e, void *data),
-+			      void *data,
-+			      u32 portid, int report)
-+{
-+	struct nf_conntrack_expect *exp;
-+	const struct hlist_node *next;
-+	unsigned int i;
-+
-+	spin_lock_bh(&nf_conntrack_expect_lock);
-+
-+	for (i = 0; i < nf_ct_expect_hsize; i++) {
-+		hlist_for_each_entry_safe(exp, next,
-+					  &nf_ct_expect_hash[i],
-+					  hnode) {
-+
-+			if (!net_eq(nf_ct_exp_net(exp), net))
-+				continue;
-+
-+			if (iter(exp, data) && del_timer(&exp->timeout)) {
-+				nf_ct_unlink_expect_report(exp, portid, report);
-+				nf_ct_expect_put(exp);
-+			}
-+		}
-+	}
-+
-+	spin_unlock_bh(&nf_conntrack_expect_lock);
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_expect_iterate_net);
-+
- #ifdef CONFIG_NF_CONNTRACK_PROCFS
- struct ct_expect_iter_state {
- 	struct seq_net_private p;
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 9129bb3b5153..551a1eddf0fa 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -437,12 +437,22 @@ int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_helper_register);
+ int (*nfnetlink_parse_nat_setup_hook)(struct nf_conn *ct,
+@@ -1695,6 +1697,7 @@ void nf_ct_unconfirmed_destroy(struct net *net)
  
--void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
-+static bool expect_iter_me(struct nf_conntrack_expect *exp, void *data)
- {
--	struct nf_conntrack_expect *exp;
--	const struct hlist_node *next;
--	unsigned int i;
-+	struct nf_conn_help *help = nfct_help(exp->master);
-+	const struct nf_conntrack_helper *me = data;
-+	const struct nf_conntrack_helper *this;
-+
-+	if (exp->helper == me)
-+		return true;
- 
-+	this = rcu_dereference_protected(help->helper,
-+					 lockdep_is_held(&nf_conntrack_expect_lock));
-+	return this == me;
-+}
-+
-+void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
-+{
- 	mutex_lock(&nf_ct_helper_mutex);
- 	hlist_del_rcu(&me->hnode);
- 	nf_ct_helper_count--;
-@@ -453,21 +463,7 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
- 	 */
- 	synchronize_rcu();
- 
--	/* Get rid of expectations */
--	spin_lock_bh(&nf_conntrack_expect_lock);
--	for (i = 0; i < nf_ct_expect_hsize; i++) {
--		hlist_for_each_entry_safe(exp, next,
--					  &nf_ct_expect_hash[i], hnode) {
--			struct nf_conn_help *help = nfct_help(exp->master);
--			if ((rcu_dereference_protected(
--					help->helper,
--					lockdep_is_held(&nf_conntrack_expect_lock)
--					) == me || exp->helper == me))
--				nf_ct_remove_expect(exp);
--		}
--	}
--	spin_unlock_bh(&nf_conntrack_expect_lock);
--
-+	nf_ct_expect_iterate_destroy(expect_iter_me, NULL);
- 	nf_ct_iterate_destroy(unhelp, me);
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 7999e70c3bfb..5eaa4730e700 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2910,6 +2910,21 @@ static int ctnetlink_get_expect(struct net *net, struct sock *ctnl,
- 	return err == -EAGAIN ? -ENOBUFS : err;
- }
- 
-+static bool expect_iter_name(struct nf_conntrack_expect *exp, void *data)
-+{
-+	const struct nf_conn_help *m_help;
-+	const char *name = data;
-+
-+	m_help = nfct_help(exp->master);
-+
-+	return strcmp(m_help->helper->name, name) == 0;
-+}
-+
-+static bool expect_iter_all(struct nf_conntrack_expect *exp, void *data)
-+{
-+	return true;
-+}
-+
- static int ctnetlink_del_expect(struct net *net, struct sock *ctnl,
- 				struct sk_buff *skb, const struct nlmsghdr *nlh,
- 				const struct nlattr * const cda[],
-@@ -2918,10 +2933,8 @@ static int ctnetlink_del_expect(struct net *net, struct sock *ctnl,
- 	struct nf_conntrack_expect *exp;
- 	struct nf_conntrack_tuple tuple;
- 	struct nfgenmsg *nfmsg = nlmsg_data(nlh);
--	struct hlist_node *next;
- 	u_int8_t u3 = nfmsg->nfgen_family;
- 	struct nf_conntrack_zone zone;
--	unsigned int i;
- 	int err;
- 
- 	if (cda[CTA_EXPECT_TUPLE]) {
-@@ -2961,49 +2974,15 @@ static int ctnetlink_del_expect(struct net *net, struct sock *ctnl,
- 		nf_ct_expect_put(exp);
- 	} else if (cda[CTA_EXPECT_HELP_NAME]) {
- 		char *name = nla_data(cda[CTA_EXPECT_HELP_NAME]);
--		struct nf_conn_help *m_help;
- 
--		/* delete all expectations for this helper */
--		spin_lock_bh(&nf_conntrack_expect_lock);
--		for (i = 0; i < nf_ct_expect_hsize; i++) {
--			hlist_for_each_entry_safe(exp, next,
--						  &nf_ct_expect_hash[i],
--						  hnode) {
--
--				if (!net_eq(nf_ct_exp_net(exp), net))
--					continue;
--
--				m_help = nfct_help(exp->master);
--				if (!strcmp(m_help->helper->name, name) &&
--				    del_timer(&exp->timeout)) {
--					nf_ct_unlink_expect_report(exp,
--							NETLINK_CB(skb).portid,
--							nlmsg_report(nlh));
--					nf_ct_expect_put(exp);
--				}
--			}
--		}
--		spin_unlock_bh(&nf_conntrack_expect_lock);
-+		nf_ct_expect_iterate_net(net, expect_iter_name, name,
-+					 NETLINK_CB(skb).portid,
-+					 nlmsg_report(nlh));
- 	} else {
- 		/* This basically means we have to flush everything*/
--		spin_lock_bh(&nf_conntrack_expect_lock);
--		for (i = 0; i < nf_ct_expect_hsize; i++) {
--			hlist_for_each_entry_safe(exp, next,
--						  &nf_ct_expect_hash[i],
--						  hnode) {
--
--				if (!net_eq(nf_ct_exp_net(exp), net))
--					continue;
--
--				if (del_timer(&exp->timeout)) {
--					nf_ct_unlink_expect_report(exp,
--							NETLINK_CB(skb).portid,
--							nlmsg_report(nlh));
--					nf_ct_expect_put(exp);
--				}
--			}
--		}
--		spin_unlock_bh(&nf_conntrack_expect_lock);
-+		nf_ct_expect_iterate_net(net, expect_iter_all, NULL,
-+					 NETLINK_CB(skb).portid,
-+					 nlmsg_report(nlh));
+ 	if (atomic_read(&net->ct.count) > 0) {
+ 		__nf_ct_unconfirmed_destroy(net);
++		nf_queue_nf_hook_drop(net);
+ 		synchronize_net();
  	}
+ }
+@@ -1740,6 +1743,7 @@ nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
+ 		if (atomic_read(&net->ct.count) == 0)
+ 			continue;
+ 		__nf_ct_unconfirmed_destroy(net);
++		nf_queue_nf_hook_drop(net);
+ 	}
+ 	rtnl_unlock();
  
- 	return 0;
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 043850c9d154..4f4d80a58fb5 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -109,6 +109,7 @@ unsigned int nf_queue_nf_hook_drop(struct net *net)
+ 
+ 	return count;
+ }
++EXPORT_SYMBOL_GPL(nf_queue_nf_hook_drop);
+ 
+ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+ 		      struct nf_hook_entry *hook_entry, unsigned int queuenum)
 -- 
 2.13.0
 
