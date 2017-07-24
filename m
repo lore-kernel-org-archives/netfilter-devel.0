@@ -1,99 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH] monitor: Print NEWGEN events
-Date: Mon, 24 Jul 2017 13:17:30 +0200
-Message-ID: <20170724111730.GA6691@salvia>
-References: <20170719143257.3772-1-phil@nwl.cc>
+From: Willy Tarreau <w@1wt.eu>
+Subject: Re: [3.10.y,3.16.y,4.1.y,netfilter/ipvs] please, apply 3c5ab3f395d6
+Date: Mon, 24 Jul 2017 13:51:37 +0200
+Message-ID: <20170724115137.GB31085@1wt.eu>
+References: <20170724095805.GA3807@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Phil Sutter <phil@nwl.cc>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45306 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751649AbdGXLRk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Jul 2017 07:17:40 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 33EBDCA4A1
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jul 2017 13:17:27 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 22C9ADA80E
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jul 2017 13:17:27 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 33279A0AD8
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jul 2017 13:17:21 +0200 (CEST)
+Cc: Ben Hutchings <ben@decadent.org.uk>,
+        "Levin, Alexander (Sasha Levin)" <alexander.levin@verizon.com>,
+        stable@vger.kernel.org, Julian Anastasov <ja@ssi.bg>,
+        netfilter-devel@vger.kernel.org, Simon Horman <horms@verge.net.au>,
+        lvs-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170719143257.3772-1-phil@nwl.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20170724095805.GA3807@salvia>
+Sender: stable-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jul 19, 2017 at 04:32:57PM +0200, Phil Sutter wrote:
-> Now that they contain process information, they're actually interesting.
-> For backwards compatibility, print process information only if it was
-> present in the message.
+Hi Pablo!
 
-Wait, a couple of comments.
+On Mon, Jul 24, 2017 at 11:58:05AM +0200, Pablo Neira Ayuso wrote:
+> Hi Willy, Ben & Sasha,
+> 
+> Please, apply this commit:
+> 
+> commit 3c5ab3f395d66a9e4e937fcfdf6ebc63894f028b
+> Author: Julian Anastasov <ja@ssi.bg>
+> Date:   Sat Apr 29 20:33:09 2017 +0300
+> 
+>     ipvs: SNAT packet replies only for NATed connections
+> 
+> to stable 3.2.y.
+> 
+> Julian made a backport for you, that is available at Netfilter's
+> patchwork:
+> 
+>         http://patchwork.ozlabs.org/patch/789258/
 
-[...]
-> diff --git a/src/netlink.c b/src/netlink.c
-> index e3c90dac8c7a6..44a9806097d00 100644
-> --- a/src/netlink.c
-> +++ b/src/netlink.c
-> @@ -2915,6 +2915,43 @@ static void netlink_events_debug(uint16_t type)
->  #endif /* DEBUG */
->  }
->  
-> +static int netlink_events_newgen_cb(const struct nlmsghdr *nlh, int type,
-> +				    struct netlink_mon_handler *monh)
-> +{
-> +	const struct nlattr *attr;
-> +	char name[256] = "";
-> +	int genid, pid = -1;
-> +
-> +	mnl_attr_for_each(attr, nlh, sizeof(struct nfgenmsg)) {
-> +		switch (mnl_attr_get_type(attr)) {
-> +		case NFTA_GEN_ID:
-> +			if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
-> +				break;
-
-I think it's better to hit netlink_abi_error() error. If validation
-fails, it means someone in the kernel has accidentally changed the
-size/type of this attribute. This it's basically breaking the ABI.
-Better bail out here so people come to us so we quickly fix this.
-
-> +			genid = ntohl(mnl_attr_get_u32(attr));
-> +			break;
-> +		case NFTA_GEN_PROC_NAME:
-> +			if (mnl_attr_validate(attr, MNL_TYPE_NUL_STRING) < 0)
-> +				break;
-> +			strncpy(name, mnl_attr_get_str(attr), sizeof(name));
-
-What is maximum process name length? If we hit this bound, we have to
-make sure this does:
-
-                        name[X - 1] = '\0';
-
-Where X is the name buffer size.
-
-> +			break;
-> +		case NFTA_GEN_PROC_ID:
-> +			if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
-> +				break;
-> +			pid = ntohl(mnl_attr_get_u32(attr));
-> +			break;
-> +		}
-> +	}
-> +	printf("new generation %d", genid);
-
-Please, prepend '#' to this message.
-
-> +	if (pid >= 0) {
-> +		printf(" by process %d", pid);
-> +		if (!monh->ctx->octx->numeric)
-> +			printf(" (%s)", name);
-> +	}
-> +	printf("\n");
-> +
-> +	return MNL_CB_OK;
-> +}
-
-Thanks!
+Now queued for 3.10.107, thanks!
+Willy
