@@ -1,103 +1,37 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 4/4] netfilter: nfnetlink_queue: don't queue dying conntracks to userspace
-Date: Mon, 24 Jul 2017 18:57:24 +0200
-Message-ID: <20170724165724.10576-5-fw@strlen.de>
-References: <20170724165724.10576-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:48310 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932700AbdGXQ5N (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Jul 2017 12:57:13 -0400
-In-Reply-To: <20170724165724.10576-1-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: [PATCH net-next 0/6] network related warning fixes
+Date: Mon, 24 Jul 2017 10:25:17 -0700
+Message-ID: <20170724172523.13135-1-sthemmin@microsoft.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: netdev@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Stephen Hemminger <sthemmin@microsoft.com>
+To: marcel@holtmann.org, gustavo@padovan.org, johan.hedberg@gmail.com,
+        davem@davemloft.net, pablo@netfilter.org, kadlec@blackhole.kfki.hu,
+        fw@strlen.de
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-When skb is queued to userspace it leaves softirq/rcu protection.
-skb->nfct (via conntrack extensions such as helper) could then reference
-modules that no longer exist if the conntrack was not yet confirmed.
+Various fixes for warnings in network code and drivers.
 
-nf_ct_iterate_destroy() will set the DYING bit for unconfirmed
-conntracks, we therefore solve this race as follows:
+Stephen Hemminger (6):
+  bnxt: fix unsigned comparsion with 0
+  bnxt: fix unused variable warnings
+  benet: fix set but not used warning
+  netfilter: remove unused variable
+  socket: fix set not used warning
+  6lowpan: fix set not used warning
 
-1. take the queue spinlock.
-2. check if the conntrack is unconfirmed and has dying bit set.
-   In this case, we must discard skb while we're still inside
-   rcu read-side section.
-3. If nf_ct_iterate_destroy() is called right after the packet is queued
-   to userspace, it will be removed from the queue via
-   nf_ct_iterate_destroy -> nf_queue_nf_hook_drop.
+ drivers/net/ethernet/broadcom/bnxt/bnxt.c         | 4 ----
+ drivers/net/ethernet/broadcom/bnxt/bnxt_ethtool.c | 2 +-
+ drivers/net/ethernet/emulex/benet/be_roce.c       | 3 ---
+ net/bluetooth/6lowpan.c                           | 3 ---
+ net/netfilter/xt_recent.c                         | 2 +-
+ net/socket.c                                      | 6 ++----
+ 6 files changed, 4 insertions(+), 16 deletions(-)
 
-When userspace sends the verdict (nfnetlink takes rcu read lock), there
-are two cases to consider:
-
-1. nf_ct_iterate_destroy() was called while packet was out.
-   In this case, skb will have been removed from the queue already
-   and no reinject takes place as we won't find a matching entry for the
-   packet id.
-
-2. nf_ct_iterate_destroy() gets called right after verdict callback
-   found and removed the skb from queue list.
-
-   In this case, skb->nfct is marked as dying but it is still valid.
-   The skb will be dropped either in nf_conntrack_confirm (we don't
-   insert DYING conntracks into hash table) or when we try to queue
-   the skb again, but either events don't occur before the rcu read lock
-   is dropped.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nfnetlink_queue.c | 17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 16fa04086880..91e2500ab4e7 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -28,11 +28,11 @@
- #include <linux/netfilter_bridge.h>
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nfnetlink_queue.h>
--#include <linux/netfilter/nf_conntrack_common.h>
- #include <linux/list.h>
- #include <net/sock.h>
- #include <net/tcp_states.h>
- #include <net/netfilter/nf_queue.h>
-+#include <net/netfilter/nf_conntrack.h>
- #include <net/netns/generic.h>
- 
- #include <linux/atomic.h>
-@@ -612,6 +612,18 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	return NULL;
- }
- 
-+static bool nf_ct_drop_unconfirmed(const struct nf_queue_entry *entry)
-+{
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+	static const unsigned long flags = IPS_CONFIRMED | IPS_DYING;
-+	const struct nf_conn *ct = (void *)skb_nfct(entry->skb);
-+
-+	if (ct && ((ct->status & flags) == IPS_DYING))
-+		return true;
-+#endif
-+	return false;
-+}
-+
- static int
- __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
- 			struct nf_queue_entry *entry)
-@@ -628,6 +640,9 @@ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
- 	}
- 	spin_lock_bh(&queue->lock);
- 
-+	if (nf_ct_drop_unconfirmed(entry))
-+		goto err_out_free_nskb;
-+
- 	if (queue->queue_total >= queue->queue_maxlen) {
- 		if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
- 			failopen = 1;
 -- 
-2.13.0
-
+2.11.0
