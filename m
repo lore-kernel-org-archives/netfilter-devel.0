@@ -1,41 +1,51 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nf-next PATCH 6/5] netfilter: nf_tables: Reintroduce name
- length boundary
-Date: Mon, 24 Jul 2017 17:21:53 +0200
-Message-ID: <20170724152153.GA30810@salvia>
-References: <20170720152450.27693-1-phil@nwl.cc>
- <20170724151005.9454-1-phil@nwl.cc>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [nft PATCH] monitor: Print NEWGEN events
+Date: Mon, 24 Jul 2017 17:37:32 +0200
+Message-ID: <20170724153732.GQ16375@orbyte.nwl.cc>
+References: <20170719143257.3772-1-phil@nwl.cc>
+ <20170724111730.GA6691@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40734 "EHLO mail.us.es"
+Received: from orbyte.nwl.cc ([151.80.46.58]:43975 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754015AbdGXPWI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Jul 2017 11:22:08 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 22CF4E122E
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jul 2017 17:21:54 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 15270D2AE7
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jul 2017 17:21:54 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3BAD0DA46B
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jul 2017 17:21:51 +0200 (CEST)
+        id S1753363AbdGXPhd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 24 Jul 2017 11:37:33 -0400
 Content-Disposition: inline
-In-Reply-To: <20170724151005.9454-1-phil@nwl.cc>
+In-Reply-To: <20170724111730.GA6691@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jul 24, 2017 at 05:10:05PM +0200, Phil Sutter wrote:
-> Since all names in nftables are now dynamically allocated, choosing a
-> large hard-coded length limit does not bloat nftables' footprint
-> anymore.
+On Mon, Jul 24, 2017 at 01:17:30PM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Jul 19, 2017 at 04:32:57PM +0200, Phil Sutter wrote:
+> > Now that they contain process information, they're actually interesting.
+> > For backwards compatibility, print process information only if it was
+> > present in the message.
 > 
-> Introduce a common upper limit on all names for sanity reasons - the
-> chosen value of 255 characters allows to use a DNS name as per RFC 1035.
+> Wait, a couple of comments.
 
-Please, rebase your patcheset including this change and send me a v2.
+All ACK, one remark:
 
-Thanks!
+[...]
+> > +		case NFTA_GEN_PROC_NAME:
+> > +			if (mnl_attr_validate(attr, MNL_TYPE_NUL_STRING) < 0)
+> > +				break;
+> > +			strncpy(name, mnl_attr_get_str(attr), sizeof(name));
+> 
+> What is maximum process name length? If we hit this bound, we have to
+> make sure this does:
+> 
+>                         name[X - 1] = '\0';
+> 
+> Where X is the name buffer size.
+
+NFTA_GEN_PROC_NAME attribute is filled with output from get_task_comm(),
+which returns a string of max 16 bytes length. It is safe to assume that
+it's NULL terminated since set_task_comm() uses strlcpy().
+
+That static buffer above is needless though, so I'll change it to just
+point to the netlink attribute itself if it is present.
+
+Thanks, Phil
