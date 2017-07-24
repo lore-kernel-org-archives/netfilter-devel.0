@@ -1,27 +1,34 @@
-From: Michael Chan <michael.chan@broadcom.com>
-Subject: Re: [PATCH net-next 1/6] bnxt: fix unsigned comparsion with 0
-Date: Mon, 24 Jul 2017 10:48:17 -0700
-Message-ID: <CACKFLikMZ_HUYPgnvU2bNQfLy86XVEgVWpkGRYry+HUb-Z_1ow@mail.gmail.com>
-References: <20170724172523.13135-1-sthemmin@microsoft.com> <20170724172523.13135-2-sthemmin@microsoft.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH v2] monitor: Print NEWGEN events
+Date: Mon, 24 Jul 2017 20:21:50 +0200
+Message-ID: <20170724182150.GA18847@salvia>
+References: <20170724172911.1611-1-phil@nwl.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: marcel@holtmann.org, gustavo@padovan.org, johan.hedberg@gmail.com,
-        David Miller <davem@davemloft.net>, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de,
-        Netdev <netdev@vger.kernel.org>, linux-bluetooth@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Stephen Hemminger <sthemmin@microsoft.com>
-To: Stephen Hemminger <stephen@networkplumber.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170724172523.13135-2-sthemmin@microsoft.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Phil Sutter <phil@nwl.cc>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:55390 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754377AbdGXSWH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 24 Jul 2017 14:22:07 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 57739172EA2
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jul 2017 20:21:53 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4865EDA46B
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jul 2017 20:21:53 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4D2F4DA7F4
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jul 2017 20:21:51 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20170724172911.1611-1-phil@nwl.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jul 24, 2017 at 10:25 AM, Stephen Hemminger
-<stephen@networkplumber.org> wrote:
-> Fixes warning because location is u32 and can never be netative
-> warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
->
-> Signed-off-by: Stephen Hemminger <sthemmin@microsoft.com>
+On Mon, Jul 24, 2017 at 07:29:11PM +0200, Phil Sutter wrote:
+> Now that they contain process information, they're actually interesting.
+> For backwards compatibility, print process information only if it was
+> present in the message.
 
-Acked-by: Michael Chan <michael.chan@broadcom.com>
+Applied, thanks Phil.
