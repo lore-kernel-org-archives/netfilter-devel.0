@@ -1,51 +1,35 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nf-next PATCH 0/5] netfilter: nf_tables: Kill name length
- restrictions
-Date: Mon, 24 Jul 2017 11:46:25 +0200
-Message-ID: <20170724094625.GA3600@salvia>
-References: <20170720152450.27693-1-phil@nwl.cc>
+Subject: [3.2.y,netfilter/ipvs] please, apply 3c5ab3f395d6
+Date: Mon, 24 Jul 2017 11:55:01 +0200
+Message-ID: <20170724095501.GA3648@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Phil Sutter <phil@nwl.cc>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37798 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751526AbdGXKD6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Jul 2017 06:03:58 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5FCE01E5D09
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jul 2017 12:03:44 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4544A12FB31
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jul 2017 12:03:44 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D2340332590
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jul 2017 11:46:18 +0200 (CEST)
+Cc: stable@vger.kernel.org, Julian Anastasov <ja@ssi.bg>,
+        netfilter-devel@vger.kernel.org, Simon Horman <horms@verge.net.au>,
+        lvs-devel@vger.kernel.org
+To: Ben Hutchings <ben@decadent.org.uk>
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170720152450.27693-1-phil@nwl.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Phil,
+Hi Ben,
 
-On Thu, Jul 20, 2017 at 05:24:45PM +0200, Phil Sutter wrote:
-> The following series removes the hard-coded restriction on name length
-> of tables, chains, sets and objects.
-> 
-> The first patch introduces nla_strdup() which aids in duplicating a
-> string contained in a netlink attribute. It is used to replace the call
-> to nla_strlcpy() when populating name fields.
-> 
-> I've tested the series manually by creating tables, chains, sets and
-> counter objects with long names and automated by running the py and
-> shell testsuites of nftables repo. Also, kmemleak did not find anything
-> nftables related.
+Please, apply this commit:
 
-I like this new dynamic name logic via nla_strdup().
+commit 3c5ab3f395d66a9e4e937fcfdf6ebc63894f028b
+Author: Julian Anastasov <ja@ssi.bg>
+Date:   Sat Apr 29 20:33:09 2017 +0300
 
-I would like we still have a reasonable upper limit on string length.
-IIRC, Arturo mentioned he wants to use DNS names to identify sets, so
-we can just use 255 bytes as RFC 1035 indicates.
+    ipvs: SNAT packet replies only for NATed connections
+
+to stable 3.2.y.
+
+Julian also made a backport for you, that is available at Netfilter's
+patchwork:
+
+        http://patchwork.ozlabs.org/patch/789259/
+
+[ NOTE: This patch also applies to 3.4.y ]
 
 Thanks!
