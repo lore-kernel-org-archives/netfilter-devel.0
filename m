@@ -1,94 +1,103 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 2/4] netfilter: add and use nf_ct_unconfirmed_destroy
-Date: Mon, 24 Jul 2017 18:57:22 +0200
-Message-ID: <20170724165724.10576-3-fw@strlen.de>
+Subject: [PATCH nf-next 4/4] netfilter: nfnetlink_queue: don't queue dying conntracks to userspace
+Date: Mon, 24 Jul 2017 18:57:24 +0200
+Message-ID: <20170724165724.10576-5-fw@strlen.de>
 References: <20170724165724.10576-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:48306 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:48310 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932700AbdGXQ5L (ORCPT
+        by vger.kernel.org with ESMTP id S932700AbdGXQ5N (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Jul 2017 12:57:11 -0400
+        Mon, 24 Jul 2017 12:57:13 -0400
 In-Reply-To: <20170724165724.10576-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This also removes __nf_ct_unconfirmed_destroy() call from
-nf_ct_iterate_cleanup_net, so that function can be used only
-when missing conntracks from unconfirmed list isn't a problem.
+When skb is queued to userspace it leaves softirq/rcu protection.
+skb->nfct (via conntrack extensions such as helper) could then reference
+modules that no longer exist if the conntrack was not yet confirmed.
+
+nf_ct_iterate_destroy() will set the DYING bit for unconfirmed
+conntracks, we therefore solve this race as follows:
+
+1. take the queue spinlock.
+2. check if the conntrack is unconfirmed and has dying bit set.
+   In this case, we must discard skb while we're still inside
+   rcu read-side section.
+3. If nf_ct_iterate_destroy() is called right after the packet is queued
+   to userspace, it will be removed from the queue via
+   nf_ct_iterate_destroy -> nf_queue_nf_hook_drop.
+
+When userspace sends the verdict (nfnetlink takes rcu read lock), there
+are two cases to consider:
+
+1. nf_ct_iterate_destroy() was called while packet was out.
+   In this case, skb will have been removed from the queue already
+   and no reinject takes place as we won't find a matching entry for the
+   packet id.
+
+2. nf_ct_iterate_destroy() gets called right after verdict callback
+   found and removed the skb from queue list.
+
+   In this case, skb->nfct is marked as dying but it is still valid.
+   The skb will be dropped either in nf_conntrack_confirm (we don't
+   insert DYING conntracks into hash table) or when we try to queue
+   the skb again, but either events don't occur before the rcu read lock
+   is dropped.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack.h |  3 +++
- net/netfilter/nf_conntrack_core.c    | 15 +++++++++++----
- net/netfilter/nfnetlink_cttimeout.c  |  1 +
- 3 files changed, 15 insertions(+), 4 deletions(-)
+ net/netfilter/nfnetlink_queue.c | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 48407569585d..6e6f678aaac7 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -224,6 +224,9 @@ extern s32 (*nf_ct_nat_offset)(const struct nf_conn *ct,
- 			       enum ip_conntrack_dir dir,
- 			       u32 seq);
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 16fa04086880..91e2500ab4e7 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -28,11 +28,11 @@
+ #include <linux/netfilter_bridge.h>
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/nfnetlink_queue.h>
+-#include <linux/netfilter/nf_conntrack_common.h>
+ #include <linux/list.h>
+ #include <net/sock.h>
+ #include <net/tcp_states.h>
+ #include <net/netfilter/nf_queue.h>
++#include <net/netfilter/nf_conntrack.h>
+ #include <net/netns/generic.h>
  
-+/* Set all unconfirmed conntrack as dying */
-+void nf_ct_unconfirmed_destroy(struct net *);
-+
- /* Iterate over all conntracks: if iter returns true, it's deleted. */
- void nf_ct_iterate_cleanup_net(struct net *net,
- 			       int (*iter)(struct nf_conn *i, void *data),
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 9979f46c81dc..c8b87eaa17a2 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1689,6 +1689,17 @@ __nf_ct_unconfirmed_destroy(struct net *net)
- 	}
+ #include <linux/atomic.h>
+@@ -612,6 +612,18 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	return NULL;
  }
  
-+void nf_ct_unconfirmed_destroy(struct net *net)
++static bool nf_ct_drop_unconfirmed(const struct nf_queue_entry *entry)
 +{
-+	might_sleep();
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++	static const unsigned long flags = IPS_CONFIRMED | IPS_DYING;
++	const struct nf_conn *ct = (void *)skb_nfct(entry->skb);
 +
-+	if (atomic_read(&net->ct.count) > 0) {
-+		__nf_ct_unconfirmed_destroy(net);
-+		synchronize_net();
-+	}
++	if (ct && ((ct->status & flags) == IPS_DYING))
++		return true;
++#endif
++	return false;
 +}
-+EXPORT_SYMBOL_GPL(nf_ct_unconfirmed_destroy);
 +
- void nf_ct_iterate_cleanup_net(struct net *net,
- 			       int (*iter)(struct nf_conn *i, void *data),
- 			       void *data, u32 portid, int report)
-@@ -1700,14 +1711,10 @@ void nf_ct_iterate_cleanup_net(struct net *net,
- 	if (atomic_read(&net->ct.count) == 0)
- 		return;
+ static int
+ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
+ 			struct nf_queue_entry *entry)
+@@ -628,6 +640,9 @@ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
+ 	}
+ 	spin_lock_bh(&queue->lock);
  
--	__nf_ct_unconfirmed_destroy(net);
--
- 	d.iter = iter;
- 	d.data = data;
- 	d.net = net;
- 
--	synchronize_net();
--
- 	nf_ct_iterate_cleanup(iter_net_only, &d, portid, report);
- }
- EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup_net);
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index 400e9ae97153..83c8da48df59 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -572,6 +572,7 @@ static void __net_exit cttimeout_net_exit(struct net *net)
- {
- 	struct ctnl_timeout *cur, *tmp;
- 
-+	nf_ct_unconfirmed_destroy(net);
- 	ctnl_untimeout(net, NULL);
- 
- 	list_for_each_entry_safe(cur, tmp, &net->nfct_timeout_list, head) {
++	if (nf_ct_drop_unconfirmed(entry))
++		goto err_out_free_nskb;
++
+ 	if (queue->queue_total >= queue->queue_maxlen) {
+ 		if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
+ 			failopen = 1;
 -- 
 2.13.0
 
