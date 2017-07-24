@@ -1,52 +1,151 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nf-next PATCH v2 0/5] netfilter: nf_tables: Kill name length restrictions
-Date: Mon, 24 Jul 2017 20:56:46 +0200
-Message-ID: <20170724185651.24063-1-phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: [PATCH tip/core/rcu 1/9] net/netfilter/nf_conntrack_core: Fix net_conntrack_lock()
+Date: Mon, 24 Jul 2017 15:13:01 -0700
+Message-ID: <1500934389-14942-1-git-send-email-paulmck@linux.vnet.ibm.com>
+References: <20170724221252.GA14238@linux.vnet.ibm.com>
+Cc: mingo@kernel.org, jiangshanlai@gmail.com, dipankar@in.ibm.com,
+        akpm@linux-foundation.org, mathieu.desnoyers@efficios.com,
+        josh@joshtriplett.org, tglx@linutronix.de, peterz@infradead.org,
+        rostedt@goodmis.org, dhowells@redhat.com, edumazet@google.com,
+        fweisbec@gmail.com, oleg@redhat.com,
+        Manfred Spraul <manfred@colorfullife.com>,
+        <stable@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>,
+        Sasha Levin <sasha.levin@oracle.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org,
+        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+To: linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:37991 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755990AbdGXS5Q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Jul 2017 14:57:16 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:35320 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932201AbdGXWNP (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 24 Jul 2017 18:13:15 -0400
+Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v6OM9e44044971
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jul 2017 18:13:15 -0400
+Received: from e17.ny.us.ibm.com (e17.ny.us.ibm.com [129.33.205.207])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2bwpb8g1xy-1
+        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jul 2017 18:13:15 -0400
+Received: from localhost
+        by e17.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <netfilter-devel@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
+        Mon, 24 Jul 2017 18:13:14 -0400
+In-Reply-To: <20170724221252.GA14238@linux.vnet.ibm.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The following series removes the hard-coded restriction on name length
-of tables, chains, sets and objects.
+From: Manfred Spraul <manfred@colorfullife.com>
 
-The first patch introduces nla_strdup() which aids in duplicating a
-string contained in a netlink attribute. It is used to replace the call
-to nla_strlcpy() when populating name fields.
+As we want to remove spin_unlock_wait() and replace it with explicit
+spin_lock()/spin_unlock() calls, we can use this to simplify the
+locking.
 
-I've tested the series manually by creating tables, chains, sets and
-counter objects with long names and automated by running the py and
-shell testsuites of nftables repo. Also, kmemleak did not find anything
-nftables related.
+In addition:
+- Reading nf_conntrack_locks_all needs ACQUIRE memory ordering.
+- The new code avoids the backwards loop.
 
-Changes since v1:
-- Introduce NFT_NAME_MAXLEN as an upper boundary to restrict overly long
-  names but still allow to use e.g. domain names.
-- Adjust commit messages accordingly.
+Only slightly tested, I did not manage to trigger calls to
+nf_conntrack_all_lock().
 
-Phil Sutter (5):
-  networking: Introduce nla_strdup()
-  netfilter: nf_tables: Unlimit table name length
-  netfilter: nf_tables: Unlimit chain name length
-  netfilter: nf_tables: Unlimit set name length
-  netfilter: nf_tables: Unlimit object name length
+V2: With improved comments, to clearly show how the barriers
+    pair.
 
- include/net/netfilter/nf_tables.h        |  10 +--
- include/net/netlink.h                    |   1 +
- include/uapi/linux/netfilter/nf_tables.h |   5 +-
- lib/nlattr.c                             |  24 ++++++
- net/netfilter/nf_tables_api.c            | 136 ++++++++++++++++++++++---------
- net/netfilter/nf_tables_trace.c          |  10 ++-
- net/netfilter/nft_dynset.c               |   2 +-
- net/netfilter/nft_lookup.c               |   2 +-
- net/netfilter/nft_objref.c               |   4 +-
- 9 files changed, 139 insertions(+), 55 deletions(-)
+Fixes: b16c29191dc8 ("netfilter: nf_conntrack: use safer way to lock all buckets")
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: <stable@vger.kernel.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+---
+ net/netfilter/nf_conntrack_core.c | 52 ++++++++++++++++++++++-----------------
+ 1 file changed, 29 insertions(+), 23 deletions(-)
 
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 9979f46c81dc..51390febd5e3 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -96,19 +96,26 @@ static struct conntrack_gc_work conntrack_gc_work;
+ 
+ void nf_conntrack_lock(spinlock_t *lock) __acquires(lock)
+ {
++	/* 1) Acquire the lock */
+ 	spin_lock(lock);
+-	while (unlikely(nf_conntrack_locks_all)) {
+-		spin_unlock(lock);
+ 
+-		/*
+-		 * Order the 'nf_conntrack_locks_all' load vs. the
+-		 * spin_unlock_wait() loads below, to ensure
+-		 * that 'nf_conntrack_locks_all_lock' is indeed held:
+-		 */
+-		smp_rmb(); /* spin_lock(&nf_conntrack_locks_all_lock) */
+-		spin_unlock_wait(&nf_conntrack_locks_all_lock);
+-		spin_lock(lock);
+-	}
++	/* 2) read nf_conntrack_locks_all, with ACQUIRE semantics
++	 * It pairs with the smp_store_release() in nf_conntrack_all_unlock()
++	 */
++	if (likely(smp_load_acquire(&nf_conntrack_locks_all) == false))
++		return;
++
++	/* fast path failed, unlock */
++	spin_unlock(lock);
++
++	/* Slow path 1) get global lock */
++	spin_lock(&nf_conntrack_locks_all_lock);
++
++	/* Slow path 2) get the lock we want */
++	spin_lock(lock);
++
++	/* Slow path 3) release the global lock */
++	spin_unlock(&nf_conntrack_locks_all_lock);
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_lock);
+ 
+@@ -149,28 +156,27 @@ static void nf_conntrack_all_lock(void)
+ 	int i;
+ 
+ 	spin_lock(&nf_conntrack_locks_all_lock);
+-	nf_conntrack_locks_all = true;
+ 
+-	/*
+-	 * Order the above store of 'nf_conntrack_locks_all' against
+-	 * the spin_unlock_wait() loads below, such that if
+-	 * nf_conntrack_lock() observes 'nf_conntrack_locks_all'
+-	 * we must observe nf_conntrack_locks[] held:
+-	 */
+-	smp_mb(); /* spin_lock(&nf_conntrack_locks_all_lock) */
++	nf_conntrack_locks_all = true;
+ 
+ 	for (i = 0; i < CONNTRACK_LOCKS; i++) {
+-		spin_unlock_wait(&nf_conntrack_locks[i]);
++		spin_lock(&nf_conntrack_locks[i]);
++
++		/* This spin_unlock provides the "release" to ensure that
++		 * nf_conntrack_locks_all==true is visible to everyone that
++		 * acquired spin_lock(&nf_conntrack_locks[]).
++		 */
++		spin_unlock(&nf_conntrack_locks[i]);
+ 	}
+ }
+ 
+ static void nf_conntrack_all_unlock(void)
+ {
+-	/*
+-	 * All prior stores must be complete before we clear
++	/* All prior stores must be complete before we clear
+ 	 * 'nf_conntrack_locks_all'. Otherwise nf_conntrack_lock()
+ 	 * might observe the false value but not the entire
+-	 * critical section:
++	 * critical section.
++	 * It pairs with the smp_load_acquire() in nf_conntrack_lock()
+ 	 */
+ 	smp_store_release(&nf_conntrack_locks_all, false);
+ 	spin_unlock(&nf_conntrack_locks_all_lock);
 -- 
-2.13.1
+2.5.2
 
