@@ -1,113 +1,79 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH 2/6] monitor: Fix printing of set declarations
-Date: Tue, 25 Jul 2017 16:56:25 +0200
-Message-ID: <20170725145629.20974-3-phil@nwl.cc>
+Subject: [nft PATCH 6/6] tests/monitor: Add a small README
+Date: Tue, 25 Jul 2017 16:56:29 +0200
+Message-ID: <20170725145629.20974-7-phil@nwl.cc>
 References: <20170725145629.20974-1-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:38691 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:39711 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752242AbdGYO4y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Jul 2017 10:56:54 -0400
+        id S1752252AbdGYO5B (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Jul 2017 10:57:01 -0400
 In-Reply-To: <20170725145629.20974-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The optional attributes 'flags', 'gc-interval' and 'timeout' have to be
-delimited by stmt_separator (either newline or semicolon), not 'nl'
-which is set to whitespace by set_print_plain().
-
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/rule.c                             | 6 +++---
- tests/monitor/testcases/set-maps.t     | 2 +-
- tests/monitor/testcases/set-mixed.t    | 2 +-
- tests/monitor/testcases/set-multiple.t | 4 ++--
- tests/monitor/testcases/set-simple.t   | 2 +-
- 5 files changed, 8 insertions(+), 8 deletions(-)
+ tests/monitor/README | 48 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
+ create mode 100644 tests/monitor/README
 
-diff --git a/src/rule.c b/src/rule.c
-index 7f83980c60818..5ea4fce546e30 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -335,18 +335,18 @@ static void set_print_declaration(const struct set *set,
- 			printf("%stimeout", delim);
- 			delim = ",";
- 		}
--		printf("%s", opts->nl);
-+		printf("%s", opts->stmt_separator);
- 	}
- 
- 	if (set->timeout) {
- 		printf("%s%stimeout ", opts->tab, opts->tab);
- 		time_print(set->timeout / 1000);
--		printf("%s", opts->nl);
-+		printf("%s", opts->stmt_separator);
- 	}
- 	if (set->gc_int) {
- 		printf("%s%sgc-interval ", opts->tab, opts->tab);
- 		time_print(set->gc_int / 1000);
--		printf("%s", opts->nl);
-+		printf("%s", opts->stmt_separator);
- 	}
- }
- 
-diff --git a/tests/monitor/testcases/set-maps.t b/tests/monitor/testcases/set-maps.t
-index d94016beb0767..6ea36cb9d11d6 100644
---- a/tests/monitor/testcases/set-maps.t
-+++ b/tests/monitor/testcases/set-maps.t
-@@ -2,7 +2,7 @@
- I add table ip t
- O add table ip t
- I add map ip t portip { type inet_service: ipv4_addr; flags interval; }
--O add map ip t portip { type inet_service : ipv4_addr;flags interval }
-+O add map ip t portip { type inet_service : ipv4_addr;flags interval; }
- 
- I add element ip t portip { 80-100: 10.0.0.1 }
- O add element ip t portip { 80-100 : 10.0.0.1 }
-diff --git a/tests/monitor/testcases/set-mixed.t b/tests/monitor/testcases/set-mixed.t
-index c4699edacec11..2eb35b5aa1efb 100644
---- a/tests/monitor/testcases/set-mixed.t
-+++ b/tests/monitor/testcases/set-mixed.t
-@@ -2,7 +2,7 @@
- I add table ip t
- O add table ip t
- I add set ip t portrange { type inet_service; flags interval; }
--O add set ip t portrange { type inet_service;flags interval }
-+O add set ip t portrange { type inet_service;flags interval; }
- I add set ip t ports { type inet_service; }
- O add set ip t ports { type inet_service;}
- 
-diff --git a/tests/monitor/testcases/set-multiple.t b/tests/monitor/testcases/set-multiple.t
-index d94f941b39693..ce919125a593f 100644
---- a/tests/monitor/testcases/set-multiple.t
-+++ b/tests/monitor/testcases/set-multiple.t
-@@ -2,9 +2,9 @@
- I add table ip t
- O add table ip t
- I add set ip t portrange { type inet_service; flags interval; }
--O add set ip t portrange { type inet_service;flags interval }
-+O add set ip t portrange { type inet_service;flags interval; }
- I add set ip t portrange2 { type inet_service; flags interval; }
--O add set ip t portrange2 { type inet_service;flags interval }
-+O add set ip t portrange2 { type inet_service;flags interval; }
- 
- # make sure concurrent adds work
- I add element ip t portrange { 1024-65535 }
-diff --git a/tests/monitor/testcases/set-simple.t b/tests/monitor/testcases/set-simple.t
-index 22f648dbfa232..e44cce08f575c 100644
---- a/tests/monitor/testcases/set-simple.t
-+++ b/tests/monitor/testcases/set-simple.t
-@@ -2,7 +2,7 @@
- I add table ip t
- O add table ip t
- I add set ip t portrange { type inet_service; flags interval; }
--O add set ip t portrange { type inet_service;flags interval }
-+O add set ip t portrange { type inet_service;flags interval; }
- 
- # adding some ranges
- I add element ip t portrange { 1-10 }
+diff --git a/tests/monitor/README b/tests/monitor/README
+new file mode 100644
+index 0000000000000..9c5e37f5c75c9
+--- /dev/null
++++ b/tests/monitor/README
+@@ -0,0 +1,48 @@
++Simple NFT MONITOR Testsuite
++============================
++
++The purpose of this suite of tests is to assert correct 'nft monitor' output for
++known input. The suite consists of the single shell script 'run-tests.sh' which
++performs the tests and a number of test definition files in 'testcases/'. The
++latter have to be suffixed '.t' in order to be recognized as such.
++
++Test Case Syntax
++----------------
++
++Each testcase defines a number of commands to pass on to 'nft' binary and an
++associated 'nft monitor' output definition. Prerequisites for each command have
++to be established manually, i.e. in order to test monitor output when adding a
++chain, the table containing it has to be created first. In between each
++testcase, rule set is flushed completely.
++
++Input and output lines are prefixed by 'I' and 'O', respectively. The prefix has
++to be separated from the rest of the line by whitespace. Consecutive input lines
++are passed to 'nft' together, hence lead to a single transaction.
++
++Since in most cases output should be equal to input, there is a shortcut: If a
++line consists of 'O -' only, the test script uses all previous input lines as
++expected output directly.
++
++Empty lines and those starting with '#' are ignored.
++
++Test Script Semantics
++---------------------
++
++The script iterates over all test case files, reading them line by line. It
++assumes that sections of 'I' lines alternate with sections of 'O' lines. After
++stripping the prefix, each line is appended to a temporary file. There are
++separate files for input and output lines.
++
++If a set of input and output lines is complete (i.e. upon encountering either a
++new input line or end of file), a testrun is performed: 'nft monitor' is run in
++background, redirecting the output into a third file. The input file is passed
++to 'nft -f'. Finally 'nft monitor' is killed and it's output compared to the
++output file created earlier. If the files differ, a unified diff is printed and
++test execution aborts.
++
++After each testrun, input and output files are cleared.
++
++Note: Running 'nft monitor' in background is prone to race conditions. Hence
++an artificial delay is introduced before calling 'nft -f' to allow for 'nft
++monitor' to complete initialization and another one before comparing the output
++to allow for 'nft monitor' to process the netlink events.
 -- 
 2.13.1
 
