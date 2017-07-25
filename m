@@ -1,52 +1,39 @@
-From: Luiz Augusto von Dentz <luiz.dentz@gmail.com>
-Subject: Re: [PATCH net-next 6/6] 6lowpan: fix set not used warning
-Date: Tue, 25 Jul 2017 15:45:16 +0300
-Message-ID: <CABBYNZJES2ph8SkAisPEm-wsZ6iHjKTYkZ9wffhkk7X6=eKGoA@mail.gmail.com>
-References: <20170724172523.13135-1-sthemmin@microsoft.com> <20170724172523.13135-7-sthemmin@microsoft.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Marcel Holtmann <marcel@holtmann.org>,
-        "Gustavo F. Padovan" <gustavo@padovan.org>,
-        Johan Hedberg <johan.hedberg@gmail.com>,
-        David Miller <davem@davemloft.net>, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de,
-        "open list:NETWORKING [GENERAL]" <netdev@vger.kernel.org>,
-        "linux-bluetooth@vger.kernel.org" <linux-bluetooth@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Stephen Hemminger <sthemmin@microsoft.com>
-To: Stephen Hemminger <stephen@networkplumber.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170724172523.13135-7-sthemmin@microsoft.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Phil Sutter <phil@nwl.cc>
+Subject: [nft PATCH 4/6] monitor: Print space after semicolon
+Date: Tue, 25 Jul 2017 16:56:27 +0200
+Message-ID: <20170725145629.20974-5-phil@nwl.cc>
+References: <20170725145629.20974-1-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from orbyte.nwl.cc ([151.80.46.58]:40823 "EHLO mail.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752332AbdGYO4m (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Jul 2017 10:56:42 -0400
+In-Reply-To: <20170725145629.20974-1-phil@nwl.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Stephen,
+This makes output a bit more readable.
 
-On Mon, Jul 24, 2017 at 8:25 PM, Stephen Hemminger
-<stephen@networkplumber.org> wrote:
-> Signed-off-by: Stephen Hemminger <sthemmin@microsoft.com>
-> ---
->  net/bluetooth/6lowpan.c | 3 ---
->  1 file changed, 3 deletions(-)
->
-> diff --git a/net/bluetooth/6lowpan.c b/net/bluetooth/6lowpan.c
-> index 2af4f1cc0ab4..4e2576fc0c59 100644
-> --- a/net/bluetooth/6lowpan.c
-> +++ b/net/bluetooth/6lowpan.c
-> @@ -273,9 +273,6 @@ static int iphc_decompress(struct sk_buff *skb, struct net_device *netdev,
->                            struct lowpan_peer *peer)
->  {
->         const u8 *saddr;
-> -       struct lowpan_btle_dev *dev;
-> -
-> -       dev = lowpan_btle_dev(netdev);
->
->         saddr = peer->lladdr;
->
-> --
-> 2.11.0
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ src/rule.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Acked-by: Luiz Augusto von Dentz <luiz.von.dentz@intel.com>
-
+diff --git a/src/rule.c b/src/rule.c
+index 5ea4fce546e30..12714ed3ccc70 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -381,7 +381,7 @@ void set_print_plain(const struct set *s, struct output_ctx *octx)
+ 		.nl		= " ",
+ 		.table		= s->handle.table,
+ 		.family		= family2str(s->handle.family),
+-		.stmt_separator	= ";",
++		.stmt_separator	= "; ",
+ 	};
+ 
+ 	do_set_print(s, &opts, octx);
 -- 
-Luiz Augusto von Dentz
+2.13.1
+
