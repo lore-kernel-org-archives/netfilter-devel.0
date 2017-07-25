@@ -1,52 +1,38 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH 5/6] tests/monitor: Clear ruleset after testing
-Date: Tue, 25 Jul 2017 16:56:28 +0200
-Message-ID: <20170725145629.20974-6-phil@nwl.cc>
-References: <20170725145629.20974-1-phil@nwl.cc>
+Subject: [nft PATCH 0/6] monitor: Some fixes and improvements
+Date: Tue, 25 Jul 2017 16:56:23 +0200
+Message-ID: <20170725145629.20974-1-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:46889 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:40067 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752144AbdGYO5H (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Jul 2017 10:57:07 -0400
-In-Reply-To: <20170725145629.20974-1-phil@nwl.cc>
+        id S1752089AbdGYO5O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Jul 2017 10:57:14 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- tests/monitor/run-tests.sh | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+The following series happened while fixing monitor tests and contains
+some changes to monitor code along the way.
 
-diff --git a/tests/monitor/run-tests.sh b/tests/monitor/run-tests.sh
-index de19462438d64..9fd0e504d08c0 100755
---- a/tests/monitor/run-tests.sh
-+++ b/tests/monitor/run-tests.sh
-@@ -2,17 +2,18 @@
- 
- cd $(dirname $0)
- 
-+nft=../../src/nft
-+mydiff() {
-+	diff -w -I '^# ' "$@"
-+}
-+
- testdir=$(mktemp -d)
- if [ ! -d $testdir ]; then
- 	echo "Failed to create test directory" >&2
- 	exit 0
- fi
--trap "rm -rf $testdir" EXIT
-+trap "rm -rf $testdir; $nft flush ruleset" EXIT
- 
--nft=../../src/nft
--mydiff() {
--	diff -w -I '^# ' "$@"
--}
- command_file=$(mktemp -p $testdir)
- output_file=$(mktemp -p $testdir)
- 
+Phil Sutter (6):
+  tests/monitor: Ignore newgen messages in output
+  monitor: Fix printing of set declarations
+  tests/monitor: Simplify testcases
+  monitor: Print space after semicolon
+  tests/monitor: Clear ruleset after testing
+  tests/monitor: Add a small README
+
+ src/rule.c                             |  8 +++---
+ tests/monitor/README                   | 48 ++++++++++++++++++++++++++++++++++
+ tests/monitor/run-tests.sh             | 16 +++++++++---
+ tests/monitor/testcases/set-maps.t     |  7 +++--
+ tests/monitor/testcases/set-mixed.t    | 10 +++----
+ tests/monitor/testcases/set-multiple.t |  7 ++---
+ tests/monitor/testcases/set-simple.t   | 21 ++++++---------
+ 7 files changed, 80 insertions(+), 37 deletions(-)
+ create mode 100644 tests/monitor/README
+
 -- 
 2.13.1
 
