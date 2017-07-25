@@ -1,77 +1,95 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 3/4] netfilter: conntrack: destroy functions need to free queued packets
-Date: Wed, 26 Jul 2017 00:02:33 +0200
-Message-ID: <20170725220234.29354-4-fw@strlen.de>
+Subject: [PATCH nf-next v2 2/4] netfilter: add and use nf_ct_unconfirmed_destroy
+Date: Wed, 26 Jul 2017 00:02:32 +0200
+Message-ID: <20170725220234.29354-3-fw@strlen.de>
 References: <20170725220234.29354-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56182 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56174 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751699AbdGYWC1 (ORCPT
+        by vger.kernel.org with ESMTP id S1751690AbdGYWCY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Jul 2017 18:02:27 -0400
+        Tue, 25 Jul 2017 18:02:24 -0400
 In-Reply-To: <20170725220234.29354-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-queued skbs might be using conntrack extensions that are being removed,
-such as timeout.  This happens for skbs that have a skb->nfct in
-unconfirmed state (i.e., not in hash table yet).
-
-This is destructive, but there are only two use cases:
- - module removal (rare)
- - netns cleanup (most likely no conntracks exist, and if they do,
-   they are removed anyway later on).
+This also removes __nf_ct_unconfirmed_destroy() call from
+nf_ct_iterate_cleanup_net, so that function can be used only
+when missing conntracks from unconfirmed list isn't a problem.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
  No changes since v1
- net/netfilter/nf_conntrack_core.c | 4 ++++
- net/netfilter/nf_queue.c          | 1 +
- 2 files changed, 5 insertions(+)
+ include/net/netfilter/nf_conntrack.h |  3 +++
+ net/netfilter/nf_conntrack_core.c    | 15 +++++++++++----
+ net/netfilter/nfnetlink_cttimeout.c  |  1 +
+ 3 files changed, 15 insertions(+), 4 deletions(-)
 
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 48407569585d..6e6f678aaac7 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -224,6 +224,9 @@ extern s32 (*nf_ct_nat_offset)(const struct nf_conn *ct,
+ 			       enum ip_conntrack_dir dir,
+ 			       u32 seq);
+ 
++/* Set all unconfirmed conntrack as dying */
++void nf_ct_unconfirmed_destroy(struct net *);
++
+ /* Iterate over all conntracks: if iter returns true, it's deleted. */
+ void nf_ct_iterate_cleanup_net(struct net *net,
+ 			       int (*iter)(struct nf_conn *i, void *data),
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index c8b87eaa17a2..258077980a93 100644
+index 9979f46c81dc..c8b87eaa17a2 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -56,6 +56,8 @@
- #include <net/netfilter/nf_nat_helper.h>
- #include <net/netns/hash.h>
+@@ -1689,6 +1689,17 @@ __nf_ct_unconfirmed_destroy(struct net *net)
+ 	}
+ }
  
-+#include "nf_internals.h"
++void nf_ct_unconfirmed_destroy(struct net *net)
++{
++	might_sleep();
 +
- #define NF_CONNTRACK_VERSION	"0.5.0"
++	if (atomic_read(&net->ct.count) > 0) {
++		__nf_ct_unconfirmed_destroy(net);
++		synchronize_net();
++	}
++}
++EXPORT_SYMBOL_GPL(nf_ct_unconfirmed_destroy);
++
+ void nf_ct_iterate_cleanup_net(struct net *net,
+ 			       int (*iter)(struct nf_conn *i, void *data),
+ 			       void *data, u32 portid, int report)
+@@ -1700,14 +1711,10 @@ void nf_ct_iterate_cleanup_net(struct net *net,
+ 	if (atomic_read(&net->ct.count) == 0)
+ 		return;
  
- int (*nfnetlink_parse_nat_setup_hook)(struct nf_conn *ct,
-@@ -1695,6 +1697,7 @@ void nf_ct_unconfirmed_destroy(struct net *net)
+-	__nf_ct_unconfirmed_destroy(net);
+-
+ 	d.iter = iter;
+ 	d.data = data;
+ 	d.net = net;
  
- 	if (atomic_read(&net->ct.count) > 0) {
- 		__nf_ct_unconfirmed_destroy(net);
-+		nf_queue_nf_hook_drop(net);
- 		synchronize_net();
- 	}
+-	synchronize_net();
+-
+ 	nf_ct_iterate_cleanup(iter_net_only, &d, portid, report);
  }
-@@ -1740,6 +1743,7 @@ nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
- 		if (atomic_read(&net->ct.count) == 0)
- 			continue;
- 		__nf_ct_unconfirmed_destroy(net);
-+		nf_queue_nf_hook_drop(net);
- 	}
- 	rtnl_unlock();
+ EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup_net);
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index 400e9ae97153..83c8da48df59 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -572,6 +572,7 @@ static void __net_exit cttimeout_net_exit(struct net *net)
+ {
+ 	struct ctnl_timeout *cur, *tmp;
  
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 043850c9d154..4f4d80a58fb5 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -109,6 +109,7 @@ unsigned int nf_queue_nf_hook_drop(struct net *net)
++	nf_ct_unconfirmed_destroy(net);
+ 	ctnl_untimeout(net, NULL);
  
- 	return count;
- }
-+EXPORT_SYMBOL_GPL(nf_queue_nf_hook_drop);
- 
- static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 		      struct nf_hook_entry *hook_entry, unsigned int queuenum)
+ 	list_for_each_entry_safe(cur, tmp, &net->nfct_timeout_list, head) {
 -- 
 2.13.0
 
