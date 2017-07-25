@@ -1,55 +1,52 @@
-From: Varsha Rao <rvarsha016@gmail.com>
-Subject: [PATCH nft] src: netlink: Subscribe nft monitor and nft monitor
- trace to respective groups.
-Date: Tue, 25 Jul 2017 10:55:00 +0530
-Message-ID: <5976d630.c553650a.2e876.31e8@mx.google.com>
+From: Luiz Augusto von Dentz <luiz.dentz@gmail.com>
+Subject: Re: [PATCH net-next 6/6] 6lowpan: fix set not used warning
+Date: Tue, 25 Jul 2017 15:45:16 +0300
+Message-ID: <CABBYNZJES2ph8SkAisPEm-wsZ6iHjKTYkZ9wffhkk7X6=eKGoA@mail.gmail.com>
+References: <20170724172523.13135-1-sthemmin@microsoft.com> <20170724172523.13135-7-sthemmin@microsoft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:37211 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750732AbdGYFZG (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Jul 2017 01:25:06 -0400
-Received: by mail-pf0-f195.google.com with SMTP id y25so4757433pfk.4
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jul 2017 22:25:06 -0700 (PDT)
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Cc: Marcel Holtmann <marcel@holtmann.org>,
+        "Gustavo F. Padovan" <gustavo@padovan.org>,
+        Johan Hedberg <johan.hedberg@gmail.com>,
+        David Miller <davem@davemloft.net>, pablo@netfilter.org,
+        kadlec@blackhole.kfki.hu, fw@strlen.de,
+        "open list:NETWORKING [GENERAL]" <netdev@vger.kernel.org>,
+        "linux-bluetooth@vger.kernel.org" <linux-bluetooth@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Stephen Hemminger <sthemmin@microsoft.com>
+To: Stephen Hemminger <stephen@networkplumber.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170724172523.13135-7-sthemmin@microsoft.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Subscribe nft monitor only to NFNLGRP_NFTABLES and nft monitor trace
-only to NFNLGRP_NFTRACE. In netlink_monitor() depending on the command
-call setsockopt() once.
+Hi Stephen,
 
-Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
----
- src/netlink.c | 11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+On Mon, Jul 24, 2017 at 8:25 PM, Stephen Hemminger
+<stephen@networkplumber.org> wrote:
+> Signed-off-by: Stephen Hemminger <sthemmin@microsoft.com>
+> ---
+>  net/bluetooth/6lowpan.c | 3 ---
+>  1 file changed, 3 deletions(-)
+>
+> diff --git a/net/bluetooth/6lowpan.c b/net/bluetooth/6lowpan.c
+> index 2af4f1cc0ab4..4e2576fc0c59 100644
+> --- a/net/bluetooth/6lowpan.c
+> +++ b/net/bluetooth/6lowpan.c
+> @@ -273,9 +273,6 @@ static int iphc_decompress(struct sk_buff *skb, struct net_device *netdev,
+>                            struct lowpan_peer *peer)
+>  {
+>         const u8 *saddr;
+> -       struct lowpan_btle_dev *dev;
+> -
+> -       dev = lowpan_btle_dev(netdev);
+>
+>         saddr = peer->lladdr;
+>
+> --
+> 2.11.0
 
-diff --git a/src/netlink.c b/src/netlink.c
-index 9cef4c4..ccc13eb 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -3080,14 +3080,11 @@ int netlink_monitor(struct netlink_mon_handler *monhandler,
- {
- 	int group;
- 
--	group = NFNLGRP_NFTABLES;
--	if (mnl_socket_setsockopt(nf_sock, NETLINK_ADD_MEMBERSHIP, &group,
--				  sizeof(int)) < 0)
--		return netlink_io_error(monhandler->ctx, monhandler->loc,
--					"Could not bind to netlink socket %s",
--					strerror(errno));
-+	if (monhandler->monitor_flags == (unsigned int)-1)
-+		group = NFNLGRP_NFTABLES;
-+	else
-+		group = NFNLGRP_NFTRACE;
- 
--	group = NFNLGRP_NFTRACE;
- 	if (mnl_socket_setsockopt(nf_sock, NETLINK_ADD_MEMBERSHIP, &group,
- 				  sizeof(int)) < 0)
- 		return netlink_io_error(monhandler->ctx, monhandler->loc,
+Acked-by: Luiz Augusto von Dentz <luiz.von.dentz@intel.com>
+
 -- 
-2.9.4
-
+Luiz Augusto von Dentz
