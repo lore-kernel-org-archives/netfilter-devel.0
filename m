@@ -1,47 +1,55 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] conntrack: labels: Avoid crash when labels file is not
- installed
-Date: Tue, 25 Jul 2017 03:09:22 +0200
-Message-ID: <20170725010922.GA28392@breakpoint.cc>
-References: <20170725005508.30587-1-marcos.souza.org@gmail.com>
+From: Varsha Rao <rvarsha016@gmail.com>
+Subject: [PATCH nft] src: netlink: Subscribe nft monitor and nft monitor
+ trace to respective groups.
+Date: Tue, 25 Jul 2017 10:55:00 +0530
+Message-ID: <5976d630.c553650a.2e876.31e8@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:50456 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753098AbdGYBLI (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:37211 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750732AbdGYFZG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 24 Jul 2017 21:11:08 -0400
+        Tue, 25 Jul 2017 01:25:06 -0400
+Received: by mail-pf0-f195.google.com with SMTP id y25so4757433pfk.4
+        for <netfilter-devel@vger.kernel.org>; Mon, 24 Jul 2017 22:25:06 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20170725005508.30587-1-marcos.souza.org@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Marcos Paulo de Souza <marcos.souza.org@gmail.com> wrote:
-> [marcos@Icarus ~]$ conntrack -l something
-> nfct_labelmap_new: No such file or directory
-> Segmentation fault (core dumped)
+Subscribe nft monitor only to NFNLGRP_NFTABLES and nft monitor trace
+only to NFNLGRP_NFTRACE. In netlink_monitor() depending on the command
+call setsockopt() once.
 
-conntrack should not pass NULL in the first place.
-However I agree that lnf-conntrack should be more robust
-so I applied this patch, thanks.
+Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
+---
+ src/netlink.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-> This is my first patch to netfilter and conntrack-tools, so please let
-> me know if I sent to the right place, or if the patch needs more work.
+diff --git a/src/netlink.c b/src/netlink.c
+index 9cef4c4..ccc13eb 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -3080,14 +3080,11 @@ int netlink_monitor(struct netlink_mon_handler *monhandler,
+ {
+ 	int group;
+ 
+-	group = NFNLGRP_NFTABLES;
+-	if (mnl_socket_setsockopt(nf_sock, NETLINK_ADD_MEMBERSHIP, &group,
+-				  sizeof(int)) < 0)
+-		return netlink_io_error(monhandler->ctx, monhandler->loc,
+-					"Could not bind to netlink socket %s",
+-					strerror(errno));
++	if (monhandler->monitor_flags == (unsigned int)-1)
++		group = NFNLGRP_NFTABLES;
++	else
++		group = NFNLGRP_NFTRACE;
+ 
+-	group = NFNLGRP_NFTRACE;
+ 	if (mnl_socket_setsockopt(nf_sock, NETLINK_ADD_MEMBERSHIP, &group,
+ 				  sizeof(int)) < 0)
+ 		return netlink_io_error(monhandler->ctx, monhandler->loc,
+-- 
+2.9.4
 
-I changed patch title to 'labels: don't crash on NULL labelmap'.
-
->  int __labelmap_get_bit(struct nfct_labelmap *m, const char *name)
->  {
-> -	unsigned int i = hash_name(name);
-> +	unsigned int i;
-> +	if (!m)
-> +		return -1;
-> +
-> +	i = hash_name(name);
->  	struct labelmap_bucket *list = m->map_name[i];
-
-I moved this a bit to avoid mixing declaration and code, but otherwise
-it should be the same change.
