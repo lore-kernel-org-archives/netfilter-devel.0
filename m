@@ -1,39 +1,57 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH 4/6] monitor: Print space after semicolon
-Date: Tue, 25 Jul 2017 16:56:27 +0200
-Message-ID: <20170725145629.20974-5-phil@nwl.cc>
+Subject: [nft PATCH 1/6] tests/monitor: Ignore newgen messages in output
+Date: Tue, 25 Jul 2017 16:56:24 +0200
+Message-ID: <20170725145629.20974-2-phil@nwl.cc>
 References: <20170725145629.20974-1-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:40823 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:59769 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752332AbdGYO4m (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Jul 2017 10:56:42 -0400
+        id S1751993AbdGYO4s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 25 Jul 2017 10:56:48 -0400
 In-Reply-To: <20170725145629.20974-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This makes output a bit more readable.
+Predicting the new ID value is not feasible and neither is implementing
+support for regular expressions when matching monitor output, so simply
+ignore them.
+
+Also use diff option '-w' instead of '-Z' to ignore all whitespace, not
+just at EOL.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/rule.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tests/monitor/run-tests.sh | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/src/rule.c b/src/rule.c
-index 5ea4fce546e30..12714ed3ccc70 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -381,7 +381,7 @@ void set_print_plain(const struct set *s, struct output_ctx *octx)
- 		.nl		= " ",
- 		.table		= s->handle.table,
- 		.family		= family2str(s->handle.family),
--		.stmt_separator	= ";",
-+		.stmt_separator	= "; ",
- 	};
+diff --git a/tests/monitor/run-tests.sh b/tests/monitor/run-tests.sh
+index 7447adf1febd6..e21ed6880bc13 100755
+--- a/tests/monitor/run-tests.sh
++++ b/tests/monitor/run-tests.sh
+@@ -10,6 +10,9 @@ fi
+ trap "rm -rf $testdir" EXIT
  
- 	do_set_print(s, &opts, octx);
+ nft=../../src/nft
++mydiff() {
++	diff -w -I '^# ' "$@"
++}
+ command_file=$(mktemp -p $testdir)
+ output_file=$(mktemp -p $testdir)
+ 
+@@ -35,9 +38,9 @@ run_test() {
+ 	sleep 0.5
+ 	kill $monitor_pid
+ 	wait >/dev/null 2>&1
+-	if ! diff -Z -q $monitor_output $output_file >/dev/null 2>&1; then
++	if ! mydiff -q $monitor_output $output_file >/dev/null 2>&1; then
+ 		echo "monitor output differs!"
+-		diff -Z -u $output_file $monitor_output
++		mydiff -u $output_file $monitor_output
+ 		exit 1
+ 	fi
+ 	rm $command_file
 -- 
 2.13.1
 
