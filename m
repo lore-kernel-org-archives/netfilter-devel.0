@@ -1,95 +1,164 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 2/4] netfilter: add and use nf_ct_unconfirmed_destroy
-Date: Wed, 26 Jul 2017 00:02:32 +0200
-Message-ID: <20170725220234.29354-3-fw@strlen.de>
-References: <20170725220234.29354-1-fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: nft_set_rbtree: use seqcount to avoid lock in most cases
+Date: Wed, 26 Jul 2017 02:09:41 +0200
+Message-ID: <20170726000941.29673-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56174 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56450 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751690AbdGYWCY (ORCPT
+        by vger.kernel.org with ESMTP id S1751446AbdGZAJ0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 25 Jul 2017 18:02:24 -0400
-In-Reply-To: <20170725220234.29354-1-fw@strlen.de>
+        Tue, 25 Jul 2017 20:09:26 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This also removes __nf_ct_unconfirmed_destroy() call from
-nf_ct_iterate_cleanup_net, so that function can be used only
-when missing conntracks from unconfirmed list isn't a problem.
+switch to lockless lockup. write side now also increments sequence
+counter.  On lookup, sample counter value and only take the lock
+if we did not find a match and the counter has changed.
 
+This avoids need to write to private area in normal (lookup) cases.
+
+Note that we take the non-blocking variant (raw_seqcount_begin), i.e.
+read side will not wait for writer to finish.
+
+If we did not find a result we will fall back to use of read-lock.
+
+The readlock is also used during dumps to ensure we get a consistent
+tree walk.
+
+Similar technique (rbtree+seqlock) was used by David Howells in rxrpc.
+
+Suggested-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- No changes since v1
- include/net/netfilter/nf_conntrack.h |  3 +++
- net/netfilter/nf_conntrack_core.c    | 15 +++++++++++----
- net/netfilter/nfnetlink_cttimeout.c  |  1 +
- 3 files changed, 15 insertions(+), 4 deletions(-)
+ net/netfilter/nft_set_rbtree.c | 42 +++++++++++++++++++++++++++++++-----------
+ 1 file changed, 31 insertions(+), 11 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 48407569585d..6e6f678aaac7 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -224,6 +224,9 @@ extern s32 (*nf_ct_nat_offset)(const struct nf_conn *ct,
- 			       enum ip_conntrack_dir dir,
- 			       u32 seq);
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index bce5382f1d49..dee75fe8d862 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -19,8 +19,9 @@
+ #include <net/netfilter/nf_tables.h>
  
-+/* Set all unconfirmed conntrack as dying */
-+void nf_ct_unconfirmed_destroy(struct net *);
-+
- /* Iterate over all conntracks: if iter returns true, it's deleted. */
- void nf_ct_iterate_cleanup_net(struct net *net,
- 			       int (*iter)(struct nf_conn *i, void *data),
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 9979f46c81dc..c8b87eaa17a2 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1689,6 +1689,17 @@ __nf_ct_unconfirmed_destroy(struct net *net)
- 	}
+ struct nft_rbtree {
+-	rwlock_t		lock;
+ 	struct rb_root		root;
++	rwlock_t		lock;
++	seqcount_t		count;
+ };
+ 
+ struct nft_rbtree_elem {
+@@ -40,8 +41,8 @@ static bool nft_rbtree_equal(const struct nft_set *set, const void *this,
+ 	return memcmp(this, nft_set_ext_key(&interval->ext), set->klen) == 0;
  }
  
-+void nf_ct_unconfirmed_destroy(struct net *net)
-+{
-+	might_sleep();
-+
-+	if (atomic_read(&net->ct.count) > 0) {
-+		__nf_ct_unconfirmed_destroy(net);
-+		synchronize_net();
-+	}
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_unconfirmed_destroy);
-+
- void nf_ct_iterate_cleanup_net(struct net *net,
- 			       int (*iter)(struct nf_conn *i, void *data),
- 			       void *data, u32 portid, int report)
-@@ -1700,14 +1711,10 @@ void nf_ct_iterate_cleanup_net(struct net *net,
- 	if (atomic_read(&net->ct.count) == 0)
- 		return;
- 
--	__nf_ct_unconfirmed_destroy(net);
--
- 	d.iter = iter;
- 	d.data = data;
- 	d.net = net;
- 
--	synchronize_net();
--
- 	nf_ct_iterate_cleanup(iter_net_only, &d, portid, report);
- }
- EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup_net);
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index 400e9ae97153..83c8da48df59 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -572,6 +572,7 @@ static void __net_exit cttimeout_net_exit(struct net *net)
+-static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
+-			      const u32 *key, const struct nft_set_ext **ext)
++static bool __nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
++				const u32 *key, const struct nft_set_ext **ext)
  {
- 	struct ctnl_timeout *cur, *tmp;
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+ 	const struct nft_rbtree_elem *rbe, *interval = NULL;
+@@ -50,15 +51,14 @@ static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
+ 	const void *this;
+ 	int d;
  
-+	nf_ct_unconfirmed_destroy(net);
- 	ctnl_untimeout(net, NULL);
+-	read_lock_bh(&priv->lock);
+-	parent = priv->root.rb_node;
++	parent = rcu_dereference_raw(priv->root.rb_node);
+ 	while (parent != NULL) {
+ 		rbe = rb_entry(parent, struct nft_rbtree_elem, node);
  
- 	list_for_each_entry_safe(cur, tmp, &net->nfct_timeout_list, head) {
+ 		this = nft_set_ext_key(&rbe->ext);
+ 		d = memcmp(this, key, set->klen);
+ 		if (d < 0) {
+-			parent = parent->rb_left;
++			parent = rcu_dereference_raw(parent->rb_left);
+ 			if (interval &&
+ 			    nft_rbtree_equal(set, this, interval) &&
+ 			    nft_rbtree_interval_end(this) &&
+@@ -66,15 +66,14 @@ static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
+ 				continue;
+ 			interval = rbe;
+ 		} else if (d > 0)
+-			parent = parent->rb_right;
++			parent = rcu_dereference_raw(parent->rb_right);
+ 		else {
+ 			if (!nft_set_elem_active(&rbe->ext, genmask)) {
+-				parent = parent->rb_left;
++				parent = rcu_dereference_raw(parent->rb_left);
+ 				continue;
+ 			}
+ 			if (nft_rbtree_interval_end(rbe))
+ 				goto out;
+-			read_unlock_bh(&priv->lock);
+ 
+ 			*ext = &rbe->ext;
+ 			return true;
+@@ -84,15 +83,31 @@ static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
+ 	if (set->flags & NFT_SET_INTERVAL && interval != NULL &&
+ 	    nft_set_elem_active(&interval->ext, genmask) &&
+ 	    !nft_rbtree_interval_end(interval)) {
+-		read_unlock_bh(&priv->lock);
+ 		*ext = &interval->ext;
+ 		return true;
+ 	}
+ out:
+-	read_unlock_bh(&priv->lock);
+ 	return false;
+ }
+ 
++static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
++			      const u32 *key, const struct nft_set_ext **ext)
++{
++	struct nft_rbtree *priv = nft_set_priv(set);
++	unsigned int seq = raw_seqcount_begin(&priv->count);
++	bool ret;
++
++	ret = __nft_rbtree_lookup(net, set, key, ext);
++	if (ret || !read_seqcount_retry(&priv->count, seq))
++		return ret;
++
++	read_lock_bh(&priv->lock);
++	ret = __nft_rbtree_lookup(net, set, key, ext);
++	read_unlock_bh(&priv->lock);
++
++	return ret;
++}
++
+ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 			       struct nft_rbtree_elem *new,
+ 			       struct nft_set_ext **ext)
+@@ -144,7 +159,9 @@ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	int err;
+ 
+ 	write_lock_bh(&priv->lock);
++	write_seqcount_begin(&priv->count);
+ 	err = __nft_rbtree_insert(net, set, rbe, ext);
++	write_seqcount_end(&priv->count);
+ 	write_unlock_bh(&priv->lock);
+ 
+ 	return err;
+@@ -158,7 +175,9 @@ static void nft_rbtree_remove(const struct net *net,
+ 	struct nft_rbtree_elem *rbe = elem->priv;
+ 
+ 	write_lock_bh(&priv->lock);
++	write_seqcount_begin(&priv->count);
+ 	rb_erase(&rbe->node, &priv->root);
++	write_seqcount_end(&priv->count);
+ 	write_unlock_bh(&priv->lock);
+ }
+ 
+@@ -264,6 +283,7 @@ static int nft_rbtree_init(const struct nft_set *set,
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+ 
+ 	rwlock_init(&priv->lock);
++	seqcount_init(&priv->count);
+ 	priv->root = RB_ROOT;
+ 	return 0;
+ }
 -- 
 2.13.0
 
