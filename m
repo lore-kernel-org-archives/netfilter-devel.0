@@ -1,169 +1,65 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf-next] netfilter: nft_set: use sequence count to avoid read lock in most cases
-Date: Wed, 26 Jul 2017 13:43:51 +0200
-Message-ID: <20170726114351.5779-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [nft PATCH 2/6] monitor: Fix printing of set declarations
+Date: Wed, 26 Jul 2017 15:19:56 +0200
+Message-ID: <20170726131956.GI2235@orbyte.nwl.cc>
+References: <20170725145629.20974-1-phil@nwl.cc>
+ <20170725145629.20974-3-phil@nwl.cc>
+ <20170725155741.GA591@salvia>
+ <20170725170934.GB2235@orbyte.nwl.cc>
+ <20170726111803.GA1894@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:58466 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751047AbdGZLnd (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Jul 2017 07:43:33 -0400
+Received: from orbyte.nwl.cc ([151.80.46.58]:53217 "EHLO mail.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750925AbdGZNT5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 26 Jul 2017 09:19:57 -0400
+Content-Disposition: inline
+In-Reply-To: <20170726111803.GA1894@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-switch to lockless lockup. write side now also increments sequence
-counter.  On lookup, sample counter value and only take the lock
-if we did not find a match and the counter has changed.
+On Wed, Jul 26, 2017 at 01:18:03PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Jul 25, 2017 at 07:09:34PM +0200, Phil Sutter wrote:
+> > On Tue, Jul 25, 2017 at 05:57:41PM +0200, Pablo Neira Ayuso wrote:
+> > > On Tue, Jul 25, 2017 at 04:56:25PM +0200, Phil Sutter wrote:
+> > > > diff --git a/tests/monitor/testcases/set-maps.t b/tests/monitor/testcases/set-maps.t
+> > > > index d94016beb0767..6ea36cb9d11d6 100644
+> > > > --- a/tests/monitor/testcases/set-maps.t
+> > > > +++ b/tests/monitor/testcases/set-maps.t
+> > > > @@ -2,7 +2,7 @@
+> > > >  I add table ip t
+> > > >  O add table ip t
+> > > >  I add map ip t portip { type inet_service: ipv4_addr; flags interval; }
+> > > > -O add map ip t portip { type inet_service : ipv4_addr;flags interval }
+> > > > +O add map ip t portip { type inet_service : ipv4_addr;flags interval; }
+> > > 
+> > > So the proposal is to remove the whitespace? I think it's more
+> > > readable the way it is already.
+> > 
+> > No, it is about the missing semicolon after 'flags interval' (and after
+> > 'timeout' and 'gc-interval' options if present). The output of 'nft
+> > monitor' is not syntactically correct without this.
+> > 
+> > You are correct in that it removes the whitespace before the closing
+> > brace, but patch 4 "fixes" that by making 'stmt_separator' consist of
+> > semicolon + whitespace.
+> > 
+> > Is it clear now?
+> 
+> Thanks for explaining, yes this clarifies. Please, add examples next
+> time to your commit messages.
 
-This avoids need to write to private area in normal (lookup) cases.
+Yes, will do. And in that case I already did, please see v2 containing
+the remaining patches (starting with message ID
+20170725183944.9377-1-phil@nwl.cc).
 
-In case we detect a writer (seqretry is true) we fall back to taking
-the readlock.
+> BTW, no need to update .t files after patch 4/6 to add the space after
+> semicolon?
 
-The readlock is also used during dumps to ensure we get a consistent
-tree walk.
+No, because I changed diff options along with the fix for NEWGEN message
+to ignore all whitespace, not just at EOL.
 
-Similar technique (rbtree+seqlock) was used by David Howells in rxrpc.
-
-v2: break lookup loop in case the sequence count changed (Eric)
-
-Suggested-by: Eric Dumazet <edumazet@google.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nft_set_rbtree.c | 47 ++++++++++++++++++++++++++++++++----------
- 1 file changed, 36 insertions(+), 11 deletions(-)
-
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index bce5382f1d49..ff968d96b823 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -19,8 +19,9 @@
- #include <net/netfilter/nf_tables.h>
- 
- struct nft_rbtree {
--	rwlock_t		lock;
- 	struct rb_root		root;
-+	rwlock_t		lock;
-+	seqcount_t		count;
- };
- 
- struct nft_rbtree_elem {
-@@ -40,8 +41,9 @@ static bool nft_rbtree_equal(const struct nft_set *set, const void *this,
- 	return memcmp(this, nft_set_ext_key(&interval->ext), set->klen) == 0;
- }
- 
--static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
--			      const u32 *key, const struct nft_set_ext **ext)
-+static bool __nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
-+				const u32 *key, const struct nft_set_ext **ext,
-+				unsigned int seq)
- {
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	const struct nft_rbtree_elem *rbe, *interval = NULL;
-@@ -50,15 +52,17 @@ static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
- 	const void *this;
- 	int d;
- 
--	read_lock_bh(&priv->lock);
--	parent = priv->root.rb_node;
-+	parent = rcu_dereference_raw(priv->root.rb_node);
- 	while (parent != NULL) {
-+		if (read_seqcount_retry(&priv->count, seq))
-+			return false;
-+
- 		rbe = rb_entry(parent, struct nft_rbtree_elem, node);
- 
- 		this = nft_set_ext_key(&rbe->ext);
- 		d = memcmp(this, key, set->klen);
- 		if (d < 0) {
--			parent = parent->rb_left;
-+			parent = rcu_dereference_raw(parent->rb_left);
- 			if (interval &&
- 			    nft_rbtree_equal(set, this, interval) &&
- 			    nft_rbtree_interval_end(this) &&
-@@ -66,15 +70,14 @@ static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
- 				continue;
- 			interval = rbe;
- 		} else if (d > 0)
--			parent = parent->rb_right;
-+			parent = rcu_dereference_raw(parent->rb_right);
- 		else {
- 			if (!nft_set_elem_active(&rbe->ext, genmask)) {
--				parent = parent->rb_left;
-+				parent = rcu_dereference_raw(parent->rb_left);
- 				continue;
- 			}
- 			if (nft_rbtree_interval_end(rbe))
- 				goto out;
--			read_unlock_bh(&priv->lock);
- 
- 			*ext = &rbe->ext;
- 			return true;
-@@ -84,15 +87,32 @@ static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
- 	if (set->flags & NFT_SET_INTERVAL && interval != NULL &&
- 	    nft_set_elem_active(&interval->ext, genmask) &&
- 	    !nft_rbtree_interval_end(interval)) {
--		read_unlock_bh(&priv->lock);
- 		*ext = &interval->ext;
- 		return true;
- 	}
- out:
--	read_unlock_bh(&priv->lock);
- 	return false;
- }
- 
-+static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
-+			      const u32 *key, const struct nft_set_ext **ext)
-+{
-+	struct nft_rbtree *priv = nft_set_priv(set);
-+	unsigned int seq = read_seqcount_begin(&priv->count);
-+	bool ret;
-+
-+	ret = __nft_rbtree_lookup(net, set, key, ext, seq);
-+	if (ret || !read_seqcount_retry(&priv->count, seq))
-+		return ret;
-+
-+	read_lock_bh(&priv->lock);
-+	seq = read_seqcount_begin(&priv->count);
-+	ret = __nft_rbtree_lookup(net, set, key, ext, seq);
-+	read_unlock_bh(&priv->lock);
-+
-+	return ret;
-+}
-+
- static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 			       struct nft_rbtree_elem *new,
- 			       struct nft_set_ext **ext)
-@@ -144,7 +164,9 @@ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 	int err;
- 
- 	write_lock_bh(&priv->lock);
-+	write_seqcount_begin(&priv->count);
- 	err = __nft_rbtree_insert(net, set, rbe, ext);
-+	write_seqcount_end(&priv->count);
- 	write_unlock_bh(&priv->lock);
- 
- 	return err;
-@@ -158,7 +180,9 @@ static void nft_rbtree_remove(const struct net *net,
- 	struct nft_rbtree_elem *rbe = elem->priv;
- 
- 	write_lock_bh(&priv->lock);
-+	write_seqcount_begin(&priv->count);
- 	rb_erase(&rbe->node, &priv->root);
-+	write_seqcount_end(&priv->count);
- 	write_unlock_bh(&priv->lock);
- }
- 
-@@ -264,6 +288,7 @@ static int nft_rbtree_init(const struct nft_set *set,
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 
- 	rwlock_init(&priv->lock);
-+	seqcount_init(&priv->count);
- 	priv->root = RB_ROOT;
- 	return 0;
- }
--- 
-2.13.0
-
+Thanks, Phil
