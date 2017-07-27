@@ -1,436 +1,395 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH RFC v2 3/4] Implement --echo option
-Date: Thu, 27 Jul 2017 18:21:43 +0200
-Message-ID: <20170727162144.28703-4-phil@nwl.cc>
+Subject: [nft PATCH RFC v2 2/4] netlink: Pass nlmsg flags from rule.c
+Date: Thu, 27 Jul 2017 18:21:42 +0200
+Message-ID: <20170727162144.28703-3-phil@nwl.cc>
 References: <20170727162144.28703-1-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:42357 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:49145 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751113AbdG0QWC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Jul 2017 12:22:02 -0400
+        id S1751587AbdG0QWJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 27 Jul 2017 12:22:09 -0400
 In-Reply-To: <20170727162144.28703-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When used with add, insert or replace commands, nft tool will print a
-string uniquely identifying the new item added to kernel's rule set.
-
-The most beneficial effect of this feature is that it allows to
-atomically retrieve an added rule's handle. Previously, one would do
-something like this:
-
-| # nft add rule ip t c tcp dport 22 accept
-| # handle=$(nft -a list ruleset | \
-|            sed -n 's/tcp dport 22 accept # handle \(.*\)/\1/p)
-
-The obvious problem here is that another process might have added the
-same rule in between the two commands, so the parsed handle is not
-guaranteed to be the right one. Using --echo fixes that:
-
-| # handle=$(nft --echo add rule ip t c tcp dport 22 accept)
-| # handle=${handle#*handle }
-
-(Where the second line is just to imitate the above examples behaviour.)
-
-There is a more dramatic problem with any attempt at parsing 'nft list'
-output: Some 'nft add' input will never be printed the same way again. A
-simple example of this is using mixed port numbers and names:
-
-| nft add rule ip t c tcp dport { ssh, 80 } accept
-
-Depending on number of '-n' flags, the port list will either occur as
-all names ("ssh, http") or all numbers ("22, 80").
-
-The idea behind --echo is to print a statement which serves as a unique
-identifier suitable for passing to 'nft delete' directly. See the
-following examples for illustration:
-
-| # nft --echo add table ip t
-| table ip t
-| # nft --echo add chain ip t c
-| chain ip t c
-| # nft --echo add rule ip t c accept
-| rule handle 2
-
-In an ideal world, every element and not just rules should have an
-identifying handle. When these are added, --echo output can simply be
-adjusted to print that handle instead of the name one has to use at the
-moment.
+There is no point in checking value of excl in each called function.
+Just do it in a single spot and pass resulting flags.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
-Changes since v1:
-- Drop extern declaration of unused variable echo_output.
-- Reworded --echo description in man page a bit.
----
- doc/nft.xml                         | 51 ++++++++++++++++++++++++++++++
- include/linux/netfilter/nf_tables.h |  1 +
- include/netlink.h                   |  2 ++
- include/nftables.h                  |  1 +
- src/main.c                          | 11 ++++++-
- src/mnl.c                           | 25 +++++++++++++--
- src/netlink.c                       | 63 +++++++++++++++++++++++++++++++++++--
- src/rule.c                          |  7 ++++-
- 8 files changed, 155 insertions(+), 6 deletions(-)
+ include/netlink.h | 10 ++++----
+ src/netlink.c     | 69 ++++++++++++++++++++++++++-----------------------------
+ src/rule.c        | 26 +++++++++++----------
+ 3 files changed, 51 insertions(+), 54 deletions(-)
 
-diff --git a/doc/nft.xml b/doc/nft.xml
-index 9c9192cf7a8bf..f018f4c215577 100644
---- a/doc/nft.xml
-+++ b/doc/nft.xml
-@@ -157,6 +157,17 @@ vi:ts=4 sw=4
- 				</listitem>
- 			</varlistentry>
- 			<varlistentry>
-+				<term><option>-e, --echo</option></term>
-+				<listitem>
-+					<para>
-+						When inserting items into the ruleset using <command>add</command>,
-+						<command>insert</command> or <command>replace</command> commands,
-+						print a line for each item uniquely identifying it, suitable to pass
-+						it to a following <command>delete</command> command.
-+					</para>
-+				</listitem>
-+			</varlistentry>
-+			<varlistentry>
- 				<term><option>-I, --includepath <replaceable>directory</replaceable></option></term>
- 				<listitem>
- 					<para>
-@@ -4421,6 +4432,46 @@ add rule nat prerouting tcp dport 22 redirect to :2222
- 	</refsect1>
- 
- 	<refsect1>
-+		<title>Echo Option</title>
-+		<para>
-+			The flag <option>-e/--echo</option> exists to overcome a practical problem for
-+			scripts (or pedantic users) trying to reliably manage their own firewall rules:
-+			Although every rule is assigned a unique handle allowing it to be identified later
-+			in <cmd>delete</cmd> or <cmd>replace</cmd> commands, it wasn't possible to retrieve
-+			that handle atomically. So one would have to call <cmd>nft -a list ruleset</cmd>,
-+			parse the output (which may differ from the input sometimes) and still there would
-+			be the chance that some other instance inserted a similar rule meanwhile.
-+		</para>
-+		<para>
-+			Using <option>--echo</option> during insertion of a rule (or actually any item)
-+			makes <cmd>nft</cmd> print a line suitable for passing on to later commands. Here
-+			are some examples:
-+		</para>
-+		<example>
-+			<programlisting>
-+# nft --echo add table ip t
-+table ip t
-+# nft --echo add chain ip t c
-+chain ip t c
-+# nft --echo add set ip t portset '{ type inet_service; }'
-+set ip t portset
-+# nft --echo add element ip t portset '{ 80, 443 }'
-+element ip t portset { http }
-+element ip t portset { https }
-+# nft --echo add rule ip t c tcp dport @portset drop
-+rule ip t c handle 2
-+			</programlisting>
-+		</example>
-+		<para>
-+			One might notice that a unique handle exists only for rules - this is not an issue
-+			since anything else is uniquely identified by it's name (like tables, chains and
-+			sets) or in the case of set elements the element value suffices as there can't be
-+			two identical items in a single set (if the element was already there, no line
-+			would be printed for it so one doesn't by accident delete elements added by another
-+			instance).
-+		</para>
-+	</refsect1>
-+	<refsect1>
- 		<title>Error reporting</title>
- 		<para>
- 			When an error is detected, nft shows the line(s) containing the error, the position
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 40096de04e963..70404f724808a 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -114,6 +114,7 @@ enum nf_tables_msg_types {
- 	NFT_MSG_GETOBJ,
- 	NFT_MSG_DELOBJ,
- 	NFT_MSG_GETOBJ_RESET,
-+	NFT_MSG_META_ECHO,
- 	NFT_MSG_MAX,
- };
- 
 diff --git a/include/netlink.h b/include/netlink.h
-index ffbc51d352fa0..47ecef38f9e9d 100644
+index 7865186b62767..ffbc51d352fa0 100644
 --- a/include/netlink.h
 +++ b/include/netlink.h
-@@ -222,4 +222,6 @@ extern int netlink_monitor(struct netlink_mon_handler *monhandler,
- 			    struct mnl_socket *nf_sock);
- bool netlink_batch_supported(struct mnl_socket *nf_sock);
+@@ -124,7 +124,7 @@ extern int netlink_replace_rule_batch(struct netlink_ctx *ctx,
  
-+int netlink_echo_callback(const struct nlmsghdr *nlh, void *data);
-+
- #endif /* NFTABLES_NETLINK_H */
-diff --git a/include/nftables.h b/include/nftables.h
-index 640d3c7e715d8..ca609015274a9 100644
---- a/include/nftables.h
-+++ b/include/nftables.h
-@@ -29,6 +29,7 @@ struct output_ctx {
- 	unsigned int stateless;
- 	unsigned int ip2name;
- 	unsigned int handle;
-+	unsigned int echo;
- };
+ extern int netlink_add_chain(struct netlink_ctx *ctx, const struct handle *h,
+ 			     const struct location *loc,
+-			     const struct chain *chain, bool excl);
++			     const struct chain *chain, uint32_t flags);
+ extern int netlink_rename_chain(struct netlink_ctx *ctx, const struct handle *h,
+ 				const struct location *loc, const char *name);
+ extern int netlink_delete_chain(struct netlink_ctx *ctx, const struct handle *h,
+@@ -140,7 +140,7 @@ extern int netlink_flush_chain(struct netlink_ctx *ctx, const struct handle *h,
  
- struct nft_ctx {
-diff --git a/src/main.c b/src/main.c
-index 1535153ec815d..86862a1088e0c 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -49,10 +49,11 @@ enum opt_vals {
- 	OPT_IP2NAME		= 'N',
- 	OPT_DEBUG		= 'd',
- 	OPT_HANDLE_OUTPUT	= 'a',
-+	OPT_ECHO		= 'e',
- 	OPT_INVALID		= '?',
- };
+ extern int netlink_add_table(struct netlink_ctx *ctx, const struct handle *h,
+ 			     const struct location *loc,
+-			     const struct table *table, bool excl);
++			     const struct table *table, uint32_t flags);
+ extern int netlink_delete_table(struct netlink_ctx *ctx, const struct handle *h,
+ 				const struct location *loc);
+ extern int netlink_list_tables(struct netlink_ctx *ctx, const struct handle *h,
+@@ -153,7 +153,7 @@ extern int netlink_flush_table(struct netlink_ctx *ctx, const struct handle *h,
+ 			       const struct location *loc);
  
--#define OPTSTRING	"hvcf:iI:vnsNa"
-+#define OPTSTRING	"hvcf:iI:vnsNae"
+ extern int netlink_add_set(struct netlink_ctx *ctx, const struct handle *h,
+-			   struct set *set, bool excl);
++			   struct set *set, uint32_t flags);
+ extern int netlink_delete_set(struct netlink_ctx *ctx, const struct handle *h,
+ 			      const struct location *loc);
+ extern int netlink_list_sets(struct netlink_ctx *ctx, const struct handle *h,
+@@ -165,7 +165,7 @@ extern struct stmt *netlink_parse_set_expr(const struct set *set,
+ 					   const struct nftnl_expr *nle);
  
- static const struct option options[] = {
- 	{
-@@ -105,6 +106,10 @@ static const struct option options[] = {
- 		.val		= OPT_HANDLE_OUTPUT,
- 	},
- 	{
-+		.name		= "echo",
-+		.val		= OPT_ECHO,
-+	},
-+	{
- 		.name		= NULL
- 	}
- };
-@@ -128,6 +133,7 @@ static void show_help(const char *name)
- "  -s, --stateless		Omit stateful information of ruleset.\n"
- "  -N				Translate IP addresses to names.\n"
- "  -a, --handle			Output rule handle.\n"
-+"  -e, --echo			Echo what has been added, inserted or replaced.\n"
- "  -I, --includepath <directory>	Add <directory> to the paths searched for include files. Default is: %s\n"
- #ifdef DEBUG
- "  --debug <level [,level...]>	Specify debugging level (scanner, parser, eval, netlink, mnl, proto-ctx, segtree, all)\n"
-@@ -375,6 +381,9 @@ int main(int argc, char * const *argv)
- 		case OPT_HANDLE_OUTPUT:
- 			nft.output.handle++;
- 			break;
-+		case OPT_ECHO:
-+			nft.output.echo++;
-+			break;
- 		case OPT_INVALID:
- 			exit(NFT_EXIT_FAILURE);
- 		}
-diff --git a/src/mnl.c b/src/mnl.c
-index a3a6bd3fff1e7..50f006e67c968 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -67,11 +67,32 @@ out:
- 	return ret;
- }
+ extern int netlink_add_setelems(struct netlink_ctx *ctx, const struct handle *h,
+-				const struct expr *expr, bool excl);
++				const struct expr *expr, uint32_t flags);
+ extern int netlink_delete_setelems(struct netlink_ctx *ctx, const struct handle *h,
+ 				   const struct expr *expr);
+ extern int netlink_get_setelems(struct netlink_ctx *ctx, const struct handle *h,
+@@ -179,7 +179,7 @@ extern int netlink_reset_objs(struct netlink_ctx *ctx, const struct handle *h,
+ 			      const struct location *loc, uint32_t type,
+ 			      bool dump);
+ extern int netlink_add_obj(struct netlink_ctx *ctx, const struct handle *h,
+-			   struct obj *obj, bool excl);
++			   struct obj *obj, uint32_t flags);
+ extern int netlink_delete_obj(struct netlink_ctx *ctx, const struct handle *h,
+ 			      struct location *loc, uint32_t type);
  
-+struct nft_mnl_talk_cb_data {
-+	int (*cb)(const struct nlmsghdr *nlh, void *data);
-+	void *data;
-+};
-+
-+static int nft_mnl_talk_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct nft_mnl_talk_cb_data *cbdata = data;
-+	int rc;
-+
-+	if (cbdata->cb)
-+		rc = cbdata->cb(nlh, cbdata->data);
-+	if (rc)
-+		return rc;
-+	return netlink_echo_callback(nlh, cbdata->data);
-+}
-+
- static int
- nft_mnl_talk(struct mnl_socket *nf_sock, const void *data, unsigned int len,
- 	     int (*cb)(const struct nlmsghdr *nlh, void *data), void *cb_data)
- {
- 	uint32_t portid = mnl_socket_get_portid(nf_sock);
-+	struct nft_mnl_talk_cb_data tcb_data = {
-+		.cb = cb,
-+		.data = cb_data,
-+	};
- 
- #ifdef DEBUG
- 	if (debug_level & DEBUG_MNL)
-@@ -81,7 +102,7 @@ nft_mnl_talk(struct mnl_socket *nf_sock, const void *data, unsigned int len,
- 	if (mnl_socket_sendto(nf_sock, data, len) < 0)
- 		return -1;
- 
--	return nft_mnl_recv(nf_sock, seq, portid, cb, cb_data);
-+	return nft_mnl_recv(nf_sock, seq, portid, &nft_mnl_talk_cb, &tcb_data);
- }
- 
- /*
-@@ -276,7 +297,7 @@ int mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list)
- 		if (ret == -1)
- 			return -1;
- 
--		ret = mnl_cb_run(rcv_buf, ret, 0, portid, NULL, NULL);
-+		ret = mnl_cb_run(rcv_buf, ret, 0, portid, &netlink_echo_callback, ctx);
- 		/* Continue on error, make sure we get all acknowledgments */
- 		if (ret == -1)
- 			mnl_err_list_node_add(err_list, errno, nlh->nlmsg_seq);
 diff --git a/src/netlink.c b/src/netlink.c
-index f13dfd3f9a021..f7b452415080a 100644
+index b4386ad4ecf01..f13dfd3f9a021 100644
 --- a/src/netlink.c
 +++ b/src/netlink.c
-@@ -465,11 +465,11 @@ int netlink_replace_rule_batch(struct netlink_ctx *ctx, const struct handle *h,
- 			       const struct location *loc)
- {
+@@ -447,10 +447,11 @@ int netlink_add_rule_batch(struct netlink_ctx *ctx,
  	struct nftnl_rule *nlr;
--	int err;
-+	int err, flags = ctx->octx->echo ? NLM_F_ECHO : 0;
+ 	int err;
  
++	flags |= NLM_F_APPEND | NLM_F_EXCL;
++
  	nlr = alloc_nftnl_rule(&rule->handle);
  	netlink_linearize_rule(ctx, nlr, rule);
--	err = mnl_nft_rule_batch_replace(nlr, ctx->batch, 0, ctx->seqnum);
-+	err = mnl_nft_rule_batch_replace(nlr, ctx->batch, flags, ctx->seqnum);
+-	err = mnl_nft_rule_batch_add(nlr, ctx->batch, flags | NLM_F_EXCL,
+-				     ctx->seqnum);
++	err = mnl_nft_rule_batch_add(nlr, ctx->batch, flags, ctx->seqnum);
  	nftnl_rule_free(nlr);
+ 	if (err < 0)
+ 		netlink_io_error(ctx, &rule->location,
+@@ -597,7 +598,7 @@ void netlink_dump_chain(const struct nftnl_chain *nlc)
+ static int netlink_add_chain_compat(struct netlink_ctx *ctx,
+ 				    const struct handle *h,
+ 				    const struct location *loc,
+-				    const struct chain *chain, bool excl)
++				    const struct chain *chain, uint32_t flags)
+ {
+ 	struct nftnl_chain *nlc;
+ 	int err;
+@@ -618,7 +619,7 @@ static int netlink_add_chain_compat(struct netlink_ctx *ctx,
+ 	}
+ 
+ 	netlink_dump_chain(nlc);
+-	err = mnl_nft_chain_add(ctx->nf_sock, nlc, excl ? NLM_F_EXCL : 0);
++	err = mnl_nft_chain_add(ctx->nf_sock, nlc, flags);
+ 	nftnl_chain_free(nlc);
  
  	if (err < 0)
-@@ -2087,6 +2087,8 @@ static int netlink_events_table_cb(const struct nlmsghdr *nlh, int type,
- 				printf("update table ");
- 			else
- 				printf("add table ");
-+		} else if (type == NFT_MSG_META_ECHO) {
-+			printf("table ");
- 		} else {
- 			printf("delete table ");
- 		}
-@@ -2136,6 +2138,12 @@ static int netlink_events_chain_cb(const struct nlmsghdr *nlh, int type,
- 			       nftnl_chain_get_str(nlc, NFTNL_CHAIN_TABLE),
- 			       nftnl_chain_get_str(nlc, NFTNL_CHAIN_NAME));
- 			break;
-+		case NFT_MSG_META_ECHO:
-+			family = nftnl_chain_get_u32(nlc, NFTNL_CHAIN_FAMILY);
-+			printf("chain %s %s %s\n", family2str(family),
-+			       nftnl_chain_get_str(nlc, NFTNL_CHAIN_TABLE),
-+			       nftnl_chain_get_str(nlc, NFTNL_CHAIN_NAME));
-+			break;
- 		}
- 		break;
- 	case NFTNL_OUTPUT_XML:
-@@ -2183,6 +2191,13 @@ static int netlink_events_set_cb(const struct nlmsghdr *nlh, int type,
- 			       nftnl_set_get_str(nls, NFTNL_SET_TABLE),
- 			       nftnl_set_get_str(nls, NFTNL_SET_NAME));
- 			break;
-+		case NFT_MSG_META_ECHO:
-+			family = nftnl_set_get_u32(nls, NFTNL_SET_FAMILY);
-+			printf("set %s %s %s\n",
-+			       family2str(family),
-+			       nftnl_set_get_str(nls, NFTNL_SET_TABLE),
-+			       nftnl_set_get_str(nls, NFTNL_SET_NAME));
-+			break;
- 		}
- 		break;
- 	case NFTNL_OUTPUT_XML:
-@@ -2323,6 +2338,8 @@ static int netlink_events_setelem_cb(const struct nlmsghdr *nlh, int type,
- 		case NFT_MSG_DELSETELEM:
- 			printf("delete ");
- 			break;
-+		case NFT_MSG_META_ECHO:
-+			break;
- 		default:
- 			set_free(dummyset);
- 			goto out;
-@@ -2376,6 +2393,14 @@ static int netlink_events_obj_cb(const struct nlmsghdr *nlh, int type,
- 			       nftnl_obj_get_str(nlo, NFTNL_OBJ_TABLE),
- 			       nftnl_obj_get_str(nlo, NFTNL_OBJ_NAME));
- 			break;
-+		case NFT_MSG_META_ECHO:
-+			family = nftnl_obj_get_u32(nlo, NFTNL_OBJ_FAMILY);
-+			printf("%s %s %s %s\n",
-+			       obj_type_name(nftnl_obj_get_u32(nlo, NFTNL_OBJ_TYPE)),
-+			       family2str(family),
-+			       nftnl_obj_get_str(nlo, NFTNL_OBJ_TABLE),
-+			       nftnl_obj_get_str(nlo, NFTNL_OBJ_NAME));
-+			break;
- 		}
- 		break;
- 	case NFTNL_OUTPUT_XML:
-@@ -2431,6 +2456,10 @@ static int netlink_events_rule_cb(const struct nlmsghdr *nlh, int type,
- 			printf("delete rule %s %s %s handle %u\n",
- 			       family, table, chain, (unsigned int)handle);
- 			break;
-+		case NFT_MSG_META_ECHO:
-+			printf("rule %s %s %s handle %u\n",
-+			       family, table, chain, (unsigned int)handle);
-+			break;
- 		}
- 		break;
- 	case NFTNL_OUTPUT_XML:
-@@ -3070,6 +3099,36 @@ static int netlink_events_cb(const struct nlmsghdr *nlh, void *data)
- 	return ret;
+@@ -630,7 +631,7 @@ static int netlink_add_chain_compat(struct netlink_ctx *ctx,
+ static int netlink_add_chain_batch(struct netlink_ctx *ctx,
+ 				   const struct handle *h,
+ 				   const struct location *loc,
+-				   const struct chain *chain, bool excl)
++				   const struct chain *chain, uint32_t flags)
+ {
+ 	struct nftnl_chain *nlc;
+ 	int err;
+@@ -654,8 +655,7 @@ static int netlink_add_chain_batch(struct netlink_ctx *ctx,
+ 	}
+ 
+ 	netlink_dump_chain(nlc);
+-	err = mnl_nft_chain_batch_add(nlc, ctx->batch, excl ? NLM_F_EXCL : 0,
+-				      ctx->seqnum);
++	err = mnl_nft_chain_batch_add(nlc, ctx->batch, flags, ctx->seqnum);
+ 	nftnl_chain_free(nlc);
+ 
+ 	if (err < 0)
+@@ -666,12 +666,12 @@ static int netlink_add_chain_batch(struct netlink_ctx *ctx,
+ 
+ int netlink_add_chain(struct netlink_ctx *ctx, const struct handle *h,
+ 		      const struct location *loc, const struct chain *chain,
+-		      bool excl)
++		      uint32_t flags)
+ {
+ 	if (ctx->batch_supported)
+-		return netlink_add_chain_batch(ctx, h, loc, chain, excl);
++		return netlink_add_chain_batch(ctx, h, loc, chain, flags);
+ 	else
+-		return netlink_add_chain_compat(ctx, h, loc, chain, excl);
++		return netlink_add_chain_compat(ctx, h, loc, chain, flags);
  }
  
-+int netlink_echo_callback(const struct nlmsghdr *nlh, void *data)
-+{
-+	uint16_t type = NFNL_MSG_TYPE(nlh->nlmsg_type);
-+	uint16_t etype = NFT_MSG_META_ECHO;
-+	struct netlink_mon_handler echo_monh = {
-+		.format = NFTNL_OUTPUT_DEFAULT,
-+		.ctx = data,
-+		.loc = &netlink_location,
-+	};
-+
-+	if (!echo_monh.ctx->octx->echo)
-+		return MNL_CB_OK;
-+
-+	switch (type) {
-+	case NFT_MSG_NEWTABLE:
-+		return netlink_events_table_cb(nlh, etype, &echo_monh);
-+	case NFT_MSG_NEWCHAIN:
-+		return netlink_events_chain_cb(nlh, etype, &echo_monh);
-+	case NFT_MSG_NEWSET:
-+		return netlink_events_set_cb(nlh, etype, &echo_monh);
-+	case NFT_MSG_NEWSETELEM:
-+		return netlink_events_setelem_cb(nlh, etype, &echo_monh);
-+	case NFT_MSG_NEWRULE:
-+		return netlink_events_rule_cb(nlh, etype, &echo_monh);
-+	case NFT_MSG_NEWOBJ:
-+		return netlink_events_obj_cb(nlh, etype, &echo_monh);
-+	}
-+	return MNL_CB_OK;
-+}
-+
- int netlink_monitor(struct netlink_mon_handler *monhandler,
- 		     struct mnl_socket *nf_sock)
+ static int netlink_rename_chain_compat(struct netlink_ctx *ctx,
+@@ -901,13 +901,13 @@ int netlink_flush_chain(struct netlink_ctx *ctx, const struct handle *h,
+ static int netlink_add_table_compat(struct netlink_ctx *ctx,
+ 				    const struct handle *h,
+ 				    const struct location *loc,
+-				    const struct table *table, bool excl)
++				    const struct table *table, uint32_t flags)
  {
+ 	struct nftnl_table *nlt;
+ 	int err;
+ 
+ 	nlt = alloc_nftnl_table(h);
+-	err = mnl_nft_table_add(ctx->nf_sock, nlt, excl ? NLM_F_EXCL : 0);
++	err = mnl_nft_table_add(ctx->nf_sock, nlt, flags);
+ 	nftnl_table_free(nlt);
+ 
+ 	if (err < 0)
+@@ -919,7 +919,7 @@ static int netlink_add_table_compat(struct netlink_ctx *ctx,
+ static int netlink_add_table_batch(struct netlink_ctx *ctx,
+ 				   const struct handle *h,
+ 				   const struct location *loc,
+-				   const struct table *table, bool excl)
++				   const struct table *table, uint32_t flags)
+ {
+ 	struct nftnl_table *nlt;
+ 	int err;
+@@ -930,8 +930,7 @@ static int netlink_add_table_batch(struct netlink_ctx *ctx,
+ 	else
+ 		nftnl_table_set_u32(nlt, NFTNL_TABLE_FLAGS, 0);
+ 
+-	err = mnl_nft_table_batch_add(nlt, ctx->batch, excl ? NLM_F_EXCL : 0,
+-				      ctx->seqnum);
++	err = mnl_nft_table_batch_add(nlt, ctx->batch, flags, ctx->seqnum);
+ 	nftnl_table_free(nlt);
+ 
+ 	if (err < 0)
+@@ -942,12 +941,12 @@ static int netlink_add_table_batch(struct netlink_ctx *ctx,
+ 
+ int netlink_add_table(struct netlink_ctx *ctx, const struct handle *h,
+ 		      const struct location *loc,
+-		      const struct table *table, bool excl)
++		      const struct table *table, uint32_t flags)
+ {
+ 	if (ctx->batch_supported)
+-		return netlink_add_table_batch(ctx, h, loc, table, excl);
++		return netlink_add_table_batch(ctx, h, loc, table, flags);
+ 	else
+-		return netlink_add_table_compat(ctx, h, loc, table, excl);
++		return netlink_add_table_compat(ctx, h, loc, table, flags);
+ }
+ 
+ static int netlink_del_table_compat(struct netlink_ctx *ctx,
+@@ -1228,9 +1227,8 @@ static struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
+ 
+ static int netlink_add_set_compat(struct netlink_ctx *ctx,
+ 				  const struct handle *h, struct set *set,
+-				  bool excl)
++				  uint32_t flags)
+ {
+-	unsigned int flags = excl ? NLM_F_EXCL : 0;
+ 	struct nftnl_set *nls;
+ 	int err;
+ 
+@@ -1261,7 +1259,7 @@ static int netlink_add_set_compat(struct netlink_ctx *ctx,
+ 
+ static int netlink_add_set_batch(struct netlink_ctx *ctx,
+ 				 const struct handle *h, struct set *set,
+-				 bool excl)
++				 uint32_t flags)
+ {
+ 	struct nftnl_udata_buf *udbuf;
+ 	struct nftnl_set *nls;
+@@ -1318,8 +1316,7 @@ static int netlink_add_set_batch(struct netlink_ctx *ctx,
+ 
+ 	netlink_dump_set(nls);
+ 
+-	err = mnl_nft_set_batch_add(nls, ctx->batch, excl ? NLM_F_EXCL : 0,
+-				    ctx->seqnum);
++	err = mnl_nft_set_batch_add(nls, ctx->batch, flags, ctx->seqnum);
+ 	if (err < 0)
+ 		netlink_io_error(ctx, &set->location, "Could not add set: %s",
+ 				 strerror(errno));
+@@ -1329,12 +1326,12 @@ static int netlink_add_set_batch(struct netlink_ctx *ctx,
+ }
+ 
+ int netlink_add_set(struct netlink_ctx *ctx, const struct handle *h,
+-		    struct set *set, bool excl)
++		    struct set *set, uint32_t flags)
+ {
+ 	if (ctx->batch_supported)
+-		return netlink_add_set_batch(ctx, h, set, excl);
++		return netlink_add_set_batch(ctx, h, set, flags);
+ 	else
+-		return netlink_add_set_compat(ctx, h, set, excl);
++		return netlink_add_set_compat(ctx, h, set, flags);
+ }
+ 
+ static int netlink_del_set_compat(struct netlink_ctx *ctx,
+@@ -1449,7 +1446,7 @@ static void alloc_setelem_cache(const struct expr *set, struct nftnl_set *nls)
+ 
+ static int netlink_add_setelems_batch(struct netlink_ctx *ctx,
+ 				      const struct handle *h,
+-				      const struct expr *expr, bool excl)
++				      const struct expr *expr, uint32_t flags)
+ {
+ 	struct nftnl_set *nls;
+ 	int err;
+@@ -1458,8 +1455,7 @@ static int netlink_add_setelems_batch(struct netlink_ctx *ctx,
+ 	alloc_setelem_cache(expr, nls);
+ 	netlink_dump_set(nls);
+ 
+-	err = mnl_nft_setelem_batch_add(nls, ctx->batch, excl ? NLM_F_EXCL : 0,
+-					ctx->seqnum);
++	err = mnl_nft_setelem_batch_add(nls, ctx->batch, flags, ctx->seqnum);
+ 	nftnl_set_free(nls);
+ 	if (err < 0)
+ 		netlink_io_error(ctx, &expr->location,
+@@ -1470,7 +1466,7 @@ static int netlink_add_setelems_batch(struct netlink_ctx *ctx,
+ 
+ static int netlink_add_setelems_compat(struct netlink_ctx *ctx,
+ 				       const struct handle *h,
+-				       const struct expr *expr, bool excl)
++				       const struct expr *expr, uint32_t flags)
+ {
+ 	struct nftnl_set *nls;
+ 	int err;
+@@ -1479,7 +1475,7 @@ static int netlink_add_setelems_compat(struct netlink_ctx *ctx,
+ 	alloc_setelem_cache(expr, nls);
+ 	netlink_dump_set(nls);
+ 
+-	err = mnl_nft_setelem_add(ctx->nf_sock, nls, excl ? NLM_F_EXCL : 0);
++	err = mnl_nft_setelem_add(ctx->nf_sock, nls, flags);
+ 	nftnl_set_free(nls);
+ 	if (err < 0)
+ 		netlink_io_error(ctx, &expr->location,
+@@ -1489,12 +1485,12 @@ static int netlink_add_setelems_compat(struct netlink_ctx *ctx,
+ }
+ 
+ int netlink_add_setelems(struct netlink_ctx *ctx, const struct handle *h,
+-			 const struct expr *expr, bool excl)
++			 const struct expr *expr, uint32_t flags)
+ {
+ 	if (ctx->batch_supported)
+-		return netlink_add_setelems_batch(ctx, h, expr, excl);
++		return netlink_add_setelems_batch(ctx, h, expr, flags);
+ 	else
+-		return netlink_add_setelems_compat(ctx, h, expr, excl);
++		return netlink_add_setelems_compat(ctx, h, expr, flags);
+ }
+ 
+ static int netlink_del_setelems_batch(struct netlink_ctx *ctx,
+@@ -1770,7 +1766,7 @@ void netlink_dump_obj(struct nftnl_obj *nln)
+ }
+ 
+ int netlink_add_obj(struct netlink_ctx *ctx, const struct handle *h,
+-		    struct obj *obj, bool excl)
++		    struct obj *obj, uint32_t flags)
+ {
+ 	struct nftnl_obj *nlo;
+ 	int err;
+@@ -1778,8 +1774,7 @@ int netlink_add_obj(struct netlink_ctx *ctx, const struct handle *h,
+ 	nlo = alloc_nftnl_obj(h, obj);
+ 	netlink_dump_obj(nlo);
+ 
+-	err = mnl_nft_obj_batch_add(nlo, ctx->batch, excl ? NLM_F_EXCL : 0,
+-				    ctx->seqnum);
++	err = mnl_nft_obj_batch_add(nlo, ctx->batch, flags, ctx->seqnum);
+ 	if (err < 0)
+ 		netlink_io_error(ctx, &obj->location, "Could not add %s: %s",
+ 				 obj_type_name(obj->type), strerror(errno));
 diff --git a/src/rule.c b/src/rule.c
-index f8e1b0a460292..9de38f176e02e 100644
+index 7f83980c60818..f8e1b0a460292 100644
 --- a/src/rule.c
 +++ b/src/rule.c
-@@ -1018,6 +1018,9 @@ static int do_command_add(struct netlink_ctx *ctx, struct cmd *cmd, bool excl)
- {
- 	uint32_t flags = excl ? NLM_F_EXCL : 0;
+@@ -972,17 +972,17 @@ void cmd_free(struct cmd *cmd)
+ #include <netlink.h>
  
-+	if (ctx->octx->echo)
-+		flags |= NLM_F_ECHO;
+ static int __do_add_setelems(struct netlink_ctx *ctx, const struct handle *h,
+-			     struct set *set, struct expr *expr, bool excl)
++			     struct set *set, struct expr *expr, uint32_t flags)
+ {
+ 	expr->set_flags |= set->flags;
+-	if (netlink_add_setelems(ctx, h, expr, excl) < 0)
++	if (netlink_add_setelems(ctx, h, expr, flags) < 0)
+ 		return -1;
+ 
+ 	return 0;
+ }
+ 
+ static int do_add_setelems(struct netlink_ctx *ctx, const struct handle *h,
+-			   struct expr *init, bool excl)
++			   struct expr *init, uint32_t flags)
+ {
+ 	struct table *table;
+ 	struct set *set;
+@@ -994,18 +994,18 @@ static int do_add_setelems(struct netlink_ctx *ctx, const struct handle *h,
+ 	    set_to_intervals(ctx->msgs, set, init, true) < 0)
+ 		return -1;
+ 
+-	return __do_add_setelems(ctx, h, set, init, excl);
++	return __do_add_setelems(ctx, h, set, init, flags);
+ }
+ 
+ static int do_add_set(struct netlink_ctx *ctx, const struct handle *h,
+-		      struct set *set, bool excl)
++		      struct set *set, uint32_t flags)
+ {
+ 	if (set->init != NULL) {
+ 		if (set->flags & NFT_SET_INTERVAL &&
+ 		    set_to_intervals(ctx->msgs, set, set->init, true) < 0)
+ 			return -1;
+ 	}
+-	if (netlink_add_set(ctx, h, set, excl) < 0)
++	if (netlink_add_set(ctx, h, set, flags) < 0)
+ 		return -1;
+ 	if (set->init != NULL) {
+ 		return __do_add_setelems(ctx, &set->handle, set, set->init,
+@@ -1016,24 +1016,26 @@ static int do_add_set(struct netlink_ctx *ctx, const struct handle *h,
+ 
+ static int do_command_add(struct netlink_ctx *ctx, struct cmd *cmd, bool excl)
+ {
++	uint32_t flags = excl ? NLM_F_EXCL : 0;
 +
  	switch (cmd->obj) {
  	case CMD_OBJ_TABLE:
  		return netlink_add_table(ctx, &cmd->handle, &cmd->location,
-@@ -1056,10 +1059,12 @@ static int do_command_replace(struct netlink_ctx *ctx, struct cmd *cmd)
- 
- static int do_command_insert(struct netlink_ctx *ctx, struct cmd *cmd)
- {
-+	uint32_t flags = ctx->octx->echo ? NLM_F_ECHO : 0;
-+
- 	switch (cmd->obj) {
+-					 cmd->table, excl);
++					 cmd->table, flags);
+ 	case CMD_OBJ_CHAIN:
+ 		return netlink_add_chain(ctx, &cmd->handle, &cmd->location,
+-					 cmd->chain, excl);
++					 cmd->chain, flags);
  	case CMD_OBJ_RULE:
  		return netlink_add_rule_batch(ctx, &cmd->handle,
--					      cmd->rule, 0);
+-					      cmd->rule, NLM_F_APPEND);
 +					      cmd->rule, flags);
+ 	case CMD_OBJ_SET:
+-		return do_add_set(ctx, &cmd->handle, cmd->set, excl);
++		return do_add_set(ctx, &cmd->handle, cmd->set, flags);
+ 	case CMD_OBJ_SETELEM:
+-		return do_add_setelems(ctx, &cmd->handle, cmd->expr, excl);
++		return do_add_setelems(ctx, &cmd->handle, cmd->expr, flags);
+ 	case CMD_OBJ_COUNTER:
+ 	case CMD_OBJ_QUOTA:
+ 	case CMD_OBJ_CT_HELPER:
+-		return netlink_add_obj(ctx, &cmd->handle, cmd->object, excl);
++		return netlink_add_obj(ctx, &cmd->handle, cmd->object, flags);
  	default:
  		BUG("invalid command object type %u\n", cmd->obj);
  	}
