@@ -1,40 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH] mnl: Remove dead code
-Date: Thu, 27 Jul 2017 10:46:46 +0200
-Message-ID: <20170727084646.GB5576@salvia>
-References: <20170726161630.12919-1-phil@nwl.cc>
+Subject: Re: [nft PATCH v2 0/3] monitor: Some fixes and improvements
+Date: Thu, 27 Jul 2017 10:50:56 +0200
+Message-ID: <20170727085056.GA5843@salvia>
+References: <20170725183944.9377-1-phil@nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44274 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:46012 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751726AbdG0Iq6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Jul 2017 04:46:58 -0400
+        id S1750836AbdG0IvI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 27 Jul 2017 04:51:08 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CB774E1232
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2017 10:46:44 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 4029BE1236
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2017 10:50:55 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BC19CA7F28
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2017 10:46:44 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 30F73DA87A
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2017 10:50:55 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B2C18D1CA3
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2017 10:46:42 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0FEECDA46C
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2017 10:50:53 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20170726161630.12919-1-phil@nwl.cc>
+In-Reply-To: <20170725183944.9377-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Cc'ing Pablo Bermudo.
+On Tue, Jul 25, 2017 at 08:39:41PM +0200, Phil Sutter wrote:
+> This is v2 containing the patches not applied from v1. Apart from
+> rebasing upon current upstream master, I folded patch 4 into patch 1
+> since they really belong together: The code changes to make 'nft
+> monitor' print correct syntax (by including the mandatory semicolons)
+> harmed readability since it dropped whitespace from the output. Former
+> patch 4 resolved this, not only for the cases patch 1 broke, but also at
+> another spot (i.e. between 'type' attribute and the following ones).
+> 
+> Patch 2 of this series depends on patch 1 since the simplification
+> requires that 'nft monitor' output matches given input (apart from
+> whitespace change) which wasn't the case before patch 1.
+> 
+> Finally, patch 3 (along with patch 2) remains unchanged.
 
-On Wed, Jul 26, 2017 at 06:16:30PM +0200, Phil Sutter wrote:
-> Remove the functions mnl_nft_rule_add() and *_delete() since they are
-> not used throughout the code. Commit a72315d2bad47 ("src: add rule
-> batching support") changed their only caller to use the batch variant
-> introduced at the same time.
-
-I think there are more useless functions. Pablo Bermudo mentioned this
-to me a while ago. At least I remember some of them in netlink.c?
-
-If not much asking, it would be good if we can kill them all in one go.
+Series applied, thanks a lot for addressing all my feedback!
