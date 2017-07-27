@@ -1,90 +1,41 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH RFC v2 1/4] mnl: Consolidate mnl_batch_talk() parameters
-Date: Thu, 27 Jul 2017 18:21:41 +0200
-Message-ID: <20170727162144.28703-2-phil@nwl.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH RFC v2 3/4] Implement --echo option
+Date: Thu, 27 Jul 2017 18:43:00 +0200
+Message-ID: <20170727164300.GA10637@salvia>
 References: <20170727162144.28703-1-phil@nwl.cc>
+ <20170727162144.28703-4-phil@nwl.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:53871 "EHLO mail.nwl.cc"
+Received: from mail.us.es ([193.147.175.20]:40814 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751635AbdG0QWV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Jul 2017 12:22:21 -0400
-In-Reply-To: <20170727162144.28703-1-phil@nwl.cc>
+        id S1751766AbdG0QnN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 27 Jul 2017 12:43:13 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 16CC757E802
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2017 18:42:59 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 07AD01B32DA
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2017 18:42:59 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 050C71B3074
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2017 18:42:57 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20170727162144.28703-4-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The single caller of this function passes struct netlink_ctx fields as
-the first two parameters. This can be simplified by passing the context
-object itself and having mnl_batch_talk() access it's fields instead.
+On Thu, Jul 27, 2017 at 06:21:43PM +0200, Phil Sutter wrote:
+> diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+> index 40096de04e963..70404f724808a 100644
+> --- a/include/linux/netfilter/nf_tables.h
+> +++ b/include/linux/netfilter/nf_tables.h
+> @@ -114,6 +114,7 @@ enum nf_tables_msg_types {
+>  	NFT_MSG_GETOBJ,
+>  	NFT_MSG_DELOBJ,
+>  	NFT_MSG_GETOBJ_RESET,
+> +	NFT_MSG_META_ECHO,
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- include/mnl.h | 4 ++--
- src/mnl.c     | 6 +++---
- src/netlink.c | 2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/include/mnl.h b/include/mnl.h
-index 3d2d7fef93ba2..7b1db07bb823e 100644
---- a/include/mnl.h
-+++ b/include/mnl.h
-@@ -2,6 +2,7 @@
- #define _NFTABLES_MNL_H_
- 
- #include <list.h>
-+#include <netlink.h>
- 
- struct mnl_socket;
- 
-@@ -24,8 +25,7 @@ bool mnl_batch_ready(struct nftnl_batch *batch);
- void mnl_batch_reset(struct nftnl_batch *batch);
- uint32_t mnl_batch_begin(struct nftnl_batch *batch);
- void mnl_batch_end(struct nftnl_batch *batch);
--int mnl_batch_talk(struct mnl_socket *nl, struct nftnl_batch *batch,
--		   struct list_head *err_list);
-+int mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list);
- int mnl_nft_rule_batch_add(struct nftnl_rule *nlr, struct nftnl_batch *batch,
- 			   unsigned int flags, uint32_t seqnum);
- int mnl_nft_rule_batch_del(struct nftnl_rule *nlr, struct nftnl_batch *batch,
-diff --git a/src/mnl.c b/src/mnl.c
-index 3db80de6da02d..a3a6bd3fff1e7 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -246,9 +246,9 @@ static ssize_t mnl_nft_socket_sendmsg(const struct mnl_socket *nl,
- 	return sendmsg(mnl_socket_get_fd(nl), &msg, 0);
- }
- 
--int mnl_batch_talk(struct mnl_socket *nl, struct nftnl_batch *batch,
--		   struct list_head *err_list)
-+int mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list)
- {
-+	struct mnl_socket *nl = ctx->nf_sock;
- 	int ret, fd = mnl_socket_get_fd(nl), portid = mnl_socket_get_portid(nl);
- 	char rcv_buf[MNL_SOCKET_BUFFER_SIZE];
- 	fd_set readfds;
-@@ -257,7 +257,7 @@ int mnl_batch_talk(struct mnl_socket *nl, struct nftnl_batch *batch,
- 		.tv_usec	= 0
- 	};
- 
--	ret = mnl_nft_socket_sendmsg(nl, batch);
-+	ret = mnl_nft_socket_sendmsg(nl, ctx->batch);
- 	if (ret == -1)
- 		return -1;
- 
-diff --git a/src/netlink.c b/src/netlink.c
-index 9cef4c48f805a..b4386ad4ecf01 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -1903,7 +1903,7 @@ int netlink_reset_objs(struct netlink_ctx *ctx, const struct handle *h,
- 
- int netlink_batch_send(struct netlink_ctx *ctx, struct list_head *err_list)
- {
--	return mnl_batch_talk(ctx->nf_sock, ctx->batch, err_list);
-+	return mnl_batch_talk(ctx, err_list);
- }
- 
- int netlink_flush_ruleset(struct netlink_ctx *ctx, const struct handle *h,
--- 
-2.13.1
-
+Why this?
