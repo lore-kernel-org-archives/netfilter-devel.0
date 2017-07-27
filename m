@@ -1,82 +1,50 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH] mnl: Remove dead code
-Date: Wed, 26 Jul 2017 18:16:30 +0200
-Message-ID: <20170726161630.12919-1-phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
+From: Taehee Yoo <ap420073@gmail.com>
+Subject: Re: [PATCH V2] netfilter: x_tables: Fix use-after-free in ipt_do_table.
+Date: Thu, 27 Jul 2017 10:12:06 +0900
+Message-ID: <CAMArcTUd9f7b9291CKWLeFsbZyH3icvQg7GwZSGp5Pf3i0mHKA@mail.gmail.com>
+References: <20170726091648.20639-1-ap420073@gmail.com> <20170726092716.GB28392@breakpoint.cc>
+ <20170726110627.GC1607@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: Florian Westphal <fw@strlen.de>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:36567 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750970AbdGZQQm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 26 Jul 2017 12:16:42 -0400
+Received: from mail-yw0-f195.google.com ([209.85.161.195]:36819 "EHLO
+        mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751228AbdG0BMH (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 26 Jul 2017 21:12:07 -0400
+Received: by mail-yw0-f195.google.com with SMTP id i6so6416557ywb.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 26 Jul 2017 18:12:07 -0700 (PDT)
+In-Reply-To: <20170726110627.GC1607@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Remove the functions mnl_nft_rule_add() and *_delete() since they are
-not used throughout the code. Commit a72315d2bad47 ("src: add rule
-batching support") changed their only caller to use the batch variant
-introduced at the same time.
+2017-07-26 20:06 GMT+09:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+> On Wed, Jul 26, 2017 at 11:27:16AM +0200, Florian Westphal wrote:
+>> Taehee Yoo <ap420073@gmail.com> wrote:
+>> > If verdict is NF_STOLEN in the SYNPROXY target,
+>> > the skb is consumed.
+>> > However, ipt_do_table() always tries to get ip header from the skb.
+>> > So that, KASAN triggers the use-after-free message.
+>>
+>> In case anyone wonders, ip6tables doesn't have this problem
+>> because we pass *skb, not ip6hdr to ip6_packet_match().
+>
+> I think it would be good to make these code converge to what ip6tables
+> is doing while fixing up this?
+>
+>> arptables has the same bug, it seems (no target returns STOLEN,
+>> but I think we should fix it there as well).
+>
+> Yes, even if no target returns what triggers the problem, it's good if
+> we fix this now so we make sure whatever new extension gets in in the
+> future works accordingly.
+>
+> Thanks!
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- include/mnl.h |  4 ----
- src/mnl.c     | 28 ----------------------------
- 2 files changed, 32 deletions(-)
-
-diff --git a/include/mnl.h b/include/mnl.h
-index 9f5b34f60d023..3d2d7fef93ba2 100644
---- a/include/mnl.h
-+++ b/include/mnl.h
-@@ -33,10 +33,6 @@ int mnl_nft_rule_batch_del(struct nftnl_rule *nlr, struct nftnl_batch *batch,
- int mnl_nft_rule_batch_replace(struct nftnl_rule *nlr, struct nftnl_batch *batch,
- 			       unsigned int flags, uint32_t seqnum);
- 
--int mnl_nft_rule_add(struct mnl_socket *nf_sock, struct nftnl_rule *r,
--		     unsigned int flags);
--int mnl_nft_rule_delete(struct mnl_socket *nf_sock, struct nftnl_rule *r,
--			unsigned int flags);
- struct nftnl_rule_list *mnl_nft_rule_dump(struct mnl_socket *nf_sock,
- 					int family);
- 
-diff --git a/src/mnl.c b/src/mnl.c
-index 7639312381507..3db80de6da02d 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -339,34 +339,6 @@ int mnl_nft_rule_batch_del(struct nftnl_rule *nlr, struct nftnl_batch *batch,
- /*
-  * Rule
-  */
--int mnl_nft_rule_add(struct mnl_socket *nf_sock, struct nftnl_rule *nlr,
--		     unsigned int flags)
--{
--	char buf[MNL_SOCKET_BUFFER_SIZE];
--	struct nlmsghdr *nlh;
--
--	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE,
--				    nftnl_rule_get_u32(nlr, NFTNL_RULE_FAMILY),
--				    NLM_F_ACK | NLM_F_CREATE | flags, seq);
--	nftnl_rule_nlmsg_build_payload(nlh, nlr);
--
--	return nft_mnl_talk(nf_sock, nlh, nlh->nlmsg_len, NULL, NULL);
--}
--
--int mnl_nft_rule_delete(struct mnl_socket *nf_sock, struct nftnl_rule *nlr,
--			unsigned int flags)
--{
--	char buf[MNL_SOCKET_BUFFER_SIZE];
--	struct nlmsghdr *nlh;
--
--	nlh = nftnl_nlmsg_build_hdr(buf, NFT_MSG_DELRULE,
--				    nftnl_rule_get_u32(nlr, NFTNL_RULE_FAMILY),
--				    NLM_F_ACK, seq);
--	nftnl_rule_nlmsg_build_payload(nlh, nlr);
--
--	return nft_mnl_talk(nf_sock, nlh, nlh->nlmsg_len, NULL, NULL);
--}
--
- static int rule_cb(const struct nlmsghdr *nlh, void *data)
- {
- 	struct nftnl_rule_list *nlr_list = data;
--- 
-2.13.1
-
+Thank you for reviews!
+I will send the V3 patch that includes modified arpt_do_table()
+that is reviewed point.
