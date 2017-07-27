@@ -1,55 +1,74 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [nf-next PATCH v3 0/6] netfilter: nf_tables: Kill name length restrictions
-Date: Thu, 27 Jul 2017 16:56:38 +0200
-Message-ID: <20170727145644.16888-1-phil@nwl.cc>
+Subject: [nf-next PATCH v3 2/6] networking: Introduce nla_strdup()
+Date: Thu, 27 Jul 2017 16:56:40 +0200
+Message-ID: <20170727145644.16888-3-phil@nwl.cc>
+References: <20170727145644.16888-1-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:38767 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:44103 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751556AbdG0O5J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 27 Jul 2017 10:57:09 -0400
+        id S1751584AbdG0O5P (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 27 Jul 2017 10:57:15 -0400
+In-Reply-To: <20170727145644.16888-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The following series lifts the tight restriction on name length of
-tables, chains, sets and objects. This is done by allocating memory for
-names dynamically, so there is no added overhead when reducing the
-restriction to a mere sanity level of 255 characters.
+This is similar to strdup() for netlink string attributes.
 
-The first patch removes a needless check discovered when discussing v2
-of this patch set.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ include/net/netlink.h |  1 +
+ lib/nlattr.c          | 24 ++++++++++++++++++++++++
+ 2 files changed, 25 insertions(+)
 
-The second patch introduces nla_strdup() which aids in duplicating a
-string contained in a netlink attribute. It is used to replace the call
-to nla_strlcpy() when populating name fields.
-
-I've tested the series manually by creating tables, chains, sets and
-counter objects with long names and automated by running the py and
-shell testsuites of nftables repo. Also, kmemleak did not find anything
-nftables related.
-
-Changes since v2:
-- Added new patch 1.
-- Patch 2 remains unchanged.
-- Detailed changelog of remaining patches is found there.
-
-Phil Sutter (6):
-  netfilter: nf_tables: No need to check chain existence when tracing
-  networking: Introduce nla_strdup()
-  netfilter: nf_tables: Allow table names of up to 255 chars
-  netfilter: nf_tables: Allow chain name of up to 255 chars
-  netfilter: nf_tables: Allow set names of up to 255 chars
-  netfilter: nf_tables: Allow object names of up to 255 chars
-
- include/net/netfilter/nf_tables.h        |  10 +--
- include/net/netlink.h                    |   1 +
- include/uapi/linux/netfilter/nf_tables.h |   9 +--
- lib/nlattr.c                             |  24 +++++++
- net/netfilter/nf_tables_api.c            | 112 +++++++++++++++++++++++--------
- net/netfilter/nf_tables_trace.c          |  42 +++++++++---
- 6 files changed, 151 insertions(+), 47 deletions(-)
-
+diff --git a/include/net/netlink.h b/include/net/netlink.h
+index ef8e6c3a80a63..c8c2eb5ae55ef 100644
+--- a/include/net/netlink.h
++++ b/include/net/netlink.h
+@@ -247,6 +247,7 @@ int nla_parse(struct nlattr **tb, int maxtype, const struct nlattr *head,
+ int nla_policy_len(const struct nla_policy *, int);
+ struct nlattr *nla_find(const struct nlattr *head, int len, int attrtype);
+ size_t nla_strlcpy(char *dst, const struct nlattr *nla, size_t dstsize);
++char *nla_strdup(const struct nlattr *nla, gfp_t flags);
+ int nla_memcpy(void *dest, const struct nlattr *src, int count);
+ int nla_memcmp(const struct nlattr *nla, const void *data, size_t size);
+ int nla_strcmp(const struct nlattr *nla, const char *str);
+diff --git a/lib/nlattr.c b/lib/nlattr.c
+index fb52435be42dd..f13013f7e21a1 100644
+--- a/lib/nlattr.c
++++ b/lib/nlattr.c
+@@ -272,6 +272,30 @@ size_t nla_strlcpy(char *dst, const struct nlattr *nla, size_t dstsize)
+ EXPORT_SYMBOL(nla_strlcpy);
+ 
+ /**
++ * nla_strdup - Copy string attribute payload into a newly allocated buffer
++ * @nla: attribute to copy the string from
++ * @flags: the type of memory to allocate (see kmalloc).
++ *
++ * Returns a pointer to the allocated buffer or NULL on error.
++ */
++char *nla_strdup(const struct nlattr *nla, gfp_t flags)
++{
++	size_t srclen = nla_len(nla);
++	char *src = nla_data(nla), *dst;
++
++	if (srclen > 0 && src[srclen - 1] == '\0')
++		srclen--;
++
++	dst = kmalloc(srclen + 1, flags);
++	if (dst != NULL) {
++		memcpy(dst, src, srclen);
++		dst[srclen] = '\0';
++	}
++	return dst;
++}
++EXPORT_SYMBOL(nla_strdup);
++
++/**
+  * nla_memcpy - Copy a netlink attribute into another memory area
+  * @dest: where to copy to memcpy
+  * @src: netlink attribute to copy from
 -- 
 2.13.1
 
