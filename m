@@ -1,122 +1,91 @@
 From: Varsha Rao <rvarsha016@gmail.com>
-Subject: [PATCH nft] src: nft monitor ruleset
-Date: Fri, 28 Jul 2017 10:52:09 +0530
-Message-ID: <597aca07.d859620a.30872.0997@mx.google.com>
+Subject: [PATCH nft v2] src: netlink: Subscribe nft monitor and nft monitor
+ trace to respective groups.
+Date: Fri, 28 Jul 2017 10:55:21 +0530
+Message-ID: <597acac5.1dc8620a.5a708.5f17@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:37587 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750827AbdG1FWQ (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:37339 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750827AbdG1FZ1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Jul 2017 01:22:16 -0400
-Received: by mail-pg0-f67.google.com with SMTP id k190so6832741pgk.4
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2017 22:22:16 -0700 (PDT)
+        Fri, 28 Jul 2017 01:25:27 -0400
+Received: by mail-pf0-f195.google.com with SMTP id y25so12459504pfk.4
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2017 22:25:26 -0700 (PDT)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds event reporting for ruleset, which prints only ruleset
-events.
-
-Syntax : nft monitor ruleset
+Subscribe nft monitor to both NFNLGRP_NFTABLES and NFNLGRP_NFTRACE.
+nft monitor trace subscribes only to NFNLGRP_NFTRACE. Other event
+reporting options to only NFNLGRP_NFTABLES.
 
 Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
 ---
- include/rule.h     |  1 +
- src/evaluate.c     | 32 ++++++++++++++++++++++++++++++++
- src/parser_bison.y |  1 +
- 3 files changed, 34 insertions(+)
+Changes in v1:
+- Subscribe nft monitor to only _NFTABLES.
+- Subsribe nft monitor trace to only _NFTRACE.
 
-diff --git a/include/rule.h b/include/rule.h
-index 6acd5fa..e220027 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -396,6 +396,7 @@ enum {
- 	CMD_MONITOR_OBJ_RULES,
- 	CMD_MONITOR_OBJ_SETS,
- 	CMD_MONITOR_OBJ_ELEMS,
-+	CMD_MONITOR_OBJ_RULESET,
- 	CMD_MONITOR_OBJ_MAX
- };
+Changes in v2:
+- Subsribe nft monitor to both _NFTABLES and _NFTRACE.
+- Subscribe other events to _NFTABLES.
+- Modified commit message.
+
+ src/netlink.c | 35 ++++++++++++++++++++++++-----------
+ 1 file changed, 24 insertions(+), 11 deletions(-)
+
+diff --git a/src/netlink.c b/src/netlink.c
+index 9cef4c4..f7069fd 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -3078,21 +3078,34 @@ static int netlink_events_cb(const struct nlmsghdr *nlh, void *data)
+ int netlink_monitor(struct netlink_mon_handler *monhandler,
+ 		     struct mnl_socket *nf_sock)
+ {
+-	int group;
+-
+-	group = NFNLGRP_NFTABLES;
+-	if (mnl_socket_setsockopt(nf_sock, NETLINK_ADD_MEMBERSHIP, &group,
+-				  sizeof(int)) < 0)
+-		return netlink_io_error(monhandler->ctx, monhandler->loc,
++	int group = NFNLGRP_NFTRACE, val;
++
++	val = monhandler->monitor_flags | NFNLGRP_NFTABLES;
++	if (val == 131439) {
++		if (mnl_socket_setsockopt(nf_sock, NETLINK_ADD_MEMBERSHIP,
++					&group, sizeof(int)) < 0)
++			return netlink_io_error(monhandler->ctx,
++					monhandler->loc,
+ 					"Could not bind to netlink socket %s",
+ 					strerror(errno));
+-
+-	group = NFNLGRP_NFTRACE;
+-	if (mnl_socket_setsockopt(nf_sock, NETLINK_ADD_MEMBERSHIP, &group,
+-				  sizeof(int)) < 0)
+-		return netlink_io_error(monhandler->ctx, monhandler->loc,
++	} else {
++		if (val < 0) {
++			if (mnl_socket_setsockopt(nf_sock,
++						NETLINK_ADD_MEMBERSHIP, &group,
++						sizeof(int)) < 0)
++				return netlink_io_error(monhandler->ctx,
++						monhandler->loc,
++						"Could not bind to netlink socket %s",
++						strerror(errno));
++		}
++		group = NFNLGRP_NFTABLES;
++		if (mnl_socket_setsockopt(nf_sock, NETLINK_ADD_MEMBERSHIP,
++					&group, sizeof(int)) < 0)
++			return netlink_io_error(monhandler->ctx,
++					monhandler->loc,
+ 					"Could not bind to netlink socket %s",
+ 					strerror(errno));
++	}
  
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 27feef4..959e854 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -3235,6 +3235,18 @@ static uint32_t monitor_flags[CMD_MONITOR_EVENT_MAX][CMD_MONITOR_OBJ_MAX] = {
- 						  (1 << NFT_MSG_DELSET),
- 		[CMD_MONITOR_OBJ_ELEMS]		= (1 << NFT_MSG_NEWSETELEM) |
- 						  (1 << NFT_MSG_DELSETELEM),
-+		[CMD_MONITOR_OBJ_RULESET]	= (1 << NFT_MSG_NEWTABLE) |
-+						  (1 << NFT_MSG_DELTABLE) |
-+						  (1 << NFT_MSG_NEWCHAIN) |
-+						  (1 << NFT_MSG_DELCHAIN) |
-+						  (1 << NFT_MSG_NEWRULE)  |
-+						  (1 << NFT_MSG_DELRULE)  |
-+						  (1 << NFT_MSG_NEWSET)   |
-+						  (1 << NFT_MSG_DELSET)	  |
-+						  (1 << NFT_MSG_NEWSETELEM) |
-+						  (1 << NFT_MSG_DELSETELEM) |
-+						  (1 << NFT_MSG_NEWOBJ)	  |
-+						  (1 << NFT_MSG_DELOBJ),
- 	},
- 	[CMD_MONITOR_EVENT_NEW] = {
- 		[CMD_MONITOR_OBJ_ANY]		= (1 << NFT_MSG_NEWTABLE) |
-@@ -3247,6 +3259,12 @@ static uint32_t monitor_flags[CMD_MONITOR_EVENT_MAX][CMD_MONITOR_OBJ_MAX] = {
- 		[CMD_MONITOR_OBJ_RULES]		= (1 << NFT_MSG_NEWRULE),
- 		[CMD_MONITOR_OBJ_SETS]		= (1 << NFT_MSG_NEWSET),
- 		[CMD_MONITOR_OBJ_ELEMS]		= (1 << NFT_MSG_NEWSETELEM),
-+		[CMD_MONITOR_OBJ_RULESET]	= (1 << NFT_MSG_NEWTABLE) |
-+						  (1 << NFT_MSG_NEWCHAIN) |
-+						  (1 << NFT_MSG_NEWRULE)  |
-+						  (1 << NFT_MSG_NEWSET)   |
-+						  (1 << NFT_MSG_NEWSETELEM) |
-+						  (1 << NFT_MSG_NEWOBJ)
- 	},
- 	[CMD_MONITOR_EVENT_DEL] = {
- 		[CMD_MONITOR_OBJ_ANY]		= (1 << NFT_MSG_DELTABLE) |
-@@ -3259,6 +3277,12 @@ static uint32_t monitor_flags[CMD_MONITOR_EVENT_MAX][CMD_MONITOR_OBJ_MAX] = {
- 		[CMD_MONITOR_OBJ_RULES]		= (1 << NFT_MSG_DELRULE),
- 		[CMD_MONITOR_OBJ_SETS]		= (1 << NFT_MSG_DELSET),
- 		[CMD_MONITOR_OBJ_ELEMS]		= (1 << NFT_MSG_DELSETELEM),
-+		[CMD_MONITOR_OBJ_RULESET]	= (1 << NFT_MSG_DELTABLE) |
-+						  (1 << NFT_MSG_DELCHAIN) |
-+						  (1 << NFT_MSG_DELRULE)  |
-+						  (1 << NFT_MSG_DELSET)   |
-+						  (1 << NFT_MSG_DELSETELEM) |
-+						  (1 << NFT_MSG_DELOBJ),
- 	},
- 	[CMD_MONITOR_EVENT_TRACE] = {
- 		[CMD_MONITOR_OBJ_ANY]		= (1 << NFT_MSG_NEWTABLE) |
-@@ -3274,6 +3298,14 @@ static uint32_t monitor_flags[CMD_MONITOR_EVENT_MAX][CMD_MONITOR_OBJ_MAX] = {
- 						  (1 << NFT_MSG_DELCHAIN),
- 		[CMD_MONITOR_OBJ_RULES]		= (1 << NFT_MSG_NEWRULE) |
- 						  (1 << NFT_MSG_DELRULE),
-+		[CMD_MONITOR_OBJ_RULESET]       = (1 << NFT_MSG_NEWTABLE) |
-+						  (1 << NFT_MSG_NEWCHAIN) |
-+						  (1 << NFT_MSG_NEWRULE)  |
-+						  (1 << NFT_MSG_NEWOBJ)	  |
-+						  (1 << NFT_MSG_DELTABLE) |
-+						  (1 << NFT_MSG_DELCHAIN) |
-+						  (1 << NFT_MSG_DELRULE)  |
-+						  (1 << NFT_MSG_DELOBJ),
- 	},
- };
- 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 45b1dc9..86baf23 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -1195,6 +1195,7 @@ monitor_object		:	/* empty */	{ $$ = CMD_MONITOR_OBJ_ANY; }
- 			| 	SETS		{ $$ = CMD_MONITOR_OBJ_SETS; }
- 			|	RULES		{ $$ = CMD_MONITOR_OBJ_RULES; }
- 			|	ELEMENTS	{ $$ = CMD_MONITOR_OBJ_ELEMS; }
-+			|	RULESET		{ $$ = CMD_MONITOR_OBJ_RULESET; }
- 			;
- 
- monitor_format		:	/* empty */	{ $$ = NFTNL_OUTPUT_DEFAULT; }
+ 	return mnl_nft_event_listener(nf_sock, netlink_events_cb,
+ 				      monhandler);
 -- 
 2.9.4
 
