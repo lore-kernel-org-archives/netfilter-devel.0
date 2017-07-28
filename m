@@ -1,174 +1,232 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v3 nf-next] netfilter: nft_set_rbtree: use seqcount to avoid lock in most cases
-Date: Fri, 28 Jul 2017 10:34:42 +0200
-Message-ID: <20170728083442.9159-1-fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: conntrack: do not enable connection tracking unless needed
+Date: Fri, 28 Jul 2017 11:22:04 +0200
+Message-ID: <20170728092204.11953-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:39536 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:39664 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751737AbdG1Ie0 (ORCPT
+        by vger.kernel.org with ESMTP id S1751767AbdG1J17 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Jul 2017 04:34:26 -0400
+        Fri, 28 Jul 2017 05:27:59 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-switch to lockless lockup. write side now also increments sequence
-counter.  On lookup, sample counter value and only take the lock
-if we did not find a match and the counter has changed.
+Discussion during NFWS 2017 in Faro has shown that the current
+conntrack behaviour is unreasonable.
 
-This avoids need to write to private area in normal (lookup) cases.
+Even if conntrack module is loaded on behalf of a single net namespace,
+its turned on for all namespaces, which is expensive.  Commit
+481fa373476 ("netfilter: conntrack: add nf_conntrack_default_on sysctl")
+attempted to provide an alternative to the 'default on' behaviour by
+adding a sysctl to change it.
 
-In case we detect a writer (seqretry is true) we fall back to taking
-the readlock.
+However, as Eric points out, the sysctl only becomes available
+once the module is loaded, and then its too late.
 
-The readlock is also used during dumps to ensure we get a consistent
-tree walk.
+So we either have to move the sysctl to the core, or, alternatively,
+change conntrack to become active only once the rule set requires this.
 
-Similar technique (rbtree+seqlock) was used by David Howells in rxrpc.
+This does the latter, conntrack is only enabled when a rule needs it.
 
-v2: break lookup loop in case the sequence count changed (Eric)
+Reported-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
-v3: need to use rb_link_node_rcu on write side
+ Documentation/networking/nf_conntrack-sysctl.txt | 11 ---------
+ include/net/netfilter/nf_conntrack_l3proto.h     | 15 ------------
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c   | 16 ++-----------
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c   | 17 ++------------
+ net/netfilter/nf_conntrack_proto.c               | 29 ------------------------
+ net/netfilter/nf_conntrack_standalone.c          | 10 --------
+ 6 files changed, 4 insertions(+), 94 deletions(-)
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index bce5382f1d49..d83a4ec5900d 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -19,8 +19,9 @@
- #include <net/netfilter/nf_tables.h>
+diff --git a/Documentation/networking/nf_conntrack-sysctl.txt b/Documentation/networking/nf_conntrack-sysctl.txt
+index 497d668288f9..433b6724797a 100644
+--- a/Documentation/networking/nf_conntrack-sysctl.txt
++++ b/Documentation/networking/nf_conntrack-sysctl.txt
+@@ -96,17 +96,6 @@ nf_conntrack_max - INTEGER
+ 	Size of connection tracking table.  Default value is
+ 	nf_conntrack_buckets value * 4.
  
- struct nft_rbtree {
--	rwlock_t		lock;
- 	struct rb_root		root;
-+	rwlock_t		lock;
-+	seqcount_t		count;
+-nf_conntrack_default_on - BOOLEAN
+-	0 - don't register conntrack in new net namespaces
+-	1 - register conntrack in new net namespaces (default)
+-
+-	This controls wheter newly created network namespaces have connection
+-	tracking enabled by default.  It will be enabled automatically
+-	regardless of this setting if the new net namespace requires
+-	connection tracking, e.g. when NAT rules are created.
+-	This setting is only visible in initial user namespace, it has no
+-	effect on existing namespaces.
+-
+ nf_conntrack_tcp_be_liberal - BOOLEAN
+ 	0 - disabled (default)
+ 	not 0 - enabled
+diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
+index 6d14b36e3a49..1b8de164d744 100644
+--- a/include/net/netfilter/nf_conntrack_l3proto.h
++++ b/include/net/netfilter/nf_conntrack_l3proto.h
+@@ -73,21 +73,6 @@ struct nf_conntrack_l3proto {
+ 
+ extern struct nf_conntrack_l3proto __rcu *nf_ct_l3protos[NFPROTO_NUMPROTO];
+ 
+-#ifdef CONFIG_SYSCTL
+-/* Protocol pernet registration. */
+-int nf_ct_l3proto_pernet_register(struct net *net,
+-				  struct nf_conntrack_l3proto *proto);
+-#else
+-static inline int nf_ct_l3proto_pernet_register(struct net *n,
+-						struct nf_conntrack_l3proto *p)
+-{
+-	return 0;
+-}
+-#endif
+-
+-void nf_ct_l3proto_pernet_unregister(struct net *net,
+-				     struct nf_conntrack_l3proto *proto);
+-
+ /* Protocol global registration. */
+ int nf_ct_l3proto_register(struct nf_conntrack_l3proto *proto);
+ void nf_ct_l3proto_unregister(struct nf_conntrack_l3proto *proto);
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index 2e14ed11a35c..dd82b6809f9f 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -398,24 +398,12 @@ static struct nf_conntrack_l4proto *builtin_l4proto4[] = {
+ 
+ static int ipv4_net_init(struct net *net)
+ {
+-	int ret = 0;
+-
+-	ret = nf_ct_l4proto_pernet_register(net, builtin_l4proto4,
+-					    ARRAY_SIZE(builtin_l4proto4));
+-	if (ret < 0)
+-		return ret;
+-	ret = nf_ct_l3proto_pernet_register(net, &nf_conntrack_l3proto_ipv4);
+-	if (ret < 0) {
+-		pr_err("nf_conntrack_ipv4: pernet registration failed\n");
+-		nf_ct_l4proto_pernet_unregister(net, builtin_l4proto4,
+-						ARRAY_SIZE(builtin_l4proto4));
+-	}
+-	return ret;
++	return nf_ct_l4proto_pernet_register(net, builtin_l4proto4,
++					     ARRAY_SIZE(builtin_l4proto4));
+ }
+ 
+ static void ipv4_net_exit(struct net *net)
+ {
+-	nf_ct_l3proto_pernet_unregister(net, &nf_conntrack_l3proto_ipv4);
+ 	nf_ct_l4proto_pernet_unregister(net, builtin_l4proto4,
+ 					ARRAY_SIZE(builtin_l4proto4));
+ }
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index 4e3402486833..5a68b492f4c8 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -398,25 +398,12 @@ static struct nf_conntrack_l4proto *builtin_l4proto6[] = {
+ 
+ static int ipv6_net_init(struct net *net)
+ {
+-	int ret = 0;
+-
+-	ret = nf_ct_l4proto_pernet_register(net, builtin_l4proto6,
+-					    ARRAY_SIZE(builtin_l4proto6));
+-	if (ret < 0)
+-		return ret;
+-
+-	ret = nf_ct_l3proto_pernet_register(net, &nf_conntrack_l3proto_ipv6);
+-	if (ret < 0) {
+-		pr_err("nf_conntrack_ipv6: pernet registration failed.\n");
+-		nf_ct_l4proto_pernet_unregister(net, builtin_l4proto6,
+-						ARRAY_SIZE(builtin_l4proto6));
+-	}
+-	return ret;
++	return nf_ct_l4proto_pernet_register(net, builtin_l4proto6,
++					     ARRAY_SIZE(builtin_l4proto6));
+ }
+ 
+ static void ipv6_net_exit(struct net *net)
+ {
+-	nf_ct_l3proto_pernet_unregister(net, &nf_conntrack_l3proto_ipv6);
+ 	nf_ct_l4proto_pernet_unregister(net, builtin_l4proto6,
+ 					ARRAY_SIZE(builtin_l4proto6));
+ }
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 1dcad229c3cc..7c89dade6fd3 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -238,20 +238,6 @@ int nf_ct_l3proto_register(struct nf_conntrack_l3proto *proto)
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_l3proto_register);
+ 
+-#ifdef CONFIG_SYSCTL
+-extern unsigned int nf_conntrack_default_on;
+-
+-int nf_ct_l3proto_pernet_register(struct net *net,
+-				  struct nf_conntrack_l3proto *proto)
+-{
+-	if (nf_conntrack_default_on == 0)
+-		return 0;
+-
+-	return proto->net_ns_get ? proto->net_ns_get(net) : 0;
+-}
+-EXPORT_SYMBOL_GPL(nf_ct_l3proto_pernet_register);
+-#endif
+-
+ void nf_ct_l3proto_unregister(struct nf_conntrack_l3proto *proto)
+ {
+ 	BUG_ON(proto->l3proto >= NFPROTO_NUMPROTO);
+@@ -270,21 +256,6 @@ void nf_ct_l3proto_unregister(struct nf_conntrack_l3proto *proto)
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_l3proto_unregister);
+ 
+-void nf_ct_l3proto_pernet_unregister(struct net *net,
+-				     struct nf_conntrack_l3proto *proto)
+-{
+-	/*
+-	 * nf_conntrack_default_on *might* have registered hooks.
+-	 * ->net_ns_put must cope with more puts() than get(), i.e.
+-	 * if nf_conntrack_default_on was 0 at time of
+-	 * nf_ct_l3proto_pernet_register invocation this net_ns_put()
+-	 * should be a noop.
+-	 */
+-	if (proto->net_ns_put)
+-		proto->net_ns_put(net);
+-}
+-EXPORT_SYMBOL_GPL(nf_ct_l3proto_pernet_unregister);
+-
+ static struct nf_proto_net *nf_ct_l4proto_net(struct net *net,
+ 					      struct nf_conntrack_l4proto *l4proto)
+ {
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index ccb5cb9043e0..5b6c675d55b1 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -452,9 +452,6 @@ static int log_invalid_proto_max __read_mostly = 255;
+ /* size the user *wants to set */
+ static unsigned int nf_conntrack_htable_size_user __read_mostly;
+ 
+-extern unsigned int nf_conntrack_default_on;
+-unsigned int nf_conntrack_default_on __read_mostly = 1;
+-
+ static int
+ nf_conntrack_hash_sysctl(struct ctl_table *table, int write,
+ 			 void __user *buffer, size_t *lenp, loff_t *ppos)
+@@ -520,13 +517,6 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec,
+ 	},
+-	{
+-		.procname	= "nf_conntrack_default_on",
+-		.data		= &nf_conntrack_default_on,
+-		.maxlen		= sizeof(unsigned int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
+-	},
+ 	{ }
  };
  
- struct nft_rbtree_elem {
-@@ -40,8 +41,9 @@ static bool nft_rbtree_equal(const struct nft_set *set, const void *this,
- 	return memcmp(this, nft_set_ext_key(&interval->ext), set->klen) == 0;
- }
- 
--static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
--			      const u32 *key, const struct nft_set_ext **ext)
-+static bool __nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
-+				const u32 *key, const struct nft_set_ext **ext,
-+				unsigned int seq)
- {
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	const struct nft_rbtree_elem *rbe, *interval = NULL;
-@@ -50,15 +52,17 @@ static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
- 	const void *this;
- 	int d;
- 
--	read_lock_bh(&priv->lock);
--	parent = priv->root.rb_node;
-+	parent = rcu_dereference_raw(priv->root.rb_node);
- 	while (parent != NULL) {
-+		if (read_seqcount_retry(&priv->count, seq))
-+			return false;
-+
- 		rbe = rb_entry(parent, struct nft_rbtree_elem, node);
- 
- 		this = nft_set_ext_key(&rbe->ext);
- 		d = memcmp(this, key, set->klen);
- 		if (d < 0) {
--			parent = parent->rb_left;
-+			parent = rcu_dereference_raw(parent->rb_left);
- 			if (interval &&
- 			    nft_rbtree_equal(set, this, interval) &&
- 			    nft_rbtree_interval_end(this) &&
-@@ -66,15 +70,14 @@ static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
- 				continue;
- 			interval = rbe;
- 		} else if (d > 0)
--			parent = parent->rb_right;
-+			parent = rcu_dereference_raw(parent->rb_right);
- 		else {
- 			if (!nft_set_elem_active(&rbe->ext, genmask)) {
--				parent = parent->rb_left;
-+				parent = rcu_dereference_raw(parent->rb_left);
- 				continue;
- 			}
- 			if (nft_rbtree_interval_end(rbe))
- 				goto out;
--			read_unlock_bh(&priv->lock);
- 
- 			*ext = &rbe->ext;
- 			return true;
-@@ -84,15 +87,32 @@ static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
- 	if (set->flags & NFT_SET_INTERVAL && interval != NULL &&
- 	    nft_set_elem_active(&interval->ext, genmask) &&
- 	    !nft_rbtree_interval_end(interval)) {
--		read_unlock_bh(&priv->lock);
- 		*ext = &interval->ext;
- 		return true;
- 	}
- out:
--	read_unlock_bh(&priv->lock);
- 	return false;
- }
- 
-+static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
-+			      const u32 *key, const struct nft_set_ext **ext)
-+{
-+	struct nft_rbtree *priv = nft_set_priv(set);
-+	unsigned int seq = read_seqcount_begin(&priv->count);
-+	bool ret;
-+
-+	ret = __nft_rbtree_lookup(net, set, key, ext, seq);
-+	if (ret || !read_seqcount_retry(&priv->count, seq))
-+		return ret;
-+
-+	read_lock_bh(&priv->lock);
-+	seq = read_seqcount_begin(&priv->count);
-+	ret = __nft_rbtree_lookup(net, set, key, ext, seq);
-+	read_unlock_bh(&priv->lock);
-+
-+	return ret;
-+}
-+
- static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 			       struct nft_rbtree_elem *new,
- 			       struct nft_set_ext **ext)
-@@ -130,7 +150,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 			}
- 		}
- 	}
--	rb_link_node(&new->node, parent, p);
-+	rb_link_node_rcu(&new->node, parent, p);
- 	rb_insert_color(&new->node, &priv->root);
- 	return 0;
- }
-@@ -144,7 +164,9 @@ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 	int err;
- 
- 	write_lock_bh(&priv->lock);
-+	write_seqcount_begin(&priv->count);
- 	err = __nft_rbtree_insert(net, set, rbe, ext);
-+	write_seqcount_end(&priv->count);
- 	write_unlock_bh(&priv->lock);
- 
- 	return err;
-@@ -158,7 +180,9 @@ static void nft_rbtree_remove(const struct net *net,
- 	struct nft_rbtree_elem *rbe = elem->priv;
- 
- 	write_lock_bh(&priv->lock);
-+	write_seqcount_begin(&priv->count);
- 	rb_erase(&rbe->node, &priv->root);
-+	write_seqcount_end(&priv->count);
- 	write_unlock_bh(&priv->lock);
- }
- 
-@@ -264,6 +288,7 @@ static int nft_rbtree_init(const struct nft_set *set,
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 
- 	rwlock_init(&priv->lock);
-+	seqcount_init(&priv->count);
- 	priv->root = RB_ROOT;
- 	return 0;
- }
 -- 
 2.13.0
 
