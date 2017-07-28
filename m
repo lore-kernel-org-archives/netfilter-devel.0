@@ -1,91 +1,52 @@
-From: Varsha Rao <rvarsha016@gmail.com>
-Subject: [PATCH nft v2] src: netlink: Subscribe nft monitor and nft monitor
- trace to respective groups.
-Date: Fri, 28 Jul 2017 10:55:21 +0530
-Message-ID: <597acac5.1dc8620a.5a708.5f17@mx.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:37339 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750827AbdG1FZ1 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 28 Jul 2017 01:25:27 -0400
-Received: by mail-pf0-f195.google.com with SMTP id y25so12459504pfk.4
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Jul 2017 22:25:26 -0700 (PDT)
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Lin Zhang <xiaolou4617@gmail.com>
+Subject: [PATCH] netfilter: SYNPROXY: fix process non tcp packet bug in {ipv4,ipv6}_synproxy_hook
+Date: Fri, 28 Jul 2017 14:03:04 +0800
+Message-ID: <1501221784-18226-1-git-send-email-xiaolou4617@gmail.com>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, Lin Zhang <xiaolou4617@gmail.com>
+To: davem@davemloft.net, pablo@netfilter.org, kadlec@blackhole.kfki.hu,
+        fw@strlen.de, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Subscribe nft monitor to both NFNLGRP_NFTABLES and NFNLGRP_NFTRACE.
-nft monitor trace subscribes only to NFNLGRP_NFTRACE. Other event
-reporting options to only NFNLGRP_NFTABLES.
+In function {ipv4,ipv6}_synproxy_hook we expect a normal tcp packet,
+but the real server maybe reply an icmp error packet related to the 
+exist tcp conntrack, so we will access wrong tcp data.
 
-Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
+For fix it, we simply pass IP_CT_RELATED_REPLY packets.
+
+Signed-off-by: Lin Zhang <xiaolou4617@gmail.com>
 ---
-Changes in v1:
-- Subscribe nft monitor to only _NFTABLES.
-- Subsribe nft monitor trace to only _NFTRACE.
+ net/ipv4/netfilter/ipt_SYNPROXY.c  | 2 +-
+ net/ipv6/netfilter/ip6t_SYNPROXY.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Changes in v2:
-- Subsribe nft monitor to both _NFTABLES and _NFTRACE.
-- Subscribe other events to _NFTABLES.
-- Modified commit message.
-
- src/netlink.c | 35 ++++++++++++++++++++++++-----------
- 1 file changed, 24 insertions(+), 11 deletions(-)
-
-diff --git a/src/netlink.c b/src/netlink.c
-index 9cef4c4..f7069fd 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -3078,21 +3078,34 @@ static int netlink_events_cb(const struct nlmsghdr *nlh, void *data)
- int netlink_monitor(struct netlink_mon_handler *monhandler,
- 		     struct mnl_socket *nf_sock)
- {
--	int group;
--
--	group = NFNLGRP_NFTABLES;
--	if (mnl_socket_setsockopt(nf_sock, NETLINK_ADD_MEMBERSHIP, &group,
--				  sizeof(int)) < 0)
--		return netlink_io_error(monhandler->ctx, monhandler->loc,
-+	int group = NFNLGRP_NFTRACE, val;
-+
-+	val = monhandler->monitor_flags | NFNLGRP_NFTABLES;
-+	if (val == 131439) {
-+		if (mnl_socket_setsockopt(nf_sock, NETLINK_ADD_MEMBERSHIP,
-+					&group, sizeof(int)) < 0)
-+			return netlink_io_error(monhandler->ctx,
-+					monhandler->loc,
- 					"Could not bind to netlink socket %s",
- 					strerror(errno));
--
--	group = NFNLGRP_NFTRACE;
--	if (mnl_socket_setsockopt(nf_sock, NETLINK_ADD_MEMBERSHIP, &group,
--				  sizeof(int)) < 0)
--		return netlink_io_error(monhandler->ctx, monhandler->loc,
-+	} else {
-+		if (val < 0) {
-+			if (mnl_socket_setsockopt(nf_sock,
-+						NETLINK_ADD_MEMBERSHIP, &group,
-+						sizeof(int)) < 0)
-+				return netlink_io_error(monhandler->ctx,
-+						monhandler->loc,
-+						"Could not bind to netlink socket %s",
-+						strerror(errno));
-+		}
-+		group = NFNLGRP_NFTABLES;
-+		if (mnl_socket_setsockopt(nf_sock, NETLINK_ADD_MEMBERSHIP,
-+					&group, sizeof(int)) < 0)
-+			return netlink_io_error(monhandler->ctx,
-+					monhandler->loc,
- 					"Could not bind to netlink socket %s",
- 					strerror(errno));
-+	}
+diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
+index f1528f7..3971fd9 100644
+--- a/net/ipv4/netfilter/ipt_SYNPROXY.c
++++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
+@@ -330,7 +330,7 @@ static unsigned int ipv4_synproxy_hook(void *priv,
+ 	if (synproxy == NULL)
+ 		return NF_ACCEPT;
  
- 	return mnl_nft_event_listener(nf_sock, netlink_events_cb,
- 				      monhandler);
+-	if (nf_is_loopback_packet(skb))
++	if (nf_is_loopback_packet(skb) || ctinfo == IP_CT_RELATED_REPLY)
+ 		return NF_ACCEPT;
+ 
+ 	thoff = ip_hdrlen(skb);
+diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+index ce203dd..c4bcefe 100644
+--- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
++++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+@@ -347,7 +347,7 @@ static unsigned int ipv6_synproxy_hook(void *priv,
+ 	if (synproxy == NULL)
+ 		return NF_ACCEPT;
+ 
+-	if (nf_is_loopback_packet(skb))
++	if (nf_is_loopback_packet(skb) || ctinfo == IP_CT_RELATED_REPLY)
+ 		return NF_ACCEPT;
+ 
+ 	nexthdr = ipv6_hdr(skb)->nexthdr;
 -- 
-2.9.4
-
+1.8.3.1
