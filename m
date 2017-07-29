@@ -1,43 +1,53 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 1/1] netfilter: constify nf_conntrack_l3/4proto parameters
-Date: Sat, 29 Jul 2017 23:22:35 +0200
-Message-ID: <20170729212235.GI28392@breakpoint.cc>
-References: <1501356197-26490-1-git-send-email-Julia.Lawall@lip6.fr>
- <1501356197-26490-2-git-send-email-Julia.Lawall@lip6.fr>
- <20170729200343.GH28392@breakpoint.cc>
- <alpine.DEB.2.20.1707292208390.21384@hadrien>
+From: Richard Weinberger <richard@nod.at>
+Subject: Re: [PATCH] libnetfilter_conntrack: bump version to 1.0.7
+Date: Sun, 30 Jul 2017 01:11:48 +0200
+Message-ID: <f5539cfd-68af-182b-abc8-a659704df6d6@nod.at>
+References: <20170710203350.29166-1-richard@nod.at>
+ <20170717154014.GA32112@salvia> <2f1aae18-6706-dd67-654d-1146c035c0d5@nod.at>
+ <20170717160316.GA573@salvia>
+ <nycvar.YFH.7.76.1707171808410.32562@n3.vanv.qr>
+ <20170717172155.GA2434@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Cc: Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>, bhumirks@gmail.com,
-        kernel-janitors@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Julia Lawall <julia.lawall@lip6.fr>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1707292208390.21384@hadrien>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jan Engelhardt <jengelh@inai.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from b.ns.miles-group.at ([95.130.255.144]:44723 "EHLO radon.swed.at"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751661AbdG2XLx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 29 Jul 2017 19:11:53 -0400
+In-Reply-To: <20170717172155.GA2434@salvia>
+Content-Language: en-US
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Julia Lawall <julia.lawall@lip6.fr> wrote:
-> > I think we can indeed constify these completely after making
-> > 'nla_size' set at compile time.
-> >
-> > I'll send a simple attempt to make it so for l3proto soon.
-> 
-> There is another issue with respect to nf_ct_l3proto_unregister.  This
-> calls nf_ct_iterate_destroy with l3proto as the second argument.  This
-> function has signature:
-> 
-> void
-> nf_ct_iterate_destroy(int (*iter)(struct nf_conn *i, void *data), void *data)
-> 
-> The void * is not const.  Maybe it could be.
+Pablo,
 
-Haven't looked if we can constify it in general, but, as the argument
-is not going to be written to in this particular case it will not be
-a showstopper.
+Am 17.07.2017 um 19:21 schrieb Pablo Neira Ayuso:
+> On Mon, Jul 17, 2017 at 06:28:48PM +0200, Jan Engelhardt wrote:
+>>
+>> On Monday 2017-07-17 18:03, Pablo Neira Ayuso wrote:
+>>>
+>>> IIRC, we should always bump current and version even if no changes
+>>> happen. Rules are here:
+>>>
+>>> http://git.netfilter.org/libmnl/tree/Make_global.am
+>>
+>> If I read those rules correctly -
+>>
+>>  "If any interfaces have been added"
+>>
+>> - then, since no interface was added, removed, or otherwise modified, no bump
+>> is the right thing.
+> 
+> Right, after another read, it seems bump is unnecessary.
+> 
+> So I'm taking Richard's patch as is.
+
+Is it on purpose that there is still no 1.0.7 release?
+Same question for libnetfilter_queue 1.0.3.
+
+Thanks,
+//richard
