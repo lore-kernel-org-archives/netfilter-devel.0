@@ -1,53 +1,46 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: Re: [PATCH] libnetfilter_conntrack: bump version to 1.0.7
-Date: Sun, 30 Jul 2017 01:11:48 +0200
-Message-ID: <f5539cfd-68af-182b-abc8-a659704df6d6@nod.at>
-References: <20170710203350.29166-1-richard@nod.at>
- <20170717154014.GA32112@salvia> <2f1aae18-6706-dd67-654d-1146c035c0d5@nod.at>
- <20170717160316.GA573@salvia>
- <nycvar.YFH.7.76.1707171808410.32562@n3.vanv.qr>
- <20170717172155.GA2434@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jan Engelhardt <jengelh@inai.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from b.ns.miles-group.at ([95.130.255.144]:44723 "EHLO radon.swed.at"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751661AbdG2XLx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 29 Jul 2017 19:11:53 -0400
-In-Reply-To: <20170717172155.GA2434@salvia>
-Content-Language: en-US
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: [PATCH] netfilter: ipvs: Fix space before '[' error.
+Date: Sun, 30 Jul 2017 12:29:25 +0530
+Message-ID: <3b2fae111371a2abd12d6838e825452a3c9bd4fa.1501397734.git.arvind.yadav.cs@gmail.com>
+Cc: netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org
+To: wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
+        pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        davem@davemloft.ne
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo,
+Fix checkpatch.pl error:
+ERROR: space prohibited before open square bracket '['.
 
-Am 17.07.2017 um 19:21 schrieb Pablo Neira Ayuso:
-> On Mon, Jul 17, 2017 at 06:28:48PM +0200, Jan Engelhardt wrote:
->>
->> On Monday 2017-07-17 18:03, Pablo Neira Ayuso wrote:
->>>
->>> IIRC, we should always bump current and version even if no changes
->>> happen. Rules are here:
->>>
->>> http://git.netfilter.org/libmnl/tree/Make_global.am
->>
->> If I read those rules correctly -
->>
->>  "If any interfaces have been added"
->>
->> - then, since no interface was added, removed, or otherwise modified, no bump
->> is the right thing.
-> 
-> Right, after another read, it seems bump is unnecessary.
-> 
-> So I'm taking Richard's patch as is.
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ net/netfilter/ipvs/ip_vs_proto_tcp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Is it on purpose that there is still no 1.0.7 release?
-Same question for libnetfilter_queue 1.0.3.
-
-Thanks,
-//richard
+diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+index 12dc8d5..4fc17fc 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+@@ -439,7 +439,7 @@ static bool tcp_state_active(int state)
+ 	return tcp_state_active_table[state];
+ }
+ 
+-static struct tcp_states_t tcp_states [] = {
++static struct tcp_states_t tcp_states[] = {
+ /*	INPUT */
+ /*        sNO, sES, sSS, sSR, sFW, sTW, sCL, sCW, sLA, sLI, sSA	*/
+ /*syn*/ {{sSR, sES, sES, sSR, sSR, sSR, sSR, sSR, sSR, sSR, sSR }},
+@@ -462,7 +462,7 @@ static struct tcp_states_t tcp_states [] = {
+ /*rst*/ {{sCL, sCL, sCL, sSR, sCL, sCL, sCL, sCL, sLA, sLI, sCL }},
+ };
+ 
+-static struct tcp_states_t tcp_states_dos [] = {
++static struct tcp_states_t tcp_states_dos[] = {
+ /*	INPUT */
+ /*        sNO, sES, sSS, sSR, sFW, sTW, sCL, sCW, sLA, sLI, sSA	*/
+ /*syn*/ {{sSR, sES, sES, sSR, sSR, sSR, sSR, sSR, sSR, sSR, sSA }},
+-- 
+2.7.4
