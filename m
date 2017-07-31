@@ -1,66 +1,65 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1 v2] netfilter: constify nf_conntrack_l3/4proto
- parameters
-Date: Mon, 31 Jul 2017 20:44:37 +0200
-Message-ID: <20170731184437.GA12928@salvia>
-References: <1501443524-13201-1-git-send-email-Julia.Lawall@lip6.fr>
- <1501443524-13201-2-git-send-email-Julia.Lawall@lip6.fr>
+From: <x1kn8fk@poky.ro>
+Subject: (unknown)
+Date: Mon, 31 Jul 2017 20:14:12 -0000
+Message-ID: <150153205251.17375.11781525842502465587@zaural.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "David S. Miller" <davem@davemloft.net>, bhumirks@gmail.com,
-        kernel-janitors@vger.kernel.org,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1501443524-13201-2-git-send-email-Julia.Lawall@lip6.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: application/zip; name="EMAIL_50780553_netfilter-devel.zip"
+Content-Transfer-Encoding: base64
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ws254.zone31-163-128.zaural.ru ([31.163.128.254]:50076 "HELO
+        zaural.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+        id S1751655AbdGaUOR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 31 Jul 2017 16:14:17 -0400
+Content-Disposition: attachment
+Subject: 
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Julia,
-
-On Sun, Jul 30, 2017 at 09:38:44PM +0200, Julia Lawall wrote:
-> When a nf_conntrack_l3/4proto parameter is not on the left hand side
-> of an assignment, its address is not taken, and it is not passed to a
-> function that may modify its fields, then it can be declared as const.
-> 
-> This change is useful from a documentation point of view, and can
-> possibly facilitate making some nf_conntrack_l3/4proto structures const
-> subsequently.
-> 
-> Done with the help of Coccinelle.
-> 
-> Some spacing adjusted to fit within 80 characters.
-
-patching file include/net/netfilter/nf_conntrack_l3proto.h
-Hunk #1 FAILED at 76.
-1 out of 1 hunk FAILED -- saving rejects to file
-include/net/netfilter/nf_conntrack_l3proto.h.rej
-patching file include/net/netfilter/nf_conntrack_l4proto.h
-patching file include/net/netfilter/nf_conntrack_timeout.h
-patching file net/netfilter/nf_conntrack_core.c
-Hunk #1 succeeded at 1176 (offset -7 lines).
-Hunk #2 succeeded at 1288 (offset -7 lines).
-patching file net/netfilter/nf_conntrack_netlink.c
-patching file net/netfilter/nf_conntrack_proto.c
-Hunk #2 FAILED at 242.
-Hunk #3 FAILED at 271.
-Hunk #4 succeeded at 257 with fuzz 1 (offset -29 lines).
-Hunk #5 succeeded at 272 (offset -29 lines).
-Hunk #6 succeeded at 295 (offset -29 lines).
-Hunk #7 succeeded at 366 (offset -29 lines).
-Hunk #8 succeeded at 391 (offset -29 lines).
-Hunk #9 succeeded at 404 (offset -29 lines).
-Hunk #10 succeeded at 415 (offset -29 lines).
-Hunk #11 succeeded at 449 (offset -29 lines).
-Hunk #12 succeeded at 485 (offset -29 lines).
-2 out of 12 hunks FAILED -- saving rejects to file
-net/netfilter/nf_conntrack_proto.c.rej
-patching file net/netfilter/nfnetlink_cttimeout.c
-
-Could you rebase on top of nf-next git tree?
-
-Thanks a lot!
+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
+XgAAANQJAAAAAA==
