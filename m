@@ -1,65 +1,151 @@
-From: <x1kn8fk@poky.ro>
-Subject: (unknown)
-Date: Mon, 31 Jul 2017 20:14:12 -0000
-Message-ID: <150153205251.17375.11781525842502465587@zaural.ru>
-Mime-Version: 1.0
-Content-Type: application/zip; name="EMAIL_50780553_netfilter-devel.zip"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: [PATCH v2 tip/core/rcu 02/10] net/netfilter/nf_conntrack_core: Fix net_conntrack_lock()
+Date: Mon, 31 Jul 2017 15:58:09 -0700
+Message-ID: <1501541897-5225-2-git-send-email-paulmck@linux.vnet.ibm.com>
+References: <20170731225754.GB2674@linux.vnet.ibm.com>
+Cc: mingo@kernel.org, jiangshanlai@gmail.com, dipankar@in.ibm.com,
+        akpm@linux-foundation.org, mathieu.desnoyers@efficios.com,
+        josh@joshtriplett.org, tglx@linutronix.de, peterz@infradead.org,
+        rostedt@goodmis.org, dhowells@redhat.com, edumazet@google.com,
+        fweisbec@gmail.com, oleg@redhat.com,
+        Manfred Spraul <manfred@colorfullife.com>,
+        <stable@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>,
+        Sasha Levin <sasha.levin@oracle.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org,
+        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+To: linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ws254.zone31-163-128.zaural.ru ([31.163.128.254]:50076 "HELO
-        zaural.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-        id S1751655AbdGaUOR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 31 Jul 2017 16:14:17 -0400
-Content-Disposition: attachment
-Subject: 
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:53664 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751987AbdGaW6Z (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 31 Jul 2017 18:58:25 -0400
+Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v6VMwP0U140690
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 18:58:25 -0400
+Received: from e11.ny.us.ibm.com (e11.ny.us.ibm.com [129.33.205.201])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2c2ch0jnf6-1
+        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 18:58:24 -0400
+Received: from localhost
+        by e11.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <netfilter-devel@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
+        Mon, 31 Jul 2017 18:58:21 -0400
+In-Reply-To: <20170731225754.GB2674@linux.vnet.ibm.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-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
-XgAAANQJAAAAAA==
+From: Manfred Spraul <manfred@colorfullife.com>
+
+As we want to remove spin_unlock_wait() and replace it with explicit
+spin_lock()/spin_unlock() calls, we can use this to simplify the
+locking.
+
+In addition:
+- Reading nf_conntrack_locks_all needs ACQUIRE memory ordering.
+- The new code avoids the backwards loop.
+
+Only slightly tested, I did not manage to trigger calls to
+nf_conntrack_all_lock().
+
+V2: With improved comments, to clearly show how the barriers
+    pair.
+
+Fixes: b16c29191dc8 ("netfilter: nf_conntrack: use safer way to lock all buckets")
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: <stable@vger.kernel.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+---
+ net/netfilter/nf_conntrack_core.c | 52 ++++++++++++++++++++++-----------------
+ 1 file changed, 29 insertions(+), 23 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 9979f46c81dc..51390febd5e3 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -96,19 +96,26 @@ static struct conntrack_gc_work conntrack_gc_work;
+ 
+ void nf_conntrack_lock(spinlock_t *lock) __acquires(lock)
+ {
++	/* 1) Acquire the lock */
+ 	spin_lock(lock);
+-	while (unlikely(nf_conntrack_locks_all)) {
+-		spin_unlock(lock);
+ 
+-		/*
+-		 * Order the 'nf_conntrack_locks_all' load vs. the
+-		 * spin_unlock_wait() loads below, to ensure
+-		 * that 'nf_conntrack_locks_all_lock' is indeed held:
+-		 */
+-		smp_rmb(); /* spin_lock(&nf_conntrack_locks_all_lock) */
+-		spin_unlock_wait(&nf_conntrack_locks_all_lock);
+-		spin_lock(lock);
+-	}
++	/* 2) read nf_conntrack_locks_all, with ACQUIRE semantics
++	 * It pairs with the smp_store_release() in nf_conntrack_all_unlock()
++	 */
++	if (likely(smp_load_acquire(&nf_conntrack_locks_all) == false))
++		return;
++
++	/* fast path failed, unlock */
++	spin_unlock(lock);
++
++	/* Slow path 1) get global lock */
++	spin_lock(&nf_conntrack_locks_all_lock);
++
++	/* Slow path 2) get the lock we want */
++	spin_lock(lock);
++
++	/* Slow path 3) release the global lock */
++	spin_unlock(&nf_conntrack_locks_all_lock);
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_lock);
+ 
+@@ -149,28 +156,27 @@ static void nf_conntrack_all_lock(void)
+ 	int i;
+ 
+ 	spin_lock(&nf_conntrack_locks_all_lock);
+-	nf_conntrack_locks_all = true;
+ 
+-	/*
+-	 * Order the above store of 'nf_conntrack_locks_all' against
+-	 * the spin_unlock_wait() loads below, such that if
+-	 * nf_conntrack_lock() observes 'nf_conntrack_locks_all'
+-	 * we must observe nf_conntrack_locks[] held:
+-	 */
+-	smp_mb(); /* spin_lock(&nf_conntrack_locks_all_lock) */
++	nf_conntrack_locks_all = true;
+ 
+ 	for (i = 0; i < CONNTRACK_LOCKS; i++) {
+-		spin_unlock_wait(&nf_conntrack_locks[i]);
++		spin_lock(&nf_conntrack_locks[i]);
++
++		/* This spin_unlock provides the "release" to ensure that
++		 * nf_conntrack_locks_all==true is visible to everyone that
++		 * acquired spin_lock(&nf_conntrack_locks[]).
++		 */
++		spin_unlock(&nf_conntrack_locks[i]);
+ 	}
+ }
+ 
+ static void nf_conntrack_all_unlock(void)
+ {
+-	/*
+-	 * All prior stores must be complete before we clear
++	/* All prior stores must be complete before we clear
+ 	 * 'nf_conntrack_locks_all'. Otherwise nf_conntrack_lock()
+ 	 * might observe the false value but not the entire
+-	 * critical section:
++	 * critical section.
++	 * It pairs with the smp_load_acquire() in nf_conntrack_lock()
+ 	 */
+ 	smp_store_release(&nf_conntrack_locks_all, false);
+ 	spin_unlock(&nf_conntrack_locks_all_lock);
+-- 
+2.5.2
+
