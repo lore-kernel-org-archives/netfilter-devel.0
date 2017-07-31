@@ -1,64 +1,60 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: xt_ecn: Add missing hotdrop mark.
-Date: Mon, 31 Jul 2017 20:20:15 +0200
-Message-ID: <20170731182015.GA15201@salvia>
-References: <20170729103300.30447-1-ap420073@gmail.com>
+Subject: Re: [PATCH V3] netfilter: x_tables: Fix use-after-free in
+ ipt_do_table.
+Date: Mon, 31 Jul 2017 20:24:28 +0200
+Message-ID: <20170731182428.GA24605@salvia>
+References: <20170727022204.17843-1-ap420073@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: fw@strlen.de, netfilter-devel@vger.kernel.org
 To: Taehee Yoo <ap420073@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38972 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39612 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750940AbdGaSUU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 31 Jul 2017 14:20:20 -0400
+        id S1751227AbdGaSYk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 31 Jul 2017 14:24:40 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D50A33025A5
-        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 20:20:05 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 5CBE43025A5
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 20:24:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C61DFD1D96
-        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 20:20:05 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4E439D1CA9
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 20:24:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A2C6DDA81E
-        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 20:20:03 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2A9C8DA46B
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 20:24:24 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20170729103300.30447-1-ap420073@gmail.com>
+In-Reply-To: <20170727022204.17843-1-ap420073@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Jul 29, 2017 at 07:33:00PM +0900, Taehee Yoo wrote:
-> If the netfilter can't get L4 header, the netfilter
-> marks hotdrop value. then {ip, ip6, arp, eb}t_do_table() drops
-> that packet immediately. but xt_ecn doesn't mark hotdrop value.
+On Thu, Jul 27, 2017 at 11:22:04AM +0900, Taehee Yoo wrote:
+> If verdict is NF_STOLEN in the SYNPROXY target,
+> the skb is consumed.
+> However, ipt_do_table() always tries to get ip header from the skb.
+> So that, KASAN triggers the use-after-free message.
 > 
-> Signed-off-by: Taehee Yoo <ap420073@gmail.com>
-> ---
->  net/netfilter/xt_ecn.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+> We can reproduce this message using below command.
+>   # iptables -I INPUT -p tcp -j SYNPROXY --mss 1460
 > 
-> diff --git a/net/netfilter/xt_ecn.c b/net/netfilter/xt_ecn.c
-> index 3c831a8..c58db1d 100644
-> --- a/net/netfilter/xt_ecn.c
-> +++ b/net/netfilter/xt_ecn.c
-> @@ -37,8 +37,10 @@ static bool match_tcp(const struct sk_buff *skb, struct xt_action_param *par)
->  	 * be good citizens.
->  	 */
->  	th = skb_header_pointer(skb, par->thoff, sizeof(_tcph), &_tcph);
-> -	if (th == NULL)
-> +	if (!th) {
-> +		par->hotdrop = true;
->  		return false;
-> +	}
+> [ 193.542265] BUG: KASAN: use-after-free in ipt_do_table+0x1405/0x1c10
+> [ ... ]
+> [ 193.578603] Call Trace:
+> [ 193.581590] <IRQ>
+> [ 193.584107] dump_stack+0x68/0xa0
+> [ 193.588168] print_address_description+0x78/0x290
+> [ 193.593828] ? ipt_do_table+0x1405/0x1c10
+> [ 193.598690] kasan_report+0x230/0x340
+> [ 193.603194] __asan_report_load2_noabort+0x19/0x20
+> [ 193.608950] ipt_do_table+0x1405/0x1c10
+> [ 193.613591] ? rcu_read_lock_held+0xae/0xd0
+> [ 193.618631] ? ip_route_input_rcu+0x27d7/0x4270
+> [ 193.624348] ? ipt_do_table+0xb68/0x1c10
+> [ 193.629124] ? do_add_counters+0x620/0x620
+> [ 193.634234] ? iptable_filter_net_init+0x60/0x60
+> [ ... ]
+> 
+> After this patch, only when verdict is XT_CONTINUE,
+> ipt_do_table() tries to get ip header.
+> Also arpt_do_table() is modified because it has same bug.
 
-Is it that we always - consistenly - drop packets that has no
-information that we need.
-
-I would say it's better to do this via policy, it's more flexible,
-rather than assuming that accessing a packet that doesn't contain the
-information that we need means a drop.
-
-Another concern for me regarding this is the fact that probably this
-has been the default behaviour for long time, if that's the case, I
-would be reluctant to change this at this point.
-
-Let me know, thanks!
+Applied, thanks.
