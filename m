@@ -1,26 +1,50 @@
-From: "WESTERN UNION ASIA" <mdupont@vip.cybercity.dk>
-Subject: C O N G R A T U L A T I O N S
-Date: Mon, 31 Jul 2017 18:00:12 +0800
-Message-ID: <E1dc7VC-0004JE-NX__45737.3679652393$1501496341$gmane$org@filter01asd2.se.isp-net.nl>
-Reply-To: wuhmcustomeragt.melissamubarak@outlook.com
+From: "Levin, Alexander (Sasha Levin)" <alexander.levin@verizon.com>
+Subject: Re: [3.10.y,3.16.y,4.1.y,netfilter/ipvs] please, apply 3c5ab3f395d6
+Date: Mon, 31 Jul 2017 13:22:03 +0000
+Message-ID: <20170731132409.bnf7ai3ssvp4eaay@sasha-lappy>
+References: <20170724095805.GA3807@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-To: Recipients <mdupont@vip.cybercity.dk>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from filter01asd2-vif2-tele2.se.isp-net.nl ([82.215.18.102]:36851
-        "EHLO filter01asd2-vif2-tele2.se.isp-net.nl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750987AbdGaKSu (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 31 Jul 2017 06:18:50 -0400
-Content-Description: Mail message body
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Cc: Willy Tarreau <w@1wt.eu>, Ben Hutchings <ben@decadent.org.uk>,
+        "stable@vger.kernel.org" <stable@vger.kernel.org>,
+        Julian Anastasov <ja@ssi.bg>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        Simon Horman <horms@verge.net.au>,
+        "lvs-devel@vger.kernel.org" <lvs-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20170724095805.GA3807@salvia>
+Content-Language: en-US
+Content-ID: <0E61505E43F92C48BBA62CC162BECF4B@vzwcorp.com>
+Sender: stable-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-If You Are Still Using This E-mail :
+On Mon, Jul 24, 2017 at 11:58:05AM +0200, Pablo Neira Ayuso wrote:
+>Hi Willy, Ben & Sasha,
+>
+>Please, apply this commit:
+>
+>commit 3c5ab3f395d66a9e4e937fcfdf6ebc63894f028b
+>Author: Julian Anastasov <ja@ssi.bg>
+>Date:   Sat Apr 29 20:33:09 2017 +0300
+>
+>    ipvs: SNAT packet replies only for NATed connections
+>
+>to stable 3.2.y.
+>
+>Julian made a backport for you, that is available at Netfilter's
+>patchwork:
+>
+>        https://urldefense.proofpoint.com/v2/url?u=3Dhttp-3A__patchwork.oz=
+labs.org_patch_789258_&d=3DDwIBAg&c=3DudBTRvFvXC5Dhqg7UHpJlPps3mZ3LRxpb6__0=
+PomBTQ&r=3DbUtaaC9mlBij4OjEG_D-KMy3t3Ka3bY06suGz7ewY7g&m=3D8r6j7k5Ngp3u1KUX=
+59uzAOt9dYNCQIS7iOZrIRS1icQ&s=3D7LrBh53VONaL-HCc-lGJeepxYWC4NG09UtvVSU8Fyrc=
+&e=3D
 
-- YOU WON $500,000.00 USD -
+Applied for 4.1, thanks!
 
-For More Details,  Contact -
-Name:  MELISSA BINTI MUBARAK
-E-mail: westernunion.melissamubarak@gmail.com
+--=20
+
+Thanks,
+Sasha=
