@@ -1,37 +1,38 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: ipset: deduplicate prefixlen maps
-Date: Mon, 31 Jul 2017 19:01:10 +0200
-Message-ID: <20170731170110.GA4006@salvia>
-References: <20170720181300.20955-1-aconole@bytheb.org>
+Subject: Re: [PATCH nf-next 1/2] netfilter: nf_tables: fib: use
+ skb_header_pointer
+Date: Mon, 31 Jul 2017 19:02:45 +0200
+Message-ID: <20170731170245.GA4218@salvia>
+References: <20170720235438.18576-1-pablombg@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>
-To: Aaron Conole <aconole@bytheb.org>
+Cc: netfilter-devel@vger.kernel.org
+To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49746 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:50138 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750923AbdGaRBS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 31 Jul 2017 13:01:18 -0400
+        id S1750954AbdGaRCu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 31 Jul 2017 13:02:50 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4247B2EFEA9
-        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 19:01:04 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id D6A3A2EFEA7
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 19:02:36 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 33A7EDA812
-        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 19:01:04 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C7B4FD1D8D
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 19:02:36 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 22241DA81E
-        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 19:01:02 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1E541D1D98
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 19:02:34 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20170720181300.20955-1-aconole@bytheb.org>
+In-Reply-To: <20170720235438.18576-1-pablombg@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 20, 2017 at 02:13:00PM -0400, Aaron Conole wrote:
-> The prefixlen maps used here are identical, and have been since
-> introduction.  It seems to make sense to use a single large map,
-> that the preprocessor will fill appropriately.
+On Fri, Jul 21, 2017 at 01:54:37AM +0200, Pablo M. Bermudo Garay wrote:
+> This is a preparatory patch for adding fib support to the netdev family.
+> 
+> The netdev family receives the packets from ingress hook. At this point
+> we have no guarantee that the ip header is linear. So this patch
+> replaces ip_hdr with skb_header_pointer in order to address that
+> possible situation.
 
-Applied, thanks.
+Applied, thanks!
