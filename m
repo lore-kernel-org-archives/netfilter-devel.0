@@ -1,66 +1,81 @@
-From: <amin@goettingen.aidshilfe.de>
-Subject: (unknown)
-Date: Tue, 01 Aug 2017 01:35:30 -0000
-Message-ID: <150155133046.12761.7289763662508081777@hinet.net>
+From: Taehee Yoo <ap420073@gmail.com>
+Subject: Re: [PATCH] netfilter: xt_ecn: Add missing hotdrop mark.
+Date: Tue, 1 Aug 2017 11:57:03 +0900
+Message-ID: <CAMArcTUK_VT2fZP-gfdx4mabQ4aymktxZq4pDkZ73uQ_kK0s0w@mail.gmail.com>
+References: <20170729103300.30447-1-ap420073@gmail.com> <20170731182015.GA15201@salvia>
 Mime-Version: 1.0
-Content-Type: application/zip; name="EMAIL_902515565565244_netfilter-devel.zip"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Cc: Florian Westphal <fw@strlen.de>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 111-243-240-215.dynamic-ip.hinet.net ([111.243.240.215]:49003
-        "HELO hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with SMTP id S1751296AbdHABfi (ORCPT
+Received: from mail-yw0-f196.google.com ([209.85.161.196]:35042 "EHLO
+        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751769AbdHAC5F (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 31 Jul 2017 21:35:38 -0400
-Subject: 
-Content-Disposition: attachment
+        Mon, 31 Jul 2017 22:57:05 -0400
+Received: by mail-yw0-f196.google.com with SMTP id l82so250687ywc.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 19:57:05 -0700 (PDT)
+In-Reply-To: <20170731182015.GA15201@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-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
-AADUCQAAAAA=
+2017-08-01 3:20 GMT+09:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+> On Sat, Jul 29, 2017 at 07:33:00PM +0900, Taehee Yoo wrote:
+>> If the netfilter can't get L4 header, the netfilter
+>> marks hotdrop value. then {ip, ip6, arp, eb}t_do_table() drops
+>> that packet immediately. but xt_ecn doesn't mark hotdrop value.
+>>
+>> Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+>> ---
+>>  net/netfilter/xt_ecn.c | 4 +++-
+>>  1 file changed, 3 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/net/netfilter/xt_ecn.c b/net/netfilter/xt_ecn.c
+>> index 3c831a8..c58db1d 100644
+>> --- a/net/netfilter/xt_ecn.c
+>> +++ b/net/netfilter/xt_ecn.c
+>> @@ -37,8 +37,10 @@ static bool match_tcp(const struct sk_buff *skb, struct xt_action_param *par)
+>>        * be good citizens.
+>>        */
+>>       th = skb_header_pointer(skb, par->thoff, sizeof(_tcph), &_tcph);
+>> -     if (th == NULL)
+>> +     if (!th) {
+>> +             par->hotdrop = true;
+>>               return false;
+>> +     }
+>
+> Is it that we always - consistenly - drop packets that has no
+> information that we need.
+>
+
+Below match modules are mark hotdrop value when they can not get L4 header.
+xt_tcpudp, xt_dccp, xt_sctp, xt_multiport, xt_tcpmss, xt_esp,
+xt_ipcomp, xt_hashlimit, ipt_ah,
+ip6t_rt, ip6t_frag, ip6t_mh, ip6t_hbh.
+And Below match modules are do not mark hotdrop value when they can
+not get L4 header.
+xt_l2tp, xt_ecn, xt_osf.
+So, we do not always mark hotdrop value.
+
+> I would say it's better to do this via policy, it's more flexible,
+> rather than assuming that accessing a packet that doesn't contain the
+> information that we need means a drop.
+>
+
+I agree with your mention.
+Already target functions drop packets If they can not get what we need.
+So, It's working well even now.
+
+> Another concern for me regarding this is the fact that probably this
+> has been the default behaviour for long time, if that's the case, I
+> would be reluctant to change this at this point.
+>
+
+Yes, It has been the default for long time. so, I agree with your decision.
+
+
+> Let me know, thanks!
+
+Thank you for your review!
