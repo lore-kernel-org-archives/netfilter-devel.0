@@ -1,151 +1,66 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: [PATCH v2 tip/core/rcu 02/10] net/netfilter/nf_conntrack_core: Fix net_conntrack_lock()
-Date: Mon, 31 Jul 2017 15:58:09 -0700
-Message-ID: <1501541897-5225-2-git-send-email-paulmck@linux.vnet.ibm.com>
-References: <20170731225754.GB2674@linux.vnet.ibm.com>
-Cc: mingo@kernel.org, jiangshanlai@gmail.com, dipankar@in.ibm.com,
-        akpm@linux-foundation.org, mathieu.desnoyers@efficios.com,
-        josh@joshtriplett.org, tglx@linutronix.de, peterz@infradead.org,
-        rostedt@goodmis.org, dhowells@redhat.com, edumazet@google.com,
-        fweisbec@gmail.com, oleg@redhat.com,
-        Manfred Spraul <manfred@colorfullife.com>,
-        <stable@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>,
-        Sasha Levin <sasha.levin@oracle.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org,
-        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-To: linux-kernel@vger.kernel.org
+From: <amin@goettingen.aidshilfe.de>
+Subject: (unknown)
+Date: Tue, 01 Aug 2017 01:35:30 -0000
+Message-ID: <150155133046.12761.7289763662508081777@hinet.net>
+Mime-Version: 1.0
+Content-Type: application/zip; name="EMAIL_902515565565244_netfilter-devel.zip"
+Content-Transfer-Encoding: base64
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:53664 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751987AbdGaW6Z (ORCPT
+Received: from 111-243-240-215.dynamic-ip.hinet.net ([111.243.240.215]:49003
+        "HELO hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with SMTP id S1751296AbdHABfi (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 31 Jul 2017 18:58:25 -0400
-Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id v6VMwP0U140690
-        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 18:58:25 -0400
-Received: from e11.ny.us.ibm.com (e11.ny.us.ibm.com [129.33.205.201])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 2c2ch0jnf6-1
-        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
-        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 18:58:24 -0400
-Received: from localhost
-        by e11.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <netfilter-devel@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-        Mon, 31 Jul 2017 18:58:21 -0400
-In-Reply-To: <20170731225754.GB2674@linux.vnet.ibm.com>
+        Mon, 31 Jul 2017 21:35:38 -0400
+Subject: 
+Content-Disposition: attachment
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Manfred Spraul <manfred@colorfullife.com>
-
-As we want to remove spin_unlock_wait() and replace it with explicit
-spin_lock()/spin_unlock() calls, we can use this to simplify the
-locking.
-
-In addition:
-- Reading nf_conntrack_locks_all needs ACQUIRE memory ordering.
-- The new code avoids the backwards loop.
-
-Only slightly tested, I did not manage to trigger calls to
-nf_conntrack_all_lock().
-
-V2: With improved comments, to clearly show how the barriers
-    pair.
-
-Fixes: b16c29191dc8 ("netfilter: nf_conntrack: use safer way to lock all buckets")
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: <stable@vger.kernel.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
----
- net/netfilter/nf_conntrack_core.c | 52 ++++++++++++++++++++++-----------------
- 1 file changed, 29 insertions(+), 23 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 9979f46c81dc..51390febd5e3 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -96,19 +96,26 @@ static struct conntrack_gc_work conntrack_gc_work;
- 
- void nf_conntrack_lock(spinlock_t *lock) __acquires(lock)
- {
-+	/* 1) Acquire the lock */
- 	spin_lock(lock);
--	while (unlikely(nf_conntrack_locks_all)) {
--		spin_unlock(lock);
- 
--		/*
--		 * Order the 'nf_conntrack_locks_all' load vs. the
--		 * spin_unlock_wait() loads below, to ensure
--		 * that 'nf_conntrack_locks_all_lock' is indeed held:
--		 */
--		smp_rmb(); /* spin_lock(&nf_conntrack_locks_all_lock) */
--		spin_unlock_wait(&nf_conntrack_locks_all_lock);
--		spin_lock(lock);
--	}
-+	/* 2) read nf_conntrack_locks_all, with ACQUIRE semantics
-+	 * It pairs with the smp_store_release() in nf_conntrack_all_unlock()
-+	 */
-+	if (likely(smp_load_acquire(&nf_conntrack_locks_all) == false))
-+		return;
-+
-+	/* fast path failed, unlock */
-+	spin_unlock(lock);
-+
-+	/* Slow path 1) get global lock */
-+	spin_lock(&nf_conntrack_locks_all_lock);
-+
-+	/* Slow path 2) get the lock we want */
-+	spin_lock(lock);
-+
-+	/* Slow path 3) release the global lock */
-+	spin_unlock(&nf_conntrack_locks_all_lock);
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_lock);
- 
-@@ -149,28 +156,27 @@ static void nf_conntrack_all_lock(void)
- 	int i;
- 
- 	spin_lock(&nf_conntrack_locks_all_lock);
--	nf_conntrack_locks_all = true;
- 
--	/*
--	 * Order the above store of 'nf_conntrack_locks_all' against
--	 * the spin_unlock_wait() loads below, such that if
--	 * nf_conntrack_lock() observes 'nf_conntrack_locks_all'
--	 * we must observe nf_conntrack_locks[] held:
--	 */
--	smp_mb(); /* spin_lock(&nf_conntrack_locks_all_lock) */
-+	nf_conntrack_locks_all = true;
- 
- 	for (i = 0; i < CONNTRACK_LOCKS; i++) {
--		spin_unlock_wait(&nf_conntrack_locks[i]);
-+		spin_lock(&nf_conntrack_locks[i]);
-+
-+		/* This spin_unlock provides the "release" to ensure that
-+		 * nf_conntrack_locks_all==true is visible to everyone that
-+		 * acquired spin_lock(&nf_conntrack_locks[]).
-+		 */
-+		spin_unlock(&nf_conntrack_locks[i]);
- 	}
- }
- 
- static void nf_conntrack_all_unlock(void)
- {
--	/*
--	 * All prior stores must be complete before we clear
-+	/* All prior stores must be complete before we clear
- 	 * 'nf_conntrack_locks_all'. Otherwise nf_conntrack_lock()
- 	 * might observe the false value but not the entire
--	 * critical section:
-+	 * critical section.
-+	 * It pairs with the smp_load_acquire() in nf_conntrack_lock()
- 	 */
- 	smp_store_release(&nf_conntrack_locks_all, false);
- 	spin_unlock(&nf_conntrack_locks_all_lock);
--- 
-2.5.2
-
+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
+AADUCQAAAAA=
