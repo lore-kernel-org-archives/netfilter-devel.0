@@ -1,97 +1,70 @@
-From: Varsha Rao <rvarsha016@gmail.com>
-Subject: [PATCH nft v4] src: netlink: Subscribe nft monitor and nft monitor
- trace to respective groups.
-Date: Tue, 1 Aug 2017 10:05:47 +0530
-Message-ID: <59800527.99c6620a.87df6.2375@mx.google.com>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH] netfilter: fix stringop-overflow warning with UBSAN
+Date: Tue, 1 Aug 2017 09:25:13 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6DD0047F28@AcuExch.aculab.com>
+References: <20170731100913.465530-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:36320 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750853AbdHAEfw (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 1 Aug 2017 00:35:52 -0400
-Received: by mail-pg0-f66.google.com with SMTP id y129so762989pgy.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 31 Jul 2017 21:35:52 -0700 (PDT)
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Cc: Johannes Berg <johannes.berg@intel.com>,
+        Alexey Dobriyan <adobriyan@gmail.com>,
+        Aaron Conole <aconole@bytheb.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+        "coreteam@netfilter.org" <coreteam@netfilter.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: 'Arnd Bergmann' <arnd@arndb.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170731100913.465530-1-arnd@arndb.de>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Subscribe nft monitor to both NFNLGRP_NFTABLES and NFNLGRP_NFTRACE.
-nft monitor trace subscribes only to NFNLGRP_NFTRACE. Other event
-reporting options to only NFNLGRP_NFTABLES.
+From: Arnd Bergmann
+> Sent: 31 July 2017 11:09
+> Using gcc-7 with UBSAN enabled, we get this false-positive warning:
+> 
+> net/netfilter/ipset/ip_set_core.c: In function 'ip_set_sockfn_get':
+> net/netfilter/ipset/ip_set_core.c:1998:3: error: 'strncpy' writing 32 bytes into a region of size 2
+> overflows the destination [-Werror=stringop-overflow=]
+>    strncpy(req_get->set.name, set ? set->name : "",
+>    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>     sizeof(req_get->set.name));
+>     ~~~~~~~~~~~~~~~~~~~~~~~~~~
+> 
+> This seems completely bogus, and I could not find a nice workaround.
+> To work around it in a less elegant way, I change the ?: operator
+> into an if()/else() construct.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  net/netfilter/ipset/ip_set_core.c | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> index e495b5e484b1..d7ebb021003b 100644
+> --- a/net/netfilter/ipset/ip_set_core.c
+> +++ b/net/netfilter/ipset/ip_set_core.c
+> @@ -1995,8 +1995,12 @@ ip_set_sockfn_get(struct sock *sk, int optval, void __user *user, int *len)
+>  		}
+>  		nfnl_lock(NFNL_SUBSYS_IPSET);
+>  		set = ip_set(inst, req_get->set.index);
+> -		strncpy(req_get->set.name, ,
+> -			IPSET_MAXNAMELEN);
+> +		if (set)
+> +			strncpy(req_get->set.name, set->name,
+> +				sizeof(req_get->set.name));
+> +		else
+> +			memset(req_get->set.name, '\0',
+> +			       sizeof(req_get->set.name));
 
-Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
----
-Changes in v1:
-- Subscribe nft monitor to only _NFTABLES.
-- Subsribe nft monitor trace to only _NFTRACE.
+If you use strncpy() here, the compiler might optimise the code
+back to 'how it was before'.
 
-Changes in v2:
-- Subsribe nft monitor to both _NFTABLES and _NFTRACE.
-- Subscribe other events to _NFTABLES.
-- Modified commit message.
+Or, maybe an explicit temporary: 'const char *name = set ? set->name : "";
 
-Changes in v3:
-- Define constant NFT_MONTRACE.
-
-Changes in v4:
-- Remove constant NFT_MONTRACE.
-- Add new if condition.
-
- src/netlink.c | 32 ++++++++++++++++++++++----------
- 1 file changed, 22 insertions(+), 10 deletions(-)
-
-diff --git a/src/netlink.c b/src/netlink.c
-index 9cef4c4..ef58afe 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -3078,21 +3078,33 @@ static int netlink_events_cb(const struct nlmsghdr *nlh, void *data)
- int netlink_monitor(struct netlink_mon_handler *monhandler,
- 		     struct mnl_socket *nf_sock)
- {
--	int group;
-+	int group = NFNLGRP_NFTABLES;
-+
-+	if (monhandler->monitor_flags & (1 << NFT_MSG_TRACE)) {
-+		if ((1 << monhandler->monitor_flags) < 0) {
-+			if (mnl_socket_setsockopt(nf_sock, NETLINK_ADD_MEMBERSHIP,
-+					&group, sizeof(int)) < 0)
-+				return netlink_io_error(monhandler->ctx,
-+						monhandler->loc,
-+						"Could not bind to netlink socket %s",
-+						strerror(errno));
-+		}
- 
--	group = NFNLGRP_NFTABLES;
--	if (mnl_socket_setsockopt(nf_sock, NETLINK_ADD_MEMBERSHIP, &group,
--				  sizeof(int)) < 0)
--		return netlink_io_error(monhandler->ctx, monhandler->loc,
-+		group = NFNLGRP_NFTRACE;
-+		if (mnl_socket_setsockopt(nf_sock, NETLINK_ADD_MEMBERSHIP,
-+					&group, sizeof(int)) < 0)
-+			return netlink_io_error(monhandler->ctx,
-+					monhandler->loc,
- 					"Could not bind to netlink socket %s",
- 					strerror(errno));
--
--	group = NFNLGRP_NFTRACE;
--	if (mnl_socket_setsockopt(nf_sock, NETLINK_ADD_MEMBERSHIP, &group,
--				  sizeof(int)) < 0)
--		return netlink_io_error(monhandler->ctx, monhandler->loc,
-+	} else {
-+		if (mnl_socket_setsockopt(nf_sock, NETLINK_ADD_MEMBERSHIP,
-+					&group, sizeof(int)) < 0)
-+			return netlink_io_error(monhandler->ctx,
-+					monhandler->loc,
- 					"Could not bind to netlink socket %s",
- 					strerror(errno));
-+	}
- 
- 	return mnl_nft_event_listener(nf_sock, netlink_events_cb,
- 				      monhandler);
--- 
-2.9.4
-
+	David
