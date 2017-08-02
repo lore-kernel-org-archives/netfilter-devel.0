@@ -1,161 +1,87 @@
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH nf-next] netfilter: constify nf_loginfo structures
-Date: Tue,  1 Aug 2017 12:48:03 +0200
-Message-ID: <1501584483-999-1-git-send-email-Julia.Lawall@lip6.fr>
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, coreteam@netfilter.org,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
-To: "David S. Miller" <davem@davemloft.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Taehee Yoo <ap420073@gmail.com>
+Subject: [PATCH] netfilter: connlimit: merge root4 and root6.
+Date: Wed,  2 Aug 2017 18:14:43 +0900
+Message-ID: <20170802091443.32713-1-ap420073@gmail.com>
+Cc: ap420073@gmail.com
+To: pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:38753 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752323AbdHBJOv (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 2 Aug 2017 05:14:51 -0400
+Received: by mail-pf0-f193.google.com with SMTP id e3so5427258pfc.5
+        for <netfilter-devel@vger.kernel.org>; Wed, 02 Aug 2017 02:14:51 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-The nf_loginfo structures are only passed as the seventh argument to
-nf_log_trace, which is declared as const or stored in a local const
-variable.  Thus the nf_loginfo structures themselves can be const.
+The root4 variable is used only when connlimit extension module has been
+stored by the iptables command. and the roo6 variable is used only when
+connlimit extension module has been stored by the ip6tables command.
+So the root4 and roo6 variable does not be used at the same time.
 
-Done with the help of Coccinelle.
-
-// <smpl>
-@r disable optional_qualifier@
-identifier i;
-position p;
-@@
-static struct nf_loginfo i@p = { ... };
-
-@ok1@
-identifier r.i;
-expression list[6] es;
-position p;
-@@
- nf_log_trace(es,&i@p,...)
-
-@ok2@
-identifier r.i;
-const struct nf_loginfo *e;
-position p;
-@@
- e = &i@p
-
-@bad@
-position p != {r.p,ok1.p,ok2.p};
-identifier r.i;
-struct nf_loginfo e;
-@@
-e@i@p
-
-@depends on !bad disable optional_qualifier@
-identifier r.i;
-@@
-static
-+const
- struct nf_loginfo i = { ... };
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 ---
- net/ipv4/netfilter/ip_tables.c   |    2 +-
- net/ipv4/netfilter/nf_log_arp.c  |    2 +-
- net/ipv4/netfilter/nf_log_ipv4.c |    2 +-
- net/ipv6/netfilter/ip6_tables.c  |    2 +-
- net/ipv6/netfilter/nf_log_ipv6.c |    2 +-
- net/netfilter/nf_tables_core.c   |    2 +-
- net/netfilter/nfnetlink_log.c    |    2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+ net/netfilter/xt_connlimit.c | 23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index c5bab08..dfd0bf3 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -29,7 +29,7 @@
- 	[NFT_TRACETYPE_RULE]	= "rule",
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+index 97589b8..ffa8eec 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -58,8 +58,7 @@ struct xt_connlimit_rb {
+ static spinlock_t xt_connlimit_locks[CONNLIMIT_LOCK_SLOTS] __cacheline_aligned_in_smp;
+ 
+ struct xt_connlimit_data {
+-	struct rb_root climit_root4[CONNLIMIT_SLOTS];
+-	struct rb_root climit_root6[CONNLIMIT_SLOTS];
++	struct rb_root climit_root[CONNLIMIT_SLOTS];
  };
  
--static struct nf_loginfo trace_loginfo = {
-+static const struct nf_loginfo trace_loginfo = {
- 	.type = NF_LOG_TYPE_LOG,
- 	.u = {
- 		.log = {
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index c684ba9..cad6498 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -606,7 +606,7 @@ static void nfulnl_instance_free_rcu(struct rcu_head *head)
- 	return -1;
+ static u_int32_t connlimit_rnd __read_mostly;
+@@ -294,13 +293,11 @@ static int count_them(struct net *net,
+ 	int count;
+ 	u32 hash;
+ 
+-	if (family == NFPROTO_IPV6) {
++	if (family == NFPROTO_IPV6)
+ 		hash = connlimit_iphash6(addr, mask);
+-		root = &data->climit_root6[hash];
+-	} else {
++	else
+ 		hash = connlimit_iphash(addr->ip & mask->ip);
+-		root = &data->climit_root4[hash];
+-	}
++	root = &data->climit_root[hash];
+ 
+ 	spin_lock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
+ 
+@@ -379,10 +376,8 @@ static int connlimit_mt_check(const struct xt_mtchk_param *par)
+ 		return -ENOMEM;
+ 	}
+ 
+-	for (i = 0; i < ARRAY_SIZE(info->data->climit_root4); ++i)
+-		info->data->climit_root4[i] = RB_ROOT;
+-	for (i = 0; i < ARRAY_SIZE(info->data->climit_root6); ++i)
+-		info->data->climit_root6[i] = RB_ROOT;
++	for (i = 0; i < ARRAY_SIZE(info->data->climit_root); ++i)
++		info->data->climit_root[i] = RB_ROOT;
+ 
+ 	return 0;
  }
+@@ -413,10 +408,8 @@ static void connlimit_mt_destroy(const struct xt_mtdtor_param *par)
  
--static struct nf_loginfo default_loginfo = {
-+static const struct nf_loginfo default_loginfo = {
- 	.type =		NF_LOG_TYPE_ULOG,
- 	.u = {
- 		.ulog = {
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 2a55a40..96a289c 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -151,7 +151,7 @@ enum nf_ip_trace_comments {
- 	[NF_IP_TRACE_COMMENT_POLICY]	= "policy",
- };
+ 	nf_ct_netns_put(par->net, par->family);
  
--static struct nf_loginfo trace_loginfo = {
-+static const struct nf_loginfo trace_loginfo = {
- 	.type = NF_LOG_TYPE_LOG,
- 	.u = {
- 		.log = {
-diff --git a/net/ipv4/netfilter/nf_log_arp.c b/net/ipv4/netfilter/nf_log_arp.c
-index 2f3895d..df5c2a2 100644
---- a/net/ipv4/netfilter/nf_log_arp.c
-+++ b/net/ipv4/netfilter/nf_log_arp.c
-@@ -25,7 +25,7 @@
- #include <linux/netfilter/xt_LOG.h>
- #include <net/netfilter/nf_log.h>
+-	for (i = 0; i < ARRAY_SIZE(info->data->climit_root4); ++i)
+-		destroy_tree(&info->data->climit_root4[i]);
+-	for (i = 0; i < ARRAY_SIZE(info->data->climit_root6); ++i)
+-		destroy_tree(&info->data->climit_root6[i]);
++	for (i = 0; i < ARRAY_SIZE(info->data->climit_root); ++i)
++		destroy_tree(&info->data->climit_root[i]);
  
--static struct nf_loginfo default_loginfo = {
-+static const struct nf_loginfo default_loginfo = {
- 	.type	= NF_LOG_TYPE_LOG,
- 	.u = {
- 		.log = {
-diff --git a/net/ipv4/netfilter/nf_log_ipv4.c b/net/ipv4/netfilter/nf_log_ipv4.c
-index c83a996..4388de0 100644
---- a/net/ipv4/netfilter/nf_log_ipv4.c
-+++ b/net/ipv4/netfilter/nf_log_ipv4.c
-@@ -24,7 +24,7 @@
- #include <linux/netfilter/xt_LOG.h>
- #include <net/netfilter/nf_log.h>
- 
--static struct nf_loginfo default_loginfo = {
-+static const struct nf_loginfo default_loginfo = {
- 	.type	= NF_LOG_TYPE_LOG,
- 	.u = {
- 		.log = {
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 1f90644..9f66449 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -176,7 +176,7 @@ enum nf_ip_trace_comments {
- 	[NF_IP6_TRACE_COMMENT_POLICY]	= "policy",
- };
- 
--static struct nf_loginfo trace_loginfo = {
-+static const struct nf_loginfo trace_loginfo = {
- 	.type = NF_LOG_TYPE_LOG,
- 	.u = {
- 		.log = {
-diff --git a/net/ipv6/netfilter/nf_log_ipv6.c b/net/ipv6/netfilter/nf_log_ipv6.c
-index 97c7242..b397a8f 100644
---- a/net/ipv6/netfilter/nf_log_ipv6.c
-+++ b/net/ipv6/netfilter/nf_log_ipv6.c
-@@ -25,7 +25,7 @@
- #include <linux/netfilter/xt_LOG.h>
- #include <net/netfilter/nf_log.h>
- 
--static struct nf_loginfo default_loginfo = {
-+static const struct nf_loginfo default_loginfo = {
- 	.type	= NF_LOG_TYPE_LOG,
- 	.u = {
- 		.log = {
+ 	kfree(info->data);
+ }
+-- 
+2.9.3
+
