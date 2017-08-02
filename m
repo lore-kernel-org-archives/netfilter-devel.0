@@ -1,87 +1,150 @@
-From: Taehee Yoo <ap420073@gmail.com>
-Subject: [PATCH] netfilter: connlimit: merge root4 and root6.
-Date: Wed,  2 Aug 2017 18:14:43 +0900
-Message-ID: <20170802091443.32713-1-ap420073@gmail.com>
-Cc: ap420073@gmail.com
-To: pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 1/2] src: handle rule tracing as an monitor object
+Date: Wed,  2 Aug 2017 14:15:09 +0200
+Message-ID: <1501676110-9173-1-git-send-email-pablo@netfilter.org>
+Cc: rvarsha016@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:38753 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752323AbdHBJOv (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Aug 2017 05:14:51 -0400
-Received: by mail-pf0-f193.google.com with SMTP id e3so5427258pfc.5
-        for <netfilter-devel@vger.kernel.org>; Wed, 02 Aug 2017 02:14:51 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:40300 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753082AbdHBMP2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 2 Aug 2017 08:15:28 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id AAAD3D25E4
+        for <netfilter-devel@vger.kernel.org>; Wed,  2 Aug 2017 14:15:13 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9A6A31B3D38
+        for <netfilter-devel@vger.kernel.org>; Wed,  2 Aug 2017 14:15:13 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 38EB71B3356
+        for <netfilter-devel@vger.kernel.org>; Wed,  2 Aug 2017 14:15:10 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The root4 variable is used only when connlimit extension module has been
-stored by the iptables command. and the roo6 variable is used only when
-connlimit extension module has been stored by the ip6tables command.
-So the root4 and roo6 variable does not be used at the same time.
+Traces are not an event type, they should be handled as an object.
 
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_connlimit.c | 23 ++++++++---------------
- 1 file changed, 8 insertions(+), 15 deletions(-)
+ include/rule.h     |  1 +
+ src/evaluate.c     | 31 ++++---------------------------
+ src/parser_bison.y |  2 ++
+ src/scanner.l      |  1 +
+ 4 files changed, 8 insertions(+), 27 deletions(-)
 
-diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index 97589b8..ffa8eec 100644
---- a/net/netfilter/xt_connlimit.c
-+++ b/net/netfilter/xt_connlimit.c
-@@ -58,8 +58,7 @@ struct xt_connlimit_rb {
- static spinlock_t xt_connlimit_locks[CONNLIMIT_LOCK_SLOTS] __cacheline_aligned_in_smp;
- 
- struct xt_connlimit_data {
--	struct rb_root climit_root4[CONNLIMIT_SLOTS];
--	struct rb_root climit_root6[CONNLIMIT_SLOTS];
-+	struct rb_root climit_root[CONNLIMIT_SLOTS];
+diff --git a/include/rule.h b/include/rule.h
+index e22002724f90..a0edda2fec83 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -397,6 +397,7 @@ enum {
+ 	CMD_MONITOR_OBJ_SETS,
+ 	CMD_MONITOR_OBJ_ELEMS,
+ 	CMD_MONITOR_OBJ_RULESET,
++	CMD_MONITOR_OBJ_TRACE,
+ 	CMD_MONITOR_OBJ_MAX
  };
  
- static u_int32_t connlimit_rnd __read_mostly;
-@@ -294,13 +293,11 @@ static int count_them(struct net *net,
- 	int count;
- 	u32 hash;
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 959e8542dfff..d24526fef295 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -3218,7 +3218,6 @@ enum {
+ 	CMD_MONITOR_EVENT_ANY,
+ 	CMD_MONITOR_EVENT_NEW,
+ 	CMD_MONITOR_EVENT_DEL,
+-	CMD_MONITOR_EVENT_TRACE,
+ 	CMD_MONITOR_EVENT_MAX
+ };
  
--	if (family == NFPROTO_IPV6) {
-+	if (family == NFPROTO_IPV6)
- 		hash = connlimit_iphash6(addr, mask);
--		root = &data->climit_root6[hash];
--	} else {
-+	else
- 		hash = connlimit_iphash(addr->ip & mask->ip);
--		root = &data->climit_root4[hash];
--	}
-+	root = &data->climit_root[hash];
+@@ -3247,6 +3246,7 @@ static uint32_t monitor_flags[CMD_MONITOR_EVENT_MAX][CMD_MONITOR_OBJ_MAX] = {
+ 						  (1 << NFT_MSG_DELSETELEM) |
+ 						  (1 << NFT_MSG_NEWOBJ)	  |
+ 						  (1 << NFT_MSG_DELOBJ),
++		[CMD_MONITOR_OBJ_TRACE]		= (1 << NFT_MSG_TRACE),
+ 	},
+ 	[CMD_MONITOR_EVENT_NEW] = {
+ 		[CMD_MONITOR_OBJ_ANY]		= (1 << NFT_MSG_NEWTABLE) |
+@@ -3264,7 +3264,8 @@ static uint32_t monitor_flags[CMD_MONITOR_EVENT_MAX][CMD_MONITOR_OBJ_MAX] = {
+ 						  (1 << NFT_MSG_NEWRULE)  |
+ 						  (1 << NFT_MSG_NEWSET)   |
+ 						  (1 << NFT_MSG_NEWSETELEM) |
+-						  (1 << NFT_MSG_NEWOBJ)
++						  (1 << NFT_MSG_NEWOBJ),
++		[CMD_MONITOR_OBJ_TRACE]		= 0,
+ 	},
+ 	[CMD_MONITOR_EVENT_DEL] = {
+ 		[CMD_MONITOR_OBJ_ANY]		= (1 << NFT_MSG_DELTABLE) |
+@@ -3283,29 +3284,7 @@ static uint32_t monitor_flags[CMD_MONITOR_EVENT_MAX][CMD_MONITOR_OBJ_MAX] = {
+ 						  (1 << NFT_MSG_DELSET)   |
+ 						  (1 << NFT_MSG_DELSETELEM) |
+ 						  (1 << NFT_MSG_DELOBJ),
+-	},
+-	[CMD_MONITOR_EVENT_TRACE] = {
+-		[CMD_MONITOR_OBJ_ANY]		= (1 << NFT_MSG_NEWTABLE) |
+-						  (1 << NFT_MSG_NEWCHAIN) |
+-						  (1 << NFT_MSG_NEWRULE)  |
+-						  (1 << NFT_MSG_DELTABLE) |
+-						  (1 << NFT_MSG_DELCHAIN) |
+-						  (1 << NFT_MSG_DELRULE)  |
+-						  (1 << NFT_MSG_TRACE),
+-		[CMD_MONITOR_OBJ_TABLES]	= (1 << NFT_MSG_NEWTABLE) |
+-						  (1 << NFT_MSG_DELTABLE),
+-		[CMD_MONITOR_OBJ_CHAINS]	= (1 << NFT_MSG_NEWCHAIN) |
+-						  (1 << NFT_MSG_DELCHAIN),
+-		[CMD_MONITOR_OBJ_RULES]		= (1 << NFT_MSG_NEWRULE) |
+-						  (1 << NFT_MSG_DELRULE),
+-		[CMD_MONITOR_OBJ_RULESET]       = (1 << NFT_MSG_NEWTABLE) |
+-						  (1 << NFT_MSG_NEWCHAIN) |
+-						  (1 << NFT_MSG_NEWRULE)  |
+-						  (1 << NFT_MSG_NEWOBJ)	  |
+-						  (1 << NFT_MSG_DELTABLE) |
+-						  (1 << NFT_MSG_DELCHAIN) |
+-						  (1 << NFT_MSG_DELRULE)  |
+-						  (1 << NFT_MSG_DELOBJ),
++		[CMD_MONITOR_OBJ_TRACE]		= 0,
+ 	},
+ };
  
- 	spin_lock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
+@@ -3324,8 +3303,6 @@ static int cmd_evaluate_monitor(struct eval_ctx *ctx, struct cmd *cmd)
+ 		event = CMD_MONITOR_EVENT_NEW;
+ 	else if (strcmp(cmd->monitor->event, "destroy") == 0)
+ 		event = CMD_MONITOR_EVENT_DEL;
+-	else if (strcmp(cmd->monitor->event, "trace") == 0)
+-		event = CMD_MONITOR_EVENT_TRACE;
+ 	else {
+ 		return monitor_error(ctx, cmd->monitor, "invalid event %s",
+ 				     cmd->monitor->event);
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 86baf23a00c1..e7bb9097929b 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -194,6 +194,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token MAPS			"maps"
+ %token HANDLE			"handle"
+ %token RULESET			"ruleset"
++%token TRACE			"trace"
  
-@@ -379,10 +376,8 @@ static int connlimit_mt_check(const struct xt_mtchk_param *par)
- 		return -ENOMEM;
- 	}
+ %token INET			"inet"
+ %token NETDEV			"netdev"
+@@ -1196,6 +1197,7 @@ monitor_object		:	/* empty */	{ $$ = CMD_MONITOR_OBJ_ANY; }
+ 			|	RULES		{ $$ = CMD_MONITOR_OBJ_RULES; }
+ 			|	ELEMENTS	{ $$ = CMD_MONITOR_OBJ_ELEMS; }
+ 			|	RULESET		{ $$ = CMD_MONITOR_OBJ_RULESET; }
++			|	TRACE		{ $$ = CMD_MONITOR_OBJ_TRACE; }
+ 			;
  
--	for (i = 0; i < ARRAY_SIZE(info->data->climit_root4); ++i)
--		info->data->climit_root4[i] = RB_ROOT;
--	for (i = 0; i < ARRAY_SIZE(info->data->climit_root6); ++i)
--		info->data->climit_root6[i] = RB_ROOT;
-+	for (i = 0; i < ARRAY_SIZE(info->data->climit_root); ++i)
-+		info->data->climit_root[i] = RB_ROOT;
+ monitor_format		:	/* empty */	{ $$ = NFTNL_OUTPUT_DEFAULT; }
+diff --git a/src/scanner.l b/src/scanner.l
+index 7d5437f123ce..b6ba32d88f4a 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -250,6 +250,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "maps"			{ return MAPS; }
+ "handle"		{ return HANDLE; }
+ "ruleset"		{ return RULESET; }
++"trace"			{ return TRACE; }
  
- 	return 0;
- }
-@@ -413,10 +408,8 @@ static void connlimit_mt_destroy(const struct xt_mtdtor_param *par)
- 
- 	nf_ct_netns_put(par->net, par->family);
- 
--	for (i = 0; i < ARRAY_SIZE(info->data->climit_root4); ++i)
--		destroy_tree(&info->data->climit_root4[i]);
--	for (i = 0; i < ARRAY_SIZE(info->data->climit_root6); ++i)
--		destroy_tree(&info->data->climit_root6[i]);
-+	for (i = 0; i < ARRAY_SIZE(info->data->climit_root); ++i)
-+		destroy_tree(&info->data->climit_root[i]);
- 
- 	kfree(info->data);
- }
+ "accept"		{ return ACCEPT; }
+ "drop"			{ return DROP; }
 -- 
-2.9.3
+2.1.4
 
