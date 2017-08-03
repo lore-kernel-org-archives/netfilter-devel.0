@@ -1,40 +1,34 @@
-From: Taehee Yoo <ap420073@gmail.com>
-Subject: [PATCH] netfilter: remove prototype of netfilter_queue_init
-Date: Thu,  3 Aug 2017 10:26:20 +0900
-Message-ID: <20170803012620.17993-1-ap420073@gmail.com>
-Cc: ap420073@gmail.com
-To: pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org
+From: Oleg <lego12239@yandex.ru>
+Subject: libnetfilter_queue new versions
+Date: Thu, 3 Aug 2017 11:25:21 +0300
+Message-ID: <20170803082521.GA31089@legohost>
+Reply-To: Oleg <lego12239@yandex.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:38227 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751206AbdHCB03 (ORCPT
+Received: from forward16o.cmail.yandex.net ([37.9.109.213]:36259 "EHLO
+        forward16o.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750945AbdHCIbu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 2 Aug 2017 21:26:29 -0400
-Received: by mail-pg0-f66.google.com with SMTP id 123so6272927pga.5
-        for <netfilter-devel@vger.kernel.org>; Wed, 02 Aug 2017 18:26:29 -0700 (PDT)
+        Thu, 3 Aug 2017 04:31:50 -0400
+Received: from smtp3o.mail.yandex.net (smtp3o.mail.yandex.net [IPv6:2a02:6b8:0:1a2d::27])
+        by forward16o.cmail.yandex.net (Yandex) with ESMTP id 5AD1E230DC
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Aug 2017 11:24:47 +0300 (MSK)
+Received: from smtp3o.mail.yandex.net (localhost.localdomain [127.0.0.1])
+        by smtp3o.mail.yandex.net (Yandex) with ESMTP id CB4ED29411B7
+        for <netfilter-devel@vger.kernel.org>; Thu,  3 Aug 2017 11:23:31 +0300 (MSK)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The netfilter_queue_init() has been removed.
-so we can remove the prototype of that.
+  Hi, all.
 
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
----
- net/netfilter/nf_internals.h | 1 -
- 1 file changed, 1 deletion(-)
+Why do we still have no new versions of libnetfilter_queue after 1.0.2?
+1.0.2 is very old and master branch has many critical improvements.
 
-diff --git a/net/netfilter/nf_internals.h b/net/netfilter/nf_internals.h
-index bfa742d..19f00a4 100644
---- a/net/netfilter/nf_internals.h
-+++ b/net/netfilter/nf_internals.h
-@@ -15,7 +15,6 @@
- int nf_queue(struct sk_buff *skb, struct nf_hook_state *state,
- 	     struct nf_hook_entry **entryp, unsigned int verdict);
- unsigned int nf_queue_nf_hook_drop(struct net *net);
--int __init netfilter_queue_init(void);
- 
- /* nf_log.c */
- int __init netfilter_log_init(void);
+Thanks!
+
 -- 
-2.9.3
-
+Олег Неманов (Oleg Nemanov)
