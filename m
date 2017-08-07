@@ -1,40 +1,68 @@
-From: Varsha Rao <rvarsha016@gmail.com>
-Subject: [PATCH nft] man: Fix typo.
-Date: Sun,  6 Aug 2017 16:44:21 +0530
-Message-ID: <20170806111421.5754-1-rvarsha016@gmail.com>
-Cc: Varsha Rao <rvarsha016@gmail.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+From: <simon.a.t.hardy@gmail.com>
+Subject: (unknown)
+Date: Mon, 07 Aug 2017 07:38:43 -0000
+Message-ID: <150209152398.19169.2619290587878079108@mediaworksit.net>
+Mime-Version: 1.0
+Content-Type: application/zip; name="EMAIL_279421_netfilter-devel.zip"
+Content-Transfer-Encoding: base64
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:38247 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751263AbdHFLOi (ORCPT
+Received: from zemun-wl0.mediaworksit.net ([217.169.212.145]:40295 "HELO
+        mediaworksit.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with SMTP id S1752306AbdHGHir (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 6 Aug 2017 07:14:38 -0400
-Received: by mail-pg0-f67.google.com with SMTP id 123so6107905pga.5
-        for <netfilter-devel@vger.kernel.org>; Sun, 06 Aug 2017 04:14:38 -0700 (PDT)
+        Mon, 7 Aug 2017 03:38:47 -0400
+Content-Disposition: attachment
+Subject: 
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The word 'occur' is misspelled as 'ocurr'. This patch fixes it.
-
-Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
----
- doc/nft.xml | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/doc/nft.xml b/doc/nft.xml
-index 4d03a3d..8ffa5b3 100644
---- a/doc/nft.xml
-+++ b/doc/nft.xml
-@@ -4381,7 +4381,7 @@ add rule nat prerouting tcp dport 22 redirect to :2222
- 			<para>
- 				The monitor command allows you to listen to Netlink events produced
- 				by the nf_tables subsystem, related to creation and deletion of objects.
--				When they ocurr, nft will print to stdout the monitored events in either
-+				When they occur, nft will print to stdout the monitored events in either
- 				XML, JSON or native nft format.
- 			</para>
- 			<para>
--- 
-2.13.3
-
+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
