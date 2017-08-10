@@ -1,272 +1,69 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH 2/6] nft.8: Describe conntrack types
-Date: Thu, 10 Aug 2017 19:29:16 +0200
-Message-ID: <20170810172920.14893-3-phil@nwl.cc>
-References: <20170810172920.14893-1-phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: <simon.a.t.hardy@gmail.com>
+Subject: (unknown)
+Date: Thu, 10 Aug 2017 18:16:15 -0000
+Message-ID: <150238897596.19167.11002550254247166457@hinet.net>
+Mime-Version: 1.0
+Content-Type: application/zip; name="33739.zip"
+Content-Transfer-Encoding: base64
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:42469 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752559AbdHJRaK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Aug 2017 13:30:10 -0400
-In-Reply-To: <20170810172920.14893-1-phil@nwl.cc>
+Received: from 111-250-147-152.dynamic-ip.hinet.net ([111.250.147.152]:33446
+        "HELO hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with SMTP id S1752552AbdHJSQV (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 10 Aug 2017 14:16:21 -0400
+Content-Disposition: attachment
+Subject: 
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- doc/nft.xml | 230 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 230 insertions(+)
-
-diff --git a/doc/nft.xml b/doc/nft.xml
-index 91b9bb378c80a..3ef88a79efd70 100644
---- a/doc/nft.xml
-+++ b/doc/nft.xml
-@@ -1921,6 +1921,232 @@ filter output icmpv6 type { echo-request, echo-reply }
- 				</programlisting>
- 			</example>
- 		</refsect2>
-+		<refsect2>
-+			<title>Conntrack types</title>
-+			<para>
-+				This is an overview of types used in <command>ct</command>
-+				expression and statement:
-+				<table frame="all">
-+					<tgroup cols="4" align="left" colsep="1" rowsep="1">
-+						<colspec colname="c1"/>
-+						<colspec colname="c2"/>
-+						<colspec colname="c3"/>
-+						<colspec colname="c4"/>
-+						<thead>
-+							<row>
-+								<entry>Name</entry>
-+								<entry>Keyword</entry>
-+								<entry>Size</entry>
-+								<entry>Base type</entry>
-+							</row>
-+						</thead>
-+						<tbody>
-+							<row>
-+								<entry>conntrack state</entry>
-+								<entry>ct_state</entry>
-+								<entry>4 byte</entry>
-+								<entry>bitmask</entry>
-+							</row>
-+							<row>
-+								<entry>conntrack direction</entry>
-+								<entry>ct_dir</entry>
-+								<entry>8 bit</entry>
-+								<entry>integer</entry>
-+							</row>
-+							<row>
-+								<entry>conntrack status</entry>
-+								<entry>ct_status</entry>
-+								<entry>4 byte</entry>
-+								<entry>bitmask</entry>
-+							</row>
-+							<row>
-+								<entry>conntrack event bits</entry>
-+								<entry>ct_event</entry>
-+								<entry>4 byte</entry>
-+								<entry>bitmask</entry>
-+							</row>
-+							<row>
-+								<entry>conntrack label</entry>
-+								<entry>ct_label</entry>
-+								<entry>128 bit</entry>
-+								<entry>bitmask</entry>
-+							</row>
-+						</tbody>
-+					</tgroup>
-+				</table>
-+			</para>
-+			<para>
-+				For each of the types above, keywords are available for convenience:
-+				<table frame="all">
-+					<title>conntrack state (ct_state)</title>
-+					<tgroup cols="2" align="left" colsep="1" rowsep="1">
-+						<colspec colname="c1"/>
-+						<colspec colname="c2"/>
-+						<thead>
-+							<row>
-+								<entry>Keyword</entry>
-+								<entry>Value</entry>
-+							</row>
-+						</thead>
-+						<tbody>
-+							<row>
-+								<entry>invalid</entry>
-+								<entry>1</entry>
-+							</row>
-+							<row>
-+								<entry>established</entry>
-+								<entry>2</entry>
-+							</row>
-+							<row>
-+								<entry>related</entry>
-+								<entry>4</entry>
-+							</row>
-+							<row>
-+								<entry>new</entry>
-+								<entry>8</entry>
-+							</row>
-+							<row>
-+								<entry>untracked</entry>
-+								<entry>64</entry>
-+							</row>
-+						</tbody>
-+					</tgroup>
-+				</table>
-+
-+				<table frame="all">
-+					<title>conntrack direction (ct_dir)</title>
-+					<tgroup cols="2" align="left" colsep="1" rowsep="1">
-+						<colspec colname="c1"/>
-+						<colspec colname="c2"/>
-+						<thead>
-+							<row>
-+								<entry>Keyword</entry>
-+								<entry>Value</entry>
-+							</row>
-+						</thead>
-+						<tbody>
-+							<row>
-+								<entry>original</entry>
-+								<entry>0</entry>
-+							</row>
-+							<row>
-+								<entry>reply</entry>
-+								<entry>1</entry>
-+							</row>
-+						</tbody>
-+					</tgroup>
-+				</table>
-+
-+				<table frame="all">
-+					<title>conntrack status (ct_status)</title>
-+					<tgroup cols="2" align="left" colsep="1" rowsep="1">
-+						<colspec colname="c1"/>
-+						<colspec colname="c2"/>
-+						<thead>
-+							<row>
-+								<entry>Keyword</entry>
-+								<entry>Value</entry>
-+							</row>
-+						</thead>
-+						<tbody>
-+							<row>
-+								<entry>expected</entry>
-+								<entry>1</entry>
-+							</row>
-+							<row>
-+								<entry>seen-reply</entry>
-+								<entry>2</entry>
-+							</row>
-+							<row>
-+								<entry>assured</entry>
-+								<entry>4</entry>
-+							</row>
-+							<row>
-+								<entry>confirmed</entry>
-+								<entry>8</entry>
-+							</row>
-+							<row>
-+								<entry>snat</entry>
-+								<entry>16</entry>
-+							</row>
-+							<row>
-+								<entry>dnat</entry>
-+								<entry>32</entry>
-+							</row>
-+							<row>
-+								<entry>dying</entry>
-+								<entry>512</entry>
-+							</row>
-+						</tbody>
-+					</tgroup>
-+				</table>
-+
-+				<table frame="all">
-+					<title>conntrack event bits (ct_event)</title>
-+					<tgroup cols="2" align="left" colsep="1" rowsep="1">
-+						<colspec colname="c1"/>
-+						<colspec colname="c2"/>
-+						<thead>
-+							<row>
-+								<entry>Keyword</entry>
-+								<entry>Value</entry>
-+							</row>
-+						</thead>
-+						<tbody>
-+							<row>
-+								<entry>new</entry>
-+								<entry>1</entry>
-+							</row>
-+							<row>
-+								<entry>related</entry>
-+								<entry>2</entry>
-+							</row>
-+							<row>
-+								<entry>destroy</entry>
-+								<entry>4</entry>
-+							</row>
-+							<row>
-+								<entry>reply</entry>
-+								<entry>8</entry>
-+							</row>
-+							<row>
-+								<entry>assured</entry>
-+								<entry>16</entry>
-+							</row>
-+							<row>
-+								<entry>protoinfo</entry>
-+								<entry>32</entry>
-+							</row>
-+							<row>
-+								<entry>helper</entry>
-+								<entry>64</entry>
-+							</row>
-+							<row>
-+								<entry>mark</entry>
-+								<entry>128</entry>
-+							</row>
-+							<row>
-+								<entry>seqadj</entry>
-+								<entry>256</entry>
-+							</row>
-+							<row>
-+								<entry>secmark</entry>
-+								<entry>512</entry>
-+							</row>
-+							<row>
-+								<entry>label</entry>
-+								<entry>1024</entry>
-+							</row>
-+						</tbody>
-+					</tgroup>
-+				</table>
-+				<para>
-+					Possible keywords for conntrack label type
-+					(<command>ct_label</command>) are read at runtime from
-+					<literal>/etc/connlabel.conf</literal>.
-+				</para>
-+			</para>
-+		</refsect2>
- 	</refsect1>
- 
- 	<refsect1>
-@@ -3577,6 +3803,10 @@ ip6 filter input frag more-fragments 1 counter
- 					</tgroup>
- 				</table>
- 			</para>
-+			<para>
-+				A description of conntrack-specific types listed above can be
-+				found sub-section <literal>CONNTRACK TYPES</literal> above.
-+			</para>
- 		</refsect2>
- 	</refsect1>
- 
--- 
-2.13.1
-
+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
+CgAAAAA=
