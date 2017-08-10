@@ -1,69 +1,95 @@
-From: <simon.a.t.hardy@gmail.com>
-Subject: (unknown)
-Date: Thu, 10 Aug 2017 18:16:15 -0000
-Message-ID: <150238897596.19167.11002550254247166457@hinet.net>
+From: Phil Sutter <phil@nwl.cc>
+Subject: RFC: Synopsis syntax change in nft.8
+Date: Thu, 10 Aug 2017 20:29:32 +0200
+Message-ID: <20170810182932.GJ16375@orbyte.nwl.cc>
 Mime-Version: 1.0
-Content-Type: application/zip; name="33739.zip"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 111-250-147-152.dynamic-ip.hinet.net ([111.250.147.152]:33446
-        "HELO hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with SMTP id S1752552AbdHJSQV (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Aug 2017 14:16:21 -0400
-Content-Disposition: attachment
-Subject: 
+Received: from orbyte.nwl.cc ([151.80.46.58]:44033 "EHLO mail.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752639AbdHJS3d (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 10 Aug 2017 14:29:33 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-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
-CgAAAAA=
+Hi,
+
+When looking at nft man page for the first time, I remember finding the
+synopsis for individual commands (e.g. 'add table') rather misleading. I
+am biased, but the (BNF style) syntax used in the various iproute2 man
+pages is much more precise, so I would like to copy that for nft.8. The
+actual SYNOPSIS section at the top gets is quite right, BTW (apart from
+some minor flaws in font styles).
+
+Let's look at an example:
+
+| {add | delete | list | flush} \fBtable\fR [\fIfamily\fR] {\fItable\fR}
+
+Since nobody wants HTML in emails, I used groff escape strings to
+highlight the different font styles used:
+
+\fB - start bold font
+\fI - start italic font
+\fR - start normal font
+
+With no prior knowlege of how this syntax works, we start parsing the
+line from left to right and find out that something like:
+
+| {foo | bar}
+
+probably means "either 'foo' or 'bar'", no big deal. Next comes 'table'
+in bold font. What does bold mean? Looking at some examples, table seems
+to be a keyword ('terminal' in BNF-speak). But so are 'add', 'delete',
+'list' and 'flush', so why are they in normal font? Anyway, next is
+'family' in italic surrounded by brackets. The family is optional (says
+the text below that line), so brackets are for optional things. They are
+set in normal font style, so that style denotes meta info. What is
+italic for then? Probably something which has to be replaced by
+something else (read: 'non-terminal'). Sadly the synopsis doesn't
+specify what the replacement might be, so there's a dead-end. Finally
+there is 'table' in curly braces and italics. Curly braces around a
+single item seems redundant (given the assumption made before), and
+there is no explanation what 'table' has to be replaced with as well.
+Looking at some examples again, 'family' and 'table' seem to stand for
+single words one could fill in. Though for 'family' the choice is
+limited (to known families) while 'table' allows a (nearly) arbitrary
+string.
+
+Sadly things get even more confusing when looking at the next synopsis,
+namely that for chains. There e.g. 'priority' is not to be replaced by a
+single word, but by 'priority <value>'. I guess you get the point.
+
+In iproute2, there is an (unwritten) agreement to use the following
+markups:
+
+normal font: meta info (braces, pipes and the like)
+bold font: things to be used literally ("keywords")
+italic: non-terminals
+
+Looking at ip.8 and ip-link.8, I notice that italic comes in lower- and
+uppercase, and it's not clear which is what. And there are dead-ends as
+well, sometimes intentional (things to be replaced by any string/number)
+or unintentional to keep things sane (nobody needs a definition of how a
+MAC address looks like).
+
+For nft.8, I'd suggest the following:
+
+normal font: meta info (as above)
+bold font: keywords (as above)
+italics UPPERCASE: non-terminals, followed by a definition
+italics lowercase: non-terminals, not followed by a definition
+
+I am not overly familiar with docbook, so that might use other font
+styles for the different kinds we need. Also, I like to use the same
+font style when referring to elements in prose, which nicely draws
+readers attention while skimming through the text searching for
+explanations of things. Though I have no idea whether docbook allows for
+that without hacks.
+
+What do you think?
+
+Cheers, Phil
