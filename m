@@ -1,29 +1,112 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 0/7] netfilter: conntrack: constify protocol trackers, part 1
-Date: Sat, 12 Aug 2017 00:57:01 +0200
-Message-ID: <20170811225708.22181-1-fw@strlen.de>
+Subject: [PATCH nf-next 2/7] netfilter: conntrack: remove protocol name from l3proto struct
+Date: Sat, 12 Aug 2017 00:57:03 +0200
+Message-ID: <20170811225708.22181-3-fw@strlen.de>
+References: <20170811225708.22181-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:54142 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:54150 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753707AbdHKW5s (ORCPT
+        by vger.kernel.org with ESMTP id S1750714AbdHKW5y (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 11 Aug 2017 18:57:48 -0400
+        Fri, 11 Aug 2017 18:57:54 -0400
+In-Reply-To: <20170811225708.22181-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is an initial series of patches to mark the l3 and l4 protocol handler
-structs as const.
+no need to waste storage for something that is only needed
+in one place and can be deduced from protocol number.
 
-Only reason why we can't constify them now is that l3 and l4 trackers
-compute netlink attribute size needed at init time and store result in
-the proto struct.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/net/netfilter/nf_conntrack_l3proto.h   |  3 ---
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |  1 -
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |  1 -
+ net/netfilter/nf_conntrack_l3proto_generic.c   |  1 -
+ net/netfilter/nf_conntrack_standalone.c        | 12 +++++++++++-
+ 5 files changed, 11 insertions(+), 7 deletions(-)
 
-First patch switches the l3 trackers to compile-time computation.
-
-Next patches reduce size by (re)moving various pointers.
-
-Last patch adds const qualifiers in a lot of places.  This patch
-has no effect on its own but its needed to avoid compiler warnings
-when part 2 of the series will constify the trackers.
+diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
+index 6a27ffea7480..e31861e4fa6a 100644
+--- a/include/net/netfilter/nf_conntrack_l3proto.h
++++ b/include/net/netfilter/nf_conntrack_l3proto.h
+@@ -23,9 +23,6 @@ struct nf_conntrack_l3proto {
+ 	/* size of tuple nlattr, fills a hole */
+ 	u16 nla_size;
+ 
+-	/* Protocol name */
+-	const char *name;
+-
+ 	/*
+ 	 * Try to fill in the third arg: nhoff is offset of l3 proto
+          * hdr.  Return true if possible.
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index 9fb8cb033d80..9f7ea862068c 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -353,7 +353,6 @@ static void ipv4_hooks_unregister(struct net *net)
+ 
+ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 __read_mostly = {
+ 	.l3proto	 = PF_INET,
+-	.name		 = "ipv4",
+ 	.pkt_to_tuple	 = ipv4_pkt_to_tuple,
+ 	.invert_tuple	 = ipv4_invert_tuple,
+ 	.print_tuple	 = ipv4_print_tuple,
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index 6b4d59fd0214..91d37fbe28de 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -348,7 +348,6 @@ static void ipv6_hooks_unregister(struct net *net)
+ 
+ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 __read_mostly = {
+ 	.l3proto		= PF_INET6,
+-	.name			= "ipv6",
+ 	.pkt_to_tuple		= ipv6_pkt_to_tuple,
+ 	.invert_tuple		= ipv6_invert_tuple,
+ 	.print_tuple		= ipv6_print_tuple,
+diff --git a/net/netfilter/nf_conntrack_l3proto_generic.c b/net/netfilter/nf_conntrack_l3proto_generic.c
+index cf9ace70bece..0387971582bc 100644
+--- a/net/netfilter/nf_conntrack_l3proto_generic.c
++++ b/net/netfilter/nf_conntrack_l3proto_generic.c
+@@ -64,7 +64,6 @@ static int generic_get_l4proto(const struct sk_buff *skb, unsigned int nhoff,
+ 
+ struct nf_conntrack_l3proto nf_conntrack_l3proto_generic __read_mostly = {
+ 	.l3proto	 = PF_UNSPEC,
+-	.name		 = "unknown",
+ 	.pkt_to_tuple	 = generic_pkt_to_tuple,
+ 	.invert_tuple	 = generic_invert_tuple,
+ 	.print_tuple	 = generic_print_tuple,
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 5b6c675d55b1..359d7e6a4503 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -198,6 +198,16 @@ ct_show_delta_time(struct seq_file *s, const struct nf_conn *ct)
+ }
+ #endif
+ 
++static const char* l3proto_name(u16 proto)
++{
++	switch (proto) {
++	case AF_INET: return "ipv4";
++	case AF_INET6: return "ipv6";
++	}
++
++	return "unknown";
++}
++
+ /* return 0 on success, 1 in case of error */
+ static int ct_seq_show(struct seq_file *s, void *v)
+ {
+@@ -231,7 +241,7 @@ static int ct_seq_show(struct seq_file *s, void *v)
+ 
+ 	ret = -ENOSPC;
+ 	seq_printf(s, "%-8s %u %-8s %u %ld ",
+-		   l3proto->name, nf_ct_l3num(ct),
++		   l3proto_name(l3proto->l3proto), nf_ct_l3num(ct),
+ 		   l4proto->name, nf_ct_protonum(ct),
+ 		   nf_ct_expires(ct)  / HZ);
+ 
+-- 
+2.13.0
 
