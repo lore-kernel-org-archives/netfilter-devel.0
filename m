@@ -1,197 +1,197 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 1/7] netfilter: conntrack: compute l3proto nla size at compile time
-Date: Sat, 12 Aug 2017 00:57:02 +0200
-Message-ID: <20170811225708.22181-2-fw@strlen.de>
+Subject: [PATCH nf-next 6/7] netfilter: conntrack: print_conntrack only needed if CONFIG_NF_CONNTRACK_PROCFS
+Date: Sat, 12 Aug 2017 00:57:07 +0200
+Message-ID: <20170811225708.22181-7-fw@strlen.de>
 References: <20170811225708.22181-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:54146 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:54212 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753707AbdHKW5v (ORCPT
+        by vger.kernel.org with ESMTP id S1754021AbdHKX1W (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 11 Aug 2017 18:57:51 -0400
+        Fri, 11 Aug 2017 19:27:22 -0400
 In-Reply-To: <20170811225708.22181-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-avoids a pointer and allows struct to be const later on.
-
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack_l3proto.h   | 19 ++++++++-----------
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c | 13 +++++++------
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c | 14 ++++++++------
- net/netfilter/nf_conntrack_netlink.c           |  3 ++-
- net/netfilter/nf_conntrack_proto.c             |  9 +++------
- 5 files changed, 28 insertions(+), 30 deletions(-)
+ include/net/netfilter/nf_conntrack_l4proto.h | 7 ++++---
+ net/netfilter/nf_conntrack_proto_dccp.c      | 6 ++++++
+ net/netfilter/nf_conntrack_proto_gre.c       | 4 ++++
+ net/netfilter/nf_conntrack_proto_sctp.c      | 6 ++++++
+ net/netfilter/nf_conntrack_proto_tcp.c       | 6 ++++++
+ 5 files changed, 26 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
-index 1b8de164d744..6a27ffea7480 100644
---- a/include/net/netfilter/nf_conntrack_l3proto.h
-+++ b/include/net/netfilter/nf_conntrack_l3proto.h
-@@ -20,6 +20,9 @@ struct nf_conntrack_l3proto {
- 	/* L3 Protocol Family number. ex) PF_INET */
- 	u_int16_t l3proto;
+diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+index 7e8da04a5eb6..4976ef92dc78 100644
+--- a/include/net/netfilter/nf_conntrack_l4proto.h
++++ b/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -61,9 +61,6 @@ struct nf_conntrack_l4proto {
+ 	/* called by gc worker if table is full */
+ 	bool (*can_early_drop)(const struct nf_conn *ct);
  
-+	/* size of tuple nlattr, fills a hole */
-+	u16 nla_size;
-+
- 	/* Protocol name */
- 	const char *name;
+-	/* Print out the private part of the conntrack. */
+-	void (*print_conntrack)(struct seq_file *s, struct nf_conn *);
+-
+ 	/* Return the array of timeouts for this protocol. */
+ 	unsigned int *(*get_timeouts)(struct net *net);
  
-@@ -49,23 +52,17 @@ struct nf_conntrack_l3proto {
- 	int (*get_l4proto)(const struct sk_buff *skb, unsigned int nhoff,
- 			   unsigned int *dataoff, u_int8_t *protonum);
- 
-+#if IS_ENABLED(CONFIG_NF_CT_NETLINK)
- 	int (*tuple_to_nlattr)(struct sk_buff *skb,
- 			       const struct nf_conntrack_tuple *t);
--
--	/* Called when netns wants to use connection tracking */
--	int (*net_ns_get)(struct net *);
--	void (*net_ns_put)(struct net *);
--
--	/*
--	 * Calculate size of tuple nlattr
--	 */
--	int (*nlattr_tuple_size)(void);
--
- 	int (*nlattr_to_tuple)(struct nlattr *tb[],
- 			       struct nf_conntrack_tuple *t);
- 	const struct nla_policy *nla_policy;
+@@ -97,6 +94,10 @@ struct nf_conntrack_l4proto {
+ 		const struct nla_policy *nla_policy;
+ 	} ctnl_timeout;
+ #endif
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
++	/* Print out the private part of the conntrack. */
++	void (*print_conntrack)(struct seq_file *s, struct nf_conn *);
 +#endif
- 
--	size_t nla_size;
-+	/* Called when netns wants to use connection tracking */
-+	int (*net_ns_get)(struct net *);
-+	void (*net_ns_put)(struct net *);
- 
- 	/* Module (if any) which this is connected to. */
- 	struct module *me;
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index de5f0e6ddd1b..9fb8cb033d80 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -303,11 +303,6 @@ static int ipv4_nlattr_to_tuple(struct nlattr *tb[],
- 
- 	return 0;
+ 	unsigned int	*net_id;
+ 	/* Init l4proto pernet data */
+ 	int (*init_net)(struct net *net, u_int16_t proto);
+diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
+index d2df49ac390a..188347571fc7 100644
+--- a/net/netfilter/nf_conntrack_proto_dccp.c
++++ b/net/netfilter/nf_conntrack_proto_dccp.c
+@@ -623,10 +623,12 @@ static bool dccp_can_early_drop(const struct nf_conn *ct)
+ 	return false;
  }
--
--static int ipv4_nlattr_tuple_size(void)
--{
--	return nla_policy_len(ipv4_nla_policy, CTA_IP_MAX + 1);
--}
- #endif
  
- static struct nf_sockopt_ops so_getorigdst = {
-@@ -365,9 +360,10 @@ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 __read_mostly = {
- 	.get_l4proto	 = ipv4_get_l4proto,
- #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
- 	.tuple_to_nlattr = ipv4_tuple_to_nlattr,
--	.nlattr_tuple_size = ipv4_nlattr_tuple_size,
- 	.nlattr_to_tuple = ipv4_nlattr_to_tuple,
- 	.nla_policy	 = ipv4_nla_policy,
-+	.nla_size	 = NLA_ALIGN(NLA_HDRLEN + sizeof(u32)) + /* CTA_IP_V4_SRC */
-+			   NLA_ALIGN(NLA_HDRLEN + sizeof(u32)),  /* CTA_IP_V4_DST */
- #endif
- 	.net_ns_get	 = ipv4_hooks_register,
- 	.net_ns_put	 = ipv4_hooks_unregister,
-@@ -421,6 +417,11 @@ static int __init nf_conntrack_l3proto_ipv4_init(void)
- 
- 	need_conntrack();
- 
-+#if IS_ENABLED(CONFIG_NF_CT_NETLINK)
-+	if (WARN_ON(nla_policy_len(ipv4_nla_policy, CTA_IP_MAX + 1) !=
-+	    nf_conntrack_l3proto_ipv4.nla_size))
-+		return -EINVAL;
-+#endif
- 	ret = nf_register_sockopt(&so_getorigdst);
- 	if (ret < 0) {
- 		pr_err("Unable to register netfilter socket option\n");
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index ddef5ee9e0a8..6b4d59fd0214 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -308,11 +308,6 @@ static int ipv6_nlattr_to_tuple(struct nlattr *tb[],
- 
- 	return 0;
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
+ static void dccp_print_conntrack(struct seq_file *s, struct nf_conn *ct)
+ {
+ 	seq_printf(s, "%s ", dccp_state_names[ct->proto.dccp.state]);
  }
--
--static int ipv6_nlattr_tuple_size(void)
--{
--	return nla_policy_len(ipv6_nla_policy, CTA_IP_MAX + 1);
--}
- #endif
++#endif
  
- static int ipv6_hooks_register(struct net *net)
-@@ -360,9 +355,10 @@ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 __read_mostly = {
- 	.get_l4proto		= ipv6_get_l4proto,
  #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
- 	.tuple_to_nlattr	= ipv6_tuple_to_nlattr,
--	.nlattr_tuple_size	= ipv6_nlattr_tuple_size,
- 	.nlattr_to_tuple	= ipv6_nlattr_to_tuple,
- 	.nla_policy		= ipv6_nla_policy,
-+	.nla_size		= NLA_ALIGN(NLA_HDRLEN + sizeof(u32[4])) +
-+				  NLA_ALIGN(NLA_HDRLEN + sizeof(u32[4])),
- #endif
- 	.net_ns_get		= ipv6_hooks_register,
- 	.net_ns_put		= ipv6_hooks_unregister,
-@@ -421,6 +417,12 @@ static int __init nf_conntrack_l3proto_ipv6_init(void)
- 
- 	need_conntrack();
- 
-+#if IS_ENABLED(CONFIG_NF_CT_NETLINK)
-+	if (WARN_ON(nla_policy_len(ipv6_nla_policy, CTA_IP_MAX + 1) !=
-+	    nf_conntrack_l3proto_ipv6.nla_size))
-+		return -EINVAL;
+ static int dccp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
+@@ -879,7 +881,9 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp4 __read_mostly = {
+ 	.get_timeouts		= dccp_get_timeouts,
+ 	.error			= dccp_error,
+ 	.can_early_drop		= dccp_can_early_drop,
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
+ 	.print_conntrack	= dccp_print_conntrack,
 +#endif
-+
- 	ret = nf_register_sockopt(&so_getorigdst6);
- 	if (ret < 0) {
- 		pr_err("Unable to register netfilter socket option\n");
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index f4ca48817f66..b59a453a0fd8 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -540,7 +540,8 @@ static inline size_t ctnetlink_proto_size(const struct nf_conn *ct)
- 	size_t len = 0;
- 
- 	l3proto = __nf_ct_l3proto_find(nf_ct_l3num(ct));
--	len += l3proto->nla_size;
-+	len = l3proto->nla_size;
-+	len *= 3u; /* ORIG, REPLY, MASTER */
- 
- 	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
- 	len += l4proto->nla_size;
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index 27810cf816a6..85104a27cc89 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -214,10 +214,10 @@ int nf_ct_l3proto_register(struct nf_conntrack_l3proto *proto)
- 
- 	if (proto->l3proto >= NFPROTO_NUMPROTO)
- 		return -EBUSY;
--
--	if (proto->tuple_to_nlattr && !proto->nlattr_tuple_size)
-+#if IS_ENABLED(CONFIG_NF_CT_NETLINK)
-+	if (proto->tuple_to_nlattr && proto->nla_size == 0)
- 		return -EINVAL;
--
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 	.to_nlattr		= dccp_to_nlattr,
+ 	.nlattr_size		= dccp_nlattr_size,
+@@ -913,7 +917,9 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp6 __read_mostly = {
+ 	.get_timeouts		= dccp_get_timeouts,
+ 	.error			= dccp_error,
+ 	.can_early_drop		= dccp_can_early_drop,
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
+ 	.print_conntrack	= dccp_print_conntrack,
 +#endif
- 	mutex_lock(&nf_ct_proto_mutex);
- 	old = rcu_dereference_protected(nf_ct_l3protos[proto->l3proto],
- 					lockdep_is_held(&nf_ct_proto_mutex));
-@@ -226,9 +226,6 @@ int nf_ct_l3proto_register(struct nf_conntrack_l3proto *proto)
- 		goto out_unlock;
- 	}
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 	.to_nlattr		= dccp_to_nlattr,
+ 	.nlattr_size		= dccp_nlattr_size,
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index cd28095dd7a4..c0e3a23ac23a 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -224,6 +224,7 @@ static bool gre_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
+ 	return true;
+ }
  
--	if (proto->nlattr_tuple_size)
--		proto->nla_size = 3 * proto->nlattr_tuple_size();
--
- 	rcu_assign_pointer(nf_ct_l3protos[proto->l3proto], proto);
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
+ /* print private data for conntrack */
+ static void gre_print_conntrack(struct seq_file *s, struct nf_conn *ct)
+ {
+@@ -231,6 +232,7 @@ static void gre_print_conntrack(struct seq_file *s, struct nf_conn *ct)
+ 		   (ct->proto.gre.timeout / HZ),
+ 		   (ct->proto.gre.stream_timeout / HZ));
+ }
++#endif
  
- out_unlock:
+ static unsigned int *gre_get_timeouts(struct net *net)
+ {
+@@ -357,7 +359,9 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_gre4 __read_mostly = {
+ 	.l4proto	 = IPPROTO_GRE,
+ 	.pkt_to_tuple	 = gre_pkt_to_tuple,
+ 	.invert_tuple	 = gre_invert_tuple,
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
+ 	.print_conntrack = gre_print_conntrack,
++#endif
+ 	.get_timeouts    = gre_get_timeouts,
+ 	.packet		 = gre_packet,
+ 	.new		 = gre_new,
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index da83b401be17..890b5c73368d 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -174,11 +174,13 @@ static bool sctp_invert_tuple(struct nf_conntrack_tuple *tuple,
+ 	return true;
+ }
+ 
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
+ /* Print out the private part of the conntrack. */
+ static void sctp_print_conntrack(struct seq_file *s, struct nf_conn *ct)
+ {
+ 	seq_printf(s, "%s ", sctp_conntrack_names[ct->proto.sctp.state]);
+ }
++#endif
+ 
+ #define for_each_sctp_chunk(skb, sch, _sch, offset, dataoff, count)	\
+ for ((offset) = (dataoff) + sizeof(struct sctphdr), (count) = 0;	\
+@@ -784,7 +786,9 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4 __read_mostly = {
+ 	.l4proto 		= IPPROTO_SCTP,
+ 	.pkt_to_tuple 		= sctp_pkt_to_tuple,
+ 	.invert_tuple 		= sctp_invert_tuple,
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
+ 	.print_conntrack	= sctp_print_conntrack,
++#endif
+ 	.packet 		= sctp_packet,
+ 	.get_timeouts		= sctp_get_timeouts,
+ 	.new 			= sctp_new,
+@@ -819,7 +823,9 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6 __read_mostly = {
+ 	.l4proto 		= IPPROTO_SCTP,
+ 	.pkt_to_tuple 		= sctp_pkt_to_tuple,
+ 	.invert_tuple 		= sctp_invert_tuple,
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
+ 	.print_conntrack	= sctp_print_conntrack,
++#endif
+ 	.packet 		= sctp_packet,
+ 	.get_timeouts		= sctp_get_timeouts,
+ 	.new 			= sctp_new,
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index c868b36b8945..33c52d9ab2f5 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -301,11 +301,13 @@ static bool tcp_invert_tuple(struct nf_conntrack_tuple *tuple,
+ 	return true;
+ }
+ 
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
+ /* Print out the private part of the conntrack. */
+ static void tcp_print_conntrack(struct seq_file *s, struct nf_conn *ct)
+ {
+ 	seq_printf(s, "%s ", tcp_conntrack_names[ct->proto.tcp.state]);
+ }
++#endif
+ 
+ static unsigned int get_conntrack_index(const struct tcphdr *tcph)
+ {
+@@ -1549,7 +1551,9 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4 __read_mostly =
+ 	.l4proto 		= IPPROTO_TCP,
+ 	.pkt_to_tuple 		= tcp_pkt_to_tuple,
+ 	.invert_tuple 		= tcp_invert_tuple,
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
+ 	.print_conntrack 	= tcp_print_conntrack,
++#endif
+ 	.packet 		= tcp_packet,
+ 	.get_timeouts		= tcp_get_timeouts,
+ 	.new 			= tcp_new,
+@@ -1585,7 +1589,9 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6 __read_mostly =
+ 	.l4proto 		= IPPROTO_TCP,
+ 	.pkt_to_tuple 		= tcp_pkt_to_tuple,
+ 	.invert_tuple 		= tcp_invert_tuple,
++#ifdef CONFIG_NF_CONNTRACK_PROCFS
+ 	.print_conntrack 	= tcp_print_conntrack,
++#endif
+ 	.packet 		= tcp_packet,
+ 	.get_timeouts		= tcp_get_timeouts,
+ 	.new 			= tcp_new,
 -- 
 2.13.0
 
