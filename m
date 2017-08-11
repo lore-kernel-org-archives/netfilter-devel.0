@@ -1,33 +1,32 @@
-From: Jan Engelhardt <jengelh@inai.de>
+From: Phil Sutter <phil@nwl.cc>
 Subject: Re: RFC: Synopsis syntax change in nft.8
-Date: Fri, 11 Aug 2017 00:53:18 +0200 (CEST)
-Message-ID: <nycvar.YFH.7.76.1708110051140.10879@n3.vanv.qr>
-References: <20170810182932.GJ16375@orbyte.nwl.cc> <nycvar.YFH.7.76.1708110003470.10879@n3.vanv.qr>
+Date: Fri, 11 Aug 2017 09:41:23 +0200
+Message-ID: <20170811074123.GL16375@orbyte.nwl.cc>
+References: <20170810182932.GJ16375@orbyte.nwl.cc>
+ <20170810215503.GA23403@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-To: Phil Sutter <phil@nwl.cc>
+        Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a3.inai.de ([88.198.180.161]:57650 "EHLO a3.inai.de"
+Received: from orbyte.nwl.cc ([151.80.46.58]:35979 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752135AbdHJWxT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 10 Aug 2017 18:53:19 -0400
-In-Reply-To: <nycvar.YFH.7.76.1708110003470.10879@n3.vanv.qr>
+        id S1751521AbdHKHlY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 11 Aug 2017 03:41:24 -0400
+Content-Disposition: inline
+In-Reply-To: <20170810215503.GA23403@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Thu, Aug 10, 2017 at 11:55:03PM +0200, Florian Westphal wrote:
+> FWIW I am not a docbook fan so I would not mind if we switch to
+> another markup system.
 
-On Friday 2017-08-11 00:44, Jan Engelhardt wrote:
->Some history for the mail archives: {} is not specified, but follows from
->prominent use of | inside [] and the desire to have some kind of grouping for
->non-optional things. I will — cautiously — claim that {} was an idea of mine
->(barring any fourth party uses in completely unrelated projects elsewhere that
->I do not know of); commit iptables.git#a8ad34cf11540d147b8aded6826a1452841d2aa7
->was the first to use '{}'.
+I'd prefer to write directly in roff as well. Doing so would also
+eliminate the dependency to docbook (which I had problems with when
+packaging for RHEL).
 
-Ohwell, notsomuch. I found some {} in
-iproute2#985794ad38a55b214fae1c51058a81febef1941b dated 2004, so that is
-probably where I might have got the idea from. Credit where credit is due!
+Pablo, any last word on this? :)
+
+Thanks, Phil
