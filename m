@@ -1,12 +1,10 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_nat_h323: fix logical-not-parentheses
- warning
-Date: Fri, 11 Aug 2017 19:42:59 +0200
-Message-ID: <20170811174259.GA3743@salvia>
-References: <20170731183949.73763-1-ndesaulniers@google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Nick Desaulniers <ndesaulniers@google.com>
+Subject: [PATCH v2] netfilter: nf_nat_h323: fix logical-not-parentheses warning
+Date: Fri, 11 Aug 2017 11:16:07 -0700
+Message-ID: <20170811181607.33878-1-ndesaulniers@google.com>
+References: <20170811174259.GA3743@salvia>
 Cc: mka@chromium.org, lorenzo@google.com,
+        Nick Desaulniers <ndesaulniers@google.com>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
@@ -14,36 +12,150 @@ Cc: mka@chromium.org, lorenzo@google.com,
         Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Nick Desaulniers <ndesaulniers@google.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170731183949.73763-1-ndesaulniers@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170811174259.GA3743@salvia>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Nick,
+Clang produces the following warning:
 
-On Mon, Jul 31, 2017 at 11:39:49AM -0700, Nick Desaulniers wrote:
-> Clang produces the following warning:
-[...]
-> Also, it's even cleaner to use the form:
-> 
-> if (x)
-> 
-> but then if the return codes change from treating 0 as success (unlikely),
-> then all call sites must be updated.
-> 
-> I'm happy to send v2 that changes to that form, and updates the other call
-> sites to be:
-> 
-> if (set_h225_addr())
->   handle_failures()
-> else
->   handle_success()
+net/ipv4/netfilter/nf_nat_h323.c:553:6: error:
+logical not is only applied to the left hand side of this comparison
+  [-Werror,-Wlogical-not-parentheses]
+if (!set_h225_addr(skb, protoff, data, dataoff, taddr,
+    ^
+add parentheses after the '!' to evaluate the comparison first
+add parentheses around left hand side expression to silence this warning
 
-That sounds very reasonable, send a v2 if this triggers a larger
-patch.
+There's not necessarily a bug here, but it's cleaner to return early,
+ex:
 
-Or I can just take this patch, as you prefer.
+if (x)
+  return
+...
 
-Thanks!
+rather than:
+
+if (!x == 0)
+  ...
+else
+  return
+
+Also added a return code check that seemed to be missing in one
+instance.
+
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+---
+Changes in v2:
+* Reorder if/else blocks to return early.
+* Also handle this for set_h245_addr(), not just set_h225_addr().
+* Add return code check for the Gnomemeeting case.
+
+ net/ipv4/netfilter/nf_nat_h323.c | 57 +++++++++++++++++++++-------------------
+ 1 file changed, 30 insertions(+), 27 deletions(-)
+
+diff --git a/net/ipv4/netfilter/nf_nat_h323.c b/net/ipv4/netfilter/nf_nat_h323.c
+index 574f7ebba0b6..ac8342dcb55e 100644
+--- a/net/ipv4/netfilter/nf_nat_h323.c
++++ b/net/ipv4/netfilter/nf_nat_h323.c
+@@ -252,16 +252,16 @@ static int nat_rtp_rtcp(struct sk_buff *skb, struct nf_conn *ct,
+ 	if (set_h245_addr(skb, protoff, data, dataoff, taddr,
+ 			  &ct->tuplehash[!dir].tuple.dst.u3,
+ 			  htons((port & htons(1)) ? nated_port + 1 :
+-						    nated_port)) == 0) {
+-		/* Save ports */
+-		info->rtp_port[i][dir] = rtp_port;
+-		info->rtp_port[i][!dir] = htons(nated_port);
+-	} else {
++						    nated_port))) {
+ 		nf_ct_unexpect_related(rtp_exp);
+ 		nf_ct_unexpect_related(rtcp_exp);
+ 		return -1;
+ 	}
+ 
++	/* Save ports */
++	info->rtp_port[i][dir] = rtp_port;
++	info->rtp_port[i][!dir] = htons(nated_port);
++
+ 	/* Success */
+ 	pr_debug("nf_nat_h323: expect RTP %pI4:%hu->%pI4:%hu\n",
+ 		 &rtp_exp->tuple.src.u3.ip,
+@@ -370,15 +370,15 @@ static int nat_h245(struct sk_buff *skb, struct nf_conn *ct,
+ 	/* Modify signal */
+ 	if (set_h225_addr(skb, protoff, data, dataoff, taddr,
+ 			  &ct->tuplehash[!dir].tuple.dst.u3,
+-			  htons(nated_port)) == 0) {
+-		/* Save ports */
+-		info->sig_port[dir] = port;
+-		info->sig_port[!dir] = htons(nated_port);
+-	} else {
++			  htons(nated_port))) {
+ 		nf_ct_unexpect_related(exp);
+ 		return -1;
+ 	}
+ 
++	/* Save ports */
++	info->sig_port[dir] = port;
++	info->sig_port[!dir] = htons(nated_port);
++
+ 	pr_debug("nf_nat_q931: expect H.245 %pI4:%hu->%pI4:%hu\n",
+ 		 &exp->tuple.src.u3.ip,
+ 		 ntohs(exp->tuple.src.u.tcp.port),
+@@ -462,24 +462,27 @@ static int nat_q931(struct sk_buff *skb, struct nf_conn *ct,
+ 	/* Modify signal */
+ 	if (set_h225_addr(skb, protoff, data, 0, &taddr[idx],
+ 			  &ct->tuplehash[!dir].tuple.dst.u3,
+-			  htons(nated_port)) == 0) {
+-		/* Save ports */
+-		info->sig_port[dir] = port;
+-		info->sig_port[!dir] = htons(nated_port);
+-
+-		/* Fix for Gnomemeeting */
+-		if (idx > 0 &&
+-		    get_h225_addr(ct, *data, &taddr[0], &addr, &port) &&
+-		    (ntohl(addr.ip) & 0xff000000) == 0x7f000000) {
+-			set_h225_addr(skb, protoff, data, 0, &taddr[0],
+-				      &ct->tuplehash[!dir].tuple.dst.u3,
+-				      info->sig_port[!dir]);
+-		}
+-	} else {
++			  htons(nated_port))) {
+ 		nf_ct_unexpect_related(exp);
+ 		return -1;
+ 	}
+ 
++	/* Save ports */
++	info->sig_port[dir] = port;
++	info->sig_port[!dir] = htons(nated_port);
++
++	/* Fix for Gnomemeeting */
++	if (idx > 0 &&
++	    get_h225_addr(ct, *data, &taddr[0], &addr, &port) &&
++	    (ntohl(addr.ip) & 0xff000000) == 0x7f000000) {
++		if (set_h225_addr(skb, protoff, data, 0, &taddr[0],
++				  &ct->tuplehash[!dir].tuple.dst.u3,
++				  info->sig_port[!dir])) {
++			nf_ct_unexpect_related(exp);
++			return -1;
++		}
++	}
++
+ 	/* Success */
+ 	pr_debug("nf_nat_ras: expect Q.931 %pI4:%hu->%pI4:%hu\n",
+ 		 &exp->tuple.src.u3.ip,
+@@ -550,9 +553,9 @@ static int nat_callforwarding(struct sk_buff *skb, struct nf_conn *ct,
+ 	}
+ 
+ 	/* Modify signal */
+-	if (!set_h225_addr(skb, protoff, data, dataoff, taddr,
+-			   &ct->tuplehash[!dir].tuple.dst.u3,
+-			   htons(nated_port)) == 0) {
++	if (set_h225_addr(skb, protoff, data, dataoff, taddr,
++			  &ct->tuplehash[!dir].tuple.dst.u3,
++			  htons(nated_port))) {
+ 		nf_ct_unexpect_related(exp);
+ 		return -1;
+ 	}
+-- 
+2.14.0.434.g98096fd7a8-goog
