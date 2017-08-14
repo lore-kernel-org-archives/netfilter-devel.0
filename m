@@ -1,47 +1,42 @@
-From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: Re: [PATCH v2] netfilter: nf_nat_h323: fix logical-not-parentheses warning
-Date: Mon, 14 Aug 2017 10:36:03 -0700
-Message-ID: <CAKwvOdmw+bnN-nKeKbE8WJJ8Enc4PCeC3KD5KpaSVOT4+ycDKQ@mail.gmail.com>
-References: <20170811174259.GA3743@salvia> <20170811181607.33878-1-ndesaulniers@google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Matthias Kaehlcke <mka@chromium.org>,
-        Lorenzo Colitti <lorenzo@google.com>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170811181607.33878-1-ndesaulniers@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Daniel Kahn Gillmor <dkg@fifthhorseman.net>
+Subject: [PATCH] man: use https for wiki link
+Date: Mon, 14 Aug 2017 13:27:11 -0400
+Message-ID: <20170814172711.29880-1-dkg@fifthhorseman.net>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from che.mayfirst.org ([162.247.75.118]:49273 "EHLO che.mayfirst.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752328AbdHNRgV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 14 Aug 2017 13:36:21 -0400
+Received: from fifthhorseman.net (unknown [38.109.115.130])
+        by che.mayfirst.org (Postfix) with ESMTPSA id 6B08AF99B
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Aug 2017 13:27:20 -0400 (EDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Minor nit for the commit message that can get fixed up when being merged:
+https works for the wiki, and users should prefer it by default,
+whether they are logging in (to protect their credentials) or whether
+they're reading data (to protect the integrity of the content).
 
-On Fri, Aug 11, 2017 at 11:16 AM, Nick Desaulniers
-<ndesaulniers@google.com> wrote:
+Signed-off-by: Daniel Kahn Gillmor <dkg@fifthhorseman.net>
+Acked-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
+---
+ doc/nft.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> if (x)
->   return
-> ...
->
-> rather than:
->
-> if (!x == 0)
-
-should remove the `!`, ex:
-
-if (x == 0)
-
->   ...
-> else
->   return
-
+diff --git a/doc/nft.xml b/doc/nft.xml
+index 734f371..d7aae3f 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -5059,7 +5059,7 @@ filter output oif wlan0
+ 			</simplelist>
+ 		</para>
+ 		<para>
+-			There is an official wiki at: http://wiki.nftables.org
++			There is an official wiki at: https://wiki.nftables.org
+ 		</para>
+ 	</refsect1>
+ 
 -- 
-Thanks,
-~Nick Desaulniers
+2.13.2
+
