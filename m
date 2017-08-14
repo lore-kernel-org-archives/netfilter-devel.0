@@ -1,83 +1,50 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH 1/4] mnl: Drop --echo support for non-batch calls
-Date: Tue, 15 Aug 2017 01:43:02 +0200
-Message-ID: <20170814234305.2829-2-phil@nwl.cc>
+Subject: [nft PATCH 2/4] netlink: Fix segfault when using --echo flag
+Date: Tue, 15 Aug 2017 01:43:03 +0200
+Message-ID: <20170814234305.2829-3-phil@nwl.cc>
 References: <20170814234305.2829-1-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:52557 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:33857 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752651AbdHNXnY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 14 Aug 2017 19:43:24 -0400
+        id S1752651AbdHNXna (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 14 Aug 2017 19:43:30 -0400
 In-Reply-To: <20170814234305.2829-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Echo support in nft_mnl_talk() was broken: nft_mnl_talk_cb() passed
-cbdata->data as second parameter to netlink_echo_callback() which
-expected it to be of type struct netlink_ctx while in fact it was
-whatever callers of nft_mnl_talk() passed as callback data (in most
-cases a NULL pointer).
+Commit 07b45939972eb ("src: introduce struct nft_cache") added cache
+pointer to struct netlink_mon_handler and the code assumes it is never
+NULL. Therefore initialize it in the dummy version of
+netlink_mon_handler in netlink_echo_callback().
 
-I didn't notice this because I didn't test for kernels without support
-for transactions. This has been added to nftables in kernel version 3.16
-back in 2014. Since then, user space which doesn't support it can't even
-add a table anymore. So adding this new feature to the old code path is
-really not feasible, therefore drop this broken attempt at supporting
-it.
-
+Fixes: b99c4d072d996 ("Implement --echo option")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/mnl.c | 23 +----------------------
- 1 file changed, 1 insertion(+), 22 deletions(-)
+ src/netlink.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/src/mnl.c b/src/mnl.c
-index 031b7f39da8f5..5017b81c96e7c 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -67,32 +67,11 @@ out:
- 	return ret;
- }
+diff --git a/src/netlink.c b/src/netlink.c
+index 8aef8d9ab4070..f631c26b2b9ca 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -3075,12 +3075,14 @@ static int netlink_events_cb(const struct nlmsghdr *nlh, void *data)
  
--struct nft_mnl_talk_cb_data {
--	int (*cb)(const struct nlmsghdr *nlh, void *data);
--	void *data;
--};
--
--static int nft_mnl_talk_cb(const struct nlmsghdr *nlh, void *data)
--{
--	struct nft_mnl_talk_cb_data *cbdata = data;
--	int rc;
--
--	if (cbdata->cb)
--		rc = cbdata->cb(nlh, cbdata->data);
--	if (rc)
--		return rc;
--	return netlink_echo_callback(nlh, cbdata->data);
--}
--
- static int
- nft_mnl_talk(struct mnl_socket *nf_sock, const void *data, unsigned int len,
- 	     int (*cb)(const struct nlmsghdr *nlh, void *data), void *cb_data)
+ int netlink_echo_callback(const struct nlmsghdr *nlh, void *data)
  {
- 	uint32_t portid = mnl_socket_get_portid(nf_sock);
--	struct nft_mnl_talk_cb_data tcb_data = {
--		.cb = cb,
--		.data = cb_data,
--	};
++	struct netlink_ctx *ctx = data;
+ 	struct netlink_mon_handler echo_monh = {
+ 		.format = NFTNL_OUTPUT_DEFAULT,
+-		.ctx = data,
++		.ctx = ctx,
+ 		.loc = &netlink_location,
+ 		.monitor_flags = 0xffffffff,
+ 		.cache_needed = true,
++		.cache = ctx->cache,
+ 	};
  
- #ifdef DEBUG
- 	if (debug_level & DEBUG_MNL)
-@@ -102,7 +81,7 @@ nft_mnl_talk(struct mnl_socket *nf_sock, const void *data, unsigned int len,
- 	if (mnl_socket_sendto(nf_sock, data, len) < 0)
- 		return -1;
- 
--	return nft_mnl_recv(nf_sock, seq, portid, &nft_mnl_talk_cb, &tcb_data);
-+	return nft_mnl_recv(nf_sock, seq, portid, cb, cb_data);
- }
- 
- /*
+ 	if (!echo_monh.ctx->octx->echo)
 -- 
 2.13.1
 
