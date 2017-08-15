@@ -1,48 +1,39 @@
-From: Colin Ian King <colin.king@canonical.com>
-Subject: Re: [PATCH] netfilter: fix indent on in statements
-Date: Tue, 15 Aug 2017 10:51:15 +0100
-Message-ID: <0e49a883-9b39-98e7-7c36-6e433bb3961d@canonical.com>
-References: <20170815065025.18471-1-colin.king@canonical.com>
- <6b38b83c-21b3-5cec-6145-cdbb54a63dd2@cogentembedded.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH 1/4] mnl: Drop --echo support for non-batch calls
+Date: Tue, 15 Aug 2017 12:25:00 +0200
+Message-ID: <20170815102500.GA3928@salvia>
+References: <20170814234305.2829-1-phil@nwl.cc>
+ <20170814234305.2829-2-phil@nwl.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        Stephen Hemminger <stephen@networkplumber.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        bridge@lists.linux-foundation.org, netdev@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <6b38b83c-21b3-5cec-6145-cdbb54a63dd2@cogentembedded.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Phil Sutter <phil@nwl.cc>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:55606 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753490AbdHOKZY (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 15 Aug 2017 06:25:24 -0400
+Content-Disposition: inline
+In-Reply-To: <20170814234305.2829-2-phil@nwl.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 15/08/17 10:45, Sergei Shtylyov wrote:
-> Hello!
-> 
-> On 8/15/2017 9:50 AM, Colin King wrote:
-> 
->> From: Colin Ian King <colin.king@canonical.com>
->>
->> The returns on some if statements are not indented correctly,
-> 
->    s/in/if/ in the subject?
+On Tue, Aug 15, 2017 at 01:43:02AM +0200, Phil Sutter wrote:
+> Echo support in nft_mnl_talk() was broken: nft_mnl_talk_cb() passed
+> cbdata->data as second parameter to netlink_echo_callback() which
+> expected it to be of type struct netlink_ctx while in fact it was
+> whatever callers of nft_mnl_talk() passed as callback data (in most
+> cases a NULL pointer).
 
-Doh, fix resent.
+Applied, thanks.
 
-> 
->> add in the missing tab.
->>
->> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> [...]
-> 
-> MBR, Sergei
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe
-> kernel-janitors" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I didn't notice this because I didn't test for kernels without support
+> for transactions. This has been added to nftables in kernel version 3.16
+> back in 2014. Since then, user space which doesn't support it can't even
+> add a table anymore. So adding this new feature to the old code path is
+> really not feasible, therefore drop this broken attempt at supporting
+> it.
+
+We fixed this problem with nft and 3.16 IIRC. So at least the very
+basic featureset still available there works fine.
