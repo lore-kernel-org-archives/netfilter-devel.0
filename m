@@ -1,60 +1,47 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nft PATCH 3/4] echo: Fix for added delays in rule updates
-Date: Tue, 15 Aug 2017 13:34:25 +0200
-Message-ID: <20170815113425.GZ16375@orbyte.nwl.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH 1/4] mnl: Drop --echo support for non-batch calls
+Date: Tue, 15 Aug 2017 13:48:27 +0200
+Message-ID: <20170815114827.GA20284@salvia>
 References: <20170814234305.2829-1-phil@nwl.cc>
- <20170814234305.2829-4-phil@nwl.cc>
- <20170815103530.GA5889@salvia>
- <20170815112756.GY16375@orbyte.nwl.cc>
+ <20170814234305.2829-2-phil@nwl.cc>
+ <20170815102500.GA3928@salvia>
+ <20170815110504.GX16375@orbyte.nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:36215 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751529AbdHOLe0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Aug 2017 07:34:26 -0400
+Received: from ganesha.gnumonks.org ([213.95.27.120]:56283 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751129AbdHOLsw (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 15 Aug 2017 07:48:52 -0400
 Content-Disposition: inline
-In-Reply-To: <20170815112756.GY16375@orbyte.nwl.cc>
+In-Reply-To: <20170815110504.GX16375@orbyte.nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Aug 15, 2017 at 01:27:56PM +0200, Phil Sutter wrote:
-> On Tue, Aug 15, 2017 at 12:35:30PM +0200, Pablo Neira Ayuso wrote:
-> > On Tue, Aug 15, 2017 at 01:43:04AM +0200, Phil Sutter wrote:
-> [...]
-> > > diff --git a/include/netlink.h b/include/netlink.h
-> > > index 3726171424c33..e7e4bbcfc0f51 100644
-> > > --- a/include/netlink.h
-> > > +++ b/include/netlink.h
-> > > @@ -119,10 +119,7 @@ extern int netlink_add_rule_batch(struct netlink_ctx *ctx,
-> > >  extern int netlink_del_rule_batch(struct netlink_ctx *ctx,
-> > >  				  const struct handle *h,
-> > >  				  const struct location *loc);
-> > > -extern int netlink_replace_rule_batch(struct netlink_ctx *ctx,
-> > > -				      const struct handle *h,
-> > > -				      const struct rule *rule,
-> > > -				      const struct location *loc);
-> > > +extern int netlink_replace_rule_batch(struct netlink_ctx *ctx, struct cmd *cmd);
-> > 
-> > This patch comes with an interesting cleanup, that is that you just
-> > pass struct cmd as function parameter.
-> > 
-> > Probably we can do this everywhere in the netlink.c code? I wonder if
-> > it's better just to fix this without changing the function footprint.
-> > Then, work a cleanup patch to update all netlink_* functions to pass
-> > struct cmd as parameter.
-> > 
-> > So we leave everything looking consistent.
+On Tue, Aug 15, 2017 at 01:05:04PM +0200, Phil Sutter wrote:
+> Hi,
 > 
-> This change was necessary in order to pass the required parameters to
-> cache_update(). Doing without, I would have to pass nf_sock, cache, obj
-> and msgs fields additionally, and the number of parameters was already
-> quite big.
+> On Tue, Aug 15, 2017 at 12:25:00PM +0200, Pablo Neira Ayuso wrote:
+> > On Tue, Aug 15, 2017 at 01:43:02AM +0200, Phil Sutter wrote:
+> [...]
+> > > I didn't notice this because I didn't test for kernels without support
+> > > for transactions. This has been added to nftables in kernel version 3.16
+> > > back in 2014. Since then, user space which doesn't support it can't even
+> > > add a table anymore. So adding this new feature to the old code path is
+> > > really not feasible, therefore drop this broken attempt at supporting
+> > > it.
+> > 
+> > We fixed this problem with nft and 3.16 IIRC. So at least the very
+> > basic featureset still available there works fine.
+> 
+> I was speaking of the other way around, namely old user space with
+> kernel >= 3.16 (that's what I simulated by forcing batch_supported to
+> false).
+> 
+> Given that kernel user API isn't completely compatible, do you see a
+> chance to drop the non-batch code from user space at some point?
 
-ENOCOFFEE: Actually I only use obj field of struct cmd, and that should
-be optional since I can also just use CMD_INVALID instead - so I'll drop
-the signature changes in v2.
-
-Thanks, Phil
+Yes, as soon as 3.16 becomes unsupported we can let that code sink I
+would suggest.
