@@ -1,62 +1,131 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH 3/4] echo: Fix for added delays in rule updates
-Date: Tue, 15 Aug 2017 13:49:17 +0200
-Message-ID: <20170815114917.GB20284@salvia>
-References: <20170814234305.2829-1-phil@nwl.cc>
- <20170814234305.2829-4-phil@nwl.cc>
- <20170815103530.GA5889@salvia>
- <20170815112756.GY16375@orbyte.nwl.cc>
- <20170815113425.GZ16375@orbyte.nwl.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+From: Phil Sutter <phil@nwl.cc>
+Subject: [nft PATCH v2] echo: Fix for added delays in rule updates
+Date: Tue, 15 Aug 2017 13:59:12 +0200
+Message-ID: <20170815115912.4254-1-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:56298 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751687AbdHOLtm (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Aug 2017 07:49:42 -0400
-Content-Disposition: inline
-In-Reply-To: <20170815113425.GZ16375@orbyte.nwl.cc>
+Received: from orbyte.nwl.cc ([151.80.46.58]:53897 "EHLO mail.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752257AbdHOL7Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 15 Aug 2017 07:59:24 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Aug 15, 2017 at 01:34:25PM +0200, Phil Sutter wrote:
-> On Tue, Aug 15, 2017 at 01:27:56PM +0200, Phil Sutter wrote:
-> > On Tue, Aug 15, 2017 at 12:35:30PM +0200, Pablo Neira Ayuso wrote:
-> > > On Tue, Aug 15, 2017 at 01:43:04AM +0200, Phil Sutter wrote:
-> > [...]
-> > > > diff --git a/include/netlink.h b/include/netlink.h
-> > > > index 3726171424c33..e7e4bbcfc0f51 100644
-> > > > --- a/include/netlink.h
-> > > > +++ b/include/netlink.h
-> > > > @@ -119,10 +119,7 @@ extern int netlink_add_rule_batch(struct netlink_ctx *ctx,
-> > > >  extern int netlink_del_rule_batch(struct netlink_ctx *ctx,
-> > > >  				  const struct handle *h,
-> > > >  				  const struct location *loc);
-> > > > -extern int netlink_replace_rule_batch(struct netlink_ctx *ctx,
-> > > > -				      const struct handle *h,
-> > > > -				      const struct rule *rule,
-> > > > -				      const struct location *loc);
-> > > > +extern int netlink_replace_rule_batch(struct netlink_ctx *ctx, struct cmd *cmd);
-> > > 
-> > > This patch comes with an interesting cleanup, that is that you just
-> > > pass struct cmd as function parameter.
-> > > 
-> > > Probably we can do this everywhere in the netlink.c code? I wonder if
-> > > it's better just to fix this without changing the function footprint.
-> > > Then, work a cleanup patch to update all netlink_* functions to pass
-> > > struct cmd as parameter.
-> > > 
-> > > So we leave everything looking consistent.
-> > 
-> > This change was necessary in order to pass the required parameters to
-> > cache_update(). Doing without, I would have to pass nf_sock, cache, obj
-> > and msgs fields additionally, and the number of parameters was already
-> > quite big.
-> 
-> ENOCOFFEE: Actually I only use obj field of struct cmd, and that should
-> be optional since I can also just use CMD_INVALID instead - so I'll drop
-> the signature changes in v2.
+The added cache update upon every command dealing with rules was a
+bummer. Instead, perform the needed cache update only if echo option was
+set.
 
-That's good, Eric won't do any voodoo toll with you then.
+Initially, I tried to perform the cache update from within
+netlink_echo_callback(), but that turned into a mess since the shared
+socket between cache_init() and mnl_batch_talk() would receive
+unexpected new input. So instead update the cache from do_command_add(),
+netlink_replace_rule_batch() and do_comand_insert() so it completes
+before mnl_batch_talk() starts listening.
+
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+Changes since v1:
+- Don't change function signatures: It is not really required and should
+  be done in a dedicated patch instead.
+- Use 'ret' as return code variable name.
+---
+ src/evaluate.c |  9 ---------
+ src/netlink.c  | 11 ++++++++++-
+ src/rule.c     | 23 +++++++++++++++++++++--
+ 3 files changed, 31 insertions(+), 12 deletions(-)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 64e14b8ba8d98..0fad0913488d0 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2965,10 +2965,6 @@ static int cmd_evaluate_add(struct eval_ctx *ctx, struct cmd *cmd)
+ 		handle_merge(&cmd->set->handle, &cmd->handle);
+ 		return set_evaluate(ctx, cmd->set);
+ 	case CMD_OBJ_RULE:
+-		ret = cache_update(ctx->nf_sock, ctx->cache, cmd->op,
+-				   ctx->msgs);
+-		if (ret < 0)
+-			return ret;
+ 		handle_merge(&cmd->rule->handle, &cmd->handle);
+ 		return rule_evaluate(ctx, cmd->rule);
+ 	case CMD_OBJ_CHAIN:
+@@ -2983,11 +2979,6 @@ static int cmd_evaluate_add(struct eval_ctx *ctx, struct cmd *cmd)
+ 	case CMD_OBJ_COUNTER:
+ 	case CMD_OBJ_QUOTA:
+ 	case CMD_OBJ_CT_HELPER:
+-		ret = cache_update(ctx->nf_sock, ctx->cache, cmd->op,
+-				   ctx->msgs);
+-		if (ret < 0)
+-			return ret;
+-
+ 		return 0;
+ 	default:
+ 		BUG("invalid command object type %u\n", cmd->obj);
+diff --git a/src/netlink.c b/src/netlink.c
+index f631c26b2b9ca..68f336255fc50 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -464,7 +464,16 @@ int netlink_replace_rule_batch(struct netlink_ctx *ctx, const struct handle *h,
+ 			       const struct location *loc)
+ {
+ 	struct nftnl_rule *nlr;
+-	int err, flags = ctx->octx->echo ? NLM_F_ECHO : 0;
++	int err, flags = 0;
++
++	if (ctx->octx->echo) {
++		err = cache_update(ctx->nf_sock, ctx->cache,
++				   CMD_INVALID, ctx->msgs);
++		if (err < 0)
++			return err;
++
++		flags |= NLM_F_ECHO;
++	}
+ 
+ 	nlr = alloc_nftnl_rule(&rule->handle);
+ 	netlink_linearize_rule(ctx, nlr, rule);
+diff --git a/src/rule.c b/src/rule.c
+index 1bd5c80158b7b..38cd648eb24a8 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1017,8 +1017,16 @@ static int do_command_add(struct netlink_ctx *ctx, struct cmd *cmd, bool excl)
+ {
+ 	uint32_t flags = excl ? NLM_F_EXCL : 0;
+ 
+-	if (ctx->octx->echo)
++	if (ctx->octx->echo) {
++		int ret;
++
++		ret = cache_update(ctx->nf_sock, ctx->cache,
++				  cmd->obj, ctx->msgs);
++		if (ret < 0)
++			return ret;
++
+ 		flags |= NLM_F_ECHO;
++	}
+ 
+ 	switch (cmd->obj) {
+ 	case CMD_OBJ_TABLE:
+@@ -1058,7 +1066,18 @@ static int do_command_replace(struct netlink_ctx *ctx, struct cmd *cmd)
+ 
+ static int do_command_insert(struct netlink_ctx *ctx, struct cmd *cmd)
+ {
+-	uint32_t flags = ctx->octx->echo ? NLM_F_ECHO : 0;
++	uint32_t flags = 0;
++
++	if (ctx->octx->echo) {
++		int ret;
++
++		ret = cache_update(ctx->nf_sock, ctx->cache,
++				  cmd->obj, ctx->msgs);
++		if (ret < 0)
++			return ret;
++
++		flags |= NLM_F_ECHO;
++	}
+ 
+ 	switch (cmd->obj) {
+ 	case CMD_OBJ_RULE:
+-- 
+2.13.1
+
