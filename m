@@ -1,72 +1,80 @@
-From: <wvhyvcm.abyxg@jippii.com>
-Subject: (unknown)
-Date: Tue, 15 Aug 2017 11:16:59 -0000
-Message-ID: <150279581984.2727.16860097712216900225@telenet.ru>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [nft PATCH 3/4] echo: Fix for added delays in rule updates
+Date: Tue, 15 Aug 2017 13:27:56 +0200
+Message-ID: <20170815112756.GY16375@orbyte.nwl.cc>
+References: <20170814234305.2829-1-phil@nwl.cc>
+ <20170814234305.2829-4-phil@nwl.cc>
+ <20170815103530.GA5889@salvia>
 Mime-Version: 1.0
-Content-Type: application/zip; name="634410994749.zip"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 86.53-157-90.telenet.ru ([90.157.53.86]:42868 "HELO telenet.ru"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-        id S1751030AbdHOLRC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 15 Aug 2017 07:17:02 -0400
-Subject: 
-Content-Disposition: attachment
+Received: from orbyte.nwl.cc ([151.80.46.58]:57843 "EHLO mail.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751224AbdHOL16 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 15 Aug 2017 07:27:58 -0400
+Content-Disposition: inline
+In-Reply-To: <20170815103530.GA5889@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-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
+Hi,
+
+On Tue, Aug 15, 2017 at 12:35:30PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Aug 15, 2017 at 01:43:04AM +0200, Phil Sutter wrote:
+[...]
+> > diff --git a/include/netlink.h b/include/netlink.h
+> > index 3726171424c33..e7e4bbcfc0f51 100644
+> > --- a/include/netlink.h
+> > +++ b/include/netlink.h
+> > @@ -119,10 +119,7 @@ extern int netlink_add_rule_batch(struct netlink_ctx *ctx,
+> >  extern int netlink_del_rule_batch(struct netlink_ctx *ctx,
+> >  				  const struct handle *h,
+> >  				  const struct location *loc);
+> > -extern int netlink_replace_rule_batch(struct netlink_ctx *ctx,
+> > -				      const struct handle *h,
+> > -				      const struct rule *rule,
+> > -				      const struct location *loc);
+> > +extern int netlink_replace_rule_batch(struct netlink_ctx *ctx, struct cmd *cmd);
+> 
+> This patch comes with an interesting cleanup, that is that you just
+> pass struct cmd as function parameter.
+> 
+> Probably we can do this everywhere in the netlink.c code? I wonder if
+> it's better just to fix this without changing the function footprint.
+> Then, work a cleanup patch to update all netlink_* functions to pass
+> struct cmd as parameter.
+> 
+> So we leave everything looking consistent.
+
+This change was necessary in order to pass the required parameters to
+cache_update(). Doing without, I would have to pass nf_sock, cache, obj
+and msgs fields additionally, and the number of parameters was already
+quite big.
+
+I would instead suggest to follow-up with a patch applying the change to
+all other functions as well, though I'm not sure whether Eric might
+make a voodoo doll which looks like me if I submit that now.
+
+[...]
+> > diff --git a/src/rule.c b/src/rule.c
+> > index 1bd5c80158b7b..ab19525757fff 100644
+> > --- a/src/rule.c
+> > +++ b/src/rule.c
+> > @@ -1017,8 +1017,16 @@ static int do_command_add(struct netlink_ctx *ctx, struct cmd *cmd, bool excl)
+> >  {
+> >  	uint32_t flags = excl ? NLM_F_EXCL : 0;
+> >  
+> > -	if (ctx->octx->echo)
+> > +	if (ctx->octx->echo) {
+> > +		int rc;
+> 
+> Another nitpick: We seem to use 'int ret' everywhere in the code. So
+> probably for consistency, use this name here too.
+
+You mean if 'int err' is not used? But OK, in src/rule.c we have at
+least three cases of 'return ret' and only two of 'return rc' (from my
+patch) so I'll change that.
+
+Cheers, Phil
