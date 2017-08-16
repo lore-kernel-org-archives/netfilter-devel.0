@@ -1,84 +1,125 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 1/2] evaluate: shift immediate value when adjusting size for csum fixup
-Date: Wed, 16 Aug 2017 19:01:55 +0200
-Message-ID: <20170816170156.11594-1-fw@strlen.de>
+Subject: [PATCH nft 2/2] tests: add test case for ttl/protocol set
+Date: Wed, 16 Aug 2017 19:01:56 +0200
+Message-ID: <20170816170156.11594-2-fw@strlen.de>
+References: <20170816170156.11594-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:47182 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:47186 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751943AbdHPRBi (ORCPT
+        by vger.kernel.org with ESMTP id S1751943AbdHPRBl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Aug 2017 13:01:38 -0400
+        Wed, 16 Aug 2017 13:01:41 -0400
+In-Reply-To: <20170816170156.11594-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nft add rule .. ip ttl set 64
+nft .. ip ttl set 42
 
-erronously mangles ip protocol instead of ttl.
+did set the protocol field and left ttl alone, add test cases for this.
 
-Because the kernel can't deal with odd-sized data (ttl is one byte) when
-doing checksum fixups, so the write to 'ttl' is turned into
-
-[ payload load 2b @ network header + 8 => reg 1 ]
-[ bitwise reg 1 = (reg=1 & 0x000000ff ) ^ $new_value ]
-[ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x0 ]
-
-While doing so, we did fail to shift the imm value, i.e.
-we clear the wrong half of the u16 (protocol) instead of csum.
-
-The correct mask is 0xff00, and $new_value needs to be shifted
-so we leave the protocol value (which is next to ttl) alone.
-
-Fixes: f9069cefdf ("netlink: make checksum fixup work with odd-sized header fields")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/evaluate.c | 25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ tests/py/ip/ip.t                |  2 ++
+ tests/py/ip/ip.t.payload        | 16 ++++++++++++++++
+ tests/py/ip/ip.t.payload.inet   | 20 ++++++++++++++++++++
+ tests/py/ip/ip.t.payload.netdev | 20 ++++++++++++++++++++
+ 4 files changed, 58 insertions(+)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 0fad0913488d..f52a0843a0c0 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1869,6 +1869,20 @@ static int stmt_evaluate_payload(struct eval_ctx *ctx, struct stmt *stmt)
+diff --git a/tests/py/ip/ip.t b/tests/py/ip/ip.t
+index 9ab15df63a3d..f779dd9aa572 100644
+--- a/tests/py/ip/ip.t
++++ b/tests/py/ip/ip.t
+@@ -127,6 +127,8 @@ iif "lo" ip checksum set 0;ok
+ iif "lo" ip id set 0;ok
+ iif "lo" ip ecn set 1;ok;iif "lo" ip ecn set ect1
+ iif "lo" ip ecn set ce;ok
++iif "lo" ip ttl set 23;ok
++iif "lo" ip protocol set 1;ok
  
- 	shift_imm = expr_offset_shift(payload, payload->payload.offset,
- 				      &extra_len);
-+	payload_byte_size = round_up(payload->len, BITS_PER_BYTE) / BITS_PER_BYTE;
-+	payload_byte_size += (extra_len / BITS_PER_BYTE);
+ iif "lo" ip dscp set af23;ok
+ iif "lo" ip dscp set cs0;ok
+diff --git a/tests/py/ip/ip.t.payload b/tests/py/ip/ip.t.payload
+index cd54ae0fea7e..dcf5e348c9e9 100644
+--- a/tests/py/ip/ip.t.payload
++++ b/tests/py/ip/ip.t.payload
+@@ -576,3 +576,19 @@ ip test-ip4 input
+   [ bitwise reg 1 = (reg=1 & 0x000003ff ) ^ 0x00000000 ]
+   [ payload write reg 1 => 2b @ network header + 0 csum_type 1 csum_off 10 csum_flags 0x0 ]
+ 
++# iif "lo" ip ttl set 23
++ip test-ip4 input 
++  [ meta load iif => reg 1 ]
++  [ cmp eq reg 1 0x00000001 ]
++  [ payload load 2b @ network header + 8 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x0000ff00 ) ^ 0x00000017 ]
++  [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x0 ]
 +
-+	if (need_csum && payload_byte_size & 1) {
-+		payload_byte_size++;
++# iif "lo" ip protocol set 1
++ip test-ip4 input 
++  [ meta load iif => reg 1 ]
++  [ cmp eq reg 1 0x00000001 ]
++  [ payload load 2b @ network header + 8 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x000000ff ) ^ 0x00000100 ]
++  [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x1 ]
 +
-+		if (payload_byte_offset & 1) { /* prefer 16bit aligned fetch */
-+			payload_byte_offset--;
-+			assert(payload->payload.offset >= BITS_PER_BYTE);
-+		} else {
-+			shift_imm += BITS_PER_BYTE;
-+		}
-+	}
+diff --git a/tests/py/ip/ip.t.payload.inet b/tests/py/ip/ip.t.payload.inet
+index 64606d956e10..96a77b5969a2 100644
+--- a/tests/py/ip/ip.t.payload.inet
++++ b/tests/py/ip/ip.t.payload.inet
+@@ -750,3 +750,23 @@ inet test-inet input
+   [ bitwise reg 1 = (reg=1 & 0x000003ff ) ^ 0x00000000 ]
+   [ payload write reg 1 => 2b @ network header + 0 csum_type 1 csum_off 10 csum_flags 0x0 ]
+ 
++# iif "lo" ip ttl set 23
++inet test-inet input 
++  [ meta load iif => reg 1 ]
++  [ cmp eq reg 1 0x00000001 ]
++  [ meta load nfproto => reg 1 ]
++  [ cmp eq reg 1 0x00000002 ]
++  [ payload load 2b @ network header + 8 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x0000ff00 ) ^ 0x00000017 ]
++  [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x0 ]
 +
- 	if (shift_imm) {
- 		struct expr *off;
++# iif "lo" ip protocol set 1
++inet test-inet input 
++  [ meta load iif => reg 1 ]
++  [ cmp eq reg 1 0x00000001 ]
++  [ meta load nfproto => reg 1 ]
++  [ cmp eq reg 1 0x00000002 ]
++  [ payload load 2b @ network header + 8 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x000000ff ) ^ 0x00000100 ]
++  [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x1 ]
++
+diff --git a/tests/py/ip/ip.t.payload.netdev b/tests/py/ip/ip.t.payload.netdev
+index acfa1eab5979..45d29b3491cc 100644
+--- a/tests/py/ip/ip.t.payload.netdev
++++ b/tests/py/ip/ip.t.payload.netdev
+@@ -850,3 +850,23 @@ netdev test-netdev ingress
+   [ bitwise reg 1 = (reg=1 & 0x000003ff ) ^ 0x00000000 ]
+   [ payload write reg 1 => 2b @ network header + 0 csum_type 1 csum_off 10 csum_flags 0x0 ]
  
-@@ -1885,17 +1899,6 @@ static int stmt_evaluate_payload(struct eval_ctx *ctx, struct stmt *stmt)
- 		stmt->payload.val = binop;
- 	}
- 
--	payload_byte_size = round_up(payload->len, BITS_PER_BYTE) / BITS_PER_BYTE;
--	payload_byte_size += (extra_len / BITS_PER_BYTE);
--
--	if (need_csum && payload_byte_size & 1) {
--		payload_byte_size++;
--
--		if (payload_byte_offset & 1) { /* prefer 16bit aligned fetch */
--			payload_byte_offset--;
--			assert(payload->payload.offset >= BITS_PER_BYTE);
--		}
--	}
- 
- 	masklen = payload_byte_size * BITS_PER_BYTE;
- 	mpz_init_bitmask(ff, masklen);
++# iif "lo" ip ttl set 23
++netdev test-netdev ingress 
++  [ meta load iif => reg 1 ]
++  [ cmp eq reg 1 0x00000001 ]
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ payload load 2b @ network header + 8 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x0000ff00 ) ^ 0x00000017 ]
++  [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x0 ]
++
++# iif "lo" ip protocol set 1
++netdev test-netdev ingress 
++  [ meta load iif => reg 1 ]
++  [ cmp eq reg 1 0x00000001 ]
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ payload load 2b @ network header + 8 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x000000ff ) ^ 0x00000100 ]
++  [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x1 ]
++
 -- 
 2.13.0
 
