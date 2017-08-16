@@ -1,79 +1,66 @@
 From: Varsha Rao <rvarsha016@gmail.com>
-Subject: [PATCH nft 3/5] src: cli: Remove cli_display() function.
-Date: Wed, 16 Aug 2017 19:48:15 +0530
-Message-ID: <20170816141817.20179-4-rvarsha016@gmail.com>
-References: <20170816141817.20179-1-rvarsha016@gmail.com>
+Subject: [PATCH nft 0/5] src: Removes unused functions.
+Date: Wed, 16 Aug 2017 19:48:12 +0530
+Message-ID: <20170816141817.20179-1-rvarsha016@gmail.com>
 Cc: Varsha Rao <rvarsha016@gmail.com>
 To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:37225 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751637AbdHPOTL (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:38175 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751556AbdHPOS5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Aug 2017 10:19:11 -0400
-Received: by mail-pg0-f66.google.com with SMTP id 83so5374624pgb.4
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Aug 2017 07:19:10 -0700 (PDT)
-In-Reply-To: <20170816141817.20179-1-rvarsha016@gmail.com>
+        Wed, 16 Aug 2017 10:18:57 -0400
+Received: by mail-pf0-f196.google.com with SMTP id h75so1495213pfh.5
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Aug 2017 07:18:57 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Remove cli_display() function, as it is not called anywhere in source
-code.
+This patch set removes structure xt_stmt_ops and the following
+functions, as they are not used.
 
-Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
----
- include/cli.h |  1 -
- src/cli.c     | 26 --------------------------
- 2 files changed, 27 deletions(-)
+chain_get_cb
+cli_display
+mnl_nft_chain_get
+mnl_nft_rule_add
+mnl_nft_rule_delete
+mnl_nft_set_get
+mnl_nft_table_get
+mpz_get_be64
+netlink_add_rule_list
+netlink_dump_table
+netlink_get_chain
+netlink_get_set
+netlink_get_table
+netlink_list_chain
+set_get_cb
+table_get_cb
+xt_stmt_alloc
+xt_stmt_destroy
+xt_stmt_print
+xt_stmt_release
+xt_stmt_xlate
 
-diff --git a/include/cli.h b/include/cli.h
-index e577400..40fc63e 100644
---- a/include/cli.h
-+++ b/include/cli.h
-@@ -15,6 +15,5 @@ static inline int cli_init(struct nft_ctx *nft, struct mnl_socket *nf_sock,
- }
- #endif
- extern void cli_exit(void);
--extern void cli_display(const char *fmt, va_list ap) __fmtstring(1, 0);
- 
- #endif
-diff --git a/src/cli.c b/src/cli.c
-index a50fc58..d0ca9af 100644
---- a/src/cli.c
-+++ b/src/cli.c
-@@ -149,32 +149,6 @@ static char **cli_completion(const char *text, int start, int end)
- 	return NULL;
- }
- 
--void __fmtstring(1, 0) cli_display(const char *fmt, va_list ap)
--{
--	int point, end;
--	char *buf;
--
--	point = rl_point;
--	end   = rl_end;
--	rl_point = rl_end = 0;
--
--	rl_save_prompt();
--	rl_clear_message();
--
--	if (vasprintf(&buf, fmt, ap) < 0)
--		fprintf(rl_outstream, "cli_display: out of memory\n");
--	else {
--		fprintf(rl_outstream, "%s\n", buf);
--		xfree(buf);
--	}
--
--	rl_restore_prompt();
--
--	rl_point = point;
--	rl_end   = end;
--	rl_forced_update_display();
--}
--
- int cli_init(struct nft_ctx *nft, struct mnl_socket *nf_sock,
- 	     struct nft_cache *cache, struct parser_state *_state)
- {
+Varsha Rao (5):
+  src: Remove xt_stmt_() functions.
+  src: gmputil: Remove mpz_get_be64() function.
+  src: cli: Remove cli_display() function.
+  src: netlink: Remove unused functions.
+  src: mnl: Remove unused functions.
+
+ include/cli.h       |   1 -
+ include/gmputil.h   |   1 -
+ include/mnl.h       |  10 -----
+ include/netlink.h   |  11 ------
+ include/statement.h |   2 -
+ include/xt.h        |   7 ----
+ src/cli.c           |  26 -------------
+ src/gmputil.c       |   5 ---
+ src/mnl.c           |  94 -----------------------------------------------
+ src/netlink.c       | 104 ----------------------------------------------------
+ src/statement.c     |  23 ------------
+ src/xt.c            |  74 -------------------------------------
+ 12 files changed, 358 deletions(-)
+
 -- 
 2.13.5
 
