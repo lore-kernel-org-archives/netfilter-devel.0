@@ -1,72 +1,48 @@
-From: <kim.frederiksen@regionh.dk>
-Subject: (unknown)
-Date: Wed, 16 Aug 2017 05:46:37 -0000
-Message-ID: <150286239722.17375.12050955776078126520@stv.ru>
+From: Xin Long <lucien.xin@gmail.com>
+Subject: Re: [PATCH net] net: sched: fix NULL pointer dereference when action
+ calls some targets
+Date: Wed, 16 Aug 2017 20:39:44 +1200
+Message-ID: <CADvbK_cCQY0McHiZFKSTjdGdAjhB6RBej5n=SH2=hsLYC=Xa7w@mail.gmail.com>
+References: <0fa9a53725dd661571461cf283ec88cf15f4b139.1501932907.git.lucien.xin@gmail.com>
+ <CAM_iQpWcg0a46gJ6Qp3F1pqvvsaJYajmDC2uG_mi9Av_vkFo2w@mail.gmail.com>
+ <CADvbK_fuuBrh+eOuhQU+SYs9uazH2TRP+KUmhxU=hNZ=EkOT=Q@mail.gmail.com> <CAM_iQpXbtHDxVjZ=DoTiLXHLQy6q=JVBa66EqSOy95ZbFg-wkQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="9220091.zip"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Cc: network dev <netdev@vger.kernel.org>,
+        David Miller <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org,
+        Jamal Hadi Salim <jhs@mojatatu.com>
+To: Cong Wang <xiyou.wangcong@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from host-46-63-252-95.stv.ru ([46.63.252.95]:57781 "HELO stv.ru"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-        id S1751628AbdHPFql (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Aug 2017 01:46:41 -0400
-Subject: 
-Content-Disposition: attachment
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:38036 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751605AbdHPIjp (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 16 Aug 2017 04:39:45 -0400
+In-Reply-To: <CAM_iQpXbtHDxVjZ=DoTiLXHLQy6q=JVBa66EqSOy95ZbFg-wkQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-UEsDBAoDAAAAAJIMEEtzCIB7NQsAADULAAARAAAANjg4NTY1Mjc1MDUzNC56aXBQSwMEFAMAAAgA
-kgwQSy2JVnmlCgAAKjIAAAUAAABDai5qc+1a6VPDRBT/jDP8D2sdTSo1Ah6jIipQ2nJYKC20oH7I
-sWnS5iKb9HLwb/ftbpLd0kTx4Fs7zPLrvnv37Uvympkeo5vO88Oic9J7xugYBXiOWmlgJm4YqIrr
-ug00JM+P/VUDXcV6A4XPj+FqMmqgwflD02kpDVQDJi2McKACw15G3+NkIWzrHsH1I0SZCQ4stX5U
-qx/t2pkpdN/HNy39Lni4Xaq5TPJQ/30XJfHy91080z21Rr0FI+Cm0laOEP2a2aNT59kUN32sDBRm
-AtFJajeL7gQMzvDoxphgM1FrP/dHP18fajB0BoNbLiBWRP3bFWACro1UFlmiJylBx8focH+/jn4H
-EopxksYBBMM47jCJwoDg09BaFqsCbC8Y0Cv+IPW8BsSfAsvLLnox9cR0kIrjOIzrf8ELrLsvuzTq
-i2FynWzsqmc9jK+Mi6cRSOBFq2nALioMaDd0H2Gb+LfBMqI5cXCEsolh7CZYFfIF521IXKocuPeP
-FHBB6eI5QS78BXYY+zoj6kaYJshM4xgHCcIzGImGLkOIQfdckhAUxeHMtTAKqHTixGE6dpCvB0tk
-ubaNmZyPLRf2wdAJthBonYcx/LeRD8qdBqhwg8QNxoBC2A8PkSVJsE9AIg51y9QJp2IP9j8OA9dE
-Zuj7KQDmZQPpgYVgY0JQDj5gF7JsDgiDoB8GS2AgaO4mASYEE2o5Bl0zXYSk7H6w+4FyBlqphjBy
-TYJgFVhUwByFcUIXxvRSCHWuxw00Dmc4DnyQpm57bgIi4KKV5j45WPcgOuoPwsHMjcOMG5thEPpL
-iC4lLnWJ+w80HCe6y7i4x9jz6H89cTwM+rmzwP6cuvF0icC/NEhJqnvFzrQLr+jGmJ7O9xFkwKgJ
-JFhIFIdLEIFvGKJ1MRA9fQ5joi/olyg1PDCW+2/Gru/CbgPF0WcYGRgHyEoNA1t8eYgLmiEE06Vm
-YcUxrOcRKgpF+8pqBieThSpn8Tnp9Jr2oFv/nad9fNkd3t+mkI21k+ZN81SrsfmOeW5EBhQLwbGH
-av0kxrpf291hRUYBRp7UpfUiU1FnSY74AVM3DhScCyBmZ6MPcQ7CluthNfezgQ5BvOA480KC4diJ
-I81O8hGc4iLuCe4F8+b4ZDB/UokDge5knMSRD/+aTOd0tOabYTnDwdlDB4d5YQWLIurcOwh8aAwu
-PHN4pkKgRYV7tcrNaesxgWL811vCloLKqx9yAeo6QsM+ZEKUaOemE6pKd3q5UjLOF7EKksOF8Y2i
-iX4vFXhVEVFZAV1b1HzV+OqiMp1AogucVVixzsPTTo8svHlbvXoYRN0WyLPF5ZejUTyeGJdRp2/T
-q5QzWvZaZ4k0Rmz8jo2fS+OYjTEbQ2mcsRFLGnQ2Gmz0JKom8cQSp5XxCFuEjWnmjxjDTFbo0SSq
-I+Ef2Wiz8ZiNBxK/JVlPFI1EUOJUhX1V6tokdOGyxBNt7U5AWrsGKjZocPN42+nqFw107d0Nz8aD
-8d0dvdju0CT9UMytbyPfmkJY5BFPI57Tuj9ZneD59UPK9uqu8elj8NH9xfTDblKBIwl/J+HPK/BM
-wq6ELQljCYcSJhLWJexV+KZJ2K/QH2z4uWkrrYg3qvAzfoM/sqxTMf+jhG0JH0v4oEK/VbFWIvuk
-yfUc5J9XqSgy4y2ZKHSU5qT4vCVBhTaeqllhWT2lVxGeDCe8rHSi6JO6s7pt9JIKHEn4Owl/XoFn
-EnYlbEkYSziUMJGwLmGvwjdNwn6F/mDDz01baUW8UYWf8Rv8kWWdivkfJWxL+FjCBxX6rYq1Eqkq
-TYpULTKjPGGL9Phn+fr2tP3n2cs/cr3t9lcrwvK3GSyn1sdt0o2SUhgJ+J2An5fCmYCugJaAWMBQ
-QCKgLqBX6o4moF+qN1j3bNNEWhpbVOpZXOnDpphTOvujgLaAxwIelOq1SpdEJKaYK8/Lv8hPtvX/
-Kjf/RZL+h2x9nbY7rPgac7NPBv2Lu2eWvad34U/D/qV5mZSgqEDfFejzEjQrkFsgq0C4QGGBSIH0
-AnklHmgF8kv0BcKXEs1pSRxRiS/xX9oVEk7J3I8Fsgt0XKCDEn1WSeQiLYupN2VleX6KHf5vSfrv
-c/W/p6ycuW9xctOeeIx6o6ndnZ1qIlXxT2VzoU3eDRZBfEV72eXg9RPgztpzKJ8GtmINTN3zDN2c
-lrTXxNPfdOD29LY6CnVvRfTb1VObamaPfq2TkXkGBeJnaLpoMfRlQl+ta0kILQdonayJHOUP9JkU
-fZAXXY8H2xtd9WaPg8FEnVw2UPPe6E7ueufniNoSj/CdXtK8epyvniq6nTxasK3RfkSfdcY4rZY/
-6bPydvYE8pNLtCcsFbRuGN+3DBqWsKa1cdKPsOnqXiv0LByrh3UQPnuSehq5oNyiEI0GdiDoU3Nm
-BqzT9s2vv9YKw9JyAenrffQZ+mIfrHzdQBa9iTjchykY6dxhA62ai5Hr+EkHSMDI2BntW+D3qXJt
-EuFxrl9sV9mOFkxi5YGRS2gkNUgSqxaRjEL4YGVz0f5qK8vWClX3fXkF4M2Nl23Hddtx/T87rsUJ
-Xc6seUCc5xNbdRfD4anfQKl/N7ICWnnWj2zQ9dzxDNx5epxcsg6Khk/bC6zQHM2opXVJqa5LWVHi
-JY6r0M7CaEn5Cof4fw022tNNrGYHu1GrwSnMvBHE0zajsHonDlMWlPpKlcJUKQ1FKVGlnLYZhRbv
-/JyqmK7LTqGWXjmAzM+oaBQWy6t6hrnoNRA73fRWIrtVEKedtnFzLiHm+DeDaHW+JrgpyvaH+mOt
-rDCX4WGLwpJreGHTbHypZ2Vl+1POtrC8U2Gxr68No3UTXau9K3sBl87L4cV0Qo+P9JtEexG1E1pJ
-9hDl2oOfgvicdpcGaibCjvL2ErjN1HfK1PS627mPTjfytCqFt8m4TcZ3S8b71bnd2kjF8hSFNNzm
-4TYP3yUP/ftVOh2nq2s9UhfkOTXHCX0zILvtzWd+Ya0P2wvDWFXX2iCf5iyah4Nx4tTrv23L5jZd
-3ytd272e358v1fsxez7bsacUHu2yXmHBhcgjGU1CNR5O/UWD3XJmj3PizUL2jhuTgshVOu+yKfj3
-PTqg//f26khIPVlXQz+grR+m7wgI7H2YPzKC5gYWXtzYqkKfgZU6N0g/wuCB9LN03lF6vvHa3U3a
-3IEnY6RyMnh0yHyhGsWTfB6feJyc4NP66w7x2qWGMhxRPfnDofhwU3t7fHazQ2vA+1VTKssmcxov
-FFmIbD23h397+N/n8LPuRwQx8Bxn7xGPB8lq+ZB26BuuvL3vNofti9vsK8vIjJkfXCDI17xflCyD
-LQJNoC8OiWVbxLZs+jLtF19+9eUXX1EEfWFs2YlFcUk/Pv/5oe/AOtfqTPYLTFUpv7GuUmb/Kpn5
-tMiIKZvMx76BobmdFS0eIK9ZmSgbRIEqpqwQyT8/UXKhTxziTPb2ippIrs+7T/A24A49xqx83V7x
-Qpof8Jz0kit4yUsRq4uZS/mW5BqzYlcaA6Pw2KG4FIb5YvxwsA+fr74pnBDVLVMiilt3bE8u9eBs
-xra/4lNcIQR3pvmFF77XL2dyGvx73ZAHG9uW/LacvV85Y/cu632y55upY5zoxskl/W3sVV3hnW65
-nbZZiiQFdbnHlt8l/QlQSwECPwMUAwAACACSDBBLLYlWeaUKAAAqMgAABQAkAAAAAAAAACCApIEA
-AAAAQ2ouanMKACAAAAAAAAEAGAAACjegURbTAQAKN6BRFtMBAAo3oFEW0wFQSwUGAAAAAAEAAQBX
-AAAAyAoAAAAAUEsBAj8DCgMAAAAAkgwQS3MIgHs1CwAANQsAABEAJAAAAAAAAAAggKSBAAAAADY4
-ODU2NTI3NTA1MzQuemlwCgAgAAAAAAABABgAAAo3oFEW0wEACjegURbTAQAKN6BRFtMBUEsFBgAA
-AAABAAEAYwAAAGQLAAAAAA==
+On Wed, Aug 9, 2017 at 7:33 AM, Cong Wang <xiyou.wangcong@gmail.com> wrote:
+> On Mon, Aug 7, 2017 at 7:33 PM, Xin Long <lucien.xin@gmail.com> wrote:
+>> On Tue, Aug 8, 2017 at 9:15 AM, Cong Wang <xiyou.wangcong@gmail.com> wrote:
+>>> This looks like a completely API burden?
+>> netfilter xt targets are not really compatible with netsched action.
+>> I've got to say, the patch is just a way to make checkentry return
+>> false and avoid panic. like [1] said
+>
+> I don't doubt you fix a crash, I am thinking if we can
+> "fix" the API instead of fixing the caller.
+Hi, Cong,
+
+For now, I don't think it's possible to change APIs or  some of their targets
+for the panic caused by action xt calling.
+
+The common way should be fixed in net_sched side.
+
+Given that the issue is very easy to triggered,
+let's wait for netfilter's replies for another few days,
+otherwise I will repost the fix, agree ?
+
+>
+> I am not familiar with this API, so just my 2 cents...
