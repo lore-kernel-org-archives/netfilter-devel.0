@@ -1,157 +1,70 @@
 From: Eric Leblond <eric@regit.org>
-Subject: [nft PATH 03/16] libnftables: add nft_run_command_from_buffer
-Date: Wed, 16 Aug 2017 22:42:57 +0200
-Message-ID: <20170816204310.3371-4-eric@regit.org>
-References: <20170816204310.3371-1-eric@regit.org>
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
+Subject: [nft PATCH 0/16] introduce libnftables
+Date: Wed, 16 Aug 2017 22:42:54 +0200
+Message-ID: <20170816204310.3371-1-eric@regit.org>
+Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from home.regit.org ([37.187.126.138]:40698 "EHLO home.regit.org"
+Received: from home.regit.org ([37.187.126.138]:40732 "EHLO home.regit.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752353AbdHPVZe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Aug 2017 17:25:34 -0400
-In-Reply-To: <20170816204310.3371-1-eric@regit.org>
+        id S1752780AbdHPVZq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 16 Aug 2017 17:25:46 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Eric Leblond <eric@regit.org>
----
- include/nftables/nftables.h |  3 +++
- src/libnftables.c           | 26 +++++++++++++++++++++++++-
- src/main.c                  | 21 +++++++++------------
- 3 files changed, 37 insertions(+), 13 deletions(-)
 
-diff --git a/include/nftables/nftables.h b/include/nftables/nftables.h
-index cfa60fe..63150ba 100644
---- a/include/nftables/nftables.h
-+++ b/include/nftables/nftables.h
-@@ -20,4 +20,7 @@ void nft_global_deinit(void);
- struct nft_ctx *nft_context_new(void);
- void nft_context_free(struct nft_ctx *nft);
- 
-+int nft_run_command_from_buffer(struct nft_ctx *nft, struct nft_cache *cache,
-+				char *buf, size_t buflen);
-+
- #endif
-diff --git a/src/libnftables.c b/src/libnftables.c
-index da1b231..9248741 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -7,7 +7,6 @@
-  *
-  */
- 
--#include <nftables/nftables.h>
- #include <string.h>
- #include <errno.h>
- #include <nftables.h>
-@@ -18,6 +17,8 @@
- #include <libmnl/libmnl.h>
- #include <mnl.h>
- 
-+#include <nftables/nftables.h>
-+
- #include <unistd.h>
- #include <fcntl.h>
- 
-@@ -71,3 +72,26 @@ void nft_context_free(struct nft_ctx *nft)
- 	netlink_close_sock(nft->nf_sock);
- 	xfree(nft);
- }
-+
-+static const struct input_descriptor indesc_cmdline = {
-+	.type	= INDESC_BUFFER,
-+	.name	= "<cmdline>",
-+};
-+
-+int nft_run_command_from_buffer(struct nft_ctx *nft, struct nft_cache *cache,
-+				char *buf, size_t buflen)
-+{
-+	int rc = NFT_EXIT_SUCCESS;
-+	struct parser_state state;
-+	LIST_HEAD(msgs);
-+	void *scanner;
-+
-+	parser_init(nft->nf_sock, cache, &state, &msgs);
-+	scanner = scanner_init(&state);
-+	scanner_push_buffer(scanner, &indesc_cmdline, buf);
-+		
-+	if (nft_run(nft, nft->nf_sock, cache, scanner, &state, &msgs) != 0)
-+		rc = NFT_EXIT_FAILURE;
-+
-+	return rc;
-+}
-diff --git a/src/main.c b/src/main.c
-index 23af38e..f863dec 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -18,8 +18,8 @@
- #include <fcntl.h>
- #include <sys/types.h>
- 
--#include <nftables/nftables.h>
- #include <nftables.h>
-+#include <nftables/nftables.h>
- #include <utils.h>
- #include <parser.h>
- #include <rule.h>
-@@ -182,11 +182,6 @@ static const struct {
- };
- #endif
- 
--static const struct input_descriptor indesc_cmdline = {
--	.type	= INDESC_BUFFER,
--	.name	= "<cmdline>",
--};
--
- static int nft_netlink(struct nft_ctx *nft, struct nft_cache *cache,
- 		       struct parser_state *state, struct list_head *msgs,
- 		       struct mnl_socket *nf_sock)
-@@ -367,7 +362,7 @@ int main(int argc, char * const *argv)
- 			nft->output.handle++;
- 			break;
- 		case OPT_ECHO:
--			nft.output.echo++;
-+			nft->output.echo++;
- 			break;
- 		case OPT_INVALID:
- 			exit(NFT_EXIT_FAILURE);
-@@ -385,9 +380,10 @@ int main(int argc, char * const *argv)
- 				strcat(buf, " ");
- 		}
- 		strcat(buf, "\n");
--		parser_init(nft->nf_sock, &cache, &state, &msgs);
--		scanner = scanner_init(&state);
--		scanner_push_buffer(scanner, &indesc_cmdline, buf);
-+		rc = nft_run_command_from_buffer(nft, &cache, buf, len + 2);
-+		if (rc < 0)
-+			return rc;
-+		goto libout;
- 	} else if (filename != NULL) {
- 		rc = cache_update(nft->nf_sock, &cache, CMD_INVALID, &msgs);
- 		if (rc < 0)
-@@ -397,6 +393,8 @@ int main(int argc, char * const *argv)
- 		scanner = scanner_init(&state);
- 		if (scanner_read_file(scanner, filename, &internal_location) < 0)
- 			goto out;
-+		if (nft_run(nft, nft->nf_sock, &cache, scanner, &state, &msgs) != 0)
-+			rc = NFT_EXIT_FAILURE;
- 	} else if (interactive) {
- 		if (cli_init(nft, nft->nf_sock, &cache, &state) < 0) {
- 			fprintf(stderr, "%s: interactive CLI not supported in this build\n",
-@@ -409,11 +407,10 @@ int main(int argc, char * const *argv)
- 		exit(NFT_EXIT_FAILURE);
- 	}
- 
--	if (nft_run(nft, nft->nf_sock, &cache, scanner, &state, &msgs) != 0)
--		rc = NFT_EXIT_FAILURE;
- out:
- 	scanner_destroy(scanner);
- 	erec_print_list(stderr, &msgs);
-+libout:
- 	xfree(buf);
- 	cache_release(&cache);
- 	iface_cache_release();
--- 
-2.14.1
+Hello,
 
+This patchset adds a basi high level libnftables to nftables code.
+It is currently supporting running a command from a buffer or from
+a file as well as batch support allowing to chain commands and commit
+them at once.
+
+The API is mostly using existing structures such as nft_ctx that are
+updated to contain enough information. It also adds a structure
+dedicated to batch.
+
+A simple program running a command is the following:
+
+ 	nft_global_init();
+	nft = nft_context_new();
+	nft_context_set_print_func(nft, my_print, buf);
+	rc = nft_run_command_from_buffer(nft, CMD, sizeof(CMD));
+	if (rc != NFT_EXIT_SUCCESS) {
+		nft_get_error(nft, err_buf, sizeof(err_buf));
+		printf("%s\n", err_buf);
+		return -1;
+	}
+	nft_context_free(nft);
+	nft_global_deinit(); 
+
+Transaction support is similar with:
+
+	nft = nft_context_new();
+	batch = nft_batch_start(nft);
+	if (nft_batch_add(nft, batch, ADD1, strlen(ADD1)) !=0) {
+		printf("FAIL add 1\n");
+		goto out;
+	}
+	if (nft_batch_add(nft, batch, ADD2, strlen(ADD2)) !=0) {
+		printf("FAIL add 2\n");
+		goto out;
+	}
+	if (nft_batch_commit(nft, batch) != 0) {
+		goto out;
+	}
+
+out:	
+	nft_batch_free(batch);
+	nft_context_free(nft);
+	nft_global_deinit();
+
+The library provides a way to get standard output via nft_context_set_print_func
+and error handling is done via nft_get_error that get error message in a buffer.
+
+This is early stage code as it does not feature things like set handling but IMO
+it can already be used as a starting point to build more things.
+
+BR,
+--
+Eric
