@@ -1,48 +1,58 @@
-From: Xin Long <lucien.xin@gmail.com>
-Subject: Re: [PATCH net] net: sched: fix NULL pointer dereference when action
- calls some targets
-Date: Wed, 16 Aug 2017 20:39:44 +1200
-Message-ID: <CADvbK_cCQY0McHiZFKSTjdGdAjhB6RBej5n=SH2=hsLYC=Xa7w@mail.gmail.com>
-References: <0fa9a53725dd661571461cf283ec88cf15f4b139.1501932907.git.lucien.xin@gmail.com>
- <CAM_iQpWcg0a46gJ6Qp3F1pqvvsaJYajmDC2uG_mi9Av_vkFo2w@mail.gmail.com>
- <CADvbK_fuuBrh+eOuhQU+SYs9uazH2TRP+KUmhxU=hNZ=EkOT=Q@mail.gmail.com> <CAM_iQpXbtHDxVjZ=DoTiLXHLQy6q=JVBa66EqSOy95ZbFg-wkQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: network dev <netdev@vger.kernel.org>,
-        David Miller <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org,
-        Jamal Hadi Salim <jhs@mojatatu.com>
-To: Cong Wang <xiyou.wangcong@gmail.com>
+From: Varsha Rao <rvarsha016@gmail.com>
+Subject: [PATCH nft 2/5] src: gmputil: Remove mpz_get_be64() function.
+Date: Wed, 16 Aug 2017 19:48:14 +0530
+Message-ID: <20170816141817.20179-3-rvarsha016@gmail.com>
+References: <20170816141817.20179-1-rvarsha016@gmail.com>
+Cc: Varsha Rao <rvarsha016@gmail.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:38036 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751605AbdHPIjp (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:37813 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751637AbdHPOTG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 16 Aug 2017 04:39:45 -0400
-In-Reply-To: <CAM_iQpXbtHDxVjZ=DoTiLXHLQy6q=JVBa66EqSOy95ZbFg-wkQ@mail.gmail.com>
+        Wed, 16 Aug 2017 10:19:06 -0400
+Received: by mail-pf0-f194.google.com with SMTP id p13so1493659pfd.4
+        for <netfilter-devel@vger.kernel.org>; Wed, 16 Aug 2017 07:19:06 -0700 (PDT)
+In-Reply-To: <20170816141817.20179-1-rvarsha016@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Aug 9, 2017 at 7:33 AM, Cong Wang <xiyou.wangcong@gmail.com> wrote:
-> On Mon, Aug 7, 2017 at 7:33 PM, Xin Long <lucien.xin@gmail.com> wrote:
->> On Tue, Aug 8, 2017 at 9:15 AM, Cong Wang <xiyou.wangcong@gmail.com> wrote:
->>> This looks like a completely API burden?
->> netfilter xt targets are not really compatible with netsched action.
->> I've got to say, the patch is just a way to make checkentry return
->> false and avoid panic. like [1] said
->
-> I don't doubt you fix a crash, I am thinking if we can
-> "fix" the API instead of fixing the caller.
-Hi, Cong,
+mpz_get_be64() is not used anywhere in source code. So remove it.
 
-For now, I don't think it's possible to change APIs or  some of their targets
-for the panic caused by action xt calling.
+Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
+---
+ include/gmputil.h | 1 -
+ src/gmputil.c     | 5 -----
+ 2 files changed, 6 deletions(-)
 
-The common way should be fixed in net_sched side.
+diff --git a/include/gmputil.h b/include/gmputil.h
+index 1bf696a..9c37221 100644
+--- a/include/gmputil.h
++++ b/include/gmputil.h
+@@ -45,7 +45,6 @@ extern uint32_t mpz_get_uint32(const mpz_t op);
+ extern uint16_t mpz_get_uint16(const mpz_t op);
+ extern uint8_t mpz_get_uint8(const mpz_t op);
+ 
+-extern uint64_t mpz_get_be64(const mpz_t op);
+ extern uint32_t mpz_get_be32(const mpz_t op);
+ extern uint16_t mpz_get_be16(const mpz_t op);
+ 
+diff --git a/src/gmputil.c b/src/gmputil.c
+index 844ea61..3cc4e61 100644
+--- a/src/gmputil.c
++++ b/src/gmputil.c
+@@ -77,11 +77,6 @@ uint8_t mpz_get_uint8(const mpz_t op)
+ 	return mpz_get_type(uint8_t, MPZ_HOST_ENDIAN, op);
+ }
+ 
+-uint64_t mpz_get_be64(const mpz_t op)
+-{
+-	return mpz_get_type(uint64_t, MPZ_BIG_ENDIAN, op);
+-}
+-
+ uint32_t mpz_get_be32(const mpz_t op)
+ {
+ 	return mpz_get_type(uint32_t, MPZ_BIG_ENDIAN, op);
+-- 
+2.13.5
 
-Given that the issue is very easy to triggered,
-let's wait for netfilter's replies for another few days,
-otherwise I will repost the fix, agree ?
-
->
-> I am not familiar with this API, so just my 2 cents...
