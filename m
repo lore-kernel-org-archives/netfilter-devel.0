@@ -1,72 +1,68 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nft PATCH 0/16] introduce libnftables
-Date: Thu, 17 Aug 2017 12:47:27 +0200
-Message-ID: <20170817104727.GA16375@orbyte.nwl.cc>
-References: <20170816204310.3371-1-eric@regit.org>
- <CAOkSjBg8L7QQ2WapAoX_erz4pDm3+q9460w8qnrzgPMPouFL1A@mail.gmail.com>
+From: Xin Long <lucien.xin@gmail.com>
+Subject: Re: [PATCH net] net: sched: fix NULL pointer dereference when action
+ calls some targets
+Date: Thu, 17 Aug 2017 23:24:00 +1200
+Message-ID: <CADvbK_e+EntdONqnVEEDK+gqzcJHoy2gu5syoYznjaM22zKMCQ@mail.gmail.com>
+References: <0fa9a53725dd661571461cf283ec88cf15f4b139.1501932907.git.lucien.xin@gmail.com>
+ <CAM_iQpWcg0a46gJ6Qp3F1pqvvsaJYajmDC2uG_mi9Av_vkFo2w@mail.gmail.com>
+ <CADvbK_fuuBrh+eOuhQU+SYs9uazH2TRP+KUmhxU=hNZ=EkOT=Q@mail.gmail.com>
+ <CAM_iQpXbtHDxVjZ=DoTiLXHLQy6q=JVBa66EqSOy95ZbFg-wkQ@mail.gmail.com>
+ <CADvbK_cCQY0McHiZFKSTjdGdAjhB6RBej5n=SH2=hsLYC=Xa7w@mail.gmail.com>
+ <20170817100220.GC6928@salvia> <20170817103344.GA7568@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Leblond <eric@regit.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:43985 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750913AbdHQKr2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 17 Aug 2017 06:47:28 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBg8L7QQ2WapAoX_erz4pDm3+q9460w8qnrzgPMPouFL1A@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Cc: Cong Wang <xiyou.wangcong@gmail.com>,
+        network dev <netdev@vger.kernel.org>,
+        David Miller <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org,
+        Jamal Hadi Salim <jhs@mojatatu.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170817103344.GA7568@salvia>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Aug 17, 2017 at 10:32:42AM +0200, Arturo Borrero Gonzalez wrote:
-> On 16 August 2017 at 22:42, Eric Leblond <eric@regit.org> wrote:
-> >
-> > Hello,
-> >
-> > This patchset adds a basi high level libnftables to nftables code.
-> > It is currently supporting running a command from a buffer or from
-> > a file as well as batch support allowing to chain commands and commit
-> > them at once.
-> >
-> > The API is mostly using existing structures such as nft_ctx that are
-> > updated to contain enough information. It also adds a structure
-> > dedicated to batch.
-> >
-> 
-> Great work Eric, thanks!
+On Thu, Aug 17, 2017 at 10:33 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Thu, Aug 17, 2017 at 12:02:20PM +0200, Pablo Neira Ayuso wrote:
+>> On Wed, Aug 16, 2017 at 08:39:44PM +1200, Xin Long wrote:
+>> > On Wed, Aug 9, 2017 at 7:33 AM, Cong Wang <xiyou.wangcong@gmail.com> wrote:
+>> > > On Mon, Aug 7, 2017 at 7:33 PM, Xin Long <lucien.xin@gmail.com> wrote:
+>> > >> On Tue, Aug 8, 2017 at 9:15 AM, Cong Wang <xiyou.wangcong@gmail.com> wrote:
+>> > >>> This looks like a completely API burden?
+>> > >> netfilter xt targets are not really compatible with netsched action.
+>> > >> I've got to say, the patch is just a way to make checkentry return
+>> > >> false and avoid panic. like [1] said
+>> > >
+>> > > I don't doubt you fix a crash, I am thinking if we can
+>> > > "fix" the API instead of fixing the caller.
+>> > Hi, Cong,
+>> >
+>> > For now, I don't think it's possible to change APIs or  some of their targets
+>> > for the panic caused by action xt calling.
+>> >
+>> > The common way should be fixed in net_sched side.
+>> >
+>> > Given that the issue is very easy to triggered,
+>> > let's wait for netfilter's replies for another few days,
+>> > otherwise I will repost the fix, agree ?
+>>
+>> Please, post the workaround so the kernel doesn't crash anymore.
+>>
+>> This is going to be very hard to fix, it's broken since the very
+>> beginning...
+>
+> Wait a second, you could rename par->nft_compat to par->no_entry. From
+> net/sched/ you can set this to 1, so the entry checks are ignored.
+>
+> I'm refering to patch 55917a21d0cc0
 
-+1! Thanks for pushing this forward.
+par->nft_compat wasn't used to ignore the entry checks, if we rename it
+as no_entry, some other targets still needs to update. like the ones in
+this patch's changelog:
+ECN: ecn_tg_check()
+TPROXY: tproxy_tg4_check()
 
-I noticed a few compiler warnings:
-
-| libnftables.c: In function 'nft_batch_commit':
-| ../include/list.h:28:2: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
-|   struct list_head name = LIST_HEAD_INIT(name)
-|   ^
-| libnftables.c:282:2: note: in expansion of macro 'LIST_HEAD'
-|   LIST_HEAD(err_list);
-|   ^~~~~~~~~
-
-I don't quite understand why that happens, the code removed from
-nft_netlink() looks identical. Maybe some compiler flags missing? Or is
-it just me?
-
-In addition, I see this one:
-
-| parser_bison.y: In function 'nft_parse':
-| parser_bison.y:122:3: warning: implicit declaration of function 'nft_set_debug' [-Wimplicit-function-declaration]
-|    nft_set_debug(1, scanner);
-|    ^~~~~~~~~~~~~
-| parser_bison.c:64:25: warning: implicit declaration of function 'nft_lex' [-Wimplicit-function-declaration]
-|  #define yylex           nft_lex
-|                          ^
-| parser_bison.c:4400:16: note: in expansion of macro 'yylex'
-|        yychar = yylex (&yylval, &yylloc, scanner);
-|                 ^~~~~
-
-Not sure why that happens, though.
-
-Cheers, Phil
+which means these two checks will be ignored for nft as well, that is
+not what we want.
+As nft has e4.ip.proto and e4.ip.invflags being set which net/sched
+gets nothing. they are still different.
