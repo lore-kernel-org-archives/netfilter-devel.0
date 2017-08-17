@@ -1,68 +1,112 @@
-From: Xin Long <lucien.xin@gmail.com>
-Subject: Re: [PATCH net] net: sched: fix NULL pointer dereference when action
- calls some targets
-Date: Thu, 17 Aug 2017 19:45:45 +1200
-Message-ID: <CADvbK_cEqE-SN+NqRAukDcHD8nB6MW5cCYpbjKSMmF7hyYRJuA@mail.gmail.com>
-References: <0fa9a53725dd661571461cf283ec88cf15f4b139.1501932907.git.lucien.xin@gmail.com>
- <CAM_iQpWcg0a46gJ6Qp3F1pqvvsaJYajmDC2uG_mi9Av_vkFo2w@mail.gmail.com>
- <CADvbK_fuuBrh+eOuhQU+SYs9uazH2TRP+KUmhxU=hNZ=EkOT=Q@mail.gmail.com>
- <CAM_iQpXbtHDxVjZ=DoTiLXHLQy6q=JVBa66EqSOy95ZbFg-wkQ@mail.gmail.com>
- <CADvbK_cCQY0McHiZFKSTjdGdAjhB6RBej5n=SH2=hsLYC=Xa7w@mail.gmail.com> <CAM_iQpVDQ3iZ-bRPNNPKtXPTRQXdTJFtzPcMn2SupZWy6O_cqw@mail.gmail.com>
+From: Arturo Borrero Gonzalez <arturo@netfilter.org>
+Subject: Re: [nft PATCH 0/16] introduce libnftables
+Date: Thu, 17 Aug 2017 10:32:42 +0200
+Message-ID: <CAOkSjBg8L7QQ2WapAoX_erz4pDm3+q9460w8qnrzgPMPouFL1A@mail.gmail.com>
+References: <20170816204310.3371-1-eric@regit.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Cc: network dev <netdev@vger.kernel.org>,
-        David Miller <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org,
-        Jamal Hadi Salim <jhs@mojatatu.com>
-To: Cong Wang <xiyou.wangcong@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAM_iQpVDQ3iZ-bRPNNPKtXPTRQXdTJFtzPcMn2SupZWy6O_cqw@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Eric Leblond <eric@regit.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wr0-f171.google.com ([209.85.128.171]:37695 "EHLO
+        mail-wr0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751642AbdHQIdG (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 17 Aug 2017 04:33:06 -0400
+Received: by mail-wr0-f171.google.com with SMTP id z91so27581671wrc.4
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Aug 2017 01:33:05 -0700 (PDT)
+Received: from mail-wr0-f173.google.com (mail-wr0-f173.google.com. [209.85.128.173])
+        by smtp.gmail.com with ESMTPSA id r29sm1410298edi.85.2017.08.17.01.33.03
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 17 Aug 2017 01:33:04 -0700 (PDT)
+Received: by mail-wr0-f173.google.com with SMTP id 49so28348201wrw.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Aug 2017 01:33:03 -0700 (PDT)
+In-Reply-To: <20170816204310.3371-1-eric@regit.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Aug 17, 2017 at 5:57 PM, Cong Wang <xiyou.wangcong@gmail.com> wrote:
-> On Wed, Aug 16, 2017 at 1:39 AM, Xin Long <lucien.xin@gmail.com> wrote:
->> On Wed, Aug 9, 2017 at 7:33 AM, Cong Wang <xiyou.wangcong@gmail.com> wrote:
->>> On Mon, Aug 7, 2017 at 7:33 PM, Xin Long <lucien.xin@gmail.com> wrote:
->>>> On Tue, Aug 8, 2017 at 9:15 AM, Cong Wang <xiyou.wangcong@gmail.com> wrote:
->>>>> This looks like a completely API burden?
->>>> netfilter xt targets are not really compatible with netsched action.
->>>> I've got to say, the patch is just a way to make checkentry return
->>>> false and avoid panic. like [1] said
->>>
->>> I don't doubt you fix a crash, I am thinking if we can
->>> "fix" the API instead of fixing the caller.
->> Hi, Cong,
->>
->> For now, I don't think it's possible to change APIs or  some of their targets
->> for the panic caused by action xt calling.
->>
->> The common way should be fixed in net_sched side.
->>
->> Given that the issue is very easy to triggered,
->> let's wait for netfilter's replies for another few days,
->> otherwise I will repost the fix, agree ?
+On 16 August 2017 at 22:42, Eric Leblond <eric@regit.org> wrote:
 >
-> Yeah, no objections from me.
+> Hello,
 >
-> By the way, do you know how other callers of this API
-> use 'entryinfo'? Do they pass the address of the struct
-> on stack too?
-afaik, two places:
-1. translate_table -> find_check_entry -> check_target -> xt_check_target
-most iptables operations go there and .entryinfo is set in check_target
-with struct ipt_entry *e, which is an iptable rule, so can't be NULL.
-(as well as ip6table in netfilter/ip6_tables.c )
+> This patchset adds a basi high level libnftables to nftables code.
+> It is currently supporting running a command from a buffer or from
+> a file as well as batch support allowing to chain commands and commit
+> them at once.
+>
+> The API is mostly using existing structures such as nft_ctx that are
+> updated to contain enough information. It also adds a structure
+> dedicated to batch.
+>
 
-2. nft_target_init -> xt_check_target, where nft_target_set_tgchk_param
-does the exact thing to set .entryinfo with a local varible union nft_entry e:
-union nft_entry {
-        struct ipt_entry e4;
-        struct ip6t_entry e6;
-        struct ebt_entry ebt;
-        struct arpt_entry arp;
-};
+Great work Eric, thanks!
 
-case 2 is actually what nft does to use xt targets, so net/sched
-action should do
-the same.
+Some comments below.
+
+> A simple program running a command is the following:
+>
+>         nft_global_init();
+>         nft = nft_context_new();
+>         nft_context_set_print_func(nft, my_print, buf);
+
+^^^
+A minor thing: Did you evaluate merging these two? Setting the print
+function directly when allocating a new context.
+
+
+>         rc = nft_run_command_from_buffer(nft, CMD, sizeof(CMD));
+>         if (rc != NFT_EXIT_SUCCESS) {
+>                 nft_get_error(nft, err_buf, sizeof(err_buf));
+>                 printf("%s\n", err_buf);
+>                 return -1;
+>         }
+>         nft_context_free(nft);
+>         nft_global_deinit();
+>
+> Transaction support is similar with:
+>
+>         nft = nft_context_new();
+>         batch = nft_batch_start(nft);
+>         if (nft_batch_add(nft, batch, ADD1, strlen(ADD1)) !=0) {
+>                 printf("FAIL add 1\n");
+>                 goto out;
+>         }
+>         if (nft_batch_add(nft, batch, ADD2, strlen(ADD2)) !=0) {
+>                 printf("FAIL add 2\n");
+>                 goto out;
+>         }
+>         if (nft_batch_commit(nft, batch) != 0) {
+
+^^^
+error handling here is like in the other case? i.e. running nft_get_error() ?
+
+>                 goto out;
+>         }
+>
+> out:
+>         nft_batch_free(batch);
+>         nft_context_free(nft);
+>         nft_global_deinit();
+>
+> The library provides a way to get standard output via nft_context_set_print_func
+> and error handling is done via nft_get_error that get error message in a buffer.
+>
+> This is early stage code as it does not feature things like set handling but IMO
+> it can already be used as a starting point to build more things.
+>
+
+Any special challenge with sets?
+
+On a side note, I remember in NFWS 2017 we discussed the possibility
+of libnftables being a separate source project, i.e a standalone
+repository.
+Now that I see your patches, what I see is that libnftables is mostly
+all the code, while nft itself is very little code.
+Still, with my Debian hat, I think that different repositories is good to have.
+
+One more comment: perhaps is good idea to release nftables v0.8 before
+introducing this code into the repository. We may end not releasing
+nftables in quite a long time.
