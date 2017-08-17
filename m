@@ -1,70 +1,48 @@
-From: Vishwanath Pai <vpai@akamai.com>
-Subject: [PATCH] netfilter: ipset: ipset list may return wrong member count for set with timeout
-Date: Thu, 17 Aug 2017 01:23:55 -0400
-Message-ID: <1502947435-18549-1-git-send-email-vpai@akamai.com>
-Cc: johunt@akamai.com, pai.vishwain@gmail.com, vpai@akamai.com,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-To: pablo@netfilter.org, kadlec@blackhole.kfki.hu
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: Re: [PATCH net] net: sched: fix NULL pointer dereference when action
+ calls some targets
+Date: Wed, 16 Aug 2017 22:57:54 -0700
+Message-ID: <CAM_iQpVDQ3iZ-bRPNNPKtXPTRQXdTJFtzPcMn2SupZWy6O_cqw@mail.gmail.com>
+References: <0fa9a53725dd661571461cf283ec88cf15f4b139.1501932907.git.lucien.xin@gmail.com>
+ <CAM_iQpWcg0a46gJ6Qp3F1pqvvsaJYajmDC2uG_mi9Av_vkFo2w@mail.gmail.com>
+ <CADvbK_fuuBrh+eOuhQU+SYs9uazH2TRP+KUmhxU=hNZ=EkOT=Q@mail.gmail.com>
+ <CAM_iQpXbtHDxVjZ=DoTiLXHLQy6q=JVBa66EqSOy95ZbFg-wkQ@mail.gmail.com> <CADvbK_cCQY0McHiZFKSTjdGdAjhB6RBej5n=SH2=hsLYC=Xa7w@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: network dev <netdev@vger.kernel.org>,
+        David Miller <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org,
+        Jamal Hadi Salim <jhs@mojatatu.com>
+To: Xin Long <lucien.xin@gmail.com>
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CADvbK_cCQY0McHiZFKSTjdGdAjhB6RBej5n=SH2=hsLYC=Xa7w@mail.gmail.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Simple testcase:
+On Wed, Aug 16, 2017 at 1:39 AM, Xin Long <lucien.xin@gmail.com> wrote:
+> On Wed, Aug 9, 2017 at 7:33 AM, Cong Wang <xiyou.wangcong@gmail.com> wrote:
+>> On Mon, Aug 7, 2017 at 7:33 PM, Xin Long <lucien.xin@gmail.com> wrote:
+>>> On Tue, Aug 8, 2017 at 9:15 AM, Cong Wang <xiyou.wangcong@gmail.com> wrote:
+>>>> This looks like a completely API burden?
+>>> netfilter xt targets are not really compatible with netsched action.
+>>> I've got to say, the patch is just a way to make checkentry return
+>>> false and avoid panic. like [1] said
+>>
+>> I don't doubt you fix a crash, I am thinking if we can
+>> "fix" the API instead of fixing the caller.
+> Hi, Cong,
+>
+> For now, I don't think it's possible to change APIs or  some of their targets
+> for the panic caused by action xt calling.
+>
+> The common way should be fixed in net_sched side.
+>
+> Given that the issue is very easy to triggered,
+> let's wait for netfilter's replies for another few days,
+> otherwise I will repost the fix, agree ?
 
-$ ipset create test hash:ip timeout 5
-$ ipset add test 1.2.3.4
-$ ipset add test 1.2.2.2
-$ sleep 5
+Yeah, no objections from me.
 
-$ ipset l
-Name: test
-Type: hash:ip
-Revision: 5
-Header: family inet hashsize 1024 maxelem 65536 timeout 5
-Size in memory: 296
-References: 0
-Number of entries: 2
-Members:
-
-We return "Number of entries: 2" but no members are listed. That is
-because mtype_list runs "ip_set_timeout_expired" and does not list the
-expired entries, but set->elements is never upated (until mtype_gc
-cleans it up later).
-
-Reviewed-by: Joshua Hunt <johunt@akamai.com>
-Signed-off-by: Vishwanath Pai <vpai@akamai.com>
----
- net/netfilter/ipset/ip_set_hash_gen.h | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index f236c0b..ff3d31c 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -1041,12 +1041,22 @@ struct htype {
- static int
- mtype_head(struct ip_set *set, struct sk_buff *skb)
- {
--	const struct htype *h = set->data;
-+	struct htype *h = set->data;
- 	const struct htable *t;
- 	struct nlattr *nested;
- 	size_t memsize;
- 	u8 htable_bits;
- 
-+	/* If any members have expired, set->elements will be wrong
-+	 * mytype_expire function will update it with the right count.
-+	 * we do not hold set->lock here, so grab it first.
-+	 */
-+	if (SET_WITH_TIMEOUT(set)) {
-+		spin_lock_bh(&set->lock);
-+		mtype_expire(set, h);
-+		spin_unlock_bh(&set->lock);
-+	}
-+
- 	rcu_read_lock_bh();
- 	t = rcu_dereference_bh_nfnl(h->table);
- 	memsize = mtype_ahash_memsize(h, t) + set->ext_size;
--- 
-1.9.1
+By the way, do you know how other callers of this API
+use 'entryinfo'? Do they pass the address of the struct
+on stack too?
