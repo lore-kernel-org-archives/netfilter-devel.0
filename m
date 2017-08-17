@@ -1,43 +1,52 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 1/2] evaluate: shift immediate value when adjusting
- size for csum fixup
-Date: Thu, 17 Aug 2017 12:00:56 +0200
-Message-ID: <20170817100056.GA6928@salvia>
-References: <20170816170156.11594-1-fw@strlen.de>
+Subject: Re: [PATCH net] net: sched: fix NULL pointer dereference when action
+ calls some targets
+Date: Thu, 17 Aug 2017 12:02:20 +0200
+Message-ID: <20170817100220.GC6928@salvia>
+References: <0fa9a53725dd661571461cf283ec88cf15f4b139.1501932907.git.lucien.xin@gmail.com>
+ <CAM_iQpWcg0a46gJ6Qp3F1pqvvsaJYajmDC2uG_mi9Av_vkFo2w@mail.gmail.com>
+ <CADvbK_fuuBrh+eOuhQU+SYs9uazH2TRP+KUmhxU=hNZ=EkOT=Q@mail.gmail.com>
+ <CAM_iQpXbtHDxVjZ=DoTiLXHLQy6q=JVBa66EqSOy95ZbFg-wkQ@mail.gmail.com>
+ <CADvbK_cCQY0McHiZFKSTjdGdAjhB6RBej5n=SH2=hsLYC=Xa7w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:47231 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750988AbdHQKBY (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 17 Aug 2017 06:01:24 -0400
+Cc: Cong Wang <xiyou.wangcong@gmail.com>,
+        network dev <netdev@vger.kernel.org>,
+        David Miller <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org,
+        Jamal Hadi Salim <jhs@mojatatu.com>
+To: Xin Long <lucien.xin@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170816170156.11594-1-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <CADvbK_cCQY0McHiZFKSTjdGdAjhB6RBej5n=SH2=hsLYC=Xa7w@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Aug 16, 2017 at 07:01:55PM +0200, Florian Westphal wrote:
-> nft add rule .. ip ttl set 64
+On Wed, Aug 16, 2017 at 08:39:44PM +1200, Xin Long wrote:
+> On Wed, Aug 9, 2017 at 7:33 AM, Cong Wang <xiyou.wangcong@gmail.com> wrote:
+> > On Mon, Aug 7, 2017 at 7:33 PM, Xin Long <lucien.xin@gmail.com> wrote:
+> >> On Tue, Aug 8, 2017 at 9:15 AM, Cong Wang <xiyou.wangcong@gmail.com> wrote:
+> >>> This looks like a completely API burden?
+> >> netfilter xt targets are not really compatible with netsched action.
+> >> I've got to say, the patch is just a way to make checkentry return
+> >> false and avoid panic. like [1] said
+> >
+> > I don't doubt you fix a crash, I am thinking if we can
+> > "fix" the API instead of fixing the caller.
+> Hi, Cong,
 > 
-> erronously mangles ip protocol instead of ttl.
+> For now, I don't think it's possible to change APIs or  some of their targets
+> for the panic caused by action xt calling.
 > 
-> Because the kernel can't deal with odd-sized data (ttl is one byte) when
-> doing checksum fixups, so the write to 'ttl' is turned into
+> The common way should be fixed in net_sched side.
 > 
-> [ payload load 2b @ network header + 8 => reg 1 ]
-> [ bitwise reg 1 = (reg=1 & 0x000000ff ) ^ $new_value ]
-> [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x0 ]
-> 
-> While doing so, we did fail to shift the imm value, i.e.
-> we clear the wrong half of the u16 (protocol) instead of csum.
-> 
-> The correct mask is 0xff00, and $new_value needs to be shifted
-> so we leave the protocol value (which is next to ttl) alone.
-> 
-> Fixes: f9069cefdf ("netlink: make checksum fixup work with odd-sized header fields")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+> Given that the issue is very easy to triggered,
+> let's wait for netfilter's replies for another few days,
+> otherwise I will repost the fix, agree ?
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Please, post the workaround so the kernel doesn't crash anymore.
+
+This is going to be very hard to fix, it's broken since the very
+beginning...
+
+Thanks!
