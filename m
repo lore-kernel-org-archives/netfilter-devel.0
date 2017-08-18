@@ -1,37 +1,33 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nft PATCH 0/2] First attempt at synopsis fixup
-Date: Thu, 17 Aug 2017 19:37:25 +0200
-Message-ID: <20170817173725.GE10864@orbyte.nwl.cc>
-References: <20170817133900.21946-1-phil@nwl.cc>
+From: Hyunseok <hyunseok@ieee.org>
+Subject: Finding the PID of a process from sk_buff
+Date: Fri, 18 Aug 2017 14:19:19 -0400
+Message-ID: <CAAJNysJa+Pyggh6F0gYe2CqfT1gPLk50vqqVfgGnpniD51dtMw@mail.gmail.com>
+Reply-To: hyunseok@ieee.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="UTF-8"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:51405 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752664AbdHQRh0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 17 Aug 2017 13:37:26 -0400
-Content-Disposition: inline
-In-Reply-To: <20170817133900.21946-1-phil@nwl.cc>
+Received: from mail-io0-f175.google.com ([209.85.223.175]:34227 "EHLO
+        mail-io0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751489AbdHRSTU (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 18 Aug 2017 14:19:20 -0400
+Received: by mail-io0-f175.google.com with SMTP id o9so35834435iod.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Aug 2017 11:19:20 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Aug 17, 2017 at 03:38:58PM +0200, Phil Sutter wrote:
-> The first patch is to be considered a fix and optimization, the second
-> one is rather experimental and I would like to hear your thoughts about
-> it (some details as to why I'm not happy with it can be found below it's
-> commit message).
+Hi,
 
-Since I assume nobody likes to apply the patches individually and
-compile the sources just to see the difference in man page output, here
-are two screen shots:
+I am capturing locally generated sk_buffs from local_out netfilter hook.
 
-After first patch (only font style fix):
-http://nwl.cc/~n0-1/nft.8_style_fix.png
-(No idea how one could add hints for better spots to break long lines.)
+Inside this local_out hook, is there a way to find the PID of a
+userspace process that has generated sk_buff?
 
-After the second one (with added indirections):
-http://nwl.cc/~n0-1/nft.8_indirection.png
+skb->sk->socket->file->f_owner->pid seems to be NULL.
 
-Cheers, Phil
+current->pid does not reliably tell the correct userspace process either.
+
+Is there any other way?  Any help is much appreciated.
+
+-hs
