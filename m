@@ -1,42 +1,58 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [nft PATH 01/16] libnftables: introduce library
-Date: Sat, 19 Aug 2017 21:07:55 +0200 (CEST)
-Message-ID: <nycvar.YFH.7.76.1708192106560.32657@n3.vanv.qr>
-References: <20170816204310.3371-1-eric@regit.org>         <20170816204310.3371-2-eric@regit.org>         <20170817085750.GS16375@orbyte.nwl.cc> <1502989742.31564.5.camel@regit.org>         <20170817171350.GD10864@orbyte.nwl.cc>
- <1503132192.31564.17.camel@regit.org>
+From: Jeff Klesky <netfilter@allycomm.com>
+Subject: How to contribute to documentation?
+Date: Sat, 19 Aug 2017 15:22:47 -0700
+Message-ID: <686ff7c0-d6f6-4e93-3ba2-65e1190fdec3@wagsky.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: Phil Sutter <phil@nwl.cc>, pablo@netfilter.org,
-        netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a3.inai.de ([88.198.180.161]:43642 "EHLO a3.inai.de"
+Received: from mx.allycomm.com ([138.68.30.55]:46621 "EHLO mx.allycomm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751533AbdHSTH5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 19 Aug 2017 15:07:57 -0400
-In-Reply-To: <1503132192.31564.17.camel@regit.org>
+        id S1752042AbdHSWcl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 19 Aug 2017 18:32:41 -0400
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+First off, let me say that coming from a background of Cisco and 
+FreeBSD-based firewalls, nftables is a welcome discovery!
 
-On Saturday 2017-08-19 10:43, Eric Leblond wrote:
+I've been trying to figure out both the logic and the syntax and have 
+been stymied by the lack of complete and/or consistent documentation.  
+I've read the man page for nft, both from Ubuntu 16.04.3 LTS and online, 
+as well as gone through https://wiki.nftables.org/ a few times and still 
+can't find the information I need to be able either to create a 
+non-trivial firewall using nftables, or to have the confidence that it 
+will perform as expected.
 
->>> Hence I defined a global init and deinit. But maybe it does not
->>> really make sense and could be attached to each context or init
->>> could be done at first usage.
->> 
->> My idea was to implement simple reference counting to see whether
->> the library was already initialized and whether it is safe to
->> deinit. Of course this needs some serialization for thread-safety.
->> 
->> Or maybe the deinit can be ignored completely and
->> nft_global_init() just has to check whether data is already
->> initialized or not.
->
->I have used numerous libraries providing a global init or deinit.
->For now we could easily skip it with your approach or another but I
->prefer we have it existing so it is available later in case of
->needs.
+In the hopes that what I learn along the way can help other end users 
+and the project in the future, what are the best ways to contribute to 
+the documentation?
 
-If a global init - more correctly, a singleton init - is needed,
-can't it just implicitly be called from make_me_a_new_context()?
+Also, where can I get the "formal" syntax description for the nft commands?
+
+Even just knowing what is required and what is optional would help 
+immensely and allow me to determine if it is a "bug" or if it is my 
+error.  As an example, I apparently wrongly assumed that declaring a set 
+and adding elements to it in the context of a table declaration would 
+default to using that table for the set. Unfortunately, "read the 
+source" isn't an option as I work on projects that are not 
+license-compatible with the terms of GPL.
+
+Hopefully I can figure out what isn't present in kernel 4.9 through the 
+release notes (such as fib access, though it is not noted as such on the 
+wiki).
+
+Thanks!
+
+Jeff Kletsky
+
+
+Distributor ID:  Ubuntu
+Description:     Ubuntu 16.04.3 LTS
+Release:         16.04
+Codename:        xenial
+
+Kernel: 4.9.28-38
+
