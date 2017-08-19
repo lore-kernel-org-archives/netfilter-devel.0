@@ -1,25 +1,33 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: xtables: use audit_log()
-Date: Sat, 19 Aug 2017 13:25:44 +0200
-Message-ID: <20170819112544.GB4761@salvia>
-References: <5f901760510d0dc6e6e971d4136c8d2d4e0a13fd.1502103408.git.geliangtang@gmail.com>
- <c091f8c337fe4316ffcfb121da8b24b6633fa679.1502099123.git.geliangtang@gmail.com>
+Subject: Re: [PATCH nf-next 0/4] netfilter: nftables: tcp mss mangling support
+Date: Sat, 19 Aug 2017 14:05:59 +0200
+Message-ID: <20170819120559.GA4872@salvia>
+References: <20170808131530.29194-1-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Geliang Tang <geliangtang@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:39096 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751655AbdHSMGY (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 19 Aug 2017 08:06:24 -0400
 Content-Disposition: inline
-In-Reply-To: <c091f8c337fe4316ffcfb121da8b24b6633fa679.1502099123.git.geliangtang@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20170808131530.29194-1-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 07, 2017 at 09:44:26PM +0800, Geliang Tang wrote:
-> Use audit_log() instead of open-coding it.
+On Tue, Aug 08, 2017 at 03:15:26PM +0200, Florian Westphal wrote:
+> This series adds the needed kernel parts to support tcp mss mangling.
+> First two patches rework exthdr so we don't have to copy-paste too much,
+> patch 3 adds tcp option mangling support.
+> 
+> Last patch allows to retrieve path tcpmss via rt expression, this is so we
+> can support iptables TCPMSS --clamp-to-pmtu by combining the two, i.e.:
+> 
+> nft add rule inet mangle forward tcp option mss set rt mss
 
-As said, collapsed into 'netfilter: ebtables: use audit_log()', just
-for the record.
+Series applied, thanks Florian.
+
+Please, post your userspace patchset.
