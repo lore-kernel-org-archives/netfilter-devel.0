@@ -1,272 +1,194 @@
 From: Eric Leblond <eric@regit.org>
-Subject: [PATH nft v2 03/18] libnftables: introduce library
-Date: Sat, 19 Aug 2017 17:24:05 +0200
-Message-ID: <20170819152420.22563-4-eric@regit.org>
+Subject: [PATH nft v2 04/18] libnftables: add context new and free
+Date: Sat, 19 Aug 2017 17:24:06 +0200
+Message-ID: <20170819152420.22563-5-eric@regit.org>
 References: <20170819152420.22563-1-eric@regit.org>
 Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from home.regit.org ([37.187.126.138]:33598 "EHLO home.regit.org"
+Received: from home.regit.org ([37.187.126.138]:33606 "EHLO home.regit.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751118AbdHSPYi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 19 Aug 2017 11:24:38 -0400
+        id S1751561AbdHSPYj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 19 Aug 2017 11:24:39 -0400
 In-Reply-To: <20170819152420.22563-1-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add global init and deinit functions.
-
 Signed-off-by: Eric Leblond <eric@regit.org>
 ---
- configure.ac                 |  4 ++++
- include/Makefile.am          |  2 +-
- include/nftables/Makefile.am |  2 ++
- include/nftables/nftables.h  | 20 +++++++++++++++++
- src/Makefile.am              | 26 +++++++++++++---------
- src/libnftables.c            | 53 ++++++++++++++++++++++++++++++++++++++++++++
- src/main.c                   | 27 +++-------------------
- 7 files changed, 99 insertions(+), 35 deletions(-)
- create mode 100644 include/nftables/Makefile.am
- create mode 100644 include/nftables/nftables.h
- create mode 100644 src/libnftables.c
+ include/nftables.h          |  1 +
+ include/nftables/nftables.h |  3 +++
+ src/libnftables.c           | 20 ++++++++++++++++++++
+ src/main.c                  | 29 ++++++++++++++---------------
+ 4 files changed, 38 insertions(+), 15 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index bef6c0b..91273ce 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -56,6 +56,9 @@ then
-         exit 1
- fi
+diff --git a/include/nftables.h b/include/nftables.h
+index a457aba..717af37 100644
+--- a/include/nftables.h
++++ b/include/nftables.h
+@@ -35,6 +35,7 @@ struct output_ctx {
+ struct nft_ctx {
+ 	struct output_ctx	output;
+ 	bool			check;
++	struct mnl_socket	*nf_sock;
+ };
  
-+AM_PROG_AR
-+AM_PROG_LIBTOOL
-+
- AC_CHECK_PROG(DOCBOOK2X_MAN, [docbook2x-man], [docbook2x-man], [no])
- AC_CHECK_PROG(DOCBOOK2MAN, [docbook2man], [docbook2man], [no])
- AC_CHECK_PROG(DB2X_DOCBOOK2MAN, [db2x_docbook2man], [db2x_docbook2man], [no])
-@@ -146,6 +149,7 @@ AC_CONFIG_FILES([					\
- 		include/linux/netfilter_bridge/Makefile	\
- 		include/linux/netfilter_ipv4/Makefile	\
- 		include/linux/netfilter_ipv6/Makefile	\
-+		include/nftables/Makefile		\
- 		doc/Makefile				\
- 		files/Makefile				\
- 		files/nftables/Makefile			\
-diff --git a/include/Makefile.am b/include/Makefile.am
-index 5dd73d8..caa6961 100644
---- a/include/Makefile.am
-+++ b/include/Makefile.am
-@@ -1,4 +1,4 @@
--SUBDIRS = linux
-+SUBDIRS = linux nftables
- 
- noinst_HEADERS = 	cli.h		\
- 			datatype.h	\
-diff --git a/include/nftables/Makefile.am b/include/nftables/Makefile.am
-new file mode 100644
-index 0000000..a14b188
---- /dev/null
-+++ b/include/nftables/Makefile.am
-@@ -0,0 +1,2 @@
-+pkginclude_HEADERS =	nftables.h
-+
+ struct nft_cache {
 diff --git a/include/nftables/nftables.h b/include/nftables/nftables.h
-new file mode 100644
-index 0000000..4ba16f0
---- /dev/null
+index 4ba16f0..cfa60fe 100644
+--- a/include/nftables/nftables.h
 +++ b/include/nftables/nftables.h
-@@ -0,0 +1,20 @@
-+/*
-+ * Copyright (c) 2017 Eric Leblond <eric@regit.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+
-+#ifndef LIB_NFTABLES_H
-+#define LIB_NFTABLES_H
-+
-+#include <stdlib.h>
-+#include <stdint.h>
-+#include <stdbool.h>
-+
-+void nft_global_init(void);
-+void nft_global_deinit(void);
-+
-+#endif
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 99eef7b..a340d39 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -27,8 +27,9 @@ parser_bison.o scanner.o: AM_CFLAGS += -Wno-missing-prototypes -Wno-missing-decl
+@@ -17,4 +17,7 @@
+ void nft_global_init(void);
+ void nft_global_deinit(void);
  
- BUILT_SOURCES = parser_bison.h
- 
--nft_SOURCES =	main.c				\
--		rule.c				\
-+lib_LTLIBRARIES = libnftables.la
++struct nft_ctx *nft_context_new(void);
++void nft_context_free(struct nft_ctx *nft);
 +
-+libnftables_la_SOURCES =	rule.c				\
- 		statement.c			\
- 		datatype.c			\
- 		expression.c			\
-@@ -54,23 +55,28 @@ nft_SOURCES =	main.c				\
- 		iface.c				\
- 		services.c			\
- 		mergesort.c			\
-+		libnftables.c			\
- 		scanner.l			\
- 		tcpopt.c			\
- 		parser_bison.y
- 
--if BUILD_CLI
--nft_SOURCES +=	cli.c
--endif
--
- if BUILD_MINIGMP
- mini-gmp.o: AM_CFLAGS += -Wno-sign-compare
- 
--nft_SOURCES +=	mini-gmp.c
-+libnftables_la_SOURCES +=	mini-gmp.c
- endif
- 
--nft_LDADD	= ${LIBMNL_LIBS} ${LIBNFTNL_LIBS}
-+nft_SOURCES = main.c
-+
-+if BUILD_CLI
-+nft_SOURCES +=	cli.c
-+endif
-+
-+libnftables_la_LIBADD	= ${LIBMNL_LIBS} ${LIBNFTNL_LIBS}
- 
- if BUILD_XTABLES
--nft_SOURCES +=	xt.c
--nft_LDADD   +=  ${XTABLES_LIBS}
-+libnftables_la_SOURCES  +=	xt.c
-+libnftables_la_LIBADD   +=  ${XTABLES_LIBS}
- endif
-+
-+nft_LDADD		= libnftables.la
+ #endif
 diff --git a/src/libnftables.c b/src/libnftables.c
-new file mode 100644
-index 0000000..215179a
---- /dev/null
+index 215179a..6756c0f 100644
+--- a/src/libnftables.c
 +++ b/src/libnftables.c
-@@ -0,0 +1,53 @@
-+/*
-+ * Copyright (c) 2017 Eric Leblond <eric@regit.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
+@@ -51,3 +51,23 @@ void nft_global_deinit(void)
+ 	realm_table_meta_exit();
+ 	mark_table_exit();
+ }
 +
-+#include <nftables/nftables.h>
-+#include <string.h>
-+#include <errno.h>
-+#include <nftables.h>
-+#include <parser.h>
-+#include <iface.h>
-+#include <netlink.h>
-+#include <erec.h>
-+#include <libmnl/libmnl.h>
-+#include <mnl.h>
-+
-+#include <unistd.h>
-+#include <fcntl.h>
-+
-+
-+unsigned int max_errors = 10;
-+unsigned int numeric_output;
-+unsigned int ip2name_output;
-+unsigned int handle_output;
-+#ifdef DEBUG
-+unsigned int debug_level;
-+#endif
-+
-+void nft_global_init(void)
++struct nft_ctx *nft_context_new(void)
 +{
-+	mark_table_init();
-+	realm_table_rt_init();
-+	devgroup_table_init();
-+	realm_table_meta_init();
-+	ct_label_table_init();
-+	gmp_init();
-+#ifdef HAVE_LIBXTABLES
-+	xt_init();
-+#endif
++	struct nft_ctx *ctx = NULL;
++	ctx = calloc(1, sizeof(struct nft_ctx));
++	if (ctx == NULL)
++		return NULL;
++	ctx->nf_sock = netlink_open_sock();
++
++	return ctx;
 +}
 +
-+void nft_global_deinit(void)
++
++void nft_context_free(struct nft_ctx *nft)
 +{
-+	ct_label_table_exit();
-+	realm_table_rt_exit();
-+	devgroup_table_exit();
-+	realm_table_meta_exit();
-+	mark_table_exit();
++	if (nft == NULL)
++		return;
++	netlink_close_sock(nft->nf_sock);
++	xfree(nft);
 +}
 diff --git a/src/main.c b/src/main.c
-index 8883959..dde3104 100644
+index dde3104..ee5566c 100644
 --- a/src/main.c
 +++ b/src/main.c
-@@ -18,6 +18,7 @@
- #include <fcntl.h>
- #include <sys/types.h>
+@@ -29,7 +29,6 @@
+ #include <iface.h>
+ #include <cli.h>
  
-+#include <nftables/nftables.h>
- #include <nftables.h>
- #include <utils.h>
- #include <parser.h>
-@@ -272,28 +273,6 @@ err1:
- 	return ret;
- }
+-static struct nft_ctx nft;
+ unsigned int max_errors = 10;
+ #ifdef DEBUG
+ unsigned int debug_level;
+@@ -283,13 +282,13 @@ int main(int argc, char * const *argv)
+ 	unsigned int len;
+ 	bool interactive = false;
+ 	int i, val, rc = NFT_EXIT_SUCCESS;
+-	struct mnl_socket *nf_sock;
++	struct nft_ctx *nft;
  
--void nft_init(void)
--{
--	mark_table_init();
--	realm_table_rt_init();
--	devgroup_table_init();
--	realm_table_meta_init();
--	ct_label_table_init();
--	gmp_init();
--#ifdef HAVE_LIBXTABLES
--	xt_init();
--#endif
--}
--
--void nft_exit(void)
--{
--	ct_label_table_exit();
--	realm_table_rt_exit();
--	devgroup_table_exit();
--	realm_table_meta_exit();
--	mark_table_exit();
--}
--
- int main(int argc, char * const *argv)
- {
- 	struct parser_state state;
-@@ -309,7 +288,7 @@ int main(int argc, char * const *argv)
  	memset(&cache, 0, sizeof(cache));
  	init_list_head(&cache.list);
  
--	nft_init();
-+	nft_global_init();
- 	nf_sock = netlink_open_sock();
+ 	nft_global_init();
+-	nf_sock = netlink_open_sock();
++	nft = nft_context_new();
  	while (1) {
  		val = getopt_long(argc, argv, OPTSTRING, options, NULL);
-@@ -440,7 +419,7 @@ out:
+ 		if (val == -1)
+@@ -304,7 +303,7 @@ int main(int argc, char * const *argv)
+ 			       PACKAGE_NAME, PACKAGE_VERSION, RELEASE_NAME);
+ 			exit(NFT_EXIT_SUCCESS);
+ 		case OPT_CHECK:
+-			nft.check = true;
++			nft->check = true;
+ 			break;
+ 		case OPT_FILE:
+ 			filename = optarg;
+@@ -322,7 +321,7 @@ int main(int argc, char * const *argv)
+ 			include_paths[num_include_paths++] = optarg;
+ 			break;
+ 		case OPT_NUMERIC:
+-			if (++nft.output.numeric > NUMERIC_ALL) {
++			if (++nft->output.numeric > NUMERIC_ALL) {
+ 				fprintf(stderr, "Too many numeric options "
+ 						"used, max. %u\n",
+ 					NUMERIC_ALL);
+@@ -330,10 +329,10 @@ int main(int argc, char * const *argv)
+ 			}
+ 			break;
+ 		case OPT_STATELESS:
+-			nft.output.stateless++;
++			nft->output.stateless++;
+ 			break;
+ 		case OPT_IP2NAME:
+-			nft.output.ip2name++;
++			nft->output.ip2name++;
+ 			break;
+ #ifdef DEBUG
+ 		case OPT_DEBUG:
+@@ -365,10 +364,10 @@ int main(int argc, char * const *argv)
+ 			break;
+ #endif
+ 		case OPT_HANDLE_OUTPUT:
+-			nft.output.handle++;
++			nft->output.handle++;
+ 			break;
+ 		case OPT_ECHO:
+-			nft.output.echo++;
++			nft->output.echo++;
+ 			break;
+ 		case OPT_INVALID:
+ 			exit(NFT_EXIT_FAILURE);
+@@ -386,20 +385,20 @@ int main(int argc, char * const *argv)
+ 				strcat(buf, " ");
+ 		}
+ 		strcat(buf, "\n");
+-		parser_init(nf_sock, &cache, &state, &msgs);
++		parser_init(nft->nf_sock, &cache, &state, &msgs);
+ 		scanner = scanner_init(&state);
+ 		scanner_push_buffer(scanner, &indesc_cmdline, buf);
+ 	} else if (filename != NULL) {
+-		rc = cache_update(nf_sock, &cache, CMD_INVALID, &msgs);
++		rc = cache_update(nft->nf_sock, &cache, CMD_INVALID, &msgs);
+ 		if (rc < 0)
+ 			return rc;
+ 
+-		parser_init(nf_sock, &cache, &state, &msgs);
++		parser_init(nft->nf_sock, &cache, &state, &msgs);
+ 		scanner = scanner_init(&state);
+ 		if (scanner_read_file(scanner, filename, &internal_location) < 0)
+ 			goto out;
+ 	} else if (interactive) {
+-		if (cli_init(&nft, nf_sock, &cache, &state) < 0) {
++		if (cli_init(nft, nft->nf_sock, &cache, &state) < 0) {
+ 			fprintf(stderr, "%s: interactive CLI not supported in this build\n",
+ 				argv[0]);
+ 			exit(NFT_EXIT_FAILURE);
+@@ -410,7 +409,7 @@ int main(int argc, char * const *argv)
+ 		exit(NFT_EXIT_FAILURE);
+ 	}
+ 
+-	if (nft_run(&nft, nf_sock, &cache, scanner, &state, &msgs) != 0)
++	if (nft_run(nft, nft->nf_sock, &cache, scanner, &state, &msgs) != 0)
+ 		rc = NFT_EXIT_FAILURE;
+ out:
+ 	scanner_destroy(scanner);
+@@ -418,7 +417,7 @@ out:
+ 	xfree(buf);
  	cache_release(&cache);
  	iface_cache_release();
- 	netlink_close_sock(nf_sock);
--	nft_exit();
-+	nft_global_deinit();
+-	netlink_close_sock(nf_sock);
++	nft_context_free(nft);
+ 	nft_global_deinit();
  
  	return rc;
- }
 -- 
 2.14.1
 
