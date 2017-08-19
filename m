@@ -1,27 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft-sync] fix build
-Date: Sat, 19 Aug 2017 15:07:20 +0200
-Message-ID: <20170819130720.GA7216@salvia>
-References: <20170819124145.7283-1-pablombg@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Eric Leblond <eric@regit.org>
+Subject: [PATCH nft v2 00/18] introducing libnftables
+Date: Sat, 19 Aug 2017 17:24:02 +0200
+Message-ID: <20170819152420.22563-1-eric@regit.org>
 Cc: netfilter-devel@vger.kernel.org
-To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:39513 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751038AbdHSNHp (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 19 Aug 2017 09:07:45 -0400
-Content-Disposition: inline
-In-Reply-To: <20170819124145.7283-1-pablombg@gmail.com>
+Received: from home.regit.org ([37.187.126.138]:33574 "EHLO home.regit.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751118AbdHSPYc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 19 Aug 2017 11:24:32 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Aug 19, 2017 at 02:41:45PM +0200, Pablo M. Bermudo Garay wrote:
-> nft-sync development has been stalled for two years. Since then the
-> libnftnl API has changed, breaking the build.
-> 
-> Apply the required changes to make the project build again.
 
-Applied, thanks.
+Hello,
+
+This patchset is the second version of libnftables introduction patchset.
+It addresses some remarks by Phil Sutter. Other remarks as said on the ML
+are in fact TODO points that can be adressed later.
+
+This patchset also fixes issues with error handling and adds documentation
+in doxygen format. An output is available here if you wanna have a look:
+ http://home.regit.org/~regit/libnftables/html/group__libnftables.html
+
+The first two patches are a bugfix and a helper function that is needed
+for the library:
+ * [PATH nft v2 01/18] mnl: fix error handling in mnl_batch_talk
+ * [PATH nft v2 02/18] erec: add function to free list
+
+As mentioned by Arturo, this is not meant to be added into nftables v0.8 but
+it is a good candidate for early introduction in the branch as soon as the
+v0.8 release is done. 
+
+I did not managed to incorporate some suggestions done privately by Pablo. For
+instance there is an nf_sock in the struct nft_ctx. I did not change any
+existing internal so it is still possible to do it as incremental patches.
+
+BR,
+--
+Eric
