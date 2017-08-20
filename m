@@ -1,53 +1,32 @@
-From: Varsha Rao <rvarsha016@gmail.com>
-Subject: [PATCH nft] src: Initialize struct stmt in _match and _target functions.
-Date: Sun, 20 Aug 2017 10:25:12 +0530
-Message-ID: <20170820045512.3232-1-rvarsha016@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: Varsha Rao <rvarsha016@gmail.com>
-To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+From: Xin Long <lucien.xin@gmail.com>
+Subject: [PATCH net 0/2] netfilter: ipvs: some fixes in sctp_conn_schedule
+Date: Sun, 20 Aug 2017 13:38:06 +0800
+Message-ID: <cover.1503207076.git.lucien.xin@gmail.com>
+Cc: pablo@netfilter.org, Alex Gartrell <agartrell@fb.com>,
+        lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+        horms@verge.net.au, ja@ssi.bg, wensong@linux-vs.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:33148 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751105AbdHTE4w (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:32820 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751073AbdHTFiR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 20 Aug 2017 00:56:52 -0400
-Received: by mail-pg0-f66.google.com with SMTP id n4so4608882pgn.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 19 Aug 2017 21:56:52 -0700 (PDT)
+        Sun, 20 Aug 2017 01:38:17 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Initialize structure stmt with stmt_alloc in netlink_parse_target and
-netlink_parse_match functions. This patch fixes the warning:
+Patch 1/2 fixes the regression introduced by commit 5e26b1b3abce.
+Patch 2/2 makes ipvs not create conn for sctp ABORT packet.
 
-‘stmt’ may be used uninitialized in this function.
+Xin Long (2):
+  netfilter: ipvs: fix the issue that sctp_conn_schedule drops non-INIT
+    packet
+  netfilter: ipvs: do not create conn for ABORT packet in
+    sctp_conn_schedule
 
-Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
----
- src/xt.c | 2 ++
- 1 file changed, 2 insertions(+)
+ net/netfilter/ipvs/ip_vs_proto_sctp.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/src/xt.c b/src/xt.c
-index 3bc38ee..9aff414 100644
---- a/src/xt.c
-+++ b/src/xt.c
-@@ -143,6 +143,7 @@ void netlink_parse_match(struct netlink_parse_ctx *ctx,
- 	m->u.match_size = mt_len + XT_ALIGN(sizeof(struct xt_entry_match));
- 	m->u.user.revision = nftnl_expr_get_u32(nle, NFTNL_EXPR_MT_REV);
- 
-+	stmt = stmt_alloc(loc, NULL);
- 	stmt->xt.name = strdup(name);
- 	stmt->xt.type = NFT_XT_MATCH;
- 	stmt->xt.match = xt_match_clone(mt);
-@@ -179,6 +180,7 @@ void netlink_parse_target(struct netlink_parse_ctx *ctx,
- 	t->u.user.revision = nftnl_expr_get_u32(nle, NFTNL_EXPR_TG_REV);
- 	strcpy(t->u.user.name, tg->name);
- 
-+	stmt = stmt_alloc(loc, NULL);
- 	stmt->xt.name = strdup(name);
- 	stmt->xt.type = NFT_XT_TARGET;
- 	stmt->xt.target = xt_target_clone(tg);
 -- 
-2.13.5
+2.1.0
 
