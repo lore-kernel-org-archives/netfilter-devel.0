@@ -1,91 +1,53 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 7/7] tests: add tcp option set support / tcp mss mangling test cases
-Date: Sun, 20 Aug 2017 01:14:13 +0200
-Message-ID: <20170819231413.15164-8-fw@strlen.de>
-References: <20170819231413.15164-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Varsha Rao <rvarsha016@gmail.com>
+Subject: [PATCH nft] src: Initialize struct stmt in _match and _target functions.
+Date: Sun, 20 Aug 2017 10:25:12 +0530
+Message-ID: <20170820045512.3232-1-rvarsha016@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: Varsha Rao <rvarsha016@gmail.com>
+To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:39314 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752393AbdHSXOS (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:33148 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751105AbdHTE4w (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 19 Aug 2017 19:14:18 -0400
-In-Reply-To: <20170819231413.15164-1-fw@strlen.de>
+        Sun, 20 Aug 2017 00:56:52 -0400
+Received: by mail-pg0-f66.google.com with SMTP id n4so4608882pgn.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 19 Aug 2017 21:56:52 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- tests/py/inet/rt.t             |  4 +++-
- tests/py/inet/rt.t.payload     |  5 +++++
- tests/py/inet/tcpopt.t         |  3 +++
- tests/py/inet/tcpopt.t.payload | 15 +++++++++++++++
- 4 files changed, 26 insertions(+), 1 deletion(-)
+Initialize structure stmt with stmt_alloc in netlink_parse_target and
+netlink_parse_match functions. This patch fixes the warning:
 
-diff --git a/tests/py/inet/rt.t b/tests/py/inet/rt.t
-index f2dcbdc41da9..64c36579d8f4 100644
---- a/tests/py/inet/rt.t
-+++ b/tests/py/inet/rt.t
-@@ -1,4 +1,4 @@
--:output;type filter hook input priority 0
-+:output;type filter hook output priority 0
+‘stmt’ may be used uninitialized in this function.
+
+Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
+---
+ src/xt.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/xt.c b/src/xt.c
+index 3bc38ee..9aff414 100644
+--- a/src/xt.c
++++ b/src/xt.c
+@@ -143,6 +143,7 @@ void netlink_parse_match(struct netlink_parse_ctx *ctx,
+ 	m->u.match_size = mt_len + XT_ALIGN(sizeof(struct xt_entry_match));
+ 	m->u.user.revision = nftnl_expr_get_u32(nle, NFTNL_EXPR_MT_REV);
  
- *inet;test-inet;output
++	stmt = stmt_alloc(loc, NULL);
+ 	stmt->xt.name = strdup(name);
+ 	stmt->xt.type = NFT_XT_MATCH;
+ 	stmt->xt.match = xt_match_clone(mt);
+@@ -179,6 +180,7 @@ void netlink_parse_target(struct netlink_parse_ctx *ctx,
+ 	t->u.user.revision = nftnl_expr_get_u32(nle, NFTNL_EXPR_TG_REV);
+ 	strcpy(t->u.user.name, tg->name);
  
-@@ -6,3 +6,5 @@ rt nexthop 192.168.0.1;fail
- rt nexthop fd00::1;fail
- meta nfproto ipv4 rt nexthop 192.168.0.1;ok
- meta nfproto ipv6 rt nexthop fd00::1;ok
-+
-+tcp option mss set rt mss;ok
-diff --git a/tests/py/inet/rt.t.payload b/tests/py/inet/rt.t.payload
-index d94973e03ffa..54429492e278 100644
---- a/tests/py/inet/rt.t.payload
-+++ b/tests/py/inet/rt.t.payload
-@@ -12,3 +12,8 @@ inet test-inet output
-   [ rt load nexthop6 => reg 1 ]
-   [ cmp eq reg 1 0x000000fd 0x00000000 0x00000000 0x01000000 ]
- 
-+# tcp option mss set rt mss
-+inet test-inet output
-+  [ rt load tcpmss => reg 1 ]
-+  [ exthdr write tcpopt reg 1 => 2b @ 2 + 2 ]
-+
-diff --git a/tests/py/inet/tcpopt.t b/tests/py/inet/tcpopt.t
-index a42ecd250a9c..94ad3fc4c645 100644
---- a/tests/py/inet/tcpopt.t
-+++ b/tests/py/inet/tcpopt.t
-@@ -38,3 +38,6 @@ tcp option sack window 1;fail
- 
- tcp option window exists;ok
- tcp option window missing;ok
-+
-+tcp option maxseg size set 1360;ok;tcp option mss set 1360
-+tcp option mss set 1360;ok
-diff --git a/tests/py/inet/tcpopt.t.payload b/tests/py/inet/tcpopt.t.payload
-index 10cf0c00f402..29a955b74ad1 100644
---- a/tests/py/inet/tcpopt.t.payload
-+++ b/tests/py/inet/tcpopt.t.payload
-@@ -193,3 +193,18 @@ inet test-inet input
-   [ cmp eq reg 1 0x00000006 ]
-   [ exthdr load tcpopt 1b @ 3 + 0 present => reg 1 ]
-   [ cmp eq reg 1 0x00000000 ]
-+
-+# tcp option maxseg size set 1360
-+inet test-inet input
-+  [ immediate reg 1 0x00005005 ]
-+  [ exthdr write tcpopt reg 1 => 2b @ 2 + 2 ]
-+
-+# tcp option maxseg size set 1360
-+inet test-inet input
-+  [ immediate reg 1 0x00005005 ]
-+  [ exthdr write tcpopt reg 1 => 2b @ 2 + 2 ]
-+
-+# tcp option mss set 1360
-+inet test-inet input
-+  [ immediate reg 1 0x00005005 ]
-+  [ exthdr write tcpopt reg 1 => 2b @ 2 + 2 ]
++	stmt = stmt_alloc(loc, NULL);
+ 	stmt->xt.name = strdup(name);
+ 	stmt->xt.type = NFT_XT_TARGET;
+ 	stmt->xt.target = xt_target_clone(tg);
 -- 
-2.13.0
+2.13.5
 
