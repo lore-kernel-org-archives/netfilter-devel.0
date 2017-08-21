@@ -1,42 +1,72 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH net 0/2] netfilter: ipvs: some fixes in
- sctp_conn_schedule
-Date: Sun, 20 Aug 2017 10:28:15 +0300 (EEST)
-Message-ID: <alpine.LFD.2.20.1708201025340.2431@ja.home.ssi.bg>
-References: <cover.1503207076.git.lucien.xin@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATH nft v2 01/18] mnl: fix error handling in mnl_batch_talk
+Date: Mon, 21 Aug 2017 10:10:50 +0200
+Message-ID: <20170821081050.GA2982@salvia>
+References: <20170819152420.22563-1-eric@regit.org>
+ <20170819152420.22563-2-eric@regit.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        Alex Gartrell <agartrell@fb.com>, lvs-devel@vger.kernel.org,
-        netdev@vger.kernel.org, horms@verge.net.au, wensong@linux-vs.org
-To: Xin Long <lucien.xin@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:33846 "EHLO ja.ssi.bg"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751558AbdHTH2j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 20 Aug 2017 03:28:39 -0400
-In-Reply-To: <cover.1503207076.git.lucien.xin@gmail.com>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:53017 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751718AbdHUILT (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 21 Aug 2017 04:11:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20170819152420.22563-2-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Eric,
 
-	Hello,
+On Sat, Aug 19, 2017 at 05:24:03PM +0200, Eric Leblond wrote:
+> If one of the command is failing we should return an error.
 
-On Sun, 20 Aug 2017, Xin Long wrote:
+Is this fixing up a real issue or it is something you need in a follow
+up patch?
 
-> Patch 1/2 fixes the regression introduced by commit 5e26b1b3abce.
-> Patch 2/2 makes ipvs not create conn for sctp ABORT packet.
+Thanks!
+
+> Signed-off-by: Eric Leblond <eric@regit.org>
+> ---
+>  src/mnl.c | 7 +++++--
+>  1 file changed, 5 insertions(+), 2 deletions(-)
 > 
-> Xin Long (2):
->   netfilter: ipvs: fix the issue that sctp_conn_schedule drops non-INIT
->     packet
->   netfilter: ipvs: do not create conn for ABORT packet in
->     sctp_conn_schedule
+> diff --git a/src/mnl.c b/src/mnl.c
+> index b0f5191..661ecbc 100644
+> --- a/src/mnl.c
+> +++ b/src/mnl.c
+> @@ -245,6 +245,7 @@ static ssize_t mnl_nft_socket_sendmsg(const struct mnl_socket *nl,
+>  
+>  int mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list)
+>  {
+> +	int rc = 0;
+>  	struct mnl_socket *nl = ctx->nf_sock;
+>  	int ret, fd = mnl_socket_get_fd(nl), portid = mnl_socket_get_portid(nl);
+>  	char rcv_buf[MNL_SOCKET_BUFFER_SIZE];
+> @@ -275,8 +276,10 @@ int mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list)
+>  
+>  		ret = mnl_cb_run(rcv_buf, ret, 0, portid, &netlink_echo_callback, ctx);
+>  		/* Continue on error, make sure we get all acknowledgments */
+> -		if (ret == -1)
+> +		if (ret == -1) {
+>  			mnl_err_list_node_add(err_list, errno, nlh->nlmsg_seq);
+> +			rc = -1;
+> +		}
+>  
+>  		ret = select(fd+1, &readfds, NULL, NULL, &tv);
+>  		if (ret == -1)
+> @@ -285,7 +288,7 @@ int mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list)
+>  		FD_ZERO(&readfds);
+>  		FD_SET(fd, &readfds);
+>  	}
+> -	return ret;
+> +	return rc;
+>  }
+>  
+>  int mnl_nft_rule_batch_add(struct nftnl_rule *nlr, struct nftnl_batch *batch,
+> -- 
+> 2.14.1
 > 
->  net/netfilter/ipvs/ip_vs_proto_sctp.c | 8 ++++++--
->  1 file changed, 6 insertions(+), 2 deletions(-)
-
-	Patchset looks ok to me,
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
