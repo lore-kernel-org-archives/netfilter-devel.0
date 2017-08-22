@@ -1,228 +1,82 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH] Keep cache in struct nft_ctx
-Date: Tue, 22 Aug 2017 14:40:04 +0200
-Message-ID: <20170822124004.23724-1-phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft 3/3] tests: add tcp option set support / tcp mss mangling test cases
+Date: Tue, 22 Aug 2017 15:51:41 +0200
+Message-ID: <20170822135141.10785-4-fw@strlen.de>
+References: <20170822135141.10785-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:53137 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932615AbdHVMkR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Aug 2017 08:40:17 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:51062 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932922AbdHVNvd (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 22 Aug 2017 09:51:33 -0400
+In-Reply-To: <20170822135141.10785-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is preliminary work for Eric's libnftables patchset.
-
-Cc: Eric Leblond <eric@regit.org>
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/cli.h      |  4 ++--
- include/nftables.h | 13 +++++++------
- src/cli.c          | 14 ++++++--------
- src/main.c         | 24 +++++++++++-------------
- 4 files changed, 26 insertions(+), 29 deletions(-)
+ v2: adjust for new syntax
 
-diff --git a/include/cli.h b/include/cli.h
-index 40fc63ead5b45..3ae1c459bce2d 100644
---- a/include/cli.h
-+++ b/include/cli.h
-@@ -6,10 +6,10 @@
- struct parser_state;
- #ifdef HAVE_LIBREADLINE
- extern int cli_init(struct nft_ctx *nft, struct mnl_socket *nf_sock,
--		    struct nft_cache *cache, struct parser_state *state);
-+		    struct parser_state *state);
- #else
- static inline int cli_init(struct nft_ctx *nft, struct mnl_socket *nf_sock,
--			   struct nft_cache *cache, struct parser_state *state)
-+			   struct parser_state *state)
- {
-         return -1;
- }
-diff --git a/include/nftables.h b/include/nftables.h
-index a457aba62ee80..994b5111176c9 100644
---- a/include/nftables.h
-+++ b/include/nftables.h
-@@ -32,17 +32,18 @@ struct output_ctx {
- 	unsigned int echo;
- };
+ tests/py/inet/rt.t             | 4 +++-
+ tests/py/inet/rt.t.payload     | 5 +++++
+ tests/py/inet/tcpopt.t         | 2 ++
+ tests/py/inet/tcpopt.t.payload | 5 +++++
+ 4 files changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/tests/py/inet/rt.t b/tests/py/inet/rt.t
+index f2dcbdc41da9..9543738b786c 100644
+--- a/tests/py/inet/rt.t
++++ b/tests/py/inet/rt.t
+@@ -1,4 +1,4 @@
+-:output;type filter hook input priority 0
++:output;type filter hook output priority 0
  
--struct nft_ctx {
--	struct output_ctx	output;
--	bool			check;
--};
--
- struct nft_cache {
- 	bool			initialized;
- 	struct list_head	list;
- 	uint32_t		seqnum;
- };
+ *inet;test-inet;output
  
-+struct nft_ctx {
-+	struct output_ctx	output;
-+	bool			check;
-+	struct nft_cache	cache;
-+};
+@@ -6,3 +6,5 @@ rt nexthop 192.168.0.1;fail
+ rt nexthop fd00::1;fail
+ meta nfproto ipv4 rt nexthop 192.168.0.1;ok
+ meta nfproto ipv6 rt nexthop fd00::1;ok
 +
- extern unsigned int max_errors;
- extern unsigned int debug_level;
- extern const char *include_paths[INCLUDE_PATHS_MAX];
-@@ -124,7 +125,7 @@ struct parser_state;
- struct mnl_socket;
++tcp option maxseg size set rt mtu;ok
+diff --git a/tests/py/inet/rt.t.payload b/tests/py/inet/rt.t.payload
+index d94973e03ffa..2f6265ed640a 100644
+--- a/tests/py/inet/rt.t.payload
++++ b/tests/py/inet/rt.t.payload
+@@ -12,3 +12,8 @@ inet test-inet output
+   [ rt load nexthop6 => reg 1 ]
+   [ cmp eq reg 1 0x000000fd 0x00000000 0x00000000 0x01000000 ]
  
- int nft_run(struct nft_ctx *nft, struct mnl_socket *nf_sock,
--	    struct nft_cache *cache, void *scanner, struct parser_state *state,
-+	    void *scanner, struct parser_state *state,
- 	    struct list_head *msgs);
++# tcp option maxseg size set rt mtu
++inet test-inet output
++  [ rt load tcpmss => reg 1 ]
++  [ exthdr write tcpopt reg 1 => 2b @ 2 + 2 ]
++
+diff --git a/tests/py/inet/tcpopt.t b/tests/py/inet/tcpopt.t
+index a42ecd250a9c..b457691f7f27 100644
+--- a/tests/py/inet/tcpopt.t
++++ b/tests/py/inet/tcpopt.t
+@@ -38,3 +38,5 @@ tcp option sack window 1;fail
  
- void ct_label_table_init(void);
-diff --git a/src/cli.c b/src/cli.c
-index d0ca9afbbdb10..4f05f276542e9 100644
---- a/src/cli.c
-+++ b/src/cli.c
-@@ -41,9 +41,8 @@ static const struct input_descriptor indesc_cli = {
- };
- 
- static struct parser_state *state;
--static struct nft_ctx cli_nft;
-+static struct nft_ctx *cli_nft;
- static struct mnl_socket *cli_nf_sock;
--static struct nft_cache *cli_cache;
- static void *scanner;
- static char histfile[PATH_MAX];
- static char *multiline;
-@@ -135,12 +134,12 @@ static void cli_complete(char *line)
- 	xfree(line);
- 	line = s;
- 
--	parser_init(cli_nf_sock, cli_cache, state, &msgs);
-+	parser_init(cli_nf_sock, &cli_nft->cache, state, &msgs);
- 	scanner_push_buffer(scanner, &indesc_cli, line);
--	nft_run(&cli_nft, cli_nf_sock, cli_cache, scanner, state, &msgs);
-+	nft_run(cli_nft, cli_nf_sock, scanner, state, &msgs);
- 	erec_print_list(stdout, &msgs);
- 	xfree(line);
--	cache_release(cli_cache);
-+	cache_release(&cli_nft->cache);
- 	iface_cache_release();
- }
- 
-@@ -150,13 +149,12 @@ static char **cli_completion(const char *text, int start, int end)
- }
- 
- int cli_init(struct nft_ctx *nft, struct mnl_socket *nf_sock,
--	     struct nft_cache *cache, struct parser_state *_state)
-+	     struct parser_state *_state)
- {
- 	const char *home;
- 
- 	cli_nf_sock = nf_sock;
--	cli_nft = *nft;
--	cli_cache = cache;
-+	cli_nft = nft;
- 	rl_readline_name = "nft";
- 	rl_instream  = stdin;
- 	rl_outstream = stdout;
-diff --git a/src/main.c b/src/main.c
-index 888395981d42c..b86ae62f13431 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -187,7 +187,7 @@ static const struct input_descriptor indesc_cmdline = {
- 	.name	= "<cmdline>",
- };
- 
--static int nft_netlink(struct nft_ctx *nft, struct nft_cache *cache,
-+static int nft_netlink(struct nft_ctx *nft,
- 		       struct parser_state *state, struct list_head *msgs,
- 		       struct mnl_socket *nf_sock)
- {
-@@ -211,7 +211,7 @@ static int nft_netlink(struct nft_ctx *nft, struct nft_cache *cache,
- 		ctx.batch_supported = batch_supported;
- 		ctx.octx = &nft->output;
- 		ctx.nf_sock = nf_sock;
--		ctx.cache = cache;
-+		ctx.cache = &nft->cache;
- 		init_list_head(&ctx.list);
- 		ret = do_command(&ctx, cmd);
- 		if (ret < 0)
-@@ -247,7 +247,7 @@ out:
- }
- 
- int nft_run(struct nft_ctx *nft, struct mnl_socket *nf_sock,
--	    struct nft_cache *cache, void *scanner, struct parser_state *state,
-+	    void *scanner, struct parser_state *state,
- 	    struct list_head *msgs)
- {
- 	struct cmd *cmd, *next;
-@@ -262,7 +262,7 @@ int nft_run(struct nft_ctx *nft, struct mnl_socket *nf_sock,
- 	list_for_each_entry(cmd, &state->cmds, list)
- 		nft_cmd_expand(cmd);
- 
--	ret = nft_netlink(nft, cache, state, msgs, nf_sock);
-+	ret = nft_netlink(nft, state, msgs, nf_sock);
- err1:
- 	list_for_each_entry_safe(cmd, next, &state->cmds, list) {
- 		list_del(&cmd->list);
-@@ -297,7 +297,6 @@ void nft_exit(void)
- int main(int argc, char * const *argv)
- {
- 	struct parser_state state;
--	struct nft_cache cache;
- 	void *scanner;
- 	LIST_HEAD(msgs);
- 	char *buf = NULL, *filename = NULL;
-@@ -306,8 +305,7 @@ int main(int argc, char * const *argv)
- 	int i, val, rc = NFT_EXIT_SUCCESS;
- 	struct mnl_socket *nf_sock;
- 
--	memset(&cache, 0, sizeof(cache));
--	init_list_head(&cache.list);
-+	init_list_head(&nft.cache.list);
- 
- 	nft_init();
- 	nf_sock = netlink_open_sock();
-@@ -407,20 +405,20 @@ int main(int argc, char * const *argv)
- 				strcat(buf, " ");
- 		}
- 		strcat(buf, "\n");
--		parser_init(nf_sock, &cache, &state, &msgs);
-+		parser_init(nf_sock, &nft.cache, &state, &msgs);
- 		scanner = scanner_init(&state);
- 		scanner_push_buffer(scanner, &indesc_cmdline, buf);
- 	} else if (filename != NULL) {
--		rc = cache_update(nf_sock, &cache, CMD_INVALID, &msgs);
-+		rc = cache_update(nf_sock, &nft.cache, CMD_INVALID, &msgs);
- 		if (rc < 0)
- 			return rc;
- 
--		parser_init(nf_sock, &cache, &state, &msgs);
-+		parser_init(nf_sock, &nft.cache, &state, &msgs);
- 		scanner = scanner_init(&state);
- 		if (scanner_read_file(scanner, filename, &internal_location) < 0)
- 			goto out;
- 	} else if (interactive) {
--		if (cli_init(&nft, nf_sock, &cache, &state) < 0) {
-+		if (cli_init(&nft, nf_sock, &state) < 0) {
- 			fprintf(stderr, "%s: interactive CLI not supported in this build\n",
- 				argv[0]);
- 			exit(NFT_EXIT_FAILURE);
-@@ -431,13 +429,13 @@ int main(int argc, char * const *argv)
- 		exit(NFT_EXIT_FAILURE);
- 	}
- 
--	if (nft_run(&nft, nf_sock, &cache, scanner, &state, &msgs) != 0)
-+	if (nft_run(&nft, nf_sock, scanner, &state, &msgs) != 0)
- 		rc = NFT_EXIT_FAILURE;
- out:
- 	scanner_destroy(scanner);
- 	erec_print_list(stderr, &msgs);
- 	xfree(buf);
--	cache_release(&cache);
-+	cache_release(&nft.cache);
- 	iface_cache_release();
- 	netlink_close_sock(nf_sock);
- 	nft_exit();
+ tcp option window exists;ok
+ tcp option window missing;ok
++
++tcp option maxseg size set 1360;ok
+diff --git a/tests/py/inet/tcpopt.t.payload b/tests/py/inet/tcpopt.t.payload
+index 10cf0c00f402..7e254ed3f605 100644
+--- a/tests/py/inet/tcpopt.t.payload
++++ b/tests/py/inet/tcpopt.t.payload
+@@ -193,3 +193,8 @@ inet test-inet input
+   [ cmp eq reg 1 0x00000006 ]
+   [ exthdr load tcpopt 1b @ 3 + 0 present => reg 1 ]
+   [ cmp eq reg 1 0x00000000 ]
++
++# tcp option maxseg size set 1360
++inet test-inet input
++  [ immediate reg 1 0x00005005 ]
++  [ exthdr write tcpopt reg 1 => 2b @ 2 + 2 ]
 -- 
-2.13.1
+2.13.0
 
