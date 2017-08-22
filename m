@@ -1,67 +1,54 @@
-From: Shyam Saini <mayhs11saini@gmail.com>
-Subject: Re: [PATCH] tests: json: Add test cases for json format
-Date: Tue, 22 Aug 2017 15:00:15 +0530
-Message-ID: <CAOfkYf7B09Z+nHf8EMJ2qQ6W-1u2-j_UmiwzSXgF+Mdk7Gc5dQ@mail.gmail.com>
-References: <1503348904-16654-1-git-send-email-mayhs11saini@gmail.com> <CAOkSjBgo0AWBMdmfh7hEvAcNZepS5m_p9pXK5jp-L+ZVn5UjRQ@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATH nft v2 05/18] libnftables: add nft_run_command_from_buffer
+Date: Tue, 22 Aug 2017 14:37:37 +0200
+Message-ID: <20170822123737.GA3775@salvia>
+References: <20170819152420.22563-1-eric@regit.org>
+ <20170819152420.22563-6-eric@regit.org>
+ <20170821082344.GE2982@salvia>
+ <20170821084520.GA3433@salvia>
+ <1503306379.17531.3.camel@regit.org>
+ <20170821094432.GA3932@salvia>
+ <1503343266.9868.11.camel@regit.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-To: Arturo Borrero Gonzalez <arturo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:35350 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932205AbdHVJaR (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:36675 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932609AbdHVMiE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 22 Aug 2017 05:30:17 -0400
-Received: by mail-oi0-f42.google.com with SMTP id r200so44127061oie.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Aug 2017 02:30:17 -0700 (PDT)
-In-Reply-To: <CAOkSjBgo0AWBMdmfh7hEvAcNZepS5m_p9pXK5jp-L+ZVn5UjRQ@mail.gmail.com>
+        Tue, 22 Aug 2017 08:38:04 -0400
+Content-Disposition: inline
+In-Reply-To: <1503343266.9868.11.camel@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Aug 22, 2017 at 2:43 PM, Arturo Borrero Gonzalez
-<arturo@netfilter.org> wrote:
-> On 21 August 2017 at 22:55, Shyam Saini <mayhs11saini@gmail.com> wrote:
->> These cases can be used to test upcoming "import json" command.
->>
->> Here is the short description of the files:
->> all_ruleset_list   ->    contains list of all the individual rules
->> rules_ipv4*        ->    ip  table
->> rules_ipv6*        ->    ip6 table
->> rules_arp*         ->    arp table
->> rules_bridge*      ->    bridge table
->>
->> At this point of time some tests may fails.
->> For example:
->>  dup to 172.20.0.2
->>  ether daddr 00:01:02:03:04:05 ether saddr set ff:fe:dc:ba:98:76 drop
->>
->
-> Hi Shyam,
+On Mon, Aug 21, 2017 at 09:21:06PM +0200, Eric Leblond wrote:
+> On Mon, 2017-08-21 at 11:44 +0200, Pablo Neira Ayuso wrote:
+> > On Mon, Aug 21, 2017 at 11:06:19AM +0200, Eric Leblond wrote:
+[...]
+> > In a nutshell: we provide a simple API for people that don't want to
+> > deal with IO at all, that's good. Then, an API that allows people to
+> > deal with IO themselves - advanced stuff. Simple API functions would
+> > be made of composites of the advance ones.
+> 
+> OK, I'm good with this approach and it will please the "I'm afraid of
+> netlink" club ;)
 
-Hi Arturo,
+OK, so we agree on the API policy then.
 
-> thanks for your work!
->
-> A question: How are we supposed to run these tests? At least, any hint
-> would be welcome in the commit message.
-I missed that part.
+[...]
+> I think we can all have as a guideline for libnftables that all
+> advanced things are going to the advanced functions. The simple
+> functions must provide something appealing in term of features but have
+> to remain really simple.
 
-Thanks for the correcting me.
+Fine with it.
 
-Probably an small bash script looping over all the rules* files and running
+> This make me think I still don't know how to deal with sets. I'm not
+> planning to work on it but I think it is a feature that should be
+> available in the simple functions. But we are dealing with possibly
+> complex object so this can be really messy.
 
-"cat $i  | sudo nft import json"
-   if [$? -ne 0]
-          echo "[Failed]"  $i
-   else
-          echo "[OK]"  $i
-
-Anything more that you would like to add in this script ?
-
-Should I send the version 2 of this patch with this script?
-
-Regards,
-Shyam
+What's your concern with sets?
