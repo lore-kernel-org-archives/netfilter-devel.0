@@ -1,69 +1,47 @@
-From: Stijn Tintel <stijn@linux-ipv6.be>
-Subject: [PATCH conntrack-tools] conntrackd: cthelper: ssdp: fix build with musl
-Date: Wed, 23 Aug 2017 10:29:28 +0300
-Message-ID: <20170823072928.18380-1-stijn@linux-ipv6.be>
-To: netfilter-devel@vger.kernel.org
+From: Arturo Borrero Gonzalez <arturo@netfilter.org>
+Subject: Re: [PATCH] tests: json: Add test cases for json format
+Date: Wed, 23 Aug 2017 12:02:38 +0200
+Message-ID: <CAOkSjBge_Zk4L3b5CDxthHz6v+Vrx6tMtqfBxrcMLv5unZCGWw@mail.gmail.com>
+References: <1503348904-16654-1-git-send-email-mayhs11saini@gmail.com>
+ <CAOkSjBgo0AWBMdmfh7hEvAcNZepS5m_p9pXK5jp-L+ZVn5UjRQ@mail.gmail.com> <CAOfkYf7B09Z+nHf8EMJ2qQ6W-1u2-j_UmiwzSXgF+Mdk7Gc5dQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+To: Shyam Saini <mayhs11saini@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.tintel.eu ([62.213.201.86]:43328 "EHLO mail.tintel.eu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753329AbdHWHfj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 23 Aug 2017 03:35:39 -0400
-Received: from localhost (localhost [IPv6:::1])
-        by mail.tintel.eu (Postfix) with ESMTP id 1FC122A4472
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Aug 2017 09:35:37 +0200 (CEST)
-Received: from mail.tintel.eu ([IPv6:::1])
-        by localhost (mail.tintel.eu [IPv6:::1]) (amavisd-new, port 10024)
-        with ESMTP id ZxjnP9rxAZxX for <netfilter-devel@vger.kernel.org>;
-        Wed, 23 Aug 2017 09:35:36 +0200 (CEST)
-Received: from localhost (localhost [IPv6:::1])
-        by mail.tintel.eu (Postfix) with ESMTP id 951832A4472
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Aug 2017 09:31:36 +0200 (CEST)
-Received: from mail.tintel.eu ([IPv6:::1])
-        by localhost (mail.tintel.eu [IPv6:::1]) (amavisd-new, port 10024)
-        with ESMTP id e9hSOEWf1vwX for <netfilter-devel@vger.kernel.org>;
-        Wed, 23 Aug 2017 09:31:36 +0200 (CEST)
-Received: from localhost (localhost [IPv6:::1])
-        by mail.tintel.eu (Postfix) with ESMTP id 213462A4472
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Aug 2017 09:29:31 +0200 (CEST)
-Received: from mail.tintel.eu ([IPv6:::1])
-        by localhost (mail.tintel.eu [IPv6:::1]) (amavisd-new, port 10032)
-        with ESMTP id 3b23AcS40lz8 for <netfilter-devel@vger.kernel.org>;
-        Wed, 23 Aug 2017 09:29:30 +0200 (CEST)
-Received: from localhost (localhost [IPv6:::1])
-        by mail.tintel.eu (Postfix) with ESMTP id A433A2A4474
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Aug 2017 09:29:30 +0200 (CEST)
-Received: from mail.tintel.eu ([IPv6:::1])
-        by localhost (mail.tintel.eu [IPv6:::1]) (amavisd-new, port 10026)
-        with ESMTP id 4Ug1763UcZbz for <netfilter-devel@vger.kernel.org>;
-        Wed, 23 Aug 2017 09:29:30 +0200 (CEST)
-Received: from taz (unknown [IPv6:2001:67c:21bc:24::adb])
-        (Authenticated sender: stijn@linux-ipv6.be)
-        by mail.tintel.eu (Postfix) with ESMTPSA id ED5242A4472
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Aug 2017 09:29:28 +0200 (CEST)
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:36716 "EHLO
+        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753939AbdHWKDB (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 23 Aug 2017 06:03:01 -0400
+Received: by mail-wm0-f50.google.com with SMTP id z132so11895943wmg.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Aug 2017 03:03:00 -0700 (PDT)
+Received: from mail-wm0-f52.google.com (mail-wm0-f52.google.com. [74.125.82.52])
+        by smtp.gmail.com with ESMTPSA id w31sm559462edd.57.2017.08.23.03.02.59
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 23 Aug 2017 03:02:59 -0700 (PDT)
+Received: by mail-wm0-f52.google.com with SMTP id z132so11895619wmg.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Aug 2017 03:02:59 -0700 (PDT)
+In-Reply-To: <CAOfkYf7B09Z+nHf8EMJ2qQ6W-1u2-j_UmiwzSXgF+Mdk7Gc5dQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-For musl libc to expose the members of `struct tcphdr`, _GNU_SOURCE
-needs to be defined.
+On 22 August 2017 at 11:30, Shyam Saini <mayhs11saini@gmail.com> wrote:
+>
+> Should I send the version 2 of this patch with this script?
+>
 
-Fixes: b61c4543cbde ("conntrackd: cthelper: ssdp: Track UPnP eventing")
-Signed-off-by: Stijn Tintel <stijn@linux-ipv6.be>
----
- src/helpers/ssdp.c | 1 +
- 1 file changed, 1 insertion(+)
+Yes,
 
-diff --git a/src/helpers/ssdp.c b/src/helpers/ssdp.c
-index 1f7f76f..58658e3 100644
---- a/src/helpers/ssdp.c
-+++ b/src/helpers/ssdp.c
-@@ -49,6 +49,7 @@
- #include <stdlib.h>
- #include <arpa/inet.h>
- #include <netinet/ip.h>
-+#define _GNU_SOURCE
- #include <netinet/tcp.h>
- #include <netinet/udp.h>
- #include <libmnl/libmnl.h>
--- 
-2.13.5
+my suggestion is:
 
+* create a new testcase in nftables: tests/shell/testcases/import/yourscript_0
+* put all the json files in: tests/shell/testcases/import/json and
+read them from yourscript_0
+
+in the script use the $NFT environment variable to call nft.
+
+This way we avoid adding a new testsuite just for this and reuse existing code.
