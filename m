@@ -1,68 +1,53 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] files: add arp filter and add in/output to nat skeleton
-Date: Wed, 23 Aug 2017 17:56:12 +0200
-Message-ID: <20170823155612.23331-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH nf-next 1/3] netfilter: convert hook list to an array
+Date: Wed, 23 Aug 2017 09:17:20 -0700
+Message-ID: <1503505040.2499.60.camel@edumazet-glaptop3.roam.corp.google.com>
+References: <20170823152627.19865-1-fw@strlen.de>
+         <20170823152627.19865-2-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, aconole@bytheb.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:58298 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932103AbdHWPzy (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:36040 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932134AbdHWQRW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 23 Aug 2017 11:55:54 -0400
+        Wed, 23 Aug 2017 12:17:22 -0400
+Received: by mail-pf0-f195.google.com with SMTP id c15so409243pfm.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Aug 2017 09:17:22 -0700 (PDT)
+In-Reply-To: <20170823152627.19865-2-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- files/nftables/Makefile.am | 3 ++-
- files/nftables/ipv4-nat    | 6 ++++--
- files/nftables/ipv6-nat    | 6 ++++--
- 3 files changed, 10 insertions(+), 5 deletions(-)
+On Wed, 2017-08-23 at 17:26 +0200, Florian Westphal wrote:
+> From: Aaron Conole <aconole@bytheb.org>
 
-diff --git a/files/nftables/Makefile.am b/files/nftables/Makefile.am
-index a4c7ac7c980b..77d5c2a66e8f 100644
---- a/files/nftables/Makefile.am
-+++ b/files/nftables/Makefile.am
-@@ -1,6 +1,7 @@
- 
- pkgsysconfdir = ${sysconfdir}/nftables
--dist_pkgsysconf_DATA =	bridge-filter	\
-+dist_pkgsysconf_DATA =	arp-filter	\
-+			bridge-filter	\
- 			inet-filter	\
- 			ipv4-filter	\
- 			ipv4-mangle	\
-diff --git a/files/nftables/ipv4-nat b/files/nftables/ipv4-nat
-index 01c6c3d8d6a1..130a729b1d36 100644
---- a/files/nftables/ipv4-nat
-+++ b/files/nftables/ipv4-nat
-@@ -1,6 +1,8 @@
- #! @sbindir@nft -f
- 
- table nat {
--	chain prerouting	{ type nat hook prerouting priority -150; }
--	chain postrouting	{ type nat hook postrouting priority -150; }
-+	chain prerouting	{ type nat hook prerouting priority -100; }
-+	chain input		{ type nat hook input priority 100; }
-+	chain output		{ type nat hook output priority -100; }
-+	chain postrouting	{ type nat hook postrouting priority 100; }
- }
-diff --git a/files/nftables/ipv6-nat b/files/nftables/ipv6-nat
-index 3f57c56dea78..e7816860f4a7 100644
---- a/files/nftables/ipv6-nat
-+++ b/files/nftables/ipv6-nat
-@@ -1,6 +1,8 @@
- #! @sbindir@nft -f
- 
- table ip6 nat {
--	chain prerouting	{ type nat hook prerouting priority -150; }
--	chain postrouting	{ type nat hook postrouting priority -150; }
-+	chain prerouting	{ type nat hook prerouting priority -100; }
-+	chain input 		{ type nat hook input priority 100; }
-+	chain output  		{ type nat hook output priority -100; }
-+	chain postrouting	{ type nat hook postrouting priority 100; }
- }
--- 
-2.13.0
+...
+
+> -static struct nf_hook_entry __rcu **nf_hook_entry_head(struct net *net, const struct nf_hook_ops *reg)
+> +static struct nf_hook_entries *allocate_hook_entries_size(u16 num)
+> +{
+> +	struct nf_hook_entries *e;
+> +	size_t alloc = sizeof(*e) +
+> +		       sizeof(struct nf_hook_entry) * num +
+> +		       sizeof(struct nf_hook_ops *) * num;
+> +
+> +	if (num == 0)
+> +		return NULL;
+> +
+> +	e = kvmalloc(alloc, GFP_KERNEL);
+> +	if (e) {
+> +		memset(e, 0, alloc);
+> +		e->num_hook_entries = num;
+> +	}
+
+
+nit:
+
+	e = kvzalloc(alloc, GFP_KERNEL);
+	if (e)
+		e->num_hook_entries = num;
+
 
