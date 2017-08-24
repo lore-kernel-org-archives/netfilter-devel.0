@@ -1,38 +1,53 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: netfilter fixes for 4.12.y tree
-Date: Thu, 24 Aug 2017 15:30:39 +0200
-Message-ID: <20170824133039.GC15739@breakpoint.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: SYNPROXY: fix process non tcp packet bug in
+ {ipv4,ipv6}_synproxy_hook
+Date: Thu, 24 Aug 2017 16:07:34 +0200
+Message-ID: <20170824140734.GA2250@salvia>
+References: <1501221784-18226-1-git-send-email-xiaolou4617@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: stable@vger.kernel.org
+Cc: davem@davemloft.net, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+To: Lin Zhang <xiaolou4617@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:35802 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751300AbdHXNdO (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:57516 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751116AbdHXOIE (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Aug 2017 09:33:14 -0400
+        Thu, 24 Aug 2017 10:08:04 -0400
 Content-Disposition: inline
+In-Reply-To: <1501221784-18226-1-git-send-email-xiaolou4617@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi stable team,
+On Fri, Jul 28, 2017 at 02:03:04PM +0800, Lin Zhang wrote:
+> In function {ipv4,ipv6}_synproxy_hook we expect a normal tcp packet,
+> but the real server maybe reply an icmp error packet related to the 
+> exist tcp conntrack, so we will access wrong tcp data.
+> 
+> For fix it, we simply pass IP_CT_RELATED_REPLY packets.
+> 
+> Signed-off-by: Lin Zhang <xiaolou4617@gmail.com>
+> ---
+>  net/ipv4/netfilter/ipt_SYNPROXY.c  | 2 +-
+>  net/ipv6/netfilter/ip6t_SYNPROXY.c | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
+> index f1528f7..3971fd9 100644
+> --- a/net/ipv4/netfilter/ipt_SYNPROXY.c
+> +++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
+> @@ -330,7 +330,7 @@ static unsigned int ipv4_synproxy_hook(void *priv,
+>  	if (synproxy == NULL)
+>  		return NF_ACCEPT;
+>  
+> -	if (nf_is_loopback_packet(skb))
+> +	if (nf_is_loopback_packet(skb) || ctinfo == IP_CT_RELATED_REPLY)
 
-please consider picking up the following commits for
-4.12.y:
+If the intention is to inspect TCP traffic only, I would suggest you
+just check for the protocol field here instead. So we are sure we only
+deal with TCP traffic indeed.
 
-36ac344e16e04e3e55e8fed7446095a6458c64e6
-netfilter: expect: fix crash when putting uninited expectation
-
-97772bcd56efa21d9d8976db6f205574ea602f51
-netfilter: nat: fix src map lookup
-(this causes severe issues when lots of nat mappings are active as we
- run out of local source ports).
-
-f55ce7b024090a51382ccab2730b96e2f7b4e9cf
-netfilter: nfnetlink: Improve input length sanitization in nfnetlink_rcv
-
-all cherry-pick cleanly.
-
-Thanks,
-Florian
+Thanks.
