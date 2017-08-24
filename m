@@ -1,54 +1,82 @@
-From: Michal Kubecek <mkubecek@suse.cz>
-Subject: Re: [PATCH nf-next] netfilter: xt_CHECKSUM: avoid bad offload
- warnings on GSO packets
-Date: Thu, 24 Aug 2017 13:07:43 +0200
-Message-ID: <20170824110742.qby3yoz3emf6pr5i@unicorn.suse.cz>
-References: <20170824104824.2C318A0F3A@unicorn.suse.cz>
- <20170824105118.GA15739@breakpoint.cc>
+From: Shyam Saini <mayhs11saini@gmail.com>
+Subject: Re: [PATCH V2] tests: json: Add test cases for json format
+Date: Thu, 24 Aug 2017 17:38:57 +0530
+Message-ID: <CAOfkYf5CDMihfi9tkUQcOv5eFMDFi2nfr012QwTy-DJ4fy65Zw@mail.gmail.com>
+References: <1503564545-28426-1-git-send-email-mayhs11saini@gmail.com> <CAOkSjBhaLkRbVFo9TENJ=tKWfOw3Hvcmx+Brp9vU0AoryZiwGA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Michael S. Tsirkin" <mst@redhat.com>,
-        Markos Chandras <markos.chandras@suse.com>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170824105118.GA15739@breakpoint.cc>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Cc: Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-oi0-f44.google.com ([209.85.218.44]:35153 "EHLO
+        mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751290AbdHXMI7 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 24 Aug 2017 08:08:59 -0400
+Received: by mail-oi0-f44.google.com with SMTP id x124so3309240oia.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2017 05:08:59 -0700 (PDT)
+In-Reply-To: <CAOkSjBhaLkRbVFo9TENJ=tKWfOw3Hvcmx+Brp9vU0AoryZiwGA@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Aug 24, 2017 at 12:51:18PM +0200, Florian Westphal wrote:
-> Michal Kubecek <mkubecek@suse.cz> wrote:
-> > When --checksum_fill action is applied to a GSO packet, checksum_tg() calls
-> > skb_checksum_help() which is only meant to be applied to non-GSO packets so
-> > that it issues a warning.
-> > 
-> > This can be easily triggered by using e.g.
-> > 
-> >   iptables -t mangle -A OUTPUT -j CHECKSUM --checksum-fill
-> > 
-> > and sending TCP stream via a device with GSO enabled.
-> > 
-> > While this can be considered a misconfiguration, I believe the bad offload
-> > warning is supposed to catch bugs in drivers and networking stack, not
-> > misconfigured firewalls. So let's ignore such packets and only issue a one
-> > time warning with pr_warn_once() rather than a WARN with stack trace and
-> > tainted kernel.
-> 
-> Why issue a warning at all?
-> What kind of action should be taken upon seeing such warning?
+>
+> > These test cases can be used to test upcoming "import json" command.
+> >
+> > Here is the short description of the files:
+> > all_ruleset_list   ->    contains list of all the individual rules
+>
+> Wait. You are generating the JSON files from this ruleset, right?
+>
+yes.
 
-Check and fix the configuration. The reason why I left at least some
-kind of warning is that the module does something that is unexpected as
-the checksum is not calculated (this module is often used in
-virtualization environments where "hardware checksum offload" in fact
-means the checksum is not computed at all).
+>
+> Then, why not simplify the tests by:
+>
+>  * load a ruleset model (your all_ruleset_list file)
+>  * export it in JSON format (nft export json)
+>  * import it again in JSON format (nft import)
+>  * comparte resulting ruleset (nft list ruleset) with the original
+> file (all_ruleset_list file)
+>
+> This way we test in the same run all the JSON code paths.
+>
+> You will need a simple testcase, like this:
+>
+> === 8< ===
+> #!/bin/bash
+> set -e
+> TMP=$(mktmp)
+> RULESET="table ip { ... } "
+> echo $RULESET > $TMP
+> $NFT -f $TMP
+> $NFT export json > $TMP
+> cat $TMP | $NFT import json)
+> RESULT=$($NFT list ruleset)
+> # compare result and initial ruleset, if fail show diff
+> === 8< ===
+>
+> That was quick and dirty code for you to get the idea.
+> Please follow the example of other testcases [0] to compare ruleset,
+> create tempfiles and so on.
+>
 
-But maybe it would suffice to add a note in iptables-extensions(8) man
-page explicitely saying that it doesn't work with GSO packets (and is of
-questionable usefulness for TCP in general).
+One issue with this approach, incase of set rules
+nft will throw this error
+"Error: Could not process rule: File exists"
+So, i need to flush ruleset before import them with json.
+Is it okay?
 
-                                                         Michal Kubecek
+>
+> Please, if possible, try to add a testcase that is [OK]. Not sure what
+> is wrong with the dup statement.
+>
+I tried, but they always throw the same error.
+Shouldn't we keep them in testsuite so that we know that these set of
+rules needs to be fixed.
+
+>
+> [0] http://git.netfilter.org/nftables/tree/tests/shell/testcases/netns/0001nft-f_0
+
+Thanks,
+Shyam
