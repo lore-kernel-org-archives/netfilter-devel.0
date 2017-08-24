@@ -1,404 +1,175 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATH nft v2 04/18] libnftables: add context new and free
-Date: Thu, 24 Aug 2017 17:30:16 +0200
-Message-ID: <20170824153016.GA23164@salvia>
-References: <20170819152420.22563-1-eric@regit.org>
- <20170819152420.22563-5-eric@regit.org>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="3V7upXqbjpZ4EhLz"
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: conntrack: remove unused hooknum arg from packet functions
+Date: Thu, 24 Aug 2017 17:42:25 +0200
+Message-ID: <20170824154225.30763-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:58282 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751895AbdHXPam (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:36482 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752984AbdHXPmH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Aug 2017 11:30:42 -0400
-Content-Disposition: inline
-In-Reply-To: <20170819152420.22563-5-eric@regit.org>
+        Thu, 24 Aug 2017 11:42:07 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Don't see where this is used; passed allmodconfig build.
 
---3V7upXqbjpZ4EhLz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-I took over this patch and revamp it, so we can apply this asap.
-
-Let me know if you have any concern,
-Thanks.
-
-
-On Sat, Aug 19, 2017 at 05:24:06PM +0200, Eric Leblond wrote:
-> Signed-off-by: Eric Leblond <eric@regit.org>
-> ---
->  include/nftables.h          |  1 +
->  include/nftables/nftables.h |  3 +++
->  src/libnftables.c           | 20 ++++++++++++++++++++
->  src/main.c                  | 29 ++++++++++++++---------------
->  4 files changed, 38 insertions(+), 15 deletions(-)
-> 
-> diff --git a/include/nftables.h b/include/nftables.h
-> index a457aba..717af37 100644
-> --- a/include/nftables.h
-> +++ b/include/nftables.h
-> @@ -35,6 +35,7 @@ struct output_ctx {
->  struct nft_ctx {
->  	struct output_ctx	output;
->  	bool			check;
-> +	struct mnl_socket	*nf_sock;
->  };
->  
->  struct nft_cache {
-> diff --git a/include/nftables/nftables.h b/include/nftables/nftables.h
-> index 4ba16f0..cfa60fe 100644
-> --- a/include/nftables/nftables.h
-> +++ b/include/nftables/nftables.h
-> @@ -17,4 +17,7 @@
->  void nft_global_init(void);
->  void nft_global_deinit(void);
->  
-> +struct nft_ctx *nft_context_new(void);
-> +void nft_context_free(struct nft_ctx *nft);
-> +
->  #endif
-> diff --git a/src/libnftables.c b/src/libnftables.c
-> index 215179a..6756c0f 100644
-> --- a/src/libnftables.c
-> +++ b/src/libnftables.c
-> @@ -51,3 +51,23 @@ void nft_global_deinit(void)
->  	realm_table_meta_exit();
->  	mark_table_exit();
->  }
-> +
-> +struct nft_ctx *nft_context_new(void)
-> +{
-> +	struct nft_ctx *ctx = NULL;
-> +	ctx = calloc(1, sizeof(struct nft_ctx));
-> +	if (ctx == NULL)
-> +		return NULL;
-> +	ctx->nf_sock = netlink_open_sock();
-> +
-> +	return ctx;
-> +}
-> +
-> +
-> +void nft_context_free(struct nft_ctx *nft)
-> +{
-> +	if (nft == NULL)
-> +		return;
-> +	netlink_close_sock(nft->nf_sock);
-> +	xfree(nft);
-> +}
-> diff --git a/src/main.c b/src/main.c
-> index dde3104..ee5566c 100644
-> --- a/src/main.c
-> +++ b/src/main.c
-> @@ -29,7 +29,6 @@
->  #include <iface.h>
->  #include <cli.h>
->  
-> -static struct nft_ctx nft;
->  unsigned int max_errors = 10;
->  #ifdef DEBUG
->  unsigned int debug_level;
-> @@ -283,13 +282,13 @@ int main(int argc, char * const *argv)
->  	unsigned int len;
->  	bool interactive = false;
->  	int i, val, rc = NFT_EXIT_SUCCESS;
-> -	struct mnl_socket *nf_sock;
-> +	struct nft_ctx *nft;
->  
->  	memset(&cache, 0, sizeof(cache));
->  	init_list_head(&cache.list);
->  
->  	nft_global_init();
-> -	nf_sock = netlink_open_sock();
-> +	nft = nft_context_new();
->  	while (1) {
->  		val = getopt_long(argc, argv, OPTSTRING, options, NULL);
->  		if (val == -1)
-> @@ -304,7 +303,7 @@ int main(int argc, char * const *argv)
->  			       PACKAGE_NAME, PACKAGE_VERSION, RELEASE_NAME);
->  			exit(NFT_EXIT_SUCCESS);
->  		case OPT_CHECK:
-> -			nft.check = true;
-> +			nft->check = true;
->  			break;
->  		case OPT_FILE:
->  			filename = optarg;
-> @@ -322,7 +321,7 @@ int main(int argc, char * const *argv)
->  			include_paths[num_include_paths++] = optarg;
->  			break;
->  		case OPT_NUMERIC:
-> -			if (++nft.output.numeric > NUMERIC_ALL) {
-> +			if (++nft->output.numeric > NUMERIC_ALL) {
->  				fprintf(stderr, "Too many numeric options "
->  						"used, max. %u\n",
->  					NUMERIC_ALL);
-> @@ -330,10 +329,10 @@ int main(int argc, char * const *argv)
->  			}
->  			break;
->  		case OPT_STATELESS:
-> -			nft.output.stateless++;
-> +			nft->output.stateless++;
->  			break;
->  		case OPT_IP2NAME:
-> -			nft.output.ip2name++;
-> +			nft->output.ip2name++;
->  			break;
->  #ifdef DEBUG
->  		case OPT_DEBUG:
-> @@ -365,10 +364,10 @@ int main(int argc, char * const *argv)
->  			break;
->  #endif
->  		case OPT_HANDLE_OUTPUT:
-> -			nft.output.handle++;
-> +			nft->output.handle++;
->  			break;
->  		case OPT_ECHO:
-> -			nft.output.echo++;
-> +			nft->output.echo++;
->  			break;
->  		case OPT_INVALID:
->  			exit(NFT_EXIT_FAILURE);
-> @@ -386,20 +385,20 @@ int main(int argc, char * const *argv)
->  				strcat(buf, " ");
->  		}
->  		strcat(buf, "\n");
-> -		parser_init(nf_sock, &cache, &state, &msgs);
-> +		parser_init(nft->nf_sock, &cache, &state, &msgs);
->  		scanner = scanner_init(&state);
->  		scanner_push_buffer(scanner, &indesc_cmdline, buf);
->  	} else if (filename != NULL) {
-> -		rc = cache_update(nf_sock, &cache, CMD_INVALID, &msgs);
-> +		rc = cache_update(nft->nf_sock, &cache, CMD_INVALID, &msgs);
->  		if (rc < 0)
->  			return rc;
->  
-> -		parser_init(nf_sock, &cache, &state, &msgs);
-> +		parser_init(nft->nf_sock, &cache, &state, &msgs);
->  		scanner = scanner_init(&state);
->  		if (scanner_read_file(scanner, filename, &internal_location) < 0)
->  			goto out;
->  	} else if (interactive) {
-> -		if (cli_init(&nft, nf_sock, &cache, &state) < 0) {
-> +		if (cli_init(nft, nft->nf_sock, &cache, &state) < 0) {
->  			fprintf(stderr, "%s: interactive CLI not supported in this build\n",
->  				argv[0]);
->  			exit(NFT_EXIT_FAILURE);
-> @@ -410,7 +409,7 @@ int main(int argc, char * const *argv)
->  		exit(NFT_EXIT_FAILURE);
->  	}
->  
-> -	if (nft_run(&nft, nf_sock, &cache, scanner, &state, &msgs) != 0)
-> +	if (nft_run(nft, nft->nf_sock, &cache, scanner, &state, &msgs) != 0)
->  		rc = NFT_EXIT_FAILURE;
->  out:
->  	scanner_destroy(scanner);
-> @@ -418,7 +417,7 @@ out:
->  	xfree(buf);
->  	cache_release(&cache);
->  	iface_cache_release();
-> -	netlink_close_sock(nf_sock);
-> +	nft_context_free(nft);
->  	nft_global_deinit();
->  
->  	return rc;
-> -- 
-> 2.14.1
-> 
-
---3V7upXqbjpZ4EhLz
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-src-add-nft_ctx_new-and-nft_ctx_free.patch"
-
->From 3dba6c6e2859efe5d0364b0299c510fb16d5faad Mon Sep 17 00:00:00 2001
-From: Eric Leblond <eric@regit.org>
-Date: Thu, 24 Aug 2017 17:23:03 +0200
-Subject: [PATCH] src: add nft_ctx_new() and nft_ctx_free()
-
-These new functions allows us to allocate and release the context
-structure. This is going to be useful for libnftables.
-
-Joint work with Pablo Neira.
-
-Signed-off-by: Eric Leblond <eric@regit.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/main.c | 64 ++++++++++++++++++++++++++++++++++++++------------------------
- 1 file changed, 39 insertions(+), 25 deletions(-)
+ include/net/netfilter/nf_conntrack_l4proto.h   | 1 -
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   | 1 -
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c | 6 ++----
+ net/netfilter/nf_conntrack_core.c              | 2 +-
+ net/netfilter/nf_conntrack_proto_dccp.c        | 2 +-
+ net/netfilter/nf_conntrack_proto_generic.c     | 1 -
+ net/netfilter/nf_conntrack_proto_gre.c         | 1 -
+ net/netfilter/nf_conntrack_proto_sctp.c        | 1 -
+ net/netfilter/nf_conntrack_proto_tcp.c         | 1 -
+ net/netfilter/nf_conntrack_proto_udp.c         | 1 -
+ 10 files changed, 4 insertions(+), 13 deletions(-)
 
-diff --git a/src/main.c b/src/main.c
-index c09d9f341b69..1b986ae4ed12 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -28,7 +28,7 @@
- #include <iface.h>
- #include <cli.h>
+diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+index b6e27cafb1d9..37d5e3e984e7 100644
+--- a/include/net/netfilter/nf_conntrack_l4proto.h
++++ b/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -43,7 +43,6 @@ struct nf_conntrack_l4proto {
+ 		      unsigned int dataoff,
+ 		      enum ip_conntrack_info ctinfo,
+ 		      u_int8_t pf,
+-		      unsigned int hooknum,
+ 		      unsigned int *timeouts);
  
--static struct nft_ctx nft;
-+static struct nft_ctx *nft;
- 
- enum opt_vals {
- 	OPT_HELP		= 'h',
-@@ -281,11 +281,23 @@ void nft_exit(void)
- 	mark_table_exit();
- }
- 
--static void nft_ctx_init(struct nft_ctx *nft)
-+static struct nft_ctx *nft_ctx_new(void)
+ 	/* Called when a new connection for this protocol found;
+diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+index 73c591d8a9a8..302ef5a38d69 100644
+--- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+@@ -92,7 +92,6 @@ static int icmp_packet(struct nf_conn *ct,
+ 		       unsigned int dataoff,
+ 		       enum ip_conntrack_info ctinfo,
+ 		       u_int8_t pf,
+-		       unsigned int hooknum,
+ 		       unsigned int *timeout)
  {
--	nft->include_paths[0]	= DEFAULT_INCLUDE_PATH;
--	nft->num_include_paths	= 1;
--	nft->parser_max_errors = 10;
-+	struct nft_ctx *ctx;
-+
-+	ctx = xzalloc(sizeof(struct nft_ctx));
-+
-+	ctx->include_paths[0]	= DEFAULT_INCLUDE_PATH;
-+	ctx->num_include_paths	= 1;
-+	ctx->parser_max_errors	= 10;
-+	init_list_head(&ctx->cache.list);
-+
-+	return ctx;
-+}
-+
-+static void nft_ctx_free(const struct nft_ctx *ctx)
-+{
-+	xfree(ctx);
+ 	/* Do not immediately delete the connection after the first
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index d5f028e33f65..413c4a0093da 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -105,7 +105,6 @@ static int icmpv6_packet(struct nf_conn *ct,
+ 		       unsigned int dataoff,
+ 		       enum ip_conntrack_info ctinfo,
+ 		       u_int8_t pf,
+-		       unsigned int hooknum,
+ 		       unsigned int *timeout)
+ {
+ 	/* Do not immediately delete the connection after the first
+@@ -144,8 +143,7 @@ static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
+ static int
+ icmpv6_error_message(struct net *net, struct nf_conn *tmpl,
+ 		     struct sk_buff *skb,
+-		     unsigned int icmp6off,
+-		     unsigned int hooknum)
++		     unsigned int icmp6off)
+ {
+ 	struct nf_conntrack_tuple intuple, origtuple;
+ 	const struct nf_conntrack_tuple_hash *h;
+@@ -229,7 +227,7 @@ icmpv6_error(struct net *net, struct nf_conn *tmpl,
+ 	if (icmp6h->icmp6_type >= 128)
+ 		return NF_ACCEPT;
+ 
+-	return icmpv6_error_message(net, tmpl, skb, dataoff, hooknum);
++	return icmpv6_error_message(net, tmpl, skb, dataoff);
  }
  
- int main(int argc, char * const *argv)
-@@ -299,10 +311,9 @@ int main(int argc, char * const *argv)
- 	int i, val, rc = NFT_EXIT_SUCCESS;
- 	struct mnl_socket *nf_sock;
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index f2f00eaf217d..92faa72bc55e 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1414,7 +1414,7 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
+ 	/* Decide what timeout policy we want to apply to this flow. */
+ 	timeouts = nf_ct_timeout_lookup(net, ct, l4proto);
  
--	init_list_head(&nft.cache.list);
--
- 	nft_init();
--	nft_ctx_init(&nft);
-+
-+	nft = nft_ctx_new();
+-	ret = l4proto->packet(ct, skb, dataoff, ctinfo, pf, hooknum, timeouts);
++	ret = l4proto->packet(ct, skb, dataoff, ctinfo, pf, timeouts);
+ 	if (ret <= 0) {
+ 		/* Invalid: inverse of the return code tells
+ 		 * the netfilter core what to do */
+diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
+index 4707d997558a..81bfd4399616 100644
+--- a/net/netfilter/nf_conntrack_proto_dccp.c
++++ b/net/netfilter/nf_conntrack_proto_dccp.c
+@@ -469,7 +469,7 @@ static unsigned int *dccp_get_timeouts(struct net *net)
  
- 	nf_sock = netlink_open_sock();
- 	while (1) {
-@@ -319,7 +330,7 @@ int main(int argc, char * const *argv)
- 			       PACKAGE_NAME, PACKAGE_VERSION, RELEASE_NAME);
- 			exit(NFT_EXIT_SUCCESS);
- 		case OPT_CHECK:
--			nft.check = true;
-+			nft->check = true;
- 			break;
- 		case OPT_FILE:
- 			filename = optarg;
-@@ -328,16 +339,16 @@ int main(int argc, char * const *argv)
- 			interactive = true;
- 			break;
- 		case OPT_INCLUDEPATH:
--			if (nft.num_include_paths >= INCLUDE_PATHS_MAX) {
-+			if (nft->num_include_paths >= INCLUDE_PATHS_MAX) {
- 				fprintf(stderr, "Too many include paths "
- 						"specified, max. %u\n",
- 					INCLUDE_PATHS_MAX - 1);
- 				exit(NFT_EXIT_FAILURE);
- 			}
--			nft.include_paths[nft.num_include_paths++] = optarg;
-+			nft->include_paths[nft->num_include_paths++] = optarg;
- 			break;
- 		case OPT_NUMERIC:
--			if (++nft.output.numeric > NUMERIC_ALL) {
-+			if (++nft->output.numeric > NUMERIC_ALL) {
- 				fprintf(stderr, "Too many numeric options "
- 						"used, max. %u\n",
- 					NUMERIC_ALL);
-@@ -345,10 +356,10 @@ int main(int argc, char * const *argv)
- 			}
- 			break;
- 		case OPT_STATELESS:
--			nft.output.stateless++;
-+			nft->output.stateless++;
- 			break;
- 		case OPT_IP2NAME:
--			nft.output.ip2name++;
-+			nft->output.ip2name++;
- 			break;
- 		case OPT_DEBUG:
- 			for (;;) {
-@@ -362,7 +373,7 @@ int main(int argc, char * const *argv)
- 				for (i = 0; i < array_size(debug_param); i++) {
- 					if (strcmp(debug_param[i].name, optarg))
- 						continue;
--					nft.debug_mask |= debug_param[i].level;
-+					nft->debug_mask |= debug_param[i].level;
- 					break;
- 				}
- 
-@@ -378,10 +389,10 @@ int main(int argc, char * const *argv)
- 			}
- 			break;
- 		case OPT_HANDLE_OUTPUT:
--			nft.output.handle++;
-+			nft->output.handle++;
- 			break;
- 		case OPT_ECHO:
--			nft.output.echo++;
-+			nft->output.echo++;
- 			break;
- 		case OPT_INVALID:
- 			exit(NFT_EXIT_FAILURE);
-@@ -399,21 +410,23 @@ int main(int argc, char * const *argv)
- 				strcat(buf, " ");
- 		}
- 		strcat(buf, "\n");
--		parser_init(nf_sock, &nft.cache, &state, &msgs, nft.debug_mask);
-+		parser_init(nf_sock, &nft->cache, &state, &msgs,
-+			    nft->debug_mask);
- 		scanner = scanner_init(&state);
- 		scanner_push_buffer(scanner, &indesc_cmdline, buf);
- 	} else if (filename != NULL) {
--		rc = cache_update(nf_sock, &nft.cache, CMD_INVALID, &msgs,
--				  nft.debug_mask);
-+		rc = cache_update(nf_sock, &nft->cache, CMD_INVALID, &msgs,
-+				  nft->debug_mask);
- 		if (rc < 0)
- 			return rc;
- 
--		parser_init(nf_sock, &nft.cache, &state, &msgs, nft.debug_mask);
-+		parser_init(nf_sock, &nft->cache, &state, &msgs,
-+			    nft->debug_mask);
- 		scanner = scanner_init(&state);
- 		if (scanner_read_file(scanner, filename, &internal_location) < 0)
- 			goto out;
- 	} else if (interactive) {
--		if (cli_init(&nft, nf_sock, &state) < 0) {
-+		if (cli_init(nft, nf_sock, &state) < 0) {
- 			fprintf(stderr, "%s: interactive CLI not supported in this build\n",
- 				argv[0]);
- 			exit(NFT_EXIT_FAILURE);
-@@ -424,15 +437,16 @@ int main(int argc, char * const *argv)
- 		exit(NFT_EXIT_FAILURE);
- 	}
- 
--	if (nft_run(&nft, nf_sock, scanner, &state, &msgs) != 0)
-+	if (nft_run(nft, nf_sock, scanner, &state, &msgs) != 0)
- 		rc = NFT_EXIT_FAILURE;
- out:
- 	scanner_destroy(scanner);
--	erec_print_list(stderr, &msgs, nft.debug_mask);
-+	erec_print_list(stderr, &msgs, nft->debug_mask);
- 	xfree(buf);
--	cache_release(&nft.cache);
-+	cache_release(&nft->cache);
- 	iface_cache_release();
- 	netlink_close_sock(nf_sock);
-+	nft_ctx_free(nft);
- 	nft_exit();
- 
- 	return rc;
+ static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
+ 		       unsigned int dataoff, enum ip_conntrack_info ctinfo,
+-		       u_int8_t pf, unsigned int hooknum,
++		       u_int8_t pf,
+ 		       unsigned int *timeouts)
+ {
+ 	struct net *net = nf_ct_net(ct);
+diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
+index d5868bad33a7..cb14a292becc 100644
+--- a/net/netfilter/nf_conntrack_proto_generic.c
++++ b/net/netfilter/nf_conntrack_proto_generic.c
+@@ -79,7 +79,6 @@ static int generic_packet(struct nf_conn *ct,
+ 			  unsigned int dataoff,
+ 			  enum ip_conntrack_info ctinfo,
+ 			  u_int8_t pf,
+-			  unsigned int hooknum,
+ 			  unsigned int *timeout)
+ {
+ 	nf_ct_refresh_acct(ct, ctinfo, skb, *timeout);
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index 87bb40a3feb5..ee45df00a95f 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -252,7 +252,6 @@ static int gre_packet(struct nf_conn *ct,
+ 		      unsigned int dataoff,
+ 		      enum ip_conntrack_info ctinfo,
+ 		      u_int8_t pf,
+-		      unsigned int hooknum,
+ 		      unsigned int *timeouts)
+ {
+ 	/* If we've seen traffic both ways, this is a GRE connection.
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 6eef29d2eec4..9361e91b6615 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -314,7 +314,6 @@ static int sctp_packet(struct nf_conn *ct,
+ 		       unsigned int dataoff,
+ 		       enum ip_conntrack_info ctinfo,
+ 		       u_int8_t pf,
+-		       unsigned int hooknum,
+ 		       unsigned int *timeouts)
+ {
+ 	enum sctp_conntrack new_state, old_state;
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 9758a7dfd83e..4d516e5d3547 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -810,7 +810,6 @@ static int tcp_packet(struct nf_conn *ct,
+ 		      unsigned int dataoff,
+ 		      enum ip_conntrack_info ctinfo,
+ 		      u_int8_t pf,
+-		      unsigned int hooknum,
+ 		      unsigned int *timeouts)
+ {
+ 	struct net *net = nf_ct_net(ct);
+diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
+index f6ebce6178ca..092fd87954ed 100644
+--- a/net/netfilter/nf_conntrack_proto_udp.c
++++ b/net/netfilter/nf_conntrack_proto_udp.c
+@@ -83,7 +83,6 @@ static int udp_packet(struct nf_conn *ct,
+ 		      unsigned int dataoff,
+ 		      enum ip_conntrack_info ctinfo,
+ 		      u_int8_t pf,
+-		      unsigned int hooknum,
+ 		      unsigned int *timeouts)
+ {
+ 	/* If we've seen traffic both ways, this is some kind of UDP
 -- 
-2.1.4
+2.13.0
 
-
---3V7upXqbjpZ4EhLz--
