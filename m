@@ -1,175 +1,160 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: conntrack: remove unused hooknum arg from packet functions
-Date: Thu, 24 Aug 2017 17:42:25 +0200
-Message-ID: <20170824154225.30763-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATH nft v2 05/18] libnftables: add nft_run_command_from_buffer
+Date: Thu, 24 Aug 2017 17:49:24 +0200
+Message-ID: <20170824154924.GA24860@salvia>
+References: <20170819152420.22563-1-eric@regit.org>
+ <20170819152420.22563-6-eric@regit.org>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="FL5UXtIhxfXey3p5"
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:36482 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752984AbdHXPmH (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:58464 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751840AbdHXPtt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Aug 2017 11:42:07 -0400
+        Thu, 24 Aug 2017 11:49:49 -0400
+Content-Disposition: inline
+In-Reply-To: <20170819152420.22563-6-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Don't see where this is used; passed allmodconfig build.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+--FL5UXtIhxfXey3p5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Attaching a revamped version, it is collapsing your patch 5 and 6.
+
+We still have to agree on what to do with the netlink socket. I know
+you don't want to open it from the client side.
+
+The only way I find to do this is to - yick - add a flag to
+nft_ctx_new().
+
+--FL5UXtIhxfXey3p5
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-src-add-nft_run_cmd_-functions.patch"
+
+>From d9583a782e96d4c2310c00b4cb6a511b2bd99471 Mon Sep 17 00:00:00 2001
+From: Eric Leblond <eric@regit.org>
+Date: Thu, 24 Aug 2017 17:46:01 +0200
+Subject: [PATCH] src: add nft_run_cmd_*() functions
+
+Add new function to read nftables command from a file and buffer, that
+we can expose as library.
+
+Joint work with Pablo Neira.
+
+Signed-off-by: Eric Leblond <eric@regit.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack_l4proto.h   | 1 -
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c   | 1 -
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c | 6 ++----
- net/netfilter/nf_conntrack_core.c              | 2 +-
- net/netfilter/nf_conntrack_proto_dccp.c        | 2 +-
- net/netfilter/nf_conntrack_proto_generic.c     | 1 -
- net/netfilter/nf_conntrack_proto_gre.c         | 1 -
- net/netfilter/nf_conntrack_proto_sctp.c        | 1 -
- net/netfilter/nf_conntrack_proto_tcp.c         | 1 -
- net/netfilter/nf_conntrack_proto_udp.c         | 1 -
- 10 files changed, 4 insertions(+), 13 deletions(-)
+ src/main.c | 74 +++++++++++++++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 54 insertions(+), 20 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index b6e27cafb1d9..37d5e3e984e7 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -43,7 +43,6 @@ struct nf_conntrack_l4proto {
- 		      unsigned int dataoff,
- 		      enum ip_conntrack_info ctinfo,
- 		      u_int8_t pf,
--		      unsigned int hooknum,
- 		      unsigned int *timeouts);
- 
- 	/* Called when a new connection for this protocol found;
-diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-index 73c591d8a9a8..302ef5a38d69 100644
---- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -92,7 +92,6 @@ static int icmp_packet(struct nf_conn *ct,
- 		       unsigned int dataoff,
- 		       enum ip_conntrack_info ctinfo,
- 		       u_int8_t pf,
--		       unsigned int hooknum,
- 		       unsigned int *timeout)
- {
- 	/* Do not immediately delete the connection after the first
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index d5f028e33f65..413c4a0093da 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -105,7 +105,6 @@ static int icmpv6_packet(struct nf_conn *ct,
- 		       unsigned int dataoff,
- 		       enum ip_conntrack_info ctinfo,
- 		       u_int8_t pf,
--		       unsigned int hooknum,
- 		       unsigned int *timeout)
- {
- 	/* Do not immediately delete the connection after the first
-@@ -144,8 +143,7 @@ static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
- static int
- icmpv6_error_message(struct net *net, struct nf_conn *tmpl,
- 		     struct sk_buff *skb,
--		     unsigned int icmp6off,
--		     unsigned int hooknum)
-+		     unsigned int icmp6off)
- {
- 	struct nf_conntrack_tuple intuple, origtuple;
- 	const struct nf_conntrack_tuple_hash *h;
-@@ -229,7 +227,7 @@ icmpv6_error(struct net *net, struct nf_conn *tmpl,
- 	if (icmp6h->icmp6_type >= 128)
- 		return NF_ACCEPT;
- 
--	return icmpv6_error_message(net, tmpl, skb, dataoff, hooknum);
-+	return icmpv6_error_message(net, tmpl, skb, dataoff);
+diff --git a/src/main.c b/src/main.c
+index 1b986ae4ed12..0cad4d2412e8 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -300,6 +300,58 @@ static void nft_ctx_free(const struct nft_ctx *ctx)
+ 	xfree(ctx);
  }
  
- #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index f2f00eaf217d..92faa72bc55e 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1414,7 +1414,7 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
- 	/* Decide what timeout policy we want to apply to this flow. */
- 	timeouts = nf_ct_timeout_lookup(net, ct, l4proto);
++static int nft_run_cmd_from_buffer(struct nft_ctx *nft,
++				   struct mnl_socket *nf_sock,
++				   char *buf, size_t buflen)
++{
++	int rc = NFT_EXIT_SUCCESS;
++	struct parser_state state;
++	LIST_HEAD(msgs);
++	void *scanner;
++
++	parser_init(nf_sock, &nft->cache, &state, &msgs, nft->debug_mask);
++	scanner = scanner_init(&state);
++	scanner_push_buffer(scanner, &indesc_cmdline, buf);
++
++	if (nft_run(nft, nf_sock, scanner, &state, &msgs) != 0)
++		rc = NFT_EXIT_FAILURE;
++
++	scanner_destroy(scanner);
++	erec_print_list(stderr, &msgs, nft->debug_mask);
++	cache_release(&nft->cache);
++
++	return rc;
++}
++
++static int nft_run_cmd_from_filename(struct nft_ctx *nft,
++				     struct mnl_socket *nf_sock,
++				     const char *filename)
++{
++	struct parser_state state;
++	LIST_HEAD(msgs);
++	void *scanner;
++	int rc;
++
++	rc = cache_update(nf_sock, &nft->cache, CMD_INVALID, &msgs,
++			  nft->debug_mask);
++	if (rc < 0)
++		return NFT_EXIT_FAILURE;
++
++	parser_init(nf_sock, &nft->cache, &state, &msgs, nft->debug_mask);
++	scanner = scanner_init(&state);
++	if (scanner_read_file(scanner, filename, &internal_location) < 0)
++		goto err;
++
++	if (nft_run(nft, nf_sock, scanner, &state, &msgs) != 0)
++		rc = NFT_EXIT_FAILURE;
++err:
++	scanner_destroy(scanner);
++	erec_print_list(stderr, &msgs, nft->debug_mask);
++	cache_release(&nft->cache);
++
++	return rc;
++}
++
+ int main(int argc, char * const *argv)
+ {
+ 	struct parser_state state;
+@@ -410,21 +462,9 @@ int main(int argc, char * const *argv)
+ 				strcat(buf, " ");
+ 		}
+ 		strcat(buf, "\n");
+-		parser_init(nf_sock, &nft->cache, &state, &msgs,
+-			    nft->debug_mask);
+-		scanner = scanner_init(&state);
+-		scanner_push_buffer(scanner, &indesc_cmdline, buf);
++		rc = nft_run_cmd_from_buffer(nft, nf_sock, buf, len + 2);
+ 	} else if (filename != NULL) {
+-		rc = cache_update(nf_sock, &nft->cache, CMD_INVALID, &msgs,
+-				  nft->debug_mask);
+-		if (rc < 0)
+-			return rc;
+-
+-		parser_init(nf_sock, &nft->cache, &state, &msgs,
+-			    nft->debug_mask);
+-		scanner = scanner_init(&state);
+-		if (scanner_read_file(scanner, filename, &internal_location) < 0)
+-			goto out;
++		rc = nft_run_cmd_from_filename(nft, nf_sock, filename);
+ 	} else if (interactive) {
+ 		if (cli_init(nft, nf_sock, &state) < 0) {
+ 			fprintf(stderr, "%s: interactive CLI not supported in this build\n",
+@@ -437,13 +477,7 @@ int main(int argc, char * const *argv)
+ 		exit(NFT_EXIT_FAILURE);
+ 	}
  
--	ret = l4proto->packet(ct, skb, dataoff, ctinfo, pf, hooknum, timeouts);
-+	ret = l4proto->packet(ct, skb, dataoff, ctinfo, pf, timeouts);
- 	if (ret <= 0) {
- 		/* Invalid: inverse of the return code tells
- 		 * the netfilter core what to do */
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index 4707d997558a..81bfd4399616 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -469,7 +469,7 @@ static unsigned int *dccp_get_timeouts(struct net *net)
- 
- static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
- 		       unsigned int dataoff, enum ip_conntrack_info ctinfo,
--		       u_int8_t pf, unsigned int hooknum,
-+		       u_int8_t pf,
- 		       unsigned int *timeouts)
- {
- 	struct net *net = nf_ct_net(ct);
-diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
-index d5868bad33a7..cb14a292becc 100644
---- a/net/netfilter/nf_conntrack_proto_generic.c
-+++ b/net/netfilter/nf_conntrack_proto_generic.c
-@@ -79,7 +79,6 @@ static int generic_packet(struct nf_conn *ct,
- 			  unsigned int dataoff,
- 			  enum ip_conntrack_info ctinfo,
- 			  u_int8_t pf,
--			  unsigned int hooknum,
- 			  unsigned int *timeout)
- {
- 	nf_ct_refresh_acct(ct, ctinfo, skb, *timeout);
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index 87bb40a3feb5..ee45df00a95f 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -252,7 +252,6 @@ static int gre_packet(struct nf_conn *ct,
- 		      unsigned int dataoff,
- 		      enum ip_conntrack_info ctinfo,
- 		      u_int8_t pf,
--		      unsigned int hooknum,
- 		      unsigned int *timeouts)
- {
- 	/* If we've seen traffic both ways, this is a GRE connection.
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 6eef29d2eec4..9361e91b6615 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -314,7 +314,6 @@ static int sctp_packet(struct nf_conn *ct,
- 		       unsigned int dataoff,
- 		       enum ip_conntrack_info ctinfo,
- 		       u_int8_t pf,
--		       unsigned int hooknum,
- 		       unsigned int *timeouts)
- {
- 	enum sctp_conntrack new_state, old_state;
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 9758a7dfd83e..4d516e5d3547 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -810,7 +810,6 @@ static int tcp_packet(struct nf_conn *ct,
- 		      unsigned int dataoff,
- 		      enum ip_conntrack_info ctinfo,
- 		      u_int8_t pf,
--		      unsigned int hooknum,
- 		      unsigned int *timeouts)
- {
- 	struct net *net = nf_ct_net(ct);
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index f6ebce6178ca..092fd87954ed 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -83,7 +83,6 @@ static int udp_packet(struct nf_conn *ct,
- 		      unsigned int dataoff,
- 		      enum ip_conntrack_info ctinfo,
- 		      u_int8_t pf,
--		      unsigned int hooknum,
- 		      unsigned int *timeouts)
- {
- 	/* If we've seen traffic both ways, this is some kind of UDP
+-	if (nft_run(nft, nf_sock, scanner, &state, &msgs) != 0)
+-		rc = NFT_EXIT_FAILURE;
+-out:
+-	scanner_destroy(scanner);
+-	erec_print_list(stderr, &msgs, nft->debug_mask);
+ 	xfree(buf);
+-	cache_release(&nft->cache);
+ 	iface_cache_release();
+ 	netlink_close_sock(nf_sock);
+ 	nft_ctx_free(nft);
 -- 
-2.13.0
+2.1.4
 
+
+--FL5UXtIhxfXey3p5--
