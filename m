@@ -1,45 +1,36 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] netfilter: nf_nat_h323: fix logical-not-parentheses
- warning
-Date: Thu, 24 Aug 2017 18:49:37 +0200
-Message-ID: <20170824164937.GA14949@salvia>
-References: <20170811174259.GA3743@salvia>
- <20170811181607.33878-1-ndesaulniers@google.com>
- <CAKwvOdmw+bnN-nKeKbE8WJJ8Enc4PCeC3KD5KpaSVOT4+ycDKQ@mail.gmail.com>
+Subject: Re: [conntrack-tools PATCH] tests: don't fail on modprobe since the
+ driver might be built-in
+Date: Thu, 24 Aug 2017 18:51:06 +0200
+Message-ID: <20170824165106.GA15078@salvia>
+References: <150280165807.21062.1101236218834054083.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Matthias Kaehlcke <mka@chromium.org>,
-        Lorenzo Colitti <lorenzo@google.com>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Nick Desaulniers <ndesaulniers@google.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:59054 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753422AbdHXQva (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 24 Aug 2017 12:51:30 -0400
 Content-Disposition: inline
-In-Reply-To: <CAKwvOdmw+bnN-nKeKbE8WJJ8Enc4PCeC3KD5KpaSVOT4+ycDKQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <150280165807.21062.1101236218834054083.stgit@nfdev2.cica.es>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 14, 2017 at 10:36:03AM -0700, Nick Desaulniers wrote:
-> Minor nit for the commit message that can get fixed up when being merged:
+On Tue, Aug 15, 2017 at 02:54:18PM +0200, Arturo Borrero Gonzalez wrote:
+> From: Steve Langasek <steve.langasek@ubuntu.com>
 > 
-> On Fri, Aug 11, 2017 at 11:16 AM, Nick Desaulniers
-> <ndesaulniers@google.com> wrote:
+> Any of these nf drivers could be built-ins instead of modules; don't cause
+> the testsuite to fail on modprobe, instead let it proceed and succeed/fail
+> later based on actual test results.
 > 
-> > if (x)
-> >   return
-> > ...
-> >
-> > rather than:
-> >
-> > if (!x == 0)
+> Ideally we would check up front if the driver is loaded rather than trying
+> to modprobe and ignoring failures, but there doesn't seem to be a reliable
+> place to check this in the kernel filesystem.
 > 
-> should remove the `!`, ex:
-> 
-> if (x == 0)
+> Signed-off-by: Steve Langasek <steve.langasek@ubuntu.com>
+> Signed-off-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
 
-Amended this here, and applied. Thanks!
+Applied, thanks Arturo.
