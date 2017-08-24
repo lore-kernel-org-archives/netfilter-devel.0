@@ -1,72 +1,64 @@
-From: Arturo Borrero Gonzalez <arturo@netfilter.org>
-Subject: Re: [PATCH V2] tests: json: Add test cases for json format
-Date: Thu, 24 Aug 2017 11:56:26 +0200
-Message-ID: <CAOkSjBhaLkRbVFo9TENJ=tKWfOw3Hvcmx+Brp9vU0AoryZiwGA@mail.gmail.com>
-References: <1503564545-28426-1-git-send-email-mayhs11saini@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Shyam Saini <mayhs11saini@gmail.com>
+From: Michal Kubecek <mkubecek@suse.cz>
+Subject: [PATCH nf-next] netfilter: xt_CHECKSUM: avoid bad offload warnings on
+ GSO packets
+Date: Thu, 24 Aug 2017 12:48:24 +0200 (CEST)
+Message-ID: <20170824104824.2C318A0F3A@unicorn.suse.cz>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Markos Chandras <markos.chandras@suse.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f53.google.com ([74.125.82.53]:36358 "EHLO
-        mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751582AbdHXJ4s (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Aug 2017 05:56:48 -0400
-Received: by mail-wm0-f53.google.com with SMTP id x128so1127101wmg.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2017 02:56:47 -0700 (PDT)
-Received: from mail-wm0-f46.google.com (mail-wm0-f46.google.com. [74.125.82.46])
-        by smtp.gmail.com with ESMTPSA id g2sm2128381edk.16.2017.08.24.02.56.46
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 24 Aug 2017 02:56:46 -0700 (PDT)
-Received: by mail-wm0-f46.google.com with SMTP id i17so5666696wmb.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2017 02:56:46 -0700 (PDT)
-In-Reply-To: <1503564545-28426-1-git-send-email-mayhs11saini@gmail.com>
+Received: from mx2.suse.de ([195.135.220.15]:59759 "EHLO mx1.suse.de"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751182AbdHXKs0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 24 Aug 2017 06:48:26 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 24 August 2017 at 10:49, Shyam Saini <mayhs11saini@gmail.com> wrote:
-> These test cases can be used to test upcoming "import json" command.
->
-> Here is the short description of the files:
-> all_ruleset_list   ->    contains list of all the individual rules
+When --checksum_fill action is applied to a GSO packet, checksum_tg() calls
+skb_checksum_help() which is only meant to be applied to non-GSO packets so
+that it issues a warning.
 
-Wait. You are generating the JSON files from this ruleset, right?
+This can be easily triggered by using e.g.
 
-Then, why not simplify the tests by:
+  iptables -t mangle -A OUTPUT -j CHECKSUM --checksum-fill
 
- * load a ruleset model (your all_ruleset_list file)
- * export it in JSON format (nft export json)
- * import it again in JSON format (nft import)
- * comparte resulting ruleset (nft list ruleset) with the original
-file (all_ruleset_list file)
+and sending TCP stream via a device with GSO enabled.
 
-This way we test in the same run all the JSON code paths.
+While this can be considered a misconfiguration, I believe the bad offload
+warning is supposed to catch bugs in drivers and networking stack, not
+misconfigured firewalls. So let's ignore such packets and only issue a one
+time warning with pr_warn_once() rather than a WARN with stack trace and
+tainted kernel.
 
-You will need a simple testcase, like this:
+Reported-by: Markos Chandras <markos.chandras@suse.com>
+Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
+---
+ net/netfilter/xt_CHECKSUM.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-=== 8< ===
-#!/bin/bash
-set -e
-TMP=$(mktmp)
-RULESET="table ip { ... } "
-echo $RULESET > $TMP
-$NFT -f $TMP
-$NFT export json > $TMP
-cat $TMP | $NFT import json)
-RESULT=$($NFT list ruleset)
-# compare result and initial ruleset, if fail show diff
-=== 8< ===
+diff --git a/net/netfilter/xt_CHECKSUM.c b/net/netfilter/xt_CHECKSUM.c
+index 0f642ef8cd26..9a007153ba7f 100644
+--- a/net/netfilter/xt_CHECKSUM.c
++++ b/net/netfilter/xt_CHECKSUM.c
+@@ -25,8 +25,12 @@ MODULE_ALIAS("ip6t_CHECKSUM");
+ static unsigned int
+ checksum_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+-	if (skb->ip_summed == CHECKSUM_PARTIAL)
+-		skb_checksum_help(skb);
++	if (skb->ip_summed == CHECKSUM_PARTIAL) {
++		if (unlikely(skb_is_gso(skb)))
++			pr_warn_once("cannot mangle checksum of a GSO packet\n");
++		else
++			skb_checksum_help(skb);
++	}
+ 
+ 	return XT_CONTINUE;
+ }
+-- 
+2.14.1
 
-That was quick and dirty code for you to get the idea.
-Please follow the example of other testcases [0] to compare ruleset,
-create tempfiles and so on.
-
-Please, if possible, try to add a testcase that is [OK]. Not sure what
-is wrong with the dup statement.
-
-thanks Shyam!
-
-[0] http://git.netfilter.org/nftables/tree/tests/shell/testcases/netns/0001nft-f_0
