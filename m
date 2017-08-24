@@ -1,40 +1,26 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH 3/4] scanner: Make use of yylex_init_extra()
-Date: Thu, 24 Aug 2017 19:14:12 +0200
-Message-ID: <20170824171413.31737-4-phil@nwl.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH 0/4] Memleak fixes and some minor cleanups
+Date: Thu, 24 Aug 2017 19:19:03 +0200
+Message-ID: <20170824171903.GA27332@salvia>
 References: <20170824171413.31737-1-phil@nwl.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:50327 "EHLO mail.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753736AbdHXROu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Aug 2017 13:14:50 -0400
+Received: from ganesha.gnumonks.org ([213.95.27.120]:59357 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753202AbdHXRT1 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 24 Aug 2017 13:19:27 -0400
+Content-Disposition: inline
 In-Reply-To: <20170824171413.31737-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This combines the calls to yylex_init() and yyset_extra().
+On Thu, Aug 24, 2017 at 07:14:09PM +0200, Phil Sutter wrote:
+> The following series fixes two sources of memleaks as reported by
+> valgrind (see patches 1 and 4). Patches 2 and 3 contain some minor
+> cleanups I found while searching for the leaks.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- src/scanner.l | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/src/scanner.l b/src/scanner.l
-index 7d57cc1465d3a..f0021c5c0fbae 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -849,8 +849,7 @@ void *scanner_init(struct parser_state *state)
- 
- 	state->indesc = state->indescs;
- 
--	yylex_init(&scanner);
--	yyset_extra(state, scanner),
-+	yylex_init_extra(state, &scanner);
- 	yyset_out(NULL, scanner);
- 
- 	return scanner;
--- 
-2.13.1
-
+Series applied, thanks.
