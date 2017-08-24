@@ -1,64 +1,65 @@
-From: Arturo Borrero Gonzalez <arturo@netfilter.org>
-Subject: Re: [PATCH V2] tests: json: Add test cases for json format
-Date: Thu, 24 Aug 2017 15:00:08 +0200
-Message-ID: <CAOkSjBi-E7HTi_4t0rP=hSWzd3CwQFZv=TiP2Lr=dkZLPFaF=w@mail.gmail.com>
-References: <1503564545-28426-1-git-send-email-mayhs11saini@gmail.com>
- <CAOkSjBhaLkRbVFo9TENJ=tKWfOw3Hvcmx+Brp9vU0AoryZiwGA@mail.gmail.com> <CAOfkYf5CDMihfi9tkUQcOv5eFMDFi2nfr012QwTy-DJ4fy65Zw@mail.gmail.com>
+From: Davide Caratti <dcaratti@redhat.com>
+Subject: Re: [PATCH nf-next] netfilter: xt_CHECKSUM: avoid bad offload
+ warnings on GSO packets
+Date: Thu, 24 Aug 2017 15:08:42 +0200
+Message-ID: <1503580122.2958.37.camel@redhat.com>
+References: <20170824104824.2C318A0F3A@unicorn.suse.cz>
+         <20170824105118.GA15739@breakpoint.cc>
+         <20170824110742.qby3yoz3emf6pr5i@unicorn.suse.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Shyam Saini <mayhs11saini@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:36957 "EHLO
-        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751475AbdHXNAa (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Aug 2017 09:00:30 -0400
-Received: by mail-wm0-f54.google.com with SMTP id p30so4759399wmi.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2017 06:00:30 -0700 (PDT)
-Received: from mail-wm0-f52.google.com (mail-wm0-f52.google.com. [74.125.82.52])
-        by smtp.gmail.com with ESMTPSA id h28sm2217190ede.56.2017.08.24.06.00.29
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 24 Aug 2017 06:00:29 -0700 (PDT)
-Received: by mail-wm0-f52.google.com with SMTP id m207so4763186wma.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 24 Aug 2017 06:00:29 -0700 (PDT)
-In-Reply-To: <CAOfkYf5CDMihfi9tkUQcOv5eFMDFi2nfr012QwTy-DJ4fy65Zw@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Markos Chandras <markos.chandras@suse.com>
+To: Michal Kubecek <mkubecek@suse.cz>, Florian Westphal <fw@strlen.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170824110742.qby3yoz3emf6pr5i@unicorn.suse.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 24 August 2017 at 14:08, Shyam Saini <mayhs11saini@gmail.com> wrote:
->> That was quick and dirty code for you to get the idea.
->> Please follow the example of other testcases [0] to compare ruleset,
->> create tempfiles and so on.
->>
->
-> One issue with this approach, incase of set rules
-> nft will throw this error
-> "Error: Could not process rule: File exists"
-> So, i need to flush ruleset before import them with json.
-> Is it okay?
->
+On Thu, 2017-08-24 at 13:07 +0200, Michal Kubecek wrote:
+> On Thu, Aug 24, 2017 at 12:51:18PM +0200, Florian Westphal wrote:
+> > Michal Kubecek <mkubecek@suse.cz> wrote:
+> > > When --checksum_fill action is applied to a GSO packet, checksum_tg() calls
+> > > skb_checksum_help() which is only meant to be applied to non-GSO packets so
+> > > that it issues a warning.
+> > > 
+> > > This can be easily triggered by using e.g.
+> > > 
+> > >   iptables -t mangle -A OUTPUT -j CHECKSUM --checksum-fill
+> > > 
+> > > and sending TCP stream via a device with GSO enabled.
+> > > 
+> > > While this can be considered a misconfiguration, I believe the bad offload
+> > > warning is supposed to catch bugs in drivers and networking stack, not
+> > > misconfigured firewalls. So let's ignore such packets and only issue a one
+> > > time warning with pr_warn_once() rather than a WARN with stack trace and
+> > > tainted kernel.
+> > 
+> > Why issue a warning at all?
+> > What kind of action should be taken upon seeing such warning?
+> 
+> Check and fix the configuration. The reason why I left at least some
+> kind of warning is that the module does something that is unexpected as
+> the checksum is not calculated (this module is often used in
+> virtualization environments where "hardware checksum offload" in fact
+> means the checksum is not computed at all).
+> 
 
-yes, something like:
+hello Michal,
 
-nft export
-nft flush ruleset
-nft import
+GSO should be capable of computing the checksum on individual segments
+later, so I also think the warning can be removed.
 
-we can later on investigate how to do something like:
+Small nit: may I suggest you to call skb_csum_hwoffload_help() instead of
+skb_checksum_help(), so that we avoid corrupting SCTP packets in case they
+hit xt_CHECKSUM target?
 
-nft export json | nft import json
-
->>
->> Please, if possible, try to add a testcase that is [OK]. Not sure what
->> is wrong with the dup statement.
->>
-> I tried, but they always throw the same error.
-> Shouldn't we keep them in testsuite so that we know that these set of
-> rules needs to be fixed.
->
-
-yes, but the point is to try to fix the issue or at least identify
-where the issue is.
+thank you in advance,
+regards
+-- 
+davide
