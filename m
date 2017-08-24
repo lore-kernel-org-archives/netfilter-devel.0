@@ -1,39 +1,38 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next] netfilter: xt_CHECKSUM: avoid bad offload
- warnings on GSO packets
-Date: Thu, 24 Aug 2017 15:17:22 +0200
-Message-ID: <20170824131722.GB15739@breakpoint.cc>
-References: <20170824104824.2C318A0F3A@unicorn.suse.cz>
- <20170824105118.GA15739@breakpoint.cc>
- <20170824110742.qby3yoz3emf6pr5i@unicorn.suse.cz>
- <1503580122.2958.37.camel@redhat.com>
+Subject: netfilter fixes for 4.12.y tree
+Date: Thu, 24 Aug 2017 15:30:39 +0200
+Message-ID: <20170824133039.GC15739@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Michal Kubecek <mkubecek@suse.cz>, Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Michael S. Tsirkin" <mst@redhat.com>,
-        Markos Chandras <markos.chandras@suse.com>
-To: Davide Caratti <dcaratti@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+To: stable@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:35802 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751300AbdHXNdO (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 24 Aug 2017 09:33:14 -0400
 Content-Disposition: inline
-In-Reply-To: <1503580122.2958.37.camel@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Davide Caratti <dcaratti@redhat.com> wrote:
-> Small nit: may I suggest you to call skb_csum_hwoffload_help() instead of
-> skb_checksum_help(), so that we avoid corrupting SCTP packets in case they
-> hit xt_CHECKSUM target?
+Hi stable team,
 
-Alternatively we could restrict the target to udp only.
+please consider picking up the following commits for
+4.12.y:
 
-AFAIU the only reason this thing exists is to fix up udp checksum
-for old dhcp clients that use AF_PACKET without evaluating the extra
-metadata that indicates when a 'bad' checksum is in fact ok because it
-is supposed to be filled in by hardware later.
+36ac344e16e04e3e55e8fed7446095a6458c64e6
+netfilter: expect: fix crash when putting uninited expectation
 
-This can happen in virtual environemnt when such skb is directly passed
-to vm.
+97772bcd56efa21d9d8976db6f205574ea602f51
+netfilter: nat: fix src map lookup
+(this causes severe issues when lots of nat mappings are active as we
+ run out of local source ports).
+
+f55ce7b024090a51382ccab2730b96e2f7b4e9cf
+netfilter: nfnetlink: Improve input length sanitization in nfnetlink_rcv
+
+all cherry-pick cleanly.
+
+Thanks,
+Florian
