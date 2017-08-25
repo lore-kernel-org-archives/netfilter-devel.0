@@ -1,50 +1,31 @@
-From: Jeff Layton <jlayton@redhat.com>
-Subject: Re: [PATCH 7/7] SUNRPC: make kvec const
-Date: Fri, 25 Aug 2017 10:48:56 -0400
-Message-ID: <1503672536.4722.20.camel@redhat.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 6/7] netfilter: nat: make rhashtable_params const
+Date: Fri, 25 Aug 2017 16:50:23 +0200
+Message-ID: <20170825145023.GA24469@breakpoint.cc>
 References: <1503670907-23221-1-git-send-email-bhumirks@gmail.com>
-         <1503670907-23221-8-git-send-email-bhumirks@gmail.com>
+ <1503670907-23221-7-git-send-email-bhumirks@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-To: Bhumika Goyal <bhumirks@gmail.com>, julia.lawall@lip6.fr,
-        marcel@holtmann.org, gustavo@padovan.org, johan.hedberg@gmail.com,
-        davem@davemloft.net, pablo@netfilter.org, kadlec@blackhole.kfki.hu,
-        fw@strlen.de, stephen@networkplumber.org, alex.aring@gmail.com,
-        stefan@osg.samsung.com, kuznet@ms2.inr.ac.ru,
-        yoshfuji@linux-ipv6.org, santosh.shilimkar@oracle.com,
-        trond.myklebust@primarydata.com, anna.schumaker@netapp.com,
-        bfields@fieldses.org, linux-bluetooth@vger.kernel.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        bridge@lists.linux-foundation.org, linux-wpan@vger.kernel.org,
-        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
-        linux-nfs@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1503670907-23221-8-git-send-email-bhumirks@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Bhumika Goyal <bhumirks@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:41124 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756886AbdHYOxA (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 25 Aug 2017 10:53:00 -0400
+Content-Disposition: inline
+In-Reply-To: <1503670907-23221-7-git-send-email-bhumirks@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 2017-08-25 at 19:51 +0530, Bhumika Goyal wrote:
-> Make this const as it is only used during a copy operation.
-> 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
-> ---
->  net/sunrpc/xdr.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/net/sunrpc/xdr.c b/net/sunrpc/xdr.c
-> index e34f4ee..a096025 100644
-> --- a/net/sunrpc/xdr.c
-> +++ b/net/sunrpc/xdr.c
-> @@ -998,7 +998,7 @@ void xdr_enter_page(struct xdr_stream *xdr, unsigned int len)
->  }
->  EXPORT_SYMBOL_GPL(xdr_enter_page);
->  
-> -static struct kvec empty_iov = {.iov_base = NULL, .iov_len = 0};
-> +static const struct kvec empty_iov = {.iov_base = NULL, .iov_len = 0};
->  
->  void
->  xdr_buf_from_iov(struct kvec *iov, struct xdr_buf *buf)
+Bhumika Goyal <bhumirks@gmail.com> wrote:
 
-Reviewed-by: Jeff Layton <jlayton@redhat.com>
+[..]
+
+trimming CC list, also this should probably have been
+sent to netfilter-devel@vger.kernel.org on its own, with [nf-next] in
+subject line.  That aside:
+
+Acked-by: Florian Westphal <fw@strlen.de>
+
