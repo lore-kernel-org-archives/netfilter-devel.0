@@ -1,75 +1,86 @@
 From: Eric Leblond <eric@regit.org>
-Subject: Re: [PATH nft v2 15/18] libnftables: set max_errors to 1 in library
-Date: Fri, 25 Aug 2017 13:37:18 +0200
-Message-ID: <1503661038.31357.20.camel@regit.org>
+Subject: Re: [PATH nft v2 13/18] libnftables: add nft_context_set_print
+Date: Fri, 25 Aug 2017 13:49:56 +0200
+Message-ID: <1503661796.31357.22.camel@regit.org>
 References: <20170819152420.22563-1-eric@regit.org>
-         <20170819152420.22563-16-eric@regit.org> <20170821083746.GI2982@salvia>
-         <1503342769.9868.9.camel@regit.org> <20170824160208.GA29786@salvia>
+         <20170819152420.22563-14-eric@regit.org> <20170825095929.GA3192@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-15"
 Content-Transfer-Encoding: 8bit
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from home.regit.org ([37.187.126.138]:41952 "EHLO home.regit.org"
+Received: from home.regit.org ([37.187.126.138]:42112 "EHLO home.regit.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755494AbdHYLhU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 25 Aug 2017 07:37:20 -0400
-In-Reply-To: <20170824160208.GA29786@salvia>
+        id S1755656AbdHYLt6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 25 Aug 2017 07:49:58 -0400
+In-Reply-To: <20170825095929.GA3192@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi,
 
-On Thu, 2017-08-24 at 18:02 +0200, Pablo Neira Ayuso wrote:
-> On Mon, Aug 21, 2017 at 09:12:49PM +0200, Eric Leblond wrote:
-> [...]
-> > On Mon, 2017-08-21 at 10:37 +0200, Pablo Neira Ayuso wrote:
+On Fri, 2017-08-25 at 11:59 +0200, Pablo Neira Ayuso wrote:
+> On Sat, Aug 19, 2017 at 05:24:15PM +0200, Eric Leblond wrote:
+> > This function allows user to set his own printing function. It is
+> > still dependant of the format used by nft but at least it can be
+> > redirected easily.
 > 
-> [...]
-> > > > diff --git a/src/libnftables.c b/src/libnftables.c
-> > > > index 61ed4e5..15345ae 100644
-> > > > --- a/src/libnftables.c
-> > > > +++ b/src/libnftables.c
-> > > > @@ -25,7 +25,7 @@
-> > > >  #include <fcntl.h>
-> > > >  
-> > > >  
-> > > > -unsigned int max_errors = 10;
-> > > > +unsigned int max_errors = 1;
-> > > 
-> > > This is defeating all the work I've done - both in netlink and in
-> > > userspace - in the past to allow printing several errors in one
-> > > go.
-> > > So
-> > > you likely understand I'm reticent to take this as is :-)
+> I'm looking at this patch...
+> 
+> > Signed-off-by: Eric Leblond <eric@regit.org>
+> > ---
+> >  include/nftables/nftables.h | 3 +++
+> >  src/libnftables.c           | 9 +++++++++
+> >  2 files changed, 12 insertions(+)
 > > 
-> > For sure, I was just trying to get you excited so you decide to
-> > cook a
-> > patch fixing this :P
+> > diff --git a/include/nftables/nftables.h
+> > b/include/nftables/nftables.h
+> > index b902cbd..935d0db 100644
+> > --- a/include/nftables/nftables.h
+> > +++ b/include/nftables/nftables.h
+> > @@ -26,6 +26,9 @@ void nft_global_deinit(void);
+> >  
+> >  struct nft_ctx *nft_context_new(void);
+> >  void nft_context_free(struct nft_ctx *nft);
+> > +void nft_context_set_print_func(struct nft_ctx *nft,
+> > +				int (*print)(void *ctx, const char
+> > *fmt, ...),
+> > +				void *ctx);
+> >  
+> >  int nft_run_command_from_buffer(struct nft_ctx *nft,
+> >  				char *buf, size_t buflen);
+> > diff --git a/src/libnftables.c b/src/libnftables.c
+> > index 7209885..f0decae 100644
+> > --- a/src/libnftables.c
+> > +++ b/src/libnftables.c
+> > @@ -86,6 +86,15 @@ struct nft_ctx *nft_context_new(void)
+> >  	return ctx;
+> >  }
+> >  
+> > +void nft_context_set_print_func(struct nft_ctx *nft,
+> > +				int (*print)(void *ctx, const char
+> > *fmt, ...),
+> > +				void *ctx)
 > 
-> Not sure it's excitement exactly what I'm feeling here... but I'm
-> trying to help, believe it or not... ;-)
-
-I believe you :)
-
-> I'm placing the nft_global_init() and nft_global_deinit() into
-> nft_ctx_new() and nft_ctx_free() as we've been discussing.
-
-OK.
-
-> I'm going to stop here for a while. There are still a few pending
-> issues, and I would like we don't release anything until we discuss
-> all concerns.
+> Can we have a strict type here instead of void *ctx? I mean, if ctx
+> is
+> always going to be a file descriptor, I would prefer this is a
+> specific type.
 > 
-> You mentioned about some set issues, please us know. I also want to
-> think what you would need for the simple API in the exportation and
-> monitor cases.
+> Or are you envisioning any real use of this generic type? If we
+> cannot
+> forecast anything reasonable, then a strict type is the way to go
+> IMO.
 
-Could you push the current patchset somewhere so I can get a look this
-week end ?
+Yes, it can be any internal structure from the user application. For
+instance, it can be a structure storing logging information, that
+accumulate the buffer and do a line by line output in a GUI.
 
-PS: sorry for the delay in the answers
+Writing that I realize that it would be better at least for high level
+function to provide a complete buffer containing the error to the user
+instead of that. Maybe it could be the default function and we provide
+that function for some corner cases ?
 
 ++
 -- 
