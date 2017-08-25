@@ -1,66 +1,58 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATH nft v2 13/18] libnftables: add nft_context_set_print
-Date: Fri, 25 Aug 2017 11:59:29 +0200
-Message-ID: <20170825095929.GA3192@salvia>
-References: <20170819152420.22563-1-eric@regit.org>
- <20170819152420.22563-14-eric@regit.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
+From: Varsha Rao <rvarsha016@gmail.com>
+Subject: [PATCH nf-next] net: netfilter: Remove NFDEBUG.
+Date: Fri, 25 Aug 2017 16:11:12 +0530
+Message-ID: <20170825104112.2620-1-rvarsha016@gmail.com>
+Cc: Varsha Rao <rvarsha016@gmail.com>
+To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:37893 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754537AbdHYJ7x (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:34137 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754518AbdHYKlf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 25 Aug 2017 05:59:53 -0400
-Content-Disposition: inline
-In-Reply-To: <20170819152420.22563-14-eric@regit.org>
+        Fri, 25 Aug 2017 06:41:35 -0400
+Received: by mail-pg0-f66.google.com with SMTP id 63so3403372pgc.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 25 Aug 2017 03:41:34 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Aug 19, 2017 at 05:24:15PM +0200, Eric Leblond wrote:
-> This function allows user to set his own printing function. It is
-> still dependant of the format used by nft but at least it can be
-> redirected easily.
+Remove NFDEBUG and use pr_debug() instead of it.
 
-I'm looking at this patch...
+Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
+---
+ net/netfilter/nf_internals.h | 6 ------
+ net/netfilter/nf_sockopt.c   | 2 +-
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
-> Signed-off-by: Eric Leblond <eric@regit.org>
-> ---
->  include/nftables/nftables.h | 3 +++
->  src/libnftables.c           | 9 +++++++++
->  2 files changed, 12 insertions(+)
-> 
-> diff --git a/include/nftables/nftables.h b/include/nftables/nftables.h
-> index b902cbd..935d0db 100644
-> --- a/include/nftables/nftables.h
-> +++ b/include/nftables/nftables.h
-> @@ -26,6 +26,9 @@ void nft_global_deinit(void);
->  
->  struct nft_ctx *nft_context_new(void);
->  void nft_context_free(struct nft_ctx *nft);
-> +void nft_context_set_print_func(struct nft_ctx *nft,
-> +				int (*print)(void *ctx, const char *fmt, ...),
-> +				void *ctx);
->  
->  int nft_run_command_from_buffer(struct nft_ctx *nft,
->  				char *buf, size_t buflen);
-> diff --git a/src/libnftables.c b/src/libnftables.c
-> index 7209885..f0decae 100644
-> --- a/src/libnftables.c
-> +++ b/src/libnftables.c
-> @@ -86,6 +86,15 @@ struct nft_ctx *nft_context_new(void)
->  	return ctx;
->  }
->  
-> +void nft_context_set_print_func(struct nft_ctx *nft,
-> +				int (*print)(void *ctx, const char *fmt, ...),
-> +				void *ctx)
+diff --git a/net/netfilter/nf_internals.h b/net/netfilter/nf_internals.h
+index 19f00a47a710..e40016742530 100644
+--- a/net/netfilter/nf_internals.h
++++ b/net/netfilter/nf_internals.h
+@@ -5,12 +5,6 @@
+ #include <linux/skbuff.h>
+ #include <linux/netdevice.h>
+ 
+-#ifdef CONFIG_NETFILTER_DEBUG
+-#define NFDEBUG(format, args...)  printk(KERN_DEBUG format , ## args)
+-#else
+-#define NFDEBUG(format, args...)
+-#endif
+-
+ /* nf_queue.c */
+ int nf_queue(struct sk_buff *skb, struct nf_hook_state *state,
+ 	     struct nf_hook_entry **entryp, unsigned int verdict);
+diff --git a/net/netfilter/nf_sockopt.c b/net/netfilter/nf_sockopt.c
+index c68c1e58b362..d2a9e6b5d01f 100644
+--- a/net/netfilter/nf_sockopt.c
++++ b/net/netfilter/nf_sockopt.c
+@@ -33,7 +33,7 @@ int nf_register_sockopt(struct nf_sockopt_ops *reg)
+ 				reg->set_optmin, reg->set_optmax)
+ 			|| overlap(ops->get_optmin, ops->get_optmax,
+ 				   reg->get_optmin, reg->get_optmax))) {
+-			NFDEBUG("nf_sock overlap: %u-%u/%u-%u v %u-%u/%u-%u\n",
++			pr_debug("nf_sock overlap: %u-%u/%u-%u v %u-%u/%u-%u\n",
+ 				ops->set_optmin, ops->set_optmax,
+ 				ops->get_optmin, ops->get_optmax,
+ 				reg->set_optmin, reg->set_optmax,
+-- 
+2.13.5
 
-Can we have a strict type here instead of void *ctx? I mean, if ctx is
-always going to be a file descriptor, I would prefer this is a
-specific type.
-
-Or are you envisioning any real use of this generic type? If we cannot
-forecast anything reasonable, then a strict type is the way to go IMO.
