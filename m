@@ -1,7 +1,8 @@
 From: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 0/7] net: make some structures const
-Date: Fri, 25 Aug 2017 19:51:40 +0530
-Message-ID: <1503670907-23221-1-git-send-email-bhumirks@gmail.com>
+Subject: [PATCH 1/7] Bluetooth: 6lowpan: make header_ops const
+Date: Fri, 25 Aug 2017 19:51:41 +0530
+Message-ID: <1503670907-23221-2-git-send-email-bhumirks@gmail.com>
+References: <1503670907-23221-1-git-send-email-bhumirks@gmail.com>
 Cc: Bhumika Goyal <bhumirks@gmail.com>
 To: julia.lawall@lip6.fr, marcel@holtmann.org, gustavo@padovan.org,
         johan.hedberg@gmail.com, davem@davemloft.net, pablo@netfilter.org,
@@ -15,35 +16,31 @@ To: julia.lawall@lip6.fr, marcel@holtmann.org, gustavo@padovan.org,
         coreteam@netfilter.org, bridge@lists.linux-foundation.org,
         linux-wpan@vger.kernel.org, linux-rdma@vger.kernel.org,
         rds-devel@oss.oracle.com, linux-nfs@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:33915 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756575AbdHYOWK (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 25 Aug 2017 10:22:10 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1503670907-23221-1-git-send-email-bhumirks@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Make these const as they are not modified.
+Make this const as it is only stored as a reference in a const field of
+a net_device structure.
 
-Bhumika Goyal (7):
-  Bluetooth: 6lowpan: make header_ops const
-  bridge: make ebt_table const
-  ieee802154: 6lowpan: make header_ops const
-  ipv4: make net_protocol const
-  RDS: make rhashtable_params const
-  netfilter: nat: make rhashtable_params const
-  SUNRPC: make kvec const
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ net/bluetooth/6lowpan.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- net/bluetooth/6lowpan.c            | 2 +-
- net/bridge/netfilter/ebtable_nat.c | 2 +-
- net/ieee802154/6lowpan/core.c      | 2 +-
- net/ipv4/af_inet.c                 | 4 ++--
- net/netfilter/nf_nat_core.c        | 2 +-
- net/rds/bind.c                     | 2 +-
- net/sunrpc/xdr.c                   | 2 +-
- 7 files changed, 8 insertions(+), 8 deletions(-)
-
+diff --git a/net/bluetooth/6lowpan.c b/net/bluetooth/6lowpan.c
+index 4e2576f..50fcdd1 100644
+--- a/net/bluetooth/6lowpan.c
++++ b/net/bluetooth/6lowpan.c
+@@ -581,7 +581,7 @@ static int bt_dev_init(struct net_device *dev)
+ 	.ndo_start_xmit		= bt_xmit,
+ };
+ 
+-static struct header_ops header_ops = {
++static const struct header_ops header_ops = {
+ 	.create	= header_create,
+ };
+ 
 -- 
 1.9.1
-
