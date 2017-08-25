@@ -1,45 +1,68 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: conntrack: don't log "invalid" icmpv6 connections
-Date: Fri, 25 Aug 2017 02:59:41 +0200
-Message-ID: <20170825005941.8773-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:38486 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753456AbdHYA7X (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 24 Aug 2017 20:59:23 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Michal Kubecek <mkubecek@suse.cz>
+Subject: Re: [PATCH nf-next] netfilter: xt_CHECKSUM: avoid bad offload
+ warnings on GSO packets
+Date: Fri, 25 Aug 2017 11:21:52 +0200
+Message-ID: <20170825092152.p3xkhmdtdv7d6wfq@unicorn.suse.cz>
+References: <20170824104824.2C318A0F3A@unicorn.suse.cz>
+ <20170824105118.GA15739@breakpoint.cc>
+ <20170824110742.qby3yoz3emf6pr5i@unicorn.suse.cz>
+ <1503580122.2958.37.camel@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Markos Chandras <markos.chandras@suse.com>
+To: Davide Caratti <dcaratti@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1503580122.2958.37.camel@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-When enabling logging for invalid connections we currently also log most
-icmpv6 types, which we don't track intentionally (e.g. neigh discovery).
-"invalid" should really mean "invalid", i.e. short header or bad checksum.
+On Thu, Aug 24, 2017 at 03:08:42PM +0200, Davide Caratti wrote:
+> On Thu, 2017-08-24 at 13:07 +0200, Michal Kubecek wrote:
+> > On Thu, Aug 24, 2017 at 12:51:18PM +0200, Florian Westphal wrote:
+> > > Michal Kubecek <mkubecek@suse.cz> wrote:
+> > > > When --checksum_fill action is applied to a GSO packet, checksum_tg() calls
+> > > > skb_checksum_help() which is only meant to be applied to non-GSO packets so
+> > > > that it issues a warning.
+> > > > 
+> > > > This can be easily triggered by using e.g.
+> > > > 
+> > > >   iptables -t mangle -A OUTPUT -j CHECKSUM --checksum-fill
+> > > > 
+> > > > and sending TCP stream via a device with GSO enabled.
+> > > > 
+> > > > While this can be considered a misconfiguration, I believe the bad offload
+> > > > warning is supposed to catch bugs in drivers and networking stack, not
+> > > > misconfigured firewalls. So let's ignore such packets and only issue a one
+> > > > time warning with pr_warn_once() rather than a WARN with stack trace and
+> > > > tainted kernel.
+> > > 
+> > > Why issue a warning at all?
+> > > What kind of action should be taken upon seeing such warning?
+> > 
+> > Check and fix the configuration. The reason why I left at least some
+> > kind of warning is that the module does something that is unexpected as
+> > the checksum is not calculated (this module is often used in
+> > virtualization environments where "hardware checksum offload" in fact
+> > means the checksum is not computed at all).
+> > 
+> 
+> hello Michal,
+> 
+> GSO should be capable of computing the checksum on individual segments
+> later, so I also think the warning can be removed.
+> 
+> Small nit: may I suggest you to call skb_csum_hwoffload_help() instead of
+> skb_checksum_help(), so that we avoid corrupting SCTP packets in case they
+> hit xt_CHECKSUM target?
 
-We don't do any logging for icmp(v4) either, its just useless noise.
+That sounds like an independent issue so it should be probably handled
+by a separate patch.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c | 5 -----
- 1 file changed, 5 deletions(-)
-
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index 413c4a0093da..0ce826d8ebff 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -130,11 +130,6 @@ static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
- 		pr_debug("icmpv6: can't create new conn with type %u\n",
- 			 type + 128);
- 		nf_ct_dump_tuple_ipv6(&ct->tuplehash[0].tuple);
--		if (LOG_INVALID(nf_ct_net(ct), IPPROTO_ICMPV6))
--			nf_log_packet(nf_ct_net(ct), PF_INET6, 0, skb, NULL,
--				      NULL, NULL,
--				      "nf_ct_icmpv6: invalid new with type %d ",
--				      type + 128);
- 		return false;
- 	}
- 	return true;
--- 
-2.13.0
-
+Michal Kubecek
