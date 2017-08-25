@@ -1,7 +1,7 @@
 From: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 4/7] ipv4: make net_protocol const
-Date: Fri, 25 Aug 2017 19:51:44 +0530
-Message-ID: <1503670907-23221-5-git-send-email-bhumirks@gmail.com>
+Subject: [PATCH 5/7] RDS: make rhashtable_params const
+Date: Fri, 25 Aug 2017 19:51:45 +0530
+Message-ID: <1503670907-23221-6-git-send-email-bhumirks@gmail.com>
 References: <1503670907-23221-1-git-send-email-bhumirks@gmail.com>
 Cc: Bhumika Goyal <bhumirks@gmail.com>
 To: julia.lawall@lip6.fr, marcel@holtmann.org, gustavo@padovan.org,
@@ -21,35 +21,26 @@ In-Reply-To: <1503670907-23221-1-git-send-email-bhumirks@gmail.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Make these const as they are only passed to a const argument of the
-function inet_add_protocol.
+Make this const as it is either used during a copy operation or passed
+to a const argument of the function rhltable_init
 
 Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- net/ipv4/af_inet.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/rds/bind.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/ipv4/af_inet.c b/net/ipv4/af_inet.c
-index d678820..19aee07 100644
---- a/net/ipv4/af_inet.c
-+++ b/net/ipv4/af_inet.c
-@@ -1596,7 +1596,7 @@ u64 snmp_fold_field64(void __percpu *mib, int offt, size_t syncp_offset)
- };
- #endif
+diff --git a/net/rds/bind.c b/net/rds/bind.c
+index 3a915be..75d43dc 100644
+--- a/net/rds/bind.c
++++ b/net/rds/bind.c
+@@ -40,7 +40,7 @@
  
--static struct net_protocol tcp_protocol = {
-+static const struct net_protocol tcp_protocol = {
- 	.early_demux	=	tcp_v4_early_demux,
- 	.early_demux_handler =  tcp_v4_early_demux,
- 	.handler	=	tcp_v4_rcv,
-@@ -1606,7 +1606,7 @@ u64 snmp_fold_field64(void __percpu *mib, int offt, size_t syncp_offset)
- 	.icmp_strict_tag_validation = 1,
- };
+ static struct rhashtable bind_hash_table;
  
--static struct net_protocol udp_protocol = {
-+static const struct net_protocol udp_protocol = {
- 	.early_demux =	udp_v4_early_demux,
- 	.early_demux_handler =	udp_v4_early_demux,
- 	.handler =	udp_rcv,
+-static struct rhashtable_params ht_parms = {
++static const struct rhashtable_params ht_parms = {
+ 	.nelem_hint = 768,
+ 	.key_len = sizeof(u64),
+ 	.key_offset = offsetof(struct rds_sock, rs_bound_key),
 -- 
 1.9.1
