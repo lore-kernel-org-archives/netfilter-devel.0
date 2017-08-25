@@ -1,87 +1,49 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: [PATH nft v2 13/18] libnftables: add nft_context_set_print
-Date: Fri, 25 Aug 2017 13:49:56 +0200
-Message-ID: <1503661796.31357.22.camel@regit.org>
-References: <20170819152420.22563-1-eric@regit.org>
-         <20170819152420.22563-14-eric@regit.org> <20170825095929.GA3192@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 0/7] net: make some structures const
+Date: Fri, 25 Aug 2017 19:51:40 +0530
+Message-ID: <1503670907-23221-1-git-send-email-bhumirks@gmail.com>
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, marcel@holtmann.org, gustavo@padovan.org,
+        johan.hedberg@gmail.com, davem@davemloft.net, pablo@netfilter.org,
+        kadlec@blackhole.kfki.hu, fw@strlen.de, stephen@networkplumber.org,
+        alex.aring@gmail.com, stefan@osg.samsung.com, kuznet@ms2.inr.ac.ru,
+        yoshfuji@linux-ipv6.org, santosh.shilimkar@oracle.com,
+        trond.myklebust@primarydata.com, anna.schumaker@netapp.com,
+        bfields@fieldses.org, jlayton@poochiereds.net,
+        linux-bluetooth@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, bridge@lists.linux-foundation.org,
+        linux-wpan@vger.kernel.org, linux-rdma@vger.kernel.org,
+        rds-devel@oss.oracle.com, linux-nfs@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from home.regit.org ([37.187.126.138]:42112 "EHLO home.regit.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755656AbdHYLt6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 25 Aug 2017 07:49:58 -0400
-In-Reply-To: <20170825095929.GA3192@salvia>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:33915 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756575AbdHYOWK (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 25 Aug 2017 10:22:10 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Make these const as they are not modified.
 
-On Fri, 2017-08-25 at 11:59 +0200, Pablo Neira Ayuso wrote:
-> On Sat, Aug 19, 2017 at 05:24:15PM +0200, Eric Leblond wrote:
-> > This function allows user to set his own printing function. It is
-> > still dependant of the format used by nft but at least it can be
-> > redirected easily.
-> 
-> I'm looking at this patch...
-> 
-> > Signed-off-by: Eric Leblond <eric@regit.org>
-> > ---
-> >  include/nftables/nftables.h | 3 +++
-> >  src/libnftables.c           | 9 +++++++++
-> >  2 files changed, 12 insertions(+)
-> > 
-> > diff --git a/include/nftables/nftables.h
-> > b/include/nftables/nftables.h
-> > index b902cbd..935d0db 100644
-> > --- a/include/nftables/nftables.h
-> > +++ b/include/nftables/nftables.h
-> > @@ -26,6 +26,9 @@ void nft_global_deinit(void);
-> >  
-> >  struct nft_ctx *nft_context_new(void);
-> >  void nft_context_free(struct nft_ctx *nft);
-> > +void nft_context_set_print_func(struct nft_ctx *nft,
-> > +				int (*print)(void *ctx, const char
-> > *fmt, ...),
-> > +				void *ctx);
-> >  
-> >  int nft_run_command_from_buffer(struct nft_ctx *nft,
-> >  				char *buf, size_t buflen);
-> > diff --git a/src/libnftables.c b/src/libnftables.c
-> > index 7209885..f0decae 100644
-> > --- a/src/libnftables.c
-> > +++ b/src/libnftables.c
-> > @@ -86,6 +86,15 @@ struct nft_ctx *nft_context_new(void)
-> >  	return ctx;
-> >  }
-> >  
-> > +void nft_context_set_print_func(struct nft_ctx *nft,
-> > +				int (*print)(void *ctx, const char
-> > *fmt, ...),
-> > +				void *ctx)
-> 
-> Can we have a strict type here instead of void *ctx? I mean, if ctx
-> is
-> always going to be a file descriptor, I would prefer this is a
-> specific type.
-> 
-> Or are you envisioning any real use of this generic type? If we
-> cannot
-> forecast anything reasonable, then a strict type is the way to go
-> IMO.
+Bhumika Goyal (7):
+  Bluetooth: 6lowpan: make header_ops const
+  bridge: make ebt_table const
+  ieee802154: 6lowpan: make header_ops const
+  ipv4: make net_protocol const
+  RDS: make rhashtable_params const
+  netfilter: nat: make rhashtable_params const
+  SUNRPC: make kvec const
 
-Yes, it can be any internal structure from the user application. For
-instance, it can be a structure storing logging information, that
-accumulate the buffer and do a line by line output in a GUI.
+ net/bluetooth/6lowpan.c            | 2 +-
+ net/bridge/netfilter/ebtable_nat.c | 2 +-
+ net/ieee802154/6lowpan/core.c      | 2 +-
+ net/ipv4/af_inet.c                 | 4 ++--
+ net/netfilter/nf_nat_core.c        | 2 +-
+ net/rds/bind.c                     | 2 +-
+ net/sunrpc/xdr.c                   | 2 +-
+ 7 files changed, 8 insertions(+), 8 deletions(-)
 
-Writing that I realize that it would be better at least for high level
-function to provide a complete buffer containing the error to the user
-instead of that. Maybe it could be the default function and we provide
-that function for some corner cases ?
-
-++
 -- 
-Eric Leblond <eric@regit.org>
+1.9.1
+
