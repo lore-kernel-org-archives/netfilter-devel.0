@@ -1,26 +1,45 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/5] Netfilter fixes for net
-Date: Thu, 24 Aug 2017 11:49:42 -0700 (PDT)
-Message-ID: <20170824.114942.1470106145111463834.davem@davemloft.net>
-References: <1503585811-13447-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1503585811-13447-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: conntrack: don't log "invalid" icmpv6 connections
+Date: Fri, 25 Aug 2017 02:59:41 +0200
+Message-ID: <20170825005941.8773-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:38486 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753456AbdHYA7X (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 24 Aug 2017 20:59:23 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Thu, 24 Aug 2017 16:43:26 +0200
+When enabling logging for invalid connections we currently also log most
+icmpv6 types, which we don't track intentionally (e.g. neigh discovery).
+"invalid" should really mean "invalid", i.e. short header or bad checksum.
 
-> The following patchset contains Netfilter fixes for your net tree,
-> they are:
- ...
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+We don't do any logging for icmp(v4) either, its just useless noise.
 
-Pulled, thanks.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index 413c4a0093da..0ce826d8ebff 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -130,11 +130,6 @@ static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
+ 		pr_debug("icmpv6: can't create new conn with type %u\n",
+ 			 type + 128);
+ 		nf_ct_dump_tuple_ipv6(&ct->tuplehash[0].tuple);
+-		if (LOG_INVALID(nf_ct_net(ct), IPPROTO_ICMPV6))
+-			nf_log_packet(nf_ct_net(ct), PF_INET6, 0, skb, NULL,
+-				      NULL, NULL,
+-				      "nf_ct_icmpv6: invalid new with type %d ",
+-				      type + 128);
+ 		return false;
+ 	}
+ 	return true;
+-- 
+2.13.0
+
