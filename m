@@ -1,299 +1,232 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH] parser: Fix memleaks for STRING token (and derived ones)
-Date: Fri, 25 Aug 2017 13:17:32 +0200
-Message-ID: <20170825111732.431-1-phil@nwl.cc>
+From: Eric Leblond <eric@regit.org>
+Subject: Re: [PATH nft v2 04/18] libnftables: add context new and free
+Date: Fri, 25 Aug 2017 13:22:01 +0200
+Message-ID: <1503660121.31357.15.camel@regit.org>
+References: <20170819152420.22563-1-eric@regit.org>
+         <20170819152420.22563-5-eric@regit.org> <20170824153016.GA23164@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: 8bit
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:51547 "EHLO mail.nwl.cc"
+Received: from home.regit.org ([37.187.126.138]:41748 "EHLO home.regit.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755842AbdHYLRo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 25 Aug 2017 07:17:44 -0400
+        id S1755023AbdHYLWE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 25 Aug 2017 07:22:04 -0400
+In-Reply-To: <20170824153016.GA23164@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The common paradigm here is that all parser rules converting string
-tokens into symbols must free the string token if it's not used anymore.
-This is unrelated to the %destructor directive, since that will apply
-only if the parser discards the token, which is not the case then.
+Hello,
 
-While being at it, simplify error handling in parser rule for listing
-conntrack helpers (error() won't return NULL) and drop the unused extra
-parameter passed to error() in level_type rule.
+On Thu, 2017-08-24 at 17:30 +0200, Pablo Neira Ayuso wrote:
+> I took over this patch and revamp it, so we can apply this asap.
+> 
+> Let me know if you have any concern,
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- src/parser_bison.y | 46 ++++++++++++++++++++++++++++++++++++----------
- src/rule.c         |  1 +
- 2 files changed, 37 insertions(+), 10 deletions(-)
+I would just add a uint32_t flag to the nft_ctc_new function parameters
+so we can later pass information such as "don't handle netlink" or
+"handle netlink". But setting the info could also be done in another
+function so I let you decide.
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index d149178c2679b..d4b29029186b2 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -724,6 +724,7 @@ common_block		:	INCLUDE		QUOTED_STRING	stmt_separator
- 				if (symbol_lookup(scope, $2) != NULL) {
- 					erec_queue(error(&@2, "redefinition of symbol '%s'", $2),
- 						   state->msgs);
-+					xfree($2);
- 					YYERROR;
- 				}
- 
-@@ -860,6 +861,7 @@ add_cmd			:	TABLE		table_spec
- 				int type;
- 
- 				erec = ct_objtype_parse(&@$, $2, &type);
-+				xfree($2);
- 				if (erec != NULL) {
- 					erec_queue(erec, state->msgs);
- 					YYERROR;
-@@ -939,6 +941,7 @@ create_cmd		:	TABLE		table_spec
- 				int type;
- 
- 				erec = ct_objtype_parse(&@$, $2, &type);
-+				xfree($2);
- 				if (erec != NULL) {
- 					erec_queue(erec, state->msgs);
- 					YYERROR;
-@@ -992,6 +995,7 @@ delete_cmd		:	TABLE		table_spec
- 				int type;
- 
- 				erec = ct_objtype_parse(&@$, $2, &type);
-+				xfree($2);
- 				if (erec != NULL) {
- 					erec_queue(erec, state->msgs);
- 					YYERROR;
-@@ -1079,6 +1083,7 @@ list_cmd		:	TABLE		table_spec
- 				int type;
- 
- 				erec = ct_objtype_parse(&@$, $2, &type);
-+				xfree($2);
- 				if (erec != NULL) {
- 					erec_queue(erec, state->msgs);
- 					YYERROR;
-@@ -1093,16 +1098,12 @@ list_cmd		:	TABLE		table_spec
- 				if (strcmp($2, "helpers") == 0) {
- 					cmd = CMD_OBJ_CT_HELPERS;
- 				} else {
--					struct error_record *erec;
--
--					erec = error(&@$, "unknown ct class '%s', want 'helpers'", $2);
--
--					if (erec != NULL) {
--						erec_queue(erec, state->msgs);
--						YYERROR;
--					} else
--						YYERROR;
-+					erec_queue(error(&@$, "unknown ct class '%s', want 'helpers'", $2),
-+						   state->msgs);
-+					xfree($2);
-+					YYERROR;
- 				}
-+				xfree($2);
- 
- 				$$ = cmd_alloc(CMD_LIST, cmd, &$4, &@$, NULL);
- 			}
-@@ -1231,9 +1232,11 @@ table_options		:	FLAGS		STRING
- 			{
- 				if (strcmp($2, "dormant") == 0) {
- 					$<table>0->flags = TABLE_F_DORMANT;
-+					xfree($2);
- 				} else {
- 					erec_queue(error(&@2, "unknown table option %s", $2),
- 						   state->msgs);
-+					xfree($2);
- 					YYERROR;
- 				}
- 			}
-@@ -1302,6 +1305,7 @@ table_block		:	/* empty */	{ $$ = $<table>-1; }
- 				int type;
- 
- 				erec = ct_objtype_parse(&@$, $3, &type);
-+				xfree($3);
- 				if (erec != NULL) {
- 					erec_queue(erec, state->msgs);
- 					YYERROR;
-@@ -1478,8 +1482,10 @@ type_identifier_list	:	type_identifier
- 				if (dtype == NULL) {
- 					erec_queue(error(&@3, "unknown datatype %s", $3),
- 						   state->msgs);
-+					xfree($3);
- 					YYERROR;
- 				}
-+				xfree($3);
- 				$$ = concat_subtype_add($$, dtype->type);
- 			}
- 			;
-@@ -1533,6 +1539,7 @@ hook_spec		:	TYPE		STRING		HOOK		STRING		dev_spec	PRIORITY	prio_spec
- 				if (chain_type == NULL) {
- 					erec_queue(error(&@2, "unknown chain type %s", $2),
- 						   state->msgs);
-+					xfree($2);
- 					YYERROR;
- 				}
- 				$<chain>0->type		= xstrdup(chain_type);
-@@ -1542,6 +1549,7 @@ hook_spec		:	TYPE		STRING		HOOK		STRING		dev_spec	PRIORITY	prio_spec
- 				if ($<chain>0->hookstr == NULL) {
- 					erec_queue(error(&@4, "unknown chain hook %s", $4),
- 						   state->msgs);
-+					xfree($4);
- 					YYERROR;
- 				}
- 				xfree($4);
-@@ -1589,6 +1597,7 @@ time_spec		:	STRING
- 				uint64_t res;
- 
- 				erec = time_parse(&@1, $1, &res);
-+				xfree($1);
- 				if (erec != NULL) {
- 					erec_queue(erec, state->msgs);
- 					YYERROR;
-@@ -1919,10 +1928,12 @@ level_type		:	string
- 				else if (!strcmp("debug", $1))
- 					$$ = LOG_DEBUG;
- 				else {
--					erec_queue(error(&@1, "invalid log level", $1),
-+					erec_queue(error(&@1, "invalid log level"),
- 						   state->msgs);
-+					xfree($1);
- 					YYERROR;
- 				}
-+				xfree($1);
- 			}
- 			;
- 
-@@ -1980,6 +1991,7 @@ limit_stmt		:	LIMIT	RATE	limit_mode	NUM	SLASH	time_unit	limit_burst
- 				uint64_t rate, unit;
- 
- 				erec = rate_parse(&@$, $5, &rate, &unit);
-+				xfree($5);
- 				if (erec != NULL) {
- 					erec_queue(erec, state->msgs);
- 					YYERROR;
-@@ -2010,6 +2022,7 @@ quota_used		:	/* empty */	{ $$ = 0; }
- 				uint64_t rate;
- 
- 				erec = data_unit_parse(&@$, $3, &rate);
-+				xfree($3);
- 				if (erec != NULL) {
- 					erec_queue(erec, state->msgs);
- 					YYERROR;
-@@ -2024,6 +2037,7 @@ quota_stmt		:	QUOTA	quota_mode NUM quota_unit quota_used
- 				uint64_t rate;
- 
- 				erec = data_unit_parse(&@$, $4, &rate);
-+				xfree($4);
- 				if (erec != NULL) {
- 					erec_queue(erec, state->msgs);
- 					YYERROR;
-@@ -2055,6 +2069,7 @@ limit_burst		:	/* empty */			{ $$ = 0; }
- 				uint64_t rate;
- 
- 				erec = data_unit_parse(&@$, $3, &rate);
-+				xfree($3);
- 				if (erec != NULL) {
- 					erec_queue(erec, state->msgs);
- 					YYERROR;
-@@ -2093,6 +2108,7 @@ reject_opts		:       /* empty */
- 							  current_scope(state),
- 							  $4);
- 				$<stmt>0->reject.expr->dtype = &icmp_code_type;
-+				xfree($4);
- 			}
- 			|	WITH	ICMP6	TYPE	STRING
- 			{
-@@ -2103,6 +2119,7 @@ reject_opts		:       /* empty */
- 							  current_scope(state),
- 							  $4);
- 				$<stmt>0->reject.expr->dtype = &icmpv6_code_type;
-+				xfree($4);
- 			}
- 			|	WITH	ICMPX	TYPE	STRING
- 			{
-@@ -2112,6 +2129,7 @@ reject_opts		:       /* empty */
- 							  current_scope(state),
- 							  $4);
- 				$<stmt>0->reject.expr->dtype = &icmpx_code_type;
-+				xfree($4);
- 			}
- 			|	WITH	TCP	RESET
- 			{
-@@ -2392,6 +2410,7 @@ variable_expr		:	'$'	identifier
- 				if (symbol_lookup(scope, $2) == NULL) {
- 					erec_queue(error(&@2, "unknown identifier '%s'", $2),
- 						   state->msgs);
-+					xfree($2);
- 					YYERROR;
- 				}
- 
-@@ -2692,6 +2711,7 @@ quota_config		:	quota_mode NUM quota_unit quota_used
- 				uint64_t rate;
- 
- 				erec = data_unit_parse(&@$, $3, &rate);
-+				xfree($3);
- 				if (erec != NULL) {
- 					erec_queue(erec, state->msgs);
- 					YYERROR;
-@@ -2994,6 +3014,7 @@ meta_expr		:	META	meta_key
- 				unsigned int key;
- 
- 				erec = meta_key_parse(&@$, $2, &key);
-+				xfree($2);
- 				if (erec != NULL) {
- 					erec_queue(erec, state->msgs);
- 					YYERROR;
-@@ -3046,6 +3067,7 @@ meta_stmt		:	META	meta_key	SET	expr
- 				unsigned int key;
- 
- 				erec = meta_key_parse(&@$, $2, &key);
-+				xfree($2);
- 				if (erec != NULL) {
- 					erec_queue(erec, state->msgs);
- 					YYERROR;
-@@ -3110,6 +3132,7 @@ ct_expr			: 	CT	ct_key
- 				unsigned int key;
- 
- 				erec = ct_key_parse(&@$, $2, &key);
-+				xfree($2);
- 				if (erec != NULL) {
- 					erec_queue(erec, state->msgs);
- 					YYERROR;
-@@ -3123,6 +3146,7 @@ ct_expr			: 	CT	ct_key
- 				int8_t direction;
- 
- 				erec = ct_dir_parse(&@$, $2, &direction);
-+				xfree($2);
- 				if (erec != NULL) {
- 					erec_queue(erec, state->msgs);
- 					YYERROR;
-@@ -3180,6 +3204,7 @@ ct_stmt			:	CT	ct_key		SET	expr
- 				unsigned int key;
- 
- 				erec = ct_key_parse(&@$, $2, &key);
-+				xfree($2);
- 				if (erec != NULL) {
- 					erec_queue(erec, state->msgs);
- 					YYERROR;
-@@ -3202,6 +3227,7 @@ ct_stmt			:	CT	ct_key		SET	expr
- 				int8_t direction;
- 
- 				erec = ct_dir_parse(&@$, $2, &direction);
-+				xfree($2);
- 				if (erec != NULL) {
- 					erec_queue(erec, state->msgs);
- 					YYERROR;
-diff --git a/src/rule.c b/src/rule.c
-index 140855f517571..44d36c16ea47f 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -926,6 +926,7 @@ struct monitor *monitor_alloc(uint32_t format, uint32_t type, const char *event)
- 
- void monitor_free(struct monitor *m)
- {
-+	xfree(m->event);
- 	xfree(m);
- }
- 
+++
+
+
+> Thanks.
+> 
+> 
+> On Sat, Aug 19, 2017 at 05:24:06PM +0200, Eric Leblond wrote:
+> > Signed-off-by: Eric Leblond <eric@regit.org>
+> > ---
+> >  include/nftables.h          |  1 +
+> >  include/nftables/nftables.h |  3 +++
+> >  src/libnftables.c           | 20 ++++++++++++++++++++
+> >  src/main.c                  | 29 ++++++++++++++---------------
+> >  4 files changed, 38 insertions(+), 15 deletions(-)
+> > 
+> > diff --git a/include/nftables.h b/include/nftables.h
+> > index a457aba..717af37 100644
+> > --- a/include/nftables.h
+> > +++ b/include/nftables.h
+> > @@ -35,6 +35,7 @@ struct output_ctx {
+> >  struct nft_ctx {
+> >  	struct output_ctx	output;
+> >  	bool			check;
+> > +	struct mnl_socket	*nf_sock;
+> >  };
+> >  
+> >  struct nft_cache {
+> > diff --git a/include/nftables/nftables.h
+> > b/include/nftables/nftables.h
+> > index 4ba16f0..cfa60fe 100644
+> > --- a/include/nftables/nftables.h
+> > +++ b/include/nftables/nftables.h
+> > @@ -17,4 +17,7 @@
+> >  void nft_global_init(void);
+> >  void nft_global_deinit(void);
+> >  
+> > +struct nft_ctx *nft_context_new(void);
+> > +void nft_context_free(struct nft_ctx *nft);
+> > +
+> >  #endif
+> > diff --git a/src/libnftables.c b/src/libnftables.c
+> > index 215179a..6756c0f 100644
+> > --- a/src/libnftables.c
+> > +++ b/src/libnftables.c
+> > @@ -51,3 +51,23 @@ void nft_global_deinit(void)
+> >  	realm_table_meta_exit();
+> >  	mark_table_exit();
+> >  }
+> > +
+> > +struct nft_ctx *nft_context_new(void)
+> > +{
+> > +	struct nft_ctx *ctx = NULL;
+> > +	ctx = calloc(1, sizeof(struct nft_ctx));
+> > +	if (ctx == NULL)
+> > +		return NULL;
+> > +	ctx->nf_sock = netlink_open_sock();
+> > +
+> > +	return ctx;
+> > +}
+> > +
+> > +
+> > +void nft_context_free(struct nft_ctx *nft)
+> > +{
+> > +	if (nft == NULL)
+> > +		return;
+> > +	netlink_close_sock(nft->nf_sock);
+> > +	xfree(nft);
+> > +}
+> > diff --git a/src/main.c b/src/main.c
+> > index dde3104..ee5566c 100644
+> > --- a/src/main.c
+> > +++ b/src/main.c
+> > @@ -29,7 +29,6 @@
+> >  #include <iface.h>
+> >  #include <cli.h>
+> >  
+> > -static struct nft_ctx nft;
+> >  unsigned int max_errors = 10;
+> >  #ifdef DEBUG
+> >  unsigned int debug_level;
+> > @@ -283,13 +282,13 @@ int main(int argc, char * const *argv)
+> >  	unsigned int len;
+> >  	bool interactive = false;
+> >  	int i, val, rc = NFT_EXIT_SUCCESS;
+> > -	struct mnl_socket *nf_sock;
+> > +	struct nft_ctx *nft;
+> >  
+> >  	memset(&cache, 0, sizeof(cache));
+> >  	init_list_head(&cache.list);
+> >  
+> >  	nft_global_init();
+> > -	nf_sock = netlink_open_sock();
+> > +	nft = nft_context_new();
+> >  	while (1) {
+> >  		val = getopt_long(argc, argv, OPTSTRING, options,
+> > NULL);
+> >  		if (val == -1)
+> > @@ -304,7 +303,7 @@ int main(int argc, char * const *argv)
+> >  			       PACKAGE_NAME, PACKAGE_VERSION,
+> > RELEASE_NAME);
+> >  			exit(NFT_EXIT_SUCCESS);
+> >  		case OPT_CHECK:
+> > -			nft.check = true;
+> > +			nft->check = true;
+> >  			break;
+> >  		case OPT_FILE:
+> >  			filename = optarg;
+> > @@ -322,7 +321,7 @@ int main(int argc, char * const *argv)
+> >  			include_paths[num_include_paths++] =
+> > optarg;
+> >  			break;
+> >  		case OPT_NUMERIC:
+> > -			if (++nft.output.numeric > NUMERIC_ALL) {
+> > +			if (++nft->output.numeric > NUMERIC_ALL) {
+> >  				fprintf(stderr, "Too many numeric
+> > options "
+> >  						"used, max. %u\n",
+> >  					NUMERIC_ALL);
+> > @@ -330,10 +329,10 @@ int main(int argc, char * const *argv)
+> >  			}
+> >  			break;
+> >  		case OPT_STATELESS:
+> > -			nft.output.stateless++;
+> > +			nft->output.stateless++;
+> >  			break;
+> >  		case OPT_IP2NAME:
+> > -			nft.output.ip2name++;
+> > +			nft->output.ip2name++;
+> >  			break;
+> >  #ifdef DEBUG
+> >  		case OPT_DEBUG:
+> > @@ -365,10 +364,10 @@ int main(int argc, char * const *argv)
+> >  			break;
+> >  #endif
+> >  		case OPT_HANDLE_OUTPUT:
+> > -			nft.output.handle++;
+> > +			nft->output.handle++;
+> >  			break;
+> >  		case OPT_ECHO:
+> > -			nft.output.echo++;
+> > +			nft->output.echo++;
+> >  			break;
+> >  		case OPT_INVALID:
+> >  			exit(NFT_EXIT_FAILURE);
+> > @@ -386,20 +385,20 @@ int main(int argc, char * const *argv)
+> >  				strcat(buf, " ");
+> >  		}
+> >  		strcat(buf, "\n");
+> > -		parser_init(nf_sock, &cache, &state, &msgs);
+> > +		parser_init(nft->nf_sock, &cache, &state, &msgs);
+> >  		scanner = scanner_init(&state);
+> >  		scanner_push_buffer(scanner, &indesc_cmdline,
+> > buf);
+> >  	} else if (filename != NULL) {
+> > -		rc = cache_update(nf_sock, &cache, CMD_INVALID,
+> > &msgs);
+> > +		rc = cache_update(nft->nf_sock, &cache,
+> > CMD_INVALID, &msgs);
+> >  		if (rc < 0)
+> >  			return rc;
+> >  
+> > -		parser_init(nf_sock, &cache, &state, &msgs);
+> > +		parser_init(nft->nf_sock, &cache, &state, &msgs);
+> >  		scanner = scanner_init(&state);
+> >  		if (scanner_read_file(scanner, filename,
+> > &internal_location) < 0)
+> >  			goto out;
+> >  	} else if (interactive) {
+> > -		if (cli_init(&nft, nf_sock, &cache, &state) < 0) {
+> > +		if (cli_init(nft, nft->nf_sock, &cache, &state) <
+> > 0) {
+> >  			fprintf(stderr, "%s: interactive CLI not
+> > supported in this build\n",
+> >  				argv[0]);
+> >  			exit(NFT_EXIT_FAILURE);
+> > @@ -410,7 +409,7 @@ int main(int argc, char * const *argv)
+> >  		exit(NFT_EXIT_FAILURE);
+> >  	}
+> >  
+> > -	if (nft_run(&nft, nf_sock, &cache, scanner, &state, &msgs)
+> > != 0)
+> > +	if (nft_run(nft, nft->nf_sock, &cache, scanner, &state,
+> > &msgs) != 0)
+> >  		rc = NFT_EXIT_FAILURE;
+> >  out:
+> >  	scanner_destroy(scanner);
+> > @@ -418,7 +417,7 @@ out:
+> >  	xfree(buf);
+> >  	cache_release(&cache);
+> >  	iface_cache_release();
+> > -	netlink_close_sock(nf_sock);
+> > +	nft_context_free(nft);
+> >  	nft_global_deinit();
+> >  
+> >  	return rc;
+> > -- 
+> > 2.14.1
+> > 
 -- 
-2.13.1
-
+Eric Leblond <eric@regit.org>
