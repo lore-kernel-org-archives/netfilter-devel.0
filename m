@@ -1,47 +1,42 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: [PATCH 3/7] ieee802154: 6lowpan: make header_ops const
-Date: Fri, 25 Aug 2017 18:17:21 +0200
-Message-ID: <34C7927D-4D0A-4EB4-AB3E-7DEB9FA7E8B0@holtmann.org>
-References: <1503670907-23221-1-git-send-email-bhumirks@gmail.com>
- <1503670907-23221-4-git-send-email-bhumirks@gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: julia.lawall@lip6.fr, "Gustavo F. Padovan" <gustavo@padovan.org>,
-        Johan Hedberg <johan.hedberg@gmail.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        kadlec@blackhole.kfki.hu, Florian Westphal <fw@strlen.de>,
-        Stephen Hemminger <stephen@networkplumber.org>,
-        Alexander Aring <alex.aring@gmail.com>,
-        Stefan Schmidt <stefan@osg.samsung.com>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        santosh.shilimkar@oracle.com, trond.myklebust@primarydata.com,
-        anna.schumaker@netapp.com, bfields@fieldses.org,
-        jlayton@poochiereds.net,
-        "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>,
-        Network Development <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        netfilter-devel@vger
-To: Bhumika Goyal <bhumirks@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1503670907-23221-4-git-send-email-bhumirks@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: [PATCH] netfilter: ipv4: nf_defrag: constify nf_hook_ops
+Date: Sat, 26 Aug 2017 16:11:04 +0530
+Message-ID: <7859bbf3c48bf4dc16bc3e55067e01f72aceb71f.1503743850.git.arvind.yadav.cs@gmail.com>
+Cc: linux-kernel@vger.kernel.org, coreteam@netfilter.org,
+        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        davem@davemloft.net, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:35962 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752470AbdHZKlW (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 26 Aug 2017 06:41:22 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Bhumika,
+nf_hook_ops are not supposed to change at runtime. nf_register_net_hooks
+and nf_unregister_net_hooks are working with const nf_hook_ops.
+So mark the non-const nf_hook_ops structs as const.
 
-> Make this const as it is only stored as a reference in a const field of
-> a net_device structure.
-> 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
-> ---
-> net/ieee802154/6lowpan/core.c | 2 +-
-> 1 file changed, 1 insertion(+), 1 deletion(-)
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ net/ipv4/netfilter/nf_defrag_ipv4.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-patch has been applied to bluetooth-next tree.
+diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
+index 346bf7c..37fe1616 100644
+--- a/net/ipv4/netfilter/nf_defrag_ipv4.c
++++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
+@@ -90,7 +90,7 @@ static unsigned int ipv4_conntrack_defrag(void *priv,
+ 	return NF_ACCEPT;
+ }
+ 
+-static struct nf_hook_ops ipv4_defrag_ops[] = {
++static const struct nf_hook_ops ipv4_defrag_ops[] = {
+ 	{
+ 		.hook		= ipv4_conntrack_defrag,
+ 		.pf		= NFPROTO_IPV4,
+-- 
+2.7.4
 
-Regards
-
-Marcel
