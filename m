@@ -1,38 +1,43 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: libnetfilter_queue & multithreading & 1 queue freezing
-Date: Sat, 26 Aug 2017 21:26:25 +0200
-Message-ID: <20170826192625.GD29355@breakpoint.cc>
-References: <20170826150738.GA15203@legohost>
+From: Oleg <lego12239@yandex.ru>
+Subject: Re: NFQUEUE --queue-balance
+Date: Sun, 27 Aug 2017 11:11:23 +0300
+Message-ID: <20170827081123.GA22938@legohost>
+References: <20170826154013.GA19754@legohost>
+ <20170826192421.GC29355@breakpoint.cc>
+Reply-To: Oleg <lego12239@yandex.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Cc: netfilter-devel@vger.kernel.org
-To: Oleg <lego12239@yandex.ru>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:44388 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751062AbdHZT3D (ORCPT
+Received: from forward102p.mail.yandex.net ([77.88.28.102]:36968 "EHLO
+        forward102p.mail.yandex.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750797AbdH0IQJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 26 Aug 2017 15:29:03 -0400
+        Sun, 27 Aug 2017 04:16:09 -0400
 Content-Disposition: inline
-In-Reply-To: <20170826150738.GA15203@legohost>
+In-Reply-To: <20170826192421.GC29355@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Oleg <lego12239@yandex.ru> wrote:
->   Hi, all.
+On Sat, Aug 26, 2017 at 09:24:21PM +0200, Florian Westphal wrote:
+> Oleg <lego12239@yandex.ru> wrote:
+> >   Hi, all.
+> > 
+> > --queue-balance balance packets according to connection tracking,
+> > iiuc. Consequently queue utilization is not equal. E.g.:
 > 
-> My program process multiple NFQUEUEs by creating a separate thread
-> for every NFQUEUE. An each thread do recv() and nfq_set_verdict2():
+> It hashes based on ip addresses.
+
+Thank you for clarification.
+
+> > Is there queue balancer without this feature(simple round-robin)?
 > 
-> But i catch a strange behaviour when more than 1 thread(queue) are
-> used. In those cases one queue "freeze" while others works right.
-> For example, for 5 queues(here a queue with id 1 "freeze"):
+> Use nftables or use multiple NFQUEUE rules with -m statistic.
 
-If you use libnetfilter_queue you might need
+Wow! This what i need. Thank you!
 
-commit 4ca06bc967d94b7b7b5a6efc76e870f0efc77e24
-src: make nfq_open_nfnl thread-safe
 
-(or protect nfq_open_nfnl calls with a mutex).
-
-Other than that I have no idea.
+-- 
+Олег Неманов (Oleg Nemanov)
