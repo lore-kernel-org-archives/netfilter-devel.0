@@ -1,31 +1,38 @@
-From: Oleg <lego12239@yandex.ru>
-Subject: libnetfilter_queue 1.0.3 docs
-Date: Sun, 27 Aug 2017 15:22:51 +0300
-Message-ID: <20170827122251.GB25231@legohost>
-Reply-To: Oleg <lego12239@yandex.ru>
+From: Greg KH <greg@kroah.com>
+Subject: Re: netfilter fixes for 4.12.y tree
+Date: Sun, 27 Aug 2017 14:52:18 +0200
+Message-ID: <20170827125218.GB2038@kroah.com>
+References: <20170824133039.GC15739@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from forward106p.mail.yandex.net ([77.88.28.109]:54967 "EHLO
-        forward106p.mail.yandex.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751152AbdH0MUp (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 27 Aug 2017 08:20:45 -0400
-Received: from mxback17j.mail.yandex.net (mxback17j.mail.yandex.net [IPv6:2a02:6b8:0:1619::93])
-        by forward106p.mail.yandex.net (Yandex) with ESMTP id 6D4BA2D82009
-        for <netfilter-devel@vger.kernel.org>; Sun, 27 Aug 2017 15:20:44 +0300 (MSK)
+Content-Type: text/plain; charset=us-ascii
+Cc: stable@vger.kernel.org, pablo@netfilter.org,
+        netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20170824133039.GC15739@breakpoint.cc>
+Sender: stable-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-  Hi, all.
+On Thu, Aug 24, 2017 at 03:30:39PM +0200, Florian Westphal wrote:
+> Hi stable team,
+> 
+> please consider picking up the following commits for
+> 4.12.y:
+> 
+> 36ac344e16e04e3e55e8fed7446095a6458c64e6
+> netfilter: expect: fix crash when putting uninited expectation
+> 
+> 97772bcd56efa21d9d8976db6f205574ea602f51
+> netfilter: nat: fix src map lookup
+> (this causes severe issues when lots of nat mappings are active as we
+>  run out of local source ports).
+> 
+> f55ce7b024090a51382ccab2730b96e2f7b4e9cf
+> netfilter: nfnetlink: Improve input length sanitization in nfnetlink_rcv
+> 
+> all cherry-pick cleanly.
 
-May be anybody know where i can find api docs or tutorial for 1.0.3
-version(something like existing doxygen docs for 1.0.2 version, may be)?
+All now applied, thanks.
 
-Thanks.
-
--- 
-Олег Неманов (Oleg Nemanov)
+greg k-h
