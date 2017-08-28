@@ -1,53 +1,45 @@
-From: Davide Caratti <dcaratti@redhat.com>
-Subject: [PATCH nf-next] netfilter: nf_conntrack: remove unused code in nf_conntrack_proto_generic.c
-Date: Mon, 28 Aug 2017 11:52:07 +0200
-Message-ID: <2506ca6f6d8fdc51d85fc77e558b1662ff18eba9.1503913723.git.dcaratti@redhat.com>
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: rt: account for tcp header size too
+Date: Mon, 28 Aug 2017 17:00:12 +0200
+Message-ID: <20170828150012.11287-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50514 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751143AbdH1JwK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Aug 2017 05:52:10 -0400
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:51322 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751411AbdH1O7y (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 28 Aug 2017 10:59:54 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-L4 protocol helpers for DCCP, SCTP and UDPlite can't be built as kernel
-modules anymore, so we can remove code enclosed in
- #ifdef CONFIG_NF_CT_PROTO_{DCCP,SCTP,UDPLITE}_MODULE
+This needs to accout for the ipv4/ipv6 header size and the tcp
+header without options.
 
-Signed-off-by: Davide Caratti <dcaratti@redhat.com>
+Fixes: 6b5dc98e8fac0 ("netfilter: rt: add support to fetch path mss")
+Reported-by: Matteo Croce <technoboy85@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_conntrack_proto_generic.c | 12 ------------
- 1 file changed, 12 deletions(-)
+ net/netfilter/nft_rt.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
-index 2bc3d0c1a5bf..2993995b690d 100644
---- a/net/netfilter/nf_conntrack_proto_generic.c
-+++ b/net/netfilter/nf_conntrack_proto_generic.c
-@@ -17,22 +17,10 @@ static unsigned int nf_ct_generic_timeout __read_mostly = 600*HZ;
- static bool nf_generic_should_process(u8 proto)
- {
- 	switch (proto) {
--#ifdef CONFIG_NF_CT_PROTO_SCTP_MODULE
--	case IPPROTO_SCTP:
--		return false;
--#endif
--#ifdef CONFIG_NF_CT_PROTO_DCCP_MODULE
--	case IPPROTO_DCCP:
--		return false;
--#endif
- #ifdef CONFIG_NF_CT_PROTO_GRE_MODULE
- 	case IPPROTO_GRE:
- 		return false;
- #endif
--#ifdef CONFIG_NF_CT_PROTO_UDPLITE_MODULE
--	case IPPROTO_UDPLITE:
--		return false;
--#endif
- 	default:
- 		return true;
+diff --git a/net/netfilter/nft_rt.c b/net/netfilter/nft_rt.c
+index e142e65d3176..8a49b5b54ede 100644
+--- a/net/netfilter/nft_rt.c
++++ b/net/netfilter/nft_rt.c
+@@ -35,10 +35,11 @@ static u16 get_tcpmss(const struct nft_pktinfo *pkt, const struct dst_entry *skb
+ 	switch (nft_pf(pkt)) {
+ 	case NFPROTO_IPV4:
+ 		fl.u.ip4.daddr = ip_hdr(skb)->saddr;
+-		minlen = sizeof(struct iphdr);
++		minlen = sizeof(struct iphdr) + sizeof(struct tcphdr);
+ 		break;
+ 	case NFPROTO_IPV6:
+ 		fl.u.ip6.daddr = ipv6_hdr(skb)->saddr;
++		minlen = sizeof(struct ipv6hdr) + sizeof(struct tcphdr);
+ 		break;
  	}
+ 
 -- 
-2.13.5
+2.13.0
 
