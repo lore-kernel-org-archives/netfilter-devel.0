@@ -1,41 +1,68 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 4/7] ipv4: make net_protocol const
-Date: Mon, 28 Aug 2017 11:30:21 -0700 (PDT)
-Message-ID: <20170828.113021.1460779644530852597.davem@davemloft.net>
-References: <1503670907-23221-1-git-send-email-bhumirks@gmail.com>
-        <1503670907-23221-5-git-send-email-bhumirks@gmail.com>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [nft PATCH 1/2] nft.8: Fix and enhance synopsis section
+Date: Mon, 28 Aug 2017 23:25:11 +0200
+Message-ID: <20170828212511.GF19224@orbyte.nwl.cc>
+References: <20170817133900.21946-1-phil@nwl.cc>
+ <20170817133900.21946-2-phil@nwl.cc>
+ <20170828165853.GB21786@salvia>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: julia.lawall@lip6.fr, marcel@holtmann.org, gustavo@padovan.org,
-        johan.hedberg@gmail.com, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, stephen@networkplumber.org,
-        alex.aring@gmail.com, stefan@osg.samsung.com, kuznet@ms2.inr.ac.ru,
-        yoshfuji@linux-ipv6.org, santosh.shilimkar@oracle.com,
-        trond.myklebust@primarydata.com, anna.schumaker@netapp.com,
-        bfields@fieldses.org, jlayton@poochiereds.net,
-        linux-bluetooth@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, bridge@lists.linux-foundation.org,
-        linux-wpan@vger.kernel.org, linux-rdma@vger.kernel.org,
-        rds-devel@oss.oracle.com, linux-nfs@vger.kernel.org
-To: bhumirks@gmail.com
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([184.105.139.130]:45352 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751672AbdH1SaX (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 28 Aug 2017 14:30:23 -0400
-In-Reply-To: <1503670907-23221-5-git-send-email-bhumirks@gmail.com>
+Received: from orbyte.nwl.cc ([151.80.46.58]:60373 "EHLO mail.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751218AbdH1VZM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 28 Aug 2017 17:25:12 -0400
+Content-Disposition: inline
+In-Reply-To: <20170828165853.GB21786@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Bhumika Goyal <bhumirks@gmail.com>
-Date: Fri, 25 Aug 2017 19:51:44 +0530
+Hi Pablo,
 
-> Make these const as they are only passed to a const argument of the
-> function inet_add_protocol.
+On Mon, Aug 28, 2017 at 06:58:53PM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Aug 17, 2017 at 03:38:59PM +0200, Phil Sutter wrote:
+> > This patch addresses shortcomings in the main synopsis section
+> > illustrating possible invocations of nft command:
+> > 
+> > - Fix font styles to correctly put options into bold font and meta
+> >   characters (brackets, pipes) into normal font.
+> > 
+> > - Add missing options to synopsis line.
+> > 
+> > - Use curly braces where either one of the alternatives is required.
+> > 
+> > - Remove choice="opt" attribute since that is the default anyway.
+> > 
+> > - Note that --includepath option is allowed to be given multiple times.
 > 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+> I'm going to apply this.
 
-Applied.
+Thanks!
+
+> I'm undecided with 2/2,
+
+>From my side, this is according to (the hidden) plan. :)
+
+> I don't remember to have seen such indirections in other manpages?
+
+>From iproute2 (as said, I'm biased), I'm used to stuff like this:
+	
+| nft [ OPTIONS ] ...
+|
+| OPTIONS := [ OPTIONS ] OPTION
+| OPTION := [ -a | -e | -n ]
+
+Maybe for others it's more of an obstacle to parse this recursive style,
+it really seems intuitive to me at least. And it's a quite efficient way
+to define the syntax in a very precise manner.
+
+Of course it's nice to have some layer of abstraction to allow for
+formatting into other markups, like HTML for example. So I'll have a
+look at alternatives which will keep that flexibility yet allow for the
+style I prefer (unless you consider it not much more readable than what
+docbook offers).
+
+Thanks, Phil
+
