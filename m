@@ -1,175 +1,102 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: remove unused hooknum arg from packet functions
-Date: Tue, 29 Aug 2017 12:04:10 +0200
-Message-ID: <20170829100410.20870-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Shyam Saini <mayhs11saini@gmail.com>
+Subject: [PATCH] examples: Fix memory leaks detected by Valgrind
+Date: Tue, 29 Aug 2017 18:19:36 +0530
+Message-ID: <1504010976-13897-1-git-send-email-mayhs11saini@gmail.com>
+Cc: Shyam Saini <mayhs11saini@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:55902 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751218AbdH2KDx (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:34357 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751446AbdH2Mt4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 29 Aug 2017 06:03:53 -0400
+        Tue, 29 Aug 2017 08:49:56 -0400
+Received: by mail-pg0-f68.google.com with SMTP id 63so2663763pgc.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Aug 2017 05:49:56 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-tested with allmodconfig build.
+==11688== HEAP SUMMARY:
+==11688==     in use at exit: 40 bytes in 1 blocks
+==11688==   total heap usage: 7 allocs, 6 frees, 220 bytes allocated
+==11688==
+==11688== 40 bytes in 1 blocks are definitely lost in loss record 1 of 1
+==11688==    at 0x4C2AB80: malloc (in
+/usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11688==    by 0x5068955: mnl_nlmsg_batch_start (nlmsg.c:441)
+==11688==    by 0x40133B: main (nft-chain-add.c:103)
+==11688==
+==11688== LEAK SUMMARY:
+==11688==    definitely lost: 40 bytes in 1 blocks
+==11688==    indirectly lost: 0 bytes in 0 blocks
+==11688==      possibly lost: 0 bytes in 0 blocks
+==11688==    still reachable: 0 bytes in 0 blocks
+==11688==         suppressed: 0 bytes in 0 blocks
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+==11831== HEAP SUMMARY:
+==11831==     in use at exit: 40 bytes in 1 blocks
+==11831==   total heap usage: 7 allocs, 6 frees, 220 bytes allocated
+==11831==
+==11831== 40 bytes in 1 blocks are definitely lost in loss record 1 of 1
+==11831==    at 0x4C2AB80: malloc (in
+/usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==11831==    by 0x5068955: mnl_nlmsg_batch_start (nlmsg.c:441)
+==11831==    by 0x401154: main (nft-chain-del.c:79)
+==11831==
+==11831== LEAK SUMMARY:
+==11831==    definitely lost: 40 bytes in 1 blocks
+==11831==    indirectly lost: 0 bytes in 0 blocks
+==11831==      possibly lost: 0 bytes in 0 blocks
+==11831==    still reachable: 0 bytes in 0 blocks
+==11831==         suppressed: 0 bytes in 0 blocks
+
+Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
 ---
- include/net/netfilter/nf_conntrack_l4proto.h   | 1 -
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c   | 1 -
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c | 6 ++----
- net/netfilter/nf_conntrack_core.c              | 2 +-
- net/netfilter/nf_conntrack_proto_dccp.c        | 2 +-
- net/netfilter/nf_conntrack_proto_generic.c     | 1 -
- net/netfilter/nf_conntrack_proto_gre.c         | 1 -
- net/netfilter/nf_conntrack_proto_sctp.c        | 1 -
- net/netfilter/nf_conntrack_proto_tcp.c         | 1 -
- net/netfilter/nf_conntrack_proto_udp.c         | 1 -
- 10 files changed, 4 insertions(+), 13 deletions(-)
+ examples/nft-chain-add.c       | 2 ++
+ examples/nft-chain-del.c       | 2 ++
+ examples/nft-chain-parse-add.c | 4 +++-
+ 3 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index d4933d56809d..738a0307a96b 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -43,7 +43,6 @@ struct nf_conntrack_l4proto {
- 		      unsigned int dataoff,
- 		      enum ip_conntrack_info ctinfo,
- 		      u_int8_t pf,
--		      unsigned int hooknum,
- 		      unsigned int *timeouts);
- 
- 	/* Called when a new connection for this protocol found;
-diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-index 434b4e20f6db..ce108a996316 100644
---- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -82,7 +82,6 @@ static int icmp_packet(struct nf_conn *ct,
- 		       unsigned int dataoff,
- 		       enum ip_conntrack_info ctinfo,
- 		       u_int8_t pf,
--		       unsigned int hooknum,
- 		       unsigned int *timeout)
- {
- 	/* Do not immediately delete the connection after the first
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index 43544b975eae..30e34c4de003 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -95,7 +95,6 @@ static int icmpv6_packet(struct nf_conn *ct,
- 		       unsigned int dataoff,
- 		       enum ip_conntrack_info ctinfo,
- 		       u_int8_t pf,
--		       unsigned int hooknum,
- 		       unsigned int *timeout)
- {
- 	/* Do not immediately delete the connection after the first
-@@ -129,8 +128,7 @@ static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
- static int
- icmpv6_error_message(struct net *net, struct nf_conn *tmpl,
- 		     struct sk_buff *skb,
--		     unsigned int icmp6off,
--		     unsigned int hooknum)
-+		     unsigned int icmp6off)
- {
- 	struct nf_conntrack_tuple intuple, origtuple;
- 	const struct nf_conntrack_tuple_hash *h;
-@@ -214,7 +212,7 @@ icmpv6_error(struct net *net, struct nf_conn *tmpl,
- 	if (icmp6h->icmp6_type >= 128)
- 		return NF_ACCEPT;
- 
--	return icmpv6_error_message(net, tmpl, skb, dataoff, hooknum);
-+	return icmpv6_error_message(net, tmpl, skb, dataoff);
- }
- 
- #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index c23df7c9cd59..ee5555dd7ebc 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1414,7 +1414,7 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
- 	/* Decide what timeout policy we want to apply to this flow. */
- 	timeouts = nf_ct_timeout_lookup(net, ct, l4proto);
- 
--	ret = l4proto->packet(ct, skb, dataoff, ctinfo, pf, hooknum, timeouts);
-+	ret = l4proto->packet(ct, skb, dataoff, ctinfo, pf, timeouts);
- 	if (ret <= 0) {
- 		/* Invalid: inverse of the return code tells
- 		 * the netfilter core what to do */
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index 188347571fc7..0f5a4d79f6b8 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -469,7 +469,7 @@ static unsigned int *dccp_get_timeouts(struct net *net)
- 
- static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
- 		       unsigned int dataoff, enum ip_conntrack_info ctinfo,
--		       u_int8_t pf, unsigned int hooknum,
-+		       u_int8_t pf,
- 		       unsigned int *timeouts)
- {
- 	struct net *net = nf_ct_net(ct);
-diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
-index 2993995b690d..9cd40700842e 100644
---- a/net/netfilter/nf_conntrack_proto_generic.c
-+++ b/net/netfilter/nf_conntrack_proto_generic.c
-@@ -61,7 +61,6 @@ static int generic_packet(struct nf_conn *ct,
- 			  unsigned int dataoff,
- 			  enum ip_conntrack_info ctinfo,
- 			  u_int8_t pf,
--			  unsigned int hooknum,
- 			  unsigned int *timeout)
- {
- 	nf_ct_refresh_acct(ct, ctinfo, skb, *timeout);
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index c0e3a23ac23a..09a90484c27d 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -245,7 +245,6 @@ static int gre_packet(struct nf_conn *ct,
- 		      unsigned int dataoff,
- 		      enum ip_conntrack_info ctinfo,
- 		      u_int8_t pf,
--		      unsigned int hooknum,
- 		      unsigned int *timeouts)
- {
- 	/* If we've seen traffic both ways, this is a GRE connection.
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 890b5c73368d..6303a88af12b 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -307,7 +307,6 @@ static int sctp_packet(struct nf_conn *ct,
- 		       unsigned int dataoff,
- 		       enum ip_conntrack_info ctinfo,
- 		       u_int8_t pf,
--		       unsigned int hooknum,
- 		       unsigned int *timeouts)
- {
- 	enum sctp_conntrack new_state, old_state;
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 33c52d9ab2f5..cba1c6ffe51a 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -803,7 +803,6 @@ static int tcp_packet(struct nf_conn *ct,
- 		      unsigned int dataoff,
- 		      enum ip_conntrack_info ctinfo,
- 		      u_int8_t pf,
--		      unsigned int hooknum,
- 		      unsigned int *timeouts)
- {
- 	struct net *net = nf_ct_net(ct);
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index dcf3030d2226..8af734cd1a94 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -74,7 +74,6 @@ static int udp_packet(struct nf_conn *ct,
- 		      unsigned int dataoff,
- 		      enum ip_conntrack_info ctinfo,
- 		      u_int8_t pf,
--		      unsigned int hooknum,
- 		      unsigned int *timeouts)
- {
- 	/* If we've seen traffic both ways, this is some kind of UDP
--- 
-2.13.0
+diff --git a/examples/nft-chain-add.c b/examples/nft-chain-add.c
+index ca1edf9e6f86..e0d889df40eb 100644
+--- a/examples/nft-chain-add.c
++++ b/examples/nft-chain-add.c
+@@ -138,6 +138,8 @@ int main(int argc, char *argv[])
+ 		exit(EXIT_FAILURE);
+ 	}
+
++	mnl_nlmsg_batch_stop(batch);
++
+ 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+ 	while (ret > 0) {
+ 		ret = mnl_cb_run(buf, ret, chain_seq, portid, NULL, NULL);
+diff --git a/examples/nft-chain-del.c b/examples/nft-chain-del.c
+index b756b46f9bbd..3a43fd424eb9 100644
+--- a/examples/nft-chain-del.c
++++ b/examples/nft-chain-del.c
+@@ -113,6 +113,8 @@ int main(int argc, char *argv[])
+ 		perror("mnl_socket_send");
+ 		exit(EXIT_FAILURE);
+ 	}
++
++	mnl_nlmsg_batch_stop(batch);
+
+ 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+ 	while (ret > 0) {
+diff --git a/examples/nft-chain-parse-add.c b/examples/nft-chain-parse-add.c
+index 6d6d989cd81d..abb9ac4641f5 100644
+--- a/examples/nft-chain-parse-add.c
++++ b/examples/nft-chain-parse-add.c
+@@ -148,7 +148,9 @@ int main(int argc, char *argv[])
+ 		perror("mnl_socket_send");
+ 		exit(EXIT_FAILURE);
+ 	}
+-
++
++	mnl_nlmsg_batch_stop(batch);
++
+ 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+ 	while (ret > 0) {
+ 		ret = mnl_cb_run(buf, ret, chain_seq, portid, NULL, NULL);
+--
+1.9.1
 
