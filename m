@@ -1,35 +1,237 @@
-From: Shyam Saini <mayhs11saini@gmail.com>
-Subject: Re: [PATCH] examples: Fix memory leaks detected by Valgrind
-Date: Wed, 30 Aug 2017 12:48:56 +0530
-Message-ID: <CAOfkYf7yPBKT8u+StaEjWRL0UcixpMN53mjrEzOkPwWpL55+sg@mail.gmail.com>
-References: <1504010976-13897-1-git-send-email-mayhs11saini@gmail.com> <CAOkSjBj1bFkszY+HAOJP+tkU08pXJJGPgY6ZXn43OPaxw0O4=w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo@netfilter.org>
+From: Varsha Rao <rvarsha016@gmail.com>
+Subject: [PATCH nf-next] net: Remove CONFIG_NETFILTER_DEBUG and _ASSERT() macros.
+Date: Wed, 30 Aug 2017 13:37:12 +0530
+Message-ID: <20170830080712.26076-2-rvarsha016@gmail.com>
+References: <20170830080712.26076-1-rvarsha016@gmail.com>
+Cc: Varsha Rao <rvarsha016@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f52.google.com ([209.85.218.52]:33111 "EHLO
-        mail-oi0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751039AbdH3HS6 (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:35832 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750983AbdH3IHa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 30 Aug 2017 03:18:58 -0400
-Received: by mail-oi0-f52.google.com with SMTP id r203so44959456oih.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Aug 2017 00:18:58 -0700 (PDT)
-In-Reply-To: <CAOkSjBj1bFkszY+HAOJP+tkU08pXJJGPgY6ZXn43OPaxw0O4=w@mail.gmail.com>
+        Wed, 30 Aug 2017 04:07:30 -0400
+Received: by mail-pf0-f193.google.com with SMTP id g13so3892085pfm.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 30 Aug 2017 01:07:30 -0700 (PDT)
+In-Reply-To: <20170830080712.26076-1-rvarsha016@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Aug 30, 2017 at 3:09 AM, Arturo Borrero Gonzalez
-<arturo@netfilter.org> wrote:
-> Thanks Shyam,
->
-> Acked-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
-> in the future, please add a tag to the [PATCH] header, like "[PATCH
-> libnftnl]" so we can easily know to which tree this patch should be
-> applied to.
+This patch removes CONFIG_NETFILTER_DEBUG and _ASSERT() macros as they
+are no longer required. Replace _ASSERT() macros with WARN_ON().
 
+Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
+---
+ arch/parisc/configs/c3000_defconfig  |  1 -
+ arch/sh/configs/se7751_defconfig     |  1 -
+ include/net/netfilter/nf_conntrack.h |  6 ------
+ net/Kconfig                          |  7 -------
+ net/bridge/netfilter/ebtables.c      | 20 ++++++++------------
+ net/ipv4/netfilter/ip_tables.c       | 12 +++---------
+ net/ipv6/netfilter/ip6_tables.c      | 12 +++---------
+ 7 files changed, 14 insertions(+), 45 deletions(-)
 
-Thanks Arturo
+diff --git a/arch/parisc/configs/c3000_defconfig b/arch/parisc/configs/c3000_defconfig
+index 8e8f0e34f817..0f19c59021ce 100644
+--- a/arch/parisc/configs/c3000_defconfig
++++ b/arch/parisc/configs/c3000_defconfig
+@@ -36,7 +36,6 @@ CONFIG_IP_PNP_BOOTP=y
+ CONFIG_INET6_IPCOMP=m
+ CONFIG_IPV6_TUNNEL=m
+ CONFIG_NETFILTER=y
+-CONFIG_NETFILTER_DEBUG=y
+ CONFIG_IP_NF_QUEUE=m
+ CONFIG_NET_PKTGEN=m
+ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+diff --git a/arch/sh/configs/se7751_defconfig b/arch/sh/configs/se7751_defconfig
+index 75c92fc1876b..56b5e4ce8d4a 100644
+--- a/arch/sh/configs/se7751_defconfig
++++ b/arch/sh/configs/se7751_defconfig
+@@ -28,7 +28,6 @@ CONFIG_IP_PNP_RARP=y
+ # CONFIG_INET_LRO is not set
+ # CONFIG_IPV6 is not set
+ CONFIG_NETFILTER=y
+-CONFIG_NETFILTER_DEBUG=y
+ CONFIG_IP_NF_QUEUE=y
+ CONFIG_MTD=y
+ CONFIG_MTD_PARTITIONS=y
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 0385cb08c478..fdc9c64a1c94 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -44,12 +44,6 @@ union nf_conntrack_expect_proto {
+ #include <linux/types.h>
+ #include <linux/skbuff.h>
+ 
+-#ifdef CONFIG_NETFILTER_DEBUG
+-#define NF_CT_ASSERT(x)		WARN_ON(!(x))
+-#else
+-#define NF_CT_ASSERT(x)
+-#endif
+-
+ #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
+ #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
+ 
+diff --git a/net/Kconfig b/net/Kconfig
+index 7d57ef34b79c..ceb0b3dda182 100644
+--- a/net/Kconfig
++++ b/net/Kconfig
+@@ -166,13 +166,6 @@ menuconfig NETFILTER
+ 
+ if NETFILTER
+ 
+-config NETFILTER_DEBUG
+-	bool "Network packet filtering debugging"
+-	depends on NETFILTER
+-	help
+-	  You can say Y here if you want to get additional messages useful in
+-	  debugging the netfilter code.
+-
+ config NETFILTER_ADVANCED
+ 	bool "Advanced netfilter configuration"
+ 	depends on NETFILTER
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 54c7ef4e970e..83951f978445 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -252,13 +252,11 @@ unsigned int ebt_do_table(struct sk_buff *skb,
+ 		}
+ 		if (verdict == EBT_RETURN) {
+ letsreturn:
+-#ifdef CONFIG_NETFILTER_DEBUG
+-			if (sp == 0) {
+-				BUGPRINT("RETURN on base chain");
++			if (WARN(sp == 0, "RETURN on base chain")) {
+ 				/* act like this is EBT_CONTINUE */
+ 				goto letscontinue;
+ 			}
+-#endif
++
+ 			sp--;
+ 			/* put all the local variables right */
+ 			i = cs[sp].n;
+@@ -271,26 +269,24 @@ unsigned int ebt_do_table(struct sk_buff *skb,
+ 		}
+ 		if (verdict == EBT_CONTINUE)
+ 			goto letscontinue;
+-#ifdef CONFIG_NETFILTER_DEBUG
+-		if (verdict < 0) {
+-			BUGPRINT("bogus standard verdict\n");
++
++		if (WARN(verdict < 0, "bogus standard verdict\n")) {
+ 			read_unlock_bh(&table->lock);
+ 			return NF_DROP;
+ 		}
+-#endif
++
+ 		/* jump to a udc */
+ 		cs[sp].n = i + 1;
+ 		cs[sp].chaininfo = chaininfo;
+ 		cs[sp].e = ebt_next_entry(point);
+ 		i = 0;
+ 		chaininfo = (struct ebt_entries *) (base + verdict);
+-#ifdef CONFIG_NETFILTER_DEBUG
+-		if (chaininfo->distinguisher) {
+-			BUGPRINT("jump to non-chain\n");
++
++		if (WARN(chaininfo->distinguisher, "jump to non-chain\n")) {
+ 			read_unlock_bh(&table->lock);
+ 			return NF_DROP;
+ 		}
+-#endif
++
+ 		nentries = chaininfo->nentries;
+ 		point = (struct ebt_entry *)chaininfo->data;
+ 		counter_base = cb_base + chaininfo->counter_offset;
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 2aea896f5708..bd1a5c915f92 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -35,12 +35,6 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
+ MODULE_DESCRIPTION("IPv4 packet filter");
+ 
+-#ifdef CONFIG_NETFILTER_DEBUG
+-#define IP_NF_ASSERT(x)		WARN_ON(!(x))
+-#else
+-#define IP_NF_ASSERT(x)
+-#endif
+-
+ void *ipt_alloc_initial_table(const struct xt_table *info)
+ {
+ 	return xt_alloc_initial_table(ipt, IPT);
+@@ -263,7 +257,7 @@ ipt_do_table(struct sk_buff *skb,
+ 	acpar.hotdrop = false;
+ 	acpar.state   = state;
+ 
+-	IP_NF_ASSERT(table->valid_hooks & (1 << hook));
++	WARN_ON(!(table->valid_hooks & (1 << hook)));
+ 	local_bh_disable();
+ 	addend = xt_write_recseq_begin();
+ 	private = table->private;
+@@ -293,7 +287,7 @@ ipt_do_table(struct sk_buff *skb,
+ 		const struct xt_entry_match *ematch;
+ 		struct xt_counters *counter;
+ 
+-		IP_NF_ASSERT(e);
++		WARN_ON(!e);
+ 		if (!ip_packet_match(ip, indev, outdev,
+ 		    &e->ip, acpar.fragoff)) {
+  no_match:
+@@ -312,7 +306,7 @@ ipt_do_table(struct sk_buff *skb,
+ 		ADD_COUNTER(*counter, skb->len, 1);
+ 
+ 		t = ipt_get_target(e);
+-		IP_NF_ASSERT(t->u.kernel.target);
++		WARN_ON(!t->u.kernel.target);
+ 
+ #if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TRACE)
+ 		/* The packet is traced: log it */
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 9f6644958e5e..54b1e75eded1 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -39,12 +39,6 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
+ MODULE_DESCRIPTION("IPv6 packet filter");
+ 
+-#ifdef CONFIG_NETFILTER_DEBUG
+-#define IP_NF_ASSERT(x)	WARN_ON(!(x))
+-#else
+-#define IP_NF_ASSERT(x)
+-#endif
+-
+ void *ip6t_alloc_initial_table(const struct xt_table *info)
+ {
+ 	return xt_alloc_initial_table(ip6t, IP6T);
+@@ -284,7 +278,7 @@ ip6t_do_table(struct sk_buff *skb,
+ 	acpar.hotdrop = false;
+ 	acpar.state   = state;
+ 
+-	IP_NF_ASSERT(table->valid_hooks & (1 << hook));
++	WARN_ON(!(table->valid_hooks & (1 << hook)));
+ 
+ 	local_bh_disable();
+ 	addend = xt_write_recseq_begin();
+@@ -315,7 +309,7 @@ ip6t_do_table(struct sk_buff *skb,
+ 		const struct xt_entry_match *ematch;
+ 		struct xt_counters *counter;
+ 
+-		IP_NF_ASSERT(e);
++		WARN_ON(!e);
+ 		acpar.thoff = 0;
+ 		if (!ip6_packet_match(skb, indev, outdev, &e->ipv6,
+ 		    &acpar.thoff, &acpar.fragoff, &acpar.hotdrop)) {
+@@ -335,7 +329,7 @@ ip6t_do_table(struct sk_buff *skb,
+ 		ADD_COUNTER(*counter, skb->len, 1);
+ 
+ 		t = ip6t_get_target_c(e);
+-		IP_NF_ASSERT(t->u.kernel.target);
++		WARN_ON(!t->u.kernel.target);
+ 
+ #if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TRACE)
+ 		/* The packet is traced: log it */
+-- 
+2.13.5
 
-I'll follow this thing next time onward.
