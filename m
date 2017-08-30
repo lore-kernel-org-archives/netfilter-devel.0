@@ -1,37 +1,26 @@
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: [PATCH] netfilter: nat: constify rhashtable_params
-Date: Wed, 30 Aug 2017 17:18:04 +0530
-Message-ID: <d978194ca83e9aa41a330a42442eecd8be9e9a60.1504093452.git.arvind.yadav.cs@gmail.com>
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        coreteam@netfilter.org, netfilter-devel@vger.kernel.org
-To: davem@davemloft.net, fw@strlen.de, kadlec@blackhole.kfki.hu,
-        pablo@netfilter.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Alex Guo <alexand.guo@nutanix.com>
+Subject: hi, any update on bug id 1177, ulogd, export 'ct.zone' field?
+Date: Wed, 30 Aug 2017 22:36:19 +0000
+Message-ID: <DM2PR0201MB05734B4E3D316A4EF135AAB6EC9C0@DM2PR0201MB0573.namprd02.prod.outlook.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: quoted-printable
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from us-smtp-delivery-101.mimecast.com ([216.205.24.101]:47115 "EHLO
+        us-smtp-delivery-101.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750998AbdH3WgX (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 30 Aug 2017 18:36:23 -0400
+Content-Language: en-US
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-rhashtable_params are not supposed to change at runtime. All
-Functions rhashtable_* working with const rhashtable_params
-provided by <linux/rhashtable.h>. So mark the non-const structs
-as const.
+Hi there! How are you doing?
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
- net/netfilter/nf_nat_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I'm wondering about any updates for:
 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index eb54178..d1f355e 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -198,7 +198,7 @@ static int nf_nat_bysource_cmp(struct rhashtable_compare_arg *arg,
- 	return 0;
- }
- 
--static struct rhashtable_params nf_nat_bysource_params = {
-+static const struct rhashtable_params nf_nat_bysource_params = {
- 	.head_offset = offsetof(struct nf_conn, nat_bysource),
- 	.obj_hashfn = nf_nat_bysource_hash,
- 	.obj_cmpfn = nf_nat_bysource_cmp,
--- 
-1.9.1
+https://bugzilla.netfilter.org/show_bug.cgi?id=3D1177
+
+ It's about ulogd. Exporting a 'ct.zone' field to userspace.
+
