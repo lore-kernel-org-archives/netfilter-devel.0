@@ -1,36 +1,65 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 1/3] src: move nf_sock into nft_ctx structure
-Date: Fri, 1 Sep 2017 19:50:52 +0200
-Message-ID: <20170901175052.GA2777@salvia>
-References: <1504260847-5408-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, phil@nwl.cc
-To: eric@regit.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: xtables: add scheduling opportunity in get_counters
+Date: Fri,  1 Sep 2017 22:41:03 +0200
+Message-ID: <20170901204103.16129-1-fw@strlen.de>
+Cc: edumazet@google.com, Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:50697 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752206AbdIARvQ (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:47754 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752419AbdIAUkr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 1 Sep 2017 13:51:16 -0400
-Content-Disposition: inline
-In-Reply-To: <1504260847-5408-1-git-send-email-pablo@netfilter.org>
+        Fri, 1 Sep 2017 16:40:47 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Sep 01, 2017 at 12:14:05PM +0200, Pablo Neira Ayuso wrote:
-> The idea is to provide a simplistic API for non-netlink wise people.
-> Add a field in struct nft_ctx to store the socket.
-> 
-> The advanced API that we're planning will just simply leave this unset,
-> since netlink IO will be exposed.
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> @Eric: Still pending the specific interface to print. As I said, I would prefer
->        functions with stricting typing. I think after this you have the simple
->        API that you need.
+There are reports about spurious softlockups during iptables-restore, a
+backtrace i saw points at get_counters -- it uses a sequence lock and also
+has unbounded restart loop.
 
-I have just pushed out this. Just follow up with patches in case you
-propose to change anything. I just wanted to make sure we don't have
-to rebase again.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/ipv4/netfilter/arp_tables.c | 1 +
+ net/ipv4/netfilter/ip_tables.c  | 1 +
+ net/ipv6/netfilter/ip6_tables.c | 1 +
+ 3 files changed, 3 insertions(+)
+
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 9e9d9afd18f7..14b20cf4cfd3 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -629,6 +629,7 @@ static void get_counters(const struct xt_table_info *t,
+ 
+ 			ADD_COUNTER(counters[i], bcnt, pcnt);
+ 			++i;
++			cond_resched();
+ 		}
+ 	}
+ }
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 622ed2887cd5..92ef5a2ef0c3 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -782,6 +782,7 @@ get_counters(const struct xt_table_info *t,
+ 
+ 			ADD_COUNTER(counters[i], bcnt, pcnt);
+ 			++i; /* macro does multi eval of i */
++			cond_resched();
+ 		}
+ 	}
+ }
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 1f90644056ac..1e9c775dc3d6 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -801,6 +801,7 @@ get_counters(const struct xt_table_info *t,
+ 
+ 			ADD_COUNTER(counters[i], bcnt, pcnt);
+ 			++i;
++			cond_resched();
+ 		}
+ 	}
+ }
+-- 
+2.13.0
+
