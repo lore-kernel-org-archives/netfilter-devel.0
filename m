@@ -1,18 +1,18 @@
-From: <wvhyvcm.abyxg@jippii.com>
+From: <simon.a.t.hardy@gmail.com>
 Subject: (unknown)
-Date: Fri, 01 Sep 2017 20:58:23 -0000
-Message-ID: <150429950328.2645.10252739674314576886@isurgut.ru>
+Date: Sat, 02 Sep 2017 06:40:55 -0000
+Message-ID: <150433445504.2451.3773947238557550186@etheric.net>
 Mime-Version: 1.0
-Content-Type: application/msword; name="001007146.doc"
+Content-Type: application/msword; name="907693760.doc"
 Content-Transfer-Encoding: base64
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 188-19-15-227.pppoe-adsl.isurgut.ru ([188.19.15.227]:40476 "HELO
-        isurgut.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-        id S1752367AbdIAU6n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 1 Sep 2017 16:58:43 -0400
-Content-Disposition: attachment
+Received: from 66.119.120.130.static.etheric.net ([66.119.120.130]:53228 "HELO
+        etheric.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1751418AbdIBGlA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 2 Sep 2017 02:41:00 -0400
 Subject: 
+Content-Disposition: attachment
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
