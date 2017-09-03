@@ -1,232 +1,94 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 1/5] netfilter: nf_tables: add nf_tables_updchain()
-Date: Sun,  3 Sep 2017 23:54:27 +0200
-Message-ID: <1504475668-11293-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next 5/5] netfilter: nf_tables: support for recursive chain deletion
+Date: Sun,  3 Sep 2017 23:56:01 +0200
+Message-ID: <1504475761-11454-3-git-send-email-pablo@netfilter.org>
+References: <1504475761-11454-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47076 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47214 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752993AbdICVyl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 3 Sep 2017 17:54:41 -0400
+        id S1753019AbdICV4T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 3 Sep 2017 17:56:19 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0C30E11D8F0
-        for <netfilter-devel@vger.kernel.org>; Sun,  3 Sep 2017 23:54:14 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 8786F11D8FD
+        for <netfilter-devel@vger.kernel.org>; Sun,  3 Sep 2017 23:55:52 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F0D44B5026
-        for <netfilter-devel@vger.kernel.org>; Sun,  3 Sep 2017 23:54:13 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B7DC9B5026
-        for <netfilter-devel@vger.kernel.org>; Sun,  3 Sep 2017 23:54:10 +0200 (CEST)
-Received: from salvia.here (unknown [31.4.193.113])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 522684265A24
-        for <netfilter-devel@vger.kernel.org>; Sun,  3 Sep 2017 23:54:08 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7873E2DC87
+        for <netfilter-devel@vger.kernel.org>; Sun,  3 Sep 2017 23:55:52 +0200 (CEST)
+In-Reply-To: <1504475761-11454-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nf_tables_newchain() is too large, wrap the chain update path in a
-function to make it more maintainable.
+This patch sorts out an asymmetry in deletions. Currently, table and set
+deletion commands come with an implicit content flush on deletion.
+However, chain deletion results in -EBUSY if there is content in this
+chain, so no implicit flush happens. So you have to send a flush command
+in first place to delete chains, this is inconsistent and it can be
+annoying in terms of user experience.
+
+This patch uses the new NLM_F_NONREC flag to request non-recursive chain
+deletion, ie. if the chain to be removed contains rules, then this
+returns EBUSY. This problem was discussed during the NFWS'17 in Faro,
+Portugal. In iptables, you hit -EBUSY if you try to delete a chain that
+contains rules, so you have to flush first before you can remove
+anything. Since iptables-compat uses the nf_tables netlink interface, it
+has to use the NLM_F_NONREC flag from userspace to retain the original
+iptables semantics, ie.  bail out on removing chains that contain rules.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 170 +++++++++++++++++++++++-------------------
- 1 file changed, 92 insertions(+), 78 deletions(-)
+ net/netfilter/nf_tables_api.c | 24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 149785ff1c7b..14695062a925 100644
+index 2ea043e5b344..5e2cfdbd51bd 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1335,6 +1335,97 @@ static void nft_chain_release_hook(struct nft_chain_hook *hook)
- 		dev_put(hook->dev);
- }
+@@ -1617,8 +1617,11 @@ static int nf_tables_delchain(struct net *net, struct sock *nlsk,
+ 	struct nft_af_info *afi;
+ 	struct nft_table *table;
+ 	struct nft_chain *chain;
++	struct nft_rule *rule;
+ 	int family = nfmsg->nfgen_family;
+ 	struct nft_ctx ctx;
++	u32 use;
++	int err;
  
-+static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
-+			      bool create)
-+{
-+	const struct nlattr * const *nla = ctx->nla;
-+	struct nft_table *table = ctx->table;
-+	struct nft_chain *chain = ctx->chain;
-+	struct nft_af_info *afi = ctx->afi;
-+	struct nft_base_chain *basechain;
-+	struct nft_stats *stats = NULL;
-+	struct nft_chain_hook hook;
-+	const struct nlattr *name;
-+	struct nf_hook_ops *ops;
-+	struct nft_trans *trans;
-+	int err, i;
+ 	afi = nf_tables_afinfo_lookup(net, family, false);
+ 	if (IS_ERR(afi))
+@@ -1631,11 +1634,30 @@ static int nf_tables_delchain(struct net *net, struct sock *nlsk,
+ 	chain = nf_tables_chain_lookup(table, nla[NFTA_CHAIN_NAME], genmask);
+ 	if (IS_ERR(chain))
+ 		return PTR_ERR(chain);
+-	if (chain->use > 0)
 +
-+	if (nla[NFTA_CHAIN_HOOK]) {
-+		if (!nft_is_base_chain(chain))
-+			return -EBUSY;
++	if (nlh->nlmsg_flags & NLM_F_NONREC &&
++	    chain->use > 0)
+ 		return -EBUSY;
+ 
+ 	nft_ctx_init(&ctx, net, skb, nlh, afi, table, chain, nla);
+ 
++	use = chain->use;
++	list_for_each_entry(rule, &chain->rules, list) {
++		if (!nft_is_active_next(net, rule))
++			continue;
++		use--;
 +
-+		err = nft_chain_parse_hook(ctx->net, nla, ctx->afi, &hook,
-+					   create);
++		err = nft_delrule(&ctx, rule);
 +		if (err < 0)
 +			return err;
-+
-+		basechain = nft_base_chain(chain);
-+		if (basechain->type != hook.type) {
-+			nft_chain_release_hook(&hook);
-+			return -EBUSY;
-+		}
-+
-+		for (i = 0; i < afi->nops; i++) {
-+			ops = &basechain->ops[i];
-+			if (ops->hooknum != hook.num ||
-+			    ops->priority != hook.priority ||
-+			    ops->dev != hook.dev) {
-+				nft_chain_release_hook(&hook);
-+				return -EBUSY;
-+			}
-+		}
-+		nft_chain_release_hook(&hook);
 +	}
 +
-+	if (nla[NFTA_CHAIN_HANDLE] &&
-+	    nla[NFTA_CHAIN_NAME]) {
-+		struct nft_chain *chain2;
++	/* There are rules and elements that are still holding references to us,
++	 * we cannot do a recursive removal in this case.
++	 */
++	if (use > 0)
++		return -EBUSY;
 +
-+		chain2 = nf_tables_chain_lookup(table, nla[NFTA_CHAIN_NAME],
-+						genmask);
-+		if (IS_ERR(chain2))
-+			return PTR_ERR(chain2);
-+	}
-+
-+	if (nla[NFTA_CHAIN_COUNTERS]) {
-+		if (!nft_is_base_chain(chain))
-+			return -EOPNOTSUPP;
-+
-+		stats = nft_stats_alloc(nla[NFTA_CHAIN_COUNTERS]);
-+		if (IS_ERR(stats))
-+			return PTR_ERR(stats);
-+	}
-+
-+	trans = nft_trans_alloc(ctx, NFT_MSG_NEWCHAIN,
-+				sizeof(struct nft_trans_chain));
-+	if (trans == NULL) {
-+		free_percpu(stats);
-+		return -ENOMEM;
-+	}
-+
-+	nft_trans_chain_stats(trans) = stats;
-+	nft_trans_chain_update(trans) = true;
-+
-+	if (nla[NFTA_CHAIN_POLICY])
-+		nft_trans_chain_policy(trans) = policy;
-+	else
-+		nft_trans_chain_policy(trans) = -1;
-+
-+	name = nla[NFTA_CHAIN_NAME];
-+	if (nla[NFTA_CHAIN_HANDLE] && name) {
-+		nft_trans_chain_name(trans) =
-+			nla_strdup(name, GFP_KERNEL);
-+		if (!nft_trans_chain_name(trans)) {
-+			kfree(trans);
-+			free_percpu(stats);
-+			return -ENOMEM;
-+		}
-+	}
-+	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
-+
-+	return 0;
-+}
-+
- static int nf_tables_newchain(struct net *net, struct sock *nlsk,
- 			      struct sk_buff *skb, const struct nlmsghdr *nlh,
- 			      const struct nlattr * const nla[],
-@@ -1403,91 +1494,14 @@ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
- 	}
+ 	return nft_delchain(&ctx);
+ }
  
- 	if (chain != NULL) {
--		struct nft_stats *stats = NULL;
--		struct nft_trans *trans;
--
- 		if (nlh->nlmsg_flags & NLM_F_EXCL)
- 			return -EEXIST;
- 		if (nlh->nlmsg_flags & NLM_F_REPLACE)
- 			return -EOPNOTSUPP;
- 
--		if (nla[NFTA_CHAIN_HOOK]) {
--			struct nft_base_chain *basechain;
--			struct nft_chain_hook hook;
--			struct nf_hook_ops *ops;
--
--			if (!nft_is_base_chain(chain))
--				return -EBUSY;
--
--			err = nft_chain_parse_hook(net, nla, afi, &hook,
--						   create);
--			if (err < 0)
--				return err;
--
--			basechain = nft_base_chain(chain);
--			if (basechain->type != hook.type) {
--				nft_chain_release_hook(&hook);
--				return -EBUSY;
--			}
--
--			for (i = 0; i < afi->nops; i++) {
--				ops = &basechain->ops[i];
--				if (ops->hooknum != hook.num ||
--				    ops->priority != hook.priority ||
--				    ops->dev != hook.dev) {
--					nft_chain_release_hook(&hook);
--					return -EBUSY;
--				}
--			}
--			nft_chain_release_hook(&hook);
--		}
--
--		if (nla[NFTA_CHAIN_HANDLE] && name) {
--			struct nft_chain *chain2;
--
--			chain2 = nf_tables_chain_lookup(table,
--							nla[NFTA_CHAIN_NAME],
--							genmask);
--			if (IS_ERR(chain2))
--				return PTR_ERR(chain2);
--		}
--
--		if (nla[NFTA_CHAIN_COUNTERS]) {
--			if (!nft_is_base_chain(chain))
--				return -EOPNOTSUPP;
--
--			stats = nft_stats_alloc(nla[NFTA_CHAIN_COUNTERS]);
--			if (IS_ERR(stats))
--				return PTR_ERR(stats);
--		}
--
- 		nft_ctx_init(&ctx, net, skb, nlh, afi, table, chain, nla);
--		trans = nft_trans_alloc(&ctx, NFT_MSG_NEWCHAIN,
--					sizeof(struct nft_trans_chain));
--		if (trans == NULL) {
--			free_percpu(stats);
--			return -ENOMEM;
--		}
--
--		nft_trans_chain_stats(trans) = stats;
--		nft_trans_chain_update(trans) = true;
- 
--		if (nla[NFTA_CHAIN_POLICY])
--			nft_trans_chain_policy(trans) = policy;
--		else
--			nft_trans_chain_policy(trans) = -1;
--
--		if (nla[NFTA_CHAIN_HANDLE] && name) {
--			nft_trans_chain_name(trans) =
--				nla_strdup(name, GFP_KERNEL);
--			if (!nft_trans_chain_name(trans)) {
--				kfree(trans);
--				free_percpu(stats);
--				return -ENOMEM;
--			}
--		}
--		list_add_tail(&trans->list, &net->nft.commit_list);
--		return 0;
-+		return nf_tables_updchain(&ctx, genmask, policy, create);
- 	}
- 
- 	if (table->use == UINT_MAX)
 -- 
 2.1.4
 
