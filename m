@@ -1,49 +1,56 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 4/5] netfilter: nf_tables: use NLM_F_NONREC for deletion requests
-Date: Sun,  3 Sep 2017 23:56:00 +0200
-Message-ID: <1504475761-11454-2-git-send-email-pablo@netfilter.org>
-References: <1504475761-11454-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next 3/5] netlink: add NLM_F_NONREC flag for deletion requests
+Date: Sun,  3 Sep 2017 23:55:59 +0200
+Message-ID: <1504475761-11454-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1504475761-11454-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Bail out if user requests non-recursive deletion for tables and sets.
-This new flags tells nf_tables netlink interface to reject deletions if
-tables and sets have content.
+In the last NFWS in Faro, Portugal, we discussed that netlink is lacking
+the semantics to request non recursive deletions, ie. do not delete an
+object iff it has child objects that hang from this parent object that
+the user requests to be deleted.
+
+We need this new flag to solve a problem for the iptables-compat
+backward compatibility utility, that runs iptables commands using the
+existing nf_tables netlink interface. Specifically, custom chains in
+iptables cannot be deleted if there are rules in it, however, nf_tables
+allows to remove any chain that is populated with content. To sort out
+this asymmetry, iptables-compat userspace sets this new NLM_F_NONREC
+flag to obtain the same semantics that iptables provides.
+
+This new flag should only be used for deletion requests. Note this new
+flag value overlaps with the existing:
+
+* NLM_F_ROOT for get requests.
+* NLM_F_REPLACE for new requests.
+
+However, those flags should not ever be used in deletion requests.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+@David: Please, acknowledge this if you think this is fine so I can
+        take this into the nf-next tree, given patches 4/5 and 5/5
+        depend on this. Thanks a lot!
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 8b86acbb9770..2ea043e5b344 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -860,6 +860,10 @@ static int nf_tables_deltable(struct net *net, struct sock *nlsk,
- 	if (IS_ERR(table))
- 		return PTR_ERR(table);
+ include/uapi/linux/netlink.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/include/uapi/linux/netlink.h b/include/uapi/linux/netlink.h
+index f4fc9c9e123d..e8af60a7c56d 100644
+--- a/include/uapi/linux/netlink.h
++++ b/include/uapi/linux/netlink.h
+@@ -69,6 +69,9 @@ struct nlmsghdr {
+ #define NLM_F_CREATE	0x400	/* Create, if it does not exist	*/
+ #define NLM_F_APPEND	0x800	/* Add to end of list		*/
  
-+	if (nlh->nlmsg_flags & NLM_F_NONREC &&
-+	    table->use > 0)
-+		return -EBUSY;
++/* Modifiers to DELETE request */
++#define NLM_F_NONREC	0x100	/* Do not delete recursively	*/
 +
- 	ctx.afi = afi;
- 	ctx.table = table;
- 
-@@ -3225,7 +3229,9 @@ static int nf_tables_delset(struct net *net, struct sock *nlsk,
- 	set = nf_tables_set_lookup(ctx.table, nla[NFTA_SET_NAME], genmask);
- 	if (IS_ERR(set))
- 		return PTR_ERR(set);
--	if (!list_empty(&set->bindings))
-+
-+	if (!list_empty(&set->bindings) ||
-+	    (nlh->nlmsg_flags & NLM_F_NONREC && atomic_read(&set->nelems) > 0))
- 		return -EBUSY;
- 
- 	return nft_delset(&ctx, set);
+ /* Flags for ACK message */
+ #define NLM_F_CAPPED	0x100	/* request was capped */
+ #define NLM_F_ACK_TLVS	0x200	/* extended ACK TVLs were included */
 -- 
 2.1.4
