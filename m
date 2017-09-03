@@ -1,56 +1,100 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 3/5] netlink: add NLM_F_NONREC flag for deletion requests
-Date: Sun,  3 Sep 2017 23:55:59 +0200
-Message-ID: <1504475761-11454-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Eric Leblond <eric@regit.org>
+Subject: [nft PATCH 1/2] src: add flags fo nft_ctx_new
+Date: Mon,  4 Sep 2017 00:03:55 +0200
+Message-ID: <20170903220356.20178-2-eric@regit.org>
+References: <20170903220356.20178-1-eric@regit.org>
+Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from home.regit.org ([37.187.126.138]:38256 "EHLO home.regit.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752983AbdICWEH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 3 Sep 2017 18:04:07 -0400
+In-Reply-To: <20170903220356.20178-1-eric@regit.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-In the last NFWS in Faro, Portugal, we discussed that netlink is lacking
-the semantics to request non recursive deletions, ie. do not delete an
-object iff it has child objects that hang from this parent object that
-the user requests to be deleted.
+By adding flags to nft_ctx_new, we will have a minimum capabilities
+of changing the way the nft_ctx is created.
 
-We need this new flag to solve a problem for the iptables-compat
-backward compatibility utility, that runs iptables commands using the
-existing nf_tables netlink interface. Specifically, custom chains in
-iptables cannot be deleted if there are rules in it, however, nf_tables
-allows to remove any chain that is populated with content. To sort out
-this asymmetry, iptables-compat userspace sets this new NLM_F_NONREC
-flag to obtain the same semantics that iptables provides.
+For now, this patch uses a simple value that allow the user to specify
+that he will handle netlink by himself.
 
-This new flag should only be used for deletion requests. Note this new
-flag value overlaps with the existing:
-
-* NLM_F_ROOT for get requests.
-* NLM_F_REPLACE for new requests.
-
-However, those flags should not ever be used in deletion requests.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Eric Leblond <eric@regit.org>
 ---
-@David: Please, acknowledge this if you think this is fine so I can
-        take this into the nf-next tree, given patches 4/5 and 5/5
-        depend on this. Thanks a lot!
+ include/nftables.h |  4 ++++
+ src/main.c         | 20 +++++++++++---------
+ 2 files changed, 15 insertions(+), 9 deletions(-)
 
- include/uapi/linux/netlink.h | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/include/uapi/linux/netlink.h b/include/uapi/linux/netlink.h
-index f4fc9c9e123d..e8af60a7c56d 100644
---- a/include/uapi/linux/netlink.h
-+++ b/include/uapi/linux/netlink.h
-@@ -69,6 +69,9 @@ struct nlmsghdr {
- #define NLM_F_CREATE	0x400	/* Create, if it does not exist	*/
- #define NLM_F_APPEND	0x800	/* Add to end of list		*/
+diff --git a/include/nftables.h b/include/nftables.h
+index 5035567..7c4e93f 100644
+--- a/include/nftables.h
++++ b/include/nftables.h
+@@ -49,8 +49,12 @@ struct nft_ctx {
+ 	struct output_ctx	output;
+ 	bool			check;
+ 	struct nft_cache	cache;
++	uint32_t		flags;
+ };
  
-+/* Modifiers to DELETE request */
-+#define NLM_F_NONREC	0x100	/* Do not delete recursively	*/
++#define NFT_CTX_CUSTOM_NETLINK	(1<<0)
++#define NFT_CTX_DEFAULT		0
 +
- /* Flags for ACK message */
- #define NLM_F_CAPPED	0x100	/* request was capped */
- #define NLM_F_ACK_TLVS	0x200	/* extended ACK TVLs were included */
+ enum nftables_exit_codes {
+ 	NFT_EXIT_SUCCESS	= 0,
+ 	NFT_EXIT_FAILURE	= 1,
+diff --git a/src/main.c b/src/main.c
+index fce9bfe..94f8a47 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -281,7 +281,12 @@ static void nft_exit(void)
+ 	mark_table_exit();
+ }
+ 
+-static struct nft_ctx *nft_ctx_new(void)
++static void nft_ctx_netlink_init(struct nft_ctx *ctx)
++{
++	ctx->nf_sock = netlink_open_sock();
++}
++
++static struct nft_ctx *nft_ctx_new(uint32_t flags)
+ {
+ 	struct nft_ctx *ctx;
+ 
+@@ -292,6 +297,10 @@ static struct nft_ctx *nft_ctx_new(void)
+ 	ctx->num_include_paths	= 1;
+ 	ctx->parser_max_errors	= 10;
+ 	init_list_head(&ctx->cache.list);
++	ctx->flags = flags;
++
++	if (! (flags & NFT_CTX_CUSTOM_NETLINK))
++		nft_ctx_netlink_init(ctx);
+ 
+ 	return ctx;
+ }
+@@ -307,11 +316,6 @@ static void nft_ctx_free(const struct nft_ctx *ctx)
+ 	nft_exit();
+ }
+ 
+-static void nft_ctx_netlink_init(struct nft_ctx *ctx)
+-{
+-	ctx->nf_sock = netlink_open_sock();
+-}
+-
+ static int nft_run_cmd_from_buffer(struct nft_ctx *nft,
+ 				   char *buf, size_t buflen)
+ {
+@@ -367,9 +371,7 @@ int main(int argc, char * const *argv)
+ 	struct parser_state state;
+ 	int i, val, rc;
+ 
+-	nft = nft_ctx_new();
+-
+-	nft_ctx_netlink_init(nft);
++	nft = nft_ctx_new(NFT_CTX_DEFAULT);
+ 
+ 	while (1) {
+ 		val = getopt_long(argc, argv, OPTSTRING, options, NULL);
 -- 
-2.1.4
+2.14.1
+
