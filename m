@@ -1,71 +1,58 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 28/47] netfilter: exthdr: split netlink dump function
-Date: Mon,  4 Sep 2017 00:40:16 +0200
-Message-ID: <1504478435-13160-6-git-send-email-pablo@netfilter.org>
-References: <1504478435-13160-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH 1/2] src: add flags fo nft_ctx_new
+Date: Mon, 4 Sep 2017 00:45:44 +0200
+Message-ID: <20170903224544.GA13487@salvia>
+References: <20170903220356.20178-1-eric@regit.org>
+ <20170903220356.20178-2-eric@regit.org>
+ <20170903223309.GA12383@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52692 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753267AbdICWkz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 3 Sep 2017 18:40:55 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 90E31190F65
-        for <netfilter-devel@vger.kernel.org>; Mon,  4 Sep 2017 00:40:28 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 77DECB502C
-        for <netfilter-devel@vger.kernel.org>; Mon,  4 Sep 2017 00:40:28 +0200 (CEST)
-In-Reply-To: <1504478435-13160-1-git-send-email-pablo@netfilter.org>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:40999 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753097AbdICWqQ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 3 Sep 2017 18:46:16 -0400
+Content-Disposition: inline
+In-Reply-To: <20170903223309.GA12383@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
+On Mon, Sep 04, 2017 at 12:33:09AM +0200, Pablo Neira Ayuso wrote:
+> On Mon, Sep 04, 2017 at 12:03:55AM +0200, Eric Leblond wrote:
+> > By adding flags to nft_ctx_new, we will have a minimum capabilities
+> > of changing the way the nft_ctx is created.
+> > 
+> > For now, this patch uses a simple value that allow the user to specify
+> > that he will handle netlink by himself.
+> > 
+> > Signed-off-by: Eric Leblond <eric@regit.org>
+> > ---
+> >  include/nftables.h |  4 ++++
+> >  src/main.c         | 20 +++++++++++---------
+> >  2 files changed, 15 insertions(+), 9 deletions(-)
+> > 
+> > diff --git a/include/nftables.h b/include/nftables.h
+> > index 5035567..7c4e93f 100644
+> > --- a/include/nftables.h
+> > +++ b/include/nftables.h
+> > @@ -49,8 +49,12 @@ struct nft_ctx {
+> >  	struct output_ctx	output;
+> >  	bool			check;
+> >  	struct nft_cache	cache;
+> > +	uint32_t		flags;
+> >  };
+> >  
+> > +#define NFT_CTX_CUSTOM_NETLINK	(1<<0)
+> > +#define NFT_CTX_DEFAULT		0
+> 
+> Better than flag, let's make this a type, ie. NFT_CTX_NETLINK is just 1.
+> 
+> OK?
 
-so eval and uncoming eval_set versions can reuse a common helper.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_exthdr.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
-
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index 921c95f2c583..e3a6eebe7e0c 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -180,12 +180,8 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
- 					   NFT_DATA_VALUE, priv->len);
- }
- 
--static int nft_exthdr_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+static int nft_exthdr_dump_common(struct sk_buff *skb, const struct nft_exthdr *priv)
- {
--	const struct nft_exthdr *priv = nft_expr_priv(expr);
--
--	if (nft_dump_register(skb, NFTA_EXTHDR_DREG, priv->dreg))
--		goto nla_put_failure;
- 	if (nla_put_u8(skb, NFTA_EXTHDR_TYPE, priv->type))
- 		goto nla_put_failure;
- 	if (nla_put_be32(skb, NFTA_EXTHDR_OFFSET, htonl(priv->offset)))
-@@ -202,6 +198,16 @@ static int nft_exthdr_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	return -1;
- }
- 
-+static int nft_exthdr_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+{
-+	const struct nft_exthdr *priv = nft_expr_priv(expr);
-+
-+	if (nft_dump_register(skb, NFTA_EXTHDR_DREG, priv->dreg))
-+		return -1;
-+
-+	return nft_exthdr_dump_common(skb, priv);
-+}
-+
- static struct nft_expr_type nft_exthdr_type;
- static const struct nft_expr_ops nft_exthdr_ipv6_ops = {
- 	.type		= &nft_exthdr_type,
--- 
-2.1.4
-
+Actually, we keep this back, I mean, we just have NFT_CTX_DEFAULT, so
+we don't introduce NFT_CTX_NETLINK until we have the advanced API in
+place.
 
