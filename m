@@ -1,240 +1,137 @@
-From: Shyam Saini <mayhs11saini@gmail.com>
-Subject: Re: [nft PATCH V2] tests: shell: Add tests for json import
-Date: Mon, 4 Sep 2017 18:09:59 +0530
-Message-ID: <CAOfkYf6VNKCSb4tuiGTimnJaay=u-vSLGQGzcfOO+B1_O44y2A@mail.gmail.com>
-References: <1504395174-15192-1-git-send-email-mayhs11saini@gmail.com> <CAOkSjBgXvKuCV3Am--Qr1OiE1eL9Rau2Q9SS2XLOgZ+Ff7VPgA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:33543 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753497AbdIDMkB (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 4 Sep 2017 08:40:01 -0400
-Received: by mail-oi0-f68.google.com with SMTP id k191so193665oih.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 04 Sep 2017 05:40:00 -0700 (PDT)
-In-Reply-To: <CAOkSjBgXvKuCV3Am--Qr1OiE1eL9Rau2Q9SS2XLOgZ+Ff7VPgA@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 00/12] Netfilter updates for next-net (part 2)
+Date: Mon,  4 Sep 2017 22:11:02 +0200
+Message-ID: <1504555874-4168-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
->> These test cases can be used to test upcoming "import json" command.
->>
->> Here is the short description of the files:
->> all_ruleset_list   ->    contains list of all the individual rules
->> json_import_0      ->    script that runs json run-tests.sh
->>
->>         For Example:
->>         $ ./run-tests.sh testcases/import/json_import_0
->>
->> Below mentioned files contains individual rules in json format and
->> are added for the reference:
->> rules_ipv4*        ->    ip  table rules files
->> rules_ipv6*        ->    ip6 table rules files
->> rules_arp*         ->    arp table rules files
->> rules_bridge*      ->    bridge table rules files
->>
->> Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
->> ---
->
-> This is v2: generally in this patch section we include patch changelog
-> information.
-> Please, take a look at this when sending v3 :-)
->
->>  tests/shell/testcases/import/all_ruleset_list      | 46 ++++++++++++++
->>  tests/shell/testcases/import/json_import_0         | 72 ++++++++++++++++++++++
->>  .../testcases/import/rules_arp_hlen_range.json     |  1 +
->>  tests/shell/testcases/import/rules_arp_htype.json  |  1 +
->>  .../testcases/import/rules_arp_operation.json      |  1 +
->>  .../import/rules_arp_operation_check.json          |  1 +
->>  .../shell/testcases/import/rules_arp_ptype_ip.json |  1 +
->>  .../shell/testcases/import/rules_bridge_vlan.json  |  1 +
->>  .../testcases/import/rules_bridge_vlan_id.json     |  1 +
->>  ...bridge_vlan_id_saddr_udp_dport_drop_domain.json |  1 +
->>  .../import/rules_ipv4_ct_state_accept.json         |  1 +
->>  .../rules_ipv4_icmp_type_echo-request_accept.json  |  1 +
->>  .../rules_ipv4_icmp_type_echo-request_counter.json |  1 +
->>  .../import/rules_ipv4_iifname_accept.json          |  1 +
->>  .../import/rules_ipv4_saddr_daddr_counter.json     |  1 +
->>  .../testcases/import/rules_ipv4_set_elements.json  |  1 +
->>  .../import/rules_ipv4_tcp_dport_http_ssh.json      |  1 +
->>  .../testcases/import/rules_ipv4_tcp_flags.json     |  1 +
->>  .../import/rules_ipv6_daddr_udp_dport_counter.json |  1 +
->>  ...es_ipv6_daddr_udp_dport_counter_masquerade.json |  1 +
->>  .../testcases/import/rules_ipv6_icmpv6_id.json     |  1 +
->>  ...iifname_ct_state_tcp_dport_vmap_masquerade.json |  1 +
->>  .../import/rules_ipv6_l4proto_tcp_masquerade.json  |  1 +
->>  ...dport_ssh_daddr_mapping_ether_saddr_accept.json |  1 +
->>  24 files changed, 140 insertions(+)
->>  create mode 100644 tests/shell/testcases/import/all_ruleset_list
->>  create mode 100755 tests/shell/testcases/import/json_import_0
->>  create mode 100644 tests/shell/testcases/import/rules_arp_hlen_range.json
->>  create mode 100644 tests/shell/testcases/import/rules_arp_htype.json
->>  create mode 100644 tests/shell/testcases/import/rules_arp_operation.json
->>  create mode 100644 tests/shell/testcases/import/rules_arp_operation_check.json
->>  create mode 100644 tests/shell/testcases/import/rules_arp_ptype_ip.json
->>  create mode 100644 tests/shell/testcases/import/rules_bridge_vlan.json
->>  create mode 100644 tests/shell/testcases/import/rules_bridge_vlan_id.json
->>  create mode 100644 tests/shell/testcases/import/rules_bridge_vlan_id_saddr_udp_dport_drop_domain.json
->>  create mode 100644 tests/shell/testcases/import/rules_ipv4_ct_state_accept.json
->>  create mode 100644 tests/shell/testcases/import/rules_ipv4_icmp_type_echo-request_accept.json
->>  create mode 100644 tests/shell/testcases/import/rules_ipv4_icmp_type_echo-request_counter.json
->>  create mode 100644 tests/shell/testcases/import/rules_ipv4_iifname_accept.json
->>  create mode 100644 tests/shell/testcases/import/rules_ipv4_saddr_daddr_counter.json
->>  create mode 100644 tests/shell/testcases/import/rules_ipv4_set_elements.json
->>  create mode 100644 tests/shell/testcases/import/rules_ipv4_tcp_dport_http_ssh.json
->>  create mode 100644 tests/shell/testcases/import/rules_ipv4_tcp_flags.json
->>  create mode 100644 tests/shell/testcases/import/rules_ipv6_daddr_udp_dport_counter.json
->>  create mode 100644 tests/shell/testcases/import/rules_ipv6_daddr_udp_dport_counter_masquerade.json
->>  create mode 100644 tests/shell/testcases/import/rules_ipv6_icmpv6_id.json
->>  create mode 100644 tests/shell/testcases/import/rules_ipv6_iifname_ct_state_tcp_dport_vmap_masquerade.json
->>  create mode 100644 tests/shell/testcases/import/rules_ipv6_l4proto_tcp_masquerade.json
->>  create mode 100644 tests/shell/testcases/import/rules_ipv6_tcp_dport_ssh_daddr_mapping_ether_saddr_accept.json
->>
->> diff --git a/tests/shell/testcases/import/all_ruleset_list b/tests/shell/testcases/import/all_ruleset_list
->> new file mode 100644
->> index 000000000000..4e25a76d8016
->> --- /dev/null
->> +++ b/tests/shell/testcases/import/all_ruleset_list
->> @@ -0,0 +1,46 @@
->> +table ip mangle {
->> +        set blackhole {
->> +                type ipv4_addr
->> +                elements = { 192.168.1.4, 192.168.1.5 }
->> +        }
->> +
->> +        chain prerouting {
->> +                type filter hook prerouting priority 0; policy accept;
->> +                tcp dport { ssh, http } accept
->> +                ip saddr @blackhole drop
->> +                icmp type echo-request accept
->> +                iifname "lo" accept
->> +                icmp type echo-request counter packets 0 bytes 0
->> +                ct state established,related accept
->> +                tcp flags != syn counter packets 7 bytes 841
->> +                ip saddr 192.168.1.100 ip daddr 192.168.1.1 counter packets 0 bytes 0
->> +        }
->> +}
->> +table arp x {
->> +        chain y {
->> +                arp htype 22
->> +                arp ptype ip
->> +                arp operation != rrequest
->> +                arp operation { request, reply, rrequest, rreply, inrequest, inreply, nak }
->> +                arp hlen 33-45
->> +        }
->> +}
->> +table bridge x {
->> +        chain y {
->> +                type filter hook input priority 0; policy accept;
->> +                vlan id 4094
->> +                vlan id 4094 vlan cfi 0
->> +                vlan id 1 ip saddr 10.0.0.0/23 udp dport domain
->> +        }
->> +}
->> +table ip6 x {
->> +        chain y {
->> +                type nat hook postrouting priority 0; policy accept;
->> +                icmpv6 id 33-45
->> +                ip6 daddr fe00::1-fe00::200 udp dport domain counter packets 0 bytes 0
->> +                meta l4proto tcp masquerade to :1024
->> +                iifname "wlan0" ct state established,new tcp dport vmap { ssh : drop, 222 : drop } masquerade
->> +                tcp dport ssh ip6 daddr 1::2 ether saddr 00:0f:54:0c:11:04 accept
->> +                ip6 daddr fe00::1-fe00::200 udp dport domain counter packets 0 bytes 0 masquerade
->> +        }
->> +}
->
-> Now that we included the ruleset in the testcase itself this file is
-> no longer useful?
-> Please, drop it.
->
->> diff --git a/tests/shell/testcases/import/json_import_0 b/tests/shell/testcases/import/json_import_0
->> new file mode 100755
->> index 000000000000..a469a4dda754
->> --- /dev/null
->> +++ b/tests/shell/testcases/import/json_import_0
->> @@ -0,0 +1,72 @@
->> +#!/bin/bash
->> +
->> +tmpfile=$(mktemp)
->> +
->> +if [ ! -w $tmpfile ] ; then
->> +       echo "Failed to create tmp file" >&2
->> +       exit 0
->> +fi
->> +
->> +trap "rm -rf $tmpfile" EXIT # cleanup if aborted
->> +
->> +RULESET="table ip mangle {
->> +       set blackhole {
->> +               type ipv4_addr
->> +               elements = { 192.168.1.4, 192.168.1.5 }
->> +       }
->> +
->> +       chain prerouting {
->> +               type filter hook prerouting priority 0; policy accept;
->> +               tcp dport { ssh, http } accept
->> +               ip saddr @blackhole drop
->> +               icmp type echo-request accept
->> +               iifname \"lo\" accept
->> +               icmp type echo-request counter packets 0 bytes 0
->> +               ct state established,related accept
->> +               tcp flags != syn counter packets 7 bytes 841
->> +               ip saddr 192.168.1.100 ip daddr 192.168.1.1 counter packets 0 bytes 0
->> +       }
->> +}
->> +table arp x {
->> +       chain y {
->> +               arp htype 22
->> +               arp ptype ip
->> +               arp operation != rrequest
->> +               arp operation { request, reply, rrequest, rreply, inrequest, inreply, nak }
->> +               arp hlen 33-45
->> +       }
->> +}
->> +table bridge x {
->> +       chain y {
->> +               type filter hook input priority 0; policy accept;
->> +               vlan id 4094
->> +               vlan id 4094 vlan cfi 0
->> +               vlan id 1 ip saddr 10.0.0.0/23 udp dport domain
->> +       }
->> +}
->> +table ip6 x {
->> +       chain y {
->> +               type nat hook postrouting priority 0; policy accept;
->> +               icmpv6 id 33-45
->> +               ip6 daddr fe00::1-fe00::200 udp dport domain counter packets 0 bytes 0
->> +               meta l4proto tcp masquerade to :1024
->> +               iifname \"wlan0\" ct state established,new tcp dport vmap { ssh : drop, 222 : drop } masquerade
->> +               tcp dport ssh ip6 daddr 1::2 ether saddr 00:0f:54:0c:11:04 accept
->> +               ip6 daddr fe00::1-fe00::200 udp dport domain counter packets 0 bytes 0 masquerade
->> +       }
->> +}"
->> +
->> +echo "$RULESET" > $tmpfile
->> +$NFT -f $tmpfile
->> +$NFT export json > $tmpfile
->> +$NFT flush ruleset
->> +cat $tmpfile | $NFT import json
->> +
->> +RESULT="$($NFT list ruleset)"
->> +
->> +
->> +if [ "$RULESET" != "$RESULT" ] ; then
->> +       DIFF="$(which diff)"
->> +       [ -x $DIFF ] && $DIFF -u <(echo "$RULESET") <(echo "$RESULT")
->
-> exit 1 in this case?
->
->> +fi
->> +
->
->
-> What is the pourpose of these json files? I guess they are no longer useful.
->
->> diff --git a/tests/shell/testcases/import/rules_arp_hlen_range.json b/tests/shell/testcases/import/rules_arp_hlen_range.json
+Hi David,
 
-Thanks a  lot Arturo for all these suggestions :)
+The following patchset contains Netfilter updates for net-next. This
+patchset includes updates for nf_tables, removal of
+CONFIG_NETFILTER_DEBUG and a new mode for xt_hashlimit. More
+specifically, they:
+
+1) Add new rate match mode for hashlimit, this introduces a new revision
+   for this match. The idea is to stop matching packets until ratelimit
+   criteria stands true. Patch from Vishwanath Pai.
+
+2) Add ->select_ops indirection to nf_tables named objects, so we can
+   choose between different flavours of the same object type, patch from
+   Pablo M. Bermudo.
+
+3) Shorter function names in nft_limit, basically:
+   s/nft_limit_pkt_bytes/nft_limit_bytes, also from Pablo M. Bermudo.
+
+4) Add new stateful limit named object type, this allows us to create
+   limit policies that you can identify via name, also from Pablo.
+
+5) Remove unused hooknum parameter in conntrack ->packet indirection.
+   From Florian Westphal.
+
+6) Patches to remove CONFIG_NETFILTER_DEBUG and macros such as
+   IP_NF_ASSERT and IP_NF_ASSERT. From Varsha Rao.
+
+7) Add nf_tables_updchain() helper function and use it from
+   nf_tables_newchain() to make it more maintainable. Similarly,
+   add nf_tables_addchain() and use it too.
+
+8) Add new netlink NLM_F_NONREC flag, this flag should only be used for
+   deletion requests, specifically, to support non-recursive deletion.
+   Based on what we discussed during NFWS'17 in Faro.
+
+9) Use NLM_F_NONREC from table and sets in nf_tables.
+
+10) Support for recursive chain deletion. Table and set deletion
+    commands come with an implicit content flush on deletion, while
+    chains do not. This patch addresses this inconsistency by adding
+    the code to perform recursive chain deletions. This also comes with
+    the bits to deal with the new NLM_F_NONREC netlink flag.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Thanks a lot!
+
+----------------------------------------------------------------
+
+The following changes since commit 3cf2e08f5ace79d57c8edba06deb59b25bd1dd33:
+
+  Merge branch 'nfp-refactor-app-init-and-minor-flower-fixes' (2017-09-03 21:22:05 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
+
+for you to fetch changes up to 9dee1474121550b20542321f9e0579801c6b587c:
+
+  netfilter: nf_tables: support for recursive chain deletion (2017-09-04 17:34:55 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (1):
+      netfilter: remove unused hooknum arg from packet functions
+
+Pablo M. Bermudo Garay (3):
+      netfilter: nf_tables: add select_ops for stateful objects
+      netfilter: nft_limit: replace pkt_bytes with bytes
+      netfilter: nft_limit: add stateful object type
+
+Pablo Neira Ayuso (5):
+      netfilter: nf_tables: add nf_tables_updchain()
+      netfilter: nf_tables: add nf_tables_addchain()
+      netlink: add NLM_F_NONREC flag for deletion requests
+      netfilter: nf_tables: use NLM_F_NONREC for deletion requests
+      netfilter: nf_tables: support for recursive chain deletion
+
+Varsha Rao (2):
+      net: Replace NF_CT_ASSERT() with WARN_ON().
+      net: Remove CONFIG_NETFILTER_DEBUG and _ASSERT() macros.
+
+Vishwanath Pai (1):
+      netfilter: xt_hashlimit: add rate match mode
+
+ arch/parisc/configs/c3000_defconfig            |   1 -
+ arch/sh/configs/se7751_defconfig               |   1 -
+ include/linux/netfilter/xt_hashlimit.h         |   3 +-
+ include/net/netfilter/nf_conntrack.h           |   8 +-
+ include/net/netfilter/nf_conntrack_l4proto.h   |   1 -
+ include/net/netfilter/nf_tables.h              |  35 ++-
+ include/uapi/linux/netfilter/nf_tables.h       |   3 +-
+ include/uapi/linux/netfilter/xt_hashlimit.h    |  36 ++-
+ include/uapi/linux/netlink.h                   |   3 +
+ net/Kconfig                                    |   7 -
+ net/bridge/netfilter/ebtables.c                |  20 +-
+ net/ipv4/netfilter/ip_tables.c                 |  12 +-
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |   3 +-
+ net/ipv4/netfilter/nf_nat_l3proto_ipv4.c       |   6 +-
+ net/ipv4/netfilter/nf_nat_masquerade_ipv4.c    |   8 +-
+ net/ipv6/netfilter/ip6_tables.c                |  12 +-
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   8 +-
+ net/ipv6/netfilter/nf_nat_l3proto_ipv6.c       |   6 +-
+ net/ipv6/netfilter/nf_nat_masquerade_ipv6.c    |   4 +-
+ net/netfilter/nf_conntrack_core.c              |  13 +-
+ net/netfilter/nf_conntrack_expect.c            |   4 +-
+ net/netfilter/nf_conntrack_extend.c            |   2 +-
+ net/netfilter/nf_conntrack_proto_dccp.c        |   2 +-
+ net/netfilter/nf_conntrack_proto_generic.c     |   1 -
+ net/netfilter/nf_conntrack_proto_gre.c         |   1 -
+ net/netfilter/nf_conntrack_proto_sctp.c        |   1 -
+ net/netfilter/nf_conntrack_proto_tcp.c         |   1 -
+ net/netfilter/nf_conntrack_proto_udp.c         |   1 -
+ net/netfilter/nf_conntrack_standalone.c        |   6 +-
+ net/netfilter/nf_nat_core.c                    |   4 +-
+ net/netfilter/nf_nat_redirect.c                |   6 +-
+ net/netfilter/nf_tables_api.c                  | 403 ++++++++++++++-----------
+ net/netfilter/nft_counter.c                    |  20 +-
+ net/netfilter/nft_ct.c                         |  18 +-
+ net/netfilter/nft_limit.c                      | 148 ++++++++-
+ net/netfilter/nft_objref.c                     |   7 +-
+ net/netfilter/nft_quota.c                      |  20 +-
+ net/netfilter/xt_NETMAP.c                      |   8 +-
+ net/netfilter/xt_hashlimit.c                   | 277 +++++++++++++++--
+ net/netfilter/xt_nat.c                         |  20 +-
+ 40 files changed, 788 insertions(+), 352 deletions(-)
