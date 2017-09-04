@@ -1,47 +1,62 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/2] netfilter/xt_hashlimit: new feature/algorithm for
- xt_hashlimit
-Date: Mon, 4 Sep 2017 12:14:33 +0200
-Message-ID: <20170904101433.GA3979@salvia>
-References: <1503089939-15938-1-git-send-email-vpai@akamai.com>
+Subject: Re: [PATCH nf-next 1/3] netfilter: nf_tables: add select_ops for
+ stateful objects
+Date: Mon, 4 Sep 2017 13:13:33 +0200
+Message-ID: <20170904111333.GA29836@salvia>
+References: <20170823204125.31427-1-pablombg@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org,
-        johunt@akamai.com, fw@strlen.de, netdev@vger.kernel.org,
-        pai.vishwain@gmail.com
-To: Vishwanath Pai <vpai@akamai.com>
+Cc: netfilter-devel@vger.kernel.org
+To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:45308 "EHLO
+Received: from ganesha.gnumonks.org ([213.95.27.120]:45766 "EHLO
         ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753350AbdIDKPE (ORCPT
+        with ESMTP id S1753371AbdIDLOD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 4 Sep 2017 06:15:04 -0400
+        Mon, 4 Sep 2017 07:14:03 -0400
 Content-Disposition: inline
-In-Reply-To: <1503089939-15938-1-git-send-email-vpai@akamai.com>
+In-Reply-To: <20170823204125.31427-1-pablombg@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Aug 18, 2017 at 04:58:59PM -0400, Vishwanath Pai wrote:
-[...]
-> The main difference between the existing algorithm and the new one is
-> that the existing algorithm rate-limits the flow whereas the new
-> algorithm does not. Instead it *classifies* the flow based on whether
-> it is above or below a certain rate. I will demonstrate this with an
-> example below. Let us assume this rule:
+On Wed, Aug 23, 2017 at 10:41:23PM +0200, Pablo M. Bermudo Garay wrote:
+> This patch adds support for overloading stateful objects operations
+> through the select_ops() callback, just as it is implemented for
+> expressions.
 > 
-> iptables -A INPUT -m hashlimit --hashlimit-above 10/s -j new_chain
+> This change is needed for upcoming additions to the stateful objects
+> infrastructure.
+
+Applied with changes, see below.
 > 
-> If the packet rate is 15/s, the existing algorithm would ACCEPT 10
-> packets every second and send 5 packets to "new_chain".
+> Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
+> ---
+>  include/net/netfilter/nf_tables.h | 30 ++++++++++++++++++++++--------
+>  net/netfilter/nf_tables_api.c     | 27 ++++++++++++++++++++-------
+>  net/netfilter/nft_counter.c       | 12 ++++++++----
+>  net/netfilter/nft_ct.c            | 12 ++++++++----
+>  net/netfilter/nft_objref.c        |  4 ++--
+>  net/netfilter/nft_quota.c         | 12 ++++++++----
+>  6 files changed, 68 insertions(+), 29 deletions(-)
 > 
-> But with the new algorithm, as long as the rate of 15/s is sustained,
-> all packets will continue to match and every packet is sent to new_chain.
+> diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+> index f9795fe394f3..b53639af1c7b 100644
+> --- a/include/net/netfilter/nf_tables.h
+> +++ b/include/net/netfilter/nf_tables.h
+> @@ -1008,6 +1008,7 @@ int nft_verdict_dump(struct sk_buff *skb, int type,
+>   *	@list: table stateful object list node
+>   *	@table: table this object belongs to
+>   *	@type: pointer to object type
+> + *	@ops: object operations
+>   *	@data: pointer to object data
+>   *	@name: name of this stateful object
+>   *	@genmask: generation mask
+> @@ -1022,6 +1023,7 @@ struct nft_object {
+>  					use:30;
+>  	/* runtime data below here */
+>  	const struct nft_object_type	*type ____cacheline_aligned;
+> +	const struct nft_object_ops	*ops;
 
-Sounds good, applied, thanks.
+We can just leave *ops here, and place *type in nft_object_ops.
 
-A couple of questions: Does it really make sense to expose
---hashlimit-rate-interval or are you using 1 second always there? I
-always wonder if it makes sense to expose yet another toggle that it's
-not clear to me how the user would take advantage from this.
-
-Just curious here.
+No need to rework this, I have mangled this patch here.
