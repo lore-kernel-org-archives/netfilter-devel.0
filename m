@@ -1,58 +1,39 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH 1/2] src: add flags fo nft_ctx_new
-Date: Mon, 4 Sep 2017 00:45:44 +0200
-Message-ID: <20170903224544.GA13487@salvia>
-References: <20170903220356.20178-1-eric@regit.org>
- <20170903220356.20178-2-eric@regit.org>
- <20170903223309.GA12383@salvia>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/47] Netfilter updates for net-next
+Date: Sun, 03 Sep 2017 17:09:19 -0700 (PDT)
+Message-ID: <20170903.170919.1569443200092136658.davem@davemloft.net>
+References: <1504477589-12045-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:40999 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753097AbdICWqQ (ORCPT
+Received: from shards.monkeyblade.net ([184.105.139.130]:32964 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753036AbdIDAJ0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 3 Sep 2017 18:46:16 -0400
-Content-Disposition: inline
-In-Reply-To: <20170903223309.GA12383@salvia>
+        Sun, 3 Sep 2017 20:09:26 -0400
+In-Reply-To: <1504477589-12045-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 04, 2017 at 12:33:09AM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Sep 04, 2017 at 12:03:55AM +0200, Eric Leblond wrote:
-> > By adding flags to nft_ctx_new, we will have a minimum capabilities
-> > of changing the way the nft_ctx is created.
-> > 
-> > For now, this patch uses a simple value that allow the user to specify
-> > that he will handle netlink by himself.
-> > 
-> > Signed-off-by: Eric Leblond <eric@regit.org>
-> > ---
-> >  include/nftables.h |  4 ++++
-> >  src/main.c         | 20 +++++++++++---------
-> >  2 files changed, 15 insertions(+), 9 deletions(-)
-> > 
-> > diff --git a/include/nftables.h b/include/nftables.h
-> > index 5035567..7c4e93f 100644
-> > --- a/include/nftables.h
-> > +++ b/include/nftables.h
-> > @@ -49,8 +49,12 @@ struct nft_ctx {
-> >  	struct output_ctx	output;
-> >  	bool			check;
-> >  	struct nft_cache	cache;
-> > +	uint32_t		flags;
-> >  };
-> >  
-> > +#define NFT_CTX_CUSTOM_NETLINK	(1<<0)
-> > +#define NFT_CTX_DEFAULT		0
-> 
-> Better than flag, let's make this a type, ie. NFT_CTX_NETLINK is just 1.
-> 
-> OK?
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon,  4 Sep 2017 00:25:42 +0200
 
-Actually, we keep this back, I mean, we just have NFT_CTX_DEFAULT, so
-we don't introduce NFT_CTX_NETLINK until we have the advanced API in
-place.
+> The following patchset contains Netfilter updates for your net-next
+> tree. Basically, updates to the conntrack core, enhancements for
+> nf_tables, conversion of netfilter hooks from linked list to array to
+> improve memory locality and asorted improvements for the Netfilter
+> codebase. More specifically, they are:
+ ...
+> I think I will have material for a second Netfilter batch in my queue if
+> time allow to make it fit in this merge window.
 
+Ok, but please be swift about it.
+
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Pulled, thanks.
