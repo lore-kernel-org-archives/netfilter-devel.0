@@ -1,28 +1,29 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: Signed-off-by missing for commits in the netfilter-next
- tree
-Date: Tue, 5 Sep 2017 07:59:36 +1000
-Message-ID: <20170905075936.4f46280f@canb.auug.org.au>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/12] Netfilter updates for next-net (part 2)
+Date: Mon, 04 Sep 2017 15:28:30 -0700 (PDT)
+Message-ID: <20170904.152830.624026284447759022.davem@davemloft.net>
+References: <1504555874-4168-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1504555874-4168-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon,  4 Sep 2017 22:11:02 +0200
 
-Commits
+> The following patchset contains Netfilter updates for net-next. This
+> patchset includes updates for nf_tables, removal of
+> CONFIG_NETFILTER_DEBUG and a new mode for xt_hashlimit. More
+> specifically, they:
 
-  d1c1e39de835 ("netfilter: remove unused hooknum arg from packet functions")
-  44d6e2f27328 ("net: Replace NF_CT_ASSERT() with WARN_ON().")
+Pulled, thanks.
 
-are missing a Signed-off-by from their committer.
+Since there wasn't much review on netdev for the NONREC stuff
+I reserve the right to revert if serious objections are raised.
 
--- 
-Cheers,
-Stephen Rothwell
+Thanks.
