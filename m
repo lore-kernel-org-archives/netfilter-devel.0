@@ -1,47 +1,46 @@
 From: Vishwanath Pai <vpai@akamai.com>
-Subject: [PATCH] netfilter: xt_hashlimit: fix 64 bit division compile error
-Date: Mon,  4 Sep 2017 21:03:27 -0400
-Message-ID: <1504573407-26293-1-git-send-email-vpai@akamai.com>
-Cc: johunt@akamai.com, fw@strlen.de, netdev@vger.kernel.org,
+Subject: Re: [PATCH 1/2] netfilter/xt_hashlimit: new feature/algorithm for
+ xt_hashlimit
+Date: Mon, 4 Sep 2017 21:56:33 -0400
+Message-ID: <a77a0537-4de1-1113-5492-7aee276c1f06@akamai.com>
+References: <1503089939-15938-1-git-send-email-vpai@akamai.com>
+ <20170904101433.GA3979@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org,
+        johunt@akamai.com, fw@strlen.de, netdev@vger.kernel.org,
         pai.vishwain@gmail.com
-To: pablo@netfilter.org, kadlec@blackhole.kfki.hu,
-        netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx0a-00190b01.pphosted.com ([67.231.149.131]:50724 "EHLO
-        mx0a-00190b01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751155AbdIEBDy (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 4 Sep 2017 21:03:54 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170904101433.GA3979@salvia>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-commit bea74641e378 ("netfilter: xt_hashlimit: add rate match mode")
-introduced a line where we divide two 64bit unsigned integers. This
-breaks on ARM processors with the error:
+On 09/04/2017 06:14 AM, Pablo Neira Ayuso wrote:
+> Sounds good, applied, thanks.
+> 
+> A couple of questions: Does it really make sense to expose
+> --hashlimit-rate-interval or are you using 1 second always there? I
+> always wonder if it makes sense to expose yet another toggle that it's
+> not clear to me how the user would take advantage from this.
+> 
+> Just curious here.
 
-ERROR: "__aeabi_uldivmod" [net/netfilter/xt_hashlimit.ko] undefined!
 
-We can fix it by using div64_u64 instead.
+Thank you Pablo.
 
-Fixes: bea74641e378 ("netfilter: xt_hashlimit: add rate match mode")
-Signed-off-by: Vishwanath Pai <vpai@akamai.com>
----
- net/netfilter/xt_hashlimit.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I generally just let rate-interval to default to 1, but I've added the
+toggle to give the user more control on how often to sample the packet
+rate. This wasn't an option before since we would always keep "delta" as
+1 jiffy, but that is not the case in the new algorithm. Hence I have
+exposed it as an option to the user.
 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 10d4823..fece7c2 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -531,7 +531,7 @@ static u64 user2rate_bytes(u64 user)
- {
- 	u64 r;
- 
--	r = user ? 0xFFFFFFFFULL / user : 0xFFFFFFFFULL;
-+	r = user ? div64_u64(0xFFFFFFFFULL, user) : 0xFFFFFFFFULL;
- 	r = (r - 1) << 4;
- 	return r;
- }
--- 
-1.9.1
+Also, it looks like I broke the build on ARM and m68k arch. This is
+because of the u64 division issue (sorry about that). I have sent
+another patch to fix the problem "[PATCH] netfilter: xt_hashlimit: fix
+64 bit division compile error". Please apply and send to net-next.
 
+Thanks,
+Vishwanath
