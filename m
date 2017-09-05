@@ -1,45 +1,69 @@
-From: Arturo Borrero Gonzalez <arturo@netfilter.org>
-Subject: Re: [nft PATCH V2] tests: shell: Add tests for json import
-Date: Tue, 5 Sep 2017 12:26:57 +0200
-Message-ID: <CAOkSjBj60Jn5VgMVrKgpw5yHpvFhkf7xOR2=ecfa4Rk5+Ea=Wg@mail.gmail.com>
-References: <1504395174-15192-1-git-send-email-mayhs11saini@gmail.com>
- <CAOkSjBgXvKuCV3Am--Qr1OiE1eL9Rau2Q9SS2XLOgZ+Ff7VPgA@mail.gmail.com> <CAOfkYf6VNKCSb4tuiGTimnJaay=u-vSLGQGzcfOO+B1_O44y2A@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH v2 2/2] src: get rid of printf
+Date: Tue, 5 Sep 2017 19:33:31 +0200
+Message-ID: <20170905173331.GA16559@salvia>
+References: <20170903223441.GB12383@salvia>
+ <20170904075558.10129-1-eric@regit.org>
+ <20170904075558.10129-3-eric@regit.org>
+ <20170904204348.GB14434@salvia>
+ <20170904205304.GA14816@salvia>
+ <1504560220.15611.32.camel@regit.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Shyam Saini <mayhs11saini@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@regit.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:35229 "EHLO
-        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750755AbdIEK1U (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:57908 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751959AbdIEReA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 5 Sep 2017 06:27:20 -0400
-Received: by mail-wm0-f42.google.com with SMTP id h144so3185512wme.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 05 Sep 2017 03:27:19 -0700 (PDT)
-Received: from mail-wm0-f47.google.com (mail-wm0-f47.google.com. [74.125.82.47])
-        by smtp.gmail.com with ESMTPSA id k19sm81985eda.73.2017.09.05.03.27.18
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 05 Sep 2017 03:27:18 -0700 (PDT)
-Received: by mail-wm0-f47.google.com with SMTP id 187so16859290wmn.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 05 Sep 2017 03:27:18 -0700 (PDT)
-In-Reply-To: <CAOfkYf6VNKCSb4tuiGTimnJaay=u-vSLGQGzcfOO+B1_O44y2A@mail.gmail.com>
+        Tue, 5 Sep 2017 13:34:00 -0400
+Content-Disposition: inline
+In-Reply-To: <1504560220.15611.32.camel@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 4 September 2017 at 14:39, Shyam Saini <mayhs11saini@gmail.com> wrote:
->>> These test cases can be used to test upcoming "import json" command.
->>>
+On Mon, Sep 04, 2017 at 11:23:40PM +0200, Eric Leblond wrote:
+> Hi,
+> 
+> On Mon, 2017-09-04 at 22:53 +0200, Pablo Neira Ayuso wrote:
+> > On Mon, Sep 04, 2017 at 10:43:48PM +0200, Pablo Neira Ayuso wrote:
+> > > On Mon, Sep 04, 2017 at 09:55:58AM +0200, Eric Leblond wrote:
+> > > > This patch introduces the nft_print function that has to be used
+> > > > instead of printf to output information that were previously send
+> > > > to stdout. This function accumulate the output in a buffer that
+> > > > can
+> > > > be fetched by the user with the nft_ctx_get_output() function.
+> > > > 
+> > > > This modification will allow the libnftables library to provide
+> > > > an
+> > > > easy way to the users to get the output data and display them
+> > > > like
+> > > > they want.
+> > > 
+> > > tests/shell/./run-tests
+> > > 
+> > > is reporting problems with this :-(
+> > 
+> > Eric, I can also see there are missing printf() to nft_print()
+> > conversion on the monitor side.
+> > 
+> > I would expect the simple API works like this: if you pass the
+> > "monitor" command, it justs prints events to whatever destination you
+> > have specified.
+> > 
+> > This is the most simple integration that makes sense to me.
+> > 
+> > Therefore, I think it would be good to convert those too to use
+> > nft_print().
+> 
+> Yes indeed, that make sense. For each message, the user get the human
+> formatted version of the event.
 
-Hi Shyam,
+Yes. Once we have json support for this - in the high level
+representation - we could add a function to specify the print mode.
+But that is something we can of course later on, just thinking aloud.
 
-your v3 looks fine.
+> Do you want me to cook that based on the previously attached patch ?
 
-I was going to test it out, but it seems the first patch [0] in the
-series requires a refresh.
-Please, refresh this first patch.
-
-thanks for your work!
-
-[0] http://patchwork.ozlabs.org/patch/803561/
+Please do. Thanks!
