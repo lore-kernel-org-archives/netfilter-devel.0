@@ -1,47 +1,45 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: core: remove erroneous warn_on
-Date: Wed,  6 Sep 2017 14:47:57 +0200
-Message-ID: <20170906124757.13934-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nf 1/2] netfilter: nat: Revert "netfilter: nat: convert
+ nat bysrc hash to rhashtable"
+Date: Wed, 6 Sep 2017 15:07:50 +0200
+Message-ID: <20170906130750.GE11551@breakpoint.cc>
+References: <20170906123952.12555-1-fw@strlen.de>
+ <20170906123952.12555-2-fw@strlen.de>
+ <CAFoGUiyjXxgYBU+POj2_x3H9BXPW=FUGr3LS3KNUDdxDL0vbng@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Dao Quang Minh <dqminh89@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:34952 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:35076 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753484AbdIFMri (ORCPT
+        by vger.kernel.org with ESMTP id S1750739AbdIFNKq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Sep 2017 08:47:38 -0400
+        Wed, 6 Sep 2017 09:10:46 -0400
+Content-Disposition: inline
+In-Reply-To: <CAFoGUiyjXxgYBU+POj2_x3H9BXPW=FUGr3LS3KNUDdxDL0vbng@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-kernel test robot reported:
+Dao Quang Minh <dqminh89@gmail.com> wrote:
+> Thanks for the patch !
+> 
+> > rhlist removal however requires a rhlist walk.
+> We can have thousands of entries in such a list if source port/addresses
+> are reused for multiple flows, if this happens removal requests are so
+> expensive that deletions of a few thousand flows can take several
+> seconds(!).
+> 
+> Do you think rhlist can use double linked list instead of single linked so
+> removal doesn't need to walk the whole chain ?
 
-WARNING: CPU: 0 PID: 1244 at net/netfilter/core.c:218 __nf_hook_entries_try_shrink+0x49/0xcd
-[..]
+Yes, but:
 
-After allowing batching in nf_unregister_net_hooks its possible that an earlier
-call to __nf_hook_entries_try_shrink already compacted the list.
-If this happens we don't need to do anything.
-
-Fixes: d3ad2c17b4047 ("netfilter: core: batch nf_unregister_net_hooks synchronize_net calls")
-Reported-by: kernel test robot <xiaolong.ye@intel.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 04fe25abc5f6..52cd2901a097 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -215,7 +215,7 @@ static void *__nf_hook_entries_try_shrink(struct nf_hook_entries __rcu **pp)
- 	if (skip == hook_entries)
- 		goto out_assign;
- 
--	if (WARN_ON(skip == 0))
-+	if (skip == 0)
- 		return NULL;
- 
- 	hook_entries -= skip;
--- 
-2.13.0
-
+> > I tried to add hlist_node to rhlist to speed up rhltable_remove but this
+> > isn't doable without changing semantics.  rhltable_remove_fast will
+> > check that the to-be-deleted object is part of the table and that
+> > requires a list walk that we want to avoid.
+> >
+> > Furthermore, using hlist_node increases size of struct rhlist_head, which
+> > in turn increases nf_conn size.
