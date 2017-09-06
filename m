@@ -1,37 +1,37 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [nft PATCH RFC] Convert man page source to asciidoc
-Date: Wed, 6 Sep 2017 13:53:19 +0200 (CEST)
-Message-ID: <nycvar.YFH.7.76.1709061344490.3249@n3.vanv.qr>
-References: <20170906084105.10915-1-phil@nwl.cc> <CAOkSjBhAxw8KxyQrBbCfBE9kQb--4HY39Qoi0jvf-ybwc1y=8Q@mail.gmail.com>
+From: Ivan Babrou <ibobrik@gmail.com>
+Subject: nf_nat_cleanup_conntrack performance with rhlist
+Date: Wed, 6 Sep 2017 12:53:00 +0100
+Message-ID: <CANWdNRCtJreq1xP2sgA=mgV8X15W1Ki-u=Ot3r1eANEVeHKRSA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo@netfilter.org>
+Content-Type: text/plain; charset="UTF-8"
+To: netfilter-devel@vger.kernel.org, fw@strlen.de, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a3.inai.de ([88.198.180.161]:57366 "EHLO a3.inai.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753268AbdIFLxU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Sep 2017 07:53:20 -0400
-In-Reply-To: <CAOkSjBhAxw8KxyQrBbCfBE9kQb--4HY39Qoi0jvf-ybwc1y=8Q@mail.gmail.com>
+Received: from mail-qk0-f180.google.com ([209.85.220.180]:35279 "EHLO
+        mail-qk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753268AbdIFLxb (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 6 Sep 2017 07:53:31 -0400
+Received: by mail-qk0-f180.google.com with SMTP id r141so18616272qke.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 06 Sep 2017 04:53:31 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello,
 
-On Wednesday 2017-09-06 11:56, Arturo Borrero Gonzalez wrote:
->
->Regarding the separation of text in different includes, why not creating
->different manpages? Netfilter did this in the past with iptables(8) and
->iptables-extensions(8).
+We hit a bug where nf_nat_cleanup_conntrack is taking exponential amount of time
+if you ping a lot of distinct IPs. It seems to be related to hlist ->
+rhlist migration.
 
-The split into iptables-extensions.8 happened not because of size or topic, but
-because iptables.8 and ip6tables.8 had redundant copies of numerous sections of
-each other, and they sometimes were quite small sections too (for this reason,
-it only has 9 manuals in total, not 96).
+Here's the bugzilla ticket:
 
->Brainstorming:
->* nft-performance(8) <--- concrete info about nftables sets, maps,
->dicts, concatenations, etc.
+* https://bugzilla.kernel.org/show_bug.cgi?id=196821
 
-those seem more like "datatypes" than "performance".
+It has a reproduce script and the list of reverts that bring back
+reasonable performance.
+
+Dev mailing list seems like a good place to notify the right people.
+
+The first email got rejected because of html subpart, apologies for
+the duplicate.
+
+Thanks.
