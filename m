@@ -1,45 +1,57 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf 1/2] netfilter: nat: Revert "netfilter: nat: convert
- nat bysrc hash to rhashtable"
-Date: Wed, 6 Sep 2017 15:07:50 +0200
-Message-ID: <20170906130750.GE11551@breakpoint.cc>
-References: <20170906123952.12555-1-fw@strlen.de>
- <20170906123952.12555-2-fw@strlen.de>
- <CAFoGUiyjXxgYBU+POj2_x3H9BXPW=FUGr3LS3KNUDdxDL0vbng@mail.gmail.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [nft PATCH RFC] Convert man page source to asciidoc
+Date: Wed, 6 Sep 2017 15:25:51 +0200 (CEST)
+Message-ID: <nycvar.YFH.7.76.1709061456340.3249@n3.vanv.qr>
+References: <20170906084105.10915-1-phil@nwl.cc> <CAOkSjBhAxw8KxyQrBbCfBE9kQb--4HY39Qoi0jvf-ybwc1y=8Q@mail.gmail.com> <20170906115856.GC2399@orbyte.nwl.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Dao Quang Minh <dqminh89@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Cc: Arturo Borrero Gonzalez <arturo@netfilter.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:35076 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750739AbdIFNKq (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 6 Sep 2017 09:10:46 -0400
-Content-Disposition: inline
-In-Reply-To: <CAFoGUiyjXxgYBU+POj2_x3H9BXPW=FUGr3LS3KNUDdxDL0vbng@mail.gmail.com>
+Received: from a3.inai.de ([88.198.180.161]:35916 "EHLO a3.inai.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753775AbdIFNZw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 6 Sep 2017 09:25:52 -0400
+In-Reply-To: <20170906115856.GC2399@orbyte.nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Dao Quang Minh <dqminh89@gmail.com> wrote:
-> Thanks for the patch !
-> 
-> > rhlist removal however requires a rhlist walk.
-> We can have thousands of entries in such a list if source port/addresses
-> are reused for multiple flows, if this happens removal requests are so
-> expensive that deletions of a few thousand flows can take several
-> seconds(!).
-> 
-> Do you think rhlist can use double linked list instead of single linked so
-> removal doesn't need to walk the whole chain ?
 
-Yes, but:
+On Wednesday 2017-09-06 13:58, Phil Sutter wrote:
+>
+>Regarding reStructuredText, did you look at how tables are written
+>there? If not, see here[2]. I really think that speaks for itself.
 
-> > I tried to add hlist_node to rhlist to speed up rhltable_remove but this
-> > isn't doable without changing semantics.  rhltable_remove_fast will
-> > check that the to-be-deleted object is part of the table and that
-> > requires a list walk that we want to avoid.
-> >
-> > Furthermore, using hlist_node increases size of struct rhlist_head, which
-> > in turn increases nf_conn size.
+Markup is the least problem. Tables, when rendered, have a tendency to quickly
+grow too large for the display container because there is just so much data to
+show.
+
+Knowing that, people just avoid them most of the time for groff - and if I may
+say so, it has not reduced the document quality.
+
+
+>> There are many markup languages, it reminds me to xkcd #927 [0].
+>
+>Well, the difference here is that I'm not inventing anything new but
+>search for better options amongst the existing solutions. :P
+
+That would be to stay with docbook then, because RST/MD/A2 do not seem to have
+left themselves a lot of room for later extension.
+
+
+>> I would prefer if we stick to groff, which seems to be the standard in Linux.
+>
+>Yes, this is the very basic alternative but as said I think providing
+>users with an easier to use markup makes sense.
+
+Users read the rendered text, not the markup.
+
+All of the glorious old markups are "unreadable" enough to be fed through a
+program to give a visually-cooked, markup-free rendering (browser,
+/usr/bin/man, evince, etc.) MediaWiki, RST, MD and asciidoc on the other hand
+however seem to propagate the use of just cat/less with very short markup,
+which, to a user, is not too bad to look at, but also not too visually pleasing
+either, giving the worst of both worlds :-p
