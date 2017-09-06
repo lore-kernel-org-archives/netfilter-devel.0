@@ -1,69 +1,40 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] netfilter: xt_hashlimit: avoid 64-bit division
-Date: Wed, 6 Sep 2017 22:48:22 +0200
-Message-ID: <CAK8P3a1GxBjWqnK+fdKmzOhXyFK1XbCFWau8md3OjnLjUZOeDg@mail.gmail.com>
-References: <20170906195825.3715290-1-arnd@arndb.de> <7791dee1-64a9-dcaa-c5d9-0b04a44bc526@akamai.com>
+From: Aaron Conole <aconole@bytheb.org>
+Subject: Re: [PATCH nf] netfilter: core: remove erroneous warn_on
+Date: Wed, 06 Sep 2017 17:51:14 -0400
+Message-ID: <f7tzia7sdgt.fsf@dhcp-25-97.bos.redhat.com>
+References: <20170906124757.13934-1-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Josh Hunt <johunt@akamai.com>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, Networking <netdev@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-To: Vishwanath Pai <vpai@akamai.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <7791dee1-64a9-dcaa-c5d9-0b04a44bc526@akamai.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain
+Cc: <netfilter-devel@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:33988 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752501AbdIFVvS (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 6 Sep 2017 17:51:18 -0400
+Received: by mail-qk0-f194.google.com with SMTP id d70so4596190qkc.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 06 Sep 2017 14:51:18 -0700 (PDT)
+In-Reply-To: <20170906124757.13934-1-fw@strlen.de> (Florian Westphal's message
+        of "Wed, 6 Sep 2017 14:47:57 +0200")
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 6, 2017 at 10:22 PM, Vishwanath Pai <vpai@akamai.com> wrote:
-> On 09/06/2017 03:57 PM, Arnd Bergmann wrote:
->> 64-bit division is expensive on 32-bit architectures, and
->> requires a special function call to avoid a link error like:
->>
->> net/netfilter/xt_hashlimit.o: In function `hashlimit_mt_common':
->> xt_hashlimit.c:(.text+0x1328): undefined reference to `__aeabi_uldivmod'
->>
->> In the case of hashlimit_mt_common, we don't actually need a
->> 64-bit operation, we can simply rewrite the function slightly
->> to make that clear to the compiler.
->>
->> Fixes: bea74641e378 ("netfilter: xt_hashlimit: add rate match mode")
->> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->> ---
->>  net/netfilter/xt_hashlimit.c | 5 ++++-
->>  1 file changed, 4 insertions(+), 1 deletion(-)
->>
->> diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
->> index 10d48234f5f4..50b53d86eef5 100644
->> --- a/net/netfilter/xt_hashlimit.c
->> +++ b/net/netfilter/xt_hashlimit.c
->> @@ -531,7 +531,10 @@ static u64 user2rate_bytes(u64 user)
->>  {
->>       u64 r;
->>
->> -     r = user ? 0xFFFFFFFFULL / user : 0xFFFFFFFFULL;
->> +     if (user > 0xFFFFFFFFULL)
->> +             return 0;
->> +
->> +     r = user ? 0xFFFFFFFFULL / (u32)user : 0xFFFFFFFFULL;
->>       r = (r - 1) << 4;
->>       return r;
->>  }
->>
->
-> I have submitted another patch to fix this:
-> https://patchwork.ozlabs.org/patch/809881/
->
-> We have seen this problem before, I was careful not to introduce this
-> again in the new patch but clearly I overlooked this particular line :(
->
-> In the other cases we fixed it by replacing division with div64_u64().
+Florian Westphal <fw@strlen.de> writes:
 
-div64_u64() seems needlessly expensive here since the dividend
-is known to be a 32-bit number. I guess the function is not called
-frequently though, so it doesn't matter much.
+> kernel test robot reported:
+>
+> WARNING: CPU: 0 PID: 1244 at net/netfilter/core.c:218 __nf_hook_entries_try_shrink+0x49/0xcd
+> [..]
+>
+> After allowing batching in nf_unregister_net_hooks its possible that an earlier
+> call to __nf_hook_entries_try_shrink already compacted the list.
+> If this happens we don't need to do anything.
+>
+> Fixes: d3ad2c17b4047 ("netfilter: core: batch nf_unregister_net_hooks synchronize_net calls")
+> Reported-by: kernel test robot <xiaolong.ye@intel.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
 
-      Arnd
+
+Acked-by: Aaron Conole <aconole@bytheb.org>
