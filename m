@@ -1,95 +1,45 @@
-From: Arturo Borrero Gonzalez <arturo@netfilter.org>
-Subject: [ulogd2 PATCH] ulogd: use a RT scheduler by default
-Date: Thu, 07 Sep 2017 13:36:53 +0200
-Message-ID: <150478421358.15825.13845813307098453243.stgit@nfdev2.cica.es>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH] netfilter: xt_hashlimit: avoid 64-bit division
+Date: Thu, 7 Sep 2017 16:16:46 +0200
+Message-ID: <CAMuHMdX-yEz5QUb_ZgDki72Csiz05f6s+AmNei=_eZh7qf9-RQ@mail.gmail.com>
+References: <20170906195825.3715290-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:38829 "EHLO smtp.cica.es"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754943AbdIGLhD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Sep 2017 07:37:03 -0400
-Received: from localhost (unknown [127.0.0.1])
-        by smtp.cica.es (Postfix) with ESMTP id B32FC51F36C
-        for <netfilter-devel@vger.kernel.org>; Thu,  7 Sep 2017 11:37:00 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id 7Kt3xUDlx6ht for <netfilter-devel@vger.kernel.org>;
-        Thu,  7 Sep 2017 13:36:55 +0200 (CEST)
-Received: from nfdev2.cica.es (nfdev2.cica.es [150.214.8.221])
-        (Authenticated sender: servers@cica.es)
-        by smtp.cica.es (Postfix) with ESMTP id 04E7A51F368
-        for <netfilter-devel@vger.kernel.org>; Thu,  7 Sep 2017 13:36:54 +0200 (CEST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Vishwanath Pai <vpai@akamai.com>,
+        Josh Hunt <johunt@akamai.com>, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170906195825.3715290-1-arnd@arndb.de>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Is common that ulogd runs in scenarios where a lot of packets are to be logged.
-If there are more packets than ulogd can handle, users can start seing log
-messages like this:
+Hi Arnd,
 
- ulogd[556]: We are losing events. Please, consider using the clauses \
- `netlink_socket_buffer_size' and `netlink_socket_buffer_maxsize'
+On Wed, Sep 6, 2017 at 9:57 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> 64-bit division is expensive on 32-bit architectures, and
+> requires a special function call to avoid a link error like:
+>
+> net/netfilter/xt_hashlimit.o: In function `hashlimit_mt_common':
+> xt_hashlimit.c:(.text+0x1328): undefined reference to `__aeabi_uldivmod'
+>
+> In the case of hashlimit_mt_common, we don't actually need a
+> 64-bit operation, we can simply rewrite the function slightly
+> to make that clear to the compiler.
+>
+> Fixes: bea74641e378 ("netfilter: xt_hashlimit: add rate match mode")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Which means that Netlink buffer overrun have happened.
-There are several approaches to prevent this situation:
+Thanks, this fixes a similar issue (__udivdi3 undefined) on m68k.
 
- * in the ruleset, limit the amount of packet queued for log
- * in the ruleset, instruct the kernel to use a queue-threshold
- * from userspace, increment Netlink buffer sizes
- * from userspace, configure ulogd to run as high priority process
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-The first 3 method can be configured by users at runtime.
-This patch deals with the last method. SCHED_RR is configured by default,
-with no associated configuration parameter for users, since I believe
-this is common enough, and should produce no harm.
+Gr{oetje,eeting}s,
 
-A similar approach is used in the conntrackd daemon.
-
-Signed-off-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
----
- src/ulogd.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
-
-diff --git a/src/ulogd.c b/src/ulogd.c
-index b85d0ee..684444f 100644
---- a/src/ulogd.c
-+++ b/src/ulogd.c
-@@ -64,6 +64,7 @@
- #include <syslog.h>
- #include <sys/time.h>
- #include <sys/stat.h>
-+#include <sched.h>
- #include <ulogd/conffile.h>
- #include <ulogd/ulogd.h>
- #ifdef DEBUG
-@@ -1395,6 +1396,19 @@ static void signal_handler_task(int signal)
- 	deliver_signal_pluginstances(signal);
- }
- 
-+static void set_scheduler(void)
-+{
-+	struct sched_param schedparam;
-+	int sched_type;
-+
-+	schedparam.sched_priority = sched_get_priority_max(SCHED_RR);
-+	sched_type = SCHED_RR;
-+
-+	if (sched_setscheduler(0, sched_type, &schedparam) < 0)
-+		fprintf(stderr, "WARNING: scheduler configuration failed:"
-+			" %s\n", strerror(errno));
-+}
-+
- static void print_usage(void)
- {
- 	printf("ulogd Version %s\n", VERSION);
-@@ -1589,6 +1603,7 @@ int main(int argc, char* argv[])
- 	signal(SIGALRM, &signal_handler);
- 	signal(SIGUSR1, &signal_handler);
- 	signal(SIGUSR2, &signal_handler);
-+	set_scheduler();
- 
- 	ulogd_log(ULOGD_INFO, 
- 		  "initialization finished, entering main loop\n");
-
+                        Geert
