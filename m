@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 9/9] netfilter: xt_hashlimit: fix build error caused by 64bit division
-Date: Fri,  8 Sep 2017 19:45:48 +0200
-Message-ID: <1504892748-1605-10-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 6/9] netfilter: nat: use keyed locks
+Date: Fri,  8 Sep 2017 19:45:45 +0200
+Message-ID: <1504892748-1605-7-git-send-email-pablo@netfilter.org>
 References: <1504892748-1605-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,80 +10,116 @@ In-Reply-To: <1504892748-1605-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Vishwanath Pai <vpai@akamai.com>
+From: Florian Westphal <fw@strlen.de>
 
-64bit division causes build/link errors on 32bit architectures. It
-prints out error messages like:
+no need to serialize on a single lock, we can partition the table and
+add/delete in parallel to different slots.
+This restores one of the advantages that got lost with the rhlist
+revert.
 
-ERROR: "__aeabi_uldivmod" [net/netfilter/xt_hashlimit.ko] undefined!
-
-The value of avg passed through by userspace in BYTE mode cannot exceed
-U32_MAX. Which means 64bit division in user2rate_bytes is unnecessary.
-To fix this I have changed the type of param 'user' to u32.
-
-Since anything greater than U32_MAX is an invalid input we error out in
-hashlimit_mt_check_common() when this is the case.
-
-Changes in v2:
-	Making return type as u32 would cause an overflow for small
-	values of 'user' (for example 2, 3 etc). To avoid this I bumped up
-	'r' to u64 again as well as the return type. This is OK since the
-	variable that stores the result is u64. We still avoid 64bit
-	division here since 'user' is u32.
-
-Fixes: bea74641e378 ("netfilter: xt_hashlimit: add rate match mode")
-Signed-off-by: Vishwanath Pai <vpai@akamai.com>
+Cc: Ivan Babrou <ibobrik@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_hashlimit.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ net/netfilter/nf_nat_core.c | 36 ++++++++++++++++++++++++------------
+ 1 file changed, 24 insertions(+), 12 deletions(-)
 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 962ea4a63d9f..5da8746f7b88 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -35,6 +35,7 @@
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter/xt_hashlimit.h>
- #include <linux/mutex.h>
-+#include <linux/kernel.h>
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index f090419f5f97..f393a7086025 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -30,7 +30,7 @@
+ #include <net/netfilter/nf_conntrack_zones.h>
+ #include <linux/netfilter/nf_nat.h>
  
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
-@@ -527,12 +528,12 @@ static u64 user2rate(u64 user)
+-static DEFINE_SPINLOCK(nf_nat_lock);
++static spinlock_t nf_nat_locks[CONNTRACK_LOCKS];
+ 
+ static DEFINE_MUTEX(nf_nat_proto_mutex);
+ static const struct nf_nat_l3proto __rcu *nf_nat_l3protos[NFPROTO_NUMPROTO]
+@@ -425,13 +425,15 @@ nf_nat_setup_info(struct nf_conn *ct,
+ 
+ 	if (maniptype == NF_NAT_MANIP_SRC) {
+ 		unsigned int srchash;
++		spinlock_t *lock;
+ 
+ 		srchash = hash_by_src(net,
+ 				      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+-		spin_lock_bh(&nf_nat_lock);
++		lock = &nf_nat_locks[srchash % ARRAY_SIZE(nf_nat_locks)];
++		spin_lock_bh(lock);
+ 		hlist_add_head_rcu(&ct->nat_bysource,
+ 				   &nf_nat_bysource[srchash]);
+-		spin_unlock_bh(&nf_nat_lock);
++		spin_unlock_bh(lock);
  	}
+ 
+ 	/* It's done. */
+@@ -525,6 +527,16 @@ static int nf_nat_proto_remove(struct nf_conn *i, void *data)
+ 	return i->status & IPS_NAT_MASK ? 1 : 0;
  }
  
--static u64 user2rate_bytes(u64 user)
-+static u64 user2rate_bytes(u32 user)
++static void __nf_nat_cleanup_conntrack(struct nf_conn *ct)
++{
++	unsigned int h;
++
++	h = hash_by_src(nf_ct_net(ct), &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
++	spin_lock_bh(&nf_nat_locks[h % ARRAY_SIZE(nf_nat_locks)]);
++	hlist_del_rcu(&ct->nat_bysource);
++	spin_unlock_bh(&nf_nat_locks[h % ARRAY_SIZE(nf_nat_locks)]);
++}
++
+ static int nf_nat_proto_clean(struct nf_conn *ct, void *data)
  {
- 	u64 r;
+ 	if (nf_nat_proto_remove(ct, data))
+@@ -540,9 +552,7 @@ static int nf_nat_proto_clean(struct nf_conn *ct, void *data)
+ 	 * will delete entry from already-freed table.
+ 	 */
+ 	clear_bit(IPS_SRC_NAT_DONE_BIT, &ct->status);
+-	spin_lock_bh(&nf_nat_lock);
+-	hlist_del_rcu(&ct->nat_bysource);
+-	spin_unlock_bh(&nf_nat_lock);
++	__nf_nat_cleanup_conntrack(ct);
  
--	r = user ? 0xFFFFFFFFULL / user : 0xFFFFFFFFULL;
--	r = (r - 1) << 4;
-+	r = user ? U32_MAX / user : U32_MAX;
-+	r = (r - 1) << XT_HASHLIMIT_BYTE_SHIFT;
- 	return r;
+ 	/* don't delete conntrack.  Although that would make things a lot
+ 	 * simpler, we'd end up flushing all conntracks on nat rmmod.
+@@ -670,11 +680,8 @@ EXPORT_SYMBOL_GPL(nf_nat_l3proto_unregister);
+ /* No one using conntrack by the time this called. */
+ static void nf_nat_cleanup_conntrack(struct nf_conn *ct)
+ {
+-	if (ct->status & IPS_SRC_NAT_DONE) {
+-		spin_lock_bh(&nf_nat_lock);
+-		hlist_del_rcu(&ct->nat_bysource);
+-		spin_unlock_bh(&nf_nat_lock);
+-	}
++	if (ct->status & IPS_SRC_NAT_DONE)
++		__nf_nat_cleanup_conntrack(ct);
  }
  
-@@ -588,7 +589,8 @@ static void rateinfo_init(struct dsthash_ent *dh,
- 		dh->rateinfo.prev_window = 0;
- 		dh->rateinfo.current_rate = 0;
- 		if (hinfo->cfg.mode & XT_HASHLIMIT_BYTES) {
--			dh->rateinfo.rate = user2rate_bytes(hinfo->cfg.avg);
-+			dh->rateinfo.rate =
-+				user2rate_bytes((u32)hinfo->cfg.avg);
- 			if (hinfo->cfg.burst)
- 				dh->rateinfo.burst =
- 					hinfo->cfg.burst * dh->rateinfo.rate;
-@@ -870,7 +872,7 @@ static int hashlimit_mt_check_common(const struct xt_mtchk_param *par,
+ static struct nf_ct_ext_type nat_extend __read_mostly = {
+@@ -796,10 +803,12 @@ static struct nf_ct_helper_expectfn follow_master_nat = {
  
- 	/* Check for overflow. */
- 	if (revision >= 3 && cfg->mode & XT_HASHLIMIT_RATE_MATCH) {
--		if (cfg->avg == 0) {
-+		if (cfg->avg == 0 || cfg->avg > U32_MAX) {
- 			pr_info("hashlimit invalid rate\n");
- 			return -ERANGE;
- 		}
+ static int __init nf_nat_init(void)
+ {
+-	int ret;
++	int ret, i;
+ 
+ 	/* Leave them the same for the moment. */
+ 	nf_nat_htable_size = nf_conntrack_htable_size;
++	if (nf_nat_htable_size < ARRAY_SIZE(nf_nat_locks))
++		nf_nat_htable_size = ARRAY_SIZE(nf_nat_locks);
+ 
+ 	nf_nat_bysource = nf_ct_alloc_hashtable(&nf_nat_htable_size, 0);
+ 	if (!nf_nat_bysource)
+@@ -812,6 +821,9 @@ static int __init nf_nat_init(void)
+ 		return ret;
+ 	}
+ 
++	for (i = 0; i < ARRAY_SIZE(nf_nat_locks); i++)
++		spin_lock_init(&nf_nat_locks[i]);
++
+ 	nf_ct_helper_expectfn_register(&follow_master_nat);
+ 
+ 	BUG_ON(nfnetlink_parse_nat_setup_hook != NULL);
 -- 
 2.1.4
