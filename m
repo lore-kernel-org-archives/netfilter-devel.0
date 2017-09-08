@@ -1,91 +1,108 @@
-From: Vishwanath Pai <vpai@akamai.com>
-Subject: [PATCH v2] netfilter: xt_hashlimit: fix build error caused by 64bit division
-Date: Fri,  8 Sep 2017 01:38:58 -0400
-Message-ID: <1504849138-17427-1-git-send-email-vpai@akamai.com>
-Cc: kadlec@blackhole.kfki.hu, johunt@akamai.com, fw@strlen.de,
-        netdev@vger.kernel.org, pai.vishwain@gmail.com, mingo@kernel.org,
-        ilubashe@akamai.com, bp@alien8.de, luto@kernel.org, x86@kernel.org,
-        linux-kernel@vger.kernel.org, brgerst@gmail.com,
-        andrew.cooper3@citrix.com, jgross@suse.com,
-        boris.ostrovsky@oracle.com, keescook@chromium.org,
-        akpm@linux-foundation.org, arnd@arndb.de
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        torvalds@linux-foundation.org, davem@davemloft.net
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [nft PATCH RFC] Convert man page source to asciidoc
+Date: Fri, 8 Sep 2017 10:53:21 +0200
+Message-ID: <20170908085321.GJ2399@orbyte.nwl.cc>
+References: <20170906084105.10915-1-phil@nwl.cc>
+ <CAOkSjBhAxw8KxyQrBbCfBE9kQb--4HY39Qoi0jvf-ybwc1y=8Q@mail.gmail.com>
+ <20170906115856.GC2399@orbyte.nwl.cc>
+ <nycvar.YFH.7.76.1709061456340.3249@n3.vanv.qr>
+ <20170906140233.GD2399@orbyte.nwl.cc>
+ <nycvar.YFH.7.76.1709061608280.4856@n3.vanv.qr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Arturo Borrero Gonzalez <arturo@netfilter.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@inai.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from orbyte.nwl.cc ([151.80.46.58]:36662 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754751AbdIHIxY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 8 Sep 2017 04:53:24 -0400
+Content-Disposition: inline
+In-Reply-To: <nycvar.YFH.7.76.1709061608280.4856@n3.vanv.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-64bit division causes build/link errors on 32bit architectures. It
-prints out error messages like:
+On Wed, Sep 06, 2017 at 04:29:00PM +0200, Jan Engelhardt wrote:
+> 
+> On Wednesday 2017-09-06 16:02, Phil Sutter wrote:
+> >> Knowing that, people just avoid them most of the time for groff - and if I may
+> >> say so, it has not reduced the document quality.
+> >
+> >Right now, nft.8 makes extensive use of tables which is why I considered
+> >proper table support an important feature. OTOH I didn't experience
+> >rendering issues with them in nft.8, did you?
+> 
+> I do. For some reason, the right margin of the table is 60% of the
+> terminal width. (width 120 => table up to col #63, terminal 80 cols
+> => table up to col #50).
 
-ERROR: "__aeabi_uldivmod" [net/netfilter/xt_hashlimit.ko] undefined!
+Oh, I see that too, also in my asciidoc PoC. Explicitly setting the
+table width to 100% doesn't help either. Maybe this is a problem in
+groff? The tables span the whole page in asciidoc's PDF output at least.
 
-The value of avg passed through by userspace in BYTE mode cannot exceed
-U32_MAX. Which means 64bit division in user2rate_bytes is unnecessary.
-To fix this I have changed the type of param 'user' to u32.
+[...]
+> However, what I tried to express is the problem with tables is that
+> one column has almost no text and another has a lot of it, like this
+> one. This causes large amounts of whitespace in column 1 in this
+> case. Personally, I would have placed the hooks and their
+> explanations as (the equivalent of)
+> 
+> .TP
+> \fBprerouting\fP
+> All packets enter ...
+> .TP
+> \fBinput\fP
+> Packets delivered ...
+> 
+> Or if the source material was HTML, perhaps just
+> 
+> <ul>
+> <li><b>prerouting</b>: All packets enter...</li>
+> <li><b>input</b>: Packets delivered...</li>
+> </ul>
 
-Since anything greater than U32_MAX is an invalid input we error out in
-hashlimit_mt_check_common() when this is the case.
+Yes, we should indeed convert two-column tables to these labeled lists
+if they are merely keyword descriptions. I'm not sure about other cases,
+sometimes having the table headings allows to provide information in a
+more compact form than embedding everything into a paragraph of text.
 
-Changes in v2:
-	Making return type as u32 would cause an overflow for small
-	values of 'user' (for example 2, 3 etc). To avoid this I bumped up
-	'r' to u64 again as well as the return type. This is OK since the
-	variable that stores the result is u64. We still avoid 64bit
-	division here since 'user' is u32.
+[...]
+> In another way, I could also ask why hooks are in tables, and commands 
+> ("add", "flush", etc.) are in TP-style. What makes hooks so special that 
+> they deserve a table, despite their keyword being the same short length 
+> as the commands.
 
-Fixes: bea74641e378 ("netfilter: xt_hashlimit: add rate match mode")
-Signed-off-by: Vishwanath Pai <vpai@akamai.com>
----
- net/netfilter/xt_hashlimit.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+Many of the tables seem to be there for reasons of document structure,
+e.g. those below DATA TYPES. I don't think that is a bad thing per se.
 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 10d4823..1c1941e 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -35,6 +35,7 @@
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter/xt_hashlimit.h>
- #include <linux/mutex.h>
-+#include <linux/kernel.h>
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
-@@ -527,12 +528,12 @@ static u64 user2rate(u64 user)
- 	}
- }
- 
--static u64 user2rate_bytes(u64 user)
-+static u64 user2rate_bytes(u32 user)
- {
- 	u64 r;
- 
--	r = user ? 0xFFFFFFFFULL / user : 0xFFFFFFFFULL;
--	r = (r - 1) << 4;
-+	r = user ? U32_MAX / user : U32_MAX;
-+	r = (r - 1) << XT_HASHLIMIT_BYTE_SHIFT;
- 	return r;
- }
- 
-@@ -588,7 +589,8 @@ static void rateinfo_init(struct dsthash_ent *dh,
- 		dh->rateinfo.prev_window = 0;
- 		dh->rateinfo.current_rate = 0;
- 		if (hinfo->cfg.mode & XT_HASHLIMIT_BYTES) {
--			dh->rateinfo.rate = user2rate_bytes(hinfo->cfg.avg);
-+			dh->rateinfo.rate =
-+				user2rate_bytes((u32)hinfo->cfg.avg);
- 			if (hinfo->cfg.burst)
- 				dh->rateinfo.burst =
- 					hinfo->cfg.burst * dh->rateinfo.rate;
-@@ -870,7 +872,7 @@ static int hashlimit_mt_check_common(const struct xt_mtchk_param *par,
- 
- 	/* Check for overflow. */
- 	if (revision >= 3 && cfg->mode & XT_HASHLIMIT_RATE_MATCH) {
--		if (cfg->avg == 0) {
-+		if (cfg->avg == 0 || cfg->avg > U32_MAX) {
- 			pr_info("hashlimit invalid rate\n");
- 			return -ERANGE;
- 		}
--- 
-1.9.1
+> >> >> There are many markup languages, it reminds me to xkcd #927 [0].
+> >> >
+> >> >Well, the difference here is that I'm not inventing anything new but
+> >> >search for better options amongst the existing solutions. :P
+> >> 
+> >> That would be to stay with docbook then, because RST/MD/A2 do not seem to have
+> >> left themselves a lot of room for later extension.
+> >
+> >What extensions do you have in mind?
+> 
+> I kind of left that open; it seemed you implied there is something
+> (the "better option") that MD couldn't do that asciidoc could. That
+> thing, docbook should already have.
+
+I think docbook is the most "feature complete" solution amongst those
+mentioned. My personal motivation to replace it is basically founded by
+two things:
+
+1) XML is not quite editor-friendly. I found myself spending way more
+   time opening and closing tags than I had anticipated for whenever I
+   worked on content.
+
+2) I didn't like how docbook formats synopfragment/synopfragmentref
+   constructs. Maybe this could be changed by using some customization
+   though. Also I didn't see an equivalent to it in asciidoc - BNF-style
+   referencing is done manually there.
+
+Cheers, Phil
