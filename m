@@ -1,24 +1,26 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nat: constify rhashtable_params
-Date: Fri, 8 Sep 2017 13:46:30 +0200
-Message-ID: <20170908114630.GA13575@salvia>
-References: <d978194ca83e9aa41a330a42442eecd8be9e9a60.1504093452.git.arvind.yadav.cs@gmail.com>
+Subject: Re: [PATCH nf] netfilter: nf_nat: don't bug when mapping already
+ exists
+Date: Fri, 8 Sep 2017 13:47:31 +0200
+Message-ID: <20170908114731.GA13597@salvia>
+References: <20170831114524.7511-1-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: davem@davemloft.net, fw@strlen.de, kadlec@blackhole.kfki.hu,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        coreteam@netfilter.org, netfilter-devel@vger.kernel.org
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:34451 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754914AbdIHLry (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 8 Sep 2017 07:47:54 -0400
 Content-Disposition: inline
-In-Reply-To: <d978194ca83e9aa41a330a42442eecd8be9e9a60.1504093452.git.arvind.yadav.cs@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20170831114524.7511-1-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Aug 30, 2017 at 05:18:04PM +0530, Arvind Yadav wrote:
-> rhashtable_params are not supposed to change at runtime. All
-> Functions rhashtable_* working with const rhashtable_params
-> provided by <linux/rhashtable.h>. So mark the non-const structs
-> as const.
+On Thu, Aug 31, 2017 at 01:45:24PM +0200, Florian Westphal wrote:
+> It seems preferrable to limp along if we have a conflicting mapping,
+> its certainly better than a BUG().
 
-Applied to nf, thanks.
+Applied, thanks.
