@@ -1,48 +1,58 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/9] Netfilter/IPVS fixes for net
-Date: Fri, 08 Sep 2017 11:36:13 -0700 (PDT)
-Message-ID: <20170908.113613.678386423137863254.davem@davemloft.net>
-References: <1504892748-1605-1-git-send-email-pablo@netfilter.org>
+From: Colin Caine <colin.caine@manchester.ac.uk>
+Subject: [nft] Documentation point release/backport
+Date: Sat, 9 Sep 2017 05:15:42 +0100
+Message-ID: <20170909041541.GA6951@cs.man.ac.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1504892748-1605-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from probity.mcc.ac.uk ([130.88.200.94]:23786 "EHLO
+        probity.mcc.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750899AbdIIEbZ (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 9 Sep 2017 00:31:25 -0400
+Received: from asmtp2.its.manchester.ac.uk ([130.88.13.150])
+        by probity.mcc.ac.uk with esmtps (TLSv1:DHE-RSA-AES256-SHA:256)
+        (Exim 4.85 (FreeBSD))
+        (envelope-from <colin.caine@manchester.ac.uk>)
+        id 1dqXBH-000OYt-Qj
+        for netfilter-devel@vger.kernel.org; Sat, 09 Sep 2017 05:15:43 +0100
+Received: from cpc113422-maid7-2-0-cust934.20-1.cable.virginm.net ([86.18.187.167]:44326 helo=cs.man.ac.uk)
+        by asmtp2.its.manchester.ac.uk with esmtpsa (TLSv1.2:ECDHE-RSA-AES256-GCM-SHA384:256)
+        (Exim 4.89)
+        (envelope-from <colin.caine@manchester.ac.uk>)
+        id 1dqXBH-0001Cg-EL
+        for netfilter-devel@vger.kernel.org; Sat, 09 Sep 2017 05:15:43 +0100
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Fri,  8 Sep 2017 19:45:39 +0200
+The man page distributed with nftables v0.7 is erroneous (add chain
+syntax) and misses some important functionality e.g. `list ruleset`, but
+the documentation in master is better (Thanks!).
 
-> The following patchset contains Netfilter/IPVS fixes for your net tree,
-> they are:
-> 
-> 1) Fix SCTP connection setup when IPVS module is loaded and any scheduler
->    is registered, from Xin Long.
-> 
-> 2) Don't create a SCTP connection from SCTP ABORT packets, also from
->    Xin Long.
-> 
-> 3) WARN_ON() and drop packet, instead of BUG_ON() races when calling
->    nf_nat_setup_info(). This is specifically a longstanding problem
->    when br_netfilter with conntrack support is in place, patch from
->    Florian Westphal.
-> 
-> 4) Avoid softlock splats via iptables-restore, also from Florian.
-> 
-> 5) Revert NAT hashtable conversion to rhashtable, semantics of rhlist
->    are different from our simple NAT hashtable, this has been causing
->    problems in the recent Linux kernel releases. From Florian.
-> 
-> 6) Add per-bucket spinlock for NAT hashtable, so at least we restore
->    one of the benefits we got from the previous rhashtable conversion.
-> 
-> 7) Fix incorrect hashtable size in memory allocation in xt_hashlimit,
->    from Zhizhou Tian.
-> 
-> 8) Fix build/link problems with hashlimit and 32-bit arches, to address
->    recent fallout from a new hashlimit mode, from Vishwanath Pai.
+Could the documentation in master be backported as a point release for
+users (if v0.8 won't be soon)?
 
-Pulled, thanks Pablo.
+The wiki is OK as a replacement, but it would be very useful to have a
+complete and authoritative reference.
+
+Documentation lagging so far behind functionality might suggest that
+contributors don't like editing docbook. If the asciidoc patch is
+rejected, perhaps contributors who do like editing docbook could share
+what tools they use?
+
+My unsolicited two cents: if it were my choice, I'd switch to a readable
+and easily writable markup (so contributors actually write it) which can
+embed a real programming language (to encourage automation and testing
+of the documentation).
+
+Probably Pollen or scribble (racket DSLs) [1]? Neither have man
+outputs yet, but you could go Pollen -> markdown -> man, or just extend
+either a bit (it's not like the man(7) is complicated).
+
+Thanks for reading,
+Colin
+
+[1]: https://docs.racket-lang.org/pollen/
+     https://docs.racket-lang.org/scribble/
