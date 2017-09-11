@@ -1,80 +1,118 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 4/4] netfilter: ipset: ipset list may return wrong member count for set with timeout
-Date: Mon, 11 Sep 2017 21:52:40 +0200
-Message-ID: <1505159560-13161-5-git-send-email-kadlec@blackhole.kfki.hu>
-References: <1505159560-13161-1-git-send-email-kadlec@blackhole.kfki.hu>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Vishwanath Pai <vpai@akamai.com>
+Subject: Re: [PATCH] netfilter: ipset: ipset list may return wrong member
+ count for set with timeout
+Date: Mon, 11 Sep 2017 15:57:35 -0400
+Message-ID: <6cf7958a-02a9-a7f9-005d-fd25e910aceb@akamai.com>
+References: <1502947435-18549-1-git-send-email-vpai@akamai.com>
+ <alpine.DEB.2.11.1709112134060.12411@blackhole.kfki.hu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, johunt@akamai.com,
+        pai.vishwain@gmail.com, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:39641 "EHLO smtp2.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751618AbdIKTwp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Sep 2017 15:52:45 -0400
-In-Reply-To: <1505159560-13161-1-git-send-email-kadlec@blackhole.kfki.hu>
+Received: from mx0b-00190b01.pphosted.com ([67.231.157.127]:55614 "EHLO
+        mx0b-00190b01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751026AbdIKT5v (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 11 Sep 2017 15:57:51 -0400
+In-Reply-To: <alpine.DEB.2.11.1709112134060.12411@blackhole.kfki.hu>
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Vishwanath Pai <vpai@akamai.com>
+Hi Jozsef,
 
-Simple testcase:
+Thank you. Yes, that is true, the count can still be incorrect in the
+case of a huge set.
 
-$ ipset create test hash:ip timeout 5
-$ ipset add test 1.2.3.4
-$ ipset add test 1.2.2.2
-$ sleep 5
+Thanks,
+Vishwanath
 
-$ ipset l
-Name: test
-Type: hash:ip
-Revision: 5
-Header: family inet hashsize 1024 maxelem 65536 timeout 5
-Size in memory: 296
-References: 0
-Number of entries: 2
-Members:
-
-We return "Number of entries: 2" but no members are listed. That is
-because mtype_list runs "ip_set_timeout_expired" and does not list the
-expired entries, but set->elements is never upated (until mtype_gc
-cleans it up later).
-
-Reviewed-by: Joshua Hunt <johunt@akamai.com>
-Signed-off-by: Vishwanath Pai <vpai@akamai.com>
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
----
- net/netfilter/ipset/ip_set_hash_gen.h | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index f236c0b..51063d9 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -1041,12 +1041,24 @@ mtype_test(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- static int
- mtype_head(struct ip_set *set, struct sk_buff *skb)
- {
--	const struct htype *h = set->data;
-+	struct htype *h = set->data;
- 	const struct htable *t;
- 	struct nlattr *nested;
- 	size_t memsize;
- 	u8 htable_bits;
- 
-+	/* If any members have expired, set->elements will be wrong
-+	 * mytype_expire function will update it with the right count.
-+	 * we do not hold set->lock here, so grab it first.
-+	 * set->elements can still be incorrect in the case of a huge set,
-+	 * because elements might time out during the listing.
-+	 */
-+	if (SET_WITH_TIMEOUT(set)) {
-+		spin_lock_bh(&set->lock);
-+		mtype_expire(set, h);
-+		spin_unlock_bh(&set->lock);
-+	}
-+
- 	rcu_read_lock_bh();
- 	t = rcu_dereference_bh_nfnl(h->table);
- 	memsize = mtype_ahash_memsize(h, t) + set->ext_size;
--- 
-2.1.4
+On 09/11/2017 03:36 PM, Jozsef Kadlecsik wrote:
+> Hi,
+> 
+> Your patch is applied in the ipset git tree and I'm going to push it for 
+> kernel inclusion.
+> 
+> I modified the comment part: the elements counter can still be incorrect 
+> in the case of a huge set, because elements might time out during the 
+> listing.
+> 
+> Thanks for your patience!
+> 
+> Best regards,
+> Jozsef
+> 
+> On Thu, 17 Aug 2017, Vishwanath Pai wrote:
+> 
+>> Simple testcase:
+>>
+>> $ ipset create test hash:ip timeout 5
+>> $ ipset add test 1.2.3.4
+>> $ ipset add test 1.2.2.2
+>> $ sleep 5
+>>
+>> $ ipset l
+>> Name: test
+>> Type: hash:ip
+>> Revision: 5
+>> Header: family inet hashsize 1024 maxelem 65536 timeout 5
+>> Size in memory: 296
+>> References: 0
+>> Number of entries: 2
+>> Members:
+>>
+>> We return "Number of entries: 2" but no members are listed. That is
+>> because mtype_list runs "ip_set_timeout_expired" and does not list the
+>> expired entries, but set->elements is never upated (until mtype_gc
+>> cleans it up later).
+>>
+>> Reviewed-by: Joshua Hunt <johunt@akamai.com>
+>> Signed-off-by: Vishwanath Pai <vpai@akamai.com>
+>> ---
+>>  net/netfilter/ipset/ip_set_hash_gen.h | 12 +++++++++++-
+>>  1 file changed, 11 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+>> index f236c0b..ff3d31c 100644
+>> --- a/net/netfilter/ipset/ip_set_hash_gen.h
+>> +++ b/net/netfilter/ipset/ip_set_hash_gen.h
+>> @@ -1041,12 +1041,22 @@ struct htype {
+>>  static int
+>>  mtype_head(struct ip_set *set, struct sk_buff *skb)
+>>  {
+>> -	const struct htype *h = set->data;
+>> +	struct htype *h = set->data;
+>>  	const struct htable *t;
+>>  	struct nlattr *nested;
+>>  	size_t memsize;
+>>  	u8 htable_bits;
+>>  
+>> +	/* If any members have expired, set->elements will be wrong
+>> +	 * mytype_expire function will update it with the right count.
+>> +	 * we do not hold set->lock here, so grab it first.
+>> +	 */
+>> +	if (SET_WITH_TIMEOUT(set)) {
+>> +		spin_lock_bh(&set->lock);
+>> +		mtype_expire(set, h);
+>> +		spin_unlock_bh(&set->lock);
+>> +	}
+>> +
+>>  	rcu_read_lock_bh();
+>>  	t = rcu_dereference_bh_nfnl(h->table);
+>>  	memsize = mtype_ahash_memsize(h, t) + set->ext_size;
+>> -- 
+>> 1.9.1
+>>
+>>
+> 
+> -
+> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+> Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+>           H-1525 Budapest 114, POB. 49, Hungary
+> 
 
