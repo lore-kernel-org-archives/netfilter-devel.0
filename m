@@ -1,105 +1,47 @@
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: Memory leaks in conntrack
-Date: Tue, 12 Sep 2017 16:20:50 -0700
-Message-ID: <CAM_iQpWvO3L1JOrCMvAvqduWH5pt_9-=GEx+eOFQyOt5Z5prrA@mail.gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: nft typeof keywork patch
+Date: Fri, 15 Sep 2017 13:02:43 +0200
+Message-ID: <20170915110243.GA27110@breakpoint.cc>
+References: <20170912172527.GC25977@breakpoint.cc>
+ <20170913115823.GA2297@salvia>
+ <20170913152728.GB2453@breakpoint.cc>
+ <20170913154318.GA4681@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f180.google.com ([209.85.192.180]:34705 "EHLO
-        mail-pf0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751017AbdILXVL (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:40560 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751213AbdIOLFx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 12 Sep 2017 19:21:11 -0400
+        Fri, 15 Sep 2017 07:05:53 -0400
+Content-Disposition: inline
+In-Reply-To: <20170913154318.GA4681@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+> > Wait, so
+> >     nft add set ip filter set1 { typeof ip saddr;}
+> > 
+> > then it should not list
+> >     nft add set ip filter set1 { type ipv4_addr;}
+> > 
+> > but the exact input using the typeof()?
+> > 
+> > I wonder how to encode this, especially given we also need to support
+> > concatenation, e.g.
 
-While testing my TC filter patches (so not related to conntrack), the
-following memory leaks are shown up:
+I've started with this, first item i am working on is to change
+struct set to pass in struct expr *key instead of datatype+len to make
+the original expression (meta iifname for example) available to the
+linerize parts so we can stash this info in the udata.
 
+For "typeof(meta iifname) . mark" case the parser will generate a concat
+expression, and, since these keep the original expr around we can
+iterate over that list to get back the original expressions.
 
-unreferenced object 0xffff9b19ba551228 (size 128):
-  comm "chronyd", pid 338, jiffies 4294910829 (age 53.188s)
-  hex dump (first 32 bytes):
-    6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b  kkkkkkkkkkkkkkkk
-    00 00 00 00 18 00 00 30 00 00 00 00 00 00 00 00  .......0........
-  backtrace:
-    [<ffffffff9f1e1175>] create_object+0x169/0x2aa
-    [<ffffffff9fb77fb2>] kmemleak_alloc+0x25/0x41
-    [<ffffffff9f1c47ed>] slab_post_alloc_hook+0x44/0x65
-    [<ffffffff9f1ca2db>] __kmalloc_track_caller+0x113/0x146
-    [<ffffffff9f193c3b>] __krealloc+0x4a/0x69
-    [<ffffffff9f948dbd>] nf_ct_ext_add+0xe1/0x145
-    [<ffffffff9f942395>] init_conntrack+0x1f7/0x36e
-    [<ffffffff9f942762>] nf_conntrack_in+0x1d3/0x326
-    [<ffffffff9fa1ea69>] ipv4_conntrack_local+0x4d/0x50
-    [<ffffffff9f93ad70>] nf_hook_slow+0x3c/0x9b
-    [<ffffffff9f9c7999>] nf_hook.constprop.40+0xbe/0xd8
-    [<ffffffff9f9c7ba2>] __ip_local_out+0xb3/0xbf
-    [<ffffffff9f9c7bca>] ip_local_out+0x1c/0x36
-    [<ffffffff9f9c9216>] ip_send_skb+0x19/0x3d
-    [<ffffffff9f9ee3de>] udp_send_skb+0x17e/0x1df
-    [<ffffffff9f9eea37>] udp_sendmsg+0x5a2/0x77c
-unreferenced object 0xffff9b19a69b3340 (size 336):
-  comm "chronyd", pid 338, jiffies 4294910868 (age 53.032s)
-  hex dump (first 32 bytes):
-    01 00 00 00 5a 5a 5a 5a 00 00 00 00 ad 4e ad de  ....ZZZZ.....N..
-    ff ff ff ff 5a 5a 5a 5a ff ff ff ff ff ff ff ff  ....ZZZZ........
-  backtrace:
-    [<ffffffff9f1e1175>] create_object+0x169/0x2aa
-    [<ffffffff9fb77fb2>] kmemleak_alloc+0x25/0x41
-    [<ffffffff9f1c47ed>] slab_post_alloc_hook+0x44/0x65
-    [<ffffffff9f1c7a7d>] kmem_cache_alloc+0xd7/0x1f1
-    [<ffffffff9f941b78>] __nf_conntrack_alloc+0xa2/0x146
-    [<ffffffff9f942250>] init_conntrack+0xb2/0x36e
-    [<ffffffff9f942762>] nf_conntrack_in+0x1d3/0x326
-    [<ffffffff9fa1ea69>] ipv4_conntrack_local+0x4d/0x50
-    [<ffffffff9f93ad70>] nf_hook_slow+0x3c/0x9b
-    [<ffffffff9f9c7999>] nf_hook.constprop.40+0xbe/0xd8
-    [<ffffffff9f9c7ba2>] __ip_local_out+0xb3/0xbf
-    [<ffffffff9f9c7bca>] ip_local_out+0x1c/0x36
-    [<ffffffff9f9c9216>] ip_send_skb+0x19/0x3d
-    [<ffffffff9f9ee3de>] udp_send_skb+0x17e/0x1df
-    [<ffffffff9f9eea37>] udp_sendmsg+0x5a2/0x77c
-    [<ffffffff9f9f8cb8>] inet_sendmsg+0x37/0x5e
+For the normal 'type' case, i think we can simply use a dummy
+constant expression to serve as a container for the data type.
 
-This seems new because I never see this before.
-
-I don't touch chronyd in my VM, so I have no idea why it sends out UDP
-packets, my guess is it is some periodical packet.
-
-I don't think I use conntrack either, since /proc/net/ip_conntrack
-does not exist.
-
-Here are some related config of my kernel:
-
-$ grep CONNTRACK .config
-CONFIG_NF_CONNTRACK=y
-CONFIG_NF_CONNTRACK_MARK=y
-CONFIG_NF_CONNTRACK_SECMARK=y
-CONFIG_NF_CONNTRACK_ZONES=y
-CONFIG_NF_CONNTRACK_PROCFS=y
-CONFIG_NF_CONNTRACK_EVENTS=y
-# CONFIG_NF_CONNTRACK_TIMEOUT is not set
-CONFIG_NF_CONNTRACK_TIMESTAMP=y
-CONFIG_NF_CONNTRACK_AMANDA=y
-CONFIG_NF_CONNTRACK_FTP=y
-CONFIG_NF_CONNTRACK_H323=y
-CONFIG_NF_CONNTRACK_IRC=y
-CONFIG_NF_CONNTRACK_BROADCAST=y
-CONFIG_NF_CONNTRACK_NETBIOS_NS=y
-CONFIG_NF_CONNTRACK_SNMP=y
-CONFIG_NF_CONNTRACK_PPTP=y
-CONFIG_NF_CONNTRACK_SANE=y
-CONFIG_NF_CONNTRACK_SIP=y
-CONFIG_NF_CONNTRACK_TFTP=y
-CONFIG_NETFILTER_XT_MATCH_CONNTRACK=y
-CONFIG_NF_CONNTRACK_IPV4=y
-CONFIG_NF_CONNTRACK_IPV6=y
-
-Please let me know if you need any other information.
-
-Thanks.
+What do you think?
