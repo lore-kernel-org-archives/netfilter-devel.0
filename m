@@ -1,29 +1,52 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH v2 1/2] iptables: support match info fixup after
- tc_init
-Date: Mon, 18 Sep 2017 20:04:57 +0200 (CEST)
-Message-ID: <nycvar.YFH.7.76.1709182004310.12641@n3.vanv.qr>
-References: <20170917112031.8644-1-shmulik@nsof.io>        <20170917112031.8644-2-shmulik@nsof.io>        <20170918162811.GA6091@salvia> <20170918200042.3189aa0f@pixies>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 0/4] ipset patches for nf-next
+Date: Mon, 18 Sep 2017 20:31:45 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1709182030370.29725@blackhole.kfki.hu>
+References: <1505159560-13161-1-git-send-email-kadlec@blackhole.kfki.hu> <20170918123052.GA28702@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org,
-        Willem de Bruijn <willemb@google.com>, rbk@nsof.io,
-        Rafael Buchbinder <rafi@rbk.ms>
-To: Shmulik Ladkani <shmulik@nsof.io>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a3.inai.de ([88.198.180.161]:59800 "EHLO a3.inai.de"
+Received: from smtp0.kfki.hu ([148.6.0.25]:45409 "EHLO smtp0.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753479AbdIRSE7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 Sep 2017 14:04:59 -0400
-In-Reply-To: <20170918200042.3189aa0f@pixies>
+        id S1753928AbdIRSbt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 18 Sep 2017 14:31:49 -0400
+In-Reply-To: <20170918123052.GA28702@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Pablo,
 
-On Monday 2017-09-18 19:00, Shmulik Ladkani wrote:
->
->This must occur after every load of entries, as the xt_bpf match needs
->a fixup once read from kernel.
+On Mon, 18 Sep 2017, Pablo Neira Ayuso wrote:
 
-So you could use the check function for it, do you not?
+> On Mon, Sep 11, 2017 at 09:52:36PM +0200, Jozsef Kadlecsik wrote:
+> > Hi Pablo,
+> > 
+> > Here follows a few ipset patches for the nf-next tree:
+> > 
+> > * Merge assignment and simplify return in a fuction by Simran Singhal
+> > * Fix a sparse warning from me
+> > * Deduplicate prefixlen maps by Aaron Conole
+> > * Fix the outdated element counter for sets with timeout by Vishwanath Pai
+> 
+> Let me take 4/4 to nf.git as a fix, so we don't wait for one month for
+> this to show up.
+> 
+> I will take from 1/4 to 3/4 to nf-next. You can either send me a new 
+> pull request for this or I can just include your Signed-off-by: tag in 
+> those patches when applying them.
+
+Please just include my tag
+
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+
+Thanks!
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
