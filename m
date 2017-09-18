@@ -1,41 +1,48 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nat: Do not use ARRAY_SIZE() on spinlocks to
- fix zero div
-Date: Mon, 18 Sep 2017 17:33:47 +0200
-Message-ID: <20170918153347.GA28198@salvia>
-References: <1505043701-13255-1-git-send-email-geert@linux-m68k.org>
+Subject: Re: [PATCH 4/4] netfilter: ipset: ipset list may return wrong member
+ count for set with timeout
+Date: Mon, 18 Sep 2017 17:35:09 +0200
+Message-ID: <20170918153509.GA2177@salvia>
+References: <1505159560-13161-1-git-send-email-kadlec@blackhole.kfki.hu>
+ <1505159560-13161-5-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Arnd Bergmann <arnd@arndb.de>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:35932 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752921AbdIRPfN (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 18 Sep 2017 11:35:13 -0400
 Content-Disposition: inline
-In-Reply-To: <1505043701-13255-1-git-send-email-geert@linux-m68k.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1505159560-13161-5-git-send-email-kadlec@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Sep 10, 2017 at 01:41:41PM +0200, Geert Uytterhoeven wrote:
-> If no spinlock debugging options (CONFIG_GENERIC_LOCKBREAK,
-> CONFIG_DEBUG_SPINLOCK, CONFIG_DEBUG_LOCK_ALLOC) are enabled on a UP
-> platform (e.g. m68k defconfig), arch_spinlock_t is an empty struct,
-> hence using ARRAY_SIZE(nf_nat_locks) causes a division by zero:
+On Mon, Sep 11, 2017 at 09:52:40PM +0200, Jozsef Kadlecsik wrote:
+> From: Vishwanath Pai <vpai@akamai.com>
 > 
->     net/netfilter/nf_nat_core.c: In function ‘nf_nat_setup_info’:
->     net/netfilter/nf_nat_core.c:432: warning: division by zero
->     net/netfilter/nf_nat_core.c: In function ‘__nf_nat_cleanup_conntrack’:
->     net/netfilter/nf_nat_core.c:535: warning: division by zero
->     net/netfilter/nf_nat_core.c:537: warning: division by zero
->     net/netfilter/nf_nat_core.c: In function ‘nf_nat_init’:
->     net/netfilter/nf_nat_core.c:810: warning: division by zero
->     net/netfilter/nf_nat_core.c:811: warning: division by zero
->     net/netfilter/nf_nat_core.c:824: warning: division by zero
+> Simple testcase:
 > 
-> Fix this by using the CONNTRACK_LOCKS definition instead.
+> $ ipset create test hash:ip timeout 5
+> $ ipset add test 1.2.3.4
+> $ ipset add test 1.2.2.2
+> $ sleep 5
+> 
+> $ ipset l
+> Name: test
+> Type: hash:ip
+> Revision: 5
+> Header: family inet hashsize 1024 maxelem 65536 timeout 5
+> Size in memory: 296
+> References: 0
+> Number of entries: 2
+> Members:
+> 
+> We return "Number of entries: 2" but no members are listed. That is
+> because mtype_list runs "ip_set_timeout_expired" and does not list the
+> expired entries, but set->elements is never upated (until mtype_gc
+> cleans it up later).
 
-Applied.
+Applied to nf.git. Thanks Jozsef.
