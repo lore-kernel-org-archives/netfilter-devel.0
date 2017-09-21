@@ -1,42 +1,91 @@
 From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Subject: Re: [PATCH] netfilter: xt_socket: Restore mark from full sockets only
-Date: Thu, 21 Sep 2017 15:45:21 -0600
-Message-ID: <a8455bbfc89590fe4f6ca79d65092d07@codeaurora.org>
-References: <1506028832-8981-1-git-send-email-subashab@codeaurora.org>
- <1506029567.29839.150.camel@edumazet-glaptop3.roam.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH v2] netfilter: xt_socket: Restore mark from full sockets only
+Date: Thu, 21 Sep 2017 16:08:07 -0600
+Message-ID: <1506031687-21319-1-git-send-email-subashab@codeaurora.org>
+Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+To: netfilter-devel@vger.kernel.org, eric.dumazet@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:40566 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:47254 "EHLO
         smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751728AbdIUVpW (ORCPT
+        with ESMTP id S1751728AbdIUWI3 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Sep 2017 17:45:22 -0400
-In-Reply-To: <1506029567.29839.150.camel@edumazet-glaptop3.roam.corp.google.com>
+        Thu, 21 Sep 2017 18:08:29 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->> 
->>  		if (info->flags & XT_SOCKET_RESTORESKMARK && !wildcard &&
->> -		    transparent)
->> +		    transparent && sk_fullsock(sk))
->>  			pskb->mark = sk->sk_mark;
->> 
->>  		if (sk != skb->sk)
-> 
-> What about socket_mt6_v1_v2_v3() ?
-> 
-> Thanks.
+An out of bounds error was detected on an ARM64 target with
+Android based kernel 4.9. This occurs while trying to
+restore mark on a skb from an inet request socket.
 
-Hi Eric
+BUG: KASAN: slab-out-of-bounds in socket_match.isra.2+0xc8/0x1f0 net/netfilter/xt_socket.c:248
+Read of size 4 at addr ffffffc06a8d824c by task syz-fuzzer/1532
+CPU: 7 PID: 1532 Comm: syz-fuzzer Tainted: G        W  O    4.9.41+ #1
+Call trace:
+[<ffffff900808d2f8>] dump_backtrace+0x0/0x440 arch/arm64/kernel/traps.c:76
+[<ffffff900808d760>] show_stack+0x28/0x38 arch/arm64/kernel/traps.c:226
+[<ffffff90085f7dc8>] __dump_stack lib/dump_stack.c:15 [inline]
+[<ffffff90085f7dc8>] dump_stack+0xe4/0x134 lib/dump_stack.c:51
+[<ffffff900830f358>] print_address_description+0x68/0x258 mm/kasan/report.c:248
+[<ffffff900830f770>] kasan_report_error mm/kasan/report.c:347 [inline]
+[<ffffff900830f770>] kasan_report.part.2+0x228/0x2f0 mm/kasan/report.c:371
+[<ffffff900830fdec>] kasan_report+0x5c/0x70 mm/kasan/report.c:372
+[<ffffff900830de98>] check_memory_region_inline mm/kasan/kasan.c:308 [inline]
+[<ffffff900830de98>] __asan_load4+0x88/0xa0 mm/kasan/kasan.c:740
+[<ffffff90097498f8>] socket_match.isra.2+0xc8/0x1f0 net/netfilter/xt_socket.c:248
+[<ffffff9009749a5c>] socket_mt4_v1_v2_v3+0x3c/0x48 net/netfilter/xt_socket.c:272
+[<ffffff90097f7e4c>] ipt_do_table+0x54c/0xad8 net/ipv4/netfilter/ip_tables.c:311
+[<ffffff90097fcf14>] iptable_mangle_hook+0x6c/0x220 net/ipv4/netfilter/iptable_mangle.c:90
+...
+Allocated by task 1532:
+ save_stack_trace_tsk+0x0/0x2a0 arch/arm64/kernel/stacktrace.c:131
+ save_stack_trace+0x28/0x38 arch/arm64/kernel/stacktrace.c:215
+ save_stack mm/kasan/kasan.c:495 [inline]
+ set_track mm/kasan/kasan.c:507 [inline]
+ kasan_kmalloc+0xd8/0x188 mm/kasan/kasan.c:599
+ kasan_slab_alloc+0x14/0x20 mm/kasan/kasan.c:537
+ slab_post_alloc_hook mm/slab.h:417 [inline]
+ slab_alloc_node mm/slub.c:2728 [inline]
+ slab_alloc mm/slub.c:2736 [inline]
+ kmem_cache_alloc+0x14c/0x2e8 mm/slub.c:2741
+ reqsk_alloc include/net/request_sock.h:87 [inline]
+ inet_reqsk_alloc+0x4c/0x238 net/ipv4/tcp_input.c:6236
+ tcp_conn_request+0x2b0/0xea8 net/ipv4/tcp_input.c:6341
+ tcp_v4_conn_request+0xe0/0x100 net/ipv4/tcp_ipv4.c:1256
+ tcp_rcv_state_process+0x384/0x18a8 net/ipv4/tcp_input.c:5926
+ tcp_v4_do_rcv+0x2f0/0x3e0 net/ipv4/tcp_ipv4.c:1430
+ tcp_v4_rcv+0x1278/0x1350 net/ipv4/tcp_ipv4.c:1709
+ ip_local_deliver_finish+0x174/0x3e0 net/ipv4/ip_input.c:216
 
-I missed that instance. I'll update it in v2.
+v1->v2: Change socket_mt6_v1_v2_v3() as well as mentioned by Eric
 
+Fixes: a94070000388 ("netfilter: xt_socket: prepare for TCP_NEW_SYN_RECV support")
+Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+---
+ net/netfilter/xt_socket.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
+index e75ef39..575d215 100644
+--- a/net/netfilter/xt_socket.c
++++ b/net/netfilter/xt_socket.c
+@@ -76,7 +76,7 @@
+ 			transparent = nf_sk_is_transparent(sk);
+ 
+ 		if (info->flags & XT_SOCKET_RESTORESKMARK && !wildcard &&
+-		    transparent)
++		    transparent && sk_fullsock(sk))
+ 			pskb->mark = sk->sk_mark;
+ 
+ 		if (sk != skb->sk)
+@@ -133,7 +133,7 @@
+ 			transparent = nf_sk_is_transparent(sk);
+ 
+ 		if (info->flags & XT_SOCKET_RESTORESKMARK && !wildcard &&
+-		    transparent)
++		    transparent && sk_fullsock(sk))
+ 			pskb->mark = sk->sk_mark;
+ 
+ 		if (sk != skb->sk)
 -- 
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a 
-Linux Foundation Collaborative Project
+1.9.1
+
