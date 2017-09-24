@@ -1,8 +1,8 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.9 61/77] net/netfilter/nf_conntrack_core: Fix net_conntrack_lock()
-Date: Sun, 24 Sep 2017 22:32:46 +0200
-Message-ID: <20170924203245.245082015@linuxfoundation.org>
-References: <20170924203242.904856530@linuxfoundation.org>
+Subject: [PATCH 4.13 083/109] net/netfilter/nf_conntrack_core: Fix net_conntrack_lock()
+Date: Sun, 24 Sep 2017 22:33:44 +0200
+Message-ID: <20170924203356.433309520@linuxfoundation.org>
+References: <20170924203353.104695385@linuxfoundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -14,11 +14,11 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 To: linux-kernel@vger.kernel.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170924203242.904856530@linuxfoundation.org>
+In-Reply-To: <20170924203353.104695385@linuxfoundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-4.9-stable review patch.  If anyone has any objections, please let me know.
+4.13-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
@@ -55,7 +55,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -95,19 +95,26 @@ static struct conntrack_gc_work conntrac
+@@ -96,19 +96,26 @@ static struct conntrack_gc_work conntrac
  
  void nf_conntrack_lock(spinlock_t *lock) __acquires(lock)
  {
@@ -93,7 +93,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  }
  EXPORT_SYMBOL_GPL(nf_conntrack_lock);
  
-@@ -148,28 +155,27 @@ static void nf_conntrack_all_lock(void)
+@@ -149,28 +156,27 @@ static void nf_conntrack_all_lock(void)
  	int i;
  
  	spin_lock(&nf_conntrack_locks_all_lock);
