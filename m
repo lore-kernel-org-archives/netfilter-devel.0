@@ -1,135 +1,56 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.13 083/109] net/netfilter/nf_conntrack_core: Fix net_conntrack_lock()
-Date: Sun, 24 Sep 2017 22:33:44 +0200
-Message-ID: <20170924203356.433309520@linuxfoundation.org>
-References: <20170924203353.104695385@linuxfoundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        stable@vger.kernel.org, Manfred Spraul <manfred@colorfullife.com>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Sasha Levin <sasha.levin@oracle.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org,
-        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-To: linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170924203353.104695385@linuxfoundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Stijn Tintel <stijn@linux-ipv6.be>
+Subject: [PATCH] ipset: fix build with musl
+Date: Mon, 25 Sep 2017 08:09:01 +0300
+Message-ID: <20170925050901.31033-1-stijn@linux-ipv6.be>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.tintel.eu ([54.36.12.13]:56044 "EHLO mail.tintel.eu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753121AbdIYFRh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 25 Sep 2017 01:17:37 -0400
+Received: from localhost (localhost [IPv6:::1])
+        by mail.tintel.eu (Postfix) with ESMTP id 2DB9C437CC46
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Sep 2017 07:09:04 +0200 (CEST)
+Received: from mail.tintel.eu ([IPv6:::1])
+        by localhost (mail.tintel.eu [IPv6:::1]) (amavisd-new, port 10032)
+        with ESMTP id P82pTuA2m5XM for <netfilter-devel@vger.kernel.org>;
+        Mon, 25 Sep 2017 07:09:03 +0200 (CEST)
+Received: from localhost (localhost [IPv6:::1])
+        by mail.tintel.eu (Postfix) with ESMTP id AD0A1434FC55
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Sep 2017 07:09:03 +0200 (CEST)
+Received: from mail.tintel.eu ([IPv6:::1])
+        by localhost (mail.tintel.eu [IPv6:::1]) (amavisd-new, port 10026)
+        with ESMTP id rXPvpwON_G-Z for <netfilter-devel@vger.kernel.org>;
+        Mon, 25 Sep 2017 07:09:03 +0200 (CEST)
+Received: from taz (unknown [IPv6:2001:67c:21bc:24::adb])
+        (Authenticated sender: stijn@linux-ipv6.be)
+        by mail.tintel.eu (Postfix) with ESMTPSA id 733C5437CC46
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Sep 2017 07:09:02 +0200 (CEST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-4.13-stable review patch.  If anyone has any objections, please let me know.
+Include sys/types.h for u_int8_t and define _GNU_SOURCE for musl to
+expose it.
 
-------------------
-
-From: Manfred Spraul <manfred@colorfullife.com>
-
-commit 3ef0c7a730de0bae03d86c19570af764fa3c4445 upstream.
-
-As we want to remove spin_unlock_wait() and replace it with explicit
-spin_lock()/spin_unlock() calls, we can use this to simplify the
-locking.
-
-In addition:
-- Reading nf_conntrack_locks_all needs ACQUIRE memory ordering.
-- The new code avoids the backwards loop.
-
-Only slightly tested, I did not manage to trigger calls to
-nf_conntrack_all_lock().
-
-V2: With improved comments, to clearly show how the barriers
-    pair.
-
-Fixes: b16c29191dc8 ("netfilter: nf_conntrack: use safer way to lock all buckets")
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
+Fixes: 54802b2c2826 ("Report if the option is supported by a newer kernel release")
+Signed-off-by: Stijn Tintel <stijn@linux-ipv6.be>
 ---
- net/netfilter/nf_conntrack_core.c |   52 +++++++++++++++++++++-----------------
- 1 file changed, 29 insertions(+), 23 deletions(-)
+ src/ipset.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -96,19 +96,26 @@ static struct conntrack_gc_work conntrac
+diff --git a/src/ipset.c b/src/ipset.c
+index 79f56b8..8d70abc 100644
+--- a/src/ipset.c
++++ b/src/ipset.c
+@@ -14,6 +14,8 @@
+ #include <stdio.h>			/* fprintf, fgets */
+ #include <stdlib.h>			/* exit */
+ #include <string.h>			/* str* */
++#define _GNU_SOURCE
++#include <sys/types.h>			/* u_int8_t */
  
- void nf_conntrack_lock(spinlock_t *lock) __acquires(lock)
- {
-+	/* 1) Acquire the lock */
- 	spin_lock(lock);
--	while (unlikely(nf_conntrack_locks_all)) {
--		spin_unlock(lock);
+ #include <config.h>
  
--		/*
--		 * Order the 'nf_conntrack_locks_all' load vs. the
--		 * spin_unlock_wait() loads below, to ensure
--		 * that 'nf_conntrack_locks_all_lock' is indeed held:
--		 */
--		smp_rmb(); /* spin_lock(&nf_conntrack_locks_all_lock) */
--		spin_unlock_wait(&nf_conntrack_locks_all_lock);
--		spin_lock(lock);
--	}
-+	/* 2) read nf_conntrack_locks_all, with ACQUIRE semantics
-+	 * It pairs with the smp_store_release() in nf_conntrack_all_unlock()
-+	 */
-+	if (likely(smp_load_acquire(&nf_conntrack_locks_all) == false))
-+		return;
-+
-+	/* fast path failed, unlock */
-+	spin_unlock(lock);
-+
-+	/* Slow path 1) get global lock */
-+	spin_lock(&nf_conntrack_locks_all_lock);
-+
-+	/* Slow path 2) get the lock we want */
-+	spin_lock(lock);
-+
-+	/* Slow path 3) release the global lock */
-+	spin_unlock(&nf_conntrack_locks_all_lock);
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_lock);
- 
-@@ -149,28 +156,27 @@ static void nf_conntrack_all_lock(void)
- 	int i;
- 
- 	spin_lock(&nf_conntrack_locks_all_lock);
--	nf_conntrack_locks_all = true;
- 
--	/*
--	 * Order the above store of 'nf_conntrack_locks_all' against
--	 * the spin_unlock_wait() loads below, such that if
--	 * nf_conntrack_lock() observes 'nf_conntrack_locks_all'
--	 * we must observe nf_conntrack_locks[] held:
--	 */
--	smp_mb(); /* spin_lock(&nf_conntrack_locks_all_lock) */
-+	nf_conntrack_locks_all = true;
- 
- 	for (i = 0; i < CONNTRACK_LOCKS; i++) {
--		spin_unlock_wait(&nf_conntrack_locks[i]);
-+		spin_lock(&nf_conntrack_locks[i]);
-+
-+		/* This spin_unlock provides the "release" to ensure that
-+		 * nf_conntrack_locks_all==true is visible to everyone that
-+		 * acquired spin_lock(&nf_conntrack_locks[]).
-+		 */
-+		spin_unlock(&nf_conntrack_locks[i]);
- 	}
- }
- 
- static void nf_conntrack_all_unlock(void)
- {
--	/*
--	 * All prior stores must be complete before we clear
-+	/* All prior stores must be complete before we clear
- 	 * 'nf_conntrack_locks_all'. Otherwise nf_conntrack_lock()
- 	 * might observe the false value but not the entire
--	 * critical section:
-+	 * critical section.
-+	 * It pairs with the smp_load_acquire() in nf_conntrack_lock()
- 	 */
- 	smp_store_release(&nf_conntrack_locks_all, false);
- 	spin_unlock(&nf_conntrack_locks_all_lock);
+-- 
+2.13.5
+
