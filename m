@@ -1,51 +1,55 @@
-From: Shyam Saini <mayhs11saini@gmail.com>
-Subject: Re: [RFC PATCH nft V4] src: Add import command for json
-Date: Mon, 25 Sep 2017 22:53:34 +0530
-Message-ID: <CAOfkYf59GXeT_QA4HnvLmUe0FAhrLB5q9nTPD_DEVko7NqUJ7A@mail.gmail.com>
-References: <1505902479-24405-1-git-send-email-mayhs11saini@gmail.com>
- <CAOkSjBj0SZ18kUPrp4r-4P18ZOwmC+6hS16ZSyOU=JOYK6UZTw@mail.gmail.com> <20170921110826.GB4504@salvia>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] ipset: fix build with musl
+Date: Mon, 25 Sep 2017 20:13:33 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1709252012550.16418@blackhole.kfki.hu>
+References: <20170925050901.31033-1-stijn@linux-ipv6.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Arturo Borrero Gonzalez <arturo@netfilter.org>,
-        Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Stijn Tintel <stijn@linux-ipv6.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f53.google.com ([209.85.218.53]:56911 "EHLO
-        mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964851AbdIYRXf (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 25 Sep 2017 13:23:35 -0400
-Received: by mail-oi0-f53.google.com with SMTP id b184so8016800oii.13
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Sep 2017 10:23:35 -0700 (PDT)
-In-Reply-To: <20170921110826.GB4504@salvia>
+Received: from smtp-in.kfki.hu ([148.6.0.28]:38493 "EHLO smtp2.kfki.hu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753917AbdIYSNi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 25 Sep 2017 14:13:38 -0400
+In-Reply-To: <20170925050901.31033-1-stijn@linux-ipv6.be>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> My only concern with this is that we'll end up having a json
-> representation in high-level format.
->
-> So I wonder if it would be good to make a distinction between the
-> low-level VM (Virtual-Machine) json representation and the high-level
-> one.
->
-> What I'm proposing is that we just add a command like this:
->
-> nft add export vm json
->
-> So the vm keyword specifies that we want a VM representation. So we
-> leave room for Eric Leblond's high level json representation.
->
-> I would turn 'nft export json' into no-op now, and we document this
-> change in the 0.8 release, since we aren't yet on 1.0, we still have a
-> bit of room to make these changes...
->
-> Fine with this?
+Hi Stijn,
 
+On Mon, 25 Sep 2017, Stijn Tintel wrote:
 
-Hi Pablo,
+> Include sys/types.h for u_int8_t and define _GNU_SOURCE for musl to
+> expose it.
+> 
+> Fixes: 54802b2c2826 ("Report if the option is supported by a newer kernel release")
+> Signed-off-by: Stijn Tintel <stijn@linux-ipv6.be>
+> ---
+>  src/ipset.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/src/ipset.c b/src/ipset.c
+> index 79f56b8..8d70abc 100644
+> --- a/src/ipset.c
+> +++ b/src/ipset.c
+> @@ -14,6 +14,8 @@
+>  #include <stdio.h>			/* fprintf, fgets */
+>  #include <stdlib.h>			/* exit */
+>  #include <string.h>			/* str* */
+> +#define _GNU_SOURCE
+> +#include <sys/types.h>			/* u_int8_t */
+>  
+>  #include <config.h>
+>  
+> -- 
 
-How should we proceed to include features requested by you?
+Patch is applied in ipset git tree, thanks.
 
-Thanks,
-Shyam
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
