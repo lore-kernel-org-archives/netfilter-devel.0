@@ -1,44 +1,31 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf v2] netfilter: ipset: pernet ops must be unregistered
- last
-Date: Tue, 26 Sep 2017 19:58:50 +0200
-Message-ID: <20170926175850.GA24805@salvia>
-References: <20170926095754.32766-1-fw@strlen.de>
- <alpine.DEB.2.11.1709261947190.19287@blackhole.kfki.hu>
+Subject: Re: [PATCH 1/1] Fix adding an IPv4 range containing more than 2^31
+ addresses
+Date: Tue, 26 Sep 2017 20:01:36 +0200
+Message-ID: <20170926180136.GA24950@salvia>
+References: <1506202660-12553-1-git-send-email-kadlec@blackhole.kfki.hu>
+ <1506202660-12553-2-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:56151 "EHLO
+Received: from ganesha.gnumonks.org ([213.95.27.120]:56187 "EHLO
         ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966562AbdIZR6z (ORCPT
+        with ESMTP id S968988AbdIZSBk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Sep 2017 13:58:55 -0400
+        Tue, 26 Sep 2017 14:01:40 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.11.1709261947190.19287@blackhole.kfki.hu>
+In-Reply-To: <1506202660-12553-2-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Sep 26, 2017 at 07:48:45PM +0200, Jozsef Kadlecsik wrote:
-> On Tue, 26 Sep 2017, Florian Westphal wrote:
+On Sat, Sep 23, 2017 at 11:37:40PM +0200, Jozsef Kadlecsik wrote:
+> Wrong comparison prevented the hash types to add a range with
+> more than 2^31 addresses but reported as a success.
 > 
-> > Removing the ipset module leaves a small window where one cpu performs
-> > module removal while another runs a command like 'ipset flush'.
-> > 
-> > ipset uses net_generic(), unregistering the pernet ops frees this
-> > storage area.
-> > 
-> > Fix it by first removing the user-visible api handlers and the pernet
-> > ops last.
-> > 
-> > Fixes: 1785e8f473082 ("netfiler: ipset: Add net namespace for ipset")
-> > Reported-by: Li Shuang <shuali@redhat.com>
-> > Signed-off-by: Florian Westphal <fw@strlen.de>
-> 
-> Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> 
-> Pablo, could you apply the patch in the nf tree?
+> Fixes bugzilla id #1005, reported by Oleg Serditov and Oliver Ford.
 
 Applied, thanks Jozsef.
 
+Jozsef, I'm prepending the following to this patch title: "netfilter: ipset:"
