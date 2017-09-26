@@ -1,151 +1,240 @@
-From: Artem Savkov <asavkov@redhat.com>
-Subject: [PATCH v3] ebtables: fix race condition in frame_filter_net_init()
-Date: Tue, 26 Sep 2017 18:35:45 +0200
-Message-ID: <20170926163545.3668-1-asavkov@redhat.com>
-References: <20170926153923.30094-1-asavkov@redhat.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Artem Savkov <asavkov@redhat.com>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170926153923.30094-1-asavkov@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 1/3] parser_bison: consolidate stmt_expr rule
+Date: Tue, 26 Sep 2017 19:09:49 +0200
+Message-ID: <1506445791-20482-1-git-send-email-pablo@netfilter.org>
+Cc: fw@strlen.de
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:51630 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S935589AbdIZRJ7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 26 Sep 2017 13:09:59 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id F3EED220B5
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2017 19:09:57 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E569EB502A
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2017 19:09:57 +0200 (CEST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-It is possible for ebt_in_hook to be triggered before ebt_table is assigned
-resulting in a NULL-pointer dereference. Make sure hooks are
-registered as the last step.
+Extend stmt_expr and use it from all of our statement rules. Add more
+rules to describe what we take from statement expressions, instead of
+reusing rhs_expr which is allowing way more things that we actually need
+here. This is causing us problems when extending the grammar.
 
-v3: restore errorneously removed ops == NULL case check
+After this patch, you will hit this:
 
-Fixes: aee12a0a3727 ebtables: remove nf_hook_register usage
-Signed-off-by: Artem Savkov <asavkov@redhat.com>
+	parser_bison.y: warning: 2 shift/reduce conflicts [-Wconflicts-sr]
+
+However, this is fixed by the follow up patches:
+
+	parser_bison: allow helper keyword in ct object kind
+	parser_bison: use keywords in ct expression
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter_bridge/ebtables.h |  7 ++++---
- net/bridge/netfilter/ebtable_broute.c     |  4 ++--
- net/bridge/netfilter/ebtable_filter.c     |  4 ++--
- net/bridge/netfilter/ebtable_nat.c        |  4 ++--
- net/bridge/netfilter/ebtables.c           | 17 +++++++++--------
- 5 files changed, 19 insertions(+), 17 deletions(-)
+ src/parser_bison.y | 123 ++++++++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 102 insertions(+), 21 deletions(-)
 
-diff --git a/include/linux/netfilter_bridge/ebtables.h b/include/linux/netfilter_bridge/ebtables.h
-index 2c2a5514b0df..528b24c78308 100644
---- a/include/linux/netfilter_bridge/ebtables.h
-+++ b/include/linux/netfilter_bridge/ebtables.h
-@@ -108,9 +108,10 @@ struct ebt_table {
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 31a7e8be2bcd..8bcf64e9903d 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -560,6 +560,18 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %type <expr>			stmt_expr concat_stmt_expr map_stmt_expr
+ %destructor { expr_free($$); }	stmt_expr concat_stmt_expr map_stmt_expr
  
- #define EBT_ALIGN(s) (((s) + (__alignof__(struct _xt_align)-1)) & \
- 		     ~(__alignof__(struct _xt_align)-1))
--extern struct ebt_table *ebt_register_table(struct net *net,
--					    const struct ebt_table *table,
--					    const struct nf_hook_ops *);
-+extern int ebt_register_table(struct net *net,
-+			      const struct ebt_table *table,
-+			      const struct nf_hook_ops *ops,
-+			      struct ebt_table **res);
- extern void ebt_unregister_table(struct net *net, struct ebt_table *table,
- 				 const struct nf_hook_ops *);
- extern unsigned int ebt_do_table(struct sk_buff *skb,
-diff --git a/net/bridge/netfilter/ebtable_broute.c b/net/bridge/netfilter/ebtable_broute.c
-index 2585b100ebbb..276b60262981 100644
---- a/net/bridge/netfilter/ebtable_broute.c
-+++ b/net/bridge/netfilter/ebtable_broute.c
-@@ -65,8 +65,8 @@ static int ebt_broute(struct sk_buff *skb)
- 
- static int __net_init broute_net_init(struct net *net)
- {
--	net->xt.broute_table = ebt_register_table(net, &broute_table, NULL);
--	return PTR_ERR_OR_ZERO(net->xt.broute_table);
-+	return ebt_register_table(net, &broute_table, NULL,
-+				  &net->xt.broute_table);
- }
- 
- static void __net_exit broute_net_exit(struct net *net)
-diff --git a/net/bridge/netfilter/ebtable_filter.c b/net/bridge/netfilter/ebtable_filter.c
-index 45a00dbdbcad..c41da5fac84f 100644
---- a/net/bridge/netfilter/ebtable_filter.c
-+++ b/net/bridge/netfilter/ebtable_filter.c
-@@ -93,8 +93,8 @@ static const struct nf_hook_ops ebt_ops_filter[] = {
- 
- static int __net_init frame_filter_net_init(struct net *net)
- {
--	net->xt.frame_filter = ebt_register_table(net, &frame_filter, ebt_ops_filter);
--	return PTR_ERR_OR_ZERO(net->xt.frame_filter);
-+	return ebt_register_table(net, &frame_filter, ebt_ops_filter,
-+				  &net->xt.frame_filter);
- }
- 
- static void __net_exit frame_filter_net_exit(struct net *net)
-diff --git a/net/bridge/netfilter/ebtable_nat.c b/net/bridge/netfilter/ebtable_nat.c
-index 57cd5bb154e7..08df7406ecb3 100644
---- a/net/bridge/netfilter/ebtable_nat.c
-+++ b/net/bridge/netfilter/ebtable_nat.c
-@@ -93,8 +93,8 @@ static const struct nf_hook_ops ebt_ops_nat[] = {
- 
- static int __net_init frame_nat_net_init(struct net *net)
- {
--	net->xt.frame_nat = ebt_register_table(net, &frame_nat, ebt_ops_nat);
--	return PTR_ERR_OR_ZERO(net->xt.frame_nat);
-+	return ebt_register_table(net, &frame_nat, ebt_ops_nat,
-+				  &net->xt.frame_nat);
- }
- 
- static void __net_exit frame_nat_net_exit(struct net *net)
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 83951f978445..3b3dcf719e07 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -1169,9 +1169,8 @@ static void __ebt_unregister_table(struct net *net, struct ebt_table *table)
- 	kfree(table);
- }
- 
--struct ebt_table *
--ebt_register_table(struct net *net, const struct ebt_table *input_table,
--		   const struct nf_hook_ops *ops)
-+int ebt_register_table(struct net *net, const struct ebt_table *input_table,
-+		       const struct nf_hook_ops *ops, struct ebt_table **res)
- {
- 	struct ebt_table_info *newinfo;
- 	struct ebt_table *t, *table;
-@@ -1183,7 +1182,7 @@ ebt_register_table(struct net *net, const struct ebt_table *input_table,
- 	    repl->entries == NULL || repl->entries_size == 0 ||
- 	    repl->counters != NULL || input_table->private != NULL) {
- 		BUGPRINT("Bad table data for ebt_register_table!!!\n");
--		return ERR_PTR(-EINVAL);
-+		return -EINVAL;
- 	}
- 
- 	/* Don't add one table to multiple lists. */
-@@ -1252,16 +1251,18 @@ ebt_register_table(struct net *net, const struct ebt_table *input_table,
- 	list_add(&table->list, &net->xt.tables[NFPROTO_BRIDGE]);
- 	mutex_unlock(&ebt_mutex);
- 
-+	WRITE_ONCE(*res, table);
++%type <expr>			multiton_stmt_expr
++%destructor { expr_free($$); }	multiton_stmt_expr
++%type <expr>			prefix_stmt_expr range_stmt_expr wildcard_stmt_expr
++%destructor { expr_free($$); }	prefix_stmt_expr range_stmt_expr wildcard_stmt_expr
 +
- 	if (!ops)
--		return table;
-+		return 0;
++%type <expr>			primary_stmt_expr basic_stmt_expr
++%destructor { expr_free($$); }	primary_stmt_expr basic_stmt_expr
++%type <expr>			list_stmt_expr shift_stmt_expr
++%destructor { expr_free($$); }	list_stmt_expr shift_stmt_expr
++%type <expr>			and_stmt_expr exclusive_or_stmt_expr inclusive_or_stmt_expr
++%destructor { expr_free($$); }	and_stmt_expr exclusive_or_stmt_expr inclusive_or_stmt_expr
++
+ %type <expr>			concat_expr
+ %destructor { expr_free($$); }	concat_expr
  
- 	ret = nf_register_net_hooks(net, ops, hweight32(table->valid_hooks));
- 	if (ret) {
- 		__ebt_unregister_table(net, table);
--		return ERR_PTR(ret);
-+		*res = NULL;
- 	}
+@@ -644,11 +656,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %destructor { expr_free($$); }	rt_expr
+ %type <val>			rt_key
  
--	return table;
-+	return ret;
- free_unlock:
- 	mutex_unlock(&ebt_mutex);
- free_chainstack:
-@@ -1276,7 +1277,7 @@ ebt_register_table(struct net *net, const struct ebt_table *input_table,
- free_table:
- 	kfree(table);
- out:
--	return ERR_PTR(ret);
-+	return ret;
- }
+-%type <expr>			list_stmt_expr
+-%destructor { expr_free($$); }	list_stmt_expr
+-
+-%type <expr>			ct_expr		ct_stmt_expr
+-%destructor { expr_free($$); }	ct_expr		ct_stmt_expr
++%type <expr>			ct_expr
++%destructor { expr_free($$); }	ct_expr
+ %type <val>			ct_key		ct_key_dir	ct_key_dir_optional
  
- void ebt_unregister_table(struct net *net, struct ebt_table *table,
+ %type <expr>			fib_expr
+@@ -2206,8 +2215,55 @@ nat_stmt_alloc		:	SNAT
+ 			}
+ 			;
+ 
+-concat_stmt_expr	:	primary_expr
+-			|	concat_stmt_expr	DOT	primary_expr
++primary_stmt_expr	:	symbol_expr		{ $$ = $1; }
++			|	integer_expr		{ $$ = $1; }
++			|	boolean_expr		{ $$ = $1; }
++			|	meta_expr		{ $$ = $1; }
++			|	rt_expr			{ $$ = $1; }
++			|	ct_expr			{ $$ = $1; }
++			|	numgen_expr             { $$ = $1; }
++			|	hash_expr               { $$ = $1; }
++			|	payload_expr		{ $$ = $1; }
++			|	keyword_rhs_expr	{ $$ = $1; }
++			;
++
++shift_stmt_expr		:	primary_stmt_expr
++			|	shift_stmt_expr		LSHIFT		primary_stmt_expr
++			{
++				$$ = binop_expr_alloc(&@$, OP_LSHIFT, $1, $3);
++			}
++			|	shift_stmt_expr		RSHIFT		primary_rhs_expr
++			{
++				$$ = binop_expr_alloc(&@$, OP_RSHIFT, $1, $3);
++			}
++			;
++
++and_stmt_expr		:	shift_stmt_expr
++			|	and_stmt_expr		AMPERSAND	shift_stmt_expr
++			{
++				$$ = binop_expr_alloc(&@$, OP_AND, $1, $3);
++			}
++			;
++
++exclusive_or_stmt_expr	:	and_stmt_expr
++			|	exclusive_or_stmt_expr	CARET		and_stmt_expr
++			{
++				$$ = binop_expr_alloc(&@$, OP_XOR, $1, $3);
++			}
++			;
++
++inclusive_or_stmt_expr	:	exclusive_or_stmt_expr
++			|	inclusive_or_stmt_expr	'|'		exclusive_or_stmt_expr
++			{
++				$$ = binop_expr_alloc(&@$, OP_OR, $1, $3);
++			}
++			;
++
++basic_stmt_expr		:	inclusive_or_stmt_expr
++			;
++
++concat_stmt_expr	:	basic_stmt_expr
++			|	concat_stmt_expr	DOT	primary_stmt_expr
+ 			{
+ 				if ($$->ops->type != EXPR_CONCAT) {
+ 					$$ = concat_expr_alloc(&@$);
+@@ -2226,15 +2282,44 @@ concat_stmt_expr	:	primary_expr
+ 			}
+ 			;
+ 
+-map_stmt_expr		:	concat_stmt_expr	MAP	rhs_expr
++map_stmt_expr		:	concat_stmt_expr	MAP	set_expr
+ 			{
+ 				$$ = map_expr_alloc(&@$, $1, $3);
+ 			}
++			|	concat_stmt_expr	{ $$ = $1; }
++			;
++
++prefix_stmt_expr	:	basic_stmt_expr	SLASH	NUM
++			{
++				$$ = prefix_expr_alloc(&@$, $1, $3);
++			}
++			;
++
++range_stmt_expr		:	basic_stmt_expr	DASH	basic_stmt_expr
++			{
++				$$ = range_expr_alloc(&@$, $1, $3);
++			}
++			;
++
++wildcard_stmt_expr	:	ASTERISK
++			{
++				struct expr *expr;
++
++				expr = constant_expr_alloc(&@$, &integer_type,
++							   BYTEORDER_HOST_ENDIAN,
++							   0, NULL);
++				$$ = prefix_expr_alloc(&@$, expr, 0);
++			}
++			;
++
++multiton_stmt_expr	:	prefix_stmt_expr
++			|	range_stmt_expr
++			|	wildcard_stmt_expr
+ 			;
+ 
+ stmt_expr		:	map_stmt_expr
+-			|	multiton_rhs_expr
+-			|	primary_rhs_expr
++			|	multiton_stmt_expr
++			|	list_stmt_expr
+ 			;
+ 
+ nat_stmt_args		:	stmt_expr
+@@ -3148,15 +3233,15 @@ meta_key_unqualified	:	MARK		{ $$ = NFT_META_MARK; }
+ 			|       CGROUP		{ $$ = NFT_META_CGROUP; }
+ 			;
+ 
+-meta_stmt		:	META	meta_key	SET	expr
++meta_stmt		:	META	meta_key	SET	stmt_expr
+ 			{
+ 				$$ = meta_stmt_alloc(&@$, $2, $4);
+ 			}
+-			|	meta_key_unqualified	SET	expr
++			|	meta_key_unqualified	SET	stmt_expr
+ 			{
+ 				$$ = meta_stmt_alloc(&@$, $1, $3);
+ 			}
+-			|	META	STRING	SET	expr
++			|	META	STRING	SET	stmt_expr
+ 			{
+ 				struct error_record *erec;
+ 				unsigned int key;
+@@ -3285,15 +3370,11 @@ list_stmt_expr		:	symbol_expr	COMMA	symbol_expr
+ 			}
+ 			;
+ 
+-ct_stmt_expr		:	expr
+-			|	list_stmt_expr
+-			;
+-
+-ct_stmt			:	CT	ct_key		SET	expr
++ct_stmt			:	CT	ct_key		SET	stmt_expr
+ 			{
+ 				$$ = ct_stmt_alloc(&@$, $2, -1, $4);
+ 			}
+-			|	CT	STRING		SET	ct_stmt_expr
++			|	CT	STRING		SET	stmt_expr
+ 			{
+ 				struct error_record *erec;
+ 				unsigned int key;
+@@ -3316,7 +3397,7 @@ ct_stmt			:	CT	ct_key		SET	expr
+ 					break;
+ 				}
+ 			}
+-			|	CT	STRING	ct_key_dir_optional SET	expr
++			|	CT	STRING	ct_key_dir_optional SET	stmt_expr
+ 			{
+ 				struct error_record *erec;
+ 				int8_t direction;
+@@ -3332,7 +3413,7 @@ ct_stmt			:	CT	ct_key		SET	expr
+ 			}
+ 			;
+ 
+-payload_stmt		:	payload_expr		SET	expr
++payload_stmt		:	payload_expr		SET	stmt_expr
+ 			{
+ 				if ($1->ops->type == EXPR_EXTHDR)
+ 					$$ = exthdr_stmt_alloc(&@$, $1, $3);
 -- 
-2.13.5
+2.1.4
+
