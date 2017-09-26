@@ -1,210 +1,90 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 2/3] parser_bison: use keywords in ct expression
-Date: Tue, 26 Sep 2017 19:09:50 +0200
-Message-ID: <1506445791-20482-2-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 3/3] parser_bison: allow helper keyword in ct object kind
+Date: Tue, 26 Sep 2017 19:09:51 +0200
+Message-ID: <1506445791-20482-3-git-send-email-pablo@netfilter.org>
 References: <1506445791-20482-1-git-send-email-pablo@netfilter.org>
 Cc: fw@strlen.de
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51636 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51650 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S937278AbdIZRKA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Sep 2017 13:10:00 -0400
+        id S937280AbdIZRKB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 26 Sep 2017 13:10:01 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2DBB7220BC
+        by mail.us.es (Postfix) with ESMTP id CED5D220BF
         for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2017 19:09:59 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1B6E5C882F
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C03B1B5027
         for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2017 19:09:59 +0200 (CEST)
 In-Reply-To: <1506445791-20482-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Using string give us more chances to hit shift/reduce conflicts when
-extending this grammar, more specifically, from the stmt_expr rule, so
-add keywords for this.
+The helper keyword clashes with the string rule, make sure we still
+accept ct helper object types from the parser.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/parser_bison.y | 89 +++++++++++++++++++++---------------------------------
- src/scanner.l      |  9 ++++++
- 2 files changed, 44 insertions(+), 54 deletions(-)
+ src/parser_bison.y | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 8bcf64e9903d..351b51010f59 100644
+index 351b51010f59..2261b9c7a583 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -386,6 +386,15 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %token PROTO_SRC		"proto-src"
- %token PROTO_DST		"proto-dst"
- %token ZONE			"zone"
-+%token DIRECTION		"direction"
-+%token EVENT			"event"
-+%token EXPIRATION		"expiration"
-+%token HELPER			"helper"
-+%token LABEL			"label"
-+%token STATE			"state"
-+%token STATUS			"status"
-+%token ORIGINAL			"original"
-+%token REPLY			"reply"
- 
- %token COUNTER			"counter"
- %token NAME			"name"
-@@ -658,7 +667,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- 
- %type <expr>			ct_expr
- %destructor { expr_free($$); }	ct_expr
--%type <val>			ct_key		ct_key_dir	ct_key_dir_optional
-+%type <val>			ct_key		ct_dir	ct_key_dir_optional	ct_key_dir
- 
- %type <expr>			fib_expr
- %destructor { expr_free($$); }	fib_expr
-@@ -3061,6 +3070,9 @@ keyword_rhs_expr	:	ETHER                   { $$ = symbol_value(&@$, "ether"); }
- 			|	SNAT			{ $$ = symbol_value(&@$, "snat"); }
- 			|	ECN			{ $$ = symbol_value(&@$, "ecn"); }
- 			|	RESET			{ $$ = symbol_value(&@$, "reset"); }
-+			|	ORIGINAL		{ $$ = symbol_value(&@$, "original"); }
-+			|	REPLY			{ $$ = symbol_value(&@$, "reply"); }
-+			|	LABEL			{ $$ = symbol_value(&@$, "label"); }
- 			;
- 
- primary_rhs_expr	:	symbol_expr		{ $$ = $1; }
-@@ -3306,41 +3318,33 @@ ct_expr			: 	CT	ct_key
+@@ -877,7 +877,7 @@ add_cmd			:	TABLE		table_spec
  			{
- 				$$ = ct_expr_alloc(&@$, $2, -1);
+ 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_QUOTA, &$2, &@$, $3);
  			}
--			| 	CT	STRING
-+			|	CT	ct_dir	ct_key_dir
+-			|	CT	STRING	obj_spec	ct_obj_alloc	'{' ct_block '}'	stmt_separator
++			|	CT	ct_obj_kind	obj_spec	ct_obj_alloc	'{' ct_block '}'	stmt_separator
  			{
--				struct error_record *erec;
--				unsigned int key;
--
--				erec = ct_key_parse(&@$, $2, &key);
--				xfree($2);
--				if (erec != NULL) {
--					erec_queue(erec, state->msgs);
--					YYERROR;
--				}
--
--				$$ = ct_expr_alloc(&@$, key, -1);
-+				$$ = ct_expr_alloc(&@$, $3, $2);
+ 				struct error_record *erec;
+ 				int type;
+@@ -961,7 +961,7 @@ create_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_CREATE, CMD_OBJ_QUOTA, &$2, &@$, $3);
  			}
--			|	CT	STRING	ct_key_dir
--			{
--				struct error_record *erec;
--				int8_t direction;
--
--				erec = ct_dir_parse(&@$, $2, &direction);
--				xfree($2);
--				if (erec != NULL) {
--					erec_queue(erec, state->msgs);
--					YYERROR;
--				}
-+			;
- 
--				$$ = ct_expr_alloc(&@$, $3, direction);
--			}
-+ct_dir			:	ORIGINAL	{ $$ = IP_CT_DIR_ORIGINAL; }
-+			|	REPLY		{ $$ = IP_CT_DIR_REPLY; }
- 			;
- 
- ct_key			:	L3PROTOCOL	{ $$ = NFT_CT_L3PROTOCOL; }
- 			|	PROTOCOL	{ $$ = NFT_CT_PROTOCOL; }
- 			|	MARK		{ $$ = NFT_CT_MARK; }
-+			|	STATE		{ $$ = NFT_CT_STATE; }
-+			|	DIRECTION	{ $$ = NFT_CT_DIRECTION; }
-+			|	STATUS		{ $$ = NFT_CT_STATUS; }
-+			|	EXPIRATION	{ $$ = NFT_CT_EXPIRATION; }
-+			|	HELPER		{ $$ = NFT_CT_HELPER; }
-+			|	SADDR		{ $$ = NFT_CT_SRC; }
-+			|	DADDR		{ $$ = NFT_CT_DST; }
-+			|	PROTO_SRC	{ $$ = NFT_CT_PROTO_SRC; }
-+			|	PROTO_DST	{ $$ = NFT_CT_PROTO_DST; }
-+			|	LABEL		{ $$ = NFT_CT_LABELS; }
-+			|	EVENT		{ $$ = NFT_CT_EVENTMASK; }
- 			|	ct_key_dir_optional
- 			;
-+
- ct_key_dir		:	SADDR		{ $$ = NFT_CT_SRC; }
- 			|	DADDR		{ $$ = NFT_CT_DST; }
- 			|	L3PROTOCOL	{ $$ = NFT_CT_L3PROTOCOL; }
-@@ -3356,6 +3360,7 @@ ct_key_dir_optional	:	BYTES		{ $$ = NFT_CT_BYTES; }
- 			|	ZONE		{ $$ = NFT_CT_ZONE; }
- 			;
- 
-+
- list_stmt_expr		:	symbol_expr	COMMA	symbol_expr
+-			|	CT	STRING	obj_spec	ct_obj_alloc	'{' ct_block '}'	stmt_separator
++			|	CT	ct_obj_kind	obj_spec	ct_obj_alloc	'{' ct_block '}'	stmt_separator
  			{
- 				$$ = list_expr_alloc(&@$);
-@@ -3372,44 +3377,20 @@ list_stmt_expr		:	symbol_expr	COMMA	symbol_expr
- 
- ct_stmt			:	CT	ct_key		SET	stmt_expr
+ 				struct error_record *erec;
+ 				int type;
+@@ -1019,7 +1019,7 @@ delete_cmd		:	TABLE		table_spec
  			{
--				$$ = ct_stmt_alloc(&@$, $2, -1, $4);
--			}
--			|	CT	STRING		SET	stmt_expr
--			{
--				struct error_record *erec;
--				unsigned int key;
--
--				erec = ct_key_parse(&@$, $2, &key);
--				xfree($2);
--				if (erec != NULL) {
--					erec_queue(erec, state->msgs);
--					YYERROR;
--				}
--
--				switch (key) {
-+				switch ($2) {
- 				case NFT_CT_HELPER:
- 					$$ = objref_stmt_alloc(&@$);
- 					$$->objref.type = NFT_OBJECT_CT_HELPER;
- 					$$->objref.expr = $4;
- 					break;
- 				default:
--					$$ = ct_stmt_alloc(&@$, key, -1, $4);
-+					$$ = ct_stmt_alloc(&@$, $2, -1, $4);
- 					break;
- 				}
+ 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_QUOTA, &$2, &@$, NULL);
  			}
--			|	CT	STRING	ct_key_dir_optional SET	stmt_expr
-+			|	CT	ct_dir	ct_key_dir_optional SET	stmt_expr
+-			|	CT	STRING	obj_spec	ct_obj_alloc
++			|	CT	ct_obj_kind	obj_spec	ct_obj_alloc
  			{
--				struct error_record *erec;
--				int8_t direction;
--
--				erec = ct_dir_parse(&@$, $2, &direction);
--				xfree($2);
--				if (erec != NULL) {
--					erec_queue(erec, state->msgs);
--					YYERROR;
--				}
--
--				$$ = ct_stmt_alloc(&@$, $3, direction, $5);
-+				$$ = ct_stmt_alloc(&@$, $3, $2, $5);
+ 				struct error_record *erec;
+ 				int type;
+@@ -1123,7 +1123,7 @@ list_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_MAP, &$2, &@$, NULL);
  			}
+-			|	CT		STRING	obj_spec
++			|	CT		ct_obj_kind	obj_spec
+ 			{
+ 				struct error_record *erec;
+ 				int type;
+@@ -1137,7 +1137,7 @@ list_cmd		:	TABLE		table_spec
+ 
+ 				$$ = cmd_alloc_obj_ct(CMD_LIST, type, &$3, &@$, NULL);
+ 			}
+-			|       CT              STRING  TABLE   table_spec
++			|       CT		ct_obj_kind	TABLE   table_spec
+ 			{
+ 				int cmd;
+ 
+@@ -2882,6 +2882,7 @@ quota_obj		:	quota_config
  			;
  
-diff --git a/src/scanner.l b/src/scanner.l
-index 0cfb6c50e418..186fb47eb763 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -484,6 +484,15 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "proto-src"		{ return PROTO_SRC; }
- "proto-dst"		{ return PROTO_DST; }
- "zone"			{ return ZONE; }
-+"original"		{ return ORIGINAL; }
-+"reply"			{ return REPLY; }
-+"direction"		{ return DIRECTION; }
-+"event"			{ return EVENT; }
-+"expiration"		{ return EXPIRATION; }
-+"helper"		{ return HELPER; }
-+"label"			{ return LABEL; }
-+"state"			{ return STATE; }
-+"status"		{ return STATUS; }
+ ct_obj_kind		:	STRING		{ $$ = $1; }
++			|	HELPER		{ $$ = xstrdup("helper"); }
+ 			;
  
- "numgen"		{ return NUMGEN; }
- "inc"			{ return INC; }
+ ct_l4protoname		:	TCP	{ $$ = IPPROTO_TCP; }
 -- 
 2.1.4
 
