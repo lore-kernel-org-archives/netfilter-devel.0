@@ -1,20 +1,22 @@
 From: Artem Savkov <asavkov@redhat.com>
-Subject: [PATCH v2] ebtables: fix race condition in frame_filter_net_init()
-Date: Tue, 26 Sep 2017 17:39:23 +0200
-Message-ID: <20170926153923.30094-1-asavkov@redhat.com>
-References: <20170926124211.GA14971@breakpoint.cc>
+Subject: [PATCH v3] ebtables: fix race condition in frame_filter_net_init()
+Date: Tue, 26 Sep 2017 18:35:45 +0200
+Message-ID: <20170926163545.3668-1-asavkov@redhat.com>
+References: <20170926153923.30094-1-asavkov@redhat.com>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
         Artem Savkov <asavkov@redhat.com>
 To: Florian Westphal <fw@strlen.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170926124211.GA14971@breakpoint.cc>
+In-Reply-To: <20170926153923.30094-1-asavkov@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 It is possible for ebt_in_hook to be triggered before ebt_table is assigned
 resulting in a NULL-pointer dereference. Make sure hooks are
 registered as the last step.
+
+v3: restore errorneously removed ops == NULL case check
 
 Fixes: aee12a0a3727 ebtables: remove nf_hook_register usage
 Signed-off-by: Artem Savkov <asavkov@redhat.com>
@@ -23,8 +25,8 @@ Signed-off-by: Artem Savkov <asavkov@redhat.com>
  net/bridge/netfilter/ebtable_broute.c     |  4 ++--
  net/bridge/netfilter/ebtable_filter.c     |  4 ++--
  net/bridge/netfilter/ebtable_nat.c        |  4 ++--
- net/bridge/netfilter/ebtables.c           | 17 ++++++++---------
- 5 files changed, 18 insertions(+), 18 deletions(-)
+ net/bridge/netfilter/ebtables.c           | 17 +++++++++--------
+ 5 files changed, 19 insertions(+), 17 deletions(-)
 
 diff --git a/include/linux/netfilter_bridge/ebtables.h b/include/linux/netfilter_bridge/ebtables.h
 index 2c2a5514b0df..528b24c78308 100644
@@ -90,7 +92,7 @@ index 57cd5bb154e7..08df7406ecb3 100644
  
  static void __net_exit frame_nat_net_exit(struct net *net)
 diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 83951f978445..aa81afe81f23 100644
+index 83951f978445..3b3dcf719e07 100644
 --- a/net/bridge/netfilter/ebtables.c
 +++ b/net/bridge/netfilter/ebtables.c
 @@ -1169,9 +1169,8 @@ static void __ebt_unregister_table(struct net *net, struct ebt_table *table)
@@ -114,28 +116,29 @@ index 83951f978445..aa81afe81f23 100644
  	}
  
  	/* Don't add one table to multiple lists. */
-@@ -1252,16 +1251,16 @@ ebt_register_table(struct net *net, const struct ebt_table *input_table,
+@@ -1252,16 +1251,18 @@ ebt_register_table(struct net *net, const struct ebt_table *input_table,
  	list_add(&table->list, &net->xt.tables[NFPROTO_BRIDGE]);
  	mutex_unlock(&ebt_mutex);
  
--	if (!ops)
--		return table;
 +	WRITE_ONCE(*res, table);
++
+ 	if (!ops)
+-		return table;
++		return 0;
  
  	ret = nf_register_net_hooks(net, ops, hweight32(table->valid_hooks));
  	if (ret) {
  		__ebt_unregister_table(net, table);
 -		return ERR_PTR(ret);
 +		*res = NULL;
-+		return ret;
  	}
  
 -	return table;
-+	return 0;
++	return ret;
  free_unlock:
  	mutex_unlock(&ebt_mutex);
  free_chainstack:
-@@ -1276,7 +1275,7 @@ ebt_register_table(struct net *net, const struct ebt_table *input_table,
+@@ -1276,7 +1277,7 @@ ebt_register_table(struct net *net, const struct ebt_table *input_table,
  free_table:
  	kfree(table);
  out:
