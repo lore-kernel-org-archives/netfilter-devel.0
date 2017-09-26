@@ -1,216 +1,116 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft,v2 2/3] parser_bison: use keywords in ct expression
-Date: Tue, 26 Sep 2017 19:46:20 +0200
-Message-ID: <1506447981-4161-2-git-send-email-pablo@netfilter.org>
-References: <1506447981-4161-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH nf v2] netfilter: ipset: pernet ops must be unregistered
+ last
+Date: Tue, 26 Sep 2017 19:48:45 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1709261947190.19287@blackhole.kfki.hu>
+References: <20170926095754.32766-1-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35816 "EHLO mail.us.es"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:52655 "EHLO smtp0.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965704AbdIZRqd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Sep 2017 13:46:33 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D24F1EB463
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2017 19:46:31 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C27FBB5024
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2017 19:46:31 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8DAD3B5024
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2017 19:46:29 +0200 (CEST)
-Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 4CA4044581E1
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2017 19:46:29 +0200 (CEST)
-In-Reply-To: <1506447981-4161-1-git-send-email-pablo@netfilter.org>
+        id S966178AbdIZRsu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 26 Sep 2017 13:48:50 -0400
+In-Reply-To: <20170926095754.32766-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Using string give us more chances to hit shift/reduce conflicts when
-extending this grammar, more specifically, from the stmt_expr rule, so
-add keywords for this.
+On Tue, 26 Sep 2017, Florian Westphal wrote:
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/parser_bison.y | 89 +++++++++++++++++++++---------------------------------
- src/scanner.l      |  9 ++++++
- 2 files changed, 44 insertions(+), 54 deletions(-)
+> Removing the ipset module leaves a small window where one cpu performs
+> module removal while another runs a command like 'ipset flush'.
+> 
+> ipset uses net_generic(), unregistering the pernet ops frees this
+> storage area.
+> 
+> Fix it by first removing the user-visible api handlers and the pernet
+> ops last.
+> 
+> Fixes: 1785e8f473082 ("netfiler: ipset: Add net namespace for ipset")
+> Reported-by: Li Shuang <shuali@redhat.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 163fbb4b6729..0d916190e298 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -386,6 +386,15 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %token PROTO_SRC		"proto-src"
- %token PROTO_DST		"proto-dst"
- %token ZONE			"zone"
-+%token DIRECTION		"direction"
-+%token EVENT			"event"
-+%token EXPIRATION		"expiration"
-+%token HELPER			"helper"
-+%token LABEL			"label"
-+%token STATE			"state"
-+%token STATUS			"status"
-+%token ORIGINAL			"original"
-+%token REPLY			"reply"
- 
- %token COUNTER			"counter"
- %token NAME			"name"
-@@ -658,7 +667,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- 
- %type <expr>			ct_expr
- %destructor { expr_free($$); }	ct_expr
--%type <val>			ct_key		ct_key_dir	ct_key_dir_optional
-+%type <val>			ct_key		ct_dir	ct_key_dir_optional	ct_key_dir
- 
- %type <expr>			fib_expr
- %destructor { expr_free($$); }	fib_expr
-@@ -3065,6 +3074,9 @@ keyword_expr		:	ETHER                   { $$ = symbol_value(&@$, "ether"); }
- 			|	SNAT			{ $$ = symbol_value(&@$, "snat"); }
- 			|	ECN			{ $$ = symbol_value(&@$, "ecn"); }
- 			|	RESET			{ $$ = symbol_value(&@$, "reset"); }
-+			|	ORIGINAL		{ $$ = symbol_value(&@$, "original"); }
-+			|	REPLY			{ $$ = symbol_value(&@$, "reply"); }
-+			|	LABEL			{ $$ = symbol_value(&@$, "label"); }
- 			;
- 
- primary_rhs_expr	:	symbol_expr		{ $$ = $1; }
-@@ -3310,41 +3322,33 @@ ct_expr			: 	CT	ct_key
- 			{
- 				$$ = ct_expr_alloc(&@$, $2, -1);
- 			}
--			| 	CT	STRING
-+			|	CT	ct_dir	ct_key_dir
- 			{
--				struct error_record *erec;
--				unsigned int key;
--
--				erec = ct_key_parse(&@$, $2, &key);
--				xfree($2);
--				if (erec != NULL) {
--					erec_queue(erec, state->msgs);
--					YYERROR;
--				}
--
--				$$ = ct_expr_alloc(&@$, key, -1);
-+				$$ = ct_expr_alloc(&@$, $3, $2);
- 			}
--			|	CT	STRING	ct_key_dir
--			{
--				struct error_record *erec;
--				int8_t direction;
--
--				erec = ct_dir_parse(&@$, $2, &direction);
--				xfree($2);
--				if (erec != NULL) {
--					erec_queue(erec, state->msgs);
--					YYERROR;
--				}
-+			;
- 
--				$$ = ct_expr_alloc(&@$, $3, direction);
--			}
-+ct_dir			:	ORIGINAL	{ $$ = IP_CT_DIR_ORIGINAL; }
-+			|	REPLY		{ $$ = IP_CT_DIR_REPLY; }
- 			;
- 
- ct_key			:	L3PROTOCOL	{ $$ = NFT_CT_L3PROTOCOL; }
- 			|	PROTOCOL	{ $$ = NFT_CT_PROTOCOL; }
- 			|	MARK		{ $$ = NFT_CT_MARK; }
-+			|	STATE		{ $$ = NFT_CT_STATE; }
-+			|	DIRECTION	{ $$ = NFT_CT_DIRECTION; }
-+			|	STATUS		{ $$ = NFT_CT_STATUS; }
-+			|	EXPIRATION	{ $$ = NFT_CT_EXPIRATION; }
-+			|	HELPER		{ $$ = NFT_CT_HELPER; }
-+			|	SADDR		{ $$ = NFT_CT_SRC; }
-+			|	DADDR		{ $$ = NFT_CT_DST; }
-+			|	PROTO_SRC	{ $$ = NFT_CT_PROTO_SRC; }
-+			|	PROTO_DST	{ $$ = NFT_CT_PROTO_DST; }
-+			|	LABEL		{ $$ = NFT_CT_LABELS; }
-+			|	EVENT		{ $$ = NFT_CT_EVENTMASK; }
- 			|	ct_key_dir_optional
- 			;
-+
- ct_key_dir		:	SADDR		{ $$ = NFT_CT_SRC; }
- 			|	DADDR		{ $$ = NFT_CT_DST; }
- 			|	L3PROTOCOL	{ $$ = NFT_CT_L3PROTOCOL; }
-@@ -3360,6 +3364,7 @@ ct_key_dir_optional	:	BYTES		{ $$ = NFT_CT_BYTES; }
- 			|	ZONE		{ $$ = NFT_CT_ZONE; }
- 			;
- 
-+
- list_stmt_expr		:	symbol_expr	COMMA	symbol_expr
- 			{
- 				$$ = list_expr_alloc(&@$);
-@@ -3376,44 +3381,20 @@ list_stmt_expr		:	symbol_expr	COMMA	symbol_expr
- 
- ct_stmt			:	CT	ct_key		SET	stmt_expr
- 			{
--				$$ = ct_stmt_alloc(&@$, $2, -1, $4);
--			}
--			|	CT	STRING		SET	stmt_expr
--			{
--				struct error_record *erec;
--				unsigned int key;
--
--				erec = ct_key_parse(&@$, $2, &key);
--				xfree($2);
--				if (erec != NULL) {
--					erec_queue(erec, state->msgs);
--					YYERROR;
--				}
--
--				switch (key) {
-+				switch ($2) {
- 				case NFT_CT_HELPER:
- 					$$ = objref_stmt_alloc(&@$);
- 					$$->objref.type = NFT_OBJECT_CT_HELPER;
- 					$$->objref.expr = $4;
- 					break;
- 				default:
--					$$ = ct_stmt_alloc(&@$, key, -1, $4);
-+					$$ = ct_stmt_alloc(&@$, $2, -1, $4);
- 					break;
- 				}
- 			}
--			|	CT	STRING	ct_key_dir_optional SET	stmt_expr
-+			|	CT	ct_dir	ct_key_dir_optional SET	stmt_expr
- 			{
--				struct error_record *erec;
--				int8_t direction;
--
--				erec = ct_dir_parse(&@$, $2, &direction);
--				xfree($2);
--				if (erec != NULL) {
--					erec_queue(erec, state->msgs);
--					YYERROR;
--				}
--
--				$$ = ct_stmt_alloc(&@$, $3, direction, $5);
-+				$$ = ct_stmt_alloc(&@$, $3, $2, $5);
- 			}
- 			;
- 
-diff --git a/src/scanner.l b/src/scanner.l
-index 0cfb6c50e418..186fb47eb763 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -484,6 +484,15 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "proto-src"		{ return PROTO_SRC; }
- "proto-dst"		{ return PROTO_DST; }
- "zone"			{ return ZONE; }
-+"original"		{ return ORIGINAL; }
-+"reply"			{ return REPLY; }
-+"direction"		{ return DIRECTION; }
-+"event"			{ return EVENT; }
-+"expiration"		{ return EXPIRATION; }
-+"helper"		{ return HELPER; }
-+"label"			{ return LABEL; }
-+"state"			{ return STATE; }
-+"status"		{ return STATUS; }
- 
- "numgen"		{ return NUMGEN; }
- "inc"			{ return INC; }
--- 
-2.1.4
+Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
+Pablo, could you apply the patch in the nf tree?
+
+Best regards,
+Jozsef
+
+> ---
+>  Change since v2:
+>   - unregister setsockopt first (i.e., use reverse order)
+> 
+>  net/netfilter/ipset/ip_set_core.c | 22 +++++++++++++---------
+>  1 file changed, 13 insertions(+), 9 deletions(-)
+> 
+> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> index e495b5e484b1..a7f049ff3049 100644
+> --- a/net/netfilter/ipset/ip_set_core.c
+> +++ b/net/netfilter/ipset/ip_set_core.c
+> @@ -2072,25 +2072,28 @@ static struct pernet_operations ip_set_net_ops = {
+>  static int __init
+>  ip_set_init(void)
+>  {
+> -	int ret = nfnetlink_subsys_register(&ip_set_netlink_subsys);
+> +	int ret = register_pernet_subsys(&ip_set_net_ops);
+>  
+> +	if (ret) {
+> +		pr_err("ip_set: cannot register pernet_subsys.\n");
+> +		return ret;
+> +	}
+> +
+> +	ret = nfnetlink_subsys_register(&ip_set_netlink_subsys);
+>  	if (ret != 0) {
+>  		pr_err("ip_set: cannot register with nfnetlink.\n");
+> +		unregister_pernet_subsys(&ip_set_net_ops);
+>  		return ret;
+>  	}
+> +
+>  	ret = nf_register_sockopt(&so_set);
+>  	if (ret != 0) {
+>  		pr_err("SO_SET registry failed: %d\n", ret);
+>  		nfnetlink_subsys_unregister(&ip_set_netlink_subsys);
+> +		unregister_pernet_subsys(&ip_set_net_ops);
+>  		return ret;
+>  	}
+> -	ret = register_pernet_subsys(&ip_set_net_ops);
+> -	if (ret) {
+> -		pr_err("ip_set: cannot register pernet_subsys.\n");
+> -		nf_unregister_sockopt(&so_set);
+> -		nfnetlink_subsys_unregister(&ip_set_netlink_subsys);
+> -		return ret;
+> -	}
+> +
+>  	pr_info("ip_set: protocol %u\n", IPSET_PROTOCOL);
+>  	return 0;
+>  }
+> @@ -2098,9 +2101,10 @@ ip_set_init(void)
+>  static void __exit
+>  ip_set_fini(void)
+>  {
+> -	unregister_pernet_subsys(&ip_set_net_ops);
+>  	nf_unregister_sockopt(&so_set);
+>  	nfnetlink_subsys_unregister(&ip_set_netlink_subsys);
+> +
+> +	unregister_pernet_subsys(&ip_set_net_ops);
+>  	pr_debug("these are the famous last words\n");
+>  }
+>  
+> -- 
+> 2.13.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
