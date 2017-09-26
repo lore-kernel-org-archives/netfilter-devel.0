@@ -1,240 +1,210 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 1/3] parser_bison: consolidate stmt_expr rule
-Date: Tue, 26 Sep 2017 19:09:49 +0200
-Message-ID: <1506445791-20482-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 2/3] parser_bison: use keywords in ct expression
+Date: Tue, 26 Sep 2017 19:09:50 +0200
+Message-ID: <1506445791-20482-2-git-send-email-pablo@netfilter.org>
+References: <1506445791-20482-1-git-send-email-pablo@netfilter.org>
 Cc: fw@strlen.de
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51630 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51636 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935589AbdIZRJ7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Sep 2017 13:09:59 -0400
+        id S937278AbdIZRKA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 26 Sep 2017 13:10:00 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id F3EED220B5
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2017 19:09:57 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 2DBB7220BC
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2017 19:09:59 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E569EB502A
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2017 19:09:57 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1B6E5C882F
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Sep 2017 19:09:59 +0200 (CEST)
+In-Reply-To: <1506445791-20482-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Extend stmt_expr and use it from all of our statement rules. Add more
-rules to describe what we take from statement expressions, instead of
-reusing rhs_expr which is allowing way more things that we actually need
-here. This is causing us problems when extending the grammar.
-
-After this patch, you will hit this:
-
-	parser_bison.y: warning: 2 shift/reduce conflicts [-Wconflicts-sr]
-
-However, this is fixed by the follow up patches:
-
-	parser_bison: allow helper keyword in ct object kind
-	parser_bison: use keywords in ct expression
+Using string give us more chances to hit shift/reduce conflicts when
+extending this grammar, more specifically, from the stmt_expr rule, so
+add keywords for this.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/parser_bison.y | 123 ++++++++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 102 insertions(+), 21 deletions(-)
+ src/parser_bison.y | 89 +++++++++++++++++++++---------------------------------
+ src/scanner.l      |  9 ++++++
+ 2 files changed, 44 insertions(+), 54 deletions(-)
 
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 31a7e8be2bcd..8bcf64e9903d 100644
+index 8bcf64e9903d..351b51010f59 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -560,6 +560,18 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %type <expr>			stmt_expr concat_stmt_expr map_stmt_expr
- %destructor { expr_free($$); }	stmt_expr concat_stmt_expr map_stmt_expr
+@@ -386,6 +386,15 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token PROTO_SRC		"proto-src"
+ %token PROTO_DST		"proto-dst"
+ %token ZONE			"zone"
++%token DIRECTION		"direction"
++%token EVENT			"event"
++%token EXPIRATION		"expiration"
++%token HELPER			"helper"
++%token LABEL			"label"
++%token STATE			"state"
++%token STATUS			"status"
++%token ORIGINAL			"original"
++%token REPLY			"reply"
  
-+%type <expr>			multiton_stmt_expr
-+%destructor { expr_free($$); }	multiton_stmt_expr
-+%type <expr>			prefix_stmt_expr range_stmt_expr wildcard_stmt_expr
-+%destructor { expr_free($$); }	prefix_stmt_expr range_stmt_expr wildcard_stmt_expr
-+
-+%type <expr>			primary_stmt_expr basic_stmt_expr
-+%destructor { expr_free($$); }	primary_stmt_expr basic_stmt_expr
-+%type <expr>			list_stmt_expr shift_stmt_expr
-+%destructor { expr_free($$); }	list_stmt_expr shift_stmt_expr
-+%type <expr>			and_stmt_expr exclusive_or_stmt_expr inclusive_or_stmt_expr
-+%destructor { expr_free($$); }	and_stmt_expr exclusive_or_stmt_expr inclusive_or_stmt_expr
-+
- %type <expr>			concat_expr
- %destructor { expr_free($$); }	concat_expr
+ %token COUNTER			"counter"
+ %token NAME			"name"
+@@ -658,7 +667,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
  
-@@ -644,11 +656,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %destructor { expr_free($$); }	rt_expr
- %type <val>			rt_key
- 
--%type <expr>			list_stmt_expr
--%destructor { expr_free($$); }	list_stmt_expr
--
--%type <expr>			ct_expr		ct_stmt_expr
--%destructor { expr_free($$); }	ct_expr		ct_stmt_expr
-+%type <expr>			ct_expr
-+%destructor { expr_free($$); }	ct_expr
- %type <val>			ct_key		ct_key_dir	ct_key_dir_optional
+ %type <expr>			ct_expr
+ %destructor { expr_free($$); }	ct_expr
+-%type <val>			ct_key		ct_key_dir	ct_key_dir_optional
++%type <val>			ct_key		ct_dir	ct_key_dir_optional	ct_key_dir
  
  %type <expr>			fib_expr
-@@ -2206,8 +2215,55 @@ nat_stmt_alloc		:	SNAT
- 			}
+ %destructor { expr_free($$); }	fib_expr
+@@ -3061,6 +3070,9 @@ keyword_rhs_expr	:	ETHER                   { $$ = symbol_value(&@$, "ether"); }
+ 			|	SNAT			{ $$ = symbol_value(&@$, "snat"); }
+ 			|	ECN			{ $$ = symbol_value(&@$, "ecn"); }
+ 			|	RESET			{ $$ = symbol_value(&@$, "reset"); }
++			|	ORIGINAL		{ $$ = symbol_value(&@$, "original"); }
++			|	REPLY			{ $$ = symbol_value(&@$, "reply"); }
++			|	LABEL			{ $$ = symbol_value(&@$, "label"); }
  			;
  
--concat_stmt_expr	:	primary_expr
--			|	concat_stmt_expr	DOT	primary_expr
-+primary_stmt_expr	:	symbol_expr		{ $$ = $1; }
-+			|	integer_expr		{ $$ = $1; }
-+			|	boolean_expr		{ $$ = $1; }
-+			|	meta_expr		{ $$ = $1; }
-+			|	rt_expr			{ $$ = $1; }
-+			|	ct_expr			{ $$ = $1; }
-+			|	numgen_expr             { $$ = $1; }
-+			|	hash_expr               { $$ = $1; }
-+			|	payload_expr		{ $$ = $1; }
-+			|	keyword_rhs_expr	{ $$ = $1; }
-+			;
-+
-+shift_stmt_expr		:	primary_stmt_expr
-+			|	shift_stmt_expr		LSHIFT		primary_stmt_expr
-+			{
-+				$$ = binop_expr_alloc(&@$, OP_LSHIFT, $1, $3);
-+			}
-+			|	shift_stmt_expr		RSHIFT		primary_rhs_expr
-+			{
-+				$$ = binop_expr_alloc(&@$, OP_RSHIFT, $1, $3);
-+			}
-+			;
-+
-+and_stmt_expr		:	shift_stmt_expr
-+			|	and_stmt_expr		AMPERSAND	shift_stmt_expr
-+			{
-+				$$ = binop_expr_alloc(&@$, OP_AND, $1, $3);
-+			}
-+			;
-+
-+exclusive_or_stmt_expr	:	and_stmt_expr
-+			|	exclusive_or_stmt_expr	CARET		and_stmt_expr
-+			{
-+				$$ = binop_expr_alloc(&@$, OP_XOR, $1, $3);
-+			}
-+			;
-+
-+inclusive_or_stmt_expr	:	exclusive_or_stmt_expr
-+			|	inclusive_or_stmt_expr	'|'		exclusive_or_stmt_expr
-+			{
-+				$$ = binop_expr_alloc(&@$, OP_OR, $1, $3);
-+			}
-+			;
-+
-+basic_stmt_expr		:	inclusive_or_stmt_expr
-+			;
-+
-+concat_stmt_expr	:	basic_stmt_expr
-+			|	concat_stmt_expr	DOT	primary_stmt_expr
+ primary_rhs_expr	:	symbol_expr		{ $$ = $1; }
+@@ -3306,41 +3318,33 @@ ct_expr			: 	CT	ct_key
  			{
- 				if ($$->ops->type != EXPR_CONCAT) {
- 					$$ = concat_expr_alloc(&@$);
-@@ -2226,15 +2282,44 @@ concat_stmt_expr	:	primary_expr
+ 				$$ = ct_expr_alloc(&@$, $2, -1);
  			}
- 			;
- 
--map_stmt_expr		:	concat_stmt_expr	MAP	rhs_expr
-+map_stmt_expr		:	concat_stmt_expr	MAP	set_expr
+-			| 	CT	STRING
++			|	CT	ct_dir	ct_key_dir
  			{
- 				$$ = map_expr_alloc(&@$, $1, $3);
- 			}
-+			|	concat_stmt_expr	{ $$ = $1; }
-+			;
-+
-+prefix_stmt_expr	:	basic_stmt_expr	SLASH	NUM
-+			{
-+				$$ = prefix_expr_alloc(&@$, $1, $3);
-+			}
-+			;
-+
-+range_stmt_expr		:	basic_stmt_expr	DASH	basic_stmt_expr
-+			{
-+				$$ = range_expr_alloc(&@$, $1, $3);
-+			}
-+			;
-+
-+wildcard_stmt_expr	:	ASTERISK
-+			{
-+				struct expr *expr;
-+
-+				expr = constant_expr_alloc(&@$, &integer_type,
-+							   BYTEORDER_HOST_ENDIAN,
-+							   0, NULL);
-+				$$ = prefix_expr_alloc(&@$, expr, 0);
-+			}
-+			;
-+
-+multiton_stmt_expr	:	prefix_stmt_expr
-+			|	range_stmt_expr
-+			|	wildcard_stmt_expr
- 			;
- 
- stmt_expr		:	map_stmt_expr
--			|	multiton_rhs_expr
--			|	primary_rhs_expr
-+			|	multiton_stmt_expr
-+			|	list_stmt_expr
- 			;
- 
- nat_stmt_args		:	stmt_expr
-@@ -3148,15 +3233,15 @@ meta_key_unqualified	:	MARK		{ $$ = NFT_META_MARK; }
- 			|       CGROUP		{ $$ = NFT_META_CGROUP; }
- 			;
- 
--meta_stmt		:	META	meta_key	SET	expr
-+meta_stmt		:	META	meta_key	SET	stmt_expr
- 			{
- 				$$ = meta_stmt_alloc(&@$, $2, $4);
- 			}
--			|	meta_key_unqualified	SET	expr
-+			|	meta_key_unqualified	SET	stmt_expr
- 			{
- 				$$ = meta_stmt_alloc(&@$, $1, $3);
- 			}
--			|	META	STRING	SET	expr
-+			|	META	STRING	SET	stmt_expr
- 			{
- 				struct error_record *erec;
- 				unsigned int key;
-@@ -3285,15 +3370,11 @@ list_stmt_expr		:	symbol_expr	COMMA	symbol_expr
- 			}
- 			;
- 
--ct_stmt_expr		:	expr
--			|	list_stmt_expr
--			;
+-				struct error_record *erec;
+-				unsigned int key;
 -
--ct_stmt			:	CT	ct_key		SET	expr
-+ct_stmt			:	CT	ct_key		SET	stmt_expr
- 			{
- 				$$ = ct_stmt_alloc(&@$, $2, -1, $4);
+-				erec = ct_key_parse(&@$, $2, &key);
+-				xfree($2);
+-				if (erec != NULL) {
+-					erec_queue(erec, state->msgs);
+-					YYERROR;
+-				}
+-
+-				$$ = ct_expr_alloc(&@$, key, -1);
++				$$ = ct_expr_alloc(&@$, $3, $2);
  			}
--			|	CT	STRING		SET	ct_stmt_expr
-+			|	CT	STRING		SET	stmt_expr
+-			|	CT	STRING	ct_key_dir
+-			{
+-				struct error_record *erec;
+-				int8_t direction;
+-
+-				erec = ct_dir_parse(&@$, $2, &direction);
+-				xfree($2);
+-				if (erec != NULL) {
+-					erec_queue(erec, state->msgs);
+-					YYERROR;
+-				}
++			;
+ 
+-				$$ = ct_expr_alloc(&@$, $3, direction);
+-			}
++ct_dir			:	ORIGINAL	{ $$ = IP_CT_DIR_ORIGINAL; }
++			|	REPLY		{ $$ = IP_CT_DIR_REPLY; }
+ 			;
+ 
+ ct_key			:	L3PROTOCOL	{ $$ = NFT_CT_L3PROTOCOL; }
+ 			|	PROTOCOL	{ $$ = NFT_CT_PROTOCOL; }
+ 			|	MARK		{ $$ = NFT_CT_MARK; }
++			|	STATE		{ $$ = NFT_CT_STATE; }
++			|	DIRECTION	{ $$ = NFT_CT_DIRECTION; }
++			|	STATUS		{ $$ = NFT_CT_STATUS; }
++			|	EXPIRATION	{ $$ = NFT_CT_EXPIRATION; }
++			|	HELPER		{ $$ = NFT_CT_HELPER; }
++			|	SADDR		{ $$ = NFT_CT_SRC; }
++			|	DADDR		{ $$ = NFT_CT_DST; }
++			|	PROTO_SRC	{ $$ = NFT_CT_PROTO_SRC; }
++			|	PROTO_DST	{ $$ = NFT_CT_PROTO_DST; }
++			|	LABEL		{ $$ = NFT_CT_LABELS; }
++			|	EVENT		{ $$ = NFT_CT_EVENTMASK; }
+ 			|	ct_key_dir_optional
+ 			;
++
+ ct_key_dir		:	SADDR		{ $$ = NFT_CT_SRC; }
+ 			|	DADDR		{ $$ = NFT_CT_DST; }
+ 			|	L3PROTOCOL	{ $$ = NFT_CT_L3PROTOCOL; }
+@@ -3356,6 +3360,7 @@ ct_key_dir_optional	:	BYTES		{ $$ = NFT_CT_BYTES; }
+ 			|	ZONE		{ $$ = NFT_CT_ZONE; }
+ 			;
+ 
++
+ list_stmt_expr		:	symbol_expr	COMMA	symbol_expr
  			{
- 				struct error_record *erec;
- 				unsigned int key;
-@@ -3316,7 +3397,7 @@ ct_stmt			:	CT	ct_key		SET	expr
+ 				$$ = list_expr_alloc(&@$);
+@@ -3372,44 +3377,20 @@ list_stmt_expr		:	symbol_expr	COMMA	symbol_expr
+ 
+ ct_stmt			:	CT	ct_key		SET	stmt_expr
+ 			{
+-				$$ = ct_stmt_alloc(&@$, $2, -1, $4);
+-			}
+-			|	CT	STRING		SET	stmt_expr
+-			{
+-				struct error_record *erec;
+-				unsigned int key;
+-
+-				erec = ct_key_parse(&@$, $2, &key);
+-				xfree($2);
+-				if (erec != NULL) {
+-					erec_queue(erec, state->msgs);
+-					YYERROR;
+-				}
+-
+-				switch (key) {
++				switch ($2) {
+ 				case NFT_CT_HELPER:
+ 					$$ = objref_stmt_alloc(&@$);
+ 					$$->objref.type = NFT_OBJECT_CT_HELPER;
+ 					$$->objref.expr = $4;
+ 					break;
+ 				default:
+-					$$ = ct_stmt_alloc(&@$, key, -1, $4);
++					$$ = ct_stmt_alloc(&@$, $2, -1, $4);
  					break;
  				}
  			}
--			|	CT	STRING	ct_key_dir_optional SET	expr
-+			|	CT	STRING	ct_key_dir_optional SET	stmt_expr
+-			|	CT	STRING	ct_key_dir_optional SET	stmt_expr
++			|	CT	ct_dir	ct_key_dir_optional SET	stmt_expr
  			{
- 				struct error_record *erec;
- 				int8_t direction;
-@@ -3332,7 +3413,7 @@ ct_stmt			:	CT	ct_key		SET	expr
+-				struct error_record *erec;
+-				int8_t direction;
+-
+-				erec = ct_dir_parse(&@$, $2, &direction);
+-				xfree($2);
+-				if (erec != NULL) {
+-					erec_queue(erec, state->msgs);
+-					YYERROR;
+-				}
+-
+-				$$ = ct_stmt_alloc(&@$, $3, direction, $5);
++				$$ = ct_stmt_alloc(&@$, $3, $2, $5);
  			}
  			;
  
--payload_stmt		:	payload_expr		SET	expr
-+payload_stmt		:	payload_expr		SET	stmt_expr
- 			{
- 				if ($1->ops->type == EXPR_EXTHDR)
- 					$$ = exthdr_stmt_alloc(&@$, $1, $3);
+diff --git a/src/scanner.l b/src/scanner.l
+index 0cfb6c50e418..186fb47eb763 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -484,6 +484,15 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "proto-src"		{ return PROTO_SRC; }
+ "proto-dst"		{ return PROTO_DST; }
+ "zone"			{ return ZONE; }
++"original"		{ return ORIGINAL; }
++"reply"			{ return REPLY; }
++"direction"		{ return DIRECTION; }
++"event"			{ return EVENT; }
++"expiration"		{ return EXPIRATION; }
++"helper"		{ return HELPER; }
++"label"			{ return LABEL; }
++"state"			{ return STATE; }
++"status"		{ return STATUS; }
+ 
+ "numgen"		{ return NUMGEN; }
+ "inc"			{ return INC; }
 -- 
 2.1.4
 
