@@ -1,40 +1,84 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 1/1] Fix adding an IPv4 range containing more than 2^31
- addresses
-Date: Tue, 26 Sep 2017 20:45:55 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1709262045160.19429@blackhole.kfki.hu>
-References: <1506202660-12553-1-git-send-email-kadlec@blackhole.kfki.hu> <1506202660-12553-2-git-send-email-kadlec@blackhole.kfki.hu> <20170926180136.GA24950@salvia>
+From: Ross Lagerwall <ross.lagerwall@citrix.com>
+Subject: [PATCH] netfilter: ipset: Fix race between dump and swap
+Date: Wed, 27 Sep 2017 10:06:27 +0100
+Message-ID: <20170927090627.26355-1-ross.lagerwall@citrix.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Ross Lagerwall <ross.lagerwall@citrix.com>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:42483 "EHLO smtp1.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1031612AbdIZSp7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 26 Sep 2017 14:45:59 -0400
-In-Reply-To: <20170926180136.GA24950@salvia>
+Received: from smtp02.citrix.com ([66.165.176.63]:35681 "EHLO
+        SMTP02.CITRIX.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752472AbdI0JP5 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 27 Sep 2017 05:15:57 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 26 Sep 2017, Pablo Neira Ayuso wrote:
+Fix a race between ip_set_dump_start() and ip_set_swap().
+The race is as follows:
+* Without holding the ref lock, ip_set_swap() checks ref_netlink of the
+  set and it is 0.
+* ip_set_dump_start() takes a reference on the set.
+* ip_set_swap() does the swap (even though it now has a non-zero
+  reference count).
+* ip_set_dump_start() gets the set from ip_set_list again which is now a
+  different set since it has been swapped.
+* ip_set_dump_start() calls __ip_set_put_netlink() and hits a BUG_ON due
+  to the reference count being 0.
 
-> On Sat, Sep 23, 2017 at 11:37:40PM +0200, Jozsef Kadlecsik wrote:
-> > Wrong comparison prevented the hash types to add a range with
-> > more than 2^31 addresses but reported as a success.
-> > 
-> > Fixes bugzilla id #1005, reported by Oleg Serditov and Oliver Ford.
-> 
-> Applied, thanks Jozsef.
-> 
-> Jozsef, I'm prepending the following to this patch title: "netfilter: ipset:"
+Fix this race by extending the critical region in which the ref lock is
+held to include checking the ref counts.
 
-I forgot to add that prefix... Thanks indeed!
+The race can be reproduced with the following script:
+  while :; do
+    ipset destroy hash_ip1
+    ipset destroy hash_ip2
+    ipset create hash_ip1 hash:ip family inet hashsize 1024 \
+        maxelem 500000
+    ipset create hash_ip2 hash:ip family inet hashsize 300000 \
+        maxelem 500000
+    ipset create hash_ip3 hash:ip family inet hashsize 1024 \
+        maxelem 500000
+    ipset save &
+    ipset swap hash_ip3 hash_ip2
+    ipset destroy hash_ip3
+    wait
+  done
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Signed-off-by: Ross Lagerwall <ross.lagerwall@citrix.com>
+---
+ net/netfilter/ipset/ip_set_core.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index ba6a551..cae3e4a 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -1185,14 +1185,17 @@ static int ip_set_swap(struct net *net, struct sock *ctnl, struct sk_buff *skb,
+ 	      from->family == to->family))
+ 		return -IPSET_ERR_TYPE_MISMATCH;
+ 
+-	if (from->ref_netlink || to->ref_netlink)
++	write_lock_bh(&ip_set_ref_lock);
++
++	if (from->ref_netlink || to->ref_netlink) {
++		write_unlock_bh(&ip_set_ref_lock);
+ 		return -EBUSY;
++	}
+ 
+ 	strncpy(from_name, from->name, IPSET_MAXNAMELEN);
+ 	strncpy(from->name, to->name, IPSET_MAXNAMELEN);
+ 	strncpy(to->name, from_name, IPSET_MAXNAMELEN);
+ 
+-	write_lock_bh(&ip_set_ref_lock);
+ 	swap(from->ref, to->ref);
+ 	ip_set(inst, from_id) = to;
+ 	ip_set(inst, to_id) = from;
+-- 
+2.9.5
+
