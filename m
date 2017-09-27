@@ -1,65 +1,61 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 3/3] bison: permit keywords in list_stmt_expressions
-Date: Wed, 27 Sep 2017 19:57:13 +0200
-Message-ID: <20170927175713.GC17665@salvia>
-References: <20170927173807.29882-1-fw@strlen.de>
- <20170927173807.29882-4-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft 0/10] nftables remove use of meta nfproto
+Date: Wed, 27 Sep 2017 20:16:44 +0200
+Message-ID: <20170927181654.3129-1-fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:38289 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751554AbdI0R5R (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37744 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751555AbdI0SQg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Sep 2017 13:57:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20170927173807.29882-4-fw@strlen.de>
+        Wed, 27 Sep 2017 14:16:36 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 27, 2017 at 07:38:07PM +0200, Florian Westphal wrote:
-> 'ct event set label' and 'ct event set new or label' work, but
-> 'ct event set new, label' did not:
-> 
->   nft add rule filter input ct event set new,label
->   Error: syntax error, unexpected label
-> 
-> This changes the definition to also contain keyword symbol expressions.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  src/parser_bison.y        | 11 +++++++----
->  tests/py/any/ct.t         |  1 +
->  tests/py/any/ct.t.payload |  5 +++++
->  3 files changed, 13 insertions(+), 4 deletions(-)
-> 
-> diff --git a/src/parser_bison.y b/src/parser_bison.y
-> index ce6a77a89847..87ae4c30712a 100644
-> --- a/src/parser_bison.y
-> +++ b/src/parser_bison.y
-> @@ -609,8 +609,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
->  
->  %type <expr>			rhs_expr concat_rhs_expr basic_rhs_expr
->  %destructor { expr_free($$); }	rhs_expr concat_rhs_expr basic_rhs_expr
-> -%type <expr>			primary_rhs_expr list_rhs_expr shift_rhs_expr
-> -%destructor { expr_free($$); }	primary_rhs_expr list_rhs_expr shift_rhs_expr
-> +%type <expr>			primary_rhs_expr list_rhs_expr shift_rhs_expr symbol_rhs_expr
-> +%destructor { expr_free($$); }	primary_rhs_expr list_rhs_expr shift_rhs_expr symbol_rhs_expr
->  %type <expr>			and_rhs_expr exclusive_or_rhs_expr inclusive_or_rhs_expr
->  %destructor { expr_free($$); }	and_rhs_expr exclusive_or_rhs_expr inclusive_or_rhs_expr
->  
-> @@ -3302,14 +3302,17 @@ ct_key_dir_optional	:	BYTES		{ $$ = NFT_CT_BYTES; }
->  			|	ZONE		{ $$ = NFT_CT_ZONE; }
->  			;
->  
-> +symbol_rhs_expr		:	symbol_expr
-> +			|	keyword_expr
+inet family (and others, e.g. bridge) lack context to figure
+out the layer 3 address type.
 
-Could you rename this to symbol_stmt_expr?
+examples:
+ct original saddr $addr
+rt nexthop $addr
 
-So it's clear this refers to the grammar tree that deals with
-*stmt_expr. Apart from that nitpick.
+We can't use $addr, because it might be a set reference, e.g.
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+ct original saddr @whitelist
+
+currently implemented workaround is to use 'meta nfproto'
+to provide the l3 context, e.g.
+
+meta nfproto ip rt nexthop 10.2.3.4
+
+i.e. users need to fill dependency manually.
+
+Pablo suggested to instead specify ip saddr, ip6 saddr:
+
+ct original ip saddr $address
+
+and then let nft handle the dependency injection.
+
+This series does just that.
+
+Old syntax is preserved.
+
+ doc/nft.xml                |   23 ++++++++---
+ include/ct.h               |    3 -
+ include/expression.h       |    2 
+ src/ct.c                   |   70 ++++++++++++++++++++++++----------
+ src/evaluate.c             |   92 +++++++++++++++++++++++++++++++++++----------
+ src/netlink_delinearize.c  |   52 +++++++++++--------------
+ src/parser_bison.y         |   42 ++++++++++++++++++--
+ src/rt.c                   |   14 ++++++
+ tests/py/bridge/icmpX.t    |    4 -
+ tests/py/inet/ct.t         |    7 ++-
+ tests/py/inet/ct.t.payload |    4 -
+ tests/py/inet/icmpX.t      |    4 -
+ tests/py/inet/rt.t         |   10 +++-
+ tests/py/inet/rt.t.payload |    4 -
+ tests/py/ip/ct.t           |   18 ++++----
+ tests/py/ip/ct.t.payload   |   16 +++----
+ tests/py/ip/rt.t           |    3 -
+ tests/py/ip6/rt0.t         |    2 
+ 18 files changed, 260 insertions(+), 110 deletions(-)
