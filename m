@@ -1,84 +1,111 @@
-From: Ross Lagerwall <ross.lagerwall@citrix.com>
-Subject: [PATCH] netfilter: ipset: Fix race between dump and swap
-Date: Wed, 27 Sep 2017 10:06:27 +0100
-Message-ID: <20170927090627.26355-1-ross.lagerwall@citrix.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Ross Lagerwall <ross.lagerwall@citrix.com>
-To: <netfilter-devel@vger.kernel.org>
+From: Harsha Sharma <harshasharmaiitr@gmail.com>
+Subject: [PATCH] iptables: Constify option struct
+Date: Wed, 27 Sep 2017 17:14:52 +0530
+Message-ID: <1506512692-7872-1-git-send-email-harshasharmaiitr@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com,
+        Harsha Sharma <harshasharmaiitr@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp02.citrix.com ([66.165.176.63]:35681 "EHLO
-        SMTP02.CITRIX.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752472AbdI0JP5 (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:34225 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750854AbdI0LrJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Sep 2017 05:15:57 -0400
+        Wed, 27 Sep 2017 07:47:09 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fix a race between ip_set_dump_start() and ip_set_swap().
-The race is as follows:
-* Without holding the ref lock, ip_set_swap() checks ref_netlink of the
-  set and it is 0.
-* ip_set_dump_start() takes a reference on the set.
-* ip_set_swap() does the swap (even though it now has a non-zero
-  reference count).
-* ip_set_dump_start() gets the set from ip_set_list again which is now a
-  different set since it has been swapped.
-* ip_set_dump_start() calls __ip_set_put_netlink() and hits a BUG_ON due
-  to the reference count being 0.
+The struct of type option is only used to initialise a field inside
+the xtables_globals struct and is not modified anywhere.
+Done using following coccinelle semantic patch
 
-Fix this race by extending the critical region in which the ref lock is
-held to include checking the ref counts.
+@r1 disable optional_qualifier@
+identifier s,i;
+position p;
+@@
 
-The race can be reproduced with the following script:
-  while :; do
-    ipset destroy hash_ip1
-    ipset destroy hash_ip2
-    ipset create hash_ip1 hash:ip family inet hashsize 1024 \
-        maxelem 500000
-    ipset create hash_ip2 hash:ip family inet hashsize 300000 \
-        maxelem 500000
-    ipset create hash_ip3 hash:ip family inet hashsize 1024 \
-        maxelem 500000
-    ipset save &
-    ipset swap hash_ip3 hash_ip2
-    ipset destroy hash_ip3
-    wait
-  done
+static struct option i@p[] ={...};
 
-Signed-off-by: Ross Lagerwall <ross.lagerwall@citrix.com>
+@ok1@
+identifier r1.i;
+expression e;
+position p;
+@@
+e = i@p
+
+@bad@
+position p != {r1.p,ok1.p};
+identifier r1.i;
+@@
+e@i@p
+
+@depends on !bad disable optional_qualifier@
+identifier r1.i;
+@@
+static
++const
+struct option i[] = { ... };
+
+Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
 ---
- net/netfilter/ipset/ip_set_core.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ iptables/ip6tables.c  | 2 +-
+ iptables/iptables.c   | 2 +-
+ iptables/xtables-eb.c | 2 +-
+ iptables/xtables.c    | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index ba6a551..cae3e4a 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1185,14 +1185,17 @@ static int ip_set_swap(struct net *net, struct sock *ctnl, struct sk_buff *skb,
- 	      from->family == to->family))
- 		return -IPSET_ERR_TYPE_MISMATCH;
+diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
+index 49bd006..0f6fa31 100644
+--- a/iptables/ip6tables.c
++++ b/iptables/ip6tables.c
+@@ -78,7 +78,7 @@ static const char optflags[]
  
--	if (from->ref_netlink || to->ref_netlink)
-+	write_lock_bh(&ip_set_ref_lock);
-+
-+	if (from->ref_netlink || to->ref_netlink) {
-+		write_unlock_bh(&ip_set_ref_lock);
- 		return -EBUSY;
-+	}
+ static const char unsupported_rev[] = " [unsupported revision]";
  
- 	strncpy(from_name, from->name, IPSET_MAXNAMELEN);
- 	strncpy(from->name, to->name, IPSET_MAXNAMELEN);
- 	strncpy(to->name, from_name, IPSET_MAXNAMELEN);
+-static struct option original_opts[] = {
++static const struct option original_opts[] = {
+ 	{.name = "append",        .has_arg = 1, .val = 'A'},
+ 	{.name = "delete",        .has_arg = 1, .val = 'D'},
+ 	{.name = "check" ,        .has_arg = 1, .val = 'C'},
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index 69d19fe..e930fe2 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -75,7 +75,7 @@ static const char optflags[]
  
--	write_lock_bh(&ip_set_ref_lock);
- 	swap(from->ref, to->ref);
- 	ip_set(inst, from_id) = to;
- 	ip_set(inst, to_id) = from;
+ static const char unsupported_rev[] = " [unsupported revision]";
+ 
+-static struct option original_opts[] = {
++static const struct option original_opts[] = {
+ 	{.name = "append",        .has_arg = 1, .val = 'A'},
+ 	{.name = "delete",        .has_arg = 1, .val = 'D'},
+ 	{.name = "check",         .has_arg = 1, .val = 'C'},
+diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
+index c8b5d4f..60ec935 100644
+--- a/iptables/xtables-eb.c
++++ b/iptables/xtables-eb.c
+@@ -247,7 +247,7 @@ static int get_current_chain(const char *chain)
+ 
+ /* Default command line options. Do not mess around with the already
+  * assigned numbers unless you know what you are doing */
+-static struct option ebt_original_options[] =
++static const struct option ebt_original_options[] =
+ {
+ 	{ "append"         , required_argument, 0, 'A' },
+ 	{ "insert"         , required_argument, 0, 'I' },
+diff --git a/iptables/xtables.c b/iptables/xtables.c
+index ac11325..aebe7d7 100644
+--- a/iptables/xtables.c
++++ b/iptables/xtables.c
+@@ -59,7 +59,7 @@ static const char cmdflags[] = { 'I', 'D', 'D', 'R', 'A', 'L', 'F', 'Z',
+ static const char optflags[]
+ = { 'n', 's', 'd', 'p', 'j', 'v', 'x', 'i', 'o', '0', 'c', 'f'};
+ 
+-static struct option original_opts[] = {
++static const struct option original_opts[] = {
+ 	{.name = "append",	  .has_arg = 1, .val = 'A'},
+ 	{.name = "delete",	  .has_arg = 1, .val = 'D'},
+ 	{.name = "check",	  .has_arg = 1, .val = 'C'},
 -- 
-2.9.5
+1.9.1
 
