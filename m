@@ -1,110 +1,154 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 04/10] src: unifiy meta and ct postprocessing
-Date: Wed, 27 Sep 2017 20:16:48 +0200
-Message-ID: <20170927181654.3129-5-fw@strlen.de>
+Subject: [PATCH nft 07/10] tests: ct: adjust test case commands
+Date: Wed, 27 Sep 2017 20:16:51 +0200
+Message-ID: <20170927181654.3129-8-fw@strlen.de>
 References: <20170927181654.3129-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37758 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37770 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751555AbdI0SQt (ORCPT
+        by vger.kernel.org with ESMTP id S1751555AbdI0SQ7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Sep 2017 14:16:49 -0400
+        Wed, 27 Sep 2017 14:16:59 -0400
 In-Reply-To: <20170927181654.3129-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->From postprocess point of view meta and ct are logically the same,
-except that their storage area overlaps (union type), so if we
-extract the relevant fields we can move all of it into a single
-helper and support dependency store/kill for both expressions.
+use 'ip saddr', 'ip6 saddr', etc.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/netlink_delinearize.c | 50 +++++++++++++++++++++--------------------------
- 1 file changed, 22 insertions(+), 28 deletions(-)
+ tests/py/inet/ct.t         |  7 +++++--
+ tests/py/inet/ct.t.payload |  4 ++--
+ tests/py/ip/ct.t           | 18 +++++++++---------
+ tests/py/ip/ct.t.payload   | 16 ++++++++--------
+ 4 files changed, 24 insertions(+), 21 deletions(-)
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 7c61cd0c5bbc..44328879ebb8 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -1385,12 +1385,29 @@ static void payload_match_postprocess(struct rule_pp_ctx *ctx,
- 	}
- }
+diff --git a/tests/py/inet/ct.t b/tests/py/inet/ct.t
+index c56c3bc86151..1a656aa4375f 100644
+--- a/tests/py/inet/ct.t
++++ b/tests/py/inet/ct.t
+@@ -3,8 +3,11 @@
  
--static void ct_meta_common_postprocess(const struct expr *expr)
-+static void ct_meta_common_postprocess(struct rule_pp_ctx *ctx,
-+				       const struct expr *expr,
-+				       enum proto_bases base)
- {
- 	const struct expr *left = expr->left;
- 	struct expr *right = expr->right;
+ *inet;test-inet;input
  
- 	switch (expr->op) {
-+	case OP_EQ:
-+		if (expr->right->ops->type == EXPR_RANGE)
-+			break;
+-meta nfproto ipv4 ct original saddr 1.2.3.4;ok
+-meta nfproto ipv6 ct original saddr ::1;ok
++meta nfproto ipv4 ct original saddr 1.2.3.4;ok;ct original ip saddr 1.2.3.4
++ct original ip6 saddr ::1;ok
+ 
+ # missing protocol context
+ ct original saddr ::1;fail
 +
-+		expr->left->ops->pctx_update(&ctx->pctx, expr);
-+
-+		if (ctx->pdctx.pbase == PROTO_BASE_INVALID &&
-+		    left->flags & EXPR_F_PROTOCOL) {
-+			payload_dependency_store(&ctx->pdctx, ctx->stmt, base);
-+		} else if (ctx->pdctx.pbase < PROTO_BASE_TRANSPORT_HDR) {
-+			__payload_dependency_kill(&ctx->pdctx, base);
-+			if (left->flags & EXPR_F_PROTOCOL)
-+				payload_dependency_store(&ctx->pdctx, ctx->stmt, base);
-+		}
-+		break;
- 	case OP_NEQ:
- 		if (right->ops->type != EXPR_SET && right->ops->type != EXPR_SET_REF)
- 			break;
-@@ -1406,40 +1423,17 @@ static void ct_meta_common_postprocess(const struct expr *expr)
- static void meta_match_postprocess(struct rule_pp_ctx *ctx,
- 				   const struct expr *expr)
- {
--	struct expr *left = expr->left;
--
--	switch (expr->op) {
--	case OP_EQ:
--		if (expr->right->ops->type == EXPR_RANGE)
--			break;
--
--		expr->left->ops->pctx_update(&ctx->pctx, expr);
-+	const struct expr *left = expr->left;
++# wrong protocol context
++ct original ip saddr ::1;fail
+diff --git a/tests/py/inet/ct.t.payload b/tests/py/inet/ct.t.payload
+index 21c74581de3a..97128eccf540 100644
+--- a/tests/py/inet/ct.t.payload
++++ b/tests/py/inet/ct.t.payload
+@@ -5,9 +5,9 @@ ip test-ip4 output
+   [ ct load src => reg 1 , dir original ]
+   [ cmp eq reg 1 0x04030201 ]
  
--		if (ctx->pdctx.pbase == PROTO_BASE_INVALID &&
--		    left->flags & EXPR_F_PROTOCOL)
--			payload_dependency_store(&ctx->pdctx, ctx->stmt,
--						 left->meta.base);
--		break;
--	default:
--		ct_meta_common_postprocess(expr);
--		break;
--	}
-+	ct_meta_common_postprocess(ctx, expr, left->meta.base);
- }
+-# meta nfproto ipv6 ct original saddr ::1
++# ct original ip6 saddr ::1
+ inet test-inet input
+-  [ meta load nfproto => reg 1 ]
++  [ ct load l3protocol => reg 1 , dir original ]
+   [ cmp eq reg 1 0x0000000a ]
+   [ ct load src => reg 1 , dir original ]
+   [ cmp eq reg 1 0x00000000 0x00000000 0x00000000 0x01000000 ]
+diff --git a/tests/py/ip/ct.t b/tests/py/ip/ct.t
+index d0f16c51fa4c..d3247f79113f 100644
+--- a/tests/py/ip/ct.t
++++ b/tests/py/ip/ct.t
+@@ -2,16 +2,16 @@
  
- static void ct_match_postprocess(struct rule_pp_ctx *ctx,
- 				 const struct expr *expr)
- {
--	switch (expr->op) {
--	case OP_EQ:
--		if (expr->right->ops->type == EXPR_RANGE)
--			break;
-+	const struct expr *left = expr->left;
+ *ip;test-ip4;output
  
--		expr->left->ops->pctx_update(&ctx->pctx, expr);
--		break;
--	default:
--		ct_meta_common_postprocess(expr);
--		break;
--	}
-+	ct_meta_common_postprocess(ctx, expr, left->ct.base);
- }
+-ct original saddr 192.168.0.1;ok
+-ct reply saddr 192.168.0.1;ok
+-ct original daddr 192.168.0.1;ok
+-ct reply daddr 192.168.0.1;ok
++ct original ip saddr 192.168.0.1;ok
++ct reply ip saddr 192.168.0.1;ok
++ct original ip daddr 192.168.0.1;ok
++ct reply ip daddr 192.168.0.1;ok
  
- /* Convert a bitmask to a prefix length */
+ # same, but with a netmask
+-ct original saddr 192.168.1.0/24;ok
+-ct reply saddr 192.168.1.0/24;ok
+-ct original daddr 192.168.1.0/24;ok
+-ct reply daddr 192.168.1.0/24;ok
++ct original ip saddr 192.168.1.0/24;ok
++ct reply ip saddr 192.168.1.0/24;ok
++ct original ip daddr 192.168.1.0/24;ok
++ct reply ip daddr 192.168.1.0/24;ok
+ 
+ ct l3proto ipv4;ok
+ ct l3proto foobar;fail
+@@ -20,4 +20,4 @@ ct protocol 6 ct original proto-dst 22;ok
+ ct original protocol 17 ct reply proto-src 53;ok;ct protocol 17 ct reply proto-src 53
+ 
+ # wrong address family
+-ct reply daddr dead::beef;fail
++ct reply ip daddr dead::beef;fail
+diff --git a/tests/py/ip/ct.t.payload b/tests/py/ip/ct.t.payload
+index 56633a248c8c..b7cd130dbea2 100644
+--- a/tests/py/ip/ct.t.payload
++++ b/tests/py/ip/ct.t.payload
+@@ -1,42 +1,42 @@
+-# ct original saddr 192.168.0.1
++# ct original ip saddr 192.168.0.1
+ ip test-ip4 output
+   [ ct load src => reg 1 , dir original ]
+   [ cmp eq reg 1 0x0100a8c0 ]
+ 
+-# ct reply saddr 192.168.0.1
++# ct reply ip saddr 192.168.0.1
+ ip test-ip4 output
+   [ ct load src => reg 1 , dir reply ]
+   [ cmp eq reg 1 0x0100a8c0 ]
+ 
+-# ct original daddr 192.168.0.1
++# ct original ip daddr 192.168.0.1
+ ip test-ip4 output
+   [ ct load dst => reg 1 , dir original ]
+   [ cmp eq reg 1 0x0100a8c0 ]
+ 
+-# ct reply daddr 192.168.0.1
++# ct reply ip daddr 192.168.0.1
+ ip test-ip4 output
+   [ ct load dst => reg 1 , dir reply ]
+   [ cmp eq reg 1 0x0100a8c0 ]
+ 
+-# ct original saddr 192.168.1.0/24
++# ct original ip saddr 192.168.1.0/24
+ ip test-ip4 output
+   [ ct load src => reg 1 , dir original ]
+   [ bitwise reg 1 = (reg=1 & 0x00ffffff ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x0001a8c0 ]
+ 
+-# ct reply saddr 192.168.1.0/24
++# ct reply ip saddr 192.168.1.0/24
+ ip test-ip4 output
+   [ ct load src => reg 1 , dir reply ]
+   [ bitwise reg 1 = (reg=1 & 0x00ffffff ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x0001a8c0 ]
+ 
+-# ct original daddr 192.168.1.0/24
++# ct original ip daddr 192.168.1.0/24
+ ip test-ip4 output
+   [ ct load dst => reg 1 , dir original ]
+   [ bitwise reg 1 = (reg=1 & 0x00ffffff ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x0001a8c0 ]
+ 
+-# ct reply daddr 192.168.1.0/24
++# ct reply ip daddr 192.168.1.0/24
+ ip test-ip4 output
+   [ ct load dst => reg 1 , dir reply ]
+   [ bitwise reg 1 = (reg=1 & 0x00ffffff ) ^ 0x00000000 ]
 -- 
 2.13.5
 
