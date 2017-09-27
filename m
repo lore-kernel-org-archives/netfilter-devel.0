@@ -1,80 +1,45 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 2/3] src: parser_bison: rename ct_block to ct_helper_block
-Date: Wed, 27 Sep 2017 19:38:06 +0200
-Message-ID: <20170927173807.29882-3-fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft 1/3] src: prepare for future ct timeout policy support
+Date: Wed, 27 Sep 2017 19:53:52 +0200
+Message-ID: <20170927175352.GA17665@salvia>
 References: <20170927173807.29882-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+ <20170927173807.29882-2-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37600 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750852AbdI0RiA (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:38251 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751016AbdI0Rx4 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Sep 2017 13:38:00 -0400
-In-Reply-To: <20170927173807.29882-1-fw@strlen.de>
+        Wed, 27 Sep 2017 13:53:56 -0400
+Content-Disposition: inline
+In-Reply-To: <20170927173807.29882-2-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/parser_bison.y | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+On Wed, Sep 27, 2017 at 07:38:05PM +0200, Florian Westphal wrote:
+> Change all places that expect ct helper tokens (ct helper configuration)
+> to CT HELPER.  ct_obj_kind is removed.
+> 
+> When we add ct timeout support, we will add a new ct_timeout_block,
+> plus extra rules.  We won't extend ct_block, it prevents the parser
+> from detecting bogus syntax that only makes sense for ct helper but
+> not for something else for instance.
+> 
+> ct_block should be renamed to ct_helper_block, will be done in
+> followup patch.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index b9eb2b9d4c01..ce6a77a89847 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -514,7 +514,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %type <set>			map_block_alloc map_block
- %destructor { set_free($$); }	map_block_alloc
- 
--%type <obj>			obj_block_alloc counter_block quota_block ct_block limit_block
-+%type <obj>			obj_block_alloc counter_block quota_block ct_helper_block limit_block
- %destructor { obj_free($$); }	obj_block_alloc
- 
- %type <list>			stmt_list
-@@ -876,7 +876,7 @@ add_cmd			:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_QUOTA, &$2, &@$, $3);
- 			}
--			|	CT	HELPER	obj_spec	ct_obj_alloc	'{' ct_block '}'	stmt_separator
-+			|	CT	HELPER	obj_spec	ct_obj_alloc	'{' ct_helper_block '}'	stmt_separator
- 			{
- 
- 				$$ = cmd_alloc_obj_ct(CMD_ADD, NFT_OBJECT_CT_HELPER, &$3, &@$, $4);
-@@ -951,7 +951,7 @@ create_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_CREATE, CMD_OBJ_QUOTA, &$2, &@$, $3);
- 			}
--			|	CT	HELPER	obj_spec	ct_obj_alloc	'{' ct_block '}'	stmt_separator
-+			|	CT	HELPER	obj_spec	ct_obj_alloc	'{' ct_helper_block '}'	stmt_separator
- 			{
- 				$$ = cmd_alloc_obj_ct(CMD_CREATE, NFT_OBJECT_CT_HELPER, &$3, &@$, $4);
- 			}
-@@ -1293,7 +1293,7 @@ table_block		:	/* empty */	{ $$ = $<table>-1; }
- 				list_add_tail(&$4->list, &$1->objs);
- 				$$ = $1;
- 			}
--			|	table_block	CT	HELPER	obj_identifier  obj_block_alloc '{'     ct_block     '}' stmt_separator
-+			|	table_block	CT	HELPER	obj_identifier  obj_block_alloc '{'     ct_helper_block     '}' stmt_separator
- 			{
- 				$5->location = @4;
- 				$5->type = NFT_OBJECT_CT_HELPER;
-@@ -1512,10 +1512,10 @@ quota_block		:	/* empty */	{ $$ = $<obj>-1; }
- 			}
- 			;
- 
--ct_block		:	/* empty */	{ $$ = $<obj>-1; }
--			|       ct_block     common_block
--			|       ct_block     stmt_separator
--			|       ct_block     ct_helper_config
-+ct_helper_block		:	/* empty */	{ $$ = $<obj>-1; }
-+			|       ct_helper_block     common_block
-+			|       ct_helper_block     stmt_separator
-+			|       ct_helper_block     ct_helper_config
- 			{
- 				$$ = $1;
- 			}
--- 
-2.13.5
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
+>  include/ct.h       |  2 --
+>  include/rule.h     |  2 +-
+>  src/ct.c           | 10 ------
+>  src/parser_bison.y | 98 ++++++++++--------------------------------------------
+>  src/rule.c         |  7 ++--
+>  5 files changed, 23 insertions(+), 96 deletions(-)
+
+Nice diffstats.
