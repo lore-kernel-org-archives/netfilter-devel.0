@@ -1,98 +1,80 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 3/3] bison: permit keywords in list_stmt_expressions
-Date: Wed, 27 Sep 2017 19:38:07 +0200
-Message-ID: <20170927173807.29882-4-fw@strlen.de>
+Subject: [PATCH nft 2/3] src: parser_bison: rename ct_block to ct_helper_block
+Date: Wed, 27 Sep 2017 19:38:06 +0200
+Message-ID: <20170927173807.29882-3-fw@strlen.de>
 References: <20170927173807.29882-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37602 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37600 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751016AbdI0RiD (ORCPT
+        by vger.kernel.org with ESMTP id S1750852AbdI0RiA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Sep 2017 13:38:03 -0400
+        Wed, 27 Sep 2017 13:38:00 -0400
 In-Reply-To: <20170927173807.29882-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-'ct event set label' and 'ct event set new or label' work, but
-'ct event set new, label' did not:
-
-  nft add rule filter input ct event set new,label
-  Error: syntax error, unexpected label
-
-This changes the definition to also contain keyword symbol expressions.
-
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/parser_bison.y        | 11 +++++++----
- tests/py/any/ct.t         |  1 +
- tests/py/any/ct.t.payload |  5 +++++
- 3 files changed, 13 insertions(+), 4 deletions(-)
+ src/parser_bison.y | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index ce6a77a89847..87ae4c30712a 100644
+index b9eb2b9d4c01..ce6a77a89847 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -609,8 +609,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+@@ -514,7 +514,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %type <set>			map_block_alloc map_block
+ %destructor { set_free($$); }	map_block_alloc
  
- %type <expr>			rhs_expr concat_rhs_expr basic_rhs_expr
- %destructor { expr_free($$); }	rhs_expr concat_rhs_expr basic_rhs_expr
--%type <expr>			primary_rhs_expr list_rhs_expr shift_rhs_expr
--%destructor { expr_free($$); }	primary_rhs_expr list_rhs_expr shift_rhs_expr
-+%type <expr>			primary_rhs_expr list_rhs_expr shift_rhs_expr symbol_rhs_expr
-+%destructor { expr_free($$); }	primary_rhs_expr list_rhs_expr shift_rhs_expr symbol_rhs_expr
- %type <expr>			and_rhs_expr exclusive_or_rhs_expr inclusive_or_rhs_expr
- %destructor { expr_free($$); }	and_rhs_expr exclusive_or_rhs_expr inclusive_or_rhs_expr
+-%type <obj>			obj_block_alloc counter_block quota_block ct_block limit_block
++%type <obj>			obj_block_alloc counter_block quota_block ct_helper_block limit_block
+ %destructor { obj_free($$); }	obj_block_alloc
  
-@@ -3302,14 +3302,17 @@ ct_key_dir_optional	:	BYTES		{ $$ = NFT_CT_BYTES; }
- 			|	ZONE		{ $$ = NFT_CT_ZONE; }
+ %type <list>			stmt_list
+@@ -876,7 +876,7 @@ add_cmd			:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_QUOTA, &$2, &@$, $3);
+ 			}
+-			|	CT	HELPER	obj_spec	ct_obj_alloc	'{' ct_block '}'	stmt_separator
++			|	CT	HELPER	obj_spec	ct_obj_alloc	'{' ct_helper_block '}'	stmt_separator
+ 			{
+ 
+ 				$$ = cmd_alloc_obj_ct(CMD_ADD, NFT_OBJECT_CT_HELPER, &$3, &@$, $4);
+@@ -951,7 +951,7 @@ create_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_CREATE, CMD_OBJ_QUOTA, &$2, &@$, $3);
+ 			}
+-			|	CT	HELPER	obj_spec	ct_obj_alloc	'{' ct_block '}'	stmt_separator
++			|	CT	HELPER	obj_spec	ct_obj_alloc	'{' ct_helper_block '}'	stmt_separator
+ 			{
+ 				$$ = cmd_alloc_obj_ct(CMD_CREATE, NFT_OBJECT_CT_HELPER, &$3, &@$, $4);
+ 			}
+@@ -1293,7 +1293,7 @@ table_block		:	/* empty */	{ $$ = $<table>-1; }
+ 				list_add_tail(&$4->list, &$1->objs);
+ 				$$ = $1;
+ 			}
+-			|	table_block	CT	HELPER	obj_identifier  obj_block_alloc '{'     ct_block     '}' stmt_separator
++			|	table_block	CT	HELPER	obj_identifier  obj_block_alloc '{'     ct_helper_block     '}' stmt_separator
+ 			{
+ 				$5->location = @4;
+ 				$5->type = NFT_OBJECT_CT_HELPER;
+@@ -1512,10 +1512,10 @@ quota_block		:	/* empty */	{ $$ = $<obj>-1; }
+ 			}
  			;
  
-+symbol_rhs_expr		:	symbol_expr
-+			|	keyword_expr
-+			;
- 
--list_stmt_expr		:	symbol_expr	COMMA	symbol_expr
-+list_stmt_expr		:	symbol_rhs_expr	COMMA	symbol_rhs_expr
+-ct_block		:	/* empty */	{ $$ = $<obj>-1; }
+-			|       ct_block     common_block
+-			|       ct_block     stmt_separator
+-			|       ct_block     ct_helper_config
++ct_helper_block		:	/* empty */	{ $$ = $<obj>-1; }
++			|       ct_helper_block     common_block
++			|       ct_helper_block     stmt_separator
++			|       ct_helper_block     ct_helper_config
  			{
- 				$$ = list_expr_alloc(&@$);
- 				compound_expr_add($$, $1);
- 				compound_expr_add($$, $3);
+ 				$$ = $1;
  			}
--			|	list_stmt_expr	COMMA		symbol_expr
-+			|	list_stmt_expr	COMMA	symbol_rhs_expr
- 			{
- 				$1->location = @$;
- 				compound_expr_add($1, $3);
-diff --git a/tests/py/any/ct.t b/tests/py/any/ct.t
-index f02bd0420e68..fb3ae098b14a 100644
---- a/tests/py/any/ct.t
-+++ b/tests/py/any/ct.t
-@@ -107,6 +107,7 @@ ct mark original;fail
- ct event set new;ok
- ct event set new or related or destroy or foobar;fail
- ct event set 'new | related | destroy | label';ok;ct event set new,related,destroy,label
-+ct event set new,related,destroy,label;ok
- ct event set new,destroy;ok
- ct event set 1;ok;ct event set new
- ct event set 0x0;ok
-diff --git a/tests/py/any/ct.t.payload b/tests/py/any/ct.t.payload
-index 20acbb9b63d1..7ebf3f8d327e 100644
---- a/tests/py/any/ct.t.payload
-+++ b/tests/py/any/ct.t.payload
-@@ -401,6 +401,11 @@ ip test-ip4 output
-   [ immediate reg 1 0x00000407 ]
-   [ ct set event with reg 1 ]
- 
-+# ct event set new,related,destroy,label
-+ip test-ip4 output
-+  [ immediate reg 1 0x00000407 ]
-+  [ ct set event with reg 1 ]
-+
- # ct event set new,destroy
- ip test-ip4 output
-   [ immediate reg 1 0x00000005 ]
 -- 
 2.13.5
 
