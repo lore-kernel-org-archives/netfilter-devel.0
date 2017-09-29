@@ -1,25 +1,24 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH 0/2] Follow-up on nft_print() enhancement
-Date: Fri, 29 Sep 2017 13:27:16 +0200
-Message-ID: <20170929112716.GA5783@salvia>
-References: <20170929112622.11686-1-phil@nwl.cc>
+Subject: Re: [PATCH v3] ebtables: fix race condition in
+ frame_filter_net_init()
+Date: Fri, 29 Sep 2017 13:29:18 +0200
+Message-ID: <20170929112918.GA6066@salvia>
+References: <20170926153923.30094-1-asavkov@redhat.com>
+ <20170926163545.3668-1-asavkov@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>,
-        Florian Westphal <fw@strlen.de>
-To: Phil Sutter <phil@nwl.cc>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [213.95.27.120] ([213.95.27.120]:59522 "EHLO
-        ganesha.gnumonks.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-        with ESMTP id S1751813AbdI2L2a (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 29 Sep 2017 07:28:30 -0400
+Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Artem Savkov <asavkov@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170929112622.11686-1-phil@nwl.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20170926163545.3668-1-asavkov@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Sep 29, 2017 at 01:26:20PM +0200, Phil Sutter wrote:
-> This fixes two spots I forgot to clean up before submitting the patches.
+On Tue, Sep 26, 2017 at 06:35:45PM +0200, Artem Savkov wrote:
+> It is possible for ebt_in_hook to be triggered before ebt_table is assigned
+> resulting in a NULL-pointer dereference. Make sure hooks are
+> registered as the last step.
 
-Applied, thanks Phil.
+Applied, thanks.
