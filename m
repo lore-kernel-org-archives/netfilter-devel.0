@@ -1,59 +1,56 @@
-From: Lin Zhang <xiaolou4617@gmail.com>
-Subject: [PATCH v2] netfilter: SYNPROXY: fix process non tcp packet bug in {ipv4,ipv6}_synproxy_hook
-Date: Sat, 30 Sep 2017 18:25:15 +0800
-Message-ID: <1506767115-10051-1-git-send-email-xiaolou4617@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, Lin Zhang <xiaolou4617@gmail.com>
-To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
-        davem@davemloft.net, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Arturo Borrero Gonzalez <arturo@netfilter.org>
+Subject: Re: [ulogd2 PATCH] ulogd2: add new config option: load_all_plugins
+Date: Sat, 30 Sep 2017 12:43:36 +0200
+Message-ID: <CAOkSjBh0gU4r7mxLVnTRCzQdnSydebJsdg-+-Sym8seL8EXB+Q@mail.gmail.com>
+References: <150633836700.6370.2675458398740561976.stgit@nfdev2.cica.es>
+ <20170929113949.GA28566@salvia> <CAOkSjBjjzDA8HVYAYuDutg_+Miz7s=5PExY6zsOj8h+kkGjNxA@mail.gmail.com>
+ <CAOkSjBi1gUQjH5vGtCC4eRE36-PcWdN6r_NL7--PoNQv1VhK0g@mail.gmail.com> <20170930101203.GB2078@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35376 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750933AbdI3Kn6 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 30 Sep 2017 06:43:58 -0400
+Received: by mail-wm0-f65.google.com with SMTP id b189so992040wmd.2
+        for <netfilter-devel@vger.kernel.org>; Sat, 30 Sep 2017 03:43:58 -0700 (PDT)
+Received: from mail-wm0-f47.google.com (mail-wm0-f47.google.com. [74.125.82.47])
+        by smtp.gmail.com with ESMTPSA id w51sm5757180edd.60.2017.09.30.03.43.57
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sat, 30 Sep 2017 03:43:57 -0700 (PDT)
+Received: by mail-wm0-f47.google.com with SMTP id r74so3222394wme.4
+        for <netfilter-devel@vger.kernel.org>; Sat, 30 Sep 2017 03:43:57 -0700 (PDT)
+In-Reply-To: <20170930101203.GB2078@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-In function {ipv4,ipv6}_synproxy_hook we expect a normal tcp packet,
-but the real server maybe reply an icmp error packet related to the 
-exist tcp conntrack, so we will access wrong tcp data.
+On 30 September 2017 at 12:12, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Sat, Sep 30, 2017 at 11:48:11AM +0200, Arturo Borrero Gonzalez wrote:
+>> On 30 September 2017 at 11:43, Arturo Borrero Gonzalez
+>> <arturo@netfilter.org> wrote:
+>> >
+>> > Ok, but how could we avoid putting there a complex, arch-dependant path?
+>>
+>> i.e, in Debian this means a path like:
+>>
+>> /usr/lib/mips64el-linux-gnuabi64/ulogd/ulogd_filter_IFINDEX.so
+>>
+>> so user should use /usr/lib/mips64el-linux-gnuabi64/ which is very ugly.
+>> If the config file is copied to a machine with a different arch, amd64
+>> for example, then path should be modified to:
+>>
+>> /usr/lib/x86_64-linux-gnu/ulogd/
+>>
+>> Complex and ugly. We should avoid that. I think we should offer a
+>> default at build/configure time.
+>
+> I think @pkglibdir@ in ulogd.conf.in will set this to the
+> corresponding arch-dependent folder at configure/build time, right?
 
-For fix it, check for the protocol field and only process tcp traffic.
-
-Signed-off-by: Lin Zhang <xiaolou4617@gmail.com>
----
-changelog:
-
-v1 -> v2:
-	* we only deal with TCP traffic, per Pablo Neira.
----
- net/ipv4/netfilter/ipt_SYNPROXY.c  | 3 ++-
- net/ipv6/netfilter/ip6t_SYNPROXY.c | 3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
-index 811689e..13bec90 100644
---- a/net/ipv4/netfilter/ipt_SYNPROXY.c
-+++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
-@@ -330,7 +330,8 @@ static unsigned int ipv4_synproxy_hook(void *priv,
- 	if (synproxy == NULL)
- 		return NF_ACCEPT;
- 
--	if (nf_is_loopback_packet(skb))
-+	if (nf_is_loopback_packet(skb) ||
-+	    ip_hdr(skb)->protocol != IPPROTO_TCP)
- 		return NF_ACCEPT;
- 
- 	thoff = ip_hdrlen(skb);
-diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-index a5cd43d..af19c16 100644
---- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
-+++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-@@ -347,7 +347,8 @@ static unsigned int ipv6_synproxy_hook(void *priv,
- 	if (synproxy == NULL)
- 		return NF_ACCEPT;
- 
--	if (nf_is_loopback_packet(skb))
-+	if (nf_is_loopback_packet(skb) ||
-+	    ipv6_hdr(skb)->protocol != IPPROTO_TCP)
- 		return NF_ACCEPT;
- 
- 	nexthdr = ipv6_hdr(skb)->nexthdr;
--- 
-1.8.3.1
+The point is to don't have the ugly string in the config file.
+Transparent to the user. Simplify the config file.
