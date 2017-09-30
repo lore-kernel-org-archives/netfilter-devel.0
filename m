@@ -1,45 +1,59 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ulogd2 PATCH] ulogd2: add new config option: load_all_plugins
-Date: Sat, 30 Sep 2017 12:12:03 +0200
-Message-ID: <20170930101203.GB2078@salvia>
-References: <150633836700.6370.2675458398740561976.stgit@nfdev2.cica.es>
- <20170929113949.GA28566@salvia>
- <CAOkSjBjjzDA8HVYAYuDutg_+Miz7s=5PExY6zsOj8h+kkGjNxA@mail.gmail.com>
- <CAOkSjBi1gUQjH5vGtCC4eRE36-PcWdN6r_NL7--PoNQv1VhK0g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [213.95.27.120] ([213.95.27.120]:39989 "EHLO
-        ganesha.gnumonks.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-        with ESMTP id S1750933AbdI3KNV (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 30 Sep 2017 06:13:21 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBi1gUQjH5vGtCC4eRE36-PcWdN6r_NL7--PoNQv1VhK0g@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Lin Zhang <xiaolou4617@gmail.com>
+Subject: [PATCH v2] netfilter: SYNPROXY: fix process non tcp packet bug in {ipv4,ipv6}_synproxy_hook
+Date: Sat, 30 Sep 2017 18:25:15 +0800
+Message-ID: <1506767115-10051-1-git-send-email-xiaolou4617@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Lin Zhang <xiaolou4617@gmail.com>
+To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        davem@davemloft.net, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Sep 30, 2017 at 11:48:11AM +0200, Arturo Borrero Gonzalez wrote:
-> On 30 September 2017 at 11:43, Arturo Borrero Gonzalez
-> <arturo@netfilter.org> wrote:
-> >
-> > Ok, but how could we avoid putting there a complex, arch-dependant path?
-> 
-> i.e, in Debian this means a path like:
-> 
-> /usr/lib/mips64el-linux-gnuabi64/ulogd/ulogd_filter_IFINDEX.so
-> 
-> so user should use /usr/lib/mips64el-linux-gnuabi64/ which is very ugly.
-> If the config file is copied to a machine with a different arch, amd64
-> for example, then path should be modified to:
-> 
-> /usr/lib/x86_64-linux-gnu/ulogd/
-> 
-> Complex and ugly. We should avoid that. I think we should offer a
-> default at build/configure time.
+In function {ipv4,ipv6}_synproxy_hook we expect a normal tcp packet,
+but the real server maybe reply an icmp error packet related to the 
+exist tcp conntrack, so we will access wrong tcp data.
 
-I think @pkglibdir@ in ulogd.conf.in will set this to the
-corresponding arch-dependent folder at configure/build time, right?
+For fix it, check for the protocol field and only process tcp traffic.
+
+Signed-off-by: Lin Zhang <xiaolou4617@gmail.com>
+---
+changelog:
+
+v1 -> v2:
+	* we only deal with TCP traffic, per Pablo Neira.
+---
+ net/ipv4/netfilter/ipt_SYNPROXY.c  | 3 ++-
+ net/ipv6/netfilter/ip6t_SYNPROXY.c | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
+index 811689e..13bec90 100644
+--- a/net/ipv4/netfilter/ipt_SYNPROXY.c
++++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
+@@ -330,7 +330,8 @@ static unsigned int ipv4_synproxy_hook(void *priv,
+ 	if (synproxy == NULL)
+ 		return NF_ACCEPT;
+ 
+-	if (nf_is_loopback_packet(skb))
++	if (nf_is_loopback_packet(skb) ||
++	    ip_hdr(skb)->protocol != IPPROTO_TCP)
+ 		return NF_ACCEPT;
+ 
+ 	thoff = ip_hdrlen(skb);
+diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+index a5cd43d..af19c16 100644
+--- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
++++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+@@ -347,7 +347,8 @@ static unsigned int ipv6_synproxy_hook(void *priv,
+ 	if (synproxy == NULL)
+ 		return NF_ACCEPT;
+ 
+-	if (nf_is_loopback_packet(skb))
++	if (nf_is_loopback_packet(skb) ||
++	    ipv6_hdr(skb)->protocol != IPPROTO_TCP)
+ 		return NF_ACCEPT;
+ 
+ 	nexthdr = ipv6_hdr(skb)->nexthdr;
+-- 
+1.8.3.1
