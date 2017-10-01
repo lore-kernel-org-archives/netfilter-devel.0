@@ -1,56 +1,66 @@
-From: Arturo Borrero Gonzalez <arturo@netfilter.org>
-Subject: Re: [ulogd2 PATCH] ulogd2: add new config option: load_all_plugins
-Date: Sat, 30 Sep 2017 12:43:36 +0200
-Message-ID: <CAOkSjBh0gU4r7mxLVnTRCzQdnSydebJsdg-+-Sym8seL8EXB+Q@mail.gmail.com>
-References: <150633836700.6370.2675458398740561976.stgit@nfdev2.cica.es>
- <20170929113949.GA28566@salvia> <CAOkSjBjjzDA8HVYAYuDutg_+Miz7s=5PExY6zsOj8h+kkGjNxA@mail.gmail.com>
- <CAOkSjBi1gUQjH5vGtCC4eRE36-PcWdN6r_NL7--PoNQv1VhK0g@mail.gmail.com> <20170930101203.GB2078@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35376 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750933AbdI3Kn6 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 30 Sep 2017 06:43:58 -0400
-Received: by mail-wm0-f65.google.com with SMTP id b189so992040wmd.2
-        for <netfilter-devel@vger.kernel.org>; Sat, 30 Sep 2017 03:43:58 -0700 (PDT)
-Received: from mail-wm0-f47.google.com (mail-wm0-f47.google.com. [74.125.82.47])
-        by smtp.gmail.com with ESMTPSA id w51sm5757180edd.60.2017.09.30.03.43.57
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sat, 30 Sep 2017 03:43:57 -0700 (PDT)
-Received: by mail-wm0-f47.google.com with SMTP id r74so3222394wme.4
-        for <netfilter-devel@vger.kernel.org>; Sat, 30 Sep 2017 03:43:57 -0700 (PDT)
-In-Reply-To: <20170930101203.GB2078@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Harsha Sharma <harshasharmaiitr@gmail.com>
+Subject: [PATCH] exthdr: Add support for reserved header and address
+Date: Mon,  2 Oct 2017 02:07:00 +0530
+Message-ID: <1506890220-12226-1-git-send-email-harshasharmaiitr@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        outreachy-kernel@googlegroups.com,
+        Harsha Sharma <harshasharmaiitr@gmail.com>
+To: pablo@netfilter.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 30 September 2017 at 12:12, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sat, Sep 30, 2017 at 11:48:11AM +0200, Arturo Borrero Gonzalez wrote:
->> On 30 September 2017 at 11:43, Arturo Borrero Gonzalez
->> <arturo@netfilter.org> wrote:
->> >
->> > Ok, but how could we avoid putting there a complex, arch-dependant path?
->>
->> i.e, in Debian this means a path like:
->>
->> /usr/lib/mips64el-linux-gnuabi64/ulogd/ulogd_filter_IFINDEX.so
->>
->> so user should use /usr/lib/mips64el-linux-gnuabi64/ which is very ugly.
->> If the config file is copied to a machine with a different arch, amd64
->> for example, then path should be modified to:
->>
->> /usr/lib/x86_64-linux-gnu/ulogd/
->>
->> Complex and ugly. We should avoid that. I think we should offer a
->> default at build/configure time.
->
-> I think @pkglibdir@ in ulogd.conf.in will set this to the
-> corresponding arch-dependent folder at configure/build time, right?
+Add support for IPV6 type 0 routing header reserved field and address
+unable to test it with nft-test.py
 
-The point is to don't have the ugly string in the config file.
-Transparent to the user. Simplify the config file.
+Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
+---
+ include/exthdr.h  | 2 ++
+ src/exthdr.c      | 7 +------
+ tests/py/ip6/rt.t | 2 ++
+ 3 files changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/include/exthdr.h b/include/exthdr.h
+index 97ccc38..ad09f27 100644
+--- a/include/exthdr.h
++++ b/include/exthdr.h
+@@ -14,6 +14,8 @@
+ struct exthdr_desc {
+ 	const char			*name;
+ 	uint8_t				type;
++	unsigned int			protocol_key;
++	const struct exthdr_desc	*protocols[3];
+ 	struct proto_hdr_template	templates[10];
+ };
+ 
+diff --git a/src/exthdr.c b/src/exthdr.c
+index 4add3da..87c09da 100644
+--- a/src/exthdr.c
++++ b/src/exthdr.c
+@@ -263,13 +263,8 @@ const struct exthdr_desc exthdr_rt0 = {
+ const struct exthdr_desc exthdr_rt = {
+ 	.name		= "rt",
+ 	.type		= IPPROTO_ROUTING,
+-#if 0
+ 	.protocol_key	= RTHDR_TYPE,
+-	.protocols	= {
+-		[0]	= &exthdr_rt0,
+-		[2]	= &exthdr_rt2,
+-	},
+-#endif
++	.protocols	= {&exthdr_rt0, NULL, &exthdr_rt2},
+ 	.templates	= {
+ 		[RTHDR_NEXTHDR]		= RT_FIELD("nexthdr", ip6r_nxt, &inet_protocol_type),
+ 		[RTHDR_HDRLENGTH]	= RT_FIELD("hdrlength", ip6r_len, &integer_type),
+diff --git a/tests/py/ip6/rt.t b/tests/py/ip6/rt.t
+index 2d044c3..1eb198d 100644
+--- a/tests/py/ip6/rt.t
++++ b/tests/py/ip6/rt.t
+@@ -44,3 +44,5 @@ rt seg-left { 33, 55, 67, 88};ok
+ rt seg-left != { 33, 55, 67, 88};ok
+ rt seg-left { 33-55};ok
+ rt seg-left != { 33-55};ok
++
++rt type 0 reserved 2;ok
+-- 
+1.9.1
