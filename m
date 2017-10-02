@@ -1,7 +1,7 @@
 From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH] exthdr: Add support for reserved header and address
-Date: Mon,  2 Oct 2017 02:07:00 +0530
-Message-ID: <1506890220-12226-1-git-send-email-harshasharmaiitr@gmail.com>
+Subject: [PATCH 0/3] evaluate: Follow linux-kernel coding style
+Date: Mon,  2 Oct 2017 13:02:47 +0530
+Message-ID: <cover.1506928244.git.harshasharmaiitr@gmail.com>
 Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
         outreachy-kernel@googlegroups.com,
         Harsha Sharma <harshasharmaiitr@gmail.com>
@@ -10,57 +10,19 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Add support for IPV6 type 0 routing header reserved field and address
-unable to test it with nft-test.py
+Issues found using checkpatch.pl 
+As per linux-kernel coding style, code indent should use tabs wherever
+possible and avoid unnecessary spaces.
+Comparisons shoukd place the constant on the right side of the test.
+static const char * array should be static const * char const array 
 
-Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
----
- include/exthdr.h  | 2 ++
- src/exthdr.c      | 7 +------
- tests/py/ip6/rt.t | 2 ++
- 3 files changed, 5 insertions(+), 6 deletions(-)
+Harsha Sharma (3):
+  evaluate: Remove unnecessary spaces
+  evaluate: Place constant on right side in comparison
+  evaluate: fix checkpatch issue for static const char * array
 
-diff --git a/include/exthdr.h b/include/exthdr.h
-index 97ccc38..ad09f27 100644
---- a/include/exthdr.h
-+++ b/include/exthdr.h
-@@ -14,6 +14,8 @@
- struct exthdr_desc {
- 	const char			*name;
- 	uint8_t				type;
-+	unsigned int			protocol_key;
-+	const struct exthdr_desc	*protocols[3];
- 	struct proto_hdr_template	templates[10];
- };
- 
-diff --git a/src/exthdr.c b/src/exthdr.c
-index 4add3da..87c09da 100644
---- a/src/exthdr.c
-+++ b/src/exthdr.c
-@@ -263,13 +263,8 @@ const struct exthdr_desc exthdr_rt0 = {
- const struct exthdr_desc exthdr_rt = {
- 	.name		= "rt",
- 	.type		= IPPROTO_ROUTING,
--#if 0
- 	.protocol_key	= RTHDR_TYPE,
--	.protocols	= {
--		[0]	= &exthdr_rt0,
--		[2]	= &exthdr_rt2,
--	},
--#endif
-+	.protocols	= {&exthdr_rt0, NULL, &exthdr_rt2},
- 	.templates	= {
- 		[RTHDR_NEXTHDR]		= RT_FIELD("nexthdr", ip6r_nxt, &inet_protocol_type),
- 		[RTHDR_HDRLENGTH]	= RT_FIELD("hdrlength", ip6r_len, &integer_type),
-diff --git a/tests/py/ip6/rt.t b/tests/py/ip6/rt.t
-index 2d044c3..1eb198d 100644
---- a/tests/py/ip6/rt.t
-+++ b/tests/py/ip6/rt.t
-@@ -44,3 +44,5 @@ rt seg-left { 33, 55, 67, 88};ok
- rt seg-left != { 33, 55, 67, 88};ok
- rt seg-left { 33-55};ok
- rt seg-left != { 33-55};ok
-+
-+rt type 0 reserved 2;ok
+ src/evaluate.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
 -- 
 1.9.1
