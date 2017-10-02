@@ -1,49 +1,62 @@
-From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH 3/3] evaluate: make pointers in string arrays constant
-Date: Mon,  2 Oct 2017 13:02:50 +0530
-Message-ID: <9b81cec687c3082f5fd762ece696f1272945e0ad.1506928244.git.harshasharmaiitr@gmail.com>
-References: <cover.1506928244.git.harshasharmaiitr@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com,
-        Harsha Sharma <harshasharmaiitr@gmail.com>
-To: pablo@netfilter.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1506928244.git.harshasharmaiitr@gmail.com>
-In-Reply-To: <cover.1506928244.git.harshasharmaiitr@gmail.com>
-References: <cover.1506928244.git.harshasharmaiitr@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [ulogd2 PATCH] ulogd2: add new config option: load_all_plugins
+Date: Mon, 2 Oct 2017 12:44:29 +0200
+Message-ID: <20171002104429.GB2832@salvia>
+References: <150633836700.6370.2675458398740561976.stgit@nfdev2.cica.es>
+ <20170929113949.GA28566@salvia>
+ <CAOkSjBjjzDA8HVYAYuDutg_+Miz7s=5PExY6zsOj8h+kkGjNxA@mail.gmail.com>
+ <CAOkSjBi1gUQjH5vGtCC4eRE36-PcWdN6r_NL7--PoNQv1VhK0g@mail.gmail.com>
+ <20170930101203.GB2078@salvia>
+ <CAOkSjBh0gU4r7mxLVnTRCzQdnSydebJsdg-+-Sym8seL8EXB+Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from [213.95.27.120] ([213.95.27.120]:56384 "EHLO
+        ganesha.gnumonks.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1751160AbdJBKpq (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 2 Oct 2017 06:45:46 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOkSjBh0gU4r7mxLVnTRCzQdnSydebJsdg-+-Sym8seL8EXB+Q@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-static const char * array should probably be static const char * const
-array
-as per linux-kernel coding style
+On Sat, Sep 30, 2017 at 12:43:36PM +0200, Arturo Borrero Gonzalez wrote:
+> On 30 September 2017 at 12:12, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Sat, Sep 30, 2017 at 11:48:11AM +0200, Arturo Borrero Gonzalez wrote:
+> >> On 30 September 2017 at 11:43, Arturo Borrero Gonzalez
+> >> <arturo@netfilter.org> wrote:
+> >> >
+> >> > Ok, but how could we avoid putting there a complex, arch-dependant path?
+> >>
+> >> i.e, in Debian this means a path like:
+> >>
+> >> /usr/lib/mips64el-linux-gnuabi64/ulogd/ulogd_filter_IFINDEX.so
+> >>
+> >> so user should use /usr/lib/mips64el-linux-gnuabi64/ which is very ugly.
+> >> If the config file is copied to a machine with a different arch, amd64
+> >> for example, then path should be modified to:
+> >>
+> >> /usr/lib/x86_64-linux-gnu/ulogd/
+> >>
+> >> Complex and ugly. We should avoid that. I think we should offer a
+> >> default at build/configure time.
+> >
+> > I think @pkglibdir@ in ulogd.conf.in will set this to the
+> > corresponding arch-dependent folder at configure/build time, right?
+> 
+> The point is to don't have the ugly string in the config file.
+> Transparent to the user. Simplify the config file.
 
-Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
----
- src/evaluate.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+OK.
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index b783054..f48801a 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -33,7 +33,7 @@
- static struct output_ctx octx_debug_dummy;
- static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr);
- 
--static const char *byteorder_names[] = {
-+static const char * const byteorder_names[] = {
- 	[BYTEORDER_INVALID]		= "invalid",
- 	[BYTEORDER_HOST_ENDIAN]		= "host endian",
- 	[BYTEORDER_BIG_ENDIAN]		= "big endian",
-@@ -3350,7 +3350,7 @@ static int cmd_evaluate_export(struct eval_ctx *ctx, struct cmd *cmd)
- 			    ctx->debug_mask & DEBUG_NETLINK);
- }
- 
--static const char *cmd_op_name[] = {
-+static const char * const cmd_op_name[] = {
- 	[CMD_INVALID]	= "invalid",
- 	[CMD_ADD]	= "add",
- 	[CMD_REPLACE]	= "replace",
--- 
-1.9.1
+What if we default to loading all plugins if user specifies no
+"plugin=" at all in the configuration file?
+
+No worries in terms of breaking backward compatibility, so far ulogd2
+just bails out if no plugin is available.
+
+That would simplify the configuration file as you're searching for.
