@@ -1,128 +1,56 @@
-From: Jean Weisbuch <jean@phpnet.org>
-Subject: Re: [ulog2 PATCH] Non-arbitrary malloc for SQL queries + string
- length limit
-Date: Mon, 2 Oct 2017 14:54:33 +0200
-Message-ID: <025be696-ba9b-ad63-96cb-0db137acd3c9@phpnet.org>
-References: <bcadb7a2-d429-af84-e871-167da12e0819@phpnet.org>
- <nycvar.YFH.7.76.1709220841540.12548@n3.vanv.qr>
+From: Shankara Pailoor <sp3485@columbia.edu>
+Subject: Memory Leak in nf_conntrack_in
+Date: Mon, 2 Oct 2017 08:59:25 -0400
+Message-ID: <CAASgV=vpJBSNR7YxKD33F7EcUZUp7hMLXhTAww2H4RH5Kha+cg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org
-To: unlisted-recipients:; (no To-header on input)
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from chartreuse.phpnet.org ([46.255.160.25]:54660 "EHLO
-        chartreuse.phpnet.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751010AbdJBM6M (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 2 Oct 2017 08:58:12 -0400
-Received: from taillefer.phpnet.org (taillefer.phpnet.org [194.110.192.54])
-        by chartreuse.phpnet.org (Postfix) with ESMTPS id 45E2569CC9
-        for <netfilter-devel@vger.kernel.org>; Mon,  2 Oct 2017 14:54:35 +0200 (CEST)
-Received: from mailfilter2.phpnet.org (mailfilter2.phpnet.org [195.144.11.141])
-        by taillefer.phpnet.org (Postfix) with SMTP id 694A77100ACD
-        for <netfilter-devel@vger.kernel.org>; Mon,  2 Oct 2017 14:54:33 +0200 (CEST)
-Received: from rt-bur1.phpnet.org ([195.144.11.241] helo=[192.168.1.145])
-        by smtpbisbis.phpnet.org with esmtpa (Exim 4.80)
-        (envelope-from <jean@phpnet.org>)
-        id 1dz0Ez-00021F-9J
-        for netfilter-devel@vger.kernel.org; Mon, 02 Oct 2017 14:54:33 +0200
-In-Reply-To: <nycvar.YFH.7.76.1709220841540.12548@n3.vanv.qr>
-Content-Language: en-US
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Cc: Andrew Zhu Aday <andrew.aday@columbia.edu>,
+        syzkaller <syzkaller@googlegroups.com>
+To: LKML <linux-kernel@vger.kernel.org>, pablo@netfilter.org,
+        kadlec@blackhole.kfki.hu, fw@strlen.de,
+        David Miller <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Le 22/09/2017 à 08:44, Jan Engelhardt a écrit :
+Hi,
 
-> On Thursday 2017-09-21 19:00, Jean Weisbuch wrote:
->>    - For strings, SQL_STRINGSIZE now defines the max length of values (before
->> being escaped), longer values will be truncated and the double of
->> SQL_STRINGSIZE is allocated in case all characters would have to be escaped
->>
->> I am not sure that truncating values is the best course of action, maybe
->> replacing the string with NULL or an empty string would be better?
-> Silent truncation is really bad. If the currenty query length can be externally
-> influenced (and I have no doubt that it can), you may end up executing a
-> different statement than what was intended.
->
-> Return an error code from the function, abort() the entire program, or
-> something. But don't silently truncate.
+I am fuzzing linux 4.13-rc7 and I got a report about a memory leak.
+Here is the alloc stack:
 
-Here is a revised patch that does set the value to NULL instead of 
-truncating it.
+2017/10/01 02:08:59 BUG: memory leak:
+unreferenced object 0xffff880069cf0300 (size 312):
+  comm "syz-executor0", pid 3032, jiffies 4294722144 (age 10.773s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 00 00 00 00 ad 4e ad de  .............N..
+    ff ff ff ff 6d 01 80 f2 ff ff ff ff ff ff ff ff  ....m...........
+  backtrace:
+    [<ffffffff98b28ba3>] kmemleak_alloc+0x23/0x40
+    [<ffffffff968db017>] kmem_cache_alloc+0x127/0x2d0
+    [<ffffffff98286371>] __nf_conntrack_alloc.isra.51+0x141/0x5a0
+    [<ffffffff982868e7>] init_conntrack+0xd7/0x920
+    [<ffffffff9828d3b0>] nf_conntrack_in+0xb20/0xf00
+    [<ffffffff984b612c>] ipv4_conntrack_local+0x18c/0x1e0
+    [<ffffffff9826f4c3>] nf_hook_slow+0xc3/0x290
+    [<ffffffff98316321>] __ip_local_out+0x421/0x7a0
+    [<ffffffff983166cd>] ip_local_out+0x2d/0x160
+    [<ffffffff98317cf6>] ip_queue_xmit+0x8c6/0x1810
+    [<ffffffff9838e6a3>] tcp_transmit_skb+0x1963/0x3320
+    [<ffffffff983973e8>] tcp_connect+0x26e8/0x35e0
+    [<ffffffff983afb45>] tcp_v4_connect+0x15f5/0x1e80
+    [<ffffffff984202f4>] __inet_stream_connect+0x2d4/0xf00
+    [<ffffffff98420f78>] inet_stream_connect+0x58/0xa0
+    [<ffffffff980f0d54>] SYSC_connect+0x204/0x470
+unreferenced object 0xffff880069cf0480 (size 312):
+  comm "syz-executor0", pid 3038, jiffies 4294722168 (age 10.749s)
+  hex dump (first 32 bytes):
+    01 00 00 00 ff ff ff ff 00 00 00 00 ad 4e ad de  .............N..
+    ff ff ff ff 00 00 00 00 ff ff ff ff ff ff ff ff  ................
 
-I dont know how to cleanly abort the query generation if its what would 
-be prefered.
+My configs are the following:
 
---- db.c	2017-10-02 14:44:05.000000000 +0200
-+++ db.c	2017-10-02 14:52:05.883528350 +0200
-@@ -57,7 +57,8 @@
-  }
-  
-  #define SQL_INSERTTEMPL   "SELECT P(Y)"
--#define SQL_VALSIZE	100
-+/* Maximum string length (non-escaped), will be replaced with NULL if longer */
-+#define SQL_STRINGSIZE	255
-  
-  /* create the static part of our insert statement */
-  static int sql_createstmt(struct ulogd_pluginstance *upi)
-@@ -78,13 +79,28 @@
-  	for (i = 0; i < upi->input.num_keys; i++) {
-  		if (upi->input.keys[i].flags & ULOGD_KEYF_INACTIVE)
-  			continue;
-+
-+		struct ulogd_key *key = upi->input.keys[i].u.source;
-+		unsigned short key_length = 4;
-+
-  		/* we need space for the key and a comma, as well as
--		 * enough space for the values */
--		size += strlen(upi->input.keys[i].name) + 1 + SQL_VALSIZE;
-+		 * enough space for the values (and quotes around strings) */
-+		if(key->type == ULOGD_RET_STRING) {
-+			/* SQL_STRINGSIZE is the max (VAR)CHAR length, *2 in case every of its characters would be escaped and +3 for the quotes around the string and the comma at the end */
-+			ulogd_log(ULOGD_DEBUG, "allocating %u bytes for string %s of type %s", (SQL_STRINGSIZE * 2) + 3, key->name, type_to_string(key->type));
-+			size += (SQL_STRINGSIZE * 2) + 3;
-+		} else {
-+			/* key_length is the maximum strlen for the specified integer type (ex: ULOGD_RET_INT32 lowest value is -2147483648 which is 11 characters long) */
-+			key_length = 10*ulogd_key_size(key)*8/33+2;
-+			ulogd_log(ULOGD_DEBUG, "allocating %u bytes for int %s of type %s", key_length, upi->input.keys[i].name, type_to_string(key->type));
-+
-+			/* +1 for the comma at the end */
-+			size += key_length + 1;
-+		}
-  	}
-  	size += strlen(procedure);
-  
--	ulogd_log(ULOGD_DEBUG, "allocating %u bytes for statement\n", size);
-+	ulogd_log(ULOGD_DEBUG, "allocating a total of %u bytes for the statement\n", size);
-  
-  	mi->stmt = (char *) malloc(size);
-  	if (!mi->stmt) {
-@@ -373,14 +389,20 @@
-  			sprintf(stmt_ins, "'%d',", res->u.value.b);
-  			break;
-  		case ULOGD_RET_STRING:
--			*(stmt_ins++) = '\'';
-  			if (res->u.value.ptr) {
--				stmt_ins +=
--				di->driver->escape_string(upi, stmt_ins,
--							  res->u.value.ptr,
--							strlen(res->u.value.ptr));
-+				if(strlen(res->u.value.ptr) > SQL_STRINGSIZE) {
-+					ulogd_log(ULOGD_ERROR, "The string for the key %s is too long (>%d chars), value is set to NULL", upi->input.keys[i].name, SQL_STRINGSIZE);
-+					stmt_ins += sprintf(stmt_ins, "NULL,");
-+				} else {
-+					/* the string is escaped and put between quotes */
-+					*(stmt_ins++) = '\'';
-+					stmt_ins += di->driver->escape_string(upi, stmt_ins, res->u.value.ptr, strlen(res->u.value.ptr));
-+					stmt_ins += sprintf(stmt_ins, "\',");
-+				}
-+			} else {
-+				ulogd_log(ULOGD_NOTICE, "No string passed for the key %s, setting the value to NULL", upi->input.keys[i].name);
-+				stmt_ins += sprintf(stmt_ins, "NULL,");
-  			}
--			sprintf(stmt_ins, "',");
-  			break;
-  		case ULOGD_RET_RAWSTR:
-  			sprintf(stmt_ins, "%s,", (char *) res->u.value.ptr);
+https://pastebin.com/srCGHknL
 
+Regards,
+Shankara
