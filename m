@@ -1,26 +1,38 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_tables: Release memory obtained by
- kasprintf
-Date: Tue, 3 Oct 2017 15:21:53 +0200
-Message-ID: <20171003132153.GA2379@salvia>
-References: <385554261c080cd3fc4adc093e68366a6d3dff77.1505889128.git.arvind.yadav.cs@gmail.com>
+Subject: Re: [PATCH v2] netfilter: SYNPROXY: fix process non tcp packet bug
+ in {ipv4,ipv6}_synproxy_hook
+Date: Tue, 3 Oct 2017 15:28:25 +0200
+Message-ID: <20171003132825.GA11182@salvia>
+References: <1506767115-10051-1-git-send-email-xiaolou4617@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
+        kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
+        netdev@vger.kernel.org
+To: Lin Zhang <xiaolou4617@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from [213.95.27.120] ([213.95.27.120]:39812 "EHLO
+        ganesha.gnumonks.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1751177AbdJCN3l (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 3 Oct 2017 09:29:41 -0400
 Content-Disposition: inline
-In-Reply-To: <385554261c080cd3fc4adc093e68366a6d3dff77.1505889128.git.arvind.yadav.cs@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1506767115-10051-1-git-send-email-xiaolou4617@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 20, 2017 at 12:31:28PM +0530, Arvind Yadav wrote:
-> Free memory region, if nf_tables_set_alloc_name is not successful.
+On Sat, Sep 30, 2017 at 06:25:15PM +0800, Lin Zhang wrote:
+> In function {ipv4,ipv6}_synproxy_hook we expect a normal tcp packet,
+> but the real server maybe reply an icmp error packet related to the 
+> exist tcp conntrack, so we will access wrong tcp data.
+> 
+> For fix it, check for the protocol field and only process tcp traffic.
 
 Applied, thanks.
 
-I have added this tag to this patch:
+I have made minor comestic changes to patch title:
 
-Fixes: 387454901bd6 ("netfilter: nf_tables: Allow set names of up to 255 chars")
+netfilter: SYNPROXY: skip non-TCP packets from {ipv4,ipv6}_synproxy_hook
+
+for the record.
