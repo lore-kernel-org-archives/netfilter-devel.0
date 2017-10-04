@@ -1,61 +1,62 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Juergen Borleis <jbe@pengutronix.de>
 Subject: Re: [PATCH] iptables: change large file support handling
-Date: Wed, 4 Oct 2017 16:46:06 +0200
-Message-ID: <20171004144606.GA22714@salvia>
-References: <201709281059.45061.jbe@pengutronix.de>
- <20171004141458.GA28637@salvia>
- <201710041639.23481.jbe@pengutronix.de>
+Date: Wed, 4 Oct 2017 16:52:05 +0200
+Message-ID: <201710041652.05852.jbe@pengutronix.de>
+References: <201709281059.45061.jbe@pengutronix.de> <201710041639.23481.jbe@pengutronix.de> <20171004144606.GA22714@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Juergen Borleis <jbe@pengutronix.de>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:50696 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752442AbdJDOqL (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:47041 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752303AbdJDOwH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Oct 2017 10:46:11 -0400
+        Wed, 4 Oct 2017 10:52:07 -0400
+In-Reply-To: <20171004144606.GA22714@salvia>
 Content-Disposition: inline
-In-Reply-To: <201710041639.23481.jbe@pengutronix.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Oct 04, 2017 at 04:39:23PM +0200, Juergen Borleis wrote:
-> Hi Pablo,
-> 
-> On Wednesday 04 October 2017 16:14:58 Pablo Neira Ayuso wrote:
-> > > The configure script handles the "--*-largefile" parameter badly. It
-> > > defaults to large file support if not given and always disables
-> > > largefile support if given (and it doesn't matter if 'enable' or
-> > > 'disable' was used)
-> >
-> > It seems the default behaviour for a while has been to enable
-> > largefile by default.
-> >
-> > Then, someone came in to add this --disable-largefile configure time
-> > option, see:
-> >
-> > commit 967cb7106f0f61cd7b8fbb10bc2451a3f7372a43
-> > Author: Karl Hiramoto <karl@hiramoto.org>
-> > Date:   Mon May 10 17:50:41 2010 +0200
-> >
-> >     iptables: optionally disable largefile support
-> >
-> > So I would just fix --enable-* --disable-*.
-> >
-> > Would you follow up on this? Let me know, thanks.
-> 
-> With my change the default is still "enabled" and you can disable it on 
-> demand.
+Hi Pablo,
 
-I'm going to remove this from your log message: "It defaults to large
-file support if not given", when I read this I thought this was the
-problem.
+On Wednesday 04 October 2017 16:46:06 Pablo Neira Ayuso wrote:
+> > > > The configure script handles the "--*-largefile" parameter badly.
+> > > > It defaults to large file support if not given and always disables
+> > > > largefile support if given (and it doesn't matter if 'enable' or
+> > > > 'disable' was used)
+> > >
+> > > It seems the default behaviour for a while has been to enable
+> > > largefile by default.
+> > >
+> > > Then, someone came in to add this --disable-largefile configure time
+> > > option, see:
+> > >
+> > > commit 967cb7106f0f61cd7b8fbb10bc2451a3f7372a43
+> > > Author: Karl Hiramoto <karl@hiramoto.org>
+> > > Date:   Mon May 10 17:50:41 2010 +0200
+> > >
+> > >     iptables: optionally disable largefile support
+> > >
+> > > So I would just fix --enable-* --disable-*.
+> > >
+> > > Would you follow up on this? Let me know, thanks.
+> >
+> > With my change the default is still "enabled" and you can disable it on
+> > demand.
+>
+> I'm going to remove this from your log message: "It defaults to large
+> file support if not given", when I read this I thought this was the
+> problem.
 
-> To have still support for "disable on demand" makes sense for some 
-> small 32 bit embedded systems.
+Ahh, okay.
 
-Sure, this knob is useful, not questioning this, and it needs to be
-fixed.
+Juergen
 
-Thanks.
+-- 
+Pengutronix e.K.                             | Juergen Borleis             |
+Linux Solutions for Science and Industry     | Phone: +49-5121-206917-5128 |
+Peiner Str. 6-8, 31137 Hildesheim, Germany   | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686             | http://www.pengutronix.de/  |
