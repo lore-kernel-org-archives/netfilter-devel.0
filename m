@@ -1,60 +1,49 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [libnftnl PATCH] expr: Introduce nftnl_expr_fprintf()
-Date: Wed,  4 Oct 2017 23:36:40 +0200
-Message-ID: <20171004213640.1819-1-phil@nwl.cc>
+Subject: [nft PATCH] netlink: Use nftnl_expr_fprintf() in netlink_dump_expr()
+Date: Wed,  4 Oct 2017 23:41:11 +0200
+Message-ID: <20171004214111.2755-1-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:52936 "EHLO orbyte.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:52950 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751133AbdJDVgw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Oct 2017 17:36:52 -0400
+        id S1750779AbdJDVlX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 4 Oct 2017 17:41:23 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Implement expression printing into a FILE pointer analogous to
-nftnl_rule_fprintf().
+This gets rid of the temporary buffer.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/libnftnl/expr.h |  1 +
- src/expr.c              | 14 ++++++++++++++
- 2 files changed, 15 insertions(+)
+Please note that this patch depends on the previously submitted libnftnl
+patch "expr: Introduce nftnl_expr_fprintf()". Since that patch is
+obviously not contained in libnftnl-1.0.8, this one should not be
+applied until nftables-v0.8 has been released.
+---
+ src/netlink.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
-index 76f28fee7b5f7..f37f50963d6c3 100644
---- a/include/libnftnl/expr.h
-+++ b/include/libnftnl/expr.h
-@@ -39,6 +39,7 @@ const char *nftnl_expr_get_str(const struct nftnl_expr *expr, uint16_t type);
- bool nftnl_expr_cmp(const struct nftnl_expr *e1, const struct nftnl_expr *e2);
+diff --git a/src/netlink.c b/src/netlink.c
+index d5d410a847624..c9859ef151213 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -520,13 +520,11 @@ void netlink_dump_rule(const struct nftnl_rule *nlr, struct netlink_ctx *ctx)
+ void netlink_dump_expr(const struct nftnl_expr *nle,
+ 		       FILE *fp, unsigned int debug_mask)
+ {
+-	char buf[4096];
+-
+ 	if (!(debug_mask & DEBUG_NETLINK))
+ 		return;
  
- int nftnl_expr_snprintf(char *buf, size_t buflen, const struct nftnl_expr *expr, uint32_t type, uint32_t flags);
-+int nftnl_expr_fprintf(FILE *fp, const struct nftnl_expr *expr, uint32_t type, uint32_t flags);
- 
- enum {
- 	NFTNL_EXPR_PAYLOAD_DREG	= NFTNL_EXPR_BASE,
-diff --git a/src/expr.c b/src/expr.c
-index c5fcf06492ae2..1eae70787209d 100644
---- a/src/expr.c
-+++ b/src/expr.c
-@@ -293,3 +293,17 @@ int nftnl_expr_snprintf(char *buf, size_t size, const struct nftnl_expr *expr,
- 	return offset;
+-	nftnl_expr_snprintf(buf, sizeof(buf), nle, 0, 0);
+-	fprintf(fp, "%s\n", buf);
++	nftnl_expr_fprintf(fp, nle, 0, 0);
++	fprintf(fp, "\n");
  }
- EXPORT_SYMBOL(nftnl_expr_snprintf);
-+
-+static int nftnl_expr_do_snprintf(char *buf, size_t size, const void *e,
-+				  uint32_t cmd, uint32_t type, uint32_t flags)
-+{
-+	return nftnl_expr_snprintf(buf, size, e, type, flags);
-+}
-+
-+int nftnl_expr_fprintf(FILE *fp, const struct nftnl_expr *expr, uint32_t type,
-+		       uint32_t flags)
-+{
-+	return nftnl_fprintf(fp, expr, NFTNL_CMD_UNSPEC, type, flags,
-+			     nftnl_expr_do_snprintf);
-+}
-+EXPORT_SYMBOL(nftnl_expr_fprintf);
+ 
+ static int list_rule_cb(struct nftnl_rule *nlr, void *arg)
 -- 
 2.13.1
 
