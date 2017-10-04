@@ -1,25 +1,42 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [iptables PATCH 0/2] ip{,6}tables-restore: Fix wait-interval
- parsing
-Date: Wed, 4 Oct 2017 16:10:09 +0200
-Message-ID: <20171004141009.GA12774@salvia>
-References: <20170920173436.20221-1-phil@nwl.cc>
+Subject: Re: [PATCH] iptables: change large file support handling
+Date: Wed, 4 Oct 2017 16:14:58 +0200
+Message-ID: <20171004141458.GA28637@salvia>
+References: <201709281059.45061.jbe@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Phil Sutter <phil@nwl.cc>
+To: Juergen Borleis <jbe@pengutronix.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:50380 "EHLO
+Received: from ganesha.gnumonks.org ([213.95.27.120]:50421 "EHLO
         ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752085AbdJDOKR (ORCPT
+        with ESMTP id S1752029AbdJDOPH (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Oct 2017 10:10:17 -0400
+        Wed, 4 Oct 2017 10:15:07 -0400
 Content-Disposition: inline
-In-Reply-To: <20170920173436.20221-1-phil@nwl.cc>
+In-Reply-To: <201709281059.45061.jbe@pengutronix.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 20, 2017 at 07:34:34PM +0200, Phil Sutter wrote:
-> This series fixes two problems with parsing of --wait-interval (-W) option.
+Hi Juergen,
 
-Applied, thanks.
+On Thu, Sep 28, 2017 at 10:59:44AM +0200, Juergen Borleis wrote:
+> The configure script handles the "--*-largefile" parameter badly. It
+> defaults to large file support if not given and always disables largefile
+> support if given (and it doesn't matter if 'enable' or 'disable' was used)
+
+It seems the default behaviour for a while has been to enable
+largefile by default.
+
+Then, someone came in to add this --disable-largefile configure time
+option, see:
+
+commit 967cb7106f0f61cd7b8fbb10bc2451a3f7372a43
+Author: Karl Hiramoto <karl@hiramoto.org>
+Date:   Mon May 10 17:50:41 2010 +0200
+
+    iptables: optionally disable largefile support
+
+So I would just fix --enable-* --disable-*.
+
+Would you follow up on this? Let me know, thanks.
