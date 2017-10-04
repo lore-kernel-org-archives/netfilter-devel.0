@@ -1,58 +1,51 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables: change large file support handling
-Date: Wed, 4 Oct 2017 17:09:56 +0200
-Message-ID: <20171004150956.GA22903@salvia>
-References: <201709281059.45061.jbe@pengutronix.de>
- <201710041639.23481.jbe@pengutronix.de>
- <20171004144606.GA22714@salvia>
- <201710041652.05852.jbe@pengutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Juergen Borleis <jbe@pengutronix.de>
+Subject: [PATCH nf] netfilter: nf_tables: do not dump chain counters if not enabled
+Date: Wed,  4 Oct 2017 17:22:13 +0200
+Message-ID: <1507130533-24651-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:50898 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752289AbdJDPKA (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Oct 2017 11:10:00 -0400
-Content-Disposition: inline
-In-Reply-To: <201710041652.05852.jbe@pengutronix.de>
+Received: from mail.us.es ([193.147.175.20]:34546 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752368AbdJDPWW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 4 Oct 2017 11:22:22 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CAF6E31024C
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 Oct 2017 17:22:20 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BC563DA3F4
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 Oct 2017 17:22:20 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B666ADA78E
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 Oct 2017 17:22:16 +0200 (CEST)
+Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 81E3640584D0
+        for <netfilter-devel@vger.kernel.org>; Wed,  4 Oct 2017 17:22:16 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Oct 04, 2017 at 04:52:05PM +0200, Juergen Borleis wrote:
-> Hi Pablo,
-> 
-> On Wednesday 04 October 2017 16:46:06 Pablo Neira Ayuso wrote:
-> > > > > The configure script handles the "--*-largefile" parameter badly.
-> > > > > It defaults to large file support if not given and always disables
-> > > > > largefile support if given (and it doesn't matter if 'enable' or
-> > > > > 'disable' was used)
-> > > >
-> > > > It seems the default behaviour for a while has been to enable
-> > > > largefile by default.
-> > > >
-> > > > Then, someone came in to add this --disable-largefile configure time
-> > > > option, see:
-> > > >
-> > > > commit 967cb7106f0f61cd7b8fbb10bc2451a3f7372a43
-> > > > Author: Karl Hiramoto <karl@hiramoto.org>
-> > > > Date:   Mon May 10 17:50:41 2010 +0200
-> > > >
-> > > >     iptables: optionally disable largefile support
-> > > >
-> > > > So I would just fix --enable-* --disable-*.
-> > > >
-> > > > Would you follow up on this? Let me know, thanks.
-> > >
-> > > With my change the default is still "enabled" and you can disable it on
-> > > demand.
-> >
-> > I'm going to remove this from your log message: "It defaults to large
-> > file support if not given", when I read this I thought this was the
-> > problem.
-> 
-> Ahh, okay.
+Chain counters are only enabled on demand since 9f08ea848117, skip them
+when dumping them via netlink.
 
-Now applied, thanks for explaining.
+Fixes: 9f08ea848117 ("netfilter: nf_tables: keep chain counters away from hot path")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 34adedcb239e..64e1ee091225 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1048,7 +1048,7 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
+ 		if (nla_put_string(skb, NFTA_CHAIN_TYPE, basechain->type->name))
+ 			goto nla_put_failure;
+ 
+-		if (nft_dump_stats(skb, nft_base_chain(chain)->stats))
++		if (basechain->stats && nft_dump_stats(skb, basechain->stats))
+ 			goto nla_put_failure;
+ 	}
+ 
+-- 
+2.1.4
+
