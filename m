@@ -1,7 +1,7 @@
 From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH] INSTALL: Update dependency list and configure with libxtables support
-Date: Thu,  5 Oct 2017 13:01:09 +0530
-Message-ID: <20171005073109.19874-1-harshasharmaiitr@gmail.com>
+Subject: [PATCH] test: shell: execute shell/run-tests.sh from any directory
+Date: Thu,  5 Oct 2017 13:13:47 +0530
+Message-ID: <20171005074347.20953-1-harshasharmaiitr@gmail.com>
 Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
         outreachy-kernel@googlegroups.com,
         Harsha Sharma <harshasharmaiitr@gmail.com>
@@ -10,42 +10,25 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Add configure with lixtables in INSTALL and required dependencies for
-the same
+Update shell/run-tests.sh to refer /src/nft with a relative path
 
 Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
 ---
- INSTALL | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ tests/shell/run-tests.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/INSTALL b/INSTALL
-index 3e9a6ad..04981f1 100644
---- a/INSTALL
-+++ b/INSTALL
-@@ -18,6 +18,12 @@ Installation instructions for nftables
+diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
+index 4eba0a8..dbddd8d 100755
+--- a/tests/shell/run-tests.sh
++++ b/tests/shell/run-tests.sh
+@@ -3,7 +3,7 @@
+ # Configuration
+ TESTDIR="./"
+ RETURNCODE_SEPARATOR="_"
+-SRC_NFT="../../src/nft"
++SRC_NFT="$(dirname $0)/../../src/nft"
  
-   - libreadline
- 
-+  - pkg-config
-+
-+  - libtool
-+
-+  - optional: libxtables: required for libxtables support
-+
-   - optional: docbook2x: required for building man-page
- 
-   - optional: docbook-utils: required for building PDF man-page
-@@ -51,6 +57,11 @@ Installation instructions for nftables
- 	having no other use for libgmp.
- 	Note: This decreases the debugging verbosity in some files.
- 
-+ --with-xtables
-+
-+	For libxtables support which allow input of tables with -f
-+ 	option in nft.
-+
-  Suggested configuration options: --prefix=/ --datarootdir=/usr/share
- 
-  Run "make" to compile nftables, "make install" to install it in the
+ msg_error() {
+ 	echo "E: $1 ..." >&2
 -- 
 2.11.0
