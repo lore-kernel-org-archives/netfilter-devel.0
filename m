@@ -1,61 +1,197 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: libnftables, next steps
-Date: Thu, 5 Oct 2017 00:51:52 +0200
-Message-ID: <20171004225152.GD32278@orbyte.nwl.cc>
+From: Kees Cook <keescook@chromium.org>
+Subject: [PATCH] netfilter: ipset: Convert timers to use timer_setup()
+Date: Wed, 4 Oct 2017 17:52:21 -0700
+Message-ID: <20171005005221.GA23584@beast>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Eric Leblond <eric@regit.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:53072 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751221AbdJDWvz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 4 Oct 2017 18:51:55 -0400
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Stephen Hemminger <stephen@networkplumber.org>,
+        simran singhal <singhalsimran0@gmail.com>,
+        Muhammad Falak R Wani <falakreyaz@gmail.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
+To: linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+In preparation for unconditionally passing the struct timer_list pointer to
+all timer callbacks, switch to using the new timer_setup() and from_timer()
+to pass the timer pointer explicitly. This introduces a pointer back to the
+struct ip_set, which is used instead of the struct timer_list .data field.
 
-I rebased Eric's libnftables patch series onto current master to get an
-overview of what's still missing (and what I could work on :). Here's
-what I collected:
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Stephen Hemminger <stephen@networkplumber.org>
+Cc: simran singhal <singhalsimran0@gmail.com>
+Cc: Muhammad Falak R Wani <falakreyaz@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+Cc: netdev@vger.kernel.org
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+This requires commit 686fef928bba ("timer: Prepare to change timer
+callback argument type") in v4.14-rc3, but should be otherwise
+stand-alone.
+---
+ net/netfilter/ipset/ip_set_bitmap_gen.h   | 10 +++++-----
+ net/netfilter/ipset/ip_set_bitmap_ip.c    |  2 ++
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c |  2 ++
+ net/netfilter/ipset/ip_set_bitmap_port.c  |  2 ++
+ net/netfilter/ipset/ip_set_hash_gen.h     | 12 +++++++-----
+ 5 files changed, 18 insertions(+), 10 deletions(-)
 
-* Implement application accessible batch support.
-  -> This basically splits nft_run() into stages.
-  -> I would change nft_run_cmd_from_*() to use this internally.
-  -> Do we want this in the early library version or is this going to be
-     part of the 'advanced API' to add later?
+diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
+index 8ad2b52a0b32..5ca18f07683b 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_gen.h
++++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
+@@ -37,11 +37,11 @@
+ #define get_ext(set, map, id)	((map)->extensions + ((set)->dsize * (id)))
+ 
+ static void
+-mtype_gc_init(struct ip_set *set, void (*gc)(unsigned long ul_set))
++mtype_gc_init(struct ip_set *set, void (*gc)(struct timer_list *t))
+ {
+ 	struct mtype *map = set->data;
+ 
+-	setup_timer(&map->gc, gc, (unsigned long)set);
++	timer_setup(&map->gc, gc, 0);
+ 	mod_timer(&map->gc, jiffies + IPSET_GC_PERIOD(set->timeout) * HZ);
+ }
+ 
+@@ -272,10 +272,10 @@ mtype_list(const struct ip_set *set,
+ }
+ 
+ static void
+-mtype_gc(unsigned long ul_set)
++mtype_gc(struct timer_list *t)
+ {
+-	struct ip_set *set = (struct ip_set *)ul_set;
+-	struct mtype *map = set->data;
++	struct mtype *map = from_timer(map, t, gc);
++	struct ip_set *set = map->set;
+ 	void *x;
+ 	u32 id;
+ 
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
+index 4783efff0bde..d8975a0b4282 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ip.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
+@@ -48,6 +48,7 @@ struct bitmap_ip {
+ 	size_t memsize;		/* members size */
+ 	u8 netmask;		/* subnet netmask */
+ 	struct timer_list gc;	/* garbage collection */
++	struct ip_set *set;	/* attached to this ip_set */
+ 	unsigned char extensions[0]	/* data extensions */
+ 		__aligned(__alignof__(u64));
+ };
+@@ -232,6 +233,7 @@ init_map_ip(struct ip_set *set, struct bitmap_ip *map,
+ 	map->netmask = netmask;
+ 	set->timeout = IPSET_NO_TIMEOUT;
+ 
++	map->set = set;
+ 	set->data = map;
+ 	set->family = NFPROTO_IPV4;
+ 
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index 9a065f672d3a..4c279fbd2d5d 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -52,6 +52,7 @@ struct bitmap_ipmac {
+ 	u32 elements;		/* number of max elements in the set */
+ 	size_t memsize;		/* members size */
+ 	struct timer_list gc;	/* garbage collector */
++	struct ip_set *set;	/* attached to this ip_set */
+ 	unsigned char extensions[0]	/* MAC + data extensions */
+ 		__aligned(__alignof__(u64));
+ };
+@@ -307,6 +308,7 @@ init_map_ipmac(struct ip_set *set, struct bitmap_ipmac *map,
+ 	map->elements = elements;
+ 	set->timeout = IPSET_NO_TIMEOUT;
+ 
++	map->set = set;
+ 	set->data = map;
+ 	set->family = NFPROTO_IPV4;
+ 
+diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
+index 7f0c733358a4..7f9bbd7c98b5 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_port.c
++++ b/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -40,6 +40,7 @@ struct bitmap_port {
+ 	u32 elements;		/* number of max elements in the set */
+ 	size_t memsize;		/* members size */
+ 	struct timer_list gc;	/* garbage collection */
++	struct ip_set *set;	/* attached to this ip_set */
+ 	unsigned char extensions[0]	/* data extensions */
+ 		__aligned(__alignof__(u64));
+ };
+@@ -214,6 +215,7 @@ init_map_port(struct ip_set *set, struct bitmap_port *map,
+ 	map->last_port = last_port;
+ 	set->timeout = IPSET_NO_TIMEOUT;
+ 
++	map->set = set;
+ 	set->data = map;
+ 	set->family = NFPROTO_UNSPEC;
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 51063d9ed0f7..efffc8eabafe 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -280,6 +280,7 @@ htable_bits(u32 hashsize)
+ struct htype {
+ 	struct htable __rcu *table; /* the hash table */
+ 	struct timer_list gc;	/* garbage collection when timeout enabled */
++	struct ip_set *set;	/* attached to this ip_set */
+ 	u32 maxelem;		/* max elements in the hash */
+ 	u32 initval;		/* random jhash init value */
+ #ifdef IP_SET_HASH_WITH_MARKMASK
+@@ -429,11 +430,11 @@ mtype_destroy(struct ip_set *set)
+ }
+ 
+ static void
+-mtype_gc_init(struct ip_set *set, void (*gc)(unsigned long ul_set))
++mtype_gc_init(struct ip_set *set, void (*gc)(struct timer_list *t))
+ {
+ 	struct htype *h = set->data;
+ 
+-	setup_timer(&h->gc, gc, (unsigned long)set);
++	timer_setup(&h->gc, gc, 0);
+ 	mod_timer(&h->gc, jiffies + IPSET_GC_PERIOD(set->timeout) * HZ);
+ 	pr_debug("gc initialized, run in every %u\n",
+ 		 IPSET_GC_PERIOD(set->timeout));
+@@ -526,10 +527,10 @@ mtype_expire(struct ip_set *set, struct htype *h)
+ }
+ 
+ static void
+-mtype_gc(unsigned long ul_set)
++mtype_gc(struct timer_list *t)
+ {
+-	struct ip_set *set = (struct ip_set *)ul_set;
+-	struct htype *h = set->data;
++	struct htype *h = from_timer(h, t, gc);
++	struct ip_set *set = h->set;
+ 
+ 	pr_debug("called\n");
+ 	spin_lock_bh(&set->lock);
+@@ -1314,6 +1315,7 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
+ 	t->htable_bits = hbits;
+ 	RCU_INIT_POINTER(h->table, t);
+ 
++	h->set = set;
+ 	set->data = h;
+ #ifndef IP_SET_PROTO_UNDEF
+ 	if (set->family == NFPROTO_IPV4) {
+-- 
+2.7.4
 
-* Add erec_free_list().
-  -> This becomes handy if the application wants to drop erec list
-     without printing it (erec_print_list() clears the list while
-     traversing it).
-  -> No use for this if we only export nft_run_cmd_from_*() functions.
 
-* Create src/nftables_common.c and include/nftables_common.h to hold
-  nft_run() and nft_netlink().
-  -> Is this meant as the (not exported) high-level library backend?
-  -> If batch support is implemented, these could be removed after
-     changing nft_run_cmd_from_*() and cli_complete() to use it.
-
-* Move library routines from src/main.c into src/libnftables.c and
-  create include/nftables/nftables.h to hold the signatures.
-
-* Introduce the library (i.e., generate libnftables.so).
-
-Some additional thoughts:
-
-* Should we support different output streams for debug and/or error
-  messages?
-
-* Should we reuse src/erec.c for regular output as well? (This probably
-  needs a 'print immediately' switch for monitor mode, though.)
-
-Feedback highly appreciated, of course! Should I start with moving the
-library stuff into libnftables.{c,h} so we get an impression of what the
-API will look like?
-
-Cheers, Phil
+-- 
+Kees Cook
+Pixel Security
