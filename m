@@ -1,57 +1,40 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: man page nft.8 add chain synopsis
-Date: Fri, 6 Oct 2017 14:52:50 +0200
-Message-ID: <20171006125250.GA7768@salvia>
-References: <20171006050838.GA9956@dimstar.local.net>
+Subject: Re: [PATCH nftables] netlink_linearize: skip set element expression
+ in set statement key
+Date: Fri, 6 Oct 2017 14:58:11 +0200
+Message-ID: <20171006125811.GA8450@salvia>
+References: <1507127265.20182.2.camel@cohaesio.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: Netfilter Development <netfilter-devel@vger.kernel.org>
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:41773 "EHLO
+Received: from ganesha.gnumonks.org ([213.95.27.120]:41834 "EHLO
         ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751841AbdJFMw5 (ORCPT
+        with ESMTP id S1751869AbdJFM6Q (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Oct 2017 08:52:57 -0400
-Received: from 129.166.216.87.static.jazztel.es ([87.216.166.129] helo=gnumonks.org)
-        by ganesha.gnumonks.org with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.84_2)
-        (envelope-from <pablo@gnumonks.org>)
-        id 1e0S7X-0006va-KM
-        for netfilter-devel@vger.kernel.org; Fri, 06 Oct 2017 14:52:56 +0200
+        Fri, 6 Oct 2017 08:58:16 -0400
 Content-Disposition: inline
-In-Reply-To: <20171006050838.GA9956@dimstar.local.net>
+In-Reply-To: <1507127265.20182.2.camel@cohaesio.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Duncan,
-
-On Fri, Oct 06, 2017 at 04:08:38PM +1100, Duncan Roe wrote:
-> Hi,
+On Wed, Oct 04, 2017 at 02:27:45PM +0000, Anders K. Pedersen | Cohaesio wrote:
+> From: Anders K. Pedersen <akp@cohaesio.com>
 > 
-> The man page says this:
+> Before this patch the following fails:
 > 
-> > {add | create} chain [family] table chain [ { {type} {hook} [device] {priority} } [policy] ]
+> # nft add rule ip6 filter x \
+> 	set add ip6 saddr . ip6 daddr @test
+> nft: netlink_linearize.c:648: netlink_gen_expr: Assertion `dreg < ctx->reg_low' failed.
+> Aborted
 > 
-> But I suggest it should say this:
+> This is was previously fixed for flow statements in fbea4a6f4449
+> ("netlink_linearize: skip set element expression in flow table key"), and
+> this patch implements the same change for set statements by using the set
+> element key in netlink_gen_set_stmt().
 > 
-> > {add | create} chain [family] table chain [ { {type} {hook} [device] {priority ;} [policy ;] } ]
-> 
-> i.e. the policy tuple should be inside the braces along with type, hook, device
-> & priority. Also the device & priority tuples each need to be followed by a
-> semicolon.
-> 
-> ** Is the above change correct?
+> nft-test.py is updated to support set types with concatenated data types
+> in order to support testing of this.
 
-This looks good to me.
-
-I will include your Signed-off-by tag and will take this into the git
-tree.
-
-BTW, please next time submit your patches via git format-patch.
-
-> * Assuming it is correct, the patch below makes the change. Can someone pick it
->   up from here or should I submit a bug report?
-
-I'll pick it, no need for bug report.
-
-Thanks!
+Applied, thanks Anders.
