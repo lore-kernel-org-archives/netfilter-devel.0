@@ -1,124 +1,140 @@
-From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH v2] nftables: make pointers in string arrays constant
-Date: Fri,  6 Oct 2017 20:17:54 +0530
-Message-ID: <20171006144754.17362-1-harshasharmaiitr@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, outreachy-kernel@googlegroups.com,
-        Harsha Sharma <harshasharmaiitr@gmail.com>
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:33811 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750950AbdJFOuZ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Oct 2017 10:50:25 -0400
-Received: by mail-pg0-f65.google.com with SMTP id u27so18429054pgn.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 06 Oct 2017 07:50:25 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Shmulik Ladkani <shmulik@nsof.io>
+Subject: [PATCH] netfilter: xt_bpf: Fix XT_BPF_MODE_FD_PINNED mode of 'xt_bpf_info_v1'
+Date: Fri,  6 Oct 2017 19:02:42 +0300
+Message-ID: <20171006160242.4403-1-shmulik@nsof.io>
+Cc: Willem de Bruijn <willemb@google.com>, netdev@vger.kernel.org,
+        Daniel Borkmann <daniel@iogearbox.net>, shmulik@nsof.io,
+        Rafael Buchbinder <rafi@rbk.ms>,
+        Shmulik Ladkani <shmulik.ladkani@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Static const char * array should be static const char *
-const array as per linux-kernel coding style
+From: Shmulik Ladkani <shmulik.ladkani@gmail.com>
 
-Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
+Commit 2c16d6033264 ("netfilter: xt_bpf: support ebpf") introduced
+support for attaching an eBPF object by an fd, with the
+'bpf_mt_check_v1' ABI expecting the '.fd' to be specified upon each
+IPT_SO_SET_REPLACE call.
+
+However this breaks subsequent iptables calls:
+
+ # iptables -A INPUT -m bpf --object-pinned /sys/fs/bpf/xxx -j ACCEPT
+ # iptables -A INPUT -s 5.6.7.8 -j ACCEPT
+ iptables: Invalid argument. Run `dmesg' for more information.
+
+That's because iptables works by loading exising rules using
+IPT_SO_GET_ENTRIES to userspace, then issuing IPT_SO_SET_REPLACE with
+the replacement set.
+
+However, the loaded 'xt_bpf_info_v1' has an arbitrary '.fd' number
+(from the initial "iptables -m bpf" invocation) - so when 2nd invocation
+occurs, userspace passes a bogus fd number, which leads to
+'bpf_mt_check_v1' to fail.
+
+One suggested solution [1] was to hack iptables userspace, to perform a
+"entries fixup" immediatley after IPT_SO_GET_ENTRIES, by opening a new,
+process-local fd per every 'xt_bpf_info_v1' entry seen.
+
+However, in [2] both Pablo Neira Ayuso and Willem de Bruijn suggested to
+depricate the xt_bpf_info_v1 ABI dealing with pinned ebpf objects.
+
+This fix changes the XT_BPF_MODE_FD_PINNED behavior to ignore the given
+'.fd' and instead perform an in-kernel lookup for the bpf object given
+the provided '.path'.
+
+It also defines an alias for the XT_BPF_MODE_FD_PINNED mode, named
+XT_BPF_MODE_PATH_PINNED, to better reflect the fact that the user is
+expected to provide the path of the pinned object.
+
+Existing XT_BPF_MODE_FD_ELF behavior (non-pinned fd mode) is preserved.
+
+References: [1] https://marc.info/?l=netfilter-devel&m=150564724607440&w=2
+            [2] https://marc.info/?l=netfilter-devel&m=150575727129880&w=2
+
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Willem de Bruijn <willemb@google.com>
+Reported-by: Rafael Buchbinder <rafi@rbk.ms>
+Signed-off-by: Shmulik Ladkani <shmulik.ladkani@gmail.com>
 ---
-Changes in v2:e
- -rebase against current tree and solve merge confilcts
- -Change log message
+ include/uapi/linux/netfilter/xt_bpf.h |  1 +
+ kernel/bpf/inode.c                    |  1 +
+ net/netfilter/xt_bpf.c                | 22 ++++++++++++++++++++--
+ 3 files changed, 22 insertions(+), 2 deletions(-)
 
- src/erec.c      | 2 +-
- src/evaluate.c  | 4 ++--
- src/rule.c      | 6 +++---
- src/statement.c | 4 ++--
- 4 files changed, 8 insertions(+), 8 deletions(-)
-
-diff --git a/src/erec.c b/src/erec.c
-index 76fdeb8..80806ff 100644
---- a/src/erec.c
-+++ b/src/erec.c
-@@ -27,7 +27,7 @@ const struct location internal_location = {
- 	.indesc	= &internal_indesc,
+diff --git a/include/uapi/linux/netfilter/xt_bpf.h b/include/uapi/linux/netfilter/xt_bpf.h
+index b97725af2ac0..da161b56c79e 100644
+--- a/include/uapi/linux/netfilter/xt_bpf.h
++++ b/include/uapi/linux/netfilter/xt_bpf.h
+@@ -23,6 +23,7 @@ enum xt_bpf_modes {
+ 	XT_BPF_MODE_FD_PINNED,
+ 	XT_BPF_MODE_FD_ELF,
  };
++#define XT_BPF_MODE_PATH_PINNED XT_BPF_MODE_FD_PINNED
  
--static const char *error_record_names[] = {
-+static const char * const error_record_names[] = {
- 	[EREC_INFORMATIONAL]	= NULL,
- 	[EREC_WARNING]		= "Warning",
- 	[EREC_ERROR]		= "Error"
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 193ea1c..618e188 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -32,7 +32,7 @@
- 
- static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr);
- 
--static const char *byteorder_names[] = {
-+static const char * const byteorder_names[] = {
- 	[BYTEORDER_INVALID]		= "invalid",
- 	[BYTEORDER_HOST_ENDIAN]		= "host endian",
- 	[BYTEORDER_BIG_ENDIAN]		= "big endian",
-@@ -3423,7 +3423,7 @@ static int cmd_evaluate_export(struct eval_ctx *ctx, struct cmd *cmd)
- 			    ctx->debug_mask & DEBUG_NETLINK, ctx->octx);
+ struct xt_bpf_info_v1 {
+ 	__u16 mode;
+diff --git a/kernel/bpf/inode.c b/kernel/bpf/inode.c
+index e833ed914358..be1dde967208 100644
+--- a/kernel/bpf/inode.c
++++ b/kernel/bpf/inode.c
+@@ -363,6 +363,7 @@ int bpf_obj_get_user(const char __user *pathname)
+ 	putname(pname);
+ 	return ret;
  }
++EXPORT_SYMBOL_GPL(bpf_obj_get_user);
  
--static const char *cmd_op_name[] = {
-+static const char * const cmd_op_name[] = {
- 	[CMD_INVALID]	= "invalid",
- 	[CMD_ADD]	= "add",
- 	[CMD_REPLACE]	= "replace",
-diff --git a/src/rule.c b/src/rule.c
-index 67a828f..d744cf6 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -496,7 +496,7 @@ struct symbol *symbol_lookup(const struct scope *scope, const char *identifier)
- 	return NULL;
- }
- 
--static const char *chain_type_str_array[] = {
-+static const char * const chain_type_str_array[] = {
- 	"filter",
- 	"nat",
- 	"route",
-@@ -515,7 +515,7 @@ const char *chain_type_name_lookup(const char *name)
- 	return NULL;
- }
- 
--static const char *chain_hookname_str_array[] = {
-+static const char * const chain_hookname_str_array[] = {
- 	"prerouting",
- 	"input",
- 	"forward",
-@@ -1345,7 +1345,7 @@ static void obj_print_data(const struct obj *obj,
- 	}
- }
- 
--static const char *obj_type_name_array[] = {
-+static const char * const obj_type_name_array[] = {
- 	[NFT_OBJECT_COUNTER]	= "counter",
- 	[NFT_OBJECT_QUOTA]	= "quota",
- 	[NFT_OBJECT_CT_HELPER]	= "",
-diff --git a/src/statement.c b/src/statement.c
-index 6166863..11d067f 100644
---- a/src/statement.c
-+++ b/src/statement.c
-@@ -302,7 +302,7 @@ const char *get_unit(uint64_t u)
- 	return "error";
- }
- 
--static const char *data_unit[] = {
-+static const char * const data_unit[] = {
- 	"bytes",
- 	"kbytes",
- 	"mbytes",
-@@ -496,7 +496,7 @@ static void print_nf_nat_flags(uint32_t flags, struct output_ctx *octx)
- 
- static void nat_stmt_print(const struct stmt *stmt, struct output_ctx *octx)
+ static void bpf_evict_inode(struct inode *inode)
  {
--	static const char *nat_types[] = {
-+	static const char * const nat_types[] = {
- 		[NFT_NAT_SNAT]	= "snat",
- 		[NFT_NAT_DNAT]	= "dnat",
- 	};
+diff --git a/net/netfilter/xt_bpf.c b/net/netfilter/xt_bpf.c
+index 38986a95216c..29123934887b 100644
+--- a/net/netfilter/xt_bpf.c
++++ b/net/netfilter/xt_bpf.c
+@@ -8,6 +8,7 @@
+  */
+ 
+ #include <linux/module.h>
++#include <linux/syscalls.h>
+ #include <linux/skbuff.h>
+ #include <linux/filter.h>
+ #include <linux/bpf.h>
+@@ -49,6 +50,22 @@ static int __bpf_mt_check_fd(int fd, struct bpf_prog **ret)
+ 	return 0;
+ }
+ 
++static int __bpf_mt_check_path(const char *path, struct bpf_prog **ret)
++{
++	mm_segment_t oldfs = get_fs();
++	int retval, fd;
++
++	set_fs(KERNEL_DS);
++	fd = bpf_obj_get_user(path);
++	set_fs(oldfs);
++	if (fd < 0)
++		return fd;
++
++	retval = __bpf_mt_check_fd(fd, ret);
++	sys_close(fd);
++	return retval;
++}
++
+ static int bpf_mt_check(const struct xt_mtchk_param *par)
+ {
+ 	struct xt_bpf_info *info = par->matchinfo;
+@@ -66,9 +83,10 @@ static int bpf_mt_check_v1(const struct xt_mtchk_param *par)
+ 		return __bpf_mt_check_bytecode(info->bpf_program,
+ 					       info->bpf_program_num_elem,
+ 					       &info->filter);
+-	else if (info->mode == XT_BPF_MODE_FD_PINNED ||
+-		 info->mode == XT_BPF_MODE_FD_ELF)
++	else if (info->mode == XT_BPF_MODE_FD_ELF)
+ 		return __bpf_mt_check_fd(info->fd, &info->filter);
++	else if (info->mode == XT_BPF_MODE_PATH_PINNED)
++		return __bpf_mt_check_path(info->path, &info->filter);
+ 	else
+ 		return -EINVAL;
+ }
 -- 
-2.11.0
-
+2.14.2
