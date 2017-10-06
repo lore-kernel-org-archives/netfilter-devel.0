@@ -1,40 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nftables] netlink_linearize: skip set element expression
- in set statement key
-Date: Fri, 6 Oct 2017 14:58:11 +0200
-Message-ID: <20171006125811.GA8450@salvia>
-References: <1507127265.20182.2.camel@cohaesio.com>
+Subject: Re: [PATCH net] netfilter: x_tables: avoid stack-out-of-bounds read
+ in xt_copy_counters_from_user
+Date: Fri, 6 Oct 2017 15:05:12 +0200
+Message-ID: <20171006130512.GA10882@salvia>
+References: <1507197007.14419.15.camel@edumazet-glaptop3.roam.corp.google.com>
+ <20171005095644.GB27522@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:41834 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751869AbdJFM6Q (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Oct 2017 08:58:16 -0400
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
+        Willem de Bruijn <willemb@google.com>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1507127265.20182.2.camel@cohaesio.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20171005095644.GB27522@breakpoint.cc>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Oct 04, 2017 at 02:27:45PM +0000, Anders K. Pedersen | Cohaesio wrote:
-> From: Anders K. Pedersen <akp@cohaesio.com>
+On Thu, Oct 05, 2017 at 11:56:44AM +0200, Florian Westphal wrote:
+> Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> > From: Eric Dumazet <edumazet@google.com>
+> > 
+> > syzkaller reports an out of bound read in strlcpy(), triggered
+> > by xt_copy_counters_from_user()
+> > 
+> > Fix this by using memcpy(), then forcing a zero byte at the last position
+> > of the destination, as Florian did for the non COMPAT code.
+> > 
+> > Fixes: d7591f0c41ce ("netfilter: x_tables: introduce and use xt_copy_counters_from_user")
+> > Signed-off-by: Eric Dumazet <edumazet@google.com>
+> > Cc: Willem de Bruijn <willemb@google.com>
+> > ---
+> >  net/netfilter/x_tables.c |    4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+> > index c83a3b5e1c6c2a91b713b6681a794bd79ab3fa08..d8571f4142080a3c121fc90f0b52d81ee9df6712 100644
+> > --- a/net/netfilter/x_tables.c
+> > +++ b/net/netfilter/x_tables.c
+> > @@ -892,7 +892,7 @@ void *xt_copy_counters_from_user(const void __user *user, unsigned int len,
+> >  		if (copy_from_user(&compat_tmp, user, sizeof(compat_tmp)) != 0)
+> >  			return ERR_PTR(-EFAULT);
+> >  
+> > -		strlcpy(info->name, compat_tmp.name, sizeof(info->name));
+> > +		memcpy(info->name, compat_tmp.name, sizeof(info->name) - 1);
 > 
-> Before this patch the following fails:
+> Argh, right, compat_tmp.name might not be 0 terminated :-/
 > 
-> # nft add rule ip6 filter x \
-> 	set add ip6 saddr . ip6 daddr @test
-> nft: netlink_linearize.c:648: netlink_gen_expr: Assertion `dreg < ctx->reg_low' failed.
-> Aborted
-> 
-> This is was previously fixed for flow statements in fbea4a6f4449
-> ("netlink_linearize: skip set element expression in flow table key"), and
-> this patch implements the same change for set statements by using the set
-> element key in netlink_gen_set_stmt().
-> 
-> nft-test.py is updated to support set types with concatenated data types
-> in order to support testing of this.
+> Acked-by: Florian Westphal <fw@strlen.de>
 
-Applied, thanks Anders.
+Applied to nf, thanks.
