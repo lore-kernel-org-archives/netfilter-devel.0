@@ -1,147 +1,59 @@
-From: <edo.hlaca@ri.t-com.hr>
-Subject: (unknown)
-Date: Fri, 06 Oct 2017 01:59:29 -0000
-Message-ID: <150725516913.32756.3317187745953357496@cpro29549.publiccloud.com.br>
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+Subject: man page nft.8 add chain synopsis
+Date: Fri, 6 Oct 2017 16:08:38 +1100
+Message-ID: <20171006050838.GA9956@dimstar.local.net>
 Mime-Version: 1.0
-Content-Type: application/zip; name="NATASHA-75526540507909netfilter-devel.zip"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+To: Netfilter Development <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cpro29549.publiccloud.com.br ([179.188.38.64]:50870 "HELO
-        cpro29549.publiccloud.com.br" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with SMTP id S1751083AbdJFB7d (ORCPT
+Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:33375 "EHLO
+        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750732AbdJFFhd (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 5 Oct 2017 21:59:33 -0400
-Content-Disposition: attachment
-Subject: 
+        Fri, 6 Oct 2017 01:37:33 -0400
+Received: from dimstar.local.net (c220-239-36-238.eburwd6.vic.optusnet.com.au [220.239.36.238])
+        by mail105.syd.optusnet.com.au (Postfix) with SMTP id E1768104837F
+        for <netfilter-devel@vger.kernel.org>; Fri,  6 Oct 2017 16:08:39 +1100 (AEDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-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
-7eAsR90ZRBMLgSHmJx+K/wKGWLEO72vo2t2LkyOakweUQydPPlN6LvYewcMSB999cvDFojMbNVqd
-/atOL7+Z7aPL+llsr7d34P3dO/gu9gZPfDOuD1bNyVOmep4dFp89dOLOU2O0v/e0Zz78YM/LkH0s
-v1bWnW7vdHz3PKqflH74pNdZ1Tqt6WSbpb3c/vvk9+Ke5z37OFpnHmbdq+XZa9Urb/uzB5kay/1e
-5Kqzf7BN/fhn0dunv8r/ad9r2vbVbW37r7XY/uvPVl/URp3ObD/x1Vdf/dn8Vv/+arz9fbB5qeTn
-uev20KvUq2/7Mpbb1vfj9uGP+rbpP/qzTf9RqUeSDz/od2P7+7+XCgV+LnTsh1giefh16svt34Nf
-ftnfzeJ9tVvQ21ep5OFXia++/DaZ/urAw2X7nWzrwk1x9FC5aryM7bL6dLs5j/0QgI7+LvbrNne1
-fn8560weT0Zn3aIdPqyu/mSbUM5bp7rTRWz/tvDayM9yp72n6rK9OFvNM3feZ199F5N++N5DK7to
-jU/mt1ucsav8qPPFqDPprR7F/Ma89eSulnvuF4bnm8t1fnE78Up/ua3058szT+VuVuebi/1AoZ9J
-pR14lEsffvXtV97/NzJ9mr3O3IzvPBN/61mMU886fJn6+ujw669i5vd8f/Jt8rjF1Mx423um9cv1
-vqeltavlW4jlaVq+tbHnLwdvLFgt1p2DWDwe299t8kc/xL4+TBx9fSTUmTxMfPPt1+p333htSknf
-pdKJ9DeH2+8CLQzk3rav2xgtO1vh6GY794+XDy/jRu22d/MWoJofYmePb57c71i15bcxONCeA09U
-fpeVWqd0k81PTurL6cvTaHjd/1NUAiW/CcqXX7590+plZq+lzc3Z7Wo0bhamtSfvI8QsR6TyMxgI
-7rsvLiq5nwyFTx4NFxuMfiSsZT/JUZdZlLkUEfsQi4+FvY3KTMyNgVED2lGSXQEOoswR0pWZgCZG
-/YiG/irS7EbDQKdDuoNPL+ZASUD+R8OsV3HRb2tyNFoSHS1vOEJvFl1D5IYDZA2NU1DOEcZWZNPk
-2QWvlb1heUHnbTz2nxx9i1lZ7iMhmjfDYM4vW4g1PatDXROKVF7SkcqDc2vwdrWTOehXK/cbtFR8
-8q7/EAKf3E87oLg8UnMiEScqizZLsROpBWtVccz9dC0ijrmfrIjC9TbEOZjQGhJ0DT5aiMLJRUdG
-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
+Hi,
+
+The man page says this:
+
+> {add | create} chain [family] table chain [ { {type} {hook} [device] {priority} } [policy] ]
+
+But I suggest it should say this:
+
+> {add | create} chain [family] table chain [ { {type} {hook} [device] {priority ;} [policy ;] } ]
+
+i.e. the policy tuple should be inside the braces along with type, hook, device
+& priority. Also the device & priority tuples each need to be followed by a
+semicolon.
+
+** Is the above change correct?
+
+* Assuming it is correct, the patch below makes the change. Can someone pick it
+  up from here or should I submit a bug report?
+
+Cheers ... Duncan.
+
+---
+
+diff --git a/doc/nft.xml b/doc/nft.xml
+index c0f42dd..80ffcd7 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -664,9 +664,9 @@ filter input iif $int_ifs accept
+						<arg choice="req"><replaceable>type</replaceable></arg>
+						<arg choice="req"><replaceable>hook</replaceable></arg>
+						<arg choice="opt"><replaceable>device</replaceable></arg>
+-						<arg choice="req"><replaceable>priority</replaceable></arg>
++						<arg choice="req"><replaceable>priority</replaceable> ;</arg>
++						<arg choice="opt"><replaceable>policy</replaceable> ;</arg>
+					</arg>
+-					<arg choice="opt"><replaceable>policy</replaceable></arg>
+				</arg>
+			</cmdsynopsis>
+			<cmdsynopsis>
