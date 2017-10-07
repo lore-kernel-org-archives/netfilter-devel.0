@@ -1,42 +1,41 @@
 From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH] test: shell: update shell/run-tests.sh to refer to relative path of testcase
-Date: Sat,  7 Oct 2017 04:17:52 +0530
-Message-ID: <20171006224752.2188-1-harshasharmaiitr@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, outreachy-kernel@googlegroups.com,
-        Harsha Sharma <harshasharmaiitr@gmail.com>
-To: pablo@netfilter.org
+Subject: Re: [PATCH] tests: shell: add testcases for named objects
+Date: Sat, 7 Oct 2017 13:11:17 +0530
+Message-ID: <CANMOCy0E1zpo_0ajtf0jvvZ7oGB1YKtQNkHAK8wEViiaVnsZ8Q@mail.gmail.com>
+References: <20171005101539.32010-1-harshasharmaiitr@gmail.com> <20171006123835.GC4713@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: netfilter-devel@vger.kernel.org,
+        outreachy-kernel <outreachy-kernel@googlegroups.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:35422 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751485AbdJFWuK (ORCPT
+Received: from mail-ua0-f196.google.com ([209.85.217.196]:38607 "EHLO
+        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750862AbdJGHlT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 6 Oct 2017 18:50:10 -0400
-Received: by mail-pg0-f65.google.com with SMTP id l24so2297714pgu.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 06 Oct 2017 15:50:10 -0700 (PDT)
+        Sat, 7 Oct 2017 03:41:19 -0400
+Received: by mail-ua0-f196.google.com with SMTP id l40so6407051uah.5
+        for <netfilter-devel@vger.kernel.org>; Sat, 07 Oct 2017 00:41:18 -0700 (PDT)
+In-Reply-To: <20171006123835.GC4713@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Refer to relative path for tests from any directory if path for testcases
-is specified.
+On Fri, Oct 6, 2017 at 6:08 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Thu, Oct 05, 2017 at 03:45:39PM +0530, Harsha Sharma wrote:
+>> Add testcases for creating named objects with unique name, defined
+>> by user and referencing them from rule.
+>
+> Also applied, thanks.
+>
+> Could you add another tests for 'limit' objects too? I think I posted
+> an example to the mailing list.
 
-Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
----
- tests/shell/run-tests.sh | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hello,
+I have pulled to latest tree, then make and make installed all changes
+but still I'm unable to add named 'limit' objects. If there is something that
+I'm missing, please let me know.
+Can you also please suggest some more tasks ?
+Thanks in advance.
 
-diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
-index dbddd8d..fe30115 100755
---- a/tests/shell/run-tests.sh
-+++ b/tests/shell/run-tests.sh
-@@ -1,7 +1,7 @@
- #!/bin/bash
- 
- # Configuration
--TESTDIR="./"
-+TESTDIR="./$(dirname $0)/"
- RETURNCODE_SEPARATOR="_"
- SRC_NFT="$(dirname $0)/../../src/nft"
- 
--- 
-2.11.0
-
+Regards,
+Harsha Sharma
