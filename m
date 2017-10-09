@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 12/12] netfilter: xt_bpf: Fix XT_BPF_MODE_FD_PINNED mode of 'xt_bpf_info_v1'
-Date: Mon,  9 Oct 2017 18:25:46 +0200
-Message-ID: <1507566346-32553-13-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 01/12] netfilter: ipvs: full-functionality option for ECN encapsulation in tunnel
+Date: Mon,  9 Oct 2017 18:25:35 +0200
+Message-ID: <1507566346-32553-2-git-send-email-pablo@netfilter.org>
 References: <1507566346-32553-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,147 +10,63 @@ In-Reply-To: <1507566346-32553-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Shmulik Ladkani <shmulik.ladkani@gmail.com>
+From: Vadim Fedorenko <vfedorenko@yandex-team.ru>
 
-Commit 2c16d6033264 ("netfilter: xt_bpf: support ebpf") introduced
-support for attaching an eBPF object by an fd, with the
-'bpf_mt_check_v1' ABI expecting the '.fd' to be specified upon each
-IPT_SO_SET_REPLACE call.
+IPVS tunnel mode works as simple tunnel (see RFC 3168) copying ECN field
+to outer header. That's result in packet drops on egress tunnels in case
+the egress tunnel operates as ECN-capable with Full-functionality option
+(like ip_tunnel and ip6_tunnel kernel modules), according to RFC 3168
+section 9.1.1 recommendation.
 
-However this breaks subsequent iptables calls:
+This patch implements ECN full-functionality option into ipvs xmit code.
 
- # iptables -A INPUT -m bpf --object-pinned /sys/fs/bpf/xxx -j ACCEPT
- # iptables -A INPUT -s 5.6.7.8 -j ACCEPT
- iptables: Invalid argument. Run `dmesg' for more information.
-
-That's because iptables works by loading existing rules using
-IPT_SO_GET_ENTRIES to userspace, then issuing IPT_SO_SET_REPLACE with
-the replacement set.
-
-However, the loaded 'xt_bpf_info_v1' has an arbitrary '.fd' number
-(from the initial "iptables -m bpf" invocation) - so when 2nd invocation
-occurs, userspace passes a bogus fd number, which leads to
-'bpf_mt_check_v1' to fail.
-
-One suggested solution [1] was to hack iptables userspace, to perform a
-"entries fixup" immediatley after IPT_SO_GET_ENTRIES, by opening a new,
-process-local fd per every 'xt_bpf_info_v1' entry seen.
-
-However, in [2] both Pablo Neira Ayuso and Willem de Bruijn suggested to
-depricate the xt_bpf_info_v1 ABI dealing with pinned ebpf objects.
-
-This fix changes the XT_BPF_MODE_FD_PINNED behavior to ignore the given
-'.fd' and instead perform an in-kernel lookup for the bpf object given
-the provided '.path'.
-
-It also defines an alias for the XT_BPF_MODE_FD_PINNED mode, named
-XT_BPF_MODE_PATH_PINNED, to better reflect the fact that the user is
-expected to provide the path of the pinned object.
-
-Existing XT_BPF_MODE_FD_ELF behavior (non-pinned fd mode) is preserved.
-
-References: [1] https://marc.info/?l=netfilter-devel&m=150564724607440&w=2
-            [2] https://marc.info/?l=netfilter-devel&m=150575727129880&w=2
-
-Reported-by: Rafael Buchbinder <rafi@rbk.ms>
-Signed-off-by: Shmulik Ladkani <shmulik.ladkani@gmail.com>
-Acked-by: Willem de Bruijn <willemb@google.com>
-Acked-by: Daniel Borkmann <daniel@iogearbox.net>
+Cc: netdev@vger.kernel.org
+Cc: lvs-devel@vger.kernel.org
+Signed-off-by: Vadim Fedorenko <vfedorenko@yandex-team.ru>
+Reviewed-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/bpf.h                   |  5 +++++
- include/uapi/linux/netfilter/xt_bpf.h |  1 +
- kernel/bpf/inode.c                    |  1 +
- net/netfilter/xt_bpf.c                | 22 ++++++++++++++++++++--
- 4 files changed, 27 insertions(+), 2 deletions(-)
+ net/netfilter/ipvs/ip_vs_xmit.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/bpf.h b/include/linux/bpf.h
-index 8390859e79e7..f1af7d63d678 100644
---- a/include/linux/bpf.h
-+++ b/include/linux/bpf.h
-@@ -368,6 +368,11 @@ static inline void __bpf_prog_uncharge(struct user_struct *user, u32 pages)
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index 90d396814798..4527921b1c3a 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -921,6 +921,7 @@ ip_vs_prepare_tunneled_skb(struct sk_buff *skb, int skb_af,
  {
- }
+ 	struct sk_buff *new_skb = NULL;
+ 	struct iphdr *old_iph = NULL;
++	__u8 old_dsfield;
+ #ifdef CONFIG_IP_VS_IPV6
+ 	struct ipv6hdr *old_ipv6h = NULL;
+ #endif
+@@ -945,7 +946,7 @@ ip_vs_prepare_tunneled_skb(struct sk_buff *skb, int skb_af,
+ 			*payload_len =
+ 				ntohs(old_ipv6h->payload_len) +
+ 				sizeof(*old_ipv6h);
+-		*dsfield = ipv6_get_dsfield(old_ipv6h);
++		old_dsfield = ipv6_get_dsfield(old_ipv6h);
+ 		*ttl = old_ipv6h->hop_limit;
+ 		if (df)
+ 			*df = 0;
+@@ -960,12 +961,15 @@ ip_vs_prepare_tunneled_skb(struct sk_buff *skb, int skb_af,
  
-+static inline int bpf_obj_get_user(const char __user *pathname)
-+{
-+	return -EOPNOTSUPP;
-+}
+ 		/* fix old IP header checksum */
+ 		ip_send_check(old_iph);
+-		*dsfield = ipv4_get_dsfield(old_iph);
++		old_dsfield = ipv4_get_dsfield(old_iph);
+ 		*ttl = old_iph->ttl;
+ 		if (payload_len)
+ 			*payload_len = ntohs(old_iph->tot_len);
+ 	}
+ 
++	/* Implement full-functionality option for ECN encapsulation */
++	*dsfield = INET_ECN_encapsulate(old_dsfield, old_dsfield);
 +
- static inline struct net_device  *__dev_map_lookup_elem(struct bpf_map *map,
- 						       u32 key)
- {
-diff --git a/include/uapi/linux/netfilter/xt_bpf.h b/include/uapi/linux/netfilter/xt_bpf.h
-index b97725af2ac0..da161b56c79e 100644
---- a/include/uapi/linux/netfilter/xt_bpf.h
-+++ b/include/uapi/linux/netfilter/xt_bpf.h
-@@ -23,6 +23,7 @@ enum xt_bpf_modes {
- 	XT_BPF_MODE_FD_PINNED,
- 	XT_BPF_MODE_FD_ELF,
- };
-+#define XT_BPF_MODE_PATH_PINNED XT_BPF_MODE_FD_PINNED
- 
- struct xt_bpf_info_v1 {
- 	__u16 mode;
-diff --git a/kernel/bpf/inode.c b/kernel/bpf/inode.c
-index e833ed914358..be1dde967208 100644
---- a/kernel/bpf/inode.c
-+++ b/kernel/bpf/inode.c
-@@ -363,6 +363,7 @@ int bpf_obj_get_user(const char __user *pathname)
- 	putname(pname);
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(bpf_obj_get_user);
- 
- static void bpf_evict_inode(struct inode *inode)
- {
-diff --git a/net/netfilter/xt_bpf.c b/net/netfilter/xt_bpf.c
-index 38986a95216c..29123934887b 100644
---- a/net/netfilter/xt_bpf.c
-+++ b/net/netfilter/xt_bpf.c
-@@ -8,6 +8,7 @@
-  */
- 
- #include <linux/module.h>
-+#include <linux/syscalls.h>
- #include <linux/skbuff.h>
- #include <linux/filter.h>
- #include <linux/bpf.h>
-@@ -49,6 +50,22 @@ static int __bpf_mt_check_fd(int fd, struct bpf_prog **ret)
- 	return 0;
- }
- 
-+static int __bpf_mt_check_path(const char *path, struct bpf_prog **ret)
-+{
-+	mm_segment_t oldfs = get_fs();
-+	int retval, fd;
-+
-+	set_fs(KERNEL_DS);
-+	fd = bpf_obj_get_user(path);
-+	set_fs(oldfs);
-+	if (fd < 0)
-+		return fd;
-+
-+	retval = __bpf_mt_check_fd(fd, ret);
-+	sys_close(fd);
-+	return retval;
-+}
-+
- static int bpf_mt_check(const struct xt_mtchk_param *par)
- {
- 	struct xt_bpf_info *info = par->matchinfo;
-@@ -66,9 +83,10 @@ static int bpf_mt_check_v1(const struct xt_mtchk_param *par)
- 		return __bpf_mt_check_bytecode(info->bpf_program,
- 					       info->bpf_program_num_elem,
- 					       &info->filter);
--	else if (info->mode == XT_BPF_MODE_FD_PINNED ||
--		 info->mode == XT_BPF_MODE_FD_ELF)
-+	else if (info->mode == XT_BPF_MODE_FD_ELF)
- 		return __bpf_mt_check_fd(info->fd, &info->filter);
-+	else if (info->mode == XT_BPF_MODE_PATH_PINNED)
-+		return __bpf_mt_check_path(info->path, &info->filter);
- 	else
- 		return -EINVAL;
- }
+ 	return skb;
+ error:
+ 	kfree_skb(skb);
 -- 
 2.1.4
