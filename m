@@ -1,40 +1,71 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH 13/14] netfilter/ipvs: Use %pS printk format for direct
- addresses
-Date: Mon, 9 Oct 2017 07:52:24 +0200
-Message-ID: <20171009055224.GB31804@verge.net.au>
-References: <1504729681-3504-1-git-send-email-deller@gmx.de>
- <1504729681-3504-14-git-send-email-deller@gmx.de>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 41/47] netfilter: convert hook list to an array
+Date: Mon, 9 Oct 2017 11:31:32 +0200
+Message-ID: <20171009093132.GA7150@breakpoint.cc>
+References: <1504478574-13281-1-git-send-email-pablo@netfilter.org>
+ <1504478574-13281-6-git-send-email-pablo@netfilter.org>
+ <81603cbd-603d-1d93-a29a-1174fc826dec@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org,
-        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
-        Petr Mladek <pmladek@suse.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Wensong Zhang <wensong@linux-vs.org>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-To: Helge Deller <deller@gmx.de>
-Return-path: <lvs-devel-owner@vger.kernel.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Aaron Conole <aconole@bytheb.org>,
+        Florian Westphal <fw@strlen.de>, davem@davemloft.net,
+        netdev@vger.kernel.org
+To: Tariq Toukan <tariqt@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1504729681-3504-14-git-send-email-deller@gmx.de>
-Sender: lvs-devel-owner@vger.kernel.org
+In-Reply-To: <81603cbd-603d-1d93-a29a-1174fc826dec@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Sep 06, 2017 at 10:28:00PM +0200, Helge Deller wrote:
-> The debug and error printk functions in ipvs uses wrongly the %pF instead of
-> the %pS printk format specifier for printing symbols for the address returned
-> by _builtin_return_address(0). Fix it for the ia64, ppc64 and parisc64
-> architectures.
+Tariq Toukan <tariqt@mellanox.com> wrote:
+> On 04/09/2017 1:42 AM, Pablo Neira Ayuso wrote:
+> >From: Aaron Conole <aconole@bytheb.org>
+> >
+> >This converts the storage and layout of netfilter hook entries from a
+> >linked list to an array.  After this commit, hook entries will be
+> >stored adjacent in memory.  The next pointer is no longer required.
+> >
+> >The ops pointers are stored at the end of the array as they are only
+> >used in the register/unregister path and in the legacy br_netfilter code.
+> >
+> >nf_unregister_net_hooks() is slower than needed as it just calls
+> >nf_unregister_net_hook in a loop (i.e. at least n synchronize_net()
+> >calls), this will be addressed in followup patch.
+> >
+> >Test setup:
+> >  - ixgbe 10gbit
+> >  - netperf UDP_STREAM, 64 byte packets
+> >  - 5 hooks: (raw + mangle prerouting, mangle+filter input, inet filter):
+> >empty mangle and raw prerouting, mangle and filter input hooks:
+> >353.9
+> >this patch:
+> >364.2
+> >
+> >Signed-off-by: Aaron Conole <aconole@bytheb.org>
+> >Signed-off-by: Florian Westphal <fw@strlen.de>
+> >Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> >---
 > 
-> Signed-off-by: Helge Deller <deller@gmx.de>
-> Cc: Wensong Zhang <wensong@linux-vs.org>
-> Cc: netdev@vger.kernel.org
-> Cc: lvs-devel@vger.kernel.org
-> Cc: netfilter-devel@vger.kernel.org
+> Hi,
+> 
+> We experience a regression in server with iommu enabled.
+> After installing kernel and rebooting the server, it crashes during boot.
+> Please see trace below.
+> 
+> Bisecting points to this patch.
 
-Sorry for the delay in processing this.
+Hmm, strange because
 
-Acked-by: Simon Horman <horms@verge.net.au>
+> [   25.907811] BUG: unable to handle kernel NULL pointer dereference at
+> 000000000000003c
+> [   25.907828] IP: _raw_read_lock_bh+0x15/0x40
 
-Pablo, could you take this through the nf-next tree directly?
+... this says that ebt_table is NULL (0x3c is the offset of the rwlock).
+
+If you don't have that fix already, does
+https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git/commit/?id=e6b72ee88a56bcfe63f72e9c30766484c45bec72
+
+netfilter: ebtables: fix race condition in frame_filter_net_init()
+
+resolve this bug for you?
