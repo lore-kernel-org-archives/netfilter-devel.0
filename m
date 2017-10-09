@@ -1,26 +1,24 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/12] Netfilter/IPVS fixes for net
-Date: Mon, 09 Oct 2017 10:40:47 -0700 (PDT)
-Message-ID: <20171009.104047.1245092259258863465.davem@davemloft.net>
-References: <1507566346-32553-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1507566346-32553-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon,  9 Oct 2017 18:25:34 +0200
+Subject: Re: [PATCH] doc: nft.8 Document rule replace
+Date: Mon, 9 Oct 2017 21:12:09 +0200
+Message-ID: <20171009191209.GA15452@salvia>
+References: <20171009145841.6046-1-duncan_roe@optusnet.com.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Duncan Roe <duncan_roe@optusnet.com.au>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:44096 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754678AbdJITMO (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 9 Oct 2017 15:12:14 -0400
+Content-Disposition: inline
+In-Reply-To: <20171009145841.6046-1-duncan_roe@optusnet.com.au>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-> The following patchset contains Netfilter/IPVS fixes for your net tree,
-> they are:
- ...
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+On Tue, Oct 10, 2017 at 01:58:41AM +1100, Duncan Roe wrote:
+> Insert synopsis and description between those for add|insert and delete
 
-Pulled, thanks!
+Applied, thanks.
