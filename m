@@ -1,55 +1,57 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: xt_bpf: Fix XT_BPF_MODE_FD_PINNED mode of
- 'xt_bpf_info_v1'
-Date: Mon, 9 Oct 2017 13:18:23 +0200
-Message-ID: <20171009111823.GA30637@salvia>
-References: <20171006160242.4403-1-shmulik@nsof.io>
- <CAF=yD-JbZ_ViWsBWK7Ye=4RYF9BgnMKvD04xE5P26RNRpnmuiQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Shmulik Ladkani <shmulik@nsof.io>,
-        netfilter-devel <netfilter-devel@vger.kernel.org>,
-        Willem de Bruijn <willemb@google.com>,
-        Network Development <netdev@vger.kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Rafael Buchbinder <rafi@rbk.ms>,
-        Shmulik Ladkani <shmulik.ladkani@gmail.com>
-To: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+Subject: [PATCH nft] parser_bison: allow to used named limit from dictionaries too
+Date: Mon,  9 Oct 2017 13:48:11 +0200
+Message-ID: <1507549692-9878-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:39907 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751621AbdJILSc (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Oct 2017 07:18:32 -0400
-Content-Disposition: inline
-In-Reply-To: <CAF=yD-JbZ_ViWsBWK7Ye=4RYF9BgnMKvD04xE5P26RNRpnmuiQ@mail.gmail.com>
+Received: from mail.us.es ([193.147.175.20]:49292 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751068AbdJILsV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 9 Oct 2017 07:48:21 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id BF7B180FF1
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Oct 2017 13:48:19 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B1CF7DA7B9
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Oct 2017 13:48:19 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A2386DA848
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Oct 2017 13:48:17 +0200 (CEST)
+Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 694844025FBA
+        for <netfilter-devel@vger.kernel.org>; Mon,  9 Oct 2017 13:48:17 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Oct 06, 2017 at 01:40:13PM -0400, Willem de Bruijn wrote:
-> On Fri, Oct 6, 2017 at 12:02 PM, Shmulik Ladkani <shmulik@nsof.io> wrote:
-> > From: Shmulik Ladkani <shmulik.ladkani@gmail.com>
-> >
-> > Commit 2c16d6033264 ("netfilter: xt_bpf: support ebpf") introduced
-> > support for attaching an eBPF object by an fd, with the
-> > 'bpf_mt_check_v1' ABI expecting the '.fd' to be specified upon each
-> > IPT_SO_SET_REPLACE call.
-> >
-> > However this breaks subsequent iptables calls:
-> >
-> >  # iptables -A INPUT -m bpf --object-pinned /sys/fs/bpf/xxx -j ACCEPT
-> >  # iptables -A INPUT -s 5.6.7.8 -j ACCEPT
-> >  iptables: Invalid argument. Run `dmesg' for more information.
-[...]
-> >
-> > References: [1] https://marc.info/?l=netfilter-devel&m=150564724607440&w=2
-> >             [2] https://marc.info/?l=netfilter-devel&m=150575727129880&w=2
-> >
-> > Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> > Cc: Willem de Bruijn <willemb@google.com>
-> > Reported-by: Rafael Buchbinder <rafi@rbk.ms>
-> > Signed-off-by: Shmulik Ladkani <shmulik.ladkani@gmail.com>
-> 
-> Acked-by: Willem de Bruijn <willemb@google.com>
+Allow to use limit objects from dictionaries.
 
-Applied, thanks.
+Fixes: c0697eabe832 ("src: add stateful object support for limit")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/parser_bison.y | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index f996d9d94880..7016f5b24887 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1426,6 +1426,15 @@ map_block		:	/* empty */	{ $$ = $<set>-1; }
+ 				$1->flags  |= NFT_SET_OBJECT;
+ 				$$ = $1;
+ 			}
++			|	map_block	TYPE
++						data_type_expr	COLON	LIMIT
++						stmt_separator
++			{
++				$1->key = $3;
++				$1->objtype = NFT_OBJECT_LIMIT;
++				$1->flags  |= NFT_SET_OBJECT;
++				$$ = $1;
++			}
+ 			|	map_block	FLAGS		set_flag_list	stmt_separator
+ 			{
+ 				$1->flags |= $3;
+-- 
+2.1.4
+
