@@ -1,74 +1,65 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: Re: [PATCH v2] netfilter: xt_bpf: Fix XT_BPF_MODE_FD_PINNED mode
- of 'xt_bpf_info_v1'
-Date: Mon, 09 Oct 2017 14:35:46 +0200
-Message-ID: <59DB6D22.6080507@iogearbox.net>
-References: <20171009122715.19010-1-shmulik@nsof.io>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] src: Merge assignment with return
+Date: Mon, 9 Oct 2017 15:21:54 +0200
+Message-ID: <20171009132154.GA8460@salvia>
+References: <20171006223033.664-1-harshasharmaiitr@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, Rafael Buchbinder <rafi@rbk.ms>,
-        Shmulik Ladkani <shmulik.ladkani@gmail.com>,
-        Willem de Bruijn <willemb@google.com>
-To: Shmulik Ladkani <shmulik@nsof.io>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, outreachy-kernel@googlegroups.com
+To: Harsha Sharma <harshasharmaiitr@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:45011 "EHLO
-        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751636AbdJIMfu (ORCPT
+Received: from ganesha.gnumonks.org ([213.95.27.120]:40910 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755365AbdJINV7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 9 Oct 2017 08:35:50 -0400
-In-Reply-To: <20171009122715.19010-1-shmulik@nsof.io>
+        Mon, 9 Oct 2017 09:21:59 -0400
+Content-Disposition: inline
+In-Reply-To: <20171006223033.664-1-harshasharmaiitr@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 10/09/2017 02:27 PM, Shmulik Ladkani wrote:
-> From: Shmulik Ladkani <shmulik.ladkani@gmail.com>
->
-> Commit 2c16d6033264 ("netfilter: xt_bpf: support ebpf") introduced
-> support for attaching an eBPF object by an fd, with the
-> 'bpf_mt_check_v1' ABI expecting the '.fd' to be specified upon each
-> IPT_SO_SET_REPLACE call.
->
-> However this breaks subsequent iptables calls:
->
->   # iptables -A INPUT -m bpf --object-pinned /sys/fs/bpf/xxx -j ACCEPT
->   # iptables -A INPUT -s 5.6.7.8 -j ACCEPT
->   iptables: Invalid argument. Run `dmesg' for more information.
->
-> That's because iptables works by loading exising rules using
-> IPT_SO_GET_ENTRIES to userspace, then issuing IPT_SO_SET_REPLACE with
-> the replacement set.
->
-> However, the loaded 'xt_bpf_info_v1' has an arbitrary '.fd' number
-> (from the initial "iptables -m bpf" invocation) - so when 2nd invocation
-> occurs, userspace passes a bogus fd number, which leads to
-> 'bpf_mt_check_v1' to fail.
->
-> One suggested solution [1] was to hack iptables userspace, to perform a
-> "entries fixup" immediatley after IPT_SO_GET_ENTRIES, by opening a new,
-> process-local fd per every 'xt_bpf_info_v1' entry seen.
->
-> However, in [2] both Pablo Neira Ayuso and Willem de Bruijn suggested to
-> depricate the xt_bpf_info_v1 ABI dealing with pinned ebpf objects.
->
-> This fix changes the XT_BPF_MODE_FD_PINNED behavior to ignore the given
-> '.fd' and instead perform an in-kernel lookup for the bpf object given
-> the provided '.path'.
->
-> It also defines an alias for the XT_BPF_MODE_FD_PINNED mode, named
-> XT_BPF_MODE_PATH_PINNED, to better reflect the fact that the user is
-> expected to provide the path of the pinned object.
->
-> Existing XT_BPF_MODE_FD_ELF behavior (non-pinned fd mode) is preserved.
->
-> References: [1] https://marc.info/?l=netfilter-devel&m=150564724607440&w=2
->              [2] https://marc.info/?l=netfilter-devel&m=150575727129880&w=2
->
-> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> Cc: Willem de Bruijn <willemb@google.com>
-> Reported-by: Rafael Buchbinder <rafi@rbk.ms>
-> Signed-off-by: Shmulik Ladkani <shmulik.ladkani@gmail.com>
+Hi Harsha,
 
-Acked-by: Daniel Borkmann <daniel@iogearbox.net>
+On Sat, Oct 07, 2017 at 04:00:33AM +0530, Harsha Sharma wrote:
+> Merge assignment with return statement to directly return the value.
+> Done using following coccinelle semantic patch
+> 
+> @@
+> local idexpression ret;
+> expression e;
+> @@
+> 
+> -ret =
+> +return
+>      e;
+> -return ret;
+> 
+> Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
+> ---
+>  src/mini-gmp.c  | 3 +--
+>  src/statement.c | 5 +----
+>  2 files changed, 2 insertions(+), 6 deletions(-)
+> 
+> diff --git a/src/mini-gmp.c b/src/mini-gmp.c
+> index acbe1be..0579c46 100644
+> --- a/src/mini-gmp.c
+> +++ b/src/mini-gmp.c
+> @@ -1297,8 +1297,7 @@ mpn_set_str_bits (mp_ptr rp, const unsigned char *sp, size_t sn,
+>  	    }
+>  	}
+>      }
+> -  rn = mpn_normalized_size (rp, rn);
+> -  return rn;
+> +  return mpn_normalized_size(rp, rn);
+
+mini-gmp.c has been extracted from libgmp sources [1], so either you
+submit this chunk to them, or you leave this part as is. I would like
+we just cache a copy of the mini-gmp.c original file.
+
+Probably you can just check if latest stable release of libgmp
+contains updates for mini-gmp.{c,h} and send us a patch to get in sync
+with them.
+
+Thanks.
+
+[1] https://gmplib.org/repo/gmp/file/tip/mini-gmp
