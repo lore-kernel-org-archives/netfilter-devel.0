@@ -1,160 +1,44 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 2/2] netfilter: x_tables: don't use seqlock when fetching old counters
-Date: Tue, 10 Oct 2017 12:13:38 +0200
-Message-ID: <20171010101338.14443-3-fw@strlen.de>
-References: <20171010101338.14443-1-fw@strlen.de>
-Cc: dcbw@redhat.com, edumzet@google.com,
-        Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: "Doddamadaiah, Abhijit (Nokia - IN/Bangalore)"
+        <abhijit.doddamadaiah@nokia.com>
+Subject: Support for attribute based deletion operation in nftables
+Date: Tue, 10 Oct 2017 10:24:03 +0000
+Message-ID: <VI1PR0701MB273655E25FAF498838F8D0A68F750@VI1PR0701MB2736.eurprd07.prod.outlook.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Cc: "M J, Pramoda (Nokia - IN/Bangalore)" <pramoda.m_j@nokia.com>,
+        "Shukla, Ashutosh 1. (Nokia - IN/Bangalore)"
+        <ashutosh.1.shukla@nokia.com>,
+        "Priyadarshi, Amit 1. (Nokia - IN/Bangalore)"
+        <amit.1.priyadarshi@nokia.com>
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:60668 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755760AbdJJKNb (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 Oct 2017 06:13:31 -0400
-In-Reply-To: <20171010101338.14443-1-fw@strlen.de>
+Received: from mail-ve1eur01on0100.outbound.protection.outlook.com ([104.47.1.100]:21737
+        "EHLO EUR01-VE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751398AbdJJKYG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 10 Oct 2017 06:24:06 -0400
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-after previous commit xt_replace_table will wait until all cpus
-had even seqcount (i.e., no cpu is accessing old ruleset).
+Hello,
 
-Add a 'old' counter retrival version that doesn't synchronize counters.
-Its not needed, the old counters are not in use anymore at this point.
+Iptables had the facility of deleting a rule using the same attribute set a=
+s that which were used during its addition. In nftables, the deletion opera=
+tion requires the "handle" parameter which is a numeric value assigned by t=
+he kernel. In order to get the "handle" corresponding to a rule, it is nece=
+ssary to list the chain with necessary option or dump the rules and impleme=
+nt a parser to get the same. Any application using nftables to implement a =
+firewall shall not be able to refer to the table every time when it needs t=
+o delete a rule.
 
-This speeds up table replacement on busy systems with large tables
-(and many cores).
+Is there any facility to get the handle (at this moment with the available =
+version of nftables) without referring the table. The wiki page states that=
+ the deletion operation based on attributes is under implementation. If so,=
+ is there any time frame by which we can expect the support for the same in=
+ nftables library. Request you to please respond to the same.
 
-Cc: Dan Williams <dcbw@redhat.com>
-Cc: Eric Dumazet <edumzet@google.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/ipv4/netfilter/arp_tables.c | 22 ++++++++++++++++++++--
- net/ipv4/netfilter/ip_tables.c  | 23 +++++++++++++++++++++--
- net/ipv6/netfilter/ip6_tables.c | 22 ++++++++++++++++++++--
- 3 files changed, 61 insertions(+), 6 deletions(-)
-
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 9e2770fd00be..f88221aebc9d 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -634,6 +634,25 @@ static void get_counters(const struct xt_table_info *t,
- 	}
- }
- 
-+static void get_old_counters(const struct xt_table_info *t,
-+			     struct xt_counters counters[])
-+{
-+	struct arpt_entry *iter;
-+	unsigned int cpu, i;
-+
-+	for_each_possible_cpu(cpu) {
-+		i = 0;
-+		xt_entry_foreach(iter, t->entries, t->size) {
-+			struct xt_counters *tmp;
-+
-+			tmp = xt_get_per_cpu_counter(&iter->counters, cpu);
-+			ADD_COUNTER(counters[i], tmp->bcnt, tmp->pcnt);
-+			++i;
-+		}
-+		cond_resched();
-+	}
-+}
-+
- static struct xt_counters *alloc_counters(const struct xt_table *table)
- {
- 	unsigned int countersize;
-@@ -910,8 +929,7 @@ static int __do_replace(struct net *net, const char *name,
- 	    (newinfo->number <= oldinfo->initial_entries))
- 		module_put(t->me);
- 
--	/* Get the old counters, and synchronize with replace */
--	get_counters(oldinfo, counters);
-+	get_old_counters(oldinfo, counters);
- 
- 	/* Decrease module usage counts and free resource */
- 	loc_cpu_old_entry = oldinfo->entries;
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 39286e543ee6..4cbe5e80f3bf 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -781,6 +781,26 @@ get_counters(const struct xt_table_info *t,
- 	}
- }
- 
-+static void get_old_counters(const struct xt_table_info *t,
-+			     struct xt_counters counters[])
-+{
-+	struct ipt_entry *iter;
-+	unsigned int cpu, i;
-+
-+	for_each_possible_cpu(cpu) {
-+		i = 0;
-+		xt_entry_foreach(iter, t->entries, t->size) {
-+			const struct xt_counters *tmp;
-+
-+			tmp = xt_get_per_cpu_counter(&iter->counters, cpu);
-+			ADD_COUNTER(counters[i], tmp->bcnt, tmp->pcnt);
-+			++i; /* macro does multi eval of i */
-+		}
-+
-+		cond_resched();
-+	}
-+}
-+
- static struct xt_counters *alloc_counters(const struct xt_table *table)
- {
- 	unsigned int countersize;
-@@ -1070,8 +1090,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 	    (newinfo->number <= oldinfo->initial_entries))
- 		module_put(t->me);
- 
--	/* Get the old counters, and synchronize with replace */
--	get_counters(oldinfo, counters);
-+	get_old_counters(oldinfo, counters);
- 
- 	/* Decrease module usage counts and free resource */
- 	xt_entry_foreach(iter, oldinfo->entries, oldinfo->size)
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 01bd3ee5ebc6..f06e25065a34 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -800,6 +800,25 @@ get_counters(const struct xt_table_info *t,
- 	}
- }
- 
-+static void get_old_counters(const struct xt_table_info *t,
-+			     struct xt_counters counters[])
-+{
-+	struct ip6t_entry *iter;
-+	unsigned int cpu, i;
-+
-+	for_each_possible_cpu(cpu) {
-+		i = 0;
-+		xt_entry_foreach(iter, t->entries, t->size) {
-+			const struct xt_counters *tmp;
-+
-+			tmp = xt_get_per_cpu_counter(&iter->counters, cpu);
-+			ADD_COUNTER(counters[i], tmp->bcnt, tmp->pcnt);
-+			++i;
-+		}
-+		cond_resched();
-+	}
-+}
-+
- static struct xt_counters *alloc_counters(const struct xt_table *table)
- {
- 	unsigned int countersize;
-@@ -1090,8 +1109,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 	    (newinfo->number <= oldinfo->initial_entries))
- 		module_put(t->me);
- 
--	/* Get the old counters, and synchronize with replace */
--	get_counters(oldinfo, counters);
-+	get_old_counters(oldinfo, counters);
- 
- 	/* Decrease module usage counts and free resource */
- 	xt_entry_foreach(iter, oldinfo->entries, oldinfo->size)
--- 
-2.13.6
+-Thanks & Regards
+Abhjit
 
