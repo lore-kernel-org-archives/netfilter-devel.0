@@ -1,44 +1,44 @@
-From: "Doddamadaiah, Abhijit (Nokia - IN/Bangalore)"
-        <abhijit.doddamadaiah@nokia.com>
-Subject: Support for attribute based deletion operation in nftables
-Date: Tue, 10 Oct 2017 10:24:03 +0000
-Message-ID: <VI1PR0701MB273655E25FAF498838F8D0A68F750@VI1PR0701MB2736.eurprd07.prod.outlook.com>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH RFC tip/core/rcu 14/15] netfilter: Remove now-redundant
+ smp_read_barrier_depends()
+Date: Tue, 10 Oct 2017 08:56:50 -0700
+Message-ID: <20171010155650.GF3521@linux.vnet.ibm.com>
+References: <20171010001951.GA6476@linux.vnet.ibm.com>
+ <1507594969-8347-14-git-send-email-paulmck@linux.vnet.ibm.com>
+ <20171010084334.nbyhryiwyrl6km4u@hirez.programming.kicks-ass.net>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Cc: "M J, Pramoda (Nokia - IN/Bangalore)" <pramoda.m_j@nokia.com>,
-        "Shukla, Ashutosh 1. (Nokia - IN/Bangalore)"
-        <ashutosh.1.shukla@nokia.com>,
-        "Priyadarshi, Amit 1. (Nokia - IN/Bangalore)"
-        <amit.1.priyadarshi@nokia.com>
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ve1eur01on0100.outbound.protection.outlook.com ([104.47.1.100]:21737
-        "EHLO EUR01-VE1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751398AbdJJKYG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 10 Oct 2017 06:24:06 -0400
-Content-Language: en-US
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-kernel@vger.kernel.org, mingo@kernel.org,
+        torvalds@linux-foundation.org, mark.rutland@arm.com,
+        dhowells@redhat.com, linux-arch@vger.kernel.org,
+        will.deacon@arm.com, Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Return-path: <linux-arch-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171010084334.nbyhryiwyrl6km4u@hirez.programming.kicks-ass.net>
+Sender: linux-arch-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+On Tue, Oct 10, 2017 at 10:43:34AM +0200, Peter Zijlstra wrote:
+> On Mon, Oct 09, 2017 at 05:22:48PM -0700, Paul E. McKenney wrote:
+> > READ_ONCE() now implies smp_read_barrier_depends(), which means that
+> > the instances in arpt_do_table(), ipt_do_table(), and ip6t_do_table()
+> > are now redundant.  This commit removes them and adjusts the comments.
+> 
+> Similar to the previous patch, the lack of READ_ONCE() in the original
+> code is a pre-existing bug. It would allow the compiler to tear the load
+> and observe a composite of two difference pointer values, or reload the
+> private pointer and result in table_base and jumpstacl being part of
+> different objects.
+> 
+> It would be good to point out this actually fixes a bug in the code.
 
-Iptables had the facility of deleting a rule using the same attribute set a=
-s that which were used during its addition. In nftables, the deletion opera=
-tion requires the "handle" parameter which is a numeric value assigned by t=
-he kernel. In order to get the "handle" corresponding to a rule, it is nece=
-ssary to list the chain with necessary option or dump the rules and impleme=
-nt a parser to get the same. Any application using nftables to implement a =
-firewall shall not be able to refer to the table every time when it needs t=
-o delete a rule.
+Assuming that these changes actually fixed something, agreed.  ;-)
 
-Is there any facility to get the handle (at this moment with the available =
-version of nftables) without referring the table. The wiki page states that=
- the deletion operation based on attributes is under implementation. If so,=
- is there any time frame by which we can expect the support for the same in=
- nftables library. Request you to please respond to the same.
-
--Thanks & Regards
-Abhjit
-
+							Thanx, Paul
