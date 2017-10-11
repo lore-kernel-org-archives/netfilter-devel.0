@@ -1,46 +1,35 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: x_tables: ensure readers see new ->private value
-Date: Wed, 11 Oct 2017 20:03:24 +0200
-Message-ID: <20171011180324.15638-1-fw@strlen.de>
-Cc: edumazet@google.com, Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Eric Dumazet <edumazet@google.com>
+Subject: Re: [PATCH nf] netfilter: x_tables: ensure readers see new ->private value
+Date: Wed, 11 Oct 2017 11:04:57 -0700
+Message-ID: <CANn89i+V9TXVujaCB_6ev5JUAQDM7NqJ3oVksf1siccUG24B7g@mail.gmail.com>
+References: <20171011180324.15638-1-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:42248 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1757852AbdJKSDH (ORCPT
+Received: from mail-ua0-f181.google.com ([209.85.217.181]:50129 "EHLO
+        mail-ua0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932627AbdJKSE7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 11 Oct 2017 14:03:07 -0400
+        Wed, 11 Oct 2017 14:04:59 -0400
+Received: by mail-ua0-f181.google.com with SMTP id h34so1603007uaa.6
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Oct 2017 11:04:58 -0700 (PDT)
+In-Reply-To: <20171011180324.15638-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet wrote:
- But it seems we need an extra smp_wmb() after
-      smp_wmb();
-      table->private = newinfo;
+On Wed, Oct 11, 2017 at 11:03 AM, Florian Westphal <fw@strlen.de> wrote:
+> Eric Dumazet wrote:
+>  But it seems we need an extra smp_wmb() after
+>       smp_wmb();
+>       table->private = newinfo;
+>
+> Otherwise we have no guarantee other cpus actually see the new
+> ->private value.
+>
+> Suggested-by: Eric Dumazet <edumazet@google.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Otherwise we have no guarantee other cpus actually see the new
-->private value.
-
-Suggested-by: Eric Dumazet <edumazet@google.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/x_tables.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index d8571f414208..64cf669ecd6c 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1182,6 +1182,9 @@ xt_replace_table(struct xt_table *table,
- 	smp_wmb();
- 	table->private = newinfo;
- 
-+	/* Ensure other cpus see the new ->private value. */
-+	smp_wmb();
-+
- 	/*
- 	 * Even though table entries have now been swapped, other CPU's
- 	 * may still be using the old entries. This is okay, because
--- 
-2.13.6
-
+I do not believe this change is needed in net (or nf) tree.
+See my other reply.
