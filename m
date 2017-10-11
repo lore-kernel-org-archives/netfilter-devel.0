@@ -1,31 +1,33 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 0/9] tests: Move tests from files to shell.
-Date: Wed, 11 Oct 2017 11:57:08 +0200
-Message-ID: <20171011095708.GB1678@salvia>
-References: <cover.1507696149.git.rvarsha016@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Varsha Rao <rvarsha016@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v3 nf-next 0/2] netfilter: x_tables: speed up iptables-restore
+Date: Wed, 11 Oct 2017 16:26:05 +0200
+Message-ID: <20171011142607.15026-1-fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:60737 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752686AbdJKJ5M (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:40964 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751620AbdJKOZx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 11 Oct 2017 05:57:12 -0400
-Content-Disposition: inline
-In-Reply-To: <cover.1507696149.git.rvarsha016@gmail.com>
+        Wed, 11 Oct 2017 10:25:53 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Varsha,
+iptables-restore can take quite a long time when sytem is busy, in order
+of half a minute or more.
 
-On Wed, Oct 11, 2017 at 10:03:56AM +0530, Varsha Rao wrote:
-> Test files of tests/files/ are moved to tests/shell.
+The main reason for this is the way ip(6)tables performs table swap:
 
-We have more than 100 tests these days, could you have a look at the
-repository to see if this is adding redundant tests for what we have?
-If we already have a test covering the same configuration, we should
-just remove them from tests/files/.
+When xt_replace_table assigns the new ruleset pointer, it does
+not wait for other processors to finish with old ruleset.
 
-Thanks.
+Instead it relies on the counter sequence lock in get_counters().
+
+This works but this is costly if system is busy as each counter read
+operation can possibly be restarted indefinitely.
+
+Instead, make xt_replace_table wait until all processors are known to not
+use the old ruleset anymore.
+
+This allows to read the old counters without any locking, no cpu is
+using the ruleset anymore so counters can't change either.
+
