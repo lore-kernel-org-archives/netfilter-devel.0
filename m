@@ -1,47 +1,53 @@
 From: Varsha Rao <rvarsha016@gmail.com>
-Subject: [PATCH nft 2/9] tests: shell: Add test case for jump chain.
-Date: Wed, 11 Oct 2017 10:11:37 +0530
-Message-ID: <e88173fd5018800db110fa1e36d2103cfabfb3b4.1507696149.git.rvarsha016@gmail.com>
+Subject: [PATCH nft 3/9] tests: shell: Add test case for sets.
+Date: Wed, 11 Oct 2017 10:14:33 +0530
+Message-ID: <42e35571e5a59d637c39582e242ddd710f103fa3.1507696149.git.rvarsha016@gmail.com>
 References: <cover.1507696149.git.rvarsha016@gmail.com>
 Cc: Varsha Rao <rvarsha016@gmail.com>, netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:35862 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750741AbdJKEl4 (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:34524 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750808AbdJKEoz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 11 Oct 2017 00:41:56 -0400
-Received: by mail-pf0-f193.google.com with SMTP id z11so1151722pfk.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 10 Oct 2017 21:41:56 -0700 (PDT)
+        Wed, 11 Oct 2017 00:44:55 -0400
+Received: by mail-pg0-f66.google.com with SMTP id u27so869453pgn.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 10 Oct 2017 21:44:55 -0700 (PDT)
 In-Reply-To: <cover.1507696149.git.rvarsha016@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds test case for checking jump to non existing chain.
+This patch adds test case for anonymous sets.
 
 Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
 ---
- tests/shell/testcases/chains/0015check_jump_loop_1 | 11 +++++++++++
- 1 file changed, 11 insertions(+)
- create mode 100755 tests/shell/testcases/chains/0015check_jump_loop_1
+ tests/shell/testcases/sets/0025anonymous_set_0 | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+ create mode 100755 tests/shell/testcases/sets/0025anonymous_set_0
 
-diff --git a/tests/shell/testcases/chains/0015check_jump_loop_1 b/tests/shell/testcases/chains/0015check_jump_loop_1
+diff --git a/tests/shell/testcases/sets/0025anonymous_set_0 b/tests/shell/testcases/sets/0025anonymous_set_0
 new file mode 100755
-index 0000000..059cfaa
+index 0000000..93a7c02
 --- /dev/null
-+++ b/tests/shell/testcases/chains/0015check_jump_loop_1
-@@ -0,0 +1,11 @@
++++ b/tests/shell/testcases/sets/0025anonymous_set_0
+@@ -0,0 +1,17 @@
 +#!/bin/bash
++
++# Adding anonymous sets
 +
 +set -e
 +
 +$NFT add table t
-+$NFT add chain t c1
-+$NFT add chain t c2
-+$NFT add t c1 jump c2
-+# kernel should return ENOENT
-+$NFT add t c2 ip daddr vmap { 1 : jump c3 }
-+echo "E: Jumped to non existing chain" >&2
++$NFT add chain t c { type filter hook output priority 0 \; }
++# set: IP addresses
++$NFT add rule t c ip daddr { \
++        192.168.0.1, \
++        192.168.0.2, \
++        192.168.0.3, \
++}
++
++#set : tcp ports
++$NFT add rule t c tcp dport { 22, 23 } counter
 -- 
 2.13.6
 
