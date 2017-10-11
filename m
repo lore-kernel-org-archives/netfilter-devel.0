@@ -1,231 +1,176 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 2/3] netfilter: conntrack: add and use nf_ct_l4proto_log_invalid
-Date: Wed, 11 Oct 2017 10:47:41 +0200
-Message-ID: <20171011084742.25989-3-fw@strlen.de>
+Subject: [PATCH nf-next 3/3] netfilter: conntrack: remove pf argument from l4 packet functions
+Date: Wed, 11 Oct 2017 10:47:42 +0200
+Message-ID: <20171011084742.25989-4-fw@strlen.de>
 References: <20171011084742.25989-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:39186 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:39188 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1757174AbdJKIrc (ORCPT
+        by vger.kernel.org with ESMTP id S1757174AbdJKIrf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 11 Oct 2017 04:47:32 -0400
+        Wed, 11 Oct 2017 04:47:35 -0400
 In-Reply-To: <20171011084742.25989-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We currently pass down the l4 protocol to the conntrack ->packet()
-function, but the only user of this is the debug info decision.
-
-Same information can be derived from struct nf_conn.
-Add a wrapper for the previous patch that extracs the information
-from nf_conn and passes it to nf_l4proto_log_invalid().
+not needed/used anymore.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack_l4proto.h | 14 ++++++++------
- net/netfilter/nf_conntrack_proto.c           | 23 +++++++++++++++++++++++
- net/netfilter/nf_conntrack_proto_dccp.c      | 17 +++++------------
- net/netfilter/nf_conntrack_proto_tcp.c       | 25 +++++++++----------------
- 4 files changed, 45 insertions(+), 34 deletions(-)
+ include/net/netfilter/nf_conntrack_l4proto.h   | 1 -
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   | 1 -
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c | 1 -
+ net/netfilter/nf_conntrack_core.c              | 2 +-
+ net/netfilter/nf_conntrack_proto_dccp.c        | 1 -
+ net/netfilter/nf_conntrack_proto_generic.c     | 1 -
+ net/netfilter/nf_conntrack_proto_gre.c         | 1 -
+ net/netfilter/nf_conntrack_proto_sctp.c        | 1 -
+ net/netfilter/nf_conntrack_proto_tcp.c         | 6 ++----
+ net/netfilter/nf_conntrack_proto_udp.c         | 1 -
+ 10 files changed, 3 insertions(+), 13 deletions(-)
 
 diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index 6d79a061d360..5d51255b5bfb 100644
+index 5d51255b5bfb..e06518874144 100644
 --- a/include/net/netfilter/nf_conntrack_l4proto.h
 +++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -149,21 +149,23 @@ int nf_ct_port_nlattr_tuple_size(void);
- extern const struct nla_policy nf_ct_port_nla_policy[];
+@@ -42,7 +42,6 @@ struct nf_conntrack_l4proto {
+ 		      const struct sk_buff *skb,
+ 		      unsigned int dataoff,
+ 		      enum ip_conntrack_info ctinfo,
+-		      u_int8_t pf,
+ 		      unsigned int *timeouts);
  
- #ifdef CONFIG_SYSCTL
--#define LOG_INVALID(net, proto)				\
--	((net)->ct.sysctl_log_invalid == (proto) ||	\
--	 (net)->ct.sysctl_log_invalid == IPPROTO_RAW)
--
-+__printf(3, 4) __cold
-+void nf_ct_l4proto_log_invalid(const struct sk_buff *skb,
-+			       const struct nf_conn *ct,
-+			       const char *fmt, ...);
- __printf(5, 6) __cold
- void nf_l4proto_log_invalid(const struct sk_buff *skb,
- 			    struct net *net,
- 			    u16 pf, u8 protonum,
- 			    const char *fmt, ...);
- #else
--static inline int LOG_INVALID(struct net *net, int proto) { return 0; }
--
- static inline __printf(5, 6) __cold
- void nf_l4proto_log_invalid(const struct sk_buff *skb, struct net *net,
- 			    u16 pf, u8 protonum, const char *fmt, ...) {}
-+static inline __printf(3, 4) __cold
-+void nf_ct_l4proto_log_invalid(const struct sk_buff *skb,
-+			       const struct nf_conn *ct,
-+			       const char *fmt, ...) { }
- #endif /* CONFIG_SYSCTL */
+ 	/* Called when a new connection for this protocol found;
+diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+index 7281a7b77a0e..8969420cecc3 100644
+--- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+@@ -81,7 +81,6 @@ static int icmp_packet(struct nf_conn *ct,
+ 		       const struct sk_buff *skb,
+ 		       unsigned int dataoff,
+ 		       enum ip_conntrack_info ctinfo,
+-		       u_int8_t pf,
+ 		       unsigned int *timeout)
+ {
+ 	/* Do not immediately delete the connection after the first
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index 0f227ca4a5a2..dca921df28e1 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -94,7 +94,6 @@ static int icmpv6_packet(struct nf_conn *ct,
+ 		       const struct sk_buff *skb,
+ 		       unsigned int dataoff,
+ 		       enum ip_conntrack_info ctinfo,
+-		       u_int8_t pf,
+ 		       unsigned int *timeout)
+ {
+ 	/* Do not immediately delete the connection after the first
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 01130392b7c0..28e675150853 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1419,7 +1419,7 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
+ 	/* Decide what timeout policy we want to apply to this flow. */
+ 	timeouts = nf_ct_timeout_lookup(net, ct, l4proto);
  
- #endif /*_NF_CONNTRACK_PROTOCOL_H*/
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index bcd3ee270d75..83f739e9dc08 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -87,6 +87,29 @@ void nf_l4proto_log_invalid(const struct sk_buff *skb,
- 	va_end(args);
- }
- EXPORT_SYMBOL_GPL(nf_l4proto_log_invalid);
-+
-+__printf(3, 4)
-+void nf_ct_l4proto_log_invalid(const struct sk_buff *skb,
-+			       const struct nf_conn *ct,
-+			       const char *fmt, ...)
-+{
-+	struct va_format vaf;
-+	struct net *net;
-+	va_list args;
-+
-+	net = nf_ct_net(ct);
-+	if (likely(net->ct.sysctl_log_invalid == 0))
-+		return;
-+
-+	va_start(args, fmt);
-+	vaf.fmt = fmt;
-+	vaf.va = &args;
-+
-+	nf_l4proto_log_invalid(skb, net, nf_ct_l3num(ct),
-+			       nf_ct_protonum(ct), "%pV", &vaf);
-+	va_end(args);
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_l4proto_log_invalid);
- #endif
- 
- const struct nf_conntrack_l4proto *
+-	ret = l4proto->packet(ct, skb, dataoff, ctinfo, pf, timeouts);
++	ret = l4proto->packet(ct, skb, dataoff, ctinfo, timeouts);
+ 	if (ret <= 0) {
+ 		/* Invalid: inverse of the return code tells
+ 		 * the netfilter core what to do */
 diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index ef501c7edb96..49e0abcdc6f4 100644
+index 49e0abcdc6f4..2a446f4a554c 100644
 --- a/net/netfilter/nf_conntrack_proto_dccp.c
 +++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -428,13 +428,13 @@ static bool dccp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 	default:
- 		dn = dccp_pernet(net);
- 		if (dn->dccp_loose == 0) {
--			msg = "nf_ct_dccp: not picking up existing connection ";
-+			msg = "not picking up existing connection ";
- 			goto out_invalid;
- 		}
- 	case CT_DCCP_REQUEST:
- 		break;
- 	case CT_DCCP_INVALID:
--		msg = "nf_ct_dccp: invalid state transition ";
-+		msg = "invalid state transition ";
- 		goto out_invalid;
- 	}
+@@ -467,7 +467,6 @@ static unsigned int *dccp_get_timeouts(struct net *net)
  
-@@ -447,9 +447,7 @@ static bool dccp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 	return true;
- 
- out_invalid:
--	if (LOG_INVALID(net, IPPROTO_DCCP))
--		nf_log_packet(net, nf_ct_l3num(ct), 0, skb, NULL, NULL,
--			      NULL, "%s", msg);
-+	nf_ct_l4proto_log_invalid(skb, ct, "%s", msg);
- 	return false;
- }
- 
-@@ -472,7 +470,6 @@ static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
- 		       u_int8_t pf,
+ static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
+ 		       unsigned int dataoff, enum ip_conntrack_info ctinfo,
+-		       u_int8_t pf,
  		       unsigned int *timeouts)
  {
--	struct net *net = nf_ct_net(ct);
  	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
- 	struct dccp_hdr _dh, *dh;
- 	u_int8_t type, old_state, new_state;
-@@ -534,15 +531,11 @@ static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
- 		ct->proto.dccp.last_pkt = type;
- 
- 		spin_unlock_bh(&ct->lock);
--		if (LOG_INVALID(net, IPPROTO_DCCP))
--			nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
--				      "nf_ct_dccp: invalid packet ignored ");
-+		nf_ct_l4proto_log_invalid(skb, ct, "%s", "invalid packet");
- 		return NF_ACCEPT;
- 	case CT_DCCP_INVALID:
- 		spin_unlock_bh(&ct->lock);
--		if (LOG_INVALID(net, IPPROTO_DCCP))
--			nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
--				      "nf_ct_dccp: invalid state transition ");
-+		nf_ct_l4proto_log_invalid(skb, ct, "%s", "invalid state transition");
- 		return -NF_ACCEPT;
- 	}
- 
+diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
+index 9cd40700842e..1f86ddf6649a 100644
+--- a/net/netfilter/nf_conntrack_proto_generic.c
++++ b/net/netfilter/nf_conntrack_proto_generic.c
+@@ -60,7 +60,6 @@ static int generic_packet(struct nf_conn *ct,
+ 			  const struct sk_buff *skb,
+ 			  unsigned int dataoff,
+ 			  enum ip_conntrack_info ctinfo,
+-			  u_int8_t pf,
+ 			  unsigned int *timeout)
+ {
+ 	nf_ct_refresh_acct(ct, ctinfo, skb, *timeout);
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index 09a90484c27d..a2503005d80b 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -244,7 +244,6 @@ static int gre_packet(struct nf_conn *ct,
+ 		      const struct sk_buff *skb,
+ 		      unsigned int dataoff,
+ 		      enum ip_conntrack_info ctinfo,
+-		      u_int8_t pf,
+ 		      unsigned int *timeouts)
+ {
+ 	/* If we've seen traffic both ways, this is a GRE connection.
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index aa630c561361..80faf04ddf15 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -306,7 +306,6 @@ static int sctp_packet(struct nf_conn *ct,
+ 		       const struct sk_buff *skb,
+ 		       unsigned int dataoff,
+ 		       enum ip_conntrack_info ctinfo,
+-		       u_int8_t pf,
+ 		       unsigned int *timeouts)
+ {
+ 	enum sctp_conntrack new_state, old_state;
 diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 14198b2a2e2c..dced574f6006 100644
+index dced574f6006..8f283294d70f 100644
 --- a/net/netfilter/nf_conntrack_proto_tcp.c
 +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -702,9 +702,9 @@ static bool tcp_in_window(const struct nf_conn *ct,
- 		if (sender->flags & IP_CT_TCP_FLAG_BE_LIBERAL ||
- 		    tn->tcp_be_liberal)
- 			res = true;
--		if (!res && LOG_INVALID(net, IPPROTO_TCP))
--			nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
--			"nf_ct_tcp: %s ",
-+		if (!res) {
-+			nf_ct_l4proto_log_invalid(skb, ct,
-+			"%s",
- 			before(seq, sender->td_maxend + 1) ?
- 			in_recv_win ?
- 			before(sack, receiver->td_end + 1) ?
-@@ -713,6 +713,7 @@ static bool tcp_in_window(const struct nf_conn *ct,
- 			: "ACK is over the upper bound (ACKed data not seen yet)"
- 			: "SEQ is under the lower bound (already ACKed data retransmitted)"
- 			: "SEQ is over the upper bound (over the window of the receiver)");
-+		}
+@@ -493,8 +493,7 @@ static bool tcp_in_window(const struct nf_conn *ct,
+ 			  unsigned int index,
+ 			  const struct sk_buff *skb,
+ 			  unsigned int dataoff,
+-			  const struct tcphdr *tcph,
+-			  u_int8_t pf)
++			  const struct tcphdr *tcph)
+ {
+ 	struct net *net = nf_ct_net(ct);
+ 	struct nf_tcp_net *tn = tcp_pernet(net);
+@@ -801,7 +800,6 @@ static int tcp_packet(struct nf_conn *ct,
+ 		      const struct sk_buff *skb,
+ 		      unsigned int dataoff,
+ 		      enum ip_conntrack_info ctinfo,
+-		      u_int8_t pf,
+ 		      unsigned int *timeouts)
+ {
+ 	struct net *net = nf_ct_net(ct);
+@@ -1013,7 +1011,7 @@ static int tcp_packet(struct nf_conn *ct,
  	}
  
- 	pr_debug("tcp_in_window: res=%u sender end=%u maxend=%u maxwin=%u "
-@@ -937,10 +938,8 @@ static int tcp_packet(struct nf_conn *ct,
- 					IP_CT_EXP_CHALLENGE_ACK;
- 		}
+ 	if (!tcp_in_window(ct, &ct->proto.tcp, dir, index,
+-			   skb, dataoff, th, pf)) {
++			   skb, dataoff, th)) {
  		spin_unlock_bh(&ct->lock);
--		if (LOG_INVALID(net, IPPROTO_TCP))
--			nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
--				  "nf_ct_tcp: invalid packet ignored in "
--				  "state %s ", tcp_conntrack_names[old_state]);
-+		nf_ct_l4proto_log_invalid(skb, ct, "invalid packet ignored in "
-+					  "state %s ", tcp_conntrack_names[old_state]);
- 		return NF_ACCEPT;
- 	case TCP_CONNTRACK_MAX:
- 		/* Special case for SYN proxy: when the SYN to the server or
-@@ -962,9 +961,7 @@ static int tcp_packet(struct nf_conn *ct,
- 		pr_debug("nf_ct_tcp: Invalid dir=%i index=%u ostate=%u\n",
- 			 dir, get_conntrack_index(th), old_state);
- 		spin_unlock_bh(&ct->lock);
--		if (LOG_INVALID(net, IPPROTO_TCP))
--			nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
--				  "nf_ct_tcp: invalid state ");
-+		nf_ct_l4proto_log_invalid(skb, ct, "invalid state");
  		return -NF_ACCEPT;
- 	case TCP_CONNTRACK_TIME_WAIT:
- 		/* RFC5961 compliance cause stack to send "challenge-ACK"
-@@ -979,9 +976,7 @@ static int tcp_packet(struct nf_conn *ct,
- 			/* Detected RFC5961 challenge ACK */
- 			ct->proto.tcp.last_flags &= ~IP_CT_EXP_CHALLENGE_ACK;
- 			spin_unlock_bh(&ct->lock);
--			if (LOG_INVALID(net, IPPROTO_TCP))
--				nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
--				      "nf_ct_tcp: challenge-ACK ignored ");
-+			nf_ct_l4proto_log_invalid(skb, ct, "challenge-ack ignored");
- 			return NF_ACCEPT; /* Don't change state */
- 		}
- 		break;
-@@ -991,9 +986,7 @@ static int tcp_packet(struct nf_conn *ct,
- 		    && before(ntohl(th->seq), ct->proto.tcp.seen[!dir].td_maxack)) {
- 			/* Invalid RST  */
- 			spin_unlock_bh(&ct->lock);
--			if (LOG_INVALID(net, IPPROTO_TCP))
--				nf_log_packet(net, pf, 0, skb, NULL, NULL,
--					      NULL, "nf_ct_tcp: invalid RST ");
-+			nf_ct_l4proto_log_invalid(skb, ct, "invalid rst");
- 			return -NF_ACCEPT;
- 		}
- 		if (index == TCP_RST_SET
+ 	}
+diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
+index fc20cf430251..3a5f727103af 100644
+--- a/net/netfilter/nf_conntrack_proto_udp.c
++++ b/net/netfilter/nf_conntrack_proto_udp.c
+@@ -73,7 +73,6 @@ static int udp_packet(struct nf_conn *ct,
+ 		      const struct sk_buff *skb,
+ 		      unsigned int dataoff,
+ 		      enum ip_conntrack_info ctinfo,
+-		      u_int8_t pf,
+ 		      unsigned int *timeouts)
+ {
+ 	/* If we've seen traffic both ways, this is some kind of UDP
 -- 
 2.13.6
 
