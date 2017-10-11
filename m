@@ -1,163 +1,59 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v3 nf-next 2/2] netfilter: x_tables: don't use seqlock when fetching old counters
-Date: Wed, 11 Oct 2017 16:26:07 +0200
-Message-ID: <20171011142607.15026-3-fw@strlen.de>
-References: <20171011142607.15026-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>, Dan Williams <dcbw@redhat.com>,
-        Eric Dumazet <edumazet@google.com>
-To: <netfilter-devel@vger.kernel.org>
+From: Eric Dumazet <edumazet@google.com>
+Subject: Re: [PATCH v3 nf-next 1/2] netfilter: x_tables: wait until old table
+ isn't used anymore
+Date: Wed, 11 Oct 2017 08:09:56 -0700
+Message-ID: <CANn89iLrM-sKFLzXkcot6T2FQWZEwe6me+ux1tHQztSc6EE90w@mail.gmail.com>
+References: <20171011142607.15026-1-fw@strlen.de> <20171011142607.15026-2-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: netfilter-devel@vger.kernel.org, Dan Williams <dcbw@redhat.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:40976 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751924AbdJKO0A (ORCPT
+Received: from mail-qt0-f172.google.com ([209.85.216.172]:46955 "EHLO
+        mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757193AbdJKPJ6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 11 Oct 2017 10:26:00 -0400
-In-Reply-To: <20171011142607.15026-1-fw@strlen.de>
+        Wed, 11 Oct 2017 11:09:58 -0400
+Received: by mail-qt0-f172.google.com with SMTP id 1so6146201qtn.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Oct 2017 08:09:58 -0700 (PDT)
+In-Reply-To: <20171011142607.15026-2-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-after previous commit xt_replace_table will wait until all cpus
-had even seqcount (i.e., no cpu is accessing old ruleset).
+On Wed, Oct 11, 2017 at 7:26 AM, Florian Westphal <fw@strlen.de> wrote:
+> xt_replace_table relies on table replacement counter retrieval (which
+> uses xt_recseq to synchronize pcpu counters).
+>
+> This is fine, however with large rule set get_counters() can take
+> a very long time -- it needs to synchronize all counters because
+> it has to assume concurrent modifications can occur.
+>
+> Make xt_replace_table synchronize by itself by waiting until all cpus
+> had an even seqcount.
+>
+> This allows a followup patch to copy the counters of the old ruleset
+> without any synchonization after xt_replace_table has completed.
+>
+> Cc: Dan Williams <dcbw@redhat.com>
+> Cc: Eric Dumazet <edumazet@google.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  v3: check for 'seq is uneven' OR 'has changed' since
+>  last check. Its fine if seq is uneven iff its a different
+>  sequence number than the initial one.
+>
+>  v2: fix Erics email address
+>  net/netfilter/x_tables.c | 18 +++++++++++++++---
+>  1 file changed, 15 insertions(+), 3 deletions(-)
+>
+>
 
-Add a 'old' counter retrival version that doesn't synchronize counters.
-Its not needed, the old counters are not in use anymore at this point.
+Reviewed-by: Eric Dumazet <edumazet@google.com>
 
-This speeds up table replacement on busy systems with large tables
-(and many cores).
+But it seems we need an extra smp_wmb() after
 
-Cc: Dan Williams <dcbw@redhat.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- no changes since v3.
- v2 only fixed Cc: tag in changelog.
+        smp_wmb();
+        table->private = newinfo;
++      smp_wmb();
 
- net/ipv4/netfilter/arp_tables.c | 22 ++++++++++++++++++++--
- net/ipv4/netfilter/ip_tables.c  | 23 +++++++++++++++++++++--
- net/ipv6/netfilter/ip6_tables.c | 22 ++++++++++++++++++++--
- 3 files changed, 61 insertions(+), 6 deletions(-)
-
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 9e2770fd00be..f88221aebc9d 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -634,6 +634,25 @@ static void get_counters(const struct xt_table_info *t,
- 	}
- }
- 
-+static void get_old_counters(const struct xt_table_info *t,
-+			     struct xt_counters counters[])
-+{
-+	struct arpt_entry *iter;
-+	unsigned int cpu, i;
-+
-+	for_each_possible_cpu(cpu) {
-+		i = 0;
-+		xt_entry_foreach(iter, t->entries, t->size) {
-+			struct xt_counters *tmp;
-+
-+			tmp = xt_get_per_cpu_counter(&iter->counters, cpu);
-+			ADD_COUNTER(counters[i], tmp->bcnt, tmp->pcnt);
-+			++i;
-+		}
-+		cond_resched();
-+	}
-+}
-+
- static struct xt_counters *alloc_counters(const struct xt_table *table)
- {
- 	unsigned int countersize;
-@@ -910,8 +929,7 @@ static int __do_replace(struct net *net, const char *name,
- 	    (newinfo->number <= oldinfo->initial_entries))
- 		module_put(t->me);
- 
--	/* Get the old counters, and synchronize with replace */
--	get_counters(oldinfo, counters);
-+	get_old_counters(oldinfo, counters);
- 
- 	/* Decrease module usage counts and free resource */
- 	loc_cpu_old_entry = oldinfo->entries;
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 39286e543ee6..4cbe5e80f3bf 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -781,6 +781,26 @@ get_counters(const struct xt_table_info *t,
- 	}
- }
- 
-+static void get_old_counters(const struct xt_table_info *t,
-+			     struct xt_counters counters[])
-+{
-+	struct ipt_entry *iter;
-+	unsigned int cpu, i;
-+
-+	for_each_possible_cpu(cpu) {
-+		i = 0;
-+		xt_entry_foreach(iter, t->entries, t->size) {
-+			const struct xt_counters *tmp;
-+
-+			tmp = xt_get_per_cpu_counter(&iter->counters, cpu);
-+			ADD_COUNTER(counters[i], tmp->bcnt, tmp->pcnt);
-+			++i; /* macro does multi eval of i */
-+		}
-+
-+		cond_resched();
-+	}
-+}
-+
- static struct xt_counters *alloc_counters(const struct xt_table *table)
- {
- 	unsigned int countersize;
-@@ -1070,8 +1090,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 	    (newinfo->number <= oldinfo->initial_entries))
- 		module_put(t->me);
- 
--	/* Get the old counters, and synchronize with replace */
--	get_counters(oldinfo, counters);
-+	get_old_counters(oldinfo, counters);
- 
- 	/* Decrease module usage counts and free resource */
- 	xt_entry_foreach(iter, oldinfo->entries, oldinfo->size)
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 01bd3ee5ebc6..f06e25065a34 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -800,6 +800,25 @@ get_counters(const struct xt_table_info *t,
- 	}
- }
- 
-+static void get_old_counters(const struct xt_table_info *t,
-+			     struct xt_counters counters[])
-+{
-+	struct ip6t_entry *iter;
-+	unsigned int cpu, i;
-+
-+	for_each_possible_cpu(cpu) {
-+		i = 0;
-+		xt_entry_foreach(iter, t->entries, t->size) {
-+			const struct xt_counters *tmp;
-+
-+			tmp = xt_get_per_cpu_counter(&iter->counters, cpu);
-+			ADD_COUNTER(counters[i], tmp->bcnt, tmp->pcnt);
-+			++i;
-+		}
-+		cond_resched();
-+	}
-+}
-+
- static struct xt_counters *alloc_counters(const struct xt_table *table)
- {
- 	unsigned int countersize;
-@@ -1090,8 +1109,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 	    (newinfo->number <= oldinfo->initial_entries))
- 		module_put(t->me);
- 
--	/* Get the old counters, and synchronize with replace */
--	get_counters(oldinfo, counters);
-+	get_old_counters(oldinfo, counters);
- 
- 	/* Decrease module usage counts and free resource */
- 	xt_entry_foreach(iter, oldinfo->entries, oldinfo->size)
--- 
-2.13.6
-
+Otherwise we have no guarantee other cpus actually see the new ->private value.
