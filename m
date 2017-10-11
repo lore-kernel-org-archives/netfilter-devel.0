@@ -1,51 +1,126 @@
 From: Varsha Rao <rvarsha016@gmail.com>
-Subject: [PATCH nft 4/9] tests: files: Remove tests for set.
-Date: Wed, 11 Oct 2017 10:17:51 +0530
-Message-ID: <7f1fc657c298db7c56ade6aa7897f51d0385256f.1507696149.git.rvarsha016@gmail.com>
+Subject: [PATCH nft 5/9] tests: shell: Add tests for variable definition.
+Date: Wed, 11 Oct 2017 10:21:11 +0530
+Message-ID: <97f570632bd36c21237a3997afc61599476a8d63.1507696149.git.rvarsha016@gmail.com>
 References: <cover.1507696149.git.rvarsha016@gmail.com>
 Cc: Varsha Rao <rvarsha016@gmail.com>, netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:35313 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750766AbdJKEsK (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:35207 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750916AbdJKEv1 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 11 Oct 2017 00:48:10 -0400
-Received: by mail-pg0-f67.google.com with SMTP id l24so881528pgu.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 10 Oct 2017 21:48:10 -0700 (PDT)
+        Wed, 11 Oct 2017 00:51:27 -0400
+Received: by mail-pg0-f66.google.com with SMTP id l24so894106pgu.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 10 Oct 2017 21:51:27 -0700 (PDT)
 In-Reply-To: <cover.1507696149.git.rvarsha016@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch removes test case for set. As new test case is added to
-tests/shell file.
+This patch adds test cases for a variable definition and redefinition.
 
 Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
 ---
- tests/files/set | 14 --------------
- 1 file changed, 14 deletions(-)
- delete mode 100644 tests/files/set
+ tests/shell/testcases/nft-f/0013defines_1 | 25 +++++++++++++++++++++++++
+ tests/shell/testcases/nft-f/0014defines_1 | 25 +++++++++++++++++++++++++
+ tests/shell/testcases/nft-f/0015defines_1 | 24 ++++++++++++++++++++++++
+ 3 files changed, 74 insertions(+)
+ create mode 100755 tests/shell/testcases/nft-f/0013defines_1
+ create mode 100755 tests/shell/testcases/nft-f/0014defines_1
+ create mode 100755 tests/shell/testcases/nft-f/0015defines_1
 
-diff --git a/tests/files/set b/tests/files/set
-deleted file mode 100644
-index 3c040b0..0000000
---- a/tests/files/set
-+++ /dev/null
-@@ -1,14 +0,0 @@
--#! nft -f
--
--add table filter
--add chain filter output { type filter hook output priority 0 ; }
--
--# set: IP addresses
--add rule filter output ip daddr { \
--	192.168.0.1, \
--	192.168.0.2, \
--	192.168.0.3, \
--}
--
--# set: tcp ports
--add rule filter output tcp dport { 22, 23 } counter
+diff --git a/tests/shell/testcases/nft-f/0013defines_1 b/tests/shell/testcases/nft-f/0013defines_1
+new file mode 100755
+index 0000000..5519703
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/0013defines_1
+@@ -0,0 +1,25 @@
++#!/bin/bash
++
++# Tests use of variable before definition.
++
++set -e
++
++tmpfile=$(mktemp)
++if [ ! -w $tmpfile ] ; then
++	echo "Failed to create tmp file" >&2
++	exit 0
++fi
++
++trap "rm -rf $tmpfile" EXIT # cleanup if aborted
++
++echo "
++define var2 = \$var1
++define var1 = lo
++
++table ip t {
++	chain c {
++		iif \$var2
++	}
++}" >> $tmpfile
++
++$NFT -f $tmpfile
+diff --git a/tests/shell/testcases/nft-f/0014defines_1 b/tests/shell/testcases/nft-f/0014defines_1
+new file mode 100755
+index 0000000..914d910
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/0014defines_1
+@@ -0,0 +1,25 @@
++#!/bin/bash
++
++# Tests redefinition of an existing variable.
++
++set -e
++
++tmpfile=$(mktemp)
++if [ ! -w $tmpfile ] ; then
++	echo "Failed to create tmp file" >&2
++	exit 0
++fi
++
++trap "rm -rf $tmpfile" EXIT # cleanup if aborted
++
++echo "
++define var1 = lo
++define var1 = lo
++
++table ip t {
++	chain c {
++		iif \$var1
++	}
++}" >> $tmpfile
++
++$NFT -f $tmpfile
+diff --git a/tests/shell/testcases/nft-f/0015defines_1 b/tests/shell/testcases/nft-f/0015defines_1
+new file mode 100755
+index 0000000..1f9db11
+--- /dev/null
++++ b/tests/shell/testcases/nft-f/0015defines_1
+@@ -0,0 +1,24 @@
++#!/bin/bash
++
++# Tests recursive definition of a variable.
++
++set -e
++
++tmpfile=$(mktemp)
++if [ ! -w $tmpfile ] ; then
++	echo "Failed to create tmp file" >&2
++	exit 0
++fi
++
++trap "rm -rf $tmpfile" EXIT # cleanup if aborted
++
++echo "
++define var1 = \$var1
++
++table ip t {
++	chain c {
++		iif \$var1
++	}
++}" >> $tmpfile
++
++$NFT -f $tmpfile
 -- 
 2.13.6
 
