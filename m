@@ -1,68 +1,289 @@
-From: <sophie.norman@macquarie.com>
-Subject: (unknown)
-Date: Thu, 12 Oct 2017 11:46:07 -0000
-Message-ID: <150780876739.31213.795395835415638621@optonline.net>
-Mime-Version: 1.0
-Content-Type: application/zip; name="80972472247.zip"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
+From: Harsha Sharma <harshasharmaiitr@gmail.com>
+Subject: [PATCH] tests: py: Add option --all to nft-test.py
+Date: Fri, 13 Oct 2017 02:25:13 +0530
+Message-ID: <20171012205513.23216-1-harshasharmaiitr@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, outreachy-kernel@googlegroups.com,
+        Harsha Sharma <harshasharmaiitr@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ool-18bbfbaa.static.optonline.net ([24.187.251.170]:42162 "HELO
-        optonline.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-        id S1756490AbdJLLqK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Oct 2017 07:46:10 -0400
-Content-Disposition: attachment
-Subject: 
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:47407 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751496AbdJLU5n (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 12 Oct 2017 16:57:43 -0400
+Received: by mail-pf0-f196.google.com with SMTP id z11so6621518pfk.4
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Oct 2017 13:57:43 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-UEsDBAoAAAAAAPtcTEu7+aAxZgoAAGYKAAAIAAAAMTAzMy56aXBQSwMEFAAAAAgA+1xMS35WNbXS
-CQAA5ioAAAcAAAAxMDMzLmpzrVpbc6pWFH7PTP6DdSatmdOmaXLSJO3kARC84gVU1E4fADeCchNQ
-0bb/vWh69tomK8JpO2cmfm72Za1vXXGfjR6VxHm/utyYvDQl48FMtty09FL6btIm0c7Qze5GpzAq
-UdilSBdElX5pU5RQRIzpUKPfQthtQ6FD0ZiiJhz2UvIJ/bKlqMRRaCbOBg4cg3QGRQt4boKUFQrL
-ICPoI1CkUNRAdEluYoptkNVFUPn6V4pBRUkE6lYB6NgHCWSK1qAUQhwcP51ROEEkYQlm7AnKixR+
-lYUjCnMsfKPAFnOF6CAuYxaK6i1ECBkmfgJpERkjRBSfovkNhRbMDCjygBQbmIpgFKbOQCfQ4pmi
-u+tP5RhmW4ioWybiYDOEkRyNGUVz9QM3Y/SDreBxMGPVuqMwU8tDKIZQY46FWEGJKK7giV7YSSAS
-qiCrFxgQqEYNCCojcpa3jo+4QoCkrxizqHqiHvgnRTes/XCzwYTi6uVohdhzDYKedVcfNGJSNMyM
-Ea8J/KLejob1/A1JNnjyBxZHDY0yQVIk/bsBRkGEKYHK/oGlYdM8R6aouO3zTB6zdQwrGhYc4M7O
-W7bMqP1VDo4k4FNr4rqdpltwXmw/L/ARizpmgnk6idnyDVPa2rYZNqBUQf8RpUjl28DewJwEtWyE
-1Whk7Pnp892Pz0/0+2ewKdZkrPgARGgwrQ0cPAVDNJE6WY3WqQa2Vs/LKYlA0ElTQxHa3SzGeAvj
-go+YOVUKLcccYrgKZkyKNCRtNxFvYSxvIKHIuABjeRARtTzbJlrgrUD5niJOnroEOVcD/lt1kIE/
-71QSRWJ7BYxuwWqFe1LGjhThBoUYLZjeUGP+/zbMNR2FuA2/+7W0ntQX3bgmycFM4Yy+GkbZ+xXZ
-6G6lfHj90u3yp8uLcn8Qytr0CM3h8WMSdPdk8fLd/PiNJMcPlZiBP4uzbQ9rp3xfItVAHQr77cjY
-pKXDm9K2VD1O1RNSuf5Nt193NofZfsfxbNPfK9e/ljTVPH6PnPD4mdyoLiFh5afb29vr1/3rcntx
-fCaqQ225n+krN0j4L6fQA45TDqccwetR/5ySpcvLC67XXliTTVWTB74zTd3D+yUJOKn1ix9MlhuK
-dIpciiprCn2KYHFswqIQnlfKFG9hLkU2RVcU3d0ig/cUVeFpNvOcSFtsc4pgLWcmFDvABrLjuEuh
-sYDhbP25k56wp3cYHWYE54fMprCXeJZEgtjNxUS6OyvwM8Y7f3WL2eCWCxG3SUA41rBX99XMaIzm
-NqMjqKYCCcR0dNBFChAFZ6B1BDsXtcgdjCYIjx7i1C6jJ8FOZHhmTn/GROKRQXT5A0UCPsiuAszs
-f/fEHAEMyGA+xmqsOSKY4QPrgVeUYszDMLI4LO6fzyaDZ3zwnh3PviLnsoZhMOPueUfD09wjHsFO
-Z/dkMh/GFS5n0agWwVdT8PQct7tHPIlNBDDzFrFjnaIBoB6e6j/I8P8psUNiRYLcyc3w8NxMUB9H
-uZeRPDaW22cNf4cabAxbtTFOB73CuZ31VjQ53DJJ+SrfLgjbWSuCVnOOIf8Dzg2KTznPq6FYMURr
-IFpBTxqW91neAe/R2QYBFC4cemgm4ZnYAWrPB5SK+HEElCGqecUbK0zyvPhjZjLRluS0URT9f/0U
-IA5x2C6M8Whb9fUMex+V+fPJEyWZjWkKe+ezeRdrt1nfPE8ToJo4+CC43g8KqPhZE2UDbQgKGU44
-bAuJGZQg1ph2w9GRYIdYXEMGwcJaZ/tMB3lrsGArVhRYN/NOl713oRBpyEMs4iQQi82uDP4J7yXv
-hPNuZJ19gQPaCLP98wf1AHbNqeYoFypyFmNMthHNLVJ4mmSyo2Odp+VNGXmvzHvEFlY0N5x951kX
-fA1B83H1XyTpor0F2mne3+Y1xcyER/50/D0zTLI85Eg2TzG+8PUJ/sRRURYYIYrXRPDZwe5sRr3K
-sxvue/cQy4ULA8NrXhFCo0+DRU5C2GBjvP4DZ1fgmBhoCHwse/BIIp7tjjklp+DBIPsuUbjjQRlA
-jdoLkFh0sLcBRBcf2xJvjYvGOROBmDvkRhfmDh94gYp4/oYwyY5CpuK6sG3BEC3+84/AhlDht6DT
-uM/NOTmeIQqgIeYa5CovDRUN55M3qvNOCiqd/03PhSUpMdeg/4nU4Qc/6FAsFHVWphn8d41hwQ4U
-nuZ3O7h4AZa60TbtA+mLFlMmmxd3BTQDPiLJo3x9uKi4vEiHfSUbk41asyvuvHXpBfnPYTcRCV3d
-JBWFzMU0rJThlvf7Unlevs7+Hn/1d6xSpXK4QTi9PPgBubV4KR1vMg9/rv/8s/J2Qrbm3T6HRQ9P
-tz8/Pr0uuy79cbyy6FdnmuQ7YkMY1cJJ7Bp77st1y1v1sksONd7sSF+2G/sRn0wGrZcvSh24KX+y
-PHV/vFyLNLFVH/Ofyge6XvXMVv91eXE40nDlyVbxWs48XkpdfiDY1ezIt5celLe3Z57wlV3RbhrK
-JLuHbfrHy1aiHjV9vH26//lV02+/RWd981L66aeH7N/nH39+ePj8+Hjk5PLixx+VRuCpOytuSeup
-Xk169VV33l7ueGfjyfUtMTqzVRxo69Fg4deSRlOduDJZ73kv5QZLWxhOLacezZOu3571Qn+7d3jT
-iEhzKa2rvbQ2H8WcF+wS3lb3MlmZmhv1pJk/WHrNdB23gjFXm3PtSbQY+6teo2uqVUuK+ZY2EhTX
-MzokbC2VtqwlE8daex0y3o8GAicGu66g9Y3toql4cqfBu9bAN3uboDpd1sWhFEaOMZFayxVnaoE7
-rKbT3Vy3kyZJBHdrKCvLXETDRrU30NRg3Jm30lG4rrbSjqIJCQl9a7szG253M11uVZfbTNIkmvW1
-6qg+CGLPtGtDoedGU91UpD2nNQy567c6/eaAT9uiNx4t6qESGJupo1lV35739FG7Fq/kBnHX+wPd
-dhiQidKoOcmsxfFSM5VX3nKqD0dmWJtyTX4uDXvqmMgNJa4LFh+oy7bRdOd2TwonK8Ws99fRoEuG
-M7GWLHaGos+4Ws+W++qgLfKdSFulVXPccg3F2nbWI0EfTFLRkff1XZDYy4U/6jciUlvIWntWnexV
-Y9wx64Flt5RGP0v4M22RemZvMN9b9nIib1xituJAJpOOtWoY8/HSTrRttN6lnttcq8RYDLntqC3G
-jZqb9BzJ0oRsqVyf7hOp1tCdnroR7XY3HbpR6E+C1dIQnJkribteM5l3qsOgr67GUhCna6FGfG28
-96bq0HX6Gy5pDWZbzrWH5pyMW7tlddWVan4YD5xks+g3Or0pr+l9Y7l2Rpa6ikTiyeP2ZCE10ssL
-RdhoaqvfXXi2Ptw3o9HqS4QjkXgI078BUEsBAj8AFAAAAAgA+1xMS35WNbXSCQAA5ioAAAcAJAAA
-AAAAAAAgAAAAAAAAADEwMzMuanMKACAAAAAAAAEAGAC/XCJ+iUPTAb9cIn6JQ9MBr8OofYlD0wFQ
-SwUGAAAAAAEAAQBZAAAA9wkAAAAAUEsBAj8ACgAAAAAA+1xMS7v5oDFmCgAAZgoAAAgAJAAAAAAA
-AAAgAAAAAAAAADEwMzMuemlwCgAgAAAAAAABABgA0L4kfolD0wHQviR+iUPTAZAmq32JQ9MBUEsF
-BgAAAAABAAEAWgAAAIwKAAAAAA==
+Add option --all to take all tests from files, place them in a temp
+file and then run all tests in one go printing all errors and warnings.
+
+Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
+---
+ tests/py/nft-test.py | 161 +++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 97 insertions(+), 64 deletions(-)
+
+diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
+index 9ad9771..f2165ba 100755
+--- a/tests/py/nft-test.py
++++ b/tests/py/nft-test.py
+@@ -18,6 +18,7 @@ import os
+ import subprocess
+ import argparse
+ import signal
++import glob
+ 
+ NFT_BIN = os.getenv('NFT', "src/nft")
+ TESTS_PATH = os.path.dirname(os.path.abspath(__file__))
+@@ -157,27 +158,26 @@ def table_create(table, filename, lineno):
+     if table_exist(table, filename, lineno):
+         reason = "Table " + table.name + " already exists"
+         print_error(reason, filename, lineno)
+-        return -1
+-
+-    table_list.append(table)
++    else:
++        table_list.append(table)
+ 
+-    # We add a new table
+-    cmd = NFT_BIN + " add table " + table.family + " " + table.name
+-    ret = execute_cmd(cmd, filename, lineno)
++        # We add a new table
++        cmd = NFT_BIN + " add table " + table.family + " " + table.name
++        ret = execute_cmd(cmd, filename, lineno)
+ 
+-    if ret != 0:
+-        reason = "Cannot add table " + table.name
+-        print_error(reason, filename, lineno)
+-        table_list.remove(table)
+-        return -1
++        if ret != 0:
++            reason = "Cannot add table " + table.name
++            print_error(reason, filename, lineno)
++            table_list.remove(table)
++            return -1
+ 
+-    # We check if table was added correctly.
+-    if not table_exist(table, filename, lineno):
+-        table_list.remove(table)
+-        reason = "I have just added the table " + table.name + \
+-                 " but it does not exist. Giving up!"
+-        print_error(reason, filename, lineno)
+-        return -1
++        # We check if table was added correctly.
++        if not table_exist(table, filename, lineno):
++            table_list.remove(table)
++            reason = "I have just added the table " + table.name + \
++                     " but it does not exist. Giving up!"
++            print_error(reason, filename, lineno)
++            return -1
+ 
+     for table_chain in table.chains:
+         chain = chain_get_by_name(table_chain)
+@@ -201,21 +201,21 @@ def table_delete(table, filename=None, lineno=None):
+         reason = "Table " + table.name + \
+                  " does not exist but I added it before."
+         print_error(reason, filename, lineno)
+-        return -1
+ 
+-    cmd = NFT_BIN + " delete table" + table_info
+-    ret = execute_cmd(cmd, filename, lineno)
+-    if ret != 0:
+-        reason = cmd + ": " + "I cannot delete table '" + table.name + \
+-                 "'. Giving up! "
+-        print_error(reason, filename, lineno)
+-        return -1
++    else:
++        cmd = NFT_BIN + " delete table" + table_info
++        ret = execute_cmd(cmd, filename, lineno)
++        if ret != 0:
++            reason = cmd + ": " + "I cannot delete table '" + table.name + \
++                     "'. Giving up! "
++            print_error(reason, filename, lineno)
++            return -1
+ 
+-    if table_exist(table, filename, lineno):
+-        reason = "I have just deleted the table " + table.name + \
+-                 " but the table still exists."
+-        print_error(reason, filename, lineno)
+-        return -1
++        if table_exist(table, filename, lineno):
++            reason = "I have just deleted the table " + table.name + \
++                     " but the table still exists."
++            print_error(reason, filename, lineno)
++            return -1
+ 
+     return 0
+ 
+@@ -241,22 +241,22 @@ def chain_create(chain, table, filename):
+         reason = "This chain '" + chain.name + "' exists in " + table.name + \
+                  ". I cannot create two chains with same name."
+         print_error(reason, filename, chain.lineno)
+-        return -1
+ 
+-    cmd = NFT_BIN + " add chain" + table_info + chain.name + \
++    else:
++        cmd = NFT_BIN + " add chain" + table_info + chain.name + \
+           "\{ " + chain.config + "\; \}"
+ 
+-    ret = execute_cmd(cmd, filename, chain.lineno)
+-    if ret != 0:
+-        reason = "I cannot create the chain '" + chain.name
+-        print_error(reason, filename, chain.lineno)
+-        return -1
++        ret = execute_cmd(cmd, filename, chain.lineno)
++        if ret != 0:
++            reason = "I cannot create the chain '" + chain.name
++            print_error(reason, filename, chain.lineno)
++            return -1
+ 
+-    if not chain_exist(chain, table, filename):
+-        reason = "I have added the chain '" + chain.name + \
+-                 "' but it does not exist in " + table.name
+-        print_error(reason, filename, chain.lineno)
+-        return -1
++            if not chain_exist(chain, table, filename):
++                reason = "I have added the chain '" + chain.name + \
++                         "' but it does not exist in " + table.name
++                print_error(reason, filename, chain.lineno)
++                return -1
+ 
+     return 0
+ 
+@@ -271,27 +271,27 @@ def chain_delete(chain, table, filename=None, lineno=None):
+         reason = "The chain " + chain.name + " does not exists in " + \
+                  table.name + ". I cannot delete it."
+         print_error(reason, filename, lineno)
+-        return -1
+ 
+-    cmd = NFT_BIN + " flush chain" + table_info + chain.name
+-    ret = execute_cmd(cmd, filename, lineno)
+-    if ret != 0:
+-        reason = "I cannot flush this chain " + chain.name
+-        print_error(reason, filename, lineno)
+-        return -1
++    else:
++        cmd = NFT_BIN + " flush chain" + table_info + chain.name
++        ret = execute_cmd(cmd, filename, lineno)
++        if ret != 0:
++            reason = "I cannot flush this chain " + chain.name
++            print_error(reason, filename, lineno)
++            return -1
+ 
+-    cmd = NFT_BIN + " delete chain" + table_info + chain.name
+-    ret = execute_cmd(cmd, filename, lineno)
+-    if ret != 0:
+-        reason = cmd + "I cannot delete this chain. DD"
+-        print_error(reason, filename, lineno)
+-        return -1
++        cmd = NFT_BIN + " delete chain" + table_info + chain.name
++        ret = execute_cmd(cmd, filename, lineno)
++        if ret != 0:
++            reason = cmd + "I cannot delete this chain. DD"
++            print_error(reason, filename, lineno)
++            return -1
+ 
+-    if chain_exist(chain, table, filename):
+-        reason = "The chain " + chain.name + " exists in " + table.name + \
+-                 ". I cannot delete this chain"
+-        print_error(reason, filename, lineno)
+-        return -1
++        if chain_exist(chain, table, filename):
++            reason = "The chain " + chain.name + " exists in " + table.name + \
++                     ". I cannot delete this chain"
++            print_error(reason, filename, lineno)
++            return -1
+ 
+     return 0
+ 
+@@ -949,14 +949,17 @@ def payload_find_expected(payload_log, rule):
+     return payload_buffer
+ 
+ 
+-def run_test_file(filename, force_all_family_option, specific_file):
++def run_test_file(filename, force_all_family_option, specific_file, filename_path = ''):
+     '''
+     Runs a test file
+ 
+     :param filename: name of the file with the test rules
++    :param filename_path: if filename path is explicitly defined
+     '''
+-    filename_path = os.path.join(TESTS_PATH, filename)
++    if (filename_path == ""):
++        filename_path = os.path.join(TESTS_PATH, filename)
+     f = open(filename_path)
++
+     tests = passed = total_unit_run = total_warning = total_error = 0
+ 
+     for lineno, line in enumerate(f):
+@@ -974,6 +977,7 @@ def run_test_file(filename, force_all_family_option, specific_file):
+             continue
+ 
+         if line[0] == '*':  # Table
++
+             table_line = line.rstrip()[1:]
+             ret = table_process(table_line, filename, lineno)
+             if ret != 0:
+@@ -1102,12 +1106,18 @@ def main():
+                         dest='force_all_family',
+                         help='keep testing all families on error')
+ 
++    parser.add_argument('--all', action='store_true',
++                        dest='test_all_files',
++                        help='test all files in one go')
++
+     args = parser.parse_args()
+     global debug_option, need_fix_option
+     debug_option = args.debug
+     need_fix_option = args.need_fix_line
+     force_all_family_option = args.force_all_family
++    test_all_files_option = args.test_all_files
+     specific_file = False
++    filename_path = ""
+ 
+     signal.signal(signal.SIGINT, signal_handler)
+     signal.signal(signal.SIGTERM, signal_handler)
+@@ -1136,6 +1146,27 @@ def main():
+     if args.filename:
+         file_list = [args.filename]
+         specific_file = True
++    elif test_all_files_option:
++
++        with open('/tmp/newfile', 'wb') as tmp_test:
++            for directory in TESTS_DIRECTORY:
++                os.chdir(os.path.join(TESTS_PATH, directory))
++                for files in glob.glob("*.t"):
++                    with open(files) as tmp_tests:
++                        lines = tmp_tests.readlines()
++                        tmp_test.writelines(lines)
++        filename_path = '/tmp/newfile'
++        specific_file = True
++        file_list = ['/tmp/newfile']
++        with open('/tmp/newfile.payload', 'wb') as tmp_payload:
++            for directory in TESTS_DIRECTORY:
++                os.chdir(os.path.join(TESTS_PATH, directory))
++                for files in glob.glob("*.payload"):
++                    with open(files) as payloads:
++                        lines = payloads.readlines()
++                        tmp_payload.writelines(lines)
++
++
+     else:
+         for directory in TESTS_DIRECTORY:
+             path = os.path.join(TESTS_PATH, directory)
+@@ -1144,8 +1175,10 @@ def main():
+                     if f.endswith(".t"):
+                         file_list.append(os.path.join(directory, f))
+ 
++
++    os.chdir(TESTS_PATH + "/../..")
+     for filename in file_list:
+-        result = run_test_file(filename, force_all_family_option, specific_file)
++        result = run_test_file(filename, force_all_family_option, specific_file, filename_path)
+         file_tests = result[0]
+         file_passed = result[1]
+         file_warnings = result[2]
+-- 
+2.11.0
+
