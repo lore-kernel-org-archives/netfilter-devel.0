@@ -1,42 +1,43 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] Out Of Bound Read in Netfilter Conntrack
-Date: Thu, 12 Oct 2017 02:03:46 +0200
-Message-ID: <20171012000346.GE26835@breakpoint.cc>
-References: <804512f5-786b-d4d0-bc8e-299c5c2683bf@x41-dsec.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: Eric Sesterhenn <eric.sesterhenn@x41-dsec.de>
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+Subject: [PATCH] doc: nft.8 change "Native Address Translation" to "Network Address Translation"
+Date: Thu, 12 Oct 2017 18:24:11 +1100
+Message-ID: <20171012072411.5339-1-duncan_roe@optusnet.com.au>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:43532 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750718AbdJLADy (ORCPT
+Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:49757 "EHLO
+        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750716AbdJLHYY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 11 Oct 2017 20:03:54 -0400
-Content-Disposition: inline
-In-Reply-To: <804512f5-786b-d4d0-bc8e-299c5c2683bf@x41-dsec.de>
+        Thu, 12 Oct 2017 03:24:24 -0400
+Received: from dimstar.local.net (c220-239-36-238.eburwd6.vic.optusnet.com.au [220.239.36.238])
+        by mail104.syd.optusnet.com.au (Postfix) with SMTP id A3A78428E2B
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Oct 2017 18:24:12 +1100 (AEDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Sesterhenn <eric.sesterhenn@x41-dsec.de> wrote:
-> Add missing counter decrement to prevent out of bounds memory read.
-> 
-> Signed-off-by: Eric Sesterhenn <eric.sesterhenn@x41-dsec.de>
-> 
-> diff --git a/net/netfilter/nf_conntrack_h323_asn1.c
-> b/net/netfilter/nf_conntrack_h323_asn1.c
-> index 89b2e46925c4..2a9d1acd0cbd 100644
-> --- a/net/netfilter/nf_conntrack_h323_asn1.c
-> +++ b/net/netfilter/nf_conntrack_h323_asn1.c
-> @@ -877,6 +877,7 @@ int DecodeQ931(unsigned char *buf, size_t sz, Q931
-> *q931)
->  		if (sz < 1)
->  			break;
->  		len = *p++;
-> +		sz--;
->  		if (sz < len)
->  			break;
->  		p += len;
+A Google search for "Native Address Translation" found 1 entry
+(http://encyclopedia2.thefreedictionary.com/Native+address+translation) which
+redirects to .../Network+address+translation. All other matches are to entries
+about "Network Address Translation".
 
-LGTM.
-Acked-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
+ doc/nft.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/doc/nft.xml b/doc/nft.xml
+index c7e12c9..86b4bd9 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -782,7 +782,7 @@ filter input iif $int_ifs accept
+ 							<entry>nat</entry>
+ 							<entry>ip, ip6</entry>
+ 							<entry>prerouting, input, output, postrouting</entry>
+-							<entry>Chains of this type perform Native Address Translation based on conntrack entries. Only the first packet of a connection actually traverses this chain - its rules usually define details of the created conntrack entry (NAT statements for instance).</entry>
++							<entry>Chains of this type perform Network Address Translation based on conntrack entries. Only the first packet of a connection actually traverses this chain - its rules usually define details of the created conntrack entry (NAT statements for instance).</entry>
+ 						</row>
+ 						<row>
+ 							<entry>route</entry>
+-- 
+2.9.0
+
