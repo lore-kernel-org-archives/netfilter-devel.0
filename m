@@ -1,306 +1,114 @@
-From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH] netfilter: nf_conntrack_h323: Remove typedef struct
-Date: Fri, 13 Oct 2017 04:23:57 +0530
-Message-ID: <20171012225357.5144-1-harshasharmaiitr@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        outreachy-kernel@googlegroups.com,
-        Harsha Sharma <harshasharmaiitr@gmail.com>
-To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
-        davem@davemloft.net
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] libnftnl 1.0.8 release
+Date: Fri, 13 Oct 2017 01:41:48 +0200
+Message-ID: <20171012234148.GA23593@salvia>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="tKW2IUtsqtDRztdT"
+Cc: netfilter@vger.kernel.org, netfilter-announce@lists.netfilter.org,
+        lwn@lwn.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:48951 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752804AbdJLXlx (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 12 Oct 2017 19:41:53 -0400
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Remove typedef from struct as linux-kernel coding style tends to
-avoid using typedefs.
-Done using following coccinelle semantic patch
 
-@r1@
-type T;
-@@
+--tKW2IUtsqtDRztdT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-typedef struct { ... } T;
+Hi!
 
-@script:python c1@
-T2;
-T << r1.T;
-@@
-if T[-2:] =="_t" or T[-2:] == "_T":
-        coccinelle.T2 = T[:-2];
-else:
-        coccinelle.T2 = T;
+The Netfilter project proudly presents:
 
-print T, coccinelle.T2
+        libnftnl 1.0.8
 
-@r2@
-type r1.T;
-identifier c1.T2;
-@@
--typedef
-struct
-+ T2
-{ ... }
--T
-;
+libnftnl is a userspace library providing a low-level netlink
+programming interface (API) to the in-kernel nf_tables subsystem. The
+library libnftnl has been previously known as libnftables. This library
+is currently used by the nft command line tool.
 
-@r3@
-type r1.T;
-identifier c1.T2;
-@@
--T
-+struct T2
+This release includes incremental updates to support new kernel
+features and bug fixes.
 
-Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
----
- net/netfilter/nf_conntrack_h323_asn1.c | 80 +++++++++++++++++-----------------
- 1 file changed, 40 insertions(+), 40 deletions(-)
+You can download this library from:
 
-diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
-index 89b2e46925c4..7831aa1effc9 100644
---- a/net/netfilter/nf_conntrack_h323_asn1.c
-+++ b/net/netfilter/nf_conntrack_h323_asn1.c
-@@ -91,41 +91,41 @@ typedef struct field_t {
- } field_t;
- 
- /* Bit Stream */
--typedef struct {
-+struct bitstr {
- 	unsigned char *buf;
- 	unsigned char *beg;
- 	unsigned char *end;
- 	unsigned char *cur;
- 	unsigned int bit;
--} bitstr_t;
-+};
- 
- /* Tool Functions */
- #define INC_BIT(bs) if((++(bs)->bit)>7){(bs)->cur++;(bs)->bit=0;}
- #define INC_BITS(bs,b) if(((bs)->bit+=(b))>7){(bs)->cur+=(bs)->bit>>3;(bs)->bit&=7;}
- #define BYTE_ALIGN(bs) if((bs)->bit){(bs)->cur++;(bs)->bit=0;}
- #define CHECK_BOUND(bs,n) if((bs)->cur+(n)>(bs)->end)return(H323_ERROR_BOUND)
--static unsigned int get_len(bitstr_t *bs);
--static unsigned int get_bit(bitstr_t *bs);
--static unsigned int get_bits(bitstr_t *bs, unsigned int b);
--static unsigned int get_bitmap(bitstr_t *bs, unsigned int b);
--static unsigned int get_uint(bitstr_t *bs, int b);
-+static unsigned int get_len(struct bitstr *bs);
-+static unsigned int get_bit(struct bitstr *bs);
-+static unsigned int get_bits(struct bitstr *bs, unsigned int b);
-+static unsigned int get_bitmap(struct bitstr *bs, unsigned int b);
-+static unsigned int get_uint(struct bitstr *bs, int b);
- 
- /* Decoder Functions */
--static int decode_nul(bitstr_t *bs, const struct field_t *f, char *base, int level);
--static int decode_bool(bitstr_t *bs, const struct field_t *f, char *base, int level);
--static int decode_oid(bitstr_t *bs, const struct field_t *f, char *base, int level);
--static int decode_int(bitstr_t *bs, const struct field_t *f, char *base, int level);
--static int decode_enum(bitstr_t *bs, const struct field_t *f, char *base, int level);
--static int decode_bitstr(bitstr_t *bs, const struct field_t *f, char *base, int level);
--static int decode_numstr(bitstr_t *bs, const struct field_t *f, char *base, int level);
--static int decode_octstr(bitstr_t *bs, const struct field_t *f, char *base, int level);
--static int decode_bmpstr(bitstr_t *bs, const struct field_t *f, char *base, int level);
--static int decode_seq(bitstr_t *bs, const struct field_t *f, char *base, int level);
--static int decode_seqof(bitstr_t *bs, const struct field_t *f, char *base, int level);
--static int decode_choice(bitstr_t *bs, const struct field_t *f, char *base, int level);
-+static int decode_nul(struct bitstr *bs, const struct field_t *f, char *base, int level);
-+static int decode_bool(struct bitstr *bs, const struct field_t *f, char *base, int level);
-+static int decode_oid(struct bitstr *bs, const struct field_t *f, char *base, int level);
-+static int decode_int(struct bitstr *bs, const struct field_t *f, char *base, int level);
-+static int decode_enum(struct bitstr *bs, const struct field_t *f, char *base, int level);
-+static int decode_bitstr(struct bitstr *bs, const struct field_t *f, char *base, int level);
-+static int decode_numstr(struct bitstr *bs, const struct field_t *f, char *base, int level);
-+static int decode_octstr(struct bitstr *bs, const struct field_t *f, char *base, int level);
-+static int decode_bmpstr(struct bitstr *bs, const struct field_t *f, char *base, int level);
-+static int decode_seq(struct bitstr *bs, const struct field_t *f, char *base, int level);
-+static int decode_seqof(struct bitstr *bs, const struct field_t *f, char *base, int level);
-+static int decode_choice(struct bitstr *bs, const struct field_t *f, char *base, int level);
- 
- /* Decoder Functions Vector */
--typedef int (*decoder_t)(bitstr_t *, const struct field_t *, char *, int);
-+typedef int (*decoder_t)(struct bitstr *, const struct field_t *, char *, int);
- static const decoder_t Decoders[] = {
- 	decode_nul,
- 	decode_bool,
-@@ -150,7 +150,7 @@ static const decoder_t Decoders[] = {
-  * Functions
-  ****************************************************************************/
- /* Assume bs is aligned && v < 16384 */
--static unsigned int get_len(bitstr_t *bs)
-+static unsigned int get_len(struct bitstr *bs)
- {
- 	unsigned int v;
- 
-@@ -166,7 +166,7 @@ static unsigned int get_len(bitstr_t *bs)
- }
- 
- /****************************************************************************/
--static unsigned int get_bit(bitstr_t *bs)
-+static unsigned int get_bit(struct bitstr *bs)
- {
- 	unsigned int b = (*bs->cur) & (0x80 >> bs->bit);
- 
-@@ -177,7 +177,7 @@ static unsigned int get_bit(bitstr_t *bs)
- 
- /****************************************************************************/
- /* Assume b <= 8 */
--static unsigned int get_bits(bitstr_t *bs, unsigned int b)
-+static unsigned int get_bits(struct bitstr *bs, unsigned int b)
- {
- 	unsigned int v, l;
- 
-@@ -203,7 +203,7 @@ static unsigned int get_bits(bitstr_t *bs, unsigned int b)
- 
- /****************************************************************************/
- /* Assume b <= 32 */
--static unsigned int get_bitmap(bitstr_t *bs, unsigned int b)
-+static unsigned int get_bitmap(struct bitstr *bs, unsigned int b)
- {
- 	unsigned int v, l, shift, bytes;
- 
-@@ -242,7 +242,7 @@ static unsigned int get_bitmap(bitstr_t *bs, unsigned int b)
- /****************************************************************************
-  * Assume bs is aligned and sizeof(unsigned int) == 4
-  ****************************************************************************/
--static unsigned int get_uint(bitstr_t *bs, int b)
-+static unsigned int get_uint(struct bitstr *bs, int b)
- {
- 	unsigned int v = 0;
- 
-@@ -264,7 +264,7 @@ static unsigned int get_uint(bitstr_t *bs, int b)
- }
- 
- /****************************************************************************/
--static int decode_nul(bitstr_t *bs, const struct field_t *f,
-+static int decode_nul(struct bitstr *bs, const struct field_t *f,
-                       char *base, int level)
- {
- 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
-@@ -273,7 +273,7 @@ static int decode_nul(bitstr_t *bs, const struct field_t *f,
- }
- 
- /****************************************************************************/
--static int decode_bool(bitstr_t *bs, const struct field_t *f,
-+static int decode_bool(struct bitstr *bs, const struct field_t *f,
-                        char *base, int level)
- {
- 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
-@@ -285,7 +285,7 @@ static int decode_bool(bitstr_t *bs, const struct field_t *f,
- }
- 
- /****************************************************************************/
--static int decode_oid(bitstr_t *bs, const struct field_t *f,
-+static int decode_oid(struct bitstr *bs, const struct field_t *f,
-                       char *base, int level)
- {
- 	int len;
-@@ -302,7 +302,7 @@ static int decode_oid(bitstr_t *bs, const struct field_t *f,
- }
- 
- /****************************************************************************/
--static int decode_int(bitstr_t *bs, const struct field_t *f,
-+static int decode_int(struct bitstr *bs, const struct field_t *f,
-                       char *base, int level)
- {
- 	unsigned int len;
-@@ -346,7 +346,7 @@ static int decode_int(bitstr_t *bs, const struct field_t *f,
- }
- 
- /****************************************************************************/
--static int decode_enum(bitstr_t *bs, const struct field_t *f,
-+static int decode_enum(struct bitstr *bs, const struct field_t *f,
-                        char *base, int level)
- {
- 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
-@@ -362,7 +362,7 @@ static int decode_enum(bitstr_t *bs, const struct field_t *f,
- }
- 
- /****************************************************************************/
--static int decode_bitstr(bitstr_t *bs, const struct field_t *f,
-+static int decode_bitstr(struct bitstr *bs, const struct field_t *f,
-                          char *base, int level)
- {
- 	unsigned int len;
-@@ -396,7 +396,7 @@ static int decode_bitstr(bitstr_t *bs, const struct field_t *f,
- }
- 
- /****************************************************************************/
--static int decode_numstr(bitstr_t *bs, const struct field_t *f,
-+static int decode_numstr(struct bitstr *bs, const struct field_t *f,
-                          char *base, int level)
- {
- 	unsigned int len;
-@@ -414,7 +414,7 @@ static int decode_numstr(bitstr_t *bs, const struct field_t *f,
- }
- 
- /****************************************************************************/
--static int decode_octstr(bitstr_t *bs, const struct field_t *f,
-+static int decode_octstr(struct bitstr *bs, const struct field_t *f,
-                          char *base, int level)
- {
- 	unsigned int len;
-@@ -463,7 +463,7 @@ static int decode_octstr(bitstr_t *bs, const struct field_t *f,
- }
- 
- /****************************************************************************/
--static int decode_bmpstr(bitstr_t *bs, const struct field_t *f,
-+static int decode_bmpstr(struct bitstr *bs, const struct field_t *f,
-                          char *base, int level)
- {
- 	unsigned int len;
-@@ -489,7 +489,7 @@ static int decode_bmpstr(bitstr_t *bs, const struct field_t *f,
- }
- 
- /****************************************************************************/
--static int decode_seq(bitstr_t *bs, const struct field_t *f,
-+static int decode_seq(struct bitstr *bs, const struct field_t *f,
-                       char *base, int level)
- {
- 	unsigned int ext, bmp, i, opt, len = 0, bmp2, bmp2_len;
-@@ -606,7 +606,7 @@ static int decode_seq(bitstr_t *bs, const struct field_t *f,
- }
- 
- /****************************************************************************/
--static int decode_seqof(bitstr_t *bs, const struct field_t *f,
-+static int decode_seqof(struct bitstr *bs, const struct field_t *f,
-                         char *base, int level)
- {
- 	unsigned int count, effective_count = 0, i, len = 0;
-@@ -696,7 +696,7 @@ static int decode_seqof(bitstr_t *bs, const struct field_t *f,
- 
- 
- /****************************************************************************/
--static int decode_choice(bitstr_t *bs, const struct field_t *f,
-+static int decode_choice(struct bitstr *bs, const struct field_t *f,
-                          char *base, int level)
- {
- 	unsigned int type, ext, len = 0;
-@@ -772,7 +772,7 @@ int DecodeRasMessage(unsigned char *buf, size_t sz, RasMessage *ras)
- 		FNAME("RasMessage") CHOICE, 5, 24, 32, DECODE | EXT,
- 		0, _RasMessage
- 	};
--	bitstr_t bs;
-+	struct bitstr bs;
- 
- 	bs.buf = bs.beg = bs.cur = buf;
- 	bs.end = buf + sz;
-@@ -789,7 +789,7 @@ static int DecodeH323_UserInformation(unsigned char *buf, unsigned char *beg,
- 		FNAME("H323-UserInformation") SEQ, 1, 2, 2, DECODE | EXT,
- 		0, _H323_UserInformation
- 	};
--	bitstr_t bs;
-+	struct bitstr bs;
- 
- 	bs.buf = buf;
- 	bs.beg = bs.cur = beg;
-@@ -808,7 +808,7 @@ int DecodeMultimediaSystemControlMessage(unsigned char *buf, size_t sz,
- 		FNAME("MultimediaSystemControlMessage") CHOICE, 2, 4, 4,
- 		DECODE | EXT, 0, _MultimediaSystemControlMessage
- 	};
--	bitstr_t bs;
-+	struct bitstr bs;
- 
- 	bs.buf = bs.beg = bs.cur = buf;
- 	bs.end = buf + sz;
--- 
-2.11.0
+http://www.netfilter.org/projects/libnftnl/downloads.html
+ftp://ftp.netfilter.org/pub/libnftnl/
+
+Thanks!
+
+--tKW2IUtsqtDRztdT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="changes-libnftnl-1.0.8.txt"
+
+Alexander Alemayhu (1):
+      exthdr: remove unused variable uval8
+
+Elise Lennion (2):
+      examples: Remove the use of nftnl_mnl_batch_put()
+      src: Use nftnl_buf to export XML/JSON rules
+
+Eric Leblond (1):
+      set: free user data
+
+Florian Westphal (9):
+      src: ct: add zone support
+      object: don't set NFTNL_OBJ_TYPE unless obj->ops is non-null
+      object: fix crash when object ops is null
+      object: extend set/get api for u8/u16 types
+      src: ct helper support
+      src: ct eventmask support
+      ct: rename eventmask to event
+      exthdr: tcp option set support
+      rt: tcpmss get support
+
+Laura Garcia Liebana (1):
+      expr: hash: support of symmetric hash
+
+Liping Zhang (1):
+      src: ct: add average bytes per packet counter support
+
+Manuel Messner (1):
+      src: add TCP option matching requirements
+
+Pablo M. Bermudo Garay (1):
+      src: limit stateful object support
+
+Pablo Neira Ayuso (11):
+      src: get rid of aliases and compat
+      include: refresh nf_tables.h copy
+      common: get rid of nftnl_batch_build_hdr()
+      common: return nlmsghdr in nftnl_batch_{begin,end}()
+      rule: add NFTA_RULE_ID attribute
+      udata: add nftnl_udata_put_u32() and nftnl_udata_get_u32()
+      buffer: use nftnl_expr_snprintf() from nftnl_buf_expr()
+      expr: no need to nul-terminate buffer from expression ->snprintf indirection
+      src: no need to nul-terminate buffer for nftnl_fprintf() calls
+      src: do not nul-terminate internal helper functions
+      build: libnftnl 1.0.8 release
+
+Phil Sutter (5):
+      exthdr: Add support for exthdr flags
+      exthdr: Add missing exthdr flags cases
+      fib: Add support for NFTA_FIB_F_PRESENT flag
+      expr: exthdr: Display NFT_EXTHDR_F_PRESENT in debug output
+      chain: Don't print unset policy value in netlink debug
+
+Shyam Saini (1):
+      examples: Fix memory leaks detected by Valgrind
+
+Tobias Klauser (1):
+      expr: Add const qualifiers to *2str translation arrays
+
+Varsha Rao (2):
+      src: Change parameters of SNPRINTF_BUFFER_SIZE macro.
+      src: Buffer is null terminated.
+
+
+--tKW2IUtsqtDRztdT--
