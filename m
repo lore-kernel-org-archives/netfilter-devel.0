@@ -1,43 +1,80 @@
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-Subject: [PATCH] doc: nft.8 change "Native Address Translation" to "Network Address Translation"
-Date: Thu, 12 Oct 2017 18:24:11 +1100
-Message-ID: <20171012072411.5339-1-duncan_roe@optusnet.com.au>
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: conntrack: make l3proto trackers const
+Date: Thu, 12 Oct 2017 09:38:30 +0200
+Message-ID: <20171012073830.9102-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:49757 "EHLO
-        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750716AbdJLHYY (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:44380 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750716AbdJLHiO (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Oct 2017 03:24:24 -0400
-Received: from dimstar.local.net (c220-239-36-238.eburwd6.vic.optusnet.com.au [220.239.36.238])
-        by mail104.syd.optusnet.com.au (Postfix) with SMTP id A3A78428E2B
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Oct 2017 18:24:12 +1100 (AEDT)
+        Thu, 12 Oct 2017 03:38:14 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-A Google search for "Native Address Translation" found 1 entry
-(http://encyclopedia2.thefreedictionary.com/Native+address+translation) which
-redirects to .../Network+address+translation. All other matches are to entries
-about "Network Address Translation".
+previous patches removed all writes to them.
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- doc/nft.xml | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/net/netfilter/ipv4/nf_conntrack_ipv4.h | 2 +-
+ include/net/netfilter/ipv6/nf_conntrack_ipv6.h | 2 +-
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c | 2 +-
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/doc/nft.xml b/doc/nft.xml
-index c7e12c9..86b4bd9 100644
---- a/doc/nft.xml
-+++ b/doc/nft.xml
-@@ -782,7 +782,7 @@ filter input iif $int_ifs accept
- 							<entry>nat</entry>
- 							<entry>ip, ip6</entry>
- 							<entry>prerouting, input, output, postrouting</entry>
--							<entry>Chains of this type perform Native Address Translation based on conntrack entries. Only the first packet of a connection actually traverses this chain - its rules usually define details of the created conntrack entry (NAT statements for instance).</entry>
-+							<entry>Chains of this type perform Network Address Translation based on conntrack entries. Only the first packet of a connection actually traverses this chain - its rules usually define details of the created conntrack entry (NAT statements for instance).</entry>
- 						</row>
- 						<row>
- 							<entry>route</entry>
+diff --git a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
+index 919e4e8af327..5534ecca7a5d 100644
+--- a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
++++ b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
+@@ -10,7 +10,7 @@
+ #define _NF_CONNTRACK_IPV4_H
+ 
+ 
+-extern struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4;
++const extern struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4;
+ 
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4;
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4;
+diff --git a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+index eaea968f8657..30dc57980866 100644
+--- a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
++++ b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+@@ -1,7 +1,7 @@
+ #ifndef _NF_CONNTRACK_IPV6_H
+ #define _NF_CONNTRACK_IPV6_H
+ 
+-extern struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6;
++extern const struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6;
+ 
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6;
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6;
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index fe374da4bc13..89af9d88ca21 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -344,7 +344,7 @@ static void ipv4_hooks_unregister(struct net *net)
+ 	mutex_unlock(&register_ipv4_hooks);
+ }
+ 
+-struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 __read_mostly = {
++const struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 = {
+ 	.l3proto	 = PF_INET,
+ 	.pkt_to_tuple	 = ipv4_pkt_to_tuple,
+ 	.invert_tuple	 = ipv4_invert_tuple,
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index fe01dc953c56..3b80a38f62b8 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -339,7 +339,7 @@ static void ipv6_hooks_unregister(struct net *net)
+ 	mutex_unlock(&register_ipv6_hooks);
+ }
+ 
+-struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 __read_mostly = {
++const struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 = {
+ 	.l3proto		= PF_INET6,
+ 	.pkt_to_tuple		= ipv6_pkt_to_tuple,
+ 	.invert_tuple		= ipv6_invert_tuple,
 -- 
-2.9.0
+2.13.6
 
