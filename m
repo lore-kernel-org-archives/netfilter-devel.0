@@ -1,73 +1,43 @@
-From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH] src: Remove unnecessary cast on void pointer
-Date: Fri, 13 Oct 2017 05:31:16 +0530
-Message-ID: <20171013000116.20107-1-harshasharmaiitr@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, outreachy-kernel@googlegroups.com,
-        Harsha Sharma <harshasharmaiitr@gmail.com>
-To: pablo@netfilter.org
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [ANNOUNCE] libnftnl 1.0.8 release
+Date: Fri, 13 Oct 2017 02:42:14 +0200 (CEST)
+Message-ID: <nycvar.YFH.7.76.1710130238430.10708@n3.vanv.qr>
+References: <20171012234148.GA23593@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+        netfilter-announce@lists.netfilter.org, lwn@lwn.net
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:56351 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757374AbdJMAES (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 12 Oct 2017 20:04:18 -0400
-Received: by mail-pf0-f196.google.com with SMTP id b85so7228279pfj.13
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Oct 2017 17:04:18 -0700 (PDT)
+Received: from a3.inai.de ([88.198.180.161]:41410 "EHLO a3.inai.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753427AbdJMAmQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 12 Oct 2017 20:42:16 -0400
+In-Reply-To: <20171012234148.GA23593@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Done with following coccinelle patch
 
-@r@
-expression x;
-void* e;
-type T;
-identifier f;
-@@
-(
-  *((T *)e)
-|
-  ((T *)x)[...]
-|
-  ((T*)x)->f
-|
+On Friday 2017-10-13 01:41, Pablo Neira Ayuso wrote:
+>
+>        libnftnl 1.0.8
 
-- (T*)
-  e
-)
+Here's a buffer overflow reported by gcc:
 
-Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
----
- src/netlink.c | 2 +-
- src/tcpopt.c  | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+expr/data_reg.c: In function 'nftnl_data_reg_json_parse':
+expr/data_reg.c:69:27: warning: '%d' directive writing between 1 and 10 bytes into a region of size 2 [-Wformat-overflow=]
+   sprintf(node_name, "data%d", i);
+                           ^~
+expr/data_reg.c:69:22: note: directive argument in the range [0, 2147483647]
+   sprintf(node_name, "data%d", i);
+                      ^~~~~~~~
+In file included from /usr/include/stdio.h:862:0,
+                 from expr/data_reg.c:12:
+/usr/include/bits/stdio2.h:33:10: note: '__builtin___sprintf_chk' output between 6 and 15 bytes into a destination of size 6
+   return __builtin___sprintf_chk (__s, __USE_FORTIFY_LEVEL - 1,
+          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       __bos (__s), __fmt, __va_arg_pack ());
+       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-diff --git a/src/netlink.c b/src/netlink.c
-index d5d410a..3a7ae62 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -2941,7 +2941,7 @@ static int netlink_events_cb(const struct nlmsghdr *nlh, void *data)
- {
- 	int ret = MNL_CB_OK;
- 	uint16_t type = NFNL_MSG_TYPE(nlh->nlmsg_type);
--	struct netlink_mon_handler *monh = (struct netlink_mon_handler *)data;
-+	struct netlink_mon_handler *monh = data;
- 
- 	netlink_events_debug(type, monh->debug_mask);
- 	netlink_events_cache_update(monh, nlh, type);
-diff --git a/src/tcpopt.c b/src/tcpopt.c
-index 7c6c255..c37c9d5 100644
---- a/src/tcpopt.c
-+++ b/src/tcpopt.c
-@@ -86,7 +86,7 @@ static const struct exthdr_desc tcpopt_timestamp = {
- };
- #undef PHT
- 
--#define TCPOPT_OBSOLETE ((struct exthdr_desc *)NULL)
-+#define TCPOPT_OBSOLETE (NULL)
- #define TCPOPT_ECHO 6
- #define TCPOPT_ECHO_REPLY 7
- static const struct exthdr_desc *tcpopt_protocols[] = {
--- 
-2.11.0
 
+AFAICS it's triggerable when reg->len > 396.
