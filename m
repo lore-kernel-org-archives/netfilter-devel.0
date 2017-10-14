@@ -1,222 +1,63 @@
-From: Eric Sesterhenn <eric.sesterhenn@x41-dsec.de>
-Subject: [PATCH] Bitwise Out Of Bound Read in Netfilter Conntrack
-Date: Fri, 13 Oct 2017 20:29:08 +0200
-Message-ID: <732a5fa7-1ccc-24f4-862c-18ff61b0fabb@x41-dsec.de>
-References: <804512f5-786b-d4d0-bc8e-299c5c2683bf@x41-dsec.de>
- <20171012000346.GE26835@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="1RPmIPXgFuJd6DRQcpWw8o5NMQRuDBiFM"
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: Florian Westphal <fw@strlen.de>
+From: Harsha Sharma <harshasharmaiitr@gmail.com>
+Subject: [PATCH] tests: shell: add testcases for named limits
+Date: Sat, 14 Oct 2017 16:16:03 +0530
+Message-ID: <20171014104603.16365-1-harshasharmaiitr@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, outreachy-kernel@googlegroups.com,
+        Harsha Sharma <harshasharmaiitr@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from aibo.runbox.com ([91.220.196.211]:37510 "EHLO aibo.runbox.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751981AbdJMS3N (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 13 Oct 2017 14:29:13 -0400
-In-Reply-To: <20171012000346.GE26835@breakpoint.cc>
+Received: from mail-pg0-f41.google.com ([74.125.83.41]:50403 "EHLO
+        mail-pg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751735AbdJNKsS (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 14 Oct 2017 06:48:18 -0400
+Received: by mail-pg0-f41.google.com with SMTP id y7so3145780pgb.7
+        for <netfilter-devel@vger.kernel.org>; Sat, 14 Oct 2017 03:48:18 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---1RPmIPXgFuJd6DRQcpWw8o5NMQRuDBiFM
-Content-Type: multipart/mixed; boundary="TJmCx0irI1iitrcxg5JEx40ggvDxsojsB";
- protected-headers="v1"
-From: Eric Sesterhenn <eric.sesterhenn@x41-dsec.de>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-Message-ID: <732a5fa7-1ccc-24f4-862c-18ff61b0fabb@x41-dsec.de>
-Subject: [PATCH] Bitwise Out Of Bound Read in Netfilter Conntrack
-References: <804512f5-786b-d4d0-bc8e-299c5c2683bf@x41-dsec.de>
- <20171012000346.GE26835@breakpoint.cc>
-In-Reply-To: <20171012000346.GE26835@breakpoint.cc>
+Add testcases for creating named limits and referencing them
+from rule
 
---TJmCx0irI1iitrcxg5JEx40ggvDxsojsB
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
-
-
-=46rom 66a5a55b6e7e45c51691583cf5833b4fe9365dc1 Mon Sep 17 00:00:00 2001
-From: Eric Sesterhenn <eric.sesterhenn@x41-dsec.de>
-Date: Fri, 13 Oct 2017 20:26:32 +0200
-Subject: [PATCH] Prevent bitwise out of bound memory reads
-
-The CHECK_BOUND function is not always uses, especially not
-when reading bitwise.
-
-Signed-off-by: Eric Sesterhenn <eric.sesterhenn@x41-dsec.de>
+Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
 ---
- net/netfilter/nf_conntrack_h323_asn1.c | 18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ tests/shell/testcases/sets/0025named_limit_0 | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
+ create mode 100755 tests/shell/testcases/sets/0025named_limit_0
 
-diff --git a/net/netfilter/nf_conntrack_h323_asn1.c
-b/net/netfilter/nf_conntrack_h323_asn1.c
-index 89b2e46925c4..e298878edc86 100644
---- a/net/netfilter/nf_conntrack_h323_asn1.c
-+++ b/net/netfilter/nf_conntrack_h323_asn1.c
-@@ -104,6 +104,7 @@ typedef struct {
- #define INC_BITS(bs,b)
-if(((bs)->bit+=3D(b))>7){(bs)->cur+=3D(bs)->bit>>3;(bs)->bit&=3D7;}
- #define BYTE_ALIGN(bs) if((bs)->bit){(bs)->cur++;(bs)->bit=3D0;}
- #define CHECK_BOUND(bs,n)
-if((bs)->cur+(n)>(bs)->end)return(H323_ERROR_BOUND)
-+#define CHECK_BIT_BOUND(bs,n) ({ size_t __tmp =3D n/8;
-if((bs)->bit+(n%8)>7) { CHECK_BOUND(bs, __tmp + 2); } else {
-CHECK_BOUND(bs, __tmp + 1); } })
- static unsigned int get_len(bitstr_t *bs);
- static unsigned int get_bit(bitstr_t *bs);
- static unsigned int get_bits(bitstr_t *bs, unsigned int b);
-@@ -319,9 +320,11 @@ static int decode_int(bitstr_t *bs, const struct
-field_t *f,
- 		bs->cur +=3D 2;
- 		break;
- 	case CONS:		/* 64K < Range < 4G */
-+		CHECK_BIT_BOUND(bs, 2)
- 		len =3D get_bits(bs, 2) + 1;
- 		BYTE_ALIGN(bs);
- 		if (base && (f->attr & DECODE)) {	/* timeToLive */
-+			CHECK_BOUND(bs, len);
- 			unsigned int v =3D get_uint(bs, len) + f->lb;
- 			PRINT(" =3D %u", v);
- 			*((unsigned int *)(base + f->offset)) =3D v;
-@@ -404,6 +407,7 @@ static int decode_numstr(bitstr_t *bs, const struct
-field_t *f,
- 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
+diff --git a/tests/shell/testcases/sets/0025named_limit_0 b/tests/shell/testcases/sets/0025named_limit_0
+new file mode 100755
+index 0000000..91553f3
+--- /dev/null
++++ b/tests/shell/testcases/sets/0025named_limit_0
+@@ -0,0 +1,27 @@
++#!/bin/bash
++
++# This is the testscase:
++# * creating valid named limits
++# * referencing them from a valid rule
++
++tmpfile=$(mktemp)
++if [ ! -w $tmpfile ] ; then
++	echo "Failed to create tmp file" >&2
++	exit 0
++fi
++
++trap "rm -rf $tmpfile" EXIT # cleanup if aborted
++
++echo "
++table ip filter {
++	limit http-traffic {
++		rate 1/second
++	}
++	chain input {
++		type filter hook input priority 0; policy accept;
++		limit name tcp dport map { 80 : "http-traffic", 443 : "http-traffic"}
++	}
++}" > $tmpfile
++
++set -e
++$NFT -f $tmpfile
+-- 
+2.11.0
 
- 	/* 2 <=3D Range <=3D 255 */
-+	CHECK_BIT_BOUND(bs, f->sz);
- 	len =3D get_bits(bs, f->sz) + f->lb;
-
- 	BYTE_ALIGN(bs);
-@@ -449,6 +453,7 @@ static int decode_octstr(bitstr_t *bs, const struct
-field_t *f,
- 		len =3D get_len(bs) + f->lb;
- 		break;
- 	default:		/* 2 <=3D Range <=3D 255 */
-+		CHECK_BIT_BOUND(bs, f->sz);
- 		len =3D get_bits(bs, f->sz) + f->lb;
- 		BYTE_ALIGN(bs);
- 		break;
-@@ -477,6 +482,7 @@ static int decode_bmpstr(bitstr_t *bs, const struct
-field_t *f,
- 		len =3D (*bs->cur++) + f->lb;
- 		break;
- 	default:		/* 2 <=3D Range <=3D 255 */
-+		CHECK_BIT_BOUND(bs, f->sz);
- 		len =3D get_bits(bs, f->sz) + f->lb;
- 		BYTE_ALIGN(bs);
- 		break;
-@@ -503,9 +509,11 @@ static int decode_seq(bitstr_t *bs, const struct
-field_t *f,
- 	base =3D (base && (f->attr & DECODE)) ? base + f->offset : NULL;
-
- 	/* Extensible? */
-+	CHECK_BIT_BOUND(bs, 1);
- 	ext =3D (f->attr & EXT) ? get_bit(bs) : 0;
-
- 	/* Get fields bitmap */
-+	CHECK_BIT_BOUND(bs, f->sz);
- 	bmp =3D get_bitmap(bs, f->sz);
- 	if (base)
- 		*(unsigned int *)base =3D bmp;
-@@ -555,8 +563,9 @@ static int decode_seq(bitstr_t *bs, const struct
-field_t *f,
- 		return H323_ERROR_NONE;
-
- 	/* Get the extension bitmap */
-+	CHECK_BIT_BOUND(bs, 7);
- 	bmp2_len =3D get_bits(bs, 7) + 1;
--	CHECK_BOUND(bs, (bmp2_len + 7) >> 3);
-+	CHECK_BIT_BOUND(bs, bmp2_len);
- 	bmp2 =3D get_bitmap(bs, bmp2_len);
- 	bmp |=3D bmp2 >> f->sz;
- 	if (base)
-@@ -639,6 +648,7 @@ static int decode_seqof(bitstr_t *bs, const struct
-field_t *f,
- 		count =3D get_len(bs);
- 		break;
- 	default:
-+		CHECK_BIT_BOUND(bs, f->sz);
- 		count =3D get_bits(bs, f->sz);
- 		break;
- 	}
-@@ -658,6 +668,7 @@ static int decode_seqof(bitstr_t *bs, const struct
-field_t *f,
- 	for (i =3D 0; i < count; i++) {
- 		if (son->attr & OPEN) {
- 			BYTE_ALIGN(bs);
-+			CHECK_BOUND(bs, 2);
- 			len =3D get_len(bs);
- 			CHECK_BOUND(bs, len);
- 			if (!base || !(son->attr & DECODE)) {
-@@ -710,11 +721,14 @@ static int decode_choice(bitstr_t *bs, const
-struct field_t *f,
- 	base =3D (base && (f->attr & DECODE)) ? base + f->offset : NULL;
-
- 	/* Decode the choice index number */
-+	CHECK_BIT_BOUND(bs, 1);
- 	if ((f->attr & EXT) && get_bit(bs)) {
- 		ext =3D 1;
-+		CHECK_BIT_BOUND(bs, 7);
- 		type =3D get_bits(bs, 7) + f->lb;
- 	} else {
- 		ext =3D 0;
-+		CHECK_BIT_BOUND(bs, f->sz);
- 		type =3D get_bits(bs, f->sz);
- 		if (type >=3D f->lb)
- 			return H323_ERROR_RANGE;
-@@ -727,6 +741,7 @@ static int decode_choice(bitstr_t *bs, const struct
-field_t *f,
- 	/* Check Range */
- 	if (type >=3D f->ub) {	/* Newer version? */
- 		BYTE_ALIGN(bs);
-+		CHECK_BOUND(bs, 2);
- 		len =3D get_len(bs);
- 		CHECK_BOUND(bs, len);
- 		bs->cur +=3D len;
-@@ -742,6 +757,7 @@ static int decode_choice(bitstr_t *bs, const struct
-field_t *f,
-
- 	if (ext || (son->attr & OPEN)) {
- 		BYTE_ALIGN(bs);
-+		CHECK_BOUND(bs, 2);
- 		len =3D get_len(bs);
- 		CHECK_BOUND(bs, len);
- 		if (!base || !(son->attr & DECODE)) {
-
-
---=20
-Eric Sesterhenn (Principal Security Consultant)
-X41 D-SEC GmbH, Dennewartstr. 25-27, D-52068 Aachen
-T: +49 241 9809418-0, Fax: -9
-Unternehmenssitz: Aachen, Amtsgericht Aachen: HRB19989
-Gesch=C3=A4ftsf=C3=BChrer: Markus Vervier
-
-
---TJmCx0irI1iitrcxg5JEx40ggvDxsojsB--
-
---1RPmIPXgFuJd6DRQcpWw8o5NMQRuDBiFM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEE4kR6dD1Cx4CoBY4sFLXvnJmdoEMFAlnhBfQACgkQFLXvnJmd
-oEOAYQ//cVw057udzfQd65Dlbbf/AtO1xgF5X3haj43ynaE1ja8EXlhDKJAuGCb0
-Vnt7LtMhRgwWGteAUCnaym3be+dVUkccthRJm/Z2KR43f0eSXl5/k7TOHmhT2yBR
-dHKTObitQPeFw5QqM5uhTl2GAcPvrV3jH1abWztS3Hsl/mo0zmRQQfNt8N/eaO8I
-gJ3B22cDQsFuS8CQv42FPTqr36/ex08OZpxBNwr3JfBT9U66qAxZmLg3zKCp/V4l
-y/I/fMx4GYIBmPdAPU+ZX8rHEckisAvl+TzKkD0tvEoqEpDpDTuyDD8oPiEHHAmz
-gI+W7ZlnsxxUz0ANc1QxREdngqf5ei6lZK6KyS7lYT+BUQSdCLceqtMP14y4E7J8
-qWo1obvF1Sq+rf1f1vx17pz+h0NZ3pgvHSoCNv3v6/FWqqSon4/6zoRcuGDebaAa
-LCqwunDJu/s/DXSyM2vcWqlPfZPirpDimikyeEwEsOMzwB2FkNEab09uXDJcTZy0
-ZFOCAJFbtwwZfmU5pKKBzhZzbWtikxQk+TtIookwMO3Vu0umJjQERlGIA3VouZAC
-stdRXuMPSOdGoRpxJ01iITIu4TixU0I0nuprV+SN2HZcPh9mYEAsmGlU1KRkz29U
-JfaKt+alVo89BZiJBUguNmQFmhq7o8XhaV8V1ozeDT+77iZrWiE=
-=VbcR
------END PGP SIGNATURE-----
-
---1RPmIPXgFuJd6DRQcpWw8o5NMQRuDBiFM--
