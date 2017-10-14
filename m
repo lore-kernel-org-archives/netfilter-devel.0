@@ -1,40 +1,40 @@
-From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH] update INSTALL to add library libnfnetlink
-Date: Sat, 14 Oct 2017 18:21:45 +0530
-Message-ID: <20171014125145.8336-1-harshasharmaiitr@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, outreachy-kernel@googlegroups.com,
-        Harsha Sharma <harshasharmaiitr@gmail.com>
-To: pablo@netfilter.org
+From: Varsha Rao <rvarsha016@gmail.com>
+Subject: Re: [PATCH nft 0/9] tests: Move tests from files to shell.
+Date: Sat, 14 Oct 2017 18:34:28 +0530
+Message-ID: <CAAFX7JTjwwp+pCLW6MtD6nVuq7wA4-EZVssGvEO3QOkxBnXNOQ@mail.gmail.com>
+References: <cover.1507696149.git.rvarsha016@gmail.com> <20171011095708.GB1678@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:56389 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753768AbdJNMx5 (ORCPT
+Received: from mail-it0-f52.google.com ([209.85.214.52]:49791 "EHLO
+        mail-it0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751550AbdJNNFJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 14 Oct 2017 08:53:57 -0400
-Received: by mail-pg0-f67.google.com with SMTP id m18so3291877pgd.13
-        for <netfilter-devel@vger.kernel.org>; Sat, 14 Oct 2017 05:53:57 -0700 (PDT)
+        Sat, 14 Oct 2017 09:05:09 -0400
+Received: by mail-it0-f52.google.com with SMTP id y15so14259981ita.4
+        for <netfilter-devel@vger.kernel.org>; Sat, 14 Oct 2017 06:05:09 -0700 (PDT)
+In-Reply-To: <20171011095708.GB1678@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-configure.ac checks for libnfnetlink(>=1.0) library
+Hello Pablo,
 
-Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
----
- INSTALL | 1 +
- 1 file changed, 1 insertion(+)
+On Wed, Oct 11, 2017 at 3:27 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Hi Varsha,
+>
+> On Wed, Oct 11, 2017 at 10:03:56AM +0530, Varsha Rao wrote:
+>> Test files of tests/files/ are moved to tests/shell.
+>
+> We have more than 100 tests these days, could you have a look at the
+> repository to see if this is adding redundant tests for what we have?
+> If we already have a test covering the same configuration, we should
+> just remove them from tests/files/.
+>
+Sorry, the cover letter title and commit message looks misleading.
+But I have removed the redundant ones and added tests which were
+not there.
 
-diff --git a/INSTALL b/INSTALL
-index d62b428c..d28ea5c1 100644
---- a/INSTALL
-+++ b/INSTALL
-@@ -11,6 +11,7 @@ iptables uses the well-known configure(autotools) infrastructure.
- Prerequisites
- =============
- 
-+	* libnfnetlink
- 	* no kernel-source required
- 
- 	* but obviously a compiler, glibc-devel and linux-kernel-headers
--- 
-2.11.0
-
+Thanks,
+Varsha
