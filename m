@@ -1,40 +1,55 @@
-From: Varsha Rao <rvarsha016@gmail.com>
-Subject: Re: [PATCH nft 0/9] tests: Move tests from files to shell.
-Date: Sat, 14 Oct 2017 18:34:28 +0530
-Message-ID: <CAAFX7JTjwwp+pCLW6MtD6nVuq7wA4-EZVssGvEO3QOkxBnXNOQ@mail.gmail.com>
-References: <cover.1507696149.git.rvarsha016@gmail.com> <20171011095708.GB1678@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: xt_connlimit: don't store address in the conn nodes
+Date: Sun, 15 Oct 2017 11:00:34 +0200
+Message-ID: <20171015090034.6314-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-it0-f52.google.com ([209.85.214.52]:49791 "EHLO
-        mail-it0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751550AbdJNNFJ (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:59750 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750829AbdJOJAU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 14 Oct 2017 09:05:09 -0400
-Received: by mail-it0-f52.google.com with SMTP id y15so14259981ita.4
-        for <netfilter-devel@vger.kernel.org>; Sat, 14 Oct 2017 06:05:09 -0700 (PDT)
-In-Reply-To: <20171011095708.GB1678@salvia>
+        Sun, 15 Oct 2017 05:00:20 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Pablo,
+Only stored, never read.  This is a leftover from commit 7d08487777c8
+("netfilter: connlimit: use rbtree for per-host conntrack obj storage"),
+which added the rbtree node struct that stores the address instead.
 
-On Wed, Oct 11, 2017 at 3:27 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Hi Varsha,
->
-> On Wed, Oct 11, 2017 at 10:03:56AM +0530, Varsha Rao wrote:
->> Test files of tests/files/ are moved to tests/shell.
->
-> We have more than 100 tests these days, could you have a look at the
-> repository to see if this is adding redundant tests for what we have?
-> If we already have a test covering the same configuration, we should
-> just remove them from tests/files/.
->
-Sorry, the cover letter title and commit message looks misleading.
-But I have removed the redundant ones and added tests which were
-not there.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/xt_connlimit.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-Thanks,
-Varsha
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+index ffa8eec980e9..ce2870428631 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -46,7 +46,6 @@
+ struct xt_connlimit_conn {
+ 	struct hlist_node		node;
+ 	struct nf_conntrack_tuple	tuple;
+-	union nf_inet_addr		addr;
+ };
+ 
+ struct xt_connlimit_rb {
+@@ -125,7 +124,6 @@ static bool add_hlist(struct hlist_head *head,
+ 	if (conn == NULL)
+ 		return false;
+ 	conn->tuple = *tuple;
+-	conn->addr = *addr;
+ 	hlist_add_head(&conn->node, head);
+ 	return true;
+ }
+@@ -270,7 +268,6 @@ count_tree(struct net *net, struct rb_root *root,
+ 	}
+ 
+ 	conn->tuple = *tuple;
+-	conn->addr = *addr;
+ 	rbconn->addr = *addr;
+ 
+ 	INIT_HLIST_HEAD(&rbconn->hhead);
+-- 
+2.13.6
+
