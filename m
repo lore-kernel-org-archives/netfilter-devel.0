@@ -1,66 +1,103 @@
-From: Aastha Gupta <aastha.gupta4104@gmail.com>
-Subject: [PATCH v3] iptables: iptables-compat translation for TCPMSS
-Date: Sun, 15 Oct 2017 17:46:08 +0530
-Message-ID: <CAHXiS5-LAiGs7+5zs-VhOmW2WLCAsNsaQrWh+5=m8=JrcyWtRw@mail.gmail.com>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH] ipvs: Fix inappropriate output of procfs
+Date: Sun, 15 Oct 2017 17:11:28 +0300 (EEST)
+Message-ID: <alpine.LFD.2.20.1710151709450.2100@ja.home.ssi.bg>
+References: <20171015115406.GA11429@nuc02.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: outreachy-kernel@googlegroups.com, netfilter-devel@vger.kernel.org,
-        Aastha Gupta <aastha.gupta4104@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f65.google.com ([209.85.213.65]:38682 "EHLO
-        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750786AbdJOMQJ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 15 Oct 2017 08:16:09 -0400
-Received: by mail-vk0-f65.google.com with SMTP id d12so3272946vkf.5
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Oct 2017 05:16:09 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Cc: Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-kernel@vger.kernel.org
+To: KUWAZAWA Takuya <albatross0@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20171015115406.GA11429@nuc02.localdomain>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Since path mtu support was added, we can now add
-iptables-compat translation for TCPMSS extension.
 
-Signed-off-by: Aastha Gupta <aastha.gupta4104@gmail.com>
----
-changes in v3:
-        - fixed alignment issues
+	Hello,
 
- extensions/libxt_TCPMSS.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+On Sun, 15 Oct 2017, KUWAZAWA Takuya wrote:
 
-diff --git a/extensions/libxt_TCPMSS.c b/extensions/libxt_TCPMSS.c
-index 4b71e44..0d9b200 100644
---- a/extensions/libxt_TCPMSS.c
-+++ b/extensions/libxt_TCPMSS.c
-@@ -91,6 +91,19 @@ static void TCPMSS_save(const void *ip, const
-struct xt_entry_target *target)
-                printf(" --set-mss %u", mssinfo->mss);
- }
+> Information about ipvs in different network namespace can be seen via procfs.
+> 
+> How to reproduce:
+> 
+>   # ip netns add ns01
+>   # ip netns add ns02
+>   # ip netns exec ns01 ip a add dev lo 127.0.0.1/8
+>   # ip netns exec ns02 ip a add dev lo 127.0.0.1/8
+>   # ip netns exec ns01 ipvsadm -A -t 10.1.1.1:80
+>   # ip netns exec ns02 ipvsadm -A -t 10.1.1.2:80
+> 
+> The ipvsadm displays information about its own network namespace only.
+> 
+>   # ip netns exec ns01 ipvsadm -Ln
+>   IP Virtual Server version 1.2.1 (size=4096)
+>   Prot LocalAddress:Port Scheduler Flags
+>     -> RemoteAddress:Port           Forward Weight ActiveConn InActConn
+>   TCP  10.1.1.1:80 wlc
+> 
+>   # ip netns exec ns02 ipvsadm -Ln
+>   IP Virtual Server version 1.2.1 (size=4096)
+>   Prot LocalAddress:Port Scheduler Flags
+>     -> RemoteAddress:Port           Forward Weight ActiveConn InActConn
+>   TCP  10.1.1.2:80 wlc
+> 
+> But I can see information about other network namespace via procfs.
+> 
+>   # ip netns exec ns01 cat /proc/net/ip_vs
+>   IP Virtual Server version 1.2.1 (size=4096)
+>   Prot LocalAddress:Port Scheduler Flags
+>     -> RemoteAddress:Port Forward Weight ActiveConn InActConn
+>   TCP  0A010101:0050 wlc
+>   TCP  0A010102:0050 wlc
+> 
+>   # ip netns exec ns02 cat /proc/net/ip_vs
+>   IP Virtual Server version 1.2.1 (size=4096)
+>   Prot LocalAddress:Port Scheduler Flags
+>     -> RemoteAddress:Port Forward Weight ActiveConn InActConn
+>   TCP  0A010102:0050 wlc
+> 
+> Signed-off-by: KUWAZAWA Takuya <albatross0@gmail.com>
 
-+static int TCPMSS_xlate(struct xt_xlate *xl,
-+                       const struct xt_xlate_tg_params *params)
-+{
-+       const struct xt_tcpmss_info *mssinfo =
-+               (const struct xt_tcpmss_info *)params->target->data;
-+       if (mssinfo->mss == XT_TCPMSS_CLAMP_PMTU)
-+               xt_xlate_add(xl, "tcp option maxseg size set rt mtu");
-+       else
-+               xt_xlate_add(xl, "tcp option maxseg size set %d", mssinfo->mss);
-+
-+       return 1;
-+}
-+
- static struct xtables_target tcpmss_tg_reg[] = {
-        {
-                .family        = NFPROTO_IPV4,
-@@ -104,6 +117,7 @@ static struct xtables_target tcpmss_tg_reg[] = {
-                .x6_parse      = TCPMSS_parse,
-                .x6_fcheck     = TCPMSS_check,
-                .x6_options    = TCPMSS4_opts,
-+              .xlate              = TCPMSS_xlate,
-        },
-        {
-                .family        = NFPROTO_IPV6,
---
-2.7.4
+	Looks good to me
+
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
+	Simon, please apply to ipvs tree.
+
+> ---
+>  net/netfilter/ipvs/ip_vs_ctl.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index 4f940d7..b3245f9 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -2034,12 +2034,16 @@ static int ip_vs_info_seq_show(struct seq_file *seq, void *v)
+>  		seq_puts(seq,
+>  			 "  -> RemoteAddress:Port Forward Weight ActiveConn InActConn\n");
+>  	} else {
+> +		struct net *net = seq_file_net(seq);
+> +		struct netns_ipvs *ipvs = net_ipvs(net);
+>  		const struct ip_vs_service *svc = v;
+>  		const struct ip_vs_iter *iter = seq->private;
+>  		const struct ip_vs_dest *dest;
+>  		struct ip_vs_scheduler *sched = rcu_dereference(svc->scheduler);
+>  		char *sched_name = sched ? sched->name : "none";
+>  
+> +		if (svc->ipvs != ipvs)
+> +			return 0;
+>  		if (iter->table == ip_vs_svc_table) {
+>  #ifdef CONFIG_IP_VS_IPV6
+>  			if (svc->af == AF_INET6)
+> -- 
+> 1.8.3.1
+
+Regards
