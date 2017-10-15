@@ -1,118 +1,75 @@
-From: Shyam Saini <mayhs11saini@gmail.com>
-Subject: [PATCH nft V4 2/2] tests: shell: Add tests for low level json import
-Date: Sun, 15 Oct 2017 19:45:19 +0530
-Message-ID: <1508076919-25873-2-git-send-email-mayhs11saini@gmail.com>
-References: <1508076919-25873-1-git-send-email-mayhs11saini@gmail.com>
-Cc: Shyam Saini <mayhs11saini@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Aastha Gupta <aastha.gupta4104@gmail.com>
+Subject: Re: [PATCH v3] iptables: iptables-compat translation for TCPMSS
+Date: Sun, 15 Oct 2017 22:32:35 +0530
+Message-ID: <CAHXiS5_GXmDNi32UaQEoP9u+ArcrL7PkcrQPQ39u38Qh1i6Hmg@mail.gmail.com>
+References: <CAHXiS5-LAiGs7+5zs-VhOmW2WLCAsNsaQrWh+5=m8=JrcyWtRw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: outreachy-kernel@googlegroups.com, netfilter-devel@vger.kernel.org,
+        Aastha Gupta <aastha.gupta4104@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:52265 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751386AbdJOOQF (ORCPT
+Received: from mail-vk0-f67.google.com ([209.85.213.67]:38544 "EHLO
+        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751763AbdJORCg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 15 Oct 2017 10:16:05 -0400
-Received: by mail-pf0-f195.google.com with SMTP id e64so13874483pfk.9
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Oct 2017 07:16:05 -0700 (PDT)
-In-Reply-To: <1508076919-25873-1-git-send-email-mayhs11saini@gmail.com>
+        Sun, 15 Oct 2017 13:02:36 -0400
+Received: by mail-vk0-f67.google.com with SMTP id d12so3373315vkf.5
+        for <netfilter-devel@vger.kernel.org>; Sun, 15 Oct 2017 10:02:36 -0700 (PDT)
+In-Reply-To: <CAHXiS5-LAiGs7+5zs-VhOmW2WLCAsNsaQrWh+5=m8=JrcyWtRw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Test upcoming "import json" statement.
+On Sun, Oct 15, 2017 at 5:46 PM, Aastha Gupta
+<aastha.gupta4104@gmail.com> wrote:
+> Since path mtu support was added, we can now add
+> iptables-compat translation for TCPMSS extension.
+>
+> Signed-off-by: Aastha Gupta <aastha.gupta4104@gmail.com>
+> ---
+> changes in v3:
+>         - fixed alignment issues
+>
+>  extensions/libxt_TCPMSS.c | 14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
+>
+> diff --git a/extensions/libxt_TCPMSS.c b/extensions/libxt_TCPMSS.c
+> index 4b71e44..0d9b200 100644
+> --- a/extensions/libxt_TCPMSS.c
+> +++ b/extensions/libxt_TCPMSS.c
+> @@ -91,6 +91,19 @@ static void TCPMSS_save(const void *ip, const
+> struct xt_entry_target *target)
+>                 printf(" --set-mss %u", mssinfo->mss);
+>  }
+>
+> +static int TCPMSS_xlate(struct xt_xlate *xl,
+> +                       const struct xt_xlate_tg_params *params)
+> +{
+> +       const struct xt_tcpmss_info *mssinfo =
+> +               (const struct xt_tcpmss_info *)params->target->data;
+> +       if (mssinfo->mss == XT_TCPMSS_CLAMP_PMTU)
+> +               xt_xlate_add(xl, "tcp option maxseg size set rt mtu");
+> +       else
+> +               xt_xlate_add(xl, "tcp option maxseg size set %d", mssinfo->mss);
+> +
+> +       return 1;
+> +}
+> +
+>  static struct xtables_target tcpmss_tg_reg[] = {
+>         {
+>                 .family        = NFPROTO_IPV4,
+> @@ -104,6 +117,7 @@ static struct xtables_target tcpmss_tg_reg[] = {
+>                 .x6_parse      = TCPMSS_parse,
+>                 .x6_fcheck     = TCPMSS_check,
+>                 .x6_options    = TCPMSS4_opts,
+> +              .xlate              = TCPMSS_xlate,
+>         },
+>         {
+>                 .family        = NFPROTO_IPV6,
+> --
+> 2.7.4
 
-Basically it loads same set of rules by "nft -f" and "nft import vm json"
-and prints differences(if any) in the ruleset listed by "nft list
-ruleset" in each case.
+Please ignore this patch as this patch really dosen't solve anything.
+The v2 of this patch should be considered instead.
 
-        For Example:
-        $ ./run-tests.sh testcases/import/vm_json_import_0
-
-Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
----
-V4:
-  Adopt new "vm" symbol for export/import operations
----
- tests/shell/testcases/import/vm_json_import_0 | 72 +++++++++++++++++++++++++++
- 1 file changed, 72 insertions(+)
- create mode 100755 tests/shell/testcases/import/vm_json_import_0
-
-diff --git a/tests/shell/testcases/import/vm_json_import_0 b/tests/shell/testcases/import/vm_json_import_0
-new file mode 100755
-index 000000000000..87ab8c8b6679
---- /dev/null
-+++ b/tests/shell/testcases/import/vm_json_import_0
-@@ -0,0 +1,72 @@
-+#!/bin/bash
-+
-+tmpfile=$(mktemp)
-+
-+if [ ! -w $tmpfile ] ; then
-+	echo "Failed to create tmp file" >&2
-+	exit 0
-+fi
-+
-+trap "rm -rf $tmpfile" EXIT # cleanup if aborted
-+
-+RULESET="table ip mangle {
-+	set blackhole {
-+		type ipv4_addr
-+		elements = { 192.168.1.4, 192.168.1.5 }
-+	}
-+
-+	chain prerouting {
-+		type filter hook prerouting priority 0; policy accept;
-+		tcp dport { ssh, http } accept
-+		ip saddr @blackhole drop
-+		icmp type echo-request accept
-+		iifname \"lo\" accept
-+		icmp type echo-request counter packets 0 bytes 0
-+		ct state established,related accept
-+		tcp flags != syn counter packets 7 bytes 841
-+		ip saddr 192.168.1.100 ip daddr 192.168.1.1 counter packets 0 bytes 0
-+	}
-+}
-+table arp x {
-+	chain y {
-+		arp htype 22
-+		arp ptype ip
-+		arp operation != rrequest
-+		arp operation { request, reply, rrequest, rreply, inrequest, inreply, nak }
-+		arp hlen 33-45
-+	}
-+}
-+table bridge x {
-+	chain y {
-+		type filter hook input priority 0; policy accept;
-+		vlan id 4094
-+		vlan id 4094 vlan cfi 0
-+		vlan id 1 ip saddr 10.0.0.0/23 udp dport domain
-+	}
-+}
-+table ip6 x {
-+	chain y {
-+		type nat hook postrouting priority 0; policy accept;
-+		icmpv6 id 33-45
-+		ip6 daddr fe00::1-fe00::200 udp dport domain counter packets 0 bytes 0
-+		meta l4proto tcp masquerade to :1024
-+		iifname \"wlan0\" ct state established,new tcp dport vmap { ssh : drop, 222 : drop } masquerade
-+		tcp dport ssh ip6 daddr 1::2 ether saddr 00:0f:54:0c:11:04 accept
-+		ip6 daddr fe00::1-fe00::200 udp dport domain counter packets 0 bytes 0 masquerade
-+	}
-+}"
-+
-+echo "$RULESET" > $tmpfile
-+$NFT -f $tmpfile
-+$NFT export vm json > $tmpfile
-+$NFT flush ruleset
-+cat $tmpfile | $NFT import vm json
-+
-+RESULT="$($NFT list ruleset)"
-+
-+
-+if [ "$RULESET" != "$RESULT" ] ; then
-+	DIFF="$(which diff)"
-+	[ -x $DIFF ] && $DIFF -u <(echo "$RULESET") <(echo "$RESULT")
-+fi
-+
--- 
-1.9.1
-
+Aastha
