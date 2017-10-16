@@ -1,87 +1,182 @@
-From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH] tests: add regression tests for xtables-translate
-Date: Tue, 17 Oct 2017 01:02:18 +0530
-Message-ID: <20171016193218.8197-1-harshasharmaiitr@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, outreachy-kernel@googlegroups.com,
-        Harsha Sharma <harshasharmaiitr@gmail.com>
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:45134 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754998AbdJPTef (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 16 Oct 2017 15:34:35 -0400
-Received: by mail-pf0-f194.google.com with SMTP id d28so16547830pfe.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 Oct 2017 12:34:35 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Stefan Schmidt <stefan@datenfreihafen.org>
+Subject: Re: [PATCH] inet: frags: Convert timers to use timer_setup()
+Date: Mon, 16 Oct 2017 22:16:27 +0200
+Message-ID: <334445c8-1883-51ee-d95e-9fa0fdf5ef58@datenfreihafen.org>
+References: <20171005005233.GA23612@beast>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: Alexander Aring <alex.aring@gmail.com>,
+        Stefan Schmidt <stefan@osg.samsung.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>, linux-wpan@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, Thomas Gleixner <tglx@linutronix.de>
+To: Kees Cook <keescook@chromium.org>, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171005005233.GA23612@beast>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This test suite is intended to detect regressions in the translation
-infrastructure. The script checks if ip[6]tables-translate produces the
-expected output, otherwise it prints the wrong translation and the
-expected one.
+Hello.
 
-** Arguments
+On 05.10.2017 02:52, Kees Cook wrote:
+> In preparation for unconditionally passing the struct timer_list pointer to
+> all timer callbacks, switch to using the new timer_setup() and from_timer()
+> to pass the timer pointer explicitly.
+> 
+> Cc: Alexander Aring <alex.aring@gmail.com>
+> Cc: Stefan Schmidt <stefan@osg.samsung.com>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
+> Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
+> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> Cc: Florian Westphal <fw@strlen.de>
+> Cc: linux-wpan@vger.kernel.org
+> Cc: netdev@vger.kernel.org
+> Cc: netfilter-devel@vger.kernel.org
+> Cc: coreteam@netfilter.org
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Signed-off-by: Kees Cook <keescook@chromium.org>
+> ---
+> This requires commit 686fef928bba ("timer: Prepare to change timer
+> callback argument type") in v4.14-rc3, but should be otherwise
+> stand-alone.
+> ---
+>  include/net/inet_frag.h                 | 2 +-
+>  net/ieee802154/6lowpan/reassembly.c     | 5 +++--
+>  net/ipv4/inet_fragment.c                | 4 ++--
+>  net/ipv4/ip_fragment.c                  | 5 +++--
+>  net/ipv6/netfilter/nf_conntrack_reasm.c | 5 +++--
+>  net/ipv6/reassembly.c                   | 5 +++--
+>  6 files changed, 15 insertions(+), 11 deletions(-)
+> 
+> diff --git a/include/net/inet_frag.h b/include/net/inet_frag.h
+> index fc59e0775e00..c695807ca707 100644
+> --- a/include/net/inet_frag.h
+> +++ b/include/net/inet_frag.h
+> @@ -95,7 +95,7 @@ struct inet_frags {
+>  	void			(*constructor)(struct inet_frag_queue *q,
+>  					       const void *arg);
+>  	void			(*destructor)(struct inet_frag_queue *);
+> -	void			(*frag_expire)(unsigned long data);
+> +	void			(*frag_expire)(struct timer_list *t);
+>  	struct kmem_cache	*frags_cachep;
+>  	const char		*frags_cache_name;
+>  };
+> diff --git a/net/ieee802154/6lowpan/reassembly.c b/net/ieee802154/6lowpan/reassembly.c
+> index f85b08baff16..85bf86ad6b18 100644
+> --- a/net/ieee802154/6lowpan/reassembly.c
+> +++ b/net/ieee802154/6lowpan/reassembly.c
+> @@ -80,12 +80,13 @@ static void lowpan_frag_init(struct inet_frag_queue *q, const void *a)
+>  	fq->daddr = *arg->dst;
+>  }
+>  
+> -static void lowpan_frag_expire(unsigned long data)
+> +static void lowpan_frag_expire(struct timer_list *t)
+>  {
+> +	struct inet_frag_queue *frag = from_timer(frag, t, timer);
+>  	struct frag_queue *fq;
+>  	struct net *net;
+>  
+> -	fq = container_of((struct inet_frag_queue *)data, struct frag_queue, q);
+> +	fq = container_of(frag, struct frag_queue, q);
+>  	net = container_of(fq->q.net, struct net, ieee802154_lowpan.frags);
+>  
+>  	spin_lock(&fq->q.lock);
+> diff --git a/net/ipv4/inet_fragment.c b/net/ipv4/inet_fragment.c
+> index af74d0433453..7f3ef5c287a1 100644
+> --- a/net/ipv4/inet_fragment.c
+> +++ b/net/ipv4/inet_fragment.c
+> @@ -147,7 +147,7 @@ inet_evict_bucket(struct inet_frags *f, struct inet_frag_bucket *hb)
+>  	spin_unlock(&hb->chain_lock);
+>  
+>  	hlist_for_each_entry_safe(fq, n, &expired, list_evictor)
+> -		f->frag_expire((unsigned long) fq);
+> +		f->frag_expire(&fq->timer);
+>  
+>  	return evicted;
+>  }
+> @@ -366,7 +366,7 @@ static struct inet_frag_queue *inet_frag_alloc(struct netns_frags *nf,
+>  	f->constructor(q, arg);
+>  	add_frag_mem_limit(nf, f->qsize);
+>  
+> -	setup_timer(&q->timer, f->frag_expire, (unsigned long)q);
+> +	timer_setup(&q->timer, f->frag_expire, 0);
+>  	spin_lock_init(&q->lock);
+>  	refcount_set(&q->refcnt, 1);
+>  
+> diff --git a/net/ipv4/ip_fragment.c b/net/ipv4/ip_fragment.c
+> index 46408c220d9d..9215654a401f 100644
+> --- a/net/ipv4/ip_fragment.c
+> +++ b/net/ipv4/ip_fragment.c
+> @@ -190,12 +190,13 @@ static bool frag_expire_skip_icmp(u32 user)
+>  /*
+>   * Oops, a fragment queue timed out.  Kill it and send an ICMP reply.
+>   */
+> -static void ip_expire(unsigned long arg)
+> +static void ip_expire(struct timer_list *t)
+>  {
+> +	struct inet_frag_queue *frag = from_timer(frag, t, timer);
+>  	struct ipq *qp;
+>  	struct net *net;
+>  
+> -	qp = container_of((struct inet_frag_queue *) arg, struct ipq, q);
+> +	qp = container_of(frag, struct ipq, q);
+>  	net = container_of(qp->q.net, struct net, ipv4.frags);
+>  
+>  	rcu_read_lock();
+> diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+> index b263bf3a19f7..977d8900cfd1 100644
+> --- a/net/ipv6/netfilter/nf_conntrack_reasm.c
+> +++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+> @@ -169,12 +169,13 @@ static unsigned int nf_hashfn(const struct inet_frag_queue *q)
+>  	return nf_hash_frag(nq->id, &nq->saddr, &nq->daddr);
+>  }
+>  
+> -static void nf_ct_frag6_expire(unsigned long data)
+> +static void nf_ct_frag6_expire(struct timer_list *t)
+>  {
+> +	struct inet_frag_queue *frag = from_timer(frag, t, timer);
+>  	struct frag_queue *fq;
+>  	struct net *net;
+>  
+> -	fq = container_of((struct inet_frag_queue *)data, struct frag_queue, q);
+> +	fq = container_of(frag, struct frag_queue, q);
+>  	net = container_of(fq->q.net, struct net, nf_frag.frags);
+>  
+>  	ip6_expire_frag_queue(net, fq, &nf_frags);
+> diff --git a/net/ipv6/reassembly.c b/net/ipv6/reassembly.c
+> index 846012eae526..afbc000ad4f2 100644
+> --- a/net/ipv6/reassembly.c
+> +++ b/net/ipv6/reassembly.c
+> @@ -170,12 +170,13 @@ void ip6_expire_frag_queue(struct net *net, struct frag_queue *fq,
+>  }
+>  EXPORT_SYMBOL(ip6_expire_frag_queue);
+>  
+> -static void ip6_frag_expire(unsigned long data)
+> +static void ip6_frag_expire(struct timer_list *t)
+>  {
+> +	struct inet_frag_queue *frag = from_timer(frag, t, timer);
+>  	struct frag_queue *fq;
+>  	struct net *net;
+>  
+> -	fq = container_of((struct inet_frag_queue *)data, struct frag_queue, q);
+> +	fq = container_of(frag, struct frag_queue, q);
+>  	net = container_of(fq->q.net, struct net, ipv6.frags);
+>  
+>  	ip6_expire_frag_queue(net, fq, &ip6_frags);
+> 
 
-  --all     # Show also passed tests
-  [test]    # Run only the specified test file
+For the ieee802154 part:
 
-** Test files structure
+Acked-by: Stefan Schmidt <stefan@osg.samsung.com>
 
-Test files are located under extensions directory. Every file contains
-tests about specific extension translations. A test file name must end
-with ".txlate".
-
-Inside the files, every single test is defined by two consecutive lines:
-ip[6]tables-translate command and expected result. One blank line is left
-between tests by convention.
-
-e.g.
-
-  $ cat extensions/libxt_cpu.txlate
-  iptables-translate -A INPUT -p tcp --dport 80 -m cpu --cpu 0 -j ACCEPT
-  nft add rule ip filter INPUT tcp dport 80 cpu 0 counter accept
-
-  iptables-translate -A INPUT -p tcp --dport 80 -m cpu ! --cpu 1 -j ACCEPT
-  nft add rule ip filter INPUT tcp dport 80 cpu != 1 counter accept
-
-Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
----
- extensions/libxt_TOS.txlate | 25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
- create mode 100644 extensions/libxt_TOS.txlate
-
-diff --git a/extensions/libxt_TOS.txlate b/extensions/libxt_TOS.txlate
-new file mode 100644
-index 00000000..6d55eb24
---- /dev/null
-+++ b/extensions/libxt_TOS.txlate
-@@ -0,0 +1,25 @@
-+ip6tables-translate -A INPUT -j TOS --set-tos 0x1f
-+nft add rule ip6 filter INPUT counter ip6 dscp set 0x07
-+
-+ip6tables-translate -A INPUT -j TOS --set-tos 0xff
-+nft add rule ip6 filter INPUT counter ip6 dscp set 0x3f
-+
-+ip6tables-translate -A INPUT -j TOS --set-tos Minimize-Delay
-+nft add rule ip6 filter INPUT counter ip6 dscp set 0x04
-+
-+ip6tables-translate -A INPUT -j TOS --set-tos Minimize-Cost
-+nft add rule ip6 filter INPUT counter ip6 dscp set 0x00
-+
-+ip6tables-translate -A INPUT -j TOS --set-tos Normal-Service
-+nft add rule ip6 filter INPUT counter ip6 dscp set 0x00
-+
-+ip6tables-translate -A INPUT -j TOS --and-tos 0x12
-+nft add rule ip6 filter INPUT counter ip6 dscp set 0x00
-+
-+ip6tables-translate -A INPUT -j TOS --or-tos 0x12
-+nft add rule ip6 filter INPUT counter ip6 dscp set 0x04
-+
-+ip6tables-translate -A INPUT -j TOS --xor-tos 0x12
-+nft add rule ip6 filter INPUT counter ip6 dscp set 0x04
-+
-+
--- 
-2.11.0
-
+regards
+Stefan Schmidt
