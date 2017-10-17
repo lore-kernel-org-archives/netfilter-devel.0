@@ -1,225 +1,236 @@
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] ipv6: mark expected switch fall-throughs
-Date: Mon, 16 Oct 2017 16:36:52 -0500
-Message-ID: <20171016213652.GA9967@embeddedor.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Steffen Klassert <steffen.klassert@secunet.com>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+From: Kees Cook <keescook@chromium.org>
+Subject: [PATCH 34/58] netfilter: ipset: Convert timers to use timer_setup()
+Date: Mon, 16 Oct 2017 17:29:18 -0700
+Message-ID: <1508200182-104605-35-git-send-email-keescook@chromium.org>
+References: <1508200182-104605-1-git-send-email-keescook@chromium.org>
+Cc: Kees Cook <keescook@chromium.org>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
+        Florian Westphal <fw@strlen.de>,
+        Stephen Hemminger <stephen@networkplumber.org>,
+        simran singhal <singhalsimran0@gmail.com>,
+        Muhammad Falak R Wani <falakreyaz@gmail.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>,
+        linux-kernel@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1508200182-104605-1-git-send-email-keescook@chromium.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-In preparation to enabling -Wimplicit-fallthrough, mark switch cases
-where we are expecting to fall through.
+In preparation for unconditionally passing the struct timer_list pointer to
+all timer callbacks, switch to using the new timer_setup() and from_timer()
+to pass the timer pointer explicitly. This introduces a pointer back to the
+struct ip_set, which is used instead of the struct timer_list .data field.
 
-Notice that in some cases I placed the "fall through" comment
-on its own line, which is what GCC is expecting to find.
-
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Stephen Hemminger <stephen@networkplumber.org>
+Cc: simran singhal <singhalsimran0@gmail.com>
+Cc: Muhammad Falak R Wani <falakreyaz@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+Cc: netdev@vger.kernel.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
 ---
-This code was tested by compilation only (GCC 7.2.0 was used).
-Please, verify if the actual intention of the code is to fall through.
+ net/netfilter/ipset/ip_set_bitmap_gen.h   | 10 +++++-----
+ net/netfilter/ipset/ip_set_bitmap_ip.c    |  2 ++
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c |  2 ++
+ net/netfilter/ipset/ip_set_bitmap_port.c  |  2 ++
+ net/netfilter/ipset/ip_set_hash_gen.h     | 12 +++++++-----
+ net/netfilter/ipset/ip_set_list_set.c     | 12 +++++++-----
+ 6 files changed, 25 insertions(+), 15 deletions(-)
 
- net/ipv6/ah6.c                           | 1 +
- net/ipv6/exthdrs.c                       | 1 +
- net/ipv6/icmp.c                          | 6 ++----
- net/ipv6/ip6_fib.c                       | 4 ++++
- net/ipv6/ip6_tunnel.c                    | 1 +
- net/ipv6/ip6mr.c                         | 1 +
- net/ipv6/netfilter/nf_nat_l3proto_ipv6.c | 3 ++-
- net/ipv6/raw.c                           | 4 ++++
- net/ipv6/tcp_ipv6.c                      | 3 ++-
- net/ipv6/xfrm6_policy.c                  | 1 +
- 10 files changed, 19 insertions(+), 6 deletions(-)
-
-diff --git a/net/ipv6/ah6.c b/net/ipv6/ah6.c
-index 7802b72..37bb33f 100644
---- a/net/ipv6/ah6.c
-+++ b/net/ipv6/ah6.c
-@@ -271,6 +271,7 @@ static int ipv6_clear_mutable_options(struct ipv6hdr *iph, int len, int dir)
- 		case NEXTHDR_DEST:
- 			if (dir == XFRM_POLICY_OUT)
- 				ipv6_rearrange_destopt(iph, exthdr.opth);
-+			/* fall through */
- 		case NEXTHDR_HOP:
- 			if (!zero_out_mutable_opts(exthdr.opth)) {
- 				net_dbg_ratelimited("overrun %sopts\n",
-diff --git a/net/ipv6/exthdrs.c b/net/ipv6/exthdrs.c
-index 9551613..7835dea 100644
---- a/net/ipv6/exthdrs.c
-+++ b/net/ipv6/exthdrs.c
-@@ -89,6 +89,7 @@ static bool ip6_tlvopt_unknown(struct sk_buff *skb, int optoff)
- 		 */
- 		if (ipv6_addr_is_multicast(&ipv6_hdr(skb)->daddr))
- 			break;
-+		/* fall through */
- 	case 2: /* send ICMP PARM PROB regardless and drop packet */
- 		icmpv6_param_prob(skb, ICMPV6_UNK_OPTION, optoff);
- 		return false;
-diff --git a/net/ipv6/icmp.c b/net/ipv6/icmp.c
-index 4e52d52..6ae5dd3 100644
---- a/net/ipv6/icmp.c
-+++ b/net/ipv6/icmp.c
-@@ -864,10 +864,8 @@ static int icmpv6_rcv(struct sk_buff *skb)
- 			goto discard_it;
- 		hdr = icmp6_hdr(skb);
+diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
+index 8ad2b52a0b32..5ca18f07683b 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_gen.h
++++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
+@@ -37,11 +37,11 @@
+ #define get_ext(set, map, id)	((map)->extensions + ((set)->dsize * (id)))
  
--		/*
--		 *	Drop through to notify
--		 */
--
-+		/* to notify */
-+		/* fall through */
- 	case ICMPV6_DEST_UNREACH:
- 	case ICMPV6_TIME_EXCEED:
- 	case ICMPV6_PARAMPROB:
-diff --git a/net/ipv6/ip6_fib.c b/net/ipv6/ip6_fib.c
-index c2ecd5e..dcb0649 100644
---- a/net/ipv6/ip6_fib.c
-+++ b/net/ipv6/ip6_fib.c
-@@ -1777,6 +1777,7 @@ static int fib6_walk_continue(struct fib6_walker *w)
- 			}
- 			w->state = FWS_L;
- #endif
-+			/* fall through */
- 		case FWS_L:
- 			left = rcu_dereference_protected(fn->left, 1);
- 			if (left) {
-@@ -1785,6 +1786,7 @@ static int fib6_walk_continue(struct fib6_walker *w)
- 				continue;
- 			}
- 			w->state = FWS_R;
-+			/* fall through */
- 		case FWS_R:
- 			right = rcu_dereference_protected(fn->right, 1);
- 			if (right) {
-@@ -1794,6 +1796,7 @@ static int fib6_walk_continue(struct fib6_walker *w)
- 			}
- 			w->state = FWS_C;
- 			w->leaf = rcu_dereference_protected(fn->leaf, 1);
-+			/* fall through */
- 		case FWS_C:
- 			if (w->leaf && fn->fn_flags & RTN_RTINFO) {
- 				int err;
-@@ -1812,6 +1815,7 @@ static int fib6_walk_continue(struct fib6_walker *w)
- 			}
- skip:
- 			w->state = FWS_U;
-+			/* fall through */
- 		case FWS_U:
- 			if (fn == w->root)
- 				return 0;
-diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
-index 8255486..4212879 100644
---- a/net/ipv6/ip6_tunnel.c
-+++ b/net/ipv6/ip6_tunnel.c
-@@ -593,6 +593,7 @@ ip4ip6_err(struct sk_buff *skb, struct inet6_skb_parm *opt,
- 	case NDISC_REDIRECT:
- 		rel_type = ICMP_REDIRECT;
- 		rel_code = ICMP_REDIR_HOST;
-+		/* fall through */
- 	default:
- 		return 0;
- 	}
-diff --git a/net/ipv6/ip6mr.c b/net/ipv6/ip6mr.c
-index f5500f5..59fad81 100644
---- a/net/ipv6/ip6mr.c
-+++ b/net/ipv6/ip6mr.c
-@@ -1722,6 +1722,7 @@ int ip6_mroute_setsockopt(struct sock *sk, int optname, char __user *optval, uns
- 	case MRT6_ADD_MFC:
- 	case MRT6_DEL_MFC:
- 		parent = -1;
-+		/* fall through */
- 	case MRT6_ADD_MFC_PROXY:
- 	case MRT6_DEL_MFC_PROXY:
- 		if (optlen < sizeof(mfc))
-diff --git a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-index 46d6dba..1d2fb92 100644
---- a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-@@ -290,7 +290,8 @@ nf_nat_ipv6_fn(void *priv, struct sk_buff *skb,
- 			else
- 				return NF_ACCEPT;
- 		}
--		/* Fall thru... (Only ICMPs can be IP_CT_IS_REPLY) */
-+		/* Only ICMPs can be IP_CT_IS_REPLY: */
-+		/* fall through */
- 	case IP_CT_NEW:
- 		/* Seen it before?  This can happen for loopback, retrans,
- 		 * or local packets.
-diff --git a/net/ipv6/raw.c b/net/ipv6/raw.c
-index 041d1cd..08a85fa 100644
---- a/net/ipv6/raw.c
-+++ b/net/ipv6/raw.c
-@@ -1055,6 +1055,7 @@ static int rawv6_setsockopt(struct sock *sk, int level, int optname,
- 		if (optname == IPV6_CHECKSUM ||
- 		    optname == IPV6_HDRINCL)
- 			break;
-+		/* fall through */
- 	default:
- 		return ipv6_setsockopt(sk, level, optname, optval, optlen);
- 	}
-@@ -1077,6 +1078,7 @@ static int compat_rawv6_setsockopt(struct sock *sk, int level, int optname,
- 		if (optname == IPV6_CHECKSUM ||
- 		    optname == IPV6_HDRINCL)
- 			break;
-+		/* fall through */
- 	default:
- 		return compat_ipv6_setsockopt(sk, level, optname,
- 					      optval, optlen);
-@@ -1138,6 +1140,7 @@ static int rawv6_getsockopt(struct sock *sk, int level, int optname,
- 		if (optname == IPV6_CHECKSUM ||
- 		    optname == IPV6_HDRINCL)
- 			break;
-+		/* fall through */
- 	default:
- 		return ipv6_getsockopt(sk, level, optname, optval, optlen);
- 	}
-@@ -1160,6 +1163,7 @@ static int compat_rawv6_getsockopt(struct sock *sk, int level, int optname,
- 		if (optname == IPV6_CHECKSUM ||
- 		    optname == IPV6_HDRINCL)
- 			break;
-+		/* fall through */
- 	default:
- 		return compat_ipv6_getsockopt(sk, level, optname,
- 					      optval, optlen);
-diff --git a/net/ipv6/tcp_ipv6.c b/net/ipv6/tcp_ipv6.c
-index 64d94af..ae83615 100644
---- a/net/ipv6/tcp_ipv6.c
-+++ b/net/ipv6/tcp_ipv6.c
-@@ -1577,8 +1577,9 @@ static int tcp_v6_rcv(struct sk_buff *skb)
- 			refcounted = false;
- 			goto process;
- 		}
--		/* Fall through to ACK */
- 	}
-+		/* to ACK */
-+		/* fall through */
- 	case TCP_TW_ACK:
- 		tcp_v6_timewait_ack(sk, skb);
- 		break;
-diff --git a/net/ipv6/xfrm6_policy.c b/net/ipv6/xfrm6_policy.c
-index 11d1314..4ed9f8c 100644
---- a/net/ipv6/xfrm6_policy.c
-+++ b/net/ipv6/xfrm6_policy.c
-@@ -152,6 +152,7 @@ _decode_session6(struct sk_buff *skb, struct flowi *fl, int reverse)
- 		switch (nexthdr) {
- 		case NEXTHDR_FRAGMENT:
- 			onlyproto = 1;
-+			/* fall through */
- 		case NEXTHDR_ROUTING:
- 		case NEXTHDR_HOP:
- 		case NEXTHDR_DEST:
+ static void
+-mtype_gc_init(struct ip_set *set, void (*gc)(unsigned long ul_set))
++mtype_gc_init(struct ip_set *set, void (*gc)(struct timer_list *t))
+ {
+ 	struct mtype *map = set->data;
+ 
+-	setup_timer(&map->gc, gc, (unsigned long)set);
++	timer_setup(&map->gc, gc, 0);
+ 	mod_timer(&map->gc, jiffies + IPSET_GC_PERIOD(set->timeout) * HZ);
+ }
+ 
+@@ -272,10 +272,10 @@ mtype_list(const struct ip_set *set,
+ }
+ 
+ static void
+-mtype_gc(unsigned long ul_set)
++mtype_gc(struct timer_list *t)
+ {
+-	struct ip_set *set = (struct ip_set *)ul_set;
+-	struct mtype *map = set->data;
++	struct mtype *map = from_timer(map, t, gc);
++	struct ip_set *set = map->set;
+ 	void *x;
+ 	u32 id;
+ 
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
+index 4783efff0bde..d8975a0b4282 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ip.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
+@@ -48,6 +48,7 @@ struct bitmap_ip {
+ 	size_t memsize;		/* members size */
+ 	u8 netmask;		/* subnet netmask */
+ 	struct timer_list gc;	/* garbage collection */
++	struct ip_set *set;	/* attached to this ip_set */
+ 	unsigned char extensions[0]	/* data extensions */
+ 		__aligned(__alignof__(u64));
+ };
+@@ -232,6 +233,7 @@ init_map_ip(struct ip_set *set, struct bitmap_ip *map,
+ 	map->netmask = netmask;
+ 	set->timeout = IPSET_NO_TIMEOUT;
+ 
++	map->set = set;
+ 	set->data = map;
+ 	set->family = NFPROTO_IPV4;
+ 
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index 9a065f672d3a..4c279fbd2d5d 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -52,6 +52,7 @@ struct bitmap_ipmac {
+ 	u32 elements;		/* number of max elements in the set */
+ 	size_t memsize;		/* members size */
+ 	struct timer_list gc;	/* garbage collector */
++	struct ip_set *set;	/* attached to this ip_set */
+ 	unsigned char extensions[0]	/* MAC + data extensions */
+ 		__aligned(__alignof__(u64));
+ };
+@@ -307,6 +308,7 @@ init_map_ipmac(struct ip_set *set, struct bitmap_ipmac *map,
+ 	map->elements = elements;
+ 	set->timeout = IPSET_NO_TIMEOUT;
+ 
++	map->set = set;
+ 	set->data = map;
+ 	set->family = NFPROTO_IPV4;
+ 
+diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
+index 7f0c733358a4..7f9bbd7c98b5 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_port.c
++++ b/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -40,6 +40,7 @@ struct bitmap_port {
+ 	u32 elements;		/* number of max elements in the set */
+ 	size_t memsize;		/* members size */
+ 	struct timer_list gc;	/* garbage collection */
++	struct ip_set *set;	/* attached to this ip_set */
+ 	unsigned char extensions[0]	/* data extensions */
+ 		__aligned(__alignof__(u64));
+ };
+@@ -214,6 +215,7 @@ init_map_port(struct ip_set *set, struct bitmap_port *map,
+ 	map->last_port = last_port;
+ 	set->timeout = IPSET_NO_TIMEOUT;
+ 
++	map->set = set;
+ 	set->data = map;
+ 	set->family = NFPROTO_UNSPEC;
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 51063d9ed0f7..efffc8eabafe 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -280,6 +280,7 @@ htable_bits(u32 hashsize)
+ struct htype {
+ 	struct htable __rcu *table; /* the hash table */
+ 	struct timer_list gc;	/* garbage collection when timeout enabled */
++	struct ip_set *set;	/* attached to this ip_set */
+ 	u32 maxelem;		/* max elements in the hash */
+ 	u32 initval;		/* random jhash init value */
+ #ifdef IP_SET_HASH_WITH_MARKMASK
+@@ -429,11 +430,11 @@ mtype_destroy(struct ip_set *set)
+ }
+ 
+ static void
+-mtype_gc_init(struct ip_set *set, void (*gc)(unsigned long ul_set))
++mtype_gc_init(struct ip_set *set, void (*gc)(struct timer_list *t))
+ {
+ 	struct htype *h = set->data;
+ 
+-	setup_timer(&h->gc, gc, (unsigned long)set);
++	timer_setup(&h->gc, gc, 0);
+ 	mod_timer(&h->gc, jiffies + IPSET_GC_PERIOD(set->timeout) * HZ);
+ 	pr_debug("gc initialized, run in every %u\n",
+ 		 IPSET_GC_PERIOD(set->timeout));
+@@ -526,10 +527,10 @@ mtype_expire(struct ip_set *set, struct htype *h)
+ }
+ 
+ static void
+-mtype_gc(unsigned long ul_set)
++mtype_gc(struct timer_list *t)
+ {
+-	struct ip_set *set = (struct ip_set *)ul_set;
+-	struct htype *h = set->data;
++	struct htype *h = from_timer(h, t, gc);
++	struct ip_set *set = h->set;
+ 
+ 	pr_debug("called\n");
+ 	spin_lock_bh(&set->lock);
+@@ -1314,6 +1315,7 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
+ 	t->htable_bits = hbits;
+ 	RCU_INIT_POINTER(h->table, t);
+ 
++	h->set = set;
+ 	set->data = h;
+ #ifndef IP_SET_PROTO_UNDEF
+ 	if (set->family == NFPROTO_IPV4) {
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index 2fff6b5dc6f0..e864681b8dc5 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -44,6 +44,7 @@ struct set_adt_elem {
+ struct list_set {
+ 	u32 size;		/* size of set list array */
+ 	struct timer_list gc;	/* garbage collection */
++	struct ip_set *set;	/* attached to this ip_set */
+ 	struct net *net;	/* namespace */
+ 	struct list_head members; /* the set members */
+ };
+@@ -568,10 +569,10 @@ static const struct ip_set_type_variant set_variant = {
+ };
+ 
+ static void
+-list_set_gc(unsigned long ul_set)
++list_set_gc(struct timer_list *t)
+ {
+-	struct ip_set *set = (struct ip_set *)ul_set;
+-	struct list_set *map = set->data;
++	struct list_set *map = from_timer(map, t, gc);
++	struct ip_set *set = map->set;
+ 
+ 	spin_lock_bh(&set->lock);
+ 	set_cleanup_entries(set);
+@@ -582,11 +583,11 @@ list_set_gc(unsigned long ul_set)
+ }
+ 
+ static void
+-list_set_gc_init(struct ip_set *set, void (*gc)(unsigned long ul_set))
++list_set_gc_init(struct ip_set *set, void (*gc)(struct timer_list *t))
+ {
+ 	struct list_set *map = set->data;
+ 
+-	setup_timer(&map->gc, gc, (unsigned long)set);
++	timer_setup(&map->gc, gc, 0);
+ 	mod_timer(&map->gc, jiffies + IPSET_GC_PERIOD(set->timeout) * HZ);
+ }
+ 
+@@ -603,6 +604,7 @@ init_list_set(struct net *net, struct ip_set *set, u32 size)
+ 
+ 	map->size = size;
+ 	map->net = net;
++	map->set = set;
+ 	INIT_LIST_HEAD(&map->members);
+ 	set->data = map;
+ 
 -- 
 2.7.4
