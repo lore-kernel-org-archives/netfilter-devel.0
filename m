@@ -1,43 +1,33 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [libnftnl PATCH v2] expr: Introduce nftnl_expr_fprintf()
-Date: Tue, 17 Oct 2017 13:54:20 +0200
-Message-ID: <20171017115420.GV32305@orbyte.nwl.cc>
-References: <20171017110507.GA16060@salvia>
- <20171017112218.14539-1-phil@nwl.cc>
- <20171017113150.GA8818@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] iptables: add test file for TCPMSS extension
+Date: Tue, 17 Oct 2017 13:56:28 +0200
+Message-ID: <20171017115628.GA11588@salvia>
+References: <1508187729-3926-1-git-send-email-aastha.gupta4104@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: outreachy-kernel@googlegroups.com, netfilter-devel@vger.kernel.org
+To: Aastha Gupta <aastha.gupta4104@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:39504 "EHLO orbyte.nwl.cc"
+Received: from mail.us.es ([193.147.175.20]:55032 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933044AbdJQLyW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Oct 2017 07:54:22 -0400
+        id S933071AbdJQL4c (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Oct 2017 07:56:32 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 170704B0F8
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Oct 2017 13:56:31 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 08E9FDA86E
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Oct 2017 13:56:31 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20171017113150.GA8818@salvia>
+In-Reply-To: <1508187729-3926-1-git-send-email-aastha.gupta4104@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 17, 2017 at 01:31:50PM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Oct 17, 2017 at 01:22:18PM +0200, Phil Sutter wrote:
-> > Implement expression printing into a FILE pointer analogous to
-> > nftnl_rule_fprintf().
-> > 
-> > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > ---
-> > Changes since v1:
-> > - Update src/libnftnl.map
-> 
-> Thanks Phil.
-> 
-> I think we need to collapse this change to your patch.
+On Tue, Oct 17, 2017 at 02:32:09AM +0530, Aastha Gupta wrote:
+> This adds test file for the recently added TCPMSS extension.
 
-Ah, so that is because LIBNFTNL_5 is already released in 1.0.8, right?
+I'm taking this last version, it doesn't say v4 but looking at timing,
+it is the last one you have submitted.
 
-Do I have to adjust the respective nftables patch for backwards
-compatibility? If so, in which way?
-
-Thanks, Phil
-
-PS: V3 follows in a few seconds.
+Applied, thanks. If there is anything you need to fix, send me a
+follow up patch.
