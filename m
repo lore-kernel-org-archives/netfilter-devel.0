@@ -1,30 +1,46 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] tests: shell: add testcases for named limits
-Date: Tue, 17 Oct 2017 14:02:01 +0200
-Message-ID: <20171017120201.GA13929@salvia>
-References: <20171014104603.16365-1-harshasharmaiitr@gmail.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] netfilter: ip6_tables: remove redundant assignment to e
+Date: Tue, 17 Oct 2017 13:02:00 +0100
+Message-ID: <20171017120200.19994-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, outreachy-kernel@googlegroups.com
-To: Harsha Sharma <harshasharmaiitr@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59470 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933308AbdJQMCG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Oct 2017 08:02:06 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DE83E4D652
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Oct 2017 14:02:04 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CC02DBAAC7
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Oct 2017 14:02:04 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20171014104603.16365-1-harshasharmaiitr@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Sender: kernel-janitors-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Oct 14, 2017 at 04:16:03PM +0530, Harsha Sharma wrote:
-> Add testcases for creating named limits and referencing them
-> from rule
+From: Colin Ian King <colin.king@canonical.com>
 
-Applied, thanks Harsha.
+The assignment to variable e is redundant since the same assignment
+occurs just a few lines later, hence it can be removed.  Cleans up
+clang warning: warning: Value stored to 'e' is never read
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ net/ipv6/netfilter/ip6_tables.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 01bd3ee5ebc6..702e483d38b0 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -458,7 +458,6 @@ mark_source_chains(const struct xt_table_info *newinfo,
+ 					if (!xt_find_jump_offset(offsets, newpos,
+ 								 newinfo->number))
+ 						return 0;
+-					e = entry0 + newpos;
+ 				} else {
+ 					/* ... this is a fallthru */
+ 					newpos = pos + e->next_offset;
+-- 
+2.14.1
+
