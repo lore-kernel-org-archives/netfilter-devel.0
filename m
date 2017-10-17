@@ -1,55 +1,74 @@
-From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH v2] tests: xlate: print tests passed and error for testfile argument
-Date: Tue, 17 Oct 2017 14:54:58 +0530
-Message-ID: <20171017092458.18672-1-harshasharmaiitr@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, outreachy-kernel@googlegroups.com,
-        Harsha Sharma <harshasharmaiitr@gmail.com>
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] netlink: fix element addition to map with stateful object
+Date: Tue, 17 Oct 2017 12:32:50 +0200
+Message-ID: <20171017103250.9441-1-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:57080 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753154AbdJQJ1O (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 17 Oct 2017 05:27:14 -0400
-Received: by mail-pf0-f195.google.com with SMTP id b85so917794pfj.13
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Oct 2017 02:27:14 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:50920 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933321AbdJQKdF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 17 Oct 2017 06:33:05 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 553B952313
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Oct 2017 12:33:03 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 41908BAAB4
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Oct 2017 12:33:03 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8BB55BAAA7
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Oct 2017 12:32:56 +0200 (CEST)
+Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 4BE3640584DC
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Oct 2017 12:32:56 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Print tests passed with errors and warnings when run with only specified
-test file.
+Expressions with EXPR_F_INTERVAL_END flag set on have no right hand side,
+so they store no stateful object. Skip them so we don't crash on this.
 
-Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
+ # nft add map x testmap { type inet_service: counter\; flags interval\;}
+ # nft add counter x testcounter
+ # nft add element x testmap { 0-100 : "testcounter" }
+ Segmentation fault
+
+This patch also fixes the listing codepath.
+
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1190
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Changes in v2:
- -Change subject
- -print the errors if no argument is passed
+ src/netlink.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
- xlate-test.py | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/xlate-test.py b/xlate-test.py
-index 43c4be19..0a582af1 100755
---- a/xlate-test.py
-+++ b/xlate-test.py
-@@ -51,7 +51,7 @@ def run_test(name, payload):
-                     result.append(magenta("exp: ") + expected)
-                     result.append(magenta("res: ") + translation + "\n")
-                     test_passed = False
--                elif args.all:
-+                elif args.all or args.test:
-                     result.append(green("Ok"))
-                     result.append(magenta("src: ") + line.rstrip(" \n"))
-                     result.append(magenta("res: ") + translation + "\n")
-@@ -60,7 +60,7 @@ def run_test(name, payload):
-                 result.append(red("Error: ") + "iptables-translate failure")
-                 result.append(error.decode("utf-8"))
- 
--    if not test_passed or args.all:
-+    if not test_passed or args.all or args.test:
-         print("\n".join(result))
- 
- 
+diff --git a/src/netlink.c b/src/netlink.c
+index d5d410a84762..e8d0e31348f0 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -261,7 +261,7 @@ static struct nftnl_set_elem *alloc_nftnl_setelem(const struct expr *set,
+ 			break;
+ 		}
+ 	}
+-	if (set->set_flags & NFT_SET_OBJECT) {
++	if (set->set_flags & NFT_SET_OBJECT && data != NULL) {
+ 		netlink_gen_data(data, &nld);
+ 		nftnl_set_elem_set(nlse, NFTNL_SET_ELEM_OBJREF,
+ 				   nld.value, nld.len);
+@@ -1595,8 +1595,13 @@ static int netlink_delinearize_setelem(struct nftnl_set_elem *nlse,
+ 		expr = mapping_expr_alloc(&netlink_location, expr, data);
+ 	}
+ 	if (set->flags & NFT_SET_OBJECT) {
+-		nld.value = nftnl_set_elem_get(nlse, NFTNL_SET_ELEM_OBJREF,
+-					       &nld.len);
++		if (nftnl_set_elem_is_set(nlse, NFTNL_SET_ELEM_OBJREF)) {
++			nld.value = nftnl_set_elem_get(nlse,
++						       NFTNL_SET_ELEM_OBJREF,
++						       &nld.len);
++		} else
++			goto out;
++
+ 		data = netlink_alloc_value(&netlink_location, &nld);
+ 		data->dtype = &string_type;
+ 		data->byteorder = BYTEORDER_HOST_ENDIAN;
 -- 
 2.11.0
 
