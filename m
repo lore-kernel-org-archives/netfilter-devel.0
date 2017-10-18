@@ -1,108 +1,157 @@
-From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH] tests: xlate: print total no. of testfiles, tests and tests passed
-Date: Wed, 18 Oct 2017 19:59:44 +0530
-Message-ID: <20171018142944.14872-1-harshasharmaiitr@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, outreachy-kernel@googlegroups.com,
-        Harsha Sharma <harshasharmaiitr@gmail.com>
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f174.google.com ([209.85.192.174]:54236 "EHLO
-        mail-pf0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751048AbdJROaE (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 18 Oct 2017 10:30:04 -0400
-Received: by mail-pf0-f174.google.com with SMTP id t188so4087162pfd.10
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Oct 2017 07:30:04 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Andrei Vagin <avagin@virtuozzo.com>
+Subject: Re: [10/26] netfilter: Allow xt_owner in any user namespace
+Date: Wed, 18 Oct 2017 16:00:41 -0700
+Message-ID: <20171018230040.GA3134@outlook.office365.com>
+References: <1467815048-2240-11-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=koi8-r
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        "Eric W. Biederman" <ebiederm@xmission.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1467815048-2240-11-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Print errors and total no of tests and tests passed for testfile argument.
-Print total no. of testfiles, total no. of tests and total no. of tests
-passed for "all" argument.
-Change testfile argument to take "extensions/test_file" as argument.
+On Wed, Jul 06, 2016 at 04:23:52PM +0200, Pablo Neira Ayuso wrote:
+> From: "Eric W. Biederman" <ebiederm@xmission.com>
+> 
+> Making this work is a little tricky as it really isn't kosher to
+> change the xt_owner_match_info in a check function.
+> 
+> Without changing xt_owner_match_info we need to know the user
+> namespace the uids and gids are specified in.  In the common case
+> net->user_ns == current_user_ns().  Verify net->user_ns ==
+> current_user_ns() in owner_check so we can later assume it in
+> owner_mt.
+> 
+> In owner_check also verify that all of the uids and gids specified are
+> in net->user_ns and that the expected min/max relationship exists
+> between the uids and gids in xt_owner_match_info.
+> 
+> In owner_mt get the network namespace from the outgoing socket, as this
+> must be the same network namespace as the netfilter rules, and use that
+> network namespace to find the user namespace the uids and gids in
+> xt_match_owner_info are encoded in.  Then convert from their encoded
+> from into the kernel internal format for uids and gids and perform the
+> owner match.
+> 
+> Similar to ping_group_range, this code does not try to detect
+> noncontiguous UID/GID ranges.
+> 
+> Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+> Signed-off-by: Kevin Cernekee <cernekee@chromium.org>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  net/netfilter/xt_owner.c | 41 +++++++++++++++++++++++++++++++++++------
+>  1 file changed, 35 insertions(+), 6 deletions(-)
+> 
+> diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
+> index 1302b47..a20e731 100644
+> --- a/net/netfilter/xt_owner.c
+> +++ b/net/netfilter/xt_owner.c
+> @@ -21,11 +21,39 @@
+>  static int owner_check(const struct xt_mtchk_param *par)
+>  {
+>  	struct xt_owner_match_info *info = par->matchinfo;
+> +	struct net *net = par->net;
+>  
+> -	/* For now only allow adding matches from the initial user namespace */
+> +	/* Only allow the common case where the userns of the writer
+> +	 * matches the userns of the network namespace.
+> +	 */
+>  	if ((info->match & (XT_OWNER_UID|XT_OWNER_GID)) &&
+> -	    (current_user_ns() != &init_user_ns))
+> +	    (current_user_ns() != net->user_ns))
+>  		return -EINVAL;
 
-Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
----
- xlate-test.py | 24 ++++++++++++++++++++----
- 1 file changed, 20 insertions(+), 4 deletions(-)
+Here is an issue. If we once added an xt_owner rule, we will not be able to
+add/delete/change any other iptables rules from other user namespaces even from
+init_user_ns.
 
-diff --git a/xlate-test.py b/xlate-test.py
-index 43c4be19..9927ac9c 100755
---- a/xlate-test.py
-+++ b/xlate-test.py
-@@ -9,7 +9,6 @@ from subprocess import Popen, PIPE
- 
- keywords = ("iptables-translate", "ip6tables-translate")
- 
--
- if sys.stdout.isatty():
-     colors = {"magenta": "\033[95m", "green": "\033[92m", "yellow": "\033[93m",
-               "red": "\033[91m", "end": "\033[0m"}
-@@ -35,11 +34,14 @@ def green(string):
- 
- def run_test(name, payload):
-     test_passed = True
-+    tests = 0
-+    passed = 0
-     result = []
-     result.append(yellow("## " + name.replace(".txlate", "")))
- 
-     for line in payload:
-         if line.startswith(keywords):
-+            tests += 1
-             process = Popen(shlex.split(line), stdout=PIPE, stderr=PIPE)
-             (output, error) = process.communicate()
-             if process.returncode == 0:
-@@ -52,9 +54,12 @@ def run_test(name, payload):
-                     result.append(magenta("res: ") + translation + "\n")
-                     test_passed = False
-                 elif args.all:
-+                    passed += 1
-                     result.append(green("Ok"))
-                     result.append(magenta("src: ") + line.rstrip(" \n"))
-                     result.append(magenta("res: ") + translation + "\n")
-+                elif args.test:
-+                    passed += 1
-             else:
-                 test_passed = False
-                 result.append(red("Error: ") + "iptables-translate failure")
-@@ -62,14 +67,25 @@ def run_test(name, payload):
- 
-     if not test_passed or args.all:
-         print("\n".join(result))
-+    if args.test:
-+        print("1 test file, %d tests, %d tests passed" % (tests, passed))
-+    else:
-+        return tests, passed
- 
- 
- def load_test_files():
-+    test_files = 0
-+    total_tests = 0
-+    total_passed = 0
-     for test in sorted(os.listdir("extensions")):
-         if test.endswith(".txlate"):
-             with open("extensions/" + test, "r") as payload:
--                run_test(test, payload)
--
-+                tests, passed = run_test(test, payload)
-+                test_files += 1
-+                total_tests += tests
-+                total_passed += passed
-+    if args.all:
-+        print("%d test file, %d tests, %d tests passed" % (test_files, total_tests, total_passed))
- 
- def main():
-     if os.getuid() != 0:
-@@ -78,7 +94,7 @@ def main():
-         if not args.test.endswith(".txlate"):
-             args.test += ".txlate"
-         try:
--            with open("extensions/" + args.test, "r") as payload:
-+            with open(args.test, "r") as payload:
-                 run_test(args.test, payload)
-         except IOError:
-             print(red("Error: ") + "test file does not exist")
--- 
-2.11.0
+We meet this issue in CRIU. We add a few rules to block all traffic in a
+network namespace before dumping sockets:
 
+[avagin@laptop ~]$ cat criu-netlock.nf 
+*filter
+:CRIU - [0:0]
+-I INPUT -j CRIU
+-I OUTPUT -j CRIU
+-A CRIU -j DROP
+COMMIT
+
+We execute iptables-restore in a target netns from init_user_ns, and it's
+always worked for us before we meet xt_owner rules.
+
+[avagin@laptop ~]$ unshare -Urn sh -c 'iptables -t filter -A OUTPUT -p tcp --dport 666 -m owner --uid-owner 0 -j DROP && echo $$; sleep 1000'
+16375
+^Z
+[1]+  Stopped                 unshare -Urn sh -c 'iptables -t filter -A OUTPUT -p tcp --dport 666 -m owner --uid-owner 0 -j DROP && echo $$; sleep 1000'
+
+[avagin@laptop ~]$ sudo nsenter -n -t 16375 -- /usr/sbin/iptables-restore -n < criu-netlock.nf 
+iptables-restore: line 6 failed
+
+# now let's try to remove the xt_owner rule and check that everything works as expected
+[avagin@laptop ~]$ sudo nsenter -n -t 16375 -- iptables -t filter -D OUTPUT -p tcp --dport 666 -m owner --uid-owner 0 -j DROP
+[avagin@laptop ~]$ sudo nsenter -n -t 16375 -- /usr/sbin/iptables-restore -n < criu-netlock.nf 
+
+> +
+> +	/* Ensure the uids are valid */
+> +	if (info->match & XT_OWNER_UID) {
+> +		kuid_t uid_min = make_kuid(net->user_ns, info->uid_min);
+> +		kuid_t uid_max = make_kuid(net->user_ns, info->uid_max);
+> +
+> +		if (!uid_valid(uid_min) || !uid_valid(uid_max) ||
+> +		    (info->uid_max < info->uid_min) ||
+> +		    uid_lt(uid_max, uid_min)) {
+> +			return -EINVAL;
+> +		}
+> +	}
+> +
+> +	/* Ensure the gids are valid */
+> +	if (info->match & XT_OWNER_GID) {
+> +		kgid_t gid_min = make_kgid(net->user_ns, info->gid_min);
+> +		kgid_t gid_max = make_kgid(net->user_ns, info->gid_max);
+> +
+> +		if (!gid_valid(gid_min) || !gid_valid(gid_max) ||
+> +		    (info->gid_max < info->gid_min) ||
+> +		    gid_lt(gid_max, gid_min)) {
+> +			return -EINVAL;
+> +		}
+> +	}
+> +
+>  	return 0;
+>  }
+>  
+> @@ -35,6 +63,7 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
+>  	const struct xt_owner_match_info *info = par->matchinfo;
+>  	const struct file *filp;
+>  	struct sock *sk = skb_to_full_sk(skb);
+> +	struct net *net = par->net;
+>  
+>  	if (sk == NULL || sk->sk_socket == NULL)
+>  		return (info->match ^ info->invert) == 0;
+> @@ -51,8 +80,8 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
+>  		       (XT_OWNER_UID | XT_OWNER_GID)) == 0;
+>  
+>  	if (info->match & XT_OWNER_UID) {
+> -		kuid_t uid_min = make_kuid(&init_user_ns, info->uid_min);
+> -		kuid_t uid_max = make_kuid(&init_user_ns, info->uid_max);
+> +		kuid_t uid_min = make_kuid(net->user_ns, info->uid_min);
+> +		kuid_t uid_max = make_kuid(net->user_ns, info->uid_max);
+>  		if ((uid_gte(filp->f_cred->fsuid, uid_min) &&
+>  		     uid_lte(filp->f_cred->fsuid, uid_max)) ^
+>  		    !(info->invert & XT_OWNER_UID))
+> @@ -60,8 +89,8 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
+>  	}
+>  
+>  	if (info->match & XT_OWNER_GID) {
+> -		kgid_t gid_min = make_kgid(&init_user_ns, info->gid_min);
+> -		kgid_t gid_max = make_kgid(&init_user_ns, info->gid_max);
+> +		kgid_t gid_min = make_kgid(net->user_ns, info->gid_min);
+> +		kgid_t gid_max = make_kgid(net->user_ns, info->gid_max);
+>  		if ((gid_gte(filp->f_cred->fsgid, gid_min) &&
+>  		     gid_lte(filp->f_cred->fsgid, gid_max)) ^
+>  		    !(info->invert & XT_OWNER_GID))
