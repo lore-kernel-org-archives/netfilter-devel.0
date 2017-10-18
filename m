@@ -1,31 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] ipv6: mark expected switch fall-throughs
-Date: Wed, 18 Oct 2017 14:13:36 +0100 (WEST)
-Message-ID: <20171018.141336.2118773277800673996.davem@davemloft.net>
-References: <20171016213652.GA9967@embeddedor.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: nftables and iptables nat coexistence
+Date: Wed, 18 Oct 2017 15:56:50 +0200
+Message-ID: <20171018135650.GA16796@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: steffen.klassert@secunet.com, herbert@gondor.apana.org.au,
-        kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-To: garsilva@embeddedor.com
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171016213652.GA9967@embeddedor.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:51434 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750775AbdJRN4x (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 18 Oct 2017 09:56:53 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.84_2)
+        (envelope-from <fw@strlen.de>)
+        id 1e4oq2-0005z6-Ac
+        for netfilter-devel@vger.kernel.org; Wed, 18 Oct 2017 15:56:50 +0200
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Date: Mon, 16 Oct 2017 16:36:52 -0500
+Hi.
 
-> In preparation to enabling -Wimplicit-fallthrough, mark switch cases
-> where we are expecting to fall through.
-> 
-> Notice that in some cases I placed the "fall through" comment
-> on its own line, which is what GCC is expecting to find.
-> 
-> Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+Couple of month ago I sent 2 RFC patches to allow using nftables and
+iptables NAT at same time.
 
-Applied.
+If this is unwanted (there was concern wrt. to the new hooks I had to
+add for this), we should at least improve/restrict iptables and nftables
+to
+
+1. not allow load if iptable_nat when nft nat hook is active.
+2. make it a requirement to register empty nat hook (required for
+the reply direction).
+3. Do not permit more than one nat type per family/hook.
+4. we should probably also add more checks on nat priority
+for nftables to reject hooks that can't work due to no-conntrack
+information being available at that point.
+
+I think not allowing nft and iptablles nat at the same time is fine
+as mixing has problems on its own, especially which transformation
+gets precedence, so I suspect the old RFC patches resolve one issue
+and add another one :)
+
+So, are the old RFC patches NAKed or not?  If they are, I'd first look at
+#1 from the list but before I do some consensus would be welcome.
+
+Thanks,
+Florian
