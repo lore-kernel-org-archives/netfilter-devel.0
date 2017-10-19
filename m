@@ -1,169 +1,192 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH 6/7] libnftables: Provide an API for include path handling
-Date: Thu, 19 Oct 2017 10:18:46 +0200
-Message-ID: <20171019081847.16171-7-phil@nwl.cc>
+Subject: [nft PATCH 4/7] cli: Use nft_run_cmd_from_buffer()
+Date: Thu, 19 Oct 2017 10:18:44 +0200
+Message-ID: <20171019081847.16171-5-phil@nwl.cc>
 References: <20171019081847.16171-1-phil@nwl.cc>
 Cc: Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org,
         Florian Westphal <fw@strlen.de>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:49424 "EHLO orbyte.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:49414 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752277AbdJSITQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Oct 2017 04:19:16 -0400
+        id S1751937AbdJSITK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 19 Oct 2017 04:19:10 -0400
 In-Reply-To: <20171019081847.16171-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In order to keep the API simple, remove INCLUDE_PATHS_MAX restraint and
-dynamically allocate nft_ctx field include_paths instead.
+This simplifies CLI code and allows to reduce libnftables API by not
+exporting nft_run().
+
+Since nft_run_cmd_from_buffer() takes care of scanner initialization and
+libmnl socket passed to cli_init() is present as nft_ctx field as well,
+signature of cli_init() can be reduced to just take nft_ctx pointer as
+single argument.
+
+Note that this change introduces two (possibly unwanted) side-effects:
+
+* Input descriptor passed to scanner_push_buffer() is changed from the
+  CLI-specific one to the one used by nft_run_cmd_from_buffer().
+
+In practice though, this doesn't make a difference: input descriptor
+types INDESC_CLI and INDESC_BUFFER are treated equally by erec_print().
+Also, scanner_push_buffer() NULLs input descriptor name, so that is not
+used at all in latter code.
+
+* Error messages are printed to stderr instead of cli_nft->output.
+
+This could be fixed by introducing an 'error_output' field in nft_ctx
+for nft_run_cmd_from_buffer() to use when printing error messages.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/nftables/nftables.h |  6 +++---
- src/libnftables.c           | 34 ++++++++++++++++++++++++++++++++--
- src/main.c                  |  9 ++++-----
- src/scanner.l               |  4 +---
- 4 files changed, 40 insertions(+), 13 deletions(-)
+ include/cli.h               |  6 ++----
+ include/nftables/nftables.h |  5 -----
+ src/cli.c                   | 24 +++---------------------
+ src/libnftables.c           |  6 +++---
+ src/main.c                  |  3 +--
+ 5 files changed, 9 insertions(+), 35 deletions(-)
 
+diff --git a/include/cli.h b/include/cli.h
+index 3ae1c459bce2d..3780e0917969d 100644
+--- a/include/cli.h
++++ b/include/cli.h
+@@ -5,11 +5,9 @@
+ 
+ struct parser_state;
+ #ifdef HAVE_LIBREADLINE
+-extern int cli_init(struct nft_ctx *nft, struct mnl_socket *nf_sock,
+-		    struct parser_state *state);
++extern int cli_init(struct nft_ctx *nft);
+ #else
+-static inline int cli_init(struct nft_ctx *nft, struct mnl_socket *nf_sock,
+-			   struct parser_state *state)
++static inline int cli_init(struct nft_ctx *nft)
+ {
+         return -1;
+ }
 diff --git a/include/nftables/nftables.h b/include/nftables/nftables.h
-index f0c9bbf3ba3fe..a752f20d74132 100644
+index fbc6fd4252a97..b91219d423df9 100644
 --- a/include/nftables/nftables.h
 +++ b/include/nftables/nftables.h
-@@ -17,8 +17,6 @@ struct nft_cache {
- 	uint32_t		seqnum;
- };
+@@ -9,7 +9,6 @@
+ #ifndef LIB_NFTABLES_H
+ #define LIB_NFTABLES_H
  
--#define INCLUDE_PATHS_MAX	16
--
- struct output_ctx {
- 	unsigned int numeric;
- 	unsigned int stateless;
-@@ -30,7 +28,7 @@ struct output_ctx {
+-struct parser_state;
+ struct mnl_socket;
  
- struct nft_ctx {
- 	struct mnl_socket	*nf_sock;
--	const char		*include_paths[INCLUDE_PATHS_MAX];
-+	char			**include_paths;
- 	unsigned int		num_include_paths;
- 	unsigned int		parser_max_errors;
- 	unsigned int		debug_mask;
-@@ -78,6 +76,8 @@ void nft_ctx_free(struct nft_ctx *ctx);
- 
+ struct nft_cache {
+@@ -79,10 +78,6 @@ void nft_ctx_free(struct nft_ctx *ctx);
  FILE *nft_ctx_set_output(struct nft_ctx *ctx, FILE *fp);
- void nft_ctx_set_dry_run(struct nft_ctx *ctx, bool dry);
-+int nft_ctx_add_include_path(struct nft_ctx *ctx, const char *path);
-+void nft_ctx_clear_include_paths(struct nft_ctx *ctx);
- 
  void nft_ctx_flush_cache(struct nft_ctx *ctx);
  
+-int nft_run(struct nft_ctx *nft, struct mnl_socket *nf_sock,
+-	    void *scanner, struct parser_state *state,
+-	    struct list_head *msgs);
+-
+ int nft_run_cmd_from_buffer(struct nft_ctx *nft, char *buf, size_t buflen);
+ int nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename);
+ 
+diff --git a/src/cli.c b/src/cli.c
+index cadc3af6e8034..37351f2f8b04f 100644
+--- a/src/cli.c
++++ b/src/cli.c
+@@ -35,15 +35,7 @@
+ 
+ #define CMDLINE_HISTFILE	".nft.history"
+ 
+-static const struct input_descriptor indesc_cli = {
+-	.type	= INDESC_CLI,
+-	.name   = "<cli>",
+-};
+-
+-static struct parser_state *state;
+ static struct nft_ctx *cli_nft;
+-static struct mnl_socket *cli_nf_sock;
+-static void *scanner;
+ static char histfile[PATH_MAX];
+ static char *multiline;
+ static bool eof;
+@@ -134,14 +126,9 @@ static void cli_complete(char *line)
+ 	xfree(line);
+ 	line = s;
+ 
+-	parser_init(cli_nf_sock, &cli_nft->cache, state, &msgs,
+-		    cli_nft->debug_mask, &cli_nft->output);
+-	scanner_push_buffer(scanner, &indesc_cli, line);
+-	nft_run(cli_nft, cli_nf_sock, scanner, state, &msgs);
+-	erec_print_list(&cli_nft->output, &msgs, cli_nft->debug_mask);
++	nft_run_cmd_from_buffer(cli_nft, line, len + 2);
+ 	xfree(line);
+-	cache_release(&cli_nft->cache);
+-	iface_cache_release();
++	nft_ctx_flush_cache(cli_nft);
+ }
+ 
+ static char **cli_completion(const char *text, int start, int end)
+@@ -149,12 +136,10 @@ static char **cli_completion(const char *text, int start, int end)
+ 	return NULL;
+ }
+ 
+-int cli_init(struct nft_ctx *nft, struct mnl_socket *nf_sock,
+-	     struct parser_state *_state)
++int cli_init(struct nft_ctx *nft)
+ {
+ 	const char *home;
+ 
+-	cli_nf_sock = nf_sock;
+ 	cli_nft = nft;
+ 	rl_readline_name = "nft";
+ 	rl_instream  = stdin;
+@@ -171,9 +156,6 @@ int cli_init(struct nft_ctx *nft, struct mnl_socket *nf_sock,
+ 	read_history(histfile);
+ 	history_set_pos(history_length);
+ 
+-	state	= _state;
+-	scanner = scanner_init(state);
+-
+ 	while (!eof)
+ 		rl_callback_read_char();
+ 	return 0;
 diff --git a/src/libnftables.c b/src/libnftables.c
-index 817f537e32618..2f4275c9a0a94 100644
+index 0de50c854d572..d88c299c3647e 100644
 --- a/src/libnftables.c
 +++ b/src/libnftables.c
-@@ -6,10 +6,13 @@
-  * published by the Free Software Foundation.
-  *
-  */
-+#define _GNU_SOURCE
- #include <erec.h>
- #include <errno.h>
- #include <mnl.h>
- #include <parser.h>
-+#include <stdio.h>
-+#include <stdlib.h>
- #include <string.h>
- #include <utils.h>
- #include <iface.h>
-@@ -122,6 +125,33 @@ static void nft_exit(void)
- 	mark_table_exit();
+@@ -74,9 +74,9 @@ out:
+ 	return ret;
  }
  
-+int nft_ctx_add_include_path(struct nft_ctx *ctx, const char *path)
-+{
-+	char **tmp;
-+	int pcount = ctx->num_include_paths;
-+
-+	tmp = realloc(ctx->include_paths, (pcount + 1) * sizeof(char *));
-+	if (!tmp)
-+		return -1;
-+
-+	ctx->include_paths = tmp;
-+
-+	if (asprintf(&ctx->include_paths[pcount], "%s", path) < 0)
-+		return -1;
-+
-+	ctx->num_include_paths++;
-+	return 0;
-+}
-+
-+void nft_ctx_clear_include_paths(struct nft_ctx *ctx)
-+{
-+	while (ctx->num_include_paths)
-+		xfree(ctx->include_paths[--ctx->num_include_paths]);
-+
-+	xfree(ctx->include_paths);
-+	ctx->include_paths = NULL;
-+}
-+
- static void nft_ctx_netlink_init(struct nft_ctx *ctx)
+-int nft_run(struct nft_ctx *nft, struct mnl_socket *nf_sock,
+-	    void *scanner, struct parser_state *state,
+-	    struct list_head *msgs)
++static int nft_run(struct nft_ctx *nft, struct mnl_socket *nf_sock,
++		   void *scanner, struct parser_state *state,
++		   struct list_head *msgs)
  {
- 	ctx->nf_sock = netlink_open_sock();
-@@ -134,8 +164,7 @@ struct nft_ctx *nft_ctx_new(uint32_t flags)
- 	nft_init();
- 	ctx = xzalloc(sizeof(struct nft_ctx));
- 
--	ctx->include_paths[0]	= DEFAULT_INCLUDE_PATH;
--	ctx->num_include_paths	= 1;
-+	nft_ctx_add_include_path(ctx, DEFAULT_INCLUDE_PATH);
- 	ctx->parser_max_errors	= 10;
- 	init_list_head(&ctx->cache.list);
- 	ctx->flags = flags;
-@@ -158,6 +187,7 @@ void nft_ctx_free(struct nft_ctx *ctx)
- 		netlink_close_sock(ctx->nf_sock);
- 
- 	nft_ctx_flush_cache(ctx);
-+	nft_ctx_clear_include_paths(ctx);
- 	xfree(ctx);
- 	nft_exit();
- }
+ 	struct cmd *cmd, *next;
+ 	int ret;
 diff --git a/src/main.c b/src/main.c
-index 8359367b78654..de5c115757f44 100644
+index a7da460f28ca5..3c107181305c7 100644
 --- a/src/main.c
 +++ b/src/main.c
-@@ -196,13 +196,12 @@ int main(int argc, char * const *argv)
- 			interactive = true;
- 			break;
- 		case OPT_INCLUDEPATH:
--			if (nft->num_include_paths >= INCLUDE_PATHS_MAX) {
--				fprintf(stderr, "Too many include paths "
--						"specified, max. %u\n",
--					INCLUDE_PATHS_MAX - 1);
-+			if (nft_ctx_add_include_path(nft, optarg)) {
-+				fprintf(stderr,
-+					"Failed to add include path '%s'\n",
-+					optarg);
- 				exit(NFT_EXIT_FAILURE);
- 			}
--			nft->include_paths[nft->num_include_paths++] = optarg;
- 			break;
- 		case OPT_NUMERIC:
- 			if (++nft->output.numeric > NUMERIC_ALL) {
-diff --git a/src/scanner.l b/src/scanner.l
-index 594073660c6b1..ee09775ebf1d9 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -794,9 +794,7 @@ int scanner_include_file(struct nft_ctx *nft, void *scanner,
- 	int ret = -1;
+@@ -168,7 +168,6 @@ int main(int argc, char * const *argv)
+ 	char *buf = NULL, *filename = NULL;
+ 	unsigned int len;
+ 	bool interactive = false;
+-	struct parser_state state;
+ 	int i, val, rc;
  
- 	if (search_in_include_path(filename)) {
--		for (i = 0; i < INCLUDE_PATHS_MAX; i++) {
--			if (nft->include_paths[i] == NULL)
--				break;
-+		for (i = 0; i < nft->num_include_paths; i++) {
- 			ret = snprintf(buf, sizeof(buf), "%s/%s",
- 				       nft->include_paths[i], filename);
- 			if (ret < 0 || ret >= PATH_MAX) {
+ 	nft = nft_ctx_new(NFT_CTX_DEFAULT);
+@@ -272,7 +271,7 @@ int main(int argc, char * const *argv)
+ 	} else if (filename != NULL) {
+ 		rc = nft_run_cmd_from_filename(nft, filename);
+ 	} else if (interactive) {
+-		if (cli_init(nft, nft->nf_sock, &state) < 0) {
++		if (cli_init(nft) < 0) {
+ 			fprintf(stderr, "%s: interactive CLI not supported in this build\n",
+ 				argv[0]);
+ 			exit(NFT_EXIT_FAILURE);
 -- 
 2.13.1
 
