@@ -1,70 +1,51 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH 3/7] libnftables: Introduce nft_ctx_flush_cache()
-Date: Thu, 19 Oct 2017 10:18:43 +0200
-Message-ID: <20171019081847.16171-4-phil@nwl.cc>
-References: <20171019081847.16171-1-phil@nwl.cc>
+Subject: [nft PATCH 0/7] libnftables preparations
+Date: Thu, 19 Oct 2017 10:18:40 +0200
+Message-ID: <20171019081847.16171-1-phil@nwl.cc>
 Cc: Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org,
         Florian Westphal <fw@strlen.de>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:49404 "EHLO orbyte.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:49464 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751908AbdJSITF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Oct 2017 04:19:05 -0400
-In-Reply-To: <20171019081847.16171-1-phil@nwl.cc>
+        id S1752144AbdJSITi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 19 Oct 2017 04:19:38 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This allows an application to explicitly flush caches associated with a
-given nft context.
+The following series prepares libnftables libarary split-off by moving
+API functions into src/libnftables.c, introducing
+include/nftables/nftables.h and enhancing the code by a number of
+getters and setters for applications to change configurable parts of
+struct nft_ctx without knowledge of that struct's internals.
 
-Note that this is a bit inconsistent in that it releases the global
-interface cache, but nft_ctx_free() does the same so at least it's not a
-regression.
+The 'nft' binary will become the first "demo" user of libnftables and
+acts as a reference for library design and usability.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- include/nftables/nftables.h | 1 +
- src/libnftables.c           | 9 +++++++--
- 2 files changed, 8 insertions(+), 2 deletions(-)
+Phil Sutter (7):
+  nft_ctx_free: Fix for wrong argument passed to cache_release
+  libnftables: Move library stuff out of main.c
+  libnftables: Introduce nft_ctx_flush_cache()
+  cli: Use nft_run_cmd_from_buffer()
+  libnftables: Introduce nft_ctx_set_dry_run()
+  libnftables: Provide an API for include path handling
+  libnftables: Add remaining getters and setters
 
-diff --git a/include/nftables/nftables.h b/include/nftables/nftables.h
-index 052a77bfb5371..fbc6fd4252a97 100644
---- a/include/nftables/nftables.h
-+++ b/include/nftables/nftables.h
-@@ -77,6 +77,7 @@ enum nftables_exit_codes {
- struct nft_ctx *nft_ctx_new(uint32_t flags);
- void nft_ctx_free(struct nft_ctx *ctx);
- FILE *nft_ctx_set_output(struct nft_ctx *ctx, FILE *fp);
-+void nft_ctx_flush_cache(struct nft_ctx *ctx);
- 
- int nft_run(struct nft_ctx *nft, struct mnl_socket *nf_sock,
- 	    void *scanner, struct parser_state *state,
-diff --git a/src/libnftables.c b/src/libnftables.c
-index 187747c66af21..0de50c854d572 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -146,13 +146,18 @@ struct nft_ctx *nft_ctx_new(uint32_t flags)
- 	return ctx;
- }
- 
-+void nft_ctx_flush_cache(struct nft_ctx *ctx)
-+{
-+	iface_cache_release();
-+	cache_release(&ctx->cache);
-+}
-+
- void nft_ctx_free(struct nft_ctx *ctx)
- {
- 	if (ctx->nf_sock)
- 		netlink_close_sock(ctx->nf_sock);
- 
--	iface_cache_release();
--	cache_release(&ctx->cache);
-+	nft_ctx_flush_cache(ctx);
- 	xfree(ctx);
- 	nft_exit();
- }
+ include/Makefile.am          |   3 +-
+ include/cli.h                |   6 +-
+ include/nftables.h           |  48 +-----
+ include/nftables/Makefile.am |   1 +
+ include/nftables/nftables.h  |  72 +++++++++
+ src/Makefile.am              |   3 +-
+ src/cli.c                    |  24 +--
+ src/libnftables.c            | 360 +++++++++++++++++++++++++++++++++++++++++++
+ src/main.c                   | 285 +++-------------------------------
+ src/scanner.l                |   4 +-
+ 10 files changed, 468 insertions(+), 338 deletions(-)
+ create mode 100644 include/nftables/Makefile.am
+ create mode 100644 include/nftables/nftables.h
+ create mode 100644 src/libnftables.c
+
 -- 
 2.13.1
 
