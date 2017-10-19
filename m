@@ -1,42 +1,42 @@
 From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH] tests: xlate: Change testfile to take "extensions/test_file" as argument
-Date: Thu, 19 Oct 2017 18:18:29 +0530
-Message-ID: <20171019124829.11557-1-harshasharmaiitr@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, outreachy-kernel@googlegroups.com,
-        Harsha Sharma <harshasharmaiitr@gmail.com>
-To: pablo@netfilter.org
+Subject: Re: [PATCH] tests: xlate: print total no. of testfiles, tests and
+ tests passed
+Date: Thu, 19 Oct 2017 18:21:42 +0530
+Message-ID: <CANMOCy3zreg5Bt1J-91xHN5LVY2V57kH1d-wbmcwfqb72SZN+A@mail.gmail.com>
+References: <20171018142944.14872-1-harshasharmaiitr@gmail.com> <20171019103503.GA2752@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: netfilter-devel@vger.kernel.org,
+        outreachy-kernel <outreachy-kernel@googlegroups.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:46733 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751014AbdJSMs5 (ORCPT
+Received: from mail-ua0-f196.google.com ([209.85.217.196]:45535 "EHLO
+        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752189AbdJSMvn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Oct 2017 08:48:57 -0400
-Received: by mail-pf0-f193.google.com with SMTP id p87so6524921pfj.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Oct 2017 05:48:57 -0700 (PDT)
+        Thu, 19 Oct 2017 08:51:43 -0400
+Received: by mail-ua0-f196.google.com with SMTP id l40so5894315uah.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Oct 2017 05:51:42 -0700 (PDT)
+In-Reply-To: <20171019103503.GA2752@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When executing xlate-test.py with specified test file, give
-"extensions/test_file.txlate" as argument
+On Thu, Oct 19, 2017 at 4:05 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Oct 18, 2017 at 07:59:44PM +0530, Harsha Sharma wrote:
+>> Print errors and total no of tests and tests passed for testfile argument.
+>> Print total no. of testfiles, total no. of tests and total no. of tests
+>> passed for "all" argument.
+>
+> BTW, could you also to the commit description an example on how the
+> output looks like, for people that don't want to apply and run it, so
+> we set clear expectations on what this is doing.
+>
+> Thanks Harsha!
 
-Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
----
- xlate-test.py | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks for your feedback.
+I have sent two different patches.
+Let me know if any change is required.
+Thanks again :')
 
-diff --git a/xlate-test.py b/xlate-test.py
-index 43c4be19..860d94d0 100755
---- a/xlate-test.py
-+++ b/xlate-test.py
-@@ -78,7 +78,7 @@ def main():
-         if not args.test.endswith(".txlate"):
-             args.test += ".txlate"
-         try:
--            with open("extensions/" + args.test, "r") as payload:
-+            with open(args.test, "r") as payload:
-                 run_test(args.test, payload)
-         except IOError:
-             print(red("Error: ") + "test file does not exist")
--- 
-2.11.0
-
+Regards,
+Harsha Sharma
