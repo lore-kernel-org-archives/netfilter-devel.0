@@ -1,73 +1,70 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH 5/7] libnftables: Introduce nft_ctx_set_dry_run()
-Date: Thu, 19 Oct 2017 10:18:45 +0200
-Message-ID: <20171019081847.16171-6-phil@nwl.cc>
+Subject: [nft PATCH 3/7] libnftables: Introduce nft_ctx_flush_cache()
+Date: Thu, 19 Oct 2017 10:18:43 +0200
+Message-ID: <20171019081847.16171-4-phil@nwl.cc>
 References: <20171019081847.16171-1-phil@nwl.cc>
 Cc: Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org,
         Florian Westphal <fw@strlen.de>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:49434 "EHLO orbyte.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:49404 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752181AbdJSITV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 19 Oct 2017 04:19:21 -0400
+        id S1751908AbdJSITF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 19 Oct 2017 04:19:05 -0400
 In-Reply-To: <20171019081847.16171-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Provide a convenient interface to configure dry run mode.
+This allows an application to explicitly flush caches associated with a
+given nft context.
+
+Note that this is a bit inconsistent in that it releases the global
+interface cache, but nft_ctx_free() does the same so at least it's not a
+regression.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- include/nftables/nftables.h | 3 +++
- src/libnftables.c           | 5 +++++
- src/main.c                  | 2 +-
- 3 files changed, 9 insertions(+), 1 deletion(-)
+ include/nftables/nftables.h | 1 +
+ src/libnftables.c           | 9 +++++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/include/nftables/nftables.h b/include/nftables/nftables.h
-index b91219d423df9..f0c9bbf3ba3fe 100644
+index 052a77bfb5371..fbc6fd4252a97 100644
 --- a/include/nftables/nftables.h
 +++ b/include/nftables/nftables.h
-@@ -75,7 +75,10 @@ enum nftables_exit_codes {
- 
+@@ -77,6 +77,7 @@ enum nftables_exit_codes {
  struct nft_ctx *nft_ctx_new(uint32_t flags);
  void nft_ctx_free(struct nft_ctx *ctx);
-+
  FILE *nft_ctx_set_output(struct nft_ctx *ctx, FILE *fp);
-+void nft_ctx_set_dry_run(struct nft_ctx *ctx, bool dry);
-+
- void nft_ctx_flush_cache(struct nft_ctx *ctx);
++void nft_ctx_flush_cache(struct nft_ctx *ctx);
  
- int nft_run_cmd_from_buffer(struct nft_ctx *nft, char *buf, size_t buflen);
+ int nft_run(struct nft_ctx *nft, struct mnl_socket *nf_sock,
+ 	    void *scanner, struct parser_state *state,
 diff --git a/src/libnftables.c b/src/libnftables.c
-index d88c299c3647e..817f537e32618 100644
+index 187747c66af21..0de50c854d572 100644
 --- a/src/libnftables.c
 +++ b/src/libnftables.c
-@@ -171,6 +171,11 @@ FILE *nft_ctx_set_output(struct nft_ctx *ctx, FILE *fp)
- 	return old;
+@@ -146,13 +146,18 @@ struct nft_ctx *nft_ctx_new(uint32_t flags)
+ 	return ctx;
  }
  
-+void nft_ctx_set_dry_run(struct nft_ctx *ctx, bool dry)
++void nft_ctx_flush_cache(struct nft_ctx *ctx)
 +{
-+	ctx->check = dry;
++	iface_cache_release();
++	cache_release(&ctx->cache);
 +}
 +
- static const struct input_descriptor indesc_cmdline = {
- 	.type	= INDESC_BUFFER,
- 	.name	= "<cmdline>",
-diff --git a/src/main.c b/src/main.c
-index 3c107181305c7..8359367b78654 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -187,7 +187,7 @@ int main(int argc, char * const *argv)
- 			       PACKAGE_NAME, PACKAGE_VERSION, RELEASE_NAME);
- 			exit(NFT_EXIT_SUCCESS);
- 		case OPT_CHECK:
--			nft->check = true;
-+			nft_ctx_set_dry_run(nft, true);
- 			break;
- 		case OPT_FILE:
- 			filename = optarg;
+ void nft_ctx_free(struct nft_ctx *ctx)
+ {
+ 	if (ctx->nf_sock)
+ 		netlink_close_sock(ctx->nf_sock);
+ 
+-	iface_cache_release();
+-	cache_release(&ctx->cache);
++	nft_ctx_flush_cache(ctx);
+ 	xfree(ctx);
+ 	nft_exit();
+ }
 -- 
 2.13.1
 
