@@ -1,65 +1,82 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nft PATCH 4/7] cli: Use nft_run_cmd_from_buffer()
-Date: Fri, 20 Oct 2017 23:05:38 +0200
-Message-ID: <20171020210538.GK32305@orbyte.nwl.cc>
+Subject: Re: [nft PATCH 6/7] libnftables: Provide an API for include path
+ handling
+Date: Fri, 20 Oct 2017 23:12:51 +0200
+Message-ID: <20171020211251.GL32305@orbyte.nwl.cc>
 References: <20171019081847.16171-1-phil@nwl.cc>
- <20171019081847.16171-5-phil@nwl.cc>
- <20171020121534.GD4068@salvia>
- <20171020171018.GH32305@orbyte.nwl.cc>
- <20171020191807.GD1600@salvia>
+ <20171019081847.16171-7-phil@nwl.cc>
+ <20171020121700.GE4068@salvia>
+ <20171020171620.GI32305@orbyte.nwl.cc>
+ <20171020191643.GC1600@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org,
         Florian Westphal <fw@strlen.de>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:53800 "EHLO orbyte.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:53816 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751721AbdJTVFk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Oct 2017 17:05:40 -0400
+        id S1752093AbdJTVMx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 20 Oct 2017 17:12:53 -0400
 Content-Disposition: inline
-In-Reply-To: <20171020191807.GD1600@salvia>
+In-Reply-To: <20171020191643.GC1600@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Oct 20, 2017 at 09:18:07PM +0200, Pablo Neira Ayuso wrote:
-> On Fri, Oct 20, 2017 at 07:10:18PM +0200, Phil Sutter wrote:
-> > On Fri, Oct 20, 2017 at 02:15:34PM +0200, Pablo Neira Ayuso wrote:
-> > > On Thu, Oct 19, 2017 at 10:18:44AM +0200, Phil Sutter wrote:
-> > > > This simplifies CLI code and allows to reduce libnftables API by not
-> > > > exporting nft_run().
-> > > > 
-> > > > Since nft_run_cmd_from_buffer() takes care of scanner initialization and
-> > > > libmnl socket passed to cli_init() is present as nft_ctx field as well,
-> > > > signature of cli_init() can be reduced to just take nft_ctx pointer as
-> > > > single argument.
-> > > 
-> > > libmnl socket is indeed in nft_ctx, but we're planning a mode that
-> > > allows to expose the mnl_socket for advanced handling. In that
-> > > scenario, nft->nf_sock will be null.
-> > > 
-> > > So I would prefer we don't do changes that we have to undo once the
-> > > advanced API is in place.
+On Fri, Oct 20, 2017 at 09:16:43PM +0200, Pablo Neira Ayuso wrote:
+> On Fri, Oct 20, 2017 at 07:16:20PM +0200, Phil Sutter wrote:
+> > Hi,
 > > 
-> > IMHO this doesn't contradict what the patch does. Right now we only have
-> > the "simple API", and the patch changes src/cli.c to use just that. CLI
-> > code doesn't need anything which is not fulfilled by simple API at this
-> > point, so I'd say changing it to use advanced API should be done when we
-> > implement features (e.g. transaction control) there.
+> > On Fri, Oct 20, 2017 at 02:17:00PM +0200, Pablo Neira Ayuso wrote:
+> > > On Thu, Oct 19, 2017 at 10:18:46AM +0200, Phil Sutter wrote:
+> > [...]
+> > > > +int nft_ctx_add_include_path(struct nft_ctx *ctx, const char *path)
+> > > 
+> > > Do we want to accept runtime addition/removal of include paths?
 > > 
-> > What do you think?
+> > Not necessarily, but src/main.c does just that: It calls nft_ctx_new()
+> > first, then adds include paths as it parses them from command line.
 > 
-> I have no strong objection against this, I just would like we don't
-> lose track of the high level API, and that one will need to expose the
-> netlink socket. So all these calls we will end up needed the nf_sock
-> parameter again at some point.
-> 
-> I don't have any strong opinion against this, just an observation.
+> So it's more like a one time call to set up the include path, right?
+> So I think semantically this is just another setter. This _add_ name
+> made me think you can keep adding including path one after another
+> anytime.
 
-I'd suggest to review things again once we have a common view of how the
-advanced API will look like. Right now, CLI is fine with using the
-simple API as proposed by my patches, so passing it ctx->nf_sock
-separately just to have it either ignore it or reassign it to
-ctx->nf_sock again doesn't make sense to me.
+Yes, the API (or specifically, nft_ctx_add_include_path()) allows that.
+The only alternative I could think of would be to introduce something
+like:
+
+| int nft_ctx_set_include_paths(struct nft_ctx *ctx, const char **paths)
+
+Which means src/main.c would have to take care of populating the char **
+array itself in order to later pass it in one go to the setter. Fine
+with me, you decide! :)
+
+> > > I mean, I would just make it nft_ctx_set_include_path(), then add an
+> > > unsetter, so we simplify this.
+> > 
+> > The counterpart to nft_ctx_add_include_path() is
+> > nft_ctx_clear_include_paths(), which just drops all the previously set
+> > ones. Does that meet your understanding of an unsetter, or am I missing
+> > something?
+> 
+> Do we have a usecase for nft_ctx_clear_include_paths(). If we don't
+> - I don't see any at least from my side - I'd prefer, to keep it back.
+
+It's only used in nft_ctx_free() for now, just because it's convenient.
+If you don't want to export it (yet), I can make it static so code
+readability is kept but it won't be available to applications.
+
+> > The reason why this patch is a bit more complicated is because I wanted
+> > to get rid of the hard upper limit of include paths to avoid introducing
+> > a getter for number of set include paths or to make it necessary for
+> > applications (read: src/main.c) to check what return code
+> > nft_ctx_add_include_path() returned to print a reasonable error message.
+> 
+> I'm fine with removing the upper limit, but that is a different thing.
+> My only concerns are related to the API we provide to set include
+> paths.
+
+OK, cool. So we only have to agree about above items.
 
 Cheers, Phil
