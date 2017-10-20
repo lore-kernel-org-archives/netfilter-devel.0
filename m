@@ -1,134 +1,51 @@
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] netfilter: mark expected switch fall-throughs
-Date: Thu, 19 Oct 2017 09:06:16 -0500
-Message-ID: <20171019140616.GA15989@embeddedor.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        lvs-devel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Phil Sutter <phil@nwl.cc>
+Subject: [iptables PATCH] libxt_recent: Remove ineffective checks for info->name
+Date: Fri, 20 Oct 2017 13:24:36 +0200
+Message-ID: <20171020112436.17679-1-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from orbyte.nwl.cc ([151.80.46.58]:52678 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752172AbdJTLYs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 20 Oct 2017 07:24:48 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-In preparation to enabling -Wimplicit-fallthrough, mark switch cases
-where we are expecting to fall through.
+In struct xt_recent_mtinfo{,_v1}, field 'name' is an array, not a
+pointer. So there is no point in comparing it against NULL. Changing the
+check to make sure it's content is not an empty string is pointless
+either, since a non-empty default string is used and the argument parser
+will refuse empty strings as --name argument. So simply get rid of the
+checks altogether.
 
-Notice that in some cases I placed the "fall through" comment on its own
-line, which is what GCC is expecting to find.
-
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
-This code was tested by compilation only (GCC 7.2.0 was used).
-Please, verify if the actual intention of the code is to fall through.
+ extensions/libxt_recent.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
- net/netfilter/ipset/ip_set_core.c      | 3 ++-
- net/netfilter/ipvs/ip_vs_proto_tcp.c   | 1 +
- net/netfilter/ipvs/ip_vs_proto_udp.c   | 1 +
- net/netfilter/nf_conntrack_h323_asn1.c | 3 +++
- net/netfilter/nft_cmp.c                | 2 ++
- net/netfilter/x_tables.c               | 3 ++-
- 6 files changed, 11 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index cf84f7b..72f654a 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1386,7 +1386,8 @@ ip_set_dump_start(struct sk_buff *skb, struct netlink_callback *cb)
- 				goto next_set;
- 			if (set->variant->uref)
- 				set->variant->uref(set, cb, true);
--			/* Fall through and add elements */
-+			/* add elements */
-+			/* fall through */
- 		default:
- 			rcu_read_lock_bh();
- 			ret = set->variant->list(set, skb, cb);
-diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-index 1c6e101..569631d 100644
---- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-@@ -315,6 +315,7 @@ tcp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
- 	switch (skb->ip_summed) {
- 	case CHECKSUM_NONE:
- 		skb->csum = skb_checksum(skb, tcphoff, skb->len - tcphoff, 0);
-+		/* fall through */
- 	case CHECKSUM_COMPLETE:
- #ifdef CONFIG_IP_VS_IPV6
- 		if (af == AF_INET6) {
-diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
-index 30e11cd..c15ef7c 100644
---- a/net/netfilter/ipvs/ip_vs_proto_udp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
-@@ -319,6 +319,7 @@ udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
- 		case CHECKSUM_NONE:
- 			skb->csum = skb_checksum(skb, udphoff,
- 						 skb->len - udphoff, 0);
-+			/* fall through */
- 		case CHECKSUM_COMPLETE:
- #ifdef CONFIG_IP_VS_IPV6
- 			if (af == AF_INET6) {
-diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
-index 89b2e46..7336e5c 100644
---- a/net/netfilter/nf_conntrack_h323_asn1.c
-+++ b/net/netfilter/nf_conntrack_h323_asn1.c
-@@ -250,12 +250,15 @@ static unsigned int get_uint(bitstr_t *bs, int b)
- 	case 4:
- 		v |= *bs->cur++;
- 		v <<= 8;
-+		/* fall through */
- 	case 3:
- 		v |= *bs->cur++;
- 		v <<= 8;
-+		/* fall through */
- 	case 2:
- 		v |= *bs->cur++;
- 		v <<= 8;
-+		/* fall through */
- 	case 1:
- 		v |= *bs->cur++;
- 		break;
-diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-index c2945eb..fa90a84 100644
---- a/net/netfilter/nft_cmp.c
-+++ b/net/netfilter/nft_cmp.c
-@@ -44,6 +44,7 @@ static void nft_cmp_eval(const struct nft_expr *expr,
- 	case NFT_CMP_LT:
- 		if (d == 0)
- 			goto mismatch;
-+		/* fall through */
- 	case NFT_CMP_LTE:
- 		if (d > 0)
- 			goto mismatch;
-@@ -51,6 +52,7 @@ static void nft_cmp_eval(const struct nft_expr *expr,
- 	case NFT_CMP_GT:
- 		if (d == 0)
- 			goto mismatch;
-+		/* fall through */
- 	case NFT_CMP_GTE:
- 		if (d < 0)
- 			goto mismatch;
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index d8571f4..fa5cdd0 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1382,7 +1382,8 @@ static void *xt_mttg_seq_next(struct seq_file *seq, void *v, loff_t *ppos,
- 		trav->curr = trav->curr->next;
- 		if (trav->curr != trav->head)
- 			break;
--		/* fallthru, _stop will unlock */
-+		/* _stop will unlock */
-+		/* fall through */
- 	default:
- 		return NULL;
- 	}
+diff --git a/extensions/libxt_recent.c b/extensions/libxt_recent.c
+index e1801f1c18952..055ae35080346 100644
+--- a/extensions/libxt_recent.c
++++ b/extensions/libxt_recent.c
+@@ -199,7 +199,7 @@ static void recent_print(const void *ip, const struct xt_entry_match *match,
+ 	if(info->hit_count) printf(" hit_count: %d", info->hit_count);
+ 	if (info->check_set & XT_RECENT_TTL)
+ 		printf(" TTL-Match");
+-	if(info->name) printf(" name: %s", info->name);
++	printf(" name: %s", info->name);
+ 	if (info->side == XT_RECENT_SOURCE)
+ 		printf(" side: source");
+ 	if (info->side == XT_RECENT_DEST)
+@@ -239,7 +239,7 @@ static void recent_save(const void *ip, const struct xt_entry_match *match,
+ 	if(info->hit_count) printf(" --hitcount %d", info->hit_count);
+ 	if (info->check_set & XT_RECENT_TTL)
+ 		printf(" --rttl");
+-	if(info->name) printf(" --name %s",info->name);
++	printf(" --name %s",info->name);
+ 
+ 	switch(family) {
+ 	case NFPROTO_IPV4:
 -- 
-2.7.4
+2.13.1
+
