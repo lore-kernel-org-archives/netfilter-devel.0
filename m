@@ -1,51 +1,140 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [iptables PATCH] libxt_recent: Remove ineffective checks for info->name
-Date: Fri, 20 Oct 2017 13:24:36 +0200
-Message-ID: <20171020112436.17679-1-phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+Subject: [PATCH] doc: nft.8 simplify initial SYNOPSIS line
+Date: Fri, 20 Oct 2017 22:29:15 +1100
+Message-ID: <20171020112915.5859-1-duncan_roe@optusnet.com.au>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:52678 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752172AbdJTLYs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 20 Oct 2017 07:24:48 -0400
+Received: from mail105.syd.optusnet.com.au ([211.29.132.249]:39126 "EHLO
+        mail105.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752172AbdJTL3c (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 20 Oct 2017 07:29:32 -0400
+Received: from dimstar.local.net (c220-239-36-238.eburwd6.vic.optusnet.com.au [220.239.36.238])
+        by mail105.syd.optusnet.com.au (Postfix) with SMTP id BF08910495F5
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Oct 2017 22:29:17 +1100 (AEDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In struct xt_recent_mtinfo{,_v1}, field 'name' is an array, not a
-pointer. So there is no point in comparing it against NULL. Changing the
-check to make sure it's content is not an empty string is pointless
-either, since a non-empty default string is used and the argument parser
-will refuse empty strings as --name argument. So simply get rid of the
-checks altogether.
+In the style of tcpdump.8: where options have short and long forms, only show
+short form in synopsis but mention long form in description.
+Re-order option descriptions to match order in synopsis (move -N to just after -n).
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
 ---
- extensions/libxt_recent.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ doc/nft.xml | 66 +++++++++++++------------------------------------------------
+ 1 file changed, 14 insertions(+), 52 deletions(-)
 
-diff --git a/extensions/libxt_recent.c b/extensions/libxt_recent.c
-index e1801f1c18952..055ae35080346 100644
---- a/extensions/libxt_recent.c
-+++ b/extensions/libxt_recent.c
-@@ -199,7 +199,7 @@ static void recent_print(const void *ip, const struct xt_entry_match *match,
- 	if(info->hit_count) printf(" hit_count: %d", info->hit_count);
- 	if (info->check_set & XT_RECENT_TTL)
- 		printf(" TTL-Match");
--	if(info->name) printf(" name: %s", info->name);
-+	printf(" name: %s", info->name);
- 	if (info->side == XT_RECENT_SOURCE)
- 		printf(" side: source");
- 	if (info->side == XT_RECENT_DEST)
-@@ -239,7 +239,7 @@ static void recent_save(const void *ip, const struct xt_entry_match *match,
- 	if(info->hit_count) printf(" --hitcount %d", info->hit_count);
- 	if (info->check_set & XT_RECENT_TTL)
- 		printf(" --rttl");
--	if(info->name) printf(" --name %s",info->name);
-+	printf(" --name %s",info->name);
+diff --git a/doc/nft.xml b/doc/nft.xml
+index 86b4bd9..2dec0aa 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -46,49 +46,16 @@ vi:ts=4 sw=4
+ 		<cmdsynopsis>
+ 			<command>nft</command>
+ 			<group>
+-				<arg><option>-n</option></arg>
+-				<arg><option>--numeric</option></arg>
++				<arg><option> -nNscae </option></arg>
+ 			</group>
+-			<group>
+-				<arg><option>-N</option></arg>
+-				<arg><option>--reversedns</option></arg>
+-			</group>
+-			<group>
+-				<arg><option>-s</option></arg>
+-				<arg><option>--stateless</option></arg>
+-			</group>
+-			<group>
+-				<arg><option>-c</option></arg>
+-				<arg><option>--check</option></arg>
+-			</group>
+-			<group>
+-				<arg><option>-a</option></arg>
+-				<arg><option>--handle</option></arg>
+-			</group>
+-			<group>
+-				<arg><option>-e</option></arg>
+-				<arg><option>--echo</option></arg>
+-			</group>
+-			<arg>
+-				<group choice="req">
+-					<arg><option>-I</option></arg>
+-					<arg><option>--includepath</option></arg>
+-				</group>
++			<arg> -I
+ 				<replaceable>directory</replaceable>
+ 			</arg>
+ 			<group>
+-				<arg>
+-					<group choice="req">
+-						<arg><option>-f</option></arg>
+-						<arg><option>--file</option></arg>
+-					</group>
++				<arg> -f
+ 					<replaceable>filename</replaceable>
+ 				</arg>
+-				<arg>
+-					<group choice="req">
+-						<arg><option>-i</option></arg>
+-						<arg><option>--interactive</option></arg>
+-					</group>
++				<arg> -i
+ 				</arg>
+ 				<arg rep="repeat">
+ 					<replaceable>cmd</replaceable>
+@@ -96,15 +63,10 @@ vi:ts=4 sw=4
+ 			</group>
+ 		</cmdsynopsis>
+ 		<cmdsynopsis>
+-			<command>nft</command>
+-			<group>
+-				<arg><option>-h</option></arg>
+-				<arg><option>--help</option></arg>
+-			</group>
+-			<group>
+-				<arg><option>-v</option></arg>
+-				<arg><option>--version</option></arg>
+-			</group>
++			<command>nft -h</command>
++		</cmdsynopsis>
++		<cmdsynopsis>
++			<command>nft -v</command>
+ 		</cmdsynopsis>
+ 	</refsynopsisdiv>
  
- 	switch(family) {
- 	case NFPROTO_IPV4:
+@@ -151,26 +113,26 @@ vi:ts=4 sw=4
+ 				</listitem>
+ 			</varlistentry>
+ 			<varlistentry>
+-				<term><option>-s, --stateless</option></term>
++				<term><option>-N, --reversedns</option></term>
+ 				<listitem>
+ 					<para>
+-						Omit stateful information of rules and stateful objects.
++						Translate IP addresses to names. Usually requires network traffic for DNS lookup.
+ 					</para>
+ 				</listitem>
+ 			</varlistentry>
+ 			<varlistentry>
+-				<term><option>-c, --check</option></term>
++				<term><option>-s, --stateless</option></term>
+ 				<listitem>
+ 					<para>
+-						Check commands validity without actually applying the changes.
++						Omit stateful information of rules and stateful objects.
+ 					</para>
+ 				</listitem>
+ 			</varlistentry>
+ 			<varlistentry>
+-				<term><option>-N, --reversedns</option></term>
++				<term><option>-c, --check</option></term>
+ 				<listitem>
+ 					<para>
+-						Translate IP addresses to names. Usually requires network traffic for DNS lookup.
++						Check commands validity without actually applying the changes.
+ 					</para>
+ 				</listitem>
+ 			</varlistentry>
 -- 
-2.13.1
+2.9.0
 
