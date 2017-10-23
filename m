@@ -1,40 +1,44 @@
-From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH] extensions: add tests for ipcomp protocol
-Date: Mon, 23 Oct 2017 09:53:16 +0530
-Message-ID: <20171023042316.4278-1-harshasharmaiitr@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, outreachy-kernel@googlegroups.com,
-        Harsha Sharma <harshasharmaiitr@gmail.com>
-To: pablo@netfilter.org
+From: Tejaswi Tanikella <tejaswit@codeaurora.org>
+Subject: [PATCH] netfilter: ipv4: Fix use-after-free in send_reset
+Date: Mon, 23 Oct 2017 11:46:03 +0530
+Message-ID: <20171023061559.GA25493@tejaswit-linux.qualcomm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:45193 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750743AbdJWEXh (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:60696 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751083AbdJWGQK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Oct 2017 00:23:37 -0400
-Received: by mail-pf0-f194.google.com with SMTP id d28so16167848pfe.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Oct 2017 21:23:37 -0700 (PDT)
+        Mon, 23 Oct 2017 02:16:10 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds test for ipcomp protocol.
+niph is not updated after pskb_expand_head changes the skb head.
+It still points to the freed data, which is then used to update
+tot_len and checksum. This could cause use-after-free poison crash.
 
-Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
+Update niph, if ip_route_me_harder does not fail.
+
+Signed-off-by: Tejaswi Tanikella <tejaswit@codeaurora.org>
 ---
- extensions/libxt_ipcomp.t | 5 +++++
- 1 file changed, 5 insertions(+)
- create mode 100644 extensions/libxt_ipcomp.t
+ net/ipv4/netfilter/nf_reject_ipv4.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/extensions/libxt_ipcomp.t b/extensions/libxt_ipcomp.t
-new file mode 100644
-index 00000000..ce111142
---- /dev/null
-+++ b/extensions/libxt_ipcomp.t
-@@ -0,0 +1,5 @@
-+:INPUT,FORWARD
-+-m policy --dir in --pol ipsec --proto ipcomp;=;OK
-+-m policy --dir in --pol none --proto ipcomp;;FAIL
-+-m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto ipcomp;=;OK
-+-m policy --dir in --pol ipsec --strict --reqid 1 --spi 0x1 --proto ipcomp --mode tunnel --tunnel-dst 10.0.0.0/8 --tunnel-src 10.0.0.0/8 --next --reqid 2;=;OK
+diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+index eeacbda..b2e0f90 100644
+--- a/net/ipv4/netfilter/nf_reject_ipv4.c
++++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+@@ -131,6 +131,8 @@ void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook)
+ 
+ 	if (ip_route_me_harder(net, nskb, RTN_UNSPEC))
+ 		goto free_nskb;
++	else
++		niph = ip_hdr(nskb);
+ 
+ 	/* "Never happens" */
+ 	if (nskb->len > dst_mtu(skb_dst(nskb)))
 -- 
-2.11.0
+1.9.1
 
