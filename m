@@ -1,101 +1,83 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH v2 1/4] libnftables: Move library stuff out of main.c
-Date: Tue, 24 Oct 2017 17:48:00 +0200
-Message-ID: <20171024154800.GA11705@salvia>
+Subject: Re: [nft PATCH v2 2/4] libnftables: Introduce nft_ctx_flush_cache()
+Date: Tue, 24 Oct 2017 17:52:59 +0200
+Message-ID: <20171024155258.GB11705@salvia>
 References: <20171023153319.13415-1-phil@nwl.cc>
- <20171023153319.13415-2-phil@nwl.cc>
+ <20171023153319.13415-3-phil@nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org,
         Florian Westphal <fw@strlen.de>
 To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50374 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52284 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750897AbdJXPsE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Oct 2017 11:48:04 -0400
+        id S1751514AbdJXPxD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 24 Oct 2017 11:53:03 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 87767E8EB0
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Oct 2017 17:48:03 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id B38A6E8EB6
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Oct 2017 17:53:01 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7697ADA86D
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Oct 2017 17:48:03 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9FEB7DA7E9
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Oct 2017 17:53:01 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20171023153319.13415-2-phil@nwl.cc>
+In-Reply-To: <20171023153319.13415-3-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Phil,
-
-Just follow up comments, several things that I think we can polish,
-see below.
-
-On Mon, Oct 23, 2017 at 05:33:16PM +0200, Phil Sutter wrote:
-[...]
+On Mon, Oct 23, 2017 at 05:33:17PM +0200, Phil Sutter wrote:
+> This allows an application to explicitly flush caches associated with a
+> given nft context, as seen in cli_complete().
+> 
+> Note that this is a bit inconsistent in that it releases the global
+> interface cache, but nft_ctx_free() does the same so at least it's not a
+> regression.
+> 
+> Note that there is no need for explicit cache update routine since cache
+> is populated during command execution depending on whether it is needed
+> or not.
+> 
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+>  include/nftables/nftables.h | 1 +
+>  src/cli.c                   | 3 +--
+>  src/libnftables.c           | 9 +++++++--
+>  3 files changed, 9 insertions(+), 4 deletions(-)
+> 
 > diff --git a/include/nftables/nftables.h b/include/nftables/nftables.h
-> new file mode 100644
-> index 0000000000000..44d3e95d399e6
-> --- /dev/null
+> index 44d3e95d399e6..1207f10cd2457 100644
+> --- a/include/nftables/nftables.h
 > +++ b/include/nftables/nftables.h
-> @@ -0,0 +1,58 @@
-> +/*
-> + * Copyright (c) 2017 Eric Leblond <eric@regit.org>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + */
-> +#ifndef LIB_NFTABLES_H
-> +#define LIB_NFTABLES_H
-> +
-> +#define _GNU_SOURCE
-> +#include <stdint.h>
-> +#include <stdio.h>
-> +#include <stdbool.h>
-> +
-> +struct nft_ctx;
-> +
-> +enum debug_level {
-> +	DEBUG_SCANNER		= 0x1,
-> +	DEBUG_PARSER		= 0x2,
-> +	DEBUG_EVALUATION	= 0x4,
-> +	DEBUG_NETLINK		= 0x8,
-> +	DEBUG_MNL		= 0x10,
-> +	DEBUG_PROTO_CTX		= 0x20,
-> +	DEBUG_SEGTREE		= 0x40,
-> +};
-> +
-> +enum numeric_level {
-> +	NUMERIC_NONE,
-> +	NUMERIC_ADDR,
-> +	NUMERIC_PORT,
-> +	NUMERIC_ALL,
-> +};
+> @@ -51,6 +51,7 @@ enum nftables_exit_codes {
+>  struct nft_ctx *nft_ctx_new(uint32_t flags);
+>  void nft_ctx_free(struct nft_ctx *ctx);
+>  FILE *nft_ctx_set_output(struct nft_ctx *ctx, FILE *fp);
+> +void nft_ctx_flush_cache(struct nft_ctx *ctx);
 
-Just pushed out a patch to prepend NFT_ prefix.
+I would prefer we rename this to nft_ctx_flush_cache().
 
-> +/**
-> + * Possible flags to pass to nft_ctx_new()
-> + */
-> +#define NFT_CTX_DEFAULT		0
-> +
-> +/**
-> + * Exit codes returned by nft_run_cmd_from_*()
-> + */
-> +enum nftables_exit_codes {
-> +	NFT_EXIT_SUCCESS	= 0,
-> +	NFT_EXIT_FAILURE	= 1,
-> +	NFT_EXIT_NOMEM		= 2,
-> +	NFT_EXIT_NONL		= 3,
-> +};
+Now, let's make an exercise of abstraction: You're not Phil Sutter,
+you're developer Vlamidir.
 
-I think library is currently aborting in case of no-netlink and
-no-memory, so these two error codes are not useful.
+Vladimir wants to make a third party application based on libnftables
+that is going to rock the world.
 
-We would need to change codebase to propagate errors up to the
-callers.
+He knows nothing about internals, but he looks at the API and say:
+"Hey, I can flush the cache, what is this cache concept?".
 
-Regarding error code, I would go for -1 in case of error instead and 0
-in case of success. If failure happens, then set errno with reason, so
-we can get rid of these exit codes in a follow up patch?
+I'm telling this story because we're leaking an internal detail
+implementation. So I would just rename this to nft_ctx_reset(). This
+magic call just cleans up the context for you.
+
+Vladimir will be just need to know that he needs to reset context if
+he want to make incremental updates based on current.
+
+I agree with you that we cannot allocate 'cache' from nft_ctx_alloc(),
+it's good you reminded me this :-).
+
+But I would say, we can just hide these details behind the curtain.
+
+Let me know, thanks
+
+P.S: I still has pushed out your patchset, it's just that I'm
+providing feedback so we speed up libnftables release :-).
