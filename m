@@ -1,29 +1,32 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] extensions: add tests for ipcomp protocol
-Date: Tue, 24 Oct 2017 18:13:58 +0200
-Message-ID: <20171024161358.GA5875@salvia>
-References: <20171023042316.4278-1-harshasharmaiitr@gmail.com>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [PATCH nft] src: add nft_ prefix to everything exposed through
+ include/nftables/nftables.h
+Date: Tue, 24 Oct 2017 18:28:45 +0200
+Message-ID: <20171024162845.GO32305@orbyte.nwl.cc>
+References: <20171024152102.31990-1-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, outreachy-kernel@googlegroups.com
-To: Harsha Sharma <harshasharmaiitr@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33762 "EHLO mail.us.es"
+Received: from orbyte.nwl.cc ([151.80.46.58]:35564 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751795AbdJXQOF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Oct 2017 12:14:05 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 210D6E9774
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Oct 2017 18:14:04 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0F939DA86E
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Oct 2017 18:14:04 +0200 (CEST)
+        id S932236AbdJXQ2r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 24 Oct 2017 12:28:47 -0400
 Content-Disposition: inline
-In-Reply-To: <20171023042316.4278-1-harshasharmaiitr@gmail.com>
+In-Reply-To: <20171024152102.31990-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Oct 23, 2017 at 09:53:16AM +0530, Harsha Sharma wrote:
-> This patch adds test for ipcomp protocol.
+On Tue, Oct 24, 2017 at 05:21:02PM +0200, Pablo Neira Ayuso wrote:
+> Prepend nft_ prefix before these are exposed, reduce chances we hit
+> symbol namespace pollution problems when mixing libnftables with other
+> existing libraries.
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Applied, thanks.
+Acked-by: Phil Sutter <phil@nwl.cc>
+
+Thanks for sorting this for me,
+
+Phil
