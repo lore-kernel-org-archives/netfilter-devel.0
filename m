@@ -1,48 +1,54 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] Out Of Bound Read in Netfilter Conntrack
-Date: Tue, 24 Oct 2017 18:36:01 +0200
-Message-ID: <20171024163601.GA30318@salvia>
-References: <804512f5-786b-d4d0-bc8e-299c5c2683bf@x41-dsec.de>
- <20171024162903.GA20295@salvia>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [nft PATCH v2 1/4] libnftables: Move library stuff out of main.c
+Date: Tue, 24 Oct 2017 18:42:31 +0200
+Message-ID: <20171024164231.GQ32305@orbyte.nwl.cc>
+References: <20171023153319.13415-1-phil@nwl.cc>
+ <20171023153319.13415-2-phil@nwl.cc>
+ <20171024154800.GA11705@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Sesterhenn <eric.sesterhenn@x41-dsec.de>
+Cc: Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org,
+        Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45098 "EHLO mail.us.es"
+Received: from orbyte.nwl.cc ([151.80.46.58]:35608 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751910AbdJXQgI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Oct 2017 12:36:08 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3F6A2EAA65
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Oct 2017 18:36:07 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2E0FBDA848
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Oct 2017 18:36:07 +0200 (CEST)
+        id S1751759AbdJXQmd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 24 Oct 2017 12:42:33 -0400
 Content-Disposition: inline
-In-Reply-To: <20171024162903.GA20295@salvia>
+In-Reply-To: <20171024154800.GA11705@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 24, 2017 at 06:29:03PM +0200, Pablo Neira Ayuso wrote:
-> Hi,
-> 
-> On Mon, Oct 09, 2017 at 07:01:14AM +0200, Eric Sesterhenn wrote:
-> > Add missing counter decrement to prevent out of bounds memory read.
-> 
-> I have manually applied this. However, your patches are mangled most
-> likely by MUA and patchword doesn't get it right.
-> 
-> If you could please revamp and make sure patches apply cleanly via:
-> 
->         git am patch
-> 
-> I would really appreciate, thanks for your patience!
+Hi Pablo,
 
-While at it, please prepend to your patches:
+On Tue, Oct 24, 2017 at 05:48:00PM +0200, Pablo Neira Ayuso wrote:
+> On Mon, Oct 23, 2017 at 05:33:16PM +0200, Phil Sutter wrote:
+[...]
+> > +/**
+> > + * Exit codes returned by nft_run_cmd_from_*()
+> > + */
+> > +enum nftables_exit_codes {
+> > +	NFT_EXIT_SUCCESS	= 0,
+> > +	NFT_EXIT_FAILURE	= 1,
+> > +	NFT_EXIT_NOMEM		= 2,
+> > +	NFT_EXIT_NONL		= 3,
+> > +};
+> 
+> I think library is currently aborting in case of no-netlink and
+> no-memory, so these two error codes are not useful.
+> 
+> We would need to change codebase to propagate errors up to the
+> callers.
 
-        netfilter: nf_ct_h323: ...
+Ah yes, indeed. I guess for a library, calling exit() is a no-go. :)
 
-So we all know what subsystems this goes to.
+> Regarding error code, I would go for -1 in case of error instead and 0
+> in case of success. If failure happens, then set errno with reason, so
+> we can get rid of these exit codes in a follow up patch?
 
-Thanks a lot!
+Sounds good, I'll send a follow-up.
+
+Thanks, Phil
+
+
