@@ -1,32 +1,38 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [PATCH nft] src: add nft_ prefix to everything exposed through
- include/nftables/nftables.h
-Date: Tue, 24 Oct 2017 18:28:45 +0200
-Message-ID: <20171024162845.GO32305@orbyte.nwl.cc>
-References: <20171024152102.31990-1-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] Out Of Bound Read in Netfilter Conntrack
+Date: Tue, 24 Oct 2017 18:29:03 +0200
+Message-ID: <20171024162903.GA20295@salvia>
+References: <804512f5-786b-d4d0-bc8e-299c5c2683bf@x41-dsec.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Eric Sesterhenn <eric.sesterhenn@x41-dsec.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:35564 "EHLO orbyte.nwl.cc"
+Received: from mail.us.es ([193.147.175.20]:40834 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932236AbdJXQ2r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Oct 2017 12:28:47 -0400
+        id S932109AbdJXQ3H (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 24 Oct 2017 12:29:07 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 3CD09EAA60
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Oct 2017 18:29:06 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2BD4CDA80B
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Oct 2017 18:29:06 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20171024152102.31990-1-pablo@netfilter.org>
+In-Reply-To: <804512f5-786b-d4d0-bc8e-299c5c2683bf@x41-dsec.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 24, 2017 at 05:21:02PM +0200, Pablo Neira Ayuso wrote:
-> Prepend nft_ prefix before these are exposed, reduce chances we hit
-> symbol namespace pollution problems when mixing libnftables with other
-> existing libraries.
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Hi,
 
-Acked-by: Phil Sutter <phil@nwl.cc>
+On Mon, Oct 09, 2017 at 07:01:14AM +0200, Eric Sesterhenn wrote:
+> Add missing counter decrement to prevent out of bounds memory read.
 
-Thanks for sorting this for me,
+I have manually applied this. However, your patches are mangled most
+likely by MUA and patchword doesn't get it right.
 
-Phil
+If you could please revamp and make sure patches apply cleanly via:
+
+        git am patch
+
+I would really appreciate, thanks for your patience!
