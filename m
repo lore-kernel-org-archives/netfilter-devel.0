@@ -1,41 +1,48 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nft PATCH v2 0/4] libnftables preparations
-Date: Tue, 24 Oct 2017 18:29:18 +0200
-Message-ID: <20171024162918.GP32305@orbyte.nwl.cc>
-References: <20171023153319.13415-1-phil@nwl.cc>
- <20171024152033.GA31888@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] Out Of Bound Read in Netfilter Conntrack
+Date: Tue, 24 Oct 2017 18:36:01 +0200
+Message-ID: <20171024163601.GA30318@salvia>
+References: <804512f5-786b-d4d0-bc8e-299c5c2683bf@x41-dsec.de>
+ <20171024162903.GA20295@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org,
-        Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Sesterhenn <eric.sesterhenn@x41-dsec.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:35572 "EHLO orbyte.nwl.cc"
+Received: from mail.us.es ([193.147.175.20]:45098 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932109AbdJXQ3X (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 24 Oct 2017 12:29:23 -0400
+        id S1751910AbdJXQgI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 24 Oct 2017 12:36:08 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 3F6A2EAA65
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Oct 2017 18:36:07 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2E0FBDA848
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Oct 2017 18:36:07 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20171024152033.GA31888@salvia>
+In-Reply-To: <20171024162903.GA20295@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 24, 2017 at 05:20:33PM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Oct 23, 2017 at 05:33:15PM +0200, Phil Sutter wrote:
-> > The following series prepares libnftables libarary split-off by moving
-> > API functions into src/libnftables.c, introducing
-> > include/nftables/nftables.h and enhancing the code by a number of
-> > getters and setters for applications to change configurable parts of
-> > struct nft_ctx without knowledge of that struct's internals.
-> > 
-> > The 'nft' binary will become the first "demo" user of libnftables and
-> > acts as a reference for library design and usability.
+On Tue, Oct 24, 2017 at 06:29:03PM +0200, Pablo Neira Ayuso wrote:
+> Hi,
 > 
-> Series applied.
+> On Mon, Oct 09, 2017 at 07:01:14AM +0200, Eric Sesterhenn wrote:
+> > Add missing counter decrement to prevent out of bounds memory read.
+> 
+> I have manually applied this. However, your patches are mangled most
+> likely by MUA and patchword doesn't get it right.
+> 
+> If you could please revamp and make sure patches apply cleanly via:
+> 
+>         git am patch
+> 
+> I would really appreciate, thanks for your patience!
 
-Cool, thanks!
+While at it, please prepend to your patches:
 
-> I have to merged this patch below to 1/4.
+        netfilter: nf_ct_h323: ...
 
-Oops. :)
+So we all know what subsystems this goes to.
 
-Cheers, Phil
+Thanks a lot!
