@@ -1,61 +1,71 @@
-From: Florian Westphal <fw@strlen.de>
+From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
 Subject: Re: nftables rules not matching after upgrading from 0.7 to 0.8
-Date: Wed, 25 Oct 2017 19:57:25 +0200
-Message-ID: <20171025175725.GJ19457@breakpoint.cc>
+Date: Wed, 25 Oct 2017 18:20:31 +0000
+Message-ID: <1508955630.25035.13.camel@cohaesio.com>
 References: <1508949114.1154.14.camel@cohaesio.com>
+         <20171025175725.GJ19457@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+To: "fw@strlen.de" <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:54772 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932124AbdJYR5k (ORCPT
+Received: from bender.cohaesio.com ([212.97.128.130]:57612 "EHLO
+        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751637AbdJYSUe (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Oct 2017 13:57:40 -0400
-Content-Disposition: inline
-In-Reply-To: <1508949114.1154.14.camel@cohaesio.com>
+        Wed, 25 Oct 2017 14:20:34 -0400
+In-Reply-To: <20171025175725.GJ19457@breakpoint.cc>
+Content-Language: en-US
+Content-ID: <50472AD121470B46A18E72BB6707298C@surftown.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Anders K. Pedersen | Cohaesio <akp@cohaesio.com> wrote:
-> After upgrading to nftables 0.8 (from 0.7) on one of my systems, I've
-> experiences several cases where rules that used to work fine with 0.7
-> sometimes doesn't match anymore with 0.8 (it's not consistent -
-> sometimes the rules do match with 0.8).
-> 
-> The rule chains end with a log statement before rejecting or dropping
-> the packets, and I can see in the log that everything is as expected
-> and the rules should match. After downgrading to nftables 0.7
-> everything works again.
-
-Are those errors restricted to a particular table family, chain or protocol?
-
-At least for ip family all packets will have pkt->tprot_set true,
-so I don't see how meta would break there.
-
->  ip filter input 
-> -  [ payload load 1b @ network header + 9 => reg 1 ]
-> +  [ meta load l4proto => reg 1 ]
-> 
-> and
-> 
->  ip6 filter input 
-> -  [ payload load 1b @ network header + 6 => reg 1 ]
-> +  [ meta load l4proto => reg 1 ]
-> 
-> for many of the rules. I believe this is intentional and correct by
-> itself, so I guess the problem is in the kernel (the system is
-> currently running 4.13.8), where "meta l4proto" sometimes isn't what it
-> should be.
-
-Weird.  We changed the implicit l4 dependencies to meta l4proto because
-in ipv6 case this will skip extension headers.
-
-IIRC ipv4 was only changed to keep it more simple.
-(also nft_set_pktinfo_ipv4 sets
-         pkt->tprot_set = true;
-         pkt->tprot = iph->protocol;
-
-so I fail to see why it should not be identical in all cases).
-
+T24gb25zLCAyMDE3LTEwLTI1IGF0IDE5OjU3ICswMjAwLCBGbG9yaWFuIFdlc3RwaGFsIHdyb3Rl
+Og0KPiBBbmRlcnMgSy4gUGVkZXJzZW4gfCBDb2hhZXNpbyA8YWtwQGNvaGFlc2lvLmNvbT4gd3Jv
+dGU6DQo+ID4gQWZ0ZXIgdXBncmFkaW5nIHRvIG5mdGFibGVzIDAuOCAoZnJvbSAwLjcpIG9uIG9u
+ZSBvZiBteSBzeXN0ZW1zLA0KPiA+IEkndmUNCj4gPiBleHBlcmllbmNlcyBzZXZlcmFsIGNhc2Vz
+IHdoZXJlIHJ1bGVzIHRoYXQgdXNlZCB0byB3b3JrIGZpbmUgd2l0aA0KPiA+IDAuNw0KPiA+IHNv
+bWV0aW1lcyBkb2Vzbid0IG1hdGNoIGFueW1vcmUgd2l0aCAwLjggKGl0J3Mgbm90IGNvbnNpc3Rl
+bnQgLQ0KPiA+IHNvbWV0aW1lcyB0aGUgcnVsZXMgZG8gbWF0Y2ggd2l0aCAwLjgpLg0KPiA+IA0K
+PiA+IFRoZSBydWxlIGNoYWlucyBlbmQgd2l0aCBhIGxvZyBzdGF0ZW1lbnQgYmVmb3JlIHJlamVj
+dGluZyBvcg0KPiA+IGRyb3BwaW5nDQo+ID4gdGhlIHBhY2tldHMsIGFuZCBJIGNhbiBzZWUgaW4g
+dGhlIGxvZyB0aGF0IGV2ZXJ5dGhpbmcgaXMgYXMNCj4gPiBleHBlY3RlZA0KPiA+IGFuZCB0aGUg
+cnVsZXMgc2hvdWxkIG1hdGNoLiBBZnRlciBkb3duZ3JhZGluZyB0byBuZnRhYmxlcyAwLjcNCj4g
+PiBldmVyeXRoaW5nIHdvcmtzIGFnYWluLg0KPiANCj4gQXJlIHRob3NlIGVycm9ycyByZXN0cmlj
+dGVkIHRvIGEgcGFydGljdWxhciB0YWJsZSBmYW1pbHksIGNoYWluIG9yDQo+IHByb3RvY29sPw0K
+DQpTbyBmYXIgSSd2ZSBvbmx5IHJlZ2lzdGVyZWQgaXQgZm9yIElQdjQgaW5wdXQgZmlsdGVyaW5n
+IGZvciBUQ1AsIGJ1dA0KdGhhdCdzIGFsc28gbW9zdCBvZiB0aGUgdHJhZmZpYyBvbiB0aGlzIHN5
+c3RlbSwgc28gSSdtIG5vdCBzdXJlIHRoYXQNCml0J3MgbGltaXRlZCB0byB0aGF0Lg0KDQpBcyBt
+ZW50aW9uZWQsIGl0J3Mgbm90IGNvbnNpc3RlbnQuIEEgcnVsZSB0aGF0IGhhcyB3b3JrZWQgZmlu
+ZSBjb3VsZA0Kc3VkZGVubHkgc3RvcCB3b3JraW5nIHdpdGhvdXQgYW55IHJ1bGUgc2V0IGNoYW5n
+ZXMgZm9yIGRheXMuIFNvbWUgdGltZXMNCml0IGhhcyBoZWxwZWQgdG8ganVzdCByZWxvYWQgdGhl
+IGV4YWN0IHNhbWUgcnVsZSBzZXQuIE90aGVyIHRpbWVzDQpjaGFuZ2luZw0KDQp0Y3AgZHBvcnQg
+eyBpbWFwMiwgaW1hcHMgfSBmbG93IHRhYmxlIGltYXAgXA0KICAgICAgICAgICAgICAgIHsgaXAg
+c2FkZHIgJiAyNTUuMjU1LjI1NS4yNDAgXA0KICAgICAgICAgICAgICAgICAgdGltZW91dCA1bSBs
+aW1pdCByYXRlIDEwL21pbnV0ZSB9IFwNCiAgICAgICAgY291bnRlciBhY2NlcHQNCg0KdG8NCg0K
+dGNwIGRwb3J0IHsgaW1hcDIsIGltYXBzIH0gZmxvdyB0YWJsZSBpbWFwIFwNCiAgICAgICAgY291
+bnRlciBhY2NlcHQNCg0Kb3INCg0KdGNwIGRwb3J0IHsgZG9tYWluLCBodHRwLCBodHRwcywgODA4
+MCwgODQ0MywgOTA5MSB9IFwNCiAgICAgICAgbWV0YSBpaWYgZXRoMSBhY2NlcHQNCg0KdG8NCg0K
+dGNwIGRwb3J0IHsgZG9tYWluLCBodHRwLCBodHRwcywgODA4MCwgODQ0MywgOTA5MSB9IFwNCiAg
+ICAgICAgbWV0YSBpaWYgZXRoMSBjb3VudGVyIGFjY2VwdA0KDQpoYXMgcmVzb2x2ZWQgaXQsIGJ1
+dCBpdCBmZWVscyBsaWtlIGl0IHdhc24ndCByZWFsbHkgZHVlIHRvIHRoZSBjaGFuZ2VzLA0KYnV0
+IG1vcmUgcmFuZG9tIGx1Y2suDQoNCj4gQXQgbGVhc3QgZm9yIGlwIGZhbWlseSBhbGwgcGFja2V0
+cyB3aWxsIGhhdmUgcGt0LT50cHJvdF9zZXQgdHJ1ZSwNCj4gc28gSSBkb24ndCBzZWUgaG93IG1l
+dGEgd291bGQgYnJlYWsgdGhlcmUuDQo+IA0KPiA+ICBpcCBmaWx0ZXIgaW5wdXQgDQo+ID4gLSAg
+WyBwYXlsb2FkIGxvYWQgMWIgQCBuZXR3b3JrIGhlYWRlciArIDkgPT4gcmVnIDEgXQ0KPiA+ICsg
+IFsgbWV0YSBsb2FkIGw0cHJvdG8gPT4gcmVnIDEgXQ0KPiA+IA0KPiA+IGFuZA0KPiA+IA0KPiA+
+ICBpcDYgZmlsdGVyIGlucHV0IA0KPiA+IC0gIFsgcGF5bG9hZCBsb2FkIDFiIEAgbmV0d29yayBo
+ZWFkZXIgKyA2ID0+IHJlZyAxIF0NCj4gPiArICBbIG1ldGEgbG9hZCBsNHByb3RvID0+IHJlZyAx
+IF0NCj4gPiANCj4gPiBmb3IgbWFueSBvZiB0aGUgcnVsZXMuIEkgYmVsaWV2ZSB0aGlzIGlzIGlu
+dGVudGlvbmFsIGFuZCBjb3JyZWN0IGJ5DQo+ID4gaXRzZWxmLCBzbyBJIGd1ZXNzIHRoZSBwcm9i
+bGVtIGlzIGluIHRoZSBrZXJuZWwgKHRoZSBzeXN0ZW0gaXMNCj4gPiBjdXJyZW50bHkgcnVubmlu
+ZyA0LjEzLjgpLCB3aGVyZSAibWV0YSBsNHByb3RvIiBzb21ldGltZXMgaXNuJ3QNCj4gPiB3aGF0
+IGl0DQo+ID4gc2hvdWxkIGJlLg0KPiANCj4gV2VpcmQuICBXZSBjaGFuZ2VkIHRoZSBpbXBsaWNp
+dCBsNCBkZXBlbmRlbmNpZXMgdG8gbWV0YSBsNHByb3RvDQo+IGJlY2F1c2UNCj4gaW4gaXB2NiBj
+YXNlIHRoaXMgd2lsbCBza2lwIGV4dGVuc2lvbiBoZWFkZXJzLg0KPiANCj4gSUlSQyBpcHY0IHdh
+cyBvbmx5IGNoYW5nZWQgdG8ga2VlcCBpdCBtb3JlIHNpbXBsZS4NCj4gKGFsc28gbmZ0X3NldF9w
+a3RpbmZvX2lwdjQgc2V0cw0KPiAgICAgICAgICBwa3QtPnRwcm90X3NldCA9IHRydWU7DQo+ICAg
+ICAgICAgIHBrdC0+dHByb3QgPSBpcGgtPnByb3RvY29sOw0KPiANCj4gc28gSSBmYWlsIHRvIHNl
+ZSB3aHkgaXQgc2hvdWxkIG5vdCBiZSBpZGVudGljYWwgaW4gYWxsIGNhc2VzKS4NCg0KQW55IHRl
+c3RpbmcsIEkgY2FuIGRvPw0KDQpSZWdhcmRzLA0KQW5kZXJz
