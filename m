@@ -1,53 +1,108 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH v2 2/4] libnftables: Introduce nft_ctx_flush_cache()
-Date: Wed, 25 Oct 2017 11:25:15 +0200
-Message-ID: <20171025092515.GB350@salvia>
-References: <20171023153319.13415-1-phil@nwl.cc>
- <20171023153319.13415-3-phil@nwl.cc>
- <20171024155258.GB11705@salvia>
- <20171024174021.GR32305@orbyte.nwl.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: Phil Sutter <phil@nwl.cc>, Eric Leblond <eric@regit.org>,
-        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: nft_set_hash: fix fast_ops for 2-len keys
+Date: Wed, 25 Oct 2017 12:57:30 +0200
+Message-ID: <20171025105730.27746-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50844 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932284AbdJYJZU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Oct 2017 05:25:20 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EA2F76138E
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Oct 2017 11:25:18 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B97D4DA3B1
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Oct 2017 11:25:18 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20171024174021.GR32305@orbyte.nwl.cc>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:53218 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932406AbdJYK5M (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 25 Oct 2017 06:57:12 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Phil,
+Anatole Denis reported following bug:
+  jhash_1word of a u16 is a different value from jhash of the same u16 with
+  length 2.
 
-On Tue, Oct 24, 2017 at 07:40:21PM +0200, Phil Sutter wrote:
-[...]
-> I wonder whether we need to reset the cache at all:
+  Since elements are always inserted in sets using jhash over the actual
+  klen, this would lead to incorrect lookups on fixed-size sets with a key
+  length of 2, as they would be inserted with hash value jhash(key, 2) and
+  looked up with hash value jhash_1word(key), which is different.
 
-Good point.
+For -next, lets re-enable support for 2 byte keys, using a differnt
+insertion function.
 
-> We could make cache_update() ignore cache->initialized and instead
-> check whether nft_genid did change after calling netlink_genid_get()
-> - if not, cache is up to date, otherwise call cache_init(). When we
-> discussed possible performance implications of cache updates, I
-> suggested just that as a first counter-measure.
-> 
-> Could this work? Or am I missing something?
+Suggested-by: Anatole Denis <anatole@rezel.net>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ This is a followup for
+ https://patchwork.ozlabs.org/patch/821080/
+ which is not in nf-next, i.e. this will later need conflict resolution
+ to make sure 'fast ops' is used for 2 byte keys too.
 
-For the simple API, I think it makes sense to remove this
-nft_ctx_flush_cache() and just perform inconditional cache refresh on
-every nft_cmd_*() call by now.
+ net/netfilter/nft_set_hash.c | 37 +++++++++++++++++++++++++++++++------
+ 1 file changed, 31 insertions(+), 6 deletions(-)
 
-We can revisit later on to do incremental cache updates based on
-generation ID as you said. If we keep track of incremental updates,
-then we will need event handling. But for now I will go simple.
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index 0fa01d772c5e..86c9bd35e50e 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -441,16 +441,15 @@ static bool nft_hash_lookup_fast(const struct net *net,
+ 	return false;
+ }
+ 
+-static int nft_hash_insert(const struct net *net, const struct nft_set *set,
+-			   const struct nft_set_elem *elem,
+-			   struct nft_set_ext **ext)
++static int __nft_hash_insert(const struct net *net, const struct nft_set *set,
++			     const struct nft_set_elem *elem,
++			     struct nft_set_ext **ext,
++			     u32 hash)
+ {
+ 	struct nft_hash_elem *this = elem->priv, *he;
+ 	struct nft_hash *priv = nft_set_priv(set);
+ 	u8 genmask = nft_genmask_next(net);
+-	u32 hash;
+ 
+-	hash = jhash(nft_set_ext_key(&this->ext), set->klen, priv->seed);
+ 	hash = reciprocal_scale(hash, priv->buckets);
+ 	hlist_for_each_entry(he, &priv->table[hash], node) {
+ 		if (!memcmp(nft_set_ext_key(&this->ext),
+@@ -464,6 +463,32 @@ static int nft_hash_insert(const struct net *net, const struct nft_set *set,
+ 	return 0;
+ }
+ 
++static int nft_hash_insert(const struct net *net, const struct nft_set *set,
++			   const struct nft_set_elem *elem,
++			   struct nft_set_ext **ext)
++{
++	const struct nft_hash *priv = nft_set_priv(set);
++	const struct nft_hash_elem *this = elem->priv;
++	u32 hash;
++
++	hash = jhash(nft_set_ext_key(&this->ext), set->klen, priv->seed);
++	return __nft_hash_insert(net, set, elem, ext, hash);
++}
++
++static int nft_hash_insert_fast(const struct net *net,
++				const struct nft_set *set,
++				const struct nft_set_elem *elem,
++				struct nft_set_ext **ext)
++{
++	const struct nft_hash *priv = nft_set_priv(set);
++	const struct nft_hash_elem *this = elem->priv;
++	u32 hash, k1;
++
++	k1 = nft_hash_key((const u32 *)nft_set_ext_key(&this->ext), set->klen);
++	hash = jhash_1word(k1, priv->seed);
++	return __nft_hash_insert(net, set, elem, ext, hash);
++}
++
+ static void nft_hash_activate(const struct net *net, const struct nft_set *set,
+ 			      const struct nft_set_elem *elem)
+ {
+@@ -627,7 +652,7 @@ static struct nft_set_ops nft_hash_fast_ops __read_mostly = {
+ 	.estimate	= nft_hash_estimate,
+ 	.init		= nft_hash_init,
+ 	.destroy	= nft_hash_destroy,
+-	.insert		= nft_hash_insert,
++	.insert		= nft_hash_insert_fast,
+ 	.activate	= nft_hash_activate,
+ 	.deactivate	= nft_hash_deactivate,
+ 	.flush		= nft_hash_flush,
+-- 
+2.13.6
 
-Thanks!
