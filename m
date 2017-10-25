@@ -1,50 +1,61 @@
-From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
-Subject: nftables rules not matching after upgrading from 0.7 to 0.8
-Date: Wed, 25 Oct 2017 16:31:55 +0000
-Message-ID: <1508949114.1154.14.camel@cohaesio.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: nftables rules not matching after upgrading from 0.7 to 0.8
+Date: Wed, 25 Oct 2017 19:57:25 +0200
+Message-ID: <20171025175725.GJ19457@breakpoint.cc>
+References: <1508949114.1154.14.camel@cohaesio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bender.cohaesio.com ([212.97.128.130]:50913 "EHLO
-        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751702AbdJYQb6 (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:54772 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932124AbdJYR5k (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Oct 2017 12:31:58 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-        by mail.cohaesio.com (Postfix) with ESMTP id 7C3E37804C5E
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Oct 2017 18:31:56 +0200 (CEST)
-Received: from mail.cohaesio.com ([127.0.0.1])
-        by localhost (bender.cohaesio.com [127.0.0.1]) (amavisd-new, port 10028)
-        with LMTP id pgU1aMdym7rV for <netfilter-devel@vger.kernel.org>;
-        Wed, 25 Oct 2017 18:31:56 +0200 (CEST)
-Received: from cohexch02.cohaesio.com (cohexch02.cohaesio.com [212.97.128.232])
-        by mail.cohaesio.com (Postfix) with ESMTP id 5F8D47800D28
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Oct 2017 18:31:56 +0200 (CEST)
-Content-Language: en-US
-Content-ID: <C3D90F385AD05B4E977257AEEDE2AE8A@surftown.com>
+        Wed, 25 Oct 2017 13:57:40 -0400
+Content-Disposition: inline
+In-Reply-To: <1508949114.1154.14.camel@cohaesio.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-SGVsbG8sDQoNCkFmdGVyIHVwZ3JhZGluZyB0byBuZnRhYmxlcyAwLjggKGZyb20gMC43KSBvbiBv
-bmUgb2YgbXkgc3lzdGVtcywgSSd2ZQ0KZXhwZXJpZW5jZXMgc2V2ZXJhbCBjYXNlcyB3aGVyZSBy
-dWxlcyB0aGF0IHVzZWQgdG8gd29yayBmaW5lIHdpdGggMC43DQpzb21ldGltZXMgZG9lc24ndCBt
-YXRjaCBhbnltb3JlIHdpdGggMC44IChpdCdzIG5vdCBjb25zaXN0ZW50IC0NCnNvbWV0aW1lcyB0
-aGUgcnVsZXMgZG8gbWF0Y2ggd2l0aCAwLjgpLg0KDQpUaGUgcnVsZSBjaGFpbnMgZW5kIHdpdGgg
-YSBsb2cgc3RhdGVtZW50IGJlZm9yZSByZWplY3Rpbmcgb3IgZHJvcHBpbmcNCnRoZSBwYWNrZXRz
-LCBhbmQgSSBjYW4gc2VlIGluIHRoZSBsb2cgdGhhdCBldmVyeXRoaW5nIGlzIGFzIGV4cGVjdGVk
-DQphbmQgdGhlIHJ1bGVzIHNob3VsZCBtYXRjaC4gQWZ0ZXIgZG93bmdyYWRpbmcgdG8gbmZ0YWJs
-ZXMgMC43DQpldmVyeXRoaW5nIHdvcmtzIGFnYWluLg0KDQpJIHRyaWVkIGxvYWRpbmcgbXkgcnVs
-ZSBzZXQgd2l0aCAiLS1kZWJ1Zz1uZXRsaW5rIiBhbmQgZGlmZiB0aGUgb3V0cHV0DQpmcm9tIDAu
-NyB2cy4gMC44LiBBcGFydCBmcm9tIHN5bnRheCBkaWZmZXJlbmNlcyB0aGUgb25seSB0aGluZyB0
-aGF0DQpjaGFuZ2VkIGlzDQoNCiBpcCBmaWx0ZXIgaW5wdXQgDQotICBbIHBheWxvYWQgbG9hZCAx
-YiBAIG5ldHdvcmsgaGVhZGVyICsgOSA9PiByZWcgMSBdDQorICBbIG1ldGEgbG9hZCBsNHByb3Rv
-ID0+IHJlZyAxIF0NCg0KYW5kDQoNCiBpcDYgZmlsdGVyIGlucHV0IA0KLSAgWyBwYXlsb2FkIGxv
-YWQgMWIgQCBuZXR3b3JrIGhlYWRlciArIDYgPT4gcmVnIDEgXQ0KKyAgWyBtZXRhIGxvYWQgbDRw
-cm90byA9PiByZWcgMSBdDQoNCmZvciBtYW55IG9mIHRoZSBydWxlcy4gSSBiZWxpZXZlIHRoaXMg
-aXMgaW50ZW50aW9uYWwgYW5kIGNvcnJlY3QgYnkNCml0c2VsZiwgc28gSSBndWVzcyB0aGUgcHJv
-YmxlbSBpcyBpbiB0aGUga2VybmVsICh0aGUgc3lzdGVtIGlzDQpjdXJyZW50bHkgcnVubmluZyA0
-LjEzLjgpLCB3aGVyZSAibWV0YSBsNHByb3RvIiBzb21ldGltZXMgaXNuJ3Qgd2hhdCBpdA0Kc2hv
-dWxkIGJlLg0KDQpEb2VzIHRoaXMgc291bmQgcmlnaHQgYW5kIGRvZXMgaXQgcmluZyBhbnkgYmVs
-bHM/DQoNClJlZ2FyZHMsDQpBbmRlcnMgSy4gUGVkZXJzZW4=
+Anders K. Pedersen | Cohaesio <akp@cohaesio.com> wrote:
+> After upgrading to nftables 0.8 (from 0.7) on one of my systems, I've
+> experiences several cases where rules that used to work fine with 0.7
+> sometimes doesn't match anymore with 0.8 (it's not consistent -
+> sometimes the rules do match with 0.8).
+> 
+> The rule chains end with a log statement before rejecting or dropping
+> the packets, and I can see in the log that everything is as expected
+> and the rules should match. After downgrading to nftables 0.7
+> everything works again.
+
+Are those errors restricted to a particular table family, chain or protocol?
+
+At least for ip family all packets will have pkt->tprot_set true,
+so I don't see how meta would break there.
+
+>  ip filter input 
+> -  [ payload load 1b @ network header + 9 => reg 1 ]
+> +  [ meta load l4proto => reg 1 ]
+> 
+> and
+> 
+>  ip6 filter input 
+> -  [ payload load 1b @ network header + 6 => reg 1 ]
+> +  [ meta load l4proto => reg 1 ]
+> 
+> for many of the rules. I believe this is intentional and correct by
+> itself, so I guess the problem is in the kernel (the system is
+> currently running 4.13.8), where "meta l4proto" sometimes isn't what it
+> should be.
+
+Weird.  We changed the implicit l4 dependencies to meta l4proto because
+in ipv6 case this will skip extension headers.
+
+IIRC ipv4 was only changed to keep it more simple.
+(also nft_set_pktinfo_ipv4 sets
+         pkt->tprot_set = true;
+         pkt->tprot = iph->protocol;
+
+so I fail to see why it should not be identical in all cases).
+
