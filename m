@@ -1,99 +1,111 @@
-From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: nftables rules not matching after upgrading from 0.7 to 0.8
-Date: Wed, 25 Oct 2017 22:22:13 +0000
-Message-ID: <1508970133.25035.24.camel@cohaesio.com>
+Date: Thu, 26 Oct 2017 00:45:36 +0200
+Message-ID: <20171025224536.GK19457@breakpoint.cc>
 References: <1508949114.1154.14.camel@cohaesio.com>
-         <20171025175725.GJ19457@breakpoint.cc>
-         <1508955630.25035.13.camel@cohaesio.com>
+ <20171025175725.GJ19457@breakpoint.cc>
+ <1508955630.25035.13.camel@cohaesio.com>
+ <1508970133.25035.24.camel@cohaesio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "fw@strlen.de" <fw@strlen.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: "fw@strlen.de" <fw@strlen.de>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bender.cohaesio.com ([212.97.128.130]:59801 "EHLO
-        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751421AbdJYWYg (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:55580 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751753AbdJYWpv (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Oct 2017 18:24:36 -0400
-In-Reply-To: <1508955630.25035.13.camel@cohaesio.com>
-Content-Language: en-US
-Content-ID: <78D3849AE65B914DAE1C1E43E16D413A@surftown.com>
+        Wed, 25 Oct 2017 18:45:51 -0400
+Content-Disposition: inline
+In-Reply-To: <1508970133.25035.24.camel@cohaesio.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-T24gb25zLCAyMDE3LTEwLTI1IGF0IDIwOjIwICswMjAwLCBBbmRlcnMgSy4gUGVkZXJzZW4gfCBD
-b2hhZXNpbyB3cm90ZToNCj4gT24gb25zLCAyMDE3LTEwLTI1IGF0IDE5OjU3ICswMjAwLCBGbG9y
-aWFuIFdlc3RwaGFsIHdyb3RlOg0KPiA+IEFuZGVycyBLLiBQZWRlcnNlbiB8IENvaGFlc2lvIDxh
-a3BAY29oYWVzaW8uY29tPiB3cm90ZToNCj4gPiA+IEFmdGVyIHVwZ3JhZGluZyB0byBuZnRhYmxl
-cyAwLjggKGZyb20gMC43KSBvbiBvbmUgb2YgbXkgc3lzdGVtcywNCj4gPiA+IEkndmUNCj4gPiA+
-IGV4cGVyaWVuY2VzIHNldmVyYWwgY2FzZXMgd2hlcmUgcnVsZXMgdGhhdCB1c2VkIHRvIHdvcmsg
-ZmluZSB3aXRoDQo+ID4gPiAwLjcNCj4gPiA+IHNvbWV0aW1lcyBkb2Vzbid0IG1hdGNoIGFueW1v
-cmUgd2l0aCAwLjggKGl0J3Mgbm90IGNvbnNpc3RlbnQgLQ0KPiA+ID4gc29tZXRpbWVzIHRoZSBy
-dWxlcyBkbyBtYXRjaCB3aXRoIDAuOCkuDQo+ID4gPiANCj4gPiA+IFRoZSBydWxlIGNoYWlucyBl
-bmQgd2l0aCBhIGxvZyBzdGF0ZW1lbnQgYmVmb3JlIHJlamVjdGluZyBvcg0KPiA+ID4gZHJvcHBp
-bmcNCj4gPiA+IHRoZSBwYWNrZXRzLCBhbmQgSSBjYW4gc2VlIGluIHRoZSBsb2cgdGhhdCBldmVy
-eXRoaW5nIGlzIGFzDQo+ID4gPiBleHBlY3RlZA0KPiA+ID4gYW5kIHRoZSBydWxlcyBzaG91bGQg
-bWF0Y2guIEFmdGVyIGRvd25ncmFkaW5nIHRvIG5mdGFibGVzIDAuNw0KPiA+ID4gZXZlcnl0aGlu
-ZyB3b3JrcyBhZ2Fpbi4NCj4gPiANCj4gPiBBcmUgdGhvc2UgZXJyb3JzIHJlc3RyaWN0ZWQgdG8g
-YSBwYXJ0aWN1bGFyIHRhYmxlIGZhbWlseSwgY2hhaW4gb3INCj4gPiBwcm90b2NvbD8NCj4gDQo+
-IFNvIGZhciBJJ3ZlIG9ubHkgcmVnaXN0ZXJlZCBpdCBmb3IgSVB2NCBpbnB1dCBmaWx0ZXJpbmcg
-Zm9yIFRDUCwgYnV0DQo+IHRoYXQncyBhbHNvIG1vc3Qgb2YgdGhlIHRyYWZmaWMgb24gdGhpcyBz
-eXN0ZW0sIHNvIEknbSBub3Qgc3VyZSB0aGF0DQo+IGl0J3MgbGltaXRlZCB0byB0aGF0Lg0KPiAN
-Cj4gQXMgbWVudGlvbmVkLCBpdCdzIG5vdCBjb25zaXN0ZW50LiBBIHJ1bGUgdGhhdCBoYXMgd29y
-a2VkIGZpbmUgY291bGQNCj4gc3VkZGVubHkgc3RvcCB3b3JraW5nIHdpdGhvdXQgYW55IHJ1bGUg
-c2V0IGNoYW5nZXMgZm9yIGRheXMuIFNvbWUNCj4gdGltZXMNCj4gaXQgaGFzIGhlbHBlZCB0byBq
-dXN0IHJlbG9hZCB0aGUgZXhhY3Qgc2FtZSBydWxlIHNldC4gT3RoZXIgdGltZXMNCj4gY2hhbmdp
-bmcNCj4gDQo+IHRjcCBkcG9ydCB7IGltYXAyLCBpbWFwcyB9IGZsb3cgdGFibGUgaW1hcCBcDQo+
-ICAgICAgICAgICAgICAgICB7IGlwIHNhZGRyICYgMjU1LjI1NS4yNTUuMjQwIFwNCj4gICAgICAg
-ICAgICAgICAgICAgdGltZW91dCA1bSBsaW1pdCByYXRlIDEwL21pbnV0ZSB9IFwNCj4gICAgICAg
-ICBjb3VudGVyIGFjY2VwdA0KPiANCj4gdG8NCj4gDQo+IHRjcCBkcG9ydCB7IGltYXAyLCBpbWFw
-cyB9IGZsb3cgdGFibGUgaW1hcCBcDQo+ICAgICAgICAgY291bnRlciBhY2NlcHQNCj4gDQo+IG9y
-DQo+IA0KPiB0Y3AgZHBvcnQgeyBkb21haW4sIGh0dHAsIGh0dHBzLCA4MDgwLCA4NDQzLCA5MDkx
-IH0gXA0KPiAgICAgICAgIG1ldGEgaWlmIGV0aDEgYWNjZXB0DQo+IA0KPiB0bw0KPiANCj4gdGNw
-IGRwb3J0IHsgZG9tYWluLCBodHRwLCBodHRwcywgODA4MCwgODQ0MywgOTA5MSB9IFwNCj4gICAg
-ICAgICBtZXRhIGlpZiBldGgxIGNvdW50ZXIgYWNjZXB0DQo+IA0KPiBoYXMgcmVzb2x2ZWQgaXQs
-IGJ1dCBpdCBmZWVscyBsaWtlIGl0IHdhc24ndCByZWFsbHkgZHVlIHRvIHRoZQ0KPiBjaGFuZ2Vz
-LA0KPiBidXQgbW9yZSByYW5kb20gbHVjay4NCj4gDQo+ID4gQXQgbGVhc3QgZm9yIGlwIGZhbWls
-eSBhbGwgcGFja2V0cyB3aWxsIGhhdmUgcGt0LT50cHJvdF9zZXQgdHJ1ZSwNCj4gPiBzbyBJIGRv
-bid0IHNlZSBob3cgbWV0YSB3b3VsZCBicmVhayB0aGVyZS4NCj4gPiANCj4gPiA+ICBpcCBmaWx0
-ZXIgaW5wdXQgDQo+ID4gPiAtICBbIHBheWxvYWQgbG9hZCAxYiBAIG5ldHdvcmsgaGVhZGVyICsg
-OSA9PiByZWcgMSBdDQo+ID4gPiArICBbIG1ldGEgbG9hZCBsNHByb3RvID0+IHJlZyAxIF0NCj4g
-PiA+IA0KPiA+ID4gYW5kDQo+ID4gPiANCj4gPiA+ICBpcDYgZmlsdGVyIGlucHV0IA0KPiA+ID4g
-LSAgWyBwYXlsb2FkIGxvYWQgMWIgQCBuZXR3b3JrIGhlYWRlciArIDYgPT4gcmVnIDEgXQ0KPiA+
-ID4gKyAgWyBtZXRhIGxvYWQgbDRwcm90byA9PiByZWcgMSBdDQo+ID4gPiANCj4gPiA+IGZvciBt
-YW55IG9mIHRoZSBydWxlcy4gSSBiZWxpZXZlIHRoaXMgaXMgaW50ZW50aW9uYWwgYW5kIGNvcnJl
-Y3QNCj4gPiA+IGJ5DQo+ID4gPiBpdHNlbGYsIHNvIEkgZ3Vlc3MgdGhlIHByb2JsZW0gaXMgaW4g
-dGhlIGtlcm5lbCAodGhlIHN5c3RlbSBpcw0KPiA+ID4gY3VycmVudGx5IHJ1bm5pbmcgNC4xMy44
-KSwgd2hlcmUgIm1ldGEgbDRwcm90byIgc29tZXRpbWVzIGlzbid0DQo+ID4gPiB3aGF0IGl0DQo+
-ID4gPiBzaG91bGQgYmUuDQo+ID4gDQo+ID4gV2VpcmQuICBXZSBjaGFuZ2VkIHRoZSBpbXBsaWNp
-dCBsNCBkZXBlbmRlbmNpZXMgdG8gbWV0YSBsNHByb3RvDQo+ID4gYmVjYXVzZQ0KPiA+IGluIGlw
-djYgY2FzZSB0aGlzIHdpbGwgc2tpcCBleHRlbnNpb24gaGVhZGVycy4NCj4gPiANCj4gPiBJSVJD
-IGlwdjQgd2FzIG9ubHkgY2hhbmdlZCB0byBrZWVwIGl0IG1vcmUgc2ltcGxlLg0KPiA+IChhbHNv
-IG5mdF9zZXRfcGt0aW5mb19pcHY0IHNldHMNCj4gPiAgICAgICAgICBwa3QtPnRwcm90X3NldCA9
-IHRydWU7DQo+ID4gICAgICAgICAgcGt0LT50cHJvdCA9IGlwaC0+cHJvdG9jb2w7DQo+ID4gDQo+
-ID4gc28gSSBmYWlsIHRvIHNlZSB3aHkgaXQgc2hvdWxkIG5vdCBiZSBpZGVudGljYWwgaW4gYWxs
-IGNhc2VzKS4NCj4gDQo+IEFueSB0ZXN0aW5nLCBJIGNhbiBkbz8NCg0KT25lIG1vcmUgdGhpbmcs
-IEkganVzdCBub3RpY2VkIGlzIHRoYXQgaWYgSSB0cnkgdG8gdXNlIG5mdGFibGVzIDAuNyB0bw0K
-ZHVtcCB0aGUgcnVsZSBzZXQgdGhhdCB3YXMgbG9hZGVkIHdpdGggMC43LCBJIGdldCB0aGUgZm9s
-bG93aW5nIGVycm9yOg0KDQojIG5mdCBsaXN0IHJ1bGVzZXQNCm5mdDogcGF5bG9hZC5jOjU1MDog
-cGF5bG9hZF9leHByX2V4cGFuZDogQXNzZXJ0aW9uIGBkZXNjLT5iYXNlID09IGV4cHItPnBheWxv
-YWQuYmFzZScgZmFpbGVkLg0KQWJvcnRlZA0KDQpJZiBJIHVzZSAwLjggdG8gZHVtcCB0aGUgcnVs
-ZSBzZXQgdGhhdCB3YXMgbG9hZGVkIHdpdGggMC43LCBJIGdldCB0aGUNCmNvcnJlY3QgcnVsZSBz
-ZXQgZXhjZXB0IGZvciBhIGRpZmZlcmVuY2Ugd2l0aCByZWdhcmRzIHRvIHNldHMgYW5kIG1hcHMN
-CnRoYXQgdXNlIGludGVyZmFjZXMgbGlrZToNCg0KLS0tIG5mdC0wLjctMC44IHJ1bGUgc2V0IGxv
-YWRlZCB3aXRoIDAuNyBhbmQgZHVtcGVkIHdpdGggMC44DQorKysgbmZ0LTAuOCAgICAgc2FtZSBy
-dWxlIHNldCBsb2FkZWQgYW5kIGR1bXBlZCB3aXRoIDAuOA0KQEAgLTksMTIgKzksMTIgQEANCiAg
-ICAgICAgY2hhaW4gcHJlcm91dGluZyB7DQogICAgICAgICAgICAgICAgdHlwZSBmaWx0ZXIgaG9v
-ayBwcmVyb3V0aW5nIHByaW9yaXR5IC0xMDA7IHBvbGljeSBhY2NlcHQ7DQogICAgICAgICAgICAg
-ICAgaWlmICJsbyIgYWNjZXB0DQotICAgICAgICAgICAgICAgY3QgbWFyayBzZXQgaWlmIG1hcCB7
-IDMzNTU0NDMyIDogMHgwMDAwMDAwMSwgNjcxMDg4NjQgOiAweDAwMDAwMDAyIH0NCisgICAgICAg
-ICAgICAgICBjdCBtYXJrIHNldCBpaWYgbWFwIHsgImV0aDAiIDogMHgwMDAwMDAwMSwgImV0aDIi
-IDogMHgwMDAwMDAwMiB9DQogICAgICAgICAgICAgICAgaWlmICJldGgxIiBqdW1wIHByZXJvdXRp
-bmdfaW50ZXJuYWwNCi0gICAgICAgICAgICAgICBpaWYgeyAzMzU1NDQzMiwgNjcxMDg4NjQgfSBp
-cCBzYWRkciB7IDAuMC4wLjAvOCwgMTAuMC4wLjAvOCwgMTI3LjAuMC4wLzgsIDE3Mi4xNi4wLjAv
-MTIsIDE5Mi4xNjguMC4wLzE2LCAyMjQuMC4wLjAtMjU1LjI1NS4yNTUuMjU1IH0gY291bnRlciBw
-YWNrZXRzIDYgYnl0ZXMgNzA1IGRyb3ANCisgICAgICAgICAgICAgICBpaWYgeyAiZXRoMCIsICJl
-dGgyIiB9IGlwIHNhZGRyIHsgMC4wLjAuMC84LCAxMC4wLjAuMC84LCAxMjcuMC4wLjAvOCwgMTcy
-LjE2LjAuMC8xMiwgMTkyLjE2OC4wLjAvMTYsIDIyNC4wLjAuMC0yNTUuMjU1LjI1NS4yNTUgfSBj
-b3VudGVyIHBhY2tldHMgMCBieXRlcyAwIGRyb3ANCg0KLS0NClJlZ2FyZHMsDQpBbmRlcnM=
+Anders K. Pedersen | Cohaesio <akp@cohaesio.com> wrote:
+> On ons, 2017-10-25 at 20:20 +0200, Anders K. Pedersen | Cohaesio wrote:
+> > On ons, 2017-10-25 at 19:57 +0200, Florian Westphal wrote:
+> > > Anders K. Pedersen | Cohaesio <akp@cohaesio.com> wrote:
+> > > > After upgrading to nftables 0.8 (from 0.7) on one of my systems,
+> > > > I've
+> > > > experiences several cases where rules that used to work fine with
+> > > > 0.7
+> > > > sometimes doesn't match anymore with 0.8 (it's not consistent -
+> > > > sometimes the rules do match with 0.8).
+> > > > 
+> > > > The rule chains end with a log statement before rejecting or
+> > > > dropping
+> > > > the packets, and I can see in the log that everything is as
+> > > > expected
+> > > > and the rules should match. After downgrading to nftables 0.7
+> > > > everything works again.
+> > > 
+> > > Are those errors restricted to a particular table family, chain or
+> > > protocol?
+> > 
+> > So far I've only registered it for IPv4 input filtering for TCP, but
+> > that's also most of the traffic on this system, so I'm not sure that
+> > it's limited to that.
+> > 
+> > As mentioned, it's not consistent. A rule that has worked fine could
+> > suddenly stop working without any rule set changes for days. Some
+> > times
+> > it has helped to just reload the exact same rule set. Other times
+> > changing
+> > 
+> > tcp dport { imap2, imaps } flow table imap \
+> >                 { ip saddr & 255.255.255.240 \
+> >                   timeout 5m limit rate 10/minute } \
+> >         counter accept
+> > 
+> > to
+> > 
+> > tcp dport { imap2, imaps } flow table imap \
+> >         counter accept
+> > 
+> > or
+> > 
+> > tcp dport { domain, http, https, 8080, 8443, 9091 } \
+> >         meta iif eth1 accept
+> > 
+> > to
+> > 
+> > tcp dport { domain, http, https, 8080, 8443, 9091 } \
+> >         meta iif eth1 counter accept
+> > 
+> > has resolved it, but it feels like it wasn't really due to the
+> > changes,
+> > but more random luck.
+
+note that sets are broken with 16bit elements at the moment in 4.13, see
+
+https://patchwork.ozlabs.org/patch/821080/
+or
+https://patchwork.ozlabs.org/patch/830236/
+
+> One more thing, I just noticed is that if I try to use nftables 0.7 to
+> dump the rule set that was loaded with 0.7, I get the following error:
+> 
+> # nft list ruleset
+> nft: payload.c:550: payload_expr_expand: Assertion `desc->base == expr->payload.base' failed.
+> Aborted
+
+Crap, I'll fix this, thanks for reporting.
+
+> If I use 0.8 to dump the rule set that was loaded with 0.7, I get the
+> correct rule set except for a difference with regards to sets and maps
+> that use interfaces like:
+> 
+> --- nft-0.7-0.8 rule set loaded with 0.7 and dumped with 0.8
+> +++ nft-0.8     same rule set loaded and dumped with 0.8
+> @@ -9,12 +9,12 @@
+>         chain prerouting {
+>                 type filter hook prerouting priority -100; policy accept;
+>                 iif "lo" accept
+> -               ct mark set iif map { 33554432 : 0x00000001, 67108864 : 0x00000002 }
+> +               ct mark set iif map { "eth0" : 0x00000001, "eth2" : 0x00000002 }
+>                 iif "eth1" jump prerouting_internal
+> -               iif { 33554432, 67108864 } ip saddr { 0.0.0.0/8, 10.0.0.0/8, 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 224.0.0.0-255.255.255.255 } counter packets 6 bytes 705 drop
+> +               iif { "eth0", "eth2" } ip saddr { 0.0.0.0/8, 10.0.0.0/8, 127.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 224.0.0.0-255.255.255.255 } counter packets 0 bytes 0 drop
+
+I will look at this too.
