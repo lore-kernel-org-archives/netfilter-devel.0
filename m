@@ -1,63 +1,54 @@
-From: Guillaume Nault <g.nault@alphalink.fr>
-Subject: Re: Fw: [Bug 197367] New: NMI watchdog: BUG: soft lockup - CPU#1
- stuck for 22s! [nf_conntrack]
-Date: Thu, 26 Oct 2017 11:48:09 +0200
-Message-ID: <20171026094809.y3kj7gdtcrzyudrr@alphalink.fr>
-References: <20171024150541.71368011@shemminger-XPS-13-9360>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH] libnftables: Get rid of explicit cache flushes
+Date: Thu, 26 Oct 2017 20:15:40 +0200
+Message-ID: <20171026181540.GA4669@salvia>
+References: <20171025092515.GB350@salvia>
+ <20171025114029.22043-1-phil@nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Florian Westphal <fw@strlen.de>, svimik@gmail.com
-To: Stephen Hemminger <stephen@networkplumber.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from zimbra.alphalink.fr ([217.15.80.77]:35889 "EHLO
-        zimbra.alphalink.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752088AbdJZJsM (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Oct 2017 05:48:12 -0400
+Received: from mail.us.es ([193.147.175.20]:55170 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932343AbdJZSPp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 26 Oct 2017 14:15:45 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 7C975E3A03
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Oct 2017 20:15:43 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6DBB9DA390
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Oct 2017 20:15:43 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20171024150541.71368011@shemminger-XPS-13-9360>
+In-Reply-To: <20171025114029.22043-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 24, 2017 at 03:05:41PM +0200, Stephen Hemminger wrote:
+On Wed, Oct 25, 2017 at 01:40:29PM +0200, Phil Sutter wrote:
+> In the past, CLI as a potentially long running process had to make sure
+> it kept it's cache up to date with kernel's rule set. A simple test case
+> is this:
 > 
+> | shell a		|	shell b
+> |			|	# nft -i
+> | # nft add table ip t	|
+> |			|	nft> list ruleset
+> |			|	table ip t {
+> |			|	}
+> | # nft flush ruleset	|
+> |			|	nft> list ruleset
+> |			|	nft>
 > 
-> NMI watchdog: BUG: soft lockup - CPU#1 stuck for 22s! [openvpn:1436]
-> ----cut----
-> CPU: 1 PID: 1436 Comm: openvpn Not tainted 4.8.13-1.el6.elrepo.x86_64 #1
-> Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2007
-> task: ffff88003c564300 task.stack: ffff88003bfb0000
-> RIP: 0010:[<ffffffffa030859f>]  [<ffffffffa030859f>]
-> __nf_conntrack_find_get+0x3f/0x330 [nf_conntrack]
-> ----cut----
-> Call Trace:
-> <IRQ>
-> [<ffffffffa03084b0>] ? death_by_timeout+0x20/0x20 [nf_conntrack]
-> [<ffffffffa0306ceb>] ? nf_ct_get_tuple+0x8b/0xb0 [nf_conntrack]
-> [<ffffffffa0308ac0>] nf_conntrack_in+0x1e0/0x530 [nf_conntrack]
-> [<ffffffffa032414c>] ipv4_conntrack_in+0x1c/0x20 [nf_conntrack_ipv4]
-> [<ffffffff8169f782>] nf_iterate+0x72/0x90
-> [<ffffffff816aa68f>] ? ip_rcv_finish+0x16f/0x3d0
-> [<ffffffff8169f8dd>] nf_hook_slow+0x3d/0xc0
-> [<ffffffff816aad46>] ip_rcv+0x2d6/0x3d0
-> [<ffffffffa004a402>] ? virtqueue_add_inbuf+0x2/0x30 [virtio_ring]
-> [<ffffffff816aa520>] ? inet_add_protocol+0x50/0x50
-> [<ffffffffa00490fa>] ? virtqueue_notify+0x1a/0x40 [virtio_ring]
-> [<ffffffff816669e0>] __netif_receive_skb_core+0x5b0/0x9f0
-> [<ffffffffa01372d0>] ? start_xmit+0x110/0x210 [virtio_net]
-> [<ffffffff810b796a>] ? update_cfs_rq_load_avg+0x29a/0x430
-> [<ffffffff8179b640>] ? _raw_read_unlock_bh+0x20/0x30
-> [<ffffffffa02d9900>] ? ebt_do_table+0x620/0x690 [ebtables]
-> [<ffffffff81666e49>] __netif_receive_skb+0x29/0x70
-> [<ffffffff81667067>] netif_receive_skb_internal+0x37/0x90
-> [<ffffffff81667ed8>] netif_receive_skb+0x28/0x80
-> ----cut----
->
-I guess this could be caused by the performance regression that came
-with rhtable conversion. The trace is a bit different from what I used
-to see though.
+> In order to make sure interactive CLI wouldn't incorrectly list the
+> table again in the second 'list' command, it immediately flushed it's
+> cache after every command execution.
+> 
+> This patch eliminates the need for that by making cache updates depend
+> on kernel's generation ID: A cache update stores the current rule set's
+> ID in struct nft_cache, consecutive calls to cache_update() compare that
+> stored value to the current generation ID received from kernel - if the
+> stored value is zero (i.e. no previous cache update did happen) or if it
+> doesn't match the kernel's value (i.e. cache is outdated) the cache is
+> flushed and fully initialized again.
 
-If that's really the case, then it's fixed by e1bf1687740c
-("netfilter: nat: Revert "netfilter: nat: convert nat bysrc hash to rhashtable"").
-
+Applied, thanks Phil.
