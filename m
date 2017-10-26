@@ -1,78 +1,99 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
 Subject: Re: nftables rules not matching after upgrading from 0.7 to 0.8
-Date: Thu, 26 Oct 2017 01:47:46 +0200
-Message-ID: <20171025234746.GA4172@salvia>
+Date: Thu, 26 Oct 2017 06:47:09 +0000
+Message-ID: <1509000429.25035.28.camel@cohaesio.com>
 References: <1508949114.1154.14.camel@cohaesio.com>
- <20171025175725.GJ19457@breakpoint.cc>
- <1508955630.25035.13.camel@cohaesio.com>
- <1508970133.25035.24.camel@cohaesio.com>
- <20171025224536.GK19457@breakpoint.cc>
+         <20171025175725.GJ19457@breakpoint.cc>
+         <1508955630.25035.13.camel@cohaesio.com>
+         <1508970133.25035.24.camel@cohaesio.com>
+         <20171025224536.GK19457@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "fw@strlen.de" <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37672 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751797AbdJYXru (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 25 Oct 2017 19:47:50 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7615AE0428
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Oct 2017 01:47:49 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 68291DA86D
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Oct 2017 01:47:49 +0200 (CEST)
-Content-Disposition: inline
+Received: from bender.cohaesio.com ([212.97.128.130]:50528 "EHLO
+        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750957AbdJZGrM (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 26 Oct 2017 02:47:12 -0400
 In-Reply-To: <20171025224536.GK19457@breakpoint.cc>
+Content-Language: en-US
+Content-ID: <E1E507E04C588841A4BCBB97F1D0AC84@surftown.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 26, 2017 at 12:45:36AM +0200, Florian Westphal wrote:
-> Anders K. Pedersen | Cohaesio <akp@cohaesio.com> wrote:
-> > On ons, 2017-10-25 at 20:20 +0200, Anders K. Pedersen | Cohaesio wrote:
-> > > On ons, 2017-10-25 at 19:57 +0200, Florian Westphal wrote:
-> > > > Anders K. Pedersen | Cohaesio <akp@cohaesio.com> wrote:
-[...]
-> > > As mentioned, it's not consistent. A rule that has worked fine could
-> > > suddenly stop working without any rule set changes for days. Some
-> > > times
-> > > it has helped to just reload the exact same rule set. Other times
-> > > changing
-> > > 
-> > > tcp dport { imap2, imaps } flow table imap \
-> > >                 { ip saddr & 255.255.255.240 \
-> > >                   timeout 5m limit rate 10/minute } \
-> > >         counter accept
-> > > 
-> > > to
-> > > 
-> > > tcp dport { imap2, imaps } flow table imap \
-> > >         counter accept
-> > > 
-> > > or
-> > > 
-> > > tcp dport { domain, http, https, 8080, 8443, 9091 } \
-> > >         meta iif eth1 accept
-> > > 
-> > > to
-> > > 
-> > > tcp dport { domain, http, https, 8080, 8443, 9091 } \
-> > >         meta iif eth1 counter accept
-> > > 
-> > > has resolved it, but it feels like it wasn't really due to the
-> > > changes,
-> > > but more random luck.
-> 
-> note that sets are broken with 16bit elements at the moment in 4.13, see
-> 
-> https://patchwork.ozlabs.org/patch/821080/
-> or
-> https://patchwork.ozlabs.org/patch/830236/
-
-JFYI, the fix for sets is now in nf.git.
-
-https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git/commit/
-
-I swear this was included in the previous batch, but it was not. Sorry
-about this. Will send this upstream asap.
+T24gdG9yLCAyMDE3LTEwLTI2IGF0IDAwOjQ1ICswMjAwLCBGbG9yaWFuIFdlc3RwaGFsIHdyb3Rl
+Og0KPiBBbmRlcnMgSy4gUGVkZXJzZW4gfCBDb2hhZXNpbyA8YWtwQGNvaGFlc2lvLmNvbT4gd3Jv
+dGU6DQo+ID4gT24gb25zLCAyMDE3LTEwLTI1IGF0IDIwOjIwICswMjAwLCBBbmRlcnMgSy4gUGVk
+ZXJzZW4gfCBDb2hhZXNpbw0KPiA+IHdyb3RlOg0KPiA+ID4gT24gb25zLCAyMDE3LTEwLTI1IGF0
+IDE5OjU3ICswMjAwLCBGbG9yaWFuIFdlc3RwaGFsIHdyb3RlOg0KPiA+ID4gPiBBbmRlcnMgSy4g
+UGVkZXJzZW4gfCBDb2hhZXNpbyA8YWtwQGNvaGFlc2lvLmNvbT4gd3JvdGU6DQo+ID4gPiA+ID4g
+QWZ0ZXIgdXBncmFkaW5nIHRvIG5mdGFibGVzIDAuOCAoZnJvbSAwLjcpIG9uIG9uZSBvZiBteQ0K
+PiA+ID4gPiA+IHN5c3RlbXMsDQo+ID4gPiA+ID4gSSd2ZQ0KPiA+ID4gPiA+IGV4cGVyaWVuY2Vz
+IHNldmVyYWwgY2FzZXMgd2hlcmUgcnVsZXMgdGhhdCB1c2VkIHRvIHdvcmsgZmluZQ0KPiA+ID4g
+PiA+IHdpdGgNCj4gPiA+ID4gPiAwLjcNCj4gPiA+ID4gPiBzb21ldGltZXMgZG9lc24ndCBtYXRj
+aCBhbnltb3JlIHdpdGggMC44IChpdCdzIG5vdCBjb25zaXN0ZW50DQo+ID4gPiA+ID4gLQ0KPiA+
+ID4gPiA+IHNvbWV0aW1lcyB0aGUgcnVsZXMgZG8gbWF0Y2ggd2l0aCAwLjgpLg0KPiA+ID4gPiA+
+IA0KPiA+ID4gPiA+IFRoZSBydWxlIGNoYWlucyBlbmQgd2l0aCBhIGxvZyBzdGF0ZW1lbnQgYmVm
+b3JlIHJlamVjdGluZyBvcg0KPiA+ID4gPiA+IGRyb3BwaW5nDQo+ID4gPiA+ID4gdGhlIHBhY2tl
+dHMsIGFuZCBJIGNhbiBzZWUgaW4gdGhlIGxvZyB0aGF0IGV2ZXJ5dGhpbmcgaXMgYXMNCj4gPiA+
+ID4gPiBleHBlY3RlZA0KPiA+ID4gPiA+IGFuZCB0aGUgcnVsZXMgc2hvdWxkIG1hdGNoLiBBZnRl
+ciBkb3duZ3JhZGluZyB0byBuZnRhYmxlcyAwLjcNCj4gPiA+ID4gPiBldmVyeXRoaW5nIHdvcmtz
+IGFnYWluLg0KPiA+ID4gPiANCj4gPiA+ID4gQXJlIHRob3NlIGVycm9ycyByZXN0cmljdGVkIHRv
+IGEgcGFydGljdWxhciB0YWJsZSBmYW1pbHksIGNoYWluDQo+ID4gPiA+IG9yDQo+ID4gPiA+IHBy
+b3RvY29sPw0KPiA+ID4gDQo+ID4gPiBTbyBmYXIgSSd2ZSBvbmx5IHJlZ2lzdGVyZWQgaXQgZm9y
+IElQdjQgaW5wdXQgZmlsdGVyaW5nIGZvciBUQ1AsDQo+ID4gPiBidXQNCj4gPiA+IHRoYXQncyBh
+bHNvIG1vc3Qgb2YgdGhlIHRyYWZmaWMgb24gdGhpcyBzeXN0ZW0sIHNvIEknbSBub3Qgc3VyZQ0K
+PiA+ID4gdGhhdA0KPiA+ID4gaXQncyBsaW1pdGVkIHRvIHRoYXQuDQo+ID4gPiANCj4gPiA+IEFz
+IG1lbnRpb25lZCwgaXQncyBub3QgY29uc2lzdGVudC4gQSBydWxlIHRoYXQgaGFzIHdvcmtlZCBm
+aW5lDQo+ID4gPiBjb3VsZA0KPiA+ID4gc3VkZGVubHkgc3RvcCB3b3JraW5nIHdpdGhvdXQgYW55
+IHJ1bGUgc2V0IGNoYW5nZXMgZm9yIGRheXMuIFNvbWUNCj4gPiA+IHRpbWVzDQo+ID4gPiBpdCBo
+YXMgaGVscGVkIHRvIGp1c3QgcmVsb2FkIHRoZSBleGFjdCBzYW1lIHJ1bGUgc2V0LiBPdGhlciB0
+aW1lcw0KPiA+ID4gY2hhbmdpbmcNCj4gPiA+IA0KPiA+ID4gdGNwIGRwb3J0IHsgaW1hcDIsIGlt
+YXBzIH0gZmxvdyB0YWJsZSBpbWFwIFwNCj4gPiA+ICAgICAgICAgICAgICAgICB7IGlwIHNhZGRy
+ICYgMjU1LjI1NS4yNTUuMjQwIFwNCj4gPiA+ICAgICAgICAgICAgICAgICAgIHRpbWVvdXQgNW0g
+bGltaXQgcmF0ZSAxMC9taW51dGUgfSBcDQo+ID4gPiAgICAgICAgIGNvdW50ZXIgYWNjZXB0DQo+
+ID4gPiANCj4gPiA+IHRvDQo+ID4gPiANCj4gPiA+IHRjcCBkcG9ydCB7IGltYXAyLCBpbWFwcyB9
+IGZsb3cgdGFibGUgaW1hcCBcDQo+ID4gPiAgICAgICAgIGNvdW50ZXIgYWNjZXB0DQo+ID4gPiAN
+Cj4gPiA+IG9yDQo+ID4gPiANCj4gPiA+IHRjcCBkcG9ydCB7IGRvbWFpbiwgaHR0cCwgaHR0cHMs
+IDgwODAsIDg0NDMsIDkwOTEgfSBcDQo+ID4gPiAgICAgICAgIG1ldGEgaWlmIGV0aDEgYWNjZXB0
+DQo+ID4gPiANCj4gPiA+IHRvDQo+ID4gPiANCj4gPiA+IHRjcCBkcG9ydCB7IGRvbWFpbiwgaHR0
+cCwgaHR0cHMsIDgwODAsIDg0NDMsIDkwOTEgfSBcDQo+ID4gPiAgICAgICAgIG1ldGEgaWlmIGV0
+aDEgY291bnRlciBhY2NlcHQNCj4gPiA+IA0KPiA+ID4gaGFzIHJlc29sdmVkIGl0LCBidXQgaXQg
+ZmVlbHMgbGlrZSBpdCB3YXNuJ3QgcmVhbGx5IGR1ZSB0byB0aGUNCj4gPiA+IGNoYW5nZXMsDQo+
+ID4gPiBidXQgbW9yZSByYW5kb20gbHVjay4NCj4gDQo+IG5vdGUgdGhhdCBzZXRzIGFyZSBicm9r
+ZW4gd2l0aCAxNmJpdCBlbGVtZW50cyBhdCB0aGUgbW9tZW50IGluIDQuMTMsDQo+IHNlZQ0KPiAN
+Cj4gaHR0cHM6Ly9wYXRjaHdvcmsub3psYWJzLm9yZy9wYXRjaC84MjEwODAvDQoNCkkgaGF2ZSBq
+dXN0IHVwZGF0ZWQgdG8gNC4xMy45IHBsdXMgdGhpcyBwYXRjaCwgYW5kIHdpbGwgbGV0IHlvdSBr
+bm93LA0KaWYgdGhpcyBjaGFuZ2VzIGFueXRoaW5nLg0KDQo+IG9yDQo+IGh0dHBzOi8vcGF0Y2h3
+b3JrLm96bGFicy5vcmcvcGF0Y2gvODMwMjM2Lw0KPiANCj4gPiBPbmUgbW9yZSB0aGluZywgSSBq
+dXN0IG5vdGljZWQgaXMgdGhhdCBpZiBJIHRyeSB0byB1c2UgbmZ0YWJsZXMgMC43DQo+ID4gdG8N
+Cj4gPiBkdW1wIHRoZSBydWxlIHNldCB0aGF0IHdhcyBsb2FkZWQgd2l0aCAwLjcsIEkgZ2V0IHRo
+ZSBmb2xsb3dpbmcNCj4gPiBlcnJvcjoNCg0KVGhpcyBzaG91bGQgaGF2ZSBzYWlkIGxvYWQgd2l0
+aCAwLjgsIGR1bXAgd2l0aCAwLjc6DQoNCj4gPiAjIG5mdCBsaXN0IHJ1bGVzZXQNCj4gPiBuZnQ6
+IHBheWxvYWQuYzo1NTA6IHBheWxvYWRfZXhwcl9leHBhbmQ6IEFzc2VydGlvbiBgZGVzYy0+YmFz
+ZSA9PQ0KPiA+IGV4cHItPnBheWxvYWQuYmFzZScgZmFpbGVkLg0KPiA+IEFib3J0ZWQNCj4gDQo+
+IENyYXAsIEknbGwgZml4IHRoaXMsIHRoYW5rcyBmb3IgcmVwb3J0aW5nLg0KPiANCj4gPiBJZiBJ
+IHVzZSAwLjggdG8gZHVtcCB0aGUgcnVsZSBzZXQgdGhhdCB3YXMgbG9hZGVkIHdpdGggMC43LCBJ
+IGdldA0KPiA+IHRoZQ0KPiA+IGNvcnJlY3QgcnVsZSBzZXQgZXhjZXB0IGZvciBhIGRpZmZlcmVu
+Y2Ugd2l0aCByZWdhcmRzIHRvIHNldHMgYW5kDQo+ID4gbWFwcw0KPiA+IHRoYXQgdXNlIGludGVy
+ZmFjZXMgbGlrZToNCj4gPiANCj4gPiAtLS0gbmZ0LTAuNy0wLjggcnVsZSBzZXQgbG9hZGVkIHdp
+dGggMC43IGFuZCBkdW1wZWQgd2l0aCAwLjgNCj4gPiArKysgbmZ0LTAuOCAgICAgc2FtZSBydWxl
+IHNldCBsb2FkZWQgYW5kIGR1bXBlZCB3aXRoIDAuOA0KPiA+IEBAIC05LDEyICs5LDEyIEBADQo+
+ID4gICAgICAgICBjaGFpbiBwcmVyb3V0aW5nIHsNCj4gPiAgICAgICAgICAgICAgICAgdHlwZSBm
+aWx0ZXIgaG9vayBwcmVyb3V0aW5nIHByaW9yaXR5IC0xMDA7IHBvbGljeQ0KPiA+IGFjY2VwdDsN
+Cj4gPiAgICAgICAgICAgICAgICAgaWlmICJsbyIgYWNjZXB0DQo+ID4gLSAgICAgICAgICAgICAg
+IGN0IG1hcmsgc2V0IGlpZiBtYXAgeyAzMzU1NDQzMiA6IDB4MDAwMDAwMDEsDQo+ID4gNjcxMDg4
+NjQgOiAweDAwMDAwMDAyIH0NCj4gPiArICAgICAgICAgICAgICAgY3QgbWFyayBzZXQgaWlmIG1h
+cCB7ICJldGgwIiA6IDB4MDAwMDAwMDEsICJldGgyIiA6DQo+ID4gMHgwMDAwMDAwMiB9DQo+ID4g
+ICAgICAgICAgICAgICAgIGlpZiAiZXRoMSIganVtcCBwcmVyb3V0aW5nX2ludGVybmFsDQo+ID4g
+LSAgICAgICAgICAgICAgIGlpZiB7IDMzNTU0NDMyLCA2NzEwODg2NCB9IGlwIHNhZGRyIHsgMC4w
+LjAuMC84LA0KPiA+IDEwLjAuMC4wLzgsIDEyNy4wLjAuMC84LCAxNzIuMTYuMC4wLzEyLCAxOTIu
+MTY4LjAuMC8xNiwgMjI0LjAuMC4wLQ0KPiA+IDI1NS4yNTUuMjU1LjI1NSB9IGNvdW50ZXIgcGFj
+a2V0cyA2IGJ5dGVzIDcwNSBkcm9wDQo+ID4gKyAgICAgICAgICAgICAgIGlpZiB7ICJldGgwIiwg
+ImV0aDIiIH0gaXAgc2FkZHIgeyAwLjAuMC4wLzgsDQo+ID4gMTAuMC4wLjAvOCwgMTI3LjAuMC4w
+LzgsIDE3Mi4xNi4wLjAvMTIsIDE5Mi4xNjguMC4wLzE2LCAyMjQuMC4wLjAtDQo+ID4gMjU1LjI1
+NS4yNTUuMjU1IH0gY291bnRlciBwYWNrZXRzIDAgYnl0ZXMgMCBkcm9wDQo+IA0KPiBJIHdpbGwg
+bG9vayBhdCB0aGlzIHRvby4NCg0KVGhhbmtzLg0KDQotLQ0KUmVnYXJkcywNCkFuZGVycw==
