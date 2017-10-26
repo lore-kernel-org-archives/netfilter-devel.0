@@ -1,127 +1,117 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 7/8] payload: consider expression type during dependency removal
-Date: Fri, 27 Oct 2017 01:06:10 +0200
-Message-ID: <20171026230611.14269-8-fw@strlen.de>
+Subject: [PATCH nft 5/8] payload: add basic infrastructure to keep some dependencies
+Date: Fri, 27 Oct 2017 01:06:08 +0200
+Message-ID: <20171026230611.14269-6-fw@strlen.de>
 References: <20171026230611.14269-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:59778 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:59770 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932334AbdJZXGT (ORCPT
+        by vger.kernel.org with ESMTP id S932335AbdJZXGN (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Oct 2017 19:06:19 -0400
+        Thu, 26 Oct 2017 19:06:13 -0400
 In-Reply-To: <20171026230611.14269-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-permit removal of linklayer dependencies if the current
-expression type permits this.
+all the errors highlighted by the new test cases are because our current
+dependency removal scheme is too trigger-happy.
 
-This gets rid of most of the warnings added by the previous
-commit.
+Add infrastructure to do extra checks to see if the dependency can really
+be removed.
+
+This change has no effect because the new pdep_is_redundant() function
+always returns true.
+
+The next patch changes the default to false (keep dependency).
+
+The split is to clarify infrastructure vs. conditions that need to be met
+for a dependency to be okay.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/netlink_delinearize.c |  2 +-
- src/payload.c             | 37 ++++++++++++++++++++++++++++++++++---
- 2 files changed, 35 insertions(+), 4 deletions(-)
+ src/payload.c | 60 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 59 insertions(+), 1 deletion(-)
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 57d780b316d0..efb80fdc3da4 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -1390,7 +1390,7 @@ static void ct_meta_common_postprocess(struct rule_pp_ctx *ctx,
- 		    left->flags & EXPR_F_PROTOCOL) {
- 			payload_dependency_store(&ctx->pdctx, ctx->stmt, base);
- 		} else if (ctx->pdctx.pbase < PROTO_BASE_TRANSPORT_HDR) {
--			__payload_dependency_kill(&ctx->pdctx, &ctx->pctx, base);
-+			payload_dependency_kill(&ctx->pdctx, &ctx->pctx, left);
- 			if (left->flags & EXPR_F_PROTOCOL)
- 				payload_dependency_store(&ctx->pdctx, ctx->stmt, base);
- 		}
 diff --git a/src/payload.c b/src/payload.c
-index 184a611704ea..69985af99c9a 100644
+index 12d359fd1738..9cb8c6144d70 100644
 --- a/src/payload.c
 +++ b/src/payload.c
-@@ -506,6 +506,7 @@ static bool get_relop_base(const struct stmt *stmt,
-  */
- static bool pdep_is_redundant(struct payload_dep_ctx *pdctx,
- 			      const struct proto_ctx *pctx,
-+			      const struct expr *e,
- 			      enum proto_bases base)
- {
- 	const struct proto_desc *proto, *proto_upper;
-@@ -541,6 +542,28 @@ static bool pdep_is_redundant(struct payload_dep_ctx *pdctx,
- 		break;
- 	case PROTO_BASE_LL_HDR:
- 		/*
-+		 * If we have an expression, then check if it implies an l3
-+		 * protocol.
-+		 * If we don't have one, then we keep the protocol dependency.
-+		 */
-+		if (!e)
-+			return false;
+@@ -468,6 +468,63 @@ static enum proto_bases expr_to_base(const struct expr *expr)
+ 	return PROTO_BASE_INVALID;
+ }
+ 
++static bool get_relop_base(const struct stmt *stmt,
++			   enum proto_bases *base)
++{
++	const struct expr *lhs, *rel;
 +
-+		if ((e->flags & EXPR_F_PROTOCOL) == 0)
-+			return true;
++	if (stmt->ops->type != STMT_EXPRESSION)
++		return false;
 +
-+		switch (e->ops->type) {
-+		case EXPR_PAYLOAD:
-+			return true;
-+		case EXPR_CT:
-+			if (type == EXPR_CT) /* ct s/daddr */
-+				return true;
-+			break;
-+		default:
-+			break;
-+		}
++	rel = stmt->expr;
++	if (rel->ops->type != EXPR_RELATIONAL)
++		return false;
 +
-+		/*
- 		 * It would be nice to also remove
- 		 * 'meta nfproto' in cases like
- 		 * meta nfproto ipv6 icmpv6 type ..., but we can't.
-@@ -574,14 +597,15 @@ static bool pdep_is_redundant(struct payload_dep_ctx *pdctx,
-  * Kill a redundant payload expression if a higher layer payload expression
-  * implies its existance.
-  */
--void __payload_dependency_kill(struct payload_dep_ctx *pdctx,
-+static void do_payload_dependency_kill(struct payload_dep_ctx *pdctx,
- 			       const struct proto_ctx *pctx,
-+			       const struct expr *e,
- 			       enum proto_bases base)
++	lhs = rel->left;
++	if ((lhs->flags & EXPR_F_PROTOCOL) == 0)
++		return false;
++
++	*base = expr_to_base(lhs);
++	return *base != PROTO_BASE_INVALID;
++}
++
++/*
++ * For INET/BRIDGE/NETDEV families extra care needs to be taken before
++ * removing a dependency, it might restrict the l3 protocol.  Examples:
++ *
++ * ip protocol tcp tcp dport 22
++ *
++ * In bridge/inet/netdev case, this rule only matches tcp/ipv4 so the
++ * l3 dependency cannot be removed.
++ *
++ * ip protocol ipv6-icmp meta l4proto ipv6-icmp icmpv6 type 1
++ *
++ * This only matches ipv6-icmp in ipv4, so 'ip protocol' must not be
++ * removed either.
++ */
++static bool pdep_is_redundant(struct payload_dep_ctx *pdctx,
++			      const struct proto_ctx *pctx,
++			      enum proto_bases base)
++{
++	const struct proto_desc *proto, *proto_upper;
++	const struct stmt *stmt = pdctx->pdep;
++	unsigned int family = pctx->family;
++	enum proto_bases depbase;
++
++	if (family == NFPROTO_IPV4 || family == NFPROTO_IPV6)
++		return true;
++
++	if (!get_relop_base(stmt, &depbase))
++		return true;
++
++	proto = pctx->protocol[depbase].desc;
++	proto_upper = pctx->protocol[base].desc;
++	if (proto == proto_upper)
++		return true;
++
++	return true;
++}
++
+ /**
+  * __payload_dependency_kill - kill a redundant payload depedency
+  *
+@@ -484,7 +541,8 @@ void __payload_dependency_kill(struct payload_dep_ctx *pdctx,
  {
  	if (pdctx->pbase != PROTO_BASE_INVALID &&
  	    pdctx->pbase == base &&
- 	    pdctx->pdep != NULL &&
--	    pdep_is_redundant(pdctx, pctx, base)) {
-+	    pdep_is_redundant(pdctx, pctx, e, base)) {
+-	    pdctx->pdep != NULL) {
++	    pdctx->pdep != NULL &&
++	    pdep_is_redundant(pdctx, pctx, base)) {
  		list_del(&pdctx->pdep->list);
  		stmt_free(pdctx->pdep);
  
-@@ -592,6 +616,13 @@ void __payload_dependency_kill(struct payload_dep_ctx *pdctx,
- 	}
- }
- 
-+void __payload_dependency_kill(struct payload_dep_ctx *pdctx,
-+			       const struct proto_ctx *pctx,
-+			       enum proto_bases base)
-+{
-+	do_payload_dependency_kill(pdctx, pctx, NULL, base);
-+}
-+
- void payload_dependency_update(struct payload_dep_ctx *pdctx,
- 			       struct proto_ctx *ctx,
- 			       struct stmt *stmt,
-@@ -619,7 +650,7 @@ void payload_dependency_kill(struct payload_dep_ctx *pdctx,
- 			     const struct proto_ctx *ctx,
- 			     const struct expr *expr)
- {
--	__payload_dependency_kill(pdctx, ctx, expr_to_base(expr));
-+	do_payload_dependency_kill(pdctx, ctx, expr, expr_to_base(expr));
- }
- 
- /**
 -- 
 2.13.6
 
