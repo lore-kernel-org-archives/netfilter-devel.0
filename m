@@ -1,67 +1,63 @@
-From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
-Subject: Re: nftables rules not matching after upgrading from 0.7 to 0.8
-Date: Thu, 26 Oct 2017 07:00:02 +0000
-Message-ID: <1509001201.25035.31.camel@cohaesio.com>
-References: <1508949114.1154.14.camel@cohaesio.com>
-         <20171025175725.GJ19457@breakpoint.cc>
-         <1508955630.25035.13.camel@cohaesio.com>
-         <1508970133.25035.24.camel@cohaesio.com>
-         <20171025224536.GK19457@breakpoint.cc> <20171025234449.GA4084@salvia>
+From: Guillaume Nault <g.nault@alphalink.fr>
+Subject: Re: Fw: [Bug 197367] New: NMI watchdog: BUG: soft lockup - CPU#1
+ stuck for 22s! [nf_conntrack]
+Date: Thu, 26 Oct 2017 11:48:09 +0200
+Message-ID: <20171026094809.y3kj7gdtcrzyudrr@alphalink.fr>
+References: <20171024150541.71368011@shemminger-XPS-13-9360>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "fw@strlen.de" <fw@strlen.de>,
-        "pablo@netfilter.org" <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Florian Westphal <fw@strlen.de>, svimik@gmail.com
+To: Stephen Hemminger <stephen@networkplumber.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bender.cohaesio.com ([212.97.128.130]:54819 "EHLO
-        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751893AbdJZHAF (ORCPT
+Received: from zimbra.alphalink.fr ([217.15.80.77]:35889 "EHLO
+        zimbra.alphalink.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752088AbdJZJsM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Oct 2017 03:00:05 -0400
-In-Reply-To: <20171025234449.GA4084@salvia>
-Content-Language: en-US
-Content-ID: <D23CF43BD5B862499AF9CFCDBE0D1D7C@surftown.com>
+        Thu, 26 Oct 2017 05:48:12 -0400
+Content-Disposition: inline
+In-Reply-To: <20171024150541.71368011@shemminger-XPS-13-9360>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-T24gdG9yLCAyMDE3LTEwLTI2IGF0IDAxOjQ0ICswMjAwLCBQYWJsbyBOZWlyYSBBeXVzbyB3cm90
-ZToNCj4gT24gVGh1LCBPY3QgMjYsIDIwMTcgYXQgMTI6NDU6MzZBTSArMDIwMCwgRmxvcmlhbiBX
-ZXN0cGhhbCB3cm90ZToNCj4gPiBBbmRlcnMgSy4gUGVkZXJzZW4gfCBDb2hhZXNpbyA8YWtwQGNv
-aGFlc2lvLmNvbT4gd3JvdGU6DQo+ID4gPiBPbiBvbnMsIDIwMTctMTAtMjUgYXQgMjA6MjAgKzAy
-MDAsIEFuZGVycyBLLiBQZWRlcnNlbiB8IENvaGFlc2lvDQo+ID4gPiB3cm90ZToNCj4gPiA+ID4g
-T24gb25zLCAyMDE3LTEwLTI1IGF0IDE5OjU3ICswMjAwLCBGbG9yaWFuIFdlc3RwaGFsIHdyb3Rl
-Og0KPiA+ID4gPiA+IEFuZGVycyBLLiBQZWRlcnNlbiB8IENvaGFlc2lvIDxha3BAY29oYWVzaW8u
-Y29tPiB3cm90ZToNCj4gDQo+IFsuLi5dDQo+ID4gPiBJZiBJIHVzZSAwLjggdG8gZHVtcCB0aGUg
-cnVsZSBzZXQgdGhhdCB3YXMgbG9hZGVkIHdpdGggMC43LCBJIGdldA0KPiA+ID4gdGhlDQo+ID4g
-PiBjb3JyZWN0IHJ1bGUgc2V0IGV4Y2VwdCBmb3IgYSBkaWZmZXJlbmNlIHdpdGggcmVnYXJkcyB0
-byBzZXRzIGFuZA0KPiA+ID4gbWFwcw0KPiA+ID4gdGhhdCB1c2UgaW50ZXJmYWNlcyBsaWtlOg0K
-PiA+ID4gDQo+ID4gPiAtLS0gbmZ0LTAuNy0wLjggcnVsZSBzZXQgbG9hZGVkIHdpdGggMC43IGFu
-ZCBkdW1wZWQgd2l0aCAwLjgNCj4gPiA+ICsrKyBuZnQtMC44ICAgICBzYW1lIHJ1bGUgc2V0IGxv
-YWRlZCBhbmQgZHVtcGVkIHdpdGggMC44DQo+ID4gPiBAQCAtOSwxMiArOSwxMiBAQA0KPiA+ID4g
-ICAgICAgICBjaGFpbiBwcmVyb3V0aW5nIHsNCj4gPiA+ICAgICAgICAgICAgICAgICB0eXBlIGZp
-bHRlciBob29rIHByZXJvdXRpbmcgcHJpb3JpdHkgLTEwMDsgcG9saWN5DQo+ID4gPiBhY2NlcHQ7
-DQo+ID4gPiAgICAgICAgICAgICAgICAgaWlmICJsbyIgYWNjZXB0DQo+ID4gPiAtICAgICAgICAg
-ICAgICAgY3QgbWFyayBzZXQgaWlmIG1hcCB7IDMzNTU0NDMyIDogMHgwMDAwMDAwMSwNCj4gPiA+
-IDY3MTA4ODY0IDogMHgwMDAwMDAwMiB9DQo+ID4gPiArICAgICAgICAgICAgICAgY3QgbWFyayBz
-ZXQgaWlmIG1hcCB7ICJldGgwIiA6IDB4MDAwMDAwMDEsICJldGgyIg0KPiA+ID4gOiAweDAwMDAw
-MDAyIH0NCj4gPiA+ICAgICAgICAgICAgICAgICBpaWYgImV0aDEiIGp1bXAgcHJlcm91dGluZ19p
-bnRlcm5hbA0KPiA+ID4gLSAgICAgICAgICAgICAgIGlpZiB7IDMzNTU0NDMyLCA2NzEwODg2NCB9
-IGlwIHNhZGRyIHsgMC4wLjAuMC84LA0KPiA+ID4gMTAuMC4wLjAvOCwgMTI3LjAuMC4wLzgsIDE3
-Mi4xNi4wLjAvMTIsIDE5Mi4xNjguMC4wLzE2LA0KPiA+ID4gMjI0LjAuMC4wLTI1NS4yNTUuMjU1
-LjI1NSB9IGNvdW50ZXIgcGFja2V0cyA2IGJ5dGVzIDcwNSBkcm9wDQo+ID4gPiArICAgICAgICAg
-ICAgICAgaWlmIHsgImV0aDAiLCAiZXRoMiIgfSBpcCBzYWRkciB7IDAuMC4wLjAvOCwNCj4gPiA+
-IDEwLjAuMC4wLzgsIDEyNy4wLjAuMC84LCAxNzIuMTYuMC4wLzEyLCAxOTIuMTY4LjAuMC8xNiwN
-Cj4gPiA+IDIyNC4wLjAuMC0yNTUuMjU1LjI1NS4yNTUgfSBjb3VudGVyIHBhY2tldHMgMCBieXRl
-cyAwIGRyb3ANCj4gPiANCj4gPiBJIHdpbGwgbG9vayBhdCB0aGlzIHRvby4NCj4gDQo+IFRoaXMg
-ZGlmZmVyZW5jZSBpbiB0aGUgd2F5IHRoaW5ncyBhcmUgZHVtcCBpcyByZWxhdGVkIHRvIHRoaXM6
-DQo+IA0KPiBjb21taXQgYjliNjA5MjMwNGFlZjE3ZmVhNzA0YzI1YjNkOWQ3ZGNkYjM5OTVhNQ0K
-PiBBdXRob3I6IFBhYmxvIE5laXJhIEF5dXNvIDxwYWJsb0BuZXRmaWx0ZXIub3JnPg0KPiBEYXRl
-OiAgIEZyaSBGZWIgMjQgMjA6NDc6NDkgMjAxNyArMDEwMA0KPiANCj4gICAgIGV2YWx1YXRlOiBz
-dG9yZSBieXRlb3JkZXIgZm9yIHNldCBrZXlzDQo+IA0KPiBUbyBteSB1bmRlcnN0YW5kaW5nLCBi
-eXRlb3JkZXIgd2FzIG5vdCBPSyBpbiAwLjcuDQo+IA0KPiBBcmUgdGhlc2UgbWFwcyBub3QgbWF0
-Y2hpbmcgYW55bW9yZSBvciBpcyBqdXN0IHRoZSBkdW1wIHRoZWF0IGlzDQo+IGRpZmZlcmVudD8N
-Cg0KVGhlIG1hcHMgYXJlIG1hdGNoaW5nIGFuZCBzZXRzIHRoZSBpbnRlbmRlZCBtYXJrcywgc28g
-aXQncyBqdXN0IHRoZQ0KZHVtcCB0aGF0IGlzIHdlaXJkLCB3aGVuIHRoZSBydWxlIHNldCBoYXMg
-YmVlbiBsb2FkZWQgd2l0aCAwLjcgYW5kIGlzDQpkdW1wZWQgd2l0aCAwLjguDQoNCi0tIA0KUmVn
-YXJkcywNCkFuZGVycw==
+On Tue, Oct 24, 2017 at 03:05:41PM +0200, Stephen Hemminger wrote:
+> 
+> 
+> NMI watchdog: BUG: soft lockup - CPU#1 stuck for 22s! [openvpn:1436]
+> ----cut----
+> CPU: 1 PID: 1436 Comm: openvpn Not tainted 4.8.13-1.el6.elrepo.x86_64 #1
+> Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2007
+> task: ffff88003c564300 task.stack: ffff88003bfb0000
+> RIP: 0010:[<ffffffffa030859f>]  [<ffffffffa030859f>]
+> __nf_conntrack_find_get+0x3f/0x330 [nf_conntrack]
+> ----cut----
+> Call Trace:
+> <IRQ>
+> [<ffffffffa03084b0>] ? death_by_timeout+0x20/0x20 [nf_conntrack]
+> [<ffffffffa0306ceb>] ? nf_ct_get_tuple+0x8b/0xb0 [nf_conntrack]
+> [<ffffffffa0308ac0>] nf_conntrack_in+0x1e0/0x530 [nf_conntrack]
+> [<ffffffffa032414c>] ipv4_conntrack_in+0x1c/0x20 [nf_conntrack_ipv4]
+> [<ffffffff8169f782>] nf_iterate+0x72/0x90
+> [<ffffffff816aa68f>] ? ip_rcv_finish+0x16f/0x3d0
+> [<ffffffff8169f8dd>] nf_hook_slow+0x3d/0xc0
+> [<ffffffff816aad46>] ip_rcv+0x2d6/0x3d0
+> [<ffffffffa004a402>] ? virtqueue_add_inbuf+0x2/0x30 [virtio_ring]
+> [<ffffffff816aa520>] ? inet_add_protocol+0x50/0x50
+> [<ffffffffa00490fa>] ? virtqueue_notify+0x1a/0x40 [virtio_ring]
+> [<ffffffff816669e0>] __netif_receive_skb_core+0x5b0/0x9f0
+> [<ffffffffa01372d0>] ? start_xmit+0x110/0x210 [virtio_net]
+> [<ffffffff810b796a>] ? update_cfs_rq_load_avg+0x29a/0x430
+> [<ffffffff8179b640>] ? _raw_read_unlock_bh+0x20/0x30
+> [<ffffffffa02d9900>] ? ebt_do_table+0x620/0x690 [ebtables]
+> [<ffffffff81666e49>] __netif_receive_skb+0x29/0x70
+> [<ffffffff81667067>] netif_receive_skb_internal+0x37/0x90
+> [<ffffffff81667ed8>] netif_receive_skb+0x28/0x80
+> ----cut----
+>
+I guess this could be caused by the performance regression that came
+with rhtable conversion. The trace is a bit different from what I used
+to see though.
+
+If that's really the case, then it's fixed by e1bf1687740c
+("netfilter: nat: Revert "netfilter: nat: convert nat bysrc hash to rhashtable"").
+
