@@ -1,54 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH] libnftables: Get rid of explicit cache flushes
-Date: Thu, 26 Oct 2017 20:15:40 +0200
-Message-ID: <20171026181540.GA4669@salvia>
-References: <20171025092515.GB350@salvia>
- <20171025114029.22043-1-phil@nwl.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Phil Sutter <phil@nwl.cc>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft 0/8] rework dependency removal
+Date: Fri, 27 Oct 2017 01:06:03 +0200
+Message-ID: <20171026230611.14269-1-fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55170 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932343AbdJZSPp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 26 Oct 2017 14:15:45 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7C975E3A03
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Oct 2017 20:15:43 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6DBB9DA390
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Oct 2017 20:15:43 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20171025114029.22043-1-phil@nwl.cc>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:59752 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751305AbdJZXF4 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 26 Oct 2017 19:05:56 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Oct 25, 2017 at 01:40:29PM +0200, Phil Sutter wrote:
-> In the past, CLI as a potentially long running process had to make sure
-> it kept it's cache up to date with kernel's rule set. A simple test case
-> is this:
-> 
-> | shell a		|	shell b
-> |			|	# nft -i
-> | # nft add table ip t	|
-> |			|	nft> list ruleset
-> |			|	table ip t {
-> |			|	}
-> | # nft flush ruleset	|
-> |			|	nft> list ruleset
-> |			|	nft>
-> 
-> In order to make sure interactive CLI wouldn't incorrectly list the
-> table again in the second 'list' command, it immediately flushed it's
-> cache after every command execution.
-> 
-> This patch eliminates the need for that by making cache updates depend
-> on kernel's generation ID: A cache update stores the current rule set's
-> ID in struct nft_cache, consecutive calls to cache_update() compare that
-> stored value to the current generation ID received from kernel - if the
-> stored value is zero (i.e. no previous cache update did happen) or if it
-> doesn't match the kernel's value (i.e. cache is outdated) the cache is
-> flushed and fully initialized again.
+This series resolves a few shortcomings with the current dependency
+removal.
 
-Applied, thanks Phil.
+Problem is that the current approach sometimes can remove dependencies
+that are required, i.e. where the removal does change the rule.
+
+Examples:
+inet t .. meta nfproto ipv6 tcp dport 22 or
+inet t .. ip protocol tcp tcp dport 22
+are reduced to 'tcp dport 22'.
+ip6 nexthdr icmpv6 icmpv6 type echo-request
+becomes 'ipv6 type echo-request' (which is not exactly the same,
+the implicit dependency nft adds is 'meta l4proto', which skips
+most extension headers).
+
+I already pushed a couple of test cases to increase coverage.
+
+These patches aim to fix those by making dependency removal more
+strict.
+
+The additional checks are only done in families other than ip and ipv6,
+as those are already restricted to a particular l3 protocol.
+
+
+ include/payload.h         |   14 +-
+ include/utils.h           |    1 
+ src/netlink.c             |   11 --
+ src/netlink_delinearize.c |   27 +----
+ src/payload.c             |  224 +++++++++++++++++++++++++++++++++++++++++-----
+ tests/py/bridge/icmpX.t   |    4 
+ tests/py/inet/icmpX.t     |    4 
+ tests/py/inet/ip_tcp.t    |    4 
+ 8 files changed, 224 insertions(+), 65 deletions(-)
+
