@@ -1,230 +1,104 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: [PATCH] netfilter: ipvs: Convert timers to use timer_setup()
-Date: Thu, 26 Oct 2017 22:55:56 -0700
-Message-ID: <20171027055556.GA131076@beast>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft 1/8] tests: adjust output to silence warnings
+Date: Fri, 27 Oct 2017 12:29:06 +0200
+Message-ID: <20171027102906.GA14147@salvia>
+References: <20171026230611.14269-1-fw@strlen.de>
+ <20171026230611.14269-2-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Julian Anastasov <ja@ssi.bg>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
-In preparation for unconditionally passing the struct timer_list pointer to
-all timer callbacks, switch to using the new timer_setup() and from_timer()
-to pass the timer pointer explicitly.
-
-Cc: Wensong Zhang <wensong@linux-vs.org>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Julian Anastasov <ja@ssi.bg>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org
-Cc: lvs-devel@vger.kernel.org
 Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
- net/netfilter/ipvs/ip_vs_conn.c  | 10 +++++-----
- net/netfilter/ipvs/ip_vs_ctl.c   |  7 +++----
- net/netfilter/ipvs/ip_vs_est.c   |  6 +++---
- net/netfilter/ipvs/ip_vs_lblc.c  | 11 ++++++-----
- net/netfilter/ipvs/ip_vs_lblcr.c | 11 ++++++-----
- 5 files changed, 23 insertions(+), 22 deletions(-)
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:40704 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752151AbdJ0K3M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 27 Oct 2017 06:29:12 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 175D426E26
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Oct 2017 12:29:10 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 06990BAC34
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Oct 2017 12:29:10 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20171026230611.14269-2-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 3d2ac71a83ec..3a43b3470331 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -104,7 +104,7 @@ static inline void ct_write_unlock_bh(unsigned int key)
- 	spin_unlock_bh(&__ip_vs_conntbl_lock_array[key&CT_LOCKARRAY_MASK].l);
- }
- 
--static void ip_vs_conn_expire(unsigned long data);
-+static void ip_vs_conn_expire(struct timer_list *t);
- 
- /*
-  *	Returns hash value for IPVS connection entry
-@@ -457,7 +457,7 @@ EXPORT_SYMBOL_GPL(ip_vs_conn_out_get_proto);
- static void __ip_vs_conn_put_notimer(struct ip_vs_conn *cp)
- {
- 	__ip_vs_conn_put(cp);
--	ip_vs_conn_expire((unsigned long)cp);
-+	ip_vs_conn_expire(&cp->timer);
- }
- 
- /*
-@@ -817,9 +817,9 @@ static void ip_vs_conn_rcu_free(struct rcu_head *head)
- 	kmem_cache_free(ip_vs_conn_cachep, cp);
- }
- 
--static void ip_vs_conn_expire(unsigned long data)
-+static void ip_vs_conn_expire(struct timer_list *t)
- {
--	struct ip_vs_conn *cp = (struct ip_vs_conn *)data;
-+	struct ip_vs_conn *cp = from_timer(cp, t, timer);
- 	struct netns_ipvs *ipvs = cp->ipvs;
- 
- 	/*
-@@ -909,7 +909,7 @@ ip_vs_conn_new(const struct ip_vs_conn_param *p, int dest_af,
- 	}
- 
- 	INIT_HLIST_NODE(&cp->c_list);
--	setup_timer(&cp->timer, ip_vs_conn_expire, (unsigned long)cp);
-+	timer_setup(&cp->timer, ip_vs_conn_expire, 0);
- 	cp->ipvs	   = ipvs;
- 	cp->af		   = p->af;
- 	cp->daf		   = dest_af;
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 4f940d7eb2f7..b47e266c6eca 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1146,9 +1146,9 @@ ip_vs_del_dest(struct ip_vs_service *svc, struct ip_vs_dest_user_kern *udest)
- 	return 0;
- }
- 
--static void ip_vs_dest_trash_expire(unsigned long data)
-+static void ip_vs_dest_trash_expire(struct timer_list *t)
- {
--	struct netns_ipvs *ipvs = (struct netns_ipvs *)data;
-+	struct netns_ipvs *ipvs = from_timer(ipvs, t, dest_trash_timer);
- 	struct ip_vs_dest *dest, *next;
- 	unsigned long now = jiffies;
- 
-@@ -4019,8 +4019,7 @@ int __net_init ip_vs_control_net_init(struct netns_ipvs *ipvs)
- 
- 	INIT_LIST_HEAD(&ipvs->dest_trash);
- 	spin_lock_init(&ipvs->dest_trash_lock);
--	setup_timer(&ipvs->dest_trash_timer, ip_vs_dest_trash_expire,
--		    (unsigned long) ipvs);
-+	timer_setup(&ipvs->dest_trash_timer, ip_vs_dest_trash_expire, 0);
- 	atomic_set(&ipvs->ftpsvc_counter, 0);
- 	atomic_set(&ipvs->nullsvc_counter, 0);
- 	atomic_set(&ipvs->conn_out_counter, 0);
-diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
-index 457c6c193e13..489055091a9b 100644
---- a/net/netfilter/ipvs/ip_vs_est.c
-+++ b/net/netfilter/ipvs/ip_vs_est.c
-@@ -97,12 +97,12 @@ static void ip_vs_read_cpu_stats(struct ip_vs_kstats *sum,
- }
- 
- 
--static void estimation_timer(unsigned long arg)
-+static void estimation_timer(struct timer_list *t)
- {
- 	struct ip_vs_estimator *e;
- 	struct ip_vs_stats *s;
- 	u64 rate;
--	struct netns_ipvs *ipvs = (struct netns_ipvs *)arg;
-+	struct netns_ipvs *ipvs = from_timer(ipvs, t, est_timer);
- 
- 	spin_lock(&ipvs->est_lock);
- 	list_for_each_entry(e, &ipvs->est_list, list) {
-@@ -192,7 +192,7 @@ int __net_init ip_vs_estimator_net_init(struct netns_ipvs *ipvs)
- {
- 	INIT_LIST_HEAD(&ipvs->est_list);
- 	spin_lock_init(&ipvs->est_lock);
--	setup_timer(&ipvs->est_timer, estimation_timer, (unsigned long)ipvs);
-+	timer_setup(&ipvs->est_timer, estimation_timer, 0);
- 	mod_timer(&ipvs->est_timer, jiffies + 2 * HZ);
- 	return 0;
- }
-diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
-index b6aa4a970c6e..d625179de485 100644
---- a/net/netfilter/ipvs/ip_vs_lblc.c
-+++ b/net/netfilter/ipvs/ip_vs_lblc.c
-@@ -106,6 +106,7 @@ struct ip_vs_lblc_table {
- 	struct rcu_head		rcu_head;
- 	struct hlist_head	bucket[IP_VS_LBLC_TAB_SIZE];  /* hash bucket */
- 	struct timer_list       periodic_timer; /* collect stale entries */
-+	struct ip_vs_service	*svc;		/* pointer back to service */
- 	atomic_t                entries;        /* number of entries */
- 	int                     max_size;       /* maximum size of entries */
- 	int                     rover;          /* rover for expire check */
-@@ -294,10 +295,10 @@ static inline void ip_vs_lblc_full_check(struct ip_vs_service *svc)
-  *             of the table.
-  *      The full expiration check is for this purpose now.
-  */
--static void ip_vs_lblc_check_expire(unsigned long data)
-+static void ip_vs_lblc_check_expire(struct timer_list *t)
- {
--	struct ip_vs_service *svc = (struct ip_vs_service *) data;
--	struct ip_vs_lblc_table *tbl = svc->sched_data;
-+	struct ip_vs_lblc_table *tbl = from_timer(tbl, t, periodic_timer);
-+	struct ip_vs_service *svc = tbl->svc;
- 	unsigned long now = jiffies;
- 	int goal;
- 	int i, j;
-@@ -369,12 +370,12 @@ static int ip_vs_lblc_init_svc(struct ip_vs_service *svc)
- 	tbl->rover = 0;
- 	tbl->counter = 1;
- 	tbl->dead = 0;
-+	tbl->svc = svc;
- 
- 	/*
- 	 *    Hook periodic timer for garbage collection
- 	 */
--	setup_timer(&tbl->periodic_timer, ip_vs_lblc_check_expire,
--			(unsigned long)svc);
-+	timer_setup(&tbl->periodic_timer, ip_vs_lblc_check_expire, 0);
- 	mod_timer(&tbl->periodic_timer, jiffies + CHECK_EXPIRE_INTERVAL);
- 
- 	return 0;
-diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
-index c13ff575f9f7..84c57b62a588 100644
---- a/net/netfilter/ipvs/ip_vs_lblcr.c
-+++ b/net/netfilter/ipvs/ip_vs_lblcr.c
-@@ -278,6 +278,7 @@ struct ip_vs_lblcr_table {
- 	atomic_t                entries;        /* number of entries */
- 	int                     max_size;       /* maximum size of entries */
- 	struct timer_list       periodic_timer; /* collect stale entries */
-+	struct ip_vs_service	*svc;		/* pointer back to service */
- 	int                     rover;          /* rover for expire check */
- 	int                     counter;        /* counter for no expire */
- 	bool			dead;
-@@ -458,10 +459,10 @@ static inline void ip_vs_lblcr_full_check(struct ip_vs_service *svc)
-  *             of the table.
-  *      The full expiration check is for this purpose now.
-  */
--static void ip_vs_lblcr_check_expire(unsigned long data)
-+static void ip_vs_lblcr_check_expire(struct timer_list *t)
- {
--	struct ip_vs_service *svc = (struct ip_vs_service *) data;
--	struct ip_vs_lblcr_table *tbl = svc->sched_data;
-+	struct ip_vs_lblcr_table *tbl = from_timer(tbl, t, periodic_timer);
-+	struct ip_vs_service *svc = tbl->svc;
- 	unsigned long now = jiffies;
- 	int goal;
- 	int i, j;
-@@ -532,12 +533,12 @@ static int ip_vs_lblcr_init_svc(struct ip_vs_service *svc)
- 	tbl->rover = 0;
- 	tbl->counter = 1;
- 	tbl->dead = 0;
-+	tbl->svc = svc;
- 
- 	/*
- 	 *    Hook periodic timer for garbage collection
- 	 */
--	setup_timer(&tbl->periodic_timer, ip_vs_lblcr_check_expire,
--			(unsigned long)svc);
-+	timer_setup(&tbl->periodic_timer, ip_vs_lblcr_check_expire, 0);
- 	mod_timer(&tbl->periodic_timer, jiffies + CHECK_EXPIRE_INTERVAL);
- 
- 	return 0;
--- 
-2.7.4
+Hi Florian,
 
+On Fri, Oct 27, 2017 at 01:06:04AM +0200, Florian Westphal wrote:
+> silence following (correct but harmless) warnings:
+> bridge/icmpX.t: WARNING: line: 6: 'src/nft add rule --debug=netlink bridge test-bridge input icmp type echo-request': 'icmp type echo-request' mismatches 'ether type ip icmp type echo-request'
+> bridge/icmpX.t: WARNING: line: 8: 'src/nft add rule --debug=netlink bridge test-bridge input icmpv6 type echo-request': 'icmpv6 type echo-request' mismatches 'ether type ip6 icmpv6 type echo-request'
+> inet/icmpX.t: WARNING: line: 6: 'src/nft add rule --debug=netlink inet test-inet input icmp type echo-request': 'icmp type echo-request' mismatches 'meta nfproto ipv4 icmp type echo-request'
+> inet/icmpX.t: WARNING: line: 8: 'src/nft add rule --debug=netlink inet test-inet input icmpv6 type echo-request': 'icmpv6 type echo-request' mismatches 'meta nfproto ipv6 icmpv6 type echo-request'
 
--- 
-Kees Cook
-Pixel Security
+Hm, I'm not hitting this here, probably there's a bug in test
+infrastructure.
+
+> in all of these cases, we *could* remove the dependency, it can
+> be correctly re-built using icmp/icmpv6.
+> 
+> However, at this time, nft dependency removal does not have the needed
+> information to do this correctly.  In order to remove the ll dependency
+> (ether type, meta nfproto) we would need to know if the layer 4 protocol
+> is icmp (implies ipv4) or icmpv6 (implies ipv6).
+> 
+> Access to the next expression (meta l4proto) is NOT enough, for example:
+> ether type ip meta l4proto tcp
+> 
+> does not imply ip, we would need access to the rhs (the layer 4
+> protocol number) to know if the layer 2 check is (was) implied by another
+> statement later on.
+> 
+> To do that we would need two passes over a rule, or we would need to
+> track dependencies per-base.
+> 
+> So for now just accept that we don't handle it.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  tests/py/bridge/icmpX.t | 4 ++--
+>  tests/py/inet/icmpX.t   | 4 ++--
+>  2 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/tests/py/bridge/icmpX.t b/tests/py/bridge/icmpX.t
+> index 4d7b9b0637aa..58e366c00712 100644
+> --- a/tests/py/bridge/icmpX.t
+> +++ b/tests/py/bridge/icmpX.t
+> @@ -3,6 +3,6 @@
+>  *bridge;test-bridge;input
+>  
+>  ip protocol icmp icmp type echo-request;ok;icmp type echo-request
+> -icmp type echo-request;ok
+> +icmp type echo-request;ok;ether type ip icmp type echo-request
+>  ip6 nexthdr icmpv6 icmpv6 type echo-request;ok;ip6 nexthdr 58 icmpv6 type echo-request
+> -icmpv6 type echo-request;ok
+> +icmpv6 type echo-request;ok;ether type ip6 icmpv6 type echo-request
+> diff --git a/tests/py/inet/icmpX.t b/tests/py/inet/icmpX.t
+> index 43ac0909195f..91f7b9e1c472 100644
+> --- a/tests/py/inet/icmpX.t
+> +++ b/tests/py/inet/icmpX.t
+> @@ -3,8 +3,8 @@
+>  *inet;test-inet;input
+>  
+>  ip protocol icmp icmp type echo-request;ok;icmp type echo-request
+> -icmp type echo-request;ok
+> +icmp type echo-request;ok;meta nfproto ipv4 icmp type echo-request
+
+I read a couple of times your description above and I must be
+overlooking anything.
+
+To me, "icmp type echo-request" in bridge/inet/netdev should result in
+two implicit dependencies, so this ends up looking like this:
+
+1) check for IPv4, then...
+2) check for ICMP in iph->protocol, then...
+3) check for ICMP type.
+
+This would be the default reasonable behaviour.
+
+Then, we have to deal with specific corner cases, where we should
+cancel dependencies.
+
+Am I missing anything?
