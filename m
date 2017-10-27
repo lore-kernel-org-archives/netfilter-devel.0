@@ -1,52 +1,65 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nft 0/8] rework dependency removal
-Date: Fri, 27 Oct 2017 14:46:49 +0200
-Message-ID: <20171027124649.GN19457@breakpoint.cc>
+Subject: Re: [PATCH nft 1/8] tests: adjust output to silence warnings
+Date: Fri, 27 Oct 2017 14:52:02 +0200
+Message-ID: <20171027125202.GO19457@breakpoint.cc>
 References: <20171026230611.14269-1-fw@strlen.de>
- <20171027103916.GA21822@salvia>
+ <20171026230611.14269-2-fw@strlen.de>
+ <20171027102906.GA14147@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:34180 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:34194 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752549AbdJ0MrH (ORCPT
+        by vger.kernel.org with ESMTP id S1752477AbdJ0MwU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 27 Oct 2017 08:47:07 -0400
+        Fri, 27 Oct 2017 08:52:20 -0400
 Content-Disposition: inline
-In-Reply-To: <20171027103916.GA21822@salvia>
+In-Reply-To: <20171027102906.GA14147@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> What I don't still is why patch 1/8 is expanding icmp type
-> echo-request to show explicit "ether type ip icmp type echo-request"
-> when listing the ruleset.
+> > index 43ac0909195f..91f7b9e1c472 100644
+> > --- a/tests/py/inet/icmpX.t
+> > +++ b/tests/py/inet/icmpX.t
+> > @@ -3,8 +3,8 @@
+> >  *inet;test-inet;input
+> >  
+> >  ip protocol icmp icmp type echo-request;ok;icmp type echo-request
+> > -icmp type echo-request;ok
+> > +icmp type echo-request;ok;meta nfproto ipv4 icmp type echo-request
 > 
-> I mean:
+> I read a couple of times your description above and I must be
+> overlooking anything.
 > 
-> -icmp type echo-request;ok
-> +icmp type echo-request;ok;ether type ip icmp type echo-request
+> To me, "icmp type echo-request" in bridge/inet/netdev should result in
+> two implicit dependencies, so this ends up looking like this:
+> 
+> 1) check for IPv4, then...
+> 2) check for ICMP in iph->protocol, then...
+> 3) check for ICMP type.
+> 
+> This would be the default reasonable behaviour.
+> 
+> Then, we have to deal with specific corner cases, where we should
+> cancel dependencies.
+> 
+> Am I missing anything?
 
-Correct, this is redundant, the 'ether type ip' could be removed
-here.
+Sorry, I overlooked this on my first reply.
 
-But it would need more work to achive this, f.e. by
-tracking not the last but all seen dependencies per-base and doing
-the removal only after seeing all consecutive expression statements.
+Your assesment is correct, that is indeed the default reasonable
+behaviour, but, when removing, we have limited information on
+the rule at the moment.
 
-At the moment, when 'remove ether type ip' decision is made, we only
-know that the next expression is 'meta l4proto'.
+So this is really:
 
-But that is not enough to know if the dependency is implicit or not.
-Another soltution would be to pass the relational expression, and
-then extract rhs too. That would allow to see the 'icmp' in
-'meta l4proto icmp' (and then remove the dep because icmp implies ipv4).
+1) check for IPv4, then...
+2) check for some l4 protocol
 
-However, as icmp is the only case where we can do the removal I think
-its currently not super urgent to make these changes.
+... from a dependency removal perspective.
+and 2) doesn't provide enough information to decide if the dependency
+is needed or not.
 
-Does that explanation help?
-
-I would re-word the commit message accordingly.
