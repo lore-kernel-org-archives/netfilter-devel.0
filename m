@@ -1,8 +1,8 @@
 From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] netfilter: ipset: ip_set_bitmap_ipmac: use swap macro in
- bitmap_ipmac_create
-Date: Sat, 28 Oct 2017 15:17:43 -0500
-Message-ID: <20171028201743.GA32474@embeddedor.com>
+Subject: [PATCH] netfilter: ipset: ip_set_bitmap_ip: use swap macro in
+ bitmap_ip_create
+Date: Sat, 28 Oct 2017 15:24:05 -0500
+Message-ID: <20171028202405.GA913@embeddedor.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
@@ -12,9 +12,9 @@ To: Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Make use of the swap macro and remove unnecessary variable tmp.
@@ -24,14 +24,14 @@ This code was detected with the help of Coccinelle.
 
 Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
 ---
- net/netfilter/ipset/ip_set_bitmap_ipmac.c | 8 ++------
+ net/netfilter/ipset/ip_set_bitmap_ip.c | 8 ++------
  1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index 4c279fb..c00b6a2 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -337,12 +337,8 @@ bitmap_ipmac_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
+index d8975a0..488d6d0 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ip.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
+@@ -263,12 +263,8 @@ bitmap_ip_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
  		ret = ip_set_get_hostipaddr4(tb[IPSET_ATTR_IP_TO], &last_ip);
  		if (ret)
  			return ret;
