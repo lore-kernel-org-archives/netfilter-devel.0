@@ -1,29 +1,50 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next] netfilter: nft_set_hash: fix fast_ops for 2-len
- keys
-Date: Sat, 28 Oct 2017 13:33:04 +0200
-Message-ID: <20171028113304.GA7663@breakpoint.cc>
-References: <20171025105730.27746-1-fw@strlen.de>
- <1509187202.2986.0@smtp.gmail.com>
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] netfilter: ipset: ip_set_bitmap_ipmac: use swap macro in
+ bitmap_ipmac_create
+Date: Sat, 28 Oct 2017 15:17:43 -0500
+Message-ID: <20171028201743.GA32474@embeddedor.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Anatole Denis <natolumin@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37328 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751000AbdJ1LdY (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 28 Oct 2017 07:33:24 -0400
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1509187202.2986.0@smtp.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Anatole Denis <natolumin@gmail.com> wrote:
-> I'm not very familiar with this part of the code, so it's very possible I
-> don't know what I'm talking about, but there is also nft_hash_deactivate
-> which is doing a jhash over the key and will still incorrectly hash 2-byte
-> keys.
+Make use of the swap macro and remove unnecessary variable tmp.
+This makes the code easier to read and maintain.
 
-Oh right, thanks for pointing this out.  I will send a v2.
+This code was detected with the help of Coccinelle.
+
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+---
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index 4c279fb..c00b6a2 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -337,12 +337,8 @@ bitmap_ipmac_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
+ 		ret = ip_set_get_hostipaddr4(tb[IPSET_ATTR_IP_TO], &last_ip);
+ 		if (ret)
+ 			return ret;
+-		if (first_ip > last_ip) {
+-			u32 tmp = first_ip;
+-
+-			first_ip = last_ip;
+-			last_ip = tmp;
+-		}
++		if (first_ip > last_ip)
++			swap(first_ip, last_ip);
+ 	} else if (tb[IPSET_ATTR_CIDR]) {
+ 		u8 cidr = nla_get_u8(tb[IPSET_ATTR_CIDR]);
+ 
+-- 
+2.7.4
