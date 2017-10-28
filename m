@@ -1,8 +1,8 @@
 From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] netfilter: ipset: ip_set_bitmap_ip: use swap macro in
- bitmap_ip_create
-Date: Sat, 28 Oct 2017 15:24:05 -0500
-Message-ID: <20171028202405.GA913@embeddedor.com>
+Subject: [PATCH] netfilter: ipset: ip_set_bitmap_port: use swap macro in
+ bitmap_port_create
+Date: Sat, 28 Oct 2017 15:30:07 -0500
+Message-ID: <20171028203007.GA4345@embeddedor.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
@@ -24,27 +24,27 @@ This code was detected with the help of Coccinelle.
 
 Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
 ---
- net/netfilter/ipset/ip_set_bitmap_ip.c | 8 ++------
+ net/netfilter/ipset/ip_set_bitmap_port.c | 8 ++------
  1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
-index d8975a0..488d6d0 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ip.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
-@@ -263,12 +263,8 @@ bitmap_ip_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
- 		ret = ip_set_get_hostipaddr4(tb[IPSET_ATTR_IP_TO], &last_ip);
- 		if (ret)
- 			return ret;
--		if (first_ip > last_ip) {
--			u32 tmp = first_ip;
--
--			first_ip = last_ip;
--			last_ip = tmp;
--		}
-+		if (first_ip > last_ip)
-+			swap(first_ip, last_ip);
- 	} else if (tb[IPSET_ATTR_CIDR]) {
- 		u8 cidr = nla_get_u8(tb[IPSET_ATTR_CIDR]);
+diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
+index 7f9bbd7..b561ca8 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_port.c
++++ b/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -238,12 +238,8 @@ bitmap_port_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
  
+ 	first_port = ip_set_get_h16(tb[IPSET_ATTR_PORT]);
+ 	last_port = ip_set_get_h16(tb[IPSET_ATTR_PORT_TO]);
+-	if (first_port > last_port) {
+-		u16 tmp = first_port;
+-
+-		first_port = last_port;
+-		last_port = tmp;
+-	}
++	if (first_port > last_port)
++		swap(first_port, last_port);
+ 
+ 	elements = last_port - first_port + 1;
+ 	set->dsize = ip_set_elem_len(set, tb, 0, 0);
 -- 
 2.7.4
