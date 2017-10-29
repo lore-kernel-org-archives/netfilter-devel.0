@@ -1,82 +1,73 @@
 From: Varsha Rao <rvarsha016@gmail.com>
-Subject: [PATCH nft 06/16] tests: shell: Add tests for payload expression.
-Date: Mon, 30 Oct 2017 02:19:21 +0530
-Message-ID: <20171029204931.7792-6-rvarsha016@gmail.com>
+Subject: [PATCH nft 08/16] tests: files: Remove test for syntactical errors.
+Date: Mon, 30 Oct 2017 02:19:23 +0530
+Message-ID: <20171029204931.7792-8-rvarsha016@gmail.com>
 References: <cover.1509305217.git.rvarsha016@gmail.com>
  <20171029204931.7792-1-rvarsha016@gmail.com>
 Cc: Varsha Rao <rvarsha016@gmail.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:51731 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752073AbdJ2Ut6 (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:51269 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752073AbdJ2UuD (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 29 Oct 2017 16:49:58 -0400
-Received: by mail-pf0-f193.google.com with SMTP id n14so9214665pfh.8
-        for <netfilter-devel@vger.kernel.org>; Sun, 29 Oct 2017 13:49:58 -0700 (PDT)
+        Sun, 29 Oct 2017 16:50:03 -0400
+Received: by mail-pg0-f68.google.com with SMTP id p9so9675722pgc.8
+        for <netfilter-devel@vger.kernel.org>; Sun, 29 Oct 2017 13:50:03 -0700 (PDT)
 In-Reply-To: <20171029204931.7792-1-rvarsha016@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds test case for adjacent payload expression.
+This patch removes test for syntax error as they are not required.
 
 Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
 ---
- tests/shell/testcases/transactions/0024rule_0 | 44 +++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
- create mode 100755 tests/shell/testcases/transactions/0024rule_0
+ tests/files/error.1 |  9 ---------
+ tests/files/error.2 | 18 ------------------
+ 2 files changed, 27 deletions(-)
+ delete mode 100644 tests/files/error.1
+ delete mode 100644 tests/files/error.2
 
-diff --git a/tests/shell/testcases/transactions/0024rule_0 b/tests/shell/testcases/transactions/0024rule_0
-new file mode 100755
-index 0000000..7644ce8
---- /dev/null
-+++ b/tests/shell/testcases/transactions/0024rule_0
-@@ -0,0 +1,44 @@
-+#!/bin/bash
-+
-+# Tests for adjacent payload expressions.
-+
-+set -e
-+
-+tmpfile=$(mktemp)
-+if [ ! -w $tmpfile ] ; then
-+        echo "Failed to create tmp file" >&2
-+        exit 0
-+fi
-+
-+trap "rm -rf $tmpfile" EXIT # cleanup if aborted
-+
-+RULESET="add table x
-+add chain x y
-+add rule x y tcp sport 1024 tcp dport 22 counter
-+add rule x y ip saddr 192.168.0.1 ip daddr 192.168.0.100 counter
-+add rule x y tcp sequence 0 tcp sport 1024 tcp dport 22
-+add rule x y tcp sport 1024 tcp dport 22 tcp sequence 0"
-+
-+echo "$RULESET" > $tmpfile
-+$NFT -f $tmpfile
-+if [ $? -ne 0 ] ; then
-+        echo "E: unable to load good ruleset" >&2
-+        exit 1
-+fi
-+
-+EXPECTED="table ip x {
-+	chain y {
-+		tcp sport 1024 tcp dport ssh counter packets 0 bytes 0
-+		ip saddr 192.168.0.1 ip daddr 192.168.0.100 counter packets 0 bytes 0
-+		tcp sport 1024 tcp dport ssh tcp sequence 0
-+		tcp sport 1024 tcp dport ssh tcp sequence 0
-+	}
-+}"
-+
-+GET="$($NFT list ruleset)"
-+
-+if [ "$EXPECTED" != "$GET" ] ; then
-+	DIFF="$(which diff)"
-+	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
-+	exit 1
-+fi
+diff --git a/tests/files/error.1 b/tests/files/error.1
+deleted file mode 100644
+index bc3bf16..0000000
+--- a/tests/files/error.1
++++ /dev/null
+@@ -1,9 +0,0 @@
+-#! nft -f
+-
+-# mixed syntactical and non-syntactical errors
+-filter {
+-filter input
+-filter input tcp
+-filter input tcp dport
+-filter input tcp dport tcp
+-filter input tcp dport tcp dport
+diff --git a/tests/files/error.2 b/tests/files/error.2
+deleted file mode 100644
+index 744a63d..0000000
+--- a/tests/files/error.2
++++ /dev/null
+@@ -1,18 +0,0 @@
+-#! nft -f
+-
+-# mixed syntactical and non-syntactical errors in blocks
+-table filter {
+-	# missing identifier
+-	chain
+-
+-	# missing chain block
+-	chain output
+-
+-	chain output {
+-		tcp
+-		tcp dport
+-		tcp dport tcp
+-		tcp dport tcp dport
+-		tcp dport ssh
+-	}
+-}
 -- 
 2.13.6
 
