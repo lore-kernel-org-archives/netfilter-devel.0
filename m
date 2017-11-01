@@ -1,54 +1,52 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: ipv4: Fix use-after-free in send_reset
-Date: Wed, 1 Nov 2017 17:59:38 +0100
-Message-ID: <20171101165938.GA3129@salvia>
-References: <20171023061559.GA25493@tejaswit-linux.qualcomm.com>
- <20171101003636.GA29237@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Tejaswi Tanikella <tejaswit@codeaurora.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50028 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754878AbdKAQ7n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 1 Nov 2017 12:59:43 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 51A184FFE01
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Nov 2017 17:59:41 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4461FDA807
-        for <netfilter-devel@vger.kernel.org>; Wed,  1 Nov 2017 17:59:41 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20171101003636.GA29237@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: [PATCH 0/2] Netfilter fixes for net
+Date: Wed,  1 Nov 2017 19:48:10 +0100
+Message-ID: <20171101184812.4813-1-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Nov 01, 2017 at 01:36:36AM +0100, Pablo Neira Ayuso wrote:
-> On Mon, Oct 23, 2017 at 11:46:03AM +0530, Tejaswi Tanikella wrote:
-> > niph is not updated after pskb_expand_head changes the skb head.
-> > It still points to the freed data, which is then used to update
-> > tot_len and checksum. This could cause use-after-free poison crash.
-> > 
-> > Update niph, if ip_route_me_harder does not fail.
-> > 
-> > Signed-off-by: Tejaswi Tanikella <tejaswit@codeaurora.org>
-> > ---
-> >  net/ipv4/netfilter/nf_reject_ipv4.c | 2 ++
-> >  1 file changed, 2 insertions(+)
-> > 
-> > diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
-> > index eeacbda..b2e0f90 100644
-> > --- a/net/ipv4/netfilter/nf_reject_ipv4.c
-> > +++ b/net/ipv4/netfilter/nf_reject_ipv4.c
-> > @@ -131,6 +131,8 @@ void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook)
-> >  
-> >  	if (ip_route_me_harder(net, nskb, RTN_UNSPEC))
-> >  		goto free_nskb;
-> > +	else
-> > +		niph = ip_hdr(nskb);
-> 
-> No need for else here, right? So we can just turn this into a one
-> liner to inconditionally reload this pointer.
+Hi David,
 
-I'm just going to remove the 'else' and push out this.
+The following patchset contains two one-liner fixes for your net tree,
+they are:
+
+1) Disable fast hash operations for 2-bytes length keys which is leading
+   to incorrect lookups in nf_tables, from Anatole Denis.
+
+2) Reload pointer ipv4 header after ip_route_me_harder() given this may
+   result in use-after-free due to skbuff header reallocation, patch
+   from Tejaswi Tanikella.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 28e33f9d78eefe98ea86673ab31e988b37a9a738:
+
+  bpf: disallow arithmetic operations on context pointer (2017-10-18 13:21:13 +0100)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to 7400bb4b5800831581a82f71700af6a5e815c3c8:
+
+  netfilter: nf_reject_ipv4: Fix use-after-free in send_reset (2017-11-01 12:15:29 +0100)
+
+----------------------------------------------------------------
+Anatole Denis (1):
+      netfilter: nft_set_hash: disable fast_ops for 2-len keys
+
+Tejaswi Tanikella (1):
+      netfilter: nf_reject_ipv4: Fix use-after-free in send_reset
+
+ net/ipv4/netfilter/nf_reject_ipv4.c | 2 ++
+ net/netfilter/nft_set_hash.c        | 1 -
+ 2 files changed, 2 insertions(+), 1 deletion(-)
