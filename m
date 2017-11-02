@@ -1,194 +1,255 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 1/4] netfilter: conntrack: don't cache nlattr_tuple_size result in nla_size
-Date: Thu,  2 Nov 2017 19:41:09 +0100
-Message-ID: <20171102184112.32584-2-fw@strlen.de>
+Subject: [PATCH nf-next 2/4] netfilter: conntrack: remove nlattr_size pointer from l4proto trackers
+Date: Thu,  2 Nov 2017 19:41:10 +0100
+Message-ID: <20171102184112.32584-3-fw@strlen.de>
 References: <20171102184112.32584-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:60414 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:60420 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933748AbdKBSk6 (ORCPT
+        by vger.kernel.org with ESMTP id S933748AbdKBSlC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Nov 2017 14:40:58 -0400
+        Thu, 2 Nov 2017 14:41:02 -0400
 In-Reply-To: <20171102184112.32584-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We currently call ->nlattr_tuple_size() once at register time and
-cache result in l4proto->nla_size.
-
-nla_size is the only member that is written to, avoiding this would
-allow to make l4proto trackers const.
-
-We can use ->nlattr_tuple_size() at run time, and cache result in
-the individual trackers instead.
-
-This is an intermediate step, next patch removes nlattr_size()
-callback and computes size at compile time, then removes nla_size.
+similar to previous commit, but instead compute this at compile time
+and turn nlattr_size into an u16.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack_l4proto.h   |  4 ++--
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |  9 +++++++--
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |  9 +++++++--
- net/netfilter/nf_conntrack_core.c              |  9 +++++++--
- net/netfilter/nf_conntrack_netlink.c           | 10 +++++++---
- net/netfilter/nf_conntrack_proto.c             |  2 --
- net/netfilter/nf_conntrack_proto_tcp.c         |  9 +++++++--
- 7 files changed, 37 insertions(+), 15 deletions(-)
+ include/net/netfilter/nf_conntrack_l4proto.h |  7 +++----
+ net/netfilter/nf_conntrack_netlink.c         |  2 +-
+ net/netfilter/nf_conntrack_proto.c           |  6 +-----
+ net/netfilter/nf_conntrack_proto_dccp.c      | 17 ++++++++---------
+ net/netfilter/nf_conntrack_proto_sctp.c      | 15 +++++++--------
+ net/netfilter/nf_conntrack_proto_tcp.c       | 16 ++++++++--------
+ 6 files changed, 28 insertions(+), 35 deletions(-)
 
 diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index e06518874144..46e786ffcf2f 100644
+index 46e786ffcf2f..d5942da015ca 100644
 --- a/include/net/netfilter/nf_conntrack_l4proto.h
 +++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -74,7 +74,7 @@ struct nf_conntrack_l4proto {
- 	int (*tuple_to_nlattr)(struct sk_buff *skb,
- 			       const struct nf_conntrack_tuple *t);
- 	/* Calculate tuple nlattr size */
--	int (*nlattr_tuple_size)(void);
-+	unsigned int (*nlattr_tuple_size)(void);
- 	int (*nlattr_to_tuple)(struct nlattr *tb[],
+@@ -26,6 +26,9 @@ struct nf_conntrack_l4proto {
+ 	/* Resolve clashes on insertion races. */
+ 	bool allow_clash;
+ 
++	/* protoinfo nlattr size, closes a hole */
++	u16 nlattr_size;
++
+ 	/* Try to fill in the third arg: dataoff is offset past network protocol
+            hdr.  Return true if possible. */
+ 	bool (*pkt_to_tuple)(const struct sk_buff *skb, unsigned int dataoff,
+@@ -65,8 +68,6 @@ struct nf_conntrack_l4proto {
+ 	/* convert protoinfo to nfnetink attributes */
+ 	int (*to_nlattr)(struct sk_buff *skb, struct nlattr *nla,
+ 			 struct nf_conn *ct);
+-	/* Calculate protoinfo nlattr size */
+-	int (*nlattr_size)(void);
+ 
+ 	/* convert nfnetlink attributes to protoinfo */
+ 	int (*from_nlattr)(struct nlattr *tb[], struct nf_conn *ct);
+@@ -79,8 +80,6 @@ struct nf_conntrack_l4proto {
  			       struct nf_conntrack_tuple *t);
  	const struct nla_policy *nla_policy;
-@@ -144,7 +144,7 @@ int nf_ct_port_tuple_to_nlattr(struct sk_buff *skb,
- 			       const struct nf_conntrack_tuple *tuple);
- int nf_ct_port_nlattr_to_tuple(struct nlattr *tb[],
- 			       struct nf_conntrack_tuple *t);
--int nf_ct_port_nlattr_tuple_size(void);
-+unsigned int nf_ct_port_nlattr_tuple_size(void);
- extern const struct nla_policy nf_ct_port_nla_policy[];
  
- #ifdef CONFIG_SYSCTL
-diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-index 8969420cecc3..1849fedd9b81 100644
---- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -258,9 +258,14 @@ static int icmp_nlattr_to_tuple(struct nlattr *tb[],
- 	return 0;
- }
- 
--static int icmp_nlattr_tuple_size(void)
-+static unsigned int icmp_nlattr_tuple_size(void)
- {
--	return nla_policy_len(icmp_nla_policy, CTA_PROTO_MAX + 1);
-+	static unsigned int size __read_mostly;
-+
-+	if (!size)
-+		size = nla_policy_len(icmp_nla_policy, CTA_PROTO_MAX + 1);
-+
-+	return size;
- }
- #endif
- 
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index dca921df28e1..3ac0d826afc4 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -259,9 +259,14 @@ static int icmpv6_nlattr_to_tuple(struct nlattr *tb[],
- 	return 0;
- }
- 
--static int icmpv6_nlattr_tuple_size(void)
-+static unsigned int icmpv6_nlattr_tuple_size(void)
- {
--	return nla_policy_len(icmpv6_nla_policy, CTA_PROTO_MAX + 1);
-+	static unsigned int size __read_mostly;
-+
-+	if (!size)
-+		size = nla_policy_len(icmpv6_nla_policy, CTA_PROTO_MAX + 1);
-+
-+	return size;
- }
- #endif
- 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 28e675150853..0e516947c16f 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1563,9 +1563,14 @@ int nf_ct_port_nlattr_to_tuple(struct nlattr *tb[],
- }
- EXPORT_SYMBOL_GPL(nf_ct_port_nlattr_to_tuple);
- 
--int nf_ct_port_nlattr_tuple_size(void)
-+unsigned int nf_ct_port_nlattr_tuple_size(void)
- {
--	return nla_policy_len(nf_ct_port_nla_policy, CTA_PROTO_MAX + 1);
-+	static unsigned int size __read_mostly;
-+
-+	if (!size)
-+		size = nla_policy_len(nf_ct_port_nla_policy, CTA_PROTO_MAX + 1);
-+
-+	return size;
- }
- EXPORT_SYMBOL_GPL(nf_ct_port_nlattr_tuple_size);
- #endif
+-	size_t nla_size;
+-
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
+ 	struct {
+ 		int (*nlattr_to_obj)(struct nlattr *tb[],
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index de4053d84364..6e0adfefb9ed 100644
+index 6e0adfefb9ed..71a43ed19a0f 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -533,11 +533,11 @@ ctnetlink_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
- 	return -1;
- }
- 
--static inline size_t ctnetlink_proto_size(const struct nf_conn *ct)
-+static size_t ctnetlink_proto_size(const struct nf_conn *ct)
- {
- 	const struct nf_conntrack_l3proto *l3proto;
- 	const struct nf_conntrack_l4proto *l4proto;
--	size_t len;
-+	size_t len, len4 = 0;
- 
- 	l3proto = __nf_ct_l3proto_find(nf_ct_l3num(ct));
- 	len = l3proto->nla_size;
-@@ -545,8 +545,12 @@ static inline size_t ctnetlink_proto_size(const struct nf_conn *ct)
+@@ -544,7 +544,7 @@ static size_t ctnetlink_proto_size(const struct nf_conn *ct)
+ 	len *= 3u; /* ORIG, REPLY, MASTER */
  
  	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
- 	len += l4proto->nla_size;
-+	if (l4proto->nlattr_tuple_size) {
-+		len4 = l4proto->nlattr_tuple_size();
-+		len4 *= 3u; /* ORIG, REPLY, MASTER */
-+	}
- 
--	return len;
-+	return len + len4;
- }
- 
- static inline size_t ctnetlink_acct_size(const struct nf_conn *ct)
+-	len += l4proto->nla_size;
++	len += l4proto->nlattr_size;
+ 	if (l4proto->nlattr_tuple_size) {
+ 		len4 = l4proto->nlattr_tuple_size();
+ 		len4 *= 3u; /* ORIG, REPLY, MASTER */
 diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index 83f739e9dc08..3b06ff3f2dee 100644
+index 3b06ff3f2dee..3f74bf001b31 100644
 --- a/net/netfilter/nf_conntrack_proto.c
 +++ b/net/netfilter/nf_conntrack_proto.c
-@@ -398,8 +398,6 @@ int nf_ct_l4proto_register_one(struct nf_conntrack_l4proto *l4proto)
- 	l4proto->nla_size = 0;
- 	if (l4proto->nlattr_size)
- 		l4proto->nla_size += l4proto->nlattr_size();
--	if (l4proto->nlattr_tuple_size)
--		l4proto->nla_size += 3 * l4proto->nlattr_tuple_size();
+@@ -359,7 +359,7 @@ int nf_ct_l4proto_register_one(struct nf_conntrack_l4proto *l4proto)
+ 	if (l4proto->l3proto >= ARRAY_SIZE(nf_ct_protos))
+ 		return -EBUSY;
  
+-	if ((l4proto->to_nlattr && !l4proto->nlattr_size) ||
++	if ((l4proto->to_nlattr && l4proto->nlattr_size == 0) ||
+ 	    (l4proto->tuple_to_nlattr && !l4proto->nlattr_tuple_size))
+ 		return -EINVAL;
+ 
+@@ -395,10 +395,6 @@ int nf_ct_l4proto_register_one(struct nf_conntrack_l4proto *l4proto)
+ 		goto out_unlock;
+ 	}
+ 
+-	l4proto->nla_size = 0;
+-	if (l4proto->nlattr_size)
+-		l4proto->nla_size += l4proto->nlattr_size();
+-
  	rcu_assign_pointer(nf_ct_protos[l4proto->l3proto][l4proto->l4proto],
  			   l4proto);
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 8f283294d70f..b12fc07111d0 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -1277,9 +1277,14 @@ static int tcp_nlattr_size(void)
- 		+ nla_policy_len(tcp_nla_policy, CTA_PROTOINFO_TCP_MAX + 1);
- }
+ out_unlock:
+diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
+index 2a446f4a554c..2fee7c96ec09 100644
+--- a/net/netfilter/nf_conntrack_proto_dccp.c
++++ b/net/netfilter/nf_conntrack_proto_dccp.c
+@@ -654,6 +654,12 @@ static const struct nla_policy dccp_nla_policy[CTA_PROTOINFO_DCCP_MAX + 1] = {
+ 	[CTA_PROTOINFO_DCCP_PAD]	= { .type = NLA_UNSPEC },
+ };
  
--static int tcp_nlattr_tuple_size(void)
-+static unsigned int tcp_nlattr_tuple_size(void)
++#define DCCP_NLATTR_SIZE ( \
++	NLA_ALIGN(NLA_HDRLEN + 1) + \
++	NLA_ALIGN(NLA_HDRLEN + 1) + \
++	NLA_ALIGN(NLA_HDRLEN + sizeof(u64)) + \
++	NLA_ALIGN(NLA_HDRLEN + 0))
++
+ static int nlattr_to_dccp(struct nlattr *cda[], struct nf_conn *ct)
  {
--	return nla_policy_len(nf_ct_port_nla_policy, CTA_PROTO_MAX + 1);
-+	static unsigned int size __read_mostly;
-+
-+	if (!size)
-+		size = nla_policy_len(nf_ct_port_nla_policy, CTA_PROTO_MAX + 1);
-+
-+	return size;
+ 	struct nlattr *attr = cda[CTA_PROTOINFO_DCCP];
+@@ -691,13 +697,6 @@ static int nlattr_to_dccp(struct nlattr *cda[], struct nf_conn *ct)
+ 	spin_unlock_bh(&ct->lock);
+ 	return 0;
  }
+-
+-static int dccp_nlattr_size(void)
+-{
+-	return nla_total_size(0)	/* CTA_PROTOINFO_DCCP */
+-		+ nla_policy_len(dccp_nla_policy, CTA_PROTOINFO_DCCP_MAX + 1);
+-}
+-
  #endif
  
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
+@@ -876,8 +875,8 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp4 __read_mostly = {
+ 	.print_conntrack	= dccp_print_conntrack,
+ #endif
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
++	.nlattr_size		= DCCP_NLATTR_SIZE,
+ 	.to_nlattr		= dccp_to_nlattr,
+-	.nlattr_size		= dccp_nlattr_size,
+ 	.from_nlattr		= nlattr_to_dccp,
+ 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
+ 	.nlattr_tuple_size	= nf_ct_port_nlattr_tuple_size,
+@@ -912,8 +911,8 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp6 __read_mostly = {
+ 	.print_conntrack	= dccp_print_conntrack,
+ #endif
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
++	.nlattr_size		= DCCP_NLATTR_SIZE,
+ 	.to_nlattr		= dccp_to_nlattr,
+-	.nlattr_size		= dccp_nlattr_size,
+ 	.from_nlattr		= nlattr_to_dccp,
+ 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
+ 	.nlattr_tuple_size	= nf_ct_port_nlattr_tuple_size,
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 80faf04ddf15..f5bff4de0386 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -578,6 +578,11 @@ static const struct nla_policy sctp_nla_policy[CTA_PROTOINFO_SCTP_MAX+1] = {
+ 	[CTA_PROTOINFO_SCTP_VTAG_REPLY]     = { .type = NLA_U32 },
+ };
+ 
++#define SCTP_NLATTR_SIZE ( \
++		NLA_ALIGN(NLA_HDRLEN + 1) + \
++		NLA_ALIGN(NLA_HDRLEN + 4) + \
++		NLA_ALIGN(NLA_HDRLEN + 4))
++
+ static int nlattr_to_sctp(struct nlattr *cda[], struct nf_conn *ct)
+ {
+ 	struct nlattr *attr = cda[CTA_PROTOINFO_SCTP];
+@@ -608,12 +613,6 @@ static int nlattr_to_sctp(struct nlattr *cda[], struct nf_conn *ct)
+ 
+ 	return 0;
+ }
+-
+-static int sctp_nlattr_size(void)
+-{
+-	return nla_total_size(0)	/* CTA_PROTOINFO_SCTP */
+-		+ nla_policy_len(sctp_nla_policy, CTA_PROTOINFO_SCTP_MAX + 1);
+-}
+ #endif
+ 
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
+@@ -793,8 +792,8 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4 __read_mostly = {
+ 	.can_early_drop		= sctp_can_early_drop,
+ 	.me 			= THIS_MODULE,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
++	.nlattr_size		= SCTP_NLATTR_SIZE,
+ 	.to_nlattr		= sctp_to_nlattr,
+-	.nlattr_size		= sctp_nlattr_size,
+ 	.from_nlattr		= nlattr_to_sctp,
+ 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
+ 	.nlattr_tuple_size	= nf_ct_port_nlattr_tuple_size,
+@@ -830,8 +829,8 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6 __read_mostly = {
+ 	.can_early_drop		= sctp_can_early_drop,
+ 	.me 			= THIS_MODULE,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
++	.nlattr_size		= SCTP_NLATTR_SIZE,
+ 	.to_nlattr		= sctp_to_nlattr,
+-	.nlattr_size		= sctp_nlattr_size,
+ 	.from_nlattr		= nlattr_to_sctp,
+ 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
+ 	.nlattr_tuple_size	= nf_ct_port_nlattr_tuple_size,
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index b12fc07111d0..a61a6b7b4fc5 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1219,6 +1219,12 @@ static const struct nla_policy tcp_nla_policy[CTA_PROTOINFO_TCP_MAX+1] = {
+ 	[CTA_PROTOINFO_TCP_FLAGS_REPLY]	    = { .len =  sizeof(struct nf_ct_tcp_flags) },
+ };
+ 
++#define TCP_NLATTR_SIZE	( \
++	NLA_ALIGN(NLA_HDRLEN + 1) + \
++	NLA_ALIGN(NLA_HDRLEN + 1) + \
++	NLA_ALIGN(NLA_HDRLEN + sizeof(sizeof(struct nf_ct_tcp_flags))) + \
++	NLA_ALIGN(NLA_HDRLEN + sizeof(sizeof(struct nf_ct_tcp_flags))))
++
+ static int nlattr_to_tcp(struct nlattr *cda[], struct nf_conn *ct)
+ {
+ 	struct nlattr *pattr = cda[CTA_PROTOINFO_TCP];
+@@ -1271,12 +1277,6 @@ static int nlattr_to_tcp(struct nlattr *cda[], struct nf_conn *ct)
+ 	return 0;
+ }
+ 
+-static int tcp_nlattr_size(void)
+-{
+-	return nla_total_size(0)	   /* CTA_PROTOINFO_TCP */
+-		+ nla_policy_len(tcp_nla_policy, CTA_PROTOINFO_TCP_MAX + 1);
+-}
+-
+ static unsigned int tcp_nlattr_tuple_size(void)
+ {
+ 	static unsigned int size __read_mostly;
+@@ -1554,11 +1554,11 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4 __read_mostly =
+ 	.can_early_drop		= tcp_can_early_drop,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
+ 	.to_nlattr		= tcp_to_nlattr,
+-	.nlattr_size		= tcp_nlattr_size,
+ 	.from_nlattr		= nlattr_to_tcp,
+ 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
+ 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
+ 	.nlattr_tuple_size	= tcp_nlattr_tuple_size,
++	.nlattr_size		= TCP_NLATTR_SIZE,
+ 	.nla_policy		= nf_ct_port_nla_policy,
+ #endif
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
+@@ -1591,8 +1591,8 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6 __read_mostly =
+ 	.error			= tcp_error,
+ 	.can_early_drop		= tcp_can_early_drop,
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
++	.nlattr_size		= TCP_NLATTR_SIZE,
+ 	.to_nlattr		= tcp_to_nlattr,
+-	.nlattr_size		= tcp_nlattr_size,
+ 	.from_nlattr		= nlattr_to_tcp,
+ 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
+ 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
 -- 
 2.13.6
 
