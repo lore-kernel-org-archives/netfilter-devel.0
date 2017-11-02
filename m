@@ -1,53 +1,58 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH] netfilter: ipvs: Convert timers to use timer_setup()
-Date: Thu, 2 Nov 2017 15:42:48 +0100
-Message-ID: <20171102144247.yz2yupsj4cjctvio@verge.net.au>
-References: <20171024084521.GA23684@beast>
- <alpine.LFD.2.20.1710242203100.2078@ja.home.ssi.bg>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Kees Cook <keescook@chromium.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.20.1710242203100.2078@ja.home.ssi.bg>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Vincent Guittot <vincent.guittot@linaro.org>
+Subject: [PATCH] netfilter: conntrack: use power efficient workqueue
+Date: Thu,  2 Nov 2017 16:16:07 +0100
+Message-ID: <1509635767-12253-1-git-send-email-vincent.guittot@linaro.org>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+To: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        kadlec@blackhole.kfki.hu, fw@strlen.de
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:51572 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933418AbdKBPRw (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 2 Nov 2017 11:17:52 -0400
+Received: by mail-wm0-f68.google.com with SMTP id b9so12206531wmh.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 02 Nov 2017 08:17:52 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 24, 2017 at 10:07:03PM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Tue, 24 Oct 2017, Kees Cook wrote:
-> 
-> > In preparation for unconditionally passing the struct timer_list pointer to
-> > all timer callbacks, switch to using the new timer_setup() and from_timer()
-> > to pass the timer pointer explicitly.
-> > 
-> > Cc: Wensong Zhang <wensong@linux-vs.org>
-> > Cc: Simon Horman <horms@verge.net.au>
-> > Cc: Julian Anastasov <ja@ssi.bg>
-> > Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> > Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> > Cc: Florian Westphal <fw@strlen.de>
-> > Cc: "David S. Miller" <davem@davemloft.net>
-> > Cc: netdev@vger.kernel.org
-> > Cc: lvs-devel@vger.kernel.org
-> > Cc: netfilter-devel@vger.kernel.org
-> > Cc: coreteam@netfilter.org
-> > Signed-off-by: Kees Cook <keescook@chromium.org>
-> 
-> 	Looks good to me,
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
+conntrack uses the bounded system_long_wq workqueue for its works that
+don't have to run on the cpu they have been queued.
+Using bounded workqueue prevents the scheduler to make smart decision about
+the best place to schedule the work.
 
-Signed-off-by: Simon Horman <horms@verge.net.au>
+This patch replaces system_long_wq with system_power_efficient_wq. the work
+stays bounded to a cpu by default unless the CONFIG_WQ_POWER_EFFICIENT is
+enable. In the latter case, the work can be scheduled on the best cpu from
+a power or a performance point of view.
 
-Pablo, could you take this?
+Signed-off-by: Vincent Guittot <vincent.guittot@linaro.org>
+---
+ net/netfilter/nf_conntrack_core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 0113039..ae7d3e4 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1083,7 +1083,7 @@ static void gc_worker(struct work_struct *work)
+ 	next_run = gc_work->next_gc_run;
+ 	gc_work->last_bucket = i;
+ 	gc_work->early_drop = false;
+-	queue_delayed_work(system_long_wq, &gc_work->dwork, next_run);
++	queue_delayed_work(system_power_efficient_wq, &gc_work->dwork, next_run);
+ }
+ 
+ static void conntrack_gc_work_init(struct conntrack_gc_work *gc_work)
+@@ -2084,7 +2084,7 @@ int nf_conntrack_init_start(void)
+ 		goto err_proto;
+ 
+ 	conntrack_gc_work_init(&conntrack_gc_work);
+-	queue_delayed_work(system_long_wq, &conntrack_gc_work.dwork, HZ);
++	queue_delayed_work(system_power_efficient_wq, &conntrack_gc_work.dwork, HZ);
+ 
+ 	return 0;
+ 
+-- 
+2.7.4
+
