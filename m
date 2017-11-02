@@ -1,151 +1,53 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: xt_connlimit: remove mask argument
-Date: Thu,  2 Nov 2017 12:50:38 +0100
-Message-ID: <20171102115038.18699-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:58050 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752780AbdKBLuX (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Nov 2017 07:50:23 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH] netfilter: ipvs: Convert timers to use timer_setup()
+Date: Thu, 2 Nov 2017 15:42:48 +0100
+Message-ID: <20171102144247.yz2yupsj4cjctvio@verge.net.au>
+References: <20171024084521.GA23684@beast>
+ <alpine.LFD.2.20.1710242203100.2078@ja.home.ssi.bg>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Kees Cook <keescook@chromium.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-kernel@vger.kernel.org
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.20.1710242203100.2078@ja.home.ssi.bg>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Instead of passing mask to all the helpers, just fixup the search key
-early.
+On Tue, Oct 24, 2017 at 10:07:03PM +0300, Julian Anastasov wrote:
+> 
+> 	Hello,
+> 
+> On Tue, 24 Oct 2017, Kees Cook wrote:
+> 
+> > In preparation for unconditionally passing the struct timer_list pointer to
+> > all timer callbacks, switch to using the new timer_setup() and from_timer()
+> > to pass the timer pointer explicitly.
+> > 
+> > Cc: Wensong Zhang <wensong@linux-vs.org>
+> > Cc: Simon Horman <horms@verge.net.au>
+> > Cc: Julian Anastasov <ja@ssi.bg>
+> > Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> > Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> > Cc: Florian Westphal <fw@strlen.de>
+> > Cc: "David S. Miller" <davem@davemloft.net>
+> > Cc: netdev@vger.kernel.org
+> > Cc: lvs-devel@vger.kernel.org
+> > Cc: netfilter-devel@vger.kernel.org
+> > Cc: coreteam@netfilter.org
+> > Signed-off-by: Kees Cook <keescook@chromium.org>
+> 
+> 	Looks good to me,
+> 
+> Acked-by: Julian Anastasov <ja@ssi.bg>
 
-After rbtree conversion, each rbtree node stores connections of same
-'addr & mask', so no need to pass the mask too.
+Signed-off-by: Simon Horman <horms@verge.net.au>
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/xt_connlimit.c | 52 +++++++++++++++++---------------------------
- 1 file changed, 20 insertions(+), 32 deletions(-)
-
-diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index ce2870428631..a6214f235333 100644
---- a/net/netfilter/xt_connlimit.c
-+++ b/net/netfilter/xt_connlimit.c
-@@ -71,16 +71,9 @@ static inline unsigned int connlimit_iphash(__be32 addr)
- }
- 
- static inline unsigned int
--connlimit_iphash6(const union nf_inet_addr *addr,
--                  const union nf_inet_addr *mask)
-+connlimit_iphash6(const union nf_inet_addr *addr)
- {
--	union nf_inet_addr res;
--	unsigned int i;
--
--	for (i = 0; i < ARRAY_SIZE(addr->ip6); ++i)
--		res.ip6[i] = addr->ip6[i] & mask->ip6[i];
--
--	return jhash2((u32 *)res.ip6, ARRAY_SIZE(res.ip6),
-+	return jhash2((u32 *)addr->ip6, ARRAY_SIZE(addr->ip6),
- 		       connlimit_rnd) % CONNLIMIT_SLOTS;
- }
- 
-@@ -94,24 +87,13 @@ static inline bool already_closed(const struct nf_conn *conn)
- }
- 
- static int
--same_source_net(const union nf_inet_addr *addr,
--		const union nf_inet_addr *mask,
--		const union nf_inet_addr *u3, u_int8_t family)
-+same_source(const union nf_inet_addr *addr,
-+	    const union nf_inet_addr *u3, u_int8_t family)
- {
--	if (family == NFPROTO_IPV4) {
--		return ntohl(addr->ip & mask->ip) -
--		       ntohl(u3->ip & mask->ip);
--	} else {
--		union nf_inet_addr lh, rh;
--		unsigned int i;
--
--		for (i = 0; i < ARRAY_SIZE(addr->ip6); ++i) {
--			lh.ip6[i] = addr->ip6[i] & mask->ip6[i];
--			rh.ip6[i] = u3->ip6[i] & mask->ip6[i];
--		}
-+	if (family == NFPROTO_IPV4)
-+		return ntohl(addr->ip) - ntohl(u3->ip);
- 
--		return memcmp(&lh.ip6, &rh.ip6, sizeof(lh.ip6));
--	}
-+	return memcmp(addr->ip6, u3->ip6, sizeof(addr->ip6));
- }
- 
- static bool add_hlist(struct hlist_head *head,
-@@ -194,7 +176,7 @@ static void tree_nodes_free(struct rb_root *root,
- static unsigned int
- count_tree(struct net *net, struct rb_root *root,
- 	   const struct nf_conntrack_tuple *tuple,
--	   const union nf_inet_addr *addr, const union nf_inet_addr *mask,
-+	   const union nf_inet_addr *addr,
- 	   u8 family, const struct nf_conntrack_zone *zone)
- {
- 	struct xt_connlimit_rb *gc_nodes[CONNLIMIT_GC_MAX_NODES];
-@@ -215,7 +197,7 @@ count_tree(struct net *net, struct rb_root *root,
- 		rbconn = rb_entry(*rbnode, struct xt_connlimit_rb, node);
- 
- 		parent = *rbnode;
--		diff = same_source_net(addr, mask, &rbconn->addr, family);
-+		diff = same_source(addr, &rbconn->addr, family);
- 		if (diff < 0) {
- 			rbnode = &((*rbnode)->rb_left);
- 		} else if (diff > 0) {
-@@ -282,7 +264,6 @@ static int count_them(struct net *net,
- 		      struct xt_connlimit_data *data,
- 		      const struct nf_conntrack_tuple *tuple,
- 		      const union nf_inet_addr *addr,
--		      const union nf_inet_addr *mask,
- 		      u_int8_t family,
- 		      const struct nf_conntrack_zone *zone)
- {
-@@ -291,14 +272,14 @@ static int count_them(struct net *net,
- 	u32 hash;
- 
- 	if (family == NFPROTO_IPV6)
--		hash = connlimit_iphash6(addr, mask);
-+		hash = connlimit_iphash6(addr);
- 	else
--		hash = connlimit_iphash(addr->ip & mask->ip);
-+		hash = connlimit_iphash(addr->ip);
- 	root = &data->climit_root[hash];
- 
- 	spin_lock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
- 
--	count = count_tree(net, root, tuple, addr, mask, family, zone);
-+	count = count_tree(net, root, tuple, addr, family, zone);
- 
- 	spin_unlock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
- 
-@@ -329,16 +310,23 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 
- 	if (xt_family(par) == NFPROTO_IPV6) {
- 		const struct ipv6hdr *iph = ipv6_hdr(skb);
-+		unsigned int i;
-+
- 		memcpy(&addr.ip6, (info->flags & XT_CONNLIMIT_DADDR) ?
- 		       &iph->daddr : &iph->saddr, sizeof(addr.ip6));
-+
-+		for (i = 0; i < ARRAY_SIZE(addr.ip6); ++i)
-+			addr.ip6[i] &= info->mask.ip6[i];
- 	} else {
- 		const struct iphdr *iph = ip_hdr(skb);
- 		addr.ip = (info->flags & XT_CONNLIMIT_DADDR) ?
- 			  iph->daddr : iph->saddr;
-+
-+		addr.ip &= info->mask.ip;
- 	}
- 
- 	connections = count_them(net, info->data, tuple_ptr, &addr,
--	                         &info->mask, xt_family(par), zone);
-+				 xt_family(par), zone);
- 	if (connections == 0)
- 		/* kmalloc failed, drop it entirely */
- 		goto hotdrop;
--- 
-2.13.6
-
+Pablo, could you take this?
