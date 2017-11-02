@@ -1,43 +1,35 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nft_hash: fix nft_hash_deactivate
-Date: Thu,  2 Nov 2017 19:04:47 +0100
-Message-ID: <20171102180447.28064-1-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 0/4] netfilter: conntrack: make l4 tracker structs const
+Date: Thu,  2 Nov 2017 19:41:08 +0100
+Message-ID: <20171102184112.32584-1-fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:60242 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:60412 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933025AbdKBSEb (ORCPT
+        by vger.kernel.org with ESMTP id S933748AbdKBSkz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Nov 2017 14:04:31 -0400
+        Thu, 2 Nov 2017 14:40:55 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jindřich Makovička says:
-  The logical OR looks fishy to me. Shouldn't be && there instead?
+This patch set removes the last runtime write accesses to the l4
+protocol tracker structs, then marks them as 'const'.
 
-Link: https://bugzilla.netfilter.org/show_bug.cgi?id=1199
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nft_set_hash.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 9c0d5a7ce5f9..fcd51e819d72 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -494,7 +494,7 @@ static void *nft_hash_deactivate(const struct net *net,
- 	hash = reciprocal_scale(hash, priv->buckets);
- 	hlist_for_each_entry(he, &priv->table[hash], node) {
- 		if (!memcmp(nft_set_ext_key(&this->ext), &elem->key.val,
--			    set->klen) ||
-+			    set->klen) &&
- 		    nft_set_elem_active(&he->ext, genmask)) {
- 			nft_set_elem_change_active(net, set, &he->ext);
- 			return he;
--- 
-2.13.6
+ include/net/netfilter/ipv4/nf_conntrack_ipv4.h |   12 +++++------
+ include/net/netfilter/ipv6/nf_conntrack_ipv6.h |   12 +++++------
+ include/net/netfilter/nf_conntrack_l4proto.h   |   23 ++++++++++-----------
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    2 -
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |   11 +++++++---
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    2 -
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   11 +++++++---
+ net/netfilter/nf_conntrack_core.c              |    9 ++++++--
+ net/netfilter/nf_conntrack_netlink.c           |   12 +++++++----
+ net/netfilter/nf_conntrack_proto.c             |   20 ++++++------------
+ net/netfilter/nf_conntrack_proto_dccp.c        |   21 +++++++++----------
+ net/netfilter/nf_conntrack_proto_generic.c     |    2 -
+ net/netfilter/nf_conntrack_proto_gre.c         |    2 -
+ net/netfilter/nf_conntrack_proto_sctp.c        |   19 ++++++++---------
+ net/netfilter/nf_conntrack_proto_tcp.c         |   27 ++++++++++++++-----------
+ net/netfilter/nf_conntrack_proto_udp.c         |    8 +++----
+ 16 files changed, 104 insertions(+), 89 deletions(-)
 
