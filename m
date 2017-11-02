@@ -1,137 +1,265 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 3/4] netfilter: conntrack: constify list of builtin trackers
-Date: Thu,  2 Nov 2017 19:41:11 +0100
-Message-ID: <20171102184112.32584-4-fw@strlen.de>
+Subject: [PATCH nf-next 4/4] netfilter: conntrack: l4 protocol trackers can be const
+Date: Thu,  2 Nov 2017 19:41:12 +0100
+Message-ID: <20171102184112.32584-5-fw@strlen.de>
 References: <20171102184112.32584-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:60422 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:60428 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933748AbdKBSlF (ORCPT
+        by vger.kernel.org with ESMTP id S933748AbdKBSlI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 2 Nov 2017 14:41:05 -0400
+        Thu, 2 Nov 2017 14:41:08 -0400
 In-Reply-To: <20171102184112.32584-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+previous patches removed all writes to these structs so we can
+now mark them as const.
+
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack_l4proto.h   | 10 +++++-----
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |  2 +-
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |  2 +-
- net/netfilter/nf_conntrack_proto.c             | 12 ++++++------
- 4 files changed, 13 insertions(+), 13 deletions(-)
+ include/net/netfilter/ipv4/nf_conntrack_ipv4.h | 12 ++++++------
+ include/net/netfilter/ipv6/nf_conntrack_ipv6.h | 12 ++++++------
+ include/net/netfilter/nf_conntrack_l4proto.h   |  2 +-
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |  2 +-
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |  2 +-
+ net/netfilter/nf_conntrack_proto_dccp.c        |  4 ++--
+ net/netfilter/nf_conntrack_proto_generic.c     |  2 +-
+ net/netfilter/nf_conntrack_proto_gre.c         |  2 +-
+ net/netfilter/nf_conntrack_proto_sctp.c        |  4 ++--
+ net/netfilter/nf_conntrack_proto_tcp.c         |  4 ++--
+ net/netfilter/nf_conntrack_proto_udp.c         |  8 ++++----
+ 11 files changed, 27 insertions(+), 27 deletions(-)
 
+diff --git a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
+index 5534ecca7a5d..fc257b87328f 100644
+--- a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
++++ b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
+@@ -12,17 +12,17 @@
+ 
+ const extern struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4;
+ 
+-extern struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4;
+-extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4;
+-extern struct nf_conntrack_l4proto nf_conntrack_l4proto_icmp;
++extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4;
++extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4;
++extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_icmp;
+ #ifdef CONFIG_NF_CT_PROTO_DCCP
+-extern struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp4;
++extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp4;
+ #endif
+ #ifdef CONFIG_NF_CT_PROTO_SCTP
+-extern struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4;
++extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4;
+ #endif
+ #ifdef CONFIG_NF_CT_PROTO_UDPLITE
+-extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4;
++extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4;
+ #endif
+ 
+ int nf_conntrack_ipv4_compat_init(void);
+diff --git a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+index 30dc57980866..b3ccdfd68836 100644
+--- a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
++++ b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+@@ -3,17 +3,17 @@
+ 
+ extern const struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6;
+ 
+-extern struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6;
+-extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6;
+-extern struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6;
++extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6;
++extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6;
++extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6;
+ #ifdef CONFIG_NF_CT_PROTO_DCCP
+-extern struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp6;
++extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp6;
+ #endif
+ #ifdef CONFIG_NF_CT_PROTO_SCTP
+-extern struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6;
++extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6;
+ #endif
+ #ifdef CONFIG_NF_CT_PROTO_UDPLITE
+-extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6;
++extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6;
+ #endif
+ 
+ #include <linux/sysctl.h>
 diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index d5942da015ca..7a49cc967526 100644
+index 7a49cc967526..570bacb78ed9 100644
 --- a/include/net/netfilter/nf_conntrack_l4proto.h
 +++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -124,18 +124,18 @@ int nf_ct_l4proto_pernet_register_one(struct net *net,
- void nf_ct_l4proto_pernet_unregister_one(struct net *net,
- 				const struct nf_conntrack_l4proto *proto);
- int nf_ct_l4proto_pernet_register(struct net *net,
--				  struct nf_conntrack_l4proto *const proto[],
-+				  const struct nf_conntrack_l4proto *const proto[],
- 				  unsigned int num_proto);
- void nf_ct_l4proto_pernet_unregister(struct net *net,
--				struct nf_conntrack_l4proto *const proto[],
-+				const struct nf_conntrack_l4proto *const proto[],
- 				unsigned int num_proto);
- 
- /* Protocol global registration. */
--int nf_ct_l4proto_register_one(struct nf_conntrack_l4proto *proto);
-+int nf_ct_l4proto_register_one(const struct nf_conntrack_l4proto *proto);
- void nf_ct_l4proto_unregister_one(const struct nf_conntrack_l4proto *proto);
--int nf_ct_l4proto_register(struct nf_conntrack_l4proto *proto[],
-+int nf_ct_l4proto_register(const struct nf_conntrack_l4proto * const proto[],
- 			   unsigned int num_proto);
--void nf_ct_l4proto_unregister(struct nf_conntrack_l4proto *proto[],
-+void nf_ct_l4proto_unregister(const struct nf_conntrack_l4proto * const proto[],
- 			      unsigned int num_proto);
- 
- /* Generic netlink helpers */
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 89af9d88ca21..bb2c868a5621 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -368,7 +368,7 @@ MODULE_ALIAS("nf_conntrack-" __stringify(AF_INET));
- MODULE_ALIAS("ip_conntrack");
- MODULE_LICENSE("GPL");
- 
--static struct nf_conntrack_l4proto *builtin_l4proto4[] = {
-+static const struct nf_conntrack_l4proto * const builtin_l4proto4[] = {
- 	&nf_conntrack_l4proto_tcp4,
- 	&nf_conntrack_l4proto_udp4,
- 	&nf_conntrack_l4proto_icmp,
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index 3b80a38f62b8..7340ca7cc362 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -368,7 +368,7 @@ static struct nf_sockopt_ops so_getorigdst6 = {
- 	.owner		= THIS_MODULE,
+@@ -107,7 +107,7 @@ struct nf_conntrack_l4proto {
  };
  
--static struct nf_conntrack_l4proto *builtin_l4proto6[] = {
-+static const struct nf_conntrack_l4proto * const builtin_l4proto6[] = {
- 	&nf_conntrack_l4proto_tcp6,
- 	&nf_conntrack_l4proto_udp6,
- 	&nf_conntrack_l4proto_icmpv6,
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index 3f74bf001b31..106bfac86997 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -352,7 +352,7 @@ void nf_ct_l4proto_unregister_sysctl(struct net *net,
+ /* Existing built-in generic protocol */
+-extern struct nf_conntrack_l4proto nf_conntrack_l4proto_generic;
++extern const struct nf_conntrack_l4proto nf_conntrack_l4proto_generic;
  
- /* FIXME: Allow NULL functions and sub in pointers to generic for
-    them. --RR */
--int nf_ct_l4proto_register_one(struct nf_conntrack_l4proto *l4proto)
-+int nf_ct_l4proto_register_one(const struct nf_conntrack_l4proto *l4proto)
- {
- 	int ret = 0;
+ #define MAX_NF_CT_PROTO 256
  
-@@ -465,7 +465,7 @@ void nf_ct_l4proto_pernet_unregister_one(struct net *net,
+diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+index 1849fedd9b81..669e586b6b8f 100644
+--- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+@@ -351,7 +351,7 @@ static struct nf_proto_net *icmp_get_net_proto(struct net *net)
+ 	return &net->ct.nf_ct_proto.icmp.pn;
  }
- EXPORT_SYMBOL_GPL(nf_ct_l4proto_pernet_unregister_one);
  
--int nf_ct_l4proto_register(struct nf_conntrack_l4proto *l4proto[],
-+int nf_ct_l4proto_register(const struct nf_conntrack_l4proto * const l4proto[],
- 			   unsigned int num_proto)
+-struct nf_conntrack_l4proto nf_conntrack_l4proto_icmp __read_mostly =
++const struct nf_conntrack_l4proto nf_conntrack_l4proto_icmp =
  {
- 	int ret = -EINVAL, ver;
-@@ -487,7 +487,7 @@ int nf_ct_l4proto_register(struct nf_conntrack_l4proto *l4proto[],
- EXPORT_SYMBOL_GPL(nf_ct_l4proto_register);
- 
- int nf_ct_l4proto_pernet_register(struct net *net,
--				  struct nf_conntrack_l4proto *const l4proto[],
-+				  const struct nf_conntrack_l4proto *const l4proto[],
- 				  unsigned int num_proto)
- {
- 	int ret = -EINVAL;
-@@ -508,7 +508,7 @@ int nf_ct_l4proto_pernet_register(struct net *net,
+ 	.l3proto		= PF_INET,
+ 	.l4proto		= IPPROTO_ICMP,
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index 3ac0d826afc4..75a85e35a16b 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -352,7 +352,7 @@ static struct nf_proto_net *icmpv6_get_net_proto(struct net *net)
+ 	return &net->ct.nf_ct_proto.icmpv6.pn;
  }
- EXPORT_SYMBOL_GPL(nf_ct_l4proto_pernet_register);
  
--void nf_ct_l4proto_unregister(struct nf_conntrack_l4proto *l4proto[],
-+void nf_ct_l4proto_unregister(const struct nf_conntrack_l4proto * const l4proto[],
- 			      unsigned int num_proto)
+-struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6 __read_mostly =
++const struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6 =
  {
- 	mutex_lock(&nf_ct_proto_mutex);
-@@ -518,12 +518,12 @@ void nf_ct_l4proto_unregister(struct nf_conntrack_l4proto *l4proto[],
- 
- 	synchronize_net();
- 	/* Remove all contrack entries for this protocol */
--	nf_ct_iterate_destroy(kill_l4proto, l4proto);
-+	nf_ct_iterate_destroy(kill_l4proto, (void *)l4proto);
+ 	.l3proto		= PF_INET6,
+ 	.l4proto		= IPPROTO_ICMPV6,
+diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
+index 2fee7c96ec09..abe647d5b8c6 100644
+--- a/net/netfilter/nf_conntrack_proto_dccp.c
++++ b/net/netfilter/nf_conntrack_proto_dccp.c
+@@ -861,7 +861,7 @@ static struct nf_proto_net *dccp_get_net_proto(struct net *net)
+ 	return &net->ct.nf_ct_proto.dccp.pn;
  }
- EXPORT_SYMBOL_GPL(nf_ct_l4proto_unregister);
  
- void nf_ct_l4proto_pernet_unregister(struct net *net,
--				struct nf_conntrack_l4proto *const l4proto[],
-+				const struct nf_conntrack_l4proto *const l4proto[],
- 				unsigned int num_proto)
+-struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp4 __read_mostly = {
++const struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp4 = {
+ 	.l3proto		= AF_INET,
+ 	.l4proto		= IPPROTO_DCCP,
+ 	.pkt_to_tuple		= dccp_pkt_to_tuple,
+@@ -897,7 +897,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp4 __read_mostly = {
+ };
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_dccp4);
+ 
+-struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp6 __read_mostly = {
++const struct nf_conntrack_l4proto nf_conntrack_l4proto_dccp6 = {
+ 	.l3proto		= AF_INET6,
+ 	.l4proto		= IPPROTO_DCCP,
+ 	.pkt_to_tuple		= dccp_pkt_to_tuple,
+diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
+index 1f86ddf6649a..f2d22442c89e 100644
+--- a/net/netfilter/nf_conntrack_proto_generic.c
++++ b/net/netfilter/nf_conntrack_proto_generic.c
+@@ -163,7 +163,7 @@ static struct nf_proto_net *generic_get_net_proto(struct net *net)
+ 	return &net->ct.nf_ct_proto.generic.pn;
+ }
+ 
+-struct nf_conntrack_l4proto nf_conntrack_l4proto_generic __read_mostly =
++const struct nf_conntrack_l4proto nf_conntrack_l4proto_generic =
  {
- 	while (num_proto-- != 0)
+ 	.l3proto		= PF_UNSPEC,
+ 	.l4proto		= 255,
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index a2503005d80b..ea7eff484ac5 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -352,7 +352,7 @@ static int gre_init_net(struct net *net, u_int16_t proto)
+ }
+ 
+ /* protocol helper struct */
+-static struct nf_conntrack_l4proto nf_conntrack_l4proto_gre4 __read_mostly = {
++struct nf_conntrack_l4proto nf_conntrack_l4proto_gre4 = {
+ 	.l3proto	 = AF_INET,
+ 	.l4proto	 = IPPROTO_GRE,
+ 	.pkt_to_tuple	 = gre_pkt_to_tuple,
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index f5bff4de0386..69eaaca6f933 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -777,7 +777,7 @@ static struct nf_proto_net *sctp_get_net_proto(struct net *net)
+ 	return &net->ct.nf_ct_proto.sctp.pn;
+ }
+ 
+-struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4 __read_mostly = {
++const struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4 = {
+ 	.l3proto		= PF_INET,
+ 	.l4proto 		= IPPROTO_SCTP,
+ 	.pkt_to_tuple 		= sctp_pkt_to_tuple,
+@@ -814,7 +814,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4 __read_mostly = {
+ };
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_sctp4);
+ 
+-struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6 __read_mostly = {
++const struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6 = {
+ 	.l3proto		= PF_INET6,
+ 	.l4proto 		= IPPROTO_SCTP,
+ 	.pkt_to_tuple 		= sctp_pkt_to_tuple,
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index a61a6b7b4fc5..22b4c8ba5c2f 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1538,7 +1538,7 @@ static struct nf_proto_net *tcp_get_net_proto(struct net *net)
+ 	return &net->ct.nf_ct_proto.tcp.pn;
+ }
+ 
+-struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4 __read_mostly =
++const struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4 =
+ {
+ 	.l3proto		= PF_INET,
+ 	.l4proto 		= IPPROTO_TCP,
+@@ -1576,7 +1576,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4 __read_mostly =
+ };
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_tcp4);
+ 
+-struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6 __read_mostly =
++const struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6 =
+ {
+ 	.l3proto		= PF_INET6,
+ 	.l4proto 		= IPPROTO_TCP,
+diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
+index 3a5f727103af..59a20f61c364 100644
+--- a/net/netfilter/nf_conntrack_proto_udp.c
++++ b/net/netfilter/nf_conntrack_proto_udp.c
+@@ -296,7 +296,7 @@ static struct nf_proto_net *udp_get_net_proto(struct net *net)
+ 	return &net->ct.nf_ct_proto.udp.pn;
+ }
+ 
+-struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4 __read_mostly =
++const struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4 =
+ {
+ 	.l3proto		= PF_INET,
+ 	.l4proto		= IPPROTO_UDP,
+@@ -328,7 +328,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4 __read_mostly =
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_udp4);
+ 
+ #ifdef CONFIG_NF_CT_PROTO_UDPLITE
+-struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 __read_mostly =
++const struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 =
+ {
+ 	.l3proto		= PF_INET,
+ 	.l4proto		= IPPROTO_UDPLITE,
+@@ -360,7 +360,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 __read_mostly =
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_udplite4);
+ #endif
+ 
+-struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6 __read_mostly =
++const struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6 =
+ {
+ 	.l3proto		= PF_INET6,
+ 	.l4proto		= IPPROTO_UDP,
+@@ -392,7 +392,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6 __read_mostly =
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_udp6);
+ 
+ #ifdef CONFIG_NF_CT_PROTO_UDPLITE
+-struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 __read_mostly =
++const struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 =
+ {
+ 	.l3proto		= PF_INET6,
+ 	.l4proto		= IPPROTO_UDPLITE,
 -- 
 2.13.6
 
