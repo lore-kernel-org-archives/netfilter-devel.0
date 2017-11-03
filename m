@@ -1,56 +1,84 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH RFC,WIP 2/5] netfilter: add software flow offload
- infrastructure
-Date: Fri, 3 Nov 2017 21:32:49 +0100
-Message-ID: <20171103203249.GA25602@breakpoint.cc>
+Subject: Re: [PATCH RFC,WIP 5/5] netfilter: nft_flow_offload: add ndo hooks
+ for hardware offload
+Date: Fri, 3 Nov 2017 21:56:10 +0100
+Message-ID: <20171103205610.GA31088@breakpoint.cc>
 References: <20171103152636.9967-1-pablo@netfilter.org>
- <20171103152636.9967-3-pablo@netfilter.org>
+ <20171103152636.9967-6-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37708 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37742 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750772AbdKCUdS (ORCPT
+        by vger.kernel.org with ESMTP id S1750772AbdKCU4j (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Nov 2017 16:33:18 -0400
+        Fri, 3 Nov 2017 16:56:39 -0400
 Content-Disposition: inline
-In-Reply-To: <20171103152636.9967-3-pablo@netfilter.org>
+In-Reply-To: <20171103152636.9967-6-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> +static int __init nf_flow_offload_module_init(void)
+> +static void flow_offload_work(struct work_struct *work)
 > +{
-> +	struct rhashtable_params params = flow_offload_rhash_params;
-> +	struct nf_hook_ops flow_offload_hook = {
-> +		.hook		= nf_flow_offload_hook,
-> +		.pf		= NFPROTO_NETDEV,
-> +		.hooknum	= NF_NETDEV_INGRESS,
-> +		.priority	= -100,
+> +	struct flow_hw_offload *offload, *next;
+> +
+> +	spin_lock_bh(&flow_hw_offload_lock);
+> +	list_for_each_entry_safe(offload, next, &flow_hw_offload_pending_list, list) {
+> +		do_flow_offload(offload->flow);
 
-Magic number.  Should this be documented in nft?
+This should not offload flows that already have DYING bit set.
 
-Alternatively we could reject NETDEV_INGRESS base chains from
-userspace if prio < 0 to prevent userspace rules from messing
-with this flow offlaod infrastructure.
+> +		nf_conntrack_put(&offload->ct->ct_general);
+> +		list_del(&offload->list);
+> +		kfree(offload);
+> +	}
+> +	spin_unlock_bh(&flow_hw_offload_lock);
+> +
+> +	queue_delayed_work(system_power_efficient_wq, &nft_flow_offload_dwork, HZ);
+> +}
 
-I guess the rationale of using auto-builtin hook is to avoid
-forcing users to configure this with nftables rules?
+Missed this on first round, 1 second is quite large.
 
-> +	rtnl_lock();
-> +	for_each_netdev(&init_net, dev) {
-> +		entry = kmalloc(sizeof(*entry), GFP_KERNEL);
-> +		if (!entry) {
-> +			rtnl_unlock();
-> +			return -ENOMEM;
+[..]
 
-This would need error unwinding (Unregistering the already-registered
-hooks).
+>  static int nft_flow_route(const struct nft_pktinfo *pkt,
+>  			  const struct nf_conn *ct,
+>  			  union flow_gateway *orig_gw,
+> @@ -211,6 +290,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+>  	union flow_gateway orig_gateway, reply_gateway;
+>  	struct net_device *outdev = pkt->xt.state->out;
+>  	struct net_device *indev = pkt->xt.state->in;
+> +	struct flow_hw_offload *offload;
+>  	enum ip_conntrack_info ctinfo;
+>  	struct flow_offload *flow;
+>  	struct nf_conn *ct;
+> @@ -250,6 +330,21 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+>  	if (ret < 0)
+>  		goto err2;
+>  
+> +	if (!indev->netdev_ops->ndo_flow_add)
+> +		return;
+> +
+> +	offload = kmalloc(sizeof(struct flow_hw_offload), GFP_ATOMIC);
+> +	if (!offload)
+> +		return;
+> +
+> +	nf_conntrack_get(&ct->ct_general);
+> +	offload->ct = ct;
+> +	offload->flow = flow;
+> +
+> +	spin_lock_bh(&flow_hw_offload_lock);
+> +	list_add_tail(&offload->list, &flow_hw_offload_pending_list);
+> +	spin_unlock_bh(&flow_hw_offload_lock);
+> +
+>  	return;
 
-> +		err = nf_register_net_hook(&init_net, &entry->ops);
-> +		if (err < 0)
-> +			return err;
+So this aims for lazy offloading (up to 1 second delay).
+Is this intentional, e.g. to avoid offloading short-lived 'RR' flows?
 
-And here as well.
+I would have expected this to schedule the workqueue here, and not use
+delayed wq at all (i.e., also no self-rescheduling from
+flow_offload_work()).
