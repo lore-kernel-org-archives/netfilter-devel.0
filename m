@@ -1,69 +1,70 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH RFC,WIP 3/5] netfilter: nf_flow_offload: integration with
- conntrack
-Date: Fri, 3 Nov 2017 20:49:35 +0100
-Message-ID: <20171103194935.GH9424@breakpoint.cc>
-References: <20171103152636.9967-1-pablo@netfilter.org>
- <20171103152636.9967-4-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171103152636.9967-4-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
+From: Charlie Sale <chucks.8090@gmail.com>
+Subject: [PATCH] Net: netfilter: vmalloc/vfree to kvmalloc/kvfree
+Date: Fri,  3 Nov 2017 16:07:31 -0400
+Message-ID: <20171103200731.6576-1-chucks.8090@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Charlie Sale <chucks.8090@gmail.com>
+To: pablo@netfilter.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> This patch adds the IPS_OFFLOAD status bit, this new bit tells us that
-> the conntrack entry is owned by the flow offload infrastructure. The
-> timer of such conntrack entries is stopped - the conntrack garbage
-> collector skips them - and they display no internal state in the case of
-> TCP flows.
->
-> Conntrack entries that have been offloaded to the flow table
-> infrastructure cannot be deleted/flushed via ctnetlink. The flow table
-> infrastructure is also responsible for releasing this conntrack entry.
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> Instead of nf_flow_release_ct(), I'd rather keep a pointer reference to
-> the conntrack object from the flow_offload entry, so we can skip the
-> conntrack look up.
+Fixed FIXME by changing memory allocation and freeing
+in htable_create to kvmalloc and kvfree from vmalloc and vfree.
+Changes are made throughout the file in order to account
+for the different allocation of htable_create.
+Small note: This is a replacement of an earlier patch that did not
+work. Enough was changed, so I thought I would just submit a new
+patch.
 
-I agree, this would make sense.
+Signed-off-by: Charlie Sale <chucks.8090@gmail.com>
+---
+ net/netfilter/xt_hashlimit.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-> diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-> index 8f3bd30511de..9af4bb0c2f46 100644
-> --- a/include/net/netfilter/nf_conntrack.h
-> +++ b/include/net/netfilter/nf_conntrack.h
-> @@ -272,7 +272,8 @@ static inline unsigned long nf_ct_expires(const struct nf_conn *ct)
->  
->  static inline bool nf_ct_is_expired(const struct nf_conn *ct)
->  {
-> -	return (__s32)(ct->timeout - nfct_time_stamp) <= 0;
-> +	return (__s32)(ct->timeout - nfct_time_stamp) <= 0 &&
-> +	       !test_bit(IPS_OFFLOAD_BIT, &ct->status);
-
-An alternative would be to not touch nf_ct_is_expired() and instead ...
->  }
->  
-> @@ -1011,12 +1014,14 @@ static void gc_worker(struct work_struct *work)
->  			tmp = nf_ct_tuplehash_to_ctrack(h);
->  
->  			scanned++;
-> +			if (test_bit(IPS_OFFLOAD_BIT, &tmp->status))
-> +				continue;
- 
-... advance/refresh ct->timeout from gc worker, i.e.
-
- if (test_bit(IPS_OFFLOAD_BIT, &tmp->status)) {
-     ct->timeout = nfct_time_stamp + (1 DAY);
-     continue;
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 5da8746f7b88..28ad74b3e3d0 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -286,9 +286,9 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+ 		if (size < 16)
+ 			size = 16;
+ 	}
+-	/* FIXME: don't use vmalloc() here or anywhere else -HW */
+-	hinfo = vmalloc(sizeof(struct xt_hashlimit_htable) +
+-	                sizeof(struct hlist_head) * size);
++
++	hinfo = kvmalloc(sizeof(*hinfo) + sizeof(struct hlist_head) * size,
++			 GPT_KERNEL);
+ 	if (hinfo == NULL)
+ 		return -ENOMEM;
+ 	*out_hinfo = hinfo;
+@@ -314,7 +314,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+ 	hinfo->rnd_initialized = false;
+ 	hinfo->name = kstrdup(name, GFP_KERNEL);
+ 	if (!hinfo->name) {
+-		vfree(hinfo);
++		kvfree(hinfo);
+ 		return -ENOMEM;
+ 	}
+ 	spin_lock_init(&hinfo->lock);
+@@ -336,7 +336,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+ 		fops, hinfo);
+ 	if (hinfo->pde == NULL) {
+ 		kfree(hinfo->name);
+-		vfree(hinfo);
++		kvfree(hinfo);
+ 		return -ENOMEM;
+ 	}
+ 	hinfo->net = net;
+@@ -414,7 +414,7 @@ static void htable_destroy(struct xt_hashlimit_htable *hinfo)
+ 	htable_remove_proc_entry(hinfo);
+ 	htable_selective_cleanup(hinfo, select_all);
+ 	kfree(hinfo->name);
+-	vfree(hinfo);
++	kvfree(hinfo);
  }
-
-Would prevent normal path to ever see offloaded entry
-as 'timed out', without having to check for the flag in lookup path
-(OTOH the check should not be an issue either because lookup path
- has to access ct->status anyway).
+ 
+ static struct xt_hashlimit_htable *htable_find_get(struct net *net,
+-- 
+2.13.6
