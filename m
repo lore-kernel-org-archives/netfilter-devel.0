@@ -1,70 +1,56 @@
-From: Charlie Sale <chucks.8090@gmail.com>
-Subject: [PATCH] Net: netfilter: vmalloc/vfree to kvmalloc/kvfree
-Date: Fri,  3 Nov 2017 16:07:31 -0400
-Message-ID: <20171103200731.6576-1-chucks.8090@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Charlie Sale <chucks.8090@gmail.com>
-To: pablo@netfilter.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH RFC,WIP 2/5] netfilter: add software flow offload
+ infrastructure
+Date: Fri, 3 Nov 2017 21:32:49 +0100
+Message-ID: <20171103203249.GA25602@breakpoint.cc>
+References: <20171103152636.9967-1-pablo@netfilter.org>
+ <20171103152636.9967-3-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37708 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750772AbdKCUdS (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 3 Nov 2017 16:33:18 -0400
+Content-Disposition: inline
+In-Reply-To: <20171103152636.9967-3-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Fixed FIXME by changing memory allocation and freeing
-in htable_create to kvmalloc and kvfree from vmalloc and vfree.
-Changes are made throughout the file in order to account
-for the different allocation of htable_create.
-Small note: This is a replacement of an earlier patch that did not
-work. Enough was changed, so I thought I would just submit a new
-patch.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> +static int __init nf_flow_offload_module_init(void)
+> +{
+> +	struct rhashtable_params params = flow_offload_rhash_params;
+> +	struct nf_hook_ops flow_offload_hook = {
+> +		.hook		= nf_flow_offload_hook,
+> +		.pf		= NFPROTO_NETDEV,
+> +		.hooknum	= NF_NETDEV_INGRESS,
+> +		.priority	= -100,
 
-Signed-off-by: Charlie Sale <chucks.8090@gmail.com>
----
- net/netfilter/xt_hashlimit.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+Magic number.  Should this be documented in nft?
 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 5da8746f7b88..28ad74b3e3d0 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -286,9 +286,9 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
- 		if (size < 16)
- 			size = 16;
- 	}
--	/* FIXME: don't use vmalloc() here or anywhere else -HW */
--	hinfo = vmalloc(sizeof(struct xt_hashlimit_htable) +
--	                sizeof(struct hlist_head) * size);
-+
-+	hinfo = kvmalloc(sizeof(*hinfo) + sizeof(struct hlist_head) * size,
-+			 GPT_KERNEL);
- 	if (hinfo == NULL)
- 		return -ENOMEM;
- 	*out_hinfo = hinfo;
-@@ -314,7 +314,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
- 	hinfo->rnd_initialized = false;
- 	hinfo->name = kstrdup(name, GFP_KERNEL);
- 	if (!hinfo->name) {
--		vfree(hinfo);
-+		kvfree(hinfo);
- 		return -ENOMEM;
- 	}
- 	spin_lock_init(&hinfo->lock);
-@@ -336,7 +336,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
- 		fops, hinfo);
- 	if (hinfo->pde == NULL) {
- 		kfree(hinfo->name);
--		vfree(hinfo);
-+		kvfree(hinfo);
- 		return -ENOMEM;
- 	}
- 	hinfo->net = net;
-@@ -414,7 +414,7 @@ static void htable_destroy(struct xt_hashlimit_htable *hinfo)
- 	htable_remove_proc_entry(hinfo);
- 	htable_selective_cleanup(hinfo, select_all);
- 	kfree(hinfo->name);
--	vfree(hinfo);
-+	kvfree(hinfo);
- }
- 
- static struct xt_hashlimit_htable *htable_find_get(struct net *net,
--- 
-2.13.6
+Alternatively we could reject NETDEV_INGRESS base chains from
+userspace if prio < 0 to prevent userspace rules from messing
+with this flow offlaod infrastructure.
+
+I guess the rationale of using auto-builtin hook is to avoid
+forcing users to configure this with nftables rules?
+
+> +	rtnl_lock();
+> +	for_each_netdev(&init_net, dev) {
+> +		entry = kmalloc(sizeof(*entry), GFP_KERNEL);
+> +		if (!entry) {
+> +			rtnl_unlock();
+> +			return -ENOMEM;
+
+This would need error unwinding (Unregistering the already-registered
+hooks).
+
+> +		err = nf_register_net_hook(&init_net, &entry->ops);
+> +		if (err < 0)
+> +			return err;
+
+And here as well.
