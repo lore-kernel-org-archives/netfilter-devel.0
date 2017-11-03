@@ -1,240 +1,250 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH RFC,WIP 5/5] netfilter: nft_flow_offload: add ndo hooks for hardware offload
-Date: Fri,  3 Nov 2017 16:26:36 +0100
-Message-ID: <20171103152636.9967-6-pablo@netfilter.org>
+Subject: [PATCH RFC,WIP 3/5] netfilter: nf_flow_offload: integration with conntrack
+Date: Fri,  3 Nov 2017 16:26:34 +0100
+Message-ID: <20171103152636.9967-4-pablo@netfilter.org>
 References: <20171103152636.9967-1-pablo@netfilter.org>
 Cc: netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43340 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755879AbdKCP0t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Nov 2017 11:26:49 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 4C9D0C0B44
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Nov 2017 16:26:48 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3AC3EB7FEB
-        for <netfilter-devel@vger.kernel.org>; Fri,  3 Nov 2017 16:26:48 +0100 (CET)
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20171103152636.9967-1-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This patch adds the infrastructure to offload flows to hardware, in case
-the nic/switch comes with built-in flow tables capabilities.
+This patch adds the IPS_OFFLOAD status bit, this new bit tells us that
+the conntrack entry is owned by the flow offload infrastructure. The
+timer of such conntrack entries is stopped - the conntrack garbage
+collector skips them - and they display no internal state in the case of
+TCP flows.
 
-If the hardware comes with not hardware flow tables or they have
-limitations in terms of features, this falls back to the software
-generic flow table implementation.
+ # cat /proc/net/nf_conntrack
+ ipv4     2 tcp      6 src=10.141.10.2 dst=147.75.205.195 sport=36392 dport=443 src=147.75.205.195 dst=192.168.2.195 sport=443 dport=36392 [OFFLOAD] mark=0 zone=0 use=2
 
-The software flow table aging thread skips entries that resides in the
-hardware, so the hardware will be responsible for releasing this flow
-table entry too.
+Note the [OFFLOAD] tag in the listing.
+
+Conntrack entries that have been offloaded to the flow table
+infrastructure cannot be deleted/flushed via ctnetlink. The flow table
+infrastructure is also responsible for releasing this conntrack entry.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netdevice.h        |  4 ++
- net/netfilter/nf_flow_offload.c  |  3 ++
- net/netfilter/nft_flow_offload.c | 99 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 106 insertions(+)
+Instead of nf_flow_release_ct(), I'd rather keep a pointer reference to
+the conntrack object from the flow_offload entry, so we can skip the
+conntrack look up.
 
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index f535779d9dc1..0787f53374b3 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -826,6 +826,8 @@ struct xfrmdev_ops {
- };
- #endif
+ include/net/netfilter/nf_conntrack.h               |  3 +-
+ include/uapi/linux/netfilter/nf_conntrack_common.h |  4 +++
+ net/netfilter/nf_conntrack_core.c                  |  7 ++++-
+ net/netfilter/nf_conntrack_netlink.c               | 15 ++++++++-
+ net/netfilter/nf_conntrack_proto_tcp.c             |  3 ++
+ net/netfilter/nf_conntrack_standalone.c            | 12 +++++---
+ net/netfilter/nf_flow_offload.c                    | 36 ++++++++++++++++++++--
+ 7 files changed, 71 insertions(+), 9 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 8f3bd30511de..9af4bb0c2f46 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -272,7 +272,8 @@ static inline unsigned long nf_ct_expires(const struct nf_conn *ct)
  
-+struct flow_offload;
+ static inline bool nf_ct_is_expired(const struct nf_conn *ct)
+ {
+-	return (__s32)(ct->timeout - nfct_time_stamp) <= 0;
++	return (__s32)(ct->timeout - nfct_time_stamp) <= 0 &&
++	       !test_bit(IPS_OFFLOAD_BIT, &ct->status);
+ }
+ 
+ /* use after obtaining a reference count */
+diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
+index dc947e59d03a..6b463b88182d 100644
+--- a/include/uapi/linux/netfilter/nf_conntrack_common.h
++++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
+@@ -100,6 +100,10 @@ enum ip_conntrack_status {
+ 	IPS_HELPER_BIT = 13,
+ 	IPS_HELPER = (1 << IPS_HELPER_BIT),
+ 
++	/* Conntrack has been offloaded to flow table. */
++	IPS_OFFLOAD_BIT = 14,
++	IPS_OFFLOAD = (1 << IPS_OFFLOAD_BIT),
 +
- /*
-  * This structure defines the management hooks for network devices.
-  * The following hooks can be defined; unless noted otherwise, they are
-@@ -1281,6 +1283,8 @@ struct net_device_ops {
- 	int			(*ndo_bridge_dellink)(struct net_device *dev,
- 						      struct nlmsghdr *nlh,
- 						      u16 flags);
-+	int			(*ndo_flow_add)(struct flow_offload *flow);
-+	int			(*ndo_flow_del)(struct flow_offload *flow);
- 	int			(*ndo_change_carrier)(struct net_device *dev,
- 						      bool new_carrier);
- 	int			(*ndo_get_phys_port_id)(struct net_device *dev,
+ 	/* Be careful here, modifying these bits can make things messy,
+ 	 * so don't let users modify them directly.
+ 	 */
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 01130392b7c0..48f36c4fb756 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -901,6 +901,9 @@ static unsigned int early_drop_list(struct net *net,
+ 	hlist_nulls_for_each_entry_rcu(h, n, head, hnnode) {
+ 		tmp = nf_ct_tuplehash_to_ctrack(h);
+ 
++		if (test_bit(IPS_OFFLOAD_BIT, &tmp->status))
++			continue;
++
+ 		if (nf_ct_is_expired(tmp)) {
+ 			nf_ct_gc_expired(tmp);
+ 			continue;
+@@ -1011,12 +1014,14 @@ static void gc_worker(struct work_struct *work)
+ 			tmp = nf_ct_tuplehash_to_ctrack(h);
+ 
+ 			scanned++;
++			if (test_bit(IPS_OFFLOAD_BIT, &tmp->status))
++				continue;
++
+ 			if (nf_ct_is_expired(tmp)) {
+ 				nf_ct_gc_expired(tmp);
+ 				expired_count++;
+ 				continue;
+ 			}
+-
+ 			if (nf_conntrack_max95 == 0 || gc_worker_skip_ct(tmp))
+ 				continue;
+ 
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index de4053d84364..79a74aec7c1e 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1105,6 +1105,14 @@ static const struct nla_policy ct_nla_policy[CTA_MAX+1] = {
+ 				    .len = NF_CT_LABELS_MAX_SIZE },
+ };
+ 
++static int ctnetlink_flush_iterate(struct nf_conn *ct, void *data)
++{
++	if (test_bit(IPS_OFFLOAD_BIT, &ct->status))
++		return 0;
++
++	return ctnetlink_filter_match(ct, data);
++}
++
+ static int ctnetlink_flush_conntrack(struct net *net,
+ 				     const struct nlattr * const cda[],
+ 				     u32 portid, int report)
+@@ -1117,7 +1125,7 @@ static int ctnetlink_flush_conntrack(struct net *net,
+ 			return PTR_ERR(filter);
+ 	}
+ 
+-	nf_ct_iterate_cleanup_net(net, ctnetlink_filter_match, filter,
++	nf_ct_iterate_cleanup_net(net, ctnetlink_flush_iterate, filter,
+ 				  portid, report);
+ 	kfree(filter);
+ 
+@@ -1163,6 +1171,11 @@ static int ctnetlink_del_conntrack(struct net *net, struct sock *ctnl,
+ 
+ 	ct = nf_ct_tuplehash_to_ctrack(h);
+ 
++	if (test_bit(IPS_OFFLOAD_BIT, &ct->status)) {
++		nf_ct_put(ct);
++		return -EBUSY;
++	}
++
+ 	if (cda[CTA_ID]) {
+ 		u_int32_t id = ntohl(nla_get_be32(cda[CTA_ID]));
+ 		if (id != (u32)(unsigned long)ct) {
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index cba1c6ffe51a..156f529d1668 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -305,6 +305,9 @@ static bool tcp_invert_tuple(struct nf_conntrack_tuple *tuple,
+ /* Print out the private part of the conntrack. */
+ static void tcp_print_conntrack(struct seq_file *s, struct nf_conn *ct)
+ {
++	if (test_bit(IPS_OFFLOAD_BIT, &ct->status))
++		return;
++
+ 	seq_printf(s, "%s ", tcp_conntrack_names[ct->proto.tcp.state]);
+ }
+ #endif
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 5a101caa3e12..46d32baad095 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -309,10 +309,12 @@ static int ct_seq_show(struct seq_file *s, void *v)
+ 	WARN_ON(!l4proto);
+ 
+ 	ret = -ENOSPC;
+-	seq_printf(s, "%-8s %u %-8s %u %ld ",
++	seq_printf(s, "%-8s %u %-8s %u ",
+ 		   l3proto_name(l3proto->l3proto), nf_ct_l3num(ct),
+-		   l4proto_name(l4proto->l4proto), nf_ct_protonum(ct),
+-		   nf_ct_expires(ct)  / HZ);
++		   l4proto_name(l4proto->l4proto), nf_ct_protonum(ct));
++
++	if (!test_bit(IPS_OFFLOAD_BIT, &ct->status))
++		seq_printf(s, "%ld ", nf_ct_expires(ct)  / HZ);
+ 
+ 	if (l4proto->print_conntrack)
+ 		l4proto->print_conntrack(s, ct);
+@@ -339,7 +341,9 @@ static int ct_seq_show(struct seq_file *s, void *v)
+ 	if (seq_print_acct(s, ct, IP_CT_DIR_REPLY))
+ 		goto release;
+ 
+-	if (test_bit(IPS_ASSURED_BIT, &ct->status))
++	if (test_bit(IPS_OFFLOAD_BIT, &ct->status))
++		seq_puts(s, "[OFFLOAD] ");
++	else if (test_bit(IPS_ASSURED_BIT, &ct->status))
+ 		seq_puts(s, "[ASSURED] ");
+ 
+ 	if (seq_has_overflowed(s))
 diff --git a/net/netfilter/nf_flow_offload.c b/net/netfilter/nf_flow_offload.c
-index f4a3fbe11b69..ac5786976dbb 100644
+index c967b29d11a6..f4a3fbe11b69 100644
 --- a/net/netfilter/nf_flow_offload.c
 +++ b/net/netfilter/nf_flow_offload.c
-@@ -147,6 +147,9 @@ static void nf_flow_offload_work_gc(struct work_struct *work)
+@@ -13,6 +13,9 @@
+ #include <linux/udp.h>
+ #include <linux/icmpv6.h>
+ 
++#include <net/netfilter/nf_conntrack_core.h>
++#include <net/netfilter/nf_conntrack_tuple.h>
++
+ static struct rhashtable flow_table;
+ 
+ static u32 flow_offload_hash(const void *data, u32 len, u32 seed)
+@@ -91,6 +94,34 @@ static inline bool nf_flow_has_expired(const struct flow_offload *flow)
+ 	return (__s32)(flow->timeout - (u32)jiffies) <= 0;
+ }
+ 
++static void nf_flow_release_ct(const struct flow_offload_tuple_rhash *th)
++{
++	struct nf_conntrack_tuple tuple = {};
++	struct nf_conntrack_tuple_hash *h;
++	struct nf_conntrack_zone zone;
++	struct nf_conn *ct;
++
++	nf_ct_zone_init(&zone, NF_CT_DEFAULT_ZONE_ID,
++			NF_CT_DEFAULT_ZONE_DIR, 0);
++
++	tuple.src.u3.ip		= th->tuple.src_v4.s_addr;
++	tuple.dst.u3.ip		= th->tuple.dst_v4.s_addr;
++	tuple.src.u.all		= th->tuple.src_port;
++	tuple.dst.u.all		= th->tuple.dst_port;
++	tuple.src.l3num		= th->tuple.l3proto;
++	tuple.dst.protonum	= th->tuple.l4proto;
++	tuple.dst.dir		= IP_CT_DIR_ORIGINAL;
++
++	h = nf_conntrack_find_get(&init_net, &zone, &tuple);
++	if (!h) {
++		pr_err("cannot find conntrack for flow hash %p\n", th);
++		return;
++	}
++	ct = nf_ct_tuplehash_to_ctrack(h);
++	nf_ct_delete(ct, 0, 0);
++	nf_ct_put(ct);
++}
++
+ static void nf_flow_offload_work_gc(struct work_struct *work)
+ {
+ 	struct flow_offload_tuple_rhash *tuplehash;
+@@ -116,9 +147,10 @@ static void nf_flow_offload_work_gc(struct work_struct *work)
  
  		flow = container_of(tuplehash, struct flow_offload, tuplehash[0]);
  
-+		if (flow->flags & FLOW_OFFLOAD_HW)
-+			continue;
-+
- 		if (nf_flow_has_expired(flow)) {
+-		if (nf_flow_has_expired(flow))
++		if (nf_flow_has_expired(flow)) {
  			flow_offload_del(flow);
- 			nf_flow_release_ct(tuplehash);
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index d38d185a19a5..0cb194a0aaab 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -17,6 +17,22 @@ union flow_gateway {
- 	struct in6_addr	ip6;
- };
+-
++			nf_flow_release_ct(tuplehash);
++		}
+ 		counter++;
+ 	}
  
-+static void flow_hw_offload_del(struct flow_offload *flow)
-+{
-+	struct net_device *indev;
-+	int ret;
-+
-+	rtnl_lock();
-+	indev = __dev_get_by_index(&init_net, flow->tuplehash[0].tuple.iifidx);
-+	WARN_ON(!indev);
-+
-+	if (indev->netdev_ops->ndo_flow_del) {
-+		ret = indev->netdev_ops->ndo_flow_del(flow);
-+		WARN_ON(ret < 0);
-+	}
-+	rtnl_unlock();
-+}
-+
- static int flow_offload_iterate_cleanup(struct nf_conn *ct, void *data)
- {
- 	struct flow_offload_tuple_rhash *tuplehash;
-@@ -44,14 +60,40 @@ static int flow_offload_iterate_cleanup(struct nf_conn *ct, void *data)
- 			    tuplehash[tuplehash->tuple.dir]);
- 
- 	flow_offload_del(flow);
-+	if (flow->flags & FLOW_OFFLOAD_HW)
-+		flow_hw_offload_del(flow);
- 
- 	/* Do not remove this conntrack from table. */
- 	return 0;
- }
- 
-+static LIST_HEAD(flow_hw_offload_pending_list);
-+static DEFINE_SPINLOCK(flow_hw_offload_lock);
-+
-+struct flow_hw_offload {
-+	struct list_head	list;
-+	struct flow_offload	*flow;
-+	struct nf_conn		*ct;
-+};
-+
- static void flow_offload_cleanup(struct net *net,
- 				 const struct net_device *dev)
- {
-+	struct flow_hw_offload *offload, *next;
-+
-+	spin_lock_bh(&flow_hw_offload_lock);
-+	list_for_each_entry_safe(offload, next, &flow_hw_offload_pending_list, list) {
-+		if (dev == NULL ||
-+		    offload->flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.iifidx == dev->ifindex ||
-+		    offload->flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.oifidx == dev->ifindex)
-+			continue;
-+
-+		nf_conntrack_put(&offload->ct->ct_general);
-+		list_del(&offload->list);
-+		kfree(offload);
-+	}
-+	spin_unlock_bh(&flow_hw_offload_lock);
-+
- 	nf_ct_iterate_cleanup_net(net, flow_offload_iterate_cleanup,
- 				  (void *)dev, 0, 0);
- }
-@@ -156,6 +198,43 @@ flow_offload_alloc(const struct nf_conn *ct, int iifindex, int oifindex,
- 	return flow;
- }
- 
-+static int do_flow_offload(struct flow_offload *flow)
-+{
-+	struct net_device *indev;
-+	int ret, ifindex;
-+
-+	rtnl_lock();
-+	ifindex = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.iifidx;
-+	indev = __dev_get_by_index(&init_net, ifindex);
-+	WARN_ON(!indev);
-+
-+	ret = indev->netdev_ops->ndo_flow_add(flow);
-+	rtnl_unlock();
-+
-+	if (ret >= 0)
-+		flow->flags |= FLOW_OFFLOAD_HW;
-+
-+	return ret;
-+}
-+
-+static struct delayed_work nft_flow_offload_dwork;
-+
-+static void flow_offload_work(struct work_struct *work)
-+{
-+	struct flow_hw_offload *offload, *next;
-+
-+	spin_lock_bh(&flow_hw_offload_lock);
-+	list_for_each_entry_safe(offload, next, &flow_hw_offload_pending_list, list) {
-+		do_flow_offload(offload->flow);
-+		nf_conntrack_put(&offload->ct->ct_general);
-+		list_del(&offload->list);
-+		kfree(offload);
-+	}
-+	spin_unlock_bh(&flow_hw_offload_lock);
-+
-+	queue_delayed_work(system_power_efficient_wq, &nft_flow_offload_dwork, HZ);
-+}
-+
- static int nft_flow_route(const struct nft_pktinfo *pkt,
- 			  const struct nf_conn *ct,
- 			  union flow_gateway *orig_gw,
-@@ -211,6 +290,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- 	union flow_gateway orig_gateway, reply_gateway;
- 	struct net_device *outdev = pkt->xt.state->out;
- 	struct net_device *indev = pkt->xt.state->in;
-+	struct flow_hw_offload *offload;
- 	enum ip_conntrack_info ctinfo;
- 	struct flow_offload *flow;
- 	struct nf_conn *ct;
-@@ -250,6 +330,21 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- 	if (ret < 0)
- 		goto err2;
- 
-+	if (!indev->netdev_ops->ndo_flow_add)
-+		return;
-+
-+	offload = kmalloc(sizeof(struct flow_hw_offload), GFP_ATOMIC);
-+	if (!offload)
-+		return;
-+
-+	nf_conntrack_get(&ct->ct_general);
-+	offload->ct = ct;
-+	offload->flow = flow;
-+
-+	spin_lock_bh(&flow_hw_offload_lock);
-+	list_add_tail(&offload->list, &flow_hw_offload_pending_list);
-+	spin_unlock_bh(&flow_hw_offload_lock);
-+
- 	return;
- err2:
- 	kfree(flow);
-@@ -308,6 +403,9 @@ static int __init nft_flow_offload_module_init(void)
- {
- 	register_netdevice_notifier(&flow_offload_netdev_notifier);
- 
-+	INIT_DEFERRABLE_WORK(&nft_flow_offload_dwork, flow_offload_work);
-+	queue_delayed_work(system_power_efficient_wq, &nft_flow_offload_dwork, HZ);
-+
- 	return nft_register_expr(&nft_flow_offload_type);
- }
- 
-@@ -316,6 +414,7 @@ static void __exit nft_flow_offload_module_exit(void)
- 	struct net *net;
- 
- 	nft_unregister_expr(&nft_flow_offload_type);
-+	cancel_delayed_work_sync(&nft_flow_offload_dwork);
- 	unregister_netdevice_notifier(&flow_offload_netdev_notifier);
- 	rtnl_lock();
- 	for_each_net(net)
 -- 
 2.11.0
-
-
