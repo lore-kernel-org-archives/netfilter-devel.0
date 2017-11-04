@@ -1,155 +1,136 @@
-From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Subject: [PATCH nf-next] netfilter: nf_defrag_ipv4: Add sysctl to disable per interface
-Date: Fri,  3 Nov 2017 20:28:40 -0600
-Message-ID: <1509762520-17873-1-git-send-email-subashab@codeaurora.org>
-Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-To: netfilter-devel@vger.kernel.org, steffen.klassert@secunet.com,
-        pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:56732 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751869AbdKDC2u (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 3 Nov 2017 22:28:50 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: Re: [PATCH RFC,WIP 0/5] Flow offload infrastructure
+Date: Fri, 3 Nov 2017 21:49:31 -0700
+Message-ID: <6b79dc0a-1b41-84b5-34a1-05a66e4d0694@gmail.com>
+References: <20171103152636.9967-1-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20171103152636.9967-1-pablo@netfilter.org>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Add a sysctl nf_ipv4_defrag_skip to skip defragmentation per
-interface. This is set 0 to preserve existing behavior (always
-defrag per interface).
+Hi Pablo,
 
-This is useful for pure ipv4 forwarding scenarios (without NAT)
-in conjunction with xfrm. It appears that network stack defrags
-the packets and then forwards them to xfrm which then encrypts
-and then later fragments them on a different boundary compared
-to the source.
+On 11/03/2017 08:26 AM, Pablo Neira Ayuso wrote:
+> Hi,
+> 
+> This patch adds the flow offload infrastructure for Netfilter. This adds
+> a new 'nf_flow_offload' module that registers a hook at ingress. Every
+> packet that hits the flow table is forwarded to where the flow table
+> entry specifies in terms of destination/gateway and netdevice. In case
+> of flow table miss, the packet follows the classic forward path.
+> 
+> This flow table is populated via the new nftables VM action
+> 'flow_offload', so the user can selectively specify what flows are
+> placed into the flow table, an example ruleset would look like this:
+> 
+>         table inet x {
+>                 chain y {
+>                         type filter hook forward priority 0; policy accept;
+>                         ip protocol tcp flow offload counter
+>                         counter
+>                 }
+>         }
+> 
+> The 'flow offload' action adds the flow entry once the flow is in
+> established state, according to the connection tracking definition, ie.
+> we have seen traffic in both directions. Therefore, only initial packets
+> of the flow follow the classic forwarding path.
+> 
+> * Patch 1/5 is nothing really interesting, just a little preparation change.
+> 
+> * Patch 2/5 adds a software flow table representation. It uses the
+>   rhashtable and an API to operate with it, it also introduces the
+>   'struct flow_offload' that represents a flow table entry. There's a
+>   garbage collector kernel thread that cleans up entries for which we
+>   have not seen any packet for a while.
+> 
+> * Patch 3/5 Just adds the missing bits to integrate the software flow
+>   table with conntrack. The software flow table owns the conntrack
+>   object, so it is basically responsible for releasing it. Conntrack
+>   entries that have been offloaded in the conntrack table will look like
+>   this:
+> 
+> ipv4     2 tcp      6 src=10.141.10.2 dst=147.75.205.195 sport=36392 dport=443 src=147.75.205.195 dst=192.168.2.195 sport=443 dport=36392 [OFFLOAD] use=2
+> 
+> * Patch 4/5 adds the extension for nf_tables that can be used to select
+>   what flows are offloaded through policy.
+> 
+> * Patch 5/5 Switches and NICs come with built-in flow table, I've been
+>   observing out of tree patches in OpenWRT/LEDE to integrate this into
+>   Netfilter for a little while. This patch adds the ndo hooks to
+>   populate hardware flow table. This patchs a workqueue to configure
+>   from user context - we need to hold the mdio mutex for this. There
+>   will be a little time until packets will follow the hardware path.
+>   So packets will be following the software flow table path for a little
+>   while until the start going through hardware.
+> 
+> I'm measuring here that the software flow table forwarding path is 2.5
+> faster than the classic forwarding path in my testbed.
+> 
+> TODO, still many things:
+> 
+> * Only IPv4 at this time.
+> * Only IPv4 SNAT is supported.
+> * No netns support yet.
+> * Missing netlink interface to operate with the flow table, to force the
+>   handover of flow to the software path.
+> * Higher configurability, instead of registering the flow table
+>   inconditionally, add an interface to specify software flow table
+>   properties.
+> * No flow counters at this time.
+> 
+> This should serve a number of usecases where we can rely on this kernel
+> bypass. Packets that need fragmentation / PMTU / IP option handling /
+> ... and any specific handling, then we should pass them up to the
+> forwarding classic path.
+> 
+> Comments welcome,
 
-An example of this usage is for fixing wifi calling on networks
-where certain routers are configured to drop fragments explicitly.
-Wifi calling was failing because data from rmnet interfaces was
-fragmented and got reassembled and then forwarded and encrypted
-and transmitted over wifi. Upon encryption, these packets were
-larger than wifi MTU and hence were fragmented and sent to network.
+A lot of us have been waiting for this for some time, so thanks a lot
+for posting the patches. At first glance this seems to cover most of the
+HW that I know about out there and it does so without that much code
+added which is great. Did you have a particular platform you did
+experiment this with and if so, should we expect patches to be posted to
+see how it integrates with real hardware?
 
-We avoid fragmentation with this change as the original packets
-themselves do not need to be fragmented after encryption since
-these packets were smaller in size than the wifi MTU.
+Thanks!
 
-Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
----
- Documentation/networking/ip-sysctl.txt |  3 +++
- include/linux/inetdevice.h             |  2 ++
- include/uapi/linux/ip.h                |  1 +
- include/uapi/linux/sysctl.h            |  1 +
- kernel/sysctl_binary.c                 |  1 +
- net/ipv4/devinet.c                     |  2 ++
- net/ipv4/netfilter/nf_defrag_ipv4.c    | 10 ++++++++--
- 7 files changed, 18 insertions(+), 2 deletions(-)
+> Thanks.
+> 
+> Pablo Neira Ayuso (5):
+>   netfilter: nf_conntrack: move nf_ct_netns_{get,put}() to core
+>   netfilter: add software flow offload infrastructure
+>   netfilter: nf_flow_offload: integration with conntrack
+>   netfilter: nf_tables: flow offload expression
+>   netfilter: nft_flow_offload: add ndo hooks for hardware offload
+> 
+>  include/linux/netdevice.h                          |   4 +
+>  include/net/flow_offload.h                         |  67 ++++
+>  include/net/netfilter/nf_conntrack.h               |   3 +-
+>  include/uapi/linux/netfilter/nf_conntrack_common.h |   4 +
+>  include/uapi/linux/netfilter/nf_tables.h           |   9 +
+>  net/netfilter/Kconfig                              |  14 +
+>  net/netfilter/Makefile                             |   4 +
+>  net/netfilter/nf_conntrack_core.c                  |   7 +-
+>  net/netfilter/nf_conntrack_netlink.c               |  15 +-
+>  net/netfilter/nf_conntrack_proto.c                 |  37 +-
+>  net/netfilter/nf_conntrack_proto_tcp.c             |   3 +
+>  net/netfilter/nf_conntrack_standalone.c            |  12 +-
+>  net/netfilter/nf_flow_offload.c                    | 421 ++++++++++++++++++++
+>  net/netfilter/nft_ct.c                             |  39 +-
+>  net/netfilter/nft_flow_offload.c                   | 430 +++++++++++++++++++++
+>  15 files changed, 1024 insertions(+), 45 deletions(-)
+>  create mode 100644 include/net/flow_offload.h
+>  create mode 100644 net/netfilter/nf_flow_offload.c
+>  create mode 100644 net/netfilter/nft_flow_offload.c
+> 
 
-diff --git a/Documentation/networking/ip-sysctl.txt b/Documentation/networking/ip-sysctl.txt
-index 77f4de5..d846607 100644
---- a/Documentation/networking/ip-sysctl.txt
-+++ b/Documentation/networking/ip-sysctl.txt
-@@ -1281,6 +1281,9 @@ drop_gratuitous_arp - BOOLEAN
- 	(or in the case of 802.11, must not be used to prevent attacks.)
- 	Default: off (0)
- 
-+nf_ipv4_defrag_skip - BOOLEAN
-+	Skip defragmentation per interface if set.
-+	Default : 0 (always defrag)
- 
- tag - INTEGER
- 	Allows you to write a number, which can be used as required.
-diff --git a/include/linux/inetdevice.h b/include/linux/inetdevice.h
-index 681dff3..638b681 100644
---- a/include/linux/inetdevice.h
-+++ b/include/linux/inetdevice.h
-@@ -129,6 +129,8 @@ static inline void ipv4_devconf_setall(struct in_device *in_dev)
- #define IN_DEV_ARP_ANNOUNCE(in_dev)	IN_DEV_MAXCONF((in_dev), ARP_ANNOUNCE)
- #define IN_DEV_ARP_IGNORE(in_dev)	IN_DEV_MAXCONF((in_dev), ARP_IGNORE)
- #define IN_DEV_ARP_NOTIFY(in_dev)	IN_DEV_MAXCONF((in_dev), ARP_NOTIFY)
-+#define IN_DEV_NF_IPV4_DEFRAG_SKIP(in_dev) \
-+	IN_DEV_ORCONF((in_dev), NF_IPV4_DEFRAG_SKIP)
- 
- struct in_ifaddr {
- 	struct hlist_node	hash;
-diff --git a/include/uapi/linux/ip.h b/include/uapi/linux/ip.h
-index f291569..739a4f3 100644
---- a/include/uapi/linux/ip.h
-+++ b/include/uapi/linux/ip.h
-@@ -167,6 +167,7 @@ enum
- 	IPV4_DEVCONF_IGNORE_ROUTES_WITH_LINKDOWN,
- 	IPV4_DEVCONF_DROP_UNICAST_IN_L2_MULTICAST,
- 	IPV4_DEVCONF_DROP_GRATUITOUS_ARP,
-+	IPV4_DEVCONF_NF_IPV4_DEFRAG_SKIP,
- 	__IPV4_DEVCONF_MAX
- };
- 
-diff --git a/include/uapi/linux/sysctl.h b/include/uapi/linux/sysctl.h
-index e13d480..dd3f439 100644
---- a/include/uapi/linux/sysctl.h
-+++ b/include/uapi/linux/sysctl.h
-@@ -480,6 +480,7 @@ enum
- 	NET_IPV4_CONF_PROMOTE_SECONDARIES=20,
- 	NET_IPV4_CONF_ARP_ACCEPT=21,
- 	NET_IPV4_CONF_ARP_NOTIFY=22,
-+	NET_IPV4_CONF_NF_IPV4_DEFRAG_SKIP = 23,
- };
- 
- /* /proc/sys/net/ipv4/netfilter */
-diff --git a/kernel/sysctl_binary.c b/kernel/sysctl_binary.c
-index 58ea8c0..8acb0c6 100644
---- a/kernel/sysctl_binary.c
-+++ b/kernel/sysctl_binary.c
-@@ -254,6 +254,7 @@ struct bin_table {
- 	{ CTL_INT,	NET_IPV4_CONF_NOPOLICY,			"disable_policy" },
- 	{ CTL_INT,	NET_IPV4_CONF_FORCE_IGMP_VERSION,	"force_igmp_version" },
- 	{ CTL_INT,	NET_IPV4_CONF_PROMOTE_SECONDARIES,	"promote_secondaries" },
-+	{ CTL_INT, NET_IPV4_CONF_NF_IPV4_DEFRAG_SKIP, "nf_ipv4_defrag_skip" },
- 	{}
- };
- 
-diff --git a/net/ipv4/devinet.c b/net/ipv4/devinet.c
-index a4573bc..2713a2f 100644
---- a/net/ipv4/devinet.c
-+++ b/net/ipv4/devinet.c
-@@ -2280,6 +2280,8 @@ static int ipv4_doint_and_flush(struct ctl_table *ctl, int write,
- 					"ignore_routes_with_linkdown"),
- 		DEVINET_SYSCTL_RW_ENTRY(DROP_GRATUITOUS_ARP,
- 					"drop_gratuitous_arp"),
-+		DEVINET_SYSCTL_RW_ENTRY(NF_IPV4_DEFRAG_SKIP,
-+					"nf_ipv4_defrag_skip"),
- 
- 		DEVINET_SYSCTL_FLUSHING_ENTRY(NOXFRM, "disable_xfrm"),
- 		DEVINET_SYSCTL_FLUSHING_ENTRY(NOPOLICY, "disable_policy"),
-diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
-index 37fe1616..9e6f9d2 100644
---- a/net/ipv4/netfilter/nf_defrag_ipv4.c
-+++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
-@@ -11,6 +11,7 @@
- #include <linux/netfilter.h>
- #include <linux/module.h>
- #include <linux/skbuff.h>
-+#include <linux/inetdevice.h>
- #include <net/netns/generic.h>
- #include <net/route.h>
- #include <net/ip.h>
-@@ -81,8 +82,13 @@ static unsigned int ipv4_conntrack_defrag(void *priv,
- #endif
- 	/* Gather fragments. */
- 	if (ip_is_fragment(ip_hdr(skb))) {
--		enum ip_defrag_users user =
--			nf_ct_defrag_user(state->hook, skb);
-+		enum ip_defrag_users user;
-+
-+		if (skb->dev &&
-+		    IN_DEV_NF_IPV4_DEFRAG_SKIP(__in_dev_get_rcu(skb->dev)))
-+			return NF_ACCEPT;
-+
-+		user = nf_ct_defrag_user(state->hook, skb);
- 
- 		if (nf_ct_ipv4_gather_frags(state->net, skb, user))
- 			return NF_STOLEN;
 -- 
-1.9.1
-
+Florian
