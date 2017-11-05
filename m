@@ -1,7 +1,7 @@
 From: Vasily Averin <vvs@virtuozzo.com>
-Subject: [PATCH 17/21] hashlimit: exit_net cleanup check added
-Date: Sun, 5 Nov 2017 13:02:09 +0300
-Message-ID: <32ef6c18-ccf4-39fd-7128-04456da2402e@virtuozzo.com>
+Subject: [PATCH 18/21] recent: exit_net cleanup check added
+Date: Sun, 5 Nov 2017 13:02:17 +0300
+Message-ID: <442303f3-1e78-84a9-67aa-2371b167c36b@virtuozzo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
@@ -15,29 +15,29 @@ Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Be sure that htables array initialized in net_init hook was return
+Be sure that tables list initialized in net_init hook was return
 to initial state.
 
 Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
 ---
- net/netfilter/xt_hashlimit.c | 4 ++++
+ net/netfilter/xt_recent.c | 4 ++++
  1 file changed, 4 insertions(+)
 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 5da8746..78485d1 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -1338,7 +1338,11 @@ static int __net_init hashlimit_net_init(struct net *net)
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+index 245fa35..7e29d30 100644
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -681,7 +681,11 @@ static int __net_init recent_net_init(struct net *net)
  
- static void __net_exit hashlimit_net_exit(struct net *net)
+ static void __net_exit recent_net_exit(struct net *net)
  {
-+	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
++	struct recent_net *recent_net = recent_pernet(net);
 +
- 	hashlimit_proc_net_exit(net);
-+	WARN(!hlist_empty(&hashlimit_net->htables),
-+	     "net %p exit: hashlimit htables hlist is not empty\n", net);
+ 	recent_proc_net_exit(net);
++	WARN(!list_empty(&recent_net->tables),
++	     "net %p exit: recent tables list is not empty\n", net);
  }
  
- static struct pernet_operations hashlimit_net_ops = {
+ static struct pernet_operations recent_net_ops = {
 -- 
 2.7.4
