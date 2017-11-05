@@ -1,7 +1,7 @@
 From: Vasily Averin <vvs@virtuozzo.com>
-Subject: [PATCH 15/21] nfnetlink_gueue: exit_net cleanup check added
-Date: Sun, 5 Nov 2017 13:01:52 +0300
-Message-ID: <3deb7ef5-4065-e3ae-14de-0dfabd58635e@virtuozzo.com>
+Subject: [PATCH 14/21] nfnetlink_log: exit_net cleanup check added
+Date: Sun, 5 Nov 2017 13:01:42 +0300
+Message-ID: <ae45057f-dbe2-d614-2172-fefea8876075@virtuozzo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
@@ -10,41 +10,45 @@ Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Pablo Neira Ayuso <pablo@netfilter.org>
 To: netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mailhub.sw.ru ([195.214.232.25]:5491 "EHLO relay.sw.ru"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751455AbdKEKB6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 5 Nov 2017 05:01:58 -0500
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 Be sure that instance_table array initialized in net_init hook
 was return to initial state.
 
 Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
 ---
- net/netfilter/nfnetlink_queue.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ net/netfilter/nfnetlink_log.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index c979662..c752eb7 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1512,10 +1512,18 @@ static int __net_init nfnl_queue_net_init(struct net *net)
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index cad6498..fa97566 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -1093,10 +1093,17 @@ static int __net_init nfnl_log_net_init(struct net *net)
  
- static void __net_exit nfnl_queue_net_exit(struct net *net)
+ static void __net_exit nfnl_log_net_exit(struct net *net)
  {
 +	unsigned int i;
-+	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
-+
- 	nf_unregister_queue_handler(net);
++	struct nfnl_log_net *log = nfnl_log_pernet(net);
  #ifdef CONFIG_PROC_FS
- 	remove_proc_entry("nfnetlink_queue", net->nf.proc_netfilter);
+ 	remove_proc_entry("nfnetlink_log", net->nf.proc_netfilter);
  #endif
+ 	nf_log_unset(net, &nfulnl_logger);
 +	for (i = 0; i < INSTANCE_BUCKETS; i++)
-+		if (WARN(!hlist_empty(&q->instance_table[i]),
-+			 "net %p exit: nfnl_queue instance_table isn't empty\n",
++		if (WARN(!hlist_empty(&log->instance_table[i]),
++			 "net %p exit: nfnl_log instance_table is not empty\n",
 +			 net))
 +			break;
  }
  
- static void nfnl_queue_net_exit_batch(struct list_head *net_exit_list)
+ static struct pernet_operations nfnl_log_net_ops = {
 -- 
 2.7.4
+
