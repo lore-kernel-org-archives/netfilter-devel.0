@@ -1,7 +1,7 @@
 From: Vasily Averin <vvs@virtuozzo.com>
-Subject: [PATCH v2 16/21] x_tables: exit_net cleanup check added
-Date: Sun, 5 Nov 2017 19:51:23 +0300
-Message-ID: <4d991afb-02d3-c1cb-b594-69e3fffef090@virtuozzo.com>
+Subject: [PATCH v2 17/21] hashlimit: exit_net cleanup check added
+Date: Sun, 5 Nov 2017 19:51:33 +0300
+Message-ID: <2ab3017e-9462-148b-a59d-36382ef1721f@virtuozzo.com>
 References: <bafb347d-e36e-8b2b-7646-afc458a7a32a@virtuozzo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -17,36 +17,29 @@ Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Be sure that xt.tables array initialized in net_init hook was return
+Be sure that htables array initialized in net_init hook was return
 to initial state.
 
 Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
 ---
- net/netfilter/x_tables.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ net/netfilter/xt_hashlimit.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index d8571f4..8125363 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1714,8 +1714,18 @@ static int __net_init xt_net_init(struct net *net)
- 	return 0;
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 5da8746..abef6b4 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -1338,7 +1338,11 @@ static int __net_init hashlimit_net_init(struct net *net)
+ 
+ static void __net_exit hashlimit_net_exit(struct net *net)
+ {
++	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
++
+ 	hashlimit_proc_net_exit(net);
++	WARN(!hlist_empty(&hashlimit_net->htables),
++	     "%s: htables hlist is not empty\n", __func__);
  }
  
-+static void __net_exit xt_net_exit(struct net *net)
-+{
-+	int i;
-+
-+	for (i = 0; i < NFPROTO_NUMPROTO; i++)
-+		WARN(!list_empty(&net->xt.tables[i]),
-+		     "%s: tables list is not empty\n", __func__);
-+}
-+
- static struct pernet_operations xt_net_ops = {
- 	.init = xt_net_init,
-+	.exit = xt_net_exit,
- };
- 
- static int __init xt_init(void)
+ static struct pernet_operations hashlimit_net_ops = {
 -- 
 2.7.4
