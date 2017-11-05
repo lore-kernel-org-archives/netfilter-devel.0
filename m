@@ -1,7 +1,7 @@
 From: Vasily Averin <vvs@virtuozzo.com>
-Subject: [PATCH 18/21] recent: exit_net cleanup check added
-Date: Sun, 5 Nov 2017 13:02:17 +0300
-Message-ID: <442303f3-1e78-84a9-67aa-2371b167c36b@virtuozzo.com>
+Subject: [PATCH 13/21] nf_tables: exit_net cleanup check added
+Date: Sun, 5 Nov 2017 13:01:29 +0300
+Message-ID: <b146838b-3d95-2d0f-a859-a1689fb8ee0e@virtuozzo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
@@ -10,34 +10,49 @@ Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Pablo Neira Ayuso <pablo@netfilter.org>
 To: netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mailhub.sw.ru ([195.214.232.25]:48682 "EHLO relay.sw.ru"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751455AbdKEKBu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 5 Nov 2017 05:01:50 -0500
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Be sure that tables list initialized in net_init hook was return
-to initial state.
+Be sure that lists initialized in net_init hook were return to initial state.
 
 Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
 ---
- net/netfilter/xt_recent.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ net/netfilter/nf_tables_api.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index 245fa35..7e29d30 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -681,7 +681,11 @@ static int __net_init recent_net_init(struct net *net)
- 
- static void __net_exit recent_net_exit(struct net *net)
- {
-+	struct recent_net *recent_net = recent_pernet(net);
-+
- 	recent_proc_net_exit(net);
-+	WARN(!list_empty(&recent_net->tables),
-+	     "net %p exit: recent tables list is not empty\n", net);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 64e1ee0..60cbf0a 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5778,6 +5778,14 @@ static int __net_init nf_tables_init_net(struct net *net)
+ 	return 0;
  }
  
- static struct pernet_operations recent_net_ops = {
++static void __net_exit nf_tables_exit_net(struct net *net)
++{
++	WARN(!list_empty(&net->nft.af_info),
++	     "net %p exit: nf_tables af_info list is not empty\n", net);
++	WARN(!list_empty(&net->nft.commit_list),
++	     "net %p exit: nf_tables commit_list is not empty\n", net);
++}
++
+ int __nft_release_basechain(struct nft_ctx *ctx)
+ {
+ 	struct nft_rule *rule, *nr;
+@@ -5848,6 +5856,7 @@ static void __nft_release_afinfo(struct net *net, struct nft_af_info *afi)
+ 
+ static struct pernet_operations nf_tables_net_ops = {
+ 	.init	= nf_tables_init_net,
++	.exit	= nf_tables_exit_net,
+ };
+ 
+ static int __init nf_tables_module_init(void)
 -- 
 2.7.4
+
