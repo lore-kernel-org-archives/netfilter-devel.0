@@ -1,67 +1,43 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH v3 11/21] clusterip: exit_net cleanup check added
-Date: Mon, 6 Nov 2017 14:40:41 +0100 (CET)
-Message-ID: <alpine.DEB.2.11.1711061435191.6547@blackhole.kfki.hu>
-References: <4fdc4264-e338-6ee8-a662-7d98b45733a1@virtuozzo.com> <66995620-efe8-59ed-9097-a4fd96e30ae1@virtuozzo.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 13/14] netfilter/ipvs: Use %pS printk format for direct
+ addresses
+Date: Mon, 6 Nov 2017 14:46:08 +0100
+Message-ID: <20171106134608.GA6081@salvia>
+References: <1504729681-3504-1-git-send-email-deller@gmx.de>
+ <1504729681-3504-14-git-send-email-deller@gmx.de>
+ <20171009055224.GB31804@verge.net.au>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netdev@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Vasily Averin <vvs@virtuozzo.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <66995620-efe8-59ed-9097-a4fd96e30ae1@virtuozzo.com>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Helge Deller <deller@gmx.de>, linux-kernel@vger.kernel.org,
+        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
+        Petr Mladek <pmladek@suse.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Wensong Zhang <wensong@linux-vs.org>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Simon Horman <horms@verge.net.au>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171009055224.GB31804@verge.net.au>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Vasily,
-
-On Mon, 6 Nov 2017, Vasily Averin wrote:
-
-> Be sure that configs list initialized in net_init hook was return
-> to initial state.
-
-What is the goal of the patch series you sent in the third version in a 
-row?
-
-- If the deinitializations are missing from the files, the patches 
-  do not fix them, just emit warnings.
-- If the deinitializations are not missing, the patches are totally 
-  unnecessary.
-
-It looks like debugging... but not expressed that way, neither in the 
-subject lines nor in the patch descriptions.
-
-Best regards,
-Jozsef
-
-> Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-> ---
->  net/ipv4/netfilter/ipt_CLUSTERIP.c | 3 +++
->  1 file changed, 3 insertions(+)
+On Mon, Oct 09, 2017 at 07:52:24AM +0200, Simon Horman wrote:
+> On Wed, Sep 06, 2017 at 10:28:00PM +0200, Helge Deller wrote:
+> > The debug and error printk functions in ipvs uses wrongly the %pF instead of
+> > the %pS printk format specifier for printing symbols for the address returned
+> > by _builtin_return_address(0). Fix it for the ia64, ppc64 and parisc64
+> > architectures.
+> > 
+> > Signed-off-by: Helge Deller <deller@gmx.de>
+> > Cc: Wensong Zhang <wensong@linux-vs.org>
+> > Cc: netdev@vger.kernel.org
+> > Cc: lvs-devel@vger.kernel.org
+> > Cc: netfilter-devel@vger.kernel.org
 > 
-> diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-> index 17b4ca5..4364a88 100644
-> --- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-> +++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-> @@ -819,6 +819,9 @@ static void clusterip_net_exit(struct net *net)
->  	cn->procdir = NULL;
->  #endif
->  	nf_unregister_net_hook(net, &cip_arp_ops);
-> +	WARN_ONCE(!list_empty(&cn->configs),
-> +		  "net %x %s: configs list is not empty\n",
-> +		  net->ns.inum, __func__);
->  }
->  
->  static struct pernet_operations clusterip_net_ops = {
-> -- 
-> 2.7.4
+> Sorry for the delay in processing this.
 > 
+> Acked-by: Simon Horman <horms@verge.net.au>
 > 
+> Pablo, could you take this through the nf-next tree directly?
 
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Applied, thanks.
