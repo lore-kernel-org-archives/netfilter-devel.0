@@ -1,7 +1,7 @@
 From: Vasily Averin <vvs@virtuozzo.com>
-Subject: [PATCH v3 16/21] nfnetlink_log: exit_net cleanup check added
-Date: Mon, 6 Nov 2017 16:25:25 +0300
-Message-ID: <c0799ed9-dd85-e4ce-e06a-9b97b4047a86@virtuozzo.com>
+Subject: [PATCH v3 17/21] nfnetlink_gueue: exit_net cleanup check added
+Date: Mon, 6 Nov 2017 16:25:32 +0300
+Message-ID: <ccd9dc71-5cbd-0d0f-d4f3-9d70d1f4ddd3@virtuozzo.com>
 References: <4fdc4264-e338-6ee8-a662-7d98b45733a1@virtuozzo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -22,30 +22,31 @@ was return to initial state.
 
 Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
 ---
- net/netfilter/nfnetlink_log.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ net/netfilter/nfnetlink_queue.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index cad6498..85bc47a 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -1093,10 +1093,17 @@ static int __net_init nfnl_log_net_init(struct net *net)
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index c979662..139d2b5 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1512,10 +1512,18 @@ static int __net_init nfnl_queue_net_init(struct net *net)
  
- static void __net_exit nfnl_log_net_exit(struct net *net)
+ static void __net_exit nfnl_queue_net_exit(struct net *net)
  {
 +	unsigned int i;
-+	struct nfnl_log_net *log = nfnl_log_pernet(net);
++	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
++
+ 	nf_unregister_queue_handler(net);
  #ifdef CONFIG_PROC_FS
- 	remove_proc_entry("nfnetlink_log", net->nf.proc_netfilter);
+ 	remove_proc_entry("nfnetlink_queue", net->nf.proc_netfilter);
  #endif
- 	nf_log_unset(net, &nfulnl_logger);
 +	for (i = 0; i < INSTANCE_BUCKETS; i++)
-+		if (WARN_ONCE(!hlist_empty(&log->instance_table[i]),
-+			      "net %x %s: instance_table is not empty\n",
++		if (WARN_ONCE(!hlist_empty(&q->instance_table[i]),
++			      "net %x %s: instance_table isn't empty\n",
 +			      net->ns.inum, __func__))
 +			break;
  }
  
- static struct pernet_operations nfnl_log_net_ops = {
+ static void nfnl_queue_net_exit_batch(struct list_head *net_exit_list)
 -- 
 2.7.4
