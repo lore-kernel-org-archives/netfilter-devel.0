@@ -1,36 +1,49 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: ip6_tables: remove redundant assignment to e
-Date: Mon, 6 Nov 2017 14:18:51 +0100
-Message-ID: <20171106131851.GA2552@salvia>
-References: <20171017120200.19994-1-colin.king@canonical.com>
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: [PATCH v3 11/21] clusterip: exit_net cleanup check added
+Date: Mon, 6 Nov 2017 16:24:42 +0300
+Message-ID: <66995620-efe8-59ed-9097-a4fd96e30ae1@virtuozzo.com>
+References: <4fdc4264-e338-6ee8-a662-7d98b45733a1@virtuozzo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
         Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171017120200.19994-1-colin.king@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: netdev@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mailhub.sw.ru ([195.214.232.25]:38646 "EHLO relay.sw.ru"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752749AbdKFNZC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Nov 2017 08:25:02 -0500
+In-Reply-To: <4fdc4264-e338-6ee8-a662-7d98b45733a1@virtuozzo.com>
+Content-Language: en-US
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 17, 2017 at 01:02:00PM +0100, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> The assignment to variable e is redundant since the same assignment
-> occurs just a few lines later, hence it can be removed.  Cleans up
-> clang warning: warning: Value stored to 'e' is never read
+Be sure that configs list initialized in net_init hook was return
+to initial state.
 
-Seems like net/ipv4/netfilter/ip_tables.c also has exactly the same
-redundant assignment, see mark_source_chains() there.
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+---
+ net/ipv4/netfilter/ipt_CLUSTERIP.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-If we can fix this all iptables spots in one go, the best. Please,
-also check arp_tables and ebtables.
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 17b4ca5..4364a88 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -819,6 +819,9 @@ static void clusterip_net_exit(struct net *net)
+ 	cn->procdir = NULL;
+ #endif
+ 	nf_unregister_net_hook(net, &cip_arp_ops);
++	WARN_ONCE(!list_empty(&cn->configs),
++		  "net %x %s: configs list is not empty\n",
++		  net->ns.inum, __func__);
+ }
+ 
+ static struct pernet_operations clusterip_net_ops = {
+-- 
+2.7.4
 
-Thanks!
