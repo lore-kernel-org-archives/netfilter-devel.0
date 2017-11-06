@@ -1,7 +1,7 @@
 From: Vasily Averin <vvs@virtuozzo.com>
-Subject: [PATCH v3 17/21] nfnetlink_gueue: exit_net cleanup check added
-Date: Mon, 6 Nov 2017 16:25:32 +0300
-Message-ID: <ccd9dc71-5cbd-0d0f-d4f3-9d70d1f4ddd3@virtuozzo.com>
+Subject: [PATCH v3 18/21] x_tables: exit_net cleanup check added
+Date: Mon, 6 Nov 2017 16:25:40 +0300
+Message-ID: <9e933fa0-0493-a1b4-1700-8b0763946979@virtuozzo.com>
 References: <4fdc4264-e338-6ee8-a662-7d98b45733a1@virtuozzo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -17,36 +17,38 @@ Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Be sure that instance_table array initialized in net_init hook
-was return to initial state.
+Be sure that xt.tables array initialized in net_init hook was return
+to initial state.
 
 Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
 ---
- net/netfilter/nfnetlink_queue.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ net/netfilter/x_tables.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index c979662..139d2b5 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1512,10 +1512,18 @@ static int __net_init nfnl_queue_net_init(struct net *net)
- 
- static void __net_exit nfnl_queue_net_exit(struct net *net)
- {
-+	unsigned int i;
-+	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
-+
- 	nf_unregister_queue_handler(net);
- #ifdef CONFIG_PROC_FS
- 	remove_proc_entry("nfnetlink_queue", net->nf.proc_netfilter);
- #endif
-+	for (i = 0; i < INSTANCE_BUCKETS; i++)
-+		if (WARN_ONCE(!hlist_empty(&q->instance_table[i]),
-+			      "net %x %s: instance_table isn't empty\n",
-+			      net->ns.inum, __func__))
-+			break;
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index d8571f4..dcdaf96 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1714,8 +1714,20 @@ static int __net_init xt_net_init(struct net *net)
+ 	return 0;
  }
  
- static void nfnl_queue_net_exit_batch(struct list_head *net_exit_list)
++static void __net_exit xt_net_exit(struct net *net)
++{
++	int i;
++
++	for (i = 0; i < NFPROTO_NUMPROTO; i++)
++		if (WARN_ONCE(!list_empty(&net->xt.tables[i]),
++			      "net %x %s: tables list is not empty\n",
++			      net->ns.inum. __func__)
++			break;
++}
++
+ static struct pernet_operations xt_net_ops = {
+ 	.init = xt_net_init,
++	.exit = xt_net_exit,
+ };
+ 
+ static int __init xt_init(void)
 -- 
 2.7.4
