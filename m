@@ -1,83 +1,112 @@
-From: Vincent Guittot <vincent.guittot@linaro.org>
-Subject: Re: [PATCH] netfilter: conntrack: use power efficient workqueue
-Date: Mon, 6 Nov 2017 17:33:43 +0100
-Message-ID: <CAKfTPtAXJsq4cYxyYbeBqYx8W9v8MBEdHqkxM4DfyrYMr+GPSg@mail.gmail.com>
-References: <1509635767-12253-1-git-send-email-vincent.guittot@linaro.org>
- <20171106143155.GA8738@salvia> <20171106145632.GA20091@salvia>
- <CAKfTPtDXb5x23UzapinOo=Wg8fPf0G-sJoD1Dpw15e0sMteLEQ@mail.gmail.com> <20171106152533.GA27072@salvia>
+From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+Subject: Re: nftables rules not matching after upgrading from 0.7 to 0.8
+Date: Mon, 6 Nov 2017 16:49:04 +0000
+Message-ID: <1509986942.1169.3.camel@cohaesio.com>
+References: <1508949114.1154.14.camel@cohaesio.com>
+         <20171025175725.GJ19457@breakpoint.cc>
+         <1508955630.25035.13.camel@cohaesio.com>
+         <1508970133.25035.24.camel@cohaesio.com>
+         <20171025224536.GK19457@breakpoint.cc>
+         <1509000429.25035.28.camel@cohaesio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "fw@strlen.de" <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-io0-f194.google.com ([209.85.223.194]:48029 "EHLO
-        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753827AbdKFQeE (ORCPT
+Received: from bender.cohaesio.com ([212.97.128.130]:47055 "EHLO
+        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754210AbdKFQtG (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Nov 2017 11:34:04 -0500
-Received: by mail-io0-f194.google.com with SMTP id h70so16304814ioi.4
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 Nov 2017 08:34:04 -0800 (PST)
-In-Reply-To: <20171106152533.GA27072@salvia>
+        Mon, 6 Nov 2017 11:49:06 -0500
+In-Reply-To: <1509000429.25035.28.camel@cohaesio.com>
+Content-Language: en-US
+Content-ID: <5B1821C5C36CA44DB9F113CC7756F53F@surftown.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 6 November 2017 at 16:25, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Mon, Nov 06, 2017 at 04:15:42PM +0100, Vincent Guittot wrote:
->> Hi Pablo,
->>
->> On 6 November 2017 at 15:56, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> > On Mon, Nov 06, 2017 at 03:31:55PM +0100, Pablo Neira Ayuso wrote:
->> >> On Thu, 2 Nov 2017 15:16:07 +0100 Vincent Guittot <vincent.guittot@linaro.org> wrote:
->> >> > conntrack uses the bounded system_long_wq workqueue for its works that
->> >> > don't have to run on the cpu they have been queued.  Using bounded
->> >> > workqueue prevents the scheduler to make smart decision about the best
->> >> > place to schedule the work.
->> >> >
->> >> > This patch replaces system_long_wq with system_power_efficient_wq.
->> >> > the work stays bounded to a cpu by default unless the
->> >> > CONFIG_WQ_POWER_EFFICIENT is enable. In the latter case, the work can
->> >> > be scheduled on the best cpu from a power or a performance point of
->> >> > view.
->> >>
->> >> Applied, thanks.
->> >
->> > I'm stepping back. According to what I'm reading
->> > system_power_efficient_wq becomes system_wq when disabled, which is
->> > not semantically the same as system_long_wq that we have now.
->>
->> When disabled, system_power_efficient_wq behaves like system_wq (and
->> system_long_wq) as the worqueue are bounded to a cpu but It stays a
->> different workqueue.
->>
->> > My concern is that the conntrack garbage collector may run for quite a
->> > bit of time. Did you test this with a large conntrack table full of
->>
->> No, I haven't done specific tests with a large conntrack table full of entries.
->>
->> There is no system_power_efficient_long_wq. I was not convinced that
->> we should create one that's why I have used system_power_efficient_wq
->
-> My concern is that this garbage collector may run intensively on busy
-> conntrack tables to get rid of expired entries, so my question is if
-> switching from system_long_wq to system_wq is a real issue.
-
-system_long_wq and system_wq have the same configuration. They are
-just named differently so people will use one or the other but they
-behave exactly the same.
-Then system_power_efficient_wq is a 3rd workqueue that behaves like
-system_wq and system_long_wq when CONFIG_WQ_POWER_EFFICIENT is disable
-but uses ubounded workqueue when enabled
-
-I don't think that switching from system_long_wq to
-system_power_efficient_wq is an issue.
-I haven't seen any problem so far but i'm haven't done specific tests
-that stress the system with a large conntrack table full of entries.
-Furthermore, these workqueue use default max active context (256)
-which means that other work should be able to run.
-
-Regards,
-Vincent
-
-
->
-> Thanks.
+T24gdG9yLCAyMDE3LTEwLTI2IGF0IDA4OjQ3ICswMjAwLCBBbmRlcnMgSy4gUGVkZXJzZW4gfCBD
+b2hhZXNpbyB3cm90ZToNCj4gT24gdG9yLCAyMDE3LTEwLTI2IGF0IDAwOjQ1ICswMjAwLCBGbG9y
+aWFuIFdlc3RwaGFsIHdyb3RlOg0KPiA+IEFuZGVycyBLLiBQZWRlcnNlbiB8IENvaGFlc2lvIDxh
+a3BAY29oYWVzaW8uY29tPiB3cm90ZToNCj4gPiA+IE9uIG9ucywgMjAxNy0xMC0yNSBhdCAyMDoy
+MCArMDIwMCwgQW5kZXJzIEsuIFBlZGVyc2VuIHwgQ29oYWVzaW8NCj4gPiA+IHdyb3RlOg0KPiA+
+ID4gPiBPbiBvbnMsIDIwMTctMTAtMjUgYXQgMTk6NTcgKzAyMDAsIEZsb3JpYW4gV2VzdHBoYWwg
+d3JvdGU6DQo+ID4gPiA+ID4gQW5kZXJzIEsuIFBlZGVyc2VuIHwgQ29oYWVzaW8gPGFrcEBjb2hh
+ZXNpby5jb20+IHdyb3RlOg0KPiA+ID4gPiA+ID4gQWZ0ZXIgdXBncmFkaW5nIHRvIG5mdGFibGVz
+IDAuOCAoZnJvbSAwLjcpIG9uIG9uZSBvZiBteQ0KPiA+ID4gPiA+ID4gc3lzdGVtcywNCj4gPiA+
+ID4gPiA+IEkndmUNCj4gPiA+ID4gPiA+IGV4cGVyaWVuY2VzIHNldmVyYWwgY2FzZXMgd2hlcmUg
+cnVsZXMgdGhhdCB1c2VkIHRvIHdvcmsNCj4gPiA+ID4gPiA+IGZpbmUNCj4gPiA+ID4gPiA+IHdp
+dGgNCj4gPiA+ID4gPiA+IDAuNw0KPiA+ID4gPiA+ID4gc29tZXRpbWVzIGRvZXNuJ3QgbWF0Y2gg
+YW55bW9yZSB3aXRoIDAuOCAoaXQncyBub3QNCj4gPiA+ID4gPiA+IGNvbnNpc3RlbnQNCj4gPiA+
+ID4gPiA+IC0NCj4gPiA+ID4gPiA+IHNvbWV0aW1lcyB0aGUgcnVsZXMgZG8gbWF0Y2ggd2l0aCAw
+LjgpLg0KPiA+ID4gPiA+ID4gDQo+ID4gPiA+ID4gPiBUaGUgcnVsZSBjaGFpbnMgZW5kIHdpdGgg
+YSBsb2cgc3RhdGVtZW50IGJlZm9yZSByZWplY3RpbmcNCj4gPiA+ID4gPiA+IG9yDQo+ID4gPiA+
+ID4gPiBkcm9wcGluZw0KPiA+ID4gPiA+ID4gdGhlIHBhY2tldHMsIGFuZCBJIGNhbiBzZWUgaW4g
+dGhlIGxvZyB0aGF0IGV2ZXJ5dGhpbmcgaXMgYXMNCj4gPiA+ID4gPiA+IGV4cGVjdGVkDQo+ID4g
+PiA+ID4gPiBhbmQgdGhlIHJ1bGVzIHNob3VsZCBtYXRjaC4gQWZ0ZXIgZG93bmdyYWRpbmcgdG8g
+bmZ0YWJsZXMNCj4gPiA+ID4gPiA+IDAuNw0KPiA+ID4gPiA+ID4gZXZlcnl0aGluZyB3b3JrcyBh
+Z2Fpbi4NCj4gPiA+ID4gPiANCj4gPiA+ID4gPiBBcmUgdGhvc2UgZXJyb3JzIHJlc3RyaWN0ZWQg
+dG8gYSBwYXJ0aWN1bGFyIHRhYmxlIGZhbWlseSwNCj4gPiA+ID4gPiBjaGFpbg0KPiA+ID4gPiA+
+IG9yDQo+ID4gPiA+ID4gcHJvdG9jb2w/DQo+ID4gPiA+IA0KPiA+ID4gPiBTbyBmYXIgSSd2ZSBv
+bmx5IHJlZ2lzdGVyZWQgaXQgZm9yIElQdjQgaW5wdXQgZmlsdGVyaW5nIGZvcg0KPiA+ID4gPiBU
+Q1AsDQo+ID4gPiA+IGJ1dA0KPiA+ID4gPiB0aGF0J3MgYWxzbyBtb3N0IG9mIHRoZSB0cmFmZmlj
+IG9uIHRoaXMgc3lzdGVtLCBzbyBJJ20gbm90IHN1cmUNCj4gPiA+ID4gdGhhdA0KPiA+ID4gPiBp
+dCdzIGxpbWl0ZWQgdG8gdGhhdC4NCj4gPiA+ID4gDQo+ID4gPiA+IEFzIG1lbnRpb25lZCwgaXQn
+cyBub3QgY29uc2lzdGVudC4gQSBydWxlIHRoYXQgaGFzIHdvcmtlZCBmaW5lDQo+ID4gPiA+IGNv
+dWxkDQo+ID4gPiA+IHN1ZGRlbmx5IHN0b3Agd29ya2luZyB3aXRob3V0IGFueSBydWxlIHNldCBj
+aGFuZ2VzIGZvciBkYXlzLg0KPiA+ID4gPiBTb21lDQo+ID4gPiA+IHRpbWVzDQo+ID4gPiA+IGl0
+IGhhcyBoZWxwZWQgdG8ganVzdCByZWxvYWQgdGhlIGV4YWN0IHNhbWUgcnVsZSBzZXQuIE90aGVy
+DQo+ID4gPiA+IHRpbWVzDQo+ID4gPiA+IGNoYW5naW5nDQo+ID4gPiA+IA0KPiA+ID4gPiB0Y3Ag
+ZHBvcnQgeyBpbWFwMiwgaW1hcHMgfSBmbG93IHRhYmxlIGltYXAgXA0KPiA+ID4gPiAgICAgICAg
+ICAgICAgICAgeyBpcCBzYWRkciAmIDI1NS4yNTUuMjU1LjI0MCBcDQo+ID4gPiA+ICAgICAgICAg
+ICAgICAgICAgIHRpbWVvdXQgNW0gbGltaXQgcmF0ZSAxMC9taW51dGUgfSBcDQo+ID4gPiA+ICAg
+ICAgICAgY291bnRlciBhY2NlcHQNCj4gPiA+ID4gDQo+ID4gPiA+IHRvDQo+ID4gPiA+IA0KPiA+
+ID4gPiB0Y3AgZHBvcnQgeyBpbWFwMiwgaW1hcHMgfSBmbG93IHRhYmxlIGltYXAgXA0KPiA+ID4g
+PiAgICAgICAgIGNvdW50ZXIgYWNjZXB0DQo+ID4gPiA+IA0KPiA+ID4gPiBvcg0KPiA+ID4gPiAN
+Cj4gPiA+ID4gdGNwIGRwb3J0IHsgZG9tYWluLCBodHRwLCBodHRwcywgODA4MCwgODQ0MywgOTA5
+MSB9IFwNCj4gPiA+ID4gICAgICAgICBtZXRhIGlpZiBldGgxIGFjY2VwdA0KPiA+ID4gPiANCj4g
+PiA+ID4gdG8NCj4gPiA+ID4gDQo+ID4gPiA+IHRjcCBkcG9ydCB7IGRvbWFpbiwgaHR0cCwgaHR0
+cHMsIDgwODAsIDg0NDMsIDkwOTEgfSBcDQo+ID4gPiA+ICAgICAgICAgbWV0YSBpaWYgZXRoMSBj
+b3VudGVyIGFjY2VwdA0KPiA+ID4gPiANCj4gPiA+ID4gaGFzIHJlc29sdmVkIGl0LCBidXQgaXQg
+ZmVlbHMgbGlrZSBpdCB3YXNuJ3QgcmVhbGx5IGR1ZSB0byB0aGUNCj4gPiA+ID4gY2hhbmdlcywN
+Cj4gPiA+ID4gYnV0IG1vcmUgcmFuZG9tIGx1Y2suDQo+ID4gDQo+ID4gbm90ZSB0aGF0IHNldHMg
+YXJlIGJyb2tlbiB3aXRoIDE2Yml0IGVsZW1lbnRzIGF0IHRoZSBtb21lbnQgaW4NCj4gPiA0LjEz
+LA0KPiA+IHNlZQ0KPiA+IA0KPiA+IGh0dHBzOi8vcGF0Y2h3b3JrLm96bGFicy5vcmcvcGF0Y2gv
+ODIxMDgwLw0KPiANCj4gSSBoYXZlIGp1c3QgdXBkYXRlZCB0byA0LjEzLjkgcGx1cyB0aGlzIHBh
+dGNoLCBhbmQgd2lsbCBsZXQgeW91IGtub3csDQo+IGlmIHRoaXMgY2hhbmdlcyBhbnl0aGluZy4N
+Cg0KU2luY2UgdGhpcyBwYXRjaCB3YXMgYXBwbGllZCwgSSd2ZSBub3QgaGFkIGFueSBmdXJ0aGVy
+IHByb2JsZW1zIHdpdGgNCm5mdGFibGVzIDAuOC4gRG9lcyBpdCBtYWtlIHNlbnNlIHRoYXQgbmZ0
+YWJsZXMgMC43IHdvcmtlZCBmaW5lIHdpdGhvdXQNCnRoZSBwYXRjaCwgb3Igd2FzIHRoaXMganVz
+dCByYW5kb20gbHVjaz8NCg0KUmVnYXJkcywNCkFuZGVycw0KDQo+ID4gb3INCj4gPiBodHRwczov
+L3BhdGNod29yay5vemxhYnMub3JnL3BhdGNoLzgzMDIzNi8NCj4gPiANCj4gPiA+IE9uZSBtb3Jl
+IHRoaW5nLCBJIGp1c3Qgbm90aWNlZCBpcyB0aGF0IGlmIEkgdHJ5IHRvIHVzZSBuZnRhYmxlcw0K
+PiA+ID4gMC43DQo+ID4gPiB0bw0KPiA+ID4gZHVtcCB0aGUgcnVsZSBzZXQgdGhhdCB3YXMgbG9h
+ZGVkIHdpdGggMC43LCBJIGdldCB0aGUgZm9sbG93aW5nDQo+ID4gPiBlcnJvcjoNCj4gDQo+IFRo
+aXMgc2hvdWxkIGhhdmUgc2FpZCBsb2FkIHdpdGggMC44LCBkdW1wIHdpdGggMC43Og0KPiANCj4g
+PiA+ICMgbmZ0IGxpc3QgcnVsZXNldA0KPiA+ID4gbmZ0OiBwYXlsb2FkLmM6NTUwOiBwYXlsb2Fk
+X2V4cHJfZXhwYW5kOiBBc3NlcnRpb24gYGRlc2MtPmJhc2UgPT0NCj4gPiA+IGV4cHItPnBheWxv
+YWQuYmFzZScgZmFpbGVkLg0KPiA+ID4gQWJvcnRlZA0KPiA+IA0KPiA+IENyYXAsIEknbGwgZml4
+IHRoaXMsIHRoYW5rcyBmb3IgcmVwb3J0aW5nLg0KPiA+IA0KPiA+ID4gSWYgSSB1c2UgMC44IHRv
+IGR1bXAgdGhlIHJ1bGUgc2V0IHRoYXQgd2FzIGxvYWRlZCB3aXRoIDAuNywgSSBnZXQNCj4gPiA+
+IHRoZQ0KPiA+ID4gY29ycmVjdCBydWxlIHNldCBleGNlcHQgZm9yIGEgZGlmZmVyZW5jZSB3aXRo
+IHJlZ2FyZHMgdG8gc2V0cyBhbmQNCj4gPiA+IG1hcHMNCj4gPiA+IHRoYXQgdXNlIGludGVyZmFj
+ZXMgbGlrZToNCj4gPiA+IA0KPiA+ID4gLS0tIG5mdC0wLjctMC44IHJ1bGUgc2V0IGxvYWRlZCB3
+aXRoIDAuNyBhbmQgZHVtcGVkIHdpdGggMC44DQo+ID4gPiArKysgbmZ0LTAuOCAgICAgc2FtZSBy
+dWxlIHNldCBsb2FkZWQgYW5kIGR1bXBlZCB3aXRoIDAuOA0KPiA+ID4gQEAgLTksMTIgKzksMTIg
+QEANCj4gPiA+ICAgICAgICAgY2hhaW4gcHJlcm91dGluZyB7DQo+ID4gPiAgICAgICAgICAgICAg
+ICAgdHlwZSBmaWx0ZXIgaG9vayBwcmVyb3V0aW5nIHByaW9yaXR5IC0xMDA7IHBvbGljeQ0KPiA+
+ID4gYWNjZXB0Ow0KPiA+ID4gICAgICAgICAgICAgICAgIGlpZiAibG8iIGFjY2VwdA0KPiA+ID4g
+LSAgICAgICAgICAgICAgIGN0IG1hcmsgc2V0IGlpZiBtYXAgeyAzMzU1NDQzMiA6IDB4MDAwMDAw
+MDEsDQo+ID4gPiA2NzEwODg2NCA6IDB4MDAwMDAwMDIgfQ0KPiA+ID4gKyAgICAgICAgICAgICAg
+IGN0IG1hcmsgc2V0IGlpZiBtYXAgeyAiZXRoMCIgOiAweDAwMDAwMDAxLCAiZXRoMiINCj4gPiA+
+IDoNCj4gPiA+IDB4MDAwMDAwMDIgfQ0KPiA+ID4gICAgICAgICAgICAgICAgIGlpZiAiZXRoMSIg
+anVtcCBwcmVyb3V0aW5nX2ludGVybmFsDQo+ID4gPiAtICAgICAgICAgICAgICAgaWlmIHsgMzM1
+NTQ0MzIsIDY3MTA4ODY0IH0gaXAgc2FkZHIgeyAwLjAuMC4wLzgsDQo+ID4gPiAxMC4wLjAuMC84
+LCAxMjcuMC4wLjAvOCwgMTcyLjE2LjAuMC8xMiwgMTkyLjE2OC4wLjAvMTYsDQo+ID4gPiAyMjQu
+MC4wLjAtDQo+ID4gPiAyNTUuMjU1LjI1NS4yNTUgfSBjb3VudGVyIHBhY2tldHMgNiBieXRlcyA3
+MDUgZHJvcA0KPiA+ID4gKyAgICAgICAgICAgICAgIGlpZiB7ICJldGgwIiwgImV0aDIiIH0gaXAg
+c2FkZHIgeyAwLjAuMC4wLzgsDQo+ID4gPiAxMC4wLjAuMC84LCAxMjcuMC4wLjAvOCwgMTcyLjE2
+LjAuMC8xMiwgMTkyLjE2OC4wLjAvMTYsDQo+ID4gPiAyMjQuMC4wLjAtDQo+ID4gPiAyNTUuMjU1
+LjI1NS4yNTUgfSBjb3VudGVyIHBhY2tldHMgMCBieXRlcyAwIGRyb3ANCj4gPiANCj4gPiBJIHdp
+bGwgbG9vayBhdCB0aGlzIHRvby4NCj4gDQo+IFRoYW5rcy4NCj4gDQo+IC0tDQo+IFJlZ2FyZHMs
+DQo+IEFuZGVycw==
