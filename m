@@ -1,45 +1,61 @@
-From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH] tests/monitor: Print error "this requires root" and exit
-Date: Mon,  6 Nov 2017 21:04:05 +0530
-Message-ID: <20171106153405.6294-1-harshasharmaiitr@gmail.com>
-Cc: netfilter-devel@vger.kernel.org,
-        Harsha Sharma <harshasharmaiitr@gmail.com>
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next 1/2] netfilter: nf_tables: performance set policy skips size description in selection
+Date: Mon,  6 Nov 2017 16:41:06 +0100
+Message-ID: <20171106154107.15722-1-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:53941 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753071AbdKFPeV (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Nov 2017 10:34:21 -0500
-Received: by mail-pg0-f67.google.com with SMTP id s2so8467275pge.10
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 Nov 2017 07:34:21 -0800 (PST)
+Received: from mail.us.es ([193.147.175.20]:54154 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932196AbdKFPlS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Nov 2017 10:41:18 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E69511BFA81
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Nov 2017 16:41:16 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D69C3DA848
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Nov 2017 16:41:16 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B68F6DA86F
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Nov 2017 16:41:14 +0100 (CET)
+Received: from salvia.here (unknown [27.1.3.195])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 6263B403DF98
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Nov 2017 16:41:12 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If executed without root privileges, print error "this requires root!"
-and exit.
+Use the complexity and space notations if policy is performance, this
+results in placing the bitmap set representation over the hashtable for
+key <= 16 for better performance as we discussed during the last NFWS in
+Faro, Portugal.
 
-Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tests/monitor/run-tests.sh | 5 +++++
- 1 file changed, 5 insertions(+)
+ net/netfilter/nf_tables_api.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/tests/monitor/run-tests.sh b/tests/monitor/run-tests.sh
-index 23d4e21..1adabda 100755
---- a/tests/monitor/run-tests.sh
-+++ b/tests/monitor/run-tests.sh
-@@ -8,6 +8,11 @@ mydiff() {
- 	diff -w -I '^# ' "$@"
- }
- 
-+if [ "$(id -u)" != "0" ] ; then
-+	echo "this requires root!"
-+	exit 1
-+fi
-+
- testdir=$(mktemp -d)
- if [ ! -d $testdir ]; then
- 	echo "Failed to create test directory" >&2
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 929927171426..3b4a0739ee39 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2549,14 +2549,9 @@ nft_select_set_ops(const struct nft_ctx *ctx,
+ 		case NFT_SET_POL_PERFORMANCE:
+ 			if (est.lookup < best.lookup)
+ 				break;
+-			if (est.lookup == best.lookup) {
+-				if (!desc->size) {
+-					if (est.space < best.space)
+-						break;
+-				} else if (est.size < best.size) {
+-					break;
+-				}
+-			}
++			if (est.lookup == best.lookup &&
++			    est.space < best.space)
++				break;
+ 			continue;
+ 		case NFT_SET_POL_MEMORY:
+ 			if (!desc->size) {
 -- 
 2.11.0
 
