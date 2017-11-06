@@ -1,73 +1,38 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] ipvs: Fix inappropriate output of procfs
-Date: Mon, 6 Nov 2017 15:26:47 +0100
-Message-ID: <20171106142647.GA8571@salvia>
-References: <20171015115406.GA11429@nuc02.localdomain>
- <alpine.LFD.2.20.1710151709450.2100@ja.home.ssi.bg>
+Subject: Re: [PATCH] netfilter: conntrack: use power efficient workqueue
+Date: Mon, 6 Nov 2017 15:31:55 +0100
+Message-ID: <20171106143155.GA8738@salvia>
+References: <1509635767-12253-1-git-send-email-vincent.guittot@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: KUWAZAWA Takuya <albatross0@gmail.com>,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <lvs-devel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Vincent Guittot <vincent.guittot@linaro.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:52542 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752425AbdKFOcK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Nov 2017 09:32:10 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id EC5261B8419
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Nov 2017 15:32:08 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C6322DA793
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Nov 2017 15:32:08 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.20.1710151709450.2100@ja.home.ssi.bg>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1509635767-12253-1-git-send-email-vincent.guittot@linaro.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Oct 15, 2017 at 05:11:28PM +0300, Julian Anastasov wrote:
-> On Sun, 15 Oct 2017, KUWAZAWA Takuya wrote:
-> 
-> > Information about ipvs in different network namespace can be seen via procfs.
-> > 
-> > How to reproduce:
-> > 
-> >   # ip netns add ns01
-> >   # ip netns add ns02
-> >   # ip netns exec ns01 ip a add dev lo 127.0.0.1/8
-> >   # ip netns exec ns02 ip a add dev lo 127.0.0.1/8
-> >   # ip netns exec ns01 ipvsadm -A -t 10.1.1.1:80
-> >   # ip netns exec ns02 ipvsadm -A -t 10.1.1.2:80
-> > 
-> > The ipvsadm displays information about its own network namespace only.
-> > 
-> >   # ip netns exec ns01 ipvsadm -Ln
-> >   IP Virtual Server version 1.2.1 (size=4096)
-> >   Prot LocalAddress:Port Scheduler Flags
-> >     -> RemoteAddress:Port           Forward Weight ActiveConn InActConn
-> >   TCP  10.1.1.1:80 wlc
-> > 
-> >   # ip netns exec ns02 ipvsadm -Ln
-> >   IP Virtual Server version 1.2.1 (size=4096)
-> >   Prot LocalAddress:Port Scheduler Flags
-> >     -> RemoteAddress:Port           Forward Weight ActiveConn InActConn
-> >   TCP  10.1.1.2:80 wlc
-> > 
-> > But I can see information about other network namespace via procfs.
-> > 
-> >   # ip netns exec ns01 cat /proc/net/ip_vs
-> >   IP Virtual Server version 1.2.1 (size=4096)
-> >   Prot LocalAddress:Port Scheduler Flags
-> >     -> RemoteAddress:Port Forward Weight ActiveConn InActConn
-> >   TCP  0A010101:0050 wlc
-> >   TCP  0A010102:0050 wlc
-> > 
-> >   # ip netns exec ns02 cat /proc/net/ip_vs
-> >   IP Virtual Server version 1.2.1 (size=4096)
-> >   Prot LocalAddress:Port Scheduler Flags
-> >     -> RemoteAddress:Port Forward Weight ActiveConn InActConn
-> >   TCP  0A010102:0050 wlc
-> > 
-> > Signed-off-by: KUWAZAWA Takuya <albatross0@gmail.com>
-> 
-> 	Looks good to me
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
+On Thu, 2 Nov 2017 15:16:07 +0100 Vincent Guittot <vincent.guittot@linaro.org> wrote:
+> conntrack uses the bounded system_long_wq workqueue for its works that
+> don't have to run on the cpu they have been queued.  Using bounded
+> workqueue prevents the scheduler to make smart decision about the best
+> place to schedule the work.
+>
+> This patch replaces system_long_wq with system_power_efficient_wq.
+> the work stays bounded to a cpu by default unless the
+> CONFIG_WQ_POWER_EFFICIENT is enable. In the latter case, the work can
+> be scheduled on the best cpu from a power or a performance point of
+> view.
 
 Applied, thanks.
