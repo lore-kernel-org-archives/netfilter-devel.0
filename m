@@ -1,68 +1,88 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 00/16] tests: files: Remove test files.
-Date: Mon, 6 Nov 2017 16:04:34 +0100
-Message-ID: <20171106150434.GA20966@salvia>
-References: <cover.1509305217.git.rvarsha016@gmail.com>
+Subject: Re: [PATCH] Out Of Bound Read in Netfilter Conntrack
+Date: Mon, 6 Nov 2017 16:13:13 +0100
+Message-ID: <20171106151313.GA21034@salvia>
+References: <804512f5-786b-d4d0-bc8e-299c5c2683bf@x41-dsec.de>
+ <20171024162903.GA20295@salvia>
+ <20171024163601.GA30318@salvia>
+ <3567257a-3e96-a603-82c0-d1f32bcffd54@x41-dsec.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Varsha Rao <rvarsha016@gmail.com>
+To: Eric Sesterhenn <eric.sesterhenn@x41-dsec.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35770 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39132 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753283AbdKFPEr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Nov 2017 10:04:47 -0500
+        id S1752360AbdKFPNZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Nov 2017 10:13:25 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9C08D1B8401
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Nov 2017 16:04:46 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 54B021B8411
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Nov 2017 16:13:23 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8C61CDA381
-        for <netfilter-devel@vger.kernel.org>; Mon,  6 Nov 2017 16:04:46 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4096CDA86F
+        for <netfilter-devel@vger.kernel.org>; Mon,  6 Nov 2017 16:13:23 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <cover.1509305217.git.rvarsha016@gmail.com>
+In-Reply-To: <3567257a-3e96-a603-82c0-d1f32bcffd54@x41-dsec.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Varsha,
+Hi Eric,
 
-On Mon, Oct 30, 2017 at 02:09:24AM +0530, Varsha Rao wrote:
-> This patch removes tests from tests/files and add tests to 
-> tests/shell which are not present in it.
+On Wed, Oct 25, 2017 at 09:05:05AM +0200, Eric Sesterhenn wrote:
+[...]
+> From b8ed8753ca82f6f07fce2901418aab531d98ee39 Mon Sep 17 00:00:00 2001
+> From: Eric Sesterhenn <eric.sesterhenn@x41-dsec.de>
+> Date: Wed, 25 Oct 2017 08:32:57 +0200
+> Subject: [PATCH netfilter: nf_ct_h323: 1/2] Out Of Bound Read in Netfilter
+>  Conntrack
 > 
-> Varsha Rao (16):
->   tests: files: Remove tests for ipv4
->   tests: files: Remove tests for ipv6
->   tests: shell: Add test for log statement.
+> Add missing counter decrement to prevent out of bounds memory read.
 
-I think we have a test for this under tests/py.
+This one, I already applied it, see below comment on 2/2.
 
->   tests: files: Remove log statement tests.
->   tests: shell: Add test for log flags.
->   tests: shell: Add tests for payload expression.
+> From c1b7044749e534207ecd3b04281ae024b01887d3 Mon Sep 17 00:00:00 2001
+> From: Eric Sesterhenn <eric.sesterhenn@x41-dsec.de>
+> Date: Wed, 25 Oct 2017 08:39:38 +0200
+> Subject: [PATCH netfilter: nf_ct_h323: 2/2] Prevent multiple out of bounds
+>  memory reads.
+> 
+> Multiple accesses are not guarded by out of bound
+> checks. This patch introduces them.
+> 
+> Signed-off-by: Eric Sesterhenn <eric.sesterhenn@x41-dsec.de>
+> ---
+>  net/netfilter/nf_conntrack_h323_asn1.c | 17 ++++++++++++++++-
+>  1 file changed, 16 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
+> index 2a9d1acd0cbd..78a218cdf04e 100644
+> --- a/net/netfilter/nf_conntrack_h323_asn1.c
+> +++ b/net/netfilter/nf_conntrack_h323_asn1.c
+> @@ -104,6 +104,7 @@ typedef struct {
+>  #define INC_BITS(bs,b) if(((bs)->bit+=(b))>7){(bs)->cur+=(bs)->bit>>3;(bs)->bit&=7;}
+>  #define BYTE_ALIGN(bs) if((bs)->bit){(bs)->cur++;(bs)->bit=0;}
+>  #define CHECK_BOUND(bs,n) if((bs)->cur+(n)>(bs)->end)return(H323_ERROR_BOUND)
+> +#define CHECK_BIT_BOUND(bs,n) ({ size_t __tmp = n/8; if((bs)->bit+(n%8)>7) { CHECK_BOUND(bs, __tmp + 2); } else { CHECK_BOUND(bs, __tmp + 1); } })
 
-Same thing for these to..
+CHECK_BOUND() and your new CHECK_BIT_BOUND() are returning a something
+inside a macro, which is a bad practise.
 
->   tests: files: Remove payload expression tests.
->   tests: files: Remove test for syntactical errors.
->   tests: shell: Add test for ct expression.
+Would you first send me a patch to replace CHECK_BOUND() by a
+function, then add place your fix on top of it?
 
-Same thing.
+I'd suggest something like:
 
->   tests: files: Remove test for ct expression.
->   tests: files: Remove prefix file.
->   tests: files: Test for meta expressions.
+        static inline int nf_h323_error_boundary(...)
+        {
+                return bs->cur + (n > bs->end);
+        }
 
-Same thing.
+Then, use it:
 
->   tests: files: Remove test for meta expression.
->   tests: shell: Add tests for concat expression.
+        if (nf_h323_error_boundary(...))
+                return H323_ERROR_BOUND;
 
-Same thing... so it looks like you can send a patch to remove them all
-in one go.
+Please, I'd appreciate if you can send me patches via git-send-mail
+too.
 
-Thanks a lot for reviewing what we had under tests/files/
-
->   tests: files: Remove tests for concat expression.
->   tests: shell: Add test case for map expression.
-
-BTW, I have applied 16/16.
+Thanks!
