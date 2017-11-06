@@ -1,7 +1,7 @@
 From: Vasily Averin <vvs@virtuozzo.com>
-Subject: [PATCH v3 15/21] nf_tables: exit_net cleanup check added
-Date: Mon, 6 Nov 2017 16:25:15 +0300
-Message-ID: <0fa951d6-3df2-d747-def6-ab996a38907b@virtuozzo.com>
+Subject: [PATCH v3 16/21] nfnetlink_log: exit_net cleanup check added
+Date: Mon, 6 Nov 2017 16:25:25 +0300
+Message-ID: <c0799ed9-dd85-e4ce-e06a-9b97b4047a86@virtuozzo.com>
 References: <4fdc4264-e338-6ee8-a662-7d98b45733a1@virtuozzo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -17,42 +17,35 @@ Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Be sure that lists initialized in net_init hook were return
-to initial state.
+Be sure that instance_table array initialized in net_init hook
+was return to initial state.
 
 Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
 ---
- net/netfilter/nf_tables_api.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ net/netfilter/nfnetlink_log.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 64e1ee0..3b7f518 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5778,6 +5778,16 @@ static int __net_init nf_tables_init_net(struct net *net)
- 	return 0;
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index cad6498..85bc47a 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -1093,10 +1093,17 @@ static int __net_init nfnl_log_net_init(struct net *net)
+ 
+ static void __net_exit nfnl_log_net_exit(struct net *net)
+ {
++	unsigned int i;
++	struct nfnl_log_net *log = nfnl_log_pernet(net);
+ #ifdef CONFIG_PROC_FS
+ 	remove_proc_entry("nfnetlink_log", net->nf.proc_netfilter);
+ #endif
+ 	nf_log_unset(net, &nfulnl_logger);
++	for (i = 0; i < INSTANCE_BUCKETS; i++)
++		if (WARN_ONCE(!hlist_empty(&log->instance_table[i]),
++			      "net %x %s: instance_table is not empty\n",
++			      net->ns.inum, __func__))
++			break;
  }
  
-+static void __net_exit nf_tables_exit_net(struct net *net)
-+{
-+	WARN_ONCE(!list_empty(&net->nft.af_info),
-+		  "net %x %s: af_info list is not empty\n",
-+		  net->ns.inum, __func__);
-+	WARN_ONCE(!list_empty(&net->nft.commit_list),
-+		  "net %x %s: commit_list is not empty\n",
-+		  net->ns.inum, __func__);
-+}
-+
- int __nft_release_basechain(struct nft_ctx *ctx)
- {
- 	struct nft_rule *rule, *nr;
-@@ -5848,6 +5858,7 @@ static void __nft_release_afinfo(struct net *net, struct nft_af_info *afi)
- 
- static struct pernet_operations nf_tables_net_ops = {
- 	.init	= nf_tables_init_net,
-+	.exit	= nf_tables_exit_net,
- };
- 
- static int __init nf_tables_module_init(void)
+ static struct pernet_operations nfnl_log_net_ops = {
 -- 
 2.7.4
