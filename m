@@ -1,68 +1,95 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 14/23] netfilter: ipvs: Use %pS printk format for direct addresses
-Date: Tue,  7 Nov 2017 01:52:04 +0100
-Message-ID: <20171107005213.22618-15-pablo@netfilter.org>
+Subject: [PATCH 15/23] netfilter: ipvs: Fix inappropriate output of procfs
+Date: Tue,  7 Nov 2017 01:52:05 +0100
+Message-ID: <20171107005213.22618-16-pablo@netfilter.org>
 References: <20171107005213.22618-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:59012 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S964878AbdKGAxV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Nov 2017 19:53:21 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 8FC501F4B6F
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Nov 2017 01:53:19 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7CF2CDA80B
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Nov 2017 01:53:19 +0100 (CET)
 In-Reply-To: <20171107005213.22618-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Helge Deller <deller@gmx.de>
+From: KUWAZAWA Takuya <albatross0@gmail.com>
 
-The debug and error printk functions in ipvs uses wrongly the %pF instead of
-the %pS printk format specifier for printing symbols for the address returned
-by _builtin_return_address(0). Fix it for the ia64, ppc64 and parisc64
-architectures.
+Information about ipvs in different network namespace can be seen via procfs.
 
-Signed-off-by: Helge Deller <deller@gmx.de>
-Cc: Wensong Zhang <wensong@linux-vs.org>
-Cc: netdev@vger.kernel.org
-Cc: lvs-devel@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
-Acked-by: Simon Horman <horms@verge.net.au>
+How to reproduce:
+
+  # ip netns add ns01
+  # ip netns add ns02
+  # ip netns exec ns01 ip a add dev lo 127.0.0.1/8
+  # ip netns exec ns02 ip a add dev lo 127.0.0.1/8
+  # ip netns exec ns01 ipvsadm -A -t 10.1.1.1:80
+  # ip netns exec ns02 ipvsadm -A -t 10.1.1.2:80
+
+The ipvsadm displays information about its own network namespace only.
+
+  # ip netns exec ns01 ipvsadm -Ln
+  IP Virtual Server version 1.2.1 (size=4096)
+  Prot LocalAddress:Port Scheduler Flags
+    -> RemoteAddress:Port           Forward Weight ActiveConn InActConn
+  TCP  10.1.1.1:80 wlc
+
+  # ip netns exec ns02 ipvsadm -Ln
+  IP Virtual Server version 1.2.1 (size=4096)
+  Prot LocalAddress:Port Scheduler Flags
+    -> RemoteAddress:Port           Forward Weight ActiveConn InActConn
+  TCP  10.1.1.2:80 wlc
+
+But I can see information about other network namespace via procfs.
+
+  # ip netns exec ns01 cat /proc/net/ip_vs
+  IP Virtual Server version 1.2.1 (size=4096)
+  Prot LocalAddress:Port Scheduler Flags
+    -> RemoteAddress:Port Forward Weight ActiveConn InActConn
+  TCP  0A010101:0050 wlc
+  TCP  0A010102:0050 wlc
+
+  # ip netns exec ns02 cat /proc/net/ip_vs
+  IP Virtual Server version 1.2.1 (size=4096)
+  Prot LocalAddress:Port Scheduler Flags
+    -> RemoteAddress:Port Forward Weight ActiveConn InActConn
+  TCP  0A010102:0050 wlc
+
+Signed-off-by: KUWAZAWA Takuya <albatross0@gmail.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_conn.c | 2 +-
- net/netfilter/ipvs/ip_vs_ctl.c  | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/ipvs/ip_vs_ctl.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 3d2ac71a83ec..f73561ca982d 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -185,7 +185,7 @@ static inline int ip_vs_conn_hash(struct ip_vs_conn *cp)
- 		hlist_add_head_rcu(&cp->c_list, &ip_vs_conn_tab[hash]);
- 		ret = 1;
- 	} else {
--		pr_err("%s(): request for already hashed, called from %pF\n",
-+		pr_err("%s(): request for already hashed, called from %pS\n",
- 		       __func__, __builtin_return_address(0));
- 		ret = 0;
- 	}
 diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 4f940d7eb2f7..b825835752e6 100644
+index b825835752e6..fac8c802b4ea 100644
 --- a/net/netfilter/ipvs/ip_vs_ctl.c
 +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -300,7 +300,7 @@ static int ip_vs_svc_hash(struct ip_vs_service *svc)
- 	unsigned int hash;
+@@ -2034,12 +2034,16 @@ static int ip_vs_info_seq_show(struct seq_file *seq, void *v)
+ 		seq_puts(seq,
+ 			 "  -> RemoteAddress:Port Forward Weight ActiveConn InActConn\n");
+ 	} else {
++		struct net *net = seq_file_net(seq);
++		struct netns_ipvs *ipvs = net_ipvs(net);
+ 		const struct ip_vs_service *svc = v;
+ 		const struct ip_vs_iter *iter = seq->private;
+ 		const struct ip_vs_dest *dest;
+ 		struct ip_vs_scheduler *sched = rcu_dereference(svc->scheduler);
+ 		char *sched_name = sched ? sched->name : "none";
  
- 	if (svc->flags & IP_VS_SVC_F_HASHED) {
--		pr_err("%s(): request for already hashed, called from %pF\n",
-+		pr_err("%s(): request for already hashed, called from %pS\n",
- 		       __func__, __builtin_return_address(0));
- 		return 0;
- 	}
-@@ -334,7 +334,7 @@ static int ip_vs_svc_hash(struct ip_vs_service *svc)
- static int ip_vs_svc_unhash(struct ip_vs_service *svc)
- {
- 	if (!(svc->flags & IP_VS_SVC_F_HASHED)) {
--		pr_err("%s(): request for unhash flagged, called from %pF\n",
-+		pr_err("%s(): request for unhash flagged, called from %pS\n",
- 		       __func__, __builtin_return_address(0));
- 		return 0;
- 	}
++		if (svc->ipvs != ipvs)
++			return 0;
+ 		if (iter->table == ip_vs_svc_table) {
+ #ifdef CONFIG_IP_VS_IPV6
+ 			if (svc->af == AF_INET6)
 -- 
 2.11.0
+
