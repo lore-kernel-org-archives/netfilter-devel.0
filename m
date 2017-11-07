@@ -1,73 +1,45 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH][V2] netfilter: remove redundant assignment to e
-Date: Tue,  7 Nov 2017 10:08:01 +0000
-Message-ID: <20171107100801.10056-1-colin.king@canonical.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next] netfilter: nf_defrag_ipv4: Add sysctl to disable
+ per interface
+Date: Tue, 7 Nov 2017 11:30:13 +0100
+Message-ID: <20171107103013.GA5512@breakpoint.cc>
+References: <1509762520-17873-1-git-send-email-subashab@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, steffen.klassert@secunet.com,
+        pablo@netfilter.org
+To: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:50042 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750917AbdKGKat (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 7 Nov 2017 05:30:49 -0500
+Content-Disposition: inline
+In-Reply-To: <1509762520-17873-1-git-send-email-subashab@codeaurora.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+Subash Abhinov Kasiviswanathan <subashab@codeaurora.org> wrote:
+> Add a sysctl nf_ipv4_defrag_skip to skip defragmentation per
+> interface. This is set 0 to preserve existing behavior (always
+> defrag per interface).
+> 
+> This is useful for pure ipv4 forwarding scenarios (without NAT)
+> in conjunction with xfrm. It appears that network stack defrags
+> the packets and then forwards them to xfrm which then encrypts
+> and then later fragments them on a different boundary compared
+> to the source.
 
-The assignment to variable e is redundant since the same assignment
-occurs just a few lines later, hence it can be removed.  Cleans up
-clang warning for arp_tables, ip_tables and ip6_tables:
+This breaks connection tracking for packets coming in via such
+interfaces.
 
-warning: Value stored to 'e' is never read
+Nowadays we only enable defrag in a network namespace if the ip/nftables
+ruleset requires it, so this setting would be counter-productive.
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- net/ipv4/netfilter/arp_tables.c | 1 -
- net/ipv4/netfilter/ip_tables.c  | 1 -
- net/ipv6/netfilter/ip6_tables.c | 1 -
- 3 files changed, 3 deletions(-)
+> An example of this usage is for fixing wifi calling on networks
+> where certain routers are configured to drop fragments explicitly.
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index f88221aebc9d..0c3c944a7b72 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -373,7 +373,6 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
- 					if (!xt_find_jump_offset(offsets, newpos,
- 								 newinfo->number))
- 						return 0;
--					e = entry0 + newpos;
- 				} else {
- 					/* ... this is a fallthru */
- 					newpos = pos + e->next_offset;
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 4cbe5e80f3bf..2e0d339028bb 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -439,7 +439,6 @@ mark_source_chains(const struct xt_table_info *newinfo,
- 					if (!xt_find_jump_offset(offsets, newpos,
- 								 newinfo->number))
- 						return 0;
--					e = entry0 + newpos;
- 				} else {
- 					/* ... this is a fallthru */
- 					newpos = pos + e->next_offset;
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index f06e25065a34..1d7ae9366335 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -458,7 +458,6 @@ mark_source_chains(const struct xt_table_info *newinfo,
- 					if (!xt_find_jump_offset(offsets, newpos,
- 								 newinfo->number))
- 						return 0;
--					e = entry0 + newpos;
- 				} else {
- 					/* ... this is a fallthru */
- 					newpos = pos + e->next_offset;
--- 
-2.14.1
+Yay...  does that happen for all frags or is this related to df bit
+somehow?
+
