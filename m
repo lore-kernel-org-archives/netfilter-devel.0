@@ -1,52 +1,136 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] [net-next] netfilter: add ifdef around ctnetlink_proto_size
-Date: Tue,  7 Nov 2017 15:11:51 +0100
-Message-ID: <20171107141214.3312784-1-arnd@arndb.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, Liping Zhang <zlpnobody@gmail.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH v2] netfilter: mark expected switch fall-throughs
+Date: Tue, 7 Nov 2017 08:19:29 -0600
+Message-ID: <20171107141929.GA24483@embeddedor.com>
+References: <20171107073045.Horde.fHvUlYL1jmnkY_bpuXRFqCR@gator4166.hostgator.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        lvs-devel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>
+        "David S. Miller" <davem@davemloft.net>,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171107073045.Horde.fHvUlYL1jmnkY_bpuXRFqCR@gator4166.hostgator.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This function is no longer marked 'inline', so we now get a warning
-when it is unused:
+In preparation to enabling -Wimplicit-fallthrough, mark switch cases
+where we are expecting to fall through.
 
-net/netfilter/nf_conntrack_netlink.c:536:15: error: 'ctnetlink_proto_size' defined but not used [-Werror=unused-function]
-
-We could mark it inline again, mark it __maybe_unused, or add an #ifdef
-around the definition. I'm picking the third approach here since that
-seems to be what the rest of the file has.
-
-Fixes: 5caaed151a68 ("netfilter: conntrack: don't cache nlattr_tuple_size result in nla_size")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Addresses-Coverity-ID: 1128839
+Addresses-Coverity-ID: 1128840
+Addresses-Coverity-ID: 115120
+Addresses-Coverity-ID: 115121
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
 ---
- net/netfilter/nf_conntrack_netlink.c | 2 ++
- 1 file changed, 2 insertions(+)
+Changes in v2:
+ Replace code comments with "fall through" as suggested by Pablo Neira Ayuso.
+ Add Coverity IDs to the changelog.
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 6e0adfefb9ed..59c08997bfdf 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -533,6 +533,7 @@ ctnetlink_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
- 	return -1;
- }
- 
-+#if defined(CONFIG_NETFILTER_NETLINK_GLUE_CT) || defined(CONFIG_NF_CONNTRACK_EVENTS)
- static size_t ctnetlink_proto_size(const struct nf_conn *ct)
- {
- 	const struct nf_conntrack_l3proto *l3proto;
-@@ -552,6 +553,7 @@ static size_t ctnetlink_proto_size(const struct nf_conn *ct)
- 
- 	return len + len4;
- }
-+#endif
- 
- static inline size_t ctnetlink_acct_size(const struct nf_conn *ct)
- {
+ net/netfilter/ipset/ip_set_core.c      | 2 +-
+ net/netfilter/ipvs/ip_vs_proto_tcp.c   | 1 +
+ net/netfilter/ipvs/ip_vs_proto_udp.c   | 1 +
+ net/netfilter/nf_conntrack_h323_asn1.c | 3 +++
+ net/netfilter/nft_cmp.c                | 2 ++
+ net/netfilter/x_tables.c               | 2 +-
+ 6 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index cf84f7b..d5a43ca 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -1386,7 +1386,7 @@ ip_set_dump_start(struct sk_buff *skb, struct netlink_callback *cb)
+ 				goto next_set;
+ 			if (set->variant->uref)
+ 				set->variant->uref(set, cb, true);
+-			/* Fall through and add elements */
++			/* fall through */
+ 		default:
+ 			rcu_read_lock_bh();
+ 			ret = set->variant->list(set, skb, cb);
+diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+index 1c6e101..569631d 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+@@ -315,6 +315,7 @@ tcp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
+ 	switch (skb->ip_summed) {
+ 	case CHECKSUM_NONE:
+ 		skb->csum = skb_checksum(skb, tcphoff, skb->len - tcphoff, 0);
++		/* fall through */
+ 	case CHECKSUM_COMPLETE:
+ #ifdef CONFIG_IP_VS_IPV6
+ 		if (af == AF_INET6) {
+diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
+index 30e11cd..c15ef7c 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_udp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
+@@ -319,6 +319,7 @@ udp_csum_check(int af, struct sk_buff *skb, struct ip_vs_protocol *pp)
+ 		case CHECKSUM_NONE:
+ 			skb->csum = skb_checksum(skb, udphoff,
+ 						 skb->len - udphoff, 0);
++			/* fall through */
+ 		case CHECKSUM_COMPLETE:
+ #ifdef CONFIG_IP_VS_IPV6
+ 			if (af == AF_INET6) {
+diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
+index cf1bf26..c957fcf 100644
+--- a/net/netfilter/nf_conntrack_h323_asn1.c
++++ b/net/netfilter/nf_conntrack_h323_asn1.c
+@@ -250,12 +250,15 @@ static unsigned int get_uint(struct bitstr *bs, int b)
+ 	case 4:
+ 		v |= *bs->cur++;
+ 		v <<= 8;
++		/* fall through */
+ 	case 3:
+ 		v |= *bs->cur++;
+ 		v <<= 8;
++		/* fall through */
+ 	case 2:
+ 		v |= *bs->cur++;
+ 		v <<= 8;
++		/* fall through */
+ 	case 1:
+ 		v |= *bs->cur++;
+ 		break;
+diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
+index c2945eb..fa90a84 100644
+--- a/net/netfilter/nft_cmp.c
++++ b/net/netfilter/nft_cmp.c
+@@ -44,6 +44,7 @@ static void nft_cmp_eval(const struct nft_expr *expr,
+ 	case NFT_CMP_LT:
+ 		if (d == 0)
+ 			goto mismatch;
++		/* fall through */
+ 	case NFT_CMP_LTE:
+ 		if (d > 0)
+ 			goto mismatch;
+@@ -51,6 +52,7 @@ static void nft_cmp_eval(const struct nft_expr *expr,
+ 	case NFT_CMP_GT:
+ 		if (d == 0)
+ 			goto mismatch;
++		/* fall through */
+ 	case NFT_CMP_GTE:
+ 		if (d < 0)
+ 			goto mismatch;
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index a77dd51..7c1414e 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1397,7 +1397,7 @@ static void *xt_mttg_seq_next(struct seq_file *seq, void *v, loff_t *ppos,
+ 		trav->curr = trav->curr->next;
+ 		if (trav->curr != trav->head)
+ 			break;
+-		/* fallthru, _stop will unlock */
++		/* fall through */
+ 	default:
+ 		return NULL;
+ 	}
 -- 
-2.9.0
+2.7.4
