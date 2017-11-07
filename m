@@ -1,45 +1,48 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next] netfilter: nf_defrag_ipv4: Add sysctl to disable
- per interface
-Date: Tue, 7 Nov 2017 11:30:13 +0100
-Message-ID: <20171107103013.GA5512@breakpoint.cc>
-References: <1509762520-17873-1-git-send-email-subashab@codeaurora.org>
+From: Taehee Yoo <ap420073@gmail.com>
+Subject: Re: [PATCH] netfilter: nf_nat_snmp_basic: use asn1 decoder library
+Date: Tue, 7 Nov 2017 19:47:07 +0900
+Message-ID: <CAMArcTVjG6Z9vt+d3QNOuntj=9J5NwO17A279nUOr50hHgVDXA@mail.gmail.com>
+References: <20171029123453.2267-1-ap420073@gmail.com> <20171106144402.GA10271@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, steffen.klassert@secunet.com,
-        pablo@netfilter.org
-To: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Content-Type: text/plain; charset="UTF-8"
+Cc: Florian Westphal <fw@strlen.de>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:50042 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750917AbdKGKat (ORCPT
+Received: from mail-qk0-f182.google.com ([209.85.220.182]:45173 "EHLO
+        mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752791AbdKGKrI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 7 Nov 2017 05:30:49 -0500
-Content-Disposition: inline
-In-Reply-To: <1509762520-17873-1-git-send-email-subashab@codeaurora.org>
+        Tue, 7 Nov 2017 05:47:08 -0500
+Received: by mail-qk0-f182.google.com with SMTP id c16so552859qke.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 07 Nov 2017 02:47:08 -0800 (PST)
+In-Reply-To: <20171106144402.GA10271@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Subash Abhinov Kasiviswanathan <subashab@codeaurora.org> wrote:
-> Add a sysctl nf_ipv4_defrag_skip to skip defragmentation per
-> interface. This is set 0 to preserve existing behavior (always
-> defrag per interface).
-> 
-> This is useful for pure ipv4 forwarding scenarios (without NAT)
-> in conjunction with xfrm. It appears that network stack defrags
-> the packets and then forwards them to xfrm which then encrypts
-> and then later fragments them on a different boundary compared
-> to the source.
+2017-11-06 23:44 GMT+09:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+> On Sun, Oct 29, 2017 at 09:34:53PM +0900, Taehee Yoo wrote:
+>> The basic SNMP ALG parse snmp ASN.1 payload
+>> however, since 2012 linux kernel provide ASN.1 decoder library.
+>> If we use ASN.1 decoder in the /lib/asn1_decoder.c, we can remove
+>> about 1000 line of ASN.1 parsing routine.
+>>
+>> To use asn1_decoder.c, we should write mib file(nf_nat_snmp_basic.asn1)
+>> then /script/asn1_compiler.c makes *-asn1.c and *-asn1.h file
+>> at the compiletime.(nf_nat_snmp_basic-asn1.c, nf_nat_snmp_basic-asn1.h)
+>> The nf_nat_snmp_basic.asn1 is made by RFC1155, RFC1157, RFC1902, RFC1905,
+>> RFC2578, RFC3416. of course that mib file supports only the basic SNMP ALG.
+>>
+>> Previous SNMP ALG mangles only first octet of IPv4 address.
+>> but after this patch, the SNMP ALG mangles whole IPv4 Address.
+>> And SNMPv3 is not supported.
+>>
+>> I tested with snmp commands such ans snmpd, snmpwalk, snmptrap.
+>
+> OK, something is missing here, I see no definition for
+> nf_nat_snmp_basic_decoder.
 
-This breaks connection tracking for packets coming in via such
-interfaces.
-
-Nowadays we only enable defrag in a network namespace if the ip/nftables
-ruleset requires it, so this setting would be counter-productive.
-
-> An example of this usage is for fixing wifi calling on networks
-> where certain routers are configured to drop fragments explicitly.
-
-Yay...  does that happen for all frags or is this related to df bit
-somehow?
-
+I apologize for incomplete patch.
+I forgot to add nf_nat_snmp_basic.asn1 file. so I will resend v2 patch.
+Thank you for review!
