@@ -1,11 +1,8 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 18/23] netfilter: nft_hash: fix nft_hash_deactivate
-Date: Tue,  7 Nov 2017 01:52:08 +0100
-Message-ID: <20171107005213.22618-19-pablo@netfilter.org>
+Subject: [PATCH 20/23] netfilter: conntrack: move nf_ct_netns_{get,put}() to core
+Date: Tue,  7 Nov 2017 01:52:10 +0100
+Message-ID: <20171107005213.22618-21-pablo@netfilter.org>
 References: <20171107005213.22618-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
@@ -13,30 +10,150 @@ In-Reply-To: <20171107005213.22618-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+So we can call this from other expression that need conntrack in place
+to work.
 
-Jindřich Makovička says:
-  The logical OR looks fishy to me. Shouldn't be && there instead?
-
-Link: https://bugzilla.netfilter.org/show_bug.cgi?id=1199
-Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Acked-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_set_hash.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_proto.c | 37 ++++++++++++++++++++++++++++++++++--
+ net/netfilter/nft_ct.c             | 39 +++-----------------------------------
+ 2 files changed, 38 insertions(+), 38 deletions(-)
 
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 0fa01d772c5e..650677f1e539 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -494,7 +494,7 @@ static void *nft_hash_deactivate(const struct net *net,
- 	hash = reciprocal_scale(hash, priv->buckets);
- 	hlist_for_each_entry(he, &priv->table[hash], node) {
- 		if (!memcmp(nft_set_ext_key(&this->ext), &elem->key.val,
--			    set->klen) ||
-+			    set->klen) &&
- 		    nft_set_elem_active(&he->ext, genmask)) {
- 			nft_set_elem_change_active(net, set, &he->ext);
- 			return he;
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 3b06ff3f2dee..c8e9c9503a08 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -172,7 +172,7 @@ void nf_ct_l3proto_module_put(unsigned short l3proto)
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_l3proto_module_put);
+ 
+-int nf_ct_netns_get(struct net *net, u8 nfproto)
++static int nf_ct_netns_do_get(struct net *net, u8 nfproto)
+ {
+ 	const struct nf_conntrack_l3proto *l3proto;
+ 	int ret;
+@@ -197,9 +197,33 @@ int nf_ct_netns_get(struct net *net, u8 nfproto)
+ 
+ 	return ret;
+ }
++
++int nf_ct_netns_get(struct net *net, u8 nfproto)
++{
++	int err;
++
++	if (nfproto == NFPROTO_INET) {
++		err = nf_ct_netns_do_get(net, NFPROTO_IPV4);
++		if (err < 0)
++			goto err1;
++		err = nf_ct_netns_do_get(net, NFPROTO_IPV6);
++		if (err < 0)
++			goto err2;
++	} else {
++		err = nf_ct_netns_do_get(net, nfproto);
++		if (err < 0)
++			goto err1;
++	}
++	return 0;
++
++err2:
++	nf_ct_netns_put(net, NFPROTO_IPV4);
++err1:
++	return err;
++}
+ EXPORT_SYMBOL_GPL(nf_ct_netns_get);
+ 
+-void nf_ct_netns_put(struct net *net, u8 nfproto)
++static void nf_ct_netns_do_put(struct net *net, u8 nfproto)
+ {
+ 	const struct nf_conntrack_l3proto *l3proto;
+ 
+@@ -218,6 +242,15 @@ void nf_ct_netns_put(struct net *net, u8 nfproto)
+ 
+ 	nf_ct_l3proto_module_put(nfproto);
+ }
++
++void nf_ct_netns_put(struct net *net, uint8_t nfproto)
++{
++	if (nfproto == NFPROTO_INET) {
++		nf_ct_netns_do_put(net, NFPROTO_IPV4);
++		nf_ct_netns_do_put(net, NFPROTO_IPV6);
++	} else
++		nf_ct_netns_do_put(net, nfproto);
++}
+ EXPORT_SYMBOL_GPL(nf_ct_netns_put);
+ 
+ const struct nf_conntrack_l4proto *
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index bd0975d7dd6f..2647b895f4b0 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -312,39 +312,6 @@ static const struct nla_policy nft_ct_policy[NFTA_CT_MAX + 1] = {
+ 	[NFTA_CT_SREG]		= { .type = NLA_U32 },
+ };
+ 
+-static int nft_ct_netns_get(struct net *net, uint8_t family)
+-{
+-	int err;
+-
+-	if (family == NFPROTO_INET) {
+-		err = nf_ct_netns_get(net, NFPROTO_IPV4);
+-		if (err < 0)
+-			goto err1;
+-		err = nf_ct_netns_get(net, NFPROTO_IPV6);
+-		if (err < 0)
+-			goto err2;
+-	} else {
+-		err = nf_ct_netns_get(net, family);
+-		if (err < 0)
+-			goto err1;
+-	}
+-	return 0;
+-
+-err2:
+-	nf_ct_netns_put(net, NFPROTO_IPV4);
+-err1:
+-	return err;
+-}
+-
+-static void nft_ct_netns_put(struct net *net, uint8_t family)
+-{
+-	if (family == NFPROTO_INET) {
+-		nf_ct_netns_put(net, NFPROTO_IPV4);
+-		nf_ct_netns_put(net, NFPROTO_IPV6);
+-	} else
+-		nf_ct_netns_put(net, family);
+-}
+-
+ #ifdef CONFIG_NF_CONNTRACK_ZONES
+ static void nft_ct_tmpl_put_pcpu(void)
+ {
+@@ -489,7 +456,7 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
+ 	if (err < 0)
+ 		return err;
+ 
+-	err = nft_ct_netns_get(ctx->net, ctx->afi->family);
++	err = nf_ct_netns_get(ctx->net, ctx->afi->family);
+ 	if (err < 0)
+ 		return err;
+ 
+@@ -583,7 +550,7 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
+ 	if (err < 0)
+ 		goto err1;
+ 
+-	err = nft_ct_netns_get(ctx->net, ctx->afi->family);
++	err = nf_ct_netns_get(ctx->net, ctx->afi->family);
+ 	if (err < 0)
+ 		goto err1;
+ 
+@@ -606,7 +573,7 @@ static void nft_ct_set_destroy(const struct nft_ctx *ctx,
+ 	struct nft_ct *priv = nft_expr_priv(expr);
+ 
+ 	__nft_ct_set_destroy(ctx, priv);
+-	nft_ct_netns_put(ctx->net, ctx->afi->family);
++	nf_ct_netns_put(ctx->net, ctx->afi->family);
+ }
+ 
+ static int nft_ct_get_dump(struct sk_buff *skb, const struct nft_expr *expr)
 -- 
 2.11.0
