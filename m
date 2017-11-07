@@ -1,90 +1,307 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 10/23] netfilter: conntrack: make l3proto trackers const
-Date: Tue,  7 Nov 2017 01:52:00 +0100
-Message-ID: <20171107005213.22618-11-pablo@netfilter.org>
+Subject: [PATCH 11/23] netfilter: nf_conntrack_h323: Remove typedef struct
+Date: Tue,  7 Nov 2017 01:52:01 +0100
+Message-ID: <20171107005213.22618-12-pablo@netfilter.org>
 References: <20171107005213.22618-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58930 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934797AbdKGAxG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Nov 2017 19:53:06 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6DA531F4B6F
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Nov 2017 01:53:05 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5B845DA80B
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Nov 2017 01:53:05 +0100 (CET)
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20171107005213.22618-1-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Harsha Sharma <harshasharmaiitr@gmail.com>
 
-previous patches removed all writes to them.
+Remove typedef from struct as linux-kernel coding style tends to
+avoid using typedefs.
+Done using following coccinelle semantic patch
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+@r1@
+type T;
+@@
+
+typedef struct { ... } T;
+
+@script:python c1@
+T2;
+T << r1.T;
+@@
+if T[-2:] =="_t" or T[-2:] == "_T":
+        coccinelle.T2 = T[:-2];
+else:
+        coccinelle.T2 = T;
+
+print T, coccinelle.T2
+
+@r2@
+type r1.T;
+identifier c1.T2;
+@@
+-typedef
+struct
++ T2
+{ ... }
+-T
+;
+
+@r3@
+type r1.T;
+identifier c1.T2;
+@@
+-T
++struct T2
+
+Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/ipv4/nf_conntrack_ipv4.h | 2 +-
- include/net/netfilter/ipv6/nf_conntrack_ipv6.h | 2 +-
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c | 2 +-
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ net/netfilter/nf_conntrack_h323_asn1.c | 80 +++++++++++++++++-----------------
+ 1 file changed, 40 insertions(+), 40 deletions(-)
 
-diff --git a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
-index 919e4e8af327..5534ecca7a5d 100644
---- a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
-+++ b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
-@@ -10,7 +10,7 @@
- #define _NF_CONNTRACK_IPV4_H
+diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
+index 89b2e46925c4..7831aa1effc9 100644
+--- a/net/netfilter/nf_conntrack_h323_asn1.c
++++ b/net/netfilter/nf_conntrack_h323_asn1.c
+@@ -91,41 +91,41 @@ typedef struct field_t {
+ } field_t;
  
+ /* Bit Stream */
+-typedef struct {
++struct bitstr {
+ 	unsigned char *buf;
+ 	unsigned char *beg;
+ 	unsigned char *end;
+ 	unsigned char *cur;
+ 	unsigned int bit;
+-} bitstr_t;
++};
  
--extern struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4;
-+const extern struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4;
+ /* Tool Functions */
+ #define INC_BIT(bs) if((++(bs)->bit)>7){(bs)->cur++;(bs)->bit=0;}
+ #define INC_BITS(bs,b) if(((bs)->bit+=(b))>7){(bs)->cur+=(bs)->bit>>3;(bs)->bit&=7;}
+ #define BYTE_ALIGN(bs) if((bs)->bit){(bs)->cur++;(bs)->bit=0;}
+ #define CHECK_BOUND(bs,n) if((bs)->cur+(n)>(bs)->end)return(H323_ERROR_BOUND)
+-static unsigned int get_len(bitstr_t *bs);
+-static unsigned int get_bit(bitstr_t *bs);
+-static unsigned int get_bits(bitstr_t *bs, unsigned int b);
+-static unsigned int get_bitmap(bitstr_t *bs, unsigned int b);
+-static unsigned int get_uint(bitstr_t *bs, int b);
++static unsigned int get_len(struct bitstr *bs);
++static unsigned int get_bit(struct bitstr *bs);
++static unsigned int get_bits(struct bitstr *bs, unsigned int b);
++static unsigned int get_bitmap(struct bitstr *bs, unsigned int b);
++static unsigned int get_uint(struct bitstr *bs, int b);
  
- extern struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4;
- extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4;
-diff --git a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
-index eaea968f8657..30dc57980866 100644
---- a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
-+++ b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
-@@ -1,7 +1,7 @@
- #ifndef _NF_CONNTRACK_IPV6_H
- #define _NF_CONNTRACK_IPV6_H
+ /* Decoder Functions */
+-static int decode_nul(bitstr_t *bs, const struct field_t *f, char *base, int level);
+-static int decode_bool(bitstr_t *bs, const struct field_t *f, char *base, int level);
+-static int decode_oid(bitstr_t *bs, const struct field_t *f, char *base, int level);
+-static int decode_int(bitstr_t *bs, const struct field_t *f, char *base, int level);
+-static int decode_enum(bitstr_t *bs, const struct field_t *f, char *base, int level);
+-static int decode_bitstr(bitstr_t *bs, const struct field_t *f, char *base, int level);
+-static int decode_numstr(bitstr_t *bs, const struct field_t *f, char *base, int level);
+-static int decode_octstr(bitstr_t *bs, const struct field_t *f, char *base, int level);
+-static int decode_bmpstr(bitstr_t *bs, const struct field_t *f, char *base, int level);
+-static int decode_seq(bitstr_t *bs, const struct field_t *f, char *base, int level);
+-static int decode_seqof(bitstr_t *bs, const struct field_t *f, char *base, int level);
+-static int decode_choice(bitstr_t *bs, const struct field_t *f, char *base, int level);
++static int decode_nul(struct bitstr *bs, const struct field_t *f, char *base, int level);
++static int decode_bool(struct bitstr *bs, const struct field_t *f, char *base, int level);
++static int decode_oid(struct bitstr *bs, const struct field_t *f, char *base, int level);
++static int decode_int(struct bitstr *bs, const struct field_t *f, char *base, int level);
++static int decode_enum(struct bitstr *bs, const struct field_t *f, char *base, int level);
++static int decode_bitstr(struct bitstr *bs, const struct field_t *f, char *base, int level);
++static int decode_numstr(struct bitstr *bs, const struct field_t *f, char *base, int level);
++static int decode_octstr(struct bitstr *bs, const struct field_t *f, char *base, int level);
++static int decode_bmpstr(struct bitstr *bs, const struct field_t *f, char *base, int level);
++static int decode_seq(struct bitstr *bs, const struct field_t *f, char *base, int level);
++static int decode_seqof(struct bitstr *bs, const struct field_t *f, char *base, int level);
++static int decode_choice(struct bitstr *bs, const struct field_t *f, char *base, int level);
  
--extern struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6;
-+extern const struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6;
+ /* Decoder Functions Vector */
+-typedef int (*decoder_t)(bitstr_t *, const struct field_t *, char *, int);
++typedef int (*decoder_t)(struct bitstr *, const struct field_t *, char *, int);
+ static const decoder_t Decoders[] = {
+ 	decode_nul,
+ 	decode_bool,
+@@ -150,7 +150,7 @@ static const decoder_t Decoders[] = {
+  * Functions
+  ****************************************************************************/
+ /* Assume bs is aligned && v < 16384 */
+-static unsigned int get_len(bitstr_t *bs)
++static unsigned int get_len(struct bitstr *bs)
+ {
+ 	unsigned int v;
  
- extern struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6;
- extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6;
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index fe374da4bc13..89af9d88ca21 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -344,7 +344,7 @@ static void ipv4_hooks_unregister(struct net *net)
- 	mutex_unlock(&register_ipv4_hooks);
+@@ -166,7 +166,7 @@ static unsigned int get_len(bitstr_t *bs)
  }
  
--struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 __read_mostly = {
-+const struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 = {
- 	.l3proto	 = PF_INET,
- 	.pkt_to_tuple	 = ipv4_pkt_to_tuple,
- 	.invert_tuple	 = ipv4_invert_tuple,
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index fe01dc953c56..3b80a38f62b8 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -339,7 +339,7 @@ static void ipv6_hooks_unregister(struct net *net)
- 	mutex_unlock(&register_ipv6_hooks);
+ /****************************************************************************/
+-static unsigned int get_bit(bitstr_t *bs)
++static unsigned int get_bit(struct bitstr *bs)
+ {
+ 	unsigned int b = (*bs->cur) & (0x80 >> bs->bit);
+ 
+@@ -177,7 +177,7 @@ static unsigned int get_bit(bitstr_t *bs)
+ 
+ /****************************************************************************/
+ /* Assume b <= 8 */
+-static unsigned int get_bits(bitstr_t *bs, unsigned int b)
++static unsigned int get_bits(struct bitstr *bs, unsigned int b)
+ {
+ 	unsigned int v, l;
+ 
+@@ -203,7 +203,7 @@ static unsigned int get_bits(bitstr_t *bs, unsigned int b)
+ 
+ /****************************************************************************/
+ /* Assume b <= 32 */
+-static unsigned int get_bitmap(bitstr_t *bs, unsigned int b)
++static unsigned int get_bitmap(struct bitstr *bs, unsigned int b)
+ {
+ 	unsigned int v, l, shift, bytes;
+ 
+@@ -242,7 +242,7 @@ static unsigned int get_bitmap(bitstr_t *bs, unsigned int b)
+ /****************************************************************************
+  * Assume bs is aligned and sizeof(unsigned int) == 4
+  ****************************************************************************/
+-static unsigned int get_uint(bitstr_t *bs, int b)
++static unsigned int get_uint(struct bitstr *bs, int b)
+ {
+ 	unsigned int v = 0;
+ 
+@@ -264,7 +264,7 @@ static unsigned int get_uint(bitstr_t *bs, int b)
  }
  
--struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 __read_mostly = {
-+const struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 = {
- 	.l3proto		= PF_INET6,
- 	.pkt_to_tuple		= ipv6_pkt_to_tuple,
- 	.invert_tuple		= ipv6_invert_tuple,
+ /****************************************************************************/
+-static int decode_nul(bitstr_t *bs, const struct field_t *f,
++static int decode_nul(struct bitstr *bs, const struct field_t *f,
+                       char *base, int level)
+ {
+ 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
+@@ -273,7 +273,7 @@ static int decode_nul(bitstr_t *bs, const struct field_t *f,
+ }
+ 
+ /****************************************************************************/
+-static int decode_bool(bitstr_t *bs, const struct field_t *f,
++static int decode_bool(struct bitstr *bs, const struct field_t *f,
+                        char *base, int level)
+ {
+ 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
+@@ -285,7 +285,7 @@ static int decode_bool(bitstr_t *bs, const struct field_t *f,
+ }
+ 
+ /****************************************************************************/
+-static int decode_oid(bitstr_t *bs, const struct field_t *f,
++static int decode_oid(struct bitstr *bs, const struct field_t *f,
+                       char *base, int level)
+ {
+ 	int len;
+@@ -302,7 +302,7 @@ static int decode_oid(bitstr_t *bs, const struct field_t *f,
+ }
+ 
+ /****************************************************************************/
+-static int decode_int(bitstr_t *bs, const struct field_t *f,
++static int decode_int(struct bitstr *bs, const struct field_t *f,
+                       char *base, int level)
+ {
+ 	unsigned int len;
+@@ -346,7 +346,7 @@ static int decode_int(bitstr_t *bs, const struct field_t *f,
+ }
+ 
+ /****************************************************************************/
+-static int decode_enum(bitstr_t *bs, const struct field_t *f,
++static int decode_enum(struct bitstr *bs, const struct field_t *f,
+                        char *base, int level)
+ {
+ 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
+@@ -362,7 +362,7 @@ static int decode_enum(bitstr_t *bs, const struct field_t *f,
+ }
+ 
+ /****************************************************************************/
+-static int decode_bitstr(bitstr_t *bs, const struct field_t *f,
++static int decode_bitstr(struct bitstr *bs, const struct field_t *f,
+                          char *base, int level)
+ {
+ 	unsigned int len;
+@@ -396,7 +396,7 @@ static int decode_bitstr(bitstr_t *bs, const struct field_t *f,
+ }
+ 
+ /****************************************************************************/
+-static int decode_numstr(bitstr_t *bs, const struct field_t *f,
++static int decode_numstr(struct bitstr *bs, const struct field_t *f,
+                          char *base, int level)
+ {
+ 	unsigned int len;
+@@ -414,7 +414,7 @@ static int decode_numstr(bitstr_t *bs, const struct field_t *f,
+ }
+ 
+ /****************************************************************************/
+-static int decode_octstr(bitstr_t *bs, const struct field_t *f,
++static int decode_octstr(struct bitstr *bs, const struct field_t *f,
+                          char *base, int level)
+ {
+ 	unsigned int len;
+@@ -463,7 +463,7 @@ static int decode_octstr(bitstr_t *bs, const struct field_t *f,
+ }
+ 
+ /****************************************************************************/
+-static int decode_bmpstr(bitstr_t *bs, const struct field_t *f,
++static int decode_bmpstr(struct bitstr *bs, const struct field_t *f,
+                          char *base, int level)
+ {
+ 	unsigned int len;
+@@ -489,7 +489,7 @@ static int decode_bmpstr(bitstr_t *bs, const struct field_t *f,
+ }
+ 
+ /****************************************************************************/
+-static int decode_seq(bitstr_t *bs, const struct field_t *f,
++static int decode_seq(struct bitstr *bs, const struct field_t *f,
+                       char *base, int level)
+ {
+ 	unsigned int ext, bmp, i, opt, len = 0, bmp2, bmp2_len;
+@@ -606,7 +606,7 @@ static int decode_seq(bitstr_t *bs, const struct field_t *f,
+ }
+ 
+ /****************************************************************************/
+-static int decode_seqof(bitstr_t *bs, const struct field_t *f,
++static int decode_seqof(struct bitstr *bs, const struct field_t *f,
+                         char *base, int level)
+ {
+ 	unsigned int count, effective_count = 0, i, len = 0;
+@@ -696,7 +696,7 @@ static int decode_seqof(bitstr_t *bs, const struct field_t *f,
+ 
+ 
+ /****************************************************************************/
+-static int decode_choice(bitstr_t *bs, const struct field_t *f,
++static int decode_choice(struct bitstr *bs, const struct field_t *f,
+                          char *base, int level)
+ {
+ 	unsigned int type, ext, len = 0;
+@@ -772,7 +772,7 @@ int DecodeRasMessage(unsigned char *buf, size_t sz, RasMessage *ras)
+ 		FNAME("RasMessage") CHOICE, 5, 24, 32, DECODE | EXT,
+ 		0, _RasMessage
+ 	};
+-	bitstr_t bs;
++	struct bitstr bs;
+ 
+ 	bs.buf = bs.beg = bs.cur = buf;
+ 	bs.end = buf + sz;
+@@ -789,7 +789,7 @@ static int DecodeH323_UserInformation(unsigned char *buf, unsigned char *beg,
+ 		FNAME("H323-UserInformation") SEQ, 1, 2, 2, DECODE | EXT,
+ 		0, _H323_UserInformation
+ 	};
+-	bitstr_t bs;
++	struct bitstr bs;
+ 
+ 	bs.buf = buf;
+ 	bs.beg = bs.cur = beg;
+@@ -808,7 +808,7 @@ int DecodeMultimediaSystemControlMessage(unsigned char *buf, size_t sz,
+ 		FNAME("MultimediaSystemControlMessage") CHOICE, 2, 4, 4,
+ 		DECODE | EXT, 0, _MultimediaSystemControlMessage
+ 	};
+-	bitstr_t bs;
++	struct bitstr bs;
+ 
+ 	bs.buf = bs.beg = bs.cur = buf;
+ 	bs.end = buf + sz;
 -- 
 2.11.0
-
