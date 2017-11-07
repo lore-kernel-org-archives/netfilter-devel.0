@@ -1,167 +1,90 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 09/23] netfilter: x_tables: don't use seqlock when fetching old counters
-Date: Tue,  7 Nov 2017 01:51:59 +0100
-Message-ID: <20171107005213.22618-10-pablo@netfilter.org>
+Subject: [PATCH 10/23] netfilter: conntrack: make l3proto trackers const
+Date: Tue,  7 Nov 2017 01:52:00 +0100
+Message-ID: <20171107005213.22618-11-pablo@netfilter.org>
 References: <20171107005213.22618-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58914 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58930 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934799AbdKGAxA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 6 Nov 2017 19:53:00 -0500
+        id S934797AbdKGAxG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Nov 2017 19:53:06 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E2F131F4B6F
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Nov 2017 01:52:58 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 6DA531F4B6F
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Nov 2017 01:53:05 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D3221DA812
-        for <netfilter-devel@vger.kernel.org>; Tue,  7 Nov 2017 01:52:58 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5B845DA80B
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Nov 2017 01:53:05 +0100 (CET)
 In-Reply-To: <20171107005213.22618-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Florian Westphal <fw@strlen.de>
 
-after previous commit xt_replace_table will wait until all cpus
-had even seqcount (i.e., no cpu is accessing old ruleset).
+previous patches removed all writes to them.
 
-Add a 'old' counter retrival version that doesn't synchronize counters.
-Its not needed, the old counters are not in use anymore at this point.
-
-This speeds up table replacement on busy systems with large tables
-(and many cores).
-
-Cc: Dan Williams <dcbw@redhat.com>
-Cc: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/arp_tables.c | 22 ++++++++++++++++++++--
- net/ipv4/netfilter/ip_tables.c  | 23 +++++++++++++++++++++--
- net/ipv6/netfilter/ip6_tables.c | 22 ++++++++++++++++++++--
- 3 files changed, 61 insertions(+), 6 deletions(-)
+ include/net/netfilter/ipv4/nf_conntrack_ipv4.h | 2 +-
+ include/net/netfilter/ipv6/nf_conntrack_ipv6.h | 2 +-
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c | 2 +-
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 9e2770fd00be..f88221aebc9d 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -634,6 +634,25 @@ static void get_counters(const struct xt_table_info *t,
- 	}
+diff --git a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
+index 919e4e8af327..5534ecca7a5d 100644
+--- a/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
++++ b/include/net/netfilter/ipv4/nf_conntrack_ipv4.h
+@@ -10,7 +10,7 @@
+ #define _NF_CONNTRACK_IPV4_H
+ 
+ 
+-extern struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4;
++const extern struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4;
+ 
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4;
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4;
+diff --git a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+index eaea968f8657..30dc57980866 100644
+--- a/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
++++ b/include/net/netfilter/ipv6/nf_conntrack_ipv6.h
+@@ -1,7 +1,7 @@
+ #ifndef _NF_CONNTRACK_IPV6_H
+ #define _NF_CONNTRACK_IPV6_H
+ 
+-extern struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6;
++extern const struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6;
+ 
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6;
+ extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6;
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index fe374da4bc13..89af9d88ca21 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -344,7 +344,7 @@ static void ipv4_hooks_unregister(struct net *net)
+ 	mutex_unlock(&register_ipv4_hooks);
  }
  
-+static void get_old_counters(const struct xt_table_info *t,
-+			     struct xt_counters counters[])
-+{
-+	struct arpt_entry *iter;
-+	unsigned int cpu, i;
-+
-+	for_each_possible_cpu(cpu) {
-+		i = 0;
-+		xt_entry_foreach(iter, t->entries, t->size) {
-+			struct xt_counters *tmp;
-+
-+			tmp = xt_get_per_cpu_counter(&iter->counters, cpu);
-+			ADD_COUNTER(counters[i], tmp->bcnt, tmp->pcnt);
-+			++i;
-+		}
-+		cond_resched();
-+	}
-+}
-+
- static struct xt_counters *alloc_counters(const struct xt_table *table)
- {
- 	unsigned int countersize;
-@@ -910,8 +929,7 @@ static int __do_replace(struct net *net, const char *name,
- 	    (newinfo->number <= oldinfo->initial_entries))
- 		module_put(t->me);
- 
--	/* Get the old counters, and synchronize with replace */
--	get_counters(oldinfo, counters);
-+	get_old_counters(oldinfo, counters);
- 
- 	/* Decrease module usage counts and free resource */
- 	loc_cpu_old_entry = oldinfo->entries;
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 39286e543ee6..4cbe5e80f3bf 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -781,6 +781,26 @@ get_counters(const struct xt_table_info *t,
- 	}
+-struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 __read_mostly = {
++const struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 = {
+ 	.l3proto	 = PF_INET,
+ 	.pkt_to_tuple	 = ipv4_pkt_to_tuple,
+ 	.invert_tuple	 = ipv4_invert_tuple,
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index fe01dc953c56..3b80a38f62b8 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -339,7 +339,7 @@ static void ipv6_hooks_unregister(struct net *net)
+ 	mutex_unlock(&register_ipv6_hooks);
  }
  
-+static void get_old_counters(const struct xt_table_info *t,
-+			     struct xt_counters counters[])
-+{
-+	struct ipt_entry *iter;
-+	unsigned int cpu, i;
-+
-+	for_each_possible_cpu(cpu) {
-+		i = 0;
-+		xt_entry_foreach(iter, t->entries, t->size) {
-+			const struct xt_counters *tmp;
-+
-+			tmp = xt_get_per_cpu_counter(&iter->counters, cpu);
-+			ADD_COUNTER(counters[i], tmp->bcnt, tmp->pcnt);
-+			++i; /* macro does multi eval of i */
-+		}
-+
-+		cond_resched();
-+	}
-+}
-+
- static struct xt_counters *alloc_counters(const struct xt_table *table)
- {
- 	unsigned int countersize;
-@@ -1070,8 +1090,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 	    (newinfo->number <= oldinfo->initial_entries))
- 		module_put(t->me);
- 
--	/* Get the old counters, and synchronize with replace */
--	get_counters(oldinfo, counters);
-+	get_old_counters(oldinfo, counters);
- 
- 	/* Decrease module usage counts and free resource */
- 	xt_entry_foreach(iter, oldinfo->entries, oldinfo->size)
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 01bd3ee5ebc6..f06e25065a34 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -800,6 +800,25 @@ get_counters(const struct xt_table_info *t,
- 	}
- }
- 
-+static void get_old_counters(const struct xt_table_info *t,
-+			     struct xt_counters counters[])
-+{
-+	struct ip6t_entry *iter;
-+	unsigned int cpu, i;
-+
-+	for_each_possible_cpu(cpu) {
-+		i = 0;
-+		xt_entry_foreach(iter, t->entries, t->size) {
-+			const struct xt_counters *tmp;
-+
-+			tmp = xt_get_per_cpu_counter(&iter->counters, cpu);
-+			ADD_COUNTER(counters[i], tmp->bcnt, tmp->pcnt);
-+			++i;
-+		}
-+		cond_resched();
-+	}
-+}
-+
- static struct xt_counters *alloc_counters(const struct xt_table *table)
- {
- 	unsigned int countersize;
-@@ -1090,8 +1109,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 	    (newinfo->number <= oldinfo->initial_entries))
- 		module_put(t->me);
- 
--	/* Get the old counters, and synchronize with replace */
--	get_counters(oldinfo, counters);
-+	get_old_counters(oldinfo, counters);
- 
- 	/* Decrease module usage counts and free resource */
- 	xt_entry_foreach(iter, oldinfo->entries, oldinfo->size)
+-struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 __read_mostly = {
++const struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 = {
+ 	.l3proto		= PF_INET6,
+ 	.pkt_to_tuple		= ipv6_pkt_to_tuple,
+ 	.invert_tuple		= ipv6_invert_tuple,
 -- 
 2.11.0
 
