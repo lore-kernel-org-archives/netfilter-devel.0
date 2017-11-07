@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 20/23] netfilter: conntrack: move nf_ct_netns_{get,put}() to core
-Date: Tue,  7 Nov 2017 01:52:10 +0100
-Message-ID: <20171107005213.22618-21-pablo@netfilter.org>
+Subject: [PATCH 21/23] netfilter: conntrack: use power efficient workqueue
+Date: Tue,  7 Nov 2017 01:52:11 +0100
+Message-ID: <20171107005213.22618-22-pablo@netfilter.org>
 References: <20171107005213.22618-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,150 +10,45 @@ In-Reply-To: <20171107005213.22618-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-So we can call this from other expression that need conntrack in place
-to work.
+From: Vincent Guittot <vincent.guittot@linaro.org>
 
+conntrack uses the bounded system_long_wq workqueue for its works that
+don't have to run on the cpu they have been queued.
+Using bounded workqueue prevents the scheduler to make smart decision about
+the best place to schedule the work.
+
+This patch replaces system_long_wq with system_power_efficient_wq. the work
+stays bounded to a cpu by default unless the CONFIG_WQ_POWER_EFFICIENT is
+enable. In the latter case, the work can be scheduled on the best cpu from
+a power or a performance point of view.
+
+Signed-off-by: Vincent Guittot <vincent.guittot@linaro.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Acked-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_conntrack_proto.c | 37 ++++++++++++++++++++++++++++++++++--
- net/netfilter/nft_ct.c             | 39 +++-----------------------------------
- 2 files changed, 38 insertions(+), 38 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index 3b06ff3f2dee..c8e9c9503a08 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -172,7 +172,7 @@ void nf_ct_l3proto_module_put(unsigned short l3proto)
- }
- EXPORT_SYMBOL_GPL(nf_ct_l3proto_module_put);
- 
--int nf_ct_netns_get(struct net *net, u8 nfproto)
-+static int nf_ct_netns_do_get(struct net *net, u8 nfproto)
- {
- 	const struct nf_conntrack_l3proto *l3proto;
- 	int ret;
-@@ -197,9 +197,33 @@ int nf_ct_netns_get(struct net *net, u8 nfproto)
- 
- 	return ret;
- }
-+
-+int nf_ct_netns_get(struct net *net, u8 nfproto)
-+{
-+	int err;
-+
-+	if (nfproto == NFPROTO_INET) {
-+		err = nf_ct_netns_do_get(net, NFPROTO_IPV4);
-+		if (err < 0)
-+			goto err1;
-+		err = nf_ct_netns_do_get(net, NFPROTO_IPV6);
-+		if (err < 0)
-+			goto err2;
-+	} else {
-+		err = nf_ct_netns_do_get(net, nfproto);
-+		if (err < 0)
-+			goto err1;
-+	}
-+	return 0;
-+
-+err2:
-+	nf_ct_netns_put(net, NFPROTO_IPV4);
-+err1:
-+	return err;
-+}
- EXPORT_SYMBOL_GPL(nf_ct_netns_get);
- 
--void nf_ct_netns_put(struct net *net, u8 nfproto)
-+static void nf_ct_netns_do_put(struct net *net, u8 nfproto)
- {
- 	const struct nf_conntrack_l3proto *l3proto;
- 
-@@ -218,6 +242,15 @@ void nf_ct_netns_put(struct net *net, u8 nfproto)
- 
- 	nf_ct_l3proto_module_put(nfproto);
- }
-+
-+void nf_ct_netns_put(struct net *net, uint8_t nfproto)
-+{
-+	if (nfproto == NFPROTO_INET) {
-+		nf_ct_netns_do_put(net, NFPROTO_IPV4);
-+		nf_ct_netns_do_put(net, NFPROTO_IPV6);
-+	} else
-+		nf_ct_netns_do_put(net, nfproto);
-+}
- EXPORT_SYMBOL_GPL(nf_ct_netns_put);
- 
- const struct nf_conntrack_l4proto *
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index bd0975d7dd6f..2647b895f4b0 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -312,39 +312,6 @@ static const struct nla_policy nft_ct_policy[NFTA_CT_MAX + 1] = {
- 	[NFTA_CT_SREG]		= { .type = NLA_U32 },
- };
- 
--static int nft_ct_netns_get(struct net *net, uint8_t family)
--{
--	int err;
--
--	if (family == NFPROTO_INET) {
--		err = nf_ct_netns_get(net, NFPROTO_IPV4);
--		if (err < 0)
--			goto err1;
--		err = nf_ct_netns_get(net, NFPROTO_IPV6);
--		if (err < 0)
--			goto err2;
--	} else {
--		err = nf_ct_netns_get(net, family);
--		if (err < 0)
--			goto err1;
--	}
--	return 0;
--
--err2:
--	nf_ct_netns_put(net, NFPROTO_IPV4);
--err1:
--	return err;
--}
--
--static void nft_ct_netns_put(struct net *net, uint8_t family)
--{
--	if (family == NFPROTO_INET) {
--		nf_ct_netns_put(net, NFPROTO_IPV4);
--		nf_ct_netns_put(net, NFPROTO_IPV6);
--	} else
--		nf_ct_netns_put(net, family);
--}
--
- #ifdef CONFIG_NF_CONNTRACK_ZONES
- static void nft_ct_tmpl_put_pcpu(void)
- {
-@@ -489,7 +456,7 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		return err;
- 
--	err = nft_ct_netns_get(ctx->net, ctx->afi->family);
-+	err = nf_ct_netns_get(ctx->net, ctx->afi->family);
- 	if (err < 0)
- 		return err;
- 
-@@ -583,7 +550,7 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		goto err1;
- 
--	err = nft_ct_netns_get(ctx->net, ctx->afi->family);
-+	err = nf_ct_netns_get(ctx->net, ctx->afi->family);
- 	if (err < 0)
- 		goto err1;
- 
-@@ -606,7 +573,7 @@ static void nft_ct_set_destroy(const struct nft_ctx *ctx,
- 	struct nft_ct *priv = nft_expr_priv(expr);
- 
- 	__nft_ct_set_destroy(ctx, priv);
--	nft_ct_netns_put(ctx->net, ctx->afi->family);
-+	nf_ct_netns_put(ctx->net, ctx->afi->family);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 0e516947c16f..5749fcaa2770 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1083,7 +1083,7 @@ static void gc_worker(struct work_struct *work)
+ 	next_run = gc_work->next_gc_run;
+ 	gc_work->last_bucket = i;
+ 	gc_work->early_drop = false;
+-	queue_delayed_work(system_long_wq, &gc_work->dwork, next_run);
++	queue_delayed_work(system_power_efficient_wq, &gc_work->dwork, next_run);
  }
  
- static int nft_ct_get_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ static void conntrack_gc_work_init(struct conntrack_gc_work *gc_work)
+@@ -2089,7 +2089,7 @@ int nf_conntrack_init_start(void)
+ 		goto err_proto;
+ 
+ 	conntrack_gc_work_init(&conntrack_gc_work);
+-	queue_delayed_work(system_long_wq, &conntrack_gc_work.dwork, HZ);
++	queue_delayed_work(system_power_efficient_wq, &conntrack_gc_work.dwork, HZ);
+ 
+ 	return 0;
+ 
 -- 
 2.11.0
