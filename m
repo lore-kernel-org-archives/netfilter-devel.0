@@ -1,81 +1,167 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 08/23] netfilter: x_tables: make xt_replace_table wait until old rules are not used anymore
-Date: Tue,  7 Nov 2017 01:51:58 +0100
-Message-ID: <20171107005213.22618-9-pablo@netfilter.org>
+Subject: [PATCH 09/23] netfilter: x_tables: don't use seqlock when fetching old counters
+Date: Tue,  7 Nov 2017 01:51:59 +0100
+Message-ID: <20171107005213.22618-10-pablo@netfilter.org>
 References: <20171107005213.22618-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:58914 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934799AbdKGAxA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 6 Nov 2017 19:53:00 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E2F131F4B6F
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Nov 2017 01:52:58 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D3221DA812
+        for <netfilter-devel@vger.kernel.org>; Tue,  7 Nov 2017 01:52:58 +0100 (CET)
 In-Reply-To: <20171107005213.22618-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Florian Westphal <fw@strlen.de>
 
-xt_replace_table relies on table replacement counter retrieval (which
-uses xt_recseq to synchronize pcpu counters).
+after previous commit xt_replace_table will wait until all cpus
+had even seqcount (i.e., no cpu is accessing old ruleset).
 
-This is fine, however with large rule set get_counters() can take
-a very long time -- it needs to synchronize all counters because
-it has to assume concurrent modifications can occur.
+Add a 'old' counter retrival version that doesn't synchronize counters.
+Its not needed, the old counters are not in use anymore at this point.
 
-Make xt_replace_table synchronize by itself by waiting until all cpus
-had an even seqcount.
-
-This allows a followup patch to copy the counters of the old ruleset
-without any synchonization after xt_replace_table has completed.
+This speeds up table replacement on busy systems with large tables
+(and many cores).
 
 Cc: Dan Williams <dcbw@redhat.com>
-Reviewed-by: Eric Dumazet <edumazet@google.com>
+Cc: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/x_tables.c | 21 ++++++++++++++++++---
- 1 file changed, 18 insertions(+), 3 deletions(-)
+ net/ipv4/netfilter/arp_tables.c | 22 ++++++++++++++++++++--
+ net/ipv4/netfilter/ip_tables.c  | 23 +++++++++++++++++++++--
+ net/ipv6/netfilter/ip6_tables.c | 22 ++++++++++++++++++++--
+ 3 files changed, 61 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index c83a3b5e1c6c..a164e5123d59 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1153,6 +1153,7 @@ xt_replace_table(struct xt_table *table,
- 	      int *error)
- {
- 	struct xt_table_info *private;
-+	unsigned int cpu;
- 	int ret;
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 9e2770fd00be..f88221aebc9d 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -634,6 +634,25 @@ static void get_counters(const struct xt_table_info *t,
+ 	}
+ }
  
- 	ret = xt_jumpstack_alloc(newinfo);
-@@ -1182,14 +1183,28 @@ xt_replace_table(struct xt_table *table,
- 	smp_wmb();
- 	table->private = newinfo;
- 
-+	/* make sure all cpus see new ->private value */
-+	smp_wmb();
++static void get_old_counters(const struct xt_table_info *t,
++			     struct xt_counters counters[])
++{
++	struct arpt_entry *iter;
++	unsigned int cpu, i;
 +
- 	/*
- 	 * Even though table entries have now been swapped, other CPU's
--	 * may still be using the old entries. This is okay, because
--	 * resynchronization happens because of the locking done
--	 * during the get_counters() routine.
-+	 * may still be using the old entries...
- 	 */
- 	local_bh_enable();
- 
-+	/* ... so wait for even xt_recseq on all cpus */
 +	for_each_possible_cpu(cpu) {
-+		seqcount_t *s = &per_cpu(xt_recseq, cpu);
-+		u32 seq = raw_read_seqcount(s);
++		i = 0;
++		xt_entry_foreach(iter, t->entries, t->size) {
++			struct xt_counters *tmp;
 +
-+		if (seq & 1) {
-+			do {
-+				cond_resched();
-+				cpu_relax();
-+			} while (seq == raw_read_seqcount(s));
++			tmp = xt_get_per_cpu_counter(&iter->counters, cpu);
++			ADD_COUNTER(counters[i], tmp->bcnt, tmp->pcnt);
++			++i;
 +		}
++		cond_resched();
 +	}
++}
 +
- #ifdef CONFIG_AUDIT
- 	if (audit_enabled) {
- 		audit_log(current->audit_context, GFP_KERNEL,
+ static struct xt_counters *alloc_counters(const struct xt_table *table)
+ {
+ 	unsigned int countersize;
+@@ -910,8 +929,7 @@ static int __do_replace(struct net *net, const char *name,
+ 	    (newinfo->number <= oldinfo->initial_entries))
+ 		module_put(t->me);
+ 
+-	/* Get the old counters, and synchronize with replace */
+-	get_counters(oldinfo, counters);
++	get_old_counters(oldinfo, counters);
+ 
+ 	/* Decrease module usage counts and free resource */
+ 	loc_cpu_old_entry = oldinfo->entries;
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 39286e543ee6..4cbe5e80f3bf 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -781,6 +781,26 @@ get_counters(const struct xt_table_info *t,
+ 	}
+ }
+ 
++static void get_old_counters(const struct xt_table_info *t,
++			     struct xt_counters counters[])
++{
++	struct ipt_entry *iter;
++	unsigned int cpu, i;
++
++	for_each_possible_cpu(cpu) {
++		i = 0;
++		xt_entry_foreach(iter, t->entries, t->size) {
++			const struct xt_counters *tmp;
++
++			tmp = xt_get_per_cpu_counter(&iter->counters, cpu);
++			ADD_COUNTER(counters[i], tmp->bcnt, tmp->pcnt);
++			++i; /* macro does multi eval of i */
++		}
++
++		cond_resched();
++	}
++}
++
+ static struct xt_counters *alloc_counters(const struct xt_table *table)
+ {
+ 	unsigned int countersize;
+@@ -1070,8 +1090,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 	    (newinfo->number <= oldinfo->initial_entries))
+ 		module_put(t->me);
+ 
+-	/* Get the old counters, and synchronize with replace */
+-	get_counters(oldinfo, counters);
++	get_old_counters(oldinfo, counters);
+ 
+ 	/* Decrease module usage counts and free resource */
+ 	xt_entry_foreach(iter, oldinfo->entries, oldinfo->size)
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 01bd3ee5ebc6..f06e25065a34 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -800,6 +800,25 @@ get_counters(const struct xt_table_info *t,
+ 	}
+ }
+ 
++static void get_old_counters(const struct xt_table_info *t,
++			     struct xt_counters counters[])
++{
++	struct ip6t_entry *iter;
++	unsigned int cpu, i;
++
++	for_each_possible_cpu(cpu) {
++		i = 0;
++		xt_entry_foreach(iter, t->entries, t->size) {
++			const struct xt_counters *tmp;
++
++			tmp = xt_get_per_cpu_counter(&iter->counters, cpu);
++			ADD_COUNTER(counters[i], tmp->bcnt, tmp->pcnt);
++			++i;
++		}
++		cond_resched();
++	}
++}
++
+ static struct xt_counters *alloc_counters(const struct xt_table *table)
+ {
+ 	unsigned int countersize;
+@@ -1090,8 +1109,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 	    (newinfo->number <= oldinfo->initial_entries))
+ 		module_put(t->me);
+ 
+-	/* Get the old counters, and synchronize with replace */
+-	get_counters(oldinfo, counters);
++	get_old_counters(oldinfo, counters);
+ 
+ 	/* Decrease module usage counts and free resource */
+ 	xt_entry_foreach(iter, oldinfo->entries, oldinfo->size)
 -- 
 2.11.0
+
