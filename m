@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 17/23] netfilter: xt_connlimit: remove mask argument
-Date: Tue,  7 Nov 2017 01:52:07 +0100
-Message-ID: <20171107005213.22618-18-pablo@netfilter.org>
+Subject: [PATCH 19/23] netfilter: conntrack: don't cache nlattr_tuple_size result in nla_size
+Date: Tue,  7 Nov 2017 01:52:09 +0100
+Message-ID: <20171107005213.22618-20-pablo@netfilter.org>
 References: <20171107005213.22618-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,139 +12,180 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Instead of passing mask to all the helpers, just fixup the search key
-early.
+We currently call ->nlattr_tuple_size() once at register time and
+cache result in l4proto->nla_size.
 
-After rbtree conversion, each rbtree node stores connections of same
-'addr & mask', so no need to pass the mask too.
+nla_size is the only member that is written to, avoiding this would
+allow to make l4proto trackers const.
+
+We can use ->nlattr_tuple_size() at run time, and cache result in
+the individual trackers instead.
+
+This is an intermediate step, next patch removes nlattr_size()
+callback and computes size at compile time, then removes nla_size.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_connlimit.c | 52 +++++++++++++++++---------------------------
- 1 file changed, 20 insertions(+), 32 deletions(-)
+ include/net/netfilter/nf_conntrack_l4proto.h   |  4 ++--
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |  9 +++++++--
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |  9 +++++++--
+ net/netfilter/nf_conntrack_core.c              |  9 +++++++--
+ net/netfilter/nf_conntrack_netlink.c           | 10 +++++++---
+ net/netfilter/nf_conntrack_proto.c             |  2 --
+ net/netfilter/nf_conntrack_proto_tcp.c         |  9 +++++++--
+ 7 files changed, 37 insertions(+), 15 deletions(-)
 
-diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index ce2870428631..a6214f235333 100644
---- a/net/netfilter/xt_connlimit.c
-+++ b/net/netfilter/xt_connlimit.c
-@@ -71,16 +71,9 @@ static inline unsigned int connlimit_iphash(__be32 addr)
+diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+index e06518874144..46e786ffcf2f 100644
+--- a/include/net/netfilter/nf_conntrack_l4proto.h
++++ b/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -74,7 +74,7 @@ struct nf_conntrack_l4proto {
+ 	int (*tuple_to_nlattr)(struct sk_buff *skb,
+ 			       const struct nf_conntrack_tuple *t);
+ 	/* Calculate tuple nlattr size */
+-	int (*nlattr_tuple_size)(void);
++	unsigned int (*nlattr_tuple_size)(void);
+ 	int (*nlattr_to_tuple)(struct nlattr *tb[],
+ 			       struct nf_conntrack_tuple *t);
+ 	const struct nla_policy *nla_policy;
+@@ -144,7 +144,7 @@ int nf_ct_port_tuple_to_nlattr(struct sk_buff *skb,
+ 			       const struct nf_conntrack_tuple *tuple);
+ int nf_ct_port_nlattr_to_tuple(struct nlattr *tb[],
+ 			       struct nf_conntrack_tuple *t);
+-int nf_ct_port_nlattr_tuple_size(void);
++unsigned int nf_ct_port_nlattr_tuple_size(void);
+ extern const struct nla_policy nf_ct_port_nla_policy[];
+ 
+ #ifdef CONFIG_SYSCTL
+diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+index 8969420cecc3..1849fedd9b81 100644
+--- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+@@ -258,9 +258,14 @@ static int icmp_nlattr_to_tuple(struct nlattr *tb[],
+ 	return 0;
  }
  
- static inline unsigned int
--connlimit_iphash6(const union nf_inet_addr *addr,
--                  const union nf_inet_addr *mask)
-+connlimit_iphash6(const union nf_inet_addr *addr)
+-static int icmp_nlattr_tuple_size(void)
++static unsigned int icmp_nlattr_tuple_size(void)
  {
--	union nf_inet_addr res;
--	unsigned int i;
--
--	for (i = 0; i < ARRAY_SIZE(addr->ip6); ++i)
--		res.ip6[i] = addr->ip6[i] & mask->ip6[i];
--
--	return jhash2((u32 *)res.ip6, ARRAY_SIZE(res.ip6),
-+	return jhash2((u32 *)addr->ip6, ARRAY_SIZE(addr->ip6),
- 		       connlimit_rnd) % CONNLIMIT_SLOTS;
- }
- 
-@@ -94,24 +87,13 @@ static inline bool already_closed(const struct nf_conn *conn)
- }
- 
- static int
--same_source_net(const union nf_inet_addr *addr,
--		const union nf_inet_addr *mask,
--		const union nf_inet_addr *u3, u_int8_t family)
-+same_source(const union nf_inet_addr *addr,
-+	    const union nf_inet_addr *u3, u_int8_t family)
- {
--	if (family == NFPROTO_IPV4) {
--		return ntohl(addr->ip & mask->ip) -
--		       ntohl(u3->ip & mask->ip);
--	} else {
--		union nf_inet_addr lh, rh;
--		unsigned int i;
--
--		for (i = 0; i < ARRAY_SIZE(addr->ip6); ++i) {
--			lh.ip6[i] = addr->ip6[i] & mask->ip6[i];
--			rh.ip6[i] = u3->ip6[i] & mask->ip6[i];
--		}
-+	if (family == NFPROTO_IPV4)
-+		return ntohl(addr->ip) - ntohl(u3->ip);
- 
--		return memcmp(&lh.ip6, &rh.ip6, sizeof(lh.ip6));
--	}
-+	return memcmp(addr->ip6, u3->ip6, sizeof(addr->ip6));
- }
- 
- static bool add_hlist(struct hlist_head *head,
-@@ -194,7 +176,7 @@ static void tree_nodes_free(struct rb_root *root,
- static unsigned int
- count_tree(struct net *net, struct rb_root *root,
- 	   const struct nf_conntrack_tuple *tuple,
--	   const union nf_inet_addr *addr, const union nf_inet_addr *mask,
-+	   const union nf_inet_addr *addr,
- 	   u8 family, const struct nf_conntrack_zone *zone)
- {
- 	struct xt_connlimit_rb *gc_nodes[CONNLIMIT_GC_MAX_NODES];
-@@ -215,7 +197,7 @@ count_tree(struct net *net, struct rb_root *root,
- 		rbconn = rb_entry(*rbnode, struct xt_connlimit_rb, node);
- 
- 		parent = *rbnode;
--		diff = same_source_net(addr, mask, &rbconn->addr, family);
-+		diff = same_source(addr, &rbconn->addr, family);
- 		if (diff < 0) {
- 			rbnode = &((*rbnode)->rb_left);
- 		} else if (diff > 0) {
-@@ -282,7 +264,6 @@ static int count_them(struct net *net,
- 		      struct xt_connlimit_data *data,
- 		      const struct nf_conntrack_tuple *tuple,
- 		      const union nf_inet_addr *addr,
--		      const union nf_inet_addr *mask,
- 		      u_int8_t family,
- 		      const struct nf_conntrack_zone *zone)
- {
-@@ -291,14 +272,14 @@ static int count_them(struct net *net,
- 	u32 hash;
- 
- 	if (family == NFPROTO_IPV6)
--		hash = connlimit_iphash6(addr, mask);
-+		hash = connlimit_iphash6(addr);
- 	else
--		hash = connlimit_iphash(addr->ip & mask->ip);
-+		hash = connlimit_iphash(addr->ip);
- 	root = &data->climit_root[hash];
- 
- 	spin_lock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
- 
--	count = count_tree(net, root, tuple, addr, mask, family, zone);
-+	count = count_tree(net, root, tuple, addr, family, zone);
- 
- 	spin_unlock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
- 
-@@ -329,16 +310,23 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 
- 	if (xt_family(par) == NFPROTO_IPV6) {
- 		const struct ipv6hdr *iph = ipv6_hdr(skb);
-+		unsigned int i;
+-	return nla_policy_len(icmp_nla_policy, CTA_PROTO_MAX + 1);
++	static unsigned int size __read_mostly;
 +
- 		memcpy(&addr.ip6, (info->flags & XT_CONNLIMIT_DADDR) ?
- 		       &iph->daddr : &iph->saddr, sizeof(addr.ip6));
++	if (!size)
++		size = nla_policy_len(icmp_nla_policy, CTA_PROTO_MAX + 1);
 +
-+		for (i = 0; i < ARRAY_SIZE(addr.ip6); ++i)
-+			addr.ip6[i] &= info->mask.ip6[i];
- 	} else {
- 		const struct iphdr *iph = ip_hdr(skb);
- 		addr.ip = (info->flags & XT_CONNLIMIT_DADDR) ?
- 			  iph->daddr : iph->saddr;
-+
-+		addr.ip &= info->mask.ip;
- 	}
++	return size;
+ }
+ #endif
  
- 	connections = count_them(net, info->data, tuple_ptr, &addr,
--	                         &info->mask, xt_family(par), zone);
-+				 xt_family(par), zone);
- 	if (connections == 0)
- 		/* kmalloc failed, drop it entirely */
- 		goto hotdrop;
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index dca921df28e1..3ac0d826afc4 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -259,9 +259,14 @@ static int icmpv6_nlattr_to_tuple(struct nlattr *tb[],
+ 	return 0;
+ }
+ 
+-static int icmpv6_nlattr_tuple_size(void)
++static unsigned int icmpv6_nlattr_tuple_size(void)
+ {
+-	return nla_policy_len(icmpv6_nla_policy, CTA_PROTO_MAX + 1);
++	static unsigned int size __read_mostly;
++
++	if (!size)
++		size = nla_policy_len(icmpv6_nla_policy, CTA_PROTO_MAX + 1);
++
++	return size;
+ }
+ #endif
+ 
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 28e675150853..0e516947c16f 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1563,9 +1563,14 @@ int nf_ct_port_nlattr_to_tuple(struct nlattr *tb[],
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_port_nlattr_to_tuple);
+ 
+-int nf_ct_port_nlattr_tuple_size(void)
++unsigned int nf_ct_port_nlattr_tuple_size(void)
+ {
+-	return nla_policy_len(nf_ct_port_nla_policy, CTA_PROTO_MAX + 1);
++	static unsigned int size __read_mostly;
++
++	if (!size)
++		size = nla_policy_len(nf_ct_port_nla_policy, CTA_PROTO_MAX + 1);
++
++	return size;
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_port_nlattr_tuple_size);
+ #endif
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index de4053d84364..6e0adfefb9ed 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -533,11 +533,11 @@ ctnetlink_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
+ 	return -1;
+ }
+ 
+-static inline size_t ctnetlink_proto_size(const struct nf_conn *ct)
++static size_t ctnetlink_proto_size(const struct nf_conn *ct)
+ {
+ 	const struct nf_conntrack_l3proto *l3proto;
+ 	const struct nf_conntrack_l4proto *l4proto;
+-	size_t len;
++	size_t len, len4 = 0;
+ 
+ 	l3proto = __nf_ct_l3proto_find(nf_ct_l3num(ct));
+ 	len = l3proto->nla_size;
+@@ -545,8 +545,12 @@ static inline size_t ctnetlink_proto_size(const struct nf_conn *ct)
+ 
+ 	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
+ 	len += l4proto->nla_size;
++	if (l4proto->nlattr_tuple_size) {
++		len4 = l4proto->nlattr_tuple_size();
++		len4 *= 3u; /* ORIG, REPLY, MASTER */
++	}
+ 
+-	return len;
++	return len + len4;
+ }
+ 
+ static inline size_t ctnetlink_acct_size(const struct nf_conn *ct)
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 83f739e9dc08..3b06ff3f2dee 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -398,8 +398,6 @@ int nf_ct_l4proto_register_one(struct nf_conntrack_l4proto *l4proto)
+ 	l4proto->nla_size = 0;
+ 	if (l4proto->nlattr_size)
+ 		l4proto->nla_size += l4proto->nlattr_size();
+-	if (l4proto->nlattr_tuple_size)
+-		l4proto->nla_size += 3 * l4proto->nlattr_tuple_size();
+ 
+ 	rcu_assign_pointer(nf_ct_protos[l4proto->l3proto][l4proto->l4proto],
+ 			   l4proto);
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 8f283294d70f..b12fc07111d0 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1277,9 +1277,14 @@ static int tcp_nlattr_size(void)
+ 		+ nla_policy_len(tcp_nla_policy, CTA_PROTOINFO_TCP_MAX + 1);
+ }
+ 
+-static int tcp_nlattr_tuple_size(void)
++static unsigned int tcp_nlattr_tuple_size(void)
+ {
+-	return nla_policy_len(nf_ct_port_nla_policy, CTA_PROTO_MAX + 1);
++	static unsigned int size __read_mostly;
++
++	if (!size)
++		size = nla_policy_len(nf_ct_port_nla_policy, CTA_PROTO_MAX + 1);
++
++	return size;
+ }
+ #endif
+ 
 -- 
 2.11.0
