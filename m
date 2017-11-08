@@ -1,43 +1,55 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: linux-next: build warning after merge of the netfilter-next
- tree
-Date: Wed, 8 Nov 2017 19:00:52 +1100
-Message-ID: <20171108190052.63dfd8ce@canb.auug.org.au>
-References: <20171107110248.7f1924a7@canb.auug.org.au>
+From: Phil Sutter <phil@nwl.cc>
+Subject: nft: I broke interactive mode with iface changes
+Date: Wed, 8 Nov 2017 11:15:45 +0100
+Message-ID: <20171108101545.GV32305@orbyte.nwl.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        Linux-Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Florian Westphal <fw@strlen.de>
-To: David Miller <davem@davemloft.net>,
-        Networking <netdev@vger.kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171107110248.7f1924a7@canb.auug.org.au>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from orbyte.nwl.cc ([151.80.46.58]:59330 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751126AbdKHKPr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Nov 2017 05:15:47 -0500
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.89)
+        (envelope-from <n0-1@orbyte.nwl.cc>)
+        id 1eCNOb-0007ph-Ck
+        for netfilter-devel@vger.kernel.org; Wed, 08 Nov 2017 11:15:45 +0100
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Dave,
+Hi,
 
-On Tue, 7 Nov 2017 11:02:48 +1100 Stephen Rothwell <sfr@canb.auug.org.au> wrote:
->
-> Hi all,
-> 
-> After merging the netfilter-next tree, today's linux-next build (powerpc
-> ppc64_defconfig) produced this warning:
-> 
-> net/netfilter/nf_conntrack_netlink.c:536:15: warning: 'ctnetlink_proto_size' defined but not used [-Wunused-function]
->  static size_t ctnetlink_proto_size(const struct nf_conn *ct)
->                ^
-> 
-> Introduced by commit
-> 
->   5caaed151a68 ("netfilter: conntrack: don't cache nlattr_tuple_size result in nla_size")
+When preparing my patch 94a945ffa81b7 ("libnftables: Get rid of explicit
+cache flushes"), I missed that 'nft -i' was explicitly dropping the
+interface cache after every command, so now it won't recognize interface
+changes anymore. Sadly, there is no lightweight method available to
+detect an outdated interface cache like we have with ruleset cache, so I
+played around a bit with alternatives.
 
-I assume that this warning will now be in the net-next tree ...
+First thing to mention, using the iface cache is considerably faster
+than calling if_nametoindex/if_indextoname each time.
 
--- 
-Cheers,
-Stephen Rothwell
+OTOH, I'm not sure having interface indexes in rules is a good idea to
+begin with: A seemingly obvious rule like e.g. 'oif br0 accept' all of a
+sudden stops working if br0 is recreated (typically by restarting
+libvirt or whatever manages it). This becomes obvious when inspecting
+the rule set (said rule won't print the interface name anymore but just
+the ifindex value), but it's something users have to be aware of first.
+
+So given that oifname/iifname expressions should be recommended over
+plain oif/iif ones for general-purpose applications, I wonder how
+important that interface cache really is and whether there is a relevant
+drawback when dropping it.
+
+Getting back to the original issue, I see the following alternatives:
+
+* Drop interface cache altogether.
+* Make nft_run_cmd_from_*() drop the interface cache before parsing
+  commands.
+* Reintroduce a 'drop_cache()' API function for cli.c to call it.
+
+Obviously, I prefer the first one, but would appreciate others' opinions
+before sending patches.
+
+Thanks, Phil
