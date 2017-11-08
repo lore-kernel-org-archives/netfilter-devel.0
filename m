@@ -1,42 +1,73 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: linux-next: build warning after merge of the netfilter-next tree
-Date: Thu, 9 Nov 2017 00:40:14 +0100
-Message-ID: <20171108234014.GA1788@salvia>
-References: <20171107110248.7f1924a7@canb.auug.org.au>
- <20171108190052.63dfd8ce@canb.auug.org.au>
+Subject: Re: nft: I broke interactive mode with iface changes
+Date: Thu, 9 Nov 2017 00:47:47 +0100
+Message-ID: <20171108234747.GD1788@salvia>
+References: <20171108101545.GV32305@orbyte.nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>,
-        Networking <netdev@vger.kernel.org>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        Linux-Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Florian Westphal <fw@strlen.de>
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:50412 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753089AbdKHXr5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Nov 2017 18:47:57 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B8274117720
+        for <netfilter-devel@vger.kernel.org>; Thu,  9 Nov 2017 00:47:55 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A4516DA807
+        for <netfilter-devel@vger.kernel.org>; Thu,  9 Nov 2017 00:47:55 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20171108190052.63dfd8ce@canb.auug.org.au>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20171108101545.GV32305@orbyte.nwl.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 08, 2017 at 07:00:52PM +1100, Stephen Rothwell wrote:
-> Hi Dave,
-> 
-> On Tue, 7 Nov 2017 11:02:48 +1100 Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> >
-> > Hi all,
-> > 
-> > After merging the netfilter-next tree, today's linux-next build (powerpc
-> > ppc64_defconfig) produced this warning:
-> > 
-> > net/netfilter/nf_conntrack_netlink.c:536:15: warning: 'ctnetlink_proto_size' defined but not used [-Wunused-function]
-> >  static size_t ctnetlink_proto_size(const struct nf_conn *ct)
-> >                ^
-> > 
-> > Introduced by commit
-> > 
-> >   5caaed151a68 ("netfilter: conntrack: don't cache nlattr_tuple_size result in nla_size")
-> 
-> I assume that this warning will now be in the net-next tree ...
+Hi Phil,
 
-It's my fault, I'll fix this in my next batch, sorry for the inconvenience.
+On Wed, Nov 08, 2017 at 11:15:45AM +0100, Phil Sutter wrote:
+> Hi,
+> 
+> When preparing my patch 94a945ffa81b7 ("libnftables: Get rid of explicit
+> cache flushes"), I missed that 'nft -i' was explicitly dropping the
+> interface cache after every command, so now it won't recognize interface
+> changes anymore. Sadly, there is no lightweight method available to
+> detect an outdated interface cache like we have with ruleset cache, so I
+> played around a bit with alternatives.
+> 
+> First thing to mention, using the iface cache is considerably faster
+> than calling if_nametoindex/if_indextoname each time.
+
+Indeed, this is saving quite a lot of syscall going back and forth due
+to netlink socket create, dump, then release under the curtain of
+if_nametoindex calls.
+
+> OTOH, I'm not sure having interface indexes in rules is a good idea to
+> begin with: A seemingly obvious rule like e.g. 'oif br0 accept' all of a
+> sudden stops working if br0 is recreated (typically by restarting
+> libvirt or whatever manages it).
+
+For this usecase, people should use iifname instead. Probably we can
+insists on this in wiki.nftables.org, if you have an account, I'd
+appreciate if you can document this. Same thing for man nft(8).
+
+> This becomes obvious when inspecting the rule set (said rule won't
+> print the interface name anymore but just the ifindex value), but
+> it's something users have to be aware of first.
+> 
+> So given that oifname/iifname expressions should be recommended over
+> plain oif/iif ones for general-purpose applications, I wonder how
+> important that interface cache really is and whether there is a relevant
+> drawback when dropping it.
+> 
+> Getting back to the original issue, I see the following alternatives:
+> 
+> * Drop interface cache altogether.
+> * Make nft_run_cmd_from_*() drop the interface cache before parsing
+>   commands.
+
+This is what we were doing before your change, right? So this would be
+fine to me.
+
+> * Reintroduce a 'drop_cache()' API function for cli.c to call it.
+
+Thanks.
