@@ -1,185 +1,69 @@
-From: "Jason A. Donenfeld" <Jason@zx2c4.com>
-Subject: [PATCH] net/icmp: restore source address if packet is NATed
-Date: Wed, 8 Nov 2017 23:08:33 +0900
-Message-ID: <CAHmME9rapx6z1T76ik2vhF0bBotVy+GFkTTDY810aNso7ViV5w@mail.gmail.com>
+From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Subject: Re: [PATCH nf-next] netfilter: nf_defrag_ipv4: Add sysctl to disable
+ per interface
+Date: Wed, 08 Nov 2017 13:46:03 -0700
+Message-ID: <b0a138969da40368de9a117a1045c5c5@codeaurora.org>
+References: <1509762520-17873-1-git-send-email-subashab@codeaurora.org>
+ <20171107103013.GA5512@breakpoint.cc>
+ <8c74f85d5f668516766ed208cb8eb415@codeaurora.org>
+ <20171108043451.GC1530@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+        steffen.klassert@secunet.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from frisell.zx2c4.com ([192.95.5.64]:40119 "EHLO frisell.zx2c4.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751611AbdKHOIf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Nov 2017 09:08:35 -0500
-Received: by frisell.zx2c4.com (ZX2C4 Mail Server) with ESMTP id 80107b86
-        for <netfilter-devel@vger.kernel.org>;
-        Wed, 8 Nov 2017 14:05:13 +0000 (UTC)
-Received: by frisell.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id d62c656f (TLSv1.2:ECDHE-RSA-AES128-GCM-SHA256:128:NO)
-        for <netfilter-devel@vger.kernel.org>;
-        Wed, 8 Nov 2017 14:05:13 +0000 (UTC)
-Received: by mail-ot0-f178.google.com with SMTP id 18so2355690oty.9
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Nov 2017 06:08:34 -0800 (PST)
+Received: from smtp.codeaurora.org ([198.145.29.96]:41252 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752207AbdKHUqE (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 8 Nov 2017 15:46:04 -0500
+In-Reply-To: <20171108043451.GC1530@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi all,
+> We can probably skip defrag if explicit notrack is requested via rule.
 
-When I sent this to netdev back in June, Dave pointed out how horrible
-this is, since it breaks all sorts of layering. The result of that
-discussion was that something like this -- the backwards
-transformation and the correct rate limiting -- belongs inside
-netfilter and not polluting the icmp code directly. He ended by
-telling me, "I highly encourage you to continue pursuing the netfilter
-based approach, and to also discuss it on netfilter-devel which will
-hit more capable minds than just here on netdev." So, a few months
-late, I'm forwarding this email here, in case anybody is interested.
+Hi Pablo
 
-Regards,
-Jason
+Thanks for the suggestion. I tried this and it appears that defrag
+occurs before NOTRACK is hit in raw table in PREROUTING. This is because
+the defrag priority happens to be higher than that of RAW.
 
+[include/uapi/linux/netfilter_ipv4.h]
 
+enum nf_ip_hook_priorities {
+	NF_IP_PRI_FIRST = INT_MIN,
+	NF_IP_PRI_CONNTRACK_DEFRAG = -400,
+	NF_IP_PRI_RAW = -300,
+	NF_IP_PRI_SELINUX_FIRST = -225,
+	NF_IP_PRI_CONNTRACK = -200,
 
+By changing the ordering of NF_IP_PRI_CONNTRACK_DEFRAG to -210 (some 
+lower value)
+instead of -400 (before CONNTRACK), I was able to skip the defrag when 
+NOTRACK was
+set. Do you think this is a possible solution.
 
----------- Forwarded message ----------
-From: Jason A. Donenfeld <Jason@zx2c4.com>
-Date: Sat, Jun 24, 2017 at 11:17 AM
-Subject: [PATCH] net/icmp: restore source address if packet is NATed
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-linux-kernel@vger.kernel.org
-Cc: "Jason A. Donenfeld" <Jason@zx2c4.com>
+diff --git a/include/uapi/linux/netfilter_ipv4.h 
+b/include/uapi/linux/netfilter_ipv4.h
+index 91ddd1f..13dc767 100644
+--- a/include/uapi/linux/netfilter_ipv4.h
++++ b/include/uapi/linux/netfilter_ipv4.h
+@@ -56,9 +56,9 @@
 
+  enum nf_ip_hook_priorities {
+         NF_IP_PRI_FIRST = INT_MIN,
+-       NF_IP_PRI_CONNTRACK_DEFRAG = -400,
+         NF_IP_PRI_RAW = -300,
+         NF_IP_PRI_SELINUX_FIRST = -225,
++       NF_IP_PRI_CONNTRACK_DEFRAG = -210,
+         NF_IP_PRI_CONNTRACK = -200,
+         NF_IP_PRI_MANGLE = -150,
+         NF_IP_PRI_NAT_DST = -100,
 
-The ICMP routines use the source address for two reasons:
-
-    1. Rate-limiting ICMP transmissions based on source address, so
-       that one source address cannot provoke a flood of replies. If
-       the source address is wrong, the rate limiting will be
-       incorrectly applied.
-
-    2. Choosing the interface and hence new source address of the
-       generated ICMP packet. If the original packet source address
-       is wrong, ICMP replies will be sent from the wrong source
-       address, resulting in either a misdelivery, infoleak, or just
-       general network admin confusion.
-
-Most of the time, the icmp_send and icmpv6_send routines can just reach
-down into the skb's IP header to determine the saddr. However, if
-icmp_send or icmpv6_send is being called from a network device driver --
-there are a few in the tree -- then it's possible that by the time
-icmp_send or icmpv6_send looks at the packet, the packet's source
-address has already been transformed by SNAT or MASQUERADE or some other
-transformation that CONNTRACK knows about. In this case, the packet's
-source address is most certainly the *wrong* source address to be used
-for the purpose of ICMP replies.
-
-Rather, the source address we want to use for ICMP replies is the
-original one, from before the transformation occurred.
-
-Fortunately, it's very easy to just ask CONNTRACK if it knows about this
-packet, and if so, how to fix it up. The saddr is the only field in the
-header we need to fix up, for the purposes of the subsequent processing
-in the icmp_send and icmpv6_send functions, so we do the lookup very
-early on, so that the rest of the ICMP machinery can progress as usual.
-In my tests, this setup works very well.
-
-Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
----
- net/ipv4/icmp.c | 21 +++++++++++++++++++++
- net/ipv6/icmp.c | 21 +++++++++++++++++++++
- 2 files changed, 42 insertions(+)
-
-diff --git a/net/ipv4/icmp.c b/net/ipv4/icmp.c
-index c2be26b98b5f..30aa6aa79fd2 100644
---- a/net/ipv4/icmp.c
-+++ b/net/ipv4/icmp.c
-@@ -97,6 +97,10 @@
- #include <net/inet_common.h>
- #include <net/ip_fib.h>
- #include <net/l3mdev.h>
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+#include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_nat_core.h>
-+#endif
-
- /*
-  *     Build xmit assembly blocks
-@@ -586,6 +590,10 @@ void icmp_send(struct sk_buff *skb_in, int type,
-int code, __be32 info)
-        u32 mark;
-        struct net *net;
-        struct sock *sk;
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+       enum ip_conntrack_info ctinfo;
-+       struct nf_conn *ct;
-+#endif
-
-        if (!rt)
-                goto out;
-@@ -604,6 +612,19 @@ void icmp_send(struct sk_buff *skb_in, int type,
-int code, __be32 info)
-                goto out;
-
-        /*
-+        *      If this function is called after the skb has already been
-+        *      NAT transformed, the ratelimiting will apply to the wrong
-+        *      saddr, and the reply will will be marked as coming from the
-+        *      wrong host. So, we fix it up here in case connection tracking
-+        *      enables that.
-+        */
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+       ct = nf_ct_get(skb_in, &ctinfo);
-+       if (ct)
-+               iph->saddr = ct->tuplehash[0].tuple.src.u3.ip;
-+#endif
-+
-+       /*
-         *      No replies to physical multicast/broadcast
-         */
-        if (skb_in->pkt_type != PACKET_HOST)
-diff --git a/net/ipv6/icmp.c b/net/ipv6/icmp.c
-index 8d7b113958b1..ee8a2853121e 100644
---- a/net/ipv6/icmp.c
-+++ b/net/ipv6/icmp.c
-@@ -69,6 +69,10 @@
- #include <net/inet_common.h>
- #include <net/dsfield.h>
- #include <net/l3mdev.h>
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+#include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_nat_core.h>
-+#endif
-
- #include <linux/uaccess.h>
-
-@@ -422,12 +426,29 @@ static void icmp6_send(struct sk_buff *skb, u8
-type, u8 code, __u32 info,
-        int len;
-        int err = 0;
-        u32 mark = IP6_REPLY_MARK(net, skb->mark);
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+       enum ip_conntrack_info ctinfo;
-+       struct nf_conn *ct;
-+#endif
-
-        if ((u8 *)hdr < skb->head ||
-            (skb_network_header(skb) + sizeof(*hdr)) > skb_tail_pointer(skb))
-                return;
-
-        /*
-+        *      If this function is called after the skb has already been
-+        *      NAT transformed, the ratelimiting will apply to the wrong
-+        *      saddr, and the reply will will be marked as coming from the
-+        *      wrong host. So, we fix it up here in case connection tracking
-+        *      enables that.
-+        */
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+       ct = nf_ct_get(skb, &ctinfo);
-+       if (ct)
-+               hdr->saddr = ct->tuplehash[0].tuple.src.u3.in6;
-+#endif
-+
-+       /*
-         *      Make sure we respect the rules
-         *      i.e. RFC 1885 2.4(e)
-         *      Rule (e.1) is enforced by not using icmp6_send
---
-2.13.1
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
