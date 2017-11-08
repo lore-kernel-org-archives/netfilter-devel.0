@@ -1,69 +1,42 @@
-From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Subject: Re: [PATCH nf-next] netfilter: nf_defrag_ipv4: Add sysctl to disable
- per interface
-Date: Wed, 08 Nov 2017 13:46:03 -0700
-Message-ID: <b0a138969da40368de9a117a1045c5c5@codeaurora.org>
-References: <1509762520-17873-1-git-send-email-subashab@codeaurora.org>
- <20171107103013.GA5512@breakpoint.cc>
- <8c74f85d5f668516766ed208cb8eb415@codeaurora.org>
- <20171108043451.GC1530@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: linux-next: build warning after merge of the netfilter-next tree
+Date: Thu, 9 Nov 2017 00:40:14 +0100
+Message-ID: <20171108234014.GA1788@salvia>
+References: <20171107110248.7f1924a7@canb.auug.org.au>
+ <20171108190052.63dfd8ce@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        steffen.klassert@secunet.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:41252 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752207AbdKHUqE (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Nov 2017 15:46:04 -0500
-In-Reply-To: <20171108043451.GC1530@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: David Miller <davem@davemloft.net>,
+        Networking <netdev@vger.kernel.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        Linux-Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Florian Westphal <fw@strlen.de>
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171108190052.63dfd8ce@canb.auug.org.au>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-> We can probably skip defrag if explicit notrack is requested via rule.
+On Wed, Nov 08, 2017 at 07:00:52PM +1100, Stephen Rothwell wrote:
+> Hi Dave,
+> 
+> On Tue, 7 Nov 2017 11:02:48 +1100 Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> >
+> > Hi all,
+> > 
+> > After merging the netfilter-next tree, today's linux-next build (powerpc
+> > ppc64_defconfig) produced this warning:
+> > 
+> > net/netfilter/nf_conntrack_netlink.c:536:15: warning: 'ctnetlink_proto_size' defined but not used [-Wunused-function]
+> >  static size_t ctnetlink_proto_size(const struct nf_conn *ct)
+> >                ^
+> > 
+> > Introduced by commit
+> > 
+> >   5caaed151a68 ("netfilter: conntrack: don't cache nlattr_tuple_size result in nla_size")
+> 
+> I assume that this warning will now be in the net-next tree ...
 
-Hi Pablo
-
-Thanks for the suggestion. I tried this and it appears that defrag
-occurs before NOTRACK is hit in raw table in PREROUTING. This is because
-the defrag priority happens to be higher than that of RAW.
-
-[include/uapi/linux/netfilter_ipv4.h]
-
-enum nf_ip_hook_priorities {
-	NF_IP_PRI_FIRST = INT_MIN,
-	NF_IP_PRI_CONNTRACK_DEFRAG = -400,
-	NF_IP_PRI_RAW = -300,
-	NF_IP_PRI_SELINUX_FIRST = -225,
-	NF_IP_PRI_CONNTRACK = -200,
-
-By changing the ordering of NF_IP_PRI_CONNTRACK_DEFRAG to -210 (some 
-lower value)
-instead of -400 (before CONNTRACK), I was able to skip the defrag when 
-NOTRACK was
-set. Do you think this is a possible solution.
-
-diff --git a/include/uapi/linux/netfilter_ipv4.h 
-b/include/uapi/linux/netfilter_ipv4.h
-index 91ddd1f..13dc767 100644
---- a/include/uapi/linux/netfilter_ipv4.h
-+++ b/include/uapi/linux/netfilter_ipv4.h
-@@ -56,9 +56,9 @@
-
-  enum nf_ip_hook_priorities {
-         NF_IP_PRI_FIRST = INT_MIN,
--       NF_IP_PRI_CONNTRACK_DEFRAG = -400,
-         NF_IP_PRI_RAW = -300,
-         NF_IP_PRI_SELINUX_FIRST = -225,
-+       NF_IP_PRI_CONNTRACK_DEFRAG = -210,
-         NF_IP_PRI_CONNTRACK = -200,
-         NF_IP_PRI_MANGLE = -150,
-         NF_IP_PRI_NAT_DST = -100,
-
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+It's my fault, I'll fix this in my next batch, sorry for the inconvenience.
