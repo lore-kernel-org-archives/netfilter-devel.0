@@ -1,40 +1,53 @@
-From: "Jason A. Donenfeld" <Jason@zx2c4.com>
-Subject: Re: [PATCH] net/icmp: restore source address if packet is NATed
-Date: Thu, 9 Nov 2017 09:35:16 +0900
-Message-ID: <CAHmME9oYGQpr7+aq7ByQ4UVYMY5aFky09NrHpVRYNMZ+XiDVDw@mail.gmail.com>
-References: <CAHmME9rapx6z1T76ik2vhF0bBotVy+GFkTTDY810aNso7ViV5w@mail.gmail.com>
- <20171109000134.GC5512@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.org
-To: Florian Westphal <fw@strlen.de>
+From: Phil Sutter <phil@nwl.cc>
+Subject: [nft PATCH] libnftables: Flush iface cache after command execution
+Date: Thu,  9 Nov 2017 13:24:57 +0100
+Message-ID: <20171109122457.25190-1-phil@nwl.cc>
+References: <20171108234747.GD1788@salvia>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from frisell.zx2c4.com ([192.95.5.64]:55427 "EHLO frisell.zx2c4.com"
+Received: from orbyte.nwl.cc ([151.80.46.58]:34270 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752182AbdKIAfT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 8 Nov 2017 19:35:19 -0500
-Received: by frisell.zx2c4.com (ZX2C4 Mail Server) with ESMTP id 3639e33d
-        for <netfilter-devel@vger.kernel.org>;
-        Thu, 9 Nov 2017 00:31:54 +0000 (UTC)
-Received: by frisell.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 903a3621 (TLSv1.2:ECDHE-RSA-AES128-GCM-SHA256:128:NO)
-        for <netfilter-devel@vger.kernel.org>;
-        Thu, 9 Nov 2017 00:31:53 +0000 (UTC)
-Received: by mail-oi0-f44.google.com with SMTP id a132so3279777oih.11
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Nov 2017 16:35:17 -0800 (PST)
-In-Reply-To: <20171109000134.GC5512@breakpoint.cc>
+        id S1754475AbdKIMZK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 9 Nov 2017 07:25:10 -0500
+In-Reply-To: <20171108234747.GD1788@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 9, 2017 at 9:01 AM, Florian Westphal <fw@strlen.de> wrote:
-> I think correct solution is to never allow drivers to do something like
-> this.  What is the use case here? Normal IP stack should send
-> imcp/pkttobig errors, and that will work fine since it occurs pre-snat.
+Commit 94a945ffa81b7 ("libnftables: Get rid of explicit cache flushes")
+was a bit too optimistic in that it missed the remaining need to flush
+interface cache after each command in interactive mode - otherwise,
+newly added interfaces won't be recognized.
 
-The use case is particular tunneling devices -- virtual interfaces.
-It's possible that a tunnel device won't be able to transmit a packet,
-due to some particular state issue -- no encryption key available,
-incomplete configuration for a particular destination, etc -- and in
-that case, it's quite important to be able to send an error --
-ICMP_DEST_UNREACH,ICMP_HOST_UNREACH -- back to the sender, rather than
-letting packets disappear into a blackhole without any useful
-notification.
+Although cli.c only calls nft_run_cmd_from_buffer(), flush caches in
+nft_run_cmd_from_filename() as well for matters of consistency.
+
+Fixes: 94a945ffa81b7 ("libnftables: Get rid of explicit cache flushes")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ src/libnftables.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/libnftables.c b/src/libnftables.c
+index 0d04ec21d57d3..dc6a5fdf32640 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -290,6 +290,7 @@ int nft_run_cmd_from_buffer(struct nft_ctx *nft, char *buf, size_t buflen)
+ 	erec_print_list(&nft->output, &msgs, nft->debug_mask);
+ 	nft_ctx_set_output(nft, fp);
+ 	scanner_destroy(scanner);
++	iface_cache_release();
+ 
+ 	return rc;
+ }
+@@ -322,6 +323,7 @@ err:
+ 	erec_print_list(&nft->output, &msgs, nft->debug_mask);
+ 	nft_ctx_set_output(nft, fp);
+ 	scanner_destroy(scanner);
++	iface_cache_release();
+ 
+ 	return rc;
+ }
+-- 
+2.13.1
+
