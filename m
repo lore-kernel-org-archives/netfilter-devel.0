@@ -1,33 +1,24 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: netfilter patches for stable 4.13
-Date: Fri, 10 Nov 2017 12:42:34 +0100
-Message-ID: <20171110114234.GA11679@kroah.com>
-References: <20171110005556.GA15570@salvia>
+From: Albrecht Lutz <lutzsolicitor1@gmail.com>
+Subject: Re:Partnership Request.
+Date: Fri, 10 Nov 2017 16:59:51 -0300
+Message-ID: <20171110195935.667C82C538232@mail.salud03d01.gob.ec>
+Reply-To: lutzsolicitor01@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+To: Recipients <lutzsolicitor1@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35806 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752695AbdKJLmY (ORCPT
+Received: from mail.salud03d01.gob.ec ([200.110.77.203]:53900 "EHLO
+        mail.salud03d01.gob.ec" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750799AbdKJUYC (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 10 Nov 2017 06:42:24 -0500
-Content-Disposition: inline
-In-Reply-To: <20171110005556.GA15570@salvia>
+        Fri, 10 Nov 2017 15:24:02 -0500
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Nov 10, 2017 at 01:55:57AM +0100, Pablo Neira Ayuso wrote:
-> Hi Greg,
-> 
-> I'd appreciate if you can cherry-pick these two patches into stable 4.13:
-> 
-> e1bf1687740c ("netfilter: nat: Revert "netfilter: nat: convert nat bysrc
-> hash to rhashtable"")
-> 
-> 0414c78f1486 ("netfilter: nft_set_hash: disable fast_ops for 2-len keys")
+Good day
+My name is Lutz Albrecht, an attorney, I have searched for several years to locate any possible relative of a late client of mine who died intestate but left a huge financial estate. I am contacting you because you have the same last name to present you as the beneficiary of the estate. If you are interested to find out more, please get back to me.
 
-Now queued up, thanks.
-
-greg k-h
+Thanks
+Lutz
