@@ -1,85 +1,109 @@
 From: Jay Elliott <jelliott@arista.com>
-Subject: Re: [PATCH] netfilter: conntrack: use 64-bit conntracking timestamps
-Date: Fri, 10 Nov 2017 16:50:08 -0800
-Message-ID: <CA+c2rSiy9rqT=J=W8h1BDFB2oF9o1=Bue6qeFL4aZwAATGqSWQ@mail.gmail.com>
-References: <1510356081-35555-1-git-send-email-jelliott@arista.com> <20171111000722.GH5512@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2] netfilter: conntrack: clamp timeouts to INT_MAX
+Date: Sat, 11 Nov 2017 02:08:40 -0800
+Message-ID: <1510394920-25302-1-git-send-email-jelliott@arista.com>
+Cc: Jay Elliott <jelliott@arista.com>, fw@strlen.de,
+        netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:47464 "EHLO
-        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754622AbdKKAua (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:47715 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751138AbdKKKJA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 10 Nov 2017 19:50:30 -0500
-Received: by mail-qk0-f193.google.com with SMTP id 136so3110507qkd.4
-        for <netfilter-devel@vger.kernel.org>; Fri, 10 Nov 2017 16:50:29 -0800 (PST)
-In-Reply-To: <20171111000722.GH5512@breakpoint.cc>
+        Sat, 11 Nov 2017 05:09:00 -0500
+Received: by mail-pg0-f67.google.com with SMTP id o7so9237234pgc.4
+        for <netfilter-devel@vger.kernel.org>; Sat, 11 Nov 2017 02:09:00 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->Still, I wonder why we need timeouts larger than 2**31.
+As of commit 58e207e4983d ("netfilter: evict stale entries when user reads
+/proc/net/nf_conntrack"), timeouts are evaluated by casting the difference
+between a timeout value and the nfct_time_stamp to a signed integer and
+comparing that to zero.
 
-The need is because at my employer, we sell boxes which include
-hardware devices between the ethernet interface and the CPU.  These
-hardware devices process certain network protocols on behalf of the
-linux machine.  From the kernel's perspective, any packets which are
-processed by these hardware devices never arrive, so the userspace
-program which is configuring our conntracking has to use massive
-timeouts.
+This means that any timeout greater than or equal to (1<<31) will be
+considered negative, and the conntracking code will think it has
+immediately expired.  Prior to 58e207e4983d, they would have been treated
+as very large positive timeouts.
 
->If the problem is that userspace can set them via nfnetlink I would
->propose to just truncate to INT_MAX in that case.
+The upshot of this is that userspace software which is used to being able
+to create conntracking timeouts >= (1<<31) can accidentally create a
+negative timeout which will expire immediately.  To protect against this,
+incoming timeouts are clamped to INT_MAX after they are added to the
+nfct_time_stamp.
 
-Okay, I'll submit another patch to do that instead.  That ought to fix
-the problem I'm seeing.
+Fixes: 58e207e4983d ("netfilter: evict stale entries when user reads /proc/net/nf_conntrack")
+Signed-off-by: Jay Elliott <jelliott@arista.com>
+---
+ net/netfilter/nf_conntrack_core.c    |  6 +++++-
+ net/netfilter/nf_conntrack_netlink.c | 15 ++++++++++++---
+ 2 files changed, 17 insertions(+), 4 deletions(-)
 
-Thank you,
-Jay
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 0113039..8f55da3 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -734,6 +734,7 @@ static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
+ 	struct net *net;
+ 	unsigned int sequence;
+ 	int ret = NF_DROP;
++	u_int64_t timeout64;
+ 
+ 	ct = nf_ct_get(skb, &ctinfo);
+ 	net = nf_ct_net(ct);
+@@ -796,7 +797,10 @@ static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
+ 	/* Timer relative to confirmation time, not original
+ 	   setting time, otherwise we'd get timer wrap in
+ 	   weird delay cases. */
+-	ct->timeout += nfct_time_stamp;
++	timeout64 = (u_int64_t)ct->timeout + nfct_time_stamp;
++	if (timeout64 > INT_MAX)
++		timeout64 = INT_MAX;
++	ct->timeout = timeout64;
+ 	atomic_inc(&ct->ct_general.use);
+ 	ct->status |= IPS_CONFIRMED;
+ 
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index de4053d..3db8e03 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1560,9 +1560,12 @@ static int ctnetlink_change_helper(struct nf_conn *ct,
+ static int ctnetlink_change_timeout(struct nf_conn *ct,
+ 				    const struct nlattr * const cda[])
+ {
+-	u_int32_t timeout = ntohl(nla_get_be32(cda[CTA_TIMEOUT]));
++	u_int64_t timeout = ntohl(nla_get_be32(cda[CTA_TIMEOUT]));
++	u_int64_t timeout_absolute = timeout * HZ + (u_int64_t)nfct_time_stamp;
+ 
+-	ct->timeout = nfct_time_stamp + timeout * HZ;
++	if (timeout_absolute > INT_MAX)
++		timeout_absolute = INT_MAX;
++	ct->timeout = timeout_absolute;
+ 
+ 	if (test_bit(IPS_DYING_BIT, &ct->status))
+ 		return -ETIME;
+@@ -1762,6 +1765,8 @@ static int change_seq_adj(struct nf_ct_seqadj *seq,
+ 	int err = -EINVAL;
+ 	struct nf_conntrack_helper *helper;
+ 	struct nf_conn_tstamp *tstamp;
++	u_int64_t timeout_absolute;
++	u_int64_t timeout_nla;
+ 
+ 	ct = nf_conntrack_alloc(net, zone, otuple, rtuple, GFP_ATOMIC);
+ 	if (IS_ERR(ct))
+@@ -1770,7 +1775,11 @@ static int change_seq_adj(struct nf_ct_seqadj *seq,
+ 	if (!cda[CTA_TIMEOUT])
+ 		goto err1;
+ 
+-	ct->timeout = nfct_time_stamp + ntohl(nla_get_be32(cda[CTA_TIMEOUT])) * HZ;
++	timeout_nla = ntohl(nla_get_be32(cda[CTA_TIMEOUT]));
++	timeout_absolute = (u_int64_t)nfct_time_stamp + timeout_nla * HZ;
++	if (timeout_absolute > INT_MAX)
++		timeout_absolute = INT_MAX;
++	ct->timeout = timeout_absolute;
+ 
+ 	rcu_read_lock();
+  	if (cda[CTA_HELP]) {
+-- 
+1.8.1.4
 
-On Fri, Nov 10, 2017 at 4:07 PM, Florian Westphal <fw@strlen.de> wrote:
-> Jay Elliott <jelliott@arista.com> wrote:
->> As of commit 58e207e4983d ("netfilter: evict stale entries when user reads
->> /proc/net/nf_conntrack"), timeouts are evaluated by casting the difference
->> between a timeout value and the nfct_time_stamp to a signed integer and
->> comparing that to zero.
->>
->> This means that any timeout greater than or equal to (1<<31) will be
->> considered negative, and the conntracking code will think it has
->> immediately expired.  Prior to 58e207e4983d, they would have been treated
->> as very large positive timeouts.
->>
->> Using 64-bit will allow the full range of a 32-bit unsigned integer to be
->> used as a positive value without changing any of the logic used to
->> evaluate timeouts.  The timeout value input from userspace over the
->> netlink is still 32-bit.
->>
->> Fixes: 58e207e4983d ("netfilter: evict stale entries when user reads /proc/net/nf_conntrack")
->> Signed-off-by: Jay Elliott <jelliott@arista.com>
->> ---
->>  include/net/netfilter/nf_conntrack.h | 10 +++++-----
->>  net/netfilter/nf_conntrack_netlink.c |  6 ++++--
->>  2 files changed, 9 insertions(+), 7 deletions(-)
->>
->> diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
->> index 792c3f6..62bfc33 100644
->> --- a/include/net/netfilter/nf_conntrack.h
->> +++ b/include/net/netfilter/nf_conntrack.h
->> @@ -71,8 +71,8 @@ struct nf_conn {
->>       /* Have we seen traffic both ways yet? (bitset) */
->>       unsigned long status;
->>
->> -     /* jiffies32 when this ct is considered dead */
->> -     u32 timeout;
->> +     /* jiffies64 when this ct is considered dead */
->> +     u64 timeout;
->
-> I know his fits in a padding hole and sruct size doesn't increase.
->
-> Still, I wonder why we need timeouts larger than 2**31.
-> (More than 20 days assuming HZ=1000).
->
-> If the problem is that userspace can set them via nfnetlink I would
-> propose to just truncate to INT_MAX in that case.
->
