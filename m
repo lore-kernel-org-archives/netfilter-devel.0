@@ -1,7 +1,7 @@
 From: Vasily Averin <vvs@virtuozzo.com>
-Subject: [PATCH v4 09/18] clusterip: exit_net cleanup check added
-Date: Sun, 12 Nov 2017 11:44:38 +0300
-Message-ID: <48e377dc-e31f-1526-1e65-1049cc7251dc@virtuozzo.com>
+Subject: [PATCH v4 10/18] nf_tables: exit_net cleanup check added
+Date: Sun, 12 Nov 2017 11:45:00 +0300
+Message-ID: <90230d64-748a-5347-6cf7-4273e07e37eb@virtuozzo.com>
 References: <9dfa013e-9098-e155-9c47-a73753338288@virtuozzo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -9,7 +9,6 @@ Content-Transfer-Encoding: 7bit
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 To: netdev@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
@@ -18,25 +17,38 @@ Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Be sure that configs list initialized in net_init hook was return
+Be sure that lists initialized in net_init hook were return
 to initial state.
 
 Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
 ---
- net/ipv4/netfilter/ipt_CLUSTERIP.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/nf_tables_api.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 17b4ca5..e35b8d0 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -819,6 +819,7 @@ static void clusterip_net_exit(struct net *net)
- 	cn->procdir = NULL;
- #endif
- 	nf_unregister_net_hook(net, &cip_arp_ops);
-+	WARN_ON_ONCE(!list_empty(&cn->configs));
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 64e1ee0..f432b53 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5778,6 +5778,12 @@ static int __net_init nf_tables_init_net(struct net *net)
+ 	return 0;
  }
  
- static struct pernet_operations clusterip_net_ops = {
++static void __net_exit nf_tables_exit_net(struct net *net)
++{
++	WARN_ON_ONCE(!list_empty(&net->nft.af_info));
++	WARN_ON_ONCE(!list_empty(&net->nft.commit_list));
++}
++
+ int __nft_release_basechain(struct nft_ctx *ctx)
+ {
+ 	struct nft_rule *rule, *nr;
+@@ -5848,6 +5854,7 @@ static void __nft_release_afinfo(struct net *net, struct nft_af_info *afi)
+ 
+ static struct pernet_operations nf_tables_net_ops = {
+ 	.init	= nf_tables_init_net,
++	.exit	= nf_tables_exit_net,
+ };
+ 
+ static int __init nf_tables_module_init(void)
 -- 
 2.7.4
