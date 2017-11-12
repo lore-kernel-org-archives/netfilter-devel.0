@@ -1,45 +1,63 @@
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: Re: [PATCH v4 12/18] nfnetlink_gueue: exit_net cleanup check added
-Date: Sun, 12 Nov 2017 12:02:23 +0300
-Message-ID: <de9bd0eb-a0f5-1329-4825-e17048528191@virtuozzo.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH v4 11/18] nfnetlink_log: exit_net cleanup check added
+Date: Sun, 12 Nov 2017 14:28:37 +0300
+Message-ID: <864c0cb8-5a82-d274-24dc-799333816c7f@cogentembedded.com>
 References: <9dfa013e-9098-e155-9c47-a73753338288@virtuozzo.com>
- <c0d49d64-d46b-21e6-02e4-4c445600bd39@virtuozzo.com>
- <20171112085232.GJ5512@breakpoint.cc>
+ <9702fe4f-6b5d-bd5c-de87-6bf7ded4fbf2@virtuozzo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Florian Westphal <fw@strlen.de>
+To: Vasily Averin <vvs@virtuozzo.com>, netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailhub.sw.ru ([195.214.232.25]:14608 "EHLO relay.sw.ru"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751797AbdKLJCb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 12 Nov 2017 04:02:31 -0500
-In-Reply-To: <20171112085232.GJ5512@breakpoint.cc>
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:56004 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750742AbdKLL2h (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 12 Nov 2017 06:28:37 -0500
+Received: by mail-lf0-f68.google.com with SMTP id e143so15397074lfg.12
+        for <netfilter-devel@vger.kernel.org>; Sun, 12 Nov 2017 03:28:36 -0800 (PST)
+In-Reply-To: <9702fe4f-6b5d-bd5c-de87-6bf7ded4fbf2@virtuozzo.com>
 Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2017-11-12 11:52, Florian Westphal wrote:
-> Vasily Averin <vvs@virtuozzo.com> wrote:
->> Be sure that instance_table array initialized in net_init hook
->> was return to initial state.
+Hello!
+
+On 11/12/2017 11:46 AM, Vasily Averin wrote:
+
+> Be sure that instance_table array initialized in net_init hook
+> was return to initial state.
 > 
->> +	for (i = 0; i < INSTANCE_BUCKETS; i++)
->> +		if (WARN_ON_ONCE(!hlist_empty(&q->instance_table[i])))
->> +			break;
+> Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+> ---
+>   net/netfilter/nfnetlink_log.c | 5 +++++
+>   1 file changed, 5 insertions(+)
 > 
-> This looks strange, why if/break?
+> diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+> index cad6498..80236a2 100644
+> --- a/net/netfilter/nfnetlink_log.c
+> +++ b/net/netfilter/nfnetlink_log.c
+> @@ -1093,10 +1093,15 @@ static int __net_init nfnl_log_net_init(struct net *net)
+>   
+>   static void __net_exit nfnl_log_net_exit(struct net *net)
+>   {
+> +	unsigned int i;
+> +	struct nfnl_log_net *log = nfnl_log_pernet(net);
 
-I did not want to generate huge number of messages on each non-empty hash bucket.
+    Need empty line after the declarations.
 
-> Plain WARN_ON_ONCE should be enough, but thats a nit so:
+>   #ifdef CONFIG_PROC_FS
+>   	remove_proc_entry("nfnetlink_log", net->nf.proc_netfilter);
+>   #endif
+>   	nf_log_unset(net, &nfulnl_logger);
+> +	for (i = 0; i < INSTANCE_BUCKETS; i++)
+> +		if (WARN_ON_ONCE(!hlist_empty(&log->instance_table[i])))
+> +			break;
+>   }
+[...]
 
-Oh, you're right.
-In first patch version WARN_ON  was used here.
-I've missed that only first message will be printed with _ONCE check.
-
-> Acked-by: Florian Westphal <fw@strlen.de>
-> 
+MBR, Sergei
