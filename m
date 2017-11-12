@@ -1,7 +1,7 @@
 From: Vasily Averin <vvs@virtuozzo.com>
-Subject: [PATCH v4 10/18] nf_tables: exit_net cleanup check added
-Date: Sun, 12 Nov 2017 11:45:00 +0300
-Message-ID: <90230d64-748a-5347-6cf7-4273e07e37eb@virtuozzo.com>
+Subject: [PATCH v4 11/18] nfnetlink_log: exit_net cleanup check added
+Date: Sun, 12 Nov 2017 11:46:20 +0300
+Message-ID: <9702fe4f-6b5d-bd5c-de87-6bf7ded4fbf2@virtuozzo.com>
 References: <9dfa013e-9098-e155-9c47-a73753338288@virtuozzo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -17,38 +17,33 @@ Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Be sure that lists initialized in net_init hook were return
-to initial state.
+Be sure that instance_table array initialized in net_init hook
+was return to initial state.
 
 Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
 ---
- net/netfilter/nf_tables_api.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ net/netfilter/nfnetlink_log.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 64e1ee0..f432b53 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5778,6 +5778,12 @@ static int __net_init nf_tables_init_net(struct net *net)
- 	return 0;
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index cad6498..80236a2 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -1093,10 +1093,15 @@ static int __net_init nfnl_log_net_init(struct net *net)
+ 
+ static void __net_exit nfnl_log_net_exit(struct net *net)
+ {
++	unsigned int i;
++	struct nfnl_log_net *log = nfnl_log_pernet(net);
+ #ifdef CONFIG_PROC_FS
+ 	remove_proc_entry("nfnetlink_log", net->nf.proc_netfilter);
+ #endif
+ 	nf_log_unset(net, &nfulnl_logger);
++	for (i = 0; i < INSTANCE_BUCKETS; i++)
++		if (WARN_ON_ONCE(!hlist_empty(&log->instance_table[i])))
++			break;
  }
  
-+static void __net_exit nf_tables_exit_net(struct net *net)
-+{
-+	WARN_ON_ONCE(!list_empty(&net->nft.af_info));
-+	WARN_ON_ONCE(!list_empty(&net->nft.commit_list));
-+}
-+
- int __nft_release_basechain(struct nft_ctx *ctx)
- {
- 	struct nft_rule *rule, *nr;
-@@ -5848,6 +5854,7 @@ static void __nft_release_afinfo(struct net *net, struct nft_af_info *afi)
- 
- static struct pernet_operations nf_tables_net_ops = {
- 	.init	= nf_tables_init_net,
-+	.exit	= nf_tables_exit_net,
- };
- 
- static int __init nf_tables_module_init(void)
+ static struct pernet_operations nfnl_log_net_ops = {
 -- 
 2.7.4
