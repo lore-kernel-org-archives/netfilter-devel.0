@@ -1,7 +1,7 @@
 From: Vasily Averin <vvs@virtuozzo.com>
-Subject: [PATCH v4 11/18] nfnetlink_log: exit_net cleanup check added
-Date: Sun, 12 Nov 2017 11:46:20 +0300
-Message-ID: <9702fe4f-6b5d-bd5c-de87-6bf7ded4fbf2@virtuozzo.com>
+Subject: [PATCH v4 12/18] nfnetlink_gueue: exit_net cleanup check added
+Date: Sun, 12 Nov 2017 11:47:01 +0300
+Message-ID: <c0d49d64-d46b-21e6-02e4-4c445600bd39@virtuozzo.com>
 References: <9dfa013e-9098-e155-9c47-a73753338288@virtuozzo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -22,28 +22,29 @@ was return to initial state.
 
 Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
 ---
- net/netfilter/nfnetlink_log.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ net/netfilter/nfnetlink_queue.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index cad6498..80236a2 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -1093,10 +1093,15 @@ static int __net_init nfnl_log_net_init(struct net *net)
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index c979662..fd41077 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1512,10 +1512,16 @@ static int __net_init nfnl_queue_net_init(struct net *net)
  
- static void __net_exit nfnl_log_net_exit(struct net *net)
+ static void __net_exit nfnl_queue_net_exit(struct net *net)
  {
 +	unsigned int i;
-+	struct nfnl_log_net *log = nfnl_log_pernet(net);
++	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
++
+ 	nf_unregister_queue_handler(net);
  #ifdef CONFIG_PROC_FS
- 	remove_proc_entry("nfnetlink_log", net->nf.proc_netfilter);
+ 	remove_proc_entry("nfnetlink_queue", net->nf.proc_netfilter);
  #endif
- 	nf_log_unset(net, &nfulnl_logger);
 +	for (i = 0; i < INSTANCE_BUCKETS; i++)
-+		if (WARN_ON_ONCE(!hlist_empty(&log->instance_table[i])))
++		if (WARN_ON_ONCE(!hlist_empty(&q->instance_table[i])))
 +			break;
  }
  
- static struct pernet_operations nfnl_log_net_ops = {
+ static void nfnl_queue_net_exit_batch(struct list_head *net_exit_list)
 -- 
 2.7.4
