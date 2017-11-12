@@ -1,117 +1,124 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v2] netfilter: conntrack: clamp timeouts to INT_MAX
-Date: Sat, 11 Nov 2017 19:27:51 +0100
-Message-ID: <20171111182751.GI5512@breakpoint.cc>
-References: <1510394920-25302-1-git-send-email-jelliott@arista.com>
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: [PATCH v4 00/18] exit_net checks for objects initialized in net_init
+ hook
+Date: Sun, 12 Nov 2017 11:39:13 +0300
+Message-ID: <cb06dace-88a8-fecf-92ad-02920920a0d3@virtuozzo.com>
+References: <9dfa013e-9098-e155-9c47-a73753338288@virtuozzo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org
-To: Jay Elliott <jelliott@arista.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:42424 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751694AbdKKS2f (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 11 Nov 2017 13:28:35 -0500
-Content-Disposition: inline
-In-Reply-To: <1510394920-25302-1-git-send-email-jelliott@arista.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: Steffen Klassert <steffen.klassert@secunet.com>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        Trond Myklebust <trond.myklebust@primarydata.com>,
+        Anna Schumaker <anna.schumaker@netapp.com>,
+        Remi Denis-Courmont <courmisch@gmail.com>,
+        Paul Mackerras <paulus@samba.org>, linux-ppp@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-nfs@vger.kernel.org
+To: netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <9dfa013e-9098-e155-9c47-a73753338288@virtuozzo.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Jay Elliott <jelliott@arista.com> wrote:
-> As of commit 58e207e4983d ("netfilter: evict stale entries when user reads
-> /proc/net/nf_conntrack"), timeouts are evaluated by casting the difference
-> between a timeout value and the nfct_time_stamp to a signed integer and
-> comparing that to zero.
-> 
-> This means that any timeout greater than or equal to (1<<31) will be
-> considered negative, and the conntracking code will think it has
-> immediately expired.  Prior to 58e207e4983d, they would have been treated
-> as very large positive timeouts.
-> 
-> The upshot of this is that userspace software which is used to being able
-> to create conntracking timeouts >= (1<<31) can accidentally create a
-> negative timeout which will expire immediately.  To protect against this,
-> incoming timeouts are clamped to INT_MAX after they are added to the
-> nfct_time_stamp.
-> 
-> Fixes: 58e207e4983d ("netfilter: evict stale entries when user reads /proc/net/nf_conntrack")
-> Signed-off-by: Jay Elliott <jelliott@arista.com>
-> ---
->  net/netfilter/nf_conntrack_core.c    |  6 +++++-
->  net/netfilter/nf_conntrack_netlink.c | 15 ++++++++++++---
->  2 files changed, 17 insertions(+), 4 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> index 0113039..8f55da3 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -734,6 +734,7 @@ static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
->  	struct net *net;
->  	unsigned int sequence;
->  	int ret = NF_DROP;
-> +	u_int64_t timeout64;
->  
->  	ct = nf_ct_get(skb, &ctinfo);
->  	net = nf_ct_net(ct);
-> @@ -796,7 +797,10 @@ static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
->  	/* Timer relative to confirmation time, not original
->  	   setting time, otherwise we'd get timer wrap in
->  	   weird delay cases. */
-> -	ct->timeout += nfct_time_stamp;
-> +	timeout64 = (u_int64_t)ct->timeout + nfct_time_stamp;
-> +	if (timeout64 > INT_MAX)
-> +		timeout64 = INT_MAX;
-> +	ct->timeout = timeout64;
+OpenVz kernel team have a long history of fighting against namespace-related bugs,
+some of them could be excluded by using simple checks described below.
 
-I don't understand why this needs to be changed.  It also looks wrong.
-let ct->timeout be 1000.
-let nfct_time_stamp be 0x80000000
+One of typical errors is related to live cycle of namespaces:
+usually objects created for some namespace should not live longer than namespace itself.
 
-Then ct->timout is capped to 0x7fffffff.
-Next check considers the timeout to be expired, as 0x7fff... - 0x800 < 0.
+Such kind of issues can be invisible on usual systems where additional namespaces
+are not used, because initial namespaces usually lives forever and never destroyed.
 
-> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-> index de4053d..3db8e03 100644
-> --- a/net/netfilter/nf_conntrack_netlink.c
-> +++ b/net/netfilter/nf_conntrack_netlink.c
-> @@ -1560,9 +1560,12 @@ static int ctnetlink_change_helper(struct nf_conn *ct,
->  static int ctnetlink_change_timeout(struct nf_conn *ct,
->  				    const struct nlattr * const cda[])
->  {
-> -	u_int32_t timeout = ntohl(nla_get_be32(cda[CTA_TIMEOUT]));
-> +	u_int64_t timeout = ntohl(nla_get_be32(cda[CTA_TIMEOUT]));
-> +	u_int64_t timeout_absolute = timeout * HZ + (u_int64_t)nfct_time_stamp;
->  
-> -	ct->timeout = nfct_time_stamp + timeout * HZ;
-> +	if (timeout_absolute > INT_MAX)
-> +		timeout_absolute = INT_MAX;
-> +	ct->timeout = timeout_absolute;
+However in systems with namespaces it can lead to memory leaks or to use-after-free.
+Both of them are critical for systems with running containers.
+As you knows it's quite hard to find the reason of such issues,
+especially in rarely-triggered scenarios on production nodes on default kernels
+without specially enabled debug settings. Any additional hints can be useful here.
 
-Same applies here.
-I would have expected something like
+This patch set should help to detect some of these issues.
+It is based on assumption that objects initialized in init hook of pernet_operations
+should return to initial state until end of exit hook.
 
-	u_int32_t timeout = ntohl(nla_get_be32(cda[CTA_TIMEOUT]));
-	if (timeout > INT_MAX)
-		timeout = INT_MAX;
+Many drivers and subsystems already have such checks, however I've found number
+of places where list_empty check would be useful at least as smoke test.
 
-> +	u_int64_t timeout_nla;
->  
->  	ct = nf_conntrack_alloc(net, zone, otuple, rtuple, GFP_ATOMIC);
->  	if (IS_ERR(ct))
-> @@ -1770,7 +1775,11 @@ static int change_seq_adj(struct nf_ct_seqadj *seq,
->  	if (!cda[CTA_TIMEOUT])
->  		goto err1;
->  
-> -	ct->timeout = nfct_time_stamp + ntohl(nla_get_be32(cda[CTA_TIMEOUT])) * HZ;
+These checks are useful for long-term stable kernels,
+they allows to detect problems related to incomplete or incorrectly
+backported patches.
 
-and here something similar, read CTA_TIMEOUT, cap to INT_MAX.
-Actually looking ast this this was always a bit broken because * HZ can
-overflow.
+Also this patch set replaces BUG_ON in existing checks:
+memory leaks and possible memory corruptions are bad of course,
+however in many cases they are not fatal 
+and should not crash production hosts unconditionally.
 
-So I guess best bet is to actually do a 64bit multiplication, as you
-did, then truncate.
+Changes:
+v4:
+- excluded grace and lockd patches taken by Bruce Fields
+- let's use WARN_ON_ONCE without any extra messages
+   adobriyan@ is right, output of net Id gives nothing to host admin,
+   and developers in any case will extract information from core dump
+- updated description in cover letter
+- dropped nfs4blocklayout patch: waitqueue check does not look useful
+- patches was reordered to be per-subsystem grouped
+- cover letter should be sent to all people included into cc: of any patches
+- minor cosmetic changes in some patches
 
-Please use u64 for this (the u_intXX_t types are prehistoric leftovers).
+v3:
+- use net->ns.inum as net Id
+- removed patches for hashlimit and recent,
+    they handle tables list in exit_net hook.
+- added patches for grace and lockd
 
-Thanks!
+v2:
+- net pointer removed from output
+- fixed compilation for phonet driver
+
+
+Vasily Averin (18):
+  af_key: replace BUG_ON on WARN_ON in net_exit hook
+  geneve: exit_net cleanup check added
+  packet: exit_net cleanup check added
+  vxlan: exit_net cleanup checks added
+  netdev: exit_net cleanup check added
+  fib_notifier: exit_net cleanup check added
+  fib_rules: exit_net cleanup check added
+  l2tp: exit_net cleanup check added
+  clusterip: exit_net cleanup check added
+  nf_tables: exit_net cleanup check added
+  nfnetlink_log: exit_net cleanup check added
+  nfnetlink_gueue: exit_net cleanup check added
+  x_tables: exit_net cleanup check added
+  nfs client: exit_net cleanup check added
+  sunrpc: exit_net cleanup check added
+  phonet: exit_net cleanup check added
+  ppp: exit_net cleanup checks added
+  xfrm6_tunnel: exit_net cleanup check added
+
+ drivers/net/geneve.c               |  1 +
+ drivers/net/ppp/ppp_generic.c      |  2 ++
+ drivers/net/vxlan.c                |  5 +++++
+ fs/nfs/inode.c                     |  4 ++++
+ net/core/dev.c                     |  2 ++
+ net/core/fib_notifier.c            |  6 ++++++
+ net/core/fib_rules.c               |  6 ++++++
+ net/ipv4/netfilter/ipt_CLUSTERIP.c |  1 +
+ net/ipv6/xfrm6_tunnel.c            | 10 ++++++++++
+ net/key/af_key.c                   |  2 +-
+ net/l2tp/l2tp_core.c               |  5 +++++
+ net/netfilter/nf_tables_api.c      |  7 +++++++
+ net/netfilter/nfnetlink_log.c      |  5 +++++
+ net/netfilter/nfnetlink_queue.c    |  6 ++++++
+ net/netfilter/x_tables.c           | 10 ++++++++++
+ net/packet/af_packet.c             |  1 +
+ net/phonet/pn_dev.c                |  3 +++
+ net/sunrpc/sunrpc_syms.c           |  3 +++
+ 18 files changed, 78 insertions(+), 1 deletion(-)
+
+-- 
+2.7.4
