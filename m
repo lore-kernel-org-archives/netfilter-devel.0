@@ -1,35 +1,42 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Request for stable 4.13.x inclusion: netfilter: nft_set_hash:
- disable fast_ops for 2-len keys
-Date: Mon, 13 Nov 2017 13:03:41 +0100
-Message-ID: <20171113120341.GA1994@salvia>
-References: <87af2305-0fde-b326-b9d6-db22ea744099@gentoo.org>
+Subject: Re: [nft PATCH v2] libnftables: Unexport enum nftables_exit_codes
+Date: Mon, 13 Nov 2017 13:31:00 +0100
+Message-ID: <20171113123100.GA6899@salvia>
+References: <20171109192712.GX32305@orbyte.nwl.cc>
+ <20171110112715.23289-1-phil@nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>,
-        anatole@rezel.net, netfilter-devel@vger.kernel.org
-To: Thomas Deutschmann <whissi@gentoo.org>
-Return-path: <stable-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Phil Sutter <phil@nwl.cc>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:59684 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751234AbdKMMbF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 13 Nov 2017 07:31:05 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 2834B392E08
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Nov 2017 13:31:04 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 19F68615A4
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Nov 2017 13:31:04 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <87af2305-0fde-b326-b9d6-db22ea744099@gentoo.org>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20171110112715.23289-1-phil@nwl.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Nov 10, 2017 at 12:56:46PM +0100, Thomas Deutschmann wrote:
-> Hi,
-> 
-> please consider to add
-> 
-> > From 0414c78f14861cb704d6e6888efd53dd36e3bdde Mon Sep 17 00:00:00 2001
-[...]
-> This commit fixes a problem in 4.13+ with latest >=nftables-0.8 release.
-> 
-> Bug: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=880145
-> Bug: https://bugs.gentoo.org/636968
+On Fri, Nov 10, 2017 at 12:27:15PM +0100, Phil Sutter wrote:
+> diff --git a/src/main.c b/src/main.c
+> index 529bedffc2e3b..8d03f8989b1fc 100644
+> --- a/src/main.c
+> +++ b/src/main.c
+> @@ -183,11 +183,11 @@ int main(int argc, char * const *argv)
+>  		switch (val) {
+>  		case OPT_HELP:
+>  			show_help(argv[0]);
+> -			exit(NFT_EXIT_SUCCESS);
+> +			exit(0);
 
-Already flying into -stable 4.13.
+Better use the standard EXIT_FAILURE and EXIT_SUCCESS here? Instead of
+hardcoded 0 and 1 values.
 
-https://marc.info/?l=netfilter-devel&m=151031414718199&w=2
-
-Thanks.
+Thanks!
