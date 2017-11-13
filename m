@@ -1,61 +1,208 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nft PATCH v2] libnftables: Unexport enum nftables_exit_codes
-Date: Mon, 13 Nov 2017 15:04:34 +0100
-Message-ID: <20171113140434.GB32305@orbyte.nwl.cc>
-References: <20171109192712.GX32305@orbyte.nwl.cc>
- <20171110112715.23289-1-phil@nwl.cc>
- <20171113123100.GA6899@salvia>
- <20171113134904.GA32305@orbyte.nwl.cc>
- <20171113135350.GA2721@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [nft PATCH v3] libnftables: Unexport enum nftables_exit_codes
+Date: Mon, 13 Nov 2017 15:08:16 +0100
+Message-ID: <20171113140816.17830-1-phil@nwl.cc>
+References: <20171113123837.GZ32305@orbyte.nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:51956 "EHLO orbyte.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:51974 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751593AbdKMOEf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Nov 2017 09:04:35 -0500
-Content-Disposition: inline
-In-Reply-To: <20171113135350.GA2721@salvia>
+        id S1751759AbdKMOI1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 13 Nov 2017 09:08:27 -0500
+In-Reply-To: <20171113123837.GZ32305@orbyte.nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 13, 2017 at 02:53:50PM +0100, Pablo Neira Ayuso wrote:
-> On Mon, Nov 13, 2017 at 02:49:04PM +0100, Phil Sutter wrote:
-> > On Mon, Nov 13, 2017 at 01:31:00PM +0100, Pablo Neira Ayuso wrote:
-> > > On Fri, Nov 10, 2017 at 12:27:15PM +0100, Phil Sutter wrote:
-> > > > diff --git a/src/main.c b/src/main.c
-> > > > index 529bedffc2e3b..8d03f8989b1fc 100644
-> > > > --- a/src/main.c
-> > > > +++ b/src/main.c
-> > > > @@ -183,11 +183,11 @@ int main(int argc, char * const *argv)
-> > > >  		switch (val) {
-> > > >  		case OPT_HELP:
-> > > >  			show_help(argv[0]);
-> > > > -			exit(NFT_EXIT_SUCCESS);
-> > > > +			exit(0);
-> > > 
-> > > Better use the standard EXIT_FAILURE and EXIT_SUCCESS here? Instead of
-> > > hardcoded 0 and 1 values.
-> > 
-> > While at it, should I convert nft_run_cmd_from_*() to return those
-> > macros as well? This would of course mean changing failure case from -1
-> > to 1, but would streamline calls from nft.c. What do you think?
-> 
-> I prefer to keep EXIT_* in main() only.
-> 
-> To me, -1 is the standard way to return an error in functions. So
-> that's fine to me to keep it around.
-> 
-> So my suggestion is, you focus on features and fixes at this stage,
-> cleanups may come later on, so we avoid too much code churning, ie.
-> things that we may need to undo later on when extending things.
-> 
-> Cleanups can follow up once dust settles down a bit.
-> 
-> Let me know, thanks.
+Apart from SUCCESS/FAILURE, these codes were not used by library
+functions simply because NOMEM and NONL conditions lead to calling
+exit() instead of propagating the error condition back up the call
+stack.
 
-OK, fine with me! Thanks for your quick feedback.
+Instead, make nft_run_cmd_from_*() return either 0 or -1 on error.
+Usually errno will then contain more details about what happened and/or
+there are messages in erec.
 
-Cheers, Phil
+Calls to exit()/return in main() are adjusted to stay compatible.
+
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+Changes since v1:
+- Fixed return code of main() if nft_run_cmd_from_*() fails, this broke
+  tests/shell.
+
+Changes since v2:
+- Use standard macros EXIT_SUCCESS and EXIT_FAILURE when
+  exiting/returning from nft main() function.
+---
+ include/nftables.h          |  7 +++++++
+ include/nftables/nftables.h | 10 ----------
+ src/libnftables.c           | 10 +++++-----
+ src/main.c                  | 22 +++++++++++-----------
+ 4 files changed, 23 insertions(+), 26 deletions(-)
+
+diff --git a/include/nftables.h b/include/nftables.h
+index d69079fe03e3a..3bfa33e5cb336 100644
+--- a/include/nftables.h
++++ b/include/nftables.h
+@@ -35,6 +35,13 @@ struct nft_ctx {
+ 	uint32_t		flags;
+ };
+ 
++enum nftables_exit_codes {
++	NFT_EXIT_SUCCESS	= 0,
++	NFT_EXIT_FAILURE	= 1,
++	NFT_EXIT_NOMEM		= 2,
++	NFT_EXIT_NONL		= 3,
++};
++
+ struct input_descriptor;
+ struct location {
+ 	const struct input_descriptor		*indesc;
+diff --git a/include/nftables/nftables.h b/include/nftables/nftables.h
+index 4211be76e6e40..8e59f2b2a59ab 100644
+--- a/include/nftables/nftables.h
++++ b/include/nftables/nftables.h
+@@ -38,16 +38,6 @@ enum nft_numeric_level {
+  */
+ #define NFT_CTX_DEFAULT		0
+ 
+-/**
+- * Exit codes returned by nft_run_cmd_from_*()
+- */
+-enum nftables_exit_codes {
+-	NFT_EXIT_SUCCESS	= 0,
+-	NFT_EXIT_FAILURE	= 1,
+-	NFT_EXIT_NOMEM		= 2,
+-	NFT_EXIT_NONL		= 3,
+-};
+-
+ struct nft_ctx *nft_ctx_new(uint32_t flags);
+ void nft_ctx_free(struct nft_ctx *ctx);
+ 
+diff --git a/src/libnftables.c b/src/libnftables.c
+index dc6a5fdf32640..e8fa6742f7d17 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -272,7 +272,7 @@ static const struct input_descriptor indesc_cmdline = {
+ 
+ int nft_run_cmd_from_buffer(struct nft_ctx *nft, char *buf, size_t buflen)
+ {
+-	int rc = NFT_EXIT_SUCCESS;
++	int rc = 0;
+ 	struct parser_state state;
+ 	LIST_HEAD(msgs);
+ 	void *scanner;
+@@ -284,7 +284,7 @@ int nft_run_cmd_from_buffer(struct nft_ctx *nft, char *buf, size_t buflen)
+ 	scanner_push_buffer(scanner, &indesc_cmdline, buf);
+ 
+ 	if (nft_run(nft, nft->nf_sock, scanner, &state, &msgs) != 0)
+-		rc = NFT_EXIT_FAILURE;
++		rc = -1;
+ 
+ 	fp = nft_ctx_set_output(nft, stderr);
+ 	erec_print_list(&nft->output, &msgs, nft->debug_mask);
+@@ -306,18 +306,18 @@ int nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename)
+ 	rc = cache_update(nft->nf_sock, &nft->cache, CMD_INVALID, &msgs,
+ 			  nft->debug_mask, &nft->output);
+ 	if (rc < 0)
+-		return NFT_EXIT_FAILURE;
++		return -1;
+ 
+ 	parser_init(nft->nf_sock, &nft->cache, &state,
+ 		    &msgs, nft->debug_mask, &nft->output);
+ 	scanner = scanner_init(&state);
+ 	if (scanner_read_file(scanner, filename, &internal_location) < 0) {
+-		rc = NFT_EXIT_FAILURE;
++		rc = -1;
+ 		goto err;
+ 	}
+ 
+ 	if (nft_run(nft, nft->nf_sock, scanner, &state, &msgs) != 0)
+-		rc = NFT_EXIT_FAILURE;
++		rc = -1;
+ err:
+ 	fp = nft_ctx_set_output(nft, stderr);
+ 	erec_print_list(&nft->output, &msgs, nft->debug_mask);
+diff --git a/src/main.c b/src/main.c
+index 529bedffc2e3b..ff7878c94ccb3 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -183,11 +183,11 @@ int main(int argc, char * const *argv)
+ 		switch (val) {
+ 		case OPT_HELP:
+ 			show_help(argv[0]);
+-			exit(NFT_EXIT_SUCCESS);
++			exit(EXIT_SUCCESS);
+ 		case OPT_VERSION:
+ 			printf("%s v%s (%s)\n",
+ 			       PACKAGE_NAME, PACKAGE_VERSION, RELEASE_NAME);
+-			exit(NFT_EXIT_SUCCESS);
++			exit(EXIT_SUCCESS);
+ 		case OPT_CHECK:
+ 			nft_ctx_set_dry_run(nft, true);
+ 			break;
+@@ -202,7 +202,7 @@ int main(int argc, char * const *argv)
+ 				fprintf(stderr,
+ 					"Failed to add include path '%s'\n",
+ 					optarg);
+-				exit(NFT_EXIT_FAILURE);
++				exit(EXIT_FAILURE);
+ 			}
+ 			break;
+ 		case OPT_NUMERIC:
+@@ -211,7 +211,7 @@ int main(int argc, char * const *argv)
+ 				fprintf(stderr, "Too many numeric options "
+ 						"used, max. %u\n",
+ 					NFT_NUMERIC_ALL);
+-				exit(NFT_EXIT_FAILURE);
++				exit(EXIT_FAILURE);
+ 			}
+ 			nft_ctx_output_set_numeric(nft, numeric + 1);
+ 			break;
+@@ -241,7 +241,7 @@ int main(int argc, char * const *argv)
+ 				if (i == array_size(debug_param)) {
+ 					fprintf(stderr, "invalid debug parameter `%s'\n",
+ 						optarg);
+-					exit(NFT_EXIT_FAILURE);
++					exit(EXIT_FAILURE);
+ 				}
+ 
+ 				if (end == NULL)
+@@ -257,7 +257,7 @@ int main(int argc, char * const *argv)
+ 			nft_ctx_output_set_echo(nft, true);
+ 			break;
+ 		case OPT_INVALID:
+-			exit(NFT_EXIT_FAILURE);
++			exit(EXIT_FAILURE);
+ 		}
+ 	}
+ 
+@@ -272,19 +272,19 @@ int main(int argc, char * const *argv)
+ 				strcat(buf, " ");
+ 		}
+ 		strcat(buf, "\n");
+-		rc = nft_run_cmd_from_buffer(nft, buf, len + 2);
++		rc = !!nft_run_cmd_from_buffer(nft, buf, len + 2);
+ 	} else if (filename != NULL) {
+-		rc = nft_run_cmd_from_filename(nft, filename);
++		rc = !!nft_run_cmd_from_filename(nft, filename);
+ 	} else if (interactive) {
+ 		if (cli_init(nft) < 0) {
+ 			fprintf(stderr, "%s: interactive CLI not supported in this build\n",
+ 				argv[0]);
+-			exit(NFT_EXIT_FAILURE);
++			exit(EXIT_FAILURE);
+ 		}
+-		return 0;
++		return EXIT_SUCCESS;
+ 	} else {
+ 		fprintf(stderr, "%s: no command specified\n", argv[0]);
+-		exit(NFT_EXIT_FAILURE);
++		exit(EXIT_FAILURE);
+ 	}
+ 
+ 	xfree(buf);
+-- 
+2.13.1
+
