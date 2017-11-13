@@ -1,30 +1,34 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH][V2] netfilter: remove redundant assignment to e
-Date: Mon, 13 Nov 2017 13:43:56 +0100
-Message-ID: <20171113124356.GA7770@salvia>
-References: <20171107100801.10056-1-colin.king@canonical.com>
+Subject: Re: [PATCH v2 nf-next 0/3] netfilter: conntrack: make l4 tracker
+ structs const
+Date: Mon, 13 Nov 2017 13:45:50 +0100
+Message-ID: <20171113124550.GA7806@salvia>
+References: <20171107062009.2519-1-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:41286 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751234AbdKMMpy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 13 Nov 2017 07:45:54 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 7E925392E03
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Nov 2017 13:45:53 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6E2F8BAC29
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Nov 2017 13:45:53 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20171107100801.10056-1-colin.king@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20171107062009.2519-1-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 07, 2017 at 10:08:01AM +0000, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
+On Tue, Nov 07, 2017 at 07:20:06AM +0100, Florian Westphal wrote:
+> This patch set removes the last runtime write accesses to the l4
+> protocol tracker structs, then marks them as 'const'.
 > 
-> The assignment to variable e is redundant since the same assignment
-> occurs just a few lines later, hence it can be removed.  Cleans up
-> clang warning for arp_tables, ip_tables and ip6_tables:
+> Resending, seems only first patchi (not resent) made it to
+> list/patchwork.
 
-Applied, thanks Colin.
+Series applied, now patchwork caught this series, thanks for resending.
