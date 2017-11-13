@@ -1,40 +1,63 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nft PATCH v2] libnftables: Unexport enum nftables_exit_codes
-Date: Mon, 13 Nov 2017 13:38:37 +0100
-Message-ID: <20171113123837.GZ32305@orbyte.nwl.cc>
-References: <20171109192712.GX32305@orbyte.nwl.cc>
- <20171110112715.23289-1-phil@nwl.cc>
- <20171113123100.GA6899@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH iptables] libxt_sctp: fix array out of range in
+ print_chunk
+Date: Mon, 13 Nov 2017 13:38:54 +0100
+Message-ID: <20171113123854.GA7570@salvia>
+References: <20171110104905.9205-1-nicolas.dichtel@6wind.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org,
+        huaibin Wang <huaibin.wang@6wind.com>
+To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:50998 "EHLO orbyte.nwl.cc"
+Received: from mail.us.es ([193.147.175.20]:37272 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752526AbdKMMij (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Nov 2017 07:38:39 -0500
+        id S1752526AbdKMMjF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 13 Nov 2017 07:39:05 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E85BE392E03
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Nov 2017 13:39:03 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D9146B7FF7
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Nov 2017 13:39:03 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20171113123100.GA6899@salvia>
+In-Reply-To: <20171110104905.9205-1-nicolas.dichtel@6wind.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 13, 2017 at 01:31:00PM +0100, Pablo Neira Ayuso wrote:
-> On Fri, Nov 10, 2017 at 12:27:15PM +0100, Phil Sutter wrote:
-> > diff --git a/src/main.c b/src/main.c
-> > index 529bedffc2e3b..8d03f8989b1fc 100644
-> > --- a/src/main.c
-> > +++ b/src/main.c
-> > @@ -183,11 +183,11 @@ int main(int argc, char * const *argv)
-> >  		switch (val) {
-> >  		case OPT_HELP:
-> >  			show_help(argv[0]);
-> > -			exit(NFT_EXIT_SUCCESS);
-> > +			exit(0);
+Hi Nicolas,
+
+On Fri, Nov 10, 2017 at 11:49:05AM +0100, Nicolas Dichtel wrote:
+> From: huaibin Wang <huaibin.wang@6wind.com>
 > 
-> Better use the standard EXIT_FAILURE and EXIT_SUCCESS here? Instead of
-> hardcoded 0 and 1 values.
+> For chunk type ASCONF, ASCONF_ACK and FORWARD_TSN, sctp_chunk_names[].chunk_type
+> is not equal to the corresponding index in sctp_chunk_names[]. Using this field
+> leads to a segmentation fault (index out of range).
+> 
+> Example
+> $ iptables -A INPUT -p sctp --chunk-type all ASCONF,ASCONF_ACK,FORWARD_TSN -j ACCEPT
+> $ iptables -L
+> Chain INPUT (policy ACCEPT)
+> target     prot opt source               destination
+> Segmentation fault
+> 
+> Signed-off-by: huaibin Wang <huaibin.wang@6wind.com>
+> Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+> ---
+>  extensions/libxt_sctp.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/extensions/libxt_sctp.c b/extensions/libxt_sctp.c
+> index df1936be8b83..140de2653b1e 100644
+> --- a/extensions/libxt_sctp.c
+> +++ b/extensions/libxt_sctp.c
+> @@ -370,7 +370,7 @@ print_chunk(uint32_t chunknum, int numeric)
+>  
+>  		for (i = 0; i < ARRAY_SIZE(sctp_chunk_names); ++i)
+>  			if (sctp_chunk_names[i].chunk_type == chunknum)
+> -				printf("%s", sctp_chunk_names[chunknum].name);
+> +				printf("%s", sctp_chunk_names[i].name);
 
-ACK, I'll prepare v3.
+Can we get a test for iptables/extensions/libxt_sctp.t ?
 
-Thanks, Phil
+Thanks!
