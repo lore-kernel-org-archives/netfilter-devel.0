@@ -1,36 +1,305 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH v2] netfilter: mark expected switch fall-throughs
-Date: Mon, 13 Nov 2017 08:59:50 +0100
-Message-ID: <20171113075950.csqwxld3i42updiz@verge.net.au>
-References: <20171107073045.Horde.fHvUlYL1jmnkY_bpuXRFqCR@gator4166.hostgator.com>
- <20171107141929.GA24483@embeddedor.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Wensong Zhang <wensong@linux-vs.org>,
-        Julian Anastasov <ja@ssi.bg>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, lvs-devel@vger.kernel.org
-To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171107141929.GA24483@embeddedor.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: eric.sesterhenn@x41-dsec.de
+Subject: [PATCH 1/2] Convert CHECK_BOUND macro to function
+Date: Mon, 13 Nov 2017 09:09:40 +0100
+Message-ID: <20171113080941.616-1-eric.sesterhenn@x41-dsec.de>
+References: <20171106151313.GA21034@salvia>
+Cc: netfilter-devel@vger.kernel.org
+To: eric.sesterhenn@x41-dsec.de, pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from aibo.runbox.com ([91.220.196.211]:51290 "EHLO aibo.runbox.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752065AbdKMIKD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 13 Nov 2017 03:10:03 -0500
+In-Reply-To: <20171106151313.GA21034@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 07, 2017 at 08:19:29AM -0600, Gustavo A. R. Silva wrote:
-> In preparation to enabling -Wimplicit-fallthrough, mark switch cases
-> where we are expecting to fall through.
-> 
-> Addresses-Coverity-ID: 1128839
-> Addresses-Coverity-ID: 1128840
-> Addresses-Coverity-ID: 115120
-> Addresses-Coverity-ID: 115121
-> Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+From: Eric Sesterhenn <eric.sesterhenn@x41-dsec.de>
 
-Signed-off-by: Simon Horman <horms@verge.net.au>
+It is bad practive to return in a macro, this patch
+moves the check into a function.
 
-Pablo, could you take this one directly?
+Signed-off-by: Eric Sesterhenn <eric.sesterhenn@x41-dsec.de>
+---
+ net/netfilter/nf_conntrack_h323_asn1.c | 94 +++++++++++++++++++++++-----------
+ 1 file changed, 65 insertions(+), 29 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
+index 89b2e46925c4..f358222b1e5e 100644
+--- a/net/netfilter/nf_conntrack_h323_asn1.c
++++ b/net/netfilter/nf_conntrack_h323_asn1.c
+@@ -103,7 +103,6 @@ typedef struct {
+ #define INC_BIT(bs) if((++(bs)->bit)>7){(bs)->cur++;(bs)->bit=0;}
+ #define INC_BITS(bs,b) if(((bs)->bit+=(b))>7){(bs)->cur+=(bs)->bit>>3;(bs)->bit&=7;}
+ #define BYTE_ALIGN(bs) if((bs)->bit){(bs)->cur++;(bs)->bit=0;}
+-#define CHECK_BOUND(bs,n) if((bs)->cur+(n)>(bs)->end)return(H323_ERROR_BOUND)
+ static unsigned int get_len(bitstr_t *bs);
+ static unsigned int get_bit(bitstr_t *bs);
+ static unsigned int get_bits(bitstr_t *bs, unsigned int b);
+@@ -166,6 +165,14 @@ static unsigned int get_len(bitstr_t *bs)
+ }
+ 
+ /****************************************************************************/
++static int nf_h323_error_boundary(bitstr_t *bs, size_t bytes)
++{
++	if(*bs->cur + bytes > *bs->end)
++		return 1;
++	return 0;
++}
++
++/****************************************************************************/
+ static unsigned int get_bit(bitstr_t *bs)
+ {
+ 	unsigned int b = (*bs->cur) & (0x80 >> bs->bit);
+@@ -280,7 +287,8 @@ static int decode_bool(bitstr_t *bs, const struct field_t *f,
+ 
+ 	INC_BIT(bs);
+ 
+-	CHECK_BOUND(bs, 0);
++	if (nf_h323_error_boundary(bs, 0))
++		return H323_ERROR_BOUND;
+ 	return H323_ERROR_NONE;
+ }
+ 
+@@ -293,11 +301,14 @@ static int decode_oid(bitstr_t *bs, const struct field_t *f,
+ 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
+ 
+ 	BYTE_ALIGN(bs);
+-	CHECK_BOUND(bs, 1);
++	if (nf_h323_error_boundary(bs, 1))
++		return H323_ERROR_BOUND;
++
+ 	len = *bs->cur++;
+ 	bs->cur += len;
++	if (nf_h323_error_boundary(bs, 0))
++		return H323_ERROR_BOUND;
+ 
+-	CHECK_BOUND(bs, 0);
+ 	return H323_ERROR_NONE;
+ }
+ 
+@@ -330,7 +341,8 @@ static int decode_int(bitstr_t *bs, const struct field_t *f,
+ 		break;
+ 	case UNCO:
+ 		BYTE_ALIGN(bs);
+-		CHECK_BOUND(bs, 2);
++		if (nf_h323_error_boundary(bs, 2))
++			return H323_ERROR_BOUND;
+ 		len = get_len(bs);
+ 		bs->cur += len;
+ 		break;
+@@ -341,7 +353,8 @@ static int decode_int(bitstr_t *bs, const struct field_t *f,
+ 
+ 	PRINT("\n");
+ 
+-	CHECK_BOUND(bs, 0);
++	if (nf_h323_error_boundary(bs, 0))
++		return H323_ERROR_BOUND;
+ 	return H323_ERROR_NONE;
+ }
+ 
+@@ -357,7 +370,8 @@ static int decode_enum(bitstr_t *bs, const struct field_t *f,
+ 		INC_BITS(bs, f->sz);
+ 	}
+ 
+-	CHECK_BOUND(bs, 0);
++	if (nf_h323_error_boundary(bs, 0))
++		return H323_ERROR_BOUND;
+ 	return H323_ERROR_NONE;
+ }
+ 
+@@ -375,12 +389,14 @@ static int decode_bitstr(bitstr_t *bs, const struct field_t *f,
+ 		len = f->lb;
+ 		break;
+ 	case WORD:		/* 2-byte length */
+-		CHECK_BOUND(bs, 2);
++		if (nf_h323_error_boundary(bs, 2))
++			return H323_ERROR_BOUND;
+ 		len = (*bs->cur++) << 8;
+ 		len += (*bs->cur++) + f->lb;
+ 		break;
+ 	case SEMI:
+-		CHECK_BOUND(bs, 2);
++		if (nf_h323_error_boundary(bs, 2))
++			return H323_ERROR_BOUND;
+ 		len = get_len(bs);
+ 		break;
+ 	default:
+@@ -391,7 +407,8 @@ static int decode_bitstr(bitstr_t *bs, const struct field_t *f,
+ 	bs->cur += len >> 3;
+ 	bs->bit = len & 7;
+ 
+-	CHECK_BOUND(bs, 0);
++	if (nf_h323_error_boundary(bs, 0))
++		return H323_ERROR_BOUND;
+ 	return H323_ERROR_NONE;
+ }
+ 
+@@ -409,7 +426,8 @@ static int decode_numstr(bitstr_t *bs, const struct field_t *f,
+ 	BYTE_ALIGN(bs);
+ 	INC_BITS(bs, (len << 2));
+ 
+-	CHECK_BOUND(bs, 0);
++	if (nf_h323_error_boundary(bs, 0))
++		return H323_ERROR_BOUND;
+ 	return H323_ERROR_NONE;
+ }
+ 
+@@ -440,12 +458,14 @@ static int decode_octstr(bitstr_t *bs, const struct field_t *f,
+ 		break;
+ 	case BYTE:		/* Range == 256 */
+ 		BYTE_ALIGN(bs);
+-		CHECK_BOUND(bs, 1);
++		if (nf_h323_error_boundary(bs, 1))
++			return H323_ERROR_BOUND;
+ 		len = (*bs->cur++) + f->lb;
+ 		break;
+ 	case SEMI:
+ 		BYTE_ALIGN(bs);
+-		CHECK_BOUND(bs, 2);
++		if (nf_h323_error_boundary(bs, 2))
++			return H323_ERROR_BOUND;
+ 		len = get_len(bs) + f->lb;
+ 		break;
+ 	default:		/* 2 <= Range <= 255 */
+@@ -458,7 +478,8 @@ static int decode_octstr(bitstr_t *bs, const struct field_t *f,
+ 
+ 	PRINT("\n");
+ 
+-	CHECK_BOUND(bs, 0);
++	if (nf_h323_error_boundary(bs, 0))
++		return H323_ERROR_BOUND;
+ 	return H323_ERROR_NONE;
+ }
+ 
+@@ -473,7 +494,8 @@ static int decode_bmpstr(bitstr_t *bs, const struct field_t *f,
+ 	switch (f->sz) {
+ 	case BYTE:		/* Range == 256 */
+ 		BYTE_ALIGN(bs);
+-		CHECK_BOUND(bs, 1);
++		if (nf_h323_error_boundary(bs, 1))
++			return H323_ERROR_BOUND;
+ 		len = (*bs->cur++) + f->lb;
+ 		break;
+ 	default:		/* 2 <= Range <= 255 */
+@@ -484,7 +506,8 @@ static int decode_bmpstr(bitstr_t *bs, const struct field_t *f,
+ 
+ 	bs->cur += len << 1;
+ 
+-	CHECK_BOUND(bs, 0);
++	if (nf_h323_error_boundary(bs, 0))
++		return H323_ERROR_BOUND;
+ 	return H323_ERROR_NONE;
+ }
+ 
+@@ -525,9 +548,11 @@ static int decode_seq(bitstr_t *bs, const struct field_t *f,
+ 
+ 		/* Decode */
+ 		if (son->attr & OPEN) {	/* Open field */
+-			CHECK_BOUND(bs, 2);
++			if (nf_h323_error_boundary(bs, 2))
++				return H323_ERROR_BOUND;
+ 			len = get_len(bs);
+-			CHECK_BOUND(bs, len);
++			if (nf_h323_error_boundary(bs, len))
++				return H323_ERROR_BOUND;
+ 			if (!base || !(son->attr & DECODE)) {
+ 				PRINT("%*.s%s\n", (level + 1) * TAB_SIZE,
+ 				      " ", son->name);
+@@ -556,7 +581,8 @@ static int decode_seq(bitstr_t *bs, const struct field_t *f,
+ 
+ 	/* Get the extension bitmap */
+ 	bmp2_len = get_bits(bs, 7) + 1;
+-	CHECK_BOUND(bs, (bmp2_len + 7) >> 3);
++	if (nf_h323_error_boundary(bs, (bmp2_len + 7) >> 3))
++		return H323_ERROR_BOUND;
+ 	bmp2 = get_bitmap(bs, bmp2_len);
+ 	bmp |= bmp2 >> f->sz;
+ 	if (base)
+@@ -567,9 +593,11 @@ static int decode_seq(bitstr_t *bs, const struct field_t *f,
+ 	for (opt = 0; opt < bmp2_len; opt++, i++, son++) {
+ 		/* Check Range */
+ 		if (i >= f->ub) {	/* Newer Version? */
+-			CHECK_BOUND(bs, 2);
++			if (nf_h323_error_boundary(bs, 2))
++				return H323_ERROR_BOUND;
+ 			len = get_len(bs);
+-			CHECK_BOUND(bs, len);
++			if (nf_h323_error_boundary(bs, len))
++				return H323_ERROR_BOUND;
+ 			bs->cur += len;
+ 			continue;
+ 		}
+@@ -583,9 +611,11 @@ static int decode_seq(bitstr_t *bs, const struct field_t *f,
+ 		if (!((0x80000000 >> opt) & bmp2))	/* Not present */
+ 			continue;
+ 
+-		CHECK_BOUND(bs, 2);
++		if (nf_h323_error_boundary(bs, 2))
++			return H323_ERROR_BOUND;
+ 		len = get_len(bs);
+-		CHECK_BOUND(bs, len);
++		if (nf_h323_error_boundary(bs, len))
++			return H323_ERROR_BOUND;
+ 		if (!base || !(son->attr & DECODE)) {
+ 			PRINT("%*.s%s\n", (level + 1) * TAB_SIZE, " ",
+ 			      son->name);
+@@ -623,19 +653,22 @@ static int decode_seqof(bitstr_t *bs, const struct field_t *f,
+ 	switch (f->sz) {
+ 	case BYTE:
+ 		BYTE_ALIGN(bs);
+-		CHECK_BOUND(bs, 1);
++		if (nf_h323_error_boundary(bs, 1))
++			return H323_ERROR_BOUND;
+ 		count = *bs->cur++;
+ 		break;
+ 	case WORD:
+ 		BYTE_ALIGN(bs);
+-		CHECK_BOUND(bs, 2);
++		if (nf_h323_error_boundary(bs, 2))
++			return H323_ERROR_BOUND;
+ 		count = *bs->cur++;
+ 		count <<= 8;
+ 		count += *bs->cur++;
+ 		break;
+ 	case SEMI:
+ 		BYTE_ALIGN(bs);
+-		CHECK_BOUND(bs, 2);
++		if (nf_h323_error_boundary(bs, 2))
++			return H323_ERROR_BOUND;
+ 		count = get_len(bs);
+ 		break;
+ 	default:
+@@ -659,7 +692,8 @@ static int decode_seqof(bitstr_t *bs, const struct field_t *f,
+ 		if (son->attr & OPEN) {
+ 			BYTE_ALIGN(bs);
+ 			len = get_len(bs);
+-			CHECK_BOUND(bs, len);
++			if (nf_h323_error_boundary(bs, len))
++				return H323_ERROR_BOUND;
+ 			if (!base || !(son->attr & DECODE)) {
+ 				PRINT("%*.s%s\n", (level + 1) * TAB_SIZE,
+ 				      " ", son->name);
+@@ -728,7 +762,8 @@ static int decode_choice(bitstr_t *bs, const struct field_t *f,
+ 	if (type >= f->ub) {	/* Newer version? */
+ 		BYTE_ALIGN(bs);
+ 		len = get_len(bs);
+-		CHECK_BOUND(bs, len);
++		if (nf_h323_error_boundary(bs, len))
++			return H323_ERROR_BOUND;
+ 		bs->cur += len;
+ 		return H323_ERROR_NONE;
+ 	}
+@@ -743,7 +778,8 @@ static int decode_choice(bitstr_t *bs, const struct field_t *f,
+ 	if (ext || (son->attr & OPEN)) {
+ 		BYTE_ALIGN(bs);
+ 		len = get_len(bs);
+-		CHECK_BOUND(bs, len);
++		if (nf_h323_error_boundary(bs, len))
++			return H323_ERROR_BOUND;
+ 		if (!base || !(son->attr & DECODE)) {
+ 			PRINT("%*.s%s\n", (level + 1) * TAB_SIZE, " ",
+ 			      son->name);
+-- 
+2.11.0
+
