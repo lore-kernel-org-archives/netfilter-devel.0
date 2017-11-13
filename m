@@ -1,43 +1,42 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables v2] libxt_sctp: fix array out of range in
- print_chunk
-Date: Mon, 13 Nov 2017 14:29:03 +0100
-Message-ID: <20171113132903.GA25437@salvia>
-References: <20171113123854.GA7570@salvia>
- <20171113132754.14911-1-nicolas.dichtel@6wind.com>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [nft PATCH v2] libnftables: Unexport enum nftables_exit_codes
+Date: Mon, 13 Nov 2017 14:49:04 +0100
+Message-ID: <20171113134904.GA32305@orbyte.nwl.cc>
+References: <20171109192712.GX32305@orbyte.nwl.cc>
+ <20171110112715.23289-1-phil@nwl.cc>
+ <20171113123100.GA6899@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-        huaibin Wang <huaibin.wang@6wind.com>
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42400 "EHLO mail.us.es"
+Received: from orbyte.nwl.cc ([151.80.46.58]:51928 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751842AbdKMN3T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 13 Nov 2017 08:29:19 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id B04E68D050A
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Nov 2017 14:29:17 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A15FEDA840
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Nov 2017 14:29:17 +0100 (CET)
+        id S1750854AbdKMNtG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 13 Nov 2017 08:49:06 -0500
 Content-Disposition: inline
-In-Reply-To: <20171113132754.14911-1-nicolas.dichtel@6wind.com>
+In-Reply-To: <20171113123100.GA6899@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 13, 2017 at 02:27:54PM +0100, Nicolas Dichtel wrote:
-> From: huaibin Wang <huaibin.wang@6wind.com>
+On Mon, Nov 13, 2017 at 01:31:00PM +0100, Pablo Neira Ayuso wrote:
+> On Fri, Nov 10, 2017 at 12:27:15PM +0100, Phil Sutter wrote:
+> > diff --git a/src/main.c b/src/main.c
+> > index 529bedffc2e3b..8d03f8989b1fc 100644
+> > --- a/src/main.c
+> > +++ b/src/main.c
+> > @@ -183,11 +183,11 @@ int main(int argc, char * const *argv)
+> >  		switch (val) {
+> >  		case OPT_HELP:
+> >  			show_help(argv[0]);
+> > -			exit(NFT_EXIT_SUCCESS);
+> > +			exit(0);
 > 
-> For chunk type ASCONF, ASCONF_ACK and FORWARD_TSN, sctp_chunk_names[].chunk_type
-> is not equal to the corresponding index in sctp_chunk_names[]. Using this field
-> leads to a segmentation fault (index out of range).
-> 
-> Example
-> $ iptables -A INPUT -p sctp --chunk-type all ASCONF,ASCONF_ACK,FORWARD_TSN -j ACCEPT
-> $ iptables -L
-> Chain INPUT (policy ACCEPT)
-> target     prot opt source               destination
-> Segmentation fault
+> Better use the standard EXIT_FAILURE and EXIT_SUCCESS here? Instead of
+> hardcoded 0 and 1 values.
 
-Applied, thanks a lot Nicolas.
+While at it, should I convert nft_run_cmd_from_*() to return those
+macros as well? This would of course mean changing failure case from -1
+to 1, but would streamline calls from nft.c. What do you think?
+
+Cheers, Phil
