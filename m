@@ -1,49 +1,42 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH net-next v2] net: move decnet to staging
-Date: Mon, 13 Nov 2017 12:25:53 -0800
-Message-ID: <1510604753.2849.154.camel@edumazet-glaptop3.roam.corp.google.com>
-References: <20171113171142.19476-1-sthemmin@microsoft.com>
-         <1510601578.10883.82.camel@perches.com>
+From: Jakub Kicinski <kubakici@wp.pl>
+Subject: Re: [PATCH RFC,WIP 0/5] Flow offload infrastructure
+Date: Mon, 13 Nov 2017 16:52:44 -0800
+Message-ID: <20171113165244.153915ef@cakuba>
+References: <20171103152636.9967-1-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Stephen Hemminger <stephen@networkplumber.org>,
-        davem@davemloft.net, pablo@netfilter.org, kadlec@blackhole.kfki.hu,
-        fw@strlen.de, devel@driverdev.osuosl.org,
-        linux-decnet-user@lists.sourceforge.net, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Stephen Hemminger <sthemmin@microsoft.com>
-To: Joe Perches <joe@perches.com>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1510601578.10883.82.camel@perches.com>
+In-Reply-To: <20171103152636.9967-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2017-11-13 at 11:32 -0800, Joe Perches wrote:
-> On Mon, 2017-11-13 at 09:11 -0800, Stephen Hemminger wrote:
-> > Support for Decnet has been orphaned for some time.
-> > In the interest of reducing the potential bug surface and pre-holiday
-> > cleaning, move the decnet protocol into staging for eventual removal.
-> []
-> > diff --git a/drivers/staging/decnet/TODO b/drivers/staging/decnet/TODO
-> []
-> > @@ -0,0 +1,4 @@
-> > +The DecNet code will be removed soon from the kernel tree as it is old,
-> > +obsolete, and buggy.
+On Fri,  3 Nov 2017 16:26:31 +0100, Pablo Neira Ayuso wrote:
+> I'm measuring here that the software flow table forwarding path is 2.5
+> faster than the classic forwarding path in my testbed.
 > 
-> Old and obsolete, well OK, but
-> what's buggy about decnet?
+> TODO, still many things:
 > 
-> https://bugzilla.kernel.org/buglist.cgi?quicksearch=decnet
+> * Only IPv4 at this time.
+> * Only IPv4 SNAT is supported.
+> * No netns support yet.
+> * Missing netlink interface to operate with the flow table, to force the
+>   handover of flow to the software path.
+> * Higher configurability, instead of registering the flow table
+>   inconditionally, add an interface to specify software flow table
+>   properties.
+> * No flow counters at this time.
 > 
-> Zarro Boogs found.
-> 
+> This should serve a number of usecases where we can rely on this kernel
+> bypass. Packets that need fragmentation / PMTU / IP option handling /
+> ... and any specific handling, then we should pass them up to the
+> forwarding classic path.
 
-Then that means nobody uses it.
-
-And that syzkaller guys never bothered to add code to actually trigger
-the bugs that are probably there. Probably they have bigger fishes to
-fry at this moment.
-
-If we leave the code there, chances are high that some hacker is
-interested into exploiting the bugs.
+I didn't realize it from this patch set, but it was mentioned at the
+conference that this patch set is completely stateless.  I.e. things
+like TCP window tracking are not included here.  IMHO that's a big
+concern, because offloading flows is trivial when compared to state
+sync.  IMHO state sync is *the* challenge in implementing connection
+tacking offload...
