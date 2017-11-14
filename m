@@ -1,357 +1,199 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 4.9 85/87] netfilter: nat: Revert "netfilter: nat:
- convert nat bysrc hash to rhashtable"
-Date: Tue, 14 Nov 2017 16:55:25 +0100
-Message-ID: <20171114155525.GA9618@salvia>
-References: <20171113125615.304035578@linuxfoundation.org>
- <20171113125622.938619668@linuxfoundation.org>
- <20171114155410.GA9440@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org,
-        Ivan Babrou <ibobrik@gmail.com>,
-        Florian Westphal <fw@strlen.de>,
-        Guillaume Nault <g.nault@alphalink.fr>,
-        netfilter-devel@vger.kernel.org,
-        Sebastian Gottschall <s.gottschall@dd-wrt.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171114155410.GA9440@salvia>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Phil Sutter <phil@nwl.cc>
+Subject: [nft PATCH] libnftables: Split code into frontend and library
+Date: Tue, 14 Nov 2017 21:17:10 +0100
+Message-ID: <20171114201710.16419-1-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from orbyte.nwl.cc ([151.80.46.58]:55580 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753337AbdKNURW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 14 Nov 2017 15:17:22 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi again,
+This finally creates the libnftables shared object.
 
-Cc'ing Sebastian Gottschall too.
+For some reason, this causes two compiler warnings to appear:
 
-See below for details. Thanks.
+| parser_bison.y: In function 'nft_parse':
+| parser_bison.y:131:3: warning: implicit declaration of function 'nft_set_debug' [-Wimplicit-function-declaration]
+|    nft_set_debug(1, scanner);
+|    ^~~~~~~~~~~~~
+| parser_bison.c:64:25: warning: implicit declaration of function 'nft_lex' [-Wimplicit-function-declaration]
+|  #define yylex           nft_lex
+|                          ^
+| parser_bison.c:4745:16: note: in expansion of macro 'yylex'
+|        yychar = yylex (&yylval, &yylloc, scanner);
 
-On Tue, Nov 14, 2017 at 04:54:10PM +0100, Pablo Neira Ayuso wrote:
-> Hi Greg,
-> 
-> Please, hold on a bit with this revert patch entitled:
-> 
->         nat: Revert "netfilter: nat: convert nat bysrc hash to rhashtable")
-> 
-> 
-> for 4.9-stable.
-> 
-> Until we clarify what is going on.
-> 
-> Guillame (he's on Cc) is reporting some problems after this.
-> 
-> Thanks!
-> 
-> On Mon, Nov 13, 2017 at 01:56:42PM +0100, Greg Kroah-Hartman wrote:
-> > 4.9-stable review patch.  If anyone has any objections, please let me know.
-> > 
-> > ------------------
-> > 
-> > From: Florian Westphal <fw@strlen.de>
-> > 
-> > commit e1bf1687740ce1a3598a1c5e452b852ff2190682 upstream.
-> > 
-> > This reverts commit 870190a9ec9075205c0fa795a09fa931694a3ff1.
-> > 
-> > It was not a good idea. The custom hash table was a much better
-> > fit for this purpose.
-> > 
-> > A fast lookup is not essential, in fact for most cases there is no lookup
-> > at all because original tuple is not taken and can be used as-is.
-> > What needs to be fast is insertion and deletion.
-> > 
-> > rhlist removal however requires a rhlist walk.
-> > We can have thousands of entries in such a list if source port/addresses
-> > are reused for multiple flows, if this happens removal requests are so
-> > expensive that deletions of a few thousand flows can take several
-> > seconds(!).
-> > 
-> > The advantages that we got from rhashtable are:
-> > 1) table auto-sizing
-> > 2) multiple locks
-> > 
-> > 1) would be nice to have, but it is not essential as we have at
-> > most one lookup per new flow, so even a million flows in the bysource
-> > table are not a problem compared to current deletion cost.
-> > 2) is easy to add to custom hash table.
-> > 
-> > I tried to add hlist_node to rhlist to speed up rhltable_remove but this
-> > isn't doable without changing semantics.  rhltable_remove_fast will
-> > check that the to-be-deleted object is part of the table and that
-> > requires a list walk that we want to avoid.
-> > 
-> > Furthermore, using hlist_node increases size of struct rhlist_head, which
-> > in turn increases nf_conn size.
-> > 
-> > Link: https://bugzilla.kernel.org/show_bug.cgi?id=196821
-> > Reported-by: Ivan Babrou <ibobrik@gmail.com>
-> > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > 
-> > 
-> > ---
-> >  include/net/netfilter/nf_conntrack.h |    3 
-> >  include/net/netfilter/nf_nat.h       |    1 
-> >  net/netfilter/nf_nat_core.c          |  131 ++++++++++++++---------------------
-> >  3 files changed, 56 insertions(+), 79 deletions(-)
-> > 
-> > --- a/include/net/netfilter/nf_conntrack.h
-> > +++ b/include/net/netfilter/nf_conntrack.h
-> > @@ -17,7 +17,6 @@
-> >  #include <linux/bitops.h>
-> >  #include <linux/compiler.h>
-> >  #include <linux/atomic.h>
-> > -#include <linux/rhashtable.h>
-> >  
-> >  #include <linux/netfilter/nf_conntrack_tcp.h>
-> >  #include <linux/netfilter/nf_conntrack_dccp.h>
-> > @@ -101,7 +100,7 @@ struct nf_conn {
-> >  	possible_net_t ct_net;
-> >  
-> >  #if IS_ENABLED(CONFIG_NF_NAT)
-> > -	struct rhlist_head nat_bysource;
-> > +	struct hlist_node	nat_bysource;
-> >  #endif
-> >  	/* all members below initialized via memset */
-> >  	u8 __nfct_init_offset[0];
-> > --- a/include/net/netfilter/nf_nat.h
-> > +++ b/include/net/netfilter/nf_nat.h
-> > @@ -1,6 +1,5 @@
-> >  #ifndef _NF_NAT_H
-> >  #define _NF_NAT_H
-> > -#include <linux/rhashtable.h>
-> >  #include <linux/netfilter_ipv4.h>
-> >  #include <linux/netfilter/nf_nat.h>
-> >  #include <net/netfilter/nf_conntrack_tuple.h>
-> > --- a/net/netfilter/nf_nat_core.c
-> > +++ b/net/netfilter/nf_nat_core.c
-> > @@ -30,19 +30,17 @@
-> >  #include <net/netfilter/nf_conntrack_zones.h>
-> >  #include <linux/netfilter/nf_nat.h>
-> >  
-> > +static DEFINE_SPINLOCK(nf_nat_lock);
-> > +
-> >  static DEFINE_MUTEX(nf_nat_proto_mutex);
-> >  static const struct nf_nat_l3proto __rcu *nf_nat_l3protos[NFPROTO_NUMPROTO]
-> >  						__read_mostly;
-> >  static const struct nf_nat_l4proto __rcu **nf_nat_l4protos[NFPROTO_NUMPROTO]
-> >  						__read_mostly;
-> >  
-> > -struct nf_nat_conn_key {
-> > -	const struct net *net;
-> > -	const struct nf_conntrack_tuple *tuple;
-> > -	const struct nf_conntrack_zone *zone;
-> > -};
-> > -
-> > -static struct rhltable nf_nat_bysource_table;
-> > +static struct hlist_head *nf_nat_bysource __read_mostly;
-> > +static unsigned int nf_nat_htable_size __read_mostly;
-> > +static unsigned int nf_nat_hash_rnd __read_mostly;
-> >  
-> >  inline const struct nf_nat_l3proto *
-> >  __nf_nat_l3proto_find(u8 family)
-> > @@ -121,17 +119,19 @@ int nf_xfrm_me_harder(struct net *net, s
-> >  EXPORT_SYMBOL(nf_xfrm_me_harder);
-> >  #endif /* CONFIG_XFRM */
-> >  
-> > -static u32 nf_nat_bysource_hash(const void *data, u32 len, u32 seed)
-> > +/* We keep an extra hash for each conntrack, for fast searching. */
-> > +static inline unsigned int
-> > +hash_by_src(const struct net *n, const struct nf_conntrack_tuple *tuple)
-> >  {
-> > -	const struct nf_conntrack_tuple *t;
-> > -	const struct nf_conn *ct = data;
-> > +	unsigned int hash;
-> > +
-> > +	get_random_once(&nf_nat_hash_rnd, sizeof(nf_nat_hash_rnd));
-> >  
-> > -	t = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
-> >  	/* Original src, to ensure we map it consistently if poss. */
-> > +	hash = jhash2((u32 *)&tuple->src, sizeof(tuple->src) / sizeof(u32),
-> > +		      tuple->dst.protonum ^ nf_nat_hash_rnd ^ net_hash_mix(n));
-> >  
-> > -	seed ^= net_hash_mix(nf_ct_net(ct));
-> > -	return jhash2((const u32 *)&t->src, sizeof(t->src) / sizeof(u32),
-> > -		      t->dst.protonum ^ seed);
-> > +	return reciprocal_scale(hash, nf_nat_htable_size);
-> >  }
-> >  
-> >  /* Is this tuple already taken? (not by us) */
-> > @@ -187,28 +187,6 @@ same_src(const struct nf_conn *ct,
-> >  		t->src.u.all == tuple->src.u.all);
-> >  }
-> >  
-> > -static int nf_nat_bysource_cmp(struct rhashtable_compare_arg *arg,
-> > -			       const void *obj)
-> > -{
-> > -	const struct nf_nat_conn_key *key = arg->key;
-> > -	const struct nf_conn *ct = obj;
-> > -
-> > -	if (!same_src(ct, key->tuple) ||
-> > -	    !net_eq(nf_ct_net(ct), key->net) ||
-> > -	    !nf_ct_zone_equal(ct, key->zone, IP_CT_DIR_ORIGINAL))
-> > -		return 1;
-> > -
-> > -	return 0;
-> > -}
-> > -
-> > -static struct rhashtable_params nf_nat_bysource_params = {
-> > -	.head_offset = offsetof(struct nf_conn, nat_bysource),
-> > -	.obj_hashfn = nf_nat_bysource_hash,
-> > -	.obj_cmpfn = nf_nat_bysource_cmp,
-> > -	.nelem_hint = 256,
-> > -	.min_size = 1024,
-> > -};
-> > -
-> >  /* Only called for SRC manip */
-> >  static int
-> >  find_appropriate_src(struct net *net,
-> > @@ -219,26 +197,22 @@ find_appropriate_src(struct net *net,
-> >  		     struct nf_conntrack_tuple *result,
-> >  		     const struct nf_nat_range *range)
-> >  {
-> > +	unsigned int h = hash_by_src(net, tuple);
-> >  	const struct nf_conn *ct;
-> > -	struct nf_nat_conn_key key = {
-> > -		.net = net,
-> > -		.tuple = tuple,
-> > -		.zone = zone
-> > -	};
-> > -	struct rhlist_head *hl, *h;
-> > -
-> > -	hl = rhltable_lookup(&nf_nat_bysource_table, &key,
-> > -			     nf_nat_bysource_params);
-> >  
-> > -	rhl_for_each_entry_rcu(ct, h, hl, nat_bysource) {
-> > -		nf_ct_invert_tuplepr(result,
-> > -				     &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-> > -		result->dst = tuple->dst;
-> > +	hlist_for_each_entry_rcu(ct, &nf_nat_bysource[h], nat_bysource) {
-> > +		if (same_src(ct, tuple) &&
-> > +		    net_eq(net, nf_ct_net(ct)) &&
-> > +		    nf_ct_zone_equal(ct, zone, IP_CT_DIR_ORIGINAL)) {
-> > +			/* Copy source part from reply tuple. */
-> > +			nf_ct_invert_tuplepr(result,
-> > +				       &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-> > +			result->dst = tuple->dst;
-> >  
-> > -		if (in_range(l3proto, l4proto, result, range))
-> > -			return 1;
-> > +			if (in_range(l3proto, l4proto, result, range))
-> > +				return 1;
-> > +		}
-> >  	}
-> > -
-> >  	return 0;
-> >  }
-> >  
-> > @@ -411,6 +385,7 @@ nf_nat_setup_info(struct nf_conn *ct,
-> >  		  const struct nf_nat_range *range,
-> >  		  enum nf_nat_manip_type maniptype)
-> >  {
-> > +	struct net *net = nf_ct_net(ct);
-> >  	struct nf_conntrack_tuple curr_tuple, new_tuple;
-> >  	struct nf_conn_nat *nat;
-> >  
-> > @@ -452,19 +427,16 @@ nf_nat_setup_info(struct nf_conn *ct,
-> >  	}
-> >  
-> >  	if (maniptype == NF_NAT_MANIP_SRC) {
-> > -		struct nf_nat_conn_key key = {
-> > -			.net = nf_ct_net(ct),
-> > -			.tuple = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
-> > -			.zone = nf_ct_zone(ct),
-> > -		};
-> > -		int err;
-> > -
-> > -		err = rhltable_insert_key(&nf_nat_bysource_table,
-> > -					  &key,
-> > -					  &ct->nat_bysource,
-> > -					  nf_nat_bysource_params);
-> > -		if (err)
-> > -			return NF_DROP;
-> > +		unsigned int srchash;
-> > +
-> > +		srchash = hash_by_src(net,
-> > +				      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
-> > +		spin_lock_bh(&nf_nat_lock);
-> > +		/* nf_conntrack_alter_reply might re-allocate extension aera */
-> > +		nat = nfct_nat(ct);
-> > +		hlist_add_head_rcu(&ct->nat_bysource,
-> > +				   &nf_nat_bysource[srchash]);
-> > +		spin_unlock_bh(&nf_nat_lock);
-> >  	}
-> >  
-> >  	/* It's done. */
-> > @@ -578,9 +550,10 @@ static int nf_nat_proto_clean(struct nf_
-> >  	 * Else, when the conntrack is destoyed, nf_nat_cleanup_conntrack()
-> >  	 * will delete entry from already-freed table.
-> >  	 */
-> > +	spin_lock_bh(&nf_nat_lock);
-> > +	hlist_del_rcu(&ct->nat_bysource);
-> >  	ct->status &= ~IPS_NAT_DONE_MASK;
-> > -	rhltable_remove(&nf_nat_bysource_table, &ct->nat_bysource,
-> > -			nf_nat_bysource_params);
-> > +	spin_unlock_bh(&nf_nat_lock);
-> >  
-> >  	/* don't delete conntrack.  Although that would make things a lot
-> >  	 * simpler, we'd end up flushing all conntracks on nat rmmod.
-> > @@ -710,8 +683,11 @@ static void nf_nat_cleanup_conntrack(str
-> >  	if (!nat)
-> >  		return;
-> >  
-> > -	rhltable_remove(&nf_nat_bysource_table, &ct->nat_bysource,
-> > -			nf_nat_bysource_params);
-> > +	NF_CT_ASSERT(ct->status & IPS_SRC_NAT_DONE);
-> > +
-> > +	spin_lock_bh(&nf_nat_lock);
-> > +	hlist_del_rcu(&ct->nat_bysource);
-> > +	spin_unlock_bh(&nf_nat_lock);
-> >  }
-> >  
-> >  static struct nf_ct_ext_type nat_extend __read_mostly = {
-> > @@ -846,13 +822,16 @@ static int __init nf_nat_init(void)
-> >  {
-> >  	int ret;
-> >  
-> > -	ret = rhltable_init(&nf_nat_bysource_table, &nf_nat_bysource_params);
-> > -	if (ret)
-> > -		return ret;
-> > +	/* Leave them the same for the moment. */
-> > +	nf_nat_htable_size = nf_conntrack_htable_size;
-> > +
-> > +	nf_nat_bysource = nf_ct_alloc_hashtable(&nf_nat_htable_size, 0);
-> > +	if (!nf_nat_bysource)
-> > +		return -ENOMEM;
-> >  
-> >  	ret = nf_ct_extend_register(&nat_extend);
-> >  	if (ret < 0) {
-> > -		rhltable_destroy(&nf_nat_bysource_table);
-> > +		nf_ct_free_hashtable(nf_nat_bysource, nf_nat_htable_size);
-> >  		printk(KERN_ERR "nf_nat_core: Unable to register extension\n");
-> >  		return ret;
-> >  	}
-> > @@ -876,7 +855,7 @@ static int __init nf_nat_init(void)
-> >  	return 0;
-> >  
-> >   cleanup_extend:
-> > -	rhltable_destroy(&nf_nat_bysource_table);
-> > +	nf_ct_free_hashtable(nf_nat_bysource, nf_nat_htable_size);
-> >  	nf_ct_extend_unregister(&nat_extend);
-> >  	return ret;
-> >  }
-> > @@ -896,8 +875,8 @@ static void __exit nf_nat_cleanup(void)
-> >  
-> >  	for (i = 0; i < NFPROTO_NUMPROTO; i++)
-> >  		kfree(nf_nat_l4protos[i]);
-> > -
-> > -	rhltable_destroy(&nf_nat_bysource_table);
-> > +	synchronize_net();
-> > +	nf_ct_free_hashtable(nf_nat_bysource, nf_nat_htable_size);
-> >  }
-> >  
-> >  MODULE_LICENSE("GPL");
-> > 
-> > 
+So this patch contains a workaround, namely declaring both functions
+in src/parser_bison.y. During linking the objects are found, so this is
+rather a matter of cosmetics.
+
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ .gitignore         |  3 +++
+ Makefile.am        |  3 +++
+ configure.ac       |  4 ++++
+ libnftables.pc.in  | 15 +++++++++++++++
+ src/.gitignore     |  1 +
+ src/Makefile.am    | 24 +++++++++++++++---------
+ src/parser_bison.y |  4 ++++
+ 7 files changed, 45 insertions(+), 9 deletions(-)
+ create mode 100644 libnftables.pc.in
+
+diff --git a/.gitignore b/.gitignore
+index 009f7d005afa1..64af328e0abf9 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,5 +1,6 @@
+ # Dependency and object files
+ .*.d
++*.lo
+ *.o
+ 
+ # Generated by autoconf/configure/automake
+@@ -8,6 +9,7 @@ Makefile
+ Makefile.in
+ src/Makefile.in
+ src/.deps/
++src/.libs/
+ stamp-h1
+ config.h
+ config.h.in
+@@ -17,6 +19,7 @@ config.status
+ configure
+ autom4te.cache
+ build-aux/
++libnftables.pc
+ libtool
+ missing
+ depcomp
+diff --git a/Makefile.am b/Makefile.am
+index 10aa40f14127f..9af25ded836b8 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -6,3 +6,6 @@ SUBDIRS = 	src	\
+ 		files
+ 
+ EXTRA_DIST =	tests
++
++pkgconfigdir = $(libdir)/pkgconfig
++pkgconfig_DATA = libnftables.pc
+diff --git a/configure.ac b/configure.ac
+index 099a4a5e81ec6..a97d9e73270dc 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -56,6 +56,9 @@ then
+         exit 1
+ fi
+ 
++AM_PROG_AR
++AM_PROG_LIBTOOL
++
+ AC_CHECK_PROG(DOCBOOK2X_MAN, [docbook2x-man], [docbook2x-man], [no])
+ AC_CHECK_PROG(DOCBOOK2MAN, [docbook2man], [docbook2man], [no])
+ AC_CHECK_PROG(DB2X_DOCBOOK2MAN, [db2x_docbook2man], [db2x_docbook2man], [no])
+@@ -138,6 +141,7 @@ AC_CHECK_FUNCS([memmove memset strchr strdup strerror strtoull])
+ 
+ AC_CONFIG_FILES([					\
+ 		Makefile				\
++		libnftables.pc				\
+ 		src/Makefile				\
+ 		include/Makefile			\
+ 		include/nftables/Makefile		\
+diff --git a/libnftables.pc.in b/libnftables.pc.in
+new file mode 100644
+index 0000000000000..6431d48cf6f2c
+--- /dev/null
++++ b/libnftables.pc.in
+@@ -0,0 +1,15 @@
++# libnftables pkg-config file
++
++prefix=@prefix@
++exec_prefix=@exec_prefix@
++libdir=@libdir@
++includedir=@includedir@
++
++Name: libnftables
++Description: Netfilter nf_tables user library
++URL: http://netfilter.org/projects/nftables/
++Version: @VERSION@
++Requires:
++Conflicts:
++Libs: -L${libdir} -lnftables
++Cflags: -I${includedir}
+diff --git a/src/.gitignore b/src/.gitignore
+index 23e6ae030f107..36d6acd1e4d01 100644
+--- a/src/.gitignore
++++ b/src/.gitignore
+@@ -1,3 +1,4 @@
++libnftables.la
+ parser.c
+ parser.h
+ scanner.c
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 4d613a731dfb9..9f7a4bfbb90a4 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -27,7 +27,9 @@ parser_bison.o scanner.o: AM_CFLAGS += -Wno-missing-prototypes -Wno-missing-decl
+ 
+ BUILT_SOURCES = parser_bison.h
+ 
+-nft_SOURCES =	main.c				\
++lib_LTLIBRARIES = libnftables.la
++
++libnftables_la_SOURCES =			\
+ 		rule.c				\
+ 		statement.c			\
+ 		datatype.c			\
+@@ -59,19 +61,23 @@ nft_SOURCES =	main.c				\
+ 		parser_bison.y			\
+ 		libnftables.c
+ 
+-if BUILD_CLI
+-nft_SOURCES +=	cli.c
+-endif
+-
+ if BUILD_MINIGMP
+ mini-gmp.o: AM_CFLAGS += -Wno-sign-compare
+ 
+-nft_SOURCES +=	mini-gmp.c
++libnftables_la_SOURCES += mini-gmp.c
+ endif
+ 
+-nft_LDADD	= ${LIBMNL_LIBS} ${LIBNFTNL_LIBS}
++libnftables_la_LIBADD = ${LIBMNL_LIBS} ${LIBNFTNL_LIBS}
+ 
+ if BUILD_XTABLES
+-nft_SOURCES +=	xt.c
+-nft_LDADD   +=  ${XTABLES_LIBS}
++libnftables_la_SOURCES += xt.c
++libnftables_la_LIBADD += ${XTABLES_LIBS}
+ endif
++
++nft_SOURCES = main.c
++
++if BUILD_CLI
++nft_SOURCES += cli.c
++endif
++
++nft_LDADD = libnftables.la
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 2c59fa784585a..c64c3979eb041 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -105,6 +105,10 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ 
+ #define symbol_value(loc, str) \
+ 	symbol_expr_alloc(loc, SYMBOL_VALUE, current_scope(state), str)
++
++/* Declare those here to avoid compiler warnings */
++void nft_set_debug(int, void *);
++int nft_lex(void *, void *, void *);
+ %}
+ 
+ /* Declaration section */
+-- 
+2.13.1
+
