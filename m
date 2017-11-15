@@ -1,57 +1,65 @@
-From: " M,Shakour Rosarita" <hassanamira04@gmail.com>
-Subject: Hello Dear...
-Date: Wed, 15 Nov 2017 11:33:35 +0000
-Message-ID: <CADmkuphPLbDWshY0vyFoGaNpEvVxhHAWRGf=JwVhJ4oopvr5uA__41447.323797229$1510745629$gmane$org@mail.gmail.com>
-Reply-To: mshakourrosarita22@gmail.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-To: undisclosed-recipients:;
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH net-next] netfilter: add ifdef around ctnetlink_proto_size
+Date: Wed, 15 Nov 2017 18:28:21 +0100
+Message-ID: <20171115172821.8451-1-pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        arnd@arndb.de
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:52757 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932369AbdKOLdg (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Nov 2017 06:33:36 -0500
-Received: by mail-qt0-f196.google.com with SMTP id 31so33517936qtz.9
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Nov 2017 03:33:36 -0800 (PST)
+Received: from mail.us.es ([193.147.175.20]:50022 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756639AbdKOR2b (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 15 Nov 2017 12:28:31 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 6E23B3066B7
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Nov 2017 18:28:30 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 606B9DA804
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Nov 2017 18:28:30 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Dear...
+From: Arnd Bergmann <arnd@arndb.de>
 
-I know that this message will come to you as a surprise. I hoped that
-you will not expose or betray this trust and confident that I am about
-to repose on you, my name is M, Shakour Rosarita. I am 19 years old
-Girl, female, from Tartu Syria, (never married) 61 kg, white in
-complexion, and I am currently living in the refugee camp here in
-Abidjan Ivory Coast, My late beloved father M,Shakour Hassin was a
-renowned businessman and owner of Natour Petrol Station in Syria, he
-was killed in a stampede riot in Tartu, Syria.
-When I got the news about my parents. I fled to a nearby country
-Jordan before I joined a ferry to Africa and came to Abidjan capital
-city Ivory Coast West Africa find safety here.
-I came in 2015 to Abidjan and I now live in refugee camps here as
-refugees are allowed freely to enter here without, My late father
-deposited (US$6.200.000.00m) My late father kept the money at the bank
-of Africa, I want you to help me transfer the money to your hand so
-that you will help me bring me into your country for my continue
-education.
+This function is no longer marked 'inline', so we now get a warning
+when it is unused:
 
-I sent my pictures here for you to see. Who I am seriously looking for
-a good-person in my life, so I want to hear from you soon and learn
-more about you.
+net/netfilter/nf_conntrack_netlink.c:536:15: error: 'ctnetlink_proto_size' defined but not used [-Werror=unused-function]
 
-I am an open-minded and friendly girl to share a good time with you
-and have fun and enjoy on the go, bird watching, the rest of our
-lives. My Hobbies, tourism books, dance, music, soccer, tennis,
-swimming and cinema.
-I would just think about you, including your dose and doesn=E2=80=99t .I
-believe we will do well together, and live like one family.
-Thank you and God bless you, for you in your promise to help me here,
-looking forward to your reply by the grace of God and have a good day.
-I hope you send me your photos as well? I await your next reply in
-faith please reply through my private email at
-(mshakourrosarita22@gmail.com):
-Thanks.
-Ms Rosarita
+We could mark it inline again, mark it __maybe_unused, or add an #ifdef
+around the definition. I'm picking the third approach here since that
+seems to be what the rest of the file has.
+
+Fixes: 5caaed151a68 ("netfilter: conntrack: don't cache nlattr_tuple_size result in nla_size")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+@David: please place this fix into your net-next tree, it is calming
+        down a compilation warning. Thanks!
+
+ net/netfilter/nf_conntrack_netlink.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 71a43ed19a0f..96277706b379 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -533,6 +533,7 @@ ctnetlink_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
+ 	return -1;
+ }
+ 
++#if defined(CONFIG_NETFILTER_NETLINK_GLUE_CT) || defined(CONFIG_NF_CONNTRACK_EVENTS)
+ static size_t ctnetlink_proto_size(const struct nf_conn *ct)
+ {
+ 	const struct nf_conntrack_l3proto *l3proto;
+@@ -552,6 +553,7 @@ static size_t ctnetlink_proto_size(const struct nf_conn *ct)
+ 
+ 	return len + len4;
+ }
++#endif
+ 
+ static inline size_t ctnetlink_acct_size(const struct nf_conn *ct)
+ {
+-- 
+2.11.0
+
