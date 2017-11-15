@@ -1,65 +1,83 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH net-next] netfilter: add ifdef around ctnetlink_proto_size
-Date: Wed, 15 Nov 2017 18:28:21 +0100
-Message-ID: <20171115172821.8451-1-pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        arnd@arndb.de
-To: davem@davemloft.net
+From: Jay Elliott <jelliott@arista.com>
+Subject: Re: [PATCH v3] netfilter: conntrack: clamp timeouts to INT_MAX
+Date: Wed, 15 Nov 2017 10:59:35 -0800
+Message-ID: <CA+c2rSgrP9OC4u4rcXbeeGZsKLxjoLiwRJZ0Q1pwi6LM31=qLA@mail.gmail.com>
+References: <1510745490-26272-1-git-send-email-jelliott@arista.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: Jay Elliott <jelliott@arista.com>, Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50022 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756639AbdKOR2b (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Nov 2017 12:28:31 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6E23B3066B7
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Nov 2017 18:28:30 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 606B9DA804
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Nov 2017 18:28:30 +0100 (CET)
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:53863 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758602AbdKOS74 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 15 Nov 2017 13:59:56 -0500
+Received: by mail-qt0-f195.google.com with SMTP id n61so36742776qte.10
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Nov 2017 10:59:56 -0800 (PST)
+In-Reply-To: <1510745490-26272-1-git-send-email-jelliott@arista.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Arnd Bergmann <arnd@arndb.de>
+Sorry, I just realized I made a mistake in this patch by forgetting to
+cast the timeout to 64-bit before multiplying by HZ.  I'll fix it and
+send out another version in a little bit.
 
-This function is no longer marked 'inline', so we now get a warning
-when it is unused:
+Sorry about the unnecessary e-mail traffic.
 
-net/netfilter/nf_conntrack_netlink.c:536:15: error: 'ctnetlink_proto_size' defined but not used [-Werror=unused-function]
+Thanks,
+Jay Elliott
 
-We could mark it inline again, mark it __maybe_unused, or add an #ifdef
-around the definition. I'm picking the third approach here since that
-seems to be what the rest of the file has.
-
-Fixes: 5caaed151a68 ("netfilter: conntrack: don't cache nlattr_tuple_size result in nla_size")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-@David: please place this fix into your net-next tree, it is calming
-        down a compilation warning. Thanks!
-
- net/netfilter/nf_conntrack_netlink.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 71a43ed19a0f..96277706b379 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -533,6 +533,7 @@ ctnetlink_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
- 	return -1;
- }
- 
-+#if defined(CONFIG_NETFILTER_NETLINK_GLUE_CT) || defined(CONFIG_NF_CONNTRACK_EVENTS)
- static size_t ctnetlink_proto_size(const struct nf_conn *ct)
- {
- 	const struct nf_conntrack_l3proto *l3proto;
-@@ -552,6 +553,7 @@ static size_t ctnetlink_proto_size(const struct nf_conn *ct)
- 
- 	return len + len4;
- }
-+#endif
- 
- static inline size_t ctnetlink_acct_size(const struct nf_conn *ct)
- {
--- 
-2.11.0
-
+On Wed, Nov 15, 2017 at 3:31 AM, Jay Elliott <jelliott@arista.com> wrote:
+> When the conntracking code multiplies a timeout by HZ, it can overflow
+> from positive to negative; this causes it to instantly expire.  To
+> protect against this the multiplication is done in 64-bit so we can
+> prevent it from exceeding INT_MAX.
+>
+> Signed-off-by: Jay Elliott <jelliott@arista.com>
+> ---
+>  net/netfilter/nf_conntrack_netlink.c | 12 +++++++++---
+>  1 file changed, 9 insertions(+), 3 deletions(-)
+>
+> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+> index de4053d..3a336bb 100644
+> --- a/net/netfilter/nf_conntrack_netlink.c
+> +++ b/net/netfilter/nf_conntrack_netlink.c
+> @@ -1560,9 +1560,11 @@ static int ctnetlink_change_helper(struct nf_conn *ct,
+>  static int ctnetlink_change_timeout(struct nf_conn *ct,
+>                                     const struct nlattr * const cda[])
+>  {
+> -       u_int32_t timeout = ntohl(nla_get_be32(cda[CTA_TIMEOUT]));
+> +       u64 timeout = ntohl(nla_get_be32(cda[CTA_TIMEOUT])) * HZ;
+>
+> -       ct->timeout = nfct_time_stamp + timeout * HZ;
+> +       if (timeout > INT_MAX)
+> +               timeout = INT_MAX;
+> +       ct->timeout = nfct_time_stamp + (u32)timeout;
+>
+>         if (test_bit(IPS_DYING_BIT, &ct->status))
+>                 return -ETIME;
+> @@ -1762,6 +1764,7 @@ static int change_seq_adj(struct nf_ct_seqadj *seq,
+>         int err = -EINVAL;
+>         struct nf_conntrack_helper *helper;
+>         struct nf_conn_tstamp *tstamp;
+> +       u64 timeout;
+>
+>         ct = nf_conntrack_alloc(net, zone, otuple, rtuple, GFP_ATOMIC);
+>         if (IS_ERR(ct))
+> @@ -1770,7 +1773,10 @@ static int change_seq_adj(struct nf_ct_seqadj *seq,
+>         if (!cda[CTA_TIMEOUT])
+>                 goto err1;
+>
+> -       ct->timeout = nfct_time_stamp + ntohl(nla_get_be32(cda[CTA_TIMEOUT])) * HZ;
+> +       timeout = ntohl(nla_get_be32(cda[CTA_TIMEOUT])) * HZ;
+> +       if (timeout > INT_MAX)
+> +               timeout = INT_MAX;
+> +       ct->timeout = (u32)timeout + nfct_time_stamp;
+>
+>         rcu_read_lock();
+>         if (cda[CTA_HELP]) {
+> --
+> 1.8.1.4
+>
