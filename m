@@ -1,69 +1,57 @@
-From: Jay Elliott <jelliott@arista.com>
-Subject: [PATCH v3] netfilter: conntrack: clamp timeouts to INT_MAX
-Date: Wed, 15 Nov 2017 03:31:30 -0800
-Message-ID: <1510745490-26272-1-git-send-email-jelliott@arista.com>
-Cc: Jay Elliott <jelliott@arista.com>, fw@strlen.de,
-        netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: " M,Shakour Rosarita" <hassanamira04@gmail.com>
+Subject: Hello Dear...
+Date: Wed, 15 Nov 2017 11:33:35 +0000
+Message-ID: <CADmkuphPLbDWshY0vyFoGaNpEvVxhHAWRGf=JwVhJ4oopvr5uA__41447.323797229$1510745629$gmane$org@mail.gmail.com>
+Reply-To: mshakourrosarita22@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+To: undisclosed-recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:44416 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752860AbdKOLby (ORCPT
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:52757 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932369AbdKOLdg (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 15 Nov 2017 06:31:54 -0500
-Received: by mail-pg0-f68.google.com with SMTP id 4so8913111pge.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Nov 2017 03:31:54 -0800 (PST)
+        Wed, 15 Nov 2017 06:33:36 -0500
+Received: by mail-qt0-f196.google.com with SMTP id 31so33517936qtz.9
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Nov 2017 03:33:36 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When the conntracking code multiplies a timeout by HZ, it can overflow
-from positive to negative; this causes it to instantly expire.  To
-protect against this the multiplication is done in 64-bit so we can
-prevent it from exceeding INT_MAX.
+Hello Dear...
 
-Signed-off-by: Jay Elliott <jelliott@arista.com>
----
- net/netfilter/nf_conntrack_netlink.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+I know that this message will come to you as a surprise. I hoped that
+you will not expose or betray this trust and confident that I am about
+to repose on you, my name is M, Shakour Rosarita. I am 19 years old
+Girl, female, from Tartu Syria, (never married) 61 kg, white in
+complexion, and I am currently living in the refugee camp here in
+Abidjan Ivory Coast, My late beloved father M,Shakour Hassin was a
+renowned businessman and owner of Natour Petrol Station in Syria, he
+was killed in a stampede riot in Tartu, Syria.
+When I got the news about my parents. I fled to a nearby country
+Jordan before I joined a ferry to Africa and came to Abidjan capital
+city Ivory Coast West Africa find safety here.
+I came in 2015 to Abidjan and I now live in refugee camps here as
+refugees are allowed freely to enter here without, My late father
+deposited (US$6.200.000.00m) My late father kept the money at the bank
+of Africa, I want you to help me transfer the money to your hand so
+that you will help me bring me into your country for my continue
+education.
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index de4053d..3a336bb 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1560,9 +1560,11 @@ static int ctnetlink_change_helper(struct nf_conn *ct,
- static int ctnetlink_change_timeout(struct nf_conn *ct,
- 				    const struct nlattr * const cda[])
- {
--	u_int32_t timeout = ntohl(nla_get_be32(cda[CTA_TIMEOUT]));
-+	u64 timeout = ntohl(nla_get_be32(cda[CTA_TIMEOUT])) * HZ;
- 
--	ct->timeout = nfct_time_stamp + timeout * HZ;
-+	if (timeout > INT_MAX)
-+		timeout = INT_MAX;
-+	ct->timeout = nfct_time_stamp + (u32)timeout;
- 
- 	if (test_bit(IPS_DYING_BIT, &ct->status))
- 		return -ETIME;
-@@ -1762,6 +1764,7 @@ static int change_seq_adj(struct nf_ct_seqadj *seq,
- 	int err = -EINVAL;
- 	struct nf_conntrack_helper *helper;
- 	struct nf_conn_tstamp *tstamp;
-+	u64 timeout;
- 
- 	ct = nf_conntrack_alloc(net, zone, otuple, rtuple, GFP_ATOMIC);
- 	if (IS_ERR(ct))
-@@ -1770,7 +1773,10 @@ static int change_seq_adj(struct nf_ct_seqadj *seq,
- 	if (!cda[CTA_TIMEOUT])
- 		goto err1;
- 
--	ct->timeout = nfct_time_stamp + ntohl(nla_get_be32(cda[CTA_TIMEOUT])) * HZ;
-+	timeout = ntohl(nla_get_be32(cda[CTA_TIMEOUT])) * HZ;
-+	if (timeout > INT_MAX)
-+		timeout = INT_MAX;
-+	ct->timeout = (u32)timeout + nfct_time_stamp;
- 
- 	rcu_read_lock();
-  	if (cda[CTA_HELP]) {
--- 
-1.8.1.4
+I sent my pictures here for you to see. Who I am seriously looking for
+a good-person in my life, so I want to hear from you soon and learn
+more about you.
 
+I am an open-minded and friendly girl to share a good time with you
+and have fun and enjoy on the go, bird watching, the rest of our
+lives. My Hobbies, tourism books, dance, music, soccer, tennis,
+swimming and cinema.
+I would just think about you, including your dose and doesn=E2=80=99t .I
+believe we will do well together, and live like one family.
+Thank you and God bless you, for you in your promise to help me here,
+looking forward to your reply by the grace of God and have a good day.
+I hope you send me your photos as well? I await your next reply in
+faith please reply through my private email at
+(mshakourrosarita22@gmail.com):
+Thanks.
+Ms Rosarita
