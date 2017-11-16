@@ -1,87 +1,89 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH 2/2] monitor: Make JSON output respect output_fp
-Date: Thu, 16 Nov 2017 15:32:24 +0100
-Message-ID: <20171116143224.GA17329@salvia>
-References: <20171116080629.30564-1-phil@nwl.cc>
- <20171116080629.30564-3-phil@nwl.cc>
- <20171116133824.GA5926@salvia>
- <20171116135444.GA8328@salvia>
- <20171116135821.GK32305@orbyte.nwl.cc>
- <20171116141206.GA15344@salvia>
- <20171116141924.GM32305@orbyte.nwl.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+From: Phil Sutter <phil@nwl.cc>
+Subject: [nft PATCH] libnftables: Fix for multiple context instances
+Date: Thu, 16 Nov 2017 20:10:24 +0100
+Message-ID: <20171116191024.18908-1-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43152 "EHLO mail.us.es"
+Received: from orbyte.nwl.cc ([151.80.46.58]:32772 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935377AbdKPOc3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Nov 2017 09:32:29 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 8A78E2EFEAA
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Nov 2017 15:32:27 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7AD17DA863
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Nov 2017 15:32:27 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20171116141924.GM32305@orbyte.nwl.cc>
+        id S934335AbdKPTKg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Nov 2017 14:10:36 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 16, 2017 at 03:19:24PM +0100, Phil Sutter wrote:
-> On Thu, Nov 16, 2017 at 03:12:06PM +0100, Pablo Neira Ayuso wrote:
-> > On Thu, Nov 16, 2017 at 02:58:21PM +0100, Phil Sutter wrote:
-> > > On Thu, Nov 16, 2017 at 02:54:44PM +0100, Pablo Neira Ayuso wrote:
-> > > > On Thu, Nov 16, 2017 at 02:38:24PM +0100, Pablo Neira Ayuso wrote:
-> > > > > On Thu, Nov 16, 2017 at 09:06:29AM +0100, Phil Sutter wrote:
-> > > > > > This introduces a rather nasty macro to call nftnl_*_fprintf() only if
-> > > > > > output_fp is valid. On the other hand, it allows to pull the common
-> > > > > > parts (format argument, event conversion) into a single place.
-> > > > > > 
-> > > > > > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > > > > > ---
-> > > > > >  src/netlink.c | 38 ++++++++++++++++++--------------------
-> > > > > >  1 file changed, 18 insertions(+), 20 deletions(-)
-> > > > > > 
-> > > > > > diff --git a/src/netlink.c b/src/netlink.c
-> > > > > > index 845eeeffd7387..81b92ac1e2d7c 100644
-> > > > > > --- a/src/netlink.c
-> > > > > > +++ b/src/netlink.c
-> > > > > > @@ -40,6 +40,12 @@
-> > > > > >  #include <iface.h>
-> > > > > >  
-> > > > > >  #define nft_mon_print(monh, ...) nft_print(monh->ctx->octx, __VA_ARGS__)
-> > > > > > +#define nftnl_mon_print(monh, type, obj, event)				\
-> > > > > > +	if (monh->ctx->octx->output_fp) {				\
-> > > > > > +		nftnl_##type##_fprintf(monh->ctx->octx->output_fp,	\
-> > > > > > +				       obj, monh->format,		\
-> > > > > > +				       netlink_msg2nftnl_of(event));	\
-> > > > > > +	}
-> > > > > 
-> > > > > Wait.
-> > > > > 
-> > > > > Can't we just change nftnl_*_fprintf to do nothing if output_fp is
-> > > > > NULL.
-> > > > > 
-> > > > > That should be safe.
-> > > > 
-> > > > Or we just save all these branches by always setting output_fp to
-> > > > stdout. It should simplify things a bit.
-> > > > 
-> > > > What am I missing here?
-> > > 
-> > > output_fp is under application control (via nft_ctx_set_output()), and I
-> > > think it's a valid use-case for applications to call
-> > > 'nft_ctx_set_output(NULL)' to disable all output.
-> > 
-> > We can set a dummy file descriptor that point to /dev/null, right?
-> 
-> Which we would have to acquire using 'open()', correct? What if that
-> call fails?
-> 
-> I could think of a static FILE *devnull in nft_ctx_set_output() which is
-> opened if needed, and closed if the program exits. Would that work?
+If a second context is created, the second call to nft_ctx_free() leads
+to freeing invalid pointers in nft_exit(). Fix this by introducing a
+reference counter so that neither nft_init() nor nft_exit() run more
+than once in a row.
 
-Not sure how that looks like, but it removes many of the branches that
-we have now in place to check if output_fp is non-null, then it will
-simplify the existing code, which would be good :-).
+This reference counter has to be protected from parallel access. Do this
+using a mutex in a way that once nft_init() returns, the first call to
+that function running in parallel is guaranteed to be finished -
+otherwise it could happen that things being initialized in one thread
+are already accessed in another one.
+
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ src/libnftables.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/src/libnftables.c b/src/libnftables.c
+index e8fa6742f7d17..9df9658930c39 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -14,6 +14,7 @@
+ #include <iface.h>
+ 
+ #include <errno.h>
++#include <pthread.h>
+ #include <stdlib.h>
+ #include <string.h>
+ 
+@@ -102,8 +103,16 @@ err1:
+ 	return ret;
+ }
+ 
++static int nft_refcnt;
++static pthread_mutex_t nft_refcnt_mutex = PTHREAD_MUTEX_INITIALIZER;
++
+ static void nft_init(void)
+ {
++	pthread_mutex_lock(&nft_refcnt_mutex);
++
++	if (nft_refcnt++)
++		goto unlock;
++
+ 	mark_table_init();
+ 	realm_table_rt_init();
+ 	devgroup_table_init();
+@@ -113,15 +122,26 @@ static void nft_init(void)
+ #ifdef HAVE_LIBXTABLES
+ 	xt_init();
+ #endif
++
++unlock:
++	pthread_mutex_unlock(&nft_refcnt_mutex);
+ }
+ 
+ static void nft_exit(void)
+ {
++	pthread_mutex_lock(&nft_refcnt_mutex);
++
++	if (--nft_refcnt)
++		goto unlock;
++
+ 	ct_label_table_exit();
+ 	realm_table_rt_exit();
+ 	devgroup_table_exit();
+ 	realm_table_meta_exit();
+ 	mark_table_exit();
++
++unlock:
++	pthread_mutex_unlock(&nft_refcnt_mutex);
+ }
+ 
+ int nft_ctx_add_include_path(struct nft_ctx *ctx, const char *path)
+-- 
+2.13.1
+
