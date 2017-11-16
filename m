@@ -1,73 +1,55 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH 2/2] monitor: Make JSON output respect output_fp
-Date: Thu, 16 Nov 2017 14:57:42 +0100
-Message-ID: <20171116135742.GA13598@salvia>
-References: <20171116080629.30564-1-phil@nwl.cc>
- <20171116080629.30564-3-phil@nwl.cc>
- <20171116133824.GA5926@salvia>
- <20171116135402.GJ32305@orbyte.nwl.cc>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [nft PATCH] libnftables: Split code into frontend and library
+Date: Thu, 16 Nov 2017 15:11:22 +0100
+Message-ID: <20171116141122.GL32305@orbyte.nwl.cc>
+References: <20171114201710.16419-1-phil@nwl.cc>
+ <20171116133448.GC2455@salvia>
+ <20171116135630.GA13559@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53206 "EHLO mail.us.es"
+Received: from orbyte.nwl.cc ([151.80.46.58]:60426 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S964976AbdKPN5s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Nov 2017 08:57:48 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7DBDF2EFEBE
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Nov 2017 14:57:46 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 672A9DA876
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Nov 2017 14:57:46 +0100 (CET)
+        id S932257AbdKPOLX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Nov 2017 09:11:23 -0500
 Content-Disposition: inline
-In-Reply-To: <20171116135402.GJ32305@orbyte.nwl.cc>
+In-Reply-To: <20171116135630.GA13559@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 16, 2017 at 02:54:02PM +0100, Phil Sutter wrote:
-> On Thu, Nov 16, 2017 at 02:38:24PM +0100, Pablo Neira Ayuso wrote:
-> > On Thu, Nov 16, 2017 at 09:06:29AM +0100, Phil Sutter wrote:
-> > > This introduces a rather nasty macro to call nftnl_*_fprintf() only if
-> > > output_fp is valid. On the other hand, it allows to pull the common
-> > > parts (format argument, event conversion) into a single place.
+On Thu, Nov 16, 2017 at 02:56:30PM +0100, Pablo Neira Ayuso wrote:
+> On Thu, Nov 16, 2017 at 02:34:48PM +0100, Pablo Neira Ayuso wrote:
+> > On Tue, Nov 14, 2017 at 09:17:10PM +0100, Phil Sutter wrote:
+> > > This finally creates the libnftables shared object.
 > > > 
-> > > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > > ---
-> > >  src/netlink.c | 38 ++++++++++++++++++--------------------
-> > >  1 file changed, 18 insertions(+), 20 deletions(-)
+> > > For some reason, this causes two compiler warnings to appear:
 > > > 
-> > > diff --git a/src/netlink.c b/src/netlink.c
-> > > index 845eeeffd7387..81b92ac1e2d7c 100644
-> > > --- a/src/netlink.c
-> > > +++ b/src/netlink.c
-> > > @@ -40,6 +40,12 @@
-> > >  #include <iface.h>
-> > >  
-> > >  #define nft_mon_print(monh, ...) nft_print(monh->ctx->octx, __VA_ARGS__)
-> > > +#define nftnl_mon_print(monh, type, obj, event)				\
-> > > +	if (monh->ctx->octx->output_fp) {				\
-> > > +		nftnl_##type##_fprintf(monh->ctx->octx->output_fp,	\
-> > > +				       obj, monh->format,		\
-> > > +				       netlink_msg2nftnl_of(event));	\
-> > > +	}
+> > > | parser_bison.y: In function 'nft_parse':
+> > > | parser_bison.y:131:3: warning: implicit declaration of function 'nft_set_debug' [-Wimplicit-function-declaration]
+> > > |    nft_set_debug(1, scanner);
+> > > |    ^~~~~~~~~~~~~
+> > > | parser_bison.c:64:25: warning: implicit declaration of function 'nft_lex' [-Wimplicit-function-declaration]
+> > > |  #define yylex           nft_lex
+> > > |                          ^
+> > > | parser_bison.c:4745:16: note: in expansion of macro 'yylex'
+> > > |        yychar = yylex (&yylval, &yylloc, scanner);
+> > > 
+> > > So this patch contains a workaround, namely declaring both functions
+> > > in src/parser_bison.y. During linking the objects are found, so this is
+> > > rather a matter of cosmetics.
 > > 
-> > Wait.
-> > 
-> > Can't we just change nftnl_*_fprintf to do nothing if output_fp is
-> > NULL.
-> > 
-> > That should be safe.
+> > Also applied, thanks Phil.
 > 
-> Looks like you just caught me trying to avoid changing libnftnl. :D
+> This message is popping up here:
 > 
-> Yet I still consider the macro valuable since it avoids the nasty
-> pointer deref chain.
-> 
-> I'll prepare a patch to libnftnl and then provide v2 of this patch with
-> simplified nftnl_mon_print() macro. ACK?
+>   CCLD     libnftables.la
+> ar: `u' modifier ignored since `D' is the default (see `U')
 
-I wonder if we can just avoid such change by making sure that
-monh->ctx->octx->output_fp is always set.
+Looks like an automake bug on your system? (Googling turned this up:
+https://bugzilla.redhat.com/show_bug.cgi?id=1155273). I don't see the
+warning on my machine at least.
 
-May that work too?
+Cheers, Phil
+> 
