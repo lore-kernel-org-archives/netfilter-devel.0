@@ -1,57 +1,58 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH 2/2] monitor: Make JSON output respect output_fp
-Date: Thu, 16 Nov 2017 14:38:24 +0100
-Message-ID: <20171116133824.GA5926@salvia>
-References: <20171116080629.30564-1-phil@nwl.cc>
- <20171116080629.30564-3-phil@nwl.cc>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [nft PATCH v3] libnftables: Unexport enum nftables_exit_codes
+Date: Thu, 16 Nov 2017 14:48:12 +0100
+Message-ID: <20171116134812.GI32305@orbyte.nwl.cc>
+References: <20171113123837.GZ32305@orbyte.nwl.cc>
+ <20171113140816.17830-1-phil@nwl.cc>
+ <20171116133332.GB2455@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41788 "EHLO mail.us.es"
+Received: from orbyte.nwl.cc ([151.80.46.58]:60374 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932244AbdKPNi3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 16 Nov 2017 08:38:29 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E4A482E7846
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Nov 2017 14:38:27 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D4F1EDA812
-        for <netfilter-devel@vger.kernel.org>; Thu, 16 Nov 2017 14:38:27 +0100 (CET)
+        id S1750738AbdKPNsO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 16 Nov 2017 08:48:14 -0500
 Content-Disposition: inline
-In-Reply-To: <20171116080629.30564-3-phil@nwl.cc>
+In-Reply-To: <20171116133332.GB2455@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 16, 2017 at 09:06:29AM +0100, Phil Sutter wrote:
-> This introduces a rather nasty macro to call nftnl_*_fprintf() only if
-> output_fp is valid. On the other hand, it allows to pull the common
-> parts (format argument, event conversion) into a single place.
+Hi Pablo,
+
+On Thu, Nov 16, 2017 at 02:33:32PM +0100, Pablo Neira Ayuso wrote:
+> On Mon, Nov 13, 2017 at 03:08:16PM +0100, Phil Sutter wrote:
+> > Apart from SUCCESS/FAILURE, these codes were not used by library
+> > functions simply because NOMEM and NONL conditions lead to calling
+> > exit() instead of propagating the error condition back up the call
+> > stack.
+> > 
+> > Instead, make nft_run_cmd_from_*() return either 0 or -1 on error.
+> > Usually errno will then contain more details about what happened and/or
+> > there are messages in erec.
+> > 
+> > Calls to exit()/return in main() are adjusted to stay compatible.
 > 
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
->  src/netlink.c | 38 ++++++++++++++++++--------------------
->  1 file changed, 18 insertions(+), 20 deletions(-)
+> Also applied, thanks.
 > 
-> diff --git a/src/netlink.c b/src/netlink.c
-> index 845eeeffd7387..81b92ac1e2d7c 100644
-> --- a/src/netlink.c
-> +++ b/src/netlink.c
-> @@ -40,6 +40,12 @@
->  #include <iface.h>
->  
->  #define nft_mon_print(monh, ...) nft_print(monh->ctx->octx, __VA_ARGS__)
-> +#define nftnl_mon_print(monh, type, obj, event)				\
-> +	if (monh->ctx->octx->output_fp) {				\
-> +		nftnl_##type##_fprintf(monh->ctx->octx->output_fp,	\
-> +				       obj, monh->format,		\
-> +				       netlink_msg2nftnl_of(event));	\
-> +	}
+> BTW, I think you mentioned you planned to change all
+> memory_allocation_error() to pass up the error to the client
+> application.
+> 
+> Let me know, if you don't have time for this, no worries if too busy.
 
-Wait.
+I looked into it once, but didn't pursue much further. This requires
+some effort, since code everywhere just assumes (e.g.) memory allocation
+to succeed so there is no error path at all in many places.
 
-Can't we just change nftnl_*_fprintf to do nothing if output_fp is
-NULL.
+OTOH, I wasn't sure whether adding this is feasible at all - if memory
+allocation fails, we're usually in big trouble and error propagation
+might not work anymore as well (e.g. allocation of erec items). Sure,
+bugs like 'malloc(-1)' would be handled properly, of course.
 
-That should be safe.
+Not sure about netlink errors: Ideally, the library would check this
+early (e.g. during context allocation), but of course syscalls like
+socket() could still fail later.
+
+Cheers, Phil
