@@ -1,63 +1,26 @@
 From: Taehee Yoo <ap420073@gmail.com>
-Subject: [PATCH V3 0/5] netfilter: nf_nat_snmp_basic: use ASN.1 decoder
-Date: Mon, 20 Nov 2017 00:05:54 +0900
-Message-ID: <20171119150559.18125-1-ap420073@gmail.com>
+Subject: [PATCH V3 1/5] netfilter: nf_nat_snmp_basic: remove useless comment
+Date: Mon, 20 Nov 2017 00:05:55 +0900
+Message-ID: <20171119150559.18125-2-ap420073@gmail.com>
+References: <20171119150559.18125-1-ap420073@gmail.com>
 Cc: ap420073@gmail.com
 To: pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:45245 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752896AbdKSPGJ (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:40305 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752462AbdKSPGU (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 19 Nov 2017 10:06:09 -0500
-Received: by mail-pg0-f67.google.com with SMTP id 207so5387367pgc.12
-        for <netfilter-devel@vger.kernel.org>; Sun, 19 Nov 2017 07:06:08 -0800 (PST)
+        Sun, 19 Nov 2017 10:06:20 -0500
+Received: by mail-pg0-f66.google.com with SMTP id u3so5400202pgn.7
+        for <netfilter-devel@vger.kernel.org>; Sun, 19 Nov 2017 07:06:19 -0800 (PST)
+In-Reply-To: <20171119150559.18125-1-ap420073@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The goal of this patch set are to use the ASN.1 decoder library
-to parse SNMP ASN.1 payload.
+Remove comments that do not let us know important information.
 
-This patch set are same as previous patch
-"[PATCH V2]netfilter: nf_nat_snmp_basic: use asn1 decoder library".
-
-
-My test environment are below.
-
-#Network
-Client <-------------> Netfilter FW <-------------> SNMP Server
-192.168.3.2   192.168.3.1      192.168.4.1   192.168.4.2
-
-#FW commands
-   iptables -t raw -I PREROUTING -p udp -m multiport --dports 161,162 \
-	   -j CT --helper snmp
-   echo 'file nf_nat_snmp_basic.c +p' > \
-	   /sys/kernel/debug/dynamic_debug/control
-
-#SNMP Server commands
-   sudo ip r a 192.168.3.2 via 192.168.4.1 dev enp2s0
-#Client commands
-   sudo ip r a 192.168.4.2 via 192.168.3.1 dev enp3s0
-
-To test basic snmp test, I used snmpwalk command because it is easy to use
-   snmpwalk -v <1 or 2c> -c public <ip address> OID
-example)
-   snmpwalk -v 2c -c public 192.168.4.2 .1.3.6.1.2.1.4.21
-
-so that we can see this message from dmesg.
-"snmp_helper: 192.168.3.2 to 192.168.4.1"
-
-And, to test snmp trap test, I used snmptrap command.
-   snmptrap -v 1 -c public 192.168.3.2 .1 192.168.4.2 0 0 0 .1 a \
-	   192.168.4.2
-   snmptrap -v 2c -c public 192.168.3.2 .1 .1 .1 a 192.168.4.2
-
-SNMPv1 trap includes two ip address in payload. so we can see below
-message twice.
-"snmp_helper: 192.168.4.2 to 192.168.3.1"
-
-If you want to see asn1 decoder debug message, please use below command
-   echo 'file asn1_decoder.c +p' > /sys/kernel/debug/dynamic_debug/control
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+---
 
 V3 :
  - be separated by previous patch.
@@ -68,20 +31,78 @@ V2 :
 V1 :
  - Initial patch
 
-Taehee Yoo (5):
-  netfilter: nf_nat_snmp_basic: remove useless comment
-  netfilter: nf_nat_snmp_basic: remove debug parameter
-  netfilter: nf_nat_snmp_basic: replace ctinfo with dir.
-  netfilter: nf_nat_snmp_basic: use nf_ct_helper_log
-  netfilter: nf_nat_snmp_basic: use asn1 decoder library
+ net/ipv4/netfilter/nf_nat_snmp_basic.c | 30 ------------------------------
+ 1 file changed, 30 deletions(-)
 
- net/ipv4/netfilter/Kconfig                |    1 +
- net/ipv4/netfilter/Makefile               |    5 +-
- net/ipv4/netfilter/nf_nat_snmp_basic.asn1 |  177 +++++
- net/ipv4/netfilter/nf_nat_snmp_basic.c    | 1175 ++---------------------------
- 4 files changed, 245 insertions(+), 1113 deletions(-)
- create mode 100644 net/ipv4/netfilter/nf_nat_snmp_basic.asn1
-
+diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+index d5b1e0b..d6f03fe9f 100644
+--- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
++++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+@@ -81,12 +81,6 @@ struct oct1_map
+ };
+ 
+ 
+-/*****************************************************************************
+- *
+- * Basic ASN.1 decoding routines (gxsnmp author Dirk Wisse)
+- *
+- *****************************************************************************/
+-
+ /* Class */
+ #define ASN1_UNI	0	/* Universal */
+ #define ASN1_APL	1	/* Application */
+@@ -491,12 +485,6 @@ static unsigned char asn1_oid_decode(struct asn1_ctx *ctx,
+ 	return 1;
+ }
+ 
+-/*****************************************************************************
+- *
+- * SNMP decoding routines (gxsnmp author Dirk Wisse)
+- *
+- *****************************************************************************/
+-
+ /* SNMP Versions */
+ #define SNMP_V1				0
+ #define SNMP_V2C			1
+@@ -992,12 +980,6 @@ snmp_trap_decode(struct asn1_ctx *ctx, struct snmp_v1_trap *trap,
+ 	return 0;
+ }
+ 
+-/*****************************************************************************
+- *
+- * Misc. routines
+- *
+- *****************************************************************************/
+-
+ /*
+  * Parse and mangle SNMP message according to mapping.
+  * (And this is the fucking 'basic' method).
+@@ -1157,12 +1139,6 @@ static int snmp_parse_mangle(unsigned char *msg,
+ 	return 1;
+ }
+ 
+-/*****************************************************************************
+- *
+- * NAT routines.
+- *
+- *****************************************************************************/
+-
+ /*
+  * SNMP translation routine.
+  */
+@@ -1259,12 +1235,6 @@ static struct nf_conntrack_helper snmp_trap_helper __read_mostly = {
+ 	.tuple.dst.protonum	= IPPROTO_UDP,
+ };
+ 
+-/*****************************************************************************
+- *
+- * Module stuff.
+- *
+- *****************************************************************************/
+-
+ static int __init nf_nat_snmp_basic_init(void)
+ {
+ 	BUG_ON(nf_nat_snmp_hook != NULL);
 -- 
 2.9.3
 
