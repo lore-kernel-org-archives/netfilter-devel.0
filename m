@@ -1,24 +1,23 @@
 From: Taehee Yoo <ap420073@gmail.com>
-Subject: [PATCH V3 3/5] netfilter: nf_nat_snmp_basic: replace ctinfo with dir.
-Date: Mon, 20 Nov 2017 00:05:57 +0900
-Message-ID: <20171119150559.18125-4-ap420073@gmail.com>
+Subject: [PATCH V3 4/5] netfilter: nf_nat_snmp_basic: use nf_ct_helper_log
+Date: Mon, 20 Nov 2017 00:05:58 +0900
+Message-ID: <20171119150559.18125-5-ap420073@gmail.com>
 References: <20171119150559.18125-1-ap420073@gmail.com>
 Cc: ap420073@gmail.com
 To: pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:42329 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753237AbdKSPG1 (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:38373 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753267AbdKSPGa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 19 Nov 2017 10:06:27 -0500
-Received: by mail-pg0-f66.google.com with SMTP id j16so5394730pgn.9
-        for <netfilter-devel@vger.kernel.org>; Sun, 19 Nov 2017 07:06:27 -0800 (PST)
+        Sun, 19 Nov 2017 10:06:30 -0500
+Received: by mail-pf0-f196.google.com with SMTP id r62so5404654pfd.5
+        for <netfilter-devel@vger.kernel.org>; Sun, 19 Nov 2017 07:06:30 -0800 (PST)
 In-Reply-To: <20171119150559.18125-1-ap420073@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The snmp_translate() receives ctinfo data to get dir value only.
-because of caller already has dir value, we just replace ctinfo with dir.
+Use nf_ct_helper_log to write log message.
 
 Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 ---
@@ -32,39 +31,42 @@ V2 :
 V1 :
  - Initial patch
 
- net/ipv4/netfilter/nf_nat_snmp_basic.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+
+ net/ipv4/netfilter/nf_nat_snmp_basic.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
 diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-index e5ec946..c8ac57f 100644
+index c8ac57f..7f7d847 100644
 --- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
 +++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-@@ -1082,15 +1082,12 @@ static int snmp_parse_mangle(unsigned char *msg,
- /*
-  * SNMP translation routine.
-  */
--static int snmp_translate(struct nf_conn *ct,
--			  enum ip_conntrack_info ctinfo,
--			  struct sk_buff *skb)
-+static int snmp_translate(struct nf_conn *ct, int dir, struct sk_buff *skb)
- {
- 	struct iphdr *iph = ip_hdr(skb);
- 	struct udphdr *udph = (struct udphdr *)((__be32 *)iph + iph->ihl);
- 	u_int16_t udplen = ntohs(udph->len);
- 	u_int16_t paylen = udplen - sizeof(struct udphdr);
--	int dir = CTINFO2DIR(ctinfo);
- 	struct oct1_map map;
+@@ -1109,7 +1109,7 @@ static int snmp_translate(struct nf_conn *ct, int dir, struct sk_buff *skb)
  
- 	/*
-@@ -1155,7 +1152,7 @@ static int help(struct sk_buff *skb, unsigned int protoff,
+ 	if (!snmp_parse_mangle((unsigned char *)udph + sizeof(struct udphdr),
+ 			       paylen, &map, &udph->check)) {
+-		net_warn_ratelimited("bsalg: parser failed\n");
++		nf_ct_helper_log(skb, ct, "parser failed\n");
  		return NF_DROP;
+ 	}
+ 	return NF_ACCEPT;
+@@ -1143,13 +1143,14 @@ static int help(struct sk_buff *skb, unsigned int protoff,
+ 	 * can mess around with the payload.
+ 	 */
+ 	if (ntohs(udph->len) != skb->len - (iph->ihl << 2)) {
+-		net_warn_ratelimited("SNMP: dropping malformed packet src=%pI4 dst=%pI4\n",
+-				     &iph->saddr, &iph->daddr);
+-		 return NF_DROP;
++		nf_ct_helper_log(skb, ct, "dropping malformed packet\n");
++		return NF_DROP;
+ 	}
+ 
+-	if (!skb_make_writable(skb, skb->len))
++	if (!skb_make_writable(skb, skb->len)) {
++		nf_ct_helper_log(skb, ct, "cannot mangle packet");
+ 		return NF_DROP;
++	}
  
  	spin_lock_bh(&snmp_lock);
--	ret = snmp_translate(ct, ctinfo, skb);
-+	ret = snmp_translate(ct, dir, skb);
- 	spin_unlock_bh(&snmp_lock);
- 	return ret;
- }
+ 	ret = snmp_translate(ct, dir, skb);
 -- 
 2.9.3
 
