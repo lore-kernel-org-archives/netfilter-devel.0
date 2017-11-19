@@ -1,67 +1,87 @@
-From: Varsha Rao <rvarsha016@gmail.com>
-Subject: [PATCH nft] tests: shell: Add test for IPv4 Mapped IPv6 address.
-Date: Sun, 19 Nov 2017 18:04:32 +0530
-Message-ID: <20171119123432.8894-1-rvarsha016@gmail.com>
-Cc: Varsha Rao <rvarsha016@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
+From: Taehee Yoo <ap420073@gmail.com>
+Subject: [PATCH V3 0/5] netfilter: nf_nat_snmp_basic: use ASN.1 decoder
+Date: Mon, 20 Nov 2017 00:05:54 +0900
+Message-ID: <20171119150559.18125-1-ap420073@gmail.com>
+Cc: ap420073@gmail.com
+To: pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f42.google.com ([74.125.83.42]:46719 "EHLO
-        mail-pg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750865AbdKSMfM (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:45245 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752896AbdKSPGJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 19 Nov 2017 07:35:12 -0500
-Received: by mail-pg0-f42.google.com with SMTP id z184so5256069pgd.13
-        for <netfilter-devel@vger.kernel.org>; Sun, 19 Nov 2017 04:35:12 -0800 (PST)
+        Sun, 19 Nov 2017 10:06:09 -0500
+Received: by mail-pg0-f67.google.com with SMTP id 207so5387367pgc.12
+        for <netfilter-devel@vger.kernel.org>; Sun, 19 Nov 2017 07:06:08 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds test case for IPv4 Mapped IPv6 address and renames
-file 0025named_limit_0 to 0026named_limit_0.
+The goal of this patch set are to use the ASN.1 decoder library
+to parse SNMP ASN.1 payload.
 
-Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
----
- .../sets/{0025named_limit_0 => 0026named_limit_0}  |  0
- tests/shell/testcases/sets/0027ipv6_maps_ipv4_0    | 25 ++++++++++++++++++++++
- 2 files changed, 25 insertions(+)
- rename tests/shell/testcases/sets/{0025named_limit_0 => 0026named_limit_0} (100%)
- create mode 100755 tests/shell/testcases/sets/0027ipv6_maps_ipv4_0
+This patch set are same as previous patch
+"[PATCH V2]netfilter: nf_nat_snmp_basic: use asn1 decoder library".
 
-diff --git a/tests/shell/testcases/sets/0025named_limit_0 b/tests/shell/testcases/sets/0026named_limit_0
-similarity index 100%
-rename from tests/shell/testcases/sets/0025named_limit_0
-rename to tests/shell/testcases/sets/0026named_limit_0
-diff --git a/tests/shell/testcases/sets/0027ipv6_maps_ipv4_0 b/tests/shell/testcases/sets/0027ipv6_maps_ipv4_0
-new file mode 100755
-index 0000000..5420fbf
---- /dev/null
-+++ b/tests/shell/testcases/sets/0027ipv6_maps_ipv4_0
-@@ -0,0 +1,25 @@
-+#!/bin/bash
-+
-+# Tests IPv4 Mapped IPv6 addresses.
-+
-+set -e
-+
-+tmpfile=$(mktemp)
-+if [ ! -w $tmpfile ] ; then
-+	echo "Failed to create tmp file" >&2
-+	exit 0
-+fi
-+
-+trap "rm -rf $tmpfile" EXIT # cleanup if aborted
-+
-+echo "
-+table inet t {
-+	set s {
-+		type ipv6_addr
-+		flags interval
-+		elements = { ::ffff:0.0.0.0/96 }
-+	}
-+}
-+" > $tmpfile
-+
-+$NFT -f $tmpfile
+
+My test environment are below.
+
+#Network
+Client <-------------> Netfilter FW <-------------> SNMP Server
+192.168.3.2   192.168.3.1      192.168.4.1   192.168.4.2
+
+#FW commands
+   iptables -t raw -I PREROUTING -p udp -m multiport --dports 161,162 \
+	   -j CT --helper snmp
+   echo 'file nf_nat_snmp_basic.c +p' > \
+	   /sys/kernel/debug/dynamic_debug/control
+
+#SNMP Server commands
+   sudo ip r a 192.168.3.2 via 192.168.4.1 dev enp2s0
+#Client commands
+   sudo ip r a 192.168.4.2 via 192.168.3.1 dev enp3s0
+
+To test basic snmp test, I used snmpwalk command because it is easy to use
+   snmpwalk -v <1 or 2c> -c public <ip address> OID
+example)
+   snmpwalk -v 2c -c public 192.168.4.2 .1.3.6.1.2.1.4.21
+
+so that we can see this message from dmesg.
+"snmp_helper: 192.168.3.2 to 192.168.4.1"
+
+And, to test snmp trap test, I used snmptrap command.
+   snmptrap -v 1 -c public 192.168.3.2 .1 192.168.4.2 0 0 0 .1 a \
+	   192.168.4.2
+   snmptrap -v 2c -c public 192.168.3.2 .1 .1 .1 a 192.168.4.2
+
+SNMPv1 trap includes two ip address in payload. so we can see below
+message twice.
+"snmp_helper: 192.168.4.2 to 192.168.3.1"
+
+If you want to see asn1 decoder debug message, please use below command
+   echo 'file asn1_decoder.c +p' > /sys/kernel/debug/dynamic_debug/control
+
+V3 :
+ - be separated by previous patch.
+
+V2 : 
+ - Add missing nf_nat_snmp_basic.asn1 file
+
+V1 :
+ - Initial patch
+
+Taehee Yoo (5):
+  netfilter: nf_nat_snmp_basic: remove useless comment
+  netfilter: nf_nat_snmp_basic: remove debug parameter
+  netfilter: nf_nat_snmp_basic: replace ctinfo with dir.
+  netfilter: nf_nat_snmp_basic: use nf_ct_helper_log
+  netfilter: nf_nat_snmp_basic: use asn1 decoder library
+
+ net/ipv4/netfilter/Kconfig                |    1 +
+ net/ipv4/netfilter/Makefile               |    5 +-
+ net/ipv4/netfilter/nf_nat_snmp_basic.asn1 |  177 +++++
+ net/ipv4/netfilter/nf_nat_snmp_basic.c    | 1175 ++---------------------------
+ 4 files changed, 245 insertions(+), 1113 deletions(-)
+ create mode 100644 net/ipv4/netfilter/nf_nat_snmp_basic.asn1
+
 -- 
-2.14.3
+2.9.3
 
