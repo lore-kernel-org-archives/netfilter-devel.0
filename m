@@ -1,67 +1,54 @@
-From: Charlie Sale <chucks.8090@gmail.com>
-Subject: [PATCH] Net: netfilter: vmalloc/vfree to kvmalloc/kvfree
-Date: Sun, 19 Nov 2017 12:46:43 -0500
-Message-ID: <20171119174643.8401-1-chucks.8090@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Charlie Sale <chucks.8090@gmail.com>
-To: pablo@netfilter.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: conntrack: lower timeout to RETRANS seconds if window is 0
+Date: Sun, 19 Nov 2017 21:27:28 +0100
+Message-ID: <20171119202728.13756-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:44534 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750952AbdKSU1Q (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 19 Nov 2017 15:27:16 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Fixed FIXME by changing memory allocation and freeing
-in htable_create to kvmalloc and kvfree from vmalloc and vfree.
-Changes are made throughout the file in order to account
-for the different allocation of htable_create.
+When zero window is announced we can get into a situation where
+connection stays around forever:
 
-Signed-off-by: Charlie Sale <chucks.8090@gmail.com>
+1. One side announces zero window.
+2. Other side closes.
+
+In this case, no FIN is sent (stuck in send queue).
+
+Unless other side opens the window up again conntrack
+stays in ESTABLISHED state for a very long time.
+
+Lets alleviate this by lowering the timeout to RETRANS (5 minutes),
+the other end should be sending zero window probes to keep the
+connection established as long as a socket still exists.
+
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/xt_hashlimit.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ net/netfilter/nf_conntrack_proto_tcp.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 5da8746f7b88..444f57f25d77 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -286,9 +286,9 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
- 		if (size < 16)
- 			size = 16;
- 	}
--	/* FIXME: don't use vmalloc() here or anywhere else -HW */
--	hinfo = vmalloc(sizeof(struct xt_hashlimit_htable) +
--	                sizeof(struct hlist_head) * size);
-+
-+	hinfo = kvmalloc(sizeof(*hinfo) + sizeof(struct hlist_head) * size,
-+			 GFP_KERNEL);
- 	if (hinfo == NULL)
- 		return -ENOMEM;
- 	*out_hinfo = hinfo;
-@@ -314,7 +314,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
- 	hinfo->rnd_initialized = false;
- 	hinfo->name = kstrdup(name, GFP_KERNEL);
- 	if (!hinfo->name) {
--		vfree(hinfo);
-+		kvfree(hinfo);
- 		return -ENOMEM;
- 	}
- 	spin_lock_init(&hinfo->lock);
-@@ -336,7 +336,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
- 		fops, hinfo);
- 	if (hinfo->pde == NULL) {
- 		kfree(hinfo->name);
--		vfree(hinfo);
-+		kvfree(hinfo);
- 		return -ENOMEM;
- 	}
- 	hinfo->net = net;
-@@ -414,7 +414,7 @@ static void htable_destroy(struct xt_hashlimit_htable *hinfo)
- 	htable_remove_proc_entry(hinfo);
- 	htable_selective_cleanup(hinfo, select_all);
- 	kfree(hinfo->name);
--	vfree(hinfo);
-+	kvfree(hinfo);
- }
- 
- static struct xt_hashlimit_htable *htable_find_get(struct net *net,
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index c11b04d269ea..684cc29010a0 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1039,6 +1039,9 @@ static int tcp_packet(struct nf_conn *ct,
+ 		 IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED &&
+ 		 timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
+ 		timeout = timeouts[TCP_CONNTRACK_UNACK];
++	else if (ct->proto.tcp.last_win == 0 &&
++		 timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
++		timeout = timeouts[TCP_CONNTRACK_RETRANS];
+ 	else
+ 		timeout = timeouts[new_state];
+ 	spin_unlock_bh(&ct->lock);
 -- 
 2.13.6
+
