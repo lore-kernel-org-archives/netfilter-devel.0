@@ -1,24 +1,31 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH nf] netfilter: conntrack: lower timeout to RETRANS seconds
- if window is 0
-Date: Mon, 20 Nov 2017 08:41:28 +0100 (CET)
-Message-ID: <alpine.DEB.2.11.1711200841001.29166@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf] netfilter: conntrack: lower timeout to RETRANS
+ seconds if window is 0
+Date: Mon, 20 Nov 2017 13:30:07 +0100
+Message-ID: <20171120123007.GA17331@salvia>
 References: <20171119202728.13756-1-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:37798 "EHLO smtp2.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:56162 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750932AbdKTHlc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Nov 2017 02:41:32 -0500
+        id S1751152AbdKTMaN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 20 Nov 2017 07:30:13 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CDF0F54D5F2
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 Nov 2017 13:30:11 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BB0B8BAABF
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 Nov 2017 13:30:11 +0100 (CET)
+Content-Disposition: inline
 In-Reply-To: <20171119202728.13756-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 19 Nov 2017, Florian Westphal wrote:
-
+On Sun, Nov 19, 2017 at 09:27:28PM +0100, Florian Westphal wrote:
 > When zero window is announced we can get into a situation where
 > connection stays around forever:
 > 
@@ -33,43 +40,5 @@ On Sun, 19 Nov 2017, Florian Westphal wrote:
 > Lets alleviate this by lowering the timeout to RETRANS (5 minutes),
 > the other end should be sending zero window probes to keep the
 > connection established as long as a socket still exists.
-> 
-> Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-
-Thanks, Florian!
-Jozsef
-> ---
->  net/netfilter/nf_conntrack_proto_tcp.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-> index c11b04d269ea..684cc29010a0 100644
-> --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> @@ -1039,6 +1039,9 @@ static int tcp_packet(struct nf_conn *ct,
->  		 IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED &&
->  		 timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
->  		timeout = timeouts[TCP_CONNTRACK_UNACK];
-> +	else if (ct->proto.tcp.last_win == 0 &&
-> +		 timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
-> +		timeout = timeouts[TCP_CONNTRACK_RETRANS];
->  	else
->  		timeout = timeouts[new_state];
->  	spin_unlock_bh(&ct->lock);
-> -- 
-> 2.13.6
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Applied, thanks!
