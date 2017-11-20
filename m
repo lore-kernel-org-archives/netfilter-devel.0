@@ -1,64 +1,43 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH RFC] libnftables: Make output_fp default to /dev/null
-Date: Mon, 20 Nov 2017 13:47:16 +0100
-Message-ID: <20171120124716.GA17684@salvia>
-References: <20171116143224.GA17329@salvia>
- <20171116191415.19404-1-phil@nwl.cc>
- <20171120123204.GA17403@salvia>
- <20171120123313.GB17403@salvia>
- <20171120123851.GT32305@orbyte.nwl.cc>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [nft PATCH] libnftables: Fix for multiple context instances
+Date: Mon, 20 Nov 2017 13:54:18 +0100
+Message-ID: <20171120125418.GU32305@orbyte.nwl.cc>
+References: <20171116191024.18908-1-phil@nwl.cc>
+ <20171120123726.GA17459@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39690 "EHLO mail.us.es"
+Received: from orbyte.nwl.cc ([151.80.46.58]:42396 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751061AbdKTMrU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 20 Nov 2017 07:47:20 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 87FA454D5F2
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Nov 2017 13:47:19 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 707C677DA4
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Nov 2017 13:47:19 +0100 (CET)
+        id S1751073AbdKTMyT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 20 Nov 2017 07:54:19 -0500
 Content-Disposition: inline
-In-Reply-To: <20171120123851.GT32305@orbyte.nwl.cc>
+In-Reply-To: <20171120123726.GA17459@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 20, 2017 at 01:38:51PM +0100, Phil Sutter wrote:
-> On Mon, Nov 20, 2017 at 01:33:13PM +0100, Pablo Neira Ayuso wrote:
-> > On Mon, Nov 20, 2017 at 01:32:04PM +0100, Pablo Neira Ayuso wrote:
-> > > Hi Phil,
-> > > 
-> > > On Thu, Nov 16, 2017 at 08:14:15PM +0100, Phil Sutter wrote:
-> > > > Ensure output_fp is never NULL which allows to drop all respective
-> > > > checks.
-> > > > 
-> > > > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > > > ---
-> > > > Hi Pablo,
-> > > > 
-> > > > This is how I understood your suggestion to use /dev/null. While
-> > > > implementing it though, I had an idea for a much simpler solution,
-> > > > namely just rejecting NULL in nft_set_output() and therefore forcing the
-> > > > application to deal with opening /dev/null if no output is desired. What
-> > > > do you think about that?
-> > > 
-> > > I like your idea of rejecting NULL.
+On Mon, Nov 20, 2017 at 01:37:26PM +0100, Pablo Neira Ayuso wrote:
+> On Thu, Nov 16, 2017 at 08:10:24PM +0100, Phil Sutter wrote:
+> > If a second context is created, the second call to nft_ctx_free() leads
+> > to freeing invalid pointers in nft_exit(). Fix this by introducing a
+> > reference counter so that neither nft_init() nor nft_exit() run more
+> > than once in a row.
+> > 
+> > This reference counter has to be protected from parallel access. Do this
+> > using a mutex in a way that once nft_init() returns, the first call to
+> > that function running in parallel is guaranteed to be finished -
+> > otherwise it could happen that things being initialized in one thread
+> > are already accessed in another one.
 > 
-> OK, cool.
+> I would prefer this table is placed into the context object, so they
+> are not global anymore. So I would prefer we fix this the right way(tm).
 > 
-> > BTW, why does nft_set_output() return FILE *? Is there any usecase for
-> > this?
-> 
-> It's a quick way to change output_fp and store its old value. Current
-> users are nft_run_cmd_from_*().
+> Let me know your thoughts, thanks!
 
-Oh, I see.
+I don't think that's feasible: Looking at 'mark_tbl' for instance, this is
+accessed from callbacks in 'mark_type', so we would have to make nft_ctx
+accessible by all functions dealing with datatypes.
 
-> I could introduce nft_get_output() to make the return value a dedicated
-> success/fail indicator if you prefer that, otherwise I'd just make
-> nft_set_output() return NULL in error case.
-
-As you prefer. For my usecase, the existing call is just fine.
+Cheers, Phil
