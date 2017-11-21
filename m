@@ -1,50 +1,48 @@
-From: Florian Westphal <fw@strlen.de>
+From: Arturo Borrero Gonzalez <arturo@netfilter.org>
 Subject: Re: nftables: lockout with 0008split_tables_0 test
-Date: Tue, 21 Nov 2017 18:09:46 +0100
-Message-ID: <20171121170946.GB24866@breakpoint.cc>
-References: <20171121111556.GX32305@orbyte.nwl.cc>
+Date: Tue, 21 Nov 2017 19:39:47 +0100
+Message-ID: <CAOkSjBj1iKHwe-X3wNL0O2A2Kt4XNapRE8vN3va7xCN+G8r1Mw@mail.gmail.com>
+References: <20171121111556.GX32305@orbyte.nwl.cc> <20171121170946.GB24866@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="UTF-8"
+Cc: Phil Sutter <phil@nwl.cc>,
+        Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:51810 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751191AbdKURKp (ORCPT
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:43949 "EHLO
+        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751184AbdKUSkJ (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 21 Nov 2017 12:10:45 -0500
-Content-Disposition: inline
-In-Reply-To: <20171121111556.GX32305@orbyte.nwl.cc>
+        Tue, 21 Nov 2017 13:40:09 -0500
+Received: by mail-wm0-f41.google.com with SMTP id x63so5451160wmf.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Nov 2017 10:40:09 -0800 (PST)
+Received: from mail-wm0-f49.google.com (mail-wm0-f49.google.com. [74.125.82.49])
+        by smtp.gmail.com with ESMTPSA id j30sm5630506edc.24.2017.11.21.10.40.07
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 21 Nov 2017 10:40:08 -0800 (PST)
+Received: by mail-wm0-f49.google.com with SMTP id y80so5438955wmd.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Nov 2017 10:40:07 -0800 (PST)
+In-Reply-To: <20171121170946.GB24866@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Phil Sutter <phil@nwl.cc> wrote:
-> Hi,
-> 
-> This is about tests/shell/testcases/nft-f/0008split_tables_0, which adds
-> the following simple ruleset:
-> 
-> | table inet filter {
-> |         chain ssh {
-> |                 type filter hook input priority 0; policy accept;
-> |                 tcp dport ssh accept;
-> |         }
-> | }
-> | 
-> | table inet filter {
-> |         chain input {
-> |                 type filter hook input priority 1; policy drop;
-> |         }
-> | }
-> 
-> If applied, it kills my SSH connection. :(
+On 21 November 2017 at 18:09, Florian Westphal <fw@strlen.de> wrote:
+>
+> Yes, thats expected.
+> First ssh base chain gets invoked, which accepts any packet
+> either by verdict or policy.
+>
+> Then next base chain gets consulted which drops the packet.
+>
+> I would suggest to either swap the policies or duplicate the ssh
+> rule into the input chain too.
 
-Yes, thats expected.
-First ssh base chain gets invoked, which accepts any packet
-either by verdict or policy.
+This is something which is actually confusing our users.
+I just took the time to extend a bit the documentation:
 
-Then next base chain gets consulted which drops the packet.
+https://wiki.nftables.org/wiki-nftables/index.php/Configuring_chains
 
-I would suggest to either swap the policies or duplicate the ssh
-rule into the input chain too.
+Of course, feel free to edit the docs :-)
