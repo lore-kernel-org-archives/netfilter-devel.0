@@ -1,31 +1,103 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH nf-next] netfilter: ipvs: Remove useless ipvsh param of
- frag_safe_skb_hp
-Date: Wed, 22 Nov 2017 19:14:28 +0100
-Message-ID: <20171122181428.qaqyodgflfmhtm25@verge.net.au>
-References: <1510585098-27428-1-git-send-email-gfree.wind@vip.163.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH] libnftables: Fix for multiple context instances
+Date: Wed, 22 Nov 2017 19:18:46 +0100
+Message-ID: <20171122181845.GA17189@salvia>
+References: <20171116191024.18908-1-phil@nwl.cc>
+ <20171120123726.GA17459@salvia>
+ <20171120125418.GU32305@orbyte.nwl.cc>
+ <20171120130732.GA20990@salvia>
+ <20171120155822.GV32305@orbyte.nwl.cc>
+ <20171120165313.GA5316@salvia>
+ <20171122174943.GA32305@orbyte.nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: wensong@linux-vs.org, ja@ssi.bg, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org
-To: gfree.wind@vip.163.com
-Return-path: <lvs-devel-owner@vger.kernel.org>
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:33212 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751458AbdKVSSv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 22 Nov 2017 13:18:51 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 408521F4B79
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Nov 2017 19:18:49 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 32109DA80E
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Nov 2017 19:18:49 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1510585098-27428-1-git-send-email-gfree.wind@vip.163.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20171122174943.GA32305@orbyte.nwl.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 13, 2017 at 10:58:18PM +0800, gfree.wind@vip.163.com wrote:
-> From: Gao Feng <gfree.wind@vip.163.com>
+Hi Phil,
+
+On Wed, Nov 22, 2017 at 06:49:43PM +0100, Phil Sutter wrote:
+> On Mon, Nov 20, 2017 at 05:53:13PM +0100, Pablo Neira Ayuso wrote:
+> > On Mon, Nov 20, 2017 at 04:58:22PM +0100, Phil Sutter wrote:
+> > > On Mon, Nov 20, 2017 at 02:07:32PM +0100, Pablo Neira Ayuso wrote:
+> > > > On Mon, Nov 20, 2017 at 01:54:18PM +0100, Phil Sutter wrote:
+> > > > > On Mon, Nov 20, 2017 at 01:37:26PM +0100, Pablo Neira Ayuso wrote:
+> > > > > > On Thu, Nov 16, 2017 at 08:10:24PM +0100, Phil Sutter wrote:
+> > > > > > > If a second context is created, the second call to nft_ctx_free() leads
+> > > > > > > to freeing invalid pointers in nft_exit(). Fix this by introducing a
+> > > > > > > reference counter so that neither nft_init() nor nft_exit() run more
+> > > > > > > than once in a row.
+> > > > > > > 
+> > > > > > > This reference counter has to be protected from parallel access. Do this
+> > > > > > > using a mutex in a way that once nft_init() returns, the first call to
+> > > > > > > that function running in parallel is guaranteed to be finished -
+> > > > > > > otherwise it could happen that things being initialized in one thread
+> > > > > > > are already accessed in another one.
+> > > > > > 
+> > > > > > I would prefer this table is placed into the context object, so they
+> > > > > > are not global anymore. So I would prefer we fix this the right way(tm).
+> > > > > > 
+> > > > > > Let me know your thoughts, thanks!
+> > > > > 
+> > > > > I don't think that's feasible: Looking at 'mark_tbl' for instance, this is
+> > > > > accessed from callbacks in 'mark_type', so we would have to make nft_ctx
+> > > > > accessible by all functions dealing with datatypes.
+> > > > 
+> > > > Probably some specific new context object that wrap access to these
+> > > > tables, not necessarily nft_ctx.
+> > > > 
+> > > > It's just more code, it will not be a small patch, but I don't see any
+> > > > reason this can't be done.
+> > > 
+> > > Yes, this is my guess as well. Though for what benefit? I don't think
+> > > having this logic for global run-time data is bad per se. What is it
+> > > that you don't like about it?
+> > 
+> > This is breaking the assumption that releasing the context object will
+> > be clearing all state behind us.
 > 
-> The param of frag_safe_skb_hp, ipvsh, isn't used now. So remove it and
-> update the callers' codes too.
-> 
-> Signed-off-by: Gao Feng <gfree.wind@vip.163.com>
-> ---
->  Simon advise me send the patch to netfilter group
+> Hmm. Does that matter here? I don't think it makes sense to make the
+> generated iproute2 tables context-local data. And I don't even see a way
+> to make gmp_init() and xt_init() apply per context only.
 
-Acked-by: Simon Horman <horms+renesas@verge.net.au>
+Actually, there's no real internal state neither in gmp_init() nor in
+xt_init(), so we could be just a one-time initialization things, once
+and never ever again.
 
-Pablo, can you take this through the nf-next tree?
+Moreover, the existing behaviour allows simple API clients to refresh
+context on demand, via poor-man release context object and alloc it
+again. Actually, we could add a function to force an context update,
+so we re-parse all those files again and get fresh context.
+
+> The effort of implementing this is quite high as well, since the table
+> pointers would have to be passed down to all places where datatypes are
+> parsed or printed.
+
+I understand, but high? I'm seeing a bunch of datatype_lookup() and
+datatype_print() calls, and we already have context objects all over
+the place to propagate this.
+
+BTW, do you have a usecase to make this library thread safe now?  This
+is just going to hit the single nfnl mutex in the kernel side, so
+there is not much gain in having multiple threads sending commands to
+the kernel. We can just leave this task to some Outreachy intern if
+you're busy now ;-). We've been doing quite a bit of work so far is to
+de-global everything, we could have just started by adding this mutex
+since the beginning. So we're almost there.
+
+Anyway, looking at more essencial stuff, probably it's time to have a
+look at the batch mode, this one-command per call is expensive.
