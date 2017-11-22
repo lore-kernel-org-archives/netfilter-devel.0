@@ -1,80 +1,129 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 1/5] netfilter: add nf_remove_net_hook
-Date: Wed, 22 Nov 2017 15:02:46 +0100
-Message-ID: <20171122140250.14798-2-pablo@netfilter.org>
+Subject: [PATCH nf-next 2/5] netfilter: pass hook number and family as parameter to nf_find_hook_list()
+Date: Wed, 22 Nov 2017 15:02:47 +0100
+Message-ID: <20171122140250.14798-3-pablo@netfilter.org>
 References: <20171122140250.14798-1-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45782 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45788 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751316AbdKVODd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Nov 2017 09:03:33 -0500
+        id S1751360AbdKVODe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 22 Nov 2017 09:03:34 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 37A0A1D94B5
+        by mail.us.es (Postfix) with ESMTP id F0FFF1D94C2
         for <netfilter-devel@vger.kernel.org>; Wed, 22 Nov 2017 15:03:32 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9575CDA87E
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Nov 2017 15:03:31 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A0421DA812
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Nov 2017 15:03:32 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E62D7BAC35
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Nov 2017 15:02:54 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A89E6BAC39
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Nov 2017 15:02:55 +0100 (CET)
 Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id AA46E403DFA1
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Nov 2017 15:02:54 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 689D8403DFA2
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Nov 2017 15:02:55 +0100 (CET)
 In-Reply-To: <20171122140250.14798-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Just a cleanup, __nf_unregister_net_hook() is used by a follow up patch
-when handling NFPROTO_INET as a real family from the core.
+Just a preparation change, this is needed by follow up patches to handle
+NFPROTO_INET as a real family from the core.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/core.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ net/netfilter/core.c | 32 ++++++++++++++++++--------------
+ 1 file changed, 18 insertions(+), 14 deletions(-)
 
 diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index aeb7a4f8f080..d5e0961fd9f3 100644
+index d5e0961fd9f3..8d9293a47731 100644
 --- a/net/netfilter/core.c
 +++ b/net/netfilter/core.c
-@@ -320,7 +320,7 @@ int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
- EXPORT_SYMBOL(nf_register_net_hook);
+@@ -237,26 +237,28 @@ static void *__nf_hook_entries_try_shrink(struct nf_hook_entries __rcu **pp)
+ 	return old;
+ }
  
- /*
-- * __nf_unregister_net_hook - remove a hook from blob
-+ * nf_remove_net_hook - remove a hook from blob
-  *
-  * @oldp: current address of hook blob
-  * @unreg: hook to unregister
-@@ -328,8 +328,8 @@ EXPORT_SYMBOL(nf_register_net_hook);
-  * This cannot fail, hook unregistration must always succeed.
-  * Therefore replace the to-be-removed hook with a dummy hook.
-  */
--static void __nf_unregister_net_hook(struct nf_hook_entries *old,
--				     const struct nf_hook_ops *unreg)
-+static void nf_remove_net_hook(struct nf_hook_entries *old,
-+			       const struct nf_hook_ops *unreg)
+-static struct nf_hook_entries __rcu **nf_hook_entry_head(struct net *net, const struct nf_hook_ops *reg)
++static struct nf_hook_entries __rcu **
++nf_hook_entry_head(struct net *net, int pf, unsigned int hooknum,
++		   struct net_device *dev)
  {
- 	struct nf_hook_ops **orig_ops;
- 	bool found = false;
-@@ -376,7 +376,7 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
+-	switch (reg->pf) {
++	switch (pf) {
+ 	case NFPROTO_NETDEV:
+ 		break;
+ #if IS_ENABLED(CONFIG_IP_NF_ARPTABLES)
+ 	case NFPROTO_ARP:
+-		return net->nf.hooks_arp+reg->hooknum;
++		return net->nf.hooks_arp + hooknum;
+ #endif
+ #if IS_ENABLED(CONFIG_NF_TABLES_BRIDGE)
+ 	case NFPROTO_BRIDGE:
+-		return net->nf.hooks_bridge+reg->hooknum;
++		return net->nf.hooks_bridge + hooknum;
+ #endif
+ 	case NFPROTO_IPV4:
+-		return net->nf.hooks_ipv4+reg->hooknum;
++		return net->nf.hooks_ipv4 + hooknum;
+ 	case NFPROTO_IPV6:
+-		return net->nf.hooks_ipv6+reg->hooknum;
++		return net->nf.hooks_ipv6 + hooknum;
+ #if IS_ENABLED(CONFIG_DECNET)
+ 	case NFPROTO_DECNET:
+-		return net->nf.hooks_decnet+reg->hooknum;
++		return net->nf.hooks_decnet + hooknum;
+ #endif
+ 	default:
+ 		WARN_ON_ONCE(1);
+@@ -264,9 +266,9 @@ static struct nf_hook_entries __rcu **nf_hook_entry_head(struct net *net, const
+ 	}
+ 
+ #ifdef CONFIG_NETFILTER_INGRESS
+-	if (reg->hooknum == NF_NETDEV_INGRESS) {
+-		if (reg->dev && dev_net(reg->dev) == net)
+-			return &reg->dev->nf_hooks_ingress;
++	if (hooknum == NF_NETDEV_INGRESS) {
++		if (dev && dev_net(dev) == net)
++			return &dev->nf_hooks_ingress;
+ 	}
+ #endif
+ 	WARN_ON_ONCE(1);
+@@ -288,7 +290,7 @@ int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ 			return -EINVAL;
+ 	}
+ 
+-	pp = nf_hook_entry_head(net, reg);
++	pp = nf_hook_entry_head(net, reg->pf, reg->hooknum, reg->dev);
+ 	if (!pp)
+ 		return -EINVAL;
+ 
+@@ -364,7 +366,7 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ 	struct nf_hook_entries *p;
+ 	unsigned int nfq;
+ 
+-	pp = nf_hook_entry_head(net, reg);
++	pp = nf_hook_entry_head(net, reg->pf, reg->hooknum, reg->dev);
+ 	if (!pp)
  		return;
- 	}
  
--	__nf_unregister_net_hook(p, reg);
-+	nf_remove_net_hook(p, reg);
+@@ -422,7 +424,8 @@ void nf_unregister_net_hooks(struct net *net, const struct nf_hook_ops *reg,
  
- 	p = __nf_hook_entries_try_shrink(pp);
- 	mutex_unlock(&nf_hook_mutex);
-@@ -429,7 +429,7 @@ void nf_unregister_net_hooks(struct net *net, const struct nf_hook_ops *reg,
- 		p = nf_entry_dereference(*pp);
- 		if (WARN_ON_ONCE(!p))
+ 	mutex_lock(&nf_hook_mutex);
+ 	for (i = 0; i < hookcount; i++) {
+-		pp = nf_hook_entry_head(net, &reg[i]);
++		pp = nf_hook_entry_head(net, reg[i].pf, reg[i].hooknum,
++					reg[i].dev);
+ 		if (!pp)
  			continue;
--		__nf_unregister_net_hook(p, &reg[i]);
-+		nf_remove_net_hook(p, &reg[i]);
- 	}
- 	mutex_unlock(&nf_hook_mutex);
+ 
+@@ -439,7 +442,8 @@ void nf_unregister_net_hooks(struct net *net, const struct nf_hook_ops *reg,
+ 		mutex_lock(&nf_hook_mutex);
+ 
+ 		for (i = 0, j = 0; i < hookcount && j < n; i++) {
+-			pp = nf_hook_entry_head(net, &reg[i]);
++			pp = nf_hook_entry_head(net, reg[i].pf, reg[i].hooknum,
++						reg->dev);
+ 			if (!pp)
+ 				continue;
  
 -- 
 2.11.0
