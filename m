@@ -1,63 +1,72 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [RFC PATCH] netfilter: call synchronize_net only once from
- nf_register_net_hooks
-Date: Wed, 22 Nov 2017 15:54:22 +0100
-Message-ID: <20171122145422.GJ24866@breakpoint.cc>
-References: <20171122104026.7592-1-gscrivan@redhat.com>
- <20171122110606.GF24866@breakpoint.cc>
- <87a7zea73n.fsf@redhat.com>
- <20171122115659.GH24866@breakpoint.cc>
- <8737569yi7.fsf@redhat.com>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [nft PATCH] libnftables: Fix for multiple context instances
+Date: Wed, 22 Nov 2017 18:49:43 +0100
+Message-ID: <20171122174943.GA32305@orbyte.nwl.cc>
+References: <20171116191024.18908-1-phil@nwl.cc>
+ <20171120123726.GA17459@salvia>
+ <20171120125418.GU32305@orbyte.nwl.cc>
+ <20171120130732.GA20990@salvia>
+ <20171120155822.GV32305@orbyte.nwl.cc>
+ <20171120165313.GA5316@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Giuseppe Scrivano <gscrivan@redhat.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:55234 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751371AbdKVOzW (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Nov 2017 09:55:22 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:48442 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752165AbdKVRtp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 22 Nov 2017 12:49:45 -0500
 Content-Disposition: inline
-In-Reply-To: <8737569yi7.fsf@redhat.com>
+In-Reply-To: <20171120165313.GA5316@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Giuseppe Scrivano <gscrivan@redhat.com> wrote:
-> > However, I suggest you try to go with call_rcu to get rid of all of the
-> > synchronize_net() calls. I don't even see why its still needed for
-> > nfqueue case provided we invoke the nfqueue drop handler first.
-> >
-> > PoC example, untested:
+On Mon, Nov 20, 2017 at 05:53:13PM +0100, Pablo Neira Ayuso wrote:
+> On Mon, Nov 20, 2017 at 04:58:22PM +0100, Phil Sutter wrote:
+> > On Mon, Nov 20, 2017 at 02:07:32PM +0100, Pablo Neira Ayuso wrote:
+> > > On Mon, Nov 20, 2017 at 01:54:18PM +0100, Phil Sutter wrote:
+> > > > On Mon, Nov 20, 2017 at 01:37:26PM +0100, Pablo Neira Ayuso wrote:
+> > > > > On Thu, Nov 16, 2017 at 08:10:24PM +0100, Phil Sutter wrote:
+> > > > > > If a second context is created, the second call to nft_ctx_free() leads
+> > > > > > to freeing invalid pointers in nft_exit(). Fix this by introducing a
+> > > > > > reference counter so that neither nft_init() nor nft_exit() run more
+> > > > > > than once in a row.
+> > > > > > 
+> > > > > > This reference counter has to be protected from parallel access. Do this
+> > > > > > using a mutex in a way that once nft_init() returns, the first call to
+> > > > > > that function running in parallel is guaranteed to be finished -
+> > > > > > otherwise it could happen that things being initialized in one thread
+> > > > > > are already accessed in another one.
+> > > > > 
+> > > > > I would prefer this table is placed into the context object, so they
+> > > > > are not global anymore. So I would prefer we fix this the right way(tm).
+> > > > > 
+> > > > > Let me know your thoughts, thanks!
+> > > > 
+> > > > I don't think that's feasible: Looking at 'mark_tbl' for instance, this is
+> > > > accessed from callbacks in 'mark_type', so we would have to make nft_ctx
+> > > > accessible by all functions dealing with datatypes.
+> > > 
+> > > Probably some specific new context object that wrap access to these
+> > > tables, not necessarily nft_ctx.
+> > > 
+> > > It's just more code, it will not be a small patch, but I don't see any
+> > > reason this can't be done.
+> > 
+> > Yes, this is my guess as well. Though for what benefit? I don't think
+> > having this logic for global run-time data is bad per se. What is it
+> > that you don't like about it?
 > 
-> thanks, the patch seems to work for me, at least the problem I was
-> seeing before is now fixed.
-> 
-> Is there any reason for defining "struct nf_hook_entries_rcu_head"?
+> This is breaking the assumption that releasing the context object will
+> be clearing all state behind us.
 
-Yes, idea is to only place elements we need in packet path at the
-beginning of structure.
+Hmm. Does that matter here? I don't think it makes sense to make the
+generated iproute2 tables context-local data. And I don't even see a way
+to make gmp_init() and xt_init() apply per context only.
 
-> I've used this fixup patch and it works as well.  As someone new to the
-> code, I find it a bit easier to follow:
-> 
-> 
-> diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-> index c08fd706d9c7..663046776def 100644
-> --- a/include/linux/netfilter.h
-> +++ b/include/linux/netfilter.h
-> @@ -77,12 +77,8 @@ struct nf_hook_entry {
->  	void				*priv;
->  };
->  
-> -struct nf_hook_entries_rcu_head {
-> -	struct rcu_head head;
-> -	void            *allocation;
-> -};
-> -
->  struct nf_hook_entries {
-> +	struct rcu_head                 head;
+The effort of implementing this is quite high as well, since the table
+pointers would have to be passed down to all places where datatypes are
+parsed or printed.
 
-Right, this works too.
-I wanted to keep the rcu head out of the fastpath part
-as we only need it during destruction.
+Cheers, Phil
