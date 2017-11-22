@@ -1,19 +1,19 @@
 From: Florian Westphal <fw@strlen.de>
 Subject: Re: [RFC PATCH] netfilter: call synchronize_net only once from
  nf_register_net_hooks
-Date: Wed, 22 Nov 2017 11:41:03 +0100
-Message-ID: <20171122104103.GE24866@breakpoint.cc>
+Date: Wed, 22 Nov 2017 12:06:06 +0100
+Message-ID: <20171122110606.GF24866@breakpoint.cc>
 References: <20171122104026.7592-1-gscrivan@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Giuseppe Scrivano <gscrivan@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:54548 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:54642 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751863AbdKVKmC (ORCPT
+        by vger.kernel.org with ESMTP id S1752021AbdKVLHF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 22 Nov 2017 05:42:02 -0500
+        Wed, 22 Nov 2017 06:07:05 -0500
 Content-Disposition: inline
 In-Reply-To: <20171122104026.7592-1-gscrivan@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -25,7 +25,9 @@ Giuseppe Scrivano <gscrivan@redhat.com> wrote:
 > it once after all the hooks are added.  The net benefit on an SMP
 > machine with two cores is that creating a new network namespace takes
 > -40% of the original time.
-> 
+
+but this needs more work.
+
 > Signed-off-by: Giuseppe Scrivano <gscrivan@redhat.com>
 > ---
 >  net/netfilter/core.c | 15 ++++++++++++---
@@ -41,6 +43,9 @@ Giuseppe Scrivano <gscrivan@redhat.com> wrote:
 >  
 > -int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
 > +static int __nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
+
+Change this to return struct nf_hook_entries *
+
 >  {
 >  	struct nf_hook_entries *p, *new_hooks;
 >  	struct nf_hook_entries __rcu **pp;
@@ -52,4 +57,32 @@ Giuseppe Scrivano <gscrivan@redhat.com> wrote:
 >  	BUG_ON(p == new_hooks);
 >  	kvfree(p);
 
-This adds use after free?
+remove kvfree()
+
+>  	return 0;
+
+return p;
+
+> +int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
+> +{
+> +	int ret = __nf_register_net_hook(net, reg);
+> +	if (ret < 0)
+> +		return ret;
+> +	synchronize_net();
+
+then free p here.
+
+> +	return 0;
+> +}
+>  EXPORT_SYMBOL(nf_register_net_hook);
+>  
+>  /*
+> @@ -379,10 +387,11 @@ int nf_register_net_hooks(struct net *net, const struct nf_hook_ops *reg,
+>  	int err = 0;
+>  
+>  	for (i = 0; i < n; i++) {
+> -		err = nf_register_net_hook(net, &reg[i]);
+> +		err = __nf_register_net_hook(net, &reg[i]);
+
+here, store the old 'p' values and then
+free them after synchronize_net().
