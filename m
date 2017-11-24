@@ -1,98 +1,119 @@
-From: Arturo Borrero Gonzalez <arturo@netfilter.org>
-Subject: Re: [PATCH nft] src: deprecate "flow table" syntax, replace it by "meter"
-Date: Fri, 24 Nov 2017 13:13:10 +0100
-Message-ID: <CAOkSjBgPMs=xWGYWizam9ttPRKJQyj9Frj1dmB2fcu7J47yp+g@mail.gmail.com>
-References: <20171123142322.6444-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>, rwhite@pobox.com,
-        neal.p.murphy@alum.wpi.edu
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 1/2] parser_bison: dismiss anonymous meters
+Date: Fri, 24 Nov 2017 14:28:59 +0100
+Message-ID: <20171124132900.28301-1-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:36984 "EHLO
-        mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752712AbdKXMNd (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Nov 2017 07:13:33 -0500
-Received: by mail-wm0-f47.google.com with SMTP id v186so22153324wma.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Nov 2017 04:13:33 -0800 (PST)
-Received: from mail-wm0-f48.google.com (mail-wm0-f48.google.com. [74.125.82.48])
-        by smtp.gmail.com with ESMTPSA id x17sm13877909edx.9.2017.11.24.04.13.31
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 24 Nov 2017 04:13:31 -0800 (PST)
-Received: by mail-wm0-f48.google.com with SMTP id 128so22142383wmo.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Nov 2017 04:13:31 -0800 (PST)
-In-Reply-To: <20171123142322.6444-1-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:39164 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752619AbdKXN3L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 24 Nov 2017 08:29:11 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id F244D392E02
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Nov 2017 14:29:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E1D86DA863
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Nov 2017 14:29:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F35E9DA78E
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Nov 2017 14:29:03 +0100 (CET)
+Received: from salvia.here (40.red-212-170-55.staticip.rima-tde.net [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id D977C403DF98
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Nov 2017 14:29:03 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 23 November 2017 at 15:23, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> According to bugzilla 1137: "flow tables" should not be syntactically
-> unique.
->
-> "Flow tables are always named, but they don't conform to the way sets,
-> maps, and dictionaries work in terms of "add" and "delete" and all that.
->
-> They are also "flow tables" instead of one word like "flows" or
-> "throttle" or something.
->
-> It seems weird to just have these break the syntactic expectations."
->
-> Personally, I never liked the reference to "table" since we have very
-> specific semantics in terms of what a "table" is netfilter for long
-> time.
->
-> This patch promotes "meter" as the new keyword. The former syntax is
-> still accepted for a while, just to reduce chances of breaking things.
-> At some point the former syntax will just be removed.
->
-> Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1137
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
->
+The former 'flow table' syntax allows flow tables with no name:
 
-I agree.
+ # nft add rule x y flow { ip saddr counter }
 
-What about adding a warning in case of using the old syntax?
-Something like:
+However, when listing, it leaks the name that it is autoallocating.
 
-WARNING: this syntax is deprecated and will be deleted in the future,
-use 'meter' instead.
+ # nft list ruleset
+ table ip x {
+        chain y {
+                flow table __mt0 { ip saddr counter}
+        }
+ }
 
-Acked-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
+Which is odd since then restoring will use such a name.
 
-> diff --git a/src/evaluate.c b/src/evaluate.c
-> index fd61e7530d2e..3d4824ff80d6 100644
-> --- a/src/evaluate.c
-> +++ b/src/evaluate.c
-> @@ -2021,37 +2021,37 @@ static int stmt_evaluate_payload(struct eval_ctx *ctx, struct stmt *stmt)
->         return expr_evaluate(ctx, &stmt->payload.val);
->  }
->
-> -static int stmt_evaluate_flow(struct eval_ctx *ctx, struct stmt *stmt)
-> +static int stmt_evaluate_meter(struct eval_ctx *ctx, struct stmt *stmt)
->  {
->         struct expr *key, *set, *setref;
->
->         expr_set_context(&ctx->ectx, NULL, 0);
-> -       if (expr_evaluate(ctx, &stmt->flow.key) < 0)
-> +       if (expr_evaluate(ctx, &stmt->meter.key) < 0)
->                 return -1;
-> -       if (expr_is_constant(stmt->flow.key))
-> -               return expr_error(ctx->msgs, stmt->flow.key,
-> +       if (expr_is_constant(stmt->meter.key))
-> +               return expr_error(ctx->msgs, stmt->meter.key,
->                                   "Flow key expression can not be constant");
+Remove anonymous flow table/meters, so everyone needs to specify a name.
 
-^
-line below contains flow instead of meter
+There is no way to fix this, given anonymous flag tells us that the set
+behind this meter is bound to a rule, hence, released once the rule is
+going - the term "anonymous" was not good choice as a flag in first
+place. Only possibility is to strcmp for __ft to identify this is a
+nameless meter, which is a hack.
 
-> -       if (stmt->flow.key->comment)
-> -               return expr_error(ctx->msgs, stmt->flow.key,
-> +       if (stmt->meter.key->comment)
-> +               return expr_error(ctx->msgs, stmt->meter.key,
->                                   "Flow key expression can not contain comments");
+Moreover, having no name means you cannot flush the set behind this
+meter, which criples this feature for no reason.
 
-^
-same here
+On top of it, the wiki only documents named meters, and we have a record
+of users complaining on this behaviour.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/evaluate.c     |  3 +--
+ src/expression.c   | 10 +++-------
+ src/parser_bison.y |  7 -------
+ 3 files changed, 4 insertions(+), 16 deletions(-)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index f30543f822e0..b0ce9f63e6c0 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2042,8 +2042,7 @@ static int stmt_evaluate_meter(struct eval_ctx *ctx, struct stmt *stmt)
+ 	if (key->timeout)
+ 		set->set_flags |= NFT_SET_TIMEOUT;
+ 
+-	setref = implicit_set_declaration(ctx, stmt->meter.name ?: "__mt%d",
+-					  key, set);
++	setref = implicit_set_declaration(ctx, stmt->meter.name, key, set);
+ 
+ 	stmt->meter.set = setref;
+ 
+diff --git a/src/expression.c b/src/expression.c
+index 273038e62d2e..dae475921476 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -930,14 +930,10 @@ struct expr *map_expr_alloc(const struct location *loc, struct expr *arg,
+ 
+ static void set_ref_expr_print(const struct expr *expr, struct output_ctx *octx)
+ {
+-	if (expr->set->flags & NFT_SET_ANONYMOUS) {
+-		if (expr->set->flags & NFT_SET_EVAL)
+-			nft_print(octx, "%s", expr->set->handle.set);
+-		else
+-			expr_print(expr->set->init, octx);
+-	} else {
++	if (expr->set->flags & NFT_SET_ANONYMOUS)
++		expr_print(expr->set->init, octx);
++	else
+ 		nft_print(octx, "@%s", expr->set->handle.set);
+-	}
+ }
+ 
+ static void set_ref_expr_clone(struct expr *new, const struct expr *expr)
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 6610b9dccc3c..d2673173bd27 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -2489,13 +2489,6 @@ meter_stmt		:	meter_stmt_alloc		meter_stmt_opts	'{' meter_key_expr stmt '}'
+ 				$$->location  = @$;
+ 				$$ = $1;
+ 			}
+-			|	meter_stmt_alloc		'{' meter_key_expr stmt '}'
+-			{
+-				$1->meter.key  = $3;
+-				$1->meter.stmt = $4;
+-				$$->location  = @$;
+-				$$ = $1;
+-			}
+ 			;
+ 
+ meter_stmt_alloc	:	FLOW
+-- 
+2.11.0
+
