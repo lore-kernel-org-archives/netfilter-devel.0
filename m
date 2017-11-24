@@ -1,41 +1,34 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nft 1/2] parser_bison: dismiss anonymous meters
-Date: Fri, 24 Nov 2017 14:56:49 +0100
-Message-ID: <20171124135649.GA17459@breakpoint.cc>
-References: <20171124132900.28301-1-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: static libnftables by now?
+Date: Fri, 24 Nov 2017 15:02:46 +0100
+Message-ID: <20171124140246.GA6881@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:35356 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752619AbdKXN5w (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 24 Nov 2017 08:57:52 -0500
+Received: from mail.us.es ([193.147.175.20]:55196 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753757AbdKXOCv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 24 Nov 2017 09:02:51 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 5CDB8392E04
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Nov 2017 15:02:50 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4DE7ADA875
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Nov 2017 15:02:50 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20171124132900.28301-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> The former 'flow table' syntax allows flow tables with no name:
-> 
->  # nft add rule x y flow { ip saddr counter }
-> 
-> However, when listing, it leaks the name that it is autoallocating.
-> 
->  # nft list ruleset
->  table ip x {
->         chain y {
->                 flow table __mt0 { ip saddr counter}
->         }
->  }
-> 
-> Which is odd since then restoring will use such a name.
+Hi Phil,
 
-Right.
+Until the library API is stable, before 0.9.0 release, I think it
+would be good if we make it static by now.
 
-> Remove anonymous flow table/meters, so everyone needs to specify a name.
+This would also allow me to make more frequent 0.8.x releases
+including fixes and such.
 
-Acked-by: Florian Westphal <fw@strlen.de>
+What do you think? Would you have a look into it?
+
+Thanks.
