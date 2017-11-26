@@ -1,61 +1,38 @@
-From: =?UTF-8?q?Linus=20L=C3=BCssing?= <linus.luessing@c0d3.blue>
-Subject: [PATCH net-next] bridge: ebtables: Avoid resetting limit rule state
-Date: Sat, 25 Nov 2017 08:44:18 +0100
-Message-ID: <20171125074418.16537-1-linus.luessing@c0d3.blue>
+From: Varsha Rao <rvarsha016@gmail.com>
+Subject: Re: [PATCH nft] tests: shell: Add test for IPv4 Mapped IPv6 address.
+Date: Sun, 26 Nov 2017 08:07:50 +0530
+Message-ID: <CAAFX7JT-qxq8tckDb2UxO5xCGB0ySYhUS6GXK6NHPWLeUS0Kwg@mail.gmail.com>
+References: <20171119123432.8894-1-rvarsha016@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        Stephen Hemminger <stephen@networkplumber.org>,
-        "David S . Miller" <davem@davemloft.net>, coreteam@netfilter.org,
-        bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        =?UTF-8?q?Linus=20L=C3=BCssing?= <linus.luessing@c0d3.blue>
-To: netfilter-devel@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-it0-f47.google.com ([209.85.214.47]:42491 "EHLO
+        mail-it0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751923AbdKZCic (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 25 Nov 2017 21:38:32 -0500
+Received: by mail-it0-f47.google.com with SMTP id n134so17180038itg.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 25 Nov 2017 18:38:31 -0800 (PST)
+In-Reply-To: <20171119123432.8894-1-rvarsha016@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-So far any changes with ebtables will reset the state of limit rules,
-leading to spikes in traffic. This is especially noticeable if changes
-are done frequently, for instance via a daemon.
+Hello Pablo,
 
-This patch fixes this by bailing out from (re)setting if the limit
-rule was initialized before.
+On Sun, Nov 19, 2017 at 6:04 PM, Varsha Rao <rvarsha016@gmail.com> wrote:
+> This patch adds test case for IPv4 Mapped IPv6 address and renames
+> file 0025named_limit_0 to 0026named_limit_0.
+>
+> Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
+> ---
+> rename to tests/shell/testcases/sets/0026named_limit_0
+> diff --git a/tests/shell/testcases/sets/0027ipv6_maps_ipv4_0 b/tests/shell/testcases/sets/0027ipv6_maps_ipv4_0
+> new file mode 100755
 
-When sending packets every 250ms for 600s, with a
-"--limit 1/sec --limit-burst 50" rule and a command like this
-in the background:
+There seems to be a small problem with applied patch. It has file mode as 100644
+instead of 100755. Should I send a patch for it?
 
-$ ebtables -N VOIDCHAIN
-$ while true; do ebtables -F VOIDCHAIN; sleep 30; done
-
-The results are:
-
-Before: ~1600 packets
-After: 650 packets
-
-Signed-off-by: Linus Lüssing <linus.luessing@c0d3.blue>
----
- net/bridge/netfilter/ebt_limit.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/net/bridge/netfilter/ebt_limit.c b/net/bridge/netfilter/ebt_limit.c
-index 61a9f1be1263..f74b48633feb 100644
---- a/net/bridge/netfilter/ebt_limit.c
-+++ b/net/bridge/netfilter/ebt_limit.c
-@@ -69,6 +69,10 @@ static int ebt_limit_mt_check(const struct xt_mtchk_param *par)
- {
- 	struct ebt_limit_info *info = par->matchinfo;
- 
-+	/* Do not reset state on unrelated table changes */
-+	if (info->prev)
-+		return 0;
-+
- 	/* Check for overflow. */
- 	if (info->burst == 0 ||
- 	    user2credits(info->avg * info->burst) < user2credits(info->avg)) {
--- 
-2.11.0
+Thanks,
+Varsha
