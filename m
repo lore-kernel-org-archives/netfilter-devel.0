@@ -1,43 +1,33 @@
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-Subject: [PATCH] doc: nft.8 Syslog level is introduced by "level" not "syslog-level"
-Date: Mon, 27 Nov 2017 10:30:29 +1100
-Message-ID: <20171126233029.4059-1-duncan_roe@optusnet.com.au>
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] doc: nft.8 Syslog level is introduced by "level" not
+ "syslog-level"
+Date: Mon, 27 Nov 2017 12:01:58 +0100
+Message-ID: <20171127110158.GA17275@salvia>
+References: <20171126233029.4059-1-duncan_roe@optusnet.com.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Duncan Roe <duncan_roe@optusnet.com.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail110.syd.optusnet.com.au ([211.29.132.97]:47447 "EHLO
-        mail110.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752069AbdKZXan (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 26 Nov 2017 18:30:43 -0500
-Received: from dimstar.local.net (c220-239-53-24.eburwd6.vic.optusnet.com.au [220.239.53.24])
-        by mail110.syd.optusnet.com.au (Postfix) with SMTP id A112F1071F2
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Nov 2017 10:30:30 +1100 (AEDT)
+Received: from mail.us.es ([193.147.175.20]:42908 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751982AbdK0LDq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 27 Nov 2017 06:03:46 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 674491C442E
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Nov 2017 12:03:44 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 56435DA804
+        for <netfilter-devel@vger.kernel.org>; Mon, 27 Nov 2017 12:03:44 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20171126233029.4059-1-duncan_roe@optusnet.com.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The log synopsis line correctly documents that keyword "level" introduces
-"syslog-level", but the keyword table entry did not.
+On Mon, Nov 27, 2017 at 10:30:29AM +1100, Duncan Roe wrote:
+> The log synopsis line correctly documents that keyword "level" introduces
+> "syslog-level", but the keyword table entry did not.
+> 
+> Discovered on trying to use "syslog-level" in a script.
 
-Discovered on trying to use "syslog-level" in a script.
-
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
----
- doc/nft.xml | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/doc/nft.xml b/doc/nft.xml
-index 432f1c4..a1bfecd 100644
---- a/doc/nft.xml
-+++ b/doc/nft.xml
-@@ -4350,7 +4350,7 @@ tcp flags syn tcp option maxseg size set rt mtu
- 								<entry>quoted string</entry>
- 							</row>
- 							<row>
--								<entry>syslog-level</entry>
-+								<entry>level</entry>
- 								<entry>Syslog level of logging</entry>
- 								<entry>string: emerg, alert, crit, err, warn [default], notice, info, debug</entry>
- 							</row>
--- 
-2.9.0
-
+Applied, thanks Duncan.
