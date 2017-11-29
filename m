@@ -1,51 +1,63 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next,RFC 1/3] netfilter: nf_conntrack: add 64-bit
- conntrack ID extension
-Date: Tue, 28 Nov 2017 21:44:48 +0100
-Message-ID: <20171128204448.GC16528@breakpoint.cc>
-References: <20171128021309.11277-1-pablo@netfilter.org>
- <20171128121652.GH23412@breakpoint.cc>
- <20171128155722.GA4719@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        richard@nod.at
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Jay Shah <jay.shah1@rockwellcollins.com>
+Subject: [PATCH 1/1] iptables: patch to correct linker flag sequence
+Date: Wed, 29 Nov 2017 00:10:54 -0600
+Message-ID: <1511935854-13005-1-git-send-email-jay.shah1@rockwellcollins.com>
+Cc: jay.shah1@rockwellcollins.com,
+        Yogesh Prasad <yogesh.prasad@rockwellcollins.com>,
+        Matt Weber <matthew.weber@rockwellcollins.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:52202 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753123AbdK1Up6 (ORCPT
+Received: from ch3vs04.rockwellcollins.com ([205.175.226.52]:15003 "EHLO
+        ch3vs04.rockwellcollins.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751005AbdK2GWB (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 28 Nov 2017 15:45:58 -0500
-Content-Disposition: inline
-In-Reply-To: <20171128155722.GA4719@salvia>
+        Wed, 29 Nov 2017 01:22:01 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > index 21f887c5058c..274f9370c56a 100644
-> > > --- a/include/net/netfilter/nf_conntrack_extend.h
-> > > +++ b/include/net/netfilter/nf_conntrack_extend.h
-> > > @@ -28,6 +28,7 @@ enum nf_ct_ext_id {
-> > >  #if IS_ENABLED(CONFIG_NETFILTER_SYNPROXY)
-> > >  	NF_CT_EXT_SYNPROXY,
-> > >  #endif
-> > > +	NF_CT_EXT_ID,
-> > 
-> > I think, if we decide that this new id is needed,
-> > we might as well place this directly in the extension
-> > struct itself rather than an id.
-> > 
-> > AFAIU this id is always active/set so we never have a
-> > conntrack without this.
-> 
-> I understand your goal would be to make this run faster for the first
-> packet that is part of the connection. This would fit into the 128 bytes
-> that we preallocate, so you're just trying to remove one level of
-> indirection, right?
+From: Yogesh Prasad <yogesh.prasad@rockwellcollins.com>
 
-Yes, and save the space in the len/data array for the new extension id.
+Description
+This patch will correct the sequence of -pie and -shared options.
+ When used together, -pie should be provided to the linker before
+ -shared. If -pie is provided after -shared, the linker throws an
+ error shown below as example.
 
-There is nothing else to it.
-We currently do not have an "always on" extension, this would be the
-first.
+-------------------------------------------------------------------------
+/host/lib/gcc/powerpc-buildroot-linux-gnu/6.4.0/../../../..
+/powerpc-buildroot-linux-gnu/bin/ld: BFD (GNU Binutils) 2.28.1
+ assertion fail elf32-ppc.c:8923
+collect2: error: ld returned 1 exit status
+        + ./libxt_SYNPROXY.man
+make[4]: *** [libxt_TCPOPTSTRIP.so] Error 1
+        + ./libip6t_mh.man
+/host/powerpc-buildroot-linux-gnu/sysroot/usr/lib/Scrt1.o:(.data+0x4):
+ undefined reference to `main'
+/host/lib/gcc/powerpc-buildroot-linux-gnu      + ./libxt_TCPMSS.man
+/6.4.0/../../../../powerpc-buildroot-linux-gnu/bin/ld:
+ BFD (GNU Binutils) 2.28.1 assertion fail elf32-ppc.c:8923
+collect2: error: ld returned 1 exit status
+-------------------------------------------------------------------------
+
+Signed-off-by: Yogesh Prasad <yogesh.prasad@rockwellcollins.com>
+Signed-off-by: Matt Weber <matthew.weber@rockwellcollins.com>
+---
+ extensions/GNUmakefile.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
+index b7a8a83..bee666e 100644
+--- a/extensions/GNUmakefile.in
++++ b/extensions/GNUmakefile.in
+@@ -101,7 +101,7 @@ init%.o: init%.c
+ #	Shared libraries
+ #
+ lib%.so: lib%.oo
+-	${AM_VERBOSE_CCLD} ${CCLD} ${AM_LDFLAGS} -shared ${LDFLAGS} -o $@ $< -L../libxtables/.libs -lxtables ${$*_LIBADD};
++	${AM_VERBOSE_CCLD} ${CCLD} ${AM_LDFLAGS} ${LDFLAGS} -shared -o $@ $< -L../libxtables/.libs -lxtables ${$*_LIBADD};
+ 
+ lib%.oo: ${srcdir}/lib%.c
+ 	${AM_VERBOSE_CC} ${CC} ${AM_CPPFLAGS} ${AM_DEPFLAGS} ${AM_CFLAGS} -D_INIT=lib$*_init -DPIC -fPIC ${CFLAGS} -o $@ -c $<;
+-- 
+1.9.1
+
