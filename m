@@ -1,51 +1,39 @@
 From: Varsha Rao <rvarsha016@gmail.com>
-Subject: [PATCH] iptables: xtables-eb: Remove const qualifier from struct option
-Date: Thu, 30 Nov 2017 19:18:05 +0530
-Message-ID: <20171130134806.21737-1-rvarsha016@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH iptables] extensions: libxt_tcpmss: Add test case for invalid ranges.
+Date: Thu, 30 Nov 2017 19:18:06 +0530
+Message-ID: <20171130134806.21737-2-rvarsha016@gmail.com>
+References: <20171130134806.21737-1-rvarsha016@gmail.com>
 Cc: Varsha Rao <rvarsha016@gmail.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
         netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:38698 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750964AbdK3Nsd (ORCPT
+Received: from mail-pl0-f49.google.com ([209.85.160.49]:44729 "EHLO
+        mail-pl0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750964AbdK3Nsn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 Nov 2017 08:48:33 -0500
-Received: by mail-pg0-f67.google.com with SMTP id f12so3013292pgo.5
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 Nov 2017 05:48:32 -0800 (PST)
+        Thu, 30 Nov 2017 08:48:43 -0500
+Received: by mail-pl0-f49.google.com with SMTP id x22so4254957pln.11
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 Nov 2017 05:48:43 -0800 (PST)
+In-Reply-To: <20171130134806.21737-1-rvarsha016@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-As opts is reassigned multiple times, it cannot be made constant.
-So remove const qualifier from structure option. This patch fixes the
-following warning.
-
-xtables-eb.c: In function ‘ebt_load_match_extensions’:
-xtables-eb.c:653:7: warning: assignment discards ‘const’ qualifier
-from pointer target type
-  opts = ebt_original_options;
+This patch adds test case for invalid MSS range.
 
 Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
 ---
- iptables/xtables-eb.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ extensions/libxt_tcpmss.t | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
-index 60ec935c..c8b5d4f3 100644
---- a/iptables/xtables-eb.c
-+++ b/iptables/xtables-eb.c
-@@ -247,7 +247,7 @@ static int get_current_chain(const char *chain)
- 
- /* Default command line options. Do not mess around with the already
-  * assigned numbers unless you know what you are doing */
--static const struct option ebt_original_options[] =
-+static struct option ebt_original_options[] =
- {
- 	{ "append"         , required_argument, 0, 'A' },
- 	{ "insert"         , required_argument, 0, 'I' },
+diff --git a/extensions/libxt_tcpmss.t b/extensions/libxt_tcpmss.t
+index 3181e49d..2b415957 100644
+--- a/extensions/libxt_tcpmss.t
++++ b/extensions/libxt_tcpmss.t
+@@ -3,3 +3,4 @@
+ -p tcp -m tcpmss --mss 42;=;OK
+ -p tcp -m tcpmss --mss 42:12345;=;OK
+ -p tcp -m tcpmss --mss 42:65536;;FAIL
++-p tcp -m tcpmss --mss 65535:1000;;FAIL
 -- 
 2.14.3
 
