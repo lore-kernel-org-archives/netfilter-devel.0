@@ -1,139 +1,150 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 2/3] netfilter: core: remove synchronize_net call if nfqueue is used
-Date: Fri,  1 Dec 2017 00:21:03 +0100
-Message-ID: <20171130232104.541-3-fw@strlen.de>
+Subject: [PATCH nf-next 3/3] netfilter: core: free hooks with call_rcu
+Date: Fri,  1 Dec 2017 00:21:04 +0100
+Message-ID: <20171130232104.541-4-fw@strlen.de>
 References: <20171130232104.541-1-fw@strlen.de>
 Cc: gscrivan@redhat.com, Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37894 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37902 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751069AbdK3XeO (ORCPT
+        by vger.kernel.org with ESMTP id S1751069AbdK3XeR (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 Nov 2017 18:34:14 -0500
+        Thu, 30 Nov 2017 18:34:17 -0500
 In-Reply-To: <20171130232104.541-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-since commit 960632ece6949b ("netfilter: convert hook list to an array")
-nfqueue no longer stores a pointer to the hook that caused the packet
-to be queued.  Therefore no extra synchronize_net() call is needed after
-dropping the packets enqueued by the old rule blob.
+Giuseppe Scrivano says:
+  "SELinux, if enabled, registers for each new network namespace 6
+    netfilter hooks."
 
+Cost for this is high.  With synchronize_net() removed:
+   "The net benefit on an SMP machine with two cores is that creating a
+   new network namespace takes -40% of the original time."
+
+This patch replaces synchronize_net+kvfree with call_rcu().
+We store rcu_head at the tail of a structure that has no fixed layout,
+i.e. we cannot use offsetof() to compute the start of the original
+allocation.  Thus store this information right after the rcu head.
+
+We could simplify this by just placing the rcu_head at the start
+of struct nf_hook_entries.  However, this structure is used in
+packet processing hotpath, so only place what is needed for that
+at the beginning of the struct.
+
+Reported-by: Giuseppe Scrivano <gscrivan@redhat.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_queue.h | 2 +-
- net/netfilter/core.c             | 6 +-----
- net/netfilter/nf_internals.h     | 2 +-
- net/netfilter/nf_queue.c         | 7 ++-----
- net/netfilter/nfnetlink_queue.c  | 9 ++-------
- 5 files changed, 7 insertions(+), 19 deletions(-)
+ include/linux/netfilter.h | 19 +++++++++++++++----
+ net/netfilter/core.c      | 34 ++++++++++++++++++++++++++++------
+ 2 files changed, 43 insertions(+), 10 deletions(-)
 
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index 814058d0f167..a50a69f5334c 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -25,7 +25,7 @@ struct nf_queue_entry {
- struct nf_queue_handler {
- 	int		(*outfn)(struct nf_queue_entry *entry,
- 				 unsigned int queuenum);
--	unsigned int	(*nf_hook_drop)(struct net *net);
-+	void		(*nf_hook_drop)(struct net *net);
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index b24e9b101651..792f6d535707 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -77,17 +77,28 @@ struct nf_hook_entry {
+ 	void				*priv;
  };
  
- void nf_register_queue_handler(struct net *net, const struct nf_queue_handler *qh);
++struct nf_hook_entries_rcu_head {
++	struct rcu_head head;
++	void	*allocation;
++};
++
+ struct nf_hook_entries {
+ 	u16				num_hook_entries;
+ 	/* padding */
+ 	struct nf_hook_entry		hooks[];
+ 
+-	/* trailer: pointers to original orig_ops of each hook.
+-	 *
+-	 * This is not part of struct nf_hook_entry since its only
+-	 * needed in slow path (hook register/unregister).
++	/* trailer: pointers to original orig_ops of each hook,
++	 * followed by rcu_head and scratch space used for freeing
++	 * the structure via call_rcu.
+ 	 *
++	 *   This is not part of struct nf_hook_entry since its only
++	 *   needed in slow path (hook register/unregister):
+ 	 * const struct nf_hook_ops     *orig_ops[]
++	 *
++	 *   For the same reason, we store this at end -- its
++	 *   only needed when a hook is deleted, not during
++	 *   packet path processing:
++	 * struct nf_hook_entries_rcu_head     head
+ 	 */
+ };
+ 
 diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index d39bb2c583dc..9a84b6cb99e6 100644
+index 9a84b6cb99e6..6921f9f1cc81 100644
 --- a/net/netfilter/core.c
 +++ b/net/netfilter/core.c
-@@ -341,7 +341,6 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
- {
- 	struct nf_hook_entries __rcu **pp;
- 	struct nf_hook_entries *p;
--	unsigned int nfq;
+@@ -74,7 +74,8 @@ static struct nf_hook_entries *allocate_hook_entries_size(u16 num)
+ 	struct nf_hook_entries *e;
+ 	size_t alloc = sizeof(*e) +
+ 		       sizeof(struct nf_hook_entry) * num +
+-		       sizeof(struct nf_hook_ops *) * num;
++		       sizeof(struct nf_hook_ops *) * num +
++		       sizeof(struct nf_hook_entries_rcu_head);
  
- 	pp = nf_hook_entry_head(net, reg);
- 	if (!pp)
-@@ -364,10 +363,7 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ 	if (num == 0)
+ 		return NULL;
+@@ -85,6 +86,30 @@ static struct nf_hook_entries *allocate_hook_entries_size(u16 num)
+ 	return e;
+ }
  
- 	synchronize_net();
++static void __nf_hook_entries_free(struct rcu_head *h)
++{
++	struct nf_hook_entries_rcu_head *head;
++
++	head = container_of(h, struct nf_hook_entries_rcu_head, head);
++	kvfree(head->allocation);
++}
++
++static void nf_hook_entries_free(struct nf_hook_entries *e)
++{
++	struct nf_hook_entries_rcu_head *head;
++	struct nf_hook_ops **ops;
++	unsigned int num;
++
++	if (!e)
++		return;
++
++	num = e->num_hook_entries;
++	ops = nf_hook_entries_get_hook_ops(e);
++	head = (void *)&ops[num];
++	head->allocation = e;
++	call_rcu(&head->head, __nf_hook_entries_free);
++}
++
+ static unsigned int accept_all(void *priv,
+ 			       struct sk_buff *skb,
+ 			       const struct nf_hook_state *state)
+@@ -291,9 +316,8 @@ int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ #ifdef HAVE_JUMP_LABEL
+ 	static_key_slow_inc(&nf_hooks_needed[reg->pf][reg->hooknum]);
+ #endif
+-	synchronize_net();
+ 	BUG_ON(p == new_hooks);
+-	kvfree(p);
++	nf_hook_entries_free(p);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(nf_register_net_hook);
+@@ -361,10 +385,8 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ 	if (!p)
+ 		return;
  
--	/* other cpu might still process nfqueue verdict that used reg */
--	nfq = nf_queue_nf_hook_drop(net);
--	if (nfq)
--		synchronize_net();
-+	nf_queue_nf_hook_drop(net);
- 	kvfree(p);
+-	synchronize_net();
+-
+ 	nf_queue_nf_hook_drop(net);
+-	kvfree(p);
++	nf_hook_entries_free(p);
  }
  EXPORT_SYMBOL(nf_unregister_net_hook);
-diff --git a/net/netfilter/nf_internals.h b/net/netfilter/nf_internals.h
-index 44284cd2528d..18f6d7ae995b 100644
---- a/net/netfilter/nf_internals.h
-+++ b/net/netfilter/nf_internals.h
-@@ -10,7 +10,7 @@
- int nf_queue(struct sk_buff *skb, struct nf_hook_state *state,
- 	     const struct nf_hook_entries *entries, unsigned int index,
- 	     unsigned int verdict);
--unsigned int nf_queue_nf_hook_drop(struct net *net);
-+void nf_queue_nf_hook_drop(struct net *net);
  
- /* nf_log.c */
- int __init netfilter_log_init(void);
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index f7e21953b1de..4e42a4a68a0b 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -96,18 +96,15 @@ void nf_queue_entry_get_refs(struct nf_queue_entry *entry)
- }
- EXPORT_SYMBOL_GPL(nf_queue_entry_get_refs);
- 
--unsigned int nf_queue_nf_hook_drop(struct net *net)
-+void nf_queue_nf_hook_drop(struct net *net)
- {
- 	const struct nf_queue_handler *qh;
--	unsigned int count = 0;
- 
- 	rcu_read_lock();
- 	qh = rcu_dereference(net->nf.queue_handler);
- 	if (qh)
--		count = qh->nf_hook_drop(net);
-+		qh->nf_hook_drop(net);
- 	rcu_read_unlock();
--
--	return count;
- }
- EXPORT_SYMBOL_GPL(nf_queue_nf_hook_drop);
- 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index c9796629858f..c8cc01fe90ea 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -941,23 +941,18 @@ static struct notifier_block nfqnl_dev_notifier = {
- 	.notifier_call	= nfqnl_rcv_dev_event,
- };
- 
--static unsigned int nfqnl_nf_hook_drop(struct net *net)
-+static void nfqnl_nf_hook_drop(struct net *net)
- {
- 	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
--	unsigned int instances = 0;
- 	int i;
- 
- 	for (i = 0; i < INSTANCE_BUCKETS; i++) {
- 		struct nfqnl_instance *inst;
- 		struct hlist_head *head = &q->instance_table[i];
- 
--		hlist_for_each_entry_rcu(inst, head, hlist) {
-+		hlist_for_each_entry_rcu(inst, head, hlist)
- 			nfqnl_flush(inst, NULL, 0);
--			instances++;
--		}
- 	}
--
--	return instances;
- }
- 
- static int
 -- 
 2.13.6
 
