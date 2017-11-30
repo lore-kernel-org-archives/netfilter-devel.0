@@ -1,55 +1,36 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH v2] Make libnftables a local static library
-Date: Thu, 30 Nov 2017 19:36:23 +0100
-Message-ID: <20171130183623.19719-1-phil@nwl.cc>
-References: <20171130183008.GP32305@orbyte.nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH ipset nf-next] netfilter: ipset: use nfnl_mutex_is_locked
+Date: Thu, 30 Nov 2017 21:07:32 +0100
+Message-ID: <20171130200732.2814-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:52322 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750723AbdK3Sge (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 30 Nov 2017 13:36:34 -0500
-In-Reply-To: <20171130183008.GP32305@orbyte.nwl.cc>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:37170 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750849AbdK3UHj (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 30 Nov 2017 15:07:39 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This changes Makefiles so that libnftables is built into a static
-library which is not installed. This allows for incompatible changes
-while still providing a library to link to for testing purposes.
+Check that we really hold nfnl mutex here instead of relying on correct
+usage alone.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
-Changes since v1:
-- Keep it a libtool library.
-- Update src/.gitignore.
----
- src/.gitignore  | 1 +
- src/Makefile.am | 2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/src/.gitignore b/src/.gitignore
-index 36d6acd1e4d01..e27d4f8431eec 100644
---- a/src/.gitignore
-+++ b/src/.gitignore
-@@ -1,3 +1,4 @@
-+libnftables.a
- libnftables.la
- parser.c
- parser.h
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 9f7a4bfbb90a4..7581ec2090092 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -27,7 +27,7 @@ parser_bison.o scanner.o: AM_CFLAGS += -Wno-missing-prototypes -Wno-missing-decl
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index d5a43cad90f04..1f3c03b3bebf2 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -57,7 +57,7 @@ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_IPSET);
  
- BUILT_SOURCES = parser_bison.h
+ /* When the nfnl mutex is held: */
+ #define ip_set_dereference(p)		\
+-	rcu_dereference_protected(p, 1)
++	rcu_dereference_protected(p, lockdep_nfnl_is_held(NFNL_SUBSYS_IPSET))
+ #define ip_set(inst, id)		\
+ 	ip_set_dereference((inst)->ip_set_list)[id]
  
--lib_LTLIBRARIES = libnftables.la
-+noinst_LTLIBRARIES = libnftables.la
- 
- libnftables_la_SOURCES =			\
- 		rule.c				\
 -- 
-2.13.1
+2.14.3
 
