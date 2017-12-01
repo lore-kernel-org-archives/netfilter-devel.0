@@ -1,60 +1,51 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH ipset nf-next] netfilter: ipset: use
- nfnl_mutex_is_locked
-Date: Fri, 1 Dec 2017 20:14:48 +0100 (CET)
-Message-ID: <alpine.DEB.2.11.1712012013530.26668@blackhole.kfki.hu>
-References: <20171130200732.2814-1-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:52946 "EHLO smtp1.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750965AbdLATOv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 1 Dec 2017 14:14:51 -0500
-In-Reply-To: <20171130200732.2814-1-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: [PATCH tip/core/rcu 03/10] netfilter: Eliminate cond_resched_rcu_qs() in favor of cond_resched()
+Date: Fri,  1 Dec 2017 11:21:37 -0800
+Message-ID: <1512156104-20104-3-git-send-email-paulmck@linux.vnet.ibm.com>
+References: <20171201192122.GA19301@linux.vnet.ibm.com>
+Cc: mingo@kernel.org, jiangshanlai@gmail.com, dipankar@in.ibm.com,
+        akpm@linux-foundation.org, mathieu.desnoyers@efficios.com,
+        josh@joshtriplett.org, tglx@linutronix.de, peterz@infradead.org,
+        rostedt@goodmis.org, dhowells@redhat.com, edumazet@google.com,
+        fweisbec@gmail.com, oleg@redhat.com,
+        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        <netfilter-devel@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171201192122.GA19301@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Florian,
+Now that cond_resched() also provides RCU quiescent states when
+needed, it can be used in place of cond_resched_rcu_qs().  This
+commit therefore makes this change.
 
-On Thu, 30 Nov 2017, Florian Westphal wrote:
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: <netfilter-devel@vger.kernel.org>
+---
+ net/netfilter/nf_conntrack_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> Check that we really hold nfnl mutex here instead of relying on correct
-> usage alone.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-
-Yes, it's better this way :-)
-
-Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-
-> ---
-> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> index d5a43cad90f04..1f3c03b3bebf2 100644
-> --- a/net/netfilter/ipset/ip_set_core.c
-> +++ b/net/netfilter/ipset/ip_set_core.c
-> @@ -57,7 +57,7 @@ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_IPSET);
->  
->  /* When the nfnl mutex is held: */
->  #define ip_set_dereference(p)		\
-> -	rcu_dereference_protected(p, 1)
-> +	rcu_dereference_protected(p, lockdep_nfnl_is_held(NFNL_SUBSYS_IPSET))
->  #define ip_set(inst, id)		\
->  	ip_set_dereference((inst)->ip_set_list)[id]
->  
-> -- 
-> 2.14.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 85f643c1e227..4efaa3066c78 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1044,7 +1044,7 @@ static void gc_worker(struct work_struct *work)
+ 		 * we will just continue with next hash slot.
+ 		 */
+ 		rcu_read_unlock();
+-		cond_resched_rcu_qs();
++		cond_resched();
+ 	} while (++buckets < goal);
+ 
+ 	if (gc_work->exiting)
+-- 
+2.5.2
