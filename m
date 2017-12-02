@@ -1,67 +1,57 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: [PATCH tip/core/rcu 19/21] netlink: Remove smp_read_barrier_depends() from comment
-Date: Fri,  1 Dec 2017 11:51:14 -0800
-Message-ID: <1512157876-24665-19-git-send-email-paulmck@linux.vnet.ibm.com>
-References: <20171201195053.GA23494@linux.vnet.ibm.com>
-Cc: mingo@kernel.org, jiangshanlai@gmail.com, dipankar@in.ibm.com,
-        akpm@linux-foundation.org, mathieu.desnoyers@efficios.com,
-        josh@joshtriplett.org, tglx@linutronix.de, peterz@infradead.org,
-        rostedt@goodmis.org, dhowells@redhat.com, edumazet@google.com,
-        fweisbec@gmail.com, oleg@redhat.com,
-        "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>
-To: linux-kernel@vger.kernel.org
+From: "Neal P. Murphy" <neal.p.murphy@alum.wpi.edu>
+Subject: video app
+Date: Sat, 2 Dec 2017 00:21:22 -0500
+Message-ID: <20171202002122.5a820119@playground>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org,
+        vishal rana <visrana_1999@yahoo.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:36450 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752177AbdLATv1 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 1 Dec 2017 14:51:27 -0500
-Received: from pps.filterd (m0098414.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id vB1JnQEX115621
-        for <netfilter-devel@vger.kernel.org>; Fri, 1 Dec 2017 14:51:26 -0500
-Received: from e15.ny.us.ibm.com (e15.ny.us.ibm.com [129.33.205.205])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 2ekd7291se-1
-        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
-        for <netfilter-devel@vger.kernel.org>; Fri, 01 Dec 2017 14:51:26 -0500
-Received: from localhost
-        by e15.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <netfilter-devel@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-        Fri, 1 Dec 2017 14:51:24 -0500
-In-Reply-To: <20171201195053.GA23494@linux.vnet.ibm.com>
+Received: from mail1.wpi.edu ([130.215.36.91]:60126 "EHLO MAIL1.WPI.EDU"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751114AbdLBFmz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 2 Dec 2017 00:42:55 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Now that smp_read_barrier_depends() has been de-emphasized, the less
-said about it, the better.
+I'll save you a little bit of cash.
 
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: <netfilter-devel@vger.kernel.org>
-Cc: <coreteam@netfilter.org>
----
- include/linux/netfilter/nfnetlink.h | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Finally found an app that works. And through transcendental medication, I divined the incantations needed to make it connect.
 
-diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
-index 495ba4dd9da5..34551f8aaf9d 100644
---- a/include/linux/netfilter/nfnetlink.h
-+++ b/include/linux/netfilter/nfnetlink.h
-@@ -67,8 +67,7 @@ static inline bool lockdep_nfnl_is_held(__u8 subsys_id)
-  * @ss: The nfnetlink subsystem ID
-  *
-  * Return the value of the specified RCU-protected pointer, but omit
-- * both the smp_read_barrier_depends() and the READ_ONCE(), because
-- * caller holds the NFNL subsystem mutex.
-+ * the READ_ONCE(), because caller holds the NFNL subsystem mutex.
-  */
- #define nfnl_dereference(p, ss)					\
- 	rcu_dereference_protected(p, lockdep_nfnl_is_held(ss))
--- 
-2.5.2
+App: https://play.google.com/store/apps/details?id=com.specialyg.ippro&hl=en ('IP Pro' by wu peilin)
 
+  - Install
+  - Run
+  - Tap 'Local'
+  - Tap 'Deny'
+  - Tap 'Cancel'
+  - Tap 'NO'
+
+  - Tap '+' to add a device
+  - Tap 'Add device by IP/DDNS'
+
+  - For internet access, enter:
+    o       IP/DDNS: saimartii.dnsalias.com
+    o          Port: 24313
+    o   Description: SaimartII (Internet)
+
+  - Or for in-store wireless access, enter:
+    o       IP/DDNS: 172.31.10.6
+    o          Port: 80
+    o   Description: SaimartII (WiFi)
+
+  - For either internet or in-store wireless, enter:
+    o      Username: admin
+    o      Password: your birthday
+    o Tap '16' channels
+
+  - Tap 'Submit'
+
+  - Tap the huge thing labelled SaimartII when it appears
+  - Select the on-screen camera layout you desire
+  - If you select a layout with fewer than 16 cameras, swipe left-to-right or
+    right-to-left to switch to the next (or previous) group of cameras
+  - Double-tap an image to zoom in; double-tap to zoom back
+
+N
