@@ -1,45 +1,56 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [Bridge] [PATCH net-next] bridge: ebtables: Avoid resetting
- limit rule state
-Date: Mon, 4 Dec 2017 11:13:40 +0100
-Message-ID: <20171204101340.GA7871@salvia>
-References: <20171125074418.16537-1-linus.luessing@c0d3.blue>
- <20171127233008.GA1418@salvia>
- <20171204045335.GE3307@otheros>
- <20171204052006.GF3307@otheros>
+Subject: Re: [PATCH 1/1] iptables: patch to correct linker flag sequence
+Date: Mon, 4 Dec 2017 11:18:39 +0100
+Message-ID: <20171204101839.GA13724@salvia>
+References: <1511935854-13005-1-git-send-email-jay.shah1@rockwellcollins.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
-        Florian Westphal <fw@strlen.de>, linux-kernel@vger.kernel.org,
-        coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S . Miller" <davem@davemloft.net>
-To: Linus =?iso-8859-1?Q?L=FCssing?= <linus.luessing@c0d3.blue>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+        Yogesh Prasad <yogesh.prasad@rockwellcollins.com>,
+        Matt Weber <matthew.weber@rockwellcollins.com>
+To: Jay Shah <jay.shah1@rockwellcollins.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:35224 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753087AbdLDKSo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 4 Dec 2017 05:18:44 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id C904820990B
+        for <netfilter-devel@vger.kernel.org>; Mon,  4 Dec 2017 11:18:42 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B62C6DA873
+        for <netfilter-devel@vger.kernel.org>; Mon,  4 Dec 2017 11:18:42 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20171204052006.GF3307@otheros>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1511935854-13005-1-git-send-email-jay.shah1@rockwellcollins.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Dec 04, 2017 at 06:20:06AM +0100, Linus Lüssing wrote:
-> On Mon, Dec 04, 2017 at 05:53:35AM +0100, Linus Lüssing wrote:
-> > And so, no I do not have this patch. I looked at it now, but it
-> > does not seem to have any relation with .matchinfo, does it?
+On Wed, Nov 29, 2017 at 12:10:54AM -0600, Jay Shah wrote:
+> From: Yogesh Prasad <yogesh.prasad@rockwellcollins.com>
 > 
-> Relation between .usersize and .checkentry I ment, not
-> .usersize and .matchinfo.
+> Description
+> This patch will correct the sequence of -pie and -shared options.
+>  When used together, -pie should be provided to the linker before
+>  -shared. If -pie is provided after -shared, the linker throws an
+>  error shown below as example.
+> 
+> -------------------------------------------------------------------------
+> /host/lib/gcc/powerpc-buildroot-linux-gnu/6.4.0/../../../..
+> /powerpc-buildroot-linux-gnu/bin/ld: BFD (GNU Binutils) 2.28.1
+>  assertion fail elf32-ppc.c:8923
+> collect2: error: ld returned 1 exit status
+>         + ./libxt_SYNPROXY.man
+> make[4]: *** [libxt_TCPOPTSTRIP.so] Error 1
+>         + ./libip6t_mh.man
+> /host/powerpc-buildroot-linux-gnu/sysroot/usr/lib/Scrt1.o:(.data+0x4):
+>  undefined reference to `main'
+> /host/lib/gcc/powerpc-buildroot-linux-gnu      + ./libxt_TCPMSS.man
+> /6.4.0/../../../../powerpc-buildroot-linux-gnu/bin/ld:
+>  BFD (GNU Binutils) 2.28.1 assertion fail elf32-ppc.c:8923
+> collect2: error: ld returned 1 exit status
+> -------------------------------------------------------------------------
 
-In your patch, info->prev comes set to a value from userspace, right?
+Applied.
 
-commit 324318f0248c31be8a08984146e7e4dd7cdd091d
-Author: Willem de Bruijn <willemb@google.com>
-Date:   Tue May 9 16:17:37 2017 -0400
-
-    netfilter: xtables: zero padding in data_to_user
-
-Since that patch above, the data area is zero'ed before dumped to
-userspace, so we would get a null info->prev, hence defeating the
-trick your patch relies on.
-
-Am I missing anything?
+Out of curiosity: Does it say anywhere that the options need to be in
+a specific order, eg. documentation.
