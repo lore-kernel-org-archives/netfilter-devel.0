@@ -1,73 +1,51 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next] bridge: ebtables: Avoid resetting
- limit rule state
-Date: Thu, 7 Dec 2017 01:26:19 +0100
-Message-ID: <20171207002619.GB28145@salvia>
-References: <20171125074418.16537-1-linus.luessing@c0d3.blue>
-	<20171127233008.GA1418@salvia> <20171204045335.GE3307@otheros>
+From: Jann Horn <jannh@google.com>
+Subject: Re: linux-next: manual merge of the vfs tree with the netfilter tree
+Date: Thu, 7 Dec 2017 01:48:14 +0100
+Message-ID: <CAG48ez1itzyi=0_N-DfjJ+LYSTjCkQR-GHNLOSTnR=oOj7nyyQ@mail.gmail.com>
+References: <20171207111035.7c22d7c0@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
-	Florian Westphal <fw@strlen.de>, linux-kernel@vger.kernel.org,
-	coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S . Miller" <davem@davemloft.net>
-To: Linus =?iso-8859-1?Q?L=FCssing?= <linus.luessing@c0d3.blue>
-Return-path: <bridge-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <20171204045335.GE3307@otheros>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
+Content-Type: text/plain; charset="UTF-8"
+Cc: Al Viro <viro@zeniv.linux.org.uk>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>,
+        Linux-Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20171207111035.7c22d7c0@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Linus,
+On Thu, Dec 7, 2017 at 1:10 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> Hi Al,
+>
+> Today's linux-next merge of the vfs tree got a conflict in:
+>
+>   net/netfilter/xt_bpf.c
+>
+> between commit:
+>
+>   6ab405114b0b ("netfilter: xt_bpf: add overflow checks")
+>
+> from the netfilter tree and commit:
+>
+>   af58d2496b49 ("fix "netfilter: xt_bpf: Fix XT_BPF_MODE_FD_PINNED mode of 'xt_bpf_info_v1'"")
+>
+> from the vfs tree.
+>
+> I can't tell if the strlen test from the former is still needed, so I
+> just used the vfs tree version for now.
 
-On Mon, Dec 04, 2017 at 05:53:35AM +0100, Linus Lüssing wrote:
-> Hi Pablo,
-> 
-> Thanks for your reply!
-> 
-> On Tue, Nov 28, 2017 at 12:30:08AM +0100, Pablo Neira Ayuso wrote:
-> > [...]
-> > > diff --git a/net/bridge/netfilter/ebt_limit.c b/net/bridge/netfilter/ebt_limit.c
-> > > index 61a9f1be1263..f74b48633feb 100644
-> > > --- a/net/bridge/netfilter/ebt_limit.c
-> > > +++ b/net/bridge/netfilter/ebt_limit.c
-> > > @@ -69,6 +69,10 @@ static int ebt_limit_mt_check(const struct xt_mtchk_param *par)
-> > >  {
-> > >  	struct ebt_limit_info *info = par->matchinfo;
-> > >  
-> > > +	/* Do not reset state on unrelated table changes */
-> > > +	if (info->prev)
-> > > +		return 0;
-> > 
-> > What kernel version are you using? I suspect you don't have this
-> > applied?
-> 
-> I'm indeed using a 4.4.102 kernel, as LEDE is still in the process
-> of updating to 4.14. So 4.4 with LEDE is where I got the measurement
-> results from.
-> 
-> > 
-> > commit ec23189049651b16dc2ffab35a4371dc1f491aca
-> > Author: Willem de Bruijn <willemb@google.com>
-> > Date:   Mon Jan 2 17:19:46 2017 -0500
-> > 
-> >     xtables: extend matches and targets with .usersize
-> 
-> And so, no I do not have this patch. I looked at it now, but it
-> does not seem to have any relation with .matchinfo, does it?
-> 
-> I also had a quick look at a 4.15-rc1 kernel in a VM now. I still
-> end up in ebt_limit_mt_check() with the variables being reset
-> when editing the table somewhere.
+Yeah, both of the checks from the netfilter tree are still necessary
+independent of the commit from the vfs tree.
 
-My question is if your fix would work with 4.15-rc1.
+> I fixed it up (see below)
+
+Did you mean to paste in the fixed-up patch below this message?
+
+> and can carry the fix as necessary. This
+> is now fixed as far as linux-next is concerned, but any non trivial
+> conflicts should be mentioned to your upstream maintainer when your tree
+> is submitted for merging.  You may also want to consider cooperating
+> with the maintainer of the conflicting tree to minimise any particularly
+> complex conflicts.
