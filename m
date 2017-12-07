@@ -1,390 +1,265 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next RFC,v2 4/6] netfilter: flow table support for IPv4
-Date: Thu,  7 Dec 2017 13:44:59 +0100
-Message-ID: <20171207124501.24325-5-pablo@netfilter.org>
+Subject: [PATCH nf-next RFC,v2 6/6] netfilter: nft_flow_offload: add ndo hooks for hardware offload
+Date: Thu,  7 Dec 2017 13:45:01 +0100
+Message-ID: <20171207124501.24325-7-pablo@netfilter.org>
 References: <20171207124501.24325-1-pablo@netfilter.org>
 Cc: netdev@vger.kernel.org, f.fainelli@gmail.com,
         simon.horman@netronome.com, ronye@mellanox.com, jiri@mellanox.com,
         nbd@nbd.name, john@phrozen.org, kubakici@wp.pl, fw@strlen.de
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:52818 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753432AbdLGMp2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 7 Dec 2017 07:45:28 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id D4BC41BFAB4
+        for <netfilter-devel@vger.kernel.org>; Thu,  7 Dec 2017 13:45:24 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4E117DA877
+        for <netfilter-devel@vger.kernel.org>; Thu,  7 Dec 2017 13:45:24 +0100 (CET)
 In-Reply-To: <20171207124501.24325-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds the IPv4 flow table type, that implements the datapath
-flow table to forward IPv4 traffic. Rationale is:
+This patch adds the infrastructure to offload flows to hardware, in case
+the nic/switch comes with built-in flow tables capabilities.
 
-1) Look up for the packet in the flow table, from the ingress hook.
-2) If there's a hit, decrement ttl and pass it on to the neighbour layer
-   for transmission.
-3) If there's a miss, packet is passed up to the classic forwarding
-   path.
+If the hardware comes with no hardware flow tables or they have
+limitations in terms of features, this falls back to the software
+generic flow table implementation.
 
-This patch also supports layer 3 source and destination NAT.
+The software flow table garbage collector skips entries that resides in
+the hardware, so the hardware will be responsible for releasing this
+flow table entry too via flow_offload_dead(). In the next garbage
+collector run, this removes the entries both in the software and
+hardware flow table from user context.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/Kconfig              |   8 +
- net/ipv4/netfilter/Makefile             |   3 +
- net/ipv4/netfilter/nf_flow_table_ipv4.c | 316 ++++++++++++++++++++++++++++++++
- 3 files changed, 327 insertions(+)
- create mode 100644 net/ipv4/netfilter/nf_flow_table_ipv4.c
+@Florian: I still owe you one here, you mentioned about inmediate schedule
+of the workqueue thread, and I need to revisit this, the quick patch I made
+is hitting splats when calling queue_delayed_work() from packet path, this
+may be my fault though.
 
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index c11eb1744ab1..8b430c1744c4 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -177,6 +177,14 @@ config NF_NAT_H323
+ include/linux/netdevice.h             |  9 ++++
+ include/net/netfilter/nf_flow_table.h |  1 +
+ net/netfilter/nf_flow_table.c         | 26 ++++++++++++
+ net/netfilter/nft_flow_offload.c      | 79 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 115 insertions(+)
+
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index f535779d9dc1..5f2919775632 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -826,6 +826,13 @@ struct xfrmdev_ops {
+ };
+ #endif
  
- endif # NF_NAT_IPV4
++struct flow_offload;
++
++enum flow_offload_type {
++	FLOW_OFFLOAD_ADD	= 0,
++	FLOW_OFFLOAD_DEL,
++};
++
+ /*
+  * This structure defines the management hooks for network devices.
+  * The following hooks can be defined; unless noted otherwise, they are
+@@ -1281,6 +1288,8 @@ struct net_device_ops {
+ 	int			(*ndo_bridge_dellink)(struct net_device *dev,
+ 						      struct nlmsghdr *nlh,
+ 						      u16 flags);
++	int			(*ndo_flow_offload)(enum flow_offload_type type,
++						    struct flow_offload *flow);
+ 	int			(*ndo_change_carrier)(struct net_device *dev,
+ 						      bool new_carrier);
+ 	int			(*ndo_get_phys_port_id)(struct net_device *dev,
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 1a2598b4a58f..317049d5ff25 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -67,6 +67,7 @@ struct flow_offload_tuple_rhash {
+ #define	FLOW_OFFLOAD_SNAT	0x1
+ #define	FLOW_OFFLOAD_DNAT	0x2
+ #define	FLOW_OFFLOAD_DYING	0x4
++#define	FLOW_OFFLOAD_HW		0x8
  
-+config NF_FLOW_TABLE_IPV4
-+	select NF_FLOW_TABLE
-+	tristate "Netfilter flow table IPv4 module"
-+	help
-+	  This option adds the flow table IPv4 support.
-+
-+	  To compile it as a module, choose M here.
-+
- config IP_NF_IPTABLES
- 	tristate "IP tables support (required for filtering/masq/NAT)"
- 	default m if NETFILTER_ADVANCED=n
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index f462fee66ac8..ae39e1c569a8 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -52,6 +52,9 @@ obj-$(CONFIG_IP_NF_NAT) += iptable_nat.o
- obj-$(CONFIG_IP_NF_RAW) += iptable_raw.o
- obj-$(CONFIG_IP_NF_SECURITY) += iptable_security.o
+ struct flow_offload {
+ 	struct flow_offload_tuple_rhash		tuplehash[FLOW_OFFLOAD_DIR_MAX];
+diff --git a/net/netfilter/nf_flow_table.c b/net/netfilter/nf_flow_table.c
+index ff27dad268c3..c578c3aec0e0 100644
+--- a/net/netfilter/nf_flow_table.c
++++ b/net/netfilter/nf_flow_table.c
+@@ -212,6 +212,21 @@ int nf_flow_table_iterate(struct nf_flowtable *flow_table,
+ }
+ EXPORT_SYMBOL_GPL(nf_flow_table_iterate);
  
-+# flow table support
-+obj-$(CONFIG_NF_FLOW_TABLE_IPV4) += nf_flow_table_ipv4.o
-+
- # matches
- obj-$(CONFIG_IP_NF_MATCH_AH) += ipt_ah.o
- obj-$(CONFIG_IP_NF_MATCH_RPFILTER) += ipt_rpfilter.o
-diff --git a/net/ipv4/netfilter/nf_flow_table_ipv4.c b/net/ipv4/netfilter/nf_flow_table_ipv4.c
-new file mode 100644
-index 000000000000..090a3fbcf211
---- /dev/null
-+++ b/net/ipv4/netfilter/nf_flow_table_ipv4.c
-@@ -0,0 +1,316 @@
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/netfilter.h>
-+#include <linux/rhashtable.h>
-+#include <linux/ip.h>
-+#include <linux/netdevice.h>
-+#include <net/ip.h>
-+#include <net/neighbour.h>
-+#include <net/netfilter/nf_flow_table.h>
-+#include <net/netfilter/nf_tables.h>
-+/* For layer 4 checksum field offset. */
-+#include <linux/tcp.h>
-+#include <linux/udp.h>
-+
-+static int nf_flow_nat_tcp(struct sk_buff *skb, unsigned int thoff,
-+			   __be32 addr, __be32 new_addr)
++static void flow_offload_hw_del(struct flow_offload *flow)
 +{
-+	struct tcphdr *tcph;
++	struct net_device *indev;
++	int ret, ifindex;
 +
-+	if (!pskb_may_pull(skb, thoff + sizeof(*tcph)) ||
-+	    skb_try_make_writable(skb, thoff + sizeof(*tcph)))
-+		return -1;
-+
-+	tcph = (void *)(skb_network_header(skb) + thoff);
-+	inet_proto_csum_replace4(&tcph->check, skb, addr, new_addr, true);
-+
-+	return 0;
-+}
-+
-+static int nf_flow_nat_udp(struct sk_buff *skb, unsigned int thoff,
-+			   __be32 addr, __be32 new_addr)
-+{
-+	struct udphdr *udph;
-+
-+	if (!pskb_may_pull(skb, thoff + sizeof(*udph)) ||
-+	    skb_try_make_writable(skb, thoff + sizeof(*udph)))
-+		return -1;
-+
-+	udph = (void *)(skb_network_header(skb) + thoff);
-+	if (udph->check || skb->ip_summed == CHECKSUM_PARTIAL) {
-+		inet_proto_csum_replace4(&udph->check, skb, addr,
-+					 new_addr, true);
-+		if (!udph->check)
-+			udph->check = CSUM_MANGLED_0;
-+	}
-+
-+	return 0;
-+}
-+
-+static int nf_flow_nat_l4proto(struct sk_buff *skb, struct iphdr *iph,
-+			       unsigned int thoff, __be32 addr, __be32 new_addr)
-+{
-+	csum_replace4(&iph->check, addr, new_addr);
-+
-+	switch (iph->protocol) {
-+	case IPPROTO_TCP:
-+		if (nf_flow_nat_tcp(skb, thoff, addr, new_addr) < 0)
-+			return NF_DROP;
-+		break;
-+	case IPPROTO_UDP:
-+		if (nf_flow_nat_udp(skb, thoff, addr, new_addr) < 0)
-+			return NF_DROP;
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static int nf_flow_snat_ip(const struct flow_offload *flow, struct sk_buff *skb,
-+			   struct iphdr *iph, unsigned int thoff,
-+			   enum flow_offload_tuple_dir dir)
-+{
-+	__be32 addr, new_addr;
-+
-+	switch (dir) {
-+	case FLOW_OFFLOAD_DIR_ORIGINAL:
-+		addr = iph->saddr;
-+		new_addr = flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_v4.s_addr;
-+		iph->saddr = new_addr;
-+		break;
-+	case FLOW_OFFLOAD_DIR_REPLY:
-+		addr = iph->daddr;
-+		new_addr = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.src_v4.s_addr;
-+		iph->daddr = new_addr;
-+		break;
-+	default:
-+		return -1;
-+	}
-+
-+	return nf_flow_nat_l4proto(skb, iph, thoff, addr, new_addr);
-+}
-+
-+static int nf_flow_dnat_ip(const struct flow_offload *flow, struct sk_buff *skb,
-+			   struct iphdr *iph, unsigned int thoff,
-+			   enum flow_offload_tuple_dir dir)
-+{
-+	__be32 addr, new_addr;
-+
-+	switch (dir) {
-+	case FLOW_OFFLOAD_DIR_ORIGINAL:
-+		addr = iph->daddr;
-+		new_addr = flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.src_v4.s_addr;
-+		iph->daddr = new_addr;
-+		break;
-+	case FLOW_OFFLOAD_DIR_REPLY:
-+		addr = iph->saddr;
-+		new_addr = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst_v4.s_addr;
-+		iph->saddr = new_addr;
-+		break;
-+	default:
-+		return -1;
-+	}
-+
-+	return nf_flow_nat_l4proto(skb, iph, thoff, addr, new_addr);
-+}
-+
-+static int nf_flow_nat_ip(const struct flow_offload *flow, struct sk_buff *skb,
-+			  enum flow_offload_tuple_dir dir)
-+{
-+	unsigned int thoff;
-+	struct iphdr *iph;
-+
-+	if (skb_try_make_writable(skb, sizeof(*iph)))
-+		return -1;
-+
-+	iph = ip_hdr(skb);
-+	thoff = iph->ihl * 4;
-+
-+	if (flow->flags & FLOW_OFFLOAD_SNAT &&
-+	    nf_flow_snat_ip(flow, skb, iph, thoff, dir) < 0)
-+		return -1;
-+	if (flow->flags & FLOW_OFFLOAD_DNAT &&
-+	    nf_flow_dnat_ip(flow, skb, iph, thoff, dir) < 0)
-+		return -1;
-+
-+	return 0;
-+}
-+
-+/* Similar to rt_nexthop(). */
-+static inline void
-+nf_flow_nexthop(const struct flow_offload *flow,
-+		union nf_inet_addr *nexthop, enum flow_offload_tuple_dir dir)
-+{
-+	if (flow->tuplehash[dir].tuple.gateway) {
-+		nexthop->ip = flow->tuplehash[dir].tuple.gateway;
++	rtnl_lock();
++	ifindex = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.iifidx;
++	indev = __dev_get_by_index(&init_net, ifindex);
++	if (WARN_ON(!indev))
 +		return;
++
++	ret = indev->netdev_ops->ndo_flow_offload(FLOW_OFFLOAD_DEL, flow);
++	rtnl_unlock();
++}
++
+ static inline bool nf_flow_has_expired(const struct flow_offload *flow)
+ {
+ 	return (__s32)(flow->timeout - (u32)jiffies) <= 0;
+@@ -222,6 +237,11 @@ static inline bool nf_flow_is_dying(const struct flow_offload *flow)
+ 	return flow->flags & FLOW_OFFLOAD_DYING;
+ }
+ 
++static inline bool nf_flow_in_hw(const struct flow_offload *flow)
++{
++	return flow->flags & FLOW_OFFLOAD_HW;
++}
++
+ void nf_flow_offload_work_gc(struct work_struct *work)
+ {
+ 	struct flow_offload_tuple_rhash *tuplehash;
+@@ -250,10 +270,16 @@ void nf_flow_offload_work_gc(struct work_struct *work)
+ 
+ 		flow = container_of(tuplehash, struct flow_offload, tuplehash[0]);
+ 
++		if (nf_flow_in_hw(flow) &&
++		    !nf_flow_is_dying(flow))
++			continue;
++
+ 		if (nf_flow_has_expired(flow) ||
+ 		    nf_flow_is_dying(flow)) {
+ 			flow_offload_del(flow_table, flow);
+ 			nf_flow_release_ct(flow);
++			if (nf_flow_in_hw(flow))
++				flow_offload_hw_del(flow);
+ 		}
+ 		counter++;
+ 	}
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index f1d98a03175f..c4ee1df25a16 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -13,6 +13,64 @@
+ #include <linux/netfilter/nf_conntrack_common.h>
+ #include <net/netfilter/nf_flow_table.h>
+ 
++static LIST_HEAD(flow_hw_offload_pending_list);
++static DEFINE_SPINLOCK(flow_hw_offload_lock);
++
++struct flow_hw_offload {
++	struct list_head	list;
++	struct flow_offload	*flow;
++	struct nf_conn		*ct;
++};
++
++static int do_flow_offload(struct flow_offload *flow)
++{
++	struct net_device *indev;
++	int ret, ifindex;
++
++	rtnl_lock();
++	ifindex = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.iifidx;
++	indev = __dev_get_by_index(&init_net, ifindex);
++	if (WARN_ON(!indev))
++		return 0;
++
++	ret = indev->netdev_ops->ndo_flow_offload(FLOW_OFFLOAD_ADD, flow);
++	if (ret >= 0)
++		flow->flags |= FLOW_OFFLOAD_HW;
++	rtnl_unlock();
++
++	return ret;
++}
++
++/* Schedule worker every 100 ms. */
++#define FLOW_HW_WORK_TIMEOUT	msecs_to_jiffies(100)
++
++static struct delayed_work nft_flow_offload_dwork;
++
++static void flow_offload_work(struct work_struct *work)
++{
++	struct flow_hw_offload *offload, *next;
++	LIST_HEAD(hw_offload_pending);
++
++	spin_lock_bh(&flow_hw_offload_lock);
++	if (!list_empty(&flow_hw_offload_pending_list))
++		list_move_tail(&flow_hw_offload_pending_list, &hw_offload_pending);
++	spin_unlock_bh(&flow_hw_offload_lock);
++
++	list_for_each_entry_safe(offload, next, &hw_offload_pending, list) {
++		if (nf_ct_is_dying(offload->ct))
++			goto next;
++
++		do_flow_offload(offload->flow);
++next:
++		nf_conntrack_put(&offload->ct->ct_general);
++		list_del(&offload->list);
++		kfree(offload);
 +	}
 +
-+	nexthop->ip = flow->tuplehash[!dir].tuple.src_v4.s_addr;
++	queue_delayed_work(system_power_efficient_wq, &nft_flow_offload_dwork,
++			   FLOW_HW_WORK_TIMEOUT);
 +}
 +
-+struct flow_ports {
-+	__be16 src, dst;
-+};
+ struct nft_flow_offload {
+ 	struct nft_flowtable	*flowtable;
+ };
+@@ -86,6 +144,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 	struct net_device *outdev = pkt->xt.state->out;
+ 	struct net_device *indev = pkt->xt.state->in;
+ 	union nf_inet_addr gateway[IP_CT_DIR_MAX];
++	struct flow_hw_offload *offload;
+ 	enum ip_conntrack_info ctinfo;
+ 	int iifindex[IP_CT_DIR_MAX];
+ 	struct flow_offload *flow;
+@@ -133,6 +192,21 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
+ 	if (ret < 0)
+ 		goto err2;
+ 
++	if (!indev->netdev_ops->ndo_flow_offload)
++		return;
 +
-+static bool ip_has_options(unsigned int thoff)
-+{
-+	return thoff > sizeof(struct iphdr);
-+}
++	offload = kmalloc(sizeof(struct flow_hw_offload), GFP_ATOMIC);
++	if (!offload)
++		return;
 +
-+static int nf_flow_tuple_ip(struct sk_buff *skb,
-+			    struct flow_offload_tuple *tuple)
-+{
-+	struct flow_ports *ports;
-+	unsigned int thoff;
-+	struct iphdr *iph;
++	nf_conntrack_get(&ct->ct_general);
++	offload->ct = ct;
++	offload->flow = flow;
 +
-+	if (!pskb_may_pull(skb, sizeof(*iph)))
-+		return -1;
++	spin_lock_bh(&flow_hw_offload_lock);
++	list_add_tail(&offload->list, &flow_hw_offload_pending_list);
++	spin_unlock_bh(&flow_hw_offload_lock);
 +
-+	iph = ip_hdr(skb);
-+	thoff = iph->ihl * 4;
+ 	return;
+ err2:
+ 	flow_offload_free(flow);
+@@ -251,6 +325,10 @@ static int __init nft_flow_offload_module_init(void)
+ {
+ 	register_netdevice_notifier(&flow_offload_netdev_notifier);
+ 
++	INIT_DEFERRABLE_WORK(&nft_flow_offload_dwork, flow_offload_work);
++	queue_delayed_work(system_power_efficient_wq, &nft_flow_offload_dwork,
++			   FLOW_HW_WORK_TIMEOUT);
 +
-+	if (ip_is_fragment(iph) ||
-+	    unlikely(ip_has_options(thoff)))
-+		return -1;
-+
-+	if (iph->protocol != IPPROTO_TCP &&
-+	    iph->protocol != IPPROTO_UDP)
-+		return -1;
-+
-+	thoff = iph->ihl * 4;
-+	if (!pskb_may_pull(skb, thoff + sizeof(*ports)))
-+		return -1;
-+
-+	ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
-+
-+	tuple->src_v4.s_addr	= iph->saddr;
-+	tuple->dst_v4.s_addr	= iph->daddr;
-+	tuple->src_port		= ports->src;
-+	tuple->dst_port		= ports->dst;
-+	tuple->l3proto		= AF_INET;
-+	tuple->l4proto		= iph->protocol;
-+
-+	return 0;
-+}
-+
-+#define NF_FLOW_TIMEOUT	(30 * HZ)
-+
-+static unsigned int
-+nf_flow_offload_hook(void *priv, struct sk_buff *skb,
-+		     const struct nf_hook_state *state)
-+{
-+	struct flow_offload_tuple_rhash *tuplehash;
-+	struct nf_flowtable *flow_table = priv;
-+	struct flow_offload_tuple tuple = {};
-+	union nf_inet_addr nexthop;
-+	struct flow_offload *flow;
-+	struct net_device *outdev;
-+	struct iphdr *iph;
-+
-+	if (nf_flow_tuple_ip(skb, &tuple) < 0)
-+		return NF_ACCEPT;
-+
-+	tuplehash = flow_offload_lookup(flow_table, &tuple);
-+	if (tuplehash == NULL)
-+		return NF_ACCEPT;
-+
-+	outdev = dev_get_by_index_rcu(&init_net, tuplehash->tuple.oifidx);
-+	if (!outdev)
-+		return NF_ACCEPT;
-+
-+	flow = container_of(tuplehash, struct flow_offload,
-+			    tuplehash[tuplehash->tuple.dir]);
-+
-+	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
-+
-+	if (flow->flags & (FLOW_OFFLOAD_SNAT | FLOW_OFFLOAD_DNAT) &&
-+	    nf_flow_nat_ip(flow, skb, tuplehash->tuple.dir) < 0)
-+		return NF_DROP;
-+
-+	iph = ip_hdr(skb);
-+	ip_decrease_ttl(iph);
-+
-+	skb->dev = outdev;
-+	nf_flow_nexthop(flow, &nexthop, tuplehash->tuple.dir);
-+
-+	neigh_xmit(NEIGH_ARP_TABLE, outdev, &nexthop, skb);
-+
-+	return NF_STOLEN;
-+}
-+
-+static u32 flow_offload_hash(const void *data, u32 len, u32 seed)
-+{
-+	const struct flow_offload_tuple *tuple = data;
-+
-+	return jhash(tuple, offsetof(struct flow_offload_tuple, l4proto), seed);
-+}
-+
-+static u32 flow_offload_hash_obj(const void *data, u32 len, u32 seed)
-+{
-+	const struct flow_offload_tuple_rhash *tuplehash = data;
-+
-+	return jhash(&tuplehash->tuple, offsetof(struct flow_offload_tuple, l4proto), seed);
-+}
-+
-+static int flow_offload_hash_cmp(struct rhashtable_compare_arg *arg,
-+					const void *ptr)
-+{
-+	const struct flow_offload_tuple *tuple = arg->key;
-+	const struct flow_offload_tuple_rhash *x = ptr;
-+
-+	if (memcmp(&x->tuple, tuple, offsetof(struct flow_offload_tuple, l4proto)))
-+		return 1;
-+
-+	return 0;
-+}
-+
-+static const struct rhashtable_params flow_offload_rhash_params = {
-+	.head_offset		= offsetof(struct flow_offload_tuple_rhash, node),
-+	.hashfn			= flow_offload_hash,
-+	.obj_hashfn		= flow_offload_hash_obj,
-+	.obj_cmpfn		= flow_offload_hash_cmp,
-+	.automatic_shrinking	= true,
-+};
-+
-+static int nf_flow_table_ipv4_init(struct nf_flowtable *flow_table)
-+{
-+	INIT_DEFERRABLE_WORK(&flow_table->gc_work, nf_flow_offload_work_gc);
-+	queue_delayed_work(system_power_efficient_wq, &flow_table->gc_work, HZ);
-+	return 0;
-+}
-+
-+static void nf_flow_table_ipv4_destroy(struct nf_flowtable *flow_table)
-+{
-+	cancel_delayed_work_sync(&flow_table->gc_work);
-+}
-+
-+static struct nf_flowtable_type flowtable_ipv4 = {
-+	.family		= NFPROTO_IPV4,
-+	.init		= nf_flow_table_ipv4_init,
-+	.destroy	= nf_flow_table_ipv4_destroy,
-+	.params		= &flow_offload_rhash_params,
-+	.hook		= nf_flow_offload_hook,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static int __init nf_flow_ipv4_module_init(void)
-+{
-+	nft_register_flowtable_type(&flowtable_ipv4);
-+
-+	return 0;
-+}
-+
-+static void __exit nf_flow_ipv4_module_exit(void)
-+{
-+	nft_unregister_flowtable_type(&flowtable_ipv4);
-+}
-+
-+module_init(nf_flow_ipv4_module_init);
-+module_exit(nf_flow_ipv4_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
-+MODULE_ALIAS_NFT_FLOWTABLE(AF_INET);
+ 	return nft_register_expr(&nft_flow_offload_type);
+ }
+ 
+@@ -259,6 +337,7 @@ static void __exit nft_flow_offload_module_exit(void)
+ 	struct net *net;
+ 
+ 	nft_unregister_expr(&nft_flow_offload_type);
++	cancel_delayed_work_sync(&nft_flow_offload_dwork);
+ 	unregister_netdevice_notifier(&flow_offload_netdev_notifier);
+ 	rtnl_lock();
+ 	for_each_net(net)
 -- 
 2.11.0
+
