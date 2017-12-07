@@ -1,89 +1,54 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v3 nf-next 3/5] netfilter: don't allocate space for decnet hooks unless needed
-Date: Thu,  7 Dec 2017 16:28:25 +0100
-Message-ID: <20171207152827.24317-4-fw@strlen.de>
+Subject: [PATCH v3 nf-next 5/5] netfilter: reduce NF_MAX_HOOKS define
+Date: Thu,  7 Dec 2017 16:28:27 +0100
+Message-ID: <20171207152827.24317-6-fw@strlen.de>
 References: <20171207152827.24317-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:45022 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:45030 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750779AbdLGP3A (ORCPT
+        by vger.kernel.org with ESMTP id S1753744AbdLGP3G (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Dec 2017 10:29:00 -0500
+        Thu, 7 Dec 2017 10:29:06 -0500
 In-Reply-To: <20171207152827.24317-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-no need to define hook points if the family isn't supported.
+This can be same as NF_INET_NUMHOOKS if we don't support DECNET.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- changes since v2:
- split this from a different patch.
+ new in v3.
 
- include/linux/netfilter.h     | 2 ++
- include/net/netns/netfilter.h | 2 ++
- net/netfilter/core.c          | 4 ++++
- 3 files changed, 8 insertions(+)
+ include/linux/netfilter_defs.h | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 9dcbcdfa3b82..ce4e91df8b56 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -219,9 +219,11 @@ static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
- 	case NFPROTO_BRIDGE:
- 		hook_head = rcu_dereference(net->nf.hooks_bridge[hook]);
- 		break;
-+#if IS_ENABLED(CONFIG_DECNET)
- 	case NFPROTO_DECNET:
- 		hook_head = rcu_dereference(net->nf.hooks_decnet[hook]);
- 		break;
-+#endif
- 	default:
- 		WARN_ON_ONCE(1);
- 		break;
-diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
-index 8f756a4b9205..432609fd9899 100644
---- a/include/net/netns/netfilter.h
-+++ b/include/net/netns/netfilter.h
-@@ -21,7 +21,9 @@ struct netns_nf {
- 	struct nf_hook_entries __rcu *hooks_ipv6[NF_INET_NUMHOOKS];
- 	struct nf_hook_entries __rcu *hooks_arp[NF_ARP_NUMHOOKS];
- 	struct nf_hook_entries __rcu *hooks_bridge[NF_INET_NUMHOOKS];
-+#if IS_ENABLED(CONFIG_DECNET)
- 	struct nf_hook_entries __rcu *hooks_decnet[NF_DN_NUMHOOKS];
-+#endif
- #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
- 	bool			defrag_ipv4;
- #endif
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 43643427b560..4738d0d0ebac 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -283,10 +283,12 @@ static struct nf_hook_entries __rcu **nf_hook_entry_head(struct net *net, const
- 		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_ipv6) <= reg->hooknum))
- 			return NULL;
- 		return net->nf.hooks_ipv6 + reg->hooknum;
-+#if IS_ENABLED(CONFIG_DECNET)
- 	case NFPROTO_DECNET:
- 		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_decnet) <= reg->hooknum))
- 			return NULL;
- 		return net->nf.hooks_decnet + reg->hooknum;
-+#endif
- 	default:
- 		WARN_ON_ONCE(1);
- 		return NULL;
-@@ -573,7 +575,9 @@ static int __net_init netfilter_net_init(struct net *net)
- 	__netfilter_net_init(net->nf.hooks_ipv6, ARRAY_SIZE(net->nf.hooks_ipv6));
- 	__netfilter_net_init(net->nf.hooks_arp, ARRAY_SIZE(net->nf.hooks_arp));
- 	__netfilter_net_init(net->nf.hooks_bridge, ARRAY_SIZE(net->nf.hooks_bridge));
-+#if IS_ENABLED(CONFIG_DECNET)
- 	__netfilter_net_init(net->nf.hooks_decnet, ARRAY_SIZE(net->nf.hooks_decnet));
-+#endif
+diff --git a/include/linux/netfilter_defs.h b/include/linux/netfilter_defs.h
+index fdcdf2bf34df..8dddfb151f00 100644
+--- a/include/linux/netfilter_defs.h
++++ b/include/linux/netfilter_defs.h
+@@ -4,13 +4,17 @@
  
- #ifdef CONFIG_PROC_FS
- 	net->nf.proc_netfilter = proc_net_mkdir(net, "netfilter",
+ #include <uapi/linux/netfilter.h>
+ 
+-/* Largest hook number + 1, see uapi/linux/netfilter_decnet.h */
+-#define NF_MAX_HOOKS 8
+-
+ /* in/out/forward only */
+ #define NF_ARP_NUMHOOKS 3
+ 
+ /* max hook is NF_DN_ROUTE (6), also see uapi/linux/netfilter_decnet.h */
+ #define NF_DN_NUMHOOKS 7
+ 
++#if IS_ENABLED(CONFIG_DECNET)
++/* Largest hook number + 1, see uapi/linux/netfilter_decnet.h */
++#define NF_MAX_HOOKS	NF_DN_NUMHOOKS
++#else
++#define NF_MAX_HOOKS	NF_INET_NUMHOOKS
++#endif
++
+ #endif
 -- 
 2.13.6
 
