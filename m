@@ -1,49 +1,49 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] netfilter: fix clusterip_net_exit build regression
-Date: Thu,  7 Dec 2017 14:26:09 +0100
-Message-ID: <20171207132636.259066-1-arnd@arndb.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, Xin Long <lucien.xin@gmail.com>,
-        Vasily Averin <vvs@virtuozzo.com>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v3 nf-next 0/5] netfilter: reduce hook array sizes
+Date: Thu,  7 Dec 2017 16:28:22 +0100
+Message-ID: <20171207152827.24317-1-fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:45012 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750779AbdLGP2u (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 7 Dec 2017 10:28:50 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-The added check produces a build error when CONFIG_PROC_FS is
-disabled:
+This series further reduces size of the hook arrays by only resevering space
+for the hooks that are implemented/supported (e.g., arp only supports 3 different
+hook points as it lacks PRE/POST_ROUTING).
 
-net/ipv4/netfilter/ipt_CLUSTERIP.c: In function 'clusterip_net_exit':
-net/ipv4/netfilter/ipt_CLUSTERIP.c:822:28: error: 'cn' undeclared (first use in this function)
+Furthermore, add #ifdef guard to not declare arp/bridge/decnet hooks unless
+they are needed.
 
-This moves the variable declaration out of the #ifdef to make it
-available to the WARN_ON_ONCE().
+At least Fedora has CONFIG_DECNET=n so this even reduces size for some
+distro kernels.
 
-Fixes: 613d0776d3fe ("netfilter: exit_net cleanup check added")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- net/ipv4/netfilter/ipt_CLUSTERIP.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I ran a few randconfig builds last night and it did not catch any
+build errors.
 
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index e35b8d074f06..69060e3abe85 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -813,8 +813,8 @@ static int clusterip_net_init(struct net *net)
- 
- static void clusterip_net_exit(struct net *net)
- {
--#ifdef CONFIG_PROC_FS
- 	struct clusterip_net *cn = net_generic(net, clusterip_net_id);
-+#ifdef CONFIG_PROC_FS
- 	proc_remove(cn->procdir);
- 	cn->procdir = NULL;
- #endif
--- 
-2.9.0
+See individual patches for changes since v2.
+
+Florian Westphal (5):
+      netfilter: add defines for arp/decnet max hooks
+      netfilter: reduce hook array sizes to what is needed
+      netfilter: don't allocate space for decnet hooks unless needed
+      netfilter: don't allocate space for arp/bridge hooks unless needed
+      netfilter: reduce NF_MAX_HOOKS define
+
+ include/linux/netfilter.h             |    6 +++++
+ include/linux/netfilter_defs.h        |   12 ++++++++++-
+ include/net/netns/netfilter.h         |   16 ++++++++++-----
+ include/uapi/linux/netfilter_arp.h    |    3 ++
+ include/uapi/linux/netfilter_decnet.h |    4 ++-
+ net/Kconfig                           |    1 
+ net/bridge/netfilter/Kconfig          |    2 +
+ net/ipv4/netfilter/Kconfig            |    2 +
+ net/netfilter/Kconfig                 |    6 +++++
+ net/netfilter/core.c                  |   36 +++++++++++++++++++++++++++-------
+ net/netfilter/nf_queue.c              |    2 +
+ 11 files changed, 76 insertions(+), 14 deletions(-)
+
