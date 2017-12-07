@@ -1,49 +1,89 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v3 nf-next 0/5] netfilter: reduce hook array sizes
-Date: Thu,  7 Dec 2017 16:28:22 +0100
-Message-ID: <20171207152827.24317-1-fw@strlen.de>
+Subject: [PATCH v3 nf-next 1/5] netfilter: add defines for arp/decnet max hooks
+Date: Thu,  7 Dec 2017 16:28:23 +0100
+Message-ID: <20171207152827.24317-2-fw@strlen.de>
+References: <20171207152827.24317-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:45012 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:45016 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750779AbdLGP2u (ORCPT
+        by vger.kernel.org with ESMTP id S1750779AbdLGP2x (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Dec 2017 10:28:50 -0500
+        Thu, 7 Dec 2017 10:28:53 -0500
+In-Reply-To: <20171207152827.24317-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This series further reduces size of the hook arrays by only resevering space
-for the hooks that are implemented/supported (e.g., arp only supports 3 different
-hook points as it lacks PRE/POST_ROUTING).
+The kernel already has defines for this, but they are in uapi exposed
+headers.
 
-Furthermore, add #ifdef guard to not declare arp/bridge/decnet hooks unless
-they are needed.
+Including these from netns.h causes build errors and also adds unneeded
+dependencies on heads that we don't need.
 
-At least Fedora has CONFIG_DECNET=n so this even reduces size for some
-distro kernels.
+So move these defines to netfilter_defs.h and place the uapi ones
+in ifndef __KERNEL__ to keep them for userspace.
 
-I ran a few randconfig builds last night and it did not catch any
-build errors.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ new in v3.
 
-See individual patches for changes since v2.
+ include/linux/netfilter_defs.h        | 6 ++++++
+ include/uapi/linux/netfilter_arp.h    | 3 +++
+ include/uapi/linux/netfilter_decnet.h | 4 +++-
+ 3 files changed, 12 insertions(+), 1 deletion(-)
 
-Florian Westphal (5):
-      netfilter: add defines for arp/decnet max hooks
-      netfilter: reduce hook array sizes to what is needed
-      netfilter: don't allocate space for decnet hooks unless needed
-      netfilter: don't allocate space for arp/bridge hooks unless needed
-      netfilter: reduce NF_MAX_HOOKS define
-
- include/linux/netfilter.h             |    6 +++++
- include/linux/netfilter_defs.h        |   12 ++++++++++-
- include/net/netns/netfilter.h         |   16 ++++++++++-----
- include/uapi/linux/netfilter_arp.h    |    3 ++
- include/uapi/linux/netfilter_decnet.h |    4 ++-
- net/Kconfig                           |    1 
- net/bridge/netfilter/Kconfig          |    2 +
- net/ipv4/netfilter/Kconfig            |    2 +
- net/netfilter/Kconfig                 |    6 +++++
- net/netfilter/core.c                  |   36 +++++++++++++++++++++++++++-------
- net/netfilter/nf_queue.c              |    2 +
- 11 files changed, 76 insertions(+), 14 deletions(-)
+diff --git a/include/linux/netfilter_defs.h b/include/linux/netfilter_defs.h
+index dc6111adea06..fdcdf2bf34df 100644
+--- a/include/linux/netfilter_defs.h
++++ b/include/linux/netfilter_defs.h
+@@ -7,4 +7,10 @@
+ /* Largest hook number + 1, see uapi/linux/netfilter_decnet.h */
+ #define NF_MAX_HOOKS 8
+ 
++/* in/out/forward only */
++#define NF_ARP_NUMHOOKS 3
++
++/* max hook is NF_DN_ROUTE (6), also see uapi/linux/netfilter_decnet.h */
++#define NF_DN_NUMHOOKS 7
++
+ #endif
+diff --git a/include/uapi/linux/netfilter_arp.h b/include/uapi/linux/netfilter_arp.h
+index 81b6a4cbcb72..791dfc5ae907 100644
+--- a/include/uapi/linux/netfilter_arp.h
++++ b/include/uapi/linux/netfilter_arp.h
+@@ -15,6 +15,9 @@
+ #define NF_ARP_IN	0
+ #define NF_ARP_OUT	1
+ #define NF_ARP_FORWARD	2
++
++#ifndef __KERNEL__
+ #define NF_ARP_NUMHOOKS	3
++#endif
+ 
+ #endif /* __LINUX_ARP_NETFILTER_H */
+diff --git a/include/uapi/linux/netfilter_decnet.h b/include/uapi/linux/netfilter_decnet.h
+index 9089c38f6abe..61f1c7dfd033 100644
+--- a/include/uapi/linux/netfilter_decnet.h
++++ b/include/uapi/linux/netfilter_decnet.h
+@@ -24,6 +24,9 @@
+ #define NFC_DN_IF_IN		0x0004
+ /* Output device. */
+ #define NFC_DN_IF_OUT		0x0008
++
++/* kernel define is in netfilter_defs.h */
++#define NF_DN_NUMHOOKS		7
+ #endif /* ! __KERNEL__ */
+ 
+ /* DECnet Hooks */
+@@ -41,7 +44,6 @@
+ #define NF_DN_HELLO		5
+ /* Input Routing Packets */
+ #define NF_DN_ROUTE		6
+-#define NF_DN_NUMHOOKS		7
+ 
+ enum nf_dn_hook_priorities {
+ 	NF_DN_PRI_FIRST = INT_MIN,
+-- 
+2.13.6
 
