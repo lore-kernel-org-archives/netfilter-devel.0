@@ -1,200 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next RFC,v2 1/6] netfilter: nf_conntrack: add IPS_OFFLOAD status bit
-Date: Thu,  7 Dec 2017 13:44:56 +0100
-Message-ID: <20171207124501.24325-2-pablo@netfilter.org>
-References: <20171207124501.24325-1-pablo@netfilter.org>
-Cc: netdev@vger.kernel.org, f.fainelli@gmail.com,
-        simon.horman@netronome.com, ronye@mellanox.com, jiri@mellanox.com,
-        nbd@nbd.name, john@phrozen.org, kubakici@wp.pl, fw@strlen.de
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 0/3] netfilter: reduce hook array sizes to what is needed
+Date: Thu,  7 Dec 2017 14:06:17 +0100
+Message-ID: <20171207130620.7585-1-fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52794 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753342AbdLGMp2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Dec 2017 07:45:28 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3C0311BCFEC
-        for <netfilter-devel@vger.kernel.org>; Thu,  7 Dec 2017 13:45:24 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1F630DA871
-        for <netfilter-devel@vger.kernel.org>; Thu,  7 Dec 2017 13:45:24 +0100 (CET)
-In-Reply-To: <20171207124501.24325-1-pablo@netfilter.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:43580 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753536AbdLGNGn (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 7 Dec 2017 08:06:43 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This new bit tells us that the conntrack entry is owned by the flow
-table offload infrastructure.
+This series further reduces size of the hook arrays by only resevering space
+for the hooks that are implemented/supported (e.g., arp only supports 3 different
+hook points as it lacks PRE/POST_ROUTING).
 
- # cat /proc/net/nf_conntrack
- ipv4     2 tcp      6 src=10.141.10.2 dst=147.75.205.195 sport=36392 dport=443 src=147.75.205.195 dst=192.168.2.195 sport=443 dport=36392 [OFFLOAD] mark=0 zone=0 use=2
+Furthermore, add #ifdef guard to not declare arp/bridge/decnet hooks unless
+they are needed.
 
-Note the [OFFLOAD] tag in the listing.
+At least Fedora has CONFIG_DECNET=n so this even reduces size for some
+distro kernels.
 
-The timer of such conntrack entries look like stopped from userspace.
-In practise, to make sure the conntrack entry does not go away, the
-conntrack timer is periodically set to an arbitrary large value that
-gets refreshed on every iteration from the garbage collector, so it
-never expires- and they display no internal state in the case of TCP
-flows. This allows us to save a bitcheck from the packet path via
-nf_ct_is_expired().
+I ran a few randconfig builds last night and it did not catch any
+build errors.
 
-Conntrack entries that have been offloaded to the flow table
-infrastructure cannot be deleted/flushed via ctnetlink. The flow table
-infrastructure is also responsible for releasing this conntrack entry.
+Florian Westphal (3):
+      netfilter: reduce hook array sizes to what is needed
+      netfilter: don't allocate space for decnet hooks unless needed
+      netfilter: don't allocate space for arp/bridge hooks unless needed
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/uapi/linux/netfilter/nf_conntrack_common.h |  4 ++++
- net/netfilter/nf_conntrack_core.c                  | 19 +++++++++++++++++++
- net/netfilter/nf_conntrack_netlink.c               | 15 ++++++++++++++-
- net/netfilter/nf_conntrack_proto_tcp.c             |  3 +++
- net/netfilter/nf_conntrack_standalone.c            | 12 ++++++++----
- 5 files changed, 48 insertions(+), 5 deletions(-)
-
-diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
-index dc947e59d03a..6b463b88182d 100644
---- a/include/uapi/linux/netfilter/nf_conntrack_common.h
-+++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
-@@ -100,6 +100,10 @@ enum ip_conntrack_status {
- 	IPS_HELPER_BIT = 13,
- 	IPS_HELPER = (1 << IPS_HELPER_BIT),
- 
-+	/* Conntrack has been offloaded to flow table. */
-+	IPS_OFFLOAD_BIT = 14,
-+	IPS_OFFLOAD = (1 << IPS_OFFLOAD_BIT),
-+
- 	/* Be careful here, modifying these bits can make things messy,
- 	 * so don't let users modify them directly.
- 	 */
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 01130392b7c0..02e195accd47 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -901,6 +901,9 @@ static unsigned int early_drop_list(struct net *net,
- 	hlist_nulls_for_each_entry_rcu(h, n, head, hnnode) {
- 		tmp = nf_ct_tuplehash_to_ctrack(h);
- 
-+		if (test_bit(IPS_OFFLOAD_BIT, &tmp->status))
-+			continue;
-+
- 		if (nf_ct_is_expired(tmp)) {
- 			nf_ct_gc_expired(tmp);
- 			continue;
-@@ -975,6 +978,17 @@ static bool gc_worker_can_early_drop(const struct nf_conn *ct)
- 	return false;
- }
- 
-+#define	DAY	(86400 * HZ)
-+
-+/* Set an arbitrary timeout large enough not to ever expire, this save
-+ * us a check for the IPS_OFFLOAD_BIT from the packet path via
-+ * nf_ct_is_expired().
-+ */
-+static void nf_ct_offload_timeout(struct nf_conn *ct)
-+{
-+       ct->timeout = nfct_time_stamp + DAY;
-+}
-+
- static void gc_worker(struct work_struct *work)
- {
- 	unsigned int min_interval = max(HZ / GC_MAX_BUCKETS_DIV, 1u);
-@@ -1011,6 +1025,11 @@ static void gc_worker(struct work_struct *work)
- 			tmp = nf_ct_tuplehash_to_ctrack(h);
- 
- 			scanned++;
-+			if (test_bit(IPS_OFFLOAD_BIT, &tmp->status)) {
-+				nf_ct_offload_timeout(tmp);
-+				continue;
-+			}
-+
- 			if (nf_ct_is_expired(tmp)) {
- 				nf_ct_gc_expired(tmp);
- 				expired_count++;
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index de4053d84364..79a74aec7c1e 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1105,6 +1105,14 @@ static const struct nla_policy ct_nla_policy[CTA_MAX+1] = {
- 				    .len = NF_CT_LABELS_MAX_SIZE },
- };
- 
-+static int ctnetlink_flush_iterate(struct nf_conn *ct, void *data)
-+{
-+	if (test_bit(IPS_OFFLOAD_BIT, &ct->status))
-+		return 0;
-+
-+	return ctnetlink_filter_match(ct, data);
-+}
-+
- static int ctnetlink_flush_conntrack(struct net *net,
- 				     const struct nlattr * const cda[],
- 				     u32 portid, int report)
-@@ -1117,7 +1125,7 @@ static int ctnetlink_flush_conntrack(struct net *net,
- 			return PTR_ERR(filter);
- 	}
- 
--	nf_ct_iterate_cleanup_net(net, ctnetlink_filter_match, filter,
-+	nf_ct_iterate_cleanup_net(net, ctnetlink_flush_iterate, filter,
- 				  portid, report);
- 	kfree(filter);
- 
-@@ -1163,6 +1171,11 @@ static int ctnetlink_del_conntrack(struct net *net, struct sock *ctnl,
- 
- 	ct = nf_ct_tuplehash_to_ctrack(h);
- 
-+	if (test_bit(IPS_OFFLOAD_BIT, &ct->status)) {
-+		nf_ct_put(ct);
-+		return -EBUSY;
-+	}
-+
- 	if (cda[CTA_ID]) {
- 		u_int32_t id = ntohl(nla_get_be32(cda[CTA_ID]));
- 		if (id != (u32)(unsigned long)ct) {
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index cba1c6ffe51a..156f529d1668 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -305,6 +305,9 @@ static bool tcp_invert_tuple(struct nf_conntrack_tuple *tuple,
- /* Print out the private part of the conntrack. */
- static void tcp_print_conntrack(struct seq_file *s, struct nf_conn *ct)
- {
-+	if (test_bit(IPS_OFFLOAD_BIT, &ct->status))
-+		return;
-+
- 	seq_printf(s, "%s ", tcp_conntrack_names[ct->proto.tcp.state]);
- }
- #endif
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 5a101caa3e12..46d32baad095 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -309,10 +309,12 @@ static int ct_seq_show(struct seq_file *s, void *v)
- 	WARN_ON(!l4proto);
- 
- 	ret = -ENOSPC;
--	seq_printf(s, "%-8s %u %-8s %u %ld ",
-+	seq_printf(s, "%-8s %u %-8s %u ",
- 		   l3proto_name(l3proto->l3proto), nf_ct_l3num(ct),
--		   l4proto_name(l4proto->l4proto), nf_ct_protonum(ct),
--		   nf_ct_expires(ct)  / HZ);
-+		   l4proto_name(l4proto->l4proto), nf_ct_protonum(ct));
-+
-+	if (!test_bit(IPS_OFFLOAD_BIT, &ct->status))
-+		seq_printf(s, "%ld ", nf_ct_expires(ct)  / HZ);
- 
- 	if (l4proto->print_conntrack)
- 		l4proto->print_conntrack(s, ct);
-@@ -339,7 +341,9 @@ static int ct_seq_show(struct seq_file *s, void *v)
- 	if (seq_print_acct(s, ct, IP_CT_DIR_REPLY))
- 		goto release;
- 
--	if (test_bit(IPS_ASSURED_BIT, &ct->status))
-+	if (test_bit(IPS_OFFLOAD_BIT, &ct->status))
-+		seq_puts(s, "[OFFLOAD] ");
-+	else if (test_bit(IPS_ASSURED_BIT, &ct->status))
- 		seq_puts(s, "[ASSURED] ");
- 
- 	if (seq_has_overflowed(s))
--- 
-2.11.0
-
+ include/linux/netfilter.h     |    6 ++++++
+ include/net/netns/netfilter.h |   19 ++++++++++++++-----
+ net/Kconfig                   |    1 +
+ net/bridge/netfilter/Kconfig  |    2 ++
+ net/ipv4/netfilter/Kconfig    |    2 ++
+ net/netfilter/Kconfig         |    6 ++++++
+ net/netfilter/core.c          |   22 ++++++++++++++++++++++
+ net/netfilter/nf_queue.c      |    2 ++
+ 8 files changed, 55 insertions(+), 5 deletions(-)
