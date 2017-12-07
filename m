@@ -1,54 +1,64 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v3 nf-next 5/5] netfilter: reduce NF_MAX_HOOKS define
-Date: Thu,  7 Dec 2017 16:28:27 +0100
-Message-ID: <20171207152827.24317-6-fw@strlen.de>
-References: <20171207152827.24317-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: Re: [PATCH] netfilter: fix clusterip_net_exit build regression
+Date: Thu, 7 Dec 2017 19:29:47 +0300
+Message-ID: <9b5dc366-0bbc-d9f2-ae11-75ed7be6afd6@virtuozzo.com>
+References: <20171207132636.259066-1-arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: Xin Long <lucien.xin@gmail.com>, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:45030 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753744AbdLGP3G (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 7 Dec 2017 10:29:06 -0500
-In-Reply-To: <20171207152827.24317-1-fw@strlen.de>
+Received: from [195.214.232.25] ([195.214.232.25]:44266 "EHLO relay.sw.ru"
+        rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+        id S1753101AbdLGQaH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 7 Dec 2017 11:30:07 -0500
+In-Reply-To: <20171207132636.259066-1-arnd@arndb.de>
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This can be same as NF_INET_NUMHOOKS if we don't support DECNET.
+thank you,
+it was mu fault.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- new in v3.
+Reviewed-by: Vasily Averin <vvs@virtuozzo.com>
 
- include/linux/netfilter_defs.h | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
-
-diff --git a/include/linux/netfilter_defs.h b/include/linux/netfilter_defs.h
-index fdcdf2bf34df..8dddfb151f00 100644
---- a/include/linux/netfilter_defs.h
-+++ b/include/linux/netfilter_defs.h
-@@ -4,13 +4,17 @@
- 
- #include <uapi/linux/netfilter.h>
- 
--/* Largest hook number + 1, see uapi/linux/netfilter_decnet.h */
--#define NF_MAX_HOOKS 8
--
- /* in/out/forward only */
- #define NF_ARP_NUMHOOKS 3
- 
- /* max hook is NF_DN_ROUTE (6), also see uapi/linux/netfilter_decnet.h */
- #define NF_DN_NUMHOOKS 7
- 
-+#if IS_ENABLED(CONFIG_DECNET)
-+/* Largest hook number + 1, see uapi/linux/netfilter_decnet.h */
-+#define NF_MAX_HOOKS	NF_DN_NUMHOOKS
-+#else
-+#define NF_MAX_HOOKS	NF_INET_NUMHOOKS
-+#endif
-+
- #endif
--- 
-2.13.6
-
+On 2017-12-07 16:26, Arnd Bergmann wrote:
+> The added check produces a build error when CONFIG_PROC_FS is
+> disabled:
+> 
+> net/ipv4/netfilter/ipt_CLUSTERIP.c: In function 'clusterip_net_exit':
+> net/ipv4/netfilter/ipt_CLUSTERIP.c:822:28: error: 'cn' undeclared (first use in this function)
+> 
+> This moves the variable declaration out of the #ifdef to make it
+> available to the WARN_ON_ONCE().
+> 
+> Fixes: 613d0776d3fe ("netfilter: exit_net cleanup check added")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  net/ipv4/netfilter/ipt_CLUSTERIP.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+> index e35b8d074f06..69060e3abe85 100644
+> --- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
+> +++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+> @@ -813,8 +813,8 @@ static int clusterip_net_init(struct net *net)
+>  
+>  static void clusterip_net_exit(struct net *net)
+>  {
+> -#ifdef CONFIG_PROC_FS
+>  	struct clusterip_net *cn = net_generic(net, clusterip_net_id);
+> +#ifdef CONFIG_PROC_FS
+>  	proc_remove(cn->procdir);
+>  	cn->procdir = NULL;
+>  #endif
+> 
