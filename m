@@ -1,9 +1,10 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next RFC,v2 4/6] netfilter: flow table support for IPv4
-Date: Fri, 8 Dec 2017 11:04:13 +0100
-Message-ID: <20171208100413.GG24449@breakpoint.cc>
+Subject: Re: [PATCH nf-next RFC,v2 6/6] netfilter: nft_flow_offload: add ndo
+ hooks for hardware offload
+Date: Fri, 8 Dec 2017 11:18:36 +0100
+Message-ID: <20171208101836.GH24449@breakpoint.cc>
 References: <20171207124501.24325-1-pablo@netfilter.org>
- <20171207124501.24325-5-pablo@netfilter.org>
+ <20171207124501.24325-7-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
@@ -11,62 +12,78 @@ Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
         ronye@mellanox.com, jiri@mellanox.com, nbd@nbd.name,
         john@phrozen.org, kubakici@wp.pl, fw@strlen.de
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:50802 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751321AbdLHKUC (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 8 Dec 2017 05:20:02 -0500
 Content-Disposition: inline
-In-Reply-To: <20171207124501.24325-5-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20171207124501.24325-7-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> This patch adds the IPv4 flow table type, that implements the datapath
-> flow table to forward IPv4 traffic. Rationale is:
+> The software flow table garbage collector skips entries that resides in
+> the hardware, so the hardware will be responsible for releasing this
+> flow table entry too via flow_offload_dead(). In the next garbage
+> collector run, this removes the entries both in the software and
+> hardware flow table from user context.
 > 
-> 1) Look up for the packet in the flow table, from the ingress hook.
-> 2) If there's a hit, decrement ttl and pass it on to the neighbour layer
->    for transmission.
-> 3) If there's a miss, packet is passed up to the classic forwarding
->    path.
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> @Florian: I still owe you one here, you mentioned about inmediate schedule
+> of the workqueue thread, and I need to revisit this, the quick patch I made
+> is hitting splats when calling queue_delayed_work() from packet path, this
+> may be my fault though.
 
-Is there a plan to also handle zone IDs in future?
+OK. IIRC I had suggested to just use schedule_work() instead.
+In most cases (assuming system is busy) the workqueue will already be
+pending anyway.
 
-I't going to be messy for sure since we'd need to tell HW how to do
-the zone mapping.  Perhaps only support a builtin list, e.g.
-vlan id == zone...?
-
-Don't yet see how it could be done in a generic way as the mappings can
-be arbitrarily complex.
-
-Right now afaics one could install one flow table per zone and map
-this in nft, but then we still miss the part that tells the hardware
-how the zone identifier was derived.
-
-> +static bool ip_has_options(unsigned int thoff)
+> diff --git a/net/netfilter/nf_flow_table.c b/net/netfilter/nf_flow_table.c
+> index ff27dad268c3..c578c3aec0e0 100644
+> --- a/net/netfilter/nf_flow_table.c
+> +++ b/net/netfilter/nf_flow_table.c
+> @@ -212,6 +212,21 @@ int nf_flow_table_iterate(struct nf_flowtable *flow_table,
+>  }
+>  EXPORT_SYMBOL_GPL(nf_flow_table_iterate);
+>  
+> +static void flow_offload_hw_del(struct flow_offload *flow)
 > +{
-> +	return thoff > sizeof(struct iphdr);
+> +	struct net_device *indev;
+> +	int ret, ifindex;
+> +
+> +	rtnl_lock();
+> +	ifindex = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.iifidx;
+> +	indev = __dev_get_by_index(&init_net, ifindex);
 
-I'd use
-	thoff != sizeof(...)
+I think this should pass struct net * as arg to flow_offload_hw_del.
 
-to catch case where ihl is < struct iphdr.
+> +	if (WARN_ON(!indev))
+> +		return;
+> +
+> +	ret = indev->netdev_ops->ndo_flow_offload(FLOW_OFFLOAD_DEL, flow);
+> +	rtnl_unlock();
+> +}
 
-> +nf_flow_offload_hook(void *priv, struct sk_buff *skb,
-> +		     const struct nf_hook_state *state)
+Please no rtnl lock unless absolutely needed.
+Seems this could even avoid the mutex completely by using
+dev_get_by_index + dev_put.
+
+> +static int do_flow_offload(struct flow_offload *flow)
 > +{
-> +	struct flow_offload_tuple_rhash *tuplehash;
-> +	struct nf_flowtable *flow_table = priv;
-> +	struct flow_offload_tuple tuple = {};
-> +	union nf_inet_addr nexthop;
-> +	struct flow_offload *flow;
-> +	struct net_device *outdev;
-> +	struct iphdr *iph;
+> +	struct net_device *indev;
+> +	int ret, ifindex;
 > +
-> +	if (nf_flow_tuple_ip(skb, &tuple) < 0)
-> +		return NF_ACCEPT;
-> +
-> +	tuplehash = flow_offload_lookup(flow_table, &tuple);
-> +	if (tuplehash == NULL)
-> +		return NF_ACCEPT;
-> +
-> +	outdev = dev_get_by_index_rcu(&init_net, tuplehash->tuple.oifidx);
+> +	rtnl_lock();
+> +	ifindex = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.iifidx;
+> +	indev = __dev_get_by_index(&init_net, ifindex);
 
-state->net ?
+likewise.
+
+> +#define FLOW_HW_WORK_TIMEOUT	msecs_to_jiffies(100)
+> +
+> +static struct delayed_work nft_flow_offload_dwork;
+
+I would go with struct work and no delay at all.
