@@ -1,10 +1,9 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next RFC,v2 1/6] netfilter: nf_conntrack: add
- IPS_OFFLOAD status bit
-Date: Fri, 8 Dec 2017 07:47:02 +0100
-Message-ID: <20171208064702.GA26061@breakpoint.cc>
+Subject: Re: [PATCH nf-next RFC,v2 4/6] netfilter: flow table support for IPv4
+Date: Fri, 8 Dec 2017 11:04:13 +0100
+Message-ID: <20171208100413.GG24449@breakpoint.cc>
 References: <20171207124501.24325-1-pablo@netfilter.org>
- <20171207124501.24325-2-pablo@netfilter.org>
+ <20171207124501.24325-5-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
@@ -14,62 +13,60 @@ Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171207124501.24325-2-pablo@netfilter.org>
+In-Reply-To: <20171207124501.24325-5-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
-> index dc947e59d03a..6b463b88182d 100644
-> --- a/include/uapi/linux/netfilter/nf_conntrack_common.h
-> +++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
-> @@ -100,6 +100,10 @@ enum ip_conntrack_status {
->  	IPS_HELPER_BIT = 13,
->  	IPS_HELPER = (1 << IPS_HELPER_BIT),
->  
-> +	/* Conntrack has been offloaded to flow table. */
-> +	IPS_OFFLOAD_BIT = 14,
-> +	IPS_OFFLOAD = (1 << IPS_OFFLOAD_BIT),
-> +
->  	/* Be careful here, modifying these bits can make things messy,
->  	 * so don't let users modify them directly.
->  	 */
+> This patch adds the IPv4 flow table type, that implements the datapath
+> flow table to forward IPv4 traffic. Rationale is:
+> 
+> 1) Look up for the packet in the flow table, from the ingress hook.
+> 2) If there's a hit, decrement ttl and pass it on to the neighbour layer
+>    for transmission.
+> 3) If there's a miss, packet is passed up to the classic forwarding
+>    path.
 
-I think this new bit has to be added to the UNCHANGEABLE mask below.
+Is there a plan to also handle zone IDs in future?
 
-> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> index 01130392b7c0..02e195accd47 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -901,6 +901,9 @@ static unsigned int early_drop_list(struct net *net,
->  	hlist_nulls_for_each_entry_rcu(h, n, head, hnnode) {
->  		tmp = nf_ct_tuplehash_to_ctrack(h);
->  
-> +		if (test_bit(IPS_OFFLOAD_BIT, &tmp->status))
-> +			continue;
-> +
+I't going to be messy for sure since we'd need to tell HW how to do
+the zone mapping.  Perhaps only support a builtin list, e.g.
+vlan id == zone...?
 
-nit: I would move this below the ASSURED bit check, AFAIU most
-(all?) offloaded conntracks are not in ASSURED state since they never
-see two-way communication but in case we've mixed flows or no offloading
-in place then the ASSURED check takes care of skipping earlydrop
-already.
+Don't yet see how it could be done in a generic way as the mappings can
+be arbitrarily complex.
 
-> +/* Set an arbitrary timeout large enough not to ever expire, this save
-> + * us a check for the IPS_OFFLOAD_BIT from the packet path via
-> + * nf_ct_is_expired().
-> + */
-> +static void nf_ct_offload_timeout(struct nf_conn *ct)
+Right now afaics one could install one flow table per zone and map
+this in nft, but then we still miss the part that tells the hardware
+how the zone identifier was derived.
+
+> +static bool ip_has_options(unsigned int thoff)
 > +{
-> +       ct->timeout = nfct_time_stamp + DAY;
-> +}
+> +	return thoff > sizeof(struct iphdr);
 
-Not sure if its worth adding a test to avoid unconditional write,
-e.g. something like
+I'd use
+	thoff != sizeof(...)
 
-> +static void nf_ct_offload_timeout(struct nf_conn *ct)
+to catch case where ihl is < struct iphdr.
+
+> +nf_flow_offload_hook(void *priv, struct sk_buff *skb,
+> +		     const struct nf_hook_state *state)
 > +{
-	if (nf_ct_expires(ct) < DAY/2))
-> +       ct->timeout = nfct_time_stamp + DAY;
+> +	struct flow_offload_tuple_rhash *tuplehash;
+> +	struct nf_flowtable *flow_table = priv;
+> +	struct flow_offload_tuple tuple = {};
+> +	union nf_inet_addr nexthop;
+> +	struct flow_offload *flow;
+> +	struct net_device *outdev;
+> +	struct iphdr *iph;
+> +
+> +	if (nf_flow_tuple_ip(skb, &tuple) < 0)
+> +		return NF_ACCEPT;
+> +
+> +	tuplehash = flow_offload_lookup(flow_table, &tuple);
+> +	if (tuplehash == NULL)
+> +		return NF_ACCEPT;
+> +
+> +	outdev = dev_get_by_index_rcu(&init_net, tuplehash->tuple.oifidx);
 
-but perhaps not worth it, gc_worker is infrequent.
+state->net ?
