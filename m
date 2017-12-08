@@ -1,77 +1,66 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next RFC,v2 6/6] netfilter: nft_flow_offload: add ndo
- hooks for hardware offload
-Date: Fri, 8 Dec 2017 22:16:16 +0100
-Message-ID: <20171208211616.GC4126@salvia>
-References: <20171207124501.24325-1-pablo@netfilter.org>
- <20171207124501.24325-7-pablo@netfilter.org>
- <20171208101836.GH24449@breakpoint.cc>
+Subject: Re: [PATCH nf-next 3/3] nftables: reject nat hook registration if
+ prio is before conntrack
+Date: Fri, 8 Dec 2017 22:22:57 +0100
+Message-ID: <20171208212257.GA4348@salvia>
+References: <20171208160155.968-1-fw@strlen.de>
+ <20171208160155.968-4-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        f.fainelli@gmail.com, simon.horman@netronome.com,
-        ronye@mellanox.com, jiri@mellanox.com, nbd@nbd.name,
-        john@phrozen.org, kubakici@wp.pl
+Cc: netfilter-devel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:34522 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752562AbdLHVXC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 8 Dec 2017 16:23:02 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id D4AF11C4385
+        for <netfilter-devel@vger.kernel.org>; Fri,  8 Dec 2017 22:23:00 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C53E3DA7F7
+        for <netfilter-devel@vger.kernel.org>; Fri,  8 Dec 2017 22:23:00 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20171208101836.GH24449@breakpoint.cc>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20171208160155.968-4-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Dec 08, 2017 at 11:18:36AM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-[...]
+On Fri, Dec 08, 2017 at 05:01:55PM +0100, Florian Westphal wrote:
+> No problem for iptables as priorities are fixed values defined in the
+> nat modules, but in nftables the priority its coming from userspace.
 > 
-> > diff --git a/net/netfilter/nf_flow_table.c b/net/netfilter/nf_flow_table.c
-> > index ff27dad268c3..c578c3aec0e0 100644
-> > --- a/net/netfilter/nf_flow_table.c
-> > +++ b/net/netfilter/nf_flow_table.c
-> > @@ -212,6 +212,21 @@ int nf_flow_table_iterate(struct nf_flowtable *flow_table,
-> >  }
-> >  EXPORT_SYMBOL_GPL(nf_flow_table_iterate);
-> >  
-> > +static void flow_offload_hw_del(struct flow_offload *flow)
-> > +{
-> > +	struct net_device *indev;
-> > +	int ret, ifindex;
-> > +
-> > +	rtnl_lock();
-> > +	ifindex = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.iifidx;
-> > +	indev = __dev_get_by_index(&init_net, ifindex);
+> Reject in case we see that such a hook would not work.
 > 
-> I think this should pass struct net * as arg to flow_offload_hw_del.
->
-> > +	if (WARN_ON(!indev))
-> > +		return;
-> > +
-> > +	ret = indev->netdev_ops->ndo_flow_offload(FLOW_OFFLOAD_DEL, flow);
-> > +	rtnl_unlock();
-> > +}
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  net/netfilter/nf_tables_api.c | 5 +++++
+>  1 file changed, 5 insertions(+)
 > 
-> Please no rtnl lock unless absolutely needed.
-> Seems this could even avoid the mutex completely by using
-> dev_get_by_index + dev_put.
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index f000d4399c7a..4ed66f1b40b5 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -1303,6 +1303,11 @@ static int nft_chain_parse_hook(struct net *net,
+>  	}
+>  	if (!(type->hook_mask & (1 << hook->num)))
+>  		return -EOPNOTSUPP;
+> +
+> +	if (type->type == NFT_CHAIN_T_NAT &&
+> +	    hook->priority <= NF_IP_PRI_CONNTRACK)
+> +		return -EINVAL;
 
-OK, we still need to make sure that we additions and deletions from
-hardware don't occur concurrently, but that we can probably do it with
-another mutex.
+EINVAL is usually for missing netlink attributes, so I'd go for
+EOPNOTSUPP instead. No need to resend I can mangle this here if you
+prefer.
 
-> > +static int do_flow_offload(struct flow_offload *flow)
-> > +{
-> > +	struct net_device *indev;
-> > +	int ret, ifindex;
-> > +
-> > +	rtnl_lock();
-> > +	ifindex = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.iifidx;
-> > +	indev = __dev_get_by_index(&init_net, ifindex);
+> +
+>  	if (!try_module_get(type->owner))
+>  		return -ENOENT;
+>  
+> -- 
+> 2.13.6
 > 
-> likewise.
-> 
-> > +#define FLOW_HW_WORK_TIMEOUT	msecs_to_jiffies(100)
-> > +
-> > +static struct delayed_work nft_flow_offload_dwork;
-> 
-> I would go with struct work and no delay at all.
-
-Will have a look into this, thanks!
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
