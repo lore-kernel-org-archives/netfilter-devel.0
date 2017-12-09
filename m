@@ -1,47 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 2/3] netfilter: core: only allow one nat hook per
- hook point
-Date: Fri, 8 Dec 2017 22:33:31 +0100
-Message-ID: <20171208213331.GA4518@salvia>
-References: <20171208160155.968-1-fw@strlen.de>
- <20171208160155.968-3-fw@strlen.de>
- <20171208212828.GB4348@salvia>
+From: Yi-Hung Wei <yihung.wei@gmail.com>
+Subject: Re: [PATCH v4 nf-next] netfilter: connlimit: split xt_connlimit into
+ front and backend
+Date: Fri, 8 Dec 2017 16:55:05 -0800
+Message-ID: <CAG1aQhJfr_eovVkdYqtvASVCfUeS5CbfF6y8E+H+Te8sDEkLzA@mail.gmail.com>
+References: <20171208111516.32541-1-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Cc: netfilter-devel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35562 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750951AbdLHVdf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 8 Dec 2017 16:33:35 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 34EB01C4386
-        for <netfilter-devel@vger.kernel.org>; Fri,  8 Dec 2017 22:33:34 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 28CB1DA804
-        for <netfilter-devel@vger.kernel.org>; Fri,  8 Dec 2017 22:33:34 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20171208212828.GB4348@salvia>
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:46635 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751086AbdLIAzt (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 8 Dec 2017 19:55:49 -0500
+Received: by mail-oi0-f67.google.com with SMTP id t81so8288311oih.13
+        for <netfilter-devel@vger.kernel.org>; Fri, 08 Dec 2017 16:55:49 -0800 (PST)
+In-Reply-To: <20171208111516.32541-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Dec 08, 2017 at 10:28:28PM +0100, Pablo Neira Ayuso wrote:
-> On Fri, Dec 08, 2017 at 05:01:54PM +0100, Florian Westphal wrote:
-[...]
-> > diff --git a/net/ipv4/netfilter/iptable_nat.c b/net/ipv4/netfilter/iptable_nat.c
-> > index a1a07b338ccf..0f7255cc65ee 100644
-> > --- a/net/ipv4/netfilter/iptable_nat.c
-> > +++ b/net/ipv4/netfilter/iptable_nat.c
-> > @@ -72,6 +72,7 @@ static const struct nf_hook_ops nf_nat_ipv4_ops[] = {
-> >  	{
-> >  		.hook		= iptable_nat_ipv4_in,
-> >  		.pf		= NFPROTO_IPV4,
-> > +		.nat_hook	= true,
-> 
-> Just a suggestion: This nat_hook basically means that we only allow
-> this hook to be a singleton in this spot. So I would call it like
-> this, ie. singleton, given we have no NAT semantics in the netfilter
-> core.
+On Fri, Dec 8, 2017 at 3:15 AM, Florian Westphal <fw@strlen.de> wrote:
+> --- /dev/null
+> +++ b/include/net/netfilter/nf_conntrack_count.h
+> @@ -0,0 +1,17 @@
+> +#ifdef _NF_CONNTRACK_COUNT_H
+^^^^^^^^
+#ifndef? Looks like a typo in v4.
 
-Hm, never mind about names.
+
+> diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+> index a6214f235333..d69e2f41aaa6 100644
+> --- a/net/netfilter/xt_connlimit.c
+> +++ b/net/netfilter/xt_connlimit.c
+>  static void connlimit_mt_destroy(const struct xt_mtdtor_param *par)
+>  {
+>         const struct xt_connlimit_info *info = par->matchinfo;
+> -       unsigned int i;
+>
+>         nf_ct_netns_put(par->net, par->family);
+I run into some issues when load and unload xt_connlimit a couple of
+times. It turns out that we do nf_ct_netns_put() twice, where the
+other one is in nf_conncount_destroy(). Maybe get rid of this line?
+
+Thanks,
+
+-Yi-Hung
