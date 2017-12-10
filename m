@@ -1,205 +1,190 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 2/7] netfilter: remove checksum_partial indirection in struct nf_afinfo
-Date: Sun, 10 Dec 2017 21:43:40 +0100
-Message-ID: <20171210204345.13292-3-pablo@netfilter.org>
+Subject: [PATCH nf-next 3/7] netfilter: remove saveroute indirection in struct nf_afinfo
+Date: Sun, 10 Dec 2017 21:43:41 +0100
+Message-ID: <20171210204345.13292-4-pablo@netfilter.org>
 References: <20171210204345.13292-1-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47118 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47122 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752189AbdLJUny (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1752209AbdLJUny (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Sun, 10 Dec 2017 15:43:54 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 99A61DA73F
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:43:52 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 3767E1C4420
+        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:43:53 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8485CDA86C
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:43:52 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 24DD1DA840
+        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:43:53 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 46B62DA812
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E4C98DA840
         for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:43:50 +0100 (CET)
 Received: from salvia.here (40.red-212-170-55.staticip.rima-tde.net [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 28AA3426CC80
+        by entrada.int (Postfix) with ESMTPA id C4985426CC80
         for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:43:50 +0100 (CET)
 In-Reply-To: <20171210204345.13292-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Simplify this infrastructure by replacing it by direction call.
+This is only used by nf_queue.c, and there we can replace it by a direct
+function call.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h      | 25 +++----------------------
- include/linux/netfilter_ipv4.h |  3 +++
- include/linux/netfilter_ipv6.h | 11 +++++++++++
- net/ipv4/netfilter.c           |  7 +++----
- net/ipv6/netfilter.c           |  7 +++----
- net/netfilter/utils.c          | 21 +++++++++++++++++++++
- 6 files changed, 44 insertions(+), 30 deletions(-)
+ include/linux/netfilter.h      |  3 +--
+ include/linux/netfilter_ipv4.h |  1 +
+ include/linux/netfilter_ipv6.h |  3 +++
+ net/ipv4/netfilter.c           |  4 +---
+ net/ipv6/netfilter.c           |  5 ++---
+ net/netfilter/nf_queue.c       |  2 +-
+ net/netfilter/utils.c          | 13 +++++++++++++
+ 7 files changed, 22 insertions(+), 9 deletions(-)
 
 diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 3ae4cfb92b54..a2bb6fefde13 100644
+index a2bb6fefde13..b3a46a374a89 100644
 --- a/include/linux/netfilter.h
 +++ b/include/linux/netfilter.h
-@@ -311,11 +311,6 @@ struct nf_queue_entry;
- 
- struct nf_afinfo {
+@@ -313,8 +313,6 @@ struct nf_afinfo {
  	unsigned short	family;
--	__sum16		(*checksum_partial)(struct sk_buff *skb,
--					    unsigned int hook,
--					    unsigned int dataoff,
--					    unsigned int len,
--					    u_int8_t protocol);
  	int		(*route)(struct net *net, struct dst_entry **dst,
  				 struct flowi *fl, bool strict);
- 	void		(*saveroute)(const struct sk_buff *skb,
-@@ -334,23 +329,9 @@ static inline const struct nf_afinfo *nf_get_afinfo(unsigned short family)
- __sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
- 		    unsigned int dataoff, u_int8_t protocol,
- 		    unsigned short family);
--
--static inline __sum16
--nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
--		    unsigned int dataoff, unsigned int len,
--		    u_int8_t protocol, unsigned short family)
--{
--	const struct nf_afinfo *afinfo;
--	__sum16 csum = 0;
--
--	rcu_read_lock();
--	afinfo = nf_get_afinfo(family);
--	if (afinfo)
--		csum = afinfo->checksum_partial(skb, hook, dataoff, len,
--						protocol);
--	rcu_read_unlock();
--	return csum;
--}
-+__sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
-+			    unsigned int dataoff, unsigned int len,
-+			    u_int8_t protocol, unsigned short family);
+-	void		(*saveroute)(const struct sk_buff *skb,
+-				     struct nf_queue_entry *entry);
+ 	int		(*reroute)(struct net *net, struct sk_buff *skb,
+ 				   const struct nf_queue_entry *entry);
+ 	int		route_key_size;
+@@ -332,6 +330,7 @@ __sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
+ __sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ 			    unsigned int dataoff, unsigned int len,
+ 			    u_int8_t protocol, unsigned short family);
++void nf_saveroute(const struct sk_buff *skb, struct nf_queue_entry *entry);
  
  int nf_register_afinfo(const struct nf_afinfo *afinfo);
  void nf_unregister_afinfo(const struct nf_afinfo *afinfo);
 diff --git a/include/linux/netfilter_ipv4.h b/include/linux/netfilter_ipv4.h
-index 98c03b2462b5..6d61ec0a7695 100644
+index 6d61ec0a7695..640337bfa4b9 100644
 --- a/include/linux/netfilter_ipv4.h
 +++ b/include/linux/netfilter_ipv4.h
-@@ -9,4 +9,7 @@
- int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned addr_type);
- __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
- 		       unsigned int dataoff, u_int8_t protocol);
-+__sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
-+			       unsigned int dataoff, unsigned int len,
-+			       u_int8_t protocol);
+@@ -12,4 +12,5 @@ __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
+ __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ 			       unsigned int dataoff, unsigned int len,
+ 			       u_int8_t protocol);
++void nf_ip_saveroute(const struct sk_buff *skb, struct nf_queue_entry *entry);
  #endif /*__LINUX_IP_NETFILTER_H*/
 diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index ea8c99e5112a..729cc76cb3db 100644
+index 729cc76cb3db..d285181427a4 100644
 --- a/include/linux/netfilter_ipv6.h
 +++ b/include/linux/netfilter_ipv6.h
-@@ -24,12 +24,23 @@ struct nf_ipv6_ops {
- #if defined(CONFIG_IPV6)
- __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
- 			unsigned int dataoff, u_int8_t protocol);
-+__sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
-+				unsigned int dataoff, unsigned int len,
-+				u_int8_t protocol);
+@@ -27,6 +27,7 @@ __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
+ __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ 				unsigned int dataoff, unsigned int len,
+ 				u_int8_t protocol);
++void nf_ip6_saveroute(const struct sk_buff *skb, struct nf_queue_entry *entry);
  #else
  static inline __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
  				      unsigned int dataoff, u_int8_t protocol)
+@@ -41,6 +42,8 @@ static inline__sum16 nf_ip6_checksum_partial(struct sk_buff *skb,
  {
  	return 0;
  }
-+static inline__sum16 nf_ip6_checksum_partial(struct sk_buff *skb,
-+					     unsigned int hook,
-+					     unsigned int dataoff,
-+					     unsigned int len,
-+					     u_int8_t protocol)
-+{
-+	return 0;
-+}
++static inline void nf_ip6_saveroute(const struct sk_buff *skb,
++				    struct nf_queue_entry *entry) {}
  #endif
  
  #ifdef CONFIG_NETFILTER
 diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index 2f7ffefd2732..050b614662f8 100644
+index 050b614662f8..dc2021aaf885 100644
 --- a/net/ipv4/netfilter.c
 +++ b/net/ipv4/netfilter.c
-@@ -155,9 +155,9 @@ __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
- }
- EXPORT_SYMBOL(nf_ip_checksum);
+@@ -92,8 +92,7 @@ struct ip_rt_info {
+ 	u_int32_t mark;
+ };
  
--static __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
--				      unsigned int dataoff, unsigned int len,
--				      u_int8_t protocol)
-+__sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
-+			       unsigned int dataoff, unsigned int len,
-+			       u_int8_t protocol)
+-static void nf_ip_saveroute(const struct sk_buff *skb,
+-			    struct nf_queue_entry *entry)
++void nf_ip_saveroute(const struct sk_buff *skb, struct nf_queue_entry *entry)
  {
- 	const struct iphdr *iph = ip_hdr(skb);
- 	__sum16 csum = 0;
-@@ -188,7 +188,6 @@ static int nf_ip_route(struct net *net, struct dst_entry **dst,
+ 	struct ip_rt_info *rt_info = nf_queue_entry_reroute(entry);
  
+@@ -189,7 +188,6 @@ static int nf_ip_route(struct net *net, struct dst_entry **dst,
  static const struct nf_afinfo nf_ip_afinfo = {
  	.family			= AF_INET,
--	.checksum_partial	= nf_ip_checksum_partial,
  	.route			= nf_ip_route,
- 	.saveroute		= nf_ip_saveroute,
+-	.saveroute		= nf_ip_saveroute,
  	.reroute		= nf_ip_reroute,
+ 	.route_key_size		= sizeof(struct ip_rt_info),
+ };
 diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index a24810ecc432..6e39b721136e 100644
+index 6e39b721136e..4894f030511e 100644
 --- a/net/ipv6/netfilter.c
 +++ b/net/ipv6/netfilter.c
-@@ -163,9 +163,9 @@ __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
- }
- EXPORT_SYMBOL(nf_ip6_checksum);
+@@ -79,8 +79,7 @@ struct ip6_rt_info {
+ 	u_int32_t mark;
+ };
  
--static __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
--				       unsigned int dataoff, unsigned int len,
--				       u_int8_t protocol)
-+__sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
-+				unsigned int dataoff, unsigned int len,
-+				u_int8_t protocol)
+-static void nf_ip6_saveroute(const struct sk_buff *skb,
+-			     struct nf_queue_entry *entry)
++void nf_ip6_saveroute(const struct sk_buff *skb, struct nf_queue_entry *entry)
  {
- 	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
- 	__wsum hsum;
-@@ -197,7 +197,6 @@ static const struct nf_ipv6_ops ipv6ops = {
+ 	struct ip6_rt_info *rt_info = nf_queue_entry_reroute(entry);
  
+@@ -92,6 +91,7 @@ static void nf_ip6_saveroute(const struct sk_buff *skb,
+ 		rt_info->mark = skb->mark;
+ 	}
+ }
++EXPORT_SYMBOL_GPL(nf_ip6_saveroute);
+ 
+ static int nf_ip6_reroute(struct net *net, struct sk_buff *skb,
+ 			  const struct nf_queue_entry *entry)
+@@ -198,7 +198,6 @@ static const struct nf_ipv6_ops ipv6ops = {
  static const struct nf_afinfo nf_ip6_afinfo = {
  	.family			= AF_INET6,
--	.checksum_partial	= nf_ip6_checksum_partial,
  	.route			= nf_ip6_route,
- 	.saveroute		= nf_ip6_saveroute,
+-	.saveroute		= nf_ip6_saveroute,
  	.reroute		= nf_ip6_reroute,
+ 	.route_key_size		= sizeof(struct ip6_rt_info),
+ };
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 0c02fdb7efc9..833710ee7654 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -144,7 +144,7 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+ 
+ 	nf_queue_entry_get_refs(entry);
+ 	skb_dst_force(skb);
+-	afinfo->saveroute(skb, entry);
++	nf_saveroute(skb, entry);
+ 	status = qh->outfn(entry, queuenum);
+ 
+ 	if (status < 0) {
 diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
-index 92a51e507fab..3fdad0c7b189 100644
+index 3fdad0c7b189..7d8c0fd283ee 100644
 --- a/net/netfilter/utils.c
 +++ b/net/netfilter/utils.c
-@@ -21,3 +21,24 @@ __sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
+@@ -2,6 +2,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter_ipv4.h>
+ #include <linux/netfilter_ipv6.h>
++#include <net/netfilter/nf_queue.h>
+ 
+ __sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
+ 		    unsigned int dataoff, u_int8_t protocol,
+@@ -42,3 +43,15 @@ __sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
  	return csum;
  }
- EXPORT_SYMBOL_GPL(nf_checksum);
+ EXPORT_SYMBOL_GPL(nf_checksum_partial);
 +
-+__sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
-+			    unsigned int dataoff, unsigned int len,
-+			    u_int8_t protocol, unsigned short family)
++void nf_saveroute(const struct sk_buff *skb, struct nf_queue_entry *entry)
 +{
-+	__sum16 csum = 0;
-+
-+	switch (family) {
++	switch (entry->state.pf) {
 +	case AF_INET:
-+		csum = nf_ip_checksum_partial(skb, hook, dataoff, len,
-+					      protocol);
++		nf_ip_saveroute(skb, entry);
 +		break;
 +	case AF_INET6:
-+		csum = nf_ip6_checksum_partial(skb, hook, dataoff, len,
-+					       protocol);
++		nf_ip6_saveroute(skb, entry);
 +		break;
 +	}
-+
-+	return csum;
 +}
-+EXPORT_SYMBOL_GPL(nf_checksum_partial);
 -- 
 2.11.0
 
