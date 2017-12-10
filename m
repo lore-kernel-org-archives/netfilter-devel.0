@@ -1,72 +1,203 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next,v2 1/7] netfilter: core: add nf_remove_net_hook
-Date: Sun, 10 Dec 2017 21:34:49 +0100
-Message-ID: <20171210203455.11651-2-pablo@netfilter.org>
+Subject: [PATCH nf-next,v2 5/7] netfilter: nf_tables_inet: don't use multihook infrastructure anymore
+Date: Sun, 10 Dec 2017 21:34:53 +0100
+Message-ID: <20171210203455.11651-6-pablo@netfilter.org>
 References: <20171210203455.11651-1-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45856 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45868 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752405AbdLJUfE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 10 Dec 2017 15:35:04 -0500
+        id S1752428AbdLJUfG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 10 Dec 2017 15:35:06 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 58A2B1C4423
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:35:03 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 35C481C4420
+        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:35:05 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 47886DA78E
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:35:03 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 24A48DA7F1
+        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:35:05 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DE15DDA804
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:34:59 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C0D02DA843
+        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:35:02 +0100 (CET)
 Received: from salvia.here (40.red-212-170-55.staticip.rima-tde.net [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id AEDA5426CC80
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:34:59 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 8D46B426CC81
+        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:35:02 +0100 (CET)
 In-Reply-To: <20171210203455.11651-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Just a cleanup, __nf_unregister_net_hook() is used by a follow up patch
-when handling NFPROTO_INET as a real family from the core.
+Use new native NFPROTO_INET support in netfilter core, this gets rid of
+ad-hoc code in the nf_tables API codebase.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/core.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/net/netfilter/nf_tables_ipv4.h |  2 -
+ include/net/netfilter/nf_tables_ipv6.h |  2 -
+ net/ipv4/netfilter/nf_tables_ipv4.c    |  3 +-
+ net/ipv6/netfilter/nf_tables_ipv6.c    |  3 +-
+ net/netfilter/nf_tables_inet.c         | 70 ++++++++++++++++++++++++++++------
+ 5 files changed, 60 insertions(+), 20 deletions(-)
 
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 3508a5c8edbb..9153b6e03f6b 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -360,7 +360,7 @@ int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
- EXPORT_SYMBOL(nf_register_net_hook);
+diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
+index b2deeb2755a4..ed7b511f0a59 100644
+--- a/include/net/netfilter/nf_tables_ipv4.h
++++ b/include/net/netfilter/nf_tables_ipv4.h
+@@ -53,6 +53,4 @@ static inline void nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt,
+ 		nft_set_pktinfo_unspec(pkt, skb);
+ }
  
- /*
-- * __nf_unregister_net_hook - remove a hook from blob
-+ * nf_remove_net_hook - remove a hook from blob
-  *
-  * @oldp: current address of hook blob
-  * @unreg: hook to unregister
-@@ -368,8 +368,8 @@ EXPORT_SYMBOL(nf_register_net_hook);
-  * This cannot fail, hook unregistration must always succeed.
-  * Therefore replace the to-be-removed hook with a dummy hook.
-  */
--static void __nf_unregister_net_hook(struct nf_hook_entries *old,
--				     const struct nf_hook_ops *unreg)
-+static void nf_remove_net_hook(struct nf_hook_entries *old,
-+			       const struct nf_hook_ops *unreg)
+-extern struct nft_af_info nft_af_ipv4;
+-
+ #endif
+diff --git a/include/net/netfilter/nf_tables_ipv6.h b/include/net/netfilter/nf_tables_ipv6.h
+index 1890c5bc3c3c..dabe6fdb553a 100644
+--- a/include/net/netfilter/nf_tables_ipv6.h
++++ b/include/net/netfilter/nf_tables_ipv6.h
+@@ -69,6 +69,4 @@ static inline void nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt,
+ 		nft_set_pktinfo_unspec(pkt, skb);
+ }
+ 
+-extern struct nft_af_info nft_af_ipv6;
+-
+ #endif
+diff --git a/net/ipv4/netfilter/nf_tables_ipv4.c b/net/ipv4/netfilter/nf_tables_ipv4.c
+index 35fa265d1ce3..b6223f4b1315 100644
+--- a/net/ipv4/netfilter/nf_tables_ipv4.c
++++ b/net/ipv4/netfilter/nf_tables_ipv4.c
+@@ -45,7 +45,7 @@ static unsigned int nft_ipv4_output(void *priv,
+ 	return nft_do_chain_ipv4(priv, skb, state);
+ }
+ 
+-struct nft_af_info nft_af_ipv4 __read_mostly = {
++static struct nft_af_info nft_af_ipv4 __read_mostly = {
+ 	.family		= NFPROTO_IPV4,
+ 	.nhooks		= NF_INET_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
+@@ -58,7 +58,6 @@ struct nft_af_info nft_af_ipv4 __read_mostly = {
+ 		[NF_INET_POST_ROUTING]	= nft_do_chain_ipv4,
+ 	},
+ };
+-EXPORT_SYMBOL_GPL(nft_af_ipv4);
+ 
+ static int nf_tables_ipv4_init_net(struct net *net)
  {
- 	struct nf_hook_ops **orig_ops;
- 	bool found = false;
-@@ -415,7 +415,7 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
- 		return;
- 	}
+diff --git a/net/ipv6/netfilter/nf_tables_ipv6.c b/net/ipv6/netfilter/nf_tables_ipv6.c
+index 71bac94770dd..b1b5d3824fc1 100644
+--- a/net/ipv6/netfilter/nf_tables_ipv6.c
++++ b/net/ipv6/netfilter/nf_tables_ipv6.c
+@@ -42,7 +42,7 @@ static unsigned int nft_ipv6_output(void *priv,
+ 	return nft_do_chain_ipv6(priv, skb, state);
+ }
  
--	__nf_unregister_net_hook(p, reg);
-+	nf_remove_net_hook(p, reg);
+-struct nft_af_info nft_af_ipv6 __read_mostly = {
++static struct nft_af_info nft_af_ipv6 __read_mostly = {
+ 	.family		= NFPROTO_IPV6,
+ 	.nhooks		= NF_INET_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
+@@ -55,7 +55,6 @@ struct nft_af_info nft_af_ipv6 __read_mostly = {
+ 		[NF_INET_POST_ROUTING]	= nft_do_chain_ipv6,
+ 	},
+ };
+-EXPORT_SYMBOL_GPL(nft_af_ipv6);
  
- 	p = __nf_hook_entries_try_shrink(pp);
- 	mutex_unlock(&nf_hook_mutex);
+ static int nf_tables_ipv6_init_net(struct net *net)
+ {
+diff --git a/net/netfilter/nf_tables_inet.c b/net/netfilter/nf_tables_inet.c
+index f713cc205669..c6194b3509aa 100644
+--- a/net/netfilter/nf_tables_inet.c
++++ b/net/netfilter/nf_tables_inet.c
+@@ -9,6 +9,7 @@
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/ip.h>
++#include <linux/ipv6.h>
+ #include <linux/netfilter_ipv4.h>
+ #include <linux/netfilter_ipv6.h>
+ #include <net/netfilter/nf_tables.h>
+@@ -16,26 +17,71 @@
+ #include <net/netfilter/nf_tables_ipv6.h>
+ #include <net/ip.h>
+ 
+-static void nft_inet_hook_ops_init(struct nf_hook_ops *ops, unsigned int n)
++static unsigned int nft_do_chain_inet(void *priv, struct sk_buff *skb,
++				      const struct nf_hook_state *state)
+ {
+-	struct nft_af_info *afi;
+-
+-	if (n == 1)
+-		afi = &nft_af_ipv4;
+-	else
+-		afi = &nft_af_ipv6;
++	struct nft_pktinfo pkt;
++
++	nft_set_pktinfo(&pkt, skb, state);
++
++	switch (state->pf) {
++	case NFPROTO_IPV4:
++		nft_set_pktinfo_ipv4(&pkt, skb);
++		break;
++	case NFPROTO_IPV6:
++		nft_set_pktinfo_ipv6(&pkt, skb);
++		break;
++	default:
++		break;
++	}
++
++	return nft_do_chain(&pkt, priv);
++}
+ 
+-	ops->pf = afi->family;
+-	if (afi->hooks[ops->hooknum])
+-		ops->hook = afi->hooks[ops->hooknum];
++static unsigned int nft_inet_output(void *priv, struct sk_buff *skb,
++				    const struct nf_hook_state *state)
++{
++	struct nft_pktinfo pkt;
++
++	nft_set_pktinfo(&pkt, skb, state);
++
++	switch (state->pf) {
++	case NFPROTO_IPV4:
++		if (unlikely(skb->len < sizeof(struct iphdr) ||
++			     ip_hdr(skb)->ihl < sizeof(struct iphdr) / 4)) {
++			if (net_ratelimit())
++				pr_info("ignoring short SOCK_RAW packet\n");
++			return NF_ACCEPT;
++		}
++		nft_set_pktinfo_ipv4(&pkt, skb);
++		break;
++	case NFPROTO_IPV6:
++	        if (unlikely(skb->len < sizeof(struct ipv6hdr))) {
++			if (net_ratelimit())
++				pr_info("ignoring short SOCK_RAW packet\n");
++			return NF_ACCEPT;
++		}
++		nft_set_pktinfo_ipv6(&pkt, skb);
++		break;
++	default:
++		break;
++	}
++
++	return nft_do_chain(&pkt, priv);
+ }
+ 
+ static struct nft_af_info nft_af_inet __read_mostly = {
+ 	.family		= NFPROTO_INET,
+ 	.nhooks		= NF_INET_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
+-	.nops		= 2,
+-	.hook_ops_init	= nft_inet_hook_ops_init,
++	.nops		= 1,
++	.hooks		= {
++		[NF_INET_LOCAL_IN]	= nft_do_chain_inet,
++		[NF_INET_LOCAL_OUT]	= nft_inet_output,
++		[NF_INET_FORWARD]	= nft_do_chain_inet,
++		[NF_INET_PRE_ROUTING]	= nft_do_chain_inet,
++		[NF_INET_POST_ROUTING]	= nft_do_chain_inet,
++        },
+ };
+ 
+ static int __net_init nf_tables_inet_init_net(struct net *net)
 -- 
 2.11.0
 
