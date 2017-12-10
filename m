@@ -1,62 +1,125 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next,v2 0/7] handle NFPROTO_INET from core
-Date: Sun, 10 Dec 2017 21:34:48 +0100
-Message-ID: <20171210203455.11651-1-pablo@netfilter.org>
+Subject: [PATCH nf-next,v2 2/7] netfilter: core: pass hook number, family and device to nf_find_hook_list()
+Date: Sun, 10 Dec 2017 21:34:50 +0100
+Message-ID: <20171210203455.11651-3-pablo@netfilter.org>
+References: <20171210203455.11651-1-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45844 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45848 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752320AbdLJUfC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 10 Dec 2017 15:35:02 -0500
+        id S1752326AbdLJUfE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 10 Dec 2017 15:35:04 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 1B15F1C4420
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:35:01 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 008261C4420
+        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:35:03 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F3ACDDA7F7
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E303CDA861
+        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:35:02 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A3366DA7E9
         for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:35:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CD07CDA7F7
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:34:58 +0100 (CET)
 Received: from salvia.here (40.red-212-170-55.staticip.rima-tde.net [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 997C1426CC80
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:34:58 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 70241426CC81
+        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:35:00 +0100 (CET)
+In-Reply-To: <20171210203455.11651-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-NFPROTO_INET only works for nf_tables, handle this pseudofamily from
-the core itself by expanding one NFPROTO_INET hook in two hook
-registrations, one for NFPROTO_IPV4 and another for NFPROTO_IPV6.
+Instead of passing struct nf_hook_ops, this is needed by follow up
+patches to handle NFPROTO_INET from the core.
 
-This removes quite a bit of ad-hoc infrastructure in nf_tables, so it
-makes it less complex.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/core.c | 36 +++++++++++++++++++-----------------
+ 1 file changed, 19 insertions(+), 17 deletions(-)
 
-There's a final patch that also removes the family-specific hooks for
-filter chains, now all hooks are already define in the chain type.
-
-Pablo Neira Ayuso (7):
-  netfilter: core: add nf_remove_net_hook
-  netfilter: core: pass hook number, family and device to nf_find_hook_list()
-  netfilter: core: pass family as parameter to nf_remove_net_hook()
-  netfilter: core: support for NFPROTO_INET hook registration
-  netfilter: nf_tables_inet: don't use multihook infrastructure anymore
-  netfilter: nf_tables: remove multihook chains and families
-  netfilter: nf_tables: remove hooks from family definition
-
- include/net/netfilter/nf_tables.h       |  13 +---
- include/net/netfilter/nf_tables_ipv4.h  |   2 -
- include/net/netfilter/nf_tables_ipv6.h  |   2 -
- net/bridge/netfilter/nf_tables_bridge.c |  15 +++--
- net/ipv4/netfilter/nf_tables_arp.c      |   9 ++-
- net/ipv4/netfilter/nf_tables_ipv4.c     |  18 +++---
- net/ipv6/netfilter/nf_tables_ipv6.c     |  18 +++---
- net/netfilter/core.c                    |  97 ++++++++++++++++++++----------
- net/netfilter/nf_tables_api.c           | 102 +++++++++++++-------------------
- net/netfilter/nf_tables_inet.c          |  69 +++++++++++++++++----
- net/netfilter/nf_tables_netdev.c        |   9 ++-
- net/netfilter/nft_compat.c              |   8 +--
- 12 files changed, 202 insertions(+), 160 deletions(-)
-
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 9153b6e03f6b..bcbaa78ec374 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -268,36 +268,38 @@ static void *__nf_hook_entries_try_shrink(struct nf_hook_entries __rcu **pp)
+ 	return old;
+ }
+ 
+-static struct nf_hook_entries __rcu **nf_hook_entry_head(struct net *net, const struct nf_hook_ops *reg)
++static struct nf_hook_entries __rcu **
++nf_hook_entry_head(struct net *net, int pf, unsigned int hooknum,
++		   struct net_device *dev)
+ {
+-	switch (reg->pf) {
++	switch (pf) {
+ 	case NFPROTO_NETDEV:
+ 		break;
+ #ifdef CONFIG_NETFILTER_FAMILY_ARP
+ 	case NFPROTO_ARP:
+-		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_arp) <= reg->hooknum))
++		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_arp) <= hooknum))
+ 			return NULL;
+-		return net->nf.hooks_arp + reg->hooknum;
++		return net->nf.hooks_arp + hooknum;
+ #endif
+ #ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
+ 	case NFPROTO_BRIDGE:
+-		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_bridge) <= reg->hooknum))
++		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_bridge) <= hooknum))
+ 			return NULL;
+-		return net->nf.hooks_bridge + reg->hooknum;
++		return net->nf.hooks_bridge + hooknum;
+ #endif
+ 	case NFPROTO_IPV4:
+-		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_ipv4) <= reg->hooknum))
++		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_ipv4) <= hooknum))
+ 			return NULL;
+-		return net->nf.hooks_ipv4 + reg->hooknum;
++		return net->nf.hooks_ipv4 + hooknum;
+ 	case NFPROTO_IPV6:
+-		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_ipv6) <= reg->hooknum))
++		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_ipv6) <= hooknum))
+ 			return NULL;
+-		return net->nf.hooks_ipv6 + reg->hooknum;
++		return net->nf.hooks_ipv6 + hooknum;
+ #if IS_ENABLED(CONFIG_DECNET)
+ 	case NFPROTO_DECNET:
+-		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_decnet) <= reg->hooknum))
++		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_decnet) <= hooknum))
+ 			return NULL;
+-		return net->nf.hooks_decnet + reg->hooknum;
++		return net->nf.hooks_decnet + hooknum;
+ #endif
+ 	default:
+ 		WARN_ON_ONCE(1);
+@@ -305,9 +307,9 @@ static struct nf_hook_entries __rcu **nf_hook_entry_head(struct net *net, const
+ 	}
+ 
+ #ifdef CONFIG_NETFILTER_INGRESS
+-	if (reg->hooknum == NF_NETDEV_INGRESS) {
+-		if (reg->dev && dev_net(reg->dev) == net)
+-			return &reg->dev->nf_hooks_ingress;
++	if (hooknum == NF_NETDEV_INGRESS) {
++		if (dev && dev_net(dev) == net)
++			return &dev->nf_hooks_ingress;
+ 	}
+ #endif
+ 	WARN_ON_ONCE(1);
+@@ -329,7 +331,7 @@ int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ 			return -EINVAL;
+ 	}
+ 
+-	pp = nf_hook_entry_head(net, reg);
++	pp = nf_hook_entry_head(net, reg->pf, reg->hooknum, reg->dev);
+ 	if (!pp)
+ 		return -EINVAL;
+ 
+@@ -403,7 +405,7 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ 	struct nf_hook_entries __rcu **pp;
+ 	struct nf_hook_entries *p;
+ 
+-	pp = nf_hook_entry_head(net, reg);
++	pp = nf_hook_entry_head(net, reg->pf, reg->hooknum, reg->dev);
+ 	if (!pp)
+ 		return;
+ 
 -- 
 2.11.0
 
