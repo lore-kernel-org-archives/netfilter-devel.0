@@ -1,171 +1,130 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 1/7] netfilter: remove checksum indirection in struct nf_afinfo
-Date: Sun, 10 Dec 2017 21:43:39 +0100
-Message-ID: <20171210204345.13292-2-pablo@netfilter.org>
-References: <20171210204345.13292-1-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+Subject: Re: libnftables extended API proposal (Was: Re: [nft PATCH]
+ libnftables: Fix for multiple context instances)
+Date: Sun, 10 Dec 2017 22:55:40 +0100
+Message-ID: <20171210215540.GA14363@salvia>
+References: <20171120165313.GA5316@salvia>
+ <20171122174943.GA32305@orbyte.nwl.cc>
+ <20171204100955.GA1822@salvia>
+ <20171204105324.GX32305@orbyte.nwl.cc>
+ <20171204110142.GA19776@salvia>
+ <20171204164327.GA32305@orbyte.nwl.cc>
+ <20171204184604.GA1556@salvia>
+ <20171205134317.GE32305@orbyte.nwl.cc>
+ <20171207000545.GA27739@salvia>
+ <20171207113431.GF32305@orbyte.nwl.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+        Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47114 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55556 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751994AbdLJUnx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 10 Dec 2017 15:43:53 -0500
+        id S1751945AbdLJVzo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 10 Dec 2017 16:55:44 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id F0CBEDA72B
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:43:51 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id E1B31DA73F
+        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 22:55:42 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DC790DA863
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:43:51 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 99030DA7F7
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:43:49 +0100 (CET)
-Received: from salvia.here (40.red-212-170-55.staticip.rima-tde.net [212.170.55.40])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 77FE6426CC80
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 21:43:49 +0100 (CET)
-In-Reply-To: <20171210204345.13292-1-pablo@netfilter.org>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CB61ADA7B9
+        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 22:55:42 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20171207113431.GF32305@orbyte.nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Simplify this infrastructure by replacing it by direction call.
+On Thu, Dec 07, 2017 at 12:34:31PM +0100, Phil Sutter wrote:
+> Hi Pablo,
+> 
+> On Thu, Dec 07, 2017 at 01:05:45AM +0100, Pablo Neira Ayuso wrote:
+> > On Tue, Dec 05, 2017 at 02:43:17PM +0100, Phil Sutter wrote:
+> [...]
+> > > After tweaking the parser a bit, I can use it now to parse just a
+> > > set_list_member_expr and use the struct expr it returns. This made it
+> > > possible to create the desired struct cmd in above function without
+> > > having to invoke the parser there.
+> > > 
+> > > Exercising this refining consequently should allow to reach arbitrary
+> > > levels of granularity. For instance, one could stop at statement level,
+> > > i.e. statements are created using a string representation. Or one could
+> > > go down to expression level, and statements are created using one or two
+> > > expressions (depending on whether it is relational or not). Of course
+> > > this means the library will eventually become as complicated as the
+> > > parser itself, not necessarily a good thing.
+> > 
+> > Yes, and we'll expose all internal representation details, that we
+> > will need to maintain forever if we don't want to break backward.
+> 
+> Not necessarily. I had this in mind when declaring 'struct nft_table'
+> instead of reusing 'struct table'. :)
+> 
+> The parser defines the grammar, the library would just follow it. So if
+> a given internal change complies with the old grammar, it should comply
+> with the library as well. Though this is quite theoretical, of course.
+> 
+> Let's take relational expressions as simple example: In bison, we define
+> 'expr op rhs_expr'. An equivalent library function could be:
+> 
+> | struct nft_expr *nft_relational_new(struct nft_expr *,
+> | 				      enum rel_ops,
+> | 				      struct nft_expr *);
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/linux/netfilter.h      | 19 +++----------------
- include/linux/netfilter_ipv6.h | 13 +++++++++++--
- net/ipv4/netfilter.c           |  1 -
- net/ipv6/netfilter.c           |  1 -
- net/netfilter/Makefile         |  2 +-
- net/netfilter/utils.c          | 23 +++++++++++++++++++++++
- 6 files changed, 38 insertions(+), 21 deletions(-)
- create mode 100644 net/netfilter/utils.c
+Then that means you would like to expose an API that allows you to
+build the abstract syntax tree.
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index fcb391a0fbd9..3ae4cfb92b54 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -311,8 +311,6 @@ struct nf_queue_entry;
- 
- struct nf_afinfo {
- 	unsigned short	family;
--	__sum16		(*checksum)(struct sk_buff *skb, unsigned int hook,
--				    unsigned int dataoff, u_int8_t protocol);
- 	__sum16		(*checksum_partial)(struct sk_buff *skb,
- 					    unsigned int hook,
- 					    unsigned int dataoff,
-@@ -333,20 +331,9 @@ static inline const struct nf_afinfo *nf_get_afinfo(unsigned short family)
- 	return rcu_dereference(nf_afinfo[family]);
- }
- 
--static inline __sum16
--nf_checksum(struct sk_buff *skb, unsigned int hook, unsigned int dataoff,
--	    u_int8_t protocol, unsigned short family)
--{
--	const struct nf_afinfo *afinfo;
--	__sum16 csum = 0;
--
--	rcu_read_lock();
--	afinfo = nf_get_afinfo(family);
--	if (afinfo)
--		csum = afinfo->checksum(skb, hook, dataoff, protocol);
--	rcu_read_unlock();
--	return csum;
--}
-+__sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
-+		    unsigned int dataoff, u_int8_t protocol,
-+		    unsigned short family);
- 
- static inline __sum16
- nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index 47c6b04c28c0..ea8c99e5112a 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -21,10 +21,19 @@ struct nf_ipv6_ops {
- 			int (*output)(struct net *, struct sock *, struct sk_buff *));
- };
- 
--#ifdef CONFIG_NETFILTER
--int ip6_route_me_harder(struct net *net, struct sk_buff *skb);
-+#if defined(CONFIG_IPV6)
- __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
- 			unsigned int dataoff, u_int8_t protocol);
-+#else
-+static inline __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
-+				      unsigned int dataoff, u_int8_t protocol)
-+{
-+	return 0;
-+}
-+#endif
-+
-+#ifdef CONFIG_NETFILTER
-+int ip6_route_me_harder(struct net *net, struct sk_buff *skb);
- 
- int ipv6_netfilter_init(void);
- void ipv6_netfilter_fini(void);
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index c0cc6aa8cfaa..2f7ffefd2732 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -188,7 +188,6 @@ static int nf_ip_route(struct net *net, struct dst_entry **dst,
- 
- static const struct nf_afinfo nf_ip_afinfo = {
- 	.family			= AF_INET,
--	.checksum		= nf_ip_checksum,
- 	.checksum_partial	= nf_ip_checksum_partial,
- 	.route			= nf_ip_route,
- 	.saveroute		= nf_ip_saveroute,
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 39970e212ad5..a24810ecc432 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -197,7 +197,6 @@ static const struct nf_ipv6_ops ipv6ops = {
- 
- static const struct nf_afinfo nf_ip6_afinfo = {
- 	.family			= AF_INET6,
--	.checksum		= nf_ip6_checksum,
- 	.checksum_partial	= nf_ip6_checksum_partial,
- 	.route			= nf_ip6_route,
- 	.saveroute		= nf_ip6_saveroute,
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index f78ed2470831..dea95fcb4e0a 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -1,5 +1,5 @@
- # SPDX-License-Identifier: GPL-2.0
--netfilter-objs := core.o nf_log.o nf_queue.o nf_sockopt.o
-+netfilter-objs := core.o nf_log.o nf_queue.o nf_sockopt.o utils.o
- 
- nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o nf_conntrack_proto.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o nf_conntrack_extend.o nf_conntrack_acct.o nf_conntrack_seqadj.o
- nf_conntrack-$(CONFIG_NF_CONNTRACK_TIMEOUT) += nf_conntrack_timeout.o
-diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
-new file mode 100644
-index 000000000000..92a51e507fab
---- /dev/null
-+++ b/net/netfilter/utils.c
-@@ -0,0 +1,23 @@
-+#include <linux/kernel.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter_ipv4.h>
-+#include <linux/netfilter_ipv6.h>
-+
-+__sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
-+		    unsigned int dataoff, u_int8_t protocol,
-+		    unsigned short family)
-+{
-+	__sum16 csum = 0;
-+
-+	switch (family) {
-+	case AF_INET:
-+		csum = nf_ip_checksum(skb, hook, dataoff, protocol);
-+		break;
-+	case AF_INET6:
-+		csum = nf_ip6_checksum(skb, hook, dataoff, protocol);
-+		break;
-+	}
-+
-+	return csum;
-+}
-+EXPORT_SYMBOL_GPL(nf_checksum);
--- 
-2.11.0
+> What is allowed in rhs_expr may change internally without breaking ABI
+> or the parser-defined language.
+> 
+> Can you think of a problematic situation? My view is probably a bit
+> rose-coloured. ;)
+>
+> > > On the other hand, having an abstract representation for set elements is
+> > > quite convenient - their string representations might differ (take e.g.
+> > > "22" vs. "ssh") so strcmp() is not sufficient to compare them.
+> > > 
+> > > I hope this allows you to get an idea of how I imagine extended API
+> > > although certainly details are missing here. What do you think about it?
+> > > Are you fine with the general concept so we can discuss details or do
+> > > you see a fundamental problem with it?
+> > 
+> > OK, my understanding is that you would like to operate with some
+> > native library object representation.
+> > 
+> > Most objects (table, chain...) are easy to represent, as you
+> > mentioned. Rules are the most complex ones internally, but you can
+> > probably abstract a simplified representation that suits well for your
+> > usecases, e.g expose them in an iptables like representation -
+> > something like adding matches and actions - Obviously, this needs to
+> > allow to take sets as input, eg.
+> > 
+> >         int meta_match_immediate(struct nft_rule *r, enum nft_meta_type, void *data);
+> >         int meta_match_set(struct nft_rule *r, enum nft_meta_type, struct nft_set *set);
+> > 
+> > meta_match_immediate() adds a meta + cmp to the rule, to compare for
+> > an immediate value. meta_match_set() adds meta + lookup.
+> 
+> Yes, that sounds good. I had something like this in mind:
+> 
+> | struct nft_stmt *nft_meta_match_immediate(enum nft_meta_type, void *data);
+> | int nft_rule_append_stmt(struct nft_rule *r, struct nft_stmt *stmt);
+> 
+> The obvious problem is that at the time that meta match is created,
+> there is no context information. So the second function would have to
+> do that.
+> 
+> I am not sure if this kind of context evaluation works in any case. E.g.
+> set elements are interpreted depending on the set they are added to. To
+> my surprise, that wasn't really an issue - the parser interprets it as
+> constant symbol, when evaluating the expression as part of adding it to
+> the set it is resolved properly. This might not work in any case,
+> though.
 
+Not sure I follow, what's the problem with the "missing context"?
+
+> > A list of use-cases, for the third party application, would be good to
+> > have to design this API.
+> 
+> OK, I'll take firewalld as an example and come up with a number of
+> use-cases which would help there.
+
+Thanks, those use-cases would be very useful to design this.
