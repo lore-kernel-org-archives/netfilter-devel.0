@@ -1,59 +1,34 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: nf_defrag_ipv4: Skip defrag if
- NOTRACK is set
-Date: Sun, 10 Dec 2017 15:53:55 +0100
-Message-ID: <20171210145355.GA24947@salvia>
-References: <1510623446-9115-1-git-send-email-subashab@codeaurora.org>
- <20171209151018.GA5551@salvia>
- <dd0bf36c855a8e2ea41039f2282fb9ff@codeaurora.org>
+From: Pravin Shedge <pravin.shedge4linux@gmail.com>
+Subject: Re: [PATCH 27/45] net: remove duplicate includes
+Date: Sun, 10 Dec 2017 23:30:21 +0530
+Message-ID: <CALSsfODmhEai9JhF_DmOMGnnf6CtjNohoJxWhFxwxddTE0yXkw@mail.gmail.com>
+References: <1512581578-6216-1-git-send-email-pravin.shedge4linux@gmail.com> <20171206.155830.1524390600502175582.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
-        kadlec@blackhole.kfki.hu
-To: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45508 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751616AbdLJOyB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 10 Dec 2017 09:54:01 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5E3971BCFC4
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 15:53:59 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4EA45DA843
-        for <netfilter-devel@vger.kernel.org>; Sun, 10 Dec 2017 15:53:59 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <dd0bf36c855a8e2ea41039f2282fb9ff@codeaurora.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        fw@strlen.de, Andrew Lunn <andrew@lunn.ch>,
+        Ingo Molnar <mingo@kernel.org>, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20171206.155830.1524390600502175582.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Dec 09, 2017 at 07:06:14PM -0700, Subash Abhinov Kasiviswanathan wrote:
-> >Would it work for you if this is specific via global modparam? I'm
-> >telling this because:
-> >
-> >1) This is changing the default behaviour, which is always tricky.
-> >2) This is already solved in nftables, so whatever solution that we
-> >   apply, it should be iptables specific.
-> >
-> >If modparam is fine, just placing a line into
-> >/etc/modprobe.d/options.conf (or similar) should be good enough to
-> >store that you're requesting raw hook registration before defrag.
-> >
-> >Let me know,
-> >Thanks!
-> 
-> Hi Pablo
-> 
-> Can you explain a bit more about the /etc/modprobe.d/ option and how
-> it would be configured for this? /etc/modprobe.d/ doesnt exist on
-> Android based Linux systems so it might be a problem for me.
-> 
-> Would it be an acceptable solution to create a kernel config for this
-> particular feature instead?
+On Thu, Dec 7, 2017 at 2:28 AM, David Miller <davem@davemloft.net> wrote:
+> From: Pravin Shedge <pravin.shedge4linux@gmail.com>
+> Date: Wed,  6 Dec 2017 23:02:58 +0530
+>
+>> These duplicate includes have been found with scripts/checkincludes.pl but
+>> they have been removed manually to avoid removing false positives.
+>>
+>> Signed-off-by: Pravin Shedge <pravin.shedge4linux@gmail.com>
+>
+> Networking patches need to be sent to netdev@vger.kernel.org
+>
+> Thank you.
 
-I'm actually refering to module_param(), that is specified at modprobe
-time. Such parameter would set an alternative hook priority for the
-raw table, ie. before the defrag hook. I guess there must be a way to
-store these module parameters in Android, so whenever modprobe is
-invoked, either explicitly or via module autoload, this module
-parameter is passed to the iptable_raw module.
+-- Adding netdev@vger.kernel.org for reviewing networking patches.
+
+- Thanks & Regards,
+    PraviN
