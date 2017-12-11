@@ -1,38 +1,36 @@
-From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Subject: Re: [PATCH nf-next] netfilter: nf_defrag_ipv4: Skip defrag if NOTRACK
- is set
-Date: Mon, 11 Dec 2017 00:13:26 -0700
-Message-ID: <3abaf0e337d821dfc60297b048c1ecf9@codeaurora.org>
-References: <1510623446-9115-1-git-send-email-subashab@codeaurora.org>
- <20171209151018.GA5551@salvia>
- <dd0bf36c855a8e2ea41039f2282fb9ff@codeaurora.org>
- <20171210145355.GA24947@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
-        kadlec@blackhole.kfki.hu
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: exthdr: add missign attributes to policy
+Date: Mon, 11 Dec 2017 10:14:27 +0100
+Message-ID: <20171211091427.29076-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:58330 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751347AbdLKHN1 (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57602 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751622AbdLKJPx (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Dec 2017 02:13:27 -0500
-In-Reply-To: <20171210145355.GA24947@salvia>
+        Mon, 11 Dec 2017 04:15:53 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> I'm actually refering to module_param(), that is specified at modprobe
-> time. Such parameter would set an alternative hook priority for the
-> raw table, ie. before the defrag hook. I guess there must be a way to
-> store these module parameters in Android, so whenever modprobe is
-> invoked, either explicitly or via module autoload, this module
-> parameter is passed to the iptable_raw module.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nft_exthdr.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Thanks for the clarification Pablo. I'll try this and send a new patch.
-
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index a0a93d987a3b..47ec1046ad11 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -214,6 +214,8 @@ static const struct nla_policy nft_exthdr_policy[NFTA_EXTHDR_MAX + 1] = {
+ 	[NFTA_EXTHDR_OFFSET]		= { .type = NLA_U32 },
+ 	[NFTA_EXTHDR_LEN]		= { .type = NLA_U32 },
+ 	[NFTA_EXTHDR_FLAGS]		= { .type = NLA_U32 },
++	[NFTA_EXTHDR_OP]		= { .type = NLA_U32 },
++	[NFTA_EXTHDR_SREG]		= { .type = NLA_U32 },
+ };
+ 
+ static int nft_exthdr_init(const struct nft_ctx *ctx,
 -- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+2.13.6
+
