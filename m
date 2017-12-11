@@ -1,44 +1,44 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH][netfilter-next] netfilter: conntrack: make struct nf_conntrack_l4proto_gre4 static
-Date: Sun, 10 Dec 2017 23:32:55 +0000
-Message-ID: <20171210233255.15009-1-colin.king@canonical.com>
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Sender: kernel-janitors-owner@vger.kernel.org
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 27/45] net: remove duplicate includes
+Date: Sun, 10 Dec 2017 23:04:32 -0500 (EST)
+Message-ID: <20171210.230432.1241639159245478272.davem@davemloft.net>
+References: <1512581578-6216-1-git-send-email-pravin.shedge4linux@gmail.com>
+        <20171206.155830.1524390600502175582.davem@davemloft.net>
+        <CALSsfODmhEai9JhF_DmOMGnnf6CtjNohoJxWhFxwxddTE0yXkw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        fw@strlen.de, andrew@lunn.ch, mingo@kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org
+To: pravin.shedge4linux@gmail.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CALSsfODmhEai9JhF_DmOMGnnf6CtjNohoJxWhFxwxddTE0yXkw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+From: Pravin Shedge <pravin.shedge4linux@gmail.com>
+Date: Sun, 10 Dec 2017 23:30:21 +0530
 
-The structure nf_conntrack_l4proto_gre4  is local to the source and does
-not need to be in global scope, so make it static.
+> On Thu, Dec 7, 2017 at 2:28 AM, David Miller <davem@davemloft.net> wrote:
+>> From: Pravin Shedge <pravin.shedge4linux@gmail.com>
+>> Date: Wed,  6 Dec 2017 23:02:58 +0530
+>>
+>>> These duplicate includes have been found with scripts/checkincludes.pl but
+>>> they have been removed manually to avoid removing false positives.
+>>>
+>>> Signed-off-by: Pravin Shedge <pravin.shedge4linux@gmail.com>
+>>
+>> Networking patches need to be sent to netdev@vger.kernel.org
+>>
+>> Thank you.
+> 
+> -- Adding netdev@vger.kernel.org for reviewing networking patches.
 
-Cleans up sparse warning:
-symbol 'nf_conntrack_l4proto_gre4' was not declared. Should it be static?
+Doesn't work like that.
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- net/netfilter/nf_conntrack_proto_gre.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+You have to post the actual patch freshly to the netdev mailing list
+so that it gets properly queued in patchwork and can be reviewed.
 
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index 6d8d1276cf3a..86c346ea1dd5 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -352,7 +352,7 @@ static int gre_init_net(struct net *net, u_int16_t proto)
- }
- 
- /* protocol helper struct */
--struct nf_conntrack_l4proto nf_conntrack_l4proto_gre4 = {
-+static struct nf_conntrack_l4proto nf_conntrack_l4proto_gre4 = {
- 	.l3proto	 = AF_INET,
- 	.l4proto	 = IPPROTO_GRE,
- 	.pkt_to_tuple	 = gre_pkt_to_tuple,
--- 
-2.14.1
-
+You can't just add netdev to the CC: in a reply to my email, that
+doesn't do any good at all.
