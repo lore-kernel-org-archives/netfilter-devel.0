@@ -1,44 +1,38 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 27/45] net: remove duplicate includes
-Date: Sun, 10 Dec 2017 23:04:32 -0500 (EST)
-Message-ID: <20171210.230432.1241639159245478272.davem@davemloft.net>
-References: <1512581578-6216-1-git-send-email-pravin.shedge4linux@gmail.com>
-        <20171206.155830.1524390600502175582.davem@davemloft.net>
-        <CALSsfODmhEai9JhF_DmOMGnnf6CtjNohoJxWhFxwxddTE0yXkw@mail.gmail.com>
+From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Subject: Re: [PATCH nf-next] netfilter: nf_defrag_ipv4: Skip defrag if NOTRACK
+ is set
+Date: Mon, 11 Dec 2017 00:13:26 -0700
+Message-ID: <3abaf0e337d821dfc60297b048c1ecf9@codeaurora.org>
+References: <1510623446-9115-1-git-send-email-subashab@codeaurora.org>
+ <20171209151018.GA5551@salvia>
+ <dd0bf36c855a8e2ea41039f2282fb9ff@codeaurora.org>
+ <20171210145355.GA24947@salvia>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        fw@strlen.de, andrew@lunn.ch, mingo@kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org
-To: pravin.shedge4linux@gmail.com
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CALSsfODmhEai9JhF_DmOMGnnf6CtjNohoJxWhFxwxddTE0yXkw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
+        kadlec@blackhole.kfki.hu
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:58330 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751347AbdLKHN1 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 11 Dec 2017 02:13:27 -0500
+In-Reply-To: <20171210145355.GA24947@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pravin Shedge <pravin.shedge4linux@gmail.com>
-Date: Sun, 10 Dec 2017 23:30:21 +0530
+> I'm actually refering to module_param(), that is specified at modprobe
+> time. Such parameter would set an alternative hook priority for the
+> raw table, ie. before the defrag hook. I guess there must be a way to
+> store these module parameters in Android, so whenever modprobe is
+> invoked, either explicitly or via module autoload, this module
+> parameter is passed to the iptable_raw module.
 
-> On Thu, Dec 7, 2017 at 2:28 AM, David Miller <davem@davemloft.net> wrote:
->> From: Pravin Shedge <pravin.shedge4linux@gmail.com>
->> Date: Wed,  6 Dec 2017 23:02:58 +0530
->>
->>> These duplicate includes have been found with scripts/checkincludes.pl but
->>> they have been removed manually to avoid removing false positives.
->>>
->>> Signed-off-by: Pravin Shedge <pravin.shedge4linux@gmail.com>
->>
->> Networking patches need to be sent to netdev@vger.kernel.org
->>
->> Thank you.
-> 
-> -- Adding netdev@vger.kernel.org for reviewing networking patches.
+Thanks for the clarification Pablo. I'll try this and send a new patch.
 
-Doesn't work like that.
-
-You have to post the actual patch freshly to the netdev mailing list
-so that it gets properly queued in patchwork and can be reviewed.
-
-You can't just add netdev to the CC: in a reply to my email, that
-doesn't do any good at all.
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
