@@ -1,41 +1,47 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH][netfilter-next] netfilter: conntrack: make struct
- nf_conntrack_l4proto_gre4 static
-Date: Mon, 11 Dec 2017 10:18:05 +0100
-Message-ID: <20171211091805.GK24449@breakpoint.cc>
-References: <20171210233255.15009-1-colin.king@canonical.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
+Subject: [PATCH nft] netlink_linearize: exthdr op must be u32
+Date: Mon, 11 Dec 2017 10:19:33 +0100
+Message-ID: <20171211091933.28916-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57628 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57646 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752624AbdLKJTn (ORCPT
+        by vger.kernel.org with ESMTP id S1752259AbdLKJVA (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Dec 2017 04:19:43 -0500
-Content-Disposition: inline
-In-Reply-To: <20171210233255.15009-1-colin.king@canonical.com>
+        Mon, 11 Dec 2017 04:21:00 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Colin King <colin.king@canonical.com> wrote:
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> The structure nf_conntrack_l4proto_gre4  is local to the source and does
-> not need to be in global scope, so make it static.
+libnftnl casts this to u32. Broke exthdr expressions on bigendian.
 
-This bug was added in
-commit b9679a9fd3a7d36ea3deb2864a00cc413c5aae28
-netfilter: conntrack: l4 protocol trackers can be const
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/netlink_linearize.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> -struct nf_conntrack_l4proto nf_conntrack_l4proto_gre4 = {
-> +static struct nf_conntrack_l4proto nf_conntrack_l4proto_gre4 = {
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index cf6ffdb05ebf..99a4dde22adb 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -178,7 +178,7 @@ static void netlink_gen_exthdr(struct netlink_linearize_ctx *ctx,
+ 	nftnl_expr_set_u32(nle, NFTNL_EXPR_EXTHDR_OFFSET, offset / BITS_PER_BYTE);
+ 	nftnl_expr_set_u32(nle, NFTNL_EXPR_EXTHDR_LEN,
+ 			   div_round_up(expr->len, BITS_PER_BYTE));
+-	nftnl_expr_set_u8(nle, NFTNL_EXPR_EXTHDR_OP, expr->exthdr.op);
++	nftnl_expr_set_u32(nle, NFTNL_EXPR_EXTHDR_OP, expr->exthdr.op);
+ 	nftnl_expr_set_u32(nle, NFTNL_EXPR_EXTHDR_FLAGS, expr->exthdr.flags);
+ 	nftnl_rule_add_expr(ctx->nlr, nle);
+ }
+@@ -839,7 +839,7 @@ static void netlink_gen_exthdr_stmt(struct netlink_linearize_ctx *ctx,
+ 	nftnl_expr_set_u32(nle, NFTNL_EXPR_EXTHDR_OFFSET, offset / BITS_PER_BYTE);
+ 	nftnl_expr_set_u32(nle, NFTNL_EXPR_EXTHDR_LEN,
+ 			   div_round_up(expr->len, BITS_PER_BYTE));
+-	nftnl_expr_set_u8(nle, NFTNL_EXPR_EXTHDR_OP, expr->exthdr.op);
++	nftnl_expr_set_u32(nle, NFTNL_EXPR_EXTHDR_OP, expr->exthdr.op);
+ 	nftnl_rule_add_expr(ctx->nlr, nle);
+ }
+ 
+-- 
+2.13.6
 
-This should be 'static const'.
