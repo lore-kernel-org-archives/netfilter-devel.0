@@ -1,31 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 27/45] net: remove duplicate includes
-Date: Mon, 11 Dec 2017 20:04:55 +0100
-Message-ID: <20171211190455.GA12285@salvia>
-References: <1513010386-3394-1-git-send-email-pravin.shedge4linux@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, davem@davemloft.net, andrew@lunn.ch,
-        vivien.didelot@savoirfairelinux.com, f.fainelli@gmail.com,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, jhs@mojatatu.com,
-        xiyou.wangcong@gmail.com, mingo@kernel.org,
-        rmk+kernel@armlinux.org.uk, linux-kernel@vger.kernel.org
-To: Pravin Shedge <pravin.shedge4linux@gmail.com>
+From: Debabrata Banerjee <dbanerje@akamai.com>
+Subject: [PATCH] Fix handling of verdicts after NF_QUEUE
+Date: Mon, 11 Dec 2017 18:30:24 -0500
+Message-ID: <20171211233024.18303-1-dbanerje@akamai.com>
+Cc: "David S . Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, stable@vger.kernel.org, dbanerje@akamai.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1513010386-3394-1-git-send-email-pravin.shedge4linux@gmail.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Dec 11, 2017 at 10:09:46PM +0530, Pravin Shedge wrote:
-> These duplicate includes have been found with scripts/checkincludes.pl but
-> they have been removed manually to avoid removing false positives.
-> 
-> Signed-off-by: Pravin Shedge <pravin.shedge4linux@gmail.com>
+A verdict of NF_STOLEN after NF_QUEUE will cause an incorrect return value
+and a potential kernel panic via double free of skb's
 
-For the Netfilter chunk.
+This was broken by commit 7034b566a4e7 ("netfilter: fix nf_queue handling")
+and subsequently fixed in v4.10 by commit c63cbc460419 ("netfilter:
+use switch() to handle verdict cases from nf_hook_slow()"). However that
+commit cannot be cleanly cherry-picked to v4.9
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Debabrata Banerjee <dbanerje@akamai.com>
 
-Thanks.
+---
+
+This fix is only needed for v4.9 stable since v4.10+ does not have the
+issue
+---
+ net/netfilter/core.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 004af030ef1a..d869ea50623e 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -364,6 +364,11 @@ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state)
+ 		ret = nf_queue(skb, state, &entry, verdict);
+ 		if (ret == 1 && entry)
+ 			goto next_hook;
++	} else {
++		/* Implicit handling for NF_STOLEN, as well as any other
++		 * non conventional verdicts.
++		 */
++		ret = 0;
+ 	}
+ 	return ret;
+ }
+-- 
+2.15.1
