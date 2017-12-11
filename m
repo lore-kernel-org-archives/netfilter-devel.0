@@ -1,35 +1,115 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] netlink_linearize: exthdr op must be u32
-Date: Mon, 11 Dec 2017 13:48:02 +0100
-Message-ID: <20171211124802.GA2010@salvia>
-References: <20171211091933.28916-1-fw@strlen.de>
- <20171211124729.GB1550@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36062 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751347AbdLKMsK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 11 Dec 2017 07:48:10 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3E9B469268
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 Dec 2017 13:48:08 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 30A38DA840
-        for <netfilter-devel@vger.kernel.org>; Mon, 11 Dec 2017 13:48:08 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20171211124729.GB1550@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pravin Shedge <pravin.shedge4linux@gmail.com>
+Subject: [PATCH 27/45] net: remove duplicate includes
+Date: Mon, 11 Dec 2017 22:09:46 +0530
+Message-ID: <1513010386-3394-1-git-send-email-pravin.shedge4linux@gmail.com>
+Cc: pravin.shedge4linux@gmail.com, linux-kernel@vger.kernel.org
+To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, davem@davemloft.net, andrew@lunn.ch,
+        vivien.didelot@savoirfairelinux.com, f.fainelli@gmail.com,
+        pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        jhs@mojatatu.com, xiyou.wangcong@gmail.com, mingo@kernel.org,
+        rmk+kernel@armlinux.org.uk
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Dec 11, 2017 at 01:47:29PM +0100, Pablo Neira Ayuso wrote:
-> On Mon, Dec 11, 2017 at 10:19:33AM +0100, Florian Westphal wrote:
-> > libnftnl casts this to u32. Broke exthdr expressions on bigendian.
-> 
-> Applied, thanks.
+These duplicate includes have been found with scripts/checkincludes.pl but
+they have been removed manually to avoid removing false positives.
 
-Push it out yourself as usual.
+Signed-off-by: Pravin Shedge <pravin.shedge4linux@gmail.com>
+---
+ net/core/netprio_cgroup.c            | 1 -
+ net/dsa/slave.c                      | 1 -
+ net/netfilter/nf_conntrack_netlink.c | 1 -
+ net/sched/act_meta_mark.c            | 1 -
+ net/sched/act_meta_skbtcindex.c      | 1 -
+ net/sched/cls_api.c                  | 1 -
+ net/sched/cls_u32.c                  | 1 -
+ 7 files changed, 7 deletions(-)
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+diff --git a/net/core/netprio_cgroup.c b/net/core/netprio_cgroup.c
+index 1c48109..b905747 100644
+--- a/net/core/netprio_cgroup.c
++++ b/net/core/netprio_cgroup.c
+@@ -14,7 +14,6 @@
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+-#include <linux/module.h>
+ #include <linux/string.h>
+ #include <linux/errno.h>
+ #include <linux/skbuff.h>
+diff --git a/net/dsa/slave.c b/net/dsa/slave.c
+index d6e7a64..a95a55f 100644
+--- a/net/dsa/slave.c
++++ b/net/dsa/slave.c
+@@ -16,7 +16,6 @@
+ #include <linux/of_net.h>
+ #include <linux/of_mdio.h>
+ #include <linux/mdio.h>
+-#include <linux/list.h>
+ #include <net/rtnetlink.h>
+ #include <net/pkt_cls.h>
+ #include <net/tc_act/tc_mirred.h>
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 59c0899..332b518 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -45,7 +45,6 @@
+ #include <net/netfilter/nf_conntrack_zones.h>
+ #include <net/netfilter/nf_conntrack_timestamp.h>
+ #include <net/netfilter/nf_conntrack_labels.h>
+-#include <net/netfilter/nf_conntrack_seqadj.h>
+ #include <net/netfilter/nf_conntrack_synproxy.h>
+ #ifdef CONFIG_NF_NAT_NEEDED
+ #include <net/netfilter/nf_nat_core.h>
+diff --git a/net/sched/act_meta_mark.c b/net/sched/act_meta_mark.c
+index 1e3f10e..6445184 100644
+--- a/net/sched/act_meta_mark.c
++++ b/net/sched/act_meta_mark.c
+@@ -22,7 +22,6 @@
+ #include <net/pkt_sched.h>
+ #include <uapi/linux/tc_act/tc_ife.h>
+ #include <net/tc_act/tc_ife.h>
+-#include <linux/rtnetlink.h>
+ 
+ static int skbmark_encode(struct sk_buff *skb, void *skbdata,
+ 			  struct tcf_meta_info *e)
+diff --git a/net/sched/act_meta_skbtcindex.c b/net/sched/act_meta_skbtcindex.c
+index 2ea1f26..7221437 100644
+--- a/net/sched/act_meta_skbtcindex.c
++++ b/net/sched/act_meta_skbtcindex.c
+@@ -22,7 +22,6 @@
+ #include <net/pkt_sched.h>
+ #include <uapi/linux/tc_act/tc_ife.h>
+ #include <net/tc_act/tc_ife.h>
+-#include <linux/rtnetlink.h>
+ 
+ static int skbtcindex_encode(struct sk_buff *skb, void *skbdata,
+ 			     struct tcf_meta_info *e)
+diff --git a/net/sched/cls_api.c b/net/sched/cls_api.c
+index ddcf04b..f40256a 100644
+--- a/net/sched/cls_api.c
++++ b/net/sched/cls_api.c
+@@ -23,7 +23,6 @@
+ #include <linux/skbuff.h>
+ #include <linux/init.h>
+ #include <linux/kmod.h>
+-#include <linux/err.h>
+ #include <linux/slab.h>
+ #include <net/net_namespace.h>
+ #include <net/sock.h>
+diff --git a/net/sched/cls_u32.c b/net/sched/cls_u32.c
+index ac152b4..507859c 100644
+--- a/net/sched/cls_u32.c
++++ b/net/sched/cls_u32.c
+@@ -45,7 +45,6 @@
+ #include <net/netlink.h>
+ #include <net/act_api.h>
+ #include <net/pkt_cls.h>
+-#include <linux/netdevice.h>
+ #include <linux/idr.h>
+ 
+ struct tc_u_knode {
+-- 
+2.7.4
