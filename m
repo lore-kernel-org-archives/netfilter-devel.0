@@ -1,48 +1,27 @@
-From: "Banerjee, Debabrata" <dbanerje@akamai.com>
-Subject: RE: [PATCH] Fix handling of verdicts after NF_QUEUE
-Date: Tue, 12 Dec 2017 00:36:35 +0000
-Message-ID: <3187cfae08f34dd89201f0d2265ab306@usma1ex-dag1mb2.msg.corp.akamai.com>
-References: <20171211233024.18303-1-dbanerje@akamai.com>
- <20171212002318.GA7681@salvia>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [nft PATCH] Fix protocol context update on big-endian systems
+Date: Tue, 12 Dec 2017 13:26:07 +0100
+Message-ID: <20171212122607.GM24449@breakpoint.cc>
+References: <20171209155229.21809-1-phil@nwl.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Cc: "David S . Miller" <davem@davemloft.net>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "coreteam@netfilter.org" <coreteam@netfilter.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "stable@vger.kernel.org" <stable@vger.kernel.org>
-To: 'Pablo Neira Ayuso' <pablo@netfilter.org>
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20171212002318.GA7681@salvia>
-Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+To: Phil Sutter <phil@nwl.cc>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:34398 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750731AbdLLM1k (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 12 Dec 2017 07:27:40 -0500
+Content-Disposition: inline
+In-Reply-To: <20171209155229.21809-1-phil@nwl.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-> From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
-> On Mon, Dec 11, 2017 at 06:30:24PM -0500, Debabrata Banerjee wrote:
-> > +	} else {
-> > +		/* Implicit handling for NF_STOLEN, as well as any other
-> > +		 * non conventional verdicts.
-> > +		 */
-> > +		ret =3D 0;
->=20
-> Another possibility (more simple?) would be this:
->=20
-> int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state) {
->         struct nf_hook_entry *entry;
->         unsigned int verdict;
-> -       int ret =3D 0;
-> +       int ret;
->=20
->         entry =3D rcu_dereference(state->hook_entries);
-> next_hook:
-> +       ret =3D 0;
->=20
-> Basically, make sure ret is set to zero when jumping to the next_hook lab=
-el.
+Phil Sutter <phil@nwl.cc> wrote:
+> There is an obscure bug on big-endian systems when trying to list a rule
+> containing the expression 'ct helper tftp' which triggers the assert()
+> call in mpz_get_type().
 
-Many ways to fix it, but I thought including the comment was appropriate.
-Happy to change it if we want simpler instead.
-
--Deb
+Applied, thanks Phil.
