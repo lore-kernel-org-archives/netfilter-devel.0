@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 03/12] netfilter: nf_ct_h323: Convert CHECK_BOUND macro to function
-Date: Wed, 13 Dec 2017 19:45:11 +0100
-Message-ID: <20171213184520.8193-4-pablo@netfilter.org>
+Subject: [PATCH 02/12] netfilter: exit_net cleanup check added
+Date: Wed, 13 Dec 2017 19:45:10 +0100
+Message-ID: <20171213184520.8193-3-pablo@netfilter.org>
 References: <20171213184520.8193-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,292 +10,119 @@ In-Reply-To: <20171213184520.8193-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Eric Sesterhenn <eric.sesterhenn@x41-dsec.de>
+From: Vasily Averin <vvs@virtuozzo.com>
 
-It is bad practive to return in a macro, this patch
-moves the check into a function.
+Be sure that lists initialized in net_init hook was return to initial
+state.
 
-Signed-off-by: Eric Sesterhenn <eric.sesterhenn@x41-dsec.de>
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_h323_asn1.c | 94 +++++++++++++++++++++++-----------
- 1 file changed, 65 insertions(+), 29 deletions(-)
+ net/ipv4/netfilter/ipt_CLUSTERIP.c | 1 +
+ net/netfilter/nf_tables_api.c      | 7 +++++++
+ net/netfilter/nfnetlink_log.c      | 5 +++++
+ net/netfilter/nfnetlink_queue.c    | 5 +++++
+ net/netfilter/x_tables.c           | 9 +++++++++
+ 5 files changed, 27 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
-index cf1bf2605c10..3d9a009ac147 100644
---- a/net/netfilter/nf_conntrack_h323_asn1.c
-+++ b/net/netfilter/nf_conntrack_h323_asn1.c
-@@ -103,7 +103,6 @@ struct bitstr {
- #define INC_BIT(bs) if((++(bs)->bit)>7){(bs)->cur++;(bs)->bit=0;}
- #define INC_BITS(bs,b) if(((bs)->bit+=(b))>7){(bs)->cur+=(bs)->bit>>3;(bs)->bit&=7;}
- #define BYTE_ALIGN(bs) if((bs)->bit){(bs)->cur++;(bs)->bit=0;}
--#define CHECK_BOUND(bs,n) if((bs)->cur+(n)>(bs)->end)return(H323_ERROR_BOUND)
- static unsigned int get_len(struct bitstr *bs);
- static unsigned int get_bit(struct bitstr *bs);
- static unsigned int get_bits(struct bitstr *bs, unsigned int b);
-@@ -165,6 +164,14 @@ static unsigned int get_len(struct bitstr *bs)
- 	return v;
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 17b4ca562944..e35b8d074f06 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -819,6 +819,7 @@ static void clusterip_net_exit(struct net *net)
+ 	cn->procdir = NULL;
+ #endif
+ 	nf_unregister_net_hook(net, &cip_arp_ops);
++	WARN_ON_ONCE(!list_empty(&cn->configs));
  }
  
-+static int nf_h323_error_boundary(struct bitstr *bs, size_t bytes)
+ static struct pernet_operations clusterip_net_ops = {
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index d8327b43e4dc..10798b357481 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5847,6 +5847,12 @@ static int __net_init nf_tables_init_net(struct net *net)
+ 	return 0;
+ }
+ 
++static void __net_exit nf_tables_exit_net(struct net *net)
 +{
-+	if (*bs->cur + bytes > *bs->end)
-+		return 1;
-+
-+	return 0;
++	WARN_ON_ONCE(!list_empty(&net->nft.af_info));
++	WARN_ON_ONCE(!list_empty(&net->nft.commit_list));
 +}
 +
- /****************************************************************************/
- static unsigned int get_bit(struct bitstr *bs)
+ int __nft_release_basechain(struct nft_ctx *ctx)
  {
-@@ -280,7 +287,8 @@ static int decode_bool(struct bitstr *bs, const struct field_t *f,
+ 	struct nft_rule *rule, *nr;
+@@ -5917,6 +5923,7 @@ static void __nft_release_afinfo(struct net *net, struct nft_af_info *afi)
  
- 	INC_BIT(bs);
+ static struct pernet_operations nf_tables_net_ops = {
+ 	.init	= nf_tables_init_net,
++	.exit	= nf_tables_exit_net,
+ };
  
--	CHECK_BOUND(bs, 0);
-+	if (nf_h323_error_boundary(bs, 0))
-+		return H323_ERROR_BOUND;
- 	return H323_ERROR_NONE;
- }
+ static int __init nf_tables_module_init(void)
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index cad6498f10b0..1f511ed0fea3 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -1093,10 +1093,15 @@ static int __net_init nfnl_log_net_init(struct net *net)
  
-@@ -293,11 +301,14 @@ static int decode_oid(struct bitstr *bs, const struct field_t *f,
- 	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
- 
- 	BYTE_ALIGN(bs);
--	CHECK_BOUND(bs, 1);
-+	if (nf_h323_error_boundary(bs, 1))
-+		return H323_ERROR_BOUND;
+ static void __net_exit nfnl_log_net_exit(struct net *net)
+ {
++	struct nfnl_log_net *log = nfnl_log_pernet(net);
++	unsigned int i;
 +
- 	len = *bs->cur++;
- 	bs->cur += len;
-+	if (nf_h323_error_boundary(bs, 0))
-+		return H323_ERROR_BOUND;
- 
--	CHECK_BOUND(bs, 0);
- 	return H323_ERROR_NONE;
+ #ifdef CONFIG_PROC_FS
+ 	remove_proc_entry("nfnetlink_log", net->nf.proc_netfilter);
+ #endif
+ 	nf_log_unset(net, &nfulnl_logger);
++	for (i = 0; i < INSTANCE_BUCKETS; i++)
++		WARN_ON_ONCE(!hlist_empty(&log->instance_table[i]));
  }
  
-@@ -330,7 +341,8 @@ static int decode_int(struct bitstr *bs, const struct field_t *f,
- 		break;
- 	case UNCO:
- 		BYTE_ALIGN(bs);
--		CHECK_BOUND(bs, 2);
-+		if (nf_h323_error_boundary(bs, 2))
-+			return H323_ERROR_BOUND;
- 		len = get_len(bs);
- 		bs->cur += len;
- 		break;
-@@ -341,7 +353,8 @@ static int decode_int(struct bitstr *bs, const struct field_t *f,
+ static struct pernet_operations nfnl_log_net_ops = {
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index a16356cacec3..c09b36755ed7 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1512,10 +1512,15 @@ static int __net_init nfnl_queue_net_init(struct net *net)
  
- 	PRINT("\n");
- 
--	CHECK_BOUND(bs, 0);
-+	if (nf_h323_error_boundary(bs, 0))
-+		return H323_ERROR_BOUND;
- 	return H323_ERROR_NONE;
+ static void __net_exit nfnl_queue_net_exit(struct net *net)
+ {
++	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
++	unsigned int i;
++
+ 	nf_unregister_queue_handler(net);
+ #ifdef CONFIG_PROC_FS
+ 	remove_proc_entry("nfnetlink_queue", net->nf.proc_netfilter);
+ #endif
++	for (i = 0; i < INSTANCE_BUCKETS; i++)
++		WARN_ON_ONCE(!hlist_empty(&q->instance_table[i]));
  }
  
-@@ -357,7 +370,8 @@ static int decode_enum(struct bitstr *bs, const struct field_t *f,
- 		INC_BITS(bs, f->sz);
- 	}
- 
--	CHECK_BOUND(bs, 0);
-+	if (nf_h323_error_boundary(bs, 0))
-+		return H323_ERROR_BOUND;
- 	return H323_ERROR_NONE;
+ static void nfnl_queue_net_exit_batch(struct list_head *net_exit_list)
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index a77dd514297c..55802e97f906 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1729,8 +1729,17 @@ static int __net_init xt_net_init(struct net *net)
+ 	return 0;
  }
  
-@@ -375,12 +389,14 @@ static int decode_bitstr(struct bitstr *bs, const struct field_t *f,
- 		len = f->lb;
- 		break;
- 	case WORD:		/* 2-byte length */
--		CHECK_BOUND(bs, 2);
-+		if (nf_h323_error_boundary(bs, 2))
-+			return H323_ERROR_BOUND;
- 		len = (*bs->cur++) << 8;
- 		len += (*bs->cur++) + f->lb;
- 		break;
- 	case SEMI:
--		CHECK_BOUND(bs, 2);
-+		if (nf_h323_error_boundary(bs, 2))
-+			return H323_ERROR_BOUND;
- 		len = get_len(bs);
- 		break;
- 	default:
-@@ -391,7 +407,8 @@ static int decode_bitstr(struct bitstr *bs, const struct field_t *f,
- 	bs->cur += len >> 3;
- 	bs->bit = len & 7;
++static void __net_exit xt_net_exit(struct net *net)
++{
++	int i;
++
++	for (i = 0; i < NFPROTO_NUMPROTO; i++)
++		WARN_ON_ONCE(!list_empty(&net->xt.tables[i]));
++}
++
+ static struct pernet_operations xt_net_ops = {
+ 	.init = xt_net_init,
++	.exit = xt_net_exit,
+ };
  
--	CHECK_BOUND(bs, 0);
-+	if (nf_h323_error_boundary(bs, 0))
-+		return H323_ERROR_BOUND;
- 	return H323_ERROR_NONE;
- }
- 
-@@ -409,7 +426,8 @@ static int decode_numstr(struct bitstr *bs, const struct field_t *f,
- 	BYTE_ALIGN(bs);
- 	INC_BITS(bs, (len << 2));
- 
--	CHECK_BOUND(bs, 0);
-+	if (nf_h323_error_boundary(bs, 0))
-+		return H323_ERROR_BOUND;
- 	return H323_ERROR_NONE;
- }
- 
-@@ -440,12 +458,14 @@ static int decode_octstr(struct bitstr *bs, const struct field_t *f,
- 		break;
- 	case BYTE:		/* Range == 256 */
- 		BYTE_ALIGN(bs);
--		CHECK_BOUND(bs, 1);
-+		if (nf_h323_error_boundary(bs, 1))
-+			return H323_ERROR_BOUND;
- 		len = (*bs->cur++) + f->lb;
- 		break;
- 	case SEMI:
- 		BYTE_ALIGN(bs);
--		CHECK_BOUND(bs, 2);
-+		if (nf_h323_error_boundary(bs, 2))
-+			return H323_ERROR_BOUND;
- 		len = get_len(bs) + f->lb;
- 		break;
- 	default:		/* 2 <= Range <= 255 */
-@@ -458,7 +478,8 @@ static int decode_octstr(struct bitstr *bs, const struct field_t *f,
- 
- 	PRINT("\n");
- 
--	CHECK_BOUND(bs, 0);
-+	if (nf_h323_error_boundary(bs, 0))
-+		return H323_ERROR_BOUND;
- 	return H323_ERROR_NONE;
- }
- 
-@@ -473,7 +494,8 @@ static int decode_bmpstr(struct bitstr *bs, const struct field_t *f,
- 	switch (f->sz) {
- 	case BYTE:		/* Range == 256 */
- 		BYTE_ALIGN(bs);
--		CHECK_BOUND(bs, 1);
-+		if (nf_h323_error_boundary(bs, 1))
-+			return H323_ERROR_BOUND;
- 		len = (*bs->cur++) + f->lb;
- 		break;
- 	default:		/* 2 <= Range <= 255 */
-@@ -484,7 +506,8 @@ static int decode_bmpstr(struct bitstr *bs, const struct field_t *f,
- 
- 	bs->cur += len << 1;
- 
--	CHECK_BOUND(bs, 0);
-+	if (nf_h323_error_boundary(bs, 0))
-+		return H323_ERROR_BOUND;
- 	return H323_ERROR_NONE;
- }
- 
-@@ -525,9 +548,11 @@ static int decode_seq(struct bitstr *bs, const struct field_t *f,
- 
- 		/* Decode */
- 		if (son->attr & OPEN) {	/* Open field */
--			CHECK_BOUND(bs, 2);
-+			if (nf_h323_error_boundary(bs, 2))
-+				return H323_ERROR_BOUND;
- 			len = get_len(bs);
--			CHECK_BOUND(bs, len);
-+			if (nf_h323_error_boundary(bs, len))
-+				return H323_ERROR_BOUND;
- 			if (!base || !(son->attr & DECODE)) {
- 				PRINT("%*.s%s\n", (level + 1) * TAB_SIZE,
- 				      " ", son->name);
-@@ -556,7 +581,8 @@ static int decode_seq(struct bitstr *bs, const struct field_t *f,
- 
- 	/* Get the extension bitmap */
- 	bmp2_len = get_bits(bs, 7) + 1;
--	CHECK_BOUND(bs, (bmp2_len + 7) >> 3);
-+	if (nf_h323_error_boundary(bs, (bmp2_len + 7) >> 3))
-+		return H323_ERROR_BOUND;
- 	bmp2 = get_bitmap(bs, bmp2_len);
- 	bmp |= bmp2 >> f->sz;
- 	if (base)
-@@ -567,9 +593,11 @@ static int decode_seq(struct bitstr *bs, const struct field_t *f,
- 	for (opt = 0; opt < bmp2_len; opt++, i++, son++) {
- 		/* Check Range */
- 		if (i >= f->ub) {	/* Newer Version? */
--			CHECK_BOUND(bs, 2);
-+			if (nf_h323_error_boundary(bs, 2))
-+				return H323_ERROR_BOUND;
- 			len = get_len(bs);
--			CHECK_BOUND(bs, len);
-+			if (nf_h323_error_boundary(bs, len))
-+				return H323_ERROR_BOUND;
- 			bs->cur += len;
- 			continue;
- 		}
-@@ -583,9 +611,11 @@ static int decode_seq(struct bitstr *bs, const struct field_t *f,
- 		if (!((0x80000000 >> opt) & bmp2))	/* Not present */
- 			continue;
- 
--		CHECK_BOUND(bs, 2);
-+		if (nf_h323_error_boundary(bs, 2))
-+			return H323_ERROR_BOUND;
- 		len = get_len(bs);
--		CHECK_BOUND(bs, len);
-+		if (nf_h323_error_boundary(bs, len))
-+			return H323_ERROR_BOUND;
- 		if (!base || !(son->attr & DECODE)) {
- 			PRINT("%*.s%s\n", (level + 1) * TAB_SIZE, " ",
- 			      son->name);
-@@ -623,19 +653,22 @@ static int decode_seqof(struct bitstr *bs, const struct field_t *f,
- 	switch (f->sz) {
- 	case BYTE:
- 		BYTE_ALIGN(bs);
--		CHECK_BOUND(bs, 1);
-+		if (nf_h323_error_boundary(bs, 1))
-+			return H323_ERROR_BOUND;
- 		count = *bs->cur++;
- 		break;
- 	case WORD:
- 		BYTE_ALIGN(bs);
--		CHECK_BOUND(bs, 2);
-+		if (nf_h323_error_boundary(bs, 2))
-+			return H323_ERROR_BOUND;
- 		count = *bs->cur++;
- 		count <<= 8;
- 		count += *bs->cur++;
- 		break;
- 	case SEMI:
- 		BYTE_ALIGN(bs);
--		CHECK_BOUND(bs, 2);
-+		if (nf_h323_error_boundary(bs, 2))
-+			return H323_ERROR_BOUND;
- 		count = get_len(bs);
- 		break;
- 	default:
-@@ -659,7 +692,8 @@ static int decode_seqof(struct bitstr *bs, const struct field_t *f,
- 		if (son->attr & OPEN) {
- 			BYTE_ALIGN(bs);
- 			len = get_len(bs);
--			CHECK_BOUND(bs, len);
-+			if (nf_h323_error_boundary(bs, len))
-+				return H323_ERROR_BOUND;
- 			if (!base || !(son->attr & DECODE)) {
- 				PRINT("%*.s%s\n", (level + 1) * TAB_SIZE,
- 				      " ", son->name);
-@@ -728,7 +762,8 @@ static int decode_choice(struct bitstr *bs, const struct field_t *f,
- 	if (type >= f->ub) {	/* Newer version? */
- 		BYTE_ALIGN(bs);
- 		len = get_len(bs);
--		CHECK_BOUND(bs, len);
-+		if (nf_h323_error_boundary(bs, len))
-+			return H323_ERROR_BOUND;
- 		bs->cur += len;
- 		return H323_ERROR_NONE;
- 	}
-@@ -743,7 +778,8 @@ static int decode_choice(struct bitstr *bs, const struct field_t *f,
- 	if (ext || (son->attr & OPEN)) {
- 		BYTE_ALIGN(bs);
- 		len = get_len(bs);
--		CHECK_BOUND(bs, len);
-+		if (nf_h323_error_boundary(bs, len))
-+			return H323_ERROR_BOUND;
- 		if (!base || !(son->attr & DECODE)) {
- 			PRINT("%*.s%s\n", (level + 1) * TAB_SIZE, " ",
- 			      son->name);
+ static int __init xt_init(void)
 -- 
 2.11.0
