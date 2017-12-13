@@ -1,33 +1,49 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/12] Netfilter fixes for net
-Date: Wed, 13 Dec 2017 14:13:33 -0500 (EST)
-Message-ID: <20171213.141333.544676020025193158.davem@davemloft.net>
-References: <20171213184520.8193-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([184.105.139.130]:43110 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753097AbdLMTNf (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 Dec 2017 14:13:35 -0500
-In-Reply-To: <20171213184520.8193-1-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Debabrata Banerjee <dbanerje@akamai.com>
+Subject: [PATCH] Fix handling of verdicts after NF_QUEUE
+Date: Wed, 13 Dec 2017 15:33:37 -0500
+Message-ID: <20171213203337.314-1-dbanerje@akamai.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S . Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, stable@vger.kernel.org, dbanerje@akamai.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed, 13 Dec 2017 19:45:08 +0100
+A verdict of NF_STOLEN after NF_QUEUE will cause an incorrect return value
+and a potential kernel panic via double free of skb's
 
-> The follow patchset contains Netfilter fixes for your net tree,
-> they are:
- ...
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+This was broken by commit 7034b566a4e7 ("netfilter: fix nf_queue handling")
+and subsequently fixed in v4.10 by commit c63cbc460419 ("netfilter:
+use switch() to handle verdict cases from nf_hook_slow()"). However that
+commit cannot be cleanly cherry-picked to v4.9
 
-Pulled, but the attention to detail in these patches could be improved.
+Signed-off-by: Debabrata Banerjee <dbanerje@akamai.com>
 
-There were several obvious typos in the commit messages in this series.
+---
+
+This fix is only needed for v4.9 stable since v4.10+ does not have the
+issue
+---
+ net/netfilter/core.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 004af030ef1a..d869ea50623e 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -364,6 +364,11 @@ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state)
+ 		ret = nf_queue(skb, state, &entry, verdict);
+ 		if (ret == 1 && entry)
+ 			goto next_hook;
++	} else {
++		/* Implicit handling for NF_STOLEN, as well as any other
++		 * non conventional verdicts.
++		 */
++		ret = 0;
+ 	}
+ 	return ret;
+ }
+-- 
+2.15.1
