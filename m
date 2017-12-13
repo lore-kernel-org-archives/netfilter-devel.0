@@ -1,58 +1,42 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] Fix handling of verdicts after NF_QUEUE
-Date: Tue, 12 Dec 2017 23:42:29 +0100
-Message-ID: <20171212224229.GA17187@salvia>
-References: <20171211233024.18303-1-dbanerje@akamai.com>
- <20171212002318.GA7681@salvia>
- <3187cfae08f34dd89201f0d2265ab306@usma1ex-dag1mb2.msg.corp.akamai.com>
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH nf-next] netfilter: meta: secpath support
+Date: Wed, 13 Dec 2017 15:16:22 +0800
+Message-ID: <201712131306.izdruXUk%fengguang.wu@intel.com>
+References: <20171201124021.20973-2-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: "David S . Miller" <davem@davemloft.net>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-        "coreteam@netfilter.org" <coreteam@netfilter.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "stable@vger.kernel.org" <stable@vger.kernel.org>
-To: "Banerjee, Debabrata" <dbanerje@akamai.com>
-Return-path: <stable-owner@vger.kernel.org>
+Cc: kbuild-all@01.org, netfilter-devel@vger.kernel.org,
+        Florian Westphal <fw@strlen.de>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mga12.intel.com ([192.55.52.136]:3360 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753263AbdLMPV2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 13 Dec 2017 10:21:28 -0500
 Content-Disposition: inline
-In-Reply-To: <3187cfae08f34dd89201f0d2265ab306@usma1ex-dag1mb2.msg.corp.akamai.com>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20171201124021.20973-2-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Dec 12, 2017 at 12:36:35AM +0000, Banerjee, Debabrata wrote:
-> > From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
-> > On Mon, Dec 11, 2017 at 06:30:24PM -0500, Debabrata Banerjee wrote:
-> > > +	} else {
-> > > +		/* Implicit handling for NF_STOLEN, as well as any other
-> > > +		 * non conventional verdicts.
-> > > +		 */
-> > > +		ret = 0;
-> > 
-> > Another possibility (more simple?) would be this:
-> > 
-> > int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state) {
-> >         struct nf_hook_entry *entry;
-> >         unsigned int verdict;
-> > -       int ret = 0;
-> > +       int ret;
-> > 
-> >         entry = rcu_dereference(state->hook_entries);
-> > next_hook:
-> > +       ret = 0;
-> > 
-> > Basically, make sure ret is set to zero when jumping to the next_hook label.
-> 
-> Many ways to fix it, but I thought including the comment was appropriate.
-> Happy to change it if we want simpler instead.
+Hi Florian,
 
-OK, let's take this one.
+I love your patch! Perhaps something to improve:
 
-Please, send a patch in git-format-patch, that we can pass to -stable.
+[auto build test WARNING on nf-next/master]
 
-Cc netfilter-devel@vger.kernel.org and stable@vger.kernel.org should
-be fine, you can also include gregkh@linuxfoundation.org since he
-maintains 4.9-stable.
+url:    https://github.com/0day-ci/linux/commits/Florian-Westphal/netfilter-meta-secpath-support/20171204-124857
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+reproduce:
+        # apt-get install sparse
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF=-D__CHECK_ENDIAN__
 
-I'll ack this by when you send it.
 
-Thanks!
+sparse warnings: (new ones prefixed by >>)
+
+
+Please review and possibly fold the followup patch.
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
