@@ -1,97 +1,52 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 07/12] netfilter: nfnetlink_cthelper: Add missing permission checks
-Date: Wed, 13 Dec 2017 19:45:15 +0100
-Message-ID: <20171213184520.8193-8-pablo@netfilter.org>
+Subject: [PATCH 12/12] netfilter: ip6t_MASQUERADE: add dependency on conntrack module
+Date: Wed, 13 Dec 2017 19:45:20 +0100
+Message-ID: <20171213184520.8193-13-pablo@netfilter.org>
 References: <20171213184520.8193-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42558 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753718AbdLMSpg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 13 Dec 2017 13:45:36 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7741B174D02
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 Dec 2017 19:45:34 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 65A0E8E791
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 Dec 2017 19:45:34 +0100 (CET)
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20171213184520.8193-1-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Kevin Cernekee <cernekee@chromium.org>
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 
-The capability check in nfnetlink_rcv() verifies that the caller
-has CAP_NET_ADMIN in the namespace that "owns" the netlink socket.
-However, nfnl_cthelper_list is shared by all net namespaces on the
-system.  An unprivileged user can create user and net namespaces
-in which he holds CAP_NET_ADMIN to bypass the netlink_net_capable()
-check:
+After commit 4d3a57f23dec ("netfilter: conntrack: do not enable connection
+tracking unless needed") conntrack is disabled by default unless some
+module explicitly declares dependency in particular network namespace.
 
-    $ nfct helper list
-    nfct v1.4.4: netlink error: Operation not permitted
-    $ vpnns -- nfct helper list
-    {
-            .name = ftp,
-            .queuenum = 0,
-            .l3protonum = 2,
-            .l4protonum = 6,
-            .priv_data_len = 24,
-            .status = enabled,
-    };
-
-Add capable() checks in nfnetlink_cthelper, as this is cleaner than
-trying to generalize the solution.
-
-Signed-off-by: Kevin Cernekee <cernekee@chromium.org>
+Fixes: a357b3f80bc8 ("netfilter: nat: add dependencies on conntrack module")
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_cthelper.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ net/ipv6/netfilter/ip6t_MASQUERADE.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index 41628b393673..d33ce6d5ebce 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -17,6 +17,7 @@
- #include <linux/types.h>
- #include <linux/list.h>
- #include <linux/errno.h>
-+#include <linux/capability.h>
- #include <net/netlink.h>
- #include <net/sock.h>
+diff --git a/net/ipv6/netfilter/ip6t_MASQUERADE.c b/net/ipv6/netfilter/ip6t_MASQUERADE.c
+index 2b1a15846f9a..92c0047e7e33 100644
+--- a/net/ipv6/netfilter/ip6t_MASQUERADE.c
++++ b/net/ipv6/netfilter/ip6t_MASQUERADE.c
+@@ -33,13 +33,19 @@ static int masquerade_tg6_checkentry(const struct xt_tgchk_param *par)
  
-@@ -407,6 +408,9 @@ static int nfnl_cthelper_new(struct net *net, struct sock *nfnl,
- 	struct nfnl_cthelper *nlcth;
- 	int ret = 0;
- 
-+	if (!capable(CAP_NET_ADMIN))
-+		return -EPERM;
-+
- 	if (!tb[NFCTH_NAME] || !tb[NFCTH_TUPLE])
+ 	if (range->flags & NF_NAT_RANGE_MAP_IPS)
  		return -EINVAL;
- 
-@@ -611,6 +615,9 @@ static int nfnl_cthelper_get(struct net *net, struct sock *nfnl,
- 	struct nfnl_cthelper *nlcth;
- 	bool tuple_set = false;
- 
-+	if (!capable(CAP_NET_ADMIN))
-+		return -EPERM;
+-	return 0;
++	return nf_ct_netns_get(par->net, par->family);
++}
 +
- 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
- 		struct netlink_dump_control c = {
- 			.dump = nfnl_cthelper_dump_table,
-@@ -678,6 +685,9 @@ static int nfnl_cthelper_del(struct net *net, struct sock *nfnl,
- 	struct nfnl_cthelper *nlcth, *n;
- 	int j = 0, ret;
++static void masquerade_tg6_destroy(const struct xt_tgdtor_param *par)
++{
++	nf_ct_netns_put(par->net, par->family);
+ }
  
-+	if (!capable(CAP_NET_ADMIN))
-+		return -EPERM;
-+
- 	if (tb[NFCTH_NAME])
- 		helper_name = nla_data(tb[NFCTH_NAME]);
- 
+ static struct xt_target masquerade_tg6_reg __read_mostly = {
+ 	.name		= "MASQUERADE",
+ 	.family		= NFPROTO_IPV6,
+ 	.checkentry	= masquerade_tg6_checkentry,
++	.destroy	= masquerade_tg6_destroy,
+ 	.target		= masquerade_tg6,
+ 	.targetsize	= sizeof(struct nf_nat_range),
+ 	.table		= "nat",
 -- 
 2.11.0
-
