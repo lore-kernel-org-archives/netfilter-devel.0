@@ -1,47 +1,33 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 10/12] netfilter: ipt_CLUSTERIP: fix clusterip_net_exit build regression
-Date: Wed, 13 Dec 2017 19:45:18 +0100
-Message-ID: <20171213184520.8193-11-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/12] Netfilter fixes for net
+Date: Wed, 13 Dec 2017 14:13:33 -0500 (EST)
+Message-ID: <20171213.141333.544676020025193158.davem@davemloft.net>
 References: <20171213184520.8193-1-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([184.105.139.130]:43110 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753097AbdLMTNf (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 13 Dec 2017 14:13:35 -0500
 In-Reply-To: <20171213184520.8193-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Arnd Bergmann <arnd@arndb.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Wed, 13 Dec 2017 19:45:08 +0100
 
-The added check produces a build error when CONFIG_PROC_FS is
-disabled:
+> The follow patchset contains Netfilter fixes for your net tree,
+> they are:
+ ...
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-net/ipv4/netfilter/ipt_CLUSTERIP.c: In function 'clusterip_net_exit':
-net/ipv4/netfilter/ipt_CLUSTERIP.c:822:28: error: 'cn' undeclared (first use in this function)
+Pulled, but the attention to detail in these patches could be improved.
 
-This moves the variable declaration out of the #ifdef to make it
-available to the WARN_ON_ONCE().
-
-Fixes: 613d0776d3fe ("netfilter: exit_net cleanup check added")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Vasily Averin <vvs@virtuozzo.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/netfilter/ipt_CLUSTERIP.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index e35b8d074f06..69060e3abe85 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -813,8 +813,8 @@ static int clusterip_net_init(struct net *net)
- 
- static void clusterip_net_exit(struct net *net)
- {
--#ifdef CONFIG_PROC_FS
- 	struct clusterip_net *cn = net_generic(net, clusterip_net_id);
-+#ifdef CONFIG_PROC_FS
- 	proc_remove(cn->procdir);
- 	cn->procdir = NULL;
- #endif
--- 
-2.11.0
+There were several obvious typos in the commit messages in this series.
