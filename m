@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 01/12] netfilter: remove redundant assignment to e
-Date: Wed, 13 Dec 2017 19:45:09 +0100
-Message-ID: <20171213184520.8193-2-pablo@netfilter.org>
+Subject: [PATCH 06/12] netfilter: conntrack: clamp timeouts to INT_MAX
+Date: Wed, 13 Dec 2017 19:45:14 +0100
+Message-ID: <20171213184520.8193-7-pablo@netfilter.org>
 References: <20171213184520.8193-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,57 +10,57 @@ In-Reply-To: <20171213184520.8193-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+From: Jay Elliott <jelliott@arista.com>
 
-The assignment to variable e is redundant since the same assignment
-occurs just a few lines later, hence it can be removed.  Cleans up
-clang warning for arp_tables, ip_tables and ip6_tables:
+When the conntracking code multiplies a timeout by HZ, it can overflow
+from positive to negative; this causes it to instantly expire.  To
+protect against this the multiplication is done in 64-bit so we can
+prevent it from exceeding INT_MAX.
 
-warning: Value stored to 'e' is never read
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Jay Elliott <jelliott@arista.com>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/arp_tables.c | 1 -
- net/ipv4/netfilter/ip_tables.c  | 1 -
- net/ipv6/netfilter/ip6_tables.c | 1 -
- 3 files changed, 3 deletions(-)
+ net/netfilter/nf_conntrack_netlink.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index f88221aebc9d..0c3c944a7b72 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -373,7 +373,6 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
- 					if (!xt_find_jump_offset(offsets, newpos,
- 								 newinfo->number))
- 						return 0;
--					e = entry0 + newpos;
- 				} else {
- 					/* ... this is a fallthru */
- 					newpos = pos + e->next_offset;
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 4cbe5e80f3bf..2e0d339028bb 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -439,7 +439,6 @@ mark_source_chains(const struct xt_table_info *newinfo,
- 					if (!xt_find_jump_offset(offsets, newpos,
- 								 newinfo->number))
- 						return 0;
--					e = entry0 + newpos;
- 				} else {
- 					/* ... this is a fallthru */
- 					newpos = pos + e->next_offset;
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index f06e25065a34..1d7ae9366335 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -458,7 +458,6 @@ mark_source_chains(const struct xt_table_info *newinfo,
- 					if (!xt_find_jump_offset(offsets, newpos,
- 								 newinfo->number))
- 						return 0;
--					e = entry0 + newpos;
- 				} else {
- 					/* ... this is a fallthru */
- 					newpos = pos + e->next_offset;
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 59c08997bfdf..66d72a8fa87f 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1566,9 +1566,11 @@ static int ctnetlink_change_helper(struct nf_conn *ct,
+ static int ctnetlink_change_timeout(struct nf_conn *ct,
+ 				    const struct nlattr * const cda[])
+ {
+-	u_int32_t timeout = ntohl(nla_get_be32(cda[CTA_TIMEOUT]));
++	u64 timeout = (u64)ntohl(nla_get_be32(cda[CTA_TIMEOUT])) * HZ;
+ 
+-	ct->timeout = nfct_time_stamp + timeout * HZ;
++	if (timeout > INT_MAX)
++		timeout = INT_MAX;
++	ct->timeout = nfct_time_stamp + (u32)timeout;
+ 
+ 	if (test_bit(IPS_DYING_BIT, &ct->status))
+ 		return -ETIME;
+@@ -1768,6 +1770,7 @@ ctnetlink_create_conntrack(struct net *net,
+ 	int err = -EINVAL;
+ 	struct nf_conntrack_helper *helper;
+ 	struct nf_conn_tstamp *tstamp;
++	u64 timeout;
+ 
+ 	ct = nf_conntrack_alloc(net, zone, otuple, rtuple, GFP_ATOMIC);
+ 	if (IS_ERR(ct))
+@@ -1776,7 +1779,10 @@ ctnetlink_create_conntrack(struct net *net,
+ 	if (!cda[CTA_TIMEOUT])
+ 		goto err1;
+ 
+-	ct->timeout = nfct_time_stamp + ntohl(nla_get_be32(cda[CTA_TIMEOUT])) * HZ;
++	timeout = (u64)ntohl(nla_get_be32(cda[CTA_TIMEOUT])) * HZ;
++	if (timeout > INT_MAX)
++		timeout = INT_MAX;
++	ct->timeout = (u32)timeout + nfct_time_stamp;
+ 
+ 	rcu_read_lock();
+  	if (cda[CTA_HELP]) {
 -- 
 2.11.0
