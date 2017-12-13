@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 06/12] netfilter: conntrack: clamp timeouts to INT_MAX
-Date: Wed, 13 Dec 2017 19:45:14 +0100
-Message-ID: <20171213184520.8193-7-pablo@netfilter.org>
+Subject: [PATCH 05/12] netfilter: conntrack: lower timeout to RETRANS seconds if window is 0
+Date: Wed, 13 Dec 2017 19:45:13 +0100
+Message-ID: <20171213184520.8193-6-pablo@netfilter.org>
 References: <20171213184520.8193-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,57 +10,44 @@ In-Reply-To: <20171213184520.8193-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Jay Elliott <jelliott@arista.com>
+From: Florian Westphal <fw@strlen.de>
 
-When the conntracking code multiplies a timeout by HZ, it can overflow
-from positive to negative; this causes it to instantly expire.  To
-protect against this the multiplication is done in 64-bit so we can
-prevent it from exceeding INT_MAX.
+When zero window is announced we can get into a situation where
+connection stays around forever:
 
-Signed-off-by: Jay Elliott <jelliott@arista.com>
-Acked-by: Florian Westphal <fw@strlen.de>
+1. One side announces zero window.
+2. Other side closes.
+
+In this case, no FIN is sent (stuck in send queue).
+
+Unless other side opens the window up again conntrack
+stays in ESTABLISHED state for a very long time.
+
+Lets alleviate this by lowering the timeout to RETRANS (5 minutes),
+the other end should be sending zero window probes to keep the
+connection established as long as a socket still exists.
+
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_netlink.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ net/netfilter/nf_conntrack_proto_tcp.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 59c08997bfdf..66d72a8fa87f 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1566,9 +1566,11 @@ static int ctnetlink_change_helper(struct nf_conn *ct,
- static int ctnetlink_change_timeout(struct nf_conn *ct,
- 				    const struct nlattr * const cda[])
- {
--	u_int32_t timeout = ntohl(nla_get_be32(cda[CTA_TIMEOUT]));
-+	u64 timeout = (u64)ntohl(nla_get_be32(cda[CTA_TIMEOUT])) * HZ;
- 
--	ct->timeout = nfct_time_stamp + timeout * HZ;
-+	if (timeout > INT_MAX)
-+		timeout = INT_MAX;
-+	ct->timeout = nfct_time_stamp + (u32)timeout;
- 
- 	if (test_bit(IPS_DYING_BIT, &ct->status))
- 		return -ETIME;
-@@ -1768,6 +1770,7 @@ ctnetlink_create_conntrack(struct net *net,
- 	int err = -EINVAL;
- 	struct nf_conntrack_helper *helper;
- 	struct nf_conn_tstamp *tstamp;
-+	u64 timeout;
- 
- 	ct = nf_conntrack_alloc(net, zone, otuple, rtuple, GFP_ATOMIC);
- 	if (IS_ERR(ct))
-@@ -1776,7 +1779,10 @@ ctnetlink_create_conntrack(struct net *net,
- 	if (!cda[CTA_TIMEOUT])
- 		goto err1;
- 
--	ct->timeout = nfct_time_stamp + ntohl(nla_get_be32(cda[CTA_TIMEOUT])) * HZ;
-+	timeout = (u64)ntohl(nla_get_be32(cda[CTA_TIMEOUT])) * HZ;
-+	if (timeout > INT_MAX)
-+		timeout = INT_MAX;
-+	ct->timeout = (u32)timeout + nfct_time_stamp;
- 
- 	rcu_read_lock();
-  	if (cda[CTA_HELP]) {
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index b12fc07111d0..37ef35b861f2 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1039,6 +1039,9 @@ static int tcp_packet(struct nf_conn *ct,
+ 		 IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED &&
+ 		 timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
+ 		timeout = timeouts[TCP_CONNTRACK_UNACK];
++	else if (ct->proto.tcp.last_win == 0 &&
++		 timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
++		timeout = timeouts[TCP_CONNTRACK_RETRANS];
+ 	else
+ 		timeout = timeouts[new_state];
+ 	spin_unlock_bh(&ct->lock);
 -- 
 2.11.0
