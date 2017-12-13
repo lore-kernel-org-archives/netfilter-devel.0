@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 09/12] netfilter: xt_osf: Add missing permission checks
-Date: Wed, 13 Dec 2017 19:45:17 +0100
-Message-ID: <20171213184520.8193-10-pablo@netfilter.org>
+Subject: [PATCH 11/12] netfilter: exthdr: add missign attributes to policy
+Date: Wed, 13 Dec 2017 19:45:19 +0100
+Message-ID: <20171213184520.8193-12-pablo@netfilter.org>
 References: <20171213184520.8193-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,59 +10,28 @@ In-Reply-To: <20171213184520.8193-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Kevin Cernekee <cernekee@chromium.org>
+From: Florian Westphal <fw@strlen.de>
 
-The capability check in nfnetlink_rcv() verifies that the caller
-has CAP_NET_ADMIN in the namespace that "owns" the netlink socket.
-However, xt_osf_fingers is shared by all net namespaces on the
-system.  An unprivileged user can create user and net namespaces
-in which he holds CAP_NET_ADMIN to bypass the netlink_net_capable()
-check:
+Add missing netlink attribute policy.
 
-    vpnns -- nfnl_osf -f /tmp/pf.os
-
-    vpnns -- nfnl_osf -f /tmp/pf.os -d
-
-These non-root operations successfully modify the systemwide OS
-fingerprint list.  Add new capable() checks so that they can't.
-
-Signed-off-by: Kevin Cernekee <cernekee@chromium.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_osf.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ net/netfilter/nft_exthdr.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/net/netfilter/xt_osf.c b/net/netfilter/xt_osf.c
-index 36e14b1f061d..a34f314a8c23 100644
---- a/net/netfilter/xt_osf.c
-+++ b/net/netfilter/xt_osf.c
-@@ -19,6 +19,7 @@
- #include <linux/module.h>
- #include <linux/kernel.h>
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index a0a93d987a3b..47ec1046ad11 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -214,6 +214,8 @@ static const struct nla_policy nft_exthdr_policy[NFTA_EXTHDR_MAX + 1] = {
+ 	[NFTA_EXTHDR_OFFSET]		= { .type = NLA_U32 },
+ 	[NFTA_EXTHDR_LEN]		= { .type = NLA_U32 },
+ 	[NFTA_EXTHDR_FLAGS]		= { .type = NLA_U32 },
++	[NFTA_EXTHDR_OP]		= { .type = NLA_U32 },
++	[NFTA_EXTHDR_SREG]		= { .type = NLA_U32 },
+ };
  
-+#include <linux/capability.h>
- #include <linux/if.h>
- #include <linux/inetdevice.h>
- #include <linux/ip.h>
-@@ -70,6 +71,9 @@ static int xt_osf_add_callback(struct net *net, struct sock *ctnl,
- 	struct xt_osf_finger *kf = NULL, *sf;
- 	int err = 0;
- 
-+	if (!capable(CAP_NET_ADMIN))
-+		return -EPERM;
-+
- 	if (!osf_attrs[OSF_ATTR_FINGER])
- 		return -EINVAL;
- 
-@@ -115,6 +119,9 @@ static int xt_osf_remove_callback(struct net *net, struct sock *ctnl,
- 	struct xt_osf_finger *sf;
- 	int err = -ENOENT;
- 
-+	if (!capable(CAP_NET_ADMIN))
-+		return -EPERM;
-+
- 	if (!osf_attrs[OSF_ATTR_FINGER])
- 		return -EINVAL;
- 
+ static int nft_exthdr_init(const struct nft_ctx *ctx,
 -- 
 2.11.0
