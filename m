@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 12/12] netfilter: ip6t_MASQUERADE: add dependency on conntrack module
-Date: Wed, 13 Dec 2017 19:45:20 +0100
-Message-ID: <20171213184520.8193-13-pablo@netfilter.org>
+Subject: [PATCH 09/12] netfilter: xt_osf: Add missing permission checks
+Date: Wed, 13 Dec 2017 19:45:17 +0100
+Message-ID: <20171213184520.8193-10-pablo@netfilter.org>
 References: <20171213184520.8193-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,43 +10,59 @@ In-Reply-To: <20171213184520.8193-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+From: Kevin Cernekee <cernekee@chromium.org>
 
-After commit 4d3a57f23dec ("netfilter: conntrack: do not enable connection
-tracking unless needed") conntrack is disabled by default unless some
-module explicitly declares dependency in particular network namespace.
+The capability check in nfnetlink_rcv() verifies that the caller
+has CAP_NET_ADMIN in the namespace that "owns" the netlink socket.
+However, xt_osf_fingers is shared by all net namespaces on the
+system.  An unprivileged user can create user and net namespaces
+in which he holds CAP_NET_ADMIN to bypass the netlink_net_capable()
+check:
 
-Fixes: a357b3f80bc8 ("netfilter: nat: add dependencies on conntrack module")
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+    vpnns -- nfnl_osf -f /tmp/pf.os
+
+    vpnns -- nfnl_osf -f /tmp/pf.os -d
+
+These non-root operations successfully modify the systemwide OS
+fingerprint list.  Add new capable() checks so that they can't.
+
+Signed-off-by: Kevin Cernekee <cernekee@chromium.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv6/netfilter/ip6t_MASQUERADE.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ net/netfilter/xt_osf.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/net/ipv6/netfilter/ip6t_MASQUERADE.c b/net/ipv6/netfilter/ip6t_MASQUERADE.c
-index 2b1a15846f9a..92c0047e7e33 100644
---- a/net/ipv6/netfilter/ip6t_MASQUERADE.c
-+++ b/net/ipv6/netfilter/ip6t_MASQUERADE.c
-@@ -33,13 +33,19 @@ static int masquerade_tg6_checkentry(const struct xt_tgchk_param *par)
+diff --git a/net/netfilter/xt_osf.c b/net/netfilter/xt_osf.c
+index 36e14b1f061d..a34f314a8c23 100644
+--- a/net/netfilter/xt_osf.c
++++ b/net/netfilter/xt_osf.c
+@@ -19,6 +19,7 @@
+ #include <linux/module.h>
+ #include <linux/kernel.h>
  
- 	if (range->flags & NF_NAT_RANGE_MAP_IPS)
- 		return -EINVAL;
--	return 0;
-+	return nf_ct_netns_get(par->net, par->family);
-+}
++#include <linux/capability.h>
+ #include <linux/if.h>
+ #include <linux/inetdevice.h>
+ #include <linux/ip.h>
+@@ -70,6 +71,9 @@ static int xt_osf_add_callback(struct net *net, struct sock *ctnl,
+ 	struct xt_osf_finger *kf = NULL, *sf;
+ 	int err = 0;
+ 
++	if (!capable(CAP_NET_ADMIN))
++		return -EPERM;
 +
-+static void masquerade_tg6_destroy(const struct xt_tgdtor_param *par)
-+{
-+	nf_ct_netns_put(par->net, par->family);
- }
+ 	if (!osf_attrs[OSF_ATTR_FINGER])
+ 		return -EINVAL;
  
- static struct xt_target masquerade_tg6_reg __read_mostly = {
- 	.name		= "MASQUERADE",
- 	.family		= NFPROTO_IPV6,
- 	.checkentry	= masquerade_tg6_checkentry,
-+	.destroy	= masquerade_tg6_destroy,
- 	.target		= masquerade_tg6,
- 	.targetsize	= sizeof(struct nf_nat_range),
- 	.table		= "nat",
+@@ -115,6 +119,9 @@ static int xt_osf_remove_callback(struct net *net, struct sock *ctnl,
+ 	struct xt_osf_finger *sf;
+ 	int err = -ENOENT;
+ 
++	if (!capable(CAP_NET_ADMIN))
++		return -EPERM;
++
+ 	if (!osf_attrs[OSF_ATTR_FINGER])
+ 		return -EINVAL;
+ 
 -- 
 2.11.0
