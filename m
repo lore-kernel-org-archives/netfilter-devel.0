@@ -1,43 +1,44 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] Fix handling of verdicts after NF_QUEUE
-Date: Thu, 14 Dec 2017 18:39:34 +0100
-Message-ID: <20171214173934.GA10610@kroah.com>
-References: <20171213203337.314-1-dbanerje@akamai.com>
- <20171214123008.jae4xa4nnpqdeoli@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Debabrata Banerjee <dbanerje@akamai.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, stable@vger.kernel.org
+From: Phil Sutter <phil@nwl.cc>
+Subject: [libnftnl PATCH 2/6] src/gen: Remove a pointless call to mnl_nlmsg_get_payload()
+Date: Thu, 14 Dec 2017 20:40:21 +0100
+Message-ID: <20171214194025.21334-3-phil@nwl.cc>
+References: <20171214194025.21334-1-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171214123008.jae4xa4nnpqdeoli@salvia>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from orbyte.nwl.cc ([151.80.46.58]:58052 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751952AbdLNTkh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 14 Dec 2017 14:40:37 -0500
+In-Reply-To: <20171214194025.21334-1-phil@nwl.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Dec 14, 2017 at 01:30:08PM +0100, Pablo Neira Ayuso wrote:
-> Hi Greg,
-> 
-> I'd appreciate if you can take this patch into 4.9-stable. There is no
-> similar patch in tree, so this is not a backport.
-> 
-> On Wed, Dec 13, 2017 at 03:33:37PM -0500, Debabrata Banerjee wrote:
-> > A verdict of NF_STOLEN after NF_QUEUE will cause an incorrect return value
-> > and a potential kernel panic via double free of skb's
-> > 
-> > This was broken by commit 7034b566a4e7 ("netfilter: fix nf_queue handling")
-> > and subsequently fixed in v4.10 by commit c63cbc460419 ("netfilter:
-> > use switch() to handle verdict cases from nf_hook_slow()"). However that
-> > commit cannot be cleanly cherry-picked to v4.9
-> > 
-> > Signed-off-by: Debabrata Banerjee <dbanerje@akamai.com>
-> 
-> Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> Thanks a lot!
+It is a common idiom in all *_nlmsg_parse() functions, but
+nftnl_gen_nlmsg_parse() doesn't make use of the data pointer and the
+compiler probably can't eliminate it since there could be a side-effect.
 
-Now applied, thanks.
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ src/gen.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-greg k-h
+diff --git a/src/gen.c b/src/gen.c
+index 58b3a96dbdcb9..eafb015a25345 100644
+--- a/src/gen.c
++++ b/src/gen.c
+@@ -143,9 +143,9 @@ static int nftnl_gen_parse_attr_cb(const struct nlattr *attr, void *data)
+ int nftnl_gen_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_gen *gen)
+ {
+ 	struct nlattr *tb[NFTA_GEN_MAX + 1] = {};
+-	struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);
+ 
+-	if (mnl_attr_parse(nlh, sizeof(*nfg), nftnl_gen_parse_attr_cb, tb) < 0)
++	if (mnl_attr_parse(nlh, sizeof(struct nfgenmsg),
++			   nftnl_gen_parse_attr_cb, tb) < 0)
+ 		return -1;
+ 
+ 	if (tb[NFTA_GEN_ID]) {
+-- 
+2.13.1
+
