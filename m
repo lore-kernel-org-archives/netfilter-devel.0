@@ -1,41 +1,54 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [libnftnl PATCH 3/6] src/object: Avoid returning garbage in nftnl_obj_do_parse()
-Date: Thu, 14 Dec 2017 20:40:22 +0100
-Message-ID: <20171214194025.21334-4-phil@nwl.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftnl PATCH 1/6] nftnl_data_reg_snprintf: Add a missing break
+Date: Fri, 15 Dec 2017 16:17:47 +0100
+Message-ID: <20171215151747.fh4lhlc5bwvw2dn3@salvia>
 References: <20171214194025.21334-1-phil@nwl.cc>
+ <20171214194025.21334-2-phil@nwl.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:58088 "EHLO orbyte.nwl.cc"
+Received: from mail.us.es ([193.147.175.20]:35448 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751952AbdLNTlI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 14 Dec 2017 14:41:08 -0500
-In-Reply-To: <20171214194025.21334-1-phil@nwl.cc>
+        id S1756692AbdLOPRv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 15 Dec 2017 10:17:51 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id B860EC514E
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Dec 2017 16:17:49 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A4340FC5E6
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Dec 2017 16:17:49 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20171214194025.21334-2-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It may happen that 'perr' variable does not get initialized, so making
-parameter 'err' point to it in any case is error-prone. Avoid this by
-initializing 'perr' upon declaration.
+On Thu, Dec 14, 2017 at 08:40:20PM +0100, Phil Sutter wrote:
+> The code works fine as-is, but if reg_type == DATA_VALUE &&
+> output_format == NFTNL_OUTPUT_XML, we fall through to DATA_CHAIN case
+> and therefore pointlessly check output_format again.
+> 
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+>  src/expr/data_reg.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/src/expr/data_reg.c b/src/expr/data_reg.c
+> index a246952f7f01b..c087d792a8af6 100644
+> --- a/src/expr/data_reg.c
+> +++ b/src/expr/data_reg.c
+> @@ -207,6 +207,7 @@ int nftnl_data_reg_snprintf(char *buf, size_t size,
+>  		default:
+>  			break;
+>  		}
+> +		break;
+>  	case DATA_VERDICT:
+>  	case DATA_CHAIN:
+>  		switch(output_format) {
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- src/object.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I'm going to add a break also at the end of 'case DATA_CHAIN:', recent
+gcc can spot warning on implicit fall through without comments, so
+let's fix that spot too.
 
-diff --git a/src/object.c b/src/object.c
-index 9a4ee712a2a95..da3423bf3381a 100644
---- a/src/object.c
-+++ b/src/object.c
-@@ -358,7 +358,7 @@ static int nftnl_obj_do_parse(struct nftnl_obj *obj, enum nftnl_parse_type type,
- 			      const void *data, struct nftnl_parse_err *err,
- 			      enum nftnl_parse_input input)
- {
--	struct nftnl_parse_err perr;
-+	struct nftnl_parse_err perr = {};
- 	int ret;
- 
- 	switch (type) {
--- 
-2.13.1
-
+Applied, thanks!
