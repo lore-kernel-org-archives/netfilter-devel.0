@@ -1,24 +1,24 @@
 From: kbuild test robot <fengguang.wu@intel.com>
-Subject: [nf-next:for-net-next 33/40] include/linux/netfilter_ipv6.h:36:8:
- error: unknown type name 'inline__sum16'
-Date: Tue, 19 Dec 2017 07:12:26 +0800
-Message-ID: <201712190724.IVsNwECh%fengguang.wu@intel.com>
+Subject: [nf-next:for-net-next 33/40] net//ipv6/netfilter.c:166:9: error:
+ conflicting types for 'nf_ip6_checksum_partial'
+Date: Tue, 19 Dec 2017 07:30:47 +0800
+Message-ID: <201712190745.8sMxy72X%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="X1bOJ3K7DJ5YkBrT"
+Content-Type: multipart/mixed; boundary="FL5UXtIhxfXey3p5"
 Cc: kbuild-all@01.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:36948 "EHLO mga03.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:38006 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934683AbdLRXNX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 Dec 2017 18:13:23 -0500
+        id S932759AbdLRXbF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 18 Dec 2017 18:31:05 -0500
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---X1bOJ3K7DJ5YkBrT
+--FL5UXtIhxfXey3p5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
@@ -36,85 +36,99 @@ reproduce:
 
 All errors (new ones prefixed by >>):
 
-   In file included from net/bridge/br_netfilter_hooks.c:30:0:
->> include/linux/netfilter_ipv6.h:36:8: error: unknown type name 'inline__sum16'
+   In file included from net//ipv6/netfilter.c:11:0:
+   include/linux/netfilter_ipv6.h:36:8: error: unknown type name 'inline__sum16'
     static inline__sum16 nf_ip6_checksum_partial(struct sk_buff *skb,
            ^~~~~~~~~~~~~
-   include/linux/netfilter_ipv6.h:36:22: warning: 'nf_ip6_checksum_partial' defined but not used [-Wunused-function]
+   net//ipv6/netfilter.c:133:9: error: redefinition of 'nf_ip6_checksum'
+    __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
+            ^~~~~~~~~~~~~~~
+   In file included from net//ipv6/netfilter.c:11:0:
+   include/linux/netfilter_ipv6.h:31:23: note: previous definition of 'nf_ip6_checksum' was here
+    static inline __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
+                          ^~~~~~~~~~~~~~~
+>> net//ipv6/netfilter.c:166:9: error: conflicting types for 'nf_ip6_checksum_partial'
+    __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
+            ^~~~~~~~~~~~~~~~~~~~~~~
+   In file included from net//ipv6/netfilter.c:11:0:
+   include/linux/netfilter_ipv6.h:36:22: note: previous definition of 'nf_ip6_checksum_partial' was here
     static inline__sum16 nf_ip6_checksum_partial(struct sk_buff *skb,
                          ^~~~~~~~~~~~~~~~~~~~~~~
---
-   In file included from include/uapi/linux/netfilter_ipv6/ip6_tables.h:22:0,
-                    from include/linux/netfilter_ipv6/ip6_tables.h:24,
-                    from include/net/netfilter/nf_tables_ipv6.h:5,
-                    from net/bridge/netfilter/nf_tables_bridge.c:19:
->> include/linux/netfilter_ipv6.h:36:8: error: unknown type name 'inline__sum16'
-    static inline__sum16 nf_ip6_checksum_partial(struct sk_buff *skb,
-           ^~~~~~~~~~~~~
-   net/bridge/netfilter/nf_tables_bridge.c:130:3: error: 'const struct nf_afinfo' has no member named 'checksum'
-     .checksum               = nf_br_checksum,
-      ^~~~~~~~
-   net/bridge/netfilter/nf_tables_bridge.c:130:28: error: initialization from incompatible pointer type [-Werror=incompatible-pointer-types]
-     .checksum               = nf_br_checksum,
-                               ^~~~~~~~~~~~~~
-   net/bridge/netfilter/nf_tables_bridge.c:130:28: note: (near initialization for 'nf_br_afinfo.route')
-   net/bridge/netfilter/nf_tables_bridge.c:131:3: error: 'const struct nf_afinfo' has no member named 'checksum_partial'
-     .checksum_partial       = nf_br_checksum_partial,
-      ^~~~~~~~~~~~~~~~
-   net/bridge/netfilter/nf_tables_bridge.c:131:28: error: initialization from incompatible pointer type [-Werror=incompatible-pointer-types]
-     .checksum_partial       = nf_br_checksum_partial,
-                               ^~~~~~~~~~~~~~~~~~~~~~
-   net/bridge/netfilter/nf_tables_bridge.c:131:28: note: (near initialization for 'nf_br_afinfo.saveroute')
-   In file included from include/uapi/linux/netfilter_ipv6/ip6_tables.h:22:0,
-                    from include/linux/netfilter_ipv6/ip6_tables.h:24,
-                    from include/net/netfilter/nf_tables_ipv6.h:5,
-                    from net/bridge/netfilter/nf_tables_bridge.c:19:
    include/linux/netfilter_ipv6.h:36:22: warning: 'nf_ip6_checksum_partial' defined but not used [-Wunused-function]
-    static inline__sum16 nf_ip6_checksum_partial(struct sk_buff *skb,
-                         ^~~~~~~~~~~~~~~~~~~~~~~
-   cc1: some warnings being treated as errors
---
-   In file included from net/netfilter/utils.c:4:0:
->> include/linux/netfilter_ipv6.h:36:8: error: unknown type name 'inline__sum16'
-    static inline__sum16 nf_ip6_checksum_partial(struct sk_buff *skb,
-           ^~~~~~~~~~~~~
 
-vim +/inline__sum16 +36 include/linux/netfilter_ipv6.h
+vim +/nf_ip6_checksum_partial +166 net//ipv6/netfilter.c
 
-    23	
-    24	#if defined(CONFIG_IPV6)
-    25	__sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
-    26				unsigned int dataoff, u_int8_t protocol);
-    27	__sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
-    28					unsigned int dataoff, unsigned int len,
-    29					u_int8_t protocol);
-    30	#else
-    31	static inline __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
-    32					      unsigned int dataoff, u_int8_t protocol)
-    33	{
-    34		return 0;
-    35	}
-  > 36	static inline__sum16 nf_ip6_checksum_partial(struct sk_buff *skb,
-    37						     unsigned int hook,
-    38						     unsigned int dataoff,
-    39						     unsigned int len,
-    40						     u_int8_t protocol)
-    41	{
-    42		return 0;
-    43	}
-    44	#endif
-    45	
+   132	
+ > 133	__sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
+   134				     unsigned int dataoff, u_int8_t protocol)
+   135	{
+   136		const struct ipv6hdr *ip6h = ipv6_hdr(skb);
+   137		__sum16 csum = 0;
+   138	
+   139		switch (skb->ip_summed) {
+   140		case CHECKSUM_COMPLETE:
+   141			if (hook != NF_INET_PRE_ROUTING && hook != NF_INET_LOCAL_IN)
+   142				break;
+   143			if (!csum_ipv6_magic(&ip6h->saddr, &ip6h->daddr,
+   144					     skb->len - dataoff, protocol,
+   145					     csum_sub(skb->csum,
+   146						      skb_checksum(skb, 0,
+   147								   dataoff, 0)))) {
+   148				skb->ip_summed = CHECKSUM_UNNECESSARY;
+   149				break;
+   150			}
+   151			/* fall through */
+   152		case CHECKSUM_NONE:
+   153			skb->csum = ~csum_unfold(
+   154					csum_ipv6_magic(&ip6h->saddr, &ip6h->daddr,
+   155						     skb->len - dataoff,
+   156						     protocol,
+   157						     csum_sub(0,
+   158							      skb_checksum(skb, 0,
+   159									   dataoff, 0))));
+   160			csum = __skb_checksum_complete(skb);
+   161		}
+   162		return csum;
+   163	}
+   164	EXPORT_SYMBOL(nf_ip6_checksum);
+   165	
+ > 166	__sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
+   167					unsigned int dataoff, unsigned int len,
+   168					u_int8_t protocol)
+   169	{
+   170		const struct ipv6hdr *ip6h = ipv6_hdr(skb);
+   171		__wsum hsum;
+   172		__sum16 csum = 0;
+   173	
+   174		switch (skb->ip_summed) {
+   175		case CHECKSUM_COMPLETE:
+   176			if (len == skb->len - dataoff)
+   177				return nf_ip6_checksum(skb, hook, dataoff, protocol);
+   178			/* fall through */
+   179		case CHECKSUM_NONE:
+   180			hsum = skb_checksum(skb, 0, dataoff, 0);
+   181			skb->csum = ~csum_unfold(csum_ipv6_magic(&ip6h->saddr,
+   182								 &ip6h->daddr,
+   183								 skb->len - dataoff,
+   184								 protocol,
+   185								 csum_sub(0, hsum)));
+   186			skb->ip_summed = CHECKSUM_NONE;
+   187			return __skb_checksum_complete_head(skb, dataoff + len);
+   188		}
+   189		return csum;
+   190	};
+   191	
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---X1bOJ3K7DJ5YkBrT
+--FL5UXtIhxfXey3p5
 Content-Type: application/gzip
 Content-Disposition: attachment; filename=".config.gz"
 Content-Transfer-Encoding: base64
 
-H4sICFpKOFoAAy5jb25maWcAlFxbc+O2kn7Pr1BN9mG36iRjyxNlslt+AElQxBFJ0AQo2X5h
+H4sICDFOOFoAAy5jb25maWcAlFxbc+O2kn7Pr1BN9mG36iRjyxNlslt+AElQxBFJ0AQo2X5h
 aWzNjCu25JI0Sebfbzd4w430nJdk+HXj1mj0DZB//unnGfl2Prxsz08P2+fn77Mvu/3uuD3v
 Hmefn553/zeL+CznckYjJn8F5vRp/+2f9/+cd/vTdvbh18sPv178cnz4OFvtjvvd8yw87D8/
 ffkGHTwd9j/9/FPI85gt63ue0zrKyPX3DrmVNBfad7kRNKtvw2RJoqgm6ZKXTCbZwLCkOS1Z
@@ -1071,4 +1085,4 @@ X+7MVWkTwknJJd0jsjLyfwmSt8j8o7sjT/QpM2TN120XlNuKsy9dQ5MT47JOqFsAY+rT0NaX
 AQhrRmdCgwpGoRDgWOOjO3kVXnYYgBaHr4vwadMWQk8Bujh6PSJCw2Bqd0aDMQarT5eZtx3h
 MkBuNMhMKi3msusSXdFkQNNnLE0aapBtBApSrrsCBKeXGNUnTJEN7f8sf634Qy4DAA==
 
---X1bOJ3K7DJ5YkBrT--
+--FL5UXtIhxfXey3p5--
