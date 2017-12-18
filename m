@@ -1,194 +1,313 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: libnftables extended API proposal
-Date: Tue, 19 Dec 2017 00:00:48 +0100
-Message-ID: <20171218230048.pwtnnezyxyhh4geu@salvia>
-References: <20171204100955.GA1822@salvia>
- <20171204105324.GX32305@orbyte.nwl.cc>
- <20171204110142.GA19776@salvia>
- <20171204164327.GA32305@orbyte.nwl.cc>
- <20171204184604.GA1556@salvia>
- <20171205134317.GE32305@orbyte.nwl.cc>
- <20171207000545.GA27739@salvia>
- <20171207113431.GF32305@orbyte.nwl.cc>
- <20171210215540.GA14363@salvia>
- <20171216160651.GP32305@orbyte.nwl.cc>
+From: kbuild test robot <fengguang.wu@intel.com>
+Subject: [nf-next:for-net-next 34/40] include/linux/netfilter_ipv6.h:30:57:
+ warning: 'struct nf_queue_entry' declared inside parameter list will not be
+ visible outside of this definition or declaration
+Date: Tue, 19 Dec 2017 07:04:33 +0800
+Message-ID: <201712190730.2fMB5VpR%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
-        Florian Westphal <fw@strlen.de>
+Content-Type: multipart/mixed; boundary="k1lZvvs/B4yU6o8G"
+Cc: kbuild-all@01.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41286 "EHLO mail.us.es"
+Received: from mga01.intel.com ([192.55.52.88]:49895 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935208AbdLRXAx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 Dec 2017 18:00:53 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 19B50EDB08
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 Dec 2017 00:00:51 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0334B34DA
-        for <netfilter-devel@vger.kernel.org>; Tue, 19 Dec 2017 00:00:51 +0100 (CET)
+        id S935337AbdLRXFU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 18 Dec 2017 18:05:20 -0500
 Content-Disposition: inline
-In-Reply-To: <20171216160651.GP32305@orbyte.nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Phil,
 
-On Sat, Dec 16, 2017 at 05:06:51PM +0100, Phil Sutter wrote:
-> Hi Pablo,
-> 
-> On Sun, Dec 10, 2017 at 10:55:40PM +0100, Pablo Neira Ayuso wrote:
-> > On Thu, Dec 07, 2017 at 12:34:31PM +0100, Phil Sutter wrote:
-> > > On Thu, Dec 07, 2017 at 01:05:45AM +0100, Pablo Neira Ayuso wrote:
-> > > > On Tue, Dec 05, 2017 at 02:43:17PM +0100, Phil Sutter wrote:
-> > > [...]
-> > > > > After tweaking the parser a bit, I can use it now to parse just a
-> > > > > set_list_member_expr and use the struct expr it returns. This made it
-> > > > > possible to create the desired struct cmd in above function without
-> > > > > having to invoke the parser there.
-> > > > > 
-> > > > > Exercising this refining consequently should allow to reach arbitrary
-> > > > > levels of granularity. For instance, one could stop at statement level,
-> > > > > i.e. statements are created using a string representation. Or one could
-> > > > > go down to expression level, and statements are created using one or two
-> > > > > expressions (depending on whether it is relational or not). Of course
-> > > > > this means the library will eventually become as complicated as the
-> > > > > parser itself, not necessarily a good thing.
-> > > > 
-> > > > Yes, and we'll expose all internal representation details, that we
-> > > > will need to maintain forever if we don't want to break backward.
-> > > 
-> > > Not necessarily. I had this in mind when declaring 'struct nft_table'
-> > > instead of reusing 'struct table'. :)
-> > > 
-> > > The parser defines the grammar, the library would just follow it. So if
-> > > a given internal change complies with the old grammar, it should comply
-> > > with the library as well. Though this is quite theoretical, of course.
-> > > 
-> > > Let's take relational expressions as simple example: In bison, we define
-> > > 'expr op rhs_expr'. An equivalent library function could be:
-> > > 
-> > > | struct nft_expr *nft_relational_new(struct nft_expr *,
-> > > | 				      enum rel_ops,
-> > > | 				      struct nft_expr *);
-> > 
-> > Then that means you would like to expose an API that allows you to
-> > build the abstract syntax tree.
-> 
-> That was the idea I had when I thought about how to transition from
-> fully text-based simple API to an extended one which allows to work with
-> objects instead. We could start simple and refine further if
-> required/sensible. At the basic level, adding a new rule could be
-> something like:
-> 
-> | myrule = nft_rule_create("tcp dport 22 accept");
-> 
-> If required, one could implement rule building based on statements:
-> 
-> | stmt1 = nft_stmt_create("tcp dport 22");
-> | stmt2 = nft_stmt_create("accept");
-> | myrule = nft_rule_create();
-> | nft_rule_add_stmt(myrule, stmt1);
-> | nft_rule_add_stmt(myrule, stmt2);
+--k1lZvvs/B4yU6o8G
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This is mixing parsing and abstract syntax tree creation.
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git for-net-next
+head:   680cba277b9779591e673100f6896e5baed7a180
+commit: 887ad2114715e42b664377029ba07c714264bb87 [34/40] netfilter: remove saveroute indirection in struct nf_afinfo
+config: sparc-defconfig (attached as .config)
+compiler: sparc-linux-gcc (GCC) 7.2.0
+reproduce:
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        git checkout 887ad2114715e42b664377029ba07c714264bb87
+        # save the attached .config to linux build tree
+        make.cross ARCH=sparc 
 
-If you want to expose the syntax tree, then I would the parsing layer
-entirely and expose the syntax tree, which is what the json
-representation for the high level library will be doing.
+All warnings (new ones prefixed by >>):
 
-To support new protocol, we will need a new library version too, when
-the abstraction to represent a payload is already well-defined, ie.
-[ base, offset, length ], which is pretty much everywhere the same,
-not only in nftables.
+   In file included from net/ipv6/af_inet6.c:45:0:
+>> include/linux/netfilter_ipv6.h:30:57: warning: 'struct nf_queue_entry' declared inside parameter list will not be visible outside of this definition or declaration
+    void nf_ip6_saveroute(const struct sk_buff *skb, struct nf_queue_entry *entry);
+                                                            ^~~~~~~~~~~~~~
 
-I wonder if firewalld could generate high level json representation
-instead, so it becomes a compiler/translator from its own
-representation to nftables abstract syntax tree. As I said, the json
-representation is mapping to the abstract syntax tree we have in nft.
-I'm refering to the high level json representation that doesn't exist
-yet, not the low level one for libnftnl.
+vim +30 include/linux/netfilter_ipv6.h
 
-> [...]
-> > > Yes, that sounds good. I had something like this in mind:
-> > > 
-> > > | struct nft_stmt *nft_meta_match_immediate(enum nft_meta_type, void *data);
-> > > | int nft_rule_append_stmt(struct nft_rule *r, struct nft_stmt *stmt);
-> > > 
-> > > The obvious problem is that at the time that meta match is created,
-> > > there is no context information. So the second function would have to
-> > > do that.
-> > > 
-> > > I am not sure if this kind of context evaluation works in any case. E.g.
-> > > set elements are interpreted depending on the set they are added to. To
-> > > my surprise, that wasn't really an issue - the parser interprets it as
-> > > constant symbol, when evaluating the expression as part of adding it to
-> > > the set it is resolved properly. This might not work in any case,
-> > > though.
-> > 
-> > Not sure I follow, what's the problem with the "missing context"?
-> 
-> The parser always has the full context available. E.g. if you pass it a
-> string such as this:
-> 
-> | add rule ip t c tcp dport 22 accept
-> 
-> By the time it parses the individual statements, it already knows e.g.
-> the table family and that might make a difference. As far as I can tell
-> from my hacking, it is possible to tweak the parser so that one could
-> use it to parse just a statement ('tcp dport 22').
+    23	
+    24	#if defined(CONFIG_IPV6)
+    25	__sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
+    26				unsigned int dataoff, u_int8_t protocol);
+    27	__sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
+    28					unsigned int dataoff, unsigned int len,
+    29					u_int8_t protocol);
+  > 30	void nf_ip6_saveroute(const struct sk_buff *skb, struct nf_queue_entry *entry);
+    31	#else
+    32	static inline __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
+    33					      unsigned int dataoff, u_int8_t protocol)
+    34	{
+    35		return 0;
+    36	}
+    37	static inline__sum16 nf_ip6_checksum_partial(struct sk_buff *skb,
+    38						     unsigned int hook,
+    39						     unsigned int dataoff,
+    40						     unsigned int len,
+    41						     u_int8_t protocol)
+    42	{
+    43		return 0;
+    44	}
+    45	static inline void nf_ip6_saveroute(const struct sk_buff *skb,
+    46					    struct nf_queue_entry *entry) {}
+    47	#endif
+    48	
 
-You could just postpone evaluation once you have the full rule.
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
-> > > > A list of use-cases, for the third party application, would be good to
-> > > > have to design this API.
-> > > 
-> > > OK, I'll take firewalld as an example and come up with a number of
-> > > use-cases which would help there.
-> > 
-> > Thanks, those use-cases would be very useful to design this.
-> 
-> OK, we've collected a bit:
-> 
-> Ability to verify ruleset state
-> -------------------------------
-> I want to find out whether a given element (table, chain, rule, set, set
-> element) previously added to the ruleset still exists.
+--k1lZvvs/B4yU6o8G
+Content-Type: application/gzip
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
 
-We need to add handle number for every object, I think that would
-suffice for this.
+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
+IEMv8bOLKeedCFp2jhFsLf4DxHJVPDO/AAA=
 
-> Possibility to remove previously added ruleset components
-> ---------------------------------------------------------
-> After making an addition to the ruleset, it should be possible to remove
-> the added items again. For tables, chains, sets, set elements and
-> stateful objects, the data used when adding the item is sufficient for
-> later removal (as removal happens by value). For rules though, the
-> corresponding handle is required.
-> XXX: This is inconsistent regarding items removed and added back
-> again by another instance: As the rule's handle changes, it is not
-> found anymore afterwards.
-
-Then it's time to add unique handles for everything.
-
-> Create/delete user chains
-> -------------------------
-> Firewalld makes heavy use of custom named chains to organize rules. It
-> needs to be able to create/delete them easily.
->
-> Sets
-> ----
-> I want to be able to freely read/modify sets of IPv4/IPv6/MAC addresses
-> and have them apply to existing rules.
-
-These two, I think we already support.
-
-> Transactions
-> ------------
-> I want to be able to add many custom chains and rules in
-> batch/transaction mode to reduce round trips. Ideally failure of a
-> transaction would return something that can indicate the invalid piece
-> of the transaction.
-
-I need to find the time to finish the fine grain netlink error
-reporting for nftables.
+--k1lZvvs/B4yU6o8G--
