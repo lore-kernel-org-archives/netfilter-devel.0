@@ -1,226 +1,205 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next,v2 6/7] netfilter: remove route_key_size field in struct nf_afinfo
-Date: Tue, 19 Dec 2017 00:46:57 +0100
-Message-ID: <20171218234658.5004-6-pablo@netfilter.org>
+Subject: [PATCH nf-next,v2 7/7] netfilter: core: remove struct nf_afinfo and its helper functions
+Date: Tue, 19 Dec 2017 00:46:58 +0100
+Message-ID: <20171218234658.5004-7-pablo@netfilter.org>
 References: <20171218234658.5004-1-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48466 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48468 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965076AbdLRXrK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S965105AbdLRXrK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 18 Dec 2017 18:47:10 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 883BBFB442
+        by mail.us.es (Postfix) with ESMTP id E7B0DFB448
         for <netfilter-devel@vger.kernel.org>; Tue, 19 Dec 2017 00:47:08 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 7726534D1
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D522734D3
         for <netfilter-devel@vger.kernel.org>; Tue, 19 Dec 2017 00:47:08 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5103034D1
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B32FE34D7
         for <netfilter-devel@vger.kernel.org>; Tue, 19 Dec 2017 00:47:06 +0100 (CET)
 Received: from salvia.here (40.red-212-170-55.staticip.rima-tde.net [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 3422A4265A30
+        by entrada.int (Postfix) with ESMTPA id 97ECF4265A30
         for <netfilter-devel@vger.kernel.org>; Tue, 19 Dec 2017 00:47:06 +0100 (CET)
 In-Reply-To: <20171218234658.5004-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is only needed by nf_queue, place this code where it belongs.
+This abstraction has no clients anymore after converting many of them to
+direct function call, now that is useless this patch removes it.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: remove .route_key_size from nf_tables_bridge. Reported by kbuild robot.
+v2: rebase patch on top of previous 6 patches.
 
- include/linux/netfilter.h               |  1 -
- include/linux/netfilter_ipv4.h          | 11 +++++++++++
- include/linux/netfilter_ipv6.h          |  9 +++++++++
- net/bridge/netfilter/nf_tables_bridge.c |  1 -
- net/ipv4/netfilter.c                    | 13 -------------
- net/ipv6/netfilter.c                    | 12 ------------
- net/netfilter/nf_queue.c                | 22 ++++++++++++++++------
- 7 files changed, 36 insertions(+), 33 deletions(-)
+ include/linux/netfilter.h               | 13 -------------
+ net/bridge/netfilter/nf_tables_bridge.c | 15 ++++-----------
+ net/ipv4/netfilter.c                    | 10 ----------
+ net/ipv6/netfilter.c                    |  7 +------
+ net/netfilter/core.c                    | 22 ----------------------
+ 5 files changed, 5 insertions(+), 62 deletions(-)
 
 diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 6bdb0e5706a9..be52fa8a96e1 100644
+index be52fa8a96e1..ba1d2c5a37ae 100644
 --- a/include/linux/netfilter.h
 +++ b/include/linux/netfilter.h
-@@ -311,7 +311,6 @@ struct nf_queue_entry;
+@@ -309,16 +309,6 @@ int skb_make_writable(struct sk_buff *skb, unsigned int writable_len);
+ struct flowi;
+ struct nf_queue_entry;
  
- struct nf_afinfo {
- 	unsigned short	family;
--	int		route_key_size;
- };
+-struct nf_afinfo {
+-	unsigned short	family;
+-};
+-
+-extern const struct nf_afinfo __rcu *nf_afinfo[NFPROTO_NUMPROTO];
+-static inline const struct nf_afinfo *nf_get_afinfo(unsigned short family)
+-{
+-	return rcu_dereference(nf_afinfo[family]);
+-}
+-
+ __sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
+ 		    unsigned int dataoff, u_int8_t protocol,
+ 		    unsigned short family);
+@@ -328,9 +318,6 @@ __sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry);
+ void nf_saveroute(const struct sk_buff *skb, struct nf_queue_entry *entry);
  
- extern const struct nf_afinfo __rcu *nf_afinfo[NFPROTO_NUMPROTO];
-diff --git a/include/linux/netfilter_ipv4.h b/include/linux/netfilter_ipv4.h
-index 5f0aa8ca4dc5..806809e018df 100644
---- a/include/linux/netfilter_ipv4.h
-+++ b/include/linux/netfilter_ipv4.h
-@@ -18,4 +18,15 @@ int nf_ip_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
- 		bool strict);
- int nf_ip_reroute(struct sk_buff *skb, const struct nf_queue_entry *entry);
- void nf_ip_saveroute(const struct sk_buff *skb, struct nf_queue_entry *entry);
-+
-+/* Extra routing may needed on local out, as the QUEUE target never
-+ * returns control to the table.
-+ */
-+struct ip_rt_info {
-+	__be32		daddr;
-+	__be32		saddr;
-+	u_int8_t	tos;
-+	u_int32_t	mark;
-+};
-+
- #endif /*__LINUX_IP_NETFILTER_H*/
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index 00b017aa2f2a..614725f46313 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -79,4 +79,13 @@ static inline void ipv6_netfilter_fini(void) { return; }
- static inline const struct nf_ipv6_ops *nf_get_ipv6_ops(void) { return NULL; }
- #endif /* CONFIG_NETFILTER */
+-int nf_register_afinfo(const struct nf_afinfo *afinfo);
+-void nf_unregister_afinfo(const struct nf_afinfo *afinfo);
+-
+ #include <net/flow.h>
+ extern void (*nf_nat_decode_session_hook)(struct sk_buff *, struct flowi *);
  
-+/* Extra routing may needed on local out, as the QUEUE target never
-+ * returns control to the table.
-+ */
-+struct ip6_rt_info {
-+	struct in6_addr	daddr;
-+	struct in6_addr	saddr;
-+	u_int32_t	mark;
-+};
-+
- #endif /*__LINUX_IP6_NETFILTER_H*/
 diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
-index e7348b49bc0d..874b7e034f82 100644
+index 874b7e034f82..86774b5c3b73 100644
 --- a/net/bridge/netfilter/nf_tables_bridge.c
 +++ b/net/bridge/netfilter/nf_tables_bridge.c
-@@ -97,7 +97,6 @@ static const struct nf_chain_type filter_bridge = {
- 
- static const struct nf_afinfo nf_br_afinfo = {
- 	.family                 = AF_BRIDGE,
--	.route_key_size         = 0,
+@@ -95,29 +95,23 @@ static const struct nf_chain_type filter_bridge = {
+ 	},
  };
  
+-static const struct nf_afinfo nf_br_afinfo = {
+-	.family                 = AF_BRIDGE,
+-};
+-
  static int __init nf_tables_bridge_init(void)
+ {
+ 	int ret;
+ 
+-	nf_register_afinfo(&nf_br_afinfo);
+ 	ret = nft_register_chain_type(&filter_bridge);
+ 	if (ret < 0)
+-		goto err1;
++		return ret;
+ 
+ 	ret = register_pernet_subsys(&nf_tables_bridge_net_ops);
+ 	if (ret < 0)
+-		goto err2;
++		goto err_register_subsys;
+ 
+ 	return ret;
+ 
+-err2:
++err_register_subsys:
+ 	nft_unregister_chain_type(&filter_bridge);
+-err1:
+-	nf_unregister_afinfo(&nf_br_afinfo);
++
+ 	return ret;
+ }
+ 
+@@ -125,7 +119,6 @@ static void __exit nf_tables_bridge_exit(void)
+ {
+ 	unregister_pernet_subsys(&nf_tables_bridge_net_ops);
+ 	nft_unregister_chain_type(&filter_bridge);
+-	nf_unregister_afinfo(&nf_br_afinfo);
+ }
+ 
+ module_init(nf_tables_bridge_init);
 diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index 57ed83687d35..9a27029038b5 100644
+index 9a27029038b5..e42314b30809 100644
 --- a/net/ipv4/netfilter.c
 +++ b/net/ipv4/netfilter.c
-@@ -80,18 +80,6 @@ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned int addr_t
+@@ -173,13 +173,3 @@ int nf_ip_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
+ 	return 0;
  }
- EXPORT_SYMBOL(ip_route_me_harder);
- 
--/*
-- * Extra routing may needed on local out, as the QUEUE target never
-- * returns control to the table.
-- */
+ EXPORT_SYMBOL(nf_ip_route);
 -
--struct ip_rt_info {
--	__be32 daddr;
--	__be32 saddr;
--	u_int8_t tos;
--	u_int32_t mark;
+-static const struct nf_afinfo nf_ip_afinfo = {
+-	.family			= AF_INET,
 -};
 -
- void nf_ip_saveroute(const struct sk_buff *skb, struct nf_queue_entry *entry)
- {
- 	struct ip_rt_info *rt_info = nf_queue_entry_reroute(entry);
-@@ -188,7 +176,6 @@ EXPORT_SYMBOL(nf_ip_route);
- 
- static const struct nf_afinfo nf_ip_afinfo = {
- 	.family			= AF_INET,
--	.route_key_size		= sizeof(struct ip_rt_info),
- };
- 
- static int __init ipv4_netfilter_init(void)
+-static int __init ipv4_netfilter_init(void)
+-{
+-	return nf_register_afinfo(&nf_ip_afinfo);
+-}
+-subsys_initcall(ipv4_netfilter_init);
 diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 9a842c5e809f..319ff0655060 100644
+index 319ff0655060..f32bf3aea423 100644
 --- a/net/ipv6/netfilter.c
 +++ b/net/ipv6/netfilter.c
-@@ -68,17 +68,6 @@ int ip6_route_me_harder(struct net *net, struct sk_buff *skb)
- }
- EXPORT_SYMBOL(ip6_route_me_harder);
- 
--/*
-- * Extra routing may needed on local out, as the QUEUE target never
-- * returns control to the table.
-- */
--
--struct ip6_rt_info {
--	struct in6_addr daddr;
--	struct in6_addr saddr;
--	u_int32_t mark;
--};
--
- void nf_ip6_saveroute(const struct sk_buff *skb, struct nf_queue_entry *entry)
- {
- 	struct ip6_rt_info *rt_info = nf_queue_entry_reroute(entry);
-@@ -197,7 +186,6 @@ static const struct nf_ipv6_ops ipv6ops = {
- 
- static const struct nf_afinfo nf_ip6_afinfo = {
- 	.family			= AF_INET6,
--	.route_key_size		= sizeof(struct ip6_rt_info),
+@@ -184,14 +184,10 @@ static const struct nf_ipv6_ops ipv6ops = {
+ 	.fragment	= ip6_fragment
  };
  
+-static const struct nf_afinfo nf_ip6_afinfo = {
+-	.family			= AF_INET6,
+-};
+-
  int __init ipv6_netfilter_init(void)
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index db87dfd1318e..325e2cafc832 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -13,6 +13,8 @@
- #include <linux/netfilter_bridge.h>
- #include <linux/seq_file.h>
- #include <linux/rcupdate.h>
-+#include <linux/netfilter_ipv4.h>
-+#include <linux/netfilter_ipv6.h>
- #include <net/protocol.h>
- #include <net/netfilter/nf_queue.h>
- #include <net/dst.h>
-@@ -114,9 +116,9 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
  {
- 	int status = -ENOENT;
- 	struct nf_queue_entry *entry = NULL;
--	const struct nf_afinfo *afinfo;
- 	const struct nf_queue_handler *qh;
- 	struct net *net = state->net;
-+	unsigned int route_key_size;
+ 	RCU_INIT_POINTER(nf_ipv6_ops, &ipv6ops);
+-	return nf_register_afinfo(&nf_ip6_afinfo);
++	return 0;
+ }
  
- 	/* QUEUE == DROP if no one is waiting, to be safe. */
- 	qh = rcu_dereference(net->nf.queue_handler);
-@@ -125,11 +127,19 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 		goto err;
- 	}
+ /* This can be called from inet6_init() on errors, so it cannot
+@@ -200,5 +196,4 @@ int __init ipv6_netfilter_init(void)
+ void ipv6_netfilter_fini(void)
+ {
+ 	RCU_INIT_POINTER(nf_ipv6_ops, NULL);
+-	nf_unregister_afinfo(&nf_ip6_afinfo);
+ }
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 606efc9b14e1..3e25e7628fa2 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -28,34 +28,12 @@
  
--	afinfo = nf_get_afinfo(state->pf);
--	if (!afinfo)
--		goto err;
-+	switch (state->pf) {
-+	case AF_INET:
-+		route_key_size = sizeof(struct ip_rt_info);
-+		break;
-+	case AF_INET6:
-+		route_key_size = sizeof(struct ip6_rt_info);
-+		break;
-+	default:
-+		route_key_size = 0;
-+		break;
-+	}
+ #include "nf_internals.h"
  
--	entry = kmalloc(sizeof(*entry) + afinfo->route_key_size, GFP_ATOMIC);
-+	entry = kmalloc(sizeof(*entry) + route_key_size, GFP_ATOMIC);
- 	if (!entry) {
- 		status = -ENOMEM;
- 		goto err;
-@@ -139,7 +149,7 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 		.skb	= skb,
- 		.state	= *state,
- 		.hook_index = index,
--		.size	= sizeof(*entry) + afinfo->route_key_size,
-+		.size	= sizeof(*entry) + route_key_size,
- 	};
+-static DEFINE_MUTEX(afinfo_mutex);
+-
+-const struct nf_afinfo __rcu *nf_afinfo[NFPROTO_NUMPROTO] __read_mostly;
+-EXPORT_SYMBOL(nf_afinfo);
+ const struct nf_ipv6_ops __rcu *nf_ipv6_ops __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_ipv6_ops);
  
- 	nf_queue_entry_get_refs(entry);
+ DEFINE_PER_CPU(bool, nf_skb_duplicated);
+ EXPORT_SYMBOL_GPL(nf_skb_duplicated);
+ 
+-int nf_register_afinfo(const struct nf_afinfo *afinfo)
+-{
+-	mutex_lock(&afinfo_mutex);
+-	RCU_INIT_POINTER(nf_afinfo[afinfo->family], afinfo);
+-	mutex_unlock(&afinfo_mutex);
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(nf_register_afinfo);
+-
+-void nf_unregister_afinfo(const struct nf_afinfo *afinfo)
+-{
+-	mutex_lock(&afinfo_mutex);
+-	RCU_INIT_POINTER(nf_afinfo[afinfo->family], NULL);
+-	mutex_unlock(&afinfo_mutex);
+-	synchronize_rcu();
+-}
+-EXPORT_SYMBOL_GPL(nf_unregister_afinfo);
+-
+ #ifdef HAVE_JUMP_LABEL
+ struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
+ EXPORT_SYMBOL(nf_hooks_needed);
 -- 
 2.11.0
 
