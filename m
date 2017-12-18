@@ -1,37 +1,48 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v5 nf-next] netfilter: connlimit: split xt_connlimit into
- front and backend
-Date: Mon, 18 Dec 2017 11:58:07 +0100
-Message-ID: <20171218105807.fuv5lm2boocmzfkx@salvia>
-References: <20171209200108.15760-1-fw@strlen.de>
+Subject: Re: [PATCH][netfilter-next] netfilter: conntrack: make struct
+ nf_conntrack_l4proto_gre4 static
+Date: Mon, 18 Dec 2017 11:59:15 +0100
+Message-ID: <20171218105915.cjqsqe2nmahm5yji@salvia>
+References: <20171210233255.15009-1-colin.king@canonical.com>
+ <20171211091805.GK24449@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Cc: Colin King <colin.king@canonical.com>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S . Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        linux-kernel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50302 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758277AbdLRK6L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 Dec 2017 05:58:11 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3A4D2BA1CF
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Dec 2017 11:58:10 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 05A6F1B32CD
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Dec 2017 11:58:00 +0100 (CET)
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171209200108.15760-1-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20171211091805.GK24449@breakpoint.cc>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Dec 09, 2017 at 09:01:08PM +0100, Florian Westphal wrote:
-> This allows to reuse xt_connlimit infrastructure from nf_tables.
-> The upcoming nf_tables frontend can just pass in an nftables register
-> as input key, this allows limiting by any nft-supported key, including
-> concatenations.
+On Mon, Dec 11, 2017 at 10:18:05AM +0100, Florian Westphal wrote:
+> Colin King <colin.king@canonical.com> wrote:
+> > From: Colin Ian King <colin.king@canonical.com>
+> > 
+> > The structure nf_conntrack_l4proto_gre4  is local to the source and does
+> > not need to be in global scope, so make it static.
 > 
-> For xt_connlimit, pass in the zone and the ip/ipv6 address.
-> 
-> With help from Yi-Hung Wei.
+> This bug was added in
+> commit b9679a9fd3a7d36ea3deb2864a00cc413c5aae28
+> netfilter: conntrack: l4 protocol trackers can be const
 
-Applied, thanks Florian.
+I have added Fixes: ... here.
+
+> > -struct nf_conntrack_l4proto nf_conntrack_l4proto_gre4 = {
+> > +static struct nf_conntrack_l4proto nf_conntrack_l4proto_gre4 = {
+> 
+> This should be 'static const'.
+
+I have mangled this patch to make it static const.
+
+So Colin doesn't need to resend.
+
+If there's anything else, let me know, I'll toss it and wait for a v2,
+as you prefer.
+
+Thanks.
