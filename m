@@ -1,157 +1,59 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: libnftables extended API proposal
-Date: Sat, 16 Dec 2017 17:06:51 +0100
-Message-ID: <20171216160651.GP32305@orbyte.nwl.cc>
-References: <20171122174943.GA32305@orbyte.nwl.cc>
- <20171204100955.GA1822@salvia>
- <20171204105324.GX32305@orbyte.nwl.cc>
- <20171204110142.GA19776@salvia>
- <20171204164327.GA32305@orbyte.nwl.cc>
- <20171204184604.GA1556@salvia>
- <20171205134317.GE32305@orbyte.nwl.cc>
- <20171207000545.GA27739@salvia>
- <20171207113431.GF32305@orbyte.nwl.cc>
- <20171210215540.GA14363@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC] Can someone please review my latest wiki update
+Date: Mon, 18 Dec 2017 10:48:16 +0100
+Message-ID: <20171218094816.ejlo4swg67ywyomy@salvia>
+References: <20171216092210.GA22043@dimstar.local.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Netfilter Development <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:36160 "EHLO orbyte.nwl.cc"
+Received: from mail.us.es ([193.147.175.20]:56906 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752746AbdLPQGx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 16 Dec 2017 11:06:53 -0500
+        id S1758323AbdLRJsV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 18 Dec 2017 04:48:21 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id A945E25D37
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Dec 2017 10:48:19 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7DE6111A050
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Dec 2017 10:48:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 962D411A050
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Dec 2017 10:48:06 +0100 (CET)
+Received: from us.es (40.red-212-170-55.staticip.rima-tde.net [212.170.55.40])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: 1984lsi)
+        by entrada.int (Postfix) with ESMTPSA id 915584265A2F
+        for <netfilter-devel@vger.kernel.org>; Mon, 18 Dec 2017 10:48:16 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20171210215540.GA14363@salvia>
+In-Reply-To: <20171216092210.GA22043@dimstar.local.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Hi Duncan,
 
-On Sun, Dec 10, 2017 at 10:55:40PM +0100, Pablo Neira Ayuso wrote:
-> On Thu, Dec 07, 2017 at 12:34:31PM +0100, Phil Sutter wrote:
-> > On Thu, Dec 07, 2017 at 01:05:45AM +0100, Pablo Neira Ayuso wrote:
-> > > On Tue, Dec 05, 2017 at 02:43:17PM +0100, Phil Sutter wrote:
-> > [...]
-> > > > After tweaking the parser a bit, I can use it now to parse just a
-> > > > set_list_member_expr and use the struct expr it returns. This made it
-> > > > possible to create the desired struct cmd in above function without
-> > > > having to invoke the parser there.
-> > > > 
-> > > > Exercising this refining consequently should allow to reach arbitrary
-> > > > levels of granularity. For instance, one could stop at statement level,
-> > > > i.e. statements are created using a string representation. Or one could
-> > > > go down to expression level, and statements are created using one or two
-> > > > expressions (depending on whether it is relational or not). Of course
-> > > > this means the library will eventually become as complicated as the
-> > > > parser itself, not necessarily a good thing.
-> > > 
-> > > Yes, and we'll expose all internal representation details, that we
-> > > will need to maintain forever if we don't want to break backward.
-> > 
-> > Not necessarily. I had this in mind when declaring 'struct nft_table'
-> > instead of reusing 'struct table'. :)
-> > 
-> > The parser defines the grammar, the library would just follow it. So if
-> > a given internal change complies with the old grammar, it should comply
-> > with the library as well. Though this is quite theoretical, of course.
-> > 
-> > Let's take relational expressions as simple example: In bison, we define
-> > 'expr op rhs_expr'. An equivalent library function could be:
-> > 
-> > | struct nft_expr *nft_relational_new(struct nft_expr *,
-> > | 				      enum rel_ops,
-> > | 				      struct nft_expr *);
+On Sat, Dec 16, 2017 at 08:22:10PM +1100, Duncan Roe wrote:
+> Hi,
 > 
-> Then that means you would like to expose an API that allows you to
-> build the abstract syntax tree.
-
-That was the idea I had when I thought about how to transition from
-fully text-based simple API to an extended one which allows to work with
-objects instead. We could start simple and refine further if
-required/sensible. At the basic level, adding a new rule could be
-something like:
-
-| myrule = nft_rule_create("tcp dport 22 accept");
-
-If required, one could implement rule building based on statements:
-
-| stmt1 = nft_stmt_create("tcp dport 22");
-| stmt2 = nft_stmt_create("accept");
-| myrule = nft_rule_create();
-| nft_rule_add_stmt(myrule, stmt1);
-| nft_rule_add_stmt(myrule, stmt2);
-
-[...]
-> > Yes, that sounds good. I had something like this in mind:
-> > 
-> > | struct nft_stmt *nft_meta_match_immediate(enum nft_meta_type, void *data);
-> > | int nft_rule_append_stmt(struct nft_rule *r, struct nft_stmt *stmt);
-> > 
-> > The obvious problem is that at the time that meta match is created,
-> > there is no context information. So the second function would have to
-> > do that.
-> > 
-> > I am not sure if this kind of context evaluation works in any case. E.g.
-> > set elements are interpreted depending on the set they are added to. To
-> > my surprise, that wasn't really an issue - the parser interprets it as
-> > constant symbol, when evaluating the expression as part of adding it to
-> > the set it is resolved properly. This might not work in any case,
-> > though.
+> For those who contribute to the wiki:
 > 
-> Not sure I follow, what's the problem with the "missing context"?
-
-The parser always has the full context available. E.g. if you pass it a
-string such as this:
-
-| add rule ip t c tcp dport 22 accept
-
-By the time it parses the individual statements, it already knows e.g.
-the table family and that might make a difference. As far as I can tell
-from my hacking, it is possible to tweak the parser so that one could
-use it to parse just a statement ('tcp dport 22').
-
-> > > A list of use-cases, for the third party application, would be good to
-> > > have to design this API.
-> > 
-> > OK, I'll take firewalld as an example and come up with a number of
-> > use-cases which would help there.
+> I updated https://wiki.nftables.org/wiki-nftables/index.php/Flow_tables section
+> "Doing iptables hashlimit with nft" in light of trying the examples.
 > 
-> Thanks, those use-cases would be very useful to design this.
+> There's more in the associated discussion page,
 
-OK, we've collected a bit:
+"Notice also that the translator defaults --hashlimit-htable-expire and
+--hashlimit-burst to 1000 milliseconds and 5 packets respectively so
+''timeout 1s'' and ''burst 5 packets'' are inserted. You may remove
+either or both of these if you wish."
 
-Ability to verify ruleset state
--------------------------------
-I want to find out whether a given element (table, chain, rule, set, set
-element) previously added to the ruleset still exists.
+I think we can just skip printing default values in the translation, I
+mean, we can "fix" the translation instead.
 
-Possibility to remove previously added ruleset components
----------------------------------------------------------
-After making an addition to the ruleset, it should be possible to remove
-the added items again. For tables, chains, sets, set elements and
-stateful objects, the data used when adding the item is sufficient for
-later removal (as removal happens by value). For rules though, the
-corresponding handle is required.
-XXX: This is inconsistent regarding items removed and added back
-again by another instance: As the rule's handle changes, it is not
-found anymore afterwards.
+BTW, this reminds me we should also expose the missing options such as
+hashlimit-htable-max and hashlimit-htable-gcinterval, those can be
+exposed too, it just needs some code in nft, I'll add this to my TODO
+list.
 
-Create/delete user chains
--------------------------
-Firewalld makes heavy use of custom named chains to organize rules. It
-needs to be able to create/delete them easily.
-
-Sets
-----
-I want to be able to freely read/modify sets of IPv4/IPv6/MAC addresses
-and have them apply to existing rules.
-
-Transactions
-------------
-I want to be able to add many custom chains and rules in
-batch/transaction mode to reduce round trips. Ideally failure of a
-transaction would return something that can indicate the invalid piece
-of the transaction.
-
-Cheers, Phil
+Let us know, thanks for reviewing documentation!
