@@ -1,129 +1,119 @@
 From: kbuild test robot <fengguang.wu@intel.com>
-Subject: [nf-next:for-net-next2 35/40] net/ipv6/netfilter.c:166:9: error:
- redefinition of 'nf_ip6_checksum_partial'
-Date: Tue, 19 Dec 2017 23:48:16 +0800
-Message-ID: <201712192314.bPYUrH9b%fengguang.wu@intel.com>
+Subject: [nf-next:for-net-next2 38/40] net/ipv6/netfilter.c:96:5: error:
+ redefinition of 'nf_ip6_reroute'
+Date: Wed, 20 Dec 2017 00:04:35 +0800
+Message-ID: <201712200033.EmagdB94%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="OgqxwSJOaUobr8KG"
+Content-Type: multipart/mixed; boundary="5mCyUwZo2JvN/JJP"
 Cc: kbuild-all@01.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:7188 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:2551 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751297AbdLSPsh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 Dec 2017 10:48:37 -0500
+        id S1751523AbdLSQEr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 19 Dec 2017 11:04:47 -0500
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---OgqxwSJOaUobr8KG
+--5mCyUwZo2JvN/JJP
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
 tree:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git for-net-next2
 head:   7c3f8641178fb63c1e970a23e3743e89fc92be81
-commit: d0cdeba2fc5ef7f97bdcf5d31266a25802372009 [35/40] netfilter: remove checksum_partial indirection in struct nf_afinfo
+commit: 56cd0e50caf4a1cb0fc743c53f3f7b3ad7a5f717 [38/40] netfilter: remove reroute indirection in struct nf_afinfo
 config: xtensa-allmodconfig (attached as .config)
 compiler: xtensa-linux-gcc (GCC) 7.2.0
 reproduce:
         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
         chmod +x ~/bin/make.cross
-        git checkout d0cdeba2fc5ef7f97bdcf5d31266a25802372009
+        git checkout 56cd0e50caf4a1cb0fc743c53f3f7b3ad7a5f717
         # save the attached .config to linux build tree
         make.cross ARCH=xtensa 
 
 All errors (new ones prefixed by >>):
 
+   net/ipv6/netfilter.c:82:6: error: redefinition of 'nf_ip6_saveroute'
+    void nf_ip6_saveroute(const struct sk_buff *skb, struct nf_queue_entry *entry)
+         ^~~~~~~~~~~~~~~~
+   In file included from net/ipv6/netfilter.c:11:0:
+   include/linux/netfilter_ipv6.h:60:20: note: previous definition of 'nf_ip6_saveroute' was here
+    static inline void nf_ip6_saveroute(const struct sk_buff *skb,
+                       ^~~~~~~~~~~~~~~~
+>> net/ipv6/netfilter.c:96:5: error: redefinition of 'nf_ip6_reroute'
+    int nf_ip6_reroute(struct sk_buff *skb, const struct nf_queue_entry *entry)
+        ^~~~~~~~~~~~~~
+   In file included from net/ipv6/netfilter.c:11:0:
+   include/linux/netfilter_ipv6.h:55:19: note: previous definition of 'nf_ip6_reroute' was here
+    static inline int nf_ip6_reroute(struct sk_buff *skb,
+                      ^~~~~~~~~~~~~~
+   net/ipv6/netfilter.c:110:5: error: redefinition of 'nf_ip6_route'
+    int nf_ip6_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
+        ^~~~~~~~~~~~
+   In file included from net/ipv6/netfilter.c:11:0:
+   include/linux/netfilter_ipv6.h:50:19: note: previous definition of 'nf_ip6_route' was here
+    static inline int nf_ip6_route(struct net *net, struct dst_entry **dst,
+                      ^~~~~~~~~~~~
    net/ipv6/netfilter.c:133:9: error: redefinition of 'nf_ip6_checksum'
     __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
             ^~~~~~~~~~~~~~~
    In file included from net/ipv6/netfilter.c:11:0:
-   include/linux/netfilter_ipv6.h:31:23: note: previous definition of 'nf_ip6_checksum' was here
+   include/linux/netfilter_ipv6.h:37:23: note: previous definition of 'nf_ip6_checksum' was here
     static inline __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
                           ^~~~~~~~~~~~~~~
->> net/ipv6/netfilter.c:166:9: error: redefinition of 'nf_ip6_checksum_partial'
+   net/ipv6/netfilter.c:166:9: error: redefinition of 'nf_ip6_checksum_partial'
     __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
             ^~~~~~~~~~~~~~~~~~~~~~~
    In file included from net/ipv6/netfilter.c:11:0:
-   include/linux/netfilter_ipv6.h:36:23: note: previous definition of 'nf_ip6_checksum_partial' was here
+   include/linux/netfilter_ipv6.h:42:23: note: previous definition of 'nf_ip6_checksum_partial' was here
     static inline __sum16 nf_ip6_checksum_partial(struct sk_buff *skb,
                           ^~~~~~~~~~~~~~~~~~~~~~~
 
-vim +/nf_ip6_checksum_partial +166 net/ipv6/netfilter.c
+vim +/nf_ip6_reroute +96 net/ipv6/netfilter.c
 
-   132	
- > 133	__sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
-   134				     unsigned int dataoff, u_int8_t protocol)
-   135	{
-   136		const struct ipv6hdr *ip6h = ipv6_hdr(skb);
-   137		__sum16 csum = 0;
-   138	
-   139		switch (skb->ip_summed) {
-   140		case CHECKSUM_COMPLETE:
-   141			if (hook != NF_INET_PRE_ROUTING && hook != NF_INET_LOCAL_IN)
-   142				break;
-   143			if (!csum_ipv6_magic(&ip6h->saddr, &ip6h->daddr,
-   144					     skb->len - dataoff, protocol,
-   145					     csum_sub(skb->csum,
-   146						      skb_checksum(skb, 0,
-   147								   dataoff, 0)))) {
-   148				skb->ip_summed = CHECKSUM_UNNECESSARY;
-   149				break;
-   150			}
-   151			/* fall through */
-   152		case CHECKSUM_NONE:
-   153			skb->csum = ~csum_unfold(
-   154					csum_ipv6_magic(&ip6h->saddr, &ip6h->daddr,
-   155						     skb->len - dataoff,
-   156						     protocol,
-   157						     csum_sub(0,
-   158							      skb_checksum(skb, 0,
-   159									   dataoff, 0))));
-   160			csum = __skb_checksum_complete(skb);
-   161		}
-   162		return csum;
-   163	}
-   164	EXPORT_SYMBOL(nf_ip6_checksum);
-   165	
- > 166	__sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
-   167					unsigned int dataoff, unsigned int len,
-   168					u_int8_t protocol)
-   169	{
-   170		const struct ipv6hdr *ip6h = ipv6_hdr(skb);
-   171		__wsum hsum;
-   172		__sum16 csum = 0;
-   173	
-   174		switch (skb->ip_summed) {
-   175		case CHECKSUM_COMPLETE:
-   176			if (len == skb->len - dataoff)
-   177				return nf_ip6_checksum(skb, hook, dataoff, protocol);
-   178			/* fall through */
-   179		case CHECKSUM_NONE:
-   180			hsum = skb_checksum(skb, 0, dataoff, 0);
-   181			skb->csum = ~csum_unfold(csum_ipv6_magic(&ip6h->saddr,
-   182								 &ip6h->daddr,
-   183								 skb->len - dataoff,
-   184								 protocol,
-   185								 csum_sub(0, hsum)));
-   186			skb->ip_summed = CHECKSUM_NONE;
-   187			return __skb_checksum_complete_head(skb, dataoff + len);
-   188		}
-   189		return csum;
-   190	};
-   191	
+    81	
+  > 82	void nf_ip6_saveroute(const struct sk_buff *skb, struct nf_queue_entry *entry)
+    83	{
+    84		struct ip6_rt_info *rt_info = nf_queue_entry_reroute(entry);
+    85	
+    86		if (entry->state.hook == NF_INET_LOCAL_OUT) {
+    87			const struct ipv6hdr *iph = ipv6_hdr(skb);
+    88	
+    89			rt_info->daddr = iph->daddr;
+    90			rt_info->saddr = iph->saddr;
+    91			rt_info->mark = skb->mark;
+    92		}
+    93	}
+    94	EXPORT_SYMBOL_GPL(nf_ip6_saveroute);
+    95	
+  > 96	int nf_ip6_reroute(struct sk_buff *skb, const struct nf_queue_entry *entry)
+    97	{
+    98		struct ip6_rt_info *rt_info = nf_queue_entry_reroute(entry);
+    99	
+   100		if (entry->state.hook == NF_INET_LOCAL_OUT) {
+   101			const struct ipv6hdr *iph = ipv6_hdr(skb);
+   102			if (!ipv6_addr_equal(&iph->daddr, &rt_info->daddr) ||
+   103			    !ipv6_addr_equal(&iph->saddr, &rt_info->saddr) ||
+   104			    skb->mark != rt_info->mark)
+   105				return ip6_route_me_harder(entry->state.net, skb);
+   106		}
+   107		return 0;
+   108	}
+   109	
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---OgqxwSJOaUobr8KG
+--5mCyUwZo2JvN/JJP
 Content-Type: application/gzip
 Content-Disposition: attachment; filename=".config.gz"
 Content-Transfer-Encoding: base64
 
-H4sICPkyOVoAAy5jb25maWcAlFxbc+O2kn7Pr1BN9mG36iRjyxNlslt+AElQxBFJ0AQo2X5h
+H4sICCs3OVoAAy5jb25maWcAlFxbc+O2kn7Pr1BN9mG36iRjyxNlslt+AElQxBFJ0AQo2X5h
 aWzNjCu25JI0Sebfbzd4w430nJfE/LpxazT6Bmh+/unnGfl2Prxsz08P2+fn77Mvu/3uuD3v
 Hmefn553/zeL+CznckYjJn8F5vRp/+2f9/+cd/vTdvbh18sPv178cnz4OFvtjvvd8yw87D8/
 ffkGHTwd9j/9/FPI85gt63ue0zrKyPX3DrmVNBfad7kRNKtvw2RJoqgm6ZKXTCbZwLCkOS1Z
@@ -1081,4 +1071,4 @@ Hhm2oN9fFycBCGtGZ0KDCkahEOBY46M7eRVedhiAFoevi/Bp0xZCTwG6OHo9IkLDYGp3RoMx
 BqtPl5m3HeEyQG40yEwqLeay6xJd0WRA02csTRpqkG0EClKuuwIEp5cY1SdMkQ3t/8rNgGdg
 LgMA
 
---OgqxwSJOaUobr8KG--
+--5mCyUwZo2JvN/JJP--
