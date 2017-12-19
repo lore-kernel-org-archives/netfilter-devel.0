@@ -1,141 +1,182 @@
 From: kbuild test robot <fengguang.wu@intel.com>
-Subject: [nf-next:for-net-next 35/40] net/ipv6/netfilter.c:111:5: error:
- redefinition of 'nf_ip6_route'
-Date: Tue, 19 Dec 2017 08:04:03 +0800
-Message-ID: <201712190801.8scmXKtc%fengguang.wu@intel.com>
+Subject: [nf-next:for-net-next 36/40] net/netfilter/utils.c:56:24: error:
+ passing argument 1 of 'nf_ip6_reroute' from incompatible pointer type
+Date: Tue, 19 Dec 2017 08:26:00 +0800
+Message-ID: <201712190858.zWcI7210%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="pWyiEgJYm5f9v55/"
+Content-Type: multipart/mixed; boundary="KsGdsel6WgEHnImy"
 Cc: kbuild-all@01.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:40788 "EHLO mga05.intel.com"
+Received: from mga07.intel.com ([134.134.136.100]:55324 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1759623AbdLSAEQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 18 Dec 2017 19:04:16 -0500
+        id S1760710AbdLSA0W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 18 Dec 2017 19:26:22 -0500
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---pWyiEgJYm5f9v55/
+--KsGdsel6WgEHnImy
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
 tree:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git for-net-next
 head:   680cba277b9779591e673100f6896e5baed7a180
-commit: 3b97b1d0324f30d7edbd54d5f13a8f10469e6498 [35/40] netfilter: remove route indirection in struct nf_afinfo
+commit: b8791270afcc93fac33133e28a7de74dee511707 [36/40] netfilter: remove reroute indirection in struct nf_afinfo
 config: xtensa-allmodconfig (attached as .config)
 compiler: xtensa-linux-gcc (GCC) 7.2.0
 reproduce:
         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
         chmod +x ~/bin/make.cross
-        git checkout 3b97b1d0324f30d7edbd54d5f13a8f10469e6498
+        git checkout b8791270afcc93fac33133e28a7de74dee511707
         # save the attached .config to linux build tree
         make.cross ARCH=xtensa 
 
 All errors (new ones prefixed by >>):
 
-   In file included from net/ipv6/netfilter.c:11:0:
-   include/linux/netfilter_ipv6.h:39:8: error: unknown type name 'inline__sum16'
+   In file included from net/netfilter/utils.c:4:0:
+   include/linux/netfilter_ipv6.h:40:8: error: unknown type name 'inline__sum16'
     static inline__sum16 nf_ip6_checksum_partial(struct sk_buff *skb,
            ^~~~~~~~~~~~~
-   net/ipv6/netfilter.c:82:6: error: redefinition of 'nf_ip6_saveroute'
+   net/netfilter/utils.c: In function 'nf_reroute':
+>> net/netfilter/utils.c:56:24: error: passing argument 1 of 'nf_ip6_reroute' from incompatible pointer type [-Werror=incompatible-pointer-types]
+      ret = nf_ip6_reroute(skb, entry);
+                           ^~~
+   In file included from net/netfilter/utils.c:4:0:
+   include/linux/netfilter_ipv6.h:53:19: note: expected 'struct net *' but argument is of type 'struct sk_buff *'
+    static inline int nf_ip6_reroute(struct net *net, struct sk_buff *skb,
+                      ^~~~~~~~~~~~~~
+   net/netfilter/utils.c:56:29: error: passing argument 2 of 'nf_ip6_reroute' from incompatible pointer type [-Werror=incompatible-pointer-types]
+      ret = nf_ip6_reroute(skb, entry);
+                                ^~~~~
+   In file included from net/netfilter/utils.c:4:0:
+   include/linux/netfilter_ipv6.h:53:19: note: expected 'struct sk_buff *' but argument is of type 'struct nf_queue_entry *'
+    static inline int nf_ip6_reroute(struct net *net, struct sk_buff *skb,
+                      ^~~~~~~~~~~~~~
+>> net/netfilter/utils.c:56:9: error: too few arguments to function 'nf_ip6_reroute'
+      ret = nf_ip6_reroute(skb, entry);
+            ^~~~~~~~~~~~~~
+   In file included from net/netfilter/utils.c:4:0:
+   include/linux/netfilter_ipv6.h:53:19: note: declared here
+    static inline int nf_ip6_reroute(struct net *net, struct sk_buff *skb,
+                      ^~~~~~~~~~~~~~
+   cc1: some warnings being treated as errors
+--
+   In file included from net//ipv6/netfilter.c:11:0:
+   include/linux/netfilter_ipv6.h:40:8: error: unknown type name 'inline__sum16'
+    static inline__sum16 nf_ip6_checksum_partial(struct sk_buff *skb,
+           ^~~~~~~~~~~~~
+   net//ipv6/netfilter.c:82:6: error: redefinition of 'nf_ip6_saveroute'
     void nf_ip6_saveroute(const struct sk_buff *skb, struct nf_queue_entry *entry)
          ^~~~~~~~~~~~~~~~
-   In file included from net/ipv6/netfilter.c:11:0:
-   include/linux/netfilter_ipv6.h:52:20: note: previous definition of 'nf_ip6_saveroute' was here
+   In file included from net//ipv6/netfilter.c:11:0:
+   include/linux/netfilter_ipv6.h:58:20: note: previous definition of 'nf_ip6_saveroute' was here
     static inline void nf_ip6_saveroute(const struct sk_buff *skb,
                        ^~~~~~~~~~~~~~~~
->> net/ipv6/netfilter.c:111:5: error: redefinition of 'nf_ip6_route'
+>> net//ipv6/netfilter.c:96:5: error: conflicting types for 'nf_ip6_reroute'
+    int nf_ip6_reroute(struct sk_buff *skb, const struct nf_queue_entry *entry)
+        ^~~~~~~~~~~~~~
+   In file included from net//ipv6/netfilter.c:11:0:
+   include/linux/netfilter_ipv6.h:53:19: note: previous definition of 'nf_ip6_reroute' was here
+    static inline int nf_ip6_reroute(struct net *net, struct sk_buff *skb,
+                      ^~~~~~~~~~~~~~
+   net//ipv6/netfilter.c:110:5: error: redefinition of 'nf_ip6_route'
     int nf_ip6_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
         ^~~~~~~~~~~~
-   In file included from net/ipv6/netfilter.c:11:0:
-   include/linux/netfilter_ipv6.h:47:19: note: previous definition of 'nf_ip6_route' was here
+   In file included from net//ipv6/netfilter.c:11:0:
+   include/linux/netfilter_ipv6.h:48:19: note: previous definition of 'nf_ip6_route' was here
     static inline int nf_ip6_route(struct net *net, struct dst_entry **dst,
                       ^~~~~~~~~~~~
-   net/ipv6/netfilter.c:134:9: error: redefinition of 'nf_ip6_checksum'
+   net//ipv6/netfilter.c:133:9: error: redefinition of 'nf_ip6_checksum'
     __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
             ^~~~~~~~~~~~~~~
-   In file included from net/ipv6/netfilter.c:11:0:
-   include/linux/netfilter_ipv6.h:34:23: note: previous definition of 'nf_ip6_checksum' was here
+   In file included from net//ipv6/netfilter.c:11:0:
+   include/linux/netfilter_ipv6.h:35:23: note: previous definition of 'nf_ip6_checksum' was here
     static inline __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
                           ^~~~~~~~~~~~~~~
-   net/ipv6/netfilter.c:167:9: error: conflicting types for 'nf_ip6_checksum_partial'
+   net//ipv6/netfilter.c:166:9: error: conflicting types for 'nf_ip6_checksum_partial'
     __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
             ^~~~~~~~~~~~~~~~~~~~~~~
-   In file included from net/ipv6/netfilter.c:11:0:
-   include/linux/netfilter_ipv6.h:39:22: note: previous definition of 'nf_ip6_checksum_partial' was here
+   In file included from net//ipv6/netfilter.c:11:0:
+   include/linux/netfilter_ipv6.h:40:22: note: previous definition of 'nf_ip6_checksum_partial' was here
     static inline__sum16 nf_ip6_checksum_partial(struct sk_buff *skb,
                          ^~~~~~~~~~~~~~~~~~~~~~~
-   include/linux/netfilter_ipv6.h:39:22: warning: 'nf_ip6_checksum_partial' defined but not used [-Wunused-function]
+   include/linux/netfilter_ipv6.h:40:22: warning: 'nf_ip6_checksum_partial' defined but not used [-Wunused-function]
 
-vim +/nf_ip6_route +111 net/ipv6/netfilter.c
+vim +/nf_ip6_reroute +56 net/netfilter/utils.c
 
-    81	
-  > 82	void nf_ip6_saveroute(const struct sk_buff *skb, struct nf_queue_entry *entry)
-    83	{
-    84		struct ip6_rt_info *rt_info = nf_queue_entry_reroute(entry);
-    85	
-    86		if (entry->state.hook == NF_INET_LOCAL_OUT) {
-    87			const struct ipv6hdr *iph = ipv6_hdr(skb);
-    88	
-    89			rt_info->daddr = iph->daddr;
-    90			rt_info->saddr = iph->saddr;
-    91			rt_info->mark = skb->mark;
-    92		}
-    93	}
-    94	EXPORT_SYMBOL_GPL(nf_ip6_saveroute);
-    95	
-    96	static int nf_ip6_reroute(struct net *net, struct sk_buff *skb,
-    97				  const struct nf_queue_entry *entry)
-    98	{
-    99		struct ip6_rt_info *rt_info = nf_queue_entry_reroute(entry);
-   100	
-   101		if (entry->state.hook == NF_INET_LOCAL_OUT) {
-   102			const struct ipv6hdr *iph = ipv6_hdr(skb);
-   103			if (!ipv6_addr_equal(&iph->daddr, &rt_info->daddr) ||
-   104			    !ipv6_addr_equal(&iph->saddr, &rt_info->saddr) ||
-   105			    skb->mark != rt_info->mark)
-   106				return ip6_route_me_harder(net, skb);
-   107		}
-   108		return 0;
-   109	}
-   110	
- > 111	int nf_ip6_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
-   112			 bool strict)
-   113	{
-   114		static const struct ipv6_pinfo fake_pinfo;
-   115		static const struct inet_sock fake_sk = {
-   116			/* makes ip6_route_output set RT6_LOOKUP_F_IFACE: */
-   117			.sk.sk_bound_dev_if = 1,
-   118			.pinet6 = (struct ipv6_pinfo *) &fake_pinfo,
-   119		};
-   120		const void *sk = strict ? &fake_sk : NULL;
-   121		struct dst_entry *result;
-   122		int err;
-   123	
-   124		result = ip6_route_output(net, sk, &fl->u.ip6);
-   125		err = result->error;
-   126		if (err)
-   127			dst_release(result);
-   128		else
-   129			*dst = result;
-   130		return err;
-   131	}
-   132	EXPORT_SYMBOL_GPL(nf_ip6_route);
-   133	
+   > 4	#include <linux/netfilter_ipv6.h>
+     5	#include <net/netfilter/nf_queue.h>
+     6	
+     7	__sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
+     8			    unsigned int dataoff, u_int8_t protocol,
+     9			    unsigned short family)
+    10	{
+    11		__sum16 csum = 0;
+    12	
+    13		switch (family) {
+    14		case AF_INET:
+    15			csum = nf_ip_checksum(skb, hook, dataoff, protocol);
+    16			break;
+    17		case AF_INET6:
+    18			csum = nf_ip6_checksum(skb, hook, dataoff, protocol);
+    19			break;
+    20		}
+    21	
+    22		return csum;
+    23	}
+    24	EXPORT_SYMBOL_GPL(nf_checksum);
+    25	
+    26	__sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
+    27				    unsigned int dataoff, unsigned int len,
+    28				    u_int8_t protocol, unsigned short family)
+    29	{
+    30		__sum16 csum = 0;
+    31	
+    32		switch (family) {
+    33		case AF_INET:
+    34			csum = nf_ip_checksum_partial(skb, hook, dataoff, len,
+    35						      protocol);
+    36			break;
+    37		case AF_INET6:
+    38			csum = nf_ip6_checksum_partial(skb, hook, dataoff, len,
+    39						       protocol);
+    40			break;
+    41		}
+    42	
+    43		return csum;
+    44	}
+    45	EXPORT_SYMBOL_GPL(nf_checksum_partial);
+    46	
+    47	int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry)
+    48	{
+    49		int ret;
+    50	
+    51		switch (entry->state.pf) {
+    52		case AF_INET:
+    53			ret = nf_ip_reroute(skb, entry);
+    54			break;
+    55		case AF_INET6:
+  > 56			ret = nf_ip6_reroute(skb, entry);
+    57			break;
+    58		}
+    59	
+    60		return ret;
+    61	}
+    62	
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---pWyiEgJYm5f9v55/
+--KsGdsel6WgEHnImy
 Content-Type: application/gzip
 Content-Disposition: attachment; filename=".config.gz"
 Content-Transfer-Encoding: base64
 
-H4sICCdWOFoAAy5jb25maWcAlFxbc+O2kn7Pr1BN9mG36iRjyxNlslt+AElQxBFJ0AQo2X5h
+H4sICDpaOFoAAy5jb25maWcAlFxbc+O2kn7Pr1BN9mG36iRjyxNlslt+AElQxBFJ0AQo2X5h
 aWzNjCu25JI0Sebfbzd4w430nJdk+HXj1mj0DZB//unnGfl2Prxsz08P2+fn77Mvu/3uuD3v
 Hmefn553/zeL+CznckYjJn8F5vRp/+2f9/+cd/vTdvbh18sPv178cnz4OFvtjvvd8yw87D8/
 ffkGHTwd9j/9/FPI85gt63ue0zrKyPX3DrmVNBfad7kRNKtvw2RJoqgm6ZKXTCbZwLCkOS1Z
@@ -1092,4 +1133,4 @@ X+7MVWkTwknJJd0jsjLyfwmSt8j8o7sjT/QpM2TN120XlNuKsy9dQ5MT47JOqFsAY+rT0NaX
 AQhrRmdCgwpGoRDgWOOjO3kVXnYYgBaHr4vwadMWQk8Bujh6PSJCw2Bqd0aDMQarT5eZtx3h
 MkBuNMhMKi3msusSXdFkQNNnLE0aapBtBApSrrsCBKeXGNUnTJEN7f8sf634Qy4DAA==
 
---pWyiEgJYm5f9v55/--
+--KsGdsel6WgEHnImy--
