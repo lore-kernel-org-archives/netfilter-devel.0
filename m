@@ -1,86 +1,105 @@
 From: kbuild test robot <fengguang.wu@intel.com>
-Subject: [nf-next:for-net-next2 35/40] net/netfilter/utils.c:33: undefined
- reference to `nf_ip_checksum_partial'
-Date: Wed, 20 Dec 2017 03:54:16 +0800
-Message-ID: <201712200314.Z8xrRHGd%fengguang.wu@intel.com>
+Subject: [nf-next:for-net-next2 36/40] net/netfilter/utils.c:51: undefined
+ reference to `nf_ip_saveroute'
+Date: Wed, 20 Dec 2017 05:29:53 +0800
+Message-ID: <201712200550.lxYjK9hI%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="bg08WKrSYDhXBjb5"
+Content-Type: multipart/mixed; boundary="sdtB3X0nJg68CQEu"
 Cc: kbuild-all@01.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:28756 "EHLO mga11.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:52436 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750825AbdLSTy1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 Dec 2017 14:54:27 -0500
+        id S1751298AbdLSVaZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 19 Dec 2017 16:30:25 -0500
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---bg08WKrSYDhXBjb5
+--sdtB3X0nJg68CQEu
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
 tree:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git for-net-next2
 head:   7c3f8641178fb63c1e970a23e3743e89fc92be81
-commit: d0cdeba2fc5ef7f97bdcf5d31266a25802372009 [35/40] netfilter: remove checksum_partial indirection in struct nf_afinfo
+commit: d0f3d3b94e3a8765b0034127780d57f304af11fe [36/40] netfilter: remove saveroute indirection in struct nf_afinfo
 config: x86_64-randconfig-i0-201751 (attached as .config)
 compiler: gcc-7 (Debian 7.2.0-12) 7.2.1 20171025
 reproduce:
-        git checkout d0cdeba2fc5ef7f97bdcf5d31266a25802372009
+        git checkout d0f3d3b94e3a8765b0034127780d57f304af11fe
         # save the attached .config to linux build tree
         make ARCH=x86_64 
 
 All errors (new ones prefixed by >>):
 
    net/netfilter/utils.o: In function `nf_checksum':
-   net/netfilter/utils.c:14: undefined reference to `nf_ip_checksum'
+   net/netfilter/utils.c:15: undefined reference to `nf_ip_checksum'
    net/netfilter/utils.o: In function `nf_checksum_partial':
->> net/netfilter/utils.c:33: undefined reference to `nf_ip_checksum_partial'
+   net/netfilter/utils.c:34: undefined reference to `nf_ip_checksum_partial'
+   net/netfilter/utils.o: In function `nf_saveroute':
+>> net/netfilter/utils.c:51: undefined reference to `nf_ip_saveroute'
 
-vim +33 net/netfilter/utils.c
+vim +51 net/netfilter/utils.c
 
-     5	
-     6	__sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
-     7			    unsigned int dataoff, u_int8_t protocol,
-     8			    unsigned short family)
-     9	{
-    10		__sum16 csum = 0;
-    11	
-    12		switch (family) {
-    13		case AF_INET:
-  > 14			csum = nf_ip_checksum(skb, hook, dataoff, protocol);
-    15			break;
-    16		case AF_INET6:
-    17			csum = nf_ip6_checksum(skb, hook, dataoff, protocol);
-    18			break;
-    19		}
-    20	
-    21		return csum;
-    22	}
-    23	EXPORT_SYMBOL_GPL(nf_checksum);
-    24	
-    25	__sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
-    26				    unsigned int dataoff, unsigned int len,
-    27				    u_int8_t protocol, unsigned short family)
-    28	{
-    29		__sum16 csum = 0;
-    30	
-    31		switch (family) {
-    32		case AF_INET:
-  > 33			csum = nf_ip_checksum_partial(skb, hook, dataoff, len,
+     6	
+     7	__sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
+     8			    unsigned int dataoff, u_int8_t protocol,
+     9			    unsigned short family)
+    10	{
+    11		__sum16 csum = 0;
+    12	
+    13		switch (family) {
+    14		case AF_INET:
+  > 15			csum = nf_ip_checksum(skb, hook, dataoff, protocol);
+    16			break;
+    17		case AF_INET6:
+    18			csum = nf_ip6_checksum(skb, hook, dataoff, protocol);
+    19			break;
+    20		}
+    21	
+    22		return csum;
+    23	}
+    24	EXPORT_SYMBOL_GPL(nf_checksum);
+    25	
+    26	__sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
+    27				    unsigned int dataoff, unsigned int len,
+    28				    u_int8_t protocol, unsigned short family)
+    29	{
+    30		__sum16 csum = 0;
+    31	
+    32		switch (family) {
+    33		case AF_INET:
+    34			csum = nf_ip_checksum_partial(skb, hook, dataoff, len,
+    35						      protocol);
+    36			break;
+    37		case AF_INET6:
+    38			csum = nf_ip6_checksum_partial(skb, hook, dataoff, len,
+    39						       protocol);
+    40			break;
+    41		}
+    42	
+    43		return csum;
+    44	}
+    45	EXPORT_SYMBOL_GPL(nf_checksum_partial);
+    46	
+    47	void nf_saveroute(const struct sk_buff *skb, struct nf_queue_entry *entry)
+    48	{
+    49		switch (entry->state.pf) {
+    50		case AF_INET:
+  > 51			nf_ip_saveroute(skb, entry);
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---bg08WKrSYDhXBjb5
+--sdtB3X0nJg68CQEu
 Content-Type: application/gzip
 Content-Disposition: attachment; filename=".config.gz"
 Content-Transfer-Encoding: base64
 
-H4sICChrOVoAAy5jb25maWcAlFxbc+O2kn7Pr1BN9uGch2Rsj+NMdssPEAlKiEiCJkDZ8gvL
+H4sICGl+OVoAAy5jb25maWcAlFxbc+O2kn7Pr1BN9uGch2Rsj+NMdssPEAlKiEiCJkDZ8gvL
 seWJKx571pJPkn+/3Q1SBMCmUnuqThKhG/e+fN0N+vvvvp+J9/3r17v90/3d8/Pfsy/bl+3b
 3X77MHt8et7+zyzVs1LbmUyV/RGY86eX978+/vX5or04n53/eHr+48kPb/efZ6vt28v2eZa8
 vjw+fXmHAZ5eX777/rtEl5laAO9c2cu/+5831D34PfxQpbF1k1ilyzaViU5lPRB1Y6vGtpmu
@@ -578,4 +597,4 @@ Xm1eFGVbeHKC3l5UGxLc0E+mmE+LwP5FeHzzVN+OvzF8uofUv5a0kKP3MHgUUVb+pHoCI5+Z
 naa0U6sXSQShZHJbtxOMieXIFUABuXAKyhzTCXtJgoZoYh8oIdLAOjP0YRQqh0iLnvhbModb
 oxCeF/GysJ2DKraHEmv/A00sqduElwEA
 
---bg08WKrSYDhXBjb5--
+--sdtB3X0nJg68CQEu--
