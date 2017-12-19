@@ -1,43 +1,45 @@
 From: kbuild test robot <fengguang.wu@intel.com>
-Subject: [nf-next:for-net-next2 34/40] net/netfilter/utils.c:14: undefined
- reference to `nf_ip_checksum'
-Date: Wed, 20 Dec 2017 02:32:54 +0800
-Message-ID: <201712200252.2ooR2pza%fengguang.wu@intel.com>
+Subject: [nf-next:for-net-next2 35/40] net/netfilter/utils.c:33: undefined
+ reference to `nf_ip_checksum_partial'
+Date: Wed, 20 Dec 2017 03:54:16 +0800
+Message-ID: <201712200314.Z8xrRHGd%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="GvXjxJ+pjyke8COw"
+Content-Type: multipart/mixed; boundary="bg08WKrSYDhXBjb5"
 Cc: kbuild-all@01.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:57854 "EHLO mga04.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:28756 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751278AbdLSSdB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 19 Dec 2017 13:33:01 -0500
+        id S1750825AbdLSTy1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 19 Dec 2017 14:54:27 -0500
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---GvXjxJ+pjyke8COw
+--bg08WKrSYDhXBjb5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
 tree:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git for-net-next2
 head:   7c3f8641178fb63c1e970a23e3743e89fc92be81
-commit: a86ca02d263c397669ad0ff856d8c0001a4c1eec [34/40] netfilter: remove checksum indirection in struct nf_afinfo
+commit: d0cdeba2fc5ef7f97bdcf5d31266a25802372009 [35/40] netfilter: remove checksum_partial indirection in struct nf_afinfo
 config: x86_64-randconfig-i0-201751 (attached as .config)
 compiler: gcc-7 (Debian 7.2.0-12) 7.2.1 20171025
 reproduce:
-        git checkout a86ca02d263c397669ad0ff856d8c0001a4c1eec
+        git checkout d0cdeba2fc5ef7f97bdcf5d31266a25802372009
         # save the attached .config to linux build tree
         make ARCH=x86_64 
 
 All errors (new ones prefixed by >>):
 
    net/netfilter/utils.o: In function `nf_checksum':
->> net/netfilter/utils.c:14: undefined reference to `nf_ip_checksum'
+   net/netfilter/utils.c:14: undefined reference to `nf_ip_checksum'
+   net/netfilter/utils.o: In function `nf_checksum_partial':
+>> net/netfilter/utils.c:33: undefined reference to `nf_ip_checksum_partial'
 
-vim +14 net/netfilter/utils.c
+vim +33 net/netfilter/utils.c
 
      5	
      6	__sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
@@ -49,17 +51,36 @@ vim +14 net/netfilter/utils.c
     12		switch (family) {
     13		case AF_INET:
   > 14			csum = nf_ip_checksum(skb, hook, dataoff, protocol);
+    15			break;
+    16		case AF_INET6:
+    17			csum = nf_ip6_checksum(skb, hook, dataoff, protocol);
+    18			break;
+    19		}
+    20	
+    21		return csum;
+    22	}
+    23	EXPORT_SYMBOL_GPL(nf_checksum);
+    24	
+    25	__sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
+    26				    unsigned int dataoff, unsigned int len,
+    27				    u_int8_t protocol, unsigned short family)
+    28	{
+    29		__sum16 csum = 0;
+    30	
+    31		switch (family) {
+    32		case AF_INET:
+  > 33			csum = nf_ip_checksum_partial(skb, hook, dataoff, len,
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---GvXjxJ+pjyke8COw
+--bg08WKrSYDhXBjb5
 Content-Type: application/gzip
 Content-Disposition: attachment; filename=".config.gz"
 Content-Transfer-Encoding: base64
 
-H4sICHJSOVoAAy5jb25maWcAlFxbc+O2kn7Pr1BN9uGch2Rsj+NMdssPEAlKiEiCJkDZ8gvL
+H4sICChrOVoAAy5jb25maWcAlFxbc+O2kn7Pr1BN9uGch2Rsj+NMdssPEAlKiEiCJkDZ8gvL
 seWJKx571pJPkn+/3Q1SBMCmUnuqThKhG/e+fN0N+vvvvp+J9/3r17v90/3d8/Pfsy/bl+3b
 3X77MHt8et7+zyzVs1LbmUyV/RGY86eX978+/vX5or04n53/eHr+48kPb/efZ6vt28v2eZa8
 vjw+fXmHAZ5eX777/rtEl5laAO9c2cu/+5831D34PfxQpbF1k1ilyzaViU5lPRB1Y6vGtpmu
@@ -557,4 +578,4 @@ Xm1eFGVbeHKC3l5UGxLc0E+mmE+LwP5FeHzzVN+OvzF8uofUv5a0kKP3MHgUUVb+pHoCI5+Z
 naa0U6sXSQShZHJbtxOMieXIFUABuXAKyhzTCXtJgoZoYh8oIdLAOjP0YRQqh0iLnvhbModb
 oxCeF/GysJ2DKraHEmv/A00sqduElwEA
 
---GvXjxJ+pjyke8COw--
+--bg08WKrSYDhXBjb5--
