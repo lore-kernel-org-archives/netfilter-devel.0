@@ -1,34 +1,34 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next,v3 1/7] netfilter: move checksum indirection to struct nf_ipv6_ops
-Date: Thu, 21 Dec 2017 00:12:43 +0100
-Message-ID: <20171220231249.10599-2-pablo@netfilter.org>
+Subject: [PATCH nf-next,v3 4/7] netfilter: move route indirection to struct nf_ipv6_ops
+Date: Thu, 21 Dec 2017 00:12:46 +0100
+Message-ID: <20171220231249.10599-5-pablo@netfilter.org>
 References: <20171220231249.10599-1-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58446 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58464 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755846AbdLTXM7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Dec 2017 18:12:59 -0500
+        id S1755846AbdLTXNB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 20 Dec 2017 18:13:01 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 222A5EBACC
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Dec 2017 00:12:58 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 0C047EBAD2
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Dec 2017 00:13:00 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0EB2434D2
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Dec 2017 00:12:58 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id EBE8A34D6
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Dec 2017 00:12:59 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E0CFE34D2
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Dec 2017 00:12:55 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9DB2234D9
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Dec 2017 00:12:57 +0100 (CET)
 Received: from salvia.here (40.red-212-170-55.staticip.rima-tde.net [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id C80CF4265A2F
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Dec 2017 00:12:55 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 8811D4265A2F
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Dec 2017 00:12:57 +0100 (CET)
 In-Reply-To: <20171220231249.10599-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We cannot make a direct call to nf_ip6_checksum() because that would
-result in autoloading the 'ipv6' module because of symbol dependencies.
-Therefore, define checksum indirection in nf_ipv6_ops where this really
+We cannot make a direct call to nf_ip6_route() because that would result
+in autoloading the 'ipv6' module because of symbol dependencies.
+Therefore, define route indirection in nf_ipv6_ops where this really
 belongs to.
 
 For IPv4, we can indeed make a direct function call, which is faster,
@@ -36,165 +36,362 @@ given IPv4 is built-in in the networking code by default.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h               | 19 +++----------------
+ include/linux/netfilter.h               |  4 ++--
+ include/linux/netfilter_ipv4.h          |  2 ++
  include/linux/netfilter_ipv6.h          |  2 ++
  net/bridge/netfilter/nf_tables_bridge.c |  7 -------
- net/ipv4/netfilter.c                    |  1 -
- net/ipv6/netfilter.c                    |  4 ++--
- net/netfilter/Makefile                  |  2 +-
- net/netfilter/utils.c                   | 26 ++++++++++++++++++++++++++
- 7 files changed, 34 insertions(+), 27 deletions(-)
- create mode 100644 net/netfilter/utils.c
+ net/ipv4/netfilter.c                    |  6 +++---
+ net/ipv6/netfilter.c                    |  2 +-
+ net/ipv6/netfilter/nft_fib_ipv6.c       | 12 +++++-------
+ net/netfilter/nf_conntrack_h323_main.c  | 30 +++++++++++++++---------------
+ net/netfilter/nft_rt.c                  | 15 +++++----------
+ net/netfilter/utils.c                   | 21 +++++++++++++++++++++
+ net/netfilter/xt_TCPMSS.c               |  5 +----
+ net/netfilter/xt_addrtype.c             | 15 ++++++---------
+ 12 files changed, 63 insertions(+), 58 deletions(-)
 
 diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 85a0b0d599e6..4c4d38ef1a76 100644
+index 5fc2443225f9..02c35eabd348 100644
 --- a/include/linux/netfilter.h
 +++ b/include/linux/netfilter.h
 @@ -311,8 +311,6 @@ struct nf_queue_entry;
  
  struct nf_afinfo {
  	unsigned short	family;
--	__sum16		(*checksum)(struct sk_buff *skb, unsigned int hook,
--				    unsigned int dataoff, u_int8_t protocol);
- 	__sum16		(*checksum_partial)(struct sk_buff *skb,
- 					    unsigned int hook,
- 					    unsigned int dataoff,
-@@ -333,20 +331,9 @@ static inline const struct nf_afinfo *nf_get_afinfo(unsigned short family)
- 	return rcu_dereference(nf_afinfo[family]);
- }
+-	int		(*route)(struct net *net, struct dst_entry **dst,
+-				 struct flowi *fl, bool strict);
+ 	int		(*reroute)(struct net *net, struct sk_buff *skb,
+ 				   const struct nf_queue_entry *entry);
+ 	int		route_key_size;
+@@ -331,6 +329,8 @@ __sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
+ __sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ 			    unsigned int dataoff, unsigned int len,
+ 			    u_int8_t protocol, unsigned short family);
++int nf_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
++	     bool strict, unsigned short family);
  
--static inline __sum16
--nf_checksum(struct sk_buff *skb, unsigned int hook, unsigned int dataoff,
--	    u_int8_t protocol, unsigned short family)
--{
--	const struct nf_afinfo *afinfo;
--	__sum16 csum = 0;
--
--	rcu_read_lock();
--	afinfo = nf_get_afinfo(family);
--	if (afinfo)
--		csum = afinfo->checksum(skb, hook, dataoff, protocol);
--	rcu_read_unlock();
--	return csum;
--}
-+__sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
-+		    unsigned int dataoff, u_int8_t protocol,
-+		    unsigned short family);
- 
- static inline __sum16
- nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ int nf_register_afinfo(const struct nf_afinfo *afinfo);
+ void nf_unregister_afinfo(const struct nf_afinfo *afinfo);
+diff --git a/include/linux/netfilter_ipv4.h b/include/linux/netfilter_ipv4.h
+index efa0619486c9..e70ffe6c3c09 100644
+--- a/include/linux/netfilter_ipv4.h
++++ b/include/linux/netfilter_ipv4.h
+@@ -22,4 +22,6 @@ __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
+ __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ 			       unsigned int dataoff, unsigned int len,
+ 			       u_int8_t protocol);
++int nf_ip_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
++		bool strict);
+ #endif /*__LINUX_IP_NETFILTER_H*/
 diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index 47c6b04c28c0..b136101b5cde 100644
+index 08d58dc018b5..e5700bb314a1 100644
 --- a/include/linux/netfilter_ipv6.h
 +++ b/include/linux/netfilter_ipv6.h
-@@ -19,6 +19,8 @@ struct nf_ipv6_ops {
- 	void (*route_input)(struct sk_buff *skb);
- 	int (*fragment)(struct net *net, struct sock *sk, struct sk_buff *skb,
- 			int (*output)(struct net *, struct sock *, struct sk_buff *));
-+	__sum16 (*checksum)(struct sk_buff *skb, unsigned int hook,
-+			    unsigned int dataoff, u_int8_t protocol);
+@@ -33,6 +33,8 @@ struct nf_ipv6_ops {
+ 	__sum16 (*checksum_partial)(struct sk_buff *skb, unsigned int hook,
+ 				    unsigned int dataoff, unsigned int len,
+ 				    u_int8_t protocol);
++	int (*route)(struct net *net, struct dst_entry **dst, struct flowi *fl,
++		     bool strict);
  };
  
  #ifdef CONFIG_NETFILTER
 diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
-index 74260ffec74d..b850c17f02f5 100644
+index f38350c6bc29..014b6571f2ac 100644
 --- a/net/bridge/netfilter/nf_tables_bridge.c
 +++ b/net/bridge/netfilter/nf_tables_bridge.c
-@@ -106,12 +106,6 @@ static int nf_br_reroute(struct net *net, struct sk_buff *skb,
+@@ -101,15 +101,8 @@ static int nf_br_reroute(struct net *net, struct sk_buff *skb,
  	return 0;
  }
  
--static __sum16 nf_br_checksum(struct sk_buff *skb, unsigned int hook,
--			      unsigned int dataoff, u_int8_t protocol)
+-static int nf_br_route(struct net *net, struct dst_entry **dst,
+-		       struct flowi *fl, bool strict __always_unused)
 -{
 -	return 0;
 -}
 -
- static __sum16 nf_br_checksum_partial(struct sk_buff *skb, unsigned int hook,
- 				      unsigned int dataoff, unsigned int len,
- 				      u_int8_t protocol)
-@@ -127,7 +121,6 @@ static int nf_br_route(struct net *net, struct dst_entry **dst,
- 
  static const struct nf_afinfo nf_br_afinfo = {
  	.family                 = AF_BRIDGE,
--	.checksum               = nf_br_checksum,
- 	.checksum_partial       = nf_br_checksum_partial,
- 	.route                  = nf_br_route,
- 	.saveroute              = nf_br_saveroute,
+-	.route                  = nf_br_route,
+ 	.reroute                = nf_br_reroute,
+ 	.route_key_size         = 0,
+ };
 diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index c0cc6aa8cfaa..2f7ffefd2732 100644
+index 7878ae6c35b2..e9d47e4ec182 100644
 --- a/net/ipv4/netfilter.c
 +++ b/net/ipv4/netfilter.c
-@@ -188,7 +188,6 @@ static int nf_ip_route(struct net *net, struct dst_entry **dst,
+@@ -150,8 +150,8 @@ __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ }
+ EXPORT_SYMBOL_GPL(nf_ip_checksum_partial);
+ 
+-static int nf_ip_route(struct net *net, struct dst_entry **dst,
+-		       struct flowi *fl, bool strict __always_unused)
++int nf_ip_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
++		bool strict __always_unused)
+ {
+ 	struct rtable *rt = ip_route_output_key(net, &fl->u.ip4);
+ 	if (IS_ERR(rt))
+@@ -159,10 +159,10 @@ static int nf_ip_route(struct net *net, struct dst_entry **dst,
+ 	*dst = &rt->dst;
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(nf_ip_route);
  
  static const struct nf_afinfo nf_ip_afinfo = {
  	.family			= AF_INET,
--	.checksum		= nf_ip_checksum,
- 	.checksum_partial	= nf_ip_checksum_partial,
- 	.route			= nf_ip_route,
- 	.saveroute		= nf_ip_saveroute,
+-	.route			= nf_ip_route,
+ 	.reroute		= nf_ip_reroute,
+ 	.route_key_size		= sizeof(struct ip_rt_info),
+ };
 diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 39970e212ad5..db69c8af95aa 100644
+index 6d1f470660db..f03bb043e4e4 100644
 --- a/net/ipv6/netfilter.c
 +++ b/net/ipv6/netfilter.c
-@@ -192,12 +192,12 @@ static __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
- static const struct nf_ipv6_ops ipv6ops = {
- 	.chk_addr	= ipv6_chk_addr,
- 	.route_input    = ip6_route_input,
--	.fragment	= ip6_fragment
-+	.fragment	= ip6_fragment,
-+	.checksum	= nf_ip6_checksum,
+@@ -170,11 +170,11 @@ static const struct nf_ipv6_ops ipv6ops = {
+ 	.fragment		= ip6_fragment,
+ 	.checksum		= nf_ip6_checksum,
+ 	.checksum_partial	= nf_ip6_checksum_partial,
++	.route			= nf_ip6_route,
  };
  
  static const struct nf_afinfo nf_ip6_afinfo = {
  	.family			= AF_INET6,
--	.checksum		= nf_ip6_checksum,
- 	.checksum_partial	= nf_ip6_checksum_partial,
- 	.route			= nf_ip6_route,
- 	.saveroute		= nf_ip6_saveroute,
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 490a55e7166d..eec0c3b72926 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -1,5 +1,5 @@
- # SPDX-License-Identifier: GPL-2.0
--netfilter-objs := core.o nf_log.o nf_queue.o nf_sockopt.o
-+netfilter-objs := core.o nf_log.o nf_queue.o nf_sockopt.o utils.o
+-	.route			= nf_ip6_route,
+ 	.reroute		= nf_ip6_reroute,
+ 	.route_key_size		= sizeof(struct ip6_rt_info),
+ };
+diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
+index 54b5899543ef..cc5174c7254c 100644
+--- a/net/ipv6/netfilter/nft_fib_ipv6.c
++++ b/net/ipv6/netfilter/nft_fib_ipv6.c
+@@ -60,7 +60,6 @@ static u32 __nft_fib6_eval_type(const struct nft_fib *priv,
+ {
+ 	const struct net_device *dev = NULL;
+ 	const struct nf_ipv6_ops *v6ops;
+-	const struct nf_afinfo *afinfo;
+ 	int route_err, addrtype;
+ 	struct rt6_info *rt;
+ 	struct flowi6 fl6 = {
+@@ -69,8 +68,8 @@ static u32 __nft_fib6_eval_type(const struct nft_fib *priv,
+ 	};
+ 	u32 ret = 0;
  
- nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o nf_conntrack_proto.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o nf_conntrack_extend.o nf_conntrack_acct.o nf_conntrack_seqadj.o
- nf_conntrack-$(CONFIG_NF_CONNTRACK_TIMEOUT) += nf_conntrack_timeout.o
-diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
-new file mode 100644
-index 000000000000..159a9cdcfe1e
---- /dev/null
-+++ b/net/netfilter/utils.c
-@@ -0,0 +1,26 @@
-+#include <linux/kernel.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter_ipv4.h>
+-	afinfo = nf_get_afinfo(NFPROTO_IPV6);
+-	if (!afinfo)
++	v6ops = nf_get_ipv6_ops();
++	if (!v6ops)
+ 		return RTN_UNREACHABLE;
+ 
+ 	if (priv->flags & NFTA_FIB_F_IIF)
+@@ -80,12 +79,11 @@ static u32 __nft_fib6_eval_type(const struct nft_fib *priv,
+ 
+ 	nft_fib6_flowi_init(&fl6, priv, pkt, dev, iph);
+ 
+-	v6ops = nf_get_ipv6_ops();
+-	if (dev && v6ops && v6ops->chk_addr(nft_net(pkt), &fl6.daddr, dev, true))
++	if (dev && v6ops->chk_addr(nft_net(pkt), &fl6.daddr, dev, true))
+ 		ret = RTN_LOCAL;
+ 
+-	route_err = afinfo->route(nft_net(pkt), (struct dst_entry **)&rt,
+-				  flowi6_to_flowi(&fl6), false);
++	route_err = v6ops->route(nft_net(pkt), (struct dst_entry **)&rt,
++				 flowi6_to_flowi(&fl6), false);
+ 	if (route_err)
+ 		goto err;
+ 
+diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+index 7f0e0f66e488..005589c6d0f6 100644
+--- a/net/netfilter/nf_conntrack_h323_main.c
++++ b/net/netfilter/nf_conntrack_h323_main.c
+@@ -24,6 +24,7 @@
+ #include <linux/skbuff.h>
+ #include <net/route.h>
+ #include <net/ip6_route.h>
 +#include <linux/netfilter_ipv6.h>
+ 
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+@@ -721,14 +722,8 @@ static int callforward_do_filter(struct net *net,
+ 				 const union nf_inet_addr *dst,
+ 				 u_int8_t family)
+ {
+-	const struct nf_afinfo *afinfo;
+ 	int ret = 0;
+ 
+-	/* rcu_read_lock()ed by nf_hook_thresh */
+-	afinfo = nf_get_afinfo(family);
+-	if (!afinfo)
+-		return 0;
+-
+ 	switch (family) {
+ 	case AF_INET: {
+ 		struct flowi4 fl1, fl2;
+@@ -739,10 +734,10 @@ static int callforward_do_filter(struct net *net,
+ 
+ 		memset(&fl2, 0, sizeof(fl2));
+ 		fl2.daddr = dst->ip;
+-		if (!afinfo->route(net, (struct dst_entry **)&rt1,
+-				   flowi4_to_flowi(&fl1), false)) {
+-			if (!afinfo->route(net, (struct dst_entry **)&rt2,
+-					   flowi4_to_flowi(&fl2), false)) {
++		if (!nf_ip_route(net, (struct dst_entry **)&rt1,
++				 flowi4_to_flowi(&fl1), false)) {
++			if (!nf_ip_route(net, (struct dst_entry **)&rt2,
++					 flowi4_to_flowi(&fl2), false)) {
+ 				if (rt_nexthop(rt1, fl1.daddr) ==
+ 				    rt_nexthop(rt2, fl2.daddr) &&
+ 				    rt1->dst.dev  == rt2->dst.dev)
+@@ -755,18 +750,23 @@ static int callforward_do_filter(struct net *net,
+ 	}
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK_IPV6)
+ 	case AF_INET6: {
+-		struct flowi6 fl1, fl2;
++		const struct nf_ipv6_ops *v6ops;
+ 		struct rt6_info *rt1, *rt2;
++		struct flowi6 fl1, fl2;
 +
-+__sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
-+		    unsigned int dataoff, u_int8_t protocol,
-+		    unsigned short family)
++		v6ops = nf_get_ipv6_ops();
++		if (!v6ops)
++			return 0;
+ 
+ 		memset(&fl1, 0, sizeof(fl1));
+ 		fl1.daddr = src->in6;
+ 
+ 		memset(&fl2, 0, sizeof(fl2));
+ 		fl2.daddr = dst->in6;
+-		if (!afinfo->route(net, (struct dst_entry **)&rt1,
+-				   flowi6_to_flowi(&fl1), false)) {
+-			if (!afinfo->route(net, (struct dst_entry **)&rt2,
+-					   flowi6_to_flowi(&fl2), false)) {
++		if (!v6ops->route(net, (struct dst_entry **)&rt1,
++				  flowi6_to_flowi(&fl1), false)) {
++			if (!v6ops->route(net, (struct dst_entry **)&rt2,
++					  flowi6_to_flowi(&fl2), false)) {
+ 				if (ipv6_addr_equal(rt6_nexthop(rt1, &fl1.daddr),
+ 						    rt6_nexthop(rt2, &fl2.daddr)) &&
+ 				    rt1->dst.dev == rt2->dst.dev)
+diff --git a/net/netfilter/nft_rt.c b/net/netfilter/nft_rt.c
+index a6b7d05aeacf..11a2071b6dd4 100644
+--- a/net/netfilter/nft_rt.c
++++ b/net/netfilter/nft_rt.c
+@@ -27,7 +27,7 @@ static u16 get_tcpmss(const struct nft_pktinfo *pkt, const struct dst_entry *skb
+ {
+ 	u32 minlen = sizeof(struct ipv6hdr), mtu = dst_mtu(skbdst);
+ 	const struct sk_buff *skb = pkt->skb;
+-	const struct nf_afinfo *ai;
++	struct dst_entry *dst = NULL;
+ 	struct flowi fl;
+ 
+ 	memset(&fl, 0, sizeof(fl));
+@@ -43,15 +43,10 @@ static u16 get_tcpmss(const struct nft_pktinfo *pkt, const struct dst_entry *skb
+ 		break;
+ 	}
+ 
+-	ai = nf_get_afinfo(nft_pf(pkt));
+-	if (ai) {
+-		struct dst_entry *dst = NULL;
+-
+-		ai->route(nft_net(pkt), &dst, &fl, false);
+-		if (dst) {
+-			mtu = min(mtu, dst_mtu(dst));
+-			dst_release(dst);
+-		}
++	nf_route(nft_net(pkt), &dst, &fl, false, nft_pf(pkt));
++	if (dst) {
++		mtu = min(mtu, dst_mtu(dst));
++		dst_release(dst);
+ 	}
+ 
+ 	if (mtu <= minlen || mtu > 0xffff)
+diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
+index ca6d8d62496d..45c22418c955 100644
+--- a/net/netfilter/utils.c
++++ b/net/netfilter/utils.c
+@@ -48,3 +48,24 @@ __sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ 	return csum;
+ }
+ EXPORT_SYMBOL_GPL(nf_checksum_partial);
++
++int nf_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
++	     bool strict, unsigned short family)
 +{
 +	const struct nf_ipv6_ops *v6ops;
-+	__sum16 csum = 0;
++	int ret = 0;
 +
 +	switch (family) {
 +	case AF_INET:
-+		csum = nf_ip_checksum(skb, hook, dataoff, protocol);
++		ret = nf_ip_route(net, dst, fl, strict);
 +		break;
 +	case AF_INET6:
 +		v6ops = rcu_dereference(nf_ipv6_ops);
 +		if (v6ops)
-+			csum = v6ops->checksum(skb, hook, dataoff, protocol);
++			ret = v6ops->route(net, dst, fl, strict);
 +		break;
 +	}
 +
-+	return csum;
++	return ret;
 +}
-+EXPORT_SYMBOL_GPL(nf_checksum);
++EXPORT_SYMBOL_GPL(nf_route);
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+index 9dae4d665965..99bb8e410f22 100644
+--- a/net/netfilter/xt_TCPMSS.c
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -48,7 +48,6 @@ static u_int32_t tcpmss_reverse_mtu(struct net *net,
+ 				    unsigned int family)
+ {
+ 	struct flowi fl;
+-	const struct nf_afinfo *ai;
+ 	struct rtable *rt = NULL;
+ 	u_int32_t mtu     = ~0U;
+ 
+@@ -62,10 +61,8 @@ static u_int32_t tcpmss_reverse_mtu(struct net *net,
+ 		memset(fl6, 0, sizeof(*fl6));
+ 		fl6->daddr = ipv6_hdr(skb)->saddr;
+ 	}
+-	ai = nf_get_afinfo(family);
+-	if (ai != NULL)
+-		ai->route(net, (struct dst_entry **)&rt, &fl, false);
+ 
++	nf_route(net, (struct dst_entry **)&rt, &fl, false, family);
+ 	if (rt != NULL) {
+ 		mtu = dst_mtu(&rt->dst);
+ 		dst_release(&rt->dst);
+diff --git a/net/netfilter/xt_addrtype.c b/net/netfilter/xt_addrtype.c
+index 3b2be2ae6987..911a7c0da504 100644
+--- a/net/netfilter/xt_addrtype.c
++++ b/net/netfilter/xt_addrtype.c
+@@ -36,7 +36,7 @@ MODULE_ALIAS("ip6t_addrtype");
+ static u32 match_lookup_rt6(struct net *net, const struct net_device *dev,
+ 			    const struct in6_addr *addr, u16 mask)
+ {
+-	const struct nf_afinfo *afinfo;
++	const struct nf_ipv6_ops *v6ops;
+ 	struct flowi6 flow;
+ 	struct rt6_info *rt;
+ 	u32 ret = 0;
+@@ -47,17 +47,14 @@ static u32 match_lookup_rt6(struct net *net, const struct net_device *dev,
+ 	if (dev)
+ 		flow.flowi6_oif = dev->ifindex;
+ 
+-	afinfo = nf_get_afinfo(NFPROTO_IPV6);
+-	if (afinfo != NULL) {
+-		const struct nf_ipv6_ops *v6ops;
+-
++	v6ops = nf_get_ipv6_ops();
++	if (v6ops) {
+ 		if (dev && (mask & XT_ADDRTYPE_LOCAL)) {
+-			v6ops = nf_get_ipv6_ops();
+-			if (v6ops && v6ops->chk_addr(net, addr, dev, true))
++			if (v6ops->chk_addr(net, addr, dev, true))
+ 				ret = XT_ADDRTYPE_LOCAL;
+ 		}
+-		route_err = afinfo->route(net, (struct dst_entry **)&rt,
+-					  flowi6_to_flowi(&flow), false);
++		route_err = v6ops->route(net, (struct dst_entry **)&rt,
++					 flowi6_to_flowi(&flow), false);
+ 	} else {
+ 		route_err = 1;
+ 	}
 -- 
 2.11.0
 
