@@ -1,114 +1,145 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: libnftables extended API proposal
-Date: Wed, 20 Dec 2017 13:32:25 +0100
-Message-ID: <20171220123225.GS32305@orbyte.nwl.cc>
-References: <20171204105324.GX32305@orbyte.nwl.cc>
- <20171204110142.GA19776@salvia>
- <20171204164327.GA32305@orbyte.nwl.cc>
- <20171204184604.GA1556@salvia>
- <20171205134317.GE32305@orbyte.nwl.cc>
- <20171207000545.GA27739@salvia>
- <20171207113431.GF32305@orbyte.nwl.cc>
- <20171210215540.GA14363@salvia>
- <20171216160651.GP32305@orbyte.nwl.cc>
- <20171218230048.pwtnnezyxyhh4geu@salvia>
+From: Thierry Du Tre <thierry@dtsystems.be>
+Subject: [PATCH] extensions: libipt_DNAT: support shifted portmap ranges
+Date: Wed, 20 Dec 2017 17:40:31 +0100
+Message-ID: <52576776-f14e-3401-d28e-59e5a44c9bde@dtsystems.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:46880 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752886AbdLTMc1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Dec 2017 07:32:27 -0500
-Content-Disposition: inline
-In-Reply-To: <20171218230048.pwtnnezyxyhh4geu@salvia>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:38964 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754388AbdLTQke (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 20 Dec 2017 11:40:34 -0500
+Received: by mail-wm0-f67.google.com with SMTP id i11so10890957wmf.4
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Dec 2017 08:40:33 -0800 (PST)
+Content-Language: nl
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+This is a proposal patch for iptables DNAT extension to support shifted 
+portmap ranges. It is related to the kernel patch proposed in earlier 
+message '[PATCH] netfilter : add NAT support for shifted portmap ranges'.
 
-On Tue, Dec 19, 2017 at 12:00:48AM +0100, Pablo Neira Ayuso wrote:
-> On Sat, Dec 16, 2017 at 05:06:51PM +0100, Phil Sutter wrote:
-> > On Sun, Dec 10, 2017 at 10:55:40PM +0100, Pablo Neira Ayuso wrote:
-> > > On Thu, Dec 07, 2017 at 12:34:31PM +0100, Phil Sutter wrote:
-> > > > On Thu, Dec 07, 2017 at 01:05:45AM +0100, Pablo Neira Ayuso wrote:
-> > > > > On Tue, Dec 05, 2017 at 02:43:17PM +0100, Phil Sutter wrote:
-> > > > [...]
-> > > > > > After tweaking the parser a bit, I can use it now to parse just a
-> > > > > > set_list_member_expr and use the struct expr it returns. This made it
-> > > > > > possible to create the desired struct cmd in above function without
-> > > > > > having to invoke the parser there.
-> > > > > > 
-> > > > > > Exercising this refining consequently should allow to reach arbitrary
-> > > > > > levels of granularity. For instance, one could stop at statement level,
-> > > > > > i.e. statements are created using a string representation. Or one could
-> > > > > > go down to expression level, and statements are created using one or two
-> > > > > > expressions (depending on whether it is relational or not). Of course
-> > > > > > this means the library will eventually become as complicated as the
-> > > > > > parser itself, not necessarily a good thing.
-> > > > > 
-> > > > > Yes, and we'll expose all internal representation details, that we
-> > > > > will need to maintain forever if we don't want to break backward.
-> > > > 
-> > > > Not necessarily. I had this in mind when declaring 'struct nft_table'
-> > > > instead of reusing 'struct table'. :)
-> > > > 
-> > > > The parser defines the grammar, the library would just follow it. So if
-> > > > a given internal change complies with the old grammar, it should comply
-> > > > with the library as well. Though this is quite theoretical, of course.
-> > > > 
-> > > > Let's take relational expressions as simple example: In bison, we define
-> > > > 'expr op rhs_expr'. An equivalent library function could be:
-> > > > 
-> > > > | struct nft_expr *nft_relational_new(struct nft_expr *,
-> > > > | 				      enum rel_ops,
-> > > > | 				      struct nft_expr *);
-> > > 
-> > > Then that means you would like to expose an API that allows you to
-> > > build the abstract syntax tree.
-> > 
-> > That was the idea I had when I thought about how to transition from
-> > fully text-based simple API to an extended one which allows to work with
-> > objects instead. We could start simple and refine further if
-> > required/sensible. At the basic level, adding a new rule could be
-> > something like:
-> > 
-> > | myrule = nft_rule_create("tcp dport 22 accept");
-> > 
-> > If required, one could implement rule building based on statements:
-> > 
-> > | stmt1 = nft_stmt_create("tcp dport 22");
-> > | stmt2 = nft_stmt_create("accept");
-> > | myrule = nft_rule_create();
-> > | nft_rule_add_stmt(myrule, stmt1);
-> > | nft_rule_add_stmt(myrule, stmt2);
-> 
-> This is mixing parsing and abstract syntax tree creation.
-> 
-> If you want to expose the syntax tree, then I would the parsing layer
-> entirely and expose the syntax tree, which is what the json
-> representation for the high level library will be doing.
+The syntax uses an extra value in '--to-destination' for setting the 
+base port which determines the offset in the redirect port range for 
+incoming connections.
+i.e. : iptables -t nat -A zone_wan_prerouting -p tcp -m tcp --dport 
+5000:5100 -j DNAT --to-destination '192.168.1.2:2000-2100;5000'
+The base port value is totally optional, so current behavior is not 
+impacted in any way.
 
-But that means having to provide a creating function for every
-expression there is, no?
+The use of semicolon as separator is an arbitrary choice, all other 
+suggestions are valid of course.
+The base port is now member of 'struct nf_nat_ipv4_range' together with 
+min and max port. Therefore, the simplest solution is to parse the base 
+port as part of the to-destination argument.
+Another approach using an additional option seems also possible (i.e. 
+'--base-port 5000'). However, that would mean more parsing logic with 
+extra lines of code and thus increased risk for regression.
 
-> To support new protocol, we will need a new library version too, when
-> the abstraction to represent a payload is already well-defined, ie.
-> [ base, offset, length ], which is pretty much everywhere the same,
-> not only in nftables.
+When a definitive solution is agreed on, I'll update libipt6_DNAT and 
+man page accordingly.
 
-Sorry, I didn't get that. Are you talking about that JSON
-representation?
+Signed-off-by: Thierry Du Tre <thierry@dtsystems.be>
 
-> I wonder if firewalld could generate high level json representation
-> instead, so it becomes a compiler/translator from its own
-> representation to nftables abstract syntax tree. As I said, the json
-> representation is mapping to the abstract syntax tree we have in nft.
-> I'm refering to the high level json representation that doesn't exist
-> yet, not the low level one for libnftnl.
+---
+  extensions/libipt_DNAT.c         | 18 +++++++++++++++++-
+  include/linux/netfilter/nf_nat.h |  3 +++
+  2 files changed, 20 insertions(+), 1 deletion(-)
 
-Can you point me to some information about that high level JSON
-representation? Seems I'm missing something here.
+diff --git a/extensions/libipt_DNAT.c b/extensions/libipt_DNAT.c
+index a14d16f..f810efe 100644
+--- a/extensions/libipt_DNAT.c
++++ b/extensions/libipt_DNAT.c
+@@ -30,7 +30,7 @@ static void DNAT_help(void)
+  {
+  	printf(
+  "DNAT target options:\n"
+-" --to-destination [<ipaddr>[-<ipaddr>]][:port[-port]]\n"
++" --to-destination [<ipaddr>[-<ipaddr>]][:port[-port[;port]]]\n"
+  "				Address to map destination to.\n"
+  "[--random] [--persistent]\n");
+  }
+@@ -102,6 +102,7 @@ parse_to(const char *orig_arg, int portok, struct 
+ipt_natinfo *info)
+  				= htons(port);
+  		} else {
+  			int maxport;
++			char *semicolon;
 
-Thanks, Phil
+  			maxport = atoi(dash + 1);
+  			if (maxport <= 0 || maxport > 65535)
+@@ -113,6 +114,17 @@ parse_to(const char *orig_arg, int portok, struct 
+ipt_natinfo *info)
+  					   "Port range `%s' funky\n", colon+1);
+  			range.min.tcp.port = htons(port);
+  			range.max.tcp.port = htons(maxport);
++
++			if ((semicolon = strchr(dash, ';'))) {
++				int baseport;
++
++				baseport = atoi(semicolon + 1);
++				if (baseport <= 0 || baseport > 65535)
++					xtables_error(PARAMETER_PROBLEM,
++							 "Port `%s' not valid\n", semicolon+1);
++				range.flags |= NF_NAT_RANGE_PROTO_OFFSET;
++				range.base.tcp.port = htons(baseport);
++			}
+  		}
+  		/* Starts with a colon? No IP info...*/
+  		if (colon == arg) {
+@@ -208,6 +220,8 @@ static void print_range(const struct 
+nf_nat_ipv4_range *r)
+  		printf("%hu", ntohs(r->min.tcp.port));
+  		if (r->max.tcp.port != r->min.tcp.port)
+  			printf("-%hu", ntohs(r->max.tcp.port));
++		if (r->flags & NF_NAT_RANGE_PROTO_OFFSET)
++			printf(";%hu", ntohs(r->base.tcp.port));
+  	}
+  }
+
+@@ -259,6 +273,8 @@ static void print_range_xlate(const struct 
+nf_nat_ipv4_range *r,
+  		xt_xlate_add(xl, ":%hu", ntohs(r->min.tcp.port));
+  		if (r->max.tcp.port != r->min.tcp.port)
+  			xt_xlate_add(xl, "-%hu", ntohs(r->max.tcp.port));
++		if (r->flags & NF_NAT_RANGE_PROTO_OFFSET)
++			xt_xlate_add(xl, ";%hu", ntohs(r->base.tcp.port));
+  	}
+  }
+
+diff --git a/include/linux/netfilter/nf_nat.h 
+b/include/linux/netfilter/nf_nat.h
+index 1ad3659..a945ee3 100644
+--- a/include/linux/netfilter/nf_nat.h
++++ b/include/linux/netfilter/nf_nat.h
+@@ -9,6 +9,7 @@
+  #define NF_NAT_RANGE_PROTO_RANDOM		(1 << 2)
+  #define NF_NAT_RANGE_PERSISTENT			(1 << 3)
+  #define NF_NAT_RANGE_PROTO_RANDOM_FULLY		(1 << 4)
++#define NF_NAT_RANGE_PROTO_OFFSET		(1 << 5)
+
+  #define NF_NAT_RANGE_PROTO_RANDOM_ALL		\
+  	(NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PROTO_RANDOM_FULLY)
+@@ -19,6 +20,7 @@ struct nf_nat_ipv4_range {
+  	__be32				max_ip;
+  	union nf_conntrack_man_proto	min;
+  	union nf_conntrack_man_proto	max;
++	union nf_conntrack_man_proto	base;
+  };
+
+  struct nf_nat_ipv4_multi_range_compat {
+@@ -32,6 +34,7 @@ struct nf_nat_range {
+  	union nf_inet_addr		max_addr;
+  	union nf_conntrack_man_proto	min_proto;
+  	union nf_conntrack_man_proto	max_proto;
++	union nf_conntrack_man_proto	base_proto;
+  };
+
+  #endif /* _NETFILTER_NF_NAT_H */
+-- 
+2.7.4
