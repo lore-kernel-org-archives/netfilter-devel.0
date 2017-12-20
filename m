@@ -1,107 +1,130 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter : add NAT support for shifted portmap ranges
-Date: Wed, 20 Dec 2017 23:16:13 +0100
-Message-ID: <20171220221613.4qnsjny2gackyykb@salvia>
-References: <3d98278c-6c33-72e1-163d-2f6270060620@dtsystems.be>
+Subject: Re: libnftables extended API proposal
+Date: Wed, 20 Dec 2017 23:23:36 +0100
+Message-ID: <20171220222336.yqnl3g5fgeopsxuf@salvia>
+References: <20171204110142.GA19776@salvia>
+ <20171204164327.GA32305@orbyte.nwl.cc>
+ <20171204184604.GA1556@salvia>
+ <20171205134317.GE32305@orbyte.nwl.cc>
+ <20171207000545.GA27739@salvia>
+ <20171207113431.GF32305@orbyte.nwl.cc>
+ <20171210215540.GA14363@salvia>
+ <20171216160651.GP32305@orbyte.nwl.cc>
+ <20171218230048.pwtnnezyxyhh4geu@salvia>
+ <20171220123225.GS32305@orbyte.nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
-To: Thierry Du Tre <thierry@dtsystems.be>
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+        Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50244 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51398 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755691AbdLTWQT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Dec 2017 17:16:19 -0500
+        id S1755718AbdLTWXl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 20 Dec 2017 17:23:41 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AD35AEAA77
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Dec 2017 23:16:17 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 91832EAA77
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Dec 2017 23:23:39 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9C8A3F7306
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Dec 2017 23:16:17 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8036BF731B
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Dec 2017 23:23:39 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <3d98278c-6c33-72e1-163d-2f6270060620@dtsystems.be>
+In-Reply-To: <20171220123225.GS32305@orbyte.nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Dec 20, 2017 at 01:28:09PM +0100, Thierry Du Tre wrote:
-> This is a patch proposal to support shifted ranges in portmaps.
-> (i.e. tcp/udp incoming port 5000-5100 on WAN redirected to LAN
-> 192.168.1.5:2000-2100)
-> 
-> Currently DNAT only works for single port or identical port ranges.
-> (i.e. ports 5000-5100 on WAN interface redirected to a LAN host while
-> original destination port is not altered)
-> When different port ranges are configured, either 'random' mode should be
-> used, or else all incoming connections are mapped onto the first port in the
-> redirect range. (in described example WAN:5000-5100 will all be mapped to
-> 192.168.1.5:2000)
+Hi Phil,
 
-This behaviour you describe above also applies to the current
-portmapping we do, right?
+On Wed, Dec 20, 2017 at 01:32:25PM +0100, Phil Sutter wrote:
+[...]
+> On Tue, Dec 19, 2017 at 12:00:48AM +0100, Pablo Neira Ayuso wrote:
+> > On Sat, Dec 16, 2017 at 05:06:51PM +0100, Phil Sutter wrote:
+> > > On Sun, Dec 10, 2017 at 10:55:40PM +0100, Pablo Neira Ayuso wrote:
+> > > > On Thu, Dec 07, 2017 at 12:34:31PM +0100, Phil Sutter wrote:
+> > > > > On Thu, Dec 07, 2017 at 01:05:45AM +0100, Pablo Neira Ayuso wrote:
+> > > > > > On Tue, Dec 05, 2017 at 02:43:17PM +0100, Phil Sutter wrote:
+> > > > > [...]
+> > > > > > > After tweaking the parser a bit, I can use it now to parse just a
+> > > > > > > set_list_member_expr and use the struct expr it returns. This made it
+> > > > > > > possible to create the desired struct cmd in above function without
+> > > > > > > having to invoke the parser there.
+> > > > > > > 
+> > > > > > > Exercising this refining consequently should allow to reach arbitrary
+> > > > > > > levels of granularity. For instance, one could stop at statement level,
+> > > > > > > i.e. statements are created using a string representation. Or one could
+> > > > > > > go down to expression level, and statements are created using one or two
+> > > > > > > expressions (depending on whether it is relational or not). Of course
+> > > > > > > this means the library will eventually become as complicated as the
+> > > > > > > parser itself, not necessarily a good thing.
+> > > > > > 
+> > > > > > Yes, and we'll expose all internal representation details, that we
+> > > > > > will need to maintain forever if we don't want to break backward.
+> > > > > 
+> > > > > Not necessarily. I had this in mind when declaring 'struct nft_table'
+> > > > > instead of reusing 'struct table'. :)
+> > > > > 
+> > > > > The parser defines the grammar, the library would just follow it. So if
+> > > > > a given internal change complies with the old grammar, it should comply
+> > > > > with the library as well. Though this is quite theoretical, of course.
+> > > > > 
+> > > > > Let's take relational expressions as simple example: In bison, we define
+> > > > > 'expr op rhs_expr'. An equivalent library function could be:
+> > > > > 
+> > > > > | struct nft_expr *nft_relational_new(struct nft_expr *,
+> > > > > | 				      enum rel_ops,
+> > > > > | 				      struct nft_expr *);
+> > > > 
+> > > > Then that means you would like to expose an API that allows you to
+> > > > build the abstract syntax tree.
+> > > 
+> > > That was the idea I had when I thought about how to transition from
+> > > fully text-based simple API to an extended one which allows to work with
+> > > objects instead. We could start simple and refine further if
+> > > required/sensible. At the basic level, adding a new rule could be
+> > > something like:
+> > > 
+> > > | myrule = nft_rule_create("tcp dport 22 accept");
+> > > 
+> > > If required, one could implement rule building based on statements:
+> > > 
+> > > | stmt1 = nft_stmt_create("tcp dport 22");
+> > > | stmt2 = nft_stmt_create("accept");
+> > > | myrule = nft_rule_create();
+> > > | nft_rule_add_stmt(myrule, stmt1);
+> > > | nft_rule_add_stmt(myrule, stmt2);
+> > 
+> > This is mixing parsing and abstract syntax tree creation.
+> > 
+> > If you want to expose the syntax tree, then I would the parsing layer
+> > entirely and expose the syntax tree, which is what the json
+> > representation for the high level library will be doing.
+> 
+> But that means having to provide a creating function for every
+> expression there is, no?
 
-One more comment below.
+Yes.
 
-> This patch introduces a new mode indicated by flag NF_NAT_RANGE_PROTO_OFFSET
-> which uses a base port value to calculate an offset with the destination
-> port present in the incoming stream. That offset is then applied as index
-> within the redirect port range (index modulo rangewidth to handle range
-> overflow).
+> > To support new protocol, we will need a new library version too, when
+> > the abstraction to represent a payload is already well-defined, ie.
+> > [ base, offset, length ], which is pretty much everywhere the same,
+> > not only in nftables.
 > 
-> In described example the base port would be 5000. An incoming stream with
-> destination port 5004 would result in an offset value 4 which means that the
-> NAT'ed stream will be using destination port 2004.
-> 
-> Other possibilities include deterministic mapping of larger or multiple
-> ranges to a smaller range : WAN:5000-5999 -> LAN:5000-5099 (maps WAN port
-> 5*xx to port 51xx)
-> 
-> This patch does not change any current behavior. It just adds new NAT proto
-> range functionality which must be selected via the specific flag when
-> intended to use.
-> 
-> A patch for iptables (libipt_DNAT.c) will also be proposed which makes this
-> functionality immediately available.
-> 
-> Signed-off-by: Thierry Du Tre <thierry@dtsystems.be>
-> 
-> ---
->  include/uapi/linux/netfilter/nf_nat.h | 5 ++++-
->  net/netfilter/nf_nat_core.c           | 7 ++++---
->  net/netfilter/nf_nat_proto_common.c   | 5 ++++-
->  net/netfilter/xt_nat.c                | 1 +
->  4 files changed, 13 insertions(+), 5 deletions(-)
-> 
-> diff --git a/include/uapi/linux/netfilter/nf_nat.h
-> b/include/uapi/linux/netfilter/nf_nat.h
-> index a33000d..5b3952b 100644
-> --- a/include/uapi/linux/netfilter/nf_nat.h
-> +++ b/include/uapi/linux/netfilter/nf_nat.h
-> @@ -10,6 +10,7 @@
->  #define NF_NAT_RANGE_PROTO_RANDOM		(1 << 2)
->  #define NF_NAT_RANGE_PERSISTENT			(1 << 3)
->  #define NF_NAT_RANGE_PROTO_RANDOM_FULLY		(1 << 4)
-> +#define NF_NAT_RANGE_PROTO_OFFSET		(1 << 5)
-> 
->  #define NF_NAT_RANGE_PROTO_RANDOM_ALL		\
->  	(NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PROTO_RANDOM_FULLY)
-> @@ -17,7 +18,7 @@
->  #define NF_NAT_RANGE_MASK					\
->  	(NF_NAT_RANGE_MAP_IPS | NF_NAT_RANGE_PROTO_SPECIFIED |	\
->  	 NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PERSISTENT |	\
-> -	 NF_NAT_RANGE_PROTO_RANDOM_FULLY)
-> +	 NF_NAT_RANGE_PROTO_RANDOM_FULLY | NF_NAT_RANGE_PROTO_OFFSET)
-> 
->  struct nf_nat_ipv4_range {
->  	unsigned int			flags;
-> @@ -25,6 +26,7 @@ struct nf_nat_ipv4_range {
->  	__be32				max_ip;
->  	union nf_conntrack_man_proto	min;
->  	union nf_conntrack_man_proto	max;
-> +	union nf_conntrack_man_proto	base;
->  };
+> Sorry, I didn't get that. Are you talking about that JSON
+> representation?
 
-This one is exposed to userspace, therefore, this will break backward
-compatibility in iptables.
+Yes. The one that does not exist.
 
-You will need to add a revision in xt_nat, and some compat code all
-over the place.
+> > I wonder if firewalld could generate high level json representation
+> > instead, so it becomes a compiler/translator from its own
+> > representation to nftables abstract syntax tree. As I said, the json
+> > representation is mapping to the abstract syntax tree we have in nft.
+> > I'm refering to the high level json representation that doesn't exist
+> > yet, not the low level one for libnftnl.
+> 
+> Can you point me to some information about that high level JSON
+> representation? Seems I'm missing something here.
+
+It doesn't exist :-), if we expose a json-based API, third party tool
+only have to generate the json high-level representation, we would
+need very few API calls for this, and anyone could generate rulesets
+for nftables, without relying on the bison parser, given the json
+representation exposes the abstract syntax tree.
