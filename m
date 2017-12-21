@@ -1,66 +1,37 @@
-From: Varsha Rao <rvarsha016@gmail.com>
-Subject: [PATCH iptables] extensions: Add macro _DEFAULT_SOURCE.
-Date: Thu, 21 Dec 2017 09:05:45 +0530
-Message-ID: <20171221033545.2676-2-rvarsha016@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH iptables] iptables: Remove const qualifier from struct
+ option.
+Date: Thu, 21 Dec 2017 09:09:47 +0100
+Message-ID: <20171221080947.4nv6q6jwlmw2e7oo@salvia>
 References: <20171221033545.2676-1-rvarsha016@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-Cc: Varsha Rao <rvarsha016@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Varsha Rao <rvarsha016@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:37704 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756330AbdLUDgQ (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Dec 2017 22:36:16 -0500
-Received: by mail-pg0-f68.google.com with SMTP id o13so2025652pgp.4
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Dec 2017 19:36:16 -0800 (PST)
+Received: from mail.us.es ([193.147.175.20]:34506 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751130AbdLUIJx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 21 Dec 2017 03:09:53 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9974FB6B84
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Dec 2017 09:09:50 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 81BB31150A1
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Dec 2017 09:09:50 +0100 (CET)
+Content-Disposition: inline
 In-Reply-To: <20171221033545.2676-1-rvarsha016@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Define _DEFAULT_SOURCE as _BSD_SOURCE is deprecated.
-https://sourceware.org/glibc/wiki/Release/2.20#Packaging_Changes
+On Thu, Dec 21, 2017 at 09:05:44AM +0530, Varsha Rao wrote:
+> As opts is reassigned multiple times, it cannot be made constant.
+> So remove const qualifier from structure option. This patch fixes the
+> following warning:
+> 
+> warning: initialization discards ‘const’ qualifier from pointer target
+> type [-Wdiscarded-qualifiers]
+>   .orig_opts = original_opts,
 
-This patch fixes the following warning:
-
-warning: #warning "_BSD_SOURCE and _SVID_SOURCE are deprecated, use
-_DEFAULT_SOURCE" [-Wcpp]
- # warning "_BSD_SOURCE and _SVID_SOURCE are deprecated, use
- # _DEFAULT_SOURCE"
-
-Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
----
- extensions/libxt_hashlimit.c | 1 +
- extensions/libxt_limit.c     | 1 +
- 2 files changed, 2 insertions(+)
-
-diff --git a/extensions/libxt_hashlimit.c b/extensions/libxt_hashlimit.c
-index e51ac1ae..ffe342a7 100644
---- a/extensions/libxt_hashlimit.c
-+++ b/extensions/libxt_hashlimit.c
-@@ -11,6 +11,7 @@
-  * Error corections by nmalykh@bilim.com (22.01.2005)
-  */
- #define _BSD_SOURCE 1
-+#define _DEFAULT_SOURCE 1
- #define _ISOC99_SOURCE 1
- #include <inttypes.h>
- #include <math.h>
-diff --git a/extensions/libxt_limit.c b/extensions/libxt_limit.c
-index 5cc95c2e..c8ddca87 100644
---- a/extensions/libxt_limit.c
-+++ b/extensions/libxt_limit.c
-@@ -4,6 +4,7 @@
-  * Hervé Eychenne    <rv@wallfire.org>
-  */
- #define _BSD_SOURCE 1
-+#define _DEFAULT_SOURCE 1
- #define _ISOC99_SOURCE 1
- #include <math.h>
- #include <stdio.h>
--- 
-2.14.3
-
+Applied, thanks Varsha.
