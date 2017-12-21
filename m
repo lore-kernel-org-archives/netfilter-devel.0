@@ -1,159 +1,78 @@
-From: Bernie Harris <bernie.harris@alliedtelesis.co.nz>
-Subject: [PATCH] ebtables: Add filter for matching on a string
-Date: Thu, 21 Dec 2017 13:01:35 +1300
-Message-ID: <20171221000135.5755-1-bernie.harris@alliedtelesis.co.nz>
-Cc: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
-        Bernie Harris <bernie.harris@alliedtelesis.co.nz>
-To: netfilter-devel@vger.kernel.org
+From: Varsha Rao <rvarsha016@gmail.com>
+Subject: [PATCH iptables] iptables: Remove const qualifier from struct option.
+Date: Thu, 21 Dec 2017 09:05:44 +0530
+Message-ID: <20171221033545.2676-1-rvarsha016@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: Varsha Rao <rvarsha016@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gate2.alliedtelesis.co.nz ([202.36.163.20]:37046 "EHLO
-        gate2.alliedtelesis.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756493AbdLUAMx (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:43006 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756330AbdLUDgI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Dec 2017 19:12:53 -0500
+        Wed, 20 Dec 2017 22:36:08 -0500
+Received: by mail-pg0-f67.google.com with SMTP id q67so3540587pga.9
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Dec 2017 19:36:08 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch is part of a proposal to add a new filter type to
-ebtables that matches on an arbitrary string within the
-encapsulated network-layer packet.
+As opts is reassigned multiple times, it cannot be made constant.
+So remove const qualifier from structure option. This patch fixes the
+following warning:
 
-The match starts from the beginning of the network-layer packet.
+warning: initialization discards ‘const’ qualifier from pointer target
+type [-Wdiscarded-qualifiers]
+  .orig_opts = original_opts,
 
-Signed-off-by: Bernie Harris <bernie.harris@alliedtelesis.co.nz>
+Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
 ---
- include/uapi/linux/netfilter_bridge/ebt_string.h | 16 ++++++
- net/bridge/netfilter/Kconfig                     |  8 +++
- net/bridge/netfilter/Makefile                    |  1 +
- net/bridge/netfilter/ebt_string.c                | 65 ++++++++++++++++++++++++
- 4 files changed, 90 insertions(+)
- create mode 100644 include/uapi/linux/netfilter_bridge/ebt_string.h
- create mode 100644 net/bridge/netfilter/ebt_string.c
+ iptables/ip6tables.c | 2 +-
+ iptables/iptables.c  | 2 +-
+ iptables/xtables.c   | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter_bridge/ebt_string.h b/include/uapi/linux/netfilter_bridge/ebt_string.h
-new file mode 100644
-index 000000000000..87d04e9efebd
---- /dev/null
-+++ b/include/uapi/linux/netfilter_bridge/ebt_string.h
-@@ -0,0 +1,16 @@
-+/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-+#ifndef __LINUX_BRIDGE_EBT_STRING_H
-+#define __LINUX_BRIDGE_EBT_STRING_H
-+
-+#include <linux/types.h>
-+
-+#define EBT_STRING_MATCH "string"
-+#define MAX_STRING_OCTETS 64
-+
-+struct ebt_string_info {
-+	__u16 offset;
-+	__u16 length;
-+	unsigned char string[MAX_STRING_OCTETS + 1];
-+};
-+
-+#endif
-diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-index e7ef1a1ef3a6..ec1287b3678c 100644
---- a/net/bridge/netfilter/Kconfig
-+++ b/net/bridge/netfilter/Kconfig
-@@ -154,6 +154,14 @@ config BRIDGE_EBT_VLAN
- 	  This option adds the 802.1Q vlan match, which allows the filtering of
- 	  802.1Q vlan fields.
+diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
+index 0f6fa31a..49bd006f 100644
+--- a/iptables/ip6tables.c
++++ b/iptables/ip6tables.c
+@@ -78,7 +78,7 @@ static const char optflags[]
  
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
-+config BRIDGE_EBT_STRING
-+	tristate "ebt: string filter support"
-+	help
-+	  This option adds the string match, which allows filtering based on
-+	  an arbitrary sequence of octets starting from a given offset.
-+
- 	  To compile it as a module, choose M here.  If unsure, say N.
- #
- # targets
-diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
-index 2f28e16de6c7..450a84ada5e4 100644
---- a/net/bridge/netfilter/Makefile
-+++ b/net/bridge/netfilter/Makefile
-@@ -28,6 +28,7 @@ obj-$(CONFIG_BRIDGE_EBT_MARK) += ebt_mark_m.o
- obj-$(CONFIG_BRIDGE_EBT_PKTTYPE) += ebt_pkttype.o
- obj-$(CONFIG_BRIDGE_EBT_STP) += ebt_stp.o
- obj-$(CONFIG_BRIDGE_EBT_VLAN) += ebt_vlan.o
-+obj-$(CONFIG_BRIDGE_EBT_STRING) += ebt_string.o
+ static const char unsupported_rev[] = " [unsupported revision]";
  
- # targets
- obj-$(CONFIG_BRIDGE_EBT_ARPREPLY) += ebt_arpreply.o
-diff --git a/net/bridge/netfilter/ebt_string.c b/net/bridge/netfilter/ebt_string.c
-new file mode 100644
-index 000000000000..66770506d3a3
---- /dev/null
-+++ b/net/bridge/netfilter/ebt_string.c
-@@ -0,0 +1,65 @@
-+/*
-+ * string
-+ *
-+ * Author:
-+ * Bernie Harris bernie.harris@alliedtelesis.co.nz
-+ *
-+ * October 2017
-+ *
-+ */
-+#include <linux/module.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter_bridge/ebtables.h>
-+#include <linux/netfilter_bridge/ebt_string.h>
-+
-+static bool
-+ebt_string_mt(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	const struct ebt_string_info *info = par->matchinfo;
-+	unsigned char buf[MAX_STRING_OCTETS + 1];
-+	unsigned char *match_start;
-+	int i;
-+	int offset = skb_network_offset(skb) + info->offset;
-+
-+	if (offset + info->length >= skb->len)
-+		return false;
-+
-+	match_start = skb_header_pointer(skb, offset, info->length, buf);
-+
-+	for (i = 0; i < info->length; i++) {
-+		if (*(match_start + i) != info->string[i])
-+			return false;
-+	}
-+
-+	return true;
-+}
-+
-+static int ebt_string_mt_check(const struct xt_mtchk_param *par)
-+{
-+	return 0;
-+}
-+
-+static struct xt_match ebt_string_mt_reg __read_mostly = {
-+	.name		= "string",
-+	.revision	= 0,
-+	.family		= NFPROTO_BRIDGE,
-+	.match		= ebt_string_mt,
-+	.checkentry	= ebt_string_mt_check,
-+	.matchsize	= sizeof(struct ebt_string_info),
-+	.me		= THIS_MODULE,
-+};
-+
-+static int __init ebt_string_init(void)
-+{
-+	return xt_register_match(&ebt_string_mt_reg);
-+}
-+
-+static void __exit ebt_string_fini(void)
-+{
-+	xt_unregister_match(&ebt_string_mt_reg);
-+}
-+
-+module_init(ebt_string_init);
-+module_exit(ebt_string_fini);
-+MODULE_DESCRIPTION("Ebtables: String match");
-+MODULE_LICENSE("GPL");
+-static const struct option original_opts[] = {
++static struct option original_opts[] = {
+ 	{.name = "append",        .has_arg = 1, .val = 'A'},
+ 	{.name = "delete",        .has_arg = 1, .val = 'D'},
+ 	{.name = "check" ,        .has_arg = 1, .val = 'C'},
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index e930fe26..69d19fec 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -75,7 +75,7 @@ static const char optflags[]
+ 
+ static const char unsupported_rev[] = " [unsupported revision]";
+ 
+-static const struct option original_opts[] = {
++static struct option original_opts[] = {
+ 	{.name = "append",        .has_arg = 1, .val = 'A'},
+ 	{.name = "delete",        .has_arg = 1, .val = 'D'},
+ 	{.name = "check",         .has_arg = 1, .val = 'C'},
+diff --git a/iptables/xtables.c b/iptables/xtables.c
+index aebe7d77..ac113254 100644
+--- a/iptables/xtables.c
++++ b/iptables/xtables.c
+@@ -59,7 +59,7 @@ static const char cmdflags[] = { 'I', 'D', 'D', 'R', 'A', 'L', 'F', 'Z',
+ static const char optflags[]
+ = { 'n', 's', 'd', 'p', 'j', 'v', 'x', 'i', 'o', '0', 'c', 'f'};
+ 
+-static const struct option original_opts[] = {
++static struct option original_opts[] = {
+ 	{.name = "append",	  .has_arg = 1, .val = 'A'},
+ 	{.name = "delete",	  .has_arg = 1, .val = 'D'},
+ 	{.name = "check",	  .has_arg = 1, .val = 'C'},
 -- 
-2.15.1
+2.14.3
 
