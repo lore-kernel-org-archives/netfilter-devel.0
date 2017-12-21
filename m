@@ -1,113 +1,36 @@
-From: Thierry Du Tre <thierry@dtsystems.be>
-Subject: Re: [PATCH] netfilter : add NAT support for shifted portmap ranges
-Date: Thu, 21 Dec 2017 15:46:27 +0100
-Message-ID: <558e25d6-a76f-56db-5e9e-59b5a87c985e@dtsystems.be>
-References: <3d98278c-6c33-72e1-163d-2f6270060620@dtsystems.be>
- <20171220221613.4qnsjny2gackyykb@salvia>
+From: "Sandra Younes" <mamg7610885@angel.ocn.ne.jp>
+Subject: Re: Distress Call Please don't ignore
+Date: Thu, 21 Dec 2017 18:43:41 +0200
+Message-ID: <201712211643.vBLGhkjK008353@mf-smf-ucb018.ocn.ad.jp>
+Reply-To: <tdavalvse@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain;
+        charset="Windows-1251"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:45728 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750994AbdLUOqa (ORCPT
+Received: from mbkd0206.ocn.ad.jp ([153.149.233.7]:48945 "EHLO
+        mbkd0206.ocn.ad.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752222AbdLUQy5 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Dec 2017 09:46:30 -0500
-Received: by mail-wm0-f66.google.com with SMTP id 9so16390954wme.4
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Dec 2017 06:46:29 -0800 (PST)
-In-Reply-To: <20171220221613.4qnsjny2gackyykb@salvia>
-Content-Language: nl
+        Thu, 21 Dec 2017 11:54:57 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Op 20/12/2017 om 23:16 schreef Pablo Neira Ayuso:
-> On Wed, Dec 20, 2017 at 01:28:09PM +0100, Thierry Du Tre wrote:
->> This is a patch proposal to support shifted ranges in portmaps.
->> (i.e. tcp/udp incoming port 5000-5100 on WAN redirected to LAN
->> 192.168.1.5:2000-2100)
->>
->> Currently DNAT only works for single port or identical port ranges.
->> (i.e. ports 5000-5100 on WAN interface redirected to a LAN host while
->> original destination port is not altered)
->> When different port ranges are configured, either 'random' mode should be
->> used, or else all incoming connections are mapped onto the first port in the
->> redirect range. (in described example WAN:5000-5100 will all be mapped to
->> 192.168.1.5:2000)
-> 
-> This behaviour you describe above also applies to the current
-> portmapping we do, right?
+Good Day,
 
-Yes, I described the current behavior to elaborate on the purpose of 
-this patch ; enabling missing functionality in current implementation.
+Forgive my indignation if this message comes to you as a surprise and may offend your personality for contacting you without your prior consent and writing through this channel.
 
-> One more comment below.
-> 
->> This patch introduces a new mode indicated by flag NF_NAT_RANGE_PROTO_OFFSET
->> which uses a base port value to calculate an offset with the destination
->> port present in the incoming stream. That offset is then applied as index
->> within the redirect port range (index modulo rangewidth to handle range
->> overflow).
->>
->> In described example the base port would be 5000. An incoming stream with
->> destination port 5004 would result in an offset value 4 which means that the
->> NAT'ed stream will be using destination port 2004.
->>
->> Other possibilities include deterministic mapping of larger or multiple
->> ranges to a smaller range : WAN:5000-5999 -> LAN:5000-5099 (maps WAN port
->> 5*xx to port 51xx)
->>
->> This patch does not change any current behavior. It just adds new NAT proto
->> range functionality which must be selected via the specific flag when
->> intended to use.
->>
->> A patch for iptables (libipt_DNAT.c) will also be proposed which makes this
->> functionality immediately available.
->>
->> Signed-off-by: Thierry Du Tre <thierry@dtsystems.be>
->>
->> ---
->>   include/uapi/linux/netfilter/nf_nat.h | 5 ++++-
->>   net/netfilter/nf_nat_core.c           | 7 ++++---
->>   net/netfilter/nf_nat_proto_common.c   | 5 ++++-
->>   net/netfilter/xt_nat.c                | 1 +
->>   4 files changed, 13 insertions(+), 5 deletions(-)
->>
->> diff --git a/include/uapi/linux/netfilter/nf_nat.h
->> b/include/uapi/linux/netfilter/nf_nat.h
->> index a33000d..5b3952b 100644
->> --- a/include/uapi/linux/netfilter/nf_nat.h
->> +++ b/include/uapi/linux/netfilter/nf_nat.h
->> @@ -10,6 +10,7 @@
->>   #define NF_NAT_RANGE_PROTO_RANDOM		(1 << 2)
->>   #define NF_NAT_RANGE_PERSISTENT			(1 << 3)
->>   #define NF_NAT_RANGE_PROTO_RANDOM_FULLY		(1 << 4)
->> +#define NF_NAT_RANGE_PROTO_OFFSET		(1 << 5)
->>
->>   #define NF_NAT_RANGE_PROTO_RANDOM_ALL		\
->>   	(NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PROTO_RANDOM_FULLY)
->> @@ -17,7 +18,7 @@
->>   #define NF_NAT_RANGE_MASK					\
->>   	(NF_NAT_RANGE_MAP_IPS | NF_NAT_RANGE_PROTO_SPECIFIED |	\
->>   	 NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PERSISTENT |	\
->> -	 NF_NAT_RANGE_PROTO_RANDOM_FULLY)
->> +	 NF_NAT_RANGE_PROTO_RANDOM_FULLY | NF_NAT_RANGE_PROTO_OFFSET)
->>
->>   struct nf_nat_ipv4_range {
->>   	unsigned int			flags;
->> @@ -25,6 +26,7 @@ struct nf_nat_ipv4_range {
->>   	__be32				max_ip;
->>   	union nf_conntrack_man_proto	min;
->>   	union nf_conntrack_man_proto	max;
->> +	union nf_conntrack_man_proto	base;
->>   };
-> 
-> This one is exposed to userspace, therefore, this will break backward
-> compatibility in iptables.
-> 
-> You will need to add a revision in xt_nat, and some compat code all
-> over the place.
+I came across your name and contact on the course of my personal searching when i was searching for a foreign reliable partner. I was assured of your capability and reliability after going true your profile.
 
-That spoils the party I guess. I'm not familiar with the expectations 
-regarding changes in uapi, but I'll try to work something out.
+I'm (Miss. Sandra) from Benghazi libya, My father of blessed memory by name late General Abdel Fattah Younes who was shot death by Islamist-linked militia within the anti-Gaddafi forces on 28th July, 2011 and after two days later my mother with my two brothers was killed one early morning by the rebels as result of civil war that is going on in my country Libya, then after the burial of my parents, my uncles conspired and sold my father's properties and left nothing for me. On a faithful morning, I opened my father's briefcase and discover a document which he has deposited ($6.250M USD) in a bank in a Turkish Bank which has a small branch in Canada with my name as the legitimate/next of kin. Meanwhile i have located the bank,and have also discussed the possiblity of transfering the fund. M
+ y father left a clause to the bank that i must introduce a trusted foreign partner who would be my trustee to help me invest this fund; hence the need for your assistance,i request that you be my t
+rustee and assist me in e
+
+You will also be responsible for the investment and management of the fund for me and also you will help me get a good school where i will further my education.
+I agreed to give you 40% of the $6.250M once the transfer is done. this is my true life story, I will be glad to receive your respond soonest for more details to enable us start and champion the transfer less than 14 banking days as i was informed by the bank manager.
+
+Thanks for giving me your attention,
+
+Yours sincerely,
+Miss. Sandra Younes
