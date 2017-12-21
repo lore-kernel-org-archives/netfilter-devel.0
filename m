@@ -1,37 +1,38 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables] iptables: Remove const qualifier from struct
- option.
-Date: Thu, 21 Dec 2017 09:09:47 +0100
-Message-ID: <20171221080947.4nv6q6jwlmw2e7oo@salvia>
+Subject: Re: [PATCH iptables] extensions: Add macro _DEFAULT_SOURCE.
+Date: Thu, 21 Dec 2017 09:10:03 +0100
+Message-ID: <20171221081003.egaje2brytnfrspg@salvia>
 References: <20171221033545.2676-1-rvarsha016@gmail.com>
+ <20171221033545.2676-2-rvarsha016@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Varsha Rao <rvarsha016@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34506 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34662 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751130AbdLUIJx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Dec 2017 03:09:53 -0500
+        id S1751808AbdLUIKI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 21 Dec 2017 03:10:08 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9974FB6B84
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Dec 2017 09:09:50 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 58CF0B6B84
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Dec 2017 09:10:07 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 81BB31150A1
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Dec 2017 09:09:50 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4A4E31150A7
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Dec 2017 09:10:07 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20171221033545.2676-1-rvarsha016@gmail.com>
+In-Reply-To: <20171221033545.2676-2-rvarsha016@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Dec 21, 2017 at 09:05:44AM +0530, Varsha Rao wrote:
-> As opts is reassigned multiple times, it cannot be made constant.
-> So remove const qualifier from structure option. This patch fixes the
-> following warning:
+On Thu, Dec 21, 2017 at 09:05:45AM +0530, Varsha Rao wrote:
+> Define _DEFAULT_SOURCE as _BSD_SOURCE is deprecated.
+> https://sourceware.org/glibc/wiki/Release/2.20#Packaging_Changes
 > 
-> warning: initialization discards ‘const’ qualifier from pointer target
-> type [-Wdiscarded-qualifiers]
->   .orig_opts = original_opts,
+> This patch fixes the following warning:
+> 
+> warning: #warning "_BSD_SOURCE and _SVID_SOURCE are deprecated, use
+> _DEFAULT_SOURCE" [-Wcpp]
+>  # warning "_BSD_SOURCE and _SVID_SOURCE are deprecated, use
+>  # _DEFAULT_SOURCE"
 
-Applied, thanks Varsha.
+Also applied, thanks.
