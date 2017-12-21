@@ -1,140 +1,237 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] ebtables: Add filter for matching on a string
-Date: Thu, 21 Dec 2017 01:08:52 +0100
-Message-ID: <20171221000852.kqda4lumixcgwzmf@salvia>
-References: <20171221000135.5755-1-bernie.harris@alliedtelesis.co.nz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
-        fw@strlen.de
-To: Bernie Harris <bernie.harris@alliedtelesis.co.nz>
+From: Bernie Harris <bernie.harris@alliedtelesis.co.nz>
+Subject: [ebtables PATCH] Add filter for matching on a string
+Date: Thu, 21 Dec 2017 13:03:06 +1300
+Message-ID: <20171221000306.5873-1-bernie.harris@alliedtelesis.co.nz>
+Cc: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        Bernie Harris <bernie.harris@alliedtelesis.co.nz>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37618 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755811AbdLUAI6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 20 Dec 2017 19:08:58 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 20F93EDB08
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Dec 2017 01:08:57 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0EAD5F7316
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Dec 2017 01:08:57 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20171221000135.5755-1-bernie.harris@alliedtelesis.co.nz>
+Received: from gate2.alliedtelesis.co.nz ([202.36.163.20]:37047 "EHLO
+        gate2.alliedtelesis.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756202AbdLUAMx (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 20 Dec 2017 19:12:53 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Bernie,
+This is a proposal to add a new filter type that matches on an
+arbitrary string within the network-layer packet.
 
-Thanks for submitting, comment below.
+This would allow filtering packets on bridge interfaces based on
+certain fields of uncommon protocols (e.g. BACnet).
 
-On Thu, Dec 21, 2017 at 01:01:35PM +1300, Bernie Harris wrote:
-> This patch is part of a proposal to add a new filter type to
-> ebtables that matches on an arbitrary string within the
-> encapsulated network-layer packet.
-> 
-> The match starts from the beginning of the network-layer packet.
-> 
-> Signed-off-by: Bernie Harris <bernie.harris@alliedtelesis.co.nz>
-> ---
->  include/uapi/linux/netfilter_bridge/ebt_string.h | 16 ++++++
->  net/bridge/netfilter/Kconfig                     |  8 +++
->  net/bridge/netfilter/Makefile                    |  1 +
->  net/bridge/netfilter/ebt_string.c                | 65 ++++++++++++++++++++++++
->  4 files changed, 90 insertions(+)
->  create mode 100644 include/uapi/linux/netfilter_bridge/ebt_string.h
->  create mode 100644 net/bridge/netfilter/ebt_string.c
-> 
-> diff --git a/include/uapi/linux/netfilter_bridge/ebt_string.h b/include/uapi/linux/netfilter_bridge/ebt_string.h
-> new file mode 100644
-> index 000000000000..87d04e9efebd
-> --- /dev/null
-> +++ b/include/uapi/linux/netfilter_bridge/ebt_string.h
-> @@ -0,0 +1,16 @@
-> +/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-> +#ifndef __LINUX_BRIDGE_EBT_STRING_H
-> +#define __LINUX_BRIDGE_EBT_STRING_H
-> +
-> +#include <linux/types.h>
-> +
-> +#define EBT_STRING_MATCH "string"
-> +#define MAX_STRING_OCTETS 64
-> +
-> +struct ebt_string_info {
-> +	__u16 offset;
-> +	__u16 length;
-> +	unsigned char string[MAX_STRING_OCTETS + 1];
-> +};
-> +
-> +#endif
-> diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-> index e7ef1a1ef3a6..ec1287b3678c 100644
-> --- a/net/bridge/netfilter/Kconfig
-> +++ b/net/bridge/netfilter/Kconfig
-> @@ -154,6 +154,14 @@ config BRIDGE_EBT_VLAN
->  	  This option adds the 802.1Q vlan match, which allows the filtering of
->  	  802.1Q vlan fields.
->  
-> +	  To compile it as a module, choose M here.  If unsure, say N.
-> +
-> +config BRIDGE_EBT_STRING
-> +	tristate "ebt: string filter support"
-> +	help
-> +	  This option adds the string match, which allows filtering based on
-> +	  an arbitrary sequence of octets starting from a given offset.
-> +
->  	  To compile it as a module, choose M here.  If unsure, say N.
->  #
->  # targets
-> diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
-> index 2f28e16de6c7..450a84ada5e4 100644
-> --- a/net/bridge/netfilter/Makefile
-> +++ b/net/bridge/netfilter/Makefile
-> @@ -28,6 +28,7 @@ obj-$(CONFIG_BRIDGE_EBT_MARK) += ebt_mark_m.o
->  obj-$(CONFIG_BRIDGE_EBT_PKTTYPE) += ebt_pkttype.o
->  obj-$(CONFIG_BRIDGE_EBT_STP) += ebt_stp.o
->  obj-$(CONFIG_BRIDGE_EBT_VLAN) += ebt_vlan.o
-> +obj-$(CONFIG_BRIDGE_EBT_STRING) += ebt_string.o
->  
->  # targets
->  obj-$(CONFIG_BRIDGE_EBT_ARPREPLY) += ebt_arpreply.o
-> diff --git a/net/bridge/netfilter/ebt_string.c b/net/bridge/netfilter/ebt_string.c
-> new file mode 100644
-> index 000000000000..66770506d3a3
-> --- /dev/null
-> +++ b/net/bridge/netfilter/ebt_string.c
-> @@ -0,0 +1,65 @@
-> +/*
-> + * string
-> + *
-> + * Author:
-> + * Bernie Harris bernie.harris@alliedtelesis.co.nz
-> + *
-> + * October 2017
-> + *
-> + */
-> +#include <linux/module.h>
-> +#include <linux/netfilter/x_tables.h>
-> +#include <linux/netfilter_bridge/ebtables.h>
-> +#include <linux/netfilter_bridge/ebt_string.h>
-> +
-> +static bool
-> +ebt_string_mt(const struct sk_buff *skb, struct xt_action_param *par)
-> +{
-> +	const struct ebt_string_info *info = par->matchinfo;
-> +	unsigned char buf[MAX_STRING_OCTETS + 1];
-> +	unsigned char *match_start;
-> +	int i;
-> +	int offset = skb_network_offset(skb) + info->offset;
-> +
-> +	if (offset + info->length >= skb->len)
-> +		return false;
-> +
-> +	match_start = skb_header_pointer(skb, offset, info->length, buf);
-> +
-> +	for (i = 0; i < info->length; i++) {
-> +		if (*(match_start + i) != info->string[i])
-> +			return false;
-> +	}
+Two new rule options are added:
 
-I would prefer something that converges with net/netfilter/xt_string.c
+--string-offset <offset in decimal>
+--string-hex <sequence of octets in hex>
+
+The offset is relative to the start of the network layer packet.
+
+A corresponding kernel patch will also be proposed.
+
+Signed-off-by: Bernie Harris <bernie.harris@alliedtelesis.co.nz>
+---
+ extensions/Makefile                         |   2 +-
+ extensions/ebt_string.c                     | 154 ++++++++++++++++++++++++++++
+ include/linux/netfilter_bridge/ebt_string.h |  15 +++
+ 3 files changed, 170 insertions(+), 1 deletion(-)
+ create mode 100644 extensions/ebt_string.c
+ create mode 100644 include/linux/netfilter_bridge/ebt_string.h
+
+diff --git a/extensions/Makefile b/extensions/Makefile
+index b3548e8..60a70a2 100644
+--- a/extensions/Makefile
++++ b/extensions/Makefile
+@@ -1,7 +1,7 @@
+ #! /usr/bin/make
+ 
+ EXT_FUNC+=802_3 nat arp arpreply ip ip6 standard log redirect vlan mark_m mark \
+-          pkttype stp among limit ulog nflog
++          pkttype stp among limit ulog nflog string
+ EXT_TABLES+=filter nat broute
+ EXT_OBJS+=$(foreach T,$(EXT_FUNC), extensions/ebt_$(T).o)
+ EXT_OBJS+=$(foreach T,$(EXT_TABLES), extensions/ebtable_$(T).o)
+diff --git a/extensions/ebt_string.c b/extensions/ebt_string.c
+new file mode 100644
+index 0000000..0596035
+--- /dev/null
++++ b/extensions/ebt_string.c
+@@ -0,0 +1,154 @@
++/* ebt_string
++ *
++ * Author:
++ * Bernie Harris <bernie.harris@alliedtelesis.co.nz>
++ *
++ * October, 2017
++ */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <getopt.h>
++#include <netdb.h>
++#include <ctype.h>
++#include "../include/ebtables_u.h"
++#include <linux/if_packet.h>
++#include <linux/netfilter_bridge/ebt_string.h>
++
++#define STRING_OFFSET '1'
++#define STRING_HEX  '2'
++#define OPT_STRING_OFFSET 0x01
++#define OPT_STRING_HEX    0x02
++
++static const struct option opts[] =
++{
++	{ "string-offset"           , required_argument, 0, STRING_OFFSET },
++	{ "string-hex"              , required_argument, 0, STRING_HEX },
++	{ 0 }
++};
++
++static void print_help()
++{
++	printf(
++"string options:\n"
++"--string-offset offset : offset relative to start of network packet to match from\n"
++"--string-hex string    : string to match, in hex format (e.g. 6578616d706c65)\n"
++"The maximum allowable number of octets to match for are %d\n", MAX_STRING_OCTETS);
++}
++
++static void init(struct ebt_entry_match *match)
++{
++	struct ebt_string_info *info = (struct ebt_string_info *)match->data;
++
++	info->offset = 0;
++	info->length = 0;
++}
++
++static int parse(int c, char **argv, int argc, const struct ebt_u_entry *entry,
++   unsigned int *flags, struct ebt_entry_match **match)
++{
++	struct ebt_string_info *info = (struct ebt_string_info *)(*match)->data;
++	int i;
++	int input_string_length = 0;
++	char buf[3] = { 0 };
++
++	switch (c) {
++	case STRING_OFFSET:
++		ebt_check_option2(flags, OPT_STRING_OFFSET);
++		if (ebt_check_inverse2(optarg))
++			ebt_print_error2("Unexpected `!' after --string-offset");
++		info->offset = (__u16)strtoul(optarg, NULL, 10);
++		break;
++	case STRING_HEX:
++		ebt_check_option2(flags, OPT_STRING_HEX);
++
++		/* Don't support inversion */
++		if (ebt_check_inverse2(optarg))
++			ebt_print_error2("Unexpected `!' after --string-hex");
++
++		/* Check match string length */
++		input_string_length = strlen(optarg);
++		if (input_string_length == 0)
++			ebt_print_error2("Match string must contain at least one character");
++		if (input_string_length > MAX_STRING_OCTETS * 2)
++			ebt_print_error2("Match string exceeds %d octets", MAX_STRING_OCTETS);
++		if (input_string_length % 2 != 0)
++			ebt_print_error2("Invalid match string");
++
++		for (i = 0; i < input_string_length / 2; i++) {
++			strncpy(buf, optarg + 2 * i, 2);
++
++			/* String must be in hex format */
++			if (!isxdigit(buf[0]) || !isxdigit(buf[1]))
++				ebt_print_error2("Invalid match string");
++
++			info->string[i] = (unsigned char)strtoul(buf, NULL, 16);
++		}
++
++		info->length = i;
++		break;
++	default:
++		return 0;
++	}
++	return 1;
++}
++
++static void final_check(const struct ebt_u_entry *entry,
++   const struct ebt_entry_match *match, const char *name,
++   unsigned int hookmask, unsigned int time)
++{
++}
++
++static void print(const struct ebt_u_entry *entry,
++   const struct ebt_entry_match *match)
++{
++	struct ebt_string_info *info = (struct ebt_string_info *)match->data;
++	char print_string[MAX_STRING_OCTETS * 2 + 1] = { 0 };
++	int i;
++
++	for (i = 0; i < info->length; i++)
++		sprintf(print_string + i * 2, "%02x", info->string[i]);
++
++	printf("--string-offset %u --string-hex %s ", info->offset, print_string);
++}
++
++static int compare(const struct ebt_entry_match *m1,
++   const struct ebt_entry_match *m2)
++{
++	struct ebt_string_info *info1 = (struct ebt_string_info *)m1->data;
++	struct ebt_string_info *info2 = (struct ebt_string_info *)m2->data;
++	int i = 0;
++
++	if (info1->offset != info2->offset)
++		return 0;
++
++	if (info1->length != info2->length)
++		return 0;
++
++	for (i = 0; i < info1->length; i++)
++	{
++		if (info1->string[i] != info2->string[i])
++			return 0;
++	}
++
++	return 1;
++}
++
++static struct ebt_u_match string_match =
++{
++	.name		= "string",
++	.size		= sizeof(struct ebt_string_info),
++	.help		= print_help,
++	.init		= init,
++	.parse		= parse,
++	.final_check	= final_check,
++	.print		= print,
++	.compare	= compare,
++	.extra_ops	= opts,
++};
++
++void _init(void)
++{
++	ebt_register_match(&string_match);
++}
+diff --git a/include/linux/netfilter_bridge/ebt_string.h b/include/linux/netfilter_bridge/ebt_string.h
+new file mode 100644
+index 0000000..ce56b30
+--- /dev/null
++++ b/include/linux/netfilter_bridge/ebt_string.h
+@@ -0,0 +1,15 @@
++#ifndef __LINUX_BRIDGE_EBT_STRING_H
++#define __LINUX_BRIDGE_EBT_STRING_H
++
++#include <linux/types.h>
++
++#define EBT_STRING_MATCH "string"
++#define MAX_STRING_OCTETS 64
++
++struct ebt_string_info {
++	__u16 offset;
++	__u16 length;
++	unsigned char string[MAX_STRING_OCTETS + 1];
++};
++
++#endif
+-- 
+2.15.1
+
