@@ -1,23 +1,23 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next,v3 4/7] netfilter: flow table support for IPv6
-Date: Fri, 22 Dec 2017 20:27:29 +0100
-Message-ID: <20171222192732.13188-5-pablo@netfilter.org>
+Subject: [PATCH nf-next,v3 5/7] netfilter: flow table support for the mixed IPv4/IPv6 family
+Date: Fri, 22 Dec 2017 20:27:30 +0100
+Message-ID: <20171222192732.13188-6-pablo@netfilter.org>
 References: <20171222192732.13188-1-pablo@netfilter.org>
 Cc: netdev@vger.kernel.org, f.fainelli@gmail.com,
         simon.horman@netronome.com, ronye@mellanox.com, jiri@mellanox.com,
         nbd@nbd.name, john@phrozen.org, kubakici@wp.pl, fw@strlen.de
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42374 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42404 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756734AbdLVT2I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 22 Dec 2017 14:28:08 -0500
+        id S1756748AbdLVT2J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 22 Dec 2017 14:28:09 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5AF3CEBAD5
-        for <netfilter-devel@vger.kernel.org>; Fri, 22 Dec 2017 20:28:06 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 71F01EBAE5
+        for <netfilter-devel@vger.kernel.org>; Fri, 22 Dec 2017 20:28:07 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 4A1C0F7306
-        for <netfilter-devel@vger.kernel.org>; Fri, 22 Dec 2017 20:28:06 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 623FBF731B
+        for <netfilter-devel@vger.kernel.org>; Fri, 22 Dec 2017 20:28:07 +0100 (CET)
 In-Reply-To: <20171222192732.13188-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -25,370 +25,147 @@ List-ID: <netfilter-devel.vger.kernel.org>
 This patch adds the IPv6 flow table type, that implements the datapath
 flow table to forward IPv6 traffic.
 
-This patch exports ip6_dst_mtu_forward() that is required to check for
-mtu to pass up packets that need PMTUD handling to the classic
-forwarding path.
-
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/ipv6.h                      |   2 +
- net/ipv6/ip6_output.c                   |   3 +-
- net/ipv6/netfilter/Kconfig              |   8 +
- net/ipv6/netfilter/Makefile             |   3 +
- net/ipv6/netfilter/nf_flow_table_ipv6.c | 277 ++++++++++++++++++++++++++++++++
- 5 files changed, 292 insertions(+), 1 deletion(-)
- create mode 100644 net/ipv6/netfilter/nf_flow_table_ipv6.c
+ include/net/netfilter/nf_flow_table.h   |  5 ++++
+ net/ipv4/netfilter/nf_flow_table_ipv4.c |  3 ++-
+ net/ipv6/netfilter/nf_flow_table_ipv6.c |  3 ++-
+ net/netfilter/Kconfig                   |  8 ++++++
+ net/netfilter/nf_flow_table_inet.c      | 48 +++++++++++++++++++++++++++++++++
+ 5 files changed, 65 insertions(+), 2 deletions(-)
+ create mode 100644 net/netfilter/nf_flow_table_inet.c
 
-diff --git a/include/net/ipv6.h b/include/net/ipv6.h
-index 6eac5cf8f1e6..ff069a8e0cde 100644
---- a/include/net/ipv6.h
-+++ b/include/net/ipv6.h
-@@ -912,6 +912,8 @@ static inline struct sk_buff *ip6_finish_skb(struct sock *sk)
- 			      &inet6_sk(sk)->cork);
- }
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 161f71ca78a0..b22b22082733 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -111,6 +111,11 @@ struct flow_ports {
+ 	__be16 source, dest;
+ };
  
-+unsigned int ip6_dst_mtu_forward(const struct dst_entry *dst);
++unsigned int nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
++				     const struct nf_hook_state *state);
++unsigned int nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
++				       const struct nf_hook_state *state);
 +
- int ip6_dst_lookup(struct net *net, struct sock *sk, struct dst_entry **dst,
- 		   struct flowi6 *fl6);
- struct dst_entry *ip6_dst_lookup_flow(const struct sock *sk, struct flowi6 *fl6,
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index 43ca864327c7..5ccd082ce182 100644
---- a/net/ipv6/ip6_output.c
-+++ b/net/ipv6/ip6_output.c
-@@ -362,7 +362,7 @@ static inline int ip6_forward_finish(struct net *net, struct sock *sk,
- 	return dst_output(net, sk, skb);
+ #define MODULE_ALIAS_NF_FLOWTABLE(family)	\
+ 	MODULE_ALIAS("nf-flowtable-" __stringify(family))
+ 
+diff --git a/net/ipv4/netfilter/nf_flow_table_ipv4.c b/net/ipv4/netfilter/nf_flow_table_ipv4.c
+index ac56c0f0492a..b2d01eb25f2c 100644
+--- a/net/ipv4/netfilter/nf_flow_table_ipv4.c
++++ b/net/ipv4/netfilter/nf_flow_table_ipv4.c
+@@ -202,7 +202,7 @@ static bool nf_flow_exceeds_mtu(struct sk_buff *skb, const struct rtable *rt)
+ 	return false;
  }
  
--static unsigned int ip6_dst_mtu_forward(const struct dst_entry *dst)
-+unsigned int ip6_dst_mtu_forward(const struct dst_entry *dst)
+-static unsigned int
++unsigned int
+ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 			const struct nf_hook_state *state)
  {
- 	unsigned int mtu;
- 	struct inet6_dev *idev;
-@@ -382,6 +382,7 @@ static unsigned int ip6_dst_mtu_forward(const struct dst_entry *dst)
+@@ -254,6 +254,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
  
- 	return mtu;
+ 	return NF_STOLEN;
  }
-+EXPORT_SYMBOL_GPL(ip6_dst_mtu_forward);
++EXPORT_SYMBOL_GPL(nf_flow_offload_ip_hook);
  
- static bool ip6_pkt_too_big(const struct sk_buff *skb, unsigned int mtu)
+ static struct nf_flowtable_type flowtable_ipv4 = {
+ 	.family		= NFPROTO_IPV4,
+diff --git a/net/ipv6/netfilter/nf_flow_table_ipv6.c b/net/ipv6/netfilter/nf_flow_table_ipv6.c
+index ab78703154d8..021209be0c3c 100644
+--- a/net/ipv6/netfilter/nf_flow_table_ipv6.c
++++ b/net/ipv6/netfilter/nf_flow_table_ipv6.c
+@@ -196,7 +196,7 @@ static bool nf_flow_exceeds_mtu(struct sk_buff *skb, const struct rt6_info *rt)
+ 	return false;
+ }
+ 
+-static unsigned int
++unsigned int
+ nf_flow_ipv6_offload_hook(void *priv, struct sk_buff *skb,
+ 			 const struct nf_hook_state *state)
  {
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index 6acb2eecd986..806e95375ec8 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -71,6 +71,14 @@ config NFT_FIB_IPV6
- endif # NF_TABLES_IPV6
+@@ -248,6 +248,7 @@ nf_flow_ipv6_offload_hook(void *priv, struct sk_buff *skb,
+ 
+ 	return NF_STOLEN;
+ }
++EXPORT_SYMBOL_GPL(nf_flow_ipv6_offload_hook);
+ 
+ static struct nf_flowtable_type flowtable_ipv6 = {
+ 	.family		= NFPROTO_IPV6,
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index af0f58322515..0c6256db5a6c 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -649,6 +649,14 @@ endif # NF_TABLES_NETDEV
+ 
  endif # NF_TABLES
  
-+config NF_FLOW_TABLE_IPV6
++config NF_FLOW_TABLE_INET
 +	select NF_FLOW_TABLE
-+	tristate "Netfilter flow table IPv6 module"
++	tristate "Netfilter flow table mixed IPv4/IPv6 module"
 +	help
-+	  This option adds the flow table IPv6 support.
++          This option adds the flow table mixed IPv4/IPv6 support.
 +
 +	  To compile it as a module, choose M here.
 +
- config NF_DUP_IPV6
- 	tristate "Netfilter IPv6 packet duplication to alternate destination"
- 	depends on !NF_CONNTRACK || NF_CONNTRACK
-diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index fe180c96040e..7dceadbb9eea 100644
---- a/net/ipv6/netfilter/Makefile
-+++ b/net/ipv6/netfilter/Makefile
-@@ -44,6 +44,9 @@ obj-$(CONFIG_NFT_REDIR_IPV6) += nft_redir_ipv6.o
- obj-$(CONFIG_NFT_DUP_IPV6) += nft_dup_ipv6.o
- obj-$(CONFIG_NFT_FIB_IPV6) += nft_fib_ipv6.o
- 
-+# flow table support
-+obj-$(CONFIG_NF_FLOW_TABLE_IPV6) += nf_flow_table_ipv6.o
-+
- # matches
- obj-$(CONFIG_IP6_NF_MATCH_AH) += ip6t_ah.o
- obj-$(CONFIG_IP6_NF_MATCH_EUI64) += ip6t_eui64.o
-diff --git a/net/ipv6/netfilter/nf_flow_table_ipv6.c b/net/ipv6/netfilter/nf_flow_table_ipv6.c
+ config NF_FLOW_TABLE
+ 	tristate "Netfilter flow table module"
+ 	help
+diff --git a/net/netfilter/nf_flow_table_inet.c b/net/netfilter/nf_flow_table_inet.c
 new file mode 100644
-index 000000000000..ab78703154d8
+index 000000000000..281209aeba8f
 --- /dev/null
-+++ b/net/ipv6/netfilter/nf_flow_table_ipv6.c
-@@ -0,0 +1,277 @@
++++ b/net/netfilter/nf_flow_table_inet.c
+@@ -0,0 +1,48 @@
 +#include <linux/kernel.h>
 +#include <linux/init.h>
 +#include <linux/module.h>
 +#include <linux/netfilter.h>
 +#include <linux/rhashtable.h>
-+#include <linux/ipv6.h>
-+#include <linux/netdevice.h>
-+#include <linux/ipv6.h>
-+#include <net/ipv6.h>
-+#include <net/ip6_route.h>
-+#include <net/neighbour.h>
 +#include <net/netfilter/nf_flow_table.h>
 +#include <net/netfilter/nf_tables.h>
-+/* For layer 4 checksum field offset. */
-+#include <linux/tcp.h>
-+#include <linux/udp.h>
-+
-+static int nf_flow_nat_ipv6_tcp(struct sk_buff *skb, unsigned int thoff,
-+				struct in6_addr *addr,
-+				struct in6_addr *new_addr)
-+{
-+	struct tcphdr *tcph;
-+
-+	if (!pskb_may_pull(skb, thoff + sizeof(*tcph)) ||
-+	    skb_try_make_writable(skb, thoff + sizeof(*tcph)))
-+		return -1;
-+
-+	tcph = (void *)(skb_network_header(skb) + thoff);
-+	inet_proto_csum_replace16(&tcph->check, skb, addr->s6_addr32,
-+				  new_addr->s6_addr32, true);
-+
-+	return 0;
-+}
-+
-+static int nf_flow_nat_ipv6_udp(struct sk_buff *skb, unsigned int thoff,
-+				struct in6_addr *addr,
-+				struct in6_addr *new_addr)
-+{
-+	struct udphdr *udph;
-+
-+	if (!pskb_may_pull(skb, thoff + sizeof(*udph)) ||
-+	    skb_try_make_writable(skb, thoff + sizeof(*udph)))
-+		return -1;
-+
-+	udph = (void *)(skb_network_header(skb) + thoff);
-+	if (udph->check || skb->ip_summed == CHECKSUM_PARTIAL) {
-+		inet_proto_csum_replace16(&udph->check, skb, addr->s6_addr32,
-+					  new_addr->s6_addr32, true);
-+		if (!udph->check)
-+			udph->check = CSUM_MANGLED_0;
-+	}
-+
-+	return 0;
-+}
-+
-+static int nf_flow_nat_ipv6_l4proto(struct sk_buff *skb, struct ipv6hdr *ip6h,
-+				    unsigned int thoff, struct in6_addr *addr,
-+				    struct in6_addr *new_addr)
-+{
-+	switch (ip6h->nexthdr) {
-+	case IPPROTO_TCP:
-+		if (nf_flow_nat_ipv6_tcp(skb, thoff, addr, new_addr) < 0)
-+			return NF_DROP;
-+		break;
-+	case IPPROTO_UDP:
-+		if (nf_flow_nat_ipv6_udp(skb, thoff, addr, new_addr) < 0)
-+			return NF_DROP;
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static int nf_flow_snat_ipv6(const struct flow_offload *flow,
-+			     struct sk_buff *skb, struct ipv6hdr *ip6h,
-+			     unsigned int thoff,
-+			     enum flow_offload_tuple_dir dir)
-+{
-+	struct in6_addr addr, new_addr;
-+
-+	switch (dir) {
-+	case FLOW_OFFLOAD_DIR_ORIGINAL:
-+		addr = ip6h->saddr;
-+		new_addr = flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_v6;
-+		ip6h->saddr = new_addr;
-+		break;
-+	case FLOW_OFFLOAD_DIR_REPLY:
-+		addr = ip6h->daddr;
-+		new_addr = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.src_v6;
-+		ip6h->daddr = new_addr;
-+		break;
-+	default:
-+		return -1;
-+	}
-+
-+	return nf_flow_nat_ipv6_l4proto(skb, ip6h, thoff, &addr, &new_addr);
-+}
-+
-+static int nf_flow_dnat_ipv6(const struct flow_offload *flow,
-+			     struct sk_buff *skb, struct ipv6hdr *ip6h,
-+			     unsigned int thoff,
-+			     enum flow_offload_tuple_dir dir)
-+{
-+	struct in6_addr addr, new_addr;
-+
-+	switch (dir) {
-+	case FLOW_OFFLOAD_DIR_ORIGINAL:
-+		addr = ip6h->daddr;
-+		new_addr = flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.src_v6;
-+		ip6h->daddr = new_addr;
-+		break;
-+	case FLOW_OFFLOAD_DIR_REPLY:
-+		addr = ip6h->saddr;
-+		new_addr = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst_v6;
-+		ip6h->saddr = new_addr;
-+		break;
-+	default:
-+		return -1;
-+	}
-+
-+	return nf_flow_nat_ipv6_l4proto(skb, ip6h, thoff, &addr, &new_addr);
-+}
-+
-+static int nf_flow_nat_ipv6(const struct flow_offload *flow,
-+			    struct sk_buff *skb,
-+			    enum flow_offload_tuple_dir dir)
-+{
-+	struct ipv6hdr *ip6h = ipv6_hdr(skb);
-+	unsigned int thoff = sizeof(*ip6h);
-+
-+	if (flow->flags & FLOW_OFFLOAD_SNAT &&
-+	    (nf_flow_snat_port(flow, skb, thoff, ip6h->nexthdr, dir) < 0 ||
-+	     nf_flow_snat_ipv6(flow, skb, ip6h, thoff, dir) < 0))
-+		return -1;
-+	if (flow->flags & FLOW_OFFLOAD_DNAT &&
-+	    (nf_flow_dnat_port(flow, skb, thoff, ip6h->nexthdr, dir) < 0 ||
-+	     nf_flow_dnat_ipv6(flow, skb, ip6h, thoff, dir) < 0))
-+		return -1;
-+
-+	return 0;
-+}
-+
-+static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
-+			      struct flow_offload_tuple *tuple)
-+{
-+	struct flow_ports *ports;
-+	struct ipv6hdr *ip6h;
-+	unsigned int thoff;
-+
-+	if (!pskb_may_pull(skb, sizeof(*ip6h)))
-+		return -1;
-+
-+	ip6h = ipv6_hdr(skb);
-+
-+	if (ip6h->nexthdr != IPPROTO_TCP &&
-+	    ip6h->nexthdr != IPPROTO_UDP)
-+		return -1;
-+
-+	thoff = sizeof(*ip6h);
-+	if (!pskb_may_pull(skb, thoff + sizeof(*ports)))
-+		return -1;
-+
-+	ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
-+
-+	tuple->src_v6		= ip6h->saddr;
-+	tuple->dst_v6		= ip6h->daddr;
-+	tuple->src_port		= ports->source;
-+	tuple->dst_port		= ports->dest;
-+	tuple->l3proto		= AF_INET6;
-+	tuple->l4proto		= ip6h->nexthdr;
-+	tuple->iifidx		= dev->ifindex;
-+
-+	return 0;
-+}
-+
-+/* Based on ip_exceeds_mtu(). */
-+static bool __nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
-+{
-+	if (skb->len <= mtu)
-+		return false;
-+
-+	if (skb_is_gso(skb) && skb_gso_validate_mtu(skb, mtu))
-+		return false;
-+
-+	return true;
-+}
-+
-+static bool nf_flow_exceeds_mtu(struct sk_buff *skb, const struct rt6_info *rt)
-+{
-+	u32 mtu;
-+
-+	mtu = ip6_dst_mtu_forward(&rt->dst);
-+	if (__nf_flow_exceeds_mtu(skb, mtu))
-+		return true;
-+
-+	return false;
-+}
 +
 +static unsigned int
-+nf_flow_ipv6_offload_hook(void *priv, struct sk_buff *skb,
-+			 const struct nf_hook_state *state)
++nf_flow_offload_inet_hook(void *priv, struct sk_buff *skb,
++			  const struct nf_hook_state *state)
 +{
-+	struct flow_offload_tuple_rhash *tuplehash;
-+	struct nf_flowtable *flow_table = priv;
-+	struct flow_offload_tuple tuple = {};
-+	enum flow_offload_tuple_dir dir;
-+	struct flow_offload *flow;
-+	struct net_device *outdev;
-+	struct in6_addr *nexthop;
-+	struct ipv6hdr *ip6h;
-+	struct rt6_info *rt;
++	switch (skb->protocol) {
++	case htons(ETH_P_IP):
++		return nf_flow_offload_ip_hook(priv, skb, state);
++	case htons(ETH_P_IPV6):
++		return nf_flow_offload_ipv6_hook(priv, skb, state);
++	}
 +
-+	if (skb->protocol != htons(ETH_P_IPV6))
-+		return NF_ACCEPT;
-+
-+	if (nf_flow_tuple_ipv6(skb, state->in, &tuple) < 0)
-+		return NF_ACCEPT;
-+
-+	tuplehash = flow_offload_lookup(flow_table, &tuple);
-+	if (tuplehash == NULL)
-+		return NF_ACCEPT;
-+
-+	outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.oifidx);
-+	if (!outdev)
-+		return NF_ACCEPT;
-+
-+	dir = tuplehash->tuple.dir;
-+	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
-+
-+	rt = (struct rt6_info *)flow->tuplehash[dir].tuple.dst_cache;
-+	if (unlikely(nf_flow_exceeds_mtu(skb, rt)))
-+		return NF_ACCEPT;
-+
-+	if (skb_try_make_writable(skb, sizeof(*ip6h)))
-+		return NF_DROP;
-+
-+	if (flow->flags & (FLOW_OFFLOAD_SNAT | FLOW_OFFLOAD_DNAT) &&
-+	    nf_flow_nat_ipv6(flow, skb, dir) < 0)
-+		return NF_DROP;
-+
-+	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
-+	ip6h = ipv6_hdr(skb);
-+	ip6h->hop_limit--;
-+
-+	skb->dev = outdev;
-+	nexthop = rt6_nexthop(rt, &flow->tuplehash[!dir].tuple.src_v6);
-+	neigh_xmit(NEIGH_ND_TABLE, outdev, &nexthop, skb);
-+
-+	return NF_STOLEN;
++	return NF_ACCEPT;
 +}
 +
-+static struct nf_flowtable_type flowtable_ipv6 = {
-+	.family		= NFPROTO_IPV6,
++static struct nf_flowtable_type flowtable_inet = {
++	.family		= NFPROTO_INET,
 +	.params		= &nf_flow_offload_rhash_params,
 +	.gc		= nf_flow_offload_work_gc,
-+	.hook		= nf_flow_ipv6_offload_hook,
++	.hook		= nf_flow_offload_inet_hook,
 +	.owner		= THIS_MODULE,
 +};
 +
-+static int __init nf_flow_ipv6_module_init(void)
++static int __init nf_flow_inet_module_init(void)
 +{
-+	nft_register_flowtable_type(&flowtable_ipv6);
++	nft_register_flowtable_type(&flowtable_inet);
 +
 +	return 0;
 +}
 +
-+static void __exit nf_flow_ipv6_module_exit(void)
++static void __exit nf_flow_inet_module_exit(void)
 +{
-+	nft_unregister_flowtable_type(&flowtable_ipv6);
++	nft_unregister_flowtable_type(&flowtable_inet);
 +}
 +
-+module_init(nf_flow_ipv6_module_init);
-+module_exit(nf_flow_ipv6_module_exit);
++module_init(nf_flow_inet_module_init);
++module_exit(nf_flow_inet_module_exit);
 +
 +MODULE_LICENSE("GPL");
 +MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
-+MODULE_ALIAS_NF_FLOWTABLE(AF_INET6);
++MODULE_ALIAS_NF_FLOWTABLE(1); /* NFPROTO_INET */
 -- 
 2.11.0
 
