@@ -1,344 +1,213 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH RFC nf-next,v3 7/7] netfilter: nf_flow_table: add hardware offload support
-Date: Fri, 22 Dec 2017 20:27:32 +0100
-Message-ID: <20171222192732.13188-8-pablo@netfilter.org>
-References: <20171222192732.13188-1-pablo@netfilter.org>
-Cc: netdev@vger.kernel.org, f.fainelli@gmail.com,
-        simon.horman@netronome.com, ronye@mellanox.com, jiri@mellanox.com,
-        nbd@nbd.name, john@phrozen.org, kubakici@wp.pl, fw@strlen.de
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20171222192732.13188-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: Re: libnftables extended API proposal
+Date: Fri, 22 Dec 2017 21:39:03 +0100
+Message-ID: <20171222203903.5lq6hw3mhxupbfuk@salvia>
+References: <20171207000545.GA27739@salvia>
+ <20171207113431.GF32305@orbyte.nwl.cc>
+ <20171210215540.GA14363@salvia>
+ <20171216160651.GP32305@orbyte.nwl.cc>
+ <20171218230048.pwtnnezyxyhh4geu@salvia>
+ <20171220123225.GS32305@orbyte.nwl.cc>
+ <20171220222336.yqnl3g5fgeopsxuf@salvia>
+ <20171222130816.GV32305@orbyte.nwl.cc>
+ <20171222134906.y46spklmtsxc6zj7@salvia>
+ <20171222153049.GX32305@orbyte.nwl.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+        Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:53554 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756201AbdLVUjI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 22 Dec 2017 15:39:08 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id A6C5BEBAC4
+        for <netfilter-devel@vger.kernel.org>; Fri, 22 Dec 2017 21:39:06 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8F5FADA3A2
+        for <netfilter-devel@vger.kernel.org>; Fri, 22 Dec 2017 21:39:06 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20171222153049.GX32305@orbyte.nwl.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds the infrastructure to offload flows to hardware, in case
-the nic/switch comes with built-in flow tables capabilities.
+On Fri, Dec 22, 2017 at 04:30:49PM +0100, Phil Sutter wrote:
+> Hi Pablo,
+> 
+> On Fri, Dec 22, 2017 at 02:49:06PM +0100, Pablo Neira Ayuso wrote:
+> > On Fri, Dec 22, 2017 at 02:08:16PM +0100, Phil Sutter wrote:
+> > > On Wed, Dec 20, 2017 at 11:23:36PM +0100, Pablo Neira Ayuso wrote:
+> > > > On Wed, Dec 20, 2017 at 01:32:25PM +0100, Phil Sutter wrote:
+> > > > [...]
+> > > > > On Tue, Dec 19, 2017 at 12:00:48AM +0100, Pablo Neira Ayuso wrote:
+> > > > > > On Sat, Dec 16, 2017 at 05:06:51PM +0100, Phil Sutter wrote:
+> > [...]
+> > > > > > I wonder if firewalld could generate high level json representation
+> > > > > > instead, so it becomes a compiler/translator from its own
+> > > > > > representation to nftables abstract syntax tree. As I said, the json
+> > > > > > representation is mapping to the abstract syntax tree we have in nft.
+> > > > > > I'm refering to the high level json representation that doesn't exist
+> > > > > > yet, not the low level one for libnftnl.
+> > > > > 
+> > > > > Can you point me to some information about that high level JSON
+> > > > > representation? Seems I'm missing something here.
+> > > > 
+> > > > It doesn't exist :-), if we expose a json-based API, third party tool
+> > > > only have to generate the json high-level representation, we would
+> > > > need very few API calls for this, and anyone could generate rulesets
+> > > > for nftables, without relying on the bison parser, given the json
+> > > > representation exposes the abstract syntax tree.
+> > > 
+> > > So you're idea is to accept a whole command in JSON format from
+> > > applications? And output in JSON format as well since that is easier for
+> > > parsing than human readable text we have right now?
+> > 
+> > Just brainstorming here, we're discussing an API for third party
+> > applications. In this case, they just need to build the json
+> > representation for the ruleset they want to add. They could even embed
+> > this into a network message that they can send of the wire.
+> > 
+> > > I'm not sure about the '[ base, offset, length ]' part though:
+> > > Applications would have to care about protocol header layout including
+> > > any specialties themselves, or should libnftables provide them with
+> > > convenience functions to generate the correct JSON markup?
+> > 
+> > It depends, you may want to expose json representations for each
+> > protocol payload you support.
+> > 
+> > > For simple stuff like matching on a TCP port there's probably no
+> > > need, but correctly interpreting IPv4 ToS field is rather
+> > > error-prone I guess.
+> > 
+> > And bitfields are going to be cumbersome too, so we would indeed need
+> > a json representation for each protocol that we support, so third
+> > party applications don't need to deal with this.
+> > 
+> > > The approach seems simple at first, but application input in JSON format
+> > > has to be validated as well, so I fear we'll end up with a second parser
+> > > to avoid the first one.
+> > 
+> > There are libraries like jansson that already do the parsing for us,
+> > so we don't need to maintain our own json parser. We would still need
+> > internal code to libnftables, to navigate the json representation and
+> > create the objects.
+> 
+> Yes sure, there are libraries doing the actual parsing of JSON -
+> probably I wasn't clear enough. My point is what happens if you have a
+> parsed JSON tree (or array, however it may look like in practice). The
+> data sent by the application is either explicit enough for the
+> translation into netlink messages to be really trivial, or it is not
+> (which I prefer, otherwise applications could use libnftnl directly with
+> no drawback) - then we still have to implement a middle layer between
+> data in JSON and nftables objects. Maybe an example will do:
+> 
+> | [{
+> | 	"type": "relational",
+> | 	"left": {
+> | 		"type": "expression",
+> | 		"name": "tcp_hdr_expr",
+> | 		"value": {
+> | 			"type": "tcp_hdr_field",
+> | 			"value": "dport",
+> | 		},
+> | 	},
+> | 	"right": {
+> | 		"type": "expression",
+> | 		"name": "integer_expr",
+> | 		"value": 22,
+> | 	}
+> | }]
 
-If the hardware comes with no hardware flow tables or they have
-limitations in terms of features, this falls back to the software
-generic flow table implementation.
+Probably something more simple representation, like this?
 
-The software flow table garbage collector skips entries that resides in
-the hardware, so the hardware will be responsible for releasing this
-flow table entry too via flow_offload_dead(). In the next garbage
-collector run, this removes the entries both in the software and
-hardware flow table from user context.
+[{
+        "match": {
+                "left": {
+                        "type": "payload",
+                        "name": "tcp",
+                        "field: "dport",
+        	},
+                "right": {
+                        "type": "immediate",
+                        "value": 22,
+                }
+        }
+}]
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/linux/netdevice.h             |   9 +++
- include/net/netfilter/nf_flow_table.h |   6 ++
- net/netfilter/Kconfig                 |   9 +++
- net/netfilter/Makefile                |   1 +
- net/netfilter/nf_flow_table.c         |  13 ++++
- net/netfilter/nf_flow_table_hw.c      | 127 ++++++++++++++++++++++++++++++++++
- net/netfilter/nf_tables_api.c         |   2 +
- net/netfilter/nft_flow_offload.c      |   4 ++
- 8 files changed, 171 insertions(+)
- create mode 100644 net/netfilter/nf_flow_table_hw.c
+For non-matching things, we can add an "action".
 
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index f535779d9dc1..5f2919775632 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -826,6 +826,13 @@ struct xfrmdev_ops {
- };
- #endif
- 
-+struct flow_offload;
-+
-+enum flow_offload_type {
-+	FLOW_OFFLOAD_ADD	= 0,
-+	FLOW_OFFLOAD_DEL,
-+};
-+
- /*
-  * This structure defines the management hooks for network devices.
-  * The following hooks can be defined; unless noted otherwise, they are
-@@ -1281,6 +1288,8 @@ struct net_device_ops {
- 	int			(*ndo_bridge_dellink)(struct net_device *dev,
- 						      struct nlmsghdr *nlh,
- 						      u16 flags);
-+	int			(*ndo_flow_offload)(enum flow_offload_type type,
-+						    struct flow_offload *flow);
- 	int			(*ndo_change_carrier)(struct net_device *dev,
- 						      bool new_carrier);
- 	int			(*ndo_get_phys_port_id)(struct net_device *dev,
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index b22b22082733..02ac8c7e4f7f 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -23,6 +23,7 @@ struct nf_flowtable {
- 	struct rhashtable		rhashtable;
- 	const struct nf_flowtable_type	*type;
- 	struct delayed_work		gc_work;
-+	possible_net_t			ft_net;
- };
- 
- enum flow_offload_tuple_dir {
-@@ -65,6 +66,7 @@ struct flow_offload_tuple_rhash {
- #define FLOW_OFFLOAD_SNAT	0x1
- #define FLOW_OFFLOAD_DNAT	0x2
- #define FLOW_OFFLOAD_DYING	0x4
-+#define FLOW_OFFLOAD_HW		0x8
- 
- struct flow_offload {
- 	struct flow_offload_tuple_rhash		tuplehash[FLOW_OFFLOAD_DIR_MAX];
-@@ -116,6 +118,10 @@ unsigned int nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- unsigned int nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 				       const struct nf_hook_state *state);
- 
-+void flow_offload_hw_add(struct net *net, struct flow_offload *flow,
-+			 struct nf_conn *ct);
-+void flow_offload_hw_del(struct net *net, struct flow_offload *flow);
-+
- #define MODULE_ALIAS_NF_FLOWTABLE(family)	\
- 	MODULE_ALIAS("nf-flowtable-" __stringify(family))
- 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 1ada46345f3c..cc25876cf223 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -671,6 +671,15 @@ config NF_FLOW_TABLE
- 
- 	  To compile it as a module, choose M here.
- 
-+config NF_FLOW_TABLE_HW
-+	tristate "Netfilter flow table hardware offload module"
-+	depends on NF_FLOW_TABLE
-+	help
-+	  This option adds hardware offload support for the flow table core
-+	  infrastructure.
-+
-+	  To compile it as a module, choose M here.
-+
- config NETFILTER_XTABLES
- 	tristate "Netfilter Xtables support (required for ip_tables)"
- 	default m if NETFILTER_ADVANCED=n
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 2c1b8de922f2..1a97a47ad4e8 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -109,6 +109,7 @@ obj-$(CONFIG_NFT_FWD_NETDEV)	+= nft_fwd_netdev.o
- 
- # flow table infrastructure
- obj-$(CONFIG_NF_FLOW_TABLE)	+= nf_flow_table.o
-+obj-$(CONFIG_NF_FLOW_TABLE_HW)	+= nf_flow_table_hw.o
- 
- # generic X tables 
- obj-$(CONFIG_NETFILTER_XTABLES) += x_tables.o xt_tcpudp.o
-diff --git a/net/netfilter/nf_flow_table.c b/net/netfilter/nf_flow_table.c
-index e1024b17b910..a505351980fd 100644
---- a/net/netfilter/nf_flow_table.c
-+++ b/net/netfilter/nf_flow_table.c
-@@ -237,15 +237,22 @@ static inline bool nf_flow_is_dying(const struct flow_offload *flow)
- 	return flow->flags & FLOW_OFFLOAD_DYING;
- }
- 
-+static inline bool nf_flow_in_hw(const struct flow_offload *flow)
-+{
-+	return flow->flags & FLOW_OFFLOAD_HW;
-+}
-+
- void nf_flow_offload_work_gc(struct work_struct *work)
- {
- 	struct flow_offload_tuple_rhash *tuplehash;
- 	struct nf_flowtable *flow_table;
- 	struct rhashtable_iter hti;
- 	struct flow_offload *flow;
-+	struct net *net;
- 	int err;
- 
- 	flow_table = container_of(work, struct nf_flowtable, gc_work.work);
-+	net = read_pnet(&flow_table->ft_net);
- 
- 	rhashtable_walk_init(&flow_table->rhashtable, &hti, GFP_KERNEL);
- 	err = rhashtable_walk_start(&hti);
-@@ -265,10 +272,16 @@ void nf_flow_offload_work_gc(struct work_struct *work)
- 
- 		flow = container_of(tuplehash, struct flow_offload, tuplehash[0]);
- 
-+		if (nf_flow_in_hw(flow) &&
-+		    !nf_flow_is_dying(flow))
-+			continue;
-+
- 		if (nf_flow_has_expired(flow) ||
- 		    nf_flow_is_dying(flow)) {
- 			flow_offload_del(flow_table, flow);
- 			nf_flow_release_ct(flow);
-+			if (nf_flow_in_hw(flow))
-+				flow_offload_hw_del(net, flow);
- 		}
- 	}
- 
-diff --git a/net/netfilter/nf_flow_table_hw.c b/net/netfilter/nf_flow_table_hw.c
-new file mode 100644
-index 000000000000..2907564c8aec
---- /dev/null
-+++ b/net/netfilter/nf_flow_table_hw.c
-@@ -0,0 +1,127 @@
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/netfilter.h>
-+#include <linux/rhashtable.h>
-+#include <linux/netdevice.h>
-+#include <net/netfilter/nf_flow_table.h>
-+#include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_conntrack_core.h>
-+#include <net/netfilter/nf_conntrack_tuple.h>
-+
-+static DEFINE_SPINLOCK(flow_offload_hw_pending_list_lock);
-+static LIST_HEAD(flow_offload_hw_pending_list);
-+
-+static DEFINE_MUTEX(nf_flow_offload_hw_mutex);
-+static struct work_struct nft_flow_offload_hw_work;
-+
-+struct flow_offload_hw {
-+	struct list_head	list;
-+	struct flow_offload	*flow;
-+	struct nf_conn		*ct;
-+	possible_net_t		flow_hw_net;
-+};
-+
-+static int do_flow_offload_hw(struct net *net, struct flow_offload *flow)
-+{
-+	struct net_device *indev;
-+	int ret, ifindex;
-+
-+	ifindex = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.iifidx;
-+	indev = dev_get_by_index(net, ifindex);
-+	if (WARN_ON(!indev))
-+		return 0;
-+
-+	mutex_lock(&nf_flow_offload_hw_mutex);
-+	ret = indev->netdev_ops->ndo_flow_offload(FLOW_OFFLOAD_ADD, flow);
-+	mutex_unlock(&nf_flow_offload_hw_mutex);
-+
-+	if (ret >= 0)
-+		flow->flags |= FLOW_OFFLOAD_HW;
-+
-+	dev_put(indev);
-+
-+	return ret;
-+}
-+
-+static void flow_offload_hw_work(struct work_struct *work)
-+{
-+	struct flow_offload_hw *offload, *next;
-+	LIST_HEAD(hw_offload_pending);
-+	struct net *net;
-+
-+	spin_lock_bh(&flow_offload_hw_pending_list_lock);
-+	if (!list_empty(&flow_offload_hw_pending_list))
-+		list_move_tail(&flow_offload_hw_pending_list, &hw_offload_pending);
-+	spin_unlock_bh(&flow_offload_hw_pending_list_lock);
-+
-+	list_for_each_entry_safe(offload, next, &hw_offload_pending, list) {
-+		if (nf_ct_is_dying(offload->ct))
-+			goto next;
-+
-+		net = read_pnet(&offload->flow_hw_net);
-+		do_flow_offload_hw(net, offload->flow);
-+next:
-+		nf_conntrack_put(&offload->ct->ct_general);
-+		list_del(&offload->list);
-+		kfree(offload);
-+	}
-+}
-+
-+void flow_offload_hw_add(struct net *net, struct flow_offload *flow,
-+			 struct nf_conn *ct)
-+{
-+	struct flow_offload_hw *offload;
-+
-+	offload = kmalloc(sizeof(struct flow_offload_hw), GFP_ATOMIC);
-+	if (!offload)
-+		return;
-+
-+	nf_conntrack_get(&ct->ct_general);
-+	offload->ct = ct;
-+	offload->flow = flow;
-+	write_pnet(&offload->flow_hw_net, net);
-+
-+	spin_lock_bh(&flow_offload_hw_pending_list_lock);
-+	list_add_tail(&offload->list, &flow_offload_hw_pending_list);
-+	spin_unlock_bh(&flow_offload_hw_pending_list_lock);
-+
-+	schedule_work(&nft_flow_offload_hw_work);
-+}
-+EXPORT_SYMBOL_GPL(flow_offload_hw_add);
-+
-+void flow_offload_hw_del(struct net *net, struct flow_offload *flow)
-+{
-+	struct net_device *indev;
-+	int ret, ifindex;
-+
-+	ifindex = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.iifidx;
-+	indev = dev_get_by_index(net, ifindex);
-+	if (WARN_ON(!indev))
-+		return;
-+
-+	mutex_lock(&nf_flow_offload_hw_mutex);
-+	ret = indev->netdev_ops->ndo_flow_offload(FLOW_OFFLOAD_DEL, flow);
-+	mutex_unlock(&nf_flow_offload_hw_mutex);
-+
-+	dev_put(indev);
-+}
-+EXPORT_SYMBOL_GPL(flow_offload_hw_del);
-+
-+static int __init nf_flow_table_module_init(void)
-+{
-+	INIT_WORK(&nft_flow_offload_hw_work, flow_offload_hw_work);
-+
-+	return 0;
-+}
-+
-+static void __exit nf_flow_table_module_exit(void)
-+{
-+	cancel_work_sync(&nft_flow_offload_hw_work);
-+}
-+
-+module_init(nf_flow_table_module_init);
-+module_exit(nf_flow_table_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index efd9405a8a5e..6583d2a0e35b 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5095,6 +5095,8 @@ static int nf_tables_newflowtable(struct net *net, struct sock *nlsk,
- 	}
- 
- 	flowtable->data.type = type;
-+	write_pnet(&flowtable->data.ft_net, net);
-+
- 	err = rhashtable_init(&flowtable->data.rhashtable, type->params);
- 	if (err < 0)
- 		goto err3;
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 4f16c37acaa3..5c8ea236e8a3 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -70,6 +70,7 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- {
- 	struct nft_flow_offload *priv = nft_expr_priv(expr);
- 	struct nf_flowtable *flowtable = &priv->flowtable->data;
-+	const struct net_device *indev = nft_in(pkt);
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_flow_route route;
- 	struct flow_offload *flow;
-@@ -114,6 +115,9 @@ static void nft_flow_offload_eval(const struct nft_expr *expr,
- 	if (ret < 0)
- 		goto err_flow_add;
- 
-+	if (indev->netdev_ops->ndo_flow_offload)
-+		flow_offload_hw_add(nft_net(pkt), flow, ct);
-+
- 	return;
- 
- err_flow_add:
--- 
-2.11.0
+I wonder if this can even be made more simple and more compact indeed.
+
+> So this might be how a relational expression could be represented in
+> JSON. Note that I intentionally didn't break it down to payload_expr,
+> otherwise it had to contain TCP header offset, etc. (In this case that
+> might be preferred, but as stated above it's not the best option in
+> every case.)
+> 
+> Parsing^WInterpreting code would then probably look like:
+> 
+> | type = json_object_get(data, "type");
+> | if (!strcmp(type, "relational")) {
+> | 	left = parse_expr(json_object_get(data, "left"));
+> | 	right = parse_expr(json_object_get(data, "right"));
+> | 	expr = relational_expr_alloc(&internal_location,
+> | 				     OP_IMPLICIT, left, right);
+> | }
+>
+> I think this last part might easily become bigger than parser_bison.y
+> and scanner.l combined.
+>
+> > On our side, we would need to maintain a very simple API, basically
+> > that allows you to parse a json representation and to export it. For
+> > backward compatibility reasons, we have to keep supporting the json
+> > layout, instead of a large number of functions.
+> 
+> Yes, the API *itself* might be a lot smaller since it just takes a chunk
+> of JSON for about anything. But the middle layer (which is not exported
+> to applications) will be the relevant factor instead.
+
+Yes, in C I guess it will be quite a bit of new boiler plate code.
+Unless we find a way to autogenerate code skeletons in some way.
+
+I'm not so worry about maintaining more code. Real problem is API
+in the longterm: you have to stick to them for long time (or forever
+if you want if you want to take backward compatibility seriously, we
+have a very good record on this).
+
+And having little API mean, library can internally evolve more freely.
+
+> > I guess the question here is if this would be good for firewalld, I
+> > didn't have a look at that code, but many third party applications I
+> > have seen are basically creating iptables commands in text, so this
+> > approach would be similar, well, actually better since we would be
+> > providing a well-structured representation.
+> 
+> Yes, of course firewalld builds iptables commands, but just because
+> there is no better option. Hence the request for a better libnftables
+> API, to avoid repeating that with another command (or function call
+> to which the command's parameters are passed).
+> 
+> Firewalld is written in Python, so it won't be able to use libnftables
+> directly, anyway. At least a thin layer of wrapping code will be there,
+> even if it's just via ctypes module.
+
+Parsing of json in python is actually rather easy, right? I remember
+to have seen code mapping XML to an object whose attributes can be
+accessed as object fields. I wonder about how hard would be to
+generate it too.
+
+> From my perspective, the argument of being well-structured doesn't quite
+> hold. Of course, JSON will provide something like "here starts a
+> statement" and "here it ends", but e.g. asynchronism between input and
+> output will be reflected by it as well if not solved in common code
+> already.
+
+I'm not sure we should expose statements and relationals in the way we
+do in nftables, it's too low level still for a high level library :-).
+We can probably provide a more simplistic json representation that is
+human readable and understandable.
+
+Regarding asynchronism between input and output, not sure I follow.
+
+Thanks!
