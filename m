@@ -1,9 +1,8 @@
-From: Phil Sutter <phil@nwl.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: libnftables extended API proposal
-Date: Fri, 22 Dec 2017 14:08:16 +0100
-Message-ID: <20171222130816.GV32305@orbyte.nwl.cc>
-References: <20171204164327.GA32305@orbyte.nwl.cc>
- <20171204184604.GA1556@salvia>
+Date: Fri, 22 Dec 2017 14:49:06 +0100
+Message-ID: <20171222134906.y46spklmtsxc6zj7@salvia>
+References: <20171204184604.GA1556@salvia>
  <20171205134317.GE32305@orbyte.nwl.cc>
  <20171207000545.GA27739@salvia>
  <20171207113431.GF32305@orbyte.nwl.cc>
@@ -12,131 +11,93 @@ References: <20171204164327.GA32305@orbyte.nwl.cc>
  <20171218230048.pwtnnezyxyhh4geu@salvia>
  <20171220123225.GS32305@orbyte.nwl.cc>
  <20171220222336.yqnl3g5fgeopsxuf@salvia>
+ <20171222130816.GV32305@orbyte.nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+        Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:52314 "EHLO orbyte.nwl.cc"
+Received: from mail.us.es ([193.147.175.20]:60348 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751465AbdLVNIS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 22 Dec 2017 08:08:18 -0500
+        id S1751770AbdLVNtL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 22 Dec 2017 08:49:11 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 03CB1E3A00
+        for <netfilter-devel@vger.kernel.org>; Fri, 22 Dec 2017 14:49:10 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E5503123951
+        for <netfilter-devel@vger.kernel.org>; Fri, 22 Dec 2017 14:49:09 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20171220222336.yqnl3g5fgeopsxuf@salvia>
+In-Reply-To: <20171222130816.GV32305@orbyte.nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Hi Phil,
 
-On Wed, Dec 20, 2017 at 11:23:36PM +0100, Pablo Neira Ayuso wrote:
-> On Wed, Dec 20, 2017 at 01:32:25PM +0100, Phil Sutter wrote:
-> [...]
-> > On Tue, Dec 19, 2017 at 12:00:48AM +0100, Pablo Neira Ayuso wrote:
-> > > On Sat, Dec 16, 2017 at 05:06:51PM +0100, Phil Sutter wrote:
-> > > > On Sun, Dec 10, 2017 at 10:55:40PM +0100, Pablo Neira Ayuso wrote:
-> > > > > On Thu, Dec 07, 2017 at 12:34:31PM +0100, Phil Sutter wrote:
-> > > > > > On Thu, Dec 07, 2017 at 01:05:45AM +0100, Pablo Neira Ayuso wrote:
-> > > > > > > On Tue, Dec 05, 2017 at 02:43:17PM +0100, Phil Sutter wrote:
-> > > > > > [...]
-> > > > > > > > After tweaking the parser a bit, I can use it now to parse just a
-> > > > > > > > set_list_member_expr and use the struct expr it returns. This made it
-> > > > > > > > possible to create the desired struct cmd in above function without
-> > > > > > > > having to invoke the parser there.
-> > > > > > > > 
-> > > > > > > > Exercising this refining consequently should allow to reach arbitrary
-> > > > > > > > levels of granularity. For instance, one could stop at statement level,
-> > > > > > > > i.e. statements are created using a string representation. Or one could
-> > > > > > > > go down to expression level, and statements are created using one or two
-> > > > > > > > expressions (depending on whether it is relational or not). Of course
-> > > > > > > > this means the library will eventually become as complicated as the
-> > > > > > > > parser itself, not necessarily a good thing.
-> > > > > > > 
-> > > > > > > Yes, and we'll expose all internal representation details, that we
-> > > > > > > will need to maintain forever if we don't want to break backward.
-> > > > > > 
-> > > > > > Not necessarily. I had this in mind when declaring 'struct nft_table'
-> > > > > > instead of reusing 'struct table'. :)
-> > > > > > 
-> > > > > > The parser defines the grammar, the library would just follow it. So if
-> > > > > > a given internal change complies with the old grammar, it should comply
-> > > > > > with the library as well. Though this is quite theoretical, of course.
-> > > > > > 
-> > > > > > Let's take relational expressions as simple example: In bison, we define
-> > > > > > 'expr op rhs_expr'. An equivalent library function could be:
-> > > > > > 
-> > > > > > | struct nft_expr *nft_relational_new(struct nft_expr *,
-> > > > > > | 				      enum rel_ops,
-> > > > > > | 				      struct nft_expr *);
-> > > > > 
-> > > > > Then that means you would like to expose an API that allows you to
-> > > > > build the abstract syntax tree.
-> > > > 
-> > > > That was the idea I had when I thought about how to transition from
-> > > > fully text-based simple API to an extended one which allows to work with
-> > > > objects instead. We could start simple and refine further if
-> > > > required/sensible. At the basic level, adding a new rule could be
-> > > > something like:
-> > > > 
-> > > > | myrule = nft_rule_create("tcp dport 22 accept");
-> > > > 
-> > > > If required, one could implement rule building based on statements:
-> > > > 
-> > > > | stmt1 = nft_stmt_create("tcp dport 22");
-> > > > | stmt2 = nft_stmt_create("accept");
-> > > > | myrule = nft_rule_create();
-> > > > | nft_rule_add_stmt(myrule, stmt1);
-> > > > | nft_rule_add_stmt(myrule, stmt2);
+On Fri, Dec 22, 2017 at 02:08:16PM +0100, Phil Sutter wrote:
+> On Wed, Dec 20, 2017 at 11:23:36PM +0100, Pablo Neira Ayuso wrote:
+> > On Wed, Dec 20, 2017 at 01:32:25PM +0100, Phil Sutter wrote:
+> > [...]
+> > > On Tue, Dec 19, 2017 at 12:00:48AM +0100, Pablo Neira Ayuso wrote:
+> > > > On Sat, Dec 16, 2017 at 05:06:51PM +0100, Phil Sutter wrote:
+[...]
+> > > > I wonder if firewalld could generate high level json representation
+> > > > instead, so it becomes a compiler/translator from its own
+> > > > representation to nftables abstract syntax tree. As I said, the json
+> > > > representation is mapping to the abstract syntax tree we have in nft.
+> > > > I'm refering to the high level json representation that doesn't exist
+> > > > yet, not the low level one for libnftnl.
 > > > 
-> > > This is mixing parsing and abstract syntax tree creation.
-> > > 
-> > > If you want to expose the syntax tree, then I would the parsing layer
-> > > entirely and expose the syntax tree, which is what the json
-> > > representation for the high level library will be doing.
+> > > Can you point me to some information about that high level JSON
+> > > representation? Seems I'm missing something here.
 > > 
-> > But that means having to provide a creating function for every
-> > expression there is, no?
+> > It doesn't exist :-), if we expose a json-based API, third party tool
+> > only have to generate the json high-level representation, we would
+> > need very few API calls for this, and anyone could generate rulesets
+> > for nftables, without relying on the bison parser, given the json
+> > representation exposes the abstract syntax tree.
 > 
-> Yes.
-> 
-> > > To support new protocol, we will need a new library version too, when
-> > > the abstraction to represent a payload is already well-defined, ie.
-> > > [ base, offset, length ], which is pretty much everywhere the same,
-> > > not only in nftables.
-> > 
-> > Sorry, I didn't get that. Are you talking about that JSON
-> > representation?
-> 
-> Yes. The one that does not exist.
-> 
-> > > I wonder if firewalld could generate high level json representation
-> > > instead, so it becomes a compiler/translator from its own
-> > > representation to nftables abstract syntax tree. As I said, the json
-> > > representation is mapping to the abstract syntax tree we have in nft.
-> > > I'm refering to the high level json representation that doesn't exist
-> > > yet, not the low level one for libnftnl.
-> > 
-> > Can you point me to some information about that high level JSON
-> > representation? Seems I'm missing something here.
-> 
-> It doesn't exist :-), if we expose a json-based API, third party tool
-> only have to generate the json high-level representation, we would
-> need very few API calls for this, and anyone could generate rulesets
-> for nftables, without relying on the bison parser, given the json
-> representation exposes the abstract syntax tree.
+> So you're idea is to accept a whole command in JSON format from
+> applications? And output in JSON format as well since that is easier for
+> parsing than human readable text we have right now?
 
-So you're idea is to accept a whole command in JSON format from
-applications? And output in JSON format as well since that is easier for
-parsing than human readable text we have right now?
+Just brainstorming here, we're discussing an API for third party
+applications. In this case, they just need to build the json
+representation for the ruleset they want to add. They could even embed
+this into a network message that they can send of the wire.
 
-I'm not sure about the '[ base, offset, length ]' part though:
-Applications would have to care about protocol header layout including
-any specialties themselves, or should libnftables provide them with
-convenience functions to generate the correct JSON markup? For simple
-stuff like matching on a TCP port there's probably no need, but
-correctly interpreting IPv4 ToS field is rather error-prone I guess.
+> I'm not sure about the '[ base, offset, length ]' part though:
+> Applications would have to care about protocol header layout including
+> any specialties themselves, or should libnftables provide them with
+> convenience functions to generate the correct JSON markup?
 
-The approach seems simple at first, but application input in JSON format
-has to be validated as well, so I fear we'll end up with a second parser
-to avoid the first one.
+It depends, you may want to expose json representations for each
+protocol payload you support.
 
-Cheers, Phil
+> For simple stuff like matching on a TCP port there's probably no
+> need, but correctly interpreting IPv4 ToS field is rather
+> error-prone I guess.
+
+And bitfields are going to be cumbersome too, so we would indeed need
+a json representation for each protocol that we support, so third
+party applications don't need to deal with this.
+
+> The approach seems simple at first, but application input in JSON format
+> has to be validated as well, so I fear we'll end up with a second parser
+> to avoid the first one.
+
+There are libraries like jansson that already do the parsing for us,
+so we don't need to maintain our own json parser. We would still need
+internal code to libnftables, to navigate the json representation and
+create the objects.
+
+On our side, we would need to maintain a very simple API, basically
+that allows you to parse a json representation and to export it. For
+backward compatibility reasons, we have to keep supporting the json
+layout, instead of a large number of functions.
+
+I guess the question here is if this would be good for firewalld, I
+didn't have a look at that code, but many third party applications I
+have seen are basically creating iptables commands in text, so this
+approach would be similar, well, actually better since we would be
+providing a well-structured representation.
