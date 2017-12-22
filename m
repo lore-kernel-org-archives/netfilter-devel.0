@@ -1,36 +1,35 @@
-From: "Sandra Younes" <mamg7610885@angel.ocn.ne.jp>
-Subject: Re: Distress Call Please don't ignore
-Date: Thu, 21 Dec 2017 18:43:41 +0200
-Message-ID: <201712211643.vBLGhkjK008353@mf-smf-ucb018.ocn.ad.jp>
-Reply-To: <tdavalvse@gmail.com>
+From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Subject: Re: [PATCH nf-next v2] netfilter: nf_defrag_ipv4: Skip defrag if
+ NOTRACK is set
+Date: Thu, 21 Dec 2017 22:39:45 -0700
+Message-ID: <f3624bec610969b1e21532f767d71b26@codeaurora.org>
+References: <1513719739-1095-1-git-send-email-subashab@codeaurora.org>
+ <20171221084852.amdtj7ef4aurua3e@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="Windows-1251"
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
+        kadlec@blackhole.kfki.hu
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mbkd0206.ocn.ad.jp ([153.149.233.7]:48945 "EHLO
-        mbkd0206.ocn.ad.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752222AbdLUQy5 (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:53754 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750786AbdLVFjq (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 21 Dec 2017 11:54:57 -0500
+        Fri, 22 Dec 2017 00:39:46 -0500
+In-Reply-To: <20171221084852.amdtj7ef4aurua3e@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Good Day,
+> Can we get the same thing for IPv6, for symmetry?
+> 
+> Thanks!
 
-Forgive my indignation if this message comes to you as a surprise and may offend your personality for contacting you without your prior consent and writing through this channel.
+Hi Pablo
 
-I came across your name and contact on the course of my personal searching when i was searching for a foreign reliable partner. I was assured of your capability and reliability after going true your profile.
+Yes, I can include IPv6 in v3.
 
-I'm (Miss. Sandra) from Benghazi libya, My father of blessed memory by name late General Abdel Fattah Younes who was shot death by Islamist-linked militia within the anti-Gaddafi forces on 28th July, 2011 and after two days later my mother with my two brothers was killed one early morning by the rebels as result of civil war that is going on in my country Libya, then after the burial of my parents, my uncles conspired and sold my father's properties and left nothing for me. On a faithful morning, I opened my father's briefcase and discover a document which he has deposited ($6.250M USD) in a bank in a Turkish Bank which has a small branch in Canada with my name as the legitimate/next of kin. Meanwhile i have located the bank,and have also discussed the possiblity of transfering the fund. M
- y father left a clause to the bank that i must introduce a trusted foreign partner who would be my trustee to help me invest this fund; hence the need for your assistance,i request that you be my t
-rustee and assist me in e
-
-You will also be responsible for the investment and management of the fund for me and also you will help me get a good school where i will further my education.
-I agreed to give you 40% of the $6.250M once the transfer is done. this is my true life story, I will be glad to receive your respond soonest for more details to enable us start and champion the transfer less than 14 banking days as i was informed by the bank manager.
-
-Thanks for giving me your attention,
-
-Yours sincerely,
-Miss. Sandra Younes
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
