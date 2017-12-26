@@ -1,96 +1,131 @@
-From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
-Subject: [bisected] Forwarded packets occasionally has loopback output
- interface in Netfilter
-Date: Tue, 26 Dec 2017 11:05:38 +0000
-Message-ID: <1514286320.12738.1.camel@cohaesio.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: nf_tables: allocate table handle
+Date: Tue, 26 Dec 2017 17:11:35 +0100
+Message-ID: <20171226161135.vbdvxvsxd2vghvvi@salvia>
+References: <20171223194420.5962-1-harshasharmaiitr@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "weiwan@google.com" <weiwan@google.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Language: en-US
-Content-ID: <279CEE42CE53BD4D8328C55C1D7F543D@surftown.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Harsha Sharma <harshasharmaiitr@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:47842 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750800AbdLZQLl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 26 Dec 2017 11:11:41 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 28F1226E0C
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Dec 2017 17:11:39 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 16477F730E
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Dec 2017 17:11:39 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20171223194420.5962-1-harshasharmaiitr@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-SGVsbG8sDQoNCk9uIG9uZSBvZiBvdXIgYm9yZGVyIHJvdXRlcnMsIE5ldGZpbHRlciBpcyBvY2Nh
-c2lvbmFsbHkgbG9nZ2luZyBwYWNrZXRzDQp3aXRoICJPVVQ9bG8iIChvdXRwdXQgaW50ZXJmYWNl
-IGxvKSBldmVuIHRob3VnaCB0aGUgcGFja2V0IHNob3VsZCBiZQ0KZ29pbmcgb3V0IHZpYSBhIHJl
-Z3VsYXIgaW50ZXJmYWNlLiBUaGlzIGJlaGF2aW9yIGlzIHByZXNlbnQgb24gTGludXgNCjQuMTMu
-MCB0byA0LjE0LjksIGFuZCBhIGJpc2VjdGlvbiBvZiB0aGUgcHJvYmxlbSBwb2ludHMgdG8NCg0K
-Wzk1YzQ3ZjljZjVlMDI4ZDFhZTc3ZGM2Yzc2N2MxZWRjOGExODAyNWJdIGlwdjQ6IGNhbGwgZHN0
-X2Rldl9wdXQoKSBwcm9wZXJseQ0KDQphcyB0aGUgZmlyc3QgYmFkIGNvbW1pdC4gVGhpcyBjb21t
-aXQgYWRkcyBkc3RfZGV2X3B1dCgpIGNhbGxzIGJlZm9yZQ0Kc29tZSBkc3RfcmVsZWFzZSgpIGNh
-bGxzLCBhbmQgZHN0X2Rldl9wdXQoKSBkb2VzDQoNCiAgICBkc3QtPmRldiA9IGRldl9uZXQoZHN0
-LT5kZXYpLT5sb29wYmFja19kZXY7DQoNCihhbW9uZyBvdGhlciB0aGluZ3MpLCB3aGljaCBmaXRz
-IHRoZSBwcm9ibGVtIHdlJ3JlIHNlZWluZy4NCg0KVGhlIGVzc2VudGlhbCBwYXJ0IG9mIG91ciBu
-ZnRhYmxlcyBydWxlIHNldCB0aGF0IHNob3dzIHRoaXMgYmVoYXZpb3IgaXMNCg0KY2hhaW4gZm9y
-d2FyZCB7DQogICAgICAgICAgICAgICAgdHlwZSBmaWx0ZXIgaG9vayBmb3J3YXJkIHByaW9yaXR5
-IDA7DQoNCiAgICAgICAgICAgICAgICBtZXRhIG9pZiB7ICRpbnRlcm5hbF9pbnRlcmZhY2VzIH0g
-YWNjZXB0DQoNCiAgICAgICAgICAgICAgICBtZXRhIG9pZiBsbyBpcCBkYWRkciAhPSAxMjcuMC4w
-LjAvOCBcDQogICAgICAgICAgICAgICAgICAgICAgICBsb2cgZ3JvdXAgMCBzbmFwbGVuIDgwIHBy
-ZWZpeCAib2lmLWxvIiBjb3VudGVyDQoNCiAgICAgICAgICAgICAgICBpcCBzYWRkciB7ICRvdXJf
-aXBfc2VyaWVzIH0gXA0KICAgICAgICAgICAgICAgICAgICAgICAgZmxvdyB0YWJsZSBhY2N0X291
-dCBcDQogICAgICAgICAgICAgICAgICAgICAgICB7IG1ldGEgb2lmIC4gcnQgbmV4dGhvcCAuIGlw
-IHNhZGRyIHRpbWVvdXQgMTJtIGNvdW50ZXIgfSBcDQogICAgICAgICAgICAgICAgICAgICAgICBh
-Y2NlcHQNCg0KICAgICAgICAgICAgICAgIGxvZyBncm91cCAwIHNuYXBsZW4gODAgcHJlZml4ICJE
-Uk9QIiBjb3VudGVyIGRyb3ANCn0NCg0KVGhlIHJvdXRlciBvbmx5IGRvZXMgc3RhdGVsZXNzIHBh
-Y2tldCBmaWx0ZXJpbmcgYW5kIG5vIHJlZGlyZWN0aW9uIG9yDQpyZXdyaXRpbmcgb2YgdGhlIHBh
-Y2tldHMgKGNvbm5lY3Rpb24gdHJhY2tpbmcsIE5BVCwgaXB2cyBldGMuIGFyZSBub3QNCmV2ZW4g
-Y29tcGlsZWQgZm9yIHRoaXMga2VybmVsKS4NCg0KQXMgYSByZXN1bHQgb2YgdGhpcyBwcm9ibGVt
-IHdlIHNlZSBwYWNrZXRzIHRoYXQgc2hvdWxkIGJlIGdvaW5nIHRvIGFuDQppbnRlcm5hbCBpbnRl
-cmZhY2UgKGFuZCB0aHVzIGFjY2VwdGVkIGJ5IHRoZSBmaXJzdCBydWxlIGFib3ZlKSBiZWluZw0K
-bG9nZ2VkIGFuZCBkcm9wcGVkIGJ5IHRoZSBsYXN0IHJ1bGUuIFNvbWUgZXhhbXBsZXM6DQoNCkRl
-YyAyMiAxMTo1NzowMiBjaXg0IG9pZi1sbyBJTj1ldGgxMCBPVVQ9bG8gTUFDPTkwOmUyOmJhOjVj
-OmI2Ojk1OjEwOmYzOjExOjM4OjA2Ojc3OjA4OjAwIFNSQz04MS4xNzAuMTYzLjExOCBEU1Q9MjEy
-Ljk3LjE1OC4zMyBMRU49MTUwMCBUT1M9MDAgUFJFQz0weDAwIFRUTD0xMTYgSUQ9MjU5MzIgREYg
-UFJPVE89VENQIFNQVD0zNTExOCBEUFQ9ODQ0MyBTRVE9NjA0MzU4MzMwIEFDSz0xMTgyMjc4NzA1
-IFdJTkRPVz0zMjk1IEFDSyBVUkdQPTAgTUFSSz0wDQpEZWMgMjIgMTE6NTc6MDIgY2l4NCBEUk9Q
-IElOPWV0aDEwIE9VVD1sbyBNQUM9OTA6ZTI6YmE6NWM6YjY6OTU6MTA6ZjM6MTE6Mzg6MDY6Nzc6
-MDg6MDAgU1JDPTgxLjE3MC4xNjMuMTE4IERTVD0yMTIuOTcuMTU4LjMzIExFTj0xNTAwIFRPUz0w
-MCBQUkVDPTB4MDAgVFRMPTExNiBJRD0yNTkzMiBERiBQUk9UTz1UQ1AgU1BUPTM1MTE4IERQVD04
-NDQzIFNFUT02MDQzNTgzMzAgQUNLPTExODIyNzg3MDUgV0lORE9XPTMyOTUgQUNLIFVSR1A9MCBN
-QVJLPTANCg0KRGVjIDIyIDEyOjQ3OjA3IGNpeDQgb2lmLWxvIElOPWV0aDEwIE9VVD1sbyBNQUM9
-OTA6ZTI6YmE6NWM6YjY6OTU6MGU6ODY6MTA6Mjc6OTk6ZjM6MDg6MDAgU1JDPTQwLjEwMS4zMC4x
-OCBEU1Q9MjEyLjk3LjEzMC4zMiBMRU49MjQ1IFRPUz0wMCBQUkVDPTB4MDAgVFRMPTExOCBJRD0x
-MDM3MCBERiBQUk9UTz1UQ1AgU1BUPTQ0MyBEUFQ9NDQ5ODggU0VRPTExNDE1NDU5MTMgQUNLPTM4
-NDQ1NzMxMDMgV0lORE9XPTY1NTM1IEFDSyBQU0ggVVJHUD0wIE1BUks9MA0KRGVjIDIyIDEyOjQ3
-OjA3IGNpeDQgRFJPUCBJTj1ldGgxMCBPVVQ9bG8gTUFDPTkwOmUyOmJhOjVjOmI2Ojk1OjBlOjg2
-OjEwOjI3Ojk5OmYzOjA4OjAwIFNSQz00MC4xMDEuMzAuMTggRFNUPTIxMi45Ny4xMzAuMzIgTEVO
-PTI0NSBUT1M9MDAgUFJFQz0weDAwIFRUTD0xMTggSUQ9MTAzNzAgREYgUFJPVE89VENQIFNQVD00
-NDMgRFBUPTQ0OTg4IFNFUT0xMTQxNTQ1OTEzIEFDSz0zODQ0NTczMTAzIFdJTkRPVz02NTUzNSBB
-Q0sgUFNIIFVSR1A9MCBNQVJLPTANCg0KRGVjIDIyIDEyOjUzOjU2IGNpeDQgb2lmLWxvIElOPWV0
-aDEwIE9VVD1sbyBNQUM9OTA6ZTI6YmE6NWM6YjY6OTU6MGU6ODY6MTA6Mjc6OTk6ZjM6MDg6MDAg
-U1JDPTQwLjEwMS4xMi4zNCBEU1Q9MjEyLjk3LjEzMC4zMiBMRU49MjQ1IFRPUz0wMCBQUkVDPTB4
-MDAgVFRMPTExNSBJRD0yNzcyOCBERiBQUk9UTz1UQ1AgU1BUPTQ0MyBEUFQ9Mzk3MjQgU0VRPTM3
-OTcxNTY0MDQgQUNLPTM5NDQyMzQ2MTIgV0lORE9XPTY1NTM1IEFDSyBQU0ggVVJHUD0wIE1BUks9
-MA0KRGVjIDIyIDEyOjUzOjU2IGNpeDQgRFJPUCBJTj1ldGgxMCBPVVQ9bG8gTUFDPTkwOmUyOmJh
-OjVjOmI2Ojk1OjBlOjg2OjEwOjI3Ojk5OmYzOjA4OjAwIFNSQz00MC4xMDEuMTIuMzQgRFNUPTIx
-Mi45Ny4xMzAuMzIgTEVOPTI0NSBUT1M9MDAgUFJFQz0weDAwIFRUTD0xMTUgSUQ9Mjc3MjggREYg
-UFJPVE89VENQIFNQVD00NDMgRFBUPTM5NzI0IFNFUT0zNzk3MTU2NDA0IEFDSz0zOTQ0MjM0NjEy
-IFdJTkRPVz02NTUzNSBBQ0sgUFNIIFVSR1A9MCBNQVJLPTANCg0KSXQgYWxzbyBoYXBwZW5zIGZv
-ciBvdXRib3VuZCB0cmFmZmljLCB3aGVyZSB0aGUgcGFja2V0cyBhcmUgbG9nZ2VkIGFuZA0KY291
-bnRlZCBpbiB0aGUgYWNjdF9vdXQgZmxvdyB0YWJsZSB3aXRoICJtZXRhIG9pZiIgPSAibG8iLCBi
-dXQgYQ0KY29ycmVjdCAicnQgbmV4dGhvcCIgLSBhbiBleGFtcGxlOg0KDQpEZWMgMjIgMTI6Mjk6
-MTMgY2l4NCBvaWYtbG8gSU49dGVhbTAuMjAgT1VUPWxvIE1BQz0zYzpmZDpmZToxNTpkYjphODow
-MDoyNDphODpmZjpmMDowMDowODowMCBTUkM9MjEyLjk3LjEyOS4yNSBEU1Q9OTUuMTY2LjExOS4x
-MjkgTEVOPTQwIFRPUz0wMCBQUkVDPTB4MDAgVFRMPTYyIElEPTE5NDgxIERGIFBST1RPPVRDUCBT
-UFQ9NDQzIERQVD01MjU2MCBTRVE9MzAzNDgyNzM5NiBBQ0s9Mjg2MjgxNDkwMSBXSU5ET1c9MTI2
-MTggQUNLIFVSR1A9MCBNQVJLPTANCg0KIyBuZnQgbGlzdCBmbG93IHRhYmxlIGZpbHRlciBhY2N0
-X291dHx0ciAnLCcgJ1xuJ3xncmVwIGxvDQogICAgICAgIGZsb3cgdGFibGUgYWNjdF9vdXQgew0K
-ICJsbyIgLiA5NC4xMDEuMjA4LjIxNyAuIDIxMi45Ny4xMjkuMjUgZXhwaXJlcyAzbTE3cyA6IGNv
-dW50ZXIgcGFja2V0cyAxIGJ5dGVzIDQwDQoNCkkgZG9uJ3Qga25vdyBpZiB0aGVzZSBwYWNrZXRz
-IGFyZSBhY3R1YWxseSBzZW50IG91dCBvbiB0aGUgY29ycmVjdA0Kb3V0Ym91bmQgaW50ZXJmYWNl
-IHRoYW5rcyB0byB0aGUgcHJvcGVyIG5leHRob3AgKHRoZSBNQUM9IGluZm9ybWF0aW9uDQppbiB0
-aGUgTmV0ZmlsdGVyIGxvZyBpcyBmcm9tIHRoZSByZWNlaXZlZCBwYWNrZXQgYW5kIHRodXMgbm90
-IHVzZWZ1bA0KaGVyZSkuDQoNCkkgdHJpZWQgcnVubmluZyBhIHRjcGR1bXAgb24gdGhlIGxvIGlu
-dGVyZmFjZSB0byBzZWUgaWYgdGhlc2UgcGFja2V0cw0Kd291bGQgc2hvdyB1cCB0aGVyZSwgYnV0
-IGR1cmluZyB0aGUgdGhyZWUgZGF5cyBJIGhhZCBpdCBydW5uaW5nLCBpdA0Kb25seSBsb2dnZWQg
-b25lIHN1Y2ggcGFja2V0LCB3aGlsZSBOZXRmaWx0ZXIgbG9ncyAyMCsgb3V0Ym91bmQgcGFja2V0
-cw0KZXZlcnkgZGF5LCBhbmQgdGhlIG9uZSBwYWNrZXQgbG9nZ2VkIGJ5IHRjcGR1bXAgd2FzICpu
-b3QqIGxvZ2dlZCBieQ0KTmV0ZmlsdGVyLg0KDQpJZiBpdCBoZWxwcywgSSBjYW4gdHJ5IGFkZGlu
-ZyBlYWNoIG9mIHRoZSBzaXggZHN0X2Rldl9wdXQoKSBjYWxscyBmcm9tDQp0aGUgZmlyc3QgYmFk
-IGNvbW1pdCBpbmRpdmlkdWFsbHkgdG8gc2VlIHdoaWNoIG9mIHRoZW0gdGhhdCBoYXMgYW4NCmVm
-ZmVjdCBvbiB0aGlzLg0KDQpSZWdhcmRzLA0KQW5kZXJzIEsuIFBlZGVyc2Vu
+Hi Harsha,
+
+On Sat, Dec 23, 2017 at 11:44:20AM -0800, Harsha Sharma wrote:
+> This patch adds code to allocate 'handle' in tables, which allow us to
+> uniquely identify a table.
+> 
+> Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
+> ---
+>  include/net/netfilter/nf_tables.h        |  2 ++
+>  include/uapi/linux/netfilter/nf_tables.h |  2 ++
+>  net/netfilter/nf_tables_api.c            | 12 +++++++++++-
+>  3 files changed, 15 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+> index 01570a8f2982..bbc7bfcc1a57 100644
+> --- a/include/net/netfilter/nf_tables.h
+> +++ b/include/net/netfilter/nf_tables.h
+> @@ -949,6 +949,7 @@ unsigned int nft_do_chain(struct nft_pktinfo *pkt, void *priv);
+>   *	@sets: sets in the table
+>   *	@objects: stateful objects in the table
+>   *	@hgenerator: handle generator state
+> + *	@handle: table handle
+>   *	@use: number of chain references to this table
+>   *	@flags: table flag (see enum nft_table_flags)
+>   *	@genmask: generation mask
+> @@ -960,6 +961,7 @@ struct nft_table {
+>  	struct list_head		sets;
+>  	struct list_head		objects;
+>  	u64				hgenerator;
+> +	u64 				handle:42;
+>  	u32				use;
+>  	u16				flags:14,
+>  					genmask:2;
+> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> index a3ee277b17a1..a6ab9a962eae 100644
+> --- a/include/uapi/linux/netfilter/nf_tables.h
+> +++ b/include/uapi/linux/netfilter/nf_tables.h
+> @@ -168,6 +168,8 @@ enum nft_table_attributes {
+>  	NFTA_TABLE_NAME,
+>  	NFTA_TABLE_FLAGS,
+>  	NFTA_TABLE_USE,
+> +	NFTA_TABLE_HANDLE,
+> +	NFTA_TABLE_PAD,
+>  	__NFTA_TABLE_MAX
+>  };
+>  #define NFTA_TABLE_MAX		(__NFTA_TABLE_MAX - 1)
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index d8327b43e4dc..4a4e247e6028 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -22,6 +22,7 @@
+>  #include <net/net_namespace.h>
+>  #include <net/sock.h>
+>  
+> +static u64 table_handle;
+
+You need to place this handle number in struct nft_table.
+
+>  static LIST_HEAD(nf_tables_expressions);
+>  static LIST_HEAD(nf_tables_objects);
+>  
+> @@ -430,6 +431,7 @@ static const struct nla_policy nft_table_policy[NFTA_TABLE_MAX + 1] = {
+>  	[NFTA_TABLE_NAME]	= { .type = NLA_STRING,
+>  				    .len = NFT_TABLE_MAXNAMELEN - 1 },
+>  	[NFTA_TABLE_FLAGS]	= { .type = NLA_U32 },
+> +	[NFTA_TABLE_HANDLE] = { .type = NLA_U64 },
+                          ^^^
+missing tab indent here.
+
+>  };
+>  
+>  static int nf_tables_fill_table_info(struct sk_buff *skb, struct net *net,
+> @@ -451,7 +453,9 @@ static int nf_tables_fill_table_info(struct sk_buff *skb, struct net *net,
+>  
+>  	if (nla_put_string(skb, NFTA_TABLE_NAME, table->name) ||
+>  	    nla_put_be32(skb, NFTA_TABLE_FLAGS, htonl(table->flags)) ||
+> -	    nla_put_be32(skb, NFTA_TABLE_USE, htonl(table->use)))
+> +	    nla_put_be32(skb, NFTA_TABLE_USE, htonl(table->use)) ||
+> +	    nla_put_be64(skb, NFTA_TABLE_HANDLE, cpu_to_be64(table->handle),
+> +			 NFTA_TABLE_PAD))
+>  		goto nla_put_failure;
+>  
+>  	nlmsg_end(skb, nlh);
+> @@ -734,6 +738,12 @@ static int nf_tables_newtable(struct net *net, struct sock *nlsk,
+>  	INIT_LIST_HEAD(&table->sets);
+>  	INIT_LIST_HEAD(&table->objects);
+>  	table->flags = flags;
+> +	if (nla[NFTA_TABLE_HANDLE]) {
+> +		table->handle = be64_to_cpu(nla_get_be64(nla[NFTA_TABLE_HANDLE]));
+
+We don't allow to restore the handle, please remove this line.
+
+> +	} else {
+> +		table_handle++;
+> +		table->handle = table_handle;
+> +	}
+>  
+>  	nft_ctx_init(&ctx, net, skb, nlh, afi, table, NULL, nla);
+>  	err = nft_trans_table_add(&ctx, NFT_MSG_NEWTABLE);
+
+We need to implement deletion via handle too in nf_tables_deltable(),
+same thing for nf_table_gettable().
+
+Thus, the unique handle becomes useful.
+
+Thanks.
