@@ -1,134 +1,281 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next,v4 6/7] netfilter: remove route_key_size field in struct nf_afinfo
-Date: Wed, 27 Dec 2017 18:15:46 +0100
-Message-ID: <20171227171547.4354-7-pablo@netfilter.org>
+Subject: [PATCH nf-next,v4 3/7] netfilter: remove saveroute indirection in struct nf_afinfo
+Date: Wed, 27 Dec 2017 18:15:43 +0100
+Message-ID: <20171227171547.4354-4-pablo@netfilter.org>
 References: <20171227171547.4354-1-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48994 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48980 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752023AbdL0RP7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Dec 2017 12:15:59 -0500
+        id S1752051AbdL0RP6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 27 Dec 2017 12:15:58 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3A505B4979
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Dec 2017 18:15:58 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2A0D253CDE
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Dec 2017 18:15:58 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 064F7DA3A6
+        by mail.us.es (Postfix) with ESMTP id 78034B497A
         for <netfilter-devel@vger.kernel.org>; Wed, 27 Dec 2017 18:15:56 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 64E885BA
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Dec 2017 18:15:56 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2214FDA840
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Dec 2017 18:15:54 +0100 (CET)
 Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id CCA9D4265A32
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Dec 2017 18:15:55 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id E76F24265A32
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Dec 2017 18:15:53 +0100 (CET)
 In-Reply-To: <20171227171547.4354-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is only needed by nf_queue, place this code where it belongs.
+This is only used by nf_queue.c and this function comes with no symbol
+dependencies with IPv6, it just refers to structure layouts. Therefore,
+we can replace it by a direct function call from where it belongs.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h |  1 -
- net/ipv4/netfilter.c      |  1 -
- net/ipv6/netfilter.c      |  1 -
- net/netfilter/nf_queue.c  | 22 ++++++++++++++++------
- 4 files changed, 16 insertions(+), 9 deletions(-)
+ include/linux/netfilter.h               |  2 --
+ include/linux/netfilter_ipv4.h          | 10 ++++++++
+ include/linux/netfilter_ipv6.h          |  9 +++++++
+ net/bridge/netfilter/nf_tables_bridge.c |  6 -----
+ net/ipv4/netfilter.c                    | 28 ----------------------
+ net/ipv6/netfilter.c                    | 26 --------------------
+ net/netfilter/nf_queue.c                | 42 ++++++++++++++++++++++++++++++++-
+ 7 files changed, 60 insertions(+), 63 deletions(-)
 
 diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 8358e717eabd..58a169e425f7 100644
+index 70b238eff29f..5fc2443225f9 100644
 --- a/include/linux/netfilter.h
 +++ b/include/linux/netfilter.h
-@@ -311,7 +311,6 @@ struct nf_queue_entry;
- 
- struct nf_afinfo {
+@@ -313,8 +313,6 @@ struct nf_afinfo {
  	unsigned short	family;
--	int		route_key_size;
+ 	int		(*route)(struct net *net, struct dst_entry **dst,
+ 				 struct flowi *fl, bool strict);
+-	void		(*saveroute)(const struct sk_buff *skb,
+-				     struct nf_queue_entry *entry);
+ 	int		(*reroute)(struct net *net, struct sk_buff *skb,
+ 				   const struct nf_queue_entry *entry);
+ 	int		route_key_size;
+diff --git a/include/linux/netfilter_ipv4.h b/include/linux/netfilter_ipv4.h
+index 811425ece8d5..8d4ef1e3ce74 100644
+--- a/include/linux/netfilter_ipv4.h
++++ b/include/linux/netfilter_ipv4.h
+@@ -6,6 +6,16 @@
+ 
+ #include <uapi/linux/netfilter_ipv4.h>
+ 
++/* Extra routing may needed on local out, as the QUEUE target never returns
++ * control to the table.
++ */
++struct ip_rt_info {
++	__be32 daddr;
++	__be32 saddr;
++	u_int8_t tos;
++	u_int32_t mark;
++};
++
+ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned addr_type);
+ 
+ #ifdef CONFIG_INET
+diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
+index 29e8f1286584..08d58dc018b5 100644
+--- a/include/linux/netfilter_ipv6.h
++++ b/include/linux/netfilter_ipv6.h
+@@ -9,6 +9,15 @@
+ 
+ #include <uapi/linux/netfilter_ipv6.h>
+ 
++/* Extra routing may needed on local out, as the QUEUE target never returns
++ * control to the table.
++ */
++struct ip6_rt_info {
++	struct in6_addr daddr;
++	struct in6_addr saddr;
++	u_int32_t mark;
++};
++
+ /*
+  * Hook functions for ipv6 to allow xt_* modules to be built-in even
+  * if IPv6 is a module.
+diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
+index b24ac11cacc9..f38350c6bc29 100644
+--- a/net/bridge/netfilter/nf_tables_bridge.c
++++ b/net/bridge/netfilter/nf_tables_bridge.c
+@@ -95,11 +95,6 @@ static const struct nf_chain_type filter_bridge = {
+ 	},
  };
  
- extern const struct nf_afinfo __rcu *nf_afinfo[NFPROTO_NUMPROTO];
+-static void nf_br_saveroute(const struct sk_buff *skb,
+-			    struct nf_queue_entry *entry)
+-{
+-}
+-
+ static int nf_br_reroute(struct net *net, struct sk_buff *skb,
+ 			 const struct nf_queue_entry *entry)
+ {
+@@ -115,7 +110,6 @@ static int nf_br_route(struct net *net, struct dst_entry **dst,
+ static const struct nf_afinfo nf_br_afinfo = {
+ 	.family                 = AF_BRIDGE,
+ 	.route                  = nf_br_route,
+-	.saveroute              = nf_br_saveroute,
+ 	.reroute                = nf_br_reroute,
+ 	.route_key_size         = 0,
+ };
 diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index ec73be3b2f14..bd8e161c2f95 100644
+index 010c75fddf7e..7878ae6c35b2 100644
 --- a/net/ipv4/netfilter.c
 +++ b/net/ipv4/netfilter.c
-@@ -164,7 +164,6 @@ EXPORT_SYMBOL_GPL(nf_ip_route);
+@@ -80,33 +80,6 @@ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned int addr_t
+ }
+ EXPORT_SYMBOL(ip_route_me_harder);
  
+-/*
+- * Extra routing may needed on local out, as the QUEUE target never
+- * returns control to the table.
+- */
+-
+-struct ip_rt_info {
+-	__be32 daddr;
+-	__be32 saddr;
+-	u_int8_t tos;
+-	u_int32_t mark;
+-};
+-
+-static void nf_ip_saveroute(const struct sk_buff *skb,
+-			    struct nf_queue_entry *entry)
+-{
+-	struct ip_rt_info *rt_info = nf_queue_entry_reroute(entry);
+-
+-	if (entry->state.hook == NF_INET_LOCAL_OUT) {
+-		const struct iphdr *iph = ip_hdr(skb);
+-
+-		rt_info->tos = iph->tos;
+-		rt_info->daddr = iph->daddr;
+-		rt_info->saddr = iph->saddr;
+-		rt_info->mark = skb->mark;
+-	}
+-}
+-
+ static int nf_ip_reroute(struct net *net, struct sk_buff *skb,
+ 			 const struct nf_queue_entry *entry)
+ {
+@@ -190,7 +163,6 @@ static int nf_ip_route(struct net *net, struct dst_entry **dst,
  static const struct nf_afinfo nf_ip_afinfo = {
  	.family			= AF_INET,
--	.route_key_size		= sizeof(struct ip_rt_info),
+ 	.route			= nf_ip_route,
+-	.saveroute		= nf_ip_saveroute,
+ 	.reroute		= nf_ip_reroute,
+ 	.route_key_size		= sizeof(struct ip_rt_info),
  };
- 
- static int __init ipv4_netfilter_init(void)
 diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index d633b78be06f..18f82a3fb0c0 100644
+index a57546ce54a6..6d1f470660db 100644
 --- a/net/ipv6/netfilter.c
 +++ b/net/ipv6/netfilter.c
-@@ -176,7 +176,6 @@ static const struct nf_ipv6_ops ipv6ops = {
+@@ -68,31 +68,6 @@ int ip6_route_me_harder(struct net *net, struct sk_buff *skb)
+ }
+ EXPORT_SYMBOL(ip6_route_me_harder);
  
+-/*
+- * Extra routing may needed on local out, as the QUEUE target never
+- * returns control to the table.
+- */
+-
+-struct ip6_rt_info {
+-	struct in6_addr daddr;
+-	struct in6_addr saddr;
+-	u_int32_t mark;
+-};
+-
+-static void nf_ip6_saveroute(const struct sk_buff *skb,
+-			     struct nf_queue_entry *entry)
+-{
+-	struct ip6_rt_info *rt_info = nf_queue_entry_reroute(entry);
+-
+-	if (entry->state.hook == NF_INET_LOCAL_OUT) {
+-		const struct ipv6hdr *iph = ipv6_hdr(skb);
+-
+-		rt_info->daddr = iph->daddr;
+-		rt_info->saddr = iph->saddr;
+-		rt_info->mark = skb->mark;
+-	}
+-}
+-
+ static int nf_ip6_reroute(struct net *net, struct sk_buff *skb,
+ 			  const struct nf_queue_entry *entry)
+ {
+@@ -200,7 +175,6 @@ static const struct nf_ipv6_ops ipv6ops = {
  static const struct nf_afinfo nf_ip6_afinfo = {
  	.family			= AF_INET6,
--	.route_key_size		= sizeof(struct ip6_rt_info),
+ 	.route			= nf_ip6_route,
+-	.saveroute		= nf_ip6_saveroute,
+ 	.reroute		= nf_ip6_reroute,
+ 	.route_key_size		= sizeof(struct ip6_rt_info),
  };
- 
- int __init ipv6_netfilter_init(void)
 diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 15382ff83e7a..7f55af5f3d1a 100644
+index 0c02fdb7efc9..dfa35bd292c8 100644
 --- a/net/netfilter/nf_queue.c
 +++ b/net/netfilter/nf_queue.c
-@@ -15,6 +15,8 @@
+@@ -10,6 +10,8 @@
+ #include <linux/proc_fs.h>
+ #include <linux/skbuff.h>
+ #include <linux/netfilter.h>
++#include <linux/netfilter_ipv4.h>
++#include <linux/netfilter_ipv6.h>
  #include <linux/netfilter_bridge.h>
  #include <linux/seq_file.h>
  #include <linux/rcupdate.h>
-+#include <linux/netfilter_ipv4.h>
-+#include <linux/netfilter_ipv6.h>
- #include <net/protocol.h>
- #include <net/netfilter/nf_queue.h>
- #include <net/dst.h>
-@@ -145,9 +147,9 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- {
- 	int status = -ENOENT;
- 	struct nf_queue_entry *entry = NULL;
--	const struct nf_afinfo *afinfo;
- 	const struct nf_queue_handler *qh;
- 	struct net *net = state->net;
-+	unsigned int route_key_size;
+@@ -108,6 +110,35 @@ void nf_queue_nf_hook_drop(struct net *net)
+ }
+ EXPORT_SYMBOL_GPL(nf_queue_nf_hook_drop);
  
- 	/* QUEUE == DROP if no one is waiting, to be safe. */
- 	qh = rcu_dereference(net->nf.queue_handler);
-@@ -156,11 +158,19 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 		goto err;
- 	}
- 
--	afinfo = nf_get_afinfo(state->pf);
--	if (!afinfo)
--		goto err;
-+	switch (state->pf) {
-+	case AF_INET:
-+		route_key_size = sizeof(struct ip_rt_info);
-+		break;
-+	case AF_INET6:
-+		route_key_size = sizeof(struct ip6_rt_info);
-+		break;
-+	default:
-+		route_key_size = 0;
-+		break;
++static void nf_ip_saveroute(const struct sk_buff *skb,
++			    struct nf_queue_entry *entry)
++{
++	struct ip_rt_info *rt_info = nf_queue_entry_reroute(entry);
++
++	if (entry->state.hook == NF_INET_LOCAL_OUT) {
++		const struct iphdr *iph = ip_hdr(skb);
++
++		rt_info->tos = iph->tos;
++		rt_info->daddr = iph->daddr;
++		rt_info->saddr = iph->saddr;
++		rt_info->mark = skb->mark;
 +	}
- 
--	entry = kmalloc(sizeof(*entry) + afinfo->route_key_size, GFP_ATOMIC);
-+	entry = kmalloc(sizeof(*entry) + route_key_size, GFP_ATOMIC);
- 	if (!entry) {
- 		status = -ENOMEM;
- 		goto err;
-@@ -170,7 +180,7 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 		.skb	= skb,
- 		.state	= *state,
- 		.hook_index = index,
--		.size	= sizeof(*entry) + afinfo->route_key_size,
-+		.size	= sizeof(*entry) + route_key_size,
- 	};
++}
++
++static void nf_ip6_saveroute(const struct sk_buff *skb,
++			     struct nf_queue_entry *entry)
++{
++	struct ip6_rt_info *rt_info = nf_queue_entry_reroute(entry);
++
++	if (entry->state.hook == NF_INET_LOCAL_OUT) {
++		const struct ipv6hdr *iph = ipv6_hdr(skb);
++
++		rt_info->daddr = iph->daddr;
++		rt_info->saddr = iph->saddr;
++		rt_info->mark = skb->mark;
++	}
++}
++
+ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+ 		      const struct nf_hook_entries *entries,
+ 		      unsigned int index, unsigned int queuenum)
+@@ -144,7 +175,16 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
  
  	nf_queue_entry_get_refs(entry);
+ 	skb_dst_force(skb);
+-	afinfo->saveroute(skb, entry);
++
++	switch (entry->state.pf) {
++	case AF_INET:
++		nf_ip_saveroute(skb, entry);
++		break;
++	case AF_INET6:
++		nf_ip6_saveroute(skb, entry);
++		break;
++	}
++
+ 	status = qh->outfn(entry, queuenum);
+ 
+ 	if (status < 0) {
 -- 
 2.11.0
 
