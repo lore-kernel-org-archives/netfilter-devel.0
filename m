@@ -1,224 +1,113 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next,v4 1/7] netfilter: move checksum indirection to struct nf_ipv6_ops
-Date: Wed, 27 Dec 2017 18:15:41 +0100
-Message-ID: <20171227171547.4354-2-pablo@netfilter.org>
-References: <20171227171547.4354-1-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48974 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751781AbdL0RP4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 27 Dec 2017 12:15:56 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id EBE1AB4978
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Dec 2017 18:15:54 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D6B65DA3A2
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Dec 2017 18:15:54 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 94945DA7F7
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Dec 2017 18:15:52 +0100 (CET)
-Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 650A14265A4C
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Dec 2017 18:15:52 +0100 (CET)
-In-Reply-To: <20171227171547.4354-1-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: Re: lost connection to test machine (3)
+Date: Wed, 27 Dec 2017 19:22:41 +0100
+Message-ID: <CACT4Y+ZtCkx8WUjY95n-if60MWed2UpjM7H-_TQjfVq2PDXKhQ@mail.gmail.com>
+References: <001a1143d40c2b55b10561566d26@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        syzkaller-bugs@googlegroups.com,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        David Miller <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev <netdev@vger.kernel.org>
+To: syzbot <syzbot+4396883fa8c4f64e0175@syzkaller.appspotmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <001a1143d40c2b55b10561566d26@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-We cannot make a direct call to nf_ip6_checksum() because that would
-result in autoloading the 'ipv6' module because of symbol dependencies.
-Therefore, define checksum indirection in nf_ipv6_ops where this really
-belongs to.
+On Wed, Dec 27, 2017 at 7:18 PM, syzbot
+<syzbot+4396883fa8c4f64e0175@syzkaller.appspotmail.com> wrote:
+> Hello,
+>
+> syzkaller hit the following crash on
+> beacbc68ac3e23821a681adb30b45dc55b17488d
+> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/master
+> compiler: gcc (GCC) 7.1.1 20170620
+> .config is attached
+> Raw console output is attached.
+> C reproducer is attached
+> syzkaller reproducer is attached. See https://goo.gl/kgGztJ
+> for information about syzkaller reproducers
+>
+>
+> IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> Reported-by: <syzbot+4396883fa8c4f64e0175@syzkaller.appspotmail.com>
+> It will help syzbot understand when the bug is fixed. See footer for
+> details.
+> If you forward the report, please keep this part and the footer.
 
-For IPv4, we can indeed make a direct function call, which is faster,
-given IPv4 is built-in in the networking code by default. Still,
-CONFIG_INET=n and CONFIG_NETFILTER=y is possible, so define empty inline
-stub for IPv4 in such case.
++netfilter maintainers
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/linux/netfilter.h               | 19 +++----------------
- include/linux/netfilter_ipv4.h          | 10 ++++++++++
- include/linux/netfilter_ipv6.h          |  2 ++
- net/bridge/netfilter/nf_tables_bridge.c |  7 -------
- net/ipv4/netfilter.c                    |  1 -
- net/ipv6/netfilter.c                    |  4 ++--
- net/netfilter/Makefile                  |  2 +-
- net/netfilter/utils.c                   | 26 ++++++++++++++++++++++++++
- 8 files changed, 44 insertions(+), 27 deletions(-)
- create mode 100644 net/netfilter/utils.c
+Here is cleaned reproducer:
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 85a0b0d599e6..4c4d38ef1a76 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -311,8 +311,6 @@ struct nf_queue_entry;
- 
- struct nf_afinfo {
- 	unsigned short	family;
--	__sum16		(*checksum)(struct sk_buff *skb, unsigned int hook,
--				    unsigned int dataoff, u_int8_t protocol);
- 	__sum16		(*checksum_partial)(struct sk_buff *skb,
- 					    unsigned int hook,
- 					    unsigned int dataoff,
-@@ -333,20 +331,9 @@ static inline const struct nf_afinfo *nf_get_afinfo(unsigned short family)
- 	return rcu_dereference(nf_afinfo[family]);
- }
- 
--static inline __sum16
--nf_checksum(struct sk_buff *skb, unsigned int hook, unsigned int dataoff,
--	    u_int8_t protocol, unsigned short family)
--{
--	const struct nf_afinfo *afinfo;
--	__sum16 csum = 0;
--
--	rcu_read_lock();
--	afinfo = nf_get_afinfo(family);
--	if (afinfo)
--		csum = afinfo->checksum(skb, hook, dataoff, protocol);
--	rcu_read_unlock();
--	return csum;
--}
-+__sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
-+		    unsigned int dataoff, u_int8_t protocol,
-+		    unsigned short family);
- 
- static inline __sum16
- nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
-diff --git a/include/linux/netfilter_ipv4.h b/include/linux/netfilter_ipv4.h
-index 98c03b2462b5..c7deb78bac88 100644
---- a/include/linux/netfilter_ipv4.h
-+++ b/include/linux/netfilter_ipv4.h
-@@ -7,6 +7,16 @@
- #include <uapi/linux/netfilter_ipv4.h>
- 
- int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned addr_type);
-+
-+#ifdef CONFIG_INET
- __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
- 		       unsigned int dataoff, u_int8_t protocol);
-+#else
-+static inline __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
-+				     unsigned int dataoff, u_int8_t protocol)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_INET */
-+
- #endif /*__LINUX_IP_NETFILTER_H*/
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index 47c6b04c28c0..b136101b5cde 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -19,6 +19,8 @@ struct nf_ipv6_ops {
- 	void (*route_input)(struct sk_buff *skb);
- 	int (*fragment)(struct net *net, struct sock *sk, struct sk_buff *skb,
- 			int (*output)(struct net *, struct sock *, struct sk_buff *));
-+	__sum16 (*checksum)(struct sk_buff *skb, unsigned int hook,
-+			    unsigned int dataoff, u_int8_t protocol);
- };
- 
- #ifdef CONFIG_NETFILTER
-diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
-index 74260ffec74d..b850c17f02f5 100644
---- a/net/bridge/netfilter/nf_tables_bridge.c
-+++ b/net/bridge/netfilter/nf_tables_bridge.c
-@@ -106,12 +106,6 @@ static int nf_br_reroute(struct net *net, struct sk_buff *skb,
- 	return 0;
- }
- 
--static __sum16 nf_br_checksum(struct sk_buff *skb, unsigned int hook,
--			      unsigned int dataoff, u_int8_t protocol)
--{
--	return 0;
--}
--
- static __sum16 nf_br_checksum_partial(struct sk_buff *skb, unsigned int hook,
- 				      unsigned int dataoff, unsigned int len,
- 				      u_int8_t protocol)
-@@ -127,7 +121,6 @@ static int nf_br_route(struct net *net, struct dst_entry **dst,
- 
- static const struct nf_afinfo nf_br_afinfo = {
- 	.family                 = AF_BRIDGE,
--	.checksum               = nf_br_checksum,
- 	.checksum_partial       = nf_br_checksum_partial,
- 	.route                  = nf_br_route,
- 	.saveroute              = nf_br_saveroute,
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index c0cc6aa8cfaa..2f7ffefd2732 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -188,7 +188,6 @@ static int nf_ip_route(struct net *net, struct dst_entry **dst,
- 
- static const struct nf_afinfo nf_ip_afinfo = {
- 	.family			= AF_INET,
--	.checksum		= nf_ip_checksum,
- 	.checksum_partial	= nf_ip_checksum_partial,
- 	.route			= nf_ip_route,
- 	.saveroute		= nf_ip_saveroute,
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 39970e212ad5..db69c8af95aa 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -192,12 +192,12 @@ static __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
- static const struct nf_ipv6_ops ipv6ops = {
- 	.chk_addr	= ipv6_chk_addr,
- 	.route_input    = ip6_route_input,
--	.fragment	= ip6_fragment
-+	.fragment	= ip6_fragment,
-+	.checksum	= nf_ip6_checksum,
- };
- 
- static const struct nf_afinfo nf_ip6_afinfo = {
- 	.family			= AF_INET6,
--	.checksum		= nf_ip6_checksum,
- 	.checksum_partial	= nf_ip6_checksum_partial,
- 	.route			= nf_ip6_route,
- 	.saveroute		= nf_ip6_saveroute,
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 490a55e7166d..eec0c3b72926 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -1,5 +1,5 @@
- # SPDX-License-Identifier: GPL-2.0
--netfilter-objs := core.o nf_log.o nf_queue.o nf_sockopt.o
-+netfilter-objs := core.o nf_log.o nf_queue.o nf_sockopt.o utils.o
- 
- nf_conntrack-y	:= nf_conntrack_core.o nf_conntrack_standalone.o nf_conntrack_expect.o nf_conntrack_helper.o nf_conntrack_proto.o nf_conntrack_l3proto_generic.o nf_conntrack_proto_generic.o nf_conntrack_proto_tcp.o nf_conntrack_proto_udp.o nf_conntrack_extend.o nf_conntrack_acct.o nf_conntrack_seqadj.o
- nf_conntrack-$(CONFIG_NF_CONNTRACK_TIMEOUT) += nf_conntrack_timeout.o
-diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
-new file mode 100644
-index 000000000000..159a9cdcfe1e
---- /dev/null
-+++ b/net/netfilter/utils.c
-@@ -0,0 +1,26 @@
-+#include <linux/kernel.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter_ipv4.h>
-+#include <linux/netfilter_ipv6.h>
-+
-+__sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
-+		    unsigned int dataoff, u_int8_t protocol,
-+		    unsigned short family)
-+{
-+	const struct nf_ipv6_ops *v6ops;
-+	__sum16 csum = 0;
-+
-+	switch (family) {
-+	case AF_INET:
-+		csum = nf_ip_checksum(skb, hook, dataoff, protocol);
-+		break;
-+	case AF_INET6:
-+		v6ops = rcu_dereference(nf_ipv6_ops);
-+		if (v6ops)
-+			csum = v6ops->checksum(skb, hook, dataoff, protocol);
-+		break;
-+	}
-+
-+	return csum;
-+}
-+EXPORT_SYMBOL_GPL(nf_checksum);
--- 
-2.11.0
+// autogenerated by syzkaller (http://github.com/google/syzkaller)
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <linux/if.h>
+#include <linux/netfilter_ipv4/ip_tables.h>
 
+int main()
+{
+  int fd;
+
+  fd = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+  struct ipt_replace opt = {};
+  opt.num_counters = 1;
+  opt.size = -1;
+  setsockopt(fd, SOL_IP, 0x40, &opt, 0x4);
+  return 0;
+}
+
+
+What happens there is that here:
+
+struct xt_table_info *xt_alloc_table_info(unsigned int size)
+{
+    ...
+    if ((SMP_ALIGN(size) >> PAGE_SHIFT) + 2 > totalram_pages)
+        return NULL;
+
+size = -1 and SMP_ALIGN(size) = 0, so this still tries to allocate
+4GB+delta bytes.
+
+I don't understand why this uses SMP_ALIGN since we add 2 pages on
+top, it seems that we could just drop SMP_ALIGN and local SMP_ALIGN
+definition altogether.
+
+
+
+> ---
+> This bug is generated by a dumb bot. It may contain errors.
+> See https://goo.gl/tpsmEJ for details.
+> Direct all questions to syzkaller@googlegroups.com.
+>
+> syzbot will keep track of this bug report.
+> If you forgot to add the Reported-by tag, once the fix for this bug is
+> merged
+> into any tree, please reply to this email with:
+> #syz fix: exact-commit-title
+> If you want to test a patch for this bug, please reply with:
+> #syz test: git://repo/address.git branch
+> and provide the patch inline or as an attachment.
+> To mark this as a duplicate of another syzbot report, please reply with:
+> #syz dup: exact-subject-of-another-report
+> If it's a one-off invalid bug report, please reply with:
+> #syz invalid
+> Note: if the crash happens again, it will cause creation of a new bug
+> report.
+> Note: all commands must start from beginning of the line in the email body.
+>
+> --
+> You received this message because you are subscribed to the Google Groups
+> "syzkaller-bugs" group.
+> To unsubscribe from this group and stop receiving emails from it, send an
+> email to syzkaller-bugs+unsubscribe@googlegroups.com.
+> To view this discussion on the web visit
+> https://groups.google.com/d/msgid/syzkaller-bugs/001a1143d40c2b55b10561566d26%40google.com.
+> For more options, visit https://groups.google.com/d/optout.
