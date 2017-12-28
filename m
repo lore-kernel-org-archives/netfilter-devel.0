@@ -1,106 +1,65 @@
-From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH v2] extensions: libxt_hashlimit: Do not print default timeout and burst
-Date: Thu, 28 Dec 2017 12:58:33 +0530
-Message-ID: <20171228072833.9980-1-harshasharmaiitr@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org, harshasharmaiitr@gmail.com
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: [PATCH] netfilter: fix int overflow in xt_alloc_table_info()
+Date: Thu, 28 Dec 2017 09:48:54 +0100
+Message-ID: <20171228084854.247843-1-dvyukov@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:37548 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751043AbdL1H3C (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:44767 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751100AbdL1Is7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Dec 2017 02:29:02 -0500
-Received: by mail-it0-f67.google.com with SMTP id d137so27841095itc.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Dec 2017 23:29:02 -0800 (PST)
+        Thu, 28 Dec 2017 03:48:59 -0500
+Received: by mail-wr0-f193.google.com with SMTP id l41so26421201wre.11
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 00:48:59 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Do not print timeout and burst in case default values are used.
-For e.g.
-iptables-translate -A INPUT -m tcp -p tcp --dport 80 -m hashlimit
---hashlimit-above 200/sec --hashlimit-mode srcip,dstport
---hashlimit-name http1 -j DROP
+syzkaller triggered OOM kills by passing ipt_replace.size = -1
+to IPT_SO_SET_REPLACE. The root cause is that SMP_ALIGN() in
+xt_alloc_table_info() causes int overflow and the size check passes
+when it should not. SMP_ALIGN() is no longer needed leftover.
 
-nft add rule ip filter INPUT tcp dport 80 flow table http1 { tcp dport .
-ip saddr limit rate over 200/second } counter drop
+Remove SMP_ALIGN() call in xt_alloc_table_info().
 
-Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
+Reported-by: syzbot+4396883fa8c4f64e0175@syzkaller.appspotmail.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+Cc: netdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 ---
-Changes in v2:
- -Simple comparison for default values
+ net/netfilter/x_tables.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
- extensions/libxt_hashlimit.c | 20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
-
-diff --git a/extensions/libxt_hashlimit.c b/extensions/libxt_hashlimit.c
-index ffe342a7..472d8e7f 100644
---- a/extensions/libxt_hashlimit.c
-+++ b/extensions/libxt_hashlimit.c
-@@ -7,7 +7,7 @@
-  * Based on ipt_limit.c by
-  * Jérôme de Vivie   <devivie@info.enserb.u-bordeaux.fr>
-  * Hervé Eychenne    <rv@wallfire.org>
-- * 
-+ *
-  * Error corections by nmalykh@bilim.com (22.01.2005)
-  */
- #define _BSD_SOURCE 1
-@@ -1209,7 +1209,7 @@ static const struct rates rates_xlate[] = {
- 	{ "second", XT_HASHLIMIT_SCALE_v2 } };
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 55802e97f906..e02a21549c99 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -39,7 +39,6 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+ MODULE_DESCRIPTION("{ip,ip6,arp,eb}_tables backend module");
  
- static void print_packets_rate_xlate(struct xt_xlate *xl, uint64_t avg,
--				     uint64_t burst, int revision)
-+				     int revision)
- {
- 	unsigned int i;
- 	const struct rates *_rates = (revision == 1) ?
-@@ -1220,8 +1220,8 @@ static void print_packets_rate_xlate(struct xt_xlate *xl, uint64_t avg,
- 		    _rates[i].mult / avg < _rates[i].mult % avg)
- 			break;
+-#define SMP_ALIGN(x) (((x) + SMP_CACHE_BYTES-1) & ~(SMP_CACHE_BYTES-1))
+ #define XT_PCPU_BLOCK_SIZE 4096
  
--	xt_xlate_add(xl, " %llu/%s burst %lu packets",
--		     _rates[i-1].mult / avg, _rates[i-1].name, burst);
-+	xt_xlate_add(xl, " %llu/%s ",
-+		     _rates[i-1].mult / avg, _rates[i-1].name);
- }
+ struct compat_delta {
+@@ -1000,7 +999,7 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
+ 		return NULL;
  
- static void print_bytes_rate_xlate(struct xt_xlate *xl,
-@@ -1341,7 +1341,9 @@ static int hashlimit_mt_xlate(struct xt_xlate *xl, const char *name,
- 	xt_xlate_add(xl, "flow table %s {", name);
- 	ret = hashlimit_mode_xlate(xl, cfg->mode, family,
- 				   cfg->srcmask, cfg->dstmask);
--	xt_xlate_add(xl, " timeout %us limit rate", cfg->expire / 1000);
-+	if (cfg->expire != 1000)
-+		xt_xlate_add(xl, " timeout %us", cfg->expire / 1000);
-+	xt_xlate_add(xl, " limit rate");
+ 	/* Pedantry: prevent them from hitting BUG() in vmalloc.c --RR */
+-	if ((SMP_ALIGN(size) >> PAGE_SHIFT) + 2 > totalram_pages)
++	if ((size >> PAGE_SHIFT) + 2 > totalram_pages)
+ 		return NULL;
  
- 	if (cfg->mode & XT_HASHLIMIT_INVERT)
- 		xt_xlate_add(xl, " over");
-@@ -1349,8 +1351,9 @@ static int hashlimit_mt_xlate(struct xt_xlate *xl, const char *name,
- 	if (cfg->mode & XT_HASHLIMIT_BYTES)
- 		print_bytes_rate_xlate(xl, cfg);
- 	else
--		print_packets_rate_xlate(xl, cfg->avg, cfg->burst, revision);
--
-+		print_packets_rate_xlate(xl, cfg->avg, revision);
-+	if (cfg->burst != 5)
-+		xt_xlate_add(xl, " burst %lu packets", cfg->burst);
- 	xt_xlate_add(xl, "}");
- 
- 	return ret;
-@@ -1365,7 +1368,8 @@ static int hashlimit_xlate(struct xt_xlate *xl,
- 	xt_xlate_add(xl, "flow table %s {", info->name);
- 	ret = hashlimit_mode_xlate(xl, info->cfg.mode, NFPROTO_IPV4, 32, 32);
- 	xt_xlate_add(xl, " timeout %us limit rate", info->cfg.expire / 1000);
--	print_packets_rate_xlate(xl, info->cfg.avg, info->cfg.burst, 1);
-+	print_packets_rate_xlate(xl, info->cfg.avg, 1);
-+	xt_xlate_add(xl, " burst %lu packets", info->cfg.burst);
- 	xt_xlate_add(xl, "}");
- 
- 	return ret;
+ 	info = kvmalloc(sz, GFP_KERNEL);
 -- 
-2.11.0
+2.15.1.620.gb9897f4670-goog
 
