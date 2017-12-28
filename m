@@ -1,73 +1,60 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH libnftnl,v2] data_reg: calm down compilation warning in nftnl_data_reg_value_json_parse()
-Date: Thu, 28 Dec 2017 19:27:02 +0100
-Message-ID: <20171228182702.27883-1-pablo@netfilter.org>
+Subject: [PATCH libnftnl] build: libnftnl 1.0.9 release
+Date: Thu, 28 Dec 2017 19:39:02 +0100
+Message-ID: <20171228183902.2312-1-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59316 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:33038 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754086AbdL1S1J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Dec 2017 13:27:09 -0500
+        id S1750950AbdL1SjN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 28 Dec 2017 13:39:13 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D32DB249C1
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:27:07 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 12262249C1
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:39:12 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C3614115103
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:27:07 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 026B8DA3A6
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:39:12 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A4AB6115103
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:27:05 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9CBBDDA3A6
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:39:05 +0100 (CET)
 Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 783A44265A30
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:27:05 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 67DFB4265A31
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:39:05 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-expr/data_reg.c: In function 'nftnl_data_reg_json_parse':
-expr/data_reg.c:69:27: warning: '%d' directive writing between 1 and 10 bytes into a region of size 2 [-Wformat-overflow=]
-   sprintf(node_name, "data%d", i);
-                           ^~
-expr/data_reg.c:69:22: note: directive argument in the range [0, 2147483647]
-   sprintf(node_name, "data%d", i);
-
-Buffer overflow is triggerable when reg->len > 396, but len never goes
-over 128 due to type validation just a bit before.
-
-Use snprintf() and make sure buffer is large enough to store the
-"data256" string.
-
-Reported-by: Jan Engelhardt <jengelh@inai.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: Forgot to turn on --with-json-parsing when testing this.
+ Make_global.am | 2 +-
+ configure.ac   | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
- src/expr/data_reg.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/src/expr/data_reg.c b/src/expr/data_reg.c
-index 70232028869a..992ea2898958 100644
---- a/src/expr/data_reg.c
-+++ b/src/expr/data_reg.c
-@@ -59,14 +59,15 @@ static int nftnl_data_reg_verdict_json_parse(union nftnl_data_reg *reg, json_t *
- static int nftnl_data_reg_value_json_parse(union nftnl_data_reg *reg, json_t *data,
- 					 struct nftnl_parse_err *err)
- {
--	int i;
--	char node_name[6];
-+	char node_name[8] = {};	/* strlen("data256") + 1 == 8 */
-+	int ret, remain = 8, offset = 0, i;
+diff --git a/Make_global.am b/Make_global.am
+index 718442ffe490..ca05da32d96a 100644
+--- a/Make_global.am
++++ b/Make_global.am
+@@ -18,7 +18,7 @@
+ # set age to 0.
+ # </snippet>
+ #
+-LIBVERSION=7:0:0
++LIBVERSION=8:0:1
  
- 	if (nftnl_jansson_parse_val(data, "len", NFTNL_TYPE_U8, &reg->len, err) < 0)
- 			return DATA_NONE;
+ AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_srcdir}/include ${LIBMNL_CFLAGS} ${LIBMXML_CFLAGS}
+ AM_CFLAGS = ${regular_CFLAGS} ${GCC_FVISIBILITY_HIDDEN}
+diff --git a/configure.ac b/configure.ac
+index f994ccd878a1..d098571073bc 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1,6 +1,6 @@
+ dnl Process this file with autoconf to create configure.
  
- 	for (i = 0; i < div_round_up(reg->len, sizeof(uint32_t)); i++) {
--		sprintf(node_name, "data%d", i);
-+		ret = snprintf(node_name, sizeof(node_name), "data%u", i);
-+		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
- 
- 		if (nftnl_jansson_str2num(data, node_name, BASE_HEX,
- 					&reg->val[i], NFTNL_TYPE_U32, err) != 0)
+-AC_INIT([libnftnl], [1.0.8])
++AC_INIT([libnftnl], [1.0.9])
+ AC_CONFIG_AUX_DIR([build-aux])
+ AC_CANONICAL_HOST
+ AC_CONFIG_MACRO_DIR([m4])
 -- 
 2.11.0
 
