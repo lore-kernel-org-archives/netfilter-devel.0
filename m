@@ -1,26 +1,26 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH libnftnl] data_reg: calm down compilation warning in nftnl_data_reg_value_json_parse()
-Date: Thu, 28 Dec 2017 19:24:08 +0100
-Message-ID: <20171228182408.24202-1-pablo@netfilter.org>
+Subject: [PATCH libnftnl,v2] data_reg: calm down compilation warning in nftnl_data_reg_value_json_parse()
+Date: Thu, 28 Dec 2017 19:27:02 +0100
+Message-ID: <20171228182702.27883-1-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58638 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59316 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932280AbdL1SYU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Dec 2017 13:24:20 -0500
+        id S1754086AbdL1S1J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 28 Dec 2017 13:27:09 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 424BF25D4A
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:24:19 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id D32DB249C1
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:27:07 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F07A7FF14E
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:24:18 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C3614115103
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:27:07 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8C14DFC5E2
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:24:11 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id A4AB6115103
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:27:05 +0100 (CET)
 Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 5F9734265A30
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:24:11 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 783A44265A30
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:27:05 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -40,11 +40,13 @@ Use snprintf() and make sure buffer is large enough to store the
 Reported-by: Jan Engelhardt <jengelh@inai.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
+v2: Forgot to turn on --with-json-parsing when testing this.
+
  src/expr/data_reg.c | 7 ++++---
  1 file changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/src/expr/data_reg.c b/src/expr/data_reg.c
-index 70232028869a..1f689c5b6c7b 100644
+index 70232028869a..992ea2898958 100644
 --- a/src/expr/data_reg.c
 +++ b/src/expr/data_reg.c
 @@ -59,14 +59,15 @@ static int nftnl_data_reg_verdict_json_parse(union nftnl_data_reg *reg, json_t *
@@ -53,8 +55,8 @@ index 70232028869a..1f689c5b6c7b 100644
  {
 -	int i;
 -	char node_name[6];
-+	char node_name[strlen("data256") + 1] = {};
-+	int ret, remain = size, offset = 0, i;
++	char node_name[8] = {};	/* strlen("data256") + 1 == 8 */
++	int ret, remain = 8, offset = 0, i;
  
  	if (nftnl_jansson_parse_val(data, "len", NFTNL_TYPE_U8, &reg->len, err) < 0)
  			return DATA_NONE;
