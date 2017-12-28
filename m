@@ -1,216 +1,71 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 7/7,v5] netfilter: remove struct nf_afinfo and its helper functions
-Date: Thu, 28 Dec 2017 19:02:02 +0100
-Message-ID: <20171228180202.20529-1-pablo@netfilter.org>
+Subject: [PATCH libnftnl] data_reg: calm down compilation warning in nftnl_data_reg_value_json_parse()
+Date: Thu, 28 Dec 2017 19:24:08 +0100
+Message-ID: <20171228182408.24202-1-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54810 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58638 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754739AbdL1SCK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 28 Dec 2017 13:02:10 -0500
+        id S932280AbdL1SYU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 28 Dec 2017 13:24:20 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 94C243C516
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:02:08 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 424BF25D4A
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:24:19 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 84219F7316
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:02:08 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id F07A7FF14E
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:24:18 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 473E2F7314
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:02:06 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8C14DFC5E2
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:24:11 +0100 (CET)
 Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 189CE4265A31
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:02:06 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 5F9734265A30
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Dec 2017 19:24:11 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This abstraction has no clients anymore, remove it.
+expr/data_reg.c: In function 'nftnl_data_reg_json_parse':
+expr/data_reg.c:69:27: warning: '%d' directive writing between 1 and 10 bytes into a region of size 2 [-Wformat-overflow=]
+   sprintf(node_name, "data%d", i);
+                           ^~
+expr/data_reg.c:69:22: note: directive argument in the range [0, 2147483647]
+   sprintf(node_name, "data%d", i);
 
-This is what remains from previous authors, so correct copyright
-statement after recent modifications and code removal.
+Buffer overflow is triggerable when reg->len > 396, but len never goes
+over 128 due to type validation just a bit before.
 
+Use snprintf() and make sure buffer is large enough to store the
+"data256" string.
+
+Reported-by: Jan Engelhardt <jengelh@inai.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v5: Correct copyright statement.
+ src/expr/data_reg.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
- include/linux/netfilter.h               | 13 -------------
- net/bridge/netfilter/nf_tables_bridge.c | 16 ++++------------
- net/ipv4/netfilter.c                    | 10 ----------
- net/ipv6/netfilter.c                    |  7 +------
- net/netfilter/core.c                    | 25 +------------------------
- 5 files changed, 6 insertions(+), 65 deletions(-)
-
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 597ee76d1d21..84987186aa26 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -309,16 +309,6 @@ int skb_make_writable(struct sk_buff *skb, unsigned int writable_len);
- struct flowi;
- struct nf_queue_entry;
- 
--struct nf_afinfo {
--	unsigned short	family;
--};
--
--extern const struct nf_afinfo __rcu *nf_afinfo[NFPROTO_NUMPROTO];
--static inline const struct nf_afinfo *nf_get_afinfo(unsigned short family)
--{
--	return rcu_dereference(nf_afinfo[family]);
--}
--
- __sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
- 		    unsigned int dataoff, u_int8_t protocol,
- 		    unsigned short family);
-@@ -330,9 +320,6 @@ int nf_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
- 	     bool strict, unsigned short family);
- int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry);
- 
--int nf_register_afinfo(const struct nf_afinfo *afinfo);
--void nf_unregister_afinfo(const struct nf_afinfo *afinfo);
--
- #include <net/flow.h>
- extern void (*nf_nat_decode_session_hook)(struct sk_buff *, struct flowi *);
- 
-diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
-index e7348b49bc0d..86774b5c3b73 100644
---- a/net/bridge/netfilter/nf_tables_bridge.c
-+++ b/net/bridge/netfilter/nf_tables_bridge.c
-@@ -95,30 +95,23 @@ static const struct nf_chain_type filter_bridge = {
- 	},
- };
- 
--static const struct nf_afinfo nf_br_afinfo = {
--	.family                 = AF_BRIDGE,
--	.route_key_size         = 0,
--};
--
- static int __init nf_tables_bridge_init(void)
+diff --git a/src/expr/data_reg.c b/src/expr/data_reg.c
+index 70232028869a..1f689c5b6c7b 100644
+--- a/src/expr/data_reg.c
++++ b/src/expr/data_reg.c
+@@ -59,14 +59,15 @@ static int nftnl_data_reg_verdict_json_parse(union nftnl_data_reg *reg, json_t *
+ static int nftnl_data_reg_value_json_parse(union nftnl_data_reg *reg, json_t *data,
+ 					 struct nftnl_parse_err *err)
  {
- 	int ret;
+-	int i;
+-	char node_name[6];
++	char node_name[strlen("data256") + 1] = {};
++	int ret, remain = size, offset = 0, i;
  
--	nf_register_afinfo(&nf_br_afinfo);
- 	ret = nft_register_chain_type(&filter_bridge);
- 	if (ret < 0)
--		goto err1;
-+		return ret;
+ 	if (nftnl_jansson_parse_val(data, "len", NFTNL_TYPE_U8, &reg->len, err) < 0)
+ 			return DATA_NONE;
  
- 	ret = register_pernet_subsys(&nf_tables_bridge_net_ops);
- 	if (ret < 0)
--		goto err2;
-+		goto err_register_subsys;
+ 	for (i = 0; i < div_round_up(reg->len, sizeof(uint32_t)); i++) {
+-		sprintf(node_name, "data%d", i);
++		ret = snprintf(node_name, sizeof(node_name), "data%u", i);
++		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
  
- 	return ret;
- 
--err2:
-+err_register_subsys:
- 	nft_unregister_chain_type(&filter_bridge);
--err1:
--	nf_unregister_afinfo(&nf_br_afinfo);
-+
- 	return ret;
- }
- 
-@@ -126,7 +119,6 @@ static void __exit nf_tables_bridge_exit(void)
- {
- 	unregister_pernet_subsys(&nf_tables_bridge_net_ops);
- 	nft_unregister_chain_type(&filter_bridge);
--	nf_unregister_afinfo(&nf_br_afinfo);
- }
- 
- module_init(nf_tables_bridge_init);
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index bd8e161c2f95..e6774ccb7731 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -161,13 +161,3 @@ int nf_ip_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(nf_ip_route);
--
--static const struct nf_afinfo nf_ip_afinfo = {
--	.family			= AF_INET,
--};
--
--static int __init ipv4_netfilter_init(void)
--{
--	return nf_register_afinfo(&nf_ip_afinfo);
--}
--subsys_initcall(ipv4_netfilter_init);
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 18f82a3fb0c0..d95ceca7ff8f 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -174,14 +174,10 @@ static const struct nf_ipv6_ops ipv6ops = {
- 	.reroute		= nf_ip6_reroute,
- };
- 
--static const struct nf_afinfo nf_ip6_afinfo = {
--	.family			= AF_INET6,
--};
--
- int __init ipv6_netfilter_init(void)
- {
- 	RCU_INIT_POINTER(nf_ipv6_ops, &ipv6ops);
--	return nf_register_afinfo(&nf_ip6_afinfo);
-+	return 0;
- }
- 
- /* This can be called from inet6_init() on errors, so it cannot
-@@ -190,5 +186,4 @@ int __init ipv6_netfilter_init(void)
- void ipv6_netfilter_fini(void)
- {
- 	RCU_INIT_POINTER(nf_ipv6_ops, NULL);
--	nf_unregister_afinfo(&nf_ip6_afinfo);
- }
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 606efc9b14e1..997dd387d259 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -4,8 +4,7 @@
-  * Thanks to Rob `CmdrTaco' Malda for not influencing this code in any
-  * way.
-  *
-- * Rusty Russell (C)2000 -- This code is GPL.
-- * Patrick McHardy (c) 2006-2012
-+ * This code is GPL.
-  */
- #include <linux/kernel.h>
- #include <linux/netfilter.h>
-@@ -28,34 +27,12 @@
- 
- #include "nf_internals.h"
- 
--static DEFINE_MUTEX(afinfo_mutex);
--
--const struct nf_afinfo __rcu *nf_afinfo[NFPROTO_NUMPROTO] __read_mostly;
--EXPORT_SYMBOL(nf_afinfo);
- const struct nf_ipv6_ops __rcu *nf_ipv6_ops __read_mostly;
- EXPORT_SYMBOL_GPL(nf_ipv6_ops);
- 
- DEFINE_PER_CPU(bool, nf_skb_duplicated);
- EXPORT_SYMBOL_GPL(nf_skb_duplicated);
- 
--int nf_register_afinfo(const struct nf_afinfo *afinfo)
--{
--	mutex_lock(&afinfo_mutex);
--	RCU_INIT_POINTER(nf_afinfo[afinfo->family], afinfo);
--	mutex_unlock(&afinfo_mutex);
--	return 0;
--}
--EXPORT_SYMBOL_GPL(nf_register_afinfo);
--
--void nf_unregister_afinfo(const struct nf_afinfo *afinfo)
--{
--	mutex_lock(&afinfo_mutex);
--	RCU_INIT_POINTER(nf_afinfo[afinfo->family], NULL);
--	mutex_unlock(&afinfo_mutex);
--	synchronize_rcu();
--}
--EXPORT_SYMBOL_GPL(nf_unregister_afinfo);
--
- #ifdef HAVE_JUMP_LABEL
- struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
- EXPORT_SYMBOL(nf_hooks_needed);
+ 		if (nftnl_jansson_str2num(data, node_name, BASE_HEX,
+ 					&reg->val[i], NFTNL_TYPE_U32, err) != 0)
 -- 
 2.11.0
 
