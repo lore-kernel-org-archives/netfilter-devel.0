@@ -1,7 +1,7 @@
 From: Ahmed Abdelsalam <amsalam20@gmail.com>
-Subject: [net-next] netfilter: add segment routing header 'srh' match
-Date: Fri, 29 Dec 2017 12:07:52 +0100
-Message-ID: <1514545672-13827-1-git-send-email-amsalam20@gmail.com>
+Subject: [iptables] extensions: add support for 'srh' match
+Date: Fri, 29 Dec 2017 12:08:25 +0100
+Message-ID: <1514545705-13868-1-git-send-email-amsalam20@gmail.com>
 Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org, netdev@vger.kernel.org, amsalam20@gmail.com
 To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
@@ -10,33 +10,312 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-It allows matching packets based on Segment Routing Header
-(SRH) information.
+This patch adds a new exetension to iptables to supprt 'srh' match
 The implementation considers revision 7 of the SRH draft.
 https://tools.ietf.org/html/draft-ietf-6man-segment-routing-header-07
 
-Currently supported match options include:
-(1) Next Header
-(2) Hdr Ext Len
-(3) Segments Left
-(4) Last Entry
-(5) Tag value of SRH
-
 Signed-off-by: Ahmed Abdelsalam <amsalam20@gmail.com>
 ---
- include/uapi/linux/netfilter_ipv6/ip6t_srh.h |  63 ++++++++++
- net/ipv6/netfilter/Kconfig                   |   9 ++
- net/ipv6/netfilter/Makefile                  |   1 +
- net/ipv6/netfilter/ip6t_srh.c                | 165 +++++++++++++++++++++++++++
- 4 files changed, 238 insertions(+)
- create mode 100644 include/uapi/linux/netfilter_ipv6/ip6t_srh.h
- create mode 100644 net/ipv6/netfilter/ip6t_srh.c
+ extensions/libip6t_srh.c                | 283 ++++++++++++++++++++++++++++++++
+ include/linux/netfilter_ipv6/ip6t_srh.h |  63 +++++++
+ 2 files changed, 346 insertions(+)
+ create mode 100644 extensions/libip6t_srh.c
+ create mode 100644 include/linux/netfilter_ipv6/ip6t_srh.h
 
-diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_srh.h b/include/uapi/linux/netfilter_ipv6/ip6t_srh.h
+diff --git a/extensions/libip6t_srh.c b/extensions/libip6t_srh.c
 new file mode 100644
-index 0000000..1b5dbd8
+index 0000000..fd92ba1
 --- /dev/null
-+++ b/include/uapi/linux/netfilter_ipv6/ip6t_srh.h
++++ b/extensions/libip6t_srh.c
+@@ -0,0 +1,283 @@
++/**
++ * Segment Routing Header 'srh' match extension
++ *
++ * Author:
++ *       Ahmed Abdelsalam       <amsalam20@gmail.com>
++ */
++
++#include <stdio.h>
++#include <xtables.h>
++#include <linux/netfilter_ipv6/ip6t_srh.h>
++#include <string.h>
++
++/* srh command-line options */
++enum {
++	O_SRH_NEXTHDR,
++	O_SRH_LEN_EQ,
++	O_SRH_LEN_GT,
++	O_SRH_LEN_LT,
++	O_SRH_SEGS_EQ,
++	O_SRH_SEGS_GT,
++	O_SRH_SEGS_LT,
++	O_SRH_LAST_EQ,
++	O_SRH_LAST_GT,
++	O_SRH_LAST_LT,
++	O_SRH_TAG,
++};
++
++static void srh_help(void)
++{
++	printf(
++"srh match options:\n"
++"[!] --srh-next-hdr     next-hdr        Next Header value of SRH\n"
++"[!] --srh-len-eq       hdr_len         Hdr Ext Len value of SRH\n"
++"[!] --srh-len-gt       hdr_len         Hdr Ext Len value of SRH\n"
++"[!] --srh-len-lt       hdr_len         Hdr Ext Len value of SRH\n"
++"[!] --srh-segs-eq      segs_left       Segments Left value of SRH\n"
++"[!] --srh-segs-gt      segs_left       Segments Left value of SRH\n"
++"[!] --srh-segs-lt      segs_left       Segments Left value of SRH\n"
++"[!] --srh-last-eq      last_entry      Last Entry value of SRH\n"
++"[!] --srh-last-gt      last_entry      Last Entry value of SRH\n"
++"[!] --srh-last-lt      last_entry      Last Entry value of SRH\n"
++"[!] --srh-tag          tag             Tag value of SRH\n");
++}
++
++#define s struct ip6t_srh
++static const struct xt_option_entry srh_opts[] = {
++	{ .name = "srh-next-hdr", .id = O_SRH_NEXTHDR, .type = XTTYPE_UINT8,
++	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, next_hdr)},
++	{ .name = "srh-len-eq",	.id = O_SRH_LEN_EQ, .type = XTTYPE_UINT8,
++	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, hdr_len)},
++	{ .name = "srh-len-gt", .id = O_SRH_LEN_GT, .type = XTTYPE_UINT8,
++	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, hdr_len)},
++	{ .name = "srh-len-lt", .id = O_SRH_LEN_LT, .type = XTTYPE_UINT8,
++	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, hdr_len)},
++	{ .name = "srh-segs-eq", .id = O_SRH_SEGS_EQ, .type = XTTYPE_UINT8,
++	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, segs_left)},
++	{ .name = "srh-segs-gt", .id = O_SRH_SEGS_GT, .type = XTTYPE_UINT8,
++	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, segs_left)},
++	{ .name = "srh-segs-lt", .id = O_SRH_SEGS_LT, .type = XTTYPE_UINT8,
++	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, segs_left)},
++	{ .name = "srh-last-eq", .id = O_SRH_LAST_EQ, .type = XTTYPE_UINT8,
++	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, last_entry)},
++	{ .name = "srh-last-gt", .id = O_SRH_LAST_GT, .type = XTTYPE_UINT8,
++	flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, last_entry)},
++	{ .name = "srh-last-lt", .id = O_SRH_LAST_LT, .type = XTTYPE_UINT8,
++	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, last_entry)},
++	{ .name = "srh-tag", .id = O_SRH_TAG, .type = XTTYPE_UINT16,
++	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, tag)},
++	{ }
++};
++#undef s
++
++static void srh_init(struct xt_entry_match *m)
++{
++	struct ip6t_srh *srhinfo = (void *)m->data;
++
++	srhinfo->mt_flags = 0;
++	srhinfo->mt_invflags = 0;
++}
++
++static void srh_parse(struct xt_option_call *cb)
++{
++	struct ip6t_srh *srhinfo = cb->data;
++
++	xtables_option_parse(cb);
++	switch (cb->entry->id) {
++	case O_SRH_NEXTHDR:
++		srhinfo->mt_flags |= IP6T_SRH_NEXTHDR;
++		if (cb->invert)
++			srhinfo->mt_invflags |= IP6T_SRH_INV_NEXTHDR;
++		break;
++	case O_SRH_LEN_EQ:
++		srhinfo->mt_flags |= IP6T_SRH_LEN_EQ;
++		if (cb->invert)
++			srhinfo->mt_invflags |= IP6T_SRH_INV_LEN_EQ;
++		break;
++	case O_SRH_LEN_GT:
++		srhinfo->mt_flags |= IP6T_SRH_LEN_GT;
++		if (cb->invert)
++			srhinfo->mt_invflags |= IP6T_SRH_INV_LEN_GT;
++		break;
++	case O_SRH_LEN_LT:
++		srhinfo->mt_flags |= IP6T_SRH_LEN_LT;
++		if (cb->invert)
++			srhinfo->mt_invflags |= IP6T_SRH_INV_LEN_LT;
++		break;
++	case O_SRH_SEGS_EQ:
++		srhinfo->mt_flags |= IP6T_SRH_SEGS_EQ;
++		if (cb->invert)
++			srhinfo->mt_invflags |= IP6T_SRH_INV_SEGS_EQ;
++		break;
++	case O_SRH_SEGS_GT:
++		srhinfo->mt_flags |= IP6T_SRH_SEGS_GT;
++		if (cb->invert)
++			srhinfo->mt_invflags |= IP6T_SRH_INV_SEGS_GT;
++		break;
++	case O_SRH_SEGS_LT:
++		srhinfo->mt_flags |= IP6T_SRH_SEGS_LT;
++		if (cb->invert)
++			srhinfo->mt_invflags |= IP6T_SRH_INV_SEGS_LT;
++		break;
++	case O_SRH_LAST_EQ:
++		srhinfo->mt_flags |= IP6T_SRH_LAST_EQ;
++		if (cb->invert)
++			srhinfo->mt_invflags |= IP6T_SRH_INV_LAST_EQ;
++		break;
++	case O_SRH_LAST_GT:
++		srhinfo->mt_flags |= IP6T_SRH_LAST_GT;
++		if (cb->invert)
++			srhinfo->mt_invflags |= IP6T_SRH_INV_LAST_GT;
++		break;
++	case O_SRH_LAST_LT:
++		srhinfo->mt_flags |= IP6T_SRH_LAST_LT;
++		if (cb->invert)
++			srhinfo->mt_invflags |= IP6T_SRH_INV_LAST_LT;
++		break;
++	case O_SRH_TAG:
++		srhinfo->mt_flags |= IP6T_SRH_TAG;
++		if (cb->invert)
++			srhinfo->mt_invflags |= IP6T_SRH_INV_TAG;
++		break;
++	}
++}
++
++static const char *pinv(bool invert)
++{
++	const char *inv = invert ? "!" : " ";
++	return inv;
++}
++
++static void srh_print(const void *ip, const struct xt_entry_match *match,
++			int numeric)
++{
++	const struct ip6t_srh *srhinfo = (struct ip6t_srh *)match->data;
++
++	printf(" srh ");
++
++	if (srhinfo->mt_flags & IP6T_SRH_NEXTHDR)
++		printf("next-hdr %s=%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_NEXTHDR),
++			srhinfo->next_hdr);
++
++	if (srhinfo->mt_flags & IP6T_SRH_LEN_EQ)
++		printf("hdr-len %s=%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_LEN_EQ),
++			srhinfo->hdr_len);
++	if (srhinfo->mt_flags & IP6T_SRH_LEN_GT)
++		printf("hdr-len %s>%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_LEN_GT),
++			srhinfo->hdr_len);
++	if (srhinfo->mt_flags & IP6T_SRH_LEN_LT)
++		printf("hdr-len %s<%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_LEN_LT),
++			srhinfo->hdr_len);
++
++	if (srhinfo->mt_flags & IP6T_SRH_SEGS_EQ)
++		printf("segs-left %s=%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_SEGS_EQ),
++			srhinfo->segs_left);
++	if (srhinfo->mt_flags & IP6T_SRH_SEGS_GT)
++		printf("segs-left %s>%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_SEGS_GT),
++			srhinfo->segs_left);
++	if (srhinfo->mt_flags & IP6T_SRH_SEGS_LT)
++		printf("segs-left %s<%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_SEGS_LT),
++			srhinfo->segs_left);
++
++	if (srhinfo->mt_flags & IP6T_SRH_LAST_EQ)
++		printf("last-entry %s=%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_LAST_EQ),
++			srhinfo->last_entry);
++	if (srhinfo->mt_flags & IP6T_SRH_LAST_GT)
++		printf("last-entry %s>%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_LAST_GT),
++			srhinfo->last_entry);
++	if (srhinfo->mt_flags & IP6T_SRH_LAST_LT)
++		printf("last-entry %s<%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_LAST_LT),
++			srhinfo->last_entry);
++
++	if (srhinfo->mt_flags  & IP6T_SRH_TAG)
++		printf("tag %s=%d ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_TAG),
++			srhinfo->tag);
++
++}
++
++static void srh_save(const void *ip, const struct xt_entry_match *match)
++{
++	const struct ip6t_srh *srhinfo = (struct ip6t_srh *)match->data;
++
++	printf(" srh ");
++
++	if (srhinfo->mt_flags & IP6T_SRH_NEXTHDR)
++		printf("next-hdr %s=%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_NEXTHDR),
++			srhinfo->next_hdr);
++
++	if (srhinfo->mt_flags & IP6T_SRH_LEN_EQ)
++		printf("hdr-len %s=%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_LEN_EQ),
++			srhinfo->hdr_len);
++	if (srhinfo->mt_flags & IP6T_SRH_LEN_GT)
++		printf("hdr-len %s>%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_LEN_GT),
++			srhinfo->hdr_len);
++	if (srhinfo->mt_flags & IP6T_SRH_LEN_LT)
++		printf("hdr-len %s<%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_LEN_LT),
++			srhinfo->hdr_len);
++
++	if (srhinfo->mt_flags & IP6T_SRH_SEGS_EQ)
++		printf("segs-left %s=%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_SEGS_EQ),
++			srhinfo->segs_left);
++	if (srhinfo->mt_flags & IP6T_SRH_SEGS_GT)
++		printf("segs-left %s>%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_SEGS_GT),
++			srhinfo->segs_left);
++	if (srhinfo->mt_flags & IP6T_SRH_SEGS_LT)
++		printf("segs-left %s<%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_SEGS_LT),
++			srhinfo->segs_left);
++
++	if (srhinfo->mt_flags & IP6T_SRH_LAST_EQ)
++		printf("last-entry %s=%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_LAST_EQ),
++			srhinfo->last_entry);
++	if (srhinfo->mt_flags & IP6T_SRH_LAST_GT)
++		printf("last-entry %s>%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_LAST_GT),
++			srhinfo->last_entry);
++	if (srhinfo->mt_flags & IP6T_SRH_LAST_LT)
++		printf("last-entry %s<%d  ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_LAST_LT),
++			srhinfo->last_entry);
++
++	if (srhinfo->mt_flags  & IP6T_SRH_TAG)
++		printf("tag %s=%d ",
++			pinv(srhinfo->mt_invflags & IP6T_SRH_INV_TAG),
++			srhinfo->tag);
++}
++
++static struct xtables_match srh_mt6_reg = {
++	.name          = "srh",
++	.version       = XTABLES_VERSION,
++	.family        = NFPROTO_IPV6,
++	.size          = XT_ALIGN(sizeof(struct ip6t_srh)),
++	.userspacesize = XT_ALIGN(sizeof(struct ip6t_srh)),
++	.help          = srh_help,
++	.init          = srh_init,
++	.print         = srh_print,
++	.save          = srh_save,
++	.x6_parse      = srh_parse,
++	.x6_options    = srh_opts,
++};
++
++void
++_init(void)
++{
++	xtables_register_match(&srh_mt6_reg);
++}
+diff --git a/include/linux/netfilter_ipv6/ip6t_srh.h b/include/linux/netfilter_ipv6/ip6t_srh.h
+new file mode 100644
+index 0000000..bc27197
+--- /dev/null
++++ b/include/linux/netfilter_ipv6/ip6t_srh.h
 @@ -0,0 +1,63 @@
 +/**
 + * Definitions for Segment Routing Header 'srh' match
@@ -101,208 +380,5 @@ index 0000000..1b5dbd8
 +};
 +
 +#endif /*_IP6T_SRH_H*/
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index 6acb2ee..e1818eb 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -232,6 +232,15 @@ config IP6_NF_MATCH_RT
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config IP6_NF_MATCH_SRH
-+        tristate '"srh" Segment Routing header match support'
-+        depends on NETFILTER_ADVANCED
-+        help
-+          srh matching allows you to match packets based on the segment
-+	  routing header of the packet.
-+
-+          To compile it as a module, choose M here.  If unsure, say N.
-+
- # The targets
- config IP6_NF_TARGET_HL
- 	tristate '"HL" hoplimit target support'
-diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index c6ee0cd..e0d51a9 100644
---- a/net/ipv6/netfilter/Makefile
-+++ b/net/ipv6/netfilter/Makefile
-@@ -54,6 +54,7 @@ obj-$(CONFIG_IP6_NF_MATCH_MH) += ip6t_mh.o
- obj-$(CONFIG_IP6_NF_MATCH_OPTS) += ip6t_hbh.o
- obj-$(CONFIG_IP6_NF_MATCH_RPFILTER) += ip6t_rpfilter.o
- obj-$(CONFIG_IP6_NF_MATCH_RT) += ip6t_rt.o
-+obj-$(CONFIG_IP6_NF_MATCH_SRH) += ip6t_srh.o
- 
- # targets
- obj-$(CONFIG_IP6_NF_TARGET_MASQUERADE) += ip6t_MASQUERADE.o
-diff --git a/net/ipv6/netfilter/ip6t_srh.c b/net/ipv6/netfilter/ip6t_srh.c
-new file mode 100644
-index 0000000..75e41dc9
---- /dev/null
-+++ b/net/ipv6/netfilter/ip6t_srh.c
-@@ -0,0 +1,165 @@
-+/*
-+ * Kernel module to match Segment Routing Header (SRH) parameters.
-+ *
-+ * Author:
-+ * Ahmed Abdelsalam <amsalam20@gmail.com>
-+ *
-+ *
-+ *  This program is free software; you can redistribute it and/or
-+ *	modify it under the terms of the GNU General Public License
-+ *	as published by the Free Software Foundation; either version 2
-+ *	of the License, or (at your option) any later version.
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/ipv6.h>
-+#include <linux/types.h>
-+#include <net/ipv6.h>
-+#include <net/seg6.h>
-+
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter_ipv6/ip6t_srh.h>
-+#include <linux/netfilter_ipv6/ip6_tables.h>
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Xtables: IPv6 Segment Routing Header match");
-+MODULE_AUTHOR("Ahmed Abdelsalam  <amsalam20@gmail.com>");
-+
-+/* Test a struct->mt_invflags and a boolean for inequality */
-+#define NF_SRH_INVF(ptr, flag, boolean)	\
-+	((boolean) ^ !!((ptr)->mt_invflags & (flag)))
-+
-+static bool srh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	const struct ip6t_srh *srhinfo = par->matchinfo;
-+	struct ipv6_sr_hdr *srh;
-+	struct ipv6_sr_hdr _srh;
-+	int hdrlen, srhoff = 0;
-+
-+	if (ipv6_find_hdr(skb, &srhoff, IPPROTO_ROUTING, NULL, NULL) < 0)
-+		return false;
-+
-+	srh = skb_header_pointer(skb, srhoff, sizeof(_srh), &_srh);
-+
-+	if (!srh)
-+		return false;
-+
-+	hdrlen = ipv6_optlen(srh);
-+	if (skb->len - srhoff < hdrlen)
-+		return false;
-+
-+	if (srh->type != IPV6_SRCRT_TYPE_4)
-+		return false;
-+
-+	if (srh->segments_left > srh->first_segment)
-+		return false;
-+
-+	/* Next Header matching */
-+	if (srhinfo->mt_flags & IP6T_SRH_NEXTHDR)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_NEXTHDR,
-+				!(srh->nexthdr == srhinfo->next_hdr)))
-+			return false;
-+
-+	/* Header Extension Length matching */
-+	if (srhinfo->mt_flags & IP6T_SRH_LEN_EQ)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LEN_EQ,
-+				!(srh->hdrlen == srhinfo->hdr_len)))
-+			return false;
-+
-+	if (srhinfo->mt_flags & IP6T_SRH_LEN_GT)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LEN_GT,
-+				!(srh->hdrlen > srhinfo->hdr_len)))
-+			return false;
-+
-+	if (srhinfo->mt_flags & IP6T_SRH_LEN_LT)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LEN_LT,
-+				!(srh->hdrlen < srhinfo->hdr_len)))
-+			return false;
-+
-+	/* Segments Left matching */
-+	if (srhinfo->mt_flags & IP6T_SRH_SEGS_EQ)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_SEGS_EQ,
-+				!(srh->segments_left == srhinfo->segs_left)))
-+			return false;
-+
-+	if (srhinfo->mt_flags & IP6T_SRH_SEGS_GT)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_SEGS_GT,
-+				!(srh->segments_left > srhinfo->segs_left)))
-+			return false;
-+
-+	if (srhinfo->mt_flags & IP6T_SRH_SEGS_LT)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_SEGS_LT,
-+				!(srh->segments_left < srhinfo->segs_left)))
-+			return false;
-+
-+	/**
-+	 * Last Entry matching
-+	 * Last_Entry field was introduced in revision 6 of the SRH draft.
-+	 * It was called First_Segment in the previous revision
-+	 */
-+	if (srhinfo->mt_flags & IP6T_SRH_LAST_EQ)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LAST_EQ,
-+				!(srh->first_segment == srhinfo->last_entry)))
-+			return false;
-+
-+	if (srhinfo->mt_flags & IP6T_SRH_LAST_GT)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LAST_GT,
-+				!(srh->first_segment > srhinfo->last_entry)))
-+			return false;
-+
-+	if (srhinfo->mt_flags & IP6T_SRH_LAST_LT)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LAST_LT,
-+				!(srh->first_segment < srhinfo->last_entry)))
-+			return false;
-+
-+	/**
-+	 * Tag matchig
-+	 * Tag field was introduced in revision 6 of the SRH draft.
-+	 */
-+	if (srhinfo->mt_flags & IP6T_SRH_TAG)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_TAG,
-+				!(srh->tag == srhinfo->tag)))
-+			return false;
-+	return true;
-+}
-+
-+static int srh_mt6_check(const struct xt_mtchk_param *par)
-+{
-+	const struct ip6t_srh *srhinfo = par->matchinfo;
-+
-+	if (srhinfo->mt_flags & ~IP6T_SRH_MASK) {
-+		pr_debug("unknown srh match flags  %X\n", srhinfo->mt_flags);
-+		return -EINVAL;
-+	}
-+
-+	if (srhinfo->mt_invflags & ~IP6T_SRH_INV_MASK) {
-+		pr_debug("unknown srh invflags %X\n", srhinfo->mt_invflags);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct xt_match srh_mt6_reg __read_mostly = {
-+	.name		= "srh",
-+	.family		= NFPROTO_IPV6,
-+	.match		= srh_mt6,
-+	.matchsize	= sizeof(struct ip6t_srh),
-+	.checkentry	= srh_mt6_check,
-+	.me		= THIS_MODULE,
-+};
-+
-+static int __init srh_mt6_init(void)
-+{
-+	return xt_register_match(&srh_mt6_reg);
-+}
-+
-+static void __exit srh_mt6_exit(void)
-+{
-+	xt_unregister_match(&srh_mt6_reg);
-+}
-+
-+module_init(srh_mt6_init);
-+module_exit(srh_mt6_exit);
 -- 
 2.1.4
