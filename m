@@ -1,52 +1,339 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH libnftnl] tests: nft-parsing-test: fix warning - ignoring
- return value of fgets
-Date: Sat, 30 Dec 2017 22:02:20 +0100
-Message-ID: <20171230210220.tl23muxui43nmhn5@salvia>
-References: <20171229072925.15689-1-harshasharmaiitr@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Harsha Sharma <harshasharmaiitr@gmail.com>
+Subject: [PATCH nf-next] netfilter: remove defensive check on malformed packets from raw sockets
+Date: Sat, 30 Dec 2017 23:04:59 +0100
+Message-ID: <20171230220459.18306-1-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58008 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34530 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750912AbdL3VCZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 30 Dec 2017 16:02:25 -0500
+        id S1750945AbdL3WFH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 30 Dec 2017 17:05:07 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 22A6AC9EC5
-        for <netfilter-devel@vger.kernel.org>; Sat, 30 Dec 2017 22:02:24 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 9B8A7C51A9
+        for <netfilter-devel@vger.kernel.org>; Sat, 30 Dec 2017 23:05:05 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 13DCA71C9
-        for <netfilter-devel@vger.kernel.org>; Sat, 30 Dec 2017 22:02:24 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20171229072925.15689-1-harshasharmaiitr@gmail.com>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 86983F730E
+        for <netfilter-devel@vger.kernel.org>; Sat, 30 Dec 2017 23:05:05 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3812AF7310
+        for <netfilter-devel@vger.kernel.org>; Sat, 30 Dec 2017 23:05:03 +0100 (CET)
+Received: from salvia.here (40.red-212-170-55.staticip.rima-tde.net [212.170.55.40])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 1CC694265A4C
+        for <netfilter-devel@vger.kernel.org>; Sat, 30 Dec 2017 23:05:03 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Harsha,
+User cannot forget insane packets via raw sockets that they can inject
+into the stack, not for IPv4 specifically since 55888dfb6ba7 ("AF_RAW:
+Augment raw_send_hdrinc to expand skb to fit iphdr->ihl (v2)"). IPv6
+raw sockets also ensure that packets have an IPv6 header available in
+the skbuff.
 
-On Fri, Dec 29, 2017 at 12:59:25PM +0530, Harsha Sharma wrote:
-> This patch fixes compilation warning: ignoring return value of fgets.
-> 
-> Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
-> ---
->  tests/nft-parsing-test.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/tests/nft-parsing-test.c b/tests/nft-parsing-test.c
-> index d25a73e..97f402d 100644
-> --- a/tests/nft-parsing-test.c
-> +++ b/tests/nft-parsing-test.c
-> @@ -80,7 +80,8 @@ static int compare_test(uint32_t type, struct nftnl_ruleset *rs,
->  	}
->  
->  	rewind(fp);
-> -	fgets(orig, sizeof(orig), fp);
-> +	if (fgets(orig, sizeof(orig), fp) == NULL)
-> +		fprintf(stderr, "Error in reading or end of file.\n");
+At quick glance, br_netfilter also validates layer 3 headers and it
+drops malformed IPv4 and IPv6 packets.
 
-Did you test this? Are you sure this is the right fix for this?
-IIRC, EOF is reported via NULL too for fgets.
+Therefore, remove this defensive check all over the place.
 
-Thanks.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/ipv4/netfilter/iptable_filter.c            |  6 ------
+ net/ipv4/netfilter/iptable_mangle.c            |  5 -----
+ net/ipv4/netfilter/iptable_raw.c               |  6 ------
+ net/ipv4/netfilter/iptable_security.c          |  6 ------
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |  5 -----
+ net/ipv4/netfilter/nf_nat_l3proto_ipv4.c       | 10 ----------
+ net/ipv4/netfilter/nf_tables_ipv4.c            | 17 +----------------
+ net/ipv4/netfilter/nft_chain_route_ipv4.c      |  5 -----
+ net/ipv6/netfilter/ip6table_mangle.c           |  8 --------
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |  5 -----
+ net/ipv6/netfilter/nf_nat_l3proto_ipv6.c       |  8 --------
+ net/ipv6/netfilter/nf_tables_ipv6.c            | 16 +---------------
+ net/netfilter/nf_tables_inet.c                 | 11 -----------
+ 13 files changed, 2 insertions(+), 106 deletions(-)
+
+diff --git a/net/ipv4/netfilter/iptable_filter.c b/net/ipv4/netfilter/iptable_filter.c
+index 7667f223d7f8..9ac92ea7b93c 100644
+--- a/net/ipv4/netfilter/iptable_filter.c
++++ b/net/ipv4/netfilter/iptable_filter.c
+@@ -38,12 +38,6 @@ static unsigned int
+ iptable_filter_hook(void *priv, struct sk_buff *skb,
+ 		    const struct nf_hook_state *state)
+ {
+-	if (state->hook == NF_INET_LOCAL_OUT &&
+-	    (skb->len < sizeof(struct iphdr) ||
+-	     ip_hdrlen(skb) < sizeof(struct iphdr)))
+-		/* root is playing with raw sockets. */
+-		return NF_ACCEPT;
+-
+ 	return ipt_do_table(skb, state, state->net->ipv4.iptable_filter);
+ }
+ 
+diff --git a/net/ipv4/netfilter/iptable_mangle.c b/net/ipv4/netfilter/iptable_mangle.c
+index aebdb337fd7e..dea138ca8925 100644
+--- a/net/ipv4/netfilter/iptable_mangle.c
++++ b/net/ipv4/netfilter/iptable_mangle.c
+@@ -49,11 +49,6 @@ ipt_mangle_out(struct sk_buff *skb, const struct nf_hook_state *state)
+ 	u_int32_t mark;
+ 	int err;
+ 
+-	/* root is playing with raw sockets. */
+-	if (skb->len < sizeof(struct iphdr) ||
+-	    ip_hdrlen(skb) < sizeof(struct iphdr))
+-		return NF_ACCEPT;
+-
+ 	/* Save things which could affect route */
+ 	mark = skb->mark;
+ 	iph = ip_hdr(skb);
+diff --git a/net/ipv4/netfilter/iptable_raw.c b/net/ipv4/netfilter/iptable_raw.c
+index 2642ecd2645c..a869d1fea7d9 100644
+--- a/net/ipv4/netfilter/iptable_raw.c
++++ b/net/ipv4/netfilter/iptable_raw.c
+@@ -26,12 +26,6 @@ static unsigned int
+ iptable_raw_hook(void *priv, struct sk_buff *skb,
+ 		 const struct nf_hook_state *state)
+ {
+-	if (state->hook == NF_INET_LOCAL_OUT &&
+-	    (skb->len < sizeof(struct iphdr) ||
+-	     ip_hdrlen(skb) < sizeof(struct iphdr)))
+-		/* root is playing with raw sockets. */
+-		return NF_ACCEPT;
+-
+ 	return ipt_do_table(skb, state, state->net->ipv4.iptable_raw);
+ }
+ 
+diff --git a/net/ipv4/netfilter/iptable_security.c b/net/ipv4/netfilter/iptable_security.c
+index ff226596e4b5..e5379fe57b64 100644
+--- a/net/ipv4/netfilter/iptable_security.c
++++ b/net/ipv4/netfilter/iptable_security.c
+@@ -43,12 +43,6 @@ static unsigned int
+ iptable_security_hook(void *priv, struct sk_buff *skb,
+ 		      const struct nf_hook_state *state)
+ {
+-	if (state->hook == NF_INET_LOCAL_OUT &&
+-	    (skb->len < sizeof(struct iphdr) ||
+-	     ip_hdrlen(skb) < sizeof(struct iphdr)))
+-		/* Somebody is playing with raw sockets. */
+-		return NF_ACCEPT;
+-
+ 	return ipt_do_table(skb, state, state->net->ipv4.iptable_security);
+ }
+ 
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index bb2c868a5621..de213a397ea8 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -154,11 +154,6 @@ static unsigned int ipv4_conntrack_local(void *priv,
+ 					 struct sk_buff *skb,
+ 					 const struct nf_hook_state *state)
+ {
+-	/* root is playing with raw sockets. */
+-	if (skb->len < sizeof(struct iphdr) ||
+-	    ip_hdrlen(skb) < sizeof(struct iphdr))
+-		return NF_ACCEPT;
+-
+ 	if (ip_is_fragment(ip_hdr(skb))) /* IP_NODEFRAG setsockopt set */
+ 		return NF_ACCEPT;
+ 
+diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+index 0443ca4120b0..f7ff6a364d7b 100644
+--- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+@@ -356,11 +356,6 @@ nf_nat_ipv4_out(void *priv, struct sk_buff *skb,
+ #endif
+ 	unsigned int ret;
+ 
+-	/* root is playing with raw sockets. */
+-	if (skb->len < sizeof(struct iphdr) ||
+-	    ip_hdrlen(skb) < sizeof(struct iphdr))
+-		return NF_ACCEPT;
+-
+ 	ret = nf_nat_ipv4_fn(priv, skb, state, do_chain);
+ #ifdef CONFIG_XFRM
+ 	if (ret != NF_DROP && ret != NF_STOLEN &&
+@@ -396,11 +391,6 @@ nf_nat_ipv4_local_fn(void *priv, struct sk_buff *skb,
+ 	unsigned int ret;
+ 	int err;
+ 
+-	/* root is playing with raw sockets. */
+-	if (skb->len < sizeof(struct iphdr) ||
+-	    ip_hdrlen(skb) < sizeof(struct iphdr))
+-		return NF_ACCEPT;
+-
+ 	ret = nf_nat_ipv4_fn(priv, skb, state, do_chain);
+ 	if (ret != NF_DROP && ret != NF_STOLEN &&
+ 	    (ct = nf_ct_get(skb, &ctinfo)) != NULL) {
+diff --git a/net/ipv4/netfilter/nf_tables_ipv4.c b/net/ipv4/netfilter/nf_tables_ipv4.c
+index 8aeb15c2b9b2..f4675253f1e6 100644
+--- a/net/ipv4/netfilter/nf_tables_ipv4.c
++++ b/net/ipv4/netfilter/nf_tables_ipv4.c
+@@ -30,21 +30,6 @@ static unsigned int nft_do_chain_ipv4(void *priv,
+ 	return nft_do_chain(&pkt, priv);
+ }
+ 
+-static unsigned int nft_ipv4_output(void *priv,
+-				    struct sk_buff *skb,
+-				    const struct nf_hook_state *state)
+-{
+-	if (unlikely(skb->len < sizeof(struct iphdr) ||
+-		     ip_hdr(skb)->ihl < sizeof(struct iphdr) / 4)) {
+-		if (net_ratelimit())
+-			pr_info("nf_tables_ipv4: ignoring short SOCK_RAW "
+-				"packet\n");
+-		return NF_ACCEPT;
+-	}
+-
+-	return nft_do_chain_ipv4(priv, skb, state);
+-}
+-
+ static struct nft_af_info nft_af_ipv4 __read_mostly = {
+ 	.family		= NFPROTO_IPV4,
+ 	.nhooks		= NF_INET_NUMHOOKS,
+@@ -91,7 +76,7 @@ static const struct nf_chain_type filter_ipv4 = {
+ 			  (1 << NF_INET_POST_ROUTING),
+ 	.hooks		= {
+ 		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv4,
+-		[NF_INET_LOCAL_OUT]	= nft_ipv4_output,
++		[NF_INET_LOCAL_OUT]	= nft_do_chain_ipv4,
+ 		[NF_INET_FORWARD]	= nft_do_chain_ipv4,
+ 		[NF_INET_PRE_ROUTING]	= nft_do_chain_ipv4,
+ 		[NF_INET_POST_ROUTING]	= nft_do_chain_ipv4,
+diff --git a/net/ipv4/netfilter/nft_chain_route_ipv4.c b/net/ipv4/netfilter/nft_chain_route_ipv4.c
+index fb3d49fb62fe..d965c225b9f6 100644
+--- a/net/ipv4/netfilter/nft_chain_route_ipv4.c
++++ b/net/ipv4/netfilter/nft_chain_route_ipv4.c
+@@ -33,11 +33,6 @@ static unsigned int nf_route_table_hook(void *priv,
+ 	const struct iphdr *iph;
+ 	int err;
+ 
+-	/* root is playing with raw sockets. */
+-	if (skb->len < sizeof(struct iphdr) ||
+-	    ip_hdrlen(skb) < sizeof(struct iphdr))
+-		return NF_ACCEPT;
+-
+ 	nft_set_pktinfo(&pkt, skb, state);
+ 	nft_set_pktinfo_ipv4(&pkt, skb);
+ 
+diff --git a/net/ipv6/netfilter/ip6table_mangle.c b/net/ipv6/netfilter/ip6table_mangle.c
+index 2b1a9dcdbcb3..b0524b18c4fb 100644
+--- a/net/ipv6/netfilter/ip6table_mangle.c
++++ b/net/ipv6/netfilter/ip6table_mangle.c
+@@ -42,14 +42,6 @@ ip6t_mangle_out(struct sk_buff *skb, const struct nf_hook_state *state)
+ 	u_int8_t hop_limit;
+ 	u_int32_t flowlabel, mark;
+ 	int err;
+-#if 0
+-	/* root is playing with raw sockets. */
+-	if (skb->len < sizeof(struct iphdr) ||
+-	    ip_hdrlen(skb) < sizeof(struct iphdr)) {
+-		net_warn_ratelimited("ip6t_hook: happy cracking\n");
+-		return NF_ACCEPT;
+-	}
+-#endif
+ 
+ 	/* save source/dest address, mark, hoplimit, flowlabel, priority,  */
+ 	memcpy(&saddr, &ipv6_hdr(skb)->saddr, sizeof(saddr));
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index 7340ca7cc362..11a313fd9273 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -176,11 +176,6 @@ static unsigned int ipv6_conntrack_local(void *priv,
+ 					 struct sk_buff *skb,
+ 					 const struct nf_hook_state *state)
+ {
+-	/* root is playing with raw sockets. */
+-	if (skb->len < sizeof(struct ipv6hdr)) {
+-		net_notice_ratelimited("ipv6_conntrack_local: packet too short\n");
+-		return NF_ACCEPT;
+-	}
+ 	return nf_conntrack_in(state->net, PF_INET6, state->hook, skb);
+ }
+ 
+diff --git a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
+index 1d2fb9267d6f..bed57ee65f7b 100644
+--- a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
+@@ -369,10 +369,6 @@ nf_nat_ipv6_out(void *priv, struct sk_buff *skb,
+ #endif
+ 	unsigned int ret;
+ 
+-	/* root is playing with raw sockets. */
+-	if (skb->len < sizeof(struct ipv6hdr))
+-		return NF_ACCEPT;
+-
+ 	ret = nf_nat_ipv6_fn(priv, skb, state, do_chain);
+ #ifdef CONFIG_XFRM
+ 	if (ret != NF_DROP && ret != NF_STOLEN &&
+@@ -408,10 +404,6 @@ nf_nat_ipv6_local_fn(void *priv, struct sk_buff *skb,
+ 	unsigned int ret;
+ 	int err;
+ 
+-	/* root is playing with raw sockets. */
+-	if (skb->len < sizeof(struct ipv6hdr))
+-		return NF_ACCEPT;
+-
+ 	ret = nf_nat_ipv6_fn(priv, skb, state, do_chain);
+ 	if (ret != NF_DROP && ret != NF_STOLEN &&
+ 	    (ct = nf_ct_get(skb, &ctinfo)) != NULL) {
+diff --git a/net/ipv6/netfilter/nf_tables_ipv6.c b/net/ipv6/netfilter/nf_tables_ipv6.c
+index d4c9ef030e4f..9cd45b964123 100644
+--- a/net/ipv6/netfilter/nf_tables_ipv6.c
++++ b/net/ipv6/netfilter/nf_tables_ipv6.c
+@@ -28,20 +28,6 @@ static unsigned int nft_do_chain_ipv6(void *priv,
+ 	return nft_do_chain(&pkt, priv);
+ }
+ 
+-static unsigned int nft_ipv6_output(void *priv,
+-				    struct sk_buff *skb,
+-				    const struct nf_hook_state *state)
+-{
+-	if (unlikely(skb->len < sizeof(struct ipv6hdr))) {
+-		if (net_ratelimit())
+-			pr_info("nf_tables_ipv6: ignoring short SOCK_RAW "
+-				"packet\n");
+-		return NF_ACCEPT;
+-	}
+-
+-	return nft_do_chain_ipv6(priv, skb, state);
+-}
+-
+ static struct nft_af_info nft_af_ipv6 __read_mostly = {
+ 	.family		= NFPROTO_IPV6,
+ 	.nhooks		= NF_INET_NUMHOOKS,
+@@ -88,7 +74,7 @@ static const struct nf_chain_type filter_ipv6 = {
+ 			  (1 << NF_INET_POST_ROUTING),
+ 	.hooks		= {
+ 		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv6,
+-		[NF_INET_LOCAL_OUT]	= nft_ipv6_output,
++		[NF_INET_LOCAL_OUT]	= nft_do_chain_ipv6,
+ 		[NF_INET_FORWARD]	= nft_do_chain_ipv6,
+ 		[NF_INET_PRE_ROUTING]	= nft_do_chain_ipv6,
+ 		[NF_INET_POST_ROUTING]	= nft_do_chain_ipv6,
+diff --git a/net/netfilter/nf_tables_inet.c b/net/netfilter/nf_tables_inet.c
+index 313987e2b1fe..8d0344f2d677 100644
+--- a/net/netfilter/nf_tables_inet.c
++++ b/net/netfilter/nf_tables_inet.c
+@@ -47,20 +47,9 @@ static unsigned int nft_inet_output(void *priv, struct sk_buff *skb,
+ 
+ 	switch (state->pf) {
+ 	case NFPROTO_IPV4:
+-		if (unlikely(skb->len < sizeof(struct iphdr) ||
+-			     ip_hdr(skb)->ihl < sizeof(struct iphdr) / 4)) {
+-			if (net_ratelimit())
+-				pr_info("ignoring short SOCK_RAW packet\n");
+-			return NF_ACCEPT;
+-		}
+ 		nft_set_pktinfo_ipv4(&pkt, skb);
+ 		break;
+ 	case NFPROTO_IPV6:
+-	        if (unlikely(skb->len < sizeof(struct ipv6hdr))) {
+-			if (net_ratelimit())
+-				pr_info("ignoring short SOCK_RAW packet\n");
+-			return NF_ACCEPT;
+-		}
+ 		nft_set_pktinfo_ipv6(&pkt, skb);
+ 		break;
+ 	default:
+-- 
+2.11.0
+
