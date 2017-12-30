@@ -1,110 +1,95 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next RFC 3/8] netfilter: nf_tables: no need for struct nft_af_info to enable/disable table
-Date: Sun, 31 Dec 2017 00:13:43 +0100
-Message-ID: <20171230231348.5497-4-pablo@netfilter.org>
+Subject: [PATCH nf-next RFC 2/8] netfilter: nf_tables: remove flag field from struct nft_af_info
+Date: Sun, 31 Dec 2017 00:13:42 +0100
+Message-ID: <20171230231348.5497-3-pablo@netfilter.org>
 References: <20171230231348.5497-1-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39210 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39208 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750996AbdL3XN5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 30 Dec 2017 18:13:57 -0500
+        id S1751066AbdL3XN4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 30 Dec 2017 18:13:56 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CCDF1C51A9
+        by mail.us.es (Postfix) with ESMTP id 36CA8C51B7
         for <netfilter-devel@vger.kernel.org>; Sun, 31 Dec 2017 00:13:55 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BA98271D7
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 261A871C0
         for <netfilter-devel@vger.kernel.org>; Sun, 31 Dec 2017 00:13:55 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B198471D7
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2B8FF71C0
         for <netfilter-devel@vger.kernel.org>; Sun, 31 Dec 2017 00:13:53 +0100 (CET)
 Received: from salvia.here (40.red-212-170-55.staticip.rima-tde.net [212.170.55.40])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 8F8844265A32
-        for <netfilter-devel@vger.kernel.org>; Sun, 31 Dec 2017 00:13:53 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 092C64265A32
+        for <netfilter-devel@vger.kernel.org>; Sun, 31 Dec 2017 00:13:52 +0100 (CET)
 In-Reply-To: <20171230231348.5497-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nf_tables_table_enable() and nf_tables_table_disable() take a pointer to
-struct nft_af_info that is never used, remove it.
+Replace it by a direct check for the netdev protocol family.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 21 ++++++---------------
- 1 file changed, 6 insertions(+), 15 deletions(-)
+ include/net/netfilter/nf_tables.h | 6 ------
+ net/netfilter/nf_tables_api.c     | 2 +-
+ net/netfilter/nf_tables_netdev.c  | 1 -
+ 3 files changed, 1 insertion(+), 8 deletions(-)
 
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 9725f8586c61..1575ac12cbf7 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -961,10 +961,6 @@ struct nft_table {
+ 	char				*name;
+ };
+ 
+-enum nft_af_flags {
+-	NFT_AF_NEEDS_DEV	= (1 << 0),
+-};
+-
+ /**
+  *	struct nft_af_info - nf_tables address family info
+  *
+@@ -972,14 +968,12 @@ enum nft_af_flags {
+  *	@family: address family
+  *	@owner: module owner
+  *	@tables: used internally
+- *	@flags: family flags
+  */
+ struct nft_af_info {
+ 	struct list_head		list;
+ 	int				family;
+ 	struct module			*owner;
+ 	struct list_head		tables;
+-	u32				flags;
+ };
+ 
+ int nft_register_afinfo(struct net *, struct nft_af_info *);
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index d696b3bad861..a5590a0106e9 100644
+index 0b318f28475f..d696b3bad861 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -575,10 +575,7 @@ static int nf_tables_gettable(struct net *net, struct sock *nlsk,
- 	return err;
- }
+@@ -1305,7 +1305,7 @@ static int nft_chain_parse_hook(struct net *net,
+ 	hook->type = type;
  
--static void _nf_tables_table_disable(struct net *net,
--				     const struct nft_af_info *afi,
--				     struct nft_table *table,
--				     u32 cnt)
-+static void nft_table_disable(struct net *net, struct nft_table *table, u32 cnt)
- {
- 	struct nft_chain *chain;
- 	u32 i = 0;
-@@ -596,9 +593,7 @@ static void _nf_tables_table_disable(struct net *net,
- 	}
- }
+ 	hook->dev = NULL;
+-	if (afi->flags & NFT_AF_NEEDS_DEV) {
++	if (afi->family == NFPROTO_NETDEV) {
+ 		char ifname[IFNAMSIZ];
  
--static int nf_tables_table_enable(struct net *net,
--				  const struct nft_af_info *afi,
--				  struct nft_table *table)
-+static int nf_tables_table_enable(struct net *net, struct nft_table *table)
- {
- 	struct nft_chain *chain;
- 	int err, i = 0;
-@@ -618,15 +613,13 @@ static int nf_tables_table_enable(struct net *net,
- 	return 0;
- err:
- 	if (i)
--		_nf_tables_table_disable(net, afi, table, i);
-+		nft_table_disable(net, table, i);
- 	return err;
- }
+ 		if (!ha[NFTA_HOOK_DEV]) {
+diff --git a/net/netfilter/nf_tables_netdev.c b/net/netfilter/nf_tables_netdev.c
+index 3da3dc7de945..c7f671daa7d0 100644
+--- a/net/netfilter/nf_tables_netdev.c
++++ b/net/netfilter/nf_tables_netdev.c
+@@ -41,7 +41,6 @@ nft_do_chain_netdev(void *priv, struct sk_buff *skb,
+ static struct nft_af_info nft_af_netdev __read_mostly = {
+ 	.family		= NFPROTO_NETDEV,
+ 	.owner		= THIS_MODULE,
+-	.flags		= NFT_AF_NEEDS_DEV,
+ };
  
--static void nf_tables_table_disable(struct net *net,
--				    const struct nft_af_info *afi,
--				    struct nft_table *table)
-+static void nf_tables_table_disable(struct net *net, struct nft_table *table)
- {
--	_nf_tables_table_disable(net, afi, table, 0);
-+	nft_table_disable(net, table, 0);
- }
- 
- static int nf_tables_updtable(struct nft_ctx *ctx)
-@@ -655,7 +648,7 @@ static int nf_tables_updtable(struct nft_ctx *ctx)
- 		nft_trans_table_enable(trans) = false;
- 	} else if (!(flags & NFT_TABLE_F_DORMANT) &&
- 		   ctx->table->flags & NFT_TABLE_F_DORMANT) {
--		ret = nf_tables_table_enable(ctx->net, ctx->afi, ctx->table);
-+		ret = nf_tables_table_enable(ctx->net, ctx->table);
- 		if (ret >= 0) {
- 			ctx->table->flags &= ~NFT_TABLE_F_DORMANT;
- 			nft_trans_table_enable(trans) = true;
-@@ -5088,7 +5081,6 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 			if (nft_trans_table_update(trans)) {
- 				if (!nft_trans_table_enable(trans)) {
- 					nf_tables_table_disable(net,
--								trans->ctx.afi,
- 								trans->ctx.table);
- 					trans->ctx.table->flags |= NFT_TABLE_F_DORMANT;
- 				}
-@@ -5232,7 +5224,6 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb)
- 			if (nft_trans_table_update(trans)) {
- 				if (nft_trans_table_enable(trans)) {
- 					nf_tables_table_disable(net,
--								trans->ctx.afi,
- 								trans->ctx.table);
- 					trans->ctx.table->flags |= NFT_TABLE_F_DORMANT;
- 				}
+ static int nf_tables_netdev_init_net(struct net *net)
 -- 
 2.11.0
 
