@@ -1,74 +1,116 @@
 From: Duncan Roe <duncan_roe@optusnet.com.au>
-Subject: Re: [PATCH v2] extensions: libxt_hashlimit: Do not print default
- timeout and burst
-Date: Wed, 3 Jan 2018 09:47:46 +1100
-Message-ID: <20180102224746.GB3309@dimstar.local.net>
-References: <20171228072833.9980-1-harshasharmaiitr@gmail.com>
- <20171228105236.hmii7xbk5jtctmpr@salvia>
- <20171230225110.GA10178@dimstar.local.net>
- <20171230231630.qvfkstglqwhrpsff@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Harsha Sharma <harshasharmaiitr@gmail.com>,
-        netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH v3] extensions: libxt_hashlimit: Do not insert default timeout or burst
+Date: Wed,  3 Jan 2018 21:31:35 +1100
+Message-ID: <20180103103135.18518-1-duncan_roe@optusnet.com.au>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail104.syd.optusnet.com.au ([211.29.132.246]:36202 "EHLO
-        mail104.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750745AbeABWr7 (ORCPT
+Received: from mail107.syd.optusnet.com.au ([211.29.132.53]:57742 "EHLO
+        mail107.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750861AbeACKbu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 2 Jan 2018 17:47:59 -0500
+        Wed, 3 Jan 2018 05:31:50 -0500
 Received: from dimstar.local.net (c220-239-53-24.eburwd6.vic.optusnet.com.au [220.239.53.24])
-        by mail104.syd.optusnet.com.au (Postfix) with SMTP id 35A6C429F93
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jan 2018 09:47:47 +1100 (AEDT)
-Content-Disposition: inline
-In-Reply-To: <20171230231630.qvfkstglqwhrpsff@salvia>
+        by mail107.syd.optusnet.com.au (Postfix) with SMTP id E7592D4E96D
+        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jan 2018 21:31:37 +1100 (AEDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Do not output timeout or burst if not in original iptables command.
 
-On Sun, Dec 31, 2017 at 12:16:30AM +0100, Pablo Neira Ayuso wrote:
-> Hi Harsha,
->
-> On Sun, Dec 31, 2017 at 09:51:10AM +1100, Duncan Roe wrote:
-> > On Thu, Dec 28, 2017 at 11:52:36AM +0100, Pablo Neira Ayuso wrote:
-> > > Cc'ing Duncan.
-> >
-> > No need - I'm on netfilter-devel ;)
-> > >
-> > > On Thu, Dec 28, 2017 at 12:58:33PM +0530, Harsha Sharma wrote:
-> > > > Do not print timeout and burst in case default values are used.
-> > > > For e.g.
-> > > > iptables-translate -A INPUT -m tcp -p tcp --dport 80 -m hashlimit
-> > > > --hashlimit-above 200/sec --hashlimit-mode srcip,dstport
-> > > > --hashlimit-name http1 -j DROP
-> > > >
-> > > > nft add rule ip filter INPUT tcp dport 80 flow table http1 { tcp dport .
-> > > > ip saddr limit rate over 200/second } counter drop
-> > >
-> > > This is what I was asking for.
-> > >
-> > > Applied, thanks Harsha.
-> > >
-> > > @Duncan: I think you can update the wiki again after this, given that
-> > > now those values should not be printed.
-> >
-> > I tested after applying the patch and now the second example is broken:
-> >
-> > > iptables-translate -A INPUT -m tcp -p tcp --dport 80 -m hashlimit --hashlimit-above 200kb/s --hashlimit-burst 1mb --hashlimit-mode srcip,dstport --hashlimit-name http2 --hashlimit-htable-expire 3000 -j DROP
-> > > nft add rule ip filter INPUT tcp dport 80 flow table http2 { tcp dport . ip saddr timeout 3s limit rate over 200 kbytes/second burst 1 mbytes burst 6 packets} counter drop
-> >
-> > The traling "burst 6 packets" should not be there.
->
-It gets worse. Substitute 1000 for 3000 in the above:
+This version correctly translates all 3 examples in the wiki.
 
-> $ iptables-translate -A INPUT -m tcp -p tcp --dport 80 -m hashlimit --hashlimit-above 200kb/s --hashlimit-burst 1mb --hashlimit-mode srcip,dstport --hashlimit-name http2 --hashlimit-htable-expire 1000 -j DROP
-> nft add rule ip filter INPUT tcp dport 80 flow table http2 { tcp dport . ip saddr limit rate over 200 kbytes/second burst 1 mbytes burst 6 packets} counter drop
+(This is a patch to previous commit 27de281d8aca84e3c841b3ae72a17616b1382ac4)
 
-Because I happened to specify the arbitrary default in my iptables command, it
-did not propogate to nft at all.
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
+ extensions/libxt_hashlimit.c | 23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-I am working on a patch,
+diff --git a/extensions/libxt_hashlimit.c b/extensions/libxt_hashlimit.c
+index 472d8e7..64d976c 100644
+--- a/extensions/libxt_hashlimit.c
++++ b/extensions/libxt_hashlimit.c
+@@ -759,15 +759,15 @@ static void hashlimit_mt_check(struct xt_fcheck_call *cb)
+ {
+ 	const struct hashlimit_mt_udata *udata = cb->udata;
+ 	struct xt_hashlimit_mtinfo3 *info = cb->data;
++	uint32_t burst = 0;
+ 
+ 	if (!(cb->xflags & (F_UPTO | F_ABOVE)))
+ 		xtables_error(PARAMETER_PROBLEM,
+ 				"You have to specify --hashlimit");
+ 	if (!(cb->xflags & F_HTABLE_EXPIRE))
+-		info->cfg.expire = udata->mult * 1000; /* from s to msec */
++		info->cfg.expire = 0;
+ 
+ 	if (info->cfg.mode & XT_HASHLIMIT_BYTES) {
+-		uint32_t burst = 0;
+ 		if (cb->xflags & F_BURST) {
+ 			if (info->cfg.burst < cost_to_bytes(info->cfg.avg))
+ 				xtables_error(PARAMETER_PROBLEM,
+@@ -780,9 +780,9 @@ static void hashlimit_mt_check(struct xt_fcheck_call *cb)
+ 			if (!(cb->xflags & F_HTABLE_EXPIRE))
+ 				info->cfg.expire = XT_HASHLIMIT_BYTE_EXPIRE_BURST * 1000;
+ 		}
+-		info->cfg.burst = burst;
+ 	} else if (info->cfg.burst > XT_HASHLIMIT_BURST_MAX)
+ 		burst_error();
++	info->cfg.burst = burst;
+ 
+ 	if (cb->xflags & F_RATEMATCH) {
+ 		if (!(info->cfg.mode & XT_HASHLIMIT_BYTES))
+@@ -1209,7 +1209,7 @@ static const struct rates rates_xlate[] = {
+ 	{ "second", XT_HASHLIMIT_SCALE_v2 } };
+ 
+ static void print_packets_rate_xlate(struct xt_xlate *xl, uint64_t avg,
+-				     int revision)
++				     uint64_t burst, int revision)
+ {
+ 	unsigned int i;
+ 	const struct rates *_rates = (revision == 1) ?
+@@ -1220,8 +1220,9 @@ static void print_packets_rate_xlate(struct xt_xlate *xl, uint64_t avg,
+ 		    _rates[i].mult / avg < _rates[i].mult % avg)
+ 			break;
+ 
+-	xt_xlate_add(xl, " %llu/%s ",
+-		     _rates[i-1].mult / avg, _rates[i-1].name);
++	xt_xlate_add(xl, " %llu/%s", _rates[i-1].mult / avg, _rates[i-1].name);
++	if (burst)
++		xt_xlate_add(xl, " burst %lu packets", burst);
+ }
+ 
+ static void print_bytes_rate_xlate(struct xt_xlate *xl,
+@@ -1341,7 +1342,7 @@ static int hashlimit_mt_xlate(struct xt_xlate *xl, const char *name,
+ 	xt_xlate_add(xl, "flow table %s {", name);
+ 	ret = hashlimit_mode_xlate(xl, cfg->mode, family,
+ 				   cfg->srcmask, cfg->dstmask);
+-	if (cfg->expire != 1000)
++	if (cfg->expire)
+ 		xt_xlate_add(xl, " timeout %us", cfg->expire / 1000);
+ 	xt_xlate_add(xl, " limit rate");
+ 
+@@ -1351,9 +1352,8 @@ static int hashlimit_mt_xlate(struct xt_xlate *xl, const char *name,
+ 	if (cfg->mode & XT_HASHLIMIT_BYTES)
+ 		print_bytes_rate_xlate(xl, cfg);
+ 	else
+-		print_packets_rate_xlate(xl, cfg->avg, revision);
+-	if (cfg->burst != 5)
+-		xt_xlate_add(xl, " burst %lu packets", cfg->burst);
++		print_packets_rate_xlate(xl, cfg->avg, cfg->burst, revision);
++
+ 	xt_xlate_add(xl, "}");
+ 
+ 	return ret;
+@@ -1368,8 +1368,7 @@ static int hashlimit_xlate(struct xt_xlate *xl,
+ 	xt_xlate_add(xl, "flow table %s {", info->name);
+ 	ret = hashlimit_mode_xlate(xl, info->cfg.mode, NFPROTO_IPV4, 32, 32);
+ 	xt_xlate_add(xl, " timeout %us limit rate", info->cfg.expire / 1000);
+-	print_packets_rate_xlate(xl, info->cfg.avg, 1);
+-	xt_xlate_add(xl, " burst %lu packets", info->cfg.burst);
++	print_packets_rate_xlate(xl, info->cfg.avg, info->cfg.burst, 1);
+ 	xt_xlate_add(xl, "}");
+ 
+ 	return ret;
+-- 
+2.9.0
 
-Cheers ... Duncan.
