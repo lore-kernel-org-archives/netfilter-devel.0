@@ -1,63 +1,75 @@
-From: "tip-bot for Paul E. McKenney" <tipbot@zytor.com>
-Subject: [tip:core/rcu] netlink: Remove smp_read_barrier_depends() from
- comment
-Date: Wed, 3 Jan 2018 08:07:56 -0800
-Message-ID: <tip-dfe1b4427835f995aed593d063e6fcdf78b00823@git.kernel.org>
-Reply-To: pablo@netfilter.org, hpa@zytor.com, mingo@kernel.org,
-          netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-          coreteam@netfilter.org, kadlec@blackhole.kfki.hu,
-          paulmck@linux.vnet.ibm.com, tglx@linutronix.de, fw@strlen.de
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+Subject: Re: [PATCH iptables] extensions: hashlimit: fix incorrect burst in
+ translations
+Date: Thu, 4 Jan 2018 09:26:40 +1100
+Message-ID: <20180103222640.GB3302@dimstar.local.net>
+References: <20180103144109.8280-1-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: fw@strlen.de, tglx@linutronix.de, coreteam@netfilter.org,
-        kadlec@blackhole.kfki.hu, paulmck@linux.vnet.ibm.com,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        mingo@kernel.org, hpa@zytor.com
-To: linux-tip-commits@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([65.50.211.136]:35235 "EHLO
-        terminus.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751396AbeACQNM (ORCPT
+Received: from mail110.syd.optusnet.com.au ([211.29.132.97]:35998 "EHLO
+        mail110.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750945AbeACW0x (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 Jan 2018 11:13:12 -0500
+        Wed, 3 Jan 2018 17:26:53 -0500
+Received: from dimstar.local.net (c220-239-53-24.eburwd6.vic.optusnet.com.au [220.239.53.24])
+        by mail110.syd.optusnet.com.au (Postfix) with SMTP id 7C07F103B7D
+        for <netfilter-devel@vger.kernel.org>; Thu,  4 Jan 2018 09:26:41 +1100 (AEDT)
 Content-Disposition: inline
+In-Reply-To: <20180103144109.8280-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Commit-ID:  dfe1b4427835f995aed593d063e6fcdf78b00823
-Gitweb:     https://git.kernel.org/tip/dfe1b4427835f995aed593d063e6fcdf78b00823
-Author:     Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-AuthorDate: Mon, 27 Nov 2017 09:26:06 -0800
-Committer:  Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-CommitDate: Tue, 5 Dec 2017 11:57:54 -0800
+On Wed, Jan 03, 2018 at 03:41:08PM +0100, Pablo Neira Ayuso wrote:
+> iptables-translate -A INPUT -m tcp -p tcp --dport 80 -m hashlimit --hashlimit-above 200kb/s --hashlimit-burst 1mb --hashlimit-mode srcip,dstport --hashlimit-name http2 --hashlimit-htable-expire 3000 -j DROP
+>
+> shows:
+>
+> nft add rule ip filter INPUT tcp dport 80 flow table http2 { tcp dport . ip saddr timeout 3s limit rate over 200 kbytes/second burst 1 mbytes burst 6 packets} counter drop
+>
+> which prints burst twice, this is not correct.
+>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  extensions/libxt_hashlimit.c | 8 +++++---
+>  1 file changed, 5 insertions(+), 3 deletions(-)
+>
+> diff --git a/extensions/libxt_hashlimit.c b/extensions/libxt_hashlimit.c
+> index 472d8e7f6cc2..3fa5719127db 100644
+> --- a/extensions/libxt_hashlimit.c
+> +++ b/extensions/libxt_hashlimit.c
+> @@ -1350,10 +1350,12 @@ static int hashlimit_mt_xlate(struct xt_xlate *xl, const char *name,
+>
+>  	if (cfg->mode & XT_HASHLIMIT_BYTES)
+>  		print_bytes_rate_xlate(xl, cfg);
+> -	else
+> +	else {
+>  		print_packets_rate_xlate(xl, cfg->avg, revision);
+> -	if (cfg->burst != 5)
+> -		xt_xlate_add(xl, " burst %lu packets", cfg->burst);
+> +		if (cfg->burst != XT_HASHLIMIT_BURST)
+> +			xt_xlate_add(xl, " burst %lu packets", cfg->burst);
+> +
+> +	}
+>  	xt_xlate_add(xl, "}");
+>
+>  	return ret;
+> --
+> 2.11.0
+>
+This still discards a timeout of 1s (1000ms):
 
-netlink: Remove smp_read_barrier_depends() from comment
+> $ iptables-translate -A INPUT -m tcp -p tcp --dport 80 -m hashlimit --hashlimit-above 200kb/s --hashlimit-burst 1mb --hashlimit-mode srcip,dstport --hashlimit-name http2 --hashlimit-htable-expire 1000 -j DROP
+> nft add rule ip filter INPUT tcp dport 80 flow table http2 { tcp dport . ip saddr limit rate over 200 kbytes/second burst 1 mbytes} counter drop
 
-Now that smp_read_barrier_depends() has been de-emphasized, the less
-said about it, the better.
+This is especially incorrect, since the code deliberately inserts a default
+timeout of 1m if no timeout was specified with a burst:
 
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: <netfilter-devel@vger.kernel.org>
-Cc: <coreteam@netfilter.org>
----
- include/linux/netfilter/nfnetlink.h | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+> $ iptables-translate -A INPUT -m tcp -p tcp --dport 80 -m hashlimit --hashlimit-above 200kb/s --hashlimit-burst 1mb --hashlimit-mode srcip,dstport --hashlimit-name http2 -j DROP
+> nft add rule ip filter INPUT tcp dport 80 flow table http2 { tcp dport . ip saddr timeout 60s limit rate over 200 kbytes/second burst 1 mbytes} counter drop
 
-diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
-index 495ba4d..34551f8 100644
---- a/include/linux/netfilter/nfnetlink.h
-+++ b/include/linux/netfilter/nfnetlink.h
-@@ -67,8 +67,7 @@ static inline bool lockdep_nfnl_is_held(__u8 subsys_id)
-  * @ss: The nfnetlink subsystem ID
-  *
-  * Return the value of the specified RCU-protected pointer, but omit
-- * both the smp_read_barrier_depends() and the READ_ONCE(), because
-- * caller holds the NFNL subsystem mutex.
-+ * the READ_ONCE(), because caller holds the NFNL subsystem mutex.
-  */
- #define nfnl_dereference(p, ss)					\
- 	rcu_dereference_protected(p, lockdep_nfnl_is_held(ss))
+The patch I suggested doesn't have that problem, because of forcing defaults to
+zero. Can doing that have any adverse side-effects?
+
+Cheers ... Duncan.
