@@ -1,62 +1,64 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH iptables] extensions: hashlimit: fix incorrect burst in translations
-Date: Wed,  3 Jan 2018 15:41:08 +0100
-Message-ID: <20180103144109.8280-1-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: "tip-bot for Paul E. McKenney" <tipbot@zytor.com>
+Subject: [tip:core/rcu] netfilter: Eliminate cond_resched_rcu_qs() in favor
+ of cond_resched()
+Date: Wed, 3 Jan 2018 07:56:02 -0800
+Message-ID: <tip-ffa53c5863ddb265f9a25729023f4d0409cdacf7@git.kernel.org>
+Reply-To: fw@strlen.de, pablo@netfilter.org, mingo@kernel.org,
+          kadlec@blackhole.kfki.hu, hpa@zytor.com,
+          paulmck@linux.vnet.ibm.com, davem@davemloft.net,
+          linux-kernel@vger.kernel.org, tglx@linutronix.de,
+          netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: tglx@linutronix.de, netfilter-devel@vger.kernel.org,
+        davem@davemloft.net, hpa@zytor.com, paulmck@linux.vnet.ibm.com,
+        fw@strlen.de, pablo@netfilter.org, kadlec@blackhole.kfki.hu,
+        mingo@kernel.org
+To: linux-tip-commits@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60634 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751596AbeACOlQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 3 Jan 2018 09:41:16 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E512B2492B
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jan 2018 15:41:14 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C8F8AFC5E8
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jan 2018 15:41:14 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A1DB1FC5F8
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jan 2018 15:41:12 +0100 (CET)
-Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 6AC9541EB0E1
-        for <netfilter-devel@vger.kernel.org>; Wed,  3 Jan 2018 15:41:12 +0100 (CET)
+Received: from terminus.zytor.com ([65.50.211.136]:36761 "EHLO
+        terminus.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752493AbeACQEo (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 3 Jan 2018 11:04:44 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-iptables-translate -A INPUT -m tcp -p tcp --dport 80 -m hashlimit --hashlimit-above 200kb/s --hashlimit-burst 1mb --hashlimit-mode srcip,dstport --hashlimit-name http2 --hashlimit-htable-expire 3000 -j DROP
+Commit-ID:  ffa53c5863ddb265f9a25729023f4d0409cdacf7
+Gitweb:     https://git.kernel.org/tip/ffa53c5863ddb265f9a25729023f4d0409cdacf7
+Author:     Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+AuthorDate: Tue, 24 Oct 2017 06:48:39 -0700
+Committer:  Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+CommitDate: Tue, 28 Nov 2017 16:00:27 -0800
 
-shows:
+netfilter: Eliminate cond_resched_rcu_qs() in favor of cond_resched()
 
-nft add rule ip filter INPUT tcp dport 80 flow table http2 { tcp dport . ip saddr timeout 3s limit rate over 200 kbytes/second burst 1 mbytes burst 6 packets} counter drop
+Now that cond_resched() also provides RCU quiescent states when
+needed, it can be used in place of cond_resched_rcu_qs().  This
+commit therefore makes this change.
 
-which prints burst twice, this is not correct.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: <netfilter-devel@vger.kernel.org>
 ---
- extensions/libxt_hashlimit.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/extensions/libxt_hashlimit.c b/extensions/libxt_hashlimit.c
-index 472d8e7f6cc2..3fa5719127db 100644
---- a/extensions/libxt_hashlimit.c
-+++ b/extensions/libxt_hashlimit.c
-@@ -1350,10 +1350,12 @@ static int hashlimit_mt_xlate(struct xt_xlate *xl, const char *name,
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 85f643c..4efaa30 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1044,7 +1044,7 @@ static void gc_worker(struct work_struct *work)
+ 		 * we will just continue with next hash slot.
+ 		 */
+ 		rcu_read_unlock();
+-		cond_resched_rcu_qs();
++		cond_resched();
+ 	} while (++buckets < goal);
  
- 	if (cfg->mode & XT_HASHLIMIT_BYTES)
- 		print_bytes_rate_xlate(xl, cfg);
--	else
-+	else {
- 		print_packets_rate_xlate(xl, cfg->avg, revision);
--	if (cfg->burst != 5)
--		xt_xlate_add(xl, " burst %lu packets", cfg->burst);
-+		if (cfg->burst != XT_HASHLIMIT_BURST)
-+			xt_xlate_add(xl, " burst %lu packets", cfg->burst);
-+
-+	}
- 	xt_xlate_add(xl, "}");
- 
- 	return ret;
--- 
-2.11.0
-
+ 	if (gc_work->exiting)
