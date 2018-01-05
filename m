@@ -1,57 +1,56 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/3] netfilter: uapi: correct UNTRACKED conntrack state bit number
-Date: Fri,  5 Jan 2018 16:08:24 +0100
-Message-ID: <20180105150825.18460-3-pablo@netfilter.org>
+Subject: [PATCH 3/3] netfilter: nf_tables: fix potential NULL-ptr deref in nf_tables_dump_obj_done()
+Date: Fri,  5 Jan 2018 16:08:25 +0100
+Message-ID: <20180105150825.18460-4-pablo@netfilter.org>
 References: <20180105150825.18460-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38774 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:38782 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751514AbeAEPIf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 5 Jan 2018 10:08:35 -0500
+        id S1751624AbeAEPIg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 5 Jan 2018 10:08:36 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0BDD2C5154
+        by mail.us.es (Postfix) with ESMTP id BE412C515C
         for <netfilter-devel@vger.kernel.org>; Fri,  5 Jan 2018 16:08:34 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id EE9E434D7
-        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jan 2018 16:08:33 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id AF9DD53CCE
+        for <netfilter-devel@vger.kernel.org>; Fri,  5 Jan 2018 16:08:34 +0100 (CET)
 In-Reply-To: <20180105150825.18460-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
+From: Hangbin Liu <liuhangbin@gmail.com>
 
-nft_ct exposes this bit to userspace.  This used to be
+If there is no NFTA_OBJ_TABLE and NFTA_OBJ_TYPE, the c.data will be NULL in
+nf_tables_getobj(). So before free filter->table in nf_tables_dump_obj_done(),
+we need to check if filter is NULL first.
 
-  #define NF_CT_STATE_UNTRACKED_BIT              (1 << (IP_CT_NUMBER + 1))
-  (IP_CT_NUMBER is 5, so this was 0x40)
-
-.. but this got changed to 8 (0x100) when the untracked object got removed.
-Replace this with a literal 6 to prevent further incompatible changes
-in case IP_CT_NUMBER ever increases.
-
-Fixes: cc41c84b7e7f2 ("netfilter: kill the fake untracked conntrack objects")
-Reported-by: Li Shuang <shuali@redhat.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: e46abbcc05aa ("netfilter: nf_tables: Allow table names of up to 255 chars")
+Signed-off-by: Hangbin Liu <liuhangbin@gmail.com>
+Acked-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_conntrack_common.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
-index 3fea7709a441..57ccfb32e87f 100644
---- a/include/uapi/linux/netfilter/nf_conntrack_common.h
-+++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
-@@ -36,7 +36,7 @@ enum ip_conntrack_info {
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 8d4526651661..07bd4138c84e 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4665,8 +4665,10 @@ static int nf_tables_dump_obj_done(struct netlink_callback *cb)
+ {
+ 	struct nft_obj_filter *filter = cb->data;
  
- #define NF_CT_STATE_INVALID_BIT			(1 << 0)
- #define NF_CT_STATE_BIT(ctinfo)			(1 << ((ctinfo) % IP_CT_IS_REPLY + 1))
--#define NF_CT_STATE_UNTRACKED_BIT		(1 << (IP_CT_UNTRACKED + 1))
-+#define NF_CT_STATE_UNTRACKED_BIT		(1 << 6)
+-	kfree(filter->table);
+-	kfree(filter);
++	if (filter) {
++		kfree(filter->table);
++		kfree(filter);
++	}
  
- /* Bitset representing status of connection. */
- enum ip_conntrack_status {
+ 	return 0;
+ }
 -- 
 2.11.0
 
