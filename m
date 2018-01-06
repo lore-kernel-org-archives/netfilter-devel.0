@@ -1,48 +1,54 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 3/3] netfilter: ipset: Missing nfnl_lock()/nfnl_unlock() is added to ip_set_net_exit()
-Date: Sat,  6 Jan 2018 16:36:09 +0100
-Message-ID: <1515252969-26094-4-git-send-email-kadlec@blackhole.kfki.hu>
-References: <1515252969-26094-1-git-send-email-kadlec@blackhole.kfki.hu>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+Subject: [ANNOUNCE] ipset 6.35 released
+Date: Sat, 6 Jan 2018 17:16:27 +0100 (CET)
+Message-ID: <alpine.DEB.2.11.1801061711590.26273@blackhole.kfki.hu>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:46932 "EHLO smtp2.kfki.hu"
+Received: from smtp1.kfki.hu ([148.6.0.26]:55527 "EHLO smtp1.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753279AbeAFPnu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 6 Jan 2018 10:43:50 -0500
-In-Reply-To: <1515252969-26094-1-git-send-email-kadlec@blackhole.kfki.hu>
+        id S1753548AbeAFQQb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 6 Jan 2018 11:16:31 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patch "netfilter: ipset: use nfnl_mutex_is_locked" is added the real
-mutex locking check, which revealed the missing locking in ip_set_net_exit().
+Hi,
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Reported-by: syzbot+36b06f219f2439fe62e1@syzkaller.appspotmail.com
----
- net/netfilter/ipset/ip_set_core.c | 2 ++
- 1 file changed, 2 insertions(+)
+I'm happy to announce ipset 6.35. The internal revision handling in 
+userspace has been reworked to make easier and simpler to add new
+revisions/features. The kernel part changes bring a few fixes, backports
+and small corrections:
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index e002990..728bf31 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -2078,6 +2078,7 @@ ip_set_net_exit(struct net *net)
- 
- 	inst->is_deleted = true; /* flag for ip_set_nfnl_put */
- 
-+	nfnl_lock(NFNL_SUBSYS_IPSET);
- 	for (i = 0; i < inst->ip_set_max; i++) {
- 		set = ip_set(inst, i);
- 		if (set) {
-@@ -2085,6 +2086,7 @@ ip_set_net_exit(struct net *net)
- 			ip_set_destroy_set(set);
- 		}
- 	}
-+	nfnl_unlock(NFNL_SUBSYS_IPSET);
- 	kfree(rcu_dereference_protected(inst->ip_set_list, 1));
- }
- 
--- 
-2.1.4
+Userspace changes:
+  - Userspace revision handling is reworked
+  - Replace the last reference to u_int8_t with uint8_t.
+Kernel part changes:
+  - netfilter: mark expected switch fall-throughs (Gustavo A. R. Silva)
+  - License cleanup: add SPDX GPL-2.0 license identifier to files with no
+    license (Greg Kroah-Hartman)
+  - Backport patch: netfilter: ipset: use nfnl_mutex_is_locked
+  - Missing nfnl_lock()/nfnl_unlock() is added to ip_set_net_exit()
+  - netfilter: ipset: use nfnl_mutex_is_locked (Florian Westphal)
+  - netfilter: ipset: add resched points during set listing
+    (Florian Westphal)
+  - Fix "don't update counters" mode when counters used at the matching
+  - Backport patch: netfilter: ipset: Convert timers to use timer_setup()
+  - netfilter: ipset: use swap macro instead of _manually_ swapping values
+    (Gustavo A. R. Silva)
+  - netfilter: ipset: Fix race between dump and swap (Ross Lagerwall)
+  - netfilter: ipset: pernet ops must be unregistered last (Florian
+    Westphal)
 
+You can download the source code of ipset from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
