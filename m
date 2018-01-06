@@ -1,54 +1,69 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset 6.35 released
-Date: Sat, 6 Jan 2018 17:16:27 +0100 (CET)
-Message-ID: <alpine.DEB.2.11.1801061711590.26273@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+From: Harsha Sharma <harshasharmaiitr@gmail.com>
+Subject: [PATCH] parser_bison: extend nft to delete table via table handle
+Date: Sat,  6 Jan 2018 23:57:29 +0530
+Message-ID: <20180106182729.11454-1-harshasharmaiitr@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org, harshasharmaiitr@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:55527 "EHLO smtp1.kfki.hu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753548AbeAFQQb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 6 Jan 2018 11:16:31 -0500
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:42494 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751219AbeAFS23 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 6 Jan 2018 13:28:29 -0500
+Received: by mail-pl0-f65.google.com with SMTP id bd8so5099751plb.9
+        for <netfilter-devel@vger.kernel.org>; Sat, 06 Jan 2018 10:28:28 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+This patch allows deletion of table via unique table handles which can
+be listed with '-a' option.
+For.eg.
+nft delete table handle 4
 
-I'm happy to announce ipset 6.35. The internal revision handling in 
-userspace has been reworked to make easier and simpler to add new
-revisions/features. The kernel part changes bring a few fixes, backports
-and small corrections:
+Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
+---
+ src/parser_bison.y | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-Userspace changes:
-  - Userspace revision handling is reworked
-  - Replace the last reference to u_int8_t with uint8_t.
-Kernel part changes:
-  - netfilter: mark expected switch fall-throughs (Gustavo A. R. Silva)
-  - License cleanup: add SPDX GPL-2.0 license identifier to files with no
-    license (Greg Kroah-Hartman)
-  - Backport patch: netfilter: ipset: use nfnl_mutex_is_locked
-  - Missing nfnl_lock()/nfnl_unlock() is added to ip_set_net_exit()
-  - netfilter: ipset: use nfnl_mutex_is_locked (Florian Westphal)
-  - netfilter: ipset: add resched points during set listing
-    (Florian Westphal)
-  - Fix "don't update counters" mode when counters used at the matching
-  - Backport patch: netfilter: ipset: Convert timers to use timer_setup()
-  - netfilter: ipset: use swap macro instead of _manually_ swapping values
-    (Gustavo A. R. Silva)
-  - netfilter: ipset: Fix race between dump and swap (Ross Lagerwall)
-  - netfilter: ipset: pernet ops must be unregistered last (Florian
-    Westphal)
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 6e85a62..a7c8bbf 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -495,8 +495,8 @@ int nft_lex(void *, void *, void *);
+ %type <cmd>			base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd reset_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
+ %destructor { cmd_free($$); }	base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd reset_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
+ 
+-%type <handle>			table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
+-%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
++%type <handle>			table_spec tableid_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
++%destructor { handle_free(&$$); } table_spec tableid_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
+ %type <handle>			set_spec set_identifier obj_spec obj_identifier
+ %destructor { handle_free(&$$); } set_spec set_identifier obj_spec obj_identifier
+ %type <val>			family_spec family_spec_explicit chain_policy prio_spec
+@@ -978,6 +978,10 @@ delete_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_TABLE, &$2, &@$, NULL);
+ 			}
++			|	TABLE 		tableid_spec
++			{
++				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_TABLE, &$2, &@$, NULL);
++			}
+ 			|	CHAIN		chain_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_CHAIN, &$2, &@$, NULL);
+@@ -1660,6 +1664,12 @@ table_spec		:	family_spec	identifier
+ 			}
+ 			;
+ 
++tableid_spec		:	handle_spec
++			{
++
++			}
++			;
++
+ chain_spec		:	table_spec	identifier
+ 			{
+ 				$$		= $1;
+-- 
+2.11.0
 
-You can download the source code of ipset from:
-        http://ipset.netfilter.org
-        ftp://ftp.netfilter.org/pub/ipset/
-        git://git.netfilter.org/ipset.git
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
