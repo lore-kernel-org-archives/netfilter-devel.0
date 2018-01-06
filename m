@@ -1,26 +1,64 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: fix int overflow in xt_alloc_table_info()
-Date: Sat, 6 Jan 2018 23:52:12 +0100
-Message-ID: <20180106225212.s3xa7disqmsfw7ob@salvia>
-References: <20171228084854.247843-1-dvyukov@google.com>
+Subject: Re: [PATCH] parser_bison: extend nft to delete table via table handle
+Date: Sat, 6 Jan 2018 23:59:36 +0100
+Message-ID: <20180106225936.xarzjaqu3vl3f4ab@salvia>
+References: <20180106182729.11454-1-harshasharmaiitr@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Dmitry Vyukov <dvyukov@google.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Harsha Sharma <harshasharmaiitr@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:38382 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753698AbeAFW7n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 6 Jan 2018 17:59:43 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9E86AC1061
+        for <netfilter-devel@vger.kernel.org>; Sat,  6 Jan 2018 23:59:41 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8EA21DA848
+        for <netfilter-devel@vger.kernel.org>; Sat,  6 Jan 2018 23:59:41 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20171228084854.247843-1-dvyukov@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20180106182729.11454-1-harshasharmaiitr@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Dec 28, 2017 at 09:48:54AM +0100, Dmitry Vyukov wrote:
-> syzkaller triggered OOM kills by passing ipt_replace.size = -1
-> to IPT_SO_SET_REPLACE. The root cause is that SMP_ALIGN() in
-> xt_alloc_table_info() causes int overflow and the size check passes
-> when it should not. SMP_ALIGN() is no longer needed leftover.
+On Sat, Jan 06, 2018 at 11:57:29PM +0530, Harsha Sharma wrote:
+> This patch allows deletion of table via unique table handles which can
+> be listed with '-a' option.
+> For.eg.
+> nft delete table handle 4
 > 
-> Remove SMP_ALIGN() call in xt_alloc_table_info().
+> Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
+> ---
+>  src/parser_bison.y | 14 ++++++++++++--
+>  1 file changed, 12 insertions(+), 2 deletions(-)
+> 
+> diff --git a/src/parser_bison.y b/src/parser_bison.y
+> index 6e85a62..a7c8bbf 100644
+> --- a/src/parser_bison.y
+> +++ b/src/parser_bison.y
+> @@ -495,8 +495,8 @@ int nft_lex(void *, void *, void *);
+>  %type <cmd>			base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd reset_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
+>  %destructor { cmd_free($$); }	base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd reset_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
+>  
+> -%type <handle>			table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
+> -%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
+> +%type <handle>			table_spec tableid_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
+> +%destructor { handle_free(&$$); } table_spec tableid_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
+>  %type <handle>			set_spec set_identifier obj_spec obj_identifier
+>  %destructor { handle_free(&$$); } set_spec set_identifier obj_spec obj_identifier
+>  %type <val>			family_spec family_spec_explicit chain_policy prio_spec
+> @@ -978,6 +978,10 @@ delete_cmd		:	TABLE		table_spec
+>  			{
+>  				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_TABLE, &$2, &@$, NULL);
+>  			}
+> +			|	TABLE 		tableid_spec
 
-Applied, thanks.
+Use handle_spec instead, so we don't need the empty tableid_spec.
+
+BTW, where is the HANDLE token in the grammar? Did you test
+
+        nft delete table handle 4
+
+that really works?
