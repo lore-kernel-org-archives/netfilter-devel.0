@@ -1,298 +1,156 @@
-From: Ahmed Abdelsalam <amsalam20@gmail.com>
-Subject: [net-next v2] netfilter: add segment routing header 'srh' match
-Date: Sun,  7 Jan 2018 19:22:02 +0100
-Message-ID: <1515349322-23097-1-git-send-email-amsalam20@gmail.com>
-Cc: davem@davemloft.net, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        amsalam20@gmail.com
-To: pablo@netfilter.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Harsha Sharma <harshasharmaiitr@gmail.com>
+Subject: Re: [PATCH] netfilter: nf_tables: delete table via table handle
+Date: Sun, 7 Jan 2018 23:58:49 +0530
+Message-ID: <CANMOCy2qZF9rhWmm3CWVtEa=atgNDbBGEVP5qHqku_y+_MbBmA@mail.gmail.com>
+References: <20180106183015.11557-1-harshasharmaiitr@gmail.com>
+ <20180106230245.ipgffikudoff3hus@salvia> <CANMOCy3LC4K+heV78Cj_WLKJwdy8rM4r074UHcdw3Jdfya9KVQ@mail.gmail.com>
+ <20180107175601.s6t3cporc5gpmip4@salvia> <CANMOCy1_Lf7PNyumYx1mVwnXOFbxovxj3vO50hRGOt=fkxJRcw@mail.gmail.com>
+ <20180107181654.voznijwdgjmv6wa3@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-vk0-f65.google.com ([209.85.213.65]:39752 "EHLO
+        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754215AbeAGS2u (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 7 Jan 2018 13:28:50 -0500
+Received: by mail-vk0-f65.google.com with SMTP id x64so6185041vkd.6
+        for <netfilter-devel@vger.kernel.org>; Sun, 07 Jan 2018 10:28:50 -0800 (PST)
+In-Reply-To: <20180107181654.voznijwdgjmv6wa3@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-It allows matching packets based on Segment Routing Header
-(SRH) information.
-The implementation considers revision 7 of the SRH draft.
-https://tools.ietf.org/html/draft-ietf-6man-segment-routing-header-07
+On Sun, Jan 7, 2018 at 11:46 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Sun, Jan 07, 2018 at 11:40:47PM +0530, Harsha Sharma wrote:
+>> On Sun, Jan 7, 2018 at 11:26 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>> > On Sun, Jan 07, 2018 at 02:49:29PM +0530, Harsha Sharma wrote:
+>> >> On Sun, Jan 7, 2018 at 4:32 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>> >> > On Sun, Jan 07, 2018 at 12:00:15AM +0530, Harsha Sharma wrote:
+>> >> >> This patch add code to delete table via unique table handle.
+>> >> >>
+>> >> >> Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
+>> >> >> ---
+>> >> >>  net/netfilter/nf_tables_api.c | 99 ++++++++++++++++++++++++++++++++++++++++---
+>> >> >>  1 file changed, 92 insertions(+), 7 deletions(-)
+>> >> >>
+>> >> >> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+>> >> >> index dabdd2ed66c8..3b1c879fdf61 100644
+>> >> >> --- a/net/netfilter/nf_tables_api.c
+>> >> >> +++ b/net/netfilter/nf_tables_api.c
+>> >> >> @@ -73,6 +73,24 @@ static struct nft_af_info *nft_afinfo_lookup(struct net *net, int family)
+>> >> >>       return NULL;
+>> >> >>  }
+>> >> >>
+>> >> >> +static struct nft_af_info *nft_afinfo_lookup_byhandle(struct net *net,
+>> >> >> +                                                   u64 handle)
+>> >> >> +{
+>> >> >> +     struct nft_af_info *afi;
+>> >> >> +     struct nft_table *table;
+>> >> >> +     int table_handle_check_flag = 0;
+>> >> >> +
+>> >> >> +     list_for_each_entry(afi, &net->nft.af_info, list) {
+>> >> >> +             list_for_each_entry(table, &afi->tables, list) {
+>> >> >> +                     if (table->handle == handle)
+>> >> >> +                             table_handle_check_flag = 1;
+>> >> >
+>> >> > Use:
+>> >> >                                 return table;
+>> >> >
+>> >> > instead.
+>> >>
+>> >> I have tried to do that but we need to have afi struct for flushing
+>> >> the tables so nft_afinfo_lookup_byhandle is required iirc.
+>> >> ctx.afi = afi;
+>> >> ctx.table = table;
+>> >
+>> > If you need the afi structure, you can get the afi via the existing
+>> > nft_afinfo_lookup() function.
+>> >
+>> >> >> +             }
+>> >> >> +             if (table_handle_check_flag)
+>> >> >> +                     return afi;
+>> >> >> +     }
+>> >> >> +     return NULL;
+>> >> >> +}
+>> >> >> +
+>> >> >>  static struct nft_af_info *
+>> >> >>  nf_tables_afinfo_lookup(struct net *net, int family, bool autoload)
+>> >> >>  {
+>> >> >> @@ -94,6 +112,27 @@ nf_tables_afinfo_lookup(struct net *net, int family, bool autoload)
+>> >> >>       return ERR_PTR(-EAFNOSUPPORT);
+>> >> >>  }
+>> >> >>
+>> >> >> +static struct nft_af_info *
+>> >> >> +nf_tables_afinfo_lookup_byhandle(struct net *net, u64 handle, bool autoload)
+>> >> >> +{
+>> >> >> +     struct nft_af_info *afi;
+>> >> >> +
+>> >> >> +     afi = nft_afinfo_lookup_byhandle(net, handle);
+>> >> >> +     if (afi != NULL)
+>> >> >> +             return afi;
+>> >> >> +#ifdef CONFIG_MODULES
+>> >> >> +     if (autoload) {
+>> >> >> +             nfnl_unlock(NFNL_SUBSYS_NFTABLES);
+>> >> >> +             request_module("nft-afinfo");
+>> >> >> +             nfnl_lock(NFNL_SUBSYS_NFTABLES);
+>> >> >> +             afi = nft_afinfo_lookup_byhandle(net, handle);
+>> >> >> +             if (afi != NULL)
+>> >> >> +                     return ERR_PTR(-EAGAIN);
+>> >> >> +     }
+>> >> >> +#endif
+>> >> >> +     return ERR_PTR(-EAFNOSUPPORT);
+>> >> >> +}
+>> >> >
+>> >> > I don't think you need this new nf_tables_afinfo_lookup_byhandle()
+>> >> > function. The handle parameter is never used. That will simplify your
+>> >> > patchset.
+>> >>
+>> >> Using handle parameter in nft_afinfo_lookup_byhandle allows returning
+>> >> afi for which afi->family is same as family of table (which has to be
+>> >> deleted via table handle).
+>> >> For deleting table via table name, family is required (unless default
+>> >> ip family) nft delete table ip6 test-ip6, but as handle identifies
+>> >> each table uniquely, a check is required
+>> >> in nft_afinfo_lookup_byhandle for returning afi struct.
+>> >> So, this new func nf_tables_afinfo_lookup_byhandle is required for
+>> >> calling nft_afinfo_lookup_byhandle and otherwise returning error and
+>> >> also for checking CONFIG_MODULES.
+>> >
+>> > Nope :), this is not required. You can just:
+>> >
+>> > #1 Get afi structure via existing nft_afinfo_lookup() function.
+>>
+>> I have tried that but with that I'm not able to delete table families
+>> other than ip.
+>> With (e.g nft delete table handle 4 ), as no family is scpecified (it
+>> doesn't even make sense to specify family with handle), family is
+>> defaulted to 2 (for ip) and nft_afiinfo_lookup return afi with family
+>> 2, and this function allows returning afi with family same as family
+>> of table which has to be deleted via table handle.
+>
+> If you want to delete an ip6 table, you have to specify this from the
+> command line, ie.
+>
+>         nft delete table ip6 handle 4
+>                          ^^^
 
-Currently supported match options include:
-(1) Next Header
-(2) Hdr Ext Len
-(3) Segments Left
-(4) Last Entry
-(5) Tag value of SRH
+But if the handle uniquely identifies table, then we should be able to
+delete the table via table handle only.
+As there can be two tables with same name but different family, we
+should specify family for deleting table via table name but as there
+is no same handle for any two tables, we should we able to delete
+table via table handle only.
 
-Signed-off-by: Ahmed Abdelsalam <amsalam20@gmail.com>
----
- include/uapi/linux/netfilter_ipv6/ip6t_srh.h |  57 ++++++++++
- net/ipv6/netfilter/Kconfig                   |   9 ++
- net/ipv6/netfilter/Makefile                  |   1 +
- net/ipv6/netfilter/ip6t_srh.c                | 161 +++++++++++++++++++++++++++
- 4 files changed, 228 insertions(+)
- create mode 100644 include/uapi/linux/netfilter_ipv6/ip6t_srh.h
- create mode 100644 net/ipv6/netfilter/ip6t_srh.c
+> Then, family because NFPROTO_IPV6, which is what we pass to:
+>
+>         afi = nf_tables_afinfo_lookup(net, family, false);
+>
+> as the second parameter for this function.
 
-diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_srh.h b/include/uapi/linux/netfilter_ipv6/ip6t_srh.h
-new file mode 100644
-index 0000000..cebf4e8
---- /dev/null
-+++ b/include/uapi/linux/netfilter_ipv6/ip6t_srh.h
-@@ -0,0 +1,57 @@
-+/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-+#ifndef _IP6T_SRH_H
-+#define _IP6T_SRH_H
-+
-+#include <linux/types.h>
-+#include <linux/netfilter.h>
-+
-+/* Values for "mt_flags" field in struct ip6t_srh */
-+#define IP6T_SRH_NEXTHDR        0x0001
-+#define IP6T_SRH_LEN_EQ         0x0002
-+#define IP6T_SRH_LEN_GT         0x0004
-+#define IP6T_SRH_LEN_LT         0x0008
-+#define IP6T_SRH_SEGS_EQ        0x0010
-+#define IP6T_SRH_SEGS_GT        0x0020
-+#define IP6T_SRH_SEGS_LT        0x0040
-+#define IP6T_SRH_LAST_EQ        0x0080
-+#define IP6T_SRH_LAST_GT        0x0100
-+#define IP6T_SRH_LAST_LT        0x0200
-+#define IP6T_SRH_TAG            0x0400
-+#define IP6T_SRH_MASK           0x07FF
-+
-+/* Values for "mt_invflags" field in struct ip6t_srh */
-+#define IP6T_SRH_INV_NEXTHDR    0x0001
-+#define IP6T_SRH_INV_LEN_EQ     0x0002
-+#define IP6T_SRH_INV_LEN_GT     0x0004
-+#define IP6T_SRH_INV_LEN_LT     0x0008
-+#define IP6T_SRH_INV_SEGS_EQ    0x0010
-+#define IP6T_SRH_INV_SEGS_GT    0x0020
-+#define IP6T_SRH_INV_SEGS_LT    0x0040
-+#define IP6T_SRH_INV_LAST_EQ    0x0080
-+#define IP6T_SRH_INV_LAST_GT    0x0100
-+#define IP6T_SRH_INV_LAST_LT    0x0200
-+#define IP6T_SRH_INV_TAG        0x0400
-+#define IP6T_SRH_INV_MASK       0x07FF
-+
-+/**
-+ *      struct ip6t_srh - SRH match options
-+ *      @ next_hdr: Next header field of SRH
-+ *      @ hdr_len: Extension header length field of SRH
-+ *      @ segs_left: Segments left field of SRH
-+ *      @ last_entry: Last entry field of SRH
-+ *      @ tag: Tag field of SRH
-+ *      @ mt_flags: match options
-+ *      @ mt_invflags: Invert the sense of match options
-+ */
-+
-+struct ip6t_srh {
-+	__u8                    next_hdr;
-+	__u8                    hdr_len;
-+	__u8                    segs_left;
-+	__u8                    last_entry;
-+	__u16                   tag;
-+	__u16                   mt_flags;
-+	__u16                   mt_invflags;
-+};
-+
-+#endif /*_IP6T_SRH_H*/
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index 6acb2ee..e1818eb 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -232,6 +232,15 @@ config IP6_NF_MATCH_RT
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config IP6_NF_MATCH_SRH
-+        tristate '"srh" Segment Routing header match support'
-+        depends on NETFILTER_ADVANCED
-+        help
-+          srh matching allows you to match packets based on the segment
-+	  routing header of the packet.
-+
-+          To compile it as a module, choose M here.  If unsure, say N.
-+
- # The targets
- config IP6_NF_TARGET_HL
- 	tristate '"HL" hoplimit target support'
-diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index c6ee0cd..e0d51a9 100644
---- a/net/ipv6/netfilter/Makefile
-+++ b/net/ipv6/netfilter/Makefile
-@@ -54,6 +54,7 @@ obj-$(CONFIG_IP6_NF_MATCH_MH) += ip6t_mh.o
- obj-$(CONFIG_IP6_NF_MATCH_OPTS) += ip6t_hbh.o
- obj-$(CONFIG_IP6_NF_MATCH_RPFILTER) += ip6t_rpfilter.o
- obj-$(CONFIG_IP6_NF_MATCH_RT) += ip6t_rt.o
-+obj-$(CONFIG_IP6_NF_MATCH_SRH) += ip6t_srh.o
- 
- # targets
- obj-$(CONFIG_IP6_NF_TARGET_MASQUERADE) += ip6t_MASQUERADE.o
-diff --git a/net/ipv6/netfilter/ip6t_srh.c b/net/ipv6/netfilter/ip6t_srh.c
-new file mode 100644
-index 0000000..9642164
---- /dev/null
-+++ b/net/ipv6/netfilter/ip6t_srh.c
-@@ -0,0 +1,161 @@
-+/* Kernel module to match Segment Routing Header (SRH) parameters. */
-+
-+/* Author:
-+ * Ahmed Abdelsalam <amsalam20@gmail.com>
-+ *
-+ *  This program is free software; you can redistribute it and/or
-+ *	modify it under the terms of the GNU General Public License
-+ *	as published by the Free Software Foundation; either version 2
-+ *	of the License, or (at your option) any later version.
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/ipv6.h>
-+#include <linux/types.h>
-+#include <net/ipv6.h>
-+#include <net/seg6.h>
-+
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter_ipv6/ip6t_srh.h>
-+#include <linux/netfilter_ipv6/ip6_tables.h>
-+
-+/* Test a struct->mt_invflags and a boolean for inequality */
-+#define NF_SRH_INVF(ptr, flag, boolean)	\
-+	((boolean) ^ !!((ptr)->mt_invflags & (flag)))
-+
-+static bool srh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	const struct ip6t_srh *srhinfo = par->matchinfo;
-+	struct ipv6_sr_hdr *srh;
-+	struct ipv6_sr_hdr _srh;
-+	int hdrlen, srhoff = 0;
-+
-+	if (ipv6_find_hdr(skb, &srhoff, IPPROTO_ROUTING, NULL, NULL) < 0)
-+		return false;
-+	srh = skb_header_pointer(skb, srhoff, sizeof(_srh), &_srh);
-+	if (!srh)
-+		return false;
-+
-+	hdrlen = ipv6_optlen(srh);
-+	if (skb->len - srhoff < hdrlen)
-+		return false;
-+
-+	if (srh->type != IPV6_SRCRT_TYPE_4)
-+		return false;
-+
-+	if (srh->segments_left > srh->first_segment)
-+		return false;
-+
-+	/* Next Header matching */
-+	if (srhinfo->mt_flags & IP6T_SRH_NEXTHDR)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_NEXTHDR,
-+				!(srh->nexthdr == srhinfo->next_hdr)))
-+			return false;
-+
-+	/* Header Extension Length matching */
-+	if (srhinfo->mt_flags & IP6T_SRH_LEN_EQ)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LEN_EQ,
-+				!(srh->hdrlen == srhinfo->hdr_len)))
-+			return false;
-+
-+	if (srhinfo->mt_flags & IP6T_SRH_LEN_GT)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LEN_GT,
-+				!(srh->hdrlen > srhinfo->hdr_len)))
-+			return false;
-+
-+	if (srhinfo->mt_flags & IP6T_SRH_LEN_LT)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LEN_LT,
-+				!(srh->hdrlen < srhinfo->hdr_len)))
-+			return false;
-+
-+	/* Segments Left matching */
-+	if (srhinfo->mt_flags & IP6T_SRH_SEGS_EQ)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_SEGS_EQ,
-+				!(srh->segments_left == srhinfo->segs_left)))
-+			return false;
-+
-+	if (srhinfo->mt_flags & IP6T_SRH_SEGS_GT)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_SEGS_GT,
-+				!(srh->segments_left > srhinfo->segs_left)))
-+			return false;
-+
-+	if (srhinfo->mt_flags & IP6T_SRH_SEGS_LT)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_SEGS_LT,
-+				!(srh->segments_left < srhinfo->segs_left)))
-+			return false;
-+
-+	/**
-+	 * Last Entry matching
-+	 * Last_Entry field was introduced in revision 6 of the SRH draft.
-+	 * It was called First_Segment in the previous revision
-+	 */
-+	if (srhinfo->mt_flags & IP6T_SRH_LAST_EQ)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LAST_EQ,
-+				!(srh->first_segment == srhinfo->last_entry)))
-+			return false;
-+
-+	if (srhinfo->mt_flags & IP6T_SRH_LAST_GT)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LAST_GT,
-+				!(srh->first_segment > srhinfo->last_entry)))
-+			return false;
-+
-+	if (srhinfo->mt_flags & IP6T_SRH_LAST_LT)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LAST_LT,
-+				!(srh->first_segment < srhinfo->last_entry)))
-+			return false;
-+
-+	/**
-+	 * Tag matchig
-+	 * Tag field was introduced in revision 6 of the SRH draft.
-+	 */
-+	if (srhinfo->mt_flags & IP6T_SRH_TAG)
-+		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_TAG,
-+				!(srh->tag == srhinfo->tag)))
-+			return false;
-+	return true;
-+}
-+
-+static int srh_mt6_check(const struct xt_mtchk_param *par)
-+{
-+	const struct ip6t_srh *srhinfo = par->matchinfo;
-+
-+	if (srhinfo->mt_flags & ~IP6T_SRH_MASK) {
-+		pr_err("unknown srh match flags  %X\n", srhinfo->mt_flags);
-+		return -EINVAL;
-+	}
-+
-+	if (srhinfo->mt_invflags & ~IP6T_SRH_INV_MASK) {
-+		pr_err("unknown srh invflags %X\n", srhinfo->mt_invflags);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct xt_match srh_mt6_reg __read_mostly = {
-+	.name		= "srh",
-+	.family		= NFPROTO_IPV6,
-+	.match		= srh_mt6,
-+	.matchsize	= sizeof(struct ip6t_srh),
-+	.checkentry	= srh_mt6_check,
-+	.me		= THIS_MODULE,
-+};
-+
-+static int __init srh_mt6_init(void)
-+{
-+	return xt_register_match(&srh_mt6_reg);
-+}
-+
-+static void __exit srh_mt6_exit(void)
-+{
-+	xt_unregister_match(&srh_mt6_reg);
-+}
-+
-+module_init(srh_mt6_init);
-+module_exit(srh_mt6_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Xtables: IPv6 Segment Routing Header match");
-+MODULE_AUTHOR("Ahmed Abdelsalam <amsalam20@gmail.com>");
--- 
-2.1.4
+Let me know which option seems better.
+Thanks for your time :)
+
+Regards,
+Harsha Sharma
