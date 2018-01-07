@@ -1,214 +1,95 @@
-From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: Re: [PATCH] netfilter: nf_tables: delete table via table handle
-Date: Sun, 7 Jan 2018 14:49:29 +0530
-Message-ID: <CANMOCy3LC4K+heV78Cj_WLKJwdy8rM4r074UHcdw3Jdfya9KVQ@mail.gmail.com>
-References: <20180106183015.11557-1-harshasharmaiitr@gmail.com> <20180106230245.ipgffikudoff3hus@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Taehee Yoo <ap420073@gmail.com>
+Subject: [PATCH V5 0/5] netfilter: nf_nat_snmp_basic: use ASN.1 decoder
+Date: Mon,  8 Jan 2018 00:09:17 +0900
+Message-ID: <20180107150917.26020-1-ap420073@gmail.com>
+Cc: ap420073@gmail.com
+To: pablo@netfilter.org, fw@strlen.de, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ua0-f196.google.com ([209.85.217.196]:46537 "EHLO
-        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752385AbeAGJTe (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:36563 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753387AbeAGPJa (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 7 Jan 2018 04:19:34 -0500
-Received: by mail-ua0-f196.google.com with SMTP id j4so2825751ual.13
-        for <netfilter-devel@vger.kernel.org>; Sun, 07 Jan 2018 01:19:33 -0800 (PST)
-In-Reply-To: <20180106230245.ipgffikudoff3hus@salvia>
+        Sun, 7 Jan 2018 10:09:30 -0500
+Received: by mail-pf0-f195.google.com with SMTP id 23so1560028pfp.3
+        for <netfilter-devel@vger.kernel.org>; Sun, 07 Jan 2018 07:09:30 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Jan 7, 2018 at 4:32 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sun, Jan 07, 2018 at 12:00:15AM +0530, Harsha Sharma wrote:
->> This patch add code to delete table via unique table handle.
->>
->> Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
->> ---
->>  net/netfilter/nf_tables_api.c | 99 ++++++++++++++++++++++++++++++++++++++++---
->>  1 file changed, 92 insertions(+), 7 deletions(-)
->>
->> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
->> index dabdd2ed66c8..3b1c879fdf61 100644
->> --- a/net/netfilter/nf_tables_api.c
->> +++ b/net/netfilter/nf_tables_api.c
->> @@ -73,6 +73,24 @@ static struct nft_af_info *nft_afinfo_lookup(struct net *net, int family)
->>       return NULL;
->>  }
->>
->> +static struct nft_af_info *nft_afinfo_lookup_byhandle(struct net *net,
->> +                                                   u64 handle)
->> +{
->> +     struct nft_af_info *afi;
->> +     struct nft_table *table;
->> +     int table_handle_check_flag = 0;
->> +
->> +     list_for_each_entry(afi, &net->nft.af_info, list) {
->> +             list_for_each_entry(table, &afi->tables, list) {
->> +                     if (table->handle == handle)
->> +                             table_handle_check_flag = 1;
->
-> Use:
->                                 return table;
->
-> instead.
+The goal of this patch set are to use the ASN.1 decoder library
+to parse SNMP ASN.1 payload.
 
-I have tried to do that but we need to have afi struct for flushing
-the tables so nft_afinfo_lookup_byhandle is required iirc.
-ctx.afi = afi;
-ctx.table = table;
+This patch set are same as previous patch
+"[PATCH V2]netfilter: nf_nat_snmp_basic: use asn1 decoder library".
 
->
->> +             }
->> +             if (table_handle_check_flag)
->> +                     return afi;
->> +     }
->> +     return NULL;
->> +}
->> +
->>  static struct nft_af_info *
->>  nf_tables_afinfo_lookup(struct net *net, int family, bool autoload)
->>  {
->> @@ -94,6 +112,27 @@ nf_tables_afinfo_lookup(struct net *net, int family, bool autoload)
->>       return ERR_PTR(-EAFNOSUPPORT);
->>  }
->>
->> +static struct nft_af_info *
->> +nf_tables_afinfo_lookup_byhandle(struct net *net, u64 handle, bool autoload)
->> +{
->> +     struct nft_af_info *afi;
->> +
->> +     afi = nft_afinfo_lookup_byhandle(net, handle);
->> +     if (afi != NULL)
->> +             return afi;
->> +#ifdef CONFIG_MODULES
->> +     if (autoload) {
->> +             nfnl_unlock(NFNL_SUBSYS_NFTABLES);
->> +             request_module("nft-afinfo");
->> +             nfnl_lock(NFNL_SUBSYS_NFTABLES);
->> +             afi = nft_afinfo_lookup_byhandle(net, handle);
->> +             if (afi != NULL)
->> +                     return ERR_PTR(-EAGAIN);
->> +     }
->> +#endif
->> +     return ERR_PTR(-EAFNOSUPPORT);
->> +}
->
-> I don't think you need this new nf_tables_afinfo_lookup_byhandle()
-> function. The handle parameter is never used. That will simplify your
-> patchset.
+My test environment are below.
 
-Using handle parameter in nft_afinfo_lookup_byhandle allows returning
-afi for which afi->family is same as family of table (which has to be
-deleted via table handle).
-For deleting table via table name, family is required (unless default
-ip family) nft delete table ip6 test-ip6, but as handle identifies
-each table uniquely, a check is required
-in nft_afinfo_lookup_byhandle for returning afi struct.
-So, this new func nf_tables_afinfo_lookup_byhandle is required for
-calling nft_afinfo_lookup_byhandle and otherwise returning error and
-also for checking CONFIG_MODULES.
-Thanks for the review. :)
+#Network
+Client <-------------> Netfilter FW <-------------> SNMP Server
+192.168.3.2   192.168.3.1      192.168.4.1   192.168.4.2
 
->
->> +
->>  static void nft_ctx_init(struct nft_ctx *ctx,
->>                        struct net *net,
->>                        const struct sk_buff *skb,
->> @@ -107,7 +146,7 @@ static void nft_ctx_init(struct nft_ctx *ctx,
->>       ctx->afi        = afi;
->>       ctx->table      = table;
->>       ctx->chain      = chain;
->> -     ctx->nla        = nla;
->> +     ctx->nla        = nla;
->>       ctx->portid     = NETLINK_CB(skb).portid;
->>       ctx->report     = nlmsg_report(nlh);
->>       ctx->seq        = nlh->nlmsg_seq;
->> @@ -367,6 +406,28 @@ static struct nft_table *nft_table_lookup(const struct nft_af_info *afi,
->>       return NULL;
->>  }
->>
->> +static struct nft_table *__nft_table_lookup_byhandle(const struct nft_af_info *afi,
->> +                                                  u64 handle, u8 genmask)
->> +{
->> +     struct nft_table *table;
->> +
->> +     list_for_each_entry(table, &afi->tables, list) {
->> +             if (handle == table->handle &&
->> +                 nft_active_genmask(table, genmask))
->> +                     return table;
->> +     }
->> +     return NULL;
->> +}
->> +
->> +static struct nft_table *nft_table_lookup_byhandle(const struct nft_af_info *afi,
->> +                                                const struct nlattr *nla,
->> +                                                u8 genmask)
->> +{
->> +     return __nft_table_lookup_byhandle(afi,
->> +                                        be64_to_cpu(nla_get_be64(nla)),
->> +                                        genmask);
->> +}
->> +
->>  static struct nft_table *nf_tables_table_lookup(const struct nft_af_info *afi,
->>                                               const struct nlattr *nla,
->>                                               u8 genmask)
->> @@ -383,6 +444,22 @@ static struct nft_table *nf_tables_table_lookup(const struct nft_af_info *afi,
->>       return ERR_PTR(-ENOENT);
->>  }
->>
->> +static struct nft_table *nf_tables_table_lookup_byhandle(const struct nft_af_info *afi,
->> +                                                      const struct nlattr *nla,
->> +                                                      u8 genmask)
->> +{
->> +     struct nft_table *table;
->> +
->> +     if (nla == NULL)
->> +             return ERR_PTR(-EINVAL);
->> +
->> +     table = nft_table_lookup_byhandle(afi, nla, genmask);
->> +     if (table != NULL)
->> +             return table;
->> +
->> +     return ERR_PTR(-ENOENT);
->> +}
->> +
->>  static inline u64 nf_tables_alloc_handle(struct nft_table *table)
->>  {
->>       return ++table->hgenerator;
->> @@ -854,14 +931,22 @@ static int nf_tables_deltable(struct net *net, struct sock *nlsk,
->>       struct nft_ctx ctx;
->>
->>       nft_ctx_init(&ctx, net, skb, nlh, NULL, NULL, NULL, nla);
->> -     if (family == AF_UNSPEC || nla[NFTA_TABLE_NAME] == NULL)
->> +     if (nla[NFTA_TABLE_HANDLE]) {
->> +             afi = nf_tables_afinfo_lookup_byhandle(net, be64_to_cpu(nla_get_be64(nla[NFTA_TABLE_HANDLE])), false);
->> +             if (IS_ERR(afi))
->> +                     return PTR_ERR(afi);
->> +             else
->> +                     table = nf_tables_table_lookup_byhandle(afi, nla[NFTA_TABLE_HANDLE], genmask);
->> +     } else if (family == AF_UNSPEC || nla[NFTA_TABLE_NAME] == NULL) {
->>               return nft_flush(&ctx, family);
->> +     } else {
->>
->> -     afi = nf_tables_afinfo_lookup(net, family, false);
->> -     if (IS_ERR(afi))
->> -             return PTR_ERR(afi);
->> -
->> -     table = nf_tables_table_lookup(afi, nla[NFTA_TABLE_NAME], genmask);
->> +             afi = nf_tables_afinfo_lookup(net, family, false);
->> +             if (IS_ERR(afi))
->> +                     return PTR_ERR(afi);
->> +             else
->> +                     table = nf_tables_table_lookup(afi, nla[NFTA_TABLE_NAME], genmask);
->> +     }
->>       if (IS_ERR(table))
->>               return PTR_ERR(table);
->>
->> --
->> 2.11.0
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+#FW commands
+   iptables -t raw -I PREROUTING -p udp -m multiport --dports 161,162 \
+	-j CT --helper snmp
+   echo 'file nf_nat_snmp_basic_main.c +p' > \
+	/sys/kernel/debug/dynamic_debug/control
+
+#SNMP Server commands
+   sudo ip r a 192.168.3.2 via 192.168.4.1 dev enp2s0
+#Client commands
+   sudo ip r a 192.168.4.2 via 192.168.3.1 dev enp3s0
+
+To test basic snmp test, I used snmpwalk command because it is easy to use
+   snmpwalk -v <1 or 2c> -c public <ip address> OID
+example)
+   snmpwalk -v 2c -c public 192.168.4.2 .1.3.6.1.2.1.4.21
+
+so that we can see this message from dmesg.
+"snmp_helper: 192.168.3.2 to 192.168.4.1"
+
+And, to test snmp trap test, I used snmptrap command.
+   snmptrap -v 1 -c public 192.168.3.2 .1 192.168.4.2 0 0 0 .1 a \
+	192.168.4.2
+   snmptrap -v 2c -c public 192.168.3.2 .1 .1 .1 a 192.168.4.2
+
+SNMPv1 trap includes two ip address in payload. so we can see below
+message twice.
+"snmp_helper: 192.168.4.2 to 192.168.3.1"
+
+If you want to see asn1 decoder debug message, please use below command
+echo 'file asn1_decoder.c +p' > /sys/kernel/debug/dynamic_debug/control
+
+V5 :
+ - fix sparse error
+
+V4 :
+ - rename nf_nat_snmp_basic.c to nf_nat_snmp_basic_main.c
+ to fix compile error
+
+V3 :
+ - be separated by previous patch.
+
+V2 :
+ - Add missing nf_nat_snmp_basic.asn1 file
+
+V1 :
+ - Initial patch
+
+
+Taehee Yoo (5):
+  netfilter: nf_nat_snmp_basic: remove useless comment
+  netfilter: nf_nat_snmp_basic: remove debug parameter
+  netfilter: nf_nat_snmp_basic: replace ctinfo with dir.
+  netfilter: nf_nat_snmp_basic: use nf_ct_helper_log
+  netfilter: nf_nat_snmp_basic: use asn1 decoder library
+
+ net/ipv4/netfilter/Kconfig                         |    1 +
+ net/ipv4/netfilter/Makefile                        |    6 +
+ net/ipv4/netfilter/nf_nat_snmp_basic.asn1          |  177 +++
+ ...f_nat_snmp_basic.c => nf_nat_snmp_basic_main.c} | 1181 ++------------------
+ 4 files changed, 249 insertions(+), 1116 deletions(-)
+ create mode 100644 net/ipv4/netfilter/nf_nat_snmp_basic.asn1
+ rename net/ipv4/netfilter/{nf_nat_snmp_basic.c => nf_nat_snmp_basic_main.c} (15%)
+
+-- 
+2.9.3
+
