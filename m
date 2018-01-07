@@ -1,48 +1,214 @@
 From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH v2] parser_bison: extend nft to delete table via table handle
-Date: Sun,  7 Jan 2018 10:31:01 +0530
-Message-ID: <20180107050101.10432-1-harshasharmaiitr@gmail.com>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org, harshasharmaiitr@gmail.com
+Subject: Re: [PATCH] netfilter: nf_tables: delete table via table handle
+Date: Sun, 7 Jan 2018 14:49:29 +0530
+Message-ID: <CANMOCy3LC4K+heV78Cj_WLKJwdy8rM4r074UHcdw3Jdfya9KVQ@mail.gmail.com>
+References: <20180106183015.11557-1-harshasharmaiitr@gmail.com> <20180106230245.ipgffikudoff3hus@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:39297 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750734AbeAGFBQ (ORCPT
+Received: from mail-ua0-f196.google.com ([209.85.217.196]:46537 "EHLO
+        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752385AbeAGJTe (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 7 Jan 2018 00:01:16 -0500
-Received: by mail-pl0-f68.google.com with SMTP id bi12so5626616plb.6
-        for <netfilter-devel@vger.kernel.org>; Sat, 06 Jan 2018 21:01:16 -0800 (PST)
+        Sun, 7 Jan 2018 04:19:34 -0500
+Received: by mail-ua0-f196.google.com with SMTP id j4so2825751ual.13
+        for <netfilter-devel@vger.kernel.org>; Sun, 07 Jan 2018 01:19:33 -0800 (PST)
+In-Reply-To: <20180106230245.ipgffikudoff3hus@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch allows deletion of table via unique table handles which can
-be listed with '-a' option.
-For.eg.
-nft delete table handle 4
+On Sun, Jan 7, 2018 at 4:32 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Sun, Jan 07, 2018 at 12:00:15AM +0530, Harsha Sharma wrote:
+>> This patch add code to delete table via unique table handle.
+>>
+>> Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
+>> ---
+>>  net/netfilter/nf_tables_api.c | 99 ++++++++++++++++++++++++++++++++++++++++---
+>>  1 file changed, 92 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+>> index dabdd2ed66c8..3b1c879fdf61 100644
+>> --- a/net/netfilter/nf_tables_api.c
+>> +++ b/net/netfilter/nf_tables_api.c
+>> @@ -73,6 +73,24 @@ static struct nft_af_info *nft_afinfo_lookup(struct net *net, int family)
+>>       return NULL;
+>>  }
+>>
+>> +static struct nft_af_info *nft_afinfo_lookup_byhandle(struct net *net,
+>> +                                                   u64 handle)
+>> +{
+>> +     struct nft_af_info *afi;
+>> +     struct nft_table *table;
+>> +     int table_handle_check_flag = 0;
+>> +
+>> +     list_for_each_entry(afi, &net->nft.af_info, list) {
+>> +             list_for_each_entry(table, &afi->tables, list) {
+>> +                     if (table->handle == handle)
+>> +                             table_handle_check_flag = 1;
+>
+> Use:
+>                                 return table;
+>
+> instead.
 
-Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
----
-Changes in v2:
- -remove tableid_spec
+I have tried to do that but we need to have afi struct for flushing
+the tables so nft_afinfo_lookup_byhandle is required iirc.
+ctx.afi = afi;
+ctx.table = table;
 
- src/parser_bison.y | 4 ++++
- 1 file changed, 4 insertions(+)
+>
+>> +             }
+>> +             if (table_handle_check_flag)
+>> +                     return afi;
+>> +     }
+>> +     return NULL;
+>> +}
+>> +
+>>  static struct nft_af_info *
+>>  nf_tables_afinfo_lookup(struct net *net, int family, bool autoload)
+>>  {
+>> @@ -94,6 +112,27 @@ nf_tables_afinfo_lookup(struct net *net, int family, bool autoload)
+>>       return ERR_PTR(-EAFNOSUPPORT);
+>>  }
+>>
+>> +static struct nft_af_info *
+>> +nf_tables_afinfo_lookup_byhandle(struct net *net, u64 handle, bool autoload)
+>> +{
+>> +     struct nft_af_info *afi;
+>> +
+>> +     afi = nft_afinfo_lookup_byhandle(net, handle);
+>> +     if (afi != NULL)
+>> +             return afi;
+>> +#ifdef CONFIG_MODULES
+>> +     if (autoload) {
+>> +             nfnl_unlock(NFNL_SUBSYS_NFTABLES);
+>> +             request_module("nft-afinfo");
+>> +             nfnl_lock(NFNL_SUBSYS_NFTABLES);
+>> +             afi = nft_afinfo_lookup_byhandle(net, handle);
+>> +             if (afi != NULL)
+>> +                     return ERR_PTR(-EAGAIN);
+>> +     }
+>> +#endif
+>> +     return ERR_PTR(-EAFNOSUPPORT);
+>> +}
+>
+> I don't think you need this new nf_tables_afinfo_lookup_byhandle()
+> function. The handle parameter is never used. That will simplify your
+> patchset.
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 6e85a62..6fdfac9 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -978,6 +978,10 @@ delete_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_TABLE, &$2, &@$, NULL);
- 			}
-+			|	TABLE 		handle_spec
-+			{
-+				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_TABLE, &$2, &@$, NULL);
-+			}
- 			|	CHAIN		chain_spec
- 			{
- 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_CHAIN, &$2, &@$, NULL);
--- 
-2.11.0
+Using handle parameter in nft_afinfo_lookup_byhandle allows returning
+afi for which afi->family is same as family of table (which has to be
+deleted via table handle).
+For deleting table via table name, family is required (unless default
+ip family) nft delete table ip6 test-ip6, but as handle identifies
+each table uniquely, a check is required
+in nft_afinfo_lookup_byhandle for returning afi struct.
+So, this new func nf_tables_afinfo_lookup_byhandle is required for
+calling nft_afinfo_lookup_byhandle and otherwise returning error and
+also for checking CONFIG_MODULES.
+Thanks for the review. :)
 
+>
+>> +
+>>  static void nft_ctx_init(struct nft_ctx *ctx,
+>>                        struct net *net,
+>>                        const struct sk_buff *skb,
+>> @@ -107,7 +146,7 @@ static void nft_ctx_init(struct nft_ctx *ctx,
+>>       ctx->afi        = afi;
+>>       ctx->table      = table;
+>>       ctx->chain      = chain;
+>> -     ctx->nla        = nla;
+>> +     ctx->nla        = nla;
+>>       ctx->portid     = NETLINK_CB(skb).portid;
+>>       ctx->report     = nlmsg_report(nlh);
+>>       ctx->seq        = nlh->nlmsg_seq;
+>> @@ -367,6 +406,28 @@ static struct nft_table *nft_table_lookup(const struct nft_af_info *afi,
+>>       return NULL;
+>>  }
+>>
+>> +static struct nft_table *__nft_table_lookup_byhandle(const struct nft_af_info *afi,
+>> +                                                  u64 handle, u8 genmask)
+>> +{
+>> +     struct nft_table *table;
+>> +
+>> +     list_for_each_entry(table, &afi->tables, list) {
+>> +             if (handle == table->handle &&
+>> +                 nft_active_genmask(table, genmask))
+>> +                     return table;
+>> +     }
+>> +     return NULL;
+>> +}
+>> +
+>> +static struct nft_table *nft_table_lookup_byhandle(const struct nft_af_info *afi,
+>> +                                                const struct nlattr *nla,
+>> +                                                u8 genmask)
+>> +{
+>> +     return __nft_table_lookup_byhandle(afi,
+>> +                                        be64_to_cpu(nla_get_be64(nla)),
+>> +                                        genmask);
+>> +}
+>> +
+>>  static struct nft_table *nf_tables_table_lookup(const struct nft_af_info *afi,
+>>                                               const struct nlattr *nla,
+>>                                               u8 genmask)
+>> @@ -383,6 +444,22 @@ static struct nft_table *nf_tables_table_lookup(const struct nft_af_info *afi,
+>>       return ERR_PTR(-ENOENT);
+>>  }
+>>
+>> +static struct nft_table *nf_tables_table_lookup_byhandle(const struct nft_af_info *afi,
+>> +                                                      const struct nlattr *nla,
+>> +                                                      u8 genmask)
+>> +{
+>> +     struct nft_table *table;
+>> +
+>> +     if (nla == NULL)
+>> +             return ERR_PTR(-EINVAL);
+>> +
+>> +     table = nft_table_lookup_byhandle(afi, nla, genmask);
+>> +     if (table != NULL)
+>> +             return table;
+>> +
+>> +     return ERR_PTR(-ENOENT);
+>> +}
+>> +
+>>  static inline u64 nf_tables_alloc_handle(struct nft_table *table)
+>>  {
+>>       return ++table->hgenerator;
+>> @@ -854,14 +931,22 @@ static int nf_tables_deltable(struct net *net, struct sock *nlsk,
+>>       struct nft_ctx ctx;
+>>
+>>       nft_ctx_init(&ctx, net, skb, nlh, NULL, NULL, NULL, nla);
+>> -     if (family == AF_UNSPEC || nla[NFTA_TABLE_NAME] == NULL)
+>> +     if (nla[NFTA_TABLE_HANDLE]) {
+>> +             afi = nf_tables_afinfo_lookup_byhandle(net, be64_to_cpu(nla_get_be64(nla[NFTA_TABLE_HANDLE])), false);
+>> +             if (IS_ERR(afi))
+>> +                     return PTR_ERR(afi);
+>> +             else
+>> +                     table = nf_tables_table_lookup_byhandle(afi, nla[NFTA_TABLE_HANDLE], genmask);
+>> +     } else if (family == AF_UNSPEC || nla[NFTA_TABLE_NAME] == NULL) {
+>>               return nft_flush(&ctx, family);
+>> +     } else {
+>>
+>> -     afi = nf_tables_afinfo_lookup(net, family, false);
+>> -     if (IS_ERR(afi))
+>> -             return PTR_ERR(afi);
+>> -
+>> -     table = nf_tables_table_lookup(afi, nla[NFTA_TABLE_NAME], genmask);
+>> +             afi = nf_tables_afinfo_lookup(net, family, false);
+>> +             if (IS_ERR(afi))
+>> +                     return PTR_ERR(afi);
+>> +             else
+>> +                     table = nf_tables_table_lookup(afi, nla[NFTA_TABLE_NAME], genmask);
+>> +     }
+>>       if (IS_ERR(table))
+>>               return PTR_ERR(table);
+>>
+>> --
+>> 2.11.0
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
