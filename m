@@ -1,150 +1,108 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 28/52] netfilter: core: support for NFPROTO_INET hook registration
-Date: Mon,  8 Jan 2018 21:19:36 +0100
-Message-ID: <20180108202000.12989-29-pablo@netfilter.org>
+Subject: [PATCH 26/52] netfilter: core: pass hook number, family and device to nf_find_hook_list()
+Date: Mon,  8 Jan 2018 21:19:34 +0100
+Message-ID: <20180108202000.12989-27-pablo@netfilter.org>
 References: <20180108202000.12989-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42524 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757077AbeAHUUc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jan 2018 15:20:32 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D9C1CE7B89
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:30 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C8B42DA3A6
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:30 +0100 (CET)
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180108202000.12989-1-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Expand NFPROTO_INET in two hook registrations, one for NFPROTO_IPV4 and
-another for NFPROTO_IPV6. Hence, we handle NFPROTO_INET from the core.
+Instead of passing struct nf_hook_ops, this is needed by follow up
+patches to handle NFPROTO_INET from the core.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/core.c | 53 +++++++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 44 insertions(+), 9 deletions(-)
+ net/netfilter/core.c | 36 +++++++++++++++++++-----------------
+ 1 file changed, 19 insertions(+), 17 deletions(-)
 
 diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 6c9874c8b10a..606efc9b14e1 100644
+index 9153b6e03f6b..bcbaa78ec374 100644
 --- a/net/netfilter/core.c
 +++ b/net/netfilter/core.c
-@@ -316,12 +316,13 @@ nf_hook_entry_head(struct net *net, int pf, unsigned int hooknum,
- 	return NULL;
+@@ -268,36 +268,38 @@ static void *__nf_hook_entries_try_shrink(struct nf_hook_entries __rcu **pp)
+ 	return old;
  }
  
--int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
-+static int __nf_register_net_hook(struct net *net, int pf,
-+				  const struct nf_hook_ops *reg)
+-static struct nf_hook_entries __rcu **nf_hook_entry_head(struct net *net, const struct nf_hook_ops *reg)
++static struct nf_hook_entries __rcu **
++nf_hook_entry_head(struct net *net, int pf, unsigned int hooknum,
++		   struct net_device *dev)
  {
- 	struct nf_hook_entries *p, *new_hooks;
- 	struct nf_hook_entries __rcu **pp;
+-	switch (reg->pf) {
++	switch (pf) {
+ 	case NFPROTO_NETDEV:
+ 		break;
+ #ifdef CONFIG_NETFILTER_FAMILY_ARP
+ 	case NFPROTO_ARP:
+-		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_arp) <= reg->hooknum))
++		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_arp) <= hooknum))
+ 			return NULL;
+-		return net->nf.hooks_arp + reg->hooknum;
++		return net->nf.hooks_arp + hooknum;
+ #endif
+ #ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
+ 	case NFPROTO_BRIDGE:
+-		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_bridge) <= reg->hooknum))
++		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_bridge) <= hooknum))
+ 			return NULL;
+-		return net->nf.hooks_bridge + reg->hooknum;
++		return net->nf.hooks_bridge + hooknum;
+ #endif
+ 	case NFPROTO_IPV4:
+-		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_ipv4) <= reg->hooknum))
++		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_ipv4) <= hooknum))
+ 			return NULL;
+-		return net->nf.hooks_ipv4 + reg->hooknum;
++		return net->nf.hooks_ipv4 + hooknum;
+ 	case NFPROTO_IPV6:
+-		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_ipv6) <= reg->hooknum))
++		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_ipv6) <= hooknum))
+ 			return NULL;
+-		return net->nf.hooks_ipv6 + reg->hooknum;
++		return net->nf.hooks_ipv6 + hooknum;
+ #if IS_ENABLED(CONFIG_DECNET)
+ 	case NFPROTO_DECNET:
+-		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_decnet) <= reg->hooknum))
++		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_decnet) <= hooknum))
+ 			return NULL;
+-		return net->nf.hooks_decnet + reg->hooknum;
++		return net->nf.hooks_decnet + hooknum;
+ #endif
+ 	default:
+ 		WARN_ON_ONCE(1);
+@@ -305,9 +307,9 @@ static struct nf_hook_entries __rcu **nf_hook_entry_head(struct net *net, const
+ 	}
  
--	if (reg->pf == NFPROTO_NETDEV) {
-+	if (pf == NFPROTO_NETDEV) {
- #ifndef CONFIG_NETFILTER_INGRESS
- 		if (reg->hooknum == NF_NETDEV_INGRESS)
- 			return -EOPNOTSUPP;
-@@ -331,7 +332,7 @@ int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ #ifdef CONFIG_NETFILTER_INGRESS
+-	if (reg->hooknum == NF_NETDEV_INGRESS) {
+-		if (reg->dev && dev_net(reg->dev) == net)
+-			return &reg->dev->nf_hooks_ingress;
++	if (hooknum == NF_NETDEV_INGRESS) {
++		if (dev && dev_net(dev) == net)
++			return &dev->nf_hooks_ingress;
+ 	}
+ #endif
+ 	WARN_ON_ONCE(1);
+@@ -329,7 +331,7 @@ int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
  			return -EINVAL;
  	}
  
--	pp = nf_hook_entry_head(net, reg->pf, reg->hooknum, reg->dev);
-+	pp = nf_hook_entry_head(net, pf, reg->hooknum, reg->dev);
+-	pp = nf_hook_entry_head(net, reg);
++	pp = nf_hook_entry_head(net, reg->pf, reg->hooknum, reg->dev);
  	if (!pp)
  		return -EINVAL;
  
-@@ -349,17 +350,16 @@ int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
- 
- 	hooks_validate(new_hooks);
- #ifdef CONFIG_NETFILTER_INGRESS
--	if (reg->pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_INGRESS)
-+	if (pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_INGRESS)
- 		net_inc_ingress_queue();
- #endif
- #ifdef HAVE_JUMP_LABEL
--	static_key_slow_inc(&nf_hooks_needed[reg->pf][reg->hooknum]);
-+	static_key_slow_inc(&nf_hooks_needed[pf][reg->hooknum]);
- #endif
- 	BUG_ON(p == new_hooks);
- 	nf_hook_entries_free(p);
- 	return 0;
- }
--EXPORT_SYMBOL(nf_register_net_hook);
- 
- /*
-  * nf_remove_net_hook - remove a hook from blob
-@@ -400,12 +400,13 @@ static void nf_remove_net_hook(struct nf_hook_entries *old,
- 	}
- }
- 
--void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
-+void __nf_unregister_net_hook(struct net *net, int pf,
-+			      const struct nf_hook_ops *reg)
- {
+@@ -403,7 +405,7 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
  	struct nf_hook_entries __rcu **pp;
  	struct nf_hook_entries *p;
  
--	pp = nf_hook_entry_head(net, reg->pf, reg->hooknum, reg->dev);
-+	pp = nf_hook_entry_head(net, pf, reg->hooknum, reg->dev);
+-	pp = nf_hook_entry_head(net, reg);
++	pp = nf_hook_entry_head(net, reg->pf, reg->hooknum, reg->dev);
  	if (!pp)
  		return;
  
-@@ -417,7 +418,7 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
- 		return;
- 	}
- 
--	nf_remove_net_hook(p, reg, reg->pf);
-+	nf_remove_net_hook(p, reg, pf);
- 
- 	p = __nf_hook_entries_try_shrink(pp);
- 	mutex_unlock(&nf_hook_mutex);
-@@ -427,8 +428,42 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
- 	nf_queue_nf_hook_drop(net);
- 	nf_hook_entries_free(p);
- }
-+
-+void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
-+{
-+	if (reg->pf == NFPROTO_INET) {
-+		__nf_unregister_net_hook(net, NFPROTO_IPV4, reg);
-+		__nf_unregister_net_hook(net, NFPROTO_IPV6, reg);
-+	} else {
-+		__nf_unregister_net_hook(net, reg->pf, reg);
-+	}
-+}
- EXPORT_SYMBOL(nf_unregister_net_hook);
- 
-+int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
-+{
-+	int err;
-+
-+	if (reg->pf == NFPROTO_INET) {
-+		err = __nf_register_net_hook(net, NFPROTO_IPV4, reg);
-+		if (err < 0)
-+			return err;
-+
-+		err = __nf_register_net_hook(net, NFPROTO_IPV6, reg);
-+		if (err < 0) {
-+			__nf_unregister_net_hook(net, NFPROTO_IPV4, reg);
-+			return err;
-+		}
-+	} else {
-+		err = __nf_register_net_hook(net, reg->pf, reg);
-+		if (err < 0)
-+			return err;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(nf_register_net_hook);
-+
- int nf_register_net_hooks(struct net *net, const struct nf_hook_ops *reg,
- 			  unsigned int n)
- {
 -- 
 2.11.0
-
