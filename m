@@ -1,490 +1,610 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 51/52] netfilter: ipset: Fix "don't update counters" mode when counters used at the matching
-Date: Mon,  8 Jan 2018 21:19:59 +0100
-Message-ID: <20180108202000.12989-52-pablo@netfilter.org>
+Subject: [PATCH 45/52] netfilter: add generic flow table infrastructure
+Date: Mon,  8 Jan 2018 21:19:53 +0100
+Message-ID: <20180108202000.12989-46-pablo@netfilter.org>
 References: <20180108202000.12989-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42778 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754214AbeAHUUw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jan 2018 15:20:52 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7C8F0E7B93
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:50 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6BAC24C335
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:50 +0100 (CET)
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180108202000.12989-1-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+This patch defines the API to interact with flow tables, this allows to
+add, delete and lookup for entries in the flow table. This also adds the
+generic garbage code that removes entries that have expired, ie. no
+traffic has been seen for a while.
 
-The matching of the counters was not taken into account, fixed.
+Users of the flow table infrastructure can delete entries via
+flow_offload_dead(), which sets the dying bit, this signals the garbage
+collector to release an entry from user context.
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/ipset/ip_set.h         |   6 ++
- include/linux/netfilter/ipset/ip_set_counter.h |  25 ++++--
- net/netfilter/ipset/ip_set_bitmap_gen.h        |   9 +-
- net/netfilter/ipset/ip_set_core.c              |  25 ++++++
- net/netfilter/ipset/ip_set_hash_gen.h          |  37 +++-----
- net/netfilter/ipset/ip_set_list_set.c          |  21 ++---
- net/netfilter/xt_set.c                         | 119 +++++++++----------------
- 7 files changed, 114 insertions(+), 128 deletions(-)
+ include/net/netfilter/nf_flow_table.h |  94 ++++++++
+ net/netfilter/Kconfig                 |   7 +
+ net/netfilter/Makefile                |   3 +
+ net/netfilter/nf_flow_table.c         | 429 ++++++++++++++++++++++++++++++++++
+ 4 files changed, 533 insertions(+)
+ create mode 100644 net/netfilter/nf_flow_table.c
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index 8e42253e5d4d..34fc80f3eb90 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -122,6 +122,8 @@ struct ip_set_ext {
- 	u64 bytes;
- 	char *comment;
- 	u32 timeout;
-+	u8 packets_op;
-+	u8 bytes_op;
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 3a0779589281..161f71ca78a0 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -1,7 +1,12 @@
+ #ifndef _NF_FLOW_TABLE_H
+ #define _NF_FLOW_TABLE_H
+ 
++#include <linux/in.h>
++#include <linux/in6.h>
++#include <linux/netdevice.h>
+ #include <linux/rhashtable.h>
++#include <linux/rcupdate.h>
++#include <net/dst.h>
+ 
+ struct nf_flowtable;
+ 
+@@ -20,4 +25,93 @@ struct nf_flowtable {
+ 	struct delayed_work		gc_work;
  };
  
- struct ip_set;
-@@ -339,6 +341,10 @@ extern int ip_set_get_extensions(struct ip_set *set, struct nlattr *tb[],
- 				 struct ip_set_ext *ext);
- extern int ip_set_put_extensions(struct sk_buff *skb, const struct ip_set *set,
- 				 const void *e, bool active);
-+extern bool ip_set_match_extensions(struct ip_set *set,
-+				    const struct ip_set_ext *ext,
-+				    struct ip_set_ext *mext,
-+				    u32 flags, void *data);
++enum flow_offload_tuple_dir {
++	FLOW_OFFLOAD_DIR_ORIGINAL,
++	FLOW_OFFLOAD_DIR_REPLY,
++	__FLOW_OFFLOAD_DIR_MAX		= FLOW_OFFLOAD_DIR_REPLY,
++};
++#define FLOW_OFFLOAD_DIR_MAX	(__FLOW_OFFLOAD_DIR_MAX + 1)
++
++struct flow_offload_tuple {
++	union {
++		struct in_addr		src_v4;
++		struct in6_addr		src_v6;
++	};
++	union {
++		struct in_addr		dst_v4;
++		struct in6_addr		dst_v6;
++	};
++	struct {
++		__be16			src_port;
++		__be16			dst_port;
++	};
++
++	int				iifidx;
++
++	u8				l3proto;
++	u8				l4proto;
++	u8				dir;
++
++	int				oifidx;
++
++	struct dst_entry		*dst_cache;
++};
++
++struct flow_offload_tuple_rhash {
++	struct rhash_head		node;
++	struct flow_offload_tuple	tuple;
++};
++
++#define FLOW_OFFLOAD_SNAT	0x1
++#define FLOW_OFFLOAD_DNAT	0x2
++#define FLOW_OFFLOAD_DYING	0x4
++
++struct flow_offload {
++	struct flow_offload_tuple_rhash		tuplehash[FLOW_OFFLOAD_DIR_MAX];
++	u32					flags;
++	union {
++		/* Your private driver data here. */
++		u32		timeout;
++	};
++};
++
++#define NF_FLOW_TIMEOUT (30 * HZ)
++
++struct nf_flow_route {
++	struct {
++		struct dst_entry	*dst;
++		int			ifindex;
++	} tuple[FLOW_OFFLOAD_DIR_MAX];
++};
++
++struct flow_offload *flow_offload_alloc(struct nf_conn *ct,
++					struct nf_flow_route *route);
++void flow_offload_free(struct flow_offload *flow);
++
++int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow);
++void flow_offload_del(struct nf_flowtable *flow_table, struct flow_offload *flow);
++struct flow_offload_tuple_rhash *flow_offload_lookup(struct nf_flowtable *flow_table,
++						     struct flow_offload_tuple *tuple);
++int nf_flow_table_iterate(struct nf_flowtable *flow_table,
++			  void (*iter)(struct flow_offload *flow, void *data),
++			  void *data);
++void nf_flow_offload_work_gc(struct work_struct *work);
++extern const struct rhashtable_params nf_flow_offload_rhash_params;
++
++void flow_offload_dead(struct flow_offload *flow);
++
++int nf_flow_snat_port(const struct flow_offload *flow,
++		      struct sk_buff *skb, unsigned int thoff,
++		      u8 protocol, enum flow_offload_tuple_dir dir);
++int nf_flow_dnat_port(const struct flow_offload *flow,
++		      struct sk_buff *skb, unsigned int thoff,
++		      u8 protocol, enum flow_offload_tuple_dir dir);
++
++struct flow_ports {
++	__be16 source, dest;
++};
++
++#define MODULE_ALIAS_NF_FLOWTABLE(family)	\
++	MODULE_ALIAS("nf-flowtable-" __stringify(family))
++
+ #endif /* _FLOW_OFFLOAD_H */
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index af3d9f721b3f..264ce877ef49 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -657,6 +657,13 @@ endif # NF_TABLES_NETDEV
  
- static inline int
- ip_set_get_hostipaddr4(struct nlattr *nla, u32 *ipaddr)
-diff --git a/include/linux/netfilter/ipset/ip_set_counter.h b/include/linux/netfilter/ipset/ip_set_counter.h
-index bb6fba480118..3d33a2c3f39f 100644
---- a/include/linux/netfilter/ipset/ip_set_counter.h
-+++ b/include/linux/netfilter/ipset/ip_set_counter.h
-@@ -34,20 +34,33 @@ ip_set_get_packets(const struct ip_set_counter *counter)
- 	return (u64)atomic64_read(&(counter)->packets);
- }
+ endif # NF_TABLES
  
-+static inline bool
-+ip_set_match_counter(u64 counter, u64 match, u8 op)
++config NF_FLOW_TABLE
++	tristate "Netfilter flow table module"
++	help
++	  This option adds the flow table core infrastructure.
++
++	  To compile it as a module, choose M here.
++
+ config NETFILTER_XTABLES
+ 	tristate "Netfilter Xtables support (required for ip_tables)"
+ 	default m if NETFILTER_ADVANCED=n
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index eec0c3b72926..2930f2b854be 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -109,6 +109,9 @@ obj-$(CONFIG_NFT_FIB_NETDEV)	+= nft_fib_netdev.o
+ obj-$(CONFIG_NFT_DUP_NETDEV)	+= nft_dup_netdev.o
+ obj-$(CONFIG_NFT_FWD_NETDEV)	+= nft_fwd_netdev.o
+ 
++# flow table infrastructure
++obj-$(CONFIG_NF_FLOW_TABLE)	+= nf_flow_table.o
++
+ # generic X tables 
+ obj-$(CONFIG_NETFILTER_XTABLES) += x_tables.o xt_tcpudp.o
+ 
+diff --git a/net/netfilter/nf_flow_table.c b/net/netfilter/nf_flow_table.c
+new file mode 100644
+index 000000000000..2f5099cb85b8
+--- /dev/null
++++ b/net/netfilter/nf_flow_table.c
+@@ -0,0 +1,429 @@
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/netfilter.h>
++#include <linux/rhashtable.h>
++#include <linux/netdevice.h>
++#include <net/netfilter/nf_flow_table.h>
++#include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_core.h>
++#include <net/netfilter/nf_conntrack_tuple.h>
++
++struct flow_offload_entry {
++	struct flow_offload	flow;
++	struct nf_conn		*ct;
++	struct rcu_head		rcu_head;
++};
++
++struct flow_offload *
++flow_offload_alloc(struct nf_conn *ct, struct nf_flow_route *route)
 +{
-+	switch (op) {
-+	case IPSET_COUNTER_NONE:
-+		return true;
-+	case IPSET_COUNTER_EQ:
-+		return counter == match;
-+	case IPSET_COUNTER_NE:
-+		return counter != match;
-+	case IPSET_COUNTER_LT:
-+		return counter < match;
-+	case IPSET_COUNTER_GT:
-+		return counter > match;
++	struct flow_offload_entry *entry;
++	struct flow_offload *flow;
++
++	if (unlikely(nf_ct_is_dying(ct) ||
++	    !atomic_inc_not_zero(&ct->ct_general.use)))
++		return NULL;
++
++	entry = kzalloc(sizeof(*entry), GFP_ATOMIC);
++	if (!entry)
++		goto err_ct_refcnt;
++
++	flow = &entry->flow;
++
++	if (!dst_hold_safe(route->tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst))
++		goto err_dst_cache_original;
++
++	if (!dst_hold_safe(route->tuple[FLOW_OFFLOAD_DIR_REPLY].dst))
++		goto err_dst_cache_reply;
++
++	entry->ct = ct;
++
++	switch (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num) {
++	case NFPROTO_IPV4:
++		flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.src_v4 =
++			ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.in;
++		flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst_v4 =
++			ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u3.in;
++		flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.src_v4 =
++			ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3.in;
++		flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_v4 =
++			ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3.in;
++		break;
++	case NFPROTO_IPV6:
++		flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.src_v6 =
++			ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.in6;
++		flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst_v6 =
++			ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u3.in6;
++		flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.src_v6 =
++			ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3.in6;
++		flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_v6 =
++			ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3.in6;
++		break;
 +	}
-+	return false;
++
++	flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.l3proto =
++		ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
++	flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.l4proto =
++		ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum;
++	flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.l3proto =
++		ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
++	flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.l4proto =
++		ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum;
++
++	flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst_cache =
++		  route->tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst;
++	flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_cache =
++		  route->tuple[FLOW_OFFLOAD_DIR_REPLY].dst;
++
++	flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.src_port =
++		ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u.tcp.port;
++	flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst_port =
++		ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u.tcp.port;
++	flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.src_port =
++		ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u.tcp.port;
++	flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_port =
++		ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u.tcp.port;
++
++	flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dir =
++						FLOW_OFFLOAD_DIR_ORIGINAL;
++	flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dir =
++						FLOW_OFFLOAD_DIR_REPLY;
++
++	flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.iifidx =
++		route->tuple[FLOW_OFFLOAD_DIR_ORIGINAL].ifindex;
++	flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.oifidx =
++		route->tuple[FLOW_OFFLOAD_DIR_REPLY].ifindex;
++	flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.iifidx =
++		route->tuple[FLOW_OFFLOAD_DIR_REPLY].ifindex;
++	flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.oifidx =
++		route->tuple[FLOW_OFFLOAD_DIR_ORIGINAL].ifindex;
++
++	if (ct->status & IPS_SRC_NAT)
++		flow->flags |= FLOW_OFFLOAD_SNAT;
++	else if (ct->status & IPS_DST_NAT)
++		flow->flags |= FLOW_OFFLOAD_DNAT;
++
++	return flow;
++
++err_dst_cache_reply:
++	dst_release(route->tuple[FLOW_OFFLOAD_DIR_ORIGINAL].dst);
++err_dst_cache_original:
++	kfree(entry);
++err_ct_refcnt:
++	nf_ct_put(ct);
++
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(flow_offload_alloc);
++
++void flow_offload_free(struct flow_offload *flow)
++{
++	struct flow_offload_entry *e;
++
++	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst_cache);
++	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_cache);
++	e = container_of(flow, struct flow_offload_entry, flow);
++	kfree(e);
++}
++EXPORT_SYMBOL_GPL(flow_offload_free);
++
++void flow_offload_dead(struct flow_offload *flow)
++{
++	flow->flags |= FLOW_OFFLOAD_DYING;
++}
++EXPORT_SYMBOL_GPL(flow_offload_dead);
++
++int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
++{
++	flow->timeout = (u32)jiffies;
++
++	rhashtable_insert_fast(&flow_table->rhashtable,
++			       &flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].node,
++			       *flow_table->type->params);
++	rhashtable_insert_fast(&flow_table->rhashtable,
++			       &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
++			       *flow_table->type->params);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(flow_offload_add);
++
++void flow_offload_del(struct nf_flowtable *flow_table,
++		      struct flow_offload *flow)
++{
++	struct flow_offload_entry *e;
++
++	rhashtable_remove_fast(&flow_table->rhashtable,
++			       &flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].node,
++			       *flow_table->type->params);
++	rhashtable_remove_fast(&flow_table->rhashtable,
++			       &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
++			       *flow_table->type->params);
++
++	e = container_of(flow, struct flow_offload_entry, flow);
++	kfree_rcu(e, rcu_head);
++}
++EXPORT_SYMBOL_GPL(flow_offload_del);
++
++struct flow_offload_tuple_rhash *
++flow_offload_lookup(struct nf_flowtable *flow_table,
++		    struct flow_offload_tuple *tuple)
++{
++	return rhashtable_lookup_fast(&flow_table->rhashtable, tuple,
++				      *flow_table->type->params);
++}
++EXPORT_SYMBOL_GPL(flow_offload_lookup);
++
++static void nf_flow_release_ct(const struct flow_offload *flow)
++{
++	struct flow_offload_entry *e;
++
++	e = container_of(flow, struct flow_offload_entry, flow);
++	nf_ct_delete(e->ct, 0, 0);
++	nf_ct_put(e->ct);
 +}
 +
- static inline void
- ip_set_update_counter(struct ip_set_counter *counter,
--		      const struct ip_set_ext *ext,
--		      struct ip_set_ext *mext, u32 flags)
-+		      const struct ip_set_ext *ext, u32 flags)
- {
- 	if (ext->packets != ULLONG_MAX &&
- 	    !(flags & IPSET_FLAG_SKIP_COUNTER_UPDATE)) {
- 		ip_set_add_bytes(ext->bytes, counter);
- 		ip_set_add_packets(ext->packets, counter);
- 	}
--	if (flags & IPSET_FLAG_MATCH_COUNTERS) {
--		mext->packets = ip_set_get_packets(counter);
--		mext->bytes = ip_set_get_bytes(counter);
--	}
- }
- 
- static inline bool
-diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
-index 8afe882f846d..257ca393e6f2 100644
---- a/net/netfilter/ipset/ip_set_bitmap_gen.h
-+++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
-@@ -127,14 +127,7 @@ mtype_test(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 
- 	if (ret <= 0)
- 		return ret;
--	if (SET_WITH_TIMEOUT(set) &&
--	    ip_set_timeout_expired(ext_timeout(x, set)))
--		return 0;
--	if (SET_WITH_COUNTER(set))
--		ip_set_update_counter(ext_counter(x, set), ext, mext, flags);
--	if (SET_WITH_SKBINFO(set))
--		ip_set_get_skbinfo(ext_skbinfo(x, set), ext, mext, flags);
--	return 1;
-+	return ip_set_match_extensions(set, ext, mext, flags, x);
- }
- 
- static int
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 89b44458a761..e00299051e79 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -472,6 +472,31 @@ ip_set_put_extensions(struct sk_buff *skb, const struct ip_set *set,
- }
- EXPORT_SYMBOL_GPL(ip_set_put_extensions);
- 
-+bool
-+ip_set_match_extensions(struct ip_set *set, const struct ip_set_ext *ext,
-+			struct ip_set_ext *mext, u32 flags, void *data)
++int nf_flow_table_iterate(struct nf_flowtable *flow_table,
++			  void (*iter)(struct flow_offload *flow, void *data),
++			  void *data)
 +{
-+	if (SET_WITH_TIMEOUT(set) &&
-+	    ip_set_timeout_expired(ext_timeout(data, set)))
-+		return false;
-+	if (SET_WITH_COUNTER(set)) {
-+		struct ip_set_counter *counter = ext_counter(data, set);
++	struct flow_offload_tuple_rhash *tuplehash;
++	struct rhashtable_iter hti;
++	struct flow_offload *flow;
++	int err;
 +
-+		if (flags & IPSET_FLAG_MATCH_COUNTERS &&
-+		    !(ip_set_match_counter(ip_set_get_packets(counter),
-+				mext->packets, mext->packets_op) &&
-+		      ip_set_match_counter(ip_set_get_bytes(counter),
-+				mext->bytes, mext->bytes_op)))
-+			return false;
-+		ip_set_update_counter(counter, ext, flags);
++	err = rhashtable_walk_init(&flow_table->rhashtable, &hti, GFP_KERNEL);
++	if (err)
++		return err;
++
++	rhashtable_walk_start(&hti);
++
++	while ((tuplehash = rhashtable_walk_next(&hti))) {
++		if (IS_ERR(tuplehash)) {
++			err = PTR_ERR(tuplehash);
++			if (err != -EAGAIN)
++				goto out;
++
++			continue;
++		}
++		if (tuplehash->tuple.dir)
++			continue;
++
++		flow = container_of(tuplehash, struct flow_offload, tuplehash[0]);
++
++		iter(flow, data);
 +	}
-+	if (SET_WITH_SKBINFO(set))
-+		ip_set_get_skbinfo(ext_skbinfo(data, set),
-+				   ext, mext, flags);
-+	return true;
-+}
-+EXPORT_SYMBOL_GPL(ip_set_match_extensions);
++out:
++	rhashtable_walk_stop(&hti);
++	rhashtable_walk_exit(&hti);
 +
- /* Creating/destroying/renaming/swapping affect the existence and
-  * the properties of a set. All of these can be executed from userspace
-  * only and serialized by the nfnl mutex indirectly from nfnetlink.
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 8ef079db7d34..bbad940c0137 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -917,12 +917,9 @@ static inline int
- mtype_data_match(struct mtype_elem *data, const struct ip_set_ext *ext,
- 		 struct ip_set_ext *mext, struct ip_set *set, u32 flags)
- {
--	if (SET_WITH_COUNTER(set))
--		ip_set_update_counter(ext_counter(data, set),
--				      ext, mext, flags);
--	if (SET_WITH_SKBINFO(set))
--		ip_set_get_skbinfo(ext_skbinfo(data, set),
--				   ext, mext, flags);
-+	if (!ip_set_match_extensions(set, ext, mext, flags, data))
-+		return 0;
-+	/* nomatch entries return -ENOTEMPTY */
- 	return mtype_do_data_match(data);
- }
- 
-@@ -941,9 +938,9 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
- 	struct mtype_elem *data;
- #if IPSET_NET_COUNT == 2
- 	struct mtype_elem orig = *d;
--	int i, j = 0, k;
-+	int ret, i, j = 0, k;
- #else
--	int i, j = 0;
-+	int ret, i, j = 0;
- #endif
- 	u32 key, multi = 0;
- 
-@@ -969,18 +966,13 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
- 			data = ahash_data(n, i, set->dsize);
- 			if (!mtype_data_equal(data, d, &multi))
- 				continue;
--			if (SET_WITH_TIMEOUT(set)) {
--				if (!ip_set_timeout_expired(
--						ext_timeout(data, set)))
--					return mtype_data_match(data, ext,
--								mext, set,
--								flags);
-+			ret = mtype_data_match(data, ext, mext, set, flags);
-+			if (ret != 0)
-+				return ret;
- #ifdef IP_SET_HASH_WITH_MULTI
--				multi = 0;
-+			/* No match, reset multiple match flag */
-+			multi = 0;
- #endif
--			} else
--				return mtype_data_match(data, ext,
--							mext, set, flags);
- 		}
- #if IPSET_NET_COUNT == 2
- 		}
-@@ -1027,12 +1019,11 @@ mtype_test(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 		if (!test_bit(i, n->used))
- 			continue;
- 		data = ahash_data(n, i, set->dsize);
--		if (mtype_data_equal(data, d, &multi) &&
--		    !(SET_WITH_TIMEOUT(set) &&
--		      ip_set_timeout_expired(ext_timeout(data, set)))) {
--			ret = mtype_data_match(data, ext, mext, set, flags);
-+		if (!mtype_data_equal(data, d, &multi))
++	return err;
++}
++EXPORT_SYMBOL_GPL(nf_flow_table_iterate);
++
++static inline bool nf_flow_has_expired(const struct flow_offload *flow)
++{
++	return (__s32)(flow->timeout - (u32)jiffies) <= 0;
++}
++
++static inline bool nf_flow_is_dying(const struct flow_offload *flow)
++{
++	return flow->flags & FLOW_OFFLOAD_DYING;
++}
++
++void nf_flow_offload_work_gc(struct work_struct *work)
++{
++	struct flow_offload_tuple_rhash *tuplehash;
++	struct nf_flowtable *flow_table;
++	struct rhashtable_iter hti;
++	struct flow_offload *flow;
++	int err;
++
++	flow_table = container_of(work, struct nf_flowtable, gc_work.work);
++
++	err = rhashtable_walk_init(&flow_table->rhashtable, &hti, GFP_KERNEL);
++	if (err)
++		goto schedule;
++
++	rhashtable_walk_start(&hti);
++
++	while ((tuplehash = rhashtable_walk_next(&hti))) {
++		if (IS_ERR(tuplehash)) {
++			err = PTR_ERR(tuplehash);
++			if (err != -EAGAIN)
++				goto out;
++
 +			continue;
-+		ret = mtype_data_match(data, ext, mext, set, flags);
-+		if (ret != 0)
- 			goto out;
--		}
- 	}
- out:
- 	return ret;
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index e864681b8dc5..072a658fde04 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -55,8 +55,9 @@ list_set_ktest(struct ip_set *set, const struct sk_buff *skb,
- 	       struct ip_set_adt_opt *opt, const struct ip_set_ext *ext)
- {
- 	struct list_set *map = set->data;
-+	struct ip_set_ext *mext = &opt->ext;
- 	struct set_elem *e;
--	u32 cmdflags = opt->cmdflags;
-+	u32 flags = opt->cmdflags;
- 	int ret;
- 
- 	/* Don't lookup sub-counters at all */
-@@ -64,21 +65,11 @@ list_set_ktest(struct ip_set *set, const struct sk_buff *skb,
- 	if (opt->cmdflags & IPSET_FLAG_SKIP_SUBCOUNTER_UPDATE)
- 		opt->cmdflags &= ~IPSET_FLAG_SKIP_COUNTER_UPDATE;
- 	list_for_each_entry_rcu(e, &map->members, list) {
--		if (SET_WITH_TIMEOUT(set) &&
--		    ip_set_timeout_expired(ext_timeout(e, set)))
--			continue;
- 		ret = ip_set_test(e->id, skb, par, opt);
--		if (ret > 0) {
--			if (SET_WITH_COUNTER(set))
--				ip_set_update_counter(ext_counter(e, set),
--						      ext, &opt->ext,
--						      cmdflags);
--			if (SET_WITH_SKBINFO(set))
--				ip_set_get_skbinfo(ext_skbinfo(e, set),
--						   ext, &opt->ext,
--						   cmdflags);
--			return ret;
--		}
-+		if (ret <= 0)
++		}
++		if (tuplehash->tuple.dir)
 +			continue;
-+		if (ip_set_match_extensions(set, ext, mext, flags, e))
-+			return 1;
- 	}
- 	return 0;
- }
-diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
-index 64285702afd5..16b6b11ee83f 100644
---- a/net/netfilter/xt_set.c
-+++ b/net/netfilter/xt_set.c
-@@ -39,13 +39,17 @@ match_set(ip_set_id_t index, const struct sk_buff *skb,
- 	return inv;
- }
- 
--#define ADT_OPT(n, f, d, fs, cfs, t)	\
--struct ip_set_adt_opt n = {		\
--	.family	= f,			\
--	.dim = d,			\
--	.flags = fs,			\
--	.cmdflags = cfs,		\
--	.ext.timeout = t,		\
-+#define ADT_OPT(n, f, d, fs, cfs, t, p, b, po, bo)	\
-+struct ip_set_adt_opt n = {				\
-+	.family	= f,					\
-+	.dim = d,					\
-+	.flags = fs,					\
-+	.cmdflags = cfs,				\
-+	.ext.timeout = t,				\
-+	.ext.packets = p,				\
-+	.ext.bytes = b,					\
-+	.ext.packets_op = po,				\
-+	.ext.bytes_op = bo,				\
- }
- 
- /* Revision 0 interface: backward compatible with netfilter/iptables */
-@@ -56,7 +60,8 @@ set_match_v0(const struct sk_buff *skb, struct xt_action_param *par)
- 	const struct xt_set_info_match_v0 *info = par->matchinfo;
- 
- 	ADT_OPT(opt, xt_family(par), info->match_set.u.compat.dim,
--		info->match_set.u.compat.flags, 0, UINT_MAX);
-+		info->match_set.u.compat.flags, 0, UINT_MAX,
-+		0, 0, 0, 0);
- 
- 	return match_set(info->match_set.index, skb, par, &opt,
- 			 info->match_set.u.compat.flags & IPSET_INV_MATCH);
-@@ -119,7 +124,8 @@ set_match_v1(const struct sk_buff *skb, struct xt_action_param *par)
- 	const struct xt_set_info_match_v1 *info = par->matchinfo;
- 
- 	ADT_OPT(opt, xt_family(par), info->match_set.dim,
--		info->match_set.flags, 0, UINT_MAX);
-+		info->match_set.flags, 0, UINT_MAX,
-+		0, 0, 0, 0);
- 
- 	if (opt.flags & IPSET_RETURN_NOMATCH)
- 		opt.cmdflags |= IPSET_FLAG_RETURN_NOMATCH;
-@@ -161,45 +167,21 @@ set_match_v1_destroy(const struct xt_mtdtor_param *par)
- /* Revision 3 match */
- 
- static bool
--match_counter0(u64 counter, const struct ip_set_counter_match0 *info)
--{
--	switch (info->op) {
--	case IPSET_COUNTER_NONE:
--		return true;
--	case IPSET_COUNTER_EQ:
--		return counter == info->value;
--	case IPSET_COUNTER_NE:
--		return counter != info->value;
--	case IPSET_COUNTER_LT:
--		return counter < info->value;
--	case IPSET_COUNTER_GT:
--		return counter > info->value;
--	}
--	return false;
--}
--
--static bool
- set_match_v3(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct xt_set_info_match_v3 *info = par->matchinfo;
--	int ret;
- 
- 	ADT_OPT(opt, xt_family(par), info->match_set.dim,
--		info->match_set.flags, info->flags, UINT_MAX);
-+		info->match_set.flags, info->flags, UINT_MAX,
-+		info->packets.value, info->bytes.value,
-+		info->packets.op, info->bytes.op);
- 
- 	if (info->packets.op != IPSET_COUNTER_NONE ||
- 	    info->bytes.op != IPSET_COUNTER_NONE)
- 		opt.cmdflags |= IPSET_FLAG_MATCH_COUNTERS;
- 
--	ret = match_set(info->match_set.index, skb, par, &opt,
--			info->match_set.flags & IPSET_INV_MATCH);
--
--	if (!(ret && opt.cmdflags & IPSET_FLAG_MATCH_COUNTERS))
--		return ret;
--
--	if (!match_counter0(opt.ext.packets, &info->packets))
--		return false;
--	return match_counter0(opt.ext.bytes, &info->bytes);
-+	return match_set(info->match_set.index, skb, par, &opt,
-+			 info->match_set.flags & IPSET_INV_MATCH);
- }
- 
- #define set_match_v3_checkentry	set_match_v1_checkentry
-@@ -208,45 +190,21 @@ set_match_v3(const struct sk_buff *skb, struct xt_action_param *par)
- /* Revision 4 match */
- 
- static bool
--match_counter(u64 counter, const struct ip_set_counter_match *info)
--{
--	switch (info->op) {
--	case IPSET_COUNTER_NONE:
--		return true;
--	case IPSET_COUNTER_EQ:
--		return counter == info->value;
--	case IPSET_COUNTER_NE:
--		return counter != info->value;
--	case IPSET_COUNTER_LT:
--		return counter < info->value;
--	case IPSET_COUNTER_GT:
--		return counter > info->value;
--	}
--	return false;
--}
--
--static bool
- set_match_v4(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct xt_set_info_match_v4 *info = par->matchinfo;
--	int ret;
- 
- 	ADT_OPT(opt, xt_family(par), info->match_set.dim,
--		info->match_set.flags, info->flags, UINT_MAX);
-+		info->match_set.flags, info->flags, UINT_MAX,
-+		info->packets.value, info->bytes.value,
-+		info->packets.op, info->bytes.op);
- 
- 	if (info->packets.op != IPSET_COUNTER_NONE ||
- 	    info->bytes.op != IPSET_COUNTER_NONE)
- 		opt.cmdflags |= IPSET_FLAG_MATCH_COUNTERS;
- 
--	ret = match_set(info->match_set.index, skb, par, &opt,
--			info->match_set.flags & IPSET_INV_MATCH);
--
--	if (!(ret && opt.cmdflags & IPSET_FLAG_MATCH_COUNTERS))
--		return ret;
--
--	if (!match_counter(opt.ext.packets, &info->packets))
--		return false;
--	return match_counter(opt.ext.bytes, &info->bytes);
-+	return match_set(info->match_set.index, skb, par, &opt,
-+			 info->match_set.flags & IPSET_INV_MATCH);
- }
- 
- #define set_match_v4_checkentry	set_match_v1_checkentry
-@@ -260,9 +218,11 @@ set_target_v0(struct sk_buff *skb, const struct xt_action_param *par)
- 	const struct xt_set_info_target_v0 *info = par->targinfo;
- 
- 	ADT_OPT(add_opt, xt_family(par), info->add_set.u.compat.dim,
--		info->add_set.u.compat.flags, 0, UINT_MAX);
-+		info->add_set.u.compat.flags, 0, UINT_MAX,
-+		0, 0, 0, 0);
- 	ADT_OPT(del_opt, xt_family(par), info->del_set.u.compat.dim,
--		info->del_set.u.compat.flags, 0, UINT_MAX);
-+		info->del_set.u.compat.flags, 0, UINT_MAX,
-+		0, 0, 0, 0);
- 
- 	if (info->add_set.index != IPSET_INVALID_ID)
- 		ip_set_add(info->add_set.index, skb, par, &add_opt);
-@@ -333,9 +293,11 @@ set_target_v1(struct sk_buff *skb, const struct xt_action_param *par)
- 	const struct xt_set_info_target_v1 *info = par->targinfo;
- 
- 	ADT_OPT(add_opt, xt_family(par), info->add_set.dim,
--		info->add_set.flags, 0, UINT_MAX);
-+		info->add_set.flags, 0, UINT_MAX,
-+		0, 0, 0, 0);
- 	ADT_OPT(del_opt, xt_family(par), info->del_set.dim,
--		info->del_set.flags, 0, UINT_MAX);
-+		info->del_set.flags, 0, UINT_MAX,
-+		0, 0, 0, 0);
- 
- 	if (info->add_set.index != IPSET_INVALID_ID)
- 		ip_set_add(info->add_set.index, skb, par, &add_opt);
-@@ -402,9 +364,11 @@ set_target_v2(struct sk_buff *skb, const struct xt_action_param *par)
- 	const struct xt_set_info_target_v2 *info = par->targinfo;
- 
- 	ADT_OPT(add_opt, xt_family(par), info->add_set.dim,
--		info->add_set.flags, info->flags, info->timeout);
-+		info->add_set.flags, info->flags, info->timeout,
-+		0, 0, 0, 0);
- 	ADT_OPT(del_opt, xt_family(par), info->del_set.dim,
--		info->del_set.flags, 0, UINT_MAX);
-+		info->del_set.flags, 0, UINT_MAX,
-+		0, 0, 0, 0);
- 
- 	/* Normalize to fit into jiffies */
- 	if (add_opt.ext.timeout != IPSET_NO_TIMEOUT &&
-@@ -432,11 +396,14 @@ set_target_v3(struct sk_buff *skb, const struct xt_action_param *par)
- 	int ret;
- 
- 	ADT_OPT(add_opt, xt_family(par), info->add_set.dim,
--		info->add_set.flags, info->flags, info->timeout);
-+		info->add_set.flags, info->flags, info->timeout,
-+		0, 0, 0, 0);
- 	ADT_OPT(del_opt, xt_family(par), info->del_set.dim,
--		info->del_set.flags, 0, UINT_MAX);
-+		info->del_set.flags, 0, UINT_MAX,
-+		0, 0, 0, 0);
- 	ADT_OPT(map_opt, xt_family(par), info->map_set.dim,
--		info->map_set.flags, 0, UINT_MAX);
-+		info->map_set.flags, 0, UINT_MAX,
-+		0, 0, 0, 0);
- 
- 	/* Normalize to fit into jiffies */
- 	if (add_opt.ext.timeout != IPSET_NO_TIMEOUT &&
++
++		flow = container_of(tuplehash, struct flow_offload, tuplehash[0]);
++
++		if (nf_flow_has_expired(flow) ||
++		    nf_flow_is_dying(flow)) {
++			flow_offload_del(flow_table, flow);
++			nf_flow_release_ct(flow);
++		}
++	}
++out:
++	rhashtable_walk_stop(&hti);
++	rhashtable_walk_exit(&hti);
++schedule:
++	queue_delayed_work(system_power_efficient_wq, &flow_table->gc_work, HZ);
++}
++EXPORT_SYMBOL_GPL(nf_flow_offload_work_gc);
++
++static u32 flow_offload_hash(const void *data, u32 len, u32 seed)
++{
++	const struct flow_offload_tuple *tuple = data;
++
++	return jhash(tuple, offsetof(struct flow_offload_tuple, dir), seed);
++}
++
++static u32 flow_offload_hash_obj(const void *data, u32 len, u32 seed)
++{
++	const struct flow_offload_tuple_rhash *tuplehash = data;
++
++	return jhash(&tuplehash->tuple, offsetof(struct flow_offload_tuple, dir), seed);
++}
++
++static int flow_offload_hash_cmp(struct rhashtable_compare_arg *arg,
++					const void *ptr)
++{
++	const struct flow_offload_tuple *tuple = arg->key;
++	const struct flow_offload_tuple_rhash *x = ptr;
++
++	if (memcmp(&x->tuple, tuple, offsetof(struct flow_offload_tuple, dir)))
++		return 1;
++
++	return 0;
++}
++
++const struct rhashtable_params nf_flow_offload_rhash_params = {
++	.head_offset		= offsetof(struct flow_offload_tuple_rhash, node),
++	.hashfn			= flow_offload_hash,
++	.obj_hashfn		= flow_offload_hash_obj,
++	.obj_cmpfn		= flow_offload_hash_cmp,
++	.automatic_shrinking	= true,
++};
++EXPORT_SYMBOL_GPL(nf_flow_offload_rhash_params);
++
++static int nf_flow_nat_port_tcp(struct sk_buff *skb, unsigned int thoff,
++				__be16 port, __be16 new_port)
++{
++	struct tcphdr *tcph;
++
++	if (!pskb_may_pull(skb, thoff + sizeof(*tcph)) ||
++	    skb_try_make_writable(skb, thoff + sizeof(*tcph)))
++		return -1;
++
++	tcph = (void *)(skb_network_header(skb) + thoff);
++	inet_proto_csum_replace2(&tcph->check, skb, port, new_port, true);
++
++	return 0;
++}
++
++static int nf_flow_nat_port_udp(struct sk_buff *skb, unsigned int thoff,
++				__be16 port, __be16 new_port)
++{
++	struct udphdr *udph;
++
++	if (!pskb_may_pull(skb, thoff + sizeof(*udph)) ||
++	    skb_try_make_writable(skb, thoff + sizeof(*udph)))
++		return -1;
++
++	udph = (void *)(skb_network_header(skb) + thoff);
++	if (udph->check || skb->ip_summed == CHECKSUM_PARTIAL) {
++		inet_proto_csum_replace2(&udph->check, skb, port,
++					 new_port, true);
++		if (!udph->check)
++			udph->check = CSUM_MANGLED_0;
++	}
++
++	return 0;
++}
++
++static int nf_flow_nat_port(struct sk_buff *skb, unsigned int thoff,
++			    u8 protocol, __be16 port, __be16 new_port)
++{
++	switch (protocol) {
++	case IPPROTO_TCP:
++		if (nf_flow_nat_port_tcp(skb, thoff, port, new_port) < 0)
++			return NF_DROP;
++		break;
++	case IPPROTO_UDP:
++		if (nf_flow_nat_port_udp(skb, thoff, port, new_port) < 0)
++			return NF_DROP;
++		break;
++	}
++
++	return 0;
++}
++
++int nf_flow_snat_port(const struct flow_offload *flow,
++		      struct sk_buff *skb, unsigned int thoff,
++		      u8 protocol, enum flow_offload_tuple_dir dir)
++{
++	struct flow_ports *hdr;
++	__be16 port, new_port;
++
++	if (!pskb_may_pull(skb, thoff + sizeof(*hdr)) ||
++	    skb_try_make_writable(skb, thoff + sizeof(*hdr)))
++		return -1;
++
++	hdr = (void *)(skb_network_header(skb) + thoff);
++
++	switch (dir) {
++	case FLOW_OFFLOAD_DIR_ORIGINAL:
++		port = hdr->source;
++		new_port = flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_port;
++		hdr->source = new_port;
++		break;
++	case FLOW_OFFLOAD_DIR_REPLY:
++		port = hdr->dest;
++		new_port = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.src_port;
++		hdr->dest = new_port;
++		break;
++	default:
++		return -1;
++	}
++
++	return nf_flow_nat_port(skb, thoff, protocol, port, new_port);
++}
++EXPORT_SYMBOL_GPL(nf_flow_snat_port);
++
++int nf_flow_dnat_port(const struct flow_offload *flow,
++		      struct sk_buff *skb, unsigned int thoff,
++		      u8 protocol, enum flow_offload_tuple_dir dir)
++{
++	struct flow_ports *hdr;
++	__be16 port, new_port;
++
++	if (!pskb_may_pull(skb, thoff + sizeof(*hdr)) ||
++	    skb_try_make_writable(skb, thoff + sizeof(*hdr)))
++		return -1;
++
++	hdr = (void *)(skb_network_header(skb) + thoff);
++
++	switch (dir) {
++	case FLOW_OFFLOAD_DIR_ORIGINAL:
++		port = hdr->dest;
++		new_port = flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.src_port;
++		hdr->dest = new_port;
++		break;
++	case FLOW_OFFLOAD_DIR_REPLY:
++		port = hdr->source;
++		new_port = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst_port;
++		hdr->source = new_port;
++		break;
++	default:
++		return -1;
++	}
++
++	return nf_flow_nat_port(skb, thoff, protocol, port, new_port);
++}
++EXPORT_SYMBOL_GPL(nf_flow_dnat_port);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
 -- 
 2.11.0
-
