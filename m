@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 34/52] netfilter: move checksum_partial indirection to struct nf_ipv6_ops
-Date: Mon,  8 Jan 2018 21:19:42 +0100
-Message-ID: <20180108202000.12989-35-pablo@netfilter.org>
+Subject: [PATCH 30/52] netfilter: nf_tables: remove multihook chains and families
+Date: Mon,  8 Jan 2018 21:19:38 +0100
+Message-ID: <20180108202000.12989-31-pablo@netfilter.org>
 References: <20180108202000.12989-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,226 +10,420 @@ In-Reply-To: <20180108202000.12989-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-We cannot make a direct call to nf_ip6_checksum_partial() because that
-would result in autoloading the 'ipv6' module because of symbol
-dependencies.  Therefore, define checksum_partial indirection in
-nf_ipv6_ops where this really belongs to.
-
-For IPv4, we can indeed make a direct function call, which is faster,
-given IPv4 is built-in in the networking code by default. Still,
-CONFIG_INET=n and CONFIG_NETFILTER=y is possible, so define empty inline
-stub for IPv4 in such case.
+Since NFPROTO_INET is handled from the core, we don't need to maintain
+extra infrastructure in nf_tables to handle the double hook
+registration, one for IPv4 and another for IPv6.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h               | 24 +++---------------------
- include/linux/netfilter_ipv4.h          | 11 +++++++++++
- include/linux/netfilter_ipv6.h          |  3 +++
- net/bridge/netfilter/nf_tables_bridge.c |  8 --------
- net/ipv4/netfilter.c                    |  8 ++++----
- net/ipv6/netfilter.c                    | 10 +++++-----
- net/netfilter/utils.c                   | 24 ++++++++++++++++++++++++
- 7 files changed, 50 insertions(+), 38 deletions(-)
+ include/net/netfilter/nf_tables.h       |   9 +--
+ net/bridge/netfilter/nf_tables_bridge.c |   1 -
+ net/ipv4/netfilter/nf_tables_arp.c      |   1 -
+ net/ipv4/netfilter/nf_tables_ipv4.c     |   1 -
+ net/ipv6/netfilter/nf_tables_ipv6.c     |   1 -
+ net/netfilter/nf_tables_api.c           | 102 ++++++++++++++------------------
+ net/netfilter/nf_tables_inet.c          |   1 -
+ net/netfilter/nf_tables_netdev.c        |   3 +-
+ net/netfilter/nft_compat.c              |   8 +--
+ 9 files changed, 49 insertions(+), 78 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 4c4d38ef1a76..70b238eff29f 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -311,11 +311,6 @@ struct nf_queue_entry;
- 
- struct nf_afinfo {
- 	unsigned short	family;
--	__sum16		(*checksum_partial)(struct sk_buff *skb,
--					    unsigned int hook,
--					    unsigned int dataoff,
--					    unsigned int len,
--					    u_int8_t protocol);
- 	int		(*route)(struct net *net, struct dst_entry **dst,
- 				 struct flowi *fl, bool strict);
- 	void		(*saveroute)(const struct sk_buff *skb,
-@@ -335,22 +330,9 @@ __sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
- 		    unsigned int dataoff, u_int8_t protocol,
- 		    unsigned short family);
- 
--static inline __sum16
--nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
--		    unsigned int dataoff, unsigned int len,
--		    u_int8_t protocol, unsigned short family)
--{
--	const struct nf_afinfo *afinfo;
--	__sum16 csum = 0;
--
--	rcu_read_lock();
--	afinfo = nf_get_afinfo(family);
--	if (afinfo)
--		csum = afinfo->checksum_partial(skb, hook, dataoff, len,
--						protocol);
--	rcu_read_unlock();
--	return csum;
--}
-+__sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
-+			    unsigned int dataoff, unsigned int len,
-+			    u_int8_t protocol, unsigned short family);
- 
- int nf_register_afinfo(const struct nf_afinfo *afinfo);
- void nf_unregister_afinfo(const struct nf_afinfo *afinfo);
-diff --git a/include/linux/netfilter_ipv4.h b/include/linux/netfilter_ipv4.h
-index c7deb78bac88..811425ece8d5 100644
---- a/include/linux/netfilter_ipv4.h
-+++ b/include/linux/netfilter_ipv4.h
-@@ -11,12 +11,23 @@ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned addr_type)
- #ifdef CONFIG_INET
- __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
- 		       unsigned int dataoff, u_int8_t protocol);
-+__sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
-+			       unsigned int dataoff, unsigned int len,
-+			       u_int8_t protocol);
- #else
- static inline __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
- 				     unsigned int dataoff, u_int8_t protocol)
- {
- 	return 0;
- }
-+static inline __sum16 nf_ip_checksum_partial(struct sk_buff *skb,
-+					     unsigned int hook,
-+					     unsigned int dataoff,
-+					     unsigned int len,
-+					     u_int8_t protocol)
-+{
-+	return 0;
-+}
- #endif /* CONFIG_INET */
- 
- #endif /*__LINUX_IP_NETFILTER_H*/
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index b136101b5cde..29e8f1286584 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -21,6 +21,9 @@ struct nf_ipv6_ops {
- 			int (*output)(struct net *, struct sock *, struct sk_buff *));
- 	__sum16 (*checksum)(struct sk_buff *skb, unsigned int hook,
- 			    unsigned int dataoff, u_int8_t protocol);
-+	__sum16 (*checksum_partial)(struct sk_buff *skb, unsigned int hook,
-+				    unsigned int dataoff, unsigned int len,
-+				    u_int8_t protocol);
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 169b562df226..a3560fd55f99 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -902,8 +902,6 @@ struct nft_stats {
+ 	struct u64_stats_sync	syncp;
  };
  
- #ifdef CONFIG_NETFILTER
+-#define NFT_HOOK_OPS_MAX		2
+-
+ /**
+  *	struct nft_base_chain - nf_tables base chain
+  *
+@@ -915,7 +913,7 @@ struct nft_stats {
+  *	@dev_name: device name that this base chain is attached to (if any)
+  */
+ struct nft_base_chain {
+-	struct nf_hook_ops		ops[NFT_HOOK_OPS_MAX];
++	struct nf_hook_ops		ops;
+ 	const struct nf_chain_type	*type;
+ 	u8				policy;
+ 	u8				flags;
+@@ -976,8 +974,6 @@ enum nft_af_flags {
+  *	@owner: module owner
+  *	@tables: used internally
+  *	@flags: family flags
+- *	@nops: number of hook ops in this family
+- *	@hook_ops_init: initialization function for chain hook ops
+  *	@hooks: hookfn overrides for packet validation
+  */
+ struct nft_af_info {
+@@ -987,9 +983,6 @@ struct nft_af_info {
+ 	struct module			*owner;
+ 	struct list_head		tables;
+ 	u32				flags;
+-	unsigned int			nops;
+-	void				(*hook_ops_init)(struct nf_hook_ops *,
+-							 unsigned int);
+ 	nf_hookfn			*hooks[NF_MAX_HOOKS];
+ };
+ 
 diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
-index b850c17f02f5..b24ac11cacc9 100644
+index 612bfd0737d5..991d0abb46aa 100644
 --- a/net/bridge/netfilter/nf_tables_bridge.c
 +++ b/net/bridge/netfilter/nf_tables_bridge.c
-@@ -106,13 +106,6 @@ static int nf_br_reroute(struct net *net, struct sk_buff *skb,
- 	return 0;
+@@ -46,7 +46,6 @@ static struct nft_af_info nft_af_bridge __read_mostly = {
+ 	.family		= NFPROTO_BRIDGE,
+ 	.nhooks		= NF_BR_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
+-	.nops		= 1,
+ 	.hooks		= {
+ 		[NF_BR_PRE_ROUTING]	= nft_do_chain_bridge,
+ 		[NF_BR_LOCAL_IN]	= nft_do_chain_bridge,
+diff --git a/net/ipv4/netfilter/nf_tables_arp.c b/net/ipv4/netfilter/nf_tables_arp.c
+index 3fa7e1b22bdd..3090f639bd89 100644
+--- a/net/ipv4/netfilter/nf_tables_arp.c
++++ b/net/ipv4/netfilter/nf_tables_arp.c
+@@ -31,7 +31,6 @@ static struct nft_af_info nft_af_arp __read_mostly = {
+ 	.family		= NFPROTO_ARP,
+ 	.nhooks		= NF_ARP_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
+-	.nops		= 1,
+ 	.hooks		= {
+ 		[NF_ARP_IN]		= nft_do_chain_arp,
+ 		[NF_ARP_OUT]		= nft_do_chain_arp,
+diff --git a/net/ipv4/netfilter/nf_tables_ipv4.c b/net/ipv4/netfilter/nf_tables_ipv4.c
+index b6223f4b1315..51b363abd541 100644
+--- a/net/ipv4/netfilter/nf_tables_ipv4.c
++++ b/net/ipv4/netfilter/nf_tables_ipv4.c
+@@ -49,7 +49,6 @@ static struct nft_af_info nft_af_ipv4 __read_mostly = {
+ 	.family		= NFPROTO_IPV4,
+ 	.nhooks		= NF_INET_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
+-	.nops		= 1,
+ 	.hooks		= {
+ 		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv4,
+ 		[NF_INET_LOCAL_OUT]	= nft_ipv4_output,
+diff --git a/net/ipv6/netfilter/nf_tables_ipv6.c b/net/ipv6/netfilter/nf_tables_ipv6.c
+index b1b5d3824fc1..78d34a2f3347 100644
+--- a/net/ipv6/netfilter/nf_tables_ipv6.c
++++ b/net/ipv6/netfilter/nf_tables_ipv6.c
+@@ -46,7 +46,6 @@ static struct nft_af_info nft_af_ipv6 __read_mostly = {
+ 	.family		= NFPROTO_IPV6,
+ 	.nhooks		= NF_INET_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
+-	.nops		= 1,
+ 	.hooks		= {
+ 		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv6,
+ 		[NF_INET_LOCAL_OUT]	= nft_ipv6_output,
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 7bc1b0c92a7f..06fae437c9cb 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -139,29 +139,26 @@ static void nft_trans_destroy(struct nft_trans *trans)
+ 	kfree(trans);
  }
  
--static __sum16 nf_br_checksum_partial(struct sk_buff *skb, unsigned int hook,
--				      unsigned int dataoff, unsigned int len,
--				      u_int8_t protocol)
--{
--	return 0;
--}
--
- static int nf_br_route(struct net *net, struct dst_entry **dst,
- 		       struct flowi *fl, bool strict __always_unused)
+-static int nf_tables_register_hooks(struct net *net,
+-				    const struct nft_table *table,
+-				    struct nft_chain *chain,
+-				    unsigned int hook_nops)
++static int nf_tables_register_hook(struct net *net,
++				   const struct nft_table *table,
++				   struct nft_chain *chain)
  {
-@@ -121,7 +114,6 @@ static int nf_br_route(struct net *net, struct dst_entry **dst,
+ 	if (table->flags & NFT_TABLE_F_DORMANT ||
+ 	    !nft_is_base_chain(chain))
+ 		return 0;
  
- static const struct nf_afinfo nf_br_afinfo = {
- 	.family                 = AF_BRIDGE,
--	.checksum_partial       = nf_br_checksum_partial,
- 	.route                  = nf_br_route,
- 	.saveroute              = nf_br_saveroute,
- 	.reroute                = nf_br_reroute,
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index 2f7ffefd2732..010c75fddf7e 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -155,9 +155,9 @@ __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
+-	return nf_register_net_hooks(net, nft_base_chain(chain)->ops,
+-				     hook_nops);
++	return nf_register_net_hook(net, &nft_base_chain(chain)->ops);
  }
- EXPORT_SYMBOL(nf_ip_checksum);
  
--static __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
--				      unsigned int dataoff, unsigned int len,
--				      u_int8_t protocol)
-+__sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
-+			       unsigned int dataoff, unsigned int len,
-+			       u_int8_t protocol)
+-static void nf_tables_unregister_hooks(struct net *net,
+-				       const struct nft_table *table,
+-				       struct nft_chain *chain,
+-				       unsigned int hook_nops)
++static void nf_tables_unregister_hook(struct net *net,
++				      const struct nft_table *table,
++				      struct nft_chain *chain)
  {
- 	const struct iphdr *iph = ip_hdr(skb);
- 	__sum16 csum = 0;
-@@ -175,6 +175,7 @@ static __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ 	if (table->flags & NFT_TABLE_F_DORMANT ||
+ 	    !nft_is_base_chain(chain))
+ 		return;
+ 
+-	nf_unregister_net_hooks(net, nft_base_chain(chain)->ops, hook_nops);
++	nf_unregister_net_hook(net, &nft_base_chain(chain)->ops);
+ }
+ 
+ static int nft_trans_table_add(struct nft_ctx *ctx, int msg_type)
+@@ -595,8 +592,7 @@ static void _nf_tables_table_disable(struct net *net,
+ 		if (cnt && i++ == cnt)
+ 			break;
+ 
+-		nf_unregister_net_hooks(net, nft_base_chain(chain)->ops,
+-					afi->nops);
++		nf_unregister_net_hook(net, &nft_base_chain(chain)->ops);
  	}
- 	return csum;
  }
-+EXPORT_SYMBOL_GPL(nf_ip_checksum_partial);
  
- static int nf_ip_route(struct net *net, struct dst_entry **dst,
- 		       struct flowi *fl, bool strict __always_unused)
-@@ -188,7 +189,6 @@ static int nf_ip_route(struct net *net, struct dst_entry **dst,
+@@ -613,8 +609,7 @@ static int nf_tables_table_enable(struct net *net,
+ 		if (!nft_is_base_chain(chain))
+ 			continue;
  
- static const struct nf_afinfo nf_ip_afinfo = {
- 	.family			= AF_INET,
--	.checksum_partial	= nf_ip_checksum_partial,
- 	.route			= nf_ip_route,
- 	.saveroute		= nf_ip_saveroute,
- 	.reroute		= nf_ip_reroute,
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index db69c8af95aa..a57546ce54a6 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -190,15 +190,15 @@ static __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
- };
+-		err = nf_register_net_hooks(net, nft_base_chain(chain)->ops,
+-					    afi->nops);
++		err = nf_register_net_hook(net, &nft_base_chain(chain)->ops);
+ 		if (err < 0)
+ 			goto err;
  
- static const struct nf_ipv6_ops ipv6ops = {
--	.chk_addr	= ipv6_chk_addr,
--	.route_input    = ip6_route_input,
--	.fragment	= ip6_fragment,
--	.checksum	= nf_ip6_checksum,
-+	.chk_addr		= ipv6_chk_addr,
-+	.route_input    	= ip6_route_input,
-+	.fragment		= ip6_fragment,
-+	.checksum		= nf_ip6_checksum,
-+	.checksum_partial	= nf_ip6_checksum_partial,
- };
+@@ -1026,7 +1021,7 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
  
- static const struct nf_afinfo nf_ip6_afinfo = {
- 	.family			= AF_INET6,
--	.checksum_partial	= nf_ip6_checksum_partial,
- 	.route			= nf_ip6_route,
- 	.saveroute		= nf_ip6_saveroute,
- 	.reroute		= nf_ip6_reroute,
-diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
-index 159a9cdcfe1e..ca6d8d62496d 100644
---- a/net/netfilter/utils.c
-+++ b/net/netfilter/utils.c
-@@ -24,3 +24,27 @@ __sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
- 	return csum;
- }
- EXPORT_SYMBOL_GPL(nf_checksum);
+ 	if (nft_is_base_chain(chain)) {
+ 		const struct nft_base_chain *basechain = nft_base_chain(chain);
+-		const struct nf_hook_ops *ops = &basechain->ops[0];
++		const struct nf_hook_ops *ops = &basechain->ops;
+ 		struct nlattr *nest;
+ 
+ 		nest = nla_nest_start(skb, NFTA_CHAIN_HOOK);
+@@ -1252,8 +1247,8 @@ static void nf_tables_chain_destroy(struct nft_chain *chain)
+ 		free_percpu(basechain->stats);
+ 		if (basechain->stats)
+ 			static_branch_dec(&nft_counters_enabled);
+-		if (basechain->ops[0].dev != NULL)
+-			dev_put(basechain->ops[0].dev);
++		if (basechain->ops.dev != NULL)
++			dev_put(basechain->ops.dev);
+ 		kfree(chain->name);
+ 		kfree(basechain);
+ 	} else {
+@@ -1354,7 +1349,6 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 	struct nft_stats __percpu *stats;
+ 	struct net *net = ctx->net;
+ 	struct nft_chain *chain;
+-	unsigned int i;
+ 	int err;
+ 
+ 	if (table->use == UINT_MAX)
+@@ -1393,21 +1387,18 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 		basechain->type = hook.type;
+ 		chain = &basechain->chain;
+ 
+-		for (i = 0; i < afi->nops; i++) {
+-			ops = &basechain->ops[i];
+-			ops->pf		= family;
+-			ops->hooknum	= hook.num;
+-			ops->priority	= hook.priority;
+-			ops->priv	= chain;
+-			ops->hook	= afi->hooks[ops->hooknum];
+-			ops->dev	= hook.dev;
+-			if (hookfn)
+-				ops->hook = hookfn;
+-			if (afi->hook_ops_init)
+-				afi->hook_ops_init(ops, i);
+-			if (basechain->type->type == NFT_CHAIN_T_NAT)
+-				ops->nat_hook = true;
+-		}
++		ops		= &basechain->ops;
++		ops->pf		= family;
++		ops->hooknum	= hook.num;
++		ops->priority	= hook.priority;
++		ops->priv	= chain;
++		ops->hook	= afi->hooks[ops->hooknum];
++		ops->dev	= hook.dev;
++		if (hookfn)
++			ops->hook = hookfn;
 +
-+__sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
-+			    unsigned int dataoff, unsigned int len,
-+			    u_int8_t protocol, unsigned short family)
-+{
-+	const struct nf_ipv6_ops *v6ops;
-+	__sum16 csum = 0;
-+
-+	switch (family) {
-+	case AF_INET:
-+		csum = nf_ip_checksum_partial(skb, hook, dataoff, len,
-+					      protocol);
-+		break;
-+	case AF_INET6:
-+		v6ops = rcu_dereference(nf_ipv6_ops);
-+		if (v6ops)
-+			csum = v6ops->checksum_partial(skb, hook, dataoff, len,
-+						       protocol);
-+		break;
-+	}
-+
-+	return csum;
-+}
-+EXPORT_SYMBOL_GPL(nf_checksum_partial);
++		if (basechain->type->type == NFT_CHAIN_T_NAT)
++			ops->nat_hook = true;
+ 
+ 		chain->flags |= NFT_BASE_CHAIN;
+ 		basechain->policy = policy;
+@@ -1425,7 +1416,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 		goto err1;
+ 	}
+ 
+-	err = nf_tables_register_hooks(net, table, chain, afi->nops);
++	err = nf_tables_register_hook(net, table, chain);
+ 	if (err < 0)
+ 		goto err1;
+ 
+@@ -1439,7 +1430,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 
+ 	return 0;
+ err2:
+-	nf_tables_unregister_hooks(net, table, chain, afi->nops);
++	nf_tables_unregister_hook(net, table, chain);
+ err1:
+ 	nf_tables_chain_destroy(chain);
+ 
+@@ -1452,14 +1443,13 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 	const struct nlattr * const *nla = ctx->nla;
+ 	struct nft_table *table = ctx->table;
+ 	struct nft_chain *chain = ctx->chain;
+-	struct nft_af_info *afi = ctx->afi;
+ 	struct nft_base_chain *basechain;
+ 	struct nft_stats *stats = NULL;
+ 	struct nft_chain_hook hook;
+ 	const struct nlattr *name;
+ 	struct nf_hook_ops *ops;
+ 	struct nft_trans *trans;
+-	int err, i;
++	int err;
+ 
+ 	if (nla[NFTA_CHAIN_HOOK]) {
+ 		if (!nft_is_base_chain(chain))
+@@ -1476,14 +1466,12 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 			return -EBUSY;
+ 		}
+ 
+-		for (i = 0; i < afi->nops; i++) {
+-			ops = &basechain->ops[i];
+-			if (ops->hooknum != hook.num ||
+-			    ops->priority != hook.priority ||
+-			    ops->dev != hook.dev) {
+-				nft_chain_release_hook(&hook);
+-				return -EBUSY;
+-			}
++		ops = &basechain->ops;
++		if (ops->hooknum != hook.num ||
++		    ops->priority != hook.priority ||
++		    ops->dev != hook.dev) {
++			nft_chain_release_hook(&hook);
++			return -EBUSY;
+ 		}
+ 		nft_chain_release_hook(&hook);
+ 	}
+@@ -5134,10 +5122,9 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ 		case NFT_MSG_DELCHAIN:
+ 			list_del_rcu(&trans->ctx.chain->list);
+ 			nf_tables_chain_notify(&trans->ctx, NFT_MSG_DELCHAIN);
+-			nf_tables_unregister_hooks(trans->ctx.net,
+-						   trans->ctx.table,
+-						   trans->ctx.chain,
+-						   trans->ctx.afi->nops);
++			nf_tables_unregister_hook(trans->ctx.net,
++						  trans->ctx.table,
++						  trans->ctx.chain);
+ 			break;
+ 		case NFT_MSG_NEWRULE:
+ 			nft_clear(trans->ctx.net, nft_trans_rule(trans));
+@@ -5274,10 +5261,9 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb)
+ 			} else {
+ 				trans->ctx.table->use--;
+ 				list_del_rcu(&trans->ctx.chain->list);
+-				nf_tables_unregister_hooks(trans->ctx.net,
+-							   trans->ctx.table,
+-							   trans->ctx.chain,
+-							   trans->ctx.afi->nops);
++				nf_tables_unregister_hook(trans->ctx.net,
++							  trans->ctx.table,
++							  trans->ctx.chain);
+ 			}
+ 			break;
+ 		case NFT_MSG_DELCHAIN:
+@@ -5378,7 +5364,7 @@ int nft_chain_validate_hooks(const struct nft_chain *chain,
+ 	if (nft_is_base_chain(chain)) {
+ 		basechain = nft_base_chain(chain);
+ 
+-		if ((1 << basechain->ops[0].hooknum) & hook_flags)
++		if ((1 << basechain->ops.hooknum) & hook_flags)
+ 			return 0;
+ 
+ 		return -EOPNOTSUPP;
+@@ -5866,8 +5852,7 @@ int __nft_release_basechain(struct nft_ctx *ctx)
+ 
+ 	BUG_ON(!nft_is_base_chain(ctx->chain));
+ 
+-	nf_tables_unregister_hooks(ctx->net, ctx->chain->table, ctx->chain,
+-				   ctx->afi->nops);
++	nf_tables_unregister_hook(ctx->net, ctx->chain->table, ctx->chain);
+ 	list_for_each_entry_safe(rule, nr, &ctx->chain->rules, list) {
+ 		list_del(&rule->list);
+ 		ctx->chain->use--;
+@@ -5896,8 +5881,7 @@ static void __nft_release_afinfo(struct net *net, struct nft_af_info *afi)
+ 
+ 	list_for_each_entry_safe(table, nt, &afi->tables, list) {
+ 		list_for_each_entry(chain, &table->chains, list)
+-			nf_tables_unregister_hooks(net, table, chain,
+-						   afi->nops);
++			nf_tables_unregister_hook(net, table, chain);
+ 		/* No packets are walking on these chains anymore. */
+ 		ctx.table = table;
+ 		list_for_each_entry(chain, &table->chains, list) {
+diff --git a/net/netfilter/nf_tables_inet.c b/net/netfilter/nf_tables_inet.c
+index c6194b3509aa..edd7829a5753 100644
+--- a/net/netfilter/nf_tables_inet.c
++++ b/net/netfilter/nf_tables_inet.c
+@@ -74,7 +74,6 @@ static struct nft_af_info nft_af_inet __read_mostly = {
+ 	.family		= NFPROTO_INET,
+ 	.nhooks		= NF_INET_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
+-	.nops		= 1,
+ 	.hooks		= {
+ 		[NF_INET_LOCAL_IN]	= nft_do_chain_inet,
+ 		[NF_INET_LOCAL_OUT]	= nft_inet_output,
+diff --git a/net/netfilter/nf_tables_netdev.c b/net/netfilter/nf_tables_netdev.c
+index 3cd127dd2895..018e2c5b4a49 100644
+--- a/net/netfilter/nf_tables_netdev.c
++++ b/net/netfilter/nf_tables_netdev.c
+@@ -43,7 +43,6 @@ static struct nft_af_info nft_af_netdev __read_mostly = {
+ 	.nhooks		= NF_NETDEV_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
+ 	.flags		= NFT_AF_NEEDS_DEV,
+-	.nops		= 1,
+ 	.hooks		= {
+ 		[NF_NETDEV_INGRESS]	= nft_do_chain_netdev,
+ 	},
+@@ -98,7 +97,7 @@ static void nft_netdev_event(unsigned long event, struct net_device *dev,
+ 		__nft_release_basechain(ctx);
+ 		break;
+ 	case NETDEV_CHANGENAME:
+-		if (dev->ifindex != basechain->ops[0].dev->ifindex)
++		if (dev->ifindex != basechain->ops.dev->ifindex)
+ 			return;
+ 
+ 		strncpy(basechain->dev_name, dev->name, IFNAMSIZ);
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index b89f4f65b2a0..dcff0dc8d28b 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -169,7 +169,7 @@ nft_target_set_tgchk_param(struct xt_tgchk_param *par,
+ 	if (nft_is_base_chain(ctx->chain)) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+-		const struct nf_hook_ops *ops = &basechain->ops[0];
++		const struct nf_hook_ops *ops = &basechain->ops;
+ 
+ 		par->hook_mask = 1 << ops->hooknum;
+ 	} else {
+@@ -302,7 +302,7 @@ static int nft_target_validate(const struct nft_ctx *ctx,
+ 	if (nft_is_base_chain(ctx->chain)) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+-		const struct nf_hook_ops *ops = &basechain->ops[0];
++		const struct nf_hook_ops *ops = &basechain->ops;
+ 
+ 		hook_mask = 1 << ops->hooknum;
+ 		if (target->hooks && !(hook_mask & target->hooks))
+@@ -383,7 +383,7 @@ nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
+ 	if (nft_is_base_chain(ctx->chain)) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+-		const struct nf_hook_ops *ops = &basechain->ops[0];
++		const struct nf_hook_ops *ops = &basechain->ops;
+ 
+ 		par->hook_mask = 1 << ops->hooknum;
+ 	} else {
+@@ -481,7 +481,7 @@ static int nft_match_validate(const struct nft_ctx *ctx,
+ 	if (nft_is_base_chain(ctx->chain)) {
+ 		const struct nft_base_chain *basechain =
+ 						nft_base_chain(ctx->chain);
+-		const struct nf_hook_ops *ops = &basechain->ops[0];
++		const struct nf_hook_ops *ops = &basechain->ops;
+ 
+ 		hook_mask = 1 << ops->hooknum;
+ 		if (match->hooks && !(hook_mask & match->hooks))
 -- 
 2.11.0
