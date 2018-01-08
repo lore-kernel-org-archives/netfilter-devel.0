@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 13/52] netfilter: reduce size of hook entry point locations
-Date: Mon,  8 Jan 2018 21:19:21 +0100
-Message-ID: <20180108202000.12989-14-pablo@netfilter.org>
+Subject: [PATCH 12/52] netfilter: core: free hooks with call_rcu
+Date: Mon,  8 Jan 2018 21:19:20 +0100
+Message-ID: <20180108202000.12989-13-pablo@netfilter.org>
 References: <20180108202000.12989-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,210 +12,136 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-struct net contains:
+Giuseppe Scrivano says:
+  "SELinux, if enabled, registers for each new network namespace 6
+    netfilter hooks."
 
-struct nf_hook_entries __rcu *hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
+Cost for this is high.  With synchronize_net() removed:
+   "The net benefit on an SMP machine with two cores is that creating a
+   new network namespace takes -40% of the original time."
 
-which store the hook entry point locations for the various protocol
-families and the hooks.
+This patch replaces synchronize_net+kvfree with call_rcu().
+We store rcu_head at the tail of a structure that has no fixed layout,
+i.e. we cannot use offsetof() to compute the start of the original
+allocation.  Thus store this information right after the rcu head.
 
-Using array results in compact c code when doing accesses, i.e.
-  x = rcu_dereference(net->nf.hooks[pf][hook]);
+We could simplify this by just placing the rcu_head at the start
+of struct nf_hook_entries.  However, this structure is used in
+packet processing hotpath, so only place what is needed for that
+at the beginning of the struct.
 
-but its also wasting a lot of memory, as most families are
-not used.
-
-So split the array into those families that are used, which
-are only 5 (instead of 13).  In most cases, the 'pf' argument is
-constant, i.e. gcc removes switch statement.
-
-struct net before:
- /* size: 5184, cachelines: 81, members: 46 */
-after:
- /* size: 4672, cachelines: 73, members: 46 */
-
+Reported-by: Giuseppe Scrivano <gscrivan@redhat.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h       | 24 ++++++++++++++++++++++--
- include/net/netns/netfilter.h   |  6 +++++-
- net/bridge/br_netfilter_hooks.c |  2 +-
- net/netfilter/core.c            | 38 ++++++++++++++++++++++++++++++--------
- net/netfilter/nf_queue.c        | 21 +++++++++++++++++++--
- 5 files changed, 77 insertions(+), 14 deletions(-)
+ include/linux/netfilter.h | 19 +++++++++++++++----
+ net/netfilter/core.c      | 34 ++++++++++++++++++++++++++++------
+ 2 files changed, 43 insertions(+), 10 deletions(-)
 
 diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 792f6d535707..9dcbcdfa3b82 100644
+index b24e9b101651..792f6d535707 100644
 --- a/include/linux/netfilter.h
 +++ b/include/linux/netfilter.h
-@@ -195,7 +195,7 @@ static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
- 			  struct net_device *indev, struct net_device *outdev,
- 			  int (*okfn)(struct net *, struct sock *, struct sk_buff *))
- {
--	struct nf_hook_entries *hook_head;
-+	struct nf_hook_entries *hook_head = NULL;
- 	int ret = 1;
+@@ -77,17 +77,28 @@ struct nf_hook_entry {
+ 	void				*priv;
+ };
  
- #ifdef HAVE_JUMP_LABEL
-@@ -206,7 +206,27 @@ static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
- #endif
- 
- 	rcu_read_lock();
--	hook_head = rcu_dereference(net->nf.hooks[pf][hook]);
-+	switch (pf) {
-+	case NFPROTO_IPV4:
-+		hook_head = rcu_dereference(net->nf.hooks_ipv4[hook]);
-+		break;
-+	case NFPROTO_IPV6:
-+		hook_head = rcu_dereference(net->nf.hooks_ipv6[hook]);
-+		break;
-+	case NFPROTO_ARP:
-+		hook_head = rcu_dereference(net->nf.hooks_arp[hook]);
-+		break;
-+	case NFPROTO_BRIDGE:
-+		hook_head = rcu_dereference(net->nf.hooks_bridge[hook]);
-+		break;
-+	case NFPROTO_DECNET:
-+		hook_head = rcu_dereference(net->nf.hooks_decnet[hook]);
-+		break;
-+	default:
-+		WARN_ON_ONCE(1);
-+		break;
-+	}
++struct nf_hook_entries_rcu_head {
++	struct rcu_head head;
++	void	*allocation;
++};
 +
- 	if (hook_head) {
- 		struct nf_hook_state state;
+ struct nf_hook_entries {
+ 	u16				num_hook_entries;
+ 	/* padding */
+ 	struct nf_hook_entry		hooks[];
  
-diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
-index cc00af2ac2d7..b39c563c2fce 100644
---- a/include/net/netns/netfilter.h
-+++ b/include/net/netns/netfilter.h
-@@ -17,7 +17,11 @@ struct netns_nf {
- #ifdef CONFIG_SYSCTL
- 	struct ctl_table_header *nf_log_dir_header;
- #endif
--	struct nf_hook_entries __rcu *hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
-+	struct nf_hook_entries __rcu *hooks_ipv4[NF_MAX_HOOKS];
-+	struct nf_hook_entries __rcu *hooks_ipv6[NF_MAX_HOOKS];
-+	struct nf_hook_entries __rcu *hooks_arp[NF_MAX_HOOKS];
-+	struct nf_hook_entries __rcu *hooks_bridge[NF_MAX_HOOKS];
-+	struct nf_hook_entries __rcu *hooks_decnet[NF_MAX_HOOKS];
- #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
- 	bool			defrag_ipv4;
- #endif
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index c2eea1b8737a..27f1d4f2114a 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -991,7 +991,7 @@ int br_nf_hook_thresh(unsigned int hook, struct net *net,
- 	unsigned int i;
- 	int ret;
- 
--	e = rcu_dereference(net->nf.hooks[NFPROTO_BRIDGE][hook]);
-+	e = rcu_dereference(net->nf.hooks_bridge[hook]);
- 	if (!e)
- 		return okfn(net, sk, skb);
+-	/* trailer: pointers to original orig_ops of each hook.
+-	 *
+-	 * This is not part of struct nf_hook_entry since its only
+-	 * needed in slow path (hook register/unregister).
++	/* trailer: pointers to original orig_ops of each hook,
++	 * followed by rcu_head and scratch space used for freeing
++	 * the structure via call_rcu.
+ 	 *
++	 *   This is not part of struct nf_hook_entry since its only
++	 *   needed in slow path (hook register/unregister):
+ 	 * const struct nf_hook_ops     *orig_ops[]
++	 *
++	 *   For the same reason, we store this at end -- its
++	 *   only needed when a hook is deleted, not during
++	 *   packet path processing:
++	 * struct nf_hook_entries_rcu_head     head
+ 	 */
+ };
  
 diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 6921f9f1cc81..a6eaaf303be8 100644
+index 9a84b6cb99e6..6921f9f1cc81 100644
 --- a/net/netfilter/core.c
 +++ b/net/netfilter/core.c
-@@ -264,8 +264,23 @@ static void *__nf_hook_entries_try_shrink(struct nf_hook_entries __rcu **pp)
+@@ -74,7 +74,8 @@ static struct nf_hook_entries *allocate_hook_entries_size(u16 num)
+ 	struct nf_hook_entries *e;
+ 	size_t alloc = sizeof(*e) +
+ 		       sizeof(struct nf_hook_entry) * num +
+-		       sizeof(struct nf_hook_ops *) * num;
++		       sizeof(struct nf_hook_ops *) * num +
++		       sizeof(struct nf_hook_entries_rcu_head);
  
- static struct nf_hook_entries __rcu **nf_hook_entry_head(struct net *net, const struct nf_hook_ops *reg)
- {
--	if (reg->pf != NFPROTO_NETDEV)
--		return net->nf.hooks[reg->pf]+reg->hooknum;
-+	switch (reg->pf) {
-+	case NFPROTO_NETDEV:
-+		break;
-+	case NFPROTO_ARP:
-+		return net->nf.hooks_arp + reg->hooknum;
-+	case NFPROTO_BRIDGE:
-+		return net->nf.hooks_bridge + reg->hooknum;
-+	case NFPROTO_IPV4:
-+		return net->nf.hooks_ipv4 + reg->hooknum;
-+	case NFPROTO_IPV6:
-+		return net->nf.hooks_ipv6 + reg->hooknum;
-+	case NFPROTO_DECNET:
-+		return net->nf.hooks_decnet + reg->hooknum;
-+	default:
-+		WARN_ON_ONCE(1);
-+		return NULL;
-+	}
- 
- #ifdef CONFIG_NETFILTER_INGRESS
- 	if (reg->hooknum == NF_NETDEV_INGRESS) {
-@@ -534,14 +549,21 @@ void (*nf_nat_decode_session_hook)(struct sk_buff *, struct flowi *);
- EXPORT_SYMBOL(nf_nat_decode_session_hook);
- #endif
- 
--static int __net_init netfilter_net_init(struct net *net)
-+static void __net_init __netfilter_net_init(struct nf_hook_entries *e[NF_MAX_HOOKS])
- {
--	int i, h;
-+	int h;
- 
--	for (i = 0; i < ARRAY_SIZE(net->nf.hooks); i++) {
--		for (h = 0; h < NF_MAX_HOOKS; h++)
--			RCU_INIT_POINTER(net->nf.hooks[i][h], NULL);
--	}
-+	for (h = 0; h < NF_MAX_HOOKS; h++)
-+		RCU_INIT_POINTER(e[h], NULL);
-+}
-+
-+static int __net_init netfilter_net_init(struct net *net)
-+{
-+	__netfilter_net_init(net->nf.hooks_ipv4);
-+	__netfilter_net_init(net->nf.hooks_ipv6);
-+	__netfilter_net_init(net->nf.hooks_arp);
-+	__netfilter_net_init(net->nf.hooks_bridge);
-+	__netfilter_net_init(net->nf.hooks_decnet);
- 
- #ifdef CONFIG_PROC_FS
- 	net->nf.proc_netfilter = proc_net_mkdir(net, "netfilter",
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 4e42a4a68a0b..836aeb08686e 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -201,6 +201,23 @@ static unsigned int nf_iterate(struct sk_buff *skb,
- 	return NF_ACCEPT;
+ 	if (num == 0)
+ 		return NULL;
+@@ -85,6 +86,30 @@ static struct nf_hook_entries *allocate_hook_entries_size(u16 num)
+ 	return e;
  }
  
-+static struct nf_hook_entries *nf_hook_entries_head(const struct net *net, u8 pf, u8 hooknum)
++static void __nf_hook_entries_free(struct rcu_head *h)
 +{
-+	switch (pf) {
-+	case NFPROTO_BRIDGE:
-+		return rcu_dereference(net->nf.hooks_bridge[hooknum]);
-+	case NFPROTO_IPV4:
-+		return rcu_dereference(net->nf.hooks_ipv4[hooknum]);
-+	case NFPROTO_IPV6:
-+		return rcu_dereference(net->nf.hooks_ipv6[hooknum]);
-+	default:
-+		WARN_ON_ONCE(1);
-+		return NULL;
-+	}
++	struct nf_hook_entries_rcu_head *head;
 +
-+	return NULL;
++	head = container_of(h, struct nf_hook_entries_rcu_head, head);
++	kvfree(head->allocation);
 +}
 +
- /* Caller must hold rcu read-side lock */
- void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- {
-@@ -216,12 +233,12 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	net = entry->state.net;
- 	pf = entry->state.pf;
- 
--	hooks = rcu_dereference(net->nf.hooks[pf][entry->state.hook]);
-+	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
- 
- 	nf_queue_entry_release_refs(entry);
- 
- 	i = entry->hook_index;
--	if (WARN_ON_ONCE(i >= hooks->num_hook_entries)) {
-+	if (WARN_ON_ONCE(!hooks || i >= hooks->num_hook_entries)) {
- 		kfree_skb(skb);
- 		kfree(entry);
++static void nf_hook_entries_free(struct nf_hook_entries *e)
++{
++	struct nf_hook_entries_rcu_head *head;
++	struct nf_hook_ops **ops;
++	unsigned int num;
++
++	if (!e)
++		return;
++
++	num = e->num_hook_entries;
++	ops = nf_hook_entries_get_hook_ops(e);
++	head = (void *)&ops[num];
++	head->allocation = e;
++	call_rcu(&head->head, __nf_hook_entries_free);
++}
++
+ static unsigned int accept_all(void *priv,
+ 			       struct sk_buff *skb,
+ 			       const struct nf_hook_state *state)
+@@ -291,9 +316,8 @@ int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ #ifdef HAVE_JUMP_LABEL
+ 	static_key_slow_inc(&nf_hooks_needed[reg->pf][reg->hooknum]);
+ #endif
+-	synchronize_net();
+ 	BUG_ON(p == new_hooks);
+-	kvfree(p);
++	nf_hook_entries_free(p);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(nf_register_net_hook);
+@@ -361,10 +385,8 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ 	if (!p)
  		return;
+ 
+-	synchronize_net();
+-
+ 	nf_queue_nf_hook_drop(net);
+-	kvfree(p);
++	nf_hook_entries_free(p);
+ }
+ EXPORT_SYMBOL(nf_unregister_net_hook);
+ 
 -- 
 2.11.0
