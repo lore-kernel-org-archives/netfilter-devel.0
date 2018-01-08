@@ -1,57 +1,53 @@
-From: kbuild test robot <lkp@intel.com>
-Subject: Re: [PATCH V5 5/5] netfilter: nf_nat_snmp_basic: use asn1 decoder
- library
-Date: Mon, 8 Jan 2018 12:53:45 +0800
-Message-ID: <201801081210.3IwNhfgy%fengguang.wu@intel.com>
-References: <20180107151033.26377-1-ap420073@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kbuild-all@01.org, pablo@netfilter.org, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, ap420073@gmail.com
-To: Taehee Yoo <ap420073@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: avoid arp/bridge WARN_ON if arp/ebtables not supported
+Date: Mon,  8 Jan 2018 13:31:52 +0100
+Message-ID: <20180108123152.11499-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:31813 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755245AbeAHEyc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 7 Jan 2018 23:54:32 -0500
-Content-Disposition: inline
-In-Reply-To: <20180107151033.26377-1-ap420073@gmail.com>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:38974 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756727AbeAHMmA (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Jan 2018 07:42:00 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Taehee,
+We need to retain the 'case' statement, otherwise, if e.g. arp tables
+isn't supported first NF_HOOK(NFPROTO_ARP, ... will produce a bogus
+WARN_ON().
 
-Thank you for the patch! Perhaps something to improve:
-
-[auto build test WARNING on nf-next/master]
-[also build test WARNING on v4.15-rc7 next-20180105]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-
-url:    https://github.com/0day-ci/linux/commits/Taehee-Yoo/netfilter-nf_nat_snmp_basic-remove-useless-comment/20180108-110506
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
-reproduce:
-        # apt-get install sparse
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF=-D__CHECK_ENDIAN__
-
-
-sparse warnings: (new ones prefixed by >>)
-
->> net/ipv4/netfilter/nf_nat_snmp_basic_main.c:222:9: sparse: incompatible types in comparison expression (different address spaces)
-   net/ipv4/netfilter/nf_nat_snmp_basic_main.c:229:9: sparse: incompatible types in comparison expression (different address spaces)
-
-vim +222 net/ipv4/netfilter/nf_nat_snmp_basic_main.c
-
-   218	
-   219	static int __init nf_nat_snmp_basic_init(void)
-   220	{
-   221		BUG_ON(nf_nat_snmp_hook != NULL);
- > 222		RCU_INIT_POINTER(nf_nat_snmp_hook, help);
-   223	
-   224		return nf_conntrack_helper_register(&snmp_trap_helper);
-   225	}
-   226	
-
+Fixes: 8de98f05836 ("netfilter: don't allocate space for arp/bridge hooks unless needed")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ include/linux/netfilter.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 84987186aa26..85a1a0b32c66 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -214,16 +214,16 @@ static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
+ 	case NFPROTO_IPV6:
+ 		hook_head = rcu_dereference(net->nf.hooks_ipv6[hook]);
+ 		break;
+-#ifdef CONFIG_NETFILTER_FAMILY_ARP
+ 	case NFPROTO_ARP:
++#ifdef CONFIG_NETFILTER_FAMILY_ARP
+ 		hook_head = rcu_dereference(net->nf.hooks_arp[hook]);
+-		break;
+ #endif
+-#ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
++		break;
+ 	case NFPROTO_BRIDGE:
++#ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
+ 		hook_head = rcu_dereference(net->nf.hooks_bridge[hook]);
+-		break;
+ #endif
++		break;
+ #if IS_ENABLED(CONFIG_DECNET)
+ 	case NFPROTO_DECNET:
+ 		hook_head = rcu_dereference(net->nf.hooks_decnet[hook]);
+-- 
+2.13.6
+
