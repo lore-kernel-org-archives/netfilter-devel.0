@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 32/52] netfilter: connlimit: split xt_connlimit into front and backend
-Date: Mon,  8 Jan 2018 21:19:40 +0100
-Message-ID: <20180108202000.12989-33-pablo@netfilter.org>
+Subject: [PATCH 31/52] netfilter: nf_tables: remove hooks from family definition
+Date: Mon,  8 Jan 2018 21:19:39 +0100
+Message-ID: <20180108202000.12989-32-pablo@netfilter.org>
 References: <20180108202000.12989-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,933 +10,259 @@ In-Reply-To: <20180108202000.12989-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+They don't belong to the family definition, move them to the filter
+chain type definition instead.
 
-This allows to reuse xt_connlimit infrastructure from nf_tables.
-The upcoming nf_tables frontend can just pass in an nftables register
-as input key, this allows limiting by any nft-supported key, including
-concatenations.
-
-For xt_connlimit, pass in the zone and the ip/ipv6 address.
-
-With help from Yi-Hung Wei.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Yi-Hung Wei <yihung.wei@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack_count.h  |  17 ++
- include/uapi/linux/netfilter/xt_connlimit.h |   2 +-
- net/netfilter/Kconfig                       |   3 +
- net/netfilter/Makefile                      |   2 +
- net/netfilter/nf_conncount.c                | 373 ++++++++++++++++++++++++++++
- net/netfilter/xt_connlimit.c                | 369 ++-------------------------
- 6 files changed, 420 insertions(+), 346 deletions(-)
- create mode 100644 include/net/netfilter/nf_conntrack_count.h
- create mode 100644 net/netfilter/nf_conncount.c
+ include/net/netfilter/nf_tables.h       |  4 +---
+ net/bridge/netfilter/nf_tables_bridge.c | 14 +++++++-------
+ net/ipv4/netfilter/nf_tables_arp.c      |  8 ++++----
+ net/ipv4/netfilter/nf_tables_ipv4.c     | 14 +++++++-------
+ net/ipv6/netfilter/nf_tables_ipv6.c     | 14 +++++++-------
+ net/netfilter/nf_tables_api.c           |  6 +-----
+ net/netfilter/nf_tables_inet.c          | 14 +++++++-------
+ net/netfilter/nf_tables_netdev.c        |  6 +++---
+ 8 files changed, 37 insertions(+), 43 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_count.h b/include/net/netfilter/nf_conntrack_count.h
-new file mode 100644
-index 000000000000..adf8db44cf86
---- /dev/null
-+++ b/include/net/netfilter/nf_conntrack_count.h
-@@ -0,0 +1,17 @@
-+#ifndef _NF_CONNTRACK_COUNT_H
-+#define _NF_CONNTRACK_COUNT_H
-+
-+struct nf_conncount_data;
-+
-+struct nf_conncount_data *nf_conncount_init(struct net *net, unsigned int family,
-+					    unsigned int keylen);
-+void nf_conncount_destroy(struct net *net, unsigned int family,
-+			  struct nf_conncount_data *data);
-+
-+unsigned int nf_conncount_count(struct net *net,
-+				struct nf_conncount_data *data,
-+				const u32 *key,
-+				unsigned int family,
-+				const struct nf_conntrack_tuple *tuple,
-+				const struct nf_conntrack_zone *zone);
-+#endif
-diff --git a/include/uapi/linux/netfilter/xt_connlimit.h b/include/uapi/linux/netfilter/xt_connlimit.h
-index 07e5e9d47882..d4d1943dcd11 100644
---- a/include/uapi/linux/netfilter/xt_connlimit.h
-+++ b/include/uapi/linux/netfilter/xt_connlimit.h
-@@ -27,7 +27,7 @@ struct xt_connlimit_info {
- 	__u32 flags;
- 
- 	/* Used internally by the kernel */
--	struct xt_connlimit_data *data __attribute__((aligned(8)));
-+	struct nf_conncount_data *data __attribute__((aligned(8)));
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index a3560fd55f99..e040b6151acc 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -880,7 +880,7 @@ enum nft_chain_type {
+  * 	@family: address family
+  * 	@owner: module owner
+  * 	@hook_mask: mask of valid hooks
+- * 	@hooks: hookfn overrides
++ * 	@hooks: array of hook functions
+  */
+ struct nf_chain_type {
+ 	const char			*name;
+@@ -974,7 +974,6 @@ enum nft_af_flags {
+  *	@owner: module owner
+  *	@tables: used internally
+  *	@flags: family flags
+- *	@hooks: hookfn overrides for packet validation
+  */
+ struct nft_af_info {
+ 	struct list_head		list;
+@@ -983,7 +982,6 @@ struct nft_af_info {
+ 	struct module			*owner;
+ 	struct list_head		tables;
+ 	u32				flags;
+-	nf_hookfn			*hooks[NF_MAX_HOOKS];
  };
  
- #endif /* _XT_CONNLIMIT_H */
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 263609a7e010..af3d9f721b3f 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -68,6 +68,8 @@ config NF_LOG_NETDEV
- 	select NF_LOG_COMMON
+ int nft_register_afinfo(struct net *, struct nft_af_info *);
+diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
+index 991d0abb46aa..74260ffec74d 100644
+--- a/net/bridge/netfilter/nf_tables_bridge.c
++++ b/net/bridge/netfilter/nf_tables_bridge.c
+@@ -46,13 +46,6 @@ static struct nft_af_info nft_af_bridge __read_mostly = {
+ 	.family		= NFPROTO_BRIDGE,
+ 	.nhooks		= NF_BR_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
+-	.hooks		= {
+-		[NF_BR_PRE_ROUTING]	= nft_do_chain_bridge,
+-		[NF_BR_LOCAL_IN]	= nft_do_chain_bridge,
+-		[NF_BR_FORWARD]		= nft_do_chain_bridge,
+-		[NF_BR_LOCAL_OUT]	= nft_do_chain_bridge,
+-		[NF_BR_POST_ROUTING]	= nft_do_chain_bridge,
+-	},
+ };
  
- if NF_CONNTRACK
-+config NETFILTER_CONNCOUNT
-+	tristate
+ static int nf_tables_bridge_init_net(struct net *net)
+@@ -93,6 +86,13 @@ static const struct nf_chain_type filter_bridge = {
+ 			  (1 << NF_BR_FORWARD) |
+ 			  (1 << NF_BR_LOCAL_OUT) |
+ 			  (1 << NF_BR_POST_ROUTING),
++	.hooks		= {
++		[NF_BR_PRE_ROUTING]	= nft_do_chain_bridge,
++		[NF_BR_LOCAL_IN]	= nft_do_chain_bridge,
++		[NF_BR_FORWARD]		= nft_do_chain_bridge,
++		[NF_BR_LOCAL_OUT]	= nft_do_chain_bridge,
++		[NF_BR_POST_ROUTING]	= nft_do_chain_bridge,
++	},
+ };
  
- config NF_CONNTRACK_MARK
- 	bool  'Connection mark tracking support'
-@@ -1126,6 +1128,7 @@ config NETFILTER_XT_MATCH_CONNLIMIT
- 	tristate '"connlimit" match support'
- 	depends on NF_CONNTRACK
- 	depends on NETFILTER_ADVANCED
-+	select NETFILTER_CONNCOUNT
- 	---help---
- 	  This match allows you to match against the number of parallel
- 	  connections to a server per client IP address (or address block).
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index f78ed2470831..490a55e7166d 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -67,6 +67,8 @@ obj-$(CONFIG_NF_NAT_TFTP) += nf_nat_tftp.o
- # SYNPROXY
- obj-$(CONFIG_NETFILTER_SYNPROXY) += nf_synproxy_core.o
+ static void nf_br_saveroute(const struct sk_buff *skb,
+diff --git a/net/ipv4/netfilter/nf_tables_arp.c b/net/ipv4/netfilter/nf_tables_arp.c
+index 3090f639bd89..f84c17763f6f 100644
+--- a/net/ipv4/netfilter/nf_tables_arp.c
++++ b/net/ipv4/netfilter/nf_tables_arp.c
+@@ -31,10 +31,6 @@ static struct nft_af_info nft_af_arp __read_mostly = {
+ 	.family		= NFPROTO_ARP,
+ 	.nhooks		= NF_ARP_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
+-	.hooks		= {
+-		[NF_ARP_IN]		= nft_do_chain_arp,
+-		[NF_ARP_OUT]		= nft_do_chain_arp,
+-	},
+ };
  
-+obj-$(CONFIG_NETFILTER_CONNCOUNT) += nf_conncount.o
-+
- # generic packet duplication from netdev family
- obj-$(CONFIG_NF_DUP_NETDEV)	+= nf_dup_netdev.o
+ static int nf_tables_arp_init_net(struct net *net)
+@@ -72,6 +68,10 @@ static const struct nf_chain_type filter_arp = {
+ 	.owner		= THIS_MODULE,
+ 	.hook_mask	= (1 << NF_ARP_IN) |
+ 			  (1 << NF_ARP_OUT),
++	.hooks		= {
++		[NF_ARP_IN]		= nft_do_chain_arp,
++		[NF_ARP_OUT]		= nft_do_chain_arp,
++	},
+ };
  
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-new file mode 100644
-index 000000000000..a95518261168
---- /dev/null
-+++ b/net/netfilter/nf_conncount.c
-@@ -0,0 +1,373 @@
-+/*
-+ * count the number of connections matching an arbitrary key.
-+ *
-+ * (C) 2017 Red Hat GmbH
-+ * Author: Florian Westphal <fw@strlen.de>
-+ *
-+ * split from xt_connlimit.c:
-+ *   (c) 2000 Gerd Knorr <kraxel@bytesex.org>
-+ *   Nov 2002: Martin Bene <martin.bene@icomedias.com>:
-+ *		only ignore TIME_WAIT or gone connections
-+ *   (C) CC Computer Consultants GmbH, 2007
-+ */
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/in.h>
-+#include <linux/in6.h>
-+#include <linux/ip.h>
-+#include <linux/ipv6.h>
-+#include <linux/jhash.h>
-+#include <linux/slab.h>
-+#include <linux/list.h>
-+#include <linux/rbtree.h>
-+#include <linux/module.h>
-+#include <linux/random.h>
-+#include <linux/skbuff.h>
-+#include <linux/spinlock.h>
-+#include <linux/netfilter/nf_conntrack_tcp.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_conntrack_count.h>
-+#include <net/netfilter/nf_conntrack_core.h>
-+#include <net/netfilter/nf_conntrack_tuple.h>
-+#include <net/netfilter/nf_conntrack_zones.h>
-+
-+#define CONNCOUNT_SLOTS		256U
-+
-+#ifdef CONFIG_LOCKDEP
-+#define CONNCOUNT_LOCK_SLOTS	8U
-+#else
-+#define CONNCOUNT_LOCK_SLOTS	256U
-+#endif
-+
-+#define CONNCOUNT_GC_MAX_NODES	8
-+#define MAX_KEYLEN		5
-+
-+/* we will save the tuples of all connections we care about */
-+struct nf_conncount_tuple {
-+	struct hlist_node		node;
-+	struct nf_conntrack_tuple	tuple;
-+};
-+
-+struct nf_conncount_rb {
-+	struct rb_node node;
-+	struct hlist_head hhead; /* connections/hosts in same subnet */
-+	u32 key[MAX_KEYLEN];
-+};
-+
-+static spinlock_t nf_conncount_locks[CONNCOUNT_LOCK_SLOTS] __cacheline_aligned_in_smp;
-+
-+struct nf_conncount_data {
-+	unsigned int keylen;
-+	struct rb_root root[CONNCOUNT_SLOTS];
-+};
-+
-+static u_int32_t conncount_rnd __read_mostly;
-+static struct kmem_cache *conncount_rb_cachep __read_mostly;
-+static struct kmem_cache *conncount_conn_cachep __read_mostly;
-+
-+static inline bool already_closed(const struct nf_conn *conn)
-+{
-+	if (nf_ct_protonum(conn) == IPPROTO_TCP)
-+		return conn->proto.tcp.state == TCP_CONNTRACK_TIME_WAIT ||
-+		       conn->proto.tcp.state == TCP_CONNTRACK_CLOSE;
-+	else
-+		return 0;
-+}
-+
-+static int key_diff(const u32 *a, const u32 *b, unsigned int klen)
-+{
-+	return memcmp(a, b, klen * sizeof(u32));
-+}
-+
-+static bool add_hlist(struct hlist_head *head,
-+		      const struct nf_conntrack_tuple *tuple)
-+{
-+	struct nf_conncount_tuple *conn;
-+
-+	conn = kmem_cache_alloc(conncount_conn_cachep, GFP_ATOMIC);
-+	if (conn == NULL)
-+		return false;
-+	conn->tuple = *tuple;
-+	hlist_add_head(&conn->node, head);
-+	return true;
-+}
-+
-+static unsigned int check_hlist(struct net *net,
-+				struct hlist_head *head,
-+				const struct nf_conntrack_tuple *tuple,
-+				const struct nf_conntrack_zone *zone,
-+				bool *addit)
-+{
-+	const struct nf_conntrack_tuple_hash *found;
-+	struct nf_conncount_tuple *conn;
-+	struct hlist_node *n;
-+	struct nf_conn *found_ct;
-+	unsigned int length = 0;
-+
-+	*addit = true;
-+
-+	/* check the saved connections */
-+	hlist_for_each_entry_safe(conn, n, head, node) {
-+		found = nf_conntrack_find_get(net, zone, &conn->tuple);
-+		if (found == NULL) {
-+			hlist_del(&conn->node);
-+			kmem_cache_free(conncount_conn_cachep, conn);
-+			continue;
-+		}
-+
-+		found_ct = nf_ct_tuplehash_to_ctrack(found);
-+
-+		if (nf_ct_tuple_equal(&conn->tuple, tuple)) {
-+			/*
-+			 * Just to be sure we have it only once in the list.
-+			 * We should not see tuples twice unless someone hooks
-+			 * this into a table without "-p tcp --syn".
-+			 */
-+			*addit = false;
-+		} else if (already_closed(found_ct)) {
-+			/*
-+			 * we do not care about connections which are
-+			 * closed already -> ditch it
-+			 */
-+			nf_ct_put(found_ct);
-+			hlist_del(&conn->node);
-+			kmem_cache_free(conncount_conn_cachep, conn);
-+			continue;
-+		}
-+
-+		nf_ct_put(found_ct);
-+		length++;
-+	}
-+
-+	return length;
-+}
-+
-+static void tree_nodes_free(struct rb_root *root,
-+			    struct nf_conncount_rb *gc_nodes[],
-+			    unsigned int gc_count)
-+{
-+	struct nf_conncount_rb *rbconn;
-+
-+	while (gc_count) {
-+		rbconn = gc_nodes[--gc_count];
-+		rb_erase(&rbconn->node, root);
-+		kmem_cache_free(conncount_rb_cachep, rbconn);
-+	}
-+}
-+
-+static unsigned int
-+count_tree(struct net *net, struct rb_root *root,
-+	   const u32 *key, u8 keylen,
-+	   u8 family,
-+	   const struct nf_conntrack_tuple *tuple,
-+	   const struct nf_conntrack_zone *zone)
-+{
-+	struct nf_conncount_rb *gc_nodes[CONNCOUNT_GC_MAX_NODES];
-+	struct rb_node **rbnode, *parent;
-+	struct nf_conncount_rb *rbconn;
-+	struct nf_conncount_tuple *conn;
-+	unsigned int gc_count;
-+	bool no_gc = false;
-+
-+ restart:
-+	gc_count = 0;
-+	parent = NULL;
-+	rbnode = &(root->rb_node);
-+	while (*rbnode) {
-+		int diff;
-+		bool addit;
-+
-+		rbconn = rb_entry(*rbnode, struct nf_conncount_rb, node);
-+
-+		parent = *rbnode;
-+		diff = key_diff(key, rbconn->key, keylen);
-+		if (diff < 0) {
-+			rbnode = &((*rbnode)->rb_left);
-+		} else if (diff > 0) {
-+			rbnode = &((*rbnode)->rb_right);
-+		} else {
-+			/* same source network -> be counted! */
-+			unsigned int count;
-+			count = check_hlist(net, &rbconn->hhead, tuple, zone, &addit);
-+
-+			tree_nodes_free(root, gc_nodes, gc_count);
-+			if (!addit)
-+				return count;
-+
-+			if (!add_hlist(&rbconn->hhead, tuple))
-+				return 0; /* hotdrop */
-+
-+			return count + 1;
-+		}
-+
-+		if (no_gc || gc_count >= ARRAY_SIZE(gc_nodes))
-+			continue;
-+
-+		/* only used for GC on hhead, retval and 'addit' ignored */
-+		check_hlist(net, &rbconn->hhead, tuple, zone, &addit);
-+		if (hlist_empty(&rbconn->hhead))
-+			gc_nodes[gc_count++] = rbconn;
-+	}
-+
-+	if (gc_count) {
-+		no_gc = true;
-+		tree_nodes_free(root, gc_nodes, gc_count);
-+		/* tree_node_free before new allocation permits
-+		 * allocator to re-use newly free'd object.
-+		 *
-+		 * This is a rare event; in most cases we will find
-+		 * existing node to re-use. (or gc_count is 0).
-+		 */
-+		goto restart;
-+	}
-+
-+	/* no match, need to insert new node */
-+	rbconn = kmem_cache_alloc(conncount_rb_cachep, GFP_ATOMIC);
-+	if (rbconn == NULL)
-+		return 0;
-+
-+	conn = kmem_cache_alloc(conncount_conn_cachep, GFP_ATOMIC);
-+	if (conn == NULL) {
-+		kmem_cache_free(conncount_rb_cachep, rbconn);
-+		return 0;
-+	}
-+
-+	conn->tuple = *tuple;
-+	memcpy(rbconn->key, key, sizeof(u32) * keylen);
-+
-+	INIT_HLIST_HEAD(&rbconn->hhead);
-+	hlist_add_head(&conn->node, &rbconn->hhead);
-+
-+	rb_link_node(&rbconn->node, parent, rbnode);
-+	rb_insert_color(&rbconn->node, root);
-+	return 1;
-+}
-+
-+unsigned int nf_conncount_count(struct net *net,
-+				struct nf_conncount_data *data,
-+				const u32 *key,
-+				unsigned int family,
-+				const struct nf_conntrack_tuple *tuple,
-+				const struct nf_conntrack_zone *zone)
-+{
-+	struct rb_root *root;
-+	int count;
-+	u32 hash;
-+
-+	hash = jhash2(key, data->keylen, conncount_rnd) % CONNCOUNT_SLOTS;
-+	root = &data->root[hash];
-+
-+	spin_lock_bh(&nf_conncount_locks[hash % CONNCOUNT_LOCK_SLOTS]);
-+
-+	count = count_tree(net, root, key, data->keylen, family, tuple, zone);
-+
-+	spin_unlock_bh(&nf_conncount_locks[hash % CONNCOUNT_LOCK_SLOTS]);
-+
-+	return count;
-+}
-+EXPORT_SYMBOL_GPL(nf_conncount_count);
-+
-+struct nf_conncount_data *nf_conncount_init(struct net *net, unsigned int family,
-+					    unsigned int keylen)
-+{
-+	struct nf_conncount_data *data;
-+	int ret, i;
-+
-+	if (keylen % sizeof(u32) ||
-+	    keylen / sizeof(u32) > MAX_KEYLEN ||
-+	    keylen == 0)
-+		return ERR_PTR(-EINVAL);
-+
-+	net_get_random_once(&conncount_rnd, sizeof(conncount_rnd));
-+
-+	data = kmalloc(sizeof(*data), GFP_KERNEL);
-+	if (!data)
-+		return ERR_PTR(-ENOMEM);
-+
-+	ret = nf_ct_netns_get(net, family);
-+	if (ret < 0) {
-+		kfree(data);
-+		return ERR_PTR(ret);
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(data->root); ++i)
-+		data->root[i] = RB_ROOT;
-+
-+	data->keylen = keylen / sizeof(u32);
-+
-+	return data;
-+}
-+EXPORT_SYMBOL_GPL(nf_conncount_init);
-+
-+static void destroy_tree(struct rb_root *r)
-+{
-+	struct nf_conncount_tuple *conn;
-+	struct nf_conncount_rb *rbconn;
-+	struct hlist_node *n;
-+	struct rb_node *node;
-+
-+	while ((node = rb_first(r)) != NULL) {
-+		rbconn = rb_entry(node, struct nf_conncount_rb, node);
-+
-+		rb_erase(node, r);
-+
-+		hlist_for_each_entry_safe(conn, n, &rbconn->hhead, node)
-+			kmem_cache_free(conncount_conn_cachep, conn);
-+
-+		kmem_cache_free(conncount_rb_cachep, rbconn);
-+	}
-+}
-+
-+void nf_conncount_destroy(struct net *net, unsigned int family,
-+			  struct nf_conncount_data *data)
-+{
-+	unsigned int i;
-+
-+	nf_ct_netns_put(net, family);
-+
-+	for (i = 0; i < ARRAY_SIZE(data->root); ++i)
-+		destroy_tree(&data->root[i]);
-+
-+	kfree(data);
-+}
-+EXPORT_SYMBOL_GPL(nf_conncount_destroy);
-+
-+static int __init nf_conncount_modinit(void)
-+{
-+	int i;
-+
-+	BUILD_BUG_ON(CONNCOUNT_LOCK_SLOTS > CONNCOUNT_SLOTS);
-+	BUILD_BUG_ON((CONNCOUNT_SLOTS % CONNCOUNT_LOCK_SLOTS) != 0);
-+
-+	for (i = 0; i < CONNCOUNT_LOCK_SLOTS; ++i)
-+		spin_lock_init(&nf_conncount_locks[i]);
-+
-+	conncount_conn_cachep = kmem_cache_create("nf_conncount_tuple",
-+					   sizeof(struct nf_conncount_tuple),
-+					   0, 0, NULL);
-+	if (!conncount_conn_cachep)
-+		return -ENOMEM;
-+
-+	conncount_rb_cachep = kmem_cache_create("nf_conncount_rb",
-+					   sizeof(struct nf_conncount_rb),
-+					   0, 0, NULL);
-+	if (!conncount_rb_cachep) {
-+		kmem_cache_destroy(conncount_conn_cachep);
-+		return -ENOMEM;
-+	}
-+
-+	return 0;
-+}
-+
-+static void __exit nf_conncount_modexit(void)
-+{
-+	kmem_cache_destroy(conncount_conn_cachep);
-+	kmem_cache_destroy(conncount_rb_cachep);
-+}
-+
-+module_init(nf_conncount_modinit);
-+module_exit(nf_conncount_modexit);
-+MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
-+MODULE_AUTHOR("Florian Westphal <fw@strlen.de>");
-+MODULE_DESCRIPTION("netfilter: count number of connections matching a key");
-+MODULE_LICENSE("GPL");
-diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index a6214f235333..b1b17b9353e1 100644
---- a/net/netfilter/xt_connlimit.c
-+++ b/net/netfilter/xt_connlimit.c
-@@ -12,292 +12,30 @@
-  * GPL (C) 1999  Rusty Russell (rusty@rustcorp.com.au).
-  */
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--#include <linux/in.h>
--#include <linux/in6.h>
--#include <linux/ip.h>
--#include <linux/ipv6.h>
--#include <linux/jhash.h>
--#include <linux/slab.h>
--#include <linux/list.h>
--#include <linux/rbtree.h>
-+
- #include <linux/module.h>
--#include <linux/random.h>
- #include <linux/skbuff.h>
--#include <linux/spinlock.h>
--#include <linux/netfilter/nf_conntrack_tcp.h>
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_connlimit.h>
-+
- #include <net/netfilter/nf_conntrack.h>
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/nf_conntrack_tuple.h>
- #include <net/netfilter/nf_conntrack_zones.h>
--
--#define CONNLIMIT_SLOTS		256U
--
--#ifdef CONFIG_LOCKDEP
--#define CONNLIMIT_LOCK_SLOTS	8U
--#else
--#define CONNLIMIT_LOCK_SLOTS	256U
--#endif
--
--#define CONNLIMIT_GC_MAX_NODES	8
--
--/* we will save the tuples of all connections we care about */
--struct xt_connlimit_conn {
--	struct hlist_node		node;
--	struct nf_conntrack_tuple	tuple;
--};
--
--struct xt_connlimit_rb {
--	struct rb_node node;
--	struct hlist_head hhead; /* connections/hosts in same subnet */
--	union nf_inet_addr addr; /* search key */
--};
--
--static spinlock_t xt_connlimit_locks[CONNLIMIT_LOCK_SLOTS] __cacheline_aligned_in_smp;
--
--struct xt_connlimit_data {
--	struct rb_root climit_root[CONNLIMIT_SLOTS];
--};
--
--static u_int32_t connlimit_rnd __read_mostly;
--static struct kmem_cache *connlimit_rb_cachep __read_mostly;
--static struct kmem_cache *connlimit_conn_cachep __read_mostly;
--
--static inline unsigned int connlimit_iphash(__be32 addr)
--{
--	return jhash_1word((__force __u32)addr,
--			    connlimit_rnd) % CONNLIMIT_SLOTS;
--}
--
--static inline unsigned int
--connlimit_iphash6(const union nf_inet_addr *addr)
--{
--	return jhash2((u32 *)addr->ip6, ARRAY_SIZE(addr->ip6),
--		       connlimit_rnd) % CONNLIMIT_SLOTS;
--}
--
--static inline bool already_closed(const struct nf_conn *conn)
--{
--	if (nf_ct_protonum(conn) == IPPROTO_TCP)
--		return conn->proto.tcp.state == TCP_CONNTRACK_TIME_WAIT ||
--		       conn->proto.tcp.state == TCP_CONNTRACK_CLOSE;
--	else
--		return 0;
--}
--
--static int
--same_source(const union nf_inet_addr *addr,
--	    const union nf_inet_addr *u3, u_int8_t family)
--{
--	if (family == NFPROTO_IPV4)
--		return ntohl(addr->ip) - ntohl(u3->ip);
--
--	return memcmp(addr->ip6, u3->ip6, sizeof(addr->ip6));
--}
--
--static bool add_hlist(struct hlist_head *head,
--		      const struct nf_conntrack_tuple *tuple,
--		      const union nf_inet_addr *addr)
--{
--	struct xt_connlimit_conn *conn;
--
--	conn = kmem_cache_alloc(connlimit_conn_cachep, GFP_ATOMIC);
--	if (conn == NULL)
--		return false;
--	conn->tuple = *tuple;
--	hlist_add_head(&conn->node, head);
--	return true;
--}
--
--static unsigned int check_hlist(struct net *net,
--				struct hlist_head *head,
--				const struct nf_conntrack_tuple *tuple,
--				const struct nf_conntrack_zone *zone,
--				bool *addit)
--{
--	const struct nf_conntrack_tuple_hash *found;
--	struct xt_connlimit_conn *conn;
--	struct hlist_node *n;
--	struct nf_conn *found_ct;
--	unsigned int length = 0;
--
--	*addit = true;
--
--	/* check the saved connections */
--	hlist_for_each_entry_safe(conn, n, head, node) {
--		found = nf_conntrack_find_get(net, zone, &conn->tuple);
--		if (found == NULL) {
--			hlist_del(&conn->node);
--			kmem_cache_free(connlimit_conn_cachep, conn);
--			continue;
--		}
--
--		found_ct = nf_ct_tuplehash_to_ctrack(found);
--
--		if (nf_ct_tuple_equal(&conn->tuple, tuple)) {
--			/*
--			 * Just to be sure we have it only once in the list.
--			 * We should not see tuples twice unless someone hooks
--			 * this into a table without "-p tcp --syn".
--			 */
--			*addit = false;
--		} else if (already_closed(found_ct)) {
--			/*
--			 * we do not care about connections which are
--			 * closed already -> ditch it
--			 */
--			nf_ct_put(found_ct);
--			hlist_del(&conn->node);
--			kmem_cache_free(connlimit_conn_cachep, conn);
--			continue;
--		}
--
--		nf_ct_put(found_ct);
--		length++;
--	}
--
--	return length;
--}
--
--static void tree_nodes_free(struct rb_root *root,
--			    struct xt_connlimit_rb *gc_nodes[],
--			    unsigned int gc_count)
--{
--	struct xt_connlimit_rb *rbconn;
--
--	while (gc_count) {
--		rbconn = gc_nodes[--gc_count];
--		rb_erase(&rbconn->node, root);
--		kmem_cache_free(connlimit_rb_cachep, rbconn);
--	}
--}
--
--static unsigned int
--count_tree(struct net *net, struct rb_root *root,
--	   const struct nf_conntrack_tuple *tuple,
--	   const union nf_inet_addr *addr,
--	   u8 family, const struct nf_conntrack_zone *zone)
--{
--	struct xt_connlimit_rb *gc_nodes[CONNLIMIT_GC_MAX_NODES];
--	struct rb_node **rbnode, *parent;
--	struct xt_connlimit_rb *rbconn;
--	struct xt_connlimit_conn *conn;
--	unsigned int gc_count;
--	bool no_gc = false;
--
-- restart:
--	gc_count = 0;
--	parent = NULL;
--	rbnode = &(root->rb_node);
--	while (*rbnode) {
--		int diff;
--		bool addit;
--
--		rbconn = rb_entry(*rbnode, struct xt_connlimit_rb, node);
--
--		parent = *rbnode;
--		diff = same_source(addr, &rbconn->addr, family);
--		if (diff < 0) {
--			rbnode = &((*rbnode)->rb_left);
--		} else if (diff > 0) {
--			rbnode = &((*rbnode)->rb_right);
--		} else {
--			/* same source network -> be counted! */
--			unsigned int count;
--			count = check_hlist(net, &rbconn->hhead, tuple, zone, &addit);
--
--			tree_nodes_free(root, gc_nodes, gc_count);
--			if (!addit)
--				return count;
--
--			if (!add_hlist(&rbconn->hhead, tuple, addr))
--				return 0; /* hotdrop */
--
--			return count + 1;
--		}
--
--		if (no_gc || gc_count >= ARRAY_SIZE(gc_nodes))
--			continue;
--
--		/* only used for GC on hhead, retval and 'addit' ignored */
--		check_hlist(net, &rbconn->hhead, tuple, zone, &addit);
--		if (hlist_empty(&rbconn->hhead))
--			gc_nodes[gc_count++] = rbconn;
--	}
--
--	if (gc_count) {
--		no_gc = true;
--		tree_nodes_free(root, gc_nodes, gc_count);
--		/* tree_node_free before new allocation permits
--		 * allocator to re-use newly free'd object.
--		 *
--		 * This is a rare event; in most cases we will find
--		 * existing node to re-use. (or gc_count is 0).
--		 */
--		goto restart;
--	}
--
--	/* no match, need to insert new node */
--	rbconn = kmem_cache_alloc(connlimit_rb_cachep, GFP_ATOMIC);
--	if (rbconn == NULL)
--		return 0;
--
--	conn = kmem_cache_alloc(connlimit_conn_cachep, GFP_ATOMIC);
--	if (conn == NULL) {
--		kmem_cache_free(connlimit_rb_cachep, rbconn);
--		return 0;
--	}
--
--	conn->tuple = *tuple;
--	rbconn->addr = *addr;
--
--	INIT_HLIST_HEAD(&rbconn->hhead);
--	hlist_add_head(&conn->node, &rbconn->hhead);
--
--	rb_link_node(&rbconn->node, parent, rbnode);
--	rb_insert_color(&rbconn->node, root);
--	return 1;
--}
--
--static int count_them(struct net *net,
--		      struct xt_connlimit_data *data,
--		      const struct nf_conntrack_tuple *tuple,
--		      const union nf_inet_addr *addr,
--		      u_int8_t family,
--		      const struct nf_conntrack_zone *zone)
--{
--	struct rb_root *root;
--	int count;
--	u32 hash;
--
--	if (family == NFPROTO_IPV6)
--		hash = connlimit_iphash6(addr);
--	else
--		hash = connlimit_iphash(addr->ip);
--	root = &data->climit_root[hash];
--
--	spin_lock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
--
--	count = count_tree(net, root, tuple, addr, family, zone);
--
--	spin_unlock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
--
--	return count;
--}
-+#include <net/netfilter/nf_conntrack_count.h>
+ static int __init nf_tables_arp_init(void)
+diff --git a/net/ipv4/netfilter/nf_tables_ipv4.c b/net/ipv4/netfilter/nf_tables_ipv4.c
+index 51b363abd541..8aeb15c2b9b2 100644
+--- a/net/ipv4/netfilter/nf_tables_ipv4.c
++++ b/net/ipv4/netfilter/nf_tables_ipv4.c
+@@ -49,13 +49,6 @@ static struct nft_af_info nft_af_ipv4 __read_mostly = {
+ 	.family		= NFPROTO_IPV4,
+ 	.nhooks		= NF_INET_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
+-	.hooks		= {
+-		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv4,
+-		[NF_INET_LOCAL_OUT]	= nft_ipv4_output,
+-		[NF_INET_FORWARD]	= nft_do_chain_ipv4,
+-		[NF_INET_PRE_ROUTING]	= nft_do_chain_ipv4,
+-		[NF_INET_POST_ROUTING]	= nft_do_chain_ipv4,
+-	},
+ };
  
- static bool
- connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	struct net *net = xt_net(par);
- 	const struct xt_connlimit_info *info = par->matchinfo;
--	union nf_inet_addr addr;
- 	struct nf_conntrack_tuple tuple;
- 	const struct nf_conntrack_tuple *tuple_ptr = &tuple;
- 	const struct nf_conntrack_zone *zone = &nf_ct_zone_dflt;
- 	enum ip_conntrack_info ctinfo;
- 	const struct nf_conn *ct;
- 	unsigned int connections;
-+	u32 key[5];
+ static int nf_tables_ipv4_init_net(struct net *net)
+@@ -96,6 +89,13 @@ static const struct nf_chain_type filter_ipv4 = {
+ 			  (1 << NF_INET_FORWARD) |
+ 			  (1 << NF_INET_PRE_ROUTING) |
+ 			  (1 << NF_INET_POST_ROUTING),
++	.hooks		= {
++		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv4,
++		[NF_INET_LOCAL_OUT]	= nft_ipv4_output,
++		[NF_INET_FORWARD]	= nft_do_chain_ipv4,
++		[NF_INET_PRE_ROUTING]	= nft_do_chain_ipv4,
++		[NF_INET_POST_ROUTING]	= nft_do_chain_ipv4,
++	},
+ };
  
- 	ct = nf_ct_get(skb, &ctinfo);
- 	if (ct != NULL) {
-@@ -310,6 +48,7 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ static int __init nf_tables_ipv4_init(void)
+diff --git a/net/ipv6/netfilter/nf_tables_ipv6.c b/net/ipv6/netfilter/nf_tables_ipv6.c
+index 78d34a2f3347..d4c9ef030e4f 100644
+--- a/net/ipv6/netfilter/nf_tables_ipv6.c
++++ b/net/ipv6/netfilter/nf_tables_ipv6.c
+@@ -46,13 +46,6 @@ static struct nft_af_info nft_af_ipv6 __read_mostly = {
+ 	.family		= NFPROTO_IPV6,
+ 	.nhooks		= NF_INET_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
+-	.hooks		= {
+-		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv6,
+-		[NF_INET_LOCAL_OUT]	= nft_ipv6_output,
+-		[NF_INET_FORWARD]	= nft_do_chain_ipv6,
+-		[NF_INET_PRE_ROUTING]	= nft_do_chain_ipv6,
+-		[NF_INET_POST_ROUTING]	= nft_do_chain_ipv6,
+-	},
+ };
  
- 	if (xt_family(par) == NFPROTO_IPV6) {
- 		const struct ipv6hdr *iph = ipv6_hdr(skb);
-+		union nf_inet_addr addr;
- 		unsigned int i;
+ static int nf_tables_ipv6_init_net(struct net *net)
+@@ -93,6 +86,13 @@ static const struct nf_chain_type filter_ipv6 = {
+ 			  (1 << NF_INET_FORWARD) |
+ 			  (1 << NF_INET_PRE_ROUTING) |
+ 			  (1 << NF_INET_POST_ROUTING),
++	.hooks		= {
++		[NF_INET_LOCAL_IN]	= nft_do_chain_ipv6,
++		[NF_INET_LOCAL_OUT]	= nft_ipv6_output,
++		[NF_INET_FORWARD]	= nft_do_chain_ipv6,
++		[NF_INET_PRE_ROUTING]	= nft_do_chain_ipv6,
++		[NF_INET_POST_ROUTING]	= nft_do_chain_ipv6,
++	},
+ };
  
- 		memcpy(&addr.ip6, (info->flags & XT_CONNLIMIT_DADDR) ?
-@@ -317,22 +56,24 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ static int __init nf_tables_ipv6_init(void)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 06fae437c9cb..15773a3189ce 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1357,7 +1357,6 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 	if (nla[NFTA_CHAIN_HOOK]) {
+ 		struct nft_chain_hook hook;
+ 		struct nf_hook_ops *ops;
+-		nf_hookfn *hookfn;
  
- 		for (i = 0; i < ARRAY_SIZE(addr.ip6); ++i)
- 			addr.ip6[i] &= info->mask.ip6[i];
-+		memcpy(key, &addr, sizeof(addr.ip6));
-+		key[4] = zone->id;
- 	} else {
- 		const struct iphdr *iph = ip_hdr(skb);
--		addr.ip = (info->flags & XT_CONNLIMIT_DADDR) ?
-+		key[0] = (info->flags & XT_CONNLIMIT_DADDR) ?
- 			  iph->daddr : iph->saddr;
+ 		err = nft_chain_parse_hook(net, nla, afi, &hook, create);
+ 		if (err < 0)
+@@ -1383,7 +1382,6 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 			static_branch_inc(&nft_counters_enabled);
+ 		}
  
--		addr.ip &= info->mask.ip;
-+		key[0] &= info->mask.ip;
-+		key[1] = zone->id;
- 	}
+-		hookfn = hook.type->hooks[hook.num];
+ 		basechain->type = hook.type;
+ 		chain = &basechain->chain;
  
--	connections = count_them(net, info->data, tuple_ptr, &addr,
--				 xt_family(par), zone);
-+	connections = nf_conncount_count(net, info->data, key,
-+					 xt_family(par), tuple_ptr, zone);
- 	if (connections == 0)
- 		/* kmalloc failed, drop it entirely */
- 		goto hotdrop;
+@@ -1392,10 +1390,8 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 		ops->hooknum	= hook.num;
+ 		ops->priority	= hook.priority;
+ 		ops->priv	= chain;
+-		ops->hook	= afi->hooks[ops->hooknum];
++		ops->hook	= hook.type->hooks[ops->hooknum];
+ 		ops->dev	= hook.dev;
+-		if (hookfn)
+-			ops->hook = hookfn;
  
--	return (connections > info->limit) ^
--	       !!(info->flags & XT_CONNLIMIT_INVERT);
-+	return (connections > info->limit) ^ !!(info->flags & XT_CONNLIMIT_INVERT);
+ 		if (basechain->type->type == NFT_CHAIN_T_NAT)
+ 			ops->nat_hook = true;
+diff --git a/net/netfilter/nf_tables_inet.c b/net/netfilter/nf_tables_inet.c
+index edd7829a5753..313987e2b1fe 100644
+--- a/net/netfilter/nf_tables_inet.c
++++ b/net/netfilter/nf_tables_inet.c
+@@ -74,13 +74,6 @@ static struct nft_af_info nft_af_inet __read_mostly = {
+ 	.family		= NFPROTO_INET,
+ 	.nhooks		= NF_INET_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
+-	.hooks		= {
+-		[NF_INET_LOCAL_IN]	= nft_do_chain_inet,
+-		[NF_INET_LOCAL_OUT]	= nft_inet_output,
+-		[NF_INET_FORWARD]	= nft_do_chain_inet,
+-		[NF_INET_PRE_ROUTING]	= nft_do_chain_inet,
+-		[NF_INET_POST_ROUTING]	= nft_do_chain_inet,
+-        },
+ };
  
-  hotdrop:
- 	par->hotdrop = true;
-@@ -342,61 +83,27 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
- static int connlimit_mt_check(const struct xt_mtchk_param *par)
- {
- 	struct xt_connlimit_info *info = par->matchinfo;
--	unsigned int i;
--	int ret;
-+	unsigned int keylen;
+ static int __net_init nf_tables_inet_init_net(struct net *net)
+@@ -121,6 +114,13 @@ static const struct nf_chain_type filter_inet = {
+ 			  (1 << NF_INET_FORWARD) |
+ 			  (1 << NF_INET_PRE_ROUTING) |
+ 			  (1 << NF_INET_POST_ROUTING),
++	.hooks		= {
++		[NF_INET_LOCAL_IN]	= nft_do_chain_inet,
++		[NF_INET_LOCAL_OUT]	= nft_inet_output,
++		[NF_INET_FORWARD]	= nft_do_chain_inet,
++		[NF_INET_PRE_ROUTING]	= nft_do_chain_inet,
++		[NF_INET_POST_ROUTING]	= nft_do_chain_inet,
++        },
+ };
  
--	net_get_random_once(&connlimit_rnd, sizeof(connlimit_rnd));
--
--	ret = nf_ct_netns_get(par->net, par->family);
--	if (ret < 0) {
--		pr_info("cannot load conntrack support for "
--			"address family %u\n", par->family);
--		return ret;
--	}
-+	keylen = sizeof(u32);
-+	if (par->family == NFPROTO_IPV6)
-+		keylen += sizeof(struct in6_addr);
-+	else
-+		keylen += sizeof(struct in_addr);
+ static int __init nf_tables_inet_init(void)
+diff --git a/net/netfilter/nf_tables_netdev.c b/net/netfilter/nf_tables_netdev.c
+index 018e2c5b4a49..42f6f6d42a6d 100644
+--- a/net/netfilter/nf_tables_netdev.c
++++ b/net/netfilter/nf_tables_netdev.c
+@@ -43,9 +43,6 @@ static struct nft_af_info nft_af_netdev __read_mostly = {
+ 	.nhooks		= NF_NETDEV_NUMHOOKS,
+ 	.owner		= THIS_MODULE,
+ 	.flags		= NFT_AF_NEEDS_DEV,
+-	.hooks		= {
+-		[NF_NETDEV_INGRESS]	= nft_do_chain_netdev,
+-	},
+ };
  
- 	/* init private data */
--	info->data = kmalloc(sizeof(struct xt_connlimit_data), GFP_KERNEL);
--	if (info->data == NULL) {
--		nf_ct_netns_put(par->net, par->family);
--		return -ENOMEM;
--	}
--
--	for (i = 0; i < ARRAY_SIZE(info->data->climit_root); ++i)
--		info->data->climit_root[i] = RB_ROOT;
-+	info->data = nf_conncount_init(par->net, par->family, keylen);
-+	if (IS_ERR(info->data))
-+		return PTR_ERR(info->data);
+ static int nf_tables_netdev_init_net(struct net *net)
+@@ -82,6 +79,9 @@ static const struct nf_chain_type nft_filter_chain_netdev = {
+ 	.family		= NFPROTO_NETDEV,
+ 	.owner		= THIS_MODULE,
+ 	.hook_mask	= (1 << NF_NETDEV_INGRESS),
++	.hooks		= {
++		[NF_NETDEV_INGRESS]	= nft_do_chain_netdev,
++	},
+ };
  
- 	return 0;
- }
- 
--static void destroy_tree(struct rb_root *r)
--{
--	struct xt_connlimit_conn *conn;
--	struct xt_connlimit_rb *rbconn;
--	struct hlist_node *n;
--	struct rb_node *node;
--
--	while ((node = rb_first(r)) != NULL) {
--		rbconn = rb_entry(node, struct xt_connlimit_rb, node);
--
--		rb_erase(node, r);
--
--		hlist_for_each_entry_safe(conn, n, &rbconn->hhead, node)
--			kmem_cache_free(connlimit_conn_cachep, conn);
--
--		kmem_cache_free(connlimit_rb_cachep, rbconn);
--	}
--}
--
- static void connlimit_mt_destroy(const struct xt_mtdtor_param *par)
- {
- 	const struct xt_connlimit_info *info = par->matchinfo;
--	unsigned int i;
--
--	nf_ct_netns_put(par->net, par->family);
--
--	for (i = 0; i < ARRAY_SIZE(info->data->climit_root); ++i)
--		destroy_tree(&info->data->climit_root[i]);
- 
--	kfree(info->data);
-+	nf_conncount_destroy(par->net, par->family, info->data);
- }
- 
- static struct xt_match connlimit_mt_reg __read_mostly = {
-@@ -413,40 +120,12 @@ static struct xt_match connlimit_mt_reg __read_mostly = {
- 
- static int __init connlimit_mt_init(void)
- {
--	int ret, i;
--
--	BUILD_BUG_ON(CONNLIMIT_LOCK_SLOTS > CONNLIMIT_SLOTS);
--	BUILD_BUG_ON((CONNLIMIT_SLOTS % CONNLIMIT_LOCK_SLOTS) != 0);
--
--	for (i = 0; i < CONNLIMIT_LOCK_SLOTS; ++i)
--		spin_lock_init(&xt_connlimit_locks[i]);
--
--	connlimit_conn_cachep = kmem_cache_create("xt_connlimit_conn",
--					   sizeof(struct xt_connlimit_conn),
--					   0, 0, NULL);
--	if (!connlimit_conn_cachep)
--		return -ENOMEM;
--
--	connlimit_rb_cachep = kmem_cache_create("xt_connlimit_rb",
--					   sizeof(struct xt_connlimit_rb),
--					   0, 0, NULL);
--	if (!connlimit_rb_cachep) {
--		kmem_cache_destroy(connlimit_conn_cachep);
--		return -ENOMEM;
--	}
--	ret = xt_register_match(&connlimit_mt_reg);
--	if (ret != 0) {
--		kmem_cache_destroy(connlimit_conn_cachep);
--		kmem_cache_destroy(connlimit_rb_cachep);
--	}
--	return ret;
-+	return xt_register_match(&connlimit_mt_reg);
- }
- 
- static void __exit connlimit_mt_exit(void)
- {
- 	xt_unregister_match(&connlimit_mt_reg);
--	kmem_cache_destroy(connlimit_conn_cachep);
--	kmem_cache_destroy(connlimit_rb_cachep);
- }
- 
- module_init(connlimit_mt_init);
+ static void nft_netdev_event(unsigned long event, struct net_device *dev,
 -- 
 2.11.0
