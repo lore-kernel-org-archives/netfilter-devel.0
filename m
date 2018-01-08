@@ -1,195 +1,269 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 43/52] netfilter: nf_conntrack: add IPS_OFFLOAD status bit
-Date: Mon,  8 Jan 2018 21:19:51 +0100
-Message-ID: <20180108202000.12989-44-pablo@netfilter.org>
+Subject: [PATCH 37/52] netfilter: move reroute indirection to struct nf_ipv6_ops
+Date: Mon,  8 Jan 2018 21:19:45 +0100
+Message-ID: <20180108202000.12989-38-pablo@netfilter.org>
 References: <20180108202000.12989-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:42696 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757087AbeAHUUk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Jan 2018 15:20:40 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 6EF55E7B91
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:38 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5FF6F22019
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:38 +0100 (CET)
 In-Reply-To: <20180108202000.12989-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This new bit tells us that the conntrack entry is owned by the flow
-table offload infrastructure.
+We cannot make a direct call to nf_ip6_reroute() because that would result
+in autoloading the 'ipv6' module because of symbol dependencies.
+Therefore, define reroute indirection in nf_ipv6_ops where this really
+belongs to.
 
- # cat /proc/net/nf_conntrack
- ipv4     2 tcp      6 src=10.141.10.2 dst=147.75.205.195 sport=36392 dport=443 src=147.75.205.195 dst=192.168.2.195 sport=443 dport=36392 [OFFLOAD] mark=0 zone=0 use=2
-
-Note the [OFFLOAD] tag in the listing.
-
-The timer of such conntrack entries look like stopped from userspace.
-In practise, to make sure the conntrack entry does not go away, the
-conntrack timer is periodically set to an arbitrary large value that
-gets refreshed on every iteration from the garbage collector, so it
-never expires- and they display no internal state in the case of TCP
-flows. This allows us to save a bitcheck from the packet path via
-nf_ct_is_expired().
-
-Conntrack entries that have been offloaded to the flow table
-infrastructure cannot be deleted/flushed via ctnetlink. The flow table
-infrastructure is also responsible for releasing this conntrack entry.
+For IPv4, we can indeed make a direct function call, which is faster,
+given IPv4 is built-in in the networking code by default. Still,
+CONFIG_INET=n and CONFIG_NETFILTER=y is possible, so define empty inline
+stub for IPv4 in such case.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_conntrack_common.h |  6 +++++-
- net/netfilter/nf_conntrack_core.c                  | 20 ++++++++++++++++++++
- net/netfilter/nf_conntrack_netlink.c               | 15 ++++++++++++++-
- net/netfilter/nf_conntrack_proto_tcp.c             |  3 +++
- net/netfilter/nf_conntrack_standalone.c            | 12 ++++++++----
- 5 files changed, 50 insertions(+), 6 deletions(-)
+ include/linux/netfilter.h               |  3 +--
+ include/linux/netfilter_ipv4.h          |  8 ++++++++
+ include/linux/netfilter_ipv6.h          |  3 +++
+ net/bridge/netfilter/nf_tables_bridge.c |  7 -------
+ net/ipv4/netfilter.c                    |  8 ++++----
+ net/ipv6/netfilter.c                    |  6 +++---
+ net/netfilter/nf_queue.c                |  4 +---
+ net/netfilter/utils.c                   | 19 +++++++++++++++++++
+ 8 files changed, 39 insertions(+), 19 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
-index 3fea7709a441..fc8c15a24a43 100644
---- a/include/uapi/linux/netfilter/nf_conntrack_common.h
-+++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
-@@ -101,12 +101,16 @@ enum ip_conntrack_status {
- 	IPS_HELPER_BIT = 13,
- 	IPS_HELPER = (1 << IPS_HELPER_BIT),
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 02c35eabd348..8358e717eabd 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -311,8 +311,6 @@ struct nf_queue_entry;
  
-+	/* Conntrack has been offloaded to flow table. */
-+	IPS_OFFLOAD_BIT = 14,
-+	IPS_OFFLOAD = (1 << IPS_OFFLOAD_BIT),
-+
- 	/* Be careful here, modifying these bits can make things messy,
- 	 * so don't let users modify them directly.
- 	 */
- 	IPS_UNCHANGEABLE_MASK = (IPS_NAT_DONE_MASK | IPS_NAT_MASK |
- 				 IPS_EXPECTED | IPS_CONFIRMED | IPS_DYING |
--				 IPS_SEQ_ADJUST | IPS_TEMPLATE),
-+				 IPS_SEQ_ADJUST | IPS_TEMPLATE | IPS_OFFLOAD),
- 
- 	__IPS_MAX_BIT = 14,
+ struct nf_afinfo {
+ 	unsigned short	family;
+-	int		(*reroute)(struct net *net, struct sk_buff *skb,
+-				   const struct nf_queue_entry *entry);
+ 	int		route_key_size;
  };
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 85f643c1e227..6a64d528d076 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -901,6 +901,9 @@ static unsigned int early_drop_list(struct net *net,
- 	hlist_nulls_for_each_entry_rcu(h, n, head, hnnode) {
- 		tmp = nf_ct_tuplehash_to_ctrack(h);
  
-+		if (test_bit(IPS_OFFLOAD_BIT, &tmp->status))
-+			continue;
-+
- 		if (nf_ct_is_expired(tmp)) {
- 			nf_ct_gc_expired(tmp);
- 			continue;
-@@ -975,6 +978,18 @@ static bool gc_worker_can_early_drop(const struct nf_conn *ct)
- 	return false;
- }
+@@ -331,6 +329,7 @@ __sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ 			    u_int8_t protocol, unsigned short family);
+ int nf_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
+ 	     bool strict, unsigned short family);
++int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry);
  
-+#define	DAY	(86400 * HZ)
+ int nf_register_afinfo(const struct nf_afinfo *afinfo);
+ void nf_unregister_afinfo(const struct nf_afinfo *afinfo);
+diff --git a/include/linux/netfilter_ipv4.h b/include/linux/netfilter_ipv4.h
+index 2a4e2c415647..b31dabfdb453 100644
+--- a/include/linux/netfilter_ipv4.h
++++ b/include/linux/netfilter_ipv4.h
+@@ -18,6 +18,8 @@ struct ip_rt_info {
+ 
+ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned addr_type);
+ 
++struct nf_queue_entry;
 +
-+/* Set an arbitrary timeout large enough not to ever expire, this save
-+ * us a check for the IPS_OFFLOAD_BIT from the packet path via
-+ * nf_ct_is_expired().
-+ */
-+static void nf_ct_offload_timeout(struct nf_conn *ct)
-+{
-+	if (nf_ct_expires(ct) < DAY / 2)
-+		ct->timeout = nfct_time_stamp + DAY;
-+}
-+
- static void gc_worker(struct work_struct *work)
+ #ifdef CONFIG_INET
+ __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
+ 		       unsigned int dataoff, u_int8_t protocol);
+@@ -26,6 +28,7 @@ __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ 			       u_int8_t protocol);
+ int nf_ip_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
+ 		bool strict);
++int nf_ip_reroute(struct sk_buff *skb, const struct nf_queue_entry *entry);
+ #else
+ static inline __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
+ 				     unsigned int dataoff, u_int8_t protocol)
+@@ -45,6 +48,11 @@ static inline int nf_ip_route(struct net *net, struct dst_entry **dst,
  {
- 	unsigned int min_interval = max(HZ / GC_MAX_BUCKETS_DIV, 1u);
-@@ -1011,6 +1026,11 @@ static void gc_worker(struct work_struct *work)
- 			tmp = nf_ct_tuplehash_to_ctrack(h);
+ 	return -EOPNOTSUPP;
+ }
++static inline int nf_ip_reroute(struct sk_buff *skb,
++				const struct nf_queue_entry *entry)
++{
++	return -EOPNOTSUPP;
++}
+ #endif /* CONFIG_INET */
  
- 			scanned++;
-+			if (test_bit(IPS_OFFLOAD_BIT, &tmp->status)) {
-+				nf_ct_offload_timeout(tmp);
-+				continue;
-+			}
-+
- 			if (nf_ct_is_expired(tmp)) {
- 				nf_ct_gc_expired(tmp);
- 				expired_count++;
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 316bbdc4a158..7c7921a53b13 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1110,6 +1110,14 @@ static const struct nla_policy ct_nla_policy[CTA_MAX+1] = {
- 				    .len = NF_CT_LABELS_MAX_SIZE },
+ #endif /*__LINUX_IP_NETFILTER_H*/
+diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
+index e5700bb314a1..288c597e75b3 100644
+--- a/include/linux/netfilter_ipv6.h
++++ b/include/linux/netfilter_ipv6.h
+@@ -18,6 +18,8 @@ struct ip6_rt_info {
+ 	u_int32_t mark;
  };
  
-+static int ctnetlink_flush_iterate(struct nf_conn *ct, void *data)
-+{
-+	if (test_bit(IPS_OFFLOAD_BIT, &ct->status))
-+		return 0;
++struct nf_queue_entry;
 +
-+	return ctnetlink_filter_match(ct, data);
-+}
-+
- static int ctnetlink_flush_conntrack(struct net *net,
- 				     const struct nlattr * const cda[],
- 				     u32 portid, int report)
-@@ -1122,7 +1130,7 @@ static int ctnetlink_flush_conntrack(struct net *net,
- 			return PTR_ERR(filter);
+ /*
+  * Hook functions for ipv6 to allow xt_* modules to be built-in even
+  * if IPv6 is a module.
+@@ -35,6 +37,7 @@ struct nf_ipv6_ops {
+ 				    u_int8_t protocol);
+ 	int (*route)(struct net *net, struct dst_entry **dst, struct flowi *fl,
+ 		     bool strict);
++	int (*reroute)(struct sk_buff *skb, const struct nf_queue_entry *entry);
+ };
+ 
+ #ifdef CONFIG_NETFILTER
+diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
+index 014b6571f2ac..e7348b49bc0d 100644
+--- a/net/bridge/netfilter/nf_tables_bridge.c
++++ b/net/bridge/netfilter/nf_tables_bridge.c
+@@ -95,15 +95,8 @@ static const struct nf_chain_type filter_bridge = {
+ 	},
+ };
+ 
+-static int nf_br_reroute(struct net *net, struct sk_buff *skb,
+-			 const struct nf_queue_entry *entry)
+-{
+-	return 0;
+-}
+-
+ static const struct nf_afinfo nf_br_afinfo = {
+ 	.family                 = AF_BRIDGE,
+-	.reroute                = nf_br_reroute,
+ 	.route_key_size         = 0,
+ };
+ 
+diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
+index e9d47e4ec182..ec73be3b2f14 100644
+--- a/net/ipv4/netfilter.c
++++ b/net/ipv4/netfilter.c
+@@ -80,8 +80,7 @@ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned int addr_t
+ }
+ EXPORT_SYMBOL(ip_route_me_harder);
+ 
+-static int nf_ip_reroute(struct net *net, struct sk_buff *skb,
+-			 const struct nf_queue_entry *entry)
++int nf_ip_reroute(struct sk_buff *skb, const struct nf_queue_entry *entry)
+ {
+ 	const struct ip_rt_info *rt_info = nf_queue_entry_reroute(entry);
+ 
+@@ -92,10 +91,12 @@ static int nf_ip_reroute(struct net *net, struct sk_buff *skb,
+ 		      skb->mark == rt_info->mark &&
+ 		      iph->daddr == rt_info->daddr &&
+ 		      iph->saddr == rt_info->saddr))
+-			return ip_route_me_harder(net, skb, RTN_UNSPEC);
++			return ip_route_me_harder(entry->state.net, skb,
++						  RTN_UNSPEC);
+ 	}
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(nf_ip_reroute);
+ 
+ __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
+ 			    unsigned int dataoff, u_int8_t protocol)
+@@ -163,7 +164,6 @@ EXPORT_SYMBOL_GPL(nf_ip_route);
+ 
+ static const struct nf_afinfo nf_ip_afinfo = {
+ 	.family			= AF_INET,
+-	.reroute		= nf_ip_reroute,
+ 	.route_key_size		= sizeof(struct ip_rt_info),
+ };
+ 
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index f03bb043e4e4..d633b78be06f 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -68,7 +68,7 @@ int ip6_route_me_harder(struct net *net, struct sk_buff *skb)
+ }
+ EXPORT_SYMBOL(ip6_route_me_harder);
+ 
+-static int nf_ip6_reroute(struct net *net, struct sk_buff *skb,
++static int nf_ip6_reroute(struct sk_buff *skb,
+ 			  const struct nf_queue_entry *entry)
+ {
+ 	struct ip6_rt_info *rt_info = nf_queue_entry_reroute(entry);
+@@ -78,7 +78,7 @@ static int nf_ip6_reroute(struct net *net, struct sk_buff *skb,
+ 		if (!ipv6_addr_equal(&iph->daddr, &rt_info->daddr) ||
+ 		    !ipv6_addr_equal(&iph->saddr, &rt_info->saddr) ||
+ 		    skb->mark != rt_info->mark)
+-			return ip6_route_me_harder(net, skb);
++			return ip6_route_me_harder(entry->state.net, skb);
+ 	}
+ 	return 0;
+ }
+@@ -171,11 +171,11 @@ static const struct nf_ipv6_ops ipv6ops = {
+ 	.checksum		= nf_ip6_checksum,
+ 	.checksum_partial	= nf_ip6_checksum_partial,
+ 	.route			= nf_ip6_route,
++	.reroute		= nf_ip6_reroute,
+ };
+ 
+ static const struct nf_afinfo nf_ip6_afinfo = {
+ 	.family			= AF_INET6,
+-	.reroute		= nf_ip6_reroute,
+ 	.route_key_size		= sizeof(struct ip6_rt_info),
+ };
+ 
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index dfa35bd292c8..15382ff83e7a 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -266,7 +266,6 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	const struct nf_hook_entry *hook_entry;
+ 	const struct nf_hook_entries *hooks;
+ 	struct sk_buff *skb = entry->skb;
+-	const struct nf_afinfo *afinfo;
+ 	const struct net *net;
+ 	unsigned int i;
+ 	int err;
+@@ -293,8 +292,7 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 		verdict = nf_hook_entry_hookfn(hook_entry, skb, &entry->state);
+ 
+ 	if (verdict == NF_ACCEPT) {
+-		afinfo = nf_get_afinfo(entry->state.pf);
+-		if (!afinfo || afinfo->reroute(entry->state.net, skb, entry) < 0)
++		if (nf_reroute(skb, entry) < 0)
+ 			verdict = NF_DROP;
  	}
  
--	nf_ct_iterate_cleanup_net(net, ctnetlink_filter_match, filter,
-+	nf_ct_iterate_cleanup_net(net, ctnetlink_flush_iterate, filter,
- 				  portid, report);
- 	kfree(filter);
+diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
+index 45c22418c955..0b660c568156 100644
+--- a/net/netfilter/utils.c
++++ b/net/netfilter/utils.c
+@@ -2,6 +2,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter_ipv4.h>
+ #include <linux/netfilter_ipv6.h>
++#include <net/netfilter/nf_queue.h>
  
-@@ -1168,6 +1176,11 @@ static int ctnetlink_del_conntrack(struct net *net, struct sock *ctnl,
- 
- 	ct = nf_ct_tuplehash_to_ctrack(h);
- 
-+	if (test_bit(IPS_OFFLOAD_BIT, &ct->status)) {
-+		nf_ct_put(ct);
-+		return -EBUSY;
-+	}
-+
- 	if (cda[CTA_ID]) {
- 		u_int32_t id = ntohl(nla_get_be32(cda[CTA_ID]));
- 		if (id != (u32)(unsigned long)ct) {
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 684cc29010a0..e97cdc1cf98c 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -305,6 +305,9 @@ static bool tcp_invert_tuple(struct nf_conntrack_tuple *tuple,
- /* Print out the private part of the conntrack. */
- static void tcp_print_conntrack(struct seq_file *s, struct nf_conn *ct)
- {
-+	if (test_bit(IPS_OFFLOAD_BIT, &ct->status))
-+		return;
-+
- 	seq_printf(s, "%s ", tcp_conntrack_names[ct->proto.tcp.state]);
+ __sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
+ 		    unsigned int dataoff, u_int8_t protocol,
+@@ -69,3 +70,21 @@ int nf_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
+ 	return ret;
  }
- #endif
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 5a101caa3e12..46d32baad095 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -309,10 +309,12 @@ static int ct_seq_show(struct seq_file *s, void *v)
- 	WARN_ON(!l4proto);
- 
- 	ret = -ENOSPC;
--	seq_printf(s, "%-8s %u %-8s %u %ld ",
-+	seq_printf(s, "%-8s %u %-8s %u ",
- 		   l3proto_name(l3proto->l3proto), nf_ct_l3num(ct),
--		   l4proto_name(l4proto->l4proto), nf_ct_protonum(ct),
--		   nf_ct_expires(ct)  / HZ);
-+		   l4proto_name(l4proto->l4proto), nf_ct_protonum(ct));
+ EXPORT_SYMBOL_GPL(nf_route);
 +
-+	if (!test_bit(IPS_OFFLOAD_BIT, &ct->status))
-+		seq_printf(s, "%ld ", nf_ct_expires(ct)  / HZ);
- 
- 	if (l4proto->print_conntrack)
- 		l4proto->print_conntrack(s, ct);
-@@ -339,7 +341,9 @@ static int ct_seq_show(struct seq_file *s, void *v)
- 	if (seq_print_acct(s, ct, IP_CT_DIR_REPLY))
- 		goto release;
- 
--	if (test_bit(IPS_ASSURED_BIT, &ct->status))
-+	if (test_bit(IPS_OFFLOAD_BIT, &ct->status))
-+		seq_puts(s, "[OFFLOAD] ");
-+	else if (test_bit(IPS_ASSURED_BIT, &ct->status))
- 		seq_puts(s, "[ASSURED] ");
- 
- 	if (seq_has_overflowed(s))
++int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry)
++{
++	const struct nf_ipv6_ops *v6ops;
++	int ret = 0;
++
++	switch (entry->state.pf) {
++	case AF_INET:
++		ret = nf_ip_reroute(skb, entry);
++		break;
++	case AF_INET6:
++		v6ops = rcu_dereference(nf_ipv6_ops);
++		if (v6ops)
++			ret = v6ops->reroute(skb, entry);
++		break;
++	}
++	return ret;
++}
 -- 
 2.11.0
+
