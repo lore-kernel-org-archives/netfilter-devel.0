@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 48/52] netfilter: flow table support for the mixed IPv4/IPv6 family
-Date: Mon,  8 Jan 2018 21:19:56 +0100
-Message-ID: <20180108202000.12989-49-pablo@netfilter.org>
+Subject: [PATCH 50/52] netfilter: ipset: use swap macro instead of _manually_ swapping values
+Date: Mon,  8 Jan 2018 21:19:58 +0100
+Message-ID: <20180108202000.12989-51-pablo@netfilter.org>
 References: <20180108202000.12989-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,162 +10,78 @@ In-Reply-To: <20180108202000.12989-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This patch adds the IPv6 flow table type, that implements the datapath
-flow table to forward IPv6 traffic.
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
 
+Make use of the swap macro and remove unnecessary variables tmp.
+This makes the code easier to read and maintain.
+
+This code was detected with the help of Coccinelle.
+
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_flow_table.h   |  5 ++++
- net/ipv4/netfilter/nf_flow_table_ipv4.c |  3 ++-
- net/ipv6/netfilter/nf_flow_table_ipv6.c |  3 ++-
- net/netfilter/Kconfig                   |  8 ++++++
- net/netfilter/Makefile                  |  1 +
- net/netfilter/nf_flow_table_inet.c      | 48 +++++++++++++++++++++++++++++++++
- 6 files changed, 66 insertions(+), 2 deletions(-)
- create mode 100644 net/netfilter/nf_flow_table_inet.c
+ net/netfilter/ipset/ip_set_bitmap_ip.c    | 8 ++------
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c | 8 ++------
+ net/netfilter/ipset/ip_set_bitmap_port.c  | 8 ++------
+ 3 files changed, 6 insertions(+), 18 deletions(-)
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index 161f71ca78a0..b22b22082733 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -111,6 +111,11 @@ struct flow_ports {
- 	__be16 source, dest;
- };
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
+index d8975a0b4282..488d6d05c65c 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ip.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
+@@ -263,12 +263,8 @@ bitmap_ip_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
+ 		ret = ip_set_get_hostipaddr4(tb[IPSET_ATTR_IP_TO], &last_ip);
+ 		if (ret)
+ 			return ret;
+-		if (first_ip > last_ip) {
+-			u32 tmp = first_ip;
+-
+-			first_ip = last_ip;
+-			last_ip = tmp;
+-		}
++		if (first_ip > last_ip)
++			swap(first_ip, last_ip);
+ 	} else if (tb[IPSET_ATTR_CIDR]) {
+ 		u8 cidr = nla_get_u8(tb[IPSET_ATTR_CIDR]);
  
-+unsigned int nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
-+				     const struct nf_hook_state *state);
-+unsigned int nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
-+				       const struct nf_hook_state *state);
-+
- #define MODULE_ALIAS_NF_FLOWTABLE(family)	\
- 	MODULE_ALIAS("nf-flowtable-" __stringify(family))
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index 4c279fbd2d5d..c00b6a2e8e3c 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -337,12 +337,8 @@ bitmap_ipmac_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
+ 		ret = ip_set_get_hostipaddr4(tb[IPSET_ATTR_IP_TO], &last_ip);
+ 		if (ret)
+ 			return ret;
+-		if (first_ip > last_ip) {
+-			u32 tmp = first_ip;
+-
+-			first_ip = last_ip;
+-			last_ip = tmp;
+-		}
++		if (first_ip > last_ip)
++			swap(first_ip, last_ip);
+ 	} else if (tb[IPSET_ATTR_CIDR]) {
+ 		u8 cidr = nla_get_u8(tb[IPSET_ATTR_CIDR]);
  
-diff --git a/net/ipv4/netfilter/nf_flow_table_ipv4.c b/net/ipv4/netfilter/nf_flow_table_ipv4.c
-index ac56c0f0492a..b2d01eb25f2c 100644
---- a/net/ipv4/netfilter/nf_flow_table_ipv4.c
-+++ b/net/ipv4/netfilter/nf_flow_table_ipv4.c
-@@ -202,7 +202,7 @@ static bool nf_flow_exceeds_mtu(struct sk_buff *skb, const struct rtable *rt)
- 	return false;
- }
+diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
+index 7f9bbd7c98b5..b561ca8b3659 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_port.c
++++ b/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -238,12 +238,8 @@ bitmap_port_create(struct net *net, struct ip_set *set, struct nlattr *tb[],
  
--static unsigned int
-+unsigned int
- nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 			const struct nf_hook_state *state)
- {
-@@ -254,6 +254,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	first_port = ip_set_get_h16(tb[IPSET_ATTR_PORT]);
+ 	last_port = ip_set_get_h16(tb[IPSET_ATTR_PORT_TO]);
+-	if (first_port > last_port) {
+-		u16 tmp = first_port;
+-
+-		first_port = last_port;
+-		last_port = tmp;
+-	}
++	if (first_port > last_port)
++		swap(first_port, last_port);
  
- 	return NF_STOLEN;
- }
-+EXPORT_SYMBOL_GPL(nf_flow_offload_ip_hook);
- 
- static struct nf_flowtable_type flowtable_ipv4 = {
- 	.family		= NFPROTO_IPV4,
-diff --git a/net/ipv6/netfilter/nf_flow_table_ipv6.c b/net/ipv6/netfilter/nf_flow_table_ipv6.c
-index d7d073bb19ee..0c3b9d32f64f 100644
---- a/net/ipv6/netfilter/nf_flow_table_ipv6.c
-+++ b/net/ipv6/netfilter/nf_flow_table_ipv6.c
-@@ -196,7 +196,7 @@ static bool nf_flow_exceeds_mtu(struct sk_buff *skb, const struct rt6_info *rt)
- 	return false;
- }
- 
--static unsigned int
-+unsigned int
- nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 			  const struct nf_hook_state *state)
- {
-@@ -248,6 +248,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 
- 	return NF_STOLEN;
- }
-+EXPORT_SYMBOL_GPL(nf_flow_offload_ipv6_hook);
- 
- static struct nf_flowtable_type flowtable_ipv6 = {
- 	.family		= NFPROTO_IPV6,
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 264ce877ef49..272803079bf2 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -657,6 +657,14 @@ endif # NF_TABLES_NETDEV
- 
- endif # NF_TABLES
- 
-+config NF_FLOW_TABLE_INET
-+	select NF_FLOW_TABLE
-+	tristate "Netfilter flow table mixed IPv4/IPv6 module"
-+	help
-+          This option adds the flow table mixed IPv4/IPv6 support.
-+
-+	  To compile it as a module, choose M here.
-+
- config NF_FLOW_TABLE
- 	tristate "Netfilter flow table module"
- 	help
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 2930f2b854be..061365875cde 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -111,6 +111,7 @@ obj-$(CONFIG_NFT_FWD_NETDEV)	+= nft_fwd_netdev.o
- 
- # flow table infrastructure
- obj-$(CONFIG_NF_FLOW_TABLE)	+= nf_flow_table.o
-+obj-$(CONFIG_NF_FLOW_TABLE_INET) += nf_flow_table_inet.o
- 
- # generic X tables 
- obj-$(CONFIG_NETFILTER_XTABLES) += x_tables.o xt_tcpudp.o
-diff --git a/net/netfilter/nf_flow_table_inet.c b/net/netfilter/nf_flow_table_inet.c
-new file mode 100644
-index 000000000000..281209aeba8f
---- /dev/null
-+++ b/net/netfilter/nf_flow_table_inet.c
-@@ -0,0 +1,48 @@
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/netfilter.h>
-+#include <linux/rhashtable.h>
-+#include <net/netfilter/nf_flow_table.h>
-+#include <net/netfilter/nf_tables.h>
-+
-+static unsigned int
-+nf_flow_offload_inet_hook(void *priv, struct sk_buff *skb,
-+			  const struct nf_hook_state *state)
-+{
-+	switch (skb->protocol) {
-+	case htons(ETH_P_IP):
-+		return nf_flow_offload_ip_hook(priv, skb, state);
-+	case htons(ETH_P_IPV6):
-+		return nf_flow_offload_ipv6_hook(priv, skb, state);
-+	}
-+
-+	return NF_ACCEPT;
-+}
-+
-+static struct nf_flowtable_type flowtable_inet = {
-+	.family		= NFPROTO_INET,
-+	.params		= &nf_flow_offload_rhash_params,
-+	.gc		= nf_flow_offload_work_gc,
-+	.hook		= nf_flow_offload_inet_hook,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static int __init nf_flow_inet_module_init(void)
-+{
-+	nft_register_flowtable_type(&flowtable_inet);
-+
-+	return 0;
-+}
-+
-+static void __exit nf_flow_inet_module_exit(void)
-+{
-+	nft_unregister_flowtable_type(&flowtable_inet);
-+}
-+
-+module_init(nf_flow_inet_module_init);
-+module_exit(nf_flow_inet_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
-+MODULE_ALIAS_NF_FLOWTABLE(1); /* NFPROTO_INET */
+ 	elements = last_port - first_port + 1;
+ 	set->dsize = ip_set_elem_len(set, tb, 0, 0);
 -- 
 2.11.0
