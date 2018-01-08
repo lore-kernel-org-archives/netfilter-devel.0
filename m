@@ -1,147 +1,114 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 12/52] netfilter: core: free hooks with call_rcu
-Date: Mon,  8 Jan 2018 21:19:20 +0100
-Message-ID: <20180108202000.12989-13-pablo@netfilter.org>
+Subject: [PATCH 10/52] netfilter: core: make nf_unregister_net_hooks simple wrapper again
+Date: Mon,  8 Jan 2018 21:19:18 +0100
+Message-ID: <20180108202000.12989-11-pablo@netfilter.org>
 References: <20180108202000.12989-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:42528 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754804AbeAHUUT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Jan 2018 15:20:19 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id A30F7E7B98
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:16 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 94A18207B2
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:16 +0100 (CET)
 In-Reply-To: <20180108202000.12989-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Florian Westphal <fw@strlen.de>
 
-Giuseppe Scrivano says:
-  "SELinux, if enabled, registers for each new network namespace 6
-    netfilter hooks."
+This reverts commit d3ad2c17b4047
+("netfilter: core: batch nf_unregister_net_hooks synchronize_net calls").
 
-Cost for this is high.  With synchronize_net() removed:
-   "The net benefit on an SMP machine with two cores is that creating a
-   new network namespace takes -40% of the original time."
+Nothing wrong with it.  However, followup patch will delay freeing of hooks
+with call_rcu, so all synchronize_net() calls become obsolete and there
+is no need anymore for this batching.
 
-This patch replaces synchronize_net+kvfree with call_rcu().
-We store rcu_head at the tail of a structure that has no fixed layout,
-i.e. we cannot use offsetof() to compute the start of the original
-allocation.  Thus store this information right after the rcu head.
+This revert causes a temporary performance degradation when destroying
+network namespace, but its resolved with the upcoming call_rcu conversion.
 
-We could simplify this by just placing the rcu_head at the start
-of struct nf_hook_entries.  However, this structure is used in
-packet processing hotpath, so only place what is needed for that
-at the beginning of the struct.
-
-Reported-by: Giuseppe Scrivano <gscrivan@redhat.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h | 19 +++++++++++++++----
- net/netfilter/core.c      | 34 ++++++++++++++++++++++++++++------
- 2 files changed, 43 insertions(+), 10 deletions(-)
+ net/netfilter/core.c | 59 +++-------------------------------------------------
+ 1 file changed, 3 insertions(+), 56 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index b24e9b101651..792f6d535707 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -77,17 +77,28 @@ struct nf_hook_entry {
- 	void				*priv;
- };
- 
-+struct nf_hook_entries_rcu_head {
-+	struct rcu_head head;
-+	void	*allocation;
-+};
-+
- struct nf_hook_entries {
- 	u16				num_hook_entries;
- 	/* padding */
- 	struct nf_hook_entry		hooks[];
- 
--	/* trailer: pointers to original orig_ops of each hook.
--	 *
--	 * This is not part of struct nf_hook_entry since its only
--	 * needed in slow path (hook register/unregister).
-+	/* trailer: pointers to original orig_ops of each hook,
-+	 * followed by rcu_head and scratch space used for freeing
-+	 * the structure via call_rcu.
- 	 *
-+	 *   This is not part of struct nf_hook_entry since its only
-+	 *   needed in slow path (hook register/unregister):
- 	 * const struct nf_hook_ops     *orig_ops[]
-+	 *
-+	 *   For the same reason, we store this at end -- its
-+	 *   only needed when a hook is deleted, not during
-+	 *   packet path processing:
-+	 * struct nf_hook_entries_rcu_head     head
- 	 */
- };
- 
 diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 9a84b6cb99e6..6921f9f1cc81 100644
+index 52cd2901a097..d39bb2c583dc 100644
 --- a/net/netfilter/core.c
 +++ b/net/netfilter/core.c
-@@ -74,7 +74,8 @@ static struct nf_hook_entries *allocate_hook_entries_size(u16 num)
- 	struct nf_hook_entries *e;
- 	size_t alloc = sizeof(*e) +
- 		       sizeof(struct nf_hook_entry) * num +
--		       sizeof(struct nf_hook_ops *) * num;
-+		       sizeof(struct nf_hook_ops *) * num +
-+		       sizeof(struct nf_hook_entries_rcu_head);
- 
- 	if (num == 0)
- 		return NULL;
-@@ -85,6 +86,30 @@ static struct nf_hook_entries *allocate_hook_entries_size(u16 num)
- 	return e;
- }
- 
-+static void __nf_hook_entries_free(struct rcu_head *h)
-+{
-+	struct nf_hook_entries_rcu_head *head;
-+
-+	head = container_of(h, struct nf_hook_entries_rcu_head, head);
-+	kvfree(head->allocation);
-+}
-+
-+static void nf_hook_entries_free(struct nf_hook_entries *e)
-+{
-+	struct nf_hook_entries_rcu_head *head;
-+	struct nf_hook_ops **ops;
-+	unsigned int num;
-+
-+	if (!e)
-+		return;
-+
-+	num = e->num_hook_entries;
-+	ops = nf_hook_entries_get_hook_ops(e);
-+	head = (void *)&ops[num];
-+	head->allocation = e;
-+	call_rcu(&head->head, __nf_hook_entries_free);
-+}
-+
- static unsigned int accept_all(void *priv,
- 			       struct sk_buff *skb,
- 			       const struct nf_hook_state *state)
-@@ -291,9 +316,8 @@ int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
- #ifdef HAVE_JUMP_LABEL
- 	static_key_slow_inc(&nf_hooks_needed[reg->pf][reg->hooknum]);
- #endif
--	synchronize_net();
- 	BUG_ON(p == new_hooks);
--	kvfree(p);
-+	nf_hook_entries_free(p);
- 	return 0;
- }
- EXPORT_SYMBOL(nf_register_net_hook);
-@@ -361,10 +385,8 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
- 	if (!p)
- 		return;
- 
--	synchronize_net();
+@@ -395,63 +395,10 @@ EXPORT_SYMBOL(nf_register_net_hooks);
+ void nf_unregister_net_hooks(struct net *net, const struct nf_hook_ops *reg,
+ 			     unsigned int hookcount)
+ {
+-	struct nf_hook_entries *to_free[16], *p;
+-	struct nf_hook_entries __rcu **pp;
+-	unsigned int i, j, n;
 -
- 	nf_queue_nf_hook_drop(net);
--	kvfree(p);
-+	nf_hook_entries_free(p);
+-	mutex_lock(&nf_hook_mutex);
+-	for (i = 0; i < hookcount; i++) {
+-		pp = nf_hook_entry_head(net, &reg[i]);
+-		if (!pp)
+-			continue;
+-
+-		p = nf_entry_dereference(*pp);
+-		if (WARN_ON_ONCE(!p))
+-			continue;
+-		__nf_unregister_net_hook(p, &reg[i]);
+-	}
+-	mutex_unlock(&nf_hook_mutex);
+-
+-	do {
+-		n = min_t(unsigned int, hookcount, ARRAY_SIZE(to_free));
+-
+-		mutex_lock(&nf_hook_mutex);
+-
+-		for (i = 0, j = 0; i < hookcount && j < n; i++) {
+-			pp = nf_hook_entry_head(net, &reg[i]);
+-			if (!pp)
+-				continue;
+-
+-			p = nf_entry_dereference(*pp);
+-			if (!p)
+-				continue;
+-
+-			to_free[j] = __nf_hook_entries_try_shrink(pp);
+-			if (to_free[j])
+-				++j;
+-		}
+-
+-		mutex_unlock(&nf_hook_mutex);
+-
+-		if (j) {
+-			unsigned int nfq;
+-
+-			synchronize_net();
+-
+-			/* need 2nd synchronize_net() if nfqueue is used, skb
+-			 * can get reinjected right before nf_queue_hook_drop()
+-			 */
+-			nfq = nf_queue_nf_hook_drop(net);
+-			if (nfq)
+-				synchronize_net();
+-
+-			for (i = 0; i < j; i++)
+-				kvfree(to_free[i]);
+-		}
++	unsigned int i;
+ 
+-		reg += n;
+-		hookcount -= n;
+-	} while (hookcount > 0);
++	for (i = 0; i < hookcount; i++)
++		nf_unregister_net_hook(net, &reg[i]);
  }
- EXPORT_SYMBOL(nf_unregister_net_hook);
+ EXPORT_SYMBOL(nf_unregister_net_hooks);
  
 -- 
 2.11.0
+
