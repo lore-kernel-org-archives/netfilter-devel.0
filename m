@@ -1,110 +1,128 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 15/52] netfilter: reduce hook array sizes to what is needed
-Date: Mon,  8 Jan 2018 21:19:23 +0100
-Message-ID: <20180108202000.12989-16-pablo@netfilter.org>
+Subject: [PATCH 38/52] netfilter: remove route_key_size field in struct nf_afinfo
+Date: Mon,  8 Jan 2018 21:19:46 +0100
+Message-ID: <20180108202000.12989-39-pablo@netfilter.org>
 References: <20180108202000.12989-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:42502 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757091AbeAHUUk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Jan 2018 15:20:40 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 01AD4E7B8C
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:39 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E4FF2208FA
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:38 +0100 (CET)
 In-Reply-To: <20180108202000.12989-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
+This is only needed by nf_queue, place this code where it belongs.
 
-Not all families share the same hook count, adjust sizes to what is
-needed.
-
-struct net before:
-/* size: 6592, cachelines: 103, members: 46 */
-after:
-/* size: 5952, cachelines: 93, members: 46 */
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netns/netfilter.h | 10 +++++-----
- net/netfilter/core.c          | 24 +++++++++++++++++-------
- 2 files changed, 22 insertions(+), 12 deletions(-)
+ include/linux/netfilter.h |  1 -
+ net/ipv4/netfilter.c      |  1 -
+ net/ipv6/netfilter.c      |  1 -
+ net/netfilter/nf_queue.c  | 22 ++++++++++++++++------
+ 4 files changed, 16 insertions(+), 9 deletions(-)
 
-diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
-index b39c563c2fce..8f756a4b9205 100644
---- a/include/net/netns/netfilter.h
-+++ b/include/net/netns/netfilter.h
-@@ -17,11 +17,11 @@ struct netns_nf {
- #ifdef CONFIG_SYSCTL
- 	struct ctl_table_header *nf_log_dir_header;
- #endif
--	struct nf_hook_entries __rcu *hooks_ipv4[NF_MAX_HOOKS];
--	struct nf_hook_entries __rcu *hooks_ipv6[NF_MAX_HOOKS];
--	struct nf_hook_entries __rcu *hooks_arp[NF_MAX_HOOKS];
--	struct nf_hook_entries __rcu *hooks_bridge[NF_MAX_HOOKS];
--	struct nf_hook_entries __rcu *hooks_decnet[NF_MAX_HOOKS];
-+	struct nf_hook_entries __rcu *hooks_ipv4[NF_INET_NUMHOOKS];
-+	struct nf_hook_entries __rcu *hooks_ipv6[NF_INET_NUMHOOKS];
-+	struct nf_hook_entries __rcu *hooks_arp[NF_ARP_NUMHOOKS];
-+	struct nf_hook_entries __rcu *hooks_bridge[NF_INET_NUMHOOKS];
-+	struct nf_hook_entries __rcu *hooks_decnet[NF_DN_NUMHOOKS];
- #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
- 	bool			defrag_ipv4;
- #endif
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index a6eaaf303be8..43643427b560 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -268,14 +268,24 @@ static struct nf_hook_entries __rcu **nf_hook_entry_head(struct net *net, const
- 	case NFPROTO_NETDEV:
- 		break;
- 	case NFPROTO_ARP:
-+		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_arp) <= reg->hooknum))
-+			return NULL;
- 		return net->nf.hooks_arp + reg->hooknum;
- 	case NFPROTO_BRIDGE:
-+		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_bridge) <= reg->hooknum))
-+			return NULL;
- 		return net->nf.hooks_bridge + reg->hooknum;
- 	case NFPROTO_IPV4:
-+		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_ipv4) <= reg->hooknum))
-+			return NULL;
- 		return net->nf.hooks_ipv4 + reg->hooknum;
- 	case NFPROTO_IPV6:
-+		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_ipv6) <= reg->hooknum))
-+			return NULL;
- 		return net->nf.hooks_ipv6 + reg->hooknum;
- 	case NFPROTO_DECNET:
-+		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_decnet) <= reg->hooknum))
-+			return NULL;
- 		return net->nf.hooks_decnet + reg->hooknum;
- 	default:
- 		WARN_ON_ONCE(1);
-@@ -549,21 +559,21 @@ void (*nf_nat_decode_session_hook)(struct sk_buff *, struct flowi *);
- EXPORT_SYMBOL(nf_nat_decode_session_hook);
- #endif
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 8358e717eabd..58a169e425f7 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -311,7 +311,6 @@ struct nf_queue_entry;
  
--static void __net_init __netfilter_net_init(struct nf_hook_entries *e[NF_MAX_HOOKS])
-+static void __net_init __netfilter_net_init(struct nf_hook_entries **e, int max)
+ struct nf_afinfo {
+ 	unsigned short	family;
+-	int		route_key_size;
+ };
+ 
+ extern const struct nf_afinfo __rcu *nf_afinfo[NFPROTO_NUMPROTO];
+diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
+index ec73be3b2f14..bd8e161c2f95 100644
+--- a/net/ipv4/netfilter.c
++++ b/net/ipv4/netfilter.c
+@@ -164,7 +164,6 @@ EXPORT_SYMBOL_GPL(nf_ip_route);
+ 
+ static const struct nf_afinfo nf_ip_afinfo = {
+ 	.family			= AF_INET,
+-	.route_key_size		= sizeof(struct ip_rt_info),
+ };
+ 
+ static int __init ipv4_netfilter_init(void)
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index d633b78be06f..18f82a3fb0c0 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -176,7 +176,6 @@ static const struct nf_ipv6_ops ipv6ops = {
+ 
+ static const struct nf_afinfo nf_ip6_afinfo = {
+ 	.family			= AF_INET6,
+-	.route_key_size		= sizeof(struct ip6_rt_info),
+ };
+ 
+ int __init ipv6_netfilter_init(void)
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 15382ff83e7a..7f55af5f3d1a 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -15,6 +15,8 @@
+ #include <linux/netfilter_bridge.h>
+ #include <linux/seq_file.h>
+ #include <linux/rcupdate.h>
++#include <linux/netfilter_ipv4.h>
++#include <linux/netfilter_ipv6.h>
+ #include <net/protocol.h>
+ #include <net/netfilter/nf_queue.h>
+ #include <net/dst.h>
+@@ -145,9 +147,9 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
  {
- 	int h;
+ 	int status = -ENOENT;
+ 	struct nf_queue_entry *entry = NULL;
+-	const struct nf_afinfo *afinfo;
+ 	const struct nf_queue_handler *qh;
+ 	struct net *net = state->net;
++	unsigned int route_key_size;
  
--	for (h = 0; h < NF_MAX_HOOKS; h++)
-+	for (h = 0; h < max; h++)
- 		RCU_INIT_POINTER(e[h], NULL);
- }
+ 	/* QUEUE == DROP if no one is waiting, to be safe. */
+ 	qh = rcu_dereference(net->nf.queue_handler);
+@@ -156,11 +158,19 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+ 		goto err;
+ 	}
  
- static int __net_init netfilter_net_init(struct net *net)
- {
--	__netfilter_net_init(net->nf.hooks_ipv4);
--	__netfilter_net_init(net->nf.hooks_ipv6);
--	__netfilter_net_init(net->nf.hooks_arp);
--	__netfilter_net_init(net->nf.hooks_bridge);
--	__netfilter_net_init(net->nf.hooks_decnet);
-+	__netfilter_net_init(net->nf.hooks_ipv4, ARRAY_SIZE(net->nf.hooks_ipv4));
-+	__netfilter_net_init(net->nf.hooks_ipv6, ARRAY_SIZE(net->nf.hooks_ipv6));
-+	__netfilter_net_init(net->nf.hooks_arp, ARRAY_SIZE(net->nf.hooks_arp));
-+	__netfilter_net_init(net->nf.hooks_bridge, ARRAY_SIZE(net->nf.hooks_bridge));
-+	__netfilter_net_init(net->nf.hooks_decnet, ARRAY_SIZE(net->nf.hooks_decnet));
+-	afinfo = nf_get_afinfo(state->pf);
+-	if (!afinfo)
+-		goto err;
++	switch (state->pf) {
++	case AF_INET:
++		route_key_size = sizeof(struct ip_rt_info);
++		break;
++	case AF_INET6:
++		route_key_size = sizeof(struct ip6_rt_info);
++		break;
++	default:
++		route_key_size = 0;
++		break;
++	}
  
- #ifdef CONFIG_PROC_FS
- 	net->nf.proc_netfilter = proc_net_mkdir(net, "netfilter",
+-	entry = kmalloc(sizeof(*entry) + afinfo->route_key_size, GFP_ATOMIC);
++	entry = kmalloc(sizeof(*entry) + route_key_size, GFP_ATOMIC);
+ 	if (!entry) {
+ 		status = -ENOMEM;
+ 		goto err;
+@@ -170,7 +180,7 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
+ 		.skb	= skb,
+ 		.state	= *state,
+ 		.hook_index = index,
+-		.size	= sizeof(*entry) + afinfo->route_key_size,
++		.size	= sizeof(*entry) + route_key_size,
+ 	};
+ 
+ 	nf_queue_entry_get_refs(entry);
 -- 
 2.11.0
+
