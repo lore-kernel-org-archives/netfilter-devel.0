@@ -1,34 +1,185 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 22/52] netfilter: nf_tables_arp: don't set forward chain
-Date: Mon,  8 Jan 2018 21:19:30 +0100
-Message-ID: <20180108202000.12989-23-pablo@netfilter.org>
+Subject: [PATCH 20/52] netfilter: core: only allow one nat hook per hook point
+Date: Mon,  8 Jan 2018 21:19:28 +0100
+Message-ID: <20180108202000.12989-21-pablo@netfilter.org>
 References: <20180108202000.12989-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:42480 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756992AbeAHUU0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Jan 2018 15:20:26 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id D6D1EE7B8C
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:24 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C745BCE385
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:24 +0100 (CET)
 In-Reply-To: <20180108202000.12989-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-46928a0b49f3 ("netfilter: nf_tables: remove multihook chains and
-families") already removed this, this is a leftover.
+From: Florian Westphal <fw@strlen.de>
 
+The netfilter NAT core cannot deal with more than one NAT hook per hook
+location (prerouting, input ...), because the NAT hooks install a NAT null
+binding in case the iptables nat table (iptable_nat hooks) or the
+corresponding nftables chain (nft nat hooks) doesn't specify a nat
+transformation.
+
+Null bindings are needed to detect port collsisions between NAT-ed and
+non-NAT-ed connections.
+
+This causes nftables NAT rules to not work when iptable_nat module is
+loaded, and vice versa because nat binding has already been attached
+when the second nat hook is consulted.
+
+The netfilter core is not really the correct location to handle this
+(hooks are just hooks, the core has no notion of what kinds of side
+ effects a hook implements), but its the only place where we can check
+for conflicts between both iptables hooks and nftables hooks without
+adding dependencies.
+
+So add nat annotation to hook_ops to describe those hooks that will
+add NAT bindings and then make core reject if such a hook already exists.
+The annotation fills a padding hole, in case further restrictions appar
+we might change this to a 'u8 type' instead of bool.
+
+iptables error if nft nat hook active:
+iptables -t nat -A POSTROUTING -j MASQUERADE
+iptables v1.4.21: can't initialize iptables table `nat': File exists
+Perhaps iptables or your kernel needs to be upgraded.
+
+nftables error if iptables nat table present:
+nft -f /etc/nftables/ipv4-nat
+/usr/etc/nftables/ipv4-nat:3:1-2: Error: Could not process rule: File exists
+table nat {
+^^
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/nf_tables_arp.c | 1 -
- 1 file changed, 1 deletion(-)
+ include/linux/netfilter.h         | 1 +
+ net/ipv4/netfilter/iptable_nat.c  | 4 ++++
+ net/ipv6/netfilter/ip6table_nat.c | 4 ++++
+ net/netfilter/core.c              | 6 ++++++
+ net/netfilter/nf_tables_api.c     | 2 ++
+ 5 files changed, 17 insertions(+)
 
-diff --git a/net/ipv4/netfilter/nf_tables_arp.c b/net/ipv4/netfilter/nf_tables_arp.c
-index 4bbc273b45e8..ec47c12cd137 100644
---- a/net/ipv4/netfilter/nf_tables_arp.c
-+++ b/net/ipv4/netfilter/nf_tables_arp.c
-@@ -34,7 +34,6 @@ static struct nft_af_info nft_af_arp __read_mostly = {
- 	.hooks		= {
- 		[NF_ARP_IN]		= nft_do_chain_arp,
- 		[NF_ARP_OUT]		= nft_do_chain_arp,
--		[NF_ARP_FORWARD]	= nft_do_chain_arp,
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index ee7a9cbd8d81..85a0b0d599e6 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -67,6 +67,7 @@ struct nf_hook_ops {
+ 	struct net_device	*dev;
+ 	void			*priv;
+ 	u_int8_t		pf;
++	bool			nat_hook;
+ 	unsigned int		hooknum;
+ 	/* Hooks are ordered in ascending priority. */
+ 	int			priority;
+diff --git a/net/ipv4/netfilter/iptable_nat.c b/net/ipv4/netfilter/iptable_nat.c
+index a1a07b338ccf..0f7255cc65ee 100644
+--- a/net/ipv4/netfilter/iptable_nat.c
++++ b/net/ipv4/netfilter/iptable_nat.c
+@@ -72,6 +72,7 @@ static const struct nf_hook_ops nf_nat_ipv4_ops[] = {
+ 	{
+ 		.hook		= iptable_nat_ipv4_in,
+ 		.pf		= NFPROTO_IPV4,
++		.nat_hook	= true,
+ 		.hooknum	= NF_INET_PRE_ROUTING,
+ 		.priority	= NF_IP_PRI_NAT_DST,
  	},
- };
+@@ -79,6 +80,7 @@ static const struct nf_hook_ops nf_nat_ipv4_ops[] = {
+ 	{
+ 		.hook		= iptable_nat_ipv4_out,
+ 		.pf		= NFPROTO_IPV4,
++		.nat_hook	= true,
+ 		.hooknum	= NF_INET_POST_ROUTING,
+ 		.priority	= NF_IP_PRI_NAT_SRC,
+ 	},
+@@ -86,6 +88,7 @@ static const struct nf_hook_ops nf_nat_ipv4_ops[] = {
+ 	{
+ 		.hook		= iptable_nat_ipv4_local_fn,
+ 		.pf		= NFPROTO_IPV4,
++		.nat_hook	= true,
+ 		.hooknum	= NF_INET_LOCAL_OUT,
+ 		.priority	= NF_IP_PRI_NAT_DST,
+ 	},
+@@ -93,6 +96,7 @@ static const struct nf_hook_ops nf_nat_ipv4_ops[] = {
+ 	{
+ 		.hook		= iptable_nat_ipv4_fn,
+ 		.pf		= NFPROTO_IPV4,
++		.nat_hook	= true,
+ 		.hooknum	= NF_INET_LOCAL_IN,
+ 		.priority	= NF_IP_PRI_NAT_SRC,
+ 	},
+diff --git a/net/ipv6/netfilter/ip6table_nat.c b/net/ipv6/netfilter/ip6table_nat.c
+index 991512576c8c..47306e45a80a 100644
+--- a/net/ipv6/netfilter/ip6table_nat.c
++++ b/net/ipv6/netfilter/ip6table_nat.c
+@@ -74,6 +74,7 @@ static const struct nf_hook_ops nf_nat_ipv6_ops[] = {
+ 	{
+ 		.hook		= ip6table_nat_in,
+ 		.pf		= NFPROTO_IPV6,
++		.nat_hook	= true,
+ 		.hooknum	= NF_INET_PRE_ROUTING,
+ 		.priority	= NF_IP6_PRI_NAT_DST,
+ 	},
+@@ -81,6 +82,7 @@ static const struct nf_hook_ops nf_nat_ipv6_ops[] = {
+ 	{
+ 		.hook		= ip6table_nat_out,
+ 		.pf		= NFPROTO_IPV6,
++		.nat_hook	= true,
+ 		.hooknum	= NF_INET_POST_ROUTING,
+ 		.priority	= NF_IP6_PRI_NAT_SRC,
+ 	},
+@@ -88,12 +90,14 @@ static const struct nf_hook_ops nf_nat_ipv6_ops[] = {
+ 	{
+ 		.hook		= ip6table_nat_local_fn,
+ 		.pf		= NFPROTO_IPV6,
++		.nat_hook	= true,
+ 		.hooknum	= NF_INET_LOCAL_OUT,
+ 		.priority	= NF_IP6_PRI_NAT_DST,
+ 	},
+ 	/* After packet filtering, change source */
+ 	{
+ 		.hook		= ip6table_nat_fn,
++		.nat_hook	= true,
+ 		.pf		= NFPROTO_IPV6,
+ 		.hooknum	= NF_INET_LOCAL_IN,
+ 		.priority	= NF_IP6_PRI_NAT_SRC,
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index ed8618f4efd7..3508a5c8edbb 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -160,6 +160,12 @@ nf_hook_entries_grow(const struct nf_hook_entries *old,
+ 			++i;
+ 			continue;
+ 		}
++
++		if (reg->nat_hook && orig_ops[i]->nat_hook) {
++			kvfree(new);
++			return ERR_PTR(-EEXIST);
++		}
++
+ 		if (inserted || reg->priority > orig_ops[i]->priority) {
+ 			new_ops[nhooks] = (void *)orig_ops[i];
+ 			new->hooks[nhooks] = old->hooks[i];
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 10798b357481..838eb581b5ab 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1400,6 +1400,8 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 				ops->hook = hookfn;
+ 			if (afi->hook_ops_init)
+ 				afi->hook_ops_init(ops, i);
++			if (basechain->type->type == NFT_CHAIN_T_NAT)
++				ops->nat_hook = true;
+ 		}
  
+ 		chain->flags |= NFT_BASE_CHAIN;
 -- 
 2.11.0
+
