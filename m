@@ -1,367 +1,171 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 49/52] netfilter: nf_tables: flow offload expression
-Date: Mon,  8 Jan 2018 21:19:57 +0100
-Message-ID: <20180108202000.12989-50-pablo@netfilter.org>
+Subject: [PATCH 48/52] netfilter: flow table support for the mixed IPv4/IPv6 family
+Date: Mon,  8 Jan 2018 21:19:56 +0100
+Message-ID: <20180108202000.12989-49-pablo@netfilter.org>
 References: <20180108202000.12989-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42788 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757087AbeAHUUu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jan 2018 15:20:50 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 78173E7B87
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:48 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6398871CF
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:48 +0100 (CET)
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180108202000.12989-1-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Add new instruction for the nf_tables VM that allows us to specify what
-flows are offloaded into a given flow table via name. This new
-instruction creates the flow entry and adds it to the flow table.
-
-Only established flows, ie. we have seen traffic in both directions, are
-added to the flow table. You can still decide to offload entries at a
-later stage via packet counting or checking the ct status in case you
-want to offload assured conntracks.
-
-This new extension depends on the conntrack subsystem.
+This patch adds the IPv6 flow table type, that implements the datapath
+flow table to forward IPv6 traffic.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  11 ++
- net/netfilter/Kconfig                    |   7 +
- net/netfilter/Makefile                   |   1 +
- net/netfilter/nft_flow_offload.c         | 264 +++++++++++++++++++++++++++++++
- 4 files changed, 283 insertions(+)
- create mode 100644 net/netfilter/nft_flow_offload.c
+ include/net/netfilter/nf_flow_table.h   |  5 ++++
+ net/ipv4/netfilter/nf_flow_table_ipv4.c |  3 ++-
+ net/ipv6/netfilter/nf_flow_table_ipv6.c |  3 ++-
+ net/netfilter/Kconfig                   |  8 ++++++
+ net/netfilter/Makefile                  |  1 +
+ net/netfilter/nf_flow_table_inet.c      | 48 +++++++++++++++++++++++++++++++++
+ 6 files changed, 66 insertions(+), 2 deletions(-)
+ create mode 100644 net/netfilter/nf_flow_table_inet.c
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 591b53bce070..53e8dd2a3a03 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -957,6 +957,17 @@ enum nft_ct_attributes {
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 161f71ca78a0..b22b22082733 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -111,6 +111,11 @@ struct flow_ports {
+ 	__be16 source, dest;
  };
- #define NFTA_CT_MAX		(__NFTA_CT_MAX - 1)
  
-+/**
-+ * enum nft_flow_attributes - ct offload expression attributes
-+ * @NFTA_FLOW_TABLE_NAME: flow table name (NLA_STRING)
-+ */
-+enum nft_offload_attributes {
-+	NFTA_FLOW_UNSPEC,
-+	NFTA_FLOW_TABLE_NAME,
-+	__NFTA_FLOW_MAX,
-+};
-+#define NFTA_FLOW_MAX		(__NFTA_FLOW_MAX - 1)
++unsigned int nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
++				     const struct nf_hook_state *state);
++unsigned int nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
++				       const struct nf_hook_state *state);
 +
- enum nft_limit_type {
- 	NFT_LIMIT_PKTS,
- 	NFT_LIMIT_PKT_BYTES
+ #define MODULE_ALIAS_NF_FLOWTABLE(family)	\
+ 	MODULE_ALIAS("nf-flowtable-" __stringify(family))
+ 
+diff --git a/net/ipv4/netfilter/nf_flow_table_ipv4.c b/net/ipv4/netfilter/nf_flow_table_ipv4.c
+index ac56c0f0492a..b2d01eb25f2c 100644
+--- a/net/ipv4/netfilter/nf_flow_table_ipv4.c
++++ b/net/ipv4/netfilter/nf_flow_table_ipv4.c
+@@ -202,7 +202,7 @@ static bool nf_flow_exceeds_mtu(struct sk_buff *skb, const struct rtable *rt)
+ 	return false;
+ }
+ 
+-static unsigned int
++unsigned int
+ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 			const struct nf_hook_state *state)
+ {
+@@ -254,6 +254,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 
+ 	return NF_STOLEN;
+ }
++EXPORT_SYMBOL_GPL(nf_flow_offload_ip_hook);
+ 
+ static struct nf_flowtable_type flowtable_ipv4 = {
+ 	.family		= NFPROTO_IPV4,
+diff --git a/net/ipv6/netfilter/nf_flow_table_ipv6.c b/net/ipv6/netfilter/nf_flow_table_ipv6.c
+index d7d073bb19ee..0c3b9d32f64f 100644
+--- a/net/ipv6/netfilter/nf_flow_table_ipv6.c
++++ b/net/ipv6/netfilter/nf_flow_table_ipv6.c
+@@ -196,7 +196,7 @@ static bool nf_flow_exceeds_mtu(struct sk_buff *skb, const struct rt6_info *rt)
+ 	return false;
+ }
+ 
+-static unsigned int
++unsigned int
+ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 			  const struct nf_hook_state *state)
+ {
+@@ -248,6 +248,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 
+ 	return NF_STOLEN;
+ }
++EXPORT_SYMBOL_GPL(nf_flow_offload_ipv6_hook);
+ 
+ static struct nf_flowtable_type flowtable_ipv6 = {
+ 	.family		= NFPROTO_IPV6,
 diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 272803079bf2..0ee0fcf3abbf 100644
+index 264ce877ef49..272803079bf2 100644
 --- a/net/netfilter/Kconfig
 +++ b/net/netfilter/Kconfig
-@@ -505,6 +505,13 @@ config NFT_CT
- 	  This option adds the "ct" expression that you can use to match
- 	  connection tracking information such as the flow state.
+@@ -657,6 +657,14 @@ endif # NF_TABLES_NETDEV
  
-+config NFT_FLOW_OFFLOAD
-+	depends on NF_CONNTRACK
-+	tristate "Netfilter nf_tables hardware flow offload module"
+ endif # NF_TABLES
+ 
++config NF_FLOW_TABLE_INET
++	select NF_FLOW_TABLE
++	tristate "Netfilter flow table mixed IPv4/IPv6 module"
 +	help
-+	  This option adds the "flow_offload" expression that you can use to
-+	  choose what flows are placed into the hardware.
++          This option adds the flow table mixed IPv4/IPv6 support.
 +
- config NFT_SET_RBTREE
- 	tristate "Netfilter nf_tables rbtree set module"
++	  To compile it as a module, choose M here.
++
+ config NF_FLOW_TABLE
+ 	tristate "Netfilter flow table module"
  	help
 diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 061365875cde..5d9b8b959e58 100644
+index 2930f2b854be..061365875cde 100644
 --- a/net/netfilter/Makefile
 +++ b/net/netfilter/Makefile
-@@ -86,6 +86,7 @@ obj-$(CONFIG_NFT_META)		+= nft_meta.o
- obj-$(CONFIG_NFT_RT)		+= nft_rt.o
- obj-$(CONFIG_NFT_NUMGEN)	+= nft_numgen.o
- obj-$(CONFIG_NFT_CT)		+= nft_ct.o
-+obj-$(CONFIG_NFT_FLOW_OFFLOAD)	+= nft_flow_offload.o
- obj-$(CONFIG_NFT_LIMIT)		+= nft_limit.o
- obj-$(CONFIG_NFT_NAT)		+= nft_nat.o
- obj-$(CONFIG_NFT_OBJREF)	+= nft_objref.o
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+@@ -111,6 +111,7 @@ obj-$(CONFIG_NFT_FWD_NETDEV)	+= nft_fwd_netdev.o
+ 
+ # flow table infrastructure
+ obj-$(CONFIG_NF_FLOW_TABLE)	+= nf_flow_table.o
++obj-$(CONFIG_NF_FLOW_TABLE_INET) += nf_flow_table_inet.o
+ 
+ # generic X tables 
+ obj-$(CONFIG_NETFILTER_XTABLES) += x_tables.o xt_tcpudp.o
+diff --git a/net/netfilter/nf_flow_table_inet.c b/net/netfilter/nf_flow_table_inet.c
 new file mode 100644
-index 000000000000..dd38785dfed9
+index 000000000000..281209aeba8f
 --- /dev/null
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -0,0 +1,264 @@
++++ b/net/netfilter/nf_flow_table_inet.c
+@@ -0,0 +1,48 @@
 +#include <linux/kernel.h>
-+#include <linux/module.h>
 +#include <linux/init.h>
-+#include <linux/netlink.h>
++#include <linux/module.h>
 +#include <linux/netfilter.h>
-+#include <linux/workqueue.h>
-+#include <linux/spinlock.h>
-+#include <linux/netfilter/nf_tables.h>
-+#include <net/ip.h> /* for ipv4 options. */
-+#include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_core.h>
-+#include <net/netfilter/nf_conntrack_core.h>
-+#include <linux/netfilter/nf_conntrack_common.h>
++#include <linux/rhashtable.h>
 +#include <net/netfilter/nf_flow_table.h>
++#include <net/netfilter/nf_tables.h>
 +
-+struct nft_flow_offload {
-+	struct nft_flowtable	*flowtable;
-+};
-+
-+static int nft_flow_route(const struct nft_pktinfo *pkt,
-+			  const struct nf_conn *ct,
-+			  struct nf_flow_route *route,
-+			  enum ip_conntrack_dir dir)
++static unsigned int
++nf_flow_offload_inet_hook(void *priv, struct sk_buff *skb,
++			  const struct nf_hook_state *state)
 +{
-+	struct dst_entry *this_dst = skb_dst(pkt->skb);
-+	struct dst_entry *other_dst = NULL;
-+	struct flowi fl;
-+
-+	memset(&fl, 0, sizeof(fl));
-+	switch (nft_pf(pkt)) {
-+	case NFPROTO_IPV4:
-+		fl.u.ip4.daddr = ct->tuplehash[!dir].tuple.dst.u3.ip;
-+		break;
-+	case NFPROTO_IPV6:
-+		fl.u.ip6.daddr = ct->tuplehash[!dir].tuple.dst.u3.in6;
-+		break;
++	switch (skb->protocol) {
++	case htons(ETH_P_IP):
++		return nf_flow_offload_ip_hook(priv, skb, state);
++	case htons(ETH_P_IPV6):
++		return nf_flow_offload_ipv6_hook(priv, skb, state);
 +	}
 +
-+	nf_route(nft_net(pkt), &other_dst, &fl, false, nft_pf(pkt));
-+	if (!other_dst)
-+		return -ENOENT;
-+
-+	route->tuple[dir].dst		= this_dst;
-+	route->tuple[dir].ifindex	= nft_in(pkt)->ifindex;
-+	route->tuple[!dir].dst		= other_dst;
-+	route->tuple[!dir].ifindex	= nft_out(pkt)->ifindex;
-+
-+	return 0;
++	return NF_ACCEPT;
 +}
 +
-+static bool nft_flow_offload_skip(struct sk_buff *skb)
-+{
-+	struct ip_options *opt  = &(IPCB(skb)->opt);
-+
-+	if (unlikely(opt->optlen))
-+		return true;
-+	if (skb_sec_path(skb))
-+		return true;
-+
-+	return false;
-+}
-+
-+static void nft_flow_offload_eval(const struct nft_expr *expr,
-+				  struct nft_regs *regs,
-+				  const struct nft_pktinfo *pkt)
-+{
-+	struct nft_flow_offload *priv = nft_expr_priv(expr);
-+	struct nf_flowtable *flowtable = &priv->flowtable->data;
-+	enum ip_conntrack_info ctinfo;
-+	struct nf_flow_route route;
-+	struct flow_offload *flow;
-+	enum ip_conntrack_dir dir;
-+	struct nf_conn *ct;
-+	int ret;
-+
-+	if (nft_flow_offload_skip(pkt->skb))
-+		goto out;
-+
-+	ct = nf_ct_get(pkt->skb, &ctinfo);
-+	if (!ct)
-+		goto out;
-+
-+	switch (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum) {
-+	case IPPROTO_TCP:
-+	case IPPROTO_UDP:
-+		break;
-+	default:
-+		goto out;
-+	}
-+
-+	if (test_bit(IPS_HELPER_BIT, &ct->status))
-+		goto out;
-+
-+	if (ctinfo == IP_CT_NEW ||
-+	    ctinfo == IP_CT_RELATED)
-+		goto out;
-+
-+	if (test_and_set_bit(IPS_OFFLOAD_BIT, &ct->status))
-+		goto out;
-+
-+	dir = CTINFO2DIR(ctinfo);
-+	if (nft_flow_route(pkt, ct, &route, dir) < 0)
-+		goto err_flow_route;
-+
-+	flow = flow_offload_alloc(ct, &route);
-+	if (!flow)
-+		goto err_flow_alloc;
-+
-+	ret = flow_offload_add(flowtable, flow);
-+	if (ret < 0)
-+		goto err_flow_add;
-+
-+	return;
-+
-+err_flow_add:
-+	flow_offload_free(flow);
-+err_flow_alloc:
-+	dst_release(route.tuple[!dir].dst);
-+err_flow_route:
-+	clear_bit(IPS_OFFLOAD_BIT, &ct->status);
-+out:
-+	regs->verdict.code = NFT_BREAK;
-+}
-+
-+static int nft_flow_offload_validate(const struct nft_ctx *ctx,
-+				     const struct nft_expr *expr,
-+				     const struct nft_data **data)
-+{
-+	unsigned int hook_mask = (1 << NF_INET_FORWARD);
-+
-+	return nft_chain_validate_hooks(ctx->chain, hook_mask);
-+}
-+
-+static int nft_flow_offload_init(const struct nft_ctx *ctx,
-+				 const struct nft_expr *expr,
-+				 const struct nlattr * const tb[])
-+{
-+	struct nft_flow_offload *priv = nft_expr_priv(expr);
-+	u8 genmask = nft_genmask_next(ctx->net);
-+	struct nft_flowtable *flowtable;
-+
-+	if (!tb[NFTA_FLOW_TABLE_NAME])
-+		return -EINVAL;
-+
-+	flowtable = nf_tables_flowtable_lookup(ctx->table,
-+					       tb[NFTA_FLOW_TABLE_NAME],
-+					       genmask);
-+	if (IS_ERR(flowtable))
-+		return PTR_ERR(flowtable);
-+
-+	priv->flowtable = flowtable;
-+	flowtable->use++;
-+
-+	return nf_ct_netns_get(ctx->net, ctx->afi->family);
-+}
-+
-+static void nft_flow_offload_destroy(const struct nft_ctx *ctx,
-+				     const struct nft_expr *expr)
-+{
-+	struct nft_flow_offload *priv = nft_expr_priv(expr);
-+
-+	priv->flowtable->use--;
-+	nf_ct_netns_put(ctx->net, ctx->afi->family);
-+}
-+
-+static int nft_flow_offload_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+{
-+	struct nft_flow_offload *priv = nft_expr_priv(expr);
-+
-+	if (nla_put_string(skb, NFTA_FLOW_TABLE_NAME, priv->flowtable->name))
-+		goto nla_put_failure;
-+
-+	return 0;
-+
-+nla_put_failure:
-+	return -1;
-+}
-+
-+static struct nft_expr_type nft_flow_offload_type;
-+static const struct nft_expr_ops nft_flow_offload_ops = {
-+	.type		= &nft_flow_offload_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_flow_offload)),
-+	.eval		= nft_flow_offload_eval,
-+	.init		= nft_flow_offload_init,
-+	.destroy	= nft_flow_offload_destroy,
-+	.validate	= nft_flow_offload_validate,
-+	.dump		= nft_flow_offload_dump,
-+};
-+
-+static struct nft_expr_type nft_flow_offload_type __read_mostly = {
-+	.name		= "flow_offload",
-+	.ops		= &nft_flow_offload_ops,
-+	.maxattr	= NFTA_FLOW_MAX,
++static struct nf_flowtable_type flowtable_inet = {
++	.family		= NFPROTO_INET,
++	.params		= &nf_flow_offload_rhash_params,
++	.gc		= nf_flow_offload_work_gc,
++	.hook		= nf_flow_offload_inet_hook,
 +	.owner		= THIS_MODULE,
 +};
 +
-+static void flow_offload_iterate_cleanup(struct flow_offload *flow, void *data)
++static int __init nf_flow_inet_module_init(void)
 +{
-+	struct net_device *dev = data;
-+
-+	if (dev && flow->tuplehash[0].tuple.iifidx != dev->ifindex)
-+		return;
-+
-+	flow_offload_dead(flow);
-+}
-+
-+static void nft_flow_offload_iterate_cleanup(struct nf_flowtable *flowtable,
-+					     void *data)
-+{
-+	nf_flow_table_iterate(flowtable, flow_offload_iterate_cleanup, data);
-+}
-+
-+static int flow_offload_netdev_event(struct notifier_block *this,
-+				     unsigned long event, void *ptr)
-+{
-+	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
-+
-+	if (event != NETDEV_DOWN)
-+		return NOTIFY_DONE;
-+
-+	nft_flow_table_iterate(dev_net(dev), nft_flow_offload_iterate_cleanup, dev);
-+
-+	return NOTIFY_DONE;
-+}
-+
-+static struct notifier_block flow_offload_netdev_notifier = {
-+	.notifier_call	= flow_offload_netdev_event,
-+};
-+
-+static int __init nft_flow_offload_module_init(void)
-+{
-+	int err;
-+
-+	register_netdevice_notifier(&flow_offload_netdev_notifier);
-+
-+	err = nft_register_expr(&nft_flow_offload_type);
-+	if (err < 0)
-+		goto register_expr;
++	nft_register_flowtable_type(&flowtable_inet);
 +
 +	return 0;
-+
-+register_expr:
-+	unregister_netdevice_notifier(&flow_offload_netdev_notifier);
-+	return err;
 +}
 +
-+static void __exit nft_flow_offload_module_exit(void)
++static void __exit nf_flow_inet_module_exit(void)
 +{
-+	struct net *net;
-+
-+	nft_unregister_expr(&nft_flow_offload_type);
-+	unregister_netdevice_notifier(&flow_offload_netdev_notifier);
-+	rtnl_lock();
-+	for_each_net(net)
-+		nft_flow_table_iterate(net, nft_flow_offload_iterate_cleanup, NULL);
-+	rtnl_unlock();
++	nft_unregister_flowtable_type(&flowtable_inet);
 +}
 +
-+module_init(nft_flow_offload_module_init);
-+module_exit(nft_flow_offload_module_exit);
++module_init(nf_flow_inet_module_init);
++module_exit(nf_flow_inet_module_exit);
 +
 +MODULE_LICENSE("GPL");
 +MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
-+MODULE_ALIAS_NFT_EXPR("flow_offload");
++MODULE_ALIAS_NF_FLOWTABLE(1); /* NFPROTO_INET */
 -- 
 2.11.0
-
