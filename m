@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 36/52] netfilter: move route indirection to struct nf_ipv6_ops
-Date: Mon,  8 Jan 2018 21:19:44 +0100
-Message-ID: <20180108202000.12989-37-pablo@netfilter.org>
+Subject: [PATCH 32/52] netfilter: connlimit: split xt_connlimit into front and backend
+Date: Mon,  8 Jan 2018 21:19:40 +0100
+Message-ID: <20180108202000.12989-33-pablo@netfilter.org>
 References: <20180108202000.12989-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,387 +10,933 @@ In-Reply-To: <20180108202000.12989-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-We cannot make a direct call to nf_ip6_route() because that would result
-in autoloading the 'ipv6' module because of symbol dependencies.
-Therefore, define route indirection in nf_ipv6_ops where this really
-belongs to.
+From: Florian Westphal <fw@strlen.de>
 
-For IPv4, we can indeed make a direct function call, which is faster,
-given IPv4 is built-in in the networking code by default. Still,
-CONFIG_INET=n and CONFIG_NETFILTER=y is possible, so define empty inline
-stub for IPv4 in such case.
+This allows to reuse xt_connlimit infrastructure from nf_tables.
+The upcoming nf_tables frontend can just pass in an nftables register
+as input key, this allows limiting by any nft-supported key, including
+concatenations.
 
+For xt_connlimit, pass in the zone and the ip/ipv6 address.
+
+With help from Yi-Hung Wei.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Acked-by: Yi-Hung Wei <yihung.wei@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h               |  4 ++--
- include/linux/netfilter_ipv4.h          |  7 +++++++
- include/linux/netfilter_ipv6.h          |  2 ++
- net/bridge/netfilter/nf_tables_bridge.c |  7 -------
- net/ipv4/netfilter.c                    |  6 +++---
- net/ipv6/netfilter.c                    |  2 +-
- net/ipv6/netfilter/nft_fib_ipv6.c       | 12 +++++-------
- net/netfilter/nf_conntrack_h323_main.c  | 30 +++++++++++++++---------------
- net/netfilter/nft_rt.c                  | 15 +++++----------
- net/netfilter/utils.c                   | 21 +++++++++++++++++++++
- net/netfilter/xt_TCPMSS.c               |  5 +----
- net/netfilter/xt_addrtype.c             | 15 ++++++---------
- 12 files changed, 68 insertions(+), 58 deletions(-)
+ include/net/netfilter/nf_conntrack_count.h  |  17 ++
+ include/uapi/linux/netfilter/xt_connlimit.h |   2 +-
+ net/netfilter/Kconfig                       |   3 +
+ net/netfilter/Makefile                      |   2 +
+ net/netfilter/nf_conncount.c                | 373 ++++++++++++++++++++++++++++
+ net/netfilter/xt_connlimit.c                | 369 ++-------------------------
+ 6 files changed, 420 insertions(+), 346 deletions(-)
+ create mode 100644 include/net/netfilter/nf_conntrack_count.h
+ create mode 100644 net/netfilter/nf_conncount.c
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 5fc2443225f9..02c35eabd348 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -311,8 +311,6 @@ struct nf_queue_entry;
+diff --git a/include/net/netfilter/nf_conntrack_count.h b/include/net/netfilter/nf_conntrack_count.h
+new file mode 100644
+index 000000000000..adf8db44cf86
+--- /dev/null
++++ b/include/net/netfilter/nf_conntrack_count.h
+@@ -0,0 +1,17 @@
++#ifndef _NF_CONNTRACK_COUNT_H
++#define _NF_CONNTRACK_COUNT_H
++
++struct nf_conncount_data;
++
++struct nf_conncount_data *nf_conncount_init(struct net *net, unsigned int family,
++					    unsigned int keylen);
++void nf_conncount_destroy(struct net *net, unsigned int family,
++			  struct nf_conncount_data *data);
++
++unsigned int nf_conncount_count(struct net *net,
++				struct nf_conncount_data *data,
++				const u32 *key,
++				unsigned int family,
++				const struct nf_conntrack_tuple *tuple,
++				const struct nf_conntrack_zone *zone);
++#endif
+diff --git a/include/uapi/linux/netfilter/xt_connlimit.h b/include/uapi/linux/netfilter/xt_connlimit.h
+index 07e5e9d47882..d4d1943dcd11 100644
+--- a/include/uapi/linux/netfilter/xt_connlimit.h
++++ b/include/uapi/linux/netfilter/xt_connlimit.h
+@@ -27,7 +27,7 @@ struct xt_connlimit_info {
+ 	__u32 flags;
  
- struct nf_afinfo {
- 	unsigned short	family;
--	int		(*route)(struct net *net, struct dst_entry **dst,
--				 struct flowi *fl, bool strict);
- 	int		(*reroute)(struct net *net, struct sk_buff *skb,
- 				   const struct nf_queue_entry *entry);
- 	int		route_key_size;
-@@ -331,6 +329,8 @@ __sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
- __sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
- 			    unsigned int dataoff, unsigned int len,
- 			    u_int8_t protocol, unsigned short family);
-+int nf_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
-+	     bool strict, unsigned short family);
+ 	/* Used internally by the kernel */
+-	struct xt_connlimit_data *data __attribute__((aligned(8)));
++	struct nf_conncount_data *data __attribute__((aligned(8)));
+ };
  
- int nf_register_afinfo(const struct nf_afinfo *afinfo);
- void nf_unregister_afinfo(const struct nf_afinfo *afinfo);
-diff --git a/include/linux/netfilter_ipv4.h b/include/linux/netfilter_ipv4.h
-index 8d4ef1e3ce74..2a4e2c415647 100644
---- a/include/linux/netfilter_ipv4.h
-+++ b/include/linux/netfilter_ipv4.h
-@@ -24,6 +24,8 @@ __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
- __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
- 			       unsigned int dataoff, unsigned int len,
- 			       u_int8_t protocol);
-+int nf_ip_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
-+		bool strict);
- #else
- static inline __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
- 				     unsigned int dataoff, u_int8_t protocol)
-@@ -38,6 +40,11 @@ static inline __sum16 nf_ip_checksum_partial(struct sk_buff *skb,
- {
- 	return 0;
- }
-+static inline int nf_ip_route(struct net *net, struct dst_entry **dst,
-+			      struct flowi *fl, bool strict)
+ #endif /* _XT_CONNLIMIT_H */
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 263609a7e010..af3d9f721b3f 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -68,6 +68,8 @@ config NF_LOG_NETDEV
+ 	select NF_LOG_COMMON
+ 
+ if NF_CONNTRACK
++config NETFILTER_CONNCOUNT
++	tristate
+ 
+ config NF_CONNTRACK_MARK
+ 	bool  'Connection mark tracking support'
+@@ -1126,6 +1128,7 @@ config NETFILTER_XT_MATCH_CONNLIMIT
+ 	tristate '"connlimit" match support'
+ 	depends on NF_CONNTRACK
+ 	depends on NETFILTER_ADVANCED
++	select NETFILTER_CONNCOUNT
+ 	---help---
+ 	  This match allows you to match against the number of parallel
+ 	  connections to a server per client IP address (or address block).
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index f78ed2470831..490a55e7166d 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -67,6 +67,8 @@ obj-$(CONFIG_NF_NAT_TFTP) += nf_nat_tftp.o
+ # SYNPROXY
+ obj-$(CONFIG_NETFILTER_SYNPROXY) += nf_synproxy_core.o
+ 
++obj-$(CONFIG_NETFILTER_CONNCOUNT) += nf_conncount.o
++
+ # generic packet duplication from netdev family
+ obj-$(CONFIG_NF_DUP_NETDEV)	+= nf_dup_netdev.o
+ 
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+new file mode 100644
+index 000000000000..a95518261168
+--- /dev/null
++++ b/net/netfilter/nf_conncount.c
+@@ -0,0 +1,373 @@
++/*
++ * count the number of connections matching an arbitrary key.
++ *
++ * (C) 2017 Red Hat GmbH
++ * Author: Florian Westphal <fw@strlen.de>
++ *
++ * split from xt_connlimit.c:
++ *   (c) 2000 Gerd Knorr <kraxel@bytesex.org>
++ *   Nov 2002: Martin Bene <martin.bene@icomedias.com>:
++ *		only ignore TIME_WAIT or gone connections
++ *   (C) CC Computer Consultants GmbH, 2007
++ */
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#include <linux/in.h>
++#include <linux/in6.h>
++#include <linux/ip.h>
++#include <linux/ipv6.h>
++#include <linux/jhash.h>
++#include <linux/slab.h>
++#include <linux/list.h>
++#include <linux/rbtree.h>
++#include <linux/module.h>
++#include <linux/random.h>
++#include <linux/skbuff.h>
++#include <linux/spinlock.h>
++#include <linux/netfilter/nf_conntrack_tcp.h>
++#include <linux/netfilter/x_tables.h>
++#include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_count.h>
++#include <net/netfilter/nf_conntrack_core.h>
++#include <net/netfilter/nf_conntrack_tuple.h>
++#include <net/netfilter/nf_conntrack_zones.h>
++
++#define CONNCOUNT_SLOTS		256U
++
++#ifdef CONFIG_LOCKDEP
++#define CONNCOUNT_LOCK_SLOTS	8U
++#else
++#define CONNCOUNT_LOCK_SLOTS	256U
++#endif
++
++#define CONNCOUNT_GC_MAX_NODES	8
++#define MAX_KEYLEN		5
++
++/* we will save the tuples of all connections we care about */
++struct nf_conncount_tuple {
++	struct hlist_node		node;
++	struct nf_conntrack_tuple	tuple;
++};
++
++struct nf_conncount_rb {
++	struct rb_node node;
++	struct hlist_head hhead; /* connections/hosts in same subnet */
++	u32 key[MAX_KEYLEN];
++};
++
++static spinlock_t nf_conncount_locks[CONNCOUNT_LOCK_SLOTS] __cacheline_aligned_in_smp;
++
++struct nf_conncount_data {
++	unsigned int keylen;
++	struct rb_root root[CONNCOUNT_SLOTS];
++};
++
++static u_int32_t conncount_rnd __read_mostly;
++static struct kmem_cache *conncount_rb_cachep __read_mostly;
++static struct kmem_cache *conncount_conn_cachep __read_mostly;
++
++static inline bool already_closed(const struct nf_conn *conn)
 +{
-+	return -EOPNOTSUPP;
++	if (nf_ct_protonum(conn) == IPPROTO_TCP)
++		return conn->proto.tcp.state == TCP_CONNTRACK_TIME_WAIT ||
++		       conn->proto.tcp.state == TCP_CONNTRACK_CLOSE;
++	else
++		return 0;
 +}
- #endif /* CONFIG_INET */
- 
- #endif /*__LINUX_IP_NETFILTER_H*/
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index 08d58dc018b5..e5700bb314a1 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -33,6 +33,8 @@ struct nf_ipv6_ops {
- 	__sum16 (*checksum_partial)(struct sk_buff *skb, unsigned int hook,
- 				    unsigned int dataoff, unsigned int len,
- 				    u_int8_t protocol);
-+	int (*route)(struct net *net, struct dst_entry **dst, struct flowi *fl,
-+		     bool strict);
- };
- 
- #ifdef CONFIG_NETFILTER
-diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
-index f38350c6bc29..014b6571f2ac 100644
---- a/net/bridge/netfilter/nf_tables_bridge.c
-+++ b/net/bridge/netfilter/nf_tables_bridge.c
-@@ -101,15 +101,8 @@ static int nf_br_reroute(struct net *net, struct sk_buff *skb,
- 	return 0;
- }
- 
--static int nf_br_route(struct net *net, struct dst_entry **dst,
--		       struct flowi *fl, bool strict __always_unused)
--{
--	return 0;
--}
--
- static const struct nf_afinfo nf_br_afinfo = {
- 	.family                 = AF_BRIDGE,
--	.route                  = nf_br_route,
- 	.reroute                = nf_br_reroute,
- 	.route_key_size         = 0,
- };
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index 7878ae6c35b2..e9d47e4ec182 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -150,8 +150,8 @@ __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
- }
- EXPORT_SYMBOL_GPL(nf_ip_checksum_partial);
- 
--static int nf_ip_route(struct net *net, struct dst_entry **dst,
--		       struct flowi *fl, bool strict __always_unused)
-+int nf_ip_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
-+		bool strict __always_unused)
- {
- 	struct rtable *rt = ip_route_output_key(net, &fl->u.ip4);
- 	if (IS_ERR(rt))
-@@ -159,10 +159,10 @@ static int nf_ip_route(struct net *net, struct dst_entry **dst,
- 	*dst = &rt->dst;
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(nf_ip_route);
- 
- static const struct nf_afinfo nf_ip_afinfo = {
- 	.family			= AF_INET,
--	.route			= nf_ip_route,
- 	.reroute		= nf_ip_reroute,
- 	.route_key_size		= sizeof(struct ip_rt_info),
- };
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 6d1f470660db..f03bb043e4e4 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -170,11 +170,11 @@ static const struct nf_ipv6_ops ipv6ops = {
- 	.fragment		= ip6_fragment,
- 	.checksum		= nf_ip6_checksum,
- 	.checksum_partial	= nf_ip6_checksum_partial,
-+	.route			= nf_ip6_route,
- };
- 
- static const struct nf_afinfo nf_ip6_afinfo = {
- 	.family			= AF_INET6,
--	.route			= nf_ip6_route,
- 	.reroute		= nf_ip6_reroute,
- 	.route_key_size		= sizeof(struct ip6_rt_info),
- };
-diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
-index 54b5899543ef..cc5174c7254c 100644
---- a/net/ipv6/netfilter/nft_fib_ipv6.c
-+++ b/net/ipv6/netfilter/nft_fib_ipv6.c
-@@ -60,7 +60,6 @@ static u32 __nft_fib6_eval_type(const struct nft_fib *priv,
- {
- 	const struct net_device *dev = NULL;
- 	const struct nf_ipv6_ops *v6ops;
--	const struct nf_afinfo *afinfo;
- 	int route_err, addrtype;
- 	struct rt6_info *rt;
- 	struct flowi6 fl6 = {
-@@ -69,8 +68,8 @@ static u32 __nft_fib6_eval_type(const struct nft_fib *priv,
- 	};
- 	u32 ret = 0;
- 
--	afinfo = nf_get_afinfo(NFPROTO_IPV6);
--	if (!afinfo)
-+	v6ops = nf_get_ipv6_ops();
-+	if (!v6ops)
- 		return RTN_UNREACHABLE;
- 
- 	if (priv->flags & NFTA_FIB_F_IIF)
-@@ -80,12 +79,11 @@ static u32 __nft_fib6_eval_type(const struct nft_fib *priv,
- 
- 	nft_fib6_flowi_init(&fl6, priv, pkt, dev, iph);
- 
--	v6ops = nf_get_ipv6_ops();
--	if (dev && v6ops && v6ops->chk_addr(nft_net(pkt), &fl6.daddr, dev, true))
-+	if (dev && v6ops->chk_addr(nft_net(pkt), &fl6.daddr, dev, true))
- 		ret = RTN_LOCAL;
- 
--	route_err = afinfo->route(nft_net(pkt), (struct dst_entry **)&rt,
--				  flowi6_to_flowi(&fl6), false);
-+	route_err = v6ops->route(nft_net(pkt), (struct dst_entry **)&rt,
-+				 flowi6_to_flowi(&fl6), false);
- 	if (route_err)
- 		goto err;
- 
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 7f0e0f66e488..005589c6d0f6 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -24,6 +24,7 @@
- #include <linux/skbuff.h>
- #include <net/route.h>
- #include <net/ip6_route.h>
-+#include <linux/netfilter_ipv6.h>
- 
- #include <net/netfilter/nf_conntrack.h>
- #include <net/netfilter/nf_conntrack_core.h>
-@@ -721,14 +722,8 @@ static int callforward_do_filter(struct net *net,
- 				 const union nf_inet_addr *dst,
- 				 u_int8_t family)
- {
--	const struct nf_afinfo *afinfo;
- 	int ret = 0;
- 
--	/* rcu_read_lock()ed by nf_hook_thresh */
--	afinfo = nf_get_afinfo(family);
--	if (!afinfo)
--		return 0;
--
- 	switch (family) {
- 	case AF_INET: {
- 		struct flowi4 fl1, fl2;
-@@ -739,10 +734,10 @@ static int callforward_do_filter(struct net *net,
- 
- 		memset(&fl2, 0, sizeof(fl2));
- 		fl2.daddr = dst->ip;
--		if (!afinfo->route(net, (struct dst_entry **)&rt1,
--				   flowi4_to_flowi(&fl1), false)) {
--			if (!afinfo->route(net, (struct dst_entry **)&rt2,
--					   flowi4_to_flowi(&fl2), false)) {
-+		if (!nf_ip_route(net, (struct dst_entry **)&rt1,
-+				 flowi4_to_flowi(&fl1), false)) {
-+			if (!nf_ip_route(net, (struct dst_entry **)&rt2,
-+					 flowi4_to_flowi(&fl2), false)) {
- 				if (rt_nexthop(rt1, fl1.daddr) ==
- 				    rt_nexthop(rt2, fl2.daddr) &&
- 				    rt1->dst.dev  == rt2->dst.dev)
-@@ -755,18 +750,23 @@ static int callforward_do_filter(struct net *net,
- 	}
- #if IS_ENABLED(CONFIG_NF_CONNTRACK_IPV6)
- 	case AF_INET6: {
--		struct flowi6 fl1, fl2;
-+		const struct nf_ipv6_ops *v6ops;
- 		struct rt6_info *rt1, *rt2;
-+		struct flowi6 fl1, fl2;
 +
-+		v6ops = nf_get_ipv6_ops();
-+		if (!v6ops)
-+			return 0;
- 
- 		memset(&fl1, 0, sizeof(fl1));
- 		fl1.daddr = src->in6;
- 
- 		memset(&fl2, 0, sizeof(fl2));
- 		fl2.daddr = dst->in6;
--		if (!afinfo->route(net, (struct dst_entry **)&rt1,
--				   flowi6_to_flowi(&fl1), false)) {
--			if (!afinfo->route(net, (struct dst_entry **)&rt2,
--					   flowi6_to_flowi(&fl2), false)) {
-+		if (!v6ops->route(net, (struct dst_entry **)&rt1,
-+				  flowi6_to_flowi(&fl1), false)) {
-+			if (!v6ops->route(net, (struct dst_entry **)&rt2,
-+					  flowi6_to_flowi(&fl2), false)) {
- 				if (ipv6_addr_equal(rt6_nexthop(rt1, &fl1.daddr),
- 						    rt6_nexthop(rt2, &fl2.daddr)) &&
- 				    rt1->dst.dev == rt2->dst.dev)
-diff --git a/net/netfilter/nft_rt.c b/net/netfilter/nft_rt.c
-index a6b7d05aeacf..11a2071b6dd4 100644
---- a/net/netfilter/nft_rt.c
-+++ b/net/netfilter/nft_rt.c
-@@ -27,7 +27,7 @@ static u16 get_tcpmss(const struct nft_pktinfo *pkt, const struct dst_entry *skb
- {
- 	u32 minlen = sizeof(struct ipv6hdr), mtu = dst_mtu(skbdst);
- 	const struct sk_buff *skb = pkt->skb;
--	const struct nf_afinfo *ai;
-+	struct dst_entry *dst = NULL;
- 	struct flowi fl;
- 
- 	memset(&fl, 0, sizeof(fl));
-@@ -43,15 +43,10 @@ static u16 get_tcpmss(const struct nft_pktinfo *pkt, const struct dst_entry *skb
- 		break;
- 	}
- 
--	ai = nf_get_afinfo(nft_pf(pkt));
--	if (ai) {
--		struct dst_entry *dst = NULL;
--
--		ai->route(nft_net(pkt), &dst, &fl, false);
--		if (dst) {
--			mtu = min(mtu, dst_mtu(dst));
--			dst_release(dst);
--		}
-+	nf_route(nft_net(pkt), &dst, &fl, false, nft_pf(pkt));
-+	if (dst) {
-+		mtu = min(mtu, dst_mtu(dst));
-+		dst_release(dst);
- 	}
- 
- 	if (mtu <= minlen || mtu > 0xffff)
-diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
-index ca6d8d62496d..45c22418c955 100644
---- a/net/netfilter/utils.c
-+++ b/net/netfilter/utils.c
-@@ -48,3 +48,24 @@ __sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
- 	return csum;
- }
- EXPORT_SYMBOL_GPL(nf_checksum_partial);
-+
-+int nf_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
-+	     bool strict, unsigned short family)
++static int key_diff(const u32 *a, const u32 *b, unsigned int klen)
 +{
-+	const struct nf_ipv6_ops *v6ops;
-+	int ret = 0;
++	return memcmp(a, b, klen * sizeof(u32));
++}
 +
-+	switch (family) {
-+	case AF_INET:
-+		ret = nf_ip_route(net, dst, fl, strict);
-+		break;
-+	case AF_INET6:
-+		v6ops = rcu_dereference(nf_ipv6_ops);
-+		if (v6ops)
-+			ret = v6ops->route(net, dst, fl, strict);
-+		break;
++static bool add_hlist(struct hlist_head *head,
++		      const struct nf_conntrack_tuple *tuple)
++{
++	struct nf_conncount_tuple *conn;
++
++	conn = kmem_cache_alloc(conncount_conn_cachep, GFP_ATOMIC);
++	if (conn == NULL)
++		return false;
++	conn->tuple = *tuple;
++	hlist_add_head(&conn->node, head);
++	return true;
++}
++
++static unsigned int check_hlist(struct net *net,
++				struct hlist_head *head,
++				const struct nf_conntrack_tuple *tuple,
++				const struct nf_conntrack_zone *zone,
++				bool *addit)
++{
++	const struct nf_conntrack_tuple_hash *found;
++	struct nf_conncount_tuple *conn;
++	struct hlist_node *n;
++	struct nf_conn *found_ct;
++	unsigned int length = 0;
++
++	*addit = true;
++
++	/* check the saved connections */
++	hlist_for_each_entry_safe(conn, n, head, node) {
++		found = nf_conntrack_find_get(net, zone, &conn->tuple);
++		if (found == NULL) {
++			hlist_del(&conn->node);
++			kmem_cache_free(conncount_conn_cachep, conn);
++			continue;
++		}
++
++		found_ct = nf_ct_tuplehash_to_ctrack(found);
++
++		if (nf_ct_tuple_equal(&conn->tuple, tuple)) {
++			/*
++			 * Just to be sure we have it only once in the list.
++			 * We should not see tuples twice unless someone hooks
++			 * this into a table without "-p tcp --syn".
++			 */
++			*addit = false;
++		} else if (already_closed(found_ct)) {
++			/*
++			 * we do not care about connections which are
++			 * closed already -> ditch it
++			 */
++			nf_ct_put(found_ct);
++			hlist_del(&conn->node);
++			kmem_cache_free(conncount_conn_cachep, conn);
++			continue;
++		}
++
++		nf_ct_put(found_ct);
++		length++;
 +	}
 +
-+	return ret;
++	return length;
 +}
-+EXPORT_SYMBOL_GPL(nf_route);
-diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
-index 9dae4d665965..99bb8e410f22 100644
---- a/net/netfilter/xt_TCPMSS.c
-+++ b/net/netfilter/xt_TCPMSS.c
-@@ -48,7 +48,6 @@ static u_int32_t tcpmss_reverse_mtu(struct net *net,
- 				    unsigned int family)
- {
- 	struct flowi fl;
--	const struct nf_afinfo *ai;
- 	struct rtable *rt = NULL;
- 	u_int32_t mtu     = ~0U;
- 
-@@ -62,10 +61,8 @@ static u_int32_t tcpmss_reverse_mtu(struct net *net,
- 		memset(fl6, 0, sizeof(*fl6));
- 		fl6->daddr = ipv6_hdr(skb)->saddr;
- 	}
--	ai = nf_get_afinfo(family);
--	if (ai != NULL)
--		ai->route(net, (struct dst_entry **)&rt, &fl, false);
- 
-+	nf_route(net, (struct dst_entry **)&rt, &fl, false, family);
- 	if (rt != NULL) {
- 		mtu = dst_mtu(&rt->dst);
- 		dst_release(&rt->dst);
-diff --git a/net/netfilter/xt_addrtype.c b/net/netfilter/xt_addrtype.c
-index 3b2be2ae6987..911a7c0da504 100644
---- a/net/netfilter/xt_addrtype.c
-+++ b/net/netfilter/xt_addrtype.c
-@@ -36,7 +36,7 @@ MODULE_ALIAS("ip6t_addrtype");
- static u32 match_lookup_rt6(struct net *net, const struct net_device *dev,
- 			    const struct in6_addr *addr, u16 mask)
- {
--	const struct nf_afinfo *afinfo;
-+	const struct nf_ipv6_ops *v6ops;
- 	struct flowi6 flow;
- 	struct rt6_info *rt;
- 	u32 ret = 0;
-@@ -47,17 +47,14 @@ static u32 match_lookup_rt6(struct net *net, const struct net_device *dev,
- 	if (dev)
- 		flow.flowi6_oif = dev->ifindex;
- 
--	afinfo = nf_get_afinfo(NFPROTO_IPV6);
--	if (afinfo != NULL) {
--		const struct nf_ipv6_ops *v6ops;
++
++static void tree_nodes_free(struct rb_root *root,
++			    struct nf_conncount_rb *gc_nodes[],
++			    unsigned int gc_count)
++{
++	struct nf_conncount_rb *rbconn;
++
++	while (gc_count) {
++		rbconn = gc_nodes[--gc_count];
++		rb_erase(&rbconn->node, root);
++		kmem_cache_free(conncount_rb_cachep, rbconn);
++	}
++}
++
++static unsigned int
++count_tree(struct net *net, struct rb_root *root,
++	   const u32 *key, u8 keylen,
++	   u8 family,
++	   const struct nf_conntrack_tuple *tuple,
++	   const struct nf_conntrack_zone *zone)
++{
++	struct nf_conncount_rb *gc_nodes[CONNCOUNT_GC_MAX_NODES];
++	struct rb_node **rbnode, *parent;
++	struct nf_conncount_rb *rbconn;
++	struct nf_conncount_tuple *conn;
++	unsigned int gc_count;
++	bool no_gc = false;
++
++ restart:
++	gc_count = 0;
++	parent = NULL;
++	rbnode = &(root->rb_node);
++	while (*rbnode) {
++		int diff;
++		bool addit;
++
++		rbconn = rb_entry(*rbnode, struct nf_conncount_rb, node);
++
++		parent = *rbnode;
++		diff = key_diff(key, rbconn->key, keylen);
++		if (diff < 0) {
++			rbnode = &((*rbnode)->rb_left);
++		} else if (diff > 0) {
++			rbnode = &((*rbnode)->rb_right);
++		} else {
++			/* same source network -> be counted! */
++			unsigned int count;
++			count = check_hlist(net, &rbconn->hhead, tuple, zone, &addit);
++
++			tree_nodes_free(root, gc_nodes, gc_count);
++			if (!addit)
++				return count;
++
++			if (!add_hlist(&rbconn->hhead, tuple))
++				return 0; /* hotdrop */
++
++			return count + 1;
++		}
++
++		if (no_gc || gc_count >= ARRAY_SIZE(gc_nodes))
++			continue;
++
++		/* only used for GC on hhead, retval and 'addit' ignored */
++		check_hlist(net, &rbconn->hhead, tuple, zone, &addit);
++		if (hlist_empty(&rbconn->hhead))
++			gc_nodes[gc_count++] = rbconn;
++	}
++
++	if (gc_count) {
++		no_gc = true;
++		tree_nodes_free(root, gc_nodes, gc_count);
++		/* tree_node_free before new allocation permits
++		 * allocator to re-use newly free'd object.
++		 *
++		 * This is a rare event; in most cases we will find
++		 * existing node to re-use. (or gc_count is 0).
++		 */
++		goto restart;
++	}
++
++	/* no match, need to insert new node */
++	rbconn = kmem_cache_alloc(conncount_rb_cachep, GFP_ATOMIC);
++	if (rbconn == NULL)
++		return 0;
++
++	conn = kmem_cache_alloc(conncount_conn_cachep, GFP_ATOMIC);
++	if (conn == NULL) {
++		kmem_cache_free(conncount_rb_cachep, rbconn);
++		return 0;
++	}
++
++	conn->tuple = *tuple;
++	memcpy(rbconn->key, key, sizeof(u32) * keylen);
++
++	INIT_HLIST_HEAD(&rbconn->hhead);
++	hlist_add_head(&conn->node, &rbconn->hhead);
++
++	rb_link_node(&rbconn->node, parent, rbnode);
++	rb_insert_color(&rbconn->node, root);
++	return 1;
++}
++
++unsigned int nf_conncount_count(struct net *net,
++				struct nf_conncount_data *data,
++				const u32 *key,
++				unsigned int family,
++				const struct nf_conntrack_tuple *tuple,
++				const struct nf_conntrack_zone *zone)
++{
++	struct rb_root *root;
++	int count;
++	u32 hash;
++
++	hash = jhash2(key, data->keylen, conncount_rnd) % CONNCOUNT_SLOTS;
++	root = &data->root[hash];
++
++	spin_lock_bh(&nf_conncount_locks[hash % CONNCOUNT_LOCK_SLOTS]);
++
++	count = count_tree(net, root, key, data->keylen, family, tuple, zone);
++
++	spin_unlock_bh(&nf_conncount_locks[hash % CONNCOUNT_LOCK_SLOTS]);
++
++	return count;
++}
++EXPORT_SYMBOL_GPL(nf_conncount_count);
++
++struct nf_conncount_data *nf_conncount_init(struct net *net, unsigned int family,
++					    unsigned int keylen)
++{
++	struct nf_conncount_data *data;
++	int ret, i;
++
++	if (keylen % sizeof(u32) ||
++	    keylen / sizeof(u32) > MAX_KEYLEN ||
++	    keylen == 0)
++		return ERR_PTR(-EINVAL);
++
++	net_get_random_once(&conncount_rnd, sizeof(conncount_rnd));
++
++	data = kmalloc(sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return ERR_PTR(-ENOMEM);
++
++	ret = nf_ct_netns_get(net, family);
++	if (ret < 0) {
++		kfree(data);
++		return ERR_PTR(ret);
++	}
++
++	for (i = 0; i < ARRAY_SIZE(data->root); ++i)
++		data->root[i] = RB_ROOT;
++
++	data->keylen = keylen / sizeof(u32);
++
++	return data;
++}
++EXPORT_SYMBOL_GPL(nf_conncount_init);
++
++static void destroy_tree(struct rb_root *r)
++{
++	struct nf_conncount_tuple *conn;
++	struct nf_conncount_rb *rbconn;
++	struct hlist_node *n;
++	struct rb_node *node;
++
++	while ((node = rb_first(r)) != NULL) {
++		rbconn = rb_entry(node, struct nf_conncount_rb, node);
++
++		rb_erase(node, r);
++
++		hlist_for_each_entry_safe(conn, n, &rbconn->hhead, node)
++			kmem_cache_free(conncount_conn_cachep, conn);
++
++		kmem_cache_free(conncount_rb_cachep, rbconn);
++	}
++}
++
++void nf_conncount_destroy(struct net *net, unsigned int family,
++			  struct nf_conncount_data *data)
++{
++	unsigned int i;
++
++	nf_ct_netns_put(net, family);
++
++	for (i = 0; i < ARRAY_SIZE(data->root); ++i)
++		destroy_tree(&data->root[i]);
++
++	kfree(data);
++}
++EXPORT_SYMBOL_GPL(nf_conncount_destroy);
++
++static int __init nf_conncount_modinit(void)
++{
++	int i;
++
++	BUILD_BUG_ON(CONNCOUNT_LOCK_SLOTS > CONNCOUNT_SLOTS);
++	BUILD_BUG_ON((CONNCOUNT_SLOTS % CONNCOUNT_LOCK_SLOTS) != 0);
++
++	for (i = 0; i < CONNCOUNT_LOCK_SLOTS; ++i)
++		spin_lock_init(&nf_conncount_locks[i]);
++
++	conncount_conn_cachep = kmem_cache_create("nf_conncount_tuple",
++					   sizeof(struct nf_conncount_tuple),
++					   0, 0, NULL);
++	if (!conncount_conn_cachep)
++		return -ENOMEM;
++
++	conncount_rb_cachep = kmem_cache_create("nf_conncount_rb",
++					   sizeof(struct nf_conncount_rb),
++					   0, 0, NULL);
++	if (!conncount_rb_cachep) {
++		kmem_cache_destroy(conncount_conn_cachep);
++		return -ENOMEM;
++	}
++
++	return 0;
++}
++
++static void __exit nf_conncount_modexit(void)
++{
++	kmem_cache_destroy(conncount_conn_cachep);
++	kmem_cache_destroy(conncount_rb_cachep);
++}
++
++module_init(nf_conncount_modinit);
++module_exit(nf_conncount_modexit);
++MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
++MODULE_AUTHOR("Florian Westphal <fw@strlen.de>");
++MODULE_DESCRIPTION("netfilter: count number of connections matching a key");
++MODULE_LICENSE("GPL");
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+index a6214f235333..b1b17b9353e1 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -12,292 +12,30 @@
+  * GPL (C) 1999  Rusty Russell (rusty@rustcorp.com.au).
+  */
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-#include <linux/in.h>
+-#include <linux/in6.h>
+-#include <linux/ip.h>
+-#include <linux/ipv6.h>
+-#include <linux/jhash.h>
+-#include <linux/slab.h>
+-#include <linux/list.h>
+-#include <linux/rbtree.h>
++
+ #include <linux/module.h>
+-#include <linux/random.h>
+ #include <linux/skbuff.h>
+-#include <linux/spinlock.h>
+-#include <linux/netfilter/nf_conntrack_tcp.h>
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_connlimit.h>
++
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack_tuple.h>
+ #include <net/netfilter/nf_conntrack_zones.h>
 -
-+	v6ops = nf_get_ipv6_ops();
-+	if (v6ops) {
- 		if (dev && (mask & XT_ADDRTYPE_LOCAL)) {
--			v6ops = nf_get_ipv6_ops();
--			if (v6ops && v6ops->chk_addr(net, addr, dev, true))
-+			if (v6ops->chk_addr(net, addr, dev, true))
- 				ret = XT_ADDRTYPE_LOCAL;
- 		}
--		route_err = afinfo->route(net, (struct dst_entry **)&rt,
--					  flowi6_to_flowi(&flow), false);
-+		route_err = v6ops->route(net, (struct dst_entry **)&rt,
-+					 flowi6_to_flowi(&flow), false);
+-#define CONNLIMIT_SLOTS		256U
+-
+-#ifdef CONFIG_LOCKDEP
+-#define CONNLIMIT_LOCK_SLOTS	8U
+-#else
+-#define CONNLIMIT_LOCK_SLOTS	256U
+-#endif
+-
+-#define CONNLIMIT_GC_MAX_NODES	8
+-
+-/* we will save the tuples of all connections we care about */
+-struct xt_connlimit_conn {
+-	struct hlist_node		node;
+-	struct nf_conntrack_tuple	tuple;
+-};
+-
+-struct xt_connlimit_rb {
+-	struct rb_node node;
+-	struct hlist_head hhead; /* connections/hosts in same subnet */
+-	union nf_inet_addr addr; /* search key */
+-};
+-
+-static spinlock_t xt_connlimit_locks[CONNLIMIT_LOCK_SLOTS] __cacheline_aligned_in_smp;
+-
+-struct xt_connlimit_data {
+-	struct rb_root climit_root[CONNLIMIT_SLOTS];
+-};
+-
+-static u_int32_t connlimit_rnd __read_mostly;
+-static struct kmem_cache *connlimit_rb_cachep __read_mostly;
+-static struct kmem_cache *connlimit_conn_cachep __read_mostly;
+-
+-static inline unsigned int connlimit_iphash(__be32 addr)
+-{
+-	return jhash_1word((__force __u32)addr,
+-			    connlimit_rnd) % CONNLIMIT_SLOTS;
+-}
+-
+-static inline unsigned int
+-connlimit_iphash6(const union nf_inet_addr *addr)
+-{
+-	return jhash2((u32 *)addr->ip6, ARRAY_SIZE(addr->ip6),
+-		       connlimit_rnd) % CONNLIMIT_SLOTS;
+-}
+-
+-static inline bool already_closed(const struct nf_conn *conn)
+-{
+-	if (nf_ct_protonum(conn) == IPPROTO_TCP)
+-		return conn->proto.tcp.state == TCP_CONNTRACK_TIME_WAIT ||
+-		       conn->proto.tcp.state == TCP_CONNTRACK_CLOSE;
+-	else
+-		return 0;
+-}
+-
+-static int
+-same_source(const union nf_inet_addr *addr,
+-	    const union nf_inet_addr *u3, u_int8_t family)
+-{
+-	if (family == NFPROTO_IPV4)
+-		return ntohl(addr->ip) - ntohl(u3->ip);
+-
+-	return memcmp(addr->ip6, u3->ip6, sizeof(addr->ip6));
+-}
+-
+-static bool add_hlist(struct hlist_head *head,
+-		      const struct nf_conntrack_tuple *tuple,
+-		      const union nf_inet_addr *addr)
+-{
+-	struct xt_connlimit_conn *conn;
+-
+-	conn = kmem_cache_alloc(connlimit_conn_cachep, GFP_ATOMIC);
+-	if (conn == NULL)
+-		return false;
+-	conn->tuple = *tuple;
+-	hlist_add_head(&conn->node, head);
+-	return true;
+-}
+-
+-static unsigned int check_hlist(struct net *net,
+-				struct hlist_head *head,
+-				const struct nf_conntrack_tuple *tuple,
+-				const struct nf_conntrack_zone *zone,
+-				bool *addit)
+-{
+-	const struct nf_conntrack_tuple_hash *found;
+-	struct xt_connlimit_conn *conn;
+-	struct hlist_node *n;
+-	struct nf_conn *found_ct;
+-	unsigned int length = 0;
+-
+-	*addit = true;
+-
+-	/* check the saved connections */
+-	hlist_for_each_entry_safe(conn, n, head, node) {
+-		found = nf_conntrack_find_get(net, zone, &conn->tuple);
+-		if (found == NULL) {
+-			hlist_del(&conn->node);
+-			kmem_cache_free(connlimit_conn_cachep, conn);
+-			continue;
+-		}
+-
+-		found_ct = nf_ct_tuplehash_to_ctrack(found);
+-
+-		if (nf_ct_tuple_equal(&conn->tuple, tuple)) {
+-			/*
+-			 * Just to be sure we have it only once in the list.
+-			 * We should not see tuples twice unless someone hooks
+-			 * this into a table without "-p tcp --syn".
+-			 */
+-			*addit = false;
+-		} else if (already_closed(found_ct)) {
+-			/*
+-			 * we do not care about connections which are
+-			 * closed already -> ditch it
+-			 */
+-			nf_ct_put(found_ct);
+-			hlist_del(&conn->node);
+-			kmem_cache_free(connlimit_conn_cachep, conn);
+-			continue;
+-		}
+-
+-		nf_ct_put(found_ct);
+-		length++;
+-	}
+-
+-	return length;
+-}
+-
+-static void tree_nodes_free(struct rb_root *root,
+-			    struct xt_connlimit_rb *gc_nodes[],
+-			    unsigned int gc_count)
+-{
+-	struct xt_connlimit_rb *rbconn;
+-
+-	while (gc_count) {
+-		rbconn = gc_nodes[--gc_count];
+-		rb_erase(&rbconn->node, root);
+-		kmem_cache_free(connlimit_rb_cachep, rbconn);
+-	}
+-}
+-
+-static unsigned int
+-count_tree(struct net *net, struct rb_root *root,
+-	   const struct nf_conntrack_tuple *tuple,
+-	   const union nf_inet_addr *addr,
+-	   u8 family, const struct nf_conntrack_zone *zone)
+-{
+-	struct xt_connlimit_rb *gc_nodes[CONNLIMIT_GC_MAX_NODES];
+-	struct rb_node **rbnode, *parent;
+-	struct xt_connlimit_rb *rbconn;
+-	struct xt_connlimit_conn *conn;
+-	unsigned int gc_count;
+-	bool no_gc = false;
+-
+- restart:
+-	gc_count = 0;
+-	parent = NULL;
+-	rbnode = &(root->rb_node);
+-	while (*rbnode) {
+-		int diff;
+-		bool addit;
+-
+-		rbconn = rb_entry(*rbnode, struct xt_connlimit_rb, node);
+-
+-		parent = *rbnode;
+-		diff = same_source(addr, &rbconn->addr, family);
+-		if (diff < 0) {
+-			rbnode = &((*rbnode)->rb_left);
+-		} else if (diff > 0) {
+-			rbnode = &((*rbnode)->rb_right);
+-		} else {
+-			/* same source network -> be counted! */
+-			unsigned int count;
+-			count = check_hlist(net, &rbconn->hhead, tuple, zone, &addit);
+-
+-			tree_nodes_free(root, gc_nodes, gc_count);
+-			if (!addit)
+-				return count;
+-
+-			if (!add_hlist(&rbconn->hhead, tuple, addr))
+-				return 0; /* hotdrop */
+-
+-			return count + 1;
+-		}
+-
+-		if (no_gc || gc_count >= ARRAY_SIZE(gc_nodes))
+-			continue;
+-
+-		/* only used for GC on hhead, retval and 'addit' ignored */
+-		check_hlist(net, &rbconn->hhead, tuple, zone, &addit);
+-		if (hlist_empty(&rbconn->hhead))
+-			gc_nodes[gc_count++] = rbconn;
+-	}
+-
+-	if (gc_count) {
+-		no_gc = true;
+-		tree_nodes_free(root, gc_nodes, gc_count);
+-		/* tree_node_free before new allocation permits
+-		 * allocator to re-use newly free'd object.
+-		 *
+-		 * This is a rare event; in most cases we will find
+-		 * existing node to re-use. (or gc_count is 0).
+-		 */
+-		goto restart;
+-	}
+-
+-	/* no match, need to insert new node */
+-	rbconn = kmem_cache_alloc(connlimit_rb_cachep, GFP_ATOMIC);
+-	if (rbconn == NULL)
+-		return 0;
+-
+-	conn = kmem_cache_alloc(connlimit_conn_cachep, GFP_ATOMIC);
+-	if (conn == NULL) {
+-		kmem_cache_free(connlimit_rb_cachep, rbconn);
+-		return 0;
+-	}
+-
+-	conn->tuple = *tuple;
+-	rbconn->addr = *addr;
+-
+-	INIT_HLIST_HEAD(&rbconn->hhead);
+-	hlist_add_head(&conn->node, &rbconn->hhead);
+-
+-	rb_link_node(&rbconn->node, parent, rbnode);
+-	rb_insert_color(&rbconn->node, root);
+-	return 1;
+-}
+-
+-static int count_them(struct net *net,
+-		      struct xt_connlimit_data *data,
+-		      const struct nf_conntrack_tuple *tuple,
+-		      const union nf_inet_addr *addr,
+-		      u_int8_t family,
+-		      const struct nf_conntrack_zone *zone)
+-{
+-	struct rb_root *root;
+-	int count;
+-	u32 hash;
+-
+-	if (family == NFPROTO_IPV6)
+-		hash = connlimit_iphash6(addr);
+-	else
+-		hash = connlimit_iphash(addr->ip);
+-	root = &data->climit_root[hash];
+-
+-	spin_lock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
+-
+-	count = count_tree(net, root, tuple, addr, family, zone);
+-
+-	spin_unlock_bh(&xt_connlimit_locks[hash % CONNLIMIT_LOCK_SLOTS]);
+-
+-	return count;
+-}
++#include <net/netfilter/nf_conntrack_count.h>
+ 
+ static bool
+ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+ 	struct net *net = xt_net(par);
+ 	const struct xt_connlimit_info *info = par->matchinfo;
+-	union nf_inet_addr addr;
+ 	struct nf_conntrack_tuple tuple;
+ 	const struct nf_conntrack_tuple *tuple_ptr = &tuple;
+ 	const struct nf_conntrack_zone *zone = &nf_ct_zone_dflt;
+ 	enum ip_conntrack_info ctinfo;
+ 	const struct nf_conn *ct;
+ 	unsigned int connections;
++	u32 key[5];
+ 
+ 	ct = nf_ct_get(skb, &ctinfo);
+ 	if (ct != NULL) {
+@@ -310,6 +48,7 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 
+ 	if (xt_family(par) == NFPROTO_IPV6) {
+ 		const struct ipv6hdr *iph = ipv6_hdr(skb);
++		union nf_inet_addr addr;
+ 		unsigned int i;
+ 
+ 		memcpy(&addr.ip6, (info->flags & XT_CONNLIMIT_DADDR) ?
+@@ -317,22 +56,24 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 
+ 		for (i = 0; i < ARRAY_SIZE(addr.ip6); ++i)
+ 			addr.ip6[i] &= info->mask.ip6[i];
++		memcpy(key, &addr, sizeof(addr.ip6));
++		key[4] = zone->id;
  	} else {
- 		route_err = 1;
+ 		const struct iphdr *iph = ip_hdr(skb);
+-		addr.ip = (info->flags & XT_CONNLIMIT_DADDR) ?
++		key[0] = (info->flags & XT_CONNLIMIT_DADDR) ?
+ 			  iph->daddr : iph->saddr;
+ 
+-		addr.ip &= info->mask.ip;
++		key[0] &= info->mask.ip;
++		key[1] = zone->id;
  	}
+ 
+-	connections = count_them(net, info->data, tuple_ptr, &addr,
+-				 xt_family(par), zone);
++	connections = nf_conncount_count(net, info->data, key,
++					 xt_family(par), tuple_ptr, zone);
+ 	if (connections == 0)
+ 		/* kmalloc failed, drop it entirely */
+ 		goto hotdrop;
+ 
+-	return (connections > info->limit) ^
+-	       !!(info->flags & XT_CONNLIMIT_INVERT);
++	return (connections > info->limit) ^ !!(info->flags & XT_CONNLIMIT_INVERT);
+ 
+  hotdrop:
+ 	par->hotdrop = true;
+@@ -342,61 +83,27 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ static int connlimit_mt_check(const struct xt_mtchk_param *par)
+ {
+ 	struct xt_connlimit_info *info = par->matchinfo;
+-	unsigned int i;
+-	int ret;
++	unsigned int keylen;
+ 
+-	net_get_random_once(&connlimit_rnd, sizeof(connlimit_rnd));
+-
+-	ret = nf_ct_netns_get(par->net, par->family);
+-	if (ret < 0) {
+-		pr_info("cannot load conntrack support for "
+-			"address family %u\n", par->family);
+-		return ret;
+-	}
++	keylen = sizeof(u32);
++	if (par->family == NFPROTO_IPV6)
++		keylen += sizeof(struct in6_addr);
++	else
++		keylen += sizeof(struct in_addr);
+ 
+ 	/* init private data */
+-	info->data = kmalloc(sizeof(struct xt_connlimit_data), GFP_KERNEL);
+-	if (info->data == NULL) {
+-		nf_ct_netns_put(par->net, par->family);
+-		return -ENOMEM;
+-	}
+-
+-	for (i = 0; i < ARRAY_SIZE(info->data->climit_root); ++i)
+-		info->data->climit_root[i] = RB_ROOT;
++	info->data = nf_conncount_init(par->net, par->family, keylen);
++	if (IS_ERR(info->data))
++		return PTR_ERR(info->data);
+ 
+ 	return 0;
+ }
+ 
+-static void destroy_tree(struct rb_root *r)
+-{
+-	struct xt_connlimit_conn *conn;
+-	struct xt_connlimit_rb *rbconn;
+-	struct hlist_node *n;
+-	struct rb_node *node;
+-
+-	while ((node = rb_first(r)) != NULL) {
+-		rbconn = rb_entry(node, struct xt_connlimit_rb, node);
+-
+-		rb_erase(node, r);
+-
+-		hlist_for_each_entry_safe(conn, n, &rbconn->hhead, node)
+-			kmem_cache_free(connlimit_conn_cachep, conn);
+-
+-		kmem_cache_free(connlimit_rb_cachep, rbconn);
+-	}
+-}
+-
+ static void connlimit_mt_destroy(const struct xt_mtdtor_param *par)
+ {
+ 	const struct xt_connlimit_info *info = par->matchinfo;
+-	unsigned int i;
+-
+-	nf_ct_netns_put(par->net, par->family);
+-
+-	for (i = 0; i < ARRAY_SIZE(info->data->climit_root); ++i)
+-		destroy_tree(&info->data->climit_root[i]);
+ 
+-	kfree(info->data);
++	nf_conncount_destroy(par->net, par->family, info->data);
+ }
+ 
+ static struct xt_match connlimit_mt_reg __read_mostly = {
+@@ -413,40 +120,12 @@ static struct xt_match connlimit_mt_reg __read_mostly = {
+ 
+ static int __init connlimit_mt_init(void)
+ {
+-	int ret, i;
+-
+-	BUILD_BUG_ON(CONNLIMIT_LOCK_SLOTS > CONNLIMIT_SLOTS);
+-	BUILD_BUG_ON((CONNLIMIT_SLOTS % CONNLIMIT_LOCK_SLOTS) != 0);
+-
+-	for (i = 0; i < CONNLIMIT_LOCK_SLOTS; ++i)
+-		spin_lock_init(&xt_connlimit_locks[i]);
+-
+-	connlimit_conn_cachep = kmem_cache_create("xt_connlimit_conn",
+-					   sizeof(struct xt_connlimit_conn),
+-					   0, 0, NULL);
+-	if (!connlimit_conn_cachep)
+-		return -ENOMEM;
+-
+-	connlimit_rb_cachep = kmem_cache_create("xt_connlimit_rb",
+-					   sizeof(struct xt_connlimit_rb),
+-					   0, 0, NULL);
+-	if (!connlimit_rb_cachep) {
+-		kmem_cache_destroy(connlimit_conn_cachep);
+-		return -ENOMEM;
+-	}
+-	ret = xt_register_match(&connlimit_mt_reg);
+-	if (ret != 0) {
+-		kmem_cache_destroy(connlimit_conn_cachep);
+-		kmem_cache_destroy(connlimit_rb_cachep);
+-	}
+-	return ret;
++	return xt_register_match(&connlimit_mt_reg);
+ }
+ 
+ static void __exit connlimit_mt_exit(void)
+ {
+ 	xt_unregister_match(&connlimit_mt_reg);
+-	kmem_cache_destroy(connlimit_conn_cachep);
+-	kmem_cache_destroy(connlimit_rb_cachep);
+ }
+ 
+ module_init(connlimit_mt_init);
 -- 
 2.11.0
