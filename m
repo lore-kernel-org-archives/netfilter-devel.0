@@ -1,53 +1,39 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: avoid arp/bridge WARN_ON if arp/ebtables not supported
-Date: Mon,  8 Jan 2018 13:31:52 +0100
-Message-ID: <20180108123152.11499-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/3] ipset patches for nf-next
+Date: Mon, 8 Jan 2018 13:57:02 +0100
+Message-ID: <20180108125702.6ajyx7zbswdqpfer@salvia>
+References: <1515252969-26094-1-git-send-email-kadlec@blackhole.kfki.hu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:38974 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756727AbeAHMmA (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jan 2018 07:42:00 -0500
+Received: from mail.us.es ([193.147.175.20]:52826 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756815AbeAHM5H (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 8 Jan 2018 07:57:07 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 2A26724931
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 13:57:05 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1A2818E791
+        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 13:57:05 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <1515252969-26094-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We need to retain the 'case' statement, otherwise, if e.g. arp tables
-isn't supported first NF_HOOK(NFPROTO_ARP, ... will produce a bogus
-WARN_ON().
+On Sat, Jan 06, 2018 at 04:36:06PM +0100, Jozsef Kadlecsik wrote:
+> Hi Pablo,
+> 
+> Please consider to apply the next patches:
+> 
+> - A patch to use the swap() macro instead of the manual coding
+>   from Gustavo A. R. Silva
+> - A fix to take into account the possible counter value matching
+>   for the "don't update counters" mode. It required a reorganizing
+>   in handling the extensions which resulted a simpler and cleaner code.
+> - The patch "netfilter: ipset: use nfnl_mutex_is_locked" revealed
+>   a missing mutex locking in ip_set_net_exit(), fixed.
 
-Fixes: 8de98f05836 ("netfilter: don't allocate space for arp/bridge hooks unless needed")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/linux/netfilter.h | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 84987186aa26..85a1a0b32c66 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -214,16 +214,16 @@ static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
- 	case NFPROTO_IPV6:
- 		hook_head = rcu_dereference(net->nf.hooks_ipv6[hook]);
- 		break;
--#ifdef CONFIG_NETFILTER_FAMILY_ARP
- 	case NFPROTO_ARP:
-+#ifdef CONFIG_NETFILTER_FAMILY_ARP
- 		hook_head = rcu_dereference(net->nf.hooks_arp[hook]);
--		break;
- #endif
--#ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
-+		break;
- 	case NFPROTO_BRIDGE:
-+#ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
- 		hook_head = rcu_dereference(net->nf.hooks_bridge[hook]);
--		break;
- #endif
-+		break;
- #if IS_ENABLED(CONFIG_DECNET)
- 	case NFPROTO_DECNET:
- 		hook_head = rcu_dereference(net->nf.hooks_decnet[hook]);
--- 
-2.13.6
-
+Pulled, thanks Jozsef!
