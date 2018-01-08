@@ -1,95 +1,221 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 14/52] netfilter: add defines for arp/decnet max hooks
-Date: Mon,  8 Jan 2018 21:19:22 +0100
-Message-ID: <20180108202000.12989-15-pablo@netfilter.org>
+Subject: [PATCH 13/52] netfilter: reduce size of hook entry point locations
+Date: Mon,  8 Jan 2018 21:19:21 +0100
+Message-ID: <20180108202000.12989-14-pablo@netfilter.org>
 References: <20180108202000.12989-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42504 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756947AbeAHUUU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jan 2018 15:20:20 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C3676E7B8D
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:19 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B559253CDE
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:19 +0100 (CET)
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180108202000.12989-1-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-The kernel already has defines for this, but they are in uapi exposed
-headers.
+struct net contains:
 
-Including these from netns.h causes build errors and also adds unneeded
-dependencies on heads that we don't need.
+struct nf_hook_entries __rcu *hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
 
-So move these defines to netfilter_defs.h and place the uapi ones
-in ifndef __KERNEL__ to keep them for userspace.
+which store the hook entry point locations for the various protocol
+families and the hooks.
+
+Using array results in compact c code when doing accesses, i.e.
+  x = rcu_dereference(net->nf.hooks[pf][hook]);
+
+but its also wasting a lot of memory, as most families are
+not used.
+
+So split the array into those families that are used, which
+are only 5 (instead of 13).  In most cases, the 'pf' argument is
+constant, i.e. gcc removes switch statement.
+
+struct net before:
+ /* size: 5184, cachelines: 81, members: 46 */
+after:
+ /* size: 4672, cachelines: 73, members: 46 */
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter_defs.h        | 6 ++++++
- include/uapi/linux/netfilter_arp.h    | 3 +++
- include/uapi/linux/netfilter_decnet.h | 4 +++-
- 3 files changed, 12 insertions(+), 1 deletion(-)
+ include/linux/netfilter.h       | 24 ++++++++++++++++++++++--
+ include/net/netns/netfilter.h   |  6 +++++-
+ net/bridge/br_netfilter_hooks.c |  2 +-
+ net/netfilter/core.c            | 38 ++++++++++++++++++++++++++++++--------
+ net/netfilter/nf_queue.c        | 21 +++++++++++++++++++--
+ 5 files changed, 77 insertions(+), 14 deletions(-)
 
-diff --git a/include/linux/netfilter_defs.h b/include/linux/netfilter_defs.h
-index dc6111adea06..fdcdf2bf34df 100644
---- a/include/linux/netfilter_defs.h
-+++ b/include/linux/netfilter_defs.h
-@@ -7,4 +7,10 @@
- /* Largest hook number + 1, see uapi/linux/netfilter_decnet.h */
- #define NF_MAX_HOOKS 8
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 792f6d535707..9dcbcdfa3b82 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -195,7 +195,7 @@ static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
+ 			  struct net_device *indev, struct net_device *outdev,
+ 			  int (*okfn)(struct net *, struct sock *, struct sk_buff *))
+ {
+-	struct nf_hook_entries *hook_head;
++	struct nf_hook_entries *hook_head = NULL;
+ 	int ret = 1;
  
-+/* in/out/forward only */
-+#define NF_ARP_NUMHOOKS 3
-+
-+/* max hook is NF_DN_ROUTE (6), also see uapi/linux/netfilter_decnet.h */
-+#define NF_DN_NUMHOOKS 7
-+
+ #ifdef HAVE_JUMP_LABEL
+@@ -206,7 +206,27 @@ static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
  #endif
-diff --git a/include/uapi/linux/netfilter_arp.h b/include/uapi/linux/netfilter_arp.h
-index 81b6a4cbcb72..791dfc5ae907 100644
---- a/include/uapi/linux/netfilter_arp.h
-+++ b/include/uapi/linux/netfilter_arp.h
-@@ -15,6 +15,9 @@
- #define NF_ARP_IN	0
- #define NF_ARP_OUT	1
- #define NF_ARP_FORWARD	2
+ 
+ 	rcu_read_lock();
+-	hook_head = rcu_dereference(net->nf.hooks[pf][hook]);
++	switch (pf) {
++	case NFPROTO_IPV4:
++		hook_head = rcu_dereference(net->nf.hooks_ipv4[hook]);
++		break;
++	case NFPROTO_IPV6:
++		hook_head = rcu_dereference(net->nf.hooks_ipv6[hook]);
++		break;
++	case NFPROTO_ARP:
++		hook_head = rcu_dereference(net->nf.hooks_arp[hook]);
++		break;
++	case NFPROTO_BRIDGE:
++		hook_head = rcu_dereference(net->nf.hooks_bridge[hook]);
++		break;
++	case NFPROTO_DECNET:
++		hook_head = rcu_dereference(net->nf.hooks_decnet[hook]);
++		break;
++	default:
++		WARN_ON_ONCE(1);
++		break;
++	}
 +
-+#ifndef __KERNEL__
- #define NF_ARP_NUMHOOKS	3
-+#endif
+ 	if (hook_head) {
+ 		struct nf_hook_state state;
  
- #endif /* __LINUX_ARP_NETFILTER_H */
-diff --git a/include/uapi/linux/netfilter_decnet.h b/include/uapi/linux/netfilter_decnet.h
-index 9089c38f6abe..61f1c7dfd033 100644
---- a/include/uapi/linux/netfilter_decnet.h
-+++ b/include/uapi/linux/netfilter_decnet.h
-@@ -24,6 +24,9 @@
- #define NFC_DN_IF_IN		0x0004
- /* Output device. */
- #define NFC_DN_IF_OUT		0x0008
+diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
+index cc00af2ac2d7..b39c563c2fce 100644
+--- a/include/net/netns/netfilter.h
++++ b/include/net/netns/netfilter.h
+@@ -17,7 +17,11 @@ struct netns_nf {
+ #ifdef CONFIG_SYSCTL
+ 	struct ctl_table_header *nf_log_dir_header;
+ #endif
+-	struct nf_hook_entries __rcu *hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
++	struct nf_hook_entries __rcu *hooks_ipv4[NF_MAX_HOOKS];
++	struct nf_hook_entries __rcu *hooks_ipv6[NF_MAX_HOOKS];
++	struct nf_hook_entries __rcu *hooks_arp[NF_MAX_HOOKS];
++	struct nf_hook_entries __rcu *hooks_bridge[NF_MAX_HOOKS];
++	struct nf_hook_entries __rcu *hooks_decnet[NF_MAX_HOOKS];
+ #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
+ 	bool			defrag_ipv4;
+ #endif
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index c2eea1b8737a..27f1d4f2114a 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -991,7 +991,7 @@ int br_nf_hook_thresh(unsigned int hook, struct net *net,
+ 	unsigned int i;
+ 	int ret;
+ 
+-	e = rcu_dereference(net->nf.hooks[NFPROTO_BRIDGE][hook]);
++	e = rcu_dereference(net->nf.hooks_bridge[hook]);
+ 	if (!e)
+ 		return okfn(net, sk, skb);
+ 
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 6921f9f1cc81..a6eaaf303be8 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -264,8 +264,23 @@ static void *__nf_hook_entries_try_shrink(struct nf_hook_entries __rcu **pp)
+ 
+ static struct nf_hook_entries __rcu **nf_hook_entry_head(struct net *net, const struct nf_hook_ops *reg)
+ {
+-	if (reg->pf != NFPROTO_NETDEV)
+-		return net->nf.hooks[reg->pf]+reg->hooknum;
++	switch (reg->pf) {
++	case NFPROTO_NETDEV:
++		break;
++	case NFPROTO_ARP:
++		return net->nf.hooks_arp + reg->hooknum;
++	case NFPROTO_BRIDGE:
++		return net->nf.hooks_bridge + reg->hooknum;
++	case NFPROTO_IPV4:
++		return net->nf.hooks_ipv4 + reg->hooknum;
++	case NFPROTO_IPV6:
++		return net->nf.hooks_ipv6 + reg->hooknum;
++	case NFPROTO_DECNET:
++		return net->nf.hooks_decnet + reg->hooknum;
++	default:
++		WARN_ON_ONCE(1);
++		return NULL;
++	}
+ 
+ #ifdef CONFIG_NETFILTER_INGRESS
+ 	if (reg->hooknum == NF_NETDEV_INGRESS) {
+@@ -534,14 +549,21 @@ void (*nf_nat_decode_session_hook)(struct sk_buff *, struct flowi *);
+ EXPORT_SYMBOL(nf_nat_decode_session_hook);
+ #endif
+ 
+-static int __net_init netfilter_net_init(struct net *net)
++static void __net_init __netfilter_net_init(struct nf_hook_entries *e[NF_MAX_HOOKS])
+ {
+-	int i, h;
++	int h;
+ 
+-	for (i = 0; i < ARRAY_SIZE(net->nf.hooks); i++) {
+-		for (h = 0; h < NF_MAX_HOOKS; h++)
+-			RCU_INIT_POINTER(net->nf.hooks[i][h], NULL);
+-	}
++	for (h = 0; h < NF_MAX_HOOKS; h++)
++		RCU_INIT_POINTER(e[h], NULL);
++}
 +
-+/* kernel define is in netfilter_defs.h */
-+#define NF_DN_NUMHOOKS		7
- #endif /* ! __KERNEL__ */
++static int __net_init netfilter_net_init(struct net *net)
++{
++	__netfilter_net_init(net->nf.hooks_ipv4);
++	__netfilter_net_init(net->nf.hooks_ipv6);
++	__netfilter_net_init(net->nf.hooks_arp);
++	__netfilter_net_init(net->nf.hooks_bridge);
++	__netfilter_net_init(net->nf.hooks_decnet);
  
- /* DECnet Hooks */
-@@ -41,7 +44,6 @@
- #define NF_DN_HELLO		5
- /* Input Routing Packets */
- #define NF_DN_ROUTE		6
--#define NF_DN_NUMHOOKS		7
+ #ifdef CONFIG_PROC_FS
+ 	net->nf.proc_netfilter = proc_net_mkdir(net, "netfilter",
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 4e42a4a68a0b..836aeb08686e 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -201,6 +201,23 @@ static unsigned int nf_iterate(struct sk_buff *skb,
+ 	return NF_ACCEPT;
+ }
  
- enum nf_dn_hook_priorities {
- 	NF_DN_PRI_FIRST = INT_MIN,
++static struct nf_hook_entries *nf_hook_entries_head(const struct net *net, u8 pf, u8 hooknum)
++{
++	switch (pf) {
++	case NFPROTO_BRIDGE:
++		return rcu_dereference(net->nf.hooks_bridge[hooknum]);
++	case NFPROTO_IPV4:
++		return rcu_dereference(net->nf.hooks_ipv4[hooknum]);
++	case NFPROTO_IPV6:
++		return rcu_dereference(net->nf.hooks_ipv6[hooknum]);
++	default:
++		WARN_ON_ONCE(1);
++		return NULL;
++	}
++
++	return NULL;
++}
++
+ /* Caller must hold rcu read-side lock */
+ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ {
+@@ -216,12 +233,12 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	net = entry->state.net;
+ 	pf = entry->state.pf;
+ 
+-	hooks = rcu_dereference(net->nf.hooks[pf][entry->state.hook]);
++	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
+ 
+ 	nf_queue_entry_release_refs(entry);
+ 
+ 	i = entry->hook_index;
+-	if (WARN_ON_ONCE(i >= hooks->num_hook_entries)) {
++	if (WARN_ON_ONCE(!hooks || i >= hooks->num_hook_entries)) {
+ 		kfree_skb(skb);
+ 		kfree(entry);
+ 		return;
 -- 
 2.11.0
-
