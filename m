@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 23/52] netfilter: nf_tables: explicit nft_set_pktinfo() call from hook path
-Date: Mon,  8 Jan 2018 21:19:31 +0100
-Message-ID: <20180108202000.12989-24-pablo@netfilter.org>
+Subject: [PATCH 15/52] netfilter: reduce hook array sizes to what is needed
+Date: Mon,  8 Jan 2018 21:19:23 +0100
+Message-ID: <20180108202000.12989-16-pablo@netfilter.org>
 References: <20180108202000.12989-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,328 +10,101 @@ In-Reply-To: <20180108202000.12989-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Instead of calling this function from the family specific variant, this
-reduces the code size in the fast path for the netdev, bridge and inet
-families. After this change, we must call nft_set_pktinfo() upfront from
-the chain hook indirection.
+From: Florian Westphal <fw@strlen.de>
 
-Before:
+Not all families share the same hook count, adjust sizes to what is
+needed.
 
-   text    data     bss     dec     hex filename
-   2145     208       0    2353     931 net/netfilter/nf_tables_netdev.o
+struct net before:
+/* size: 6592, cachelines: 103, members: 46 */
+after:
+/* size: 5952, cachelines: 93, members: 46 */
 
-After:
-
-   text    data     bss     dec     hex filename
-   2125     208       0    2333     91d net/netfilter/nf_tables_netdev.o
-
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h         | 12 ++----------
- include/net/netfilter/nf_tables_ipv4.h    | 25 ++++++++-----------------
- include/net/netfilter/nf_tables_ipv6.h    | 27 +++++++++------------------
- net/bridge/netfilter/nf_tables_bridge.c   |  8 +++++---
- net/ipv4/netfilter/nf_tables_arp.c        |  3 ++-
- net/ipv4/netfilter/nf_tables_ipv4.c       |  3 ++-
- net/ipv4/netfilter/nft_chain_nat_ipv4.c   |  3 ++-
- net/ipv4/netfilter/nft_chain_route_ipv4.c |  3 ++-
- net/ipv6/netfilter/nf_tables_ipv6.c       |  3 ++-
- net/ipv6/netfilter/nft_chain_nat_ipv6.c   |  3 ++-
- net/ipv6/netfilter/nft_chain_route_ipv6.c |  3 ++-
- net/netfilter/nf_tables_netdev.c          |  8 +++++---
- 12 files changed, 43 insertions(+), 58 deletions(-)
+ include/net/netns/netfilter.h | 10 +++++-----
+ net/netfilter/core.c          | 24 +++++++++++++++++-------
+ 2 files changed, 22 insertions(+), 12 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index fecc6112c768..f6e4325b3306 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -54,8 +54,8 @@ static inline void nft_set_pktinfo(struct nft_pktinfo *pkt,
- 	pkt->xt.state = state;
- }
- 
--static inline void nft_set_pktinfo_proto_unspec(struct nft_pktinfo *pkt,
--						struct sk_buff *skb)
-+static inline void nft_set_pktinfo_unspec(struct nft_pktinfo *pkt,
-+					  struct sk_buff *skb)
- {
- 	pkt->tprot_set = false;
- 	pkt->tprot = 0;
-@@ -63,14 +63,6 @@ static inline void nft_set_pktinfo_proto_unspec(struct nft_pktinfo *pkt,
- 	pkt->xt.fragoff = 0;
- }
- 
--static inline void nft_set_pktinfo_unspec(struct nft_pktinfo *pkt,
--					  struct sk_buff *skb,
--					  const struct nf_hook_state *state)
--{
--	nft_set_pktinfo(pkt, skb, state);
--	nft_set_pktinfo_proto_unspec(pkt, skb);
--}
--
- /**
-  * 	struct nft_verdict - nf_tables verdict
-  *
-diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
-index f0896ba456c4..b2deeb2755a4 100644
---- a/include/net/netfilter/nf_tables_ipv4.h
-+++ b/include/net/netfilter/nf_tables_ipv4.h
-@@ -5,15 +5,11 @@
- #include <net/netfilter/nf_tables.h>
- #include <net/ip.h>
- 
--static inline void
--nft_set_pktinfo_ipv4(struct nft_pktinfo *pkt,
--		     struct sk_buff *skb,
--		     const struct nf_hook_state *state)
-+static inline void nft_set_pktinfo_ipv4(struct nft_pktinfo *pkt,
-+					struct sk_buff *skb)
- {
- 	struct iphdr *ip;
- 
--	nft_set_pktinfo(pkt, skb, state);
--
- 	ip = ip_hdr(pkt->skb);
- 	pkt->tprot_set = true;
- 	pkt->tprot = ip->protocol;
-@@ -21,10 +17,8 @@ nft_set_pktinfo_ipv4(struct nft_pktinfo *pkt,
- 	pkt->xt.fragoff = ntohs(ip->frag_off) & IP_OFFSET;
- }
- 
--static inline int
--__nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt,
--				struct sk_buff *skb,
--				const struct nf_hook_state *state)
-+static inline int __nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt,
-+						  struct sk_buff *skb)
- {
- 	struct iphdr *iph, _iph;
- 	u32 len, thoff;
-@@ -52,14 +46,11 @@ __nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt,
- 	return 0;
- }
- 
--static inline void
--nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt,
--			      struct sk_buff *skb,
--			      const struct nf_hook_state *state)
-+static inline void nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt,
-+						 struct sk_buff *skb)
- {
--	nft_set_pktinfo(pkt, skb, state);
--	if (__nft_set_pktinfo_ipv4_validate(pkt, skb, state) < 0)
--		nft_set_pktinfo_proto_unspec(pkt, skb);
-+	if (__nft_set_pktinfo_ipv4_validate(pkt, skb) < 0)
-+		nft_set_pktinfo_unspec(pkt, skb);
- }
- 
- extern struct nft_af_info nft_af_ipv4;
-diff --git a/include/net/netfilter/nf_tables_ipv6.h b/include/net/netfilter/nf_tables_ipv6.h
-index b8065b72f56e..1890c5bc3c3c 100644
---- a/include/net/netfilter/nf_tables_ipv6.h
-+++ b/include/net/netfilter/nf_tables_ipv6.h
-@@ -5,20 +5,16 @@
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <net/ipv6.h>
- 
--static inline void
--nft_set_pktinfo_ipv6(struct nft_pktinfo *pkt,
--		     struct sk_buff *skb,
--		     const struct nf_hook_state *state)
-+static inline void nft_set_pktinfo_ipv6(struct nft_pktinfo *pkt,
-+					struct sk_buff *skb)
- {
- 	unsigned int flags = IP6_FH_F_AUTH;
- 	int protohdr, thoff = 0;
- 	unsigned short frag_off;
- 
--	nft_set_pktinfo(pkt, skb, state);
--
- 	protohdr = ipv6_find_hdr(pkt->skb, &thoff, -1, &frag_off, &flags);
- 	if (protohdr < 0) {
--		nft_set_pktinfo_proto_unspec(pkt, skb);
-+		nft_set_pktinfo_unspec(pkt, skb);
- 		return;
- 	}
- 
-@@ -28,10 +24,8 @@ nft_set_pktinfo_ipv6(struct nft_pktinfo *pkt,
- 	pkt->xt.fragoff = frag_off;
- }
- 
--static inline int
--__nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt,
--				struct sk_buff *skb,
--				const struct nf_hook_state *state)
-+static inline int __nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt,
-+						  struct sk_buff *skb)
- {
- #if IS_ENABLED(CONFIG_IPV6)
- 	unsigned int flags = IP6_FH_F_AUTH;
-@@ -68,14 +62,11 @@ __nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt,
+diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
+index b39c563c2fce..8f756a4b9205 100644
+--- a/include/net/netns/netfilter.h
++++ b/include/net/netns/netfilter.h
+@@ -17,11 +17,11 @@ struct netns_nf {
+ #ifdef CONFIG_SYSCTL
+ 	struct ctl_table_header *nf_log_dir_header;
  #endif
- }
- 
--static inline void
--nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt,
--			      struct sk_buff *skb,
--			      const struct nf_hook_state *state)
-+static inline void nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt,
-+						 struct sk_buff *skb)
- {
--	nft_set_pktinfo(pkt, skb, state);
--	if (__nft_set_pktinfo_ipv6_validate(pkt, skb, state) < 0)
--		nft_set_pktinfo_proto_unspec(pkt, skb);
-+	if (__nft_set_pktinfo_ipv6_validate(pkt, skb) < 0)
-+		nft_set_pktinfo_unspec(pkt, skb);
- }
- 
- extern struct nft_af_info nft_af_ipv6;
-diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
-index 97afdc0744e6..612bfd0737d5 100644
---- a/net/bridge/netfilter/nf_tables_bridge.c
-+++ b/net/bridge/netfilter/nf_tables_bridge.c
-@@ -25,15 +25,17 @@ nft_do_chain_bridge(void *priv,
- {
- 	struct nft_pktinfo pkt;
- 
-+	nft_set_pktinfo(&pkt, skb, state);
-+
- 	switch (eth_hdr(skb)->h_proto) {
- 	case htons(ETH_P_IP):
--		nft_set_pktinfo_ipv4_validate(&pkt, skb, state);
-+		nft_set_pktinfo_ipv4_validate(&pkt, skb);
+-	struct nf_hook_entries __rcu *hooks_ipv4[NF_MAX_HOOKS];
+-	struct nf_hook_entries __rcu *hooks_ipv6[NF_MAX_HOOKS];
+-	struct nf_hook_entries __rcu *hooks_arp[NF_MAX_HOOKS];
+-	struct nf_hook_entries __rcu *hooks_bridge[NF_MAX_HOOKS];
+-	struct nf_hook_entries __rcu *hooks_decnet[NF_MAX_HOOKS];
++	struct nf_hook_entries __rcu *hooks_ipv4[NF_INET_NUMHOOKS];
++	struct nf_hook_entries __rcu *hooks_ipv6[NF_INET_NUMHOOKS];
++	struct nf_hook_entries __rcu *hooks_arp[NF_ARP_NUMHOOKS];
++	struct nf_hook_entries __rcu *hooks_bridge[NF_INET_NUMHOOKS];
++	struct nf_hook_entries __rcu *hooks_decnet[NF_DN_NUMHOOKS];
+ #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
+ 	bool			defrag_ipv4;
+ #endif
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index a6eaaf303be8..43643427b560 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -268,14 +268,24 @@ static struct nf_hook_entries __rcu **nf_hook_entry_head(struct net *net, const
+ 	case NFPROTO_NETDEV:
  		break;
- 	case htons(ETH_P_IPV6):
--		nft_set_pktinfo_ipv6_validate(&pkt, skb, state);
-+		nft_set_pktinfo_ipv6_validate(&pkt, skb);
- 		break;
+ 	case NFPROTO_ARP:
++		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_arp) <= reg->hooknum))
++			return NULL;
+ 		return net->nf.hooks_arp + reg->hooknum;
+ 	case NFPROTO_BRIDGE:
++		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_bridge) <= reg->hooknum))
++			return NULL;
+ 		return net->nf.hooks_bridge + reg->hooknum;
+ 	case NFPROTO_IPV4:
++		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_ipv4) <= reg->hooknum))
++			return NULL;
+ 		return net->nf.hooks_ipv4 + reg->hooknum;
+ 	case NFPROTO_IPV6:
++		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_ipv6) <= reg->hooknum))
++			return NULL;
+ 		return net->nf.hooks_ipv6 + reg->hooknum;
+ 	case NFPROTO_DECNET:
++		if (WARN_ON_ONCE(ARRAY_SIZE(net->nf.hooks_decnet) <= reg->hooknum))
++			return NULL;
+ 		return net->nf.hooks_decnet + reg->hooknum;
  	default:
--		nft_set_pktinfo_unspec(&pkt, skb, state);
-+		nft_set_pktinfo_unspec(&pkt, skb);
- 		break;
- 	}
+ 		WARN_ON_ONCE(1);
+@@ -549,21 +559,21 @@ void (*nf_nat_decode_session_hook)(struct sk_buff *, struct flowi *);
+ EXPORT_SYMBOL(nf_nat_decode_session_hook);
+ #endif
  
-diff --git a/net/ipv4/netfilter/nf_tables_arp.c b/net/ipv4/netfilter/nf_tables_arp.c
-index ec47c12cd137..3fa7e1b22bdd 100644
---- a/net/ipv4/netfilter/nf_tables_arp.c
-+++ b/net/ipv4/netfilter/nf_tables_arp.c
-@@ -21,7 +21,8 @@ nft_do_chain_arp(void *priv,
+-static void __net_init __netfilter_net_init(struct nf_hook_entries *e[NF_MAX_HOOKS])
++static void __net_init __netfilter_net_init(struct nf_hook_entries **e, int max)
  {
- 	struct nft_pktinfo pkt;
+ 	int h;
  
--	nft_set_pktinfo_unspec(&pkt, skb, state);
-+	nft_set_pktinfo(&pkt, skb, state);
-+	nft_set_pktinfo_unspec(&pkt, skb);
- 
- 	return nft_do_chain(&pkt, priv);
+-	for (h = 0; h < NF_MAX_HOOKS; h++)
++	for (h = 0; h < max; h++)
+ 		RCU_INIT_POINTER(e[h], NULL);
  }
-diff --git a/net/ipv4/netfilter/nf_tables_ipv4.c b/net/ipv4/netfilter/nf_tables_ipv4.c
-index 2840a29b2e04..35fa265d1ce3 100644
---- a/net/ipv4/netfilter/nf_tables_ipv4.c
-+++ b/net/ipv4/netfilter/nf_tables_ipv4.c
-@@ -24,7 +24,8 @@ static unsigned int nft_do_chain_ipv4(void *priv,
+ 
+ static int __net_init netfilter_net_init(struct net *net)
  {
- 	struct nft_pktinfo pkt;
+-	__netfilter_net_init(net->nf.hooks_ipv4);
+-	__netfilter_net_init(net->nf.hooks_ipv6);
+-	__netfilter_net_init(net->nf.hooks_arp);
+-	__netfilter_net_init(net->nf.hooks_bridge);
+-	__netfilter_net_init(net->nf.hooks_decnet);
++	__netfilter_net_init(net->nf.hooks_ipv4, ARRAY_SIZE(net->nf.hooks_ipv4));
++	__netfilter_net_init(net->nf.hooks_ipv6, ARRAY_SIZE(net->nf.hooks_ipv6));
++	__netfilter_net_init(net->nf.hooks_arp, ARRAY_SIZE(net->nf.hooks_arp));
++	__netfilter_net_init(net->nf.hooks_bridge, ARRAY_SIZE(net->nf.hooks_bridge));
++	__netfilter_net_init(net->nf.hooks_decnet, ARRAY_SIZE(net->nf.hooks_decnet));
  
--	nft_set_pktinfo_ipv4(&pkt, skb, state);
-+	nft_set_pktinfo(&pkt, skb, state);
-+	nft_set_pktinfo_ipv4(&pkt, skb);
- 
- 	return nft_do_chain(&pkt, priv);
- }
-diff --git a/net/ipv4/netfilter/nft_chain_nat_ipv4.c b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
-index f5c66a7a4bf2..f2a490981594 100644
---- a/net/ipv4/netfilter/nft_chain_nat_ipv4.c
-+++ b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
-@@ -33,7 +33,8 @@ static unsigned int nft_nat_do_chain(void *priv,
- {
- 	struct nft_pktinfo pkt;
- 
--	nft_set_pktinfo_ipv4(&pkt, skb, state);
-+	nft_set_pktinfo(&pkt, skb, state);
-+	nft_set_pktinfo_ipv4(&pkt, skb);
- 
- 	return nft_do_chain(&pkt, priv);
- }
-diff --git a/net/ipv4/netfilter/nft_chain_route_ipv4.c b/net/ipv4/netfilter/nft_chain_route_ipv4.c
-index 30493beb611a..fb3d49fb62fe 100644
---- a/net/ipv4/netfilter/nft_chain_route_ipv4.c
-+++ b/net/ipv4/netfilter/nft_chain_route_ipv4.c
-@@ -38,7 +38,8 @@ static unsigned int nf_route_table_hook(void *priv,
- 	    ip_hdrlen(skb) < sizeof(struct iphdr))
- 		return NF_ACCEPT;
- 
--	nft_set_pktinfo_ipv4(&pkt, skb, state);
-+	nft_set_pktinfo(&pkt, skb, state);
-+	nft_set_pktinfo_ipv4(&pkt, skb);
- 
- 	mark = skb->mark;
- 	iph = ip_hdr(skb);
-diff --git a/net/ipv6/netfilter/nf_tables_ipv6.c b/net/ipv6/netfilter/nf_tables_ipv6.c
-index d6e4ba5de916..71bac94770dd 100644
---- a/net/ipv6/netfilter/nf_tables_ipv6.c
-+++ b/net/ipv6/netfilter/nf_tables_ipv6.c
-@@ -22,7 +22,8 @@ static unsigned int nft_do_chain_ipv6(void *priv,
- {
- 	struct nft_pktinfo pkt;
- 
--	nft_set_pktinfo_ipv6(&pkt, skb, state);
-+	nft_set_pktinfo(&pkt, skb, state);
-+	nft_set_pktinfo_ipv6(&pkt, skb);
- 
- 	return nft_do_chain(&pkt, priv);
- }
-diff --git a/net/ipv6/netfilter/nft_chain_nat_ipv6.c b/net/ipv6/netfilter/nft_chain_nat_ipv6.c
-index 443cd306c0b0..73fe2bd13fcf 100644
---- a/net/ipv6/netfilter/nft_chain_nat_ipv6.c
-+++ b/net/ipv6/netfilter/nft_chain_nat_ipv6.c
-@@ -31,7 +31,8 @@ static unsigned int nft_nat_do_chain(void *priv,
- {
- 	struct nft_pktinfo pkt;
- 
--	nft_set_pktinfo_ipv6(&pkt, skb, state);
-+	nft_set_pktinfo(&pkt, skb, state);
-+	nft_set_pktinfo_ipv6(&pkt, skb);
- 
- 	return nft_do_chain(&pkt, priv);
- }
-diff --git a/net/ipv6/netfilter/nft_chain_route_ipv6.c b/net/ipv6/netfilter/nft_chain_route_ipv6.c
-index f2727475895e..11d3c3b9aa18 100644
---- a/net/ipv6/netfilter/nft_chain_route_ipv6.c
-+++ b/net/ipv6/netfilter/nft_chain_route_ipv6.c
-@@ -33,7 +33,8 @@ static unsigned int nf_route_table_hook(void *priv,
- 	u32 mark, flowlabel;
- 	int err;
- 
--	nft_set_pktinfo_ipv6(&pkt, skb, state);
-+	nft_set_pktinfo(&pkt, skb, state);
-+	nft_set_pktinfo_ipv6(&pkt, skb);
- 
- 	/* save source/dest address, mark, hoplimit, flowlabel, priority */
- 	memcpy(&saddr, &ipv6_hdr(skb)->saddr, sizeof(saddr));
-diff --git a/net/netfilter/nf_tables_netdev.c b/net/netfilter/nf_tables_netdev.c
-index 403432988313..3cd127dd2895 100644
---- a/net/netfilter/nf_tables_netdev.c
-+++ b/net/netfilter/nf_tables_netdev.c
-@@ -21,15 +21,17 @@ nft_do_chain_netdev(void *priv, struct sk_buff *skb,
- {
- 	struct nft_pktinfo pkt;
- 
-+	nft_set_pktinfo(&pkt, skb, state);
-+
- 	switch (skb->protocol) {
- 	case htons(ETH_P_IP):
--		nft_set_pktinfo_ipv4_validate(&pkt, skb, state);
-+		nft_set_pktinfo_ipv4_validate(&pkt, skb);
- 		break;
- 	case htons(ETH_P_IPV6):
--		nft_set_pktinfo_ipv6_validate(&pkt, skb, state);
-+		nft_set_pktinfo_ipv6_validate(&pkt, skb);
- 		break;
- 	default:
--		nft_set_pktinfo_unspec(&pkt, skb, state);
-+		nft_set_pktinfo_unspec(&pkt, skb);
- 		break;
- 	}
- 
+ #ifdef CONFIG_PROC_FS
+ 	net->nf.proc_netfilter = proc_net_mkdir(net, "netfilter",
 -- 
 2.11.0
