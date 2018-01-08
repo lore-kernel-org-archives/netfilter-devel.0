@@ -1,128 +1,355 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 38/52] netfilter: remove route_key_size field in struct nf_afinfo
-Date: Mon,  8 Jan 2018 21:19:46 +0100
-Message-ID: <20180108202000.12989-39-pablo@netfilter.org>
+Subject: [PATCH 46/52] netfilter: flow table support for IPv4
+Date: Mon,  8 Jan 2018 21:19:54 +0100
+Message-ID: <20180108202000.12989-47-pablo@netfilter.org>
 References: <20180108202000.12989-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42502 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757091AbeAHUUk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jan 2018 15:20:40 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 01AD4E7B8C
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:39 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E4FF2208FA
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:38 +0100 (CET)
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180108202000.12989-1-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This is only needed by nf_queue, place this code where it belongs.
+This patch adds the IPv4 flow table type, that implements the datapath
+flow table to forward IPv4 traffic. Rationale is:
+
+1) Look up for the packet in the flow table, from the ingress hook.
+2) If there's a hit, decrement ttl and pass it on to the neighbour layer
+   for transmission.
+3) If there's a miss, packet is passed up to the classic forwarding
+   path.
+
+This patch also supports layer 3 source and destination NAT.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h |  1 -
- net/ipv4/netfilter.c      |  1 -
- net/ipv6/netfilter.c      |  1 -
- net/netfilter/nf_queue.c  | 22 ++++++++++++++++------
- 4 files changed, 16 insertions(+), 9 deletions(-)
+ net/ipv4/netfilter/Kconfig              |   8 +
+ net/ipv4/netfilter/Makefile             |   3 +
+ net/ipv4/netfilter/nf_flow_table_ipv4.c | 283 ++++++++++++++++++++++++++++++++
+ 3 files changed, 294 insertions(+)
+ create mode 100644 net/ipv4/netfilter/nf_flow_table_ipv4.c
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 8358e717eabd..58a169e425f7 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -311,7 +311,6 @@ struct nf_queue_entry;
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index cee51045e2f7..7d5d444964aa 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -78,6 +78,14 @@ config NF_TABLES_ARP
  
- struct nf_afinfo {
- 	unsigned short	family;
--	int		route_key_size;
- };
+ endif # NF_TABLES
  
- extern const struct nf_afinfo __rcu *nf_afinfo[NFPROTO_NUMPROTO];
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index ec73be3b2f14..bd8e161c2f95 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -164,7 +164,6 @@ EXPORT_SYMBOL_GPL(nf_ip_route);
++config NF_FLOW_TABLE_IPV4
++	select NF_FLOW_TABLE
++	tristate "Netfilter flow table IPv4 module"
++	help
++	  This option adds the flow table IPv4 support.
++
++	  To compile it as a module, choose M here.
++
+ config NF_DUP_IPV4
+ 	tristate "Netfilter IPv4 packet duplication to alternate destination"
+ 	depends on !NF_CONNTRACK || NF_CONNTRACK
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index adcdae358365..8bb1f0c7a375 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -43,6 +43,9 @@ obj-$(CONFIG_NFT_REDIR_IPV4) += nft_redir_ipv4.o
+ obj-$(CONFIG_NFT_DUP_IPV4) += nft_dup_ipv4.o
+ obj-$(CONFIG_NF_TABLES_ARP) += nf_tables_arp.o
  
- static const struct nf_afinfo nf_ip_afinfo = {
- 	.family			= AF_INET,
--	.route_key_size		= sizeof(struct ip_rt_info),
- };
++# flow table support
++obj-$(CONFIG_NF_FLOW_TABLE_IPV4) += nf_flow_table_ipv4.o
++
+ # generic IP tables 
+ obj-$(CONFIG_IP_NF_IPTABLES) += ip_tables.o
  
- static int __init ipv4_netfilter_init(void)
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index d633b78be06f..18f82a3fb0c0 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -176,7 +176,6 @@ static const struct nf_ipv6_ops ipv6ops = {
- 
- static const struct nf_afinfo nf_ip6_afinfo = {
- 	.family			= AF_INET6,
--	.route_key_size		= sizeof(struct ip6_rt_info),
- };
- 
- int __init ipv6_netfilter_init(void)
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 15382ff83e7a..7f55af5f3d1a 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -15,6 +15,8 @@
- #include <linux/netfilter_bridge.h>
- #include <linux/seq_file.h>
- #include <linux/rcupdate.h>
-+#include <linux/netfilter_ipv4.h>
-+#include <linux/netfilter_ipv6.h>
- #include <net/protocol.h>
- #include <net/netfilter/nf_queue.h>
- #include <net/dst.h>
-@@ -145,9 +147,9 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- {
- 	int status = -ENOENT;
- 	struct nf_queue_entry *entry = NULL;
--	const struct nf_afinfo *afinfo;
- 	const struct nf_queue_handler *qh;
- 	struct net *net = state->net;
-+	unsigned int route_key_size;
- 
- 	/* QUEUE == DROP if no one is waiting, to be safe. */
- 	qh = rcu_dereference(net->nf.queue_handler);
-@@ -156,11 +158,19 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 		goto err;
- 	}
- 
--	afinfo = nf_get_afinfo(state->pf);
--	if (!afinfo)
--		goto err;
-+	switch (state->pf) {
-+	case AF_INET:
-+		route_key_size = sizeof(struct ip_rt_info);
+diff --git a/net/ipv4/netfilter/nf_flow_table_ipv4.c b/net/ipv4/netfilter/nf_flow_table_ipv4.c
+new file mode 100644
+index 000000000000..ac56c0f0492a
+--- /dev/null
++++ b/net/ipv4/netfilter/nf_flow_table_ipv4.c
+@@ -0,0 +1,283 @@
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/netfilter.h>
++#include <linux/rhashtable.h>
++#include <linux/ip.h>
++#include <linux/netdevice.h>
++#include <net/ip.h>
++#include <net/neighbour.h>
++#include <net/netfilter/nf_flow_table.h>
++#include <net/netfilter/nf_tables.h>
++/* For layer 4 checksum field offset. */
++#include <linux/tcp.h>
++#include <linux/udp.h>
++
++static int nf_flow_nat_ip_tcp(struct sk_buff *skb, unsigned int thoff,
++			      __be32 addr, __be32 new_addr)
++{
++	struct tcphdr *tcph;
++
++	if (!pskb_may_pull(skb, thoff + sizeof(*tcph)) ||
++	    skb_try_make_writable(skb, thoff + sizeof(*tcph)))
++		return -1;
++
++	tcph = (void *)(skb_network_header(skb) + thoff);
++	inet_proto_csum_replace4(&tcph->check, skb, addr, new_addr, true);
++
++	return 0;
++}
++
++static int nf_flow_nat_ip_udp(struct sk_buff *skb, unsigned int thoff,
++			      __be32 addr, __be32 new_addr)
++{
++	struct udphdr *udph;
++
++	if (!pskb_may_pull(skb, thoff + sizeof(*udph)) ||
++	    skb_try_make_writable(skb, thoff + sizeof(*udph)))
++		return -1;
++
++	udph = (void *)(skb_network_header(skb) + thoff);
++	if (udph->check || skb->ip_summed == CHECKSUM_PARTIAL) {
++		inet_proto_csum_replace4(&udph->check, skb, addr,
++					 new_addr, true);
++		if (!udph->check)
++			udph->check = CSUM_MANGLED_0;
++	}
++
++	return 0;
++}
++
++static int nf_flow_nat_ip_l4proto(struct sk_buff *skb, struct iphdr *iph,
++				  unsigned int thoff, __be32 addr,
++				  __be32 new_addr)
++{
++	switch (iph->protocol) {
++	case IPPROTO_TCP:
++		if (nf_flow_nat_ip_tcp(skb, thoff, addr, new_addr) < 0)
++			return NF_DROP;
 +		break;
-+	case AF_INET6:
-+		route_key_size = sizeof(struct ip6_rt_info);
-+		break;
-+	default:
-+		route_key_size = 0;
++	case IPPROTO_UDP:
++		if (nf_flow_nat_ip_udp(skb, thoff, addr, new_addr) < 0)
++			return NF_DROP;
 +		break;
 +	}
- 
--	entry = kmalloc(sizeof(*entry) + afinfo->route_key_size, GFP_ATOMIC);
-+	entry = kmalloc(sizeof(*entry) + route_key_size, GFP_ATOMIC);
- 	if (!entry) {
- 		status = -ENOMEM;
- 		goto err;
-@@ -170,7 +180,7 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
- 		.skb	= skb,
- 		.state	= *state,
- 		.hook_index = index,
--		.size	= sizeof(*entry) + afinfo->route_key_size,
-+		.size	= sizeof(*entry) + route_key_size,
- 	};
- 
- 	nf_queue_entry_get_refs(entry);
++
++	return 0;
++}
++
++static int nf_flow_snat_ip(const struct flow_offload *flow, struct sk_buff *skb,
++			   struct iphdr *iph, unsigned int thoff,
++			   enum flow_offload_tuple_dir dir)
++{
++	__be32 addr, new_addr;
++
++	switch (dir) {
++	case FLOW_OFFLOAD_DIR_ORIGINAL:
++		addr = iph->saddr;
++		new_addr = flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_v4.s_addr;
++		iph->saddr = new_addr;
++		break;
++	case FLOW_OFFLOAD_DIR_REPLY:
++		addr = iph->daddr;
++		new_addr = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.src_v4.s_addr;
++		iph->daddr = new_addr;
++		break;
++	default:
++		return -1;
++	}
++	csum_replace4(&iph->check, addr, new_addr);
++
++	return nf_flow_nat_ip_l4proto(skb, iph, thoff, addr, new_addr);
++}
++
++static int nf_flow_dnat_ip(const struct flow_offload *flow, struct sk_buff *skb,
++			   struct iphdr *iph, unsigned int thoff,
++			   enum flow_offload_tuple_dir dir)
++{
++	__be32 addr, new_addr;
++
++	switch (dir) {
++	case FLOW_OFFLOAD_DIR_ORIGINAL:
++		addr = iph->daddr;
++		new_addr = flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.src_v4.s_addr;
++		iph->daddr = new_addr;
++		break;
++	case FLOW_OFFLOAD_DIR_REPLY:
++		addr = iph->saddr;
++		new_addr = flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst_v4.s_addr;
++		iph->saddr = new_addr;
++		break;
++	default:
++		return -1;
++	}
++
++	return nf_flow_nat_ip_l4proto(skb, iph, thoff, addr, new_addr);
++}
++
++static int nf_flow_nat_ip(const struct flow_offload *flow, struct sk_buff *skb,
++			  enum flow_offload_tuple_dir dir)
++{
++	struct iphdr *iph = ip_hdr(skb);
++	unsigned int thoff = iph->ihl * 4;
++
++	if (flow->flags & FLOW_OFFLOAD_SNAT &&
++	    (nf_flow_snat_port(flow, skb, thoff, iph->protocol, dir) < 0 ||
++	     nf_flow_snat_ip(flow, skb, iph, thoff, dir) < 0))
++		return -1;
++	if (flow->flags & FLOW_OFFLOAD_DNAT &&
++	    (nf_flow_dnat_port(flow, skb, thoff, iph->protocol, dir) < 0 ||
++	     nf_flow_dnat_ip(flow, skb, iph, thoff, dir) < 0))
++		return -1;
++
++	return 0;
++}
++
++static bool ip_has_options(unsigned int thoff)
++{
++	return thoff != sizeof(struct iphdr);
++}
++
++static int nf_flow_tuple_ip(struct sk_buff *skb, const struct net_device *dev,
++			    struct flow_offload_tuple *tuple)
++{
++	struct flow_ports *ports;
++	unsigned int thoff;
++	struct iphdr *iph;
++
++	if (!pskb_may_pull(skb, sizeof(*iph)))
++		return -1;
++
++	iph = ip_hdr(skb);
++	thoff = iph->ihl * 4;
++
++	if (ip_is_fragment(iph) ||
++	    unlikely(ip_has_options(thoff)))
++		return -1;
++
++	if (iph->protocol != IPPROTO_TCP &&
++	    iph->protocol != IPPROTO_UDP)
++		return -1;
++
++	thoff = iph->ihl * 4;
++	if (!pskb_may_pull(skb, thoff + sizeof(*ports)))
++		return -1;
++
++	ports = (struct flow_ports *)(skb_network_header(skb) + thoff);
++
++	tuple->src_v4.s_addr	= iph->saddr;
++	tuple->dst_v4.s_addr	= iph->daddr;
++	tuple->src_port		= ports->source;
++	tuple->dst_port		= ports->dest;
++	tuple->l3proto		= AF_INET;
++	tuple->l4proto		= iph->protocol;
++	tuple->iifidx		= dev->ifindex;
++
++	return 0;
++}
++
++/* Based on ip_exceeds_mtu(). */
++static bool __nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
++{
++	if (skb->len <= mtu)
++		return false;
++
++	if ((ip_hdr(skb)->frag_off & htons(IP_DF)) == 0)
++		return false;
++
++	if (skb_is_gso(skb) && skb_gso_validate_mtu(skb, mtu))
++		return false;
++
++	return true;
++}
++
++static bool nf_flow_exceeds_mtu(struct sk_buff *skb, const struct rtable *rt)
++{
++	u32 mtu;
++
++	mtu = ip_dst_mtu_maybe_forward(&rt->dst, true);
++	if (__nf_flow_exceeds_mtu(skb, mtu))
++		return true;
++
++	return false;
++}
++
++static unsigned int
++nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
++			const struct nf_hook_state *state)
++{
++	struct flow_offload_tuple_rhash *tuplehash;
++	struct nf_flowtable *flow_table = priv;
++	struct flow_offload_tuple tuple = {};
++	enum flow_offload_tuple_dir dir;
++	struct flow_offload *flow;
++	struct net_device *outdev;
++	const struct rtable *rt;
++	struct iphdr *iph;
++	__be32 nexthop;
++
++	if (skb->protocol != htons(ETH_P_IP))
++		return NF_ACCEPT;
++
++	if (nf_flow_tuple_ip(skb, state->in, &tuple) < 0)
++		return NF_ACCEPT;
++
++	tuplehash = flow_offload_lookup(flow_table, &tuple);
++	if (tuplehash == NULL)
++		return NF_ACCEPT;
++
++	outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.oifidx);
++	if (!outdev)
++		return NF_ACCEPT;
++
++	dir = tuplehash->tuple.dir;
++	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
++
++	rt = (const struct rtable *)flow->tuplehash[dir].tuple.dst_cache;
++	if (unlikely(nf_flow_exceeds_mtu(skb, rt)))
++		return NF_ACCEPT;
++
++	if (skb_try_make_writable(skb, sizeof(*iph)))
++		return NF_DROP;
++
++	if (flow->flags & (FLOW_OFFLOAD_SNAT | FLOW_OFFLOAD_DNAT) &&
++	    nf_flow_nat_ip(flow, skb, dir) < 0)
++		return NF_DROP;
++
++	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
++	iph = ip_hdr(skb);
++	ip_decrease_ttl(iph);
++
++	skb->dev = outdev;
++	nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
++	neigh_xmit(NEIGH_ARP_TABLE, outdev, &nexthop, skb);
++
++	return NF_STOLEN;
++}
++
++static struct nf_flowtable_type flowtable_ipv4 = {
++	.family		= NFPROTO_IPV4,
++	.params		= &nf_flow_offload_rhash_params,
++	.gc		= nf_flow_offload_work_gc,
++	.hook		= nf_flow_offload_ip_hook,
++	.owner		= THIS_MODULE,
++};
++
++static int __init nf_flow_ipv4_module_init(void)
++{
++	nft_register_flowtable_type(&flowtable_ipv4);
++
++	return 0;
++}
++
++static void __exit nf_flow_ipv4_module_exit(void)
++{
++	nft_unregister_flowtable_type(&flowtable_ipv4);
++}
++
++module_init(nf_flow_ipv4_module_init);
++module_exit(nf_flow_ipv4_module_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
++MODULE_ALIAS_NF_FLOWTABLE(AF_INET);
 -- 
 2.11.0
-
