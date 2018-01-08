@@ -1,50 +1,73 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 07/52] netfilter: ipset: use nfnl_mutex_is_locked
-Date: Mon,  8 Jan 2018 21:19:15 +0100
-Message-ID: <20180108202000.12989-8-pablo@netfilter.org>
+Subject: [PATCH 08/52] netfilter: ipset: add resched points during set listing
+Date: Mon,  8 Jan 2018 21:19:16 +0100
+Message-ID: <20180108202000.12989-9-pablo@netfilter.org>
 References: <20180108202000.12989-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42502 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753901AbeAHUUR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 8 Jan 2018 15:20:17 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0B0E7E7B84
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:16 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F0181202A8
-        for <netfilter-devel@vger.kernel.org>; Mon,  8 Jan 2018 21:20:15 +0100 (CET)
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180108202000.12989-1-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Check that we really hold nfnl mutex here instead of relying on correct
-usage alone.
+When sets are extremely large we can get softlockup during ipset -L.
+We could fix this by adding cond_resched_rcu() at the right location
+during iteration, but this only works if RCU nesting depth is 1.
 
+At this time entire variant->list() is called under under rcu_read_lock_bh.
+This used to be a read_lock_bh() but as rcu doesn't really lock anything,
+it does not appear to be needed, so remove it (ipset increments set
+reference count before this, so a set deletion should not be possible).
+
+Reported-by: Li Shuang <shuali@redhat.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/ipset/ip_set_bitmap_gen.h | 1 +
+ net/netfilter/ipset/ip_set_core.c       | 2 --
+ net/netfilter/ipset/ip_set_hash_gen.h   | 1 +
+ 3 files changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
+index 5ca18f07683b..8afe882f846d 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_gen.h
++++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
+@@ -227,6 +227,7 @@ mtype_list(const struct ip_set *set,
+ 	rcu_read_lock();
+ 	for (; cb->args[IPSET_CB_ARG0] < map->elements;
+ 	     cb->args[IPSET_CB_ARG0]++) {
++		cond_resched_rcu();
+ 		id = cb->args[IPSET_CB_ARG0];
+ 		x = get_ext(set, map, id);
+ 		if (!test_bit(id, map->members) ||
 diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index d5a43cad90f0..1f3c03b3bebf 100644
+index 1f3c03b3bebf..89b44458a761 100644
 --- a/net/netfilter/ipset/ip_set_core.c
 +++ b/net/netfilter/ipset/ip_set_core.c
-@@ -57,7 +57,7 @@ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_IPSET);
- 
- /* When the nfnl mutex is held: */
- #define ip_set_dereference(p)		\
--	rcu_dereference_protected(p, 1)
-+	rcu_dereference_protected(p, lockdep_nfnl_is_held(NFNL_SUBSYS_IPSET))
- #define ip_set(inst, id)		\
- 	ip_set_dereference((inst)->ip_set_list)[id]
- 
+@@ -1388,9 +1388,7 @@ ip_set_dump_start(struct sk_buff *skb, struct netlink_callback *cb)
+ 				set->variant->uref(set, cb, true);
+ 			/* fall through */
+ 		default:
+-			rcu_read_lock_bh();
+ 			ret = set->variant->list(set, skb, cb);
+-			rcu_read_unlock_bh();
+ 			if (!cb->args[IPSET_CB_ARG0])
+ 				/* Set is done, proceed with next one */
+ 				goto next_set;
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index efffc8eabafe..8ef079db7d34 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -1143,6 +1143,7 @@ mtype_list(const struct ip_set *set,
+ 	rcu_read_lock();
+ 	for (; cb->args[IPSET_CB_ARG0] < jhash_size(t->htable_bits);
+ 	     cb->args[IPSET_CB_ARG0]++) {
++		cond_resched_rcu();
+ 		incomplete = skb_tail_pointer(skb);
+ 		n = rcu_dereference(hbucket(t, cb->args[IPSET_CB_ARG0]));
+ 		pr_debug("cb->arg bucket: %lu, t %p n %p\n",
 -- 
 2.11.0
-
