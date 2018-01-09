@@ -1,104 +1,65 @@
-From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH v3] netfilter: nf_tables: delete table via table handle
-Date: Tue,  9 Jan 2018 14:23:34 +0530
-Message-ID: <20180109085334.3500-1-harshasharmaiitr@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: compilation warning --with-mini-gmp
+Date: Tue, 9 Jan 2018 14:26:32 +0100
+Message-ID: <20180109132632.xfkio5fsama4so5j@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org, harshasharmaiitr@gmail.com
+To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:45981 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751728AbeAIIxs (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 9 Jan 2018 03:53:48 -0500
-Received: by mail-pf0-f196.google.com with SMTP id u19so8082087pfa.12
-        for <netfilter-devel@vger.kernel.org>; Tue, 09 Jan 2018 00:53:48 -0800 (PST)
+Received: from mail.us.es ([193.147.175.20]:33182 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757414AbeAIN0i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 9 Jan 2018 08:26:38 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CA42FFF121
+        for <netfilter-devel@vger.kernel.org>; Tue,  9 Jan 2018 14:26:35 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BAEB8DA84F
+        for <netfilter-devel@vger.kernel.org>; Tue,  9 Jan 2018 14:26:35 +0100 (CET)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch add code to delete table via unique table handle and table
-family.
+We hit this since conversion to library:
 
-Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
----
-Changes in v3:
- -Remove __nft_table_lookup_byhandle
+mini-gmp.c: In function ‘mpn_get_str_bits’:
+mini-gmp.c:1176:17: warning: comparison between signed and unsigned
+integer expressions [-Wsign-compare]
+       if (shift >= GMP_LIMB_BITS && ++i < un)
+                 ^
+mini-gmp.c: In function ‘mpz_and’:
+mini-gmp.c:1406:31: warning: comparison between signed and unsigned
+integer expressions [-Wsign-compare]
+ #define MPZ_REALLOC(z,n) ((n) > (z)->_mp_alloc   \
+                               ^
+mini-gmp.c:3650:8: note: in expansion of macro ‘MPZ_REALLOC’
+   rp = MPZ_REALLOC (r, rn + rc);
+        ^
+mini-gmp.c: In function ‘mpz_ior’:
+mini-gmp.c:1406:31: warning: comparison between signed and unsigned
+integer expressions [-Wsign-compare]
+ #define MPZ_REALLOC(z,n) ((n) > (z)->_mp_alloc   \
+                               ^
+mini-gmp.c:3723:8: note: in expansion of macro ‘MPZ_REALLOC’
+   rp = MPZ_REALLOC (r, rn + rc);
+        ^
+mini-gmp.c: In function ‘mpz_xor’:
+mini-gmp.c:1406:31: warning: comparison between signed and unsigned
+integer expressions [-Wsign-compare]
+ #define MPZ_REALLOC(z,n) ((n) > (z)->_mp_alloc   \
+                               ^
+mini-gmp.c:3792:8: note: in expansion of macro ‘MPZ_REALLOC’
+   rp = MPZ_REALLOC (r, un + rc);
+        ^
+mini-gmp.c: In function ‘mpz_set_str’:
+mini-gmp.c:4167:17: warning: comparison between signed and unsigned
+integer expressions [-Wsign-compare]
 
-Changes in v2:
- - Remove nf_tables_afinfo_lookup_byhandle
- - Change log message
+There is a knob that removes -Wsign-compare for this file, which is a
+cached copy from libgmp that we don't want to modify.
 
- net/netfilter/nf_tables_api.c | 38 ++++++++++++++++++++++++++++++++++++--
- 1 file changed, 36 insertions(+), 2 deletions(-)
+If you have some spare cycles, I'd appreciate.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index dabdd2ed66c8..f12671e0ec48 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -367,6 +367,20 @@ static struct nft_table *nft_table_lookup(const struct nft_af_info *afi,
- 	return NULL;
- }
- 
-+static struct nft_table *nft_table_lookup_byhandle(const struct nft_af_info *afi,
-+						   const struct nlattr *nla,
-+								 u8 genmask)
-+{
-+	struct nft_table *table;
-+
-+	list_for_each_entry(table, &afi->tables, list) {
-+		if (be64_to_cpu(nla_get_be64(nla)) == table->handle &&
-+		    nft_active_genmask(table, genmask))
-+			return table;
-+	}
-+	return NULL;
-+}
-+
- static struct nft_table *nf_tables_table_lookup(const struct nft_af_info *afi,
- 						const struct nlattr *nla,
- 						u8 genmask)
-@@ -383,6 +397,22 @@ static struct nft_table *nf_tables_table_lookup(const struct nft_af_info *afi,
- 	return ERR_PTR(-ENOENT);
- }
- 
-+static struct nft_table *nf_tables_table_lookup_byhandle(const struct nft_af_info *afi,
-+							 const struct nlattr *nla,
-+							 u8 genmask)
-+{
-+	struct nft_table *table;
-+
-+	if (nla == NULL)
-+		return ERR_PTR(-EINVAL);
-+
-+	table = nft_table_lookup_byhandle(afi, nla, genmask);
-+	if (table != NULL)
-+		return table;
-+
-+	return ERR_PTR(-ENOENT);
-+}
-+
- static inline u64 nf_tables_alloc_handle(struct nft_table *table)
- {
- 	return ++table->hgenerator;
-@@ -854,14 +884,18 @@ static int nf_tables_deltable(struct net *net, struct sock *nlsk,
- 	struct nft_ctx ctx;
- 
- 	nft_ctx_init(&ctx, net, skb, nlh, NULL, NULL, NULL, nla);
--	if (family == AF_UNSPEC || nla[NFTA_TABLE_NAME] == NULL)
-+	if (family == AF_UNSPEC ||
-+	    (!nla[NFTA_TABLE_NAME] && !nla[NFTA_TABLE_HANDLE]))
- 		return nft_flush(&ctx, family);
- 
- 	afi = nf_tables_afinfo_lookup(net, family, false);
- 	if (IS_ERR(afi))
- 		return PTR_ERR(afi);
-+	if (nla[NFTA_TABLE_HANDLE])
-+		table = nf_tables_table_lookup_byhandle(afi, nla[NFTA_TABLE_HANDLE], genmask);
-+	else
-+		table = nf_tables_table_lookup(afi, nla[NFTA_TABLE_NAME], genmask);
- 
--	table = nf_tables_table_lookup(afi, nla[NFTA_TABLE_NAME], genmask);
- 	if (IS_ERR(table))
- 		return PTR_ERR(table);
- 
--- 
-2.11.0
-
+Thanks Phil.
