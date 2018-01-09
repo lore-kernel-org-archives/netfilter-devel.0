@@ -1,74 +1,54 @@
 From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH 2/2] parser_bison: extend nft to delete chain via chain handle
-Date: Wed, 10 Jan 2018 00:29:42 +0530
-Message-ID: <d979fe20be1631d5aba7dc4f158cca0d1a3791c3.1515521150.git.harshasharmaiitr@gmail.com>
-References: <cover.1515521149.git.harshasharmaiitr@gmail.com>
+Subject: [PATCH] netfilter: nf_tables: delete chains via chain handle
+Date: Wed, 10 Jan 2018 00:42:50 +0530
+Message-ID: <20180109191250.13089-1-harshasharmaiitr@gmail.com>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org, harshasharmaiitr@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:33029 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932310AbeAITAG (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:36180 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933944AbeAITNK (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 9 Jan 2018 14:00:06 -0500
-Received: by mail-pf0-f194.google.com with SMTP id y89so9219753pfk.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 09 Jan 2018 11:00:06 -0800 (PST)
-In-Reply-To: <cover.1515521149.git.harshasharmaiitr@gmail.com>
+        Tue, 9 Jan 2018 14:13:10 -0500
+Received: by mail-pg0-f65.google.com with SMTP id j2so7420209pgv.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 09 Jan 2018 11:13:10 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch allows deletion of chains via unique chain handles which
-can be listed with '-a' option and table name and family.
-For eg.
-
-nft delete chain [<family>] <table-name> [handle <handle>]
+This patch allows deletion of chains via unique chain handle which can be
+listed via '-a' option and table family and table name.
 
 Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
 ---
- src/parser_bison.y | 16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ net/netfilter/nf_tables_api.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index a5c47c2..dbe80a5 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -495,8 +495,8 @@ int nft_lex(void *, void *, void *);
- %type <cmd>			base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd reset_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
- %destructor { cmd_free($$); }	base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd reset_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index f12671e0ec48..b4db7bd836d9 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1660,6 +1660,7 @@ static int nf_tables_delchain(struct net *net, struct sock *nlsk,
+ 	int family = nfmsg->nfgen_family;
+ 	struct nft_ctx ctx;
+ 	u32 use;
++	u64 handle;
+ 	int err;
  
--%type <handle>			table_spec tableid_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
--%destructor { handle_free(&$$); } table_spec tableid_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
-+%type <handle>			table_spec tableid_spec chain_spec chainid_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
-+%destructor { handle_free(&$$); } table_spec tableid_spec chain_spec chainid_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
- %type <handle>			set_spec set_identifier obj_spec obj_identifier
- %destructor { handle_free(&$$); } set_spec set_identifier obj_spec obj_identifier
- %type <val>			family_spec family_spec_explicit chain_policy prio_spec
-@@ -986,6 +986,10 @@ delete_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_CHAIN, &$2, &@$, NULL);
- 			}
-+			| 	CHAIN 		chainid_spec
-+			{
-+				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_CHAIN, &$2, &@$, NULL);
-+			}
- 			|	RULE		ruleid_spec
- 			{
- 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_RULE, &$2, &@$, NULL);
-@@ -1680,6 +1684,14 @@ chain_spec		:	table_spec	identifier
- 			}
- 			;
+ 	afi = nf_tables_afinfo_lookup(net, family, false);
+@@ -1670,7 +1671,12 @@ static int nf_tables_delchain(struct net *net, struct sock *nlsk,
+ 	if (IS_ERR(table))
+ 		return PTR_ERR(table);
  
-+chainid_spec 		: 	table_spec 	HANDLE NUM
-+			{
-+				$$ 			= $1;
-+				$$.handle.location 	= @$;
-+				$$.handle.id 		= $3;
-+			}
-+			;
-+
- chain_identifier	:	identifier
- 			{
- 				memset(&$$, 0, sizeof($$));
+-	chain = nf_tables_chain_lookup(table, nla[NFTA_CHAIN_NAME], genmask);
++	if (nla[NFTA_CHAIN_HANDLE]) {
++		handle = be64_to_cpu(nla_get_be64(nla[NFTA_CHAIN_HANDLE]));
++		chain = nf_tables_chain_lookup_byhandle(table, handle, genmask);
++	} else {
++		chain = nf_tables_chain_lookup(table, nla[NFTA_CHAIN_NAME], genmask);
++	}
+ 	if (IS_ERR(chain))
+ 		return PTR_ERR(chain);
+ 
 -- 
 2.11.0
 
