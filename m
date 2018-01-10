@@ -1,7 +1,7 @@
 From: Wei Yongjun <weiyongjun1@huawei.com>
-Subject: [PATCH net-next] netfilter: nf_tables: fix a typo in nf_tables_getflowtable()
-Date: Wed, 10 Jan 2018 07:04:54 +0000
-Message-ID: <1515567894-188104-1-git-send-email-weiyongjun1@huawei.com>
+Subject: [PATCH net-next] netfilter: core: make local function __nf_unregister_net_hook static
+Date: Wed, 10 Jan 2018 07:05:06 +0000
+Message-ID: <1515567906-188180-1-git-send-email-weiyongjun1@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
@@ -15,24 +15,28 @@ Return-path: <netdev-owner@vger.kernel.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Fix a typo, we should check 'flowtable' instead of 'table'.
+Fixes the following sparse warning:
 
-Fixes: 3b49e2e94e6e ("netfilter: nf_tables: add flow table netlink frontend")
+net/netfilter/core.c:380:6: warning:
+ symbol '__nf_unregister_net_hook' was not declared. Should it be static?
+
 Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
 ---
- net/netfilter/nf_tables_api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 336b816..40594bb 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5420,7 +5420,7 @@ static int nf_tables_getflowtable(struct net *net, struct sock *nlsk,
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 997dd38..3f8e2d0 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -377,8 +377,8 @@ static void nf_remove_net_hook(struct nf_hook_entries *old,
+ 	}
+ }
  
- 	flowtable = nf_tables_flowtable_lookup(table, nla[NFTA_FLOWTABLE_NAME],
- 					       genmask);
--	if (IS_ERR(table))
-+	if (IS_ERR(flowtable))
- 		return PTR_ERR(flowtable);
- 
- 	skb2 = alloc_skb(NLMSG_GOODSIZE, GFP_KERNEL);
+-void __nf_unregister_net_hook(struct net *net, int pf,
+-			      const struct nf_hook_ops *reg)
++static void __nf_unregister_net_hook(struct net *net, int pf,
++				     const struct nf_hook_ops *reg)
+ {
+ 	struct nf_hook_entries __rcu **pp;
+ 	struct nf_hook_entries *p;
