@@ -1,42 +1,42 @@
-From: Wei Yongjun <weiyongjun1@huawei.com>
-Subject: [PATCH net-next] netfilter: core: make local function __nf_unregister_net_hook static
-Date: Wed, 10 Jan 2018 07:05:06 +0000
-Message-ID: <1515567906-188180-1-git-send-email-weiyongjun1@huawei.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [PATCH] netfilter: nf_tables: copy and paste bug in
+ nf_tables_getflowtable()
+Date: Wed, 10 Jan 2018 12:47:35 +0300
+Message-ID: <20180110094735.zyfdsonrb76x7cd6@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Wei Yongjun <weiyongjun1@huawei.com>,
-        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-        <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        kernel-janitors@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from userp2120.oracle.com ([156.151.31.85]:41314 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751298AbeAJJsM (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 10 Jan 2018 04:48:12 -0500
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Fixes the following sparse warning:
+We should be testing "flowtable" instead of "table".
 
-net/netfilter/core.c:380:6: warning:
- symbol '__nf_unregister_net_hook' was not declared. Should it be static?
-
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+Fixes: 3b49e2e94e6e ("netfilter: nf_tables: add flow table netlink frontend")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 ---
- net/netfilter/core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+The bug hasn't hit net-next yet, it's still in the netfilter tree.
 
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 997dd38..3f8e2d0 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -377,8 +377,8 @@ static void nf_remove_net_hook(struct nf_hook_entries *old,
- 	}
- }
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 336b81689ac9..40594bb57012 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5420,7 +5420,7 @@ static int nf_tables_getflowtable(struct net *net, struct sock *nlsk,
  
--void __nf_unregister_net_hook(struct net *net, int pf,
--			      const struct nf_hook_ops *reg)
-+static void __nf_unregister_net_hook(struct net *net, int pf,
-+				     const struct nf_hook_ops *reg)
- {
- 	struct nf_hook_entries __rcu **pp;
- 	struct nf_hook_entries *p;
+ 	flowtable = nf_tables_flowtable_lookup(table, nla[NFTA_FLOWTABLE_NAME],
+ 					       genmask);
+-	if (IS_ERR(table))
++	if (IS_ERR(flowtable))
+ 		return PTR_ERR(flowtable);
+ 
+ 	skb2 = alloc_skb(NLMSG_GOODSIZE, GFP_KERNEL);
