@@ -1,42 +1,50 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [PATCH] netfilter: nf_tables: copy and paste bug in
- nf_tables_getflowtable()
-Date: Wed, 10 Jan 2018 12:47:35 +0300
-Message-ID: <20180110094735.zyfdsonrb76x7cd6@mwanda>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: libnftables extended API proposal
+Date: Wed, 10 Jan 2018 11:39:57 +0100
+Message-ID: <20180110103957.GI14358@orbyte.nwl.cc>
+References: <20171222134906.y46spklmtsxc6zj7@salvia>
+ <20171222153049.GX32305@orbyte.nwl.cc>
+ <20171222203903.5lq6hw3mhxupbfuk@salvia>
+ <20171223131941.GY32305@orbyte.nwl.cc>
+ <20171228192141.xqwd5ccmtwe4auq2@salvia>
+ <20171229145816.GF32305@orbyte.nwl.cc>
+ <20180102180219.6333nnbg2hgxyxrm@salvia>
+ <20180105175203.GN32305@orbyte.nwl.cc>
+ <20180109233126.5ma7analfbnndw5g@salvia>
+ <CAChgv6raigk1r2J31km7qtRWDavMFpaKRM6LjEOuNQr6+paFoA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        kernel-janitors@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+To: mark diener <rpzrpzrpz@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from userp2120.oracle.com ([156.151.31.85]:41314 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751298AbeAJJsM (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 Jan 2018 04:48:12 -0500
+Received: from orbyte.nwl.cc ([151.80.46.58]:58276 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753835AbeAJKj7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 10 Jan 2018 05:39:59 -0500
 Content-Disposition: inline
+In-Reply-To: <CAChgv6raigk1r2J31km7qtRWDavMFpaKRM6LjEOuNQr6+paFoA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We should be testing "flowtable" instead of "table".
+Hi Mark,
 
-Fixes: 3b49e2e94e6e ("netfilter: nf_tables: add flow table netlink frontend")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
-The bug hasn't hit net-next yet, it's still in the netfilter tree.
+On Tue, Jan 09, 2018 at 10:46:14PM -0600, mark diener wrote:
+> Why don't you just put a JSON layer above the c-based libnftl 0.9 ?
+> 
+> That way, whatever is working in C-based API can then get JSON support
+> and disrupt the apple cart.
+> 
+> Call it libnftljson-0.9.so, which is then dependent on libnftl-0.9.so
+> 
+> But keep the c-based api the c-based api
+> and the JSON calling translater-to-c api a different optional library.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 336b81689ac9..40594bb57012 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5420,7 +5420,7 @@ static int nf_tables_getflowtable(struct net *net, struct sock *nlsk,
- 
- 	flowtable = nf_tables_flowtable_lookup(table, nla[NFTA_FLOWTABLE_NAME],
- 					       genmask);
--	if (IS_ERR(table))
-+	if (IS_ERR(flowtable))
- 		return PTR_ERR(flowtable);
- 
- 	skb2 = alloc_skb(NLMSG_GOODSIZE, GFP_KERNEL);
+I'm not sure I follow. The reason we started working on this libnftables
+in the first place was that everyone considered libnftnl way too
+low-level for direct use in applications.
+
+Are you suggesting to basically reimplement libnftables with JSON
+interfacing in both directions?
+
+Cheers, Phil
