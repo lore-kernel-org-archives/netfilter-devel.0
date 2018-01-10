@@ -1,40 +1,42 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nft PATCH] Don't merge adjacent/overlapping ranges by default
-Date: Wed, 10 Jan 2018 13:44:26 +0100
-Message-ID: <20180110124426.GP32305@orbyte.nwl.cc>
-References: <20180110104221.3565-1-phil@nwl.cc>
- <20180110115100.z3hbazlk4w7lekga@salvia>
- <20180110115725.GO32305@orbyte.nwl.cc>
- <20180110120801.xq6hgryqjdif57xf@salvia>
+From: Wei Yongjun <weiyongjun1@huawei.com>
+Subject: [PATCH net-next] netfilter: nf_queue: remove duplicated include from nf_queue.c
+Date: Wed, 10 Jan 2018 13:06:46 +0000
+Message-ID: <1515589606-71967-1-git-send-email-weiyongjun1@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Wei Yongjun <weiyongjun1@huawei.com>,
+        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+        <netdev@vger.kernel.org>, <kernel-janitors@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:58642 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934345AbeAJMo2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 Jan 2018 07:44:28 -0500
-Content-Disposition: inline
-In-Reply-To: <20180110120801.xq6hgryqjdif57xf@salvia>
+Received: from szxga06-in.huawei.com ([45.249.212.32]:57577 "EHLO huawei.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S933780AbeAJNAn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 10 Jan 2018 08:00:43 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hey!
+Remove duplicated include.
 
-On Wed, Jan 10, 2018 at 01:08:01PM +0100, Pablo Neira Ayuso wrote:
-> On Wed, Jan 10, 2018 at 12:57:25PM +0100, Phil Sutter wrote:
-> > Hi Pablo,
-> > 
-> > On Wed, Jan 10, 2018 at 12:51:00PM +0100, Pablo Neira Ayuso wrote:
-> > [...]
-> > > I would disable this by default by now, no option.
-> > > 
-> > > Then, revisit this later on to see if it's worth adding this, thanks!
-> > 
-> > Should I drop everything that's needed to make it optional or just
-> > remove the option from src/main.c?
-> 
-> Yes please. Thanks Phil.
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+---
+ net/netfilter/nf_queue.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-You can't answer "yes" to an either-or-question! :P
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 7f55af5..d67a96a 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -15,8 +15,6 @@
+ #include <linux/netfilter_bridge.h>
+ #include <linux/seq_file.h>
+ #include <linux/rcupdate.h>
+-#include <linux/netfilter_ipv4.h>
+-#include <linux/netfilter_ipv6.h>
+ #include <net/protocol.h>
+ #include <net/netfilter/nf_queue.h>
+ #include <net/dst.h>
+
