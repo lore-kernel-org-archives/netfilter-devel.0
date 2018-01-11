@@ -1,40 +1,40 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: clusterip: make sure arp hooks are available
-Date: Thu, 11 Jan 2018 09:21:29 +0100
-Message-ID: <20180111082129.18782-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:55826 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753843AbeAKIdj (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 11 Jan 2018 03:33:39 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Ahmed Abdelsalam <amsalam20@gmail.com>
+Subject: Re: [iptables] extensions: add support for 'srh' match
+Date: Thu, 11 Jan 2018 11:14:52 +0100
+Message-ID: <20180111111452.2ace1cdde68b3a11a2144a00@gmail.com>
+References: <1514545705-13868-1-git-send-email-amsalam20@gmail.com>
+        <20180110153224.3qtwicyu3sjzu2ec@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
+        kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180110153224.3qtwicyu3sjzu2ec@salvia>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The clusterip target needs to register an arp mangling hook,
-so make sure NF_ARP hooks are available.
+On Wed, 10 Jan 2018 16:32:24 +0100
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-Fixes: 2a95183a5e ("netfilter: don't allocate space for arp/bridge hooks unless needed")
-Reported-by: kernel test robot <fengguang.wu@intel.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/ipv4/netfilter/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+> On Fri, Dec 29, 2017 at 12:08:25PM +0100, Ahmed Abdelsalam wrote:
+> > This patch adds a new exetension to iptables to supprt 'srh' match
+> > The implementation considers revision 7 of the SRH draft.
+> > https://tools.ietf.org/html/draft-ietf-6man-segment-routing-header-07
+> > 
+> > Signed-off-by: Ahmed Abdelsalam <amsalam20@gmail.com>
+> > ---
+> >  extensions/libip6t_srh.c                | 283 ++++++++++++++++++++++++++++++++
+> >  include/linux/netfilter_ipv6/ip6t_srh.h |  63 +++++++
+> 
+> Please, add a extensions/libip6t_srh.t test file and send a v2.
+> 
+> Thanks.
+Ok, 
+Is there minimum requirements of the test cases to be added to the extensions/libip6t_srh.t file ?
 
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 7d5d444964aa..08742da63dd5 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -342,6 +342,7 @@ config IP_NF_TARGET_CLUSTERIP
- 	depends on NF_CONNTRACK_IPV4
- 	depends on NETFILTER_ADVANCED
- 	select NF_CONNTRACK_MARK
-+	select NETFILTER_FAMILY_ARP
- 	help
- 	  The CLUSTERIP target allows you to build load-balancing clusters of
- 	  network servers without having a dedicated load-balancing
 -- 
-2.13.6
-
+Ahmed 
