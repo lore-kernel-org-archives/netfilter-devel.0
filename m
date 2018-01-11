@@ -1,377 +1,119 @@
-From: Ahmed Abdelsalam <amsalam20@gmail.com>
-Subject: [iptables v2] extensions: add support for 'srh' match
-Date: Thu, 11 Jan 2018 18:12:41 +0100
-Message-ID: <1515690761-4836-1-git-send-email-amsalam20@gmail.com>
-Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, amsalam20@gmail.com
-To: pablo@netfilter.org
+From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+Subject: Re: [bisected] Forwarded packets occasionally has loopback output
+ interface in Netfilter
+Date: Thu, 11 Jan 2018 17:25:16 +0000
+Message-ID: <1515691504.1318.9.camel@cohaesio.com>
+References: <1514286320.12738.1.camel@cohaesio.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "weiwan@google.com" <weiwan@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36749 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751923AbeAKRMu (ORCPT
+Received: from bender.cohaesio.com ([212.97.128.130]:32926 "EHLO
+        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932415AbeAKRZL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 11 Jan 2018 12:12:50 -0500
-Received: by mail-wm0-f67.google.com with SMTP id b76so6877397wmg.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Jan 2018 09:12:49 -0800 (PST)
+        Thu, 11 Jan 2018 12:25:11 -0500
+In-Reply-To: <1514286320.12738.1.camel@cohaesio.com>
+Content-Language: en-US
+Content-ID: <436257E62991F9438E970A2322B4E9C3@surftown.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds a new exetension to iptables to supprt 'srh' match
-The implementation considers revision 7 of the SRH draft.
-https://tools.ietf.org/html/draft-ietf-6man-segment-routing-header-07
-
-Signed-off-by: Ahmed Abdelsalam <amsalam20@gmail.com>
----
- extensions/libip6t_srh.c                | 242 ++++++++++++++++++++++++++++++++
- extensions/libip6t_srh.t                |  26 ++++
- include/linux/netfilter_ipv6/ip6t_srh.h |  56 ++++++++
- 3 files changed, 324 insertions(+)
- create mode 100644 extensions/libip6t_srh.c
- create mode 100644 extensions/libip6t_srh.t
- create mode 100644 include/linux/netfilter_ipv6/ip6t_srh.h
-
-diff --git a/extensions/libip6t_srh.c b/extensions/libip6t_srh.c
-new file mode 100644
-index 0000000..ac0ae08
---- /dev/null
-+++ b/extensions/libip6t_srh.c
-@@ -0,0 +1,242 @@
-+/* Shared library to add Segment Routing Header (SRH) matching support.
-+ *
-+ * Author:
-+ *       Ahmed Abdelsalam       <amsalam20@gmail.com>
-+ */
-+
-+#include <stdio.h>
-+#include <xtables.h>
-+#include <linux/netfilter_ipv6/ip6t_srh.h>
-+#include <string.h>
-+
-+/* srh command-line options */
-+enum {
-+	O_SRH_NEXTHDR,
-+	O_SRH_LEN_EQ,
-+	O_SRH_LEN_GT,
-+	O_SRH_LEN_LT,
-+	O_SRH_SEGS_EQ,
-+	O_SRH_SEGS_GT,
-+	O_SRH_SEGS_LT,
-+	O_SRH_LAST_EQ,
-+	O_SRH_LAST_GT,
-+	O_SRH_LAST_LT,
-+	O_SRH_TAG,
-+};
-+
-+static void srh_help(void)
-+{
-+	printf(
-+"srh match options:\n"
-+"[!] --srh-next-hdr		next-hdr        Next Header value of SRH\n"
-+"[!] --srh-hdr-len-eq		hdr_len         Hdr Ext Len value of SRH\n"
-+"[!] --srh-hdr-len-gt		hdr_len         Hdr Ext Len value of SRH\n"
-+"[!] --srh-hdr-len-lt		hdr_len         Hdr Ext Len value of SRH\n"
-+"[!] --srh-segs-left-eq		segs_left       Segments Left value of SRH\n"
-+"[!] --srh-segs-left-gt		segs_left       Segments Left value of SRH\n"
-+"[!] --srh-segs-left-lt		segs_left       Segments Left value of SRH\n"
-+"[!] --srh-last-entry-eq 	last_entry      Last Entry value of SRH\n"
-+"[!] --srh-last-entry-gt 	last_entry      Last Entry value of SRH\n"
-+"[!] --srh-last-entry-lt 	last_entry      Last Entry value of SRH\n"
-+"[!] --srh-tag			tag             Tag value of SRH\n");
-+}
-+
-+#define s struct ip6t_srh
-+static const struct xt_option_entry srh_opts[] = {
-+	{ .name = "srh-next-hdr", .id = O_SRH_NEXTHDR, .type = XTTYPE_UINT8,
-+	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, next_hdr)},
-+	{ .name = "srh-hdr-len-eq", .id = O_SRH_LEN_EQ, .type = XTTYPE_UINT8,
-+	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, hdr_len)},
-+	{ .name = "srh-hdr-len-gt", .id = O_SRH_LEN_GT, .type = XTTYPE_UINT8,
-+	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, hdr_len)},
-+	{ .name = "srh-hdr-len-lt", .id = O_SRH_LEN_LT, .type = XTTYPE_UINT8,
-+	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, hdr_len)},
-+	{ .name = "srh-segs-left-eq", .id = O_SRH_SEGS_EQ, .type = XTTYPE_UINT8,
-+	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, segs_left)},
-+	{ .name = "srh-segs-left-gt", .id = O_SRH_SEGS_GT, .type = XTTYPE_UINT8,
-+	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, segs_left)},
-+	{ .name = "srh-segs-left-lt", .id = O_SRH_SEGS_LT, .type = XTTYPE_UINT8,
-+	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, segs_left)},
-+	{ .name = "srh-last-entry-eq", .id = O_SRH_LAST_EQ, .type = XTTYPE_UINT8,
-+	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, last_entry)},
-+	{ .name = "srh-last-entry-gt", .id = O_SRH_LAST_GT, .type = XTTYPE_UINT8,
-+	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, last_entry)},
-+	{ .name = "srh-last-entry-lt", .id = O_SRH_LAST_LT, .type = XTTYPE_UINT8,
-+	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, last_entry)},
-+	{ .name = "srh-tag", .id = O_SRH_TAG, .type = XTTYPE_UINT16,
-+	.flags = XTOPT_INVERT | XTOPT_PUT, XTOPT_POINTER(s, tag)},
-+	{ }
-+};
-+#undef s
-+
-+static void srh_init(struct xt_entry_match *m)
-+{
-+	struct ip6t_srh *srhinfo = (void *)m->data;
-+
-+	srhinfo->mt_flags = 0;
-+	srhinfo->mt_invflags = 0;
-+}
-+
-+static void srh_parse(struct xt_option_call *cb)
-+{
-+	struct ip6t_srh *srhinfo = cb->data;
-+
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_SRH_NEXTHDR:
-+		srhinfo->mt_flags |= IP6T_SRH_NEXTHDR;
-+		if (cb->invert)
-+			srhinfo->mt_invflags |= IP6T_SRH_INV_NEXTHDR;
-+		break;
-+	case O_SRH_LEN_EQ:
-+		srhinfo->mt_flags |= IP6T_SRH_LEN_EQ;
-+		if (cb->invert)
-+			srhinfo->mt_invflags |= IP6T_SRH_INV_LEN_EQ;
-+		break;
-+	case O_SRH_LEN_GT:
-+		srhinfo->mt_flags |= IP6T_SRH_LEN_GT;
-+		if (cb->invert)
-+			srhinfo->mt_invflags |= IP6T_SRH_INV_LEN_GT;
-+		break;
-+	case O_SRH_LEN_LT:
-+		srhinfo->mt_flags |= IP6T_SRH_LEN_LT;
-+		if (cb->invert)
-+			srhinfo->mt_invflags |= IP6T_SRH_INV_LEN_LT;
-+		break;
-+	case O_SRH_SEGS_EQ:
-+		srhinfo->mt_flags |= IP6T_SRH_SEGS_EQ;
-+		if (cb->invert)
-+			srhinfo->mt_invflags |= IP6T_SRH_INV_SEGS_EQ;
-+		break;
-+	case O_SRH_SEGS_GT:
-+		srhinfo->mt_flags |= IP6T_SRH_SEGS_GT;
-+		if (cb->invert)
-+			srhinfo->mt_invflags |= IP6T_SRH_INV_SEGS_GT;
-+		break;
-+	case O_SRH_SEGS_LT:
-+		srhinfo->mt_flags |= IP6T_SRH_SEGS_LT;
-+		if (cb->invert)
-+			srhinfo->mt_invflags |= IP6T_SRH_INV_SEGS_LT;
-+		break;
-+	case O_SRH_LAST_EQ:
-+		srhinfo->mt_flags |= IP6T_SRH_LAST_EQ;
-+		if (cb->invert)
-+			srhinfo->mt_invflags |= IP6T_SRH_INV_LAST_EQ;
-+		break;
-+	case O_SRH_LAST_GT:
-+		srhinfo->mt_flags |= IP6T_SRH_LAST_GT;
-+		if (cb->invert)
-+			srhinfo->mt_invflags |= IP6T_SRH_INV_LAST_GT;
-+		break;
-+	case O_SRH_LAST_LT:
-+		srhinfo->mt_flags |= IP6T_SRH_LAST_LT;
-+		if (cb->invert)
-+			srhinfo->mt_invflags |= IP6T_SRH_INV_LAST_LT;
-+		break;
-+	case O_SRH_TAG:
-+		srhinfo->mt_flags |= IP6T_SRH_TAG;
-+		if (cb->invert)
-+			srhinfo->mt_invflags |= IP6T_SRH_INV_TAG;
-+		break;
-+	}
-+}
-+
-+static void srh_print(const void *ip, const struct xt_entry_match *match,
-+			int numeric)
-+{
-+	const struct ip6t_srh *srhinfo = (struct ip6t_srh *)match->data;
-+
-+	printf(" srh");
-+	if (srhinfo->mt_flags & IP6T_SRH_NEXTHDR)
-+		printf(" next-hdr:%s%d", srhinfo->mt_invflags & IP6T_SRH_INV_NEXTHDR ? "!" : "",
-+			srhinfo->next_hdr);
-+	if (srhinfo->mt_flags & IP6T_SRH_LEN_EQ)
-+		printf(" hdr-len-eq:%s%d", srhinfo->mt_invflags & IP6T_SRH_INV_LEN_EQ ? "!" : "",
-+			srhinfo->hdr_len);
-+	if (srhinfo->mt_flags & IP6T_SRH_LEN_GT)
-+		printf(" hdr-len-gt:%s%d", srhinfo->mt_invflags & IP6T_SRH_INV_LEN_GT ? "!" : "",
-+			srhinfo->hdr_len);
-+	if (srhinfo->mt_flags & IP6T_SRH_LEN_LT)
-+		printf(" hdr-len-lt:%s%d", srhinfo->mt_invflags & IP6T_SRH_INV_LEN_LT ? "!" : "",
-+			srhinfo->hdr_len);
-+	if (srhinfo->mt_flags & IP6T_SRH_SEGS_EQ)
-+		printf(" segs-left-eq:%s%d", srhinfo->mt_invflags & IP6T_SRH_INV_SEGS_EQ ? "!" : "",
-+			srhinfo->segs_left);
-+	if (srhinfo->mt_flags & IP6T_SRH_SEGS_GT)
-+		printf(" segs-left-gt:%s%d", srhinfo->mt_invflags & IP6T_SRH_INV_SEGS_GT ? "!" : "",
-+			srhinfo->segs_left);
-+	if (srhinfo->mt_flags & IP6T_SRH_SEGS_LT)
-+		printf(" segs-left-lt:%s%d", srhinfo->mt_invflags & IP6T_SRH_INV_SEGS_LT ? "!" : "",
-+			srhinfo->segs_left);
-+	if (srhinfo->mt_flags & IP6T_SRH_LAST_EQ)
-+		printf(" last-entry-eq:%s%d", srhinfo->mt_invflags & IP6T_SRH_INV_LAST_EQ ? "!" : "",
-+			srhinfo->last_entry);
-+	if (srhinfo->mt_flags & IP6T_SRH_LAST_GT)
-+		printf(" last-entry-gt:%s%d", srhinfo->mt_invflags & IP6T_SRH_INV_LAST_GT ? "!" : "",
-+			srhinfo->last_entry);
-+	if (srhinfo->mt_flags & IP6T_SRH_LAST_LT)
-+		printf(" last-entry-lt:%s%d", srhinfo->mt_invflags & IP6T_SRH_INV_LAST_LT ? "!" : "",
-+			srhinfo->last_entry);
-+	if (srhinfo->mt_flags & IP6T_SRH_TAG)
-+		printf(" tag:%s%d", srhinfo->mt_invflags & IP6T_SRH_INV_TAG ? "!" : "",
-+			srhinfo->tag);
-+}
-+
-+static void srh_save(const void *ip, const struct xt_entry_match *match)
-+{
-+	const struct ip6t_srh *srhinfo = (struct ip6t_srh *)match->data;
-+
-+	if (srhinfo->mt_flags & IP6T_SRH_NEXTHDR)
-+		printf("%s --srh-next-hdr %u", (srhinfo->mt_invflags & IP6T_SRH_INV_NEXTHDR) ? " !" : "",
-+			srhinfo->next_hdr);
-+	if (srhinfo->mt_flags & IP6T_SRH_LEN_EQ)
-+		printf("%s --srh-hdr-len-eq %u", (srhinfo->mt_invflags & IP6T_SRH_INV_LEN_EQ) ? " !" : "",
-+			srhinfo->hdr_len);
-+	if (srhinfo->mt_flags & IP6T_SRH_LEN_GT)
-+		printf("%s --srh-hdr-len-gt %u", (srhinfo->mt_invflags & IP6T_SRH_INV_LEN_GT) ? " !" : "",
-+			srhinfo->hdr_len);
-+	if (srhinfo->mt_flags & IP6T_SRH_LEN_LT)
-+		printf("%s --srh-hdr-len-lt %u", (srhinfo->mt_invflags & IP6T_SRH_INV_LEN_LT) ? " !" : "",
-+			srhinfo->hdr_len);
-+	if (srhinfo->mt_flags & IP6T_SRH_SEGS_EQ)
-+		printf("%s --srh-segs-left-eq %u", (srhinfo->mt_invflags & IP6T_SRH_INV_SEGS_EQ) ? " !" : "",
-+			srhinfo->segs_left);
-+	if (srhinfo->mt_flags & IP6T_SRH_SEGS_GT)
-+		printf("%s --srh-segs-left-gt %u", (srhinfo->mt_invflags & IP6T_SRH_INV_SEGS_GT) ? " !" : "",
-+			srhinfo->segs_left);
-+	if (srhinfo->mt_flags & IP6T_SRH_SEGS_LT)
-+		printf("%s --srh-segs-left-lt %u", (srhinfo->mt_invflags & IP6T_SRH_INV_SEGS_LT) ? " !" : "",
-+			srhinfo->segs_left);
-+	if (srhinfo->mt_flags & IP6T_SRH_LAST_EQ)
-+		printf("%s --srh-last-entry-eq %u", (srhinfo->mt_invflags & IP6T_SRH_INV_LAST_EQ) ? " !" : "",
-+			srhinfo->last_entry);
-+	if (srhinfo->mt_flags & IP6T_SRH_LAST_GT)
-+		printf("%s --srh-last-entry-gt %u", (srhinfo->mt_invflags & IP6T_SRH_INV_LAST_GT) ? " !" : "",
-+			srhinfo->last_entry);
-+	if (srhinfo->mt_flags & IP6T_SRH_LAST_LT)
-+		printf("%s --srh-last-entry-lt %u", (srhinfo->mt_invflags & IP6T_SRH_INV_LAST_LT) ? " !" : "",
-+			srhinfo->last_entry);
-+	if (srhinfo->mt_flags & IP6T_SRH_TAG)
-+		printf("%s --srh-tag %u", (srhinfo->mt_invflags & IP6T_SRH_INV_TAG) ? " !" : "",
-+			srhinfo->tag);
-+}
-+
-+static struct xtables_match srh_mt6_reg = {
-+	.name          = "srh",
-+	.version       = XTABLES_VERSION,
-+	.family        = NFPROTO_IPV6,
-+	.size          = XT_ALIGN(sizeof(struct ip6t_srh)),
-+	.userspacesize = XT_ALIGN(sizeof(struct ip6t_srh)),
-+	.help          = srh_help,
-+	.init          = srh_init,
-+	.print         = srh_print,
-+	.save          = srh_save,
-+	.x6_parse      = srh_parse,
-+	.x6_options    = srh_opts,
-+};
-+
-+void
-+_init(void)
-+{
-+	xtables_register_match(&srh_mt6_reg);
-+}
-diff --git a/extensions/libip6t_srh.t b/extensions/libip6t_srh.t
-new file mode 100644
-index 0000000..08897d5
---- /dev/null
-+++ b/extensions/libip6t_srh.t
-@@ -0,0 +1,26 @@
-+:INPUT,FORWARD,OUTPUT
-+-m srh --srh-next-hdr 17;=;OK
-+-m srh --srh-hdr-len-eq 8;=;OK
-+-m srh --srh-hdr-len-gt 8;=;OK
-+-m srh --srh-hdr-len-lt 8;=;OK
-+-m srh --srh-segs-left-eq 1;=;OK
-+-m srh --srh-segs-left-gt 1;=;OK
-+-m srh --srh-segs-left-lt 1;=;OK
-+-m srh --srh-last-entry-eq 4;=;OK
-+-m srh --srh-last-entry-gt 4;=;OK
-+-m srh --srh-last-entry-lt 4;=;OK
-+-m srh --srh-tag 0;=;OK
-+-m srh ! --srh-next-hdr 17;=;OK
-+-m srh ! --srh-hdr-len-eq 8;=;OK
-+-m srh ! --srh-hdr-len-gt 8;=;OK
-+-m srh ! --srh-hdr-len-lt 8;=;OK
-+-m srh ! --srh-segs-left-eq 1;=;OK
-+-m srh ! --srh-segs-left-gt 1;=;OK
-+-m srh ! --srh-segs-left-lt 1;=;OK
-+-m srh ! --srh-last-entry-eq 4;=;OK
-+-m srh ! --srh-last-entry-gt 4;=;OK
-+-m srh ! --srh-last-entry-lt 4;=;OK
-+-m srh ! --srh-tag 0;=;OK
-+-m srh --srh-next-hdr 17 --srh-segs-left-eq 1 --srh-last-entry-eq 4 --srh-tag 0;=;OK
-+-m srh ! --srh-next-hdr 17 ! --srh-segs-left-eq 0 --srh-tag 0;=;OK
-+-m srh;=;OK
-diff --git a/include/linux/netfilter_ipv6/ip6t_srh.h b/include/linux/netfilter_ipv6/ip6t_srh.h
-new file mode 100644
-index 0000000..087efa1
---- /dev/null
-+++ b/include/linux/netfilter_ipv6/ip6t_srh.h
-@@ -0,0 +1,56 @@
-+#ifndef _IP6T_SRH_H
-+#define _IP6T_SRH_H
-+
-+#include <linux/types.h>
-+#include <linux/netfilter.h>
-+
-+/* Values for "mt_flags" field in struct ip6t_srh */
-+#define IP6T_SRH_NEXTHDR        0x0001
-+#define IP6T_SRH_LEN_EQ         0x0002
-+#define IP6T_SRH_LEN_GT         0x0004
-+#define IP6T_SRH_LEN_LT         0x0008
-+#define IP6T_SRH_SEGS_EQ        0x0010
-+#define IP6T_SRH_SEGS_GT        0x0020
-+#define IP6T_SRH_SEGS_LT        0x0040
-+#define IP6T_SRH_LAST_EQ        0x0080
-+#define IP6T_SRH_LAST_GT        0x0100
-+#define IP6T_SRH_LAST_LT        0x0200
-+#define IP6T_SRH_TAG            0x0400
-+#define IP6T_SRH_MASK           0x07FF
-+
-+/* Values for "mt_invflags" field in struct ip6t_srh */
-+#define IP6T_SRH_INV_NEXTHDR    0x0001
-+#define IP6T_SRH_INV_LEN_EQ     0x0002
-+#define IP6T_SRH_INV_LEN_GT     0x0004
-+#define IP6T_SRH_INV_LEN_LT     0x0008
-+#define IP6T_SRH_INV_SEGS_EQ    0x0010
-+#define IP6T_SRH_INV_SEGS_GT    0x0020
-+#define IP6T_SRH_INV_SEGS_LT    0x0040
-+#define IP6T_SRH_INV_LAST_EQ    0x0080
-+#define IP6T_SRH_INV_LAST_GT    0x0100
-+#define IP6T_SRH_INV_LAST_LT    0x0200
-+#define IP6T_SRH_INV_TAG        0x0400
-+#define IP6T_SRH_INV_MASK       0x07FF
-+
-+/**
-+ *      struct ip6t_srh - SRH match options
-+ *      @ next_hdr: Next header field of SRH
-+ *      @ hdr_len: Extension header length field of SRH
-+ *      @ segs_left: Segments left field of SRH
-+ *      @ last_entry: Last entry field of SRH
-+ *      @ tag: Tag field of SRH
-+ *      @ mt_flags: match options
-+ *      @ mt_invflags: Invert the sense of match options
-+ */
-+
-+struct ip6t_srh {
-+	__u8                    next_hdr;
-+	__u8                    hdr_len;
-+	__u8                    segs_left;
-+	__u8                    last_entry;
-+	__u16                   tag;
-+	__u16                   mt_flags;
-+	__u16                   mt_invflags;
-+};
-+
-+#endif /*_IP6T_SRH_H*/
--- 
-2.1.4
-
+T24gdGlyLCAyMDE3LTEyLTI2IGF0IDEyOjA1ICswMTAwLCBBbmRlcnMgSy4gUGVkZXJzZW4gfCBD
+b2hhZXNpbyB3cm90ZToNCj4gSGVsbG8sDQo+IA0KPiBPbiBvbmUgb2Ygb3VyIGJvcmRlciByb3V0
+ZXJzLCBOZXRmaWx0ZXIgaXMgb2NjYXNpb25hbGx5IGxvZ2dpbmcgcGFja2V0cw0KPiB3aXRoICJP
+VVQ9bG8iIChvdXRwdXQgaW50ZXJmYWNlIGxvKSBldmVuIHRob3VnaCB0aGUgcGFja2V0IHNob3Vs
+ZCBiZQ0KPiBnb2luZyBvdXQgdmlhIGEgcmVndWxhciBpbnRlcmZhY2UuIFRoaXMgYmVoYXZpb3Ig
+aXMgcHJlc2VudCBvbiBMaW51eA0KPiA0LjEzLjAgdG8gNC4xNC45LCBhbmQgYSBiaXNlY3Rpb24g
+b2YgdGhlIHByb2JsZW0gcG9pbnRzIHRvDQo+IA0KPiBbOTVjNDdmOWNmNWUwMjhkMWFlNzdkYzZj
+NzY3YzFlZGM4YTE4MDI1Yl0gaXB2NDogY2FsbCBkc3RfZGV2X3B1dCgpIHByb3Blcmx5DQo+IA0K
+PiBhcyB0aGUgZmlyc3QgYmFkIGNvbW1pdC4gVGhpcyBjb21taXQgYWRkcyBkc3RfZGV2X3B1dCgp
+IGNhbGxzIGJlZm9yZQ0KPiBzb21lIGRzdF9yZWxlYXNlKCkgY2FsbHMsIGFuZCBkc3RfZGV2X3B1
+dCgpIGRvZXMNCj4gDQo+ICAgICBkc3QtPmRldiA9IGRldl9uZXQoZHN0LT5kZXYpLT5sb29wYmFj
+a19kZXY7DQo+IA0KPiAoYW1vbmcgb3RoZXIgdGhpbmdzKSwgd2hpY2ggZml0cyB0aGUgcHJvYmxl
+bSB3ZSdyZSBzZWVpbmcuDQo+IA0KPiBUaGUgZXNzZW50aWFsIHBhcnQgb2Ygb3VyIG5mdGFibGVz
+IHJ1bGUgc2V0IHRoYXQgc2hvd3MgdGhpcyBiZWhhdmlvciBpcw0KPiANCj4gY2hhaW4gZm9yd2Fy
+ZCB7DQo+ICAgICAgICAgICAgICAgICB0eXBlIGZpbHRlciBob29rIGZvcndhcmQgcHJpb3JpdHkg
+MDsNCj4gDQo+ICAgICAgICAgICAgICAgICBtZXRhIG9pZiB7ICRpbnRlcm5hbF9pbnRlcmZhY2Vz
+IH0gYWNjZXB0DQo+IA0KPiAgICAgICAgICAgICAgICAgbWV0YSBvaWYgbG8gaXAgZGFkZHIgIT0g
+MTI3LjAuMC4wLzggXA0KPiAgICAgICAgICAgICAgICAgICAgICAgICBsb2cgZ3JvdXAgMCBzbmFw
+bGVuIDgwIHByZWZpeCAib2lmLWxvIiBjb3VudGVyDQo+IA0KPiAgICAgICAgICAgICAgICAgaXAg
+c2FkZHIgeyAkb3VyX2lwX3NlcmllcyB9IFwNCj4gICAgICAgICAgICAgICAgICAgICAgICAgZmxv
+dyB0YWJsZSBhY2N0X291dCBcDQo+ICAgICAgICAgICAgICAgICAgICAgICAgIHsgbWV0YSBvaWYg
+LiBydCBuZXh0aG9wIC4gaXAgc2FkZHIgdGltZW91dCAxMm0gY291bnRlciB9IFwNCj4gICAgICAg
+ICAgICAgICAgICAgICAgICAgYWNjZXB0DQo+IA0KPiAgICAgICAgICAgICAgICAgbG9nIGdyb3Vw
+IDAgc25hcGxlbiA4MCBwcmVmaXggIkRST1AiIGNvdW50ZXIgZHJvcA0KPiB9DQo+IA0KPiBUaGUg
+cm91dGVyIG9ubHkgZG9lcyBzdGF0ZWxlc3MgcGFja2V0IGZpbHRlcmluZyBhbmQgbm8gcmVkaXJl
+Y3Rpb24gb3INCj4gcmV3cml0aW5nIG9mIHRoZSBwYWNrZXRzIChjb25uZWN0aW9uIHRyYWNraW5n
+LCBOQVQsIGlwdnMgZXRjLiBhcmUgbm90DQo+IGV2ZW4gY29tcGlsZWQgZm9yIHRoaXMga2VybmVs
+KS4NCj4gDQo+IEFzIGEgcmVzdWx0IG9mIHRoaXMgcHJvYmxlbSB3ZSBzZWUgcGFja2V0cyB0aGF0
+IHNob3VsZCBiZSBnb2luZyB0byBhbg0KPiBpbnRlcm5hbCBpbnRlcmZhY2UgKGFuZCB0aHVzIGFj
+Y2VwdGVkIGJ5IHRoZSBmaXJzdCBydWxlIGFib3ZlKSBiZWluZw0KPiBsb2dnZWQgYW5kIGRyb3Bw
+ZWQgYnkgdGhlIGxhc3QgcnVsZS4gU29tZSBleGFtcGxlczoNCj4gDQo+IERlYyAyMiAxMTo1Nzow
+MiBjaXg0IG9pZi1sbyBJTj1ldGgxMCBPVVQ9bG8gTUFDPTkwOmUyOmJhOjVjOmI2Ojk1OjEwOmYz
+OjExOjM4OjA2Ojc3OjA4OjAwIFNSQz04MS4xNzAuMTYzLjExOCBEU1Q9MjEyLjk3LjE1OC4zMyBM
+RU49MTUwMCBUT1M9MDAgUFJFQz0weDAwIFRUTD0xMTYgSUQ9MjU5MzIgREYgUFJPVE89VENQIFNQ
+VD0zNTExOCBEUFQ9ODQ0MyBTRVE9NjA0MzU4MzMwIEFDSz0xMTgyMjc4NzA1IFdJTkRPVz0zMjk1
+IEFDSyBVUkdQPTAgTUFSSz0wDQo+IERlYyAyMiAxMTo1NzowMiBjaXg0IERST1AgSU49ZXRoMTAg
+T1VUPWxvIE1BQz05MDplMjpiYTo1YzpiNjo5NToxMDpmMzoxMTozODowNjo3NzowODowMCBTUkM9
+ODEuMTcwLjE2My4xMTggRFNUPTIxMi45Ny4xNTguMzMgTEVOPTE1MDAgVE9TPTAwIFBSRUM9MHgw
+MCBUVEw9MTE2IElEPTI1OTMyIERGIFBST1RPPVRDUCBTUFQ9MzUxMTggRFBUPTg0NDMgU0VRPTYw
+NDM1ODMzMCBBQ0s9MTE4MjI3ODcwNSBXSU5ET1c9MzI5NSBBQ0sgVVJHUD0wIE1BUks9MA0KPiAN
+Cj4gRGVjIDIyIDEyOjQ3OjA3IGNpeDQgb2lmLWxvIElOPWV0aDEwIE9VVD1sbyBNQUM9OTA6ZTI6
+YmE6NWM6YjY6OTU6MGU6ODY6MTA6Mjc6OTk6ZjM6MDg6MDAgU1JDPTQwLjEwMS4zMC4xOCBEU1Q9
+MjEyLjk3LjEzMC4zMiBMRU49MjQ1IFRPUz0wMCBQUkVDPTB4MDAgVFRMPTExOCBJRD0xMDM3MCBE
+RiBQUk9UTz1UQ1AgU1BUPTQ0MyBEUFQ9NDQ5ODggU0VRPTExNDE1NDU5MTMgQUNLPTM4NDQ1NzMx
+MDMgV0lORE9XPTY1NTM1IEFDSyBQU0ggVVJHUD0wIE1BUks9MA0KPiBEZWMgMjIgMTI6NDc6MDcg
+Y2l4NCBEUk9QIElOPWV0aDEwIE9VVD1sbyBNQUM9OTA6ZTI6YmE6NWM6YjY6OTU6MGU6ODY6MTA6
+Mjc6OTk6ZjM6MDg6MDAgU1JDPTQwLjEwMS4zMC4xOCBEU1Q9MjEyLjk3LjEzMC4zMiBMRU49MjQ1
+IFRPUz0wMCBQUkVDPTB4MDAgVFRMPTExOCBJRD0xMDM3MCBERiBQUk9UTz1UQ1AgU1BUPTQ0MyBE
+UFQ9NDQ5ODggU0VRPTExNDE1NDU5MTMgQUNLPTM4NDQ1NzMxMDMgV0lORE9XPTY1NTM1IEFDSyBQ
+U0ggVVJHUD0wIE1BUks9MA0KPiANCj4gRGVjIDIyIDEyOjUzOjU2IGNpeDQgb2lmLWxvIElOPWV0
+aDEwIE9VVD1sbyBNQUM9OTA6ZTI6YmE6NWM6YjY6OTU6MGU6ODY6MTA6Mjc6OTk6ZjM6MDg6MDAg
+U1JDPTQwLjEwMS4xMi4zNCBEU1Q9MjEyLjk3LjEzMC4zMiBMRU49MjQ1IFRPUz0wMCBQUkVDPTB4
+MDAgVFRMPTExNSBJRD0yNzcyOCBERiBQUk9UTz1UQ1AgU1BUPTQ0MyBEUFQ9Mzk3MjQgU0VRPTM3
+OTcxNTY0MDQgQUNLPTM5NDQyMzQ2MTIgV0lORE9XPTY1NTM1IEFDSyBQU0ggVVJHUD0wIE1BUks9
+MA0KPiBEZWMgMjIgMTI6NTM6NTYgY2l4NCBEUk9QIElOPWV0aDEwIE9VVD1sbyBNQUM9OTA6ZTI6
+YmE6NWM6YjY6OTU6MGU6ODY6MTA6Mjc6OTk6ZjM6MDg6MDAgU1JDPTQwLjEwMS4xMi4zNCBEU1Q9
+MjEyLjk3LjEzMC4zMiBMRU49MjQ1IFRPUz0wMCBQUkVDPTB4MDAgVFRMPTExNSBJRD0yNzcyOCBE
+RiBQUk9UTz1UQ1AgU1BUPTQ0MyBEUFQ9Mzk3MjQgU0VRPTM3OTcxNTY0MDQgQUNLPTM5NDQyMzQ2
+MTIgV0lORE9XPTY1NTM1IEFDSyBQU0ggVVJHUD0wIE1BUks9MA0KPiANCj4gSXQgYWxzbyBoYXBw
+ZW5zIGZvciBvdXRib3VuZCB0cmFmZmljLCB3aGVyZSB0aGUgcGFja2V0cyBhcmUgbG9nZ2VkIGFu
+ZA0KPiBjb3VudGVkIGluIHRoZSBhY2N0X291dCBmbG93IHRhYmxlIHdpdGggIm1ldGEgb2lmIiA9
+ICJsbyIsIGJ1dCBhDQo+IGNvcnJlY3QgInJ0IG5leHRob3AiIC0gYW4gZXhhbXBsZToNCj4gDQo+
+IERlYyAyMiAxMjoyOToxMyBjaXg0IG9pZi1sbyBJTj10ZWFtMC4yMCBPVVQ9bG8gTUFDPTNjOmZk
+OmZlOjE1OmRiOmE4OjAwOjI0OmE4OmZmOmYwOjAwOjA4OjAwIFNSQz0yMTIuOTcuMTI5LjI1IERT
+VD05NS4xNjYuMTE5LjEyOSBMRU49NDAgVE9TPTAwIFBSRUM9MHgwMCBUVEw9NjIgSUQ9MTk0ODEg
+REYgUFJPVE89VENQIFNQVD00NDMgRFBUPTUyNTYwIFNFUT0zMDM0ODI3Mzk2IEFDSz0yODYyODE0
+OTAxIFdJTkRPVz0xMjYxOCBBQ0sgVVJHUD0wIE1BUks9MA0KPiANCj4gIyBuZnQgbGlzdCBmbG93
+IHRhYmxlIGZpbHRlciBhY2N0X291dHx0ciAnLCcgJ1xuJ3xncmVwIGxvDQo+ICAgICAgICAgZmxv
+dyB0YWJsZSBhY2N0X291dCB7DQo+ICAibG8iIC4gOTQuMTAxLjIwOC4yMTcgLiAyMTIuOTcuMTI5
+LjI1IGV4cGlyZXMgM20xN3MgOiBjb3VudGVyIHBhY2tldHMgMSBieXRlcyA0MA0KPiANCj4gSSBk
+b24ndCBrbm93IGlmIHRoZXNlIHBhY2tldHMgYXJlIGFjdHVhbGx5IHNlbnQgb3V0IG9uIHRoZSBj
+b3JyZWN0DQo+IG91dGJvdW5kIGludGVyZmFjZSB0aGFua3MgdG8gdGhlIHByb3BlciBuZXh0aG9w
+ICh0aGUgTUFDPSBpbmZvcm1hdGlvbg0KPiBpbiB0aGUgTmV0ZmlsdGVyIGxvZyBpcyBmcm9tIHRo
+ZSByZWNlaXZlZCBwYWNrZXQgYW5kIHRodXMgbm90IHVzZWZ1bA0KPiBoZXJlKS4NCj4gDQo+IEkg
+dHJpZWQgcnVubmluZyBhIHRjcGR1bXAgb24gdGhlIGxvIGludGVyZmFjZSB0byBzZWUgaWYgdGhl
+c2UgcGFja2V0cw0KPiB3b3VsZCBzaG93IHVwIHRoZXJlLCBidXQgZHVyaW5nIHRoZSB0aHJlZSBk
+YXlzIEkgaGFkIGl0IHJ1bm5pbmcsIGl0DQo+IG9ubHkgbG9nZ2VkIG9uZSBzdWNoIHBhY2tldCwg
+d2hpbGUgTmV0ZmlsdGVyIGxvZ3MgMjArIG91dGJvdW5kIHBhY2tldHMNCj4gZXZlcnkgZGF5LCBh
+bmQgdGhlIG9uZSBwYWNrZXQgbG9nZ2VkIGJ5IHRjcGR1bXAgd2FzICpub3QqIGxvZ2dlZCBieQ0K
+PiBOZXRmaWx0ZXIuDQoNCkZ1cnRoZXIgdGVzdGluZyBvZiB0aGUgaW5kaXZpZHVhbCBwYXJ0cyBv
+ZiB0aGUgZmlyc3QgYmFkIGNvbW1pdCBzaG93cw0KdGhhdCB0aGUgZml2ZSBmaXJzdCBhZGRpdGlv
+bnMgb2YgdGhlIGRzdF9kZXZfcHV0KCkgY2FsbCBkb2Vzbid0IHRyaWdnZXINCnRoZSBwcm9ibGVt
+LCB3aGlsZSB0aGUgbGFzdCBvbmUgZG9lcyAoYWxzbyB3aXRob3V0IHRoZSBmaXJzdCBmaXZlKSwg
+c28NCnRoZSBwcm9ibGVtYXRpYyBwYXJ0IGlzOg0KDQpkaWZmIC0tZ2l0IGEvbmV0L2lwdjQvcm91
+dGUuYyBiL25ldC9pcHY0L3JvdXRlLmMNCmluZGV4IDNkZWUwMDQuLmQ5ODZkODAgMTAwNjQ0DQot
+LS0gYS9uZXQvaXB2NC9yb3V0ZS5jDQorKysgYi9uZXQvaXB2NC9yb3V0ZS5jDQpAQCAtMTM2OSw2
+ICsxMzcyLDcgQEAgc3RhdGljIGJvb2wgcnRfY2FjaGVfcm91dGUoc3RydWN0IGZpYl9uaCAqbmgs
+IHN0cnVjdCBydGFibGUgKnJ0KQ0KICAgICAgICBwcmV2ID0gY21weGNoZyhwLCBvcmlnLCBydCk7
+DQogICAgICAgIGlmIChwcmV2ID09IG9yaWcpIHsNCiAgICAgICAgICAgICAgICBpZiAob3JpZykg
+ew0KKyAgICAgICAgICAgICAgICAgICAgICAgZHN0X2Rldl9wdXQoJm9yaWctPmRzdCk7DQogICAg
+ICAgICAgICAgICAgICAgICAgICBkc3RfcmVsZWFzZSgmb3JpZy0+ZHN0KTsNCiAgICAgICAgICAg
+ICAgICAgICAgICAgIHJ0X2ZyZWUob3JpZyk7DQogICAgICAgICAgICAgICAgfQ0KDQpBbnkgaGVs
+cCB3aXRoIGZpeGluZyB0aGlzIHdvdWxkIGJlIG11Y2ggYXBwcmVjaWF0ZWQuIElmIHRoZXJlJ3MN
+CmFueXRoaW5nIEkgc2hvdWxkIHRyeSB0byBkZWJ1ZyB0aGlzIGZ1cnRoZXIsIHBsZWFzZSBsZXQg
+bWUga25vdy4NCg0KUmVnYXJkcywNCkFuZGVycyBLLiBQZWRlcnNlbg==
