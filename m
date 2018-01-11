@@ -1,119 +1,163 @@
-From: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+From: Wei Wang <weiwan@google.com>
 Subject: Re: [bisected] Forwarded packets occasionally has loopback output
  interface in Netfilter
-Date: Thu, 11 Jan 2018 17:25:16 +0000
-Message-ID: <1515691504.1318.9.camel@cohaesio.com>
-References: <1514286320.12738.1.camel@cohaesio.com>
+Date: Thu, 11 Jan 2018 10:18:08 -0800
+Message-ID: <CAEA6p_B68G+-tBfrv9c6hqvXnhPYQFwFcuZjedtfU8HozEcCSQ@mail.gmail.com>
+References: <1514286320.12738.1.camel@cohaesio.com> <1515691504.1318.9.camel@cohaesio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
         "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "weiwan@google.com" <weiwan@google.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bender.cohaesio.com ([212.97.128.130]:32926 "EHLO
-        mail.cohaesio.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932415AbeAKRZL (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 11 Jan 2018 12:25:11 -0500
-In-Reply-To: <1514286320.12738.1.camel@cohaesio.com>
-Content-Language: en-US
-Content-ID: <436257E62991F9438E970A2322B4E9C3@surftown.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: "Anders K. Pedersen | Cohaesio" <akp@cohaesio.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1515691504.1318.9.camel@cohaesio.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-T24gdGlyLCAyMDE3LTEyLTI2IGF0IDEyOjA1ICswMTAwLCBBbmRlcnMgSy4gUGVkZXJzZW4gfCBD
-b2hhZXNpbyB3cm90ZToNCj4gSGVsbG8sDQo+IA0KPiBPbiBvbmUgb2Ygb3VyIGJvcmRlciByb3V0
-ZXJzLCBOZXRmaWx0ZXIgaXMgb2NjYXNpb25hbGx5IGxvZ2dpbmcgcGFja2V0cw0KPiB3aXRoICJP
-VVQ9bG8iIChvdXRwdXQgaW50ZXJmYWNlIGxvKSBldmVuIHRob3VnaCB0aGUgcGFja2V0IHNob3Vs
-ZCBiZQ0KPiBnb2luZyBvdXQgdmlhIGEgcmVndWxhciBpbnRlcmZhY2UuIFRoaXMgYmVoYXZpb3Ig
-aXMgcHJlc2VudCBvbiBMaW51eA0KPiA0LjEzLjAgdG8gNC4xNC45LCBhbmQgYSBiaXNlY3Rpb24g
-b2YgdGhlIHByb2JsZW0gcG9pbnRzIHRvDQo+IA0KPiBbOTVjNDdmOWNmNWUwMjhkMWFlNzdkYzZj
-NzY3YzFlZGM4YTE4MDI1Yl0gaXB2NDogY2FsbCBkc3RfZGV2X3B1dCgpIHByb3Blcmx5DQo+IA0K
-PiBhcyB0aGUgZmlyc3QgYmFkIGNvbW1pdC4gVGhpcyBjb21taXQgYWRkcyBkc3RfZGV2X3B1dCgp
-IGNhbGxzIGJlZm9yZQ0KPiBzb21lIGRzdF9yZWxlYXNlKCkgY2FsbHMsIGFuZCBkc3RfZGV2X3B1
-dCgpIGRvZXMNCj4gDQo+ICAgICBkc3QtPmRldiA9IGRldl9uZXQoZHN0LT5kZXYpLT5sb29wYmFj
-a19kZXY7DQo+IA0KPiAoYW1vbmcgb3RoZXIgdGhpbmdzKSwgd2hpY2ggZml0cyB0aGUgcHJvYmxl
-bSB3ZSdyZSBzZWVpbmcuDQo+IA0KPiBUaGUgZXNzZW50aWFsIHBhcnQgb2Ygb3VyIG5mdGFibGVz
-IHJ1bGUgc2V0IHRoYXQgc2hvd3MgdGhpcyBiZWhhdmlvciBpcw0KPiANCj4gY2hhaW4gZm9yd2Fy
-ZCB7DQo+ICAgICAgICAgICAgICAgICB0eXBlIGZpbHRlciBob29rIGZvcndhcmQgcHJpb3JpdHkg
-MDsNCj4gDQo+ICAgICAgICAgICAgICAgICBtZXRhIG9pZiB7ICRpbnRlcm5hbF9pbnRlcmZhY2Vz
-IH0gYWNjZXB0DQo+IA0KPiAgICAgICAgICAgICAgICAgbWV0YSBvaWYgbG8gaXAgZGFkZHIgIT0g
-MTI3LjAuMC4wLzggXA0KPiAgICAgICAgICAgICAgICAgICAgICAgICBsb2cgZ3JvdXAgMCBzbmFw
-bGVuIDgwIHByZWZpeCAib2lmLWxvIiBjb3VudGVyDQo+IA0KPiAgICAgICAgICAgICAgICAgaXAg
-c2FkZHIgeyAkb3VyX2lwX3NlcmllcyB9IFwNCj4gICAgICAgICAgICAgICAgICAgICAgICAgZmxv
-dyB0YWJsZSBhY2N0X291dCBcDQo+ICAgICAgICAgICAgICAgICAgICAgICAgIHsgbWV0YSBvaWYg
-LiBydCBuZXh0aG9wIC4gaXAgc2FkZHIgdGltZW91dCAxMm0gY291bnRlciB9IFwNCj4gICAgICAg
-ICAgICAgICAgICAgICAgICAgYWNjZXB0DQo+IA0KPiAgICAgICAgICAgICAgICAgbG9nIGdyb3Vw
-IDAgc25hcGxlbiA4MCBwcmVmaXggIkRST1AiIGNvdW50ZXIgZHJvcA0KPiB9DQo+IA0KPiBUaGUg
-cm91dGVyIG9ubHkgZG9lcyBzdGF0ZWxlc3MgcGFja2V0IGZpbHRlcmluZyBhbmQgbm8gcmVkaXJl
-Y3Rpb24gb3INCj4gcmV3cml0aW5nIG9mIHRoZSBwYWNrZXRzIChjb25uZWN0aW9uIHRyYWNraW5n
-LCBOQVQsIGlwdnMgZXRjLiBhcmUgbm90DQo+IGV2ZW4gY29tcGlsZWQgZm9yIHRoaXMga2VybmVs
-KS4NCj4gDQo+IEFzIGEgcmVzdWx0IG9mIHRoaXMgcHJvYmxlbSB3ZSBzZWUgcGFja2V0cyB0aGF0
-IHNob3VsZCBiZSBnb2luZyB0byBhbg0KPiBpbnRlcm5hbCBpbnRlcmZhY2UgKGFuZCB0aHVzIGFj
-Y2VwdGVkIGJ5IHRoZSBmaXJzdCBydWxlIGFib3ZlKSBiZWluZw0KPiBsb2dnZWQgYW5kIGRyb3Bw
-ZWQgYnkgdGhlIGxhc3QgcnVsZS4gU29tZSBleGFtcGxlczoNCj4gDQo+IERlYyAyMiAxMTo1Nzow
-MiBjaXg0IG9pZi1sbyBJTj1ldGgxMCBPVVQ9bG8gTUFDPTkwOmUyOmJhOjVjOmI2Ojk1OjEwOmYz
-OjExOjM4OjA2Ojc3OjA4OjAwIFNSQz04MS4xNzAuMTYzLjExOCBEU1Q9MjEyLjk3LjE1OC4zMyBM
-RU49MTUwMCBUT1M9MDAgUFJFQz0weDAwIFRUTD0xMTYgSUQ9MjU5MzIgREYgUFJPVE89VENQIFNQ
-VD0zNTExOCBEUFQ9ODQ0MyBTRVE9NjA0MzU4MzMwIEFDSz0xMTgyMjc4NzA1IFdJTkRPVz0zMjk1
-IEFDSyBVUkdQPTAgTUFSSz0wDQo+IERlYyAyMiAxMTo1NzowMiBjaXg0IERST1AgSU49ZXRoMTAg
-T1VUPWxvIE1BQz05MDplMjpiYTo1YzpiNjo5NToxMDpmMzoxMTozODowNjo3NzowODowMCBTUkM9
-ODEuMTcwLjE2My4xMTggRFNUPTIxMi45Ny4xNTguMzMgTEVOPTE1MDAgVE9TPTAwIFBSRUM9MHgw
-MCBUVEw9MTE2IElEPTI1OTMyIERGIFBST1RPPVRDUCBTUFQ9MzUxMTggRFBUPTg0NDMgU0VRPTYw
-NDM1ODMzMCBBQ0s9MTE4MjI3ODcwNSBXSU5ET1c9MzI5NSBBQ0sgVVJHUD0wIE1BUks9MA0KPiAN
-Cj4gRGVjIDIyIDEyOjQ3OjA3IGNpeDQgb2lmLWxvIElOPWV0aDEwIE9VVD1sbyBNQUM9OTA6ZTI6
-YmE6NWM6YjY6OTU6MGU6ODY6MTA6Mjc6OTk6ZjM6MDg6MDAgU1JDPTQwLjEwMS4zMC4xOCBEU1Q9
-MjEyLjk3LjEzMC4zMiBMRU49MjQ1IFRPUz0wMCBQUkVDPTB4MDAgVFRMPTExOCBJRD0xMDM3MCBE
-RiBQUk9UTz1UQ1AgU1BUPTQ0MyBEUFQ9NDQ5ODggU0VRPTExNDE1NDU5MTMgQUNLPTM4NDQ1NzMx
-MDMgV0lORE9XPTY1NTM1IEFDSyBQU0ggVVJHUD0wIE1BUks9MA0KPiBEZWMgMjIgMTI6NDc6MDcg
-Y2l4NCBEUk9QIElOPWV0aDEwIE9VVD1sbyBNQUM9OTA6ZTI6YmE6NWM6YjY6OTU6MGU6ODY6MTA6
-Mjc6OTk6ZjM6MDg6MDAgU1JDPTQwLjEwMS4zMC4xOCBEU1Q9MjEyLjk3LjEzMC4zMiBMRU49MjQ1
-IFRPUz0wMCBQUkVDPTB4MDAgVFRMPTExOCBJRD0xMDM3MCBERiBQUk9UTz1UQ1AgU1BUPTQ0MyBE
-UFQ9NDQ5ODggU0VRPTExNDE1NDU5MTMgQUNLPTM4NDQ1NzMxMDMgV0lORE9XPTY1NTM1IEFDSyBQ
-U0ggVVJHUD0wIE1BUks9MA0KPiANCj4gRGVjIDIyIDEyOjUzOjU2IGNpeDQgb2lmLWxvIElOPWV0
-aDEwIE9VVD1sbyBNQUM9OTA6ZTI6YmE6NWM6YjY6OTU6MGU6ODY6MTA6Mjc6OTk6ZjM6MDg6MDAg
-U1JDPTQwLjEwMS4xMi4zNCBEU1Q9MjEyLjk3LjEzMC4zMiBMRU49MjQ1IFRPUz0wMCBQUkVDPTB4
-MDAgVFRMPTExNSBJRD0yNzcyOCBERiBQUk9UTz1UQ1AgU1BUPTQ0MyBEUFQ9Mzk3MjQgU0VRPTM3
-OTcxNTY0MDQgQUNLPTM5NDQyMzQ2MTIgV0lORE9XPTY1NTM1IEFDSyBQU0ggVVJHUD0wIE1BUks9
-MA0KPiBEZWMgMjIgMTI6NTM6NTYgY2l4NCBEUk9QIElOPWV0aDEwIE9VVD1sbyBNQUM9OTA6ZTI6
-YmE6NWM6YjY6OTU6MGU6ODY6MTA6Mjc6OTk6ZjM6MDg6MDAgU1JDPTQwLjEwMS4xMi4zNCBEU1Q9
-MjEyLjk3LjEzMC4zMiBMRU49MjQ1IFRPUz0wMCBQUkVDPTB4MDAgVFRMPTExNSBJRD0yNzcyOCBE
-RiBQUk9UTz1UQ1AgU1BUPTQ0MyBEUFQ9Mzk3MjQgU0VRPTM3OTcxNTY0MDQgQUNLPTM5NDQyMzQ2
-MTIgV0lORE9XPTY1NTM1IEFDSyBQU0ggVVJHUD0wIE1BUks9MA0KPiANCj4gSXQgYWxzbyBoYXBw
-ZW5zIGZvciBvdXRib3VuZCB0cmFmZmljLCB3aGVyZSB0aGUgcGFja2V0cyBhcmUgbG9nZ2VkIGFu
-ZA0KPiBjb3VudGVkIGluIHRoZSBhY2N0X291dCBmbG93IHRhYmxlIHdpdGggIm1ldGEgb2lmIiA9
-ICJsbyIsIGJ1dCBhDQo+IGNvcnJlY3QgInJ0IG5leHRob3AiIC0gYW4gZXhhbXBsZToNCj4gDQo+
-IERlYyAyMiAxMjoyOToxMyBjaXg0IG9pZi1sbyBJTj10ZWFtMC4yMCBPVVQ9bG8gTUFDPTNjOmZk
-OmZlOjE1OmRiOmE4OjAwOjI0OmE4OmZmOmYwOjAwOjA4OjAwIFNSQz0yMTIuOTcuMTI5LjI1IERT
-VD05NS4xNjYuMTE5LjEyOSBMRU49NDAgVE9TPTAwIFBSRUM9MHgwMCBUVEw9NjIgSUQ9MTk0ODEg
-REYgUFJPVE89VENQIFNQVD00NDMgRFBUPTUyNTYwIFNFUT0zMDM0ODI3Mzk2IEFDSz0yODYyODE0
-OTAxIFdJTkRPVz0xMjYxOCBBQ0sgVVJHUD0wIE1BUks9MA0KPiANCj4gIyBuZnQgbGlzdCBmbG93
-IHRhYmxlIGZpbHRlciBhY2N0X291dHx0ciAnLCcgJ1xuJ3xncmVwIGxvDQo+ICAgICAgICAgZmxv
-dyB0YWJsZSBhY2N0X291dCB7DQo+ICAibG8iIC4gOTQuMTAxLjIwOC4yMTcgLiAyMTIuOTcuMTI5
-LjI1IGV4cGlyZXMgM20xN3MgOiBjb3VudGVyIHBhY2tldHMgMSBieXRlcyA0MA0KPiANCj4gSSBk
-b24ndCBrbm93IGlmIHRoZXNlIHBhY2tldHMgYXJlIGFjdHVhbGx5IHNlbnQgb3V0IG9uIHRoZSBj
-b3JyZWN0DQo+IG91dGJvdW5kIGludGVyZmFjZSB0aGFua3MgdG8gdGhlIHByb3BlciBuZXh0aG9w
-ICh0aGUgTUFDPSBpbmZvcm1hdGlvbg0KPiBpbiB0aGUgTmV0ZmlsdGVyIGxvZyBpcyBmcm9tIHRo
-ZSByZWNlaXZlZCBwYWNrZXQgYW5kIHRodXMgbm90IHVzZWZ1bA0KPiBoZXJlKS4NCj4gDQo+IEkg
-dHJpZWQgcnVubmluZyBhIHRjcGR1bXAgb24gdGhlIGxvIGludGVyZmFjZSB0byBzZWUgaWYgdGhl
-c2UgcGFja2V0cw0KPiB3b3VsZCBzaG93IHVwIHRoZXJlLCBidXQgZHVyaW5nIHRoZSB0aHJlZSBk
-YXlzIEkgaGFkIGl0IHJ1bm5pbmcsIGl0DQo+IG9ubHkgbG9nZ2VkIG9uZSBzdWNoIHBhY2tldCwg
-d2hpbGUgTmV0ZmlsdGVyIGxvZ3MgMjArIG91dGJvdW5kIHBhY2tldHMNCj4gZXZlcnkgZGF5LCBh
-bmQgdGhlIG9uZSBwYWNrZXQgbG9nZ2VkIGJ5IHRjcGR1bXAgd2FzICpub3QqIGxvZ2dlZCBieQ0K
-PiBOZXRmaWx0ZXIuDQoNCkZ1cnRoZXIgdGVzdGluZyBvZiB0aGUgaW5kaXZpZHVhbCBwYXJ0cyBv
-ZiB0aGUgZmlyc3QgYmFkIGNvbW1pdCBzaG93cw0KdGhhdCB0aGUgZml2ZSBmaXJzdCBhZGRpdGlv
-bnMgb2YgdGhlIGRzdF9kZXZfcHV0KCkgY2FsbCBkb2Vzbid0IHRyaWdnZXINCnRoZSBwcm9ibGVt
-LCB3aGlsZSB0aGUgbGFzdCBvbmUgZG9lcyAoYWxzbyB3aXRob3V0IHRoZSBmaXJzdCBmaXZlKSwg
-c28NCnRoZSBwcm9ibGVtYXRpYyBwYXJ0IGlzOg0KDQpkaWZmIC0tZ2l0IGEvbmV0L2lwdjQvcm91
-dGUuYyBiL25ldC9pcHY0L3JvdXRlLmMNCmluZGV4IDNkZWUwMDQuLmQ5ODZkODAgMTAwNjQ0DQot
-LS0gYS9uZXQvaXB2NC9yb3V0ZS5jDQorKysgYi9uZXQvaXB2NC9yb3V0ZS5jDQpAQCAtMTM2OSw2
-ICsxMzcyLDcgQEAgc3RhdGljIGJvb2wgcnRfY2FjaGVfcm91dGUoc3RydWN0IGZpYl9uaCAqbmgs
-IHN0cnVjdCBydGFibGUgKnJ0KQ0KICAgICAgICBwcmV2ID0gY21weGNoZyhwLCBvcmlnLCBydCk7
-DQogICAgICAgIGlmIChwcmV2ID09IG9yaWcpIHsNCiAgICAgICAgICAgICAgICBpZiAob3JpZykg
-ew0KKyAgICAgICAgICAgICAgICAgICAgICAgZHN0X2Rldl9wdXQoJm9yaWctPmRzdCk7DQogICAg
-ICAgICAgICAgICAgICAgICAgICBkc3RfcmVsZWFzZSgmb3JpZy0+ZHN0KTsNCiAgICAgICAgICAg
-ICAgICAgICAgICAgIHJ0X2ZyZWUob3JpZyk7DQogICAgICAgICAgICAgICAgfQ0KDQpBbnkgaGVs
-cCB3aXRoIGZpeGluZyB0aGlzIHdvdWxkIGJlIG11Y2ggYXBwcmVjaWF0ZWQuIElmIHRoZXJlJ3MN
-CmFueXRoaW5nIEkgc2hvdWxkIHRyeSB0byBkZWJ1ZyB0aGlzIGZ1cnRoZXIsIHBsZWFzZSBsZXQg
-bWUga25vdy4NCg0KUmVnYXJkcywNCkFuZGVycyBLLiBQZWRlcnNlbg==
+On Thu, Jan 11, 2018 at 9:25 AM, Anders K. Pedersen | Cohaesio
+<akp@cohaesio.com> wrote:
+> On tir, 2017-12-26 at 12:05 +0100, Anders K. Pedersen | Cohaesio wrote:
+>> Hello,
+>>
+>> On one of our border routers, Netfilter is occasionally logging packets
+>> with "OUT=3Dlo" (output interface lo) even though the packet should be
+>> going out via a regular interface. This behavior is present on Linux
+>> 4.13.0 to 4.14.9, and a bisection of the problem points to
+>>
+>> [95c47f9cf5e028d1ae77dc6c767c1edc8a18025b] ipv4: call dst_dev_put() prop=
+erly
+>>
+>> as the first bad commit. This commit adds dst_dev_put() calls before
+>> some dst_release() calls, and dst_dev_put() does
+>>
+>>     dst->dev =3D dev_net(dst->dev)->loopback_dev;
+>>
+>> (among other things), which fits the problem we're seeing.
+>>
+>> The essential part of our nftables rule set that shows this behavior is
+>>
+>> chain forward {
+>>                 type filter hook forward priority 0;
+>>
+>>                 meta oif { $internal_interfaces } accept
+>>
+>>                 meta oif lo ip daddr !=3D 127.0.0.0/8 \
+>>                         log group 0 snaplen 80 prefix "oif-lo" counter
+>>
+>>                 ip saddr { $our_ip_series } \
+>>                         flow table acct_out \
+>>                         { meta oif . rt nexthop . ip saddr timeout 12m c=
+ounter } \
+>>                         accept
+>>
+>>                 log group 0 snaplen 80 prefix "DROP" counter drop
+>> }
+>>
+>> The router only does stateless packet filtering and no redirection or
+>> rewriting of the packets (connection tracking, NAT, ipvs etc. are not
+>> even compiled for this kernel).
+>>
+>> As a result of this problem we see packets that should be going to an
+>> internal interface (and thus accepted by the first rule above) being
+>> logged and dropped by the last rule. Some examples:
+>>
+>> Dec 22 11:57:02 cix4 oif-lo IN=3Deth10 OUT=3Dlo MAC=3D90:e2:ba:5c:b6:95:=
+10:f3:11:38:06:77:08:00 SRC=3D81.170.163.118 DST=3D212.97.158.33 LEN=3D1500=
+ TOS=3D00 PREC=3D0x00 TTL=3D116 ID=3D25932 DF PROTO=3DTCP SPT=3D35118 DPT=
+=3D8443 SEQ=3D604358330 ACK=3D1182278705 WINDOW=3D3295 ACK URGP=3D0 MARK=3D=
+0
+>> Dec 22 11:57:02 cix4 DROP IN=3Deth10 OUT=3Dlo MAC=3D90:e2:ba:5c:b6:95:10=
+:f3:11:38:06:77:08:00 SRC=3D81.170.163.118 DST=3D212.97.158.33 LEN=3D1500 T=
+OS=3D00 PREC=3D0x00 TTL=3D116 ID=3D25932 DF PROTO=3DTCP SPT=3D35118 DPT=3D8=
+443 SEQ=3D604358330 ACK=3D1182278705 WINDOW=3D3295 ACK URGP=3D0 MARK=3D0
+>>
+>> Dec 22 12:47:07 cix4 oif-lo IN=3Deth10 OUT=3Dlo MAC=3D90:e2:ba:5c:b6:95:=
+0e:86:10:27:99:f3:08:00 SRC=3D40.101.30.18 DST=3D212.97.130.32 LEN=3D245 TO=
+S=3D00 PREC=3D0x00 TTL=3D118 ID=3D10370 DF PROTO=3DTCP SPT=3D443 DPT=3D4498=
+8 SEQ=3D1141545913 ACK=3D3844573103 WINDOW=3D65535 ACK PSH URGP=3D0 MARK=3D=
+0
+>> Dec 22 12:47:07 cix4 DROP IN=3Deth10 OUT=3Dlo MAC=3D90:e2:ba:5c:b6:95:0e=
+:86:10:27:99:f3:08:00 SRC=3D40.101.30.18 DST=3D212.97.130.32 LEN=3D245 TOS=
+=3D00 PREC=3D0x00 TTL=3D118 ID=3D10370 DF PROTO=3DTCP SPT=3D443 DPT=3D44988=
+ SEQ=3D1141545913 ACK=3D3844573103 WINDOW=3D65535 ACK PSH URGP=3D0 MARK=3D0
+>>
+>> Dec 22 12:53:56 cix4 oif-lo IN=3Deth10 OUT=3Dlo MAC=3D90:e2:ba:5c:b6:95:=
+0e:86:10:27:99:f3:08:00 SRC=3D40.101.12.34 DST=3D212.97.130.32 LEN=3D245 TO=
+S=3D00 PREC=3D0x00 TTL=3D115 ID=3D27728 DF PROTO=3DTCP SPT=3D443 DPT=3D3972=
+4 SEQ=3D3797156404 ACK=3D3944234612 WINDOW=3D65535 ACK PSH URGP=3D0 MARK=3D=
+0
+>> Dec 22 12:53:56 cix4 DROP IN=3Deth10 OUT=3Dlo MAC=3D90:e2:ba:5c:b6:95:0e=
+:86:10:27:99:f3:08:00 SRC=3D40.101.12.34 DST=3D212.97.130.32 LEN=3D245 TOS=
+=3D00 PREC=3D0x00 TTL=3D115 ID=3D27728 DF PROTO=3DTCP SPT=3D443 DPT=3D39724=
+ SEQ=3D3797156404 ACK=3D3944234612 WINDOW=3D65535 ACK PSH URGP=3D0 MARK=3D0
+>>
+>> It also happens for outbound traffic, where the packets are logged and
+>> counted in the acct_out flow table with "meta oif" =3D "lo", but a
+>> correct "rt nexthop" - an example:
+>>
+>> Dec 22 12:29:13 cix4 oif-lo IN=3Dteam0.20 OUT=3Dlo MAC=3D3c:fd:fe:15:db:=
+a8:00:24:a8:ff:f0:00:08:00 SRC=3D212.97.129.25 DST=3D95.166.119.129 LEN=3D4=
+0 TOS=3D00 PREC=3D0x00 TTL=3D62 ID=3D19481 DF PROTO=3DTCP SPT=3D443 DPT=3D5=
+2560 SEQ=3D3034827396 ACK=3D2862814901 WINDOW=3D12618 ACK URGP=3D0 MARK=3D0
+>>
+>> # nft list flow table filter acct_out|tr ',' '\n'|grep lo
+>>         flow table acct_out {
+>>  "lo" . 94.101.208.217 . 212.97.129.25 expires 3m17s : counter packets 1=
+ bytes 40
+>>
+>> I don't know if these packets are actually sent out on the correct
+>> outbound interface thanks to the proper nexthop (the MAC=3D information
+>> in the Netfilter log is from the received packet and thus not useful
+>> here).
+>>
+>> I tried running a tcpdump on the lo interface to see if these packets
+>> would show up there, but during the three days I had it running, it
+>> only logged one such packet, while Netfilter logs 20+ outbound packets
+>> every day, and the one packet logged by tcpdump was *not* logged by
+>> Netfilter.
+>
+> Further testing of the individual parts of the first bad commit shows
+> that the five first additions of the dst_dev_put() call doesn't trigger
+> the problem, while the last one does (also without the first five), so
+> the problematic part is:
+>
+> diff --git a/net/ipv4/route.c b/net/ipv4/route.c
+> index 3dee004..d986d80 100644
+> --- a/net/ipv4/route.c
+> +++ b/net/ipv4/route.c
+> @@ -1369,6 +1372,7 @@ static bool rt_cache_route(struct fib_nh *nh, struc=
+t rtable *rt)
+>         prev =3D cmpxchg(p, orig, rt);
+>         if (prev =3D=3D orig) {
+>                 if (orig) {
+> +                       dst_dev_put(&orig->dst);
+>                         dst_release(&orig->dst);
+>                         rt_free(orig);
+>                 }
+>
+
+Hi Anders,
+
+First of all, the bad commit you pointed to is part of the effort to
+remove dst garbage collector. And it is expected that certain routing
+behavior will change after this whole patch set.
+In your specific case:
+Specifically for the one line change you pointed above,
+rt_cache_route() is called to replace an existing cached route with a
+new one because the existing cached route is already invalid. And the
+criteria to determine if it is valid is in rt_cache_valid(). If a
+route becomes invalid, it means the route is either being deleted, or
+a new route is being inserted to the same table, or there is certain
+netdev event happening that could make this route unusable. In all
+cases, a route re-lookup is required. dst_dev_put() here does cleanup
+work to free up the device refcount and all packets using this route
+will be dropped. And as you said, you don't really see the packets
+going out of lo.
+
+
+> Any help with fixing this would be much appreciated. If there's
+> anything I should try to debug this further, please let me know.
+>
+> Regards,
+> Anders K. Pedersen
