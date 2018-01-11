@@ -1,323 +1,180 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH v2] Don't merge adjacent/overlapping ranges
-Date: Wed, 10 Jan 2018 21:32:04 +0100
-Message-ID: <20180110203204.32312-1-phil@nwl.cc>
-References: <20180110141653.lhszuzvtt2gpbmzn@salvia>
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Subject: [PATCH nf-next v4] netfilter: nf_defrag: Skip defrag if NOTRACK is set
+Date: Wed, 10 Jan 2018 20:51:57 -0700
+Message-ID: <1515642717-5994-1-git-send-email-subashab@codeaurora.org>
+Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+To: netfilter-devel@vger.kernel.org, pablo@netfilter.org, fw@strlen.de,
+        kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:59906 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752136AbeAJUvV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 10 Jan 2018 15:51:21 -0500
-In-Reply-To: <20180110141653.lhszuzvtt2gpbmzn@salvia>
+Received: from smtp.codeaurora.org ([198.145.29.96]:60782 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753377AbeAKDwO (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 10 Jan 2018 22:52:14 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Previously, when adding multiple ranges to a set they were merged if
-overlapping or adjacent. This might cause inconvenience though since it
-is afterwards not easily possible anymore to remove one of the merged
-ranges again while keeping the others in place.
+conntrack defrag is needed only if some module like CONNTRACK or NAT
+explicitly requests it. For plain forwarding scenarios, defrag is
+not needed and can be skipped if NOTRACK is set in a rule.
 
-Since it is not possible to have overlapping ranges, this patch adds a
-check for newly added ranges to make sure they don't overlap if merging
-is turned off.
+Since conntrack defrag is currently higher priority than raw table,
+setting NOTRACK is not sufficient. We need to move raw to a higher
+priority for iptables only.
 
-Note that it is not possible (yet?) to enable range merging using nft
-tool.
+This is achieved by introducing a module parameter "raw_before_defrag"
+which allows to change the priority of raw table to place it before
+defrag. By default, the parameter is disabled and the priority of raw
+table is NF_IP_PRI_RAW to support legacy behavior. If the module
+parameter is enabled, then the priority of the raw table is set to
+NF_IP_PRI_RAW_BEFORE_DEFRAG.
 
-Testsuite had to be adjusted as well: One test in tests/py changed avoid
-adding overlapping ranges and the test in tests/shell which explicitly
-tests for this feature dropped.
+v1->v2: Instead of modifying NF_IP_PRI_RAW itself, use a module
+parameter to pass in the priority during module load as suggested
+by Pablo. Also update commit text.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+v2->v3: Implement similar functionality for IPv6 as well
+
+v3->v4: Add NF_IP_PRI_RAW_BEFORE_DEFRAG in uapi and make the module
+load priority into an on/off knob. Add the module name to the print.
+
+Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
 ---
-Changes since v1:
-- Dropped newly introduced command line option again.
-- 0002named_interval_automerging_0 test dropped since without --merge
-  option, it can't be fixed.
----
- include/expression.h                               |  2 +-
- include/netlink.h                                  |  2 ++
- include/nftables.h                                 |  1 +
- include/nftables/nftables.h                        |  3 ++
- src/libnftables.c                                  | 11 +++++++
- src/main.c                                         |  2 +-
- src/rule.c                                         |  8 +++--
- src/segtree.c                                      | 38 ++++++++++++++++++----
- tests/py/any/meta.t                                |  2 +-
- tests/py/any/meta.t.payload                        |  4 +--
- .../sets/0002named_interval_automerging_0          | 12 -------
- 11 files changed, 59 insertions(+), 26 deletions(-)
- delete mode 100755 tests/shell/testcases/sets/0002named_interval_automerging_0
+ include/uapi/linux/netfilter_ipv4.h       |  1 +
+ include/uapi/linux/netfilter_ipv6.h       |  1 +
+ net/ipv4/netfilter/iptable_raw.c          | 13 ++++++++++++-
+ net/ipv4/netfilter/nf_defrag_ipv4.c       |  2 +-
+ net/ipv6/netfilter/ip6table_raw.c         | 13 ++++++++++++-
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c |  3 +++
+ 6 files changed, 30 insertions(+), 3 deletions(-)
 
-diff --git a/include/expression.h b/include/expression.h
-index 915ce0bad04df..0a0e178fe4680 100644
---- a/include/expression.h
-+++ b/include/expression.h
-@@ -419,7 +419,7 @@ extern struct expr *set_expr_alloc(const struct location *loc,
- 				   const struct set *set);
- extern int set_to_intervals(struct list_head *msgs, struct set *set,
- 			    struct expr *init, bool add,
--			    unsigned int debug_mask);
-+			    unsigned int debug_mask, bool merge);
- extern void interval_map_decompose(struct expr *set);
+diff --git a/include/uapi/linux/netfilter_ipv4.h b/include/uapi/linux/netfilter_ipv4.h
+index e6b1a84..c3b0607 100644
+--- a/include/uapi/linux/netfilter_ipv4.h
++++ b/include/uapi/linux/netfilter_ipv4.h
+@@ -57,6 +57,7 @@
  
- extern struct expr *mapping_expr_alloc(const struct location *loc,
-diff --git a/include/netlink.h b/include/netlink.h
-index 51cd5c9d1b94d..4ec215da1dcde 100644
---- a/include/netlink.h
-+++ b/include/netlink.h
-@@ -42,6 +42,7 @@ extern const struct location netlink_location;
-  * @octx:	output context
-  * @debug_mask:	display debugging information
-  * @cache:	cache context
-+ * @range_merge: merge adjacent/overlapping ranges in new set elements
+ enum nf_ip_hook_priorities {
+ 	NF_IP_PRI_FIRST = INT_MIN,
++	NF_IP_PRI_RAW_BEFORE_DEFRAG = -450,
+ 	NF_IP_PRI_CONNTRACK_DEFRAG = -400,
+ 	NF_IP_PRI_RAW = -300,
+ 	NF_IP_PRI_SELINUX_FIRST = -225,
+diff --git a/include/uapi/linux/netfilter_ipv6.h b/include/uapi/linux/netfilter_ipv6.h
+index 2f97246..dc624fd 100644
+--- a/include/uapi/linux/netfilter_ipv6.h
++++ b/include/uapi/linux/netfilter_ipv6.h
+@@ -62,6 +62,7 @@
+ 
+ enum nf_ip6_hook_priorities {
+ 	NF_IP6_PRI_FIRST = INT_MIN,
++	NF_IP6_PRI_RAW_BEFORE_DEFRAG = -450,
+ 	NF_IP6_PRI_CONNTRACK_DEFRAG = -400,
+ 	NF_IP6_PRI_RAW = -300,
+ 	NF_IP6_PRI_SELINUX_FIRST = -225,
+diff --git a/net/ipv4/netfilter/iptable_raw.c b/net/ipv4/netfilter/iptable_raw.c
+index 2642ecd..d5a1200 100644
+--- a/net/ipv4/netfilter/iptable_raw.c
++++ b/net/ipv4/netfilter/iptable_raw.c
+@@ -3,6 +3,7 @@
+  *
+  * Copyright (C) 2003 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
   */
- struct netlink_ctx {
- 	struct mnl_socket	*nf_sock;
-@@ -55,6 +56,7 @@ struct netlink_ctx {
- 	unsigned int		debug_mask;
- 	struct output_ctx	*octx;
- 	struct nft_cache	*cache;
-+	bool			range_merge;
- };
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ #include <linux/module.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/slab.h>
+@@ -12,7 +13,11 @@
  
- extern struct nftnl_table *alloc_nftnl_table(const struct handle *h);
-diff --git a/include/nftables.h b/include/nftables.h
-index 3bfa33e5cb336..f22df0d1ddc15 100644
---- a/include/nftables.h
-+++ b/include/nftables.h
-@@ -31,6 +31,7 @@ struct nft_ctx {
- 	unsigned int		debug_mask;
- 	struct output_ctx	output;
- 	bool			check;
-+	bool			range_merge;
- 	struct nft_cache	cache;
- 	uint32_t		flags;
- };
-diff --git a/include/nftables/nftables.h b/include/nftables/nftables.h
-index 8e59f2b2a59ab..ae0d25832b70c 100644
---- a/include/nftables/nftables.h
-+++ b/include/nftables/nftables.h
-@@ -43,6 +43,9 @@ void nft_ctx_free(struct nft_ctx *ctx);
+ static int __net_init iptable_raw_table_init(struct net *net);
  
- bool nft_ctx_get_dry_run(struct nft_ctx *ctx);
- void nft_ctx_set_dry_run(struct nft_ctx *ctx, bool dry);
-+bool nft_ctx_get_range_merge(struct nft_ctx *ctx);
-+void nft_ctx_set_range_merge(struct nft_ctx *ctx, bool merge);
+-static const struct xt_table packet_raw = {
++static bool raw_before_defrag __read_mostly;
++MODULE_PARM_DESC(raw_before_defrag, "Enable raw table before defrag");
++module_param(raw_before_defrag, bool, 0000);
 +
- enum nft_numeric_level nft_ctx_output_get_numeric(struct nft_ctx *ctx);
- void nft_ctx_output_set_numeric(struct nft_ctx *ctx, enum nft_numeric_level level);
- bool nft_ctx_output_get_stateless(struct nft_ctx *ctx);
-diff --git a/src/libnftables.c b/src/libnftables.c
-index c86d89477e778..447baa7a7e4f9 100644
---- a/src/libnftables.c
-+++ b/src/libnftables.c
-@@ -43,6 +43,7 @@ static int nft_netlink(struct nft_ctx *nft,
- 		ctx.nf_sock = nf_sock;
- 		ctx.cache = &nft->cache;
- 		ctx.debug_mask = nft->debug_mask;
-+		ctx.range_merge = nft->range_merge;
- 		init_list_head(&ctx.list);
- 		ret = do_command(&ctx, cmd);
- 		if (ret < 0)
-@@ -209,6 +210,16 @@ void nft_ctx_set_dry_run(struct nft_ctx *ctx, bool dry)
- 	ctx->check = dry;
- }
- 
-+bool nft_ctx_get_range_merge(struct nft_ctx *ctx)
-+{
-+	return ctx->range_merge;
-+}
-+
-+void nft_ctx_set_range_merge(struct nft_ctx *ctx, bool merge)
-+{
-+	ctx->range_merge = merge;
-+}
-+
- enum nft_numeric_level nft_ctx_output_get_numeric(struct nft_ctx *ctx)
++static struct xt_table packet_raw = {
+ 	.name = "raw",
+ 	.valid_hooks =  RAW_VALID_HOOKS,
+ 	.me = THIS_MODULE,
+@@ -70,6 +75,12 @@ static int __init iptable_raw_init(void)
  {
- 	return ctx->output.numeric;
-diff --git a/src/main.c b/src/main.c
-index 353b87bc66631..344877c8a7552 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -40,7 +40,7 @@ enum opt_vals {
- 	OPT_INVALID		= '?',
- };
+ 	int ret;
  
--#define OPTSTRING	"hvcf:iI:vnsNae"
-+#define OPTSTRING	"hvcf:iI:vnsNaem"
- 
- static const struct option options[] = {
- 	{
-diff --git a/src/rule.c b/src/rule.c
-index bb9add07efaf5..edd0ff6f322c5 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -997,7 +997,8 @@ static int do_add_setelems(struct netlink_ctx *ctx, const struct handle *h,
- 	set = set_lookup(table, h->set);
- 
- 	if (set->flags & NFT_SET_INTERVAL &&
--	    set_to_intervals(ctx->msgs, set, init, true, ctx->debug_mask) < 0)
-+	    set_to_intervals(ctx->msgs, set, init, true,
-+			     ctx->debug_mask, ctx->range_merge) < 0)
- 		return -1;
- 
- 	return __do_add_setelems(ctx, h, set, init, flags);
-@@ -1009,7 +1010,7 @@ static int do_add_set(struct netlink_ctx *ctx, const struct handle *h,
- 	if (set->init != NULL) {
- 		if (set->flags & NFT_SET_INTERVAL &&
- 		    set_to_intervals(ctx->msgs, set, set->init, true,
--				     ctx->debug_mask) < 0)
-+				     ctx->debug_mask, ctx->range_merge) < 0)
- 			return -1;
- 	}
- 	if (netlink_add_set(ctx, h, set, flags) < 0)
-@@ -1108,7 +1109,8 @@ static int do_delete_setelems(struct netlink_ctx *ctx, const struct handle *h,
- 	set = set_lookup(table, h->set);
- 
- 	if (set->flags & NFT_SET_INTERVAL &&
--	    set_to_intervals(ctx->msgs, set, expr, false, ctx->debug_mask) < 0)
-+	    set_to_intervals(ctx->msgs, set, expr, false,
-+			     ctx->debug_mask, ctx->range_merge) < 0)
- 		return -1;
- 
- 	if (netlink_delete_setelems(ctx, h, expr) < 0)
-diff --git a/src/segtree.c b/src/segtree.c
-index 8d36cc9b0d65e..d2c4efaae2f0a 100644
---- a/src/segtree.c
-+++ b/src/segtree.c
-@@ -375,8 +375,26 @@ static int set_overlap(struct list_head *msgs, const struct set *set,
- 	return 0;
- }
- 
-+static int intervals_overlap(struct list_head *msgs,
-+			     struct elementary_interval **intervals,
-+			     unsigned int keylen)
-+{
-+	unsigned int i, j;
++	if (raw_before_defrag) {
++		packet_raw.priority = NF_IP_PRI_RAW_BEFORE_DEFRAG;
 +
-+	for (i = 0; i < keylen - 1; i++) {
-+		for (j = i + 1; j < keylen; j++) {
-+			if (interval_overlap(intervals[i], intervals[j]))
-+				return expr_error(msgs, intervals[j]->expr,
-+					"interval overlaps with previous one");
-+		}
++		pr_info("Enabling raw table before defrag\n");
 +	}
 +
-+	return 0;
-+}
+ 	rawtable_ops = xt_hook_ops_alloc(&packet_raw, iptable_raw_hook);
+ 	if (IS_ERR(rawtable_ops))
+ 		return PTR_ERR(rawtable_ops);
+diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
+index 37fe1616..cbd987f 100644
+--- a/net/ipv4/netfilter/nf_defrag_ipv4.c
++++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
+@@ -80,7 +80,7 @@ static unsigned int ipv4_conntrack_defrag(void *priv,
+ #endif
+ #endif
+ 	/* Gather fragments. */
+-	if (ip_is_fragment(ip_hdr(skb))) {
++	if (skb->_nfct != IP_CT_UNTRACKED && ip_is_fragment(ip_hdr(skb))) {
+ 		enum ip_defrag_users user =
+ 			nf_ct_defrag_user(state->hook, skb);
+ 
+diff --git a/net/ipv6/netfilter/ip6table_raw.c b/net/ipv6/netfilter/ip6table_raw.c
+index d4bc564..3df7383 100644
+--- a/net/ipv6/netfilter/ip6table_raw.c
++++ b/net/ipv6/netfilter/ip6table_raw.c
+@@ -3,6 +3,7 @@
+  *
+  * Copyright (C) 2003 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+  */
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ #include <linux/module.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+ #include <linux/slab.h>
+@@ -11,7 +12,11 @@
+ 
+ static int __net_init ip6table_raw_table_init(struct net *net);
+ 
+-static const struct xt_table packet_raw = {
++static bool raw_before_defrag __read_mostly;
++MODULE_PARM_DESC(raw_before_defrag, "Enable raw table before defrag");
++module_param(raw_before_defrag, bool, 0000);
 +
- static int set_to_segtree(struct list_head *msgs, struct set *set,
--			  struct expr *init, struct seg_tree *tree, bool add)
-+			  struct expr *init, struct seg_tree *tree,
-+			  bool add, bool merge)
++static struct xt_table packet_raw = {
+ 	.name = "raw",
+ 	.valid_hooks = RAW_VALID_HOOKS,
+ 	.me = THIS_MODULE,
+@@ -63,6 +68,12 @@ static int __init ip6table_raw_init(void)
  {
- 	struct elementary_interval *intervals[init->size];
- 	struct expr *i, *next;
-@@ -394,6 +412,12 @@ static int set_to_segtree(struct list_head *msgs, struct set *set,
+ 	int ret;
  
- 	n = expr_to_intervals(init, tree->keylen, intervals);
- 
-+	if (add && !merge) {
-+		err = intervals_overlap(msgs, intervals, n);
-+		if (err < 0)
-+			return err;
++	if (raw_before_defrag) {
++		packet_raw.priority = NF_IP6_PRI_RAW_BEFORE_DEFRAG;
++
++		pr_info("Enabling raw table before defrag\n");
 +	}
 +
- 	list_for_each_entry_safe(i, next, &init->expressions, list) {
- 		list_del(&i->list);
- 		expr_free(i);
-@@ -450,7 +474,7 @@ static bool segtree_needs_first_segment(const struct set *set,
+ 	/* Register hooks */
+ 	rawtable_ops = xt_hook_ops_alloc(&packet_raw, ip6table_raw_hook);
+ 	if (IS_ERR(rawtable_ops))
+diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+index b326da5..87b503a 100644
+--- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
++++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+@@ -65,6 +65,9 @@ static unsigned int ipv6_defrag(void *priv,
+ 		return NF_ACCEPT;
+ #endif
  
- static void segtree_linearize(struct list_head *list, const struct set *set,
- 			      const struct expr *init, struct seg_tree *tree,
--			      bool add)
-+			      bool add, bool merge)
- {
- 	bool needs_first_segment = segtree_needs_first_segment(set, init, add);
- 	struct elementary_interval *ei, *nei, *prev = NULL;
-@@ -489,7 +513,8 @@ static void segtree_linearize(struct list_head *list, const struct set *set,
- 				mpz_sub_ui(q, ei->left, 1);
- 				nei = ei_alloc(p, q, NULL, EI_F_INTERVAL_END);
- 				list_add_tail(&nei->list, list);
--			} else if (add && ei->expr->ops->type != EXPR_MAPPING) {
-+			} else if (add && merge &&
-+			           ei->expr->ops->type != EXPR_MAPPING) {
- 				/* Merge contiguous segments only in case of
- 				 * new additions.
- 				 */
-@@ -550,16 +575,17 @@ static void set_insert_interval(struct expr *set, struct seg_tree *tree,
- }
- 
- int set_to_intervals(struct list_head *errs, struct set *set,
--		     struct expr *init, bool add, unsigned int debug_mask)
-+		     struct expr *init, bool add, unsigned int debug_mask,
-+		     bool merge)
- {
- 	struct elementary_interval *ei, *next;
- 	struct seg_tree tree;
- 	LIST_HEAD(list);
- 
- 	seg_tree_init(&tree, set, init, debug_mask);
--	if (set_to_segtree(errs, set, init, &tree, add) < 0)
-+	if (set_to_segtree(errs, set, init, &tree, add, merge) < 0)
- 		return -1;
--	segtree_linearize(&list, set, init, &tree, add);
-+	segtree_linearize(&list, set, init, &tree, add, merge);
- 
- 	init->size = 0;
- 	list_for_each_entry_safe(ei, next, &list, list) {
-diff --git a/tests/py/any/meta.t b/tests/py/any/meta.t
-index a38c5011f7082..3158e8877357a 100644
---- a/tests/py/any/meta.t
-+++ b/tests/py/any/meta.t
-@@ -15,7 +15,7 @@ meta length 33-45;ok
- meta length != 33-45;ok
- meta length { 33, 55, 67, 88};ok
- meta length { 33-55, 67-88};ok
--meta length { 33-55, 55-88, 100-120};ok;meta length { 33-88, 100-120}
-+meta length { 33-55, 56-88, 100-120};ok;meta length { 33-55, 56-88, 100-120}
- meta length != { 33, 55, 67, 88};ok
- meta length { 33-55};ok
- meta length != { 33-55};ok
-diff --git a/tests/py/any/meta.t.payload b/tests/py/any/meta.t.payload
-index b2065f3d920b4..d0199b8ae510b 100644
---- a/tests/py/any/meta.t.payload
-+++ b/tests/py/any/meta.t.payload
-@@ -52,10 +52,10 @@ ip test-ip4 input
-   [ byteorder reg 1 = hton(reg 1, 4, 4) ]
-   [ lookup reg 1 set __set%d ]
- 
--# meta length { 33-55, 55-88, 100-120}
-+# meta length { 33-55, 56-88, 100-120}
- __set%d test-ip4 7
- __set%d test-ip4 0
--	element 00000000  : 1 [end]	element 21000000  : 0 [end]	element 59000000  : 1 [end]	element 64000000  : 0 [end]	element 79000000  : 1 [end]
-+	element 00000000  : 1 [end]	element 21000000  : 0 [end]	element 38000000  : 0 [end]	element 59000000  : 1 [end]	element 64000000  : 0 [end]	element 79000000  : 1 [end]
- ip test-ip4 input
-   [ meta load len => reg 1 ]
-   [ byteorder reg 1 = hton(reg 1, 4, 4) ]
-diff --git a/tests/shell/testcases/sets/0002named_interval_automerging_0 b/tests/shell/testcases/sets/0002named_interval_automerging_0
-deleted file mode 100755
-index b07e0b0954bdb..0000000000000
---- a/tests/shell/testcases/sets/0002named_interval_automerging_0
-+++ /dev/null
-@@ -1,12 +0,0 @@
--#!/bin/bash
--
--# This testscase checks the automerging of adjacent intervals
--
--set -e
--
--$NFT add table t
--$NFT add set t s { type ipv4_addr \; flags interval \; }
--$NFT add element t s { 192.168.0.0/24, 192.168.1.0/24 }
--$NFT list ruleset | grep "192.168.0.0/23" >/dev/null && exit 0
--echo "E: automerging of adjavect intervals failed in named set" >&2
--exit 1
++	if (skb->_nfct == IP_CT_UNTRACKED)
++		return NF_ACCEPT;
++
+ 	err = nf_ct_frag6_gather(state->net, skb,
+ 				 nf_ct6_defrag_user(state->hook, skb));
+ 	/* queued */
 -- 
-2.13.1
+1.9.1
 
