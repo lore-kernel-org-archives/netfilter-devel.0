@@ -1,95 +1,117 @@
 From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Subject: [PATCH nf-next] netfilter: nf_defrag: Fix compiler errors
-Date: Thu, 11 Jan 2018 23:04:32 -0700
-Message-ID: <1515737073-32344-1-git-send-email-subashab@codeaurora.org>
+Subject: [PATCH nf-next] netfilter: ipv6: nf_defrag: Always pass on packets to stack
+Date: Thu, 11 Jan 2018 23:04:33 -0700
+Message-ID: <1515737073-32344-2-git-send-email-subashab@codeaurora.org>
+References: <1515737073-32344-1-git-send-email-subashab@codeaurora.org>
 Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
 To: pablo@netfilter.org, netfilter-devel@vger.kernel.org, fw@strlen.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:43420 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:44576 "EHLO
         smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751786AbeALGEu (ORCPT
+        with ESMTP id S1754259AbeALGFF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 12 Jan 2018 01:04:50 -0500
+        Fri, 12 Jan 2018 01:05:05 -0500
+In-Reply-To: <1515737073-32344-1-git-send-email-subashab@codeaurora.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Since packet_raw is now no longer const and referenced in __init,
-make it __refdata. Also, reference conntrack state only if
-conntrack is enabled.
+ipv6_defrag pulls network headers before fragment header. In case of
+an error, the netfilter layer is currently dropping these packets.
+This results in failure of some IPv6 standards tests which passed on
+older kernels due to the netfilter framework using cloning.
 
-These are fixes for errors reported by kbuild test robot.
+The test case run here is a check for ICMPv6 error message replies
+when some invalid IPv6 fragments are sent. This specific test case is
+listed in https://www.ipv6ready.org/docs/Core_Conformance_Latest.pdf
+in the Extension Header Processing Order section.
 
-Fixes: 902d6a4c2a4f411 ("netfilter: nf_defrag: Skip defrag if NOTRACK is set")
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
+A packet with unrecognized option Type 11 is sent and the test expects
+an ICMP error in line with RFC2460 section 4.2 -
+
+11 - discard the packet and, only if the packet's Destination
+     Address was not a multicast address, send an ICMP Parameter
+     Problem, Code 2, message to the packet's Source Address,
+     pointing to the unrecognized Option Type.
+
+Since netfilter layer now drops all invalid IPv6 frag packets, we no
+longer see the ICMP error message and fail the test case.
+
+To fix this, clone the packet and allow it to be processed by the defrag
+queue. In case defrag holds onto the packet, drop the original skb. If
+defrag is unable to process it, free this cloned skb and pass on the
+original skb.
+
 Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
 ---
- net/ipv4/netfilter/iptable_raw.c          | 2 +-
- net/ipv4/netfilter/nf_defrag_ipv4.c       | 6 +++++-
- net/ipv6/netfilter/ip6table_raw.c         | 2 +-
- net/ipv6/netfilter/nf_defrag_ipv6_hooks.c | 2 +-
- 4 files changed, 8 insertions(+), 4 deletions(-)
+ net/ipv6/netfilter/nf_conntrack_reasm.c   | 15 +++++++++++++--
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c |  4 ++--
+ 2 files changed, 15 insertions(+), 4 deletions(-)
 
-diff --git a/net/ipv4/netfilter/iptable_raw.c b/net/ipv4/netfilter/iptable_raw.c
-index d5a1200..3892f20 100644
---- a/net/ipv4/netfilter/iptable_raw.c
-+++ b/net/ipv4/netfilter/iptable_raw.c
-@@ -17,7 +17,7 @@
- MODULE_PARM_DESC(raw_before_defrag, "Enable raw table before defrag");
- module_param(raw_before_defrag, bool, 0000);
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 977d890..a44c8b2 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -574,17 +574,26 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+ 	struct ipv6hdr *hdr;
+ 	u8 prevhdr;
  
--static struct xt_table packet_raw = {
-+static struct xt_table packet_raw __refdata = {
- 	.name = "raw",
- 	.valid_hooks =  RAW_VALID_HOOKS,
- 	.me = THIS_MODULE,
-diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
-index cbd987f..6a9fa7e 100644
---- a/net/ipv4/netfilter/nf_defrag_ipv4.c
-+++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
-@@ -78,9 +78,13 @@ static unsigned int ipv4_conntrack_defrag(void *priv,
- 	if (skb_nfct(skb) && !nf_ct_is_template((struct nf_conn *)skb_nfct(skb)))
- 		return NF_ACCEPT;
- #endif
++	skb = skb_clone(skb, GFP_ATOMIC);
++	if (!skb)
++		return -ENOMEM;
 +
-+	if (skb->_nfct == IP_CT_UNTRACKED)
-+		return NF_ACCEPT;
- #endif
-+
- 	/* Gather fragments. */
--	if (skb->_nfct != IP_CT_UNTRACKED && ip_is_fragment(ip_hdr(skb))) {
-+	if (ip_is_fragment(ip_hdr(skb))) {
- 		enum ip_defrag_users user =
- 			nf_ct_defrag_user(state->hook, skb);
+ 	/* Jumbo payload inhibits frag. header */
+ 	if (ipv6_hdr(skb)->payload_len == 0) {
+ 		pr_debug("payload len = 0\n");
++		kfree(skb);
+ 		return 0;
+ 	}
  
-diff --git a/net/ipv6/netfilter/ip6table_raw.c b/net/ipv6/netfilter/ip6table_raw.c
-index 3df7383..a881a55 100644
---- a/net/ipv6/netfilter/ip6table_raw.c
-+++ b/net/ipv6/netfilter/ip6table_raw.c
-@@ -16,7 +16,7 @@
- MODULE_PARM_DESC(raw_before_defrag, "Enable raw table before defrag");
- module_param(raw_before_defrag, bool, 0000);
+-	if (find_prev_fhdr(skb, &prevhdr, &nhoff, &fhoff) < 0)
++	if (find_prev_fhdr(skb, &prevhdr, &nhoff, &fhoff) < 0) {
++		kfree(skb);
+ 		return 0;
++	}
  
--static struct xt_table packet_raw = {
-+static struct xt_table packet_raw __refdata = {
- 	.name = "raw",
- 	.valid_hooks = RAW_VALID_HOOKS,
- 	.me = THIS_MODULE,
+-	if (!pskb_may_pull(skb, fhoff + sizeof(*fhdr)))
++	if (!pskb_may_pull(skb, fhoff + sizeof(*fhdr))) {
++		kfree(skb);
+ 		return -ENOMEM;
++	}
+ 
+ 	skb_set_transport_header(skb, fhoff);
+ 	hdr = ipv6_hdr(skb);
+@@ -595,6 +604,7 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+ 		     skb->dev ? skb->dev->ifindex : 0, ip6_frag_ecn(hdr));
+ 	if (fq == NULL) {
+ 		pr_debug("Can't find and can't create new queue\n");
++		kfree(skb);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -602,6 +612,7 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+ 
+ 	if (nf_ct_frag6_queue(fq, skb, fhdr, nhoff) < 0) {
+ 		ret = -EINVAL;
++		kfree(skb);
+ 		goto out_unlock;
+ 	}
+ 
 diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-index 87b503a..c87b483 100644
+index c87b483..08717cd 100644
 --- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
 +++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-@@ -63,10 +63,10 @@ static unsigned int ipv6_defrag(void *priv,
- 	/* Previously seen (loopback)?	*/
- 	if (skb_nfct(skb) && !nf_ct_is_template((struct nf_conn *)skb_nfct(skb)))
- 		return NF_ACCEPT;
--#endif
- 
- 	if (skb->_nfct == IP_CT_UNTRACKED)
- 		return NF_ACCEPT;
-+#endif
- 
- 	err = nf_ct_frag6_gather(state->net, skb,
+@@ -72,9 +72,9 @@ static unsigned int ipv6_defrag(void *priv,
  				 nf_ct6_defrag_user(state->hook, skb));
+ 	/* queued */
+ 	if (err == -EINPROGRESS)
+-		return NF_STOLEN;
++		return NF_DROP;
+ 
+-	return err == 0 ? NF_ACCEPT : NF_DROP;
++	return NF_ACCEPT;
+ }
+ 
+ static const struct nf_hook_ops ipv6_defrag_ops[] = {
 -- 
 1.9.1
 
