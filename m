@@ -1,45 +1,28 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 0/1] ipset patch for the nf tree
-Date: Fri, 12 Jan 2018 11:16:49 +0100
-Message-ID: <1515752210-22053-1-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 1/1] Fix wraparound bug introduced in commit 48596a8ddc46
+Date: Fri, 12 Jan 2018 11:16:50 +0100
+Message-ID: <1515752210-22053-2-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1515752210-22053-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:48083 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:55479 "EHLO smtp2.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754576AbeALKQx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        id S1754494AbeALKQx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
         Fri, 12 Jan 2018 05:16:53 -0500
+In-Reply-To: <1515752210-22053-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+The patch "netfilter: ipset: Fix adding an IPv4 range containing
+more than 2^31 addresses" introduced a wraparound bug, which could
+lead to memory exhaustion when adding an x.x.x.x-255.255.255.255
+range to any hash:*net* types.
 
-Here follows a patch for the nf tree, please apply it:
+Fixes Netfilter's bugzilla id #1212, reported by Thomas Schwark.
 
-- The patch "Fix adding an IPv4 range containing more than 2^31
-  addresses" introduced a wraparound bug, which could lead to
-  memory exhaustion, which is fixed here (netfilter bugzilla
-  id #1212, reported by Thomas Schwark)
-
-Best regards,
-Jozsef
-
-The following changes since commit 889c604fd0b5f6d3b8694ade229ee44124de1127:
-
-  netfilter: x_tables: fix int overflow in xt_alloc_table_info() (2018-01-07 00:17:23 +0100)
-
-are available in the git repository at:
-
-  git://blackhole.kfki.hu/nf ba31d2d88b9
-
-for you to fetch changes up to ba31d2d88b95ce1872fc17ffd0da70b68be0a07f:
-
-  Fix wraparound bug introduced in commit 48596a8ddc46 (2018-01-12 11:07:35 +0100)
-
-----------------------------------------------------------------
-Jozsef Kadlecsik (1):
-      Fix wraparound bug introduced in commit 48596a8ddc46
-
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
  net/netfilter/ipset/ip_set_hash_ipportnet.c  | 26 ++++++++++-----------
  net/netfilter/ipset/ip_set_hash_net.c        |  9 ++++---
  net/netfilter/ipset/ip_set_hash_netiface.c   |  9 ++++---
@@ -47,3 +30,300 @@ Jozsef Kadlecsik (1):
  net/netfilter/ipset/ip_set_hash_netport.c    | 19 ++++++++-------
  net/netfilter/ipset/ip_set_hash_netportnet.c | 35 ++++++++++++++--------------
  6 files changed, 63 insertions(+), 63 deletions(-)
+
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+index 0f164e9..88b83d6 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+@@ -168,7 +168,7 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	struct hash_ipportnet4_elem e = { .cidr = HOST_MASK - 1 };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 ip = 0, ip_to = 0, p = 0, port, port_to;
+-	u32 ip2_from = 0, ip2_to = 0, ip2_last, ip2;
++	u32 ip2_from = 0, ip2_to = 0, ip2;
+ 	bool with_ports = false;
+ 	u8 cidr;
+ 	int ret;
+@@ -269,22 +269,21 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		ip_set_mask_from_to(ip2_from, ip2_to, e.cidr + 1);
+ 	}
+ 
+-	if (retried)
++	if (retried) {
+ 		ip = ntohl(h->next.ip);
++		p = ntohs(h->next.port);
++		ip2 = ntohl(h->next.ip2);
++	} else {
++		p = port;
++		ip2 = ip2_from;
++	}
+ 	for (; ip <= ip_to; ip++) {
+ 		e.ip = htonl(ip);
+-		p = retried && ip == ntohl(h->next.ip) ? ntohs(h->next.port)
+-						       : port;
+ 		for (; p <= port_to; p++) {
+ 			e.port = htons(p);
+-			ip2 = retried &&
+-			      ip == ntohl(h->next.ip) &&
+-			      p == ntohs(h->next.port)
+-				? ntohl(h->next.ip2) : ip2_from;
+-			while (ip2 <= ip2_to) {
++			do {
+ 				e.ip2 = htonl(ip2);
+-				ip2_last = ip_set_range_to_cidr(ip2, ip2_to,
+-								&cidr);
++				ip2 = ip_set_range_to_cidr(ip2, ip2_to, &cidr);
+ 				e.cidr = cidr - 1;
+ 				ret = adtfn(set, &e, &ext, &ext, flags);
+ 
+@@ -292,9 +291,10 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 					return ret;
+ 
+ 				ret = 0;
+-				ip2 = ip2_last + 1;
+-			}
++			} while (ip2++ < ip2_to);
++			ip2 = ip2_from;
+ 		}
++		p = port;
+ 	}
+ 	return ret;
+ }
+diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
+index 1c67a17..5449e23 100644
+--- a/net/netfilter/ipset/ip_set_hash_net.c
++++ b/net/netfilter/ipset/ip_set_hash_net.c
+@@ -143,7 +143,7 @@ hash_net4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_net4_elem e = { .cidr = HOST_MASK };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+-	u32 ip = 0, ip_to = 0, last;
++	u32 ip = 0, ip_to = 0;
+ 	int ret;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+@@ -193,16 +193,15 @@ hash_net4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	}
+ 	if (retried)
+ 		ip = ntohl(h->next.ip);
+-	while (ip <= ip_to) {
++	do {
+ 		e.ip = htonl(ip);
+-		last = ip_set_range_to_cidr(ip, ip_to, &e.cidr);
++		ip = ip_set_range_to_cidr(ip, ip_to, &e.cidr);
+ 		ret = adtfn(set, &e, &ext, &ext, flags);
+ 		if (ret && !ip_set_eexist(ret, flags))
+ 			return ret;
+ 
+ 		ret = 0;
+-		ip = last + 1;
+-	}
++	} while (ip++ < ip_to);
+ 	return ret;
+ }
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index d417074..f5164c1 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -200,7 +200,7 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_netiface4_elem e = { .cidr = HOST_MASK, .elem = 1 };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+-	u32 ip = 0, ip_to = 0, last;
++	u32 ip = 0, ip_to = 0;
+ 	int ret;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+@@ -255,17 +255,16 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	if (retried)
+ 		ip = ntohl(h->next.ip);
+-	while (ip <= ip_to) {
++	do {
+ 		e.ip = htonl(ip);
+-		last = ip_set_range_to_cidr(ip, ip_to, &e.cidr);
++		ip = ip_set_range_to_cidr(ip, ip_to, &e.cidr);
+ 		ret = adtfn(set, &e, &ext, &ext, flags);
+ 
+ 		if (ret && !ip_set_eexist(ret, flags))
+ 			return ret;
+ 
+ 		ret = 0;
+-		ip = last + 1;
+-	}
++	} while (ip++ < ip_to);
+ 	return ret;
+ }
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_netnet.c b/net/netfilter/ipset/ip_set_hash_netnet.c
+index 7f9ae2e..5a2b923 100644
+--- a/net/netfilter/ipset/ip_set_hash_netnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netnet.c
+@@ -169,8 +169,8 @@ hash_netnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_netnet4_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+-	u32 ip = 0, ip_to = 0, last;
+-	u32 ip2 = 0, ip2_from = 0, ip2_to = 0, last2;
++	u32 ip = 0, ip_to = 0;
++	u32 ip2 = 0, ip2_from = 0, ip2_to = 0;
+ 	int ret;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+@@ -247,27 +247,27 @@ hash_netnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		ip_set_mask_from_to(ip2_from, ip2_to, e.cidr[1]);
+ 	}
+ 
+-	if (retried)
++	if (retried) {
+ 		ip = ntohl(h->next.ip[0]);
++		ip2 = ntohl(h->next.ip[1]);
++	} else {
++		ip2 = ip2_from;
++	}
+ 
+-	while (ip <= ip_to) {
++	do {
+ 		e.ip[0] = htonl(ip);
+-		last = ip_set_range_to_cidr(ip, ip_to, &e.cidr[0]);
+-		ip2 = (retried &&
+-		       ip == ntohl(h->next.ip[0])) ? ntohl(h->next.ip[1])
+-						   : ip2_from;
+-		while (ip2 <= ip2_to) {
++		ip = ip_set_range_to_cidr(ip, ip_to, &e.cidr[0]);
++		do {
+ 			e.ip[1] = htonl(ip2);
+-			last2 = ip_set_range_to_cidr(ip2, ip2_to, &e.cidr[1]);
++			ip2 = ip_set_range_to_cidr(ip2, ip2_to, &e.cidr[1]);
+ 			ret = adtfn(set, &e, &ext, &ext, flags);
+ 			if (ret && !ip_set_eexist(ret, flags))
+ 				return ret;
+ 
+ 			ret = 0;
+-			ip2 = last2 + 1;
+-		}
+-		ip = last + 1;
+-	}
++		} while (ip2++ < ip2_to);
++		ip2 = ip2_from;
++	} while (ip++ < ip_to);
+ 	return ret;
+ }
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
+index e6ef382..1a187be 100644
+--- a/net/netfilter/ipset/ip_set_hash_netport.c
++++ b/net/netfilter/ipset/ip_set_hash_netport.c
+@@ -161,7 +161,7 @@ hash_netport4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_netport4_elem e = { .cidr = HOST_MASK - 1 };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+-	u32 port, port_to, p = 0, ip = 0, ip_to = 0, last;
++	u32 port, port_to, p = 0, ip = 0, ip_to = 0;
+ 	bool with_ports = false;
+ 	u8 cidr;
+ 	int ret;
+@@ -239,25 +239,26 @@ hash_netport4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		ip_set_mask_from_to(ip, ip_to, e.cidr + 1);
+ 	}
+ 
+-	if (retried)
++	if (retried) {
+ 		ip = ntohl(h->next.ip);
+-	while (ip <= ip_to) {
++		p = ntohs(h->next.port);
++	} else {
++		p = port;
++	}
++	do {
+ 		e.ip = htonl(ip);
+-		last = ip_set_range_to_cidr(ip, ip_to, &cidr);
++		ip = ip_set_range_to_cidr(ip, ip_to, &cidr);
+ 		e.cidr = cidr - 1;
+-		p = retried && ip == ntohl(h->next.ip) ? ntohs(h->next.port)
+-						       : port;
+ 		for (; p <= port_to; p++) {
+ 			e.port = htons(p);
+ 			ret = adtfn(set, &e, &ext, &ext, flags);
+-
+ 			if (ret && !ip_set_eexist(ret, flags))
+ 				return ret;
+ 
+ 			ret = 0;
+ 		}
+-		ip = last + 1;
+-	}
++		p = port;
++	} while (ip++ < ip_to);
+ 	return ret;
+ }
+ 
+diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
+index 8602f25..d391485 100644
+--- a/net/netfilter/ipset/ip_set_hash_netportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
+@@ -184,8 +184,8 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+ 	struct hash_netportnet4_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+-	u32 ip = 0, ip_to = 0, ip_last, p = 0, port, port_to;
+-	u32 ip2_from = 0, ip2_to = 0, ip2_last, ip2;
++	u32 ip = 0, ip_to = 0, p = 0, port, port_to;
++	u32 ip2_from = 0, ip2_to = 0, ip2;
+ 	bool with_ports = false;
+ 	int ret;
+ 
+@@ -288,33 +288,34 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		ip_set_mask_from_to(ip2_from, ip2_to, e.cidr[1]);
+ 	}
+ 
+-	if (retried)
++	if (retried) {
+ 		ip = ntohl(h->next.ip[0]);
++		p = ntohs(h->next.port);
++		ip2 = ntohl(h->next.ip[1]);
++	} else {
++		p = port;
++		ip2 = ip2_from;
++	}
+ 
+-	while (ip <= ip_to) {
++	do {
+ 		e.ip[0] = htonl(ip);
+-		ip_last = ip_set_range_to_cidr(ip, ip_to, &e.cidr[0]);
+-		p = retried && ip == ntohl(h->next.ip[0]) ? ntohs(h->next.port)
+-							  : port;
++		ip = ip_set_range_to_cidr(ip, ip_to, &e.cidr[0]);
+ 		for (; p <= port_to; p++) {
+ 			e.port = htons(p);
+-			ip2 = (retried && ip == ntohl(h->next.ip[0]) &&
+-			       p == ntohs(h->next.port)) ? ntohl(h->next.ip[1])
+-							 : ip2_from;
+-			while (ip2 <= ip2_to) {
++			do {
+ 				e.ip[1] = htonl(ip2);
+-				ip2_last = ip_set_range_to_cidr(ip2, ip2_to,
+-								&e.cidr[1]);
++				ip2 = ip_set_range_to_cidr(ip2, ip2_to,
++							   &e.cidr[1]);
+ 				ret = adtfn(set, &e, &ext, &ext, flags);
+ 				if (ret && !ip_set_eexist(ret, flags))
+ 					return ret;
+ 
+ 				ret = 0;
+-				ip2 = ip2_last + 1;
+-			}
++			} while (ip2++ < ip2_to);
++			ip2 = ip2_from;
+ 		}
+-		ip = ip_last + 1;
+-	}
++		p = port;
++	} while (ip++ < ip_to);
+ 	return ret;
+ }
+ 
+-- 
+2.1.4
+
