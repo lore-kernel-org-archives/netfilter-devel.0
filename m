@@ -1,60 +1,161 @@
 From: Ahmed Abdelsalam <amsalam20@gmail.com>
-Subject: [nf-next 3/3] netfilter: Add support for IPv6 segment routing 'SEG6' target
-Date: Fri, 12 Jan 2018 05:39:36 +0100
-Message-ID: <1515731976-6338-3-git-send-email-amsalam20@gmail.com>
-References: <1515731976-6338-1-git-send-email-amsalam20@gmail.com>
+Subject: [iptables 1/2] extensions: add support for 'SEG6' target
+Date: Fri, 12 Jan 2018 05:39:58 +0100
+Message-ID: <1515731999-6381-1-git-send-email-amsalam20@gmail.com>
 Cc: fw@strlen.de, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org,
         Ahmed Abdelsalam <amsalam20@gmail.com>
 To: pablo@netfilter.org, davem@davemloft.net
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1515731976-6338-1-git-send-email-amsalam20@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Service Function Chaining (SFC) is one of the main use-cases of
-IPv6 Segment Routing (SRv6)[1].
-
-The Segment Routing Header (SRH) allows including a list of segments
-in the IPv6 packet. This segment list can be used to steer the packet
-though a set of Virtual Network Functions (VNFS) e.g., Firewall, DPI, IDS.
-
-The edge node (SR ingress node) classifies the traffic and consequently
-includes the segment lists in the IPv6 packet.
-
-The IPv6 segment routing 'SEG6' target supports a set of SR-specific
-actions. This set of actions allows branching within a pre-defined
-SRv6 SFC policy instead of the usual linear exploration of the VNF chain.
-
-As an example, consider a service chain which includes a firewall
-followed by an Intrusion Detection System. The firewall may decide
-to skip the IDS for a subset of traffic that matches some conditions.
-
-This patch implements the following SR-specific actions:
-(1) go-next: is the default action of the SEG6 target. It sends packets
-towards the next SID from SRH.
-(2) skip-next: skips the next SID in the SRH.
-(3) go-last: skips the remaining part of the segment list and send the
-packet towards the last segment.
-
-[1] https://tools.ietf.org/html/draft-clad-spring-segment-routing-service-chaining-00
+This patch adds a new exetension to iptables to supprt IPv6
+segment routing 'SEG6' target.
 
 Signed-off-by: Ahmed Abdelsalam <amsalam20@gmail.com>
 ---
- include/uapi/linux/netfilter_ipv6/ip6t_SEG6.h |  18 ++++
- net/ipv6/netfilter/ip6t_SEG6.c                | 113 ++++++++++++++++++++++++++
- 2 files changed, 131 insertions(+)
- create mode 100644 include/uapi/linux/netfilter_ipv6/ip6t_SEG6.h
- create mode 100644 net/ipv6/netfilter/ip6t_SEG6.c
+ extensions/libip6t_SEG6.c                | 122 +++++++++++++++++++++++++++++++
+ include/linux/netfilter_ipv6/ip6t_SEG6.h |  17 +++++
+ 2 files changed, 139 insertions(+)
+ create mode 100644 extensions/libip6t_SEG6.c
+ create mode 100644 include/linux/netfilter_ipv6/ip6t_SEG6.h
 
-diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_SEG6.h b/include/uapi/linux/netfilter_ipv6/ip6t_SEG6.h
+diff --git a/extensions/libip6t_SEG6.c b/extensions/libip6t_SEG6.c
 new file mode 100644
-index 0000000..38b380a
+index 0000000..1a47160
 --- /dev/null
-+++ b/include/uapi/linux/netfilter_ipv6/ip6t_SEG6.h
-@@ -0,0 +1,18 @@
-+/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++++ b/extensions/libip6t_SEG6.c
+@@ -0,0 +1,122 @@
++/*
++ * Shared library add-on to iptables to add SEG6 target support
++ *
++ * Author:
++ *       Ahmed Abdelsalam <amsalam20@gmail.com>
++ */
++
++#include <stdio.h>
++#include <string.h>
++#include <xtables.h>
++#include <linux/netfilter_ipv6/ip6t_SEG6.h>
++
++struct seg6_names {
++	const char *name;
++	enum ip6t_seg6_action action;
++	const char *desc;
++};
++
++enum {
++	O_SEG6_ACTION = 0,
++};
++
++static const struct seg6_names seg6_table[] = {
++	{"go-next", IP6T_SEG6_GO_NEXT, "SEG6 go next"},
++	{"skip-next", IP6T_SEG6_SKIP_NEXT, "SEG6 skip next"},
++	{"go-last",   IP6T_SEG6_GO_LAST, "SEG6 go last"}
++};
++
++static void
++print_seg6_action(void)
++{
++	unsigned int i;
++
++	printf("Valid SEG6 action:\n");
++	for (i = 0; i < ARRAY_SIZE(seg6_table); ++i) {
++		printf("    %-25s\t%s\n", seg6_table[i].name,
++			seg6_table[i].desc);
++	}
++	printf("\n");
++}
++
++static void SEG6_help(void)
++{
++	printf(
++"SEG6 target options:\n"
++"--seg6-action action	perform statless action on SRv6 packets\n");
++
++	print_seg6_action();
++}
++
++static const struct xt_option_entry SEG6_opts[] = {
++	{.name = "seg6-action", .id = O_SEG6_ACTION, .type = XTTYPE_STRING},
++	XTOPT_TABLEEND,
++};
++
++static void SEG6_init(struct xt_entry_target *t)
++{
++	struct ip6t_seg6_info *seg6 = (struct ip6t_seg6_info *)t->data;
++
++	/* default */
++	seg6->action = IP6T_SEG6_GO_NEXT;
++}
++
++static void SEG6_parse(struct xt_option_call *cb)
++{
++	struct ip6t_seg6_info *seg6 = cb->data;
++	unsigned int i;
++
++	xtables_option_parse(cb);
++	for (i = 0; i < ARRAY_SIZE(seg6_table); ++i)
++		if (strncasecmp(seg6_table[i].name, cb->arg,
++		strlen(cb->arg)) == 0) {
++			seg6->action = seg6_table[i].action;
++			return;
++		}
++	xtables_error(PARAMETER_PROBLEM, "unknown seg6 action \"%s\"", cb->arg);
++}
++
++static void SEG6_print(const void *ip, const struct xt_entry_target *target,
++			int numeric)
++{
++	const struct ip6t_seg6_info *seg6
++		= (const struct ip6t_seg6_info *)target->data;
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(seg6_table); ++i)
++		if (seg6_table[i].action == seg6->action)
++			break;
++	printf(" seg6-action %s", seg6_table[i].name);
++}
++
++static void SEG6_save(const void *ip, const struct xt_entry_target *target)
++{
++	const struct ip6t_seg6_info *seg6
++		= (const struct ip6t_seg6_info *)target->data;
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(seg6_table); ++i)
++		if (seg6_table[i].action == seg6->action)
++			break;
++
++	printf(" --seg6-action %s", seg6_table[i].name);
++}
++
++static struct xtables_target seg6_tg6_reg = {
++	.name		= "SEG6",
++	.version        = XTABLES_VERSION,
++	.family         = NFPROTO_IPV6,
++	.size           = XT_ALIGN(sizeof(struct ip6t_seg6_info)),
++	.userspacesize  = XT_ALIGN(sizeof(struct ip6t_seg6_info)),
++	.help           = SEG6_help,
++	.init           = SEG6_init,
++	.print          = SEG6_print,
++	.save           = SEG6_save,
++	.x6_parse       = SEG6_parse,
++	.x6_options     = SEG6_opts,
++};
++
++void _init(void)
++{
++	xtables_register_target(&seg6_tg6_reg);
++}
+diff --git a/include/linux/netfilter_ipv6/ip6t_SEG6.h b/include/linux/netfilter_ipv6/ip6t_SEG6.h
+new file mode 100644
+index 0000000..cdfdf4e
+--- /dev/null
++++ b/include/linux/netfilter_ipv6/ip6t_SEG6.h
+@@ -0,0 +1,17 @@
 +#ifndef _IP6T_SEG6_H
 +#define _IP6T_SEG6_H
 +
@@ -72,124 +173,5 @@ index 0000000..38b380a
 +};
 +
 +#endif /*_IP6T_SEG6_H*/
-diff --git a/net/ipv6/netfilter/ip6t_SEG6.c b/net/ipv6/netfilter/ip6t_SEG6.c
-new file mode 100644
-index 0000000..3d326e2
---- /dev/null
-+++ b/net/ipv6/netfilter/ip6t_SEG6.c
-@@ -0,0 +1,113 @@
-+/* IPv6 Segment Routing target module (SEG6).
-+ *
-+ * Author:
-+ * Ahmed Abdelsalam <amsalam20@gmail.com>
-+ *
-+ *  This program is free software; you can redistribute it and/or
-+ *	modify it under the terms of the GNU General Public License
-+ *	as published by the Free Software Foundation; either version 2
-+ *	of the License, or (at your option) any later version.
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/gfp.h>
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/icmpv6.h>
-+#include <linux/netdevice.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter_ipv6/ip6_tables.h>
-+#include <linux/netfilter_ipv6/ip6t_SEG6.h>
-+
-+#include <net/flow.h>
-+#include <net/seg6.h>
-+#include <net/ip6_route.h>
-+
-+static int seg6_go_next(struct sk_buff *skb, struct ipv6_sr_hdr *srh)
-+{
-+	if (srh->segments_left == 0)
-+		return NF_DROP;
-+	seg6_advance_nextseg(srh, &ipv6_hdr(skb)->daddr);
-+	seg6_lookup_nexthop(skb, NULL, 0);
-+	dst_input(skb);
-+	return NF_STOLEN;
-+}
-+
-+static int seg6_skip_next(struct sk_buff *skb, struct ipv6_sr_hdr *srh)
-+{
-+	if (srh->segments_left < 2)
-+		return NF_DROP;
-+	seg6_advance_nextseg(srh, &ipv6_hdr(skb)->daddr);
-+	seg6_advance_nextseg(srh, &ipv6_hdr(skb)->daddr);
-+	seg6_lookup_nexthop(skb, NULL, 0);
-+	dst_input(skb);
-+	return NF_STOLEN;
-+}
-+
-+static int seg6_go_last(struct sk_buff *skb, struct ipv6_sr_hdr *srh)
-+{
-+	if (srh->segments_left == 0)
-+		return NF_DROP;
-+	srh->segments_left = 1;
-+	seg6_advance_nextseg(srh, &ipv6_hdr(skb)->daddr);
-+	seg6_lookup_nexthop(skb, NULL, 0);
-+	dst_input(skb);
-+	return NF_STOLEN;
-+}
-+
-+static unsigned int
-+seg6_tg6(struct sk_buff *skb, const struct xt_action_param *par)
-+{
-+	struct ipv6_sr_hdr *srh;
-+	const struct ip6t_seg6_info *seg6 = par->targinfo;
-+
-+	srh = seg6_get_srh(skb);
-+	if (!srh)
-+		return NF_DROP;
-+
-+	switch (seg6->action) {
-+	case IP6T_SEG6_GO_NEXT:
-+		return seg6_go_next(skb, srh);
-+	case IP6T_SEG6_SKIP_NEXT:
-+		return seg6_skip_next(skb, srh);
-+	case IP6T_SEG6_GO_LAST:
-+		return seg6_go_last(skb, srh);
-+	}
-+	pr_err("Unknown SEG6 action\n");
-+	return NF_DROP;
-+}
-+
-+static int seg6_check(const struct xt_tgchk_param *par)
-+{
-+	/**
-+	 * In the future, some new action may require using this function
-+	 */
-+	return 0;
-+}
-+
-+static struct xt_target seg6_tg6_reg __read_mostly = {
-+	.name		= "SEG6",
-+	.family		= NFPROTO_IPV6,
-+	.target		= seg6_tg6,
-+	.targetsize	= sizeof(struct ip6t_seg6_info),
-+	.checkentry	= seg6_check,
-+	.me		= THIS_MODULE
-+};
-+
-+static int __init seg6_tg6_init(void)
-+{
-+	return xt_register_target(&seg6_tg6_reg);
-+}
-+
-+static void __exit seg6_tg6_exit(void)
-+{
-+	xt_unregister_target(&seg6_tg6_reg);
-+}
-+
-+module_init(seg6_tg6_init);
-+module_exit(seg6_tg6_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Xtables: IPv6 Segment Routing Target (SEG6)");
-+MODULE_AUTHOR("Ahmed Abdelsalam <amsalam20@gmail.com>");
 -- 
 2.1.4
