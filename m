@@ -1,110 +1,48 @@
-From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Subject: [PATCH net-next v2] netfilter: ipv6: nf_defrag: Pass on packets to stack per RFC2460
-Date: Fri, 12 Jan 2018 17:36:27 -0700
-Message-ID: <1515803787-23838-1-git-send-email-subashab@codeaurora.org>
-Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org, fw@strlen.de
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: don't return garbage pointer on modprobe failure
+Date: Sat, 13 Jan 2018 14:06:08 +0100
+Message-ID: <20180113130608.13079-1-fw@strlen.de>
+References: <94eb2c05629e4a8b0505629c32f0@google.com>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:39488 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965265AbeAMAgg (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:36498 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755104AbeAMNTu (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 12 Jan 2018 19:36:36 -0500
+        Sat, 13 Jan 2018 08:19:50 -0500
+In-Reply-To: <94eb2c05629e4a8b0505629c32f0@google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-ipv6_defrag pulls network headers before fragment header. In case of
-an error, the netfilter layer is currently dropping these packets.
-This results in failure of some IPv6 standards tests which passed on
-older kernels due to the netfilter framework using cloning.
+request_module may return a positive error result from modprobe,
+if we cast this to ERR_PTR this returns a garbage result (it passes
+IS_ERR checks).
 
-The test case run here is a check for ICMPv6 error message replies
-when some invalid IPv6 fragments are sent. This specific test case is
-listed in https://www.ipv6ready.org/docs/Core_Conformance_Latest.pdf
-in the Extension Header Processing Order section.
+Fix it by ignoring modprobe return values entirely, just retry the
+table lookup instead.
 
-A packet with unrecognized option Type 11 is sent and the test expects
-an ICMP error in line with RFC2460 section 4.2 -
-
-11 - discard the packet and, only if the packet's Destination
-     Address was not a multicast address, send an ICMP Parameter
-     Problem, Code 2, message to the packet's Source Address,
-     pointing to the unrecognized Option Type.
-
-Since netfilter layer now drops all invalid IPv6 frag packets, we no
-longer see the ICMP error message and fail the test case.
-
-To fix this, save the transport header . If defrag is unable to process
-the packet due to RFC2460, restore the transport header and allow packet
-to be processed by stack. There is no change for other packet
-processing paths.
-
-Tested by confirming that stack sends an ICMP error when it receives
-these packets. Also tested that fragmented ICMP pings succeed.
-
-v1->v2: Instead of cloning always, save the transport_header and
-restore it in case of this specific error. Update the title and
-commit message accordingly.
-
-Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Reported-by: syzbot+980925dbfbc7f93bc2ef@syzkaller.appspotmail.com
+Fixes: 03d13b6868a2 ("netfilter: xtables: add and use xt_request_find_table_lock")
+Fixes: 20651cefd25f ("netfilter: x_tables: unbreak module auto loading")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/ipv6/netfilter/nf_conntrack_reasm.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ net/netfilter/x_tables.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 977d890..ce53dcf 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -231,7 +231,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
- 
- 	if ((unsigned int)end > IPV6_MAXPLEN) {
- 		pr_debug("offset is too large.\n");
--		return -1;
-+		return -EINVAL;
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 5b8f3b7358e6..3c2548787d78 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1085,7 +1085,7 @@ struct xt_table *xt_request_find_table_lock(struct net *net, u_int8_t af,
+ #ifdef CONFIG_MODULES
+ 	if (IS_ERR(t)) {
+ 		int err = request_module("%stable_%s", xt_prefix[af], name);
+-		if (err)
++		if (err < 0)
+ 			return ERR_PTR(err);
+ 		t = xt_find_table_lock(net, af, name);
  	}
- 
- 	ecn = ip6_frag_ecn(ipv6_hdr(skb));
-@@ -264,7 +264,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
- 			 * this case. -DaveM
- 			 */
- 			pr_debug("end of fragment not rounded to 8 bytes.\n");
--			return -1;
-+			return -EPROTO;
- 		}
- 		if (end > fq->q.len) {
- 			/* Some bits beyond end -> corruption. */
-@@ -358,7 +358,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
- discard_fq:
- 	inet_frag_kill(&fq->q, &nf_frags);
- err:
--	return -1;
-+	return -EINVAL;
- }
- 
- /*
-@@ -567,6 +567,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
- 
- int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
- {
-+	u16 savethdr = skb->transport_header;
- 	struct net_device *dev = skb->dev;
- 	int fhoff, nhoff, ret;
- 	struct frag_hdr *fhdr;
-@@ -600,8 +601,12 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
- 
- 	spin_lock_bh(&fq->q.lock);
- 
--	if (nf_ct_frag6_queue(fq, skb, fhdr, nhoff) < 0) {
--		ret = -EINVAL;
-+	ret = nf_ct_frag6_queue(fq, skb, fhdr, nhoff);
-+	if (ret < 0) {
-+		if (ret == -EPROTO) {
-+			skb->transport_header = savethdr;
-+			ret = 0;
-+		}
- 		goto out_unlock;
- 	}
- 
 -- 
-1.9.1
+2.13.6
 
