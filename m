@@ -1,48 +1,212 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: don't return garbage pointer on modprobe failure
-Date: Sat, 13 Jan 2018 14:06:08 +0100
-Message-ID: <20180113130608.13079-1-fw@strlen.de>
-References: <94eb2c05629e4a8b0505629c32f0@google.com>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: [PATCH] netfilter: delete /proc THIS_MODULE references
+Date: Sat, 13 Jan 2018 20:08:31 +0300
+Message-ID: <20180113170831.GA1016@avx2>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:36498 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755104AbeAMNTu (ORCPT
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:42992 "EHLO
+        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751715AbeAMRIf (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 13 Jan 2018 08:19:50 -0500
-In-Reply-To: <94eb2c05629e4a8b0505629c32f0@google.com>
+        Sat, 13 Jan 2018 12:08:35 -0500
+Received: by mail-wm0-f41.google.com with SMTP id b141so17773547wme.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 13 Jan 2018 09:08:34 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-request_module may return a positive error result from modprobe,
-if we cast this to ERR_PTR this returns a garbage result (it passes
-IS_ERR checks).
+/proc has been ignoring struct file_operations::owner field for ages.
 
-Fix it by ignoring modprobe return values entirely, just retry the
-table lookup instead.
-
-Reported-by: syzbot+980925dbfbc7f93bc2ef@syzkaller.appspotmail.com
-Fixes: 03d13b6868a2 ("netfilter: xtables: add and use xt_request_find_table_lock")
-Fixes: 20651cefd25f ("netfilter: x_tables: unbreak module auto loading")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 ---
- net/netfilter/x_tables.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 5b8f3b7358e6..3c2548787d78 100644
+ net/netfilter/ipvs/ip_vs_app.c          |    1 -
+ net/netfilter/ipvs/ip_vs_conn.c         |    2 --
+ net/netfilter/ipvs/ip_vs_ctl.c          |    3 ---
+ net/netfilter/nf_conntrack_expect.c     |    1 -
+ net/netfilter/nf_conntrack_standalone.c |    2 --
+ net/netfilter/nf_log.c                  |    1 -
+ net/netfilter/nf_synproxy_core.c        |    1 -
+ net/netfilter/nfnetlink_log.c           |    1 -
+ net/netfilter/nfnetlink_queue.c         |    1 -
+ net/netfilter/x_tables.c                |    3 ---
+ net/netfilter/xt_hashlimit.c            |    3 ---
+ 11 files changed, 19 deletions(-)
+
+--- a/net/netfilter/ipvs/ip_vs_app.c
++++ b/net/netfilter/ipvs/ip_vs_app.c
+@@ -595,7 +595,6 @@ static int ip_vs_app_open(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations ip_vs_app_fops = {
+-	.owner	 = THIS_MODULE,
+ 	.open	 = ip_vs_app_open,
+ 	.read	 = seq_read,
+ 	.llseek  = seq_lseek,
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1143,7 +1143,6 @@ static int ip_vs_conn_open(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations ip_vs_conn_fops = {
+-	.owner	 = THIS_MODULE,
+ 	.open    = ip_vs_conn_open,
+ 	.read    = seq_read,
+ 	.llseek  = seq_lseek,
+@@ -1221,7 +1220,6 @@ static int ip_vs_conn_sync_open(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations ip_vs_conn_sync_fops = {
+-	.owner	 = THIS_MODULE,
+ 	.open    = ip_vs_conn_sync_open,
+ 	.read    = seq_read,
+ 	.llseek  = seq_lseek,
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -2116,7 +2116,6 @@ static int ip_vs_info_open(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations ip_vs_info_fops = {
+-	.owner	 = THIS_MODULE,
+ 	.open    = ip_vs_info_open,
+ 	.read    = seq_read,
+ 	.llseek  = seq_lseek,
+@@ -2161,7 +2160,6 @@ static int ip_vs_stats_seq_open(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations ip_vs_stats_fops = {
+-	.owner = THIS_MODULE,
+ 	.open = ip_vs_stats_seq_open,
+ 	.read = seq_read,
+ 	.llseek = seq_lseek,
+@@ -2230,7 +2228,6 @@ static int ip_vs_stats_percpu_seq_open(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations ip_vs_stats_percpu_fops = {
+-	.owner = THIS_MODULE,
+ 	.open = ip_vs_stats_percpu_seq_open,
+ 	.read = seq_read,
+ 	.llseek = seq_lseek,
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -649,7 +649,6 @@ static int exp_open(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations exp_file_ops = {
+-	.owner   = THIS_MODULE,
+ 	.open    = exp_open,
+ 	.read    = seq_read,
+ 	.llseek  = seq_lseek,
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -382,7 +382,6 @@ static int ct_open(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations ct_file_ops = {
+-	.owner   = THIS_MODULE,
+ 	.open    = ct_open,
+ 	.read    = seq_read,
+ 	.llseek  = seq_lseek,
+@@ -475,7 +474,6 @@ static int ct_cpu_seq_open(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations ct_cpu_seq_fops = {
+-	.owner	 = THIS_MODULE,
+ 	.open	 = ct_cpu_seq_open,
+ 	.read	 = seq_read,
+ 	.llseek	 = seq_lseek,
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -402,7 +402,6 @@ static int nflog_open(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations nflog_file_ops = {
+-	.owner	 = THIS_MODULE,
+ 	.open	 = nflog_open,
+ 	.read	 = seq_read,
+ 	.llseek	 = seq_lseek,
+--- a/net/netfilter/nf_synproxy_core.c
++++ b/net/netfilter/nf_synproxy_core.c
+@@ -317,7 +317,6 @@ static int synproxy_cpu_seq_open(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations synproxy_cpu_seq_fops = {
+-	.owner		= THIS_MODULE,
+ 	.open		= synproxy_cpu_seq_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -1054,7 +1054,6 @@ static int nful_open(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations nful_file_ops = {
+-	.owner	 = THIS_MODULE,
+ 	.open	 = nful_open,
+ 	.read	 = seq_read,
+ 	.llseek	 = seq_lseek,
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1477,7 +1477,6 @@ static int nfqnl_open(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations nfqnl_file_ops = {
+-	.owner	 = THIS_MODULE,
+ 	.open	 = nfqnl_open,
+ 	.read	 = seq_read,
+ 	.llseek	 = seq_lseek,
 --- a/net/netfilter/x_tables.c
 +++ b/net/netfilter/x_tables.c
-@@ -1085,7 +1085,7 @@ struct xt_table *xt_request_find_table_lock(struct net *net, u_int8_t af,
- #ifdef CONFIG_MODULES
- 	if (IS_ERR(t)) {
- 		int err = request_module("%stable_%s", xt_prefix[af], name);
--		if (err)
-+		if (err < 0)
- 			return ERR_PTR(err);
- 		t = xt_find_table_lock(net, af, name);
- 	}
--- 
-2.13.6
-
+@@ -1362,7 +1362,6 @@ static int xt_table_open(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations xt_table_ops = {
+-	.owner	 = THIS_MODULE,
+ 	.open	 = xt_table_open,
+ 	.read	 = seq_read,
+ 	.llseek	 = seq_lseek,
+@@ -1498,7 +1497,6 @@ static int xt_match_open(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations xt_match_ops = {
+-	.owner	 = THIS_MODULE,
+ 	.open	 = xt_match_open,
+ 	.read	 = seq_read,
+ 	.llseek	 = seq_lseek,
+@@ -1551,7 +1549,6 @@ static int xt_target_open(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations xt_target_ops = {
+-	.owner	 = THIS_MODULE,
+ 	.open	 = xt_target_open,
+ 	.read	 = seq_read,
+ 	.llseek	 = seq_lseek,
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -1266,7 +1266,6 @@ static int dl_proc_open(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations dl_file_ops_v2 = {
+-	.owner   = THIS_MODULE,
+ 	.open    = dl_proc_open_v2,
+ 	.read    = seq_read,
+ 	.llseek  = seq_lseek,
+@@ -1274,7 +1273,6 @@ static const struct file_operations dl_file_ops_v2 = {
+ };
+ 
+ static const struct file_operations dl_file_ops_v1 = {
+-	.owner   = THIS_MODULE,
+ 	.open    = dl_proc_open_v1,
+ 	.read    = seq_read,
+ 	.llseek  = seq_lseek,
+@@ -1282,7 +1280,6 @@ static const struct file_operations dl_file_ops_v1 = {
+ };
+ 
+ static const struct file_operations dl_file_ops = {
+-	.owner   = THIS_MODULE,
+ 	.open    = dl_proc_open,
+ 	.read    = seq_read,
+ 	.llseek  = seq_lseek,
