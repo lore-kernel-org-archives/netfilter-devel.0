@@ -1,43 +1,52 @@
 From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH] src: extend nft to list set handle and delete set via set handle
-Date: Sun, 14 Jan 2018 21:48:46 +0530
-Message-ID: <20180114161846.20760-1-harshasharmaiitr@gmail.com>
+Subject: [PATCH] src: parse new handle attribute for sets
+Date: Sun, 14 Jan 2018 22:13:52 +0530
+Message-ID: <20180114164352.21777-1-harshasharmaiitr@gmail.com>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org, harshasharmaiitr@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:40782 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751239AbeANQTI (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:38763 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751239AbeANQoV (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 14 Jan 2018 11:19:08 -0500
-Received: by mail-pf0-f196.google.com with SMTP id i66so6987594pfd.7
-        for <netfilter-devel@vger.kernel.org>; Sun, 14 Jan 2018 08:19:07 -0800 (PST)
+        Sun, 14 Jan 2018 11:44:21 -0500
+Received: by mail-pg0-f67.google.com with SMTP id y27so958386pgc.5
+        for <netfilter-devel@vger.kernel.org>; Sun, 14 Jan 2018 08:44:21 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Print 'handle' attribute in sets when listing via '-a' option and
-delete sets via their unique set handles listed with '-a' option.
-For e.g.
-
-nft delete set [<family>] <table-name> [handle <handle>]
+This patch adds code to allocate set handles and delete sets via set
+handle.
 
 Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
 ---
+ include/libnftnl/set.h              |  1 +
  include/linux/netfilter/nf_tables.h |  2 ++
- src/netlink.c                       |  4 ++++
- src/parser_bison.y                  | 16 ++++++++++++++--
- src/rule.c                          |  6 +++++-
- 4 files changed, 25 insertions(+), 3 deletions(-)
+ include/set.h                       |  1 +
+ src/set.c                           | 18 ++++++++++++++++++
+ 4 files changed, 22 insertions(+)
 
+diff --git a/include/libnftnl/set.h b/include/libnftnl/set.h
+index e760d31..ecb4b5a 100644
+--- a/include/libnftnl/set.h
++++ b/include/libnftnl/set.h
+@@ -11,6 +11,7 @@
+ enum nftnl_set_attr {
+ 	NFTNL_SET_TABLE,
+ 	NFTNL_SET_NAME,
++	NFTNL_SET_HANDLE,
+ 	NFTNL_SET_FLAGS,
+ 	NFTNL_SET_KEY_TYPE,
+ 	NFTNL_SET_KEY_LEN,
 diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 6db9130..a4c88ff 100644
+index dbc4e38..120fa23 100644
 --- a/include/linux/netfilter/nf_tables.h
 +++ b/include/linux/netfilter/nf_tables.h
 @@ -299,6 +299,7 @@ enum nft_set_desc_attributes {
   *
   * @NFTA_SET_TABLE: table name (NLA_STRING)
   * @NFTA_SET_NAME: set name (NLA_STRING)
-+ * @NFTA_SET_HANDLE: numeric handle of the set (NLA_U64)
++ * @NFTA_SET_HANDLE: numerical table handle (NLA_U64)
   * @NFTA_SET_FLAGS: bitmask of enum nft_set_flags (NLA_U32)
   * @NFTA_SET_KEY_TYPE: key data type, informational purpose only (NLA_U32)
   * @NFTA_SET_KEY_LEN: key data length (NLA_U32)
@@ -49,93 +58,89 @@ index 6db9130..a4c88ff 100644
  	NFTA_SET_FLAGS,
  	NFTA_SET_KEY_TYPE,
  	NFTA_SET_KEY_LEN,
-diff --git a/src/netlink.c b/src/netlink.c
-index 59d7096..ef18a9c 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -192,6 +192,8 @@ struct nftnl_set *alloc_nftnl_set(const struct handle *h)
- 		nftnl_set_set_str(nls, NFTNL_SET_NAME, h->set);
- 	if (h->set_id)
- 		nftnl_set_set_u32(nls, NFTNL_SET_ID, h->set_id);
-+	if (h->handle.id)
-+		nftnl_set_set_u64(nls, NFTNL_SET_HANDLE, h->handle.id);
+diff --git a/include/set.h b/include/set.h
+index c6deb73..3bcec7c 100644
+--- a/include/set.h
++++ b/include/set.h
+@@ -10,6 +10,7 @@ struct nftnl_set {
+ 	uint32_t		set_flags;
+ 	const char		*table;
+ 	const char		*name;
++	uint64_t		handle;
+ 	uint32_t		key_type;
+ 	uint32_t		key_len;
+ 	uint32_t		data_type;
+diff --git a/src/set.c b/src/set.c
+index 592ea24..e27eed9 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -77,6 +77,7 @@ void nftnl_set_unset(struct nftnl_set *s, uint16_t attr)
+ 	case NFTNL_SET_NAME:
+ 		xfree(s->name);
+ 		break;
++	case NFTNL_SET_HANDLE:
+ 	case NFTNL_SET_FLAGS:
+ 	case NFTNL_SET_KEY_TYPE:
+ 	case NFTNL_SET_KEY_LEN:
+@@ -102,6 +103,7 @@ void nftnl_set_unset(struct nftnl_set *s, uint16_t attr)
+ EXPORT_SYMBOL(nftnl_set_unset);
  
- 	return nls;
- }
-@@ -1129,6 +1131,7 @@ static struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
- 					   nftnl_set_get_u32(nls, NFTNL_SET_KEY_LEN) * BITS_PER_BYTE,
- 					   NULL);
- 	set->flags   = nftnl_set_get_u32(nls, NFTNL_SET_FLAGS);
-+	set->handle.handle.id = nftnl_set_get_u64(nls, NFTNL_SET_HANDLE);
- 
- 	set->objtype = objtype;
- 
-@@ -1334,6 +1337,7 @@ int netlink_list_sets(struct netlink_ctx *ctx, const struct handle *h,
- 		return 0;
+ static uint32_t nftnl_set_validate[NFTNL_SET_MAX + 1] = {
++	[NFTNL_SET_HANDLE]		= sizeof(uint64_t),
+ 	[NFTNL_SET_FLAGS]		= sizeof(uint32_t),
+ 	[NFTNL_SET_KEY_TYPE]		= sizeof(uint32_t),
+ 	[NFTNL_SET_KEY_LEN]		= sizeof(uint32_t),
+@@ -138,6 +140,9 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
+ 		if (!s->name)
+ 			return -1;
+ 		break;
++	case NFTNL_SET_HANDLE:
++		s->handle = *((uint64_t *)data);
++		break;
+ 	case NFTNL_SET_FLAGS:
+ 		s->set_flags = *((uint32_t *)data);
+ 		break;
+@@ -227,6 +232,9 @@ const void *nftnl_set_get_data(const struct nftnl_set *s, uint16_t attr,
+ 	case NFTNL_SET_NAME:
+ 		*data_len = strlen(s->name) + 1;
+ 		return s->name;
++	case NFTNL_SET_HANDLE:
++		*data_len = sizeof(uint64_t);
++		return &s->handle;
+ 	case NFTNL_SET_FLAGS:
+ 		*data_len = sizeof(uint32_t);
+ 		return &s->set_flags;
+@@ -359,6 +367,8 @@ void nftnl_set_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_set *s)
+ 		mnl_attr_put_strz(nlh, NFTA_SET_TABLE, s->table);
+ 	if (s->flags & (1 << NFTNL_SET_NAME))
+ 		mnl_attr_put_strz(nlh, NFTA_SET_NAME, s->name);
++	if (s->handle & (1 << NFTNL_SET_HANDLE))
++		mnl_attr_put_u64(nlh, NFTA_SET_HANDLE, htobe64(s->handle));
+ 	if (s->flags & (1 << NFTNL_SET_FLAGS))
+ 		mnl_attr_put_u32(nlh, NFTA_SET_FLAGS, htonl(s->set_flags));
+ 	if (s->flags & (1 << NFTNL_SET_KEY_TYPE))
+@@ -401,6 +411,10 @@ static int nftnl_set_parse_attr_cb(const struct nlattr *attr, void *data)
+ 		if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0)
+ 			abi_breakage();
+ 		break;
++	case NFTA_SET_HANDLE:
++		if (mnl_attr_validate(attr, MNL_TYPE_U64) < 0)
++			abi_breakage();
++		break;
+ 	case NFTA_SET_FLAGS:
+ 	case NFTA_SET_KEY_TYPE:
+ 	case NFTA_SET_KEY_LEN:
+@@ -490,6 +504,10 @@ int nftnl_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_set *s)
+ 			return -1;
+ 		s->flags |= (1 << NFTNL_SET_NAME);
  	}
- 
-+	ctx->data = h;
- 	err = nftnl_set_list_foreach(set_cache, list_set_cb, ctx);
- 	nftnl_set_list_free(set_cache);
- 	return err;
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index dbe80a5..5290207 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -497,8 +497,8 @@ int nft_lex(void *, void *, void *);
- 
- %type <handle>			table_spec tableid_spec chain_spec chainid_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
- %destructor { handle_free(&$$); } table_spec tableid_spec chain_spec chainid_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
--%type <handle>			set_spec set_identifier obj_spec obj_identifier
--%destructor { handle_free(&$$); } set_spec set_identifier obj_spec obj_identifier
-+%type <handle>			set_spec setid_spec set_identifier obj_spec obj_identifier
-+%destructor { handle_free(&$$); } set_spec setid_spec set_identifier obj_spec obj_identifier
- %type <val>			family_spec family_spec_explicit chain_policy prio_spec
- 
- %type <string>			dev_spec quota_unit
-@@ -998,6 +998,10 @@ delete_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_SET, &$2, &@$, NULL);
- 			}
-+			| 	SET 		setid_spec
-+			{
-+				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_SET, &$2, &@$, NULL);
-+			}
- 			|	MAP		set_spec
- 			{
- 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_SET, &$2, &@$, NULL);
-@@ -1706,6 +1710,14 @@ set_spec		:	table_spec	identifier
- 			}
- 			;
- 
-+setid_spec 		: 	table_spec 	HANDLE NUM
-+			{
-+				$$ 			= $1;
-+				$$.handle.location 	= @$;
-+				$$.handle.id 		= $3;
-+			}
-+			;
-+
- set_identifier		:	identifier
- 			{
- 				memset(&$$, 0, sizeof($$));
-diff --git a/src/rule.c b/src/rule.c
-index 7d66c22..35f67b7 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -367,7 +367,11 @@ static void do_set_print(const struct set *set, struct print_fmt_options *opts,
- 		expr_print(set->init, octx);
- 		nft_print(octx, "%s", opts->nl);
- 	}
--	nft_print(octx, "%s}%s", opts->tab, opts->nl);
-+	nft_print(octx, "%s}", opts->tab);
-+	if (octx->handle > 0)
-+		nft_print(octx, " # handle %" PRIu64, set->handle.handle.id);
-+	nft_print(octx, "%s", opts->nl);
-+
- }
- 
- void set_print(const struct set *s, struct output_ctx *octx)
++	if (tb[NFTA_SET_HANDLE]) {
++		s->handle = be64toh(mnl_attr_get_u64(tb[NFTA_SET_HANDLE]));
++		s->flags |= (1 << NFTNL_SET_HANDLE);
++	}
+ 	if (tb[NFTA_SET_FLAGS]) {
+ 		s->set_flags = ntohl(mnl_attr_get_u32(tb[NFTA_SET_FLAGS]));
+ 		s->flags |= (1 << NFTNL_SET_FLAGS);
 -- 
 2.11.0
 
