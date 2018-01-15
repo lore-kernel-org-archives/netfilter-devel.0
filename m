@@ -1,70 +1,46 @@
-From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH] tests/shell: add tests for deletion of chains via chain handle
-Date: Mon, 15 Jan 2018 01:03:07 +0530
-Message-ID: <20180114193307.7374-1-harshasharmaiitr@gmail.com>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org, harshasharmaiitr@gmail.com
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+Subject: Re: [PATCH v2] extensions: libxt_hashlimit: Do not print default
+ timeout and burst
+Date: Mon, 15 Jan 2018 12:45:32 +1100
+Message-ID: <20180115014532.GA13839@dimstar.local.net>
+References: <20171228072833.9980-1-harshasharmaiitr@gmail.com>
+ <20171228105236.hmii7xbk5jtctmpr@salvia>
+ <20171230225110.GA10178@dimstar.local.net>
+ <20171230231630.qvfkstglqwhrpsff@salvia>
+ <20180102224746.GB3309@dimstar.local.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Harsha Sharma <harshasharmaiitr@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:41366 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751759AbeANTda (ORCPT
+Received: from mail110.syd.optusnet.com.au ([211.29.132.97]:58990 "EHLO
+        mail110.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752259AbeAOBpr (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 14 Jan 2018 14:33:30 -0500
-Received: by mail-pg0-f65.google.com with SMTP id 136so6497423pgd.8
-        for <netfilter-devel@vger.kernel.org>; Sun, 14 Jan 2018 11:33:30 -0800 (PST)
+        Sun, 14 Jan 2018 20:45:47 -0500
+Received: from dimstar.local.net (c220-239-53-24.eburwd6.vic.optusnet.com.au [220.239.53.24])
+        by mail110.syd.optusnet.com.au (Postfix) with SMTP id 53C90109FFC
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jan 2018 12:45:33 +1100 (AEDT)
+Content-Disposition: inline
+In-Reply-To: <20180102224746.GB3309@dimstar.local.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Delete chain with given unique handle for a table.
+On Wed, Jan 03, 2018 at 09:47:46AM +1100, Duncan Roe wrote:
+> On Sun, Dec 31, 2017 at 12:16:30AM +0100, Pablo Neira Ayuso wrote:
+...
+> > > > @Duncan: I think you can update the wiki again after this, given that
+> > > > now those values should not be printed.
+> > >
+The examples now work as intended, so I updated the wiki. (INPUT is now being
+translated to input btw).
 
-Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
----
- tests/shell/testcases/chains/0016delete_handle_0 | 36 ++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
- create mode 100755 tests/shell/testcases/chains/0016delete_handle_0
+It is still the case that if the iptables command specifies default burst or
+timeout then nothing is output for these, including the yetch case of specifying
+a limit (with or w/out a burst) and getting no timeout.
 
-diff --git a/tests/shell/testcases/chains/0016delete_handle_0 b/tests/shell/testcases/chains/0016delete_handle_0
-new file mode 100755
-index 0000000..cf11da8
---- /dev/null
-+++ b/tests/shell/testcases/chains/0016delete_handle_0
-@@ -0,0 +1,36 @@
-+#!/bin/bash
-+
-+set -e
-+$NFT add table test-ip
-+$NFT add chain test-ip x	# should have handle 1
-+$NFT add chain test-ip y	# should have handle 2
-+$NFT add chain test-ip z	# should have handle 3
-+$NFT add table ip6 test-ip6
-+$NFT add chain ip6 test-ip6 x	# should have handle 1
-+$NFT add chain ip6 test-ip6 y	# should have handle 2
-+$NFT add chain ip6 test-ip6 z	# should have handle 3
-+$NFT delete chain test-ip handle 2
-+$NFT delete chain ip6 test-ip6 handle 3
-+
-+EXPECTED="table ip test-ip {
-+	chain x {
-+	}
-+
-+	chain z {
-+	}
-+}
-+table ip6 test-ip6 {
-+	chain x {
-+	}
-+
-+	chain y {
-+	}
-+}"
-+
-+GET="$($NFT list ruleset)"
-+
-+if [ "$EXPECTED" != "$GET" ] ; then
-+	DIFF="$(which diff)"
-+	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
-+	exit 1
-+fi
--- 
-2.11.0
+I plan to look into that in February but have been rather busy getting ready for
+LCA2018 where I'm giving a talk (on nftables).
 
+Cheers ... Duncan.
