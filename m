@@ -1,68 +1,67 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH RFC nft] src: ct: add connection counting support
-Date: Mon, 15 Jan 2018 12:08:33 +0100
-Message-ID: <20180115110833.upp7legzjiirc5ww@salvia>
-References: <20180112134111.19132-1-fw@strlen.de>
- <20180115104639.6x55lm4tjrnz5nk6@salvia>
- <20180115105947.GC27085@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Harsha Sharma <harshasharmaiitr@gmail.com>
+Subject: [PATCH] tests/shell: add tests for deletion of sets via set handle
+Date: Mon, 15 Jan 2018 17:21:33 +0530
+Message-ID: <20180115115133.15480-1-harshasharmaiitr@gmail.com>
 Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+To: pablo@netfilter.org, harshasharmaiitr@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41540 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750852AbeAOLRA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jan 2018 06:17:00 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6A8313EBAB3
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jan 2018 12:16:58 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 897FCA8240
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jan 2018 12:16:58 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20180115105947.GC27085@breakpoint.cc>
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:39237 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932077AbeAOLwW (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Jan 2018 06:52:22 -0500
+Received: by mail-pl0-f66.google.com with SMTP id bi12so3565979plb.6
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jan 2018 03:52:22 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 15, 2018 at 11:59:47AM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > NB: This uses {} to separate ct count statement from grouping to
-> > > avoid shift/reduce conflicts in the parser, unlike fib we do not
-> > > have distinct 'end marker' available.
-> > 
-> > If your concern is this {} curly braces, I think that should be fine
-> > from a semantic point of view.
-> 
-> Ok, good to know.
-> 
-> > From the kernel perspective, I wonder if it would be good to place
-> > this rbtree that allows us to count in a nftables set, so we can
-> > create maps that people can flush and that can also populate from
-> > userspace via API (me thinking of this usecase: userspace software,
-> > updating reputation ranks for IP addresses based on more heuristics,
-> > using this new set type, if that makes sense to you, of course).
-> 
-> I will need to think about this.
+Delete set with given unique set handle.
 
-This is more than what iptables is doing, of course. But now that
-we're on this, we have a chance to re-think if it makes sense to
-leverage this infrastructure in nftables.
+Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
+---
+ tests/shell/testcases/sets/0028delete_handle_0 | 33 ++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+ create mode 100755 tests/shell/testcases/sets/0028delete_handle_0
 
-> Basically the rbtree is a kludge because we can't store it in the
-> conntrack table and on-demand counting of the conntrack table would
-> be way too expensive.
+diff --git a/tests/shell/testcases/sets/0028delete_handle_0 b/tests/shell/testcases/sets/0028delete_handle_0
+new file mode 100755
+index 0000000..215323c
+--- /dev/null
++++ b/tests/shell/testcases/sets/0028delete_handle_0
+@@ -0,0 +1,33 @@
++#!/bin/bash
++
++set -e
++$NFT add table test-ip
++$NFT add set test-ip x { type ipv4_addr\; }	# should have handle 1
++$NFT add set test-ip y { type inet_service \; timeout 3h45s \;} 	# should have handle 2
++$NFT add set test-ip z { type ipv4_addr\; flags constant , interval\;} # should have handle 3
++$NFT add set test-ip c {type ipv4_addr \; flags timeout \; elements={192.168.1.1 timeout 10s, 192.168.1.2 timeout 30s} \;} #should have handle 4
++$NFT delete set test-ip handle 4
++
++EXPECTED="table ip test-ip {
++	set x {
++		type ipv4_addr
++	}
++
++	set y {
++		type inet_service
++		timeout 3h45s
++	}
++
++	set z {
++		type ipv4_addr
++		flags constant,interval
++	}
++}"
++
++GET="$($NFT list ruleset)"
++
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
+-- 
+2.11.0
 
-I see, actually we could even place this in a hashtable instead,
-right? Not asking you to do this, just thinking aloud here.
-
-> > I understand this might be more work - I haven't seen your patch to
-> > add nf_conncount to nftables, but I suspect you already made a bit of
-> > progress - so this turn may trigger some rework.
-> 
-> The current patch is here:
-> 
-> https://git.breakpoint.cc/cgit/fw/nf-next.git/commit/?id=82c931a0f896abf654c961859b9dc5c485f0a033
-
-That's very much done work already, sorry I didn't rise this any
-sooner.
