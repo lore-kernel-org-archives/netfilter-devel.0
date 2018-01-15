@@ -1,58 +1,59 @@
-From: Ahmed Abdelsalam <amsalam20@gmail.com>
-Subject: [nf-next 2/3] netfilter: add an option to control iptables SEG6 target support
-Date: Fri, 12 Jan 2018 05:39:35 +0100
-Message-ID: <1515731976-6338-2-git-send-email-amsalam20@gmail.com>
-References: <1515731976-6338-1-git-send-email-amsalam20@gmail.com>
-Cc: fw@strlen.de, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Ahmed Abdelsalam <amsalam20@gmail.com>
-To: pablo@netfilter.org, davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1515731976-6338-1-git-send-email-amsalam20@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH RFC nft] src: ct: add connection counting support
+Date: Mon, 15 Jan 2018 11:46:39 +0100
+Message-ID: <20180115104639.6x55lm4tjrnz5nk6@salvia>
+References: <20180112134111.19132-1-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:55000 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751990AbeAOKqo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Jan 2018 05:46:44 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id E35F3303D04
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jan 2018 11:46:42 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CF1B9DA847
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jan 2018 11:46:42 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20180112134111.19132-1-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds a new option CONFIG_IP6_NF_TARGET_SEG6 to
-enable/disable support of iptables SEG6 target.
+Hi Florian,
 
-Signed-off-by: Ahmed Abdelsalam <amsalam20@gmail.com>
----
- net/ipv6/netfilter/Kconfig  | 12 ++++++++++++
- net/ipv6/netfilter/Makefile |  1 +
- 2 files changed, 13 insertions(+)
+On Fri, Jan 12, 2018 at 02:41:11PM +0100, Florian Westphal wrote:
+> This adds support for a native connlimit replacement.
+> 
+> It re-uses nftables concatenation support and thus allows
+> using any key combinations supported by nftables.
+> 
+> Because counting is expensive, it is useful to limit this
+> to new connections only.  Example:
+> 
+>   ct state new ct count { ip saddr . tcp dport } gt 10 drop
+> 
+> TODO: man page entry.
+> 
+> NB: This uses {} to separate ct count statement from grouping to
+> avoid shift/reduce conflicts in the parser, unlike fib we do not
+> have distinct 'end marker' available.
 
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index 4a634b7..8e98afc 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -364,6 +364,18 @@ config IP6_NF_TARGET_NPT
- 
- endif # IP6_NF_NAT
- 
-+if IPV6_SEG6_LWTUNNEL
-+config IP6_NF_TARGET_SEG6
-+        tristate 'IPv6 Segment Routing "SEG6" target support'
-+        depends on NETFILTER_ADVANCED
-+        help
-+          SEG6 is an special target for IPv6 Segment Routing encapsualted
-+          packets. It supports a set of Segment Routing specific actions
-+          that are based on SRH information. It is useful for SRv6 Service
-+          Function chaining use-cases.
-+
-+          To compile it as a module, choose M here.  If unsure, say N.
-+endif # IPV6_SEG6_LWTUNNEL
- endif # IP6_NF_IPTABLES
- 
- endmenu
-diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index d984057..67eff84 100644
---- a/net/ipv6/netfilter/Makefile
-+++ b/net/ipv6/netfilter/Makefile
-@@ -64,3 +64,4 @@ obj-$(CONFIG_IP6_NF_TARGET_MASQUERADE) += ip6t_MASQUERADE.o
- obj-$(CONFIG_IP6_NF_TARGET_NPT) += ip6t_NPT.o
- obj-$(CONFIG_IP6_NF_TARGET_REJECT) += ip6t_REJECT.o
- obj-$(CONFIG_IP6_NF_TARGET_SYNPROXY) += ip6t_SYNPROXY.o
-+obj-$(CONFIG_IP6_NF_TARGET_SEG6) += ip6t_SEG6.o
--- 
-2.1.4
+If your concern is this {} curly braces, I think that should be fine
+from a semantic point of view.
+
+>From the kernel perspective, I wonder if it would be good to place
+this rbtree that allows us to count in a nftables set, so we can
+create maps that people can flush and that can also populate from
+userspace via API (me thinking of this usecase: userspace software,
+updating reputation ranks for IP addresses based on more heuristics,
+using this new set type, if that makes sense to you, of course).
+
+I understand this might be more work - I haven't seen your patch to
+add nf_conncount to nftables, but I suspect you already made a bit of
+progress - so this turn may trigger some rework.
+
+Let me know, thanks!
