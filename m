@@ -1,75 +1,66 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH] Eliminate forgotten traces of libnftables exporting
-Date: Tue, 16 Jan 2018 17:19:57 +0100
-Message-ID: <20180116161957.10634-1-phil@nwl.cc>
-References: <20180116161857.GA25722@orbyte.nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Shyam Saini <mayhs11saini@gmail.com>
+Subject: [Iptables PATCH] extensions: Add test for cluster nft translation
+Date: Tue, 16 Jan 2018 21:50:13 +0530
+Message-ID: <1516119613-9709-1-git-send-email-mayhs11saini@gmail.com>
+Cc: netfilter-devel@vger.kernel.org,
+        Shyam Saini <mayhs11saini@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:47222 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750941AbeAPQUI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 Jan 2018 11:20:08 -0500
-In-Reply-To: <20180116161857.GA25722@orbyte.nwl.cc>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:36857 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750812AbeAPQUa (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 16 Jan 2018 11:20:30 -0500
+Received: by mail-pg0-f65.google.com with SMTP id k68so2105151pga.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jan 2018 08:20:30 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This removes libnftables pkg-config file along with the few lines of
-code to adjust and install it.
+This patch adds test cases for iptables to nft translation of cluster match
+This adds all test cases including corner cases.
 
-Fixes: d572d59788143 ("Make libnftables a local static library")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Run these test cases like:
+
+	$ ./xlate-test.py extensions/libxt_cluster.txlate
+
+Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
 ---
- Makefile.am       |  3 ---
- configure.ac      |  1 -
- libnftables.pc.in | 15 ---------------
- 3 files changed, 19 deletions(-)
- delete mode 100644 libnftables.pc.in
+ extensions/libxt_cluster.txlate | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+ create mode 100644 extensions/libxt_cluster.txlate
 
-diff --git a/Makefile.am b/Makefile.am
-index 9af25ded836b8..10aa40f14127f 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -6,6 +6,3 @@ SUBDIRS = 	src	\
- 		files
- 
- EXTRA_DIST =	tests
--
--pkgconfigdir = $(libdir)/pkgconfig
--pkgconfig_DATA = libnftables.pc
-diff --git a/configure.ac b/configure.ac
-index 6ed3edca1fe5c..60c8c08bff2a1 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -141,7 +141,6 @@ AC_CHECK_FUNCS([memmove memset strchr strdup strerror strtoull])
- 
- AC_CONFIG_FILES([					\
- 		Makefile				\
--		libnftables.pc				\
- 		src/Makefile				\
- 		include/Makefile			\
- 		include/nftables/Makefile		\
-diff --git a/libnftables.pc.in b/libnftables.pc.in
-deleted file mode 100644
-index 6431d48cf6f2c..0000000000000
---- a/libnftables.pc.in
-+++ /dev/null
-@@ -1,15 +0,0 @@
--# libnftables pkg-config file
--
--prefix=@prefix@
--exec_prefix=@exec_prefix@
--libdir=@libdir@
--includedir=@includedir@
--
--Name: libnftables
--Description: Netfilter nf_tables user library
--URL: http://netfilter.org/projects/nftables/
--Version: @VERSION@
--Requires:
--Conflicts:
--Libs: -L${libdir} -lnftables
--Cflags: -I${includedir}
+diff --git a/extensions/libxt_cluster.txlate b/extensions/libxt_cluster.txlate
+new file mode 100644
+index 0000000..5ce698a
+--- /dev/null
++++ b/extensions/libxt_cluster.txlate
+@@ -0,0 +1,26 @@
++iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 2 --cluster-local-node 1 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
++nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 2 seed 0xdeadbeef eq 1 meta pkttype set host counter meta mark set 0xffff 
++
++iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 1 --cluster-local-node 1 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
++nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 1 seed 0xdeadbeef eq 1 meta pkttype set host counter meta mark set 0xffff 
++
++iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 2 --cluster-local-nodemask 1 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
++nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 2 seed 0xdeadbeef eq 1 meta pkttype set host counter meta mark set 0xffff 
++
++iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 1 --cluster-local-nodemask 1 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
++nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 1 seed 0xdeadbeef eq 1 meta pkttype set host counter meta mark set 0xffff 
++
++iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 32 --cluster-local-node 32 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
++nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 32 seed 0xdeadbeef eq 32 meta pkttype set host counter meta mark set 0xffff 
++
++iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 32 --cluster-local-nodemask 32 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
++nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 32 seed 0xdeadbeef eq 6 meta pkttype set host counter meta mark set 0xffff 
++
++iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 32 --cluster-local-nodemask 5 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
++nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 32 seed 0xdeadbeef { 0, 2 } meta pkttype set host counter meta mark set 0xffff 
++
++iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 7 --cluster-local-nodemask 9 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
++nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 7 seed 0xdeadbeef { 0, 3 } meta pkttype set host counter meta mark set 0xffff 
++
++iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 7 --cluster-local-node 5 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
++nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 7 seed 0xdeadbeef eq 5 meta pkttype set host counter meta mark set 0xffff 
 -- 
-2.15.1
+1.9.1
 
