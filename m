@@ -1,47 +1,52 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: conntrack enhancement
-Date: Tue, 16 Jan 2018 15:17:12 +0100
-Message-ID: <20180116141712.GC15198@breakpoint.cc>
-References: <89a1d74339b14c6e813ccbea864c24e0@svr-chch-ex1.atlnz.lc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v3] netfilter : add NAT support for shifted portmap ranges
+Date: Tue, 16 Jan 2018 15:32:18 +0100
+Message-ID: <20180116143218.xlgqmh7pmmaxfcco@salvia>
+References: <7503dae4-e597-c3ca-1671-a24809be4ed0@dtsystems.be>
+ <c4e20749-09c1-b78c-845a-13c94d5cd739@dtsystems.be>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Jack Ma <Jack.Ma@alliedtelesis.co.nz>
+Cc: netfilter-devel@vger.kernel.org
+To: Thierry Du Tre <thierry@dtsystems.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:46880 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750890AbeAPOTn (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 Jan 2018 09:19:43 -0500
+Received: from mail.us.es ([193.147.175.20]:35044 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751211AbeAPOcZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 16 Jan 2018 09:32:25 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 45E5FC39F5
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jan 2018 15:32:24 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 370FDDA84B
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jan 2018 15:32:24 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <89a1d74339b14c6e813ccbea864c24e0@svr-chch-ex1.atlnz.lc>
+In-Reply-To: <c4e20749-09c1-b78c-845a-13c94d5cd739@dtsystems.be>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jack Ma <Jack.Ma@alliedtelesis.co.nz> wrote:
-> Hi there,
+Hi Thierry,
+
+On Mon, Jan 15, 2018 at 01:56:09PM +0100, Thierry Du Tre wrote:
+> Hi Pablo,
 > 
-> I am planing to add new user option to allow connmark to be shifted to enable more advanced routing options.
+> I prepared this third version to get aligned about the way forward for the extension for struct nf_nat_range.
 > 
-> Currently, it might be something like:
+> Renaming the old definition as you suggested indeed results in a much smaller patch for netfilter kernel part.
+> However, doing it like this also means that userspace code will require changes to cope with the new value for sizeof(struct nf_nat_range).
 > 
-> Conntrack parameters and options:
->  
-> -sl, --shift-left bits                      shift mark by n bit to the left
-> -sr, --shift-right bits                    shift mark by n bit to the right.
+> i.e. iptables-1.6.1 :
 > 
-> We run out of nfmark (skb->mark) in our systems due to increasing number of routes we are supporting.
+> ./extensions/libip6t_SNAT.c:306:    .userspacesize    = XT_ALIGN(sizeof(struct nf_nat_range)),
+> ./extensions/libip6t_DNAT.c:290:    .userspacesize    = XT_ALIGN(sizeof(struct nf_nat_range)),
+> ./extensions/libip6t_NETMAP.c:89:    .userspacesize    = XT_ALIGN(sizeof(struct nf_nat_range)),
+> ./extensions/libip6t_MASQUERADE.c:159:    .userspacesize    = XT_ALIGN(sizeof(struct nf_nat_range)),
+> ./extensions/libip6t_REDIRECT.c:158:    .userspacesize    = XT_ALIGN(sizeof(struct nf_nat_range)),
+> 
+> As far as I understand, all these xt target modules will have to increment their revision which makes them incompatible with current kernel versions.
+> The other option is to replace all occurences of nf_nat_range with nf_nat_range1 in these userspace libraries.
+> That would solve iptables but possible other applications might also be impacted ?
+> 
+> Somehow this doesn't seem right to me, so I might have misinterpreted your earlier response.
 
-I suspect this is for -j CONNMARK  --restore-mark / --save-mark ?
-
-What would this do?
-
-Something like
-
-skb->mark = ct->mark >> $lshift; ?
-ct->mark = skb->mark >> $lshift; ?
-
-I don't really understand how this is supposed to work.
-Could you elaborate a bit?
-
-Thanks.
+I guess you need to add new revisions for the userspace code too,
+right? Am I missing anything?
