@@ -1,57 +1,48 @@
-From: Shyam Saini <mayhs11saini@gmail.com>
-Subject: Re: [Iptables Patch V3] extensions: libxt_cluster: Add translation to nft
-Date: Tue, 16 Jan 2018 11:22:02 +0530
-Message-ID: <CAOfkYf7ELf-tbiOZTSvTTHR_p6PybdBZ6dmFz2eSZNtKPR-c7A@mail.gmail.com>
-References: <1515995968-10120-1-git-send-email-mayhs11saini@gmail.com> <20180116005953.zkoqd73jpz4jgm6i@salvia>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH v2] netfilter: delete /proc THIS_MODULE references
+Date: Tue, 16 Jan 2018 09:45:39 +0100
+Message-ID: <20180116084538.ichopjgjj7fx5xl6@verge.net.au>
+References: <20180113170831.GA1016@avx2>
+ <20180115214532.GD6942@avx2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        netfilter-devel@vger.kernel.org, ja@ssi.bg
+To: Alexey Dobriyan <adobriyan@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ot0-f169.google.com ([74.125.82.169]:35767 "EHLO
-        mail-ot0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750790AbeAPFwD (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:37198 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750796AbeAPIpm (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 Jan 2018 00:52:03 -0500
-Received: by mail-ot0-f169.google.com with SMTP id 53so12633094otj.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jan 2018 21:52:03 -0800 (PST)
-In-Reply-To: <20180116005953.zkoqd73jpz4jgm6i@salvia>
+        Tue, 16 Jan 2018 03:45:42 -0500
+Content-Disposition: inline
+In-Reply-To: <20180115214532.GD6942@avx2>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> Hi Shyam,
+On Tue, Jan 16, 2018 at 12:45:32AM +0300, Alexey Dobriyan wrote:
+> /proc has been ignoring struct file_operations::owner field for 10 years.
+> Specifically, it started with commit 786d7e1612f0b0adb6046f19b906609e4fe8b1ba
+> ("Fix rmmod/read/write races in /proc entries"). Notice the chunk where
+> inode->i_fop is initialized with proxy struct file_operations for
+> regular files:
+> 
+> 	-               if (de->proc_fops)
+> 	-                       inode->i_fop = de->proc_fops;
+> 	+               if (de->proc_fops) {
+> 	+                       if (S_ISREG(inode->i_mode))
+> 	+                               inode->i_fop = &proc_reg_file_ops;
+> 	+                       else
+> 	+                               inode->i_fop = de->proc_fops;
+> 	+               }
+> 
+> VFS stopped pinning module at this point.
+> 
+> # ipvs
+> Acked-by: Julian Anastasov <ja@ssi.bg>
 
-Hi Pablo,
-> On Mon, Jan 15, 2018 at 11:29:28AM +0530, Shyam Saini wrote:
->> Add translation for cluster to nft
->>
->> $ sudo iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster
->> --cluster-total-nodes 7 --cluster-local-node 5 --cluster-hash-seed
->> 0xdeadbeef -j MARK --set-mark 0xffff
->>
->> nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr
->> mod 7 seed 0xdeadbeef eq 5 meta pkttype set host counter meta mark set
->> 0xffff
->>
->> $ sudo iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster
->> --cluster-total-nodes 7 --cluster-local-nodemask 5 --cluster-hash-seed
->> 0xdeadbeef -j MARK --set-mark 0xffff
->>
->> nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr
->> mod 7 seed 0xdeadbeef eq { 0, 2 } meta pkttype set host counter meta
->> mark set 0xffff
->
-> Looks good, applied, thanks!
->
-> Would you also send us a test for this?
->
-> Have a look at extensions/*.txlate
->
-> Thanks.
+Likewise, the IPVS portion looks good to me.
 
+Acked-by: Simon Horman <horms+renesas@verge.net.au>
 
-I will send the test for this.
-
-Thanks,
-Shyam
+> Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
