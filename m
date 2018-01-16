@@ -1,38 +1,36 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_tables: flow_offload depends on flow_table
-Date: Tue, 16 Jan 2018 01:48:52 +0100
-Message-ID: <20180116004852.ly4nzjgkhspdzftd@salvia>
-References: <20180112155033.3694504-1-arnd@arndb.de>
+Subject: Re: [PATCH nf-next] netfilter: don't return garbage pointer on
+ modprobe failure
+Date: Tue, 16 Jan 2018 01:53:14 +0100
+Message-ID: <20180116005314.i7j33bt7hehh4n3v@salvia>
+References: <94eb2c05629e4a8b0505629c32f0@google.com>
+ <20180113130608.13079-1-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        William Breathitt Gray <vilhelm.gray@gmail.com>,
-        "Pablo M. Bermudo Garay" <pablombg@gmail.com>,
-        Manuel Messner <mm@skelett.io>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:41118 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750776AbeAPAxT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 15 Jan 2018 19:53:19 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 4AB5953AA23
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jan 2018 01:53:18 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3CB83BAC29
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jan 2018 01:53:18 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20180112155033.3694504-1-arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20180113130608.13079-1-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jan 12, 2018 at 04:50:26PM +0100, Arnd Bergmann wrote:
-> Without CONFIG_NF_FLOW_TABLE, the new nft_flow_offload module produces
-> a link error:
+On Sat, Jan 13, 2018 at 02:06:08PM +0100, Florian Westphal wrote:
+> request_module may return a positive error result from modprobe,
+> if we cast this to ERR_PTR this returns a garbage result (it passes
+> IS_ERR checks).
 > 
-> net/netfilter/nft_flow_offload.o: In function `nft_flow_offload_iterate_cleanup':
-> nft_flow_offload.c:(.text+0xb0): undefined reference to `nf_flow_table_iterate'
-> net/netfilter/nft_flow_offload.o: In function `flow_offload_iterate_cleanup':
-> nft_flow_offload.c:(.text+0x160): undefined reference to `flow_offload_dead'
-> net/netfilter/nft_flow_offload.o: In function `nft_flow_offload_eval':
-> nft_flow_offload.c:(.text+0xc4c): undefined reference to `flow_offload_alloc'
-> nft_flow_offload.c:(.text+0xc64): undefined reference to `flow_offload_add'
-> nft_flow_offload.c:(.text+0xc94): undefined reference to `flow_offload_free'
-> 
-> This adds a Kconfig dependency for it.
+> Fix it by ignoring modprobe return values entirely, just retry the
+> table lookup instead.
 
-Applied, thanks Arnd.
+Applied, thanks Florian.
