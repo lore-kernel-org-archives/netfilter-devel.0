@@ -1,80 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] extensions : multiple to-dst/to-src arguments for
- ip6t_DNAT/SNAT not reported
-Date: Tue, 16 Jan 2018 16:41:41 +0100
-Message-ID: <20180116154141.drm7fclrxnkm5zss@salvia>
-References: <65034694-62fb-3e6a-b15c-1176e65eae65@dtsystems.be>
- <20180116130612.iwzo3kbff7a7oobb@salvia>
- <16017f6b-7836-d905-9a4b-78df9904d511@dtsystems.be>
- <497cfaec-f39b-b9f5-7c49-d282002a3d74@dtsystems.be>
- <20180116152320.c6osokv3rhc55a45@salvia>
- <20180116152415.oev5fcu55evn43gj@salvia>
- <d89d256c-5b4a-451a-6ffa-12bb972d1db3@dtsystems.be>
+From: Phil Sutter <phil@nwl.cc>
+Subject: Re: [ANNOUNCE] nftables 0.8.1 release
+Date: Tue, 16 Jan 2018 17:18:57 +0100
+Message-ID: <20180116161857.GA25722@orbyte.nwl.cc>
+References: <alpine.LSU.2.20.1801161547001.14457@n3.vanv.qr>
+ <20180116145330.mpidpmwk6j7xtnyc@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Thierry Du Tre <thierry@dtsystems.be>
+Cc: Jan Engelhardt <jengelh@inai.de>,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35416 "EHLO mail.us.es"
+Received: from orbyte.nwl.cc ([151.80.46.58]:47210 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750933AbeAPPlq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 Jan 2018 10:41:46 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 025A71D94A3
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jan 2018 16:41:45 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id E4E63DA851
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jan 2018 16:41:44 +0100 (CET)
+        id S1751210AbeAPQTA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 16 Jan 2018 11:19:00 -0500
 Content-Disposition: inline
-In-Reply-To: <d89d256c-5b4a-451a-6ffa-12bb972d1db3@dtsystems.be>
+In-Reply-To: <20180116145330.mpidpmwk6j7xtnyc@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 16, 2018 at 04:31:30PM +0100, Thierry Du Tre wrote:
-> Op 16/01/2018 om 16:24 schreef Pablo Neira Ayuso:
-> > On Tue, Jan 16, 2018 at 04:23:20PM +0100, Pablo Neira Ayuso wrote:
-> >> On Tue, Jan 16, 2018 at 04:20:40PM +0100, Thierry Du Tre wrote:
-> >>> Op 16/01/2018 om 16:06 schreef Thierry Du Tre:
-> >>>> Op 16/01/2018 om 14:06 schreef Pablo Neira Ayuso:
-> >>>>> Hi Thierry,
-> >>>>>
-> >>>>> On Tue, Jan 16, 2018 at 01:44:37PM +0100, Thierry Du Tre wrote:
-> >>>>>> This patch is fixing the detection of multiple '--to-destination' in a DNAT rule and '--to-source' in SNAT rule for IPv6.
-> >>>>>> Currently, when defining multiple values for these, only the last will be used and others ignored silently.
-> >>>>>>
-> >>>>>> The checks for (cb->xflags & F_X_TO_[DEST/SRC]) always fails because the flags are never set before.
-> >>>>>> It seems to be a copy-paste artefact since introduction of the IPv6 DNAT/SNAT extensions based on IPv4 code.
-> >>>>>>
-> >>>>>> I also removed the kernel_version checks because they seem useless. Extensions for IPv6 DNAT/SNAT are using xt_target with revision 1.
-> >>>>>> That seems only added since kernel version 3.7-rc1 and therefore the check for > v2.6.10 will always return true.
-> >>>>>> The check is probably also coming from the IPv4 copy-paste.
-> >>>>>
-> >>>>> Thanks for fixing up this.
-> >>>>>
-> >>>>> Would you also send us a patch to add tests:
-> >>>>>
-> >>>>>         extensions/libip6t_DNAT.t
-> >>>>>
-> >>>>
-> >>>> The following should cover this patch.
-> >>>> (without patch, libip6t_SNAT.t and libip6t_DNAT.t will fail)
-> >>>
-> >>> Added another test + fixed typo (too late)
-> >>
-> >> No problem, send a follow up patch with more tests.
+On Tue, Jan 16, 2018 at 03:53:30PM +0100, Pablo Neira Ayuso wrote:
+> On Tue, Jan 16, 2018 at 03:48:24PM +0100, Jan Engelhardt wrote:
 > > 
-> > BTW, the new patch to add more tests needs to go on top of your
-> > previous patch.
+> > >        nftables 0.8.1
+> > >
+> > >This release contains mostly incremental fixes and documentation 
+> > >updates, such as fixing up ./configure --with-mini-gmp for embedded 
+> > >setups that don't have libgmp.
+> > 
+> > Why is this now installing a libnftables.pc file when there is no 
+> > library or headers to go with it? (Remember that libnftables.la is 
+> > listed for "noinst_LTLIBRARIES".)
 > 
-> I hope this works :
-> 
-> ---
->  extensions/libip6t_DNAT.t | 1 +
->  extensions/libip6t_SNAT.t | 1 +
->  extensions/libipt_DNAT.t  | 1 +
->  extensions/libipt_SNAT.t  | 1 +
->  4 files changed, 4 insertions(+)
+> That sounds like a leftover when we were aiming to roll back/not to expose
+> libnftables yet in this release.
 
-Applied, thanks.
+Oh yes, sorry. I'll follow-up with a patch immediately.
 
-Please, always send me patches in git-format-patch next time, thanks!
+Cheers, Phil
