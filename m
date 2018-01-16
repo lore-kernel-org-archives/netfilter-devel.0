@@ -1,41 +1,75 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [ANNOUNCE] nftables 0.8.1 release
-Date: Tue, 16 Jan 2018 17:18:57 +0100
-Message-ID: <20180116161857.GA25722@orbyte.nwl.cc>
-References: <alpine.LSU.2.20.1801161547001.14457@n3.vanv.qr>
- <20180116145330.mpidpmwk6j7xtnyc@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jan Engelhardt <jengelh@inai.de>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>
+Subject: [nft PATCH] Eliminate forgotten traces of libnftables exporting
+Date: Tue, 16 Jan 2018 17:19:57 +0100
+Message-ID: <20180116161957.10634-1-phil@nwl.cc>
+References: <20180116161857.GA25722@orbyte.nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:47210 "EHLO orbyte.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:47222 "EHLO orbyte.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751210AbeAPQTA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 Jan 2018 11:19:00 -0500
-Content-Disposition: inline
-In-Reply-To: <20180116145330.mpidpmwk6j7xtnyc@salvia>
+        id S1750941AbeAPQUI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 16 Jan 2018 11:20:08 -0500
+In-Reply-To: <20180116161857.GA25722@orbyte.nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 16, 2018 at 03:53:30PM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Jan 16, 2018 at 03:48:24PM +0100, Jan Engelhardt wrote:
-> > 
-> > >        nftables 0.8.1
-> > >
-> > >This release contains mostly incremental fixes and documentation 
-> > >updates, such as fixing up ./configure --with-mini-gmp for embedded 
-> > >setups that don't have libgmp.
-> > 
-> > Why is this now installing a libnftables.pc file when there is no 
-> > library or headers to go with it? (Remember that libnftables.la is 
-> > listed for "noinst_LTLIBRARIES".)
-> 
-> That sounds like a leftover when we were aiming to roll back/not to expose
-> libnftables yet in this release.
+This removes libnftables pkg-config file along with the few lines of
+code to adjust and install it.
 
-Oh yes, sorry. I'll follow-up with a patch immediately.
+Fixes: d572d59788143 ("Make libnftables a local static library")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ Makefile.am       |  3 ---
+ configure.ac      |  1 -
+ libnftables.pc.in | 15 ---------------
+ 3 files changed, 19 deletions(-)
+ delete mode 100644 libnftables.pc.in
 
-Cheers, Phil
+diff --git a/Makefile.am b/Makefile.am
+index 9af25ded836b8..10aa40f14127f 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -6,6 +6,3 @@ SUBDIRS = 	src	\
+ 		files
+ 
+ EXTRA_DIST =	tests
+-
+-pkgconfigdir = $(libdir)/pkgconfig
+-pkgconfig_DATA = libnftables.pc
+diff --git a/configure.ac b/configure.ac
+index 6ed3edca1fe5c..60c8c08bff2a1 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -141,7 +141,6 @@ AC_CHECK_FUNCS([memmove memset strchr strdup strerror strtoull])
+ 
+ AC_CONFIG_FILES([					\
+ 		Makefile				\
+-		libnftables.pc				\
+ 		src/Makefile				\
+ 		include/Makefile			\
+ 		include/nftables/Makefile		\
+diff --git a/libnftables.pc.in b/libnftables.pc.in
+deleted file mode 100644
+index 6431d48cf6f2c..0000000000000
+--- a/libnftables.pc.in
++++ /dev/null
+@@ -1,15 +0,0 @@
+-# libnftables pkg-config file
+-
+-prefix=@prefix@
+-exec_prefix=@exec_prefix@
+-libdir=@libdir@
+-includedir=@includedir@
+-
+-Name: libnftables
+-Description: Netfilter nf_tables user library
+-URL: http://netfilter.org/projects/nftables/
+-Version: @VERSION@
+-Requires:
+-Conflicts:
+-Libs: -L${libdir} -lnftables
+-Cflags: -I${includedir}
+-- 
+2.15.1
+
