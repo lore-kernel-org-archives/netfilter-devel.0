@@ -1,66 +1,41 @@
-From: Shyam Saini <mayhs11saini@gmail.com>
-Subject: [Iptables PATCH] extensions: Add test for cluster nft translation
-Date: Tue, 16 Jan 2018 21:50:13 +0530
-Message-ID: <1516119613-9709-1-git-send-email-mayhs11saini@gmail.com>
-Cc: netfilter-devel@vger.kernel.org,
-        Shyam Saini <mayhs11saini@gmail.com>
-To: pablo@netfilter.org
+From: Phil Sutter <phil@nwl.cc>
+Subject: [nft PATCH 1/2] configure: Fix help text regarding --enable-debug
+Date: Tue, 16 Jan 2018 17:38:06 +0100
+Message-ID: <20180116163807.13276-2-phil@nwl.cc>
+References: <20180116163807.13276-1-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:36857 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750812AbeAPQUa (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 16 Jan 2018 11:20:30 -0500
-Received: by mail-pg0-f65.google.com with SMTP id k68so2105151pga.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jan 2018 08:20:30 -0800 (PST)
+Received: from orbyte.nwl.cc ([151.80.46.58]:47262 "EHLO orbyte.nwl.cc"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750790AbeAPQiS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 16 Jan 2018 11:38:18 -0500
+In-Reply-To: <20180116163807.13276-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds test cases for iptables to nft translation of cluster match
-This adds all test cases including corner cases.
+Debugging symbols are enabled by default, so list '--disable-debug' in
+help output rather than '--enable-debug'. This way it is also consistent
+with the parameter's description.
 
-Run these test cases like:
-
-	$ ./xlate-test.py extensions/libxt_cluster.txlate
-
-Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- extensions/libxt_cluster.txlate | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
- create mode 100644 extensions/libxt_cluster.txlate
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/extensions/libxt_cluster.txlate b/extensions/libxt_cluster.txlate
-new file mode 100644
-index 0000000..5ce698a
---- /dev/null
-+++ b/extensions/libxt_cluster.txlate
-@@ -0,0 +1,26 @@
-+iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 2 --cluster-local-node 1 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
-+nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 2 seed 0xdeadbeef eq 1 meta pkttype set host counter meta mark set 0xffff 
-+
-+iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 1 --cluster-local-node 1 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
-+nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 1 seed 0xdeadbeef eq 1 meta pkttype set host counter meta mark set 0xffff 
-+
-+iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 2 --cluster-local-nodemask 1 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
-+nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 2 seed 0xdeadbeef eq 1 meta pkttype set host counter meta mark set 0xffff 
-+
-+iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 1 --cluster-local-nodemask 1 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
-+nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 1 seed 0xdeadbeef eq 1 meta pkttype set host counter meta mark set 0xffff 
-+
-+iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 32 --cluster-local-node 32 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
-+nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 32 seed 0xdeadbeef eq 32 meta pkttype set host counter meta mark set 0xffff 
-+
-+iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 32 --cluster-local-nodemask 32 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
-+nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 32 seed 0xdeadbeef eq 6 meta pkttype set host counter meta mark set 0xffff 
-+
-+iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 32 --cluster-local-nodemask 5 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
-+nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 32 seed 0xdeadbeef { 0, 2 } meta pkttype set host counter meta mark set 0xffff 
-+
-+iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 7 --cluster-local-nodemask 9 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
-+nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 7 seed 0xdeadbeef { 0, 3 } meta pkttype set host counter meta mark set 0xffff 
-+
-+iptables-translate -A PREROUTING -t mangle -i eth1 -m cluster --cluster-total-nodes 7 --cluster-local-node 5 --cluster-hash-seed 0xdeadbeef -j MARK --set-mark 0xffff
-+nft add rule ip mangle PREROUTING iifname eth1 jhash ct original saddr mod 7 seed 0xdeadbeef eq 5 meta pkttype set host counter meta mark set 0xffff 
+diff --git a/configure.ac b/configure.ac
+index 60c8c08bff2a1..22fb293c47035 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -23,7 +23,7 @@ AC_DEFINE([_GNU_SOURCE], [], [Enable various GNU extensions])
+ AC_DEFINE([_STDC_FORMAT_MACROS], [], [printf-style format macros])
+ 
+ AC_ARG_ENABLE([debug],
+-	      AS_HELP_STRING([--enable-debug], [Disable debugging symbols]),
++	      AS_HELP_STRING([--disable-debug], [Disable debugging symbols]),
+ 	      AS_IF([test "x$enable_debug" = "xno"], [with_debug=no], [with_debug=yes]),
+ 	      [with_debug=yes])
+ AC_SUBST(with_debug)
 -- 
-1.9.1
+2.15.1
 
