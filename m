@@ -1,57 +1,87 @@
-From: Jack Ma <Jack.Ma@alliedtelesis.co.nz>
-Subject: conntrack enhancement
-Date: Tue, 16 Jan 2018 02:26:45 +0000
-Message-ID: <89a1d74339b14c6e813ccbea864c24e0@svr-chch-ex1.atlnz.lc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+From: Varsha Rao <rvarsha016@gmail.com>
+Subject: [PATCH nft v2] tests: Add test for compile options.
+Date: Tue, 16 Jan 2018 08:00:36 +0530
+Message-ID: <20180116023036.31547-1-rvarsha016@gmail.com>
+Cc: Varsha Rao <rvarsha016@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gate2.alliedtelesis.co.nz ([202.36.163.20]:34127 "EHLO
-        gate2.alliedtelesis.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751062AbeAPC0w (ORCPT
+Received: from mail-pf0-f172.google.com ([209.85.192.172]:37150 "EHLO
+        mail-pf0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750807AbeAPCay (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 15 Jan 2018 21:26:52 -0500
-Received: from mmarshal3.atlnz.lc (mmarshal3.atlnz.lc [10.32.18.43])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (Client did not present a certificate)
-        by gate2.alliedtelesis.co.nz (Postfix) with ESMTPS id ADBBB86CE8
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jan 2018 15:26:50 +1300 (NZDT)
-Content-Language: en-US
+        Mon, 15 Jan 2018 21:30:54 -0500
+Received: by mail-pf0-f172.google.com with SMTP id p1so8924860pfh.4
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jan 2018 18:30:54 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=0A=
-Hi there,=0A=
-=0A=
-I am planing to add new user option to allow connmark to be shifted to enab=
-le more advanced routing options.=0A=
-=0A=
-Currently, it might be something like:=0A=
-=0A=
-Conntrack parameters and options:=0A=
- =0A=
--sl, --shift-left bits                      shift mark by n bit to the left=
-=0A=
--sr, --shift-right bits                    shift mark by n bit to the right=
-.=0A=
-=0A=
-We run out of nfmark (skb->mark) in our systems due to increasing number of=
- routes we are supporting.=0A=
-=0A=
-One common user-case:=0A=
-=0A=
-Using connmark to direct traffic via ip rule onto different route tables.=
-=0A=
-=0A=
-But the the first packet of this flow needs to be per-inspected by the IP-t=
-ables first to be marked with an ID (Route number ID in our case.).=0A=
-=0A=
-If we can have "SHIFT" operation working in conntrack, we would be able to =
-support much more numbers of 'ID'.=0A=
-=0A=
-I wounder if this "SHIFT" idea can be considered to be accepted by upstream=
- ?=0A=
-=0A=
-Thanks,=0A=
-Jack =
+This patch adds a script to test available compile options.
+
+Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
+---
+Changes in v2:
+ - Added test for make diskcheck
+
+ tests/build/run-tests.sh | 49 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
+ create mode 100755 tests/build/run-tests.sh
+
+diff --git a/tests/build/run-tests.sh b/tests/build/run-tests.sh
+new file mode 100755
+index 0000000..36cd8d8
+--- /dev/null
++++ b/tests/build/run-tests.sh
+@@ -0,0 +1,49 @@
++#!/bin/bash
++
++if [ "$(id -u)" !=  "0" ]  ; then
++        echo "Run as root user"
++        exit 1
++fi
++
++log_file="`pwd`/tests.log"
++tarball="nftables-0.8.1.tar.bz2"
++dir=../..
++cmd=./configure
++argument=( --without-cli --enable-debug --with-mini-gmp --enable-pdf-doc --with-xtables )
++ok=0
++failed=0
++
++[ -f $log_file ] && rm -rf $log_file
++cd $dir
++
++echo  "Testing build with distcheck"
++make distcheck >/dev/null 2>>$log_file
++rt=$?
++
++rm -rf $tarball
++
++if [ $rt != 0 ] ; then
++	echo "Something went wrong. Check the log for details."
++	exit 1
++fi
++
++echo -en "\033[1A\033[K"
++echo "Build works. Now, testing compile options"
++
++for var in "${argument[@]}" ; do
++	echo "[EXECUTING] Testing compile option $var"
++	$cmd $var >/dev/null 2>>$log_file
++	rt=$?
++	echo -en "\033[1A\033[K" # clean the [EXECUTING] foobar line
++
++	if [ $rt -eq 0 ] ; then
++		echo "[OK] Compile option $var works."
++		((ok++))
++	else
++		echo "[FAILED] Compile option $var does not work. Check log for details."
++		((failed++))
++	fi
++done
++
++echo "results: [OK] $ok [FAILED] $failed [TOTAL] $((ok+failed))"
++exit 0
+-- 
+2.14.3
+
