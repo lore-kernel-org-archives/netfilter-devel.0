@@ -1,53 +1,40 @@
-From: Luis de Bethencourt <luisbg@kernel.org>
-Subject: [PATCH] netfilter: nf_tables: Fix trailing semicolon
-Date: Tue, 16 Jan 2018 14:51:01 +0000
-Message-ID: <20180116145101.7190-1-luisbg@kernel.org>
-Cc: Joe Perches <joe@perches.com>, netdev@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        Luis de Bethencourt <luisbg@kernel.org>
-To: linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [ANNOUNCE] nftables 0.8.1 release
+Date: Tue, 16 Jan 2018 15:53:30 +0100
+Message-ID: <20180116145330.mpidpmwk6j7xtnyc@salvia>
+References: <alpine.LSU.2.20.1801161547001.14457@n3.vanv.qr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>, Phil Sutter <phil@nwl.cc>
+To: Jan Engelhardt <jengelh@inai.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:43450 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750790AbeAPOxe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 16 Jan 2018 09:53:34 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 6716D19D8CF
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jan 2018 15:53:33 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 58484DA84F
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jan 2018 15:53:33 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.20.1801161547001.14457@n3.vanv.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-The trailing semicolon is an empty statement that does no operation.
-Removing it since it doesn't do anything.
+On Tue, Jan 16, 2018 at 03:48:24PM +0100, Jan Engelhardt wrote:
+> 
+> >        nftables 0.8.1
+> >
+> >This release contains mostly incremental fixes and documentation 
+> >updates, such as fixing up ./configure --with-mini-gmp for embedded 
+> >setups that don't have libgmp.
+> 
+> Why is this now installing a libnftables.pc file when there is no 
+> library or headers to go with it? (Remember that libnftables.la is 
+> listed for "noinst_LTLIBRARIES".)
 
-Signed-off-by: Luis de Bethencourt <luisbg@kernel.org>
----
-
-
-Hi,
-
-After fixing the same thing in drivers/staging/rtl8723bs/, Joe Perches
-suggested I fix it treewide [0].
-
-Best regards 
-Luis
-
-
-[0] http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/2018-January/115410.html
-[1] http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/2018-January/115390.html
-
- net/netfilter/nft_dynset.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index ec0fd78231d8..fc83e29d6634 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -164,7 +164,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 	}
- 
- 	priv->sreg_key = nft_parse_register(tb[NFTA_DYNSET_SREG_KEY]);
--	err = nft_validate_register_load(priv->sreg_key, set->klen);;
-+	err = nft_validate_register_load(priv->sreg_key, set->klen);
- 	if (err < 0)
- 		return err;
- 
--- 
-2.15.1
+That sounds like a leftover when we were aiming to roll back/not to expose
+libnftables yet in this release.
