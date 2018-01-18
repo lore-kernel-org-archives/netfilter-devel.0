@@ -1,147 +1,138 @@
 From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH] netfilter: nf_tables: allocate obj handle and delete obj via obj handle
-Date: Fri, 19 Jan 2018 00:23:45 +0530
-Message-ID: <20180118185345.9179-1-harshasharmaiitr@gmail.com>
+Subject: [PATCH v2] src: print 'handle' attribute in tables
+Date: Fri, 19 Jan 2018 01:23:48 +0530
+Message-ID: <20180118195348.12844-1-harshasharmaiitr@gmail.com>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org, harshasharmaiitr@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:39174 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755827AbeARSyF (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:39306 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754976AbeARTyI (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 18 Jan 2018 13:54:05 -0500
-Received: by mail-pg0-f66.google.com with SMTP id w17so9198141pgv.6
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jan 2018 10:54:05 -0800 (PST)
+        Thu, 18 Jan 2018 14:54:08 -0500
+Received: by mail-pf0-f194.google.com with SMTP id e11so15475191pff.6
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jan 2018 11:54:08 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch add code to allocate unique object handles and delete objects
-via those unique object handles.
+Print 'handle' attribute in tables, when listing via '-a' option
+
+For eg.
+nft list ruleset -a
+
+table ip test-ip4 {
+	chain input {
+		ip saddr 8.8.8.8 counter packets 0 bytes 0 # handle 3
+	}
+} # handle 1
+table ip filter {
+	chain output {
+		tcp dport ssh counter packets 0 bytes 0 # handle 4
+	}
+} # handle 2
+table ip xyz {
+} # handle 3
 
 Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
 ---
- include/net/netfilter/nf_tables.h        |  2 ++
- include/uapi/linux/netfilter/nf_tables.h |  3 +++
- net/netfilter/nf_tables_api.c            | 30 +++++++++++++++++++++++++++---
- 3 files changed, 32 insertions(+), 3 deletions(-)
+Change in v2:
+ - print handle after '}'
+ - change log message accordingly
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 144ffc750358..3bf552cf59f4 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1018,6 +1018,7 @@ int nft_verdict_dump(struct sk_buff *skb, int type,
-  *	@list: table stateful object list node
-  *	@table: table this object belongs to
-  *	@name: name of this stateful object
-+ *	@handle: unique object handle
-  *	@genmask: generation mask
-  *	@use: number of references to this stateful object
-  * 	@data: object data, layout depends on type
-@@ -1030,6 +1031,7 @@ struct nft_object {
- 	struct nft_table		*table;
- 	u32				genmask:2,
- 					use:30;
-+	u64				handle;
- 	/* runtime data below here */
- 	const struct nft_object_ops	*ops ____cacheline_aligned;
- 	unsigned char			data[]
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 240fe7d98604..0f4fe2fd5508 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1296,6 +1296,7 @@ enum nft_ct_helper_attributes {
+ include/linux/netfilter/nf_tables.h | 4 ++++
+ src/netlink.c                       | 6 +++++-
+ src/rule.c                          | 5 ++++-
+ 3 files changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index f328944..6db9130 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -160,12 +160,14 @@ enum nft_table_flags {
+  * @NFTA_TABLE_NAME: name of the table (NLA_STRING)
+  * @NFTA_TABLE_FLAGS: bitmask of enum nft_table_flags (NLA_U32)
+  * @NFTA_TABLE_USE: number of chains in this table (NLA_U32)
++ * @NFTA_TABLE_HANDLE: numeric handle of the table (NLA_U64)
+  */
+ enum nft_table_attributes {
+ 	NFTA_TABLE_UNSPEC,
+ 	NFTA_TABLE_NAME,
+ 	NFTA_TABLE_FLAGS,
+ 	NFTA_TABLE_USE,
++	NFTA_TABLE_HANDLE,
+ 	__NFTA_TABLE_MAX
+ };
+ #define NFTA_TABLE_MAX		(__NFTA_TABLE_MAX - 1)
+@@ -1307,6 +1309,7 @@ enum nft_object_attributes {
   *
-  * @NFTA_OBJ_TABLE: name of the table containing the expression (NLA_STRING)
-  * @NFTA_OBJ_NAME: name of this expression type (NLA_STRING)
-+ * @NFTA_OBJ_HANDLE: object handle (NLA_U64)
-  * @NFTA_OBJ_TYPE: stateful object type (NLA_U32)
-  * @NFTA_OBJ_DATA: stateful object data (NLA_NESTED)
-  * @NFTA_OBJ_USE: number of references to this expression (NLA_U32)
-@@ -1307,6 +1308,8 @@ enum nft_object_attributes {
- 	NFTA_OBJ_TYPE,
- 	NFTA_OBJ_DATA,
- 	NFTA_OBJ_USE,
-+	NFTA_OBJ_HANDLE,
-+	NFTA_OBJ_PAD,
- 	__NFTA_OBJ_MAX
- };
- #define NFTA_OBJ_MAX		(__NFTA_OBJ_MAX - 1)
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 4f2ebcd16a1c..514196719c95 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4451,6 +4451,21 @@ struct nft_object *nf_tables_obj_lookup(const struct nft_table *table,
+  * @NFTA_TRACE_TABLE: name of the table (NLA_STRING)
+  * @NFTA_TRACE_CHAIN: name of the chain (NLA_STRING)
++ * @NFTA_TRACE_TABLE_HANDLE: numeric handle of the table (NLA_U64)
+  * @NFTA_TRACE_RULE_HANDLE: numeric handle of the rule (NLA_U64)
+  * @NFTA_TRACE_TYPE: type of the event (NLA_U32: nft_trace_types)
+  * @NFTA_TRACE_VERDICT: verdict returned by hook (NLA_NESTED: nft_verdicts)
+@@ -1326,6 +1329,7 @@ enum nft_trace_attributes {
+ 	NFTA_TRACE_UNSPEC,
+ 	NFTA_TRACE_TABLE,
+ 	NFTA_TRACE_CHAIN,
++	NFTA_TRACE_TABLE_HANDLE,
+ 	NFTA_TRACE_RULE_HANDLE,
+ 	NFTA_TRACE_TYPE,
+ 	NFTA_TRACE_VERDICT,
+diff --git a/src/netlink.c b/src/netlink.c
+index 8653ae6..59d7096 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -123,6 +123,8 @@ struct nftnl_table *alloc_nftnl_table(const struct handle *h)
+ 	nftnl_table_set_u32(nlt, NFTNL_TABLE_FAMILY, h->family);
+ 	if (h->table != NULL)
+ 		nftnl_table_set(nlt, NFTNL_TABLE_NAME, h->table);
++	if (h->handle.id)
++		nftnl_table_set_u64(nlt, NFTNL_TABLE_HANDLE, h->handle.id);
+ 
+ 	return nlt;
  }
- EXPORT_SYMBOL_GPL(nf_tables_obj_lookup);
+@@ -137,7 +139,7 @@ struct nftnl_chain *alloc_nftnl_chain(const struct handle *h)
  
-+struct nft_object *nf_tables_obj_lookup_byhandle(const struct nft_table *table,
-+						 const struct nlattr *nla,
-+						 u32 objtype, u8 genmask)
-+{
-+	struct nft_object *obj;
-+
-+	list_for_each_entry(obj, &table->objects, list) {
-+		if (be64_to_cpu(nla_get_be64(nla)) == obj->handle &&
-+		    objtype == obj->ops->type->type &&
-+		    nft_active_genmask(obj, genmask))
-+			return obj;
-+	}
-+	return ERR_PTR(-ENOENT);
-+}
-+
- static const struct nla_policy nft_obj_policy[NFTA_OBJ_MAX + 1] = {
- 	[NFTA_OBJ_TABLE]	= { .type = NLA_STRING,
- 				    .len = NFT_TABLE_MAXNAMELEN - 1 },
-@@ -4458,6 +4473,7 @@ static const struct nla_policy nft_obj_policy[NFTA_OBJ_MAX + 1] = {
- 				    .len = NFT_OBJ_MAXNAMELEN - 1 },
- 	[NFTA_OBJ_TYPE]		= { .type = NLA_U32 },
- 	[NFTA_OBJ_DATA]		= { .type = NLA_NESTED },
-+	[NFTA_OBJ_HANDLE]	= { .type = NLA_U64},
- };
+ 	nftnl_chain_set_u32(nlc, NFTNL_CHAIN_FAMILY, h->family);
+ 	nftnl_chain_set_str(nlc, NFTNL_CHAIN_TABLE, h->table);
+-	if (h->handle.id != 0)
++	if (h->handle.id)
+ 		nftnl_chain_set_u64(nlc, NFTNL_CHAIN_HANDLE, h->handle.id);
+ 	if (h->chain != NULL)
+ 		nftnl_chain_set_str(nlc, NFTNL_CHAIN_NAME, h->chain);
+@@ -964,6 +966,7 @@ static struct table *netlink_delinearize_table(struct netlink_ctx *ctx,
+ 	table->handle.family = nftnl_table_get_u32(nlt, NFTNL_TABLE_FAMILY);
+ 	table->handle.table  = xstrdup(nftnl_table_get_str(nlt, NFTNL_TABLE_NAME));
+ 	table->flags	     = nftnl_table_get_u32(nlt, NFTNL_TABLE_FLAGS);
++	table->handle.handle.id = nftnl_table_get_u64(nlt, NFTNL_TABLE_HANDLE);
  
- static struct nft_object *nft_obj_init(const struct nft_ctx *ctx,
-@@ -4610,6 +4626,7 @@ static int nf_tables_newobj(struct net *net, struct sock *nlsk,
+ 	return table;
+ }
+@@ -992,6 +995,7 @@ int netlink_list_tables(struct netlink_ctx *ctx, const struct handle *h,
+ 		return 0;
  	}
- 	obj->table = table;
- 	obj->name = nla_strdup(nla[NFTA_OBJ_NAME], GFP_KERNEL);
-+	obj->handle = nf_tables_alloc_handle(table);
- 	if (!obj->name) {
- 		err = -ENOMEM;
- 		goto err2;
-@@ -4655,7 +4672,9 @@ static int nf_tables_fill_obj_info(struct sk_buff *skb, struct net *net,
- 	    nla_put_string(skb, NFTA_OBJ_NAME, obj->name) ||
- 	    nla_put_be32(skb, NFTA_OBJ_TYPE, htonl(obj->ops->type->type)) ||
- 	    nla_put_be32(skb, NFTA_OBJ_USE, htonl(obj->use)) ||
--	    nft_object_dump(skb, NFTA_OBJ_DATA, obj, reset))
-+	    nft_object_dump(skb, NFTA_OBJ_DATA, obj, reset) ||
-+	    nla_put_be64(skb, NFTA_OBJ_HANDLE, cpu_to_be64(obj->handle),
-+			 NFTA_OBJ_PAD))
- 		goto nla_put_failure;
  
- 	nlmsg_end(skb, nlh);
-@@ -4858,7 +4877,7 @@ static int nf_tables_delobj(struct net *net, struct sock *nlsk,
- 	u32 objtype;
++	ctx->data = h;
+ 	nftnl_table_list_foreach(table_cache, list_table_cb, ctx);
+ 	nftnl_table_list_free(table_cache);
+ 	return 0;
+diff --git a/src/rule.c b/src/rule.c
+index bb9add0..a1e6bfd 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -820,7 +820,10 @@ static void table_print(const struct table *table, struct output_ctx *octx)
+ 		chain_print(chain, octx);
+ 		delim = "\n";
+ 	}
+-	nft_print(octx, "}\n");
++	nft_print(octx, "}");
++	if (octx->handle > 0)
++		nft_print(octx, " # handle %" PRIu64, table->handle.handle.id);
++	nft_print(octx, "\n");
+ }
  
- 	if (!nla[NFTA_OBJ_TYPE] ||
--	    !nla[NFTA_OBJ_NAME])
-+	    (!nla[NFTA_OBJ_NAME] && !nla[NFTA_OBJ_HANDLE]))
- 		return -EINVAL;
- 
- 	afi = nf_tables_afinfo_lookup(net, family, true);
-@@ -4870,7 +4889,12 @@ static int nf_tables_delobj(struct net *net, struct sock *nlsk,
- 		return PTR_ERR(table);
- 
- 	objtype = ntohl(nla_get_be32(nla[NFTA_OBJ_TYPE]));
--	obj = nf_tables_obj_lookup(table, nla[NFTA_OBJ_NAME], objtype, genmask);
-+	if (nla[NFTA_OBJ_HANDLE])
-+		obj = nf_tables_obj_lookup_byhandle(table, nla[NFTA_OBJ_HANDLE],
-+						    objtype, genmask);
-+	else
-+		obj = nf_tables_obj_lookup(table, nla[NFTA_OBJ_NAME],
-+					   objtype, genmask);
- 	if (IS_ERR(obj))
- 		return PTR_ERR(obj);
- 	if (obj->use > 0)
+ struct cmd *cmd_alloc(enum cmd_ops op, enum cmd_obj obj,
 -- 
 2.11.0
 
