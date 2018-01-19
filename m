@@ -1,259 +1,312 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 30/32] netfilter: delete /proc THIS_MODULE references
-Date: Fri, 19 Jan 2018 20:10:39 +0100
-Message-ID: <20180119191041.25804-31-pablo@netfilter.org>
+Subject: [PATCH 13/32] netfilter: add IPv6 segment routing header 'srh' match
+Date: Fri, 19 Jan 2018 20:10:22 +0100
+Message-ID: <20180119191041.25804-14-pablo@netfilter.org>
 References: <20180119191041.25804-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45188 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45250 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756313AbeASTLi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Jan 2018 14:11:38 -0500
+        id S932314AbeASTLH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 19 Jan 2018 14:11:07 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 757232EFEC3
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:11:13 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 665DE2EFEAD
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:11:02 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 57D8EDA851
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:11:13 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 4C620DA394
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:11:02 +0100 (CET)
 In-Reply-To: <20180119191041.25804-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Alexey Dobriyan <adobriyan@gmail.com>
+From: Ahmed Abdelsalam <amsalam20@gmail.com>
 
-/proc has been ignoring struct file_operations::owner field for 10 years.
-Specifically, it started with commit 786d7e1612f0b0adb6046f19b906609e4fe8b1ba
-("Fix rmmod/read/write races in /proc entries"). Notice the chunk where
-inode->i_fop is initialized with proxy struct file_operations for
-regular files:
+It allows matching packets based on Segment Routing Header
+(SRH) information.
+The implementation considers revision 7 of the SRH draft.
+https://tools.ietf.org/html/draft-ietf-6man-segment-routing-header-07
 
-	-               if (de->proc_fops)
-	-                       inode->i_fop = de->proc_fops;
-	+               if (de->proc_fops) {
-	+                       if (S_ISREG(inode->i_mode))
-	+                               inode->i_fop = &proc_reg_file_ops;
-	+                       else
-	+                               inode->i_fop = de->proc_fops;
-	+               }
+Currently supported match options include:
+(1) Next Header
+(2) Hdr Ext Len
+(3) Segments Left
+(4) Last Entry
+(5) Tag value of SRH
 
-VFS stopped pinning module at this point.
-
-# ipvs
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: Simon Horman <horms+renesas@verge.net.au>
+Signed-off-by: Ahmed Abdelsalam <amsalam20@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_app.c          | 1 -
- net/netfilter/ipvs/ip_vs_conn.c         | 2 --
- net/netfilter/ipvs/ip_vs_ctl.c          | 3 ---
- net/netfilter/nf_conntrack_expect.c     | 1 -
- net/netfilter/nf_conntrack_standalone.c | 2 --
- net/netfilter/nf_log.c                  | 1 -
- net/netfilter/nf_synproxy_core.c        | 1 -
- net/netfilter/nfnetlink_log.c           | 1 -
- net/netfilter/nfnetlink_queue.c         | 1 -
- net/netfilter/x_tables.c                | 3 ---
- net/netfilter/xt_hashlimit.c            | 3 ---
- 11 files changed, 19 deletions(-)
+ include/uapi/linux/netfilter_ipv6/ip6t_srh.h |  57 ++++++++++
+ net/ipv6/netfilter/Kconfig                   |   9 ++
+ net/ipv6/netfilter/Makefile                  |   1 +
+ net/ipv6/netfilter/ip6t_srh.c                | 161 +++++++++++++++++++++++++++
+ 4 files changed, 228 insertions(+)
+ create mode 100644 include/uapi/linux/netfilter_ipv6/ip6t_srh.h
+ create mode 100644 net/ipv6/netfilter/ip6t_srh.c
 
-diff --git a/net/netfilter/ipvs/ip_vs_app.c b/net/netfilter/ipvs/ip_vs_app.c
-index 299edc6add5a..1c98c907bc63 100644
---- a/net/netfilter/ipvs/ip_vs_app.c
-+++ b/net/netfilter/ipvs/ip_vs_app.c
-@@ -595,7 +595,6 @@ static int ip_vs_app_open(struct inode *inode, struct file *file)
- }
+diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_srh.h b/include/uapi/linux/netfilter_ipv6/ip6t_srh.h
+new file mode 100644
+index 000000000000..f3cc0ef514a7
+--- /dev/null
++++ b/include/uapi/linux/netfilter_ipv6/ip6t_srh.h
+@@ -0,0 +1,57 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++#ifndef _IP6T_SRH_H
++#define _IP6T_SRH_H
++
++#include <linux/types.h>
++#include <linux/netfilter.h>
++
++/* Values for "mt_flags" field in struct ip6t_srh */
++#define IP6T_SRH_NEXTHDR        0x0001
++#define IP6T_SRH_LEN_EQ         0x0002
++#define IP6T_SRH_LEN_GT         0x0004
++#define IP6T_SRH_LEN_LT         0x0008
++#define IP6T_SRH_SEGS_EQ        0x0010
++#define IP6T_SRH_SEGS_GT        0x0020
++#define IP6T_SRH_SEGS_LT        0x0040
++#define IP6T_SRH_LAST_EQ        0x0080
++#define IP6T_SRH_LAST_GT        0x0100
++#define IP6T_SRH_LAST_LT        0x0200
++#define IP6T_SRH_TAG            0x0400
++#define IP6T_SRH_MASK           0x07FF
++
++/* Values for "mt_invflags" field in struct ip6t_srh */
++#define IP6T_SRH_INV_NEXTHDR    0x0001
++#define IP6T_SRH_INV_LEN_EQ     0x0002
++#define IP6T_SRH_INV_LEN_GT     0x0004
++#define IP6T_SRH_INV_LEN_LT     0x0008
++#define IP6T_SRH_INV_SEGS_EQ    0x0010
++#define IP6T_SRH_INV_SEGS_GT    0x0020
++#define IP6T_SRH_INV_SEGS_LT    0x0040
++#define IP6T_SRH_INV_LAST_EQ    0x0080
++#define IP6T_SRH_INV_LAST_GT    0x0100
++#define IP6T_SRH_INV_LAST_LT    0x0200
++#define IP6T_SRH_INV_TAG        0x0400
++#define IP6T_SRH_INV_MASK       0x07FF
++
++/**
++ *      struct ip6t_srh - SRH match options
++ *      @ next_hdr: Next header field of SRH
++ *      @ hdr_len: Extension header length field of SRH
++ *      @ segs_left: Segments left field of SRH
++ *      @ last_entry: Last entry field of SRH
++ *      @ tag: Tag field of SRH
++ *      @ mt_flags: match options
++ *      @ mt_invflags: Invert the sense of match options
++ */
++
++struct ip6t_srh {
++	__u8                    next_hdr;
++	__u8                    hdr_len;
++	__u8                    segs_left;
++	__u8                    last_entry;
++	__u16                   tag;
++	__u16                   mt_flags;
++	__u16                   mt_invflags;
++};
++
++#endif /*_IP6T_SRH_H*/
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index 806e95375ec8..b6f5edf926d2 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -240,6 +240,15 @@ config IP6_NF_MATCH_RT
  
- static const struct file_operations ip_vs_app_fops = {
--	.owner	 = THIS_MODULE,
- 	.open	 = ip_vs_app_open,
- 	.read	 = seq_read,
- 	.llseek  = seq_lseek,
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index f489b8db2406..370abbf6f421 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -1143,7 +1143,6 @@ static int ip_vs_conn_open(struct inode *inode, struct file *file)
- }
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
- static const struct file_operations ip_vs_conn_fops = {
--	.owner	 = THIS_MODULE,
- 	.open    = ip_vs_conn_open,
- 	.read    = seq_read,
- 	.llseek  = seq_lseek,
-@@ -1221,7 +1220,6 @@ static int ip_vs_conn_sync_open(struct inode *inode, struct file *file)
- }
++config IP6_NF_MATCH_SRH
++        tristate '"srh" Segment Routing header match support'
++        depends on NETFILTER_ADVANCED
++        help
++          srh matching allows you to match packets based on the segment
++	  routing header of the packet.
++
++          To compile it as a module, choose M here.  If unsure, say N.
++
+ # The targets
+ config IP6_NF_TARGET_HL
+ 	tristate '"HL" hoplimit target support'
+diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
+index 95611c4b39b0..d984057b8395 100644
+--- a/net/ipv6/netfilter/Makefile
++++ b/net/ipv6/netfilter/Makefile
+@@ -57,6 +57,7 @@ obj-$(CONFIG_IP6_NF_MATCH_MH) += ip6t_mh.o
+ obj-$(CONFIG_IP6_NF_MATCH_OPTS) += ip6t_hbh.o
+ obj-$(CONFIG_IP6_NF_MATCH_RPFILTER) += ip6t_rpfilter.o
+ obj-$(CONFIG_IP6_NF_MATCH_RT) += ip6t_rt.o
++obj-$(CONFIG_IP6_NF_MATCH_SRH) += ip6t_srh.o
  
- static const struct file_operations ip_vs_conn_sync_fops = {
--	.owner	 = THIS_MODULE,
- 	.open    = ip_vs_conn_sync_open,
- 	.read    = seq_read,
- 	.llseek  = seq_lseek,
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index fff213eacf2a..5ebde4b15810 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -2116,7 +2116,6 @@ static int ip_vs_info_open(struct inode *inode, struct file *file)
- }
- 
- static const struct file_operations ip_vs_info_fops = {
--	.owner	 = THIS_MODULE,
- 	.open    = ip_vs_info_open,
- 	.read    = seq_read,
- 	.llseek  = seq_lseek,
-@@ -2161,7 +2160,6 @@ static int ip_vs_stats_seq_open(struct inode *inode, struct file *file)
- }
- 
- static const struct file_operations ip_vs_stats_fops = {
--	.owner = THIS_MODULE,
- 	.open = ip_vs_stats_seq_open,
- 	.read = seq_read,
- 	.llseek = seq_lseek,
-@@ -2230,7 +2228,6 @@ static int ip_vs_stats_percpu_seq_open(struct inode *inode, struct file *file)
- }
- 
- static const struct file_operations ip_vs_stats_percpu_fops = {
--	.owner = THIS_MODULE,
- 	.open = ip_vs_stats_percpu_seq_open,
- 	.read = seq_read,
- 	.llseek = seq_lseek,
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index d6748a8a79c5..8ef21d9f9a00 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -649,7 +649,6 @@ static int exp_open(struct inode *inode, struct file *file)
- }
- 
- static const struct file_operations exp_file_ops = {
--	.owner   = THIS_MODULE,
- 	.open    = exp_open,
- 	.read    = seq_read,
- 	.llseek  = seq_lseek,
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 46d32baad095..9123fdec5e14 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -382,7 +382,6 @@ static int ct_open(struct inode *inode, struct file *file)
- }
- 
- static const struct file_operations ct_file_ops = {
--	.owner   = THIS_MODULE,
- 	.open    = ct_open,
- 	.read    = seq_read,
- 	.llseek  = seq_lseek,
-@@ -475,7 +474,6 @@ static int ct_cpu_seq_open(struct inode *inode, struct file *file)
- }
- 
- static const struct file_operations ct_cpu_seq_fops = {
--	.owner	 = THIS_MODULE,
- 	.open	 = ct_cpu_seq_open,
- 	.read	 = seq_read,
- 	.llseek	 = seq_lseek,
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index 8bb152a7cca4..c2c1b16b7538 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -402,7 +402,6 @@ static int nflog_open(struct inode *inode, struct file *file)
- }
- 
- static const struct file_operations nflog_file_ops = {
--	.owner	 = THIS_MODULE,
- 	.open	 = nflog_open,
- 	.read	 = seq_read,
- 	.llseek	 = seq_lseek,
-diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
-index 49bd8bb16b18..92139a087260 100644
---- a/net/netfilter/nf_synproxy_core.c
-+++ b/net/netfilter/nf_synproxy_core.c
-@@ -317,7 +317,6 @@ static int synproxy_cpu_seq_open(struct inode *inode, struct file *file)
- }
- 
- static const struct file_operations synproxy_cpu_seq_fops = {
--	.owner		= THIS_MODULE,
- 	.open		= synproxy_cpu_seq_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index e955bec0acc6..7b46aa4c478d 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -1054,7 +1054,6 @@ static int nful_open(struct inode *inode, struct file *file)
- }
- 
- static const struct file_operations nful_file_ops = {
--	.owner	 = THIS_MODULE,
- 	.open	 = nful_open,
- 	.read	 = seq_read,
- 	.llseek	 = seq_lseek,
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 2db35f2d553d..8bba23160a68 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1477,7 +1477,6 @@ static int nfqnl_open(struct inode *inode, struct file *file)
- }
- 
- static const struct file_operations nfqnl_file_ops = {
--	.owner	 = THIS_MODULE,
- 	.open	 = nfqnl_open,
- 	.read	 = seq_read,
- 	.llseek	 = seq_lseek,
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 3c2548787d78..0b56bf05c169 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1362,7 +1362,6 @@ static int xt_table_open(struct inode *inode, struct file *file)
- }
- 
- static const struct file_operations xt_table_ops = {
--	.owner	 = THIS_MODULE,
- 	.open	 = xt_table_open,
- 	.read	 = seq_read,
- 	.llseek	 = seq_lseek,
-@@ -1498,7 +1497,6 @@ static int xt_match_open(struct inode *inode, struct file *file)
- }
- 
- static const struct file_operations xt_match_ops = {
--	.owner	 = THIS_MODULE,
- 	.open	 = xt_match_open,
- 	.read	 = seq_read,
- 	.llseek	 = seq_lseek,
-@@ -1551,7 +1549,6 @@ static int xt_target_open(struct inode *inode, struct file *file)
- }
- 
- static const struct file_operations xt_target_ops = {
--	.owner	 = THIS_MODULE,
- 	.open	 = xt_target_open,
- 	.read	 = seq_read,
- 	.llseek	 = seq_lseek,
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index ec51d9a9512d..ca6847403ca2 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -1266,7 +1266,6 @@ static int dl_proc_open(struct inode *inode, struct file *file)
- }
- 
- static const struct file_operations dl_file_ops_v2 = {
--	.owner   = THIS_MODULE,
- 	.open    = dl_proc_open_v2,
- 	.read    = seq_read,
- 	.llseek  = seq_lseek,
-@@ -1274,7 +1273,6 @@ static const struct file_operations dl_file_ops_v2 = {
- };
- 
- static const struct file_operations dl_file_ops_v1 = {
--	.owner   = THIS_MODULE,
- 	.open    = dl_proc_open_v1,
- 	.read    = seq_read,
- 	.llseek  = seq_lseek,
-@@ -1282,7 +1280,6 @@ static const struct file_operations dl_file_ops_v1 = {
- };
- 
- static const struct file_operations dl_file_ops = {
--	.owner   = THIS_MODULE,
- 	.open    = dl_proc_open,
- 	.read    = seq_read,
- 	.llseek  = seq_lseek,
+ # targets
+ obj-$(CONFIG_IP6_NF_TARGET_MASQUERADE) += ip6t_MASQUERADE.o
+diff --git a/net/ipv6/netfilter/ip6t_srh.c b/net/ipv6/netfilter/ip6t_srh.c
+new file mode 100644
+index 000000000000..9642164107ce
+--- /dev/null
++++ b/net/ipv6/netfilter/ip6t_srh.c
+@@ -0,0 +1,161 @@
++/* Kernel module to match Segment Routing Header (SRH) parameters. */
++
++/* Author:
++ * Ahmed Abdelsalam <amsalam20@gmail.com>
++ *
++ *  This program is free software; you can redistribute it and/or
++ *	modify it under the terms of the GNU General Public License
++ *	as published by the Free Software Foundation; either version 2
++ *	of the License, or (at your option) any later version.
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/ipv6.h>
++#include <linux/types.h>
++#include <net/ipv6.h>
++#include <net/seg6.h>
++
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter_ipv6/ip6t_srh.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
++
++/* Test a struct->mt_invflags and a boolean for inequality */
++#define NF_SRH_INVF(ptr, flag, boolean)	\
++	((boolean) ^ !!((ptr)->mt_invflags & (flag)))
++
++static bool srh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
++{
++	const struct ip6t_srh *srhinfo = par->matchinfo;
++	struct ipv6_sr_hdr *srh;
++	struct ipv6_sr_hdr _srh;
++	int hdrlen, srhoff = 0;
++
++	if (ipv6_find_hdr(skb, &srhoff, IPPROTO_ROUTING, NULL, NULL) < 0)
++		return false;
++	srh = skb_header_pointer(skb, srhoff, sizeof(_srh), &_srh);
++	if (!srh)
++		return false;
++
++	hdrlen = ipv6_optlen(srh);
++	if (skb->len - srhoff < hdrlen)
++		return false;
++
++	if (srh->type != IPV6_SRCRT_TYPE_4)
++		return false;
++
++	if (srh->segments_left > srh->first_segment)
++		return false;
++
++	/* Next Header matching */
++	if (srhinfo->mt_flags & IP6T_SRH_NEXTHDR)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_NEXTHDR,
++				!(srh->nexthdr == srhinfo->next_hdr)))
++			return false;
++
++	/* Header Extension Length matching */
++	if (srhinfo->mt_flags & IP6T_SRH_LEN_EQ)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LEN_EQ,
++				!(srh->hdrlen == srhinfo->hdr_len)))
++			return false;
++
++	if (srhinfo->mt_flags & IP6T_SRH_LEN_GT)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LEN_GT,
++				!(srh->hdrlen > srhinfo->hdr_len)))
++			return false;
++
++	if (srhinfo->mt_flags & IP6T_SRH_LEN_LT)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LEN_LT,
++				!(srh->hdrlen < srhinfo->hdr_len)))
++			return false;
++
++	/* Segments Left matching */
++	if (srhinfo->mt_flags & IP6T_SRH_SEGS_EQ)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_SEGS_EQ,
++				!(srh->segments_left == srhinfo->segs_left)))
++			return false;
++
++	if (srhinfo->mt_flags & IP6T_SRH_SEGS_GT)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_SEGS_GT,
++				!(srh->segments_left > srhinfo->segs_left)))
++			return false;
++
++	if (srhinfo->mt_flags & IP6T_SRH_SEGS_LT)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_SEGS_LT,
++				!(srh->segments_left < srhinfo->segs_left)))
++			return false;
++
++	/**
++	 * Last Entry matching
++	 * Last_Entry field was introduced in revision 6 of the SRH draft.
++	 * It was called First_Segment in the previous revision
++	 */
++	if (srhinfo->mt_flags & IP6T_SRH_LAST_EQ)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LAST_EQ,
++				!(srh->first_segment == srhinfo->last_entry)))
++			return false;
++
++	if (srhinfo->mt_flags & IP6T_SRH_LAST_GT)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LAST_GT,
++				!(srh->first_segment > srhinfo->last_entry)))
++			return false;
++
++	if (srhinfo->mt_flags & IP6T_SRH_LAST_LT)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LAST_LT,
++				!(srh->first_segment < srhinfo->last_entry)))
++			return false;
++
++	/**
++	 * Tag matchig
++	 * Tag field was introduced in revision 6 of the SRH draft.
++	 */
++	if (srhinfo->mt_flags & IP6T_SRH_TAG)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_TAG,
++				!(srh->tag == srhinfo->tag)))
++			return false;
++	return true;
++}
++
++static int srh_mt6_check(const struct xt_mtchk_param *par)
++{
++	const struct ip6t_srh *srhinfo = par->matchinfo;
++
++	if (srhinfo->mt_flags & ~IP6T_SRH_MASK) {
++		pr_err("unknown srh match flags  %X\n", srhinfo->mt_flags);
++		return -EINVAL;
++	}
++
++	if (srhinfo->mt_invflags & ~IP6T_SRH_INV_MASK) {
++		pr_err("unknown srh invflags %X\n", srhinfo->mt_invflags);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static struct xt_match srh_mt6_reg __read_mostly = {
++	.name		= "srh",
++	.family		= NFPROTO_IPV6,
++	.match		= srh_mt6,
++	.matchsize	= sizeof(struct ip6t_srh),
++	.checkentry	= srh_mt6_check,
++	.me		= THIS_MODULE,
++};
++
++static int __init srh_mt6_init(void)
++{
++	return xt_register_match(&srh_mt6_reg);
++}
++
++static void __exit srh_mt6_exit(void)
++{
++	xt_unregister_match(&srh_mt6_reg);
++}
++
++module_init(srh_mt6_init);
++module_exit(srh_mt6_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("Xtables: IPv6 Segment Routing Header match");
++MODULE_AUTHOR("Ahmed Abdelsalam <amsalam20@gmail.com>");
 -- 
 2.11.0
 
