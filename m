@@ -1,120 +1,169 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 19/32] netfilter: ipv6: nf_defrag: Pass on packets to stack per RFC2460
-Date: Fri, 19 Jan 2018 20:10:28 +0100
-Message-ID: <20180119191041.25804-20-pablo@netfilter.org>
+Subject: [PATCH 23/32] netfilter: nf_nat_snmp_basic: remove debug parameter
+Date: Fri, 19 Jan 2018 20:10:32 +0100
+Message-ID: <20180119191041.25804-24-pablo@netfilter.org>
 References: <20180119191041.25804-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45174 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756245AbeASTLS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Jan 2018 14:11:18 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id F11E62EFEBB
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:11:08 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C253CDA38F
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:11:08 +0100 (CET)
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180119191041.25804-1-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+From: Taehee Yoo <ap420073@gmail.com>
 
-ipv6_defrag pulls network headers before fragment header. In case of
-an error, the netfilter layer is currently dropping these packets.
-This results in failure of some IPv6 standards tests which passed on
-older kernels due to the netfilter framework using cloning.
+To see debug message of nf_nat_snmp_basic, we should set debug value
+when we insert this module. but it is inconvenient and only using of
+the dynamic debugging is enough to debug.
 
-The test case run here is a check for ICMPv6 error message replies
-when some invalid IPv6 fragments are sent. This specific test case is
-listed in https://www.ipv6ready.org/docs/Core_Conformance_Latest.pdf
-in the Extension Header Processing Order section.
+This patch just removes debug code. then in the next patch, debugging code
+will be added.
 
-A packet with unrecognized option Type 11 is sent and the test expects
-an ICMP error in line with RFC2460 section 4.2 -
-
-11 - discard the packet and, only if the packet's Destination
-     Address was not a multicast address, send an ICMP Parameter
-     Problem, Code 2, message to the packet's Source Address,
-     pointing to the unrecognized Option Type.
-
-Since netfilter layer now drops all invalid IPv6 frag packets, we no
-longer see the ICMP error message and fail the test case.
-
-To fix this, save the transport header. If defrag is unable to process
-the packet due to RFC2460, restore the transport header and allow packet
-to be processed by stack. There is no change for other packet
-processing paths.
-
-Tested by confirming that stack sends an ICMP error when it receives
-these packets. Also tested that fragmented ICMP pings succeed.
-
-v1->v2: Instead of cloning always, save the transport_header and
-restore it in case of this specific error. Update the title and
-commit message accordingly.
-
-Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv6/netfilter/nf_conntrack_reasm.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ net/ipv4/netfilter/nf_nat_snmp_basic.c | 62 ----------------------------------
+ 1 file changed, 62 deletions(-)
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 977d8900cfd1..ce53dcfda88a 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -231,7 +231,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
+diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+index d6f03fe9f9b4..e5ec946f0765 100644
+--- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
++++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+@@ -66,7 +66,6 @@ MODULE_ALIAS("ip_nat_snmp_basic");
+ #define SNMP_TRAP_PORT 162
+ #define NOCT1(n) (*(u8 *)(n))
  
- 	if ((unsigned int)end > IPV6_MAXPLEN) {
- 		pr_debug("offset is too large.\n");
--		return -1;
-+		return -EINVAL;
- 	}
- 
- 	ecn = ip6_frag_ecn(ipv6_hdr(skb));
-@@ -264,7 +264,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
- 			 * this case. -DaveM
- 			 */
- 			pr_debug("end of fragment not rounded to 8 bytes.\n");
--			return -1;
-+			return -EPROTO;
- 		}
- 		if (end > fq->q.len) {
- 			/* Some bits beyond end -> corruption. */
-@@ -358,7 +358,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
- discard_fq:
- 	inet_frag_kill(&fq->q, &nf_frags);
- err:
--	return -1;
-+	return -EINVAL;
- }
+-static int debug;
+ static DEFINE_SPINLOCK(snmp_lock);
  
  /*
-@@ -567,6 +567,7 @@ find_prev_fhdr(struct sk_buff *skb, u8 *prevhdrp, int *prevhoff, int *fhoff)
- 
- int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+@@ -888,23 +887,13 @@ static inline void mangle_address(unsigned char *begin,
+ 				  __sum16 *check)
  {
-+	u16 savethdr = skb->transport_header;
- 	struct net_device *dev = skb->dev;
- 	int fhoff, nhoff, ret;
- 	struct frag_hdr *fhdr;
-@@ -600,8 +601,12 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+ 	if (map->from == NOCT1(addr)) {
+-		u_int32_t old;
+-
+-		if (debug)
+-			memcpy(&old, addr, sizeof(old));
+-
+ 		*addr = map->to;
  
- 	spin_lock_bh(&fq->q.lock);
+ 		/* Update UDP checksum if being used */
+ 		if (*check) {
+ 			fast_csum(check,
+ 				  &map->from, &map->to, addr - begin);
+-
+ 		}
+-
+-		if (debug)
+-			printk(KERN_DEBUG "bsalg: mapped %pI4 to %pI4\n",
+-			       &old, addr);
+ 	}
+ }
  
--	if (nf_ct_frag6_queue(fq, skb, fhdr, nhoff) < 0) {
--		ret = -EINVAL;
-+	ret = nf_ct_frag6_queue(fq, skb, fhdr, nhoff);
-+	if (ret < 0) {
-+		if (ret == -EPROTO) {
-+			skb->transport_header = savethdr;
-+			ret = 0;
-+		}
- 		goto out_unlock;
+@@ -995,10 +984,6 @@ static int snmp_parse_mangle(unsigned char *msg,
+ 	struct asn1_octstr comm;
+ 	struct snmp_object *obj;
+ 
+-	if (debug > 1)
+-		print_hex_dump(KERN_DEBUG, "", DUMP_PREFIX_NONE, 16, 1,
+-			       msg, len, 0);
+-
+ 	asn1_open(&ctx, msg, len);
+ 
+ 	/*
+@@ -1018,8 +1003,6 @@ static int snmp_parse_mangle(unsigned char *msg,
+ 		return 0;
+ 	if (!asn1_uint_decode (&ctx, end, &vers))
+ 		return 0;
+-	if (debug > 1)
+-		pr_debug("bsalg: snmp version: %u\n", vers + 1);
+ 	if (vers > 1)
+ 		return 1;
+ 
+@@ -1032,14 +1015,6 @@ static int snmp_parse_mangle(unsigned char *msg,
+ 		return 0;
+ 	if (!asn1_octets_decode(&ctx, end, &comm.data, &comm.len))
+ 		return 0;
+-	if (debug > 1) {
+-		unsigned int i;
+-
+-		pr_debug("bsalg: community: ");
+-		for (i = 0; i < comm.len; i++)
+-			pr_cont("%c", comm.data[i]);
+-		pr_cont("\n");
+-	}
+ 	kfree(comm.data);
+ 
+ 	/*
+@@ -1049,23 +1024,6 @@ static int snmp_parse_mangle(unsigned char *msg,
+ 		return 0;
+ 	if (cls != ASN1_CTX || con != ASN1_CON)
+ 		return 0;
+-	if (debug > 1) {
+-		static const unsigned char *const pdus[] = {
+-			[SNMP_PDU_GET] = "get",
+-			[SNMP_PDU_NEXT] = "get-next",
+-			[SNMP_PDU_RESPONSE] = "response",
+-			[SNMP_PDU_SET] = "set",
+-			[SNMP_PDU_TRAP1] = "trapv1",
+-			[SNMP_PDU_BULK] = "bulk",
+-			[SNMP_PDU_INFORM] = "inform",
+-			[SNMP_PDU_TRAP2] = "trapv2"
+-		};
+-
+-		if (pdutype > SNMP_PDU_TRAP2)
+-			pr_debug("bsalg: bad pdu type %u\n", pdutype);
+-		else
+-			pr_debug("bsalg: pdu: %s\n", pdus[pdutype]);
+-	}
+ 	if (pdutype != SNMP_PDU_RESPONSE &&
+ 	    pdutype != SNMP_PDU_TRAP1 && pdutype != SNMP_PDU_TRAP2)
+ 		return 1;
+@@ -1088,11 +1046,6 @@ static int snmp_parse_mangle(unsigned char *msg,
+ 
+ 		if (!snmp_request_decode(&ctx, &req))
+ 			return 0;
+-
+-		if (debug > 1)
+-			pr_debug("bsalg: request: id=0x%lx error_status=%u "
+-			"error_index=%u\n", req.id, req.error_status,
+-			req.error_index);
  	}
  
+ 	/*
+@@ -1105,8 +1058,6 @@ static int snmp_parse_mangle(unsigned char *msg,
+ 		return 0;
+ 
+ 	while (!asn1_eoc_decode(&ctx, eoc)) {
+-		unsigned int i;
+-
+ 		if (!snmp_object_decode(&ctx, &obj)) {
+ 			if (obj) {
+ 				kfree(obj->id);
+@@ -1115,17 +1066,6 @@ static int snmp_parse_mangle(unsigned char *msg,
+ 			return 0;
+ 		}
+ 
+-		if (debug > 1) {
+-			pr_debug("bsalg: object: ");
+-			for (i = 0; i < obj->id_len; i++) {
+-				if (i > 0)
+-					pr_cont(".");
+-				pr_cont("%lu", obj->id[i]);
+-			}
+-			pr_cont(": type=%u\n", obj->type);
+-
+-		}
+-
+ 		if (obj->type == SNMP_IPADDR)
+ 			mangle_address(ctx.begin, ctx.pointer - 4, map, check);
+ 
+@@ -1252,5 +1192,3 @@ static void __exit nf_nat_snmp_basic_fini(void)
+ 
+ module_init(nf_nat_snmp_basic_init);
+ module_exit(nf_nat_snmp_basic_fini);
+-
+-module_param(debug, int, 0600);
 -- 
 2.11.0
-
