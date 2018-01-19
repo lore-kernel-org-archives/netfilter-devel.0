@@ -1,647 +1,120 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 06/32] netfilter: nf_tables: get rid of pernet families
-Date: Fri, 19 Jan 2018 20:10:15 +0100
-Message-ID: <20180119191041.25804-7-pablo@netfilter.org>
+Subject: [PATCH 19/32] netfilter: ipv6: nf_defrag: Pass on packets to stack per RFC2460
+Date: Fri, 19 Jan 2018 20:10:28 +0100
+Message-ID: <20180119191041.25804-20-pablo@netfilter.org>
 References: <20180119191041.25804-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45172 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45174 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756202AbeASTK7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Jan 2018 14:10:59 -0500
+        id S1756245AbeASTLS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 19 Jan 2018 14:11:18 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 9ED832EFEBB
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:10:57 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id F11E62EFEBB
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:11:08 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 8A37ADA84B
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:10:57 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C253CDA38F
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:11:08 +0100 (CET)
 In-Reply-To: <20180119191041.25804-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Now that we have a single table list for each netns, we can get rid of
-one pointer per family and the global afinfo list, thus, shrinking
-struct netns for nftables that now becomes 64 bytes smaller.
+From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
 
-And call __nft_release_afinfo() from __net_exit path accordingly to
-release netnamespace objects on removal.
+ipv6_defrag pulls network headers before fragment header. In case of
+an error, the netfilter layer is currently dropping these packets.
+This results in failure of some IPv6 standards tests which passed on
+older kernels due to the netfilter framework using cloning.
 
+The test case run here is a check for ICMPv6 error message replies
+when some invalid IPv6 fragments are sent. This specific test case is
+listed in https://www.ipv6ready.org/docs/Core_Conformance_Latest.pdf
+in the Extension Header Processing Order section.
+
+A packet with unrecognized option Type 11 is sent and the test expects
+an ICMP error in line with RFC2460 section 4.2 -
+
+11 - discard the packet and, only if the packet's Destination
+     Address was not a multicast address, send an ICMP Parameter
+     Problem, Code 2, message to the packet's Source Address,
+     pointing to the unrecognized Option Type.
+
+Since netfilter layer now drops all invalid IPv6 frag packets, we no
+longer see the ICMP error message and fail the test case.
+
+To fix this, save the transport header. If defrag is unable to process
+the packet due to RFC2460, restore the transport header and allow packet
+to be processed by stack. There is no change for other packet
+processing paths.
+
+Tested by confirming that stack sends an ICMP error when it receives
+these packets. Also tested that fragmented ICMP pings succeed.
+
+v1->v2: Instead of cloning always, save the transport_header and
+restore it in case of this specific error. Update the title and
+commit message accordingly.
+
+Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h       |  4 +--
- include/net/netns/nftables.h            |  7 ----
- net/bridge/netfilter/nf_tables_bridge.c | 38 +++-------------------
- net/ipv4/netfilter/nf_tables_arp.c      | 41 ++++++------------------
- net/ipv4/netfilter/nf_tables_ipv4.c     | 40 +++++------------------
- net/ipv6/netfilter/nf_tables_ipv6.c     | 40 +++++------------------
- net/netfilter/nf_tables_api.c           | 57 +++++++++++++++------------------
- net/netfilter/nf_tables_inet.c          | 41 +++++-------------------
- net/netfilter/nf_tables_netdev.c        | 46 ++++++--------------------
- 9 files changed, 75 insertions(+), 239 deletions(-)
+ net/ipv6/netfilter/nf_conntrack_reasm.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index c55e836e6a2f..12f83d223caa 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -979,8 +979,8 @@ struct nft_af_info {
- 	struct module			*owner;
- };
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 977d8900cfd1..ce53dcfda88a 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -231,7 +231,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
  
--int nft_register_afinfo(struct net *, struct nft_af_info *);
--void nft_unregister_afinfo(struct net *, struct nft_af_info *);
-+int nft_register_afinfo(struct nft_af_info *);
-+void nft_unregister_afinfo(struct nft_af_info *);
- 
- int nft_register_chain_type(const struct nf_chain_type *);
- void nft_unregister_chain_type(const struct nf_chain_type *);
-diff --git a/include/net/netns/nftables.h b/include/net/netns/nftables.h
-index 7f86a63ac21f..48134353411d 100644
---- a/include/net/netns/nftables.h
-+++ b/include/net/netns/nftables.h
-@@ -7,15 +7,8 @@
- struct nft_af_info;
- 
- struct netns_nftables {
--	struct list_head	af_info;
- 	struct list_head	tables;
- 	struct list_head	commit_list;
--	struct nft_af_info	*ipv4;
--	struct nft_af_info	*ipv6;
--	struct nft_af_info	*inet;
--	struct nft_af_info	*arp;
--	struct nft_af_info	*bridge;
--	struct nft_af_info	*netdev;
- 	unsigned int		base_seq;
- 	u8			gencursor;
- };
-diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
-index 66c97b1e3303..dbf7195f059c 100644
---- a/net/bridge/netfilter/nf_tables_bridge.c
-+++ b/net/bridge/netfilter/nf_tables_bridge.c
-@@ -47,34 +47,6 @@ static struct nft_af_info nft_af_bridge __read_mostly = {
- 	.owner		= THIS_MODULE,
- };
- 
--static int nf_tables_bridge_init_net(struct net *net)
--{
--	net->nft.bridge = kmalloc(sizeof(struct nft_af_info), GFP_KERNEL);
--	if (net->nft.bridge == NULL)
--		return -ENOMEM;
--
--	memcpy(net->nft.bridge, &nft_af_bridge, sizeof(nft_af_bridge));
--
--	if (nft_register_afinfo(net, net->nft.bridge) < 0)
--		goto err;
--
--	return 0;
--err:
--	kfree(net->nft.bridge);
--	return -ENOMEM;
--}
--
--static void nf_tables_bridge_exit_net(struct net *net)
--{
--	nft_unregister_afinfo(net, net->nft.bridge);
--	kfree(net->nft.bridge);
--}
--
--static struct pernet_operations nf_tables_bridge_net_ops = {
--	.init	= nf_tables_bridge_init_net,
--	.exit	= nf_tables_bridge_exit_net,
--};
--
- static const struct nf_chain_type filter_bridge = {
- 	.name		= "filter",
- 	.type		= NFT_CHAIN_T_DEFAULT,
-@@ -98,17 +70,17 @@ static int __init nf_tables_bridge_init(void)
- {
- 	int ret;
- 
--	ret = nft_register_chain_type(&filter_bridge);
-+	ret = nft_register_afinfo(&nft_af_bridge);
- 	if (ret < 0)
- 		return ret;
- 
--	ret = register_pernet_subsys(&nf_tables_bridge_net_ops);
-+	ret = nft_register_chain_type(&filter_bridge);
- 	if (ret < 0)
--		goto err_register_subsys;
-+		goto err_register_chain;
- 
- 	return ret;
- 
--err_register_subsys:
-+err_register_chain:
- 	nft_unregister_chain_type(&filter_bridge);
- 
- 	return ret;
-@@ -116,8 +88,8 @@ static int __init nf_tables_bridge_init(void)
- 
- static void __exit nf_tables_bridge_exit(void)
- {
--	unregister_pernet_subsys(&nf_tables_bridge_net_ops);
- 	nft_unregister_chain_type(&filter_bridge);
-+	nft_unregister_afinfo(&nft_af_bridge);
- }
- 
- module_init(nf_tables_bridge_init);
-diff --git a/net/ipv4/netfilter/nf_tables_arp.c b/net/ipv4/netfilter/nf_tables_arp.c
-index f9089b2ad905..07667388ceb5 100644
---- a/net/ipv4/netfilter/nf_tables_arp.c
-+++ b/net/ipv4/netfilter/nf_tables_arp.c
-@@ -32,34 +32,6 @@ static struct nft_af_info nft_af_arp __read_mostly = {
- 	.owner		= THIS_MODULE,
- };
- 
--static int nf_tables_arp_init_net(struct net *net)
--{
--	net->nft.arp = kmalloc(sizeof(struct nft_af_info), GFP_KERNEL);
--	if (net->nft.arp== NULL)
--		return -ENOMEM;
--
--	memcpy(net->nft.arp, &nft_af_arp, sizeof(nft_af_arp));
--
--	if (nft_register_afinfo(net, net->nft.arp) < 0)
--		goto err;
--
--	return 0;
--err:
--	kfree(net->nft.arp);
--	return -ENOMEM;
--}
--
--static void nf_tables_arp_exit_net(struct net *net)
--{
--	nft_unregister_afinfo(net, net->nft.arp);
--	kfree(net->nft.arp);
--}
--
--static struct pernet_operations nf_tables_arp_net_ops = {
--	.init   = nf_tables_arp_init_net,
--	.exit   = nf_tables_arp_exit_net,
--};
--
- static const struct nf_chain_type filter_arp = {
- 	.name		= "filter",
- 	.type		= NFT_CHAIN_T_DEFAULT,
-@@ -77,21 +49,26 @@ static int __init nf_tables_arp_init(void)
- {
- 	int ret;
- 
--	ret = nft_register_chain_type(&filter_arp);
-+	ret = nft_register_afinfo(&nft_af_arp);
- 	if (ret < 0)
- 		return ret;
- 
--	ret = register_pernet_subsys(&nf_tables_arp_net_ops);
-+	ret = nft_register_chain_type(&filter_arp);
- 	if (ret < 0)
--		nft_unregister_chain_type(&filter_arp);
-+		goto err_register_chain;
-+
-+	return 0;
-+
-+err_register_chain:
-+	nft_unregister_chain_type(&filter_arp);
- 
- 	return ret;
- }
- 
- static void __exit nf_tables_arp_exit(void)
- {
--	unregister_pernet_subsys(&nf_tables_arp_net_ops);
- 	nft_unregister_chain_type(&filter_arp);
-+	nft_unregister_afinfo(&nft_af_arp);
- }
- 
- module_init(nf_tables_arp_init);
-diff --git a/net/ipv4/netfilter/nf_tables_ipv4.c b/net/ipv4/netfilter/nf_tables_ipv4.c
-index a98f2de63771..e1441738acb4 100644
---- a/net/ipv4/netfilter/nf_tables_ipv4.c
-+++ b/net/ipv4/netfilter/nf_tables_ipv4.c
-@@ -35,34 +35,6 @@ static struct nft_af_info nft_af_ipv4 __read_mostly = {
- 	.owner		= THIS_MODULE,
- };
- 
--static int nf_tables_ipv4_init_net(struct net *net)
--{
--	net->nft.ipv4 = kmalloc(sizeof(struct nft_af_info), GFP_KERNEL);
--	if (net->nft.ipv4 == NULL)
--		return -ENOMEM;
--
--	memcpy(net->nft.ipv4, &nft_af_ipv4, sizeof(nft_af_ipv4));
--
--	if (nft_register_afinfo(net, net->nft.ipv4) < 0)
--		goto err;
--
--	return 0;
--err:
--	kfree(net->nft.ipv4);
--	return -ENOMEM;
--}
--
--static void nf_tables_ipv4_exit_net(struct net *net)
--{
--	nft_unregister_afinfo(net, net->nft.ipv4);
--	kfree(net->nft.ipv4);
--}
--
--static struct pernet_operations nf_tables_ipv4_net_ops = {
--	.init	= nf_tables_ipv4_init_net,
--	.exit	= nf_tables_ipv4_exit_net,
--};
--
- static const struct nf_chain_type filter_ipv4 = {
- 	.name		= "filter",
- 	.type		= NFT_CHAIN_T_DEFAULT,
-@@ -86,21 +58,25 @@ static int __init nf_tables_ipv4_init(void)
- {
- 	int ret;
- 
--	ret = nft_register_chain_type(&filter_ipv4);
-+	ret = nft_register_afinfo(&nft_af_ipv4);
- 	if (ret < 0)
- 		return ret;
- 
--	ret = register_pernet_subsys(&nf_tables_ipv4_net_ops);
-+	ret = nft_register_chain_type(&filter_ipv4);
- 	if (ret < 0)
--		nft_unregister_chain_type(&filter_ipv4);
-+		goto err_register_chain;
-+
-+	return 0;
- 
-+err_register_chain:
-+	nft_unregister_afinfo(&nft_af_ipv4);
- 	return ret;
- }
- 
- static void __exit nf_tables_ipv4_exit(void)
- {
--	unregister_pernet_subsys(&nf_tables_ipv4_net_ops);
- 	nft_unregister_chain_type(&filter_ipv4);
-+	nft_unregister_afinfo(&nft_af_ipv4);
- }
- 
- module_init(nf_tables_ipv4_init);
-diff --git a/net/ipv6/netfilter/nf_tables_ipv6.c b/net/ipv6/netfilter/nf_tables_ipv6.c
-index bddd39dc1cf3..912d0e5516b0 100644
---- a/net/ipv6/netfilter/nf_tables_ipv6.c
-+++ b/net/ipv6/netfilter/nf_tables_ipv6.c
-@@ -33,34 +33,6 @@ static struct nft_af_info nft_af_ipv6 __read_mostly = {
- 	.owner		= THIS_MODULE,
- };
- 
--static int nf_tables_ipv6_init_net(struct net *net)
--{
--	net->nft.ipv6 = kmalloc(sizeof(struct nft_af_info), GFP_KERNEL);
--	if (net->nft.ipv6 == NULL)
--		return -ENOMEM;
--
--	memcpy(net->nft.ipv6, &nft_af_ipv6, sizeof(nft_af_ipv6));
--
--	if (nft_register_afinfo(net, net->nft.ipv6) < 0)
--		goto err;
--
--	return 0;
--err:
--	kfree(net->nft.ipv6);
--	return -ENOMEM;
--}
--
--static void nf_tables_ipv6_exit_net(struct net *net)
--{
--	nft_unregister_afinfo(net, net->nft.ipv6);
--	kfree(net->nft.ipv6);
--}
--
--static struct pernet_operations nf_tables_ipv6_net_ops = {
--	.init	= nf_tables_ipv6_init_net,
--	.exit	= nf_tables_ipv6_exit_net,
--};
--
- static const struct nf_chain_type filter_ipv6 = {
- 	.name		= "filter",
- 	.type		= NFT_CHAIN_T_DEFAULT,
-@@ -84,20 +56,24 @@ static int __init nf_tables_ipv6_init(void)
- {
- 	int ret;
- 
--	ret = nft_register_chain_type(&filter_ipv6);
-+	ret = nft_register_afinfo(&nft_af_ipv6);
- 	if (ret < 0)
- 		return ret;
- 
--	ret = register_pernet_subsys(&nf_tables_ipv6_net_ops);
-+	ret = nft_register_chain_type(&filter_ipv6);
- 	if (ret < 0)
--		nft_unregister_chain_type(&filter_ipv6);
-+		goto err_register_chain;
-+
-+	return 0;
- 
-+err_register_chain:
-+	nft_unregister_afinfo(&nft_af_ipv6);
- 	return ret;
- }
- 
- static void __exit nf_tables_ipv6_exit(void)
- {
--	unregister_pernet_subsys(&nf_tables_ipv6_net_ops);
-+	nft_unregister_afinfo(&nft_af_ipv6);
- 	nft_unregister_chain_type(&filter_ipv6);
- }
- 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 084d1f553c46..b0ff26beec80 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -26,6 +26,7 @@
- static LIST_HEAD(nf_tables_expressions);
- static LIST_HEAD(nf_tables_objects);
- static LIST_HEAD(nf_tables_flowtables);
-+static LIST_HEAD(nf_tables_af_info);
- 
- /**
-  *	nft_register_afinfo - register nf_tables address family info
-@@ -35,17 +36,15 @@ static LIST_HEAD(nf_tables_flowtables);
-  *	Register the address family for use with nf_tables. Returns zero on
-  *	success or a negative errno code otherwise.
-  */
--int nft_register_afinfo(struct net *net, struct nft_af_info *afi)
-+int nft_register_afinfo(struct nft_af_info *afi)
- {
- 	nfnl_lock(NFNL_SUBSYS_NFTABLES);
--	list_add_tail_rcu(&afi->list, &net->nft.af_info);
-+	list_add_tail_rcu(&afi->list, &nf_tables_af_info);
- 	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(nft_register_afinfo);
- 
--static void __nft_release_afinfo(struct net *net, struct nft_af_info *afi);
--
- /**
-  *	nft_unregister_afinfo - unregister nf_tables address family info
-  *
-@@ -53,10 +52,9 @@ static void __nft_release_afinfo(struct net *net, struct nft_af_info *afi);
-  *
-  *	Unregister the address family for use with nf_tables.
-  */
--void nft_unregister_afinfo(struct net *net, struct nft_af_info *afi)
-+void nft_unregister_afinfo(struct nft_af_info *afi)
- {
- 	nfnl_lock(NFNL_SUBSYS_NFTABLES);
--	__nft_release_afinfo(net, afi);
- 	list_del_rcu(&afi->list);
- 	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
- }
-@@ -66,7 +64,7 @@ static struct nft_af_info *nft_afinfo_lookup(struct net *net, int family)
- {
- 	struct nft_af_info *afi;
- 
--	list_for_each_entry(afi, &net->nft.af_info, list) {
-+	list_for_each_entry(afi, &nf_tables_af_info, list) {
- 		if (afi->family == family)
- 			return afi;
+ 	if ((unsigned int)end > IPV6_MAXPLEN) {
+ 		pr_debug("offset is too large.\n");
+-		return -1;
++		return -EINVAL;
  	}
-@@ -5042,15 +5040,12 @@ void nft_flow_table_iterate(struct net *net,
- 			    void *data)
- {
- 	struct nft_flowtable *flowtable;
--	const struct nft_af_info *afi;
- 	const struct nft_table *table;
  
- 	rcu_read_lock();
--	list_for_each_entry_rcu(afi, &net->nft.af_info, list) {
--		list_for_each_entry_rcu(table, &net->nft.tables, list) {
--			list_for_each_entry_rcu(flowtable, &table->flowtables, list) {
--				iter(&flowtable->data, data);
--			}
-+	list_for_each_entry_rcu(table, &net->nft.tables, list) {
-+		list_for_each_entry_rcu(flowtable, &table->flowtables, list) {
-+			iter(&flowtable->data, data);
+ 	ecn = ip6_frag_ecn(ipv6_hdr(skb));
+@@ -264,7 +264,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
+ 			 * this case. -DaveM
+ 			 */
+ 			pr_debug("end of fragment not rounded to 8 bytes.\n");
+-			return -1;
++			return -EPROTO;
  		}
+ 		if (end > fq->q.len) {
+ 			/* Some bits beyond end -> corruption. */
+@@ -358,7 +358,7 @@ static int nf_ct_frag6_queue(struct frag_queue *fq, struct sk_buff *skb,
+ discard_fq:
+ 	inet_frag_kill(&fq->q, &nf_frags);
+ err:
+-	return -1;
++	return -EINVAL;
+ }
+ 
+ /*
+@@ -567,6 +567,7 @@ find_prev_fhdr(struct sk_buff *skb, u8 *prevhdrp, int *prevhoff, int *fhoff)
+ 
+ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+ {
++	u16 savethdr = skb->transport_header;
+ 	struct net_device *dev = skb->dev;
+ 	int fhoff, nhoff, ret;
+ 	struct frag_hdr *fhdr;
+@@ -600,8 +601,12 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+ 
+ 	spin_lock_bh(&fq->q.lock);
+ 
+-	if (nf_ct_frag6_queue(fq, skb, fhdr, nhoff) < 0) {
+-		ret = -EINVAL;
++	ret = nf_ct_frag6_queue(fq, skb, fhdr, nhoff);
++	if (ret < 0) {
++		if (ret == -EPROTO) {
++			skb->transport_header = savethdr;
++			ret = 0;
++		}
+ 		goto out_unlock;
  	}
- 	rcu_read_unlock();
-@@ -6533,21 +6528,6 @@ int nft_data_dump(struct sk_buff *skb, int attr, const struct nft_data *data,
- }
- EXPORT_SYMBOL_GPL(nft_data_dump);
  
--static int __net_init nf_tables_init_net(struct net *net)
--{
--	INIT_LIST_HEAD(&net->nft.af_info);
--	INIT_LIST_HEAD(&net->nft.tables);
--	INIT_LIST_HEAD(&net->nft.commit_list);
--	net->nft.base_seq = 1;
--	return 0;
--}
--
--static void __net_exit nf_tables_exit_net(struct net *net)
--{
--	WARN_ON_ONCE(!list_empty(&net->nft.af_info));
--	WARN_ON_ONCE(!list_empty(&net->nft.commit_list));
--}
--
- int __nft_release_basechain(struct nft_ctx *ctx)
- {
- 	struct nft_rule *rule, *nr;
-@@ -6568,8 +6548,7 @@ int __nft_release_basechain(struct nft_ctx *ctx)
- }
- EXPORT_SYMBOL_GPL(__nft_release_basechain);
- 
--/* Called by nft_unregister_afinfo() from __net_exit path, nfnl_lock is held. */
--static void __nft_release_afinfo(struct net *net, struct nft_af_info *afi)
-+static void __nft_release_afinfo(struct net *net)
- {
- 	struct nft_flowtable *flowtable, *nf;
- 	struct nft_table *table, *nt;
-@@ -6579,10 +6558,11 @@ static void __nft_release_afinfo(struct net *net, struct nft_af_info *afi)
- 	struct nft_set *set, *ns;
- 	struct nft_ctx ctx = {
- 		.net	= net,
--		.family	= afi->family,
- 	};
- 
- 	list_for_each_entry_safe(table, nt, &net->nft.tables, list) {
-+		ctx.family = table->afi->family;
-+
- 		list_for_each_entry(chain, &table->chains, list)
- 			nf_tables_unregister_hook(net, table, chain);
- 		list_for_each_entry(flowtable, &table->flowtables, list)
-@@ -6623,6 +6603,21 @@ static void __nft_release_afinfo(struct net *net, struct nft_af_info *afi)
- 	}
- }
- 
-+static int __net_init nf_tables_init_net(struct net *net)
-+{
-+	INIT_LIST_HEAD(&net->nft.tables);
-+	INIT_LIST_HEAD(&net->nft.commit_list);
-+	net->nft.base_seq = 1;
-+	return 0;
-+}
-+
-+static void __net_exit nf_tables_exit_net(struct net *net)
-+{
-+	__nft_release_afinfo(net);
-+	WARN_ON_ONCE(!list_empty(&net->nft.tables));
-+	WARN_ON_ONCE(!list_empty(&net->nft.commit_list));
-+}
-+
- static struct pernet_operations nf_tables_net_ops = {
- 	.init	= nf_tables_init_net,
- 	.exit	= nf_tables_exit_net,
-diff --git a/net/netfilter/nf_tables_inet.c b/net/netfilter/nf_tables_inet.c
-index 00b1fc9cea2e..d486ced4de84 100644
---- a/net/netfilter/nf_tables_inet.c
-+++ b/net/netfilter/nf_tables_inet.c
-@@ -43,34 +43,6 @@ static struct nft_af_info nft_af_inet __read_mostly = {
- 	.owner		= THIS_MODULE,
- };
- 
--static int __net_init nf_tables_inet_init_net(struct net *net)
--{
--	net->nft.inet = kmalloc(sizeof(struct nft_af_info), GFP_KERNEL);
--	if (net->nft.inet == NULL)
--		return -ENOMEM;
--	memcpy(net->nft.inet, &nft_af_inet, sizeof(nft_af_inet));
--
--	if (nft_register_afinfo(net, net->nft.inet) < 0)
--		goto err;
--
--	return 0;
--
--err:
--	kfree(net->nft.inet);
--	return -ENOMEM;
--}
--
--static void __net_exit nf_tables_inet_exit_net(struct net *net)
--{
--	nft_unregister_afinfo(net, net->nft.inet);
--	kfree(net->nft.inet);
--}
--
--static struct pernet_operations nf_tables_inet_net_ops = {
--	.init	= nf_tables_inet_init_net,
--	.exit	= nf_tables_inet_exit_net,
--};
--
- static const struct nf_chain_type filter_inet = {
- 	.name		= "filter",
- 	.type		= NFT_CHAIN_T_DEFAULT,
-@@ -94,21 +66,24 @@ static int __init nf_tables_inet_init(void)
- {
- 	int ret;
- 
--	ret = nft_register_chain_type(&filter_inet);
--	if (ret < 0)
-+	if (nft_register_afinfo(&nft_af_inet) < 0)
- 		return ret;
- 
--	ret = register_pernet_subsys(&nf_tables_inet_net_ops);
-+	ret = nft_register_chain_type(&filter_inet);
- 	if (ret < 0)
--		nft_unregister_chain_type(&filter_inet);
-+		goto err_register_chain;
-+
-+	return ret;
- 
-+err_register_chain:
-+	nft_unregister_afinfo(&nft_af_inet);
- 	return ret;
- }
- 
- static void __exit nf_tables_inet_exit(void)
- {
--	unregister_pernet_subsys(&nf_tables_inet_net_ops);
- 	nft_unregister_chain_type(&filter_inet);
-+	nft_unregister_afinfo(&nft_af_inet);
- }
- 
- module_init(nf_tables_inet_init);
-diff --git a/net/netfilter/nf_tables_netdev.c b/net/netfilter/nf_tables_netdev.c
-index 01b61a67a2ac..404b49acb125 100644
---- a/net/netfilter/nf_tables_netdev.c
-+++ b/net/netfilter/nf_tables_netdev.c
-@@ -43,34 +43,6 @@ static struct nft_af_info nft_af_netdev __read_mostly = {
- 	.owner		= THIS_MODULE,
- };
- 
--static int nf_tables_netdev_init_net(struct net *net)
--{
--	net->nft.netdev = kmalloc(sizeof(struct nft_af_info), GFP_KERNEL);
--	if (net->nft.netdev == NULL)
--		return -ENOMEM;
--
--	memcpy(net->nft.netdev, &nft_af_netdev, sizeof(nft_af_netdev));
--
--	if (nft_register_afinfo(net, net->nft.netdev) < 0)
--		goto err;
--
--	return 0;
--err:
--	kfree(net->nft.netdev);
--	return -ENOMEM;
--}
--
--static void nf_tables_netdev_exit_net(struct net *net)
--{
--	nft_unregister_afinfo(net, net->nft.netdev);
--	kfree(net->nft.netdev);
--}
--
--static struct pernet_operations nf_tables_netdev_net_ops = {
--	.init	= nf_tables_netdev_init_net,
--	.exit	= nf_tables_netdev_exit_net,
--};
--
- static const struct nf_chain_type nft_filter_chain_netdev = {
- 	.name		= "filter",
- 	.type		= NFT_CHAIN_T_DEFAULT,
-@@ -145,32 +117,32 @@ static int __init nf_tables_netdev_init(void)
- {
- 	int ret;
- 
--	ret = nft_register_chain_type(&nft_filter_chain_netdev);
--	if (ret)
-+	if (nft_register_afinfo(&nft_af_netdev) < 0)
- 		return ret;
- 
--	ret = register_pernet_subsys(&nf_tables_netdev_net_ops);
-+	ret = nft_register_chain_type(&nft_filter_chain_netdev);
- 	if (ret)
--		goto err1;
-+		goto err_register_chain_type;
- 
- 	ret = register_netdevice_notifier(&nf_tables_netdev_notifier);
- 	if (ret)
--		goto err2;
-+		goto err_register_netdevice_notifier;
- 
- 	return 0;
- 
--err2:
--	unregister_pernet_subsys(&nf_tables_netdev_net_ops);
--err1:
-+err_register_netdevice_notifier:
- 	nft_unregister_chain_type(&nft_filter_chain_netdev);
-+err_register_chain_type:
-+	nft_unregister_afinfo(&nft_af_netdev);
-+
- 	return ret;
- }
- 
- static void __exit nf_tables_netdev_exit(void)
- {
- 	unregister_netdevice_notifier(&nf_tables_netdev_notifier);
--	unregister_pernet_subsys(&nf_tables_netdev_net_ops);
- 	nft_unregister_chain_type(&nft_filter_chain_netdev);
-+	nft_unregister_afinfo(&nft_af_netdev);
- }
- 
- module_init(nf_tables_netdev_init);
 -- 
 2.11.0
 
