@@ -1,34 +1,67 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [Iptables PATCH] extensions: Add test for cluster nft translation
-Date: Fri, 19 Jan 2018 13:15:38 +0100
-Message-ID: <20180119121538.ijhrowhgtngb26b7@salvia>
-References: <1516119613-9709-1-git-send-email-mayhs11saini@gmail.com>
+From: Arturo Borrero Gonzalez <arturo@netfilter.org>
+Subject: [nft PATCH] doc/nft.xml: mention nftables earlier
+Date: Fri, 19 Jan 2018 13:17:47 +0100
+Message-ID: <151636426787.19915.2075416375709343233.stgit@endurance>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Shyam Saini <mayhs11saini@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43416 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751200AbeASMPn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Jan 2018 07:15:43 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2F0711C4368
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 13:15:42 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1D3A2DA390
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 13:15:42 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1516119613-9709-1-git-send-email-mayhs11saini@gmail.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:40591 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751212AbeASMRv (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 19 Jan 2018 07:17:51 -0500
+Received: by mail-wm0-f68.google.com with SMTP id v123so3132957wmd.5
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 04:17:51 -0800 (PST)
+Received: from endurance (154.red-88-9-84.dynamicip.rima-tde.net. [88.9.84.154])
+        by smtp.gmail.com with ESMTPSA id 44sm14255649wrv.0.2018.01.19.04.17.48
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Fri, 19 Jan 2018 04:17:49 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 16, 2018 at 09:50:13PM +0530, Shyam Saini wrote:
-> This patch adds test cases for iptables to nft translation of cluster match
-> This adds all test cases including corner cases.
-> 
-> Run these test cases like:
-> 
-> 	$ ./xlate-test.py extensions/libxt_cluster.txlate
+Mention nftables earlier in the documentation, so users have more context on what
+we are talking about.
 
-Applied, thanks Shyam.
+This is Debian bug #887718, which contains:
+
+<<<
+Currently one must read down 100 lines before it is even mentioned.
+You might want to make the connection between "nft" and "nftables" as
+early as the NAME or DESCRIPTION.
+>>>
+
+Requested-by: Dan Jacobson <jidanni@jidanni.org>
+Signed-off-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
+---
+ doc/nft.xml |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/doc/nft.xml b/doc/nft.xml
+index e515b11..9e979af 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -38,7 +38,7 @@ vi:ts=4 sw=4
+ 	<refnamediv>
+ 		<refname>nft</refname>
+ 		<refpurpose>
+-			Administration tool for packet filtering and classification
++			Administration tool of the nftables framework for packet filtering and classification
+ 		</refpurpose>
+ 	</refnamediv>
+ 
+@@ -73,8 +73,9 @@ vi:ts=4 sw=4
+ 	<refsect1>
+ 		<title>Description</title>
+ 		<para>
+-			nft is used to set up, maintain and inspect packet
+-			filtering and classification rules in the Linux kernel.
++			nft is the command line tool used to set up, maintain and inspect packet
++			filtering and classification rules in the Linux kernel, in the nftables framework.
++			The Linux kernel subsystem is known as nf_tables, and 'nf' stands for Netfilter.
+ 		</para>
+ 	</refsect1>
+ 
+
