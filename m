@@ -1,50 +1,73 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 08/32] netfilter: x_tables: unbreak module auto loading
-Date: Fri, 19 Jan 2018 20:10:17 +0100
-Message-ID: <20180119191041.25804-9-pablo@netfilter.org>
+Subject: [PATCH 04/32] netfilter: nf_tables: remove struct nft_af_info parameter in nf_tables_chain_type_lookup()
+Date: Fri, 19 Jan 2018 20:10:13 +0100
+Message-ID: <20180119191041.25804-5-pablo@netfilter.org>
 References: <20180119191041.25804-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45144 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756203AbeASTK7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Jan 2018 14:10:59 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5AFC42EFEB1
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:10:58 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 48857DA84E
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:10:58 +0100 (CET)
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180119191041.25804-1-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+Pass family number instead, this comes in preparation for the removal of
+struct nft_af_info.
 
-a typo causes module auto load support to never be compiled in.
-
-Fixes: 03d13b6868a2 ("netfilter: xtables: add and use xt_request_find_table_lock")
-Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/x_tables.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c | 16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 10c19a3f4cbd..5b8f3b7358e6 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1082,7 +1082,7 @@ struct xt_table *xt_request_find_table_lock(struct net *net, u_int8_t af,
- {
- 	struct xt_table *t = xt_find_table_lock(net, af, name);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 64cca37018a8..9efcbe27789d 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -423,7 +423,7 @@ static inline u64 nf_tables_alloc_handle(struct nft_table *table)
+ static const struct nf_chain_type *chain_type[NFPROTO_NUMPROTO][NFT_CHAIN_T_MAX];
  
--#ifdef CONFIG_MODULE
-+#ifdef CONFIG_MODULES
- 	if (IS_ERR(t)) {
- 		int err = request_module("%stable_%s", xt_prefix[af], name);
- 		if (err)
+ static const struct nf_chain_type *
+-__nf_tables_chain_type_lookup(int family, const struct nlattr *nla)
++__nf_tables_chain_type_lookup(const struct nlattr *nla, u8 family)
+ {
+ 	int i;
+ 
+@@ -436,22 +436,20 @@ __nf_tables_chain_type_lookup(int family, const struct nlattr *nla)
+ }
+ 
+ static const struct nf_chain_type *
+-nf_tables_chain_type_lookup(const struct nft_af_info *afi,
+-			    const struct nlattr *nla,
+-			    bool autoload)
++nf_tables_chain_type_lookup(const struct nlattr *nla, u8 family, bool autoload)
+ {
+ 	const struct nf_chain_type *type;
+ 
+-	type = __nf_tables_chain_type_lookup(afi->family, nla);
++	type = __nf_tables_chain_type_lookup(nla, family);
+ 	if (type != NULL)
+ 		return type;
+ #ifdef CONFIG_MODULES
+ 	if (autoload) {
+ 		nfnl_unlock(NFNL_SUBSYS_NFTABLES);
+-		request_module("nft-chain-%u-%.*s", afi->family,
++		request_module("nft-chain-%u-%.*s", family,
+ 			       nla_len(nla), (const char *)nla_data(nla));
+ 		nfnl_lock(NFNL_SUBSYS_NFTABLES);
+-		type = __nf_tables_chain_type_lookup(afi->family, nla);
++		type = __nf_tables_chain_type_lookup(nla, family);
+ 		if (type != NULL)
+ 			return ERR_PTR(-EAGAIN);
+ 	}
+@@ -1325,8 +1323,8 @@ static int nft_chain_parse_hook(struct net *net,
+ 
+ 	type = chain_type[afi->family][NFT_CHAIN_T_DEFAULT];
+ 	if (nla[NFTA_CHAIN_TYPE]) {
+-		type = nf_tables_chain_type_lookup(afi, nla[NFTA_CHAIN_TYPE],
+-						   create);
++		type = nf_tables_chain_type_lookup(nla[NFTA_CHAIN_TYPE],
++						   afi->family, create);
+ 		if (IS_ERR(type))
+ 			return PTR_ERR(type);
+ 	}
 -- 
 2.11.0
-
