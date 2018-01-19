@@ -1,158 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 01/32] netfilter: nf_tables: remove nhooks field from struct nft_af_info
-Date: Fri, 19 Jan 2018 20:10:10 +0100
-Message-ID: <20180119191041.25804-2-pablo@netfilter.org>
+Subject: [PATCH 08/32] netfilter: x_tables: unbreak module auto loading
+Date: Fri, 19 Jan 2018 20:10:17 +0100
+Message-ID: <20180119191041.25804-9-pablo@netfilter.org>
 References: <20180119191041.25804-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45138 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45144 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755993AbeASTKy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Jan 2018 14:10:54 -0500
+        id S1756203AbeASTK7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 19 Jan 2018 14:10:59 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 1A18A2EFEB0
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:10:53 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 5AFC42EFEB1
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:10:58 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0A47DDA850
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:10:53 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 48857DA84E
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:10:58 +0100 (CET)
 In-Reply-To: <20180119191041.25804-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We already validate the hook through bitmask, so this check is
-superfluous. When removing this, this patch is also fixing a bug in the
-new flowtable codebase, since ctx->afi points to the table family
-instead of the netdev family which is where the flowtable is really
-hooked in.
+From: Florian Westphal <fw@strlen.de>
 
+a typo causes module auto load support to never be compiled in.
+
+Fixes: 03d13b6868a2 ("netfilter: xtables: add and use xt_request_find_table_lock")
+Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h       | 2 --
- net/bridge/netfilter/nf_tables_bridge.c | 1 -
- net/ipv4/netfilter/nf_tables_arp.c      | 1 -
- net/ipv4/netfilter/nf_tables_ipv4.c     | 1 -
- net/ipv6/netfilter/nf_tables_ipv6.c     | 1 -
- net/netfilter/nf_tables_api.c           | 5 +----
- net/netfilter/nf_tables_inet.c          | 1 -
- net/netfilter/nf_tables_netdev.c        | 1 -
- 8 files changed, 1 insertion(+), 12 deletions(-)
+ net/netfilter/x_tables.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index dd238950df81..536aaec96a07 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -973,7 +973,6 @@ enum nft_af_flags {
-  *
-  *	@list: used internally
-  *	@family: address family
-- *	@nhooks: number of hooks in this family
-  *	@owner: module owner
-  *	@tables: used internally
-  *	@flags: family flags
-@@ -981,7 +980,6 @@ enum nft_af_flags {
- struct nft_af_info {
- 	struct list_head		list;
- 	int				family;
--	unsigned int			nhooks;
- 	struct module			*owner;
- 	struct list_head		tables;
- 	u32				flags;
-diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
-index 86774b5c3b73..66c97b1e3303 100644
---- a/net/bridge/netfilter/nf_tables_bridge.c
-+++ b/net/bridge/netfilter/nf_tables_bridge.c
-@@ -44,7 +44,6 @@ nft_do_chain_bridge(void *priv,
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 10c19a3f4cbd..5b8f3b7358e6 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1082,7 +1082,7 @@ struct xt_table *xt_request_find_table_lock(struct net *net, u_int8_t af,
+ {
+ 	struct xt_table *t = xt_find_table_lock(net, af, name);
  
- static struct nft_af_info nft_af_bridge __read_mostly = {
- 	.family		= NFPROTO_BRIDGE,
--	.nhooks		= NF_BR_NUMHOOKS,
- 	.owner		= THIS_MODULE,
- };
- 
-diff --git a/net/ipv4/netfilter/nf_tables_arp.c b/net/ipv4/netfilter/nf_tables_arp.c
-index f84c17763f6f..f9089b2ad905 100644
---- a/net/ipv4/netfilter/nf_tables_arp.c
-+++ b/net/ipv4/netfilter/nf_tables_arp.c
-@@ -29,7 +29,6 @@ nft_do_chain_arp(void *priv,
- 
- static struct nft_af_info nft_af_arp __read_mostly = {
- 	.family		= NFPROTO_ARP,
--	.nhooks		= NF_ARP_NUMHOOKS,
- 	.owner		= THIS_MODULE,
- };
- 
-diff --git a/net/ipv4/netfilter/nf_tables_ipv4.c b/net/ipv4/netfilter/nf_tables_ipv4.c
-index f4675253f1e6..a98f2de63771 100644
---- a/net/ipv4/netfilter/nf_tables_ipv4.c
-+++ b/net/ipv4/netfilter/nf_tables_ipv4.c
-@@ -32,7 +32,6 @@ static unsigned int nft_do_chain_ipv4(void *priv,
- 
- static struct nft_af_info nft_af_ipv4 __read_mostly = {
- 	.family		= NFPROTO_IPV4,
--	.nhooks		= NF_INET_NUMHOOKS,
- 	.owner		= THIS_MODULE,
- };
- 
-diff --git a/net/ipv6/netfilter/nf_tables_ipv6.c b/net/ipv6/netfilter/nf_tables_ipv6.c
-index 9cd45b964123..bddd39dc1cf3 100644
---- a/net/ipv6/netfilter/nf_tables_ipv6.c
-+++ b/net/ipv6/netfilter/nf_tables_ipv6.c
-@@ -30,7 +30,6 @@ static unsigned int nft_do_chain_ipv6(void *priv,
- 
- static struct nft_af_info nft_af_ipv6 __read_mostly = {
- 	.family		= NFPROTO_IPV6,
--	.nhooks		= NF_INET_NUMHOOKS,
- 	.owner		= THIS_MODULE,
- };
- 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 336b81689ac9..93e4e67e4b4d 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1328,9 +1328,6 @@ static int nft_chain_parse_hook(struct net *net,
- 		return -EINVAL;
- 
- 	hook->num = ntohl(nla_get_be32(ha[NFTA_HOOK_HOOKNUM]));
--	if (hook->num >= afi->nhooks)
--		return -EINVAL;
--
- 	hook->priority = ntohl(nla_get_be32(ha[NFTA_HOOK_PRIORITY]));
- 
- 	type = chain_type[afi->family][NFT_CHAIN_T_DEFAULT];
-@@ -4993,7 +4990,7 @@ static int nf_tables_flowtable_parse_hook(const struct nft_ctx *ctx,
- 		return -EINVAL;
- 
- 	hooknum = ntohl(nla_get_be32(tb[NFTA_FLOWTABLE_HOOK_NUM]));
--	if (hooknum >= ctx->afi->nhooks)
-+	if (hooknum != NF_NETDEV_INGRESS)
- 		return -EINVAL;
- 
- 	priority = ntohl(nla_get_be32(tb[NFTA_FLOWTABLE_HOOK_PRIORITY]));
-diff --git a/net/netfilter/nf_tables_inet.c b/net/netfilter/nf_tables_inet.c
-index 58b9be7480bb..00b1fc9cea2e 100644
---- a/net/netfilter/nf_tables_inet.c
-+++ b/net/netfilter/nf_tables_inet.c
-@@ -40,7 +40,6 @@ static unsigned int nft_do_chain_inet(void *priv, struct sk_buff *skb,
- 
- static struct nft_af_info nft_af_inet __read_mostly = {
- 	.family		= NFPROTO_INET,
--	.nhooks		= NF_INET_NUMHOOKS,
- 	.owner		= THIS_MODULE,
- };
- 
-diff --git a/net/netfilter/nf_tables_netdev.c b/net/netfilter/nf_tables_netdev.c
-index 42f6f6d42a6d..3da3dc7de945 100644
---- a/net/netfilter/nf_tables_netdev.c
-+++ b/net/netfilter/nf_tables_netdev.c
-@@ -40,7 +40,6 @@ nft_do_chain_netdev(void *priv, struct sk_buff *skb,
- 
- static struct nft_af_info nft_af_netdev __read_mostly = {
- 	.family		= NFPROTO_NETDEV,
--	.nhooks		= NF_NETDEV_NUMHOOKS,
- 	.owner		= THIS_MODULE,
- 	.flags		= NFT_AF_NEEDS_DEV,
- };
+-#ifdef CONFIG_MODULE
++#ifdef CONFIG_MODULES
+ 	if (IS_ERR(t)) {
+ 		int err = request_module("%stable_%s", xt_prefix[af], name);
+ 		if (err)
 -- 
 2.11.0
 
