@@ -1,71 +1,65 @@
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] netfilter: return booleans instead of integers
-Date: Thu, 18 Jan 2018 17:25:12 -0600
-Message-ID: <20180118232512.GA22242@embeddedor.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+From: Varsha Rao <rvarsha016@gmail.com>
+Subject: [PATCH nft] configure: Remove AC_HEADER_STDBOOL, AC_C_ and AC_TYPE_ macros
+Date: Fri, 19 Jan 2018 08:30:17 +0530
+Message-ID: <20180119030017.12432-1-rvarsha016@gmail.com>
+Cc: Varsha Rao <rvarsha016@gmail.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+        netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:39273 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752855AbeASDBs (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 18 Jan 2018 22:01:48 -0500
+Received: by mail-pf0-f194.google.com with SMTP id e11so323504pff.6
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Jan 2018 19:01:48 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Return statements in functions returning bool should use
-true/false instead of 1/0.
+The following macros check if particular C types in specific header file
+exists, these header files defines them and are already included in the
+source code. So, remove them.
 
-These issues were detected with the help of Coccinelle.
+AC_HEADER_STDBOOL - stdbool.h
+AC_TYPE_INT and AC_TYPE_UINT - stdint.h or inttypes.h
+AC_TYPE_OFF_T and AC_TYPE_UID_T - sys/types.h
+AC_TYPE_SIZE_T - stddef.h, string.h, stdlib.h or stdio.h
 
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+Remove AC_C_CONST and AC_C_INLINE as gcc supports inline and const
+keywords.
+
+Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
 ---
- net/netfilter/nf_conncount.c | 2 +-
- net/netfilter/xt_hashlimit.c | 2 +-
- net/netfilter/xt_ipcomp.c    | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ configure.ac | 16 ----------------
+ 1 file changed, 16 deletions(-)
 
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index a955182..6d65389 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -71,7 +71,7 @@ static inline bool already_closed(const struct nf_conn *conn)
- 		return conn->proto.tcp.state == TCP_CONNTRACK_TIME_WAIT ||
- 		       conn->proto.tcp.state == TCP_CONNTRACK_CLOSE;
- 	else
--		return 0;
-+		return false;
- }
+diff --git a/configure.ac b/configure.ac
+index 6ed3edc..13b5574 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -120,22 +120,6 @@ AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h limits.h malloc.h \
+ 		  stddef.h stdint.h stdlib.h string.h unistd.h], ,
+ 		 AC_MSG_ERROR([Header file not found]))
  
- static int key_diff(const u32 *a, const u32 *b, unsigned int klen)
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 5da8746..ec51d9a 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -353,7 +353,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
- static bool select_all(const struct xt_hashlimit_htable *ht,
- 		       const struct dsthash_ent *he)
- {
--	return 1;
-+	return true;
- }
+-# Checks for typedefs, structures, and compiler characteristics.
+-AC_HEADER_STDBOOL
+-AC_C_CONST
+-AC_C_INLINE
+-AC_TYPE_OFF_T
+-AC_TYPE_SIZE_T
+-AC_TYPE_UID_T
+-AC_TYPE_INT8_T
+-AC_TYPE_INT16_T
+-AC_TYPE_INT32_T
+-AC_TYPE_INT64_T
+-AC_TYPE_UINT8_T
+-AC_TYPE_UINT16_T
+-AC_TYPE_UINT32_T
+-AC_TYPE_UINT64_T
+-
+ # Checks for library functions.
+ AC_CHECK_FUNCS([memmove memset strchr strdup strerror strtoull])
  
- static bool select_gc(const struct xt_hashlimit_htable *ht,
-diff --git a/net/netfilter/xt_ipcomp.c b/net/netfilter/xt_ipcomp.c
-index 000e703..7ca64a5 100644
---- a/net/netfilter/xt_ipcomp.c
-+++ b/net/netfilter/xt_ipcomp.c
-@@ -58,7 +58,7 @@ static bool comp_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 		 */
- 		pr_debug("Dropping evil IPComp tinygram.\n");
- 		par->hotdrop = true;
--		return 0;
-+		return false;
- 	}
- 
- 	return spi_match(compinfo->spis[0], compinfo->spis[1],
 -- 
-2.7.4
+2.14.3
+
