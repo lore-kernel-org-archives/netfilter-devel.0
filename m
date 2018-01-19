@@ -1,59 +1,54 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 11/32] netfilter: remove duplicated include
-Date: Fri, 19 Jan 2018 20:10:20 +0100
-Message-ID: <20180119191041.25804-12-pablo@netfilter.org>
-References: <20180119191041.25804-1-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+From: kbuild test robot <fengguang.wu@intel.com>
+Subject: [RFC PATCH nf-next] netfilter: nf_tables:
+ nf_tables_obj_lookup_byhandle() can be static
+Date: Sat, 20 Jan 2018 04:27:58 +0800
+Message-ID: <20180119202757.GA84608@cairo>
+References: <201801200422.IyzwLs87%fengguang.wu@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: kbuild-all@01.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, Pablo Neira Ayuso <pablo@netfilter.org>
+To: Harsha Sharma <harshasharmaiitr@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45142 "EHLO mail.us.es"
+Received: from mga02.intel.com ([134.134.136.20]:47188 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756186AbeASTLD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Jan 2018 14:11:03 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7C34B2EFEC5
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:11:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 6C8ABDA38E
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:11:00 +0100 (CET)
-In-Reply-To: <20180119191041.25804-1-pablo@netfilter.org>
+        id S1756160AbeASU2h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 19 Jan 2018 15:28:37 -0500
+Content-Disposition: inline
+In-Reply-To: <201801200422.IyzwLs87%fengguang.wu@intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Wei Yongjun <weiyongjun1@huawei.com>
 
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 3ecbfd65f50e ("netfilter: nf_tables: allocate handle and delete objects via handle")
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
 ---
- net/ipv6/netfilter/nf_flow_table_ipv6.c | 1 -
- net/netfilter/nf_queue.c                | 2 --
- 2 files changed, 3 deletions(-)
+ nf_tables_api.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/ipv6/netfilter/nf_flow_table_ipv6.c b/net/ipv6/netfilter/nf_flow_table_ipv6.c
-index 0c3b9d32f64f..fff21602875a 100644
---- a/net/ipv6/netfilter/nf_flow_table_ipv6.c
-+++ b/net/ipv6/netfilter/nf_flow_table_ipv6.c
-@@ -5,7 +5,6 @@
- #include <linux/rhashtable.h>
- #include <linux/ipv6.h>
- #include <linux/netdevice.h>
--#include <linux/ipv6.h>
- #include <net/ipv6.h>
- #include <net/ip6_route.h>
- #include <net/neighbour.h>
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 7f55af5f3d1a..d67a96a25a68 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -15,8 +15,6 @@
- #include <linux/netfilter_bridge.h>
- #include <linux/seq_file.h>
- #include <linux/rcupdate.h>
--#include <linux/netfilter_ipv4.h>
--#include <linux/netfilter_ipv6.h>
- #include <net/protocol.h>
- #include <net/netfilter/nf_queue.h>
- #include <net/dst.h>
--- 
-2.11.0
-
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 1addc401..b0129a0 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4328,9 +4328,9 @@ struct nft_object *nf_tables_obj_lookup(const struct nft_table *table,
+ }
+ EXPORT_SYMBOL_GPL(nf_tables_obj_lookup);
+ 
+-struct nft_object *nf_tables_obj_lookup_byhandle(const struct nft_table *table,
+-						 const struct nlattr *nla,
+-						 u32 objtype, u8 genmask)
++static struct nft_object *nf_tables_obj_lookup_byhandle(const struct nft_table *table,
++							const struct nlattr *nla,
++							u32 objtype, u8 genmask)
+ {
+ 	struct nft_object *obj;
+ 
+@@ -4850,7 +4850,7 @@ struct nft_flowtable *nf_tables_flowtable_lookup(const struct nft_table *table,
+ }
+ EXPORT_SYMBOL_GPL(nf_tables_flowtable_lookup);
+ 
+-struct nft_flowtable *
++static struct nft_flowtable *
+ nf_tables_flowtable_lookup_byhandle(const struct nft_table *table,
+ 				    const struct nlattr *nla, u8 genmask)
+ {
