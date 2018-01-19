@@ -1,46 +1,58 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] netfilter: delete /proc THIS_MODULE references
-Date: Fri, 19 Jan 2018 14:11:14 +0100
-Message-ID: <20180119131114.nrvon4di4byi64i6@salvia>
-References: <20180113170831.GA1016@avx2>
- <20180115214532.GD6942@avx2>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH nf-next] netfilter: remove messages print and boot/module
+ load time
+Date: Fri, 19 Jan 2018 14:13:48 +0100 (CET)
+Message-ID: <alpine.DEB.2.11.1801191413120.20974@blackhole.kfki.hu>
+References: <20180119124702.2650-1-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kadlec@blackhole.kfki.hu, fw@strlen.de,
-        netfilter-devel@vger.kernel.org, ja@ssi.bg
-To: Alexey Dobriyan <adobriyan@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53432 "EHLO mail.us.es"
+Received: from smtp0.kfki.hu ([148.6.0.25]:59975 "EHLO smtp0.kfki.hu"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754873AbeASNLS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Jan 2018 08:11:18 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3902620A52A
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 14:11:17 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2448DDA858
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 14:11:17 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20180115214532.GD6942@avx2>
+        id S1754719AbeASNNv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 19 Jan 2018 08:13:51 -0500
+In-Reply-To: <20180119124702.2650-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jan 16, 2018 at 12:45:32AM +0300, Alexey Dobriyan wrote:
-> /proc has been ignoring struct file_operations::owner field for 10 years.
-> Specifically, it started with commit 786d7e1612f0b0adb6046f19b906609e4fe8b1ba
-> ("Fix rmmod/read/write races in /proc entries"). Notice the chunk where
-> inode->i_fop is initialized with proxy struct file_operations for
-> regular files:
-> 
-> 	-               if (de->proc_fops)
-> 	-                       inode->i_fop = de->proc_fops;
-> 	+               if (de->proc_fops) {
-> 	+                       if (S_ISREG(inode->i_mode))
-> 	+                               inode->i_fop = &proc_reg_file_ops;
-> 	+                       else
-> 	+                               inode->i_fop = de->proc_fops;
-> 	+               }
-> 
-> VFS stopped pinning module at this point.
+On Fri, 19 Jan 2018, Pablo Neira Ayuso wrote:
 
-Applied, thanks.
+> Several reasons for this:
+> 
+> * Several modules maintain internal version numbers, that they print at
+>   boot/module load time, that are not exposed to userspace, as a
+>   primitive mechanism to make revision number control from the earlier
+>   days of Netfilter.
+> 
+> * IPset shows the protocol version at boot/module load time, instead
+>   display this via module description, as Jozsef suggested.
+> 
+> * Remove copyright notice at boot/module load time in two spots, the
+>   Netfilter codebase is a collective development effort, if we would
+>   have to display copyrights for each contributor at boot/module load
+>   time for each extensions we have, we would probably fill up logs with
+>   lots of useless information - from a technical standpoint.
+> 
+> So let's be consistent and remove them all.
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  net/netfilter/ipset/ip_set_core.c    | 3 ++-
+>  net/netfilter/nf_conntrack_netlink.c | 5 -----
+>  net/netfilter/nf_tables_api.c        | 1 -
+>  net/netfilter/nfnetlink.c            | 4 ----
+>  net/netfilter/nfnetlink_acct.c       | 2 --
+>  net/netfilter/nft_compat.c           | 2 --
+>  6 files changed, 2 insertions(+), 15 deletions(-)
+
+Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
