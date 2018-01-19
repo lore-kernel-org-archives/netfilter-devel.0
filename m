@@ -1,55 +1,61 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 24/32] netfilter: nf_nat_snmp_basic: replace ctinfo with dir.
-Date: Fri, 19 Jan 2018 20:10:33 +0100
-Message-ID: <20180119191041.25804-25-pablo@netfilter.org>
+Subject: [PATCH 17/32] netfilter: nf_tables: flow_offload depends on flow_table
+Date: Fri, 19 Jan 2018 20:10:26 +0100
+Message-ID: <20180119191041.25804-18-pablo@netfilter.org>
 References: <20180119191041.25804-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:45292 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932452AbeASTLL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 19 Jan 2018 14:11:11 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 5F0E12EFECE
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:11:04 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 44414DA857
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Jan 2018 20:11:04 +0100 (CET)
 In-Reply-To: <20180119191041.25804-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
 
-The snmp_translate() receives ctinfo data to get dir value only.
-because of caller already has dir value, we just replace ctinfo with dir.
+Without CONFIG_NF_FLOW_TABLE, the new nft_flow_offload module produces
+a link error:
 
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+net/netfilter/nft_flow_offload.o: In function `nft_flow_offload_iterate_cleanup':
+nft_flow_offload.c:(.text+0xb0): undefined reference to `nf_flow_table_iterate'
+net/netfilter/nft_flow_offload.o: In function `flow_offload_iterate_cleanup':
+nft_flow_offload.c:(.text+0x160): undefined reference to `flow_offload_dead'
+net/netfilter/nft_flow_offload.o: In function `nft_flow_offload_eval':
+nft_flow_offload.c:(.text+0xc4c): undefined reference to `flow_offload_alloc'
+nft_flow_offload.c:(.text+0xc64): undefined reference to `flow_offload_add'
+nft_flow_offload.c:(.text+0xc94): undefined reference to `flow_offload_free'
+
+This adds a Kconfig dependency for it.
+
+Fixes: a3c90f7a2323 ("netfilter: nf_tables: flow offload expression")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/nf_nat_snmp_basic.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ net/netfilter/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-index e5ec946f0765..c8ac57f56318 100644
---- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
-+++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-@@ -1082,15 +1082,12 @@ static int snmp_parse_mangle(unsigned char *msg,
- /*
-  * SNMP translation routine.
-  */
--static int snmp_translate(struct nf_conn *ct,
--			  enum ip_conntrack_info ctinfo,
--			  struct sk_buff *skb)
-+static int snmp_translate(struct nf_conn *ct, int dir, struct sk_buff *skb)
- {
- 	struct iphdr *iph = ip_hdr(skb);
- 	struct udphdr *udph = (struct udphdr *)((__be32 *)iph + iph->ihl);
- 	u_int16_t udplen = ntohs(udph->len);
- 	u_int16_t paylen = udplen - sizeof(struct udphdr);
--	int dir = CTINFO2DIR(ctinfo);
- 	struct oct1_map map;
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index ea447826e127..9019fa98003d 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -506,7 +506,7 @@ config NFT_CT
+ 	  connection tracking information such as the flow state.
  
- 	/*
-@@ -1155,7 +1152,7 @@ static int help(struct sk_buff *skb, unsigned int protoff,
- 		return NF_DROP;
- 
- 	spin_lock_bh(&snmp_lock);
--	ret = snmp_translate(ct, ctinfo, skb);
-+	ret = snmp_translate(ct, dir, skb);
- 	spin_unlock_bh(&snmp_lock);
- 	return ret;
- }
+ config NFT_FLOW_OFFLOAD
+-	depends on NF_CONNTRACK
++	depends on NF_CONNTRACK && NF_FLOW_TABLE
+ 	tristate "Netfilter nf_tables hardware flow offload module"
+ 	help
+ 	  This option adds the "flow_offload" expression that you can use to
 -- 
 2.11.0
+
