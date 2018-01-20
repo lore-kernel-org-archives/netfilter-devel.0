@@ -1,56 +1,70 @@
-From: kbuild test robot <fengguang.wu@intel.com>
-Subject: [nf-next:master 27/32] net/netfilter/nf_tables_api.c:4331:19:
- sparse: symbol 'nf_tables_obj_lookup_byhandle' was not declared. Should it
- be static?
-Date: Sat, 20 Jan 2018 04:27:57 +0800
-Message-ID: <201801200422.IyzwLs87%fengguang.wu@intel.com>
+From: Jeff Kletsky <netfilter@allycomm.com>
+Subject: Error: interval overlaps with previous one (with previously valid
+ configuration)
+Date: Fri, 19 Jan 2018 20:42:52 -0800
+Message-ID: <d3d8d2fe-aebb-73ad-8162-44a0a184a7d2@wagsky.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kbuild-all@01.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, Pablo Neira Ayuso <pablo@netfilter.org>
-To: Harsha Sharma <harshasharmaiitr@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+To: netfilter-devel@vger.kernel.org,
+        Netfilter Users Mailing list <netfilter@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:11046 "EHLO mga07.intel.com"
+Received: from mx.allycomm.com ([138.68.30.55]:15319 "EHLO mx.allycomm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756160AbeASU2i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Jan 2018 15:28:38 -0500
-Content-Disposition: inline
+        id S1753337AbeATEst (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 19 Jan 2018 23:48:49 -0500
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
-head:   e55311665286ab2744295575948c2b08dc001bf3
-commit: 3ecbfd65f50e5ff9c538c1bfa3356ef52cc66586 [27/32] netfilter: nf_tables: allocate handle and delete objects via handle
-reproduce:
-        # apt-get install sparse
-        git checkout 3ecbfd65f50e5ff9c538c1bfa3356ef52cc66586
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF=-D__CHECK_ENDIAN__
+With a previously valid configuration, which "includes" files into the 
+main configuration, I get error messages with the HEAD of master on 
+January 16, 2018 9afd72a883e391e366a1d75bb4e1705357e078e9
+
+systemd[1]: Starting nftables...
+apu.allycomm.com nft[31431]: In file included from nftables.conf:396:6-34:
+apu.allycomm.com nft[31431]: ./dnat_targets.nft:45:9-23: Error: interval 
+overlaps with previous one
+apu.allycomm.com nft[31431]:         ^^^^^^^^^^^^^^^
+
+Unfortunately, the error message both fails to identify what interval 
+overlaps as well as failing to identify the location of the conflict. 
+dnat_targets only has 23 lines. This feels like a similar problem to the 
+"wrong-file" issues that were previously resolved.
 
 
-sparse warnings: (new ones prefixed by >>)
+Guessing that the problem was caused by
 
-   net/netfilter/nf_tables_api.c:1180:31: sparse: incorrect type in return expression (different address spaces) @@ expected struct nft_stats @@ got @@
-   net/netfilter/nf_tables_api.c:1180:31: expected struct nft_stats
-   net/netfilter/nf_tables_api.c:1180:31: got void COPYING CREDITS Documentation Kbuild Kconfig MAINTAINERS Makefile README arch block certs crypto drivers firmware fs include init ipc kernel lib mm net samples scripts security sound tools usr virt
-   net/netfilter/nf_tables_api.c:1183:31: sparse: incorrect type in return expression (different address spaces) @@ expected struct nft_stats @@ got @@
-   net/netfilter/nf_tables_api.c:1183:31: expected struct nft_stats
-   net/netfilter/nf_tables_api.c:1183:31: got void COPYING CREDITS Documentation Kbuild Kconfig MAINTAINERS Makefile README arch block certs crypto drivers firmware fs include init ipc kernel lib mm net samples scripts security sound tools usr virt
-   net/netfilter/nf_tables_api.c:1187:31: sparse: incorrect type in return expression (different address spaces) @@ expected struct nft_stats @@ got @@
-   net/netfilter/nf_tables_api.c:1187:31: expected struct nft_stats
-   net/netfilter/nf_tables_api.c:1187:31: got void COPYING CREDITS Documentation Kbuild Kconfig MAINTAINERS Makefile README arch block certs crypto drivers firmware fs include init ipc kernel lib mm net samples scripts security sound tools usr virt
-   net/netfilter/nf_tables_api.c:1210:28: sparse: cast between address spaces (<asn:3>-><asn:4>)
-   net/netfilter/nf_tables_api.c:1210:28: sparse: incompatible types in comparison expression (different address spaces)
-   net/netfilter/nf_tables_api.c:1464:23: sparse: incorrect type in assignment (different address spaces) @@ expected struct nft_stats @@ got struct nft_stats struct nft_stats @@
-   net/netfilter/nf_tables_api.c:1472:29: sparse: incorrect type in argument 1 (different address spaces) @@ expected void @@ got @@
-   net/netfilter/nf_tables_api.c:1476:38: sparse: incorrect type in assignment (different address spaces) @@ expected struct nft_stats @@ got @@
-   net/netfilter/nf_tables_api.c:1490:37: sparse: incorrect type in argument 1 (different address spaces) @@ expected void @@ got @@
->> net/netfilter/nf_tables_api.c:4331:19: sparse: symbol 'nf_tables_obj_lookup_byhandle' was not declared. Should it be
-   net/netfilter/nf_tables_api.c:4360:41: sparse: Variable length array is used.
->> net/netfilter/nf_tables_api.c:4853:22: sparse: symbol 'nf_tables_flowtable_lookup_byhandle' was not declared. Should it be
+commit 9a4b513014cfdeaad6d247b72a7924b3a536cfe9
+Author: Phil Sutter <phil@nwl.cc>
+Date:   Wed Jan 10 21:32:04 2018 +0100
 
-Please review and possibly fold the followup patch.
+     src: Don't merge adjacent/overlapping ranges
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+     [...]
+
+
+I have reverted back to the previous commit
+
+commit 0b3ccd27e12d1df442aa3eac40a2ccb63d6c6407
+Author: Phil Sutter <phil@nwl.cc>
+Date:   Wed Jan 10 13:43:21 2018 +0100
+
+     build: Restore per object CFLAGS
+
+and at least have an operational system again.
+
+
+I don't see any commits in today's master branch after the 9a4b51 commit 
+that seem to relate either to the interval regression, or to the problem 
+with logging.
+
+
+How can I trace down this problem?
+
+
+Thanks,
+
+Jeff
+
+
