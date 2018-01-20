@@ -1,43 +1,130 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH] tests/shell: Add back named_interval_automerging_0
-Date: Sat, 20 Jan 2018 14:21:01 +0100
-Message-ID: <20180120132101.14921-1-phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Jeff Kletsky <netfilter@allycomm.com>
+Subject: Re: Error: interval overlaps with previous one (with previously valid
+ configuration)
+Date: Sat, 20 Jan 2018 10:28:29 -0800
+Message-ID: <ecff5d36-8d7c-53da-dbb8-32f8c4848580@allycomm.com>
+References: <d3d8d2fe-aebb-73ad-8162-44a0a184a7d2@wagsky.com>
+ <20180120091140.25jlj6tmgf6rwzan@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Users Mailing list <netfilter@vger.kernel.org>,
+        Phil Sutter <phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:58360 "EHLO orbyte.nwl.cc"
+Received: from mx.allycomm.com ([138.68.30.55]:22975 "EHLO mx.allycomm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751324AbeATNVN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 20 Jan 2018 08:21:13 -0500
+        id S1756278AbeATSdw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 20 Jan 2018 13:33:52 -0500
+In-Reply-To: <20180120091140.25jlj6tmgf6rwzan@salvia>
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Change the test to expect no automerging since it was disabled recently.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- tests/shell/testcases/sets/0002named_interval_automerging_0 | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
- create mode 100755 tests/shell/testcases/sets/0002named_interval_automerging_0
 
-diff --git a/tests/shell/testcases/sets/0002named_interval_automerging_0 b/tests/shell/testcases/sets/0002named_interval_automerging_0
-new file mode 100755
-index 0000000000000..688986387d177
---- /dev/null
-+++ b/tests/shell/testcases/sets/0002named_interval_automerging_0
-@@ -0,0 +1,12 @@
-+#!/bin/bash
-+
-+# This testscase checks the automerging of adjacent intervals
-+
-+set -e
-+
-+$NFT add table t
-+$NFT add set t s { type ipv4_addr \; flags interval \; }
-+$NFT add element t s { 192.168.0.0/24, 192.168.1.0/24 }
-+$NFT list ruleset | grep "192.168.0.0/23" >/dev/null || exit 0
-+echo "E: automerging of adjacent intervals happened unexpectedly." >&2
-+exit 1
--- 
-2.15.1
+On 1/20/18 1:11 AM, Pablo Neira Ayuso wrote:
+> On Fri, Jan 19, 2018 at 08:42:52PM -0800, Jeff Kletsky wrote:
+>> With a previously valid configuration, which "includes" files into the main
+>> configuration, I get error messages with the HEAD of master on January 16,
+>> 2018 9afd72a883e391e366a1d75bb4e1705357e078e9
+>>
+>> systemd[1]: Starting nftables...
+>> apu.allycomm.com nft[31431]: In file included from nftables.conf:396:6-34:
+>> apu.allycomm.com nft[31431]: ./dnat_targets.nft:45:9-23: Error: interval
+>> overlaps with previous one
+>> apu.allycomm.com nft[31431]:         ^^^^^^^^^^^^^^^
+>>
+>> Unfortunately, the error message both fails to identify what interval
+>> overlaps as well as failing to identify the location of the conflict.
+>> dnat_targets only has 23 lines. This feels like a similar problem to the
+>> "wrong-file" issues that were previously resolved.
+>>
+>> Guessing that the problem was caused by
+>>
+>> commit 9a4b513014cfdeaad6d247b72a7924b3a536cfe9
+>> Author: Phil Sutter <phil@nwl.cc>
+>> Date:   Wed Jan 10 21:32:04 2018 +0100
+>>
+>>      src: Don't merge adjacent/overlapping ranges
+>>
+>>      [...]
+>>
+>>
+>> I have reverted back to the previous commit
+>>
+>> commit 0b3ccd27e12d1df442aa3eac40a2ccb63d6c6407
+>> Author: Phil Sutter <phil@nwl.cc>
+>> Date:   Wed Jan 10 13:43:21 2018 +0100
+>>
+>>      build: Restore per object CFLAGS
+>>
+>> and at least have an operational system again.
+>>
+>>
+>> I don't see any commits in today's master branch after the 9a4b51 commit
+>> that seem to relate either to the interval regression, or to the problem
+>> with logging.
+>>
+>>
+>> How can I trace down this problem?
+> So we have two bugs here.
+>
+> 1) Could you make an example for us to reproduce the misleading error
+> reporting? Something that we can simply run here to reproduce the
+> issue would be great.
+>
+> 2) Is there really any overlap in the set that is defined in
+> dnat_targets, in those 23 lines, or this error is bogus?
+>
+> Thanks!
+> --
+
+Relatively trivial examples to replicate posted at 
+https://bugzilla.netfilter.org/show_bug.cgi?id=1216
+
+Yes, there is overlap, as ::1/128 is a subset of ::/96
+That set is declared in blackhole_ipv6.nft with the overlapping elements 
+on lines 13 and 14 of the file.
+
+
+Related to this symptom, I'm puzzled by the apparent design behavior of 
+prohibiting overlapping ranges at all. By doing so, it seems to prevent 
+or hamper some of the use cases for which not merging ranges has benefit.
+
+For me, I see the benefits of not merging ranges to be two-fold:
+* The ranges reported by nft match those in configuration files
+* Dynamically modified sets
+
+The first is illustrated in the test case. Clearly seeing that the 
+loopback address is blocked has benefit, even if it is a subset of the 
+mapped-IPv4 block.
+
+In the second case, a firewall that adjusts its rules may want to deal 
+with a sub-range, or even a specific host within an existing sub-range, 
+without having to query the current rule set, and potentially need to 
+unwind merged sets. If a program needs to deal with host A.B.C.D, it 
+should be able to create a set entry for that single host (and later 
+remove it), without needing to know that there is already an entry for 
+A.B.C.0/24. An example of this is a behavior-based firewall, where both 
+the net block and the host have action taken, but that action will be 
+reversed on a different time scale for the host than for the net block.
+
+I don't argue that a "set" should be a "set" in the mathematical sense; 
+each element itself unique. What is limiting is that the relative 
+meaning of the elements of the set ("overlapping interval") impacts 
+their validity. If I have a good reason to have overlapping ranges, I 
+can see no reason to prohibit them. Even performance is an unconvincing 
+argument for me, as it is a conscious decision on my part, for example, 
+to wish to include both ::1/128 and ::/96 and be able to see their 
+presence and manage them independently.
+
+Think about the wide swaths of unallocated IPv6 address space. I'd 
+prefer to deal with them line-by-line, in the same form as the lists are 
+delivered, without having to worry about overlap, merging, or, worse, 
+un-merging.
+
+
+Jeff
 
