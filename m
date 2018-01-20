@@ -1,8 +1,8 @@
 From: Duncan Roe <duncan_roe@optusnet.com.au>
 Subject: Re: [PATCH v2] extensions: libxt_hashlimit: Do not print default
  timeout and burst
-Date: Sun, 21 Jan 2018 00:42:54 +1100
-Message-ID: <20180120134254.GA13310@smallstar.local.net>
+Date: Sun, 21 Jan 2018 00:35:00 +1100
+Message-ID: <20180120133500.GA13266@smallstar.local.net>
 References: <20180116124143.5s6exg3467ozmobb@salvia>
  <20180116204554.GA27044@dimstar.local.net>
  <20180116215217.GA27232@dimstar.local.net>
@@ -15,14 +15,13 @@ References: <20180116124143.5s6exg3467ozmobb@salvia>
  <20180120124733.p5lnv4jcqai3xehs@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Netfilter Development <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [138.44.249.138] ([138.44.249.138]:56258 "HELO
+Received: from [138.44.249.138] ([138.44.249.138]:56994 "HELO
         smallstar.local.net" rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org
-        with SMTP id S1751125AbeAVEKF (ORCPT
+        with SMTP id S1751003AbeAVEN7 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 Jan 2018 23:10:05 -0500
+        Sun, 21 Jan 2018 23:13:59 -0500
 Content-Disposition: inline
 In-Reply-To: <20180120124733.p5lnv4jcqai3xehs@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
