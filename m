@@ -1,56 +1,56 @@
-From: Jack Ma <Jack.Ma@alliedtelesis.co.nz>
-Subject: Re: conntrack enhancement
-Date: Tue, 23 Jan 2018 01:16:08 +0000
-Message-ID: <1516670168566.10188@alliedtelesis.co.nz>
-References: <89a1d74339b14c6e813ccbea864c24e0@svr-chch-ex1.atlnz.lc>,<20180116141712.GC15198@breakpoint.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: question about UNDEFINE/REDEFINE
+Date: Tue, 23 Jan 2018 12:07:28 +0100
+Message-ID: <20180123110728.i7hujeyz6224atd2@salvia>
+References: <3622208.jy4NlOniyd@voxel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: David Fabian <david.fabian@cldn.cz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gate2.alliedtelesis.co.nz ([202.36.163.20]:44690 "EHLO
-        gate2.alliedtelesis.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751285AbeAWBQL (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Jan 2018 20:16:11 -0500
-Received: from mmarshal3.atlnz.lc (mmarshal3.atlnz.lc [10.32.18.43])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (Client did not present a certificate)
-        by gate2.alliedtelesis.co.nz (Postfix) with ESMTPS id 118A583645
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 14:16:10 +1300 (NZDT)
-In-Reply-To: <20180116141712.GC15198@breakpoint.cc>
-Content-Language: en-US
+Received: from mail.us.es ([193.147.175.20]:49874 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751086AbeAWLHd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 23 Jan 2018 06:07:33 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id C89921EC2C8
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 12:07:31 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B6873DA3A0
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 12:07:31 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <3622208.jy4NlOniyd@voxel>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-(Re-send this again including CC)=0A=
-=0A=
-Hi Florian,=0A=
-=0A=
-I suspect this is for -j CONNMARK  --restore-mark / --save-mark ?=0A=
-=0A=
->> Yes, current thought is to shift bits when mark is restored.=0A=
-=0A=
-Something like=0A=
-=0A=
-skb->mark =3D ct->mark >> $lshift; ?=0A=
-=0A=
->> Yes, we shift ct marks.=0A=
-=0A=
-I don't really understand how this is supposed to work.=0A=
-Could you elaborate a bit?=0A=
-=0A=
->> It's common to run out of fwmark, skb->mark first. This suggestion basic=
-ally attempts to 'grab' certain bits from ct->mark,=0A=
-      so we can restore the desired bits into skb->mark. Once skb is marked=
- correctly, we can easily achieve more versatile=0A=
-      routing per skb. However, this solution is not going to be scalable i=
-n the future. Currently, we still have enough bits in ct->mark=0A=
-      left, but way less bits left in skb->mark (which have been occupied b=
-y other features thats connectionless)...=0A=
-=0A=
-=0A=
-Thanks,=0A=
-=0A=
-Jack=
+Hi David,
+
+On Mon, Jan 22, 2018 at 02:53:09PM +0100, David Fabian wrote:
+> Hello,
+> 
+> we have a firewall written in bash (using iptables) that is organized by 
+> customer VLANs. Each VLAN has its own set of bash variables holding things 
+> like uplink iface names, gateway IPs, etc. We want to rewrite the firewall to 
+> nftables but are stuck on the fact that nft variables cannot be overridden in 
+> the same scope. We have each VLAN configuration in a separate file containing 
+> pre/post-routing, input, output and forward rules,and we include those files to 
+> a master firewall configuration. One solution is to rename all the variables 
+> with some VLAN specific (pre/su)ffix. But that is cumbersome.
+> 
+> I have made a small patch to nft which adds two new keywords - undefine and 
+> redefine. undefine simply undefines a variable from the current scope. redefine 
+> allows one to change a variable definition. The patch works against the latest 
+> fedora nft (version 0.7) but I believe it should work against master as well. 
+> I don't know how to properly send the patch to the project so I am attaching 
+> it here. I would like to know your opinion.
+
+Thanks for sending us this patch.
+
+Question here: If we allow to pass variable definitions via -D option
+from the command line, would that work for you too?
+
+I'm asking here because I would need to understand better how you've
+structured your scripts, if you could explain a bit more, we would
+appreciate.
+
+Thanks!
