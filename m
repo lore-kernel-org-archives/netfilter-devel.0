@@ -1,44 +1,43 @@
 From: Harsha Sharma <harshasharmaiitr@gmail.com>
-Subject: [PATCH] netfilter: nf_tables: Add extra bits for object handles
-Date: Wed, 24 Jan 2018 05:07:22 +0530
-Message-ID: <20180123233722.7388-1-harshasharmaiitr@gmail.com>
+Subject: [PATCH v2] tests: shell: fetch rule handle with '-a' option and then delete rule
+Date: Wed, 24 Jan 2018 05:16:01 +0530
+Message-ID: <20180123234601.7841-1-harshasharmaiitr@gmail.com>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org, harshasharmaiitr@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:45097 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752028AbeAWXhm (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:42433 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752564AbeAWXqW (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Jan 2018 18:37:42 -0500
-Received: by mail-pg0-f65.google.com with SMTP id m136so1379170pga.12
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 15:37:42 -0800 (PST)
+        Tue, 23 Jan 2018 18:46:22 -0500
+Received: by mail-pf0-f193.google.com with SMTP id b25so1578725pfd.9
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 15:46:22 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add extra bits for table, chain, sets and object handle.
+Fetch rule handle and then delete rule via that rule handle.
 
 Signed-off-by: Harsha Sharma <harshasharmaiitr@gmail.com>
 ---
- net/netfilter/nf_tables_trace.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+Changes in v2:
+ - No need to use grep
 
-diff --git a/net/netfilter/nf_tables_trace.c b/net/netfilter/nf_tables_trace.c
-index e1dc527a493b..f804c3924d32 100644
---- a/net/netfilter/nf_tables_trace.c
-+++ b/net/netfilter/nf_tables_trace.c
-@@ -212,7 +212,11 @@ void nft_trace_notify(struct nft_traceinfo *info)
- 		nla_total_size(sizeof(__be16)) +	/* oiftype */
- 		nla_total_size(sizeof(u32)) +		/* mark */
- 		nla_total_size(sizeof(u32)) +		/* nfproto */
--		nla_total_size(sizeof(u32));		/* policy */
-+		nla_total_size(sizeof(u32)); +		/* policy */
-+		nla_total_size_64bit(sizeof(__be64)) +	/* table handle */
-+		nla_total_size_64bit(sizeof(__be64)) +	/* chain handle */
-+		nla_total_size_64bit(sizeof(__be64)) +	/* set handle */
-+		nla_total_size_64bit(sizeof(__be64))	/* object handle */
+ tests/shell/testcases/cache/0001_cache_handling_0 | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/tests/shell/testcases/cache/0001_cache_handling_0 b/tests/shell/testcases/cache/0001_cache_handling_0
+index 9a73769..3693f15 100755
+--- a/tests/shell/testcases/cache/0001_cache_handling_0
++++ b/tests/shell/testcases/cache/0001_cache_handling_0
+@@ -24,6 +24,7 @@ table inet test {
+ set -e
  
- 	if (nft_trace_have_verdict_chain(info))
- 		size += nla_total_size(strlen(info->verdict->chain->name)); /* jump target */
+ $NFT -f $tmpfile
+-$NFT delete rule inet test test handle 2
++rule_handle=$($NFT list ruleset -a | awk '/saddr/{print $NF}')
++$NFT delete rule inet test test handle $rule_handle
+ $NFT delete set inet test test
+ $NFT -f $tmpfile
 -- 
 2.11.0
 
