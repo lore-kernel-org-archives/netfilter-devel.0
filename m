@@ -1,171 +1,243 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 3/6] src: delete flowtable
-Date: Tue, 23 Jan 2018 13:16:19 +0100
-Message-ID: <20180123121622.16287-3-pablo@netfilter.org>
+Subject: [PATCH nft 4/6] src: flow offload support
+Date: Tue, 23 Jan 2018 13:16:20 +0100
+Message-ID: <20180123121622.16287-4-pablo@netfilter.org>
 References: <20180123121622.16287-1-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44790 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44794 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751393AbeAWMQc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Jan 2018 07:16:32 -0500
+        id S1751394AbeAWMQd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 23 Jan 2018 07:16:33 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 168492519A6
+        by mail.us.es (Postfix) with ESMTP id E4BE82519A2
         for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:16:31 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 04FFEDA808
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D2479DA811
         for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:16:31 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F0E1DDA809
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:16:28 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BF159DA86B
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:16:29 +0100 (CET)
 Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id BA7F241E4817
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:16:28 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id 862C241E4817
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:16:29 +0100 (CET)
 In-Reply-To: <20180123121622.16287-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch allows you to delete an existing flowtable:
+This patch allows us to refer to existing flowtables:
 
- # nft delete flowtable x m
+ # nft add rule x x flow offload @m
+
+Packets matching this rule create an entry in the flow table 'm', hence,
+follow up packets that get to the flowtable at ingress bypass the
+classic forwarding path.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/mnl.h      |  3 +++
- include/netlink.h  |  3 +++
- src/evaluate.c     |  1 +
- src/mnl.c          | 16 ++++++++++++++++
- src/netlink.c      | 18 ++++++++++++++++++
- src/parser_bison.y |  4 ++++
- src/rule.c         |  3 +++
- 7 files changed, 48 insertions(+)
+ include/ct.h              |  2 ++
+ include/statement.h       |  9 +++++++++
+ src/ct.c                  | 23 +++++++++++++++++++++++
+ src/evaluate.c            |  1 +
+ src/netlink_delinearize.c | 11 +++++++++++
+ src/netlink_linearize.c   | 13 +++++++++++++
+ src/parser_bison.y        |  5 +++++
+ src/scanner.l             |  1 +
+ 8 files changed, 65 insertions(+)
 
-diff --git a/include/mnl.h b/include/mnl.h
-index 470b29787fa6..1b2450a9388e 100644
---- a/include/mnl.h
-+++ b/include/mnl.h
-@@ -95,6 +95,9 @@ mnl_nft_flowtable_dump(struct netlink_ctx *ctx, int family, const char *table);
- int mnl_nft_flowtable_batch_add(struct nftnl_flowtable *flo,
- 				struct nftnl_batch *batch, unsigned int flags,
- 				uint32_t seqnum);
-+int mnl_nft_flowtable_batch_del(struct nftnl_flowtable *flow,
-+				struct nftnl_batch *batch, unsigned int flags,
-+				uint32_t seqnum);
+diff --git a/include/ct.h b/include/ct.h
+index ec5d55d85dd0..2c3392d36c94 100644
+--- a/include/ct.h
++++ b/include/ct.h
+@@ -29,6 +29,8 @@ extern struct expr *ct_expr_alloc(const struct location *loc,
+ extern void ct_expr_update_type(struct proto_ctx *ctx, struct expr *expr);
  
- struct nftnl_ruleset *mnl_nft_ruleset_dump(struct netlink_ctx *ctx,
- 					   uint32_t family);
-diff --git a/include/netlink.h b/include/netlink.h
-index b80acbabe80f..9ae021a8dd49 100644
---- a/include/netlink.h
-+++ b/include/netlink.h
-@@ -188,6 +188,9 @@ extern int netlink_list_flowtables(struct netlink_ctx *ctx,
- extern int netlink_add_flowtable(struct netlink_ctx *ctx,
- 				 const struct handle *h, struct flowtable *ft,
- 				 uint32_t flags);
-+extern int netlink_delete_flowtable(struct netlink_ctx *ctx,
-+				    const struct handle *h,
-+				    struct location *loc);
+ extern struct stmt *notrack_stmt_alloc(const struct location *loc);
++extern struct stmt *flow_offload_stmt_alloc(const struct location *loc,
++					    const char *table_name);
  
- extern void netlink_dump_chain(const struct nftnl_chain *nlc,
- 			       struct netlink_ctx *ctx);
+ extern const struct datatype ct_dir_type;
+ extern const struct datatype ct_state_type;
+diff --git a/include/statement.h b/include/statement.h
+index 23a551b67f2b..993727c933f2 100644
+--- a/include/statement.h
++++ b/include/statement.h
+@@ -10,6 +10,12 @@ extern struct stmt *expr_stmt_alloc(const struct location *loc,
+ extern struct stmt *verdict_stmt_alloc(const struct location *loc,
+ 				       struct expr *expr);
+ 
++struct flow_stmt {
++	const char		*table_name;
++};
++
++struct stmt *flow_stmt_alloc(const struct location *loc, const char *name);
++
+ struct objref_stmt {
+ 	uint32_t		type;
+ 	struct expr		*expr;
+@@ -229,6 +235,7 @@ struct xt_stmt {
+  * @STMT_NOTRACK:	notrack statement
+  * @STMT_OBJREF:	stateful object reference statement
+  * @STMT_EXTHDR:	extension header statement
++ * @STMT_FLOW_OFFLOAD:	flow offload statement
+  */
+ enum stmt_types {
+ 	STMT_INVALID,
+@@ -254,6 +261,7 @@ enum stmt_types {
+ 	STMT_NOTRACK,
+ 	STMT_OBJREF,
+ 	STMT_EXTHDR,
++	STMT_FLOW_OFFLOAD,
+ };
+ 
+ /**
+@@ -314,6 +322,7 @@ struct stmt {
+ 		struct fwd_stmt		fwd;
+ 		struct xt_stmt		xt;
+ 		struct objref_stmt	objref;
++		struct flow_stmt	flow;
+ 	};
+ };
+ 
+diff --git a/src/ct.c b/src/ct.c
+index d5347974bd0d..fb908531862b 100644
+--- a/src/ct.c
++++ b/src/ct.c
+@@ -456,3 +456,26 @@ struct stmt *notrack_stmt_alloc(const struct location *loc)
+ {
+ 	return stmt_alloc(loc, &notrack_stmt_ops);
+ }
++
++static void flow_offload_stmt_print(const struct stmt *stmt,
++				    struct output_ctx *octx)
++{
++	printf("flow offload @%s", stmt->flow.table_name);
++}
++
++static const struct stmt_ops flow_offload_stmt_ops = {
++	.type		= STMT_FLOW_OFFLOAD,
++	.name		= "flow_offload",
++	.print		= flow_offload_stmt_print,
++};
++
++struct stmt *flow_offload_stmt_alloc(const struct location *loc,
++				     const char *table_name)
++{
++	struct stmt *stmt;
++
++	stmt = stmt_alloc(loc, &flow_offload_stmt_ops);
++	stmt->flow.table_name	= table_name;
++
++	return stmt;
++}
 diff --git a/src/evaluate.c b/src/evaluate.c
-index 70a61c72838a..892d1e0c8c5b 100644
+index 892d1e0c8c5b..14fadd538850 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -3118,6 +3118,7 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_RULE:
- 	case CMD_OBJ_CHAIN:
- 	case CMD_OBJ_TABLE:
-+	case CMD_OBJ_FLOWTABLE:
- 	case CMD_OBJ_COUNTER:
- 	case CMD_OBJ_QUOTA:
- 	case CMD_OBJ_CT_HELPER:
-diff --git a/src/mnl.c b/src/mnl.c
-index be6e05da5936..f620a3bda8d5 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -1027,6 +1027,22 @@ int mnl_nft_flowtable_batch_add(struct nftnl_flowtable *flo,
- 	return 0;
+@@ -2773,6 +2773,7 @@ int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
+ 	case STMT_LIMIT:
+ 	case STMT_QUOTA:
+ 	case STMT_NOTRACK:
++	case STMT_FLOW_OFFLOAD:
+ 		return 0;
+ 	case STMT_EXPRESSION:
+ 		return stmt_evaluate_expr(ctx, stmt);
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 2637f4baaec4..bbc9ccead1bf 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -677,6 +677,16 @@ static void netlink_parse_notrack(struct netlink_parse_ctx *ctx,
+ 	ctx->stmt = notrack_stmt_alloc(loc);
  }
  
-+int mnl_nft_flowtable_batch_del(struct nftnl_flowtable *flo,
-+				struct nftnl_batch *batch, unsigned int flags,
-+				uint32_t seqnum)
++static void netlink_parse_flow_offload(struct netlink_parse_ctx *ctx,
++				       const struct location *loc,
++				       const struct nftnl_expr *nle)
 +{
-+	struct nlmsghdr *nlh;
++	const char *table_name;
 +
-+	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(batch),
-+				    NFT_MSG_DELFLOWTABLE,
-+				    nftnl_flowtable_get_u32(flo, NFTNL_FLOWTABLE_FAMILY),
-+				    flags, seqnum);
-+	nftnl_flowtable_nlmsg_build_payload(nlh, flo);
-+	mnl_nft_batch_continue(batch);
-+
-+	return 0;
++	table_name = xstrdup(nftnl_expr_get_str(nle, NFTNL_EXPR_FLOW_TABLE_NAME));
++	ctx->stmt = flow_offload_stmt_alloc(loc, table_name);
 +}
 +
- /*
-  * ruleset
-  */
-diff --git a/src/netlink.c b/src/netlink.c
-index 89513584a50f..56c6b6a3725e 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -1820,6 +1820,24 @@ int netlink_add_flowtable(struct netlink_ctx *ctx, const struct handle *h,
- 	return err;
+ static void netlink_parse_ct_stmt(struct netlink_parse_ctx *ctx,
+ 				  const struct location *loc,
+ 				  const struct nftnl_expr *nle)
+@@ -1252,6 +1262,7 @@ static const struct {
+ 	{ .name = "hash",	.parse = netlink_parse_hash },
+ 	{ .name = "fib",	.parse = netlink_parse_fib },
+ 	{ .name = "tcpopt",	.parse = netlink_parse_exthdr },
++	{ .name = "flow_offload", .parse = netlink_parse_flow_offload },
+ };
+ 
+ static int netlink_parse_expr(const struct nftnl_expr *nle,
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 99a4dde22adb..a6eb3aaf1c6b 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -1201,6 +1201,17 @@ static void netlink_gen_notrack_stmt(struct netlink_linearize_ctx *ctx,
+ 	nftnl_rule_add_expr(ctx->nlr, nle);
  }
  
-+int netlink_delete_flowtable(struct netlink_ctx *ctx, const struct handle *h,
-+			     struct location *loc)
++static void netlink_gen_flow_offload_stmt(struct netlink_linearize_ctx *ctx,
++					  const struct stmt *stmt)
 +{
-+	struct nftnl_flowtable *flo;
-+	int err;
++	struct nftnl_expr *nle;
 +
-+	flo = alloc_nftnl_flowtable(h, NULL);
-+	netlink_dump_flowtable(flo, ctx);
-+
-+	err = mnl_nft_flowtable_batch_del(flo, ctx->batch, 0, ctx->seqnum);
-+	if (err < 0)
-+		netlink_io_error(ctx, loc, "Could not delete flowtable: %s",
-+				 strerror(errno));
-+	nftnl_flowtable_free(flo);
-+
-+	return err;
++	nle = alloc_nft_expr("flow_offload");
++	nftnl_expr_set_str(nle, NFTNL_EXPR_FLOW_TABLE_NAME,
++			   stmt->flow.table_name);
++	nftnl_rule_add_expr(ctx->nlr, nle);
 +}
 +
- static int list_obj_cb(struct nftnl_obj *nls, void *arg)
+ static void netlink_gen_set_stmt(struct netlink_linearize_ctx *ctx,
+ 				 const struct stmt *stmt)
  {
- 	struct netlink_ctx *ctx = arg;
+@@ -1300,6 +1311,8 @@ static void netlink_gen_stmt(struct netlink_linearize_ctx *ctx,
+ 		break;
+ 	case STMT_NOTRACK:
+ 		return netlink_gen_notrack_stmt(ctx, stmt);
++	case STMT_FLOW_OFFLOAD:
++		return netlink_gen_flow_offload_stmt(ctx, stmt);
+ 	case STMT_OBJREF:
+ 		return netlink_gen_objref_stmt(ctx, stmt);
+ 	default:
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 45cc3b4114ff..0623cd12aeb5 100644
+index 0623cd12aeb5..c9796acf7539 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -1023,6 +1023,10 @@ delete_cmd		:	TABLE		table_spec
+@@ -247,6 +247,7 @@ int nft_lex(void *, void *, void *);
+ %token SIZE			"size"
+ 
+ %token FLOW			"flow"
++%token OFFLOAD			"offload"
+ %token METER			"meter"
+ %token METERS			"meters"
+ 
+@@ -3378,6 +3379,10 @@ meta_stmt		:	META	meta_key	SET	stmt_expr
  			{
- 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_SETELEM, &$2, &@$, $3);
+ 				$$ = notrack_stmt_alloc(&@$);
  			}
-+			|	FLOWTABLE	flowtable_spec
++			|	FLOW	OFFLOAD	AT string
 +			{
-+				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_FLOWTABLE, &$2, &@$, NULL);
++				$$ = flow_offload_stmt_alloc(&@$, $4);
 +			}
- 			|	COUNTER		obj_spec
- 			{
- 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_COUNTER, &$2, &@$, NULL);
-diff --git a/src/rule.c b/src/rule.c
-index 8a38bcc66a66..b06f30eb5528 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -1174,6 +1174,9 @@ static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_LIMIT:
- 		return netlink_delete_obj(ctx, &cmd->handle, &cmd->location,
- 					  NFT_OBJECT_LIMIT);
-+	case CMD_OBJ_FLOWTABLE:
-+		return netlink_delete_flowtable(ctx, &cmd->handle,
-+						&cmd->location);
- 	default:
- 		BUG("invalid command object type %u\n", cmd->obj);
- 	}
+ 			;
+ 
+ offset_opt		:	/* empty */	{ $$ = 0; }
+diff --git a/src/scanner.l b/src/scanner.l
+index ca74650cdd1f..f51687bd2929 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -295,6 +295,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "memory"		{ return MEMORY; }
+ 
+ "flow"			{ return FLOW; }
++"offload"		{ return OFFLOAD; }
+ "meter"			{ return METER; }
+ "meters"		{ return METERS; }
+ 
 -- 
 2.11.0
 
