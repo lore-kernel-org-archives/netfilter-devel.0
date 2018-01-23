@@ -1,1505 +1,536 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH libnftnl 1/2] src: add flowtable support
-Date: Tue, 23 Jan 2018 13:10:02 +0100
-Message-ID: <20180123121003.16064-1-pablo@netfilter.org>
+From: Alban Vidal <alban.vidal@zordhak.fr>
+Subject: iptables-save - suggest patch to add functionality
+Date: Tue, 23 Jan 2018 11:44:22 +0100
+Message-ID: <d32e7ad2-ddf5-22a5-e8ef-f9ed1432c24b@zordhak.fr>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------5E0CEA25D11517CC5CD1C94F"
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39544 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751086AbeAWMKR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Jan 2018 07:10:17 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 7CA6A210566
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:10:15 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5E0D0DA842
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:10:15 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9E642DA861
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:10:07 +0100 (CET)
-Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 116134265A2F
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:10:06 +0100 (CET)
+Received: from bounce-2.online.net ([62.210.16.44]:38274 "EHLO
+        bounce-2.online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751056AbeAWMLV (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 23 Jan 2018 07:11:21 -0500
+Received: from [62.210.16.40] (helo=smtpauth-dc2-1.online.net)
+        by bounce-dc2-2.online.net with esmtpa (Exim 4.82)
+        (envelope-from <alban.vidal@zordhak.fr>)
+        id 1edw4A-0002Tb-Qv
+        for netfilter-devel@vger.kernel.org; Tue, 23 Jan 2018 11:44:34 +0100
+Received: from [90.3.250.241] (helo=[192.168.1.155])
+        by smtpauth-dc2-1.online.net with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
+        (Exim 4.82)
+        (envelope-from <alban.vidal@zordhak.fr>)
+        id 1edw45-0000qA-Fc
+        for netfilter-devel@vger.kernel.org; Tue, 23 Jan 2018 11:44:29 +0100
+Content-Language: fr-FR
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch allows you to add, delete and list flowtable through the
-existing netlink interface.
+This is a multi-part message in MIME format.
+--------------5E0CEA25D11517CC5CD1C94F
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- examples/Makefile.am                |  12 +
- examples/nft-flowtable-add.c        | 136 +++++++
- examples/nft-flowtable-del.c        | 122 ++++++
- examples/nft-flowtable-get.c        | 121 ++++++
- include/libnftnl/Makefile.am        |   1 +
- include/libnftnl/flowtable.h        |  81 ++++
- include/linux/netfilter/nf_tables.h |  53 +++
- src/Makefile.am                     |   1 +
- src/flowtable.c                     | 793 ++++++++++++++++++++++++++++++++++++
- src/libnftnl.map                    |  31 ++
- 10 files changed, 1351 insertions(+)
- create mode 100644 examples/nft-flowtable-add.c
- create mode 100644 examples/nft-flowtable-del.c
- create mode 100644 examples/nft-flowtable-get.c
- create mode 100644 include/libnftnl/flowtable.h
- create mode 100644 src/flowtable.c
+Package: iptables
 
-diff --git a/examples/Makefile.am b/examples/Makefile.am
-index 48bc7a16c9c6..c0d84ebbcbff 100644
---- a/examples/Makefile.am
-+++ b/examples/Makefile.am
-@@ -25,6 +25,9 @@ check_PROGRAMS = nft-table-add		\
- 		 nft-obj-add		\
- 		 nft-obj-get		\
- 		 nft-obj-del		\
-+		 nft-flowtable-add	\
-+		 nft-flowtable-del	\
-+		 nft-flowtable-get	\
- 		 nft-ruleset-get	\
- 		 nft-ruleset-parse-file	\
- 		 nft-compat-get
-@@ -104,6 +107,15 @@ nft_obj_del_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
- nft_obj_get_SOURCES = nft-obj-get.c
- nft_obj_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
- 
-+nft_flowtable_add_SOURCES = nft-flowtable-add.c
-+nft_flowtable_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
-+
-+nft_flowtable_del_SOURCES = nft-flowtable-del.c
-+nft_flowtable_del_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
-+
-+nft_flowtable_get_SOURCES = nft-flowtable-get.c
-+nft_flowtable_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
-+
- nft_ruleset_get_SOURCES = nft-ruleset-get.c
- nft_ruleset_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
- 
-diff --git a/examples/nft-flowtable-add.c b/examples/nft-flowtable-add.c
-new file mode 100644
-index 000000000000..bd6cd0f59b79
---- /dev/null
-+++ b/examples/nft-flowtable-add.c
-@@ -0,0 +1,136 @@
-+#include <stdlib.h>
-+#include <time.h>
-+#include <string.h>
-+#include <netinet/in.h>
-+
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/nf_tables.h>
-+
-+#include <libmnl/libmnl.h>
-+#include <libnftnl/flowtable.h>
-+
-+static struct nftnl_flowtable *flowtable_add_parse(int argc, char *argv[])
-+{
-+	const char *dev_array[] = { "eth0", "tap0", NULL };
-+	struct nftnl_flowtable *t;
-+	int hooknum = 0;
-+
-+	if (strcmp(argv[4], "ingress") == 0)
-+		hooknum = NF_NETDEV_INGRESS;
-+	else {
-+		fprintf(stderr, "Unknown hook: %s\n", argv[4]);
-+		return NULL;
-+	}
-+
-+	t = nftnl_flowtable_alloc();
-+	if (t == NULL) {
-+		perror("OOM");
-+		return NULL;
-+	}
-+	nftnl_flowtable_set(t, NFTNL_FLOWTABLE_TABLE, argv[2]);
-+	nftnl_flowtable_set(t, NFTNL_FLOWTABLE_NAME, argv[3]);
-+	if (argc == 6) {
-+		nftnl_flowtable_set_u32(t, NFTNL_FLOWTABLE_HOOKNUM, hooknum);
-+		nftnl_flowtable_set_u32(t, NFTNL_FLOWTABLE_PRIO, atoi(argv[5]));
-+	}
-+	nftnl_flowtable_set_array(t, NFTNL_FLOWTABLE_DEVICES, dev_array);
-+
-+	return t;
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	struct mnl_socket *nl;
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	struct nlmsghdr *nlh;
-+	uint32_t portid, seq, flowtable_seq;
-+	int ret, family;
-+	struct nftnl_flowtable *t;
-+	struct mnl_nlmsg_batch *batch;
-+	int batching;
-+
-+	if (argc != 6) {
-+		fprintf(stderr, "Usage: %s <family> <table> <name> <hook> <prio>\n",
-+			argv[0]);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (strcmp(argv[1], "ip") == 0)
-+		family = NFPROTO_IPV4;
-+	else if (strcmp(argv[1], "ip6") == 0)
-+		family = NFPROTO_IPV6;
-+	else if (strcmp(argv[1], "bridge") == 0)
-+		family = NFPROTO_BRIDGE;
-+	else if (strcmp(argv[1], "arp") == 0)
-+		family = NFPROTO_ARP;
-+	else {
-+		fprintf(stderr, "Unknown family: ip, ip6, bridge, arp\n");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	t = flowtable_add_parse(argc, argv);
-+	if (t == NULL)
-+		exit(EXIT_FAILURE);
-+
-+	batching = nftnl_batch_is_supported();
-+	if (batching < 0) {
-+		perror("cannot talk to nfnetlink");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	seq = time(NULL);
-+	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
-+
-+	if (batching) {
-+		nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
-+		mnl_nlmsg_batch_next(batch);
-+	}
-+
-+	flowtable_seq = seq;
-+	nlh = nftnl_flowtable_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+					NFT_MSG_NEWFLOWTABLE, family,
-+					NLM_F_CREATE|NLM_F_ACK, seq++);
-+	nftnl_flowtable_nlmsg_build_payload(nlh, t);
-+	nftnl_flowtable_free(t);
-+	mnl_nlmsg_batch_next(batch);
-+
-+	if (batching) {
-+		nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
-+		mnl_nlmsg_batch_next(batch);
-+	}
-+
-+	nl = mnl_socket_open(NETLINK_NETFILTER);
-+	if (nl == NULL) {
-+		perror("mnl_socket_open");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
-+		perror("mnl_socket_bind");
-+		exit(EXIT_FAILURE);
-+	}
-+	portid = mnl_socket_get_portid(nl);
-+
-+	if (mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
-+			      mnl_nlmsg_batch_size(batch)) < 0) {
-+		perror("mnl_socket_send");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	mnl_nlmsg_batch_stop(batch);
-+
-+	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+	while (ret > 0) {
-+		ret = mnl_cb_run(buf, ret, flowtable_seq, portid, NULL, NULL);
-+		if (ret <= 0)
+Dear Maintainers,
+=20
+Please find attached a suggest patch to add functionality in iptables-sav=
+e.
+
+-------------------------------------------------------------------------=
+------
+
+1) Adding -z or --zero option: Reset to zero counters of the chains.
+
+Example without:
+
+iptables-save
+# Generated by iptables-save v1.6.1 on Tue Jan  9 21:42:51 2018
+*nat
+:PREROUTING ACCEPT [923:217673]
+:INPUT ACCEPT [309:97481]
+(...)
+
+Example with:
+
+iptables-save -z
+# Generated by iptables-save v1.6.1 on Tue Jan  9 21:42:26 2018
+*nat
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+(...)
+
+-------------------------------------------------------------------------=
+------
+
+2) Adding -h or --help option: print help/usage (inspired by manpage)
+
+Content:
+
+iptables-save -h
+iptables-save and ip6tables-save are provides from iptables package =E2=80=
+=94 version 1.6.1
+
+iptables-save and ip6tables-save are used to dump the contents of IP or I=
+Pv6 Table in easily parseable format to STDOUT. Use I/O-redirection provi=
+ded by your shell to write to a file.
+
+Usage: iptables-save  [-h] [-M modprobe] [-c] [-z] [-t table]
+       ip6tables-save [-h] [-M modprobe] [-c] [-z] [-t table]
+
+Options:
+Either long or short options are allowed.
+
+  -h, --help
+      Print this help usage.
+
+  -M, --modprobe modprobe_program
+      Specify the path to the modprobe program. By default, iptables-save=
+ will inspect /proc/sys/kernel/mod=E2=80=90probe to determine the executa=
+ble's path.
+
+  -c, --counters
+      Include the current values of all packet and byte counters in the o=
+utput.
+
+  -z, --zero
+      Reset to zero counters of the chains.
+
+  -t, --table tablename
+      Restrict output to only one table. If not specified, output include=
+s all available tables.
+
+  -f, --file filename
+      Specify a filename to log the output to. If not specified, iptables=
+-save will log to STDOUT.
+
+=C2=A0-------------------------------------------------------------------=
+------------
+
+3) Layout layout: uppercase, dot...
+
+
+Best regards,
+
+Alban Vidal
+
+----------------------
+-- System Information:
+Debian Release: 9.3
+  APT prefers stable-updates
+  APT policy: (500, 'stable-updates'), (500, 'stable')
+Architecture: amd64 (x86_64)
+
+Kernel: Linux 4.9.0-5-amd64 (SMP w/4 CPU cores)
+Locale: LANG=3Dfr_FR.UTF-8, LC_CTYPE=3Dfr_FR.UTF-8 (charmap=3DUTF-8), LAN=
+GUAGE=3Dfr_FR.UTF-8 (charmap=3DUTF-8)
+Shell: /bin/sh linked to /bin/dash
+Init: systemd (via /run/systemd/system)
+
+
+--------------5E0CEA25D11517CC5CD1C94F
+Content-Type: text/x-patch;
+ name="iptables-save_git_alban.diff"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+ filename="iptables-save_git_alban.diff"
+
+diff --git a/iptables/ip6tables-save.c b/iptables/ip6tables-save.c
+index 8e3a6afd..466ce0ce 100644
+--- a/iptables/ip6tables-save.c
++++ b/iptables/ip6tables-save.c
+@@ -3,6 +3,8 @@
+  * Original code: iptables-save
+  * Authors: Paul 'Rusty' Russel <rusty@linuxcare.com.au> and
+  *          Harald Welte <laforge@gnumonks.org>
++ * Contributor: Alban Vidal <alban.vidal@zordhak.fr>
++ *
+  * This code is distributed under the terms of GNU GPL v2
+  */
+ #include <getopt.h>
+@@ -18,18 +20,12 @@
+ #include "libiptc/libip6tc.h"
+ #include "ip6tables.h"
+ #include "ip6tables-multi.h"
++#include "ipXtables-save-common.c" /* Common code for iptables-save.c an=
+d ip6tables-save.c */
+=20
+-static int show_counters;
+-
+-static const struct option options[] =3D {
+-	{.name =3D "counters", .has_arg =3D false, .val =3D 'c'},
+-	{.name =3D "dump",     .has_arg =3D false, .val =3D 'd'},
+-	{.name =3D "table",    .has_arg =3D true,  .val =3D 't'},
+-	{.name =3D "modprobe", .has_arg =3D true,  .val =3D 'M'},
+-	{.name =3D "file",     .has_arg =3D true,  .val =3D 'f'},
+-	{NULL},
+-};
++static int show_counters =3D 0;
+=20
++/* if =3D 1 (opt -z): Reset to zero counters of the chains */
++static int rst_chain_counters =3D 0;
+=20
+ /* Debugging prototype. */
+ static int for_each_table(int (*func)(const char *tablename))
+@@ -96,7 +92,10 @@ static int do_output(const char *tablename)
+ 			struct xt_counters count;
+ 			printf("%s ",
+ 			       ip6tc_get_policy(chain, &count, h));
+-			printf("[%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned lon=
+g long)count.bcnt);
++			if (rst_chain_counters > 0)
++				printf("[0:0]\n"); /* Reset to zero counters of the chains */
++			else
++				printf("[%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned lo=
+ng long)count.bcnt);
+ 		} else {
+ 			printf("- [0:0]\n");
+ 		}
+@@ -146,7 +145,7 @@ int ip6tables_save_main(int argc, char *argv[])
+ 	init_extensions6();
+ #endif
+=20
+-	while ((c =3D getopt_long(argc, argv, "bcdt:M:f:", options, NULL)) !=3D=
+ -1) {
++	while ((c =3D getopt_long(argc, argv, "bhcdzt:M:f:", options, NULL)) !=3D=
+ -1) {
+ 		switch (c) {
+ 		case 'b':
+ 			fprintf(stderr, "-b/--binary option is not implemented\n");
+@@ -154,14 +153,20 @@ int ip6tables_save_main(int argc, char *argv[])
+ 		case 'c':
+ 			show_counters =3D 1;
+ 			break;
+-
+ 		case 't':
+ 			/* Select specific table. */
+ 			tablename =3D optarg;
+ 			break;
++		case 'h':
++			/* Print Help and quit */
++			print_help_usage();
 +			break;
-+		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+	}
-+	if (ret == -1) {
-+		perror("error");
-+		exit(EXIT_FAILURE);
-+	}
-+	mnl_socket_close(nl);
-+
-+	return EXIT_SUCCESS;
-+}
-diff --git a/examples/nft-flowtable-del.c b/examples/nft-flowtable-del.c
-new file mode 100644
-index 000000000000..b25f041a6f6d
---- /dev/null
-+++ b/examples/nft-flowtable-del.c
-@@ -0,0 +1,122 @@
-+#include <stdlib.h>
-+#include <time.h>
-+#include <string.h>
-+#include <netinet/in.h>
-+
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/nf_tables.h>
-+
-+#include <libmnl/libmnl.h>
-+#include <libnftnl/flowtable.h>
-+
-+static struct nftnl_flowtable *flowtable_del_parse(int argc, char *argv[])
-+{
-+	struct nftnl_flowtable *t;
-+
-+	t = nftnl_flowtable_alloc();
-+	if (t == NULL) {
-+		perror("OOM");
-+		return NULL;
-+	}
-+
-+	nftnl_flowtable_set(t, NFTNL_FLOWTABLE_TABLE, argv[2]);
-+	nftnl_flowtable_set(t, NFTNL_FLOWTABLE_NAME, argv[3]);
-+
-+	return t;
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	struct mnl_socket *nl;
-+	struct mnl_nlmsg_batch *batch;
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	struct nlmsghdr *nlh;
-+	uint32_t portid, seq, flowtable_seq;
-+	struct nftnl_flowtable *t;
-+	int ret, family, batching;
-+
-+	if (argc != 4) {
-+		fprintf(stderr, "Usage: %s <family> <table> <flowtable>\n",
-+			argv[0]);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (strcmp(argv[1], "ip") == 0)
-+		family = NFPROTO_IPV4;
-+	else if (strcmp(argv[1], "ip6") == 0)
-+		family = NFPROTO_IPV6;
-+	else if (strcmp(argv[1], "bridge") == 0)
-+		family = NFPROTO_BRIDGE;
-+	else if (strcmp(argv[1], "arp") == 0)
-+		family = NFPROTO_ARP;
-+	else {
-+		fprintf(stderr, "Unknown family: ip, ip6, bridge, arp\n");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	t = flowtable_del_parse(argc, argv);
-+	if (t == NULL)
-+		exit(EXIT_FAILURE);
-+
-+	batching = nftnl_batch_is_supported();
-+	if (batching < 0) {
-+		perror("cannot talk to nfnetlink");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	seq = time(NULL);
-+	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
-+
-+	if (batching) {
-+		nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
-+		mnl_nlmsg_batch_next(batch);
-+	}
-+
-+	flowtable_seq = seq;
-+	nlh = nftnl_flowtable_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+					NFT_MSG_DELFLOWTABLE, family,
-+					NLM_F_ACK, seq++);
-+	nftnl_flowtable_nlmsg_build_payload(nlh, t);
-+	nftnl_flowtable_free(t);
-+	mnl_nlmsg_batch_next(batch);
-+
-+	if (batching) {
-+		nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
-+		mnl_nlmsg_batch_next(batch);
-+	}
-+
-+	nl = mnl_socket_open(NETLINK_NETFILTER);
-+	if (nl == NULL) {
-+		perror("mnl_socket_open");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
-+		perror("mnl_socket_bind");
-+		exit(EXIT_FAILURE);
-+	}
-+	portid = mnl_socket_get_portid(nl);
-+
-+	if (mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
-+			      mnl_nlmsg_batch_size(batch)) < 0) {
-+		perror("mnl_socket_send");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	mnl_nlmsg_batch_stop(batch);
-+
-+	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+	while (ret > 0) {
-+		ret = mnl_cb_run(buf, ret, flowtable_seq, portid, NULL, NULL);
-+		if (ret <= 0)
+ 		case 'M':
+ 			xtables_modprobe_program =3D optarg;
+ 			break;
++		case 'z':
++			rst_chain_counters =3D 1;
 +			break;
-+		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+	}
-+	if (ret == -1) {
-+		perror("error");
-+		exit(EXIT_FAILURE);
-+	}
-+	mnl_socket_close(nl);
-+
-+	return EXIT_SUCCESS;
-+}
-diff --git a/examples/nft-flowtable-get.c b/examples/nft-flowtable-get.c
-new file mode 100644
-index 000000000000..37cfadf0b1cd
---- /dev/null
-+++ b/examples/nft-flowtable-get.c
-@@ -0,0 +1,121 @@
-+#include <stdlib.h>
-+#include <time.h>
-+#include <string.h>
-+#include <netinet/in.h>
-+
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/nf_tables.h>
-+
-+#include <libmnl/libmnl.h>
-+#include <libnftnl/flowtable.h>
-+
-+static int table_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct nftnl_flowtable *t;
-+	char buf[4096];
-+	uint32_t *type = data;
-+
-+	t = nftnl_flowtable_alloc();
-+	if (t == NULL) {
-+		perror("OOM");
-+		goto err;
-+	}
-+
-+	if (nftnl_flowtable_nlmsg_parse(nlh, t) < 0) {
-+		perror("nftnl_flowtable_nlmsg_parse");
-+		goto err_free;
-+	}
-+
-+	nftnl_flowtable_snprintf(buf, sizeof(buf), t, *type, 0);
-+	printf("%s\n", buf);
-+
-+err_free:
-+	nftnl_flowtable_free(t);
-+err:
-+	return MNL_CB_OK;
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	struct mnl_socket *nl;
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	struct nlmsghdr *nlh;
-+	uint32_t portid, seq, type = NFTNL_OUTPUT_DEFAULT;
-+	struct nftnl_flowtable *t = NULL;
-+	int ret, family;
-+
-+	seq = time(NULL);
-+
-+	if (argc < 2 || argc > 5) {
-+		fprintf(stderr, "Usage: %s <family> [<table> <flowtable>] [json]\n",
-+			argv[0]);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (strcmp(argv[1], "ip") == 0)
-+		family = NFPROTO_IPV4;
-+	else if (strcmp(argv[1], "ip6") == 0)
-+		family = NFPROTO_IPV6;
-+	else if (strcmp(argv[1], "bridge") == 0)
-+		family = NFPROTO_BRIDGE;
-+	else if (strcmp(argv[1], "arp") == 0)
-+		family = NFPROTO_ARP;
-+	else if (strcmp(argv[1], "unspec") == 0)
-+		family = NFPROTO_UNSPEC;
-+	else {
-+		fprintf(stderr, "Unknown family: ip, ip6, bridge, arp, unspec\n");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (argc >= 4) {
-+		t = nftnl_flowtable_alloc();
-+		if (t == NULL) {
-+			perror("OOM");
-+			exit(EXIT_FAILURE);
-+		}
-+		nlh = nftnl_flowtable_nlmsg_build_hdr(buf, NFT_MSG_GETFLOWTABLE, family,
-+						NLM_F_ACK, seq);
-+		nftnl_flowtable_set(t, NFTNL_FLOWTABLE_TABLE, argv[2]);
-+		nftnl_flowtable_set(t, NFTNL_FLOWTABLE_NAME, argv[3]);
-+		nftnl_flowtable_nlmsg_build_payload(nlh, t);
-+		nftnl_flowtable_free(t);
-+	} else if (argc >= 2) {
-+		nlh = nftnl_flowtable_nlmsg_build_hdr(buf, NFT_MSG_GETFLOWTABLE, family,
-+						NLM_F_DUMP, seq);
-+	}
-+
-+	if (strcmp(argv[argc-1], "json") == 0)
-+		type = NFTNL_OUTPUT_JSON;
-+
-+	nl = mnl_socket_open(NETLINK_NETFILTER);
-+	if (nl == NULL) {
-+		perror("mnl_socket_open");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
-+		perror("mnl_socket_bind");
-+		exit(EXIT_FAILURE);
-+	}
-+	portid = mnl_socket_get_portid(nl);
-+
-+	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
-+		perror("mnl_socket_send");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+	while (ret > 0) {
-+		ret = mnl_cb_run(buf, ret, seq, portid, table_cb, &type);
-+		if (ret <= 0)
-+			break;
-+		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+	}
-+	if (ret == -1) {
-+		perror("error");
-+		exit(EXIT_FAILURE);
-+	}
-+	mnl_socket_close(nl);
-+
-+	return EXIT_SUCCESS;
-+}
-diff --git a/include/libnftnl/Makefile.am b/include/libnftnl/Makefile.am
-index 6dc7b2b38590..d846a574f438 100644
---- a/include/libnftnl/Makefile.am
-+++ b/include/libnftnl/Makefile.am
-@@ -6,6 +6,7 @@ pkginclude_HEADERS = batch.h		\
- 		     rule.h		\
- 		     expr.h		\
- 		     set.h		\
-+		     flowtable.h	\
- 		     ruleset.h		\
- 		     common.h		\
- 		     udata.h		\
-diff --git a/include/libnftnl/flowtable.h b/include/libnftnl/flowtable.h
-new file mode 100644
-index 000000000000..0f8f3252da18
---- /dev/null
-+++ b/include/libnftnl/flowtable.h
-@@ -0,0 +1,81 @@
-+#ifndef _LIBNFTNL_FLOWTABLE_H_
-+#define _LIBNFTNL_FLOWTABLE_H_
+ 		case 'f':
+ 			file =3D fopen(optarg, "w");
+ 			if (file =3D=3D NULL) {
+diff --git a/iptables/ipXtables-save-common.c b/iptables/ipXtables-save-c=
+ommon.c
+index e69de29b..3287fc51 100644
+--- a/iptables/ipXtables-save-common.c
++++ b/iptables/ipXtables-save-common.c
+@@ -0,0 +1,63 @@
++/* Common code for iptables-save.c and ip6tables-save.c */
++/* (C) 2018 by Alban Vidal <alban.vidal@zordhak.fr>
++ *
++ * This code is distributed under the terms of GNU GPL v2
++ */
 +
 +#include <stdio.h>
-+#include <stdint.h>
-+#include <stdbool.h>
-+#include <sys/types.h>
-+
-+#include <libnftnl/common.h>
-+
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
-+struct nftnl_flowtable;
-+
-+struct nftnl_flowtable *nftnl_flowtable_alloc(void);
-+void nftnl_flowtable_free(const struct nftnl_flowtable *);
-+
-+enum nftnl_flowtable_attr {
-+	NFTNL_FLOWTABLE_NAME	= 0,
-+	NFTNL_FLOWTABLE_FAMILY,
-+	NFTNL_FLOWTABLE_TABLE,
-+	NFTNL_FLOWTABLE_HOOKNUM,
-+	NFTNL_FLOWTABLE_PRIO	= 4,
-+	NFTNL_FLOWTABLE_USE,
-+	NFTNL_FLOWTABLE_DEVICES,
-+	__NFTNL_FLOWTABLE_MAX
-+};
-+#define NFTNL_FLOWTABLE_MAX (__NFTNL_FLOWTABLE_MAX - 1)
-+
-+bool nftnl_flowtable_is_set(const struct nftnl_flowtable *c, uint16_t attr);
-+void nftnl_flowtable_unset(struct nftnl_flowtable *c, uint16_t attr);
-+void nftnl_flowtable_set(struct nftnl_flowtable *t, uint16_t attr, const void *data);
-+int nftnl_flowtable_set_data(struct nftnl_flowtable *t, uint16_t attr,
-+			     const void *data, uint32_t data_len);
-+void nftnl_flowtable_set_u32(struct nftnl_flowtable *t, uint16_t attr, uint32_t data);
-+void nftnl_flowtable_set_s32(struct nftnl_flowtable *t, uint16_t attr, int32_t data);
-+int nftnl_flowtable_set_str(struct nftnl_flowtable *t, uint16_t attr, const char *str);
-+void nftnl_flowtable_set_array(struct nftnl_flowtable *t, uint16_t attr, const char **data);
-+
-+const void *nftnl_flowtable_get(const struct nftnl_flowtable *c, uint16_t attr);
-+const void *nftnl_flowtable_get_data(const struct nftnl_flowtable *c, uint16_t attr,
-+				 uint32_t *data_len);
-+const char *nftnl_flowtable_get_str(const struct nftnl_flowtable *c, uint16_t attr);
-+uint32_t nftnl_flowtable_get_u32(const struct nftnl_flowtable *c, uint16_t attr);
-+int32_t nftnl_flowtable_get_s32(const struct nftnl_flowtable *c, uint16_t attr);
-+const char **nftnl_flowtable_get_array(const struct nftnl_flowtable *t, uint16_t attr);
-+
-+struct nlmsghdr;
-+
-+void nftnl_flowtable_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nftnl_flowtable *t);
-+
-+int nftnl_flowtable_parse(struct nftnl_flowtable *c, enum nftnl_parse_type type,
-+		    const char *data, struct nftnl_parse_err *err);
-+int nftnl_flowtable_parse_file(struct nftnl_flowtable *c, enum nftnl_parse_type type,
-+			 FILE *fp, struct nftnl_parse_err *err);
-+int nftnl_flowtable_snprintf(char *buf, size_t size, const struct nftnl_flowtable *t, uint32_t type, uint32_t flags);
-+int nftnl_flowtable_fprintf(FILE *fp, const struct nftnl_flowtable *c, uint32_t type, uint32_t flags);
-+
-+#define nftnl_flowtable_nlmsg_build_hdr	nftnl_nlmsg_build_hdr
-+int nftnl_flowtable_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_flowtable *t);
-+
-+struct nftnl_flowtable_list;
-+
-+struct nftnl_flowtable_list *nftnl_flowtable_list_alloc(void);
-+void nftnl_flowtable_list_free(struct nftnl_flowtable_list *list);
-+int nftnl_flowtable_list_is_empty(const struct nftnl_flowtable_list *list);
-+void nftnl_flowtable_list_add(struct nftnl_flowtable *s,
-+			      struct nftnl_flowtable_list *list);
-+void nftnl_flowtable_list_add_tail(struct nftnl_flowtable *s,
-+				   struct nftnl_flowtable_list *list);
-+void nftnl_flowtable_list_del(struct nftnl_flowtable *s);
-+int nftnl_flowtable_list_foreach(struct nftnl_flowtable_list *flowtable_list,
-+				 int (*cb)(struct nftnl_flowtable *t, void *data), void *data);
-+
-+#ifdef __cplusplus
-+} /* extern "C" */
-+#endif
-+
-+#endif /* _LIBNFTNL_FLOWTABLE_H_ */
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 874fa3f239eb..c525e67a665d 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -90,6 +90,9 @@ enum nft_verdicts {
-  * @NFT_MSG_GETOBJ: get a stateful object (enum nft_obj_attributes)
-  * @NFT_MSG_DELOBJ: delete a stateful object (enum nft_obj_attributes)
-  * @NFT_MSG_GETOBJ_RESET: get and reset a stateful object (enum nft_obj_attributes)
-+ * @NFT_MSG_NEWFLOWTABLE: add new flow table (enum nft_flowtable_attributes)
-+ * @NFT_MSG_GETFLOWTABLE: get flow table (enum nft_flowtable_attributes)
-+ * @NFT_MSG_DELFLOWTABLE: delete flow table (enum nft_flowtable_attributes)
-  */
- enum nf_tables_msg_types {
- 	NFT_MSG_NEWTABLE,
-@@ -114,6 +117,9 @@ enum nf_tables_msg_types {
- 	NFT_MSG_GETOBJ,
- 	NFT_MSG_DELOBJ,
- 	NFT_MSG_GETOBJ_RESET,
-+	NFT_MSG_NEWFLOWTABLE,
-+	NFT_MSG_GETFLOWTABLE,
-+	NFT_MSG_DELFLOWTABLE,
- 	NFT_MSG_MAX,
- };
- 
-@@ -1303,6 +1309,53 @@ enum nft_object_attributes {
- #define NFTA_OBJ_MAX		(__NFTA_OBJ_MAX - 1)
- 
- /**
-+ * enum nft_flowtable_attributes - nf_tables flow table netlink attributes
-+ *
-+ * @NFTA_FLOWTABLE_TABLE: name of the table containing the expression (NLA_STRING)
-+ * @NFTA_FLOWTABLE_NAME: name of this flow table (NLA_STRING)
-+ * @NFTA_FLOWTABLE_HOOK: netfilter hook configuration(NLA_U32)
-+ * @NFTA_FLOWTABLE_USE: number of references to this flow table (NLA_U32)
-+ */
-+enum nft_flowtable_attributes {
-+	NFTA_FLOWTABLE_UNSPEC,
-+	NFTA_FLOWTABLE_TABLE,
-+	NFTA_FLOWTABLE_NAME,
-+	NFTA_FLOWTABLE_HOOK,
-+	NFTA_FLOWTABLE_USE,
-+	__NFTA_FLOWTABLE_MAX
-+};
-+#define NFTA_FLOWTABLE_MAX	(__NFTA_FLOWTABLE_MAX - 1)
-+
-+/**
-+ * enum nft_flowtable_hook_attributes - nf_tables flow table hook netlink attributes
-+ *
-+ * @NFTA_FLOWTABLE_HOOK_NUM: netfilter hook number (NLA_U32)
-+ * @NFTA_FLOWTABLE_HOOK_PRIORITY: netfilter hook priority (NLA_U32)
-+ * @NFTA_FLOWTABLE_HOOK_DEVS: input devices this flow table is bound to (NLA_NESTED)
-+ */
-+enum nft_flowtable_hook_attributes {
-+	NFTA_FLOWTABLE_HOOK_UNSPEC,
-+	NFTA_FLOWTABLE_HOOK_NUM,
-+	NFTA_FLOWTABLE_HOOK_PRIORITY,
-+	NFTA_FLOWTABLE_HOOK_DEVS,
-+	__NFTA_FLOWTABLE_HOOK_MAX
-+};
-+#define NFTA_FLOWTABLE_HOOK_MAX	(__NFTA_FLOWTABLE_HOOK_MAX - 1)
-+
-+/**
-+ * enum nft_device_attributes - nf_tables device netlink attributes
-+ *
-+ * @NFTA_DEVICE_NAME: name of this device (NLA_STRING)
-+ */
-+enum nft_devices_attributes {
-+	NFTA_DEVICE_UNSPEC,
-+	NFTA_DEVICE_NAME,
-+	__NFTA_DEVICE_MAX
-+};
-+#define NFTA_DEVICE_MAX		(__NFTA_DEVICE_MAX - 1)
-+
-+
-+/**
-  * enum nft_trace_attributes - nf_tables trace netlink attributes
-  *
-  * @NFTA_TRACE_TABLE: name of the table (NLA_STRING)
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 59ddf6a249a2..7708c279c9da 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -8,6 +8,7 @@ libnftnl_la_LDFLAGS = -Wl,--version-script=$(srcdir)/libnftnl.map	\
- libnftnl_la_SOURCES = utils.c		\
- 		      batch.c		\
- 		      buffer.c		\
-+		      flowtable.c	\
- 		      common.c		\
- 		      gen.c		\
- 		      table.c		\
-diff --git a/src/flowtable.c b/src/flowtable.c
-new file mode 100644
-index 000000000000..61f18044c491
---- /dev/null
-+++ b/src/flowtable.c
-@@ -0,0 +1,793 @@
-+#include "internal.h"
-+
-+#include <time.h>
-+#include <endian.h>
-+#include <stdint.h>
 +#include <stdlib.h>
-+#include <limits.h>
-+#include <string.h>
-+#include <netinet/in.h>
-+#include <errno.h>
-+#include <inttypes.h>
++#include <getopt.h>  /* struct option */
++#include <stdbool.h> /* true/false */
 +
-+#include <libmnl/libmnl.h>
-+#include <linux/netfilter/nfnetlink.h>
-+#include <linux/netfilter/nf_tables.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter_arp.h>
++/* Summary help usage */
++static void print_help_usage()
++{
++	printf(
++	    "iptables-save and ip6tables-save are provides from iptables packag=
+e =E2=80=94 version %s\n"
++	    "\n"
++	    "iptables-save and ip6tables-save are used to dump the contents of =
+IP or "
++	    "IPv6 Table in easily parseable format to STDOUT. Use I/O-redirecti=
+on "
++	    "provided by your shell to write to a file.\n"
++	    "\n"
++	    "Usage: iptables-save  [-h] [-M modprobe] [-c] [-z] [-t table] [-f =
+filename]\n"
++	    "       ip6tables-save [-h] [-M modprobe] [-c] [-z] [-t table] [-f =
+filename]\n"
++	    "\n"
++	    "Options:\n"
++	    "Either long or short options are allowed.\n"
++	    "\n"
++	    "  -h, --help\n"
++	    "      Print this help usage.\n"
++	    "\n"
++	    "  -M, --modprobe modprobe_program\n"
++	    "      Specify the path to the modprobe program. By default, iptabl=
+es-save "
++	    "will inspect /proc/sys/kernel/mod=E2=80=90probe to determine the e=
+xecutable's path.\n"
++	    "\n"
++	    "  -c, --counters\n"
++	    "      Include the current values of all packet and byte counters i=
+n the output.\n"
++	    "\n"
++	    "  -z, --zero\n"
++	    "      Reset to zero counters of the chains.\n"
++	    "\n"
++	    "  -t, --table tablename\n"
++	    "      Restrict output to only one table. If not specified, output =
+includes "
++	    "all available tables.\n"
++	    "\n"
++	    "  -f, --file filename\n"
++	    "      Specify a filename to log the output to. If not specified, i=
+ptables-save "
++	    "will log to STDOUT.\n"
++	    , IPTABLES_VERSION
++	);
 +
-+#include <libnftnl/flowtable.h>
-+#include <buffer.h>
++	exit(0);
++}
 +
-+struct nftnl_flowtable {
-+	struct list_head	head;
-+	const char		*name;
-+	const char		*table;
-+	int			family;
-+	uint32_t		hooknum;
-+	int32_t			prio;
-+	const char		**dev_array;
-+	uint32_t		dev_array_len;
-+	uint32_t		use;
-+	uint32_t		flags;
++static const struct option options[] =3D {
++	{.name =3D "help",     .has_arg =3D false, .val =3D 'h'},
++	{.name =3D "counters", .has_arg =3D false, .val =3D 'c'},
++	{.name =3D "dump",     .has_arg =3D false, .val =3D 'd'},
++	{.name =3D "zero",     .has_arg =3D false, .val =3D 'z'},
++	{.name =3D "table",    .has_arg =3D true,  .val =3D 't'},
++	{.name =3D "modprobe", .has_arg =3D true,  .val =3D 'M'},
++	{.name =3D "file",     .has_arg =3D true,  .val =3D 'f'},
++	{NULL},
 +};
-+
-+struct nftnl_flowtable *nftnl_flowtable_alloc(void)
-+{
-+	return calloc(1, sizeof(struct nftnl_flowtable));
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_alloc);
-+
-+void nftnl_flowtable_free(const struct nftnl_flowtable *c)
-+{
-+	int i;
-+
-+	if (c->flags & (1 << NFTNL_FLOWTABLE_NAME))
-+		xfree(c->name);
-+	if (c->flags & (1 << NFTNL_FLOWTABLE_TABLE))
-+		xfree(c->table);
-+	if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES)) {
-+		for (i = 0; i < c->dev_array_len; i++)
-+			xfree(c->dev_array[i]);
-+
-+		xfree(c->dev_array);
-+	}
-+	xfree(c);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_free);
-+
-+bool nftnl_flowtable_is_set(const struct nftnl_flowtable *c, uint16_t attr)
-+{
-+	return c->flags & (1 << attr);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_is_set);
-+
-+void nftnl_flowtable_unset(struct nftnl_flowtable *c, uint16_t attr)
-+{
-+	int i;
-+
-+	if (!(c->flags & (1 << attr)))
-+		return;
-+
-+	switch (attr) {
-+	case NFTNL_FLOWTABLE_NAME:
-+		xfree(c->name);
-+		break;
-+	case NFTNL_FLOWTABLE_TABLE:
-+		xfree(c->table);
-+		break;
-+	case NFTNL_FLOWTABLE_HOOKNUM:
-+	case NFTNL_FLOWTABLE_PRIO:
-+	case NFTNL_FLOWTABLE_USE:
-+	case NFTNL_FLOWTABLE_FAMILY:
-+		break;
-+	case NFTNL_FLOWTABLE_DEVICES:
-+		for (i = 0; i < c->dev_array_len; i++) {
-+			xfree(c->dev_array[i]);
-+			xfree(c->dev_array);
-+		}
-+		break;
-+	default:
-+		return;
-+	}
-+
-+	c->flags &= ~(1 << attr);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_unset);
-+
-+static uint32_t nftnl_flowtable_validate[NFTNL_FLOWTABLE_MAX + 1] = {
-+	[NFTNL_FLOWTABLE_HOOKNUM]	= sizeof(uint32_t),
-+	[NFTNL_FLOWTABLE_PRIO]		= sizeof(int32_t),
-+	[NFTNL_FLOWTABLE_FAMILY]	= sizeof(uint32_t),
-+};
-+
-+int nftnl_flowtable_set_data(struct nftnl_flowtable *c, uint16_t attr,
-+			     const void *data, uint32_t data_len)
-+{
-+	const char **dev_array;
-+	int len = 0, i;
-+
-+	nftnl_assert_attr_exists(attr, NFTNL_FLOWTABLE_MAX);
-+	nftnl_assert_validate(data, nftnl_flowtable_validate, attr, data_len);
-+
-+	switch(attr) {
-+	case NFTNL_FLOWTABLE_NAME:
-+		if (c->flags & (1 << NFTNL_FLOWTABLE_NAME))
-+			xfree(c->name);
-+
-+		c->name = strdup(data);
-+		if (!c->name)
-+			return -1;
-+		break;
-+	case NFTNL_FLOWTABLE_TABLE:
-+		if (c->flags & (1 << NFTNL_FLOWTABLE_TABLE))
-+			xfree(c->table);
-+
-+		c->table = strdup(data);
-+		if (!c->table)
-+			return -1;
-+		break;
-+	case NFTNL_FLOWTABLE_HOOKNUM:
-+		memcpy(&c->hooknum, data, sizeof(c->hooknum));
-+		break;
-+	case NFTNL_FLOWTABLE_PRIO:
-+		memcpy(&c->prio, data, sizeof(c->prio));
-+		break;
-+	case NFTNL_FLOWTABLE_FAMILY:
-+		memcpy(&c->family, data, sizeof(c->family));
-+		break;
-+	case NFTNL_FLOWTABLE_DEVICES:
-+		dev_array = (const char **)data;
-+		while (dev_array[len] != NULL)
-+			len++;
-+
-+		if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES)) {
-+			for (i = 0; i < c->dev_array_len; i++) {
-+				xfree(c->dev_array[i]);
-+				xfree(c->dev_array);
-+			}
-+		}
-+
-+		c->dev_array = calloc(len + 1, sizeof(char *));
-+		if (!c->dev_array)
-+			return -1;
-+
-+		for (i = 0; i < len; i++)
-+			c->dev_array[i] = strdup(dev_array[i]);
-+
-+		c->dev_array_len = len;
-+		break;
-+	}
-+	c->flags |= (1 << attr);
-+	return 0;
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_set_data);
-+
-+void nftnl_flowtable_set(struct nftnl_flowtable *c, uint16_t attr, const void *data)
-+{
-+	nftnl_flowtable_set_data(c, attr, data, nftnl_flowtable_validate[attr]);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_set);
-+
-+void nftnl_flowtable_set_array(struct nftnl_flowtable *c, uint16_t attr, const char **data)
-+{
-+	nftnl_flowtable_set_data(c, attr, &data[0], nftnl_flowtable_validate[attr]);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_set_array);
-+
-+void nftnl_flowtable_set_u32(struct nftnl_flowtable *c, uint16_t attr, uint32_t data)
-+{
-+	nftnl_flowtable_set_data(c, attr, &data, sizeof(uint32_t));
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_set_u32);
-+
-+void nftnl_flowtable_set_s32(struct nftnl_flowtable *c, uint16_t attr, int32_t data)
-+{
-+	nftnl_flowtable_set_data(c, attr, &data, sizeof(int32_t));
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_set_s32);
-+
-+int nftnl_flowtable_set_str(struct nftnl_flowtable *c, uint16_t attr, const char *str)
-+{
-+	return nftnl_flowtable_set_data(c, attr, str, strlen(str) + 1);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_set_str);
-+
-+const void *nftnl_flowtable_get_data(const struct nftnl_flowtable *c,
-+				     uint16_t attr, uint32_t *data_len)
-+{
-+	if (!(c->flags & (1 << attr)))
-+		return NULL;
-+
-+	switch(attr) {
-+	case NFTNL_FLOWTABLE_NAME:
-+		*data_len = strlen(c->name) + 1;
-+		return c->name;
-+	case NFTNL_FLOWTABLE_TABLE:
-+		*data_len = strlen(c->table) + 1;
-+		return c->table;
-+	case NFTNL_FLOWTABLE_HOOKNUM:
-+		*data_len = sizeof(uint32_t);
-+		return &c->hooknum;
-+	case NFTNL_FLOWTABLE_PRIO:
-+		*data_len = sizeof(int32_t);
-+		return &c->prio;
-+	case NFTNL_FLOWTABLE_FAMILY:
-+		*data_len = sizeof(int32_t);
-+		return &c->family;
-+	case NFTNL_FLOWTABLE_DEVICES:
-+		return &c->dev_array[0];
-+	}
-+	return NULL;
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_get_data);
-+
-+const void *nftnl_flowtable_get(const struct nftnl_flowtable *c, uint16_t attr)
-+{
-+	uint32_t data_len;
-+	return nftnl_flowtable_get_data(c, attr, &data_len);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_get);
-+
-+const char *nftnl_flowtable_get_str(const struct nftnl_flowtable *c, uint16_t attr)
-+{
-+	return nftnl_flowtable_get(c, attr);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_get_str);
-+
-+uint32_t nftnl_flowtable_get_u32(const struct nftnl_flowtable *c, uint16_t attr)
-+{
-+	uint32_t data_len;
-+	const uint32_t *val = nftnl_flowtable_get_data(c, attr, &data_len);
-+
-+	nftnl_assert(val, attr, data_len == sizeof(uint32_t));
-+
-+	return val ? *val : 0;
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_get_u32);
-+
-+int32_t nftnl_flowtable_get_s32(const struct nftnl_flowtable *c, uint16_t attr)
-+{
-+	uint32_t data_len;
-+	const int32_t *val = nftnl_flowtable_get_data(c, attr, &data_len);
-+
-+	nftnl_assert(val, attr, data_len == sizeof(int32_t));
-+
-+	return val ? *val : 0;
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_get_s32);
-+
-+const char **nftnl_flowtable_get_array(const struct nftnl_flowtable *c, uint16_t attr)
-+{
-+	return (const char **)nftnl_flowtable_get(c, attr);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_get_array);
-+
-+void nftnl_flowtable_nlmsg_build_payload(struct nlmsghdr *nlh,
-+					 const struct nftnl_flowtable *c)
-+{
-+	int i;
-+
-+	if (c->flags & (1 << NFTNL_FLOWTABLE_TABLE))
-+		mnl_attr_put_strz(nlh, NFTA_FLOWTABLE_TABLE, c->table);
-+	if (c->flags & (1 << NFTNL_FLOWTABLE_NAME))
-+		mnl_attr_put_strz(nlh, NFTA_FLOWTABLE_NAME, c->name);
-+	if ((c->flags & (1 << NFTNL_FLOWTABLE_HOOKNUM)) &&
-+	    (c->flags & (1 << NFTNL_FLOWTABLE_PRIO))) {
-+		struct nlattr *nest;
-+
-+		nest = mnl_attr_nest_start(nlh, NFTA_FLOWTABLE_HOOK);
-+		mnl_attr_put_u32(nlh, NFTA_FLOWTABLE_HOOK_NUM, htonl(c->hooknum));
-+		mnl_attr_put_u32(nlh, NFTA_FLOWTABLE_HOOK_PRIORITY, htonl(c->prio));
-+		if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES)) {
-+			struct nlattr *nest_dev;
-+
-+			nest_dev = mnl_attr_nest_start(nlh,
-+						       NFTA_FLOWTABLE_HOOK_DEVS);
-+			for (i = 0; i < c->dev_array_len; i++)
-+				mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME,
-+						  c->dev_array[i]);
-+			mnl_attr_nest_end(nlh, nest_dev);
-+		}
-+		mnl_attr_nest_end(nlh, nest);
-+	}
-+	if (c->flags & (1 << NFTNL_FLOWTABLE_USE))
-+		mnl_attr_put_u32(nlh, NFTA_FLOWTABLE_USE, htonl(c->use));
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_nlmsg_build_payload);
-+
-+static int nftnl_flowtable_parse_attr_cb(const struct nlattr *attr, void *data)
-+{
-+	const struct nlattr **tb = data;
-+	int type = mnl_attr_get_type(attr);
-+
-+	if (mnl_attr_type_valid(attr, NFTA_FLOWTABLE_MAX) < 0)
-+		return MNL_CB_OK;
-+
-+	switch(type) {
-+	case NFTA_FLOWTABLE_NAME:
-+	case NFTA_FLOWTABLE_TABLE:
-+		if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0)
-+			abi_breakage();
-+		break;
-+	case NFTA_FLOWTABLE_HOOK:
-+		if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
-+			abi_breakage();
-+		break;
-+	case NFTA_FLOWTABLE_USE:
-+		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
-+			abi_breakage();
-+		break;
-+	}
-+
-+	tb[type] = attr;
-+	return MNL_CB_OK;
-+}
-+
-+static int nftnl_flowtable_parse_hook_cb(const struct nlattr *attr, void *data)
-+{
-+	const struct nlattr **tb = data;
-+	int type = mnl_attr_get_type(attr);
-+
-+	if (mnl_attr_type_valid(attr, NFTA_FLOWTABLE_HOOK_MAX) < 0)
-+		return MNL_CB_OK;
-+
-+	switch(type) {
-+	case NFTA_FLOWTABLE_HOOK_NUM:
-+	case NFTA_FLOWTABLE_HOOK_PRIORITY:
-+		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
-+			abi_breakage();
-+		break;
-+	case NFTA_FLOWTABLE_HOOK_DEVS:
-+		if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
-+			abi_breakage();
-+		break;
-+	}
-+
-+	tb[type] = attr;
-+	return MNL_CB_OK;
-+}
-+
-+static int nftnl_flowtable_parse_devs(struct nlattr *nest,
-+				      struct nftnl_flowtable *c)
-+{
-+	struct nlattr *attr;
-+	char *dev_array[8];
-+	int len = 0, i;
-+
-+	mnl_attr_for_each_nested(attr, nest) {
-+		if (mnl_attr_get_type(attr) != NFTA_DEVICE_NAME)
-+			return -1;
-+		dev_array[len++] = strdup(mnl_attr_get_str(attr));
-+		if (len >= 8)
-+			break;
-+	}
-+
-+	if (!len)
-+		return -1;
-+
-+	c->dev_array = calloc(len + 1, sizeof(char *));
-+	if (!c->dev_array)
-+		return -1;
-+
-+	c->dev_array_len = len;
-+
-+	for (i = 0; i < len; i++)
-+		c->dev_array[i] = strdup(dev_array[i]);
-+
-+	return 0;
-+}
-+
-+static int nftnl_flowtable_parse_hook(struct nlattr *attr, struct nftnl_flowtable *c)
-+{
-+	struct nlattr *tb[NFTA_FLOWTABLE_HOOK_MAX + 1] = {};
-+	int ret;
-+
-+	if (mnl_attr_parse_nested(attr, nftnl_flowtable_parse_hook_cb, tb) < 0)
-+		return -1;
-+
-+	if (tb[NFTA_FLOWTABLE_HOOK_NUM]) {
-+		c->hooknum = ntohl(mnl_attr_get_u32(tb[NFTA_FLOWTABLE_HOOK_NUM]));
-+		c->flags |= (1 << NFTNL_FLOWTABLE_HOOKNUM);
-+	}
-+	if (tb[NFTA_FLOWTABLE_HOOK_PRIORITY]) {
-+		c->prio = ntohl(mnl_attr_get_u32(tb[NFTA_FLOWTABLE_HOOK_PRIORITY]));
-+		c->flags |= (1 << NFTNL_FLOWTABLE_PRIO);
-+	}
-+	if (tb[NFTA_FLOWTABLE_HOOK_DEVS]) {
-+		ret = nftnl_flowtable_parse_devs(tb[NFTA_FLOWTABLE_HOOK_DEVS], c);
-+		if (ret < 0)
-+			return -1;
-+		c->flags |= (1 << NFTNL_FLOWTABLE_DEVICES);
-+	}
-+
-+	return 0;
-+}
-+
-+int nftnl_flowtable_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_flowtable *c)
-+{
-+	struct nlattr *tb[NFTA_FLOWTABLE_MAX + 1] = {};
-+	struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);
-+	int ret = 0;
-+
-+	if (mnl_attr_parse(nlh, sizeof(*nfg), nftnl_flowtable_parse_attr_cb, tb) < 0)
-+		return -1;
-+
-+	if (tb[NFTA_FLOWTABLE_NAME]) {
-+		if (c->flags & (1 << NFTNL_FLOWTABLE_NAME))
-+			xfree(c->name);
-+		c->name = strdup(mnl_attr_get_str(tb[NFTA_FLOWTABLE_NAME]));
-+		if (!c->name)
-+			return -1;
-+		c->flags |= (1 << NFTNL_FLOWTABLE_NAME);
-+	}
-+	if (tb[NFTA_FLOWTABLE_TABLE]) {
-+		if (c->flags & (1 << NFTNL_FLOWTABLE_TABLE))
-+			xfree(c->table);
-+		c->table = strdup(mnl_attr_get_str(tb[NFTA_FLOWTABLE_TABLE]));
-+		if (!c->table)
-+			return -1;
-+		c->flags |= (1 << NFTNL_FLOWTABLE_TABLE);
-+	}
-+	if (tb[NFTA_FLOWTABLE_HOOK]) {
-+		ret = nftnl_flowtable_parse_hook(tb[NFTA_FLOWTABLE_HOOK], c);
-+		if (ret < 0)
-+			return ret;
-+	}
-+	if (tb[NFTA_FLOWTABLE_USE]) {
-+		c->use = ntohl(mnl_attr_get_u32(tb[NFTA_FLOWTABLE_USE]));
-+		c->flags |= (1 << NFTNL_FLOWTABLE_USE);
-+	}
-+
-+	c->family = nfg->nfgen_family;
-+	c->flags |= (1 << NFTNL_FLOWTABLE_FAMILY);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_nlmsg_parse);
-+
-+static const char *nftnl_hooknum2str(int family, int hooknum)
-+{
-+	switch (family) {
-+	case NFPROTO_IPV4:
-+	case NFPROTO_IPV6:
-+	case NFPROTO_INET:
-+	case NFPROTO_BRIDGE:
-+		switch (hooknum) {
-+		case NF_INET_PRE_ROUTING:
-+			return "prerouting";
-+		case NF_INET_LOCAL_IN:
-+			return "input";
-+		case NF_INET_FORWARD:
-+			return "forward";
-+		case NF_INET_LOCAL_OUT:
-+			return "output";
-+		case NF_INET_POST_ROUTING:
-+			return "postrouting";
-+		}
-+		break;
-+	case NFPROTO_ARP:
-+		switch (hooknum) {
-+		case NF_ARP_IN:
-+			return "input";
-+		case NF_ARP_OUT:
-+			return "output";
-+		case NF_ARP_FORWARD:
-+			return "forward";
-+		}
-+		break;
-+	case NFPROTO_NETDEV:
-+		switch (hooknum) {
-+		case NF_NETDEV_INGRESS:
-+			return "ingress";
-+		}
-+		break;
-+	}
-+	return "unknown";
-+}
-+
-+static inline int nftnl_str2hooknum(int family, const char *hook)
-+{
-+	int hooknum;
-+
-+	for (hooknum = 0; hooknum < NF_INET_NUMHOOKS; hooknum++) {
-+		if (strcmp(hook, nftnl_hooknum2str(family, hooknum)) == 0)
-+			return hooknum;
-+	}
-+	return -1;
-+}
-+
-+#ifdef JSON_PARSING
-+static int nftnl_jansson_parse_flowtable(struct nftnl_flowtable *c,
-+					 json_t *tree,
-+					 struct nftnl_parse_err *err)
-+{
-+	const char *name, *table, *hooknum_str;
-+	int32_t family, prio, hooknum;
-+	json_t *root;
-+
-+	root = nftnl_jansson_get_node(tree, "flowtable", err);
-+	if (root == NULL)
-+		return -1;
-+
-+	name = nftnl_jansson_parse_str(root, "name", err);
-+	if (name != NULL)
-+		nftnl_flowtable_set_str(c, NFTNL_FLOWTABLE_NAME, name);
-+
-+	if (nftnl_jansson_parse_family(root, &family, err) == 0)
-+		nftnl_flowtable_set_u32(c, NFTNL_FLOWTABLE_FAMILY, family);
-+
-+	table = nftnl_jansson_parse_str(root, "table", err);
-+
-+	if (table != NULL)
-+		nftnl_flowtable_set_str(c, NFTNL_FLOWTABLE_TABLE, table);
-+
-+	if (nftnl_jansson_node_exist(root, "hooknum")) {
-+		if (nftnl_jansson_parse_val(root, "prio", NFTNL_TYPE_S32,
-+					  &prio, err) == 0)
-+			nftnl_flowtable_set_s32(c, NFTNL_FLOWTABLE_PRIO, prio);
-+
-+		hooknum_str = nftnl_jansson_parse_str(root, "hooknum", err);
-+		if (hooknum_str != NULL) {
-+			hooknum = nftnl_str2hooknum(c->family, hooknum_str);
-+			if (hooknum == -1)
-+				return -1;
-+			nftnl_flowtable_set_u32(c, NFTNL_FLOWTABLE_HOOKNUM,
-+					       hooknum);
-+		}
-+	}
-+
-+	return 0;
-+}
-+#endif
-+
-+static int nftnl_flowtable_json_parse(struct nftnl_flowtable *c,
-+				      const void *json,
-+				      struct nftnl_parse_err *err,
-+				      enum nftnl_parse_input input)
-+{
-+#ifdef JSON_PARSING
-+	json_t *tree;
-+	json_error_t error;
-+	int ret;
-+
-+	tree = nftnl_jansson_create_root(json, &error, err, input);
-+	if (tree == NULL)
-+		return -1;
-+
-+	ret = nftnl_jansson_parse_flowtable(c, tree, err);
-+
-+	nftnl_jansson_free_root(tree);
-+
-+	return ret;
-+#else
-+	errno = EOPNOTSUPP;
-+	return -1;
-+#endif
-+}
-+
-+static int nftnl_flowtable_do_parse(struct nftnl_flowtable *c,
-+				    enum nftnl_parse_type type,
-+				    const void *data,
-+				    struct nftnl_parse_err *err,
-+				    enum nftnl_parse_input input)
-+{
-+	int ret;
-+	struct nftnl_parse_err perr = {};
-+
-+	switch (type) {
-+	case NFTNL_PARSE_JSON:
-+		ret = nftnl_flowtable_json_parse(c, data, &perr, input);
-+		break;
-+	case NFTNL_PARSE_XML:
-+	default:
-+		ret = -1;
-+		errno = EOPNOTSUPP;
-+		break;
-+	}
-+
-+	if (err != NULL)
-+		*err = perr;
-+
-+	return ret;
-+}
-+
-+int nftnl_flowtable_parse(struct nftnl_flowtable *c, enum nftnl_parse_type type,
-+			  const char *data, struct nftnl_parse_err *err)
-+{
-+	return nftnl_flowtable_do_parse(c, type, data, err, NFTNL_PARSE_BUFFER);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_parse);
-+
-+int nftnl_flowtable_parse_file(struct nftnl_flowtable *c,
-+			       enum nftnl_parse_type type,
-+			       FILE *fp, struct nftnl_parse_err *err)
-+{
-+	return nftnl_flowtable_do_parse(c, type, fp, err, NFTNL_PARSE_FILE);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_parse_file);
-+
-+static int nftnl_flowtable_export(char *buf, size_t size,
-+				  const struct nftnl_flowtable *c, int type)
-+{
-+	NFTNL_BUF_INIT(b, buf, size);
-+
-+	nftnl_buf_open(&b, type, CHAIN);
-+	if (c->flags & (1 << NFTNL_FLOWTABLE_NAME))
-+		nftnl_buf_str(&b, type, c->name, NAME);
-+	if (c->flags & (1 << NFTNL_FLOWTABLE_TABLE))
-+		nftnl_buf_str(&b, type, c->table, TABLE);
-+	if (c->flags & (1 << NFTNL_FLOWTABLE_FAMILY))
-+		nftnl_buf_str(&b, type, nftnl_family2str(c->family), FAMILY);
-+	if (c->flags & (1 << NFTNL_FLOWTABLE_USE))
-+		nftnl_buf_u32(&b, type, c->use, USE);
-+	if (c->flags & (1 << NFTNL_FLOWTABLE_HOOKNUM)) {
-+		if (c->flags & (1 << NFTNL_FLOWTABLE_HOOKNUM))
-+			nftnl_buf_str(&b, type, nftnl_hooknum2str(c->family,
-+					 c->hooknum), HOOKNUM);
-+		if (c->flags & (1 << NFTNL_FLOWTABLE_PRIO))
-+			nftnl_buf_s32(&b, type, c->prio, PRIO);
-+	}
-+
-+	nftnl_buf_close(&b, type, CHAIN);
-+
-+	return nftnl_buf_done(&b);
-+}
-+
-+static int nftnl_flowtable_snprintf_default(char *buf, size_t size,
-+					    const struct nftnl_flowtable *c)
-+{
-+	int ret, remain = size, offset = 0, i;
-+
-+	ret = snprintf(buf, remain, "flow table %s %s use %u",
-+		       c->table, c->name, c->use);
-+	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-+
-+	if (c->flags & (1 << NFTNL_FLOWTABLE_HOOKNUM)) {
-+		ret = snprintf(buf + offset, remain, " hook %s prio %d",
-+			       nftnl_hooknum2str(c->family, c->hooknum),
-+			       c->prio);
-+		SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-+
-+		if (c->flags & (1 << NFTNL_FLOWTABLE_DEVICES)) {
-+			ret = snprintf(buf + offset, remain, " dev { ");
-+			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-+
-+			for (i = 0; i < c->dev_array_len; i++) {
-+				ret = snprintf(buf + offset, remain, " %s ",
-+					       c->dev_array[i]);
-+				SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-+			}
-+			ret = snprintf(buf + offset, remain, " } ");
-+			SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-+		}
-+	}
-+
-+	return offset;
-+}
-+
-+static int nftnl_flowtable_cmd_snprintf(char *buf, size_t size,
-+					const struct nftnl_flowtable *c,
-+					uint32_t cmd, uint32_t type,
-+					uint32_t flags)
-+{
-+	int ret, remain = size, offset = 0;
-+
-+	ret = nftnl_cmd_header_snprintf(buf + offset, remain, cmd, type, flags);
-+	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-+
-+	switch (type) {
-+	case NFTNL_OUTPUT_DEFAULT:
-+		ret = nftnl_flowtable_snprintf_default(buf + offset, remain, c);
-+		break;
-+	case NFTNL_OUTPUT_XML:
-+	case NFTNL_OUTPUT_JSON:
-+		ret = nftnl_flowtable_export(buf + offset, remain, c, type);
-+		break;
-+	default:
-+		return -1;
-+	}
-+
-+	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-+
-+	ret = nftnl_cmd_footer_snprintf(buf + offset, remain, cmd, type, flags);
-+	SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-+
-+	return offset;
-+}
-+
-+int nftnl_flowtable_snprintf(char *buf, size_t size, const struct nftnl_flowtable *c,
-+			 uint32_t type, uint32_t flags)
-+{
-+	if (size)
-+		buf[0] = '\0';
-+
-+	return nftnl_flowtable_cmd_snprintf(buf, size, c, nftnl_flag2cmd(flags),
-+					    type, flags);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_snprintf);
-+
-+static int nftnl_flowtable_do_snprintf(char *buf, size_t size, const void *c,
-+				   uint32_t cmd, uint32_t type, uint32_t flags)
-+{
-+	return nftnl_flowtable_snprintf(buf, size, c, type, flags);
-+}
-+
-+int nftnl_flowtable_fprintf(FILE *fp, const struct nftnl_flowtable *c,
-+			    uint32_t type, uint32_t flags)
-+{
-+	return nftnl_fprintf(fp, c, NFTNL_CMD_UNSPEC, type, flags,
-+			   nftnl_flowtable_do_snprintf);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_fprintf);
-+
-+struct nftnl_flowtable_list {
-+	struct list_head list;
-+};
-+
-+struct nftnl_flowtable_list *nftnl_flowtable_list_alloc(void)
-+{
-+	struct nftnl_flowtable_list *list;
-+
-+	list = calloc(1, sizeof(struct nftnl_flowtable_list));
-+	if (list == NULL)
-+		return NULL;
-+
-+	INIT_LIST_HEAD(&list->list);
-+
-+	return list;
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_list_alloc);
-+
-+void nftnl_flowtable_list_free(struct nftnl_flowtable_list *list)
-+{
-+	struct nftnl_flowtable *s, *tmp;
-+
-+	list_for_each_entry_safe(s, tmp, &list->list, head) {
-+		list_del(&s->head);
-+		nftnl_flowtable_free(s);
-+	}
-+	xfree(list);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_list_free);
-+
-+int nftnl_flowtable_list_is_empty(const struct nftnl_flowtable_list *list)
-+{
-+	return list_empty(&list->list);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_list_is_empty);
-+
-+void nftnl_flowtable_list_add(struct nftnl_flowtable *s,
-+			      struct nftnl_flowtable_list *list)
-+{
-+	list_add(&s->head, &list->list);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_list_add);
-+
-+void nftnl_flowtable_list_add_tail(struct nftnl_flowtable *s,
-+				   struct nftnl_flowtable_list *list)
-+{
-+	list_add_tail(&s->head, &list->list);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_list_add_tail);
-+
-+void nftnl_flowtable_list_del(struct nftnl_flowtable *s)
-+{
-+	list_del(&s->head);
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_list_del);
-+
-+int nftnl_flowtable_list_foreach(struct nftnl_flowtable_list *flowtable_list,
-+				 int (*cb)(struct nftnl_flowtable *t, void *data), void *data)
-+{
-+	struct nftnl_flowtable *cur, *tmp;
-+	int ret;
-+
-+	list_for_each_entry_safe(cur, tmp, &flowtable_list->list, head) {
-+		ret = cb(cur, data);
-+		if (ret < 0)
-+			return ret;
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL(nftnl_flowtable_list_foreach);
-diff --git a/src/libnftnl.map b/src/libnftnl.map
-index d59e80269604..cfe74e2aebfc 100644
---- a/src/libnftnl.map
-+++ b/src/libnftnl.map
-@@ -311,3 +311,34 @@ local: *;
- LIBNFTNL_6 {
-   nftnl_expr_fprintf;
- } LIBNFTNL_5;
-+
-+LIBNFTNL_7 {
-+  nftnl_flowtable_alloc;
-+  nftnl_flowtable_free;
-+  nftnl_flowtable_is_set;
-+  nftnl_flowtable_unset;
-+  nftnl_flowtable_set;
-+  nftnl_flowtable_set_u32;
-+  nftnl_flowtable_set_s32;
-+  nftnl_flowtable_set_array;
-+  nftnl_flowtable_set_str;
-+  nftnl_flowtable_get;
-+  nftnl_flowtable_get_u32;
-+  nftnl_flowtable_get_s32;
-+  nftnl_flowtable_get_array;
-+  nftnl_flowtable_get_str;
-+  nftnl_flowtable_parse;
-+  nftnl_flowtable_parse_file;
-+  nftnl_flowtable_snprintf;
-+  nftnl_flowtable_fprintf;
-+  nftnl_flowtable_nlmsg_build_payload;
-+  nftnl_flowtable_nlmsg_parse;
-+  nftnl_flowtable_list_alloc;
-+  nftnl_flowtable_list_free;
-+  nftnl_flowtable_list_is_empty;
-+  nftnl_flowtable_list_add;
-+  nftnl_flowtable_list_add_tail;
-+  nftnl_flowtable_list_del;
-+  nftnl_flowtable_list_foreach;
-+
-+} LIBNFTNL_6;
--- 
-2.11.0
+diff --git a/iptables/iptables-save.8.in b/iptables/iptables-save.8.in
+index 51e11f3e..0ee0f513 100644
+--- a/iptables/iptables-save.8.in
++++ b/iptables/iptables-save.8.in
+@@ -23,11 +23,11 @@ iptables-save \(em dump iptables rules
+ .P
+ ip6tables-save \(em dump iptables rules
+ .SH SYNOPSIS
+-\fBiptables\-save\fP [\fB\-M\fP \fImodprobe\fP] [\fB\-c\fP]
+-[\fB\-t\fP \fItable\fP] [\fB\-f\fP \fIfilename\fP]
++\fBiptables\-save\fP  [\fB\-h\fP] [\fB\-M\fP \fImodprobe\fP] [\fB\-c\fP]=
 
++[\fB\-z\fP] [\fB\-t\fP \fItable\fP] [\fB\-f\fP \fIfilename\fP]
+ .P
+-\fBip6tables\-save\fP [\fB\-M\fP \fImodprobe\fP] [\fB\-c\fP]
+-[\fB\-t\fP \fItable\fP] [\fB\-f\fP \fIfilename\fP]
++\fBip6tables\-save\fP [\fB\-h\fP] [\fB\-M\fP \fImodprobe\fP] [\fB\-c\fP]=
+
++[\fB\-z\fP] [\fB\-t\fP \fItable\fP] [\fB\-f\fP \fIfilename\fP]
+ .SH DESCRIPTION
+ .PP
+ .B iptables-save
+@@ -36,6 +36,9 @@ and
+ are used to dump the contents of IP or IPv6 Table in easily parseable fo=
+rmat
+ either to STDOUT or to a specified file.
+ .TP
++\fB\-h\fR, \fB\-\-help\fR
++Print help usage and quit.
++.TP
+ \fB\-M\fR, \fB\-\-modprobe\fR \fImodprobe_program\fP
+ Specify the path to the modprobe program. By default, iptables-save will=
+
+ inspect /proc/sys/kernel/modprobe to determine the executable's path.
+@@ -45,19 +48,24 @@ Specify a filename to log the output to. If not speci=
+fied, iptables-save
+ will log to STDOUT.
+ .TP
+ \fB\-c\fR, \fB\-\-counters\fR
+-include the current values of all packet and byte counters in the output=
+
++Include the current values of all packet and byte counters in the output=
+=2E
++.TP
++\fB\-z\fR, \fB\-\-zero\fR
++Reset to zero counters of the chains.
+ .TP
+ \fB\-t\fR, \fB\-\-table\fR \fItablename\fP
+-restrict output to only one table. If not specified, output includes all=
+
++Restrict output to only one table. If not specified, output includes all=
+
+ available tables.
+ .SH BUGS
+-None known as of iptables-1.2.1 release
++None known as of iptables-1.2.1 release.
+ .SH AUTHORS
+-Harald Welte <laforge@gnumonks.org>
++Harald Welte <laforge@gnumonks.org>,
++.br
++Rusty Russell <rusty@rustcorp.com.au>,
+ .br
+-Rusty Russell <rusty@rustcorp.com.au>
++Andras Kis-Szabo <kisza@sch.bme.hu> contributed ip6tables-save,
+ .br
+-Andras Kis-Szabo <kisza@sch.bme.hu> contributed ip6tables-save.
++Alban Vidal <alban.vidal@zordhak.fr> contributed ip[6]tables-save.
+ .SH SEE ALSO
+ \fBiptables\-restore\fP(8), \fBiptables\fP(8)
+ .PP
+diff --git a/iptables/iptables-save.c b/iptables/iptables-save.c
+index d59bd34a..d6abdb93 100644
+--- a/iptables/iptables-save.c
++++ b/iptables/iptables-save.c
+@@ -1,6 +1,8 @@
+ /* Code to save the iptables state, in human readable-form. */
+ /* (C) 1999 by Paul 'Rusty' Russell <rusty@rustcorp.com.au> and
+  * (C) 2000-2002 by Harald Welte <laforge@gnumonks.org>
++ * Contributor:
++ * (C) 2018 by Alban Vidal <alban.vidal@zordhak.fr>
+  *
+  * This code is distributed under the terms of GNU GPL v2
+  *
+@@ -17,17 +19,12 @@
+ #include "libiptc/libiptc.h"
+ #include "iptables.h"
+ #include "iptables-multi.h"
++#include "ipXtables-save-common.c" /* Common code for iptables-save.c an=
+d ip6tables-save.c */
+=20
+-static int show_counters;
++static int show_counters =3D 0;
+=20
+-static const struct option options[] =3D {
+-	{.name =3D "counters", .has_arg =3D false, .val =3D 'c'},
+-	{.name =3D "dump",     .has_arg =3D false, .val =3D 'd'},
+-	{.name =3D "table",    .has_arg =3D true,  .val =3D 't'},
+-	{.name =3D "modprobe", .has_arg =3D true,  .val =3D 'M'},
+-	{.name =3D "file",     .has_arg =3D true,  .val =3D 'f'},
+-	{NULL},
+-};
++/* if =3D 1 (opt -z): Reset to zero counters of the chains */
++static int rst_chain_counters =3D 0;
+=20
+ /* Debugging prototype. */
+ static int for_each_table(int (*func)(const char *tablename))
+@@ -94,7 +91,10 @@ static int do_output(const char *tablename)
+ 			struct xt_counters count;
+ 			printf("%s ",
+ 			       iptc_get_policy(chain, &count, h));
+-			printf("[%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned lon=
+g long)count.bcnt);
++			if (rst_chain_counters > 0)
++				printf("[0:0]\n"); /* Reset to zero counters of the chains */
++			else
++				printf("[%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned lo=
+ng long)count.bcnt);
+ 		} else {
+ 			printf("- [0:0]\n");
+ 		}
+@@ -145,7 +145,7 @@ iptables_save_main(int argc, char *argv[])
+ 	init_extensions4();
+ #endif
+=20
+-	while ((c =3D getopt_long(argc, argv, "bcdt:M:f:", options, NULL)) !=3D=
+ -1) {
++	while ((c =3D getopt_long(argc, argv, "bhcdzt:M:f:", options, NULL)) !=3D=
+ -1) {
+ 		switch (c) {
+ 		case 'b':
+ 			fprintf(stderr, "-b/--binary option is not implemented\n");
+@@ -153,14 +153,20 @@ iptables_save_main(int argc, char *argv[])
+ 		case 'c':
+ 			show_counters =3D 1;
+ 			break;
+-
+ 		case 't':
+ 			/* Select specific table. */
+ 			tablename =3D optarg;
+ 			break;
++		case 'h':
++			/* Print Help and quit */
++			print_help_usage();
++			break;
+ 		case 'M':
+ 			xtables_modprobe_program =3D optarg;
+ 			break;
++		case 'z':
++			rst_chain_counters =3D 1;
++			break;
+ 		case 'f':
+ 			file =3D fopen(optarg, "w");
+ 			if (file =3D=3D NULL) {
+
+--------------5E0CEA25D11517CC5CD1C94F
+Content-Type: application/gzip;
+ name="iptables-save_alban.tar.gz"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="iptables-save_alban.tar.gz"
+
+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
+--------------5E0CEA25D11517CC5CD1C94F--
