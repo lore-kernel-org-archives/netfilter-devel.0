@@ -1,159 +1,576 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 6/6] doc: nft: document flowtable
-Date: Tue, 23 Jan 2018 13:16:22 +0100
-Message-ID: <20180123121622.16287-6-pablo@netfilter.org>
+Subject: [PATCH nft 2/6] src: add support to add flowtables
+Date: Tue, 23 Jan 2018 13:16:18 +0100
+Message-ID: <20180123121622.16287-2-pablo@netfilter.org>
 References: <20180123121622.16287-1-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44816 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44786 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751323AbeAWMQe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Jan 2018 07:16:34 -0500
+        id S1751125AbeAWMQc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 23 Jan 2018 07:16:32 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2477C2519A9
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:16:33 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id DF2162519A5
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:16:30 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 117ACDA7F7
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:16:33 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C413EDA861
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:16:30 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0DBF1DA809
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:16:31 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3F22ADA387
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:16:28 +0100 (CET)
 Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id C8FCB41E4817
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:16:30 +0100 (CET)
+        by entrada.int (Postfix) with ESMTPA id E5F8141E4817
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Jan 2018 13:16:27 +0100 (CET)
 In-Reply-To: <20180123121622.16287-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Document the new flowtable objects available since Linux kernel 4.16-rc.
+This patch allows you to create flowtable:
+
+ # nft add table x
+ # nft add flowtable x m { hook ingress priority 10\; devices = { eth0, wlan0 }\; }
+
+You have to specify hook and priority. So far, only the ingress hook is
+supported. The priority represents where this flowtable is placed in the
+ingress hook, which is registered to the devices that the user
+specifies.
+
+You can also use the 'create' command instead to bail out in case that
+there is an existing flowtable with this name.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- doc/nft.xml | 103 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 103 insertions(+)
+ include/expression.h |   2 +
+ include/mnl.h        |   4 ++
+ include/netlink.h    |   4 ++
+ include/rule.h       |   7 ++++
+ src/evaluate.c       |  26 ++++++++++++
+ src/expression.c     |   4 +-
+ src/mnl.c            |  16 ++++++++
+ src/netlink.c        |  58 ++++++++++++++++++++++++++
+ src/parser_bison.y   | 112 ++++++++++++++++++++++++++++++++++++++++++++++++---
+ src/rule.c           |  17 ++++++++
+ src/scanner.l        |   2 +
+ 11 files changed, 245 insertions(+), 7 deletions(-)
 
-diff --git a/doc/nft.xml b/doc/nft.xml
-index 9e979af3c280..1b901c17b5a0 100644
---- a/doc/nft.xml
-+++ b/doc/nft.xml
-@@ -1160,6 +1160,91 @@ filter input iif $int_ifs accept
- 	</refsect1>
+diff --git a/include/expression.h b/include/expression.h
+index 0a0e178fe468..8f9da1b1c7c9 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -407,6 +407,8 @@ extern struct expr *prefix_expr_alloc(const struct location *loc,
+ extern struct expr *range_expr_alloc(const struct location *loc,
+ 				     struct expr *low, struct expr *high);
  
- 	<refsect1>
-+		<title>Flowtables</title>
-+		<para>
-+			<cmdsynopsis>
-+				<group choice="req">
-+					<arg>add</arg>
-+					<arg>create</arg>
-+				</group>
-+				<command>flowtable</command>
-+				<arg choice="opt"><replaceable>family</replaceable></arg>
-+				<arg choice="plain"><replaceable>table</replaceable></arg>
-+				<arg choice="plain"><replaceable>flowtable</replaceable></arg>
-+				<arg choice="req">
-+					hook <replaceable>hook</replaceable>
-+					priority <replaceable>priority</replaceable> ;
-+					devices = { <replaceable>device</replaceable>[,...] } ;
-+				</arg>
-+			</cmdsynopsis>
-+			<cmdsynopsis>
-+				<group choice="req">
-+					<arg>delete</arg>
-+					<arg>list</arg>
-+				</group>
-+				<command>flowtable</command>
-+				<arg choice="opt"><replaceable>family</replaceable></arg>
-+				<replaceable>table</replaceable>
-+				<replaceable>flowtable</replaceable>
-+			</cmdsynopsis>
-+		</para>
++extern struct expr *compound_expr_alloc(const struct location *loc,
++					const struct expr_ops *ops);
+ extern void compound_expr_add(struct expr *compound, struct expr *expr);
+ extern void compound_expr_remove(struct expr *compound, struct expr *expr);
+ extern void list_expr_sort(struct list_head *head);
+diff --git a/include/mnl.h b/include/mnl.h
+index 4475e7f872d9..470b29787fa6 100644
+--- a/include/mnl.h
++++ b/include/mnl.h
+@@ -92,6 +92,10 @@ int mnl_nft_obj_batch_del(struct nftnl_obj *nln, struct nftnl_batch *batch,
+ struct nftnl_flowtable_list *
+ mnl_nft_flowtable_dump(struct netlink_ctx *ctx, int family, const char *table);
+ 
++int mnl_nft_flowtable_batch_add(struct nftnl_flowtable *flo,
++				struct nftnl_batch *batch, unsigned int flags,
++				uint32_t seqnum);
 +
-+		<para>
-+			Flowtables allow you to accelerate packet forwarding in software.
-+			Flowtables entries are represented through a tuple that is composed of the
-+			input interface, source and destination address, source and destination
-+			port; and layer 3/4 protocols. Each entry also caches the destination
-+			interface and the gateway address - to update the destination link-layer
-+			address - to forward packets. The ttl and hoplimit fields are also
-+			decremented. Hence, flowtables provides an alternative path that allow
-+			packets to bypass the classic forwarding path. Flowtables reside in the
-+			ingress hook, that is located before the prerouting hook. You can select
-+			what flows you want to offload through the <literal>flow offload</literal>
-+			expression from the <literal>forward</literal> chain. Flowtables are
-+			identified by their address family and their name. The address family
-+			must be one of
+ struct nftnl_ruleset *mnl_nft_ruleset_dump(struct netlink_ctx *ctx,
+ 					   uint32_t family);
+ int mnl_nft_event_listener(struct mnl_socket *nf_sock, unsigned int debug_mask,
+diff --git a/include/netlink.h b/include/netlink.h
+index bca59bbd9ebe..b80acbabe80f 100644
+--- a/include/netlink.h
++++ b/include/netlink.h
+@@ -7,6 +7,7 @@
+ #include <libnftnl/expr.h>
+ #include <libnftnl/set.h>
+ #include <libnftnl/object.h>
++#include <libnftnl/flowtable.h>
+ 
+ #include <linux/netlink.h>
+ #include <linux/netfilter/nf_tables.h>
+@@ -184,6 +185,9 @@ extern int netlink_delete_obj(struct netlink_ctx *ctx, const struct handle *h,
+ extern int netlink_list_flowtables(struct netlink_ctx *ctx,
+ 				   const struct handle *h,
+ 				   const struct location *loc);
++extern int netlink_add_flowtable(struct netlink_ctx *ctx,
++				 const struct handle *h, struct flowtable *ft,
++				 uint32_t flags);
+ 
+ extern void netlink_dump_chain(const struct nftnl_chain *nlc,
+ 			       struct netlink_ctx *ctx);
+diff --git a/include/rule.h b/include/rule.h
+index 5ee5389a6c36..de84cfc0ae64 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -320,10 +320,13 @@ uint32_t obj_type_to_cmd(uint32_t type);
+ struct flowtable {
+ 	struct list_head	list;
+ 	struct handle		handle;
++	struct scope		scope;
+ 	struct location		location;
++	const char *		hookstr;
+ 	unsigned int		hooknum;
+ 	int			priority;
+ 	const char		**dev_array;
++	struct expr		*dev_expr;
+ 	int			dev_array_len;
+ 	unsigned int		refcnt;
+ };
+@@ -381,6 +384,8 @@ enum cmd_ops {
+  * @CMD_OBJ_CHAIN:	chain
+  * @CMD_OBJ_CHAINS:	multiple chains
+  * @CMD_OBJ_TABLE:	table
++ * @CMD_OBJ_FLOWTABLE:	flowtable
++ * @CMD_OBJ_FLOWTABLES:	flowtables
+  * @CMD_OBJ_RULESET:	ruleset
+  * @CMD_OBJ_EXPR:	expression
+  * @CMD_OBJ_MONITOR:	monitor
+@@ -420,6 +425,7 @@ enum cmd_obj {
+ 	CMD_OBJ_CT_HELPERS,
+ 	CMD_OBJ_LIMIT,
+ 	CMD_OBJ_LIMITS,
++	CMD_OBJ_FLOWTABLE,
+ 	CMD_OBJ_FLOWTABLES,
+ };
+ 
+@@ -479,6 +485,7 @@ struct cmd {
+ 		struct rule	*rule;
+ 		struct chain	*chain;
+ 		struct table	*table;
++		struct flowtable *flowtable;
+ 		struct monitor	*monitor;
+ 		struct markup	*markup;
+ 		struct obj	*object;
+diff --git a/src/evaluate.c b/src/evaluate.c
+index a58fca9e6362..70a61c72838a 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2894,6 +2894,24 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
+ 	return 0;
+ }
+ 
++static uint32_t str2hooknum(uint32_t family, const char *hook);
 +
-+			<simplelist type="inline">
-+				<member><literal>ip</literal></member>
-+				<member><literal>ip6</literal></member>
-+				<member><literal>inet</literal></member>
-+			</simplelist>.
++static int flowtable_evaluate(struct eval_ctx *ctx, struct flowtable *ft)
++{
++	struct table *table;
 +
-+			The <literal>inet</literal> address family is a dummy family which is used to create
-+			hybrid IPv4/IPv6 tables.
++	table = table_lookup_global(ctx);
++	if (table == NULL)
++		return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
++				 ctx->cmd->handle.table);
 +
-+			When no address family is specified, <literal>ip</literal> is used by default.
-+		</para>
++	ft->hooknum = str2hooknum(NFPROTO_NETDEV, ft->hookstr);
++	if (ft->hooknum == NF_INET_NUMHOOKS)
++		return chain_error(ctx, ft, "invalid hook %s", ft->hookstr);
 +
-+		<variablelist>
-+			<varlistentry>
-+				<term><option>add</option></term>
-+				<listitem>
-+					<para>
-+						Add a new flowtable for the given family with the given name.
-+					</para>
-+				</listitem>
-+			</varlistentry>
-+			<varlistentry>
-+				<term><option>delete</option></term>
-+				<listitem>
-+					<para>
-+						Delete the specified flowtable.
-+					</para>
-+				</listitem>
-+			</varlistentry>
-+			<varlistentry>
-+				<term><option>list</option></term>
-+				<listitem>
-+					<para>
-+						List all flowtables.
-+					</para>
-+				</listitem>
-+			</varlistentry>
-+		</variablelist>
-+	</refsect1>
++	return 0;
++}
 +
-+	<refsect1>
- 		<title>Stateful objects</title>
- 		<para>
- 			<cmdsynopsis>
-@@ -4917,6 +5002,24 @@ add rule nat prerouting tcp dport 22 redirect to :2222
- 				</example>
- 			</para>
- 		</refsect2>
+ static int rule_evaluate(struct eval_ctx *ctx, struct rule *rule)
+ {
+ 	struct stmt *stmt, *tstmt = NULL;
+@@ -3066,6 +3084,14 @@ static int cmd_evaluate_add(struct eval_ctx *ctx, struct cmd *cmd)
+ 		return chain_evaluate(ctx, cmd->chain);
+ 	case CMD_OBJ_TABLE:
+ 		return table_evaluate(ctx, cmd->table);
++	case CMD_OBJ_FLOWTABLE:
++		ret = cache_update(ctx->nf_sock, ctx->cache, cmd->op,
++				   ctx->msgs, ctx->debug_mask & NFT_DEBUG_NETLINK, ctx->octx);
++		if (ret < 0)
++			return ret;
 +
-+		<refsect2>
-+			<title>Flow offload statement</title>
-+			<para>
-+				A flow offload statement allows us to select what flows
-+				you want to accelerate forwarding through layer 3 network
-+				stack bypass. You have to specify the flowtable name where
-+				you want to offload this flow.
-+			</para>
-+			<para>
-+				<cmdsynopsis>
-+					<command>flow offload</command>
-+					<literal>@flowtable</literal>
-+				</cmdsynopsis>
-+			</para>
++		handle_merge(&cmd->flowtable->handle, &cmd->handle);
++		return flowtable_evaluate(ctx, cmd->flowtable);
+ 	case CMD_OBJ_COUNTER:
+ 	case CMD_OBJ_QUOTA:
+ 	case CMD_OBJ_CT_HELPER:
+diff --git a/src/expression.c b/src/expression.c
+index 393c1b2b2cfe..7da69442bf03 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -663,8 +663,8 @@ struct expr *range_expr_alloc(const struct location *loc,
+ 	return expr;
+ }
+ 
+-static struct expr *compound_expr_alloc(const struct location *loc,
+-					const struct expr_ops *ops)
++struct expr *compound_expr_alloc(const struct location *loc,
++				 const struct expr_ops *ops)
+ {
+ 	struct expr *expr;
+ 
+diff --git a/src/mnl.c b/src/mnl.c
+index e70b0cdeb723..be6e05da5936 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -1011,6 +1011,22 @@ err:
+ 	return NULL;
+ }
+ 
++int mnl_nft_flowtable_batch_add(struct nftnl_flowtable *flo,
++				struct nftnl_batch *batch, unsigned int flags,
++				uint32_t seqnum)
++{
++	struct nlmsghdr *nlh;
 +
-+		</refsect2>
++	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(batch),
++				    NFT_MSG_NEWFLOWTABLE,
++				    nftnl_flowtable_get_u32(flo, NFTNL_FLOWTABLE_FAMILY),
++				    NLM_F_CREATE | flags, seqnum);
++	nftnl_flowtable_nlmsg_build_payload(nlh, flo);
++	mnl_nft_batch_continue(batch);
 +
- 		<refsect2>
- 			<title>Queue statement</title>
- 			<para>
++	return 0;
++}
++
+ /*
+  * ruleset
+  */
+diff --git a/src/netlink.c b/src/netlink.c
+index 7b8e48dc341d..89513584a50f 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -1762,6 +1762,64 @@ static struct obj *netlink_delinearize_obj(struct netlink_ctx *ctx,
+ 	return obj;
+ }
+ 
++static struct nftnl_flowtable *alloc_nftnl_flowtable(const struct handle *h,
++						     const struct flowtable *ft)
++{
++	struct nftnl_flowtable *flo;
++
++	flo = nftnl_flowtable_alloc();
++	if (flo == NULL)
++		memory_allocation_error();
++
++	nftnl_flowtable_set_u32(flo, NFTNL_FLOWTABLE_FAMILY, h->family);
++	nftnl_flowtable_set_str(flo, NFTNL_FLOWTABLE_TABLE, h->table);
++	if (h->flowtable != NULL)
++		nftnl_flowtable_set_str(flo, NFTNL_FLOWTABLE_NAME, h->flowtable);
++
++	return flo;
++}
++
++static void netlink_dump_flowtable(struct nftnl_flowtable *flo,
++				   struct netlink_ctx *ctx)
++{
++	FILE *fp = ctx->octx->output_fp;
++
++	if (!(ctx->debug_mask & NFT_DEBUG_NETLINK) || !fp)
++		return;
++
++	nftnl_flowtable_fprintf(fp, flo, 0, 0);
++	fprintf(fp, "\n");
++}
++
++int netlink_add_flowtable(struct netlink_ctx *ctx, const struct handle *h,
++			  struct flowtable *ft, uint32_t flags)
++{
++	struct nftnl_flowtable *flo;
++	const char *dev_array[8];
++	struct expr *expr;
++	int i = 0, err;
++
++	flo = alloc_nftnl_flowtable(h, ft);
++	nftnl_flowtable_set_u32(flo, NFTNL_FLOWTABLE_HOOKNUM, ft->hooknum);
++	nftnl_flowtable_set_u32(flo, NFTNL_FLOWTABLE_PRIO, ft->priority);
++
++	list_for_each_entry(expr, &ft->dev_expr->expressions, list)
++		dev_array[i++] = expr->identifier;
++
++	dev_array[i] = NULL;
++	nftnl_flowtable_set_array(flo, NFTNL_FLOWTABLE_DEVICES, dev_array);
++
++	netlink_dump_flowtable(flo, ctx);
++
++	err = mnl_nft_flowtable_batch_add(flo, ctx->batch, flags, ctx->seqnum);
++	if (err < 0)
++		netlink_io_error(ctx, &ft->location, "Could not add flowtable: %s",
++				 strerror(errno));
++	nftnl_flowtable_free(flo);
++
++	return err;
++}
++
+ static int list_obj_cb(struct nftnl_obj *nls, void *arg)
+ {
+ 	struct netlink_ctx *ctx = arg;
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 4cfa8076cfc4..45cc3b4114ff 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -145,6 +145,7 @@ int nft_lex(void *, void *, void *);
+ 	struct expr		*expr;
+ 	struct set		*set;
+ 	struct obj		*obj;
++	struct flowtable	*flowtable;
+ 	struct counter		*counter;
+ 	struct quota		*quota;
+ 	struct ct		*ct;
+@@ -189,6 +190,7 @@ int nft_lex(void *, void *, void *);
+ 
+ %token HOOK			"hook"
+ %token DEVICE			"device"
++%token DEVICES			"devices"
+ %token TABLE			"table"
+ %token TABLES			"tables"
+ %token CHAIN			"chain"
+@@ -200,6 +202,7 @@ int nft_lex(void *, void *, void *);
+ %token ELEMENT			"element"
+ %token MAP			"map"
+ %token MAPS			"maps"
++%token FLOWTABLE		"flowtable"
+ %token HANDLE			"handle"
+ %token RULESET			"ruleset"
+ %token TRACE			"trace"
+@@ -499,9 +502,9 @@ int nft_lex(void *, void *, void *);
+ %type <cmd>			base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd reset_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd import_cmd
+ %destructor { cmd_free($$); }	base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd reset_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd import_cmd
+ 
+-%type <handle>			table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
+-%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
+-%type <handle>			set_spec set_identifier obj_spec obj_identifier
++%type <handle>			table_spec chain_spec flowtable_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
++%destructor { handle_free(&$$); } table_spec chain_spec flowtable_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
++%type <handle>			set_spec set_identifier flowtable_identifier obj_spec obj_identifier
+ %destructor { handle_free(&$$); } set_spec set_identifier obj_spec obj_identifier
+ %type <val>			family_spec family_spec_explicit chain_policy prio_spec
+ 
+@@ -525,6 +528,9 @@ int nft_lex(void *, void *, void *);
+ %type <set>			map_block_alloc map_block
+ %destructor { set_free($$); }	map_block_alloc
+ 
++%type <flowtable>		flowtable_block_alloc flowtable_block
++%destructor { flowtable_free($$); }	flowtable_block_alloc
++
+ %type <obj>			obj_block_alloc counter_block quota_block ct_helper_block limit_block
+ %destructor { obj_free($$); }	obj_block_alloc
+ 
+@@ -605,8 +611,8 @@ int nft_lex(void *, void *, void *);
+ %type <expr>			verdict_map_expr verdict_map_list_expr verdict_map_list_member_expr
+ %destructor { expr_free($$); }	verdict_map_expr verdict_map_list_expr verdict_map_list_member_expr
+ 
+-%type <expr>			set_expr set_block_expr set_list_expr set_list_member_expr
+-%destructor { expr_free($$); }	set_expr set_block_expr set_list_expr set_list_member_expr
++%type <expr>			set_expr set_block_expr set_list_expr set_list_member_expr flowtable_expr flowtable_list_expr flowtable_expr_member
++%destructor { expr_free($$); }	set_expr set_block_expr set_list_expr set_list_member_expr flowtable_expr flowtable_list_expr flowtable_expr_member
+ %type <expr>			set_elem_expr set_elem_expr_alloc set_lhs_expr set_rhs_expr
+ %destructor { expr_free($$); }	set_elem_expr set_elem_expr_alloc set_lhs_expr set_rhs_expr
+ %type <expr>			set_elem_expr_stmt set_elem_expr_stmt_alloc
+@@ -871,6 +877,13 @@ add_cmd			:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_SETELEM, &$2, &@$, $3);
+ 			}
++			|	FLOWTABLE	flowtable_spec	flowtable_block_alloc
++						'{'	flowtable_block	'}'
++			{
++				$5->location = @5;
++				handle_merge(&$3->handle, &$2);
++				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_FLOWTABLE, &$2, &@$, $5);
++			}
+ 			|	COUNTER		obj_spec
+ 			{
+ 				struct obj *obj;
+@@ -946,6 +959,13 @@ create_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_CREATE, CMD_OBJ_SETELEM, &$2, &@$, $3);
+ 			}
++			|	FLOWTABLE	flowtable_spec	flowtable_block_alloc
++						'{'	flowtable_block	'}'
++			{
++				$5->location = @5;
++				handle_merge(&$3->handle, &$2);
++				$$ = cmd_alloc(CMD_CREATE, CMD_OBJ_FLOWTABLE, &$2, &@$, $5);
++			}
+ 			|	COUNTER		obj_spec
+ 			{
+ 				struct obj *obj;
+@@ -1316,6 +1336,17 @@ table_block		:	/* empty */	{ $$ = $<table>-1; }
+ 				list_add_tail(&$4->list, &$1->sets);
+ 				$$ = $1;
+ 			}
++
++			|	table_block	FLOWTABLE	flowtable_identifier
++					flowtable_block_alloc	'{'	flowtable_block	'}'
++					stmt_separator
++			{
++				$4->location = @3;
++				handle_merge(&$4->handle, &$3);
++				handle_free(&$3);
++				list_add_tail(&$4->list, &$1->flowtables);
++				$$ = $1;
++			}
+ 			|	table_block	COUNTER		obj_identifier
+ 					obj_block_alloc	'{'	counter_block	'}'
+ 					stmt_separator
+@@ -1506,6 +1537,62 @@ set_policy_spec		:	PERFORMANCE	{ $$ = NFT_SET_POL_PERFORMANCE; }
+ 			|	MEMORY		{ $$ = NFT_SET_POL_MEMORY; }
+ 			;
+ 
++flowtable_block_alloc	:	/* empty */
++			{
++				$$ = flowtable_alloc(NULL);
++			}
++			;
++
++flowtable_block		:	/* empty */	{ $$ = $<flowtable>-1; }
++			|	flowtable_block	common_block
++			|	flowtable_block	stmt_separator
++			|	flowtable_block	HOOK		STRING	PRIORITY        prio_spec	stmt_separator
++			{
++				$$->hookstr	= chain_hookname_lookup($3);
++				if ($$->hookstr == NULL) {
++					erec_queue(error(&@3, "unknown chain hook %s", $3),
++						   state->msgs);
++					xfree($3);
++					YYERROR;
++				}
++				xfree($3);
++
++				$$->priority = $5;
++			}
++			|	flowtable_block	DEVICES		'='	flowtable_expr	stmt_separator
++			{
++				$$->dev_expr = $4;
++			}
++			;
++
++flowtable_expr		:	'{'	flowtable_list_expr	'}'
++			{
++				$2->location = @$;
++				$$ = $2;
++			}
++			;
++
++flowtable_list_expr	:	flowtable_expr_member
++			{
++				$$ = compound_expr_alloc(&@$, NULL);
++				compound_expr_add($$, $1);
++			}
++			|	flowtable_list_expr	COMMA	flowtable_expr_member
++			{
++				compound_expr_add($1, $3);
++				$$ = $1;
++			}
++			|	flowtable_list_expr	COMMA	opt_newline
++			;
++
++flowtable_expr_member	:	STRING
++			{
++				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
++						       current_scope(state),
++						       $1);
++			}
++			;
++
+ data_type_atom_expr	:	type_identifier
+ 			{
+ 				const struct datatype *dtype = datatype_lookup_byname($1);
+@@ -1714,6 +1801,21 @@ set_identifier		:	identifier
+ 			}
+ 			;
+ 
++
++flowtable_spec		:	table_spec	identifier
++			{
++				$$		= $1;
++				$$.flowtable	= $2;
++			}
++			;
++
++flowtable_identifier	:	identifier
++			{
++				memset(&$$, 0, sizeof($$));
++				$$.flowtable	= $1;
++			}
++			;
++
+ obj_spec		:	table_spec	identifier
+ 			{
+ 				$$		= $1;
+diff --git a/src/rule.c b/src/rule.c
+index 08ea2c3c9fb5..8a38bcc66a66 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -45,6 +45,8 @@ void handle_merge(struct handle *dst, const struct handle *src)
+ 		dst->chain = xstrdup(src->chain);
+ 	if (dst->set == NULL && src->set != NULL)
+ 		dst->set = xstrdup(src->set);
++	if (dst->flowtable == NULL && src->flowtable != NULL)
++		dst->flowtable = xstrdup(src->flowtable);
+ 	if (dst->obj == NULL && src->obj != NULL)
+ 		dst->obj = xstrdup(src->obj);
+ 	if (dst->handle.id == 0)
+@@ -854,6 +856,7 @@ struct cmd *cmd_alloc(enum cmd_ops op, enum cmd_obj obj,
+ void nft_cmd_expand(struct cmd *cmd)
+ {
+ 	struct list_head new_cmds;
++	struct flowtable *ft;
+ 	struct table *table;
+ 	struct chain *chain;
+ 	struct rule *rule;
+@@ -893,6 +896,14 @@ void nft_cmd_expand(struct cmd *cmd)
+ 					&set->location, set_get(set));
+ 			list_add_tail(&new->list, &new_cmds);
+ 		}
++		list_for_each_entry(ft, &table->flowtables, list) {
++			handle_merge(&ft->handle, &table->handle);
++			memset(&h, 0, sizeof(h));
++			handle_merge(&h, &ft->handle);
++			new = cmd_alloc(CMD_ADD, CMD_OBJ_FLOWTABLE, &h,
++					&ft->location, flowtable_get(ft));
++			list_add_tail(&new->list, &new_cmds);
++		}
+ 		list_for_each_entry(chain, &table->chains, list) {
+ 			list_for_each_entry(rule, &chain->rules, list) {
+ 				memset(&h, 0, sizeof(h));
+@@ -979,6 +990,9 @@ void cmd_free(struct cmd *cmd)
+ 		case CMD_OBJ_LIMIT:
+ 			obj_free(cmd->object);
+ 			break;
++		case CMD_OBJ_FLOWTABLE:
++			flowtable_free(cmd->flowtable);
++			break;
+ 		default:
+ 			BUG("invalid command object type %u\n", cmd->obj);
+ 		}
+@@ -1068,6 +1082,9 @@ static int do_command_add(struct netlink_ctx *ctx, struct cmd *cmd, bool excl)
+ 	case CMD_OBJ_CT_HELPER:
+ 	case CMD_OBJ_LIMIT:
+ 		return netlink_add_obj(ctx, &cmd->handle, cmd->object, flags);
++	case CMD_OBJ_FLOWTABLE:
++		return netlink_add_flowtable(ctx, &cmd->handle, cmd->flowtable,
++					     flags);
+ 	default:
+ 		BUG("invalid command object type %u\n", cmd->obj);
+ 	}
+diff --git a/src/scanner.l b/src/scanner.l
+index 6a1f2f685615..ca74650cdd1f 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -238,6 +238,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ 
+ "hook"			{ return HOOK; }
+ "device"		{ return DEVICE; }
++"devices"		{ return DEVICES; }
+ "table"			{ return TABLE; }
+ "tables"		{ return TABLES; }
+ "chain"			{ return CHAIN; }
+@@ -249,6 +250,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "element"		{ return ELEMENT; }
+ "map"			{ return MAP; }
+ "maps"			{ return MAPS; }
++"flowtable"		{ return FLOWTABLE; }
+ "handle"		{ return HANDLE; }
+ "ruleset"		{ return RULESET; }
+ "trace"			{ return TRACE; }
 -- 
 2.11.0
 
