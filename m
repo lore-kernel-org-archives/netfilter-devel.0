@@ -1,29 +1,59 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH] tests/shell: Add back named_interval_automerging_0
-Date: Thu, 25 Jan 2018 20:53:44 +0100
-Message-ID: <20180125195344.z2onwrhaivxcao4v@salvia>
-References: <20180120132101.14921-1-phil@nwl.cc>
+Subject: Re: [nf-next] netfilter: Add support for inner IPv6 packet match
+Date: Thu, 25 Jan 2018 21:13:54 +0100
+Message-ID: <20180125201354.alkb26twrifnngif@salvia>
+References: <1516288405-4582-1-git-send-email-amsalam20@gmail.com>
+ <1516288405-4582-2-git-send-email-amsalam20@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Phil Sutter <phil@nwl.cc>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39248 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751109AbeAYTxs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Jan 2018 14:53:48 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2F16B20990A
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jan 2018 20:53:47 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1F47EDA727
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jan 2018 20:53:47 +0100 (CET)
+Cc: davem@davemloft.net, fw@strlen.de, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        kadlec@blackhole.kfki.hu, uznet@ms2.inr.ac.ru,
+        yoshfuji@linux-ipv6.org
+To: Ahmed Abdelsalam <amsalam20@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180120132101.14921-1-phil@nwl.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1516288405-4582-2-git-send-email-amsalam20@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Jan 20, 2018 at 02:21:01PM +0100, Phil Sutter wrote:
-> Change the test to expect no automerging since it was disabled recently.
+Hi Ahmed,
 
-Applied, thanks Phil.
+On Thu, Jan 18, 2018 at 04:13:25PM +0100, Ahmed Abdelsalam wrote:
+[...]
+> diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_inner6.h b/include/uapi/linux/netfilter_ipv6/ip6t_inner6.h
+> new file mode 100644
+> index 0000000..7017fa4
+> --- /dev/null
+> +++ b/include/uapi/linux/netfilter_ipv6/ip6t_inner6.h
+> @@ -0,0 +1,21 @@
+> +/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+> +#ifndef _IP6T_INNER6_H
+> +#define _IP6T_INNER6_H
+> +
+> +#include <linux/types.h>
+> +#include <linux/netfilter.h>
+> +
+> +/* Values for "invflags" field in struct ip6t_inner6 */
+> +#define IP6T_INNER6_INV_SRC	0x01
+> +#define IP6T_INNER6_INV_DST	0x02
+> +#define IP6T_INNER6_INV_MASK	0x03
+> +
+> +struct ip6t_inner6 {
+> +	/* Source and destination addr of inner IPv6 packet */
+> +	struct in6_addr inner_src, inner_dst;
+> +	/* Mask for src and dest addr of inner IPv6 packet */
+> +	struct in6_addr inner_smsk, inner_dmsk;
+> +	__u8		invflags;
+> +};
+
+Matching at inner headers is a very useful, no doubt. Problem is that
+this approach is rather limited since it only allows for matching
+source and destination address at the inner header. I suspect someone
+else will follow up later on to add more fields to this, and we will
+end up having a new version of ip6tables... inside ip6t_inner6 :-).
+
+nf_tables is a much more flexible framework, we can store the offset
+of this inner header in nft_pktinfo on demand, add new base to
+nft_payload and have access to all matching capabilities from any
+arbitrary offset. I really think this new feature belongs there.
