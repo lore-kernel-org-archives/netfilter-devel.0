@@ -1,69 +1,158 @@
-From: Jack Ma <Jack.Ma@alliedtelesis.co.nz>
-Subject: Re: conntrack enhancement
-Date: Thu, 25 Jan 2018 21:31:10 +0000
-Message-ID: <1516915870809.26703@alliedtelesis.co.nz>
-References: <89a1d74339b14c6e813ccbea864c24e0@svr-chch-ex1.atlnz.lc>
- <20180116141712.GC15198@breakpoint.cc>
- <1516847646457.65736@alliedtelesis.co.nz>,<20180125062211.GE14192@breakpoint.cc>
+From: Jakub Kicinski <kubakici@wp.pl>
+Subject: Re: [PATCH nf-next,RFC v4] netfilter: nf_flow_table: add hardware
+ offload support
+Date: Thu, 25 Jan 2018 14:38:46 -0800
+Message-ID: <20180125143846.6bb5290f@cakuba.netronome.com>
+References: <20180125000941.2763-1-pablo@netfilter.org>
+        <20180124173136.5ec57ba7@cakuba.netronome.com>
+        <20180125112858.s27mtfv3cikqfiny@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+        f.fainelli@gmail.com, ronye@mellanox.com,
+        simon.horman@netronome.com, jiri@mellanox.com, nbd@nbd.name,
+        john@phrozen.org, fw@strlen.de
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gate2.alliedtelesis.co.nz ([202.36.163.20]:52125 "EHLO
-        gate2.alliedtelesis.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751187AbeAYVbN (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Jan 2018 16:31:13 -0500
-Received: from mmarshal3.atlnz.lc (mmarshal3.atlnz.lc [10.32.18.43])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (Client did not present a certificate)
-        by gate2.alliedtelesis.co.nz (Postfix) with ESMTPS id B3EFB8365F
-        for <netfilter-devel@vger.kernel.org>; Fri, 26 Jan 2018 10:31:11 +1300 (NZDT)
-In-Reply-To: <20180125062211.GE14192@breakpoint.cc>
-Content-Language: en-US
+Received: from mx4.wp.pl ([212.77.101.12]:40700 "EHLO mx4.wp.pl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751204AbeAYWi6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Jan 2018 17:38:58 -0500
+In-Reply-To: <20180125112858.s27mtfv3cikqfiny@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Florian,=0A=
-=0A=
-=0A=
-Lets start with iptables setting=0A=
-=0A=
-iptables -t mangle=0A=
-=0A=
-Chain EXAMPLE_MAIN=0A=
-=0A=
-pkts bytes target     prot opt in     out     source               destinat=
-ion =0A=
-3709K  204M MARK       all  --  any    any     anywhere             anywher=
-e             MARK and 0xfffff=0A=
-37  6952 CONNMARK   all  --  any    any     anywhere             anywhere  =
-           CONNMARK restore mask 0xfff00000=0A=
-0     0 MARK       udp  --  any    any     anywhere             anywhere   =
-          match .... and MARK xset 0xabc00000/0xfff00000         =0A=
-    5   308 CONNMARK   all  --  any    any     anywhere             anywher=
-e             CONNMARK save mask 0xfff00000=0A=
-=0A=
-=0A=
-For the first packet of 'a' flow we mark the packet with fwmark =3D ct->mar=
-k.=0A=
-=0A=
-ip rule=0A=
-=0A=
-then direct traffic using such fwmark.=0A=
-=0A=
-250:    from all fwmark 0xabc lookup TABLE=0A=
-=0A=
-However, we also implemented firewall feature, packet inspection feature...=
-. etc to use fwmark at the same time.=0A=
-=0A=
-which makes such 32 bit far more occupied than ct->mark (32)..=0A=
-=0A=
-Hopefully this can help!=0A=
-=0A=
-Please let me know if this confuses you..=0A=
-=0A=
-Thanks,=0A=
-Jack=
+On Thu, 25 Jan 2018 12:28:58 +0100, Pablo Neira Ayuso wrote:
+> On Wed, Jan 24, 2018 at 05:31:36PM -0800, Jakub Kicinski wrote:
+> > On Thu, 25 Jan 2018 01:09:41 +0100, Pablo Neira Ayuso wrote:  
+> > > This patch adds the infrastructure to offload flows to hardware, in case
+> > > the nic/switch comes with built-in flow tables capabilities.
+> > > 
+> > > If the hardware comes with no hardware flow tables or they have
+> > > limitations in terms of features, the existing infrastructure falls back
+> > > to the software flow table implementation.
+> > > 
+> > > The software flow table garbage collector skips entries that resides in
+> > > the hardware, so the hardware will be responsible for releasing this
+> > > flow table entry too via flow_offload_dead().
+> > > 
+> > > Hardware configuration, either to add or to delete entries, is done from
+> > > the hardware offload workqueue, to ensure this is done from user context
+> > > given that we may sleep when grabbing the mdio mutex.
+> > > 
+> > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>  
+> > 
+> > I wonder how do you deal with device/table removal?  I know regrettably
+> > little about internals of nftables.  I assume the table cannot be
+> > removed/module unloaded as long as there are flow entries? And on
+> > device removal all flows pertaining to the removed ifindex will be
+> > automatically flushed?  
+> 
+> Yes, this code is part of the generic software infrastructure, it's
+> not specific to the hardware offload, it's already upstream, see
+> net/netfilter/nft_flow_offload.c, see flow_offload_netdev_notifier.
+
+Hm.  At a glance flow_offload_iterate_cleanup() will just mark the
+flows as dead, not request their removal from the HW.  Doesn't that
+mean that reloading the HW driver with flows installed will likely lead
+to HW/FW resources being leaked (unless every driver duplicates manual
+flush on remove).
+
+> > Still there could be outstanding work items targeting the device, so
+> > this WARN_ON:
+> > 
+> > +	indev = dev_get_by_index(net, ifindex);
+> > +	if (WARN_ON(!indev))
+> > +		return 0;
+> > 
+> > looks possible to trigger.  
+> 
+> It should not, that's why there's a WARN_ON there ;-).
+> 
+> See nf_flow_table_hw_module_exit(), there's a call to
+> cancel_work_sync() to stop the hw offload workqueue, then flushes it.
+> After this, there's a flow table cleanup. So noone should be calling
+> that function by then.
+
+Ah, I must be misunderstanding.  I meant when device is removed, not
+the flow_table_hw module.  Does the nf_flow_table_hw_module_exit() run
+when device is removed?  I was expecting that, for example something
+like nft_flow_offload_iterate_cleanup() would queue up all the flow
+remove calls and then call flush_work() (not cancel_work). 
+
+> > On the general architecture - I think it's worth documenting somewhere
+> > clearly that unlike TC offloads and most NDOs add/del of NFT flows are
+> > not protected by rtnl_lock.  
+> 
+> Someone could probably look at getting rid of the rtnl_lock() all over
+> the place for hardware offloads, holding on the entire rtnetlink
+> subsystem just because some piece of hardware is taking time to
+> configure things is not good. Not explicitly related to this, but have
+> a look at Florian Westphal's talk on rtnl_lock during NetDev.
+
+Oh, 100% agreed.  I was just pointing out that it could be useful to
+mention the locking in kdoc or at least the commit message.
+
+> > > v4: More work in progress
+> > > - Decouple nf_flow_table_hw from nft_flow_offload via rcu hooks
+> > > - Consolidate ->ndo invocations, now they happen from the hw worker.
+> > > - Fix bug in list handling, use list_replace_init()
+> > > - cleanup entries on nf_flow_table_hw module removal
+> > > - add NFT_FLOWTABLE_F_HW flag to flowtables to explicit signal that user wants
+> > >   to offload entries to hardware.
+> > > 
+> > > diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+> > > index ed0799a12bf2..be0c12acc3f0 100644
+> > > --- a/include/linux/netdevice.h
+> > > +++ b/include/linux/netdevice.h
+> > > @@ -859,6 +859,13 @@ struct dev_ifalias {
+> > >  	char ifalias[];
+> > >  };
+> > >  
+> > > +struct flow_offload;
+> > > +
+> > > +enum flow_offload_type {
+> > > +	FLOW_OFFLOAD_ADD	= 0,
+> > > +	FLOW_OFFLOAD_DEL,
+> > > +};
+> > > +
+> > >  /*
+> > >   * This structure defines the management hooks for network devices.
+> > >   * The following hooks can be defined; unless noted otherwise, they are
+> > > @@ -1316,6 +1323,8 @@ struct net_device_ops {
+> > >  	int			(*ndo_bridge_dellink)(struct net_device *dev,
+> > >  						      struct nlmsghdr *nlh,
+> > >  						      u16 flags);
+> > > +	int			(*ndo_flow_offload)(enum flow_offload_type type,
+> > > +						    struct flow_offload *flow);  
+> > 
+> > nit: should there be kdoc for the new NDO?  ndo kdoc comment doesn't
+> >      look like it would be recognized by tools anyway though..  
+> 
+> Yes, I can add this in the next iteration, no problem.
+> 
+> > nit: using "flow" as the name rings slightly grandiose to me :)  
+> >      I would appreciate a nf_ prefix for clarity.  Drivers will have 
+> >      to juggle a number of "flow" things, it would make the code easier
+> >      to follow if names were prefixed clearly, I feel.  
+> 
+> This infrastructure could be used from tc too. My take on this is that
+> we should look at generalizing ndo's so they can be used from every
+> subsystem, so you just pick your own poison when doing packet
+> classification.
+> 
+> With some intermediate representation that suits well for everyone, we
+> would save quite a bit of redundant code in the drivers, so all
+> frontend interfaces that are basically part of the "same world" could
+> call the same ndo. We just need some glue code/abstraction in between
+> drivers and frontends [1].
+>
+> The other direction, that IMO I would prefer to skip, is to have one
+> ndo for each frontend packet classification subsystem.
+
+Unification or making an agreement on a unified API which would cover
+all cases would be great.  
+
+My vote doesn't carry much wight but I thought I would express my
+preference as far as the "interim" goes :)
