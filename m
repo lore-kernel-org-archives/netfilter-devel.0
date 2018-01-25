@@ -1,47 +1,30 @@
-From: Varsha Rao <rvarsha016@gmail.com>
-Subject: [PATCH nft] configure: Remove macro AC_CHECK_FUNCS
-Date: Thu, 25 Jan 2018 20:48:53 +0530
-Message-ID: <20180125151853.4740-2-rvarsha016@gmail.com>
-References: <20180125151853.4740-1-rvarsha016@gmail.com>
-Cc: Varsha Rao <rvarsha016@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [conntrack-tools PATCH v2] conntrackd.conf.5: fix sentence about
+ systemd
+Date: Thu, 25 Jan 2018 20:33:58 +0100
+Message-ID: <20180125193358.m7huh434lxuiddig@salvia>
+References: <151685306829.3981.8178550952886609608.stgit@endurance>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:46063 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750980AbeAYPTl (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Jan 2018 10:19:41 -0500
-Received: by mail-pg0-f67.google.com with SMTP id m136so5234441pga.12
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jan 2018 07:19:41 -0800 (PST)
-In-Reply-To: <20180125151853.4740-1-rvarsha016@gmail.com>
+Received: from mail.us.es ([193.147.175.20]:34848 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751011AbeAYTeD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Jan 2018 14:34:03 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id A71BD1F1902
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jan 2018 20:34:01 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 97683DA729
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Jan 2018 20:34:01 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <151685306829.3981.8178550952886609608.stgit@endurance>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Functions memmove, strchr, strerror and strdup are defined in string.h
-header file. Also, strtoull is defined in stdlib.h header file. These
-header files are checked by AC_CHECK_HEADERS macro. AC_CHECK_FUNCS macro
-is not required, so remove it.
+On Wed, Jan 24, 2018 at 08:04:28PM -0800, Arturo Borrero Gonzalez wrote:
+> Typos, duplicated systemd word in the sentence and 'obviously'.
 
-Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
----
- configure.ac | 3 ---
- 1 file changed, 3 deletions(-)
-
-diff --git a/configure.ac b/configure.ac
-index 71d30d8..48af28c 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -128,9 +128,6 @@ AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h limits.h malloc.h \
- 		  stddef.h stdint.h stdlib.h string.h unistd.h], ,
- 		 AC_MSG_ERROR([Header file not found]))
- 
--# Checks for library functions.
--AC_CHECK_FUNCS([memmove memset strchr strdup strerror strtoull])
--
- AC_CONFIG_FILES([					\
- 		Makefile				\
- 		src/Makefile				\
--- 
-2.14.3
-
+Applied, thanks Arturo.
