@@ -1,55 +1,41 @@
-From: Arturo Borrero Gonzalez <arturo@netfilter.org>
-Subject: [conntrack-tools PATCH v2] conntrackd.conf.5: fix sentence about
- systemd
-Date: Wed, 24 Jan 2018 20:04:28 -0800
-Message-ID: <151685306829.3981.8178550952886609608.stgit@endurance>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v2 net] netfilter: x_tables: avoid out-of-bounds reads in
+ xt_request_find_{match|target}
+Date: Thu, 25 Jan 2018 07:09:38 +0100
+Message-ID: <20180125060938.GD14192@breakpoint.cc>
+References: <1516834188.3715.35.camel@gmail.com>
+ <20180124231952.GC14192@breakpoint.cc>
+ <20180124235056.ahubcyqostttvtbx@salvia>
+ <20180125001336.ilboagwlcpck54ip@salvia>
+ <1516842969.3715.41.camel@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:44252 "EHLO
-        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933234AbeAYEEc (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Jan 2018 23:04:32 -0500
-Received: by mail-io0-f195.google.com with SMTP id z6so7179031iob.11
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Jan 2018 20:04:32 -0800 (PST)
-Received: from endurance ([50.233.106.125])
-        by smtp.gmail.com with ESMTPSA id z3sm185960itf.0.2018.01.24.20.04.29
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Wed, 24 Jan 2018 20:04:30 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1516842969.3715.41.camel@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Typos, duplicated systemd word in the sentence and 'obviously'.
+Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> From: Eric Dumazet <edumazet@google.com>
+> 
+> It looks like syzbot found its way into netfilter territory.
+> 
+> Issue here is that @name comes from user space and might
+> not be null terminated.
+> 
+> Out-of-bound reads happen, KASAN is not happy.
+> 
+> v2 added similar fix for xt_request_find_target(),
+> as Florian advised.
+> 
+> Signed-off-by: Eric Dumazet <edumazet@google.com>
+> Reported-by: syzbot <syzkaller@googlegroups.com>
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo@netfilter.org>
----
- conntrackd.conf.5 |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Thanks a lot Eric!
 
-diff --git a/conntrackd.conf.5 b/conntrackd.conf.5
-index 2ce6aa3..7c5c29f 100644
---- a/conntrackd.conf.5
-+++ b/conntrackd.conf.5
-@@ -22,7 +22,7 @@
- .\" <http://www.gnu.org/licenses/>.
- .\" %%%LICENSE_END
- .\"
--.TH CONNTRACKD.CONF 5 "June 09, 2017"
-+.TH CONNTRACKD.CONF 5 "January 24, 2018"
- 
- .SH NAME
- conntrackd.conf \- configuration file for conntrackd daemon
-@@ -470,7 +470,7 @@ Enable \fBsystemd(1)\fP runtime support if \fBconntrackd(8)\fP is compiled
- with the proper configuration. Then you can use a service unit of
- \fIType=notify\fP.
- 
--Obviusly, this requires the init systemd of your system to be \fBsystemd(1)\fP.
-+Obviously, this requires the init of your system to be \fBsystemd(1)\fP.
- 
- Note: \fBsystemd(1)\fP watchdog is supported as well.
- 
-
+Acked-by: Florian Westphal <fw@strlen.de>
