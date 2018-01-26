@@ -1,76 +1,51 @@
-From: Arturo Borrero Gonzalez <arturo@netfilter.org>
-Subject: Re: question about UNDEFINE/REDEFINE
-Date: Fri, 26 Jan 2018 10:43:18 -0800
-Message-ID: <CAOkSjBiHTwW_9rQhznubKnZ=DJJsySK4qo_XJ3r4PLAmKXt35w@mail.gmail.com>
-References: <3622208.jy4NlOniyd@voxel> <20180123110728.i7hujeyz6224atd2@salvia>
- <1993002.08LkLsM8EI@voxel>
+From: Ahmed Abdelsalam <amsalam20@gmail.com>
+Subject: Re: [nf-next] netfilter: Add support for inner IPv6 packet match
+Date: Fri, 26 Jan 2018 21:53:49 +0100
+Message-ID: <20180126215349.249afcf24283f2b9f2260180@gmail.com>
+References: <1516288405-4582-1-git-send-email-amsalam20@gmail.com>
+        <1516288405-4582-2-git-send-email-amsalam20@gmail.com>
+        <20180125201354.alkb26twrifnngif@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>
-To: David Fabian <david.fabian@cldn.cz>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: davem@davemloft.net, fw@strlen.de, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        kadlec@blackhole.kfki.hu, uznet@ms2.inr.ac.ru,
+        yoshfuji@linux-ipv6.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:40708 "EHLO
-        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752246AbeAZSnl (ORCPT
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:54688 "EHLO
+        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751351AbeAZUxz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 26 Jan 2018 13:43:41 -0500
-Received: by mail-wm0-f51.google.com with SMTP id v123so23049745wmd.5
-        for <netfilter-devel@vger.kernel.org>; Fri, 26 Jan 2018 10:43:40 -0800 (PST)
-Received: from mail-wm0-f52.google.com (mail-wm0-f52.google.com. [74.125.82.52])
-        by smtp.gmail.com with ESMTPSA id x37sm3055024edx.3.2018.01.26.10.43.39
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 26 Jan 2018 10:43:39 -0800 (PST)
-Received: by mail-wm0-f52.google.com with SMTP id f3so23075365wmc.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 26 Jan 2018 10:43:39 -0800 (PST)
-In-Reply-To: <1993002.08LkLsM8EI@voxel>
+        Fri, 26 Jan 2018 15:53:55 -0500
+In-Reply-To: <20180125201354.alkb26twrifnngif@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 23 January 2018 at 04:40, David Fabian <david.fabian@cldn.cz> wrote:
-> Hello Pablo,
->
-> Dne úterý 23. ledna 2018 12:07:28 CET, Pablo Neira Ayuso napsal(a):
->> I'm asking here because I would need to understand better how you've
->> structured your scripts, if you could explain a bit more, we would
->> appreciate.
->
-> I have packed an excerpt of a playground FW with two VLANs 3 and 54. The
-> configuration already uses my redefine keyword.
->
-> ftp://ftp.bosson.eu/pub/tmp/nftables_excerpt.tar.gz
->
-> The intended use case is to call nft -f fw-on and reload the firewall from
-> scratch every time there is a config change. I don't know how a cmdline
-> parameter would help us with it. Maybe if we would wrap nft calls with bash
-> scripts but that would defeat the purpose of using the nft scripting
-> capabilities in the first place.
->
-> The most important for us is to have the FW logically structured for every
-> customer and every FW rule related to a customer should be in his/her VLAN
-> config file.
->
+Hi Pablo, 
 
-Your approach (redefining variables) doesn't save so much typing at
-the end of the day.
+> Hi Ahmed,
+> 
+> On Thu, Jan 18, 2018 at 04:13:25PM +0100, Ahmed Abdelsalam wrote:
+> [...]
+> > diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_inner6.h b/include/uapi/linux/netfilter_ipv6/ip6t_inner6.h
+> Matching at inner headers is a very useful, no doubt. Problem is that
+> this approach is rather limited since it only allows for matching
+> source and destination address at the inner header. I suspect someone
+> else will follow up later on to add more fields to this, and we will
+> end up having a new version of ip6tables... inside ip6t_inner6 :-).
 
-My suggestion is to simply create one variable per value:
+Most probably it would be me who come to add more features, but i would call it sr6tables :-) 
 
-define INET_IFACES_VLAN43 = { bond0.x, bond3.y}
-define INET_IFACES_VLAN3 = { bond3.x, bond3.y}
-define XXX_VLAN43 = xxx
-define XXX_VLAN3 = xxx
+> 
+> nf_tables is a much more flexible framework, we can store the offset
+> of this inner header in nft_pktinfo on demand, add new base to
+> nft_payload and have access to all matching capabilities from any
+> arbitrary offset. I really think this new feature belongs there.
 
-you could generate such a file, something like 'defines.nft' and
-include it once in your main ruleset file.
+Indeed, I started looking into the nftables implemenation and really convienced it's more convienent. Moreover, I had many issues with the ip6tables performance specially with the increae in the number of rules. However, why don't we have these patches in the kernel? since we have them implemented (some folks still like ip6tables). 
 
-If you will perform many updates to this file, you could even maintain
-this in git to keep track of changes.
-Example: https://wiki.nftables.org/wiki-nftables/index.php/Classic_perimetral_firewall_example
-
-Other option is you create some kind of shell wrapper to replace
-variable names before running nft -f (something like make .in files),
-but that's even uglier? I don't know.
+P.S. I'm looking into nftables exthdrs to support SRH.
+Thanks, 
+Ahmed 
