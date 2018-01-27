@@ -1,54 +1,20 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [netfilter-core] kernel panic: Out of memory and no killable
- processes... (2)
-Date: Tue, 30 Jan 2018 15:39:58 +0100
-Message-ID: <20180130143958.GG21609@dhcp22.suse.cz>
-References: <20180129165722.GF5906@breakpoint.cc>
- <20180129182811.fze4vrb5zd5cojmr@node.shutemov.name>
- <20180129223522.GG5906@breakpoint.cc>
- <20180130075226.GL21609@dhcp22.suse.cz>
- <20180130081127.GH5906@breakpoint.cc>
- <20180130082817.cbax5qj4mxancx4b@node.shutemov.name>
- <CACT4Y+bFKwoxopr1dwnc7OHUoHy28ksVguqtMY6tD=aRh-7LyQ@mail.gmail.com>
- <20180130095739.GV21609@dhcp22.suse.cz>
- <20180130140104.GE21609@dhcp22.suse.cz>
- <20180130140111.GM5906@breakpoint.cc>
+From: "Jones" <eortega@rits.cl>
+Subject: (unknown)
+Date: Sat, 27 Jan 2018 14:48:19 +0100
+Message-ID: <E1efQq5-0005cY-5Q__30242.8161762238$1517328698$gmane$org@ns1.rits.cl>
+Reply-To: <ger_vlieghe@doctor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Dmitry Vyukov <dvyukov@google.com>,
-	"Kirill A. Shutemov" <kirill@shutemov.name>,
-	Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>,
-	David Miller <davem@davemloft.net>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev <netdev@vger.kernel.org>,
-	Andrea Arcangeli <aarcange@redhat.com>,
-	Yang Shi <yang.s@alibaba-inc.com>, syzkaller-bugs@googlegroups.com,
-	LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>,
-	Linux-MM <linux-mm@kvack.org>, David Rientjes <rientjes@google.com>,
-	Andrew Morton <akpm@linux-foundation.org>, guro@fb.com,
-	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20180130140111.GM5906@breakpoint.cc>
-Sender: owner-linux-mm@kvack.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain;
+        charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ns1.rits.cl ([190.196.161.40]:58636 "EHLO ns1.rits.cl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751444AbeA3QNW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Jan 2018 11:13:22 -0500
+Subject: 
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue 30-01-18 15:01:11, Florian Westphal wrote:
-> > From d48e950f1b04f234b57b9e34c363bdcfec10aeee Mon Sep 17 00:00:00 2001
-> > From: Michal Hocko <mhocko@suse.com>
-> > Date: Tue, 30 Jan 2018 14:51:07 +0100
-> > Subject: [PATCH] net/netfilter/x_tables.c: make allocation less aggressive
-> 
-> Acked-by: Florian Westphal <fw@strlen.de>
-
-Thanks! How should we route this change? Andrew, David?
-
--- 
-Michal Hocko
-SUSE Labs
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+This is in regards to an inheritance on your surname, reply back using your email address, stating your full name for more details. Reply to email for info. Email me here ( gertvm@dr.com )
