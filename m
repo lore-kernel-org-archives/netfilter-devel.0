@@ -1,68 +1,41 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH net] netfilter: xt_hashlimit: do not allow empty names
-Date: Sun, 28 Jan 2018 22:54:29 +0100
-Message-ID: <20180128215429.GB5906@breakpoint.cc>
-References: <1517154099.3715.77.camel@gmail.com>
- <1517162045.3715.78.camel@gmail.com>
+Subject: Re: general protection fault in ip6t_do_table
+Date: Sun, 28 Jan 2018 22:55:41 +0100
+Message-ID: <20180128215541.GC5906@breakpoint.cc>
+References: <001a1134eab4b849a50563c844fd@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 8bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:35298 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752419AbeA1V5U (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 28 Jan 2018 16:57:20 -0500
+Content-Type: text/plain; charset=us-ascii
+Cc: coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        kadlec@blackhole.kfki.hu, kuznet@ms2.inr.ac.ru,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        syzkaller-bugs@googlegroups.com, yoshfuji@linux-ipv6.org
+To: syzbot <syzbot+e783f671527912cd9403@syzkaller.appspotmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1517162045.3715.78.camel@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <001a1134eab4b849a50563c844fd@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> On Sun, 2018-01-28 at 07:41 -0800, Eric Dumazet wrote:
-> > From: Eric Dumazet <edumazet@google.com>
-> > 
-> > Syzbot reported a WARN() in proc_create_data() [1]
-> > 
-> > Issue here is that xt_hashlimit does not check that user space provided
-> > an empty table name.
-> 
-> > Signed-off-by: Eric Dumazet <edumazet@google.com>
-> > Reported-by: syzbot <syzkaller@googlegroups.com>
-> > ---
-> >  net/netfilter/xt_hashlimit.c |    2 ++
-> >  1 file changed, 2 insertions(+)
-> > 
-> > diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-> > index 5da8746f7b88ff4c9446f256e542e823a6a561b0..eae732e013df92a364b500645360d4606c283a75 100644
-> > --- a/net/netfilter/xt_hashlimit.c
-> > +++ b/net/netfilter/xt_hashlimit.c
-> > @@ -894,6 +894,8 @@ static int hashlimit_mt_check_common(const struct xt_mtchk_param *par,
-> >  			return -ERANGE;
-> >  	}
-> >  
-> > +	if (!name[0])
-> > +		return -EINVAL;
-> >  	mutex_lock(&hashlimit_mutex);
-> >  	*hinfo = htable_find_get(net, name, par->family);
-> >  	if (*hinfo == NULL) {
-> 
-> I wonder if we should also check if name includes a '/' ?
-> 
-> if (!name[0] || strchr(name, '/'))
->     return -EINVAL;
+syzbot <syzbot+e783f671527912cd9403@syzkaller.appspotmail.com> wrote:
+> CPU: 0 PID: 3675 Comm: syzkaller168273 Not tainted 4.15.0-rc9+ #283
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
+> Google 01/01/2011
+> RIP: 0010:ip6t_do_table+0x12de/0x19d0 net/ipv6/netfilter/ip6_tables.c:360
+> RSP: 0018:ffff8801db206c58 EFLAGS: 00010246
+> RAX: 0000000000000000 RBX: ffff8801d9aafb80 RCX: ffffffff84d30352
+> RDX: 0000000000000100 RSI: 0000000000000000 RDI: ffff8801d9aafcde
+> RBP: ffff8801db206e60 R08: 1ffff1003b640d54 R09: 0000000000000000
+> R10: 00000000000000d0 R11: 0000000000000000 R12: 0000000000000001
+> R13: 0000000000000000 R14: dffffc0000000000 R15: ffff8801d9aafc50
+> FS:  0000000000a5d880(0000) GS:ffff8801db200000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 00000000209f1000 CR3: 00000001bc9f8001 CR4: 00000000001606f0
+> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+> Call Trace:
+>  <IRQ>
+>  ip6table_security_hook+0x65/0x80 net/ipv6/netfilter/ip6table_security.c:45
 
-I think there should be a helper for this to reject
-
-- 0 length
-- /
-- .
-- ..
-
-in hashlimit case name is IFNMASIZ so we could even use
-dev_valid_name() here.
+In case noone else can look at this I'll investigate this next friday
+(currently travelling).
