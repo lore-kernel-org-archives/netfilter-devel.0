@@ -1,49 +1,106 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next,RFC v4] netfilter: nf_flow_table: add hardware
- offload support
-Date: Mon, 29 Jan 2018 11:37:21 +0100
-Message-ID: <20180129103721.mbumauzre4whnc2k@salvia>
-References: <20180125000941.2763-1-pablo@netfilter.org>
- <20180124173136.5ec57ba7@cakuba.netronome.com>
- <20180125112858.s27mtfv3cikqfiny@salvia>
- <20180125143846.6bb5290f@cakuba.netronome.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-        f.fainelli@gmail.com, ronye@mellanox.com,
-        simon.horman@netronome.com, jiri@mellanox.com, nbd@nbd.name,
-        john@phrozen.org, fw@strlen.de
-To: Jakub Kicinski <kubakici@wp.pl>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51462 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751370AbeA2Kh1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Jan 2018 05:37:27 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id F053A1B6941
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Jan 2018 11:37:24 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DFDF8BAAB5
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Jan 2018 11:37:24 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20180125143846.6bb5290f@cakuba.netronome.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: [PATCH] netfilter: fix pointer leaks to userspace
+Date: Mon, 29 Jan 2018 13:21:20 +0100
+Message-ID: <20180129122120.230279-1-dvyukov@google.com>
+Cc: andreyknvl@google.com, Dmitry Vyukov <dvyukov@google.com>,
+        Kees Cook <keescook@chromium.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        davem@davemloft.net
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jakub,
+Several netfilter matches and targets put kernel pointers into
+info objects, but don't set usersize in descriptors.
+This leads to kernel pointer leaks if a match/target is set
+and then read back to userspace.
 
-On Thu, Jan 25, 2018 at 02:38:46PM -0800, Jakub Kicinski wrote:
-> On Thu, 25 Jan 2018 12:28:58 +0100, Pablo Neira Ayuso wrote:
-[...]
-> Ah, I must be misunderstanding.  I meant when device is removed, not
-> the flow_table_hw module.  Does the nf_flow_table_hw_module_exit() run
-> when device is removed?  I was expecting that, for example something
-> like nft_flow_offload_iterate_cleanup() would queue up all the flow
-> remove calls and then call flush_work() (not cancel_work). 
+Properly set usersize for these matches/targets.
 
-Oh right indeed, I need some code there to release all hw resources on
-module removal.
+Found with manual code inspection.
 
-Will revamp and send v5.
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+Cc: netdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+---
+ net/netfilter/xt_IDLETIMER.c | 1 +
+ net/netfilter/xt_LED.c       | 1 +
+ net/netfilter/xt_limit.c     | 3 +--
+ net/netfilter/xt_nfacct.c    | 1 +
+ net/netfilter/xt_statistic.c | 1 +
+ 5 files changed, 5 insertions(+), 2 deletions(-)
 
-Thanks for reviewing!
+diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
+index ee3421ad108d..6c2482b709b1 100644
+--- a/net/netfilter/xt_IDLETIMER.c
++++ b/net/netfilter/xt_IDLETIMER.c
+@@ -252,6 +252,7 @@ static struct xt_target idletimer_tg __read_mostly = {
+ 	.family		= NFPROTO_UNSPEC,
+ 	.target		= idletimer_tg_target,
+ 	.targetsize     = sizeof(struct idletimer_tg_info),
++	.usersize	= offsetof(struct idletimer_tg_info, timer),
+ 	.checkentry	= idletimer_tg_checkentry,
+ 	.destroy        = idletimer_tg_destroy,
+ 	.me		= THIS_MODULE,
+diff --git a/net/netfilter/xt_LED.c b/net/netfilter/xt_LED.c
+index 0971634e5444..1dcad893df78 100644
+--- a/net/netfilter/xt_LED.c
++++ b/net/netfilter/xt_LED.c
+@@ -198,6 +198,7 @@ static struct xt_target led_tg_reg __read_mostly = {
+ 	.family		= NFPROTO_UNSPEC,
+ 	.target		= led_tg,
+ 	.targetsize	= sizeof(struct xt_led_info),
++	.usersize	= offsetof(struct xt_led_info, internal_data),
+ 	.checkentry	= led_tg_check,
+ 	.destroy	= led_tg_destroy,
+ 	.me		= THIS_MODULE,
+diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
+index d27b5f1ea619..61403b77361c 100644
+--- a/net/netfilter/xt_limit.c
++++ b/net/netfilter/xt_limit.c
+@@ -193,9 +193,8 @@ static struct xt_match limit_mt_reg __read_mostly = {
+ 	.compatsize       = sizeof(struct compat_xt_rateinfo),
+ 	.compat_from_user = limit_mt_compat_from_user,
+ 	.compat_to_user   = limit_mt_compat_to_user,
+-#else
+-	.usersize         = offsetof(struct xt_rateinfo, prev),
+ #endif
++	.usersize         = offsetof(struct xt_rateinfo, prev),
+ 	.me               = THIS_MODULE,
+ };
+ 
+diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
+index cc0518fe598e..6f92d25590a8 100644
+--- a/net/netfilter/xt_nfacct.c
++++ b/net/netfilter/xt_nfacct.c
+@@ -62,6 +62,7 @@ static struct xt_match nfacct_mt_reg __read_mostly = {
+ 	.match      = nfacct_mt,
+ 	.destroy    = nfacct_mt_destroy,
+ 	.matchsize  = sizeof(struct xt_nfacct_match_info),
++	.usersize   = offsetof(struct xt_nfacct_match_info, nfacct),
+ 	.me         = THIS_MODULE,
+ };
+ 
+diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statistic.c
+index 11de55e7a868..8710fdba2ae2 100644
+--- a/net/netfilter/xt_statistic.c
++++ b/net/netfilter/xt_statistic.c
+@@ -84,6 +84,7 @@ static struct xt_match xt_statistic_mt_reg __read_mostly = {
+ 	.checkentry = statistic_mt_check,
+ 	.destroy    = statistic_mt_destroy,
+ 	.matchsize  = sizeof(struct xt_statistic_info),
++	.usersize   = offsetof(struct xt_statistic_info, master),
+ 	.me         = THIS_MODULE,
+ };
+ 
+-- 
+2.16.0.rc1.238.g530d649a79-goog
