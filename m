@@ -1,106 +1,46 @@
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: [PATCH] netfilter: fix pointer leaks to userspace
-Date: Mon, 29 Jan 2018 13:21:20 +0100
-Message-ID: <20180129122120.230279-1-dvyukov@google.com>
-Cc: andreyknvl@google.com, Dmitry Vyukov <dvyukov@google.com>,
-        Kees Cook <keescook@chromium.org>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
-        davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
-Several netfilter matches and targets put kernel pointers into
-info objects, but don't set usersize in descriptors.
-This leads to kernel pointer leaks if a match/target is set
-and then read back to userspace.
-
-Properly set usersize for these matches/targets.
-
-Found with manual code inspection.
-
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Kees Cook <keescook@chromium.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [Iptables PATCH] extensions: Rename 'flow table' keyword to meter
+Date: Mon, 29 Jan 2018 15:25:18 +0100
+Message-ID: <20180129142518.tsdedlbslobevj6g@salvia>
+References: <1516992076-10321-1-git-send-email-mayhs11saini@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
-Cc: netdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
----
- net/netfilter/xt_IDLETIMER.c | 1 +
- net/netfilter/xt_LED.c       | 1 +
- net/netfilter/xt_limit.c     | 3 +--
- net/netfilter/xt_nfacct.c    | 1 +
- net/netfilter/xt_statistic.c | 1 +
- 5 files changed, 5 insertions(+), 2 deletions(-)
+To: shyam saini <mayhs11saini@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:60044 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751256AbeA2OZX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 29 Jan 2018 09:25:23 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 3206B1C4386
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Jan 2018 15:25:22 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 242B2BAC2D
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Jan 2018 15:25:22 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <1516992076-10321-1-git-send-email-mayhs11saini@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-index ee3421ad108d..6c2482b709b1 100644
---- a/net/netfilter/xt_IDLETIMER.c
-+++ b/net/netfilter/xt_IDLETIMER.c
-@@ -252,6 +252,7 @@ static struct xt_target idletimer_tg __read_mostly = {
- 	.family		= NFPROTO_UNSPEC,
- 	.target		= idletimer_tg_target,
- 	.targetsize     = sizeof(struct idletimer_tg_info),
-+	.usersize	= offsetof(struct idletimer_tg_info, timer),
- 	.checkentry	= idletimer_tg_checkentry,
- 	.destroy        = idletimer_tg_destroy,
- 	.me		= THIS_MODULE,
-diff --git a/net/netfilter/xt_LED.c b/net/netfilter/xt_LED.c
-index 0971634e5444..1dcad893df78 100644
---- a/net/netfilter/xt_LED.c
-+++ b/net/netfilter/xt_LED.c
-@@ -198,6 +198,7 @@ static struct xt_target led_tg_reg __read_mostly = {
- 	.family		= NFPROTO_UNSPEC,
- 	.target		= led_tg,
- 	.targetsize	= sizeof(struct xt_led_info),
-+	.usersize	= offsetof(struct xt_led_info, internal_data),
- 	.checkentry	= led_tg_check,
- 	.destroy	= led_tg_destroy,
- 	.me		= THIS_MODULE,
-diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
-index d27b5f1ea619..61403b77361c 100644
---- a/net/netfilter/xt_limit.c
-+++ b/net/netfilter/xt_limit.c
-@@ -193,9 +193,8 @@ static struct xt_match limit_mt_reg __read_mostly = {
- 	.compatsize       = sizeof(struct compat_xt_rateinfo),
- 	.compat_from_user = limit_mt_compat_from_user,
- 	.compat_to_user   = limit_mt_compat_to_user,
--#else
--	.usersize         = offsetof(struct xt_rateinfo, prev),
- #endif
-+	.usersize         = offsetof(struct xt_rateinfo, prev),
- 	.me               = THIS_MODULE,
- };
- 
-diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
-index cc0518fe598e..6f92d25590a8 100644
---- a/net/netfilter/xt_nfacct.c
-+++ b/net/netfilter/xt_nfacct.c
-@@ -62,6 +62,7 @@ static struct xt_match nfacct_mt_reg __read_mostly = {
- 	.match      = nfacct_mt,
- 	.destroy    = nfacct_mt_destroy,
- 	.matchsize  = sizeof(struct xt_nfacct_match_info),
-+	.usersize   = offsetof(struct xt_nfacct_match_info, nfacct),
- 	.me         = THIS_MODULE,
- };
- 
-diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statistic.c
-index 11de55e7a868..8710fdba2ae2 100644
---- a/net/netfilter/xt_statistic.c
-+++ b/net/netfilter/xt_statistic.c
-@@ -84,6 +84,7 @@ static struct xt_match xt_statistic_mt_reg __read_mostly = {
- 	.checkentry = statistic_mt_check,
- 	.destroy    = statistic_mt_destroy,
- 	.matchsize  = sizeof(struct xt_statistic_info),
-+	.usersize   = offsetof(struct xt_statistic_info, master),
- 	.me         = THIS_MODULE,
- };
- 
--- 
-2.16.0.rc1.238.g530d649a79-goog
+On Sat, Jan 27, 2018 at 12:11:16AM +0530, shyam saini wrote:
+> After nft v0.8.1 "flow table" is renamed as meter.
+> This should reflect in iptables to nftables translation.
+> 
+> Before this patch:
+> $ iptables-translate -A INPUT -m tcp -p tcp --dport 80 -m hashlimit
+> --hashlimit-above 200/sec --hashlimit-mode srcip,dstport
+> --hashlimit-name http1 -j DROP
+> 
+> nft add rule ip filter INPUT tcp dport 80 flow table http1 { tcp dport .
+> ip saddr limit rate over 200/second } counter drop
+> 
+> After this patch:
+> $ iptables-translate -A INPUT -m tcp -p tcp --dport 80 -m hashlimit
+> --hashlimit-upto 200 --hashlimit-mode srcip --hashlimit-name http3
+> --hashlimit-srcmask 24 -j DROP
+> 
+> nft add rule ip filter INPUT tcp dport 80 meter http3 { ip saddr and
+> 255.255.255.0 limit rate 200/second } counter drop
+
+Applied, thanks Shyam.
