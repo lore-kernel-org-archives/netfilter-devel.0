@@ -1,106 +1,67 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [netfilter-core] kernel panic: Out of memory and no killable
- processes... (2)
-Date: Tue, 30 Jan 2018 11:27:45 -0800
-Message-ID: <20180130112745.934883e37e696ab7f875a385@linux-foundation.org>
-References: <20180129072357.GD5906@breakpoint.cc>
-	<20180129082649.sysf57wlp7i7ltb2@node.shutemov.name>
-	<20180129165722.GF5906@breakpoint.cc>
-	<20180129182811.fze4vrb5zd5cojmr@node.shutemov.name>
-	<20180129223522.GG5906@breakpoint.cc>
-	<20180130075226.GL21609@dhcp22.suse.cz>
-	<20180130081127.GH5906@breakpoint.cc>
-	<20180130082817.cbax5qj4mxancx4b@node.shutemov.name>
-	<CACT4Y+bFKwoxopr1dwnc7OHUoHy28ksVguqtMY6tD=aRh-7LyQ@mail.gmail.com>
-	<20180130095739.GV21609@dhcp22.suse.cz>
-	<20180130140104.GE21609@dhcp22.suse.cz>
+From: akpm@linux-foundation.org
+Subject: [patch 1/1] net/netfilter/x_tables.c: make allocation less
+ aggressive
+Date: Tue, 30 Jan 2018 11:30:11 -0800
+Message-ID: <5a70c7c3.JeIh2XMA2ZATeitK%akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Dmitry Vyukov <dvyukov@google.com>, "Kirill A. Shutemov"
- <kirill@shutemov.name>, Florian Westphal <fw@strlen.de>, Tetsuo Handa
- <penguin-kernel@i-love.sakura.ne.jp>, David Miller <davem@davemloft.net>,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org, netdev
- <netdev@vger.kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, Yang Shi
- <yang.s@alibaba-inc.com>, syzkaller-bugs@googlegroups.com, LKML
- <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Linux-MM
- <linux-mm@kvack.org>, David Rientjes <rientjes@google.com>, guro@fb.com,
- "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-To: Michal Hocko <mhocko@kernel.org>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20180130140104.GE21609@dhcp22.suse.cz>
-Sender: owner-linux-mm@kvack.org
-List-Id: netfilter-devel.vger.kernel.org
+To: davem@davemloft.net, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, akpm@linux-foundation.org,
+        mhocko@kernel.org, fw@strlen.de, mhocko@suse.com
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52300 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752080AbeA3TaN (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Jan 2018 14:30:13 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 30 Jan 2018 15:01:04 +0100 Michal Hocko <mhocko@kernel.org> wrote:
+From: Michal Hocko <mhocko@kernel.org>
+Subject: net/netfilter/x_tables.c: make allocation less aggressive
 
-> > Well, this is not about syzkaller, it merely pointed out a potential
-> > DoS... And that has to be addressed somehow.
-> 
-> So how about this?
-> ---
+syzbot has noticed that xt_alloc_table_info can allocate a lot of memory. 
+This is an admin only interface but an admin in a namespace is sufficient
+as well.  eacd86ca3b03 ("net/netfilter/x_tables.c: use kvmalloc() in
+xt_alloc_table_info()") has changed the opencoded kmalloc->vmalloc
+fallback into kvmalloc.  It has dropped __GFP_NORETRY on the way because
+vmalloc has simply never fully supported __GFP_NORETRY semantic.  This is
+still the case because e.g.  page tables backing the vmalloc area are
+hardcoded GFP_KERNEL.
 
-argh ;)
+Revert back to __GFP_NORETRY as a poors man defence against excessively
+large allocation request here.  We will not rule out the OOM killer
+completely but __GFP_NORETRY should at least stop the large request in
+most cases.
 
-> >From d48e950f1b04f234b57b9e34c363bdcfec10aeee Mon Sep 17 00:00:00 2001
-> From: Michal Hocko <mhocko@suse.com>
-> Date: Tue, 30 Jan 2018 14:51:07 +0100
-> Subject: [PATCH] net/netfilter/x_tables.c: make allocation less aggressive
-> 
-> syzbot has noticed that xt_alloc_table_info can allocate a lot of
-> memory. This is an admin only interface but an admin in a namespace
-> is sufficient as well. eacd86ca3b03 ("net/netfilter/x_tables.c: use
-> kvmalloc() in xt_alloc_table_info()") has changed the opencoded
-> kmalloc->vmalloc fallback into kvmalloc. It has dropped __GFP_NORETRY on
-> the way because vmalloc has simply never fully supported __GFP_NORETRY
-> semantic. This is still the case because e.g. page tables backing the
-> vmalloc area are hardcoded GFP_KERNEL.
-> 
-> Revert back to __GFP_NORETRY as a poors man defence against excessively
-> large allocation request here. We will not rule out the OOM killer
-> completely but __GFP_NORETRY should at least stop the large request
-> in most cases.
-> 
-> Fixes: eacd86ca3b03 ("net/netfilter/x_tables.c: use kvmalloc() in xt_alloc_table_info()")
-> Signed-off-by: Michal Hocko <mhocko@suse.com>
-> ---
->  net/netfilter/x_tables.c | 8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-> index d8571f414208..a5f5c29bcbdc 100644
-> --- a/net/netfilter/x_tables.c
-> +++ b/net/netfilter/x_tables.c
-> @@ -1003,7 +1003,13 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
->  	if ((SMP_ALIGN(size) >> PAGE_SHIFT) + 2 > totalram_pages)
->  		return NULL;
+[akpm@linux-foundation.org: coding-style fixes]
+Fixes: eacd86ca3b03 ("net/netfilter/x_tables.c: use kvmalloc() in xt_alloc_tableLink: http://lkml.kernel.org/r/20180130140104.GE21609@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: David S. Miller <davem@davemloft.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-offtopic: preceding comment here is "prevent them from hitting BUG() in
-vmalloc.c".  I suspect this is ancient code and vmalloc sure as heck
-shouldn't go BUG with this input.  And it should be using `sz' ;)
+ net/netfilter/x_tables.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-So I suspect and hope that this code can be removed.  If not, let's fix
-vmalloc!
-
-> -	info = kvmalloc(sz, GFP_KERNEL);
-> +	/*
-> +	 * __GFP_NORETRY is not fully supported by kvmalloc but it should
-> +	 * work reasonably well if sz is too large and bail out rather
-> +	 * than shoot all processes down before realizing there is nothing
-> +	 * more to reclaim.
-> +	 */
-> +	info = kvmalloc(sz, GFP_KERNEL | __GFP_NORETRY);
->  	if (!info)
->  		return NULL;
-
-checkpatch sayeth
-
-networking block comments don't use an empty /* line, use /* Comment...
-
-So I'll do that and shall scoot the patch Davewards.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff -puN net/netfilter/x_tables.c~net-netfilter-x_tablesc-make-allocation-less-aggressive net/netfilter/x_tables.c
+--- a/net/netfilter/x_tables.c~net-netfilter-x_tablesc-make-allocation-less-aggressive
++++ a/net/netfilter/x_tables.c
+@@ -1008,7 +1008,12 @@ struct xt_table_info *xt_alloc_table_inf
+ 	if ((size >> PAGE_SHIFT) + 2 > totalram_pages)
+ 		return NULL;
+ 
+-	info = kvmalloc(sz, GFP_KERNEL);
++	/* __GFP_NORETRY is not fully supported by kvmalloc but it should
++	 * work reasonably well if sz is too large and bail out rather
++	 * than shoot all processes down before realizing there is nothing
++	 * more to reclaim.
++	 */
++	info = kvmalloc(sz, GFP_KERNEL | __GFP_NORETRY);
+ 	if (!info)
+ 		return NULL;
+ 
+_
