@@ -1,50 +1,71 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [netfilter-core] kernel panic: Out of memory and no killable
- processes... (2)
-Date: Tue, 30 Jan 2018 15:01:11 +0100
-Message-ID: <20180130140111.GM5906@breakpoint.cc>
-References: <20180129082649.sysf57wlp7i7ltb2@node.shutemov.name>
- <20180129165722.GF5906@breakpoint.cc>
- <20180129182811.fze4vrb5zd5cojmr@node.shutemov.name>
- <20180129223522.GG5906@breakpoint.cc>
- <20180130075226.GL21609@dhcp22.suse.cz>
- <20180130081127.GH5906@breakpoint.cc>
- <20180130082817.cbax5qj4mxancx4b@node.shutemov.name>
- <CACT4Y+bFKwoxopr1dwnc7OHUoHy28ksVguqtMY6tD=aRh-7LyQ@mail.gmail.com>
- <20180130095739.GV21609@dhcp22.suse.cz>
- <20180130140104.GE21609@dhcp22.suse.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: [PATCH] netfilter: fix out-of-bounds accesses in clusterip_tg_check()
+Date: Tue, 30 Jan 2018 15:21:34 +0100
+Message-ID: <20180130142134.131750-1-dvyukov@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>,
-        "Kirill A. Shutemov" <kirill@shutemov.name>,
-        Florian Westphal <fw@strlen.de>,
-        Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>,
-        David Miller <davem@davemloft.net>,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev <netdev@vger.kernel.org>,
-        Andrea Arcangeli <aarcange@redhat.com>,
-        Yang Shi <yang.s@alibaba-inc.com>,
-        syzkaller-bugs@googlegroups.com,
-        LKML <linux-kernel@vger.kernel.org>,
-        Ingo Molnar <mingo@kernel.org>, Linux-MM <linux-mm@kvack.org>,
-        David Rientjes <rientjes@google.com>,
-        Andrew Morton <akpm@linux-foundation.org>, guro@fb.com,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-To: Michal Hocko <mhocko@kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:41510 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751914AbeA3OET (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Jan 2018 09:04:19 -0500
-Content-Disposition: inline
-In-Reply-To: <20180130140104.GE21609@dhcp22.suse.cz>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        syzkaller@googlegroups.com
+To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        davem@davemloft.net, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
+        edumazet@google.com, willemb@google.com
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-> From d48e950f1b04f234b57b9e34c363bdcfec10aeee Mon Sep 17 00:00:00 2001
-> From: Michal Hocko <mhocko@suse.com>
-> Date: Tue, 30 Jan 2018 14:51:07 +0100
-> Subject: [PATCH] net/netfilter/x_tables.c: make allocation less aggressive
+Commit 136e92bbec0a switched local_nodes from an array to a bitmask
+but did not add proper bounds checks. As the result
+clusterip_config_init_nodelist() can both over-read
+ipt_clusterip_tgt_info.local_nodes and over-write
+clusterip_config.local_nodes.
 
-Acked-by: Florian Westphal <fw@strlen.de>
+Add bounds checks for both.
+
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Fixes: 136e92bbec0a ("[NETFILTER] CLUSTERIP: use a bitmap to store node responsibility data")
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Cc: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+Cc: netdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: syzkaller@googlegroups.com
+---
+ net/ipv4/netfilter/ipt_CLUSTERIP.c | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 69060e3abe85..1e4a7209a3d2 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -431,7 +431,7 @@ static int clusterip_tg_check(const struct xt_tgchk_param *par)
+ 	struct ipt_clusterip_tgt_info *cipinfo = par->targinfo;
+ 	const struct ipt_entry *e = par->entryinfo;
+ 	struct clusterip_config *config;
+-	int ret;
++	int ret, i;
+ 
+ 	if (par->nft_compat) {
+ 		pr_err("cannot use CLUSTERIP target from nftables compat\n");
+@@ -450,8 +450,18 @@ static int clusterip_tg_check(const struct xt_tgchk_param *par)
+ 		pr_info("Please specify destination IP\n");
+ 		return -EINVAL;
+ 	}
+-
+-	/* FIXME: further sanity checks */
++	if (cipinfo->num_local_nodes > ARRAY_SIZE(cipinfo->local_nodes)) {
++		pr_info("bad num_local_nodes %u\n", cipinfo->num_local_nodes);
++		return -EINVAL;
++	}
++	for (i = 0; i < cipinfo->num_local_nodes; i++) {
++		if (cipinfo->local_nodes[i] - 1 >=
++		    sizeof(config->local_nodes) * 8) {
++			pr_info("bad local_nodes[%d] %u\n",
++				i, cipinfo->local_nodes[i]);
++			return -EINVAL;
++		}
++	}
+ 
+ 	config = clusterip_config_find_get(par->net, e->ip.dst.s_addr, 1);
+ 	if (!config) {
+-- 
+2.16.0.rc1.238.g530d649a79-goog
