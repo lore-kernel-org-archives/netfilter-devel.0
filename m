@@ -1,884 +1,138 @@
-From: Thierry Du Tre <thierry@dtsystems.be>
-Subject: [PATCH v2] extensions: libipt_DNAT: support shifted portmap ranges
-Date: Tue, 30 Jan 2018 14:24:49 +0100
-Message-ID: <07810048-aecb-5487-d4b8-1e47183f2650@dtsystems.be>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [netfilter-core] kernel panic: Out of memory and no killable
+ processes... (2)
+Date: Tue, 30 Jan 2018 15:01:04 +0100
+Message-ID: <20180130140104.GE21609@dhcp22.suse.cz>
+References: <20180129072357.GD5906@breakpoint.cc>
+ <20180129082649.sysf57wlp7i7ltb2@node.shutemov.name>
+ <20180129165722.GF5906@breakpoint.cc>
+ <20180129182811.fze4vrb5zd5cojmr@node.shutemov.name>
+ <20180129223522.GG5906@breakpoint.cc>
+ <20180130075226.GL21609@dhcp22.suse.cz>
+ <20180130081127.GH5906@breakpoint.cc>
+ <20180130082817.cbax5qj4mxancx4b@node.shutemov.name>
+ <CACT4Y+bFKwoxopr1dwnc7OHUoHy28ksVguqtMY6tD=aRh-7LyQ@mail.gmail.com>
+ <20180130095739.GV21609@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>
-To: netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>,
+        Florian Westphal <fw@strlen.de>,
+        Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>,
+        David Miller <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev <netdev@vger.kernel.org>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        Yang Shi <yang.s@alibaba-inc.com>,
+        syzkaller-bugs@googlegroups.com,
+        LKML <linux-kernel@vger.kernel.org>,
+        Ingo Molnar <mingo@kernel.org>, Linux-MM <linux-mm@kvack.org>,
+        David Rientjes <rientjes@google.com>,
+        Andrew Morton <akpm@linux-foundation.org>, guro@fb.com,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Dmitry Vyukov <dvyukov@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35498 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752576AbeA3N0Y (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Jan 2018 08:26:24 -0500
-Received: by mail-wm0-f68.google.com with SMTP id r78so1156638wme.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Jan 2018 05:26:23 -0800 (PST)
-Content-Language: nl
+Received: from mx2.suse.de ([195.135.220.15]:37814 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751786AbeA3OBH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Jan 2018 09:01:07 -0500
+Content-Disposition: inline
+In-Reply-To: <20180130095739.GV21609@dhcp22.suse.cz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a proposal patch for iptables DNAT extension to support shifted portmap ranges. It is related to the kernel patch proposed in earlier message '[PATCH v4] netfilter : add NAT support for shifted portmap ranges'.
+On Tue 30-01-18 10:57:39, Michal Hocko wrote:
+> On Tue 30-01-18 10:02:34, Dmitry Vyukov wrote:
+> > On Tue, Jan 30, 2018 at 9:28 AM, Kirill A. Shutemov
+> > <kirill@shutemov.name> wrote:
+> > > On Tue, Jan 30, 2018 at 09:11:27AM +0100, Florian Westphal wrote:
+> > >> Michal Hocko <mhocko@kernel.org> wrote:
+> > >> > On Mon 29-01-18 23:35:22, Florian Westphal wrote:
+> > >> > > Kirill A. Shutemov <kirill@shutemov.name> wrote:
+> > >> > [...]
+> > >> > > > I hate what I'm saying, but I guess we need some tunable here.
+> > >> > > > Not sure what exactly.
+> > >> > >
+> > >> > > Would memcg help?
+> > >> >
+> > >> > That really depends. I would have to check whether vmalloc path obeys
+> > >> > __GFP_ACCOUNT (I suspect it does except for page tables allocations but
+> > >> > that shouldn't be a big deal). But then the other potential problem is
+> > >> > the life time of the xt_table_info (or other potentially large) data
+> > >> > structures. Are they bound to any process life time.
+> > >>
+> > >> No.
+> > >
+> > > Well, IIUC they bound to net namespace life time, so killing all
+> > > proccesses in the namespace would help to get memory back. :)
+> > 
+> > ... unless the namespace is mounted into file system.
+> > 
+> > Let's start with NOWARN as that's what kernel generally uses for
+> > allocations with user-controllable size. ENOMEM is roughly as
+> > informative as the WARNING message in this case.
+> 
+> You want __GFP_NORETRY but that is not _fully_ supported by kvmalloc
+> right now. More specifically kvmalloc doesn't guanratee that the request
+> will not trigger the OOM killer (like regular __GFP_NORETRY). This is
+> because of internal vmalloc restrictions. If you are however OK to
+> simply bail out in most cases then __GFP_NORETRY should work reasonably
+> fine.
+> 
+> > I think we also need to consider setting up memory cgroup for
+> > syzkaller test processes (we do RLIMIT_AS, but that's weak).
+> 
+> Well, this is not about syzkaller, it merely pointed out a potential
+> DoS... And that has to be addressed somehow.
 
-The definition for struct nf_nat_range was extended but backwards compatibility is achieved via the use of a new revision (2) for the DNAT target. The extensions using struct nf_nat_range were adapted for the renamed struct nf_nat_range_v1. Current DNAT revisions for Ipv4 (rev 0) and IPv6 (rev 1) are kept so functionality with older kernels is not impacted.
-
-The syntax for shifted portmaps uses an extra value in '--to-destination' for setting the base port which determines the offset in the redirect port range for incoming connections.
-i.e. : iptables -t nat -A zone_wan_prerouting -p tcp -m tcp --dport 5000:5100 -j DNAT --to-destination '192.168.1.2:2000-2100;5000'
-
-The base port value is totally optional, so current behavior is not impacted in any way.
-The use of semicolon as separator is an arbitrary choice, all other suggestions are valid of course.
-Another approach using an additional option seems also possible (i.e. '--base-port 5000'). However, that would mean more parsing logic with extra lines of code and thus increased risk for regression.
-
-Signed-off-by: Thierry Du Tre <thierry@dtsystems.be>
-
+So how about this?
 ---
-Changes in v2:
-	- renaming old struct nf_nat_range to nf_nat_range_v1
-	- introduction of new DNAT revision for both IPv4 and IPv6
+>From d48e950f1b04f234b57b9e34c363bdcfec10aeee Mon Sep 17 00:00:00 2001
+From: Michal Hocko <mhocko@suse.com>
+Date: Tue, 30 Jan 2018 14:51:07 +0100
+Subject: [PATCH] net/netfilter/x_tables.c: make allocation less aggressive
 
- extensions/libip6t_DNAT.c        | 166 ++++++++++++++++++-----
- extensions/libip6t_MASQUERADE.c  |  14 +-
- extensions/libip6t_NETMAP.c      |   8 +-
- extensions/libip6t_REDIRECT.c    |  14 +-
- extensions/libip6t_SNAT.c        |  20 +--
- extensions/libipt_DNAT.c         | 275 +++++++++++++++++++++++++++++++++++++--
- include/linux/netfilter/nf_nat.h |  15 +++
- 7 files changed, 435 insertions(+), 77 deletions(-)
+syzbot has noticed that xt_alloc_table_info can allocate a lot of
+memory. This is an admin only interface but an admin in a namespace
+is sufficient as well. eacd86ca3b03 ("net/netfilter/x_tables.c: use
+kvmalloc() in xt_alloc_table_info()") has changed the opencoded
+kmalloc->vmalloc fallback into kvmalloc. It has dropped __GFP_NORETRY on
+the way because vmalloc has simply never fully supported __GFP_NORETRY
+semantic. This is still the case because e.g. page tables backing the
+vmalloc area are hardcoded GFP_KERNEL.
 
-diff --git a/extensions/libip6t_DNAT.c b/extensions/libip6t_DNAT.c
-index 8e478b2..aeccc36 100644
---- a/extensions/libip6t_DNAT.c
-+++ b/extensions/libip6t_DNAT.c
-@@ -34,6 +34,15 @@ static void DNAT_help(void)
- "[--random] [--persistent]\n");
- }
+Revert back to __GFP_NORETRY as a poors man defence against excessively
+large allocation request here. We will not rule out the OOM killer
+completely but __GFP_NORETRY should at least stop the large request
+in most cases.
+
+Fixes: eacd86ca3b03 ("net/netfilter/x_tables.c: use kvmalloc() in xt_alloc_table_info()")
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+---
+ net/netfilter/x_tables.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index d8571f414208..a5f5c29bcbdc 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1003,7 +1003,13 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
+ 	if ((SMP_ALIGN(size) >> PAGE_SHIFT) + 2 > totalram_pages)
+ 		return NULL;
  
-+static void DNAT_help_v2(void)
-+{
-+	printf(
-+"DNAT target options:\n"
-+" --to-destination [<ipaddr>[-<ipaddr>]][:port[-port[;port]]]\n"
-+"				Address to map destination to.\n"
-+"[--random] [--persistent]\n");
-+}
-+
- static const struct xt_option_entry DNAT_opts[] = {
- 	{.name = "to-destination", .id = O_TO_DEST, .type = XTTYPE_STRING,
- 	 .flags = XTOPT_MAND | XTOPT_MULTI},
-@@ -44,7 +53,7 @@ static const struct xt_option_entry DNAT_opts[] = {
+-	info = kvmalloc(sz, GFP_KERNEL);
++	/*
++	 * __GFP_NORETRY is not fully supported by kvmalloc but it should
++	 * work reasonably well if sz is too large and bail out rather
++	 * than shoot all processes down before realizing there is nothing
++	 * more to reclaim.
++	 */
++	info = kvmalloc(sz, GFP_KERNEL | __GFP_NORETRY);
+ 	if (!info)
+ 		return NULL;
  
- /* Ranges expected in network order. */
- static void
--parse_to(const char *orig_arg, int portok, struct nf_nat_range *range)
-+parse_to(const char *orig_arg, int portok, struct nf_nat_range *range, int rev)
- {
- 	char *arg, *start, *end = NULL, *colon = NULL, *dash, *error;
- 	const struct in6_addr *ip;
-@@ -144,10 +153,10 @@ parse_to(const char *orig_arg, int portok, struct nf_nat_range *range)
- 	return;
- }
- 
--static void DNAT_parse(struct xt_option_call *cb)
-+static void _DNAT_parse(struct xt_option_call *cb,
-+		struct nf_nat_range *range, int rev)
- {
- 	const struct ip6t_entry *entry = cb->xt_entry;
--	struct nf_nat_range *range = cb->data;
- 	int portok;
- 
- 	if (entry->ipv6.proto == IPPROTO_TCP ||
-@@ -175,16 +184,40 @@ static void DNAT_parse(struct xt_option_call *cb)
- 	}
- }
- 
--static void DNAT_fcheck(struct xt_fcheck_call *cb)
-+static void DNAT_parse(struct xt_option_call *cb)
-+{
-+	struct nf_nat_range_v1 *range_v1 = (void *)cb->data;
-+	struct nf_nat_range range = {};
-+
-+	memcpy(&range, range_v1, sizeof(*range_v1));
-+	_DNAT_parse(cb, &range, 1);
-+	memcpy(range_v1, &range, sizeof(*range_v1));
-+}
-+
-+static void DNAT_parse_v2(struct xt_option_call *cb)
-+{
-+	_DNAT_parse(cb, (struct nf_nat_range *)cb->data, 2);
-+}
-+
-+static void _DNAT_fcheck(struct xt_fcheck_call *cb, unsigned int *flags)
- {
- 	static const unsigned int f = F_TO_DEST | F_RANDOM;
--	struct nf_nat_range *mr = cb->data;
- 
- 	if ((cb->xflags & f) == f)
--		mr->flags |= NF_NAT_RANGE_PROTO_RANDOM;
-+		*flags |= NF_NAT_RANGE_PROTO_RANDOM;
-+}
-+
-+static void DNAT_fcheck(struct xt_fcheck_call *cb)
-+{
-+	_DNAT_fcheck(cb, &((struct nf_nat_range_v1 *)cb->data)->flags);
- }
- 
--static void print_range(const struct nf_nat_range *range)
-+static void DNAT_fcheck_v2(struct xt_fcheck_call *cb)
-+{
-+	_DNAT_fcheck(cb, &((struct nf_nat_range *)cb->data)->flags);
-+}
-+
-+static void print_range(const struct nf_nat_range *range, int rev)
- {
- 	if (range->flags & NF_NAT_RANGE_MAP_IPS) {
- 		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
-@@ -201,36 +234,63 @@ static void print_range(const struct nf_nat_range *range)
- 		printf("%hu", ntohs(range->min_proto.tcp.port));
- 		if (range->max_proto.tcp.port != range->min_proto.tcp.port)
- 			printf("-%hu", ntohs(range->max_proto.tcp.port));
-+		if (rev >= 2 && (range->flags & NF_NAT_RANGE_PROTO_OFFSET))
-+			printf(";%hu", ntohs(range->base_proto.tcp.port));
- 	}
- }
- 
--static void DNAT_print(const void *ip, const struct xt_entry_target *target,
--                       int numeric)
-+static void _DNAT_print(const struct nf_nat_range *range, int rev)
- {
--	const struct nf_nat_range *range = (const void *)target->data;
--
- 	printf(" to:");
--	print_range(range);
-+	print_range(range, rev);
- 	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM)
- 		printf(" random");
- 	if (range->flags & NF_NAT_RANGE_PERSISTENT)
- 		printf(" persistent");
- }
- 
--static void DNAT_save(const void *ip, const struct xt_entry_target *target)
-+static void DNAT_print(const void *ip, const struct xt_entry_target *target,
-+                       int numeric)
- {
--	const struct nf_nat_range *range = (const void *)target->data;
-+	const struct nf_nat_range_v1 *range_v1 = (const void *)target->data;
-+	struct nf_nat_range range = {};
- 
-+	memcpy(&range, range_v1, sizeof(*range_v1));
-+	_DNAT_print(&range, 1);
-+}
-+
-+static void DNAT_print_v2(const void *ip, const struct xt_entry_target *target,
-+                          int numeric)
-+{
-+	_DNAT_print((const struct nf_nat_range *)target->data, 2);
-+}
-+
-+static void _DNAT_save(const struct nf_nat_range *range, int rev)
-+{
- 	printf(" --to-destination ");
--	print_range(range);
-+	print_range(range, rev);
- 	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM)
- 		printf(" --random");
- 	if (range->flags & NF_NAT_RANGE_PERSISTENT)
- 		printf(" --persistent");
- }
- 
-+static void DNAT_save(const void *ip, const struct xt_entry_target *target)
-+{
-+	const struct nf_nat_range_v1 *range_v1 = (const void *)target->data;
-+	struct nf_nat_range range = {};
-+
-+	memcpy(&range, range_v1, sizeof(*range_v1));
-+	_DNAT_save(&range, 1);
-+}
-+
-+static void DNAT_save_v2(const void *ip, const struct xt_entry_target *target)
-+{
-+	_DNAT_save((const struct nf_nat_range *)target->data, 2);
-+}
-+
- static void print_range_xlate(const struct nf_nat_range *range,
--			      struct xt_xlate *xl)
-+			      struct xt_xlate *xl, int rev)
- {
- 	bool proto_specified = range->flags & NF_NAT_RANGE_PROTO_SPECIFIED;
- 
-@@ -257,15 +317,14 @@ static void print_range_xlate(const struct nf_nat_range *range,
- 	}
- }
- 
--static int DNAT_xlate(struct xt_xlate *xl,
--		      const struct xt_xlate_tg_params *params)
-+static int _DNAT_xlate(struct xt_xlate *xl,
-+		      const struct nf_nat_range *range, int rev)
- {
--	const struct nf_nat_range *range = (const void *)params->target->data;
- 	bool sep_need = false;
- 	const char *sep = " ";
- 
- 	xt_xlate_add(xl, "dnat to ");
--	print_range_xlate(range, xl);
-+	print_range_xlate(range, xl, rev);
- 	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM) {
- 		xt_xlate_add(xl, " random");
- 		sep_need = true;
-@@ -279,23 +338,60 @@ static int DNAT_xlate(struct xt_xlate *xl,
- 	return 1;
- }
- 
--static struct xtables_target dnat_tg_reg = {
--	.name		= "DNAT",
--	.version	= XTABLES_VERSION,
--	.family		= NFPROTO_IPV6,
--	.revision	= 1,
--	.size		= XT_ALIGN(sizeof(struct nf_nat_range)),
--	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_range)),
--	.help		= DNAT_help,
--	.x6_parse	= DNAT_parse,
--	.x6_fcheck	= DNAT_fcheck,
--	.print		= DNAT_print,
--	.save		= DNAT_save,
--	.x6_options	= DNAT_opts,
--	.xlate		= DNAT_xlate,
-+static int DNAT_xlate(struct xt_xlate *xl,
-+		      const struct xt_xlate_tg_params *params)
-+{
-+	const struct nf_nat_range_v1 *range_v1 = (const void *)params->target->data;
-+	struct nf_nat_range range = {};
-+
-+	memcpy(&range, range_v1, sizeof(*range_v1));
-+	_DNAT_xlate(xl, &range, 1);
-+
-+	return 1;
-+}
-+
-+static int DNAT_xlate_v2(struct xt_xlate *xl,
-+		      const struct xt_xlate_tg_params *params)
-+{
-+	_DNAT_xlate(xl, (const struct nf_nat_range *)params->target->data, 2);
-+
-+	return 1;
-+}
-+
-+static struct xtables_target dnat_tg_reg[] = {
-+	{
-+		.name		= "DNAT",
-+		.version	= XTABLES_VERSION,
-+		.family		= NFPROTO_IPV6,
-+		.revision	= 1,
-+		.size		= XT_ALIGN(sizeof(struct nf_nat_range_v1)),
-+		.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_range_v1)),
-+		.help		= DNAT_help,
-+		.print		= DNAT_print,
-+		.save		= DNAT_save,
-+		.x6_parse	= DNAT_parse,
-+		.x6_fcheck	= DNAT_fcheck,
-+		.x6_options	= DNAT_opts,
-+		.xlate		= DNAT_xlate,
-+	},
-+	{
-+		.name		= "DNAT",
-+		.version	= XTABLES_VERSION,
-+		.family		= NFPROTO_IPV6,
-+		.revision	= 2,
-+		.size		= XT_ALIGN(sizeof(struct nf_nat_range)),
-+		.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_range)),
-+		.help		= DNAT_help_v2,
-+		.print		= DNAT_print_v2,
-+		.save		= DNAT_save_v2,
-+		.x6_parse	= DNAT_parse_v2,
-+		.x6_fcheck	= DNAT_fcheck_v2,
-+		.x6_options	= DNAT_opts,
-+		.xlate		= DNAT_xlate_v2,
-+	},
- };
- 
- void _init(void)
- {
--	xtables_register_target(&dnat_tg_reg);
-+	xtables_register_targets(dnat_tg_reg, ARRAY_SIZE(dnat_tg_reg));
- }
-diff --git a/extensions/libip6t_MASQUERADE.c b/extensions/libip6t_MASQUERADE.c
-index f92760f..d1d15cf 100644
---- a/extensions/libip6t_MASQUERADE.c
-+++ b/extensions/libip6t_MASQUERADE.c
-@@ -42,7 +42,7 @@ static const struct xt_option_entry MASQUERADE_opts[] = {
- 
- /* Parses ports */
- static void
--parse_ports(const char *arg, struct nf_nat_range *r)
-+parse_ports(const char *arg, struct nf_nat_range_v1 *r)
- {
- 	char *end;
- 	unsigned int port, maxport;
-@@ -77,7 +77,7 @@ parse_ports(const char *arg, struct nf_nat_range *r)
- static void MASQUERADE_parse(struct xt_option_call *cb)
- {
- 	const struct ip6t_entry *entry = cb->xt_entry;
--	struct nf_nat_range *r = cb->data;
-+	struct nf_nat_range_v1 *r = cb->data;
- 	int portok;
- 
- 	if (entry->ipv6.proto == IPPROTO_TCP ||
-@@ -110,7 +110,7 @@ static void
- MASQUERADE_print(const void *ip, const struct xt_entry_target *target,
-                  int numeric)
- {
--	const struct nf_nat_range *r = (const void *)target->data;
-+	const struct nf_nat_range_v1 *r = (const void *)target->data;
- 
- 	if (r->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
- 		printf(" masq ports: ");
-@@ -129,7 +129,7 @@ MASQUERADE_print(const void *ip, const struct xt_entry_target *target,
- static void
- MASQUERADE_save(const void *ip, const struct xt_entry_target *target)
- {
--	const struct nf_nat_range *r = (const void *)target->data;
-+	const struct nf_nat_range_v1 *r = (const void *)target->data;
- 
- 	if (r->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
- 		printf(" --to-ports %hu", ntohs(r->min_proto.tcp.port));
-@@ -147,7 +147,7 @@ MASQUERADE_save(const void *ip, const struct xt_entry_target *target)
- static int MASQUERADE_xlate(struct xt_xlate *xl,
- 			    const struct xt_xlate_tg_params *params)
- {
--	const struct nf_nat_range *r = (const void *)params->target->data;
-+	const struct nf_nat_range_v1 *r = (const void *)params->target->data;
- 
- 	xt_xlate_add(xl, "masquerade");
- 
-@@ -172,8 +172,8 @@ static struct xtables_target masquerade_tg_reg = {
- 	.name		= "MASQUERADE",
- 	.version	= XTABLES_VERSION,
- 	.family		= NFPROTO_IPV6,
--	.size		= XT_ALIGN(sizeof(struct nf_nat_range)),
--	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_range)),
-+	.size		= XT_ALIGN(sizeof(struct nf_nat_range_v1)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_range_v1)),
- 	.help		= MASQUERADE_help,
- 	.x6_parse	= MASQUERADE_parse,
- 	.print		= MASQUERADE_print,
-diff --git a/extensions/libip6t_NETMAP.c b/extensions/libip6t_NETMAP.c
-index 579ed04..4cea8d1 100644
---- a/extensions/libip6t_NETMAP.c
-+++ b/extensions/libip6t_NETMAP.c
-@@ -36,7 +36,7 @@ static void NETMAP_help(void)
- 
- static void NETMAP_parse(struct xt_option_call *cb)
- {
--	struct nf_nat_range *range = cb->data;
-+	struct nf_nat_range_v1 *range = cb->data;
- 	unsigned int i;
- 
- 	xtables_option_parse(cb);
-@@ -52,7 +52,7 @@ static void NETMAP_parse(struct xt_option_call *cb)
- static void __NETMAP_print(const void *ip, const struct xt_entry_target *target,
-                            int numeric)
- {
--	const struct nf_nat_range *r = (const void *)target->data;
-+	const struct nf_nat_range_v1 *r = (const void *)target->data;
- 	struct in6_addr a;
- 	unsigned int i;
- 	int bits;
-@@ -85,8 +85,8 @@ static struct xtables_target netmap_tg_reg = {
- 	.name		= MODULENAME,
- 	.version	= XTABLES_VERSION,
- 	.family		= NFPROTO_IPV6,
--	.size		= XT_ALIGN(sizeof(struct nf_nat_range)),
--	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_range)),
-+	.size		= XT_ALIGN(sizeof(struct nf_nat_range_v1)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_range_v1)),
- 	.help		= NETMAP_help,
- 	.x6_parse	= NETMAP_parse,
- 	.print		= NETMAP_print,
-diff --git a/extensions/libip6t_REDIRECT.c b/extensions/libip6t_REDIRECT.c
-index 8e04d2c..c34eab9 100644
---- a/extensions/libip6t_REDIRECT.c
-+++ b/extensions/libip6t_REDIRECT.c
-@@ -37,7 +37,7 @@ static const struct xt_option_entry REDIRECT_opts[] = {
- 
- /* Parses ports */
- static void
--parse_ports(const char *arg, struct nf_nat_range *range)
-+parse_ports(const char *arg, struct nf_nat_range_v1 *range)
- {
- 	char *end = "";
- 	unsigned int port, maxport;
-@@ -74,7 +74,7 @@ parse_ports(const char *arg, struct nf_nat_range *range)
- static void REDIRECT_parse(struct xt_option_call *cb)
- {
- 	const struct ip6t_entry *entry = cb->xt_entry;
--	struct nf_nat_range *range = (void *)(*cb->target)->data;
-+	struct nf_nat_range_v1 *range = (void *)(*cb->target)->data;
- 	int portok;
- 
- 	if (entry->ipv6.proto == IPPROTO_TCP
-@@ -106,7 +106,7 @@ static void REDIRECT_parse(struct xt_option_call *cb)
- static void REDIRECT_print(const void *ip, const struct xt_entry_target *target,
-                            int numeric)
- {
--	const struct nf_nat_range *range = (const void *)target->data;
-+	const struct nf_nat_range_v1 *range = (const void *)target->data;
- 
- 	if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
- 		printf(" redir ports ");
-@@ -120,7 +120,7 @@ static void REDIRECT_print(const void *ip, const struct xt_entry_target *target,
- 
- static void REDIRECT_save(const void *ip, const struct xt_entry_target *target)
- {
--	const struct nf_nat_range *range = (const void *)target->data;
-+	const struct nf_nat_range_v1 *range = (const void *)target->data;
- 
- 	if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
- 		printf(" --to-ports ");
-@@ -135,7 +135,7 @@ static void REDIRECT_save(const void *ip, const struct xt_entry_target *target)
- static int REDIRECT_xlate(struct xt_xlate *xl,
- 			  const struct xt_xlate_tg_params *params)
- {
--	const struct nf_nat_range *range = (const void *)params->target->data;
-+	const struct nf_nat_range_v1 *range = (const void *)params->target->data;
- 
- 	if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
- 		xt_xlate_add(xl, "redirect to :%hu",
-@@ -154,8 +154,8 @@ static struct xtables_target redirect_tg_reg = {
- 	.name		= "REDIRECT",
- 	.version	= XTABLES_VERSION,
- 	.family		= NFPROTO_IPV6,
--	.size		= XT_ALIGN(sizeof(struct nf_nat_range)),
--	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_range)),
-+	.size		= XT_ALIGN(sizeof(struct nf_nat_range_v1)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_range_v1)),
- 	.help		= REDIRECT_help,
- 	.x6_parse	= REDIRECT_parse,
- 	.print		= REDIRECT_print,
-diff --git a/extensions/libip6t_SNAT.c b/extensions/libip6t_SNAT.c
-index 7d74b3d..a427b9e 100644
---- a/extensions/libip6t_SNAT.c
-+++ b/extensions/libip6t_SNAT.c
-@@ -47,7 +47,7 @@ static const struct xt_option_entry SNAT_opts[] = {
- 
- /* Ranges expected in network order. */
- static void
--parse_to(const char *orig_arg, int portok, struct nf_nat_range *range)
-+parse_to(const char *orig_arg, int portok, struct nf_nat_range_v1 *range)
- {
- 	char *arg, *start, *end = NULL, *colon = NULL, *dash, *error;
- 	const struct in6_addr *ip;
-@@ -150,7 +150,7 @@ parse_to(const char *orig_arg, int portok, struct nf_nat_range *range)
- static void SNAT_parse(struct xt_option_call *cb)
- {
- 	const struct ip6t_entry *entry = cb->xt_entry;
--	struct nf_nat_range *range = cb->data;
-+	struct nf_nat_range_v1 *range = cb->data;
- 	int portok;
- 
- 	if (entry->ipv6.proto == IPPROTO_TCP ||
-@@ -182,7 +182,7 @@ static void SNAT_fcheck(struct xt_fcheck_call *cb)
- {
- 	static const unsigned int f = F_TO_SRC | F_RANDOM;
- 	static const unsigned int r = F_TO_SRC | F_RANDOM_FULLY;
--	struct nf_nat_range *range = cb->data;
-+	struct nf_nat_range_v1 *range = cb->data;
- 
- 	if ((cb->xflags & f) == f)
- 		range->flags |= NF_NAT_RANGE_PROTO_RANDOM;
-@@ -190,7 +190,7 @@ static void SNAT_fcheck(struct xt_fcheck_call *cb)
- 		range->flags |= NF_NAT_RANGE_PROTO_RANDOM_FULLY;
- }
- 
--static void print_range(const struct nf_nat_range *range)
-+static void print_range(const struct nf_nat_range_v1 *range)
- {
- 	if (range->flags & NF_NAT_RANGE_MAP_IPS) {
- 		if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED)
-@@ -213,7 +213,7 @@ static void print_range(const struct nf_nat_range *range)
- static void SNAT_print(const void *ip, const struct xt_entry_target *target,
-                        int numeric)
- {
--	const struct nf_nat_range *range = (const void *)target->data;
-+	const struct nf_nat_range_v1 *range = (const void *)target->data;
- 
- 	printf(" to:");
- 	print_range(range);
-@@ -227,7 +227,7 @@ static void SNAT_print(const void *ip, const struct xt_entry_target *target,
- 
- static void SNAT_save(const void *ip, const struct xt_entry_target *target)
- {
--	const struct nf_nat_range *range = (const void *)target->data;
-+	const struct nf_nat_range_v1 *range = (const void *)target->data;
- 
- 	printf(" --to-source ");
- 	print_range(range);
-@@ -239,7 +239,7 @@ static void SNAT_save(const void *ip, const struct xt_entry_target *target)
- 		printf(" --persistent");
- }
- 
--static void print_range_xlate(const struct nf_nat_range *range,
-+static void print_range_xlate(const struct nf_nat_range_v1 *range,
- 			      struct xt_xlate *xl)
- {
- 	bool proto_specified = range->flags & NF_NAT_RANGE_PROTO_SPECIFIED;
-@@ -270,7 +270,7 @@ static void print_range_xlate(const struct nf_nat_range *range,
- static int SNAT_xlate(struct xt_xlate *xl,
- 		      const struct xt_xlate_tg_params *params)
- {
--	const struct nf_nat_range *range = (const void *)params->target->data;
-+	const struct nf_nat_range_v1 *range = (const void *)params->target->data;
- 	bool sep_need = false;
- 	const char *sep = " ";
- 
-@@ -300,8 +300,8 @@ static struct xtables_target snat_tg_reg = {
- 	.version	= XTABLES_VERSION,
- 	.family		= NFPROTO_IPV6,
- 	.revision	= 1,
--	.size		= XT_ALIGN(sizeof(struct nf_nat_range)),
--	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_range)),
-+	.size		= XT_ALIGN(sizeof(struct nf_nat_range_v1)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_range_v1)),
- 	.help		= SNAT_help,
- 	.x6_parse	= SNAT_parse,
- 	.x6_fcheck	= SNAT_fcheck,
-diff --git a/extensions/libipt_DNAT.c b/extensions/libipt_DNAT.c
-index a14d16f..a66db1a 100644
---- a/extensions/libipt_DNAT.c
-+++ b/extensions/libipt_DNAT.c
-@@ -35,6 +35,15 @@ static void DNAT_help(void)
- "[--random] [--persistent]\n");
- }
- 
-+static void DNAT_help_v2(void)
-+{
-+	printf(
-+"DNAT target options:\n"
-+" --to-destination [<ipaddr>[-<ipaddr>]][:port[-port[;port]]]\n"
-+"				Address to map destination to.\n"
-+"[--random] [--persistent]\n");
-+}
-+
- static const struct xt_option_entry DNAT_opts[] = {
- 	{.name = "to-destination", .id = O_TO_DEST, .type = XTTYPE_STRING,
- 	 .flags = XTOPT_MAND | XTOPT_MULTI},
-@@ -287,22 +296,260 @@ static int DNAT_xlate(struct xt_xlate *xl,
- 	return 1;
- }
- 
--static struct xtables_target dnat_tg_reg = {
--	.name		= "DNAT",
--	.version	= XTABLES_VERSION,
--	.family		= NFPROTO_IPV4,
--	.size		= XT_ALIGN(sizeof(struct nf_nat_ipv4_multi_range_compat)),
--	.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_ipv4_multi_range_compat)),
--	.help		= DNAT_help,
--	.x6_parse	= DNAT_parse,
--	.x6_fcheck	= DNAT_fcheck,
--	.print		= DNAT_print,
--	.save		= DNAT_save,
--	.x6_options	= DNAT_opts,
--	.xlate		= DNAT_xlate,
-+static void
-+parse_to_v2(const char *orig_arg, int portok, struct nf_nat_range *range)
-+{
-+	char *arg, *colon, *dash, *error;
-+	const struct in_addr *ip;
-+
-+	arg = strdup(orig_arg);
-+	if (arg == NULL)
-+		xtables_error(RESOURCE_PROBLEM, "strdup");
-+
-+	colon = strchr(arg, ':');
-+	if (colon) {
-+		int port;
-+
-+		if (!portok)
-+			xtables_error(PARAMETER_PROBLEM,
-+				   "Need TCP, UDP, SCTP or DCCP with port specification");
-+
-+		range->flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
-+
-+		port = atoi(colon+1);
-+		if (port <= 0 || port > 65535)
-+			xtables_error(PARAMETER_PROBLEM,
-+				   "Port `%s' not valid\n", colon+1);
-+
-+		error = strchr(colon+1, ':');
-+		if (error)
-+			xtables_error(PARAMETER_PROBLEM,
-+				   "Invalid port:port syntax - use dash\n");
-+
-+		dash = strchr(colon, '-');
-+		if (!dash) {
-+			range->min_proto.tcp.port
-+				= range->max_proto.tcp.port
-+				= htons(port);
-+		} else {
-+			int maxport;
-+			char *semicolon;
-+
-+			maxport = atoi(dash + 1);
-+			if (maxport <= 0 || maxport > 65535)
-+				xtables_error(PARAMETER_PROBLEM,
-+					   "Port `%s' not valid\n", dash+1);
-+			if (maxport < port)
-+				/* People are stupid. */
-+				xtables_error(PARAMETER_PROBLEM,
-+					   "Port range `%s' funky\n", colon+1);
-+			range->min_proto.tcp.port = htons(port);
-+			range->max_proto.tcp.port = htons(maxport);
-+
-+			semicolon = strchr(dash, ';');
-+			if (semicolon) {
-+				int baseport;
-+
-+				baseport = atoi(semicolon + 1);
-+				if (baseport <= 0 || baseport > 65535)
-+					xtables_error(PARAMETER_PROBLEM,
-+							 "Port `%s' not valid\n", semicolon+1);
-+				range->flags |= NF_NAT_RANGE_PROTO_OFFSET;
-+				range->base_proto.tcp.port = htons(baseport);
-+			}
-+		}
-+		/* Starts with a colon? No IP info...*/
-+		if (colon == arg) {
-+			free(arg);
-+			return;
-+		}
-+		*colon = '\0';
-+	}
-+
-+	range->flags |= NF_NAT_RANGE_MAP_IPS;
-+	dash = strchr(arg, '-');
-+	if (colon && dash && dash > colon)
-+		dash = NULL;
-+
-+	if (dash)
-+		*dash = '\0';
-+
-+	ip = xtables_numeric_to_ipaddr(arg);
-+	if (!ip)
-+		xtables_error(PARAMETER_PROBLEM, "Bad IP address \"%s\"\n",
-+			   arg);
-+	range->min_addr.in = *ip;
-+	if (dash) {
-+		ip = xtables_numeric_to_ipaddr(dash+1);
-+		if (!ip)
-+			xtables_error(PARAMETER_PROBLEM, "Bad IP address \"%s\"\n",
-+				   dash+1);
-+		range->max_addr.in = *ip;
-+	} else
-+		range->max_addr = range->min_addr;
-+
-+	free(arg);
-+	return;
-+}
-+
-+static void DNAT_parse_v2(struct xt_option_call *cb)
-+{
-+	const struct ipt_entry *entry = cb->xt_entry;
-+	struct nf_nat_range *range = cb->data;
-+	int portok;
-+
-+	if (entry->ip.proto == IPPROTO_TCP
-+	    || entry->ip.proto == IPPROTO_UDP
-+	    || entry->ip.proto == IPPROTO_SCTP
-+	    || entry->ip.proto == IPPROTO_DCCP
-+	    || entry->ip.proto == IPPROTO_ICMP)
-+		portok = 1;
-+	else
-+		portok = 0;
-+
-+	xtables_option_parse(cb);
-+	switch (cb->entry->id) {
-+	case O_TO_DEST:
-+		if (cb->xflags & F_X_TO_DEST) {
-+			xtables_error(PARAMETER_PROBLEM,
-+				   "DNAT: Multiple --to-destination not supported");
-+		}
-+		parse_to_v2(cb->arg, portok, range);
-+		cb->xflags |= F_X_TO_DEST;
-+		break;
-+	case O_PERSISTENT:
-+		range->flags |= NF_NAT_RANGE_PERSISTENT;
-+		break;
-+	}
-+}
-+
-+static void DNAT_fcheck_v2(struct xt_fcheck_call *cb)
-+{
-+	static const unsigned int f = F_TO_DEST | F_RANDOM;
-+	struct nf_nat_range *range = cb->data;
-+
-+	if ((cb->xflags & f) == f)
-+		range->flags |= NF_NAT_RANGE_PROTO_RANDOM;
-+}
-+
-+static void print_range_v2(const struct nf_nat_range *range)
-+{
-+	if (range->flags & NF_NAT_RANGE_MAP_IPS) {
-+		printf("%s", xtables_ipaddr_to_numeric(&range->min_addr.in));
-+		if (memcmp(&range->min_addr, &range->max_addr,
-+			   sizeof(range->min_addr)))
-+			printf("-%s", xtables_ipaddr_to_numeric(&range->max_addr.in));
-+	}
-+	if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
-+		printf(":");
-+		printf("%hu", ntohs(range->min_proto.tcp.port));
-+		if (range->max_proto.tcp.port != range->min_proto.tcp.port)
-+			printf("-%hu", ntohs(range->max_proto.tcp.port));
-+		if (range->flags & NF_NAT_RANGE_PROTO_OFFSET)
-+			printf(";%hu", ntohs(range->base_proto.tcp.port));
-+	}
-+}
-+
-+static void DNAT_print_v2(const void *ip, const struct xt_entry_target *target,
-+                       int numeric)
-+{
-+	const struct nf_nat_range *range = (const void *)target->data;
-+
-+	printf(" to:");
-+	print_range_v2(range);
-+	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM)
-+		printf(" random");
-+	if (range->flags & NF_NAT_RANGE_PERSISTENT)
-+		printf(" persistent");
-+}
-+
-+static void DNAT_save_v2(const void *ip, const struct xt_entry_target *target)
-+{
-+	const struct nf_nat_range *range = (const void *)target->data;
-+
-+	printf(" --to-destination ");
-+	print_range_v2(range);
-+	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM)
-+		printf(" --random");
-+	if (range->flags & NF_NAT_RANGE_PERSISTENT)
-+		printf(" --persistent");
-+}
-+
-+static void print_range_xlate_v2(const struct nf_nat_range *range,
-+			      struct xt_xlate *xl)
-+{
-+	if (range->flags & NF_NAT_RANGE_MAP_IPS) {
-+		xt_xlate_add(xl, "%s", xtables_ipaddr_to_numeric(&range->min_addr.in));
-+		if (memcmp(&range->min_addr, &range->max_addr,
-+			   sizeof(range->min_addr))) {
-+			xt_xlate_add(xl, "-%s", xtables_ipaddr_to_numeric(&range->max_addr.in));
-+		}
-+	}
-+	if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
-+		xt_xlate_add(xl, ":%hu", ntohs(range->min_proto.tcp.port));
-+		if (range->max_proto.tcp.port != range->min_proto.tcp.port)
-+			xt_xlate_add(xl, "-%hu", ntohs(range->max_proto.tcp.port));
-+		if (range->flags & NF_NAT_RANGE_PROTO_OFFSET)
-+			xt_xlate_add(xl, ";%hu", ntohs(range->base_proto.tcp.port));
-+	}
-+}
-+
-+static int DNAT_xlate_v2(struct xt_xlate *xl,
-+		      const struct xt_xlate_tg_params *params)
-+{
-+	const struct nf_nat_range *range = (const void *)params->target->data;
-+	bool sep_need = false;
-+	const char *sep = " ";
-+
-+	xt_xlate_add(xl, "dnat to ");
-+	print_range_xlate_v2(range, xl);
-+	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM) {
-+		xt_xlate_add(xl, " random");
-+		sep_need = true;
-+	}
-+	if (range->flags & NF_NAT_RANGE_PERSISTENT) {
-+		if (sep_need)
-+			sep = ",";
-+		xt_xlate_add(xl, "%spersistent", sep);
-+	}
-+
-+	return 1;
-+}
-+
-+static struct xtables_target dnat_tg_reg[] = {
-+	{
-+		.name		= "DNAT",
-+		.version	= XTABLES_VERSION,
-+		.family		= NFPROTO_IPV4,
-+		.revision	= 0,
-+		.size		= XT_ALIGN(sizeof(struct nf_nat_ipv4_multi_range_compat)),
-+		.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_ipv4_multi_range_compat)),
-+		.help		= DNAT_help,
-+		.print		= DNAT_print,
-+		.save		= DNAT_save,
-+		.x6_parse	= DNAT_parse,
-+		.x6_fcheck	= DNAT_fcheck,
-+		.x6_options	= DNAT_opts,
-+		.xlate		= DNAT_xlate,
-+	},
-+	{
-+		.name		= "DNAT",
-+		.version	= XTABLES_VERSION,
-+		.family		= NFPROTO_IPV4,
-+		.revision	= 2,
-+		.size		= XT_ALIGN(sizeof(struct nf_nat_range)),
-+		.userspacesize	= XT_ALIGN(sizeof(struct nf_nat_range)),
-+		.help		= DNAT_help_v2,
-+		.print		= DNAT_print_v2,
-+		.save		= DNAT_save_v2,
-+		.x6_parse	= DNAT_parse_v2,
-+		.x6_fcheck	= DNAT_fcheck_v2,
-+		.x6_options	= DNAT_opts,
-+		.xlate		= DNAT_xlate_v2,
-+	},
- };
- 
- void _init(void)
- {
--	xtables_register_target(&dnat_tg_reg);
-+	xtables_register_targets(dnat_tg_reg, ARRAY_SIZE(dnat_tg_reg));
- }
-diff --git a/include/linux/netfilter/nf_nat.h b/include/linux/netfilter/nf_nat.h
-index 1ad3659..242281e 100644
---- a/include/linux/netfilter/nf_nat.h
-+++ b/include/linux/netfilter/nf_nat.h
-@@ -9,10 +9,16 @@
- #define NF_NAT_RANGE_PROTO_RANDOM		(1 << 2)
- #define NF_NAT_RANGE_PERSISTENT			(1 << 3)
- #define NF_NAT_RANGE_PROTO_RANDOM_FULLY		(1 << 4)
-+#define NF_NAT_RANGE_PROTO_OFFSET		(1 << 5)
- 
- #define NF_NAT_RANGE_PROTO_RANDOM_ALL		\
- 	(NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PROTO_RANDOM_FULLY)
- 
-+#define NF_NAT_RANGE_MASK					\
-+	(NF_NAT_RANGE_MAP_IPS | NF_NAT_RANGE_PROTO_SPECIFIED |	\
-+	 NF_NAT_RANGE_PROTO_RANDOM | NF_NAT_RANGE_PERSISTENT |	\
-+	 NF_NAT_RANGE_PROTO_RANDOM_FULLY | NF_NAT_RANGE_PROTO_OFFSET)
-+
- struct nf_nat_ipv4_range {
- 	unsigned int			flags;
- 	__be32				min_ip;
-@@ -26,12 +32,21 @@ struct nf_nat_ipv4_multi_range_compat {
- 	struct nf_nat_ipv4_range	range[1];
- };
- 
-+struct nf_nat_range_v1 {
-+	unsigned int			flags;
-+	union nf_inet_addr		min_addr;
-+	union nf_inet_addr		max_addr;
-+	union nf_conntrack_man_proto	min_proto;
-+	union nf_conntrack_man_proto	max_proto;
-+};
-+
- struct nf_nat_range {
- 	unsigned int			flags;
- 	union nf_inet_addr		min_addr;
- 	union nf_inet_addr		max_addr;
- 	union nf_conntrack_man_proto	min_proto;
- 	union nf_conntrack_man_proto	max_proto;
-+	union nf_conntrack_man_proto	base_proto;
- };
- 
- #endif /* _NETFILTER_NF_NAT_H */
 -- 
-2.7.4
+2.15.1
+
+-- 
+Michal Hocko
+SUSE Labs
