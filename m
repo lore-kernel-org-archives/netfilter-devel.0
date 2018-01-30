@@ -1,76 +1,69 @@
 From: David Fabian <david.fabian@cldn.cz>
 Subject: Re: question about UNDEFINE/REDEFINE
-Date: Tue, 30 Jan 2018 12:05:48 +0100
-Message-ID: <9368681.Gobf97r6C9@voxel>
-References: <3622208.jy4NlOniyd@voxel> <1993002.08LkLsM8EI@voxel> <20180126134549.t5wjq63x7vw7efcw@salvia>
+Date: Tue, 30 Jan 2018 12:22:35 +0100
+Message-ID: <5560485.OA0SLqNG1b@voxel>
+References: <3622208.jy4NlOniyd@voxel> <1993002.08LkLsM8EI@voxel> <CAOkSjBiHTwW_9rQhznubKnZ=DJJsySK4qo_XJ3r4PLAmKXt35w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailalternative.uvtmail.cz ([109.205.75.52]:59800 "EHLO
+Received: from mailalternative.uvtmail.cz ([109.205.75.52]:43148 "EHLO
         mail.hosting.cldn.cz" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751360AbeA3LFv (ORCPT
+        with ESMTP id S1751262AbeA3LWh (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Jan 2018 06:05:51 -0500
-In-Reply-To: <20180126134549.t5wjq63x7vw7efcw@salvia>
+        Tue, 30 Jan 2018 06:22:37 -0500
+In-Reply-To: <CAOkSjBiHTwW_9rQhznubKnZ=DJJsySK4qo_XJ3r4PLAmKXt35w@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Pablo,
+Hello Arturo,
 
-Dne p=C3=A1tek 26. ledna 2018 14:45:49 CET, Pablo Neira Ayuso napsal(a):
-> 2) Probably even cleaner is to look at 'local' scopes like in bash.
+Dne p=C3=A1tek 26. ledna 2018 19:43:18 CET, Arturo Borrero Gonzalez napsal(=
+a):
+> My suggestion is to simply create one variable per value:
 >=20
->  define local IP1 =3D 1.1.1.1
+> define INET_IFACES_VLAN43 =3D { bond0.x, bond3.y}
+> define INET_IFACES_VLAN3 =3D { bond3.x, bond3.y}
+> define XXX_VLAN43 =3D xxx
+> define XXX_VLAN3 =3D xxx
 >=20
-> so the symbol is bound to this file - consider the content of a file
-> determines a given scope. This can be also useful to the nested
-> notation.
->=20
-> 3) You rework your ruleset to use the notation with nesting :-). But I
-> think 2) can be useful for both the flat and nested notation.
->=20
-> I'm not asking you to do 2), but I would like to see how a patch that
-> adds explicit scoping for the flat ruleset representation looks like.
+> you could generate such a file, something like 'defines.nft' and
+> include it once in your main ruleset file.
 
-I know about scopes in the code but unfortunately as you said, the flat=20
-notation only has a single scope. Since we are talking about analogy to bas=
-h,=20
-bash allows me to redefine a variable in the same scope. Variables in nftab=
-les=20
-feel more like constants which is not necessarily bad as it can prevent som=
+that is exactly the boilerplate that we are trying to avoid. By using=20
+consistent (and non-unique) variable names we are able to freely move the=20
+rules from one customer to another without rewriting every use of a variabl=
 e=20
-typos but is hard to work with in scripting as it's not that flexible.
+every time. We also do not want to build a code-generating harness in bash =
+(or=20
+any other language) since that would sort of defeat the purpose of scriptin=
+g=20
+in nftables in my eyes. the redefine keyword was just my first idea to solv=
+e the=20
+problem of a single flat variable scope. There may be a better approach but=
+ I=20
+think that if nftables wants to have scripting capabilities, some kind of=20
+variable scoping (even in flat notation) and more ubiquitous variable use=20
+within rules is necessary.
 
-=46rom those options you listed I would strongly prefer to have an implicit=
+I event went so far and made some experimental patches that allowed me to u=
+se=20
+string variables and string concatenation in places like interface names an=
+d=20
+rule targets. With that I was able to create very generic rules and I tied=
 =20
-scope for each file included in the flat notation. That way, defining a var=
-iable=20
-in one file would not collide with the same variable in a sibling include.=
-=20
-Variables from outer scopes would still be available in inner scopes. For=20
-people that would want to have their "global" definitions in a separate=20
-include, I would recommend creating a new keyword like global or export tha=
-t=20
-would tie a variable to the top-level scope and thus make it available to=20
-everyone. I don't think that would be that hard to implement and I may try =
-to=20
-if we agree on it.
-
-Anyway there should definitely be a way to de-register (undefine) a variabl=
-e=20
-from a scope to prevent a misuse due to typos.
-
-By the way, can we restructure the FW using nesting and still be able to=20
-retain all per-customer rules in a single file? Wouldn't that require us to=
-=20
-split prerouting, postrouting, forward and other rules to separate scopes/
-table definitions? That would be highly inconvenient.
+them to a customer/VLAN just by changing one or two constants in the header=
+ of=20
+a file (e.g. the VLAN number). Of course, I had to use redefine in the head=
+er.
 
 =2D-=20
 S pozdravem,
 
 David Fabian
 Cluster Design, s.r.o.
+
