@@ -1,44 +1,54 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/6] Netfilter fixes for net
-Date: Thu, 01 Feb 2018 14:45:44 -0500 (EST)
-Message-ID: <20180201.144544.1810952791328890164.davem@davemloft.net>
-References: <20180201180217.24356-1-pablo@netfilter.org>
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: Re: [Patch net] xt_RATEEST: acquire xt_rateest_mutex for hash insert
+Date: Thu, 1 Feb 2018 13:50:40 -0800
+Message-ID: <CAM_iQpVkek-RJ35+YfnV73asi6zjM0Sf=nroxxcN=mWubPtHfA@mail.gmail.com>
+References: <20180201002631.17638-1-xiyou.wangcong@gmail.com> <1517449486.3715.112.camel@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([184.105.139.130]:49884 "EHLO
-        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752838AbeBATps (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Feb 2018 14:45:48 -0500
-In-Reply-To: <20180201180217.24356-1-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1517449486.3715.112.camel@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Thu,  1 Feb 2018 19:02:11 +0100
+On Wed, Jan 31, 2018 at 5:44 PM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> On Wed, 2018-01-31 at 16:26 -0800, Cong Wang wrote:
+>> rateest_hash is supposed to be protected by xt_rateest_mutex.
+>>
+>> Reported-by: <syzbot+5cb189720978275e4c75@syzkaller.appspotmail.com>
+>> Fixes: 5859034d7eb8 ("[NETFILTER]: x_tables: add RATEEST target")
+>> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+>> Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+>> ---
+>>  net/netfilter/xt_RATEEST.c | 2 ++
+>>  1 file changed, 2 insertions(+)
+>>
+>> diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
+>> index 498b54fd04d7..83ec3a282755 100644
+>> --- a/net/netfilter/xt_RATEEST.c
+>> +++ b/net/netfilter/xt_RATEEST.c
+>> @@ -36,7 +36,9 @@ static void xt_rateest_hash_insert(struct xt_rateest *est)
+>>       unsigned int h;
+>>
+>>       h = xt_rateest_hash(est->name);
+>> +     mutex_lock(&xt_rateest_mutex);
+>>       hlist_add_head(&est->list, &rateest_hash[h]);
+>> +     mutex_unlock(&xt_rateest_mutex);
+>>  }
+>
+> We probably should make this module netns aware, otherwise bad things
+> will happen.
 
-> The following patchset contains Netfilter fixes for your net tree,
-> they are:
-> 
-> 1) Fix OOM that syskaller triggers with ipt_replace.size = -1 and
->    IPT_SO_SET_REPLACE socket option, from Dmitry Vyukov.
-> 
-> 2) Check for too long extension name in xt_request_find_{match|target}
->    that result in out-of-bound reads, from Eric Dumazet.
-> 
-> 3) Fix memory exhaustion bug in ipset hash:*net* types when adding ranges
->    that look like x.x.x.x-255.255.255.255, from Jozsef Kadlecsik.
-> 
-> 4) Fix pointer leaks to userspace in x_tables, from Dmitry Vyukov.
-> 
-> 5) Insufficient sanity checks in clusterip_tg_check(), also from Dmitry.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+Right, both the lock and the hashtable. I can do it for net-next,
+if you don't.
 
-Pulled, thanks.
+>
+> (It seems multiple threads could run, so getting the mutex twice
+> (xt_rateest_lookup then xt_rateest_hash_insert() is racy)
+
+Yeah, need to merge these two critical sections.
+
+Thanks.
