@@ -1,59 +1,34 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [Patch net] xt_RATEEST: acquire xt_rateest_mutex for hash insert
-Date: Thu, 1 Feb 2018 23:36:35 +0100
-Message-ID: <20180201223635.GC11048@breakpoint.cc>
-References: <20180201002631.17638-1-xiyou.wangcong@gmail.com>
- <1517449486.3715.112.camel@gmail.com>
- <CAM_iQpVkek-RJ35+YfnV73asi6zjM0Sf=nroxxcN=mWubPtHfA@mail.gmail.com>
+From: Rob Thomas <xrobau@gmail.com>
+Subject: Resurrecting "does nftables support string match?"
+Date: Fri, 2 Feb 2018 09:32:17 +1000
+Message-ID: <CAC5zRjPSCeXaE-3Q9gSmOcc0Ajbt7CK7KoUhE-dDPvuvcoB9yw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>,
-        netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-To: Cong Wang <xiyou.wangcong@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:50624 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751567AbeBAWja (ORCPT
+Received: from mail-it0-f43.google.com ([209.85.214.43]:38512 "EHLO
+        mail-it0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751521AbeBAXcT (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Feb 2018 17:39:30 -0500
-Content-Disposition: inline
-In-Reply-To: <CAM_iQpVkek-RJ35+YfnV73asi6zjM0Sf=nroxxcN=mWubPtHfA@mail.gmail.com>
+        Thu, 1 Feb 2018 18:32:19 -0500
+Received: by mail-it0-f43.google.com with SMTP id k6so5830507ita.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 01 Feb 2018 15:32:19 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Cong Wang <xiyou.wangcong@gmail.com> wrote:
-> On Wed, Jan 31, 2018 at 5:44 PM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> > On Wed, 2018-01-31 at 16:26 -0800, Cong Wang wrote:
-> >> rateest_hash is supposed to be protected by xt_rateest_mutex.
-> >>
-> >> Reported-by: <syzbot+5cb189720978275e4c75@syzkaller.appspotmail.com>
-> >> Fixes: 5859034d7eb8 ("[NETFILTER]: x_tables: add RATEEST target")
-> >> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> >> Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
-> >> ---
-> >>  net/netfilter/xt_RATEEST.c | 2 ++
-> >>  1 file changed, 2 insertions(+)
-> >>
-> >> diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
-> >> index 498b54fd04d7..83ec3a282755 100644
-> >> --- a/net/netfilter/xt_RATEEST.c
-> >> +++ b/net/netfilter/xt_RATEEST.c
-> >> @@ -36,7 +36,9 @@ static void xt_rateest_hash_insert(struct xt_rateest *est)
-> >>       unsigned int h;
-> >>
-> >>       h = xt_rateest_hash(est->name);
-> >> +     mutex_lock(&xt_rateest_mutex);
-> >>       hlist_add_head(&est->list, &rateest_hash[h]);
-> >> +     mutex_unlock(&xt_rateest_mutex);
-> >>  }
-> >
-> > We probably should make this module netns aware, otherwise bad things
-> > will happen.
-> 
-> Right, both the lock and the hashtable. I can do it for net-next,
-> if you don't.
+Looking through the archives, I see this was brought up previously,
+and the answer was 'no' - cite
+https://www.spinics.net/lists/netfilter-devel/msg49574.html
 
-Note that the xtables af mutexes are not per-netns, the race is iptables
-vs. ip6tables.
+What I *actually* want to do is whitelist SIP traffic (unencrypted)
+from various remote hosts, hopefully using a set of valid strings (eg,
+bytes 10 to 20 of the packet must be in the set X, which contains
+"AAAAAAAAAA", "BBBBBBBBBB" and "CCCCCCCCCC" for example)
+
+I was browsing through the RHEL 7.5 release notes, and noticed that
+they've pulled 0.8 in, so I was hopefully thinking that I could do
+this in nftables, but it appears it's still on the wishlist.
+
+Any news, or, anything I can help with?
+
+--Rob
