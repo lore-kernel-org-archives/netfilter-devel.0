@@ -1,59 +1,78 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf 2/2] netfilter: nft_flow_offload: no need to flush entries on module removal
-Date: Thu,  1 Feb 2018 18:49:01 +0100
-Message-ID: <20180201174901.25100-2-pablo@netfilter.org>
-References: <20180201174901.25100-1-pablo@netfilter.org>
+Subject: [PATCH nf 1/2] netfilter: nft_flow_offload: wait for garbage collector to run after cleanup
+Date: Thu,  1 Feb 2018 18:49:00 +0100
+Message-ID: <20180201174901.25100-1-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52986 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52966 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751567AbeBARtS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Feb 2018 12:49:18 -0500
+        id S1751567AbeBARtP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 1 Feb 2018 12:49:15 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6BA28392E06
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Feb 2018 18:49:17 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id E04F3392E0A
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Feb 2018 18:49:13 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5AD5CDA727
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Feb 2018 18:49:17 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id D087BBAAA8
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Feb 2018 18:49:13 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 1BC65DA727
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Feb 2018 18:49:12 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B91A0BAAA2
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Feb 2018 18:49:10 +0100 (CET)
 Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
         (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id D5DE74265A2F
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Feb 2018 18:49:11 +0100 (CET)
-In-Reply-To: <20180201174901.25100-1-pablo@netfilter.org>
+        by entrada.int (Postfix) with ESMTPA id 86CDE4265A2F
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Feb 2018 18:49:10 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nft_flow_offload module removal does not require to flush existing
-flowtables, it is valid to remove this module while keeping flowtables
-around.
+If netdevice goes down, then flowtable entries are scheduled to be
+removed. Wait for garbage collector to have a chance to run so it can
+delete them from the hashtable.
+
+The flush call might sleep, so hold the nfnl mutex from
+nft_flow_table_iterate() instead of rcu read side lock. The use of the
+nfnl mutex is also implicitly fixing races between updates via nfnetlink
+and netdevice event.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_flow_offload.c | 6 ------
- 1 file changed, 6 deletions(-)
+ net/netfilter/nf_tables_api.c    | 8 ++++----
+ net/netfilter/nft_flow_offload.c | 1 +
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 0791813a1e7d..07dd1fac78a8 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5006,13 +5006,13 @@ void nft_flow_table_iterate(struct net *net,
+ 	struct nft_flowtable *flowtable;
+ 	const struct nft_table *table;
+ 
+-	rcu_read_lock();
+-	list_for_each_entry_rcu(table, &net->nft.tables, list) {
+-		list_for_each_entry_rcu(flowtable, &table->flowtables, list) {
++	nfnl_lock(NFNL_SUBSYS_NFTABLES);
++	list_for_each_entry(table, &net->nft.tables, list) {
++		list_for_each_entry(flowtable, &table->flowtables, list) {
+ 			iter(&flowtable->data, data);
+ 		}
+ 	}
+-	rcu_read_unlock();
++	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
+ }
+ EXPORT_SYMBOL_GPL(nft_flow_table_iterate);
+ 
 diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 1739ff8ca21f..e5c45c7ac02a 100644
+index 4503b8dcf9c0..1739ff8ca21f 100644
 --- a/net/netfilter/nft_flow_offload.c
 +++ b/net/netfilter/nft_flow_offload.c
-@@ -247,14 +247,8 @@ static int __init nft_flow_offload_module_init(void)
- 
- static void __exit nft_flow_offload_module_exit(void)
+@@ -208,6 +208,7 @@ static void nft_flow_offload_iterate_cleanup(struct nf_flowtable *flowtable,
+ 					     void *data)
  {
--	struct net *net;
--
- 	nft_unregister_expr(&nft_flow_offload_type);
- 	unregister_netdevice_notifier(&flow_offload_netdev_notifier);
--	rtnl_lock();
--	for_each_net(net)
--		nft_flow_table_iterate(net, nft_flow_offload_iterate_cleanup, NULL);
--	rtnl_unlock();
+ 	nf_flow_table_iterate(flowtable, flow_offload_iterate_cleanup, data);
++	flush_delayed_work(&flowtable->gc_work);
  }
  
- module_init(nft_flow_offload_module_init);
+ static int flow_offload_netdev_event(struct notifier_block *this,
 -- 
 2.11.0
 
