@@ -1,255 +1,94 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 6/6] netfilter: on sockopt() acquire sock lock only in the required scope
-Date: Thu,  1 Feb 2018 19:02:17 +0100
-Message-ID: <20180201180217.24356-7-pablo@netfilter.org>
-References: <20180201180217.24356-1-pablo@netfilter.org>
+Subject: [PATCH 0/6] Netfilter fixes for net
+Date: Thu,  1 Feb 2018 19:02:11 +0100
+Message-ID: <20180201180217.24356-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180201180217.24356-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:57818 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752767AbeBASCo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 1 Feb 2018 13:02:44 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id F1BAA392E0A
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Feb 2018 19:02:42 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E1DEBDA729
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Feb 2018 19:02:42 +0100 (CET)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Paolo Abeni <pabeni@redhat.com>
+Hi David,
 
-Syzbot reported several deadlocks in the netfilter area caused by
-rtnl lock and socket lock being acquired with a different order on
-different code paths, leading to backtraces like the following one:
+The following patchset contains Netfilter fixes for your net tree,
+they are:
 
-======================================================
-WARNING: possible circular locking dependency detected
-4.15.0-rc9+ #212 Not tainted
-------------------------------------------------------
-syzkaller041579/3682 is trying to acquire lock:
-  (sk_lock-AF_INET6){+.+.}, at: [<000000008775e4dd>] lock_sock
-include/net/sock.h:1463 [inline]
-  (sk_lock-AF_INET6){+.+.}, at: [<000000008775e4dd>]
-do_ipv6_setsockopt.isra.8+0x3c5/0x39d0 net/ipv6/ipv6_sockglue.c:167
+1) Fix OOM that syskaller triggers with ipt_replace.size = -1 and
+   IPT_SO_SET_REPLACE socket option, from Dmitry Vyukov.
 
-but task is already holding lock:
-  (rtnl_mutex){+.+.}, at: [<000000004342eaa9>] rtnl_lock+0x17/0x20
-net/core/rtnetlink.c:74
+2) Check for too long extension name in xt_request_find_{match|target}
+   that result in out-of-bound reads, from Eric Dumazet.
 
-which lock already depends on the new lock.
+3) Fix memory exhaustion bug in ipset hash:*net* types when adding ranges
+   that look like x.x.x.x-255.255.255.255, from Jozsef Kadlecsik.
 
-the existing dependency chain (in reverse order) is:
+4) Fix pointer leaks to userspace in x_tables, from Dmitry Vyukov.
 
--> #1 (rtnl_mutex){+.+.}:
-        __mutex_lock_common kernel/locking/mutex.c:756 [inline]
-        __mutex_lock+0x16f/0x1a80 kernel/locking/mutex.c:893
-        mutex_lock_nested+0x16/0x20 kernel/locking/mutex.c:908
-        rtnl_lock+0x17/0x20 net/core/rtnetlink.c:74
-        register_netdevice_notifier+0xad/0x860 net/core/dev.c:1607
-        tee_tg_check+0x1a0/0x280 net/netfilter/xt_TEE.c:106
-        xt_check_target+0x22c/0x7d0 net/netfilter/x_tables.c:845
-        check_target net/ipv6/netfilter/ip6_tables.c:538 [inline]
-        find_check_entry.isra.7+0x935/0xcf0
-net/ipv6/netfilter/ip6_tables.c:580
-        translate_table+0xf52/0x1690 net/ipv6/netfilter/ip6_tables.c:749
-        do_replace net/ipv6/netfilter/ip6_tables.c:1165 [inline]
-        do_ip6t_set_ctl+0x370/0x5f0 net/ipv6/netfilter/ip6_tables.c:1691
-        nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
-        nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
-        ipv6_setsockopt+0x115/0x150 net/ipv6/ipv6_sockglue.c:928
-        udpv6_setsockopt+0x45/0x80 net/ipv6/udp.c:1422
-        sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2978
-        SYSC_setsockopt net/socket.c:1849 [inline]
-        SyS_setsockopt+0x189/0x360 net/socket.c:1828
-        entry_SYSCALL_64_fastpath+0x29/0xa0
+5) Insufficient sanity checks in clusterip_tg_check(), also from Dmitry.
 
--> #0 (sk_lock-AF_INET6){+.+.}:
-        lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
-        lock_sock_nested+0xc2/0x110 net/core/sock.c:2780
-        lock_sock include/net/sock.h:1463 [inline]
-        do_ipv6_setsockopt.isra.8+0x3c5/0x39d0 net/ipv6/ipv6_sockglue.c:167
-        ipv6_setsockopt+0xd7/0x150 net/ipv6/ipv6_sockglue.c:922
-        udpv6_setsockopt+0x45/0x80 net/ipv6/udp.c:1422
-        sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2978
-        SYSC_setsockopt net/socket.c:1849 [inline]
-        SyS_setsockopt+0x189/0x360 net/socket.c:1828
-        entry_SYSCALL_64_fastpath+0x29/0xa0
+You can pull these changes from:
 
-other info that might help us debug this:
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-  Possible unsafe locking scenario:
+Thanks!
 
-        CPU0                    CPU1
-        ----                    ----
-   lock(rtnl_mutex);
-                                lock(sk_lock-AF_INET6);
-                                lock(rtnl_mutex);
-   lock(sk_lock-AF_INET6);
+P.S: Another batch is following up soon, there are more fixes cooking on
+     the mailing list.
 
-  *** DEADLOCK ***
+----------------------------------------------------------------
 
-1 lock held by syzkaller041579/3682:
-  #0:  (rtnl_mutex){+.+.}, at: [<000000004342eaa9>] rtnl_lock+0x17/0x20
-net/core/rtnetlink.c:74
+The following changes since commit d1616f07e8f1a4a490d1791316d4a68906b284aa:
 
-The problem, as Florian noted, is that nf_setsockopt() is always
-called with the socket held, even if the lock itself is required only
-for very tight scopes and only for some operation.
+  net: fec: free/restore resource in related probe error pathes (2018-01-05 11:19:11 -0500)
 
-This patch addresses the issues moving the lock_sock() call only
-where really needed, namely in ipv*_getorigdst(), so that nf_setsockopt()
-does not need anymore to acquire both locks.
+are available in the git repository at:
 
-Fixes: 22265a5c3c10 ("netfilter: xt_TEE: resolve oif using netdevice notifiers")
-Reported-by: syzbot+a4c2dc980ac1af699b36@syzkaller.appspotmail.com
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Paolo Abeni <pabeni@redhat.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/ip_sockglue.c                         | 14 ++++----------
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |  6 +++++-
- net/ipv6/ipv6_sockglue.c                       | 17 +++++------------
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c | 18 ++++++++++++------
- 4 files changed, 26 insertions(+), 29 deletions(-)
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
 
-diff --git a/net/ipv4/ip_sockglue.c b/net/ipv4/ip_sockglue.c
-index 60fb1eb7d7d8..c7df4969f80a 100644
---- a/net/ipv4/ip_sockglue.c
-+++ b/net/ipv4/ip_sockglue.c
-@@ -1251,11 +1251,8 @@ int ip_setsockopt(struct sock *sk, int level,
- 	if (err == -ENOPROTOOPT && optname != IP_HDRINCL &&
- 			optname != IP_IPSEC_POLICY &&
- 			optname != IP_XFRM_POLICY &&
--			!ip_mroute_opt(optname)) {
--		lock_sock(sk);
-+			!ip_mroute_opt(optname))
- 		err = nf_setsockopt(sk, PF_INET, optname, optval, optlen);
--		release_sock(sk);
--	}
- #endif
- 	return err;
- }
-@@ -1280,12 +1277,9 @@ int compat_ip_setsockopt(struct sock *sk, int level, int optname,
- 	if (err == -ENOPROTOOPT && optname != IP_HDRINCL &&
- 			optname != IP_IPSEC_POLICY &&
- 			optname != IP_XFRM_POLICY &&
--			!ip_mroute_opt(optname)) {
--		lock_sock(sk);
--		err = compat_nf_setsockopt(sk, PF_INET, optname,
--					   optval, optlen);
--		release_sock(sk);
--	}
-+			!ip_mroute_opt(optname))
-+		err = compat_nf_setsockopt(sk, PF_INET, optname, optval,
-+					   optlen);
- #endif
- 	return err;
- }
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 89af9d88ca21..a5727036a8a8 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -218,15 +218,19 @@ getorigdst(struct sock *sk, int optval, void __user *user, int *len)
- 	struct nf_conntrack_tuple tuple;
- 
- 	memset(&tuple, 0, sizeof(tuple));
-+
-+	lock_sock(sk);
- 	tuple.src.u3.ip = inet->inet_rcv_saddr;
- 	tuple.src.u.tcp.port = inet->inet_sport;
- 	tuple.dst.u3.ip = inet->inet_daddr;
- 	tuple.dst.u.tcp.port = inet->inet_dport;
- 	tuple.src.l3num = PF_INET;
- 	tuple.dst.protonum = sk->sk_protocol;
-+	release_sock(sk);
- 
- 	/* We only do TCP and SCTP at the moment: is there a better way? */
--	if (sk->sk_protocol != IPPROTO_TCP && sk->sk_protocol != IPPROTO_SCTP) {
-+	if (tuple.dst.protonum != IPPROTO_TCP &&
-+	    tuple.dst.protonum != IPPROTO_SCTP) {
- 		pr_debug("SO_ORIGINAL_DST: Not a TCP/SCTP socket\n");
- 		return -ENOPROTOOPT;
- 	}
-diff --git a/net/ipv6/ipv6_sockglue.c b/net/ipv6/ipv6_sockglue.c
-index 2d4680e0376f..4b16c6dede4f 100644
---- a/net/ipv6/ipv6_sockglue.c
-+++ b/net/ipv6/ipv6_sockglue.c
-@@ -923,12 +923,8 @@ int ipv6_setsockopt(struct sock *sk, int level, int optname,
- #ifdef CONFIG_NETFILTER
- 	/* we need to exclude all possible ENOPROTOOPTs except default case */
- 	if (err == -ENOPROTOOPT && optname != IPV6_IPSEC_POLICY &&
--			optname != IPV6_XFRM_POLICY) {
--		lock_sock(sk);
--		err = nf_setsockopt(sk, PF_INET6, optname, optval,
--				optlen);
--		release_sock(sk);
--	}
-+			optname != IPV6_XFRM_POLICY)
-+		err = nf_setsockopt(sk, PF_INET6, optname, optval, optlen);
- #endif
- 	return err;
- }
-@@ -958,12 +954,9 @@ int compat_ipv6_setsockopt(struct sock *sk, int level, int optname,
- #ifdef CONFIG_NETFILTER
- 	/* we need to exclude all possible ENOPROTOOPTs except default case */
- 	if (err == -ENOPROTOOPT && optname != IPV6_IPSEC_POLICY &&
--	    optname != IPV6_XFRM_POLICY) {
--		lock_sock(sk);
--		err = compat_nf_setsockopt(sk, PF_INET6, optname,
--					   optval, optlen);
--		release_sock(sk);
--	}
-+	    optname != IPV6_XFRM_POLICY)
-+		err = compat_nf_setsockopt(sk, PF_INET6, optname, optval,
-+					   optlen);
- #endif
- 	return err;
- }
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index 3b80a38f62b8..5863579800c1 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -226,20 +226,27 @@ static const struct nf_hook_ops ipv6_conntrack_ops[] = {
- static int
- ipv6_getorigdst(struct sock *sk, int optval, void __user *user, int *len)
- {
--	const struct inet_sock *inet = inet_sk(sk);
-+	struct nf_conntrack_tuple tuple = { .src.l3num = NFPROTO_IPV6 };
- 	const struct ipv6_pinfo *inet6 = inet6_sk(sk);
-+	const struct inet_sock *inet = inet_sk(sk);
- 	const struct nf_conntrack_tuple_hash *h;
- 	struct sockaddr_in6 sin6;
--	struct nf_conntrack_tuple tuple = { .src.l3num = NFPROTO_IPV6 };
- 	struct nf_conn *ct;
-+	__be32 flow_label;
-+	int bound_dev_if;
- 
-+	lock_sock(sk);
- 	tuple.src.u3.in6 = sk->sk_v6_rcv_saddr;
- 	tuple.src.u.tcp.port = inet->inet_sport;
- 	tuple.dst.u3.in6 = sk->sk_v6_daddr;
- 	tuple.dst.u.tcp.port = inet->inet_dport;
- 	tuple.dst.protonum = sk->sk_protocol;
-+	bound_dev_if = sk->sk_bound_dev_if;
-+	flow_label = inet6->flow_label;
-+	release_sock(sk);
- 
--	if (sk->sk_protocol != IPPROTO_TCP && sk->sk_protocol != IPPROTO_SCTP)
-+	if (tuple.dst.protonum != IPPROTO_TCP &&
-+	    tuple.dst.protonum != IPPROTO_SCTP)
- 		return -ENOPROTOOPT;
- 
- 	if (*len < 0 || (unsigned int) *len < sizeof(sin6))
-@@ -257,14 +264,13 @@ ipv6_getorigdst(struct sock *sk, int optval, void __user *user, int *len)
- 
- 	sin6.sin6_family = AF_INET6;
- 	sin6.sin6_port = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u.tcp.port;
--	sin6.sin6_flowinfo = inet6->flow_label & IPV6_FLOWINFO_MASK;
-+	sin6.sin6_flowinfo = flow_label & IPV6_FLOWINFO_MASK;
- 	memcpy(&sin6.sin6_addr,
- 		&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u3.in6,
- 					sizeof(sin6.sin6_addr));
- 
- 	nf_ct_put(ct);
--	sin6.sin6_scope_id = ipv6_iface_scope_id(&sin6.sin6_addr,
--						 sk->sk_bound_dev_if);
-+	sin6.sin6_scope_id = ipv6_iface_scope_id(&sin6.sin6_addr, bound_dev_if);
- 	return copy_to_user(user, &sin6, sizeof(sin6)) ? -EFAULT : 0;
- }
- 
--- 
-2.11.0
+for you to fetch changes up to 3f34cfae1238848fd53f25e5c8fd59da57901f4b:
+
+  netfilter: on sockopt() acquire sock lock only in the required scope (2018-01-31 16:37:47 +0100)
+
+----------------------------------------------------------------
+Dmitry Vyukov (3):
+      netfilter: x_tables: fix int overflow in xt_alloc_table_info()
+      netfilter: x_tables: fix pointer leaks to userspace
+      netfilter: ipt_CLUSTERIP: fix out-of-bounds accesses in clusterip_tg_check()
+
+Eric Dumazet (1):
+      netfilter: x_tables: avoid out-of-bounds reads in xt_request_find_{match|target}
+
+Jozsef Kadlecsik (1):
+      netfilter: ipset: Fix wraparound in hash:*net* types
+
+Paolo Abeni (1):
+      netfilter: on sockopt() acquire sock lock only in the required scope
+
+ net/ipv4/ip_sockglue.c                         | 14 +++--------
+ net/ipv4/netfilter/ipt_CLUSTERIP.c             | 16 +++++++++---
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |  6 ++++-
+ net/ipv6/ipv6_sockglue.c                       | 17 ++++---------
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c | 18 ++++++++-----
+ net/netfilter/ipset/ip_set_hash_ipportnet.c    | 26 +++++++++----------
+ net/netfilter/ipset/ip_set_hash_net.c          |  9 +++----
+ net/netfilter/ipset/ip_set_hash_netiface.c     |  9 +++----
+ net/netfilter/ipset/ip_set_hash_netnet.c       | 28 ++++++++++-----------
+ net/netfilter/ipset/ip_set_hash_netport.c      | 19 +++++++-------
+ net/netfilter/ipset/ip_set_hash_netportnet.c   | 35 +++++++++++++-------------
+ net/netfilter/x_tables.c                       |  9 +++++--
+ net/netfilter/xt_IDLETIMER.c                   |  1 +
+ net/netfilter/xt_LED.c                         |  1 +
+ net/netfilter/xt_limit.c                       |  3 +--
+ net/netfilter/xt_nfacct.c                      |  1 +
+ net/netfilter/xt_statistic.c                   |  1 +
+ 17 files changed, 114 insertions(+), 99 deletions(-)
