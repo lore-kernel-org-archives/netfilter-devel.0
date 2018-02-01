@@ -1,78 +1,51 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf 1/2] netfilter: nft_flow_offload: wait for garbage collector to run after cleanup
-Date: Thu,  1 Feb 2018 18:49:00 +0100
-Message-ID: <20180201174901.25100-1-pablo@netfilter.org>
+Subject: [PATCH 1/6] netfilter: x_tables: fix int overflow in xt_alloc_table_info()
+Date: Thu,  1 Feb 2018 19:02:12 +0100
+Message-ID: <20180201180217.24356-2-pablo@netfilter.org>
+References: <20180201180217.24356-1-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52966 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751567AbeBARtP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Feb 2018 12:49:15 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E04F3392E0A
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Feb 2018 18:49:13 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D087BBAAA8
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Feb 2018 18:49:13 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B91A0BAAA2
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Feb 2018 18:49:10 +0100 (CET)
-Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id 86CDE4265A2F
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Feb 2018 18:49:10 +0100 (CET)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180201180217.24356-1-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-If netdevice goes down, then flowtable entries are scheduled to be
-removed. Wait for garbage collector to have a chance to run so it can
-delete them from the hashtable.
+From: Dmitry Vyukov <dvyukov@google.com>
 
-The flush call might sleep, so hold the nfnl mutex from
-nft_flow_table_iterate() instead of rcu read side lock. The use of the
-nfnl mutex is also implicitly fixing races between updates via nfnetlink
-and netdevice event.
+syzkaller triggered OOM kills by passing ipt_replace.size = -1
+to IPT_SO_SET_REPLACE. The root cause is that SMP_ALIGN() in
+xt_alloc_table_info() causes int overflow and the size check passes
+when it should not. SMP_ALIGN() is no longer needed leftover.
 
+Remove SMP_ALIGN() call in xt_alloc_table_info().
+
+Reported-by: syzbot+4396883fa8c4f64e0175@syzkaller.appspotmail.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c    | 8 ++++----
- net/netfilter/nft_flow_offload.c | 1 +
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ net/netfilter/x_tables.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 0791813a1e7d..07dd1fac78a8 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5006,13 +5006,13 @@ void nft_flow_table_iterate(struct net *net,
- 	struct nft_flowtable *flowtable;
- 	const struct nft_table *table;
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 55802e97f906..e02a21549c99 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -39,7 +39,6 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+ MODULE_DESCRIPTION("{ip,ip6,arp,eb}_tables backend module");
  
--	rcu_read_lock();
--	list_for_each_entry_rcu(table, &net->nft.tables, list) {
--		list_for_each_entry_rcu(flowtable, &table->flowtables, list) {
-+	nfnl_lock(NFNL_SUBSYS_NFTABLES);
-+	list_for_each_entry(table, &net->nft.tables, list) {
-+		list_for_each_entry(flowtable, &table->flowtables, list) {
- 			iter(&flowtable->data, data);
- 		}
- 	}
--	rcu_read_unlock();
-+	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
- }
- EXPORT_SYMBOL_GPL(nft_flow_table_iterate);
+-#define SMP_ALIGN(x) (((x) + SMP_CACHE_BYTES-1) & ~(SMP_CACHE_BYTES-1))
+ #define XT_PCPU_BLOCK_SIZE 4096
  
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index 4503b8dcf9c0..1739ff8ca21f 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -208,6 +208,7 @@ static void nft_flow_offload_iterate_cleanup(struct nf_flowtable *flowtable,
- 					     void *data)
- {
- 	nf_flow_table_iterate(flowtable, flow_offload_iterate_cleanup, data);
-+	flush_delayed_work(&flowtable->gc_work);
- }
+ struct compat_delta {
+@@ -1000,7 +999,7 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
+ 		return NULL;
  
- static int flow_offload_netdev_event(struct notifier_block *this,
+ 	/* Pedantry: prevent them from hitting BUG() in vmalloc.c --RR */
+-	if ((SMP_ALIGN(size) >> PAGE_SHIFT) + 2 > totalram_pages)
++	if ((size >> PAGE_SHIFT) + 2 > totalram_pages)
+ 		return NULL;
+ 
+ 	info = kvmalloc(sz, GFP_KERNEL);
 -- 
 2.11.0
-
