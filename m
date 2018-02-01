@@ -1,69 +1,99 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/6] netfilter: x_tables: avoid out-of-bounds reads in xt_request_find_{match|target}
-Date: Thu,  1 Feb 2018 19:02:13 +0100
-Message-ID: <20180201180217.24356-3-pablo@netfilter.org>
+Subject: [PATCH 4/6] netfilter: x_tables: fix pointer leaks to userspace
+Date: Thu,  1 Feb 2018 19:02:15 +0100
+Message-ID: <20180201180217.24356-5-pablo@netfilter.org>
 References: <20180201180217.24356-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57834 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753177AbeBASCp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Feb 2018 13:02:45 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CC1E0392E18
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Feb 2018 19:02:43 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BCC40BAC2C
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Feb 2018 19:02:43 +0100 (CET)
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180201180217.24356-1-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Eric Dumazet <edumazet@google.com>
+From: Dmitry Vyukov <dvyukov@google.com>
 
-It looks like syzbot found its way into netfilter territory.
+Several netfilter matches and targets put kernel pointers into
+info objects, but don't set usersize in descriptors.
+This leads to kernel pointer leaks if a match/target is set
+and then read back to userspace.
 
-Issue here is that @name comes from user space and might
-not be null terminated.
+Properly set usersize for these matches/targets.
 
-Out-of-bound reads happen, KASAN is not happy.
+Found with manual code inspection.
 
-v2 added similar fix for xt_request_find_target(),
-as Florian advised.
-
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Reported-by: syzbot <syzkaller@googlegroups.com>
-Acked-by: Florian Westphal <fw@strlen.de>
+Fixes: ec2318904965 ("xtables: extend matches and targets with .usersize")
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/x_tables.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ net/netfilter/xt_IDLETIMER.c | 1 +
+ net/netfilter/xt_LED.c       | 1 +
+ net/netfilter/xt_limit.c     | 3 +--
+ net/netfilter/xt_nfacct.c    | 1 +
+ net/netfilter/xt_statistic.c | 1 +
+ 5 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index e02a21549c99..d7070d18db20 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -209,6 +209,9 @@ xt_request_find_match(uint8_t nfproto, const char *name, uint8_t revision)
- {
- 	struct xt_match *match;
+diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
+index ee3421ad108d..6c2482b709b1 100644
+--- a/net/netfilter/xt_IDLETIMER.c
++++ b/net/netfilter/xt_IDLETIMER.c
+@@ -252,6 +252,7 @@ static struct xt_target idletimer_tg __read_mostly = {
+ 	.family		= NFPROTO_UNSPEC,
+ 	.target		= idletimer_tg_target,
+ 	.targetsize     = sizeof(struct idletimer_tg_info),
++	.usersize	= offsetof(struct idletimer_tg_info, timer),
+ 	.checkentry	= idletimer_tg_checkentry,
+ 	.destroy        = idletimer_tg_destroy,
+ 	.me		= THIS_MODULE,
+diff --git a/net/netfilter/xt_LED.c b/net/netfilter/xt_LED.c
+index 0971634e5444..1dcad893df78 100644
+--- a/net/netfilter/xt_LED.c
++++ b/net/netfilter/xt_LED.c
+@@ -198,6 +198,7 @@ static struct xt_target led_tg_reg __read_mostly = {
+ 	.family		= NFPROTO_UNSPEC,
+ 	.target		= led_tg,
+ 	.targetsize	= sizeof(struct xt_led_info),
++	.usersize	= offsetof(struct xt_led_info, internal_data),
+ 	.checkentry	= led_tg_check,
+ 	.destroy	= led_tg_destroy,
+ 	.me		= THIS_MODULE,
+diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
+index d27b5f1ea619..61403b77361c 100644
+--- a/net/netfilter/xt_limit.c
++++ b/net/netfilter/xt_limit.c
+@@ -193,9 +193,8 @@ static struct xt_match limit_mt_reg __read_mostly = {
+ 	.compatsize       = sizeof(struct compat_xt_rateinfo),
+ 	.compat_from_user = limit_mt_compat_from_user,
+ 	.compat_to_user   = limit_mt_compat_to_user,
+-#else
+-	.usersize         = offsetof(struct xt_rateinfo, prev),
+ #endif
++	.usersize         = offsetof(struct xt_rateinfo, prev),
+ 	.me               = THIS_MODULE,
+ };
  
-+	if (strnlen(name, XT_EXTENSION_MAXNAMELEN) == XT_EXTENSION_MAXNAMELEN)
-+		return ERR_PTR(-EINVAL);
-+
- 	match = xt_find_match(nfproto, name, revision);
- 	if (IS_ERR(match)) {
- 		request_module("%st_%s", xt_prefix[nfproto], name);
-@@ -251,6 +254,9 @@ struct xt_target *xt_request_find_target(u8 af, const char *name, u8 revision)
- {
- 	struct xt_target *target;
+diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
+index cc0518fe598e..6f92d25590a8 100644
+--- a/net/netfilter/xt_nfacct.c
++++ b/net/netfilter/xt_nfacct.c
+@@ -62,6 +62,7 @@ static struct xt_match nfacct_mt_reg __read_mostly = {
+ 	.match      = nfacct_mt,
+ 	.destroy    = nfacct_mt_destroy,
+ 	.matchsize  = sizeof(struct xt_nfacct_match_info),
++	.usersize   = offsetof(struct xt_nfacct_match_info, nfacct),
+ 	.me         = THIS_MODULE,
+ };
  
-+	if (strnlen(name, XT_EXTENSION_MAXNAMELEN) == XT_EXTENSION_MAXNAMELEN)
-+		return ERR_PTR(-EINVAL);
-+
- 	target = xt_find_target(af, name, revision);
- 	if (IS_ERR(target)) {
- 		request_module("%st_%s", xt_prefix[af], name);
+diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statistic.c
+index 11de55e7a868..8710fdba2ae2 100644
+--- a/net/netfilter/xt_statistic.c
++++ b/net/netfilter/xt_statistic.c
+@@ -84,6 +84,7 @@ static struct xt_match xt_statistic_mt_reg __read_mostly = {
+ 	.checkentry = statistic_mt_check,
+ 	.destroy    = statistic_mt_destroy,
+ 	.matchsize  = sizeof(struct xt_statistic_info),
++	.usersize   = offsetof(struct xt_statistic_info, master),
+ 	.me         = THIS_MODULE,
+ };
+ 
 -- 
 2.11.0
-
