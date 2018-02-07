@@ -1,60 +1,51 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 01/11] netfilter: x_tables: make allocation less aggressive
-Date: Wed,  7 Feb 2018 18:42:19 +0100
-Message-ID: <20180207174229.4098-2-pablo@netfilter.org>
+Subject: [PATCH 04/11] netfilter: xt_cgroup: initialize info->priv in cgroup_mt_check_v1()
+Date: Wed,  7 Feb 2018 18:42:22 +0100
+Message-ID: <20180207174229.4098-5-pablo@netfilter.org>
 References: <20180207174229.4098-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:46994 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754220AbeBGRml (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 7 Feb 2018 12:42:41 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 9C4003066B1
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2018 18:42:39 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8A6C6DA7F7
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2018 18:42:39 +0100 (CET)
 In-Reply-To: <20180207174229.4098-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Michal Hocko <mhocko@kernel.org>
+From: Cong Wang <xiyou.wangcong@gmail.com>
 
-syzbot has noticed that xt_alloc_table_info can allocate a lot of memory.
-This is an admin only interface but an admin in a namespace is sufficient
-as well.  eacd86ca3b03 ("net/netfilter/x_tables.c: use kvmalloc() in
-xt_alloc_table_info()") has changed the opencoded kmalloc->vmalloc
-fallback into kvmalloc.  It has dropped __GFP_NORETRY on the way because
-vmalloc has simply never fully supported __GFP_NORETRY semantic.  This is
-still the case because e.g.  page tables backing the vmalloc area are
-hardcoded GFP_KERNEL.
+xt_cgroup_info_v1->priv is an internal pointer only used for kernel,
+we should not trust what user-space provides.
 
-Revert back to __GFP_NORETRY as a poors man defence against excessively
-large allocation request here.  We will not rule out the OOM killer
-completely but __GFP_NORETRY should at least stop the large request in
-most cases.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Fixes: eacd86ca3b03 ("net/netfilter/x_tables.c: use kvmalloc() in xt_alloc_tableLink: http://lkml.kernel.org/r/20180130140104.GE21609@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Florian Westphal <fw@strlen.de>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David S. Miller <davem@davemloft.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reported-by: <syzbot+4fbcfcc0d2e6592bd641@syzkaller.appspotmail.com>
+Fixes: c38c4597e4bf ("netfilter: implement xt_cgroup cgroup2 path match")
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/x_tables.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ net/netfilter/xt_cgroup.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 8fa4d37141a7..2f685ee1f9c8 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1008,7 +1008,12 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
- 	if ((size >> PAGE_SHIFT) + 2 > totalram_pages)
- 		return NULL;
+diff --git a/net/netfilter/xt_cgroup.c b/net/netfilter/xt_cgroup.c
+index 1db1ce59079f..891f4e7e8ea7 100644
+--- a/net/netfilter/xt_cgroup.c
++++ b/net/netfilter/xt_cgroup.c
+@@ -52,6 +52,7 @@ static int cgroup_mt_check_v1(const struct xt_mtchk_param *par)
+ 		return -EINVAL;
+ 	}
  
--	info = kvmalloc(sz, GFP_KERNEL);
-+	/* __GFP_NORETRY is not fully supported by kvmalloc but it should
-+	 * work reasonably well if sz is too large and bail out rather
-+	 * than shoot all processes down before realizing there is nothing
-+	 * more to reclaim.
-+	 */
-+	info = kvmalloc(sz, GFP_KERNEL | __GFP_NORETRY);
- 	if (!info)
- 		return NULL;
- 
++	info->priv = NULL;
+ 	if (info->has_path) {
+ 		cgrp = cgroup_get_from_path(info->path);
+ 		if (IS_ERR(cgrp)) {
 -- 
 2.11.0
+
