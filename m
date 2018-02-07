@@ -1,103 +1,125 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 03/11] netfilter: flowtable infrastructure depends on NETFILTER_INGRESS
-Date: Wed,  7 Feb 2018 18:42:21 +0100
-Message-ID: <20180207174229.4098-4-pablo@netfilter.org>
+Subject: [PATCH 11/11] netfilter: nf_flow_offload: fix use-after-free and a resource leak
+Date: Wed,  7 Feb 2018 18:42:29 +0100
+Message-ID: <20180207174229.4098-12-pablo@netfilter.org>
 References: <20180207174229.4098-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46984 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47000 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754151AbeBGRmk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Feb 2018 12:42:40 -0500
+        id S1754141AbeBGRmr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 7 Feb 2018 12:42:47 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D66983066AE
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2018 18:42:38 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 8B84D3066BA
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2018 18:42:45 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C7E2ADA78B
-        for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2018 18:42:38 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7831BDA2CF
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2018 18:42:45 +0100 (CET)
 In-Reply-To: <20180207174229.4098-1-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-config NF_FLOW_TABLE depends on NETFILTER_INGRESS. If users forget to
-enable this toggle, flowtable registration fails with EOPNOTSUPP.
+From: Felix Fietkau <nbd@nbd.name>
 
-Moreover, turn 'select NF_FLOW_TABLE' in every flowtable family flavour
-into dependency instead, otherwise this new dependency on
-NETFILTER_INGRESS causes a warning. This also allows us to remove the
-explicit dependency between family flowtables <-> NF_TABLES and
-NF_CONNTRACK, given they depend on the NF_FLOW_TABLE core that already
-expresses the general dependencies for this new infrastructure.
+flow_offload_del frees the flow, so all associated resource must be
+freed before.
 
-Moreover, NF_FLOW_TABLE_INET depends on NF_FLOW_TABLE_IPV4 and
-NF_FLOWTABLE_IPV6, which already depends on NF_FLOW_TABLE. So we can get
-rid of direct dependency with NF_FLOW_TABLE.
+Since the ct entry in struct flow_offload_entry was allocated by
+flow_offload_alloc, it should be freed by flow_offload_free to take care
+of the error handling path when flow_offload_add fails.
 
-In general, let's avoid 'select', it just makes things more complicated.
+While at it, make flow_offload_del static, since it should never be
+called directly, only from the gc step
 
-Reported-by: John Crispin <john@phrozen.org>
+Signed-off-by: Felix Fietkau <nbd@nbd.name>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/Kconfig | 3 +--
- net/ipv6/netfilter/Kconfig | 3 +--
- net/netfilter/Kconfig      | 8 +++++---
- 3 files changed, 7 insertions(+), 7 deletions(-)
+ include/net/netfilter/nf_flow_table.h |  1 -
+ net/netfilter/nf_flow_table.c         | 27 +++++++--------------------
+ 2 files changed, 7 insertions(+), 21 deletions(-)
 
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 5f52236780b4..dfe6fa4ea554 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -80,8 +80,7 @@ endif # NF_TABLES
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 020ae903066f..833752dd0c58 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -90,7 +90,6 @@ struct flow_offload *flow_offload_alloc(struct nf_conn *ct,
+ void flow_offload_free(struct flow_offload *flow);
  
- config NF_FLOW_TABLE_IPV4
- 	tristate "Netfilter flow table IPv4 module"
--	depends on NF_CONNTRACK && NF_TABLES
--	select NF_FLOW_TABLE
-+	depends on NF_FLOW_TABLE
- 	help
- 	  This option adds the flow table IPv4 support.
+ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow);
+-void flow_offload_del(struct nf_flowtable *flow_table, struct flow_offload *flow);
+ struct flow_offload_tuple_rhash *flow_offload_lookup(struct nf_flowtable *flow_table,
+ 						     struct flow_offload_tuple *tuple);
+ int nf_flow_table_iterate(struct nf_flowtable *flow_table,
+diff --git a/net/netfilter/nf_flow_table.c b/net/netfilter/nf_flow_table.c
+index c17f1af42daa..ec410cae9307 100644
+--- a/net/netfilter/nf_flow_table.c
++++ b/net/netfilter/nf_flow_table.c
+@@ -125,7 +125,9 @@ void flow_offload_free(struct flow_offload *flow)
+ 	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst_cache);
+ 	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_cache);
+ 	e = container_of(flow, struct flow_offload_entry, flow);
+-	kfree(e);
++	nf_ct_delete(e->ct, 0, 0);
++	nf_ct_put(e->ct);
++	kfree_rcu(e, rcu_head);
+ }
+ EXPORT_SYMBOL_GPL(flow_offload_free);
  
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index 4a634b7a2c80..d395d1590699 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -73,8 +73,7 @@ endif # NF_TABLES
+@@ -149,11 +151,9 @@ int flow_offload_add(struct nf_flowtable *flow_table, struct flow_offload *flow)
+ }
+ EXPORT_SYMBOL_GPL(flow_offload_add);
  
- config NF_FLOW_TABLE_IPV6
- 	tristate "Netfilter flow table IPv6 module"
--	depends on NF_CONNTRACK && NF_TABLES
--	select NF_FLOW_TABLE
-+	depends on NF_FLOW_TABLE
- 	help
- 	  This option adds the flow table IPv6 support.
+-void flow_offload_del(struct nf_flowtable *flow_table,
+-		      struct flow_offload *flow)
++static void flow_offload_del(struct nf_flowtable *flow_table,
++			     struct flow_offload *flow)
+ {
+-	struct flow_offload_entry *e;
+-
+ 	rhashtable_remove_fast(&flow_table->rhashtable,
+ 			       &flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].node,
+ 			       *flow_table->type->params);
+@@ -161,10 +161,8 @@ void flow_offload_del(struct nf_flowtable *flow_table,
+ 			       &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
+ 			       *flow_table->type->params);
  
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 9019fa98003d..d3220b43c832 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -666,8 +666,8 @@ endif # NF_TABLES
+-	e = container_of(flow, struct flow_offload_entry, flow);
+-	kfree_rcu(e, rcu_head);
++	flow_offload_free(flow);
+ }
+-EXPORT_SYMBOL_GPL(flow_offload_del);
  
- config NF_FLOW_TABLE_INET
- 	tristate "Netfilter flow table mixed IPv4/IPv6 module"
--	depends on NF_FLOW_TABLE_IPV4 && NF_FLOW_TABLE_IPV6
--	select NF_FLOW_TABLE
-+	depends on NF_FLOW_TABLE_IPV4
-+	depends on NF_FLOW_TABLE_IPV6
- 	help
-           This option adds the flow table mixed IPv4/IPv6 support.
+ struct flow_offload_tuple_rhash *
+ flow_offload_lookup(struct nf_flowtable *flow_table,
+@@ -175,15 +173,6 @@ flow_offload_lookup(struct nf_flowtable *flow_table,
+ }
+ EXPORT_SYMBOL_GPL(flow_offload_lookup);
  
-@@ -675,7 +675,9 @@ config NF_FLOW_TABLE_INET
+-static void nf_flow_release_ct(const struct flow_offload *flow)
+-{
+-	struct flow_offload_entry *e;
+-
+-	e = container_of(flow, struct flow_offload_entry, flow);
+-	nf_ct_delete(e->ct, 0, 0);
+-	nf_ct_put(e->ct);
+-}
+-
+ int nf_flow_table_iterate(struct nf_flowtable *flow_table,
+ 			  void (*iter)(struct flow_offload *flow, void *data),
+ 			  void *data)
+@@ -259,10 +248,8 @@ static int nf_flow_offload_gc_step(struct nf_flowtable *flow_table)
+ 		flow = container_of(tuplehash, struct flow_offload, tuplehash[0]);
  
- config NF_FLOW_TABLE
- 	tristate "Netfilter flow table module"
--	depends on NF_CONNTRACK && NF_TABLES
-+	depends on NETFILTER_INGRESS
-+	depends on NF_CONNTRACK
-+	depends on NF_TABLES
- 	help
- 	  This option adds the flow table core infrastructure.
- 
+ 		if (nf_flow_has_expired(flow) ||
+-		    nf_flow_is_dying(flow)) {
++		    nf_flow_is_dying(flow))
+ 			flow_offload_del(flow_table, flow);
+-			nf_flow_release_ct(flow);
+-		}
+ 	}
+ out:
+ 	rhashtable_walk_stop(&hti);
 -- 
 2.11.0
 
