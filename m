@@ -1,52 +1,146 @@
-From: Tugrul Erdogan <h.tugrul.erdogan@gmail.com>
-Subject: Re: CPU load on queued_spin_lock_slowpath
-Date: Wed, 7 Feb 2018 19:36:27 +0300
-Message-ID: <CA+whn7RKgKBYCtNXa+1WxJAXSKKRp_m-2D1_mbbwouYGJGzKtQ@mail.gmail.com>
-References: <CA+whn7Qkg9ZJ-owuukfoA4+RHP26mBQG0oGoBCCtwL9oAs6MxQ@mail.gmail.com>
- <20180206121021.hn4nx64yqof7wpwt@salvia> <CALOK-Of3KWseVUACGt2NDY_+Z6xkg4QLJokor7nesJav0Fgw9g@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf 7/7] netfilter: x_tables: use pr ratelimiting in all
+ remaining spots
+Date: Wed, 7 Feb 2018 18:00:52 +0100
+Message-ID: <20180207170052.x6n6kod2zld7wuqd@salvia>
+References: <20180207134828.18691-1-fw@strlen.de>
+ <20180207134828.18691-8-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Fran Fitzpatrick <francis.x.fitzpatrick@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qk0-f180.google.com ([209.85.220.180]:39041 "EHLO
-        mail-qk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754166AbeBGQg2 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Feb 2018 11:36:28 -0500
-Received: by mail-qk0-f180.google.com with SMTP id d72so1855916qkc.6
-        for <netfilter-devel@vger.kernel.org>; Wed, 07 Feb 2018 08:36:28 -0800 (PST)
-In-Reply-To: <CALOK-Of3KWseVUACGt2NDY_+Z6xkg4QLJokor7nesJav0Fgw9g@mail.gmail.com>
+Received: from mail.us.es ([193.147.175.20]:58700 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754377AbeBGRBC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 7 Feb 2018 12:01:02 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 0CC6E3066AB
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2018 18:00:59 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E52B8DA78D
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2018 18:00:58 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20180207134828.18691-8-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thanks for your advices. I will try to create the erroneous situation
-by triggering icmp error for existing connection and try non-tcp patch
-and kernel upgrade respectively. I will report the results at mail
-list.
+Hi Florian,
 
-> On Tue, Feb 6, 2018, 7:10 AM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->>
->> On Tue, Feb 06, 2018 at 10:56:20AM +0300, Tugrul Erdogan wrote:
->> > Hi All,
->> >
->> > My server had a locking problem with the logs located below. I can not
->> > reproduce this erroneous situation again but I think that there is an
->> > active vulnerability at my server because of this error.
->> >
->> > My server's kernel version is v4.6.4.
->>
->> Probably this helps you?
->>
->> commit 49f817d793d1bcc11d721881aac037b996feef5c
->> Author: Lin Zhang <xiaolou4617@gmail.com>
->> Date:   Fri Oct 6 00:44:03 2017 +0800
->>
->>     netfilter: SYNPROXY: skip non-tcp packet in {ipv4, ipv6}_synproxy_hook
->>
->> 4.6.4 is rather old, BTW.
->> --
->> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for looking into this, comments below.
+
+On Wed, Feb 07, 2018 at 02:48:28PM +0100, Florian Westphal wrote:
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  net/bridge/netfilter/ebt_among.c | 10 ++++----
+>  net/bridge/netfilter/ebt_limit.c |  4 ++--
+>  net/ipv4/netfilter/ipt_ECN.c     |  2 +-
+>  net/ipv4/netfilter/ipt_REJECT.c  |  4 ++--
+>  net/ipv6/netfilter/ip6t_REJECT.c |  4 ++--
+>  net/ipv6/netfilter/ip6t_srh.c    |  6 +++--
+>  net/netfilter/xt_AUDIT.c         |  4 ++--
+>  net/netfilter/xt_CHECKSUM.c      |  5 ++--
+>  net/netfilter/xt_CONNSECMARK.c   |  6 ++---
+>  net/netfilter/xt_DSCP.c          |  2 +-
+>  net/netfilter/xt_LED.c           |  2 +-
+>  net/netfilter/xt_NFQUEUE.c       |  6 ++---
+>  net/netfilter/xt_SECMARK.c       | 12 ++++++----
+>  net/netfilter/xt_TCPMSS.c        | 10 ++++----
+>  net/netfilter/xt_TPROXY.c        |  6 ++---
+>  net/netfilter/xt_cgroup.c        |  8 ++++---
+>  net/netfilter/xt_cluster.c       |  8 +++----
+>  net/netfilter/xt_connbytes.c     |  4 ++--
+>  net/netfilter/xt_connlabel.c     |  4 ++--
+>  net/netfilter/xt_connmark.c      |  8 +++----
+>  net/netfilter/xt_conntrack.c     |  4 ++--
+>  net/netfilter/xt_dscp.c          |  2 +-
+>  net/netfilter/xt_ecn.c           |  4 ++--
+>  net/netfilter/xt_hashlimit.c     | 24 ++++++++++---------
+>  net/netfilter/xt_helper.c        |  4 ++--
+>  net/netfilter/xt_l2tp.c          | 20 +++++++++-------
+>  net/netfilter/xt_limit.c         |  4 ++--
+>  net/netfilter/xt_nat.c           |  5 ++--
+>  net/netfilter/xt_nfacct.c        |  6 +++--
+>  net/netfilter/xt_physdev.c       |  4 +---
+>  net/netfilter/xt_recent.c        | 10 ++++----
+>  net/netfilter/xt_set.c           | 50 ++++++++++++++++++++--------------------
+>  net/netfilter/xt_state.c         |  4 ++--
+>  net/netfilter/xt_time.c          |  3 +--
+>  34 files changed, 132 insertions(+), 127 deletions(-)
+> 
+> diff --git a/net/bridge/netfilter/ebt_among.c b/net/bridge/netfilter/ebt_among.c
+> index 279527f8b1fe..12d850a3ea68 100644
+> --- a/net/bridge/netfilter/ebt_among.c
+> +++ b/net/bridge/netfilter/ebt_among.c
+> @@ -187,17 +187,17 @@ static int ebt_among_mt_check(const struct xt_mtchk_param *par)
+>  	expected_length += ebt_mac_wormhash_size(wh_src);
+>  
+>  	if (em->match_size != EBT_ALIGN(expected_length)) {
+> -		pr_info("wrong size: %d against expected %d, rounded to %zd\n",
+> -			em->match_size, expected_length,
+> -			EBT_ALIGN(expected_length));
+> +		pr_info_ratelimited("wrong size: %d against expected %d, rounded to %zd\n",
+
+Shouldn't all these be pr_err_ratelimited instead?
+
+Probably this is a good chance to homogeneize all error reporting in
+xtables.
+
+> +				    em->match_size, expected_length,
+> +				    EBT_ALIGN(expected_length));
+>  		return -EINVAL;
+>  	}
+>  	if (wh_dst && (err = ebt_mac_wormhash_check_integrity(wh_dst))) {
+> -		pr_info("dst integrity fail: %x\n", -err);
+> +		pr_info_ratelimited("dst integrity fail: %x\n", -err);
+>  		return -EINVAL;
+>  	}
+>  	if (wh_src && (err = ebt_mac_wormhash_check_integrity(wh_src))) {
+> -		pr_info("src integrity fail: %x\n", -err);
+> +		pr_info_ratelimited("src integrity fail: %x\n", -err);
+>  		return -EINVAL;
+>  	}
+>  	return 0;
+[...]
+> diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
+> index a360b99a958a..9fac4710f7cf 100644
+> --- a/net/netfilter/xt_NFQUEUE.c
+> +++ b/net/netfilter/xt_NFQUEUE.c
+> @@ -67,13 +67,13 @@ static int nfqueue_tg_check(const struct xt_tgchk_param *par)
+>  	init_hashrandom(&jhash_initval);
+>  
+>  	if (info->queues_total == 0) {
+> -		pr_err("NFQUEUE: number of total queues is 0\n");
+                        ^^^^^^^^
+
+We can probably add this all over the place in the same go?
+
+        #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+
+> +		pr_err_ratelimited("NFQUEUE: number of total queues is 0\n");
+>  		return -EINVAL;
+>  	}
+>  	maxid = info->queues_total - 1 + info->queuenum;
+>  	if (maxid > 0xffff) {
+> -		pr_err("NFQUEUE: number of queues (%u) out of range (got %u)\n",
+> -		       info->queues_total, maxid);
+> +		pr_err_ratelimited("NFQUEUE: number of queues (%u) out of range (got %u)\n",
+> +				   info->queues_total, maxid);
+>  		return -ERANGE;
+>  	}
+>  	if (par->target->revision == 2 && info->flags > 1)
+[...]
+> diff --git a/net/netfilter/xt_set.c b/net/netfilter/xt_set.c
+> index 16b6b11ee83f..ba94286f25aa 100644
+> --- a/net/netfilter/xt_set.c
+> +++ b/net/netfilter/xt_set.c
+> @@ -92,12 +92,12 @@ set_match_v0_checkentry(const struct xt_mtchk_param *par)
+>  	index = ip_set_nfnl_get_byindex(par->net, info->match_set.index);
+>  
+>  	if (index == IPSET_INVALID_ID) {
+> -		pr_warn("Cannot find set identified by id %u to match\n",
+> -			info->match_set.index);
+> +		pr_warn_ratelimited("Cannot find set identified by id %u to match\n",
+> +				    info->match_set.index);
+
+Use pr_err_ratelimited instead?
