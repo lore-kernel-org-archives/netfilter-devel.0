@@ -1,99 +1,125 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 07/11] netfilter: xt_RATEEST: acquire xt_rateest_mutex for hash insert
-Date: Wed,  7 Feb 2018 18:42:25 +0100
-Message-ID: <20180207174229.4098-8-pablo@netfilter.org>
-References: <20180207174229.4098-1-pablo@netfilter.org>
+Subject: [PATCH 00/11] Netfilter fixes for net
+Date: Wed,  7 Feb 2018 18:42:18 +0100
+Message-ID: <20180207174229.4098-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180207174229.4098-1-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:46964 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754141AbeBGRmg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 7 Feb 2018 12:42:36 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 3CA113066A2
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2018 18:42:35 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2A293DA2CC
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2018 18:42:35 +0100 (CET)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Cong Wang <xiyou.wangcong@gmail.com>
+Hi David,
 
-rateest_hash is supposed to be protected by xt_rateest_mutex,
-and, as suggested by Eric, lookup and insert should be atomic,
-so we should acquire the xt_rateest_mutex once for both.
+The following patchset contains Netfilter fixes for you net tree, they
+are:
 
-So introduce a non-locking helper for internal use and keep the
-locking one for external.
+1) Restore __GFP_NORETRY in xt_table allocations to mitigate effects of
+   large memory allocation requests, from Michal Hocko.
 
-Reported-by: <syzbot+5cb189720978275e4c75@syzkaller.appspotmail.com>
-Fixes: 5859034d7eb8 ("[NETFILTER]: x_tables: add RATEEST target")
-Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
-Reviewed-by: Florian Westphal <fw@strlen.de>
-Reviewed-by: Eric Dumazet <edumazet@google.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/xt_RATEEST.c | 22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+2) Release IPv6 fragment queue in case of error in fragmentation header,
+   this is a follow up to amend patch 83f1999caeb1, from Subash Abhinov
+   Kasiviswanathan.
 
-diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
-index 498b54fd04d7..141c295191f6 100644
---- a/net/netfilter/xt_RATEEST.c
-+++ b/net/netfilter/xt_RATEEST.c
-@@ -39,23 +39,31 @@ static void xt_rateest_hash_insert(struct xt_rateest *est)
- 	hlist_add_head(&est->list, &rateest_hash[h]);
- }
- 
--struct xt_rateest *xt_rateest_lookup(const char *name)
-+static struct xt_rateest *__xt_rateest_lookup(const char *name)
- {
- 	struct xt_rateest *est;
- 	unsigned int h;
- 
- 	h = xt_rateest_hash(name);
--	mutex_lock(&xt_rateest_mutex);
- 	hlist_for_each_entry(est, &rateest_hash[h], list) {
- 		if (strcmp(est->name, name) == 0) {
- 			est->refcnt++;
--			mutex_unlock(&xt_rateest_mutex);
- 			return est;
- 		}
- 	}
--	mutex_unlock(&xt_rateest_mutex);
-+
- 	return NULL;
- }
-+
-+struct xt_rateest *xt_rateest_lookup(const char *name)
-+{
-+	struct xt_rateest *est;
-+
-+	mutex_lock(&xt_rateest_mutex);
-+	est = __xt_rateest_lookup(name);
-+	mutex_unlock(&xt_rateest_mutex);
-+	return est;
-+}
- EXPORT_SYMBOL_GPL(xt_rateest_lookup);
- 
- void xt_rateest_put(struct xt_rateest *est)
-@@ -100,8 +108,10 @@ static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
- 
- 	net_get_random_once(&jhash_rnd, sizeof(jhash_rnd));
- 
--	est = xt_rateest_lookup(info->name);
-+	mutex_lock(&xt_rateest_mutex);
-+	est = __xt_rateest_lookup(info->name);
- 	if (est) {
-+		mutex_unlock(&xt_rateest_mutex);
- 		/*
- 		 * If estimator parameters are specified, they must match the
- 		 * existing estimator.
-@@ -139,11 +149,13 @@ static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
- 
- 	info->est = est;
- 	xt_rateest_hash_insert(est);
-+	mutex_unlock(&xt_rateest_mutex);
- 	return 0;
- 
- err2:
- 	kfree(est);
- err1:
-+	mutex_unlock(&xt_rateest_mutex);
- 	return ret;
- }
- 
--- 
-2.11.0
+3) Flowtable infrastructure depends on NETFILTER_INGRESS as it registers
+   a hook for each flowtable, reported by John Crispin.
+
+4) Missing initialization of info->priv in xt_cgroup version 1, from
+   Cong Wang.
+
+5) Give a chance to garbage collector to run after scheduling flowtable
+   cleanup.
+
+6) Releasing flowtable content on nft_flow_offload module removal is
+   not required at all, there is not dependencies between this module
+   and flowtables, remove it.
+
+7) Fix missing xt_rateest_mutex grabbing for hash insertions, also from
+   Cong Wang.
+
+8) Move nf_flow_table_cleanup() routine to flowtable core, this patch is
+   a dependency for the next patch in this list.
+
+9) Flowtable resources are not properly released on removal from the
+   control plane. Fix this resource leak by scheduling removal of all
+   entries and explicit call to the garbage collector.
+
+10) nf_ct_nat_offset() declaration is dead code, this function prototype
+    is not used anywhere, remove it. From Taehee Yoo.
+
+11) Fix another flowtable resource leak on entry insertion failures,
+    this patch also fixes a possible use-after-free. Patch from Felix
+    Fietkau.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks!
+
+P.S: Again more fixes cooking on netfilter-devel@vger.kernel.org, so
+     another round is likely coming up soon.
+
+----------------------------------------------------------------
+
+The following changes since commit 743ffffefac1c670c6618742c923f6275d819604:
+
+  net: pxa168_eth: add netconsole support (2018-02-01 14:58:37 -0500)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to 0ff90b6c20340e57616a51ae1a1bf18156d6638a:
+
+  netfilter: nf_flow_offload: fix use-after-free and a resource leak (2018-02-07 11:55:52 +0100)
+
+----------------------------------------------------------------
+Cong Wang (2):
+      netfilter: xt_cgroup: initialize info->priv in cgroup_mt_check_v1()
+      netfilter: xt_RATEEST: acquire xt_rateest_mutex for hash insert
+
+Felix Fietkau (1):
+      netfilter: nf_flow_offload: fix use-after-free and a resource leak
+
+Michal Hocko (1):
+      netfilter: x_tables: make allocation less aggressive
+
+Pablo Neira Ayuso (5):
+      netfilter: flowtable infrastructure depends on NETFILTER_INGRESS
+      netfilter: nft_flow_offload: wait for garbage collector to run after cleanup
+      netfilter: nft_flow_offload: no need to flush entries on module removal
+      netfilter: nft_flow_offload: move flowtable cleanup routines to nf_flow_table
+      netfilter: nf_tables: fix flowtable free
+
+Subash Abhinov Kasiviswanathan (1):
+      netfilter: ipv6: nf_defrag: Kill frag queue on RFC2460 failure
+
+Taehee Yoo (1):
+      netfilter: remove useless prototype
+
+ include/net/netfilter/nf_conntrack.h    |  5 ---
+ include/net/netfilter/nf_flow_table.h   |  6 ++-
+ net/ipv4/netfilter/Kconfig              |  3 +-
+ net/ipv4/netfilter/nf_flow_table_ipv4.c |  1 +
+ net/ipv6/netfilter/Kconfig              |  3 +-
+ net/ipv6/netfilter/nf_conntrack_reasm.c |  1 +
+ net/ipv6/netfilter/nf_flow_table_ipv6.c |  1 +
+ net/netfilter/Kconfig                   |  8 ++--
+ net/netfilter/nf_flow_table.c           | 76 ++++++++++++++++++++++-----------
+ net/netfilter/nf_flow_table_inet.c      |  1 +
+ net/netfilter/nf_tables_api.c           | 17 +++-----
+ net/netfilter/nft_flow_offload.c        | 24 +----------
+ net/netfilter/x_tables.c                |  7 ++-
+ net/netfilter/xt_RATEEST.c              | 22 +++++++---
+ net/netfilter/xt_cgroup.c               |  1 +
+ 15 files changed, 97 insertions(+), 79 deletions(-)
