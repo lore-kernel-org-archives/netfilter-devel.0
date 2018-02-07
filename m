@@ -1,143 +1,38 @@
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: Re: WARNING: proc registration bug in clusterip_tg_check
-Date: Wed, 7 Feb 2018 11:50:18 +0100
-Message-ID: <CACT4Y+b4GDnFSLZPr=c7KaD0OpLbD95m16kqjupUUuBQpE2qeg@mail.gmail.com>
-References: <945c8517a87c671825b61223088064ea2ad0a8cb.1517999262.git.pabeni@redhat.com>
- <001a114372a68e749405649cf352@google.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: nf_flow_offload: fix use-after-free and a
+ resource leak
+Date: Wed, 7 Feb 2018 11:57:37 +0100
+Message-ID: <20180207105737.2qq4ybincaw2vg5c@salvia>
+References: <20180207084902.99290-1-nbd@nbd.name>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Paolo Abeni <pabeni@redhat.com>, coreteam@netfilter.org,
-        David Miller <davem@davemloft.net>,
-        Florian Westphal <fw@strlen.de>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        LKML <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        syzkaller-bugs@googlegroups.com,
-        Cong Wang <xiyou.wangcong@gmail.com>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
-To: syzbot <syzbot+@syzkaller.appspotmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Felix Fietkau <nbd@nbd.name>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pl0-f52.google.com ([209.85.160.52]:34690 "EHLO
-        mail-pl0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753614AbeBGKuj (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Feb 2018 05:50:39 -0500
-Received: by mail-pl0-f52.google.com with SMTP id q17so231091pll.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 07 Feb 2018 02:50:39 -0800 (PST)
-In-Reply-To: <001a114372a68e749405649cf352@google.com>
+Received: from mail.us.es ([193.147.175.20]:43072 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753454AbeBGK5k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 7 Feb 2018 05:57:40 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 13D8F1A098A
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2018 11:57:39 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 033EFDA729
+        for <netfilter-devel@vger.kernel.org>; Wed,  7 Feb 2018 11:57:39 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20180207084902.99290-1-nbd@nbd.name>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-You dropped syzbot from CC ;)
-Add syzbot+03218bcdba6aa76441a3@syzkaller.appspotmail.com to To or CC.
+On Wed, Feb 07, 2018 at 09:49:02AM +0100, Felix Fietkau wrote:
+> flow_offload_del frees the flow, so all associated resource must be
+> freed before.
+> 
+> Since the ct entry in struct flow_offload_entry was allocated by
+> flow_offload_alloc, it should be freed by flow_offload_free to take care
+> of the error handling path when flow_offload_add fails.
+> 
+> While at it, make flow_offload_del static, since it should never be
+> called directly, only from the gc step
 
-
-On Wed, Feb 7, 2018 at 11:42 AM, syzbot
-<syzbot+@syzkaller.appspotmail.com> wrote:
->> #syz test: git://git.kernel.org/pub/scm/linux/kernel/git/davem/net.git
->> master
->
->
-> Can't find the corresponding bug.
->
->
->
->> I can't reproduce the issue locally, so asking the syzbot to test the
->> tentive fix for me (and hoping I did not mess with the tag/format)
->
->
->> ---
->>   net/ipv4/netfilter/ipt_CLUSTERIP.c | 30 +++++++++++++++---------------
->>   1 file changed, 15 insertions(+), 15 deletions(-)
->
->
->> diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c
->> b/net/ipv4/netfilter/ipt_CLUSTERIP.c
->> index 3a84a60f6b39..db103cd971a9 100644
->> --- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
->> +++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
->> @@ -230,17 +230,6 @@ clusterip_config_init(struct net *net, const struct
->> ipt_clusterip_tgt_info *i,
->>         refcount_set(&c->refcount, 1);
->>         refcount_set(&c->entries, 1);
->
->
->> -       spin_lock_bh(&cn->lock);
->> -       if (__clusterip_config_find(net, ip)) {
->> -               spin_unlock_bh(&cn->lock);
->> -               kfree(c);
->> -
->> -               return ERR_PTR(-EBUSY);
->> -       }
->> -
->> -       list_add_rcu(&c->list, &cn->configs);
->> -       spin_unlock_bh(&cn->lock);
->> -
->>   #ifdef CONFIG_PROC_FS
->>         {
->>                 char buffer[16];
->> @@ -257,20 +246,31 @@ clusterip_config_init(struct net *net, const struct
->> ipt_clusterip_tgt_info *i,
->>         }
->>   #endif
->
->
->> +       spin_lock_bh(&cn->lock);
->> +       if (__clusterip_config_find(net, ip)) {
->> +               spin_unlock_bh(&cn->lock);
->> +               err = -EBUSY;
->> +               goto err_remove_pte:
->> +       }
->> +
->> +       list_add_rcu(&c->list, &cn->configs);
->> +       spin_unlock_bh(&cn->lock);
->> +
->>         c->notifier.notifier_call = clusterip_netdev_event;
->>         err = register_netdevice_notifier(&c->notifier);
->>         if (!err)
->>                 return c;
->
->
->> +       spin_lock_bh(&cn->lock);
->> +       list_del_rcu(&c->list);
->> +       spin_unlock_bh(&cn->lock);
->> +
->> +err_remove_pte:
->>   #ifdef CONFIG_PROC_FS
->>         proc_remove(c->pde);
->>   err:
->>   #endif
->> -       spin_lock_bh(&cn->lock);
->> -       list_del_rcu(&c->list);
->> -       spin_unlock_bh(&cn->lock);
->>         kfree(c);
->> -
->>         return ERR_PTR(err);
->>   }
->
->
->> --
->> 2.14.3
->
->
->> --
->> You received this message because you are subscribed to the Google Groups
->> "syzkaller-bugs" group.
->> To unsubscribe from this group and stop receiving emails from it, send an
->> email to syzkaller-bugs+unsubscribe@googlegroups.com.
->> To view this discussion on the web visit
->> https://groups.google.com/d/msgid/syzkaller-bugs/945c8517a87c671825b61223088064ea2ad0a8cb.1517999262.git.pabeni%40redhat.com.
->> For more options, visit https://groups.google.com/d/optout.
->
->
-> --
-> You received this message because you are subscribed to the Google Groups
-> "syzkaller-bugs" group.
-> To unsubscribe from this group and stop receiving emails from it, send an
-> email to syzkaller-bugs+unsubscribe@googlegroups.com.
-> To view this discussion on the web visit
-> https://groups.google.com/d/msgid/syzkaller-bugs/001a114372a68e749405649cf352%40google.com.
->
-> For more options, visit https://groups.google.com/d/optout.
+Applied, thanks Felix!
