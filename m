@@ -1,50 +1,52 @@
-From: =?UTF-8?q?Ville=20Skytt=C3=A4?= <ville.skytta@iki.fi>
-Subject: [PATCH] configure: Make missing docbook2man an error if man build requested
-Date: Wed,  7 Feb 2018 11:40:00 +0200
-Message-ID: <20180207094000.11494-1-ville.skytta@iki.fi>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [nft PATCH] Enable automerge feature for anonymous sets
+Date: Wed, 7 Feb 2018 10:51:05 +0100 (CET)
+Message-ID: <alpine.DEB.2.11.1802071045130.1525@blackhole.kfki.hu>
+References: <20180206181847.14434-1-phil@nwl.cc> <20180206233943.6shg7qeg2mg6u2gg@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+        Jeff Kletsky <netfilter@allycomm.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:34337 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753454AbeBGJkH (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Feb 2018 04:40:07 -0500
-Received: by mail-lf0-f68.google.com with SMTP id k19so413322lfj.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 07 Feb 2018 01:40:06 -0800 (PST)
-Received: from localhost.localdomain (87-100-219-255.bb.dnainternet.fi. [87.100.219.255])
-        by smtp.gmail.com with ESMTPSA id t73sm209485lje.16.2018.02.07.01.40.04
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 07 Feb 2018 01:40:05 -0800 (PST)
+Received: from smtp-in.kfki.hu ([148.6.0.28]:55493 "EHLO smtp2.kfki.hu"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751269AbeBGJvN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 7 Feb 2018 04:51:13 -0500
+In-Reply-To: <20180206233943.6shg7qeg2mg6u2gg@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Previously, if man page build was enabled but no suitable docbook2man or
-the like tool was found, build failed at a later stage with
-undescriptive error message. Fail early and explicitly at configure
-stage instead.
+On Wed, 7 Feb 2018, Pablo Neira Ayuso wrote:
 
-Signed-off-by: Ville Skyttä <ville.skytta@iki.fi>
----
- configure.ac | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> On Tue, Feb 06, 2018 at 07:18:47PM +0100, Phil Sutter wrote:
+> > Automatic merging of adjacent/overlapping ranges upon insertion has
+> > clear benefits performance- and readability-wise. The drawbacks which
+> > led to disabling it by default don't apply to anonymous sets since they
+> > are read-only anyway, so enable this feature for them again.
+> 
+> Question is, why someone would be adding elements with overlapping 
+> ranges in an anonymous set? Then, when listing the ruleset you will get 
+> something different to what you've added. This would also be 
+> inconsistent with regards to the existing behaviour in named sets, where 
+> this is turned off by default.
+> 
+> For named sets, that are useful to maintain white/blacklists, I 
+> understand this simplifies complexity for people dealing with them. But 
+> not sure for anonymous sets.
+> 
+> @Jeff: Is this also useful to you in the anonymous set use-case? IIRC we 
+> agreed that this was good for named sets, but not for anonymous sets.
 
-diff --git a/configure.ac b/configure.ac
-index 3b8ff96..1a38653 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -73,7 +73,7 @@ AM_COND_IF([BUILD_MAN], [
- 	      [AS_IF([test "$DOCBOOK2MAN" != "no"], [DB2MAN="$DOCBOOK2MAN"],
- 		     [AS_IF([test "$DB2X_DOCBOOK2MAN" != "no"],
- 			    [DB2MAN="$DB2X_DOCBOOK2MAN"],
--			    [AC_MSG_WARN([docbookx2-man/db2x_docbook2man not found, no manpages will be built])]
-+			    [AC_MSG_ERROR([docbookx2-man/db2x_docbook2man not found, required for building man pages])]
- 		     )]
- 	     )]
- 	)
--- 
-2.14.1
+In my opinion the consistent behaviour is the most desired one. Such 
+subleties that by default there's no automerge in named sets but it's on 
+for anonymous sets are easily overlooked by users. Better have a flag, 
+option to turn it on explicitly for a given anonymous set.
 
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
