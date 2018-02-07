@@ -1,201 +1,115 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf RFC] netfilter: x_tables: only allow jumps to user-defined chains
-Date: Wed,  7 Feb 2018 14:20:41 +0100
-Message-ID: <20180207132041.444-1-fw@strlen.de>
+Subject: [PATCH nf 3/7] netfilter: xt_CT: use pr ratelimiting
+Date: Wed,  7 Feb 2018 14:48:24 +0100
+Message-ID: <20180207134828.18691-4-fw@strlen.de>
+References: <20180207134828.18691-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:38732 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:38822 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753675AbeBGNVw (ORCPT
+        by vger.kernel.org with ESMTP id S1754301AbeBGNtz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Feb 2018 08:21:52 -0500
+        Wed, 7 Feb 2018 08:49:55 -0500
+In-Reply-To: <20180207134828.18691-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This rejects rulesets where a jump occurs to a non-user defined chain.
-This isn't limited in any way in the binary format (you can jump to
-any rule you want within the blob structure), but iptables tools
-do not offset such a feature.
+checkpatch complains about line > 80 but this would require splitting
+"literal" over two lines which is worse.
 
-Sending as RFC as this limits features that might be used by programs
-that don't call xtables(-restore) tools.
-
-This change also prevents the syzkaller reported crash as
-ruleset gets rejected.
-
-Reported-by: syzbot+e783f671527912cd9403@syzkaller.appspotmail.com
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/ipv4/netfilter/arp_tables.c | 20 ++++++++++++++------
- net/ipv4/netfilter/ip_tables.c  | 21 +++++++++++++++------
- net/ipv6/netfilter/ip6_tables.c | 22 ++++++++++++++++------
- 3 files changed, 45 insertions(+), 18 deletions(-)
+ net/netfilter/xt_CT.c | 25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index e3e420f3ba7b..2df708e5cf42 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -368,10 +368,14 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
- 				if (strcmp(t->target.u.user.name,
- 					   XT_STANDARD_TARGET) == 0 &&
- 				    newpos >= 0) {
--					/* This a jump; chase it. */
--					if (!xt_find_jump_offset(offsets, newpos,
--								 newinfo->number))
-+					if (newpos >= newinfo->size)
- 						return 0;
-+					if (entry0 + newpos != ipt_next_entry(e)) {
-+						/* This a jump; chase it. */
-+						if (!xt_find_jump_offset(offsets, newpos,
-+									 newinfo->stacksize))
-+							return 0;
-+					}
- 				} else {
- 					/* ... this is a fallthru */
- 					newpos = pos + e->next_offset;
-@@ -523,6 +527,7 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
- 	struct arpt_entry *iter;
- 	unsigned int *offsets;
- 	unsigned int i;
-+	bool userchain;
- 	int ret = 0;
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index 5a152e2acfd5..8790190c6feb 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -82,15 +82,14 @@ xt_ct_set_helper(struct nf_conn *ct, const char *helper_name,
  
- 	newinfo->size = repl->size;
-@@ -548,12 +553,15 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
- 						 repl->valid_hooks);
- 		if (ret != 0)
- 			goto out_free;
--		if (i < repl->num_entries)
--			offsets[i] = (void *)iter - entry0;
- 		++i;
-+		if (userchain) {
-+			offsets[newinfo->stacksize] = (void *)iter - entry0;
-+			++newinfo->stacksize;
-+			userchain = false;
-+		}
- 		if (strcmp(arpt_get_target(iter)->u.user.name,
- 		    XT_ERROR_TARGET) == 0)
--			++newinfo->stacksize;
-+			userchain = true;
+ 	proto = xt_ct_find_proto(par);
+ 	if (!proto) {
+-		pr_info("You must specify a L4 protocol, and not use "
+-			"inversions on it.\n");
++		pr_info_ratelimited("You must specify a L4 protocol and not use inversions on it\n");
+ 		return -ENOENT;
  	}
  
- 	ret = -EINVAL;
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index e38395a8dcf2..c8adab24a883 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -435,10 +435,14 @@ mark_source_chains(const struct xt_table_info *newinfo,
- 				if (strcmp(t->target.u.user.name,
- 					   XT_STANDARD_TARGET) == 0 &&
- 				    newpos >= 0) {
--					/* This a jump; chase it. */
--					if (!xt_find_jump_offset(offsets, newpos,
--								 newinfo->number))
-+					if (newpos >= newinfo->size)
- 						return 0;
-+					if (entry0 + newpos != ipt_next_entry(e)) {
-+						/* This a jump; chase it. */
-+						if (!xt_find_jump_offset(offsets, newpos,
-+									 newinfo->stacksize))
-+							return 0;
-+					}
- 				} else {
- 					/* ... this is a fallthru */
- 					newpos = pos + e->next_offset;
-@@ -671,6 +675,7 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
- 	struct ipt_entry *iter;
- 	unsigned int *offsets;
- 	unsigned int i;
-+	bool userchain;
- 	int ret = 0;
- 
- 	newinfo->size = repl->size;
-@@ -686,6 +691,7 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
- 	if (!offsets)
- 		return -ENOMEM;
- 	i = 0;
-+	userchain = false;
- 	/* Walk through entries, checking offsets. */
- 	xt_entry_foreach(iter, entry0, newinfo->size) {
- 		ret = check_entry_size_and_hooks(iter, newinfo, entry0,
-@@ -695,12 +701,15 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
- 						 repl->valid_hooks);
- 		if (ret != 0)
- 			goto out_free;
--		if (i < repl->num_entries)
--			offsets[i] = (void *)iter - entry0;
- 		++i;
-+		if (userchain) {
-+			offsets[newinfo->stacksize] = (void *)iter - entry0;
-+			++newinfo->stacksize;
-+			userchain = false;
-+		}
- 		if (strcmp(ipt_get_target(iter)->u.user.name,
- 		    XT_ERROR_TARGET) == 0)
--			++newinfo->stacksize;
-+			userchain = true;
+ 	helper = nf_conntrack_helper_try_module_get(helper_name, par->family,
+ 						    proto);
+ 	if (helper == NULL) {
+-		pr_info("No such helper \"%s\"\n", helper_name);
++		pr_info_ratelimited("No such helper \"%s\"\n", helper_name);
+ 		return -ENOENT;
  	}
  
- 	ret = -EINVAL;
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 62358b93bbac..d4932b18ad14 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -453,10 +453,15 @@ mark_source_chains(const struct xt_table_info *newinfo,
- 				if (strcmp(t->target.u.user.name,
- 					   XT_STANDARD_TARGET) == 0 &&
- 				    newpos >= 0) {
--					/* This a jump; chase it. */
--					if (!xt_find_jump_offset(offsets, newpos,
--								 newinfo->number))
-+					if (newpos >= newinfo->size)
- 						return 0;
-+
-+					if (entry0 + newpos != ip6t_next_entry(e)) {
-+						/* This a jump; chase it. */
-+						if (!xt_find_jump_offset(offsets, newpos,
-+									 newinfo->stacksize))
-+							return 0;
-+					}
- 				} else {
- 					/* ... this is a fallthru */
- 					newpos = pos + e->next_offset;
-@@ -689,6 +694,7 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
- 	struct ip6t_entry *iter;
- 	unsigned int *offsets;
- 	unsigned int i;
-+	bool userchain;
+@@ -124,6 +123,7 @@ xt_ct_set_timeout(struct nf_conn *ct, const struct xt_tgchk_param *par,
+ 	const struct nf_conntrack_l4proto *l4proto;
+ 	struct ctnl_timeout *timeout;
+ 	struct nf_conn_timeout *timeout_ext;
++	const char *errmsg = NULL;
  	int ret = 0;
+ 	u8 proto;
  
- 	newinfo->size = repl->size;
-@@ -704,6 +710,7 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
- 	if (!offsets)
- 		return -ENOMEM;
- 	i = 0;
-+	userchain = false;
- 	/* Walk through entries, checking offsets. */
- 	xt_entry_foreach(iter, entry0, newinfo->size) {
- 		ret = check_entry_size_and_hooks(iter, newinfo, entry0,
-@@ -713,12 +720,15 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
- 						 repl->valid_hooks);
- 		if (ret != 0)
- 			goto out_free;
--		if (i < repl->num_entries)
--			offsets[i] = (void *)iter - entry0;
- 		++i;
-+		if (userchain) {
-+			offsets[newinfo->stacksize] = (void *)iter - entry0;
-+			++newinfo->stacksize;
-+			userchain = false;
-+		}
- 		if (strcmp(ip6t_get_target(iter)->u.user.name,
- 		    XT_ERROR_TARGET) == 0)
--			++newinfo->stacksize;
-+			userchain = true;
+@@ -131,29 +131,29 @@ xt_ct_set_timeout(struct nf_conn *ct, const struct xt_tgchk_param *par,
+ 	timeout_find_get = rcu_dereference(nf_ct_timeout_find_get_hook);
+ 	if (timeout_find_get == NULL) {
+ 		ret = -ENOENT;
+-		pr_info("Timeout policy base is empty\n");
++		errmsg = "Timeout policy base is empty";
+ 		goto out;
  	}
  
- 	ret = -EINVAL;
+ 	proto = xt_ct_find_proto(par);
+ 	if (!proto) {
+ 		ret = -EINVAL;
+-		pr_info("You must specify a L4 protocol, and not use "
+-			"inversions on it.\n");
++		errmsg = "You must specify a L4 protocol and not use inversions on it";
+ 		goto out;
+ 	}
+ 
+ 	timeout = timeout_find_get(par->net, timeout_name);
+ 	if (timeout == NULL) {
+ 		ret = -ENOENT;
+-		pr_info("No such timeout policy \"%s\"\n", timeout_name);
++		pr_info_ratelimited("No such timeout policy \"%s\"\n",
++				    timeout_name);
+ 		goto out;
+ 	}
+ 
+ 	if (timeout->l3num != par->family) {
+ 		ret = -EINVAL;
+-		pr_info("Timeout policy `%s' can only be used by L3 protocol "
+-			"number %d\n", timeout_name, timeout->l3num);
++		pr_info_ratelimited("Timeout policy `%s' can only be used by L%d protocol number %d\n",
++				    timeout_name, 3, timeout->l3num);
+ 		goto err_put_timeout;
+ 	}
+ 	/* Make sure the timeout policy matches any existing protocol tracker,
+@@ -162,9 +162,8 @@ xt_ct_set_timeout(struct nf_conn *ct, const struct xt_tgchk_param *par,
+ 	l4proto = __nf_ct_l4proto_find(par->family, proto);
+ 	if (timeout->l4proto->l4proto != l4proto->l4proto) {
+ 		ret = -EINVAL;
+-		pr_info("Timeout policy `%s' can only be used by L4 protocol "
+-			"number %d\n",
+-			timeout_name, timeout->l4proto->l4proto);
++		pr_info_ratelimited("Timeout policy `%s' can only be used by L%d protocol number %d\n",
++				    timeout_name, 4, timeout->l4proto->l4proto);
+ 		goto err_put_timeout;
+ 	}
+ 	timeout_ext = nf_ct_timeout_ext_add(ct, timeout, GFP_ATOMIC);
+@@ -180,6 +179,8 @@ xt_ct_set_timeout(struct nf_conn *ct, const struct xt_tgchk_param *par,
+ 	__xt_ct_tg_timeout_put(timeout);
+ out:
+ 	rcu_read_unlock();
++	if (errmsg)
++		pr_info_ratelimited("%s\n", errmsg);
+ 	return ret;
+ #else
+ 	return -EOPNOTSUPP;
 -- 
 2.13.6
 
