@@ -1,85 +1,31 @@
-From: syzbot <syzbot+03218bcdba6aa76441a3@syzkaller.appspotmail.com>
-Subject: WARNING: proc registration bug in clusterip_tg_check
-Date: Wed, 07 Feb 2018 03:24:01 -0800
-Message-ID: <f4030437f0e834ba2a05649d88c9@google.com>
-References: <65775a4878958a927b7d7d5e31dc240486096f31.1518001993.git.pabeni@redhat.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: WARNING: proc registration bug in clusterip_tg_check
+Date: Wed, 7 Feb 2018 12:31:18 +0100
+Message-ID: <20180207113118.GD14261@breakpoint.cc>
+References: <089e082d13a0cf25ed05648bf8b3@google.com>
+ <945c8517a87c671825b61223088064ea2ad0a8cb.1517999262.git.pabeni@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="f4030437f0e834b9f205649d88c8"
-To: coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
-        kadlec@blackhole.kfki.hu, kuznet@ms2.inr.ac.ru,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pabeni@redhat.com,
-        pablo@netfilter.org, syzkaller-bugs@googlegroups.com,
-        xiyou.wangcong@gmail.com, yoshfuji@linux-ipv6.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, syzkaller-bugs@googlegroups.com,
+        Cong Wang <xiyou.wangcong@gmail.com>
+To: Paolo Abeni <pabeni@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <65775a4878958a927b7d7d5e31dc240486096f31.1518001993.git.pabeni@redhat.com>
+Content-Disposition: inline
+In-Reply-To: <945c8517a87c671825b61223088064ea2ad0a8cb.1517999262.git.pabeni@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
---f4030437f0e834b9f205649d88c8
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
-Content-Transfer-Encoding: base64
+Paolo Abeni <pabeni@redhat.com> wrote:
 
-SGVsbG8sDQoNCnN5emJvdCB0cmllZCB0byB0ZXN0IHRoZSBwcm9wb3NlZCBwYXRjaCBidXQgYnVp
-bGQvYm9vdCBmYWlsZWQ6DQoNCmtlcm5lbCBidWlsZCBmYWlsZWQ6IGZhaWxlZCB0byBydW4gL3Vz
-ci9iaW4vbWFrZSBbbWFrZSBiekltYWdlIC1qIDMyICANCkNDPS9zeXprYWxsZXIvZ2NjL2Jpbi9n
-Y2NdOiBleGl0IHN0YXR1cyAyDQpzY3JpcHRzL2tjb25maWcvY29uZiAgLS1zaWxlbnRvbGRjb25m
-aWcgS2NvbmZpZw0KICAgQ0hLICAgICBpbmNsdWRlL2NvbmZpZy9rZXJuZWwucmVsZWFzZQ0KICAg
-Q0hLICAgICBpbmNsdWRlL2dlbmVyYXRlZC91YXBpL2xpbnV4L3ZlcnNpb24uaA0KICAgQ0hLICAg
-ICBpbmNsdWRlL2dlbmVyYXRlZC91dHNyZWxlYXNlLmgNCiAgIENISyAgICAgc2NyaXB0cy9tb2Qv
-ZGV2aWNldGFibGUtb2Zmc2V0cy5oDQogICBDSEsgICAgIGluY2x1ZGUvZ2VuZXJhdGVkL2JvdW5k
-cy5oDQogICBDSEsgICAgIGluY2x1ZGUvZ2VuZXJhdGVkL3RpbWVjb25zdC5oDQogICBDSEsgICAg
-IGluY2x1ZGUvZ2VuZXJhdGVkL2FzbS1vZmZzZXRzLmgNCiAgIENBTEwgICAgc2NyaXB0cy9jaGVj
-a3N5c2NhbGxzLnNoDQogICBDSEsgICAgIGluY2x1ZGUvZ2VuZXJhdGVkL2NvbXBpbGUuaA0KICAg
-Q0MgICAgICBuZXQvaXB2NC9uZXRmaWx0ZXIvaXB0X0NMVVNURVJJUC5vDQogICBDQyAgICAgIG5l
-dC9pcHY0L25ldGZpbHRlci9pcHRfTUFTUVVFUkFERS5vDQogICBDQyAgICAgIG5ldC9pcHY0L25l
-dGZpbHRlci9pcHRfUkVKRUNULm8NCiAgIENDICAgICAgbmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF9T
-WU5QUk9YWS5vDQogICBDQyAgICAgIG5ldC9pcHY0L25ldGZpbHRlci9hcnBfdGFibGVzLm8NCiAg
-IENDICAgICAgbmV0L2lwdjQvbmV0ZmlsdGVyL2FycHRfbWFuZ2xlLm8NCiAgIENDICAgICAgbmV0
-L2lwdjQvbmV0ZmlsdGVyL2FycHRhYmxlX2ZpbHRlci5vDQogICBDQyAgICAgIG5ldC9pcHY0L25l
-dGZpbHRlci9uZl9kdXBfaXB2NC5vDQpuZXQvaXB2NC9uZXRmaWx0ZXIvaXB0X0NMVVNURVJJUC5j
-OiBJbiBmdW5jdGlvbiDigJhjbHVzdGVyaXBfY29uZmlnX2luaXTigJk6DQpuZXQvaXB2NC9uZXRm
-aWx0ZXIvaXB0X0NMVVNURVJJUC5jOjI1MzoyMjogZXJyb3I6IGV4cGVjdGVkIOKAmDvigJkgYmVm
-b3JlIOKAmDrigJkgIA0KdG9rZW4NCiAgICBnb3RvIGVycl9yZW1vdmVfcHRlOg0KICAgICAgICAg
-ICAgICAgICAgICAgICBeDQpzY3JpcHRzL01ha2VmaWxlLmJ1aWxkOjMxNjogcmVjaXBlIGZvciAg
-DQp0YXJnZXQgJ25ldC9pcHY0L25ldGZpbHRlci9pcHRfQ0xVU1RFUklQLm8nIGZhaWxlZA0KbWFr
-ZVszXTogKioqIFtuZXQvaXB2NC9uZXRmaWx0ZXIvaXB0X0NMVVNURVJJUC5vXSBFcnJvciAxDQpt
-YWtlWzNdOiAqKiogV2FpdGluZyBmb3IgdW5maW5pc2hlZCBqb2JzLi4uLg0Kc2NyaXB0cy9NYWtl
-ZmlsZS5idWlsZDo1NzU6IHJlY2lwZSBmb3IgdGFyZ2V0ICduZXQvaXB2NC9uZXRmaWx0ZXInIGZh
-aWxlZA0KbWFrZVsyXTogKioqIFtuZXQvaXB2NC9uZXRmaWx0ZXJdIEVycm9yIDINCnNjcmlwdHMv
-TWFrZWZpbGUuYnVpbGQ6NTc1OiByZWNpcGUgZm9yIHRhcmdldCAnbmV0L2lwdjQnIGZhaWxlZA0K
-bWFrZVsxXTogKioqIFtuZXQvaXB2NF0gRXJyb3IgMg0KTWFrZWZpbGU6MTAyMDogcmVjaXBlIGZv
-ciB0YXJnZXQgJ25ldCcgZmFpbGVkDQptYWtlOiAqKiogW25ldF0gRXJyb3IgMg0KDQoNCg0KVGVz
-dGVkIG9uIG5ldCBjb21taXQNCjE3NmJmYjQwNmQ3MzU2NTVmOWE2OWQ4NjhhN2FmMGMzZGE5NTlk
-NTEgKFR1ZSBGZWIgNiAxNjo0ODo0MCAyMDE4ICswMDAwKQ0KTWVyZ2UgYnJhbmNoICdiZTJuZXQt
-cGF0Y2gtc2V0Jw0KDQpjb21waWxlcjogZ2NjIChHQ0MpIDcuMS4xIDIwMTcwNjIwDQpQYXRjaCBp
-cyBhdHRhY2hlZC4NCg0KDQoNCg==
---f4030437f0e834b9f205649d88c8
-Content-Type: text/plain; charset="US-ASCII"; name="patch.diff"
-Content-Disposition: attachment; filename="patch.diff"
-Content-Transfer-Encoding: base64
+[ pruning CC list ]
 
-LS0tIGEvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF9DTFVTVEVSSVAuYworKysgYi9uZXQvaXB2NC9u
-ZXRmaWx0ZXIvaXB0X0NMVVNURVJJUC5jCkBAIC0yMzAsMTcgKzIzMCw2IEBAIGNsdXN0ZXJpcF9j
-b25maWdfaW5pdChzdHJ1Y3QgbmV0ICpuZXQsIGNvbnN0IHN0cnVjdCBpcHRfY2x1c3RlcmlwX3Rn
-dF9pbmZvICppLAogCXJlZmNvdW50X3NldCgmYy0+cmVmY291bnQsIDEpOwogCXJlZmNvdW50X3Nl
-dCgmYy0+ZW50cmllcywgMSk7CiAKLQlzcGluX2xvY2tfYmgoJmNuLT5sb2NrKTsKLQlpZiAoX19j
-bHVzdGVyaXBfY29uZmlnX2ZpbmQobmV0LCBpcCkpIHsKLQkJc3Bpbl91bmxvY2tfYmgoJmNuLT5s
-b2NrKTsKLQkJa2ZyZWUoYyk7Ci0KLQkJcmV0dXJuIEVSUl9QVFIoLUVCVVNZKTsKLQl9Ci0KLQls
-aXN0X2FkZF9yY3UoJmMtPmxpc3QsICZjbi0+Y29uZmlncyk7Ci0Jc3Bpbl91bmxvY2tfYmgoJmNu
-LT5sb2NrKTsKLQogI2lmZGVmIENPTkZJR19QUk9DX0ZTCiAJewogCQljaGFyIGJ1ZmZlclsxNl07
-CkBAIC0yNTcsMjAgKzI0NiwzMSBAQCBjbHVzdGVyaXBfY29uZmlnX2luaXQoc3RydWN0IG5ldCAq
-bmV0LCBjb25zdCBzdHJ1Y3QgaXB0X2NsdXN0ZXJpcF90Z3RfaW5mbyAqaSwKIAl9CiAjZW5kaWYK
-IAorCXNwaW5fbG9ja19iaCgmY24tPmxvY2spOworCWlmIChfX2NsdXN0ZXJpcF9jb25maWdfZmlu
-ZChuZXQsIGlwKSkgeworCQlzcGluX3VubG9ja19iaCgmY24tPmxvY2spOworCQllcnIgPSAtRUJV
-U1k7CisJCWdvdG8gZXJyX3JlbW92ZV9wdGU6CisJfQorCisJbGlzdF9hZGRfcmN1KCZjLT5saXN0
-LCAmY24tPmNvbmZpZ3MpOworCXNwaW5fdW5sb2NrX2JoKCZjbi0+bG9jayk7CisKIAljLT5ub3Rp
-Zmllci5ub3RpZmllcl9jYWxsID0gY2x1c3RlcmlwX25ldGRldl9ldmVudDsKIAllcnIgPSByZWdp
-c3Rlcl9uZXRkZXZpY2Vfbm90aWZpZXIoJmMtPm5vdGlmaWVyKTsKIAlpZiAoIWVycikKIAkJcmV0
-dXJuIGM7CiAKKwlzcGluX2xvY2tfYmgoJmNuLT5sb2NrKTsKKwlsaXN0X2RlbF9yY3UoJmMtPmxp
-c3QpOworCXNwaW5fdW5sb2NrX2JoKCZjbi0+bG9jayk7CisKK2Vycl9yZW1vdmVfcHRlOgogI2lm
-ZGVmIENPTkZJR19QUk9DX0ZTCiAJcHJvY19yZW1vdmUoYy0+cGRlKTsKIGVycjoKICNlbmRpZgot
-CXNwaW5fbG9ja19iaCgmY24tPmxvY2spOwotCWxpc3RfZGVsX3JjdSgmYy0+bGlzdCk7Ci0Jc3Bp
-bl91bmxvY2tfYmgoJmNuLT5sb2NrKTsKIAlrZnJlZShjKTsKLQogCXJldHVybiBFUlJfUFRSKGVy
-cik7CiB9CiAK
---f4030437f0e834b9f205649d88c8--
+> #syz test: git://git.kernel.org/pub/scm/linux/kernel/git/davem/net.git master
+> 
+> I can't reproduce the issue locally, so asking the syzbot to test the 
+> tentive fix for me (and hoping I did not mess with the tag/format) 
+
+I can reproduce it.
+
+CLUSTERIP has multiple other bugs that need to be fixed, I'll look into
+this asap.
