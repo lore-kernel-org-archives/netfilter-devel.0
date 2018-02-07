@@ -1,72 +1,85 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [nft PATCH] Enable automerge feature for anonymous sets
-Date: Wed, 7 Feb 2018 10:53:36 +0100
-Message-ID: <20180207095336.GK2285@orbyte.nwl.cc>
-References: <20180206181847.14434-1-phil@nwl.cc>
- <20180206233943.6shg7qeg2mg6u2gg@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-        Jeff Kletsky <netfilter@allycomm.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:49514 "EHLO orbyte.nwl.cc"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751269AbeBGJxj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 7 Feb 2018 04:53:39 -0500
-Content-Disposition: inline
-In-Reply-To: <20180206233943.6shg7qeg2mg6u2gg@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Paolo Abeni <pabeni@redhat.com>
+Subject: Re: WARNING: proc registration bug in clusterip_tg_check
+Date: Wed,  7 Feb 2018 11:41:48 +0100
+Message-ID: <945c8517a87c671825b61223088064ea2ad0a8cb.1517999262.git.pabeni@redhat.com>
+References: <089e082d13a0cf25ed05648bf8b3@google.com>
+Cc: coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
+        kadlec@blackhole.kfki.hu, kuznet@ms2.inr.ac.ru,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        pablo@netfilter.org, syzkaller-bugs@googlegroups.com,
+        yoshfuji@linux-ipv6.org, Cong Wang <xiyou.wangcong@gmail.com>
+To: netdev@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <089e082d13a0cf25ed05648bf8b3@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
+#syz test: git://git.kernel.org/pub/scm/linux/kernel/git/davem/net.git master
 
-On Wed, Feb 07, 2018 at 12:39:43AM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Feb 06, 2018 at 07:18:47PM +0100, Phil Sutter wrote:
-> > Automatic merging of adjacent/overlapping ranges upon insertion has
-> > clear benefits performance- and readability-wise. The drawbacks which
-> > led to disabling it by default don't apply to anonymous sets since they
-> > are read-only anyway, so enable this feature for them again.
-> 
-> Question is, why someone would be adding elements with overlapping
-> ranges in an anonymous set? Then, when listing the ruleset you will
-> get something different to what you've added. This would also be
-> inconsistent with regards to the existing behaviour in named sets,
-> where this is turned off by default.
+I can't reproduce the issue locally, so asking the syzbot to test the 
+tentive fix for me (and hoping I did not mess with the tag/format) 
 
-Recapping the pros and cons of automatic merging the discussion brought
-up (I probably miss some):
+---
+ net/ipv4/netfilter/ipt_CLUSTERIP.c | 30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
-+ Overlaps may be hard to spot (and avoid) if they sit in different
-  defines used to fill a single set.
-
-- Items added to a set can't be removed again if they were merged with
-  others added at the same time.
-
->From those, I assume that if one uses defines to manage e.g. white/black
-lists, a named set is probably not used either. The con above applies
-only to named sets since anonymous ones can't be changed. Therefore I
-considered automatic merging happening in anonymous sets to be
-desirable.
-
-> For named sets, that are useful to maintain white/blacklists, I
-> understand this simplifies complexity for people dealing with them.
-> But not sure for anonymous sets.
-
-I'm not entirely sure about that since there are multiple ways to see
-things. AFAIR, Jeff's point was when he combines set elements from
-different sources he doesn't want to check them manually for potential
-overlaps (or even can't). So there automatic merging is a good thing. If
-my fail2ban script can't delete a range previously added after it
-timeouts, it fails and recovery is not trivial (find the merged element
-and divide it again). Here, merging is a bad thing. Overall though, I
-wonder whether using interval sets for white/black lists isn't a bad
-idea at all. :)
-
-> @Jeff: Is this also useful to you in the anonymous set use-case? IIRC
-> we agreed that this was good for named sets, but not for anonymous
-> sets.
-
-I'm curious to hearing his thoughts as well.
-
-Cheers, Phil
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 3a84a60f6b39..db103cd971a9 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -230,17 +230,6 @@ clusterip_config_init(struct net *net, const struct ipt_clusterip_tgt_info *i,
+ 	refcount_set(&c->refcount, 1);
+ 	refcount_set(&c->entries, 1);
+ 
+-	spin_lock_bh(&cn->lock);
+-	if (__clusterip_config_find(net, ip)) {
+-		spin_unlock_bh(&cn->lock);
+-		kfree(c);
+-
+-		return ERR_PTR(-EBUSY);
+-	}
+-
+-	list_add_rcu(&c->list, &cn->configs);
+-	spin_unlock_bh(&cn->lock);
+-
+ #ifdef CONFIG_PROC_FS
+ 	{
+ 		char buffer[16];
+@@ -257,20 +246,31 @@ clusterip_config_init(struct net *net, const struct ipt_clusterip_tgt_info *i,
+ 	}
+ #endif
+ 
++	spin_lock_bh(&cn->lock);
++	if (__clusterip_config_find(net, ip)) {
++		spin_unlock_bh(&cn->lock);
++		err = -EBUSY;
++		goto err_remove_pte:
++	}
++
++	list_add_rcu(&c->list, &cn->configs);
++	spin_unlock_bh(&cn->lock);
++
+ 	c->notifier.notifier_call = clusterip_netdev_event;
+ 	err = register_netdevice_notifier(&c->notifier);
+ 	if (!err)
+ 		return c;
+ 
++	spin_lock_bh(&cn->lock);
++	list_del_rcu(&c->list);
++	spin_unlock_bh(&cn->lock);
++
++err_remove_pte:
+ #ifdef CONFIG_PROC_FS
+ 	proc_remove(c->pde);
+ err:
+ #endif
+-	spin_lock_bh(&cn->lock);
+-	list_del_rcu(&c->list);
+-	spin_unlock_bh(&cn->lock);
+ 	kfree(c);
+-
+ 	return ERR_PTR(err);
+ }
+ 
+-- 
+2.14.3
