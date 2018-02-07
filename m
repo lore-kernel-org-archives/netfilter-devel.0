@@ -1,49 +1,83 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: shift by n bits while performing '--restore-mark'
-Date: Wed, 7 Feb 2018 00:53:57 +0100
-Message-ID: <20180206235357.GB14261@breakpoint.cc>
-References: <89a1d74339b14c6e813ccbea864c24e0@svr-chch-ex1.atlnz.lc>
- <20180116141712.GC15198@breakpoint.cc>
- <1516847646457.65736@alliedtelesis.co.nz>
- <20180125062211.GE14192@breakpoint.cc>
- <1517960766867.47573@alliedtelesis.co.nz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-        "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Jack Ma <Jack.Ma@alliedtelesis.co.nz>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:36924 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754095AbeBFX5C (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 6 Feb 2018 18:57:02 -0500
-Content-Disposition: inline
-In-Reply-To: <1517960766867.47573@alliedtelesis.co.nz>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH RFC 0/4] Netlink bus descriptions
+Date: Wed,  7 Feb 2018 02:37:09 +0100
+Message-ID: <20180207013713.2432-1-pablo@netfilter.org>
+Cc: netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Jack Ma <Jack.Ma@alliedtelesis.co.nz> wrote:
-> Our current condition is:
-> 
-> 1) only 0xfff00000 (three F available in skb->mark), but 0xfffff000 (five F available in ct->mark)
-> 
-> We wish to copy either 0xfff00000 or 0x00fff000 from ct->mark into skb->mark,
-> 
-> 
-> What about '-j CONNMARK  --restore-mark --mask 0xfffff000 << 8 ( left shift 2 F)'
-> 
-> This will result in skb->mark = ct->mark << 8
-> 
-> if ct->mark = 0xabcde000, now skb->mark is changed to:  skb->mark = 0xcde00000.
-> 
-> Does this make sense :) ?
+Hi,
 
-Yes it does.
+Modern messaging systems usually provide facilities that allows you to
+inquire about supported commands and message layouts. Netlink has no
+such facility so far, hence people end up probing for features, which is
+a bit sloppy. Sometimes there are also magic version numbers in place
+that gives a hint to userspace on what this kernel supports, so
+userspace makes assumptions based on this version number.
 
-AFAICS with nftables you could already do this but I can understand if
-you need to use iptables for this.
+This patchset aims to improve this situation by adding a new
+NETLINK_DESC bus with two commands, one to fetch the list of existing
+commands and another one to describe supported objects. Command
+descriptions also indicate what netlink objects the interface expects to
+be used in the netlink message payload, thus, we can relate commands and
+objects. Objects are represented as compounds of attributes, some of
+these attributes are nesting other attributes. The netlink description
+exports the attribute tree and, for simplicity, a linear list of netlink
+objects identified via unique ID.
 
-So feel free to send a patch from xt_connmark.
+Patch 1 adds NLA_PAD, this datatype is needed by netlink description.
+Patch 2 adds the new generic netlink description bus NETLINK_DESC.
+Patch 3 adds support for netlink descriptions to nfnetlink.
+Patch 4 adds a netlink description for nf_tables, so you have an initial
+	client for this infrastructure to look at as reference.
 
-Thanks for explaining this.
+Not covered by this patchset, but I think it should be possible to
+(fully?) generate the C file containing the description and the netlink
+headers based on some generic notation that describes the netlink
+interface, something like this:
+
+    netlink description  ---> nldesc_compiler ---> .c and .h files
+         notation
+
+This would probably make the work of describing the netlink interface
+less error prone, given people may add a new attribute to the header
+file and forget about updating the description. I also think this
+description could be also useful to fuzz tests netlink interfaces, by
+interpreting the description that the kernel provides.
+
+I've been looking into this since NetDev 2.1 in Canada - already one
+year ago - I think we need this in nftables so we can evolve more
+freely.
+
+Comments welcome.
+
+Pablo Neira Ayuso (4):
+  netlink: add NLA_PAD definition
+  netlink: add generic object description infrastructure
+  netfilter: nfnetlink: add support for netlink descriptions
+  netfilter: nf_tables: add netlink description
+
+ include/linux/netfilter/nfnetlink.h           |   9 +
+ include/net/net_namespace.h                   |   1 +
+ include/net/netfilter/nf_tables.h             |   2 +
+ include/net/netlink.h                         |   2 +
+ include/net/nldesc.h                          | 163 +++++++++
+ include/uapi/linux/netfilter/nf_tables_desc.h |  57 +++
+ include/uapi/linux/netfilter/nfnetlink.h      |   7 +
+ include/uapi/linux/netlink.h                  |  67 ++++
+ net/netfilter/Makefile                        |   7 +-
+ net/netfilter/nf_tables_api.c                 |   2 +
+ net/netfilter/nf_tables_desc.c                | 471 ++++++++++++++++++++++++
+ net/netfilter/nfnetlink.c                     | 108 ++++++
+ net/netlink/Makefile                          |   2 +-
+ net/netlink/desc.c                            | 499 ++++++++++++++++++++++++++
+ 14 files changed, 1393 insertions(+), 4 deletions(-)
+ create mode 100644 include/net/nldesc.h
+ create mode 100644 include/uapi/linux/netfilter/nf_tables_desc.h
+ create mode 100644 net/netfilter/nf_tables_desc.c
+ create mode 100644 net/netlink/desc.c
+
+-- 
+2.11.0
