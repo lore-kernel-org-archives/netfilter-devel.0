@@ -1,56 +1,109 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [Patch net] ipt_CLUSTERIP: fix a refcount bug in
- clusterip_config_find_get()
-Date: Thu, 8 Feb 2018 09:01:30 +0100
-Message-ID: <20180208080130.GJ14261@breakpoint.cc>
-References: <20180208055918.20411-1-xiyou.wangcong@gmail.com>
- <20180208055918.20411-2-xiyou.wangcong@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pabeni@redhat.com, Eric Dumazet <eric.dumazet@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-To: Cong Wang <xiyou.wangcong@gmail.com>
+From: Paolo Abeni <pabeni@redhat.com>
+Subject: [PATCH net] netfilter: on setsockopt() acquire sock lock only in the required scope
+Date: Thu,  8 Feb 2018 11:38:36 +0100
+Message-ID: <0faf65d7a9b102fbe107d1bb75b5d97e4622ee3e.1518084409.git.pabeni@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+        Florian Westphal <fw@strlen.de>,
+        Xin Long <lucien.xin@gmail.com>,
+        netfilter-devel@vger.kernel.org
+To: netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:41630 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750749AbeBHIEg (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Feb 2018 03:04:36 -0500
-Content-Disposition: inline
-In-Reply-To: <20180208055918.20411-2-xiyou.wangcong@gmail.com>
+Received: from mx3-rdu2.redhat.com ([66.187.233.73]:56470 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750882AbeBHKi4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 8 Feb 2018 05:38:56 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Cong Wang <xiyou.wangcong@gmail.com> wrote:
-> In clusterip_config_find_get() we hold RCU read lock so it could
-> run concurrently with clusterip_config_entry_put(), as a result,
-> the refcnt could go back to 1 from 0, which leads to a double
-> list_del()... Just replace refcount_inc() with
-> refcount_inc_not_zero(), as for c->refcount.
-> 
-> Fixes: d73f33b16883 ("netfilter: CLUSTERIP: RCU conversion")
-> Cc: Eric Dumazet <eric.dumazet@gmail.com>
-> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
-> ---
->  net/ipv4/netfilter/ipt_CLUSTERIP.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-> index 1ff72b87a066..4537b1686c7c 100644
-> --- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-> +++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-> @@ -154,8 +154,10 @@ clusterip_config_find_get(struct net *net, __be32 clusterip, int entry)
->  #endif
->  		if (unlikely(!refcount_inc_not_zero(&c->refcount)))
->  			c = NULL;
-> -		else if (entry)
-> -			refcount_inc(&c->entries);
-> +		else if (entry) {
-> +			if (unlikely(!refcount_inc_not_zero(&c->entries)))
+The Syzbot reported a possible deadlock in the netfilter area caused by
+rtnl lock, xt lock and socket lock being acquired with a different order
+on different code paths, leading to the following backtrace:
 
-this needs to call clusterip_config_put(c); too, else we leak one
-reference.
+======================================================
+WARNING: possible circular locking dependency detected
+4.15.0+ #301 Not tainted
+------------------------------------------------------
+syzkaller233489/4179 is trying to acquire lock:
+  (rtnl_mutex){+.+.}, at: [<0000000048e996fd>] rtnl_lock+0x17/0x20
+net/core/rtnetlink.c:74
 
-Other than that this looks good.
+but task is already holding lock:
+  (&xt[i].mutex){+.+.}, at: [<00000000328553a2>]
+xt_find_table_lock+0x3e/0x3e0 net/netfilter/x_tables.c:1041
+
+which lock already depends on the new lock.
+===
+
+Since commit 3f34cfae1230 ("netfilter: on sockopt() acquire sock lock
+only in the required scope"), we already acquire the socket lock in
+the innermost scope, where needed. In such commit I forgot to remove
+the outer-most socket lock from the getsockopt() path, this commit
+addresses the issues dropping it now.
+
+Fixes: 202f59afd441 ("netfilter: ipt_CLUSTERIP: do not hold dev")
+Fixes: 3f34cfae1230 ("netfilter: on sockopt() acquire sock lock only in the required scope")
+Reported-by: syzbot+ddde1c7b7ff7442d7f2d@syzkaller.appspotmail.com
+Suggested-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Paolo Abeni <pabeni@redhat.com>
+---
+ net/ipv4/ip_sockglue.c   |  7 +------
+ net/ipv6/ipv6_sockglue.c | 10 ++--------
+ 2 files changed, 3 insertions(+), 14 deletions(-)
+
+diff --git a/net/ipv4/ip_sockglue.c b/net/ipv4/ip_sockglue.c
+index 008be04ac1cc..9c41a0cef1a5 100644
+--- a/net/ipv4/ip_sockglue.c
++++ b/net/ipv4/ip_sockglue.c
+@@ -1567,10 +1567,7 @@ int ip_getsockopt(struct sock *sk, int level,
+ 		if (get_user(len, optlen))
+ 			return -EFAULT;
+ 
+-		lock_sock(sk);
+-		err = nf_getsockopt(sk, PF_INET, optname, optval,
+-				&len);
+-		release_sock(sk);
++		err = nf_getsockopt(sk, PF_INET, optname, optval, &len);
+ 		if (err >= 0)
+ 			err = put_user(len, optlen);
+ 		return err;
+@@ -1602,9 +1599,7 @@ int compat_ip_getsockopt(struct sock *sk, int level, int optname,
+ 		if (get_user(len, optlen))
+ 			return -EFAULT;
+ 
+-		lock_sock(sk);
+ 		err = compat_nf_getsockopt(sk, PF_INET, optname, optval, &len);
+-		release_sock(sk);
+ 		if (err >= 0)
+ 			err = put_user(len, optlen);
+ 		return err;
+diff --git a/net/ipv6/ipv6_sockglue.c b/net/ipv6/ipv6_sockglue.c
+index d78d41fc4b1a..24535169663d 100644
+--- a/net/ipv6/ipv6_sockglue.c
++++ b/net/ipv6/ipv6_sockglue.c
+@@ -1367,10 +1367,7 @@ int ipv6_getsockopt(struct sock *sk, int level, int optname,
+ 		if (get_user(len, optlen))
+ 			return -EFAULT;
+ 
+-		lock_sock(sk);
+-		err = nf_getsockopt(sk, PF_INET6, optname, optval,
+-				&len);
+-		release_sock(sk);
++		err = nf_getsockopt(sk, PF_INET6, optname, optval, &len);
+ 		if (err >= 0)
+ 			err = put_user(len, optlen);
+ 	}
+@@ -1409,10 +1406,7 @@ int compat_ipv6_getsockopt(struct sock *sk, int level, int optname,
+ 		if (get_user(len, optlen))
+ 			return -EFAULT;
+ 
+-		lock_sock(sk);
+-		err = compat_nf_getsockopt(sk, PF_INET6,
+-					   optname, optval, &len);
+-		release_sock(sk);
++		err = compat_nf_getsockopt(sk, PF_INET6, optname, optval, &len);
+ 		if (err >= 0)
+ 			err = put_user(len, optlen);
+ 	}
+-- 
+2.14.3
+
