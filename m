@@ -1,54 +1,68 @@
 From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: [Patch net] ipt_CLUSTERIP: fix a refcount bug in clusterip_config_find_get()
-Date: Wed,  7 Feb 2018 21:59:18 -0800
-Message-ID: <20180208055918.20411-2-xiyou.wangcong@gmail.com>
-References: <20180208055918.20411-1-xiyou.wangcong@gmail.com>
+Subject: [Patch net] ipt_CLUSTERIP: fix a race condition of proc file creation
+Date: Wed,  7 Feb 2018 21:59:17 -0800
+Message-ID: <20180208055918.20411-1-xiyou.wangcong@gmail.com>
 Cc: netfilter-devel@vger.kernel.org, pabeni@redhat.com,
         Cong Wang <xiyou.wangcong@gmail.com>,
-        Eric Dumazet <eric.dumazet@gmail.com>,
+        Xin Long <lucien.xin@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>
 To: netdev@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:45464 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750865AbeBHF7f (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Feb 2018 00:59:35 -0500
-In-Reply-To: <20180208055918.20411-1-xiyou.wangcong@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-In clusterip_config_find_get() we hold RCU read lock so it could
-run concurrently with clusterip_config_entry_put(), as a result,
-the refcnt could go back to 1 from 0, which leads to a double
-list_del()... Just replace refcount_inc() with
-refcount_inc_not_zero(), as for c->refcount.
+There is a race condition between clusterip_config_entry_put()
+and clusterip_config_init(), after we release the spinlock in
+clusterip_config_entry_put(), a new proc file with a same IP could
+be created immediately since it is already removed from the configs
+list, therefore it triggers this warning:
 
-Fixes: d73f33b16883 ("netfilter: CLUSTERIP: RCU conversion")
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
+------------[ cut here ]------------
+proc_dir_entry 'ipt_CLUSTERIP/172.20.0.170' already registered
+WARNING: CPU: 1 PID: 4152 at fs/proc/generic.c:330 proc_register+0x2a4/0x370 fs/proc/generic.c:329
+Kernel panic - not syncing: panic_on_warn set ...
+
+As a quick fix, just move the proc_remove() inside the spinlock.
+
+Reported-by: <syzbot+03218bcdba6aa76441a3@syzkaller.appspotmail.com>
+Fixes: 6c5d5cfbe3c5 ("netfilter: ipt_CLUSTERIP: check duplicate config when initializing")
+Tested-by: Paolo Abeni <pabeni@redhat.com>
+Cc: Xin Long <lucien.xin@gmail.com>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
 ---
- net/ipv4/netfilter/ipt_CLUSTERIP.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/ipt_CLUSTERIP.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 1ff72b87a066..4537b1686c7c 100644
+index 3a84a60f6b39..1ff72b87a066 100644
 --- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
 +++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -154,8 +154,10 @@ clusterip_config_find_get(struct net *net, __be32 clusterip, int entry)
- #endif
- 		if (unlikely(!refcount_inc_not_zero(&c->refcount)))
- 			c = NULL;
--		else if (entry)
--			refcount_inc(&c->entries);
-+		else if (entry) {
-+			if (unlikely(!refcount_inc_not_zero(&c->entries)))
-+				c = NULL;
-+		}
- 	}
- 	rcu_read_unlock_bh();
+@@ -107,12 +107,6 @@ clusterip_config_entry_put(struct net *net, struct clusterip_config *c)
  
+ 	local_bh_disable();
+ 	if (refcount_dec_and_lock(&c->entries, &cn->lock)) {
+-		list_del_rcu(&c->list);
+-		spin_unlock(&cn->lock);
+-		local_bh_enable();
+-
+-		unregister_netdevice_notifier(&c->notifier);
+-
+ 		/* In case anyone still accesses the file, the open/close
+ 		 * functions are also incrementing the refcount on their own,
+ 		 * so it's safe to remove the entry even if it's in use. */
+@@ -120,6 +114,12 @@ clusterip_config_entry_put(struct net *net, struct clusterip_config *c)
+ 		if (cn->procdir)
+ 			proc_remove(c->pde);
+ #endif
++		list_del_rcu(&c->list);
++		spin_unlock(&cn->lock);
++		local_bh_enable();
++
++		unregister_netdevice_notifier(&c->notifier);
++
+ 		return;
+ 	}
+ 	local_bh_enable();
 -- 
 2.13.0
-
