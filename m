@@ -1,70 +1,87 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf 6/9] netfilter: bridge: use pr ratelimiting
-Date: Fri,  9 Feb 2018 15:52:04 +0100
-Message-ID: <20180209145207.2097-7-fw@strlen.de>
+Subject: [PATCH v2 nf 7/9] netfilter: x_tables: rate-limit table mismatch warnings
+Date: Fri,  9 Feb 2018 15:52:05 +0100
+Message-ID: <20180209145207.2097-8-fw@strlen.de>
 References: <20180209145207.2097-1-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:46640 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:46644 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751053AbeBIOzi (ORCPT
+        by vger.kernel.org with ESMTP id S1751040AbeBIOzl (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Feb 2018 09:55:38 -0500
+        Fri, 9 Feb 2018 09:55:41 -0500
 In-Reply-To: <20180209145207.2097-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-ebt_among still uses pr_err -- these errors indicate ebtables tool bug,
-not a usage error.
-
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- patch is new in v2 (split away from different patch).
+no changes.
 
- net/bridge/netfilter/ebt_among.c | 10 +++++-----
- net/bridge/netfilter/ebt_limit.c |  4 ++--
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ net/ipv4/netfilter/ipt_rpfilter.c  | 4 ++--
+ net/ipv6/netfilter/ip6t_rpfilter.c | 4 ++--
+ net/netfilter/xt_CONNSECMARK.c     | 4 ++--
+ net/netfilter/xt_SECMARK.c         | 4 ++--
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebt_among.c b/net/bridge/netfilter/ebt_among.c
-index 279527f8b1fe..ce7152a12bd8 100644
---- a/net/bridge/netfilter/ebt_among.c
-+++ b/net/bridge/netfilter/ebt_among.c
-@@ -187,17 +187,17 @@ static int ebt_among_mt_check(const struct xt_mtchk_param *par)
- 	expected_length += ebt_mac_wormhash_size(wh_src);
+diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
+index 37fb9552e858..5d107dd9098e 100644
+--- a/net/ipv4/netfilter/ipt_rpfilter.c
++++ b/net/ipv4/netfilter/ipt_rpfilter.c
+@@ -111,8 +111,8 @@ static int rpfilter_check(const struct xt_mtchk_param *par)
  
- 	if (em->match_size != EBT_ALIGN(expected_length)) {
--		pr_info("wrong size: %d against expected %d, rounded to %zd\n",
--			em->match_size, expected_length,
--			EBT_ALIGN(expected_length));
-+		pr_err_ratelimited("wrong size: %d against expected %d, rounded to %zd\n",
-+				   em->match_size, expected_length,
-+				   EBT_ALIGN(expected_length));
+ 	if (strcmp(par->table, "mangle") != 0 &&
+ 	    strcmp(par->table, "raw") != 0) {
+-		pr_info("match only valid in the \'raw\' "
+-			"or \'mangle\' tables, not \'%s\'.\n", par->table);
++		pr_info_ratelimited("only valid in \'raw\' or \'mangle\' table, not \'%s\'\n",
++				    par->table);
  		return -EINVAL;
  	}
- 	if (wh_dst && (err = ebt_mac_wormhash_check_integrity(wh_dst))) {
--		pr_info("dst integrity fail: %x\n", -err);
-+		pr_err_ratelimited("dst integrity fail: %x\n", -err);
+ 
+diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
+index b12e61b7b16c..ddf3111f9810 100644
+--- a/net/ipv6/netfilter/ip6t_rpfilter.c
++++ b/net/ipv6/netfilter/ip6t_rpfilter.c
+@@ -109,8 +109,8 @@ static int rpfilter_check(const struct xt_mtchk_param *par)
+ 
+ 	if (strcmp(par->table, "mangle") != 0 &&
+ 	    strcmp(par->table, "raw") != 0) {
+-		pr_info("match only valid in the \'raw\' "
+-			"or \'mangle\' tables, not \'%s\'.\n", par->table);
++		pr_info_ratelimited("only valid in \'raw\' or \'mangle\' table, not \'%s\'\n",
++				    par->table);
  		return -EINVAL;
  	}
- 	if (wh_src && (err = ebt_mac_wormhash_check_integrity(wh_src))) {
--		pr_info("src integrity fail: %x\n", -err);
-+		pr_err_ratelimited("src integrity fail: %x\n", -err);
+ 
+diff --git a/net/netfilter/xt_CONNSECMARK.c b/net/netfilter/xt_CONNSECMARK.c
+index da56c06a443c..6f30cd399e42 100644
+--- a/net/netfilter/xt_CONNSECMARK.c
++++ b/net/netfilter/xt_CONNSECMARK.c
+@@ -91,8 +91,8 @@ static int connsecmark_tg_check(const struct xt_tgchk_param *par)
+ 
+ 	if (strcmp(par->table, "mangle") != 0 &&
+ 	    strcmp(par->table, "security") != 0) {
+-		pr_info("target only valid in the \'mangle\' "
+-			"or \'security\' tables, not \'%s\'.\n", par->table);
++		pr_info_ratelimited("only valid in \'mangle\' or \'security\' table, not \'%s\'\n",
++				    par->table);
  		return -EINVAL;
  	}
- 	return 0;
-diff --git a/net/bridge/netfilter/ebt_limit.c b/net/bridge/netfilter/ebt_limit.c
-index 61a9f1be1263..165b9d678cf1 100644
---- a/net/bridge/netfilter/ebt_limit.c
-+++ b/net/bridge/netfilter/ebt_limit.c
-@@ -72,8 +72,8 @@ static int ebt_limit_mt_check(const struct xt_mtchk_param *par)
- 	/* Check for overflow. */
- 	if (info->burst == 0 ||
- 	    user2credits(info->avg * info->burst) < user2credits(info->avg)) {
--		pr_info("overflow, try lower: %u/%u\n",
--			info->avg, info->burst);
-+		pr_info_ratelimited("overflow, try lower: %u/%u\n",
-+				    info->avg, info->burst);
+ 
+diff --git a/net/netfilter/xt_SECMARK.c b/net/netfilter/xt_SECMARK.c
+index 9faf5e050b79..5c5cd782fab5 100644
+--- a/net/netfilter/xt_SECMARK.c
++++ b/net/netfilter/xt_SECMARK.c
+@@ -86,8 +86,8 @@ static int secmark_tg_check(const struct xt_tgchk_param *par)
+ 
+ 	if (strcmp(par->table, "mangle") != 0 &&
+ 	    strcmp(par->table, "security") != 0) {
+-		pr_info("target only valid in the \'mangle\' "
+-			"or \'security\' tables, not \'%s\'.\n", par->table);
++		pr_info_ratelimited("only valid in \'mangle\' or \'security\' table, not \'%s\'\n",
++				    par->table);
  		return -EINVAL;
  	}
  
