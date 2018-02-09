@@ -1,47 +1,38 @@
-From: Baruch Siach <baruch@tkos.co.il>
-Subject: [PATCH] src: fix build with older glibc
-Date: Fri,  9 Feb 2018 14:49:50 +0200
-Message-ID: <381eaa40735385a1a60e5ab0a7daf4bb847fc2ab.1518180590.git.baruch@tkos.co.il>
-Cc: netfilter-devel@vger.kernel.org, Baruch Siach <baruch@tkos.co.il>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 nf 0/9] netfilter: x_tables: use printk ratelimiting
+Date: Fri,  9 Feb 2018 15:51:58 +0100
+Message-ID: <20180209145207.2097-1-fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from guitar.tcltek.co.il ([192.115.133.116]:33866 "EHLO
-        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750945AbeBIMuI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Feb 2018 07:50:08 -0500
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:46618 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751090AbeBIOzS (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 9 Feb 2018 09:55:18 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-glibc before 2.19 missed the definition of IPPROTO_MH. This leads to
-build failure:
+Aeons ago, before namespaces, there was no need to ratelimit this:
+all of these error messages got triggered in response to iptables
+commands, which need CAP_NET_ADMIN.
 
-parser_bison.y: In function 'nft_parse':
-parser_bison.y:3793:21: error: 'IPPROTO_MH' undeclared (first use in this function)
-    | MH { $$ = IPPROTO_MH; }
-                     ^
+Nowadays we have namespaces, so its better to ratelimit these.
+This should also help fuzzing (syzkaller), as it can generate a large
+volume of error messages (which are useless there).
 
-Since we have a local definition of IPPROTO_MH in headers.h use that to
-fix the build.
+First patch get rid of printks that should never be triggered, as userland
+doesn't generate such malformed rules.
 
-Signed-off-by: Baruch Siach <baruch@tkos.co.il>
----
- src/parser_bison.y | 1 +
- 1 file changed, 1 insertion(+)
+The other patches convert all matches/targets.
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 2e79109f4da3..578bfdc10429 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -29,6 +29,7 @@
- #include <rule.h>
- #include <statement.h>
- #include <expression.h>
-+#include <headers.h>
- #include <utils.h>
- #include <parser.h>
- #include <erec.h>
--- 
-2.15.1
+In some cases, modules used pr_err() for errors that are just a
+hint to and user as to why the rule was rejected, so this uses
+pr_info_ratelimited everywhere.
 
+Only exceptions are when the error appears to be due to a bug, i.e.
+ABI breakage and other incompatible changes that should not happen.
+
+Note that most patches introduce overly long lines, but splitting these
+would make it necessary to split the error messages which is worse.
+
+ 46 files changed, 264 insertions(+), 262 deletions(-)
