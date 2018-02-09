@@ -1,32 +1,47 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [Patch net v2] ipt_CLUSTERIP: fix a refcount bug in
- clusterip_config_find_get()
-Date: Thu, 8 Feb 2018 22:53:12 +0100
-Message-ID: <20180208215312.GK14261@breakpoint.cc>
-References: <20180208215352.8294-1-xiyou.wangcong@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pabeni@redhat.com, Eric Dumazet <eric.dumazet@gmail.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
+From: Baruch Siach <baruch@tkos.co.il>
+Subject: [PATCH] src: fix build with older glibc
+Date: Fri,  9 Feb 2018 14:49:50 +0200
+Message-ID: <381eaa40735385a1a60e5ab0a7daf4bb847fc2ab.1518180590.git.baruch@tkos.co.il>
+Cc: netfilter-devel@vger.kernel.org, Baruch Siach <baruch@tkos.co.il>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>
-To: Cong Wang <xiyou.wangcong@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:44230 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752222AbeBHV4T (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 8 Feb 2018 16:56:19 -0500
-Content-Disposition: inline
-In-Reply-To: <20180208215352.8294-1-xiyou.wangcong@gmail.com>
+Received: from guitar.tcltek.co.il ([192.115.133.116]:33866 "EHLO
+        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750945AbeBIMuI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 9 Feb 2018 07:50:08 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Cong Wang <xiyou.wangcong@gmail.com> wrote:
-> In clusterip_config_find_get() we hold RCU read lock so it could
-> run concurrently with clusterip_config_entry_put(), as a result,
-> the refcnt could go back to 1 from 0, which leads to a double
-> list_del()... Just replace refcount_inc() with
-> refcount_inc_not_zero(), as for c->refcount.
+glibc before 2.19 missed the definition of IPPROTO_MH. This leads to
+build failure:
 
-Reviewed-by: Florian Westphal <fw@strlen.de>
+parser_bison.y: In function 'nft_parse':
+parser_bison.y:3793:21: error: 'IPPROTO_MH' undeclared (first use in this function)
+    | MH { $$ = IPPROTO_MH; }
+                     ^
+
+Since we have a local definition of IPPROTO_MH in headers.h use that to
+fix the build.
+
+Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+---
+ src/parser_bison.y | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 2e79109f4da3..578bfdc10429 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -29,6 +29,7 @@
+ #include <rule.h>
+ #include <statement.h>
+ #include <expression.h>
++#include <headers.h>
+ #include <utils.h>
+ #include <parser.h>
+ #include <erec.h>
+-- 
+2.15.1
+
