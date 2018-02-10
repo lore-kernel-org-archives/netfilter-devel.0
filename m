@@ -1,32 +1,23 @@
-From: Eric Biggers <ebiggers3@gmail.com>
-Subject: Apply "netfilter: nf_queue: Make the queue_handler pernet" to
- 4.4-stable
-Date: Fri, 9 Feb 2018 16:19:06 -0800
-Message-ID: <20180210001906.GA134644@gmail.com>
+From: jack <reitoria@ufra.edu.br>
+Subject: Hello Beautiful
+Date: Sat, 10 Feb 2018 07:07:08 -0300 (BRT)
+Message-ID: <1001394854.13208.1518257228027.JavaMail.zimbra__14597.7509012029$1518257662$gmane$org@ufra.edu.br>
+Reply-To: jack <jackthemainman@outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>,
-        Florian Westphal <fw@strlen.de>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-To: stable@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-io0-f193.google.com ([209.85.223.193]:34108 "EHLO
-        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753300AbeBJATJ (ORCPT
+Received: from correio2.ufra.edu.br ([200.129.150.6]:52225 "EHLO
+        correio2.ufra.edu.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750884AbeBJKPk (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 9 Feb 2018 19:19:09 -0500
-Content-Disposition: inline
+        Sat, 10 Feb 2018 05:15:40 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Greg, can you please apply commit dc3ee32e96d7 ("netfilter: nf_queue: Make
-the queue_handler pernet") to 4.4-stable?  syzbot is hitting the crash in
-nfqnl_nf_hook_drop() by interrupting thread creation in pg_net_init().  An OOM
-condition is not required, contrary to what is suggested by the original commit
-message.
+Good day dear, i hope this mail meets you well? my name is Jack, from the U.S. I know this may seem inappropriate so i ask for your forgiveness but i wish to get to know you better, if I may be so bold. I consider myself an easy-going man, adventurous, honest and fun loving person but I am currently looking for a relationship in which I will feel loved. I promise to answer any question that you may want to ask me...all i need is just your attention and the chance to know you more.
 
-Thanks,
+Please tell me more about yourself, if you do not mind. Hope to hear back from you soon.
 
-Eric
+Jack.
