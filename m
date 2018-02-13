@@ -1,45 +1,35 @@
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] netfilter: ipt_ah: return boolean instead of integer
-Date: Tue, 13 Feb 2018 08:25:57 -0600
-Message-ID: <20180213142557.GA9008@embeddedor.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: Apply "netfilter: nf_queue: Make the queue_handler pernet" to
+ 4.4-stable
+Date: Tue, 13 Feb 2018 16:49:22 +0100
+Message-ID: <20180213154922.GD14300@kroah.com>
+References: <20180210001906.GA134644@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+Cc: stable@vger.kernel.org,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
         Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
-Return-path: <netdev-owner@vger.kernel.org>
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+To: Eric Biggers <ebiggers3@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46692 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933440AbeBMPtV (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 13 Feb 2018 10:49:21 -0500
 Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20180210001906.GA134644@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Return statements in functions returning bool should use
-true/false instead of 1/0.
+On Fri, Feb 09, 2018 at 04:19:06PM -0800, Eric Biggers wrote:
+> Hi Greg, can you please apply commit dc3ee32e96d7 ("netfilter: nf_queue: Make
+> the queue_handler pernet") to 4.4-stable?  syzbot is hitting the crash in
+> nfqnl_nf_hook_drop() by interrupting thread creation in pg_net_init().  An OOM
+> condition is not required, contrary to what is suggested by the original commit
+> message.
 
-This issue was detected with the help of Coccinelle.
+Now queued up, thanks.
 
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
----
- net/ipv4/netfilter/ipt_ah.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/ipv4/netfilter/ipt_ah.c b/net/ipv4/netfilter/ipt_ah.c
-index a787d07..7c6c20e 100644
---- a/net/ipv4/netfilter/ipt_ah.c
-+++ b/net/ipv4/netfilter/ipt_ah.c
-@@ -47,7 +47,7 @@ static bool ah_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 		 */
- 		pr_debug("Dropping evil AH tinygram.\n");
- 		par->hotdrop = true;
--		return 0;
-+		return false;
- 	}
- 
- 	return spi_match(ahinfo->spis[0], ahinfo->spis[1],
--- 
-2.7.4
+greg k-h
