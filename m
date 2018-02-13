@@ -1,77 +1,45 @@
-From: David Fabian <david.fabian@cldn.cz>
-Subject: Re: question about UNDEFINE/REDEFINE
-Date: Tue, 13 Feb 2018 12:52:49 +0100
-Message-ID: <6547924.anCJmMjqU3@voxel>
-References: <3622208.jy4NlOniyd@voxel> <20180126134549.t5wjq63x7vw7efcw@salvia> <9368681.Gobf97r6C9@voxel>
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH] netfilter: ipt_ah: return boolean instead of integer
+Date: Tue, 13 Feb 2018 08:25:57 -0600
+Message-ID: <20180213142557.GA9008@embeddedor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailalternative.uvtmail.cz ([109.205.75.52]:54508 "EHLO
-        mail.hosting.cldn.cz" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S934456AbeBMLww (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 13 Feb 2018 06:52:52 -0500
-In-Reply-To: <9368681.Gobf97r6C9@voxel>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello Pablo,
+Return statements in functions returning bool should use
+true/false instead of 1/0.
 
-what do you think about this proposal?
+This issue was detected with the help of Coccinelle.
 
-=2D-=20
-S pozdravem,
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+---
+ net/ipv4/netfilter/ipt_ah.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-David Fabian
-Cluster Design, s.r.o.
-
-Dne =C3=BAter=C3=BD 30. ledna 2018 12:05:48 CET, David Fabian napsal(a):
-> Hello Pablo,
->=20
-> Dne p=C3=A1tek 26. ledna 2018 14:45:49 CET, Pablo Neira Ayuso napsal(a):
-> > 2) Probably even cleaner is to look at 'local' scopes like in bash.
-> >=20
-> >  define local IP1 =3D 1.1.1.1
-> >=20
-> > so the symbol is bound to this file - consider the content of a file
-> > determines a given scope. This can be also useful to the nested
-> > notation.
-> >=20
-> > 3) You rework your ruleset to use the notation with nesting :-). But I
-> > think 2) can be useful for both the flat and nested notation.
-> >=20
-> > I'm not asking you to do 2), but I would like to see how a patch that
-> > adds explicit scoping for the flat ruleset representation looks like.
->=20
-> I know about scopes in the code but unfortunately as you said, the flat
-> notation only has a single scope. Since we are talking about analogy to
-> bash, bash allows me to redefine a variable in the same scope. Variables =
-in
-> nftables feel more like constants which is not necessarily bad as it can
-> prevent some typos but is hard to work with in scripting as it's not that
-> flexible.
->=20
-> From those options you listed I would strongly prefer to have an implicit
-> scope for each file included in the flat notation. That way, defining a
-> variable in one file would not collide with the same variable in a sibling
-> include. Variables from outer scopes would still be available in inner
-> scopes. For people that would want to have their "global" definitions in a
-> separate include, I would recommend creating a new keyword like global or
-> export that would tie a variable to the top-level scope and thus make it
-> available to everyone. I don't think that would be that hard to implement
-> and I may try to if we agree on it.
->=20
-> Anyway there should definitely be a way to de-register (undefine) a varia=
-ble
-> from a scope to prevent a misuse due to typos.
->=20
-> By the way, can we restructure the FW using nesting and still be able to
-> retain all per-customer rules in a single file? Wouldn't that require us =
-to
-> split prerouting, postrouting, forward and other rules to separate scopes/
-> table definitions? That would be highly inconvenient.
-
-
+diff --git a/net/ipv4/netfilter/ipt_ah.c b/net/ipv4/netfilter/ipt_ah.c
+index a787d07..7c6c20e 100644
+--- a/net/ipv4/netfilter/ipt_ah.c
++++ b/net/ipv4/netfilter/ipt_ah.c
+@@ -47,7 +47,7 @@ static bool ah_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 		 */
+ 		pr_debug("Dropping evil AH tinygram.\n");
+ 		par->hotdrop = true;
+-		return 0;
++		return false;
+ 	}
+ 
+ 	return spi_match(ahinfo->spis[0], ahinfo->spis[1],
+-- 
+2.7.4
