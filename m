@@ -1,125 +1,36 @@
-From: Paolo Abeni <pabeni@redhat.com>
-Subject: [PATCH net v2] netfilter: nat: cope with negative port range
-Date: Wed, 14 Feb 2018 12:13:33 +0100
-Message-ID: <184e6d2a1ab2e474c12be6e9819d7cf2cc846f26.1518606740.git.pabeni@redhat.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH net v2] netfilter: nat: cope with negative port range
+Date: Wed, 14 Feb 2018 04:28:26 -0800
+Message-ID: <1518611306.3715.193.camel@gmail.com>
+References: <184e6d2a1ab2e474c12be6e9819d7cf2cc846f26.1518606740.git.pabeni@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
         netfilter-devel@vger.kernel.org, syzkaller-bugs@googlegroups.com
-To: netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-it0-f44.google.com ([209.85.214.44]:50390 "EHLO
+        mail-it0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S967547AbeBNM2a (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Feb 2018 07:28:30 -0500
+In-Reply-To: <184e6d2a1ab2e474c12be6e9819d7cf2cc846f26.1518606740.git.pabeni@redhat.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-syzbot reported a division by 0 bug in the netfilter nat code:
+On Wed, 2018-02-14 at 12:13 +0100, Paolo Abeni wrote:
+> syzbot reported a division by 0 bug in the netfilter nat code:
 
-divide error: 0000 [#1] SMP KASAN
-Dumping ftrace buffer:
-    (ftrace buffer empty)
-Modules linked in:
-CPU: 1 PID: 4168 Comm: syzkaller034710 Not tainted 4.16.0-rc1+ #309
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
-Google 01/01/2011
-RIP: 0010:nf_nat_l4proto_unique_tuple+0x291/0x530
-net/netfilter/nf_nat_proto_common.c:88
-RSP: 0018:ffff8801b2466778 EFLAGS: 00010246
-RAX: 000000000000f153 RBX: ffff8801b2466dd8 RCX: ffff8801b2466c7c
-RDX: 0000000000000000 RSI: ffff8801b2466c58 RDI: ffff8801db5293ac
-RBP: ffff8801b24667d8 R08: ffff8801b8ba6dc0 R09: ffffffff88af5900
-R10: ffff8801b24666f0 R11: 0000000000000000 R12: 000000002990f153
-R13: 0000000000000001 R14: 0000000000000000 R15: ffff8801b2466c7c
-FS:  00000000017e3880(0000) GS:ffff8801db500000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00000000208fdfe4 CR3: 00000001b5340002 CR4: 00000000001606e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
-  dccp_unique_tuple+0x40/0x50 net/netfilter/nf_nat_proto_dccp.c:30
-  get_unique_tuple+0xc28/0x1c10 net/netfilter/nf_nat_core.c:362
-  nf_nat_setup_info+0x1c2/0xe00 net/netfilter/nf_nat_core.c:406
-  nf_nat_redirect_ipv6+0x306/0x730 net/netfilter/nf_nat_redirect.c:124
-  redirect_tg6+0x7f/0xb0 net/netfilter/xt_REDIRECT.c:34
-  ip6t_do_table+0xc2a/0x1a30 net/ipv6/netfilter/ip6_tables.c:365
-  ip6table_nat_do_chain+0x65/0x80 net/ipv6/netfilter/ip6table_nat.c:41
-  nf_nat_ipv6_fn+0x594/0xa80 net/ipv6/netfilter/nf_nat_l3proto_ipv6.c:302
-  nf_nat_ipv6_local_fn+0x33/0x5d0
-net/ipv6/netfilter/nf_nat_l3proto_ipv6.c:407
-  ip6table_nat_local_fn+0x2c/0x40 net/ipv6/netfilter/ip6table_nat.c:69
-  nf_hook_entry_hookfn include/linux/netfilter.h:120 [inline]
-  nf_hook_slow+0xba/0x1a0 net/netfilter/core.c:483
-  nf_hook include/linux/netfilter.h:243 [inline]
-  NF_HOOK include/linux/netfilter.h:286 [inline]
-  ip6_xmit+0x10ec/0x2260 net/ipv6/ip6_output.c:277
-  inet6_csk_xmit+0x2fc/0x580 net/ipv6/inet6_connection_sock.c:139
-  dccp_transmit_skb+0x9ac/0x10f0 net/dccp/output.c:142
-  dccp_connect+0x369/0x670 net/dccp/output.c:564
-  dccp_v6_connect+0xe17/0x1bf0 net/dccp/ipv6.c:946
-  __inet_stream_connect+0x2d4/0xf00 net/ipv4/af_inet.c:620
-  inet_stream_connect+0x58/0xa0 net/ipv4/af_inet.c:684
-  SYSC_connect+0x213/0x4a0 net/socket.c:1639
-  SyS_connect+0x24/0x30 net/socket.c:1620
-  do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
-  entry_SYSCALL_64_after_hwframe+0x26/0x9b
-RIP: 0033:0x441c69
-RSP: 002b:00007ffe50cc0be8 EFLAGS: 00000217 ORIG_RAX: 000000000000002a
-RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 0000000000441c69
-RDX: 000000000000001c RSI: 00000000208fdfe4 RDI: 0000000000000003
-RBP: 00000000006cc018 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000538 R11: 0000000000000217 R12: 0000000000403590
-R13: 0000000000403620 R14: 0000000000000000 R15: 0000000000000000
-Code: 48 89 f0 83 e0 07 83 c0 01 38 d0 7c 08 84 d2 0f 85 46 02 00 00 48 8b
-45 c8 44 0f b7 20 e8 88 97 04 fd 31 d2 41 0f b7 c4 4c 89 f9 <41> f7 f6 48
-c1 e9 03 48 b8 00 00 00 00 00 fc ff df 0f b6 0c 01
-RIP: nf_nat_l4proto_unique_tuple+0x291/0x530
-net/netfilter/nf_nat_proto_common.c:88 RSP: ffff8801b2466778
+...
 
-The problem is that currently we don't have any check on the
-configured port range. A port range == -1 triggers the bug, while
-other negative values may require a very long time to complete the
-following loop.
+> Adding the relevant check at parse time could break existing
+> setup, moreover we would need to read/write such values atomically
+> to avoid possible transient negative ranges at update time.
 
-Adding the relevant check at parse time could break existing
-setup, moreover we would need to read/write such values atomically
-to avoid possible transient negative ranges at update time.
+I do not quite follow why it is so hard to add a check at parse time.
 
-This commit addresses the issue swapping the two ends on negative
-ranges in nf_nat_l4proto_unique_tuple().
+Breaking buggy setups would not be a concern I think.
 
-v1 -> v2: use the correct 'Fixes' tag
-
-Fixes: 5b1158e909ec ("[NETFILTER]: Add NAT support for nf_conntrack")
-Reported-and-tested-by: syzbot+8012e198bd037f4871e5@syzkaller.appspotmail.com
-Signed-off-by: Paolo Abeni <pabeni@redhat.com>
----
- net/netfilter/nf_nat_proto_common.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/net/netfilter/nf_nat_proto_common.c b/net/netfilter/nf_nat_proto_common.c
-index fbce552a796e..a05cce545e98 100644
---- a/net/netfilter/nf_nat_proto_common.c
-+++ b/net/netfilter/nf_nat_proto_common.c
-@@ -41,7 +41,7 @@ void nf_nat_l4proto_unique_tuple(const struct nf_nat_l3proto *l3proto,
- 				 const struct nf_conn *ct,
- 				 u16 *rover)
- {
--	unsigned int range_size, min, i;
-+	unsigned int range_size, min, max, i;
- 	__be16 *portptr;
- 	u_int16_t off;
- 
-@@ -70,8 +70,11 @@ void nf_nat_l4proto_unique_tuple(const struct nf_nat_l3proto *l3proto,
- 			range_size = 65535 - 1024 + 1;
- 		}
- 	} else {
--		min = ntohs(range->min_proto.all);
--		range_size = ntohs(range->max_proto.all) - min + 1;
-+		min = ntohs(READ_ONCE(range->min_proto.all));
-+		max = ntohs(READ_ONCE(range->max_proto.all));
-+		if (unlikely(max < min))
-+			swap(min, max);
-+		range_size = max - min + 1;
- 	}
- 
- 	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM) {
--- 
-2.14.3
