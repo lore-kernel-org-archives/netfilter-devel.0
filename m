@@ -1,37 +1,75 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] .gitignore: ignore ASN.1 auto generated files
-Date: Wed, 14 Feb 2018 20:53:59 +0100
-Message-ID: <20180214195359.fspcer6ircbv652c@salvia>
-References: <20180212134542.13040-1-lszhu@suse.com>
+Subject: Re: [PATCH net v2] netfilter: x_tables: fix missing timer
+ initialization in xt_LED
+Date: Wed, 14 Feb 2018 20:55:11 +0100
+Message-ID: <20180214195511.mydbkejmvfe54bqz@salvia>
+References: <2a65c93c132cb8b7d0f12a9756f34aa3199e5401.1518456437.git.pabeni@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, trivial@kernel.org,
-        netfilter-devel@vger.kernel.org, yamada.masahiro@socionext.com,
-        robh@kernel.org
-To: Zhu Lingshan <lszhu@suse.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35302 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1162994AbeBNTyE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Feb 2018 14:54:04 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C4902FFB64
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 20:54:02 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id B3E6BDA78A
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 20:54:02 +0100 (CET)
+Cc: netdev@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        netfilter-devel@vger.kernel.org,
+        "David S. Miller" <davem@davemloft.net>,
+        syzkaller-bugs@googlegroups.com,
+        Adam Nielsen <a.nielsen@shikadi.net>
+To: Paolo Abeni <pabeni@redhat.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180212134542.13040-1-lszhu@suse.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <2a65c93c132cb8b7d0f12a9756f34aa3199e5401.1518456437.git.pabeni@redhat.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Feb 12, 2018 at 09:45:42PM +0800, Zhu Lingshan wrote:
-> when build kernel with default configure, files:
+On Mon, Feb 12, 2018 at 06:49:39PM +0100, Paolo Abeni wrote:
+> syzbot reported that xt_LED may try to use the ledinternal->timer
+> without previously initializing it:
 > 
-> generatenet/ipv4/netfilter/nf_nat_snmp_basic-asn1.c
-> net/ipv4/netfilter/nf_nat_snmp_basic-asn1.h
+> ------------[ cut here ]------------
+> kernel BUG at kernel/time/timer.c:958!
+> invalid opcode: 0000 [#1] SMP KASAN
+> Dumping ftrace buffer:
+>     (ftrace buffer empty)
+> Modules linked in:
+> CPU: 1 PID: 1826 Comm: kworker/1:2 Not tainted 4.15.0+ #306
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
+> Google 01/01/2011
+> Workqueue: ipv6_addrconf addrconf_dad_work
+> RIP: 0010:__mod_timer kernel/time/timer.c:958 [inline]
+> RIP: 0010:mod_timer+0x7d6/0x13c0 kernel/time/timer.c:1102
+> RSP: 0018:ffff8801d24fe9f8 EFLAGS: 00010293
+> RAX: ffff8801d25246c0 RBX: ffff8801aec6cb50 RCX: ffffffff816052c6
+> RDX: 0000000000000000 RSI: 00000000fffbd14b RDI: ffff8801aec6cb68
+> RBP: ffff8801d24fec98 R08: 0000000000000000 R09: 1ffff1003a49fd6c
+> R10: ffff8801d24feb28 R11: 0000000000000005 R12: dffffc0000000000
+> R13: ffff8801d24fec70 R14: 00000000fffbd14b R15: ffff8801af608f90
+> FS:  0000000000000000(0000) GS:ffff8801db500000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 00000000206d6fd0 CR3: 0000000006a22001 CR4: 00000000001606e0
+> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+> Call Trace:
+>   led_tg+0x1db/0x2e0 net/netfilter/xt_LED.c:75
+>   ip6t_do_table+0xc2a/0x1a30 net/ipv6/netfilter/ip6_tables.c:365
+>   ip6table_raw_hook+0x65/0x80 net/ipv6/netfilter/ip6table_raw.c:42
+>   nf_hook_entry_hookfn include/linux/netfilter.h:120 [inline]
+>   nf_hook_slow+0xba/0x1a0 net/netfilter/core.c:483
+>   nf_hook.constprop.27+0x3f6/0x830 include/linux/netfilter.h:243
+>   NF_HOOK include/linux/netfilter.h:286 [inline]
+>   ndisc_send_skb+0xa51/0x1370 net/ipv6/ndisc.c:491
+>   ndisc_send_ns+0x38a/0x870 net/ipv6/ndisc.c:633
+>   addrconf_dad_work+0xb9e/0x1320 net/ipv6/addrconf.c:4008
+>   process_one_work+0xbbf/0x1af0 kernel/workqueue.c:2113
+>   worker_thread+0x223/0x1990 kernel/workqueue.c:2247
+>   kthread+0x33c/0x400 kernel/kthread.c:238
+>   ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:429
+> Code: 85 2a 0b 00 00 4d 8b 3c 24 4d 85 ff 75 9f 4c 8b bd 60 fd ff ff e8 bb
+> 57 10 00 65 ff 0d 94 9a a1 7e e9 d9 fc ff ff e8 aa 57 10 00 <0f> 0b e8 a3
+> 57 10 00 e9 14 fb ff ff e8 99 57 10 00 4c 89 bd 70
+> RIP: __mod_timer kernel/time/timer.c:958 [inline] RSP: ffff8801d24fe9f8
+> RIP: mod_timer+0x7d6/0x13c0 kernel/time/timer.c:1102 RSP: ffff8801d24fe9f8
+> ---[ end trace f661ab06f5dd8b3d ]---
 > 
-> will be automatically generated by ASN.1 compiler, so
-> No need to track them in git, it's better to ignore them.
+> The ledinternal struct can be shared between several different
+> xt_LED targets, but the related timer is currently initialized only
+> if the first target requires it. Fix it by unconditionally
+> initializing the timer struct.
 
 Applied, thanks.
