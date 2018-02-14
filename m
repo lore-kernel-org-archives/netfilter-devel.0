@@ -1,50 +1,47 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] tests: add test case for sets updated from packet path
-Date: Wed, 14 Feb 2018 17:40:17 +0100
-Message-ID: <20180214164017.14205-1-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: =?UTF-8?Q?Mantas_Mikul=C4=97nas?= <grawity@gmail.com>
+Subject: Overlapping IP networks no longer allowed?
+Date: Wed, 14 Feb 2018 19:02:32 +0200
+Message-ID: <CAPWNY8W5euS6+LrEppdKp81k-Uz48w2WZP8kzu5=cVyhObnVMg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:43000 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1032720AbeBNQpM (ORCPT
+Received: from mail-pl0-f44.google.com ([209.85.160.44]:46030 "EHLO
+        mail-pl0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1032907AbeBNRCt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Feb 2018 11:45:12 -0500
+        Wed, 14 Feb 2018 12:02:49 -0500
+Received: by mail-pl0-f44.google.com with SMTP id p5so8847746plo.12
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 09:02:49 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-currently kernel may pick a set implementation that doesn't provide
-a ->update() function. This causes an error when user attempts to
-add the nftables rule that is supposed to add entries to the set.
+Hello,
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
-Pablo, unless you have objections I would push this now.
+As of nftables 0.8.1, it seems I can no longer write anonymous sets
+which contain overlapping networks (CIDR masks).
 
-diff --git a/tests/shell/testcases/sets/0028autoselect_0 b/tests/shell/testcases/sets/0028autoselect_0
-new file mode 100755
-index 000000000000..2225e7aee247
---- /dev/null
-+++ b/tests/shell/testcases/sets/0028autoselect_0
-@@ -0,0 +1,18 @@
-+#!/bin/bash
-+
-+# This testscase checks kernel picks a suitable set backends.
-+# Ruleset attempts to update from packet path, so set backend
-+# needs an ->update() implementation.
-+
-+set -e
-+
-+$NFT add table t
-+$NFT add set t s1 { type inet_proto \; }
-+$NFT add set t s2 { type ipv4_addr \; }
-+$NFT add set t s3 { type ipv4_addr \; size 1024\; }
-+$NFT add chain t c {type filter hook input priority 0 \; }
-+
-+# chosen set type must support updates from packet path
-+$NFT add rule t c meta iifname foobar set add ip protocol @s1
-+$NFT add rule t c meta iifname foobar set add ip daddr @s2
-+$NFT add rule t c meta iifname foobar set add ip daddr @s3
--- 
-2.13.6
+For example, I want to write the following ruleset:
 
+#!/usr/bin/nft -f
+define users =3D { 10.0.0.0/8, 193.219.181.192/26 }
+define admins =3D { 10.123.0.0/24, 31.220.42.129 }
+define allowed =3D { $users, $admins }
+table inet filter {
+        chain foobar {
+                ip saddr $allowed accept
+        }
+}
+
+results in an error message:
+
+    Error: interval overlaps with previous one
+
+I noticed a few nftables.git commits related to disabling auto-merge
+for interval sets... but mine don't have the 'interval' flag, and
+there doesn't seem to be any way to specify 'auto-merge' for anonymous
+sets, either.
+
+--=20
+Mantas Mikul=C4=97nas
