@@ -1,79 +1,49 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 2/6] payload: add payload_dependency_release() helper function
-Date: Wed, 14 Feb 2018 16:22:25 +0100
-Message-ID: <20180214152229.11830-3-pablo@netfilter.org>
-References: <20180214152229.11830-1-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51626 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1031168AbeBNPWj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Feb 2018 10:22:39 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E0A6311772B
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 16:22:37 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id D30BEDA3A0
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 16:22:37 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0949EDA78A
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 16:22:36 +0100 (CET)
-Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
-        (Authenticated sender: pneira@us.es)
-        by entrada.int (Postfix) with ESMTPA id C03B041E4817
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 16:22:35 +0100 (CET)
-In-Reply-To: <20180214152229.11830-1-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Paolo Abeni <pabeni@redhat.com>
+Subject: Re: [PATCH net v2] netfilter: nat: cope with negative port range
+Date: Wed, 14 Feb 2018 16:45:31 +0100
+Message-ID: <1518623131.13674.7.camel@redhat.com>
+References: <184e6d2a1ab2e474c12be6e9819d7cf2cc846f26.1518606740.git.pabeni@redhat.com>
+         <1518611306.3715.193.camel@gmail.com> <20180214123037.GD2810@breakpoint.cc>
+         <20180214135119.vmfw2jraieo3zxdg@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Eric Dumazet <eric.dumazet@gmail.com>, netdev@vger.kernel.org,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, syzkaller-bugs@googlegroups.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Florian Westphal <fw@strlen.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180214135119.vmfw2jraieo3zxdg@salvia>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Wrap code that releases existing dependencies that we have just
-annotated in the context structure.
+Hi,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/payload.c | 22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+On Wed, 2018-02-14 at 14:51 +0100, Pablo Neira Ayuso wrote:
+> On Wed, Feb 14, 2018 at 01:30:37PM +0100, Florian Westphal wrote:
+> > Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> > > On Wed, 2018-02-14 at 12:13 +0100, Paolo Abeni wrote:
+> > > > syzbot reported a division by 0 bug in the netfilter nat code:
+> > > > Adding the relevant check at parse time could break existing
+> > > > setup, moreover we would need to read/write such values atomically
+> > > > to avoid possible transient negative ranges at update time.
+> > > 
+> > > I do not quite follow why it is so hard to add a check at parse time.
+> > > 
+> > > Breaking buggy setups would not be a concern I think.
+> > 
+> > It would be possible for xtables but afaics in nft_nat.c case
+> > (nft_nat_eval) range.{min,max}_proto.all values are loaded from nft
+> > registers at runtime.
+> 
+> Then, restrict this from nft_nat.
 
-diff --git a/src/payload.c b/src/payload.c
-index df3c8136c88c..21c2842807cd 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -428,6 +428,17 @@ void payload_dependency_store(struct payload_dep_ctx *ctx,
- 	ctx->pdep  = stmt;
- }
- 
-+static void payload_dependency_release(struct payload_dep_ctx *ctx)
-+{
-+	list_del(&ctx->pdep->list);
-+	stmt_free(ctx->pdep);
-+
-+	ctx->pbase = PROTO_BASE_INVALID;
-+	if (ctx->pdep == ctx->prev)
-+		ctx->prev = NULL;
-+	ctx->pdep  = NULL;
-+}
-+
- /**
-  * __payload_dependency_kill - kill a redundant payload depedency
-  *
-@@ -442,15 +453,8 @@ void __payload_dependency_kill(struct payload_dep_ctx *ctx,
- {
- 	if (ctx->pbase != PROTO_BASE_INVALID &&
- 	    ctx->pbase == base &&
--	    ctx->pdep != NULL) {
--		list_del(&ctx->pdep->list);
--		stmt_free(ctx->pdep);
--
--		ctx->pbase = PROTO_BASE_INVALID;
--		if (ctx->pdep == ctx->prev)
--			ctx->prev = NULL;
--		ctx->pdep  = NULL;
--	}
-+	    ctx->pdep != NULL)
-+		payload_dependency_release(ctx);
- }
- 
- void payload_dependency_kill(struct payload_dep_ctx *ctx, struct expr *expr,
--- 
-2.11.0
+If we move the check in the caller for nft, then need cope individually
+with several control paths (nf_nat_setup_info() is used by ~10 modules
+if I'm not wrong), I think keeping the check here would be better, do
+you have strong opinions against that?
 
+Thanks,
+
+Paolo
