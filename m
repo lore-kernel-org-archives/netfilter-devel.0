@@ -1,62 +1,56 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] parser_bison: restore nft {import,export} ruleset
-Date: Wed, 14 Feb 2018 20:27:12 +0100
-Message-ID: <20180214192712.2veqolrbrgq3n255@salvia>
-References: <20180214183244.16184-1-pablo@netfilter.org>
- <CAOfkYf4aYq8bkzC5i+mrxrxO0EgzxzL46yphGKfUZettW4LspA@mail.gmail.com>
- <20180214191652.ao7ethqbt3qwvvqz@salvia>
+Subject: Re: [PATCH net v2] netfilter: drop outermost socket lock in
+ getsockopt()
+Date: Wed, 14 Feb 2018 20:44:24 +0100
+Message-ID: <20180214194424.kdsvn2swo3b4ldy5@salvia>
+References: <a4752d0887579496c5db267d9db7ff77719436d8.1518088560.git.pabeni@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>, anthonyryan1@gmail.com,
-        Phil Sutter <phil@nwl.cc>
-To: Shyam Saini <mayhs11saini@gmail.com>
+Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
+        Florian Westphal <fw@strlen.de>,
+        Xin Long <lucien.xin@gmail.com>,
+        netfilter-devel@vger.kernel.org
+To: Paolo Abeni <pabeni@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56244 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:33138 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1162787AbeBNT1R (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Feb 2018 14:27:17 -0500
+        id S1163061AbeBNTo3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Feb 2018 14:44:29 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 612E4FA5F1
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 20:27:15 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 14635FFB79
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 20:44:28 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 52528DA7F7
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 20:27:15 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 04C9CDA729
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 20:44:28 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20180214191652.ao7ethqbt3qwvvqz@salvia>
+In-Reply-To: <a4752d0887579496c5db267d9db7ff77719436d8.1518088560.git.pabeni@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Feb 14, 2018 at 08:16:52PM +0100, Pablo Neira Ayuso wrote:
-> On Thu, Feb 15, 2018 at 12:34:31AM +0530, Shyam Saini wrote:
-> > Hi Pablo,
-> > 
-> > On Thu, Feb 15, 2018 at 12:02 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > Restore original syntax for the yet experimental VM low-level json
-> > > representation.
-> > >
-> > > Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1224
-> > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > > ---
-> > > I asked for this change to make room for the high-level json
-> > > representation, but we can use -j options for this instead.  Given there
-> > > are more users for the json representation that I expected, I'm fixing
-> > > it myself by restoring the former behaviour.
-> > 
-> > Why would one use "nft export"  without "nft import".
-> > if someone exports rules in json then they can't use those rules
-> > given the fact that "nft import" was not available earlier.
-> > 
-> > Am i missing something?
+On Thu, Feb 08, 2018 at 12:19:00PM +0100, Paolo Abeni wrote:
+> The Syzbot reported a possible deadlock in the netfilter area caused by
+> rtnl lock, xt lock and socket lock being acquired with a different order
+> on different code paths, leading to the following backtrace:
 > 
-> With this patch nft import and nft export works as expected, ie.
+> ======================================================
+> WARNING: possible circular locking dependency detected
+> 4.15.0+ #301 Not tainted
+> ------------------------------------------------------
+> syzkaller233489/4179 is trying to acquire lock:
+>   (rtnl_mutex){+.+.}, at: [<0000000048e996fd>] rtnl_lock+0x17/0x20
+> net/core/rtnetlink.c:74
 > 
->         nft export ruleset json > file.json
->         nft import ruleset json < file.json
+> but task is already holding lock:
+>   (&xt[i].mutex){+.+.}, at: [<00000000328553a2>]
+> xt_find_table_lock+0x3e/0x3e0 net/netfilter/x_tables.c:1041
 > 
-> I'm just restoring 'nft export ruleset json' with this patch, it seems
-> there are more users of this than I expected, so let's restore this
-> before 0.8.3 is released, that's my proposal.
+> which lock already depends on the new lock.
+> ===
+> 
+> Since commit 3f34cfae1230 ("netfilter: on sockopt() acquire sock lock
+> only in the required scope"), we already acquire the socket lock in
+> the innermost scope, where needed. In such commit I forgot to remove
+> the outer-most socket lock from the getsockopt() path, this commit
+> addresses the issues dropping it now.
 
-Oh, probably you got confused because the patch title refers to nft
-import when it should only refer to nft export ruleset json?
+Applied, thanks.
