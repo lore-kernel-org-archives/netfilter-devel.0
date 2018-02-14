@@ -1,56 +1,49 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net v2] netfilter: drop outermost socket lock in
- getsockopt()
-Date: Wed, 14 Feb 2018 20:44:24 +0100
-Message-ID: <20180214194424.kdsvn2swo3b4ldy5@salvia>
-References: <a4752d0887579496c5db267d9db7ff77719436d8.1518088560.git.pabeni@redhat.com>
+Subject: Re: netfilter: x_tables: ratelimit most printks
+Date: Wed, 14 Feb 2018 20:49:03 +0100
+Message-ID: <20180214194903.lxl7xwedby6gvjnh@salvia>
+References: <20180207134828.18691-1-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
-        Florian Westphal <fw@strlen.de>,
-        Xin Long <lucien.xin@gmail.com>,
-        netfilter-devel@vger.kernel.org
-To: Paolo Abeni <pabeni@redhat.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33138 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34082 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1163061AbeBNTo3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Feb 2018 14:44:29 -0500
+        id S1162994AbeBNTtH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Feb 2018 14:49:07 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 14635FFB79
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 20:44:28 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 26334FFB61
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 20:49:06 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 04C9CDA729
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 20:44:28 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 14CD0DA789
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 20:49:06 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <a4752d0887579496c5db267d9db7ff77719436d8.1518088560.git.pabeni@redhat.com>
+In-Reply-To: <20180207134828.18691-1-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 08, 2018 at 12:19:00PM +0100, Paolo Abeni wrote:
-> The Syzbot reported a possible deadlock in the netfilter area caused by
-> rtnl lock, xt lock and socket lock being acquired with a different order
-> on different code paths, leading to the following backtrace:
+On Wed, Feb 07, 2018 at 02:48:21PM +0100, Florian Westphal wrote:
+> Aeons ago, before namespaces, there was no need to ratelimit this:
+> all of these error messages got triggered in response to iptables
+> commands, which need CAP_NET_ADMIN.
 > 
-> ======================================================
-> WARNING: possible circular locking dependency detected
-> 4.15.0+ #301 Not tainted
-> ------------------------------------------------------
-> syzkaller233489/4179 is trying to acquire lock:
->   (rtnl_mutex){+.+.}, at: [<0000000048e996fd>] rtnl_lock+0x17/0x20
-> net/core/rtnetlink.c:74
+> Nowadays we have namespaces, so its better to ratelimit these.
+> This should also help fuzzing (syzkaller), as it can generate a large
+> volume of error messages (which are useless there).
 > 
-> but task is already holding lock:
->   (&xt[i].mutex){+.+.}, at: [<00000000328553a2>]
-> xt_find_table_lock+0x3e/0x3e0 net/netfilter/x_tables.c:1041
+> The patches are split as follows:
+> - first get rid of printks that should never be triggered, as userland
+>   doesn't generate such malformed rules anyway.
+> - second, switch some printks to pr_debug.  This is mostly for messages
+>   where it might make sense for developers to see what exactly went
+>   wrong.
 > 
-> which lock already depends on the new lock.
-> ===
+> Rest of the patches swap remaining pr_foo with pr_foo_ratelimited().
 > 
-> Since commit 3f34cfae1230 ("netfilter: on sockopt() acquire sock lock
-> only in the required scope"), we already acquire the socket lock in
-> the innermost scope, where needed. In such commit I forgot to remove
-> the outer-most socket lock from the getsockopt() path, this commit
-> addresses the issues dropping it now.
+> Note that most patches introduce overly long lines, but splitting these
+> would make it necessary to split the error messages which is worse.
+> 
+> 46 files changed, 254 insertions(+), 257 deletions(-)
 
-Applied, thanks.
+Series applied, thanks Florian.
