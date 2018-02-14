@@ -1,93 +1,76 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: Overlapping IP networks no longer allowed?
-Date: Wed, 14 Feb 2018 23:32:18 +0100
-Message-ID: <20180214223218.GG2810@breakpoint.cc>
-References: <CAPWNY8W5euS6+LrEppdKp81k-Uz48w2WZP8kzu5=cVyhObnVMg@mail.gmail.com>
- <20180214182249.nnccha2bg5j4htrv@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: Mantas =?utf-8?Q?Mikul=C4=97nas?= <grawity@gmail.com>,
-        netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: don't set F_IFACE on ipv6 fib lookups
+Date: Thu, 15 Feb 2018 00:23:05 +0100
+Message-ID: <20180214232305.1047-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:44736 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:44860 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1031527AbeBNWff (ORCPT
+        by vger.kernel.org with ESMTP id S1032135AbeBNXaM (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Feb 2018 17:35:35 -0500
-Content-Disposition: inline
-In-Reply-To: <20180214182249.nnccha2bg5j4htrv@salvia>
+        Wed, 14 Feb 2018 18:30:12 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, Feb 14, 2018 at 07:02:32PM +0200, Mantas Mikulėnas wrote:
-> > Hello,
-> > 
-> > As of nftables 0.8.1, it seems I can no longer write anonymous sets
-> > which contain overlapping networks (CIDR masks).
-> > 
-> > For example, I want to write the following ruleset:
-> > 
-> > #!/usr/bin/nft -f
-> > define users = { 10.0.0.0/8, 193.219.181.192/26 }
-> > define admins = { 10.123.0.0/24, 31.220.42.129 }
-> > define allowed = { $users, $admins }
-> > table inet filter {
-> >         chain foobar {
-> >                 ip saddr $allowed accept
-> >         }
-> > }
-> > 
-> > results in an error message:
-> > 
-> >     Error: interval overlaps with previous one
-> > 
-> > I noticed a few nftables.git commits related to disabling auto-merge
-> > for interval sets... but mine don't have the 'interval' flag, and
-> > there doesn't seem to be any way to specify 'auto-merge' for anonymous
-> > sets, either.
-> 
-> I would like not to enable this by default since typo in rulesets
-> could go through unnoticed.
+"fib" starts to behave strangely when an ipv6 default route is
+added - the FIB lookup returns a route using 'oif' in this case.
 
-nft add rule filter input ip protocol '{6 ,tcp }'
-works just fine, eliminating duplicate set elements.
-So I don't see how that is different from removing the redundant parts
-of an anon set.
+This behaviour was inherited from ip6tables rpfilter so change
+this as well.
 
-Especially with 'define' things I believe that automerge by default
-is desireable.
+Bugzilla: https://bugzilla.netfilter.org/show_bug.cgi?id=1221
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/ipv6/netfilter/ip6t_rpfilter.c |  4 ----
+ net/ipv6/netfilter/nft_fib_ipv6.c  | 12 ++----------
+ 2 files changed, 2 insertions(+), 14 deletions(-)
 
-> So the two alternatives I see are:
-> 
-> 1) add per-table configuration options, this would allow us to
->    enable auto-merge explicitly for all anonymous sets. This is also
->    required if we want to allow user to select "policy memory;" for
->    anonymous sets. Only problem with this approach is that this needs
->    a kernel patch, so it will take a while to restore the behaviour you
->    want since we need a new NFTA_TABLE_USERDATA attribute to store user
->    preferences on this.
+diff --git a/net/ipv6/netfilter/ip6t_rpfilter.c b/net/ipv6/netfilter/ip6t_rpfilter.c
+index 94deb69bbbda..91ed25a24b79 100644
+--- a/net/ipv6/netfilter/ip6t_rpfilter.c
++++ b/net/ipv6/netfilter/ip6t_rpfilter.c
+@@ -48,10 +48,6 @@ static bool rpfilter_lookup_reverse6(struct net *net, const struct sk_buff *skb,
+ 	}
+ 
+ 	fl6.flowi6_mark = flags & XT_RPFILTER_VALID_MARK ? skb->mark : 0;
+-	if ((flags & XT_RPFILTER_LOOSE) == 0) {
+-		fl6.flowi6_oif = dev->ifindex;
+-		lookup_flags |= RT6_LOOKUP_F_IFACE;
+-	}
+ 
+ 	rt = (void *) ip6_route_lookup(net, &fl6, lookup_flags);
+ 	if (rt->dst.error)
+diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
+index cc5174c7254c..62fc84d7bdff 100644
+--- a/net/ipv6/netfilter/nft_fib_ipv6.c
++++ b/net/ipv6/netfilter/nft_fib_ipv6.c
+@@ -180,7 +180,6 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 	}
+ 
+ 	*dest = 0;
+- again:
+ 	rt = (void *)ip6_route_lookup(nft_net(pkt), &fl6, lookup_flags);
+ 	if (rt->dst.error)
+ 		goto put_rt_err;
+@@ -189,15 +188,8 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 	if (rt->rt6i_flags & (RTF_REJECT | RTF_ANYCAST | RTF_LOCAL))
+ 		goto put_rt_err;
+ 
+-	if (oif && oif != rt->rt6i_idev->dev) {
+-		/* multipath route? Try again with F_IFACE */
+-		if ((lookup_flags & RT6_LOOKUP_F_IFACE) == 0) {
+-			lookup_flags |= RT6_LOOKUP_F_IFACE;
+-			fl6.flowi6_oif = oif->ifindex;
+-			ip6_rt_put(rt);
+-			goto again;
+-		}
+-	}
++	if (oif && oif != rt->rt6i_idev->dev)
++		goto put_rt_err;
+ 
+ 	switch (priv->result) {
+ 	case NFT_FIB_RESULT_OIF:
+-- 
+2.16.1
 
-Right.
-
-> 2) We add a -m option that we can combine with -f for this, which
->    globally enables auto-merge for every set, including anonymous and
->    named sets.
-
-What about doing automerge by default again for anon sets?
-
-I know you don't like it but it restores old behaviour.
-We could have a debug option that tells users which addresse(s) were
-autoremoved.
-
-The typo argument -- not sure its a valid:
-Consider '10.0.0.01' (instead of .10), we don't try to be 'smart'
-and thats a good thing.
-
-For named sets, the no automerge makes sense because it seems like
-we can't make any reasonable default choice when users try to delete
-a no-longer existing (i.e. merged) element.
-
-But that problem doesn't exist with constant (anon or not) sets.
