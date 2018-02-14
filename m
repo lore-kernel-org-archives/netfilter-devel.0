@@ -1,75 +1,72 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net v2] netfilter: x_tables: fix missing timer
- initialization in xt_LED
-Date: Wed, 14 Feb 2018 20:55:11 +0100
-Message-ID: <20180214195511.mydbkejmvfe54bqz@salvia>
-References: <2a65c93c132cb8b7d0f12a9756f34aa3199e5401.1518456437.git.pabeni@redhat.com>
+From: Shyam Saini <mayhs11saini@gmail.com>
+Subject: Re: [PATCH nft] parser_bison: restore nft {import,export} ruleset
+Date: Thu, 15 Feb 2018 01:25:04 +0530
+Message-ID: <CAOfkYf5dGcKkW4ErvHS0F_px8V96OLp-NAKv7KSJ2jPysyNA1A@mail.gmail.com>
+References: <20180214183244.16184-1-pablo@netfilter.org> <CAOfkYf4aYq8bkzC5i+mrxrxO0EgzxzL46yphGKfUZettW4LspA@mail.gmail.com>
+ <20180214191652.ao7ethqbt3qwvvqz@salvia> <20180214192712.2veqolrbrgq3n255@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        netfilter-devel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>,
-        syzkaller-bugs@googlegroups.com,
-        Adam Nielsen <a.nielsen@shikadi.net>
-To: Paolo Abeni <pabeni@redhat.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2a65c93c132cb8b7d0f12a9756f34aa3199e5401.1518456437.git.pabeni@redhat.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Cc: Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>, anthonyryan1@gmail.com,
+        Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ot0-f195.google.com ([74.125.82.195]:35602 "EHLO
+        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1030255AbeBNTzF (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Feb 2018 14:55:05 -0500
+Received: by mail-ot0-f195.google.com with SMTP id a2so21454995otf.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 11:55:05 -0800 (PST)
+In-Reply-To: <20180214192712.2veqolrbrgq3n255@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Feb 12, 2018 at 06:49:39PM +0100, Paolo Abeni wrote:
-> syzbot reported that xt_LED may try to use the ledinternal->timer
-> without previously initializing it:
-> 
-> ------------[ cut here ]------------
-> kernel BUG at kernel/time/timer.c:958!
-> invalid opcode: 0000 [#1] SMP KASAN
-> Dumping ftrace buffer:
->     (ftrace buffer empty)
-> Modules linked in:
-> CPU: 1 PID: 1826 Comm: kworker/1:2 Not tainted 4.15.0+ #306
-> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
-> Google 01/01/2011
-> Workqueue: ipv6_addrconf addrconf_dad_work
-> RIP: 0010:__mod_timer kernel/time/timer.c:958 [inline]
-> RIP: 0010:mod_timer+0x7d6/0x13c0 kernel/time/timer.c:1102
-> RSP: 0018:ffff8801d24fe9f8 EFLAGS: 00010293
-> RAX: ffff8801d25246c0 RBX: ffff8801aec6cb50 RCX: ffffffff816052c6
-> RDX: 0000000000000000 RSI: 00000000fffbd14b RDI: ffff8801aec6cb68
-> RBP: ffff8801d24fec98 R08: 0000000000000000 R09: 1ffff1003a49fd6c
-> R10: ffff8801d24feb28 R11: 0000000000000005 R12: dffffc0000000000
-> R13: ffff8801d24fec70 R14: 00000000fffbd14b R15: ffff8801af608f90
-> FS:  0000000000000000(0000) GS:ffff8801db500000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 00000000206d6fd0 CR3: 0000000006a22001 CR4: 00000000001606e0
-> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-> Call Trace:
->   led_tg+0x1db/0x2e0 net/netfilter/xt_LED.c:75
->   ip6t_do_table+0xc2a/0x1a30 net/ipv6/netfilter/ip6_tables.c:365
->   ip6table_raw_hook+0x65/0x80 net/ipv6/netfilter/ip6table_raw.c:42
->   nf_hook_entry_hookfn include/linux/netfilter.h:120 [inline]
->   nf_hook_slow+0xba/0x1a0 net/netfilter/core.c:483
->   nf_hook.constprop.27+0x3f6/0x830 include/linux/netfilter.h:243
->   NF_HOOK include/linux/netfilter.h:286 [inline]
->   ndisc_send_skb+0xa51/0x1370 net/ipv6/ndisc.c:491
->   ndisc_send_ns+0x38a/0x870 net/ipv6/ndisc.c:633
->   addrconf_dad_work+0xb9e/0x1320 net/ipv6/addrconf.c:4008
->   process_one_work+0xbbf/0x1af0 kernel/workqueue.c:2113
->   worker_thread+0x223/0x1990 kernel/workqueue.c:2247
->   kthread+0x33c/0x400 kernel/kthread.c:238
->   ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:429
-> Code: 85 2a 0b 00 00 4d 8b 3c 24 4d 85 ff 75 9f 4c 8b bd 60 fd ff ff e8 bb
-> 57 10 00 65 ff 0d 94 9a a1 7e e9 d9 fc ff ff e8 aa 57 10 00 <0f> 0b e8 a3
-> 57 10 00 e9 14 fb ff ff e8 99 57 10 00 4c 89 bd 70
-> RIP: __mod_timer kernel/time/timer.c:958 [inline] RSP: ffff8801d24fe9f8
-> RIP: mod_timer+0x7d6/0x13c0 kernel/time/timer.c:1102 RSP: ffff8801d24fe9f8
-> ---[ end trace f661ab06f5dd8b3d ]---
-> 
-> The ledinternal struct can be shared between several different
-> xt_LED targets, but the related timer is currently initialized only
-> if the first target requires it. Fix it by unconditionally
-> initializing the timer struct.
+> On Wed, Feb 14, 2018 at 08:16:52PM +0100, Pablo Neira Ayuso wrote:
+>> On Thu, Feb 15, 2018 at 12:34:31AM +0530, Shyam Saini wrote:
+>> > Hi Pablo,
+>> >
+>> > On Thu, Feb 15, 2018 at 12:02 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>> > > Restore original syntax for the yet experimental VM low-level json
+>> > > representation.
+>> > >
+>> > > Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1224
+>> > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+>> > > ---
+>> > > I asked for this change to make room for the high-level json
+>> > > representation, but we can use -j options for this instead.  Given there
+>> > > are more users for the json representation that I expected, I'm fixing
+>> > > it myself by restoring the former behaviour.
+>> >
+>> > Why would one use "nft export"  without "nft import".
+>> > if someone exports rules in json then they can't use those rules
+>> > given the fact that "nft import" was not available earlier.
+>> >
+>> > Am i missing something?
+>>
+>> With this patch nft import and nft export works as expected, ie.
+>>
+>>         nft export ruleset json > file.json
+>>         nft import ruleset json < file.json
+>>
+>> I'm just restoring 'nft export ruleset json' with this patch, it seems
+>> there are more users of this than I expected, so let's restore this
+>> before 0.8.3 is released, that's my proposal.
+>
+> Oh, probably you got confused because the patch title refers to nft
+> import when it should only refer to nft export ruleset json?
 
-Applied, thanks.
+No, I mean in some previous mail Phil mentioned that it could break user's
+script.
+ I was thinking why one would use "nft export json" alone.
+Earlier we didn't have nft import command.
+
+So lets say if some user do "nft export json >file.json" then the
+rules in file.json
+are of no use without "nft import json" because we had no way to
+import or use them again.
+
+Sorry, I missed previous mail and couldn't follow up.
+
+
+Thanks!
