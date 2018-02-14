@@ -1,93 +1,104 @@
-From: Shyam Saini <mayhs11saini@gmail.com>
-Subject: Re: [PATCH nft] parser_bison: restore nft {import,export} ruleset
-Date: Thu, 15 Feb 2018 00:34:31 +0530
-Message-ID: <CAOfkYf4aYq8bkzC5i+mrxrxO0EgzxzL46yphGKfUZettW4LspA@mail.gmail.com>
-References: <20180214183244.16184-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>, anthonyryan1@gmail.com,
-        Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH libnftnl] examples: nft-set-del: fix set deletion
+Date: Wed, 14 Feb 2018 20:04:46 +0100
+Message-ID: <20180214190446.31163-1-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:33377 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1162347AbeBNTEc (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 14 Feb 2018 14:04:32 -0500
-Received: by mail-oi0-f67.google.com with SMTP id l124so5072525oib.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 11:04:32 -0800 (PST)
-In-Reply-To: <20180214183244.16184-1-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:50768 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1162347AbeBNTEw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 14 Feb 2018 14:04:52 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 50B56DA848
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 20:04:51 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3FC6DDA7E0
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 20:04:51 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 473C8DA7E0
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 20:04:49 +0100 (CET)
+Received: from salvia.here (129.166.216.87.static.jazztel.es [87.216.166.129])
+        (Authenticated sender: pneira@us.es)
+        by entrada.int (Postfix) with ESMTPA id 10D1F4265A2F
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Feb 2018 20:04:48 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ examples/nft-set-del.c | 33 ++++++++++++++++++++++++---------
+ 1 file changed, 24 insertions(+), 9 deletions(-)
 
-On Thu, Feb 15, 2018 at 12:02 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Restore original syntax for the yet experimental VM low-level json
-> representation.
->
-> Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1224
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> I asked for this change to make room for the high-level json
-> representation, but we can use -j options for this instead.  Given there
-> are more users for the json representation that I expected, I'm fixing
-> it myself by restoring the former behaviour.
+diff --git a/examples/nft-set-del.c b/examples/nft-set-del.c
+index 5e1fad30d341..8c216df861d7 100644
+--- a/examples/nft-set-del.c
++++ b/examples/nft-set-del.c
+@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
+ 	struct mnl_socket *nl;
+ 	char buf[MNL_SOCKET_BUFFER_SIZE];
+ 	struct nlmsghdr *nlh;
++	struct mnl_nlmsg_batch *batch;
+ 	uint32_t portid, seq, family;
+ 	struct nftnl_set *t = NULL;
+ 	int ret;
+@@ -54,13 +55,23 @@ int main(int argc, char *argv[])
+ 		exit(EXIT_FAILURE);
+ 	}
+ 
+-	nlh = nftnl_set_nlmsg_build_hdr(buf, NFT_MSG_DELSET, family,
++	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
++
++	nftnl_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
++	mnl_nlmsg_batch_next(batch);
++
++	nlh = nftnl_set_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
++					NFT_MSG_DELSET, family,
+ 					NLM_F_ACK, seq);
+ 	nftnl_set_set(t, NFTNL_SET_TABLE, argv[2]);
+ 	nftnl_set_set(t, NFTNL_SET_NAME, argv[3]);
+ 
+ 	nftnl_set_nlmsg_build_payload(nlh, t);
+ 	nftnl_set_free(t);
++	mnl_nlmsg_batch_next(batch);
++
++	nftnl_batch_end(mnl_nlmsg_batch_current(batch), seq++);
++	mnl_nlmsg_batch_next(batch);
+ 
+ 	nl = mnl_socket_open(NETLINK_NETFILTER);
+ 	if (nl == NULL) {
+@@ -74,20 +85,24 @@ int main(int argc, char *argv[])
+ 	}
+ 	portid = mnl_socket_get_portid(nl);
+ 
+-	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
++	ret = mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
++				mnl_nlmsg_batch_size(batch));
++	if (ret < 0) {
+ 		perror("mnl_socket_send");
+ 		exit(EXIT_FAILURE);
+ 	}
+ 
++	mnl_nlmsg_batch_stop(batch);
++
+ 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+-	while (ret > 0) {
+-		ret = mnl_cb_run(buf, ret, seq, portid, NULL, NULL);
+-		if (ret <= 0)
+-			break;
+-		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	while (ret < 0) {
++		perror("mnl_socket_recvfrom");
++		exit(EXIT_FAILURE);
+ 	}
+-	if (ret == -1) {
+-		perror("error");
++
++	ret = mnl_cb_run(buf, ret, 0, portid, NULL, NULL);
++	if (ret < 0) {
++		perror("mnl_cb_run");
+ 		exit(EXIT_FAILURE);
+ 	}
+ 	mnl_socket_close(nl);
+-- 
+2.11.0
 
-Why would one use "nft export"  without "nft import".
-if someone exports rules in json then they can't use those rules
-given the fact that "nft import" was not available earlier.
-
-Am i missing something?
-
-
-Thanks!!
-
->  src/parser_bison.y | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
->
-> diff --git a/src/parser_bison.y b/src/parser_bison.y
-> index 578bfdc10429..4cfc54cfd7b2 100644
-> --- a/src/parser_bison.y
-> +++ b/src/parser_bison.y
-> @@ -1186,7 +1186,7 @@ rename_cmd                :       CHAIN           chain_spec      identifier
->                         }
->                         ;
->
-> -import_cmd                     :       RULESET         markup_format
-> +import_cmd             :       RULESET         markup_format
->                         {
->                                 struct handle h = { .family = NFPROTO_UNSPEC };
->                                 struct markup *markup = markup_alloc($2);
-> @@ -1198,7 +1198,6 @@ import_cmd                        :       RULESET         markup_format
->                                 struct markup *markup = markup_alloc($1);
->                                 $$ = cmd_alloc(CMD_IMPORT, CMD_OBJ_MARKUP, &h, &@$, markup);
->                         }
-> -                       |       JSON            { $$ = NULL; }
->                         ;
->
->  export_cmd             :       RULESET         markup_format
-> @@ -1213,7 +1212,6 @@ export_cmd                :       RULESET         markup_format
->                                 struct markup *markup = markup_alloc($1);
->                                 $$ = cmd_alloc(CMD_EXPORT, CMD_OBJ_MARKUP, &h, &@$, markup);
->                         }
-> -                       |       JSON            { $$ = NULL; }
->                         ;
->
->  monitor_cmd            :       monitor_event   monitor_object  monitor_format
-> @@ -1241,10 +1239,10 @@ monitor_object          :       /* empty */     { $$ = CMD_MONITOR_OBJ_ANY; }
->
->  monitor_format         :       /* empty */     { $$ = NFTNL_OUTPUT_DEFAULT; }
->                         |       markup_format
-> -                       |       JSON            { $$ = NFTNL_OUTPUT_JSON; }
->                         ;
->
->  markup_format          :       XML             { $$ = NFTNL_OUTPUT_XML; }
-> +                       |       JSON            { $$ = NFTNL_OUTPUT_JSON; }
->                         |       VM JSON         { $$ = NFTNL_OUTPUT_JSON; }
->                         ;
->
-> --
-> 2.11.0
->
