@@ -1,105 +1,125 @@
-From: Fran Fitzpatrick <francis.x.fitzpatrick@gmail.com>
-Subject: Userspace nft parser limitations / suggestions / help
-Date: Thu, 15 Feb 2018 09:45:06 -0600
-Message-ID: <CALOK-OeL4YPdfpH_QHkmJbx0hjuKhbDYp7+7Mm=PGmsXJ2d7kw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] src: bail out when exporting ruleset with unsupported output
+Date: Thu, 15 Feb 2018 17:29:25 +0100
+Message-ID: <20180215162925.27574-1-pablo@netfilter.org>
+Cc: mayhs11saini@gmail.com, phil@nwl.cc, anthonyryan1@gmail.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-qk0-f175.google.com ([209.85.220.175]:33862 "EHLO
-        mail-qk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1424474AbeBOPp2 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 15 Feb 2018 10:45:28 -0500
-Received: by mail-qk0-f175.google.com with SMTP id o7so74765qkc.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Feb 2018 07:45:28 -0800 (PST)
+Received: from mail.us.es ([193.147.175.20]:57946 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1425921AbeBOQ3e (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 15 Feb 2018 11:29:34 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 542792519AD
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Feb 2018 17:29:33 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 44E78DA3B4
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Feb 2018 17:29:33 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Good morning,
+Display error message and propagate error to shell when running command
+with unsupported output:
 
-I've recently switched to using nftables for one of our customer
-environments that we manage, and there were a few limitations that I
-have seem to run into, so I'd like to bring them up here for
-discussion (since I could just be missing something and it may be
-available and I just don't know it).
+ # nft export ruleset json
+ Error: this output type is not supported
+ export ruleset json
+ ^^^^^^^^^^^^^^^^^^^^
+ # echo $?
+ 1
 
-Also, in my particular use case, we're managing large sets of
-whitelists/blacklists, so keeping that in mind might help...
+ # nft export ruleset vm json
+ ... low-level VM json output
+ # echo $?
+ 0
 
-1) Matching selectors in one rule with an OR
+Fixes: https://bugzilla.netfilter.org/show_bug.cgi?id=1224
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/nftables.h |  2 ++
+ src/evaluate.c     | 13 ++++++++++++-
+ src/parser_bison.y |  6 ++----
+ 3 files changed, 16 insertions(+), 5 deletions(-)
 
-In one scenario, I have a large set of whitelisted IP addresses. To
-accept these, I have to write two rules:
+diff --git a/include/nftables.h b/include/nftables.h
+index 3bfa33e5cb33..5e637e10acd3 100644
+--- a/include/nftables.h
++++ b/include/nftables.h
+@@ -127,4 +127,6 @@ int nft_print(struct output_ctx *octx, const char *fmt, ...)
+ int nft_gmp_print(struct output_ctx *octx, const char *fmt, ...)
+ 	__attribute__((format(printf, 2, 0)));
+ 
++#define __NFT_OUTPUT_NOTSUPP	UINT_MAX
++
+ #endif /* NFTABLES_NFTABLES_H */
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 8107df838a90..e5ad1044fbb7 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -3423,10 +3423,21 @@ static int cmd_evaluate_monitor(struct eval_ctx *ctx, struct cmd *cmd)
+ 
+ static int cmd_evaluate_export(struct eval_ctx *ctx, struct cmd *cmd)
+ {
++	if (cmd->markup->format == __NFT_OUTPUT_NOTSUPP)
++		return cmd_error(ctx, "this output type is not supported");
++
+ 	return cache_update(ctx->nf_sock, ctx->cache, cmd->op, ctx->msgs,
+ 			    ctx->debug_mask & NFT_DEBUG_NETLINK, ctx->octx);
+ }
+ 
++static int cmd_evaluate_import(struct eval_ctx *ctx, struct cmd *cmd)
++{
++	if (cmd->markup->format == __NFT_OUTPUT_NOTSUPP)
++		return cmd_error(ctx, "this output type not supported");
++
++	return 0;
++}
++
+ static const char * const cmd_op_name[] = {
+ 	[CMD_INVALID]	= "invalid",
+ 	[CMD_ADD]	= "add",
+@@ -3486,7 +3497,7 @@ int cmd_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
+ 	case CMD_MONITOR:
+ 		return cmd_evaluate_monitor(ctx, cmd);
+ 	case CMD_IMPORT:
+-		return 0;
++		return cmd_evaluate_import(ctx, cmd);
+ 	default:
+ 		BUG("invalid command operation %u\n", cmd->op);
+ 	};
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 578bfdc10429..563411155bf4 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1198,7 +1198,6 @@ import_cmd			:       RULESET         markup_format
+ 				struct markup *markup = markup_alloc($1);
+ 				$$ = cmd_alloc(CMD_IMPORT, CMD_OBJ_MARKUP, &h, &@$, markup);
+ 			}
+-			|	JSON		{ $$ = NULL; }
+ 			;
+ 
+ export_cmd		:	RULESET		markup_format
+@@ -1213,7 +1212,6 @@ export_cmd		:	RULESET		markup_format
+ 				struct markup *markup = markup_alloc($1);
+ 				$$ = cmd_alloc(CMD_EXPORT, CMD_OBJ_MARKUP, &h, &@$, markup);
+ 			}
+-			|	JSON		{ $$ = NULL; }
+ 			;
+ 
+ monitor_cmd		:	monitor_event	monitor_object	monitor_format
+@@ -1241,10 +1239,10 @@ monitor_object		:	/* empty */	{ $$ = CMD_MONITOR_OBJ_ANY; }
+ 
+ monitor_format		:	/* empty */	{ $$ = NFTNL_OUTPUT_DEFAULT; }
+ 			|	markup_format
+-			|	JSON		{ $$ = NFTNL_OUTPUT_JSON; }
+ 			;
+ 
+-markup_format		: 	XML 		{ $$ = NFTNL_OUTPUT_XML; }
++markup_format		: 	XML 		{ $$ = __NFT_OUTPUT_NOTSUPP; }
++			|	JSON		{ $$ = __NFT_OUTPUT_NOTSUPP; }
+ 			|	VM JSON		{ $$ = NFTNL_OUTPUT_JSON; }
+ 			;
+ 
+-- 
+2.11.0
 
-ip saddr @whitelist accept
-ip daddr @whitelist accept
-
-Ideally, I would like to efficiently write these as one rule, so I
-intuitively tried this:
-
-ip {saddr, daddr} @whitelist accept
-
-I additionally had a scenario where I needed to match against TCP or
-UDP ports, so I tried something like:
-
-{tcp, udp} {dport, sport} 51 accept
-
-But, that didn't work.  I think there should probably be some way to
-match in an or-like fashion, and this might be a nice intuitive syntax
-we might be able to use.
-
-Thoughts?
-
-2) Using elements from a set in a rule
-
-In this scenario, I have a large set of IPs and Ports I need to
-accept.  So, my set and elements looked something like:
-
-add set traffic exceptions { type ipv4_addr . inet_service . inet_protocol ; }
-add element traffic exceptions { 1.2.3.4 . 80 . tcp }
-add element traffic exceptions { 1.2.3.4 . 443 . tcp }
-add element traffic exceptions { 1.2.3.4 . 53 . udp }
-add element traffic exceptions { 1.2.3.4 . 123 . udp }
-
-However, when writing the rule, there was no way for me to to use the
-inet_protocol listed in the set to select the protocol type. My
-example rule might be:
-
-add rule traffic forward ip daddr . tcp dport . inet_protocol @whitelist accept
-
-I'm not sure this syntax is ideal, but I think it shows what I'm
-trying to do, which is _use_ the information in the set to match
-against a TCP or UDP port, depending on the element.
-
-I think doing it this way is more ideal than doing an OR for TCP/UDP
-(as discussed in #1; {tcp, udp}) because I'm specifically accepting
-the packet I want to accept.
-
-3) Complex Real-World Use Cases
-
-Alright, well, here's where it gets complicated.  My gut is telling me
-I just need to figure out a way to represent my rulesets properly with
-the data I have, so please let me know...
-
-As discussed earlier, I'm mainly dealing with a large list of
-"exceptions", or items in a whitelist.  Here are some example of an
-exception:
-TCP: 0.0.0.0/0:0-65635 --> 192.168.1.100:80, 443 : accept (let anyone
-talk to TCP 80, 443)
-UDP: 0.0.0.0/0:0-65635 --> 192.168.1.101:53 : accept (let anyone talk
-to UDP DNS)
-UDP: 0.0.0.0/0:0-65635 --> 192.168.1.102:123 : accept (let anyone talk
-to UDP NTP)
-TCP: 192.168.1.100:1024-65635 --> 157.240.18.35:443 : accept (let this
-one machine talk to Facebook)
-
-Now I can't figure out how to represent those "rules" efficiently in
-nft.  Since I'm dealing with a list of a few thousand exceptions, I
-thought I would need a set.  But it doesn't look like I'm able to
-because I need a range of ports to allow.
-
-What am I missing here?
-
-Thanks,
-Fran
