@@ -1,125 +1,147 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] src: bail out when exporting ruleset with unsupported output
-Date: Thu, 15 Feb 2018 17:29:25 +0100
-Message-ID: <20180215162925.27574-1-pablo@netfilter.org>
-Cc: mayhs11saini@gmail.com, phil@nwl.cc, anthonyryan1@gmail.com
+From: Gregory Vander Schueren <gregory.vanderschueren@tessares.net>
+Subject: [PATCH] inet: don't call skb_orphan if tproxy happens in layer 2
+Date: Thu, 15 Feb 2018 18:25:45 +0100
+Message-ID: <1518715545-2188-1-git-send-email-gregory.vanderschueren@tessares.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="US-ASCII"
+Cc: gregory.detal@tessares.net,
+        Gregory Vander Schueren <gregory.vanderschueren@tessares.net>,
+        Matthieu Baerts <matthieu.baerts@tessares.net>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57946 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1425921AbeBOQ3e (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 15 Feb 2018 11:29:34 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 542792519AD
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Feb 2018 17:29:33 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 44E78DA3B4
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Feb 2018 17:29:33 +0100 (CET)
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:54550 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1427232AbeBOR0S (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 15 Feb 2018 12:26:18 -0500
+Received: by mail-wm0-f65.google.com with SMTP id z81so2229192wmb.4
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Feb 2018 09:26:17 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Display error message and propagate error to shell when running command
-with unsupported output:
+If sysctl bridge-nf-call-iptables is enabled, iptables chains are already
+traversed from the bridging code. In such case, tproxy already happened when
+reaching ip_rcv. Thus no need to call skb_orphan as this would actually undo
+tproxy.
 
- # nft export ruleset json
- Error: this output type is not supported
- export ruleset json
- ^^^^^^^^^^^^^^^^^^^^
- # echo $?
- 1
-
- # nft export ruleset vm json
- ... low-level VM json output
- # echo $?
- 0
-
-Fixes: https://bugzilla.netfilter.org/show_bug.cgi?id=1224
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 71f9dacd2e4d (inet: Call skb_orphan before tproxy activates)
+Signed-off-by: Gregory Vander Schueren <gregory.vanderschueren@tessares.net>
+Signed-off-by: Matthieu Baerts <matthieu.baerts@tessares.net>
 ---
- include/nftables.h |  2 ++
- src/evaluate.c     | 13 ++++++++++++-
- src/parser_bison.y |  6 ++----
- 3 files changed, 16 insertions(+), 5 deletions(-)
 
-diff --git a/include/nftables.h b/include/nftables.h
-index 3bfa33e5cb33..5e637e10acd3 100644
---- a/include/nftables.h
-+++ b/include/nftables.h
-@@ -127,4 +127,6 @@ int nft_print(struct output_ctx *octx, const char *fmt, ...)
- int nft_gmp_print(struct output_ctx *octx, const char *fmt, ...)
- 	__attribute__((format(printf, 2, 0)));
- 
-+#define __NFT_OUTPUT_NOTSUPP	UINT_MAX
-+
- #endif /* NFTABLES_NFTABLES_H */
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 8107df838a90..e5ad1044fbb7 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -3423,10 +3423,21 @@ static int cmd_evaluate_monitor(struct eval_ctx *ctx, struct cmd *cmd)
- 
- static int cmd_evaluate_export(struct eval_ctx *ctx, struct cmd *cmd)
+Hi,
+
+We noticed issues when using tproxy with net.bridge.bridge-nf-call-iptables
+enabled. In such case, ip_rcv() basically undo tproxy's job. The following
+patch proposes a fix.
+
+Feedback would be most welcome,
+Gregory
+
+ include/linux/netfilter_bridge.h | 12 ++++++++++++
+ net/ipv4/ip_input.c              |  9 +++++++--
+ net/ipv6/ip6_input.c             |  9 +++++++--
+ 3 files changed, 26 insertions(+), 4 deletions(-)
+
+diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
+index b671fdf..b1c48f5 100644
+--- a/include/linux/netfilter_bridge.h
++++ b/include/linux/netfilter_bridge.h
+@@ -66,12 +66,24 @@ static inline bool nf_bridge_in_prerouting(const struct sk_buff *skb)
  {
-+	if (cmd->markup->format == __NFT_OUTPUT_NOTSUPP)
-+		return cmd_error(ctx, "this output type is not supported");
-+
- 	return cache_update(ctx->nf_sock, ctx->cache, cmd->op, ctx->msgs,
- 			    ctx->debug_mask & NFT_DEBUG_NETLINK, ctx->octx);
+ 	return skb->nf_bridge && skb->nf_bridge->in_prerouting;
  }
- 
-+static int cmd_evaluate_import(struct eval_ctx *ctx, struct cmd *cmd)
++
++static inline bool
++nf_bridge_has_called_iptables(const struct sk_buff *skb)
 +{
-+	if (cmd->markup->format == __NFT_OUTPUT_NOTSUPP)
-+		return cmd_error(ctx, "this output type not supported");
-+
-+	return 0;
++	return skb->nf_bridge != NULL;
 +}
+ #else
+ #define br_drop_fake_rtable(skb)	        do { } while (0)
+ static inline bool nf_bridge_in_prerouting(const struct sk_buff *skb)
+ {
+ 	return false;
+ }
 +
- static const char * const cmd_op_name[] = {
- 	[CMD_INVALID]	= "invalid",
- 	[CMD_ADD]	= "add",
-@@ -3486,7 +3497,7 @@ int cmd_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
- 	case CMD_MONITOR:
- 		return cmd_evaluate_monitor(ctx, cmd);
- 	case CMD_IMPORT:
--		return 0;
-+		return cmd_evaluate_import(ctx, cmd);
- 	default:
- 		BUG("invalid command operation %u\n", cmd->op);
- 	};
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 578bfdc10429..563411155bf4 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -1198,7 +1198,6 @@ import_cmd			:       RULESET         markup_format
- 				struct markup *markup = markup_alloc($1);
- 				$$ = cmd_alloc(CMD_IMPORT, CMD_OBJ_MARKUP, &h, &@$, markup);
- 			}
--			|	JSON		{ $$ = NULL; }
- 			;
++static inline bool
++nf_bridge_has_called_iptables(const struct sk_buff *skb)
++{
++	return false;
++}
+ #endif /* CONFIG_BRIDGE_NETFILTER */
  
- export_cmd		:	RULESET		markup_format
-@@ -1213,7 +1212,6 @@ export_cmd		:	RULESET		markup_format
- 				struct markup *markup = markup_alloc($1);
- 				$$ = cmd_alloc(CMD_EXPORT, CMD_OBJ_MARKUP, &h, &@$, markup);
- 			}
--			|	JSON		{ $$ = NULL; }
- 			;
+ #endif
+diff --git a/net/ipv4/ip_input.c b/net/ipv4/ip_input.c
+index 57fc13c..2450205 100644
+--- a/net/ipv4/ip_input.c
++++ b/net/ipv4/ip_input.c
+@@ -143,6 +143,7 @@
+ #include <net/checksum.h>
+ #include <net/inet_ecn.h>
+ #include <linux/netfilter_ipv4.h>
++#include <linux/netfilter_bridge.h>
+ #include <net/xfrm.h>
+ #include <linux/mroute.h>
+ #include <linux/netlink.h>
+@@ -487,8 +488,12 @@ int ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt,
+ 	memset(IPCB(skb), 0, sizeof(struct inet_skb_parm));
+ 	IPCB(skb)->iif = skb->skb_iif;
  
- monitor_cmd		:	monitor_event	monitor_object	monitor_format
-@@ -1241,10 +1239,10 @@ monitor_object		:	/* empty */	{ $$ = CMD_MONITOR_OBJ_ANY; }
+-	/* Must drop socket now because of tproxy. */
+-	skb_orphan(skb);
++	/* If nf_bridge calls iptables then tproxy already happened.
++	 * No need to call skb_orphan as this would undo tproxy.
++	 */
++	if (!nf_bridge_has_called_iptables(skb))
++		/* Must drop socket now because of tproxy. */
++		skb_orphan(skb);
  
- monitor_format		:	/* empty */	{ $$ = NFTNL_OUTPUT_DEFAULT; }
- 			|	markup_format
--			|	JSON		{ $$ = NFTNL_OUTPUT_JSON; }
- 			;
+ 	return NF_HOOK(NFPROTO_IPV4, NF_INET_PRE_ROUTING,
+ 		       net, NULL, skb, dev, NULL,
+diff --git a/net/ipv6/ip6_input.c b/net/ipv6/ip6_input.c
+index 9ee208a..60ce4735 100644
+--- a/net/ipv6/ip6_input.c
++++ b/net/ipv6/ip6_input.c
+@@ -32,6 +32,7 @@
  
--markup_format		: 	XML 		{ $$ = NFTNL_OUTPUT_XML; }
-+markup_format		: 	XML 		{ $$ = __NFT_OUTPUT_NOTSUPP; }
-+			|	JSON		{ $$ = __NFT_OUTPUT_NOTSUPP; }
- 			|	VM JSON		{ $$ = NFTNL_OUTPUT_JSON; }
- 			;
+ #include <linux/netfilter.h>
+ #include <linux/netfilter_ipv6.h>
++#include <linux/netfilter_bridge.h>
  
+ #include <net/sock.h>
+ #include <net/snmp.h>
+@@ -202,8 +203,12 @@ int ipv6_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt
+ 
+ 	rcu_read_unlock();
+ 
+-	/* Must drop socket now because of tproxy. */
+-	skb_orphan(skb);
++	/* If nf_bridge calls iptables then tproxy already happened.
++	 * No need to call skb_orphan as this would undo tproxy.
++	 */
++	if (!nf_bridge_has_called_iptables(skb))
++		/* Must drop socket now because of tproxy. */
++		skb_orphan(skb);
+ 
+ 	return NF_HOOK(NFPROTO_IPV6, NF_INET_PRE_ROUTING,
+ 		       net, NULL, skb, dev, NULL,
 -- 
-2.11.0
+2.7.4
 
+
+-- 
+
+------------------------------
+DISCLAIMER.
+This email and any files transmitted with it are confidential and intended 
+solely for the use of the individual or entity to whom they are addressed. 
+If you have received this email in error please notify the system manager. 
+This message contains confidential information and is intended only for the 
+individual named. If you are not the named addressee you should not 
+disseminate, distribute or copy this e-mail. Please notify the sender 
+immediately by e-mail if you have received this e-mail by mistake and 
+delete this e-mail from your system. If you are not the intended recipient 
+you are notified that disclosing, copying, distributing or taking any 
+action in reliance on the contents of this information is strictly 
+prohibited.
