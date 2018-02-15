@@ -1,56 +1,33 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 0/6] rework dependency removal (v2)
-Date: Thu, 15 Feb 2018 16:31:19 +0100
-Message-ID: <20180215153119.3zfnfku64naig2gk@salvia>
-References: <20180214152229.11830-1-pablo@netfilter.org>
+Subject: Re: [nft PATCH] Enable automerge feature for anonymous sets
+Date: Thu, 15 Feb 2018 16:28:51 +0100
+Message-ID: <20180215152851.aycdgpv2rllh5mep@salvia>
+References: <20180206181847.14434-1-phil@nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org,
+        Jeff Kletsky <netfilter@allycomm.com>
+To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33620 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60824 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1164403AbeBOPbY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 15 Feb 2018 10:31:24 -0500
+        id S1163860AbeBOP24 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 15 Feb 2018 10:28:56 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D694820A523
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Feb 2018 16:31:22 +0100 (CET)
+        by mail.us.es (Postfix) with ESMTP id 6A29320A523
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Feb 2018 16:28:54 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C3DB9DA3AD
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Feb 2018 16:31:22 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id DCEF9DA3AD
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Feb 2018 16:31:20 +0100 (CET)
-Received: from us.es (129.166.216.87.static.jazztel.es [87.216.166.129])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: 1984lsi)
-        by entrada.int (Postfix) with ESMTPSA id 9C8104265A2F
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Feb 2018 16:31:20 +0100 (CET)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 51221DA787
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Feb 2018 16:28:54 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20180214152229.11830-1-pablo@netfilter.org>
+In-Reply-To: <20180206181847.14434-1-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Feb 14, 2018 at 04:22:23PM +0100, Pablo Neira Ayuso wrote:
-> Hi,
-> 
-> This patchset aims to address what Florian reported time ago [1]. This
-> is skipping removal of protocol key payload expressions at network base
-> for the netdev, bridge and inet.
-> 
-> It would better to annotate all redundant expressions and add a later
-> stage, where we can do smarter simplifications by looking globally at
-> what we have, instead of just looking at current protocol key expression
-> and last one that we have annotated in the context structure to perform
-> removals. But I would prefer to have a fix now upstream then look at
-> this larger rework later on since it would require to review a bit of
-> the postprocess code.
-> 
-> The initial 4 patches in this batch are just cleanup/preparation patches
-> for patches 5/6 and 6/6.
-> 
-> There is still a few warning in the tests/py/ infrastructure, some of
-> them I think need to be fixed, and at least one can remain there to
-> remind us that we can do better.
+On Tue, Feb 06, 2018 at 07:18:47PM +0100, Phil Sutter wrote:
+> Automatic merging of adjacent/overlapping ranges upon insertion has
+> clear benefits performance- and readability-wise. The drawbacks which
+> led to disabling it by default don't apply to anonymous sets since they
+> are read-only anyway, so enable this feature for them again.
 
-I'm going to push out this so we start giving it some testing.
+Applied, thanks Phil.
