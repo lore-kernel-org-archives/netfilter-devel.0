@@ -1,33 +1,97 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH] Enable automerge feature for anonymous sets
-Date: Thu, 15 Feb 2018 16:28:51 +0100
-Message-ID: <20180215152851.aycdgpv2rllh5mep@salvia>
-References: <20180206181847.14434-1-phil@nwl.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-        Jeff Kletsky <netfilter@allycomm.com>
-To: Phil Sutter <phil@nwl.cc>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60824 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1163860AbeBOP24 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 15 Feb 2018 10:28:56 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6A29320A523
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Feb 2018 16:28:54 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 51221DA787
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Feb 2018 16:28:54 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20180206181847.14434-1-phil@nwl.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Xin Long <lucien.xin@gmail.com>
+Subject: [PATCH net] netfilter: unlock xt_table earlier in __do_replace
+Date: Fri, 16 Feb 2018 18:04:56 +0800
+Message-ID: <61f106376f836829d8c283fb4c0cf11567c953bf.1518775496.git.lucien.xin@gmail.com>
+Cc: davem@davemloft.net, pablo@netfilter.org, fw@strlen.de
+To: network dev <netdev@vger.kernel.org>,
+        netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Feb 06, 2018 at 07:18:47PM +0100, Phil Sutter wrote:
-> Automatic merging of adjacent/overlapping ranges upon insertion has
-> clear benefits performance- and readability-wise. The drawbacks which
-> led to disabling it by default don't apply to anonymous sets since they
-> are read-only anyway, so enable this feature for them again.
+Now it's doing cleanup_entry for oldinfo under the xt_table lock,
+but it's not really necessary. After the replacement job is done
+in xt_replace_table, oldinfo is not used elsewhere any more, and
+it can be freed without xt_table lock safely.
 
-Applied, thanks Phil.
+The important thing is that rtnl_lock is called in some xt_target
+destroy, which means rtnl_lock, a big lock is used in xt_table
+lock, a smaller one. It usually could be the reason why a dead
+lock may happen.
+
+Besides, all xt_target/match checkentry is called out of xt_table
+lock. It's better also to move all cleanup_entry calling out of
+xt_table lock, just as do_replace_finish does for ebtables.
+
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
+---
+ net/ipv4/netfilter/arp_tables.c | 3 ++-
+ net/ipv4/netfilter/ip_tables.c  | 3 ++-
+ net/ipv6/netfilter/ip6_tables.c | 3 ++-
+ 3 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 4ffe302..f6c7404 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -921,6 +921,8 @@ static int __do_replace(struct net *net, const char *name,
+ 	    (newinfo->number <= oldinfo->initial_entries))
+ 		module_put(t->me);
+ 
++	xt_table_unlock(t);
++
+ 	get_old_counters(oldinfo, counters);
+ 
+ 	/* Decrease module usage counts and free resource */
+@@ -935,7 +937,6 @@ static int __do_replace(struct net *net, const char *name,
+ 		net_warn_ratelimited("arptables: counters copy to user failed while replacing table\n");
+ 	}
+ 	vfree(counters);
+-	xt_table_unlock(t);
+ 	return ret;
+ 
+  put_module:
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 9a71f31..a6517c1 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -1082,6 +1082,8 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 	    (newinfo->number <= oldinfo->initial_entries))
+ 		module_put(t->me);
+ 
++	xt_table_unlock(t);
++
+ 	get_old_counters(oldinfo, counters);
+ 
+ 	/* Decrease module usage counts and free resource */
+@@ -1095,7 +1097,6 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 		net_warn_ratelimited("iptables: counters copy to user failed while replacing table\n");
+ 	}
+ 	vfree(counters);
+-	xt_table_unlock(t);
+ 	return ret;
+ 
+  put_module:
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index af4c917..96577c9 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1101,6 +1101,8 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 	    (newinfo->number <= oldinfo->initial_entries))
+ 		module_put(t->me);
+ 
++	xt_table_unlock(t);
++
+ 	get_old_counters(oldinfo, counters);
+ 
+ 	/* Decrease module usage counts and free resource */
+@@ -1114,7 +1116,6 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 		net_warn_ratelimited("ip6tables: counters copy to user failed while replacing table\n");
+ 	}
+ 	vfree(counters);
+-	xt_table_unlock(t);
+ 	return ret;
+ 
+  put_module:
+-- 
+2.1.0
