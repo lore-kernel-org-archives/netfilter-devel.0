@@ -1,136 +1,105 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH nf] netfilter: IDLETIMER: be syzkaller friendly
-Date: Fri, 16 Feb 2018 19:36:28 -0800
-Message-ID: <1518838588.55655.10.camel@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-        netdev <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Felix Fietkau <nbd@nbd.name>
+Subject: [RFC 3/9] ipv6: make ip6_dst_mtu_forward inline
+Date: Sat, 17 Feb 2018 12:12:00 +0100
+Message-ID: <20180217111206.37312-3-nbd@nbd.name>
+References: <20180217111206.37312-1-nbd@nbd.name>
+Cc: pablo@netfilter.org, nbd@nbd.name
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:38839 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750942AbeBQDgc (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 16 Feb 2018 22:36:32 -0500
+Received: from nbd.name ([46.4.11.11]:54284 "EHLO nbd.name"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751072AbeBQLMK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 17 Feb 2018 06:12:10 -0500
+In-Reply-To: <20180217111206.37312-1-nbd@nbd.name>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric Dumazet <edumazet@google.com>
+Removes a direct dependency on ipv6.ko
 
-We had one report from syzkaller [1]
-
-First issue is that INIT_WORK() should be done before mod_timer()
-or we risk timer being fired too soon, even with a 1 second timer.
-
-Second issue is that we need to reject too big info->timeout
-to avoid overflows in msecs_to_jiffies(info->timeout * 1000), or
-risk looping, if result after overflow is 0.
-
-[1]
-WARNING: CPU: 1 PID: 5129 at kernel/workqueue.c:1444 __queue_work+0xdf4/0x1230 kernel/workqueue.c:1444
-Kernel panic - not syncing: panic_on_warn set ...
-
-CPU: 1 PID: 5129 Comm: syzkaller159866 Not tainted 4.16.0-rc1+ #230
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-Call Trace:
- <IRQ>
- __dump_stack lib/dump_stack.c:17 [inline]
- dump_stack+0x194/0x257 lib/dump_stack.c:53
- panic+0x1e4/0x41c kernel/panic.c:183
- __warn+0x1dc/0x200 kernel/panic.c:547
- report_bug+0x211/0x2d0 lib/bug.c:184
- fixup_bug.part.11+0x37/0x80 arch/x86/kernel/traps.c:178
- fixup_bug arch/x86/kernel/traps.c:247 [inline]
- do_error_trap+0x2d7/0x3e0 arch/x86/kernel/traps.c:296
- do_invalid_op+0x1b/0x20 arch/x86/kernel/traps.c:315
- invalid_op+0x22/0x40 arch/x86/entry/entry_64.S:988
-RIP: 0010:__queue_work+0xdf4/0x1230 kernel/workqueue.c:1444
-RSP: 0018:ffff8801db507538 EFLAGS: 00010006
-RAX: ffff8801aeb46080 RBX: ffff8801db530200 RCX: ffffffff81481404
-RDX: 0000000000000100 RSI: ffffffff86b42640 RDI: 0000000000000082
-RBP: ffff8801db507758 R08: 1ffff1003b6a0de5 R09: 000000000000000c
-R10: ffff8801db5073f0 R11: 0000000000000020 R12: 1ffff1003b6a0eb6
-R13: ffff8801b1067ae0 R14: 00000000000001f8 R15: dffffc0000000000
- queue_work_on+0x16a/0x1c0 kernel/workqueue.c:1488
- queue_work include/linux/workqueue.h:488 [inline]
- schedule_work include/linux/workqueue.h:546 [inline]
- idletimer_tg_expired+0x44/0x60 net/netfilter/xt_IDLETIMER.c:116
- call_timer_fn+0x228/0x820 kernel/time/timer.c:1326
- expire_timers kernel/time/timer.c:1363 [inline]
- __run_timers+0x7ee/0xb70 kernel/time/timer.c:1666
- run_timer_softirq+0x4c/0x70 kernel/time/timer.c:1692
- __do_softirq+0x2d7/0xb85 kernel/softirq.c:285
- invoke_softirq kernel/softirq.c:365 [inline]
- irq_exit+0x1cc/0x200 kernel/softirq.c:405
- exiting_irq arch/x86/include/asm/apic.h:541 [inline]
- smp_apic_timer_interrupt+0x16b/0x700 arch/x86/kernel/apic/apic.c:1052
- apic_timer_interrupt+0xa9/0xb0 arch/x86/entry/entry_64.S:829
- </IRQ>
-RIP: 0010:arch_local_irq_restore arch/x86/include/asm/paravirt.h:777 [inline]
-RIP: 0010:__raw_spin_unlock_irqrestore include/linux/spinlock_api_smp.h:160 [inline]
-RIP: 0010:_raw_spin_unlock_irqrestore+0x5e/0xba kernel/locking/spinlock.c:184
-RSP: 0018:ffff8801c20173c8 EFLAGS: 00000282 ORIG_RAX: ffffffffffffff12
-RAX: dffffc0000000000 RBX: 0000000000000282 RCX: 0000000000000006
-RDX: 1ffffffff0d592cd RSI: 1ffff10035d68d23 RDI: 0000000000000282
-RBP: ffff8801c20173d8 R08: 1ffff10038402e47 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: ffffffff8820e5c8
-R13: ffff8801b1067ad8 R14: ffff8801aea7c268 R15: ffff8801aea7c278
- __debug_object_init+0x235/0x1040 lib/debugobjects.c:378
- debug_object_init+0x17/0x20 lib/debugobjects.c:391
- __init_work+0x2b/0x60 kernel/workqueue.c:506
- idletimer_tg_create net/netfilter/xt_IDLETIMER.c:152 [inline]
- idletimer_tg_checkentry+0x691/0xb00 net/netfilter/xt_IDLETIMER.c:213
- xt_check_target+0x22c/0x7d0 net/netfilter/x_tables.c:850
- check_target net/ipv6/netfilter/ip6_tables.c:533 [inline]
- find_check_entry.isra.7+0x935/0xcf0 net/ipv6/netfilter/ip6_tables.c:575
- translate_table+0xf52/0x1690 net/ipv6/netfilter/ip6_tables.c:744
- do_replace net/ipv6/netfilter/ip6_tables.c:1160 [inline]
- do_ip6t_set_ctl+0x370/0x5f0 net/ipv6/netfilter/ip6_tables.c:1686
- nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
- nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
- ipv6_setsockopt+0x10b/0x130 net/ipv6/ipv6_sockglue.c:927
- udpv6_setsockopt+0x45/0x80 net/ipv6/udp.c:1422
- sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2976
- SYSC_setsockopt net/socket.c:1850 [inline]
- SyS_setsockopt+0x189/0x360 net/socket.c:1829
- do_syscall_64+0x282/0x940 arch/x86/entry/common.c:287
-
-Fixes: 0902b469bd25 ("netfilter: xtables: idletimer target implementation")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Reported-by: syzkaller <syzkaller@googlegroups.com>
+Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
- net/netfilter/xt_IDLETIMER.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ include/net/ip6_route.h | 22 ++++++++++++++++++++++
+ include/net/ipv6.h      |  2 --
+ net/ipv6/ip6_output.c   | 22 ----------------------
+ 3 files changed, 22 insertions(+), 24 deletions(-)
 
-diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-index 6c2482b709b1eca341926a8393f45dfead358561..1ac6600bfafd60b6b4d5aaf88a41fb57c6ec195b 100644
---- a/net/netfilter/xt_IDLETIMER.c
-+++ b/net/netfilter/xt_IDLETIMER.c
-@@ -146,11 +146,11 @@ static int idletimer_tg_create(struct idletimer_tg_info *info)
- 	timer_setup(&info->timer->timer, idletimer_tg_expired, 0);
- 	info->timer->refcnt = 1;
- 
-+	INIT_WORK(&info->timer->work, idletimer_tg_work);
+diff --git a/include/net/ip6_route.h b/include/net/ip6_route.h
+index 27d23a65f3cd..dae0ddfeb4db 100644
+--- a/include/net/ip6_route.h
++++ b/include/net/ip6_route.h
+@@ -266,4 +266,26 @@ static inline bool rt6_duplicate_nexthop(struct rt6_info *a, struct rt6_info *b)
+ 	       ipv6_addr_equal(&a->rt6i_gateway, &b->rt6i_gateway) &&
+ 	       !lwtunnel_cmp_encap(a->dst.lwtstate, b->dst.lwtstate);
+ }
 +
- 	mod_timer(&info->timer->timer,
- 		  msecs_to_jiffies(info->timeout * 1000) + jiffies);
- 
--	INIT_WORK(&info->timer->work, idletimer_tg_work);
--
- 	return 0;
- 
- out_free_attr:
-@@ -191,7 +191,10 @@ static int idletimer_tg_checkentry(const struct xt_tgchk_param *par)
- 		pr_debug("timeout value is zero\n");
- 		return -EINVAL;
- 	}
--
-+	if (info->timeout >= INT_MAX / 1000) {
-+		pr_debug("timeout value is too big\n");
-+		return -EINVAL;
++static inline unsigned int ip6_dst_mtu_forward(const struct dst_entry *dst)
++{
++	unsigned int mtu;
++	struct inet6_dev *idev;
++
++	if (dst_metric_locked(dst, RTAX_MTU)) {
++		mtu = dst_metric_raw(dst, RTAX_MTU);
++		if (mtu)
++			return mtu;
 +	}
- 	if (info->label[0] == '\0' ||
- 	    strnlen(info->label,
- 		    MAX_IDLETIMER_LABEL_SIZE) == MAX_IDLETIMER_LABEL_SIZE) {
++
++	mtu = IPV6_MIN_MTU;
++	rcu_read_lock();
++	idev = __in6_dev_get(dst->dev);
++	if (idev)
++		mtu = idev->cnf.mtu6;
++	rcu_read_unlock();
++
++	return mtu;
++}
++
+ #endif
+diff --git a/include/net/ipv6.h b/include/net/ipv6.h
+index 8606c9113d3f..51d559b19d85 100644
+--- a/include/net/ipv6.h
++++ b/include/net/ipv6.h
+@@ -970,8 +970,6 @@ static inline struct sk_buff *ip6_finish_skb(struct sock *sk)
+ 			      &inet6_sk(sk)->cork);
+ }
+ 
+-unsigned int ip6_dst_mtu_forward(const struct dst_entry *dst);
+-
+ int ip6_dst_lookup(struct net *net, struct sock *sk, struct dst_entry **dst,
+ 		   struct flowi6 *fl6);
+ struct dst_entry *ip6_dst_lookup_flow(const struct sock *sk, struct flowi6 *fl6,
+diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
+index 997c7f19ad62..c7f3545f75f4 100644
+--- a/net/ipv6/ip6_output.c
++++ b/net/ipv6/ip6_output.c
+@@ -378,28 +378,6 @@ static inline int ip6_forward_finish(struct net *net, struct sock *sk,
+ 	return dst_output(net, sk, skb);
+ }
+ 
+-unsigned int ip6_dst_mtu_forward(const struct dst_entry *dst)
+-{
+-	unsigned int mtu;
+-	struct inet6_dev *idev;
+-
+-	if (dst_metric_locked(dst, RTAX_MTU)) {
+-		mtu = dst_metric_raw(dst, RTAX_MTU);
+-		if (mtu)
+-			return mtu;
+-	}
+-
+-	mtu = IPV6_MIN_MTU;
+-	rcu_read_lock();
+-	idev = __in6_dev_get(dst->dev);
+-	if (idev)
+-		mtu = idev->cnf.mtu6;
+-	rcu_read_unlock();
+-
+-	return mtu;
+-}
+-EXPORT_SYMBOL_GPL(ip6_dst_mtu_forward);
+-
+ static bool ip6_pkt_too_big(const struct sk_buff *skb, unsigned int mtu)
+ {
+ 	if (skb->len <= mtu)
+-- 
+2.14.2
+
