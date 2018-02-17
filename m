@@ -1,125 +1,111 @@
 From: Florian Westphal <fw@strlen.de>
 Subject: Re: [PATCH RFC 0/4] net: add bpfilter
-Date: Sat, 17 Feb 2018 20:18:59 +0100
-Message-ID: <20180217191859.GC3776@breakpoint.cc>
+Date: Sat, 17 Feb 2018 21:10:15 +0100
+Message-ID: <20180217201015.GA13493@breakpoint.cc>
 References: <20180216134023.15536-1-daniel@iogearbox.net>
  <20180216145727.GC32618@breakpoint.cc>
  <20180216161408.GA3776@breakpoint.cc>
- <9182f7b2-da9c-765e-028f-8b9e5c5d4716@iogearbox.net>
+ <20180216.173354.347842978561257782.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        alexei.starovoitov@gmail.com
-To: Daniel Borkmann <daniel@iogearbox.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56176 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751029AbeBQTWX (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 17 Feb 2018 14:22:23 -0500
+Cc: fw@strlen.de, daniel@iogearbox.net, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, alexei.starovoitov@gmail.com
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <9182f7b2-da9c-765e-028f-8b9e5c5d4716@iogearbox.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20180216.173354.347842978561257782.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Daniel Borkmann <daniel@iogearbox.net> wrote:
-> Hi Florian,
+David Miller <davem@davemloft.net> wrote:
+> From: Florian Westphal <fw@strlen.de>
+> Date: Fri, 16 Feb 2018 17:14:08 +0100
 > 
-> On 02/16/2018 05:14 PM, Florian Westphal wrote:
-> > Florian Westphal <fw@strlen.de> wrote:
-> >> Daniel Borkmann <daniel@iogearbox.net> wrote:
-> >> Several questions spinning at the moment, I will probably come up with
-> >> more:
-> > 
-> > ... and here there are some more ...
-> > 
-> > One of the many pain points of xtables design is the assumption of 'used
-> > only by sysadmin'.
-> > 
-> > This has not been true for a very long time, so by now iptables has
-> > this userspace lock (yes, its fugly workaround) to serialize concurrent
-> > iptables invocations in userspace.
-> > 
-> > AFAIU the translate-in-userspace design now brings back the old problem
-> > of different tools overwriting each others iptables rules.
-> 
-> Right, so the behavior would need to be adapted to be exactly the same,
-> given all the requests go into kernel space first via the usual uapis,
-> I don't think there would be anything in the way of keeping that as is.
-
-Uff.  This isn't solveable.  At least thats what I tried to say here.
-This is a limitation of the xtables setsockopt interface design.
-
-If $docker (or anything else) adds a new rule using plain iptables other
-daemons are not aware of it.
-
-If some deletes a rule added by $software it won't learn that either.
-
-The "solutions" in place now (periodic reloads/'is my rule still in
-place' etc. are not desirable long-term.
-
-You'll also need 4 decoders for arp/ip/ip6/ebtables plus translations
-for all matches and targets xtables currently has. (almost 100 i would
-guess from quick glance).
-
-Some of the more crazy ones also have external user visible interfaces
-outside setsockopt (proc files, ipset).
-
-> > One of the nftables advantages is that (since rule representation in
-> > kernel is black-box from userspace point of view) is that the kernel
-> > can announce add/delete of rules or elements from nftables sets.
-> > 
 > > Any particular reason why translating iptables rather than nftables
 > > (it should be possible to monitor the nftables changes that are
 > >  announced by kernel and act on those)?
 > 
-> Yeah, correct, this should be possible as well. We started out with the
-> iptables part in the demo as the majority of bigger infrastructure projects
-> all still rely heavily on it (e.g. docker, k8s to just name two big ones).
+> As Daniel said, iptables is by far the most deployed of the two
+> technologies.  Therefore it provides the largest environment for
+> testing and coverage.
 
-Yes, which is why we have translation tools in place.
+Right, but the approach of hooking old blob format comes with
+lots of limitations that were meant to be resolved with a netlink based
+interface which places kernel in a position to mediate all transactions
+to the rule database (which isn't fixable with old setsockopt format).
 
-Just for the fun of it I tried to delete ip/ip6tables binaries on my
-fedora27 laptop and replaced them with symlinks to
-'xtables-compat-multi'.
+As all programs call iptables(-restore) or variants translation can
+be done in userspace to nftables so api spoken is nfnetlink.
+Such a translator already exists and can handle some cases already:
 
-Aside from two issues (SELinux denying 'iptables' to use netlink) and
-one translation issue (-m rpfilter, which can be translated in current
-upstream version) this works out of the box, the translator uses
-nftables api to kernel (so kernel doesn't even know which program is
-talking...), 'nft monitor' displays the rules being added, and
-'nft list ruleset' shows the default firewalld ruleset.
+nft flush ruleset
+nft list ruleset | wc -l
+0
+xtables-compat-multi iptables -A INPUT -s 192.168.0.24 -j ACCEPT
+xtables-compat-multi iptables -A INPUT -s 192.168.0.0/16 -p tcp --dport 22 -j ACCEPT
+xtables-compat-multi iptables -A INPUT -i eth0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+xtables-compat-multi iptables -A INPUT -p icmp -j ACCEPT
+xtables-compat-multi iptables -N REJECT_LOG
+xtables-compat-multi iptables -A REJECT_LOG -i eth0 -p tcp --tcp-flags SYN,ACK SYN --dport 22:80 -m limit --limit 1/sec -j LOG --log-prefix "RejectTCPConnectReq"
+xtables-compat-multi iptables -A REJECT_LOG -j DROP
+xtables-compat-multi iptables -A INPUT -j REJECT_LOG
 
-Obviously there are a few limitations, for instance ip6tables-save will
-stop working once you add nft-based rules that use features that cannot
-be expressed in xtables syntax (it will throw an error message similar
-to 'you are using nftables featues not available in xtables, please use
-nft'), for intance verdict maps, sets and the like.
+nft list ruleset
+table ip filter {
+        chain INPUT {
+                type filter hook input priority 0; policy accept;
+                ip saddr 192.168.0.24 counter packets 0 bytes 0 accept
+                ip saddr 192.168.0.0/16 tcp dport 22 counter accept
+                iifname "eth0" ct state related,established counter accept
+                ip protocol icmp counter packets 0 bytes 0 accept
+                counter packets 0 bytes 0 jump REJECT_LOG
+        }
 
-> Usually they have their requests to iptables baked into their code directly
-> which probably won't change any time soon, so thought was that they could
-> benefit initially from it once there would be sufficient coverage.
+        chain FORWARD {
+                type filter hook forward priority 0; policy accept;
+        }
 
-See above, the translator covers most basic use cases nowadays.
-The more extreme cases are not covered because we were reluctant to
-provide equivalent in nftables (-m time comes to mind which was always a
-PITA because kernel has no notion of timezone or DST transitions,
-leading to 'magic' mismatches when timezone changes...
+        chain OUTPUT {
+                type filter hook output priority 0; policy accept;
+        }
 
-I could explain on more problem cases but none of them are too
-important I think.
+        chain REJECT_LOG {
+                iifname "eth0" tcp dport 22-80 tcp flags & (syn | ack) == syn limit rate 1/second burst 5 packets counter packets 0 bytes 0 log prefix "RejectTCPConnectReq"
+                counter packets 0 bytes 0 drop
+        }
+}
 
-If you'd like to have more ebpf users in the kernel, then there is at
-least one use case where ebpf could be very attractive for nftables
-(matching dynamic headers and the like).  This would be a new
-feature and would need changes on nftables userspace side
-as well (we don't have syntax/grammar to represent this in either
-nft or iptables).
+and, while 'iptables' rules were added, nft monitor in different terminal:
+nft monitor
+add table ip filter
+add chain ip filter INPUT { type filter hook input priority 0; policy accept; }
+add chain ip filter FORWARD { type filter hook forward priority 0; policy accept; }
+add chain ip filter OUTPUT { type filter hook output priority 0; policy accept; }
+add rule ip filter INPUT ip saddr 192.168.0.24 counter packets 0 bytes 0 accept
+# new generation 9893 by process 7471 (xtables-compat-)
+add rule ip filter INPUT ip saddr 192.168.0.0/16 tcp dport 22 counter accept
+# new generation 9894 by process 7504 (xtables-compat-)
+add rule ip filter INPUT iifname "eth0" ct state related,established counter accept
+# new generation 9895 by process 7528 (xtables-compat-)
+add rule ip filter INPUT ip protocol icmp counter packets 0 bytes 0 accept
+# new generation 9896 by process 7542 (xtables-compat-)
+add chain ip filter REJECT_LOG
+# new generation 9897 by process 7595 (xtables-compat-)
+add rule ip filter REJECT_LOG iifname "eth0" tcp dport 22-80 tcp flags & (syn | ack) == syn limit rate 1/second burst 5 packets counter packets 0 bytes 0 log prefix "RejectTCPConnectReq"
+# new generation 9898 by process 7639 (xtables-compat-)
+add rule ip filter REJECT_LOG counter packets 0 bytes 0 drop
+# new generation 9899 by process 7657 (xtables-compat-)
+add rule ip filter INPUT counter packets 0 bytes 0 jump REJECT_LOG
+# new generation 9900 by process 7663 (xtables-compat-)
 
-In most basic form, it would be nftables replacement for '-m string'
-(and perhaps also -m bpf to some degree, depends on how it would be
- realized).
+Now, does this work in all cases?
 
-We can discuss more if there is interest, but I think it
-would be more suitable for conference/face to face discussion.
+Unfortunately not -- this is still work-in-progress, so I would
+not rm /sbin/iptables and replace it with a link to xtables-compat-multi just yet.
+
+(f.e. nftables misses some selinux matches/targets for netlabel so we obviously
+can't translate this, same for ipsec sa/policy matching -- but this isn't
+impossible to resolve).
+
+Hopefully this does show that at least some commonly used features work
+and that we've come a long way to make seamless nftables transition happen.
