@@ -1,188 +1,125 @@
-From: Harald Welte <laforge@gnumonks.org>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: [PATCH RFC 0/4] net: add bpfilter
-Date: Sat, 17 Feb 2018 13:11:45 +0100
-Message-ID: <20180217121145.GI7843@nataraja>
+Date: Sat, 17 Feb 2018 20:18:59 +0100
+Message-ID: <20180217191859.GC3776@breakpoint.cc>
 References: <20180216134023.15536-1-daniel@iogearbox.net>
+ <20180216145727.GC32618@breakpoint.cc>
+ <20180216161408.GA3776@breakpoint.cc>
+ <9182f7b2-da9c-765e-028f-8b9e5c5d4716@iogearbox.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        davem@davemloft.net, alexei.starovoitov@gmail.com
+Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        alexei.starovoitov@gmail.com
 To: Daniel Borkmann <daniel@iogearbox.net>
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56176 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751029AbeBQTWX (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 17 Feb 2018 14:22:23 -0500
 Content-Disposition: inline
-In-Reply-To: <20180216134023.15536-1-daniel@iogearbox.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <9182f7b2-da9c-765e-028f-8b9e5c5d4716@iogearbox.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Daniel,
-
-On Fri, Feb 16, 2018 at 02:40:19PM +0100, Daniel Borkmann wrote:
-> This is a very rough and early proof of concept that implements bpfilter.
-> The basic idea of bpfilter is that it can process iptables queries and
-> translate them in user space into BPF programs which can then get attached
-> at various locations. 
-
-Interesting approach.  My first question would be what the goal of all of this
-is.  For sure, one can implement many different things, but what is the use
-case, and why do it this way?
-
-I see several possible areas of contention:
-
-1) If you aim for a non-feature-complete support of iptables rules, it
-   will create confusion to the users.  When users use "iptables", they have
-   assumptions on what it will do and how it will behave.  One can of course
-   replace / refactor the internal implementation, if the resulting behavior
-   is identical.  And that means rules are executed at the same hooks in the stack,
-   with functionally identical matches and targets, provide the same
-   counter semantics, etc.  But if the behavior is different, and/or the
-   provided functionality is different, then why "hide" this new
-   filtering technology behind iptables, rather than its own command
-   line tool?  Such an alternative tool could share the same command
-   line syntax as iptables, or even provide a converter/wrapper, but
-   given that it would not be called "iptables" people will implicitly
-   have different assumptions about it
-
-2) Why try to provide compatibility to iptables, when at the same time
-   many people have already migrated to (or are in the process of
-   migrating) to nftables?  By using iptables semantics, structures,
-   architecture, you risk perpetuating the design mistakes we made in
-   iptables some 18 years ago for another decade or more.  From my POV,
-   if one was to do eBPF optimized rule execution, it should be based on
-   nftables rather than iptables.  This way you avoid the many
-   architectural problems, such as
-   * no incremental rule changes but only atomic swap of an entire table
-     with all its chains
-   * no common/shared rulesets for IPv4 + IPv6, which is very clumsy and
-     often worked around with ugly shellscript wrappers in userspace
-     which then call both iptables and ip6tables to add a rule to both
-     rulesets.
-
-> The user space iptables binary issuing rule addition or dumps was
-> left as-is, thus at some point any binaries against iptables uapi kernel
-> interface could transparently be supported in such manner in long term.
-
-See my comments above:  In the netfilter community, we know for at least
-a decade or more about the many problems of the old iptables userspace
-interface.  For many years, a much better replacement has been designed
-as part of nftables.
-
-> As rule translation can potentially become very complex, this is performed
-> entirely in user space. In order to ease deployment, request_module() code
-> is extended to allow user mode helpers to be invoked. Idea is that user mode
-> helpers are built as part of the kernel build and installed as traditional
-> kernel modules with .ko file extension into distro specified location,
-> such that from a distribution point of view, they are no different than
-> regular kernel modules. 
-
-That just blew my mind, sorry :)  This goes much beyond
-netfilter/iptables, and adds some quiet singificant new piece of
-kernel/userspace infrastructure.  To me, my apologies, it just sounds
-like a quite strange hack.  But then, I may lack the vision of how this
-might be useful in other contexts.
-
-I'm trying to understand why exactly one would
-* use a 18 year old iptables userspace program with its equally old
-  setsockopt based interface between kernel and userspace
-* insert an entire table with many chains of rules into the kernel
-* re-eject that ruleset into another userspace program which then
-  compiles it into an eBPF program
-* inserert that back into the kernel
-
-To me, this looks like some kind of legacy backwards compatibility
-mechanism that one would find in proprietary operating systems, but not
-in Linux.  iptables, libiptc etc. are all free software.  The source
-code can be edited, and you could just as well have a new version of
-iptables and/or libiptc which would pass the ruleset in userspace to
-your compiler, which would then insert the resulting eBPF program.
-
-You could even have a LD_PRELOAD wrapper doing the same.  That one
-would even work with direct users of the iptables setsockopt inteerface.
-
-Why add quite comprehensive kerne infrastructure?  What's the motivation
-here?
-
-> Thus, allow request_module() logic to load such
-> user mode helper (umh) binaries via:
+Daniel Borkmann <daniel@iogearbox.net> wrote:
+> Hi Florian,
 > 
->   request_module("foo") ->
->     call_umh("modprobe foo") ->
->       sys_finit_module(FD of /lib/modules/.../foo.ko) ->
->         call_umh(struct file)
+> On 02/16/2018 05:14 PM, Florian Westphal wrote:
+> > Florian Westphal <fw@strlen.de> wrote:
+> >> Daniel Borkmann <daniel@iogearbox.net> wrote:
+> >> Several questions spinning at the moment, I will probably come up with
+> >> more:
+> > 
+> > ... and here there are some more ...
+> > 
+> > One of the many pain points of xtables design is the assumption of 'used
+> > only by sysadmin'.
+> > 
+> > This has not been true for a very long time, so by now iptables has
+> > this userspace lock (yes, its fugly workaround) to serialize concurrent
+> > iptables invocations in userspace.
+> > 
+> > AFAIU the translate-in-userspace design now brings back the old problem
+> > of different tools overwriting each others iptables rules.
 > 
-> Such approach enables kernel to delegate functionality traditionally done
-> by kernel modules into user space processes (either root or !root) and
-> reduces security attack surface of such new code, meaning in case of
-> potential bugs only the umh would crash but not the kernel. Another
-> advantage coming with that would be that bpfilter.ko can be debugged and
-> tested out of user space as well (e.g. opening the possibility to run
-> all clang sanitizers, fuzzers or test suites for checking translation).
-> Also, such architecture makes the kernel/user boundary very precise,
-> meaning requests can be handled and BPF translated in control plane part
-> in user space with its own user memory etc, while minimal data plane
-> bits are in kernel. 
+> Right, so the behavior would need to be adapted to be exactly the same,
+> given all the requests go into kernel space first via the usual uapis,
+> I don't think there would be anything in the way of keeping that as is.
 
-I understand that it has advantages to have the compiler in userspace.
-But then, why first send your rules into the kernel and back?
+Uff.  This isn't solveable.  At least thats what I tried to say here.
+This is a limitation of the xtables setsockopt interface design.
 
-> In the implemented proof of concept we show that simple /32 src/dst IPs
-> are translated in such manner. 
+If $docker (or anything else) adds a new rule using plain iptables other
+daemons are not aware of it.
 
-Of course this is the first that one starts with.  However, as we all
-know, iptables was never very good or efficient about 5-tuple matching.
-If you want a fast implementation of this, you don't use iptables which
-does linear list iteration.  The reason/rationale/use-case of iptables
-is its many (I believe more than 100 now?) extensions both on the area
-of matches and targets.
+If some deletes a rule added by $software it won't learn that either.
 
-Some of those can be implemented easily in BPF (like recomputing the
-checksum or the like).   Some others I would find much more difficult -
-particularly if you want to off-load it to the NIC.  They require access
-to state that only the kernel has (like 'cgroup' or 'owner' matching).
+The "solutions" in place now (periodic reloads/'is my rule still in
+place' etc. are not desirable long-term.
 
-> In the below example, we show that dumping, loading and offloading of
-> one or multiple simple rules work, we show the bpftool XDP dump of the
-> generated BPF instruction sequence as well as a simple functional ping
-> test to enforce policy in such way.
+You'll also need 4 decoders for arp/ip/ip6/ebtables plus translations
+for all matches and targets xtables currently has. (almost 100 i would
+guess from quick glance).
 
-Could you please clarify why the 'filter' table INPUT chain was used if
-you're using XDP?  AFAICT they have completely different semantics.
+Some of the more crazy ones also have external user visible interfaces
+outside setsockopt (proc files, ipset).
 
-There is a well-conceived and generally understood notion of where
-exactly the filter/INPUT table processing happens.  And that's not as
-early as in the NIC, but it's much later in the processing of the
-packet.
+> > One of the nftables advantages is that (since rule representation in
+> > kernel is black-box from userspace point of view) is that the kernel
+> > can announce add/delete of rules or elements from nftables sets.
+> > 
+> > Any particular reason why translating iptables rather than nftables
+> > (it should be possible to monitor the nftables changes that are
+> >  announced by kernel and act on those)?
+> 
+> Yeah, correct, this should be possible as well. We started out with the
+> iptables part in the demo as the majority of bigger infrastructure projects
+> all still rely heavily on it (e.g. docker, k8s to just name two big ones).
 
-I believe _if_ one wants to use the approach of "hiding" eBPF behind
-iptables, then either
+Yes, which is why we have translation tools in place.
 
-a) the eBPF programs must be executed at the exact same points in the
-   stack as the existing hooks of the built-in chains of the
-   filter/nat/mangle/raw tables, or
+Just for the fun of it I tried to delete ip/ip6tables binaries on my
+fedora27 laptop and replaced them with symlinks to
+'xtables-compat-multi'.
 
-b) you must introduce new 'tables', like an 'xdp' table which then has
-   the notion of processing very early in processing, way before the
-   normal filter table INPUT processing happens.
+Aside from two issues (SELinux denying 'iptables' to use netlink) and
+one translation issue (-m rpfilter, which can be translated in current
+upstream version) this works out of the box, the translator uses
+nftables api to kernel (so kernel doesn't even know which program is
+talking...), 'nft monitor' displays the rules being added, and
+'nft list ruleset' shows the default firewalld ruleset.
 
-> Feedback very welcome!
+Obviously there are a few limitations, for instance ip6tables-save will
+stop working once you add nft-based rules that use features that cannot
+be expressed in xtables syntax (it will throw an error message similar
+to 'you are using nftables featues not available in xtables, please use
+nft'), for intance verdict maps, sets and the like.
 
-Thanks.  Despite being a former netfilter core team member, I'm trying
-to look at this as neutral as possible.  So please don't perceive my
-comments as overly defensive or the like.
+> Usually they have their requests to iptables baked into their code directly
+> which probably won't change any time soon, so thought was that they could
+> benefit initially from it once there would be sufficient coverage.
 
-My main points are:
+See above, the translator covers most basic use cases nowadays.
+The more extreme cases are not covered because we were reluctant to
+provide equivalent in nftables (-m time comes to mind which was always a
+PITA because kernel has no notion of timezone or DST transitions,
+leading to 'magic' mismatches when timezone changes...
 
-1) What is the goal of this?
+I could explain on more problem cases but none of them are too
+important I think.
 
-2) Why iptables and not nftables?
+If you'd like to have more ebpf users in the kernel, then there is at
+least one use case where ebpf could be very attractive for nftables
+(matching dynamic headers and the like).  This would be a new
+feature and would need changes on nftables userspace side
+as well (we don't have syntax/grammar to represent this in either
+nft or iptables).
 
-3) If something looks like existing iptables, it must behave *exactly*
-   like existing iptables, otherwise it is prone to break users security
-   in subtle and very dangerous ways.
+In most basic form, it would be nftables replacement for '-m string'
+(and perhaps also -m bpf to some degree, depends on how it would be
+ realized).
 
-Looking forward to the following discussion and on other points of view.
-
--- 
-- Harald Welte <laforge@gnumonks.org>           http://laforge.gnumonks.org/
-============================================================================
-"Privacy in residential applications is a desirable marketing option."
-                                                  (ETSI EN 300 175-7 Ch. A6)
+We can discuss more if there is interest, but I think it
+would be more suitable for conference/face to face discussion.
