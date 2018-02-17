@@ -1,56 +1,61 @@
 From: Harald Welte <laforge@gnumonks.org>
 Subject: Re: [PATCH RFC 0/4] net: add bpfilter
-Date: Sat, 17 Feb 2018 13:21:49 +0100
-Message-ID: <20180217122149.GJ7843@nataraja>
+Date: Sat, 17 Feb 2018 13:33:39 +0100
+Message-ID: <20180217123339.GK7843@nataraja>
 References: <20180216134023.15536-1-daniel@iogearbox.net>
  <20180216145727.GC32618@breakpoint.cc>
  <20180216161408.GA3776@breakpoint.cc>
- <20180216.173354.347842978561257782.davem@davemloft.net>
+ <9182f7b2-da9c-765e-028f-8b9e5c5d4716@iogearbox.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: fw@strlen.de, daniel@iogearbox.net, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, alexei.starovoitov@gmail.com
-To: David Miller <davem@davemloft.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:44278 "EHLO
-        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751029AbeBQMaH (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 17 Feb 2018 07:30:07 -0500
+Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, davem@davemloft.net,
+        alexei.starovoitov@gmail.com
+To: Daniel Borkmann <daniel@iogearbox.net>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180216.173354.347842978561257782.davem@davemloft.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <9182f7b2-da9c-765e-028f-8b9e5c5d4716@iogearbox.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+Hi Daniel,
 
-On Fri, Feb 16, 2018 at 05:33:54PM -0500, David Miller wrote:
-> From: Florian Westphal <fw@strlen.de>
-> 
-> > Any particular reason why translating iptables rather than nftables
-> > (it should be possible to monitor the nftables changes that are
-> >  announced by kernel and act on those)?
-> 
-> As Daniel said, iptables is by far the most deployed of the two
-> technologies.  Therefore it provides the largest environment for
-> testing and coverage.
+On Fri, Feb 16, 2018 at 09:44:01PM +0100, Daniel Borkmann wrote:
+> We started out with the
+> iptables part in the demo as the majority of bigger infrastructure projects
+> all still rely heavily on it (e.g. docker, k8s to just name two big ones).
 
-As I outlined earlier, this way you are perpetuating the architectural
-mistakes and constraints that were created ~ 18 years ago without any
-benefit from the lessons learned ever since.  In netfilter, we already
-wanted to replace it as early as 2006 (AFAIR) with nfnetlink based
-pkttables (which never materialized).
+docker is exec'ing the iptables command line program.  So one could simply
+offer a syntactically compatible userspace replacement that does the compilation
+in userspce and avoid the iptables->libiptc->setsockopt->userspace roundtrip
+and the associated changes to the kernel module loader you introduced.
 
-I would strongly suggest to focus on nftables (or even some other way of
-configuration / userspace interaction) to ensure that the iptables
-userspace interface can at some point be phased out eventually.  Like we
-did with ipchains before, and before that with ipfwadm.
+kubernetes is using iptables-restore, which is part of iptables and
+again has the same syntax.  However, it aovids the per-rule fork+exec
+overhead, which is why the netfilter project has been recommending it to
+be used in such situations.
 
-By making a new implementation dependant on the oldest interface you are
-perpetuating it.  Sure, one can go that way, but I would suggest this to
-be a *very* carefully weighed decision after a detailed
-analysis/discusison.
+Do you have a list of known projects that use the legacy sockopt-based
+iptables uapi directly, without using code from the iptables.git
+codebase (e.g. libiptc, iptables or iptables-restore)?  IMHO only
+those projects would benefit from the approach you have taken vs. an
+approach that simply offers a compatible commandline syntax.
 
+> Usually they have their requests to iptables baked into their code directly
+> which probably won't change any time soon, so thought was that they could
+> benefit initially from it once there would be sufficient coverage.
+
+If the binary offeers the same syntax (it could even be a fork/version
+of the iptables codebase, only using the parsing without the existing
+backend generating the ruleS), the same goal could be achieved.
+
+The above of course assumes that you have a 100% functional replacement
+(for 100% of the features that your use cases use) underneath the
+"iptables command syntax" compatibility.  But you need that in both
+cases, whether you use the existing userspace api or not.
+
+Regards,
+	Harald
 -- 
 - Harald Welte <laforge@gnumonks.org>           http://laforge.gnumonks.org/
 ============================================================================
