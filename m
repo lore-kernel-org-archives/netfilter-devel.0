@@ -1,50 +1,41 @@
 From: Felix Fietkau <nbd@nbd.name>
-Subject: [RFC 7/9] netfilter: nf_flow_table: move ip header check out of nf_flow_exceeds_mtu
-Date: Sat, 17 Feb 2018 12:12:04 +0100
-Message-ID: <20180217111206.37312-7-nbd@nbd.name>
+Subject: [RFC 9/9] netfilter: nf_flow_table: relax mixed ipv4/ipv6 flowtable dependencies
+Date: Sat, 17 Feb 2018 12:12:06 +0100
+Message-ID: <20180217111206.37312-9-nbd@nbd.name>
 References: <20180217111206.37312-1-nbd@nbd.name>
 Cc: pablo@netfilter.org, nbd@nbd.name
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nbd.name ([46.4.11.11]:54292 "EHLO nbd.name"
+Received: from nbd.name ([46.4.11.11]:54288 "EHLO nbd.name"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751096AbeBQLML (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 17 Feb 2018 06:12:11 -0500
+        id S1751091AbeBQLMK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 17 Feb 2018 06:12:10 -0500
 In-Reply-To: <20180217111206.37312-1-nbd@nbd.name>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Allows the function to be shared with the IPv6 hook code
+Since the offload hook code was moved, this table no longer depends on
+the IPv4 and IPv6 flowtable modules
 
 Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
- net/netfilter/nf_flow_table_ip.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ net/netfilter/Kconfig | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 7c97126ace0e..79976c25891b 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -181,9 +181,6 @@ static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
- 	if (skb->len <= mtu)
- 		return false;
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 29b144c04f53..28603e112cb4 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -666,8 +666,7 @@ endif # NF_TABLES
  
--	if ((ip_hdr(skb)->frag_off & htons(IP_DF)) == 0)
--		return false;
--
- 	if (skb_is_gso(skb) && skb_gso_validate_mtu(skb, mtu))
- 		return false;
+ config NF_FLOW_TABLE_INET
+ 	tristate "Netfilter flow table mixed IPv4/IPv6 module"
+-	depends on NF_FLOW_TABLE_IPV4
+-	depends on NF_FLOW_TABLE_IPV6
++	depends on NF_FLOW_TABLE
+ 	help
+           This option adds the flow table mixed IPv4/IPv6 support.
  
-@@ -222,7 +219,8 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
- 	rt = (const struct rtable *)flow->tuplehash[dir].tuple.dst_cache;
- 
--	if (unlikely(nf_flow_exceeds_mtu(skb, flow->tuplehash[dir].tuple.mtu)))
-+	if (unlikely(nf_flow_exceeds_mtu(skb, flow->tuplehash[dir].tuple.mtu)) &&
-+	    (ip_hdr(skb)->frag_off & htons(IP_DF)) != 0)
- 		return NF_ACCEPT;
- 
- 	if (skb_try_make_writable(skb, sizeof(*iph)))
 -- 
 2.14.2
 
