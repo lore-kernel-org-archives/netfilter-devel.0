@@ -1,172 +1,58 @@
-From: Felix Fietkau <nbd@nbd.name>
-Subject: [RFC 4/9] netfilter: nf_flow_table: cache mtu in struct flow_offload_tuple
-Date: Sat, 17 Feb 2018 12:12:01 +0100
-Message-ID: <20180217111206.37312-4-nbd@nbd.name>
-References: <20180217111206.37312-1-nbd@nbd.name>
-Cc: pablo@netfilter.org, nbd@nbd.name
-To: netfilter-devel@vger.kernel.org
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [PATCH RFC 0/4] net: add bpfilter
+Date: Sat, 17 Feb 2018 13:21:49 +0100
+Message-ID: <20180217122149.GJ7843@nataraja>
+References: <20180216134023.15536-1-daniel@iogearbox.net>
+ <20180216145727.GC32618@breakpoint.cc>
+ <20180216161408.GA3776@breakpoint.cc>
+ <20180216.173354.347842978561257782.davem@davemloft.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: fw@strlen.de, daniel@iogearbox.net, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, alexei.starovoitov@gmail.com
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nbd.name ([46.4.11.11]:54342 "EHLO nbd.name"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751101AbeBQLMs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 17 Feb 2018 06:12:48 -0500
-In-Reply-To: <20180217111206.37312-1-nbd@nbd.name>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:44278 "EHLO
+        ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751029AbeBQMaH (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sat, 17 Feb 2018 07:30:07 -0500
+Content-Disposition: inline
+In-Reply-To: <20180216.173354.347842978561257782.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Reduces the number of cache lines touched in the offload forwarding path
+Hi David,
 
-Signed-off-by: Felix Fietkau <nbd@nbd.name>
----
- include/net/netfilter/nf_flow_table.h   |  2 ++
- net/ipv4/netfilter/nf_flow_table_ipv4.c | 17 +++--------------
- net/ipv6/netfilter/nf_flow_table_ipv6.c | 17 +++--------------
- net/netfilter/nf_flow_table.c           |  8 ++++++--
- 4 files changed, 14 insertions(+), 30 deletions(-)
+On Fri, Feb 16, 2018 at 05:33:54PM -0500, David Miller wrote:
+> From: Florian Westphal <fw@strlen.de>
+> 
+> > Any particular reason why translating iptables rather than nftables
+> > (it should be possible to monitor the nftables changes that are
+> >  announced by kernel and act on those)?
+> 
+> As Daniel said, iptables is by far the most deployed of the two
+> technologies.  Therefore it provides the largest environment for
+> testing and coverage.
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index 9e7c222a38de..b96f87d14293 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -62,6 +62,8 @@ struct flow_offload_tuple {
- 
- 	int				oifidx;
- 
-+	u16				mtu;
-+
- 	struct dst_entry		*dst_cache;
- };
- 
-diff --git a/net/ipv4/netfilter/nf_flow_table_ipv4.c b/net/ipv4/netfilter/nf_flow_table_ipv4.c
-index 3d3b81b20003..4b310a21edac 100644
---- a/net/ipv4/netfilter/nf_flow_table_ipv4.c
-+++ b/net/ipv4/netfilter/nf_flow_table_ipv4.c
-@@ -177,7 +177,7 @@ static int nf_flow_tuple_ip(struct sk_buff *skb, const struct net_device *dev,
- }
- 
- /* Based on ip_exceeds_mtu(). */
--static bool __nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
-+static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
- {
- 	if (skb->len <= mtu)
- 		return false;
-@@ -191,17 +191,6 @@ static bool __nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
- 	return true;
- }
- 
--static bool nf_flow_exceeds_mtu(struct sk_buff *skb, const struct rtable *rt)
--{
--	u32 mtu;
--
--	mtu = ip_dst_mtu_maybe_forward(&rt->dst, true);
--	if (__nf_flow_exceeds_mtu(skb, mtu))
--		return true;
--
--	return false;
--}
--
- unsigned int
- nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 			const struct nf_hook_state *state)
-@@ -232,9 +221,9 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 
- 	dir = tuplehash->tuple.dir;
- 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
--
- 	rt = (const struct rtable *)flow->tuplehash[dir].tuple.dst_cache;
--	if (unlikely(nf_flow_exceeds_mtu(skb, rt)))
-+
-+	if (unlikely(nf_flow_exceeds_mtu(skb, flow->tuplehash[dir].tuple.mtu)))
- 		return NF_ACCEPT;
- 
- 	if (skb_try_make_writable(skb, sizeof(*iph)))
-diff --git a/net/ipv6/netfilter/nf_flow_table_ipv6.c b/net/ipv6/netfilter/nf_flow_table_ipv6.c
-index 09c7352597b9..e7ae4485fe5f 100644
---- a/net/ipv6/netfilter/nf_flow_table_ipv6.c
-+++ b/net/ipv6/netfilter/nf_flow_table_ipv6.c
-@@ -173,7 +173,7 @@ static int nf_flow_tuple_ipv6(struct sk_buff *skb, const struct net_device *dev,
- }
- 
- /* Based on ip_exceeds_mtu(). */
--static bool __nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
-+static bool nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
- {
- 	if (skb->len <= mtu)
- 		return false;
-@@ -184,17 +184,6 @@ static bool __nf_flow_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
- 	return true;
- }
- 
--static bool nf_flow_exceeds_mtu(struct sk_buff *skb, const struct rt6_info *rt)
--{
--	u32 mtu;
--
--	mtu = ip6_dst_mtu_forward(&rt->dst);
--	if (__nf_flow_exceeds_mtu(skb, mtu))
--		return true;
--
--	return false;
--}
--
- unsigned int
- nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 			  const struct nf_hook_state *state)
-@@ -225,9 +214,9 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 
- 	dir = tuplehash->tuple.dir;
- 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
--
- 	rt = (struct rt6_info *)flow->tuplehash[dir].tuple.dst_cache;
--	if (unlikely(nf_flow_exceeds_mtu(skb, rt)))
-+
-+	if (unlikely(nf_flow_exceeds_mtu(skb, flow->tuplehash[dir].tuple.mtu)))
- 		return NF_ACCEPT;
- 
- 	if (skb_try_make_writable(skb, sizeof(*ip6h)))
-diff --git a/net/netfilter/nf_flow_table.c b/net/netfilter/nf_flow_table.c
-index 7f9fc56af1aa..47f2a1a95be7 100644
---- a/net/netfilter/nf_flow_table.c
-+++ b/net/netfilter/nf_flow_table.c
-@@ -4,6 +4,8 @@
- #include <linux/netfilter.h>
- #include <linux/rhashtable.h>
- #include <linux/netdevice.h>
-+#include <net/ip.h>
-+#include <net/ip6_route.h>
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nf_flow_table.h>
- #include <net/netfilter/nf_conntrack.h>
-@@ -23,6 +25,7 @@ flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
- {
- 	struct flow_offload_tuple *ft = &flow->tuplehash[dir].tuple;
- 	struct nf_conntrack_tuple *ctt = &ct->tuplehash[dir].tuple;
-+	struct dst_entry *dst = route->tuple[dir].dst;
- 
- 	ft->dir = dir;
- 
-@@ -30,10 +33,12 @@ flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
- 	case NFPROTO_IPV4:
- 		ft->src_v4 = ctt->src.u3.in;
- 		ft->dst_v4 = ctt->dst.u3.in;
-+		ft->mtu = ip_dst_mtu_maybe_forward(dst, true);
- 		break;
- 	case NFPROTO_IPV6:
- 		ft->src_v6 = ctt->src.u3.in6;
- 		ft->dst_v6 = ctt->dst.u3.in6;
-+		ft->mtu = ip6_dst_mtu_forward(dst);
- 		break;
- 	}
- 
-@@ -44,8 +49,7 @@ flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
- 
- 	ft->iifidx = route->tuple[dir].ifindex;
- 	ft->oifidx = route->tuple[!dir].ifindex;
--
--	ft->dst_cache = route->tuple[dir].dst;
-+	ft->dst_cache = dst;
- }
- 
- struct flow_offload *
+As I outlined earlier, this way you are perpetuating the architectural
+mistakes and constraints that were created ~ 18 years ago without any
+benefit from the lessons learned ever since.  In netfilter, we already
+wanted to replace it as early as 2006 (AFAIR) with nfnetlink based
+pkttables (which never materialized).
+
+I would strongly suggest to focus on nftables (or even some other way of
+configuration / userspace interaction) to ensure that the iptables
+userspace interface can at some point be phased out eventually.  Like we
+did with ipchains before, and before that with ipfwadm.
+
+By making a new implementation dependant on the oldest interface you are
+perpetuating it.  Sure, one can go that way, but I would suggest this to
+be a *very* carefully weighed decision after a detailed
+analysis/discusison.
+
 -- 
-2.14.2
-
+- Harald Welte <laforge@gnumonks.org>           http://laforge.gnumonks.org/
+============================================================================
+"Privacy in residential applications is a desirable marketing option."
+                                                  (ETSI EN 300 175-7 Ch. A6)
