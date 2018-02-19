@@ -1,100 +1,72 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH RFC 0/4] net: add bpfilter
-Date: Sun, 18 Feb 2018 01:35:15 +0100
-Message-ID: <20180218003515.GD13493@breakpoint.cc>
-References: <20180216134023.15536-1-daniel@iogearbox.net>
- <20180217121145.GI7843@nataraja>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        alexei.starovoitov@gmail.com
-To: Harald Welte <laforge@gnumonks.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56580 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751083AbeBRAio (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sat, 17 Feb 2018 19:38:44 -0500
-Content-Disposition: inline
-In-Reply-To: <20180217121145.GI7843@nataraja>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: [PATCH nf] netfilter: ebtables: CONFIG_COMPAT: don't trust
+	userland offsets
+Date: Mon, 19 Feb 2018 01:24:15 +0100
+Message-ID: <20180219002415.18461-1-fw@strlen.de>
+References: <94eb2c0efc1e07b3450565848616@google.com>
+Cc: netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
+	syzkaller-bugs@googlegroups.com, Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+In-Reply-To: <94eb2c0efc1e07b3450565848616@google.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte <laforge@gnumonks.org> wrote:
-> I believe _if_ one wants to use the approach of "hiding" eBPF behind
-> iptables, then either
-[..]
-> b) you must introduce new 'tables', like an 'xdp' table which then has
->    the notion of processing very early in processing, way before the
->    normal filter table INPUT processing happens.
+We need to make sure the offsets are not out of range of the
+total size.
+Also check that they are in ascending order.
 
-In nftables. the netdev ingress hook location could be used for this,
-but right, iptables has no equivalent.
+The WARN_ON triggered by syzkaller (it sets panic_on_warn) is
+changed to also bail out, no point in continuing parsing.
 
-netdev ingress is interesting from an hw-offload point of view,
-unlike all other netfilter hooks its tied to a specific network interface
-rather than owned by the network namespace.
+Briefly tested with simple ruleset of
+-A INPUT --limit 1/s' --log
+plus jump to custom chains using 32bit ebtables binary.
 
-A rule like (yes i am making this up)
-limit 10000 byte/s
+Reported-by: <syzbot+845a53d13171abf8bf29@syzkaller.appspotmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/bridge/netfilter/ebtables.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-cannot be offloaded because it affects all packets going through
-the system, i.e. you'd need to share state among all nics which i think
-won't work :-)
-
-Same goes for any other match/target that somehow contains (global)
-state and was added to the 'classic' iptables hook points.
-(exception: rule restricts interface via '-i foo').
-
-
-Note well: "offloaded != ebpf" in this case.
-
-I see no reasons why ebpf cannot be used in either iptables or
-nftables.  How to get there is obviously a different beast.
-
-For iptables, I think we should put it in maintenance mode and
-focus on nftables, for many reasons outlined in other replies.
-
-And how to best make use of ebpf+nftables
-
-In ideal world, nftables would have used (e)bpf from the start.
-But, well, its not an ideal world (iirc nft origins are just a bit
-too old).
-
-That doesn't mean that we can't leverage ebpf from nftables.
-Its just a question of where it makes sense and where it doesn't,
-f.e. i see no reason to replace c code with ebpf just 'because you can'.
-
-Speedup?  Good argument.
-Feature enhancements that could use ebpf programs? Another good
-argument.
-
-I guess there are a lot more.
-
-So I'd like to second Haralds question.
-
-What is the main goal?
-
-For nftables, I believe most important ones are:
-- make kernel keeper/owner of all rules
-- allow userspace to learn of rule addition/deletion
-- provide fast matching (no linear evaluation of rules,
-native sets with jump and verdict maps)
-- provide a single tool instead of ip/ip6/arp/ebtables
-- unified ipv4/ipv6 matching
-- backwards compat and/or translation infrastructure
-
-
-But once these are reached, we will hopefully have more:
-- offloading (hardware)
-- speedup via JIT compilation
-- feature enhancements such as matching arbitrary packet
-contents
-
-I suspect you see that ebpf might be a fit and/or help us with
-all of these things.
-
-So, once I understand what your goals are I might be better able
-to see how nftables could fit into the picture, as you can see
-I did a lot of guesswork :-)
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 02c4b409d317..3f536c7a3354 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -2053,7 +2053,9 @@ static int ebt_size_mwt(struct compat_ebt_entry_mwt *match32,
+ 		if (match_kern)
+ 			match_kern->match_size = ret;
+ 
+-		WARN_ON(type == EBT_COMPAT_TARGET && size_left);
++		if (WARN_ON(type == EBT_COMPAT_TARGET && size_left))
++			return -EINVAL;
++
+ 		match32 = (struct compat_ebt_entry_mwt *) buf;
+ 	}
+ 
+@@ -2109,6 +2111,15 @@ static int size_entry_mwt(struct ebt_entry *entry, const unsigned char *base,
+ 	 *
+ 	 * offsets are relative to beginning of struct ebt_entry (i.e., 0).
+ 	 */
++	for (i = 0; i < 4 ; ++i) {
++		if (offsets[i] >= *total)
++			return -EINVAL;
++		if (i == 0)
++			continue;
++		if (offsets[i-1] > offsets[i])
++			return -EINVAL;
++	}
++
+ 	for (i = 0, j = 1 ; j < 4 ; j++, i++) {
+ 		struct compat_ebt_entry_mwt *match32;
+ 		unsigned int size;
+-- 
+2.16.1
