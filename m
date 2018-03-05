@@ -1,78 +1,30 @@
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] ipvs: use true and false for boolean values
-Date: Mon, 5 Mar 2018 15:35:57 -0600
-Message-ID: <20180305213557.GA12365@embeddedor.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: ipt_ah: return boolean instead of integer
+Date: Mon, 5 Mar 2018 23:10:27 +0100
+Message-ID: <20180305221027.vmailsqb5gkvxmcg@salvia>
+References: <20180213142557.GA9008@embeddedor.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Wensong Zhang <wensong@linux-vs.org>,
-        Simon Horman <horms@verge.net.au>,
-        Julian Anastasov <ja@ssi.bg>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>
+        "David S. Miller" <davem@davemloft.net>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <20180213142557.GA9008@embeddedor.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Assign true or false to boolean variables instead of an integer value.
+On Tue, Feb 13, 2018 at 08:25:57AM -0600, Gustavo A. R. Silva wrote:
+> Return statements in functions returning bool should use
+> true/false instead of 1/0.
+> 
+> This issue was detected with the help of Coccinelle.
 
-This issue was detected with the help of Coccinelle.
+This one didn't get in time for the previous merge window.
 
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
----
- net/netfilter/ipvs/ip_vs_lblc.c  | 4 ++--
- net/netfilter/ipvs/ip_vs_lblcr.c | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
-index 6a340c9..942e835 100644
---- a/net/netfilter/ipvs/ip_vs_lblc.c
-+++ b/net/netfilter/ipvs/ip_vs_lblc.c
-@@ -238,7 +238,7 @@ static void ip_vs_lblc_flush(struct ip_vs_service *svc)
- 	int i;
- 
- 	spin_lock_bh(&svc->sched_lock);
--	tbl->dead = 1;
-+	tbl->dead = true;
- 	for (i = 0; i < IP_VS_LBLC_TAB_SIZE; i++) {
- 		hlist_for_each_entry_safe(en, next, &tbl->bucket[i], list) {
- 			ip_vs_lblc_del(en);
-@@ -369,7 +369,7 @@ static int ip_vs_lblc_init_svc(struct ip_vs_service *svc)
- 	tbl->max_size = IP_VS_LBLC_TAB_SIZE*16;
- 	tbl->rover = 0;
- 	tbl->counter = 1;
--	tbl->dead = 0;
-+	tbl->dead = false;
- 	tbl->svc = svc;
- 
- 	/*
-diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
-index 0627881..a5acab2 100644
---- a/net/netfilter/ipvs/ip_vs_lblcr.c
-+++ b/net/netfilter/ipvs/ip_vs_lblcr.c
-@@ -404,7 +404,7 @@ static void ip_vs_lblcr_flush(struct ip_vs_service *svc)
- 	struct hlist_node *next;
- 
- 	spin_lock_bh(&svc->sched_lock);
--	tbl->dead = 1;
-+	tbl->dead = true;
- 	for (i = 0; i < IP_VS_LBLCR_TAB_SIZE; i++) {
- 		hlist_for_each_entry_safe(en, next, &tbl->bucket[i], list) {
- 			ip_vs_lblcr_free(en);
-@@ -532,7 +532,7 @@ static int ip_vs_lblcr_init_svc(struct ip_vs_service *svc)
- 	tbl->max_size = IP_VS_LBLCR_TAB_SIZE*16;
- 	tbl->rover = 0;
- 	tbl->counter = 1;
--	tbl->dead = 0;
-+	tbl->dead = false;
- 	tbl->svc = svc;
- 
- 	/*
--- 
-2.7.4
+Now applied, thanks.
