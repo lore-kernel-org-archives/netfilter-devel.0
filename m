@@ -1,15 +1,16 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: [PATCH v2] net: netfilter: Replace printk() with appropriate
  pr_*() macro
-Date: Sun, 11 Mar 2018 23:28:46 +0100
-Message-ID: <20180311222846.av3tui5nkuximoqk@salvia>
+Date: Sun, 11 Mar 2018 23:31:33 +0100
+Message-ID: <20180311223133.GH11882@breakpoint.cc>
 References: <20180311194104.GA17450@seema-Inspiron-15-3567>
  <1520797961.19456.4.camel@perches.com>
  <20180311204734.aczkhqqgtb7z2kkj@salvia>
  <CA+XqjF-HhYADuFicA1S4tmU2Hfi2bAWinO2DR4g42ORkyGMW_A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Joe Perches <joe@perches.com>,
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Joe Perches <joe@perches.com>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>,
         "David S. Miller" <davem@davemloft.net>,
@@ -24,7 +25,7 @@ In-Reply-To: <CA+XqjF-HhYADuFicA1S4tmU2Hfi2bAWinO2DR4g42ORkyGMW_A@mail.gmail.com
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Mar 12, 2018 at 03:56:15AM +0530, Arushi Singhal wrote:
+Arushi Singhal <arushisinghal19971997@gmail.com> wrote:
 > On Mon, Mar 12, 2018 at 2:17 AM, Pablo Neira Ayuso <pablo@netfilter.org>
 > wrote:
 > 
@@ -65,10 +66,18 @@ On Mon, Mar 12, 2018 at 03:56:15AM +0530, Arushi Singhal wrote:
 > 
 > only one patch with all the changes?
 
-I think adding pr_fmt and use pr_() belongs to the same logical
-change, so one patch for this is fine.
+Both in one, it reduces code churn.
 
-Thanks Arushi.
+With pr_* + pr_fmt, the module name will be prefixed automatically, see
+e.g. commit e016c5e43db51875c2b541b59bd217494d213174 as an example.
 
-P.S: Please, just send your patch netfilter-devel@vger.kernel.org
-next time, no need to Cc every list. Thanks!
+> > This would also probably allows us to save the line break in the error
+> > message, which IIRC is not a good practise either, eg.
+> >
+> >                                 pr_warn("nf_queue: OOM "
+> >                                         "in mangle, dropping packet\n");
+> >
+> > > Perhaps coalesce the formats and remove the unnecessary periods too.
+
+The above message should be removed, its useless (on oom allocator
+already warns).
