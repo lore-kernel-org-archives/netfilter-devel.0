@@ -1,7 +1,7 @@
 From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] netfilter: nfnetlink_cthelper: Remove VLA usage
-Date: Mon, 12 Mar 2018 19:21:38 -0500
-Message-ID: <20180313002138.GA27280@embeddedgus>
+Subject: [PATCH] netfilter: nf_tables: remove VLA usage
+Date: Mon, 12 Mar 2018 20:13:49 -0500
+Message-ID: <20180313011349.GA31826@embeddedgus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
@@ -31,61 +31,71 @@ the kernel: https://lkml.org/lkml/2018/3/7/621
 
 Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 ---
- net/netfilter/nfnetlink_cthelper.c | 25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ net/netfilter/nf_tables_api.c | 23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index d33ce6d..4a4b293 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -314,23 +314,30 @@ nfnl_cthelper_update_policy_one(const struct nf_conntrack_expect_policy *policy,
- static int nfnl_cthelper_update_policy_all(struct nlattr *tb[],
- 					   struct nf_conntrack_helper *helper)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 3f815b6..ea76903 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4357,16 +4357,20 @@ static struct nft_object *nft_obj_init(const struct nft_ctx *ctx,
+ 				       const struct nft_object_type *type,
+ 				       const struct nlattr *attr)
  {
--	struct nf_conntrack_expect_policy new_policy[helper->expect_class_max + 1];
-+	struct nf_conntrack_expect_policy *new_policy;
- 	struct nf_conntrack_expect_policy *policy;
--	int i, err;
-+	int i, ret = 0;
+-	struct nlattr *tb[type->maxattr + 1];
++	struct nlattr **tb;
+ 	const struct nft_object_ops *ops;
+ 	struct nft_object *obj;
+-	int err;
++	int err = -ENOMEM;
 +
-+	new_policy = kmalloc_array(helper->expect_class_max + 1,
-+				   sizeof(*new_policy), GFP_KERNEL);
-+	if (!new_policy)
-+		return -ENOMEM;
++	tb = kcalloc(type->maxattr + 1, sizeof(*tb), GFP_KERNEL);
++	if (!tb)
++		goto err1;
  
- 	/* Check first that all policy attributes are well-formed, so we don't
- 	 * leave things in inconsistent state on errors.
- 	 */
- 	for (i = 0; i < helper->expect_class_max + 1; i++) {
- 
--		if (!tb[NFCTH_POLICY_SET + i])
--			return -EINVAL;
-+		if (!tb[NFCTH_POLICY_SET + i]) {
-+			ret = -EINVAL;
-+			goto err;
-+		}
- 
--		err = nfnl_cthelper_update_policy_one(&helper->expect_policy[i],
-+		ret = nfnl_cthelper_update_policy_one(&helper->expect_policy[i],
- 						      &new_policy[i],
- 						      tb[NFCTH_POLICY_SET + i]);
--		if (err < 0)
--			return err;
-+		if (ret < 0)
-+			goto err;
+ 	if (attr) {
+ 		err = nla_parse_nested(tb, type->maxattr, attr, type->policy,
+ 				       NULL);
+ 		if (err < 0)
+-			goto err1;
++			goto err2;
+ 	} else {
+ 		memset(tb, 0, sizeof(tb[0]) * (type->maxattr + 1));
  	}
- 	/* Now we can safely update them. */
- 	for (i = 0; i < helper->expect_class_max + 1; i++) {
-@@ -340,7 +347,9 @@ static int nfnl_cthelper_update_policy_all(struct nlattr *tb[],
- 		policy->timeout	= new_policy->timeout;
- 	}
+@@ -4375,7 +4379,7 @@ static struct nft_object *nft_obj_init(const struct nft_ctx *ctx,
+ 		ops = type->select_ops(ctx, (const struct nlattr * const *)tb);
+ 		if (IS_ERR(ops)) {
+ 			err = PTR_ERR(ops);
+-			goto err1;
++			goto err2;
+ 		}
+ 	} else {
+ 		ops = type->ops;
+@@ -4383,18 +4387,21 @@ static struct nft_object *nft_obj_init(const struct nft_ctx *ctx,
  
--	return 0;
-+err:
-+	kfree(new_policy);
-+	return ret;
+ 	err = -ENOMEM;
+ 	obj = kzalloc(sizeof(*obj) + ops->size, GFP_KERNEL);
+-	if (obj == NULL)
+-		goto err1;
++	if (!obj)
++		goto err2;
+ 
+ 	err = ops->init(ctx, (const struct nlattr * const *)tb, obj);
+ 	if (err < 0)
+-		goto err2;
++		goto err3;
+ 
+ 	obj->ops = ops;
+ 
++	kfree(tb);
+ 	return obj;
+-err2:
++err3:
+ 	kfree(obj);
++err2:
++	kfree(tb);
+ err1:
+ 	return ERR_PTR(err);
  }
- 
- static int nfnl_cthelper_update_policy(struct nf_conntrack_helper *helper,
 -- 
 2.7.4
