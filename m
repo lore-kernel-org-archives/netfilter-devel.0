@@ -1,13 +1,11 @@
 From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] netfilter: nf_tables: remove VLA usage
-Date: Mon, 12 Mar 2018 20:13:49 -0500
-Message-ID: <20180313011349.GA31826@embeddedgus>
+Subject: [PATCH v2] netfilter: nf_tables: remove VLA usage
+Date: Mon, 12 Mar 2018 22:16:17 -0500
+Message-ID: <20180313031617.GA2204@embeddedgus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Kernel Hardening <kernel-hardening@lists.openwall.com>,
-        Kees Cook <keescook@chromium.org>,
         "Gustavo A. R. Silva" <garsilva@embeddedor.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
@@ -31,11 +29,14 @@ the kernel: https://lkml.org/lkml/2018/3/7/621
 
 Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 ---
+Changes in v2:
+ - Use kmalloc_array instead of kcalloc.
+
  net/netfilter/nf_tables_api.c | 23 +++++++++++++++--------
  1 file changed, 15 insertions(+), 8 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 3f815b6..ea76903 100644
+index 3f815b6..5a42e97 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
 @@ -4357,16 +4357,20 @@ static struct nft_object *nft_obj_init(const struct nft_ctx *ctx,
@@ -49,7 +50,7 @@ index 3f815b6..ea76903 100644
 -	int err;
 +	int err = -ENOMEM;
 +
-+	tb = kcalloc(type->maxattr + 1, sizeof(*tb), GFP_KERNEL);
++	tb = kmalloc_array(type->maxattr + 1, sizeof(*tb), GFP_KERNEL);
 +	if (!tb)
 +		goto err1;
  
