@@ -1,102 +1,56 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH v2] netfilter: nf_tables: remove VLA usage
-Date: Mon, 12 Mar 2018 22:16:17 -0500
-Message-ID: <20180313031617.GA2204@embeddedgus>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: cttimeout: remove VLA usage
+Date: Tue, 13 Mar 2018 15:59:47 +0100
+Message-ID: <20180313145947.tpekwvyioaft5auc@salvia>
+References: <20180312231442.GA22071@embeddedgus>
+ <1520899118.2049.24.camel@perches.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
         Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
         Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Kernel Hardening <kernel-hardening@lists.openwall.com>,
+        Kees Cook <keescook@chromium.org>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Joe Perches <joe@perches.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <1520899118.2049.24.camel@perches.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-In preparation to enabling -Wvla, remove VLA and replace it
-with dynamic memory allocation.
+On Mon, Mar 12, 2018 at 04:58:38PM -0700, Joe Perches wrote:
+> On Mon, 2018-03-12 at 18:14 -0500, Gustavo A. R. Silva wrote:
+> > In preparation to enabling -Wvla, remove VLA and replace it
+> > with dynamic memory allocation.
+> > 
+> > From a security viewpoint, the use of Variable Length Arrays can be
+> > a vector for stack overflow attacks. Also, in general, as the code
+> > evolves it is easy to lose track of how big a VLA can get. Thus, we
+> > can end up having segfaults that are hard to debug.
+> > 
+> > Also, fixed as part of the directive to remove all VLAs from
+> []
+> > diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+> []
+> > @@ -51,19 +51,27 @@ ctnl_timeout_parse_policy(void *timeouts,
+> >  			  const struct nf_conntrack_l4proto *l4proto,
+> >  			  struct net *net, const struct nlattr *attr)
+> >  {
+> > +	struct nlattr **tb;
+> >  	int ret = 0;
+> >  
+> > -	if (likely(l4proto->ctnl_timeout.nlattr_to_obj)) {
+> > -		struct nlattr *tb[l4proto->ctnl_timeout.nlattr_max+1];
+> > +	if (!l4proto->ctnl_timeout.nlattr_to_obj)
+> > +		return 0;
+> 
+> Why not
+> 	if unlikely(!...)
 
->From a security viewpoint, the use of Variable Length Arrays can be
-a vector for stack overflow attacks. Also, in general, as the code
-evolves it is easy to lose track of how big a VLA can get. Thus, we
-can end up having segfaults that are hard to debug.
-
-Also, fixed as part of the directive to remove all VLAs from
-the kernel: https://lkml.org/lkml/2018/3/7/621
-
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
-Changes in v2:
- - Use kmalloc_array instead of kcalloc.
-
- net/netfilter/nf_tables_api.c | 23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 3f815b6..5a42e97 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4357,16 +4357,20 @@ static struct nft_object *nft_obj_init(const struct nft_ctx *ctx,
- 				       const struct nft_object_type *type,
- 				       const struct nlattr *attr)
- {
--	struct nlattr *tb[type->maxattr + 1];
-+	struct nlattr **tb;
- 	const struct nft_object_ops *ops;
- 	struct nft_object *obj;
--	int err;
-+	int err = -ENOMEM;
-+
-+	tb = kmalloc_array(type->maxattr + 1, sizeof(*tb), GFP_KERNEL);
-+	if (!tb)
-+		goto err1;
- 
- 	if (attr) {
- 		err = nla_parse_nested(tb, type->maxattr, attr, type->policy,
- 				       NULL);
- 		if (err < 0)
--			goto err1;
-+			goto err2;
- 	} else {
- 		memset(tb, 0, sizeof(tb[0]) * (type->maxattr + 1));
- 	}
-@@ -4375,7 +4379,7 @@ static struct nft_object *nft_obj_init(const struct nft_ctx *ctx,
- 		ops = type->select_ops(ctx, (const struct nlattr * const *)tb);
- 		if (IS_ERR(ops)) {
- 			err = PTR_ERR(ops);
--			goto err1;
-+			goto err2;
- 		}
- 	} else {
- 		ops = type->ops;
-@@ -4383,18 +4387,21 @@ static struct nft_object *nft_obj_init(const struct nft_ctx *ctx,
- 
- 	err = -ENOMEM;
- 	obj = kzalloc(sizeof(*obj) + ops->size, GFP_KERNEL);
--	if (obj == NULL)
--		goto err1;
-+	if (!obj)
-+		goto err2;
- 
- 	err = ops->init(ctx, (const struct nlattr * const *)tb, obj);
- 	if (err < 0)
--		goto err2;
-+		goto err3;
- 
- 	obj->ops = ops;
- 
-+	kfree(tb);
- 	return obj;
--err2:
-+err3:
- 	kfree(obj);
-+err2:
-+	kfree(tb);
- err1:
- 	return ERR_PTR(err);
- }
--- 
-2.7.4
+This is control plane code - not packet path - I think we should just
+let the compiler decide on this one, not really need to provide an
+explicit hint here.
