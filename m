@@ -1,7 +1,7 @@
 From: Kirill Tkhai <ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH net-next 4/6] net: Convert ipvs_core_ops
-Date: Thu, 15 Mar 2018 12:11:25 +0300
-Message-ID: <152110508554.28582.4604877155259248267.stgit@localhost.localdomain>
+Subject: [PATCH net-next 5/6] net: Convert ipvs_core_dev_ops
+Date: Thu, 15 Mar 2018 12:11:35 +0300
+Message-ID: <152110509541.28582.14001526458843433142.stgit@localhost.localdomain>
 References: <152110491273.28582.13804059107038714030.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -28,15 +28,8 @@ Sender: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
 Errors-To: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-These pernet_operations register and unregister nf hooks,
-/proc entries, sysctl, percpu statistics. There are several
-global lists, and the only list modified without exclusive
-locks is ip_vs_conn_tab in ip_vs_conn_flush(). We iterate
-the list and force the timers expire at the moment. Since
-there were possible several timer expirations before this
-patch, and since they are safe, the patch does not invent
-new parallelism of their destruction. These pernet_operations
-look safe to be converted.
+Exit method stops two per-net threads and cancels
+delayed work. Everything looks nicely per-net divided.
 
 Signed-off-by: Kirill Tkhai <ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org>
 ---
@@ -44,14 +37,14 @@ Signed-off-by: Kirill Tkhai <ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 5f6f73cf2174..c5d16e2bc8e2 100644
+index c5d16e2bc8e2..6a6cb9db030b 100644
 --- a/net/netfilter/ipvs/ip_vs_core.c
 +++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2289,6 +2289,7 @@ static struct pernet_operations ipvs_core_ops = {
- 	.exit = __ip_vs_cleanup,
- 	.id   = &ip_vs_net_id,
- 	.size = sizeof(struct netns_ipvs),
+@@ -2294,6 +2294,7 @@ static struct pernet_operations ipvs_core_ops = {
+ 
+ static struct pernet_operations ipvs_core_dev_ops = {
+ 	.exit = __ip_vs_dev_cleanup,
 +	.async = true,
  };
  
- static struct pernet_operations ipvs_core_dev_ops = {
+ /*
