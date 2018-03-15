@@ -1,8 +1,8 @@
 From: Kirill Tkhai <ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH net-next 0/6] Converting pernet_operations (part
-	#8)
-Date: Thu, 15 Mar 2018 12:10:47 +0300
-Message-ID: <152110491273.28582.13804059107038714030.stgit@localhost.localdomain>
+Subject: [PATCH net-next 1/6] net: Convert l2tp_net_ops
+Date: Thu, 15 Mar 2018 12:10:57 +0300
+Message-ID: <152110505785.28582.3727938208418496683.stgit@localhost.localdomain>
+References: <152110491273.28582.13804059107038714030.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -16,6 +16,7 @@ To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, wensong-ud5FBsm0p/xg9hUCZPvPm
 	lvs-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
 	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org
 Return-path: <ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <152110491273.28582.13804059107038714030.stgit-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 List-Unsubscribe: <https://mail.openvswitch.org/mailman/options/ovs-dev>,
 	<mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://mail.openvswitch.org/pipermail/ovs-dev/>
@@ -27,33 +28,24 @@ Sender: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
 Errors-To: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Init method is rather simple. Exit method queues del_work
+for every tunnel from per-net list. This seems to be safe
+to be marked async.
 
-this series continues to review and to convert pernet_operations
-to make them possible to be executed in parallel for several
-net namespaces at the same time. There are different operations
-over the tree, mostly are ipvs.
-
-
-Thanks,
-Kirill
----
-
-Kirill Tkhai (6):
-      net: Convert l2tp_net_ops
-      net: Convert mpls_net_ops
-      net: Convert ovs_net_ops
-      net: Convert ipvs_core_ops
-      net: Convert ipvs_core_dev_ops
-      net: Convert ip_vs_ftp_ops
-
-
- net/l2tp/l2tp_core.c            |    1 +
- net/mpls/af_mpls.c              |    1 +
- net/netfilter/ipvs/ip_vs_core.c |    2 ++
- net/netfilter/ipvs/ip_vs_ftp.c  |    1 +
- net/openvswitch/datapath.c      |    1 +
- 5 files changed, 6 insertions(+)
-
---
 Signed-off-by: Kirill Tkhai <ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org>
+---
+ net/l2tp/l2tp_core.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/l2tp/l2tp_core.c b/net/l2tp/l2tp_core.c
+index 83421c6f0bef..189a12a5e4ac 100644
+--- a/net/l2tp/l2tp_core.c
++++ b/net/l2tp/l2tp_core.c
+@@ -1787,6 +1787,7 @@ static struct pernet_operations l2tp_net_ops = {
+ 	.exit = l2tp_exit_net,
+ 	.id   = &l2tp_net_id,
+ 	.size = sizeof(struct l2tp_net),
++	.async = true,
+ };
+ 
+ static int __init l2tp_init(void)
