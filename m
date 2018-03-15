@@ -1,7 +1,7 @@
 From: Kirill Tkhai <ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH net-next 5/6] net: Convert ipvs_core_dev_ops
-Date: Thu, 15 Mar 2018 12:11:35 +0300
-Message-ID: <152110509541.28582.14001526458843433142.stgit@localhost.localdomain>
+Subject: [PATCH net-next 6/6] net: Convert ip_vs_ftp_ops
+Date: Thu, 15 Mar 2018 12:11:44 +0300
+Message-ID: <152110510435.28582.5460074990390145177.stgit@localhost.localdomain>
 References: <152110491273.28582.13804059107038714030.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -28,23 +28,26 @@ Sender: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
 Errors-To: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Exit method stops two per-net threads and cancels
-delayed work. Everything looks nicely per-net divided.
+These pernet_operations register and unregister ipvs app.
+register_ip_vs_app(), unregister_ip_vs_app() and
+register_ip_vs_app_inc() modify per-net structures,
+and there are no global structures touched. So,
+this looks safe to be marked as async.
 
 Signed-off-by: Kirill Tkhai <ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org>
 ---
- net/netfilter/ipvs/ip_vs_core.c |    1 +
+ net/netfilter/ipvs/ip_vs_ftp.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index c5d16e2bc8e2..6a6cb9db030b 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2294,6 +2294,7 @@ static struct pernet_operations ipvs_core_ops = {
- 
- static struct pernet_operations ipvs_core_dev_ops = {
- 	.exit = __ip_vs_dev_cleanup,
+diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
+index 58d5d05aec24..8b25aab41928 100644
+--- a/net/netfilter/ipvs/ip_vs_ftp.c
++++ b/net/netfilter/ipvs/ip_vs_ftp.c
+@@ -479,6 +479,7 @@ static void __ip_vs_ftp_exit(struct net *net)
+ static struct pernet_operations ip_vs_ftp_ops = {
+ 	.init = __ip_vs_ftp_init,
+ 	.exit = __ip_vs_ftp_exit,
 +	.async = true,
  };
  
- /*
+ static int __init ip_vs_ftp_init(void)
