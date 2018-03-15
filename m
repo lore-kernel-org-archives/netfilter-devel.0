@@ -1,7 +1,7 @@
 From: Kirill Tkhai <ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org>
-Subject: [PATCH net-next 2/6] net: Convert mpls_net_ops
-Date: Thu, 15 Mar 2018 12:11:06 +0300
-Message-ID: <152110506653.28582.3966480691261586346.stgit@localhost.localdomain>
+Subject: [PATCH net-next 3/6] net: Convert ovs_net_ops
+Date: Thu, 15 Mar 2018 12:11:16 +0300
+Message-ID: <152110507689.28582.3012763959630506155.stgit@localhost.localdomain>
 References: <152110491273.28582.13804059107038714030.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -28,24 +28,27 @@ Sender: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
 Errors-To: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-These pernet_operations register and unregister sysctl table.
-Exit methods frees platform_labels from net::mpls::platform_label.
-Everything is per-net, and they looks safe to be marked async.
+These pernet_operations initialize and destroy net_generic()
+data pointed by ovs_net_id. Exit method destroys vports from
+alive net to exiting net. Since they are only pernet_operations
+interested in this data, and exit method is executed under
+exclusive global lock (ovs_mutex), they are safe to be executed
+in parallel.
 
 Signed-off-by: Kirill Tkhai <ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org>
 ---
- net/mpls/af_mpls.c |    1 +
+ net/openvswitch/datapath.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/net/mpls/af_mpls.c b/net/mpls/af_mpls.c
-index 7a4de6d618b1..d4a89a8be013 100644
---- a/net/mpls/af_mpls.c
-+++ b/net/mpls/af_mpls.c
-@@ -2488,6 +2488,7 @@ static void mpls_net_exit(struct net *net)
- static struct pernet_operations mpls_net_ops = {
- 	.init = mpls_net_init,
- 	.exit = mpls_net_exit,
+diff --git a/net/openvswitch/datapath.c b/net/openvswitch/datapath.c
+index ef38e5aecd28..100191df0371 100644
+--- a/net/openvswitch/datapath.c
++++ b/net/openvswitch/datapath.c
+@@ -2384,6 +2384,7 @@ static struct pernet_operations ovs_net_ops = {
+ 	.exit = ovs_exit_net,
+ 	.id   = &ovs_net_id,
+ 	.size = sizeof(struct ovs_net),
 +	.async = true,
  };
  
- static struct rtnl_af_ops mpls_af_ops __read_mostly = {
+ static int __init dp_init(void)
