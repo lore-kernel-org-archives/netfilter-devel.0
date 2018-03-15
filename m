@@ -1,64 +1,59 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] netfilter: cttimeout: remove VLA usage
-Date: Tue, 13 Mar 2018 09:13:47 -0700
-Message-ID: <1520957627.2049.37.camel@perches.com>
-References: <20180312231442.GA22071@embeddedgus>
-	 <1520899118.2049.24.camel@perches.com>
-	 <20180313145947.tpekwvyioaft5auc@salvia>
+From: Kirill Tkhai <ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org>
+Subject: [PATCH net-next 0/6] Converting pernet_operations (part
+	#8)
+Date: Thu, 15 Mar 2018 12:10:47 +0300
+Message-ID: <152110491273.28582.13804059107038714030.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Jozsef Kadlecsik
- <kadlec@blackhole.kfki.hu>, Florian Westphal <fw@strlen.de>, "David S.
- Miller" <davem@davemloft.net>, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org,  netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, Kernel Hardening
- <kernel-hardening@lists.openwall.com>, Kees Cook <keescook@chromium.org>,
- "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <kernel-hardening-return-12508-glkh-kernel-hardening=m.gmane.org@lists.openwall.com>
-List-Post: <mailto:kernel-hardening@lists.openwall.com>
-List-Help: <mailto:kernel-hardening-help@lists.openwall.com>
-List-Unsubscribe: <mailto:kernel-hardening-unsubscribe@lists.openwall.com>
-List-Subscribe: <mailto:kernel-hardening-subscribe@lists.openwall.com>
-In-Reply-To: <20180313145947.tpekwvyioaft5auc@salvia>
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, wensong-ud5FBsm0p/xg9hUCZPvPmw@public.gmane.org, horms-/R6kz+dDXgpPR4JQBCEnsQ@public.gmane.org, ja-FgGsKACvmQM@public.gmane.org,
+	pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org,
+	pshelar-LZ6Gd1LRuIk@public.gmane.org,
+	g.nault-pHk1y4uTXVDytLWWfqlThQ@public.gmane.org, jchapman-Bm0nJX+W7e9BDgjK7y7TUQ@public.gmane.org, lorenzo.bianconi-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org,
+	dwindsor-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, elena.reshetova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dsahern-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org,
+	roopa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org, rshearma-43mecJUBy8ZBDgjK7y7TUQ@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org,
+	amine.kherbouche-pdR9zngts4EAvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	lvs-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org
+Return-path: <ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Unsubscribe: <https://mail.openvswitch.org/mailman/options/ovs-dev>,
+	<mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://mail.openvswitch.org/pipermail/ovs-dev/>
+List-Post: <mailto:ovs-dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <https://mail.openvswitch.org/mailman/listinfo/ovs-dev>,
+	<mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Sender: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Errors-To: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2018-03-13 at 15:59 +0100, Pablo Neira Ayuso wrote:
-> On Mon, Mar 12, 2018 at 04:58:38PM -0700, Joe Perches wrote:
-> > On Mon, 2018-03-12 at 18:14 -0500, Gustavo A. R. Silva wrote:
-> > > In preparation to enabling -Wvla, remove VLA and replace it
-> > > with dynamic memory allocation.
-> > > 
-> > > From a security viewpoint, the use of Variable Length Arrays can be
-> > > a vector for stack overflow attacks. Also, in general, as the code
-> > > evolves it is easy to lose track of how big a VLA can get. Thus, we
-> > > can end up having segfaults that are hard to debug.
-> > > 
-> > > Also, fixed as part of the directive to remove all VLAs from
-> > 
-> > []
-> > > diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-> > 
-> > []
-> > > @@ -51,19 +51,27 @@ ctnl_timeout_parse_policy(void *timeouts,
-> > >  			  const struct nf_conntrack_l4proto *l4proto,
-> > >  			  struct net *net, const struct nlattr *attr)
-> > >  {
-> > > +	struct nlattr **tb;
-> > >  	int ret = 0;
-> > >  
-> > > -	if (likely(l4proto->ctnl_timeout.nlattr_to_obj)) {
-> > > -		struct nlattr *tb[l4proto->ctnl_timeout.nlattr_max+1];
-> > > +	if (!l4proto->ctnl_timeout.nlattr_to_obj)
-> > > +		return 0;
-> > 
-> > Why not
-> > 	if unlikely(!...)
-> 
-> This is control plane code - not packet path - I think we should just
-> let the compiler decide on this one, not really need to provide an
-> explicit hint here.
+Hi,
 
-I don't have an issue with that, but it should probably be
-mentioned in the changelog as it's unrelated to VLA removal.
+this series continues to review and to convert pernet_operations
+to make them possible to be executed in parallel for several
+net namespaces at the same time. There are different operations
+over the tree, mostly are ipvs.
+
+
+Thanks,
+Kirill
+---
+
+Kirill Tkhai (6):
+      net: Convert l2tp_net_ops
+      net: Convert mpls_net_ops
+      net: Convert ovs_net_ops
+      net: Convert ipvs_core_ops
+      net: Convert ipvs_core_dev_ops
+      net: Convert ip_vs_ftp_ops
+
+
+ net/l2tp/l2tp_core.c            |    1 +
+ net/mpls/af_mpls.c              |    1 +
+ net/netfilter/ipvs/ip_vs_core.c |    2 ++
+ net/netfilter/ipvs/ip_vs_ftp.c  |    1 +
+ net/openvswitch/datapath.c      |    1 +
+ 5 files changed, 6 insertions(+)
+
+--
+Signed-off-by: Kirill Tkhai <ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org>
