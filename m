@@ -1,45 +1,35 @@
-From: Kirill Tkhai <ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org>
-Subject: Re: [PATCH net-next 0/6] Converting pernet_operations
-	(part #8)
-Date: Sun, 18 Mar 2018 00:13:27 +0300
-Message-ID: <a340a7c9-015d-19ed-e6db-e787a9b128d5@virtuozzo.com>
-References: <152110491273.28582.13804059107038714030.stgit@localhost.localdomain>
-	<20180317.170757.485564313326587221.davem@davemloft.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: cttimeout: remove VLA usage
+Date: Tue, 20 Mar 2018 13:36:42 +0100
+Message-ID: <20180320123642.5cqzpaoxqvrpwi2h@salvia>
+References: <20180312231442.GA22071@embeddedgus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, wensong-ud5FBsm0p/xg9hUCZPvPmw@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org,
-	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roopa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org,
-	dsahern-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org, jchapman-Bm0nJX+W7e9BDgjK7y7TUQ@public.gmane.org,
-	lvs-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ja-FgGsKACvmQM@public.gmane.org,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, elena.reshetova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org,
-	amine.kherbouche-pdR9zngts4EAvxtiuMwx3w@public.gmane.org, kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org,
-	rshearma-43mecJUBy8ZBDgjK7y7TUQ@public.gmane.org, g.nault-pHk1y4uTXVDytLWWfqlThQ@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
-	dwindsor-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Return-path: <ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <20180317.170757.485564313326587221.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://mail.openvswitch.org/mailman/options/ovs-dev>,
-	<mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://mail.openvswitch.org/pipermail/ovs-dev/>
-List-Post: <mailto:ovs-dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <https://mail.openvswitch.org/mailman/listinfo/ovs-dev>,
-	<mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Sender: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Errors-To: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Kernel Hardening <kernel-hardening@lists.openwall.com>,
+        Kees Cook <keescook@chromium.org>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180312231442.GA22071@embeddedgus>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 18.03.2018 00:07, David Miller wrote:
-> From: Kirill Tkhai <ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org>
-> Date: Thu, 15 Mar 2018 12:10:47 +0300
+On Mon, Mar 12, 2018 at 06:14:42PM -0500, Gustavo A. R. Silva wrote:
+> In preparation to enabling -Wvla, remove VLA and replace it
+> with dynamic memory allocation.
 > 
->> this series continues to review and to convert pernet_operations
->> to make them possible to be executed in parallel for several
->> net namespaces at the same time. There are different operations
->> over the tree, mostly are ipvs.
+> From a security viewpoint, the use of Variable Length Arrays can be
+> a vector for stack overflow attacks. Also, in general, as the code
+> evolves it is easy to lose track of how big a VLA can get. Thus, we
+> can end up having segfaults that are hard to debug.
 > 
-> Series applied, thanks Kirill.
+> Also, fixed as part of the directive to remove all VLAs from
+> the kernel: https://lkml.org/lkml/2018/3/7/621
 
-Thanks, David!
+Applied, thanks.
