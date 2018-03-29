@@ -1,8 +1,9 @@
 From: Kirill Tkhai <ktkhai@virtuozzo.com>
-Subject: [PATCH net-next 0/3] Close race between {un,
- }register_netdevice_notifier and pernet_operations
-Date: Thu, 29 Mar 2018 17:03:15 +0300
-Message-ID: <152233127015.1654.2122693690388452589.stgit@localhost.localdomain>
+Subject: [PATCH net-next 1/3] xfrm: Register xfrm_dev_notifier in
+ appropriate place
+Date: Thu, 29 Mar 2018 17:03:25 +0300
+Message-ID: <152233220552.1654.7358556679252438991.stgit@localhost.localdomain>
+References: <152233127015.1654.2122693690388452589.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -15,45 +16,67 @@ To: davem@davemloft.net, steffen.klassert@secunet.com,
         netdev@vger.kernel.org, ktkhai@virtuozzo.com,
         netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <152233127015.1654.2122693690388452589.stgit@localhost.localdomain>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Currently, driver registers it from pernet_operations::init method,
+and this breaks modularity, because initialization of net namespace
+and netdevice notifiers are orthogonal actions. We don't have
+per-namespace netdevice notifiers; all of them are global for all
+devices in all namespaces.
 
-the problem is {,un}register_netdevice_notifier() do not take
-pernet_ops_rwsem, and they don't see network namespaces, being
-initialized in setup_net() and cleanup_net(), since at this
-time net is not hashed to net_namespace_list.
-
-This may lead to imbalance, when a notifier is called at time of
-setup_net()/net is alive, but it's not called at time of cleanup_net(),
-for the devices, hashed to the net, and vise versa. See (3/3) for
-the scheme of imbalance.
-
-This patchset fixes the problem by acquiring pernet_ops_rwsem
-at the time of {,un}register_netdevice_notifier() (3/3).
-(1-2/3) are preparations in xfrm and netfilter subsystems.
-
-The problem was introduced a long ago, but backporting won't be easy,
-since every previous kernel version may have changes in netdevice
-notifiers, and they all need review and testing. Otherwise, there
-may be more pernet_operations, which register or unregister
-netdevice notifiers, and that leads to deadlock (which is was fixed
-in 1-2/3). This patchset is for net-next.
-
-Thanks,
-Kirill
+Signed-off-by: Kirill Tkhai <ktkhai@virtuozzo.com>
 ---
+ include/net/xfrm.h     |    2 +-
+ net/xfrm/xfrm_device.c |    2 +-
+ net/xfrm/xfrm_policy.c |    3 +--
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
-Kirill Tkhai (3):
-      xfrm: Register xfrm_dev_notifier in appropriate place
-      netfilter: Rework xt_TEE netdevice notifier
-      net: Close race between {un,}register_netdevice_notifier() and setup_net()/cleanup_net()
-
-
- include/net/xfrm.h     |    2 +
- net/core/dev.c         |    6 ++++
- net/netfilter/xt_TEE.c |   73 ++++++++++++++++++++++++++++++------------------
- net/xfrm/xfrm_device.c |    2 +
- net/xfrm/xfrm_policy.c |    3 +-
- 5 files changed, 55 insertions(+), 31 deletions(-)
+diff --git a/include/net/xfrm.h b/include/net/xfrm.h
+index aa027ba1d032..a872379b69da 100644
+--- a/include/net/xfrm.h
++++ b/include/net/xfrm.h
+@@ -1894,7 +1894,7 @@ static inline struct xfrm_offload *xfrm_offload(struct sk_buff *skb)
+ #endif
+ }
+ 
+-void __net_init xfrm_dev_init(void);
++void __init xfrm_dev_init(void);
+ 
+ #ifdef CONFIG_XFRM_OFFLOAD
+ void xfrm_dev_resume(struct sk_buff *skb);
+diff --git a/net/xfrm/xfrm_device.c b/net/xfrm/xfrm_device.c
+index e87d6c4dd5b6..175941e15a6e 100644
+--- a/net/xfrm/xfrm_device.c
++++ b/net/xfrm/xfrm_device.c
+@@ -350,7 +350,7 @@ static struct notifier_block xfrm_dev_notifier = {
+ 	.notifier_call	= xfrm_dev_event,
+ };
+ 
+-void __net_init xfrm_dev_init(void)
++void __init xfrm_dev_init(void)
+ {
+ 	register_netdevice_notifier(&xfrm_dev_notifier);
+ }
+diff --git a/net/xfrm/xfrm_policy.c b/net/xfrm/xfrm_policy.c
+index 625b3fca5704..f29c8d588116 100644
+--- a/net/xfrm/xfrm_policy.c
++++ b/net/xfrm/xfrm_policy.c
+@@ -2895,8 +2895,6 @@ static int __net_init xfrm_policy_init(struct net *net)
+ 	INIT_LIST_HEAD(&net->xfrm.policy_all);
+ 	INIT_WORK(&net->xfrm.policy_hash_work, xfrm_hash_resize);
+ 	INIT_WORK(&net->xfrm.policy_hthresh.work, xfrm_hash_rebuild);
+-	if (net_eq(net, &init_net))
+-		xfrm_dev_init();
+ 	return 0;
+ 
+ out_bydst:
+@@ -2999,6 +2997,7 @@ void __init xfrm_init(void)
+ 		INIT_WORK(&xfrm_pcpu_work[i], xfrm_pcpu_work_fn);
+ 
+ 	register_pernet_subsys(&xfrm_net_ops);
++	xfrm_dev_init();
+ 	seqcount_init(&xfrm_policy_hash_generation);
+ 	xfrm_input_init();
+ }
