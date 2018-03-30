@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 06/47] netfilter: unlock xt_table earlier in __do_replace
-Date: Fri, 30 Mar 2018 13:36:48 +0200
-Message-ID: <20180330113729.18335-7-pablo@netfilter.org>
+Subject: [PATCH 09/47] netfilter: x_tables: move hook entry checks into core
+Date: Fri, 30 Mar 2018 13:36:51 +0200
+Message-ID: <20180330113729.18335-10-pablo@netfilter.org>
 References: <20180330113729.18335-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,92 +10,144 @@ In-Reply-To: <20180330113729.18335-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Xin Long <lucien.xin@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-Now it's doing cleanup_entry for oldinfo under the xt_table lock,
-but it's not really necessary. After the replacement job is done
-in xt_replace_table, oldinfo is not used elsewhere any more, and
-it can be freed without xt_table lock safely.
+Allow followup patch to change on location instead of three.
 
-The important thing is that rtnl_lock is called in some xt_target
-destroy, which means rtnl_lock, a big lock is used in xt_table
-lock, a smaller one. It usually could be the reason why a dead
-lock may happen.
-
-Besides, all xt_target/match checkentry is called out of xt_table
-lock. It's better also to move all cleanup_entry calling out of
-xt_table lock, just as do_replace_finish does for ebtables.
-
-Signed-off-by: Xin Long <lucien.xin@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/arp_tables.c | 3 ++-
- net/ipv4/netfilter/ip_tables.c  | 3 ++-
- net/ipv6/netfilter/ip6_tables.c | 3 ++-
- 3 files changed, 6 insertions(+), 3 deletions(-)
+ include/linux/netfilter/x_tables.h |  2 ++
+ net/ipv4/netfilter/arp_tables.c    | 13 +++----------
+ net/ipv4/netfilter/ip_tables.c     | 13 +++----------
+ net/ipv6/netfilter/ip6_tables.c    | 13 +++----------
+ net/netfilter/x_tables.c           | 29 +++++++++++++++++++++++++++++
+ 5 files changed, 40 insertions(+), 30 deletions(-)
 
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 1313b35c3ab7..fa0c19c328f1 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -281,6 +281,8 @@ int xt_check_entry_offsets(const void *base, const char *elems,
+ 			   unsigned int target_offset,
+ 			   unsigned int next_offset);
+ 
++int xt_check_table_hooks(const struct xt_table_info *info, unsigned int valid_hooks);
++
+ unsigned int *xt_alloc_entry_offsets(unsigned int size);
+ bool xt_find_jump_offset(const unsigned int *offsets,
+ 			 unsigned int target, unsigned int size);
 diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index c36ffce3c812..a0c7ce76879c 100644
+index c9ffa884a4ee..be5821215ea0 100644
 --- a/net/ipv4/netfilter/arp_tables.c
 +++ b/net/ipv4/netfilter/arp_tables.c
-@@ -925,6 +925,8 @@ static int __do_replace(struct net *net, const char *name,
- 	    (newinfo->number <= oldinfo->initial_entries))
- 		module_put(t->me);
+@@ -555,16 +555,9 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
+ 	if (i != repl->num_entries)
+ 		goto out_free;
  
-+	xt_table_unlock(t);
-+
- 	get_old_counters(oldinfo, counters);
+-	/* Check hooks all assigned */
+-	for (i = 0; i < NF_ARP_NUMHOOKS; i++) {
+-		/* Only hooks which are valid */
+-		if (!(repl->valid_hooks & (1 << i)))
+-			continue;
+-		if (newinfo->hook_entry[i] == 0xFFFFFFFF)
+-			goto out_free;
+-		if (newinfo->underflow[i] == 0xFFFFFFFF)
+-			goto out_free;
+-	}
++	ret = xt_check_table_hooks(newinfo, repl->valid_hooks);
++	if (ret)
++		goto out_free;
  
- 	/* Decrease module usage counts and free resource */
-@@ -939,7 +941,6 @@ static int __do_replace(struct net *net, const char *name,
- 		net_warn_ratelimited("arptables: counters copy to user failed while replacing table\n");
- 	}
- 	vfree(counters);
--	xt_table_unlock(t);
- 	return ret;
- 
-  put_module:
+ 	if (!mark_source_chains(newinfo, repl->valid_hooks, entry0, offsets)) {
+ 		ret = -ELOOP;
 diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index d4f7584d2dbe..4f7153e25e0b 100644
+index c9b57a6bf96a..29bda9484a33 100644
 --- a/net/ipv4/netfilter/ip_tables.c
 +++ b/net/ipv4/netfilter/ip_tables.c
-@@ -1087,6 +1087,8 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 	    (newinfo->number <= oldinfo->initial_entries))
- 		module_put(t->me);
+@@ -702,16 +702,9 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
+ 	if (i != repl->num_entries)
+ 		goto out_free;
  
-+	xt_table_unlock(t);
-+
- 	get_old_counters(oldinfo, counters);
+-	/* Check hooks all assigned */
+-	for (i = 0; i < NF_INET_NUMHOOKS; i++) {
+-		/* Only hooks which are valid */
+-		if (!(repl->valid_hooks & (1 << i)))
+-			continue;
+-		if (newinfo->hook_entry[i] == 0xFFFFFFFF)
+-			goto out_free;
+-		if (newinfo->underflow[i] == 0xFFFFFFFF)
+-			goto out_free;
+-	}
++	ret = xt_check_table_hooks(newinfo, repl->valid_hooks);
++	if (ret)
++		goto out_free;
  
- 	/* Decrease module usage counts and free resource */
-@@ -1100,7 +1102,6 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 		net_warn_ratelimited("iptables: counters copy to user failed while replacing table\n");
- 	}
- 	vfree(counters);
--	xt_table_unlock(t);
- 	return ret;
- 
-  put_module:
+ 	if (!mark_source_chains(newinfo, repl->valid_hooks, entry0, offsets)) {
+ 		ret = -ELOOP;
 diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 4de8ac1e5af4..6c44033decab 100644
+index f46954221933..ba3776a4d305 100644
 --- a/net/ipv6/netfilter/ip6_tables.c
 +++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1105,6 +1105,8 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 	    (newinfo->number <= oldinfo->initial_entries))
- 		module_put(t->me);
+@@ -720,16 +720,9 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
+ 	if (i != repl->num_entries)
+ 		goto out_free;
  
-+	xt_table_unlock(t);
+-	/* Check hooks all assigned */
+-	for (i = 0; i < NF_INET_NUMHOOKS; i++) {
+-		/* Only hooks which are valid */
+-		if (!(repl->valid_hooks & (1 << i)))
+-			continue;
+-		if (newinfo->hook_entry[i] == 0xFFFFFFFF)
+-			goto out_free;
+-		if (newinfo->underflow[i] == 0xFFFFFFFF)
+-			goto out_free;
+-	}
++	ret = xt_check_table_hooks(newinfo, repl->valid_hooks);
++	if (ret)
++		goto out_free;
+ 
+ 	if (!mark_source_chains(newinfo, repl->valid_hooks, entry0, offsets)) {
+ 		ret = -ELOOP;
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index f045bb4f7063..5d8ba89a8da8 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -518,6 +518,35 @@ static int xt_check_entry_match(const char *match, const char *target,
+ 	return 0;
+ }
+ 
++/** xt_check_table_hooks - check hook entry points are sane
++ *
++ * @info xt_table_info to check
++ * @valid_hooks - hook entry points that we can enter from
++ *
++ * Validates that the hook entry and underflows points are set up.
++ *
++ * Return: 0 on success, negative errno on failure.
++ */
++int xt_check_table_hooks(const struct xt_table_info *info, unsigned int valid_hooks)
++{
++	unsigned int i;
 +
- 	get_old_counters(oldinfo, counters);
- 
- 	/* Decrease module usage counts and free resource */
-@@ -1118,7 +1120,6 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 		net_warn_ratelimited("ip6tables: counters copy to user failed while replacing table\n");
- 	}
- 	vfree(counters);
--	xt_table_unlock(t);
- 	return ret;
- 
-  put_module:
++	BUILD_BUG_ON(ARRAY_SIZE(info->hook_entry) != ARRAY_SIZE(info->underflow));
++
++	for (i = 0; i < ARRAY_SIZE(info->hook_entry); i++) {
++		if (!(valid_hooks & (1 << i)))
++			continue;
++
++		if (info->hook_entry[i] == 0xFFFFFFFF)
++			return -EINVAL;
++		if (info->underflow[i] == 0xFFFFFFFF)
++			return -EINVAL;
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL(xt_check_table_hooks);
++
+ #ifdef CONFIG_COMPAT
+ int xt_compat_add_offset(u_int8_t af, unsigned int offset, int delta)
+ {
 -- 
 2.11.0
