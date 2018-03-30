@@ -1,105 +1,72 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 20/47] netfilter: x_tables: fix build with CONFIG_COMPAT=n
-Date: Fri, 30 Mar 2018 13:43:07 +0200
-Message-ID: <20180330114334.18664-1-pablo@netfilter.org>
+Subject: [PATCH 21/47] ipvs: use true and false for boolean values
+Date: Fri, 30 Mar 2018 13:43:08 +0200
+Message-ID: <20180330114334.18664-2-pablo@netfilter.org>
+References: <20180330114334.18664-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180330114334.18664-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
 
-I placed the helpers within CONFIG_COMPAT section, move them
-outside.
+Assign true or false to boolean variables instead of an integer value.
 
-Fixes: 472ebdcd15ebdb ("netfilter: x_tables: check error target size too")
-Fixes: 07a9da51b4b6ae ("netfilter: x_tables: check standard verdicts in core")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+This issue was detected with the help of Coccinelle.
+
+Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/x_tables.c | 62 ++++++++++++++++++++++++------------------------
- 1 file changed, 31 insertions(+), 31 deletions(-)
+ net/netfilter/ipvs/ip_vs_lblc.c  | 4 ++--
+ net/netfilter/ipvs/ip_vs_lblcr.c | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 7521e8a72c06..bac932f1c582 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -577,6 +577,37 @@ int xt_check_table_hooks(const struct xt_table_info *info, unsigned int valid_ho
- }
- EXPORT_SYMBOL(xt_check_table_hooks);
+diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
+index 6a340c94c4b8..942e835caf7f 100644
+--- a/net/netfilter/ipvs/ip_vs_lblc.c
++++ b/net/netfilter/ipvs/ip_vs_lblc.c
+@@ -238,7 +238,7 @@ static void ip_vs_lblc_flush(struct ip_vs_service *svc)
+ 	int i;
  
-+static bool verdict_ok(int verdict)
-+{
-+	if (verdict > 0)
-+		return true;
-+
-+	if (verdict < 0) {
-+		int v = -verdict - 1;
-+
-+		if (verdict == XT_RETURN)
-+			return true;
-+
-+		switch (v) {
-+		case NF_ACCEPT: return true;
-+		case NF_DROP: return true;
-+		case NF_QUEUE: return true;
-+		default:
-+			break;
-+		}
-+
-+		return false;
-+	}
-+
-+	return false;
-+}
-+
-+static bool error_tg_ok(unsigned int usersize, unsigned int kernsize,
-+			const char *msg, unsigned int msglen)
-+{
-+	return usersize == kernsize && strnlen(msg, msglen) < msglen;
-+}
-+
- #ifdef CONFIG_COMPAT
- int xt_compat_add_offset(u_int8_t af, unsigned int offset, int delta)
- {
-@@ -736,37 +767,6 @@ struct compat_xt_error_target {
- 	char errorname[XT_FUNCTION_MAXNAMELEN];
- };
+ 	spin_lock_bh(&svc->sched_lock);
+-	tbl->dead = 1;
++	tbl->dead = true;
+ 	for (i = 0; i < IP_VS_LBLC_TAB_SIZE; i++) {
+ 		hlist_for_each_entry_safe(en, next, &tbl->bucket[i], list) {
+ 			ip_vs_lblc_del(en);
+@@ -369,7 +369,7 @@ static int ip_vs_lblc_init_svc(struct ip_vs_service *svc)
+ 	tbl->max_size = IP_VS_LBLC_TAB_SIZE*16;
+ 	tbl->rover = 0;
+ 	tbl->counter = 1;
+-	tbl->dead = 0;
++	tbl->dead = false;
+ 	tbl->svc = svc;
  
--static bool verdict_ok(int verdict)
--{
--	if (verdict > 0)
--		return true;
--
--	if (verdict < 0) {
--		int v = -verdict - 1;
--
--		if (verdict == XT_RETURN)
--			return true;
--
--		switch (v) {
--		case NF_ACCEPT: return true;
--		case NF_DROP: return true;
--		case NF_QUEUE: return true;
--		default:
--			break;
--		}
--
--		return false;
--	}
--
--	return false;
--}
--
--static bool error_tg_ok(unsigned int usersize, unsigned int kernsize,
--			const char *msg, unsigned int msglen)
--{
--	return usersize == kernsize && strnlen(msg, msglen) < msglen;
--}
--
- int xt_compat_check_entry_offsets(const void *base, const char *elems,
- 				  unsigned int target_offset,
- 				  unsigned int next_offset)
+ 	/*
+diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
+index 0627881128da..a5acab25c36b 100644
+--- a/net/netfilter/ipvs/ip_vs_lblcr.c
++++ b/net/netfilter/ipvs/ip_vs_lblcr.c
+@@ -404,7 +404,7 @@ static void ip_vs_lblcr_flush(struct ip_vs_service *svc)
+ 	struct hlist_node *next;
+ 
+ 	spin_lock_bh(&svc->sched_lock);
+-	tbl->dead = 1;
++	tbl->dead = true;
+ 	for (i = 0; i < IP_VS_LBLCR_TAB_SIZE; i++) {
+ 		hlist_for_each_entry_safe(en, next, &tbl->bucket[i], list) {
+ 			ip_vs_lblcr_free(en);
+@@ -532,7 +532,7 @@ static int ip_vs_lblcr_init_svc(struct ip_vs_service *svc)
+ 	tbl->max_size = IP_VS_LBLCR_TAB_SIZE*16;
+ 	tbl->rover = 0;
+ 	tbl->counter = 1;
+-	tbl->dead = 0;
++	tbl->dead = false;
+ 	tbl->svc = svc;
+ 
+ 	/*
 -- 
 2.11.0
