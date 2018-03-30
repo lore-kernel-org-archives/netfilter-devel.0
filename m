@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 04/47] netfilter: nf_conntrack_broadcast: remove useless parameter
-Date: Fri, 30 Mar 2018 13:36:46 +0200
-Message-ID: <20180330113729.18335-5-pablo@netfilter.org>
+Subject: [PATCH 02/47] netfilter: nfnetlink_acct: remove useless parameter
+Date: Fri, 30 Mar 2018 13:36:44 +0200
+Message-ID: <20180330113729.18335-3-pablo@netfilter.org>
 References: <20180330113729.18335-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,78 +12,54 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Taehee Yoo <ap420073@gmail.com>
 
-parameter protoff in nf_conntrack_broadcast_help is not used anywhere.
+parameter skb in nfnl_acct_overquota is not used anywhere.
 
 Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack_helper.h | 3 +--
- net/netfilter/nf_conntrack_broadcast.c      | 1 -
- net/netfilter/nf_conntrack_netbios_ns.c     | 5 +++--
- net/netfilter/nf_conntrack_snmp.c           | 5 +++--
- 4 files changed, 7 insertions(+), 7 deletions(-)
+ include/linux/netfilter/nfnetlink_acct.h | 3 +--
+ net/netfilter/nfnetlink_acct.c           | 3 +--
+ net/netfilter/xt_nfacct.c                | 2 +-
+ 3 files changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index fc39bbaf107c..32c2a94a219d 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -132,8 +132,7 @@ void nf_conntrack_helper_pernet_fini(struct net *net);
- int nf_conntrack_helper_init(void);
- void nf_conntrack_helper_fini(void);
- 
--int nf_conntrack_broadcast_help(struct sk_buff *skb, unsigned int protoff,
--				struct nf_conn *ct,
-+int nf_conntrack_broadcast_help(struct sk_buff *skb, struct nf_conn *ct,
- 				enum ip_conntrack_info ctinfo,
- 				unsigned int timeout);
- 
-diff --git a/net/netfilter/nf_conntrack_broadcast.c b/net/netfilter/nf_conntrack_broadcast.c
-index ecc3ab784633..a1086bdec242 100644
---- a/net/netfilter/nf_conntrack_broadcast.c
-+++ b/net/netfilter/nf_conntrack_broadcast.c
-@@ -20,7 +20,6 @@
- #include <net/netfilter/nf_conntrack_expect.h>
- 
- int nf_conntrack_broadcast_help(struct sk_buff *skb,
--				unsigned int protoff,
- 				struct nf_conn *ct,
- 				enum ip_conntrack_info ctinfo,
- 				unsigned int timeout)
-diff --git a/net/netfilter/nf_conntrack_netbios_ns.c b/net/netfilter/nf_conntrack_netbios_ns.c
-index 496ce173f0c1..a4a59dc7cf17 100644
---- a/net/netfilter/nf_conntrack_netbios_ns.c
-+++ b/net/netfilter/nf_conntrack_netbios_ns.c
-@@ -41,9 +41,10 @@ static struct nf_conntrack_expect_policy exp_policy = {
- };
- 
- static int netbios_ns_help(struct sk_buff *skb, unsigned int protoff,
--		   struct nf_conn *ct, enum ip_conntrack_info ctinfo)
-+			   struct nf_conn *ct,
-+			   enum ip_conntrack_info ctinfo)
- {
--	return nf_conntrack_broadcast_help(skb, protoff, ct, ctinfo, timeout);
-+	return nf_conntrack_broadcast_help(skb, ct, ctinfo, timeout);
+diff --git a/include/linux/netfilter/nfnetlink_acct.h b/include/linux/netfilter/nfnetlink_acct.h
+index b4d741195c28..beee8bffe49e 100644
+--- a/include/linux/netfilter/nfnetlink_acct.h
++++ b/include/linux/netfilter/nfnetlink_acct.h
+@@ -16,6 +16,5 @@ struct nf_acct;
+ struct nf_acct *nfnl_acct_find_get(struct net *net, const char *filter_name);
+ void nfnl_acct_put(struct nf_acct *acct);
+ void nfnl_acct_update(const struct sk_buff *skb, struct nf_acct *nfacct);
+-int nfnl_acct_overquota(struct net *net, const struct sk_buff *skb,
+-			struct nf_acct *nfacct);
++int nfnl_acct_overquota(struct net *net, struct nf_acct *nfacct);
+ #endif /* _NFNL_ACCT_H */
+diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
+index 88d427f9f9e6..b9505bcd3827 100644
+--- a/net/netfilter/nfnetlink_acct.c
++++ b/net/netfilter/nfnetlink_acct.c
+@@ -467,8 +467,7 @@ static void nfnl_overquota_report(struct net *net, struct nf_acct *nfacct)
+ 			  GFP_ATOMIC);
  }
  
- static struct nf_conntrack_helper helper __read_mostly = {
-diff --git a/net/netfilter/nf_conntrack_snmp.c b/net/netfilter/nf_conntrack_snmp.c
-index 87b95a2c270c..2d0f8e010821 100644
---- a/net/netfilter/nf_conntrack_snmp.c
-+++ b/net/netfilter/nf_conntrack_snmp.c
-@@ -36,11 +36,12 @@ int (*nf_nat_snmp_hook)(struct sk_buff *skb,
- EXPORT_SYMBOL_GPL(nf_nat_snmp_hook);
- 
- static int snmp_conntrack_help(struct sk_buff *skb, unsigned int protoff,
--		struct nf_conn *ct, enum ip_conntrack_info ctinfo)
-+			       struct nf_conn *ct,
-+			       enum ip_conntrack_info ctinfo)
+-int nfnl_acct_overquota(struct net *net, const struct sk_buff *skb,
+-			struct nf_acct *nfacct)
++int nfnl_acct_overquota(struct net *net, struct nf_acct *nfacct)
  {
- 	typeof(nf_nat_snmp_hook) nf_nat_snmp;
+ 	u64 now;
+ 	u64 *quota;
+diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
+index c8674deed4eb..6b56f4170860 100644
+--- a/net/netfilter/xt_nfacct.c
++++ b/net/netfilter/xt_nfacct.c
+@@ -28,7 +28,7 @@ static bool nfacct_mt(const struct sk_buff *skb, struct xt_action_param *par)
  
--	nf_conntrack_broadcast_help(skb, protoff, ct, ctinfo, timeout);
-+	nf_conntrack_broadcast_help(skb, ct, ctinfo, timeout);
+ 	nfnl_acct_update(skb, info->nfacct);
  
- 	nf_nat_snmp = rcu_dereference(nf_nat_snmp_hook);
- 	if (nf_nat_snmp && ct->status & IPS_NAT_MASK)
+-	overquota = nfnl_acct_overquota(xt_net(par), skb, info->nfacct);
++	overquota = nfnl_acct_overquota(xt_net(par), info->nfacct);
+ 
+ 	return overquota == NFACCT_UNDERQUOTA ? false : true;
+ }
 -- 
 2.11.0
