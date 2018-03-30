@@ -1,49 +1,40 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next 0/3] Close race between {un,
- }register_netdevice_notifier and pernet_operations
-Date: Fri, 30 Mar 2018 11:00:12 -0400 (EDT)
-Message-ID: <20180330.110012.2226179718404929635.davem@davemloft.net>
-References: <152233127015.1654.2122693690388452589.stgit@localhost.localdomain>
+Subject: Re: [PATCH 00/47] Netfilter/IPVS updates for net-next
+Date: Fri, 30 Mar 2018 11:43:33 -0400 (EDT)
+Message-ID: <20180330.114333.26040889472683940.davem@davemloft.net>
+References: <20180330113729.18335-1-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: steffen.klassert@secunet.com, herbert@gondor.apana.org.au,
-        pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
-        daniel@iogearbox.net, jakub.kicinski@netronome.com, ast@kernel.org,
-        brouer@redhat.com, linux@rasmusvillemoes.dk,
-        john.fastabend@gmail.com, dsahern@gmail.com,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-To: ktkhai@virtuozzo.com
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <152233127015.1654.2122693690388452589.stgit@localhost.localdomain>
+In-Reply-To: <20180330113729.18335-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Kirill Tkhai <ktkhai@virtuozzo.com>
-Date: Thu, 29 Mar 2018 17:03:15 +0300
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Fri, 30 Mar 2018 13:36:42 +0200
 
-> the problem is {,un}register_netdevice_notifier() do not take
-> pernet_ops_rwsem, and they don't see network namespaces, being
-> initialized in setup_net() and cleanup_net(), since at this
-> time net is not hashed to net_namespace_list.
-> 
-> This may lead to imbalance, when a notifier is called at time of
-> setup_net()/net is alive, but it's not called at time of cleanup_net(),
-> for the devices, hashed to the net, and vise versa. See (3/3) for
-> the scheme of imbalance.
-> 
-> This patchset fixes the problem by acquiring pernet_ops_rwsem
-> at the time of {,un}register_netdevice_notifier() (3/3).
-> (1-2/3) are preparations in xfrm and netfilter subsystems.
-> 
-> The problem was introduced a long ago, but backporting won't be easy,
-> since every previous kernel version may have changes in netdevice
-> notifiers, and they all need review and testing. Otherwise, there
-> may be more pernet_operations, which register or unregister
-> netdevice notifiers, and that leads to deadlock (which is was fixed
-> in 1-2/3). This patchset is for net-next.
+> The following patchset contains Netfilter/IPVS updates for your net-next
+> tree. This batch comes with more input sanitization for xtables to
+> address bug reports from fuzzers, preparation works to the flowtable
+> infrastructure and assorted updates. In no particular order, they are:
 
-I am applying this series and skipping the rwsem revert.
+Pulled, but I have to ask you not to handle things this way next time.
 
-Thanks Kirill.
+The other week when I pushed back on your pull request, I asked for
+some explanations about the flow table situation.
+
+When I was satisfied with the explanation I explicitly asked you to
+resend _exactly_ the original pull request.
+
+I asked you to do this because I didn't want to see a huge pull
+request like this one show up later.
+
+And this is exactly what happend. :-/
+
+Please, next time I ask you to resend a pull request I have a very
+good reason for doing so, so please do it.
+
+Thanks.
