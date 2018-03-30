@@ -1,36 +1,49 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: ipset: Use is_zero_ether_addr instead of
- static and memcmp
-Date: Fri, 30 Mar 2018 11:54:06 +0200
-Message-ID: <20180330095406.chw56e7rizhmcfuo@salvia>
-References: <687a4edaed07441681d3bfe3b63aa4feb55b9d61.1521567319.git.joe@perches.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <687a4edaed07441681d3bfe3b63aa4feb55b9d61.1521567319.git.joe@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH 01/47] netfilter: nf_tables: nf_tables_obj_lookup_byhandle() can be static
+Date: Fri, 30 Mar 2018 13:36:43 +0200
+Message-ID: <20180330113729.18335-2-pablo@netfilter.org>
+References: <20180330113729.18335-1-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180330113729.18335-1-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Mar 20, 2018 at 10:35:47AM -0700, Joe Perches wrote:
-> To make the test a bit clearer and to reduce object size a little.
-> 
-> Miscellanea:
-> 
-> o remove now unnecessary static const array
-> 
-> $ size ip_set_hash_mac.o*
->    text	   data	    bss	    dec	    hex	filename
->   22822	   4619	     64	  27505	   6b71	ip_set_hash_mac.o.allyesconfig.new
->   22932	   4683	     64	  27679	   6c1f	ip_set_hash_mac.o.allyesconfig.old
->   10443	   1040	      0	  11483	   2cdb	ip_set_hash_mac.o.defconfig.new
->   10507	   1040	      0	  11547	   2d1b	ip_set_hash_mac.o.defconfig.old
+From: kbuild test robot <fengguang.wu@intel.com>
 
-Applied, thanks Joe.
+Fixes: 3ecbfd65f50e ("netfilter: nf_tables: allocate handle and delete objects via handle")
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 8b9fe30de0cd..8cc7fc970f0c 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4328,9 +4328,9 @@ struct nft_object *nf_tables_obj_lookup(const struct nft_table *table,
+ }
+ EXPORT_SYMBOL_GPL(nf_tables_obj_lookup);
+ 
+-struct nft_object *nf_tables_obj_lookup_byhandle(const struct nft_table *table,
+-						 const struct nlattr *nla,
+-						 u32 objtype, u8 genmask)
++static struct nft_object *nf_tables_obj_lookup_byhandle(const struct nft_table *table,
++							const struct nlattr *nla,
++							u32 objtype, u8 genmask)
+ {
+ 	struct nft_object *obj;
+ 
+@@ -4850,7 +4850,7 @@ struct nft_flowtable *nf_tables_flowtable_lookup(const struct nft_table *table,
+ }
+ EXPORT_SYMBOL_GPL(nf_tables_flowtable_lookup);
+ 
+-struct nft_flowtable *
++static struct nft_flowtable *
+ nf_tables_flowtable_lookup_byhandle(const struct nft_table *table,
+ 				    const struct nlattr *nla, u8 genmask)
+ {
+-- 
+2.11.0
