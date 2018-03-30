@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 08/47] netfilter: x_tables: check error target size too
-Date: Fri, 30 Mar 2018 13:36:50 +0200
-Message-ID: <20180330113729.18335-9-pablo@netfilter.org>
+Subject: [PATCH 06/47] netfilter: unlock xt_table earlier in __do_replace
+Date: Fri, 30 Mar 2018 13:36:48 +0200
+Message-ID: <20180330113729.18335-7-pablo@netfilter.org>
 References: <20180330113729.18335-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,74 +10,92 @@ In-Reply-To: <20180330113729.18335-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Xin Long <lucien.xin@gmail.com>
 
-Check that userspace ERROR target (custom user-defined chains) match
-expected format, and the chain name is null terminated.
+Now it's doing cleanup_entry for oldinfo under the xt_table lock,
+but it's not really necessary. After the replacement job is done
+in xt_replace_table, oldinfo is not used elsewhere any more, and
+it can be freed without xt_table lock safely.
 
-This is irrelevant for kernel, but iptables itself relies on sane input
-when it dumps rules from kernel.
+The important thing is that rtnl_lock is called in some xt_target
+destroy, which means rtnl_lock, a big lock is used in xt_table
+lock, a smaller one. It usually could be the reason why a dead
+lock may happen.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Besides, all xt_target/match checkentry is called out of xt_table
+lock. It's better also to move all cleanup_entry calling out of
+xt_table lock, just as do_replace_finish does for ebtables.
+
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/x_tables.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ net/ipv4/netfilter/arp_tables.c | 3 ++-
+ net/ipv4/netfilter/ip_tables.c  | 3 ++-
+ net/ipv6/netfilter/ip6_tables.c | 3 ++-
+ 3 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 2e4d423e58e6..f045bb4f7063 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -654,6 +654,11 @@ struct compat_xt_standard_target {
- 	compat_uint_t verdict;
- };
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index c36ffce3c812..a0c7ce76879c 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -925,6 +925,8 @@ static int __do_replace(struct net *net, const char *name,
+ 	    (newinfo->number <= oldinfo->initial_entries))
+ 		module_put(t->me);
  
-+struct compat_xt_error_target {
-+	struct compat_xt_entry_target t;
-+	char errorname[XT_FUNCTION_MAXNAMELEN];
-+};
++	xt_table_unlock(t);
 +
- static bool verdict_ok(int verdict)
- {
- 	if (verdict > 0)
-@@ -679,6 +684,12 @@ static bool verdict_ok(int verdict)
- 	return false;
- }
+ 	get_old_counters(oldinfo, counters);
  
-+static bool error_tg_ok(unsigned int usersize, unsigned int kernsize,
-+			const char *msg, unsigned int msglen)
-+{
-+	return usersize == kernsize && strnlen(msg, msglen) < msglen;
-+}
-+
- int xt_compat_check_entry_offsets(const void *base, const char *elems,
- 				  unsigned int target_offset,
- 				  unsigned int next_offset)
-@@ -708,6 +719,12 @@ int xt_compat_check_entry_offsets(const void *base, const char *elems,
- 
- 		if (!verdict_ok(st->verdict))
- 			return -EINVAL;
-+	} else if (strcmp(t->u.user.name, XT_ERROR_TARGET) == 0) {
-+		const struct compat_xt_error_target *et = (const void *)t;
-+
-+		if (!error_tg_ok(t->u.target_size, sizeof(*et),
-+				 et->errorname, sizeof(et->errorname)))
-+			return -EINVAL;
+ 	/* Decrease module usage counts and free resource */
+@@ -939,7 +941,6 @@ static int __do_replace(struct net *net, const char *name,
+ 		net_warn_ratelimited("arptables: counters copy to user failed while replacing table\n");
  	}
+ 	vfree(counters);
+-	xt_table_unlock(t);
+ 	return ret;
  
- 	/* compat_xt_entry match has less strict alignment requirements,
-@@ -796,6 +813,12 @@ int xt_check_entry_offsets(const void *base,
+  put_module:
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index d4f7584d2dbe..4f7153e25e0b 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -1087,6 +1087,8 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 	    (newinfo->number <= oldinfo->initial_entries))
+ 		module_put(t->me);
  
- 		if (!verdict_ok(st->verdict))
- 			return -EINVAL;
-+	} else if (strcmp(t->u.user.name, XT_ERROR_TARGET) == 0) {
-+		const struct xt_error_target *et = (const void *)t;
++	xt_table_unlock(t);
 +
-+		if (!error_tg_ok(t->u.target_size, sizeof(*et),
-+				 et->errorname, sizeof(et->errorname)))
-+			return -EINVAL;
- 	}
+ 	get_old_counters(oldinfo, counters);
  
- 	return xt_check_entry_match(elems, base + target_offset,
+ 	/* Decrease module usage counts and free resource */
+@@ -1100,7 +1102,6 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 		net_warn_ratelimited("iptables: counters copy to user failed while replacing table\n");
+ 	}
+ 	vfree(counters);
+-	xt_table_unlock(t);
+ 	return ret;
+ 
+  put_module:
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 4de8ac1e5af4..6c44033decab 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1105,6 +1105,8 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 	    (newinfo->number <= oldinfo->initial_entries))
+ 		module_put(t->me);
+ 
++	xt_table_unlock(t);
++
+ 	get_old_counters(oldinfo, counters);
+ 
+ 	/* Decrease module usage counts and free resource */
+@@ -1118,7 +1120,6 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 		net_warn_ratelimited("ip6tables: counters copy to user failed while replacing table\n");
+ 	}
+ 	vfree(counters);
+-	xt_table_unlock(t);
+ 	return ret;
+ 
+  put_module:
 -- 
 2.11.0
