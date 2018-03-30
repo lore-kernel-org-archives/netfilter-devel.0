@@ -1,152 +1,217 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 32/47] netfilter: ebtables: add support for matching ICMP type and code
-Date: Fri, 30 Mar 2018 13:44:54 +0200
-Message-ID: <20180330114509.18738-3-pablo@netfilter.org>
-References: <20180330114509.18738-1-pablo@netfilter.org>
+Subject: [PATCH 41/47] netfilter: nf_tables: enable conntrack if NAT chain is registered
+Date: Fri, 30 Mar 2018 13:46:13 +0200
+Message-ID: <20180330114619.18797-2-pablo@netfilter.org>
+References: <20180330114619.18797-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180330114509.18738-1-pablo@netfilter.org>
+In-Reply-To: <20180330114619.18797-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Matthias Schiffer <mschiffer@universe-factory.net>
+Register conntrack hooks if the user adds NAT chains. Users get confused
+with the existing behaviour since they will see no packets hitting this
+chain until they add the first rule that refers to conntrack.
 
-We already have ICMPv6 type/code matches. This adds support for IPv4 ICMP
-matches in the same way.
+This patch adds new ->init() and ->free() indirections to chain types
+that can be used by NAT chains to invoke the conntrack dependency.
 
-Signed-off-by: Matthias Schiffer <mschiffer@universe-factory.net>
-Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter_bridge/ebt_ip.h | 13 +++++++--
- net/bridge/netfilter/ebt_ip.c                | 43 +++++++++++++++++++++-------
- 2 files changed, 43 insertions(+), 13 deletions(-)
+ include/net/netfilter/nf_tables.h       |  4 ++++
+ net/ipv4/netfilter/nft_chain_nat_ipv4.c | 12 ++++++++++++
+ net/ipv6/netfilter/nft_chain_nat_ipv6.c | 12 ++++++++++++
+ net/netfilter/nf_tables_api.c           | 24 +++++++++++++++++-------
+ 4 files changed, 45 insertions(+), 7 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter_bridge/ebt_ip.h b/include/uapi/linux/netfilter_bridge/ebt_ip.h
-index 8e462fb1983f..4ed7fbb0a482 100644
---- a/include/uapi/linux/netfilter_bridge/ebt_ip.h
-+++ b/include/uapi/linux/netfilter_bridge/ebt_ip.h
-@@ -24,8 +24,9 @@
- #define EBT_IP_PROTO 0x08
- #define EBT_IP_SPORT 0x10
- #define EBT_IP_DPORT 0x20
-+#define EBT_IP_ICMP 0x40
- #define EBT_IP_MASK (EBT_IP_SOURCE | EBT_IP_DEST | EBT_IP_TOS | EBT_IP_PROTO |\
-- EBT_IP_SPORT | EBT_IP_DPORT )
-+		     EBT_IP_SPORT | EBT_IP_DPORT | EBT_IP_ICMP)
- #define EBT_IP_MATCH "ip"
- 
- /* the same values are used for the invflags */
-@@ -38,8 +39,14 @@ struct ebt_ip_info {
- 	__u8  protocol;
- 	__u8  bitmask;
- 	__u8  invflags;
--	__u16 sport[2];
--	__u16 dport[2];
-+	union {
-+		__u16 sport[2];
-+		__u8 icmp_type[2];
-+	};
-+	union {
-+		__u16 dport[2];
-+		__u8 icmp_code[2];
-+	};
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 77c3c04c27ac..e26b94a61a99 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -884,6 +884,8 @@ enum nft_chain_types {
+  * 	@owner: module owner
+  * 	@hook_mask: mask of valid hooks
+  * 	@hooks: array of hook functions
++ *	@init: chain initialization function
++ *	@free: chain release function
+  */
+ struct nft_chain_type {
+ 	const char			*name;
+@@ -892,6 +894,8 @@ struct nft_chain_type {
+ 	struct module			*owner;
+ 	unsigned int			hook_mask;
+ 	nf_hookfn			*hooks[NF_MAX_HOOKS];
++	int				(*init)(struct nft_ctx *ctx);
++	void				(*free)(struct nft_ctx *ctx);
  };
  
- #endif
-diff --git a/net/bridge/netfilter/ebt_ip.c b/net/bridge/netfilter/ebt_ip.c
-index 2b46c50abce0..8cb8f8395768 100644
---- a/net/bridge/netfilter/ebt_ip.c
-+++ b/net/bridge/netfilter/ebt_ip.c
-@@ -19,9 +19,15 @@
- #include <linux/netfilter_bridge/ebtables.h>
- #include <linux/netfilter_bridge/ebt_ip.h>
- 
--struct tcpudphdr {
--	__be16 src;
--	__be16 dst;
-+union pkthdr {
-+	struct {
-+		__be16 src;
-+		__be16 dst;
-+	} tcpudphdr;
-+	struct {
-+		u8 type;
-+		u8 code;
-+	} icmphdr;
- };
- 
- static bool
-@@ -30,8 +36,8 @@ ebt_ip_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	const struct ebt_ip_info *info = par->matchinfo;
- 	const struct iphdr *ih;
- 	struct iphdr _iph;
--	const struct tcpudphdr *pptr;
--	struct tcpudphdr _ports;
-+	const union pkthdr *pptr;
-+	union pkthdr _pkthdr;
- 
- 	ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
- 	if (ih == NULL)
-@@ -50,29 +56,38 @@ ebt_ip_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	if (info->bitmask & EBT_IP_PROTO) {
- 		if (NF_INVF(info, EBT_IP_PROTO, info->protocol != ih->protocol))
- 			return false;
--		if (!(info->bitmask & EBT_IP_DPORT) &&
--		    !(info->bitmask & EBT_IP_SPORT))
-+		if (!(info->bitmask & (EBT_IP_DPORT | EBT_IP_SPORT |
-+				       EBT_IP_ICMP)))
- 			return true;
- 		if (ntohs(ih->frag_off) & IP_OFFSET)
- 			return false;
-+
-+		/* min icmp headersize is 4, so sizeof(_pkthdr) is ok. */
- 		pptr = skb_header_pointer(skb, ih->ihl*4,
--					  sizeof(_ports), &_ports);
-+					  sizeof(_pkthdr), &_pkthdr);
- 		if (pptr == NULL)
- 			return false;
- 		if (info->bitmask & EBT_IP_DPORT) {
--			u32 dst = ntohs(pptr->dst);
-+			u32 dst = ntohs(pptr->tcpudphdr.dst);
- 			if (NF_INVF(info, EBT_IP_DPORT,
- 				    dst < info->dport[0] ||
- 				    dst > info->dport[1]))
- 				return false;
- 		}
- 		if (info->bitmask & EBT_IP_SPORT) {
--			u32 src = ntohs(pptr->src);
-+			u32 src = ntohs(pptr->tcpudphdr.src);
- 			if (NF_INVF(info, EBT_IP_SPORT,
- 				    src < info->sport[0] ||
- 				    src > info->sport[1]))
- 				return false;
- 		}
-+		if ((info->bitmask & EBT_IP_ICMP) &&
-+		    NF_INVF(info, EBT_IP_ICMP,
-+			    pptr->icmphdr.type < info->icmp_type[0] ||
-+			    pptr->icmphdr.type > info->icmp_type[1] ||
-+			    pptr->icmphdr.code < info->icmp_code[0] ||
-+			    pptr->icmphdr.code > info->icmp_code[1]))
-+			return false;
- 	}
- 	return true;
+ int nft_chain_validate_dependency(const struct nft_chain *chain,
+diff --git a/net/ipv4/netfilter/nft_chain_nat_ipv4.c b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
+index 9864f5b3279c..b5464a3f253b 100644
+--- a/net/ipv4/netfilter/nft_chain_nat_ipv4.c
++++ b/net/ipv4/netfilter/nft_chain_nat_ipv4.c
+@@ -67,6 +67,16 @@ static unsigned int nft_nat_ipv4_local_fn(void *priv,
+ 	return nf_nat_ipv4_local_fn(priv, skb, state, nft_nat_do_chain);
  }
-@@ -101,6 +116,14 @@ static int ebt_ip_mt_check(const struct xt_mtchk_param *par)
- 		return -EINVAL;
- 	if (info->bitmask & EBT_IP_SPORT && info->sport[0] > info->sport[1])
- 		return -EINVAL;
-+	if (info->bitmask & EBT_IP_ICMP) {
-+		if ((info->invflags & EBT_IP_PROTO) ||
-+		    info->protocol != IPPROTO_ICMP)
-+			return -EINVAL;
-+		if (info->icmp_type[0] > info->icmp_type[1] ||
-+		    info->icmp_code[0] > info->icmp_code[1])
-+			return -EINVAL;
-+	}
+ 
++static int nft_nat_ipv4_init(struct nft_ctx *ctx)
++{
++	return nf_ct_netns_get(ctx->net, ctx->family);
++}
++
++static void nft_nat_ipv4_free(struct nft_ctx *ctx)
++{
++	nf_ct_netns_put(ctx->net, ctx->family);
++}
++
+ static const struct nft_chain_type nft_chain_nat_ipv4 = {
+ 	.name		= "nat",
+ 	.type		= NFT_CHAIN_T_NAT,
+@@ -82,6 +92,8 @@ static const struct nft_chain_type nft_chain_nat_ipv4 = {
+ 		[NF_INET_LOCAL_OUT]	= nft_nat_ipv4_local_fn,
+ 		[NF_INET_LOCAL_IN]	= nft_nat_ipv4_fn,
+ 	},
++	.init		= nft_nat_ipv4_init,
++	.free		= nft_nat_ipv4_free,
+ };
+ 
+ static int __init nft_chain_nat_init(void)
+diff --git a/net/ipv6/netfilter/nft_chain_nat_ipv6.c b/net/ipv6/netfilter/nft_chain_nat_ipv6.c
+index c95d9a97d425..3557b114446c 100644
+--- a/net/ipv6/netfilter/nft_chain_nat_ipv6.c
++++ b/net/ipv6/netfilter/nft_chain_nat_ipv6.c
+@@ -65,6 +65,16 @@ static unsigned int nft_nat_ipv6_local_fn(void *priv,
+ 	return nf_nat_ipv6_local_fn(priv, skb, state, nft_nat_do_chain);
+ }
+ 
++static int nft_nat_ipv6_init(struct nft_ctx *ctx)
++{
++	return nf_ct_netns_get(ctx->net, ctx->family);
++}
++
++static void nft_nat_ipv6_free(struct nft_ctx *ctx)
++{
++	nf_ct_netns_put(ctx->net, ctx->family);
++}
++
+ static const struct nft_chain_type nft_chain_nat_ipv6 = {
+ 	.name		= "nat",
+ 	.type		= NFT_CHAIN_T_NAT,
+@@ -80,6 +90,8 @@ static const struct nft_chain_type nft_chain_nat_ipv6 = {
+ 		[NF_INET_LOCAL_OUT]	= nft_nat_ipv6_local_fn,
+ 		[NF_INET_LOCAL_IN]	= nft_nat_ipv6_fn,
+ 	},
++	.init		= nft_nat_ipv6_init,
++	.free		= nft_nat_ipv6_free,
+ };
+ 
+ static int __init nft_chain_nat_ipv6_init(void)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 97ec1c388bfe..af8b6a7488bd 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1211,13 +1211,17 @@ static void nft_chain_stats_replace(struct nft_base_chain *chain,
+ 		rcu_assign_pointer(chain->stats, newstats);
+ }
+ 
+-static void nf_tables_chain_destroy(struct nft_chain *chain)
++static void nf_tables_chain_destroy(struct nft_ctx *ctx)
+ {
++	struct nft_chain *chain = ctx->chain;
++
+ 	BUG_ON(chain->use > 0);
+ 
+ 	if (nft_is_base_chain(chain)) {
+ 		struct nft_base_chain *basechain = nft_base_chain(chain);
+ 
++		if (basechain->type->free)
++			basechain->type->free(ctx);
+ 		module_put(basechain->type->owner);
+ 		free_percpu(basechain->stats);
+ 		if (basechain->stats)
+@@ -1354,6 +1358,9 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 		}
+ 
+ 		basechain->type = hook.type;
++		if (basechain->type->init)
++			basechain->type->init(ctx);
++
+ 		chain = &basechain->chain;
+ 
+ 		ops		= &basechain->ops;
+@@ -1374,6 +1381,8 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 		if (chain == NULL)
+ 			return -ENOMEM;
+ 	}
++	ctx->chain = chain;
++
+ 	INIT_LIST_HEAD(&chain->rules);
+ 	chain->handle = nf_tables_alloc_handle(table);
+ 	chain->table = table;
+@@ -1387,7 +1396,6 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ 	if (err < 0)
+ 		goto err1;
+ 
+-	ctx->chain = chain;
+ 	err = nft_trans_chain_add(ctx, NFT_MSG_NEWCHAIN);
+ 	if (err < 0)
+ 		goto err2;
+@@ -1399,7 +1407,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+ err2:
+ 	nf_tables_unregister_hook(net, table, chain);
+ err1:
+-	nf_tables_chain_destroy(chain);
++	nf_tables_chain_destroy(ctx);
+ 
+ 	return err;
+ }
+@@ -5678,7 +5686,7 @@ static void nf_tables_commit_release(struct nft_trans *trans)
+ 		nf_tables_table_destroy(&trans->ctx);
+ 		break;
+ 	case NFT_MSG_DELCHAIN:
+-		nf_tables_chain_destroy(trans->ctx.chain);
++		nf_tables_chain_destroy(&trans->ctx);
+ 		break;
+ 	case NFT_MSG_DELRULE:
+ 		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
+@@ -5849,7 +5857,7 @@ static void nf_tables_abort_release(struct nft_trans *trans)
+ 		nf_tables_table_destroy(&trans->ctx);
+ 		break;
+ 	case NFT_MSG_NEWCHAIN:
+-		nf_tables_chain_destroy(trans->ctx.chain);
++		nf_tables_chain_destroy(&trans->ctx);
+ 		break;
+ 	case NFT_MSG_NEWRULE:
+ 		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
+@@ -6499,7 +6507,7 @@ int __nft_release_basechain(struct nft_ctx *ctx)
+ 	}
+ 	list_del(&ctx->chain->list);
+ 	ctx->table->use--;
+-	nf_tables_chain_destroy(ctx->chain);
++	nf_tables_chain_destroy(ctx);
+ 
  	return 0;
  }
+@@ -6515,6 +6523,7 @@ static void __nft_release_tables(struct net *net)
+ 	struct nft_set *set, *ns;
+ 	struct nft_ctx ctx = {
+ 		.net	= net,
++		.family	= NFPROTO_NETDEV,
+ 	};
  
+ 	list_for_each_entry_safe(table, nt, &net->nft.tables, list) {
+@@ -6551,9 +6560,10 @@ static void __nft_release_tables(struct net *net)
+ 			nft_obj_destroy(obj);
+ 		}
+ 		list_for_each_entry_safe(chain, nc, &table->chains, list) {
++			ctx.chain = chain;
+ 			list_del(&chain->list);
+ 			table->use--;
+-			nf_tables_chain_destroy(chain);
++			nf_tables_chain_destroy(&ctx);
+ 		}
+ 		list_del(&table->list);
+ 		nf_tables_table_destroy(&ctx);
 -- 
 2.11.0
