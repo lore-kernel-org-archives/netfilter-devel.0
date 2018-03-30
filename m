@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 07/47] netfilter: x_tables: check standard verdicts in core
-Date: Fri, 30 Mar 2018 13:36:49 +0200
-Message-ID: <20180330113729.18335-8-pablo@netfilter.org>
+Subject: [PATCH 08/47] netfilter: x_tables: check error target size too
+Date: Fri, 30 Mar 2018 13:36:50 +0200
+Message-ID: <20180330113729.18335-9-pablo@netfilter.org>
 References: <20180330113729.18335-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,146 +12,72 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Userspace must provide a valid verdict to the standard target.
+Check that userspace ERROR target (custom user-defined chains) match
+expected format, and the chain name is null terminated.
 
-The verdict can be either a jump (signed int > 0), or a return code.
-
-Allowed return codes are either RETURN (pop from stack), NF_ACCEPT, DROP
-and QUEUE (latter is allowed for legacy reasons).
-
-Jump offsets (verdict > 0) are checked in more detail later on when
-loop-detection is performed.
+This is irrelevant for kernel, but iptables itself relies on sane input
+when it dumps rules from kernel.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/arp_tables.c |  5 -----
- net/ipv4/netfilter/ip_tables.c  |  5 -----
- net/ipv6/netfilter/ip6_tables.c |  5 -----
- net/netfilter/x_tables.c        | 49 ++++++++++++++++++++++++++++++++++++-----
- 4 files changed, 43 insertions(+), 21 deletions(-)
+ net/netfilter/x_tables.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index a0c7ce76879c..c9ffa884a4ee 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -334,11 +334,6 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
- 			     t->verdict < 0) || visited) {
- 				unsigned int oldpos, size;
- 
--				if ((strcmp(t->target.u.user.name,
--					    XT_STANDARD_TARGET) == 0) &&
--				    t->verdict < -NF_MAX_VERDICT - 1)
--					return 0;
--
- 				/* Return: backtrack through the last
- 				 * big jump.
- 				 */
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 4f7153e25e0b..c9b57a6bf96a 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -402,11 +402,6 @@ mark_source_chains(const struct xt_table_info *newinfo,
- 			     t->verdict < 0) || visited) {
- 				unsigned int oldpos, size;
- 
--				if ((strcmp(t->target.u.user.name,
--					    XT_STANDARD_TARGET) == 0) &&
--				    t->verdict < -NF_MAX_VERDICT - 1)
--					return 0;
--
- 				/* Return: backtrack through the last
- 				   big jump. */
- 				do {
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 6c44033decab..f46954221933 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -420,11 +420,6 @@ mark_source_chains(const struct xt_table_info *newinfo,
- 			     t->verdict < 0) || visited) {
- 				unsigned int oldpos, size;
- 
--				if ((strcmp(t->target.u.user.name,
--					    XT_STANDARD_TARGET) == 0) &&
--				    t->verdict < -NF_MAX_VERDICT - 1)
--					return 0;
--
- 				/* Return: backtrack through the last
- 				   big jump. */
- 				do {
 diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index d9deebe599ec..2e4d423e58e6 100644
+index 2e4d423e58e6..f045bb4f7063 100644
 --- a/net/netfilter/x_tables.c
 +++ b/net/netfilter/x_tables.c
-@@ -654,6 +654,31 @@ struct compat_xt_standard_target {
+@@ -654,6 +654,11 @@ struct compat_xt_standard_target {
  	compat_uint_t verdict;
  };
  
-+static bool verdict_ok(int verdict)
++struct compat_xt_error_target {
++	struct compat_xt_entry_target t;
++	char errorname[XT_FUNCTION_MAXNAMELEN];
++};
++
+ static bool verdict_ok(int verdict)
+ {
+ 	if (verdict > 0)
+@@ -679,6 +684,12 @@ static bool verdict_ok(int verdict)
+ 	return false;
+ }
+ 
++static bool error_tg_ok(unsigned int usersize, unsigned int kernsize,
++			const char *msg, unsigned int msglen)
 +{
-+	if (verdict > 0)
-+		return true;
-+
-+	if (verdict < 0) {
-+		int v = -verdict - 1;
-+
-+		if (verdict == XT_RETURN)
-+			return true;
-+
-+		switch (v) {
-+		case NF_ACCEPT: return true;
-+		case NF_DROP: return true;
-+		case NF_QUEUE: return true;
-+		default:
-+			break;
-+		}
-+
-+		return false;
-+	}
-+
-+	return false;
++	return usersize == kernsize && strnlen(msg, msglen) < msglen;
 +}
 +
  int xt_compat_check_entry_offsets(const void *base, const char *elems,
  				  unsigned int target_offset,
  				  unsigned int next_offset)
-@@ -675,9 +700,15 @@ int xt_compat_check_entry_offsets(const void *base, const char *elems,
- 	if (target_offset + t->u.target_size > next_offset)
- 		return -EINVAL;
+@@ -708,6 +719,12 @@ int xt_compat_check_entry_offsets(const void *base, const char *elems,
  
--	if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
--	    COMPAT_XT_ALIGN(target_offset + sizeof(struct compat_xt_standard_target)) != next_offset)
--		return -EINVAL;
-+	if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0) {
-+		const struct compat_xt_standard_target *st = (const void *)t;
+ 		if (!verdict_ok(st->verdict))
+ 			return -EINVAL;
++	} else if (strcmp(t->u.user.name, XT_ERROR_TARGET) == 0) {
++		const struct compat_xt_error_target *et = (const void *)t;
 +
-+		if (COMPAT_XT_ALIGN(target_offset + sizeof(*st)) != next_offset)
++		if (!error_tg_ok(t->u.target_size, sizeof(*et),
++				 et->errorname, sizeof(et->errorname)))
 +			return -EINVAL;
-+
-+		if (!verdict_ok(st->verdict))
-+			return -EINVAL;
-+	}
+ 	}
  
  	/* compat_xt_entry match has less strict alignment requirements,
- 	 * otherwise they are identical.  In case of padding differences
-@@ -757,9 +788,15 @@ int xt_check_entry_offsets(const void *base,
- 	if (target_offset + t->u.target_size > next_offset)
- 		return -EINVAL;
+@@ -796,6 +813,12 @@ int xt_check_entry_offsets(const void *base,
  
--	if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
--	    XT_ALIGN(target_offset + sizeof(struct xt_standard_target)) != next_offset)
--		return -EINVAL;
-+	if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0) {
-+		const struct xt_standard_target *st = (const void *)t;
+ 		if (!verdict_ok(st->verdict))
+ 			return -EINVAL;
++	} else if (strcmp(t->u.user.name, XT_ERROR_TARGET) == 0) {
++		const struct xt_error_target *et = (const void *)t;
 +
-+		if (XT_ALIGN(target_offset + sizeof(*st)) != next_offset)
++		if (!error_tg_ok(t->u.target_size, sizeof(*et),
++				 et->errorname, sizeof(et->errorname)))
 +			return -EINVAL;
-+
-+		if (!verdict_ok(st->verdict))
-+			return -EINVAL;
-+	}
+ 	}
  
  	return xt_check_entry_match(elems, base + target_offset,
- 				    __alignof__(struct xt_entry_match));
 -- 
 2.11.0
