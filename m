@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 26/47] netfilter: nfnetlink_cthelper: Remove VLA usage
-Date: Fri, 30 Mar 2018 13:43:13 +0200
-Message-ID: <20180330114334.18664-7-pablo@netfilter.org>
+Subject: [PATCH 23/47] netfilter: conncount: Support count only use case
+Date: Fri, 30 Mar 2018 13:43:10 +0200
+Message-ID: <20180330114334.18664-4-pablo@netfilter.org>
 References: <20180330114334.18664-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,77 +10,64 @@ In-Reply-To: <20180330114334.18664-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+From: Yi-Hung Wei <yihung.wei@gmail.com>
 
-In preparation to enabling -Wvla, remove VLA and replace it
-with dynamic memory allocation.
+Currently, nf_conncount_count() counts the number of connections that
+matches key and inserts a conntrack 'tuple' with the same key into the
+accounting data structure.  This patch supports another use case that only
+counts the number of connections where 'tuple' is not provided.  Therefore,
+proper changes are made on nf_conncount_count() to support the case where
+'tuple' is NULL.  This could be useful for querying statistics or
+debugging purpose.
 
->From a security viewpoint, the use of Variable Length Arrays can be
-a vector for stack overflow attacks. Also, in general, as the code
-evolves it is easy to lose track of how big a VLA can get. Thus, we
-can end up having segfaults that are hard to debug.
-
-Also, fixed as part of the directive to remove all VLAs from
-the kernel: https://lkml.org/lkml/2018/3/7/621
-
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+Signed-off-by: Yi-Hung Wei <yihung.wei@gmail.com>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_cthelper.c | 25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ net/netfilter/nf_conncount.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index d33ce6d5ebce..4a4b293fb2e5 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -314,23 +314,30 @@ nfnl_cthelper_update_policy_one(const struct nf_conntrack_expect_policy *policy,
- static int nfnl_cthelper_update_policy_all(struct nlattr *tb[],
- 					   struct nf_conntrack_helper *helper)
- {
--	struct nf_conntrack_expect_policy new_policy[helper->expect_class_max + 1];
-+	struct nf_conntrack_expect_policy *new_policy;
- 	struct nf_conntrack_expect_policy *policy;
--	int i, err;
-+	int i, ret = 0;
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index 9305a08b4422..153e690e2893 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -104,7 +104,7 @@ static unsigned int check_hlist(struct net *net,
+ 	struct nf_conn *found_ct;
+ 	unsigned int length = 0;
+ 
+-	*addit = true;
++	*addit = tuple ? true : false;
+ 
+ 	/* check the saved connections */
+ 	hlist_for_each_entry_safe(conn, n, head, node) {
+@@ -117,7 +117,7 @@ static unsigned int check_hlist(struct net *net,
+ 
+ 		found_ct = nf_ct_tuplehash_to_ctrack(found);
+ 
+-		if (nf_ct_tuple_equal(&conn->tuple, tuple)) {
++		if (tuple && nf_ct_tuple_equal(&conn->tuple, tuple)) {
+ 			/*
+ 			 * Just to be sure we have it only once in the list.
+ 			 * We should not see tuples twice unless someone hooks
+@@ -220,6 +220,9 @@ count_tree(struct net *net, struct rb_root *root,
+ 		goto restart;
+ 	}
+ 
++	if (!tuple)
++		return 0;
 +
-+	new_policy = kmalloc_array(helper->expect_class_max + 1,
-+				   sizeof(*new_policy), GFP_KERNEL);
-+	if (!new_policy)
-+		return -ENOMEM;
- 
- 	/* Check first that all policy attributes are well-formed, so we don't
- 	 * leave things in inconsistent state on errors.
- 	 */
- 	for (i = 0; i < helper->expect_class_max + 1; i++) {
- 
--		if (!tb[NFCTH_POLICY_SET + i])
--			return -EINVAL;
-+		if (!tb[NFCTH_POLICY_SET + i]) {
-+			ret = -EINVAL;
-+			goto err;
-+		}
- 
--		err = nfnl_cthelper_update_policy_one(&helper->expect_policy[i],
-+		ret = nfnl_cthelper_update_policy_one(&helper->expect_policy[i],
- 						      &new_policy[i],
- 						      tb[NFCTH_POLICY_SET + i]);
--		if (err < 0)
--			return err;
-+		if (ret < 0)
-+			goto err;
- 	}
- 	/* Now we can safely update them. */
- 	for (i = 0; i < helper->expect_class_max + 1; i++) {
-@@ -340,7 +347,9 @@ static int nfnl_cthelper_update_policy_all(struct nlattr *tb[],
- 		policy->timeout	= new_policy->timeout;
- 	}
- 
--	return 0;
-+err:
-+	kfree(new_policy);
-+	return ret;
+ 	/* no match, need to insert new node */
+ 	rbconn = kmem_cache_alloc(conncount_rb_cachep, GFP_ATOMIC);
+ 	if (rbconn == NULL)
+@@ -242,6 +245,9 @@ count_tree(struct net *net, struct rb_root *root,
+ 	return 1;
  }
  
- static int nfnl_cthelper_update_policy(struct nf_conntrack_helper *helper,
++/* Count and return number of conntrack entries in 'net' with particular 'key'.
++ * If 'tuple' is not null, insert it into the accounting data structure.
++ */
+ unsigned int nf_conncount_count(struct net *net,
+ 				struct nf_conncount_data *data,
+ 				const u32 *key,
 -- 
 2.11.0
