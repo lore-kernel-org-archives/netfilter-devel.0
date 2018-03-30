@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 14/47] netfilter: compat: prepare xt_compat_init_offsets to return errors
-Date: Fri, 30 Mar 2018 13:38:41 +0200
-Message-ID: <20180330113914.18431-5-pablo@netfilter.org>
+Subject: [PATCH 13/47] netfilter: x_tables: add counters allocation wrapper
+Date: Fri, 30 Mar 2018 13:38:40 +0200
+Message-ID: <20180330113914.18431-4-pablo@netfilter.org>
 References: <20180330113914.18431-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,177 +12,95 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-should have no impact, function still always returns 0.
-This patch is only to ease review.
+allows to have size checks in a single spot.
+This is supposed to reduce oom situations when fuzz-testing xtables.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter/x_tables.h |  2 +-
- net/bridge/netfilter/ebtables.c    | 10 ++++++++--
- net/ipv4/netfilter/arp_tables.c    | 10 +++++++---
- net/ipv4/netfilter/ip_tables.c     |  8 ++++++--
- net/ipv6/netfilter/ip6_tables.c    | 10 +++++++---
- net/netfilter/x_tables.c           |  4 +++-
- 6 files changed, 32 insertions(+), 12 deletions(-)
+ include/linux/netfilter/x_tables.h |  1 +
+ net/ipv4/netfilter/arp_tables.c    |  2 +-
+ net/ipv4/netfilter/ip_tables.c     |  2 +-
+ net/ipv6/netfilter/ip6_tables.c    |  2 +-
+ net/netfilter/x_tables.c           | 15 +++++++++++++++
+ 5 files changed, 19 insertions(+), 3 deletions(-)
 
 diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 0bd93c589a8c..7bd896dc78df 100644
+index fa0c19c328f1..0bd93c589a8c 100644
 --- a/include/linux/netfilter/x_tables.h
 +++ b/include/linux/netfilter/x_tables.h
-@@ -510,7 +510,7 @@ void xt_compat_unlock(u_int8_t af);
+@@ -301,6 +301,7 @@ int xt_data_to_user(void __user *dst, const void *src,
  
- int xt_compat_add_offset(u_int8_t af, unsigned int offset, int delta);
- void xt_compat_flush_offsets(u_int8_t af);
--void xt_compat_init_offsets(u_int8_t af, unsigned int number);
-+int xt_compat_init_offsets(u8 af, unsigned int number);
- int xt_compat_calc_jump(u_int8_t af, unsigned int offset);
+ void *xt_copy_counters_from_user(const void __user *user, unsigned int len,
+ 				 struct xt_counters_info *info, bool compat);
++struct xt_counters *xt_counters_alloc(unsigned int counters);
  
- int xt_compat_match_offset(const struct xt_match *match);
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 02c4b409d317..217aa79f7b2a 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -1819,10 +1819,14 @@ static int compat_table_info(const struct ebt_table_info *info,
- {
- 	unsigned int size = info->entries_size;
- 	const void *entries = info->entries;
-+	int ret;
- 
- 	newinfo->entries_size = size;
- 
--	xt_compat_init_offsets(NFPROTO_BRIDGE, info->nentries);
-+	ret = xt_compat_init_offsets(NFPROTO_BRIDGE, info->nentries);
-+	if (ret)
-+		return ret;
-+
- 	return EBT_ENTRY_ITERATE(entries, size, compat_calc_entry, info,
- 							entries, newinfo);
- }
-@@ -2245,7 +2249,9 @@ static int compat_do_replace(struct net *net, void __user *user,
- 
- 	xt_compat_lock(NFPROTO_BRIDGE);
- 
--	xt_compat_init_offsets(NFPROTO_BRIDGE, tmp.nentries);
-+	ret = xt_compat_init_offsets(NFPROTO_BRIDGE, tmp.nentries);
-+	if (ret < 0)
-+		goto out_unlock;
- 	ret = compat_copy_entries(entries_tmp, tmp.entries_size, &state);
- 	if (ret < 0)
- 		goto out_unlock;
+ struct xt_table *xt_register_table(struct net *net,
+ 				   const struct xt_table *table,
 diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 82ba09b50fdb..aaafdbd15ad3 100644
+index be5821215ea0..82ba09b50fdb 100644
 --- a/net/ipv4/netfilter/arp_tables.c
 +++ b/net/ipv4/netfilter/arp_tables.c
-@@ -769,7 +769,9 @@ static int compat_table_info(const struct xt_table_info *info,
- 	memcpy(newinfo, info, offsetof(struct xt_table_info, entries));
- 	newinfo->initial_entries = 0;
- 	loc_cpu_entry = info->entries;
--	xt_compat_init_offsets(NFPROTO_ARP, info->number);
-+	ret = xt_compat_init_offsets(NFPROTO_ARP, info->number);
-+	if (ret)
-+		return ret;
- 	xt_entry_foreach(iter, loc_cpu_entry, info->size) {
- 		ret = compat_calc_entry(iter, info, loc_cpu_entry, newinfo);
- 		if (ret != 0)
-@@ -1156,7 +1158,7 @@ static int translate_compat_table(struct xt_table_info **pinfo,
- 	struct compat_arpt_entry *iter0;
- 	struct arpt_replace repl;
- 	unsigned int size;
--	int ret = 0;
-+	int ret;
+@@ -883,7 +883,7 @@ static int __do_replace(struct net *net, const char *name,
+ 	struct arpt_entry *iter;
  
- 	info = *pinfo;
- 	entry0 = *pentry0;
-@@ -1165,7 +1167,9 @@ static int translate_compat_table(struct xt_table_info **pinfo,
- 
- 	j = 0;
- 	xt_compat_lock(NFPROTO_ARP);
--	xt_compat_init_offsets(NFPROTO_ARP, compatr->num_entries);
-+	ret = xt_compat_init_offsets(NFPROTO_ARP, compatr->num_entries);
-+	if (ret)
-+		goto out_unlock;
- 	/* Walk through entries, checking offsets. */
- 	xt_entry_foreach(iter0, entry0, compatr->size) {
- 		ret = check_compat_entry_size_and_hooks(iter0, info, &size,
+ 	ret = 0;
+-	counters = vzalloc(num_counters * sizeof(struct xt_counters));
++	counters = xt_counters_alloc(num_counters);
+ 	if (!counters) {
+ 		ret = -ENOMEM;
+ 		goto out;
 diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 4901ca6c3e09..f9063513f9d1 100644
+index 29bda9484a33..4901ca6c3e09 100644
 --- a/net/ipv4/netfilter/ip_tables.c
 +++ b/net/ipv4/netfilter/ip_tables.c
-@@ -933,7 +933,9 @@ static int compat_table_info(const struct xt_table_info *info,
- 	memcpy(newinfo, info, offsetof(struct xt_table_info, entries));
- 	newinfo->initial_entries = 0;
- 	loc_cpu_entry = info->entries;
--	xt_compat_init_offsets(AF_INET, info->number);
-+	ret = xt_compat_init_offsets(AF_INET, info->number);
-+	if (ret)
-+		return ret;
- 	xt_entry_foreach(iter, loc_cpu_entry, info->size) {
- 		ret = compat_calc_entry(iter, info, loc_cpu_entry, newinfo);
- 		if (ret != 0)
-@@ -1407,7 +1409,9 @@ translate_compat_table(struct net *net,
+@@ -1045,7 +1045,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 	struct ipt_entry *iter;
  
- 	j = 0;
- 	xt_compat_lock(AF_INET);
--	xt_compat_init_offsets(AF_INET, compatr->num_entries);
-+	ret = xt_compat_init_offsets(AF_INET, compatr->num_entries);
-+	if (ret)
-+		goto out_unlock;
- 	/* Walk through entries, checking offsets. */
- 	xt_entry_foreach(iter0, entry0, compatr->size) {
- 		ret = check_compat_entry_size_and_hooks(iter0, info, &size,
+ 	ret = 0;
+-	counters = vzalloc(num_counters * sizeof(struct xt_counters));
++	counters = xt_counters_alloc(num_counters);
+ 	if (!counters) {
+ 		ret = -ENOMEM;
+ 		goto out;
 diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index e84cec49b60f..3c36a4c77f29 100644
+index ba3776a4d305..e84cec49b60f 100644
 --- a/net/ipv6/netfilter/ip6_tables.c
 +++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -950,7 +950,9 @@ static int compat_table_info(const struct xt_table_info *info,
- 	memcpy(newinfo, info, offsetof(struct xt_table_info, entries));
- 	newinfo->initial_entries = 0;
- 	loc_cpu_entry = info->entries;
--	xt_compat_init_offsets(AF_INET6, info->number);
-+	ret = xt_compat_init_offsets(AF_INET6, info->number);
-+	if (ret)
-+		return ret;
- 	xt_entry_foreach(iter, loc_cpu_entry, info->size) {
- 		ret = compat_calc_entry(iter, info, loc_cpu_entry, newinfo);
- 		if (ret != 0)
-@@ -1414,7 +1416,7 @@ translate_compat_table(struct net *net,
- 	struct compat_ip6t_entry *iter0;
- 	struct ip6t_replace repl;
- 	unsigned int size;
--	int ret = 0;
-+	int ret;
+@@ -1063,7 +1063,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 	struct ip6t_entry *iter;
  
- 	info = *pinfo;
- 	entry0 = *pentry0;
-@@ -1423,7 +1425,9 @@ translate_compat_table(struct net *net,
- 
- 	j = 0;
- 	xt_compat_lock(AF_INET6);
--	xt_compat_init_offsets(AF_INET6, compatr->num_entries);
-+	ret = xt_compat_init_offsets(AF_INET6, compatr->num_entries);
-+	if (ret)
-+		goto out_unlock;
- 	/* Walk through entries, checking offsets. */
- 	xt_entry_foreach(iter0, entry0, compatr->size) {
- 		ret = check_compat_entry_size_and_hooks(iter0, info, &size,
+ 	ret = 0;
+-	counters = vzalloc(num_counters * sizeof(struct xt_counters));
++	counters = xt_counters_alloc(num_counters);
+ 	if (!counters) {
+ 		ret = -ENOMEM;
+ 		goto out;
 diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 82b1f8f52ac6..e878c85a9268 100644
+index 01f8e122e74e..82b1f8f52ac6 100644
 --- a/net/netfilter/x_tables.c
 +++ b/net/netfilter/x_tables.c
-@@ -632,10 +632,12 @@ int xt_compat_calc_jump(u_int8_t af, unsigned int offset)
+@@ -1290,6 +1290,21 @@ static int xt_jumpstack_alloc(struct xt_table_info *i)
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(xt_compat_calc_jump);
  
--void xt_compat_init_offsets(u_int8_t af, unsigned int number)
-+int xt_compat_init_offsets(u8 af, unsigned int number)
- {
- 	xt[af].number = number;
- 	xt[af].cur = 0;
++struct xt_counters *xt_counters_alloc(unsigned int counters)
++{
++	struct xt_counters *mem;
 +
-+	return 0;
- }
- EXPORT_SYMBOL(xt_compat_init_offsets);
- 
++	if (counters == 0 || counters > INT_MAX / sizeof(*mem))
++		return NULL;
++
++	counters *= sizeof(*mem);
++	if (counters > XT_MAX_TABLE_SIZE)
++		return NULL;
++
++	return vzalloc(counters);
++}
++EXPORT_SYMBOL(xt_counters_alloc);
++
+ struct xt_table_info *
+ xt_replace_table(struct xt_table *table,
+ 	      unsigned int num_counters,
 -- 
 2.11.0
