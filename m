@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 11/47] netfilter: x_tables: cap allocations at 512 mbyte
-Date: Fri, 30 Mar 2018 13:38:38 +0200
-Message-ID: <20180330113914.18431-2-pablo@netfilter.org>
+Subject: [PATCH 15/47] netfilter: compat: reject huge allocation requests
+Date: Fri, 30 Mar 2018 13:38:42 +0200
+Message-ID: <20180330113914.18431-6-pablo@netfilter.org>
 References: <20180330113914.18431-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,36 +12,64 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Arbitrary limit, however, this still allows huge rulesets
-(> 1 million rules).  This helps with automated fuzzer as it prevents
-oom-killer invocation.
+no need to bother even trying to allocating huge compat offset arrays,
+such ruleset is rejected later on anyway becaus we refuse to allocate
+overly large rule blobs.
+
+However, compat translation happens before blob allocation, so we should
+add a check there too.
+
+This is supposed to help with fuzzing by avoiding oom-killer.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/x_tables.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/netfilter/x_tables.c | 26 ++++++++++++++++++--------
+ 1 file changed, 18 insertions(+), 8 deletions(-)
 
 diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 4e6cbb38e616..dc68ac49614a 100644
+index e878c85a9268..33724b08b8f0 100644
 --- a/net/netfilter/x_tables.c
 +++ b/net/netfilter/x_tables.c
-@@ -40,6 +40,7 @@ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
- MODULE_DESCRIPTION("{ip,ip6,arp,eb}_tables backend module");
+@@ -582,14 +582,8 @@ int xt_compat_add_offset(u_int8_t af, unsigned int offset, int delta)
+ {
+ 	struct xt_af *xp = &xt[af];
  
- #define XT_PCPU_BLOCK_SIZE 4096
-+#define XT_MAX_TABLE_SIZE	(512 * 1024 * 1024)
+-	if (!xp->compat_tab) {
+-		if (!xp->number)
+-			return -EINVAL;
+-		xp->compat_tab = vmalloc(sizeof(struct compat_delta) * xp->number);
+-		if (!xp->compat_tab)
+-			return -ENOMEM;
+-		xp->cur = 0;
+-	}
++	if (WARN_ON(!xp->compat_tab))
++		return -ENOMEM;
  
- struct compat_delta {
- 	unsigned int offset; /* offset in kernel */
-@@ -1117,7 +1118,7 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
- 	struct xt_table_info *info = NULL;
- 	size_t sz = sizeof(*info) + size;
+ 	if (xp->cur >= xp->number)
+ 		return -EINVAL;
+@@ -634,6 +628,22 @@ EXPORT_SYMBOL_GPL(xt_compat_calc_jump);
  
--	if (sz < sizeof(*info))
-+	if (sz < sizeof(*info) || sz >= XT_MAX_TABLE_SIZE)
- 		return NULL;
+ int xt_compat_init_offsets(u8 af, unsigned int number)
+ {
++	size_t mem;
++
++	if (!number || number > (INT_MAX / sizeof(struct compat_delta)))
++		return -EINVAL;
++
++	if (WARN_ON(xt[af].compat_tab))
++		return -EINVAL;
++
++	mem = sizeof(struct compat_delta) * number;
++	if (mem > XT_MAX_TABLE_SIZE)
++		return -ENOMEM;
++
++	xt[af].compat_tab = vmalloc(mem);
++	if (!xt[af].compat_tab)
++		return -ENOMEM;
++
+ 	xt[af].number = number;
+ 	xt[af].cur = 0;
  
- 	/* __GFP_NORETRY is not fully supported by kvmalloc but it should
 -- 
 2.11.0
