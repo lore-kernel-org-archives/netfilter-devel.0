@@ -1,123 +1,58 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 42/47] netfilter: nf_tables: rename to nft_set_lookup_global()
-Date: Fri, 30 Mar 2018 13:46:14 +0200
-Message-ID: <20180330114619.18797-3-pablo@netfilter.org>
-References: <20180330114619.18797-1-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+From: Kirill Tkhai <ktkhai@virtuozzo.com>
+Subject: Re: [PATCH net-next 0/3] Close race between {un,
+ }register_netdevice_notifier and pernet_operations
+Date: Fri, 30 Mar 2018 18:01:24 +0300
+Message-ID: <8c9717e3-3388-9f88-7de6-ce7b201aff77@virtuozzo.com>
+References: <152233127015.1654.2122693690388452589.stgit@localhost.localdomain>
+ <20180330.110012.2226179718404929635.davem@davemloft.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: steffen.klassert@secunet.com, herbert@gondor.apana.org.au,
+        pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        daniel@iogearbox.net, jakub.kicinski@netronome.com, ast@kernel.org,
+        brouer@redhat.com, linux@rasmusvillemoes.dk,
+        john.fastabend@gmail.com, dsahern@gmail.com,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180330114619.18797-1-pablo@netfilter.org>
+In-Reply-To: <20180330.110012.2226179718404929635.davem@davemloft.net>
+Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-To prepare shorter introduction of shorter function prefix.
+On 30.03.2018 18:00, David Miller wrote:
+> From: Kirill Tkhai <ktkhai@virtuozzo.com>
+> Date: Thu, 29 Mar 2018 17:03:15 +0300
+> 
+>> the problem is {,un}register_netdevice_notifier() do not take
+>> pernet_ops_rwsem, and they don't see network namespaces, being
+>> initialized in setup_net() and cleanup_net(), since at this
+>> time net is not hashed to net_namespace_list.
+>>
+>> This may lead to imbalance, when a notifier is called at time of
+>> setup_net()/net is alive, but it's not called at time of cleanup_net(),
+>> for the devices, hashed to the net, and vise versa. See (3/3) for
+>> the scheme of imbalance.
+>>
+>> This patchset fixes the problem by acquiring pernet_ops_rwsem
+>> at the time of {,un}register_netdevice_notifier() (3/3).
+>> (1-2/3) are preparations in xfrm and netfilter subsystems.
+>>
+>> The problem was introduced a long ago, but backporting won't be easy,
+>> since every previous kernel version may have changes in netdevice
+>> notifiers, and they all need review and testing. Otherwise, there
+>> may be more pernet_operations, which register or unregister
+>> netdevice notifiers, and that leads to deadlock (which is was fixed
+>> in 1-2/3). This patchset is for net-next.
+> 
+> I am applying this series and skipping the rwsem revert.
+> 
+> Thanks Kirill.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netfilter/nf_tables.h | 10 +++++-----
- net/netfilter/nf_tables_api.c     | 12 ++++++------
- net/netfilter/nft_dynset.c        |  5 +++--
- net/netfilter/nft_lookup.c        |  4 ++--
- net/netfilter/nft_objref.c        |  5 +++--
- 5 files changed, 19 insertions(+), 17 deletions(-)
+Thanks, David.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index e26b94a61a99..bd2a18d66189 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -434,11 +434,11 @@ static inline struct nft_set *nft_set_container_of(const void *priv)
- 	return (void *)priv - offsetof(struct nft_set, data);
- }
- 
--struct nft_set *nft_set_lookup(const struct net *net,
--			       const struct nft_table *table,
--			       const struct nlattr *nla_set_name,
--			       const struct nlattr *nla_set_id,
--			       u8 genmask);
-+struct nft_set *nft_set_lookup_global(const struct net *net,
-+				      const struct nft_table *table,
-+				      const struct nlattr *nla_set_name,
-+				      const struct nlattr *nla_set_id,
-+				      u8 genmask);
- 
- static inline unsigned long nft_set_gc_interval(const struct nft_set *set)
- {
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index af8b6a7488bd..769d84015073 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2633,11 +2633,11 @@ static struct nft_set *nf_tables_set_lookup_byid(const struct net *net,
- 	return ERR_PTR(-ENOENT);
- }
- 
--struct nft_set *nft_set_lookup(const struct net *net,
--			       const struct nft_table *table,
--			       const struct nlattr *nla_set_name,
--			       const struct nlattr *nla_set_id,
--			       u8 genmask)
-+struct nft_set *nft_set_lookup_global(const struct net *net,
-+				      const struct nft_table *table,
-+				      const struct nlattr *nla_set_name,
-+				      const struct nlattr *nla_set_id,
-+				      u8 genmask)
- {
- 	struct nft_set *set;
- 
-@@ -2650,7 +2650,7 @@ struct nft_set *nft_set_lookup(const struct net *net,
- 	}
- 	return set;
- }
--EXPORT_SYMBOL_GPL(nft_set_lookup);
-+EXPORT_SYMBOL_GPL(nft_set_lookup_global);
- 
- static int nf_tables_set_alloc_name(struct nft_ctx *ctx, struct nft_set *set,
- 				    const char *name)
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index fc83e29d6634..04863fad05dd 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -132,8 +132,9 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 			priv->invert = true;
- 	}
- 
--	set = nft_set_lookup(ctx->net, ctx->table, tb[NFTA_DYNSET_SET_NAME],
--			     tb[NFTA_DYNSET_SET_ID], genmask);
-+	set = nft_set_lookup_global(ctx->net, ctx->table,
-+				    tb[NFTA_DYNSET_SET_NAME],
-+				    tb[NFTA_DYNSET_SET_ID], genmask);
- 	if (IS_ERR(set))
- 		return PTR_ERR(set);
- 
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index 475570e89ede..f52da5e2199f 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -71,8 +71,8 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
- 	    tb[NFTA_LOOKUP_SREG] == NULL)
- 		return -EINVAL;
- 
--	set = nft_set_lookup(ctx->net, ctx->table, tb[NFTA_LOOKUP_SET],
--			     tb[NFTA_LOOKUP_SET_ID], genmask);
-+	set = nft_set_lookup_global(ctx->net, ctx->table, tb[NFTA_LOOKUP_SET],
-+				    tb[NFTA_LOOKUP_SET_ID], genmask);
- 	if (IS_ERR(set))
- 		return PTR_ERR(set);
- 
-diff --git a/net/netfilter/nft_objref.c b/net/netfilter/nft_objref.c
-index 7bcdc48f3d73..0b02407773ad 100644
---- a/net/netfilter/nft_objref.c
-+++ b/net/netfilter/nft_objref.c
-@@ -117,8 +117,9 @@ static int nft_objref_map_init(const struct nft_ctx *ctx,
- 	struct nft_set *set;
- 	int err;
- 
--	set = nft_set_lookup(ctx->net, ctx->table, tb[NFTA_OBJREF_SET_NAME],
--			     tb[NFTA_OBJREF_SET_ID], genmask);
-+	set = nft_set_lookup_global(ctx->net, ctx->table,
-+				    tb[NFTA_OBJREF_SET_NAME],
-+				    tb[NFTA_OBJREF_SET_ID], genmask);
- 	if (IS_ERR(set))
- 		return PTR_ERR(set);
- 
--- 
-2.11.0
+I'll send the fixing patch soon today.
+
+Kirill
