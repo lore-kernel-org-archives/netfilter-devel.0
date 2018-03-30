@@ -1,47 +1,66 @@
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: Re: INFO: task hung in stop_sync_thread (2)
-Date: Fri, 30 Mar 2018 18:54:33 +0200
-Message-ID: <CACT4Y+Yj+yAQ3gAAsJfHt5cHsxtC_opKWa4qJEUF=3bMtEGDCg@mail.gmail.com>
-References: <000000000000878b6a05688805c5@google.com> <94eb2c05b2d8af3dfa0568a3f964@google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: coreteam@netfilter.org, David Miller <davem@davemloft.net>,
-        Florian Westphal <fw@strlen.de>, horms@verge.net.au,
-        Julian Anastasov <ja@ssi.bg>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        LKML <linux-kernel@vger.kernel.org>, lvs-devel@vger.kernel.org,
-        netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: [Patch nf] nf_conntrack_extend: silent a memory leak warning
+Date: Fri, 30 Mar 2018 13:22:06 -0700
+Message-ID: <20180330202206.19565-1-xiyou.wangcong@gmail.com>
+Cc: netfilter-devel@vger.kernel.org,
+        Cong Wang <xiyou.wangcong@gmail.com>,
         Pablo Neira Ayuso <pablo@netfilter.org>,
-        syzkaller-bugs@googlegroups.com, wensong@linux-vs.org
-To: syzbot <syzbot+5fe074c01b2032ce9618@syzkaller.appspotmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <94eb2c05b2d8af3dfa0568a3f964@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>
+To: netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Mar 30, 2018 at 6:46 PM, syzbot
-<syzbot+5fe074c01b2032ce9618@syzkaller.appspotmail.com> wrote:
-> syzbot has found reproducer for the following crash on net-next commit
+The following memory leak is false postive:
 
-/\/\/\/\/\/\
+unreferenced object 0xffff8f37f156fb38 (size 128):
+  comm "softirq", pid 0, jiffies 4294899665 (age 11.292s)
+  hex dump (first 32 bytes):
+    6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b  kkkkkkkkkkkkkkkk
+    00 00 00 00 30 00 20 00 48 6b 6b 6b 6b 6b 6b 6b  ....0. .Hkkkkkkk
+  backtrace:
+    [<000000004fda266a>] __kmalloc_track_caller+0x10d/0x141
+    [<000000007b0a7e3c>] __krealloc+0x45/0x62
+    [<00000000d08e0bfb>] nf_ct_ext_add+0xdc/0x133
+    [<0000000099b47fd8>] init_conntrack+0x1b1/0x392
+    [<0000000086dc36ec>] nf_conntrack_in+0x1ee/0x34b
+    [<00000000940592de>] nf_hook_slow+0x36/0x95
+    [<00000000d1bd4da7>] nf_hook.constprop.43+0x1c3/0x1dd
+    [<00000000c3673266>] __ip_local_out+0xae/0xb4
+    [<000000003e4192a6>] ip_local_out+0x17/0x33
+    [<00000000b64356de>] igmp_ifc_timer_expire+0x23e/0x26f
+    [<000000006a8f3032>] call_timer_fn+0x14c/0x2a5
+    [<00000000650c1725>] __run_timers.part.34+0x150/0x182
+    [<0000000090e6946e>] run_timer_softirq+0x2a/0x4c
+    [<000000004d1e7293>] __do_softirq+0x1d1/0x3c2
+    [<000000004643557d>] irq_exit+0x53/0xa2
+    [<0000000029ddee8f>] smp_apic_timer_interrupt+0x22a/0x235
 
-now syzbot can test fixes
+because __krealloc() is not supposed to release the old
+memory and it is released later via kfree_rcu(). Since this is
+the only external user of __krealloc(), just mark it as not leak
+here.
 
-> 18845557fd6fc1998f2d0d8c30467f86db587529 (Thu Mar 29 20:24:06 2018 +0000)
-> Merge tag 'wireless-drivers-next-for-davem-2018-03-29' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/kvalo/wireless-drivers-next
-> syzbot dashboard link:
-> https://syzkaller.appspot.com/bug?extid=5fe074c01b2032ce9618
->
-> So far this crash happened 2 times on net-next.
-> C reproducer: https://syzkaller.appspot.com/x/repro.c?id=5531070485233664
-> syzkaller reproducer:
-> https://syzkaller.appspot.com/x/repro.syz?id=5632385408303104
-> Raw console output:
-> https://syzkaller.appspot.com/x/log.txt?id=6520566391504896
-> Kernel config: https://syzkaller.appspot.com/x/.config?id=-37309782588693906
-> compiler: gcc (GCC) 7.1.1 20170620
->
-> IMPORTANT: if you fix the bug, please add the following tag to the commit:
-> Reported-by: syzbot+5fe074c01b2032ce9618@syzkaller.appspotmail.com
-> It will help syzbot understand when the bug is fixed.
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Florian Westphal <fw@strlen.de>
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+---
+ net/netfilter/nf_conntrack_extend.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index 9fe0ddc333fb..bd71a828ebde 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -71,6 +71,7 @@ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 	rcu_read_unlock();
+ 
+ 	alloc = max(newlen, NF_CT_EXT_PREALLOC);
++	kmemleak_not_leak(old);
+ 	new = __krealloc(old, alloc, gfp);
+ 	if (!new)
+ 		return NULL;
+-- 
+2.13.0
