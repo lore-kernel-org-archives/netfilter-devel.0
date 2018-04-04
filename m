@@ -1,35 +1,36 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 00/47] Netfilter/IPVS updates for net-next
-Date: Tue, 3 Apr 2018 12:19:41 +0200
-Message-ID: <20180403101941.qk6sjpmdue5xcmcb@salvia>
-References: <20180330113729.18335-1-pablo@netfilter.org>
- <fbd3cd82-cece-74cb-2305-bbb6980b52cc@gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 40/47] netfilter: nf_tables: build-in filter chain type
+Date: Wed, 4 Apr 2018 17:38:31 +0200
+Message-ID: <CAK8P3a1nEJ450Ori2-xPnC8WDPcHxiQR_844ArqOgZ2eRGpcbw@mail.gmail.com>
+References: <20180330114619.18797-1-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Cc: netfilter-devel@vger.kernel.org,
-        Network Development <netdev@vger.kernel.org>,
-        David Miller <davem@davemloft.net>
-To: =?utf-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+        David Miller <davem@davemloft.net>,
+        Networking <netdev@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <fbd3cd82-cece-74cb-2305-bbb6980b52cc@gmail.com>
+In-Reply-To: <20180330114619.18797-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Rafal,
+On Fri, Mar 30, 2018 at 1:46 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> One module per supported filter chain family type takes too much memory
+> for very little code - too much modularization - place all chain filter
+> definitions in one single file.
+>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-On Tue, Apr 03, 2018 at 08:13:49AM +0200, Rafał Miłecki wrote:
-> Hi Pablo,
-> 
-[...]
-> I see you mentioned changes from Felix in the pull request but:
-> 1) I don't see any commits from Felix listed below
-> 2) I don't think you sent any of these patches
-> 
-> Can you take a look at what has happened to them, please?
+Hi Pablo,
 
-I will include them in my next pull request once net-next opens up
-again.
+I've bisected a link error to this patch:
 
-Thanks.
+net/netfilter/nft_reject_inet.o: In function `nft_reject_inet_eval':
+nft_reject_inet.c:(.text+0xa7): undefined reference to `nf_send_unreach6'
+nft_reject_inet.c:(.text+0x10c): undefined reference to `nf_send_unreach6'
+nft_reject_inet.c:(.text+0x138): undefined reference to `nf_send_reset6'
+
+Unfortunately I don't immediately see what went wrong, maybe you
+can spot it.
+
+       Arnd
