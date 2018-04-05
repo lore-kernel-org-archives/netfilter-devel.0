@@ -1,44 +1,49 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 40/47] netfilter: nf_tables: build-in filter chain type
-Date: Wed, 4 Apr 2018 17:50:45 +0200
-Message-ID: <CAK8P3a1yfN161jc_D_X2McbAOqBmOViKydZ=ads97tjB_SzwJQ@mail.gmail.com>
-References: <20180330114619.18797-1-pablo@netfilter.org> <CAK8P3a1nEJ450Ori2-xPnC8WDPcHxiQR_844ArqOgZ2eRGpcbw@mail.gmail.com>
- <20180404154657.jjirlgjgdmzqg5hr@salvia>
+From: Felix Fietkau <nbd@nbd.name>
+Subject: Re: [PATCH 00/12] Ethernet: Add and use ether_<type>_addr
+	globals
+Date: Thu, 5 Apr 2018 15:27:49 +0200
+Message-ID: <e0ab9616-64fa-cdbc-7a77-7e25d70c1a52@nbd.name>
+References: <cover.1522479607.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: netfilter-devel@vger.kernel.org,
-        David Miller <davem@davemloft.net>,
-        Networking <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180404154657.jjirlgjgdmzqg5hr@salvia>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Cc: brcm80211-dev-list.pdl@broadcom.com, linux-kernel@vger.kernel.org,
+	brcm80211-dev-list@cypress.com
+To: Joe Perches <joe@perches.com>, netdev@vger.kernel.org,
+	linux-wireless@vger.kernel.org, b43-dev@lists.infradead.org,
+	bridge@lists.linux-foundation.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+In-Reply-To: <cover.1522479607.git.joe@perches.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Apr 4, 2018 at 5:46 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, Apr 04, 2018 at 05:38:31PM +0200, Arnd Bergmann wrote:
->> On Fri, Mar 30, 2018 at 1:46 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> > One module per supported filter chain family type takes too much memory
->> > for very little code - too much modularization - place all chain filter
->> > definitions in one single file.
->> >
->> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
->>
->> Hi Pablo,
->>
->> I've bisected a link error to this patch:
->>
->> net/netfilter/nft_reject_inet.o: In function `nft_reject_inet_eval':
->> nft_reject_inet.c:(.text+0xa7): undefined reference to `nf_send_unreach6'
->> nft_reject_inet.c:(.text+0x10c): undefined reference to `nf_send_unreach6'
->> nft_reject_inet.c:(.text+0x138): undefined reference to `nf_send_reset6'
->>
->> Unfortunately I don't immediately see what went wrong, maybe you
->> can spot it.
->
-> Can you pass me your .config file? I will have a look at it. Thanks.
-> Looks like some missing Kconfig stuff.
+On 2018-03-31 09:05, Joe Perches wrote:
+> There are many local static and non-static arrays that are used for
+> Ethernet broadcast address output or comparison.
+> 
+> Centralize the array into a single separate file and remove the local
+> arrays.
+I suspect that for many targets and configurations, the local arrays
+might actually be smaller than exporting a global. You have to factor in
+not just the .text size, but the fact that referencing an exported
+symbol needs a .reloc entry as well, which also eats up some space (at
+least when the code is being built as module).
 
-Sure, see https://pastebin.com/raw/yF9Y5Mmn
+In my opinion, your series probably causes more bloat in common
+configurations instead of reducing it.
 
-      Arnd
+You're also touching several places that could easily use
+eth_broadcast_addr and eth_zero_addr. I think making those changes would
+be more productive than what you did in this series.
+
+- Felix
