@@ -1,44 +1,86 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [Patch nf] nf_conntrack_extend: silent a memory leak warning
-Date: Mon, 16 Apr 2018 17:44:04 +0200
-Message-ID: <20180416154404.eatjnxp25evbon4d@salvia>
-References: <20180330202206.19565-1-xiyou.wangcong@gmail.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: build failure after merge of the netfilter tree
+Date: Tue, 17 Apr 2018 09:28:59 +1000
+Message-ID: <20180417092859.358573be@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Florian Westphal <fw@strlen.de>
-To: Cong Wang <xiyou.wangcong@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180330202206.19565-1-xiyou.wangcong@gmail.com>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/xGmb.tbd_m2j/9+ca6DNz7="; protocol="application/pgp-signature"
+Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Cong Wang <xiyou.wangcong@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Mar 30, 2018 at 01:22:06PM -0700, Cong Wang wrote:
-> The following memory leak is false postive:
-> 
-> unreferenced object 0xffff8f37f156fb38 (size 128):
->   comm "softirq", pid 0, jiffies 4294899665 (age 11.292s)
->   hex dump (first 32 bytes):
->     6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b  kkkkkkkkkkkkkkkk
->     00 00 00 00 30 00 20 00 48 6b 6b 6b 6b 6b 6b 6b  ....0. .Hkkkkkkk
->   backtrace:
->     [<000000004fda266a>] __kmalloc_track_caller+0x10d/0x141
->     [<000000007b0a7e3c>] __krealloc+0x45/0x62
->     [<00000000d08e0bfb>] nf_ct_ext_add+0xdc/0x133
->     [<0000000099b47fd8>] init_conntrack+0x1b1/0x392
->     [<0000000086dc36ec>] nf_conntrack_in+0x1ee/0x34b
->     [<00000000940592de>] nf_hook_slow+0x36/0x95
->     [<00000000d1bd4da7>] nf_hook.constprop.43+0x1c3/0x1dd
->     [<00000000c3673266>] __ip_local_out+0xae/0xb4
->     [<000000003e4192a6>] ip_local_out+0x17/0x33
->     [<00000000b64356de>] igmp_ifc_timer_expire+0x23e/0x26f
->     [<000000006a8f3032>] call_timer_fn+0x14c/0x2a5
->     [<00000000650c1725>] __run_timers.part.34+0x150/0x182
->     [<0000000090e6946e>] run_timer_softirq+0x2a/0x4c
->     [<000000004d1e7293>] __do_softirq+0x1d1/0x3c2
->     [<000000004643557d>] irq_exit+0x53/0xa2
->     [<0000000029ddee8f>] smp_apic_timer_interrupt+0x22a/0x235
+--Sig_/xGmb.tbd_m2j/9+ca6DNz7=
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Applied, thanks.
+Hi all,
+
+After merging the netfilter tree, today's linux-next build (powerpc
+ppc64_defconfig) failed like this:
+
+net/netfilter/nf_conntrack_extend.c: In function 'nf_ct_ext_
+add':
+net/netfilter/nf_conntrack_extend.c:74:2: error: implicit declaration of fu=
+nction 'kmemleak_not_leak' [-Werror=3Dimplicit-function-declaration]
+  kmemleak_not_leak(old);
+  ^~~~~~~~~~~~~~~~~
+cc1: some warnings being treated as errors
+
+Caused by commit
+
+  114aa35d06d4 ("netfilter: conntrack: silent a memory leak warning")
+
+I have added this patch for today:
+
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Tue, 17 Apr 2018 09:26:49 +1000
+Subject: [PATCH] netfilter: conntrack: include kmemleak.h for
+ kmemleak_not_leak()
+
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+---
+ net/netfilter/nf_conntrack_extend.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntra=
+ck_extend.c
+index bd71a828ebde..277bbfe26478 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -9,6 +9,7 @@
+  *      2 of the License, or (at your option) any later version.
+  */
+ #include <linux/kernel.h>
++#include <linux/kmemleak.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
+ #include <linux/rcupdate.h>
+--=20
+2.16.3
+
+--=20
+Cheers,
+Stephen Rothwell
+
+--Sig_/xGmb.tbd_m2j/9+ca6DNz7=
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAlrVMbsACgkQAVBC80lX
+0GxZ7wf/WOhRUi85MTU9MkKgs5QnmbKMxPMN1AMN4JHpCtFH8GhZrOJoHKBeRnI8
+nNlcCHW0P5tN8IzoDdUgvxX41g4IQc/doujuktE8nozsH5EbeshN3n5BT3BAssYK
+/5pnMNrpziCsxdFJnAQ99gsWAc1NScAsfcqxvH5JnnW5Tk//QPNcC3cDM3XGja0n
+QAH8JVSclPcnKZfcfbYpp3CFOacvF87WnsV0AgsMdUj8bGC8gR0gAv9Hiq0LFUwX
+FVwMmvBwrsQKozYxhZgACzJXdxWDwjLsKez5jjVnSbtAjnIBECQRUs2SJh8L/2Tj
+y2zMopyfzkNUHeu18vUnD/lZeTJ0JA==
+=bv6w
+-----END PGP SIGNATURE-----
+
+--Sig_/xGmb.tbd_m2j/9+ca6DNz7=--
