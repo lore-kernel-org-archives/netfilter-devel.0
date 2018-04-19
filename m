@@ -1,44 +1,52 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: linux-next: build failure after merge of the netfilter tree
-Date: Tue, 17 Apr 2018 11:00:52 +0200
-Message-ID: <20180417090052.h5ilsnezy66exmrr@salvia>
-References: <20180417092859.358573be@canb.auug.org.au>
- <CAM_iQpXT2p1tQFHdRG9iZf_Wc5=H6P+0Q493k3VOLJ+fqr8GYQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-        NetFilter <netfilter-devel@vger.kernel.org>,
-        Linux-Next Mailing List <linux-next@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-To: Cong Wang <xiyou.wangcong@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAM_iQpXT2p1tQFHdRG9iZf_Wc5=H6P+0Q493k3VOLJ+fqr8GYQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Simon Horman <horms@verge.net.au>
+Subject: [PATCH 1/5] netfilter: ipvs: Fix space before '[' error.
+Date: Thu, 19 Apr 2018 10:56:10 +0200
+Message-ID: <20180419085614.7437-2-horms@verge.net.au>
+References: <20180419085614.7437-1-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Wensong Zhang <wensong@linux-vs.org>,
+        Julian Anastasov <ja@ssi.bg>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Simon Horman <horms@verge.net.au>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180419085614.7437-1-horms@verge.net.au>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Apr 16, 2018 at 05:51:12PM -0700, Cong Wang wrote:
-> On Mon, Apr 16, 2018 at 4:28 PM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> > Hi all,
-> >
-> > After merging the netfilter tree, today's linux-next build (powerpc
-> > ppc64_defconfig) failed like this:
-> >
-> > net/netfilter/nf_conntrack_extend.c: In function 'nf_ct_ext_
-> > add':
-> > net/netfilter/nf_conntrack_extend.c:74:2: error: implicit declaration of function 'kmemleak_not_leak' [-Werror=implicit-function-declaration]
-> >   kmemleak_not_leak(old);
-> >   ^~~~~~~~~~~~~~~~~
-> > cc1: some warnings being treated as errors
-> >
-> > Caused by commit
-> >
-> >   114aa35d06d4 ("netfilter: conntrack: silent a memory leak warning")
-> >
-> > I have added this patch for today:
-> 
-> Ouch, this is actually a correct fix.
-> 
-> Can you please send it formally or maybe Pablo can just take it directly?
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
 
-I have applied Stephen's patch, thanks!
+Fix checkpatch.pl error:
+ERROR: space prohibited before open square bracket '['.
+
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+---
+ net/netfilter/ipvs/ip_vs_proto_tcp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+index bcd9b7bde4ee..569631d2b2a1 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+@@ -436,7 +436,7 @@ static bool tcp_state_active(int state)
+ 	return tcp_state_active_table[state];
+ }
+ 
+-static struct tcp_states_t tcp_states [] = {
++static struct tcp_states_t tcp_states[] = {
+ /*	INPUT */
+ /*        sNO, sES, sSS, sSR, sFW, sTW, sCL, sCW, sLA, sLI, sSA	*/
+ /*syn*/ {{sSR, sES, sES, sSR, sSR, sSR, sSR, sSR, sSR, sSR, sSR }},
+@@ -459,7 +459,7 @@ static struct tcp_states_t tcp_states [] = {
+ /*rst*/ {{sCL, sCL, sCL, sSR, sCL, sCL, sCL, sCL, sLA, sLI, sCL }},
+ };
+ 
+-static struct tcp_states_t tcp_states_dos [] = {
++static struct tcp_states_t tcp_states_dos[] = {
+ /*	INPUT */
+ /*        sNO, sES, sSS, sSR, sFW, sTW, sCL, sCW, sLA, sLI, sSA	*/
+ /*syn*/ {{sSR, sES, sES, sSR, sSR, sSR, sSR, sSR, sSR, sSR, sSA }},
+-- 
+2.11.0
