@@ -1,55 +1,47 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: [PATCH] netfilter: fix nf_tables filter chain type build
-Date: Sat, 21 Apr 2018 21:10:09 -0700
-Message-ID: <c8e42e35-ccff-471c-8c45-61f44855e21a@infradead.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 15/39] acpi/battery: simplify procfs code
+Date: Sun, 22 Apr 2018 11:42:08 +0200
+Message-ID: <CAJZ5v0gRw8P8KL12QKMuSjyePxWn71LB+s8ephF2a4-Ns234NQ@mail.gmail.com>
+References: <20180419124140.9309-1-hch@lst.de>
+ <20180419124140.9309-16-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-        Florian Westphal <fw@strlen.de>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        kbuild test robot <lkp@intel.com>
-To: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
+Cc: linux-rtc@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>,
+ Alexandre Belloni <alexandre.belloni@bootlin.com>, devel@driverdev.osuosl.org,
+ Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+ "open list:TARGET SUBSYSTEM" <linux-scsi@vger.kernel.org>,
+ Corey Minyard <minyard@acm.org>, linux-ide@vger.kernel.org,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ jfs-discussion@lists.sourceforge.net, linux-afs@lists.infradead.org,
+ ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
+ netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+ Alexander Viro <viro@zeniv.linux.org.uk>, Jiri Slaby <jslaby@suse.com>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Ext4 Developers List <linux-ext4@vger.kernel.org>,
+ Alexey Dobriyan <adobriyan@gmail.com>, megaraidlinux.pdl@broadcom.com,
+ drbd-dev@lists.linbit.com
+To: Christoph Hellwig <hch@lst.de>
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20180419124140.9309-16-hch@lst.de>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
+On Thu, Apr 19, 2018 at 2:41 PM, Christoph Hellwig <hch@lst.de> wrote:
+> Use remove_proc_subtree to remove the whole subtree on cleanup, and
+> unwind the registration loop into individual calls.  Switch to use
+> proc_create_seq where applicable.
+>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-Fix build errors due to a missing Kconfig dependency term.
-Fixes these build errors:
+It is OK AFAICS.
 
-net/ipv6/netfilter/nft_chain_nat_ipv6.o: In function `nft_nat_do_chain':
-net/ipv6/netfilter/nft_chain_nat_ipv6.c:37: undefined reference to `nft_do_chain'
-net/ipv6/netfilter/nft_chain_nat_ipv6.o: In function `nft_chain_nat_ipv6_exit':
-net/ipv6/netfilter/nft_chain_nat_ipv6.c:94: undefined reference to `nft_unregister_chain_type'
-net/ipv6/netfilter/nft_chain_nat_ipv6.o: In function `nft_chain_nat_ipv6_init':
-net/ipv6/netfilter/nft_chain_nat_ipv6.c:87: undefined reference to `nft_register_chain_type'
-
-Fixes: 02c7b25e5f54 ("netfilter: nf_tables: build-in filter chain type")
-
-Reported-by: kbuild test robot <lkp@intel.com>
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
----
- net/ipv6/netfilter/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- linux-next-20180419.orig/net/ipv6/netfilter/Kconfig
-+++ linux-next-20180419/net/ipv6/netfilter/Kconfig
-@@ -108,7 +108,7 @@ config NF_NAT_IPV6
- if NF_NAT_IPV6
- 
- config NFT_CHAIN_NAT_IPV6
--	depends on NF_TABLES_IPV6
-+	depends on NF_TABLES_IPV6 && NF_TABLES
- 	tristate "IPv6 nf_tables nat chain support"
- 	help
- 	  This option enables the "nat" chain for IPv6 in nf_tables. This
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
