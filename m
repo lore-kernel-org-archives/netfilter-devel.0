@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 07/12] netfilter: nf_tables: can't fail after linking rule into active rule list
-Date: Mon, 23 Apr 2018 19:57:09 +0200
-Message-ID: <20180423175714.9794-8-pablo@netfilter.org>
+Subject: [PATCH 05/12] netfilter: conntrack: silent a memory leak warning
+Date: Mon, 23 Apr 2018 19:57:07 +0200
+Message-ID: <20180423175714.9794-6-pablo@netfilter.org>
 References: <20180423175714.9794-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,108 +10,55 @@ In-Reply-To: <20180423175714.9794-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Cong Wang <xiyou.wangcong@gmail.com>
 
-rules in nftables a free'd using kfree, but protected by rcu, i.e. we
-must wait for a grace period to elapse.
+The following memory leak is false postive:
 
-Normal removal patch does this, but nf_tables_newrule() doesn't obey
-this rule during error handling.
+unreferenced object 0xffff8f37f156fb38 (size 128):
+  comm "softirq", pid 0, jiffies 4294899665 (age 11.292s)
+  hex dump (first 32 bytes):
+    6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b  kkkkkkkkkkkkkkkk
+    00 00 00 00 30 00 20 00 48 6b 6b 6b 6b 6b 6b 6b  ....0. .Hkkkkkkk
+  backtrace:
+    [<000000004fda266a>] __kmalloc_track_caller+0x10d/0x141
+    [<000000007b0a7e3c>] __krealloc+0x45/0x62
+    [<00000000d08e0bfb>] nf_ct_ext_add+0xdc/0x133
+    [<0000000099b47fd8>] init_conntrack+0x1b1/0x392
+    [<0000000086dc36ec>] nf_conntrack_in+0x1ee/0x34b
+    [<00000000940592de>] nf_hook_slow+0x36/0x95
+    [<00000000d1bd4da7>] nf_hook.constprop.43+0x1c3/0x1dd
+    [<00000000c3673266>] __ip_local_out+0xae/0xb4
+    [<000000003e4192a6>] ip_local_out+0x17/0x33
+    [<00000000b64356de>] igmp_ifc_timer_expire+0x23e/0x26f
+    [<000000006a8f3032>] call_timer_fn+0x14c/0x2a5
+    [<00000000650c1725>] __run_timers.part.34+0x150/0x182
+    [<0000000090e6946e>] run_timer_softirq+0x2a/0x4c
+    [<000000004d1e7293>] __do_softirq+0x1d1/0x3c2
+    [<000000004643557d>] irq_exit+0x53/0xa2
+    [<0000000029ddee8f>] smp_apic_timer_interrupt+0x22a/0x235
 
-It calls nft_trans_rule_add() *after* linking rule, and, if that
-fails to allocate memory, it unlinks the rule and then kfree() it --
-this is unsafe.
+because __krealloc() is not supposed to release the old
+memory and it is released later via kfree_rcu(). Since this is
+the only external user of __krealloc(), just mark it as not leak
+here.
 
-Switch order -- first add rule to transaction list, THEN link it
-to public list.
-
-Note: nft_trans_rule_add() uses GFP_KERNEL; it will not fail so this
-is not a problem in practice (spotted only during code review).
-
-Fixes: 0628b123c96d12 ("netfilter: nfnetlink: add batch support and use it from nf_tables")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 59 +++++++++++++++++++++++--------------------
- 1 file changed, 32 insertions(+), 27 deletions(-)
+ net/netfilter/nf_conntrack_extend.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 9134cc429ad4..b1984f8f7253 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2361,41 +2361,46 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
- 	}
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index 9fe0ddc333fb..bd71a828ebde 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -71,6 +71,7 @@ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 	rcu_read_unlock();
  
- 	if (nlh->nlmsg_flags & NLM_F_REPLACE) {
--		if (nft_is_active_next(net, old_rule)) {
--			trans = nft_trans_rule_add(&ctx, NFT_MSG_DELRULE,
--						   old_rule);
--			if (trans == NULL) {
--				err = -ENOMEM;
--				goto err2;
--			}
--			nft_deactivate_next(net, old_rule);
--			chain->use--;
--			list_add_tail_rcu(&rule->list, &old_rule->list);
--		} else {
-+		if (!nft_is_active_next(net, old_rule)) {
- 			err = -ENOENT;
- 			goto err2;
- 		}
--	} else if (nlh->nlmsg_flags & NLM_F_APPEND)
--		if (old_rule)
--			list_add_rcu(&rule->list, &old_rule->list);
--		else
--			list_add_tail_rcu(&rule->list, &chain->rules);
--	else {
--		if (old_rule)
--			list_add_tail_rcu(&rule->list, &old_rule->list);
--		else
--			list_add_rcu(&rule->list, &chain->rules);
--	}
-+		trans = nft_trans_rule_add(&ctx, NFT_MSG_DELRULE,
-+					   old_rule);
-+		if (trans == NULL) {
-+			err = -ENOMEM;
-+			goto err2;
-+		}
-+		nft_deactivate_next(net, old_rule);
-+		chain->use--;
- 
--	if (nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule) == NULL) {
--		err = -ENOMEM;
--		goto err3;
-+		if (nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule) == NULL) {
-+			err = -ENOMEM;
-+			goto err2;
-+		}
-+
-+		list_add_tail_rcu(&rule->list, &old_rule->list);
-+	} else {
-+		if (nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule) == NULL) {
-+			err = -ENOMEM;
-+			goto err2;
-+		}
-+
-+		if (nlh->nlmsg_flags & NLM_F_APPEND) {
-+			if (old_rule)
-+				list_add_rcu(&rule->list, &old_rule->list);
-+			else
-+				list_add_tail_rcu(&rule->list, &chain->rules);
-+		 } else {
-+			if (old_rule)
-+				list_add_tail_rcu(&rule->list, &old_rule->list);
-+			else
-+				list_add_rcu(&rule->list, &chain->rules);
-+		}
- 	}
- 	chain->use++;
- 	return 0;
- 
--err3:
--	list_del_rcu(&rule->list);
- err2:
- 	nf_tables_rule_destroy(&ctx, rule);
- err1:
+ 	alloc = max(newlen, NF_CT_EXT_PREALLOC);
++	kmemleak_not_leak(old);
+ 	new = __krealloc(old, alloc, gfp);
+ 	if (!new)
+ 		return NULL;
 -- 
 2.11.0
