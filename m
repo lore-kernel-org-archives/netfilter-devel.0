@@ -1,26 +1,41 @@
-From: David Miller <davem@redhat.com>
-Subject: Re: [PATCH 00/12] Netfilter/IPVS fixes for net
-Date: Mon, 23 Apr 2018 16:22:46 -0400 (EDT)
-Message-ID: <20180423.162246.1411397313682681806.davem@redhat.com>
-References: <20180423175714.9794-1-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: [Patch nf] ipvs: initialize tbl->entries after allocation
+Date: Mon, 23 Apr 2018 13:53:41 -0700
+Message-ID: <20180423205341.13142-1-xiyou.wangcong@gmail.com>
+Cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Cong Wang <xiyou.wangcong@gmail.com>,
+        Simon Horman <horms@verge.net.au>,
+        Julian Anastasov <ja@ssi.bg>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+To: netdev@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180423175714.9794-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 23 Apr 2018 19:57:02 +0200
+tbl->entries is not initialized after kmalloc(), therefore
+causes an uninit-value warning in ip_vs_lblc_check_expire()
+as reported by syzbot.
 
-> The following patchset contains Netfilter/IPVS fixes for your net tree,
-> they are:
- ...
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+Reported-by: <syzbot+3dfdea57819073a04f21@syzkaller.appspotmail.com>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Julian Anastasov <ja@ssi.bg>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+---
+ net/netfilter/ipvs/ip_vs_lblcr.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Pulled, thank you.
+diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
+index 92adc04557ed..bc2bc5eebcb8 100644
+--- a/net/netfilter/ipvs/ip_vs_lblcr.c
++++ b/net/netfilter/ipvs/ip_vs_lblcr.c
+@@ -534,6 +534,7 @@ static int ip_vs_lblcr_init_svc(struct ip_vs_service *svc)
+ 	tbl->counter = 1;
+ 	tbl->dead = false;
+ 	tbl->svc = svc;
++	atomic_set(&tbl->entries, 0);
+ 
+ 	/*
+ 	 *    Hook periodic timer for garbage collection
+-- 
+2.13.0
