@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 03/12] netfilter: ebtables: don't attempt to allocate 0-sized compat array
-Date: Mon, 23 Apr 2018 19:57:05 +0200
-Message-ID: <20180423175714.9794-4-pablo@netfilter.org>
+Subject: [PATCH 08/12] netfilter: nf_tables: free set name in error path
+Date: Mon, 23 Apr 2018 19:57:10 +0200
+Message-ID: <20180423175714.9794-9-pablo@netfilter.org>
 References: <20180423175714.9794-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,46 +12,42 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-Dmitry reports 32bit ebtables on 64bit kernel got broken by
-a recent change that returns -EINVAL when ruleset has no entries.
+set->name must be free'd here in case ops->init fails.
 
-ebtables however only counts user-defined chains, so for the
-initial table nentries will be 0.
-
-Don't try to allocate the compat array in this case, as no user
-defined rules exist no rule will need 64bit translation.
-
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Fixes: 7d7d7e02111e9 ("netfilter: compat: reject huge allocation requests")
+Fixes: 387454901bd6 ("netfilter: nf_tables: Allow set names of up to 255 chars")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/netfilter/ebtables.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ net/netfilter/nf_tables_api.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 032e0fe45940..28a4c3490359 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -1825,13 +1825,14 @@ static int compat_table_info(const struct ebt_table_info *info,
- {
- 	unsigned int size = info->entries_size;
- 	const void *entries = info->entries;
--	int ret;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index b1984f8f7253..102ad873acb4 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3212,18 +3212,20 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
  
- 	newinfo->entries_size = size;
--
--	ret = xt_compat_init_offsets(NFPROTO_BRIDGE, info->nentries);
--	if (ret)
--		return ret;
-+	if (info->nentries) {
-+		int ret = xt_compat_init_offsets(NFPROTO_BRIDGE,
-+						 info->nentries);
-+		if (ret)
-+			return ret;
-+	}
+ 	err = ops->init(set, &desc, nla);
+ 	if (err < 0)
+-		goto err2;
++		goto err3;
  
- 	return EBT_ENTRY_ITERATE(entries, size, compat_calc_entry, info,
- 							entries, newinfo);
+ 	err = nft_trans_set_add(&ctx, NFT_MSG_NEWSET, set);
+ 	if (err < 0)
+-		goto err3;
++		goto err4;
+ 
+ 	list_add_tail_rcu(&set->list, &table->sets);
+ 	table->use++;
+ 	return 0;
+ 
+-err3:
++err4:
+ 	ops->destroy(set);
++err3:
++	kfree(set->name);
+ err2:
+ 	kvfree(set);
+ err1:
 -- 
 2.11.0
