@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 11/12] netfilter: nf_tables: fix out-of-bounds in nft_chain_commit_update
-Date: Mon, 23 Apr 2018 19:57:13 +0200
-Message-ID: <20180423175714.9794-12-pablo@netfilter.org>
+Subject: [PATCH 09/12] netfilter: conntrack: include kmemleak.h for kmemleak_not_leak()
+Date: Mon, 23 Apr 2018 19:57:11 +0200
+Message-ID: <20180423175714.9794-10-pablo@netfilter.org>
 References: <20180423175714.9794-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,61 +10,35 @@ In-Reply-To: <20180423175714.9794-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Taehee Yoo <ap420073@gmail.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
 
-When chain name is changed, nft_chain_commit_update is called.
-In the nft_chain_commit_update, trans->ctx.chain->name has old chain name
-and nft_trans_chain_name(trans) has new chain name.
-If new chain name is longer than old chain name, KASAN warns
-slab-out-of-bounds.
+After merging the netfilter tree, today's linux-next build (powerpc
+ppc64_defconfig) failed like this:
 
-[  175.015012] BUG: KASAN: slab-out-of-bounds in strcpy+0x9e/0xb0
-[  175.022735] Write of size 1 at addr ffff880114e022da by task iptables-compat/1458
+net/netfilter/nf_conntrack_extend.c: In function 'nf_ct_ext_add':
+net/netfilter/nf_conntrack_extend.c:74:2: error: implicit declaration of function 'kmemleak_not_leak' [-Werror=implicit-function-declaration]
+  kmemleak_not_leak(old);
+  ^~~~~~~~~~~~~~~~~
+cc1: some warnings being treated as errors
 
-[  175.031353] CPU: 0 PID: 1458 Comm: iptables-compat Not tainted 4.16.0-rc7+ #146
-[  175.031353] Hardware name: To be filled by O.E.M. To be filled by O.E.M./Aptio CRB, BIOS 5.6.5 07/08/2015
-[  175.031353] Call Trace:
-[  175.031353]  dump_stack+0x68/0xa0
-[  175.031353]  print_address_description+0xd0/0x260
-[  175.031353]  ? strcpy+0x9e/0xb0
-[  175.031353]  kasan_report+0x234/0x350
-[  175.031353]  __asan_report_store1_noabort+0x1c/0x20
-[  175.031353]  strcpy+0x9e/0xb0
-[  175.031353]  nf_tables_commit+0x1ccc/0x2990
-[  175.031353]  nfnetlink_rcv+0x141e/0x16c0
-[  175.031353]  ? nfnetlink_net_init+0x150/0x150
-[  175.031353]  ? lock_acquire+0x370/0x370
-[  175.031353]  ? lock_acquire+0x370/0x370
-[  175.031353]  netlink_unicast+0x444/0x640
-[  175.031353]  ? netlink_attachskb+0x700/0x700
-[  175.031353]  ? _copy_from_iter_full+0x180/0x740
-[  175.031353]  ? kasan_check_write+0x14/0x20
-[  175.031353]  ? _copy_from_user+0x9b/0xd0
-[  175.031353]  netlink_sendmsg+0x845/0xc70
-[ ... ]
-
-Steps to reproduce:
-   iptables-compat -N 1
-   iptables-compat -E 1 aaaaaaaaa
-
-Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Fixes: 114aa35d06d4 ("netfilter: conntrack: silent a memory leak warning")
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_extend.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 102ad873acb4..04d4e3772584 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5745,7 +5745,7 @@ static void nft_chain_commit_update(struct nft_trans *trans)
- 	struct nft_base_chain *basechain;
- 
- 	if (nft_trans_chain_name(trans))
--		strcpy(trans->ctx.chain->name, nft_trans_chain_name(trans));
-+		swap(trans->ctx.chain->name, nft_trans_chain_name(trans));
- 
- 	if (!nft_is_base_chain(trans->ctx.chain))
- 		return;
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index bd71a828ebde..277bbfe26478 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -9,6 +9,7 @@
+  *      2 of the License, or (at your option) any later version.
+  */
+ #include <linux/kernel.h>
++#include <linux/kmemleak.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
+ #include <linux/rcupdate.h>
 -- 
 2.11.0
