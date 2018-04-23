@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 12/12] netfilter: xt_connmark: do not cast xt_connmark_tginfo1 to xt_connmark_tginfo2
-Date: Mon, 23 Apr 2018 19:57:14 +0200
-Message-ID: <20180423175714.9794-13-pablo@netfilter.org>
+Subject: [PATCH 11/12] netfilter: nf_tables: fix out-of-bounds in nft_chain_commit_update
+Date: Mon, 23 Apr 2018 19:57:13 +0200
+Message-ID: <20180423175714.9794-12-pablo@netfilter.org>
 References: <20180423175714.9794-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,101 +10,61 @@ In-Reply-To: <20180423175714.9794-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-These structures have different layout, fill xt_connmark_tginfo2 with
-old fields in xt_connmark_tginfo1. Based on patch from Jack Ma.
+From: Taehee Yoo <ap420073@gmail.com>
 
-Fixes: 472a73e00757 ("netfilter: xt_conntrack: Support bit-shifting for CONNMARK & MARK targets.")
+When chain name is changed, nft_chain_commit_update is called.
+In the nft_chain_commit_update, trans->ctx.chain->name has old chain name
+and nft_trans_chain_name(trans) has new chain name.
+If new chain name is longer than old chain name, KASAN warns
+slab-out-of-bounds.
+
+[  175.015012] BUG: KASAN: slab-out-of-bounds in strcpy+0x9e/0xb0
+[  175.022735] Write of size 1 at addr ffff880114e022da by task iptables-compat/1458
+
+[  175.031353] CPU: 0 PID: 1458 Comm: iptables-compat Not tainted 4.16.0-rc7+ #146
+[  175.031353] Hardware name: To be filled by O.E.M. To be filled by O.E.M./Aptio CRB, BIOS 5.6.5 07/08/2015
+[  175.031353] Call Trace:
+[  175.031353]  dump_stack+0x68/0xa0
+[  175.031353]  print_address_description+0xd0/0x260
+[  175.031353]  ? strcpy+0x9e/0xb0
+[  175.031353]  kasan_report+0x234/0x350
+[  175.031353]  __asan_report_store1_noabort+0x1c/0x20
+[  175.031353]  strcpy+0x9e/0xb0
+[  175.031353]  nf_tables_commit+0x1ccc/0x2990
+[  175.031353]  nfnetlink_rcv+0x141e/0x16c0
+[  175.031353]  ? nfnetlink_net_init+0x150/0x150
+[  175.031353]  ? lock_acquire+0x370/0x370
+[  175.031353]  ? lock_acquire+0x370/0x370
+[  175.031353]  netlink_unicast+0x444/0x640
+[  175.031353]  ? netlink_attachskb+0x700/0x700
+[  175.031353]  ? _copy_from_iter_full+0x180/0x740
+[  175.031353]  ? kasan_check_write+0x14/0x20
+[  175.031353]  ? _copy_from_user+0x9b/0xd0
+[  175.031353]  netlink_sendmsg+0x845/0xc70
+[ ... ]
+
+Steps to reproduce:
+   iptables-compat -N 1
+   iptables-compat -E 1 aaaaaaaaa
+
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_connmark.c | 38 ++++++++++++++++++++++----------------
- 1 file changed, 22 insertions(+), 16 deletions(-)
+ net/netfilter/nf_tables_api.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
-index 4b424e6caf3e..94df000abb92 100644
---- a/net/netfilter/xt_connmark.c
-+++ b/net/netfilter/xt_connmark.c
-@@ -36,9 +36,7 @@ MODULE_ALIAS("ipt_connmark");
- MODULE_ALIAS("ip6t_connmark");
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 102ad873acb4..04d4e3772584 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5745,7 +5745,7 @@ static void nft_chain_commit_update(struct nft_trans *trans)
+ 	struct nft_base_chain *basechain;
  
- static unsigned int
--connmark_tg_shift(struct sk_buff *skb,
--		const struct xt_connmark_tginfo1 *info,
--		u8 shift_bits, u8 shift_dir)
-+connmark_tg_shift(struct sk_buff *skb, const struct xt_connmark_tginfo2 *info)
- {
- 	enum ip_conntrack_info ctinfo;
- 	u_int32_t new_targetmark;
-@@ -52,10 +50,11 @@ connmark_tg_shift(struct sk_buff *skb,
- 	switch (info->mode) {
- 	case XT_CONNMARK_SET:
- 		newmark = (ct->mark & ~info->ctmask) ^ info->ctmark;
--		if (shift_dir == D_SHIFT_RIGHT)
--			newmark >>= shift_bits;
-+		if (info->shift_dir == D_SHIFT_RIGHT)
-+			newmark >>= info->shift_bits;
- 		else
--			newmark <<= shift_bits;
-+			newmark <<= info->shift_bits;
-+
- 		if (ct->mark != newmark) {
- 			ct->mark = newmark;
- 			nf_conntrack_event_cache(IPCT_MARK, ct);
-@@ -63,10 +62,11 @@ connmark_tg_shift(struct sk_buff *skb,
- 		break;
- 	case XT_CONNMARK_SAVE:
- 		new_targetmark = (skb->mark & info->nfmask);
--		if (shift_dir == D_SHIFT_RIGHT)
--			new_targetmark >>= shift_bits;
-+		if (info->shift_dir == D_SHIFT_RIGHT)
-+			new_targetmark >>= info->shift_bits;
- 		else
--			new_targetmark <<= shift_bits;
-+			new_targetmark <<= info->shift_bits;
-+
- 		newmark = (ct->mark & ~info->ctmask) ^
- 			  new_targetmark;
- 		if (ct->mark != newmark) {
-@@ -76,10 +76,11 @@ connmark_tg_shift(struct sk_buff *skb,
- 		break;
- 	case XT_CONNMARK_RESTORE:
- 		new_targetmark = (ct->mark & info->ctmask);
--		if (shift_dir == D_SHIFT_RIGHT)
--			new_targetmark >>= shift_bits;
-+		if (info->shift_dir == D_SHIFT_RIGHT)
-+			new_targetmark >>= info->shift_bits;
- 		else
--			new_targetmark <<= shift_bits;
-+			new_targetmark <<= info->shift_bits;
-+
- 		newmark = (skb->mark & ~info->nfmask) ^
- 			  new_targetmark;
- 		skb->mark = newmark;
-@@ -92,8 +93,14 @@ static unsigned int
- connmark_tg(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct xt_connmark_tginfo1 *info = par->targinfo;
--
--	return connmark_tg_shift(skb, info, 0, 0);
-+	const struct xt_connmark_tginfo2 info2 = {
-+		.ctmark	= info->ctmark,
-+		.ctmask	= info->ctmask,
-+		.nfmask	= info->nfmask,
-+		.mode	= info->mode,
-+	};
-+
-+	return connmark_tg_shift(skb, &info2);
- }
+ 	if (nft_trans_chain_name(trans))
+-		strcpy(trans->ctx.chain->name, nft_trans_chain_name(trans));
++		swap(trans->ctx.chain->name, nft_trans_chain_name(trans));
  
- static unsigned int
-@@ -101,8 +108,7 @@ connmark_tg_v2(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct xt_connmark_tginfo2 *info = par->targinfo;
- 
--	return connmark_tg_shift(skb, (const struct xt_connmark_tginfo1 *)info,
--				 info->shift_bits, info->shift_dir);
-+	return connmark_tg_shift(skb, info);
- }
- 
- static int connmark_tg_check(const struct xt_tgchk_param *par)
+ 	if (!nft_is_base_chain(trans->ctx.chain))
+ 		return;
 -- 
 2.11.0
