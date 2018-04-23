@@ -1,124 +1,104 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nf-next] netfilter: extend SRH match to support matching
- previous, next and last SID
-Date: Mon, 23 Apr 2018 19:30:47 +0200
-Message-ID: <20180423173047.gsf2xjlmpichyvte@salvia>
-References: <1524480503-1883-1-git-send-email-amsalam20@gmail.com>
- <1524480503-1883-2-git-send-email-amsalam20@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: fw@strlen.de, davem@davemloft.net, dav.lebrun@gmail.com,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org
-To: Ahmed Abdelsalam <amsalam20@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1524480503-1883-2-git-send-email-amsalam20@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH 00/12] Netfilter/IPVS fixes for net
+Date: Mon, 23 Apr 2018 19:57:02 +0200
+Message-ID: <20180423175714.9794-1-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Apr 23, 2018 at 05:48:22AM -0500, Ahmed Abdelsalam wrote:
-> IPv6 Segment Routing Header (SRH) contains a list of SIDs to be crossed by
-> SR encapsulated packet. Each SID is encoded as an IPv6 prefix.
-> 
-> When a Firewall receives an SR encapsulated packet, it should be able to
-> identify which node previously processed the packet (previous SID), which
-> node is going to process the packet next (next SID), and which node is the
-> last to process the packet (last SID) which represent the final destination
-> of the packet in case of inline SR mode.
-> 
-> An example use-case of using these features could be SID list that includes
-> two firewalls. When the second firewall receives a packet, it can check
-> whether the packet has been processed by the first firewall or not. Based on
-> that check, it decides to apply all rules, apply just subset of the rules,
-> or totally skip all rules and forward the packet to the next SID.
-> 
-> This patch extends SRH match to support matching previous SID, next SID, and
-> last SID.
-> 
-> Signed-off-by: Ahmed Abdelsalam <amsalam20@gmail.com>
-> ---
->  include/uapi/linux/netfilter_ipv6/ip6t_srh.h | 22 +++++++++++++--
->  net/ipv6/netfilter/ip6t_srh.c                | 41 +++++++++++++++++++++++++++-
->  2 files changed, 60 insertions(+), 3 deletions(-)
-> 
-> diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_srh.h b/include/uapi/linux/netfilter_ipv6/ip6t_srh.h
-> index f3cc0ef..9808382 100644
-> --- a/include/uapi/linux/netfilter_ipv6/ip6t_srh.h
-> +++ b/include/uapi/linux/netfilter_ipv6/ip6t_srh.h
-> @@ -17,7 +17,10 @@
->  #define IP6T_SRH_LAST_GT        0x0100
->  #define IP6T_SRH_LAST_LT        0x0200
->  #define IP6T_SRH_TAG            0x0400
-> -#define IP6T_SRH_MASK           0x07FF
-> +#define IP6T_SRH_PSID           0x0800
-> +#define IP6T_SRH_NSID           0x1000
-> +#define IP6T_SRH_LSID           0x2000
-> +#define IP6T_SRH_MASK           0x3FFF
->  
->  /* Values for "mt_invflags" field in struct ip6t_srh */
->  #define IP6T_SRH_INV_NEXTHDR    0x0001
-> @@ -31,7 +34,10 @@
->  #define IP6T_SRH_INV_LAST_GT    0x0100
->  #define IP6T_SRH_INV_LAST_LT    0x0200
->  #define IP6T_SRH_INV_TAG        0x0400
-> -#define IP6T_SRH_INV_MASK       0x07FF
-> +#define IP6T_SRH_INV_PSID       0x0800
-> +#define IP6T_SRH_INV_NSID       0x1000
-> +#define IP6T_SRH_INV_LSID       0x2000
-> +#define IP6T_SRH_INV_MASK       0x3FFF
->  
->  /**
->   *      struct ip6t_srh - SRH match options
-> @@ -40,6 +46,12 @@
->   *      @ segs_left: Segments left field of SRH
->   *      @ last_entry: Last entry field of SRH
->   *      @ tag: Tag field of SRH
-> + *      @ psid_addr: Address of previous SID in SRH SID list
-> + *      @ nsid_addr: Address of NEXT SID in SRH SID list
-> + *      @ lsid_addr: Address of LAST SID in SRH SID list
-> + *      @ psid_msk: Mask of previous SID in SRH SID list
-> + *      @ nsid_msk: Mask of next SID in SRH SID list
-> + *      @ lsid_msk: MAsk of last SID in SRH SID list
->   *      @ mt_flags: match options
->   *      @ mt_invflags: Invert the sense of match options
->   */
-> @@ -50,6 +62,12 @@ struct ip6t_srh {
->  	__u8                    segs_left;
->  	__u8                    last_entry;
->  	__u16                   tag;
-> +	struct in6_addr		psid_addr;
-> +	struct in6_addr		nsid_addr;
-> +	struct in6_addr		lsid_addr;
-> +	struct in6_addr		psid_msk;
-> +	struct in6_addr		nsid_msk;
-> +	struct in6_addr		lsid_msk;
+Hi David,
 
-This is changing something exposed through UAPI, so you will need a
-new revision for this.
+The following patchset contains Netfilter/IPVS fixes for your net tree,
+they are:
 
->  	__u16                   mt_flags;
->  	__u16                   mt_invflags;
->  };
-> diff --git a/net/ipv6/netfilter/ip6t_srh.c b/net/ipv6/netfilter/ip6t_srh.c
-> index 33719d5..2b5cc73 100644
-> --- a/net/ipv6/netfilter/ip6t_srh.c
-> +++ b/net/ipv6/netfilter/ip6t_srh.c
-> @@ -30,7 +30,9 @@ static bool srh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
->  	const struct ip6t_srh *srhinfo = par->matchinfo;
->  	struct ipv6_sr_hdr *srh;
->  	struct ipv6_sr_hdr _srh;
-> -	int hdrlen, srhoff = 0;
-> +	int hdrlen, psidoff, nsidoff, lsidoff, srhoff = 0;
-> +	struct in6_addr *psid, *nsid, *lsid;
-> +	struct in6_addr _psid, _nsid, _lsid;
+1) Fix SIP conntrack with phones sending session descriptions for different
+   media types but same port numbers, from Florian Westphal.
 
-Could you rearrange variable definitions? ie. longest line first, eg.
+2) Fix incorrect rtnl_lock mutex logic from IPVS sync thread, from Julian
+   Anastasov.
 
-	int hdrlen, psidoff, nsidoff, lsidoff, srhoff = 0;
-  	const struct ip6t_srh *srhinfo = par->matchinfo;
-	struct in6_addr *psid, *nsid, *lsid;
-  	struct ipv6_sr_hdr *srh;
-  	struct ipv6_sr_hdr _srh;
+3) Skip compat array allocation in ebtables if there is no entries, also
+   from Florian.
+
+4) Do not lose left/right bits when shifting marks from xt_connmark, from
+   Jack Ma.
+
+5) Silence false positive memleak in conntrack extensions, from Cong Wang.
+
+6) Fix CONFIG_NF_REJECT_IPV6=m link problems, from Arnd Bergmann.
+
+7) Cannot kfree rule that is already in list in nf_tables, switch order
+   so this error handling is not required, from Florian Westphal.
+
+8) Release set name in error path, from Florian.
+
+9) include kmemleak.h in nf_conntrack_extend.c, from Stepheh Rothwell.
+
+10) NAT chain and extensions depend on NF_TABLES.
+
+11) Out of bound access when renaming chains, from Taehee Yoo.
+
+12) Incorrect casting in xt_connmark leads to wrong bitshifting.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
 Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit a2ac99905f1ea8b15997a6ec39af69aa28a3653b:
+
+  vhost-net: set packet weight of tx polling to 2 * vq size (2018-04-09 11:01:37 -0400)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to 5a786232eb69a1f870ddc0cfd69d5bdef241a2ea:
+
+  netfilter: xt_connmark: do not cast xt_connmark_tginfo1 to xt_connmark_tginfo2 (2018-04-19 16:19:28 +0200)
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      netfilter: fix CONFIG_NF_REJECT_IPV6=m link error
+
+Cong Wang (1):
+      netfilter: conntrack: silent a memory leak warning
+
+Florian Westphal (4):
+      netfilter: nf_conntrack_sip: allow duplicate SDP expectations
+      netfilter: ebtables: don't attempt to allocate 0-sized compat array
+      netfilter: nf_tables: can't fail after linking rule into active rule list
+      netfilter: nf_tables: free set name in error path
+
+Jack Ma (1):
+      netfilter: xt_connmark: Add bit mapping for bit-shift operation.
+
+Julian Anastasov (1):
+      ipvs: fix rtnl_lock lockups caused by start_sync_thread
+
+Pablo Neira Ayuso (2):
+      netfilter: nf_tables: NAT chain and extensions require NF_TABLES
+      netfilter: xt_connmark: do not cast xt_connmark_tginfo1 to xt_connmark_tginfo2
+
+Stephen Rothwell (1):
+      netfilter: conntrack: include kmemleak.h for kmemleak_not_leak()
+
+Taehee Yoo (1):
+      netfilter: nf_tables: fix out-of-bounds in nft_chain_commit_update
+
+ net/bridge/netfilter/ebtables.c     |  11 +--
+ net/ipv6/netfilter/Kconfig          |  55 ++++++-------
+ net/netfilter/Kconfig               |   1 +
+ net/netfilter/ipvs/ip_vs_ctl.c      |   8 --
+ net/netfilter/ipvs/ip_vs_sync.c     | 155 +++++++++++++++++++-----------------
+ net/netfilter/nf_conntrack_expect.c |   5 +-
+ net/netfilter/nf_conntrack_extend.c |   2 +
+ net/netfilter/nf_conntrack_sip.c    |  16 +++-
+ net/netfilter/nf_tables_api.c       |  69 ++++++++--------
+ net/netfilter/xt_connmark.c         |  49 +++++++-----
+ 10 files changed, 200 insertions(+), 171 deletions(-)
