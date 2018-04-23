@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 09/12] netfilter: conntrack: include kmemleak.h for kmemleak_not_leak()
-Date: Mon, 23 Apr 2018 19:57:11 +0200
-Message-ID: <20180423175714.9794-10-pablo@netfilter.org>
+Subject: [PATCH 10/12] netfilter: nf_tables: NAT chain and extensions require NF_TABLES
+Date: Mon, 23 Apr 2018 19:57:12 +0200
+Message-ID: <20180423175714.9794-11-pablo@netfilter.org>
 References: <20180423175714.9794-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,35 +10,106 @@ In-Reply-To: <20180423175714.9794-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+Move these options inside the scope of the 'if' NF_TABLES and
+NF_TABLES_IPV6 dependencies. This patch fixes:
 
-After merging the netfilter tree, today's linux-next build (powerpc
-ppc64_defconfig) failed like this:
+   net/ipv6/netfilter/nft_chain_nat_ipv6.o: In function `nft_nat_do_chain':
+>> net/ipv6/netfilter/nft_chain_nat_ipv6.c:37: undefined reference to `nft_do_chain'
+   net/ipv6/netfilter/nft_chain_nat_ipv6.o: In function `nft_chain_nat_ipv6_exit':
+>> net/ipv6/netfilter/nft_chain_nat_ipv6.c:94: undefined reference to `nft_unregister_chain_type'
+   net/ipv6/netfilter/nft_chain_nat_ipv6.o: In function `nft_chain_nat_ipv6_init':
+>> net/ipv6/netfilter/nft_chain_nat_ipv6.c:87: undefined reference to `nft_register_chain_type'
 
-net/netfilter/nf_conntrack_extend.c: In function 'nf_ct_ext_add':
-net/netfilter/nf_conntrack_extend.c:74:2: error: implicit declaration of function 'kmemleak_not_leak' [-Werror=implicit-function-declaration]
-  kmemleak_not_leak(old);
-  ^~~~~~~~~~~~~~~~~
-cc1: some warnings being treated as errors
+that happens with:
 
-Fixes: 114aa35d06d4 ("netfilter: conntrack: silent a memory leak warning")
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+CONFIG_NF_TABLES=m
+CONFIG_NFT_CHAIN_NAT_IPV6=y
+
+Fixes: 02c7b25e5f54 ("netfilter: nf_tables: build-in filter chain type")
+Reported-by: kbuild test robot <lkp@intel.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_extend.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/ipv6/netfilter/Kconfig | 55 +++++++++++++++++++++++-----------------------
+ 1 file changed, 28 insertions(+), 27 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
-index bd71a828ebde..277bbfe26478 100644
---- a/net/netfilter/nf_conntrack_extend.c
-+++ b/net/netfilter/nf_conntrack_extend.c
-@@ -9,6 +9,7 @@
-  *      2 of the License, or (at your option) any later version.
-  */
- #include <linux/kernel.h>
-+#include <linux/kmemleak.h>
- #include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/rcupdate.h>
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index ccbfa83e4bb0..ce77bcc2490c 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -48,6 +48,34 @@ config NFT_CHAIN_ROUTE_IPV6
+ 	  fields such as the source, destination, flowlabel, hop-limit and
+ 	  the packet mark.
+ 
++if NF_NAT_IPV6
++
++config NFT_CHAIN_NAT_IPV6
++	tristate "IPv6 nf_tables nat chain support"
++	help
++	  This option enables the "nat" chain for IPv6 in nf_tables. This
++	  chain type is used to perform Network Address Translation (NAT)
++	  packet transformations such as the source, destination address and
++	  source and destination ports.
++
++config NFT_MASQ_IPV6
++	tristate "IPv6 masquerade support for nf_tables"
++	depends on NFT_MASQ
++	select NF_NAT_MASQUERADE_IPV6
++	help
++	  This is the expression that provides IPv4 masquerading support for
++	  nf_tables.
++
++config NFT_REDIR_IPV6
++	tristate "IPv6 redirect support for nf_tables"
++	depends on NFT_REDIR
++	select NF_NAT_REDIRECT
++	help
++	  This is the expression that provides IPv4 redirect support for
++	  nf_tables.
++
++endif # NF_NAT_IPV6
++
+ config NFT_REJECT_IPV6
+ 	select NF_REJECT_IPV6
+ 	default NFT_REJECT
+@@ -107,39 +135,12 @@ config NF_NAT_IPV6
+ 
+ if NF_NAT_IPV6
+ 
+-config NFT_CHAIN_NAT_IPV6
+-	depends on NF_TABLES_IPV6
+-	tristate "IPv6 nf_tables nat chain support"
+-	help
+-	  This option enables the "nat" chain for IPv6 in nf_tables. This
+-	  chain type is used to perform Network Address Translation (NAT)
+-	  packet transformations such as the source, destination address and
+-	  source and destination ports.
+-
+ config NF_NAT_MASQUERADE_IPV6
+ 	tristate "IPv6 masquerade support"
+ 	help
+ 	  This is the kernel functionality to provide NAT in the masquerade
+ 	  flavour (automatic source address selection) for IPv6.
+ 
+-config NFT_MASQ_IPV6
+-	tristate "IPv6 masquerade support for nf_tables"
+-	depends on NF_TABLES_IPV6
+-	depends on NFT_MASQ
+-	select NF_NAT_MASQUERADE_IPV6
+-	help
+-	  This is the expression that provides IPv4 masquerading support for
+-	  nf_tables.
+-
+-config NFT_REDIR_IPV6
+-	tristate "IPv6 redirect support for nf_tables"
+-	depends on NF_TABLES_IPV6
+-	depends on NFT_REDIR
+-	select NF_NAT_REDIRECT
+-	help
+-	  This is the expression that provides IPv4 redirect support for
+-	  nf_tables.
+-
+ endif # NF_NAT_IPV6
+ 
+ config IP6_NF_IPTABLES
 -- 
 2.11.0
