@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 05/12] netfilter: conntrack: silent a memory leak warning
-Date: Mon, 23 Apr 2018 19:57:07 +0200
-Message-ID: <20180423175714.9794-6-pablo@netfilter.org>
+Subject: [PATCH 06/12] netfilter: fix CONFIG_NF_REJECT_IPV6=m link error
+Date: Mon, 23 Apr 2018 19:57:08 +0200
+Message-ID: <20180423175714.9794-7-pablo@netfilter.org>
 References: <20180423175714.9794-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,55 +10,41 @@ In-Reply-To: <20180423175714.9794-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Cong Wang <xiyou.wangcong@gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
 
-The following memory leak is false postive:
+We get a new link error with CONFIG_NFT_REJECT_INET=y and CONFIG_NF_REJECT_IPV6=m
+after larger parts of the nftables modules are linked together:
 
-unreferenced object 0xffff8f37f156fb38 (size 128):
-  comm "softirq", pid 0, jiffies 4294899665 (age 11.292s)
-  hex dump (first 32 bytes):
-    6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b  kkkkkkkkkkkkkkkk
-    00 00 00 00 30 00 20 00 48 6b 6b 6b 6b 6b 6b 6b  ....0. .Hkkkkkkk
-  backtrace:
-    [<000000004fda266a>] __kmalloc_track_caller+0x10d/0x141
-    [<000000007b0a7e3c>] __krealloc+0x45/0x62
-    [<00000000d08e0bfb>] nf_ct_ext_add+0xdc/0x133
-    [<0000000099b47fd8>] init_conntrack+0x1b1/0x392
-    [<0000000086dc36ec>] nf_conntrack_in+0x1ee/0x34b
-    [<00000000940592de>] nf_hook_slow+0x36/0x95
-    [<00000000d1bd4da7>] nf_hook.constprop.43+0x1c3/0x1dd
-    [<00000000c3673266>] __ip_local_out+0xae/0xb4
-    [<000000003e4192a6>] ip_local_out+0x17/0x33
-    [<00000000b64356de>] igmp_ifc_timer_expire+0x23e/0x26f
-    [<000000006a8f3032>] call_timer_fn+0x14c/0x2a5
-    [<00000000650c1725>] __run_timers.part.34+0x150/0x182
-    [<0000000090e6946e>] run_timer_softirq+0x2a/0x4c
-    [<000000004d1e7293>] __do_softirq+0x1d1/0x3c2
-    [<000000004643557d>] irq_exit+0x53/0xa2
-    [<0000000029ddee8f>] smp_apic_timer_interrupt+0x22a/0x235
+net/netfilter/nft_reject_inet.o: In function `nft_reject_inet_eval':
+nft_reject_inet.c:(.text+0x17c): undefined reference to `nf_send_unreach6'
+nft_reject_inet.c:(.text+0x190): undefined reference to `nf_send_reset6'
 
-because __krealloc() is not supposed to release the old
-memory and it is released later via kfree_rcu(). Since this is
-the only external user of __krealloc(), just mark it as not leak
-here.
+The problem is that with NF_TABLES_INET set, we implicitly try to use
+the ipv6 version as well for NFT_REJECT, but when CONFIG_IPV6 is set to
+a loadable module, it's impossible to reach that.
 
-Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+The best workaround I found is to express the above as a Kconfig
+dependency, forcing NFT_REJECT itself to be 'm' in that particular
+configuration.
+
+Fixes: 02c7b25e5f54 ("netfilter: nf_tables: build-in filter chain type")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_extend.c | 1 +
+ net/netfilter/Kconfig | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
-index 9fe0ddc333fb..bd71a828ebde 100644
---- a/net/netfilter/nf_conntrack_extend.c
-+++ b/net/netfilter/nf_conntrack_extend.c
-@@ -71,6 +71,7 @@ void *nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
- 	rcu_read_unlock();
- 
- 	alloc = max(newlen, NF_CT_EXT_PREALLOC);
-+	kmemleak_not_leak(old);
- 	new = __krealloc(old, alloc, gfp);
- 	if (!new)
- 		return NULL;
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 704b3832dbad..44d8a55e9721 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -594,6 +594,7 @@ config NFT_QUOTA
+ config NFT_REJECT
+ 	default m if NETFILTER_ADVANCED=n
+ 	tristate "Netfilter nf_tables reject support"
++	depends on !NF_TABLES_INET || (IPV6!=m || m)
+ 	help
+ 	  This option adds the "reject" expression that you can use to
+ 	  explicitly deny and notify via TCP reset/ICMP informational errors
 -- 
 2.11.0
