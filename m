@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 08/12] netfilter: nf_tables: free set name in error path
-Date: Mon, 23 Apr 2018 19:57:10 +0200
-Message-ID: <20180423175714.9794-9-pablo@netfilter.org>
+Subject: [PATCH 07/12] netfilter: nf_tables: can't fail after linking rule into active rule list
+Date: Mon, 23 Apr 2018 19:57:09 +0200
+Message-ID: <20180423175714.9794-8-pablo@netfilter.org>
 References: <20180423175714.9794-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,42 +12,106 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-set->name must be free'd here in case ops->init fails.
+rules in nftables a free'd using kfree, but protected by rcu, i.e. we
+must wait for a grace period to elapse.
 
-Fixes: 387454901bd6 ("netfilter: nf_tables: Allow set names of up to 255 chars")
+Normal removal patch does this, but nf_tables_newrule() doesn't obey
+this rule during error handling.
+
+It calls nft_trans_rule_add() *after* linking rule, and, if that
+fails to allocate memory, it unlinks the rule and then kfree() it --
+this is unsafe.
+
+Switch order -- first add rule to transaction list, THEN link it
+to public list.
+
+Note: nft_trans_rule_add() uses GFP_KERNEL; it will not fail so this
+is not a problem in practice (spotted only during code review).
+
+Fixes: 0628b123c96d12 ("netfilter: nfnetlink: add batch support and use it from nf_tables")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ net/netfilter/nf_tables_api.c | 59 +++++++++++++++++++++++--------------------
+ 1 file changed, 32 insertions(+), 27 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index b1984f8f7253..102ad873acb4 100644
+index 9134cc429ad4..b1984f8f7253 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -3212,18 +3212,20 @@ static int nf_tables_newset(struct net *net, struct sock *nlsk,
+@@ -2361,41 +2361,46 @@ static int nf_tables_newrule(struct net *net, struct sock *nlsk,
+ 	}
  
- 	err = ops->init(set, &desc, nla);
- 	if (err < 0)
--		goto err2;
-+		goto err3;
+ 	if (nlh->nlmsg_flags & NLM_F_REPLACE) {
+-		if (nft_is_active_next(net, old_rule)) {
+-			trans = nft_trans_rule_add(&ctx, NFT_MSG_DELRULE,
+-						   old_rule);
+-			if (trans == NULL) {
+-				err = -ENOMEM;
+-				goto err2;
+-			}
+-			nft_deactivate_next(net, old_rule);
+-			chain->use--;
+-			list_add_tail_rcu(&rule->list, &old_rule->list);
+-		} else {
++		if (!nft_is_active_next(net, old_rule)) {
+ 			err = -ENOENT;
+ 			goto err2;
+ 		}
+-	} else if (nlh->nlmsg_flags & NLM_F_APPEND)
+-		if (old_rule)
+-			list_add_rcu(&rule->list, &old_rule->list);
+-		else
+-			list_add_tail_rcu(&rule->list, &chain->rules);
+-	else {
+-		if (old_rule)
+-			list_add_tail_rcu(&rule->list, &old_rule->list);
+-		else
+-			list_add_rcu(&rule->list, &chain->rules);
+-	}
++		trans = nft_trans_rule_add(&ctx, NFT_MSG_DELRULE,
++					   old_rule);
++		if (trans == NULL) {
++			err = -ENOMEM;
++			goto err2;
++		}
++		nft_deactivate_next(net, old_rule);
++		chain->use--;
  
- 	err = nft_trans_set_add(&ctx, NFT_MSG_NEWSET, set);
- 	if (err < 0)
+-	if (nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule) == NULL) {
+-		err = -ENOMEM;
 -		goto err3;
-+		goto err4;
- 
- 	list_add_tail_rcu(&set->list, &table->sets);
- 	table->use++;
++		if (nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule) == NULL) {
++			err = -ENOMEM;
++			goto err2;
++		}
++
++		list_add_tail_rcu(&rule->list, &old_rule->list);
++	} else {
++		if (nft_trans_rule_add(&ctx, NFT_MSG_NEWRULE, rule) == NULL) {
++			err = -ENOMEM;
++			goto err2;
++		}
++
++		if (nlh->nlmsg_flags & NLM_F_APPEND) {
++			if (old_rule)
++				list_add_rcu(&rule->list, &old_rule->list);
++			else
++				list_add_tail_rcu(&rule->list, &chain->rules);
++		 } else {
++			if (old_rule)
++				list_add_tail_rcu(&rule->list, &old_rule->list);
++			else
++				list_add_rcu(&rule->list, &chain->rules);
++		}
+ 	}
+ 	chain->use++;
  	return 0;
  
 -err3:
-+err4:
- 	ops->destroy(set);
-+err3:
-+	kfree(set->name);
+-	list_del_rcu(&rule->list);
  err2:
- 	kvfree(set);
+ 	nf_tables_rule_destroy(&ctx, rule);
  err1:
 -- 
 2.11.0
