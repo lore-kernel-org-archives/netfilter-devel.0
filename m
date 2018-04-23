@@ -1,104 +1,93 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 00/12] Netfilter/IPVS fixes for net
-Date: Mon, 23 Apr 2018 19:57:02 +0200
-Message-ID: <20180423175714.9794-1-pablo@netfilter.org>
+Subject: [PATCH 01/12] netfilter: nf_conntrack_sip: allow duplicate SDP expectations
+Date: Mon, 23 Apr 2018 19:57:03 +0200
+Message-ID: <20180423175714.9794-2-pablo@netfilter.org>
+References: <20180423175714.9794-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180423175714.9794-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains Netfilter/IPVS fixes for your net tree,
-they are:
+Callum Sinclair reported SIP IP Phone errors that he tracked down to
+such phones sending session descriptions for different media types but
+with same port numbers.
 
-1) Fix SIP conntrack with phones sending session descriptions for different
-   media types but same port numbers, from Florian Westphal.
+The expect core will only 'refresh' existing expectation if it is
+from same master AND same expectation class (media type).
+As expectation class is different, we get an error.
 
-2) Fix incorrect rtnl_lock mutex logic from IPVS sync thread, from Julian
-   Anastasov.
+The SIP connection tracking code will then
 
-3) Skip compat array allocation in ebtables if there is no entries, also
-   from Florian.
+1). drop the SDP packet
+2). if an rtp expectation was already installed successfully,
+    error on rtcp expectation will cancel the rtp one.
 
-4) Do not lose left/right bits when shifting marks from xt_connmark, from
-   Jack Ma.
+Make the expect core report back to caller when the conflict is due
+to different expectation class and have SIP tracker ignore soft-error.
 
-5) Silence false positive memleak in conntrack extensions, from Cong Wang.
+Reported-by: Callum Sinclair <Callum.Sinclair@alliedtelesis.co.nz>
+Tested-by: Callum Sinclair <Callum.Sinclair@alliedtelesis.co.nz>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_expect.c |  5 ++++-
+ net/netfilter/nf_conntrack_sip.c    | 16 ++++++++++++----
+ 2 files changed, 16 insertions(+), 5 deletions(-)
 
-6) Fix CONFIG_NF_REJECT_IPV6=m link problems, from Arnd Bergmann.
-
-7) Cannot kfree rule that is already in list in nf_tables, switch order
-   so this error handling is not required, from Florian Westphal.
-
-8) Release set name in error path, from Florian.
-
-9) include kmemleak.h in nf_conntrack_extend.c, from Stepheh Rothwell.
-
-10) NAT chain and extensions depend on NF_TABLES.
-
-11) Out of bound access when renaming chains, from Taehee Yoo.
-
-12) Incorrect casting in xt_connmark leads to wrong bitshifting.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit a2ac99905f1ea8b15997a6ec39af69aa28a3653b:
-
-  vhost-net: set packet weight of tx polling to 2 * vq size (2018-04-09 11:01:37 -0400)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
-
-for you to fetch changes up to 5a786232eb69a1f870ddc0cfd69d5bdef241a2ea:
-
-  netfilter: xt_connmark: do not cast xt_connmark_tginfo1 to xt_connmark_tginfo2 (2018-04-19 16:19:28 +0200)
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      netfilter: fix CONFIG_NF_REJECT_IPV6=m link error
-
-Cong Wang (1):
-      netfilter: conntrack: silent a memory leak warning
-
-Florian Westphal (4):
-      netfilter: nf_conntrack_sip: allow duplicate SDP expectations
-      netfilter: ebtables: don't attempt to allocate 0-sized compat array
-      netfilter: nf_tables: can't fail after linking rule into active rule list
-      netfilter: nf_tables: free set name in error path
-
-Jack Ma (1):
-      netfilter: xt_connmark: Add bit mapping for bit-shift operation.
-
-Julian Anastasov (1):
-      ipvs: fix rtnl_lock lockups caused by start_sync_thread
-
-Pablo Neira Ayuso (2):
-      netfilter: nf_tables: NAT chain and extensions require NF_TABLES
-      netfilter: xt_connmark: do not cast xt_connmark_tginfo1 to xt_connmark_tginfo2
-
-Stephen Rothwell (1):
-      netfilter: conntrack: include kmemleak.h for kmemleak_not_leak()
-
-Taehee Yoo (1):
-      netfilter: nf_tables: fix out-of-bounds in nft_chain_commit_update
-
- net/bridge/netfilter/ebtables.c     |  11 +--
- net/ipv6/netfilter/Kconfig          |  55 ++++++-------
- net/netfilter/Kconfig               |   1 +
- net/netfilter/ipvs/ip_vs_ctl.c      |   8 --
- net/netfilter/ipvs/ip_vs_sync.c     | 155 +++++++++++++++++++-----------------
- net/netfilter/nf_conntrack_expect.c |   5 +-
- net/netfilter/nf_conntrack_extend.c |   2 +
- net/netfilter/nf_conntrack_sip.c    |  16 +++-
- net/netfilter/nf_tables_api.c       |  69 ++++++++--------
- net/netfilter/xt_connmark.c         |  49 +++++++-----
- 10 files changed, 200 insertions(+), 171 deletions(-)
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 8ef21d9f9a00..4b2b3d53acfc 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -252,7 +252,7 @@ static inline int expect_clash(const struct nf_conntrack_expect *a,
+ static inline int expect_matches(const struct nf_conntrack_expect *a,
+ 				 const struct nf_conntrack_expect *b)
+ {
+-	return a->master == b->master && a->class == b->class &&
++	return a->master == b->master &&
+ 	       nf_ct_tuple_equal(&a->tuple, &b->tuple) &&
+ 	       nf_ct_tuple_mask_equal(&a->mask, &b->mask) &&
+ 	       net_eq(nf_ct_net(a->master), nf_ct_net(b->master)) &&
+@@ -421,6 +421,9 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect)
+ 	h = nf_ct_expect_dst_hash(net, &expect->tuple);
+ 	hlist_for_each_entry_safe(i, next, &nf_ct_expect_hash[h], hnode) {
+ 		if (expect_matches(i, expect)) {
++			if (i->class != expect->class)
++				return -EALREADY;
++
+ 			if (nf_ct_remove_expect(i))
+ 				break;
+ 		} else if (expect_clash(i, expect)) {
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 4dbb5bad4363..908e51e2dc2b 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -938,11 +938,19 @@ static int set_expected_rtp_rtcp(struct sk_buff *skb, unsigned int protoff,
+ 				       datalen, rtp_exp, rtcp_exp,
+ 				       mediaoff, medialen, daddr);
+ 	else {
+-		if (nf_ct_expect_related(rtp_exp) == 0) {
+-			if (nf_ct_expect_related(rtcp_exp) != 0)
+-				nf_ct_unexpect_related(rtp_exp);
+-			else
++		/* -EALREADY handling works around end-points that send
++		 * SDP messages with identical port but different media type,
++		 * we pretend expectation was set up.
++		 */
++		int errp = nf_ct_expect_related(rtp_exp);
++
++		if (errp == 0 || errp == -EALREADY) {
++			int errcp = nf_ct_expect_related(rtcp_exp);
++
++			if (errcp == 0 || errcp == -EALREADY)
+ 				ret = NF_ACCEPT;
++			else if (errp == 0)
++				nf_ct_unexpect_related(rtp_exp);
+ 		}
+ 	}
+ 	nf_ct_expect_put(rtcp_exp);
+-- 
+2.11.0
