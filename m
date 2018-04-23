@@ -1,47 +1,103 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 15/39] acpi/battery: simplify procfs code
-Date: Sun, 22 Apr 2018 11:42:08 +0200
-Message-ID: <CAJZ5v0gRw8P8KL12QKMuSjyePxWn71LB+s8ephF2a4-Ns234NQ@mail.gmail.com>
-References: <20180419124140.9309-1-hch@lst.de>
- <20180419124140.9309-16-hch@lst.de>
+From: syzbot <syzbot+5c06e318fc558cc27823@syzkaller.appspotmail.com>
+Subject: KMSAN: uninit-value in ebt_stp_mt_check
+Date: Mon, 23 Apr 2018 01:23:01 -0700
+Message-ID: <0000000000000734c0056a7fbf3b@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: linux-rtc@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>,
- Alexandre Belloni <alexandre.belloni@bootlin.com>, devel@driverdev.osuosl.org,
- Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
- "open list:TARGET SUBSYSTEM" <linux-scsi@vger.kernel.org>,
- Corey Minyard <minyard@acm.org>, linux-ide@vger.kernel.org,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- jfs-discussion@lists.sourceforge.net, linux-afs@lists.infradead.org,
- ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
- netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
- Alexander Viro <viro@zeniv.linux.org.uk>, Jiri Slaby <jslaby@suse.com>,
- Andrew Morton <akpm@linux-foundation.org>,
- Ext4 Developers List <linux-ext4@vger.kernel.org>,
- Alexey Dobriyan <adobriyan@gmail.com>, megaraidlinux.pdl@broadcom.com,
- drbd-dev@lists.linbit.com
-To: Christoph Hellwig <hch@lst.de>
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20180419124140.9309-16-hch@lst.de>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+To: bridge@lists.linux-foundation.org, coreteam@netfilter.org,
+        davem@davemloft.net, fw@strlen.de, kadlec@blackhole.kfki.hu,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        stephen@networkplumber.org, syzkaller-bugs@googlegroups.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Apr 19, 2018 at 2:41 PM, Christoph Hellwig <hch@lst.de> wrote:
-> Use remove_proc_subtree to remove the whole subtree on cleanup, and
-> unwind the registration loop into individual calls.  Switch to use
-> proc_create_seq where applicable.
->
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+Hello,
 
-It is OK AFAICS.
+syzbot hit the following crash on  
+https://github.com/google/kmsan.git/master commit
+a7f95e9c8a95e9fbb388c3999b61a17667cd3bbe (Sat Apr 21 13:50:22 2018 +0000)
+kmsan: disable assembly checksums
+syzbot dashboard link:  
+https://syzkaller.appspot.com/bug?extid=5c06e318fc558cc27823
 
-Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+So far this crash happened 3 times on  
+https://github.com/google/kmsan.git/master.
+C reproducer: https://syzkaller.appspot.com/x/repro.c?id=5411555638247424
+syzkaller reproducer:  
+https://syzkaller.appspot.com/x/repro.syz?id=6309829995921408
+Raw console output:  
+https://syzkaller.appspot.com/x/log.txt?id=4546610964987904
+Kernel config: https://syzkaller.appspot.com/x/.config?id=328654897048964367
+compiler: clang version 7.0.0 (trunk 329391)
+
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+5c06e318fc558cc27823@syzkaller.appspotmail.com
+It will help syzbot understand when the bug is fixed. See footer for  
+details.
+If you forward the report, please keep this part and the footer.
+
+==================================================================
+BUG: KMSAN: uninit-value in ebt_stp_mt_check+0x248/0x410  
+net/bridge/netfilter/ebt_stp.c:164
+CPU: 0 PID: 4520 Comm: syzkaller565841 Not tainted 4.16.0+ #85
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:17 [inline]
+  dump_stack+0x185/0x1d0 lib/dump_stack.c:53
+  kmsan_report+0x142/0x240 mm/kmsan/kmsan.c:1067
+  __msan_warning_32+0x6c/0xb0 mm/kmsan/kmsan_instr.c:683
+  ebt_stp_mt_check+0x248/0x410 net/bridge/netfilter/ebt_stp.c:164
+  xt_check_match+0x1449/0x1660 net/netfilter/x_tables.c:499
+  ebt_check_match net/bridge/netfilter/ebtables.c:374 [inline]
+  ebt_check_entry net/bridge/netfilter/ebtables.c:704 [inline]
+  translate_table+0x3ffd/0x5e10 net/bridge/netfilter/ebtables.c:945
+  do_replace_finish+0x1258/0x2ea0 net/bridge/netfilter/ebtables.c:1002
+  do_replace+0x707/0x770 net/bridge/netfilter/ebtables.c:1141
+  do_ebt_set_ctl+0x2ab/0x3c0 net/bridge/netfilter/ebtables.c:1518
+  nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+  nf_setsockopt+0x476/0x4d0 net/netfilter/nf_sockopt.c:115
+  ip_setsockopt+0x24b/0x2b0 net/ipv4/ip_sockglue.c:1261
+  dccp_setsockopt+0x1c3/0x1f0 net/dccp/proto.c:576
+  sock_common_setsockopt+0x136/0x170 net/core/sock.c:2975
+  SYSC_setsockopt+0x4b8/0x570 net/socket.c:1849
+  SyS_setsockopt+0x76/0xa0 net/socket.c:1828
+  do_syscall_64+0x309/0x430 arch/x86/entry/common.c:287
+  entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+RIP: 0033:0x445d39
+RSP: 002b:00007efff4e14da8 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 00000000006dac24 RCX: 0000000000445d39
+RDX: 0000000000000080 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 0000000000000358 R09: 0000000000000000
+R10: 00000000200008c0 R11: 0000000000000246 R12: 00000000006dac20
+R13: 006567646972625f R14: 6f745f3168746576 R15: 0000000000000002
+
+Local variable description: ----mtpar.i@translate_table
+Variable was created at:
+  translate_table+0xb9/0x5e10 net/bridge/netfilter/ebtables.c:833
+  do_replace_finish+0x1258/0x2ea0 net/bridge/netfilter/ebtables.c:1002
+==================================================================
+
+
+---
+This bug is generated by a dumb bot. It may contain errors.
+See https://goo.gl/tpsmEJ for details.
+Direct all questions to syzkaller@googlegroups.com.
+
+syzbot will keep track of this bug report.
+If you forgot to add the Reported-by tag, once the fix for this bug is  
+merged
+into any tree, please reply to this email with:
+#syz fix: exact-commit-title
+If you want to test a patch for this bug, please reply with:
+#syz test: git://repo/address.git branch
+and provide the patch inline or as an attachment.
+To mark this as a duplicate of another syzbot report, please reply with:
+#syz dup: exact-subject-of-another-report
+If it's a one-off invalid bug report, please reply with:
+#syz invalid
+Note: if the crash happens again, it will cause creation of a new bug  
+report.
+Note: all commands must start from beginning of the line in the email body.
