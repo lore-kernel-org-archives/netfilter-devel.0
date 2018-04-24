@@ -1,74 +1,48 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 03/12] netfilter: ebtables: don't attempt to allocate
- 0-sized compat array
-Date: Tue, 24 Apr 2018 11:55:24 +0300
-Message-ID: <e0e13158-eca8-26f6-7e67-790a0c284124@cogentembedded.com>
-References: <20180423175714.9794-1-pablo@netfilter.org>
- <20180423175714.9794-4-pablo@netfilter.org>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 26/39] rtc/proc: switch to proc_create_single_data
+Date: Tue, 24 Apr 2018 16:15:24 +0200
+Message-ID: <20180424141524.GB26136@lst.de>
+References: <20180419124140.9309-1-hch@lst.de> <20180419124140.9309-27-hch@lst.de> <20180419131027.GC7369@piout.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180423175714.9794-4-pablo@netfilter.org>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Christoph Hellwig <hch@lst.de>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Alexey Dobriyan <adobriyan@gmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Slaby <jslaby@suse.com>, Corey Minyard <minyard@acm.org>,
+        Alessandro Zummo <a.zummo@towertech.it>,
+        linux-acpi@vger.kernel.org, drbd-dev@lists.linbit.com,
+        linux-ide@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rtc@vger.kernel.org, megaraidlinux.pdl@broadcom.com,
+        linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-afs@lists.infradead.org, linux-ext4@vger.kernel.org,
+        jfs-discussion@lists.sourceforge.net,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Alexandre Belloni <alexandre.belloni@bootlin.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180419131027.GC7369@piout.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello!
-
-On 4/23/2018 8:57 PM, Pablo Neira Ayuso wrote:
-
-> From: Florian Westphal <fw@strlen.de>
+On Thu, Apr 19, 2018 at 03:10:27PM +0200, Alexandre Belloni wrote:
+> On 19/04/2018 14:41:27+0200, Christoph Hellwig wrote:
+> > And stop trying to get a reference on the submodule, procfs code deals
+> > with release after and unloaded module and thus removed proc entry.
+> > 
 > 
-> Dmitry reports 32bit ebtables on 64bit kernel got broken by
-> a recent change that returns -EINVAL when ruleset has no entries.
-> 
-> ebtables however only counts user-defined chains, so for the
-> initial table nentries will be 0.
-> 
-> Don't try to allocate the compat array in this case, as no user
+> Are you sure about that? The rtc module is not the one adding the procfs
+> file so I'm not sure how the procfs code can handle it.
 
-    As if, perhaps?
+The proc file is removed from this call chain:
 
-> defined rules exist no rule will need 64bit translation.
-> 
-> Reported-by: Dmitry Vyukov <dvyukov@google.com>
-> Fixes: 7d7d7e02111e9 ("netfilter: compat: reject huge allocation requests")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->   net/bridge/netfilter/ebtables.c | 11 ++++++-----
->   1 file changed, 6 insertions(+), 5 deletions(-)
-> 
-> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-> index 032e0fe45940..28a4c3490359 100644
-> --- a/net/bridge/netfilter/ebtables.c
-> +++ b/net/bridge/netfilter/ebtables.c
-> @@ -1825,13 +1825,14 @@ static int compat_table_info(const struct ebt_table_info *info,
->   {
->   	unsigned int size = info->entries_size;
->   	const void *entries = info->entries;
-> -	int ret;
->   
->   	newinfo->entries_size = size;
-> -
-> -	ret = xt_compat_init_offsets(NFPROTO_BRIDGE, info->nentries);
-> -	if (ret)
-> -		return ret;
-> +	if (info->nentries) {
-> +		int ret = xt_compat_init_offsets(NFPROTO_BRIDGE,
-> +						 info->nentries);
+  <driver>_exit (module_exit handler)
+    -> rtc_device_unregister
+      -> rtc_proc_del_device
+        -> remove_proc_entry
 
-    Need an empty line here...
-
-> +		if (ret)
-> +			return ret;
-> +	}
->   
->   	return EBT_ENTRY_ITERATE(entries, size, compat_calc_entry, info,
->   							entries, newinfo);
-
-MBR, Sergei
+remove_proc_entry takes care of waiting for currently active file
+operation instances and makes sure every new operation never calls
+into the actual proc file ops.  Same behavior as in RTC exists all
+over the kernel.
