@@ -1,56 +1,74 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [Patch nf] ipvs: initialize tbl->entries in
- ip_vs_lblc_init_svc()
-Date: Tue, 24 Apr 2018 08:17:06 +0300 (EEST)
-Message-ID: <alpine.LFD.2.20.1804240816210.2470@ja.home.ssi.bg>
-References: <20180423210445.18336-1-xiyou.wangcong@gmail.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 03/12] netfilter: ebtables: don't attempt to allocate
+ 0-sized compat array
+Date: Tue, 24 Apr 2018 11:55:24 +0300
+Message-ID: <e0e13158-eca8-26f6-7e67-790a0c284124@cogentembedded.com>
+References: <20180423175714.9794-1-pablo@netfilter.org>
+ <20180423175714.9794-4-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, Simon Horman <horms@verge.net.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-To: Cong Wang <xiyou.wangcong@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180423210445.18336-1-xiyou.wangcong@gmail.com>
+In-Reply-To: <20180423175714.9794-4-pablo@netfilter.org>
+Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello!
 
-	Hello,
+On 4/23/2018 8:57 PM, Pablo Neira Ayuso wrote:
 
-On Mon, 23 Apr 2018, Cong Wang wrote:
-
-> Similarly, tbl->entries is not initialized after kmalloc(),
-> therefore causes an uninit-value warning in ip_vs_lblc_check_expire(),
-> as reported by syzbot.
+> From: Florian Westphal <fw@strlen.de>
 > 
-> Reported-by: <syzbot+3e9695f147fb529aa9bc@syzkaller.appspotmail.com>
-> Cc: Simon Horman <horms@verge.net.au>
-> Cc: Julian Anastasov <ja@ssi.bg>
-> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+> Dmitry reports 32bit ebtables on 64bit kernel got broken by
+> a recent change that returns -EINVAL when ruleset has no entries.
+> 
+> ebtables however only counts user-defined chains, so for the
+> initial table nentries will be 0.
+> 
+> Don't try to allocate the compat array in this case, as no user
 
-	Thanks!
+    As if, perhaps?
 
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
+> defined rules exist no rule will need 64bit translation.
+> 
+> Reported-by: Dmitry Vyukov <dvyukov@google.com>
+> Fixes: 7d7d7e02111e9 ("netfilter: compat: reject huge allocation requests")
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 > ---
->  net/netfilter/ipvs/ip_vs_lblc.c | 1 +
->  1 file changed, 1 insertion(+)
+>   net/bridge/netfilter/ebtables.c | 11 ++++++-----
+>   1 file changed, 6 insertions(+), 5 deletions(-)
 > 
-> diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
-> index 3057e453bf31..83918119ceb8 100644
-> --- a/net/netfilter/ipvs/ip_vs_lblc.c
-> +++ b/net/netfilter/ipvs/ip_vs_lblc.c
-> @@ -371,6 +371,7 @@ static int ip_vs_lblc_init_svc(struct ip_vs_service *svc)
->  	tbl->counter = 1;
->  	tbl->dead = false;
->  	tbl->svc = svc;
-> +	atomic_set(&tbl->entries, 0);
->  
->  	/*
->  	 *    Hook periodic timer for garbage collection
-> -- 
-> 2.13.0
+> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+> index 032e0fe45940..28a4c3490359 100644
+> --- a/net/bridge/netfilter/ebtables.c
+> +++ b/net/bridge/netfilter/ebtables.c
+> @@ -1825,13 +1825,14 @@ static int compat_table_info(const struct ebt_table_info *info,
+>   {
+>   	unsigned int size = info->entries_size;
+>   	const void *entries = info->entries;
+> -	int ret;
+>   
+>   	newinfo->entries_size = size;
+> -
+> -	ret = xt_compat_init_offsets(NFPROTO_BRIDGE, info->nentries);
+> -	if (ret)
+> -		return ret;
+> +	if (info->nentries) {
+> +		int ret = xt_compat_init_offsets(NFPROTO_BRIDGE,
+> +						 info->nentries);
 
-Regards
+    Need an empty line here...
+
+> +		if (ret)
+> +			return ret;
+> +	}
+>   
+>   	return EBT_ENTRY_ITERATE(entries, size, compat_calc_entry, info,
+>   							entries, newinfo);
+
+MBR, Sergei
