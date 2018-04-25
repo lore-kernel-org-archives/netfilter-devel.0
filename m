@@ -1,133 +1,304 @@
-From: syzbot <syzbot+4e42a04e0bc33cb6c087@syzkaller.appspotmail.com>
-Subject: KASAN: stack-out-of-bounds Write in compat_copy_entries
-Date: Tue, 24 Apr 2018 22:19:02 -0700
-Message-ID: <000000000000ba10e2056aa5686c@google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
-To: bridge@lists.linux-foundation.org, coreteam@netfilter.org,
-        davem@davemloft.net, fw@strlen.de, kadlec@blackhole.kfki.hu,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-        stephen@networkplumber.org, syzkaller-bugs@googlegroups.com
+From: Ahmed Abdelsalam <amsalam20@gmail.com>
+Subject: [nf-next v2] netfilter: extend SRH matching for previous, next and last SID
+Date: Wed, 25 Apr 2018 05:30:24 -0500
+Message-ID: <1524652224-1702-1-git-send-email-amsalam20@gmail.com>
+Cc: Ahmed Abdelsalam <amsalam20@gmail.com>
+To: pablo@netfilter.org, fw@strlen.de, davem@davemloft.net,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+IPv6 Segment Routing Header (SRH) contains a list of SIDs to be crossed
+by SR encapsulated packet. Each SID is encoded as an IPv6 prefix.
 
-syzbot hit the following crash on upstream commit
-24cac7009cb1b211f1c793ecb6a462c03dc35818 (Tue Apr 24 21:16:40 2018 +0000)
-Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net
-syzbot dashboard link:  
-https://syzkaller.appspot.com/bug?extid=4e42a04e0bc33cb6c087
+When a Firewall receives an SR encapsulated packet, it should be able
+to identify which node previously processed the packet (previous SID),
+which node is going to process the packet next (next SID), and which
+node is the last to process the packet (last SID) which represent the
+final destination of the packet in case of inline SR mode.
 
-So far this crash happened 3 times on upstream.
-syzkaller reproducer:  
-https://syzkaller.appspot.com/x/repro.syz?id=4827027970457600
-Raw console output:  
-https://syzkaller.appspot.com/x/log.txt?id=6212733133389824
-Kernel config:  
-https://syzkaller.appspot.com/x/.config?id=7043958930931867332
-compiler: gcc (GCC) 8.0.1 20180413 (experimental)
-user-space arch: i386
+An example use-case of using these features could be SID list that
+includes two firewalls. When the second firewall receives a packet,
+it can check whether the packet has been processed by the first firewall
+or not. Based on that check, it decides to apply all rules, apply just
+subset of the rules, or totally skip all rules and forward the packet to
+the next SID.
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+4e42a04e0bc33cb6c087@syzkaller.appspotmail.com
-It will help syzbot understand when the bug is fixed. See footer for  
-details.
-If you forward the report, please keep this part and the footer.
+This patch extends SRH match to support matching previous SID, next SID,
+and last SID.
 
-random: sshd: uninitialized urandom read (32 bytes read)
-random: sshd: uninitialized urandom read (32 bytes read)
-random: sshd: uninitialized urandom read (32 bytes read)
-IPVS: ftp: loaded support on port[0] = 21
-==================================================================
-BUG: KASAN: stack-out-of-bounds in strlcpy include/linux/string.h:300  
-[inline]
-BUG: KASAN: stack-out-of-bounds in compat_mtw_from_user  
-net/bridge/netfilter/ebtables.c:1957 [inline]
-BUG: KASAN: stack-out-of-bounds in ebt_size_mwt  
-net/bridge/netfilter/ebtables.c:2059 [inline]
-BUG: KASAN: stack-out-of-bounds in size_entry_mwt  
-net/bridge/netfilter/ebtables.c:2155 [inline]
-BUG: KASAN: stack-out-of-bounds in compat_copy_entries+0x96c/0x14a0  
-net/bridge/netfilter/ebtables.c:2194
-Write of size 33 at addr ffff8801b0abf888 by task syz-executor0/4504
-
-CPU: 0 PID: 4504 Comm: syz-executor0 Not tainted 4.17.0-rc2+ #40
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-Call Trace:
-  __dump_stack lib/dump_stack.c:77 [inline]
-  dump_stack+0x1b9/0x294 lib/dump_stack.c:113
-  print_address_description+0x6c/0x20b mm/kasan/report.c:256
-  kasan_report_error mm/kasan/report.c:354 [inline]
-  kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
-  check_memory_region_inline mm/kasan/kasan.c:260 [inline]
-  check_memory_region+0x13e/0x1b0 mm/kasan/kasan.c:267
-  memcpy+0x37/0x50 mm/kasan/kasan.c:303
-  strlcpy include/linux/string.h:300 [inline]
-  compat_mtw_from_user net/bridge/netfilter/ebtables.c:1957 [inline]
-  ebt_size_mwt net/bridge/netfilter/ebtables.c:2059 [inline]
-  size_entry_mwt net/bridge/netfilter/ebtables.c:2155 [inline]
-  compat_copy_entries+0x96c/0x14a0 net/bridge/netfilter/ebtables.c:2194
-  compat_do_replace+0x483/0x900 net/bridge/netfilter/ebtables.c:2285
-  compat_do_ebt_set_ctl+0x2ac/0x324 net/bridge/netfilter/ebtables.c:2367
-  compat_nf_sockopt net/netfilter/nf_sockopt.c:144 [inline]
-  compat_nf_setsockopt+0x9b/0x140 net/netfilter/nf_sockopt.c:156
-  compat_ip_setsockopt+0xff/0x140 net/ipv4/ip_sockglue.c:1279
-  inet_csk_compat_setsockopt+0x97/0x120 net/ipv4/inet_connection_sock.c:1041
-  compat_tcp_setsockopt+0x49/0x80 net/ipv4/tcp.c:2901
-  compat_sock_common_setsockopt+0xb4/0x150 net/core/sock.c:3050
-  __compat_sys_setsockopt+0x1ab/0x7c0 net/compat.c:403
-  __do_compat_sys_setsockopt net/compat.c:416 [inline]
-  __se_compat_sys_setsockopt net/compat.c:413 [inline]
-  __ia32_compat_sys_setsockopt+0xbd/0x150 net/compat.c:413
-  do_syscall_32_irqs_on arch/x86/entry/common.c:323 [inline]
-  do_fast_syscall_32+0x345/0xf9b arch/x86/entry/common.c:394
-  entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
-RIP: 0023:0xf7fb3cb9
-RSP: 002b:00000000fff0c26c EFLAGS: 00000282 ORIG_RAX: 000000000000016e
-RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000000000
-RDX: 0000000000000080 RSI: 0000000020000300 RDI: 00000000000005f4
-RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
-R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
-
-The buggy address belongs to the page:
-page:ffffea0006c2afc0 count:0 mapcount:0 mapping:0000000000000000 index:0x0
-flags: 0x2fffc0000000000()
-raw: 02fffc0000000000 0000000000000000 0000000000000000 00000000ffffffff
-raw: 0000000000000000 ffffea0006c20101 0000000000000000 0000000000000000
-page dumped because: kasan: bad access detected
-
-Memory state around the buggy address:
-  ffff8801b0abf780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-  ffff8801b0abf800: 00 00 00 00 00 f1 f1 f1 f1 00 00 f2 f2 f2 f2 f2
-> ffff8801b0abf880: f2 00 00 00 07 f3 f3 f3 f3 00 00 00 00 00 00 00
-                                ^
-  ffff8801b0abf900: 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1 00 00
-  ffff8801b0abf980: 00 f2 f2 f2 f2 f2 00 00 00 00 00 00 00 00 00 00
-==================================================================
-
-
+Signed-off-by: Ahmed Abdelsalam <amsalam20@gmail.com>
 ---
-This bug is generated by a dumb bot. It may contain errors.
-See https://goo.gl/tpsmEJ for details.
-Direct all questions to syzkaller@googlegroups.com.
+ include/uapi/linux/netfilter_ipv6/ip6t_srh.h |  43 ++++++-
+ net/ipv6/netfilter/ip6t_srh.c                | 173 +++++++++++++++++++++++++--
+ 2 files changed, 205 insertions(+), 11 deletions(-)
 
-syzbot will keep track of this bug report.
-If you forgot to add the Reported-by tag, once the fix for this bug is  
-merged
-into any tree, please reply to this email with:
-#syz fix: exact-commit-title
-If you want to test a patch for this bug, please reply with:
-#syz test: git://repo/address.git branch
-and provide the patch inline or as an attachment.
-To mark this as a duplicate of another syzbot report, please reply with:
-#syz dup: exact-subject-of-another-report
-If it's a one-off invalid bug report, please reply with:
-#syz invalid
-Note: if the crash happens again, it will cause creation of a new bug  
-report.
-Note: all commands must start from beginning of the line in the email body.
+diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_srh.h b/include/uapi/linux/netfilter_ipv6/ip6t_srh.h
+index f3cc0ef..54ed833 100644
+--- a/include/uapi/linux/netfilter_ipv6/ip6t_srh.h
++++ b/include/uapi/linux/netfilter_ipv6/ip6t_srh.h
+@@ -17,7 +17,10 @@
+ #define IP6T_SRH_LAST_GT        0x0100
+ #define IP6T_SRH_LAST_LT        0x0200
+ #define IP6T_SRH_TAG            0x0400
+-#define IP6T_SRH_MASK           0x07FF
++#define IP6T_SRH_PSID           0x0800
++#define IP6T_SRH_NSID           0x1000
++#define IP6T_SRH_LSID           0x2000
++#define IP6T_SRH_MASK           0x3FFF
+ 
+ /* Values for "mt_invflags" field in struct ip6t_srh */
+ #define IP6T_SRH_INV_NEXTHDR    0x0001
+@@ -31,7 +34,10 @@
+ #define IP6T_SRH_INV_LAST_GT    0x0100
+ #define IP6T_SRH_INV_LAST_LT    0x0200
+ #define IP6T_SRH_INV_TAG        0x0400
+-#define IP6T_SRH_INV_MASK       0x07FF
++#define IP6T_SRH_INV_PSID       0x0800
++#define IP6T_SRH_INV_NSID       0x1000
++#define IP6T_SRH_INV_LSID       0x2000
++#define IP6T_SRH_INV_MASK       0x3FFF
+ 
+ /**
+  *      struct ip6t_srh - SRH match options
+@@ -54,4 +60,37 @@ struct ip6t_srh {
+ 	__u16                   mt_invflags;
+ };
+ 
++/**
++ *      struct ip6t_srh1 - SRH match options (revision 1)
++ *      @ next_hdr: Next header field of SRH
++ *      @ hdr_len: Extension header length field of SRH
++ *      @ segs_left: Segments left field of SRH
++ *      @ last_entry: Last entry field of SRH
++ *      @ tag: Tag field of SRH
++ *      @ psid_addr: Address of previous SID in SRH SID list
++ *      @ nsid_addr: Address of NEXT SID in SRH SID list
++ *      @ lsid_addr: Address of LAST SID in SRH SID list
++ *      @ psid_msk: Mask of previous SID in SRH SID list
++ *      @ nsid_msk: Mask of next SID in SRH SID list
++ *      @ lsid_msk: MAsk of last SID in SRH SID list
++ *      @ mt_flags: match options
++ *      @ mt_invflags: Invert the sense of match options
++ */
++
++struct ip6t_srh1 {
++	__u8                    next_hdr;
++	__u8                    hdr_len;
++	__u8                    segs_left;
++	__u8                    last_entry;
++	__u16                   tag;
++	struct in6_addr         psid_addr;
++	struct in6_addr         nsid_addr;
++	struct in6_addr         lsid_addr;
++	struct in6_addr         psid_msk;
++	struct in6_addr         nsid_msk;
++	struct in6_addr         lsid_msk;
++	__u16                   mt_flags;
++	__u16                   mt_invflags;
++};
++
+ #endif /*_IP6T_SRH_H*/
+diff --git a/net/ipv6/netfilter/ip6t_srh.c b/net/ipv6/netfilter/ip6t_srh.c
+index 33719d5..1059894 100644
+--- a/net/ipv6/netfilter/ip6t_srh.c
++++ b/net/ipv6/netfilter/ip6t_srh.c
+@@ -117,6 +117,130 @@ static bool srh_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+ 	return true;
+ }
+ 
++static bool srh1_mt6(const struct sk_buff *skb, struct xt_action_param *par)
++{
++	int hdrlen, psidoff, nsidoff, lsidoff, srhoff = 0;
++	const struct ip6t_srh1 *srhinfo = par->matchinfo;
++	struct in6_addr *psid, *nsid, *lsid;
++	struct in6_addr _psid, _nsid, _lsid;
++	struct ipv6_sr_hdr *srh;
++	struct ipv6_sr_hdr _srh;
++
++	if (ipv6_find_hdr(skb, &srhoff, IPPROTO_ROUTING, NULL, NULL) < 0)
++		return false;
++	srh = skb_header_pointer(skb, srhoff, sizeof(_srh), &_srh);
++	if (!srh)
++		return false;
++
++	hdrlen = ipv6_optlen(srh);
++	if (skb->len - srhoff < hdrlen)
++		return false;
++
++	if (srh->type != IPV6_SRCRT_TYPE_4)
++		return false;
++
++	if (srh->segments_left > srh->first_segment)
++		return false;
++
++	/* Next Header matching */
++	if (srhinfo->mt_flags & IP6T_SRH_NEXTHDR)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_NEXTHDR,
++				!(srh->nexthdr == srhinfo->next_hdr)))
++			return false;
++
++	/* Header Extension Length matching */
++	if (srhinfo->mt_flags & IP6T_SRH_LEN_EQ)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LEN_EQ,
++				!(srh->hdrlen == srhinfo->hdr_len)))
++			return false;
++	if (srhinfo->mt_flags & IP6T_SRH_LEN_GT)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LEN_GT,
++				!(srh->hdrlen > srhinfo->hdr_len)))
++			return false;
++	if (srhinfo->mt_flags & IP6T_SRH_LEN_LT)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LEN_LT,
++				!(srh->hdrlen < srhinfo->hdr_len)))
++			return false;
++
++	/* Segments Left matching */
++	if (srhinfo->mt_flags & IP6T_SRH_SEGS_EQ)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_SEGS_EQ,
++				!(srh->segments_left == srhinfo->segs_left)))
++			return false;
++	if (srhinfo->mt_flags & IP6T_SRH_SEGS_GT)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_SEGS_GT,
++				!(srh->segments_left > srhinfo->segs_left)))
++			return false;
++	if (srhinfo->mt_flags & IP6T_SRH_SEGS_LT)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_SEGS_LT,
++				!(srh->segments_left < srhinfo->segs_left)))
++			return false;
++
++	/**
++	 * Last Entry matching
++	 * Last_Entry field was introduced in revision 6 of the SRH draft.
++	 * It was called First_Segment in the previous revision
++	 */
++	if (srhinfo->mt_flags & IP6T_SRH_LAST_EQ)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LAST_EQ,
++				!(srh->first_segment == srhinfo->last_entry)))
++			return false;
++	if (srhinfo->mt_flags & IP6T_SRH_LAST_GT)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LAST_GT,
++				!(srh->first_segment > srhinfo->last_entry)))
++			return false;
++	if (srhinfo->mt_flags & IP6T_SRH_LAST_LT)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LAST_LT,
++				!(srh->first_segment < srhinfo->last_entry)))
++			return false;
++
++	/**
++	 * Tag matchig
++	 * Tag field was introduced in revision 6 of the SRH draft
++	 */
++	if (srhinfo->mt_flags & IP6T_SRH_TAG)
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_TAG,
++				!(srh->tag == srhinfo->tag)))
++			return false;
++
++	/* Previous SID matching */
++	if (srhinfo->mt_flags & IP6T_SRH_PSID) {
++		if (srh->segments_left == srh->first_segment)
++			return false;
++		psidoff = srhoff + sizeof(struct ipv6_sr_hdr) +
++			  ((srh->segments_left + 1) * sizeof(struct in6_addr));
++		psid = skb_header_pointer(skb, psidoff, sizeof(_psid), &_psid);
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_PSID,
++				ipv6_masked_addr_cmp(psid, &srhinfo->psid_msk,
++						     &srhinfo->psid_addr)))
++			return false;
++	}
++
++	/* Next SID matching */
++	if (srhinfo->mt_flags & IP6T_SRH_NSID) {
++		if (srh->segments_left == 0)
++			return false;
++		nsidoff = srhoff + sizeof(struct ipv6_sr_hdr) +
++			  ((srh->segments_left - 1) * sizeof(struct in6_addr));
++		nsid = skb_header_pointer(skb, nsidoff, sizeof(_nsid), &_nsid);
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_NSID,
++				ipv6_masked_addr_cmp(nsid, &srhinfo->nsid_msk,
++						     &srhinfo->nsid_addr)))
++			return false;
++	}
++
++	/* Last SID matching */
++	if (srhinfo->mt_flags & IP6T_SRH_LSID) {
++		lsidoff = srhoff + sizeof(struct ipv6_sr_hdr);
++		lsid = skb_header_pointer(skb, lsidoff, sizeof(_lsid), &_lsid);
++		if (NF_SRH_INVF(srhinfo, IP6T_SRH_INV_LSID,
++				ipv6_masked_addr_cmp(lsid, &srhinfo->lsid_msk,
++						     &srhinfo->lsid_addr)))
++			return false;
++	}
++	return true;
++}
++
+ static int srh_mt6_check(const struct xt_mtchk_param *par)
+ {
+ 	const struct ip6t_srh *srhinfo = par->matchinfo;
+@@ -136,23 +260,54 @@ static int srh_mt6_check(const struct xt_mtchk_param *par)
+ 	return 0;
+ }
+ 
+-static struct xt_match srh_mt6_reg __read_mostly = {
+-	.name		= "srh",
+-	.family		= NFPROTO_IPV6,
+-	.match		= srh_mt6,
+-	.matchsize	= sizeof(struct ip6t_srh),
+-	.checkentry	= srh_mt6_check,
+-	.me		= THIS_MODULE,
++static int srh1_mt6_check(const struct xt_mtchk_param *par)
++{
++	const struct ip6t_srh1 *srhinfo = par->matchinfo;
++
++	if (srhinfo->mt_flags & ~IP6T_SRH_MASK) {
++		pr_info_ratelimited("unknown srh match flags  %X\n",
++				    srhinfo->mt_flags);
++		return -EINVAL;
++	}
++
++	if (srhinfo->mt_invflags & ~IP6T_SRH_INV_MASK) {
++		pr_info_ratelimited("unknown srh invflags %X\n",
++				    srhinfo->mt_invflags);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static struct xt_match srh_mt6_reg[] __read_mostly = {
++	{
++		.name		= "srh",
++		.revision	= 0,
++		.family		= NFPROTO_IPV6,
++		.match		= srh_mt6,
++		.matchsize	= sizeof(struct ip6t_srh),
++		.checkentry	= srh_mt6_check,
++		.me		= THIS_MODULE,
++	},
++	{
++		.name           = "srh",
++		.revision       = 1,
++		.family         = NFPROTO_IPV6,
++		.match          = srh1_mt6,
++		.matchsize      = sizeof(struct ip6t_srh1),
++		.checkentry     = srh1_mt6_check,
++		.me             = THIS_MODULE,
++	}
+ };
+ 
+ static int __init srh_mt6_init(void)
+ {
+-	return xt_register_match(&srh_mt6_reg);
++	return xt_register_matches(srh_mt6_reg, ARRAY_SIZE(srh_mt6_reg));
+ }
+ 
+ static void __exit srh_mt6_exit(void)
+ {
+-	xt_unregister_match(&srh_mt6_reg);
++	xt_unregister_matches(srh_mt6_reg, ARRAY_SIZE(srh_mt6_reg));
+ }
+ 
+ module_init(srh_mt6_init);
+-- 
+2.1.4
