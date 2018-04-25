@@ -1,55 +1,133 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: simplify procfs code for seq_file instances
-Date: Tue, 24 Apr 2018 18:06:53 +0200
-Message-ID: <20180424160652.GA28483@lst.de>
-References: <20180419124140.9309-1-hch@lst.de> <20180419185750.GD2066@avx2>
-	<20180424142304.GE26136@lst.de>
-	<20180424081916.e94ca8463fb3c39ebc082bdd@linux-foundation.org>
+From: syzbot <syzbot+4e42a04e0bc33cb6c087@syzkaller.appspotmail.com>
+Subject: KASAN: stack-out-of-bounds Write in compat_copy_entries
+Date: Tue, 24 Apr 2018 22:19:02 -0700
+Message-ID: <000000000000ba10e2056aa5686c@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: linux-rtc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>,
-	Alexandre Belloni <alexandre.belloni-LDxbnhwyfcJBDgjK7y7TUQ@public.gmane.org>,
-	devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-afs-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org,
-	linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Corey Minyard <minyard-HInyCGIudOg@public.gmane.org>,
-	linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>,
-	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jfs-discussion-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
-	Alexey Dobriyan <adobriyan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,
-	linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>,
-	Jiri Slaby <jslaby-IBi9RG/b67k@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, megaraidlinux.pdl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org,
-	drbd-dev-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org
-To: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Return-path: <drbd-dev-bounces-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180424081916.e94ca8463fb3c39ebc082bdd-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-List-Unsubscribe: <http://lists.linbit.com/mailman/options/drbd-dev>,
-	<mailto:drbd-dev-request-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linbit.com/pipermail/drbd-dev>
-List-Post: <mailto:drbd-dev-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org>
-List-Help: <mailto:drbd-dev-request-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linbit.com/mailman/listinfo/drbd-dev>,
-	<mailto:drbd-dev-request-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org?subject=subscribe>
-Sender: drbd-dev-bounces-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org
-Errors-To: drbd-dev-bounces-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+To: bridge@lists.linux-foundation.org, coreteam@netfilter.org,
+        davem@davemloft.net, fw@strlen.de, kadlec@blackhole.kfki.hu,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+        stephen@networkplumber.org, syzkaller-bugs@googlegroups.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Apr 24, 2018 at 08:19:16AM -0700, Andrew Morton wrote:
-> > > I want to ask if it is time to start using poorman function overloading
-> > > with _b_c_e(). There are millions of allocation functions for example,
-> > > all slightly difference, and people will add more. Seeing /proc interfaces
-> > > doubled like this is painful.
-> > 
-> > Function overloading is totally unacceptable.
-> > 
-> > And I very much disagree with a tradeoff that keeps 5000 lines of 
-> > code vs a few new helpers.
-> 
-> OK, the curiosity and suspense are killing me.  What the heck is
-> "function overloading with _b_c_e()"?
+Hello,
 
-The way I understood Alexey was to use have a proc_create macro
-that can take different ops types.  Although the short cut for
-__builtin_types_compatible_p would be _b_t_c or similar, so maybe
-I misunderstood him.
+syzbot hit the following crash on upstream commit
+24cac7009cb1b211f1c793ecb6a462c03dc35818 (Tue Apr 24 21:16:40 2018 +0000)
+Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net
+syzbot dashboard link:  
+https://syzkaller.appspot.com/bug?extid=4e42a04e0bc33cb6c087
+
+So far this crash happened 3 times on upstream.
+syzkaller reproducer:  
+https://syzkaller.appspot.com/x/repro.syz?id=4827027970457600
+Raw console output:  
+https://syzkaller.appspot.com/x/log.txt?id=6212733133389824
+Kernel config:  
+https://syzkaller.appspot.com/x/.config?id=7043958930931867332
+compiler: gcc (GCC) 8.0.1 20180413 (experimental)
+user-space arch: i386
+
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+4e42a04e0bc33cb6c087@syzkaller.appspotmail.com
+It will help syzbot understand when the bug is fixed. See footer for  
+details.
+If you forward the report, please keep this part and the footer.
+
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+IPVS: ftp: loaded support on port[0] = 21
+==================================================================
+BUG: KASAN: stack-out-of-bounds in strlcpy include/linux/string.h:300  
+[inline]
+BUG: KASAN: stack-out-of-bounds in compat_mtw_from_user  
+net/bridge/netfilter/ebtables.c:1957 [inline]
+BUG: KASAN: stack-out-of-bounds in ebt_size_mwt  
+net/bridge/netfilter/ebtables.c:2059 [inline]
+BUG: KASAN: stack-out-of-bounds in size_entry_mwt  
+net/bridge/netfilter/ebtables.c:2155 [inline]
+BUG: KASAN: stack-out-of-bounds in compat_copy_entries+0x96c/0x14a0  
+net/bridge/netfilter/ebtables.c:2194
+Write of size 33 at addr ffff8801b0abf888 by task syz-executor0/4504
+
+CPU: 0 PID: 4504 Comm: syz-executor0 Not tainted 4.17.0-rc2+ #40
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+  print_address_description+0x6c/0x20b mm/kasan/report.c:256
+  kasan_report_error mm/kasan/report.c:354 [inline]
+  kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+  check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+  check_memory_region+0x13e/0x1b0 mm/kasan/kasan.c:267
+  memcpy+0x37/0x50 mm/kasan/kasan.c:303
+  strlcpy include/linux/string.h:300 [inline]
+  compat_mtw_from_user net/bridge/netfilter/ebtables.c:1957 [inline]
+  ebt_size_mwt net/bridge/netfilter/ebtables.c:2059 [inline]
+  size_entry_mwt net/bridge/netfilter/ebtables.c:2155 [inline]
+  compat_copy_entries+0x96c/0x14a0 net/bridge/netfilter/ebtables.c:2194
+  compat_do_replace+0x483/0x900 net/bridge/netfilter/ebtables.c:2285
+  compat_do_ebt_set_ctl+0x2ac/0x324 net/bridge/netfilter/ebtables.c:2367
+  compat_nf_sockopt net/netfilter/nf_sockopt.c:144 [inline]
+  compat_nf_setsockopt+0x9b/0x140 net/netfilter/nf_sockopt.c:156
+  compat_ip_setsockopt+0xff/0x140 net/ipv4/ip_sockglue.c:1279
+  inet_csk_compat_setsockopt+0x97/0x120 net/ipv4/inet_connection_sock.c:1041
+  compat_tcp_setsockopt+0x49/0x80 net/ipv4/tcp.c:2901
+  compat_sock_common_setsockopt+0xb4/0x150 net/core/sock.c:3050
+  __compat_sys_setsockopt+0x1ab/0x7c0 net/compat.c:403
+  __do_compat_sys_setsockopt net/compat.c:416 [inline]
+  __se_compat_sys_setsockopt net/compat.c:413 [inline]
+  __ia32_compat_sys_setsockopt+0xbd/0x150 net/compat.c:413
+  do_syscall_32_irqs_on arch/x86/entry/common.c:323 [inline]
+  do_fast_syscall_32+0x345/0xf9b arch/x86/entry/common.c:394
+  entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+RIP: 0023:0xf7fb3cb9
+RSP: 002b:00000000fff0c26c EFLAGS: 00000282 ORIG_RAX: 000000000000016e
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000000000
+RDX: 0000000000000080 RSI: 0000000020000300 RDI: 00000000000005f4
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+
+The buggy address belongs to the page:
+page:ffffea0006c2afc0 count:0 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 0000000000000000 0000000000000000 00000000ffffffff
+raw: 0000000000000000 ffffea0006c20101 0000000000000000 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+  ffff8801b0abf780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  ffff8801b0abf800: 00 00 00 00 00 f1 f1 f1 f1 00 00 f2 f2 f2 f2 f2
+> ffff8801b0abf880: f2 00 00 00 07 f3 f3 f3 f3 00 00 00 00 00 00 00
+                                ^
+  ffff8801b0abf900: 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1 00 00
+  ffff8801b0abf980: 00 f2 f2 f2 f2 f2 00 00 00 00 00 00 00 00 00 00
+==================================================================
+
+
+---
+This bug is generated by a dumb bot. It may contain errors.
+See https://goo.gl/tpsmEJ for details.
+Direct all questions to syzkaller@googlegroups.com.
+
+syzbot will keep track of this bug report.
+If you forgot to add the Reported-by tag, once the fix for this bug is  
+merged
+into any tree, please reply to this email with:
+#syz fix: exact-commit-title
+If you want to test a patch for this bug, please reply with:
+#syz test: git://repo/address.git branch
+and provide the patch inline or as an attachment.
+To mark this as a duplicate of another syzbot report, please reply with:
+#syz dup: exact-subject-of-another-report
+If it's a one-off invalid bug report, please reply with:
+#syz invalid
+Note: if the crash happens again, it will cause creation of a new bug  
+report.
+Note: all commands must start from beginning of the line in the email body.
