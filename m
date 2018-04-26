@@ -1,42 +1,69 @@
-From: Finn Thain <fthain@telegraphics.com.au>
-Subject: Re: [PATCH 06/40] proc: introduce proc_create_single{,_data}
-Date: Thu, 26 Apr 2018 11:45:50 +1000 (AEST)
-Message-ID: <alpine.LNX.2.21.1804261118050.8@nippy.intranet>
-References: <20180425154827.32251-1-hch@lst.de> <20180425154827.32251-7-hch@lst.de>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [Patch nf] ipvs: initialize tbl->entries after allocation
+Date: Thu, 26 Apr 2018 14:14:25 +0200
+Message-ID: <20180426121423.5c7iy2ddhjy2clzf@verge.net.au>
+References: <20180423205341.13142-1-xiyou.wangcong@gmail.com>
+ <alpine.LFD.2.20.1804240815120.2470@ja.home.ssi.bg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jiri Slaby <jslaby@suse.com>,
-        Alessandro Zummo <a.zummo@towertech.it>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        linux-acpi@vger.kernel.org, drbd-dev@lists.linbit.com,
-        linux-ide@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rtc@vger.kernel.org, megaraidlinux.pdl@broadcom.com,
-        linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-afs@lists.infradead.org, linux-ext4@vger.kernel.org,
-        jfs-discussion@lists.sourceforge.net,
-        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180425154827.32251-7-hch@lst.de>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Cong Wang <xiyou.wangcong@gmail.com>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+To: Julian Anastasov <ja@ssi.bg>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.20.1804240815120.2470@ja.home.ssi.bg>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 25 Apr 2018, Christoph Hellwig wrote:
+On Tue, Apr 24, 2018 at 08:16:14AM +0300, Julian Anastasov wrote:
+> 
+> 	Hello,
+> 
+> On Mon, 23 Apr 2018, Cong Wang wrote:
+> 
+> > tbl->entries is not initialized after kmalloc(), therefore
+> > causes an uninit-value warning in ip_vs_lblc_check_expire()
+> > as reported by syzbot.
+> > 
+> > Reported-by: <syzbot+3dfdea57819073a04f21@syzkaller.appspotmail.com>
+> > Cc: Simon Horman <horms@verge.net.au>
+> > Cc: Julian Anastasov <ja@ssi.bg>
+> > Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> > Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+> 
+> 	Thanks!
+> 
+> Acked-by: Julian Anastasov <ja@ssi.bg>
 
->  
-> -/*
-> - * /proc/nubus stuff
-> - */
-> -
+Thanks.
 
-I don't think that the introduction of proc_create_single{,_data} alters 
-the value of that comment. That comment and similar comments in the same 
-file do have a purpose, which is to keep separate the /proc/nubus 
-implementation is kept separate from the /proc/bus/nubus/devices 
-implementation and so on.
+Pablo, could you take this into nf?
 
--- 
+Acked-by: Simon Horman <horms@verge.net.au>
+
+> 
+> > ---
+> >  net/netfilter/ipvs/ip_vs_lblcr.c | 1 +
+> >  1 file changed, 1 insertion(+)
+> > 
+> > diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
+> > index 92adc04557ed..bc2bc5eebcb8 100644
+> > --- a/net/netfilter/ipvs/ip_vs_lblcr.c
+> > +++ b/net/netfilter/ipvs/ip_vs_lblcr.c
+> > @@ -534,6 +534,7 @@ static int ip_vs_lblcr_init_svc(struct ip_vs_service *svc)
+> >  	tbl->counter = 1;
+> >  	tbl->dead = false;
+> >  	tbl->svc = svc;
+> > +	atomic_set(&tbl->entries, 0);
+> >  
+> >  	/*
+> >  	 *    Hook periodic timer for garbage collection
+> > -- 
+> > 2.13.0
+> 
+> Regards
+> 
+> --
+> Julian Anastasov <ja@ssi.bg>
+> 
