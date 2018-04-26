@@ -1,69 +1,39 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [Patch nf] ipvs: initialize tbl->entries in ip_vs_lblc_init_svc()
-Date: Thu, 26 Apr 2018 14:14:36 +0200
-Message-ID: <20180426121436.fscassmhtiju2wwi@verge.net.au>
-References: <20180423210445.18336-1-xiyou.wangcong@gmail.com>
- <alpine.LFD.2.20.1804240816210.2470@ja.home.ssi.bg>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: fix nf_tables filter chain type build
+Date: Fri, 27 Apr 2018 00:15:15 +0200
+Message-ID: <20180426221515.56pyozqb2nf6jadw@salvia>
+References: <c8e42e35-ccff-471c-8c45-61f44855e21a@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Cong Wang <xiyou.wangcong@gmail.com>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>, coreteam@netfilter.org,
+        netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        kbuild test robot <lkp@intel.com>
+To: Randy Dunlap <rdunlap@infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.20.1804240816210.2470@ja.home.ssi.bg>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <c8e42e35-ccff-471c-8c45-61f44855e21a@infradead.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Apr 24, 2018 at 08:17:06AM +0300, Julian Anastasov wrote:
+On Sat, Apr 21, 2018 at 09:10:09PM -0700, Randy Dunlap wrote:
+> From: Randy Dunlap <rdunlap@infradead.org>
 > 
-> 	Hello,
+> Fix build errors due to a missing Kconfig dependency term.
+> Fixes these build errors:
 > 
-> On Mon, 23 Apr 2018, Cong Wang wrote:
-> 
-> > Similarly, tbl->entries is not initialized after kmalloc(),
-> > therefore causes an uninit-value warning in ip_vs_lblc_check_expire(),
-> > as reported by syzbot.
-> > 
-> > Reported-by: <syzbot+3e9695f147fb529aa9bc@syzkaller.appspotmail.com>
-> > Cc: Simon Horman <horms@verge.net.au>
-> > Cc: Julian Anastasov <ja@ssi.bg>
-> > Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> > Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
-> 
-> 	Thanks!
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
+> net/ipv6/netfilter/nft_chain_nat_ipv6.o: In function `nft_nat_do_chain':
+> net/ipv6/netfilter/nft_chain_nat_ipv6.c:37: undefined reference to `nft_do_chain'
+> net/ipv6/netfilter/nft_chain_nat_ipv6.o: In function `nft_chain_nat_ipv6_exit':
+> net/ipv6/netfilter/nft_chain_nat_ipv6.c:94: undefined reference to `nft_unregister_chain_type'
+> net/ipv6/netfilter/nft_chain_nat_ipv6.o: In function `nft_chain_nat_ipv6_init':
+> net/ipv6/netfilter/nft_chain_nat_ipv6.c:87: undefined reference to `nft_register_chain_type'
 
-Thanks. 
+Thanks for sending a patch for this Randy.
 
-Pablo, could you take this into nf?
+We have a patch to address this that should fix this:
 
-Acked-by: Simon Horman <horms@verge.net.au>
+https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git/commit/?id=39f2ff0816e5421476c2bc538b68b4bb0708a78e
 
-> 
-> > ---
-> >  net/netfilter/ipvs/ip_vs_lblc.c | 1 +
-> >  1 file changed, 1 insertion(+)
-> > 
-> > diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
-> > index 3057e453bf31..83918119ceb8 100644
-> > --- a/net/netfilter/ipvs/ip_vs_lblc.c
-> > +++ b/net/netfilter/ipvs/ip_vs_lblc.c
-> > @@ -371,6 +371,7 @@ static int ip_vs_lblc_init_svc(struct ip_vs_service *svc)
-> >  	tbl->counter = 1;
-> >  	tbl->dead = false;
-> >  	tbl->svc = svc;
-> > +	atomic_set(&tbl->entries, 0);
-> >  
-> >  	/*
-> >  	 *    Hook periodic timer for garbage collection
-> > -- 
-> > 2.13.0
-> 
-> Regards
-> 
-> --
-> Julian Anastasov <ja@ssi.bg>
-> 
+Thanks!
