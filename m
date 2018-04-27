@@ -1,53 +1,43 @@
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: Re: [PATCH] netfilter: ebtables: handle string from userspace with care
-Date: Fri, 27 Apr 2018 11:46:19 +0200
-Message-ID: <CACT4Y+bjfUm3cMBx4G+gG+AbbSvmU=03njzLpWUpfj5uEnmFGA@mail.gmail.com>
-References: <8710122d42aa1f3e081812f2abf406973f834982.1524818458.git.pabeni@redhat.com>
- <20180427092622.4ifhb4zjoncwawmi@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Paolo Abeni <pabeni@redhat.com>, netfilter-devel@vger.kernel.org,
-        syzbot <syzbot+4e42a04e0bc33cb6c087@syzkaller.appspotmail.com>,
-        coreteam@netfilter.org,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>,
-        netdev <netdev@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: [PATCH net] bridge: netfilter stp fix reference to uninitialized data
+Date: Fri, 27 Apr 2018 11:16:09 -0700
+Message-ID: <20180427181609.3103-1-sthemmin@microsoft.com>
+Cc: netfilter-devel@vger.kernel.org, bridge@lists.linux-foundation.org,
+        netdev@vger.kernel.org, Stephen Hemminger <sthemmin@microsoft.com>,
+        Stephen Hemminger <stephen@networkplumber.org>
+To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        davem@davemloft.net
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180427092622.4ifhb4zjoncwawmi@breakpoint.cc>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Apr 27, 2018 at 11:26 AM, Florian Westphal <fw@strlen.de> wrote:
-> Paolo Abeni <pabeni@redhat.com> wrote:
->> strlcpy() can't be safely used on a user-space provided string,
->> as it can try to read beyond the buffer's end, if the latter is
->> not NULL terminated.
->
-> Yes.
->
->> Leveraging the above, syzbot has been able to trigger the following
->> splat:
->>
->> BUG: KASAN: stack-out-of-bounds in strlcpy include/linux/string.h:300
->> [inline]
->> BUG: KASAN: stack-out-of-bounds in compat_mtw_from_user
->> net/bridge/netfilter/ebtables.c:1957 [inline]
->> BUG: KASAN: stack-out-of-bounds in ebt_size_mwt
->> net/bridge/netfilter/ebtables.c:2059 [inline]
->> BUG: KASAN: stack-out-of-bounds in size_entry_mwt
->> net/bridge/netfilter/ebtables.c:2155 [inline]
->> BUG: KASAN: stack-out-of-bounds in compat_copy_entries+0x96c/0x14a0
->> net/bridge/netfilter/ebtables.c:2194
->> Write of size 33 at addr ffff8801b0abf888 by task syz-executor0/4504
->
-> Which is weird, I don't understand this report.
-> The code IS wrong, but it should cause out-of-bounds read (strlen on
-> src), but not out-of-bounds write.
+The destination mac (destmac) is only valid if EBT_DESTMAC flag
+is set. Fix by changing the order of the comparison to look for
+the flag first.
 
-Please see this for explanation:
-https://groups.google.com/d/msg/syzkaller-bugs/-Jyti8zBWjU/6n-fkmXeBAAJ
-The stack overwrite actually happens here.
+Reported-by: syzbot+5c06e318fc558cc27823@syzkaller.appspotmail.com
+Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
+---
+Note: no fixes since this bug goes back to pre-git days.
+Should go to stable as well.
 
-> Yes, I sent a recent patch (dceb48d86b4871984b8ce9ad5057fb2c01aa33de in
-> nf.git) that would now allow to get rid of the strlcpy and use the
-> source directly.
+ net/bridge/netfilter/ebt_stp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/bridge/netfilter/ebt_stp.c b/net/bridge/netfilter/ebt_stp.c
+index 47ba98db145d..46c1fe7637ea 100644
+--- a/net/bridge/netfilter/ebt_stp.c
++++ b/net/bridge/netfilter/ebt_stp.c
+@@ -161,8 +161,8 @@ static int ebt_stp_mt_check(const struct xt_mtchk_param *par)
+ 	/* Make sure the match only receives stp frames */
+ 	if (!par->nft_compat &&
+ 	    (!ether_addr_equal(e->destmac, eth_stp_addr) ||
+-	     !is_broadcast_ether_addr(e->destmsk) ||
+-	     !(e->bitmask & EBT_DESTMAC)))
++	     !(e->bitmask & EBT_DESTMAC) ||
++	     !is_broadcast_ether_addr(e->destmsk)))
+ 		return -EINVAL;
+ 
+ 	return 0;
+-- 
+2.17.0
