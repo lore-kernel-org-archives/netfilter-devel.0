@@ -1,43 +1,48 @@
-From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: [PATCH net] bridge: netfilter stp fix reference to uninitialized data
-Date: Fri, 27 Apr 2018 11:16:09 -0700
-Message-ID: <20180427181609.3103-1-sthemmin@microsoft.com>
-Cc: netfilter-devel@vger.kernel.org, bridge@lists.linux-foundation.org,
-        netdev@vger.kernel.org, Stephen Hemminger <sthemmin@microsoft.com>,
-        Stephen Hemminger <stephen@networkplumber.org>
-To: pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
-        davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
+From: David Howells <dhowells@redhat.com>
+Subject: Re: [PATCH 04/40] proc: introduce proc_create_seq{,_data}
+Date: Mon, 30 Apr 2018 14:19:25 +0100
+Message-ID: <26540.1525094365@warthog.procyon.org.uk>
+References: <20180425154827.32251-5-hch@lst.de>
+ <20180425154827.32251-1-hch@lst.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: linux-rtc@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>,
+ Alexandre Belloni <alexandre.belloni@bootlin.com>, devel@driverdev.osuosl.org,
+ linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>,
+ megaraidlinux.pdl@broadcom.com, linux-kernel@vger.kernel.org,
+ Alexey Dobriyan <adobriyan@gmail.com>, dhowells@redhat.com,
+ linux-ide@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ Alexander Viro <viro@zeniv.linux.org.uk>, netdev@vger.kernel.org,
+ Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org,
+ linux-afs@lists.infradead.org, jfs-discussion@lists.sourceforge.net,
+ drbd-dev@lists.linbit.com
+To: Christoph Hellwig <hch@lst.de>
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20180425154827.32251-5-hch@lst.de>
+Content-ID: <26539.1525094365.1@warthog.procyon.org.uk>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-The destination mac (destmac) is only valid if EBT_DESTMAC flag
-is set. Fix by changing the order of the comparison to look for
-the flag first.
+Christoph Hellwig <hch@lst.de> wrote:
 
-Reported-by: syzbot+5c06e318fc558cc27823@syzkaller.appspotmail.com
-Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
----
-Note: no fixes since this bug goes back to pre-git days.
-Should go to stable as well.
+> +
+> +struct proc_dir_entry *proc_create_seq_data(const char *name, umode_t mode,
+> +		struct proc_dir_entry *parent, const struct seq_operations *ops,
+> +		void *data)
+> +{
+> ...
+> +EXPORT_SYMBOL(proc_create_seq_data);
 
- net/bridge/netfilter/ebt_stp.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Please add documentation comments to exported functions when you add them.
 
-diff --git a/net/bridge/netfilter/ebt_stp.c b/net/bridge/netfilter/ebt_stp.c
-index 47ba98db145d..46c1fe7637ea 100644
---- a/net/bridge/netfilter/ebt_stp.c
-+++ b/net/bridge/netfilter/ebt_stp.c
-@@ -161,8 +161,8 @@ static int ebt_stp_mt_check(const struct xt_mtchk_param *par)
- 	/* Make sure the match only receives stp frames */
- 	if (!par->nft_compat &&
- 	    (!ether_addr_equal(e->destmac, eth_stp_addr) ||
--	     !is_broadcast_ether_addr(e->destmsk) ||
--	     !(e->bitmask & EBT_DESTMAC)))
-+	     !(e->bitmask & EBT_DESTMAC) ||
-+	     !is_broadcast_ether_addr(e->destmsk)))
- 		return -EINVAL;
- 
- 	return 0;
--- 
-2.17.0
+David
