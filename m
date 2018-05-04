@@ -1,8 +1,7 @@
 From: Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH ghak81 RFC V1 4/5] audit: use inline function to set audit
-	context
-Date: Fri,  4 May 2018 16:54:37 -0400
-Message-ID: <2f0566af8ccafdaf400a3d002cb4aef9b80e44cf.1525466167.git.rgb@redhat.com>
+Subject: [PATCH ghak81 RFC V1 2/5] audit: convert sessionid unset to a macro
+Date: Fri,  4 May 2018 16:54:35 -0400
+Message-ID: <91fd13c7a66718dc827d299fa101883e5d0a864f.1525466167.git.rgb@redhat.com>
 References: <cover.1525466167.git.rgb@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -31,86 +30,90 @@ Sender: linux-audit-bounces@redhat.com
 Errors-To: linux-audit-bounces@redhat.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Recognizing that the audit context is an internal audit value, use an
-access function to set the audit context pointer for the task
-rather than reaching directly into the task struct to set it.
+Use a macro, "AUDIT_SID_UNSET", to replace each instance of
+initialization and comparison to an audit session ID.
 
 Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 ---
- include/linux/audit.h | 8 ++++++++
- kernel/auditsc.c      | 6 +++---
- kernel/fork.c         | 2 +-
- 3 files changed, 12 insertions(+), 4 deletions(-)
+ include/linux/audit.h      | 2 +-
+ include/net/xfrm.h         | 2 +-
+ include/uapi/linux/audit.h | 1 +
+ init/init_task.c           | 2 +-
+ kernel/auditsc.c           | 4 ++--
+ 5 files changed, 6 insertions(+), 5 deletions(-)
 
 diff --git a/include/linux/audit.h b/include/linux/audit.h
-index 93e4c61..dba0d45 100644
+index 75d5b03..5f86f7c 100644
 --- a/include/linux/audit.h
 +++ b/include/linux/audit.h
-@@ -235,6 +235,10 @@ extern void __audit_inode_child(struct inode *parent,
- extern void __audit_seccomp(unsigned long syscall, long signr, int code);
- extern void __audit_ptrace(struct task_struct *t);
- 
-+static inline void audit_set_context(struct task_struct *task, struct audit_context *ctx)
-+{
-+	task->audit_context = ctx;
-+}
- static inline struct audit_context *audit_context(struct task_struct *task)
- {
- 	return task->audit_context;
-@@ -472,6 +476,10 @@ static inline bool audit_dummy_context(void)
- {
- 	return true;
+@@ -513,7 +513,7 @@ static inline kuid_t audit_get_loginuid(struct task_struct *tsk)
  }
-+static inline void audit_set_context(struct task_struct *task, struct audit_context *ctx)
-+{
-+	task->audit_context = ctx;
-+}
- static inline struct audit_context *audit_context(struct task_struct *task)
+ static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
  {
- 	return NULL;
+-	return -1;
++	return AUDIT_SID_UNSET;
+ }
+ static inline void audit_ipc_obj(struct kern_ipc_perm *ipcp)
+ { }
+diff --git a/include/net/xfrm.h b/include/net/xfrm.h
+index a872379..fcce8ee 100644
+--- a/include/net/xfrm.h
++++ b/include/net/xfrm.h
+@@ -751,7 +751,7 @@ static inline void xfrm_audit_helper_usrinfo(bool task_valid,
+ 					    audit_get_loginuid(current) :
+ 					    INVALID_UID);
+ 	const unsigned int ses = task_valid ? audit_get_sessionid(current) :
+-		(unsigned int) -1;
++		AUDIT_SID_UNSET;
+ 
+ 	audit_log_format(audit_buf, " auid=%u ses=%u", auid, ses);
+ 	audit_log_task_context(audit_buf);
+diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
+index 4e61a9e..04f9bd2 100644
+--- a/include/uapi/linux/audit.h
++++ b/include/uapi/linux/audit.h
+@@ -465,6 +465,7 @@ struct audit_tty_status {
+ };
+ 
+ #define AUDIT_UID_UNSET (unsigned int)-1
++#define AUDIT_SID_UNSET ((unsigned int)-1)
+ 
+ /* audit_rule_data supports filter rules with both integer and string
+  * fields.  It corresponds with AUDIT_ADD_RULE, AUDIT_DEL_RULE and
+diff --git a/init/init_task.c b/init/init_task.c
+index 3ac6e75..c788f91 100644
+--- a/init/init_task.c
++++ b/init/init_task.c
+@@ -119,7 +119,7 @@ struct task_struct init_task
+ 	.thread_node	= LIST_HEAD_INIT(init_signals.thread_head),
+ #ifdef CONFIG_AUDITSYSCALL
+ 	.loginuid	= INVALID_UID,
+-	.sessionid	= (unsigned int)-1,
++	.sessionid	= AUDIT_SID_UNSET,
+ #endif
+ #ifdef CONFIG_PERF_EVENTS
+ 	.perf_event_mutex = __MUTEX_INITIALIZER(init_task.perf_event_mutex),
 diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-index a4bbdcc..f294e4a 100644
+index f3817d0..6e3ceb9 100644
 --- a/kernel/auditsc.c
 +++ b/kernel/auditsc.c
-@@ -865,7 +865,7 @@ static inline struct audit_context *audit_take_context(struct task_struct *tsk,
- 		audit_filter_inodes(tsk, context);
+@@ -2050,7 +2050,7 @@ static void audit_log_set_loginuid(kuid_t koldloginuid, kuid_t kloginuid,
+ int audit_set_loginuid(kuid_t loginuid)
+ {
+ 	struct task_struct *task = current;
+-	unsigned int oldsessionid, sessionid = (unsigned int)-1;
++	unsigned int oldsessionid, sessionid = AUDIT_SID_UNSET;
+ 	kuid_t oldloginuid;
+ 	int rc;
+ 
+@@ -2064,7 +2064,7 @@ int audit_set_loginuid(kuid_t loginuid)
+ 	/* are we setting or clearing? */
+ 	if (uid_valid(loginuid)) {
+ 		sessionid = (unsigned int)atomic_inc_return(&session_id);
+-		if (unlikely(sessionid == (unsigned int)-1))
++		if (unlikely(sessionid == AUDIT_SID_UNSET))
+ 			sessionid = (unsigned int)atomic_inc_return(&session_id);
  	}
  
--	tsk->audit_context = NULL;
-+	audit_set_context(tsk, NULL);
- 	return context;
- }
- 
-@@ -952,7 +952,7 @@ int audit_alloc(struct task_struct *tsk)
- 	}
- 	context->filterkey = key;
- 
--	tsk->audit_context  = context;
-+	audit_set_context(tsk, context);
- 	set_tsk_thread_flag(tsk, TIF_SYSCALL_AUDIT);
- 	return 0;
- }
-@@ -1590,7 +1590,7 @@ void __audit_syscall_exit(int success, long return_code)
- 		kfree(context->filterkey);
- 		context->filterkey = NULL;
- 	}
--	tsk->audit_context = context;
-+	audit_set_context(tsk, context);
- }
- 
- static inline void handle_one(const struct inode *inode)
-diff --git a/kernel/fork.c b/kernel/fork.c
-index 242c8c9..cd18448 100644
---- a/kernel/fork.c
-+++ b/kernel/fork.c
-@@ -1713,7 +1713,7 @@ static __latent_entropy struct task_struct *copy_process(
- 	p->start_time = ktime_get_ns();
- 	p->real_start_time = ktime_get_boot_ns();
- 	p->io_context = NULL;
--	p->audit_context = NULL;
-+	audit_set_context(p, NULL);
- 	cgroup_fork(p);
- #ifdef CONFIG_NUMA
- 	p->mempolicy = mpol_dup(p->mempolicy);
 -- 
 1.8.3.1
