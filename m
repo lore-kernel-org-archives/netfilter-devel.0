@@ -1,119 +1,117 @@
-From: Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH ghak81 RFC V1 2/5] audit: convert sessionid unset to a macro
-Date: Fri,  4 May 2018 16:54:35 -0400
-Message-ID: <91fd13c7a66718dc827d299fa101883e5d0a864f.1525466167.git.rgb@redhat.com>
-References: <cover.1525466167.git.rgb@redhat.com>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH 11/40] ipv6/flowlabel: simplify pid namespace lookup
+Date: Sat, 05 May 2018 07:37:33 -0500
+Message-ID: <878t8y46sy.fsf@xmission.com>
+References: <20180425154827.32251-1-hch@lst.de>
+        <20180425154827.32251-12-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Richard Guy Briggs <rgb@redhat.com>, David Howells <dhowells@redhat.com>,
-	Ingo Molnar <mingo@redhat.com>
-To: Linux-Audit Mailing List <linux-audit@redhat.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Linux NetDev Upstream Mailing List <netdev@vger.kernel.org>,
-	Netfilter Devel List <netfilter-devel@vger.kernel.org>,
-	Linux Security Module list <linux-security-module@vger.kernel.org>,
-	Integrity Measurement Architecture <linux-integrity@vger.kernel.org>,
-	SElinux list <selinux@tycho.nsa.gov>
-Return-path: <linux-audit-bounces@redhat.com>
-In-Reply-To: <cover.1525466167.git.rgb@redhat.com>
-In-Reply-To: <cover.1525466167.git.rgb@redhat.com>
-References: <cover.1525466167.git.rgb@redhat.com>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/linux-audit>
-List-Post: <mailto:linux-audit@redhat.com>
-List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=subscribe>
-Sender: linux-audit-bounces@redhat.com
-Errors-To: linux-audit-bounces@redhat.com
+Content-Type: text/plain
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Alexey Dobriyan <adobriyan@gmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Slaby <jslaby@suse.com>,
+        Alessandro Zummo <a.zummo@towertech.it>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        linux-acpi@vger.kernel.org, drbd-dev@lists.linbit.com,
+        linux-ide@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rtc@vger.kernel.org, megaraidlinux.pdl@broadcom.com,
+        linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-afs@lists.infradead.org, linux-ext4@vger.kernel.org,
+        jfs-discussion@lists.sourceforge.net,
+        netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180425154827.32251-12-hch@lst.de> (Christoph Hellwig's message
+        of "Wed, 25 Apr 2018 17:47:58 +0200")
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Use a macro, "AUDIT_SID_UNSET", to replace each instance of
-initialization and comparison to an audit session ID.
+Christoph Hellwig <hch@lst.de> writes:
 
-Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
----
- include/linux/audit.h      | 2 +-
- include/net/xfrm.h         | 2 +-
- include/uapi/linux/audit.h | 1 +
- init/init_task.c           | 2 +-
- kernel/auditsc.c           | 4 ++--
- 5 files changed, 6 insertions(+), 5 deletions(-)
+> The shole seq_file sequence already operates under a single RCU lock pair,
+> so move the pid namespace lookup into it, and stop grabbing a reference
+> and remove all kinds of boilerplate code.
 
-diff --git a/include/linux/audit.h b/include/linux/audit.h
-index 75d5b03..5f86f7c 100644
---- a/include/linux/audit.h
-+++ b/include/linux/audit.h
-@@ -513,7 +513,7 @@ static inline kuid_t audit_get_loginuid(struct task_struct *tsk)
- }
- static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
- {
--	return -1;
-+	return AUDIT_SID_UNSET;
- }
- static inline void audit_ipc_obj(struct kern_ipc_perm *ipcp)
- { }
-diff --git a/include/net/xfrm.h b/include/net/xfrm.h
-index a872379..fcce8ee 100644
---- a/include/net/xfrm.h
-+++ b/include/net/xfrm.h
-@@ -751,7 +751,7 @@ static inline void xfrm_audit_helper_usrinfo(bool task_valid,
- 					    audit_get_loginuid(current) :
- 					    INVALID_UID);
- 	const unsigned int ses = task_valid ? audit_get_sessionid(current) :
--		(unsigned int) -1;
-+		AUDIT_SID_UNSET;
- 
- 	audit_log_format(audit_buf, " auid=%u ses=%u", auid, ses);
- 	audit_log_task_context(audit_buf);
-diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
-index 4e61a9e..04f9bd2 100644
---- a/include/uapi/linux/audit.h
-+++ b/include/uapi/linux/audit.h
-@@ -465,6 +465,7 @@ struct audit_tty_status {
- };
- 
- #define AUDIT_UID_UNSET (unsigned int)-1
-+#define AUDIT_SID_UNSET ((unsigned int)-1)
- 
- /* audit_rule_data supports filter rules with both integer and string
-  * fields.  It corresponds with AUDIT_ADD_RULE, AUDIT_DEL_RULE and
-diff --git a/init/init_task.c b/init/init_task.c
-index 3ac6e75..c788f91 100644
---- a/init/init_task.c
-+++ b/init/init_task.c
-@@ -119,7 +119,7 @@ struct task_struct init_task
- 	.thread_node	= LIST_HEAD_INIT(init_signals.thread_head),
- #ifdef CONFIG_AUDITSYSCALL
- 	.loginuid	= INVALID_UID,
--	.sessionid	= (unsigned int)-1,
-+	.sessionid	= AUDIT_SID_UNSET,
- #endif
- #ifdef CONFIG_PERF_EVENTS
- 	.perf_event_mutex = __MUTEX_INITIALIZER(init_task.perf_event_mutex),
-diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-index f3817d0..6e3ceb9 100644
---- a/kernel/auditsc.c
-+++ b/kernel/auditsc.c
-@@ -2050,7 +2050,7 @@ static void audit_log_set_loginuid(kuid_t koldloginuid, kuid_t kloginuid,
- int audit_set_loginuid(kuid_t loginuid)
- {
- 	struct task_struct *task = current;
--	unsigned int oldsessionid, sessionid = (unsigned int)-1;
-+	unsigned int oldsessionid, sessionid = AUDIT_SID_UNSET;
- 	kuid_t oldloginuid;
- 	int rc;
- 
-@@ -2064,7 +2064,7 @@ int audit_set_loginuid(kuid_t loginuid)
- 	/* are we setting or clearing? */
- 	if (uid_valid(loginuid)) {
- 		sessionid = (unsigned int)atomic_inc_return(&session_id);
--		if (unlikely(sessionid == (unsigned int)-1))
-+		if (unlikely(sessionid == AUDIT_SID_UNSET))
- 			sessionid = (unsigned int)atomic_inc_return(&session_id);
- 	}
- 
--- 
-1.8.3.1
+This is wrong.
+
+Move task_active_pid_ns(current) from open to seq_start actually means
+that the results if you pass this proc file between callers the results
+will change.  So this breaks file descriptor passing.
+
+Open is a bad place to access current.  In the middle of read/write is
+broken.
+
+
+In this particular instance looking up the pid namespace with
+task_active_pid_ns was a personal brain fart.  What the code should be
+doing (with an appropriate helper) is:
+
+struct pid_namespace *pid_ns = inode->i_sb->s_fs_info;
+
+Because each mount of proc is bound to a pid namespace.  Looking up the
+pid namespace from the super_block is a much better way to go.
+
+Eric
+
+
+
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  net/ipv6/ip6_flowlabel.c | 28 +++++-----------------------
+>  1 file changed, 5 insertions(+), 23 deletions(-)
+>
+> diff --git a/net/ipv6/ip6_flowlabel.c b/net/ipv6/ip6_flowlabel.c
+> index c05c4e82a7ca..a9f221d45ef9 100644
+> --- a/net/ipv6/ip6_flowlabel.c
+> +++ b/net/ipv6/ip6_flowlabel.c
+> @@ -754,7 +754,10 @@ static struct ip6_flowlabel *ip6fl_get_idx(struct seq_file *seq, loff_t pos)
+>  static void *ip6fl_seq_start(struct seq_file *seq, loff_t *pos)
+>  	__acquires(RCU)
+>  {
+> +	struct ip6fl_iter_state *state = ip6fl_seq_private(seq);
+> +
+>  	rcu_read_lock_bh();
+> +	state->pid_ns = task_active_pid_ns(current);
+>  	return *pos ? ip6fl_get_idx(seq, *pos - 1) : SEQ_START_TOKEN;
+>  }
+>  
+> @@ -810,36 +813,15 @@ static const struct seq_operations ip6fl_seq_ops = {
+>  
+>  static int ip6fl_seq_open(struct inode *inode, struct file *file)
+>  {
+> -	struct seq_file *seq;
+> -	struct ip6fl_iter_state *state;
+> -	int err;
+> -
+> -	err = seq_open_net(inode, file, &ip6fl_seq_ops,
+> +	return seq_open_net(inode, file, &ip6fl_seq_ops,
+>  			   sizeof(struct ip6fl_iter_state));
+> -
+> -	if (!err) {
+> -		seq = file->private_data;
+> -		state = ip6fl_seq_private(seq);
+> -		rcu_read_lock();
+> -		state->pid_ns = get_pid_ns(task_active_pid_ns(current));
+> -		rcu_read_unlock();
+> -	}
+> -	return err;
+> -}
+> -
+> -static int ip6fl_seq_release(struct inode *inode, struct file *file)
+> -{
+> -	struct seq_file *seq = file->private_data;
+> -	struct ip6fl_iter_state *state = ip6fl_seq_private(seq);
+> -	put_pid_ns(state->pid_ns);
+> -	return seq_release_net(inode, file);
+>  }
+>  
+>  static const struct file_operations ip6fl_seq_fops = {
+>  	.open		=	ip6fl_seq_open,
+>  	.read		=	seq_read,
+>  	.llseek		=	seq_lseek,
+> -	.release	=	ip6fl_seq_release,
+> +	.release	=	seq_release_net,
+>  };
+>  
+>  static int __net_init ip6_flowlabel_proc_init(struct net *net)
