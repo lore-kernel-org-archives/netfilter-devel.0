@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 24/51] netfilter: nf_flow_table: add missing condition for TCP state check
-Date: Mon,  7 May 2018 00:46:42 +0200
-Message-ID: <20180506224709.29100-25-pablo@netfilter.org>
+Subject: [PATCH 25/51] netfilter: nf_flow_table: fix offloading connections with SNAT+DNAT
+Date: Mon,  7 May 2018 00:46:43 +0200
+Message-ID: <20180506224709.29100-26-pablo@netfilter.org>
 References: <20180506224709.29100-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,53 +12,28 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Felix Fietkau <nbd@nbd.name>
 
-Avoid looking at unrelated fields in UDP packets
+Pass all NAT types to the flow offload struct, otherwise parts of the
+address/port pair do not get translated properly, causing connection
+stalls
 
 Signed-off-by: Felix Fietkau <nbd@nbd.name>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_ip.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ net/netfilter/nf_flow_table_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 692c75ef5cb7..82451b7e0acb 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -15,11 +15,14 @@
- #include <linux/tcp.h>
- #include <linux/udp.h>
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 0699981a8511..eb0d1658ac05 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -84,7 +84,7 @@ flow_offload_alloc(struct nf_conn *ct, struct nf_flow_route *route)
  
--static int nf_flow_tcp_state_check(struct flow_offload *flow,
--				   struct sk_buff *skb, unsigned int thoff)
-+static int nf_flow_state_check(struct flow_offload *flow, int proto,
-+			       struct sk_buff *skb, unsigned int thoff)
- {
- 	struct tcphdr *tcph;
+ 	if (ct->status & IPS_SRC_NAT)
+ 		flow->flags |= FLOW_OFFLOAD_SNAT;
+-	else if (ct->status & IPS_DST_NAT)
++	if (ct->status & IPS_DST_NAT)
+ 		flow->flags |= FLOW_OFFLOAD_DNAT;
  
-+	if (proto != IPPROTO_TCP)
-+		return 0;
-+
- 	if (!pskb_may_pull(skb, thoff + sizeof(*tcph)))
- 		return -1;
- 
-@@ -248,7 +251,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 		return NF_DROP;
- 
- 	thoff = ip_hdr(skb)->ihl * 4;
--	if (nf_flow_tcp_state_check(flow, skb, thoff))
-+	if (nf_flow_state_check(flow, ip_hdr(skb)->protocol, skb, thoff))
- 		return NF_ACCEPT;
- 
- 	if (flow->flags & (FLOW_OFFLOAD_SNAT | FLOW_OFFLOAD_DNAT) &&
-@@ -460,7 +463,8 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 	if (unlikely(nf_flow_exceeds_mtu(skb, flow->tuplehash[dir].tuple.mtu)))
- 		return NF_ACCEPT;
- 
--	if (nf_flow_tcp_state_check(flow, skb, sizeof(*ip6h)))
-+	if (nf_flow_state_check(flow, ipv6_hdr(skb)->nexthdr, skb,
-+				sizeof(*ip6h)))
- 		return NF_ACCEPT;
- 
- 	if (skb_try_make_writable(skb, sizeof(*ip6h)))
+ 	return flow;
 -- 
 2.11.0
