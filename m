@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 37/51] netfilter: nf_tables: always use an upper set size for dynsets
-Date: Mon,  7 May 2018 00:46:55 +0200
-Message-ID: <20180506224709.29100-38-pablo@netfilter.org>
+Subject: [PATCH 35/51] netfilter: xtables: use ipt_get_target_c instead of ipt_get_target
+Date: Mon,  7 May 2018 00:46:53 +0200
+Message-ID: <20180506224709.29100-36-pablo@netfilter.org>
 References: <20180506224709.29100-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,43 +10,31 @@ In-Reply-To: <20180506224709.29100-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Taehee Yoo <ap420073@gmail.com>
 
-nft rejects rules that lack a timeout and a size limit when they're used
-to add elements from packet path.
+ipt_get_target is used to get struct xt_entry_target
+and ipt_get_target_c is used to get const struct xt_entry_target.
+However in the ipt_do_table, ipt_get_target is used to get
+const struct xt_entry_target. it should be replaced by ipt_get_target_c.
 
-Pick a sane upperlimit instead of rejecting outright.
-The upperlimit is visible to userspace, just as if it would have been
-given during set declaration.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_dynset.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ net/ipv4/netfilter/ip_tables.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index 04863fad05dd..5cc3509659c6 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -36,7 +36,7 @@ static void *nft_dynset_new(struct nft_set *set, const struct nft_expr *expr,
- 	u64 timeout;
- 	void *elem;
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 44b308d93ec2..444f125f3974 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -300,7 +300,7 @@ ipt_do_table(struct sk_buff *skb,
+ 		counter = xt_get_this_cpu_counter(&e->counters);
+ 		ADD_COUNTER(*counter, skb->len, 1);
  
--	if (set->size && !atomic_add_unless(&set->nelems, 1, set->size))
-+	if (!atomic_add_unless(&set->nelems, 1, set->size))
- 		return NULL;
+-		t = ipt_get_target(e);
++		t = ipt_get_target_c(e);
+ 		WARN_ON(!t->u.kernel.target);
  
- 	timeout = priv->timeout ? : set->timeout;
-@@ -216,6 +216,9 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		goto err1;
- 
-+	if (set->size == 0)
-+		set->size = 0xffff;
-+
- 	priv->set = set;
- 	return 0;
- 
+ #if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TRACE)
 -- 
 2.11.0
