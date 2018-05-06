@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 18/51] netfilter: nf_flow_table: track flow tables in nf_flow_table directly
-Date: Mon,  7 May 2018 00:46:36 +0200
-Message-ID: <20180506224709.29100-19-pablo@netfilter.org>
+Subject: [PATCH 23/51] netfilter: nf_flow_table: tear down TCP flows if RST or FIN was seen
+Date: Mon,  7 May 2018 00:46:41 +0200
+Message-ID: <20180506224709.29100-24-pablo@netfilter.org>
 References: <20180506224709.29100-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,128 +12,87 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Felix Fietkau <nbd@nbd.name>
 
-Avoids having nf_flow_table depend on nftables (useful for future
-iptables backport work)
+Allow the slow path to handle the shutdown of the connection with proper
+timeouts. The packet containing RST/FIN is also sent to the slow path
+and the TCP conntrack module will update its state.
 
 Signed-off-by: Felix Fietkau <nbd@nbd.name>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_flow_table.h |  1 +
- include/net/netfilter/nf_tables.h     |  3 ---
- net/netfilter/nf_flow_table_core.c    | 21 ++++++++++++++++++---
- net/netfilter/nf_tables_api.c         | 17 -----------------
- 4 files changed, 19 insertions(+), 23 deletions(-)
+ net/netfilter/nf_flow_table_ip.c | 30 +++++++++++++++++++++++++++---
+ 1 file changed, 27 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index f876e32a60b8..ab408adba688 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -21,6 +21,7 @@ struct nf_flowtable_type {
- };
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index dc570fb7641d..692c75ef5cb7 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -15,6 +15,23 @@
+ #include <linux/tcp.h>
+ #include <linux/udp.h>
  
- struct nf_flowtable {
-+	struct list_head		list;
- 	struct rhashtable		rhashtable;
- 	const struct nf_flowtable_type	*type;
- 	struct delayed_work		gc_work;
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index cd368d1b8cb8..2f2062ae1c45 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1109,9 +1109,6 @@ struct nft_flowtable {
- struct nft_flowtable *nf_tables_flowtable_lookup(const struct nft_table *table,
- 						 const struct nlattr *nla,
- 						 u8 genmask);
--void nft_flow_table_iterate(struct net *net,
--			    void (*iter)(struct nf_flowtable *flowtable, void *data),
--			    void *data);
- 
- void nft_register_flowtable_type(struct nf_flowtable_type *type);
- void nft_unregister_flowtable_type(struct nf_flowtable_type *type);
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 09d1be669c39..e761359b56a9 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -18,6 +18,9 @@ struct flow_offload_entry {
- 	struct rcu_head		rcu_head;
- };
- 
-+static DEFINE_MUTEX(flowtable_lock);
-+static LIST_HEAD(flowtables);
++static int nf_flow_tcp_state_check(struct flow_offload *flow,
++				   struct sk_buff *skb, unsigned int thoff)
++{
++	struct tcphdr *tcph;
 +
- static void
- flow_offload_fill_dir(struct flow_offload *flow, struct nf_conn *ct,
- 		      struct nf_flow_route *route,
-@@ -410,6 +413,10 @@ int nf_flow_table_init(struct nf_flowtable *flowtable)
- 	queue_delayed_work(system_power_efficient_wq,
- 			   &flowtable->gc_work, HZ);
- 
-+	mutex_lock(&flowtable_lock);
-+	list_add(&flowtable->list, &flowtables);
-+	mutex_unlock(&flowtable_lock);
++	if (!pskb_may_pull(skb, thoff + sizeof(*tcph)))
++		return -1;
 +
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(nf_flow_table_init);
-@@ -425,20 +432,28 @@ static void nf_flow_table_do_cleanup(struct flow_offload *flow, void *data)
- }
- 
- static void nf_flow_table_iterate_cleanup(struct nf_flowtable *flowtable,
--					  void *data)
-+					  struct net_device *dev)
- {
--	nf_flow_table_iterate(flowtable, nf_flow_table_do_cleanup, data);
-+	nf_flow_table_iterate(flowtable, nf_flow_table_do_cleanup, dev);
- 	flush_delayed_work(&flowtable->gc_work);
- }
- 
- void nf_flow_table_cleanup(struct net *net, struct net_device *dev)
- {
--	nft_flow_table_iterate(net, nf_flow_table_iterate_cleanup, dev);
-+	struct nf_flowtable *flowtable;
++	tcph = (void *)(skb_network_header(skb) + thoff);
++	if (unlikely(tcph->fin || tcph->rst)) {
++		flow_offload_teardown(flow);
++		return -1;
++	}
 +
-+	mutex_lock(&flowtable_lock);
-+	list_for_each_entry(flowtable, &flowtables, list)
-+		nf_flow_table_iterate_cleanup(flowtable, dev);
-+	mutex_unlock(&flowtable_lock);
- }
- EXPORT_SYMBOL_GPL(nf_flow_table_cleanup);
- 
- void nf_flow_table_free(struct nf_flowtable *flow_table)
++	return 0;
++}
++
+ static int nf_flow_nat_ip_tcp(struct sk_buff *skb, unsigned int thoff,
+ 			      __be32 addr, __be32 new_addr)
  {
-+	mutex_lock(&flowtable_lock);
-+	list_del(&flow_table->list);
-+	mutex_unlock(&flowtable_lock);
- 	cancel_delayed_work_sync(&flow_table->gc_work);
- 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
- 	WARN_ON(!nf_flow_offload_gc_step(flow_table));
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 517bb93c00fb..16b67f54b3d2 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5060,23 +5060,6 @@ static const struct nf_flowtable_type *nft_flowtable_type_get(u8 family)
- 	return ERR_PTR(-ENOENT);
+@@ -119,10 +136,9 @@ static int nf_flow_dnat_ip(const struct flow_offload *flow, struct sk_buff *skb,
  }
  
--void nft_flow_table_iterate(struct net *net,
--			    void (*iter)(struct nf_flowtable *flowtable, void *data),
--			    void *data)
--{
--	struct nft_flowtable *flowtable;
--	const struct nft_table *table;
--
--	nfnl_lock(NFNL_SUBSYS_NFTABLES);
--	list_for_each_entry(table, &net->nft.tables, list) {
--		list_for_each_entry(flowtable, &table->flowtables, list) {
--			iter(&flowtable->data, data);
--		}
--	}
--	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
--}
--EXPORT_SYMBOL_GPL(nft_flow_table_iterate);
--
- static void nft_unregister_flowtable_net_hooks(struct net *net,
- 					       struct nft_flowtable *flowtable)
+ static int nf_flow_nat_ip(const struct flow_offload *flow, struct sk_buff *skb,
+-			  enum flow_offload_tuple_dir dir)
++			  unsigned int thoff, enum flow_offload_tuple_dir dir)
  {
+ 	struct iphdr *iph = ip_hdr(skb);
+-	unsigned int thoff = iph->ihl * 4;
+ 
+ 	if (flow->flags & FLOW_OFFLOAD_SNAT &&
+ 	    (nf_flow_snat_port(flow, skb, thoff, iph->protocol, dir) < 0 ||
+@@ -202,6 +218,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	struct flow_offload *flow;
+ 	struct net_device *outdev;
+ 	const struct rtable *rt;
++	unsigned int thoff;
+ 	struct iphdr *iph;
+ 	__be32 nexthop;
+ 
+@@ -230,8 +247,12 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	if (skb_try_make_writable(skb, sizeof(*iph)))
+ 		return NF_DROP;
+ 
++	thoff = ip_hdr(skb)->ihl * 4;
++	if (nf_flow_tcp_state_check(flow, skb, thoff))
++		return NF_ACCEPT;
++
+ 	if (flow->flags & (FLOW_OFFLOAD_SNAT | FLOW_OFFLOAD_DNAT) &&
+-	    nf_flow_nat_ip(flow, skb, dir) < 0)
++	    nf_flow_nat_ip(flow, skb, thoff, dir) < 0)
+ 		return NF_DROP;
+ 
+ 	flow->timeout = (u32)jiffies + NF_FLOW_TIMEOUT;
+@@ -439,6 +460,9 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 	if (unlikely(nf_flow_exceeds_mtu(skb, flow->tuplehash[dir].tuple.mtu)))
+ 		return NF_ACCEPT;
+ 
++	if (nf_flow_tcp_state_check(flow, skb, sizeof(*ip6h)))
++		return NF_ACCEPT;
++
+ 	if (skb_try_make_writable(skb, sizeof(*ip6h)))
+ 		return NF_DROP;
+ 
 -- 
 2.11.0
