@@ -1,38 +1,49 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nf-next v2] netfilter: extend SRH matching for previous, next
- and last SID
-Date: Sun, 6 May 2018 23:32:45 +0200
-Message-ID: <20180506213245.r2zazxfnapnwq6po@salvia>
-References: <1524652224-1702-1-git-send-email-amsalam20@gmail.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: Signed-off-by missing for commit in the netfilter-next
+ tree
+Date: Mon, 7 May 2018 08:27:48 +1000
+Message-ID: <20180507082748.5824d830@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: fw@strlen.de, davem@davemloft.net, linux-kernel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Ahmed Abdelsalam <amsalam20@gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/FvsIWsxrX=5O.Vuu6LOU+eX"; protocol="application/pgp-signature"
+Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        NetFilter <netfilter-devel@vger.kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1524652224-1702-1-git-send-email-amsalam20@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Apr 25, 2018 at 05:30:24AM -0500, Ahmed Abdelsalam wrote:
-> IPv6 Segment Routing Header (SRH) contains a list of SIDs to be crossed
-> by SR encapsulated packet. Each SID is encoded as an IPv6 prefix.
-> 
-> When a Firewall receives an SR encapsulated packet, it should be able
-> to identify which node previously processed the packet (previous SID),
-> which node is going to process the packet next (next SID), and which
-> node is the last to process the packet (last SID) which represent the
-> final destination of the packet in case of inline SR mode.
-> 
-> An example use-case of using these features could be SID list that
-> includes two firewalls. When the second firewall receives a packet,
-> it can check whether the packet has been processed by the first firewall
-> or not. Based on that check, it decides to apply all rules, apply just
-> subset of the rules, or totally skip all rules and forward the packet to
-> the next SID.
-> 
-> This patch extends SRH match to support matching previous SID, next SID,
-> and last SID.
+--Sig_/FvsIWsxrX=5O.Vuu6LOU+eX
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Applied, thanks Ahmed.
+Hi all,
+
+Commit
+
+  75e72f05418a ("netfilter: nft_numgen: enable hashing of one element")
+
+is missing a Signed-off-by from its committer.
+
+--=20
+Cheers,
+Stephen Rothwell
+
+--Sig_/FvsIWsxrX=5O.Vuu6LOU+eX
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAlrvgWQACgkQAVBC80lX
+0GzTYQf9ETlPJmUU5zqQfSagVxbSlRYxKQSEzhxZFx4JUWS55HQMah9/8tkE08r5
+zerjM7CYR8LnpnvTVcXmsa/MYZLcuIg7l/ApcSJ0R5tJcRnTLNSdVoQbH2mw5lj4
+wEATzMexsKlRzp3oVqCHXoulrLfmIR9KCbbWUaxNJ25j15chiaW5HhfR9fbEw06m
+zeDR1rLj0vn8BnZIGfbQr92UO2fG3Qy1ONic+a0Y/wdQO9uG825rM68M2ipmBJoX
+0aEXe4cTsPljNNmX/li2BP1dwaZfgT58P2kqosEZFYxfWkWHCD7B1hgZbp2t8U3c
+kzieqWWjitfXF4qSq2Vic6K/CbmIdw==
+=0fOX
+-----END PGP SIGNATURE-----
+
+--Sig_/FvsIWsxrX=5O.Vuu6LOU+eX--
