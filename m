@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 50/51] netfilter: ctnetlink: export nf_conntrack_max
-Date: Mon,  7 May 2018 00:47:08 +0200
-Message-ID: <20180506224709.29100-51-pablo@netfilter.org>
+Subject: [PATCH 48/51] netfilter: nf_tables: Provide NFT_{RT,CT}_MAX for userspace
+Date: Mon,  7 May 2018 00:47:06 +0200
+Message-ID: <20180506224709.29100-49-pablo@netfilter.org>
 References: <20180506224709.29100-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,61 +10,40 @@ In-Reply-To: <20180506224709.29100-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florent Fourcot <florent.fourcot@wifirst.fr>
+From: Phil Sutter <phil@nwl.cc>
 
-IPCTNL_MSG_CT_GET_STATS netlink command allow to monitor current number
-of conntrack entries. However, if one wants to compare it with the
-maximum (and detect exhaustion), the only solution is currently to read
-sysctl value.
+These macros allow conveniently declaring arrays which use NFT_{RT,CT}_*
+values as indexes.
 
-This patch add nf_conntrack_max value in netlink message, and simplify
-monitoring for application built on netlink API.
-
-Signed-off-by: Florent Fourcot <florent.fourcot@wifirst.fr>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nfnetlink_conntrack.h | 1 +
- net/netfilter/nf_conntrack_core.c                  | 1 +
- net/netfilter/nf_conntrack_netlink.c               | 3 +++
- 3 files changed, 5 insertions(+)
+ include/uapi/linux/netfilter/nf_tables.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/include/uapi/linux/netfilter/nfnetlink_conntrack.h b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-index 77987111cab0..1d41810d17e2 100644
---- a/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-+++ b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-@@ -262,6 +262,7 @@ enum ctattr_stats_cpu {
- enum ctattr_stats_global {
- 	CTA_STATS_GLOBAL_UNSPEC,
- 	CTA_STATS_GLOBAL_ENTRIES,
-+	CTA_STATS_GLOBAL_MAX_ENTRIES,
- 	__CTA_STATS_GLOBAL_MAX,
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 5a5551a580f7..ce031cf72288 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -831,7 +831,9 @@ enum nft_rt_keys {
+ 	NFT_RT_NEXTHOP4,
+ 	NFT_RT_NEXTHOP6,
+ 	NFT_RT_TCPMSS,
++	__NFT_RT_MAX
  };
- #define CTA_STATS_GLOBAL_MAX (__CTA_STATS_GLOBAL_MAX - 1)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 41ff04ee2554..605441727008 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -186,6 +186,7 @@ unsigned int nf_conntrack_htable_size __read_mostly;
- EXPORT_SYMBOL_GPL(nf_conntrack_htable_size);
++#define NFT_RT_MAX		(__NFT_RT_MAX - 1)
  
- unsigned int nf_conntrack_max __read_mostly;
-+EXPORT_SYMBOL_GPL(nf_conntrack_max);
- seqcount_t nf_conntrack_generation __read_mostly;
- static unsigned int nf_conntrack_hash_rnd __read_mostly;
+ /**
+  * enum nft_hash_types - nf_tables hash expression types
+@@ -949,7 +951,9 @@ enum nft_ct_keys {
+ 	NFT_CT_DST_IP,
+ 	NFT_CT_SRC_IP6,
+ 	NFT_CT_DST_IP6,
++	__NFT_CT_MAX
+ };
++#define NFT_CT_MAX		(__NFT_CT_MAX - 1)
  
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 4c1d0c5bc268..d807b8770be3 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2205,6 +2205,9 @@ ctnetlink_stat_ct_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
- 	if (nla_put_be32(skb, CTA_STATS_GLOBAL_ENTRIES, htonl(nr_conntracks)))
- 		goto nla_put_failure;
- 
-+	if (nla_put_be32(skb, CTA_STATS_GLOBAL_MAX_ENTRIES, htonl(nf_conntrack_max)))
-+		goto nla_put_failure;
-+
- 	nlmsg_end(skb, nlh);
- 	return skb->len;
- 
+ /**
+  * enum nft_ct_attributes - nf_tables ct expression netlink attributes
 -- 
 2.11.0
