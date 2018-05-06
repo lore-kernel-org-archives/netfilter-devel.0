@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 22/51] netfilter: nf_flow_table: add support for sending flows back to the slow path
-Date: Mon,  7 May 2018 00:46:40 +0200
-Message-ID: <20180506224709.29100-23-pablo@netfilter.org>
+Subject: [PATCH 24/51] netfilter: nf_flow_table: add missing condition for TCP state check
+Date: Mon,  7 May 2018 00:46:42 +0200
+Message-ID: <20180506224709.29100-25-pablo@netfilter.org>
 References: <20180506224709.29100-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,112 +12,53 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Felix Fietkau <nbd@nbd.name>
 
-Since conntrack hasn't seen any packets from the offloaded flow in a
-while, and the timeout for offloaded flows is set to an extremely long
-value, we need to fix up the state before we can send a flow back to the
-slow path.
-
-For TCP, reset td_maxwin in both directions, which makes it resync its
-state on the next packets.
-
-Use the regular timeout for TCP and UDP established connections.
-
-This allows the slow path to take over again once the offload state has
-been torn down
+Avoid looking at unrelated fields in UDP packets
 
 Signed-off-by: Felix Fietkau <nbd@nbd.name>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_core.c | 50 +++++++++++++++++++++++++++++++++++++-
- 1 file changed, 49 insertions(+), 1 deletion(-)
+ net/netfilter/nf_flow_table_ip.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index ff5e17a15963..0699981a8511 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -100,6 +100,43 @@ flow_offload_alloc(struct nf_conn *ct, struct nf_flow_route *route)
- }
- EXPORT_SYMBOL_GPL(flow_offload_alloc);
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 692c75ef5cb7..82451b7e0acb 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -15,11 +15,14 @@
+ #include <linux/tcp.h>
+ #include <linux/udp.h>
  
-+static void flow_offload_fixup_tcp(struct ip_ct_tcp *tcp)
-+{
-+	tcp->state = TCP_CONNTRACK_ESTABLISHED;
-+	tcp->seen[0].td_maxwin = 0;
-+	tcp->seen[1].td_maxwin = 0;
-+}
-+
-+static void flow_offload_fixup_ct_state(struct nf_conn *ct)
-+{
-+	const struct nf_conntrack_l4proto *l4proto;
-+	struct net *net = nf_ct_net(ct);
-+	unsigned int *timeouts;
-+	unsigned int timeout;
-+	int l4num;
-+
-+	l4num = nf_ct_protonum(ct);
-+	if (l4num == IPPROTO_TCP)
-+		flow_offload_fixup_tcp(&ct->proto.tcp);
-+
-+	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), l4num);
-+	if (!l4proto)
-+		return;
-+
-+	timeouts = l4proto->get_timeouts(net);
-+	if (!timeouts)
-+		return;
-+
-+	if (l4num == IPPROTO_TCP)
-+		timeout = timeouts[TCP_CONNTRACK_ESTABLISHED];
-+	else if (l4num == IPPROTO_UDP)
-+		timeout = timeouts[UDP_CT_REPLIED];
-+	else
-+		return;
-+
-+	ct->timeout = nfct_time_stamp + timeout;
-+}
-+
- void flow_offload_free(struct flow_offload *flow)
+-static int nf_flow_tcp_state_check(struct flow_offload *flow,
+-				   struct sk_buff *skb, unsigned int thoff)
++static int nf_flow_state_check(struct flow_offload *flow, int proto,
++			       struct sk_buff *skb, unsigned int thoff)
  {
- 	struct flow_offload_entry *e;
-@@ -107,7 +144,8 @@ void flow_offload_free(struct flow_offload *flow)
- 	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple.dst_cache);
- 	dst_release(flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple.dst_cache);
- 	e = container_of(flow, struct flow_offload_entry, flow);
--	nf_ct_delete(e->ct, 0, 0);
-+	if (flow->flags & FLOW_OFFLOAD_DYING)
-+		nf_ct_delete(e->ct, 0, 0);
- 	nf_ct_put(e->ct);
- 	kfree_rcu(e, rcu_head);
- }
-@@ -164,6 +202,8 @@ EXPORT_SYMBOL_GPL(flow_offload_add);
- static void flow_offload_del(struct nf_flowtable *flow_table,
- 			     struct flow_offload *flow)
- {
-+	struct flow_offload_entry *e;
-+
- 	rhashtable_remove_fast(&flow_table->rhashtable,
- 			       &flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].node,
- 			       nf_flow_offload_rhash_params);
-@@ -171,12 +211,20 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
- 			       &flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].node,
- 			       nf_flow_offload_rhash_params);
+ 	struct tcphdr *tcph;
  
-+	e = container_of(flow, struct flow_offload_entry, flow);
-+	clear_bit(IPS_OFFLOAD_BIT, &e->ct->status);
++	if (proto != IPPROTO_TCP)
++		return 0;
 +
- 	flow_offload_free(flow);
- }
+ 	if (!pskb_may_pull(skb, thoff + sizeof(*tcph)))
+ 		return -1;
  
- void flow_offload_teardown(struct flow_offload *flow)
- {
-+	struct flow_offload_entry *e;
-+
- 	flow->flags |= FLOW_OFFLOAD_TEARDOWN;
-+
-+	e = container_of(flow, struct flow_offload_entry, flow);
-+	flow_offload_fixup_ct_state(e->ct);
- }
- EXPORT_SYMBOL_GPL(flow_offload_teardown);
+@@ -248,7 +251,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 		return NF_DROP;
  
+ 	thoff = ip_hdr(skb)->ihl * 4;
+-	if (nf_flow_tcp_state_check(flow, skb, thoff))
++	if (nf_flow_state_check(flow, ip_hdr(skb)->protocol, skb, thoff))
+ 		return NF_ACCEPT;
+ 
+ 	if (flow->flags & (FLOW_OFFLOAD_SNAT | FLOW_OFFLOAD_DNAT) &&
+@@ -460,7 +463,8 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 	if (unlikely(nf_flow_exceeds_mtu(skb, flow->tuplehash[dir].tuple.mtu)))
+ 		return NF_ACCEPT;
+ 
+-	if (nf_flow_tcp_state_check(flow, skb, sizeof(*ip6h)))
++	if (nf_flow_state_check(flow, ipv6_hdr(skb)->nexthdr, skb,
++				sizeof(*ip6h)))
+ 		return NF_ACCEPT;
+ 
+ 	if (skb_try_make_writable(skb, sizeof(*ip6h)))
 -- 
 2.11.0
