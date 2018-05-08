@@ -1,24 +1,24 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net] bridge: netfilter stp fix reference to uninitialized
- data
-Date: Tue, 8 May 2018 14:17:10 +0200
-Message-ID: <20180508121710.ivzfhxggbajyo4zr@salvia>
-References: <20180427181609.3103-1-sthemmin@microsoft.com>
+Subject: Re: [iptables v2] extensions: libip6t_srh: support matching
+ previous, next and last SID
+Date: Tue, 8 May 2018 14:36:32 +0200
+Message-ID: <20180508123632.2wgwnk2d2cax66fq@salvia>
+References: <1524652247-1749-1-git-send-email-amsalam20@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kadlec@blackhole.kfki.hu, fw@strlen.de, davem@davemloft.net,
-        netfilter-devel@vger.kernel.org, bridge@lists.linux-foundation.org,
-        netdev@vger.kernel.org, Stephen Hemminger <sthemmin@microsoft.com>
-To: Stephen Hemminger <stephen@networkplumber.org>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: fw@strlen.de, davem@davemloft.net, linux-kernel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: Ahmed Abdelsalam <amsalam20@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180427181609.3103-1-sthemmin@microsoft.com>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <1524652247-1749-1-git-send-email-amsalam20@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Apr 27, 2018 at 11:16:09AM -0700, Stephen Hemminger wrote:
-> The destination mac (destmac) is only valid if EBT_DESTMAC flag
-> is set. Fix by changing the order of the comparison to look for
-> the flag first.
+On Wed, Apr 25, 2018 at 05:30:47AM -0500, Ahmed Abdelsalam wrote:
+> This patch extends the libip6t_srh shared library to support matching
+> previous SID, next SID, and last SID.
 
-Applied, thanks Stephen.
+Applied, thanks.
+
+Please, send us a patch to add tests for extensions/libip6t_srh.t
