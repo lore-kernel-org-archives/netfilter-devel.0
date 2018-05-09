@@ -1,87 +1,52 @@
-From: Richard Guy Briggs <rgb@redhat.com>
-Subject: Re: [PATCH ghak81 RFC V1 4/5] audit: use inline function to set
- audit context
-Date: Wed, 9 May 2018 08:09:17 -0400
-Message-ID: <20180509120917.xz3ggtloq523wqzh@madcap2.tricolour.ca>
-References: <cover.1525466167.git.rgb@redhat.com>
- <2f0566af8ccafdaf400a3d002cb4aef9b80e44cf.1525466167.git.rgb@redhat.com>
- <20180509020700.GE7517@eros>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] netfilter: nf_tables: fix memory leak on error exit return
+Date: Wed,  9 May 2018 13:22:56 +0100
+Message-ID: <20180509122256.16859-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux NetDev Upstream Mailing List <netdev@vger.kernel.org>,
-        Netfilter Devel List <netfilter-devel@vger.kernel.org>,
-        Linux Security Module list
-        <linux-security-module@vger.kernel.org>,
-        Integrity Measurement Architecture
-        <linux-integrity@vger.kernel.org>,
-        SElinux list <selinux@tycho.nsa.gov>,
-        Eric Paris <eparis@redhat.com>,
-        Paul Moore <paul@paul-moore.com>,
-        Steve Grubb <sgrubb@redhat.com>,
-        Ingo Molnar <mingo@redhat.com>,
-        David Howells <dhowells@redhat.com>
-To: "Tobin C. Harding" <tobin@apporbit.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        Florian Westphal <fw@strlen.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180509020700.GE7517@eros>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2018-05-09 12:07, Tobin C. Harding wrote:
-> On Fri, May 04, 2018 at 04:54:37PM -0400, Richard Guy Briggs wrote:
-> > Recognizing that the audit context is an internal audit value, use an
-> > access function to set the audit context pointer for the task
-> > rather than reaching directly into the task struct to set it.
-> > 
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > ---
-> >  include/linux/audit.h | 8 ++++++++
-> >  kernel/auditsc.c      | 6 +++---
-> >  kernel/fork.c         | 2 +-
-> >  3 files changed, 12 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/include/linux/audit.h b/include/linux/audit.h
-> > index 93e4c61..dba0d45 100644
-> > --- a/include/linux/audit.h
-> > +++ b/include/linux/audit.h
-> > @@ -235,6 +235,10 @@ extern void __audit_inode_child(struct inode *parent,
-> >  extern void __audit_seccomp(unsigned long syscall, long signr, int code);
-> >  extern void __audit_ptrace(struct task_struct *t);
-> >  
-> > +static inline void audit_set_context(struct task_struct *task, struct audit_context *ctx)
-> > +{
-> > +	task->audit_context = ctx;
-> > +}
-> >  static inline struct audit_context *audit_context(struct task_struct *task)
-> >  {
-> >  	return task->audit_context;
-> > @@ -472,6 +476,10 @@ static inline bool audit_dummy_context(void)
-> >  {
-> >  	return true;
-> >  }
-> > +static inline void audit_set_context(struct task_struct *task, struct audit_context *ctx)
-> > +{
-> > +	task->audit_context = ctx;
-> > +}
-> 
-> If audit_context is an internal audit value why do we set it when
-> CONFIG_AUDITSYSCALL is not set?
+From: Colin Ian King <colin.king@canonical.com>
 
-Agreed, that is unnecessary, but harmless since it won't be called, or
-will be called with a value of NULL.  That has been fixed in my dynamic
-allocation patchset since not even the audit_task_info struct is
-available to assign the value.  It is now an empty function like the
-rest.
+Currently the -EBUSY error return path is not free'ing resources
+allocated earlier, leaving a memory leak. Fix this by exiting via the
+error exit label err5 that performs the necessary resource clean
+up.
 
-> Tobin.
+Detected by CoverityScan, CID#1432975 ("Resource leak")
 
-- RGB
+Fixes: 9744a6fcefcb ("netfilter: nf_tables: check if same extensions are set when adding elements")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ net/netfilter/nf_tables_api.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 6422eba367cf..a3d77aa0f752 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4098,8 +4098,10 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA) ^
+ 			    nft_set_ext_exists(ext2, NFT_SET_EXT_DATA) ||
+ 			    nft_set_ext_exists(ext, NFT_SET_EXT_OBJREF) ^
+-			    nft_set_ext_exists(ext2, NFT_SET_EXT_OBJREF))
+-				return -EBUSY;
++			    nft_set_ext_exists(ext2, NFT_SET_EXT_OBJREF)) {
++				err = -EBUSY;
++				goto err5;
++			}
+ 			if ((nft_set_ext_exists(ext, NFT_SET_EXT_DATA) &&
+ 			     nft_set_ext_exists(ext2, NFT_SET_EXT_DATA) &&
+ 			     memcmp(nft_set_ext_data(ext),
+-- 
+2.17.0
