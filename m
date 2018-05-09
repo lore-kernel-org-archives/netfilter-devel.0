@@ -1,8 +1,9 @@
 From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH ghak81 RFC V1 1/5] audit: normalize loginuid read access
-Date: Wed, 9 May 2018 11:13:47 -0400
-Message-ID: <CAHC9VhQKYt0PC0L65pwFRte1D98R=2tUDGxMVpc8bbJsMncGpw@mail.gmail.com>
-References: <cover.1525466167.git.rgb@redhat.com> <611e9c85fca8bcdb24e6fb6da412773663c007b3.1525466167.git.rgb@redhat.com>
+Subject: Re: [PATCH ghak81 RFC V1 2/5] audit: convert sessionid unset to a macro
+Date: Wed, 9 May 2018 11:18:50 -0400
+Message-ID: <CAHC9VhSgDwAg5AOzyy7HV9pUiT+uVOVGB3i=1xsYBUn6Co7itQ@mail.gmail.com>
+References: <cover.1525466167.git.rgb@redhat.com> <91fd13c7a66718dc827d299fa101883e5d0a864f.1525466167.git.rgb@redhat.com>
+ <20180509013415.sohoc2jbofdqqw5v@madcap2.tricolour.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
@@ -14,94 +15,139 @@ Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
         Integrity Measurement Architecture
         <linux-integrity@vger.kernel.org>,
         SElinux list <selinux@tycho.nsa.gov>,
-        Eric Paris <eparis@redhat.com>,
-        Steve Grubb <sgrubb@redhat.com>,
-        Ingo Molnar <mingo@redhat.com>,
-        David Howells <dhowells@redhat.com>
+        David Howells <dhowells@redhat.com>,
+        Ingo Molnar <mingo@redhat.com>
 To: Richard Guy Briggs <rgb@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <611e9c85fca8bcdb24e6fb6da412773663c007b3.1525466167.git.rgb@redhat.com>
+In-Reply-To: <20180509013415.sohoc2jbofdqqw5v@madcap2.tricolour.ca>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, May 4, 2018 at 4:54 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> Recognizing that the loginuid is an internal audit value, use an access
-> function to retrieve the audit loginuid value for the task rather than
-> reaching directly into the task struct to get it.
+On Tue, May 8, 2018 at 9:34 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> On 2018-05-04 16:54, Richard Guy Briggs wrote:
+>> Use a macro, "AUDIT_SID_UNSET", to replace each instance of
+>> initialization and comparison to an audit session ID.
+>>
+>> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 >
-> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> ---
->  kernel/auditsc.c | 16 ++++++++--------
->  1 file changed, 8 insertions(+), 8 deletions(-)
+> There's a minor issue with this patch, adding a header include to
+> init/init_task.c in this patch and removing it from patch 5.  That'll be
+> in the next revision.
+
+Okay, thanks for the heads-up.  FWIW, this patch looks reasonable in
+principle; changing magic numbers to macros/constants is almost always
+a step in the right direction.
+
+> I have dynamic allocation working, so that has a good chance of
+> appearing  too.
+
+I'll comment on that in your patch 0, I just want to get through the
+rest of the patches first.
+
+>> ---
+>>  include/linux/audit.h      | 2 +-
+>>  include/net/xfrm.h         | 2 +-
+>>  include/uapi/linux/audit.h | 1 +
+>>  init/init_task.c           | 2 +-
+>>  kernel/auditsc.c           | 4 ++--
+>>  5 files changed, 6 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/include/linux/audit.h b/include/linux/audit.h
+>> index 75d5b03..5f86f7c 100644
+>> --- a/include/linux/audit.h
+>> +++ b/include/linux/audit.h
+>> @@ -513,7 +513,7 @@ static inline kuid_t audit_get_loginuid(struct task_struct *tsk)
+>>  }
+>>  static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
+>>  {
+>> -     return -1;
+>> +     return AUDIT_SID_UNSET;
+>>  }
+>>  static inline void audit_ipc_obj(struct kern_ipc_perm *ipcp)
+>>  { }
+>> diff --git a/include/net/xfrm.h b/include/net/xfrm.h
+>> index a872379..fcce8ee 100644
+>> --- a/include/net/xfrm.h
+>> +++ b/include/net/xfrm.h
+>> @@ -751,7 +751,7 @@ static inline void xfrm_audit_helper_usrinfo(bool task_valid,
+>>                                           audit_get_loginuid(current) :
+>>                                           INVALID_UID);
+>>       const unsigned int ses = task_valid ? audit_get_sessionid(current) :
+>> -             (unsigned int) -1;
+>> +             AUDIT_SID_UNSET;
+>>
+>>       audit_log_format(audit_buf, " auid=%u ses=%u", auid, ses);
+>>       audit_log_task_context(audit_buf);
+>> diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
+>> index 4e61a9e..04f9bd2 100644
+>> --- a/include/uapi/linux/audit.h
+>> +++ b/include/uapi/linux/audit.h
+>> @@ -465,6 +465,7 @@ struct audit_tty_status {
+>>  };
+>>
+>>  #define AUDIT_UID_UNSET (unsigned int)-1
+>> +#define AUDIT_SID_UNSET ((unsigned int)-1)
+>>
+>>  /* audit_rule_data supports filter rules with both integer and string
+>>   * fields.  It corresponds with AUDIT_ADD_RULE, AUDIT_DEL_RULE and
+>> diff --git a/init/init_task.c b/init/init_task.c
+>> index 3ac6e75..c788f91 100644
+>> --- a/init/init_task.c
+>> +++ b/init/init_task.c
+>> @@ -119,7 +119,7 @@ struct task_struct init_task
+>>       .thread_node    = LIST_HEAD_INIT(init_signals.thread_head),
+>>  #ifdef CONFIG_AUDITSYSCALL
+>>       .loginuid       = INVALID_UID,
+>> -     .sessionid      = (unsigned int)-1,
+>> +     .sessionid      = AUDIT_SID_UNSET,
+>>  #endif
+>>  #ifdef CONFIG_PERF_EVENTS
+>>       .perf_event_mutex = __MUTEX_INITIALIZER(init_task.perf_event_mutex),
+>> diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+>> index f3817d0..6e3ceb9 100644
+>> --- a/kernel/auditsc.c
+>> +++ b/kernel/auditsc.c
+>> @@ -2050,7 +2050,7 @@ static void audit_log_set_loginuid(kuid_t koldloginuid, kuid_t kloginuid,
+>>  int audit_set_loginuid(kuid_t loginuid)
+>>  {
+>>       struct task_struct *task = current;
+>> -     unsigned int oldsessionid, sessionid = (unsigned int)-1;
+>> +     unsigned int oldsessionid, sessionid = AUDIT_SID_UNSET;
+>>       kuid_t oldloginuid;
+>>       int rc;
+>>
+>> @@ -2064,7 +2064,7 @@ int audit_set_loginuid(kuid_t loginuid)
+>>       /* are we setting or clearing? */
+>>       if (uid_valid(loginuid)) {
+>>               sessionid = (unsigned int)atomic_inc_return(&session_id);
+>> -             if (unlikely(sessionid == (unsigned int)-1))
+>> +             if (unlikely(sessionid == AUDIT_SID_UNSET))
+>>                       sessionid = (unsigned int)atomic_inc_return(&session_id);
+>>       }
+>>
+>> --
+>> 1.8.3.1
+>>
+>> --
+>> Linux-audit mailing list
+>> Linux-audit@redhat.com
+>> https://www.redhat.com/mailman/listinfo/linux-audit
 >
-> diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> index 479c031..f3817d0 100644
-> --- a/kernel/auditsc.c
-> +++ b/kernel/auditsc.c
-> @@ -374,7 +374,7 @@ static int audit_field_compare(struct task_struct *tsk,
->         case AUDIT_COMPARE_EGID_TO_OBJ_GID:
->                 return audit_compare_gid(cred->egid, name, f, ctx);
->         case AUDIT_COMPARE_AUID_TO_OBJ_UID:
-> -               return audit_compare_uid(tsk->loginuid, name, f, ctx);
-> +               return audit_compare_uid(audit_get_loginuid(tsk), name, f, ctx);
->         case AUDIT_COMPARE_SUID_TO_OBJ_UID:
->                 return audit_compare_uid(cred->suid, name, f, ctx);
->         case AUDIT_COMPARE_SGID_TO_OBJ_GID:
-> @@ -385,7 +385,7 @@ static int audit_field_compare(struct task_struct *tsk,
->                 return audit_compare_gid(cred->fsgid, name, f, ctx);
->         /* uid comparisons */
->         case AUDIT_COMPARE_UID_TO_AUID:
-> -               return audit_uid_comparator(cred->uid, f->op, tsk->loginuid);
-> +               return audit_uid_comparator(cred->uid, f->op, audit_get_loginuid(tsk));
->         case AUDIT_COMPARE_UID_TO_EUID:
->                 return audit_uid_comparator(cred->uid, f->op, cred->euid);
->         case AUDIT_COMPARE_UID_TO_SUID:
-> @@ -394,11 +394,11 @@ static int audit_field_compare(struct task_struct *tsk,
->                 return audit_uid_comparator(cred->uid, f->op, cred->fsuid);
->         /* auid comparisons */
->         case AUDIT_COMPARE_AUID_TO_EUID:
-> -               return audit_uid_comparator(tsk->loginuid, f->op, cred->euid);
-> +               return audit_uid_comparator(audit_get_loginuid(tsk), f->op, cred->euid);
->         case AUDIT_COMPARE_AUID_TO_SUID:
-> -               return audit_uid_comparator(tsk->loginuid, f->op, cred->suid);
-> +               return audit_uid_comparator(audit_get_loginuid(tsk), f->op, cred->suid);
->         case AUDIT_COMPARE_AUID_TO_FSUID:
-> -               return audit_uid_comparator(tsk->loginuid, f->op, cred->fsuid);
-> +               return audit_uid_comparator(audit_get_loginuid(tsk), f->op, cred->fsuid);
->         /* euid comparisons */
->         case AUDIT_COMPARE_EUID_TO_SUID:
->                 return audit_uid_comparator(cred->euid, f->op, cred->suid);
-> @@ -611,7 +611,7 @@ static int audit_filter_rules(struct task_struct *tsk,
->                                 result = match_tree_refs(ctx, rule->tree);
->                         break;
->                 case AUDIT_LOGINUID:
-> -                       result = audit_uid_comparator(tsk->loginuid, f->op, f->uid);
-> +                       result = audit_uid_comparator(audit_get_loginuid(tsk), f->op, f->uid);
->                         break;
->                 case AUDIT_LOGINUID_SET:
->                         result = audit_comparator(audit_loginuid_set(tsk), f->op, f->val);
-> @@ -2287,8 +2287,8 @@ int audit_signal_info(int sig, struct task_struct *t)
->             (sig == SIGTERM || sig == SIGHUP ||
->              sig == SIGUSR1 || sig == SIGUSR2)) {
->                 audit_sig_pid = task_tgid_nr(tsk);
-> -               if (uid_valid(tsk->loginuid))
-> -                       audit_sig_uid = tsk->loginuid;
-> +               if (uid_valid(audit_get_loginuid(tsk)))
-> +                       audit_sig_uid = audit_get_loginuid(tsk);
-
-I realize this comment is a little silly given the nature of loginuid,
-but if we are going to abstract away loginuid accesses (which I think
-is good), we should probably access it once, store it in a local
-variable, perform the validity check on the local variable, then
-commit the local variable to audit_sig_uid.  I realize a TOCTOU
-problem is unlikely here, but with this new layer of abstraction it
-seems that some additional safety might be a good thing.
-
->                 else
->                         audit_sig_uid = uid;
->                 security_task_getsecid(tsk, &audit_sig_sid);
+> - RGB
+>
 > --
-> 1.8.3.1
+> Richard Guy Briggs <rgb@redhat.com>
+> Sr. S/W Engineer, Kernel Security, Base Operating Systems
+> Remote, Ottawa, Red Hat Canada
+> IRC: rgb, SunRaycer
+> Voice: +1.647.777.2635, Internal: (81) 32635
+>
+> --
+> Linux-audit mailing list
+> Linux-audit@redhat.com
+> https://www.redhat.com/mailman/listinfo/linux-audit
+
+
 
 -- 
 paul moore
