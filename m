@@ -1,9 +1,8 @@
 From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH ghak81 RFC V1 2/5] audit: convert sessionid unset to a macro
-Date: Wed, 9 May 2018 11:18:50 -0400
-Message-ID: <CAHC9VhSgDwAg5AOzyy7HV9pUiT+uVOVGB3i=1xsYBUn6Co7itQ@mail.gmail.com>
-References: <cover.1525466167.git.rgb@redhat.com> <91fd13c7a66718dc827d299fa101883e5d0a864f.1525466167.git.rgb@redhat.com>
- <20180509013415.sohoc2jbofdqqw5v@madcap2.tricolour.ca>
+Subject: Re: [PATCH ghak81 RFC V1 3/5] audit: use inline function to get audit context
+Date: Wed, 9 May 2018 11:28:58 -0400
+Message-ID: <CAHC9VhSbMaJ72jJnEivDd-M2UXDomexva8B-xsWXapTyeF0JVQ@mail.gmail.com>
+References: <cover.1525466167.git.rgb@redhat.com> <0e43c5135c197209b3189032d538244571e7443d.1525466167.git.rgb@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
@@ -15,139 +14,89 @@ Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
         Integrity Measurement Architecture
         <linux-integrity@vger.kernel.org>,
         SElinux list <selinux@tycho.nsa.gov>,
-        David Howells <dhowells@redhat.com>,
-        Ingo Molnar <mingo@redhat.com>
+        Eric Paris <eparis@redhat.com>,
+        Steve Grubb <sgrubb@redhat.com>,
+        Ingo Molnar <mingo@redhat.com>,
+        David Howells <dhowells@redhat.com>
 To: Richard Guy Briggs <rgb@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180509013415.sohoc2jbofdqqw5v@madcap2.tricolour.ca>
+In-Reply-To: <0e43c5135c197209b3189032d538244571e7443d.1525466167.git.rgb@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, May 8, 2018 at 9:34 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> On 2018-05-04 16:54, Richard Guy Briggs wrote:
->> Use a macro, "AUDIT_SID_UNSET", to replace each instance of
->> initialization and comparison to an audit session ID.
->>
->> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+On Fri, May 4, 2018 at 4:54 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> Recognizing that the audit context is an internal audit value, use an
+> access function to retrieve the audit context pointer for the task
+> rather than reaching directly into the task struct to get it.
 >
-> There's a minor issue with this patch, adding a header include to
-> init/init_task.c in this patch and removing it from patch 5.  That'll be
-> in the next revision.
-
-Okay, thanks for the heads-up.  FWIW, this patch looks reasonable in
-principle; changing magic numbers to macros/constants is almost always
-a step in the right direction.
-
-> I have dynamic allocation working, so that has a good chance of
-> appearing  too.
-
-I'll comment on that in your patch 0, I just want to get through the
-rest of the patches first.
-
->> ---
->>  include/linux/audit.h      | 2 +-
->>  include/net/xfrm.h         | 2 +-
->>  include/uapi/linux/audit.h | 1 +
->>  init/init_task.c           | 2 +-
->>  kernel/auditsc.c           | 4 ++--
->>  5 files changed, 6 insertions(+), 5 deletions(-)
->>
->> diff --git a/include/linux/audit.h b/include/linux/audit.h
->> index 75d5b03..5f86f7c 100644
->> --- a/include/linux/audit.h
->> +++ b/include/linux/audit.h
->> @@ -513,7 +513,7 @@ static inline kuid_t audit_get_loginuid(struct task_struct *tsk)
->>  }
->>  static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
->>  {
->> -     return -1;
->> +     return AUDIT_SID_UNSET;
->>  }
->>  static inline void audit_ipc_obj(struct kern_ipc_perm *ipcp)
->>  { }
->> diff --git a/include/net/xfrm.h b/include/net/xfrm.h
->> index a872379..fcce8ee 100644
->> --- a/include/net/xfrm.h
->> +++ b/include/net/xfrm.h
->> @@ -751,7 +751,7 @@ static inline void xfrm_audit_helper_usrinfo(bool task_valid,
->>                                           audit_get_loginuid(current) :
->>                                           INVALID_UID);
->>       const unsigned int ses = task_valid ? audit_get_sessionid(current) :
->> -             (unsigned int) -1;
->> +             AUDIT_SID_UNSET;
->>
->>       audit_log_format(audit_buf, " auid=%u ses=%u", auid, ses);
->>       audit_log_task_context(audit_buf);
->> diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
->> index 4e61a9e..04f9bd2 100644
->> --- a/include/uapi/linux/audit.h
->> +++ b/include/uapi/linux/audit.h
->> @@ -465,6 +465,7 @@ struct audit_tty_status {
->>  };
->>
->>  #define AUDIT_UID_UNSET (unsigned int)-1
->> +#define AUDIT_SID_UNSET ((unsigned int)-1)
->>
->>  /* audit_rule_data supports filter rules with both integer and string
->>   * fields.  It corresponds with AUDIT_ADD_RULE, AUDIT_DEL_RULE and
->> diff --git a/init/init_task.c b/init/init_task.c
->> index 3ac6e75..c788f91 100644
->> --- a/init/init_task.c
->> +++ b/init/init_task.c
->> @@ -119,7 +119,7 @@ struct task_struct init_task
->>       .thread_node    = LIST_HEAD_INIT(init_signals.thread_head),
->>  #ifdef CONFIG_AUDITSYSCALL
->>       .loginuid       = INVALID_UID,
->> -     .sessionid      = (unsigned int)-1,
->> +     .sessionid      = AUDIT_SID_UNSET,
->>  #endif
->>  #ifdef CONFIG_PERF_EVENTS
->>       .perf_event_mutex = __MUTEX_INITIALIZER(init_task.perf_event_mutex),
->> diff --git a/kernel/auditsc.c b/kernel/auditsc.c
->> index f3817d0..6e3ceb9 100644
->> --- a/kernel/auditsc.c
->> +++ b/kernel/auditsc.c
->> @@ -2050,7 +2050,7 @@ static void audit_log_set_loginuid(kuid_t koldloginuid, kuid_t kloginuid,
->>  int audit_set_loginuid(kuid_t loginuid)
->>  {
->>       struct task_struct *task = current;
->> -     unsigned int oldsessionid, sessionid = (unsigned int)-1;
->> +     unsigned int oldsessionid, sessionid = AUDIT_SID_UNSET;
->>       kuid_t oldloginuid;
->>       int rc;
->>
->> @@ -2064,7 +2064,7 @@ int audit_set_loginuid(kuid_t loginuid)
->>       /* are we setting or clearing? */
->>       if (uid_valid(loginuid)) {
->>               sessionid = (unsigned int)atomic_inc_return(&session_id);
->> -             if (unlikely(sessionid == (unsigned int)-1))
->> +             if (unlikely(sessionid == AUDIT_SID_UNSET))
->>                       sessionid = (unsigned int)atomic_inc_return(&session_id);
->>       }
->>
->> --
->> 1.8.3.1
->>
->> --
->> Linux-audit mailing list
->> Linux-audit@redhat.com
->> https://www.redhat.com/mailman/listinfo/linux-audit
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> ---
+>  include/linux/audit.h                | 16 ++++++++---
+>  include/net/xfrm.h                   |  2 +-
+>  kernel/audit.c                       |  4 +--
+>  kernel/audit_watch.c                 |  2 +-
+>  kernel/auditsc.c                     | 52 ++++++++++++++++++------------------
+>  net/bridge/netfilter/ebtables.c      |  2 +-
+>  net/core/dev.c                       |  2 +-
+>  net/netfilter/x_tables.c             |  2 +-
+>  net/netlabel/netlabel_user.c         |  2 +-
+>  security/integrity/ima/ima_api.c     |  2 +-
+>  security/integrity/integrity_audit.c |  2 +-
+>  security/lsm_audit.c                 |  2 +-
+>  security/selinux/hooks.c             |  4 +--
+>  security/selinux/selinuxfs.c         |  6 ++---
+>  security/selinux/ss/services.c       | 12 ++++-----
+>  15 files changed, 60 insertions(+), 52 deletions(-)
 >
-> - RGB
+> diff --git a/include/linux/audit.h b/include/linux/audit.h
+> index 5f86f7c..93e4c61 100644
+> --- a/include/linux/audit.h
+> +++ b/include/linux/audit.h
+> @@ -235,26 +235,30 @@ extern void __audit_inode_child(struct inode *parent,
+>  extern void __audit_seccomp(unsigned long syscall, long signr, int code);
+>  extern void __audit_ptrace(struct task_struct *t);
 >
-> --
-> Richard Guy Briggs <rgb@redhat.com>
-> Sr. S/W Engineer, Kernel Security, Base Operating Systems
-> Remote, Ottawa, Red Hat Canada
-> IRC: rgb, SunRaycer
-> Voice: +1.647.777.2635, Internal: (81) 32635
+> +static inline struct audit_context *audit_context(struct task_struct *task)
+> +{
+> +       return task->audit_context;
+> +}
+
+Another case where I think I agree with everything here on principle,
+especially when one considers it in the larger context of the audit
+container ID work.  However, I think we might be able to somply this a
+bit by eliminating the parameter to the new audit_context() helper and
+making it always reference the current task_struct.  Based on this
+patch it would appear that this change would work for all callers
+except for audit_take_context() and __audit_syscall_entry(), both of
+which are contained within the core audit code and are enough of a
+special case that I think it is acceptable for them to access the
+context directly.  I'm trying to think of reasons why a non-audit
+kernel subsystem would ever need to access the audit context of a
+process other than current and I can't think of any ... removing the
+task_struct pointer might help prevent mistakes/abuse in the future.
+
+> diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+> index 6e3ceb9..a4bbdcc 100644
+> --- a/kernel/auditsc.c
+> +++ b/kernel/auditsc.c
+> @@ -836,7 +836,7 @@ static inline struct audit_context *audit_take_context(struct task_struct *tsk,
+>                                                       int return_valid,
+>                                                       long return_code)
+>  {
+> -       struct audit_context *context = tsk->audit_context;
+> +       struct audit_context *context = audit_context(tsk);
 >
-> --
-> Linux-audit mailing list
-> Linux-audit@redhat.com
-> https://www.redhat.com/mailman/listinfo/linux-audit
-
-
+>         if (!context)
+>                 return NULL;
+> @@ -1510,7 +1510,7 @@ void __audit_syscall_entry(int major, unsigned long a1, unsigned long a2,
+>                            unsigned long a3, unsigned long a4)
+>  {
+>         struct task_struct *tsk = current;
+> -       struct audit_context *context = tsk->audit_context;
+> +       struct audit_context *context = audit_context(tsk);
+>         enum audit_state     state;
+>
+>         if (!audit_enabled || !context)
 
 -- 
 paul moore
