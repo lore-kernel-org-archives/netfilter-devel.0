@@ -1,115 +1,161 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Re: simplify procfs code for seq_file instances V2
-Date: Wed, 9 May 2018 19:53:31 +0300
-Message-ID: <20180509165331.GC16034@avx2>
-References: <20180425154827.32251-1-hch@lst.de> <20180506171948.GA769@avx2>
- <20180506174531.GK30522@ZenIV.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: linux-rtc@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>,
- Alexandre Belloni <alexandre.belloni@bootlin.com>, devel@driverdev.osuosl.org,
- linux-kernel@vger.kernel.org, linux-scsi@vger.kernel.org,
- linux-ide@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- jfs-discussion@lists.sourceforge.net, linux-afs@lists.infradead.org,
- linux-acpi@vger.kernel.org, netdev@vger.kernel.org,
- netfilter-devel@vger.kernel.org, Jiri Slaby <jslaby@suse.com>,
- Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org,
- Christoph Hellwig <hch@lst.de>, megaraidlinux.pdl@broadcom.com,
- drbd-dev@lists.linbit.com
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-Content-Disposition: inline
-In-Reply-To: <20180506174531.GK30522@ZenIV.linux.org.uk>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH 00/18] Convert default pr_fmt from empty to KBUILD_MODNAME
+Date: Thu, 10 May 2018 08:45:26 -0700
+Message-ID: <cover.1525964381.git.joe@perches.com>
+Cc: dri-devel@lists.freedesktop.org,
+        linux-security-module@vger.kernel.org
+To: Steven Rostedt <rostedt@goodmis.org>,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Jiri Olsa <jolsa@redhat.com>,
+        Namhyung Kim <namhyung@kernel.org>,
+        Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+        Lai Jiangshan <jiangshanlai@gmail.com>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Will Drewry <wad@chromium.org>, linux-block@vger.kernel.org,
+        linux-crypto@vger.kernel.org, netdev@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, linux-audit@redhat.com,
+        linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-integrity@vger.kernel.org, keyrings@vger.kernel.org,
+        selinux@tycho.nsa.gov
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, May 06, 2018 at 06:45:31PM +0100, Al Viro wrote:
-> On Sun, May 06, 2018 at 08:19:49PM +0300, Alexey Dobriyan wrote:
+pr_<level> logging uses allow a prefix to be specified with a
+specific #define pr_fmt
 
-> > @@ -62,9 +62,9 @@ struct proc_dir_entry {
-> >  	umode_t mode;
-> >  	u8 namelen;
-> >  #ifdef CONFIG_64BIT
-> > -#define SIZEOF_PDE_INLINE_NAME	(192-139)
-> > +#define SIZEOF_PDE_INLINE_NAME	(192-155)
-> >  #else
-> > -#define SIZEOF_PDE_INLINE_NAME	(128-87)
-> > +#define SIZEOF_PDE_INLINE_NAME	(128-95)
-> 
-> >  #endif
-> >  	char inline_name[SIZEOF_PDE_INLINE_NAME];
-> >  } __randomize_layout;
-> 
-> *UGH*
+The default of pr_fmt in printk.h is #define pr_fmt(fmt) fmt
+so no prefixing of logging output is generically done.
 
-I agree. Maintaining these numbers is a pain point.
-Who knew people were going to start adding fields right away.
+There are several output logging uses like dump_stack() that are
+unprefixed and should remain unprefixed.
 
-> Both to the original state and that kind of "adjustments".
-> Incidentally, with __bugger_layout in there these expressions
-> are simply wrong.
+This patch series attempts to convert the default #define of pr_fmt to
+KBUILD_MODNAME ": " fmt and as well update the various bits of the kernel
+that should _not_ be prefixed by adding #define pr_fmt(fmt) fmt to those
+compilation units that do not want output message prefixing.
 
-Struct randomization is exempt from maintaining sizeof as they are already
-screwing cachelines and everything. But if patch works with lockdep and
-randomization -- even better.
+There are about 1200 uses of #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+that could be removed if the default is changed.
 
-> If nothing else, I would suggest turning the last one into
-> 	char inline_name[];
-> in hope that layout won't get... randomized that much and
-> used
-> 
-> #ifdef CONFIG_64BIT
-> #define PDE_SIZE 192
-> #else
-> #define PDE_SIZE 128
-> #endif
-> 
-> union __proc_dir_entry {
-> 	char pad[PDE_SIZE];
-> 	struct proc_dir_entry real;
-> };
-> 
-> #define SIZEOF_PDE_INLINE_NAME (PDE_SIZE - offsetof(struct proc_dir_entry, inline_name))
-> 
-> for constants, adjusted sizeof and sizeof_field when creating
-> proc_dir_entry_cache and turned proc_root into
-> 
-> union __proc_dir_entry __proc_root = { .real = {
->         .low_ino        = PROC_ROOT_INO,
->         .namelen        = 5,
->         .mode           = S_IFDIR | S_IRUGO | S_IXUGO,
->         .nlink          = 2,
->         .refcnt         = REFCOUNT_INIT(1),
->         .proc_iops      = &proc_root_inode_operations,
->         .proc_fops      = &proc_root_operations,
->         .parent         = &__proc_root.real,
->         .subdir         = RB_ROOT,
->         .name           = __proc_root.real.inline_name,
->         .inline_name    = "/proc",
-> }};
-> 
-> #define proc_root __proc_root.real
-> (or actually used __proc_root.real in all of a 6 places where it remains).
-> 
-> > -	size_t state_size = PDE(inode)->state_size;
-> > +	unsigned int state_size = PDE(inode)->state_size;
-> 
-> <shakes head>
-> You and your "size_t is evil" crusade...
+A script that does this removal (and removes any blank lines that follow)
+for the linux-kernel tree is included below:
 
-[nods]
+$ git grep -P --name-only "define\s+pr_fmt\b" | \
+  grep -v include/linux/printk.h | \
+  xargs perl -i -e 'local $/; while (<>) {s/(\n)*[ \t]*#[ \t]*define[ \t]+pr_fmt[ \t]*\([ \t]*(\w+)[ \t]*\)[ \t]*KBUILD_MODNAME[ \t]*\": \"[ \t]*\2[ \t]*\n\s*/\1\n/; s/^\n//; print;}'
 
-        unsigned long           flags;          /* error bits */
-        unsigned long           i_state;
-        unsigned long           s_blocksize;
-        unsigned long           s_flags;
-        unsigned long           s_iflags;       /* internal SB_I_* flags */
+This script should be run after this patch series is applied.
+
+The above script output diff is currently:
+
+1198 files changed, 70 insertions(+), 2241 deletions(-)
+
+Joe Perches (18):
+  kernel: Use pr_fmt
+  lib: Use pr_fmt
+  printk: Convert pr_fmt from blank define to KBUILD_MODNAME
+  x86: Remove pr_fmt duplicate logging prefixes
+  x86/mtrr: Rename main.c to mtrr.c and remove duplicate prefixes
+  net: Remove pr_fmt duplicate logging prefixes
+  blk-mq: Remove pr_fmt duplicate logging prefixes
+  random: Remove pr_fmt duplicate logging prefixes
+  ptp: Remove pr_fmt duplicate logging prefixes
+  efifb: Remove pr_fmt duplicate logging prefixes
+  proc: Remove pr_fmt duplicate logging prefixes
+  uprobes: Remove pr_fmt duplicate logging prefixes
+  printk: Remove pr_fmt duplicate logging prefixes
+  lib/mpi: Remove pr_fmt duplicate logging prefixes
+  security: Remove pr_fmt duplicate logging prefixes
+  aoe: Remove pr_fmt duplicate logging prefixes
+  security: encrypted-keys: Remove pr_fmt duplicate logging prefixes
+  rcu: Use pr_fmt to prefix "rcu: " to logging output
+
+ arch/x86/events/amd/ibs.c                      |  2 +-
+ arch/x86/kernel/cpu/mtrr/Makefile              |  2 +-
+ arch/x86/kernel/cpu/mtrr/{main.c => mtrr.c}    | 33 ++++++-------
+ arch/x86/kernel/e820.c                         | 32 ++++++------
+ arch/x86/kernel/hpet.c                         |  5 +-
+ arch/x86/kernel/uprobes.c                      |  4 +-
+ arch/x86/mm/numa.c                             | 22 ++++-----
+ block/blk-mq.c                                 |  9 ++--
+ drivers/block/aoe/aoeblk.c                     | 29 ++++++-----
+ drivers/block/aoe/aoechr.c                     | 11 ++---
+ drivers/block/aoe/aoecmd.c                     | 34 ++++++-------
+ drivers/block/aoe/aoedev.c                     | 19 +++-----
+ drivers/block/aoe/aoemain.c                    |  6 +--
+ drivers/block/aoe/aoenet.c                     | 19 +++-----
+ drivers/char/hw_random/via-rng.c               | 10 ++--
+ drivers/char/random.c                          | 16 +++---
+ drivers/ptp/ptp_clock.c                        |  4 +-
+ drivers/video/fbdev/efifb.c                    | 48 +++++++++---------
+ fs/proc/root.c                                 |  6 +--
+ include/linux/printk.h                         |  2 +-
+ kernel/acct.c                                  |  2 +
+ kernel/async.c                                 | 14 +++---
+ kernel/audit_tree.c                            |  2 +-
+ kernel/backtracetest.c                         |  8 +--
+ kernel/crash_core.c                            | 29 ++++++-----
+ kernel/events/uprobes.c                        |  3 +-
+ kernel/exit.c                                  |  2 +
+ kernel/hung_task.c                             | 13 +++--
+ kernel/kprobes.c                               | 20 +++++---
+ kernel/module.c                                | 59 +++++++++++------------
+ kernel/panic.c                                 |  3 ++
+ kernel/params.c                                | 13 +++--
+ kernel/pid.c                                   |  2 +
+ kernel/printk/printk.c                         |  2 +-
+ kernel/profile.c                               |  2 +
+ kernel/range.c                                 |  2 +-
+ kernel/rcu/rcu_segcblist.c                     |  2 +
+ kernel/rcu/rcuperf.c                           | 10 ++--
+ kernel/rcu/rcutorture.c                        | 46 +++++++++---------
+ kernel/rcu/srcutiny.c                          |  2 +
+ kernel/rcu/srcutree.c                          |  5 +-
+ kernel/rcu/tiny.c                              |  3 ++
+ kernel/rcu/tree.c                              |  8 +--
+ kernel/rcu/tree_plugin.h                       | 67 +++++++++++++++-----------
+ kernel/rcu/update.c                            | 19 +++++---
+ kernel/relay.c                                 |  5 +-
+ kernel/seccomp.c                               |  4 +-
+ kernel/signal.c                                | 10 ++--
+ kernel/smpboot.c                               |  5 +-
+ kernel/taskstats.c                             |  4 +-
+ kernel/torture.c                               |  6 ++-
+ kernel/tracepoint.c                            |  3 ++
+ kernel/workqueue.c                             |  2 +
+ lib/cpu_rmap.c                                 | 15 +++---
+ lib/crc32test.c                                |  2 +
+ lib/earlycpio.c                                |  5 +-
+ lib/find_bit_benchmark.c                       |  2 +
+ lib/kobject.c                                  | 36 +++++++-------
+ lib/kobject_uevent.c                           | 27 +++++------
+ lib/mpi/mpicoder.c                             | 10 ++--
+ lib/nmi_backtrace.c                            |  3 ++
+ lib/percpu_ida.c                               |  4 +-
+ lib/percpu_test.c                              |  2 +
+ lib/random32.c                                 | 10 ++--
+ lib/stmp_device.c                              |  2 +
+ lib/string.c                                   |  2 +
+ lib/swiotlb.c                                  |  4 +-
+ lib/test_debug_virtual.c                       |  2 +
+ lib/test_rhashtable.c                          | 44 +++++++++--------
+ lib/test_sort.c                                |  2 +
+ lib/ubsan.c                                    | 61 ++++++++++++-----------
+ net/ipv4/ipconfig.c                            | 59 ++++++++++-------------
+ net/ipv4/ipmr.c                                |  2 +-
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |  9 ++--
+ net/ipv6/ip6mr.c                               |  2 +-
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |  6 +--
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c      |  4 +-
+ net/netfilter/nf_conntrack_helper.c            | 11 ++---
+ net/netfilter/nf_conntrack_standalone.c        |  2 +-
+ net/socket.c                                   |  2 +-
+ security/keys/encrypted-keys/encrypted.c       | 63 +++++++++++-------------
+ security/selinux/selinuxfs.c                   | 29 ++++++-----
+ 82 files changed, 580 insertions(+), 532 deletions(-)
+ rename arch/x86/kernel/cpu/mtrr/{main.c => mtrr.c} (96%)
+
+-- 
+2.15.0
