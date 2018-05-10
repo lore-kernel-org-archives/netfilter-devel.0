@@ -1,11 +1,10 @@
 From: Richard Guy Briggs <rgb@redhat.com>
-Subject: Re: [PATCH ghak81 RFC V1 3/5] audit: use inline function to get
- audit context
-Date: Thu, 10 May 2018 17:17:46 -0400
-Message-ID: <20180510211746.o3bb4wdnfue2fecf@madcap2.tricolour.ca>
+Subject: Re: [PATCH ghak81 RFC V1 1/5] audit: normalize loginuid read access
+Date: Thu, 10 May 2018 17:21:14 -0400
+Message-ID: <20180510212114.pefeyw5cuqlmjewp@madcap2.tricolour.ca>
 References: <cover.1525466167.git.rgb@redhat.com>
- <0e43c5135c197209b3189032d538244571e7443d.1525466167.git.rgb@redhat.com>
- <CAHC9VhSbMaJ72jJnEivDd-M2UXDomexva8B-xsWXapTyeF0JVQ@mail.gmail.com>
+ <611e9c85fca8bcdb24e6fb6da412773663c007b3.1525466167.git.rgb@redhat.com>
+ <CAHC9VhQKYt0PC0L65pwFRte1D98R=2tUDGxMVpc8bbJsMncGpw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
@@ -24,99 +23,94 @@ Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
 To: Paul Moore <paul@paul-moore.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAHC9VhSbMaJ72jJnEivDd-M2UXDomexva8B-xsWXapTyeF0JVQ@mail.gmail.com>
+In-Reply-To: <CAHC9VhQKYt0PC0L65pwFRte1D98R=2tUDGxMVpc8bbJsMncGpw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2018-05-09 11:28, Paul Moore wrote:
+On 2018-05-09 11:13, Paul Moore wrote:
 > On Fri, May 4, 2018 at 4:54 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> > Recognizing that the audit context is an internal audit value, use an
-> > access function to retrieve the audit context pointer for the task
-> > rather than reaching directly into the task struct to get it.
+> > Recognizing that the loginuid is an internal audit value, use an access
+> > function to retrieve the audit loginuid value for the task rather than
+> > reaching directly into the task struct to get it.
 > >
 > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 > > ---
-> >  include/linux/audit.h                | 16 ++++++++---
-> >  include/net/xfrm.h                   |  2 +-
-> >  kernel/audit.c                       |  4 +--
-> >  kernel/audit_watch.c                 |  2 +-
-> >  kernel/auditsc.c                     | 52 ++++++++++++++++++------------------
-> >  net/bridge/netfilter/ebtables.c      |  2 +-
-> >  net/core/dev.c                       |  2 +-
-> >  net/netfilter/x_tables.c             |  2 +-
-> >  net/netlabel/netlabel_user.c         |  2 +-
-> >  security/integrity/ima/ima_api.c     |  2 +-
-> >  security/integrity/integrity_audit.c |  2 +-
-> >  security/lsm_audit.c                 |  2 +-
-> >  security/selinux/hooks.c             |  4 +--
-> >  security/selinux/selinuxfs.c         |  6 ++---
-> >  security/selinux/ss/services.c       | 12 ++++-----
-> >  15 files changed, 60 insertions(+), 52 deletions(-)
+> >  kernel/auditsc.c | 16 ++++++++--------
+> >  1 file changed, 8 insertions(+), 8 deletions(-)
 > >
-> > diff --git a/include/linux/audit.h b/include/linux/audit.h
-> > index 5f86f7c..93e4c61 100644
-> > --- a/include/linux/audit.h
-> > +++ b/include/linux/audit.h
-> > @@ -235,26 +235,30 @@ extern void __audit_inode_child(struct inode *parent,
-> >  extern void __audit_seccomp(unsigned long syscall, long signr, int code);
-> >  extern void __audit_ptrace(struct task_struct *t);
-> >
-> > +static inline struct audit_context *audit_context(struct task_struct *task)
-> > +{
-> > +       return task->audit_context;
-> > +}
-> 
-> Another case where I think I agree with everything here on principle,
-> especially when one considers it in the larger context of the audit
-> container ID work.  However, I think we might be able to somply this a
-> bit by eliminating the parameter to the new audit_context() helper and
-> making it always reference the current task_struct.  Based on this
-> patch it would appear that this change would work for all callers
-> except for audit_take_context() and __audit_syscall_entry(), both of
-> which are contained within the core audit code and are enough of a
-> special case that I think it is acceptable for them to access the
-> context directly.  I'm trying to think of reasons why a non-audit
-> kernel subsystem would ever need to access the audit context of a
-> process other than current and I can't think of any ... removing the
-> task_struct pointer might help prevent mistakes/abuse in the future.
-
-As for __audit_syscall_{entry,exit}() and audit_signal_info(), they are
-using current.  current is assigned to local variable tsk only to be
-used as the LHS in assignments and for locking.
-
-But, audit_take_context() and audit_log_exit() are both called also from
-__audit_free() which can have non-current handed to it by copy_process()
-cleaning up, while do_exit() appears to still be in current.
-
-So, Ok, ditch the parameter to audit_context() and use local access when
-needed.
-
 > > diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> > index 6e3ceb9..a4bbdcc 100644
+> > index 479c031..f3817d0 100644
 > > --- a/kernel/auditsc.c
 > > +++ b/kernel/auditsc.c
-> > @@ -836,7 +836,7 @@ static inline struct audit_context *audit_take_context(struct task_struct *tsk,
-> >                                                       int return_valid,
-> >                                                       long return_code)
-> >  {
-> > -       struct audit_context *context = tsk->audit_context;
-> > +       struct audit_context *context = audit_context(tsk);
-> >
-> >         if (!context)
-> >                 return NULL;
-> > @@ -1510,7 +1510,7 @@ void __audit_syscall_entry(int major, unsigned long a1, unsigned long a2,
-> >                            unsigned long a3, unsigned long a4)
-> >  {
-> >         struct task_struct *tsk = current;
-> > -       struct audit_context *context = tsk->audit_context;
-> > +       struct audit_context *context = audit_context(tsk);
-> >         enum audit_state     state;
-> >
-> >         if (!audit_enabled || !context)
+> > @@ -374,7 +374,7 @@ static int audit_field_compare(struct task_struct *tsk,
+> >         case AUDIT_COMPARE_EGID_TO_OBJ_GID:
+> >                 return audit_compare_gid(cred->egid, name, f, ctx);
+> >         case AUDIT_COMPARE_AUID_TO_OBJ_UID:
+> > -               return audit_compare_uid(tsk->loginuid, name, f, ctx);
+> > +               return audit_compare_uid(audit_get_loginuid(tsk), name, f, ctx);
+> >         case AUDIT_COMPARE_SUID_TO_OBJ_UID:
+> >                 return audit_compare_uid(cred->suid, name, f, ctx);
+> >         case AUDIT_COMPARE_SGID_TO_OBJ_GID:
+> > @@ -385,7 +385,7 @@ static int audit_field_compare(struct task_struct *tsk,
+> >                 return audit_compare_gid(cred->fsgid, name, f, ctx);
+> >         /* uid comparisons */
+> >         case AUDIT_COMPARE_UID_TO_AUID:
+> > -               return audit_uid_comparator(cred->uid, f->op, tsk->loginuid);
+> > +               return audit_uid_comparator(cred->uid, f->op, audit_get_loginuid(tsk));
+> >         case AUDIT_COMPARE_UID_TO_EUID:
+> >                 return audit_uid_comparator(cred->uid, f->op, cred->euid);
+> >         case AUDIT_COMPARE_UID_TO_SUID:
+> > @@ -394,11 +394,11 @@ static int audit_field_compare(struct task_struct *tsk,
+> >                 return audit_uid_comparator(cred->uid, f->op, cred->fsuid);
+> >         /* auid comparisons */
+> >         case AUDIT_COMPARE_AUID_TO_EUID:
+> > -               return audit_uid_comparator(tsk->loginuid, f->op, cred->euid);
+> > +               return audit_uid_comparator(audit_get_loginuid(tsk), f->op, cred->euid);
+> >         case AUDIT_COMPARE_AUID_TO_SUID:
+> > -               return audit_uid_comparator(tsk->loginuid, f->op, cred->suid);
+> > +               return audit_uid_comparator(audit_get_loginuid(tsk), f->op, cred->suid);
+> >         case AUDIT_COMPARE_AUID_TO_FSUID:
+> > -               return audit_uid_comparator(tsk->loginuid, f->op, cred->fsuid);
+> > +               return audit_uid_comparator(audit_get_loginuid(tsk), f->op, cred->fsuid);
+> >         /* euid comparisons */
+> >         case AUDIT_COMPARE_EUID_TO_SUID:
+> >                 return audit_uid_comparator(cred->euid, f->op, cred->suid);
+> > @@ -611,7 +611,7 @@ static int audit_filter_rules(struct task_struct *tsk,
+> >                                 result = match_tree_refs(ctx, rule->tree);
+> >                         break;
+> >                 case AUDIT_LOGINUID:
+> > -                       result = audit_uid_comparator(tsk->loginuid, f->op, f->uid);
+> > +                       result = audit_uid_comparator(audit_get_loginuid(tsk), f->op, f->uid);
+> >                         break;
+> >                 case AUDIT_LOGINUID_SET:
+> >                         result = audit_comparator(audit_loginuid_set(tsk), f->op, f->val);
+> > @@ -2287,8 +2287,8 @@ int audit_signal_info(int sig, struct task_struct *t)
+> >             (sig == SIGTERM || sig == SIGHUP ||
+> >              sig == SIGUSR1 || sig == SIGUSR2)) {
+> >                 audit_sig_pid = task_tgid_nr(tsk);
+> > -               if (uid_valid(tsk->loginuid))
+> > -                       audit_sig_uid = tsk->loginuid;
+> > +               if (uid_valid(audit_get_loginuid(tsk)))
+> > +                       audit_sig_uid = audit_get_loginuid(tsk);
 > 
-> -- 
+> I realize this comment is a little silly given the nature of loginuid,
+> but if we are going to abstract away loginuid accesses (which I think
+> is good), we should probably access it once, store it in a local
+> variable, perform the validity check on the local variable, then
+> commit the local variable to audit_sig_uid.  I realize a TOCTOU
+> problem is unlikely here, but with this new layer of abstraction it
+> seems that some additional safety might be a good thing.
+
+Ok, I'll just assign it to where it is going and check it there, holding
+the audit_ctl_lock the whole time, since it should have been done
+anyways for all of audit_sig_{pid,uid,sid} anyways to get a consistent
+view from the AUDIT_SIGNAL_INFO fetch.
+
+> >                 else
+> >                         audit_sig_uid = uid;
+> >                 security_task_getsecid(tsk, &audit_sig_sid);
+
 > paul moore
-> www.paul-moore.com
 
 - RGB
 
