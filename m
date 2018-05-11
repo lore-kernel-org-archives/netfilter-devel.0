@@ -1,239 +1,149 @@
-From: Richard Guy Briggs <rgb@redhat.com>
-Subject: Re: [PATCH ghak81 RFC V1 5/5] audit: collect audit task parameters
-Date: Thu, 10 May 2018 17:26:57 -0400
-Message-ID: <20180510212657.qnwm3jeqjjke77yz@madcap2.tricolour.ca>
-References: <cover.1525466167.git.rgb@redhat.com>
-	<5b0e0eef72b5137830f9f6c67908e5252dbf48f5.1525466167.git.rgb@redhat.com>
-	<CAHC9VhRugVt3g=ADwKKWLYa2NXVoL8HLRKtXsut3P2LPd3fPuw@mail.gmail.com>
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: Re: WARNING in compat_copy_entries (2)
+Date: Fri, 11 May 2018 16:13:10 +0200
+Message-ID: <CACT4Y+bpDiybQ7j_r3Pa-UgOTnOLRGiJxnwwZ5J=sjgo=O0__A@mail.gmail.com>
+References: <001a113dea0ef7d2620566c15bac@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Linux NetDev Upstream Mailing List <netdev@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>, David Howells <dhowells@redhat.com>,
-	Linux Security Module list <linux-security-module@vger.kernel.org>,
-	Linux-Audit Mailing List <linux-audit@redhat.com>,
-	Netfilter Devel List <netfilter-devel@vger.kernel.org>,
-	SElinux list <selinux@tycho.nsa.gov>,
-	Integrity Measurement Architecture <linux-integrity@vger.kernel.org>,
-	Ingo Molnar <mingo@redhat.com>
-To: Paul Moore <paul@paul-moore.com>
-Return-path: <linux-audit-bounces@redhat.com>
-Content-Disposition: inline
-In-Reply-To: <CAHC9VhRugVt3g=ADwKKWLYa2NXVoL8HLRKtXsut3P2LPd3fPuw@mail.gmail.com>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/linux-audit>
-List-Post: <mailto:linux-audit@redhat.com>
-List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
-	<mailto:linux-audit-request@redhat.com?subject=subscribe>
-Sender: linux-audit-bounces@redhat.com
-Errors-To: linux-audit-bounces@redhat.com
+Content-Type: text/plain; charset="UTF-8"
+Cc: bridge@lists.linux-foundation.org, coreteam@netfilter.org,
+        David Miller <davem@davemloft.net>,
+        Florian Westphal <fw@strlen.de>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        LKML <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        stephen hemminger <stephen@networkplumber.org>,
+        syzkaller-bugs <syzkaller-bugs@googlegroups.com>
+To: syzbot <syzbot+659574e7bcc7f7eb4df7@syzkaller.appspotmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <001a113dea0ef7d2620566c15bac@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2018-05-09 11:46, Paul Moore wrote:
-> On Fri, May 4, 2018 at 4:54 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> > The audit-related parameters in struct task_struct should ideally be
-> > collected together and accessed through a standard audit API.
-> >
-> > Collect the existing loginuid, sessionid and audit_context together in a
-> > new struct audit_task_info pointer called "audit" in struct task_struct.
-> >
-> > Use kmem_cache to manage this pool of memory.
-> > Un-inline audit_free() to be able to always recover that memory.
-> >
-> > See: https://github.com/linux-audit/audit-kernel/issues/81
-> >
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > ---
-> >  MAINTAINERS                |  2 +-
-> >  include/linux/audit.h      |  8 ++++----
-> >  include/linux/audit_task.h | 31 +++++++++++++++++++++++++++++++
-> >  include/linux/sched.h      |  6 ++----
-> >  init/init_task.c           |  8 ++++++--
-> >  kernel/auditsc.c           |  4 ++--
-> >  6 files changed, 46 insertions(+), 13 deletions(-)
-> >  create mode 100644 include/linux/audit_task.h
-> >
-> > diff --git a/MAINTAINERS b/MAINTAINERS
-> > index 0a1410d..8c7992d 100644
-> > --- a/MAINTAINERS
-> > +++ b/MAINTAINERS
-> > @@ -2510,7 +2510,7 @@ L:        linux-audit@redhat.com (moderated for non-subscribers)
-> >  W:     https://github.com/linux-audit
-> >  T:     git git://git.kernel.org/pub/scm/linux/kernel/git/pcmoore/audit.git
-> >  S:     Supported
-> > -F:     include/linux/audit.h
-> > +F:     include/linux/audit*.h
-> >  F:     include/uapi/linux/audit.h
-> >  F:     kernel/audit*
-> >
-> > diff --git a/include/linux/audit.h b/include/linux/audit.h
-> > index dba0d45..1324969 100644
-> > --- a/include/linux/audit.h
-> > +++ b/include/linux/audit.h
-> > @@ -237,11 +237,11 @@ extern void __audit_inode_child(struct inode *parent,
-> >
-> >  static inline void audit_set_context(struct task_struct *task, struct audit_context *ctx)
-> >  {
-> > -       task->audit_context = ctx;
-> > +       task->audit.ctx = ctx;
-> >  }
-> >  static inline struct audit_context *audit_context(struct task_struct *task)
-> >  {
-> > -       return task->audit_context;
-> > +       return task->audit.ctx;
-> >  }
-> >  static inline bool audit_dummy_context(void)
-> >  {
-> > @@ -330,12 +330,12 @@ extern int auditsc_get_stamp(struct audit_context *ctx,
-> >
-> >  static inline kuid_t audit_get_loginuid(struct task_struct *tsk)
-> >  {
-> > -       return tsk->loginuid;
-> > +       return tsk->audit.loginuid;
-> >  }
-> >
-> >  static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
-> >  {
-> > -       return tsk->sessionid;
-> > +       return tsk->audit.sessionid;
-> >  }
-> >
-> >  extern void __audit_ipc_obj(struct kern_ipc_perm *ipcp);
-> > diff --git a/include/linux/audit_task.h b/include/linux/audit_task.h
-> > new file mode 100644
-> > index 0000000..d4b3a20
-> > --- /dev/null
-> > +++ b/include/linux/audit_task.h
-> > @@ -0,0 +1,31 @@
-> > +/* SPDX-License-Identifier: GPL-2.0 */
-> > +/* audit_task.h -- definition of audit_task_info structure
-> > + *
-> > + * Copyright 2018 Red Hat Inc., Raleigh, North Carolina.
-> > + * All Rights Reserved.
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License as published by
-> > + * the Free Software Foundation; either version 2 of the License, or
-> > + * (at your option) any later version.
-> > + *
-> > + * This program is distributed in the hope that it will be useful,
-> > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> > + * GNU General Public License for more details.
-> > + *
-> > + * Written by Richard Guy Briggs <rgb@redhat.com>
-> > + *
-> > + */
-> > +
-> > +#ifndef _LINUX_AUDIT_TASK_H_
-> > +#define _LINUX_AUDIT_TASK_H_
-> > +
-> > +struct audit_context;
-> > +struct audit_task_info {
-> > +       kuid_t                  loginuid;
-> > +       unsigned int            sessionid;
-> > +       struct audit_context    *ctx;
-> > +};
-> > +
-> > +#endif
-> > diff --git a/include/linux/sched.h b/include/linux/sched.h
-> > index b3d697f..b58eca0 100644
-> > --- a/include/linux/sched.h
-> > +++ b/include/linux/sched.h
-> > @@ -27,9 +27,9 @@
-> >  #include <linux/signal_types.h>
-> >  #include <linux/mm_types_task.h>
-> >  #include <linux/task_io_accounting.h>
-> > +#include <linux/audit_task.h>
-> >
-> >  /* task_struct member predeclarations (sorted alphabetically): */
-> > -struct audit_context;
-> >  struct backing_dev_info;
-> >  struct bio_list;
-> >  struct blk_plug;
-> > @@ -832,10 +832,8 @@ struct task_struct {
-> >
-> >         struct callback_head            *task_works;
-> >
-> > -       struct audit_context            *audit_context;
-> >  #ifdef CONFIG_AUDITSYSCALL
-> > -       kuid_t                          loginuid;
-> > -       unsigned int                    sessionid;
-> > +       struct audit_task_info          audit;
-> >  #endif
-> 
-> Considering that the audit_context pointer is now in the
-> audit_task_info struct, should the audit_task_info struct be placed
-> outside the CONFIG_AUDITSYSCALL protections?  Or rather, shouldn't the
-> CONFIG_AUDITSYSCALL protections be moved inside audit_task_info or
-> removed entirely?
+On Tue, Mar 6, 2018 at 5:59 PM, syzbot
+<syzbot+659574e7bcc7f7eb4df7@syzkaller.appspotmail.com> wrote:
+> Hello,
+>
+> syzbot hit the following crash on upstream commit
+> ce380619fab99036f5e745c7a865b21c59f005f6 (Tue Mar 6 04:31:14 2018 +0000)
+> Merge tag 'please-pull-ia64_misc' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/aegl/linux
+>
+> So far this crash happened 11 times on upstream.
+> syzkaller reproducer is attached.
+> Raw console output is attached.
+> compiler: gcc (GCC) 7.1.1 20170620
+> .config is attached.
+> user-space arch: i386
 
-Well, I wondered about that anyways.  audit_context is only meaningful
-in CONFIG_AUDIT_SYSCALL, and loginuid and sessionid were already there,
-so the whole thing should be inside, but given that CONFIG_AUDIT_SYSCALL
-is forced on when CONFIG_AUDIT is set I don't see that it matters.
-Perhaps CONFIG_AUDIT_SYSCALL should be ripped out completely and the
-code flattenned to the CONFIG_AUDIT case.
+This was bisected to, well:
 
-I see your point though, moving CONFIG_AUDIT_SYSCALL protections to
-within the audit_task_info struct definition makes more sense than this
-above.
+commit 9dea5dc921b5f4045a18c63eb92e84dc274d17eb
+Author: Andy Lutomirski <luto@kernel.org>
+Date:   Tue Jul 14 15:24:24 2015 -0700
 
-> > diff --git a/init/init_task.c b/init/init_task.c
-> > index c788f91..d33260d 100644
-> > --- a/init/init_task.c
-> > +++ b/init/init_task.c
-> > @@ -9,6 +9,7 @@
-> >  #include <linux/init.h>
-> >  #include <linux/fs.h>
-> >  #include <linux/mm.h>
-> > +#include <linux/audit.h>
-> >
-> >  #include <asm/pgtable.h>
-> >  #include <linux/uaccess.h>
-> > @@ -118,8 +119,11 @@ struct task_struct init_task
-> >         .thread_group   = LIST_HEAD_INIT(init_task.thread_group),
-> >         .thread_node    = LIST_HEAD_INIT(init_signals.thread_head),
-> >  #ifdef CONFIG_AUDITSYSCALL
-> > -       .loginuid       = INVALID_UID,
-> > -       .sessionid      = AUDIT_SID_UNSET,
-> > +       .audit          = {
-> > +               .loginuid       = INVALID_UID,
-> > +               .sessionid      = AUDIT_SID_UNSET,
-> > +               .ctx            = NULL,
-> > +       },
-> >  #endif
-> >  #ifdef CONFIG_PERF_EVENTS
-> >         .perf_event_mutex = __MUTEX_INITIALIZER(init_task.perf_event_mutex),
-> > diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> > index f294e4a..b5d8bff 100644
-> > --- a/kernel/auditsc.c
-> > +++ b/kernel/auditsc.c
-> > @@ -2068,8 +2068,8 @@ int audit_set_loginuid(kuid_t loginuid)
-> >                         sessionid = (unsigned int)atomic_inc_return(&session_id);
-> >         }
-> >
-> > -       task->sessionid = sessionid;
-> > -       task->loginuid = loginuid;
-> > +       task->audit.sessionid = sessionid;
-> > +       task->audit.loginuid = loginuid;
-> >  out:
-> >         audit_log_set_loginuid(oldloginuid, loginuid, oldsessionid, sessionid, rc);
-> >         return rc;
-> > --
-> > 1.8.3.1
-> 
-> -- 
-> paul moore
-> www.paul-moore.com
+    x86/entry/syscalls: Wire up 32-bit direct socket calls
 
-- RGB
+https://gist.githubusercontent.com/dvyukov/acbdace00cbb2fd31fb599a009d471e6/raw/bfe6bd8f2423df7b3493c7df2e466b37a8968688/gistfile1.txt
 
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
+Which is kinda makes sense, but shows another limitation of automatic bisection.
+
+
+> IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> Reported-by: syzbot+659574e7bcc7f7eb4df7@syzkaller.appspotmail.com
+> It will help syzbot understand when the bug is fixed. See footer for
+> details.
+> If you forward the report, please keep this part and the footer.
+>
+> audit: type=1400 audit(1520347101.934:8): avc:  denied  { map } for
+> pid=4183 comm="syz-execprog" path="/root/syzkaller-shm886349459" dev="sda1"
+> ino=16482 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023
+> tcontext=unconfined_u:object_r:file_t:s0 tclass=file permissive=1
+> IPVS: ftp: loaded support on port[0] = 21
+> WARNING: CPU: 1 PID: 4192 at net/bridge/netfilter/ebtables.c:2063
+> ebt_size_mwt net/bridge/netfilter/ebtables.c:2063 [inline]
+> WARNING: CPU: 1 PID: 4192 at net/bridge/netfilter/ebtables.c:2063
+> size_entry_mwt net/bridge/netfilter/ebtables.c:2140 [inline]
+> WARNING: CPU: 1 PID: 4192 at net/bridge/netfilter/ebtables.c:2063
+> compat_copy_entries+0xd92/0x1150 net/bridge/netfilter/ebtables.c:2179
+> Kernel panic - not syncing: panic_on_warn set ...
+>
+> CPU: 1 PID: 4192 Comm: syz-executor0 Not tainted 4.16.0-rc4+ #253
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
+> Google 01/01/2011
+> Call Trace:
+>  __dump_stack lib/dump_stack.c:17 [inline]
+>  dump_stack+0x194/0x24d lib/dump_stack.c:53
+>  panic+0x1e4/0x41c kernel/panic.c:183
+>  __warn+0x1dc/0x200 kernel/panic.c:547
+>  report_bug+0x211/0x2d0 lib/bug.c:184
+>  fixup_bug.part.11+0x37/0x80 arch/x86/kernel/traps.c:178
+>  fixup_bug arch/x86/kernel/traps.c:247 [inline]
+>  do_error_trap+0x2d7/0x3e0 arch/x86/kernel/traps.c:296
+>  do_invalid_op+0x1b/0x20 arch/x86/kernel/traps.c:315
+>  invalid_op+0x1b/0x40 arch/x86/entry/entry_64.S:986
+> RIP: 0010:ebt_size_mwt net/bridge/netfilter/ebtables.c:2063 [inline]
+> RIP: 0010:size_entry_mwt net/bridge/netfilter/ebtables.c:2140 [inline]
+> RIP: 0010:compat_copy_entries+0xd92/0x1150
+> net/bridge/netfilter/ebtables.c:2179
+> RSP: 0018:ffff8801bb5077e8 EFLAGS: 00010293
+> RAX: ffff8801bc82a580 RBX: 0000000000000000 RCX: ffffffff851ad5c2
+> RDX: 0000000000000000 RSI: ffffc90001853180 RDI: 0000000000000000
+> RBP: ffff8801bb507968 R08: 0000000000000004 R09: 0000000000000000
+> R10: ffffffff88613380 R11: 0000000000000001 R12: 0000000000000007
+> R13: dffffc0000000000 R14: ffff8801bb5079c8 R15: 000000000000000c
+>  compat_do_replace+0x398/0x7d0 net/bridge/netfilter/ebtables.c:2268
+>  compat_do_ebt_set_ctl+0x22a/0x2d0 net/bridge/netfilter/ebtables.c:2350
+>  compat_nf_sockopt net/netfilter/nf_sockopt.c:144 [inline]
+>  compat_nf_setsockopt+0x88/0x130 net/netfilter/nf_sockopt.c:156
+>  compat_ip_setsockopt+0x8b/0xd0 net/ipv4/ip_sockglue.c:1285
+>  inet_csk_compat_setsockopt+0x95/0x120 net/ipv4/inet_connection_sock.c:1041
+>  compat_dccp_setsockopt+0x40/0x70 net/dccp/proto.c:589
+>  compat_sock_common_setsockopt+0xb2/0x140 net/core/sock.c:2986
+>  C_SYSC_setsockopt net/compat.c:403 [inline]
+>  compat_SyS_setsockopt+0x17c/0x410 net/compat.c:386
+>  do_syscall_32_irqs_on arch/x86/entry/common.c:330 [inline]
+>  do_fast_syscall_32+0x3ec/0xf9f arch/x86/entry/common.c:392
+>  entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+> RIP: 0023:0xf7f35c99
+> RSP: 002b:00000000ff9c02cc EFLAGS: 00000282 ORIG_RAX: 000000000000016e
+> RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000000000
+> RDX: 0000000000000080 RSI: 0000000020000240 RDI: 0000000000000240
+> RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+> R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+> R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+> Dumping ftrace buffer:
+>    (ftrace buffer empty)
+> Kernel Offset: disabled
+> Rebooting in 86400 seconds..
+>
+>
+> ---
+> This bug is generated by a dumb bot. It may contain errors.
+> See https://goo.gl/tpsmEJ for details.
+> Direct all questions to syzkaller@googlegroups.com.
+>
+> syzbot will keep track of this bug report.
+> If you forgot to add the Reported-by tag, once the fix for this bug is
+> merged
+> into any tree, please reply to this email with:
+> #syz fix: exact-commit-title
+> If you want to test a patch for this bug, please reply with:
+> #syz test: git://repo/address.git branch
+> and provide the patch inline or as an attachment.
+> To mark this as a duplicate of another syzbot report, please reply with:
+> #syz dup: exact-subject-of-another-report
+> If it's a one-off invalid bug report, please reply with:
+> #syz invalid
+> Note: if the crash happens again, it will cause creation of a new bug
+> report.
+> Note: all commands must start from beginning of the line in the email body.
+>
+> --
+> You received this message because you are subscribed to the Google Groups
+> "syzkaller-bugs" group.
+> To unsubscribe from this group and stop receiving emails from it, send an
+> email to syzkaller-bugs+unsubscribe@googlegroups.com.
+> To view this discussion on the web visit
+> https://groups.google.com/d/msgid/syzkaller-bugs/001a113dea0ef7d2620566c15bac%40google.com.
+> For more options, visit https://groups.google.com/d/optout.
