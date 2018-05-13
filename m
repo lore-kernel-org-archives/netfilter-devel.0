@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 09/15] netfilter: prefer nla_strlcpy for dealing with NLA_STRING attributes
-Date: Mon, 14 May 2018 00:36:50 +0200
-Message-ID: <20180513223656.10077-10-pablo@netfilter.org>
+Subject: [PATCH 10/15] netfilter: x_tables: add module alias for icmp matches
+Date: Mon, 14 May 2018 00:36:51 +0200
+Message-ID: <20180513223656.10077-11-pablo@netfilter.org>
 References: <20180513223656.10077-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,62 +12,45 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Florian Westphal <fw@strlen.de>
 
-fixes these warnings:
-'nfnl_cthelper_create' at net/netfilter/nfnetlink_cthelper.c:237:2,
-'nfnl_cthelper_new' at net/netfilter/nfnetlink_cthelper.c:450:9:
-./include/linux/string.h:246:9: warning: '__builtin_strncpy' specified bound 16 equals destination size [-Wstringop-truncation]
-  return __builtin_strncpy(p, q, size);
-         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The icmp matches are implemented in ip_tables and ip6_tables,
+respectively, so for normal iptables they are always available:
+those modules are loaded once iptables calls getsockopt() to fetch
+available module revisions.
 
-Moreover, strncpy assumes null-terminated source buffers, but thats
-not the case here.
-Unlike strlcpy, nla_strlcpy *does* pad the destination buffer
-while also considering nla attribute size.
+In iptables-over-nftables case probing occurs via nfnetlink, so
+these modules might not be loaded.  Add aliases so modprobe can load
+these when icmp/icmp6 is requested.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_acct.c     | 2 +-
- net/netfilter/nfnetlink_cthelper.c | 7 ++++---
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ net/ipv4/netfilter/ip_tables.c  | 1 +
+ net/ipv6/netfilter/ip6_tables.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
-index b9505bcd3827..6ddf89183e7b 100644
---- a/net/netfilter/nfnetlink_acct.c
-+++ b/net/netfilter/nfnetlink_acct.c
-@@ -115,7 +115,7 @@ static int nfnl_acct_new(struct net *net, struct sock *nfnl,
- 		nfacct->flags = flags;
- 	}
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 44b308d93ec2..e85f35b89c49 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -34,6 +34,7 @@
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
+ MODULE_DESCRIPTION("IPv4 packet filter");
++MODULE_ALIAS("ipt_icmp");
  
--	strncpy(nfacct->name, nla_data(tb[NFACCT_NAME]), NFACCT_NAME_MAX);
-+	nla_strlcpy(nfacct->name, nla_data(tb[NFACCT_NAME]), NFACCT_NAME_MAX);
+ void *ipt_alloc_initial_table(const struct xt_table *info)
+ {
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 65c9e1a58305..97f79dc943d7 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -38,6 +38,7 @@
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
+ MODULE_DESCRIPTION("IPv6 packet filter");
++MODULE_ALIAS("ip6t_icmp6");
  
- 	if (tb[NFACCT_BYTES]) {
- 		atomic64_set(&nfacct->bytes,
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index 4a4b293fb2e5..fa026b269b36 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -149,8 +149,8 @@ nfnl_cthelper_expect_policy(struct nf_conntrack_expect_policy *expect_policy,
- 	    !tb[NFCTH_POLICY_EXPECT_TIMEOUT])
- 		return -EINVAL;
- 
--	strncpy(expect_policy->name,
--		nla_data(tb[NFCTH_POLICY_NAME]), NF_CT_HELPER_NAME_LEN);
-+	nla_strlcpy(expect_policy->name,
-+		    nla_data(tb[NFCTH_POLICY_NAME]), NF_CT_HELPER_NAME_LEN);
- 	expect_policy->max_expected =
- 		ntohl(nla_get_be32(tb[NFCTH_POLICY_EXPECT_MAX]));
- 	if (expect_policy->max_expected > NF_CT_EXPECT_MAX_CNT)
-@@ -234,7 +234,8 @@ nfnl_cthelper_create(const struct nlattr * const tb[],
- 	if (ret < 0)
- 		goto err1;
- 
--	strncpy(helper->name, nla_data(tb[NFCTH_NAME]), NF_CT_HELPER_NAME_LEN);
-+	nla_strlcpy(helper->name,
-+		    nla_data(tb[NFCTH_NAME]), NF_CT_HELPER_NAME_LEN);
- 	size = ntohl(nla_get_be32(tb[NFCTH_PRIV_DATA_LEN]));
- 	if (size > FIELD_SIZEOF(struct nf_conn_help, data)) {
- 		ret = -ENOMEM;
+ void *ip6t_alloc_initial_table(const struct xt_table *info)
+ {
 -- 
 2.11.0
