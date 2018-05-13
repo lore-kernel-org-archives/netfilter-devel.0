@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 02/15] netfilter: x_tables: check name length in find_match/target, too
-Date: Mon, 14 May 2018 00:36:43 +0200
-Message-ID: <20180513223656.10077-3-pablo@netfilter.org>
+Subject: [PATCH 07/15] ipvs: fix stats update from local clients
+Date: Mon, 14 May 2018 00:36:48 +0200
+Message-ID: <20180513223656.10077-8-pablo@netfilter.org>
 References: <20180513223656.10077-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,42 +10,120 @@ In-Reply-To: <20180513223656.10077-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Julian Anastasov <ja@ssi.bg>
 
-ebtables uses find_match() rather than find_request_match in one case
-(see bcf4934288402be3464110109a4dae3bd6fb3e93,
- "netfilter: ebtables: Fix extension lookup with identical name"), so
- extend the check on name length to those functions too.
+Local clients are not properly synchronized on 32-bit CPUs when
+updating stats (3.10+). Now it is possible estimation_timer (timer),
+a stats reader, to interrupt the local client in the middle of
+write_seqcount_{begin,end} sequence leading to loop (DEADLOCK).
+The same interrupt can happen from received packet (SoftIRQ)
+which updates the same per-CPU stats.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fix it by disabling BH while updating stats.
+
+Found with debug:
+
+WARNING: inconsistent lock state
+4.17.0-rc2-00105-g35cb6d7-dirty #2 Not tainted
+--------------------------------
+inconsistent {IN-SOFTIRQ-R} -> {SOFTIRQ-ON-W} usage.
+ftp/2545 [HC0[0]:SC0[0]:HE1:SE1] takes:
+86845479 (&syncp->seq#6){+.+-}, at: ip_vs_schedule+0x1c5/0x59e [ip_vs]
+{IN-SOFTIRQ-R} state was registered at:
+ lock_acquire+0x44/0x5b
+ estimation_timer+0x1b3/0x341 [ip_vs]
+ call_timer_fn+0x54/0xcd
+ run_timer_softirq+0x10c/0x12b
+ __do_softirq+0xc1/0x1a9
+ do_softirq_own_stack+0x1d/0x23
+ irq_exit+0x4a/0x64
+ smp_apic_timer_interrupt+0x63/0x71
+ apic_timer_interrupt+0x3a/0x40
+ default_idle+0xa/0xc
+ arch_cpu_idle+0x9/0xb
+ default_idle_call+0x21/0x23
+ do_idle+0xa0/0x167
+ cpu_startup_entry+0x19/0x1b
+ start_secondary+0x133/0x182
+ startup_32_smp+0x164/0x168
+irq event stamp: 42213
+
+other info that might help us debug this:
+Possible unsafe locking scenario:
+
+      CPU0
+      ----
+ lock(&syncp->seq#6);
+ <Interrupt>
+   lock(&syncp->seq#6);
+
+*** DEADLOCK ***
+
+Fixes: ac69269a45e8 ("ipvs: do not disable bh for long time")
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Acked-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/x_tables.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ net/netfilter/ipvs/ip_vs_core.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 71325fef647d..cb7cb300c3bc 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -183,6 +183,9 @@ struct xt_match *xt_find_match(u8 af, const char *name, u8 revision)
- 	struct xt_match *m;
- 	int err = -ENOENT;
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 5f6f73cf2174..0679dd101e72 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -119,6 +119,8 @@ ip_vs_in_stats(struct ip_vs_conn *cp, struct sk_buff *skb)
+ 		struct ip_vs_cpu_stats *s;
+ 		struct ip_vs_service *svc;
  
-+	if (strnlen(name, XT_EXTENSION_MAXNAMELEN) == XT_EXTENSION_MAXNAMELEN)
-+		return ERR_PTR(-EINVAL);
++		local_bh_disable();
 +
- 	mutex_lock(&xt[af].mutex);
- 	list_for_each_entry(m, &xt[af].match, list) {
- 		if (strcmp(m->name, name) == 0) {
-@@ -229,6 +232,9 @@ struct xt_target *xt_find_target(u8 af, const char *name, u8 revision)
- 	struct xt_target *t;
- 	int err = -ENOENT;
+ 		s = this_cpu_ptr(dest->stats.cpustats);
+ 		u64_stats_update_begin(&s->syncp);
+ 		s->cnt.inpkts++;
+@@ -137,6 +139,8 @@ ip_vs_in_stats(struct ip_vs_conn *cp, struct sk_buff *skb)
+ 		s->cnt.inpkts++;
+ 		s->cnt.inbytes += skb->len;
+ 		u64_stats_update_end(&s->syncp);
++
++		local_bh_enable();
+ 	}
+ }
  
-+	if (strnlen(name, XT_EXTENSION_MAXNAMELEN) == XT_EXTENSION_MAXNAMELEN)
-+		return ERR_PTR(-EINVAL);
+@@ -151,6 +155,8 @@ ip_vs_out_stats(struct ip_vs_conn *cp, struct sk_buff *skb)
+ 		struct ip_vs_cpu_stats *s;
+ 		struct ip_vs_service *svc;
+ 
++		local_bh_disable();
 +
- 	mutex_lock(&xt[af].mutex);
- 	list_for_each_entry(t, &xt[af].target, list) {
- 		if (strcmp(t->name, name) == 0) {
+ 		s = this_cpu_ptr(dest->stats.cpustats);
+ 		u64_stats_update_begin(&s->syncp);
+ 		s->cnt.outpkts++;
+@@ -169,6 +175,8 @@ ip_vs_out_stats(struct ip_vs_conn *cp, struct sk_buff *skb)
+ 		s->cnt.outpkts++;
+ 		s->cnt.outbytes += skb->len;
+ 		u64_stats_update_end(&s->syncp);
++
++		local_bh_enable();
+ 	}
+ }
+ 
+@@ -179,6 +187,8 @@ ip_vs_conn_stats(struct ip_vs_conn *cp, struct ip_vs_service *svc)
+ 	struct netns_ipvs *ipvs = svc->ipvs;
+ 	struct ip_vs_cpu_stats *s;
+ 
++	local_bh_disable();
++
+ 	s = this_cpu_ptr(cp->dest->stats.cpustats);
+ 	u64_stats_update_begin(&s->syncp);
+ 	s->cnt.conns++;
+@@ -193,6 +203,8 @@ ip_vs_conn_stats(struct ip_vs_conn *cp, struct ip_vs_service *svc)
+ 	u64_stats_update_begin(&s->syncp);
+ 	s->cnt.conns++;
+ 	u64_stats_update_end(&s->syncp);
++
++	local_bh_enable();
+ }
+ 
+ 
 -- 
 2.11.0
