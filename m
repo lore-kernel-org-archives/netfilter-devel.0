@@ -1,7 +1,8 @@
 From: Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH ghak81 RFC V2 0/5] audit: group task params
-Date: Sat, 12 May 2018 21:58:17 -0400
-Message-ID: <cover.1526173613.git.rgb@redhat.com>
+Subject: [PATCH ghak81 RFC V2 1/5] audit: normalize loginuid read access
+Date: Sat, 12 May 2018 21:58:18 -0400
+Message-ID: <33f131a40a50bd7532ed74ff51e3da920e9e8df5.1526173613.git.rgb@redhat.com>
+References: <cover.1526173613.git.rgb@redhat.com>
 Cc: Eric Paris <eparis@redhat.com>, Paul Moore <paul@paul-moore.com>,
         Steve Grubb <sgrubb@redhat.com>,
         Ingo Molnar <mingo@redhat.com>,
@@ -17,64 +18,84 @@ To: Linux-Audit Mailing List <linux-audit@redhat.com>,
         <linux-integrity@vger.kernel.org>,
         SElinux list <selinux@tycho.nsa.gov>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1526173613.git.rgb@redhat.com>
+In-Reply-To: <cover.1526173613.git.rgb@redhat.com>
+References: <cover.1526173613.git.rgb@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Group the audit parameters for each task into one structure.
-In particular, remove the loginuid and sessionid values and the audit
-context pointer from the task structure, replacing them with an audit
-task information structure to contain them.  Use access functions to
-access audit values.
+Recognizing that the loginuid is an internal audit value, use an access
+function to retrieve the audit loginuid value for the task rather than
+reaching directly into the task struct to get it.
 
-Note:  Use static allocation of the audit task information structure
-initially.  Dynamic allocation was considered and attempted, but isn't
-ready yet.  Static allocation has the limitation that future audit task
-information structure changes would cause a visible change to the rest
-of the kernel, whereas dynamic allocation would mostly hide any future
-changes.
+Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+---
+ kernel/auditsc.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-The first four access normalization patches could stand alone.
-
-Passes audit-testsuite.
-
-Changelog:
-v2
-- p2/5: add audit header to init/init_task.c to quiet kbuildbot
-- audit_signal_info(): fetch loginuid once
-- remove task_struct from audit_context() param list
-- remove extra task_struct local vars
-- do nothing on request to set audit context when audit is disabled
-
-Richard Guy Briggs (5):
-  audit: normalize loginuid read access
-  audit: convert sessionid unset to a macro
-  audit: use inline function to get audit context
-  audit: use inline function to set audit context
-  audit: collect audit task parameters
-
- MAINTAINERS                          |  2 +-
- include/linux/audit.h                | 28 ++++++++---
- include/linux/audit_task.h           | 31 ++++++++++++
- include/linux/sched.h                |  6 +--
- include/net/xfrm.h                   |  4 +-
- include/uapi/linux/audit.h           |  1 +
- init/init_task.c                     |  8 ++-
- kernel/audit.c                       |  6 +--
- kernel/audit_watch.c                 |  2 +-
- kernel/auditsc.c                     | 97 +++++++++++++++++-------------------
- kernel/fork.c                        |  2 +-
- net/bridge/netfilter/ebtables.c      |  2 +-
- net/core/dev.c                       |  2 +-
- net/netfilter/x_tables.c             |  2 +-
- net/netlabel/netlabel_user.c         |  2 +-
- security/integrity/ima/ima_api.c     |  2 +-
- security/integrity/integrity_audit.c |  2 +-
- security/lsm_audit.c                 |  2 +-
- security/selinux/hooks.c             |  4 +-
- security/selinux/selinuxfs.c         |  6 +--
- security/selinux/ss/services.c       | 12 ++---
- 21 files changed, 133 insertions(+), 90 deletions(-)
- create mode 100644 include/linux/audit_task.h
-
+diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+index 479c031..0d4e269 100644
+--- a/kernel/auditsc.c
++++ b/kernel/auditsc.c
+@@ -374,7 +374,7 @@ static int audit_field_compare(struct task_struct *tsk,
+ 	case AUDIT_COMPARE_EGID_TO_OBJ_GID:
+ 		return audit_compare_gid(cred->egid, name, f, ctx);
+ 	case AUDIT_COMPARE_AUID_TO_OBJ_UID:
+-		return audit_compare_uid(tsk->loginuid, name, f, ctx);
++		return audit_compare_uid(audit_get_loginuid(tsk), name, f, ctx);
+ 	case AUDIT_COMPARE_SUID_TO_OBJ_UID:
+ 		return audit_compare_uid(cred->suid, name, f, ctx);
+ 	case AUDIT_COMPARE_SGID_TO_OBJ_GID:
+@@ -385,7 +385,7 @@ static int audit_field_compare(struct task_struct *tsk,
+ 		return audit_compare_gid(cred->fsgid, name, f, ctx);
+ 	/* uid comparisons */
+ 	case AUDIT_COMPARE_UID_TO_AUID:
+-		return audit_uid_comparator(cred->uid, f->op, tsk->loginuid);
++		return audit_uid_comparator(cred->uid, f->op, audit_get_loginuid(tsk));
+ 	case AUDIT_COMPARE_UID_TO_EUID:
+ 		return audit_uid_comparator(cred->uid, f->op, cred->euid);
+ 	case AUDIT_COMPARE_UID_TO_SUID:
+@@ -394,11 +394,11 @@ static int audit_field_compare(struct task_struct *tsk,
+ 		return audit_uid_comparator(cred->uid, f->op, cred->fsuid);
+ 	/* auid comparisons */
+ 	case AUDIT_COMPARE_AUID_TO_EUID:
+-		return audit_uid_comparator(tsk->loginuid, f->op, cred->euid);
++		return audit_uid_comparator(audit_get_loginuid(tsk), f->op, cred->euid);
+ 	case AUDIT_COMPARE_AUID_TO_SUID:
+-		return audit_uid_comparator(tsk->loginuid, f->op, cred->suid);
++		return audit_uid_comparator(audit_get_loginuid(tsk), f->op, cred->suid);
+ 	case AUDIT_COMPARE_AUID_TO_FSUID:
+-		return audit_uid_comparator(tsk->loginuid, f->op, cred->fsuid);
++		return audit_uid_comparator(audit_get_loginuid(tsk), f->op, cred->fsuid);
+ 	/* euid comparisons */
+ 	case AUDIT_COMPARE_EUID_TO_SUID:
+ 		return audit_uid_comparator(cred->euid, f->op, cred->suid);
+@@ -611,7 +611,7 @@ static int audit_filter_rules(struct task_struct *tsk,
+ 				result = match_tree_refs(ctx, rule->tree);
+ 			break;
+ 		case AUDIT_LOGINUID:
+-			result = audit_uid_comparator(tsk->loginuid, f->op, f->uid);
++			result = audit_uid_comparator(audit_get_loginuid(tsk), f->op, f->uid);
+ 			break;
+ 		case AUDIT_LOGINUID_SET:
+ 			result = audit_comparator(audit_loginuid_set(tsk), f->op, f->val);
+@@ -2281,14 +2281,14 @@ int audit_signal_info(int sig, struct task_struct *t)
+ 	struct audit_aux_data_pids *axp;
+ 	struct task_struct *tsk = current;
+ 	struct audit_context *ctx = tsk->audit_context;
+-	kuid_t uid = current_uid(), t_uid = task_uid(t);
++	kuid_t uid = current_uid(), auid, t_uid = task_uid(t);
+ 
+ 	if (auditd_test_task(t) &&
+ 	    (sig == SIGTERM || sig == SIGHUP ||
+ 	     sig == SIGUSR1 || sig == SIGUSR2)) {
+ 		audit_sig_pid = task_tgid_nr(tsk);
+-		if (uid_valid(tsk->loginuid))
+-			audit_sig_uid = tsk->loginuid;
++		if (uid_valid(auid = audit_get_loginuid(tsk)))
++			audit_sig_uid = auid;
+ 		else
+ 			audit_sig_uid = uid;
+ 		security_task_getsecid(tsk, &audit_sig_sid);
 -- 
 1.8.3.1
