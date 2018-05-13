@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 03/15] netfilter: nf_tables: skip synchronize_rcu if transaction log is empty
-Date: Mon, 14 May 2018 00:36:44 +0200
-Message-ID: <20180513223656.10077-4-pablo@netfilter.org>
+Subject: [PATCH 01/15] netfilter: Fix handling simultaneous open in TCP conntrack
+Date: Mon, 14 May 2018 00:36:42 +0200
+Message-ID: <20180513223656.10077-2-pablo@netfilter.org>
 References: <20180513223656.10077-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,69 +10,58 @@ In-Reply-To: <20180513223656.10077-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-After processing the transaction log, the remaining entries of the log
-need to be released.
+Dominique Martinet reported a TCP hang problem when simultaneous open was used.
+The problem is that the tcp_conntracks state table is not smart enough
+to handle the case. The state table could be fixed by introducing a new state,
+but that would require more lines of code compared to this patch, due to the
+required backward compatibility with ctnetlink.
 
-However, in some cases no entries remain, e.g. because the transaction
-did not remove anything.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Reported-by: Dominique Martinet <asmadeus@codewreck.org>
+Tested-by: Dominique Martinet <asmadeus@codewreck.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ include/uapi/linux/netfilter/nf_conntrack_tcp.h |  3 +++
+ net/netfilter/nf_conntrack_proto_tcp.c          | 11 +++++++++++
+ 2 files changed, 14 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 04d4e3772584..785d7fcf1fe1 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5761,7 +5761,7 @@ static void nft_chain_commit_update(struct nft_trans *trans)
- 	}
- }
+diff --git a/include/uapi/linux/netfilter/nf_conntrack_tcp.h b/include/uapi/linux/netfilter/nf_conntrack_tcp.h
+index 74b91151d494..bcba72def817 100644
+--- a/include/uapi/linux/netfilter/nf_conntrack_tcp.h
++++ b/include/uapi/linux/netfilter/nf_conntrack_tcp.h
+@@ -46,6 +46,9 @@ enum tcp_conntrack {
+ /* Marks possibility for expected RFC5961 challenge ACK */
+ #define IP_CT_EXP_CHALLENGE_ACK 		0x40
  
--static void nf_tables_commit_release(struct nft_trans *trans)
-+static void nft_commit_release(struct nft_trans *trans)
- {
- 	switch (trans->msg_type) {
- 	case NFT_MSG_DELTABLE:
-@@ -5790,6 +5790,21 @@ static void nf_tables_commit_release(struct nft_trans *trans)
- 	kfree(trans);
- }
- 
-+static void nf_tables_commit_release(struct net *net)
-+{
-+	struct nft_trans *trans, *next;
++/* Simultaneous open initialized */
++#define IP_CT_TCP_SIMULTANEOUS_OPEN		0x80
 +
-+	if (list_empty(&net->nft.commit_list))
-+		return;
-+
-+	synchronize_rcu();
-+
-+	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
-+		list_del(&trans->list);
-+		nft_commit_release(trans);
-+	}
-+}
-+
- static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- {
- 	struct nft_trans *trans, *next;
-@@ -5920,13 +5935,7 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
+ struct nf_ct_tcp_flags {
+ 	__u8 flags;
+ 	__u8 mask;
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index e97cdc1cf98c..8e67910185a0 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -981,6 +981,17 @@ static int tcp_packet(struct nf_conn *ct,
+ 			return NF_ACCEPT; /* Don't change state */
  		}
- 	}
- 
--	synchronize_rcu();
--
--	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
--		list_del(&trans->list);
--		nf_tables_commit_release(trans);
--	}
--
-+	nf_tables_commit_release(net);
- 	nf_tables_gen_notify(net, skb, NFT_MSG_NEWGEN);
- 
- 	return 0;
+ 		break;
++	case TCP_CONNTRACK_SYN_SENT2:
++		/* tcp_conntracks table is not smart enough to handle
++		 * simultaneous open.
++		 */
++		ct->proto.tcp.last_flags |= IP_CT_TCP_SIMULTANEOUS_OPEN;
++		break;
++	case TCP_CONNTRACK_SYN_RECV:
++		if (dir == IP_CT_DIR_REPLY && index == TCP_ACK_SET &&
++		    ct->proto.tcp.last_flags & IP_CT_TCP_SIMULTANEOUS_OPEN)
++			new_state = TCP_CONNTRACK_ESTABLISHED;
++		break;
+ 	case TCP_CONNTRACK_CLOSE:
+ 		if (index == TCP_RST_SET
+ 		    && (ct->proto.tcp.seen[!dir].flags & IP_CT_TCP_FLAG_MAXACK_SET)
 -- 
 2.11.0
