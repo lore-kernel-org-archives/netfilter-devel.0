@@ -1,29 +1,28 @@
 From: Eric Biggers <ebiggers3@gmail.com>
-Subject: Re: BUG: unable to handle kernel paging request in
- cgroup_mt_destroy_v1
-Date: Sat, 12 May 2018 23:50:49 -0700
-Message-ID: <20180513065049.GA27296@sol.localdomain>
-References: <f4f5e803bcb8f8c5e305641cecbe@google.com>
+Subject: Re: INFO: trying to register non-static key in del_timer_sync
+Date: Sun, 13 May 2018 12:59:35 -0700
+Message-ID: <20180513195935.GC677@sol.localdomain>
+References: <001a114387b66c88ce0563dab5b8@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: coreteam@netfilter.org, davem@davemloft.net, fw@strlen.de,
         kadlec@blackhole.kfki.hu, linux-kernel@vger.kernel.org,
         netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
         pablo@netfilter.org, syzkaller-bugs@googlegroups.com
-To: syzbot <syzbot+eeed2602160e4cc17410@syzkaller.appspotmail.com>
+To: syzbot <syzbot+3659f05802671eb8af9c@syzkaller.appspotmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <f4f5e803bcb8f8c5e305641cecbe@google.com>
+In-Reply-To: <001a114387b66c88ce0563dab5b8@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jan 31, 2018 at 05:58:01PM -0800, syzbot wrote:
+On Sun, Jan 28, 2018 at 10:58:01AM -0800, syzbot wrote:
 > Hello,
 > 
 > syzbot hit the following crash on upstream commit
-> 3da90b159b146672f830bcd2489dd3a1f4e9e089 (Wed Jan 31 03:07:32 2018 +0000)
-> Merge tag 'f2fs-for-4.16-rc1' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/jaegeuk/f2fs
+> c4e0ca7fa24137e372d6135fe16e8df8e123f116 (Fri Jan 26 23:10:50 2018 +0000)
+> Merge tag 'riscv-for-linus-4.15-maintainers' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/palmer/riscv-linux
 > 
 > So far this crash happened 3 times on net-next, upstream.
 > C reproducer is attached.
@@ -33,47 +32,33 @@ On Wed, Jan 31, 2018 at 05:58:01PM -0800, syzbot wrote:
 > .config is attached.
 > 
 > IMPORTANT: if you fix the bug, please add the following tag to the commit:
-> Reported-by: syzbot+eeed2602160e4cc17410@syzkaller.appspotmail.com
+> Reported-by: syzbot+3659f05802671eb8af9c@syzkaller.appspotmail.com
 > It will help syzbot understand when the bug is fixed. See footer for
 > details.
 > If you forward the report, please keep this part and the footer.
 > 
-> audit: type=1400 audit(1517426494.787:7): avc:  denied  { map } for
-> pid=4176 comm="syzkaller493328" path="/root/syzkaller493328633" dev="sda1"
+> audit: type=1400 audit(1517074079.617:7): avc:  denied  { map } for
+> pid=3685 comm="syzkaller985951" path="/root/syzkaller985951088" dev="sda1"
 > ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023
 > tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
-> BUG: unable to handle kernel paging request at ffffffffffffff6d
-> IP: css_put include/linux/cgroup.h:386 [inline]
-> IP: cgroup_put include/linux/cgroup.h:415 [inline]
-> IP: cgroup_mt_destroy_v1+0xe5/0x310 net/netfilter/xt_cgroup.c:102
-> PGD 6a25067 P4D 6a25067 PUD 6a27067 PMD 0
-> Oops: 0000 [#1] SMP KASAN
-> Dumping ftrace buffer:
->    (ftrace buffer empty)
-> Modules linked in:
-> CPU: 0 PID: 4176 Comm: syzkaller493328 Not tainted 4.15.0+ #288
+> INFO: trying to register non-static key.
+> the code is fine but needs lockdep annotation.
+> turning off the locking correctness validator.
+> CPU: 1 PID: 3685 Comm: syzkaller985951 Not tainted 4.15.0-rc9+ #283
 > Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
 > Google 01/01/2011
-> RIP: 0010:css_put include/linux/cgroup.h:386 [inline]
-> RIP: 0010:cgroup_put include/linux/cgroup.h:415 [inline]
-> RIP: 0010:cgroup_mt_destroy_v1+0xe5/0x310 net/netfilter/xt_cgroup.c:102
-> RSP: 0018:ffff8801b19e7958 EFLAGS: 00010246
-> RAX: 0000000000000008 RBX: 1ffff1003633cf2b RCX: ffffffff847188c6
-> RDX: 0000000000000000 RSI: ffffffff8709b900 RDI: ffffffffffffff6d
-> RBP: ffff8801b19e79e0 R08: 1ffff1003633cef9 R09: 0000000000000000
-> R10: 0000000000000000 R11: 0000000000000000 R12: ffffffffffffff01
-> R13: ffff8801b19e79b8 R14: dffffc0000000000 R15: ffffffff84718810
-> FS:  0000000000c16880(0000) GS:ffff8801db400000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: ffffffffffffff6d CR3: 00000001b1f38004 CR4: 00000000001606f0
-> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
 > Call Trace:
->  cleanup_match+0x14e/0x220 net/ipv6/netfilter/ip6_tables.c:481
->  cleanup_entry+0xcb/0x350 net/ipv4/netfilter/ip_tables.c:646
->  __do_replace+0x7d7/0xa90 net/ipv4/netfilter/ip_tables.c:1091
->  do_replace net/ipv4/netfilter/ip_tables.c:1147 [inline]
->  do_ipt_set_ctl+0x40f/0x5f0 net/ipv4/netfilter/ip_tables.c:1677
+>  __dump_stack lib/dump_stack.c:17 [inline]
+>  dump_stack+0x194/0x257 lib/dump_stack.c:53
+>  register_lock_class+0x542/0x2cd0 kernel/locking/lockdep.c:752
+>  __lock_acquire+0x1de/0x3e00 kernel/locking/lockdep.c:3314
+>  lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3914
+>  del_timer_sync+0xba/0x240 kernel/time/timer.c:1275
+>  led_tg_destroy+0x2dd/0x3f0 net/netfilter/xt_LED.c:185
+>  cleanup_entry+0x218/0x350 net/ipv4/netfilter/ip_tables.c:659
+>  __do_replace+0x7d7/0xa90 net/ipv4/netfilter/ip_tables.c:1096
+>  do_replace net/ipv4/netfilter/ip_tables.c:1152 [inline]
+>  do_ipt_set_ctl+0x40f/0x5f0 net/ipv4/netfilter/ip_tables.c:1682
 >  nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
 >  nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
 >  ip_setsockopt+0xa1/0xb0 net/ipv4/ip_sockglue.c:1256
@@ -82,22 +67,70 @@ On Wed, Jan 31, 2018 at 05:58:01PM -0800, syzbot wrote:
 >  SYSC_setsockopt net/socket.c:1831 [inline]
 >  SyS_setsockopt+0x189/0x360 net/socket.c:1810
 >  entry_SYSCALL_64_fastpath+0x29/0xa0
-> RIP: 0033:0x4408a9
-> RSP: 002b:00007ffddd061cc8 EFLAGS: 00000207 ORIG_RAX: 0000000000000036
-> RAX: ffffffffffffffda RBX: ffffffffffffffff RCX: 00000000004408a9
-> RDX: 0000000000000040 RSI: 0000000000000000 RDI: 0000000000000004
-> RBP: faaff2414ccfc19e R08: 00000000000012f0 R09: 0000000000000000
-> R10: 000000002000b000 R11: 0000000000000207 R12: 886f734548d4d66b
-> R13: ffffffffffffff01 R14: 0000000000000000 R15: 0000000000000000
-> Code: 6c 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 0f b6 14 02 48
-> 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f 85 a6 01 00 00 <41> f6 44 24 6c
-> 01 74 2e e8 be 06 ff fc 48 b8 00 00 00 00 00 fc
-> RIP: css_put include/linux/cgroup.h:386 [inline] RSP: ffff8801b19e7958
-> RIP: cgroup_put include/linux/cgroup.h:415 [inline] RSP: ffff8801b19e7958
-> RIP: cgroup_mt_destroy_v1+0xe5/0x310 net/netfilter/xt_cgroup.c:102 RSP:
-> ffff8801b19e7958
-> CR2: ffffffffffffff6d
-> ---[ end trace bfd8c145aa41ae03 ]---
+> RIP: 0033:0x4449fa
+> RSP: 002b:00007ffee653a948 EFLAGS: 00000206 ORIG_RAX: 0000000000000036
+> RAX: ffffffffffffffda RBX: 00000000006cd0fc RCX: 00000000004449fa
+> RDX: 0000000000000040 RSI: 0000000000000000 RDI: 0000000000000003
+> RBP: 00000000006cd0fc R08: 00000000000002d8 R09: 000000000117c880
+> R10: 00000000006cd528 R11: 0000000000000206 R12: 0000000000000003
+> R13: 00000000006d00a4 R14: 00000000006d0050 R15: 00000000004a39ae
+> ------------[ cut here ]------------
+> ODEBUG: assert_init not available (active state 0) object type: timer_list
+> hint:           (null)
+> WARNING: CPU: 1 PID: 3685 at lib/debugobjects.c:291
+> debug_print_object+0x166/0x220 lib/debugobjects.c:288
+> Kernel panic - not syncing: panic_on_warn set ...
+> 
+> CPU: 1 PID: 3685 Comm: syzkaller985951 Not tainted 4.15.0-rc9+ #283
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
+> Google 01/01/2011
+> Call Trace:
+>  __dump_stack lib/dump_stack.c:17 [inline]
+>  dump_stack+0x194/0x257 lib/dump_stack.c:53
+>  panic+0x1e4/0x41c kernel/panic.c:183
+>  __warn+0x1dc/0x200 kernel/panic.c:547
+>  report_bug+0x211/0x2d0 lib/bug.c:184
+>  fixup_bug.part.11+0x37/0x80 arch/x86/kernel/traps.c:178
+>  fixup_bug arch/x86/kernel/traps.c:247 [inline]
+>  do_error_trap+0x2d7/0x3e0 arch/x86/kernel/traps.c:296
+>  do_invalid_op+0x1b/0x20 arch/x86/kernel/traps.c:315
+>  invalid_op+0x22/0x40 arch/x86/entry/entry_64.S:1096
+> RIP: 0010:debug_print_object+0x166/0x220 lib/debugobjects.c:288
+> RSP: 0018:ffff8801d9adf7d0 EFLAGS: 00010282
+> RAX: dffffc0000000008 RBX: 0000000000000005 RCX: ffffffff8159ebae
+> RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000293
+> RBP: ffff8801d9adf810 R08: 0000000000000000 R09: 1ffff1003b35be97
+> R10: ffff8801d9adf6d0 R11: ffffffff86b38678 R12: 0000000000000001
+> R13: ffffffff86b49d00 R14: ffffffff86010440 R15: ffffffff815f1530
+>  debug_object_assert_init+0x303/0x570 lib/debugobjects.c:654
+>  debug_timer_assert_init kernel/time/timer.c:707 [inline]
+>  debug_assert_init kernel/time/timer.c:759 [inline]
+>  try_to_del_timer_sync+0x74/0x130 kernel/time/timer.c:1215
+>  del_timer_sync+0x18a/0x240 kernel/time/timer.c:1285
+>  led_tg_destroy+0x2dd/0x3f0 net/netfilter/xt_LED.c:185
+>  cleanup_entry+0x218/0x350 net/ipv4/netfilter/ip_tables.c:659
+>  __do_replace+0x7d7/0xa90 net/ipv4/netfilter/ip_tables.c:1096
+>  do_replace net/ipv4/netfilter/ip_tables.c:1152 [inline]
+>  do_ipt_set_ctl+0x40f/0x5f0 net/ipv4/netfilter/ip_tables.c:1682
+>  nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+>  nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+>  ip_setsockopt+0xa1/0xb0 net/ipv4/ip_sockglue.c:1256
+>  tcp_setsockopt+0x82/0xd0 net/ipv4/tcp.c:2875
+>  sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2968
+>  SYSC_setsockopt net/socket.c:1831 [inline]
+>  SyS_setsockopt+0x189/0x360 net/socket.c:1810
+>  entry_SYSCALL_64_fastpath+0x29/0xa0
+> RIP: 0033:0x4449fa
+> RSP: 002b:00007ffee653a948 EFLAGS: 00000206 ORIG_RAX: 0000000000000036
+> RAX: ffffffffffffffda RBX: 00000000006cd0fc RCX: 00000000004449fa
+> RDX: 0000000000000040 RSI: 0000000000000000 RDI: 0000000000000003
+> RBP: 00000000006cd0fc R08: 00000000000002d8 R09: 000000000117c880
+> R10: 00000000006cd528 R11: 0000000000000206 R12: 0000000000000003
+> R13: 00000000006d00a4 R14: 00000000006d0050 R15: 00000000004a39ae
+> Dumping ftrace buffer:
+>    (ftrace buffer empty)
+> Kernel Offset: disabled
+> Rebooting in 86400 seconds..
 > 
 > 
 > ---
@@ -111,8 +144,8 @@ On Wed, Jan 31, 2018 at 05:58:01PM -0800, syzbot wrote:
 > into any tree, please reply to this email with:
 > #syz fix: exact-commit-title
 
-This was fixed by commit ba7cd5d95f25cc6:
+This was fixed by commit 10414014bc085a:
 
-#syz fix: netfilter: xt_cgroup: initialize info->priv in cgroup_mt_check_v1()
+#syz fix: netfilter: x_tables: fix missing timer initialization in xt_LED
 
 - Eric
