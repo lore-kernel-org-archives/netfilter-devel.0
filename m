@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 05/15] netfilter: nf_tables: nft_compat: fix refcount leak on xt module
-Date: Mon, 14 May 2018 00:36:46 +0200
-Message-ID: <20180513223656.10077-6-pablo@netfilter.org>
+Subject: [PATCH 06/15] ipvs: fix refcount usage for conns in ops mode
+Date: Mon, 14 May 2018 00:36:47 +0200
+Message-ID: <20180513223656.10077-7-pablo@netfilter.org>
 References: <20180513223656.10077-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,285 +10,155 @@ In-Reply-To: <20180513223656.10077-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Julian Anastasov <ja@ssi.bg>
 
-Taehee Yoo reported following bug:
-    iptables-compat -I OUTPUT -m cpu --cpu 0
-    iptables-compat -F
-    lsmod |grep xt_cpu
-    xt_cpu                 16384  1
+Connections in One-packet scheduling mode (-o, --ops) are
+removed with refcnt=0 because they are not hashed in conn table.
+To avoid refcount_dec reporting this as error, change them to be
+removed with refcount_dec_if_one as all other connections.
 
-Quote:
-"When above command is given, a netlink message has two expressions that
-are the cpu compat and the nft_counter.
-The nft_expr_type_get() in the nf_tables_expr_parse() successes
-first expression then, calls select_ops callback.
-(allocates memory and holds module)
-But, second nft_expr_type_get() in the nf_tables_expr_parse()
-returns -EAGAIN because of request_module().
-In that point, by the 'goto err1',
-the 'module_put(info[i].ops->type->owner)' is called.
-There is no release routine."
+refcount_t hit zero at ip_vs_conn_put+0x31/0x40 [ip_vs]
+in sh[15519], uid/euid: 497/497
+WARNING: CPU: 0 PID: 15519 at ../kernel/panic.c:657
+refcount_error_report+0x94/0x9e
+Modules linked in: ip_vs_rr cirrus ttm sb_edac
+edac_core drm_kms_helper crct10dif_pclmul crc32_pclmul
+ghash_clmulni_intel pcbc mousedev drm aesni_intel aes_x86_64
+crypto_simd glue_helper cryptd psmouse evdev input_leds led_class
+intel_agp fb_sys_fops syscopyarea sysfillrect intel_rapl_perf mac_hid
+intel_gtt serio_raw sysimgblt agpgart i2c_piix4 i2c_core ata_generic
+pata_acpi floppy cfg80211 rfkill button loop macvlan ip_vs
+nf_conntrack libcrc32c crc32c_generic ip_tables x_tables ipv6
+crc_ccitt autofs4 ext4 crc16 mbcache jbd2 fscrypto ata_piix libata
+atkbd libps2 scsi_mod crc32c_intel i8042 rtc_cmos serio af_packet
+dm_mod dax fuse xen_netfront xen_blkfront
+CPU: 0 PID: 15519 Comm: sh Tainted: G        W
+4.15.17 #1-NixOS
+Hardware name: Xen HVM domU, BIOS 4.2.amazon 08/24/2006
+RIP: 0010:refcount_error_report+0x94/0x9e
+RSP: 0000:ffffa344dde039c8 EFLAGS: 00010296
+RAX: 0000000000000057 RBX: ffffffff92f20e06 RCX: 0000000000000006
+RDX: 0000000000000007 RSI: 0000000000000086 RDI: ffffa344dde165c0
+RBP: ffffa344dde03b08 R08: 0000000000000218 R09: 0000000000000004
+R10: ffffffff93006a80 R11: 0000000000000001 R12: ffffa344d68cd100
+R13: 00000000000001f1 R14: ffffffff92f12fb0 R15: 0000000000000004
+FS:  00007fc9d2040fc0(0000) GS:ffffa344dde00000(0000)
+knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000262a000 CR3: 0000000016a0c004 CR4: 00000000001606f0
+Call Trace:
+ <IRQ>
+ ex_handler_refcount+0x4e/0x80
+ fixup_exception+0x33/0x40
+ do_trap+0x83/0x140
+ do_error_trap+0x83/0xf0
+ ? ip_vs_conn_drop_conntrack+0x120/0x1a5 [ip_vs]
+ ? ip_finish_output2+0x29c/0x390
+ ? ip_finish_output2+0x1a2/0x390
+ invalid_op+0x1b/0x40
+RIP: 0010:ip_vs_conn_put+0x31/0x40 [ip_vs]
+RSP: 0000:ffffa344dde03bb8 EFLAGS: 00010246
+RAX: 0000000000000001 RBX: ffffa344df31cf00 RCX: ffffa344d7450198
+RDX: 0000000000000003 RSI: 00000000fffffe01 RDI: ffffa344d7450140
+RBP: 0000000000000002 R08: 0000000000000476 R09: 0000000000000000
+R10: ffffa344dde03b28 R11: ffffa344df200000 R12: ffffa344d7d09000
+R13: ffffa344def3a980 R14: ffffffffc04f6e20 R15: 0000000000000008
+ ip_vs_in.part.29.constprop.36+0x34f/0x640 [ip_vs]
+ ? ip_vs_conn_out_get+0xe0/0xe0 [ip_vs]
+ ip_vs_remote_request4+0x47/0xa0 [ip_vs]
+ ? ip_vs_in.part.29.constprop.36+0x640/0x640 [ip_vs]
+ nf_hook_slow+0x43/0xc0
+ ip_local_deliver+0xac/0xc0
+ ? ip_rcv_finish+0x400/0x400
+ ip_rcv+0x26c/0x380
+ __netif_receive_skb_core+0x3a0/0xb10
+ ? inet_gro_receive+0x23c/0x2b0
+ ? netif_receive_skb_internal+0x24/0xb0
+ netif_receive_skb_internal+0x24/0xb0
+ napi_gro_receive+0xb8/0xe0
+ xennet_poll+0x676/0xb40 [xen_netfront]
+ net_rx_action+0x139/0x3a0
+ __do_softirq+0xde/0x2b4
+ irq_exit+0xae/0xb0
+ xen_evtchn_do_upcall+0x2c/0x40
+ xen_hvm_callback_vector+0x7d/0x90
+ </IRQ>
+RIP: 0033:0x7fc9d11c91f9
+RSP: 002b:00007ffebe8a2ea0 EFLAGS: 00000202 ORIG_RAX:
+ffffffffffffff0c
+RAX: 00000000ffffffff RBX: 0000000002609808 RCX: 0000000000000054
+RDX: 0000000000000001 RSI: 0000000002605440 RDI: 00000000025f940e
+RBP: 00000000025f940e R08: 000000000260213d R09: 1999999999999999
+R10: 000000000262a808 R11: 00000000025f942d R12: 00000000025f940e
+R13: 00007fc9d1301e20 R14: 00000000025f9408 R15: 00007fc9d1302720
+Code: 48 8b 95 80 00 00 00 41 55 49 8d 8c 24 e0 05 00
+00 45 8b 84 24 38 04 00 00 41 89 c1 48 89 de 48 c7 c7 a8 2f f2 92 e8
+7c fa ff ff <0f> 0b 58 5b 5d 41 5c 41 5d c3 0f 1f 44 00 00 55 48 89 e5
+41 56
 
-The core problem is that unlike all other expression,
-nft_compat select_ops has side effects.
-
-1. it allocates dynamic memory which holds an nft ops struct.
-   In all other expressions, ops has static storage duration.
-2. It grabs references to the xt module that it is supposed to
-   invoke.
-
-Depending on where things go wrong, error unwinding doesn't
-always do the right thing.
-
-In the above scenario, a new nft_compat_expr is created and
-xt_cpu module gets loaded with a refcount of 1.
-
-Due to to -EAGAIN, the netlink messages get re-parsed.
-When that happens, nft_compat finds that xt_cpu is already present
-and increments module refcount again.
-
-This fixes the problem by making select_ops to have no visible
-side effects and removes all extra module_get/put.
-
-When select_ops creates a new nft_compat expression, the new
-expression has a refcount of 0, and the xt module gets its refcount
-incremented.
-
-When error happens, the next call finds existing entry, but will no
-longer increase the reference count -- the presence of existing
-nft_xt means we already hold a module reference.
-
-Because nft_xt_put is only called from nft_compat destroy hook,
-it will never see the initial zero reference count.
-->destroy can only be called after ->init(), and that will increase the
-refcount.
-
-Lastly, we now free nft_xt struct with kfree_rcu.
-Else, we get use-after free in nf_tables_rule_destroy:
-
-  while (expr != nft_expr_last(rule) && expr->ops) {
-    nf_tables_expr_destroy(ctx, expr);
-    expr = nft_expr_next(expr); // here
-
-nft_expr_next() dereferences expr->ops. This is safe
-for all users, as ops have static storage duration.
-In nft_compat case however, its ->destroy callback can
-free the memory that hold the ops structure.
-
-Tested-by: Taehee Yoo <ap420073@gmail.com>
-Reported-by: Taehee Yoo <ap420073@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Reported-by: Net Filter <netfilternetfilter@gmail.com>
+Fixes: b54ab92b84b6 ("netfilter: refcounter conversions")
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Acked-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_compat.c | 92 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 58 insertions(+), 34 deletions(-)
+ net/netfilter/ipvs/ip_vs_conn.c | 17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 8e23726b9081..870d8c29dae9 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -27,14 +27,24 @@ struct nft_xt {
- 	struct list_head	head;
- 	struct nft_expr_ops	ops;
- 	unsigned int		refcnt;
-+
-+	/* Unlike other expressions, ops doesn't have static storage duration.
-+	 * nft core assumes they do.  We use kfree_rcu so that nft core can
-+	 * can check expr->ops->size even after nft_compat->destroy() frees
-+	 * the nft_xt struct that holds the ops structure.
-+	 */
-+	struct rcu_head		rcu_head;
- };
- 
--static void nft_xt_put(struct nft_xt *xt)
-+static bool nft_xt_put(struct nft_xt *xt)
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 370abbf6f421..75de46576f51 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -232,7 +232,10 @@ static inline int ip_vs_conn_unhash(struct ip_vs_conn *cp)
+ static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
  {
- 	if (--xt->refcnt == 0) {
- 		list_del(&xt->head);
--		kfree(xt);
-+		kfree_rcu(xt, rcu_head);
-+		return true;
- 	}
+ 	unsigned int hash;
+-	bool ret;
++	bool ret = false;
 +
-+	return false;
- }
++	if (cp->flags & IP_VS_CONN_F_ONE_PACKET)
++		return refcount_dec_if_one(&cp->refcnt);
  
- static int nft_compat_chain_validate_dependency(const char *tablename,
-@@ -226,6 +236,7 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	struct xt_target *target = expr->ops->data;
- 	struct xt_tgchk_param par;
- 	size_t size = XT_ALIGN(nla_len(tb[NFTA_TARGET_INFO]));
-+	struct nft_xt *nft_xt;
- 	u16 proto = 0;
- 	bool inv = false;
- 	union nft_entry e = {};
-@@ -236,25 +247,22 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	if (ctx->nla[NFTA_RULE_COMPAT]) {
- 		ret = nft_parse_compat(ctx->nla[NFTA_RULE_COMPAT], &proto, &inv);
- 		if (ret < 0)
--			goto err;
-+			return ret;
- 	}
+ 	hash = ip_vs_conn_hashkey_conn(cp);
  
- 	nft_target_set_tgchk_param(&par, ctx, target, info, &e, proto, inv);
+@@ -240,15 +243,13 @@ static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
+ 	spin_lock(&cp->lock);
  
- 	ret = xt_check_target(&par, size, proto, inv);
- 	if (ret < 0)
--		goto err;
-+		return ret;
- 
- 	/* The standard target cannot be used */
--	if (target->target == NULL) {
--		ret = -EINVAL;
--		goto err;
--	}
-+	if (!target->target)
-+		return -EINVAL;
- 
-+	nft_xt = container_of(expr->ops, struct nft_xt, ops);
-+	nft_xt->refcnt++;
- 	return 0;
--err:
--	module_put(target->me);
--	return ret;
- }
- 
- static void
-@@ -271,8 +279,8 @@ nft_target_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
- 	if (par.target->destroy != NULL)
- 		par.target->destroy(&par);
- 
--	nft_xt_put(container_of(expr->ops, struct nft_xt, ops));
--	module_put(target->me);
-+	if (nft_xt_put(container_of(expr->ops, struct nft_xt, ops)))
-+		module_put(target->me);
- }
- 
- static int nft_target_dump(struct sk_buff *skb, const struct nft_expr *expr)
-@@ -411,6 +419,7 @@ nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	struct xt_match *match = expr->ops->data;
- 	struct xt_mtchk_param par;
- 	size_t size = XT_ALIGN(nla_len(tb[NFTA_MATCH_INFO]));
-+	struct nft_xt *nft_xt;
- 	u16 proto = 0;
- 	bool inv = false;
- 	union nft_entry e = {};
-@@ -421,19 +430,18 @@ nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	if (ctx->nla[NFTA_RULE_COMPAT]) {
- 		ret = nft_parse_compat(ctx->nla[NFTA_RULE_COMPAT], &proto, &inv);
- 		if (ret < 0)
--			goto err;
-+			return ret;
- 	}
- 
- 	nft_match_set_mtchk_param(&par, ctx, match, info, &e, proto, inv);
- 
- 	ret = xt_check_match(&par, size, proto, inv);
- 	if (ret < 0)
--		goto err;
-+		return ret;
- 
-+	nft_xt = container_of(expr->ops, struct nft_xt, ops);
-+	nft_xt->refcnt++;
- 	return 0;
--err:
--	module_put(match->me);
--	return ret;
- }
- 
- static void
-@@ -450,8 +458,8 @@ nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
- 	if (par.match->destroy != NULL)
- 		par.match->destroy(&par);
- 
--	nft_xt_put(container_of(expr->ops, struct nft_xt, ops));
--	module_put(match->me);
-+	if (nft_xt_put(container_of(expr->ops, struct nft_xt, ops)))
-+		module_put(match->me);
- }
- 
- static int nft_match_dump(struct sk_buff *skb, const struct nft_expr *expr)
-@@ -654,13 +662,8 @@ nft_match_select_ops(const struct nft_ctx *ctx,
- 	list_for_each_entry(nft_match, &nft_match_list, head) {
- 		struct xt_match *match = nft_match->ops.data;
- 
--		if (nft_match_cmp(match, mt_name, rev, family)) {
--			if (!try_module_get(match->me))
--				return ERR_PTR(-ENOENT);
--
--			nft_match->refcnt++;
-+		if (nft_match_cmp(match, mt_name, rev, family))
- 			return &nft_match->ops;
--		}
- 	}
- 
- 	match = xt_request_find_match(family, mt_name, rev);
-@@ -679,7 +682,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
- 		goto err;
- 	}
- 
--	nft_match->refcnt = 1;
-+	nft_match->refcnt = 0;
- 	nft_match->ops.type = &nft_match_type;
- 	nft_match->ops.size = NFT_EXPR_SIZE(XT_ALIGN(match->matchsize));
- 	nft_match->ops.eval = nft_match_eval;
-@@ -739,13 +742,8 @@ nft_target_select_ops(const struct nft_ctx *ctx,
- 	list_for_each_entry(nft_target, &nft_target_list, head) {
- 		struct xt_target *target = nft_target->ops.data;
- 
--		if (nft_target_cmp(target, tg_name, rev, family)) {
--			if (!try_module_get(target->me))
--				return ERR_PTR(-ENOENT);
--
--			nft_target->refcnt++;
-+		if (nft_target_cmp(target, tg_name, rev, family))
- 			return &nft_target->ops;
--		}
- 	}
- 
- 	target = xt_request_find_target(family, tg_name, rev);
-@@ -764,7 +762,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
- 		goto err;
- 	}
- 
--	nft_target->refcnt = 1;
-+	nft_target->refcnt = 0;
- 	nft_target->ops.type = &nft_target_type;
- 	nft_target->ops.size = NFT_EXPR_SIZE(XT_ALIGN(target->targetsize));
- 	nft_target->ops.init = nft_target_init;
-@@ -823,6 +821,32 @@ static int __init nft_compat_module_init(void)
- 
- static void __exit nft_compat_module_exit(void)
- {
-+	struct nft_xt *xt, *next;
-+
-+	/* list should be empty here, it can be non-empty only in case there
-+	 * was an error that caused nft_xt expr to not be initialized fully
-+	 * and noone else requested the same expression later.
-+	 *
-+	 * In this case, the lists contain 0-refcount entries that still
-+	 * hold module reference.
-+	 */
-+	list_for_each_entry_safe(xt, next, &nft_target_list, head) {
-+		struct xt_target *target = xt->ops.data;
-+
-+		if (WARN_ON_ONCE(xt->refcnt))
-+			continue;
-+		module_put(target->me);
-+		kfree(xt);
+ 	if (cp->flags & IP_VS_CONN_F_HASHED) {
+-		ret = false;
+ 		/* Decrease refcnt and unlink conn only if we are last user */
+ 		if (refcount_dec_if_one(&cp->refcnt)) {
+ 			hlist_del_rcu(&cp->c_list);
+ 			cp->flags &= ~IP_VS_CONN_F_HASHED;
+ 			ret = true;
+ 		}
+-	} else
+-		ret = refcount_read(&cp->refcnt) ? false : true;
 +	}
-+
-+	list_for_each_entry_safe(xt, next, &nft_match_list, head) {
-+		struct xt_match *match = xt->ops.data;
-+
-+		if (WARN_ON_ONCE(xt->refcnt))
-+			continue;
-+		module_put(match->me);
-+		kfree(xt);
-+	}
- 	nfnetlink_subsys_unregister(&nfnl_compat_subsys);
- 	nft_unregister_expr(&nft_target_type);
- 	nft_unregister_expr(&nft_match_type);
+ 
+ 	spin_unlock(&cp->lock);
+ 	ct_write_unlock_bh(hash);
+@@ -454,12 +455,6 @@ ip_vs_conn_out_get_proto(struct netns_ipvs *ipvs, int af,
+ }
+ EXPORT_SYMBOL_GPL(ip_vs_conn_out_get_proto);
+ 
+-static void __ip_vs_conn_put_notimer(struct ip_vs_conn *cp)
+-{
+-	__ip_vs_conn_put(cp);
+-	ip_vs_conn_expire(&cp->timer);
+-}
+-
+ /*
+  *      Put back the conn and restart its timer with its timeout
+  */
+@@ -478,7 +473,7 @@ void ip_vs_conn_put(struct ip_vs_conn *cp)
+ 	    (refcount_read(&cp->refcnt) == 1) &&
+ 	    !timer_pending(&cp->timer))
+ 		/* expire connection immediately */
+-		__ip_vs_conn_put_notimer(cp);
++		ip_vs_conn_expire(&cp->timer);
+ 	else
+ 		__ip_vs_conn_put_timer(cp);
+ }
 -- 
 2.11.0
