@@ -1,7 +1,7 @@
 From: Richard Guy Briggs <rgb@redhat.com>
-Subject: [PATCH ghak81 RFC V2 1/5] audit: normalize loginuid read access
-Date: Sat, 12 May 2018 21:58:18 -0400
-Message-ID: <33f131a40a50bd7532ed74ff51e3da920e9e8df5.1526173613.git.rgb@redhat.com>
+Subject: [PATCH ghak81 RFC V2 2/5] audit: convert sessionid unset to a macro
+Date: Sat, 12 May 2018 21:58:19 -0400
+Message-ID: <d9b6713caf339af2346eacc1324280b180a519e1.1526173613.git.rgb@redhat.com>
 References: <cover.1526173613.git.rgb@redhat.com>
 Cc: Eric Paris <eparis@redhat.com>, Paul Moore <paul@paul-moore.com>,
         Steve Grubb <sgrubb@redhat.com>,
@@ -24,78 +24,98 @@ References: <cover.1526173613.git.rgb@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Recognizing that the loginuid is an internal audit value, use an access
-function to retrieve the audit loginuid value for the task rather than
-reaching directly into the task struct to get it.
+Use a macro, "AUDIT_SID_UNSET", to replace each instance of
+initialization and comparison to an audit session ID.
 
 Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
 ---
- kernel/auditsc.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ include/linux/audit.h      | 2 +-
+ include/net/xfrm.h         | 2 +-
+ include/uapi/linux/audit.h | 1 +
+ init/init_task.c           | 3 ++-
+ kernel/auditsc.c           | 4 ++--
+ 5 files changed, 7 insertions(+), 5 deletions(-)
 
+diff --git a/include/linux/audit.h b/include/linux/audit.h
+index 75d5b03..5f86f7c 100644
+--- a/include/linux/audit.h
++++ b/include/linux/audit.h
+@@ -513,7 +513,7 @@ static inline kuid_t audit_get_loginuid(struct task_struct *tsk)
+ }
+ static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
+ {
+-	return -1;
++	return AUDIT_SID_UNSET;
+ }
+ static inline void audit_ipc_obj(struct kern_ipc_perm *ipcp)
+ { }
+diff --git a/include/net/xfrm.h b/include/net/xfrm.h
+index a872379..fcce8ee 100644
+--- a/include/net/xfrm.h
++++ b/include/net/xfrm.h
+@@ -751,7 +751,7 @@ static inline void xfrm_audit_helper_usrinfo(bool task_valid,
+ 					    audit_get_loginuid(current) :
+ 					    INVALID_UID);
+ 	const unsigned int ses = task_valid ? audit_get_sessionid(current) :
+-		(unsigned int) -1;
++		AUDIT_SID_UNSET;
+ 
+ 	audit_log_format(audit_buf, " auid=%u ses=%u", auid, ses);
+ 	audit_log_task_context(audit_buf);
+diff --git a/include/uapi/linux/audit.h b/include/uapi/linux/audit.h
+index 4e61a9e..04f9bd2 100644
+--- a/include/uapi/linux/audit.h
++++ b/include/uapi/linux/audit.h
+@@ -465,6 +465,7 @@ struct audit_tty_status {
+ };
+ 
+ #define AUDIT_UID_UNSET (unsigned int)-1
++#define AUDIT_SID_UNSET ((unsigned int)-1)
+ 
+ /* audit_rule_data supports filter rules with both integer and string
+  * fields.  It corresponds with AUDIT_ADD_RULE, AUDIT_DEL_RULE and
+diff --git a/init/init_task.c b/init/init_task.c
+index 3ac6e75..74f60ba 100644
+--- a/init/init_task.c
++++ b/init/init_task.c
+@@ -9,6 +9,7 @@
+ #include <linux/init.h>
+ #include <linux/fs.h>
+ #include <linux/mm.h>
++#include <linux/audit.h>
+ 
+ #include <asm/pgtable.h>
+ #include <linux/uaccess.h>
+@@ -119,7 +120,7 @@ struct task_struct init_task
+ 	.thread_node	= LIST_HEAD_INIT(init_signals.thread_head),
+ #ifdef CONFIG_AUDITSYSCALL
+ 	.loginuid	= INVALID_UID,
+-	.sessionid	= (unsigned int)-1,
++	.sessionid	= AUDIT_SID_UNSET,
+ #endif
+ #ifdef CONFIG_PERF_EVENTS
+ 	.perf_event_mutex = __MUTEX_INITIALIZER(init_task.perf_event_mutex),
 diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-index 479c031..0d4e269 100644
+index 0d4e269..e157595 100644
 --- a/kernel/auditsc.c
 +++ b/kernel/auditsc.c
-@@ -374,7 +374,7 @@ static int audit_field_compare(struct task_struct *tsk,
- 	case AUDIT_COMPARE_EGID_TO_OBJ_GID:
- 		return audit_compare_gid(cred->egid, name, f, ctx);
- 	case AUDIT_COMPARE_AUID_TO_OBJ_UID:
--		return audit_compare_uid(tsk->loginuid, name, f, ctx);
-+		return audit_compare_uid(audit_get_loginuid(tsk), name, f, ctx);
- 	case AUDIT_COMPARE_SUID_TO_OBJ_UID:
- 		return audit_compare_uid(cred->suid, name, f, ctx);
- 	case AUDIT_COMPARE_SGID_TO_OBJ_GID:
-@@ -385,7 +385,7 @@ static int audit_field_compare(struct task_struct *tsk,
- 		return audit_compare_gid(cred->fsgid, name, f, ctx);
- 	/* uid comparisons */
- 	case AUDIT_COMPARE_UID_TO_AUID:
--		return audit_uid_comparator(cred->uid, f->op, tsk->loginuid);
-+		return audit_uid_comparator(cred->uid, f->op, audit_get_loginuid(tsk));
- 	case AUDIT_COMPARE_UID_TO_EUID:
- 		return audit_uid_comparator(cred->uid, f->op, cred->euid);
- 	case AUDIT_COMPARE_UID_TO_SUID:
-@@ -394,11 +394,11 @@ static int audit_field_compare(struct task_struct *tsk,
- 		return audit_uid_comparator(cred->uid, f->op, cred->fsuid);
- 	/* auid comparisons */
- 	case AUDIT_COMPARE_AUID_TO_EUID:
--		return audit_uid_comparator(tsk->loginuid, f->op, cred->euid);
-+		return audit_uid_comparator(audit_get_loginuid(tsk), f->op, cred->euid);
- 	case AUDIT_COMPARE_AUID_TO_SUID:
--		return audit_uid_comparator(tsk->loginuid, f->op, cred->suid);
-+		return audit_uid_comparator(audit_get_loginuid(tsk), f->op, cred->suid);
- 	case AUDIT_COMPARE_AUID_TO_FSUID:
--		return audit_uid_comparator(tsk->loginuid, f->op, cred->fsuid);
-+		return audit_uid_comparator(audit_get_loginuid(tsk), f->op, cred->fsuid);
- 	/* euid comparisons */
- 	case AUDIT_COMPARE_EUID_TO_SUID:
- 		return audit_uid_comparator(cred->euid, f->op, cred->suid);
-@@ -611,7 +611,7 @@ static int audit_filter_rules(struct task_struct *tsk,
- 				result = match_tree_refs(ctx, rule->tree);
- 			break;
- 		case AUDIT_LOGINUID:
--			result = audit_uid_comparator(tsk->loginuid, f->op, f->uid);
-+			result = audit_uid_comparator(audit_get_loginuid(tsk), f->op, f->uid);
- 			break;
- 		case AUDIT_LOGINUID_SET:
- 			result = audit_comparator(audit_loginuid_set(tsk), f->op, f->val);
-@@ -2281,14 +2281,14 @@ int audit_signal_info(int sig, struct task_struct *t)
- 	struct audit_aux_data_pids *axp;
- 	struct task_struct *tsk = current;
- 	struct audit_context *ctx = tsk->audit_context;
--	kuid_t uid = current_uid(), t_uid = task_uid(t);
-+	kuid_t uid = current_uid(), auid, t_uid = task_uid(t);
+@@ -2050,7 +2050,7 @@ static void audit_log_set_loginuid(kuid_t koldloginuid, kuid_t kloginuid,
+ int audit_set_loginuid(kuid_t loginuid)
+ {
+ 	struct task_struct *task = current;
+-	unsigned int oldsessionid, sessionid = (unsigned int)-1;
++	unsigned int oldsessionid, sessionid = AUDIT_SID_UNSET;
+ 	kuid_t oldloginuid;
+ 	int rc;
  
- 	if (auditd_test_task(t) &&
- 	    (sig == SIGTERM || sig == SIGHUP ||
- 	     sig == SIGUSR1 || sig == SIGUSR2)) {
- 		audit_sig_pid = task_tgid_nr(tsk);
--		if (uid_valid(tsk->loginuid))
--			audit_sig_uid = tsk->loginuid;
-+		if (uid_valid(auid = audit_get_loginuid(tsk)))
-+			audit_sig_uid = auid;
- 		else
- 			audit_sig_uid = uid;
- 		security_task_getsecid(tsk, &audit_sig_sid);
+@@ -2064,7 +2064,7 @@ int audit_set_loginuid(kuid_t loginuid)
+ 	/* are we setting or clearing? */
+ 	if (uid_valid(loginuid)) {
+ 		sessionid = (unsigned int)atomic_inc_return(&session_id);
+-		if (unlikely(sessionid == (unsigned int)-1))
++		if (unlikely(sessionid == AUDIT_SID_UNSET))
+ 			sessionid = (unsigned int)atomic_inc_return(&session_id);
+ 	}
+ 
 -- 
 1.8.3.1
