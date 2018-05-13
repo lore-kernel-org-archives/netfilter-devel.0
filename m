@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 04/15] netfilter: bridge: stp fix reference to uninitialized data
-Date: Mon, 14 May 2018 00:36:45 +0200
-Message-ID: <20180513223656.10077-5-pablo@netfilter.org>
+Subject: [PATCH 05/15] netfilter: nf_tables: nft_compat: fix refcount leak on xt module
+Date: Mon, 14 May 2018 00:36:46 +0200
+Message-ID: <20180513223656.10077-6-pablo@netfilter.org>
 References: <20180513223656.10077-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,33 +10,285 @@ In-Reply-To: <20180513223656.10077-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Stephen Hemminger <stephen@networkplumber.org>
+From: Florian Westphal <fw@strlen.de>
 
-The destination mac (destmac) is only valid if EBT_DESTMAC flag
-is set. Fix by changing the order of the comparison to look for
-the flag first.
+Taehee Yoo reported following bug:
+    iptables-compat -I OUTPUT -m cpu --cpu 0
+    iptables-compat -F
+    lsmod |grep xt_cpu
+    xt_cpu                 16384  1
 
-Reported-by: syzbot+5c06e318fc558cc27823@syzkaller.appspotmail.com
-Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
+Quote:
+"When above command is given, a netlink message has two expressions that
+are the cpu compat and the nft_counter.
+The nft_expr_type_get() in the nf_tables_expr_parse() successes
+first expression then, calls select_ops callback.
+(allocates memory and holds module)
+But, second nft_expr_type_get() in the nf_tables_expr_parse()
+returns -EAGAIN because of request_module().
+In that point, by the 'goto err1',
+the 'module_put(info[i].ops->type->owner)' is called.
+There is no release routine."
+
+The core problem is that unlike all other expression,
+nft_compat select_ops has side effects.
+
+1. it allocates dynamic memory which holds an nft ops struct.
+   In all other expressions, ops has static storage duration.
+2. It grabs references to the xt module that it is supposed to
+   invoke.
+
+Depending on where things go wrong, error unwinding doesn't
+always do the right thing.
+
+In the above scenario, a new nft_compat_expr is created and
+xt_cpu module gets loaded with a refcount of 1.
+
+Due to to -EAGAIN, the netlink messages get re-parsed.
+When that happens, nft_compat finds that xt_cpu is already present
+and increments module refcount again.
+
+This fixes the problem by making select_ops to have no visible
+side effects and removes all extra module_get/put.
+
+When select_ops creates a new nft_compat expression, the new
+expression has a refcount of 0, and the xt module gets its refcount
+incremented.
+
+When error happens, the next call finds existing entry, but will no
+longer increase the reference count -- the presence of existing
+nft_xt means we already hold a module reference.
+
+Because nft_xt_put is only called from nft_compat destroy hook,
+it will never see the initial zero reference count.
+->destroy can only be called after ->init(), and that will increase the
+refcount.
+
+Lastly, we now free nft_xt struct with kfree_rcu.
+Else, we get use-after free in nf_tables_rule_destroy:
+
+  while (expr != nft_expr_last(rule) && expr->ops) {
+    nf_tables_expr_destroy(ctx, expr);
+    expr = nft_expr_next(expr); // here
+
+nft_expr_next() dereferences expr->ops. This is safe
+for all users, as ops have static storage duration.
+In nft_compat case however, its ->destroy callback can
+free the memory that hold the ops structure.
+
+Tested-by: Taehee Yoo <ap420073@gmail.com>
+Reported-by: Taehee Yoo <ap420073@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/netfilter/ebt_stp.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nft_compat.c | 92 +++++++++++++++++++++++++++++-----------------
+ 1 file changed, 58 insertions(+), 34 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebt_stp.c b/net/bridge/netfilter/ebt_stp.c
-index 47ba98db145d..46c1fe7637ea 100644
---- a/net/bridge/netfilter/ebt_stp.c
-+++ b/net/bridge/netfilter/ebt_stp.c
-@@ -161,8 +161,8 @@ static int ebt_stp_mt_check(const struct xt_mtchk_param *par)
- 	/* Make sure the match only receives stp frames */
- 	if (!par->nft_compat &&
- 	    (!ether_addr_equal(e->destmac, eth_stp_addr) ||
--	     !is_broadcast_ether_addr(e->destmsk) ||
--	     !(e->bitmask & EBT_DESTMAC)))
-+	     !(e->bitmask & EBT_DESTMAC) ||
-+	     !is_broadcast_ether_addr(e->destmsk)))
- 		return -EINVAL;
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 8e23726b9081..870d8c29dae9 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -27,14 +27,24 @@ struct nft_xt {
+ 	struct list_head	head;
+ 	struct nft_expr_ops	ops;
+ 	unsigned int		refcnt;
++
++	/* Unlike other expressions, ops doesn't have static storage duration.
++	 * nft core assumes they do.  We use kfree_rcu so that nft core can
++	 * can check expr->ops->size even after nft_compat->destroy() frees
++	 * the nft_xt struct that holds the ops structure.
++	 */
++	struct rcu_head		rcu_head;
+ };
  
+-static void nft_xt_put(struct nft_xt *xt)
++static bool nft_xt_put(struct nft_xt *xt)
+ {
+ 	if (--xt->refcnt == 0) {
+ 		list_del(&xt->head);
+-		kfree(xt);
++		kfree_rcu(xt, rcu_head);
++		return true;
+ 	}
++
++	return false;
+ }
+ 
+ static int nft_compat_chain_validate_dependency(const char *tablename,
+@@ -226,6 +236,7 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	struct xt_target *target = expr->ops->data;
+ 	struct xt_tgchk_param par;
+ 	size_t size = XT_ALIGN(nla_len(tb[NFTA_TARGET_INFO]));
++	struct nft_xt *nft_xt;
+ 	u16 proto = 0;
+ 	bool inv = false;
+ 	union nft_entry e = {};
+@@ -236,25 +247,22 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	if (ctx->nla[NFTA_RULE_COMPAT]) {
+ 		ret = nft_parse_compat(ctx->nla[NFTA_RULE_COMPAT], &proto, &inv);
+ 		if (ret < 0)
+-			goto err;
++			return ret;
+ 	}
+ 
+ 	nft_target_set_tgchk_param(&par, ctx, target, info, &e, proto, inv);
+ 
+ 	ret = xt_check_target(&par, size, proto, inv);
+ 	if (ret < 0)
+-		goto err;
++		return ret;
+ 
+ 	/* The standard target cannot be used */
+-	if (target->target == NULL) {
+-		ret = -EINVAL;
+-		goto err;
+-	}
++	if (!target->target)
++		return -EINVAL;
+ 
++	nft_xt = container_of(expr->ops, struct nft_xt, ops);
++	nft_xt->refcnt++;
  	return 0;
+-err:
+-	module_put(target->me);
+-	return ret;
+ }
+ 
+ static void
+@@ -271,8 +279,8 @@ nft_target_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
+ 	if (par.target->destroy != NULL)
+ 		par.target->destroy(&par);
+ 
+-	nft_xt_put(container_of(expr->ops, struct nft_xt, ops));
+-	module_put(target->me);
++	if (nft_xt_put(container_of(expr->ops, struct nft_xt, ops)))
++		module_put(target->me);
+ }
+ 
+ static int nft_target_dump(struct sk_buff *skb, const struct nft_expr *expr)
+@@ -411,6 +419,7 @@ nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	struct xt_match *match = expr->ops->data;
+ 	struct xt_mtchk_param par;
+ 	size_t size = XT_ALIGN(nla_len(tb[NFTA_MATCH_INFO]));
++	struct nft_xt *nft_xt;
+ 	u16 proto = 0;
+ 	bool inv = false;
+ 	union nft_entry e = {};
+@@ -421,19 +430,18 @@ nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	if (ctx->nla[NFTA_RULE_COMPAT]) {
+ 		ret = nft_parse_compat(ctx->nla[NFTA_RULE_COMPAT], &proto, &inv);
+ 		if (ret < 0)
+-			goto err;
++			return ret;
+ 	}
+ 
+ 	nft_match_set_mtchk_param(&par, ctx, match, info, &e, proto, inv);
+ 
+ 	ret = xt_check_match(&par, size, proto, inv);
+ 	if (ret < 0)
+-		goto err;
++		return ret;
+ 
++	nft_xt = container_of(expr->ops, struct nft_xt, ops);
++	nft_xt->refcnt++;
+ 	return 0;
+-err:
+-	module_put(match->me);
+-	return ret;
+ }
+ 
+ static void
+@@ -450,8 +458,8 @@ nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
+ 	if (par.match->destroy != NULL)
+ 		par.match->destroy(&par);
+ 
+-	nft_xt_put(container_of(expr->ops, struct nft_xt, ops));
+-	module_put(match->me);
++	if (nft_xt_put(container_of(expr->ops, struct nft_xt, ops)))
++		module_put(match->me);
+ }
+ 
+ static int nft_match_dump(struct sk_buff *skb, const struct nft_expr *expr)
+@@ -654,13 +662,8 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 	list_for_each_entry(nft_match, &nft_match_list, head) {
+ 		struct xt_match *match = nft_match->ops.data;
+ 
+-		if (nft_match_cmp(match, mt_name, rev, family)) {
+-			if (!try_module_get(match->me))
+-				return ERR_PTR(-ENOENT);
+-
+-			nft_match->refcnt++;
++		if (nft_match_cmp(match, mt_name, rev, family))
+ 			return &nft_match->ops;
+-		}
+ 	}
+ 
+ 	match = xt_request_find_match(family, mt_name, rev);
+@@ -679,7 +682,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 		goto err;
+ 	}
+ 
+-	nft_match->refcnt = 1;
++	nft_match->refcnt = 0;
+ 	nft_match->ops.type = &nft_match_type;
+ 	nft_match->ops.size = NFT_EXPR_SIZE(XT_ALIGN(match->matchsize));
+ 	nft_match->ops.eval = nft_match_eval;
+@@ -739,13 +742,8 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 	list_for_each_entry(nft_target, &nft_target_list, head) {
+ 		struct xt_target *target = nft_target->ops.data;
+ 
+-		if (nft_target_cmp(target, tg_name, rev, family)) {
+-			if (!try_module_get(target->me))
+-				return ERR_PTR(-ENOENT);
+-
+-			nft_target->refcnt++;
++		if (nft_target_cmp(target, tg_name, rev, family))
+ 			return &nft_target->ops;
+-		}
+ 	}
+ 
+ 	target = xt_request_find_target(family, tg_name, rev);
+@@ -764,7 +762,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 		goto err;
+ 	}
+ 
+-	nft_target->refcnt = 1;
++	nft_target->refcnt = 0;
+ 	nft_target->ops.type = &nft_target_type;
+ 	nft_target->ops.size = NFT_EXPR_SIZE(XT_ALIGN(target->targetsize));
+ 	nft_target->ops.init = nft_target_init;
+@@ -823,6 +821,32 @@ static int __init nft_compat_module_init(void)
+ 
+ static void __exit nft_compat_module_exit(void)
+ {
++	struct nft_xt *xt, *next;
++
++	/* list should be empty here, it can be non-empty only in case there
++	 * was an error that caused nft_xt expr to not be initialized fully
++	 * and noone else requested the same expression later.
++	 *
++	 * In this case, the lists contain 0-refcount entries that still
++	 * hold module reference.
++	 */
++	list_for_each_entry_safe(xt, next, &nft_target_list, head) {
++		struct xt_target *target = xt->ops.data;
++
++		if (WARN_ON_ONCE(xt->refcnt))
++			continue;
++		module_put(target->me);
++		kfree(xt);
++	}
++
++	list_for_each_entry_safe(xt, next, &nft_match_list, head) {
++		struct xt_match *match = xt->ops.data;
++
++		if (WARN_ON_ONCE(xt->refcnt))
++			continue;
++		module_put(match->me);
++		kfree(xt);
++	}
+ 	nfnetlink_subsys_unregister(&nfnl_compat_subsys);
+ 	nft_unregister_expr(&nft_target_type);
+ 	nft_unregister_expr(&nft_match_type);
 -- 
 2.11.0
