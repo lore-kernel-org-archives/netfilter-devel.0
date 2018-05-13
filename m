@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 07/15] ipvs: fix stats update from local clients
-Date: Mon, 14 May 2018 00:36:48 +0200
-Message-ID: <20180513223656.10077-8-pablo@netfilter.org>
+Subject: [PATCH 13/15] netfilter: nft_compat: fix handling of large matchinfo size
+Date: Mon, 14 May 2018 00:36:54 +0200
+Message-ID: <20180513223656.10077-14-pablo@netfilter.org>
 References: <20180513223656.10077-1-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,120 +10,149 @@ In-Reply-To: <20180513223656.10077-1-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Julian Anastasov <ja@ssi.bg>
+From: Florian Westphal <fw@strlen.de>
 
-Local clients are not properly synchronized on 32-bit CPUs when
-updating stats (3.10+). Now it is possible estimation_timer (timer),
-a stats reader, to interrupt the local client in the middle of
-write_seqcount_{begin,end} sequence leading to loop (DEADLOCK).
-The same interrupt can happen from received packet (SoftIRQ)
-which updates the same per-CPU stats.
+currently matchinfo gets stored in the expression, but some xt matches
+are very large.
 
-Fix it by disabling BH while updating stats.
+To handle those we either need to switch nft core to kvmalloc and increase
+size limit, or allocate the info blob of large matches separately.
 
-Found with debug:
+This does the latter, this limits the scope of the changes to
+nft_compat.
 
-WARNING: inconsistent lock state
-4.17.0-rc2-00105-g35cb6d7-dirty #2 Not tainted
---------------------------------
-inconsistent {IN-SOFTIRQ-R} -> {SOFTIRQ-ON-W} usage.
-ftp/2545 [HC0[0]:SC0[0]:HE1:SE1] takes:
-86845479 (&syncp->seq#6){+.+-}, at: ip_vs_schedule+0x1c5/0x59e [ip_vs]
-{IN-SOFTIRQ-R} state was registered at:
- lock_acquire+0x44/0x5b
- estimation_timer+0x1b3/0x341 [ip_vs]
- call_timer_fn+0x54/0xcd
- run_timer_softirq+0x10c/0x12b
- __do_softirq+0xc1/0x1a9
- do_softirq_own_stack+0x1d/0x23
- irq_exit+0x4a/0x64
- smp_apic_timer_interrupt+0x63/0x71
- apic_timer_interrupt+0x3a/0x40
- default_idle+0xa/0xc
- arch_cpu_idle+0x9/0xb
- default_idle_call+0x21/0x23
- do_idle+0xa0/0x167
- cpu_startup_entry+0x19/0x1b
- start_secondary+0x133/0x182
- startup_32_smp+0x164/0x168
-irq event stamp: 42213
+I picked a threshold of 192, this allows most matches to work as before and
+handle only few ones via separate alloation (cgroup, u32, sctp, rt).
 
-other info that might help us debug this:
-Possible unsafe locking scenario:
-
-      CPU0
-      ----
- lock(&syncp->seq#6);
- <Interrupt>
-   lock(&syncp->seq#6);
-
-*** DEADLOCK ***
-
-Fixes: ac69269a45e8 ("ipvs: do not disable bh for long time")
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Acked-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_core.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ net/netfilter/nft_compat.c | 64 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 63 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 5f6f73cf2174..0679dd101e72 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -119,6 +119,8 @@ ip_vs_in_stats(struct ip_vs_conn *cp, struct sk_buff *skb)
- 		struct ip_vs_cpu_stats *s;
- 		struct ip_vs_service *svc;
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index dec0afb0ffe0..1d99a1efdafc 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -36,6 +36,13 @@ struct nft_xt {
+ 	struct rcu_head		rcu_head;
+ };
  
-+		local_bh_disable();
++/* Used for matches where *info is larger than X byte */
++#define NFT_MATCH_LARGE_THRESH	192
 +
- 		s = this_cpu_ptr(dest->stats.cpustats);
- 		u64_stats_update_begin(&s->syncp);
- 		s->cnt.inpkts++;
-@@ -137,6 +139,8 @@ ip_vs_in_stats(struct ip_vs_conn *cp, struct sk_buff *skb)
- 		s->cnt.inpkts++;
- 		s->cnt.inbytes += skb->len;
- 		u64_stats_update_end(&s->syncp);
++struct nft_xt_match_priv {
++	void *info;
++};
 +
-+		local_bh_enable();
+ static bool nft_xt_put(struct nft_xt *xt)
+ {
+ 	if (--xt->refcnt == 0) {
+@@ -352,6 +359,15 @@ static void __nft_match_eval(const struct nft_expr *expr,
  	}
  }
  
-@@ -151,6 +155,8 @@ ip_vs_out_stats(struct ip_vs_conn *cp, struct sk_buff *skb)
- 		struct ip_vs_cpu_stats *s;
- 		struct ip_vs_service *svc;
- 
-+		local_bh_disable();
++static void nft_match_large_eval(const struct nft_expr *expr,
++				 struct nft_regs *regs,
++				 const struct nft_pktinfo *pkt)
++{
++	struct nft_xt_match_priv *priv = nft_expr_priv(expr);
 +
- 		s = this_cpu_ptr(dest->stats.cpustats);
- 		u64_stats_update_begin(&s->syncp);
- 		s->cnt.outpkts++;
-@@ -169,6 +175,8 @@ ip_vs_out_stats(struct ip_vs_conn *cp, struct sk_buff *skb)
- 		s->cnt.outpkts++;
- 		s->cnt.outbytes += skb->len;
- 		u64_stats_update_end(&s->syncp);
++	__nft_match_eval(expr, regs, pkt, priv->info);
++}
 +
-+		local_bh_enable();
- 	}
+ static void nft_match_eval(const struct nft_expr *expr,
+ 			   struct nft_regs *regs,
+ 			   const struct nft_pktinfo *pkt)
+@@ -458,6 +474,24 @@ nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	return __nft_match_init(ctx, expr, tb, nft_expr_priv(expr));
  }
  
-@@ -179,6 +187,8 @@ ip_vs_conn_stats(struct ip_vs_conn *cp, struct ip_vs_service *svc)
- 	struct netns_ipvs *ipvs = svc->ipvs;
- 	struct ip_vs_cpu_stats *s;
- 
-+	local_bh_disable();
++static int
++nft_match_large_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
++		     const struct nlattr * const tb[])
++{
++	struct nft_xt_match_priv *priv = nft_expr_priv(expr);
++	struct xt_match *m = expr->ops->data;
++	int ret;
 +
- 	s = this_cpu_ptr(cp->dest->stats.cpustats);
- 	u64_stats_update_begin(&s->syncp);
- 	s->cnt.conns++;
-@@ -193,6 +203,8 @@ ip_vs_conn_stats(struct ip_vs_conn *cp, struct ip_vs_service *svc)
- 	u64_stats_update_begin(&s->syncp);
- 	s->cnt.conns++;
- 	u64_stats_update_end(&s->syncp);
++	priv->info = kmalloc(XT_ALIGN(m->matchsize), GFP_KERNEL);
++	if (!priv->info)
++		return -ENOMEM;
 +
-+	local_bh_enable();
++	ret = __nft_match_init(ctx, expr, tb, priv->info);
++	if (ret)
++		kfree(priv->info);
++	return ret;
++}
++
+ static void
+ __nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 		    void *info)
+@@ -482,6 +516,15 @@ nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
+ 	__nft_match_destroy(ctx, expr, nft_expr_priv(expr));
  }
  
++static void
++nft_match_large_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
++{
++	struct nft_xt_match_priv *priv = nft_expr_priv(expr);
++
++	__nft_match_destroy(ctx, expr, priv->info);
++	kfree(priv->info);
++}
++
+ static int __nft_match_dump(struct sk_buff *skb, const struct nft_expr *expr,
+ 			    void *info)
+ {
+@@ -503,6 +546,13 @@ static int nft_match_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 	return __nft_match_dump(skb, expr, nft_expr_priv(expr));
+ }
  
++static int nft_match_large_dump(struct sk_buff *skb, const struct nft_expr *e)
++{
++	struct nft_xt_match_priv *priv = nft_expr_priv(e);
++
++	return __nft_match_dump(skb, e, priv->info);
++}
++
+ static int nft_match_validate(const struct nft_ctx *ctx,
+ 			      const struct nft_expr *expr,
+ 			      const struct nft_data **data)
+@@ -670,6 +720,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ {
+ 	struct nft_xt *nft_match;
+ 	struct xt_match *match;
++	unsigned int matchsize;
+ 	char *mt_name;
+ 	u32 rev, family;
+ 	int err;
+@@ -709,7 +760,6 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 
+ 	nft_match->refcnt = 0;
+ 	nft_match->ops.type = &nft_match_type;
+-	nft_match->ops.size = NFT_EXPR_SIZE(XT_ALIGN(match->matchsize));
+ 	nft_match->ops.eval = nft_match_eval;
+ 	nft_match->ops.init = nft_match_init;
+ 	nft_match->ops.destroy = nft_match_destroy;
+@@ -717,6 +767,18 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 	nft_match->ops.validate = nft_match_validate;
+ 	nft_match->ops.data = match;
+ 
++	matchsize = NFT_EXPR_SIZE(XT_ALIGN(match->matchsize));
++	if (matchsize > NFT_MATCH_LARGE_THRESH) {
++		matchsize = NFT_EXPR_SIZE(sizeof(struct nft_xt_match_priv));
++
++		nft_match->ops.eval = nft_match_large_eval;
++		nft_match->ops.init = nft_match_large_init;
++		nft_match->ops.destroy = nft_match_large_destroy;
++		nft_match->ops.dump = nft_match_large_dump;
++	}
++
++	nft_match->ops.size = matchsize;
++
+ 	list_add(&nft_match->head, &nft_match_list);
+ 
+ 	return &nft_match->ops;
 -- 
 2.11.0
