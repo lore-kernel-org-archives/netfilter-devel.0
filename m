@@ -1,7 +1,7 @@
 From: Vlad Buslov <vladbu@mellanox.com>
-Subject: [PATCH 08/14] net: sched: account for temporary action reference
-Date: Mon, 14 May 2018 17:27:09 +0300
-Message-ID: <1526308035-12484-9-git-send-email-vladbu@mellanox.com>
+Subject: [PATCH 03/14] net: sched: add 'delete' function to action ops
+Date: Mon, 14 May 2018 17:27:04 +0300
+Message-ID: <1526308035-12484-4-git-send-email-vladbu@mellanox.com>
 References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
 Cc: davem@davemloft.net, jhs@mojatatu.com, xiyou.wangcong@gmail.com,
         jiri@resnulli.us, pablo@netfilter.org, kadlec@blackhole.kfki.hu,
@@ -10,50 +10,30 @@ Cc: davem@davemloft.net, jhs@mojatatu.com, xiyou.wangcong@gmail.com,
         linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org, kliteyn@mellanox.com
 To: netdev@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-tca_get_fill function has 'bind' and 'ref' arguments that get passed
-down to action dump function. These arguments values are subtracted from
-actual reference and bind counter values before writing them to skb.
-
-In order to prevent concurrent action delete, RTM_GETACTION handler
-acquires a reference to action before 'dumping' it and releases it
-afterwards. This reference is temporal and should not be accounted by
-userspace clients. (both logically and to preserver current API
-behavior)
-
-Use existing infrastructure of tca_get_fill arguments to subtract that
-temporary reference and not expose it to userspace.
+Extend action ops with 'delete' function. Each action type to implement its
+own delete function that doesn't depend on rtnl lock.
 
 Signed-off-by: Vlad Buslov <vladbu@mellanox.com>
 ---
- net/sched/act_api.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/net/act_api.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/net/sched/act_api.c b/net/sched/act_api.c
-index 3f02cd1..2772276e 100644
---- a/net/sched/act_api.c
-+++ b/net/sched/act_api.c
-@@ -935,7 +935,7 @@ tcf_get_notify(struct net *net, u32 portid, struct nlmsghdr *n,
- 	if (!skb)
- 		return -ENOBUFS;
- 	if (tca_get_fill(skb, actions, portid, n->nlmsg_seq, 0, event,
--			 0, 0) <= 0) {
-+			 0, 1) <= 0) {
- 		NL_SET_ERR_MSG(extack, "Failed to fill netlink attributes while adding TC action");
- 		kfree_skb(skb);
- 		return -EINVAL;
-@@ -1125,7 +1125,7 @@ tcf_del_notify(struct net *net, struct nlmsghdr *n, struct list_head *actions,
- 		return -ENOBUFS;
+diff --git a/include/net/act_api.h b/include/net/act_api.h
+index e634014..73175a3 100644
+--- a/include/net/act_api.h
++++ b/include/net/act_api.h
+@@ -100,6 +100,7 @@ struct tc_action_ops {
+ 	void	(*stats_update)(struct tc_action *, u64, u32, u64);
+ 	size_t  (*get_fill_size)(const struct tc_action *act);
+ 	struct net_device *(*get_dev)(const struct tc_action *a);
++	int     (*delete)(struct net *net, u32 index);
+ };
  
- 	if (tca_get_fill(skb, actions, portid, n->nlmsg_seq, 0, RTM_DELACTION,
--			 0, 1) <= 0) {
-+			 0, 2) <= 0) {
- 		NL_SET_ERR_MSG(extack, "Failed to fill netlink TC action attributes");
- 		kfree_skb(skb);
- 		return -EINVAL;
+ struct tc_action_net {
 -- 
 2.7.5
