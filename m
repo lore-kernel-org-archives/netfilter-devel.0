@@ -1,9 +1,9 @@
 From: Jiri Pirko <jiri@resnulli.us>
-Subject: Re: [PATCH 04/14] net: sched: implement unlocked action init API
-Date: Mon, 14 May 2018 17:16:41 +0200
-Message-ID: <20180514151641.GD1848@nanopsycho>
+Subject: Re: [PATCH 05/14] net: sched: always take reference to action
+Date: Mon, 14 May 2018 18:23:01 +0200
+Message-ID: <20180514162301.GC2134@nanopsycho.orion>
 References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
- <1526308035-12484-5-git-send-email-vladbu@mellanox.com>
+ <1526308035-12484-6-git-send-email-vladbu@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netdev@vger.kernel.org, davem@davemloft.net, jhs@mojatatu.com,
@@ -15,35 +15,51 @@ Cc: netdev@vger.kernel.org, davem@davemloft.net, jhs@mojatatu.com,
 To: Vlad Buslov <vladbu@mellanox.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1526308035-12484-5-git-send-email-vladbu@mellanox.com>
+In-Reply-To: <1526308035-12484-6-git-send-email-vladbu@mellanox.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Mon, May 14, 2018 at 04:27:05PM CEST, vladbu@mellanox.com wrote:
->Add additional 'unlocked' argument to act API init functions.
->Argument is true when rtnl lock is not taken and false otherwise.
->It is required to implement actions that need to release rtnl lock before
->loading kernel module and reacquire if afterwards.
+Mon, May 14, 2018 at 04:27:06PM CEST, vladbu@mellanox.com wrote:
+>Without rtnl lock protection it is no longer safe to use pointer to tc
+>action without holding reference to it. (it can be destroyed concurrently)
+>
+>Remove unsafe action idr lookup function. Instead of it, implement safe tcf
+>idr check function that atomically looks up action in idr and increments
+>its reference and bind counters.
+>
+>Implement both action search and check using new safe function.
 >
 >Signed-off-by: Vlad Buslov <vladbu@mellanox.com>
+>---
+> net/sched/act_api.c | 38 ++++++++++++++++----------------------
+> 1 file changed, 16 insertions(+), 22 deletions(-)
+>
+>diff --git a/net/sched/act_api.c b/net/sched/act_api.c
+>index 1331beb..9459cce 100644
+>--- a/net/sched/act_api.c
+>+++ b/net/sched/act_api.c
+>@@ -284,44 +284,38 @@ int tcf_generic_walker(struct tc_action_net *tn, struct sk_buff *skb,
+> }
+> EXPORT_SYMBOL(tcf_generic_walker);
+> 
+>-static struct tc_action *tcf_idr_lookup(u32 index, struct tcf_idrinfo *idrinfo)
+>+bool __tcf_idr_check(struct tc_action_net *tn, u32 index, struct tc_action **a,
+>+		     int bind)
+> {
+>-	struct tc_action *p = NULL;
+>+	struct tcf_idrinfo *idrinfo = tn->idrinfo;
+>+	struct tc_action *p;
+> 
+> 	spin_lock_bh(&idrinfo->lock);
 
-[...]
+Why "_bh" variant is necessary here?
 
-
->@@ -721,9 +722,11 @@ struct tc_action *tcf_action_init_1(struct net *net, struct tcf_proto *tp,
-> 	a_o = tc_lookup_action_n(act_name);
-> 	if (a_o == NULL) {
-> #ifdef CONFIG_MODULES
->-		rtnl_unlock();
->+		if (!unlocked)
->+			rtnl_unlock();
-> 		request_module("act_%s", act_name);
->-		rtnl_lock();
->+		if (!unlocked)
->+			rtnl_lock();
-
-Although I don't like this conditional locking scheme, I see no other
-way to solve this :/ But I think would be better perhaps to rename
-"unlocked" to something like "rtnl_held".
+> 	p = idr_find(&idrinfo->action_idr, index);
+>+	if (p) {
+>+		refcount_inc(&p->tcfa_refcnt);
+>+		if (bind)
+>+			atomic_inc(&p->tcfa_bindcnt);
+>+	}
+> 	spin_unlock_bh(&idrinfo->lock);
 
 [...]
