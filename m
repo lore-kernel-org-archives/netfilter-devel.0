@@ -1,125 +1,117 @@
-From: Vlad Buslov <vladbu@mellanox.com>
-Subject: Re: [PATCH 06/14] net: sched: implement reference counted action release
-Date: Mon, 14 May 2018 22:07:06 +0300
-Message-ID: <vbfsh6udpk5.fsf@reg-r-vrt-018-180.mtr.labs.mlnx>
-References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com> <1526308035-12484-7-git-send-email-vladbu@mellanox.com> <20180514164753.GF2134@nanopsycho.orion>
+From: Paul Moore <paul@paul-moore.com>
+Subject: Re: [PATCH ghak81 RFC V2 1/5] audit: normalize loginuid read access
+Date: Mon, 14 May 2018 15:52:03 -0400
+Message-ID: <CAHC9VhSPY-49LppFRw9Vmupdw8b2ooMVzWmputdB0bKm3X0+FA@mail.gmail.com>
+References: <cover.1526173613.git.rgb@redhat.com> <33f131a40a50bd7532ed74ff51e3da920e9e8df5.1526173613.git.rgb@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: netdev@vger.kernel.org, davem@davemloft.net, jhs@mojatatu.com,
-        xiyou.wangcong@gmail.com, pablo@netfilter.org,
-        kadlec@blackhole.kfki.hu, fw@strlen.de, ast@kernel.org,
-        daniel@iogearbox.net, edumazet@google.com, keescook@chromium.org,
-        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, kliteyn@mellanox.com
-To: Jiri Pirko <jiri@resnulli.us>
+Content-Type: text/plain; charset="UTF-8"
+Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Linux NetDev Upstream Mailing List <netdev@vger.kernel.org>,
+        Netfilter Devel List <netfilter-devel@vger.kernel.org>,
+        Linux Security Module list
+        <linux-security-module@vger.kernel.org>,
+        Integrity Measurement Architecture
+        <linux-integrity@vger.kernel.org>,
+        SElinux list <selinux@tycho.nsa.gov>,
+        Eric Paris <eparis@redhat.com>,
+        Steve Grubb <sgrubb@redhat.com>,
+        Ingo Molnar <mingo@redhat.com>,
+        David Howells <dhowells@redhat.com>
+To: Richard Guy Briggs <rgb@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <20180514164753.GF2134@nanopsycho.orion>
+In-Reply-To: <33f131a40a50bd7532ed74ff51e3da920e9e8df5.1526173613.git.rgb@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, May 12, 2018 at 9:58 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
+> Recognizing that the loginuid is an internal audit value, use an access
+> function to retrieve the audit loginuid value for the task rather than
+> reaching directly into the task struct to get it.
+>
+> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
+> ---
+>  kernel/auditsc.c | 18 +++++++++---------
+>  1 file changed, 9 insertions(+), 9 deletions(-)
+>
+> diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+> index 479c031..0d4e269 100644
+> --- a/kernel/auditsc.c
+> +++ b/kernel/auditsc.c
+> @@ -374,7 +374,7 @@ static int audit_field_compare(struct task_struct *tsk,
+>         case AUDIT_COMPARE_EGID_TO_OBJ_GID:
+>                 return audit_compare_gid(cred->egid, name, f, ctx);
+>         case AUDIT_COMPARE_AUID_TO_OBJ_UID:
+> -               return audit_compare_uid(tsk->loginuid, name, f, ctx);
+> +               return audit_compare_uid(audit_get_loginuid(tsk), name, f, ctx);
+>         case AUDIT_COMPARE_SUID_TO_OBJ_UID:
+>                 return audit_compare_uid(cred->suid, name, f, ctx);
+>         case AUDIT_COMPARE_SGID_TO_OBJ_GID:
+> @@ -385,7 +385,7 @@ static int audit_field_compare(struct task_struct *tsk,
+>                 return audit_compare_gid(cred->fsgid, name, f, ctx);
+>         /* uid comparisons */
+>         case AUDIT_COMPARE_UID_TO_AUID:
+> -               return audit_uid_comparator(cred->uid, f->op, tsk->loginuid);
+> +               return audit_uid_comparator(cred->uid, f->op, audit_get_loginuid(tsk));
+>         case AUDIT_COMPARE_UID_TO_EUID:
+>                 return audit_uid_comparator(cred->uid, f->op, cred->euid);
+>         case AUDIT_COMPARE_UID_TO_SUID:
+> @@ -394,11 +394,11 @@ static int audit_field_compare(struct task_struct *tsk,
+>                 return audit_uid_comparator(cred->uid, f->op, cred->fsuid);
+>         /* auid comparisons */
+>         case AUDIT_COMPARE_AUID_TO_EUID:
+> -               return audit_uid_comparator(tsk->loginuid, f->op, cred->euid);
+> +               return audit_uid_comparator(audit_get_loginuid(tsk), f->op, cred->euid);
+>         case AUDIT_COMPARE_AUID_TO_SUID:
+> -               return audit_uid_comparator(tsk->loginuid, f->op, cred->suid);
+> +               return audit_uid_comparator(audit_get_loginuid(tsk), f->op, cred->suid);
+>         case AUDIT_COMPARE_AUID_TO_FSUID:
+> -               return audit_uid_comparator(tsk->loginuid, f->op, cred->fsuid);
+> +               return audit_uid_comparator(audit_get_loginuid(tsk), f->op, cred->fsuid);
+>         /* euid comparisons */
+>         case AUDIT_COMPARE_EUID_TO_SUID:
+>                 return audit_uid_comparator(cred->euid, f->op, cred->suid);
+> @@ -611,7 +611,7 @@ static int audit_filter_rules(struct task_struct *tsk,
+>                                 result = match_tree_refs(ctx, rule->tree);
+>                         break;
+>                 case AUDIT_LOGINUID:
+> -                       result = audit_uid_comparator(tsk->loginuid, f->op, f->uid);
+> +                       result = audit_uid_comparator(audit_get_loginuid(tsk), f->op, f->uid);
+>                         break;
+>                 case AUDIT_LOGINUID_SET:
+>                         result = audit_comparator(audit_loginuid_set(tsk), f->op, f->val);
+> @@ -2281,14 +2281,14 @@ int audit_signal_info(int sig, struct task_struct *t)
+>         struct audit_aux_data_pids *axp;
+>         struct task_struct *tsk = current;
+>         struct audit_context *ctx = tsk->audit_context;
+> -       kuid_t uid = current_uid(), t_uid = task_uid(t);
+> +       kuid_t uid = current_uid(), auid, t_uid = task_uid(t);
+>
+>         if (auditd_test_task(t) &&
+>             (sig == SIGTERM || sig == SIGHUP ||
+>              sig == SIGUSR1 || sig == SIGUSR2)) {
+>                 audit_sig_pid = task_tgid_nr(tsk);
+> -               if (uid_valid(tsk->loginuid))
+> -                       audit_sig_uid = tsk->loginuid;
+> +               if (uid_valid(auid = audit_get_loginuid(tsk)))
+> +                       audit_sig_uid = auid;
+>                 else
+>                         audit_sig_uid = uid;
+>                 security_task_getsecid(tsk, &audit_sig_sid);
 
-On Mon 14 May 2018 at 16:47, Jiri Pirko <jiri@resnulli.us> wrote:
-> Mon, May 14, 2018 at 04:27:07PM CEST, vladbu@mellanox.com wrote:
->
-> [...]
->
->
->>+static int tcf_action_del_1(struct net *net, char *kind, u32 index,
->>+			    struct netlink_ext_ack *extack)
->>+{
->>+	const struct tc_action_ops *ops;
->>+	int err = -EINVAL;
->>+
->>+	ops = tc_lookup_action_n(kind);
->>+	if (!ops) {
->
-> How this can happen? Apparently you hold reference to the module since
-> you put it couple lines below. In that case, I don't really understand
-> why you need to lookup and just don't use "ops" pointer you have in
-> tcf_action_delete().
+A gentle reminder that you should try to make you patches as
+"checkpatch clean" as possible (see scripts/checkpatch.pl).  There are
+several 80-char warnings, which aren't fatal, but the big no-no is
+below:
 
-The problem is that I cant really delete action while holding reference
-to it. I can try to decrement reference twice, however that might result
-race condition if another task tries to delete that action at the same
-time.
+  ERROR: do not use assignment in if condition
+  #72: FILE: kernel/auditsc.c:2290:
+  +               if (uid_valid(auid = audit_get_loginuid(tsk)))
 
-Imagine situation:
-1. Action is in actions idr, refcount==1
-2. Task tries to delete action, takes reference while working with it,
-refcount==2
-3. Another task tries to delete same action, takes reference,
-refcount==3
-4. First task decrements refcount twice, refcount==1
-5. At the same time second task decrements refcount twice, refcount==-1
+... while I don't completely agree with everything checkpatch has to
+say, I definitely agree with checkpatch when it comes to assignments
+in if conditions.
 
-My solution is to save action index, but release the reference. Then try
-to lookup action again and delete it if it is still in idr. (was not
-concurrently deleted)
-
-Now same potential race condition with this patch:
-1. Action is in actions idr, refcount==1
-2. Task tries to delete action, takes reference while working with it,
-refcount==2
-3. Another task tries to delete same action, takes reference,
-refcount==3
-4. First task releases reference and deletes actions from idr, which
-results another refcount decrement, refcount==1
-5. At the same time second task releases reference to action,
-refcount==0, action is deleted
-6. When task tries to lookup-delete action from idr by index, action is
-not found. This case is handled correctly by code and no negative
-overflow of refcount happens.
-
->
->
->>+		NL_SET_ERR_MSG(extack, "Specified TC action not found");
->>+		goto err_out;
->>+	}
->>+
->>+	if (ops->delete)
->>+		err = ops->delete(net, index);
->>+
->>+	module_put(ops->owner);
->>+err_out:
->>+	return err;
->>+}
->>+
->> static int tca_action_flush(struct net *net, struct nlattr *nla,
->> 			    struct nlmsghdr *n, u32 portid,
->> 			    struct netlink_ext_ack *extack)
->>@@ -1052,6 +1088,36 @@ static int tca_action_flush(struct net *net, struct nlattr *nla,
->> 	return err;
->> }
->> 
->>+static int tcf_action_delete(struct net *net, struct list_head *actions,
->>+			     struct netlink_ext_ack *extack)
->>+{
->>+	int ret;
->>+	struct tc_action *a, *tmp;
->>+	char kind[IFNAMSIZ];
->>+	u32 act_index;
->>+
->>+	list_for_each_entry_safe(a, tmp, actions, list) {
->>+		const struct tc_action_ops *ops = a->ops;
->>+
->>+		/* Actions can be deleted concurrently
->>+		 * so we must save their type and id to search again
->>+		 * after reference is released.
->>+		 */
->>+		strncpy(kind, a->ops->kind, sizeof(kind) - 1);
->>+		act_index = a->tcfa_index;
->>+
->>+		list_del(&a->list);
->>+		if (tcf_action_put(a))
->>+			module_put(ops->owner);
->>+
->>+		/* now do the delete */
->>+		ret = tcf_action_del_1(net, kind, act_index, extack);
->>+		if (ret < 0)
->>+			return ret;
->>+	}
->>+	return 0;
->>+}
->>+
->
-> [...]
+-- 
+paul moore
+www.paul-moore.com
