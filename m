@@ -1,10 +1,10 @@
 From: Jiri Pirko <jiri@resnulli.us>
-Subject: Re: [PATCH 03/14] net: sched: add 'delete' function to action ops
-Date: Mon, 14 May 2018 18:30:44 +0200
-Message-ID: <20180514163044.GE2134@nanopsycho.orion>
+Subject: Re: [PATCH 06/14] net: sched: implement reference counted action
+ release
+Date: Mon, 14 May 2018 18:47:53 +0200
+Message-ID: <20180514164753.GF2134@nanopsycho.orion>
 References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
- <1526308035-12484-4-git-send-email-vladbu@mellanox.com>
- <20180514151222.GC1848@nanopsycho>
+ <1526308035-12484-7-git-send-email-vladbu@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netdev@vger.kernel.org, davem@davemloft.net, jhs@mojatatu.com,
@@ -16,30 +16,78 @@ Cc: netdev@vger.kernel.org, davem@davemloft.net, jhs@mojatatu.com,
 To: Vlad Buslov <vladbu@mellanox.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180514151222.GC1848@nanopsycho>
+In-Reply-To: <1526308035-12484-7-git-send-email-vladbu@mellanox.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Mon, May 14, 2018 at 05:12:22PM CEST, jiri@resnulli.us wrote:
->Mon, May 14, 2018 at 04:27:04PM CEST, vladbu@mellanox.com wrote:
->>Extend action ops with 'delete' function. Each action type to implement its
->>own delete function that doesn't depend on rtnl lock.
->>
->>Signed-off-by: Vlad Buslov <vladbu@mellanox.com>
->>---
->> include/net/act_api.h | 1 +
->> 1 file changed, 1 insertion(+)
->>
->>diff --git a/include/net/act_api.h b/include/net/act_api.h
->>index e634014..73175a3 100644
->>--- a/include/net/act_api.h
->>+++ b/include/net/act_api.h
->>@@ -100,6 +100,7 @@ struct tc_action_ops {
->> 	void	(*stats_update)(struct tc_action *, u64, u32, u64);
->> 	size_t  (*get_fill_size)(const struct tc_action *act);
->> 	struct net_device *(*get_dev)(const struct tc_action *a);
->>+	int     (*delete)(struct net *net, u32 index);
->
->Probably better to squash this to patch 14.
+Mon, May 14, 2018 at 04:27:07PM CEST, vladbu@mellanox.com wrote:
 
-Oh, I see you call it in patch 6. Fine.
+[...]
+
+
+>+static int tcf_action_del_1(struct net *net, char *kind, u32 index,
+>+			    struct netlink_ext_ack *extack)
+>+{
+>+	const struct tc_action_ops *ops;
+>+	int err = -EINVAL;
+>+
+>+	ops = tc_lookup_action_n(kind);
+>+	if (!ops) {
+
+How this can happen? Apparently you hold reference to the module since
+you put it couple lines below. In that case, I don't really understand
+why you need to lookup and just don't use "ops" pointer you have in
+tcf_action_delete().
+
+
+>+		NL_SET_ERR_MSG(extack, "Specified TC action not found");
+>+		goto err_out;
+>+	}
+>+
+>+	if (ops->delete)
+>+		err = ops->delete(net, index);
+>+
+>+	module_put(ops->owner);
+>+err_out:
+>+	return err;
+>+}
+>+
+> static int tca_action_flush(struct net *net, struct nlattr *nla,
+> 			    struct nlmsghdr *n, u32 portid,
+> 			    struct netlink_ext_ack *extack)
+>@@ -1052,6 +1088,36 @@ static int tca_action_flush(struct net *net, struct nlattr *nla,
+> 	return err;
+> }
+> 
+>+static int tcf_action_delete(struct net *net, struct list_head *actions,
+>+			     struct netlink_ext_ack *extack)
+>+{
+>+	int ret;
+>+	struct tc_action *a, *tmp;
+>+	char kind[IFNAMSIZ];
+>+	u32 act_index;
+>+
+>+	list_for_each_entry_safe(a, tmp, actions, list) {
+>+		const struct tc_action_ops *ops = a->ops;
+>+
+>+		/* Actions can be deleted concurrently
+>+		 * so we must save their type and id to search again
+>+		 * after reference is released.
+>+		 */
+>+		strncpy(kind, a->ops->kind, sizeof(kind) - 1);
+>+		act_index = a->tcfa_index;
+>+
+>+		list_del(&a->list);
+>+		if (tcf_action_put(a))
+>+			module_put(ops->owner);
+>+
+>+		/* now do the delete */
+>+		ret = tcf_action_del_1(net, kind, act_index, extack);
+>+		if (ret < 0)
+>+			return ret;
+>+	}
+>+	return 0;
+>+}
+>+
+
+[...]
