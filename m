@@ -1,221 +1,134 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH ghak81 RFC V2 5/5] audit: collect audit task parameters
-Date: Mon, 14 May 2018 17:54:40 -0400
-Message-ID: <CAHC9VhSAZADPuEJXq-piH5-G1R=nfguDvH5LhHxS5r92-ydUsg@mail.gmail.com>
-References: <cover.1526173613.git.rgb@redhat.com> <90031e185e85e5e327aaafb40882d2e3e52ea4c8.1526173613.git.rgb@redhat.com>
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH 01/14] net: sched: use rcu for action cookie update
+Date: Tue, 15 May 2018 07:39:51 +0800
+Message-ID: <201805150730.DS1Zaq1G%fengguang.wu@intel.com>
+References: <1526308035-12484-2-git-send-email-vladbu@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Cc: Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux NetDev Upstream Mailing List <netdev@vger.kernel.org>,
-        Netfilter Devel List <netfilter-devel@vger.kernel.org>,
-        Linux Security Module list
-        <linux-security-module@vger.kernel.org>,
-        Integrity Measurement Architecture
-        <linux-integrity@vger.kernel.org>,
-        SElinux list <selinux@tycho.nsa.gov>,
-        Eric Paris <eparis@redhat.com>,
-        Steve Grubb <sgrubb@redhat.com>,
-        Ingo Molnar <mingo@redhat.com>,
-        David Howells <dhowells@redhat.com>
-To: Richard Guy Briggs <rgb@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: kbuild-all@01.org, netdev@vger.kernel.org, davem@davemloft.net,
+        jhs@mojatatu.com, xiyou.wangcong@gmail.com, jiri@resnulli.us,
+        pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de,
+        ast@kernel.org, daniel@iogearbox.net, edumazet@google.com,
+        vladbu@mellanox.com, keescook@chromium.org,
+        linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, kliteyn@mellanox.com
+To: Vlad Buslov <vladbu@mellanox.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <90031e185e85e5e327aaafb40882d2e3e52ea4c8.1526173613.git.rgb@redhat.com>
+Content-Disposition: inline
+In-Reply-To: <1526308035-12484-2-git-send-email-vladbu@mellanox.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, May 12, 2018 at 9:58 PM, Richard Guy Briggs <rgb@redhat.com> wrote:
-> The audit-related parameters in struct task_struct should ideally be
-> collected together and accessed through a standard audit API.
->
-> Collect the existing loginuid, sessionid and audit_context together in a
-> new struct audit_task_info called "audit" in struct task_struct.
->
-> See: https://github.com/linux-audit/audit-kernel/issues/81
->
-> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> ---
->  MAINTAINERS                |  2 +-
->  include/linux/audit.h      | 10 +++++-----
->  include/linux/audit_task.h | 31 +++++++++++++++++++++++++++++++
->  include/linux/sched.h      |  6 ++----
->  init/init_task.c           |  7 +++++--
->  kernel/auditsc.c           |  6 +++---
->  6 files changed, 47 insertions(+), 15 deletions(-)
->  create mode 100644 include/linux/audit_task.h
+Hi Vlad,
 
-I'm not going to merge this right now; there is still the question of
-static vs dynamic (as mentioned in 0/5) and with the main motivation
-being the audit container ID work, I think it would be good to wait
-for the next round of those patches before committing to something.
+Thank you for the patch! Perhaps something to improve:
 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 0a1410d..8c7992d 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -2510,7 +2510,7 @@ L:        linux-audit@redhat.com (moderated for non-subscribers)
->  W:     https://github.com/linux-audit
->  T:     git git://git.kernel.org/pub/scm/linux/kernel/git/pcmoore/audit.git
->  S:     Supported
-> -F:     include/linux/audit.h
-> +F:     include/linux/audit*.h
->  F:     include/uapi/linux/audit.h
->  F:     kernel/audit*
->
-> diff --git a/include/linux/audit.h b/include/linux/audit.h
-> index f7973e4..6d599b6 100644
-> --- a/include/linux/audit.h
-> +++ b/include/linux/audit.h
-> @@ -237,11 +237,11 @@ extern void __audit_inode_child(struct inode *parent,
->
->  static inline void audit_set_context(struct task_struct *task, struct audit_context *ctx)
->  {
-> -       task->audit_context = ctx;
-> +       task->audit.ctx = ctx;
->  }
->  static inline struct audit_context *audit_context(void)
->  {
-> -       return current->audit_context;
-> +       return current->audit.ctx;
->  }
->  static inline bool audit_dummy_context(void)
->  {
-> @@ -250,7 +250,7 @@ static inline bool audit_dummy_context(void)
->  }
->  static inline void audit_free(struct task_struct *task)
->  {
-> -       if (unlikely(task->audit_context))
-> +       if (unlikely(task->audit.ctx))
->                 __audit_free(task);
->  }
->  static inline void audit_syscall_entry(int major, unsigned long a0,
-> @@ -330,12 +330,12 @@ extern int auditsc_get_stamp(struct audit_context *ctx,
->
->  static inline kuid_t audit_get_loginuid(struct task_struct *tsk)
->  {
-> -       return tsk->loginuid;
-> +       return tsk->audit.loginuid;
->  }
->
->  static inline unsigned int audit_get_sessionid(struct task_struct *tsk)
->  {
-> -       return tsk->sessionid;
-> +       return tsk->audit.sessionid;
->  }
->
->  extern void __audit_ipc_obj(struct kern_ipc_perm *ipcp);
-> diff --git a/include/linux/audit_task.h b/include/linux/audit_task.h
-> new file mode 100644
-> index 0000000..d4b3a20
-> --- /dev/null
-> +++ b/include/linux/audit_task.h
-> @@ -0,0 +1,31 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +/* audit_task.h -- definition of audit_task_info structure
-> + *
-> + * Copyright 2018 Red Hat Inc., Raleigh, North Carolina.
-> + * All Rights Reserved.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * Written by Richard Guy Briggs <rgb@redhat.com>
-> + *
-> + */
-> +
-> +#ifndef _LINUX_AUDIT_TASK_H_
-> +#define _LINUX_AUDIT_TASK_H_
-> +
-> +struct audit_context;
-> +struct audit_task_info {
-> +       kuid_t                  loginuid;
-> +       unsigned int            sessionid;
-> +       struct audit_context    *ctx;
-> +};
-> +
-> +#endif
-> diff --git a/include/linux/sched.h b/include/linux/sched.h
-> index b3d697f..b58eca0 100644
-> --- a/include/linux/sched.h
-> +++ b/include/linux/sched.h
-> @@ -27,9 +27,9 @@
->  #include <linux/signal_types.h>
->  #include <linux/mm_types_task.h>
->  #include <linux/task_io_accounting.h>
-> +#include <linux/audit_task.h>
->
->  /* task_struct member predeclarations (sorted alphabetically): */
-> -struct audit_context;
->  struct backing_dev_info;
->  struct bio_list;
->  struct blk_plug;
-> @@ -832,10 +832,8 @@ struct task_struct {
->
->         struct callback_head            *task_works;
->
-> -       struct audit_context            *audit_context;
->  #ifdef CONFIG_AUDITSYSCALL
-> -       kuid_t                          loginuid;
-> -       unsigned int                    sessionid;
-> +       struct audit_task_info          audit;
->  #endif
->         struct seccomp                  seccomp;
->
-> diff --git a/init/init_task.c b/init/init_task.c
-> index 74f60ba..d33260d 100644
-> --- a/init/init_task.c
-> +++ b/init/init_task.c
-> @@ -119,8 +119,11 @@ struct task_struct init_task
->         .thread_group   = LIST_HEAD_INIT(init_task.thread_group),
->         .thread_node    = LIST_HEAD_INIT(init_signals.thread_head),
->  #ifdef CONFIG_AUDITSYSCALL
-> -       .loginuid       = INVALID_UID,
-> -       .sessionid      = AUDIT_SID_UNSET,
-> +       .audit          = {
-> +               .loginuid       = INVALID_UID,
-> +               .sessionid      = AUDIT_SID_UNSET,
-> +               .ctx            = NULL,
-> +       },
->  #endif
->  #ifdef CONFIG_PERF_EVENTS
->         .perf_event_mutex = __MUTEX_INITIALIZER(init_task.perf_event_mutex),
-> diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> index d441d68..4c1fd18 100644
-> --- a/kernel/auditsc.c
-> +++ b/kernel/auditsc.c
-> @@ -836,7 +836,7 @@ static inline struct audit_context *audit_take_context(struct task_struct *tsk,
->                                                       int return_valid,
->                                                       long return_code)
->  {
-> -       struct audit_context *context = tsk->audit_context;
-> +       struct audit_context *context = tsk->audit.ctx;
->
->         if (!context)
->                 return NULL;
-> @@ -2066,8 +2066,8 @@ int audit_set_loginuid(kuid_t loginuid)
->                         sessionid = (unsigned int)atomic_inc_return(&session_id);
->         }
->
-> -       task->sessionid = sessionid;
-> -       task->loginuid = loginuid;
-> +       task->audit.sessionid = sessionid;
-> +       task->audit.loginuid = loginuid;
->  out:
->         audit_log_set_loginuid(oldloginuid, loginuid, oldsessionid, sessionid, rc);
->         return rc;
-> --
-> 1.8.3.1
->
+[auto build test WARNING on net/master]
+[also build test WARNING on v4.17-rc5 next-20180514]
+[cannot apply to net-next/master]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Vlad-Buslov/Modify-action-API-for-implementing-lockless-actions/20180515-025420
+reproduce:
+        # apt-get install sparse
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF=-D__CHECK_ENDIAN__
 
 
+sparse warnings: (new ones prefixed by >>)
 
--- 
-paul moore
-www.paul-moore.com
+>> net/sched/act_api.c:71:15: sparse: incorrect type in initializer (different address spaces) @@    expected struct tc_cookie [noderef] <asn:4>*__ret @@    got [noderef] <asn:4>*__ret @@
+   net/sched/act_api.c:71:15:    expected struct tc_cookie [noderef] <asn:4>*__ret
+   net/sched/act_api.c:71:15:    got struct tc_cookie *new_cookie
+>> net/sched/act_api.c:71:13: sparse: incorrect type in assignment (different address spaces) @@    expected struct tc_cookie *old @@    got struct tc_cookie [noderef] <struct tc_cookie *old @@
+   net/sched/act_api.c:71:13:    expected struct tc_cookie *old
+   net/sched/act_api.c:71:13:    got struct tc_cookie [noderef] <asn:4>*[assigned] __ret
+>> net/sched/act_api.c:132:48: sparse: dereference of noderef expression
+
+vim +71 net/sched/act_api.c
+
+    65	
+    66	static void tcf_set_action_cookie(struct tc_cookie __rcu **old_cookie,
+    67					  struct tc_cookie *new_cookie)
+    68	{
+    69		struct tc_cookie *old;
+    70	
+  > 71		old = xchg(old_cookie, new_cookie);
+    72		if (old)
+    73			call_rcu(&old->rcu, tcf_free_cookie_rcu);
+    74	}
+    75	
+    76	/* XXX: For standalone actions, we don't need a RCU grace period either, because
+    77	 * actions are always connected to filters and filters are already destroyed in
+    78	 * RCU callbacks, so after a RCU grace period actions are already disconnected
+    79	 * from filters. Readers later can not find us.
+    80	 */
+    81	static void free_tcf(struct tc_action *p)
+    82	{
+    83		free_percpu(p->cpu_bstats);
+    84		free_percpu(p->cpu_qstats);
+    85	
+    86		tcf_set_action_cookie(&p->act_cookie, NULL);
+    87		if (p->goto_chain)
+    88			tcf_action_goto_chain_fini(p);
+    89	
+    90		kfree(p);
+    91	}
+    92	
+    93	static void tcf_idr_remove(struct tcf_idrinfo *idrinfo, struct tc_action *p)
+    94	{
+    95		spin_lock_bh(&idrinfo->lock);
+    96		idr_remove(&idrinfo->action_idr, p->tcfa_index);
+    97		spin_unlock_bh(&idrinfo->lock);
+    98		gen_kill_estimator(&p->tcfa_rate_est);
+    99		free_tcf(p);
+   100	}
+   101	
+   102	int __tcf_idr_release(struct tc_action *p, bool bind, bool strict)
+   103	{
+   104		int ret = 0;
+   105	
+   106		ASSERT_RTNL();
+   107	
+   108		if (p) {
+   109			if (bind)
+   110				p->tcfa_bindcnt--;
+   111			else if (strict && p->tcfa_bindcnt > 0)
+   112				return -EPERM;
+   113	
+   114			p->tcfa_refcnt--;
+   115			if (p->tcfa_bindcnt <= 0 && p->tcfa_refcnt <= 0) {
+   116				if (p->ops->cleanup)
+   117					p->ops->cleanup(p);
+   118				tcf_idr_remove(p->idrinfo, p);
+   119				ret = ACT_P_DELETED;
+   120			}
+   121		}
+   122	
+   123		return ret;
+   124	}
+   125	EXPORT_SYMBOL(__tcf_idr_release);
+   126	
+   127	static size_t tcf_action_shared_attrs_size(const struct tc_action *act)
+   128	{
+   129		u32 cookie_len = 0;
+   130	
+   131		if (act->act_cookie)
+ > 132			cookie_len = nla_total_size(act->act_cookie->len);
+   133	
+   134		return  nla_total_size(0) /* action number nested */
+   135			+ nla_total_size(IFNAMSIZ) /* TCA_ACT_KIND */
+   136			+ cookie_len /* TCA_ACT_COOKIE */
+   137			+ nla_total_size(0) /* TCA_ACT_STATS nested */
+   138			/* TCA_STATS_BASIC */
+   139			+ nla_total_size_64bit(sizeof(struct gnet_stats_basic))
+   140			/* TCA_STATS_QUEUE */
+   141			+ nla_total_size_64bit(sizeof(struct gnet_stats_queue))
+   142			+ nla_total_size(0) /* TCA_OPTIONS nested */
+   143			+ nla_total_size(sizeof(struct tcf_t)); /* TCA_GACT_TM */
+   144	}
+   145	
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
