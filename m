@@ -1,7 +1,7 @@
 From: Vlad Buslov <vladbu@mellanox.com>
-Subject: [PATCH 14/14] net: sched: implement delete for all actions
-Date: Mon, 14 May 2018 17:27:15 +0300
-Message-ID: <1526308035-12484-15-git-send-email-vladbu@mellanox.com>
+Subject: [PATCH 09/14] net: sched: don't release reference on action overwrite
+Date: Mon, 14 May 2018 17:27:10 +0300
+Message-ID: <1526308035-12484-10-git-send-email-vladbu@mellanox.com>
 References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
 Cc: davem@davemloft.net, jhs@mojatatu.com, xiyou.wangcong@gmail.com,
         jiri@resnulli.us, pablo@netfilter.org, kadlec@blackhole.kfki.hu,
@@ -10,473 +10,405 @@ Cc: davem@davemloft.net, jhs@mojatatu.com, xiyou.wangcong@gmail.com,
         linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org, kliteyn@mellanox.com
 To: netdev@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Implement delete function that is required to delete actions without
-holding rtnl lock. Use action API function that atomically deletes action
-only if it is still in action idr. This implementation prevents concurrent
-threads from deleting same action twice.
+Return from action init function with reference to action taken,
+even when overwriting existing action.
+
+Action init API initializes its fourth argument (pointer to pointer to
+tc action) to either existing action with same index or newly created
+action. In case of existing index(and bind argument is zero), init
+function returns without incrementing action reference counter. Caller
+of action init then proceeds working with action without actually
+holding reference to it. This means that action could be deleted
+concurrently. To prevent such scenario this patch changes action init
+behavior to always take reference to action before returning
+successfully.
 
 Signed-off-by: Vlad Buslov <vladbu@mellanox.com>
 ---
- net/sched/act_bpf.c        |  8 ++++++++
- net/sched/act_connmark.c   |  8 ++++++++
- net/sched/act_csum.c       |  8 ++++++++
- net/sched/act_gact.c       |  8 ++++++++
- net/sched/act_ife.c        |  8 ++++++++
- net/sched/act_ipt.c        | 16 ++++++++++++++++
- net/sched/act_mirred.c     |  8 ++++++++
- net/sched/act_nat.c        |  8 ++++++++
- net/sched/act_pedit.c      |  8 ++++++++
- net/sched/act_police.c     |  8 ++++++++
- net/sched/act_sample.c     |  8 ++++++++
- net/sched/act_simple.c     |  8 ++++++++
- net/sched/act_skbedit.c    |  8 ++++++++
- net/sched/act_skbmod.c     |  8 ++++++++
- net/sched/act_tunnel_key.c |  8 ++++++++
- net/sched/act_vlan.c       |  8 ++++++++
- 16 files changed, 136 insertions(+)
+ net/sched/act_bpf.c        |  8 ++++----
+ net/sched/act_connmark.c   |  5 +++--
+ net/sched/act_csum.c       |  8 ++++----
+ net/sched/act_gact.c       |  5 +++--
+ net/sched/act_ife.c        | 12 +++++-------
+ net/sched/act_ipt.c        |  5 +++--
+ net/sched/act_mirred.c     |  5 ++---
+ net/sched/act_nat.c        |  5 +++--
+ net/sched/act_pedit.c      |  5 +++--
+ net/sched/act_police.c     |  8 +++-----
+ net/sched/act_sample.c     |  8 +++-----
+ net/sched/act_simple.c     |  5 +++--
+ net/sched/act_skbedit.c    |  5 +++--
+ net/sched/act_skbmod.c     |  8 +++-----
+ net/sched/act_tunnel_key.c |  8 +++-----
+ net/sched/act_vlan.c       |  8 +++-----
+ 16 files changed, 51 insertions(+), 57 deletions(-)
 
 diff --git a/net/sched/act_bpf.c b/net/sched/act_bpf.c
-index 0bf4ecf..36f7f66 100644
+index 5d95c43..5554bf7 100644
 --- a/net/sched/act_bpf.c
 +++ b/net/sched/act_bpf.c
-@@ -394,6 +394,13 @@ static int tcf_bpf_search(struct net *net, struct tc_action **a, u32 index,
- 	return tcf_idr_search(tn, a, index);
+@@ -311,9 +311,10 @@ static int tcf_bpf_init(struct net *net, struct nlattr *nla,
+ 		if (bind)
+ 			return 0;
+ 
+-		tcf_idr_release(*act, bind);
+-		if (!replace)
++		if (!replace) {
++			tcf_idr_release(*act, bind);
+ 			return -EEXIST;
++		}
+ 	}
+ 
+ 	is_bpf = tb[TCA_ACT_BPF_OPS_LEN] && tb[TCA_ACT_BPF_OPS];
+@@ -356,8 +357,7 @@ static int tcf_bpf_init(struct net *net, struct nlattr *nla,
+ 
+ 	return res;
+ out:
+-	if (res == ACT_P_CREATED)
+-		tcf_idr_release(*act, bind);
++	tcf_idr_release(*act, bind);
+ 
+ 	return ret;
  }
- 
-+static int tcf_bpf_delete(struct net *net, u32 index)
-+{
-+	struct tc_action_net *tn = net_generic(net, bpf_net_id);
-+
-+	return tcf_idr_find_delete(tn, index);
-+}
-+
- static struct tc_action_ops act_bpf_ops __read_mostly = {
- 	.kind		=	"bpf",
- 	.type		=	TCA_ACT_BPF,
-@@ -404,6 +411,7 @@ static struct tc_action_ops act_bpf_ops __read_mostly = {
- 	.init		=	tcf_bpf_init,
- 	.walk		=	tcf_bpf_walker,
- 	.lookup		=	tcf_bpf_search,
-+	.delete		=	tcf_bpf_delete,
- 	.size		=	sizeof(struct tcf_bpf),
- };
- 
 diff --git a/net/sched/act_connmark.c b/net/sched/act_connmark.c
-index a4e9f21..346ede7 100644
+index ff6444e..2a4c3da 100644
 --- a/net/sched/act_connmark.c
 +++ b/net/sched/act_connmark.c
-@@ -200,6 +200,13 @@ static int tcf_connmark_search(struct net *net, struct tc_action **a, u32 index,
- 	return tcf_idr_search(tn, a, index);
- }
- 
-+static int tcf_connmark_delete(struct net *net, u32 index)
-+{
-+	struct tc_action_net *tn = net_generic(net, connmark_net_id);
-+
-+	return tcf_idr_find_delete(tn, index);
-+}
-+
- static struct tc_action_ops act_connmark_ops = {
- 	.kind		=	"connmark",
- 	.type		=	TCA_ACT_CONNMARK,
-@@ -209,6 +216,7 @@ static struct tc_action_ops act_connmark_ops = {
- 	.init		=	tcf_connmark_init,
- 	.walk		=	tcf_connmark_walker,
- 	.lookup		=	tcf_connmark_search,
-+	.delete		=	tcf_connmark_delete,
- 	.size		=	sizeof(struct tcf_connmark_info),
- };
- 
+@@ -135,9 +135,10 @@ static int tcf_connmark_init(struct net *net, struct nlattr *nla,
+ 		ci = to_connmark(*a);
+ 		if (bind)
+ 			return 0;
+-		tcf_idr_release(*a, bind);
+-		if (!ovr)
++		if (!ovr) {
++			tcf_idr_release(*a, bind);
+ 			return -EEXIST;
++		}
+ 		/* replacing action and zone */
+ 		ci->tcf_action = parm->action;
+ 		ci->zone = parm->zone;
 diff --git a/net/sched/act_csum.c b/net/sched/act_csum.c
-index d9836d2..b0a244e 100644
+index a692ac1..74f5dce 100644
 --- a/net/sched/act_csum.c
 +++ b/net/sched/act_csum.c
-@@ -655,6 +655,13 @@ static int tcf_csum_search(struct net *net, struct tc_action **a, u32 index,
- 	return tcf_idr_search(tn, a, index);
- }
+@@ -76,9 +76,10 @@ static int tcf_csum_init(struct net *net, struct nlattr *nla,
+ 	} else {
+ 		if (bind)/* dont override defaults */
+ 			return 0;
+-		tcf_idr_release(*a, bind);
+-		if (!ovr)
++		if (!ovr) {
++			tcf_idr_release(*a, bind);
+ 			return -EEXIST;
++		}
+ 	}
  
-+static int tcf_csum_delete(struct net *net, u32 index)
-+{
-+	struct tc_action_net *tn = net_generic(net, csum_net_id);
-+
-+	return tcf_idr_find_delete(tn, index);
-+}
-+
- static struct tc_action_ops act_csum_ops = {
- 	.kind		= "csum",
- 	.type		= TCA_ACT_CSUM,
-@@ -665,6 +672,7 @@ static struct tc_action_ops act_csum_ops = {
- 	.cleanup	= tcf_csum_cleanup,
- 	.walk		= tcf_csum_walker,
- 	.lookup		= tcf_csum_search,
-+	.delete		= tcf_csum_delete,
- 	.size		= sizeof(struct tcf_csum),
- };
+ 	p = to_tcf_csum(*a);
+@@ -86,8 +87,7 @@ static int tcf_csum_init(struct net *net, struct nlattr *nla,
  
+ 	params_new = kzalloc(sizeof(*params_new), GFP_KERNEL);
+ 	if (unlikely(!params_new)) {
+-		if (ret == ACT_P_CREATED)
+-			tcf_idr_release(*a, bind);
++		tcf_idr_release(*a, bind);
+ 		return -ENOMEM;
+ 	}
+ 	params_old = rtnl_dereference(p->params);
 diff --git a/net/sched/act_gact.c b/net/sched/act_gact.c
-index 79266590..f6ff668 100644
+index 0c536cd..9d7d000 100644
 --- a/net/sched/act_gact.c
 +++ b/net/sched/act_gact.c
-@@ -238,6 +238,13 @@ static size_t tcf_gact_get_fill_size(const struct tc_action *act)
- 	return sz;
- }
+@@ -100,9 +100,10 @@ static int tcf_gact_init(struct net *net, struct nlattr *nla,
+ 	} else {
+ 		if (bind)/* dont override defaults */
+ 			return 0;
+-		tcf_idr_release(*a, bind);
+-		if (!ovr)
++		if (!ovr) {
++			tcf_idr_release(*a, bind);
+ 			return -EEXIST;
++		}
+ 	}
  
-+static int tcf_gact_delete(struct net *net, u32 index)
-+{
-+	struct tc_action_net *tn = net_generic(net, gact_net_id);
-+
-+	return tcf_idr_find_delete(tn, index);
-+}
-+
- static struct tc_action_ops act_gact_ops = {
- 	.kind		=	"gact",
- 	.type		=	TCA_ACT_GACT,
-@@ -249,6 +256,7 @@ static struct tc_action_ops act_gact_ops = {
- 	.walk		=	tcf_gact_walker,
- 	.lookup		=	tcf_gact_search,
- 	.get_fill_size	=	tcf_gact_get_fill_size,
-+	.delete		=	tcf_gact_delete,
- 	.size		=	sizeof(struct tcf_gact),
- };
- 
+ 	gact = to_gact(*a);
 diff --git a/net/sched/act_ife.c b/net/sched/act_ife.c
-index 060144e..d627060 100644
+index cb155cd..b57c5ba 100644
 --- a/net/sched/act_ife.c
 +++ b/net/sched/act_ife.c
-@@ -845,6 +845,13 @@ static int tcf_ife_search(struct net *net, struct tc_action **a, u32 index,
- 	return tcf_idr_search(tn, a, index);
- }
+@@ -497,12 +497,10 @@ static int tcf_ife_init(struct net *net, struct nlattr *nla,
+ 			return ret;
+ 		}
+ 		ret = ACT_P_CREATED;
+-	} else {
++	} else if (!ovr) {
+ 		tcf_idr_release(*a, bind);
+-		if (!ovr) {
+-			kfree(p);
+-			return -EEXIST;
+-		}
++		kfree(p);
++		return -EEXIST;
+ 	}
  
-+static int tcf_ife_delete(struct net *net, u32 index)
-+{
-+	struct tc_action_net *tn = net_generic(net, ife_net_id);
-+
-+	return tcf_idr_find_delete(tn, index);
-+}
-+
- static struct tc_action_ops act_ife_ops = {
- 	.kind = "ife",
- 	.type = TCA_ACT_IFE,
-@@ -855,6 +862,7 @@ static struct tc_action_ops act_ife_ops = {
- 	.init = tcf_ife_init,
- 	.walk = tcf_ife_walker,
- 	.lookup = tcf_ife_search,
-+	.delete = tcf_ife_delete,
- 	.size =	sizeof(struct tcf_ife_info),
- };
+ 	ife = to_ife(*a);
+@@ -544,13 +542,13 @@ static int tcf_ife_init(struct net *net, struct nlattr *nla,
+ 				       NULL, NULL);
+ 		if (err) {
+ metadata_parse_err:
+-			if (exists)
+-				tcf_idr_release(*a, bind);
+ 			if (ret == ACT_P_CREATED)
+ 				_tcf_ife_cleanup(*a);
  
+ 			if (exists)
+ 				spin_unlock_bh(&ife->tcf_lock);
++			tcf_idr_release(*a, bind);
++
+ 			kfree(p);
+ 			return err;
+ 		}
 diff --git a/net/sched/act_ipt.c b/net/sched/act_ipt.c
-index ff8cf9d..d7bad79 100644
+index 0acf784..7c26ce1 100644
 --- a/net/sched/act_ipt.c
 +++ b/net/sched/act_ipt.c
-@@ -331,6 +331,13 @@ static int tcf_ipt_search(struct net *net, struct tc_action **a, u32 index,
- 	return tcf_idr_search(tn, a, index);
- }
+@@ -145,10 +145,11 @@ static int __tcf_ipt_init(struct net *net, unsigned int id, struct nlattr *nla,
+ 	} else {
+ 		if (bind)/* dont override defaults */
+ 			return 0;
+-		tcf_idr_release(*a, bind);
  
-+static int tcf_ipt_delete(struct net *net, u32 index)
-+{
-+	struct tc_action_net *tn = net_generic(net, ipt_net_id);
-+
-+	return tcf_idr_find_delete(tn, index);
-+}
-+
- static struct tc_action_ops act_ipt_ops = {
- 	.kind		=	"ipt",
- 	.type		=	TCA_ACT_IPT,
-@@ -341,6 +348,7 @@ static struct tc_action_ops act_ipt_ops = {
- 	.init		=	tcf_ipt_init,
- 	.walk		=	tcf_ipt_walker,
- 	.lookup		=	tcf_ipt_search,
-+	.delete		=	tcf_ipt_delete,
- 	.size		=	sizeof(struct tcf_ipt),
- };
- 
-@@ -381,6 +389,13 @@ static int tcf_xt_search(struct net *net, struct tc_action **a, u32 index,
- 	return tcf_idr_search(tn, a, index);
- }
- 
-+static int tcf_xt_delete(struct net *net, u32 index)
-+{
-+	struct tc_action_net *tn = net_generic(net, xt_net_id);
-+
-+	return tcf_idr_find_delete(tn, index);
-+}
-+
- static struct tc_action_ops act_xt_ops = {
- 	.kind		=	"xt",
- 	.type		=	TCA_ACT_XT,
-@@ -391,6 +406,7 @@ static struct tc_action_ops act_xt_ops = {
- 	.init		=	tcf_xt_init,
- 	.walk		=	tcf_xt_walker,
- 	.lookup		=	tcf_xt_search,
-+	.delete		=	tcf_xt_delete,
- 	.size		=	sizeof(struct tcf_ipt),
- };
+-		if (!ovr)
++		if (!ovr) {
++			tcf_idr_release(*a, bind);
+ 			return -EEXIST;
++		}
+ 	}
+ 	hook = nla_get_u32(tb[TCA_IPT_HOOK]);
  
 diff --git a/net/sched/act_mirred.c b/net/sched/act_mirred.c
-index 7ab8d0c..62ac34b 100644
+index 607da4b..b9b7b96 100644
 --- a/net/sched/act_mirred.c
 +++ b/net/sched/act_mirred.c
-@@ -327,6 +327,13 @@ static struct net_device *tcf_mirred_get_dev(const struct tc_action *a)
- 	return rtnl_dereference(m->tcfm_dev);
- }
+@@ -132,10 +132,9 @@ static int tcf_mirred_init(struct net *net, struct nlattr *nla,
+ 		if (ret)
+ 			return ret;
+ 		ret = ACT_P_CREATED;
+-	} else {
++	} else if (!ovr) {
+ 		tcf_idr_release(*a, bind);
+-		if (!ovr)
+-			return -EEXIST;
++		return -EEXIST;
+ 	}
+ 	m = to_mirred(*a);
  
-+static int tcf_mirred_delete(struct net *net, u32 index)
-+{
-+	struct tc_action_net *tn = net_generic(net, mirred_net_id);
-+
-+	return tcf_idr_find_delete(tn, index);
-+}
-+
- static struct tc_action_ops act_mirred_ops = {
- 	.kind		=	"mirred",
- 	.type		=	TCA_ACT_MIRRED,
-@@ -340,6 +347,7 @@ static struct tc_action_ops act_mirred_ops = {
- 	.lookup		=	tcf_mirred_search,
- 	.size		=	sizeof(struct tcf_mirred),
- 	.get_dev	=	tcf_mirred_get_dev,
-+	.delete		=	tcf_mirred_delete,
- };
- 
- static __net_init int mirred_init_net(struct net *net)
 diff --git a/net/sched/act_nat.c b/net/sched/act_nat.c
-index a15c4a9..acf4064 100644
+index 2f2f045..77badb2 100644
 --- a/net/sched/act_nat.c
 +++ b/net/sched/act_nat.c
-@@ -301,6 +301,13 @@ static int tcf_nat_search(struct net *net, struct tc_action **a, u32 index,
- 	return tcf_idr_search(tn, a, index);
- }
- 
-+static int tcf_nat_delete(struct net *net, u32 index)
-+{
-+	struct tc_action_net *tn = net_generic(net, nat_net_id);
-+
-+	return tcf_idr_find_delete(tn, index);
-+}
-+
- static struct tc_action_ops act_nat_ops = {
- 	.kind		=	"nat",
- 	.type		=	TCA_ACT_NAT,
-@@ -310,6 +317,7 @@ static struct tc_action_ops act_nat_ops = {
- 	.init		=	tcf_nat_init,
- 	.walk		=	tcf_nat_walker,
- 	.lookup		=	tcf_nat_search,
-+	.delete		=	tcf_nat_delete,
- 	.size		=	sizeof(struct tcf_nat),
- };
+@@ -66,9 +66,10 @@ static int tcf_nat_init(struct net *net, struct nlattr *nla, struct nlattr *est,
+ 	} else {
+ 		if (bind)
+ 			return 0;
+-		tcf_idr_release(*a, bind);
+-		if (!ovr)
++		if (!ovr) {
++			tcf_idr_release(*a, bind);
+ 			return -EEXIST;
++		}
+ 	}
+ 	p = to_tcf_nat(*a);
  
 diff --git a/net/sched/act_pedit.c b/net/sched/act_pedit.c
-index 49034d4..4eb605d 100644
+index 117e486..8c39adc 100644
 --- a/net/sched/act_pedit.c
 +++ b/net/sched/act_pedit.c
-@@ -443,6 +443,13 @@ static int tcf_pedit_search(struct net *net, struct tc_action **a, u32 index,
- 	return tcf_idr_search(tn, a, index);
- }
- 
-+static int tcf_pedit_delete(struct net *net, u32 index)
-+{
-+	struct tc_action_net *tn = net_generic(net, pedit_net_id);
-+
-+	return tcf_idr_find_delete(tn, index);
-+}
-+
- static struct tc_action_ops act_pedit_ops = {
- 	.kind		=	"pedit",
- 	.type		=	TCA_ACT_PEDIT,
-@@ -453,6 +460,7 @@ static struct tc_action_ops act_pedit_ops = {
- 	.init		=	tcf_pedit_init,
- 	.walk		=	tcf_pedit_walker,
- 	.lookup		=	tcf_pedit_search,
-+	.delete		=	tcf_pedit_delete,
- 	.size		=	sizeof(struct tcf_pedit),
- };
- 
+@@ -185,9 +185,10 @@ static int tcf_pedit_init(struct net *net, struct nlattr *nla,
+ 	} else {
+ 		if (bind)
+ 			return 0;
+-		tcf_idr_release(*a, bind);
+-		if (!ovr)
++		if (!ovr) {
++			tcf_idr_release(*a, bind);
+ 			return -EEXIST;
++		}
+ 		p = to_pedit(*a);
+ 		if (p->tcfp_nkeys && p->tcfp_nkeys != parm->nkeys) {
+ 			keys = kmalloc(ksize, GFP_KERNEL);
 diff --git a/net/sched/act_police.c b/net/sched/act_police.c
-index eb4e458..b9827bb 100644
+index 2971ba3..86d9417 100644
 --- a/net/sched/act_police.c
 +++ b/net/sched/act_police.c
-@@ -319,6 +319,13 @@ static int tcf_police_search(struct net *net, struct tc_action **a, u32 index,
- 	return tcf_idr_search(tn, a, index);
- }
+@@ -111,10 +111,9 @@ static int tcf_act_police_init(struct net *net, struct nlattr *nla,
+ 		if (ret)
+ 			return ret;
+ 		ret = ACT_P_CREATED;
+-	} else {
++	} else if (!ovr) {
+ 		tcf_idr_release(*a, bind);
+-		if (!ovr)
+-			return -EEXIST;
++		return -EEXIST;
+ 	}
  
-+static int tcf_police_delete(struct net *net, u32 index)
-+{
-+	struct tc_action_net *tn = net_generic(net, police_net_id);
-+
-+	return tcf_idr_find_delete(tn, index);
-+}
-+
- MODULE_AUTHOR("Alexey Kuznetsov");
- MODULE_DESCRIPTION("Policing actions");
- MODULE_LICENSE("GPL");
-@@ -332,6 +339,7 @@ static struct tc_action_ops act_police_ops = {
- 	.init		=	tcf_act_police_init,
- 	.walk		=	tcf_act_police_walker,
- 	.lookup		=	tcf_police_search,
-+	.delete		=	tcf_police_delete,
- 	.size		=	sizeof(struct tcf_police),
- };
+ 	police = to_police(*a);
+@@ -195,8 +194,7 @@ static int tcf_act_police_init(struct net *net, struct nlattr *nla,
+ failure:
+ 	qdisc_put_rtab(P_tab);
+ 	qdisc_put_rtab(R_tab);
+-	if (ret == ACT_P_CREATED)
+-		tcf_idr_release(*a, bind);
++	tcf_idr_release(*a, bind);
+ 	return err;
+ }
  
 diff --git a/net/sched/act_sample.c b/net/sched/act_sample.c
-index 5a650d4..5843ce6 100644
+index 9bbd8e9..d2b0394 100644
 --- a/net/sched/act_sample.c
 +++ b/net/sched/act_sample.c
-@@ -224,6 +224,13 @@ static int tcf_sample_search(struct net *net, struct tc_action **a, u32 index,
- 	return tcf_idr_search(tn, a, index);
- }
+@@ -69,10 +69,9 @@ static int tcf_sample_init(struct net *net, struct nlattr *nla,
+ 		if (ret)
+ 			return ret;
+ 		ret = ACT_P_CREATED;
+-	} else {
++	} else if (!ovr) {
+ 		tcf_idr_release(*a, bind);
+-		if (!ovr)
+-			return -EEXIST;
++		return -EEXIST;
+ 	}
+ 	s = to_sample(*a);
  
-+static int tcf_sample_delete(struct net *net, u32 index)
-+{
-+	struct tc_action_net *tn = net_generic(net, sample_net_id);
-+
-+	return tcf_idr_find_delete(tn, index);
-+}
-+
- static struct tc_action_ops act_sample_ops = {
- 	.kind	  = "sample",
- 	.type	  = TCA_ACT_SAMPLE,
-@@ -234,6 +241,7 @@ static struct tc_action_ops act_sample_ops = {
- 	.cleanup  = tcf_sample_cleanup,
- 	.walk	  = tcf_sample_walker,
- 	.lookup	  = tcf_sample_search,
-+	.delete	  = tcf_sample_delete,
- 	.size	  = sizeof(struct tcf_sample),
- };
- 
+@@ -81,8 +80,7 @@ static int tcf_sample_init(struct net *net, struct nlattr *nla,
+ 	s->psample_group_num = nla_get_u32(tb[TCA_SAMPLE_PSAMPLE_GROUP]);
+ 	psample_group = psample_group_get(net, s->psample_group_num);
+ 	if (!psample_group) {
+-		if (ret == ACT_P_CREATED)
+-			tcf_idr_release(*a, bind);
++		tcf_idr_release(*a, bind);
+ 		return -ENOMEM;
+ 	}
+ 	RCU_INIT_POINTER(s->psample_group, psample_group);
 diff --git a/net/sched/act_simple.c b/net/sched/act_simple.c
-index 13809e5..c9857b2 100644
+index 162f091..26eb153 100644
 --- a/net/sched/act_simple.c
 +++ b/net/sched/act_simple.c
-@@ -195,6 +195,13 @@ static int tcf_simp_search(struct net *net, struct tc_action **a, u32 index,
- 	return tcf_idr_search(tn, a, index);
- }
+@@ -130,9 +130,10 @@ static int tcf_simp_init(struct net *net, struct nlattr *nla,
+ 	} else {
+ 		d = to_defact(*a);
  
-+static int tcf_simp_delete(struct net *net, u32 index)
-+{
-+	struct tc_action_net *tn = net_generic(net, simp_net_id);
-+
-+	return tcf_idr_find_delete(tn, index);
-+}
-+
- static struct tc_action_ops act_simp_ops = {
- 	.kind		=	"simple",
- 	.type		=	TCA_ACT_SIMP,
-@@ -205,6 +212,7 @@ static struct tc_action_ops act_simp_ops = {
- 	.init		=	tcf_simp_init,
- 	.walk		=	tcf_simp_walker,
- 	.lookup		=	tcf_simp_search,
-+	.delete		=	tcf_simp_delete,
- 	.size		=	sizeof(struct tcf_defact),
- };
+-		tcf_idr_release(*a, bind);
+-		if (!ovr)
++		if (!ovr) {
++			tcf_idr_release(*a, bind);
+ 			return -EEXIST;
++		}
  
+ 		reset_policy(d, defdata, parm);
+ 	}
 diff --git a/net/sched/act_skbedit.c b/net/sched/act_skbedit.c
-index bf87679..ee4c3f5 100644
+index 4b9d616..bb416b7 100644
 --- a/net/sched/act_skbedit.c
 +++ b/net/sched/act_skbedit.c
-@@ -232,6 +232,13 @@ static int tcf_skbedit_search(struct net *net, struct tc_action **a, u32 index,
- 	return tcf_idr_search(tn, a, index);
- }
+@@ -136,9 +136,10 @@ static int tcf_skbedit_init(struct net *net, struct nlattr *nla,
+ 		ret = ACT_P_CREATED;
+ 	} else {
+ 		d = to_skbedit(*a);
+-		tcf_idr_release(*a, bind);
+-		if (!ovr)
++		if (!ovr) {
++			tcf_idr_release(*a, bind);
+ 			return -EEXIST;
++		}
+ 	}
  
-+static int tcf_skbedit_delete(struct net *net, u32 index)
-+{
-+	struct tc_action_net *tn = net_generic(net, skbedit_net_id);
-+
-+	return tcf_idr_find_delete(tn, index);
-+}
-+
- static struct tc_action_ops act_skbedit_ops = {
- 	.kind		=	"skbedit",
- 	.type		=	TCA_ACT_SKBEDIT,
-@@ -241,6 +248,7 @@ static struct tc_action_ops act_skbedit_ops = {
- 	.init		=	tcf_skbedit_init,
- 	.walk		=	tcf_skbedit_walker,
- 	.lookup		=	tcf_skbedit_search,
-+	.delete		=	tcf_skbedit_delete,
- 	.size		=	sizeof(struct tcf_skbedit),
- };
- 
+ 	spin_lock_bh(&d->tcf_lock);
 diff --git a/net/sched/act_skbmod.c b/net/sched/act_skbmod.c
-index dc36e6f..a8b31e9 100644
+index c1f9eda..e1c2e1c 100644
 --- a/net/sched/act_skbmod.c
 +++ b/net/sched/act_skbmod.c
-@@ -254,6 +254,13 @@ static int tcf_skbmod_search(struct net *net, struct tc_action **a, u32 index,
- 	return tcf_idr_search(tn, a, index);
- }
+@@ -142,10 +142,9 @@ static int tcf_skbmod_init(struct net *net, struct nlattr *nla,
+ 			return ret;
  
-+static int tcf_skbmod_delete(struct net *net, u32 index)
-+{
-+	struct tc_action_net *tn = net_generic(net, skbmod_net_id);
-+
-+	return tcf_idr_find_delete(tn, index);
-+}
-+
- static struct tc_action_ops act_skbmod_ops = {
- 	.kind		=	"skbmod",
- 	.type		=	TCA_ACT_SKBMOD,
-@@ -264,6 +271,7 @@ static struct tc_action_ops act_skbmod_ops = {
- 	.cleanup	=	tcf_skbmod_cleanup,
- 	.walk		=	tcf_skbmod_walker,
- 	.lookup		=	tcf_skbmod_search,
-+	.delete		=	tcf_skbmod_delete,
- 	.size		=	sizeof(struct tcf_skbmod),
- };
+ 		ret = ACT_P_CREATED;
+-	} else {
++	} else if (!ovr) {
+ 		tcf_idr_release(*a, bind);
+-		if (!ovr)
+-			return -EEXIST;
++		return -EEXIST;
+ 	}
+ 
+ 	d = to_skbmod(*a);
+@@ -153,8 +152,7 @@ static int tcf_skbmod_init(struct net *net, struct nlattr *nla,
+ 	ASSERT_RTNL();
+ 	p = kzalloc(sizeof(struct tcf_skbmod_params), GFP_KERNEL);
+ 	if (unlikely(!p)) {
+-		if (ret == ACT_P_CREATED)
+-			tcf_idr_release(*a, bind);
++		tcf_idr_release(*a, bind);
+ 		return -ENOMEM;
+ 	}
  
 diff --git a/net/sched/act_tunnel_key.c b/net/sched/act_tunnel_key.c
-index 16926c7..9175580 100644
+index e4f9718..d88c151 100644
 --- a/net/sched/act_tunnel_key.c
 +++ b/net/sched/act_tunnel_key.c
-@@ -315,6 +315,13 @@ static int tunnel_key_search(struct net *net, struct tc_action **a, u32 index,
- 	return tcf_idr_search(tn, a, index);
- }
+@@ -165,10 +165,9 @@ static int tunnel_key_init(struct net *net, struct nlattr *nla,
+ 			return ret;
  
-+static int tunnel_key_delete(struct net *net, u32 index)
-+{
-+	struct tc_action_net *tn = net_generic(net, tunnel_key_net_id);
-+
-+	return tcf_idr_find_delete(tn, index);
-+}
-+
- static struct tc_action_ops act_tunnel_key_ops = {
- 	.kind		=	"tunnel_key",
- 	.type		=	TCA_ACT_TUNNEL_KEY,
-@@ -325,6 +332,7 @@ static struct tc_action_ops act_tunnel_key_ops = {
- 	.cleanup	=	tunnel_key_release,
- 	.walk		=	tunnel_key_walker,
- 	.lookup		=	tunnel_key_search,
-+	.delete		=	tunnel_key_delete,
- 	.size		=	sizeof(struct tcf_tunnel_key),
- };
+ 		ret = ACT_P_CREATED;
+-	} else {
++	} else if (!ovr) {
+ 		tcf_idr_release(*a, bind);
+-		if (!ovr)
+-			return -EEXIST;
++		return -EEXIST;
+ 	}
+ 
+ 	t = to_tunnel_key(*a);
+@@ -176,8 +175,7 @@ static int tunnel_key_init(struct net *net, struct nlattr *nla,
+ 	ASSERT_RTNL();
+ 	params_new = kzalloc(sizeof(*params_new), GFP_KERNEL);
+ 	if (unlikely(!params_new)) {
+-		if (ret == ACT_P_CREATED)
+-			tcf_idr_release(*a, bind);
++		tcf_idr_release(*a, bind);
+ 		return -ENOMEM;
+ 	}
  
 diff --git a/net/sched/act_vlan.c b/net/sched/act_vlan.c
-index 02fbf76..6116e54 100644
+index 6a949f5..f747fb6 100644
 --- a/net/sched/act_vlan.c
 +++ b/net/sched/act_vlan.c
-@@ -290,6 +290,13 @@ static int tcf_vlan_search(struct net *net, struct tc_action **a, u32 index,
- 	return tcf_idr_search(tn, a, index);
- }
+@@ -185,10 +185,9 @@ static int tcf_vlan_init(struct net *net, struct nlattr *nla,
+ 			return ret;
  
-+static int tcf_vlan_delete(struct net *net, u32 index)
-+{
-+	struct tc_action_net *tn = net_generic(net, vlan_net_id);
-+
-+	return tcf_idr_find_delete(tn, index);
-+}
-+
- static struct tc_action_ops act_vlan_ops = {
- 	.kind		=	"vlan",
- 	.type		=	TCA_ACT_VLAN,
-@@ -300,6 +307,7 @@ static struct tc_action_ops act_vlan_ops = {
- 	.cleanup	=	tcf_vlan_cleanup,
- 	.walk		=	tcf_vlan_walker,
- 	.lookup		=	tcf_vlan_search,
-+	.delete		=	tcf_vlan_delete,
- 	.size		=	sizeof(struct tcf_vlan),
- };
+ 		ret = ACT_P_CREATED;
+-	} else {
++	} else if (!ovr) {
+ 		tcf_idr_release(*a, bind);
+-		if (!ovr)
+-			return -EEXIST;
++		return -EEXIST;
+ 	}
+ 
+ 	v = to_vlan(*a);
+@@ -196,8 +195,7 @@ static int tcf_vlan_init(struct net *net, struct nlattr *nla,
+ 	ASSERT_RTNL();
+ 	p = kzalloc(sizeof(*p), GFP_KERNEL);
+ 	if (!p) {
+-		if (ret == ACT_P_CREATED)
+-			tcf_idr_release(*a, bind);
++		tcf_idr_release(*a, bind);
+ 		return -ENOMEM;
+ 	}
  
 -- 
 2.7.5
