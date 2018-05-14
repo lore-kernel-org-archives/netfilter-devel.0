@@ -1,7 +1,7 @@
 From: Vlad Buslov <vladbu@mellanox.com>
-Subject: [PATCH 07/14] net: sched: use reference counting action init
-Date: Mon, 14 May 2018 17:27:08 +0300
-Message-ID: <1526308035-12484-8-git-send-email-vladbu@mellanox.com>
+Subject: [PATCH 08/14] net: sched: account for temporary action reference
+Date: Mon, 14 May 2018 17:27:09 +0300
+Message-ID: <1526308035-12484-9-git-send-email-vladbu@mellanox.com>
 References: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
 Cc: davem@davemloft.net, jhs@mojatatu.com, xiyou.wangcong@gmail.com,
         jiri@resnulli.us, pablo@netfilter.org, kadlec@blackhole.kfki.hu,
@@ -10,106 +10,50 @@ Cc: davem@davemloft.net, jhs@mojatatu.com, xiyou.wangcong@gmail.com,
         linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
         coreteam@netfilter.org, kliteyn@mellanox.com
 To: netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1526308035-12484-1-git-send-email-vladbu@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Change action API to assume that action init function always takes
-reference to action, even when overwriting existing action. This is
-necessary because action API continues to use action pointer after init
-function is done. At this point action becomes accessible for concurrent
-modifications so user must always hold reference to it.
+tca_get_fill function has 'bind' and 'ref' arguments that get passed
+down to action dump function. These arguments values are subtracted from
+actual reference and bind counter values before writing them to skb.
 
-Implement helper put list function to atomically release list of actions
-after action API init code is done using them.
+In order to prevent concurrent action delete, RTM_GETACTION handler
+acquires a reference to action before 'dumping' it and releases it
+afterwards. This reference is temporal and should not be accounted by
+userspace clients. (both logically and to preserver current API
+behavior)
+
+Use existing infrastructure of tca_get_fill arguments to subtract that
+temporary reference and not expose it to userspace.
 
 Signed-off-by: Vlad Buslov <vladbu@mellanox.com>
 ---
- net/sched/act_api.c | 38 +++++++++++++++++---------------------
- 1 file changed, 17 insertions(+), 21 deletions(-)
+ net/sched/act_api.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/net/sched/act_api.c b/net/sched/act_api.c
-index d324a4c..3f02cd1 100644
+index 3f02cd1..2772276e 100644
 --- a/net/sched/act_api.c
 +++ b/net/sched/act_api.c
-@@ -592,6 +592,18 @@ static int tcf_action_put(struct tc_action *p)
- 	return __tcf_action_put(p, false);
- }
+@@ -935,7 +935,7 @@ tcf_get_notify(struct net *net, u32 portid, struct nlmsghdr *n,
+ 	if (!skb)
+ 		return -ENOBUFS;
+ 	if (tca_get_fill(skb, actions, portid, n->nlmsg_seq, 0, event,
+-			 0, 0) <= 0) {
++			 0, 1) <= 0) {
+ 		NL_SET_ERR_MSG(extack, "Failed to fill netlink attributes while adding TC action");
+ 		kfree_skb(skb);
+ 		return -EINVAL;
+@@ -1125,7 +1125,7 @@ tcf_del_notify(struct net *net, struct nlmsghdr *n, struct list_head *actions,
+ 		return -ENOBUFS;
  
-+static void tcf_action_put_lst(struct list_head *actions)
-+{
-+	struct tc_action *a, *tmp;
-+
-+	list_for_each_entry_safe(a, tmp, actions, list) {
-+		const struct tc_action_ops *ops = a->ops;
-+
-+		if (tcf_action_put(a))
-+			module_put(ops->owner);
-+	}
-+}
-+
- int
- tcf_action_dump_old(struct sk_buff *skb, struct tc_action *a, int bind, int ref)
- {
-@@ -799,17 +811,6 @@ struct tc_action *tcf_action_init_1(struct net *net, struct tcf_proto *tp,
- 	return ERR_PTR(err);
- }
- 
--static void cleanup_a(struct list_head *actions, int ovr)
--{
--	struct tc_action *a;
--
--	if (!ovr)
--		return;
--
--	list_for_each_entry(a, actions, list)
--		refcount_dec(&a->tcfa_refcnt);
--}
--
- int tcf_action_init(struct net *net, struct tcf_proto *tp, struct nlattr *nla,
- 		    struct nlattr *est, char *name, int ovr, int bind,
- 		    struct list_head *actions, size_t *attr_size, bool unlocked,
-@@ -834,17 +835,10 @@ int tcf_action_init(struct net *net, struct tcf_proto *tp, struct nlattr *nla,
- 		}
- 		act->order = i;
- 		sz += tcf_action_fill_size(act);
--		if (ovr)
--			refcount_inc(&act->tcfa_refcnt);
- 		list_add_tail(&act->list, actions);
- 	}
- 
- 	*attr_size = tcf_action_full_attrs_size(sz);
--
--	/* Remove the temp refcnt which was necessary to protect against
--	 * destroying an existing action which was being replaced
--	 */
--	cleanup_a(actions, ovr);
- 	return 0;
- 
- err:
-@@ -1196,8 +1190,7 @@ tca_action_gd(struct net *net, struct nlattr *nla, struct nlmsghdr *n,
- 		return ret;
- 	}
- err:
--	if (event != RTM_GETACTION)
--		tcf_action_destroy(&actions, 0);
-+	tcf_action_put_lst(&actions);
- 	return ret;
- }
- 
-@@ -1239,8 +1232,11 @@ static int tcf_action_add(struct net *net, struct nlattr *nla,
- 			      &attr_size, false, extack);
- 	if (ret)
- 		return ret;
-+	ret = tcf_add_notify(net, n, &actions, portid, attr_size, extack);
-+	if (ovr)
-+		tcf_action_put_lst(&actions);
- 
--	return tcf_add_notify(net, n, &actions, portid, attr_size, extack);
-+	return ret;
- }
- 
- static u32 tcaa_root_flags_allowed = TCA_FLAG_LARGE_DUMP_ON;
+ 	if (tca_get_fill(skb, actions, portid, n->nlmsg_seq, 0, RTM_DELACTION,
+-			 0, 1) <= 0) {
++			 0, 2) <= 0) {
+ 		NL_SET_ERR_MSG(extack, "Failed to fill netlink TC action attributes");
+ 		kfree_skb(skb);
+ 		return -EINVAL;
 -- 
 2.7.5
